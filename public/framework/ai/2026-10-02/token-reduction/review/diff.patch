@@ -1,0 +1,557 @@
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 8dae7bfe..b3b9ce17 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -9,7 +9,7 @@ import { stamp, place } from "../home.js";
+ import Registry, { alive } from "./registry.js";
+ import { defaults as role_defaults, opening } from "./roles.js";
+ import { first_prompt } from "./readme-chain.js";
+-import { env_for, provider_for, real_turn_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
++import { env_for, provider_for, real_turn_cost, generation_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
+ import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
+ 
+ /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
+@@ -489,7 +489,7 @@ export class Agents {
+ 	 * session ran and its model come from the session file when the row does
+ 	 * not say. Shared by `wake()` and `revive()`. */
+ 	reopen(row){
+-		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "effort", "cwd",
++		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "provider", "effort", "cwd",
+ 			"permission_mode", "allowed_tools", "setting_sources"];
+ 		const base = strip(row.spec ?? Object.fromEntries(keys.map(k => [k, row[k]])));
+ 		const facts = base.cwd && base.model ? {} : session_facts(row.session_id);
+@@ -499,6 +499,8 @@ export class Agents {
+ 			id: row.id, started_at: row.started_at, resume: row.session_id }));
+ 	}
+ 	interrupt(id){ return this.get(id).interrupt(); }
++	/* Continue (+$5) on a spend-gate card: raise that agent's allowance (Agent.grant). */
++	grant(id, usd = 5){ return this.get(id).grant(usd); }
+ 	/* `by` (the stop_agent tool: who called it) marks a stop ON PURPOSE: it goes
+ 	 * into the registry row, and the revive guard honours it across restarts.
+ 	 * Servex's own stops (reaper, one-pass roles) pass nothing. A row with no
+@@ -1210,6 +1212,7 @@ Agents.Agent = class Agent {
+ 		if (message.type === "stream_event") return this.delta(message);
+ 		if (message.type === "assistant") return this.assistant(message);
+ 		if (message.type === "result") return this.result(message);
++		if (message.type === "user") return this.tool_results(message);   // the spend gate: did a result-kind call succeed
+ 	}
+ 
+ 	/* The CLI re-announces itself at the top of EVERY turn, not just the first.
+@@ -1243,15 +1246,174 @@ Agents.Agent = class Agent {
+ 		// openrouter/provider.js real_turn_cost(): the main thread's own message id,
+ 		// which OpenRouter's /generation endpoint can look up directly and exactly.
+ 		if (!nested && message.message?.id){ this.last_assistant_message_id = message.message.id; (this.turn_message_ids ??= new Set()).add(message.message.id); }
++		if (!nested && message.message?.id && this.provider === "openrouter") this.meter(message.message.id);
+ 		for (const block of message.message?.content ?? []){
+ 			if (block.type === "text" && block.text.trim())
+ 				this.emit({ type: nested ? "subagent" : "transcript", text: block.text });
+-			if (block.type === "tool_use")
++			if (block.type === "tool_use"){
+ 				this.emit({ type: "tool", name: block.name, input: this.summary(block.input), nested });
++				if (!nested) this.tool_started(block);
++			}
+ 		}
+ 		if (message.error) this.emit({ type: "error", where: "assistant", text: String(message.error.message || message.error) });
+ 	}
+ 
++	/* SPEND FOLLOWS RESULTS (the owner, 2026-10-02: "Spending $10 or $20 to find out if
++	 * something works is fine if it's promising; blowing $20 with no results is not
++	 * acceptable"). It came after two Gemini masterminds spent about $17 in 20 minutes reading
++	 * and never acting. Every agent starts with $2 (SERVEX_GATE_FIRST_USD) to produce its FIRST
++	 * result. Each verified result unlocks $3 more (SERVEX_GATE_STEP_USD), up to the task
++	 * brief's `Budget: $N` line, or $20 without one. A result is a commit, a step marked done,
++	 * a page line or a spawned minion with a brief, and it counts only once its tool call
++	 * comes back without an error. When spend reaches the allowance with no new result,
++	 * Servex interrupts the agent (never mid-tool-call: it waits for the open call to return)
++	 * and posts one Inbox card: the spend, what it read, what it produced, and Continue (+$5)
++	 * or Stop. Every gate event is one `spend-gate` line in Servex's log.
++	 * Spend: an OpenRouter agent's model calls, each priced by OpenRouter's /generation as it
++	 * settles, so the gate works during the turn. A Claude agent's SDK total, which arrives
++	 * only at the turn's end. Pricing each Claude call during the turn is token-reduction item 4. */
++	static RESULT = [
++		["commit", (n, i) => n === "Bash" && /\bgit\b[^|;&]*\bcommit\b/.test(i.command ?? "")],
++		["step done", (n, i) => /close_task$/.test(n) || ((n === "Bash" || /append_log$/.test(n)) && /task\.jsonl/.test(JSON.stringify(i)) && /"?done"?\s*[:=]|"status"\s*:\s*"done"|landed_at/.test(JSON.stringify(i)))],
++		["page line", n => /mcp__servex__page_(add|set|log)$/.test(n)],
++		["spawned a minion", (n, i) => /spawn_agent$/.test(n) && Boolean(i.task?.brief || /requirements\.md/.test(i.prompt ?? ""))],
++	];
++
++	/* Who is gated: work agents. Anything with a task, or an OpenRouter mastermind or minion.
++	 * The front desk (assistants, the echo, the voice pair) answers rather than produces, so it isn't. */
++	gated_role(){
++		return Boolean(this.task?.dir) || (this.provider === "openrouter" && /mastermind|minion/.test(String(this.role ?? this.id)));
++	}
++
++	gate(){
++		return this.spend_gate ??= { results: [], granted: 0, spent_at_result: 0, open: new Map(), reads: 0, read_log: [], gated: false, due: false };
++	}
++
++	spent_usd(){
++		return this.provider === "openrouter" ? (this.metered_usd ?? 0) : (Number(this.cost) || 0);
++	}
++
++	ceiling_usd(){
++		return this.ceiling_cache ??= this.read_ceiling();   // read the brief once, not on every registry write
++	}
++
++	read_ceiling(){
++		if (Number(this.budget_usd) > 0) return Number(this.budget_usd);
++		try {
++			const brief = this.task?.brief && fs.readFileSync(path.resolve(this.task.brief), "utf8");
++			const m = brief && /Budget:\s*\$\s*(\d+(?:\.\d+)?)/.exec(brief);
++			if (m) return Number(m[1]);
++		} catch {}
++		return Number(process.env.SERVEX_GATE_CEILING_USD) || 20;
++	}
++
++	allowance_usd(){
++		const g = this.gate(), first = Number(process.env.SERVEX_GATE_FIRST_USD) || 2, step = Number(process.env.SERVEX_GATE_STEP_USD) || 3;
++		return Math.min(this.ceiling_usd(), first + step * g.results.length) + g.granted;
++	}
++
++	/* For the registry row and the Sessions grid. */
++	gate_row(){
++		const g = this.spend_gate;
++		if (!g) return null;
++		const spent = this.spent_usd();
++		return { spent_usd: +spent.toFixed(4), since_result_usd: +(spent - g.spent_at_result).toFixed(4), allowance_usd: this.allowance_usd(),
++			results: g.results.length, last_result: g.results.at(-1) ?? null, gated: g.gated };
++	}
++
++	gate_log(event, extra = {}){
++		this.host?.store?.().append("servex", { type: "spend-gate", event, agent: this.id, model: this.model,
++			spent_usd: +this.spent_usd().toFixed(4), allowance_usd: this.allowance_usd(), results: this.gate().results.length, ...extra }).catch(() => {});
++	}
++
++	tool_started(block){
++		const g = this.gate(), input = block.input ?? {};
++		g.open.set(block.id, null);
++		const kind = this.constructor.RESULT.find(([, test]) => { try { return test(block.name, input); } catch { return false; } })?.[0];
++		if (kind) g.open.set(block.id, { kind, what: this.summary(input, 120) });
++		if (/^(Read|Grep|Glob)$|page_read|read_page|read_card/.test(block.name)){
++			g.reads += 1;
++			g.read_log.push(input.file_path ?? input.path ?? input.pattern ?? input.card ?? block.name);
++			if (g.read_log.length > 30) g.read_log.shift();
++			/* THE READ-LOOP GUARD, a warning only: 40 reads with no result since the last one. */
++			const warn = Number(process.env.SERVEX_READ_WARN) || 40;
++			if (g.reads === warn){
++				this.gate_log("read-warn", { reads: g.reads });
++				try { this.host?.send?.(this.id, `Servex: ${g.reads} reads since your last result. Produce one now (a commit, a step done, a page line, or a minion with a brief): your spend is gated on results.`, { from: "servex" }); } catch {}
++			}
++		}
++	}
++
++	/* Tool results come back in "user" messages; a result-kind call counts only if it succeeded. */
++	tool_results(message){
++		if (message.parent_tool_use_id) return;
++		const content = message.message?.content;
++		if (!Array.isArray(content)) return;
++		const g = this.gate();
++		for (const b of content){
++			if (b?.type !== "tool_result" || !g.open.has(b.tool_use_id)) continue;
++			const candidate = g.open.get(b.tool_use_id);
++			g.open.delete(b.tool_use_id);
++			if (candidate && !b.is_error){
++				g.results.push({ ...candidate, at: stamp(), spent_usd: +this.spent_usd().toFixed(4) });
++				g.spent_at_result = this.spent_usd();
++				g.reads = 0;
++				g.gated = false;
++				this.gate_log("result", candidate);
++			}
++		}
++		if (g.due && !g.open.size) this.gate_check();
++	}
++
++	async meter(id){
++		this.metered ??= new Map();
++		if (this.metered.has(id)) return;
++		this.metered.set(id, 0);
++		let key; try { key = read_key(); } catch { return; }
++		for (let i = 0; i < 6; i++){
++			const c = await generation_cost(key, id).catch(() => null);
++			if (c != null){ this.metered.set(id, c); break; }
++			await new Promise(r => setTimeout(r, 2500));
++		}
++		this.metered_usd = [...this.metered.values()].reduce((a, b) => a + b, 0);
++		this.gate_check();
++	}
++
++	/* The gate itself: run when a call is priced, when a tool call returns, and at a turn's end. */
++	gate_check(){
++		if (!this.gated_role()) return;
++		const g = this.gate(), spent = this.spent_usd(), allowance = this.allowance_usd();
++		if (spent < allowance){ g.due = false; return; }
++		if (g.open.size && this.state === "working"){ g.due = true; return; }   // never mid-tool-call
++		g.due = false;
++		if (this.state === "working") this.interrupt().catch?.(() => {});
++		if (g.gated) return;   // one card per gate, however often the agent is woken past it
++		g.gated = true;
++		this.gate_log("gate", { since_result_usd: +(spent - g.spent_at_result).toFixed(4) });
++		const made = g.results.length ? g.results.map(r => `${r.kind}: ${r.what}`).slice(-5).join("; ") : "nothing yet";
++		const read = g.read_log.slice(-10).join(", ") || "nothing";
++		const text = `${this.id} (${this.model}) has spent $${spent.toFixed(2)}, $${(spent - g.spent_at_result).toFixed(2)} of it since its last result, and reached its $${allowance.toFixed(2)} allowance, so Servex paused it. Produced: ${made}. Last read: ${read}. Continue gives it $5 more; Stop ends it.`;
++		const sx = this.host?.servex, h = sx?.mcp?.handlers, ask = h?.get?.("card_ask"), card = this.task?.card;
++		/* `from: this.id` lets Cards.js's wake() find exactly this agent when the owner answers,
++		 * instead of falling back to every attached non-minion agent. `kind: "spend-gate"` tells
++		 * wake() to act on the answer directly (grant/stop) instead of just texting it over. */
++		Promise.resolve(card && ask ? ask({ card, question: text, options: ["Continue (+$5)", "Stop"], from: this.id, kind: "spend-gate" }, { caller: "servex" }) : null)
++			.catch(() => null)
++			.then(out => { if (!out) sx?.inbox?.drop({ path: this.task?.dir ?? "public/framework/servex", text, from: "servex" }); })
++			.catch(() => {});
++		try { sx?.say?.(text, { event: "spend-gate" }); } catch {}
++	}
++
++	/* Continue (+$5): the Inbox answer, or anyone with the authority, raises the allowance. */
++	grant(usd = 5){
++		const g = this.gate();
++		g.granted += Number(usd) || 0;
++		g.gated = false;
++		this.gate_log("grant", { granted_usd: Number(usd) || 0 });
++		this.host?.register?.(this);
++		return this;
++	}
++
+ 	/* A tool call's input can be a whole file; the log wants a glance at it. */
+ 	summary(input, max = 200){
+ 		const text = Object.entries(input ?? {})
+@@ -1321,6 +1483,8 @@ Agents.Agent = class Agent {
+ 		else this.cost = message.total_cost_usd ?? this.cost;
+ 		this.queued = message.queued_turn_count ?? 0;
+ 		this.state = this.queued > 0 ? "working" : "idle";
++		this.spend_gate?.open.clear();   // a turn's end closes every tool call it opened
++		try { this.gate_check(); } catch {}   // a Claude agent's spend is known only now
+ 		/* `words` = everything said this turn, which is what a fork's wake and
+ 		 * `wait_for_agent` hand back; `last_text` is only its final block. */
+ 		this.words = (this.said ?? []).join("\n\n") || null;
+diff --git a/Servex/agents/landed-reap-proof.mjs b/Servex/agents/landed-reap-proof.mjs
+new file mode 100644
+index 00000000..428e28b6
+--- /dev/null
++++ b/Servex/agents/landed-reap-proof.mjs
+@@ -0,0 +1,87 @@
++/* node Servex/agents/landed-reap-proof.mjs — an idle minion whose PARENT's task
++ * has landed is flagged to close by `Lifecycle.why()`. No real Servex, no network,
++ * no process scan: `why()`'s agent branch only reads `this.tasks` (a Map of task
++ * key -> {agent, landed, ...}) and `this.all_agents` (the live/idle agent rows),
++ * both of which `plan()` would normally fill from disk and from Servex's own
++ * `agents.registry_list()` before calling `why()` for each row — this proof fills
++ * them by hand with exactly the shape `why()` reads, and calls `why()` directly,
++ * the same way `plan()`/`reap()` do internally.
++ *
++ * Why this matters (token-reduction brief, item 3): a MINION's own task.jsonl
++ * often never gets its own `landed_at` line — it reports to its parent and the
++ * PARENT's log is the one marked landed. So the only way Lifecycle can tell an
++ * idle minion it should close is by walking from the minion's `parent` id to the
++ * task whose own recorded `agent` is that parent, and checking THAT task's
++ * `landed` flag. If that match ever misses (wrong field read, wrong key), the
++ * minion is never flagged, and the heartbeat (a separate file, Heartbeat.js)
++ * keeps sending it status checks forever, billing it — exactly the symptom in
++ * the brief's evidence line for `minion-lib-h1-page`.
++ *
++ * Exit 0 = every case behaved. */
++import Lifecycle from "../Lifecycle.js";
++
++const results = [];
++const check = (name, ok, detail) => { results.push({ name, ok, detail }); console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? " — " + detail : ""}`); };
++
++/* ── case 1: the minion's parent mastermind's task HAS landed ── */
++{
++	const lc = new Lifecycle({ servex: null });
++	// what plan() would have put in `this.tasks` after reading a real task dir whose
++	// task.jsonl has {"assign":{"agent":"mastermind-x"}} then later {"assign":{"landed_at":"...","outcome":"done"}}:
++	lc.tasks = new Map([
++		["2026-10-03/fake-task/mastermind-x", { key: "2026-10-03/fake-task/mastermind-x", agent: "mastermind-x", landed: true, landed_at: "2026-10-03T00:00:00-05:00", outcome: "done" }]
++	]);
++	lc.all_agents = [{ id: "mastermind-x", state: "stopped" }];
++
++	const idle_minion = { kind: "agent", id: "minion-under-x", role: "minion", parent: "mastermind-x", state: "idle" };
++	const reason = lc.why(idle_minion);
++	check("idle minion of a landed task's mastermind is flagged to close", !!reason && /landed/.test(reason), reason);
++}
++
++/* ── case 2: a sibling minion whose parent's task is still OPEN must NOT be flagged ── */
++{
++	const lc = new Lifecycle({ servex: null });
++	lc.tasks = new Map([
++		["2026-10-03/fake-task/mastermind-y", { key: "2026-10-03/fake-task/mastermind-y", agent: "mastermind-y", landed: false }]
++	]);
++	lc.all_agents = [{ id: "mastermind-y", state: "working" }];
++
++	const idle_minion = { kind: "agent", id: "minion-under-y", role: "minion", parent: "mastermind-y", state: "idle" };
++	const reason = lc.why(idle_minion);
++	check("idle minion of an OPEN task's mastermind is left alone", reason === null, JSON.stringify(reason));
++}
++
++/* ── case 3: the minion's OWN task.jsonl is the one in `this.tasks` (keyed by the
++ *   minion's own task dir), but it never got its own landed_at — only its parent's
++ *   task did. This is the exact shape named in the brief ("a minion's own task.jsonl
++ *   often never gets its own landed_at"): `why()` must still find the PARENT's task
++ *   by matching `task.agent === row.parent`, not the minion's own (non-landed) one. ── */
++{
++	const lc = new Lifecycle({ servex: null });
++	lc.tasks = new Map([
++		["2026-10-03/fake-task/mastermind-z/minion-sub", { key: "2026-10-03/fake-task/mastermind-z/minion-sub", agent: "minion-under-z", landed: false }],
++		["2026-10-03/fake-task/mastermind-z", { key: "2026-10-03/fake-task/mastermind-z", agent: "mastermind-z", landed: true }]
++	]);
++	lc.all_agents = [{ id: "mastermind-z", state: "stopped" }];
++
++	const idle_minion = { kind: "agent", id: "minion-under-z", role: "minion", parent: "mastermind-z", state: "idle" };
++	const reason = lc.why(idle_minion);
++	check("idle minion with its OWN (unlanded) task log is still flagged via its parent's landed task", !!reason && /landed/.test(reason), reason);
++}
++
++/* ── case 4: the `only` form (Lifecycle.reap(dir) narrows to one task key) ── */
++{
++	const lc = new Lifecycle({ servex: null });
++	lc.tasks = new Map([
++		["2026-10-03/fake-task/mastermind-x", { key: "2026-10-03/fake-task/mastermind-x", agent: "mastermind-x", landed: true }]
++	]);
++	lc.all_agents = [{ id: "mastermind-x", state: "stopped" }];
++	const idle_minion = { kind: "agent", id: "minion-under-x", role: "minion", parent: "mastermind-x", state: "idle" };
++	check("reap(dir)'s `only` form flags the matching task's idle minion",
++		!!lc.why(idle_minion, "2026-10-03/fake-task/mastermind-x"));
++	check("…but not an idle minion of a DIFFERENT task", lc.why(idle_minion, "2026-10-03/some-other-task") === null);
++}
++
++const failed = results.filter(r => !r.ok).length;
++console.log(`\n${results.length - failed}/${results.length} passed`);
++process.exit(failed ? 1 : 0);
+diff --git a/Servex/agents/revive-proof.mjs b/Servex/agents/revive-proof.mjs
+index 07898147..fc2084c8 100644
+--- a/Servex/agents/revive-proof.mjs
++++ b/Servex/agents/revive-proof.mjs
+@@ -24,6 +24,28 @@ const DIR = path.join(os.tmpdir(), "servex-revive-proof");
+ const HAIKU = "claude-haiku-4-5-20251001";
+ const wait = ms => new Promise(r => setTimeout(r, ms));
+ 
++/* ── scene 0: a legacy row with no `spec` keeps its OpenRouter provider on
++ * reopen() — the 2026-10-02 bug where a revived free/cheap-model agent came
++ * back on Claude, unmetered, because `keys` (the fallback used when a row
++ * has no `spec`) was missing "provider". No real process: `spawn()` is
++ * stubbed to just capture the spec `reopen()` built, so this never starts a
++ * claude session — it runs even before the host1/host2 dance below. */
++if (process.argv[2] !== "host1"){
++	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "revive-proof-provider-"));
++	const host = new Agents({ registry_dir: tmp });
++	let captured = null;
++	host.spawn = spec => { captured = spec; return { id: spec.id, send(){ return this; }, card: () => ({ id: spec.id }) }; };
++	host.reopen({
++		id: "legacy-or", role: "minion", model: "deepseek/deepseek-v4-pro", provider: "openrouter",
++		cwd: tmp, session_id: "s-legacy", started_at: "2026-10-01T00:00:00-05:00"
++		// deliberately NO `spec` key — this is the shape an older/legacy registry row has
++	});
++	const ok = captured?.provider === "openrouter" && captured?.model === "deepseek/deepseek-v4-pro";
++	console.log(`${ok ? "PASS" : "FAIL"}  legacy row with no spec keeps its OpenRouter provider+model on reopen (got provider=${captured?.provider}, model=${captured?.model})`);
++	fs.rmSync(tmp, { recursive: true, force: true });
++	if (!ok) process.exit(1);
++}
++
+ /* ── host 1: spawn, report the moment the slow tool starts, then just live ── */
+ if (process.argv[2] === "host1"){
+ 	const host = new Agents({ registry_dir: DIR });
+diff --git a/Servex/agents/spend-gate-proof.mjs b/Servex/agents/spend-gate-proof.mjs
+new file mode 100644
+index 00000000..5fb3601c
+--- /dev/null
++++ b/Servex/agents/spend-gate-proof.mjs
+@@ -0,0 +1,141 @@
++/* node Servex/agents/spend-gate-proof.mjs — the spend-follows-results gate (Agents.js's
++ * gate(), allowance_usd(), tool_started(), tool_results(), gate_check(), grant()) is pure
++ * logic on Agents.Agent.prototype, so this proves it by calling those methods directly on a
++ * bare object (`Object.assign(Object.create(Agents.Agent.prototype), {...})`), never a real
++ * Claude session, never the network, never a real Servex — the same trick revive-guard-proof.mjs
++ * and wake-proof.mjs use for the parts of Agents.js that don't need a live SDK call.
++ *
++ * Also proves the matched-pair fix in gate_check(): the `ask` call now carries `from: this.id`
++ * and `kind: "spend-gate"` (so Cards.js's wake() can find this exact agent and act on its
++ * answer directly, instead of texting every attached agent a line nothing reads).
++ *
++ * Exit 0 = every case behaved. */
++
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { Agents } from "./Agents.js";
++
++// Pin the gate's three dollar amounts so this proof never depends on whatever
++// is in the real environment.
++process.env.SERVEX_GATE_FIRST_USD = "2";
++process.env.SERVEX_GATE_STEP_USD = "3";
++process.env.SERVEX_GATE_CEILING_USD = "20";
++
++const results = [];
++const check = (name, ok, detail) => {
++	results.push({ name, ok });
++	console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail !== undefined ? " — " + JSON.stringify(detail) : ""}`);
++};
++
++/* A bare Agent: the real spend-gate methods come straight from the prototype; everything a
++ * live agent would normally get from Servex (the host, a card, a session) is a plain stub that
++ * just records what it was called with. */
++function fakeAgent(overrides = {}){
++	const gateLog = [], askCalls = [], inboxDrops = [], interruptCalls = [];
++	const askHandler = args => { askCalls.push(args); return Promise.resolve({ ok: true, id: "c-1", ask: "q-1" }); };
++	const agent = Object.assign(Object.create(Agents.Agent.prototype), {
++		id: "a-1", model: "claude-sonnet-5", provider: "anthropic", state: "idle", role: "minion",
++		task: { dir: "t", card: "c-1" },
++		interrupt(){ interruptCalls.push(1); return Promise.resolve(); },
++		host: {
++			store: () => ({ append: async (_log, obj) => { gateLog.push(obj); return true; } }),
++			register: () => {},
++			servex: {
++				mcp: { handlers: new Map([["card_ask", askHandler]]) },
++				inbox: { drop: x => inboxDrops.push(x) },
++				say: () => {}
++			}
++		},
++		...overrides
++	});
++	return { agent, gateLog, askCalls, inboxDrops, interruptCalls };
++}
++
++/* 1. $2 (the default SERVEX_GATE_FIRST_USD) spent, no result yet, mid-turn ("working"): the
++ *    gate interrupts once and asks (the card_ask-equivalent) once, with the right
++ *    since_result_usd. The ask also carries `from` + `kind: "spend-gate"` — the fix this task
++ *    makes, proved here because gate_check() is where it is wired. A second gate_check() while
++ *    still gated must not ask again. */
++{
++	const { agent, gateLog, askCalls, interruptCalls } = fakeAgent({ cost: 2, state: "working" });
++	agent.gate_check();
++	check("$2 spent, no result, mid-turn: interrupt() called once", interruptCalls.length === 1);
++	check("...and the card is asked exactly once", askCalls.length === 1);
++	const gateEvent = gateLog.find(l => l.event === "gate");
++	check("...with since_result_usd = $2 (nothing produced yet)", gateEvent?.since_result_usd === 2, gateEvent);
++	check("...and the ask carries from: this.id + kind: spend-gate (the fix)",
++		askCalls[0]?.from === "a-1" && askCalls[0]?.kind === "spend-gate", askCalls[0]);
++	agent.gate_check();
++	check("a second gate_check() while still gated does not ask again", askCalls.length === 1);
++}
++
++/* 2. A successful commit-shaped tool result unlocks $3 more allowance (SERVEX_GATE_STEP_USD);
++ *    a FAILED one does not. */
++{
++	const { agent } = fakeAgent({ cost: 0, state: "idle" });
++	const before = agent.allowance_usd();
++	agent.tool_started({ id: "tu-1", name: "Bash", input: { command: "git commit -m 'x'" } });
++	agent.tool_results({ message: { content: [{ type: "tool_result", tool_use_id: "tu-1", is_error: false }] } });
++	const after = agent.allowance_usd();
++	check("a successful git-commit tool result unlocks +$3 allowance", after - before === 3, { before, after });
++
++	const before2 = agent.allowance_usd();
++	agent.tool_started({ id: "tu-2", name: "Bash", input: { command: "git commit -m 'y'" } });
++	agent.tool_results({ message: { content: [{ type: "tool_result", tool_use_id: "tu-2", is_error: true }] } });
++	const after2 = agent.allowance_usd();
++	check("a FAILED git-commit tool result does NOT unlock more allowance", after2 === before2, { before2, after2 });
++}
++
++/* 3. An open tool call (started, not yet returned) delays the interrupt: gate_check() sets
++ *    g.due = true and does not call interrupt() while g.open.size is nonzero and the agent is
++ *    "working". Once that call returns, tool_results() re-runs the gate and it fires then. */
++{
++	const { agent, interruptCalls, askCalls } = fakeAgent({ cost: 2, state: "working" });
++	agent.tool_started({ id: "tu-open", name: "Read", input: { file_path: "/x" } });   // no matching tool_results yet
++	agent.gate_check();
++	check("an open tool call delays the interrupt: due=true, interrupt NOT called",
++		agent.gate().due === true && interruptCalls.length === 0);
++	check("...and the card is not asked yet either", askCalls.length === 0);
++	agent.tool_results({ message: { content: [{ type: "tool_result", tool_use_id: "tu-open", is_error: false }] } });
++	check("once the open call returns, the deferred gate fires: interrupt + ask both run",
++		interruptCalls.length === 1 && askCalls.length === 1);
++}
++
++/* 4. ceiling_usd()/read_ceiling() picks up a `Budget: $N` line from the task's own brief file,
++ *    and `budget_usd` (added to spawn_agent in this same task) overrides it. With neither, it
++ *    falls back to the $20 default. */
++{
++	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "spend-gate-proof-"));
++	const brief = path.join(tmp, "requirements.md");
++	fs.writeFileSync(brief, "# A task\n\nBudget: $15.\n\nmore words here.\n");
++
++	const { agent: a1 } = fakeAgent({ task: { dir: "t", brief } });
++	check("read_ceiling() reads Budget: $N from the brief file", a1.read_ceiling() === 15, a1.read_ceiling());
++
++	const { agent: a2 } = fakeAgent({ task: { dir: "t", brief }, budget_usd: 7 });
++	check("budget_usd overrides the brief's Budget: $N line", a2.read_ceiling() === 7, a2.read_ceiling());
++
++	const { agent: a3 } = fakeAgent({ task: { dir: "t" } });   // no brief, no budget_usd
++	check("no budget_usd and no brief: falls back to the $20 default", a3.read_ceiling() === 20, a3.read_ceiling());
++
++	fs.rmSync(tmp, { recursive: true, force: true });
++}
++
++/* 5. grant(usd) raises allowance_usd() by that amount and clears g.gated, so a second
++ *    gate_check() does not re-fire the card (the owner chose "Continue (+$5)"). */
++{
++	const { agent, askCalls } = fakeAgent({ cost: 2, state: "working" });
++	agent.gate_check();
++	check("gated and asked once before the grant", askCalls.length === 1 && agent.gate().gated === true);
++	const before = agent.allowance_usd();
++	agent.grant(5);
++	check("grant(5) raises allowance by $5 and clears gated",
++		agent.allowance_usd() - before === 5 && agent.gate().gated === false, { before, after: agent.allowance_usd() });
++	agent.gate_check();
++	check("after the grant, a second gate_check() does not ask again", askCalls.length === 1);
++}
++
++const failed = results.filter(r => !r.ok).length;
++console.log(`\n${results.length - failed}/${results.length} passed`);
++process.exit(failed ? 1 : 0);
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index b07b83a6..f132d349 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -241,6 +241,7 @@ return [
+ 			resume: { type: "string", description: "A session uuid to CONTINUE instead of starting blank — the agent opens with that whole conversation. No skill-load preamble is added, and with no `prompt` it just waits, idle, for a message. ⚠ Give the `cwd` the session originally ran in: sessions are stored per project directory, and a resume from anywhere else cannot find it." },
+ 			fork: { type: "boolean", description: "With `resume`: continue as a NEW session (a copy), leaving the original untouched and still usable. It reuses the original's prompt cache when model, tools and settings match." },
+ 			task: { type: "object", description: "Open this agent's task.jsonl for it, before its first turn: `{dir, card, brief}`. `dir` is the task's directory (repo-relative or absolute; created if new) — line 1 (or the next line, if the dir already has a log) is written there with the session id, agent id, card, brief and model, so the agent never has to run new-task itself; its first turn is told where its log already is. Nested tasks: `parent_task` (the parent's task dir; defaults to the calling agent's own task dir) and `after` (an array of the sibling task DIRS this one waits for, the series edges — full dirs like `dir`, never bare slugs; stored repo-relative like `parent_task` and matched exactly) are written into that line too." },
++			budget_usd: { type: "number", description: "Dollar ceiling for the results-gated spend guard (Agents.js spend_gate) — overrides the task's `Budget: $N` brief line and the $20 default. The agent still starts with $2 and unlocks $3 per result up to this ceiling." },
+ 			dormant_after: DORMANT_AFTER
+ 		},
+ 		[],
+diff --git a/Servex/cards/Cards.js b/Servex/cards/Cards.js
+index a181646f..39cd3d24 100644
+--- a/Servex/cards/Cards.js
++++ b/Servex/cards/Cards.js
+@@ -203,7 +203,7 @@ export default class Cards {
+ 	 * (`ux/Content/Question`) when it is not. No new verb, no new datastore: the owner answers
+ 	 * with the exact control already on the card, and `append()` below wakes the asker.
+ 	 * Returns `{ok, id: <card>, ask: <the place line's own id>}`, or `{ok:false, why}`. */
+-	async ask({ card, question, options, title, from } = {}){
++	async ask({ card, question, options, title, from, kind } = {}){
+ 		if (!question || !String(question).trim()) return { ok: false, why: "a card_ask needs a question" };
+ 		const decision = Array.isArray(options) && options.length > 0;
+ 		const id = this.ask_id(decision ? "d" : "q");
+@@ -212,6 +212,7 @@ export default class Cards {
+ 			: { module: "/framework/ux/Content/Question/Question.js", id, ask: question, at: stamp() };
+ 		if (title) place.title = title;
+ 		if (from) place.from = from;
++		if (kind) place.kind = kind;   // e.g. "spend-gate": wake() acts on the answer itself instead of just texting it over
+ 		const out = await this.append(card, { place });
+ 		if (!out.ok) return out;
+ 		return { ok: true, id: out.id, ask: id };
+@@ -228,12 +229,24 @@ export default class Cards {
+ 
+ 		let found = null;
+ 		for (const l of await this.read(card)){
+-			if (l.place?.id === ask_id) found = { ask: l.place.ask, from: l.place.from };
+-			else if (l.ask?.id === ask_id) found = { ask: l.ask.question ?? l.ask.title, from: l.ask.from };
++			if (l.place?.id === ask_id) found = { ask: l.place.ask, from: l.place.from, kind: l.place.kind };
++			else if (l.ask?.id === ask_id) found = { ask: l.ask.question ?? l.ask.title, from: l.ask.from, kind: l.ask.kind };
+ 		}
+ 		if (!found) return [];
+ 
+ 		const answer = line.chose?.option ?? line.answer?.text;
++
++		/* A spend-gate card (Agents.js's gate_check()) is answered by ACTING, not by texting
++		 * the gated agent a generic "owner answered" line that no tool ever reads: Stop really
++		 * stops it, Continue really raises its allowance by $5, with no extra model turn spent.
++		 * This is the ONE special case — every other card_ask still falls through to the
++		 * generic send below. */
++		if (found.kind === "spend-gate" && found.from){
++			if (/stop/i.test(String(answer))) this.agents.stop(found.from, { by: "owner" });
++			else this.agents.grant(found.from, 5);
++			return [found.from];
++		}
++
+ 		const text = `The owner answered your question on card ${card} ("${found.ask}"): ${answer}`;
+ 		const note = { from: OWNER, reply_to: `card ${card}`, revive: true };   // the owner answering IS the reason to wake it (never one whose cwd is gone)
+ 		const targets = found.from ? [found.from]

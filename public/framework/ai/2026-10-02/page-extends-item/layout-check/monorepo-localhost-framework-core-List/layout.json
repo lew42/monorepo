@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/List/",
+ "widths": {
+  "1280": {
+   "empty": 0.558,
+   "widest_text": 597,
+   "widest_text_sample": "About fifty lines. It is what an ordered",
+   "overflow_x": false,
+   "items": 267,
+   "narrow_share": 0.798
+  },
+  "1920": {
+   "empty": 0.677,
+   "widest_text": 635,
+   "widest_text_sample": "About fifty lines. It is what an ordered",
+   "overflow_x": false,
+   "items": 267,
+   "narrow_share": 0.948
+  },
+  "2560": {
+   "empty": 0.744,
+   "widest_text": 714,
+   "widest_text_sample": "About fifty lines. It is what an ordered",
+   "overflow_x": false,
+   "items": 267,
+   "narrow_share": 0.948
+  },
+  "3440": {
+   "empty": 0.804,
+   "widest_text": 714,
+   "widest_text_sample": "About fifty lines. It is what an ordered",
+   "overflow_x": false,
+   "items": 267,
+   "narrow_share": 0.948
+  }
+ },
+ "errors": []
+}

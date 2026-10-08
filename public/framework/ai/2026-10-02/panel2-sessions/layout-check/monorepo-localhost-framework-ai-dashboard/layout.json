@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/dashboard/",
+ "widths": {
+  "1280": {
+   "empty": 0.593,
+   "widest_text": 316,
+   "widest_text_sample": "owner agent dormant, nothing queued to w",
+   "overflow_x": false,
+   "items": 81,
+   "narrow_share": 0.099
+  },
+  "1920": {
+   "empty": 0.646,
+   "widest_text": 378,
+   "widest_text_sample": "Remote access: Cloudflare tunnel login (",
+   "overflow_x": false,
+   "items": 81,
+   "narrow_share": 0.346
+  },
+  "2560": {
+   "empty": 0.57,
+   "widest_text": 425,
+   "widest_text_sample": "Remote access: Cloudflare tunnel login (",
+   "overflow_x": false,
+   "items": 81,
+   "narrow_share": 0.346
+  },
+  "3440": {
+   "empty": 0.698,
+   "widest_text": 451,
+   "widest_text_sample": "AI system docs: the System tab now expla",
+   "overflow_x": false,
+   "items": 81,
+   "narrow_share": 0.938
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

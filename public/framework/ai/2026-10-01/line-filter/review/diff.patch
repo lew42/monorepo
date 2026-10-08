@@ -1,0 +1,430 @@
+diff --git a/public/blog/ai/lines-to-3d/post.md b/public/blog/ai/lines-to-3d/post.md
+index e1122c2b..3b4e9513 100644
+--- a/public/blog/ai/lines-to-3d/post.md
++++ b/public/blog/ai/lines-to-3d/post.md
+@@ -44,7 +44,7 @@ This is an optimisation loop: keep adjusting the model until its render matches
+ 
+ ## Next
+ 
+-People have surely worked on this (line-based structure from motion, wireframe reconstruction). The next step is a small research pass: what exists, what works, and whether a quick prototype on a photo of a box is worth trying.
++[Try the line-map prototype](/imagine/lines/): drop a photo, compare the original with line art, and tune how strongly faint, steady edges show up. Corners, vectors and 3D come after this first map works.
+ 
+ ## Part 2: refining the idea (same day)
+ 
+diff --git a/public/blog/words.js b/public/blog/words.js
+index 9132b8bc..223f839a 100644
+--- a/public/blog/words.js
++++ b/public/blog/words.js
+@@ -3,7 +3,7 @@
+    `posts.js` reads this to say how long a post is; the words-per-minute is there. */
+ export default {
+ 	"ai/drone-scans": 317,
+-	"ai/lines-to-3d": 1256,
++	"ai/lines-to-3d": 1250,
+ 	"ai/playwright": 1809,
+ 	"framework/hello-lew42": 1380,
+ 	"framework/how-this-blog-works": 952,
+diff --git a/public/imagine/lines/doc/filter.md b/public/imagine/lines/doc/filter.md
+new file mode 100644
+index 00000000..ab9e00be
+--- /dev/null
++++ b/public/imagine/lines/doc/filter.md
+@@ -0,0 +1,28 @@
++# The line-confidence filter
++
++[Try it](/imagine/lines/) with the faint seam sample: a small grey step runs down the image, with loud random texture below it. The map rewards the steady seam rather than the brightness of the noise.
++
++The filter looks for colour changes that keep the same direction and strength along a line, rather than changes that scatter in every direction.
++
++## Three ingredients
++
++1. **Change:** compare the pixels on either side of each pixel, horizontally and vertically. Do this for hue, saturation and brightness. Hue wraps at red and matters less in nearly grey pixels. Transparent pixels are laid over white first.
++2. **Direction:** gather these changes in a small square. If they mostly point the same way, the direction score is high; mixed directions make it low. This agreement score is called **coherence**. The calculation uses a structure tensor, a small table that combines the horizontal and vertical changes.
++3. **Consistency:** follow the possible line, at right angles to the colour change. Nearby pixels support it when their direction agrees and their change stays strong. This gives **along-line support**. Compare change strength with the noise floor and locally mixed directions to get **relative signal strength**: a steady faint edge can beat loud random texture.
++
++Confidence multiplies Direction's coherence by Consistency's along-line support and relative signal strength. It stays between zero and one. Display grey is `255 × (1 − confidence^gamma)`; smaller gamma makes weak responses darker without changing the map.
++
++## The four sliders
++
++- **Window size:** pixels used to estimate direction; larger windows suppress texture but soften corners.
++- **Line length:** distance used to check continuity; longer spans reject short flickers but can weaken short real edges.
++- **Noise floor:** minimum meaningful channel change; lower values reveal faint seams and more noise.
++- **Gamma:** only the white-to-black display curve.
++
++## Limits
++
++This is a deterministic confidence heuristic, not a probability or an object recogniser. Straight texture, lettering and silhouettes can still score. Corners often lose coherence; the corner map is a separate later rung. A wireframe box sample draws all 12 edges and 8 vertices, including hidden edges, to provide a known input, not a detected geometry count.
++
++The interactive tool resizes to at most 640 pixels on its longer edge and keeps every image in your browser. The pure function has no resize limit. Tensor windows use summed-area tables; continuity cost grows with pixels × line length. This first version runs on the main thread, so large batches belong in Node or a future worker.
++
++The photo is the existing [paving and gull image](/edric/image/seagul.jpeg). Samples are drawn locally, without network or packages. There is no 3D, corner detection or SVG extraction yet.
+diff --git a/public/imagine/lines/doc/page.js b/public/imagine/lines/doc/page.js
+new file mode 100644
+index 00000000..12713285
+--- /dev/null
++++ b/public/imagine/lines/doc/page.js
+@@ -0,0 +1,12 @@
++import { Page, md } from "/app.js";
++export default new Page({
++	meta: import.meta,
++	title: "Line filter notes",
++	description: "The scoring ingredients and limits of the line map.",
++	route(name){
++		if (name !== "filter") return null;
++		const meta = this.meta;
++		return { title: "How the filter works", content(){ return md.file(meta, "filter.md", { h1: false }); } };
++	},
++	content(){ md("[How the filter works](/imagine/lines/doc/filter/)"); },
++});
+diff --git a/public/imagine/lines/lines.css b/public/imagine/lines/lines.css
+new file mode 100644
+index 00000000..e4534eab
+--- /dev/null
++++ b/public/imagine/lines/lines.css
+@@ -0,0 +1,22 @@
++@layer base, theme, site, util;
++@layer site {
++	.lines-tool { display: grid; gap: var(--gap); max-width: 90em; margin-inline: auto; }
++	.lines-inputs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-50); }
++	.lines-inputs label { display: flex; flex-wrap: wrap; align-items: center; gap: .5em; }
++	.lines-inputs select, .lines-inputs input { max-width: 100%; font: inherit; }
++	.lines-inputs .lines-save { padding: .5em .8em; }
++	.lines-controls { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gap); }
++	.lines-controls label { display: grid; gap: .4em; }
++	.lines-controls label span { display: flex; justify-content: space-between; gap: .5em; }
++	.lines-controls input { width: 100%; min-width: 0; }
++	.lines-controls output { font-variant-numeric: tabular-nums; }
++	.lines-images { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap); align-items: start; }
++	.lines-images figure { margin: 0; min-width: 0; }
++	.lines-images figcaption { margin-bottom: .5em; font-weight: 600; }
++	.lines-images canvas { display: block; width: 100%; height: auto; border: 1px solid var(--ink); }
++	.lines-status { min-height: 1.5em; margin: 0; }
++	@media (max-width: 800px) {
++		.lines-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
++		.lines-images { grid-template-columns: 1fr; }
++	}
++}
+diff --git a/public/imagine/lines/lines.js b/public/imagine/lines/lines.js
+new file mode 100644
+index 00000000..31212d24
+--- /dev/null
++++ b/public/imagine/lines/lines.js
+@@ -0,0 +1,80 @@
++// A DOM-free line-confidence map. Scores are in [0, 1]; gamma belongs to the display.
++export function lines(image, opts = {}){
++	const { width: w, height: h, data } = image;
++	if (!Number.isInteger(w) || !Number.isInteger(h) || w < 1 || h < 1 || data.length !== w * h * 4)
++		throw new TypeError("Expected RGBA ImageData with positive integer dimensions.");
++	const n = w * h, radius = Math.round(clamp(opts.window ?? 5, 3, 21) / 2 - 0.5);
++	const length = Math.round(clamp(opts.length ?? 17, 3, 61) / 2);
++	const floor = clamp(opts.noise ?? 0.006, 0.0001, 1);
++	const hue = new Float32Array(n), sat = new Float32Array(n), val = new Float32Array(n);
++	for (let i = 0; i < n; i++){
++		const alpha = data[i * 4 + 3] / 255;
++		const r = data[i * 4] / 255 * alpha + 1 - alpha;
++		const g = data[i * 4 + 1] / 255 * alpha + 1 - alpha;
++		const b = data[i * 4 + 2] / 255 * alpha + 1 - alpha;
++		const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
++		val[i] = max; sat[i] = max ? d / max : 0;
++		let angle = !d ? 0 : max === r ? (g - b) / d : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
++		hue[i] = ((angle / 6) % 1 + 1) % 1;
++	}
++	const xx = new Float32Array(n), xy = new Float32Array(n), yy = new Float32Array(n), mag = new Float32Array(n);
++	for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
++		const i = y * w + x, l = y * w + Math.max(0, x - 1), r = y * w + Math.min(w - 1, x + 1);
++		const t = Math.max(0, y - 1) * w + x, b = Math.min(h - 1, y + 1) * w + x;
++		// Hue wraps at red. Achromatic pixels have no meaningful hue.
++		const hx = circular(hue[r] - hue[l]) * Math.min(sat[l], sat[r]);
++		const hy = circular(hue[b] - hue[t]) * Math.min(sat[t], sat[b]);
++		const sx = (sat[r] - sat[l]) / 2, sy = (sat[b] - sat[t]) / 2;
++		const vx = (val[r] - val[l]) / 2, vy = (val[b] - val[t]) / 2;
++		xx[i] = hx * hx + sx * sx + vx * vx;
++		xy[i] = hx * hy + sx * sy + vx * vy;
++		yy[i] = hy * hy + sy * sy + vy * vy;
++		mag[i] = Math.sqrt(xx[i] + yy[i]);
++	}
++	const a = average(xx, w, h, radius), b = average(xy, w, h, radius), c = average(yy, w, h, radius);
++	const coherence = new Float32Array(n), angle = new Float32Array(n), response = new Float32Array(n);
++	for (let i = 0; i < n; i++){
++		const trace = a[i] + c[i], gap = Math.hypot(a[i] - c[i], 2 * b[i]);
++		coherence[i] = trace > 1e-12 ? Math.min(1, gap / trace) : 0;
++		angle[i] = Math.atan2(2 * b[i], a[i] - c[i]) / 2;
++		const noise = Math.sqrt(Math.max(0, trace - gap));
++		response[i] = mag[i] / (mag[i] + floor + noise);
++	}
++	const result = new Float32Array(n);
++	for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
++		const i = y * w + x;
++		if (!mag[i] || coherence[i] < 0.05) continue;
++		const dx = -Math.sin(angle[i]), dy = Math.cos(angle[i]);
++		let support = 0, count = 0;
++		for (let step = -length; step <= length; step++){
++			const px = x + dx * step, py = y + dy * step;
++			if (px < 0 || py < 0 || px > w - 1 || py > h - 1) continue;
++			const j = Math.round(py) * w + Math.round(px);
++			const aligned = Math.max(0, Math.cos(2 * (angle[j] - angle[i])));
++			support += coherence[j] * aligned * Math.min(1, mag[j] / mag[i]);
++			count++;
++		}
++		result[i] = coherence[i] * response[i] * (count ? support / count : 0);
++	}
++	return result;
++}
++function circular(value){ return ((value + 0.5) % 1 + 1) % 1 - 0.5; }
++function clamp(value, min, max){ return Number.isFinite(Number(value)) ? Math.max(min, Math.min(max, Number(value))) : min; }
++
++// Summed-area tables make every tensor window constant-time.
++function average(values, w, h, radius){
++	const stride = w + 1, sum = new Float64Array(stride * (h + 1)), out = new Float32Array(w * h);
++	for (let y = 0; y < h; y++){
++		let row = 0;
++		for (let x = 0; x < w; x++){
++			row += values[y * w + x];
++			sum[(y + 1) * stride + x + 1] = sum[y * stride + x + 1] + row;
++		}
++	}
++	for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
++		const x0 = Math.max(0, x - radius), x1 = Math.min(w, x + radius + 1);
++		const y0 = Math.max(0, y - radius), y1 = Math.min(h, y + radius + 1);
++		out[y * w + x] = (sum[y1 * stride + x1] - sum[y0 * stride + x1] - sum[y1 * stride + x0] + sum[y0 * stride + x0]) / ((x1 - x0) * (y1 - y0));
++	}
++	return out;
++}
+diff --git a/public/imagine/lines/page.js b/public/imagine/lines/page.js
+new file mode 100644
+index 00000000..94c42b20
+--- /dev/null
++++ b/public/imagine/lines/page.js
+@@ -0,0 +1,21 @@
++import { Page, View, div, p, a } from "/app.js";
++import { mount } from "./tool.js";
++View.stylesheet(import.meta, "lines.css");
++
++// Container: Imagine's column row; fill the remaining width. Two image panes,
++// stacked at 400 and beside each other from 1200; controls above, one doc link below.
++// The parent preview says what you can do, rather than explaining the algorithm.
++export default new Page({
++	meta: import.meta,
++	title: "Line art",
++	description: "Turn any image into line art: darker pixels mark steadier, straighter edges.",
++	icon: "gesture",
++	width: "fill",
++	index: true,
++	content(){
++		p("Darker means more likely to be a line. Drop an image or try a sample.");
++		const host = div.c("lines-tool");
++		mount(host.el);
++		a("How the filter works").href("./doc/filter/");
++	},
++});
+diff --git a/public/imagine/lines/readme.md b/public/imagine/lines/readme.md
+new file mode 100644
+index 00000000..beba4a8a
+--- /dev/null
++++ b/public/imagine/lines/readme.md
+@@ -0,0 +1,20 @@
++# Line art — darker pixels mark steadier, straighter edges
++
++[Open the filter](/imagine/lines/): drop an image, or choose the box, room, faint seam or photo. The original and line map sit together; four sliders tune the result.
++
++## Use
++
++```js
++import { lines } from './lines.js';
++const confidence = lines({ width, height, data }, { window: 5, length: 17, noise: 0.006 });
++```
++
++`data` is RGBA bytes. The result is a `Float32Array`, one confidence from 0 to 1 per pixel. The core has no DOM and runs in Node. Gamma changes the display, not the confidence.
++
++Run the checks with `node public/imagine/lines/test.mjs`. The browser tool scales large images to a 640-pixel long edge; [limits](/imagine/lines/doc/filter/) explain the trade-off.
++
++## More
++
++- [How the filter works](/imagine/lines/doc/filter/) — channel gradients, direction, continuity and limits.
++- [The original idea](/blog/ai/lines-to-3d/) — the later corner, vector and 3D rungs.
++- [Task log](/framework/ai/2026-10-01/line-filter/) — tests, review and ongoing work.
+diff --git a/public/imagine/lines/samples.js b/public/imagine/lines/samples.js
+new file mode 100644
+index 00000000..eaaa32bf
+--- /dev/null
++++ b/public/imagine/lines/samples.js
+@@ -0,0 +1,28 @@
++export function sample(name){
++	const canvas = document.createElement('canvas');
++	canvas.width = 560; canvas.height = 400;
++	const c = canvas.getContext('2d');
++	c.fillStyle = '#f5f4ef'; c.fillRect(0, 0, canvas.width, canvas.height);
++	c.lineWidth = 2; c.strokeStyle = '#64615a';
++	const segment = (a, b) => { c.beginPath(); c.moveTo(...a); c.lineTo(...b); c.stroke(); };
++	if (name === 'box'){
++		const points = [[130,145],[355,145],[355,335],[130,335],[215,65],[440,65],[440,255],[215,255]];
++		for (const [a,b] of [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]]) segment(points[a],points[b]);
++	} else if (name === 'room'){
++		c.fillStyle = '#dedbd3'; c.fillRect(140,85,280,225);
++		for (const [a,b] of [[[140,85],[420,85]],[[420,85],[420,310]],[[420,310],[140,310]],[[140,310],[140,85]],[[0,0],[140,85]],[[560,0],[420,85]],[[0,400],[140,310]],[[560,400],[420,310]]]) segment(a,b);
++		c.strokeRect(205,130,90,180); c.strokeRect(330,135,55,80);
++	} else {
++		c.fillStyle = '#cccccc'; c.fillRect(0,0,280,400);
++		c.fillStyle = '#d0d0d0'; c.fillRect(280,0,280,400);
++		let seed = 42;
++		const random = () => { seed = (Math.imul(seed,1664525)+1013904223) >>> 0; return seed / 4294967296; };
++		const pixels = c.getImageData(0,0,560,400);
++		for (let y=240;y<370;y++) for(let x=30;x<530;x++){
++			const i=(y*560+x)*4, v=160+Math.round(random()*80);
++			pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=v;
++		}
++		c.putImageData(pixels,0,0);
++	}
++	return canvas;
++}
+diff --git a/public/imagine/lines/test.mjs b/public/imagine/lines/test.mjs
+new file mode 100644
+index 00000000..64ee0236
+--- /dev/null
++++ b/public/imagine/lines/test.mjs
+@@ -0,0 +1,23 @@
++import assert from 'node:assert/strict';
++import { lines } from './lines.js';
++function image(w, h, pixel){
++	const data = new Uint8ClampedArray(w * h * 4);
++	for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) data.set([...pixel(x, y), 255], (y * w + x) * 4);
++	return { width: w, height: h, data };
++}
++const on = Array.from({ length: 60 }, (_, j) => [63, j + 18]);
++const mean = scores => on.reduce((sum, [x, y]) => sum + scores[y * 128 + x], 0) / on.length;
++assert.ok(lines(image(64, 64, () => [200, 200, 200])).every(x => x === 0));
++const seam = lines(image(128, 96, x => x < 64 ? [200, 200, 200] : [204, 204, 204]));
++assert.ok(mean(seam) > 0.35);
++assert.ok(seam.every(x => Number.isFinite(x) && x >= 0 && x <= 1));
++let seed = 42;
++const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
++const texture = lines(image(128, 96, () => { const v = 160 + Math.round(random() * 80); return [v, v, v]; }));
++const noise = texture.reduce((sum, x) => sum + x, 0) / texture.length;
++assert.ok(mean(seam) > noise * 5);
++assert.ok(mean(lines(image(128, 96, x => x < 64 ? [200, 0, 0] : [0, 200, 0]))) > 0.5);
++assert.ok(lines(image(128, 96, (_, y) => y < 48 ? [200, 200, 200] : [204, 204, 204]))[47 * 128 + 64] > 0.35);
++assert.ok(Math.max(...lines(image(128, 96, (x, y) => x === 64 && y === 48 ? [0, 0, 0] : [200, 200, 200]), { length: 41 })) < 0.1);
++assert.equal(lines(image(1, 1, () => [0, 0, 0]))[0], 0);
++console.log(JSON.stringify({ pass: true, faintSeam: mean(seam), randomTexture: noise, ratio: mean(seam) / noise }));
+diff --git a/public/imagine/lines/tool.js b/public/imagine/lines/tool.js
+new file mode 100644
+index 00000000..e9de82e4
+--- /dev/null
++++ b/public/imagine/lines/tool.js
+@@ -0,0 +1,91 @@
++import { lines } from "./lines.js";
++import { sample } from "./samples.js";
++
++export function mount(host){
++	host.innerHTML = `<div class="lines-inputs">
++		<label>Sample <select aria-label="Sample"><option value="box">Box · 8 corners, 12 edges</option><option value="seam">Faint seam + noise</option><option value="room">Room</option><option value="photo">Photo · paving + gull</option></select></label>
++		<label class="lines-upload">Choose image <input type="file" accept="image/*" aria-label="Choose image"></label>
++		<button type="button" class="lines-save">Save PNG</button>
++	</div><div class="lines-controls"></div>
++	<div class="lines-images"><figure><figcaption>Original</figcaption><canvas class="lines-original" aria-label="Original image"></canvas></figure><figure><figcaption>Line confidence</figcaption><canvas class="lines-result" aria-label="Line-confidence image"></canvas></figure></div>
++	<p class="lines-status muted" role="status" aria-live="polite"></p>`;
++	const original = host.querySelector('.lines-original'), output = host.querySelector('.lines-result');
++	const status = host.querySelector('.lines-status'), select = host.querySelector('select');
++	const controls = host.querySelector('.lines-controls');
++	const opts = { window: 5, length: 17, noise: 0.006, gamma: 0.8 };
++	let source, scores, timer, generation = 0;
++	for (const [key, title, min, max, step] of [
++		['window', 'Window size', 3, 21, 2], ['length', 'Line length', 3, 61, 2],
++		['noise', 'Noise floor', 0.001, 0.05, 0.001], ['gamma', 'Gamma', 0.2, 2, 0.05],
++	]){
++		const label = document.createElement('label');
++		label.innerHTML = `<span>${title} <output>${opts[key]}</output></span><input type="range" aria-label="${title}" min="${min}" max="${max}" step="${step}" value="${opts[key]}">`;
++		const input = label.querySelector('input'), value = label.querySelector('output');
++		input.addEventListener('input', () => {
++			opts[key] = Number(input.value); value.value = input.value;
++			if (key === 'gamma') paint(); else schedule();
++		});
++		controls.append(label);
++	}
++	function paint(){
++		if (!scores) return;
++		const image = output.getContext('2d').createImageData(source.width, source.height);
++		for (let i = 0; i < scores.length; i++){
++			const v = Math.round(255 * (1 - Math.pow(scores[i], opts.gamma)));
++			image.data.set([v, v, v, 255], i * 4);
++		}
++		output.getContext('2d').putImageData(image, 0, 0);
++	}
++	function schedule(){
++		clearTimeout(timer);
++		if (!source) return;
++		status.textContent = 'Calculating…';
++		timer = setTimeout(() => {
++			const start = performance.now();
++			scores = lines(source, opts); paint();
++			status.textContent = `${source.width} × ${source.height} pixels · ${Math.round(performance.now() - start)} ms. Images stay in your browser.`;
++		}, 60);
++	}
++	function show(image){
++		const scale = Math.min(1, 640 / Math.max(image.width, image.height));
++		original.width = output.width = Math.max(1, Math.round(image.width * scale));
++		original.height = output.height = Math.max(1, Math.round(image.height * scale));
++		const ctx = original.getContext('2d', { willReadFrequently: true });
++		ctx.fillStyle = 'white'; ctx.fillRect(0, 0, original.width, original.height);
++		ctx.drawImage(image, 0, 0, original.width, original.height);
++		source = ctx.getImageData(0, 0, original.width, original.height); scores = null;
++		output.getContext('2d').fillStyle = 'white';
++		output.getContext('2d').fillRect(0, 0, output.width, output.height);
++		schedule();
++	}
++	async function load(src, token){
++		const image = new Image(); image.src = src;
++		try { await image.decode(); if (token === generation) show(image); }
++		catch { if (token === generation) status.textContent = 'This image could not be opened. Try a PNG, JPEG or WebP file.'; }
++	}
++	function choose(){
++		const token = ++generation;
++		if (select.value === 'photo') load(new URL('../../edric/image/seagul.jpeg', import.meta.url).href, token);
++		else show(sample(select.value));
++	}
++	function file(file){
++		if (!file) return;
++		if (!file.type.startsWith('image/')) { status.textContent = 'Choose an image file.'; return; }
++		const url = URL.createObjectURL(file), token = ++generation;
++		load(url, token).finally(() => URL.revokeObjectURL(url));
++	}
++	select.addEventListener('change', choose);
++	host.querySelector('input[type=file]').addEventListener('change', e => file(e.target.files[0]));
++	host.addEventListener('dragover', e => { e.preventDefault(); });
++	host.addEventListener('drop', e => { e.preventDefault(); file(e.dataTransfer.files[0]); });
++	host.querySelector('.lines-save').addEventListener('click', () => {
++		if (!scores) return;
++		output.toBlob(blob => {
++			if (!blob) return;
++			const url = URL.createObjectURL(blob), link = document.createElement('a');
++			link.href = url; link.download = 'line-art.png'; link.click();
++			setTimeout(() => URL.revokeObjectURL(url), 1000);
++		});
++	});
++	choose();
++}
+diff --git a/public/imagine/page.js b/public/imagine/page.js
+index 996adcac..5c886824 100644
+--- a/public/imagine/page.js
++++ b/public/imagine/page.js
+@@ -38,7 +38,7 @@ View.stylesheet(import.meta, "imagine.css");
+    copied here with the two lines added — see the comment on it. */
+ 
+ const GROUPS = [
+-	["Tools",   "paging importance research stream cms generated"],
++	["Tools",   "lines paging importance research stream cms generated"],
+ 	["Worlds",  "game scenes team gallery codrops youtube feeds"],
+ 	["Studies", "platform review vary"],
+ ];
+diff --git a/public/imagine/readme.md b/public/imagine/readme.md
+index 0369e7dc..873ebb2f 100644
+--- a/public/imagine/readme.md
++++ b/public/imagine/readme.md
+@@ -7,6 +7,7 @@ a lane, a room three realms down — is another column in the same row, under on
+ 
+ ## Use
+ 
++- [**Line art**](/imagine/lines/) — compare an image with its line-confidence map; upload a photo or tune four samples.
+ - **The root is the experience.** `/imagine/page.js` is a 14em rail and nothing else; `Start`
+   is its `default` column and its cards are the nav. There is no page to read before you arrive.
+ - **`team/`** — a roster rail, a person, her assignments, and a board that follows the

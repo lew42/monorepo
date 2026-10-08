@@ -1,0 +1,240 @@
+[
+  {
+    "url": "/framework/ai2/",
+    "sel": ".ai2-word",
+    "found": false,
+    "style": null
+  },
+  {
+    "url": "/framework/ai2/",
+    "sel": ".ai2-clear",
+    "found": false,
+    "style": null
+  },
+  {
+    "url": "/framework/ai/2026/09/19/a-153628/",
+    "sel": ".page.ai2-card-page",
+    "found": true,
+    "style": {
+      "display": "grid",
+      "position": "static",
+      "gridTemplateColumns": "874.672px 437.328px",
+      "flexDirection": "row",
+      "padding": "0px",
+      "margin": "0px",
+      "maxWidth": "none",
+      "borderInlineEnd": "0px none rgb(63, 63, 63)",
+      "color": "rgb(63, 63, 63)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "fontSize": "16px",
+      "fontWeight": "500",
+      "opacity": "1",
+      "zIndex": "auto",
+      "boundingWidth": 1312,
+      "boundingHeight": 1137
+    }
+  },
+  {
+    "url": "/framework/ai/2026/09/19/a-153628/",
+    "sel": ".ai2-full",
+    "found": true,
+    "style": {
+      "display": "block",
+      "position": "static",
+      "gridTemplateColumns": "none",
+      "flexDirection": "row",
+      "padding": "16px",
+      "margin": "0px",
+      "maxWidth": "none",
+      "borderInlineEnd": "0px none rgb(63, 63, 63)",
+      "color": "rgb(63, 63, 63)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "fontSize": "16px",
+      "fontWeight": "500",
+      "opacity": "1",
+      "zIndex": "auto",
+      "boundingWidth": 875,
+      "boundingHeight": 1137
+    }
+  },
+  {
+    "url": "/framework/ai/2026/09/19/a-153628/",
+    "sel": ".ai2-full-title",
+    "found": true,
+    "style": {
+      "display": "block",
+      "position": "static",
+      "gridTemplateColumns": "none",
+      "flexDirection": "row",
+      "padding": "0px",
+      "margin": "0px",
+      "maxWidth": "none",
+      "borderInlineEnd": "0px none rgb(63, 63, 63)",
+      "color": "rgb(63, 63, 63)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "fontSize": "19.2px",
+      "fontWeight": "700",
+      "opacity": "1",
+      "zIndex": "auto",
+      "boundingWidth": 423,
+      "boundingHeight": 35
+    }
+  },
+  {
+    "url": "/framework/ai/2026/09/19/a-153628/",
+    "sel": ".ai2-toc",
+    "found": true,
+    "style": {
+      "display": "block",
+      "position": "static",
+      "gridTemplateColumns": "none",
+      "flexDirection": "row",
+      "padding": "0px",
+      "margin": "39.68px 0px 0px",
+      "maxWidth": "none",
+      "borderInlineEnd": "0px none rgb(63, 63, 63)",
+      "color": "rgb(63, 63, 63)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "fontSize": "16px",
+      "fontWeight": "500",
+      "opacity": "1",
+      "zIndex": "auto",
+      "boundingWidth": 843,
+      "boundingHeight": 31
+    }
+  },
+  {
+    "url": "/framework/ai/2026/09/19/a-153628/",
+    "sel": ".ai2-chip, .ai2-link",
+    "found": false,
+    "style": null
+  },
+  {
+    "url": "/framework/ai/2026/09/19/a-153628/",
+    "sel": ".ai2-reviewed",
+    "found": false,
+    "style": null
+  },
+  {
+    "url": "/framework/ai2/live/",
+    "sel": ".ai2-live-bars",
+    "found": false,
+    "style": null
+  },
+  {
+    "url": "/framework/ai2/live/",
+    "sel": ".ai2-live-item",
+    "found": true,
+    "style": {
+      "display": "grid",
+      "position": "static",
+      "gridTemplateColumns": "88px 33.8281px 472.891px 0px",
+      "flexDirection": "row",
+      "padding": "4.8px 6.4px",
+      "margin": "0px",
+      "maxWidth": "none",
+      "borderInlineEnd": "0px none rgb(63, 63, 63)",
+      "color": "rgb(63, 63, 63)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "fontSize": "16px",
+      "fontWeight": "500",
+      "opacity": "1",
+      "zIndex": "auto",
+      "boundingWidth": 632,
+      "boundingHeight": 39
+    }
+  },
+  {
+    "url": "/framework/ai2/live/",
+    "sel": ".ai2-proc-ram-svg",
+    "found": true,
+    "style": {
+      "display": "block",
+      "position": "static",
+      "gridTemplateColumns": "none",
+      "flexDirection": "row",
+      "padding": "0px",
+      "margin": "0px",
+      "maxWidth": "100%",
+      "borderInlineEnd": "0px none rgb(63, 63, 63)",
+      "color": "rgb(63, 63, 63)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "fontSize": "16px",
+      "fontWeight": "500",
+      "opacity": "1",
+      "zIndex": "auto",
+      "boundingWidth": 632,
+      "boundingHeight": 140
+    }
+  },
+  {
+    "url": "/framework/ai2/live/",
+    "sel": ".ai2-state",
+    "found": false,
+    "style": null
+  },
+  {
+    "url": "/framework/ai2/needs/",
+    "sel": ".ai2-need",
+    "found": true,
+    "style": {
+      "display": "block",
+      "position": "static",
+      "gridTemplateColumns": "none",
+      "flexDirection": "row",
+      "padding": "0px 0px 9.6px",
+      "margin": "0px",
+      "maxWidth": "none",
+      "borderInlineEnd": "0px none rgb(63, 63, 63)",
+      "color": "rgb(63, 63, 63)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "fontSize": "16px",
+      "fontWeight": "500",
+      "opacity": "1",
+      "zIndex": "auto",
+      "boundingWidth": 896,
+      "boundingHeight": 139
+    }
+  },
+  {
+    "url": "/framework/ai2/needs/",
+    "sel": ".ai2-need-score",
+    "found": true,
+    "style": {
+      "display": "block",
+      "position": "static",
+      "gridTemplateColumns": "none",
+      "flexDirection": "row",
+      "padding": "0.6px 4.8px",
+      "margin": "0px",
+      "maxWidth": "none",
+      "borderInlineEnd": "0px none rgb(255, 255, 255)",
+      "color": "rgb(255, 255, 255)",
+      "backgroundColor": "rgb(204, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "700",
+      "opacity": "1",
+      "zIndex": "auto",
+      "boundingWidth": 25,
+      "boundingHeight": 23
+    }
+  },
+  {
+    "url": "/framework/ai2/log/",
+    "sel": ".ai2-row",
+    "found": false,
+    "style": null
+  },
+  {
+    "url": "/framework/ai2/log/",
+    "sel": ".ai2-status-dot",
+    "found": false,
+    "style": null
+  },
+  {
+    "url": "/framework/ai2/",
+    "sel": ".ai2-overview, .ai2-ov-card",
+    "found": false,
+    "style": null
+  }
+]

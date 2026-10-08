@@ -1,0 +1,2 @@
+{"class":"/framework/ai2/card.js","title":"Item: a field colliding with a method now throws","type":"task","id":"2026/10/03/item-a-field-colliding-with-a-method-now","created":"2026-10-03T01:53:21-05:00","by":"mastermind-page-3","tags":["page","item"]}
+{"chat":{"level":"summary","text":"**Asked:** Item: a field colliding with a method now throws\n\n**Status:** landed\n\n**Next step:** landed\n\n[task dir](/framework/ai/2026-10-03/field-collision-throw/) · [page](/framework/core/Item/)","at":"2026-10-03T01:53:21-05:00","from":{"kind":"system","id":"mastermind-page-3"}}}

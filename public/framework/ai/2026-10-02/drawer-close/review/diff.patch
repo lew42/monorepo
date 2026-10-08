@@ -1,0 +1,145 @@
+diff --git a/public/framework/ai/2026-10-02/drawer-close/regression.mjs b/public/framework/ai/2026-10-02/drawer-close/regression.mjs
+new file mode 100644
+index 00000000..f67623ff
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/drawer-close/regression.mjs
+@@ -0,0 +1,55 @@
++/* Regression test for the drawer that didn't give the page its space back (2026-10-02).
++ * Run: SITE=http://localhost:<port> node regression.mjs   (default: the live site)
++ * Every case opens the ☰ drawer some way, closes it, and checks the page is whole again:
++ * `.app` has no right padding, no `--drawer` is left on <html>/<body>/.app, and the ☰ is back
++ * in its corner. Headless only; Servex is stubbed. */
++import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
++const SITE = process.env.SITE ?? "http://monorepo.localhost", PAGE = process.env.PAGE ?? "/framework/ux/Dictate/";
++const SHOTS = process.env.SHOTS;
++const b = await chromium.launch();
++const state = p => p.evaluate(() => {
++	const app = document.querySelector(".app"), m = document.querySelector(".drawer-menu");
++	const left = [document.documentElement, document.body, app].filter(el => el?.style.getPropertyValue("--drawer"));
++	return { pad: parseFloat(getComputedStyle(app).paddingInlineEnd), left: left.length, menu: m ? Math.round(m.getBoundingClientRect().right) : null, vw: innerWidth };
++});
++let pass = 0, fail = 0;
++const check = (name, s, base) => {
++	const ok = s.pad === 0 && s.left === 0 && s.menu === base.menu;
++	ok ? pass++ : fail++;
++	console.log(ok ? "PASS" : "FAIL", name, JSON.stringify(s));
++};
++const stub = p => p.route(/127\.0\.0\.1:8090|servex\.localhost/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ ok: true, sessions: [], cards: [], agents: [] }) }));
++const W = 1920;   // the ☰ drawer pushes the page only on wide screens; below 52em it is the bottom sheet
++async function fresh(url){ const p = await b.newPage({ viewport: { width: W, height: 900 } }); await stub(p); await p.goto(url, { waitUntil: "networkidle" }); await p.waitForTimeout(600); return p; }
++const base = await state(await fresh(SITE + PAGE));
++const close_x = p => p.click(".drawer-x"), close_menu = p => p.click(".drawer-menu");
++const cases = {
++	"☰ open → ☰ close": async p => { await close_menu(p); await p.waitForTimeout(300); await close_menu(p); },
++	"☰ open → ✕ close": async p => { await close_menu(p); await p.waitForTimeout(300); await close_x(p); },
++	"?drawer=ai on load → ✕ close": null,
++	"?drawer=ai on load → ☰ close": null,
++	"☰ open → reload → ✕ close": async p => { await close_menu(p); await p.waitForTimeout(300); await p.reload({ waitUntil: "networkidle" }); await p.waitForTimeout(600); await close_x(p); },
++	"?drawer=ai → drag resizer → ✕ close": null,
++	"☰ open → drag resizer → ☰ close": async p => { await close_menu(p); await p.waitForTimeout(300); await drag(p); await close_menu(p); },
++};
++async function drag(p){
++	const r = await p.locator(".drawer").boundingBox();
++	await p.mouse.move(r.x + 2, r.y + 300); await p.mouse.down(); await p.mouse.move(r.x - 150, r.y + 300, { steps: 8 }); await p.mouse.up(); await p.waitForTimeout(300);
++}
++for (const [name, fn] of Object.entries(cases)){
++	const routed = name.startsWith("?drawer=ai");
++	const p = await fresh(SITE + PAGE + (routed ? "?drawer=ai" : ""));
++	if (routed){ if (name.includes("drag")) await drag(p); await (name.includes("☰ close") ? close_menu(p) : close_x(p)); }
++	else await fn(p);
++	await p.waitForTimeout(400);
++	check(name, await state(p), base);
++	if (SHOTS && routed && !name.includes("drag")) await p.screenshot({ path: `${SHOTS}/after-close-${W}.png` });
++	await p.close();
++}
++// 400: the page never takes the push at all, open or shut.
++{ const p = await b.newPage({ viewport: { width: 400, height: 800 } }); await stub(p); await p.goto(SITE + PAGE + "?drawer=ai", { waitUntil: "networkidle" }); await p.waitForTimeout(600);
++  const s = await p.evaluate(() => parseFloat(getComputedStyle(document.querySelector(".app")).paddingInlineEnd)); (s === 0 ? pass++ : fail++); console.log(s === 0 ? "PASS" : "FAIL", "400 ?drawer=ai: no push", s);
++  if (SHOTS) await p.screenshot({ path: `${SHOTS}/drawer-open-400.png` }); await p.close(); }
++console.log(`${pass} passed, ${fail} failed`);
++await b.close();
++process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ext/drawer/drawer.js b/public/framework/ext/drawer/drawer.js
+index 5771e232..e823e4c3 100644
+--- a/public/framework/ext/drawer/drawer.js
++++ b/public/framework/ext/drawer/drawer.js
+@@ -26,6 +26,19 @@ const FLOOR = 26 * parseFloat(getComputedStyle(document.documentElement).fontSiz
+ 
+ let $rail, $shell, $slot, $body, fill;
+ 
++/* ⚠ THE ONE WRITER of the rail's two size tokens (drawer-close, 2026-10-02). They belong on
++   `.app`, but `build()` can run before `.app` exists (a reload with `?drawer=ai` open) and
++   then wrote them on `<body>`. `.app` inherited them, `close()` cleared only `.app`, and the
++   page stayed squeezed with the ☰ out of its corner until the next reload. Every write and
++   every clear goes through here: it always writes on the current `.app` and clears any
++   copy left on `<body>`, whatever opened the rail and whoever last resized it. */
++function token(name, value){
++	const app = document.querySelector(".app");
++	document.body.style.removeProperty(name);
++	app?.style.removeProperty(name);
++	if (value) (app ?? document.body).style.setProperty(name, value);
++}
++
+ /* Show something in the rail, opening it if it was shut. `fn($slot, $body)` fills the two
+    slots with `empty(fn)`; the ✕ beside `$slot` is the rail's own and is never handed over,
+    so nothing a caller draws can leave the rail with no way out. Returns the rail. */
+@@ -34,7 +47,7 @@ export default function drawer(fn){
+ 	fill = fn;
+ 
+ 	$rail.ac("on");
+-	$shell.style("--drawer", WIDE);
++	token("--drawer", WIDE);
+ 	drawer.refresh();
+ 
+ 	return $rail;
+@@ -49,7 +62,7 @@ drawer.refresh = () => { if (fill && drawer.showing()) fill($slot, $body); };
+    lose the rail — a caller redraws it saying so instead. */
+ drawer.close = () => {
+ 	$rail?.rc("on");
+-	$shell?.style("--drawer", "");
++	token("--drawer", "");
+ 	// Said out loud, so a caller that wrote state somewhere else (the menu's `?drawer=`
+ 	// word in the url, tabs.js) can take it back when the ✕ shuts the rail.
+ 	window.dispatchEvent(new Event("drawer-close"));
+@@ -79,7 +92,7 @@ drawer.page = function(path){
+ // number that gets remembered is the one that was actually applied.
+ function size(px){
+ 	const w = Math.round(Math.max(MIN, Math.min(px, innerWidth - FLOOR)));
+-	$shell.style("--drawer-w", w + "px");
++	token("--drawer-w", w + "px");
+ 	return w;
+ }
+ 
+@@ -97,12 +110,18 @@ function build(){
+ 
+ 	if (!first) Promise.resolve(window.app?.ready).then(() => {
+ 		const real = document.querySelector(".app");
+-		if (real && real !== $shell.el){ $shell.el = real; real.appendChild($rail.el); }
++		if (real && real !== $shell.el){
++			$shell.el = real; real.appendChild($rail.el);
++			// Move whatever was written on <body> while `.app` didn't exist yet onto `.app`.
++			const w = document.body.style.getPropertyValue("--drawer-w");
++			if (w) token("--drawer-w", w);
++			token("--drawer", drawer.showing() ? WIDE : "");
++		}
+ 	});
+ 
+ 	// The width you left it at, before the first paint of the rail.
+ 	const saved = localStorage.getItem(KEY);
+-	if (saved) $shell.style("--drawer-w", saved);
++	if (saved) token("--drawer-w", saved);
+ 
+ 	// The head is pinned and the body scrolls under it — a rail whose ✕ scrolls away is a
+ 	// rail you cannot shut.
+diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
+index 9a6c394b..158d69b4 100644
+--- a/public/framework/ext/drawer/readme.md
++++ b/public/framework/ext/drawer/readme.md
+@@ -43,6 +43,7 @@ One box, any number of callers — `ext/layout` fills it with a selected element
+ - **Width and open/shut are two tokens.** `close()` clears `--drawer`, so a dragged width would go with it — the width lives in `--drawer-w` (one `localStorage` key) and `--drawer` reads through to it · [doc/decisions.md](./doc/decisions.md)
+ - [`dev/DevBar`](/framework/dev/DevBar/) is the OTHER rail at this edge and both can be open at once — this one offsets by `--devbar`, and `.app` reserves the sum · [doc/decisions.md](./doc/decisions.md)
+ - Mount inside `.app`, never on `<body>` — colour-scheme, `--drawer` and the Montserrat font are read there. `build()` can run before `.app` exists; it then re-parents into `.app` once `app.ready` resolves · [doc/decisions.md](./doc/decisions.md)
++- **`--drawer` and `--drawer-w` are written only by `token()`** (drawer.js). It writes on the current `.app` and clears any copy on `<body>`. Before it, a reload with the drawer open (`?drawer=ai`) wrote them on `<body>`, `close()` cleared only `.app`, and the page stayed squeezed with the ☰ out of its corner (drawer-close, 2026-10-02) · [regression test](/framework/ai/2026-10-02/drawer-close/regression.mjs)
+ - `rem`, not `em`: an `em` width reserves the wrong strip · [doc/decisions.md](./doc/decisions.md)
+ - `position: fixed` opts out of the push — `.page.layout-full` reads the shared `--rail-push` token (`.app`, drawer.css) instead of restating the reservation; `.app`'s own copy in framework.css is still the direct formula · [doc/decisions.md](./doc/decisions.md)
+ - The sheet's state is the url (`?sheet=open`, `?sheet=full`), one history entry per step up. Show or hide it through `rail.to(mode)`, never by toggling `.on` yourself, or the phone's back and the url stop agreeing · [doc/sheet.md](/framework/ext/drawer/doc/sheet/)

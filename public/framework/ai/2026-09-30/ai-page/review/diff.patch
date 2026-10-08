@@ -1,0 +1,715 @@
+diff --git a/public/framework/ai/CLAUDE.md b/public/framework/ai/CLAUDE.md
+new file mode 100644
+index 00000000..3136893d
+--- /dev/null
++++ b/public/framework/ai/CLAUDE.md
+@@ -0,0 +1,51 @@
++# CLAUDE.md
++
++Lew42 — a no-build, native-ESM web framework; the site is static, `Server/` is dev only.
++This file rules; skills and readmes elaborate it. **Do not edit it without asking.**
++
++## Laws
++
++1. **Less is more — ASAP, As Simple As Possible.** Fastest working version first, then improve. Show, don't tell — a demo you can open beats a description. Question every word, line, section. Deep docs may breathe.
++2. **Clear beats brief — by far.** Simple, but clear: explain it like I'm five. Start with the basics, in full, plain sentences, so the reader knows exactly what is being said before any detail arrives. Give me something I can chew quickly, without effort. Every page, demo and snippet makes its one takeaway obvious — a reader should be able to say what they are supposed to learn from it. Detail that can move somewhere better moves there and gets a link; don't restate every caveat everywhere. An extra sentence that clarifies a necessary point belongs. "Minimal speak" — clipped fragments, undefined words, jargon standing in for an explanation — is a failure, not economy. New coders are the audience. (the owner, 2026-09-04)
++3. **Prioritize.** Time, quantity, quality, outcome: the most important things come first, for the most benefit to the user. Everything reads as a quick scan — a few short sections, then a link to the long form.
++4. **Follow the owner's words.** Build what was asked, the way it was described, and lean into the owner's own names and preferences. Don't go in a different direction without a very good reason; if you do, say why. (the owner, 2026-09-30)
++
++## Presentation — always the overwhelmed newcomer (the owner, 2026-09-05)
++
++Level 1 is one page, mostly above the fold: what the thing is, **shown**; its major parts; the way in; room to breathe. Detail is never removed — it nests one click down, where it belongs, and never sits on the first page. Don't tell the reader what you are about to show them; show it. An index page is a wall of previews, kept small enough to digest. Demonstration and report pages are held to this harder than documentation. A report to the owner is one screen of plain sentences with links, never the nitty gritty — "getting reports with details I can't follow doesn't help me at all." A file or module named in a message is a clickable link to its page on the site (`/framework/ux/Dictate/`); the source file (`Dictate.js`) is only a second link. (the owner, 2026-09-24)
++
++**Show it with the widget, then use words.** (the owner, 2026-09-25: "I don't want to read things. I want to see.") Files → `ext/files` (the tree, and highlighted source on click). An object → its live instances. A layout → a screenshot. A task → its checklist. Words come after the picture, and only as many as it takes.
++
++**Route everything.** Any view a click reaches has its own URL, so a reload or a back button lands in the same place.
++
++**Clarity is familiar structure.** (the owner, 2026-09-29) Build a hierarchy of understanding: each heading names its topic and states its gist in one line, so a reader knows what it is before any detail. Under it, only as many items as it takes, most important first. Each item sits beneath the right parent, with the right children. A familiar concept needs no explanation, only its name and a link to its own page. Detail is added only when it changes what the reader does. Pick names that can't be misread, and use the same name every time.
++
++## Ask before
++
++- Breaking a constraint: no build step (`public/` runs as-is; imports are real `.js` URLs), no server at runtime (production is static), no new npm dependency (`npx` and global tools are fine).
++- Major surgery: renaming a core API, moving a responsibility, anything with a dozen callers.
++
++## Docs point, they don't explain
++
++This file and every `readme.md` bring a topic to your attention; the detail is in `doc/*.md` beside the module (its Docs tab, at `/<module>/doc/`). A readme is the reader's index: mostly suggestions, minimal direction, past problems named in a line with the doc linked, nothing extra. Every module: `readme.md`, `page.js` (show, don't tell), `doc/`. Nothing crawls — a page exists once its parent's `children:` names it.
++
++## Where to look
++
++- `readme.md` (root) — setup, branches, deploy
++- `public/framework/readme.md` → `core/` `ext/` `styles/` `ui/` `web/` — each dir's readme is its entry
++- `public/framework/ai/` — the task log: open a task before the first edit (`new-task`), log as you go, land it (`finish-task`)
++- `Server/` — dev server only
++- `Servex/` — the agent system: roles, sessions, spawning, the quick-fix pool, the heartbeat, merge and review. Its docs are `/framework/servex/`; the owner's routed asks and their owners are in `public/framework/ai/asks.jsonl`
++- Scratch — scripts, transcripts, intermediate JSON — goes in the session scratchpad, not the repo
++
++## The site is live while you edit it (the owner, 2026-09-19)
++
++The owner works on the running site while agents write to it. Before a batch of writes to files the live site loads, hold every live reload, on every page and every server watching this repo: `node Server/hold.mjs on "<you> — <what>"`, write the whole batch, check it works, then `node Server/hold.mjs off "<you>"` — one reload instead of one per file. Streams (the chat log, the AI board) keep flowing during a hold; it expires by itself after five minutes. A file that parses can still break a page or stop the server from starting: load the page, or boot the server on a private port, before you release. Detail: `Server/doc/watch.md`.
++
++## Traps that never throw
++
++- No DOM after an `await`: capture the box synchronously, fill it in a callback.
++- Every CSS rule inside a layer — `base theme site util`; the order lives once, in `framework.css`, which `app.js` loads first.
++- Resolve URLs against `import.meta`, never the document.
++- Only `p()`/`h1`–`h6` read backticks; one backtick inside `` css(`…`) `` kills every page.
++- Imports flow down; a parent↔child import cycle breaks only on deep reload.
+diff --git a/public/framework/ai/concepts.js b/public/framework/ai/concepts.js
+index 7b21ccf8..e769cbe2 100644
+--- a/public/framework/ai/concepts.js
++++ b/public/framework/ai/concepts.js
+@@ -102,7 +102,9 @@ export const CONCEPTS = [
+ 			"**One shape, every readme:** what it is (one line) · Use · Watch out · More. As short as it can be.",
+ 			"**A readme points; it doesn't explain.** The detail lives in `doc/*.md` beside the module, shown on its Docs tab. A past problem gets one line and a link to its doc.",
+ 			"**Every module has three things:** `readme.md` (the index), `page.js` (show, don't tell), `doc/` (the detail).",
+-			"**The chain:** Servex gives a spawned agent every readme from the root to its folder, each cut to its first screen, about 3,000 tokens in all, dropping the most general first and never the folder's own.",
++			"**The chain, top down:** a spawned agent gets every readme from the root to its folder, in that order, each cut to its first screen, about 3,000 tokens in all. The root is the context and the folder's own is the work, so over the cap the middle levels go first.",
++			"**Switching directory:** reload the chain there (`load_module <dir>`), or hand the work to a fresh session in that directory; a fresh session keeps the context small.",
++			"**Build order:** the readmes and docs are brought up to date before review, so the reviewer reads what is true.",
+ 			"**Keeping them true:** the `documentation` skill runs before a task lands; a fresh agent reads only the readmes as a smoke test (`load_module`).",
+ 			"Example: [the framework's readme](/framework/), then any module under it.",
+ 		],
+diff --git a/public/framework/ai/overview.js b/public/framework/ai/overview.js
+index 1dd03441..9da557e8 100644
+--- a/public/framework/ai/overview.js
++++ b/public/framework/ai/overview.js
+@@ -1,44 +1,35 @@
+-import { Page, md, div, a, span, small, strong, icon, h2, h3, ol, li } from "/app.js";
++import { Page, md, div, a, span, small, strong, icon, h2 } from "/app.js";
++import { code } from "/framework/ext/highlight/highlight.js";
+ import { CONCEPTS, GROUPS, FLOW } from "./concepts.js";
+ import { Skill, Ask, Task } from "./objects.js";
++import { cards, card, flow } from "/framework/ux/Content/structure/Structure.js";
+ 
+ /* THE FOUR TOP TABS of /framework/ai/ (the owner, 2026-09-30: "use the same docs kind
+    of UI for top tabs"). Each tab is a routed page; ai/page.js calls tab_page(). */
+-export const TABS = ["overview", "skills", "objects", "authoring"];
++export const TABS = ["overview", "skills", "objects", "authoring", "claude-md"];
+ 
+ /* THE AUTHORING PIECES, used on every tab below and shown on the Authoring tab.
+    A section is a heading, one gist line, then its items; nothing else. */
+ 
+-// A grid of gist cards: big icon, name, one line. The default way to show a few things.
+-export function cards(items){
+-	return div.c("wide flex auto gap", () => items.forEach(it => card(it))).style("--column", "16rem");
+-}
+-export function card({ name, icon: ic, gist, href }){
+-	return a.c("card flex v gap-35").href(href)
+-		.style({ textDecoration: "none", color: "var(--ink)" })
+-		.append(() => {
+-			if (ic) icon(ic).style({ fontSize: "2rem" });
+-			span(name).style({ fontWeight: "700" });
+-			if (gist) small.c("muted", gist);
+-		});
+-}
++// cards() and flow() live in ux/Content/structure (Structure.js), shown on its page.
++export { cards, card, flow };
+ // A heading and its gist line: the reader knows what the section is before any detail.
+ export function heading(title, gist){ h2(title); if (gist) md(gist); }
+-// Numbered steps, each a linked name and one line: for anything that happens in order.
+-export function flow(steps){
+-	return ol.c("flex v gap-35", () => steps.forEach(([name, href, text]) =>
+-		li(() => { (href ? a(name).attr("href", href) : strong(name)).style({ fontWeight: "700" }); span(" — " + text); })));
+-}
+-
+ const concept_card = (base, c) => ({ name: c.name, icon: c.icon, gist: c.gist, href: base + c.slug + "/" });
+ // Fetch, then fill a box captured NOW (no DOM after an await: CLAUDE.md's traps).
+ const later = (box, url, parse, fill) => fetch(url).then(r => r.text()).then(t => box.append(() => fill(parse(t)))).catch(() => box.append(() => small.c("muted", "Could not load " + url)));
+ const jsonl = t => t.trim().split("\n").map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+ 
++// The groups the Skills tab draws, in order; a skill's `kind` (skills.json) picks its
++// group, and a group with no skills is skipped. Regrouping is data: give a SKILL.md a
++// `kind:` line (skills.mjs reads it first), add its group here. `aspect` and `companion`
++// wait for the ui-skills proposal (ai/2026-09-30/servex-mastermind/ui-skills-proposal.md).
+ const KINDS = [
+ 	["role", "Roles", "Become one of these agents. A role skill is the agent's whole job description."],
++	["aspect", "Aspects", "One side of building UI: content, layout, controls, navigation, style."],
+ 	["trigger", "Triggers", "Run at a moment: before the first edit, before a page, when a task lands."],
+ 	["reference", "Reference", "Read before a kind of work, then again when it has been a while."],
++	["companion", "Companions", "Small skills another skill reminds you of."],
+ ];
+ 
+ export function tab_page(root, name){
+@@ -63,6 +54,7 @@ export function tab_page(root, name){
+ 				md("**A skill is how to do one kind of job well.** An agent loads it by name when the moment comes. Each page below is built from its `.claude/skills/<name>/SKILL.md`.");
+ 				const box = div.c("wide");   // the card grids arrive inside it, so it takes the wide track
+ 				later(box, base + "skills.json", JSON.parse, list => KINDS.forEach(([k, title, gist]) => {
++					if (!list.some(s => s.kind === k)) return;
+ 					heading(title, gist);
+ 					cards(list.filter(s => s.kind === k).map(s => ({ name: s.id, icon: "school", gist: s.for, href: url + s.id + "/" })));
+ 				}));
+@@ -80,6 +72,10 @@ export function tab_page(root, name){
+ 							if (s.when) md(s.when);
+ 							heading("At a glance");
+ 							md([`- **Kind:** ${s.kind}`, `- **Source:** \`.claude/skills/${s.id}/SKILL.md\` (${s.lines} lines)`, `- **Improvements log:** ${s.improvements ? "yes, `improvements.md` beside it" : "none yet"}`, `- Who changes it: the Servex mastermind`].join("\n"));
++							if (s.questions?.length){
++								heading("The check", "`review` asks these after the work, from `questions.md` beside the skill.");
++								md(s.questions.map(([sec, n]) => `- **${sec}:** ${n} questions`).join("\n"));
++							}
+ 							md(`[All skills](${url})`);
+ 						});
+ 					},
+@@ -109,16 +105,18 @@ export function tab_page(root, name){
+ 		authoring: {
+ 			title: "Authoring", icon: "edit_note",
+ 			content(){
+-				md("**How these pages are written: a hierarchy you can see.** Title, then a heading with its gist line, then a few items in the right form. Four pieces, all in `ai/overview.js`, and every tab here uses them.");
+-				heading("The four pieces", "Each shown live, smallest first.");
++				md("**Every page here is built from four pieces. Each is shown working below, simplest first.** The rules are in the [content skill](" + base + "skills/content/); this page only shows their effect.");
++				heading("The four pieces", "Smallest first. cards() and flow() live in [Structure](/framework/ux/Content/structure/).");
+ 				flow([
+ 					["heading(title, gist)", null, "a section's name, then one line saying what it is."],
+ 					["cards(items)", null, "a few things side by side: icon, name, one line, a link each."],
+ 					["flow(steps)", null, "things that happen in order, numbered, each a link."],
+ 					["obj.chip() · row() · panel()", url.replace("authoring/", "objects/"), "one object, at the size the place needs."],
+ 				]);
+-				heading("A card grid, live", "Three of the system's parts, as `cards()` draws them.");
++				heading("Simple: a card grid", "Three of the system's parts, as `cards()` draws them.");
+ 				cards(CONCEPTS.slice(0, 3).map(c => concept_card(base, c)));
++				heading("Complex: a whole system, shown by its effect", "The readme chain an agent gets in `public/framework/ai/`, drawn live from the files. Its page explains it: [Readmes](" + base + "readmes/).");
++				readme_chain("public/framework/ai/");
+ 				heading("The rules they follow", "The `content` and `page` skills. The live catalog of structured pieces is ux/Content/structure.");
+ 				cards([
+ 					{ name: "content", icon: "school", gist: "Show the structure first, then as few words as it takes.", href: base + "skills/content/" },
+@@ -128,6 +126,73 @@ export function tab_page(root, name){
+ 			},
+ 		},
+ 	};
+-	const cfg = pages[name];
+-	return new Page({ ...cfg, url });
++	pages["claude-md"] = {
++		title: "CLAUDE.md", icon: "description",
++		content(){
++			md("**CLAUDE.md is the one skill every agent loads by itself.** It is all an agent knows before it asks, so it holds the laws, and one line for each system that has an effect, with a link. How to do anything goes one click down, in a skill.");
++			div.c("wide", () => div().style({ display: "grid", gap: "2rem", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 30rem), 1fr))", alignItems: "start" }).append(() => {
++				div(() => { small.c("muted", "The file, as agents get it. It is a copy: node public/framework/ai/skills.mjs refreshes it."); const $file = div(); code.file(import.meta, "CLAUDE.md", { lang: "markdown", lines: true }).then(v => $file.append(v)); });
++				div.c("flex v gap", () => {
++					heading("What goes in it", "Anything that changes what an agent does on its first turn.");
++					md("- The laws, the presentation rule, the ask-before list, the traps that never throw.\n- One line per system that has an effect: its name, the effect, a link.");
++					heading("What goes one click down", "Anything that matters only once an agent is doing that kind of work.");
++					md("- How to do it: the skill. Why it is that way: the doc. What it looks like: the page.");
++					heading("Audit: the systems it names", "Each links to its page.");
++					cards([
++						{ name: "Server", icon: "dns", gist: "The dev server.", href: "/framework/servex/fs/?file=Server/readme.md" },
++						{ name: "Servex", icon: "hub", gist: "Agents, the pool, the heartbeat, merge and review.", href: "/framework/servex/" },
++						{ name: "The ai/ log", icon: "receipt_long", gist: "Every task, open to landed.", href: base + "tasks/" },
++						{ name: "The asks ledger", icon: "record_voice_over", gist: "Every routed ask and its owner.", href: base + "asks/" },
++						{ name: "Readmes and doc/", icon: "menu_book", gist: "Docs point, they don't explain.", href: base + "readmes/" },
++						{ name: "Live-reload hold", icon: "pause_circle", gist: "One reload per batch of writes.", href: "/framework/servex/fs/?file=Server/doc/watch.md" },
++					]);
++					heading("Audit: systems with an effect it doesn't name", "Proposed one-liners. mastermind-servex-9 drafts the edit; the owner applies it.");
++					md([
++						"- **`#Page` references:** `#Name`, `@agent` and `/path` in text become links (ext/Mention).",
++						"- **The page inbox:** a note left on a page reaches the agent that owns it.",
++						"- **Cards and the object log:** every task reports on its card; the card is what the owner reads.",
++						"- **The review gate:** a page change with no review report is refused by merge.",
++						"- **The readme chain:** read the readmes root to leaf before working, and again on switching directory ([Readmes](" + base + "readmes/)).",
++						"- **Budgets and dormancy:** Servex stops an agent over budget and parks a quiet one.",
++						"- **The four widths:** a page is checked at 400, 1400, 1920 and 3440.",
++					].join("\n"));
++				});
++			}));
++		},
++	};
++
++	// ⚠ title "" — the tab sits under the page's own h1 ("AI"); a second page-size
++	// heading on top of the panel read as two titles. The strip reads `label`.
++	const { title, ...cfg } = pages[name];
++	return new Page({ ...cfg, label: title, title: "", url });
++}
++
++/* readme_chain(dir) — the chain a fresh agent in `dir` is handed (Servex/agents/readme-chain.js),
++   drawn live: every folder from the repo root down to `dir` that has a readme.md, root → leaf,
++   each with its first line. The chain file is not served, so this walks the same rule by path. */
++export function readme_chain(dir = "public/framework/ai/"){
++	const parts = dir.split("/").filter(Boolean);
++	const levels = [""].concat(parts.map((_, i) => parts.slice(0, i + 1).join("/") + "/"));
++	const box = div.c("wide").style({ display: "grid", gap: ".5rem" });
++	const url_of = d => d.startsWith("public/") ? d.slice("public".length) + "readme.md" : null;   // public/ is the site root
++	const fs = d => "/framework/servex/fs/?file=" + d + "readme.md";
++	Promise.all(levels.map(d => url_of(d)
++		? fetch(url_of(d)).then(r => r.ok ? r.text() : null).catch(() => null)
++		: Promise.resolve(d === "" ? "# setup, branches, deploy" : null)))
++	.then(texts => box.append(() => {
++		const kept = levels.map((d, i) => [d, texts[i]]).filter(([, t]) => t);
++		kept.forEach(([d, t], i) => {
++			const end = i === 0 || i === kept.length - 1;
++			const first = (t.replace(/\r/g, "").split("\n").find(l => l.trim() && !/^#+\s*\S{1,20}$/.test(l.trim())) ?? "").replace(/^#+\s*/, "");
++			a.c("card flex gap-50").attr("href", url_of(d) ? url_of(d).replace(/readme\.md$/, "") : fs(d))
++				.style({ textDecoration: "none", color: "var(--ink)", alignItems: "center", marginLeft: (i * 1.25) + "rem" })
++				.append(() => {
++					icon(end ? "lock" : "content_cut");
++					strong((d || "repo root/") + "readme.md");
++					small.c("muted", first.slice(0, 90));
++					small.c("muted", end ? "· always kept" : "· cut first over the cap").style({ marginLeft: "auto", whiteSpace: "nowrap" });
++				});
++		});
++	}));
++	return box;
+ }
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index a0905f7b..89964bd5 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -3,7 +3,7 @@ import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/fr
+ import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
+ import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
+ import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
+-import { TABS, tab_page } from "./overview.js";   // the four top tabs: Overview · Skills · Objects · Authoring
++import { TABS, tab_page, readme_chain, heading } from "./overview.js";   // the four top tabs: Overview · Skills · Objects · Authoring
+ 
+ /* `?v1` — the original board, kept addressable at this same url. Read fresh on
+    every call rather than captured once: a picker click is a real navigation, but
+@@ -30,7 +30,11 @@ export default new Page({
+ 			// The same top tabs as a module's docs (the owner, 2026-09-30). The first
+ 			// tab owns this url; each tab's page is routed below (tab_page, overview.js).
+ 			// ⚠ The default tab is never routed to: tabs() only looks it up, so add it now.
+-			if (!this.children.has(TABS[0])) this.add(TABS[0], tab_page(this, TABS[0]));
++			// ⚠ Add every tab now, not only the default: the strip labels a tab from its
++			// page's `label`, and only once `loading` says every child is real, so a tab
++			// added late reads as its bare url name ("skills") until it is opened.
++			for (const t of TABS) if (!this.children.has(t)) this.add(t, tab_page(this, t));
++			this.loading ??= Promise.resolve();
+ 			this.tabs(TABS.join(" ")).ac("wide");   // the panel fills the screen, not the text measure
+ 			return;
+ 		}
+@@ -137,6 +141,11 @@ function concept_page(parent, c){
+ 			md(c.items.map(i => "- " + i).join("\n"));
+ 			md("Code: " + links(c.code));
+ 			if (c.servex.length) md("In Servex: " + links(c.servex));
++			// A system is shown by its effect (the owner, 2026-09-30: the iceberg).
++			if (c.slug === "readmes"){
++				heading("The chain, live", "What a fresh agent in `public/framework/ai/` is handed, root first.");
++				readme_chain("public/framework/ai/");
++			}
+ 		},
+ 	});
+ }
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index bfe99591..c95dad47 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -2,7 +2,7 @@
+ 
+ Where the agents' work is recorded: one folder per day, one folder per task inside it.
+ 
+-The page itself shows the AI system, under four top tabs: **Overview** (12 concepts in 4 groups, then how they work together), **Skills** (a page per `.claude/skills/*`, from `skills.json`; rerun `node public/framework/ai/skills.mjs` after a skill changes), **Objects** (`objects.js`: every object's chip, row and panel) and **Authoring** (the pieces these pages are built from). Concept text: [concepts.js](concepts.js); tabs: [overview.js](overview.js). The old board is at [/framework/ai/v/3/](/framework/ai/v/3/) (and `?v1`).
++The page itself shows the AI system, under five top tabs: **Overview** (12 concepts in 4 groups, then how they work together), **Skills** (a page per `.claude/skills/*`, from `skills.json`; rerun `node public/framework/ai/skills.mjs` after a skill changes), **Objects** (`objects.js`: every object's chip, row and panel), **Authoring** (the pieces these pages are built from, shown simple to complex) and **CLAUDE.md** (the file, what belongs in it, and an audit; its copy here is refreshed by `skills.mjs`). Concept text: [concepts.js](concepts.js); tabs: [overview.js](overview.js). The old board is at [/framework/ai/v/3/](/framework/ai/v/3/) (and `?v1`).
+ 
+ ## Start here
+ 
+diff --git a/public/framework/ai/skills.json b/public/framework/ai/skills.json
+index 65c04473..ac6c7dfc 100644
+--- a/public/framework/ai/skills.json
++++ b/public/framework/ai/skills.json
+@@ -6,7 +6,8 @@
+ 		"for": "You are the decision auditor — the system architect of the skills.",
+ 		"when": "The mastermind wakes you when a mistake reached the owner, or when a judgment call the system made turned out wrong. You read what the agent actually had in front of it, say why that was not enough, and propose at most five changes ranked by mistakes prevented per line of text. Reshape, merge, delete; a new rule comes last.",
+ 		"lines": 72,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "check-claude-usage",
+@@ -15,7 +16,8 @@
+ 		"for": "Check how much of the Claude subscription's usage limits are consumed — the 5-hour session window and the weekly windows, as 0-100% with reset times.",
+ 		"when": "Use when the user asks \"how much usage do I have left\", \"am I near my limit\", \"what's my usage\", before or after an expensive operation (a wide subagent fan-out, a long autonomous run, a big refactor), or when deciding whether a costly approach is affordable.",
+ 		"lines": 102,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "clarity",
+@@ -24,7 +26,8 @@
+ 		"for": "Become the clarity agent — woken fresh when a task lands or a task is proposed, you check what it wrote for the owner against the `content` skill, and turn every failure into a concrete rewrite sent to the agent that owns it.",
+ 		"when": "Managed by mastermind-servex, which refines this skill from your misses. Sonnet, medium effort, one pass, then stop.",
+ 		"lines": 53,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "code",
+@@ -33,7 +36,8 @@
+ 		"for": "Load once per session before writing or editing JS under public/ — the lifecycle of a task, house style (assign-based OOP, every method a seam, parts as static subclasses), and the traps that never throw.",
+ 		"when": "Reference skill; reload only after a long gap. Companions it will remind you of — new-task, layout, css, new-css-class, new-page, documentation, finish-task.",
+ 		"lines": 232,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "content",
+@@ -42,7 +46,13 @@
+ 		"for": "Invoke before writing anything the owner will read — a card, a report, a task outcome, a readme, a page's text, a chat reply.",
+ 		"when": "How to make it understood at a glance: show the structure with layout and widgets, then add as few words as it takes. Thirty seconds; re-read it whenever a reply is getting long.",
+ 		"lines": 70,
+-		"improvements": false
++		"improvements": false,
++		"questions": [
++			[
++				"Words",
++				11
++			]
++		]
+ 	},
+ 	{
+ 		"id": "css",
+@@ -51,7 +61,17 @@
+ 		"for": "Invoke before writing any substantial CSS in this repo — it has you read framework.css itself (the utility vocabulary, exact definitions) and decide where the declaration belongs before you write it.",
+ 		"when": "Re-invoke if it has been a while since the last time (context drifts); skip it for a one-line tweak. Naming a new class → the new-css-class skill; sizing a page → layout.",
+ 		"lines": 124,
+-		"improvements": true
++		"improvements": true,
++		"questions": [
++			[
++				"Spacing and padding",
++				10
++			],
++			[
++				"Colour and contrast",
++				8
++			]
++		]
+ 	},
+ 	{
+ 		"id": "decide",
+@@ -60,7 +80,8 @@
+ 		"for": "Run whenever a research round, a plan or a task reaches a decision — anything with options to choose between (which library, proxy or build, where it lives).",
+ 		"when": "The decision is written by Server/decide.mjs, a node tool that walks it step by step and refuses a missing part. The tool is the only way to write one; never hand-write a decision line.",
+ 		"lines": 47,
+-		"improvements": false
++		"improvements": false,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "documentation",
+@@ -69,7 +90,8 @@
+ 		"for": "Run once a task's decisions are made and before finish-task — makes the touched module's docs current and conclusive: readme.md (the reader's index), page.js (show, don't tell), doc/*.md (the detail, one topic each).",
+ 		"when": "Also when asked to document, audit docs, write a readme, or add a doc page. Trigger skill: every task that touched a module under public/.",
+ 		"lines": 79,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "every-prompt",
+@@ -78,7 +100,8 @@
+ 		"for": "Become the owner's fast assistant — the front desk for a running mastermind.",
+ 		"when": "Invoke on \"/every-prompt\" or \"you are the assistant\", and re-invoke on EVERY prompt: it is short on purpose, so re-reading costs little and keeps you who you are. You answer on the owner's screen (the dev bar log) with one shell command and relay their words to the mastermind. You do no building, read no code, and keep your context tiny. Sonnet at low effort, in its own tab.",
+ 		"lines": 73,
+-		"improvements": false
++		"improvements": false,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "finish-task",
+@@ -87,7 +110,8 @@
+ 		"for": "Run every time a task lands — the closing report the /framework/ai/ board renders: a landing line whose `outcome` is the report (a headline, then links to everything produced, a picture when there is one, what was left), the deliverables linked from where a reader already is, and the day log closed.",
+ 		"when": "Simple, clear, visual — a screen, not an essay. Trigger skill; the Stop hook will nag until it runs.",
+ 		"lines": 95,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "fork-claude-session",
+@@ -96,7 +120,8 @@
+ 		"for": "Spawn worker Claude processes that inherit the CURRENT conversation's full context — loaded files, tool results, reasoning — instead of starting cold like Agent subagents do.",
+ 		"when": "Use when the user asks to \"fork the session\", \"fork my context\", or wants parallel workers that have already read what you've read. Covers finding the live session ID, `claude --resume --fork-session`, setting each fork's model and thinking effort, fanning out N forks, and collecting their JSON results.",
+ 		"lines": 321,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "layout",
+@@ -105,7 +130,25 @@
+ 		"for": "Invoke before building or restyling anything with a size — a page, a container, a card, a grid, a dashboard — and again when a page looks cramped, squeezed, or wastes the screen.",
+ 		"when": "Five questions, answered in one line each before the first factory call. Reference; re-invoke when stale. Measuring is ext/DesignTool; the CSS itself is the css skill.",
+ 		"lines": 392,
+-		"improvements": true
++		"improvements": true,
++		"questions": [
++			[
++				"Layout",
++				12
++			],
++			[
++				"Sizing",
++				7
++			],
++			[
++				"Wrapping",
++				5
++			],
++			[
++				"Flow",
++				6
++			]
++		]
+ 	},
+ 	{
+ 		"id": "log-assistant",
+@@ -114,7 +157,8 @@
+ 		"for": "Become the log assistant — the one agent allowed to settle a naming or content conflict in the event log.",
+ 		"when": "You are woken by the appender when a write fails its naming check: two agents proposing a different name for the same thing, a rename aimed at a name the owner has already seen, a dispute that needs a consensus. You read only the contested entries, append one verdict, and stop. You never do a mechanical append.",
+ 		"lines": 59,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "master-assistant",
+@@ -123,7 +167,8 @@
+ 		"for": "Become the master assistant — the supervising half of the front desk.",
+ 		"when": "You know what is going on, you give an opinion in one or two sentences when the fast assistant or the mastermind asks, you keep one page current on how the process itself is going, and between questions you are the system auditor. You do no building and never edit the site. Opus; Fable for an architecture question.",
+ 		"lines": 53,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "mastermind",
+@@ -131,8 +176,9 @@
+ 		"kind": "role",
+ 		"for": "Become the mastermind — the continuously-running Fable executive that governs the usage budget, finds the highest-priority work, and spawns minions down the model ladder (Haiku scans, Sonnet builds, Opus judges, Fable when the owner says) to do it — several tasks at once.",
+ 		"when": "Invoke on \"you are the mastermind, begin\", \"/mastermind\", or any wakeup carrying /mastermind. Fable decides, workers execute; only the owner stands it down.",
+-		"lines": 486,
+-		"improvements": true
++		"lines": 488,
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "minion",
+@@ -140,8 +186,9 @@
+ 		"kind": "trigger",
+ 		"for": "Load this first, before touching anything, when you have been started as a minion — a worker `claude` CLI session, with its own session id, given a task and a requirements.md brief to execute for the mastermind or another orchestrator.",
+ 		"when": "Triggers on \"you are a minion\", \"your brief is at\", or any prompt that names a requirements.md. Points you at your brief, the three laws, the never-list that has actually burned agents before, and how to land.",
+-		"lines": 138,
+-		"improvements": true
++		"lines": 140,
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "naming",
+@@ -150,7 +197,8 @@
+ 		"for": "Run whenever something needs a name — a class, a method, a CSS class, a page, a card, a tool, a concept in a readme.",
+ 		"when": "Brainstorm in parallel with cheap fast clones, then pick for clarity. Thirty seconds of wall time.",
+ 		"lines": 14,
+-		"improvements": false
++		"improvements": false,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "new-css-class",
+@@ -159,7 +207,8 @@
+ 		"for": "Run every time you are about to introduce (or rename) a CSS class name in this repo — it checks the name against the reserved prefixes in framework/styles/css-scopes.txt and the live census, and makes it carry its owning module's prefix.",
+ 		"when": "Thirty seconds; skip only when reusing a class that already exists.",
+ 		"lines": 57,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "new-page",
+@@ -168,7 +217,8 @@
+ 		"for": "Run every time you create a page — the `create_page` tool that does the mechanics reliably, the blessed page.js shape for when you write one by hand, and the traps that still apply.",
+ 		"when": "Trigger skill; thirty seconds.",
+ 		"lines": 64,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "new-task",
+@@ -177,7 +227,8 @@
+ 		"for": "Open a task — create its ai/<date>/<slug>/ dir, open its task.jsonl log, and give it presence on the owner's dashboard.",
+ 		"when": "Run this BEFORE THE FIRST EDIT in ANY Claude session in this repo — building, changing, fixing, adding, refactoring, restyling, a doc pass, a rename, a demo, a bug fix — and when an agent embarks on a distinct sub-project. Also on \"new task\" / \"start a task\". Not needed to answer a question, read, investigate, or prepare — but the moment that turns into an edit, run it. Unsure? Run it.",
+ 		"lines": 92,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "page",
+@@ -186,7 +237,17 @@
+ 		"for": "Invoke before making or reshaping ANY page, card or view the owner will look at — the whole job top-down: what kind of page, where it lives, how it's reached, its layout, its content and the order of that content.",
+ 		"when": "Umbrella over `new-page` (the mechanics), `layout` (sizing), `css` (styling) and `content` (words). Load it yourself instead of handing a page to a specialist agent: you keep the context.",
+ 		"lines": 135,
+-		"improvements": false
++		"improvements": true,
++		"questions": [
++			[
++				"Page structure",
++				12
++			],
++			[
++				"Navigation",
++				10
++			]
++		]
+ 	},
+ 	{
+ 		"id": "research",
+@@ -195,7 +256,8 @@
+ 		"for": "Run before writing down anything you researched — a round of digging into a question, a topic in a research program, a claim you are about to record as true.",
+ 		"when": "Covers the entry schema, the credence discipline (the one thing agents get wrong), the skeptic pass, where logs live, and how the presentation picks them up. Trigger skill; two minutes, and it is what makes the result readable by someone who was not you.",
+ 		"lines": 148,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "review",
+@@ -204,7 +266,8 @@
+ 		"for": "Become the fresh-eyes reviewer — one pass that checks finished work against the owner's asks and every design system (page, navigation, layout, sizing, wrapping, spacing, colour, flow, words), answering each system's questions with a screenshot or a number as proof.",
+ 		"when": "Invoke on \"review\", \"use your review skill\", \"fresh-eyes review\", \"review this page\", or when Server/review.mjs starts you.",
+ 		"lines": 83,
+-		"improvements": false
++		"improvements": false,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "servex-mastermind",
+@@ -213,7 +276,8 @@
+ 		"for": "Become the Servex Mastermind — the systems architect that runs on Servex as `mastermind-servex`.",
+ 		"when": "You oversee how the whole agent system works (quality audits of layout, contrast and use of space; spend; coordination; crashes) and improve the SYSTEM (skills, briefs, tools), never doing routine work yourself. Load when started as mastermind-servex, or on \"you are the Servex mastermind\".",
+ 		"lines": 102,
+-		"improvements": false
++		"improvements": false,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "skill-improvement",
+@@ -222,7 +286,8 @@
+ 		"for": "Run the moment a skill lets you down — it told you something wrong, was silent about a trap that then bit you, cost you a wrong turn, or you worked around it.",
+ 		"when": "Also when anything surprises you and the surprise was preventable. Thirty seconds; one line appended to that skill's improvements.md. Trigger skill.",
+ 		"lines": 39,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "sub-mastermind",
+@@ -230,8 +295,9 @@
+ 		"kind": "role",
+ 		"for": "Become a task mastermind — the agent that owns exactly ONE task end to end.",
+ 		"when": "The master-mastermind hands you a requirements page and a fence; you decide whether the task needs a worktree, split it into minion-sized pieces with non-overlapping file fences, spawn and watch the minions, judge each deliverable against the owner's own sentence, land the task, and report one screen upward. Invoke when a brief names you a task mastermind, or on \"you own this task\".",
+-		"lines": 258,
+-		"improvements": true
++		"lines": 260,
++		"improvements": true,
++		"questions": []
+ 	},
+ 	{
+ 		"id": "ui-test",
+@@ -240,6 +306,7 @@
+ 		"for": "Prove a UI interaction instead of describing it — drive the page headless and screenshot after every gesture.",
+ 		"when": "Use for \"test the drag\", \"does the resize work\", \"ui-test this page\", any drag / drop / sort / resize / hover / keyboard / pointer gesture you must show working, a layout you suspect is broken at some size, and for \"force the state and shoot it\" when the state is easier to set than to reach.",
+ 		"lines": 286,
+-		"improvements": true
++		"improvements": true,
++		"questions": []
+ 	}
+ ]
+diff --git a/public/framework/ai/skills.mjs b/public/framework/ai/skills.mjs
+index 6058b343..fb0f19c5 100644
+--- a/public/framework/ai/skills.mjs
++++ b/public/framework/ai/skills.mjs
+@@ -1,5 +1,5 @@
+ /* `node public/framework/ai/skills.mjs` — reads every .claude/skills/<name>/SKILL.md and
+-   writes skills.json beside this file: each skill's name, its kind, what it is for and
++   writes skills.json (and a copy of the root CLAUDE.md) beside this file: each skill's name, its kind, what it is for and
+    when it runs, split from the SKILL.md's own `description`. The Skills tab
+    (/framework/ai/skills/) draws from it. Rerun it after a skill changes. */
+ import { readdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+@@ -20,9 +20,20 @@ const skills = readdirSync(dir).filter(n => existsSync(join(dir, n, "SKILL.md"))
+ 	const first = description.match(/^(.+?[.!?])(\s|$)/)?.[1] ?? description;
+ 	const rest = description.slice(first.length).trim();
+ 	const title = text.slice(text.indexOf("---", 3) + 3).match(/^#\s+(.+)$/m)?.[1] ?? name;
+-	return { id: name, title, kind: kind(description), for: first, when: rest,
+-		lines: text.split("\n").length, improvements: existsSync(join(dir, name, "improvements.md")) };
++	// questions.md beside it is the check `review` reads: its section names, and how many questions each.
++	const q = join(dir, name, "questions.md");
++	const questions = existsSync(q) ? readFileSync(q, "utf8").replace(/\r/g, "").split(/^## /m).slice(1)
++		.map(sec => [sec.split("\n")[0].trim(), (sec.match(/^\s*(?:[-*]|\d+\.)\s/gm) ?? []).length]) : [];
++	// A `kind:` line in the frontmatter wins over the guess (the Skills tab groups by it).
++	const declared = front.match(/^kind:\s*(\w+)/m)?.[1];
++	return { id: name, title, kind: declared ?? kind(description), for: first, when: rest,
++		lines: text.split("\n").length, improvements: existsSync(join(dir, name, "improvements.md")), questions };
+ });
+ 
++// CLAUDE.md is at the repo root, which the site does not serve: the CLAUDE.md tab reads this copy.
++writeFileSync(join(here, "CLAUDE.md"), readFileSync(join(root, "CLAUDE.md"), "utf8"));
++
++// CLAUDE.md is at the repo root, which the site does not serve: the CLAUDE.md tab reads this copy.
++writeFileSync(join(here, "CLAUDE.md"), readFileSync(join(root, "CLAUDE.md"), "utf8"));
+ writeFileSync(join(here, "skills.json"), JSON.stringify(skills, null, "\t") + "\n");
+ console.log(`skills.json: ${skills.length} skills`);
+diff --git a/public/framework/ux/Content/structure/Structure.js b/public/framework/ux/Content/structure/Structure.js
+index c2ddb646..2d667578 100644
+--- a/public/framework/ux/Content/structure/Structure.js
++++ b/public/framework/ux/Content/structure/Structure.js
+@@ -1,4 +1,4 @@
+-import { div, a, span, h4, ul, li, icon } from "../../../core/View/View.js";
++import { div, a, span, h4, ul, ol, li, strong, small, icon } from "../../../core/View/View.js";
+ 
+ /**
+  * Structured content: four pieces, each one decision.
+@@ -40,4 +40,27 @@ export function outline(items = [], { bg = false } = {}){
+ 	return div.c(bg ? "card ux-content-outline" : "ux-content-outline", () => list(items));
+ }
+ 
+-export default { iconCard, section, outline };
++/* cards(items) — a few things side by side, each a gist card: big icon, name, one line,
++   a link. The columns share the row evenly, so 4 cards are 4 across, never 3 and an orphan.
++   Promoted from ai/overview.js (the ai-page task, 2026-09-30). */
++export function cards(items){
++	return div.c("wide", () => items.forEach(it => card(it)))
++		.style({ display: "grid", gap: "var(--gap, 1rem)", gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, 13rem), 1fr))` });
++}
++export function card({ name, icon: ic, gist, href }){
++	return a.c("card flex v gap-35").attr("href", href ?? "#")
++		.style({ textDecoration: "none", color: "var(--ink)" })
++		.append(() => {
++			if (ic) icon(ic).style({ fontSize: "2rem" });
++			span(name).style({ fontWeight: "700" });
++			if (gist) small.c("muted", gist);
++		});
++}
++
++/* flow(steps) — things that happen in order: numbered, each [name, href, one line]. */
++export function flow(steps){
++	return ol.c("flex v gap-35", () => steps.forEach(([name, href, text]) =>
++		li(() => { (href ? a(name).attr("href", href) : strong(name)).style({ fontWeight: "700" }); span(" — " + text); })));
++}
++
++export default { iconCard, section, outline, cards, card, flow };
+diff --git a/public/framework/ux/Content/structure/page.js b/public/framework/ux/Content/structure/page.js
+index d1e3ca2c..491375ac 100644
+--- a/public/framework/ux/Content/structure/page.js
++++ b/public/framework/ux/Content/structure/page.js
+@@ -1,5 +1,5 @@
+ import { Page, md, div, h3, p } from "/app.js";
+-import { iconCard, section, outline } from "./Structure.js";
++import { iconCard, section, outline, cards, flow } from "./Structure.js";
+ 
+ // Real words: the owner's harness brief (ai/2026-09-28/harness-research/owner-words.md), drawn.
+ const harness = [
+@@ -35,6 +35,9 @@ export default new Page({
+ 			box("A section, heaviest first", () => section({ title: "Research", items: [
+ 				{ name: "Sources", icon: "menu_book", weight: 1 }, { name: "Question", icon: "help", weight: 3 },
+ 				{ name: "Claims", icon: "fact_check", weight: 2 }, { name: "Verdict", icon: "gavel", weight: 3 }, { name: "Skeptic", icon: "psychology_alt", weight: 1 }] }));
++			box("Cards: a few things side by side, one line each", () => cards([
++				{ name: "Plan", icon: "map", gist: "What the task will do." }, { name: "Build", icon: "construction", gist: "The work itself." }, { name: "Review", icon: "rate_review", gist: "Checked before it lands." }]));
++			box("Flow: things that happen in order", () => flow([["Ask", null, "you say what you want."], ["Build", null, "an agent does it."], ["Land", null, "it merges, and the card says so."]]));
+ 			box("Outline: a list is a card with no background", () => outline([
+ 				{ name: "Page", icon: "article", children: [
+ 					{ name: "Sections", children: ["as many as it has", "each titled"] },
+

@@ -1,0 +1,16 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026/10/01/",
+ "widths": {
+  "1920": {
+   "empty": 0.492,
+   "widest_text": 3974,
+   "widest_text_sample": "While returning worktree qf-9 to the poo",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.717
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

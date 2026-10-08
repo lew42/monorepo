@@ -1,0 +1,322 @@
+diff --git a/public/framework/design/layout/doc/rules.md b/public/framework/design/layout/doc/rules.md
+index 696e3836..c7e4f01a 100644
+--- a/public/framework/design/layout/doc/rules.md
++++ b/public/framework/design/layout/doc/rules.md
+@@ -29,6 +29,9 @@ genuinely needs to, and say why in a decision line.
+   stack's outer corners (the first item's top, the last item's bottom), or wrap the stack in one
+   rounded container, and give the rows inside square corners. Rounded items with zero gap leave
+   pinched notches where the corners meet (the owner, 2026-09-25).
++- **A flush stack that's the narrow half of a list-and-detail split has its own name: the
++  preview rail** (AI 2's inbox list, `ext/grip`'s readme) — a flush stack of previews beside
++  the detail they open. Use that name for any rail shaped like it, instead of a new one.
+ - **Look before you merge.** Screenshot the page at 400, 1200, 1920 and 3440 (`node
+   Server/layout-check.mjs <url>`) and read the contact sheet.
+ 
+diff --git a/public/framework/ext/grip/doc/decisions.md b/public/framework/ext/grip/doc/decisions.md
+index 0c90f466..1a08bf48 100644
+--- a/public/framework/ext/grip/doc/decisions.md
++++ b/public/framework/ext/grip/doc/decisions.md
+@@ -284,6 +284,49 @@ proof drives those events directly (`el.dispatchEvent(new PointerEvent(...,
+ delivers. Full run, screenshots and numbers:
+ `ai/2026-09-29/grip-everywhere/build/shots/`.
+ 
++## Two zones, not one — and why only `.grip-start` gets the asymmetric box (grip-zones, 2026-09-30)
++
++**The bug:** on AI 2's inbox, the grip between the preview rail and the detail pane sat
++exactly on top of the rail's own scrollbar — `.grip-start`, flush with the rail's own
++inline-end edge, is the same 0.75rem the rail's own `overflow-y: scroll` gutter reserves
++there. Every `pointerdown` on that sliver went to the (invisible) grip, not the scrollbar.
++
++**The owner's words, distilled:** two zones. A generous SHOW zone (~50px either side)
++where the line and the pill appear, just to say "the handle is over here" — and a much
++smaller GRAB zone where the cursor actually changes and a drag actually starts, biased
++away from whichever side the rail's own scrollbar sits on.
++
++**SHOW never touches the DOM box.** A 50px-wide element would itself sit on top of the
++scrollbar it's trying to free up — the opposite of the fix. Instead `grip.js` listens on
++`document` and toggles `.grip-near` purely from a proximity check against the PARENT's own
++edge (exact — `--grip-out` only moves the grip's own box, never the parent's). No hit-test
++surface grows, so nothing under the pointer ever loses a click, in the 50px zone or outside it.
++
++**GRAB is asymmetric only on `.grip-start`.** The interior side of a mirrored strip — the
++direction its old, symmetric 0.75rem grew INTO — is exactly where a scrolling rail's own
++gutter sits, on every caller found (AI 2, the Playground tree, both `mirror: true`/default-`from:"start"`
++docks). The OTHER side of the true edge — across the boundary, into the sibling pane — has
++no scrollbar of its own, so that's where the room goes: `--grip-out` (~8px) out, `--grip-in`
++(~1px) in. **Not applied to the plain, unmirrored `.grip`** (the drawer, the dev rail): both
++of those can slide fully off-screen, and reaching out across THEIR edge is the exact
++straddle rule 1, above, already exists to forbid — measured once already (the 15px invisible
++column). Nothing in the two collapsible callers' own bug history points at a scrollbar
++conflict, so there was nothing to fix there, and reaching outward would have re-opened an
++old one. Verified: `.grip-start`'s box on `ai2`'s rail now spans about 1px into the rail and
++8px into the detail pane, and `elementFromPoint` at the rail's own scrollbar column (the
++bug's original repro, `client_x = rail_right - 3px`) returns `.ai2-rows`'s own scrollable
++box, not `.grip`.
++
++**Touch is a hard reset, not a shared formula.** `.grip-start` under `(pointer: coarse),
++(hover: none)` goes back to flush-and-symmetric at the touch width (1.25rem) — byte-identical
++in shape to what it always rendered on touch, just wider. The asymmetric split and
++`.grip-near` are both a mouse-and-hover idea (aiming around a target you can see move before
++you commit); touch has neither hover nor an idle scrollbar fight, since the handle is
++already visible at rest there.
++
++**Rejected: widen the same asymmetric split to the unmirrored `.grip` too**, for one
++formula everywhere. Declined — it has no bug to fix and a real one to reopen (above).
++
+ ## Rejected
+ 
+ - **A `side` option.** Both rails dock at the inline end and grip their inline-start
+diff --git a/public/framework/ext/grip/grip.css b/public/framework/ext/grip/grip.css
+index a307120f..e7600cb9 100644
+--- a/public/framework/ext/grip/grip.css
++++ b/public/framework/ext/grip/grip.css
+@@ -1,5 +1,14 @@
+ /* A rail's resize edge. No permanent splitter: a hover strip just inside the edge,
+-   and a pill that appears at the pointer's cross axis. Design record: readme.md. */
++   and a pill that appears at the pointer's cross axis. Design record: readme.md.
++
++   TWO INVISIBLE ZONES (grip-zones, 2026-09-30), not one:
++   - SHOW (~50px either side of the true edge — grip.js's own `NEAR_PX`): purely
++     visual. grip.js watches the whole document and toggles `.grip-near` when the
++     pointer is merely near, so the line and the pill say "the handle is over here"
++     well before the cursor is on it. This zone owns no DOM box and steals no click —
++     see `.grip-near` below.
++   - GRAB (a few px — `--grip-out`/`--grip-in`, just below): the real hit-target,
++     `.grip` itself, where the cursor actually changes and a drag actually starts. */
+ @layer theme {
+ 
+ 	/* ⚠ `rem`, never `em`, for every size here: the dev rail's text is 0.8rem, so an
+@@ -10,12 +19,27 @@
+ 	     gutter flush against whichever rail is beside it, and any overhang lands on
+ 	     the scrollbar: `setPointerCapture` then swallows the scroll drag. 0.75rem is
+ 	     the dead strip both rails already have — a 1px border plus 0.9em of padding —
+-	     so the target covers no content of its own. */
++	     so the target covers no content of its own.
++	   This still holds for THIS class, the plain unmirrored one (the drawer, the dev
++	   rail): both can slide fully off-screen, and a box hanging past this edge is
++	   exactly the straddle that survives the slide as an invisible column (the bug
++	   this rule already exists to forbid). `.grip-start`, below, is the one variant
++	   allowed to cross it, and says why. */
+ 	.grip {
+ 		position: absolute; inset-block: 0; inset-inline-start: 0; z-index: 1;
+ 		width: 0.75rem;
+ 		cursor: ew-resize;
+ 		touch-action: none;   /* ⚠ a touch drag scrolls the page without it */
++		/* The grab zone's asymmetric split, `.grip-start` only (below) — a plain
++		   default here so any future caller can read or override it uniformly.
++		   `--grip-out`: how far the box reaches OUT, across the true edge, into the
++		   sibling box — safe, because nothing of the sibling's own lives that close
++		   to a boundary it doesn't own. `--grip-in`: how far it still reaches IN,
++		   toward whatever the anchored box keeps flush against its own edge — a
++		   scroll gutter, on every caller so far — kept to about a pixel so that
++		   gutter stays reachable. */
++		--grip-out: 0.5rem;   /* ~8px */
++		--grip-in: 0.0625rem; /* ~1px */
+ 	}
+ 
+ 	/* The whole edge lights, so the target is findable before the pill is. */
+@@ -35,9 +59,21 @@
+ 	   The pill mirrors too, below — it used to sit dead centre in the strip regardless
+ 	   of which side the line was on, which read as the knob riding a few px off the
+ 	   line whenever the strip was wider than the line itself (owner, 2026-09-22). */
+-	.grip-start { inset-inline-start: auto; inset-inline-end: 0; }
+-	.grip-start::before { inset-inline-start: auto; inset-inline-end: 0; }
+-	.grip-start .grip-pill { inset-inline-start: 100%; }
++	/* GRAB ZONE, asymmetric (grip-zones, 2026-09-30). `.grip-start` sits flush with
++	   its OWN box's true edge, and every caller so far (ai2's preview rail, the
++	   Playground tree) puts a scroll gutter on that exact edge — a scrolling box's
++	   own scrollbar lives at its own inline-end, same side `.grip-start` docks.
++	   The owner: let the strip reach mostly OUT, across the boundary into the
++	   sibling (the detail pane, which has no scrollbar of its own to steal), and
++	   pull back to about a pixel on the scrollbar's own side. The line and the pill
++	   stay pinned to the TRUE edge (`--grip-out` in from the box's new far edge),
++	   so neither one drifts just because the box grew. */
++	.grip-start {
++		inset-inline-start: auto; inset-inline-end: calc(-1 * var(--grip-out));
++		width: calc(var(--grip-out) + var(--grip-in));
++	}
++	.grip-start::before { inset-inline-start: auto; inset-inline-end: var(--grip-out); }
++	.grip-start .grip-pill { inset-inline-start: auto; inset-inline-end: var(--grip-out); }
+ 
+ 	/* `--prim`, the one affordance colour — same hue as the lit line, the open tab
+ 	   and the lit preset. */
+@@ -53,9 +89,16 @@
+ 		pointer-events: none;   /* the strip is the target; this is only the sign */
+ 	}
+ 
++	/* `.grip-near` is the SHOW zone's own class (grip-zones, 2026-09-30) — toggled by
++	   grip.js from a document-wide proximity check, never from CSS `:hover` alone,
++	   because the show radius (~50px) reaches well past this element's own small
++	   hit box. It only ever changes these two opacities — never `cursor`, which
++	   stays tied to the real, small `.grip` box below. */
+ 	.grip:hover::before,
++	.grip-near::before,
+ 	html.grip-sizing .grip::before { opacity: 0.45; }
+ 	.grip:hover .grip-pill,
++	.grip-near .grip-pill,
+ 	html.grip-sizing .grip-pill { opacity: 1; }
+ 
+ 	html.grip-sizing .grip::before { opacity: 0.7; }
+@@ -105,9 +148,15 @@
+ 	   axis. Nothing uses this yet (the sheet is `from: "end"`, the default), kept
+ 	   symmetric for the next caller — "the planned vertical split" the owner's brief
+ 	   names, which may dock either way. */
+-	.grip-start.grip-y { inset-block: auto 0; }
+-	.grip-start.grip-y::before { inset-block: auto 0; }
+-	.grip-start.grip-y .grip-pill { top: 100%; }
++	/* Same asymmetric grab zone as `.grip-start` above, read against the block axis:
++	   the box reaches OUT past its own pinned edge (`--grip-out`) and pulls back to
++	   about a pixel (`--grip-in`) on its own interior side. */
++	.grip-start.grip-y {
++		inset-block: auto calc(-1 * var(--grip-out));
++		height: calc(var(--grip-out) + var(--grip-in));
++	}
++	.grip-start.grip-y::before { inset-block: auto var(--grip-out); }
++	.grip-start.grip-y .grip-pill { top: auto; bottom: var(--grip-out); }
+ 
+ 	/* TOUCH / COARSE POINTER (grip-everywhere, 2026-09-29) — a hover-only hairline
+ 	   means nothing to a thumb: there is no hover to reveal it, and 2px is not
+@@ -120,6 +169,17 @@
+ 		.grip-y { width: auto; height: 1.25rem; }
+ 		.grip::before { width: 4px; opacity: 0.5; }
+ 		.grip-y::before { height: 4px; width: auto; opacity: 0.5; }
++
++		/* The asymmetric grab zone above is a desktop-hover idea — "leave the
++		   scrollbar grabbable while you aim with a mouse." Touch has no hover and no
++		   `.grip-near`, so put `.grip-start` back exactly where it always stood:
++		   wholly inside, flush with the true edge, just at the touch width. */
++		.grip-start { inset-inline-end: 0; width: 1.25rem; }
++		.grip-start::before { inset-inline-end: 0; }
++		.grip-start .grip-pill { inset-inline-start: auto; inset-inline-end: 0; }
++		.grip-start.grip-y { inset-block: auto 0; height: 1.25rem; }
++		.grip-start.grip-y::before { inset-block: auto 0; }
++		.grip-start.grip-y .grip-pill { top: auto; bottom: 0; }
+ 	}
+ 
+ 	/* ⚠ Around this width both rails stop being rails — the dev bar is a bottom sheet
+diff --git a/public/framework/ext/grip/grip.js b/public/framework/ext/grip/grip.js
+index c06e3788..3845021c 100644
+--- a/public/framework/ext/grip/grip.js
++++ b/public/framework/ext/grip/grip.js
+@@ -4,6 +4,12 @@ View.stylesheet(import.meta, "grip.css");
+ 
+ const html = document.documentElement;
+ 
++// The SHOW zone's own radius (grip-zones, 2026-09-30) — see grip.css's matching note.
++// A plain px, not `rem` like every actual hit-target size in that file: this never
++// draws anything of its own, it only decides how far away "near" still counts, so it
++// doesn't need to track the type scale the way a real target does.
++const NEAR_PX = 50;
++
+ /* The resize edge for a rail docked at the screen's inline end — a strip just inside
+  * the rail's inline-start edge. There is no permanent handle: the pill exists only
+  * while your pointer is near that edge, and it rides the pointer's cross axis, so the
+@@ -34,7 +40,12 @@ const html = document.documentElement;
+  *
+  * ⚠ No rAF throttle, unlike ext/demo's `drag()`: `pointermove` is already delivered
+  * once per frame, and this sets one custom property rather than re-laying-out a
+- * live render. Not worth importing the demo system for. */
++ * live render. Not worth importing the demo system for.
++ *
++ * Two invisible zones around the strip (grip-zones, 2026-09-30): a bigger SHOW zone
++ * (~50px, `NEAR_PX` below) where the line and the pill appear, and the small GRAB
++ * zone — the strip's own box, in grip.css — where the cursor changes and a drag
++ * actually starts. Story and picture: [the grip's own page](/framework/ext/grip/). */
+ export default function grip({ write, done, reset, from = "end", mirror = from === "start", axis = "x" }){
+ 	let size, edge, grab = 0;
+ 	const on_x = axis !== "y";
+@@ -49,7 +60,7 @@ export default function grip({ write, done, reset, from = "end", mirror = from =
+ 		if (size) done?.(size);
+ 	}
+ 
+-	return div.c(cls, () => span.c("grip-pill"))
++	const $grip = div.c(cls, () => span.c("grip-pill"))
+ 		.attr("title", "Drag to resize")
+ 
+ 		.on("pointerdown", function(e){
+@@ -110,6 +121,35 @@ export default function grip({ write, done, reset, from = "end", mirror = from =
+ 		// The size back to whatever `write(undefined)` (or the caller's own default)
+ 		// means — never touched by drag, so nothing here decides what "reset" means.
+ 		.on("dblclick", () => reset?.());
++
++	// SHOW ZONE (grip-zones, 2026-09-30) — a bigger, purely visual "you're close"
++	// signal, layered on top of the small GRAB box above. It listens on `document`,
++	// not this element, because ~50px away is usually past this element's own small
++	// hit box; it only ever toggles a class, so nothing under the pointer — a link,
++	// the rail's own scrollbar sitting right beside a mirrored grip — ever loses a
++	// click to it. Skipped entirely on touch/coarse pointers: the handle there is
++	// already visible at rest (grip.css's own coarse-pointer rule), so there is
++	// nothing to reveal. No teardown on removal — grips live as long as the rail
++	// that mounts them, the same assumption every other listener in this file makes.
++	if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
++		const el = $grip.el;
++		document.addEventListener("pointermove", function near(e){
++			// The true edge is the PARENT's own edge — `.grip`/`.grip-start` are
++			// anchored flush to it; `--grip-out` only moves THIS element's own box,
++			// never the parent's, so reading the parent stays exact regardless.
++			const parent = el.parentElement;
++			if (!parent) return;
++			const rect = parent.getBoundingClientRect();
++			const edge = mirror ? (on_x ? rect.right : rect.bottom) : (on_x ? rect.left : rect.top);
++			const cross = on_x ? e.clientX : e.clientY;
++			const along = on_x ? e.clientY : e.clientX;
++			const lo = on_x ? rect.top : rect.left, hi = on_x ? rect.bottom : rect.right;
++			const show = Math.abs(cross - edge) <= NEAR_PX && along >= lo - NEAR_PX && along <= hi + NEAR_PX;
++			el.classList.toggle("grip-near", show);
++		});
++	}
++
++	return $grip;
+ }
+ 
+ export { grip };
+diff --git a/public/framework/ext/grip/page.js b/public/framework/ext/grip/page.js
+index b8999a1d..1150be56 100644
+--- a/public/framework/ext/grip/page.js
++++ b/public/framework/ext/grip/page.js
+@@ -1,4 +1,4 @@
+-import { Doc, md, code } from "/app.js";
++import { Doc, md, code, h2 } from "/app.js";
+ 
+ export default new Doc({
+ 	meta: import.meta,
+@@ -19,5 +19,12 @@ grip({
+ });`);
+ 
+ 		md("**Try it on this page.** Open [the drawer](/framework/ext/drawer/) or the dev rail and drag their inline edge — both are this one strip. There is no permanent handle: the pill exists only while your pointer is near the edge, and it rides the pointer's Y. Extracted from `dev/DevBar` on 2026-08-18 so `ext/drawer` could resize without `ext/` importing `dev/`; the record is [`doc/decisions.md`](./doc/decisions.md).");
++
++		h2("Its name, and where it lives");
++		md("This widget is called **the grip**. It lives here, at `ext/grip` — one link answers \"where's the resize handle?\" for good. Where it drags AI 2's inbox, it sits between two named layouts: the **preview rail** (a flush stack of card previews — [design/layout](/framework/design/layout/doc/rules.md), [list and detail](/framework/core/Layout/list-and-detail/)) and the **detail** beside it.");
++
++		h2("Two invisible zones");
++		md("A ~50px **show** zone makes the line and pill visible from well before your pointer arrives — it never grows a hit box, so nothing under it ever loses a click.");
++		md("The **grab** zone is the small strip itself. On a mirrored rail (`mirror: true`, like AI 2's preview rail), it leans almost entirely outward, away from the scrollbar that same edge keeps, holding back to about a pixel on that side. Full record: [`doc/decisions.md`](./doc/decisions.md#two-zones-not-one--and-why-only-grip-start-gets-the-asymmetric-box-grip-zones-2026-09-30).");
+ 	},
+ });
+diff --git a/public/framework/ext/grip/readme.md b/public/framework/ext/grip/readme.md
+index 7acb68b2..21de0e8a 100644
+--- a/public/framework/ext/grip/readme.md
++++ b/public/framework/ext/grip/readme.md
+@@ -1,4 +1,10 @@
+-# grip — a rail's resize edge: a strip just inside the edge it drags, and a pill that rides your pointer. No permanent handle. Shared by [`ext/drawer`](/framework/ext/drawer/), [`dev/DevBar`](/framework/dev/DevBar/), [`core/Sidebar`](/framework/core/Sidebar/) and [`/layouts/shell/`](/layouts/shell/) (`ext/Playground` also used it, deleted 2026-09-06 — see `core/Layout`).
++# grip — a rail's resize edge: a strip just inside the edge it drags, and a pill that rides your pointer. No permanent handle. Shared by [`ext/drawer`](/framework/ext/drawer/), [`dev/DevBar`](/framework/dev/DevBar/), [`core/Sidebar`](/framework/core/Sidebar/), [`/layouts/shell/`](/layouts/shell/) and [`ai2`](/framework/ai2/) (`ext/Playground` also used it, deleted 2026-09-06 — see `core/Layout`).
++
++**Names** (grip-zones, 2026-09-30) — so "where's the resize handle?" has one answer: this
++widget is **the grip**, and it lives here, at `ext/grip`. Where it sits in AI 2's inbox, it
++drags the edge between two named layouts — the **preview rail** (a flush stack of card
++previews, one per line, the persistent list you pick from — [flush stack](/framework/design/layout/doc/rules.md), [list and detail](/framework/core/Layout/list-and-detail/)) and the **detail**
++(whichever card's own page opens beside it). Both names are the site's own, not new coinage.
+ 
+ ## Use
+ 
+@@ -22,7 +28,8 @@ grip({
+ - `from` picks the pointer arithmetic (which edge of the PARENT is pinned); `mirror` (defaults to matching `from`) picks which side the strip and its lit line sit on. Every rail wants the default. A grip whose OWN box is repositioned every frame by the caller, not flush against a moving rail edge — `ai/v/3`'s column split — passes `mirror: false` to keep the line under its own local start regardless of `from` · [doc/decisions.md](./doc/decisions.md)
+ - A start-docked rail is stamped `.grip-start` and `grip.css` mirrors strip, lit line AND pill together; never flip the strip in your own stylesheet, which leaves the line 10px off the boundary · [doc/decisions.md](./doc/decisions.md)
+ - The pill's `top` is relative to the grip's OWN box, not the viewport — grip.js reads `getBoundingClientRect().top` on every move and subtracts it, or the pill lags by however far the grip sits down the page · [doc/decisions.md](./doc/decisions.md)
+-- Mount it **inside** the rail's box, never straddling the edge — a strip hanging outside survives the shut rail's slide as an invisible `ew-resize` column down every page, and `setPointerCapture` swallows the whole gesture, not just the click · [doc/decisions.md](./doc/decisions.md)
++- Mount it **inside** the rail's box. A plain, unmirrored grip never straddles its edge — a strip hanging outside survives a SHUT rail's slide as an invisible `ew-resize` column down every page, and `setPointerCapture` swallows the whole gesture, not just the click. `.grip-start` is the one exception, on purpose, below · [doc/decisions.md](./doc/decisions.md)
++- **Two invisible zones, not one** (grip-zones, 2026-09-30): a ~50px SHOW zone (`.grip-near`, toggled by grip.js from `document`) just makes the line and the pill visible from further away — no hit-target, steals no click. The real GRAB zone is the small `.grip` box itself, and on a `.grip-start` dock (every master–detail split so far — AI 2's rail, the Playground tree) it is asymmetric: mostly reaching OUT across the boundary (`--grip-out`, ~8px, into the sibling pane, which has no scrollbar to lose), pulled back to ~1px on its own interior side (`--grip-in`) — that interior side is where a scrolling rail keeps its OWN scrollbar, flush against the same edge. Touch is unchanged: no `.grip-near`, and `.grip-start` resets back to flush-and-symmetric under `(pointer: coarse), (hover: none)` · [doc/decisions.md](./doc/decisions.md)
+ - `html.grip-sizing` carries `--rail-ease: 0s`; without it the shell's push trails the pointer by 0.18s · [doc/decisions.md](./doc/decisions.md)
+ - The width is measured from the rail's **own** inline-end edge, not `innerWidth` — a rail parked beside another one would size past the pointer · [doc/decisions.md](./doc/decisions.md)
+ - `rem`, never `em`: a grab target does not scale with the type beside it · [doc/decisions.md](./doc/decisions.md)
+

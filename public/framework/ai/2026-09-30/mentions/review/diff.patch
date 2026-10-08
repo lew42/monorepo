@@ -1,0 +1,643 @@
+diff --git a/public/framework/ai2/faces.js b/public/framework/ai2/faces.js
+index d17135b0..40c9e6fb 100644
+--- a/public/framework/ai2/faces.js
++++ b/public/framework/ai2/faces.js
+@@ -1,5 +1,6 @@
+ import { div, p, span, small, a, details, summary, button, input, md } from "/app.js";
+ import { icon } from "/framework/core/View/View.js";
++import { mentions } from "/framework/ext/Mention/Mention.js";
+ import { author_word, plain } from "./inbox.js";
+ import { md_into } from "./chat.js";
+ import { meter } from "./meter.js";
+@@ -40,7 +41,7 @@ export function row(it){
+ 	div.c("ai2-row-head flex gap-25", () => {
+ 		span.c("ai2-dot");                         // always drawn; CSS shows it only when unread
+ 		if (it.icon) icon(it.icon);
+-		span.c("ai2-row-title").text(it.title);
++		mentions(span.c("ai2-row-title").text(it.title).el);   // the Inbox row's title — ext/Mention
+ 		small.c("ai2-row-when muted").text(when(it.at));   // last updated, top-right, on every row
+ 	});
+ 	meter(it.progress, it.usd, it.usd_open);
+diff --git a/public/framework/ai2/needs.js b/public/framework/ai2/needs.js
+index e4fc3d87..4f3dbdb7 100644
+--- a/public/framework/ai2/needs.js
++++ b/public/framework/ai2/needs.js
+@@ -1,5 +1,6 @@
+ import { div, span, small, a, textarea, button } from "/app.js";
+ import { icon } from "/framework/core/View/View.js";
++import { mentions } from "/framework/ext/Mention/Mention.js";
+ import { when } from "./faces.js";
+ import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
+ import { parse_lines } from "./fold.js";
+@@ -159,7 +160,7 @@ function need_row(n){
+ 			div.c("ai2-need-body", () => {
+ 				div.c("ai2-need-headline flex v-center gap-25", () => {
+ 					if (n.kind === "blocker") span.c("ai2-need-blocker-flag").text("Blocker");
+-					span.c("ai2-need-title").text(n.title || short_title(n.question));
++					mentions(span.c("ai2-need-title").text(n.title || short_title(n.question)).el);
+ 				});
+ 				// The full ask, ONE quiet line (mastermind's judged fix, 2026-09-29: "one muted
+ 				// line" — CSS truncates it with an ellipsis rather than wrapping to three or
+@@ -169,7 +170,7 @@ function need_row(n){
+ 				// only when it says more than the title already does (the "card" pseudo-ask's
+ 				// `question` IS its `title`).
+ 				if (n.question && n.question !== n.title)
+-					small.c("ai2-need-question muted").attr("title", n.question).text(n.question);
++					mentions(small.c("ai2-need-question muted").attr("title", n.question).text(n.question).el);
+ 				small.c("ai2-need-meta muted").text([KIND_LABEL[n.kind], when(n.at)].filter(Boolean).join(" · "));
+ 			});
+ 		});
+diff --git a/public/framework/ext/Chat/md.js b/public/framework/ext/Chat/md.js
+index 4216b2a0..9fd142ef 100644
+--- a/public/framework/ext/Chat/md.js
++++ b/public/framework/ext/Chat/md.js
+@@ -1,4 +1,5 @@
+ import { marked } from "/framework/ext/Markdown/md.js";
++import { mentions } from "/framework/ext/Mention/Mention.js";
+ 
+ /* MARKDOWN IN A CHAT, SAFELY (the owner, 2026-09-24: "the bold markers show as
+    raw asterisks"). ext/Markdown's `.md()` writes marked's output straight in and
+@@ -28,6 +29,7 @@ export function md_into(el, text, inline){
+ 	t.innerHTML = inline ? marked.parseInline(String(text)) : marked.parse(String(text));
+ 	clean(t.content);
+ 	el.replaceChildren(t.content);
++	mentions(el);   // `#Page`, `@owner` — chat bubbles and Drill titles, ext/Mention/doc/syntax.md
+ 	return el;
+ }
+ 
+diff --git a/public/framework/ext/Mention/Mention.js b/public/framework/ext/Mention/Mention.js
+new file mode 100644
+index 00000000..9bc25de3
+--- /dev/null
++++ b/public/framework/ext/Mention/Mention.js
+@@ -0,0 +1,149 @@
++import { View } from "../../core/View/View.js";
++import item from "../../ui/item/item.js";
++import refs from "./maps/refs.js";
++import people from "./maps/people.js";
++
++/**
++ * Mention — `#Name` and `@name` become a small icon + the word, linking to
++ * wherever that name means. Two SEPARATE namespaces, one per control
++ * character (the owner, 2026-09-30): `#` looks names up in `refs.js` (real
++ * things on the site — `#Page`, `#Servex`), `@` looks them up in `people.js`
++ * (users and agents — `@owner`, `@mastermind`). Adding a THIRD namespace
++ * later is adding a third map and a third key to `maps` below — nothing in
++ * this file needs to change.
++ *
++ *   mentions(el)                 // walk el's own text, using the site's two maps
++ *   mentions(el, { "#": my_map })  // a caller with its own namespace
++ *   mention_html("See #Page")    // the string form, for a template literal
++ *
++ * PATTERN: `/(?<![\w\[])([#@])(\[[^\]\n]+\]|[A-Za-z][\w./-]*[\w])/g`
++ *   - not preceded by a letter/digit/underscore or `[` — so `a#b` and
++ *     `user@example.com` are left alone (an email's `@` always has a word
++ *     character right before it).
++ *   - `#[Page layout]` — the bracket form, for a name with a space in it.
++ *   - a markdown heading (`# Title`, `#` then a SPACE) never matches — the
++ *     character right after `#` has to be `[` or a letter, never a space.
++ *   - `#fff` (a colour written in prose) matches the shape but almost never
++ *     the map, so it falls through to plain text — same as any other typo.
++ *
++ * A name not in its map is left as plain text (untouched — the original
++ * text node is never even split) and recorded in `unknown`, once per name,
++ * with one `console.debug` — never `warn`/`error`, which would fail this
++ * site's own merge smoke test. `unknown`'s keys carry their sigil
++ * (`"#Nope"`, not `"Nope"`) so `#Nope` and a future `@Nope` don't collide.
++ *
++ * Synchronous throughout — no fetch, nothing awaited — so this is safe to
++ * call from inside a `View` capture callback, same as `md()` itself.
++ */
++const PATTERN = /(?<![\w\[])([#@])(\[[^\]\n]+\]|[A-Za-z][\w./-]*[\w])/g;
++
++export const maps = { "#": refs, "@": people };
++
++export const unknown = new Set();
++
++const SKIP_TAGS = new Set(["CODE", "PRE", "A", "TEXTAREA"]);
++
++function raw_name(raw){
++	return raw.startsWith("[") ? raw.slice(1, -1) : raw;
++}
++
++function find(map, name){
++	const key = map && Object.keys(map).find(k => k.toLowerCase() === name.toLowerCase());
++	return key ? { key, ...map[key] } : null;
++}
++
++// A PATH walks down from a known page (the owner, 2026-09-30: "@parent/child",
++// "@Servex/heartbeat"): the first segment is looked up, the rest is appended to
++// its url as child slugs. `@` falls back to the `#` map when the first segment
++// is a page rather than an agent, so `@Servex/lifecycle` still resolves.
++function lookup(m, sigil, raw){
++	const [head, ...rest] = raw_name(raw).split("/");
++	const hit = find(m[sigil], head) ?? (sigil === "@" ? find(m["#"], head) : null);
++	if (!hit) return null;
++	if (!rest.length) return { name: hit.key, ...hit };
++	const url = hit.url ? hit.url.replace(/\/?$/, "/") + rest.join("/") + "/" : undefined;
++	return { ...hit, name: [hit.key, ...rest].join("/"), url };
++}
++
++function note_unknown(sigil, raw){
++	const tag = sigil + raw_name(raw);
++	if (!unknown.has(tag)){
++		unknown.add(tag);
++		console.debug("Mention: unknown", tag);
++	}
++}
++
++// Built OUTSIDE whatever captor happens to be open when `mentions()` runs
++// (a page's own content() callback, most of the time) — `item()` is a normal
++// View factory and would otherwise auto-append itself into that captor
++// before this file ever moves it into place. doc/decisions.md if this ever
++// needs to be true for a second reason.
++function build_row(name, entry){
++	const saved = View.captor;
++	View.captor = null;
++	try {
++		return item(entry.url ? { icon: entry.icon, name, href: entry.url } : { icon: entry.icon, name }).ac("inline mention").el;
++	} finally {
++		View.captor = saved;
++	}
++}
++
++function skip(node){
++	for (let p = node.parentElement; p; p = p.parentElement)
++		if (SKIP_TAGS.has(p.tagName)) return true;
++	return false;
++}
++
++function replace_node(node, m){
++	const text = node.textContent;
++	const re = new RegExp(PATTERN.source, "g");
++	const pieces = [];
++	let last = 0, match, changed = false;
++
++	while ((match = re.exec(text))){
++		const [full, sigil, raw] = match;
++		const entry = lookup(m, sigil, raw);
++
++		if (!entry){ note_unknown(sigil, raw); continue; }   // left in place — `last` doesn't move
++
++		changed = true;
++		if (match.index > last) pieces.push(document.createTextNode(text.slice(last, match.index)));
++		pieces.push(build_row(entry.name, entry));
++		last = match.index + full.length;
++	}
++
++	if (!changed) return;
++	if (last < text.length) pieces.push(document.createTextNode(text.slice(last)));
++	node.replaceWith(...pieces);
++}
++
++/** Walk every text node under `el` and turn known mentions into icon links, in place. */
++export function mentions(el, m = maps){
++	const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
++	const nodes = [];
++	let node;
++	while ((node = walker.nextNode())) nodes.push(node);
++
++	for (const n of nodes)
++		if (!skip(n)) replace_node(n, m);
++
++	return el;
++}
++
++/** The string form — for a template literal or an attribute, where there's no element to walk. */
++export function mention_html(str, m = maps){
++	const re = new RegExp(PATTERN.source, "g");
++
++	return String(str).replace(re, (full, sigil, raw) => {
++		const entry = lookup(m, sigil, raw);
++		if (!entry){ note_unknown(sigil, raw); return full; }
++
++		const tag = entry.url ? "a" : "span";
++		const href = entry.url ? ` href="${entry.url.replaceAll('"', "&quot;")}"` : "";
++		return `<${tag} class="item inline mention"${href}>`
++			+ `<span class="material-icons icon item-icon">${entry.icon}</span>`
++			+ `<span class="item-name">${entry.name}</span></${tag}>`;
++	});
++}
++
++export default mentions;
+diff --git a/public/framework/ext/Mention/doc/files.jsonl b/public/framework/ext/Mention/doc/files.jsonl
+new file mode 100644
+index 00000000..9ca2282a
+--- /dev/null
++++ b/public/framework/ext/Mention/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"syntax.md"}
+diff --git a/public/framework/ext/Mention/doc/syntax.md b/public/framework/ext/Mention/doc/syntax.md
+new file mode 100644
+index 00000000..779aafe2
+--- /dev/null
++++ b/public/framework/ext/Mention/doc/syntax.md
+@@ -0,0 +1,66 @@
++# Syntax — the exact pattern, and why the edge cases are safe
++
++```
++/(?<![\w\[])([#@])(\[[^\]\n]+\]|[A-Za-z][\w./-]*[\w])/g
++```
++
++Read left to right:
++
++1. **`(?<![\w\[])`** — the character right before the `#`/`@` must NOT be a letter, digit,
++   underscore, or `[`. This is what keeps an email address alone: `mike@lew42.com` always has a
++   letter right before its `@`, so it never matches. It also stops `#[[Name]]` from being read as
++   two nested mentions.
++2. **`([#@])`** — the control character. `#` looks its name up in `maps/refs.js`; `@` looks in
++   `maps/people.js`. Nothing else in `Mention.js` cares which one it is beyond that one lookup —
++   a third namespace later is a third entry in `Mention.js`'s `maps` object, not a rewrite.
++3. **The name**, one of two shapes:
++   - `\[[^\]\n]+\]` — `#[Page layout]`, for a name with a space (or anything except `]` or a
++     newline) in it. The brackets are stripped before the map lookup.
++   - `[A-Za-z][\w./-]*[\w]` — a bare name: starts with a letter, ends with a letter/digit/
++     underscore, and allows `.`/`-` in the middle — so `CLAUDE.md` and `dev-server` both match
++     as one name, no brackets needed. (This also means a single character never matches — the
++     shortest bare name needs a start char AND an end char. Nobody has asked for a one-letter
++     mention yet.)
++
++## Why a markdown heading never matches
++
++`# Title` is a `#` followed by a SPACE. The name group's two branches both require the very next
++character to be `[` or a letter — a space is neither, so the whole pattern fails to match at that
++position and the heading renders exactly as before. No special-casing was needed for this; it
++falls out of the pattern itself.
++
++## Why `#fff` (a colour) and `a#b` don't break anything
++
++- `#fff` (a hex colour typed in prose) has the right SHAPE to match — `f` is a letter, `ff` are
++  word characters — so it is treated as a possible mention, looked up, not found in `refs.js`,
++  and left as plain text (added once to `unknown`, with a `console.debug`, never a warning).
++  Nothing about the page changes — the text node is never even split, because `Mention.js` only
++  rebuilds a text node when it finds at least one name it DOES recognise.
++- `a#b` never reaches the name check at all — the lookbehind `(?<![\w\[])` rejects it immediately
++  because `a` (a word character) sits right before the `#`.
++
++## Where a derived map would plug in
++
++Both `maps/refs.js` and `maps/people.js` are today a hand-written `{ Name: { url, icon } }`
++object — picked for "the fastest working version that works first" (this task's own budget was
++about $3). A later pass could build `refs.js`'s object instead of writing it by hand: walk
++`directory.json` (the same file `ext/toc`'s sibling, `ext/filesystem`, already reads), take each
++page's own `title` and `icon` field, and key the map by title. The one thing that pass would still
++need a human for: deciding WHICH of several hundred pages are worth a one-word mention — today's
++seed (the core seven, Servex, nineteen `ext/` modules, four one-off links) is a judgment call, not
++a mechanical one. `Mention.js` itself would not change at all; only where `refs.js`'s object comes
++from.
++
++## What "resolves" means here
++
++The dev server answers every url with `200`, including one with no real page behind it — so
++"check every url answers 200" (the original brief) is not actually a check on this server.
++Every entry in both maps was instead checked by confirming the target `page.js` exists on disk
++(`public<url>page.js`, or, for a `.md` link, the file itself). The four one-off links
++(`CLAUDE.md`, `skills`, `MCP`, `dev-server`) don't have a `page.js` of their own — see
++[readme.md](../readme.md) and the comments at the top of [`maps/refs.js`](../maps/refs.js) for
++exactly which real page each one landed on, and why.
++
++## Paths: `#Servex/lifecycle`
++
++A mention can name a child page: `#Servex/lifecycle`, or `#[Page/some child]` in brackets. The first part is looked up in the map; the rest is added to its url as child slugs (`/framework/servex/lifecycle/`), and the link reads `Servex/lifecycle`. The owner wrote this with `@` too (`@Servex/heartbeat`), so an `@` name that isn't a person or agent falls back to the `#` map. The child is not checked: a wrong child name gives a link to a missing page.
+diff --git a/public/framework/ext/Mention/files.jsonl b/public/framework/ext/Mention/files.jsonl
+new file mode 100644
+index 00000000..3e73d1ba
+--- /dev/null
++++ b/public/framework/ext/Mention/files.jsonl
+@@ -0,0 +1,5 @@
++{"file":"doc/"}
++{"file":"maps/"}
++{"file":"Mention.js"}
++{"file":"page.js"}
++{"file":"readme.md"}
+diff --git a/public/framework/ext/Mention/maps/files.jsonl b/public/framework/ext/Mention/maps/files.jsonl
+new file mode 100644
+index 00000000..44c5664f
+--- /dev/null
++++ b/public/framework/ext/Mention/maps/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"refs.js"}
++{"file":"people.js"}
+diff --git a/public/framework/ext/Mention/maps/people.js b/public/framework/ext/Mention/maps/people.js
+new file mode 100644
+index 00000000..1aa94d67
+--- /dev/null
++++ b/public/framework/ext/Mention/maps/people.js
+@@ -0,0 +1,36 @@
++/**
++ * people — the `@` namespace: name → { url, icon }. `@owner` and `@mastermind`
++ * stay plain text unless the name is in this map — same lookup as `refs.js`,
++ * a different object. `@` never uses `refs.js`, and `#` never uses this one:
++ * that split is the whole point (the owner, 2026-09-30: "`@` is kept for
++ * users and agents").
++ *
++ * `owner` has no `url` — there's no page for the person reading this, so
++ * `@owner` renders as an icon and the word, not a link. Mention.js's `item()`
++ * call already handles that (no `href` given draws a `<div>` instead of an
++ * `<a>`).
++ *
++ * The rest are agent ROLES, from `servex/doc/roles.md`'s own table — every
++ * one points at the same page today because that table is the one place
++ * they're each described; a role that earns its own page later just gets
++ * its own `url` here.
++ */
++export default {
++
++	owner: { icon: "person" },
++
++	mastermind:       { url: "/framework/servex/md/doc/roles/", icon: "psychology" },
++	"task-mastermind": { url: "/framework/servex/md/doc/roles/", icon: "workspaces" },
++	minion:            { url: "/framework/servex/md/doc/roles/", icon: "engineering" },
++
++	// The brief's own first-targets list said "smart-assistant"; the role
++	// table names it "master assistant" — kept both keys pointing at the same
++	// place rather than guess which one the owner will actually type.
++	"master-assistant": { url: "/framework/servex/md/doc/roles/", icon: "support_agent" },
++	"smart-assistant":  { url: "/framework/servex/md/doc/roles/", icon: "support_agent" },
++	"fast-assistant":   { url: "/framework/servex/md/doc/roles/", icon: "bolt" },
++
++	"card-assistant": { url: "/framework/servex/md/doc/roles/", icon: "chat_bubble" },
++	"card-manager":   { url: "/framework/servex/md/doc/roles/", icon: "manage_accounts" },
++	clarity:          { url: "/framework/servex/md/doc/roles/", icon: "lightbulb" },
++};
+diff --git a/public/framework/ext/Mention/maps/refs.js b/public/framework/ext/Mention/maps/refs.js
+new file mode 100644
+index 00000000..0a47365d
+--- /dev/null
++++ b/public/framework/ext/Mention/maps/refs.js
+@@ -0,0 +1,72 @@
++/**
++ * refs — the `#` namespace: name → { url, icon }. `#Page` becomes a small icon
++ * item linking to `url`, with `icon` (a Material Symbols name, the same ones
++ * `ui.item` takes) beside the word.
++ *
++ * A plain object, imported like any other module — no fetch, so a mention can
++ * render the instant the text does, and the browser's own module cache is the
++ * only cache this needs. Mention.js does the lookup case-insensitively, so
++ * `#page` and `#PAGE` both find `Page` below.
++ *
++ * WHERE THESE CAME FROM (2026-09-30): the core seven classes
++ * (`/framework/core/`), Servex, and nineteen `ext/` modules, each pointing at
++ * its own real page — chosen so every url on this list answers 200 today.
++ * Four more were added for the owner's own first-targets list: `CLAUDE.md`,
++ * `skills`, `MCP`, `dev-server` — see doc/syntax.md for exactly which page
++ * each of those landed on and why (none of them has a page of its own).
++ *
++ * HOW TO GROW THIS LIST: add a `Name: { url, icon }` line. Check the url
++ * loads (a missing page still answers 200 on the dev server, so a broken
++ * link won't show itself — open it and look). Pick `icon` from Material
++ * Symbols, ideally the same one that page already uses for itself (its
++ * `page.js`'s own `icon:` field) so the mention matches the page it points
++ * to. doc/syntax.md has the note on deriving this list from the site
++ * instead of hand-writing it.
++ */
++export default {
++
++	// The core seven — one class, one real element (or, for Router/Item/List,
++	// one real idea) — public/framework/core/page.js's own `children:`.
++	Page:    { url: "/framework/core/Page/",    icon: "description" },
++	View:    { url: "/framework/core/View/",    icon: "image" },
++	Router:  { url: "/framework/core/Router/",  icon: "alt_route" },
++	App:     { url: "/framework/core/App/",     icon: "widgets" },
++	Sidebar: { url: "/framework/core/Sidebar/", icon: "view_sidebar" },
++	Item:    { url: "/framework/core/Item/",    icon: "data_object" },
++	List:    { url: "/framework/core/List/",    icon: "reorder" },
++
++	// The agent system.
++	Servex: { url: "/framework/servex/", icon: "hub" },
++
++	// ext/ — nineteen addons a reader runs into often enough to deserve a
++	// one-word mention. `Task` points at AITask, the module that renders one.
++	Task:       { url: "/framework/ext/AITask/",     icon: "smart_toy" },
++	Chat:       { url: "/framework/ext/Chat/",        icon: "chat" },
++	Panel:      { url: "/framework/ext/Panel/",       icon: "dashboard_customize" },
++	Doc:        { url: "/framework/ext/Doc/",         icon: "menu_book" },
++	JSONL:      { url: "/framework/ext/JSONL/",       icon: "table_rows" },
++	Markdown:   { url: "/framework/ext/markdown/",    icon: "article" },
++	Tabs:       { url: "/framework/ext/tabs/",        icon: "tab" },
++	Files:      { url: "/framework/ext/files/",       icon: "folder_open" },
++	Collab:     { url: "/framework/ext/Collab/",      icon: "forum" },
++	Research:   { url: "/framework/ext/Research/",    icon: "biotech" },
++	DesignTool: { url: "/framework/ext/DesignTool/",  icon: "straighten" },
++	Draggable:  { url: "/framework/ext/Draggable/",   icon: "drag_indicator" },
++	Saver:      { url: "/framework/ext/Saver/",       icon: "save" },
++	Editor:     { url: "/framework/ext/editor/",      icon: "design_services" },
++	Timeline:   { url: "/framework/ext/Timeline/",    icon: "view_timeline" },
++	Drawer:     { url: "/framework/ext/drawer/",      icon: "view_sidebar" },
++	Highlight:  { url: "/framework/ext/highlight/",   icon: "code" },
++	Layout:     { url: "/framework/ext/layout/",      icon: "tune" },
++	Session:    { url: "/framework/ext/Session/",     icon: "record_voice_over" },
++
++	// The owner's own first-targets list (2026-09-30) that isn't a module page.
++	"CLAUDE.md": { url: "/framework/",                                icon: "policy" },
++	skills:      { url: "/framework/servex/",                         icon: "extension" },
++	MCP:         { url: "/framework/servex/",                         icon: "cable" },
++	"dev-server": { url: "/framework/servex/fs/?file=Server",         icon: "terminal" },
++	// Roles as THINGS to read about (the owner's #-list names them); `@` is the agent itself.
++	mastermind:        { url: "/framework/servex/md/doc/roles/", icon: "psychology" },
++	"fast-assistant":  { url: "/framework/servex/md/doc/roles/", icon: "bolt" },
++	"smart-assistant": { url: "/framework/servex/md/doc/roles/", icon: "support_agent" },
++};
+diff --git a/public/framework/ext/Mention/page.js b/public/framework/ext/Mention/page.js
+new file mode 100644
+index 00000000..5e60772d
+--- /dev/null
++++ b/public/framework/ext/Mention/page.js
+@@ -0,0 +1,76 @@
++import { Doc, md, demo, code, h2, div, span } from "/app.js";
++import item from "/framework/ui/item/item.js";
++import { mentions, unknown } from "./Mention.js";
++import refs from "./maps/refs.js";
++import people from "./maps/people.js";
++
++// One wall of real rows, straight off a map — this is the actual `item()` call
++// every `#Name` or `@name` on the site turns into, not a picture of one.
++function wall(map){
++	return div.c("grid gap auto", () => {
++		Object.entries(map).forEach(([name, entry]) => {
++			entry.url ? item({ icon: entry.icon, name, href: entry.url }) : item({ icon: entry.icon, name });
++		});
++	});
++}
++
++export default new Doc({
++	meta: import.meta,
++	title: "Mention",
++	description: "`#Page` and `@owner` become a small icon + the word, wherever the site renders written content.",
++	icon: "alternate_email",
++
++	subject: mentions,
++	methods: "mention_html",
++	notes: "syntax",
++	files: "Mention.js maps/refs.js maps/people.js page.js readme.md",
++
++	content(){
++
++		md("Write `#Page` anywhere the site renders markdown or a chat bubble, and it becomes a small icon + the word, linking to the real page. `@owner` works the same way, from a separate list for people and agent roles. **Nothing is typed by hand below** — every row is the real `item()` call a mention turns into, straight off the same two maps the site itself reads.");
++
++		h2("Every #reference — ext/Mention/maps/refs.js");
++
++		md(`${Object.keys(refs).length} names today, each a real page: the seven core classes, Servex, nineteen \`ext/\` modules, and four one-off links the owner asked for by name (\`CLAUDE.md\`, \`skills\`, \`MCP\`, \`dev-server\`).`);
++
++		wall(refs);
++
++		h2("Every @person — ext/Mention/maps/people.js");
++
++		md("Users and agent roles — a separate namespace on purpose, so `#Page` (a thing) and `@mastermind` (a someone) never collide. `owner` has no page to link to, so it draws as an icon and a word, not a link.");
++
++		wall(people);
++
++		h2("Live, in a real sentence");
++
++		md("This line is markdown, rendered the normal way — `md()` already calls `mentions()` after every parse, so what you see below is the real pipeline: #Page and #Servex resolve, and #Nope does not (it isn't in either map, so it stays plain text).");
++
++		demo(() => {
++			md("Ask #Page how routing works, or open #Servex to see what's running. #Nope isn't a real name, so it stays plain — and @owner reads the same way when nobody's map has a `url`.");
++		}, "The three outcomes: a known `#name` becomes a link, an unknown one stays plain text, and a person with no page (`@owner`) still gets its icon, just no link.");
++
++		h2("Unknown names seen this session");
++
++		md("Every `#name` or `@name` nobody's map recognised, collected once the page you're looking at renders one — `Mention.js`'s own `unknown` Set, never cleared, so this list only grows while this tab is open.");
++
++		// The `#Nope` above already rendered, synchronously, by the time this runs —
++		// a demo's function is a normal capture fn, same as page content itself — so
++		// `unknown` already has it the first time this draws.
++		div.c("flex wrap gap-25", () => {
++			if (!unknown.size) return void span.c("muted").text("None yet — render a page with an unresolved mention and it shows up here.");
++			[...unknown].forEach(name => { span.c("item inline boxed").text(name); });
++		});
++
++		h2("How the map could grow itself");
++
++		md("Today both maps are hand-written. A `#name` could instead be **derived** — read off every page's own `title`/`icon` at build or fetch time, or off the Concepts tiles and the systems map the familiar-structure pass built. `doc/syntax.md` has the one-paragraph note on where that plug would go; this task shipped the hand-written seed, not the deriver.");
++
++		code.js(`import { mentions } from "/framework/ext/Mention/Mention.js";
++mentions(someElement);                 // walk it in place, using the site's own two maps
++mention_html("See #Page for more.");   // the string form, for a template literal`);
++
++		md("Next: [Markdown](/framework/ext/markdown/) — the render `mentions()` rides on for every page on this site.");
++
++		md.details(import.meta, "readme.md");
++	}
++});
+diff --git a/public/framework/ext/Mention/readme.md b/public/framework/ext/Mention/readme.md
+new file mode 100644
+index 00000000..10e23016
+--- /dev/null
++++ b/public/framework/ext/Mention/readme.md
+@@ -0,0 +1,50 @@
++# Mention — `#Page` and `@owner` become a small icon + the word, wherever the site renders written content
++
++`#Page` is a reference to a real thing on the site — a page, a module, a doc. `@owner` is a
++person or an agent role. Write either one in any markdown or chat text and it turns into a small
++icon + the word, linking to wherever that name means — the owner's own words: *"you could
++easily convert any reference to a actual thing you could click through to and read about."*
++
++## Use
++
++```js
++import { mentions } from "/framework/ext/Mention/Mention.js";
++
++mentions(someElement);   // walk it in place, using the site's own two maps
++```
++
++You don't usually call this yourself — `md()` (every markdown render) and `ext/Chat`'s `md_into`
++(chat bubbles, Drill titles) already call it after every parse. Writing `#Page` or `@owner`
++anywhere that text goes through either of those is enough.
++
++Adding a name: open [`maps/refs.js`](maps/refs.js) (things — `#`) or
++[`maps/people.js`](maps/people.js) (people and agent roles — `@`) and add one line,
++`Name: { url, icon }`. `icon` is a [Material Symbols](https://fonts.google.com/icons) name, the
++same ones `ui.item` takes.
++
++## Watch out
++
++- **Two separate namespaces, one per control character** — `#` only looks in `refs.js`, `@`
++  only in `people.js`. This is deliberate (the owner, 2026-09-30): a reference and a person
++  can never collide, and a third namespace later is a third map, nothing else changing.
++- **A name not in its map stays plain text** — nothing throws, nothing warns (the merge smoke
++  test fails on a console warning or error), and the name is recorded once in the exported
++  `unknown` Set with one `console.debug`. See it live on [this page](/framework/ext/Mention/),
++  under "Unknown names seen this session."
++- **`#[Name with spaces]`** is the bracket form, for a name that isn't one word:
++  [`doc/syntax.md`](doc/syntax.md) has the exact pattern and why a markdown heading (`# Title`)
++  never matches it by accident.
++- **Both maps are hand-written today.** A name's `url`/`icon` could instead be read off the
++  page it already has (`page.js`'s own `title`/`icon` field) — [`doc/syntax.md`](doc/syntax.md)
++  has the one-paragraph note on where that would plug in.
++- `mentions()` builds its icon rows OUTSIDE whatever `View` capture happens to be open when it
++  runs, on purpose — see the comment beside `build_row()` in [`Mention.js`](Mention.js) if a
++  future change to `View`'s capturing ever needs to know why.
++
++## More
++
++- [Overview](/framework/ext/Mention/) — every known name, live, and the unknown ones this
++  session has actually seen.
++- [`doc/syntax.md`](doc/syntax.md) — the exact pattern, the markdown-heading and email/colour
++  edge cases, and the derive-the-map note.
++- Back to [Ext](/framework/ext/).
+diff --git a/public/framework/ext/markdown/md.js b/public/framework/ext/markdown/md.js
+index ee385b98..b44ea1d6 100644
+--- a/public/framework/ext/markdown/md.js
++++ b/public/framework/ext/markdown/md.js
+@@ -1,6 +1,7 @@
+ import View, { div, details, summary } from "../../core/View/View.js";
+ import { marked } from "./marked.esm.js";
+ import { Page } from "../../core/Page/Page.class.js";
++import { mentions } from "../Mention/Mention.js";
+ 
+ View.stylesheet(import.meta, "md.css");
+ 
+@@ -25,7 +26,9 @@ const block_tags = new Set(["DIV", "SECTION", "ARTICLE", "MAIN", "ASIDE", "HEADE
+  */
+ View.prototype.md = function(content){
+ 	const parse = block_tags.has(this.el.tagName) ? marked.parse : marked.parseInline;
+-	return this.html_unsafe(parse(content));
++	this.html_unsafe(parse(content));
++	mentions(this.el);   // `#Page`, `@owner` — after every markdown render, ext/Mention/doc/syntax.md
++	return this;
+ };
+ 
+ /* A fence may NAME the file it came from — ```js /app.js — and marked keeps only the
+@@ -54,13 +57,17 @@ export default function md(content){
+ 	const template = document.createElement("template");
+ 	template.innerHTML = html;
+ 
+-	if (template.content.children.length === 1)
+-		return new View({ el: md.route(template.content.firstElementChild) }).ac("md");
++	if (template.content.children.length === 1){
++		const view = new View({ el: md.route(template.content.firstElementChild) }).ac("md");
++		mentions(view.el);
++		return view;
++	}
+ 
+ 	// Emitting `flow` is what lets core's flow rules stop naming `.md`, a class core
+ 	// cannot import.
+ 	const view = new View().ac("md flow").html_unsafe(html);
+ 	md.route(view.el);
++	mentions(view.el);
+ 	return view;
+ }
+ 
+@@ -93,6 +100,7 @@ md.file = async function(meta, url, options = {}){
+ 
+ 		view.html_unsafe(marked.parse(text));
+ 		md.resolve(view.el, href);
++		mentions(view.el);
+ 
+ 		if (options.h1 === false && view.el.firstElementChild?.tagName === "H1")
+ 			view.el.firstElementChild.remove();
+diff --git a/public/framework/ext/page.js b/public/framework/ext/page.js
+index 065e7c37..35fa6802 100644
+--- a/public/framework/ext/page.js
++++ b/public/framework/ext/page.js
+@@ -6,7 +6,7 @@ export default new Page({
+ 	label: "Extensions",
+ 	description: "Opt-in addons. They may extend core; core never depends on them.",
+ 	icon: "extension",
+-	children: "Classify markdown demo highlight filesystem files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel Timeline AITask JSONL Research Ask Chat Collab Refine Session",
++	children: "Classify markdown demo highlight filesystem files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel Timeline AITask JSONL Research Ask Chat Collab Refine Session Mention",
+ 
+ 	content(){
+ 
+

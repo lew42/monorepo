@@ -1,0 +1,16 @@
+{
+ "paths": 1041,
+ "by_status": {
+  "restored": 602,
+  "kept-existing": 15,
+  "skipped-generated": 54,
+  "no-source": 370
+ },
+ "restored_by_confidence": {
+  "exact": 427,
+  "partial": 175
+ },
+ "no_source_images": 258,
+ "no_source_other": 112,
+ "bytes_restored": 16231486
+}

@@ -1,0 +1,2324 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "start": 30,
+  "end": 41,
+  "cost_usd": 2.7138082000000003,
+  "real_cost_usd": 0.6983618749999998,
+  "items": [
+    {
+      "index": 30,
+      "at": "2026-10-03T00:31:03.596Z",
+      "raw": "Hopefully we've added something about this uh, like I don't know which uh, heading sizes you're using for all of your messages but like the hierarchy of headings and sections is uh, definitely important however your last few messages have been pretty verbose can you summarize kind of uh, definitely make a list of all of my que direct questions kind of go back through the last few prompts and all of the like most important statements that kind of just summarize the entire topic area kind of summarize them as, as much as possible if one sentence can like illuminate an entire idea that's fine if like a few bullet points underneath helps a lot that's fine too but you know we got to get better at this the structuring process of using the headings but in a there should only be like three main headings and at, you know maybe three subheadings three to five or two to five or one to you know there could be only one main heading if it makes sense if it's like you know but the I want to be able to kind of I want to be able to, to digest the main, the, the hierarchy. So like the top down, I want to be kind of aware of where I am in the, in the response. So we need to keep the responses shorter and sweet. If there's something I want to ask, uh, dig into, then I'll ask about it. So if I'm asking you for kind of an overview, make sure it is, you know, limited detail, only the important things.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "Hopefully we've added something about heading sizes you're using for all of your messages."
+        },
+        {
+          "n": 2,
+          "text": "The hierarchy of headings and sections is definitely important."
+        },
+        {
+          "n": 3,
+          "text": "However, your last few messages have been pretty verbose."
+        },
+        {
+          "n": 4,
+          "text": "Can you summarize — definitely make a list of all of my direct questions, kind of go back through the last few prompts and all of the most important statements that summarize the entire topic area, and summarize them as much as possible?"
+        },
+        {
+          "n": 5,
+          "text": "If one sentence can illuminate an entire idea, that's fine."
+        },
+        {
+          "n": 6,
+          "text": "If a few bullet points underneath help a lot, that's fine too."
+        },
+        {
+          "n": 7,
+          "text": "We've got to get better at this structuring process of using the headings."
+        },
+        {
+          "n": 8,
+          "text": "There should only be about three main headings, and maybe three to five subheadings — two to five, or one — there could be only one main heading if it makes sense."
+        },
+        {
+          "n": 9,
+          "text": "I want to be able to digest the hierarchy."
+        },
+        {
+          "n": 10,
+          "text": "Top down, I want to be aware of where I am in the response."
+        },
+        {
+          "n": 11,
+          "text": "So we need to keep the responses shorter and sweeter."
+        },
+        {
+          "n": 12,
+          "text": "If there's something I want to dig into, then I'll ask about it."
+        },
+        {
+          "n": 13,
+          "text": "So if I'm asking you for an overview, make sure it's limited detail, only the important things."
+        }
+      ],
+      "structure": [
+        {
+          "title": "Heading hierarchy",
+          "bullets": [
+            {
+              "text": "Use headings so the structure is clear at a glance — top down, the reader knows where they are in the response",
+              "cites": [
+                1,
+                2,
+                7,
+                9,
+                10
+              ],
+              "label": "S1,S2,S7,S9,S10"
+            },
+            {
+              "text": "About three main headings, with one to five subheadings under each — maybe just one if that makes sense",
+              "cites": [
+                8
+              ],
+              "label": "S8"
+            }
+          ]
+        },
+        {
+          "title": "Length and detail",
+          "bullets": [
+            {
+              "text": "Responses have been too verbose — keep them shorter",
+              "cites": [
+                3,
+                11
+              ],
+              "label": "S3,S11"
+            },
+            {
+              "text": "For an overview, limit detail to only the important things",
+              "cites": [
+                13
+              ],
+              "label": "S13"
+            },
+            {
+              "text": "If one sentence can cover an entire idea, that's enough",
+              "cites": [
+                5
+              ],
+              "label": "S5"
+            },
+            {
+              "text": "A few bullet points underneath help when needed",
+              "cites": [
+                6
+              ],
+              "label": "S6"
+            }
+          ]
+        },
+        {
+          "title": "Summarization",
+          "bullets": [
+            {
+              "text": "List every direct question from the last few prompts and all the most important statements that summarize the whole topic area, compressed as much as possible",
+              "cites": [
+                4
+              ],
+              "label": "S4"
+            },
+            {
+              "text": "I'll dig into anything I want more of — you don't need to front-load it",
+              "cites": [
+                12
+              ],
+              "label": "S12"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "Heading hierarchy",
+      "bullets": [
+        "Use headings so the structure is clear at a glance — top down, the reader knows where they are in the response",
+        "About three main headings, with one to five subheadings under each — maybe just one if that makes sense",
+        "Responses have been too verbose — keep them shorter",
+        "For an overview, limit detail to only the important things"
+      ],
+      "tags": [
+        "#List"
+      ],
+      "flags": [],
+      "strikes": [],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 31,
+      "at": "2026-10-03T00:32:49.150Z",
+      "raw": "Yeah, so we, we only want one like system for streaming page data. Now, we, we might want to break it out into d different files, so task.jsonls may be the right way. However, it also seems like you know we could just use a page.jsonl for those tasks, and then they're just basically pages, and they have all the page features that any page has, and they can save things, and uh, you know we can have AI conversations automatically and all these things. So I'm not sure if there's any harmony to be made there. Um, Yeah, give, give me a quick overview of everything that's queued and uh, currently in flight and recently completed. Make sure the recently completed stuff is like organized by module and kind of in, you know, stru structured so that if there's subtasks, major subtasks within each module, like the page class, Boom, you know, put them as bullets or whatever. Make sure it's a structured response. This is how I want the user interfaces to be. So like, you know, the AI dashboard should be kind of the snapshot of like everything that's awaiting me, the inbox, everything that's in flight, which is the sort of the log. But maybe it's kind of like that live uh, card or the now card or whichever. I think, I think it's live actually that has like all the in-flight tasks. Still not sure if that's actually being updated properly and actually live. ",
+      "clean": [
+        {
+          "n": 1,
+          "text": "Yeah, so we only want one system for streaming page data."
+        },
+        {
+          "n": 2,
+          "text": "Now, we might want to break it out into different files, so task.jsonls may be the right way."
+        },
+        {
+          "n": 3,
+          "text": null,
+          "omitted_raw": "However, it also seems like you know we could just use a page.jsonl for those tasks, and then they're just basically pages, and they have all the page features that any page has, and they can save things, and uh, you know we can have AI conversations automatically and all these things."
+        },
+        {
+          "n": 4,
+          "text": "So I'm not sure if there's any harmony to be made there."
+        },
+        {
+          "n": 5,
+          "text": "Give me a quick overview of everything that's queued, currently in flight, and recently completed."
+        },
+        {
+          "n": 6,
+          "text": "Make sure the recently completed stuff is organized by module and structured so that if there are subtasks — major subtasks within each module, like the page class — put them as bullets or whatever."
+        },
+        {
+          "n": 7,
+          "text": "Make sure it's a structured response."
+        },
+        {
+          "n": 8,
+          "text": "This is how I want the user interfaces to be."
+        },
+        {
+          "n": 9,
+          "text": "So the AI dashboard should be the snapshot of everything that's awaiting me: the inbox, everything that's in flight — which is the sort of the log."
+        },
+        {
+          "n": 10,
+          "text": null,
+          "omitted_raw": "I think, I think it's live actually that has like all the in-flight tasks."
+        },
+        {
+          "n": 11,
+          "text": "Still not sure if that's actually being updated properly and actually live."
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[3,10] duplicated=[]",
+      "title": "Yeah, so we only want one system for streaming page data. Now,…",
+      "bullets": [
+        "Yeah, so we only want one system for streaming page data. Now, we might want to break it out into…"
+      ],
+      "tags": [
+        "#Page",
+        "#Task"
+      ],
+      "flags": [
+        {
+          "sentence_n": 3,
+          "question": "is \"task.jsonls\" a reference to the existing task.jsonl convention, or a different concept?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        },
+        {
+          "sentence_n": 10,
+          "question": "which card or component on the dashboard is meant by \"live\" — the live card, the now card, or something else?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 10,
+          "struck_text": "I think"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 32,
+      "at": "2026-10-03T00:37:04.120Z",
+      "raw": "When masterminds uh, are spawning minions to build things, do they actually do a code review when they before they merge it in? I mean, so the code review process should be like the mastermind reading everything that was done, and depending on the complexity, if there's like any question about whether it's perfect, it could spawn a fresh minion to do a review process. Like, how has that been working? Do we have any data about that? Where does that data go? The outcome of those reviews? I would, I would assume that the mastermind who launches the review is then able to like see the response and then either ask the review, maybe ask the reviewer to make the change, the, the one that's probably the freshest with the best insight. Although, The original builder also might have all kinds of like, you know, thinking and realize that whatever the, the reviewer is trying to fix isn't going to work properly. So maybe they should work together. Like, uh, well, the mastermind would need to probably oversee any bickering because these models like to argue with each other about, you know, getting too uh, opinionated or, you know, taking it too personally. They need to be able to actually seek like, the proper resolution is quick, the best resolution as quickly as possible. If that's not in our mastermind system or Claude.md, like, you know, seeking the, the best solution as quickly as possible. This is the MVP approach. This is like the simplicity. This is the, you know, optimal way to, to build. So, you know, and when any uh, agent is collaborating with another, they should be seeking to uh, agree as much as possible. You know, raising concerns is okay, but whenever a concern is raised, you know, there probably needs to be a mastermind that's managing the executive decision, and uh, and the whole idea is to move towards, uh, you know, the best conclusion as quickly as possible. And so, you know, collaboration should not turn into analysis paralysis.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "When masterminds are spawning minions to build things, do they actually do a code review before they merge it in?"
+        },
+        {
+          "n": 2,
+          "text": "So the code review process should be like the mastermind reading everything that was done, and depending on the complexity, if there's any question about whether it's perfect, it could spawn a fresh minion to do a review process."
+        },
+        {
+          "n": 3,
+          "text": "How has that been working?"
+        },
+        {
+          "n": 4,
+          "text": "Do we have any data about that?"
+        },
+        {
+          "n": 5,
+          "text": "Where does that data go, the outcome of those reviews?"
+        },
+        {
+          "n": 6,
+          "text": "I would assume that the mastermind who launches the review is then able to see the response and then either ask the reviewer to make the change — the one that's probably the freshest with the best insight."
+        },
+        {
+          "n": 7,
+          "text": "Although, the original builder also might have all kinds of thinking and realize that whatever the reviewer is trying to fix isn't going to work properly."
+        },
+        {
+          "n": 8,
+          "text": "So maybe they should work together."
+        },
+        {
+          "n": 9,
+          "text": "The mastermind would need to probably oversee any bickering, because these models like to argue with each other about getting too opinionated or taking it too personally."
+        },
+        {
+          "n": 10,
+          "text": "They need to be able to seek the best resolution as quickly as possible."
+        },
+        {
+          "n": 11,
+          "text": "If that's not in our mastermind system or CLAUDE.md — seeking the best solution as quickly as possible."
+        },
+        {
+          "n": 12,
+          "text": "This is the MVP approach, this is the simplicity, this is the optimal way to build."
+        },
+        {
+          "n": 13,
+          "text": "And when any agent is collaborating with another, they should be seeking to agree as much as possible."
+        },
+        {
+          "n": 14,
+          "text": "Raising concerns is okay, but whenever a concern is raised, there probably needs to be a mastermind that's managing the executive decision, and the whole idea is to move towards the best conclusion as quickly as possible."
+        },
+        {
+          "n": 15,
+          "text": "And so collaboration should not turn into analysis paralysis."
+        }
+      ],
+      "structure": [
+        {
+          "title": "Code review",
+          "bullets": [
+            {
+              "text": "When masterminds spawn minions to build things, do they actually do a code review before they merge it in?",
+              "cites": [
+                1
+              ],
+              "label": "S1"
+            },
+            {
+              "text": "The mastermind should read everything that was done, and if there's any question about whether it's perfect, it could spawn a fresh minion to do a review.",
+              "cites": [
+                2
+              ],
+              "label": "S2"
+            },
+            {
+              "text": "How has that been working — do we have any data about it, and where does the outcome of those reviews go?",
+              "cites": [
+                3,
+                4,
+                5
+              ],
+              "label": "S3,S4,S5"
+            }
+          ]
+        },
+        {
+          "title": "Mastermind oversight",
+          "bullets": [
+            {
+              "text": "The mastermind who launches the review should be able to see the response and either ask the reviewer to make the change, since the reviewer is probably the freshest with the best insight.",
+              "cites": [
+                6
+              ],
+              "label": "S6"
+            },
+            {
+              "text": "But the original builder might realize that whatever the reviewer is trying to fix isn't going to work properly — so maybe they should work together.",
+              "cites": [
+                7,
+                8
+              ],
+              "label": "S7,S8"
+            },
+            {
+              "text": "The mastermind would need to oversee any bickering, because these models like to argue with each other about getting too opinionated or taking it too personally.",
+              "cites": [
+                9
+              ],
+              "label": "S9"
+            }
+          ]
+        },
+        {
+          "title": "Agent collaboration",
+          "bullets": [
+            {
+              "text": "Agents need to seek the best resolution as quickly as possible — this is the MVP approach, the simplicity, the optimal way to build.",
+              "cites": [
+                10,
+                11,
+                12
+              ],
+              "label": "S10,S11,S12"
+            },
+            {
+              "text": "When any agent is collaborating with another, they should seek to agree as much as possible.",
+              "cites": [
+                13
+              ],
+              "label": "S13"
+            },
+            {
+              "text": "Raising concerns is okay, but whenever a concern is raised, there probably needs to be a mastermind managing the executive decision, and the whole idea is to move towards the best conclusion as quickly as possible, so collaboration should not turn into analysis paralysis.",
+              "cites": [
+                14,
+                15
+              ],
+              "label": "S14,S15"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "Code review",
+      "bullets": [
+        "When masterminds spawn minions to build things, do they actually do a code review before they merge it in?",
+        "The mastermind should read everything that was done, and if there's any question about whether it's perfect, it could spawn a fresh minion to do a review.",
+        "How has that been working — do we have any data about it, and where does the outcome of those reviews go?",
+        "The mastermind who launches the review should be able to see the response and either ask the reviewer to make the change, since the reviewer is probably the freshest with the best insight."
+      ],
+      "tags": [
+        "#Models"
+      ],
+      "flags": [],
+      "strikes": [
+        {
+          "sentence_n": 1,
+          "struck_text": "are spawning minions to build things"
+        },
+        {
+          "sentence_n": 10,
+          "struck_text": "taking it too personally"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 33,
+      "at": "2026-10-03T00:40:55.691Z",
+      "raw": "Are we still limited on the whole RAM thing? And does Claude or, I mean, I, I think Claude has like VMs essentially where they can, Claude Code can like fork the repo and do work on, you know, cloud instances. Does that cost money on like a compute hour basis or is that like built into Claude? Maybe we could offload some of this work to uh, VMs. ",
+      "clean": [
+        {
+          "n": 1,
+          "text": "Are we still limited on the whole RAM thing?"
+        },
+        {
+          "n": 2,
+          "text": "And does Claude — I think Claude has VMs, essentially, where Claude Code can fork the repo and do work on cloud instances."
+        },
+        {
+          "n": 3,
+          "text": "Does that cost money on a compute-hour basis, or is that built into Claude?"
+        },
+        {
+          "n": 4,
+          "text": "Maybe we could offload some of this work to VMs."
+        }
+      ],
+      "structure": [
+        {
+          "title": "VMs",
+          "bullets": [
+            {
+              "text": "Is the RAM limit still a problem?",
+              "cites": [
+                1
+              ],
+              "label": "S1"
+            },
+            {
+              "text": "Claude Code can fork the repo and work on cloud VMs — is that right?",
+              "cites": [
+                2
+              ],
+              "label": "S2"
+            },
+            {
+              "text": "Does that cost money on compute hours, or is it included?",
+              "cites": [
+                3
+              ],
+              "label": "S3"
+            },
+            {
+              "text": "Maybe we could offload some work to VMs.",
+              "cites": [
+                4
+              ],
+              "label": "S4"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "VMs",
+      "bullets": [
+        "Is the RAM limit still a problem?",
+        "Claude Code can fork the repo and work on cloud VMs — is that right?",
+        "Does that cost money on compute hours, or is it included?",
+        "Maybe we could offload some work to VMs."
+      ],
+      "tags": [
+        "#General"
+      ],
+      "flags": [],
+      "strikes": [
+        {
+          "sentence_n": 1,
+          "struck_text": "And does Claude or"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 34,
+      "at": "2026-10-03T00:44:19.195Z",
+      "raw": "What are the 12 Claude processes? What are their names, like their task names or agent names or whatever? Give me an overview of those 12 processes, what they're working on, how long they've been running, um, and whether they're optimized on a token basis, like are they, have, are they auto-compacting if they're long running? Um, I mean, whatever applic- applicable things there, but like, I don't know, it didn't seem when you said what was in flight that there should be 12 processes.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "What are the 12 Claude processes?"
+        },
+        {
+          "n": 2,
+          "text": "What are their names, like their task names or agent names or whatever?"
+        },
+        {
+          "n": 3,
+          "text": "Give me an overview of those 12 processes, what they're working on, how long they've been running, and whether they're optimized on a token basis — are they auto-compacting if they're long-running?"
+        },
+        {
+          "n": 4,
+          "text": "Whatever applicable things there, but I don't know, it didn't seem when you said what was in flight that there should be 12 processes."
+        }
+      ],
+      "structure": [
+        {
+          "title": "The 12 Claude processes",
+          "bullets": [
+            {
+              "text": "What are the 12 Claude processes — their task names or agent names or whatever?",
+              "cites": [
+                1,
+                2
+              ],
+              "label": "S1,S2"
+            },
+            {
+              "text": "An overview of those 12: what they're working on, how long they've been running, and whether they auto-compact when long-running",
+              "cites": [
+                3
+              ],
+              "label": "S3"
+            },
+            {
+              "text": "Whatever else is applicable — it didn't seem from what was said about what's in flight that there should be 12 processes",
+              "cites": [
+                4
+              ],
+              "label": "S4"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "The 12 Claude processes",
+      "bullets": [
+        "What are the 12 Claude processes — their task names or agent names or whatever?",
+        "An overview of those 12: what they're working on, how long they've been running, and whether they auto-compact when long-running",
+        "Whatever else is applicable — it didn't seem from what was said about what's in flight that there should be 12 processes"
+      ],
+      "tags": [
+        "#Task"
+      ],
+      "flags": [],
+      "strikes": [
+        {
+          "sentence_n": 4,
+          "struck_text": "Um"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 35,
+      "at": "2026-10-03T01:52:30.657Z",
+      "raw": "All right, so if we wanted to use our page persistence items, whatever, for saving, well, really to have configurable saving patterns, we might want to kind of document specific ways to use these classes. And it should be as like modular as possible and as compatible as possible. So I'm, I'm just thinking about our AI systems and how I still don't have a clear grasp over each session. And I'm not still not sure how all this is logged and you know how the data is stored. And that's what I want to change is I want it to be clear based on uh, you know the visual, like the pages that I'm looking at. What kind of data is going to best represent the structure of our system? So that needs to be added to the system documentation skill, the, the, probably the Claude.md. Um, we always want, you know, it's, it's the code writing skill, it's the content writing skill, you know, it's showing structured data, right? Like, so that might need to be a refined process. And we might need to kind of go through our core documentation and rewrite some of it to try and uh, improve it, essentially. Now, we don't really want to just clobber it. We want kind of like a, a migration system where we can, you know, ask minions to make recommendations and put those in the proper spot so that, you know, they can be weighed and either utilized or... You know, if there's some sort of, if they're irrelevant or deemed unworthy or something, we don't really want to just take minor edge cases as suggestions and pollute the the data. However, when it comes to the UI, if there are structured items, like for the sessions, you know, we definitely have Claude SDK sessions. And so I should be able to see, you know, probably in the framework slash AI slash sessions tab, I should be able to see a list of every single session, exactly what the timestamp it was started. If I click on the session to see the full detail page, I should go to that session ID. So I don't know, I don't know if the uh, year-based directories are the best uh, storage mechanism. I think that's what we're currently using. I'm not sure how, if or how that's indexed. I don't know if there's like a page.jsonl in there that's now getting the proper uh, directory structure. Um, however, well, so that that is sort of like a, a date-based log, right? You know, when we're breaking out like a, a single log into a date-based log, I mean, that's kind of like an upgrade and it's like, a, you know, it segments the file system into chunks so that we can, you know, navigate and better manage them and quickly archive old stuff and, and analyze year by year and whatnot. Now it's not a database, so maybe it's not the best mechanism. However, it's uh, Git friendly. So I think that's good. Um, I don't mind it. But in terms of like these, the sessions and where they're stored and how they're viewed on screen, we need like a data grid essentially. I mean, we, I don't know how I feel about using tables. So in HTML, I'm not real familiar with tables and how they respond to their contents and how they fit into the amount of space. And I've seen a lot of tables where there's like a very tall, very narrow column. And it just creates, the, it makes every row very, very tall with mostly empty space and it's just completely broken. So we don't want that. I mean, a minimum width might help solve some over collapse, but But still, tables have a whole different layout system. And maybe tables can do something that Flex and Grid can't. However, I would imagine that that would have been one of the objectives is to like have table-like behavior. Now, when it comes to the, the markup organization of tables, uh, you know, tables by nature, well, they don't really have columns, but okay, you either have to organize items on a per row basis or a per column basis. And if you don't have everything in the same column, it's hard to get a bunch of different like columns within each row to then resize properly without a bunch of JavaScript and updating potentially hundreds or thousands of uh, records all at once. Or I guess you could just update the token, right? And then everything responds automatically. Still not, I'm not sure how performant that is. If you're using a token, updating a token value to like animate the resizing of a column, if that's like a good idea or not. However, it would make sense to try and have a unified layout system so that whichever kind of, whether we're using a, it, it, whatever it looks like, whether it's a table or a page or a column or a sidebar or a drawer or a, a rail or a sheet or whatever, they can be, you know, that, so that kind of feels like the panel system, this panel two system. Um, but yeah, so the sessions, Like whenever we have concrete things that are object oriented, they have a class, they should have a view. The default view should just show as much of the stuff as possible in a nice responsive way. So like a preview could by default be like a one to five lines a row that could be added kind of anywhere. It could be inline. I mean, the, the way we, we preview different things depends on what it is and how much stuff is in there, I think. So, um, you know, like an inline preview should just be a single line, an icon with the name. The, uh, you know, like a full card preview could be something more like uh, the icon, the title, maybe, you know, a, a contextual menu tool buttons or something to kind of like pop open additional toolbars or settings or whatever if you wanted to drill into it and do it is sort of like a quick access type thing right like the most common things you might want to do you could like in fewer clicks jump through it and go straight to probably the screen that you know otherwise you'd just be clicking on it to activate it well and then you know any preview card should be clickable or at least some or the majority of the card itself is a link. Maybe there's a hover effect. Although on mobile, you probably want that if you have a little arrow in a corner that kind of makes it look more like a clickable card, you know, that should be, um, you know, uh, visible on mobile because you don't have a hover effect essentially. But anyway, the, the way that the previews kind of go to the detail views for, you know, any data grid is super important. And whether it uses the drawer or uh, you know, for like a master detail type you know system where you have a table or a data grid of items and then you can open each one in like a side peek view like Notion can do, that could work. And we kind of have the drawer set up, although our drawer layout I think was a little broken. I'm not sure if it's been fixed. And I don't know why it was broken. It's sort of just one of these like things that slips through the cracks. But we, well, I think frankly, it's because we're not really approving the tasks. So like, I think, what we want to do is on the inbox page have uh, more of a concrete approval process that we actually use. And so each task that gets started, maybe I, I need to stamp off on it and be like, okay, this was good and this is done. Or like, you know, by default, I have no idea what it is and either you need a better description or you need to link me to my prompt that was explaining it. But hopefully, you know, my prompts are being processed and simplified and kind of like articulated. I, that'd be a, that's an interesting question right there. Like we have a prompt review system. I don't know if it's, I think it costs a lot to make it in terms of the, the token cost to design the system. But what I'm wondering is, is uh, I'm, I'm wondering what the token consumption is on the prompt review system. So like taking my, my long rambling prompts and kind of turning them into concrete, uh, well, cleaning them up, making, well, simplifying them where possible without really losing any core meaning, and also then nesting the raw prompts kind of within the revised structure. This is sort of that whole dictate process, right? And like converting the transcription. So I think we might want to separate that from our dictate widget into kind of its own process. Because for example, you could spawn a minion to review all of our past conversations. I know I've compacted things, so maybe we've lost part of the uh, conversation. I don't know if a compaction is still saved in a log, if like the conversation gets forked somehow and the old conversation still exists. Um, you know, all of these long rambling requests that I've made, I think could be, I mean, hopefully they're already being, you know, mostly captured into readmes and tasks and whatnot. Uh, That used to be part of the process. I would like it if we could, you know, so I, on, a, on a couple cards, I used to see a massive wall of a single paragraph, no paragraph thing, like of each of my dictations. And it's like, okay, you know, I understand that that's how it comes out. My dictation turns into a big wall of text. However, it's not very useful for me to look at. I need structured, the structured content. like the summarized view with those he- big headings and smaller headings and everything tucked into its place properly and maybe using bulleted lists or even nested bulleted lists when you need a lot of depth. Well, it's really, it's more about having a lot of structure. We don't want the length of content to be longer than it needs to be. Everything should be clickable so it's on demand. And if it's in the, if everything is put in the right place, then a condensed overview should be enough to kind of get to where you want to be. You should be able to see all the most important things. You don't want things, you know, being tucked away and invisible. So that's kind of where like a notification or alert or prioritization is important. And that's not really clear to me the best way to do that. Because the, the inbox has like this importance rating and there's a whole bunch of things that were in the 90s that seemed to only be mildly important. And I think the thing there was that like they were mildly blocking. And so either needed a decision or needed, you know, me to sign up for something. And so that you gave them a 90 plus so that they would appear in the, on my notification screen. And so that's sort of a backhanded way to accomplish it. Now we don't really want to give it a real no, uh, priority that then means it's never seen. And so like getting that whole process to flow better, I think the biggest problem is, is that there's no organization to it. And so that whole familiar structured content, it's like, We need the inbox to show, you know, like the the class, the page class as like a card in the inbox. So when anything on the page class gets done or is referenced, that page class can appear like as an a card in the inbox at the top. And so I can click on it and see, okay, what is, why is the card, the page uh, class notifying me? What is this, the reason for this thing being in my inbox? And then the, the view on that page card, you know, obviously we don't need to document the whole class page, you know, by clicking on it, unless we do it properly. Unless it's like, you know, when I click on it, it takes me to exactly the right sub view on that class page that shows me exactly what would happen. And I can kind of just navigate from there. I guess I'd be okay with that. And I thought we were looking at a way to do that already. Um, but it's the idea is that then then the things that belong to the page class are logged and I get notifications in my inbox in a contextual way. And I know I've asked for that. I don't know if it's being built. or has been built and hasn't been shown to me anywhere. I would I would I ideally like for the cards in the inbox to carry nice sweet summarizations and lists of everything that's been done and how much it costs and you know I know we've tried to do this before we have these task based pages that are trying to do that but there's just there's steps like way down the page that are kind of relevant but I've never really figured out, you know, I've never had a good tangible grasp, a mental grasp over which tasks are what. I give you all these dictations, you spawn all these tasks, and I have no idea. Like, we need to start leaning into certain names. Like, tell me the name of the the task, essentially. And frankly, it's the name of the mastermind because, you know, each mastermind is sort of the core, like, operating, you know, it's that's the the, it's kind of like the, the module that we're working on or the specific set of tasks we're working on, you know, there's different part, parts of the framework. And so a specific mastermind is like well-versed in a certain number of, uh, you know, modules. ",
+      "clean": [
+        {
+          "n": 1,
+          "text": "All right, so if we wanted to use our page persistence items, whatever, for saving — well, really to have configurable saving patterns — we might want to document specific ways to use these classes."
+        },
+        {
+          "n": 2,
+          "text": "And it should be as modular as possible and as compatible as possible."
+        },
+        {
+          "n": 3,
+          "text": "So I'm just thinking about our AI systems and how I still don't have a clear grasp over each session."
+        },
+        {
+          "n": 4,
+          "text": "And I'm still not sure how all this is logged and how the data is stored."
+        },
+        {
+          "n": 5,
+          "text": "And that's what I want to change: I want it to be clear based on the visual — the pages that I'm looking at — what kind of data is going to best represent the structure of our system."
+        },
+        {
+          "n": 6,
+          "text": "So that needs to be added to the system documentation skill, probably the CLAUDE.md."
+        },
+        {
+          "n": 7,
+          "text": "We always want — it's the code writing skill, it's the content writing skill, it's showing structured data, right?"
+        },
+        {
+          "n": 8,
+          "text": "So that might need to be a refined process."
+        },
+        {
+          "n": 9,
+          "text": "And we might need to go through our core documentation and rewrite some of it to try and improve it, essentially."
+        },
+        {
+          "n": 10,
+          "text": "Now, we don't really want to just clobber it."
+        },
+        {
+          "n": 11,
+          "text": "We want a migration system where we can ask minions to make recommendations and put those in the proper spot so that they can be weighed and either utilized or — if they're irrelevant or deemed unworthy or something — we don't really want to just take minor edge cases as suggestions and pollute the data."
+        },
+        {
+          "n": 12,
+          "text": "However, when it comes to the UI, if there are structured items, like for the sessions, we definitely have Claude SDK sessions."
+        },
+        {
+          "n": 13,
+          "text": "And so I should be able to see, probably in the framework/AI/sessions tab, a list of every single session, exactly the timestamp it was started."
+        },
+        {
+          "n": 14,
+          "text": "If I click on the session to see the full detail page, I should go to that session ID."
+        },
+        {
+          "n": 15,
+          "text": "So I don't know if the year-based directories are the best storage mechanism."
+        },
+        {
+          "n": 16,
+          "text": "I think that's what we're currently using."
+        },
+        {
+          "n": 17,
+          "text": "I'm not sure if or how that's indexed."
+        },
+        {
+          "n": 18,
+          "text": "I don't know if there's a page.jsonl in there that's now getting the proper directory structure."
+        },
+        {
+          "n": 19,
+          "text": "However, well, so that is sort of a date-based log, right?"
+        },
+        {
+          "n": 20,
+          "text": "When we're breaking out a single log into a date-based log, I mean, that's an upgrade — it segments the file system into chunks so that we can navigate and better manage them and quickly archive old stuff and analyze year by year and whatnot."
+        },
+        {
+          "n": 21,
+          "text": "Now it's not a database, so maybe it's not the best mechanism."
+        },
+        {
+          "n": 22,
+          "text": "However, it's Git-friendly, so I think that's good."
+        },
+        {
+          "n": 23,
+          "text": "I don't mind it."
+        },
+        {
+          "n": 24,
+          "text": "But in terms of the sessions and where they're stored and how they're viewed on screen, we need a data grid essentially."
+        },
+        {
+          "n": 25,
+          "text": "I mean, I don't know how I feel about using tables."
+        },
+        {
+          "n": 26,
+          "text": "In HTML, I'm not real familiar with tables and how they respond to their contents and how they fit into the amount of space."
+        },
+        {
+          "n": 27,
+          "text": "And I've seen a lot of tables where there's a very tall, very narrow column, and it just creates — it makes every row very, very tall with mostly empty space and it's just completely broken."
+        },
+        {
+          "n": 28,
+          "text": "So we don't want that."
+        },
+        {
+          "n": 29,
+          "text": "I mean, a minimum width might help solve some over-collapse, but still, tables have a whole different layout system."
+        },
+        {
+          "n": 30,
+          "text": "And maybe tables can do something that Flex and Grid can't."
+        },
+        {
+          "n": 31,
+          "text": "However, I would imagine that that would have been one of the objectives: to have table-like behavior."
+        },
+        {
+          "n": 32,
+          "text": "Now, when it comes to the markup organization of tables, well, they don't really have columns — but okay, you either have to organize items on a per-row basis or a per-column basis."
+        },
+        {
+          "n": 33,
+          "text": "And if you don't have everything in the same column, it's hard to get a bunch of different columns within each row to then resize properly without a bunch of JavaScript and updating potentially hundreds or thousands of records all at once."
+        },
+        {
+          "n": 34,
+          "text": "Or I guess you could just update the token, right, and then everything responds automatically."
+        },
+        {
+          "n": 35,
+          "text": "Still, I'm not sure how performant that is — if you're using a token, updating a token value to animate the resizing of a column, if that's a good idea or not."
+        },
+        {
+          "n": 36,
+          "text": "However, it would make sense to try and have a unified layout system so that whichever kind of — whatever it looks like, whether it's a table or a page or a column or a sidebar or a drawer or a rail or a sheet or whatever — they can be — so that kind of feels like the panel system, this panel two system."
+        },
+        {
+          "n": 37,
+          "text": "But yeah, so the sessions: whenever we have concrete things that are object-oriented, they have a class, they should have a view."
+        },
+        {
+          "n": 38,
+          "text": "The default view should just show as much of the stuff as possible in a nice responsive way."
+        },
+        {
+          "n": 39,
+          "text": "So a preview could by default be one to five lines per row that could be added anywhere — it could be inline."
+        },
+        {
+          "n": 40,
+          "text": "I mean, the way we preview different things depends on what it is and how much stuff is in there, I think."
+        },
+        {
+          "n": 41,
+          "text": "So an inline preview should just be a single line — an icon with the name."
+        },
+        {
+          "n": 42,
+          "text": "A full card preview could be something more like the icon, the title, maybe a contextual menu, tool buttons, or something to pop open additional toolbars or settings or whatever if you wanted to drill into it — and it is sort of a quick access type thing, right?"
+        },
+        {
+          "n": 43,
+          "text": "The most common things you might want to do, you could in fewer clicks jump through it and go straight to probably the screen that otherwise you'd just be clicking on it to activate."
+        },
+        {
+          "n": 44,
+          "text": "Well, and then any preview card should be clickable, or at least the majority of the card itself is a link."
+        },
+        {
+          "n": 45,
+          "text": "Maybe there's a hover effect, although on mobile you probably want a little arrow in a corner that makes it look more like a clickable card — that should be visible on mobile because you don't have a hover effect, essentially."
+        },
+        {
+          "n": 46,
+          "text": "But anyway, the way that the previews go to the detail views for any data grid is super important."
+        },
+        {
+          "n": 47,
+          "text": "And whether it uses the drawer or, for a master-detail type system where you have a table or a data grid of items and then you can open each one in a side peek view like Notion can do — that could work."
+        },
+        {
+          "n": 48,
+          "text": "And we kind of have the drawer set up, although our drawer layout I think was a little broken."
+        },
+        {
+          "n": 49,
+          "text": "I'm not sure if it's been fixed, and I don't know why it was broken."
+        },
+        {
+          "n": 50,
+          "text": "It's sort of just one of these things that slips through the cracks."
+        },
+        {
+          "n": 51,
+          "text": "But I think, frankly, it's because we're not really approving the tasks."
+        },
+        {
+          "n": 52,
+          "text": "So I think what we want to do is on the inbox page have more of a concrete approval process that we actually use."
+        },
+        {
+          "n": 53,
+          "text": "And so each task that gets started, maybe I need to stamp off on it and be like, okay, this was good and this is done."
+        },
+        {
+          "n": 54,
+          "text": "Or, by default, I have no idea what it is, and either you need a better description or you need to link me to my prompt that was explaining it."
+        },
+        {
+          "n": 55,
+          "text": "But hopefully my prompts are being processed and simplified and articulated."
+        },
+        {
+          "n": 56,
+          "text": "That's an interesting question right there: we have a prompt review system."
+        },
+        {
+          "n": 57,
+          "text": "I don't know if it's — I think it costs a lot to make it in terms of the token cost to design the system."
+        },
+        {
+          "n": 58,
+          "text": "But what I'm wondering is what the token consumption is on the prompt review system."
+        },
+        {
+          "n": 59,
+          "text": "So taking my long rambling prompts and turning them into concrete — well, cleaning them up, simplifying them where possible without really losing any core meaning, and also then nesting the raw prompts within the revised structure."
+        },
+        {
+          "n": 60,
+          "text": "This is sort of that whole dictate process, right, and converting the transcription."
+        },
+        {
+          "n": 61,
+          "text": "So I think we might want to separate that from our dictate widget into its own process."
+        },
+        {
+          "n": 62,
+          "text": "Because, for example, you could spawn a minion to review all of our past conversations."
+        },
+        {
+          "n": 63,
+          "text": "I know I've compacted things, so maybe we've lost part of the conversation."
+        },
+        {
+          "n": 64,
+          "text": "I don't know if a compaction is still saved in a log, if the conversation gets forked somehow and the old conversation still exists."
+        },
+        {
+          "n": 65,
+          "text": "All of these long rambling requests that I've made — I think they could be — I mean, hopefully they're already being mostly captured into readmes and tasks and whatnot."
+        },
+        {
+          "n": 66,
+          "text": "That used to be part of the process."
+        },
+        {
+          "n": 67,
+          "text": "I would like it if we could — so on a couple cards, I used to see a massive wall of a single paragraph of each of my dictations."
+        },
+        {
+          "n": 68,
+          "text": "And it's like, okay, I understand that that's how it comes out — my dictation turns into a big wall of text."
+        },
+        {
+          "n": 69,
+          "text": "However, it's not very useful for me to look at."
+        },
+        {
+          "n": 70,
+          "text": "I need the structured content — the summarized view with big headings and smaller headings and everything tucked into its place properly, and maybe using bulleted lists or even nested bulleted lists when you need a lot of depth."
+        },
+        {
+          "n": 71,
+          "text": "Well, it's really more about having a lot of structure."
+        },
+        {
+          "n": 72,
+          "text": "We don't want the length of content to be longer than it needs to be."
+        },
+        {
+          "n": 73,
+          "text": "Everything should be clickable so it's on demand."
+        },
+        {
+          "n": 74,
+          "text": "And if everything is put in the right place, then a condensed overview should be enough to get to where you want to be."
+        },
+        {
+          "n": 75,
+          "text": "You should be able to see all the most important things."
+        },
+        {
+          "n": 76,
+          "text": "You don't want things being tucked away and invisible."
+        },
+        {
+          "n": 77,
+          "text": "So that's where a notification or alert or prioritization is important."
+        },
+        {
+          "n": 78,
+          "text": "And that's not really clear to me — the best way to do that."
+        },
+        {
+          "n": 79,
+          "text": "Because the inbox has this importance rating, and there were a whole bunch of things that were in the 90s that seemed to only be mildly important."
+        },
+        {
+          "n": 80,
+          "text": "And I think the thing there was that they were mildly blocking, and so either needed a decision or needed me to sign up for something."
+        },
+        {
+          "n": 81,
+          "text": "And so you gave them a 90-plus so that they would appear on my notification screen."
+        },
+        {
+          "n": 82,
+          "text": "And so that's sort of a backhanded way to accomplish it."
+        },
+        {
+          "n": 83,
+          "text": "Now we don't really want to give it a real low priority that then means it's never seen."
+        },
+        {
+          "n": 84,
+          "text": "And so getting that whole process to flow better — I think the biggest problem is that there's no organization to it."
+        },
+        {
+          "n": 85,
+          "text": "And so that whole familiar structured content — it's like, we need the inbox to show the page class as a card in the inbox."
+        },
+        {
+          "n": 86,
+          "text": "So when anything on the page class gets done or is referenced, that page class can appear as a card in the inbox at the top."
+        },
+        {
+          "n": 87,
+          "text": "And so I can click on it and see, okay, why is the page class notifying me? What is the reason for this thing being in my inbox?"
+        },
+        {
+          "n": 88,
+          "text": "And then the view on that page card — obviously we don't need to document the whole class page by clicking on it, unless we do it properly."
+        },
+        {
+          "n": 89,
+          "text": "Unless, when I click on it, it takes me to exactly the right sub-view on that class page that shows me exactly what would happen, and I can just navigate from there."
+        },
+        {
+          "n": 90,
+          "text": "I guess I'd be okay with that, and I thought we were looking at a way to do that already."
+        },
+        {
+          "n": 91,
+          "text": "But the idea is that then the things that belong to the page class are logged and I get notifications in my inbox in a contextual way."
+        },
+        {
+          "n": 92,
+          "text": "And I know I've asked for that."
+        },
+        {
+          "n": 93,
+          "text": "I don't know if it's being built or has been built and hasn't been shown to me anywhere."
+        },
+        {
+          "n": 94,
+          "text": "I would ideally like for the cards in the inbox to carry nice, sweet summarizations and lists of everything that's been done and how much it costs."
+        },
+        {
+          "n": 95,
+          "text": "And I know we've tried to do this before — we have these task-based pages that are trying to do that."
+        },
+        {
+          "n": 96,
+          "text": "But there's just steps way down the page that are kind of relevant, but I've never really figured out — I've never had a good tangible grasp, a mental grasp over which tasks are what."
+        },
+        {
+          "n": 97,
+          "text": "I give you all these dictations, you spawn all these tasks, and I have no idea."
+        },
+        {
+          "n": 98,
+          "text": "We need to start leaning into certain names — like, tell me the name of the task, essentially."
+        },
+        {
+          "n": 99,
+          "text": "And frankly, it's the name of the mastermind, because each mastermind is sort of the core operating — it's the module that we're working on or the specific set of tasks we're working on."
+        },
+        {
+          "n": 100,
+          "text": "There are different parts of the framework, and so a specific mastermind is well-versed in a certain number of modules."
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[12,15,16,17,18,25,32,90,95] duplicated=[69,11]",
+      "title": "All right, so if we wanted to use our page persistence items,…",
+      "bullets": [
+        "All right, so if we wanted to use our page persistence items, whatever, for saving — well, really to have…"
+      ],
+      "tags": [
+        "#Page",
+        "#Dictate"
+      ],
+      "flags": [],
+      "strikes": [
+        {
+          "sentence_n": 7,
+          "struck_text": "a single log into a date-based log"
+        },
+        {
+          "sentence_n": 1,
+          "struck_text": "we need like a data grid essentially"
+        },
+        {
+          "sentence_n": 29,
+          "struck_text": "So we don't want that"
+        },
+        {
+          "sentence_n": 1,
+          "struck_text": "It could be inline"
+        },
+        {
+          "sentence_n": 52,
+          "struck_text": "what we want to do is on the inbox page have uh"
+        },
+        {
+          "sentence_n": 65,
+          "struck_text": "I think could be"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 36,
+      "at": "2026-10-03T02:03:51.672Z",
+      "raw": "So yeah, it would be nice if we could summarize all of my prompts into like create prompt instances that are saved to wherever. Like I don't really care where they're saved, but it'd probably be if we have a date based AI kind of session directory or task directory or whatever, when you create new tasks, well, so like, I don't want you having to use a tool to rewrite my prompt, my long prompts, and just copy and paste it into another place. So ideally, on a per uh, prompt basis, I'm not sure the best way to turn the prompt into structured content, exactly how the dictate app is supposed to work. In fact, that absolutely has to be the same process. So like prompt refinement is really what this is. It's turning a massive rambling prompt into a coherent summarized UI card, probably with little sections. So rather than like the H2s just being listed in a massive view, like if there's some preview about each H2 that could surface and actually provide useful additional information. I guess that's fine. However, generally, each H2, the text itself, should be you know self-explanatory so that when if I want to click on it, I can click through it. So like that whole top-down, does this make sense? You know, we need to work on that. We need to build, you know, these prompt refinements. So look at what we have, figure out the best way to unify. A prompt kind of logging and refinement system for you, my VS Code mastermind, but also for the live chat system. You know, it's doing the, it's the dictation system. It's trying to do the same thing only in real time. So, you know, this prompt refinement should be kind of a streaming thing. And frankly, the the clean transcript part of it is like sort of half the battle because you almost need the same. Typo fixing, like uh, when something's been misheard and it's pretty clear that, you know, or, or if something's just extremely unclear, sometimes the transcription just completely misses. So whether it's the real-time transcription or these kind of more long-form transcriptions, all these prompts should probably get automatically sent through a prompt refinement system. And we really work on, like, making sure that there is zero detail lost. And kind of the way that that would probably happen is that my long prompt gets chunked in like a systematic way where it's actually like almost programmatic where the AI can kind of decide how to chunk it, but the program makes sure that the entire prompt is chunked properly. And so, you know, certain sentences could be reordered and, you know, you could reference the original like prompt in its original order, but as long as every chunk of the prompt is put in, you know, a logical place and uh, captured almost verbatim, like very small changes, this is what I've explained before for the dictate, you know, the clean transcription, very small changes are okay, capitalization fixes are fine, punctuation fixes are fine, removal of filler words is fine, but the... Um, You know, the essence of the prompt, you know, we shouldn't like summarize and use different words because, you know, then it loses the essence of the prompt. Unless I make a correction of what I've said. If I say not this, I meant that, then you could, for example, strike, you know, the the raw prompt, strike something from the raw prompt and because it's explicitly requested. So that's kind of that whole clean transcript. transcript thing is like take what I said and make sure we capture it as close as possible without mangling any words also that can you know include that whole clarification thing a lot of times with these long uh long-winded transcripts I'm not going to be there to respond to the clar request for clarification but then maybe in the future as I'm reading it through I might you know clarify what I meant or something so you could leave the the you know clarification prompt there We definitely want to, you know, do that, but also this might be a good test. In fact, this is kind of the perfect test for uh, low-level minions. It's to review all of the prompts that I'm making in whatever form. And so given a session, like a lot of, uh, so, so sometimes past context is important. So in this session right now, we have a massive amount of context. We've compacted at least once. And so, uh, This the context differential is an, an important factor to consider when looking at the testing different models. However, what I'm thinking is, is this prompt refinement, especially the simple task of like converting, well, just the clean, the clean transcription kind of prompt and instructions. That should actually almost be like a zero prompt or zero configuration, zero system prompts necessary. It's just sort of only the very basic like You know, system. Basically, your your your your clean transcription instructions. What you want to see, and then here's the the prompt. Clean it up. Now, okay. So having some context to do that in terms of reading the actual system, like, like the Claude.md, knowing about most of the modules and what they're called and how they they work together, could easily help those uh, clean transcriptions accurately identify existing concepts. And word, you know, name them properly if you know it seems like something was named incorrectly. Flag things if they're entirely unclear, like if there's a, a probably a mistranscription. If it's very unclear, you know, the confidence that this is an error, you know, arises. Then boom, you know, it should be a red flag. And in our live chat widget, it should be almost like have an have a sound or something, so I know if something's been. Because I'm not actually reading this transcription, I'm just kind of looking out the window. So that would be useful, but. Process, you know, processing uh, uh, after the fact, like reprocessing these, these long-winded transcripts, we'd want to wait until we get, you know, solid results for very short tasks, like a clean transcribing, you know, a small amount of text. But those would be good uh, kind of litmus tests so that to see if a LLM can follow absolutely basic instructions and just, you know, do exactly what it's asking without getting confused about all the uh, additionals. And not only for figuring out, you know, which LLMs could or should be the the uh, clean transcribe, it's really the fast assistant, I think, you know, unless the fast assistant should be, a, you know, one model and the clean transcribe should be another model. That gets kind of tricky, too. But anyway, so but then what I'm kind of looking for is a, a prompt audit. If we don't have a system to automatically log all of my prompts in their long forms, um, like basically this whole session, I don't know if you wanna, we probably should, if we're doing it, just log your responses as well so I can browse them. I, I rarely read them, but at least ha giving the, the answers in real time creates a log of like, at least your opinion of where we're at, even if I don't have time to read them. Um, also, the whole structured content, like if we're going to process the raw uh, prompts and try and turn them into clean structured prompts, it might also be useful to combine the prompt with the response. So like you essentially turn two big chunks, my big prompt and your big response, into a structured kind of prompt plus response hybrid that's almost looks like a little chat widget where the you know one person is talking on one side and the responses are on the other probably mostly prompt my prompt first and then your response but my prompt could even be well you could toggle between different modes depending on the view from like the clean transcript which is you know more precisely what I asked for then down to like you know highly summarized highly condensed versions that are just a quick snapshot but you can click into to see the actual transcript or see more detail about exactly what was said or what other details are associated with that item. Uh, that makes a lot of sense to me. So it's we could do a, a very thorough review of all of my prompts and uh, make sure that the essence of the, the requests have been properly documented in any documentation. Uh, so that would, you know, involve reading the readmes for whatever modules we're talking about. And it might require a lot of tokens to audit the entire site and well, really all the tasks that have been requested. And so we don't want to do that excessively, but if we can start trying to build into the system, you know, part of testing these new models, part of uh, me transcribing prompts to you, like all my prompts... could easily go through, at least at a very basic level, some sort of logging system. So, you know, I know the, the Claude SDK has a log file that has the entire history and, you know, exactly what I sent to you. I know that gets compacted after 30 days. So I'm almost thinking we might want to, just for, you know, record keeping sake, actually have, a, I don't know if we have a duplicate of that log file. I don't think we really want to mess with it ourselves or commit it to the... I mean, it's possible if you could change. It's possible if you could change the location of saving that log file, that's the cleanest and easiest way. And then the actual log, full log file actually just gets commit, committed to Git. We might not want to do that for like past sessions, but maybe for future sessions, if it would make sense to, you know, somehow save the session, the Claude SDK, you know, the new minions, the new masterminds, all those AI sessions where there's a chat, you know, log of everything that, you know, happens, saving the raw data directly to Git could, you know, well, for one, it could sort of survive compactions. We could not even like worry so much about compaction. It's more like if you're given a task to research a very specific, you know, the his, the, the long history of a very specific task, you could go into Git, read that, you know, session specific log file from like two months ago that has already been compacted a bunch of times and see, you know, what kind of state was committed back then. Not sure that's a great idea. It could bloat the repo pretty quick, but at least for having records, seems like not a bad idea.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "So yeah, it would be nice if we could summarize all of my prompts into create prompt instances that are saved to wherever."
+        },
+        {
+          "n": 2,
+          "text": "I don't really care where they're saved, but it would probably be if we have a date-based AI session directory or task directory or whatever, when you create new tasks."
+        },
+        {
+          "n": 3,
+          "text": "Well, so I don't want you having to use a tool to rewrite my prompt, my long prompts, and just copy and paste it into another place."
+        },
+        {
+          "n": 4,
+          "text": "So ideally, on a per-prompt basis, I'm not sure the best way to turn the prompt into structured content, exactly how the dictate app is supposed to work."
+        },
+        {
+          "n": 5,
+          "text": "In fact, that absolutely has to be the same process."
+        },
+        {
+          "n": 6,
+          "text": "So prompt refinement is really what this is."
+        },
+        {
+          "n": 7,
+          "text": "It's turning a massive rambling prompt into a coherent summarized UI card, probably with little sections."
+        },
+        {
+          "n": 8,
+          "text": "So rather than the H2s just being listed in a massive view, if there's some preview about each H2 that could surface and actually provide useful additional information, I guess that's fine."
+        },
+        {
+          "n": 9,
+          "text": "However, generally, each H2, the text itself, should be self-explanatory so that if I want to click on it, I can click through it."
+        },
+        {
+          "n": 10,
+          "text": "So that whole top-down, does this make sense?"
+        },
+        {
+          "n": 11,
+          "text": "We need to work on that."
+        },
+        {
+          "n": 12,
+          "text": "We need to build these prompt refinements."
+        },
+        {
+          "n": 13,
+          "text": "So look at what we have, figure out the best way to unify a prompt logging and refinement system for you, my VS Code mastermind, but also for the live chat system."
+        },
+        {
+          "n": 14,
+          "text": "It's doing the — it's the dictation system."
+        },
+        {
+          "n": 15,
+          "text": "It's trying to do the same thing only in real time."
+        },
+        {
+          "n": 16,
+          "text": "So this prompt refinement should be a streaming thing."
+        },
+        {
+          "n": 17,
+          "text": "And frankly, the clean transcript part of it is half the battle because you almost need the same typo fixing, when something's been misheard and it's pretty clear, or if something's just extremely unclear, sometimes the transcription just completely misses."
+        },
+        {
+          "n": 18,
+          "text": "So whether it's the real-time transcription or these more long-form transcriptions, all these prompts should probably get automatically sent through a prompt refinement system."
+        },
+        {
+          "n": 19,
+          "text": "And we really work on making sure that there is zero detail lost."
+        },
+        {
+          "n": 20,
+          "text": "And the way that would probably happen is that my long prompt gets chunked in a systematic way where it's actually almost programmatic where the AI can decide how to chunk it, but the program makes sure that the entire prompt is chunked properly."
+        },
+        {
+          "n": 21,
+          "text": "And so certain sentences could be reordered and you could reference the original prompt in its original order, but as long as every chunk of the prompt is put in a logical place and captured almost verbatim, like very small changes, this is what I've explained before for the dictate — the clean transcription, very small changes are okay, capitalization fixes are fine, punctuation fixes are fine, removal of filler words is fine, but the essence of the prompt — we shouldn't summarize and use different words because then it loses the essence of the prompt."
+        },
+        {
+          "n": 22,
+          "text": "Unless I make a correction of what I've said."
+        },
+        {
+          "n": 23,
+          "text": "If I say not this, I meant that, then you could, for example, strike something from the raw prompt because it's explicitly requested."
+        },
+        {
+          "n": 24,
+          "text": "So that whole clean transcript thing is take what I said and make sure we capture it as close as possible without mangling any words, also that can include that whole clarification thing."
+        },
+        {
+          "n": 25,
+          "text": "A lot of times with these long-winded transcripts I'm not going to be there to respond to the request for clarification, but then maybe in the future as I'm reading it through I might clarify what I meant or something, so you could leave the clarification prompt there."
+        },
+        {
+          "n": 26,
+          "text": "We definitely want to do that, but also this might be a good test."
+        },
+        {
+          "n": 27,
+          "text": "In fact, this is the perfect test for low-level minions."
+        },
+        {
+          "n": 28,
+          "text": "It's to review all of the prompts that I'm making in whatever form."
+        },
+        {
+          "n": 29,
+          "text": "And so given a session, sometimes past context is important."
+        },
+        {
+          "n": 30,
+          "text": "So in this session right now, we have a massive amount of context."
+        },
+        {
+          "n": 31,
+          "text": "We've compacted at least once."
+        },
+        {
+          "n": 32,
+          "text": "And so the context differential is an important factor to consider when testing different models."
+        },
+        {
+          "n": 33,
+          "text": "However, what I'm thinking is this prompt refinement, especially the simple task of just the clean transcription prompt and instructions — that should actually almost be a zero prompt or zero configuration, zero system prompts necessary."
+        },
+        {
+          "n": 34,
+          "text": "It's just sort of only the very basic system — basically your clean transcription instructions, what you want to see, and then here's the prompt: clean it up."
+        },
+        {
+          "n": 35,
+          "text": "Now, okay, so having some context to do that in terms of reading the actual system, like the CLAUDE.md, knowing about most of the modules and what they're called and how they work together, could easily help those clean transcriptions accurately identify existing concepts and name them properly if it seems like something was named incorrectly."
+        },
+        {
+          "n": 36,
+          "text": "That should actually almost be like a zero prompt or zero configuration, zero system prompts necessary."
+        },
+        {
+          "n": 37,
+          "text": "If it's very unclear, the confidence that this is an error arises."
+        },
+        {
+          "n": 38,
+          "text": "Then boom, it should be a red flag."
+        },
+        {
+          "n": 39,
+          "text": "And in our live chat widget, it should almost have a sound or something, so I know if something's been — because I'm not actually reading this transcription, I'm just looking out the window."
+        },
+        {
+          "n": 40,
+          "text": "So that would be useful, but processing after the fact, like reprocessing these long-winded transcripts, we'd want to wait until we get solid results for very short tasks, like a clean transcribing a small amount of text."
+        },
+        {
+          "n": 41,
+          "text": "But those would be good litmus tests to see if an LLM can follow absolutely basic instructions and just do exactly what it's asking without getting confused about all the additionals."
+        },
+        {
+          "n": 42,
+          "text": "And not only for figuring out which LLMs could or should be the clean transcriber — it's really the fast assistant, I think, unless the fast assistant should be one model and the clean transcriber should be another model."
+        },
+        {
+          "n": 43,
+          "text": "That gets tricky, too."
+        },
+        {
+          "n": 44,
+          "text": "But anyway, so then what I'm looking for is a prompt audit."
+        },
+        {
+          "n": 45,
+          "text": "If we don't have a system to automatically log all of my prompts in their long forms, basically this whole session — I don't know if you wanna — we probably should, if we're doing it, just log your responses as well so I can browse them."
+        },
+        {
+          "n": 46,
+          "text": "I rarely read them, but at least having the answers in real time creates a log of at least your opinion of where we're at, even if I don't have time to read them."
+        },
+        {
+          "n": 47,
+          "text": "Also, the whole structured content — if we're going to process the raw prompts and try and turn them into clean structured prompts, it might also be useful to combine the prompt with the response."
+        },
+        {
+          "n": 48,
+          "text": "So you essentially turn two big chunks, my big prompt and your big response, into a structured prompt plus response hybrid that almost looks like a little chat widget where one person is talking on one side and the responses are on the other, probably mostly my prompt first and then your response."
+        },
+        {
+          "n": 49,
+          "text": "But my prompt could even be — well, you could toggle between different modes depending on the view, from the clean transcript which is more precisely what I asked for, then down to highly summarized, highly condensed versions that are just a quick snapshot, but you can click into to see the actual transcript or see more detail about exactly what was said or what other details are associated with that item."
+        },
+        {
+          "n": 50,
+          "text": "That makes a lot of sense to me."
+        },
+        {
+          "n": 51,
+          "text": "So we could do a very thorough review of all of my prompts and make sure that the essence of the requests have been properly documented in any documentation."
+        },
+        {
+          "n": 52,
+          "text": "So that would involve reading the readmes for whatever modules we're talking about."
+        },
+        {
+          "n": 53,
+          "text": "And it might require a lot of tokens to audit the entire site and, well, really all the tasks that have been requested."
+        },
+        {
+          "n": 54,
+          "text": "And so we don't want to do that excessively, but if we can start trying to build into the system — part of testing these new models, part of me transcribing prompts to you — all my prompts could easily go through, at least at a very basic level, some sort of logging system."
+        },
+        {
+          "n": 55,
+          "text": "So I know the Claude SDK has a log file that has the entire history and exactly what I sent to you."
+        },
+        {
+          "n": 56,
+          "text": "I know that gets compacted after 30 days."
+        },
+        {
+          "n": 57,
+          "text": "So I'm almost thinking we might want to, just for record-keeping sake, actually have — I don't know if we have a duplicate of that log file."
+        },
+        {
+          "n": 58,
+          "text": "I don't think we really want to mess with it ourselves or commit it to the — I mean, it's possible if you could change the location of saving that log file, that's the cleanest and easiest way."
+        },
+        {
+          "n": 59,
+          "text": "And then the actual full log file actually just gets committed to Git."
+        },
+        {
+          "n": 60,
+          "text": "We might not want to do that for past sessions, but maybe for future sessions, if it would make sense to somehow save the session — the Claude SDK, the new minions, the new masterminds, all those AI sessions where there's a chat log of everything that happens — saving the raw data directly to Git could, well, for one, it could survive compactions."
+        },
+        {
+          "n": 61,
+          "text": "We could not even worry so much about compaction."
+        },
+        {
+          "n": 62,
+          "text": "It's more like if you're given a task to research the long history of a very specific task, you could go into Git, read that session-specific log file from two months ago that has already been compacted a bunch of times and see what state was committed back then."
+        },
+        {
+          "n": 63,
+          "text": "Not sure that's a great idea."
+        },
+        {
+          "n": 64,
+          "text": "It could bloat the repo pretty quick, but at least for having records, seems like not a bad idea."
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[3,8,9,10,11,12,13,18,25,26,50] duplicated=[54,49]",
+      "title": "So yeah, it would be nice if we could summarize all of…",
+      "bullets": [
+        "So yeah, it would be nice if we could summarize all of my prompts into create prompt instances that are…"
+      ],
+      "tags": [
+        "#Dictate",
+        "#Task"
+      ],
+      "flags": [
+        {
+          "sentence_n": 36,
+          "question": "The cleaned text adds or changes \"probable\", which isn't anywhere in what was actually said — is this right, or should it be reverted?",
+          "confidence": 0.5,
+          "source": "mechanical"
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 8,
+          "struck_text": "So rather than like the H2s just being listed in a massive view"
+        },
+        {
+          "sentence_n": 20,
+          "struck_text": "making sure that there is zero detail lost"
+        },
+        {
+          "sentence_n": 1,
+          "struck_text": "If I say not this"
+        },
+        {
+          "sentence_n": 25,
+          "struck_text": "So that's kind of that whole clean transcript"
+        },
+        {
+          "sentence_n": 33,
+          "struck_text": "the clean transcription kind of prompt and instructions"
+        },
+        {
+          "sentence_n": 39,
+          "struck_text": "so I know if something's been"
+        },
+        {
+          "sentence_n": 1,
+          "struck_text": "record keeping sake"
+        },
+        {
+          "sentence_n": 58,
+          "struck_text": "I don't think we really want to mess with it ourselves or commit it to the.."
+        },
+        {
+          "sentence_n": 59,
+          "struck_text": "And then the actual log"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 37,
+      "at": "2026-10-03T02:08:38.939Z",
+      "raw": "And then in terms of our system design, uh, propose to me a, you know, the, the structure, uh, particularly the class architecture for how the AI tasks that, well, first the AI sessions like this one, how they're being logged um, in terms of like, you know, is it specifically that date based task folder? Is that the kind of the single, like, it's like an abstract log, the task.jsonl, is that the single kind of location where we have data for our tasks? Are we able to, or do we ever read the actual raw session data, or do we just kind of like talk to the SDK session if we need information from that session? We, we might not have any need for that. And then what do you think about committing it to file? It might not, not actually be necessary in the vast majority of cases. Um, but the idea is I want to be able to reprocess my prompts because if I'm sitting here all day spending all this time explaining things and then things aren't getting done properly, it would be nice to kind of be able to review all of my prompts. And they're long and there's a lot of detail. And so it's very easily that there's little details going missed. And so I, I would like a prompt review process. I know we already have one. Maybe you can explain briefly how it works and like whether it's using LLMs for most of the work and uh, you know the structured output that's kind of survives like the review process or whether it's all in memory for that session. You know, if if a if the review process is or you know the prompt review is just like an LLM giving its like output. I mean, maybe that's okay, but like maybe we can do a better job of, uh, well, it's kind of that, you know, flow from raw prompt to clean prompt to summarized prompt, but in a structured way that doesn't make sure, and make sure that we don't lose any chunks of the prompt. Well, it's more that it verifies that every, like literally every word or at least every sentence of the raw prompt has been handled accurately with a high confidence level. I think that's actually what I'm getting at. So like we'd go... We could make it an automated, you know, kind of review process where we go line by line and try and figure out and identify what what's being asked here and how confident are we that this is, you know, the full ask and that we understand exactly what we're supposed to do. And honestly, like creating requirements is sort of part of this logical process, right? Like I'm relying on you to interpret my will and, and execute tasks and, and you generally do a pretty good job of it, but in terms of like seeing those kind of uh, seeing that potential evolve in real time is something you know we need the live transcription for which this is a chunk based transcription so I end up sending off huge pages of files and I don't actually see anything kind of like uh, kind of going all at once so yeah I'm kind of skimming your last message uh, So you're saying it's being built. I know there's already some stuff. Uh, you said all, most of it already exists. Okay, I'll, I'll trust you on that one. Um, you know what would be cool is for each thing in the framework. I, I asked earlier about a framework page, the, the default, you know, slash framework page. We... I asked for like a menu of all the modules and kind of in a structured way. It'd be cool if, if like on each one of those cards, you know, the big ones could be maybe a little bit bigger cards that kind of show the core API or something just so you can remember exactly how it works or what it does, you know, in more of a visually structured way. The smaller ones or less significant ones could just be an icon only. But I'm thinking for either of those, they could have a notification number on them that's sort of just like the unread inbox feature. So like if there's something new in that inbox that I haven't seen yet, then it's like a hierarchical, like, okay, the framework has three new notifications. I click on the framework uh, sidebar link, and then it shows me like, you know, the three modules that each have any number of notifications on them. And then I click through to those modules, and then I see the number of actual notifications or, you know, in the inbox as unread. And then frankly, the inbox should be like, you know, the most recent thing. So like I can pick up where I left off. ",
+      "clean": [
+        {
+          "n": 1,
+          "text": "And then in terms of our system design, propose to me the structure, particularly the class architecture for how the AI tasks that — well, first the AI sessions like this one, how they're being logged in terms of, is it specifically that date-based task folder?"
+        },
+        {
+          "n": 2,
+          "text": "Is that the single — it's like an abstract log, the task.jsonl — is that the single kind of location where we have data for our tasks?"
+        },
+        {
+          "n": 3,
+          "text": "Are we able to, or do we ever read the actual raw session data, or do we just talk to the SDK session if we need information from that session?"
+        },
+        {
+          "n": 4,
+          "text": "We might not have any need for that."
+        },
+        {
+          "n": 5,
+          "text": "And then what do you think about committing it to file?"
+        },
+        {
+          "n": 6,
+          "text": "It might not actually be necessary in the vast majority of cases."
+        },
+        {
+          "n": 7,
+          "text": "But the idea is I want to be able to reprocess my prompts, because if I'm sitting here all day spending all this time explaining things and then things aren't getting done properly, it would be nice to be able to review all of my prompts."
+        },
+        {
+          "n": 8,
+          "text": "And they're long and there's a lot of detail."
+        },
+        {
+          "n": 9,
+          "text": "And so it's very easily that there's little details going missed."
+        },
+        {
+          "n": 10,
+          "text": "And so I would like a prompt review process."
+        },
+        {
+          "n": 11,
+          "text": "I know we already have one."
+        },
+        {
+          "n": 12,
+          "text": "Maybe you can explain briefly how it works and whether it's using LLMs for most of the work and the structured output that survives the review process or whether it's all in memory for that session."
+        },
+        {
+          "n": 13,
+          "text": null,
+          "omitted_raw": "Well, it's more that it verifies that every, like literally every word or at least every sentence of the raw prompt has been handled accurately with a high confidence level."
+        },
+        {
+          "n": 14,
+          "text": "I think that's actually what I'm getting at."
+        },
+        {
+          "n": 15,
+          "text": "So we'd go — we could make it an automated review process where we go line by line and try to figure out and identify what's being asked here and how confident are we that this is the full ask and that we understand exactly what we're supposed to do."
+        },
+        {
+          "n": 16,
+          "text": "And honestly, creating requirements is sort of part of this logical process, right?"
+        },
+        {
+          "n": 17,
+          "text": "I'm relying on you to interpret my will and execute tasks, and you generally do a pretty good job of it, but in terms of seeing that potential evolve in real time is something we need the live transcription for, which this is a chunk-based transcription, so I end up sending off huge pages of files and I don't actually see anything kind of going all at once."
+        },
+        {
+          "n": 18,
+          "text": "So yeah, I'm kind of skimming your last message."
+        },
+        {
+          "n": 19,
+          "text": "So you're saying it's being built."
+        },
+        {
+          "n": 20,
+          "text": "I know there's already some stuff."
+        },
+        {
+          "n": 21,
+          "text": "You said all — most of it already exists."
+        },
+        {
+          "n": 22,
+          "text": "Okay, I'll trust you on that one."
+        },
+        {
+          "n": 23,
+          "text": "You know what would be cool is for each thing in the framework."
+        },
+        {
+          "n": 24,
+          "text": "I asked earlier about a framework page, the default slash-framework page."
+        },
+        {
+          "n": 25,
+          "text": "I asked for a menu of all the modules in a structured way."
+        },
+        {
+          "n": 26,
+          "text": "It'd be cool if on each one of those cards, the big ones could be maybe a little bit bigger cards that show the core API or something, just so you can remember exactly how it works or what it does in more of a visually structured way."
+        },
+        {
+          "n": 27,
+          "text": "The smaller ones or less significant ones could just be an icon only."
+        },
+        {
+          "n": 28,
+          "text": "But I'm thinking for either of those, they could have a notification number on them that's sort of just the unread inbox feature."
+        },
+        {
+          "n": 29,
+          "text": "So if there's something new in that inbox that I haven't seen yet, then it's a hierarchical — okay, the framework has three new notifications."
+        },
+        {
+          "n": 30,
+          "text": "I click on the framework sidebar link, and then it shows me the three modules that each have any number of notifications on them."
+        },
+        {
+          "n": 31,
+          "text": "And then I click through to those modules, and then I see the number of actual notifications in the inbox as unread."
+        },
+        {
+          "n": 32,
+          "text": "And then frankly, the inbox should be the most recent thing, so I can pi"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[13,32] duplicated=[]",
+      "title": "And then in terms of our system design, propose to me the…",
+      "bullets": [
+        "And then in terms of our system design, propose to me the structure, particularly the class architecture for how the…"
+      ],
+      "tags": [
+        "#Page",
+        "#Task"
+      ],
+      "flags": [
+        {
+          "sentence_n": 13,
+          "question": "did you mean \"make sure we don't lose any chunks\" earlier and then corrected yourself with \"verifies\"?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 6,
+          "struck_text": "It might not"
+        },
+        {
+          "sentence_n": 13,
+          "struck_text": "if if a if the review process is or you know the prompt review is just like an LLM giving its like output"
+        },
+        {
+          "sentence_n": 14,
+          "struck_text": "like literally every word or at least every sentence of the raw prompt has been handled accurately with a high confidence level"
+        },
+        {
+          "sentence_n": 17,
+          "struck_text": "but in terms of like seeing those kind of uh"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 38,
+      "at": "2026-10-03T02:10:57.422Z",
+      "raw": "Um, yeah, I don't think, I don't know if a nightly job to copy them to a local archive is uh, the right idea. I think if we can use cleanup period days as, what is that, 10 years, I think that's fine. Um, and we, I don't like having duplicate data. It just means, you know, it gets confusing and then you have to sync it. And, and you know, when it bloats and gets big, then we have, um, you know, we're doubling the bloat. So... So I'm, I'm okay with not committing it to Git, but in terms of being able to review it, it sounds like the actual transcripts are, they are reviewable. Now, if this gets compacted, that's really the, the problem is that, you know, maybe that's where the archive is necessary, is if there's uh, a lot of prompts from me. But I, I guess in terms of the whole uh, prompt refinement system, it's like that system needs to be as efficient as possible. When we're processing my prompts, we want to, I don't know if we want to use a skill per prompt. I know we had like an every prompt skill, at least for the fast assistant. I think that might have gotten excessive. Maybe that's why our fast assistant at one point was just saying, go on after everything I said, is that it was being reprompt. Every time we would submit a new message, it would re insert the skill, you know, use the skill on every prompt and it would reinsert the instructions. And so it got those instructions repeated a thousand times and just was like stuck in a, a loop. Um,",
+      "clean": [
+        {
+          "n": 1,
+          "text": "Yeah, I don't know if a nightly job to copy them to a local archive is the right idea."
+        },
+        {
+          "n": 2,
+          "text": "I think if we can use cleanup period days as, what is that, 10 years, I think that's fine."
+        },
+        {
+          "n": 3,
+          "text": "And I don't like having duplicate data."
+        },
+        {
+          "n": 4,
+          "text": "It just means it gets confusing and then you have to sync it."
+        },
+        {
+          "n": 5,
+          "text": "And when it bloats and gets big, then we're doubling the bloat."
+        },
+        {
+          "n": 6,
+          "text": "So I'm okay with not committing it to Git, but in terms of being able to review it, it sounds like the actual transcripts are reviewable."
+        },
+        {
+          "n": 7,
+          "text": "Now, if this gets compacted, that's really the problem is that maybe that's where the archive is necessary, is if there's a lot of prompts from me."
+        },
+        {
+          "n": 8,
+          "text": "But I guess in terms of the whole prompt refinement system, that system needs to be as efficient as possible."
+        },
+        {
+          "n": 9,
+          "text": "When we're processing my prompts, I don't know if we want to use a skill per prompt."
+        },
+        {
+          "n": 10,
+          "text": "I know we had an every prompt skill, at least for the fast assistant."
+        },
+        {
+          "n": 11,
+          "text": "I think that might have gotten excessive."
+        },
+        {
+          "n": 12,
+          "text": "Maybe that's why our fast assistant at one point was just saying \"go on\" after everything I said, is that it was being re-prompted."
+        },
+        {
+          "n": 13,
+          "text": "Every time we would submit a new message, it would reinsert the skill, use the skill on every prompt and it would reinsert the instructions."
+        },
+        {
+          "n": 14,
+          "text": "And so it got those instructions repeated a thousand times and ju"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[12,13,14] duplicated=[]",
+      "title": "Yeah, I don't know if a nightly job to copy them to…",
+      "bullets": [
+        "Yeah, I don't know if a nightly job to copy them to a local archive is the right idea. I…"
+      ],
+      "tags": [
+        "#General"
+      ],
+      "flags": [],
+      "strikes": [],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 39,
+      "at": "2026-10-03T02:21:01.054Z",
+      "raw": "Well, so I guess what I'm, I'm thinking, I'm trying to figure out is the best way to allow, you know, the any kind of audit of these prompts without extra effort. I kind of think a hook is the only way to do this here. So the problem with tool calls, and this should be noted somewhere in the systems architecture, um, the problem with generating, or basically the problem with passing on a large amount of text, whether it's a whole file or a, a big long prompt, the problem with gen, uh, passing on, uh, passing along a huge amount of text from one agent to another Or, or using a tool call to log it to a file system, is that the LLM has to generate that tool call unless it's like an automated hook. So I kind of think like a, a, a every single prompt hook could be useful for, uh, well, for one, like detecting whether it should be, well, I mean, it, it, that's that ability doesn't always need to be enacted, I guess, for some... Uh, well, especially for minions, right? Like we don't want to be interpreting uh, the minions hooks. Although, I don't know. Maybe it's not a bad idea to have any minion take the initial prompt and kind of flesh it out. Organize it, structure it, clarify. You know, that's like sort of the investigation or and or identification phases. It's like make sure, you know, we're all on the same page for everything. And I don't know the, the best structure for that because right now our nested content system is likely using like lists within pages kind of a thing. And so the nesting of these things could get pretty deep where each section is a list item and each section has its own list of content and, you know, it has a header and then it has any number of content items of itself. I'm not sure. Still kind of playing with the, all these ideas. I'm not sure how they work, but it almost seems like the page and the list are kind of the same thing. And uh, yeah, so processing the, the prompts would could be an every prompt hook where it's automatically passed into, I don't know. I'm not sure the best way to do it. I mean, frankly, I kind of think a fast assistant is the best way to do it because it's cheap, it's quick, and it's hyper-focused, but also it has the full context. So if I keep, you know, talking on and on, and by the fourth or fifth message, I'm referencing something I said, if, you know, 10 or 15 minutes ago, hopefully the fast assistant can kind of figure that out. Whereas if it's a one-off task where we're trying to do a prompt refinement with a fresh context, you know, we're going to lose the context. So we don't want to lose the context, and so The fast assistant might be the one to implement this into because, you know, having you as this VS Code mastermind do a per prompt. Well, I mean, if it is my prompt, maybe we should do that, too. You could use the every prompt skill as well. However, OK, so it's I don't know if it should be an every prompt skill. It probably shouldn't. It should be an every prompt hook. And. How would that work? Like, how do we break down every prompt into a refinement? I mean, you as a, I mean, you're an Opus mastermind and you could do it yourself. However, I don't, you know, I've kind of wanted to keep you rather hands-free. And so then using a whole nother session to like run every prompt in parallel just to do like, I mean, it is sort of like the assistant. It's almost like the reversal of the fast assistant and slow assistant, or the smart assistant. Like, you are the smart assistant, but then you could spawn a fast assistant as a sub-agent and somehow configure it to hook into this session's prompts. That would be the way to do it. So rather than me... That's sort of the echo pattern, right? Like, rather than... Uh, we don't want to spend tokens. We don't want you to generate a tool call with my whole prompt. Every time I send it in, you have to re, you know, copy the whole thing as a tool call to go out. No, we want the hook so that every time I send a new prompt in, you see it and you're able to like kind of maybe, I don't know if you start things immediately. If they're, if they're questions from me, you can try and answer them as quickly and you know thoroughly as possible. The whole prompt refinement system, maybe you, you work with the fast assistant to uh, kind of summarize the, well, to, to do the, the prompt refinement, to like break it down and maybe break it down in a, maybe the fast assistant then can load a, a tool, can use a tool to do like prompt deconstruction or something. And so we create a new file that represents that statement. And uh, I don't know if you need a new, maybe it's just one file per session. So each prompt uh, in that file gets some, it's essentially metadata, but it's like, we kind of want it to be browsable structured content, like these UI nested UI modules, whether they're pages or items or lists, I'm still confused about that. But whatever the prompt refinement produces, it should create a, a structured hierarchy of types of content, really. We, we kind of want a, a pretty simple system where we can uh, reuse the same data structures across pages, tasks, prompts, sessions, logs, chat, whatever. Anywhere where we have these kind of messages that are supposed to mean something, and we need them to be different, like... widgets or templates or whatever. Um, still not 100% sure on that. However, what does strike me as being important is to do this prompt refinement might require, probably does require a secondary like instance running. Maybe not. Maybe you can do it in real time. Like maybe, but I mean, to, to go back through old prompts and do it might then be more useful for a fresh uh, context, especially if it's prompted at the beginning to kind of read. I don't know if it reads one message at a time. Well, it would need to read both sides of the conversation, probably just to kind of get a rough answer of uh, of what's being asked and what's being responded to. I mean, I, I think the assumption that I haven't been reading the responses is important there because you might realize that a lot of the questions I'm asking again and again have been answered, at least to some extent, and I haven't really read those answers. And so it might have clued me on to, you know, the answer to my question. And so that sort of should be an assumption for any kind of prompt reviewer. Um, but yeah, maybe, maybe you can spawn a minion to kind of reread this session and just go through each prompt. And uh, like, well, first it should be able to take the, the raw prompt and structure it and, and create a, pr a prompt card or like a, a, I think it should maybe, ha well, okay. So I said before, it doesn't need its own file. You, we could have a, a per session, like, well, we have, a, I think we sort of have a per session metadata, the tasks.jsonl. I just don't think that's maybe the right file for this. This is sort of like, uh, I don't know, some sort of review or something. And I don't know the best way to store the data in terms of where you start. Like, this is a long session. We probably want to go almost, I don't know if you can go in reverse chronological order to, because, you know, the, the reviewer needs all the context almost from the whole session. So... Um, Being able to, you know, read those prompt, my raw prompts before it's compacted, I think might be useful. I don't know. I don't. I don't think just forking this session from here with the entire context and then appending to that an instruction to go back through each prompt is the right way to do it. That seems messy. That seems like okay. There's a lot of way too much information in this window, and whether the LLM is going to be able to go. through a whole bunch of really old uh, messages and go, you know, accurately kind of analyze the whole entire conversation. It seems like it might be better to almost replay the conversation one message at a time. However, well, and, and then kind of do the prompt analysis. So yeah, maybe we can, through this prompt design system, use it not only like kind of in a retroactive way to reprocess the prompts from this uh, conversation just to see if it's you know if the review process is working you might catch you know something you forgot or you know well also we just want to be able to create an accurate uh prompt uh log essentially so like everything i've been saying i don't think these prompts are getting accurately turned into they're getting turned into tasks and but those tasks have like cryptic names and it's not very familiar to me and like they disappear and like there's all these tasks running and you know what they're called because you're spawning them and maybe they're coherent maybe they're not ",
+      "clean": [
+        {
+          "n": 1,
+          "text": "So I guess what I'm trying to figure out is the best way to allow any kind of audit of these prompts without extra effort."
+        },
+        {
+          "n": 2,
+          "text": "I kind of think a hook is the only way to do this here."
+        },
+        {
+          "n": 3,
+          "text": null,
+          "omitted_raw": "So the problem with tool calls, and this should be noted somewhere in the systems architecture, um, the problem with generating, or basically the problem with passing on a large amount of text, whether it's a whole file or a, a big long prompt, the problem with gen, uh, passing on, uh, passing along a huge amount of text from one agent to another Or, or using a tool call to log it to a file system, is that the LLM has to generate that tool call unless it's like an automated hook."
+        },
+        {
+          "n": 4,
+          "text": "So I kind of think an every-prompt hook could be useful for — for one, detecting whether it should be — well, I mean, that ability doesn't always need to be enacted, I guess, for some..."
+        },
+        {
+          "n": 5,
+          "text": "Well, especially for minions, right?"
+        },
+        {
+          "n": 6,
+          "text": "We don't want to be interpreting the minions' hooks."
+        },
+        {
+          "n": 7,
+          "text": "Although, I don't know — maybe it's not a bad idea to have any minion take the initial prompt and flesh it out — organize it, structure it, clarify."
+        },
+        {
+          "n": 8,
+          "text": "That's sort of the investigation or identification phases."
+        },
+        {
+          "n": 9,
+          "text": "It's make sure we're all on the same page for everything."
+        },
+        {
+          "n": 10,
+          "text": "And I don't know the best structure for that, because right now our nested content system is likely using lists within pages kind of a thing."
+        },
+        {
+          "n": 11,
+          "text": "And so the nesting of these things could get pretty deep, where each section is a list item and each section has its own list of content — it has a header and then it has any number of content items of itself."
+        },
+        {
+          "n": 12,
+          "text": "I'm not sure."
+        },
+        {
+          "n": 13,
+          "text": "Still kind of playing with all these ideas."
+        },
+        {
+          "n": 14,
+          "text": "I'm not sure how they work, but it almost seems like the page and the list are kind of the same thing."
+        },
+        {
+          "n": 15,
+          "text": "And yeah, so processing the prompts could be an every-prompt hook where it's automatically passed into — I don't know."
+        },
+        {
+          "n": 16,
+          "text": "I'm not sure the best way to do it."
+        },
+        {
+          "n": 17,
+          "text": "Frankly, I kind of think a fast assistant is the best way to do it, because it's cheap, it's quick, and it's hyper-focused, but also it has the full context."
+        },
+        {
+          "n": 18,
+          "text": "So if I keep talking on and on, and by the fourth or fifth message I'm referencing something I said 10 or 15 minutes ago, hopefully the fast assistant can kind of figure that out."
+        },
+        {
+          "n": 19,
+          "text": "Whereas if it's a one-off task where we're trying to do a prompt refinement with a fresh context, we're going to lose the context."
+        },
+        {
+          "n": 20,
+          "text": "So we don't want to lose the context, and so the fast assistant might be the one to implement this into, because having you as this VS Code mastermind do a per-prompt —"
+        },
+        {
+          "n": 21,
+          "text": "Well, I mean, if it is my prompt, maybe we should do that too — you could use the every-prompt skill as well."
+        },
+        {
+          "n": 22,
+          "text": "However — okay, so — I don't know if it should be an every-prompt skill."
+        },
+        {
+          "n": 23,
+          "text": "It probably shouldn't."
+        },
+        {
+          "n": 24,
+          "text": "It should be an every-prompt hook."
+        },
+        {
+          "n": 25,
+          "text": "How would that work?"
+        },
+        {
+          "n": 26,
+          "text": "How do we break down every prompt into a refinement?"
+        },
+        {
+          "n": 27,
+          "text": "I mean, you're an Opus mastermind and you could do it yourself."
+        },
+        {
+          "n": 28,
+          "text": "However, I've kind of wanted to keep you rather hands-free."
+        },
+        {
+          "n": 29,
+          "text": "How would that work?"
+        },
+        {
+          "n": 30,
+          "text": "It's almost like the reversal of the fast assistant and slow assistant, or the smart assistant."
+        },
+        {
+          "n": 31,
+          "text": "You are the smart assistant, but then you could spawn a fast assistant as a sub-agent and somehow configure it to hook into this session's prompts."
+        },
+        {
+          "n": 32,
+          "text": "That would be the way to do it."
+        },
+        {
+          "n": 33,
+          "text": "So rather than me — that's sort of the echo pattern, right?"
+        },
+        {
+          "n": 34,
+          "text": "Rather than..."
+        },
+        {
+          "n": 35,
+          "text": "We don't want to spend tokens."
+        },
+        {
+          "n": 36,
+          "text": "We don't want you to generate a tool call with my whole prompt."
+        },
+        {
+          "n": 37,
+          "text": "Every time I send it in, you have to copy the whole thing as a tool call to go out."
+        },
+        {
+          "n": 38,
+          "text": "No, we want the hook so that every time I send a new prompt in, you see it and you're able to — I don't know if you start things immediately."
+        },
+        {
+          "n": 39,
+          "text": "If they're questions from me, you can try and answer them as quickly and thoroughly as possible."
+        },
+        {
+          "n": 40,
+          "text": "The whole prompt refinement system — maybe you work with the fast assistant to do the prompt refinement, to break it down, and maybe the fast assistant then can use a tool to do prompt deconstruction or something."
+        },
+        {
+          "n": 41,
+          "text": "And so we create a new file that represents that statement."
+        },
+        {
+          "n": 42,
+          "text": "And — I don't know — maybe it's just one file per session."
+        },
+        {
+          "n": 43,
+          "text": "So each prompt in that file gets — it's essentially metadata, but we kind of want it to be browsable structured content, like these UI nested modules, whether they're pages or items or lists — I'm still confused about that."
+        },
+        {
+          "n": 44,
+          "text": "But whatever the prompt refinement produces, it should create a structured hierarchy of types of content, really."
+        },
+        {
+          "n": 45,
+          "text": "We kind of want a pretty simple system where we can reuse the same data structures across pages, tasks, prompts, sessions, logs, chat — whatever."
+        },
+        {
+          "n": 46,
+          "text": "Anywhere where we have these messages that are supposed to mean something, and we need them to be different widgets or templates or whatever."
+        },
+        {
+          "n": 47,
+          "text": "Still not 100% sure on that."
+        },
+        {
+          "n": 48,
+          "text": "However, what does strike me as being important is that this prompt refinement probably does require a secondary instance running."
+        },
+        {
+          "n": 49,
+          "text": "Maybe not."
+        },
+        {
+          "n": 50,
+          "text": "Maybe you can do it in real time."
+        },
+        {
+          "n": 51,
+          "text": "But to go back through old prompts and do it might be more useful for a fresh context, especially if it's prompted at the beginning to read."
+        },
+        {
+          "n": 52,
+          "text": "I don't know if it reads one message at a time."
+        },
+        {
+          "n": 53,
+          "text": "Well, it would need to read both sides of the conversation, probably, just to get a rough answer of what's being asked and what's being responded to."
+        },
+        {
+          "n": 54,
+          "text": "I think the assumption that I haven't been reading the responses is important there, because you might realize that a lot of the questions I'm asking again and again have been answered, at least to some extent, and I haven't really read those answers."
+        },
+        {
+          "n": 55,
+          "text": "And so it might have clued me into the answer to my question."
+        },
+        {
+          "n": 56,
+          "text": "And so that sort of should be an assumption for any kind of prompt reviewer."
+        },
+        {
+          "n": 57,
+          "text": "But yeah, maybe you can spawn a minion to reread this session and just go through each prompt."
+        },
+        {
+          "n": 58,
+          "text": "And — well — first it should be able to take the raw prompt and structure it and create a prompt card, or — I think it should maybe — well, okay."
+        },
+        {
+          "n": 59,
+          "text": "So — I said before — it doesn't need its own file."
+        },
+        {
+          "n": 60,
+          "text": "We could have a per-session — well, we have — I think we sort of have per-session metadata, the tasks.jsonl."
+        },
+        {
+          "n": 61,
+          "text": "I just don't think that's the right file for this."
+        },
+        {
+          "n": 62,
+          "text": "This is sort of — I don't know — some sort of review or something."
+        },
+        {
+          "n": 63,
+          "text": "And I don't know the best way to store the data in terms of where you start."
+        },
+        {
+          "n": 64,
+          "text": "This is a long session."
+        },
+        {
+          "n": 65,
+          "text": "We probably want to go — I don't know if you can go in reverse chronological order — because the reviewer needs all the context from the whole session."
+        },
+        {
+          "n": 66,
+          "text": "Being able to read my raw prompts before it's compacted, I think might be useful."
+        },
+        {
+          "n": 67,
+          "text": "I don't know."
+        },
+        {
+          "n": 68,
+          "text": "I don't think just forking this session from here with the entire context and then appending to that an instruction to go back through each prompt is the right way to do it."
+        },
+        {
+          "n": 69,
+          "text": "That seems messy."
+        },
+        {
+          "n": 70,
+          "text": "There's way too much information in this window, and whether the LLM is going to be able to go through a whole bunch of really old messages and accurately analyze the whole entire conversation..."
+        },
+        {
+          "n": 71,
+          "text": "It seems like it might be better to replay the conversation one message at a time."
+        },
+        {
+          "n": 72,
+          "text": "However — well — and then kind of do the prompt analysis."
+        },
+        {
+          "n": 73,
+          "text": "So yeah, maybe we can, through this prompt design system, use it not only in a retroactive way to reprocess the prompts from this conversation, just to see if the review process is working — you might catch something you forgot."
+        },
+        {
+          "n": 74,
+          "text": "Well, also we just want to be able to create an accurate prompt log, essentially."
+        },
+        {
+          "n": 75,
+          "text": "So everything I've been saying — I don't think these prompts are getting accurately turned into — they're getting turned into tasks, but those tasks have cryptic names, and it's not very familiar to me, and they disappear, and there's all these tasks running."
+        },
+        {
+          "n": 76,
+          "text": "And you know what they're called because you're spawning them, and maybe they're coher"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[3,68,69,70,71,72] duplicated=[]",
+      "title": "So I guess what I'm trying to figure out is the best…",
+      "bullets": [
+        "So I guess what I'm trying to figure out is the best way to allow any kind of audit of…"
+      ],
+      "tags": [
+        "#Page",
+        "#Echo"
+      ],
+      "flags": [
+        {
+          "sentence_n": 3,
+          "question": "what specific kind of text being passed between agents is being discussed here — prompts, code files, or agent outputs?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        },
+        {
+          "sentence_n": 29,
+          "question": "The cleaned text adds or changes \"other\", which isn't anywhere in what was actually said — is this right, or should it be reverted?",
+          "confidence": 0.5,
+          "source": "mechanical"
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 1,
+          "struck_text": "well"
+        },
+        {
+          "sentence_n": 17,
+          "struck_text": "I'm not sure the best way to do it"
+        },
+        {
+          "sentence_n": 40,
+          "struck_text": "Well"
+        },
+        {
+          "sentence_n": 1,
+          "struck_text": "how do we break down every prompt into a refinement?"
+        },
+        {
+          "sentence_n": 27,
+          "struck_text": "you as a"
+        },
+        {
+          "sentence_n": 30,
+          "struck_text": "And so then using a whole nother session to like run every prompt in parallel just to do like"
+        },
+        {
+          "sentence_n": 1,
+          "struck_text": "Like maybe"
+        },
+        {
+          "sentence_n": 1,
+          "struck_text": "of what's being asked and what's being responded to"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 40,
+      "at": "2026-10-03T02:24:38.837Z",
+      "raw": "You know, what I, what I sort of want is a card in the inbox with high priority that shows me, you know, like prompt summaries, basically. That would be a nice card to see. And then when I click into that, maybe it's a reverse chronological, well, it's, you know, newest first, uh, kind of my prompts, like in the summaries, and maybe they're timestamped. So as I scroll through, and the more you can summarize them into chunks, the better. Like, so if, you know, for the last hour, I've been talking about prompts, you know, refinement and whatever, then you can put all of those into whatever we've named that class or system or whatever. If, you know, the most concrete thing that identifies the context for all the necessary, all the subsequent, you know, prompts, You can put those inside a, con a contextual wrapper, no problem. That should probably be in the prompt data, right? Like the stru whatever structure we use to display it, that's, you know, it should come straight from the data. So we need to figure out how to structure the prompts, their timestamps. Should pro probably also put the responses of yours in there just as like, uh, you know, I'm not sure if I, I'm gonna read them, but like just so that they're there. And then in terms of how that's all read from, we don't necessarily need to have a duplicate of the session file. However, what we're probably going to have at the end is a some redundant data, like the the prompt. Uh, I don't know if it's like a session.jsonl that we, we create our own session for each task, or if it's Or if we do create a session, you know, I don't know if we created a session system where like framework slash AI slash sessions and we can see, you know, all the sessions. Maybe it's a per session thing. And we again, we don't need to do prompt refinement for minions. So uh, or even mastermind. Well, if you're spawning a mastermind, that'd be sort of like a sub mastermind. I don't know if our sub mastermind skill is actually being used, but like. You know, the prompts that you give a mastermind, I don't know if we really need to do as much, well, you know, clean up really, like they should be pretty clean. I guess the, the prompt like uh, kind of ingestion, maybe that's a better term for it, is just the initial like prompt phase. The mastermind could log that in a way that can be rendered on the page. And maybe it's Well, it should probably be more structured than it was. Like either the, the mastermind agrees on the structure that you give it and kind of goes along with that and builds on it where it feels it needs to. But like, you know, we want to kind of work towards a better outcome, not necessarily way more detail. It should be like top down iceberg style detail. So each session page, each uh, task page, each page, page, you know, they should all be able to have this uh, tree of content where we can put content cards in the content of the page and click on it and go to a sub page. Still not 100% sure how we're managing columns. We don't want to be able to spawn even columns indefinitely and just use up all our space. At some point, we need to sort of either compact the first row or take over the whole screen or some combination of those two. Um, I think at some point, you know, you just link to something else and it kind of replaces the screen. So, yeah.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "What I sort of want is a card in the inbox with high priority that shows me prompt summaries, basically."
+        },
+        {
+          "n": 2,
+          "text": "That would be a nice card to see."
+        },
+        {
+          "n": 3,
+          "text": "And then when I click into that, maybe it's reverse chronological — newest first — my prompts in the summaries, and maybe they're timestamped."
+        },
+        {
+          "n": 4,
+          "text": "So as I scroll through, and the more you can summarize them into chunks, the better."
+        },
+        {
+          "n": 5,
+          "text": "So if for the last hour I've been talking about prompt refinement and whatever, then you can put all of those into whatever we've named that class or system or whatever."
+        },
+        {
+          "n": 6,
+          "text": "If the most concrete thing that identifies the context for all the subsequent prompts, you can put those inside a contextual wrapper, no problem."
+        },
+        {
+          "n": 7,
+          "text": "That should probably be in the prompt data, right?"
+        },
+        {
+          "n": 8,
+          "text": "The structure we use to display it should come straight from the data."
+        },
+        {
+          "n": 9,
+          "text": "So we need to figure out how to structure the prompts, their timestamps."
+        },
+        {
+          "n": 10,
+          "text": "Should probably also put your responses in there, just so that they're there — I'm not sure if I'm going to read them, but just so that they're there."
+        },
+        {
+          "n": 11,
+          "text": "And then in terms of how that's all read from, we don't necessarily need to have a duplicate of the session file."
+        },
+        {
+          "n": 12,
+          "text": "However, what we're probably going to have at the end is some redundant data, like the prompt."
+        },
+        {
+          "n": 13,
+          "text": "I don't know if it's a session.jsonl that we create our own session for each task, or if we do create a session system where framework/ai/sessions and we can see all the sessions."
+        },
+        {
+          "n": 14,
+          "text": "Maybe it's a per-session thing."
+        },
+        {
+          "n": 15,
+          "text": "And again, we don't need to do prompt refinement for minions."
+        },
+        {
+          "n": 16,
+          "text": "Or even mastermind — well, if you're spawning a mastermind, that'd be sort of a sub-mastermind."
+        },
+        {
+          "n": 17,
+          "text": "I don't know if our sub-mastermind skill is actually being used, but the prompts that you give a mastermind, I don't know if we really need to do as much cleanup — they should be pretty clean."
+        },
+        {
+          "n": 18,
+          "text": "I guess the prompt ingestion, maybe that's a better term for it, is just the initial prompt phase."
+        },
+        {
+          "n": 19,
+          "text": "The mastermind could log that in a way that can be rendered on the page."
+        },
+        {
+          "n": 20,
+          "text": "And maybe it should probably be more structured than it was."
+        },
+        {
+          "n": 21,
+          "text": "Either the mastermind agrees on the structure that you give it and goes along with that and builds on it where it feels it needs to, but we want to work towards a better outcome, not necessarily way more detail."
+        },
+        {
+          "n": 22,
+          "text": "It should be top-down iceberg-style detail."
+        },
+        {
+          "n": 23,
+          "text": "So each session page, each task page, each page should be able to have this tree of content where we can put content cards in the content of the page and click on it and go to a sub-page."
+        },
+        {
+          "n": 24,
+          "text": "Still not 100% sure how we're managing columns."
+        },
+        {
+          "n": 25,
+          "text": "We don't want to be able to spawn even columns indefinitely and just use up all our space."
+        },
+        {
+          "n": 26,
+          "text": "At some point, we need to sort of either compact the first row or take over the whole screen or some combination of those two."
+        },
+        {
+          "n": 27,
+          "text": "I think at some point you just link to something else and it replaces the"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[24,25,26,27] duplicated=[]",
+      "title": "What I sort of want is a card in the inbox with…",
+      "bullets": [
+        "What I sort of want is a card in the inbox with high priority that shows me prompt summaries, basically.…"
+      ],
+      "tags": [
+        "#Page",
+        "#Task"
+      ],
+      "flags": [],
+      "strikes": [
+        {
+          "sentence_n": 17,
+          "struck_text": "that'd be sort of like a sub mastermind"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 41,
+      "at": "2026-10-03T02:32:40.720Z",
+      "raw": "So how would you, the mastermind, or any sub-mastermind, uh, well, it's, it's most important for the assistants and, you know, like you as the mastermind who are talking to me, you know, to do the prompt refinement for me, how would you get notified when the assistant is done structuring the prompt? Because... I mean, you could kind of run some tools and be working on your own response and, and kind of having these two redundant, uh, like, you know, goes of it is maybe not a bad idea. But I, before you respond, I kind of feel like the fast assistant should usually be done with its structuring. And so maybe it needs a few extra minutes to do searches or whatever. Um And so, I mean, either one of you could reply first, I guess, but I guess the, the big question is, is you should be notified when the uh, assistant, you know, when you spawn an assistant to kind of echo and do the prompt uh, refinement and structuring, it should, uh, number one, it should happen in real time and, and should be logged in a way where I can kind of watch it happening as it evolves. So like... That's a, that's definitely a, a real time skill that I don't know if our agents have this, but like uh, when we're, when we're trying to figure out how all this page data is stored with these you know the persistence mechanisms and the lists and whatnot, You know, basically, I want the agents to be able to do work in real time where they kind of do like do things in steps that they're uh, they're committing, not really committing in a Git sense, but they're they're writing to file. So like when there are kind of first steps where you can just um, kind of flesh something out. Well, okay, so it's it's not as important when writing code, you know, generating, the, thinking them through the entire file, you know, all the problems, all the methods first and writing it all at once. I don't necessarily have a problem with that. You know, the AI should do that, you know, figure out how to do that on its own. The one big thing though is for assistants, especially that are using the UI to kind of give live feedback uh, or quick feedback, or in this case with, you know, these prompts, I could tab over to the actual page, you know, the, the prompt refinement page and uh, see the results kind of in real time. The real time skill that I'm kind of describing here is the ability to frankly use tool calls. We don't want the, the fast assistants or anyone to be generating JSON uh, by itself, even though it's pretty good at it. You know, I feel like using tool calls is just a little bit more structured and can then we can have it do a whole bunch of extra things like timestamps and authoring and context or I don't know, like whatever we want to add to it in a programmatic sense. Uh, we can log more things. We can, you know, be more accurate about it. So anyway, using tool calls for, you know, each of these processes, I think is useful. And so, you know, when it comes to the prompt uh, refinement hook, when we're hooking into every prompt in this way, the... Uh, the the echoing you know or the listening fast assistant that may or may not need to you know communicate much with the uh, the mastermind you the mastermind or any other assistant or mastermind who spawns it might not need to respond all that much aside from just letting it know when it's done summarizing the last prompt like if that's its only job then you know it could give you a finish notice so that then you can look at what it generated the that structured prompt essentially the refined prompt and maybe that's different phases again it's like you know the cleaned prompt is you know kind of one set of updates or i don't know if it's if it rewrites the prompt to a new file or something i don't know the best way to store it uh, it could all just be in JSON in a JSON L log file kind of a thing but essentially it's going to refine the prompt Uh, we'll first clean the prompt, then like start refining it in terms of identifying uh, references. And, and frankly, it might be able to do this all in one pass. So like, you know, there might not be a ton of like updates to the log. However, I think writing, you know, the log data kind of in real time is useful, if not only for the ability to tail the file and watch it happen in real time. So when I'm, you know, t uh, explaining these massive walls of text, once it sends off, I can see it kind of writing the uh, the the prompt overview in real time. So that maybe that leans more into a kind of uh, you know fixing small granular pieces at a time, so that I can kind of see it evolve rather than rewrite the entire thing in its entirety. Although. I don't know which way would be better, more efficient or fast. It's really about being faster in the long run. You know, I don't mind waiting a few seconds for it to kind of uh, do a full step. And then which steps and how that whole prompt refinement works. You know, I lean into some of the things I've said so far in terms of just being able to drill down through things, being able to organize all of the things, uh, being able to see the specific like major tasks that need to happen, um, the kind of outline like the The flow, I mean, the tasks are pretty much the proposal, right? Like you're kind of suggesting to do the, you know, these tasks. I don't know if there's a start button to like, you know, begin. I think usually I want you to just begin the most basic stuff automatically. and then, uh, you know, whether, how deep to go, this is a, a huge thing. Like for all of these tasks, you could just keep working on them all night long and spending all our tokens. Now, obviously if we're over token capacity, we w don't want to be doing any extra work that's not asked for. However, if we're under token capacity and I've asked for a whole bunch of things and you kind of stop short and then wait to see what I say, we don't want to do that either, obviously.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "So how would you, the mastermind, or any sub-mastermind — it's most important for the assistants and you as the mastermind who are talking to me, to do the prompt refinement for me — how would you get notified when the assistant is done structuring the prompt?"
+        },
+        {
+          "n": 2,
+          "text": "Because you could kind of run some tools and be working on your own response and kind of having these two redundant goes at it is maybe not a bad idea."
+        },
+        {
+          "n": 3,
+          "text": "But before you respond, I kind of feel like the fast assistant should usually be done with its structuring."
+        },
+        {
+          "n": 4,
+          "text": "And so maybe it needs a few extra minutes to do searches or whatever."
+        },
+        {
+          "n": 5,
+          "text": "And so either one of you could reply first, I guess, but I guess the big question is you should be notified when you spawn an assistant to kind of echo and do the prompt refinement and structuring."
+        },
+        {
+          "n": 6,
+          "text": "It should, number one, happen in real time and should be logged in a way where I can kind of watch it happening as it evolves."
+        },
+        {
+          "n": 7,
+          "text": "So that's definitely a real-time skill that I don't know if our agents have this."
+        },
+        {
+          "n": 8,
+          "text": "But when we're trying to figure out how all this page data is stored with the persistence mechanisms and the lists and whatnot, basically, I want the agents to be able to do work in real time where they do things in steps that they're committing — not really committing in a Git sense, but they're writing to file."
+        },
+        {
+          "n": 9,
+          "text": "So when there are first steps where you can just kind of flesh something out..."
+        },
+        {
+          "n": 10,
+          "text": "Well, okay, so it's not as important when writing code, generating the entire file, thinking through all the problems, all the methods first and writing it all at once."
+        },
+        {
+          "n": 11,
+          "text": "I don't necessarily have a problem with that."
+        },
+        {
+          "n": 12,
+          "text": "The AI should figure out how to do that on its own."
+        },
+        {
+          "n": 13,
+          "text": "The one big thing though is for assistants, especially that are using the UI to give live feedback or quick feedback, or in this case with these prompts, I could tab over to the actual prompt refinement page and see the results kind of in real time."
+        },
+        {
+          "n": 14,
+          "text": "The real-time skill that I'm describing here is the ability to frankly use tool calls."
+        },
+        {
+          "n": 15,
+          "text": "We don't want the fast assistants or anyone to be generating JSON by itself, even though it's pretty good at it."
+        },
+        {
+          "n": 16,
+          "text": "I feel like using tool calls is just a little bit more structured and then we can have it do a whole bunch of extra things like timestamps and authoring and context, or whatever we want to add to it in a programmatic sense."
+        },
+        {
+          "n": 17,
+          "text": "We can log more things."
+        },
+        {
+          "n": 18,
+          "text": "We can be more accurate about it."
+        },
+        {
+          "n": 19,
+          "text": "So anyway, using tool calls for each of these processes, I think, is useful."
+        },
+        {
+          "n": 20,
+          "text": "And so when it comes to the prompt refinement hook, when we're hooking into every prompt in this way, the echoing or the listening fast assistant that may or may not need to communicate much with the mastermind — you, the mastermind, or any other assistant or mastermind who spawns it — might not need to respond all that much aside from just letting it know when it's done summarizing the last prompt."
+        },
+        {
+          "n": 21,
+          "text": "If that's its only job, then it could give you a finish notice so that then you can look at what it generated, that structured prompt, essentially the refined prompt."
+        },
+        {
+          "n": 22,
+          "text": "And maybe that's different phases again — the cleaned prompt is one set of updates, or I don't know if it rewrites the prompt to a new file or something."
+        },
+        {
+          "n": 23,
+          "text": "I don't know the best way to store it."
+        },
+        {
+          "n": 24,
+          "text": "It could all just be in JSON in a JSONL log file kind of a thing, but essentially it's going to refine the prompt."
+        },
+        {
+          "n": 25,
+          "text": "So when I'm, you know, t uh, explaining these massive walls of text, once it sends off, I can see it kind of writing the uh, the the prompt overview in real time."
+        },
+        {
+          "n": 26,
+          "text": "And frankly, it might be able to do this all in one pass."
+        },
+        {
+          "n": 27,
+          "text": "So there might not be a ton of updates to the log."
+        },
+        {
+          "n": 28,
+          "text": "However, I think writing the log data in real time is useful, if not only for the ability to tail the file and watch it happen in real time."
+        },
+        {
+          "n": 29,
+          "text": "So when I'm explaining these massive walls of text, once it sends off, I can see it kind of writing the prompt overview in real time."
+        },
+        {
+          "n": 30,
+          "text": "So that maybe leans more into fixing small, granular pieces at a time, so that I can see it evolve rather than rewrite the entire thing in its entirety."
+        },
+        {
+          "n": 31,
+          "text": null,
+          "omitted_raw": "I don't know which way would be better, more efficient or fast."
+        },
+        {
+          "n": 32,
+          "text": "It's really about being faster in the long run."
+        },
+        {
+          "n": 33,
+          "text": "I don't mind waiting a few seconds for it to do a full step."
+        },
+        {
+          "n": 34,
+          "text": "And then, which steps and how that whole prompt refinement works — I lean into some of the things I've said so far in terms of just being able to drill down through things, being able to organize all of the things, being able to see the specific major tasks that need to happen."
+        },
+        {
+          "n": 35,
+          "text": null,
+          "omitted_raw": "You know, I lean into some of the things I've said so far in terms of just being able to drill down through things, being able to organize all of the things, uh, being able to see the specific like major tasks that need to happen, um, the kind of outline like the The flow, I mean, the tasks are pretty much the proposal, right?"
+        },
+        {
+          "n": 36,
+          "text": "Like you're suggesting to do these tasks."
+        },
+        {
+          "n": 37,
+          "text": "I don't know if there's a start button to begin."
+        },
+        {
+          "n": 38,
+          "text": "I think usually I want you to just begin the most basic stuff automatically."
+        },
+        {
+          "n": 39,
+          "text": "And then how deep to go — this is a huge thing."
+        },
+        {
+          "n": 40,
+          "text": "Like for all of these tasks, you could just keep working on them all night long and spending all our tokens."
+        },
+        {
+          "n": 41,
+          "text": "Now, obviously if we're over token capacity, we don't want to be doing any extra work that's not asked for."
+        },
+        {
+          "n": 42,
+          "text": "However, if we're under token capacity and I've asked for a whole bunch of things and you kind of stop short and then wait to see what I say, we don't want to do"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[31,32,33,35] duplicated=[]",
+      "title": "So how would you, the mastermind, or any sub-mastermind — it's most…",
+      "bullets": [
+        "So how would you, the mastermind, or any sub-mastermind — it's most important for the assistants and you as the…"
+      ],
+      "tags": [
+        "#Page",
+        "#Refine"
+      ],
+      "flags": [
+        {
+          "sentence_n": 31,
+          "question": "is the question whether incremental writes or full-step writes are better, or is the sentence trailing off?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        },
+        {
+          "sentence_n": 35,
+          "question": "is this asking whether tasks and proposals are the same thing, or stating that they are?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        },
+        {
+          "sentence_n": 25,
+          "question": "The cleaned text adds or changes \"it'll\", which isn't anywhere in what was actually said — is this right, or should it be reverted?",
+          "confidence": 0.5,
+          "source": "mechanical"
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 2,
+          "struck_text": "Because.."
+        },
+        {
+          "sentence_n": 5,
+          "struck_text": "Um And so"
+        },
+        {
+          "sentence_n": 35,
+          "struck_text": "the kind of outline like the The flow"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    }
+  ]
+}

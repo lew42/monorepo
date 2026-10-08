@@ -1,0 +1,16 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-10-01/chat-duplicate-messages/",
+ "widths": {
+  "1920": {
+   "empty": 0.64,
+   "widest_text": 902,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 51,
+   "narrow_share": 0.961
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

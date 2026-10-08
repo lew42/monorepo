@@ -1,0 +1,2206 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "start": 20,
+  "end": 29,
+  "cost_usd": 2.3683777999999993,
+  "real_cost_usd": 0.7966717229999958,
+  "items": [
+    {
+      "index": 20,
+      "at": "2026-10-02T23:34:17.647Z",
+      "raw": "Yeah, so I, I was talking about a uh, column. Well, first let's say sprawling. Like we need, we need fill height columns for column matching. But like the thing with column matching is that uh, you kind of want to match the smallest. Well, I mean, sometimes you're going to fill the screen. For mat yeah, height matching on columns is kind of a weird algorithm. I'm not actually sure how that works because sometimes it seems to break. Um, yeah, sometimes you could do e you know column equalization. The thing you don't want is one massive column, and uh, you know you can't you can't not pay attention to the column heights. As part of what I'm trying to say is like if you have a massive column and, and then smaller columns, you're just wasting a bunch of dead space. Uh, so. getting a, like using the, the screen space properly, you could easily have three kind of main sections that stack at smaller monitors and grow on larger monitors. And each of those sections could be potentially multi uh, level as well. Although that means that their content might cause the lower ones to jump around. Jumpy content's usually not a great idea. However, Like in a preview type, uh, you know, uh, page, having menus and tabs isn't necessarily a bad idea. It helps you kind of drill down real quick in a um, kind of persistent and explorable way. Like you kind of get familiar with which tabs are available. Um, although I do think icons, like preview icons, is something that the operating system does a lot that, you know, my system doesn't do yet. So, I, I mean, I think leaning into the whole icon system for each page and referencing them as much as possible. I didn't actually read what you said about the mentions. Um, I think that's the control character system. We need to be able to use, uh, like create those programmatically so that when a an AI is writing a page, well, all right, so, Maybe we're kind of moving away from using my little helper functions. If we're writing a page.js, we definitely want to, um, we definitely want to, well, it, it makes most sense to use the helper functions to have nice clean syntax for writing HTML in JavaScript. However, if most of our content updates and rendering and everything is being managed via JSON data anyway, It might not matter so much what kind of syntax we have or need or whatever. And on those mentions, you know, having the AI write strings that are just naturally markdown compatible um, seems to be a decent way to do it. Now, there is that limitation that importing a new module without like registering it first and, you know, creating JSON for it might be kind of tricky, but maybe registering it and using JSON to create an instance of it is just as easy and just as good in the end. And so uh, maybe we lean into that, like, you know, some way to have a mixture of markdown and, you know, custom instances or custom views uh, interspliced in the content.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "I was talking about columns."
+        },
+        {
+          "n": 2,
+          "text": "First, let's say \"sprawling.\""
+        },
+        {
+          "n": 3,
+          "text": "We need fill-height columns for column matching."
+        },
+        {
+          "n": 4,
+          "text": "But the thing with column matching is that you kind of want to match the smallest."
+        },
+        {
+          "n": 5,
+          "text": "Well, sometimes you're going to fill the screen."
+        },
+        {
+          "n": 6,
+          "text": "Height matching on columns is kind of a weird algorithm."
+        },
+        {
+          "n": 7,
+          "text": "I'm not actually sure how that works, because sometimes it seems to break."
+        },
+        {
+          "n": 8,
+          "text": "Sometimes you could do column equalization."
+        },
+        {
+          "n": 9,
+          "text": "The thing you don't want is one massive column, and you can't not pay attention to the column heights."
+        },
+        {
+          "n": 10,
+          "text": "Part of what I'm trying to say is: if you have a massive column and then smaller columns, you're just wasting a bunch of dead space."
+        },
+        {
+          "n": 11,
+          "text": "So, using the screen space properly, you could easily have three kind of main sections that stack at smaller monitors and grow on larger monitors."
+        },
+        {
+          "n": 12,
+          "text": "And each of those sections could be potentially multi-level as well, although that means that their content might cause the lower ones to jump around."
+        },
+        {
+          "n": 13,
+          "text": "Jumpy content is usually not a great idea."
+        },
+        {
+          "n": 14,
+          "text": "However, in a preview-type page, having menus and tabs isn't necessarily a bad idea."
+        },
+        {
+          "n": 15,
+          "text": "It helps you kind of drill down real quick in a persistent and explorable way."
+        },
+        {
+          "n": 16,
+          "text": "You kind of get familiar with which tabs are available."
+        },
+        {
+          "n": 17,
+          "text": "Although I do think icons — like preview icons — is something that the operating system does a lot that my system doesn't do yet."
+        },
+        {
+          "n": 18,
+          "text": "So I think leaning into the whole icon system for each page and referencing them as much as possible."
+        },
+        {
+          "n": 19,
+          "text": "I didn't actually read what you said about the mentions."
+        },
+        {
+          "n": 20,
+          "text": "I think that's the control character system."
+        },
+        {
+          "n": 21,
+          "text": "We need to be able to create those programmatically, so that when an AI is writing a page —"
+        },
+        {
+          "n": 22,
+          "text": "All right, so maybe we're kind of moving away from using my little helper functions."
+        },
+        {
+          "n": 23,
+          "text": "If we're writing a page.js, we definitely want to — well, it makes most sense to use the helper functions to have nice, clean syntax for writing HTML in JavaScript."
+        },
+        {
+          "n": 24,
+          "text": "However, if most of our content updates and rendering and everything is being managed via JSON data anyway, it might not matter so much what kind of syntax we have or need."
+        },
+        {
+          "n": 25,
+          "text": "And on those mentions, having the AI write strings that are just naturally Markdown-compatible seems to be a decent way to do it."
+        },
+        {
+          "n": 26,
+          "text": "Now, there is that limitation that importing a new module without registering it first and creating JSON for it might be kind of tricky, but maybe registering it and using JSON to create an instance of it is just as easy and just as good in the end."
+        },
+        {
+          "n": 27,
+          "text": "And so maybe we lean into that — some way to have a mixture of Markdown and custom instances or custom views inter"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[27] duplicated=[]",
+      "title": "I was talking about columns. First, let's say \"sprawling.\" We need fill-height…",
+      "bullets": [
+        "I was talking about columns. First, let's say \"sprawling.\" We need fill-height columns for column matching. But the thing with…"
+      ],
+      "tags": [
+        "#Page",
+        "#Columns"
+      ],
+      "flags": [],
+      "strikes": [
+        {
+          "sentence_n": 5,
+          "struck_text": "Well"
+        },
+        {
+          "sentence_n": 7,
+          "struck_text": "height matching on columns is kind of a weird algorithm"
+        },
+        {
+          "sentence_n": 18,
+          "struck_text": "I"
+        },
+        {
+          "sentence_n": 19,
+          "struck_text": "I think leaning into the whole icon system for each page and referencing them as much as possible"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 21,
+      "at": "2026-10-02T23:35:11.223Z",
+      "raw": "How are we doing overall on usage and in terms of like model costs? Are, how are the uh, free, cheap, well, first the free models, we've been using those. Are those rate limited at all? Like, why couldn't we just use those entirely? Are they, you know, performing properly? And by the way, what's with the, the deletion of an entire branch or directory or something? Like, who did that and why? I never really found the answer. I, I clicked on the card in the dashboard, but there wasn't enough information. And I tried to click through. Well, I don't think it was linked. I don't think the task card was linked. But, you know, the the thing said, you know, see the task card for more info. And I don't think there was a link to it anywhere. Those, those cards really need an overhaul.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "How are we doing overall on usage and in terms of model costs?"
+        },
+        {
+          "n": 2,
+          "text": "How are the free models we've been using?"
+        },
+        {
+          "n": 3,
+          "text": "Are those rate limited at all?"
+        },
+        {
+          "n": 4,
+          "text": "Why couldn't we just use those entirely?"
+        },
+        {
+          "n": 5,
+          "text": "Are they performing properly?"
+        },
+        {
+          "n": 6,
+          "text": "And by the way, what's with the deletion of an entire branch or directory or something?"
+        },
+        {
+          "n": 7,
+          "text": "Who did that and why?"
+        },
+        {
+          "n": 8,
+          "text": "I never really found the answer."
+        },
+        {
+          "n": 9,
+          "text": "I clicked on the card in the dashboard, but there wasn't enough information."
+        },
+        {
+          "n": 10,
+          "text": "And I tried to click through."
+        },
+        {
+          "n": 11,
+          "text": "I don't think it was linked."
+        },
+        {
+          "n": 12,
+          "text": "I don't think the task card was linked."
+        },
+        {
+          "n": 13,
+          "text": "But the thing said, see the task card for more info."
+        },
+        {
+          "n": 14,
+          "text": "And I don't think there was a link to it anywhere."
+        },
+        {
+          "n": 15,
+          "text": "Those cards r"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[15] duplicated=[]",
+      "title": "How are we doing overall on usage and in terms of model…",
+      "bullets": [
+        "How are we doing overall on usage and in terms of model costs? How are the free models we've been…"
+      ],
+      "tags": [
+        "#Task",
+        "#Models"
+      ],
+      "flags": [],
+      "strikes": [],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 22,
+      "at": "2026-10-02T23:56:11.599Z",
+      "raw": "So I want to do a uh, audit of our UI controls, and I want to add any that we don't have. Um, I want to kind of turn the basic components like check marks into like uh, filters essentially. So if we have a list of things, and I guess we'd probably use, you know, let's lean into our live list system. Because that's the you know evented uh, kind of collection system we have for now. If we're going to render you know a list of things, and we want to apply filters to them, it's like what kind of filters, con UI controls are the best? I know there's check boxes. You can have like range uh, filters where you have two slideable things. Although that can be kind of tricky to set the right min, min and max and make it actually slideable. Um, But let's let's look at that and try and figure out how to use those filters better. Because well, I, I kind of think we want a filter uh, module for our panel system. So any panel could have a filter icon added to it, and then filters kind of you know different types of filters added to it, and then the you know the panel's filter UI system can be linked to the list. The, the live list that's being rendered to actually filter it. Not exactly sure how we do that. Generally, I think each page, uh, whether it's a, you know, I mean, the doc type pages have kind of their own navigation scheme already, but I feel like any random page should be able to have like its own left sidebar navigation and maybe even right sidebar with like, you know, the, the list of content in the middle. And, uh, Well, and, and really the, the page layout should, you should be able to make a custom class for any kind of page layout where, you know, the heading, the body, well, the, the wrapper div itself, like the, the core page dot view dot L, um, should probably be just a div with a class of page on it most of the time. I think that's probably how that is. But uh, in terms of rendering like different page templates, essentially, um, I know we've done a ton of work on this in the past, but I just don't feel like we've gotten anywhere close to what I've been looking for. So I think what I want here for, uh, you know, a page system, it's, it's not just pages, but really layouts. Like, um, all right, so I want to create a layout approval process. And so we have all these layouts already. And, um, It's really a template approval process, but here's the thing. Um, you know, a template is layout and it's all the design factors, right? So the layout approval could be a whole separate system where here's kind of the idea is that we, we put in a grid all of the layouts that we have and for each one, I can click on them and that it opens it into a kind of single view mode. where maybe there's some sort of navigation on the left side. The actual layout is kind of front and center right in the main area. Hopefully it's rendered at the proper width. You know, each, each template and layout should probably have like a ideal or default width so that when we're just putting things into a big space, we kind of know what kind of space we're looking for, right? Like, so, well, and maybe the default is a thousand pixels. I haven't really thought about it, but like, if we just default to a thousand pixels, so if you, if something is like a mobile layout where it's only really supposed to be displayed on mobile, you could shrink that down to like 500. And, uh, well, and also when you're testing layouts that are, you know, when you want to show a layout that's responsive, but you want to show it at 500 pixels, you know, having a way to specify the width, um, of any kind of demo. I want to work on our demo process. Uh, it's really, it's, it's really the demo UI. So here, here are some things about the demo that I remember. It, it's got a, a syntax highlighting and it, that's mostly good. Um, the syntax highlighting works. The layout of the whole demo system is kind of wonky. Like, okay, so we have these mobile through mega buttons. And I think we just hide those for now. D- don't necessarily delete the functionality. We might try and bring it back. Well, I mean, let's let's try and work all these features into a new kind of, well, frankly, it should be a panel, right? Does the panel go full screen? Uh, or does the panel go, um, you know, it, does it have like a fixed height? I don't think we want fixed height. I don't, every time I see that, it's usually the wrong answer. Now you might want to be able to fix it, but uh, you know the panel itself could also be split into columns um, and rows. Really, I think each uh, panel, like child, essentially by default should have a title to it, a title bar to it, with like a maybe a close button or a gear icon or I don't know. It, you know, we, we want the ability to add menu buttons to these panels. Is how any. Uh, applications panel system works like Adobe and Blender and whatnot. Anyway, so, well, I guess for a panel, if the, if the uh, parent container is like the viewport or a derivative of the viewport, like, you know, some sort of intersection and it has height of its own for basically, uh, there's kind of, there's two things that can happen. You can fix the, uh, It's basically which, the question is which container is the scroll container. You only want one and you want to make sure it works properly. Um, and so we should probably have a whole layout or sorry, a design. Uh, maybe it goes into the page system right now. I think putting everything into that page system is kind of the, the right idea so that It's every time a page is created, we're framing all these uh, decisions. But the, the scroll factor is, well, there's horizontal scroll, there's vertical scroll, and then choosing a layout can force the scroll on different areas, right? Like you can fix the height or, or set the height to, you know, match the parent or whatever, and then it use an inner scroll container and achieve like footer type uh, layout effects. And so, um, You know, documenting the permutations of the scroll system, how to, you know, different, you know, like showing different useful examples where we can see how, uh, see how it works just by like using the demo and they should be like self-evident, very simple and easy to look at. Um, you know, it helps understand these concepts like, and yeah, try and make them as clear as possible so we can see what's going on. If oftentimes if you could do a side by side, especially on a giant monitor, it's a great, you know, usage of the flex uh, auto columns, right? Like I haven't battle tested our auto columns, but if you put like flex auto on a container and you just put two side by side things in there, I mean, we, we should have built into our AI content system to just make, you know, good use of columns. We should have a page column system, absolutely. So like the page column system should clearly talk about the parent columns, like the layout of itself essentially based on how its parent is laying itself or laying the child out. But also, so it's top down, but it's also, you know, within. Like the page itself can have layout. Well, it can have a title bar. Um, it can have a, uh, You know, a page could be full screen, right? And have a title bar similar to a panel. In fact, a page could sort of either be a panel or probably have a panel. So maybe if the page, you know, kind of uses a panel to put all of its content into, it, you know, then gets all of those panel features. So like the panel goes inside the page and is full height and then uh, can be split into a workspace and kind of configured as such. Well, and the panel system would need to be probably lists of uh, panels, essentially. Pan if the panel system is like a live list of panels, then you could, anytime anyone's updating any panel, the live list updates. So we, we, we probably want to write some automated tests for this. I, uh, I had a test runner in the past. I don't know if it still exists in the core slash test folder. Um, our live list system is very important. We probably want to create a small handful of tests to make sure it doesn't fail. And honestly, my test system was meant to like write simple code that tests the uh, functionality and also exemplifies some aspect or like some feature or you know, you can inspect it and see what something is doing. Just very simple examples. I feel like we need that on all our all of our classes. But we need to work We need to work on our token spending and make sure that we can uh, stay under budget here. So give me another overview kind of of everything, even, you know, including your last overviews, because I haven't really been reading everything. But give me a very structured overview of like, I don't know, all the classes in flight or recently updated, because I, I th- probably have missed some. Well, first tell me what's everything like. Uh, well, first, uh, queued up, not currently in flight. And in order of priority, so what's going to be queued up next? Because those are actually probably the most important things to get right. Now, what's ever in flight, we want to let it fly as long as it's not killing tokens. So, um, if are, you, you probably should be budgeting all these, right? Are you creating an estimate of a budget for each task? And are we anywhere in the ballpark of accurate on those budgets? In this overview of all the, uh, you know, AI work that we're doing. Structure it by the estimated cost and, you know, the estimated timeline. Um, if there's anything that hasn't been finished and isn't queued up anywhere, like, I don't know how we'd make sure that we're not leaving loose ends, but we might want to spawn a cheap minion to just read everything. Like, send it at all the log files, all the tasks, you know, tell it to go one by one through each task and just, well, I don't know. I don't think a Sonnet minion has massive... Uh, context window and maybe doing a fan out and reading everything is, you know, uh, a waste of tokens right now. So maybe we wait on that. But if there's a way to check like, you know, a shorter, a couple log files and kind of look into which ones, well, frankly, the ones that have been completed, I'm not sure if there's, you know, a, a quick way to verify if it's been completed and how well it was completed. Like, You know, a lot of them, I think, a lot of these tasks, I think, get get finished and then have like these outstanding items where, you know, it's like a follow up for me that then just starts blocking the whole progression. And I don't know if we want to relaunch any kind of stalled tasks. We could mark those as stalled. So if, if we can have a, a, and that should be built into the system, a, a routine way to identify stalled tasks. And generally, I think having a, st a stalled task should be top priority on my screen to either like snooze it or... kill it or like prioritize it or whatever to reprioritize those things. And, and honestly, this should be one of the screens of the AI dashboard is like all the queued up in flight, you know, our progress meters. Um, yeah, I kind of think the, the uh, timeline view, which is basically our inbox view might need to be like a part of the main dashboard rather than the default tab. And I don't know if it should be its own tab. Maybe it's like a, maybe it's an inbox. That's what we should, I mean, it is called the inbox, right? So let's leave it called the inbox, but let's make an overview tab for the AI page so that we can see, uh, you know, we can put quick links. We can, well, Yeah, quick links, but well, so the I guess maybe it should be called dashboard. Um, maybe we should have an overview and dashboard. Okay, so the the overview is like quick links, uh, kind of a n navigational menu with structured, hierarchical, organized all the pages and sub page, main sub pages, especially if they have an icon or something, it would look nice, organized right there on the main page, so you can quickly get to anything. Then on the dashboard tab. Then we have our, what's currently our, uh, well, so we don't, I don't think we have the dashboard yet. The dashboard is going to be a grid of previews for the inbox. So whatever is showing, you know, is top priority on the inbox shows on the dashboard in a little pad, you know, like in a grid, basically a dashboard grid that says inbox, you know, should identify what it is. Then we could have one for the log, which is, you know, basically a very similar UI only, uh, you know, more condensed and the amount of, honestly, the amount of space there could grow from like, uh, you know, on a 1920 screen versus a 3440 screen, like the inbox view itself could be highly responsive. And so well, and frankly, it could be split screen, right? Like you could have, uh, but I don't know. I, I mean, I think have it because the inbox view is already full screen. I think having two split screen, full screens next to each other just kind of makes it a little bit too, uh, it doesn't provide any visual hierarchy essentially. So I don't know if we want to do that. But anyway, dashboard should have the inbox preview, kind of like the top maybe five items, the, uh, well, and a, and a link to, you know, kind of expand it to go to the whole inbox. Then the log view can have maybe five items. And so this gives you just kind of a quick snapshot of, and maybe in that mode, you remove any duplicates. So like if the log has the inbox items, I'm not sure exactly how those are differentiated right now. Um, I, I think they're generally the same data set. It's just based on priority and timing. So like the, the log should always show anything that like currently happens. Now you could filter it down based on a, a low level, you know, you don't want like all debug messages from everything, but you know, anything even like marginally useful to know, like that's currently happening. That's kind of the log of just like, you know, you kind of kind of see what's in flight, th things that are landing as they happen. Um, and then the inbox is more the, you know, needs attention or it's important or it's like, you know, some a big task is finished. Uh, definitely something needs like, I mean, there should be different levels of inbox items. Like we should, we need emergency items like alerts, right? So we kind of have that importance and it turned red, which I don't necessarily mind. It kind of caught my eye. The, the importance thing in the ranking, that weighting of those things, that's something else I was thinking about today is that every page could have a weight to it. Page.weight is its uh, you know, current weight. And then every parent page could rank its uh, children by that weight by default. We'll sort, sort them essentially in the list of children of the list, you know, every page dot pages, if that's a list, you know, could sort its pages by, um, sort its pages by, uh, by the, the weight. And so the weight would, could be mathematically, uh, computed or algorithmically computed. Like, you know, you, if you attach, a every time a, page is viewed, if you attach a, you know, increase the weight by one, boom, you have a system for like sorting the most common things or the most active things or both. Um, but that weight system could also be broken out into other concepts like importance or relevance or whatever. And then you could sort by a kind of uh, composite ranking amongst all the things. And then different views could have different, you know, sort algorithms. So like, you know, the log view would probably want one sorting mechanism and the inbox would want another one. But uh, I do think all the pages should have uh, a weight. Uh, well, it could be a page extension just to add the weight property and then allow, uh, well, really you'd probably need a diff different, uh, weighting mechanism. So the the weight scheme, essentially, the whole system would probably be defined on the parent. And so each child's weight is then potentially managed by the parent. Not sure, not sure how exactly who takes control of all that and how it's computed. Maybe each child computes their own weight based on some sort of formula. Um, but the idea is, is that sorting things is important and should be kind of dynamic. And shouldn't break permalinks, I think. So I don't know if we want a like auto increment based ID. I don't know. I'm just thinking out loud. But um, yeah, give me this has been a long transcription. Give me a summary of kind of top priority things. The top priority things should be kind of big headings. Like the, whatever headings you used in the last message seem pretty big. That's big enough. Uh, well, if you can go bigger and have main headings and subheadings, that might be useful too. Um, that would be like three layers of kind of detail. Use that layering of, of your in your responses. Sort the uh, top priority things, most recent things maybe. I don't know how you want to chunk it out into different um, responses, but try and organize this response in a way that's very structured and you know like familiar to me.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "I want to do an audit of our UI controls, and I want to add any that we don't have."
+        },
+        {
+          "n": 2,
+          "text": "I want to turn the basic components like check marks into filters essentially."
+        },
+        {
+          "n": 3,
+          "text": "So if we have a list of things, and I guess we'd probably use — let's lean into our live list system."
+        },
+        {
+          "n": 4,
+          "text": "Because that's the evented collection system we have for now."
+        },
+        {
+          "n": 5,
+          "text": "If we're going to render a list of things, and we want to apply filters to them, it's like, what kind of filter UI controls are the best?"
+        },
+        {
+          "n": 6,
+          "text": "I know there are checkboxes."
+        },
+        {
+          "n": 7,
+          "text": "You can have range filters where you have two slideable things."
+        },
+        {
+          "n": 8,
+          "text": "Although that can be tricky to set the right min and max and make it actually slideable."
+        },
+        {
+          "n": 9,
+          "text": "But let's look at that and try to figure out how to use those filters better."
+        },
+        {
+          "n": 10,
+          "text": "Because I think we want a filter module for our panel system."
+        },
+        {
+          "n": 11,
+          "text": "So any panel could have a filter icon added to it, and then different types of filters added to it, and then the panel's filter UI system can be linked to the list."
+        },
+        {
+          "n": 12,
+          "text": "The live list that's being rendered, to actually filter it."
+        },
+        {
+          "n": 13,
+          "text": "I'm not exactly sure how we do that."
+        },
+        {
+          "n": 14,
+          "text": "Generally, I think each page — the doc type pages have their own navigation scheme already, but I feel like any random page should be able to have its own left sidebar navigation and maybe even right sidebar with the list of content in the middle."
+        },
+        {
+          "n": 15,
+          "text": "And really the page layout — you should be able to make a custom class for any kind of page layout where the heading, the body, well, the wrapper div itself, like the core page.view.el, should probably be just a div with a class of page on it most of the time."
+        },
+        {
+          "n": 16,
+          "text": "I think that's probably how that is."
+        },
+        {
+          "n": 17,
+          "text": "But in terms of rendering different page templates essentially, I know we've done a ton of work on this in the past, but I just don't feel like we've gotten anywhere close to what I've been looking for."
+        },
+        {
+          "n": 18,
+          "text": "So I think what I want here for a page system, it's not just pages, but really layouts."
+        },
+        {
+          "n": 19,
+          "text": "All right, so I want to create a layout approval process."
+        },
+        {
+          "n": 20,
+          "text": "And so we have all these layouts already."
+        },
+        {
+          "n": 21,
+          "text": "And it's really a template approval process, but here's the thing."
+        },
+        {
+          "n": 22,
+          "text": "A template is layout and it's all the design factors, right?"
+        },
+        {
+          "n": 23,
+          "text": "So the layout approval could be a whole separate system where — here's the idea — we put in a grid all of the layouts that we have, and for each one, I can click on them and it opens into a single view mode."
+        },
+        {
+          "n": 24,
+          "text": "Where maybe there's some sort of navigation on the left side."
+        },
+        {
+          "n": 25,
+          "text": "The actual layout is front and center right in the main area."
+        },
+        {
+          "n": 26,
+          "text": "Hopefully it's rendered at the proper width."
+        },
+        {
+          "n": 27,
+          "text": "Each template and layout should probably have an ideal or default width so that when we're just putting things into a big space, we know what kind of space we're looking for, right?"
+        },
+        {
+          "n": 28,
+          "text": "And maybe the default is a thousand pixels."
+        },
+        {
+          "n": 29,
+          "text": "I haven't really thought about it, but if we just default to a thousand pixels — so if something is a mobile layout where it's only really supposed to be displayed on mobile, you could shrink that down to 500."
+        },
+        {
+          "n": 30,
+          "text": "And also when you're testing layouts — when you want to show a layout that's responsive but you want to show it at 500 pixels — having a way to specify the width of any kind of demo."
+        },
+        {
+          "n": 31,
+          "text": "I want to work on our demo process."
+        },
+        {
+          "n": 32,
+          "text": "It's really the demo UI."
+        },
+        {
+          "n": 33,
+          "text": "So here are some things about the demo that I remember."
+        },
+        {
+          "n": 34,
+          "text": "It's got syntax highlighting and that's mostly good."
+        },
+        {
+          "n": 35,
+          "text": "The syntax highlighting works."
+        },
+        {
+          "n": 36,
+          "text": "The layout of the whole demo system is kind of wonky."
+        },
+        {
+          "n": 37,
+          "text": "Okay, so we have these mobile through mega buttons."
+        },
+        {
+          "n": 38,
+          "text": "And I think we just hide those for now."
+        },
+        {
+          "n": 39,
+          "text": "Don't necessarily delete the functionality."
+        },
+        {
+          "n": 40,
+          "text": "We might try to bring it back."
+        },
+        {
+          "n": 41,
+          "text": "Let's try to work all these features into — well, frankly, it should be a panel, right?"
+        },
+        {
+          "n": 42,
+          "text": "Does the panel go full screen?"
+        },
+        {
+          "n": 43,
+          "text": "Or does the panel have a fixed height?"
+        },
+        {
+          "n": 44,
+          "text": "I don't think we want fixed height."
+        },
+        {
+          "n": 45,
+          "text": "Every time I see that, it's usually the wrong answer."
+        },
+        {
+          "n": 46,
+          "text": "Now you might want to be able to fix it, but the panel itself could also be split into columns and rows."
+        },
+        {
+          "n": 47,
+          "text": "Really, I think each panel child essentially, by default, should have a title bar to it, with maybe a close button or a gear icon or I don't know."
+        },
+        {
+          "n": 48,
+          "text": "We want the ability to add menu buttons to these panels."
+        },
+        {
+          "n": 49,
+          "text": "Is how any application's panel system works, like Adobe and Blender and whatnot."
+        },
+        {
+          "n": 50,
+          "text": "Anyway, so for a panel, if the parent container is like the viewport or a derivative of the viewport — some sort of intersection — and it has height of its own, basically there are two things that can happen."
+        },
+        {
+          "n": 51,
+          "text": "The question is which container is the scroll container."
+        },
+        {
+          "n": 52,
+          "text": "You only want one and you want to make sure it works properly."
+        },
+        {
+          "n": 53,
+          "text": "And so we should probably have a whole layout — or sorry, a design."
+        },
+        {
+          "n": 54,
+          "text": "Maybe it goes into the page system right now."
+        },
+        {
+          "n": 55,
+          "text": "I think putting everything into that page system is the right idea, so that every time a page is created, we're framing all these decisions."
+        },
+        {
+          "n": 56,
+          "text": "But the scroll factor is — well, there's horizontal scroll, there's vertical scroll, and then choosing a layout can force the scroll on different areas, right?"
+        },
+        {
+          "n": 57,
+          "text": "Like you can fix the height or set the height to match the parent or whatever, and then use an inner scroll container and achieve footer-type layout effects."
+        },
+        {
+          "n": 58,
+          "text": "And so documenting the permutations of the scroll system — showing different useful examples where we can see how it works just by using the demo — and they should be self-evident, very simple, and easy to look at."
+        },
+        {
+          "n": 59,
+          "text": "It helps understand these concepts, and try to make them as clear as possible so we can see what's going on."
+        },
+        {
+          "n": 60,
+          "text": "Oftentimes if you could do a side-by-side, especially on a giant monitor, it's a great usage of the flex auto columns, right?"
+        },
+        {
+          "n": 61,
+          "text": "I haven't battle-tested our auto columns, but if you put flex auto on a container and you just put two side-by-side things in there — I mean, we should have built into our AI content system to just make good use of columns."
+        },
+        {
+          "n": 62,
+          "text": "We should have a page column system, absolutely."
+        },
+        {
+          "n": 63,
+          "text": "So the page column system should clearly talk about the parent columns — the layout of itself essentially, based on how its parent is laying itself or laying the child out."
+        },
+        {
+          "n": 64,
+          "text": "But also, so it's top down, but it's also within."
+        },
+        {
+          "n": 65,
+          "text": "Like the page itself can have layout."
+        },
+        {
+          "n": 66,
+          "text": "It can have a title bar."
+        },
+        {
+          "n": 67,
+          "text": "A page could be full screen, right?"
+        },
+        {
+          "n": 68,
+          "text": "And have a title bar similar to a panel."
+        },
+        {
+          "n": 69,
+          "text": "In fact, a page could either be a panel or probably have a panel."
+        },
+        {
+          "n": 70,
+          "text": "So maybe if the page uses a panel to put all of its content into, it then gets all of those panel features."
+        },
+        {
+          "n": 71,
+          "text": "So the panel goes inside the page and is full height, and then can be split into a workspace and configured as such."
+        },
+        {
+          "n": 72,
+          "text": "And the panel system would need to be probably lists of panels, essentially."
+        },
+        {
+          "n": 73,
+          "text": "If the panel system is like a live list of panels, then anytime anyone's updating any panel, the live list updates."
+        },
+        {
+          "n": 74,
+          "text": "So we probably want to write some automated tests for this."
+        },
+        {
+          "n": 75,
+          "text": "I had a test runner in the past."
+        },
+        {
+          "n": 76,
+          "text": "I don't know if it still exists in the core/test folder."
+        },
+        {
+          "n": 77,
+          "text": "Our live list system is very important."
+        },
+        {
+          "n": 78,
+          "text": "We probably want to create a small handful of tests to make sure it doesn't fail."
+        },
+        {
+          "n": 79,
+          "text": "And honestly, my test system was meant to write simple code that tests the functionality and also exemplifies some aspect or some feature — you can inspect it and see what something is doing."
+        },
+        {
+          "n": 80,
+          "text": "Just very simple examples."
+        },
+        {
+          "n": 81,
+          "text": "I feel like we need that on all of our classes."
+        },
+        {
+          "n": 82,
+          "text": "But we need to work on our token spending and make sure that we can stay under budget here."
+        },
+        {
+          "n": 83,
+          "text": "So give me another overview of everything, including your last overviews, because I haven't really been reading everything."
+        },
+        {
+          "n": 84,
+          "text": "But give me a very structured overview of all the classes in flight or recently updated, because I probably have missed some."
+        },
+        {
+          "n": 85,
+          "text": "Well, first tell me what's — actually, first, what's queued up, not currently in flight."
+        },
+        {
+          "n": 86,
+          "text": "And in order of priority — so what's going to be queued up next?"
+        },
+        {
+          "n": 87,
+          "text": "Because those are actually probably the most important things to get right."
+        },
+        {
+          "n": 88,
+          "text": "Now, whatever's in flight, we want to let it fly as long as it's not killing tokens."
+        },
+        {
+          "n": 89,
+          "text": "So you probably should be budgeting all these, right?"
+        },
+        {
+          "n": 90,
+          "text": "Are you creating an estimate of a budget for each task?"
+        },
+        {
+          "n": 91,
+          "text": "And are we anywhere in the ballpark of accurate on those budgets?"
+        },
+        {
+          "n": 92,
+          "text": "In this overview of all the AI work that we're doing."
+        },
+        {
+          "n": 93,
+          "text": "Structure it by the estimated cost and the estimated timeline."
+        },
+        {
+          "n": 94,
+          "text": "If there's anything that hasn't been finished and isn't queued up anywhere — I don't know how we'd make sure that we're not leaving loose ends, but we might want to spawn a cheap minion to just read everything."
+        },
+        {
+          "n": 95,
+          "text": "Send it at all the log files, all the tasks, tell it to go one by one through each task — well, I don't know."
+        },
+        {
+          "n": 96,
+          "text": "I don't think a Sonnet minion has a massive context window, and maybe doing a fan-out and reading everything is a waste of tokens right now."
+        },
+        {
+          "n": 97,
+          "text": "So maybe we wait on that."
+        },
+        {
+          "n": 98,
+          "text": "But if there's a way to check a couple log files and look into which ones — well, frankly, the ones that have been completed — I'm not sure if there's a quick way to verify if it's been completed and how well it was completed."
+        },
+        {
+          "n": 99,
+          "text": "A lot of these tasks, I think, get finished and then have these outstanding items where it's a follow-up for me that then just starts blocking the whole progression."
+        },
+        {
+          "n": 100,
+          "text": "And I don't know if we want to relaunch any stalled tasks."
+        },
+        {
+          "n": 101,
+          "text": "We could mark those as stalled."
+        },
+        {
+          "n": 102,
+          "text": "So if we can have — and that should be built into the system — a routine way to identify stalled tasks."
+        },
+        {
+          "n": 103,
+          "text": "And generally, I think having a stalled task should be top priority on my screen to either snooze it or kill it or reprioritize it or whatever."
+        },
+        {
+          "n": 104,
+          "text": "And honestly, this should be one of the screens of the AI dashboard — all the queued up, in-flight, our progress meters."
+        },
+        {
+          "n": 105,
+          "text": "I think the timeline view, which is basically our inbox view, might need to be part of the main dashboard rather than the default tab."
+        },
+        {
+          "n": 106,
+          "text": "And I don't know if it should be its own tab."
+        },
+        {
+          "n": 107,
+          "text": "Maybe it's an inbox."
+        },
+        {
+          "n": 108,
+          "text": "That's what we should — I mean, it is called the inbox, right?"
+        },
+        {
+          "n": 109,
+          "text": "So let's leave it called the inbox, but let's make an overview tab for the AI page so that we can put quick links."
+        },
+        {
+          "n": 110,
+          "text": "Quick links — well, I guess maybe it should be called dashboard."
+        },
+        {
+          "n": 111,
+          "text": "Maybe we should have an overview and dashboard."
+        },
+        {
+          "n": 112,
+          "text": "Okay, so the overview is quick links — a navigational menu with structured, hierarchical, organized pages and sub-pages — especially if they have an icon or something, it would look nice organized right there on the main page, so you can quickly get to anything."
+        },
+        {
+          "n": 113,
+          "text": "Then on the dashboard tab."
+        },
+        {
+          "n": 114,
+          "text": "Then we have our — well, I don't think we have the dashboard yet."
+        },
+        {
+          "n": 115,
+          "text": "The dashboard is going to be a grid of previews for the inbox."
+        },
+        {
+          "n": 116,
+          "text": "So whatever is top priority on the inbox shows on the dashboard in a little panel — in a grid — basically a dashboard grid that says inbox, should identify what it is."
+        },
+        {
+          "n": 117,
+          "text": "Then we could have one for the log, which is basically a very similar UI, only more condensed — and the amount of space could grow from a 1920 screen versus a 3440 screen — the inbox view itself could be highly responsive."
+        },
+        {
+          "n": 118,
+          "text": "And frankly, it could be split screen, right?"
+        },
+        {
+          "n": 119,
+          "text": "You could have — but I don't know."
+        },
+        {
+          "n": 120,
+          "text": "I think — have it — because the inbox view is already full screen."
+        },
+        {
+          "n": 121,
+          "text": "I think having two split-screen full screens next to each other doesn't provide any visual hierarchy, essentially."
+        },
+        {
+          "n": 122,
+          "text": "So I don't know if we want to do that."
+        },
+        {
+          "n": 123,
+          "text": "But anyway, dashboard should have the inbox preview — the top maybe five items — and a link to expand it to go to the whole inbox."
+        },
+        {
+          "n": 124,
+          "text": "Then the log view can have maybe five items."
+        },
+        {
+          "n": 125,
+          "text": "And so this gives you a quick snapshot — and maybe in that mode, you remove any duplicates."
+        },
+        {
+          "n": 126,
+          "text": "So if the log has the inbox items, I'm not sure exactly how those are differentiated right now."
+        },
+        {
+          "n": 127,
+          "text": "I think they're generally the same data set."
+        },
+        {
+          "n": 128,
+          "text": "It's just based on priority and timing."
+        },
+        {
+          "n": 129,
+          "text": "So the log should always show anything that currently happens."
+        },
+        {
+          "n": 130,
+          "text": "Now you could filter it down based on a low level — you don't want all debug messages from everything, but anything even marginally useful to know that's currently happening."
+        },
+        {
+          "n": 131,
+          "text": "That's the log — you see what's in flight, things that are landing as they happen."
+        },
+        {
+          "n": 132,
+          "text": "And then the inbox is more the needs-attention — it's important, or a big task is finished."
+        },
+        {
+          "n": 133,
+          "text": "There should be different levels of inbox items."
+        },
+        {
+          "n": 134,
+          "text": "We need emergency items like alerts, right?"
+        },
+        {
+          "n": 135,
+          "text": "So we kind of have that importance, and it turned red, which I don't necessarily mind."
+        },
+        {
+          "n": 136,
+          "text": "It kind of caught my eye."
+        },
+        {
+          "n": 137,
+          "text": "The importance thing in the ranking — that weighting of those things — that's something else I was thinking about today: every page could have a weight to it."
+        },
+        {
+          "n": 138,
+          "text": "Page.weight is its current weight."
+        },
+        {
+          "n": 139,
+          "text": "And then every parent page could rank its children by that weight by default."
+        },
+        {
+          "n": 140,
+          "text": "We'll sort them essentially — every page.pages, if that's a list, could sort its pages by the weight."
+        },
+        {
+          "n": 141,
+          "text": "And so the weight could be mathematically or algorithmically computed."
+        },
+        {
+          "n": 142,
+          "text": "If every time a page is viewed you increase the weight by one — boom, you have a system for sorting the most common things or the most active things or both."
+        },
+        {
+          "n": 143,
+          "text": "But that weight system could also be broken out into other concepts like importance or relevance or whatever."
+        },
+        {
+          "n": 144,
+          "text": "And then you could sort by a composite ranking amongst all the things."
+        },
+        {
+          "n": 145,
+          "text": "And then different views could have different sort algorithms."
+        },
+        {
+          "n": 146,
+          "text": "So the log view would probably want one sorting mechanism and the inbox would want another one."
+        },
+        {
+          "n": 147,
+          "text": "But I do think all the pages should have a weight."
+        },
+        {
+          "n": 148,
+          "text": "It could be a page extension just to add the weight property — though really you'd probably need a different weighting mechanism."
+        },
+        {
+          "n": 149,
+          "text": "So the weight scheme — essentially, the whole system would probably be defined on the parent."
+        },
+        {
+          "n": 150,
+          "text": "And so each child's weight is then potentially managed by the parent."
+        },
+        {
+          "n": 151,
+          "text": "Not sure exactly who takes control of all that and how it's computed."
+        },
+        {
+          "n": 152,
+          "text": "Maybe each child computes their own weight based on some sort of formula."
+        },
+        {
+          "n": 153,
+          "text": "But the idea is that sorting things is important and should be dynamic."
+        },
+        {
+          "n": 154,
+          "text": "And it shouldn't break permalinks, I think."
+        },
+        {
+          "n": 155,
+          "text": "So I don't know if we want an auto-increment based ID."
+        },
+        {
+          "n": 156,
+          "text": "I don't know."
+        },
+        {
+          "n": 157,
+          "text": "I'm just thinking out loud."
+        },
+        {
+          "n": 158,
+          "text": "But — this has been a long transcription."
+        },
+        {
+          "n": 159,
+          "text": "Give me a summary of top priority things."
+        },
+        {
+          "n": 160,
+          "text": "The top priority things should be big headings."
+        },
+        {
+          "n": 161,
+          "text": "Whatever headings you used in the last message seemed pretty big."
+        },
+        {
+          "n": 162,
+          "text": "That's big enough."
+        },
+        {
+          "n": 163,
+          "text": "If you can go bigger and have main headings and subheadings, that might be useful too."
+        },
+        {
+          "n": 164,
+          "text": "That would be three layers of detail."
+        },
+        {
+          "n": 165,
+          "text": "Use that layering in your responses."
+        },
+        {
+          "n": 166,
+          "text": "Sort the top priority things, most recent things maybe."
+        },
+        {
+          "n": 167,
+          "text": "I don't know how you want to chunk it out into different responses, but try to organize this response in a way that's very structu"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[164,165,166,167] duplicated=[46,145]",
+      "title": "I want to do an audit of our UI controls, and I…",
+      "bullets": [
+        "I want to do an audit of our UI controls, and I want to add any that we don't have.…"
+      ],
+      "tags": [
+        "#Page",
+        "#Task"
+      ],
+      "flags": [],
+      "strikes": [
+        {
+          "sentence_n": 8,
+          "struck_text": "Although that can be kind of tricky to set the right min"
+        },
+        {
+          "sentence_n": 12,
+          "struck_text": "The"
+        },
+        {
+          "sentence_n": 14,
+          "struck_text": "you know"
+        },
+        {
+          "sentence_n": 41,
+          "struck_text": "Well"
+        },
+        {
+          "sentence_n": 1,
+          "struck_text": "but if you put like flex auto on a container and you just put two side by side things in there"
+        },
+        {
+          "sentence_n": 87,
+          "struck_text": "so what's going to be queued up next?"
+        },
+        {
+          "sentence_n": 108,
+          "struck_text": "That's what we should"
+        },
+        {
+          "sentence_n": 120,
+          "struck_text": "I"
+        },
+        {
+          "sentence_n": 133,
+          "struck_text": "definitely something needs like"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 23,
+      "at": "2026-10-03T00:07:13.803Z",
+      "raw": "All right. Um, while I'm reading over your last very long response, uh, here's what I'm thinking in terms of uh, judging the open router minions to try and find which ones are the best. I think I have an idea that will work. So if we ask any number of minions to do a very structured, simple task, to, for example, produce a list of outstanding items. Okay, so here, here's how it could work. It could be something like basically an audit of the tasks that have been asked recently um, to, to kind of analyze tasks and determine what was done and whether it accomplished what the prompt had requested. So it's kind of like a post review. Also, look into whether a, any review was done and whether it was done accurately. Like if it seems like the task was not accomplished at all and the review said it was, you know, fine or whatever, then we want to know about it. So Well, and then the idea here is we actually want to do this in a very kind of simple way where it's less about the abstract opinions of each minion. We don't want them, but if, if most of the minions look at the, or run this task and come back with strong signals about which tasks actually failed, um, that's what we want to try and figure out. Let's see if we can create a system to kind of rank the value of the each task based on how much was spent based on whether it was completed but let's try and do this in a systematic way so I don't know if we can put an audit file into each task directory figure out the best most robust uh, storage system a simple system where we can add this kind of metadata, this audit data, to any previous task. And let's, let's try and prioritize these tasks based on currently open things, in-flight things, things that are likely to be um, important. So focus on those tasks. You know, there's been a lot of tasks. We, don't, we want to start small and, and keep uh, usage to a minimum until we prove that this works. If this actually works, and I think it should, then we can crank up the data and kind of start a review process that analyzes what was asked for, what was done, and if it's working properly. Um, because I feel like a lot of the things I've asked for were either partially done or I never saw them. They might have gotten stalled, but I don't know. I'm not sure what's going on. Because there's definitely a lot of things I've said that aren't, aren't happening. So If we can, you know, we've already kind of described this testing system for the, the AIs, the models. So hopefully we already have a system for, for some of this. But what I really want to do, and I think the data maybe should go into the task itself. You know, start with, you know, some of the more recent tasks. You know, probably only review tasks that have finished. We probably don't need to do an in-flight, a review of something in-flight before it's finished. Check if a review has already been done and make sure that the review, the re-reviewer that we're running here is looking at what was already done. And then like pick a, uh, you know, prioritize each task and well have as part of the audit, have the minion in a structured way, identify all the important pieces of that task. Like, The, it, you know, you, you could review the task name. Does it have an appropriate task name? Does it have an appropriate task icon? Because we probably want to have all these in the dash, in either, probably not the, yeah, probably the log. The log should probably be able to filter through all of the tasks that have been done. We definitely want the cost estimate to be, you know, loadable. So I, I don't know how a the log page is actually uh, rendering all the log items, but And I don't know if the log has all the items from the past few days, but I kind of feel like it should. And so the log view should show, well, and should, you know, it should be like a, have filters essentially to filter out the items or filter down to the items. And maybe we need multiple, uh, like a, if we can use a long toolbar and add a bunch of filter controls, there might be a lot of criteria. Sometimes those filter columns on websites grow and grow and grow and have like 25 sections of, of filters. I'm not saying we have to go that route, but leaning into the whole filter system, I think is a good idea. Uh, so write that down, make sure we're doing that. Um, the, Yeah, so I already know we have a test system for our minions to try and track their success. Uh, we want to be making sure we can we have the proper uh, structures that are recording everything, or at least the most important parts of everything that are happening, right? Like we want a, a solid, browsable history of everything we've done so that as we do these reviews, we have some data to look at. And so we want to uh, be able to filter any of the tasks by how much they cost, but also like their value. So, you know, if they completely failed, they should have low value, but the value should probably be computed, probably divided by, you know, it's it's like the, the, the uh, weight essentially maybe even divided by the cost. Now the weight being, you know, uh, arbitrarily large number is not a good idea in that sense. Um, So maybe it needs to be like a, I don't know, some sort of normalized value that just uh, softens or increases the actual value by how how well the task was performed, essentially. I don't know if that's a great idea. However, I, what I do want is a, a simp- simple structured uh, answers and, and then the consensus of any prompt. So like when we're asking these minions to review tasks, for example, we want them to produce very clearly defined lists of like, you know, well, I mean, frankly, it's really properties or, or evaluations. Like, was this complete? And maybe that completion is a is a value. So like we could create a little rubric of important, you know, as a summary is maybe the, like the last step after it's written all of its reviews and everything. So it has all that stuff in its context window. Then we ask it to write some kind of standardized weights. So we break the weighting down into like completion and maybe utility. Like, you know, what does it actually do? Does it help us? Like, are we, how, how often are we using it? Having a, a list of dependencies, things that, well, dependence and dependencies is probably a good idea. Um, yeah, I mean, I was thinking earlier that we need a better uh, file for uh, classes. Like the page.json could be a temporary place to just use that module's page.jsonl. And to have all the features and UI built into it. And I guess I'm okay with that now. But putting, you know, more class-based uh, data into the page, I don't know if that makes sense. The page is sort of like the rendered view and the UI and the path. And so, you know, it's, again, not the worst place. But you could break those things out so that, you know, the class-specific things that are more oriented directly to the JavaScript class and the code and the architecture and whatever... are in a different place. I don't know how I feel about that, but ",
+      "clean": [
+        {
+          "n": 1,
+          "text": "All right."
+        },
+        {
+          "n": 2,
+          "text": "While I'm reading over your last very long response, here's what I'm thinking in terms of judging the OpenRouter minions to try and find which ones are the best."
+        },
+        {
+          "n": 3,
+          "text": "I think I have an idea that will work."
+        },
+        {
+          "n": 4,
+          "text": "So if we ask any number of minions to do a very structured, simple task, to, for example, produce a list of outstanding items."
+        },
+        {
+          "n": 5,
+          "text": "Okay, so here's how it could work."
+        },
+        {
+          "n": 6,
+          "text": "It could be something like basically an audit of the tasks that have been asked recently to analyze tasks and determine what was done and whether it accomplished what the prompt had requested."
+        },
+        {
+          "n": 7,
+          "text": "So it's kind of like a post review."
+        },
+        {
+          "n": 8,
+          "text": "Also, look into whether any review was done and whether it was done accurately."
+        },
+        {
+          "n": 9,
+          "text": "Like if it seems like the task was not accomplished at all and the review said it was fine or whatever, then we want to know about it."
+        },
+        {
+          "n": 10,
+          "text": "So, well, and then the idea here is we actually want to do this in a very kind of simple way where it's less about the abstract opinions of each minion."
+        },
+        {
+          "n": 11,
+          "text": "We don't want them, but if most of the minions run this task and come back with strong signals about which tasks actually failed, that's what we want to try and figure out."
+        },
+        {
+          "n": 12,
+          "text": "Let's see if we can create a system to rank the value of each task based on how much was spent, based on whether it was completed, but let's try and do this in a systematic way."
+        },
+        {
+          "n": 13,
+          "text": "So I don't know if we can put an audit file into each task directory, figure out the best, most robust storage system, a simple system where we can add this kind of metadata, this audit data, to any previous task."
+        },
+        {
+          "n": 14,
+          "text": "And let's try and prioritize these tasks based on currently open things, in-flight things, things that are likely to be important."
+        },
+        {
+          "n": 15,
+          "text": "So focus on those tasks."
+        },
+        {
+          "n": 16,
+          "text": "There's been a lot of tasks."
+        },
+        {
+          "n": 17,
+          "text": "We want to start small and keep usage to a minimum until we prove that this works."
+        },
+        {
+          "n": 18,
+          "text": "If this actually works, and I think it should, then we can crank up the data and start a review process that analyzes what was asked for, what was done, and if it's working properly."
+        },
+        {
+          "n": 19,
+          "text": "Because I feel like a lot of the things I've asked for were either partially done or I never saw them."
+        },
+        {
+          "n": 20,
+          "text": "They might have gotten stalled, but I don't know."
+        },
+        {
+          "n": 21,
+          "text": "I'm not sure what's going on."
+        },
+        {
+          "n": 22,
+          "text": "Because there's definitely a lot of things I've said that aren't happening."
+        },
+        {
+          "n": 23,
+          "text": "So if we can, we've already kind of described this testing system for the AIs, the models."
+        },
+        {
+          "n": 24,
+          "text": "So hopefully we already have a system for some of this."
+        },
+        {
+          "n": 25,
+          "text": "But what I really want to do, and I think the data maybe should go into the task itself."
+        },
+        {
+          "n": 26,
+          "text": "Start with some of the more recent tasks."
+        },
+        {
+          "n": 27,
+          "text": "Probably only review tasks that have finished."
+        },
+        {
+          "n": 28,
+          "text": "We probably don't need to do a review of something in-flight before it's finished."
+        },
+        {
+          "n": 29,
+          "text": "Check if a review has already been done and make sure that the re-reviewer that we're running here is looking at what was already done."
+        },
+        {
+          "n": 30,
+          "text": "And then pick a, prioritize each task and have, as part of the audit, the minion in a structured way identify all the important pieces of that task."
+        },
+        {
+          "n": 31,
+          "text": "Like you could review the task name."
+        },
+        {
+          "n": 32,
+          "text": "Does it have an appropriate task name?"
+        },
+        {
+          "n": 33,
+          "text": "Does it have an appropriate task icon?"
+        },
+        {
+          "n": 34,
+          "text": "Because we probably want to have all these in the log."
+        },
+        {
+          "n": 35,
+          "text": "The log should probably be able to filter through all of the tasks that have been done."
+        },
+        {
+          "n": 36,
+          "text": "We definitely want the cost estimate to be loadable."
+        },
+        {
+          "n": 37,
+          "text": "So I don't know how the log page is actually rendering all the log items, but and I don't know if the log has all the items from the past few days, but I kind of feel like it should."
+        },
+        {
+          "n": 38,
+          "text": "And so the log view should have filters essentially to filter out the items or filter down to the items."
+        },
+        {
+          "n": 39,
+          "text": "And maybe we need multiple, like if we can use a long toolbar and add a bunch of filter controls, there might be a lot of criteria."
+        },
+        {
+          "n": 40,
+          "text": "Sometimes those filter columns on websites grow and grow and have 25 sections of filters."
+        },
+        {
+          "n": 41,
+          "text": "I'm not saying we have to go that route, but leaning into the whole filter system, I think is a good idea."
+        },
+        {
+          "n": 42,
+          "text": "So write that down, make sure we're doing that."
+        },
+        {
+          "n": 43,
+          "text": "Yeah, so I already know we have a test system for our minions to try and track their success."
+        },
+        {
+          "n": 44,
+          "text": "We want to be making sure we have the proper structures that are recording everything, or at least the most important parts of everything that are happening, right?"
+        },
+        {
+          "n": 45,
+          "text": "Like we want a solid, browsable history of everything we've done so that as we do these reviews, we have some data to look at."
+        },
+        {
+          "n": 46,
+          "text": "And so we want to be able to filter any of the tasks by how much they cost, but also by their value."
+        },
+        {
+          "n": 47,
+          "text": "So if they completely failed, they should have low value, but the value should probably be computed, probably divided by the cost."
+        },
+        {
+          "n": 48,
+          "text": "The weight being an arbitrarily large number is not a good idea in that sense."
+        },
+        {
+          "n": 49,
+          "text": "So maybe it needs to be some sort of normalized value that just softens or increases the actual value by how well the task was performed, essentially."
+        },
+        {
+          "n": 50,
+          "text": "I don't know if that's a great idea."
+        },
+        {
+          "n": 51,
+          "text": "However, what I do want is simple structured answers and then the consensus of any prompt."
+        },
+        {
+          "n": 52,
+          "text": "So like when we're asking these minions to review tasks, for example, we want them to produce very clearly defined lists of properties or evaluations."
+        },
+        {
+          "n": 53,
+          "text": "Like, was this complete?"
+        },
+        {
+          "n": 54,
+          "text": "And maybe that completion is a value."
+        },
+        {
+          "n": 55,
+          "text": "So we could create a little rubric of important things, as a summary maybe the last step after it's written all of its reviews and everything."
+        },
+        {
+          "n": 56,
+          "text": "So it has all that stuff in its context window."
+        },
+        {
+          "n": 57,
+          "text": "Then we ask it to write some kind of standardized weights."
+        },
+        {
+          "n": 58,
+          "text": "So we break the weighting down into completion and maybe utility."
+        },
+        {
+          "n": 59,
+          "text": "Like, what does it actually do?"
+        },
+        {
+          "n": 60,
+          "text": "Does it help us?"
+        },
+        {
+          "n": 61,
+          "text": "How often are we using it?"
+        },
+        {
+          "n": 62,
+          "text": "Having a list of dependencies is probably a good idea."
+        },
+        {
+          "n": 63,
+          "text": "Yeah, I mean, I was thinking earlier that we need a better file for classes."
+        },
+        {
+          "n": 64,
+          "text": "Like the page.json could be a temporary place to just use that module's page.jsonl and to have all the features and UI built into it."
+        },
+        {
+          "n": 65,
+          "text": "And I guess I'm okay with that now."
+        },
+        {
+          "n": 66,
+          "text": "But putting more class-based data into the page, I don't know if that makes sense."
+        },
+        {
+          "n": 67,
+          "text": "The page is sort of like the rendered view and the UI and the path."
+        },
+        {
+          "n": 68,
+          "text": "And so it's, again, not the worst place."
+        },
+        {
+          "n": 69,
+          "text": "But you could break those things out so that the class-specific things that are more oriented directly to the JavaScript class and the code and the architecture and whatever are in a different place."
+        },
+        {
+          "n": 70,
+          "text": "I don't know how"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[1,69,70] duplicated=[]",
+      "title": "All right. While I'm reading over your last very long response, here's…",
+      "bullets": [
+        "All right. While I'm reading over your last very long response, here's what I'm thinking in terms of judging the…"
+      ],
+      "tags": [
+        "#Page",
+        "#Task"
+      ],
+      "flags": [],
+      "strikes": [
+        {
+          "sentence_n": 10,
+          "struck_text": "So Well"
+        },
+        {
+          "sentence_n": 11,
+          "struck_text": "if most of the minions look at the"
+        },
+        {
+          "sentence_n": 17,
+          "struck_text": "usage to a minimum until we prove that this works"
+        },
+        {
+          "sentence_n": 37,
+          "struck_text": "So I"
+        },
+        {
+          "sentence_n": 1,
+          "struck_text": "well"
+        },
+        {
+          "sentence_n": 6,
+          "struck_text": "you know"
+        },
+        {
+          "sentence_n": 63,
+          "struck_text": "yeah"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 24,
+      "at": "2026-10-03T00:09:11.702Z",
+      "raw": "Yeah, so I think, you know, there should be a automatic, you know, like system-wide, uh, it should be obvious to everyone. Maybe we put it in the Claude.md for now to, to always check usage, kind of like on every startup anyway. I don't know if that already happens, but like checking usage should be kind of like an automatic process so that it's uh, fresh and and so each minion is aware of it. Because, well, I, I guess minions don't need to be aware of usage. They're really just trying to get their task done. But all the masterminds should obviously be loading usage automatically. And the fact that we're over should mean that they're using lesser models and fewer models, like not doing redundant checks and maybe picking up some, if it, used to use a minion to do like a review maybe it just does it itself if it has you know especially if it has the files already in memory now i don't know how much it costs to read you know a new module into memory um i feel like the read tokens are usually much less than the output tokens and so reading the files is probably not so bad for the mastermind to do itself Uh, and then it could do the review itself if it needs to. But I mean, we're just trying to minimize, we're trying to manage the uh, token cost. And so like, we just need to find reducing mechanisms. And yeah, I guess if you want to restart the, don't restart the fable as a sonnet, just restart it as an opus. And uh, yeah, I mean, any other reducing, token reducing strategies that you can implement, those should probably be automatically built into the system in like a way that, doesn't backfire.",
+      "clean": [
+        {
+          "n": 1,
+          "text": null,
+          "omitted_raw": "Yeah, so I think, you know, there should be a automatic, you know, like system-wide, uh, it should be obvious to everyone."
+        },
+        {
+          "n": 2,
+          "text": "It should be obvious to everyone."
+        },
+        {
+          "n": 3,
+          "text": "Maybe we put it in the CLAUDE.md for now to always check usage on every startup anyway."
+        },
+        {
+          "n": 4,
+          "text": "I don't know if that already happens, but checking usage should be an automatic process so that it's fresh and so each minion is aware of it."
+        },
+        {
+          "n": 5,
+          "text": "Because I guess minions don't need to be aware of usage."
+        },
+        {
+          "n": 6,
+          "text": "They're really just trying to get their task done."
+        },
+        {
+          "n": 7,
+          "text": "But all the masterminds should obviously be loading usage automatically."
+        },
+        {
+          "n": 8,
+          "text": "And the fact that we're over should mean that they're using lesser models and fewer models, not doing redundant checks, and maybe picking up some."
+        },
+        {
+          "n": 9,
+          "text": "If it used to use a minion to do a review, maybe it just does it itself, especially if it has the files already in memory."
+        },
+        {
+          "n": 10,
+          "text": "Now I don't know how much it costs to read a new module into memory."
+        },
+        {
+          "n": 11,
+          "text": "I feel the read tokens are usually much less than the output tokens, and so reading the files is probably not so bad for the mastermind to do itself."
+        },
+        {
+          "n": 12,
+          "text": "And then it could do the review itself if it needs to."
+        },
+        {
+          "n": 13,
+          "text": "But we're just trying to manage the token cost."
+        },
+        {
+          "n": 14,
+          "text": "And we just need to find reducing mechanisms."
+        },
+        {
+          "n": 15,
+          "text": "I guess if you want to restart the fable, don't restart it as a sonnet, just restart it as an opus."
+        },
+        {
+          "n": 16,
+          "text": "Any other token-reducing strategies that you can implement should probably be automatically built into the system in a way"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[16] duplicated=[]",
+      "title": "It should be obvious to everyone. Maybe we put it in the…",
+      "bullets": [
+        "It should be obvious to everyone. Maybe we put it in the CLAUDE.md for now to always check usage on…"
+      ],
+      "tags": [
+        "#Task",
+        "#Models"
+      ],
+      "flags": [
+        {
+          "sentence_n": 1,
+          "question": "the sentence trails off — what should be automatic and system-wide?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 1,
+          "struck_text": "and then it could do the review itself if it needs to"
+        },
+        {
+          "sentence_n": 16,
+          "struck_text": "yeah"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 25,
+      "at": "2026-10-03T00:10:30.541Z",
+      "raw": "Yeah, just to clarify on the uh, simple uh, I don't know if zero through four is the best scoring mechanism, but I don't know. It's not bad. I'd actually say zero through three as like a well, even like a negative three through three. I like the the standard DV negative three through three. is the uh, standard deviation model in my mind. It's like negative three or positive three is an extreme outlier. A negative two or two is even a pretty strong outlier. And then like the negative one to one is your 66% average range, you know, or percent of the population anyway. So I don't know if that would, you know, make sense. But honestly, the I don't know if, if the zero through four means like pick a number zero through four. Uh, Or if it should be, yeah, I don't know. Maybe AI is better at picking an integer rather than trying to specify a specific like number zero through one or, or coming up with some other kind of system.",
+      "clean": [
+        {
+          "n": 1,
+          "text": null,
+          "omitted_raw": "Yeah, just to clarify on the uh, simple uh, I don't know if zero through four is the best scoring mechanism, but I don't know."
+        },
+        {
+          "n": 2,
+          "text": "It's not bad."
+        },
+        {
+          "n": 3,
+          "text": "I'd actually say zero through three, or even negative three through three."
+        },
+        {
+          "n": 4,
+          "text": "I like the standard dev negative three through three."
+        },
+        {
+          "n": 5,
+          "text": "It's the standard deviation model in my mind."
+        },
+        {
+          "n": 6,
+          "text": "Negative three or positive three is an extreme outlier."
+        },
+        {
+          "n": 7,
+          "text": "A negative two or two is even a pretty strong outlier."
+        },
+        {
+          "n": 8,
+          "text": "And then negative one to one is your 66% average range, or percent of the population."
+        },
+        {
+          "n": 9,
+          "text": "So I don't know if that would make sense."
+        },
+        {
+          "n": 10,
+          "text": "But honestly, I don't know if zero through four means pick a number zero through four."
+        },
+        {
+          "n": 11,
+          "text": "Or if it should be, I don't know."
+        },
+        {
+          "n": 12,
+          "text": "Maybe AI is better at picking an integer rather than trying to specify a specific number zero through one, or coming up with som"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[1,12] duplicated=[]",
+      "title": "It's not bad. I'd actually say zero through three, or even negative…",
+      "bullets": [
+        "It's not bad. I'd actually say zero through three, or even negative three through three. I like the standard dev…"
+      ],
+      "tags": [
+        "#General"
+      ],
+      "flags": [
+        {
+          "sentence_n": 1,
+          "question": "did you mean 'sample'?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 3,
+          "struck_text": "It's not bad"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 26,
+      "at": "2026-10-03T00:18:24.092Z",
+      "raw": "But but back to what I was trying to say a second ago, the, the essence of the uh, task audit or really any of the ta tests, the, the uh, LLM tests, the testing the different models and the, the value of the model, really the weight of the model. That's kind of what we're trying to produce here, right? And maybe we break weights down into different components and, and then compute the... the composite weight uh, algorithmically. I think that gets pretty complex and I don't know if we want to manage all that uh, unless it really makes sense. However, you could also just put named weights next to the weight rather than try and build it as like a module or something. Anyway, the, um, what was Oh uh, yes, the the weight of each model. Like for example, the weight of each model could be a composite of its multiple thinking levels or any other configurations really. I don't know how you you how your the system's set up to do that. There's a lot of different ways where you could kind of filter down to specific thinking effort or like uh, other configuration properties if there's things like temperature or any of the other lower level LLM settings. Um, It's possible those things could have a, a strong effect on results. And so a test that might be failed or do poorly at one level is able to, you know, do really well at a different level. Uh, however, we don't have unlimited budget to test all the levels and all the models. So we want to do the best we can to kind of like get an idea, but it's, we have the different families with sub models essentially. So having trees of models and maybe doing composite rankings or something uh, could be useful. But the, the back to the essence here, the whole, the hard part is what is the truth? Like, did it do well or did it do poorly? And how well and how poorly it did is important to kind of make our decisions because we might be wrong on those, frankly, if we're just asking an AI for its opinion. So the, the key there in terms of the getting the AI to actually produce like structured uh, values is that you can compare them mathematically if it creates them properly. Like if, you, if it's a JSON format and it needs to pick like negative three, negative two, negative one, zero, maybe it's an integer, maybe, it, maybe for that one it could respond with a, a decimal or something, I don't know. But um, the, uh, Yeah, I mean, that would be more accurate to be able to respond with a decimal, like a negative 0.8 or something. I don't know. It could be confusing, though, because I'm not sure how well the AI is good at, at producing those numbers, where the integers might carry a little bit more weight, and you could explain verbally what each, you know, you could refer the skill of using, you know, the negative 3 to 3 system could explain verbally kind of the well really it's the percentage frequency or whatever so it has that but could also ex use word more verbal words like rare or outlier or extremely rare or whatever uh to kind of uh, de define those things but yeah back to the this whole thing of like concrete output so like the completeness of the task in this example um the the uh obedience essentially which is kind of like how well did it follow the prompt did it ignore a bunch of things uh And then like, well, was there a review? Like we could have that as a specific property name. And so creating the schema, creating the structured output, especially if it's like true, you know, Boolean values or numbers or uh, even strings, like you could name specific strings in terms of like, you know, what's the best part of this? Or you know, you could have like kind of more open-ended responses. Another thing that could be structurally, you know, produced is lists. So if you say like list the, you know, best parts of this task, you know, that were done, you know, the best, list the parts that are the worst, like, you know, the potential, you know, failures or, or missed, uh, you know, parts of the prompt or whatever. I mean, I mean, I guess there's a lot of different ways to slice this. I don't want to overdo it, but the whole point here is that the testing system of the AI should produce a... Well, the, through multiple tests, should be able to you know refine the value of the model to see how well it performs overall across all the different types of tasks. And then I want to be able to see on the AI page, like maybe it's a models tab. If, we, if I tab over to models, I see a little data grid of all the models, and maybe I can filter them. I'm not sure if the... Inbox view is the best, but that's kind of what I'm thinking. I just think getting the panels customizable. So like the the little data grid of models should represent all the models we've tested and probably sorted by the best ones. Now, you know, that could be overall and then there could be like, you know, the best cheap models, the best expensive models and like, you know, trying to compare apples and oranges in terms of, you know, the cost versus the benefit. That could be tricky, but, you know, and our data could would naturally be biased based on which models we've tested more and, and whatever. But um, yeah, I mean, I think have, creating a tracking system for the, and, and a structured response system. Now the, the structured responses are still opinions. So we need to make sure not to put too much weight into any feedback from any model. And it's really more the consensus. So if you have, you know, three models all responding with very similar things, the more, you know, they reference the same ideas, the more, you know, the stronger those ideas become, that becomes like a signal rather than just, you know, and then testing that over different model, uh, different providers, really, like most Anthropic models might respond very similarly to the, you know, a similar prompt. So, um, You know, testing the reasoning capability of all the models, you know, Claude's and uh, others. First, we need like a consensus or, you know, a truthful outcome that we can test against. So like, and you said that even the most basic tasks failed for a number of the models. It's like, okay, well, I think maybe our, our system failed. So I don't know if it didn't load the right skills or those skills suck, but like the instructions on how to get... A task to follow a specific skill should be pretty easy. So maybe we need to take some steps back and like really rethink all of our our systems because something doesn't seem to be working. I don't think it should fail to make a simple page, right? Like if it's a simple syntax error, maybe having a code reviewer fix simple syntax errors can help tremendously like turn the AI's, you know, mostly correct logic into actually functional code. Um, Not sure that's something we want to spend a lot of time fixing punctuation errors. If one model tends to make, you know, simple errors, you know, that should be noted in its, you know, model file or whatever. And I don't know if there's a, that should just kind of uh, be an incident or something like something to log, right? And then I don't know if we can create like a, a reliability or, or a, I don't know, some, some way to, to, it's probably like a negative weight, right? It kind of diminishes from the, uh, the overall weight because it's had some issues. But I think I'd want to be in the loop in terms of judging how serious that is and whether we want to disregard it. Because these AIs are very unpredictable and they update frequently. So one day, you know, it might not be a good idea and the other day it might work better.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "Back to what I was trying to say a second ago, the essence of the task audit or really any of the tests, the LLM tests, the testing of the different models and the value of the model, really the weight of the model."
+        },
+        {
+          "n": 2,
+          "text": "That's kind of what we're trying to produce here, right?"
+        },
+        {
+          "n": 3,
+          "text": "And maybe we break weights down into different components and then compute the composite weight algorithmically."
+        },
+        {
+          "n": 4,
+          "text": "I think that gets pretty complex and I don't know if we want to manage all that unless it really makes sense."
+        },
+        {
+          "n": 5,
+          "text": "However, you could also just put named weights next to the weight rather than try and build it as a module or something."
+        },
+        {
+          "n": 6,
+          "text": "Anyway, yes, the weight of each model."
+        },
+        {
+          "n": 7,
+          "text": "For example, the weight of each model could be a composite of its multiple thinking levels or any other configurations really."
+        },
+        {
+          "n": 8,
+          "text": "I don't know how your system's set up to do that."
+        },
+        {
+          "n": 9,
+          "text": "There's a lot of different ways where you could filter down to specific thinking effort or other configuration properties if there's things like temperature or any of the other lower-level LLM settings."
+        },
+        {
+          "n": 10,
+          "text": "It's possible those things could have a strong effect on results."
+        },
+        {
+          "n": 11,
+          "text": "And so a test that might fail or do poorly at one level is able to do really well at a different level."
+        },
+        {
+          "n": 12,
+          "text": "However, we don't have unlimited budget to test all the levels and all the models."
+        },
+        {
+          "n": 13,
+          "text": "So we want to do the best we can to get an idea, but we have the different families with sub-models essentially."
+        },
+        {
+          "n": 14,
+          "text": "So having trees of models and maybe doing composite rankings or something could be useful."
+        },
+        {
+          "n": 15,
+          "text": "But back to the essence here, the hard part is what is the truth?"
+        },
+        {
+          "n": 16,
+          "text": "Did it do well or did it do poorly?"
+        },
+        {
+          "n": 17,
+          "text": "And how well and how poorly it did is important to make our decisions because we might be wrong on those, frankly, if we're just asking an AI for its opinion."
+        },
+        {
+          "n": 18,
+          "text": "So the key there in terms of getting the AI to actually produce structured values is that you can compare them mathematically if it creates them properly."
+        },
+        {
+          "n": 19,
+          "text": "If it's a JSON format and it needs to pick negative three, negative two, negative one, zero — maybe it's an integer, maybe for that one it could respond with a decimal or something, I don't know."
+        },
+        {
+          "n": 20,
+          "text": "I mean, that would be more accurate to be able to respond with a decimal, like a negative 0.8 or something."
+        },
+        {
+          "n": 21,
+          "text": "It could be confusing, though, because I'm not sure how well the AI is good at producing those numbers, where the integers might carry a little bit more weight, and you could explain verbally what each — you could refer the skill of using the negative-3-to-3 system and explain verbally the percentage frequency or whatever, so it has that, but it could also use more verbal words like \"rare\" or \"outlier\" or \"extremely rare\" or whatever to define those things."
+        },
+        {
+          "n": 22,
+          "text": "But back to this whole thing of concrete output — the completeness of the task in this example, the obedience essentially, which is how well did it follow the prompt, did it ignore a bunch of things."
+        },
+        {
+          "n": 23,
+          "text": "And then, well, was there a review?"
+        },
+        {
+          "n": 24,
+          "text": "We could have that as a specific property name."
+        },
+        {
+          "n": 25,
+          "text": "And so creating the schema, creating the structured output, especially if it's Boolean values or numbers or even strings — you could name specific strings in terms of what's the best part of this, or you could have more open-ended responses."
+        },
+        {
+          "n": 26,
+          "text": "Another thing that could be structurally produced is lists."
+        },
+        {
+          "n": 27,
+          "text": "So if you say list the best parts of this task that were done the best, list the parts that are the worst — the potential failures or missed parts of the prompt or whatever."
+        },
+        {
+          "n": 28,
+          "text": "I mean, there's a lot of different ways to slice this."
+        },
+        {
+          "n": 29,
+          "text": "I don't want to overdo it, but the whole point here is that the testing system of the AI should produce — through multiple tests — should be able to refine the value of the model to see how well it performs overall across all the different types of tasks."
+        },
+        {
+          "n": 30,
+          "text": "And then I want to be able to see on the AI page — maybe it's a models tab — if I tab over to models, I see a little data grid of all the models, and maybe I can filter them."
+        },
+        {
+          "n": 31,
+          "text": "I'm not sure if the inbox view is the best, but that's what I'm thinking."
+        },
+        {
+          "n": 32,
+          "text": "I just think getting the panels customizable."
+        },
+        {
+          "n": 33,
+          "text": "So the little data grid of models should represent all the models we've tested and probably sorted by the best ones."
+        },
+        {
+          "n": 34,
+          "text": "That could be overall, and then there could be the best cheap models, the best expensive models, trying to compare apples and oranges in terms of the cost versus the benefit."
+        },
+        {
+          "n": 35,
+          "text": "That could be tricky, and our data would naturally be biased based on which models we've tested more and whatever."
+        },
+        {
+          "n": 36,
+          "text": "I mean, having a tracking system and a structured response system."
+        },
+        {
+          "n": 37,
+          "text": "Now, the structured responses are still opinions."
+        },
+        {
+          "n": 38,
+          "text": "So we need to make sure not to put too much weight into any feedback from any model."
+        },
+        {
+          "n": 39,
+          "text": "And it's really more the consensus."
+        },
+        {
+          "n": 40,
+          "text": "But um, yeah, I mean, I think have, creating a tracking system for the, and, and a structured response system."
+        },
+        {
+          "n": 41,
+          "text": "And then testing that over different providers, really — most Anthropic models might respond very similarly to a similar prompt."
+        },
+        {
+          "n": 42,
+          "text": "So testing the reasoning capability of all the models, Claude's and others — first, we need a consensus or a truthful outcome that we can test against."
+        },
+        {
+          "n": 43,
+          "text": "And you said that even the most basic tasks failed for a number of the models."
+        },
+        {
+          "n": 44,
+          "text": "It's like, okay, well, I think maybe our system failed."
+        },
+        {
+          "n": 45,
+          "text": "So I don't know if it didn't load the right skills or those skills suck, but the instructions on how to get a task to follow a specific skill should be pretty easy."
+        },
+        {
+          "n": 46,
+          "text": "So maybe we need to take some steps back and really rethink all of our systems because something doesn't seem to be working."
+        },
+        {
+          "n": 47,
+          "text": "I don't think it should fail to make a simple page, right?"
+        },
+        {
+          "n": 48,
+          "text": "If it's a simple syntax error, maybe having a code reviewer fix simple syntax errors can help tremendously — turn the AI's mostly correct logic into actually functional code."
+        },
+        {
+          "n": 49,
+          "text": "Not sure that's something we want to spend a lot of time fixing punctuation errors."
+        },
+        {
+          "n": 50,
+          "text": "If one model tends to make simple errors, that should be noted in its model file or whatever."
+        },
+        {
+          "n": 51,
+          "text": "And I don't know if that should just be an incident or something to log, right?"
+        },
+        {
+          "n": 52,
+          "text": "And then I don't know if we can create a reliability or some way to — it's probably a negative weight, right?"
+        },
+        {
+          "n": 53,
+          "text": "It diminishes from the overall weight because it's had some issues."
+        },
+        {
+          "n": 54,
+          "text": "But I think I'd want to be in the loop in terms of judging how serious that is and whether we want to disregard it."
+        },
+        {
+          "n": 55,
+          "text": "Because these AIs are very unpredictable and they update frequently."
+        },
+        {
+          "n": 56,
+          "text": "So one day it might not be a good idea and the other da"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[54,55,56] duplicated=[]",
+      "title": "Back to what I was trying to say a second ago, the…",
+      "bullets": [
+        "Back to what I was trying to say a second ago, the essence of the task audit or really any…"
+      ],
+      "tags": [
+        "#Page",
+        "#Refine"
+      ],
+      "flags": [
+        {
+          "sentence_n": 40,
+          "question": "The cleaned text adds or changes \"noise\", which isn't anywhere in what was actually said — is this right, or should it be reverted?",
+          "confidence": 0.5,
+          "source": "mechanical"
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 18,
+          "struck_text": "So the"
+        },
+        {
+          "sentence_n": 20,
+          "struck_text": "Yeah"
+        },
+        {
+          "sentence_n": 20,
+          "struck_text": "parts of the prompt or whatever"
+        },
+        {
+          "sentence_n": 4,
+          "struck_text": "yeah"
+        },
+        {
+          "sentence_n": 48,
+          "struck_text": "you know"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 27,
+      "at": "2026-10-03T00:26:26.183Z",
+      "raw": "Yeah, so I mean, again, summarizing the, we don't have to use negative three to three for everything. Like it's, we want to pick the right uh, kind of structured response. We want to design a structured response that's going to give us the most uh, useful information about whatever it is we're seeking. So like, you know, if we're running a test and we're trying to figure out whether the model responded properly, there's, there's kind of twofold things happening. First, there's the task, like the prompt. And then if we have tokens we want to test, you know, for, for simple prompts, it's maybe not a bad idea to test out like to, to use the task as an opportunity to test other models, especially the cheap models. And especially when we're trying to find these simple tasks that they can do reliably successfully, because that's the idea. If, if we found that the cheap and free models can't seem to do it properly, well, let's, uh, let's um, figure out how we can. And by the way, on the number of requests with the free models, you were talking like it's a thousand or something. Shouldn't there be ways to strategically reduce the number of requests? I mean, I don't think it's really the number of requests. I think it's more of like an output token type thing. But I mean, structuring a prompt as like a batch, you know, or forking it from an existing file or whatever, you know, with all the context preloaded, saves them a lot of time from doing tool calls and back and forth and stuff. That could reduce the number of requests, but I don't, it's probably the number of output tokens that really matters. Anyhow, with the testing, the, the AI model testing system, we want, and I don't know where that's documented, hopefully it's documented somewhere, but basically we, as the mastermind, you could decide for simple tasks to you to test out a new agent, for example, Maybe you want to run a sonnet and a new agent, just so we have some sort of baseline to compare it to. But uh, the new agent could then, well, both agents could try and produce structured output, um, which again, are, are opinions. However, when multiple agents converge on a specific number, especially if it's a very strong or very negative number and they both agree on it, I think that's a pretty strong signal. So um, let's work on, on kind of automating that process so that when we have tasks, um, we can, when we're using minions, especially for something like an audit or an opinion, we want to rely on a uh, structured feedback system in order to compare the results, even if it's only two, two minions. And then finding specific, if, if both minions tend to agree on that task, use that, that, you know, the weight of that task as a test, really. Not all, not all tasks need to be tests, tested against multiple agents. However, if we're running tests, you know, these, you know, tests, if we're running tasks with different minions, we should be able to like somehow flag it as a test and have a test, you know, some, maybe some additional test metadata. I'm not sure exactly the best way to build that in or if there's existing data structures around that already, but we are trying to test out the different uh, models and, and judge, having an AI judge the response of another AI in a numeric way is a very opinionated thing. And I don't know how accurate it's going to be. However, when it comes to specific aspects of it, like, you know, getting more detailed information, we might identify certain components of the review that uh, stand out as either being this or that. And so this is this is sort of like a structured feedback system. It's, it's, I don't know if it works really for code. I mean, you could ask a minion to rewrite it or something, but it might force it to just start creating some sort of abstraction that's not really necessary. You could ask it for, you know, what are the main recommendations or improvements or simplifications or, you know, just have it suggest, but those are a little bit more long form and open-ended. Um, yeah, so, so this is kind of the review process, but it's also the, you know, it should produce you know, feedback for the LLMs in terms of, and, and really more in a p true, just a, documenting the truth of what was asked and what was responded and see if we can see, find any insights from that in terms of like finding models that work, finding tasks that are very repeatable that like low, cheap end models uh, systematically complete correctly That's the objective, and we should be able to do that. Like, I don't know why that's so hard, um, but I mean, part of it is how do we know it's correct? That's the big issue. And so, like, finding tasks that have a very concrete answer, like, you know, that's where you know make recommendations or simplifications. Maybe you get similar ideas from multiple models if they're smart enough to figure that out. However, um, you know, having even simpler like fix this bug or fix this layout kind of a question, maybe there is a, a documented truth for it. Like a, a correct fix. Roughly, you know, this was way too small and it should have been like this. I don't know if uh, the AIs, again, are smart enough to like think about logic in, in the right way, especially cheap models. So maybe that's not the, the best task. I'm not sure what kind of tasks the, the minions can do. I mean, I do think reading a bunch of stuff and kind of like looking for certain patterns might not be the worst idea, but it ha they had, the LLMs would have to be able to correctly identify all of the, the things. So that's sort of the, the, the task here. It's sort of an identification task, right? Um, I haven't really thought about that word. It's not really an ID in a, data uh, data science set, but it's more of a process in an AI sense. Identification. So it's like for tasks where you want to, you're trying, it's basically you're trying to find some pattern, but you can't just query for it. It's more like doing a dig and trying to identify different instances or uses or certain patterns where we can kind of simplify things. Um, That those identification uh, tasks, especially if you word the task properly, you should be able to send a uh, a test case that most of these LLMs can succeed with. Like, well, for example, creating a page with an H1. I don't know why that failed. I think we want to review our page documentation, like the README. And honestly, like the answer to the question should just be right there in the README is like, here's an example of a simple page, like export new page and, and whatever. So like it should be so uh, completely obvious that the, any of this even simple cheap LLMs shouldn't fail it. I think it was probably our system.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "We don't have to use negative three to three for everything."
+        },
+        {
+          "n": 2,
+          "text": "We want to pick the right kind of structured response."
+        },
+        {
+          "n": 3,
+          "text": "We want to design a structured response that's going to give us the most useful information about whatever it is we're seeking."
+        },
+        {
+          "n": 4,
+          "text": "If we're running a test and we're trying to figure out whether the model responded properly, there's kind of twofold things happening."
+        },
+        {
+          "n": 5,
+          "text": "First, there's the task, the prompt."
+        },
+        {
+          "n": 6,
+          "text": "And then if we have tokens we want to test, for simple prompts, it's maybe not a bad idea to use the task as an opportunity to test other models, especially the cheap models."
+        },
+        {
+          "n": 7,
+          "text": "And especially when we're trying to find these simple tasks that they can do reliably successfully, because that's the idea."
+        },
+        {
+          "n": 8,
+          "text": "If we found that the cheap and free models can't seem to do it properly, well, let's figure out how we can."
+        },
+        {
+          "n": 9,
+          "text": "And by the way, on the number of requests with the free models, you were talking it's a thousand or something."
+        },
+        {
+          "n": 10,
+          "text": "Shouldn't there be ways to strategically reduce the number of requests?"
+        },
+        {
+          "n": 11,
+          "text": "I don't think it's really the number of requests."
+        },
+        {
+          "n": 12,
+          "text": "I think it's more of an output token type thing."
+        },
+        {
+          "n": 13,
+          "text": "But structuring a prompt as a batch, or forking it from an existing file or whatever, with all the context preloaded, saves them a lot of time from doing tool calls and back and forth and stuff."
+        },
+        {
+          "n": 14,
+          "text": "That could reduce the number of requests, but it's probably the number of output tokens that really matters."
+        },
+        {
+          "n": 15,
+          "text": "Anyhow, with the testing, the AI model testing system, and I don't know where that's documented, hopefully it's documented somewhere, but basically we, as the mastermind, you could decide for simple tasks to test out a new agent, for example."
+        },
+        {
+          "n": 16,
+          "text": "Maybe you want to run a sonnet and a new agent, just so we have some sort of baseline to compare it to."
+        },
+        {
+          "n": 17,
+          "text": "But both agents could try and produce structured output, which again, are opinions."
+        },
+        {
+          "n": 18,
+          "text": "However, when multiple agents converge on a specific number, especially if it's a very strong or very negative number and they both agree on it, I think that's a pretty strong signal."
+        },
+        {
+          "n": 19,
+          "text": "So let's work on kind of automating that process so that when we're using minions, especially for something like an audit or an opinion, we want to rely on a structured feedback system in order to compare the results, even if it's only two minions."
+        },
+        {
+          "n": 20,
+          "text": "And then if both minions tend to agree on that task, use the weight of that task as a test, really."
+        },
+        {
+          "n": 21,
+          "text": "Not all tasks need to be tested against multiple agents."
+        },
+        {
+          "n": 22,
+          "text": "However, if we're running tasks with different minions, we should be able to somehow flag it as a test and have maybe some additional test metadata."
+        },
+        {
+          "n": 23,
+          "text": "I'm not sure exactly the best way to build that in or if there's existing data structures around that already, but we are trying to test out the different models, and having an AI judge the response of another AI in a numeric way is a very opinionated thing."
+        },
+        {
+          "n": 24,
+          "text": "And I don't know how accurate it's going to be."
+        },
+        {
+          "n": 25,
+          "text": "However, when it comes to specific aspects of it, getting more detailed information, we might identify certain components of the review that stand out as either being this or that."
+        },
+        {
+          "n": 26,
+          "text": "And so this is sort of a structured feedback system."
+        },
+        {
+          "n": 27,
+          "text": "I don't know if it works really for code."
+        },
+        {
+          "n": 28,
+          "text": "You could ask a minion to rewrite it or something, but it might force it to just start creating some sort of abstraction that's not really necessary."
+        },
+        {
+          "n": 29,
+          "text": "You could ask it for what are the main recommendations or improvements or simplifications or just have it suggest, but those are a little bit more long form and open-ended."
+        },
+        {
+          "n": 30,
+          "text": "So this is kind of the review process, but it should produce feedback for the LLMs in terms of, really more in truth, just documenting the truth of what was asked and what was responded and see if we can find any insights from that in terms of finding models that work, finding tasks that are very repeatable that low, cheap end models systematically complete correctly."
+        },
+        {
+          "n": 31,
+          "text": "That's the objective, and we should be able to do that."
+        },
+        {
+          "n": 32,
+          "text": "I don't know why that's so hard, but part of it is how do we know it's correct?"
+        },
+        {
+          "n": 33,
+          "text": "That's the big issue."
+        },
+        {
+          "n": 34,
+          "text": "And so finding tasks that have a very concrete answer, that's where make recommendations or simplifications."
+        },
+        {
+          "n": 35,
+          "text": "Maybe you get similar ideas from multiple models if they're smart enough to figure that out."
+        },
+        {
+          "n": 36,
+          "text": "However, having even simpler fix this bug or fix this layout kind of a question, maybe there is a documented truth for it."
+        },
+        {
+          "n": 37,
+          "text": "A correct fix."
+        },
+        {
+          "n": 38,
+          "text": "Roughly, this was way too small and it should have been like this."
+        },
+        {
+          "n": 39,
+          "text": "I don't know if the AIs, again, are smart enough to think about logic in the right way, especially cheap models."
+        },
+        {
+          "n": 40,
+          "text": "So maybe that's not the best task."
+        },
+        {
+          "n": 41,
+          "text": "I'm not sure what kind of tasks the minions can do."
+        },
+        {
+          "n": 42,
+          "text": "I do think reading a bunch of stuff and kind of looking for certain patterns might not be the worst idea, but the LLMs would have to be able to correctly identify all of the things."
+        },
+        {
+          "n": 43,
+          "text": "So that's sort of the task here."
+        },
+        {
+          "n": 44,
+          "text": "It's sort of an identification task, right?"
+        },
+        {
+          "n": 45,
+          "text": "I haven't really thought about that word."
+        },
+        {
+          "n": 46,
+          "text": "It's not really an ID in a data science set, but it's more of a process in an AI sense."
+        },
+        {
+          "n": 47,
+          "text": "Identification."
+        },
+        {
+          "n": 48,
+          "text": "So it's for tasks where you're trying to find some pattern, but you can't just query for it."
+        },
+        {
+          "n": 49,
+          "text": "It's more like doing a dig and trying to identify different instances or uses or certain patterns where we can kind of simplify things."
+        },
+        {
+          "n": 50,
+          "text": "Those identification tasks, especially if you word the task properly, you should be able to send a test case that most of these LLMs can succeed with."
+        },
+        {
+          "n": 51,
+          "text": "For example, creating a page with an H1."
+        },
+        {
+          "n": 52,
+          "text": "I don't know why that failed."
+        },
+        {
+          "n": 53,
+          "text": "I think we want to review our page documentation, like the README."
+        },
+        {
+          "n": 54,
+          "text": "And honestly, the answer to the question should just be right there in the README: here's an example of a simple page, export new page and whatever."
+        },
+        {
+          "n": 55,
+          "text": "It should be so completely obvious that any simple cheap LLMs shouldn't fail it."
+        },
+        {
+          "n": 56,
+          "text": "I think it w"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[52,53,54,55,56] duplicated=[]",
+      "title": "We don't have to use negative three to three for everything. We…",
+      "bullets": [
+        "We don't have to use negative three to three for everything. We want to pick the right kind of structured…"
+      ],
+      "tags": [
+        "#Page",
+        "#Task"
+      ],
+      "flags": [],
+      "strikes": [
+        {
+          "sentence_n": 1,
+          "struck_text": "Yeah"
+        },
+        {
+          "sentence_n": 11,
+          "struck_text": "Shouldn't there be ways to strategically reduce the number of requests?"
+        },
+        {
+          "sentence_n": 1,
+          "struck_text": "I think it's more of like an output token type thing"
+        },
+        {
+          "sentence_n": 28,
+          "struck_text": "I don't know if it works really for code"
+        },
+        {
+          "sentence_n": 1,
+          "struck_text": "um"
+        },
+        {
+          "sentence_n": 42,
+          "struck_text": "the minions can do"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 28,
+      "at": "2026-10-03T00:28:26.274Z",
+      "raw": "Maybe we can put an AI cost score or, or sum on every page. So I don't know how we would do that. Like, so we have all these task logs and I'm not sure the what kind of data structure they are. I think there's directories and directories of tasks with you know data kind of stored in a task.jsonl or something. By the way, that whole uh, system I mean, those task logs, basically, they're like the session logs. They're kind of like an abstraction on the session log, right? And they store a lot of the data that populates the, the, da the dashboard. But we need to harmonize that system. I thought we were kind of trying to do that with, like, the, I don't know, the page was extending, like, a page log. And we, I don't know, the whole structure, the whole uh, OOP structure before. Give me a quick class... Uh, architecture of like the before and after of all the major changes that we've uh, you know where we were before and where we're planning to be even if it's in flight.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "Maybe we can put an AI cost score or sum on every page."
+        },
+        {
+          "n": 2,
+          "text": "So I don't know how we would do that."
+        },
+        {
+          "n": 3,
+          "text": "So we have all these task logs and I'm not sure what kind of data structure they are."
+        },
+        {
+          "n": 4,
+          "text": "I think there's directories and directories of tasks with data kind of stored in a task.jsonl or something."
+        },
+        {
+          "n": 5,
+          "text": "By the way, that whole system, I mean, those task logs, basically, they're like the session logs."
+        },
+        {
+          "n": 6,
+          "text": "They're like an abstraction on the session log, right?"
+        },
+        {
+          "n": 7,
+          "text": "And they store a lot of the data that populates the dashboard."
+        },
+        {
+          "n": 8,
+          "text": "But we need to harmonize that system."
+        },
+        {
+          "n": 9,
+          "text": null,
+          "omitted_raw": "I thought we were kind of trying to do that with, like, the, I don't know, the page was extending, like, a page log."
+        },
+        {
+          "n": 10,
+          "text": null,
+          "omitted_raw": "And we, I don't know, the whole structure, the whole uh, OOP structure before."
+        },
+        {
+          "n": 11,
+          "text": "Give me a quick architecture of the before and after of all the major changes — where we were before and where we're planning to be,"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[9,10] duplicated=[]",
+      "title": "Maybe we can put an AI cost score or sum on every…",
+      "bullets": [
+        "Maybe we can put an AI cost score or sum on every page. So I don't know how we would…"
+      ],
+      "tags": [
+        "#Page",
+        "#Task"
+      ],
+      "flags": [
+        {
+          "sentence_n": 9,
+          "question": "did you mean \"with the page extending a page log\" or \"where the page was extending the page log\"?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        },
+        {
+          "sentence_n": 10,
+          "question": "is this connected to the previous sentence, or were you starting a new thought about the old object-oriented structure?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 5,
+          "struck_text": "that whole uh"
+        }
+      ],
+      "misheard": [],
+      "model": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "index": 29,
+      "at": "2026-10-03T00:29:10.618Z",
+      "raw": "Uh, the master Cervix mastermind should always stay on. Like, I don't think we can afford to have it go down. It should be helping to look into any system problems. And so I, I think we need want to update the system documentation to always have a Cervix mastermind running. So I think uh, we just, just force it. Like, you know, we should have enough RAM and I think we'll figure it out. Just do it anyway.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "The Servex mastermind should always stay on."
+        },
+        {
+          "n": 2,
+          "text": "I don't think we can afford to have it go down."
+        },
+        {
+          "n": 3,
+          "text": "It should be helping to look into any system problems."
+        },
+        {
+          "n": 4,
+          "text": "And so I think we need to update the system documentation to always have a Servex mastermind running."
+        },
+        {
+          "n": 5,
+          "text": "So I think we just force it."
+        },
+        {
+          "n": 6,
+          "text": "We should have enough RAM and I think we'll figure it out."
+        },
+        {
+          "n": 7,
+          "text": "Just do it anyway."
+        }
+      ],
+      "structure": [
+        {
+          "title": "Supervision",
+          "bullets": [
+            {
+              "text": "The Servex mastermind must always stay on.",
+              "cites": [
+                1
+              ],
+              "label": "S1"
+            },
+            {
+              "text": "It's not affordable for it to go down.",
+              "cites": [
+                2
+              ],
+              "label": "S2"
+            },
+            {
+              "text": "It should look into system problems.",
+              "cites": [
+                3,
+                4
+              ],
+              "label": "S3,S4"
+            },
+            {
+              "text": "Force it — enough RAM should exist and we'll figure it out.",
+              "cites": [
+                5,
+                6,
+                7
+              ],
+              "label": "S5,S6,S7"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "Supervision",
+      "bullets": [
+        "The Servex mastermind must always stay on.",
+        "It's not affordable for it to go down.",
+        "It should look into system problems.",
+        "Force it — enough RAM should exist and we'll figure it out."
+      ],
+      "tags": [
+        "#Servex"
+      ],
+      "flags": [],
+      "strikes": [],
+      "misheard": [
+        {
+          "sentence_n": 1,
+          "from": "cervix",
+          "to": "Servex"
+        },
+        {
+          "sentence_n": 4,
+          "from": "cervix",
+          "to": "Servex"
+        }
+      ],
+      "model": "deepseek/deepseek-v4-pro"
+    }
+  ]
+}

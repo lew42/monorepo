@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/imagine/lines/",
+ "widths": {
+  "1280": {
+   "empty": 0.415,
+   "widest_text": 473,
+   "widest_text_sample": "Darker means more likely to be a line. D",
+   "overflow_x": false,
+   "items": 25,
+   "narrow_share": 0.16
+  },
+  "1920": {
+   "empty": 0.418,
+   "widest_text": 504,
+   "widest_text_sample": "Darker means more likely to be a line. D",
+   "overflow_x": false,
+   "items": 25,
+   "narrow_share": 0.16
+  },
+  "2560": {
+   "empty": 0.469,
+   "widest_text": 567,
+   "widest_text_sample": "Darker means more likely to be a line. D",
+   "overflow_x": false,
+   "items": 25,
+   "narrow_share": 0.32
+  },
+  "3440": {
+   "empty": 0.624,
+   "widest_text": 567,
+   "widest_text_sample": "Darker means more likely to be a line. D",
+   "overflow_x": false,
+   "items": 25,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

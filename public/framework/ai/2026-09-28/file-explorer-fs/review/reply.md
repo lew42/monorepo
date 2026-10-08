@@ -1,0 +1,1 @@
+1. [accept] The stale shots were an infrastructure gap (worktree never registered in .worktrees.json), not a code defect, and the author produced fresh shots from the worktree's own server showing the real tree, grip columns, the /fs/ view and the Files tab link — the files in minion-c/shots/ back this up.

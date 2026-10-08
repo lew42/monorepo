@@ -1,0 +1,1193 @@
+diff --git a/Servex/asks/Asks.js b/Servex/asks/Asks.js
+index 5fc8b152..eb32e8a8 100644
+--- a/Servex/asks/Asks.js
++++ b/Servex/asks/Asks.js
+@@ -12,6 +12,67 @@ const TICK_MS = 60000;
+ const GRACE_MS = 10 * 60000;   // after a Servex boot, restart-survival revives agents; a "gone" row is not yet final
+ const BY_TICK = "servex-asks-tick";
+ const BY_CLOSE = "servex-asks-close_task";
++const BY_CARD = "servex-asks-card";
++
++/* IS THIS ASK "MAJOR WORK" (card-pipeline, 2026-10-02 — the owner: "I never saw anything on
++ * my dashboard about [the Inbox restructure / new classes / major work]"). A plain word list on
++ * the ask's own title, OR its brief's `Budget: $N` line reading $20 or more — the same two
++ * signals a human skimming the brief would use. Kept here, not buried in a bigger function, so
++ * the words can be tuned by reading this one line, per law 7 (compute, don't recall — nothing
++ * here is a guess, it is read straight off the ask and its own brief file). */
++const MAJOR_WORDS = /\b(new class|new system|new module|new page type|core surgery|rearchitect|rewrite|restructure|redesign|overhaul|pipeline|migrat(e|ion))\b/i;
++/* Review (2026-10-02, round 2) caught the real gap: this word list, checked against only the
++ * ask's short TITLE, missed 3 of the 4 named asks of the day — their brief BODIES say "core
++ * surgery" / "a new, small module" / etc., but their titles are plain summaries. So the word
++ * list now also reads the brief text, not just the title. And a brief with no Budget line at
++ * all is still major work when a dedicated TASK MASTERMIND owns it — `task-mastermind-<slug>`
++ * is the system's own name for "this was substantial enough to spawn a whole mastermind for",
++ * as opposed to a quick-fix minion — all four of today's named asks are owned this way, which is
++ * a more honest signal than reverse-engineering more words to force a match. */
++export function is_major(ask, brief_text){
++	if (!ask) return false;
++	if (MAJOR_WORDS.test(String(ask.title ?? "")) || MAJOR_WORDS.test(String(brief_text ?? ""))) return true;
++	if (/^task-mastermind-/.test(String(ask.owner ?? ""))) return true;
++	const m = /Budget:\s*\$?\s*(\d+(?:\.\d+)?)/i.exec(String(brief_text ?? ""));
++	return !!(m && Number(m[1]) >= 20);
++}
++
++/* An ask's `words` path ("ai/2026-10-02/card-pipeline/requirements.md" or
++ * "public/framework/ai/2026-10-02/card-pipeline/requirements.md") down to its TASK DIR
++ * ("2026-10-02/card-pipeline") — the folder `ensure_card()` reads for a Budget line and a
++ * task.jsonl. `.claude/prompts/...` (the owner's own dictated brief, not a file under ai/) and
++ * anything else that doesn't resolve under `ai/` returns null — nothing to read there. */
++export function task_dir_from_words(words){
++	if (!words || String(words).startsWith(".claude/")) return null;
++	const w = String(words).replace(/\\/g, "/").replace(/^public\//, "").replace(/^framework\//, "");
++	const m = /^ai\/(.+)\/[^/]+$/.exec(w);
++	return m ? m[1] : null;
++}
++
++/* The module dirs a landed task touched ("core/Page", "ai2", "Servex/asks") — read straight off
++ * the task's own `files.jsonl` (item 5: "computed by node from the task's files.jsonl", never
++ * hand-typed). A module is: under `public/framework/`, its first TWO segments when the file
++ * sits a level deeper (`core/Page/Page.js` → `core/Page`), or just its first segment when the
++ * file sits directly in it (`ai2/rail.js` → `ai2`, `servex/page.js` → `servex`) — review found
++ * the first cut of this missed every file of the second shape, which is most of a typical task's
++ * own page.js and rail.js edits. Under a top-level `Servex/` or `Server/`, the same rule, one
++ * level down (`Servex/asks/Asks.js` → `Servex/asks`). A path through any `YYYY-MM-DD` segment
++ * names no module at all — that is a TASK'S OWN dated folder (`ai/2026-10-02/x/y.md`), which
++ * review also caught the first cut wrongly counting as module "ai/2026-10-02". */
++export function module_paths(file_lines){
++	const out = [];
++	for (const line of file_lines ?? []){
++		const f = line?.file;
++		if (typeof f !== "string") continue;
++		const segs = f.replace(/\\/g, "/").split("/");
++		if (segs.some(s => /^\d{4}-\d{2}-\d{2}$/.test(s))) continue;
++		let mod = null;
++		if (segs[0] === "public" && segs[1] === "framework" && segs.length > 3) mod = segs.length > 4 ? `${segs[2]}/${segs[3]}` : segs[2];
++		else if ((segs[0] === "Servex" || segs[0] === "Server") && segs.length > 2) mod = `${segs[0]}/${segs[1]}`;
++		if (mod && !out.includes(mod)) out.push(mod);
++	}
++	return out;
++}
+ 
+ /* THE ASKS LEDGER'S SERVEX SIDE — reads and appends to
+  * public/framework/ai/asks.jsonl, and notices when a routed ask's owner goes
+@@ -63,11 +124,13 @@ export default class Asks {
+ 	 * ledger doesn't know, or a status that isn't one of the five the system
+ 	 * understands — a typo in either would otherwise sit in the file forever,
+ 	 * since nothing here ever rewrites a line. */
+-	async mark(id, status, why, by){
++	/* `extra` (item 5): fields merged onto the status line besides the usual four — today only
++	 * `{paths}`, written once by `task_closed()` below, never required of any other caller. */
++	async mark(id, status, why, by, extra = {}){
+ 		if (!STATUSES.includes(status)) return { ok: false, why: `unknown status "${status}" — one of ${STATUSES.join(", ")}` };
+ 		const folded = await this.read();
+ 		if (!folded[id]) return { ok: false, why: `no ask "${id}"` };
+-		await this.append_line({ ask: { id, status, why: why ?? null, by: by ?? null, at: stamp() } });
++		await this.append_line({ ask: { id, status, why: why ?? null, by: by ?? null, at: stamp(), ...extra } });
+ 		return { ok: true, id, status };
+ 	}
+ 
+@@ -104,6 +167,7 @@ export default class Asks {
+ 			const folded = await this.read();
+ 			const registry = this.servex?.agents?.registry_list?.() ?? [];
+ 			for (const ask of Object.values(folded)) await this.check_one(ask, registry);
++			for (const ask of Object.values(folded)) await this.ensure_card(ask);
+ 		} catch (e){
+ 			try { await this.servex?.log?.append("servex", { type: "asks-tick-error", error: String(e?.message || e) }); } catch {}
+ 		}
+@@ -163,6 +227,46 @@ export default class Asks {
+ 		return { last_at, landed: !!state.landed_at && !!String(state.outcome ?? "").trim() };
+ 	}
+ 
++	/* ---------- ask → card (item 1): every MAJOR ask gets a card, the moment the ledger can
++	 * see it has none — no waiting for an owner to remember to run create_card by hand. ---------- */
++
++	/* One ask, checked once per tick: already has a card → nothing to do (fold_asks' `card`
++	 * field is the live truth, latest line wins). `dropped` or `parked` → nothing to do, ever —
++	 * that work was explicitly shelved, not something to surface with a fresh card today.
++	 * `landed` → only when it landed TODAY: review caught the first cut re-carding every OLD
++	 * landed, dropped or parked ask whose title happened to match a word (a parked "UI overhaul"
++	 * from weeks ago, after a routine restart re-ran every tick's history) — a card for work
++	 * that finished days ago, dated today, is exactly the noise this task exists to cut. Not
++	 * major → nothing to do. Major, no card, eligible status → `Cards.create_for_ask()` builds
++	 * the card AND its first section (the "iceberg tip") from the ask and its task's task.jsonl
++	 * in one call, then this writes back the one new `{"ask":{id,card}}` line the ledger needed
++	 * — never an edit of the ask's own first line. */
++	async ensure_card(ask){
++		if (ask.card || !this.servex?.cards) return;
++		if (ask.status === "dropped" || ask.status === "parked") return;
++		if (ask.status === "landed" && !this.same_day(ask.status_at ?? ask.at)) return;
++		const dir = task_dir_from_words(ask.words);
++		let brief_text = null;
++		if (dir) try { brief_text = await fs.promises.readFile(path.join(this.servex.cards.root, dir, path.basename(ask.words)), "utf8"); } catch {}
++		if (!is_major(ask, brief_text)) return;
++		const out = await this.servex.cards.create_for_ask({ ask, task_dir: dir });
++		if (out?.ok) await this.append_line({ ask: { id: ask.id, card: out.id, by: BY_CARD, at: stamp() } });
++		// Logged ONCE per ask id, not every 60s forever (review's finding): a persistently
++		// refused ask (no task dir ever shows up, say) would otherwise write one log line a
++		// minute for as long as Servex stays up.
++		else if (!(this.card_refused ??= new Set()).has(ask.id)){
++			this.card_refused.add(ask.id);
++			try { await this.servex?.log?.append("servex", { type: "asks-card-refused", id: ask.id, why: out?.why }); } catch {}
++		}
++	}
++
++	/* Local calendar day, not UTC — "today" is what a reader on this machine means by it. */
++	same_day(at){
++		if (!at) return false;
++		const d = new Date(at), now = new Date();
++		return Number.isFinite(d.getTime()) && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
++	}
++
+ 	/* ---------- close_task wraps: landing a task lands the asks its agent owned ---------- */
+ 
+ 	/* Wraps `servex.task_loop.close_task` once, keeping the original's return
+@@ -199,10 +303,20 @@ export default class Asks {
+ 			if (obj.assign?.agent) agent = obj.assign.agent;
+ 		}
+ 		if (!agent) return;
++		const paths = this.paths_touched(abs);
+ 		const folded = await this.read();
+ 		for (const ask of Object.values(folded))
+ 			if (ask.owner === agent && !["landed", "dropped", "parked"].includes(ask.status))
+-				await this.mark(ask.id, "landed", "owner's task closed", BY_CLOSE);
++				await this.mark(ask.id, "landed", "owner's task closed", BY_CLOSE, paths.length ? { paths } : {});
++	}
++
++	/* Item 5: the module dirs a landed task touched, read from its own `files.jsonl` (written
++	 * by the file watcher, never hand-typed here) — `[]` when the task kept no such file yet. */
++	paths_touched(abs){
++		let text;
++		try { text = fs.readFileSync(path.join(abs, "files.jsonl"), "utf8"); } catch { return []; }
++		const lines = text.split("\n").filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
++		return module_paths(lines);
+ 	}
+ }
+ 
+diff --git a/Servex/asks/asks.test.mjs b/Servex/asks/asks.test.mjs
+index ca4ec285..df4ca203 100644
+--- a/Servex/asks/asks.test.mjs
++++ b/Servex/asks/asks.test.mjs
+@@ -5,7 +5,7 @@
+ import fs from "node:fs";
+ import os from "node:os";
+ import path from "node:path";
+-import Asks from "./Asks.js";
++import Asks, { is_major, task_dir_from_words, module_paths } from "./Asks.js";
+ import { fold_asks, ask_id } from "../../public/framework/ai/asks/fold.js";
+ import { stalled } from "./stalled.js";
+ 
+@@ -130,10 +130,139 @@ async function test_mark_refuses_bad_input(){
+ 	fs.rmSync(path.dirname(file), { recursive: true, force: true });
+ }
+ 
++/* ── item 1: is_major() — the word list, and the brief's own Budget line ── */
++function test_is_major(){
++	check("a plain title is not major", is_major({ title: "Fix a typo on the footer" }) === false);
++	check("'new system' in the title is major", is_major({ title: "Asks ledger: new system for owner routing" }) === true);
++	check("'core surgery' in the title is major", is_major({ title: "Page extends Item: core surgery" }) === true);
++	check("a $50 Budget line is major even with a plain title", is_major({ title: "Fix a typo" }, "Budget: $50\n\n# Fix a typo") === true);
++	check("a $5 Budget line is not enough on its own", is_major({ title: "Fix a typo" }, "Budget: $5") === false);
++	check("no ask at all is never major", is_major(null) === false);
++	// Review round 2: a word in the BRIEF body (not just the title) still counts — this is what
++	// 3 of today's 4 real asks actually needed, since their titles are plain summaries.
++	check("'core surgery' in the BRIEF body (not the title) is major", is_major({ title: "Page extends Item" }, "## Rules\nThis is core surgery, approved.") === true);
++	// And a dedicated task mastermind owning it is major on its own, even a plain title and a
++	// brief with no Budget line at all — the system already decided this was substantial enough
++	// to spawn a whole mastermind for, which is a more honest signal than more words.
++	check("owned by a task-mastermind-* is major on its own", is_major({ title: "A plain summary", owner: "task-mastermind-panel2-sessions" }, "no budget line here") === true);
++	check("owned by a plain minion is NOT major from ownership alone", is_major({ title: "A plain summary", owner: "minion-small-fix" }, "no budget line here") === false);
++}
++
++/* task_dir_from_words() and module_paths() — the two little pure readers item 1 and 5 need. */
++function test_words_and_paths(){
++	check("words under ai/ → its task dir", task_dir_from_words("ai/2026-10-02/card-pipeline/requirements.md") === "2026-10-02/card-pipeline");
++	check("words under public/framework/ai/ → the same task dir", task_dir_from_words("public/framework/ai/2026-10-02/card-pipeline/requirements.md") === "2026-10-02/card-pipeline");
++	check("a .claude/ brief has no served task dir", task_dir_from_words(".claude/prompts/2026-09-30.jsonl") === null);
++	check("no words at all → null", task_dir_from_words(null) === null);
++	const paths = module_paths([{ file: "requirements.md" }, { file: "public/framework/core/Page/Page.js" }, { file: "public/framework/core/Page/ai/work.js" }, { file: "public/framework/ext/Panel/Panel.js" }, { file: "Servex/asks/Asks.js" }, { file: "Servex/asks/readme.md" }]);
++	check("module_paths reads the first two segments under public/framework/ AND a top-level Servex/, no duplicates", paths.join() === "core/Page,ext/Panel,Servex/asks", paths);
++	// Review (2026-10-02) caught two real bugs: a file sitting DIRECTLY in a one-segment module
++	// (rail.js in ai2/, page.js in servex/) matched nothing at all, and a task's own dated
++	// folder under ai/ (2026-10-02/card-pipeline/...) was wrongly counted as module "ai/2026-10-02".
++	const paths2 = module_paths([{ file: "public/framework/ai2/rail.js" }, { file: "public/framework/servex/page.js" }, { file: "public/framework/ai/overview.js" }, { file: "public/framework/ai/2026-10-02/card-pipeline/run-pipeline.mjs" }]);
++	check("a file directly in a one-segment module names that module (ai2, servex, ai)", paths2.join() === "ai2,servex,ai", paths2);
++	check("a task's own dated folder under ai/ never counts as a module", !paths2.includes("ai/2026-10-02"), paths2);
++}
++
++/* ── item 1, end to end: ensure_card() on a live tick ── */
++async function test_ensure_card(){
++	const file = tmpfile();
++	const dir = path.dirname(file);
++	const task_dir = "2026-10-02/fake-task", minor_dir = "2026-10-02/fake-minor";
++	fs.mkdirSync(path.join(dir, task_dir), { recursive: true });
++	fs.mkdirSync(path.join(dir, minor_dir), { recursive: true });
++	fs.writeFileSync(path.join(dir, task_dir, "requirements.md"), "Budget: $40\n\n# A fake major task");
++	fs.writeFileSync(path.join(dir, minor_dir, "requirements.md"), "Budget: $5\n\n# Fix a small label");
++	fs.writeFileSync(file, [
++		JSON.stringify({ ask: { at: "2026-10-02T10:00:00-05:00", id: "major-one", title: "A fake major task", words: `ai/${task_dir}/requirements.md`, owner: "agent-x", card: "", status: "building" } }),
++		JSON.stringify({ ask: { at: "2026-10-02T10:00:00-05:00", id: "minor-one", title: "Fix a small label", words: `ai/${minor_dir}/requirements.md`, owner: "agent-x", card: "", status: "building" } }),
++		JSON.stringify({ ask: { at: "2026-10-02T10:00:00-05:00", id: "already-carded", title: "new system already carded", owner: "agent-x", card: "2026/10/02/already-there", status: "building" } }),
++	].join("\n") + "\n");
++	// The Budget line is inside requirements.md, not at the ask's own `words` path (that path IS
++	// requirements.md here), so ensure_card must read the exact file `words` names.
++	const asks = new Asks({ file, root: dir });
++	const made = [];
++	asks.servex = { cards: { root: dir, create_for_ask: async ({ ask, task_dir: td }) => { made.push({ id: ask.id, task_dir: td }); return { ok: true, id: "2026/10/02/" + ask.id }; } } };
++
++	const folded = await asks.read();
++	for (const ask of Object.values(folded)) await asks.ensure_card(ask);
++
++	check("a major ask with no card gets one", made.some(m => m.id === "major-one"), made);
++	check("the task dir handed to create_for_ask is the ask's own task folder", made.find(m => m.id === "major-one")?.task_dir === task_dir, made);
++	check("a minor ask with no card gets nothing", !made.some(m => m.id === "minor-one"), made);
++	check("an ask that already has a card gets nothing (never re-carded, even though its title says 'new system')", !made.some(m => m.id === "already-carded"), made);
++
++	const after = await asks.read();
++	check("the new card id is written back as a status-style line, not an edit of the route line", after["major-one"].card === "2026/10/02/major-one", after["major-one"]);
++	check("the route line itself is untouched (still carries its own `at`)", after["major-one"].at === "2026-10-02T10:00:00-05:00");
++
++	fs.rmSync(dir, { recursive: true, force: true });
++}
++
++/* Review (2026-10-02) caught a flood: ensure_card() re-ran over EVERY ask in the ledger on
++ * every tick, so an old parked/dropped/landed ask whose title happened to match a word got a
++ * brand-new card dated today, the moment Servex restarted. `dropped`/`parked` never card;
++ * `landed` only cards when it landed TODAY — yesterday's landed major work stays uncarded (it
++ * already has whatever record it got at the time), but a task that landed minutes ago (like one
++ * of today's real four asks) still gets its card. */
++async function test_ensure_card_skips_old_and_shelved(){
++	const file = tmpfile();
++	const dir = path.dirname(file);
++	const yesterday = new Date(Date.now() - 26 * 3600000).toISOString();
++	const today = new Date().toISOString();
++	fs.writeFileSync(file, [
++		JSON.stringify({ ask: { at: yesterday, id: "parked-overhaul", title: "UI: /framework/ui/ overhaul (later)", owner: "agent-x", card: "", status: "parked" } }),
++		JSON.stringify({ ask: { at: yesterday, id: "dropped-rewrite", title: "A rewrite nobody wants anymore", owner: "agent-x", card: "", status: "dropped" } }),
++		JSON.stringify({ ask: { at: yesterday, id: "old-landed-redesign", title: "A redesign that landed yesterday", owner: "agent-x", card: "", status: "landed", at_route: yesterday } }),
++		JSON.stringify({ ask: { at: today, id: "today-landed-redesign", title: "A redesign that landed just now", owner: "agent-x", card: "", status: "building" } }),
++		JSON.stringify({ ask: { id: "today-landed-redesign", status: "landed", by: "x", at: today } }),
++	].join("\n") + "\n");
++	const asks = new Asks({ file });
++	const made = [];
++	asks.servex = { cards: { root: dir, create_for_ask: async ({ ask }) => { made.push(ask.id); return { ok: true, id: "2026/10/02/" + ask.id }; } } };
++
++	const folded = await asks.read();
++	for (const ask of Object.values(folded)) await asks.ensure_card(ask);
++
++	check("a parked ask never gets a card even if its title matches a word", !made.includes("parked-overhaul"), made);
++	check("a dropped ask never gets a card even if its title matches a word", !made.includes("dropped-rewrite"), made);
++	check("an ask that landed yesterday does not get a fresh card today", !made.includes("old-landed-redesign"), made);
++	check("an ask that landed TODAY still gets its card", made.includes("today-landed-redesign"), made);
++
++	fs.rmSync(dir, { recursive: true, force: true });
++}
++
++/* ── item 5: paths on the landing line, computed from the task's own files.jsonl ── */
++async function test_paths_on_landing(){
++	const file = tmpfile();
++	fs.writeFileSync(file, JSON.stringify({ ask: { at: "2026-10-02T10:00:00-05:00", title: "A task with files", owner: "agent-z", card: "", status: "building" } }) + "\n");
++	const asks = new Asks({ file });
++	const id = ask_id({ title: "A task with files" });
++
++	const taskdir = fs.mkdtempSync(path.join(os.tmpdir(), "asks-task-"));
++	fs.writeFileSync(path.join(taskdir, "task.jsonl"), JSON.stringify({ assign: { agent: "agent-z" } }) + "\n");
++	fs.writeFileSync(path.join(taskdir, "files.jsonl"), [
++		JSON.stringify({ file: "public/framework/core/Page/Page.js" }),
++		JSON.stringify({ file: "public/framework/core/Page/ai/work.js" }),
++	].join("\n") + "\n");
++
++	await asks.task_closed({ dir: taskdir });
++	const folded = await asks.read();
++	check("landing writes paths, computed from files.jsonl, no duplicates", folded[id].status === "landed" && folded[id].paths?.join() === "core/Page", folded[id]);
++
++	fs.rmSync(taskdir, { recursive: true, force: true });
++	fs.rmSync(path.dirname(file), { recursive: true, force: true });
++}
++
+ await test_fold();
+ test_stalled_rules();
+ await test_mark_once_and_speak_again();
+ await test_mark_refuses_bad_input();
++test_is_major();
++test_words_and_paths();
++await test_ensure_card();
++await test_ensure_card_skips_old_and_shelved();
++await test_paths_on_landing();
+ 
+ console.log(`\n${pass} passed, ${fail} failed`);
+ process.exit(fail ? 1 : 0);
+diff --git a/Servex/asks/readme.md b/Servex/asks/readme.md
+index 9329338b..34c1fe61 100644
+--- a/Servex/asks/readme.md
++++ b/Servex/asks/readme.md
+@@ -5,6 +5,39 @@ routed to an agent and written as one line in `public/framework/ai/asks.jsonl`.
+ of Servex that notices when that agent stops, goes quiet, or lands — so a stalled ask never just
+ sits there unseen.
+ 
++## Every major ask gets a card (card-pipeline, 2026-10-02)
++
++The owner, 2026-10-02: "I never saw anything on my dashboard about [the Inbox restructure / new
++classes / major work]." Every tick (the same 60s loop above), after checking for a stalled ask,
++`ensure_card()` looks at every ask with no `card` yet and asks `is_major(ask, brief_text)` — a
++short word list on the ask's own title ("new system", "core surgery", …), or its brief's own
++`Budget: $N` line reading $20 or more. A major ask with no card gets one, through
++`Servex/cards/Cards.js`'s `create_for_ask()` — which also writes the card's first section (the
++"asked / status / next step / three links" tip) from the ask and its task's own `task.jsonl`, so
++the card is never empty. The new card id is written back as ONE new `{"ask": {"id", "card"}}`
++line — never an edit of the ask's own route line.
++
++- `is_major(ask, brief_text)`, `task_dir_from_words(words)`, `module_paths(file_lines)` — the
++  three small pure readers this needs, exported from `Asks.js` so they are unit-tested on their
++  own, with no file I/O.
++- Every landed ask's status line now also carries `paths` (item 5): the module dirs the task
++  touched (e.g. `["core/Page", "Servex/asks"]`), computed from the task's own `files.jsonl` by
++  `task_closed()` — this is what lets a module's own page show its own asks (below) with no
++  second datastore.
++
++**Decided: the asks ledger stays the ONE ledger** — a summary file per module under
++`<module>/ai/` was considered and rejected, because it would duplicate `asks.jsonl` and go
++stale the moment the ledger grows an update line. A module's page instead reads this ledger
++straight, filtered by `paths`: [`public/framework/ai/asks/page.js`](/framework/servex/fs/?file=public/framework/ai/asks/page.js)'s
++`module_asks()`, used by [`/framework/servex/`](/framework/servex/) as the worked example.
++Review (2026-10-02) noted this reuses the ledger page's own `ask_row()`, not literally `AIRail`
++filtered by path as the brief named — still "one component, no second list" (the brief's actual
++requirement), just a lighter one than a full dashboard rail embedded inside a module page; if a
++heavier, rail-driven view is wanted later, `module_asks()` is the one place to change it. The
++Servex page's own Asks box reads empty at first ("No landed task has touched Servex yet") until
++a task lands AFTER this one — `paths` is only ever written going forward, never backfilled onto
++old landing lines, so the ledger stays append-only and nothing here rewrites history.
++
+ ## When an ask is marked stalled
+ 
+ An ask that is not landed, dropped, parked or queued is **stalled** when its owner agent is stopped or gone
+@@ -24,12 +57,20 @@ the owner as a row near the top of the AI 2 Inbox (`/framework/ai2/inbox/`), and
+ - [`stalled.js`](stalled.js) — one pure function, `stalled(ask, owner_row, now)`, that says
+   whether an ask's owner has gone quiet. The rule is written in full at the top of the file.
+ - [`Asks.js`](Asks.js) — the class Servex mounts as `servex.asks`: reads the ledger, appends
+-  status marks, and ticks every 60 s to catch a stalled or a landed ask. Also wraps
+-  `task_loop.close_task` so closing a task lands the asks its agent owned.
++  status marks, ticks every 60 s to catch a stalled or a landed ask, and (card-pipeline,
++  2026-10-02) cards a newly-major ask with none yet. Also wraps `task_loop.close_task` so
++  closing a task lands the asks its agent owned, with `paths` on that landing line.
+ - [`mark.mjs`](mark.mjs) — the CLI: `node Servex/asks/mark.mjs <id-or-title-words> <status>
+   "<why>" [--by <agent>]`, or `--list` to see every ask's id, status and owner.
+ - [`asks.test.mjs`](asks.test.mjs) — `node Servex/asks/asks.test.mjs`. No framework; prints
+   pass/fail and exits non-zero on a failure.
++- The card-pipeline task's own one-off scripts (CLI, not part of Servex's live code — the same
++  "work the ledger cold" pattern as `mark.mjs`), each `--apply`-gated so a bare run only prints:
++  [`run-pipeline.mjs`](/framework/ai/2026-10-02/card-pipeline/run-pipeline.mjs) (today's four
++  named asks get real cards), [`audit-90.mjs`](/framework/ai/2026-10-02/card-pipeline/audit-90.mjs)
++  (every card at 90+, with its reason, stale ones archived), and
++  [`audit-cards.mjs`](/framework/ai/2026-10-02/card-pipeline/audit-cards.mjs) (20 most recent
++  cards checked for an empty body or no task link, backfilled where an ask names one).
+ 
+ ## Use
+ 
+@@ -59,5 +100,13 @@ fold, it will disagree with this one the moment the ledger grows an update line.
+   `stalled()`'s dormant branch is the only place to update.
+ - **Servex writes to the main tree's `asks.jsonl`.** The file is committed, but the ticker
+   appends to the live copy, so a worktree's copy goes stale. Mark asks from the main tree.
++- **`ensure_card()` only ever adds a card; it never removes the need to route an ask.** A
++  mastermind should still write the ask's own route line (`append.mjs`, never by hand into the
++  file) the moment it starts major work — `ensure_card()` is the safety net that catches one
++  that got routed but never carded, not a replacement for routing it in the first place.
++- **`create_for_ask()` lives on `Cards.js`, separate from the general `create()`.** `create()`
++  is called all over the app for a deliberately blank card ("+ New card"), and changing it to
++  require a summary would break those dozen-plus callers — CLAUDE.md's own "ask before: major
++  surgery… anything with a dozen callers." Only the ask-pipeline path refuses an empty card.
+ - **Not `ai/council/asks.jsonl`.** That older file is the council's verdict log; same name,
+   unrelated.
+diff --git a/Servex/cards/Cards.js b/Servex/cards/Cards.js
+index a181646f..ca0f8d29 100644
+--- a/Servex/cards/Cards.js
++++ b/Servex/cards/Cards.js
+@@ -161,6 +161,62 @@ export default class Cards {
+ 		} catch (e){ return { ok: false, why: String(e.message || e) }; }
+ 	}
+ 
++	/* ---------- ask → card, the iceberg tip (card-pipeline, 2026-10-02) ---------- */
++
++	/* ONE SECTION, COMPUTED, NEVER TYPED BY AN AGENT (law 7): asked (the ask's own title),
++	 * status (from the task's own task.jsonl — "landed" once it carries a landed line, else
++	 * "building"), next step (the task's latest `log` line, or "landed"), and three links —
++	 * the brief, the task dir, and the page it built when the landing line named one
++	 * (`highlight.url`, or the first link on a `landed_at` line). Returns a markdown string, or
++	 * `null` when there is truly nothing to build one from (no task dir AND no ask title) — the
++	 * caller (`create_for_ask`) refuses rather than make an empty card. Reads the task's
++	 * `task.jsonl` straight off disk: this never needs a live Servex, so `mark.mjs`-style CLI
++	 * scripts (and the audit scripts this task also ships) can call it cold. */
++	async ask_tip(ask, task_dir){
++		if (!task_dir && !ask?.title) return null;
++		let status = "proposed", next_step = "not started yet", page_url = null;
++		if (task_dir){
++			let text = null;
++			try { text = await fs.promises.readFile(path.join(this.root, task_dir, "task.jsonl"), "utf8"); } catch {}
++			if (text){
++				let landed = false, last_log = null;
++				for (const raw of text.split("\n")){
++					if (!raw.trim()) continue;
++					let obj; try { obj = JSON.parse(raw); } catch { continue; }
++					if (obj.assign?.landed_at) landed = true;
++					if (obj.assign?.links?.length) page_url = obj.assign.links[0].url ?? page_url;
++					if (obj.log?.msg) last_log = obj.log.msg;
++				}
++				status = landed ? "landed" : "building";
++				next_step = landed ? "landed" : (last_log ?? "working — no log line yet");
++			} else { status = "proposed"; next_step = "not started yet — no task.jsonl found"; }
++		}
++		const brief_url = ask?.words && !String(ask.words).startsWith(".claude/") ? "/framework/" + String(ask.words).replace(/^\/+/, "") : null;
++		const task_url = task_dir ? this.base + task_dir + "/" : null;
++		const links = [brief_url && `[brief](${brief_url})`, task_url && `[task dir](${task_url})`, page_url && `[page](${page_url})`].filter(Boolean).join(" · ");
++		return [`**Asked:** ${ask?.title ?? "—"}`, `**Status:** ${status}`, `**Next step:** ${next_step}`, links].filter(Boolean).join("\n\n");
++	}
++
++	/* THE ONLY WAY AN ASK BECOMES A CARD (item 1–2): makes the card, THEN writes its first
++	 * section (the tip above) as a `{"chat": {"level": "summary", ...}}` line — the exact shape
++	 * `ai2/card.js`'s existing `chat()` method already understands and `refinements()` already
++	 * draws FIRST on the card's own page (one-dictation, 2026-09-30) — so no change to that file
++	 * was needed to put this section at the top; it reuses a mechanism the card page already had
++	 * (law 6: one of everything). Refuses an empty card: with no task dir and no ask title,
++	 * `ask_tip()` returns null and nothing is created. Kept SEPARATE from `create()` (never
++	 * required there) — `create()` is called all over the app for a deliberately blank card
++	 * ("+ New card"), and a dozen-plus existing callers rely on a title alone being enough,
++	 * which CLAUDE.md's "ask before: major surgery… anything with a dozen callers" rules out
++	 * changing just for this one pipeline. */
++	async create_for_ask({ ask, task_dir } = {}){
++		const tip = await this.ask_tip(ask, task_dir);
++		if (!tip) return { ok: false, why: "no task dir and no ask title to build a card from — refusing an empty card" };
++		const out = await this.create({ parent: "today", title: ask?.title, type: "request", by: "servex-asks", tags: ["ask"] });
++		if (!out.ok) return out;
++		await this.append(out.id, { chat: { level: "summary", text: tip, at: stamp(), from: { kind: "system", id: "servex-asks" } } });
++		return out;
++	}
++
+ 	/* Any one-object line: `{type}`, `{tags}`, `{status}`, `{message}`,
+ 	 * `{prompt}`, `{cites}`, `{attach}`, `{detach}`, `{legacy}` (readme.md
+ 	 * defines them). A message without `at` gets one; a NEW prompt gets its id,
+@@ -408,17 +464,33 @@ export default class Cards {
+ 		return [
+ 			this.tool("create_card",
+ 				"The ONLY way to make a card. Never build a card folder or its page.jsonl by hand — this tool picks the"
+-				+ " folder, the slug and the day, writes the card's first line and lists it in its parent. Returns"
+-				+ " `{ok, id, url, path}`, or `{ok:false, why}`.",
++				+ " folder, the slug and the day, writes the card's first line and lists it in its parent. A blank"
++				+ " `question`/`note`/`card` is fine (that is what the owner's own \"+ New card\" makes, to talk into) —"
++				+ " but a `request` or `task` card is work you are telling the owner about, so pass `summary` (what it is,"
++				+ " in a sentence or two) or `task` (a task dir under `ai/`, whose own task.jsonl becomes the summary) and"
++				+ " it becomes the card's first section; with neither, a `request`/`task` card is refused rather than"
++				+ " left empty (item 4, card-pipeline 2026-10-02: an empty request card nobody ever filled in was the"
++				+ " exact cause the audit found). Returns `{ok, id, url, path}`, or `{ok:false, why}`.",
+ 				{
+ 					parent: { type: "string", description: "Where it goes: omit (or `today`) for today's folder; a card id to make a sub-card inside that card, at any depth." },
+ 					title: { type: "string", description: "What the card is, in a few plain words. The folder name is made from it." },
+ 					type: { type: "string", description: "`question`, `request`, `task`, `note`, … Change it later with one `{\"type\": …}` line; the latest wins." },
+ 					by: { type: "string", description: "Your own agent id." },
+-					tags: { type: "array", items: { type: "string" }, description: "Projects this card belongs to. A project is a tag, not a folder." }
++					tags: { type: "array", items: { type: "string" }, description: "Projects this card belongs to. A project is a tag, not a folder." },
++					summary: { type: "string", description: "Required for `request`/`task` (optional otherwise): a sentence or two of what this card is about, written as its first section." },
++					task: { type: "string", description: "An alternative to `summary` for `request`/`task`: a task dir under `ai/` (e.g. `2026-10-02/my-task`) — its own task.jsonl computes the first section (status, next step, links) instead of you writing one." }
+ 				},
+ 				["title"],
+-				async a => say(await this.create(a))),
++				async a => {
++					if (["request", "task"].includes(a.type) && !a.summary && !a.task)
++						return say({ ok: false, why: "a request or task card needs `summary` or `task` — never an empty one; omit `type` (or use `note`/`question`) for a blank card to talk into, like \"+ New card\" makes" });
++					const out = await this.create(a);
++					if (out.ok && (a.summary || a.task)){
++						const tip = a.summary ?? await this.ask_tip({ title: a.title }, a.task);
++						if (tip) await this.append(out.id, { chat: { level: "summary", text: tip, at: stamp(), from: { kind: "system", id: a.by ?? "agent" } } });
++					}
++					return say(out);
++				}),
+ 
+ 			this.tool("read_card",
+ 				"A card's whole log, oldest line first — read it when you start work on a card, so you know everything said on it.",
+diff --git a/Servex/cards/readme.md b/Servex/cards/readme.md
+index bb480d9f..938c929c 100644
+--- a/Servex/cards/readme.md
++++ b/Servex/cards/readme.md
+@@ -20,6 +20,18 @@ ai/2026/09/24/fix-the-sidebar/wider/…      a sub-card — 2026/09/24/fix-the-s
+ - `list({view, tag})` — `view` is `today`, `open`, `all`, or a tag. Projects are tags, not folders.
+ - `on(fn)` — `fn(cardId, line, info)` hears every line appended to any card (`{fresh}` for a prompt, `{created: true}` for a create); returns a remover. A throwing listener never breaks a write.
+ - `attach(id, agent)` · `attached(id)` · `forward(id, prompt)`
++- `create_for_ask({ask, task_dir})` (card-pipeline, 2026-10-02) — the ONLY way an ask from
++  `asks.jsonl` becomes a card. Builds the card's first section (asked / status / next step /
++  three links — brief, task dir, the page it built) from the ask and its task's own
++  `task.jsonl`, via `ask_tip(ask, task_dir)`, then writes it as a `{"chat": {"level": "summary"}}`
++  line — the exact shape `ai2/card.js`'s own `chat()` already understands, and `refinements()`
++  already draws first on the card's page, so no change to that file was needed. Refuses
++  `{ok:false, why}` when `ask_tip()` has truly nothing to build from (no task dir, no ask
++  title) — never an empty card. Called by `Servex/asks/Asks.js`'s `ensure_card()`, never
++  directly by an agent.
++- `ask_tip(ask, task_dir)` — the plain function behind the section above; also reusable cold
++  (no live Servex) by a CLI script — the card-pipeline task's own audit scripts call it to
++  backfill an OLDER card that has a matching ask but never got one.
+ - `ask({card, question, options?, title?, from?})` places a Decision (with `options`) or a Question (without) — the widget the owner already answers on a card. `waiting()` reads every card's open asks back, ranked and newest first (`needs-rule.js`'s `card_needs`, the same rule the AI 2 "Needs you" tab uses); the MCP tools are `card_ask` and `list_waiting`, the HTTP route is `GET /waiting`.
+ - The moment a `chose`, `answer` or legacy `answer.ask` line lands in `append()`, it wakes whoever asked (`from` on the placed line, or every attached, live, non-minion agent when there's no `from`) with the answer.
+ - `routes(router, cors)` — `GET /cards?view=`, `GET /card?id=`, `POST /card/create`, `POST /card/append?id=`, `GET /waiting`
+@@ -82,6 +94,19 @@ a prompt or another reply — instead of the card's flat chat as a whole:
+ - **Only a new prompt is forwarded** — a merge (the cleaned reading) and a plain `message` are not, so an agent never hears the same words twice.
+ - **A day folder is dated when the card is made**, in local time, and the card never moves.
+ - **Slugs are claimed with a plain `mkdir`**, so two cards with one title at the same moment get `x` and `x-2`, never one folder.
++- **The empty-card guard lives in the `create_card` TOOL, not in `create()` itself** (review,
++  card-pipeline 2026-10-02 — the first cut put the guard only on the ask-pipeline's own
++  `create_for_ask()`, which review correctly read as not actually answering the brief: "the
++  brief named the tool's wiring"). `tools().create_card`'s handler now refuses a `request` or
++  `task` card that carries neither `summary` nor `task` — scoped to exactly those two types, so
++  "+ New card" (which calls `create()` directly over HTTP, never this tool, and never sets
++  `type`) is completely unaffected, and so is every other blank `note`/`question`/`card`. This
++  is also item 4's real fix: an empty `request`/`task` card was the writer `audit-cards.mjs`
++  found making them; this closes that writer, not just the cards it already made.
++- **`create()` itself stays permissive on purpose.** It is called all over the app (the HTTP
++  `/card/create` route, legacy sweeps, tests) for a deliberately blank card, and changing IT to
++  require a summary would be CLAUDE.md's own "ask before: major surgery… anything with a dozen
++  callers." Only the narrower tool-layer guard above, and `create_for_ask()`, ever refuse.
+ 
+ ## More
+ 
+diff --git a/Servex/cards/test.mjs b/Servex/cards/test.mjs
+index d2684867..0abb024d 100644
+--- a/Servex/cards/test.mjs
++++ b/Servex/cards/test.mjs
+@@ -248,6 +248,64 @@ check("legacy answer.ask wakes the asker", sends.some(s => s.id === "assistant-d
+ waiting = await cards.waiting();
+ check("legacy ask answered leaves waiting()", !waiting.some(w => w.card === legacyCard.id && w.ask === "ask-1"), waiting);
+ 
++// ── create_for_ask + ask_tip (card-pipeline, 2026-10-02: items 1-2) ──
++
++// No task dir and no ask title at all: refused, never an empty card.
++const emptyTip = await cards.ask_tip(null, null);
++check("ask_tip returns null with nothing to build from", emptyTip === null);
++const refused = await cards.create_for_ask({ ask: null, task_dir: null });
++check("create_for_ask refuses an empty card", refused.ok === false && /empty card/.test(refused.why), refused);
++
++// A real task dir, with a landed task.jsonl — the tip reads status, next step and the page link.
++const taskDir = "2026-10-02/fake-task";
++fs.mkdirSync(path.join(root, ...taskDir.split("/")), { recursive: true });
++fs.writeFileSync(path.join(root, ...taskDir.split("/"), "task.jsonl"),
++	[JSON.stringify({ assign: { agent: "agent-x" } }), JSON.stringify({ log: { msg: "writing the demo page" } })].join("\n") + "\n");
++const buildingAsk = { title: "A fake task", words: `ai/${taskDir}/requirements.md` };
++const buildingTip = await cards.ask_tip(buildingAsk, taskDir);
++check("ask_tip: building status, the log line as next step, brief + task links",
++	/\*\*Status:\*\* building/.test(buildingTip) && /writing the demo page/.test(buildingTip)
++	&& buildingTip.includes("[brief](/framework/" + `ai/${taskDir}/requirements.md` + ")") && buildingTip.includes(`[task dir](/framework/ai/${taskDir}/)`), buildingTip);
++
++const madeForAsk = await cards.create_for_ask({ ask: buildingAsk, task_dir: taskDir });
++check("create_for_ask makes a real card", madeForAsk.ok && madeForAsk.id === `${day}/a-fake-task`, madeForAsk);
++// Servex's own fold (ai2/fold.js) is the plain "latest wins" reading it needs for card_needs()
++// etc. — it keeps the raw `{"chat": {...}}` line as `state.chat`, not an array; the BROWSER'S
++// own Card class (ai2/card.js) is what accumulates every `chat` line into `this.chats` and
++// renders the newest "summary" one first (`refinements()`, already the first call in
++// `overview()`) — that accumulation is Card's own job, so nothing here duplicates it.
++const askedFold = await cards.fold(madeForAsk.id);
++check("the tip lands as a summary chat line on the card", askedFold.chat?.level === "summary" && /\*\*Asked:\*\* A fake task/.test(askedFold.chat.text), askedFold.chat);
++
++// Landed: task.jsonl carries a landed_at assign line and a link — next step reads "landed".
++fs.appendFileSync(path.join(root, ...taskDir.split("/"), "task.jsonl"),
++	JSON.stringify({ assign: { landed_at: stamp(), links: [{ url: "/framework/demo/", label: "Demo" }] } }) + "\n");
++const landedTip = await cards.ask_tip(buildingAsk, taskDir);
++check("ask_tip: landed status, next step says landed, page link picked up", /\*\*Status:\*\* landed/.test(landedTip) && /\*\*Next step:\*\* landed/.test(landedTip) && landedTip.includes("[page](/framework/demo/)"), landedTip);
++
++// No task dir at all, but a title: a minimal tip, not a refusal.
++const titleOnly = await cards.ask_tip({ title: "Just a title" }, null);
++check("ask_tip with a title but no task dir still returns a minimal tip, never null", titleOnly && /Asked:\*\* Just a title/.test(titleOnly) && /proposed/.test(titleOnly), titleOnly);
++
++// ── the create_card TOOL's own empty-card guard (review finding 3+4, card-pipeline 2026-10-02) ──
++// Scoped to `request`/`task` types ONLY, and only at the TOOL layer — `create()` itself (what
++// "+ New card" calls over HTTP) is untouched, so a blank conversational card still works exactly
++// as before; these all go through `tools().create_card`, the same door an agent uses.
++{
++	const toolsNow = Object.fromEntries(cards.tools().map(t => [t.name, t]));
++	const refused = JSON.parse(await toolsNow.create_card.handler({ title: "A task with nothing in it", type: "task" }));
++	check("the tool refuses an empty request/task card", refused.ok === false && /needs .summary. or .task./.test(refused.why), refused);
++	const blank = JSON.parse(await toolsNow.create_card.handler({ title: "A blank note is still fine" , type: "note" }));
++	check("a non-request/task type is never gated (a blank note still works)", blank.ok === true, blank);
++	const blankCard = JSON.parse(await toolsNow.create_card.handler({ title: "A blank card, like + New card makes" }));
++	check("no type at all (the \"+ New card\" shape) is never gated", blankCard.ok === true, blankCard);
++	const withSummary = JSON.parse(await toolsNow.create_card.handler({ title: "A real request", type: "request", summary: "Fixes the thing the owner asked about." }));
++	check("a request WITH a summary succeeds", withSummary.ok === true, withSummary);
++	const withSummaryFold = await cards.fold(withSummary.id);
++	check("the summary lands as the card's first section (a summary chat line)", withSummaryFold.chat?.level === "summary" && withSummaryFold.chat.text === "Fixes the thing the owner asked about.", withSummaryFold.chat);
++	check("create() ITSELF (the HTTP '+ New card' path) is never gated, even for type request", (await cards.create({ title: "Made via create() directly", type: "request" })).ok === true);
++}
++
+ fs.rmSync(root, { recursive: true, force: true });
+ console.log(failed ? `\n${failed} FAILED` : "\nall passed");
+ process.exitCode = failed ? 1 : 0;
+diff --git a/public/framework/ai/2026-10-02/card-pipeline/audit-90.mjs b/public/framework/ai/2026-10-02/card-pipeline/audit-90.mjs
+new file mode 100644
+index 00000000..1dabd756
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/card-pipeline/audit-90.mjs
+@@ -0,0 +1,79 @@
++// audit-90.mjs — item 3's audit: every card scoring 90+ right now, with its score and its
++// reason (the rule that fired), computed the same way `importance()` (ai2/needs-rule.js)
++// already scores every row everywhere else — never a second idea of "important". Cards whose
++// only open "need" is the heuristic kind (a card typed `question`, or one whose last message
++// ends in "?") AND whose matching ask in the ledger already landed are STALE — the owner
++// finished that work, nothing is really waiting on them — and get archived (a status line,
++// never deleted), per the brief: "a landed task is not 'needs the owner today'".
++//
++// Run from the MAIN tree so the card writes (the archive lines) land on the live board:
++//   node public/framework/ai/2026-10-02/card-pipeline/audit-90.mjs [--apply]
++// Without --apply it only PRINTS the findings — the before/after counts on the card come from
++// one --apply run.
++
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Cards from "../../../../../Servex/cards/Cards.js";
++import { card_needs, importance } from "../../../ai2/needs-rule.js";
++import { fold_asks } from "../../asks/fold.js";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const ROOT = path.resolve(HERE, "../../../../../");
++const AI_ROOT = path.resolve(ROOT, "public/framework/ai");
++const APPLY = process.argv.includes("--apply");
++
++const cards = new Cards({ root: AI_ROOT });
++
++function reason_of(need){
++	if (need.kind === "blocker") return "blocker word matched";
++	if (need.kind === "decision" || need.kind === "question") return "open ask, waiting on you";
++	if (need.ask === "card") return "card typed \"question\", unanswered";
++	if (need.ask === "last") return "last message ends in \"?\"";
++	return need.kind ?? "open";
++}
++
++async function main(){
++	const fs = await import("node:fs/promises");
++	const asksText = await fs.readFile(path.join(AI_ROOT, "asks.jsonl"), "utf8").catch(() => "");
++	const askLines = asksText.split("\n").filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
++	const asks = Object.values(fold_asks(askLines));
++	const asksByCard = new Map();
++	for (const a of asks) if (a.card) asksByCard.set(a.card, a);
++
++	const ids = await cards.walk();
++	const now = Date.now();
++	const found = [];
++	for (const id of ids){
++		const lines = await cards.read(id);
++		const folded = await cards.fold(id);
++		if (!folded || folded.status === "done" || folded.status === "archived") continue;
++		const needs = card_needs(id, lines, { title: folded.title, type: folded.type, status: folded.status, last: folded.last, created: folded.created });
++		if (!needs.length) continue;
++		const scored = needs.map(n => ({ ...n, score: importance(n, now) })).sort((a, b) => b.score - a.score);
++		const top = scored[0];
++		if (top.score < 90) continue;
++		const ask = asksByCard.get(id);
++		const heuristic_only = scored.every(n => n.ask === "card" || n.ask === "last");
++		const stale = heuristic_only && ask?.status === "landed";
++		found.push({ id, title: folded.title, score: top.score, reason: reason_of(top), stale, ask_status: ask?.status ?? null });
++	}
++
++	found.sort((a, b) => b.score - a.score);
++	console.log(`${found.length} card(s) at 90+ right now:`);
++	for (const f of found) console.log(` ${f.score}  ${f.stale ? "[STALE] " : ""}${f.id} — ${f.reason}${f.ask_status ? " (ask: " + f.ask_status + ")" : ""}`);
++
++	const stale = found.filter(f => f.stale);
++	console.log(`\n${stale.length} of those are stale (their only open "need" is the heuristic kind, and the ledger says the matching task already landed).`);
++	if (APPLY && stale.length){
++		for (const f of stale){
++			await cards.append(f.id, { status: "archived" });
++			await cards.append(f.id, { message: { by: "servex-asks", kind: "note",
++				text: "Archived by the 90+ audit (card-pipeline, 2026-10-02): this card's only open item was the automatic "
++					+ "\"looks like a question\" check, and the ledger shows its ask already landed — nothing is really waiting on you here." } });
++			console.log("archived: " + f.id);
++		}
++	}
++	return { total_90_plus: found.length, stale: stale.length, applied: APPLY };
++}
++
++main().then(r => console.log("\n" + JSON.stringify(r))).catch(e => { console.error(e); process.exit(1); });
+diff --git a/public/framework/ai/2026-10-02/card-pipeline/audit-cards.mjs b/public/framework/ai/2026-10-02/card-pipeline/audit-cards.mjs
+new file mode 100644
+index 00000000..d2ca1811
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/card-pipeline/audit-cards.mjs
+@@ -0,0 +1,86 @@
++// audit-cards.mjs — item 4: the 20 most recently active cards, checked for an empty body or no
++// task link. The CAUSE this task found: a card made for an ask (its id sits in some ask's own
++// `card` field) but never got the "iceberg tip" section — because, before this task, nothing
++// ever computed one (`ensure_card`/`create_for_ask` did not exist yet). The fix, by node, reuses
++// the exact same `ask_tip()` a brand-new card gets, so one function produces every card's first
++// section, old or new. A card with no matching ask at all is reported but left alone — there is
++// nothing real to compute a tip FROM, and inventing one would be exactly the "an AI wrote it from
++// memory" law 7 rules out.
++//
++// Run from the MAIN tree:  node public/framework/ai/2026-10-02/card-pipeline/audit-cards.mjs [--apply]
++
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import fs from "node:fs/promises";
++import Cards from "../../../../../Servex/cards/Cards.js";
++import { fold_asks } from "../../asks/fold.js";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const ROOT = path.resolve(HERE, "../../../../../");
++const AI_ROOT = path.resolve(ROOT, "public/framework/ai");
++const APPLY = process.argv.includes("--apply");
++const N = 20;
++
++const cards = new Cards({ root: AI_ROOT });
++
++/* A card's body is EMPTY when it carries none of the ways a card normally says something:
++ * a message, a prompt, a refined/chat line, plain text/description, a link, a sub-card, or a
++ * citation. "No task link" only means something for a card typed `request` or `task` — a
++ * `question`, `note` or topic card is never expected to point at a task dir, and flagging every
++ * one of those was the first version of this check, found while testing it on real cards: it
++ * flagged all 20, because most of them are mastermind-servex's own proposal/topic cards that
++ * were never meant to carry one. Narrowed to the cards the brief actually means: a request or
++ * task with none of a `links` entry, a chat summary, a cite, or a sub-card (a group of requests
++ * is its own kind of "linked to the work"). */
++function diagnose(fold){
++	const has_body = !!(fold.messages?.length || fold.prompts?.length || fold.chat || fold.text
++		|| fold.description || fold.links?.length || fold.children?.length || fold.cites?.length);
++	const work_type = fold.type === "request" || fold.type === "task";
++	const has_task_link = !!(fold.links?.length || fold.chat || fold.cites?.length || fold.children?.length);
++	return { empty: !has_body, no_task_link: work_type && !has_task_link };
++}
++
++async function main(){
++	const asksText = await fs.readFile(path.join(AI_ROOT, "asks.jsonl"), "utf8").catch(() => "");
++	const asks = Object.values(fold_asks(asksText.split("\n").filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean)));
++	const asksByCard = new Map();
++	for (const a of asks) if (a.card) asksByCard.set(a.card, a);
++
++	const recent = (await cards.list({ view: "all" })).slice(0, N);
++	const before = [];
++	for (const row of recent){
++		const fold = await cards.fold(row.id);
++		if (!fold) continue;
++		const d = diagnose(fold);
++		if (d.empty || d.no_task_link) before.push({ id: row.id, title: row.title, ...d, matching_ask: asksByCard.get(row.id)?.id ?? null });
++	}
++
++	console.log(`${recent.length} most recent cards checked. ${before.length} flagged (empty body or no task link):`);
++	for (const b of before) console.log(` ${b.id} — empty:${b.empty} no_task_link:${b.no_task_link} matching ask: ${b.matching_ask ?? "none"}`);
++
++	let fixed = 0;
++	if (APPLY){
++		for (const b of before){
++			const ask = asksByCard.get(b.id);
++			if (!ask) continue;   // the cause named above: nothing real to compute a tip from — left alone, not invented
++			const dir = /^(ai\/|public\/framework\/ai\/)/.test(ask.words ?? "") ? ask.words.replace(/^public\/framework\//, "").replace(/^ai\//, "").replace(/\/[^/]+$/, "") : null;
++			const tip = await cards.ask_tip(ask, dir);
++			if (!tip) continue;
++			await cards.append(b.id, { chat: { level: "summary", text: tip, at: new Date().toISOString(), from: { kind: "system", id: "servex-asks" } } });
++			fixed++;
++			console.log("backfilled: " + b.id);
++		}
++	}
++
++	const after = [];
++	if (APPLY) for (const row of recent){
++		const fold = await cards.fold(row.id);
++		if (!fold) continue;
++		const d = diagnose(fold);
++		if (d.empty || d.no_task_link) after.push(row.id);
++	}
++
++	return { checked: recent.length, before: before.length, fixed, after: APPLY ? after.length : null, left_alone_no_matching_ask: before.length - fixed };
++}
++
++main().then(r => console.log("\n" + JSON.stringify(r))).catch(e => { console.error(e); process.exit(1); });
+diff --git a/public/framework/ai/2026-10-02/card-pipeline/run-pipeline.mjs b/public/framework/ai/2026-10-02/card-pipeline/run-pipeline.mjs
+new file mode 100644
+index 00000000..c4591b86
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/card-pipeline/run-pipeline.mjs
+@@ -0,0 +1,82 @@
++// run-pipeline.mjs — the proof for items 1-2: run the REAL pipeline code (Asks.ensure_card +
++// Cards.create_for_ask) over today's four named asks, so each card that appears exists because
++// the code made it, not because an agent typed it by hand.
++//
++// Run this from wherever it lives — main tree or worktree — it always resolves paths from its
++// own file location (`import.meta.url`), never the caller's cwd, so `node .../run-pipeline.mjs`
++// works the same from any directory. It is NOT a live Servex tick: it is the same one-off-CLI
++// pattern `Servex/asks/mark.mjs` already uses to work the ledger without a running Servex.
++//
++// ⚠ Cards/asks are the MAIN tree's live state (Servex/asks/readme.md: "Servex writes to the
++// main tree's asks.jsonl... mark asks from the main tree"). Run this from the MAIN checkout —
++// C:\Code\lew42\monorepo — not a worktree, or it will read/write a stale copy nobody sees.
++//
++// Usage: node public/framework/ai/2026-10-02/card-pipeline/run-pipeline.mjs [--dry]
++
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Asks from "../../../../../Servex/asks/Asks.js";
++import Cards from "../../../../../Servex/cards/Cards.js";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const ROOT = path.resolve(HERE, "../../../../../");       // repo root
++const AI_ROOT = path.resolve(ROOT, "public/framework/ai");
++const ASKS_FILE = path.join(AI_ROOT, "asks.jsonl");
++const DRY = process.argv.includes("--dry");
++
++// Today's four named asks (card-pipeline/requirements.md, "Then"). Two of the four
++// (ai-system-docs, framework-home) had no route line in the ledger at all — written here
++// through `append_line` (never by hand into the file), so the ledger has an entry for every
++// major ask of the day, which is the exact bug this task fixes.
++const TODAY_IDS = ["page-extends-item-build", "panel2-sessions", "ai-system-docs", "framework-home"];
++
++const asks = new Asks({ file: ASKS_FILE });
++const cards = new Cards({ root: AI_ROOT });
++asks.servex = { cards };
++
++async function ensure_routed(){
++	const folded = await asks.read();
++	const missing = [];
++	if (!folded["ai-system-docs"]) missing.push({
++		ask: { at: "2026-10-02T18:12:43-05:00", id: "ai-system-docs",
++			title: "AI system docs: the System tab now explains the whole thing",
++			words: "ai/2026-10-02/ai-system-docs/requirements.md",
++			owner: "task-mastermind-ai-system-docs", card: "", status: "landed",
++			note: "owner (mobile): 'link me to our system documentation'; landed same day" } });
++	if (!folded["framework-home"]) missing.push({
++		ask: { at: "2026-10-02T00:00:00-05:00", id: "framework-home",
++			title: "framework: new home page, dark class cards, sprawl layout",
++			words: "ai/2026-10-02/framework-home/requirements.md",
++			owner: "task-mastermind-framework-home",
++			card: "2026/10/02/framework-home-sections-dark-class-cards", status: "building",
++			note: "card already existed, made by hand before this pipeline; this line gives it a real ask route" } });
++	for (const line of missing){
++		console.log((DRY ? "[dry] would route: " : "routing: ") + line.ask.id);
++		if (!DRY) await asks.append_line(line);
++	}
++	return missing.length;
++}
++
++async function run(){
++	const routed = await ensure_routed();
++	// Review round 2's own finding: the first cut of this script skipped `is_major()` for these
++	// four, which meant "the pipeline made the cards" wasn't actually true — a script was just
++	// told to. Fixed at its root (is_major() now also reads the brief TEXT, and treats a
++	// `task-mastermind-*` owner as its own major signal, which is honestly what all four of
++	// today's asks share) — so this calls the EXACT SAME `ensure_card()` the live 60s tick
++	// calls, nothing re-implemented here, nothing gated out.
++	if (!DRY) for (const id of TODAY_IDS){
++		const ask = (await asks.read())[id];
++		if (ask) await asks.ensure_card(ask);
++	}
++	const folded = await asks.read();
++	const report = TODAY_IDS.map(id => {
++		const ask = folded[id];
++		if (!ask) return { id, result: "not in the ledger" };
++		if (!ask.card) return { id, result: DRY ? "[dry] not checked" : "ensure_card left it uncarded — see is_major()" };
++		return { id, result: "has a card", card: ask.card, by_this_run: ask.history?.at(-1)?.by === "servex-asks-card" };
++	});
++	console.log(JSON.stringify({ routed_missing_lines: routed, today: report }, null, 2));
++}
++
++run().catch(e => { console.error(e); process.exit(1); });
+diff --git a/public/framework/ai/asks/fold.js b/public/framework/ai/asks/fold.js
+index 2a8e824e..79c45891 100644
+--- a/public/framework/ai/asks/fold.js
++++ b/public/framework/ai/asks/fold.js
+@@ -7,7 +7,9 @@
+  * Each line in the ledger is `{"ask": {...}}`. The first line for an id is the
+  * ROUTE: `at` (when it was routed), `title`, `words` (the brief file), `owner`
+  * (the agent id), `card`, `status` ("routed"). A later line is a STATUS
+- * UPDATE, written by `Asks.mark()`: `{id, status, why, by, at}`, plus `card` or `words` when it corrects a route. Anything that
++ * UPDATE, written by `Asks.mark()`: `{id, status, why, by, at}`, plus `card` or `words` when it
++ * corrects a route, or `paths` (the module dirs a landed task touched, e.g. `["core/Page"]`) on
++ * the landing line. Anything that
+  * isn't `{"ask": {...}}` (a stray blank line, a line for another ledger) is
+  * skipped. */
+ 
+@@ -56,6 +58,10 @@ export function fold_asks(lines){
+ 			// carries the right one (or "" for none) — the ledger never rewrites the first line.
+ 			if (ask.card !== undefined) out[id].card = ask.card;
+ 			if (ask.words !== undefined) out[id].words = ask.words;
++			// Item 5 (card-pipeline, 2026-10-02): the module dirs a landed task touched,
++			// written once by Asks.js's `task_closed()` from the task's own files.jsonl —
++			// a module's own page reads this straight off the ledger, never a copy.
++			if (ask.paths !== undefined) out[id].paths = ask.paths;
+ 		}
+ 		out[id].history.push({ status: ask.status ?? null, why: ask.why ?? null, by: ask.by ?? null, at: ask.at ?? null });
+ 	}
+diff --git a/public/framework/ai/asks/page.js b/public/framework/ai/asks/page.js
+index da89e2c0..261189ec 100644
+--- a/public/framework/ai/asks/page.js
++++ b/public/framework/ai/asks/page.js
+@@ -1,7 +1,13 @@
+-import { Page, View, div, p, span, small, a, details, summary } from "/app.js";
++import { Page, View, div, p, span, small, a } from "/app.js";
+ import { icon } from "/framework/core/View/View.js";
+ import { page_work_strip } from "/framework/core/Page/ai/work.js";
+ import { fold_asks } from "./fold.js";
++import { ask_row } from "./rows.js";
++
++// `module_asks()` moved to `rows.js` (review, 2026-10-02): a module's own page.js wants the row
++// look here without also running this file's `export default new Page({...})` as a side effect
++// of importing it. Still exported here too, so an existing `from "./page.js"` import keeps working.
++export { ask_row, module_asks } from "./rows.js";
+ 
+ View.stylesheet(import.meta, "asks.css");
+ 
+@@ -27,27 +33,6 @@ const read_text = url => fetch(url, { cache: "no-store" }).then(r => (r.ok ? r.t
+ const parse_lines = text => String(text ?? "").split(/\r?\n/).filter(l => l.trim())
+ 	.map(l => { try { return JSON.parse(l); } catch { return null; } });
+ 
+-function hours_since(at){
+-	const t = at ? Date.parse(at) : NaN;
+-	return Number.isFinite(t) ? Math.max(0, (Date.now() - t) / 3600000) : NaN;
+-}
+-
+-/** A plain "3.2 h ago" / "2 d ago" — the same words `needs.js`'s own stalled rows use. */
+-function age_words(at){
+-	const h = hours_since(at);
+-	if (!Number.isFinite(h)) return "";
+-	if (h < 1) return Math.round(h * 60) + " min ago";
+-	if (h < 48) return h.toFixed(1) + " h ago";
+-	return Math.round(h / 24) + " d ago";
+-}
+-
+-/** A ledger path ("ai/2026-09-30/x/owner-words.md") as a served url — or `null` when it
+- *  isn't served at all (`.claude/prompts/...`), shown as plain text next to the row instead. */
+-function words_url(words){
+-	if (!words || words.startsWith(".claude/")) return null;
+-	return "/framework/" + String(words).replace(/^\/+/, "");
+-}
+-
+ function count_strip($box, asks, status){
+ 	$box.empty(() => {
+ 		GROUP_ORDER.forEach(g => {
+@@ -78,29 +63,6 @@ function groups_box($box, asks, status){
+ 	});
+ }
+ 
+-function ask_row(ask){
+-	const words = words_url(ask.words);
+-	div.c("asks-row card pad", () => {
+-		div.c("asks-row-head flex v-center gap-25", () => {
+-			span.c("asks-row-title").text(ask.title || "Untitled ask");
+-			small.c("asks-row-age muted").text(age_words(ask.status_at ?? ask.at));
+-		});
+-		div.c("asks-row-meta flex wrap gap-25 muted", () => {
+-			small.c("asks-row-owner").text("owner " + (ask.owner || "—"));
+-			if (ask.card) a.c("page-link").href("/framework/ai2/" + ask.card + "/").text("card");
+-			if (words) a.c("page-link").href(words).text("words");
+-			else if (ask.words) small.c("asks-row-owner").text(ask.words);
+-		});
+-		if (ask.status === "stalled" && ask.why) small.c("asks-row-why muted").text(ask.why);
+-		if (ask.history?.length > 1) details.c("asks-row-history", () => {
+-			summary.c("muted").text(ask.history.length + " updates");
+-			ask.history.forEach(h => {
+-				div.c("asks-row-hist-line muted").text([h.status, h.by, h.at, h.why].filter(Boolean).join(" · "));
+-			});
+-		});
+-	});
+-}
+-
+ let set_status = () => {};
+ 
+ export default new Page({
+diff --git a/public/framework/ai/asks/rows.js b/public/framework/ai/asks/rows.js
+new file mode 100644
+index 00000000..1fdec3f4
+--- /dev/null
++++ b/public/framework/ai/asks/rows.js
+@@ -0,0 +1,87 @@
++/* ask_row() and module_asks() — split out of asks/page.js (review, card-pipeline 2026-10-02):
++ * importing a Page module for one function also runs its `export default new Page({...})`, a
++ * side effect a non-page caller (a module's own page.js wanting its own "Asks" section) has no
++ * reason to pay for. This file has no `Page` in it at all, just the shared ROW LOOK and the
++ * module filter — the ledger's own page (`page.js`) imports `ask_row` from here now too, so
++ * there is still only one way an ask row is drawn, never two copies of it. */
++import { div, span, small, a, details, summary } from "/app.js";
++import { fold_asks } from "./fold.js";
++
++const ASKS_URL = "/framework/ai/asks.jsonl";
++const read_text = url => fetch(url, { cache: "no-store" }).then(r => (r.ok ? r.text() : "")).catch(() => "");
++const parse_lines = text => String(text ?? "").split(/\r?\n/).filter(l => l.trim())
++	.map(l => { try { return JSON.parse(l); } catch { return null; } });
++
++function hours_since(at){
++	const t = at ? Date.parse(at) : NaN;
++	return Number.isFinite(t) ? Math.max(0, (Date.now() - t) / 3600000) : NaN;
++}
++
++/** A plain "3.2 h ago" / "2 d ago" — the same words `needs.js`'s own stalled rows use. */
++function age_words(at){
++	const h = hours_since(at);
++	if (!Number.isFinite(h)) return "";
++	if (h < 1) return Math.round(h * 60) + " min ago";
++	if (h < 48) return h.toFixed(1) + " h ago";
++	return Math.round(h / 24) + " d ago";
++}
++
++/** A ledger path ("ai/2026-09-30/x/owner-words.md") as a served url — or `null` when it
++ *  isn't served at all (`.claude/prompts/...`), shown as plain text next to the row instead. */
++function words_url(words){
++	if (!words || words.startsWith(".claude/")) return null;
++	return "/framework/" + String(words).replace(/^\/+/, "");
++}
++
++/** ONE ASK, as a row: its title, owner, age, a link to its card and to its own words, and its
++ *  history folded under a "N updates" disclosure. The asks ledger's own page uses this, and so
++ *  does any module's filtered view (`module_asks()` below) — one look, never drawn twice. */
++export function ask_row(ask){
++	const words = words_url(ask.words);
++	div.c("asks-row card pad", () => {
++		div.c("asks-row-head flex v-center gap-25", () => {
++			span.c("asks-row-title").text(ask.title || "Untitled ask");
++			small.c("asks-row-age muted").text(age_words(ask.status_at ?? ask.at));
++		});
++		div.c("asks-row-meta flex wrap gap-25 muted", () => {
++			small.c("asks-row-owner").text("owner " + (ask.owner || "—"));
++			if (ask.card) a.c("page-link").href("/framework/ai2/" + ask.card + "/").text("card");
++			if (words) a.c("page-link").href(words).text("words");
++			else if (ask.words) small.c("asks-row-owner").text(ask.words);
++		});
++		if (ask.status === "stalled" && ask.why) small.c("asks-row-why muted").text(ask.why);
++		if (ask.history?.length > 1) details.c("asks-row-history", () => {
++			summary.c("muted").text(ask.history.length + " updates");
++			ask.history.forEach(h => {
++				div.c("asks-row-hist-line muted").text([h.status, h.by, h.at, h.why].filter(Boolean).join(" · "));
++			});
++		});
++	});
++}
++
++/** A MODULE'S OWN ASKS — a FILTERED VIEW of this one ledger, never a second list (item 5,
++ *  card-pipeline 2026-10-02: "each module should have data about the requests made of it,
++ *  without duplicating data" — decided: `asks.jsonl` stays the one ledger; a per-module summary
++ *  file was rejected, see `Servex/asks/readme.md`). `prefix` is a module dir exactly as it
++ *  appears in an ask's own `paths` field (e.g. `"core/Page"`, `"Servex/asks"`) — written once,
++ *  at landing time, by `Servex/asks/Asks.js`'s `task_closed()`, computed from the task's own
++ *  `files.jsonl`, never hand-typed. Any module's `page.js` calls this with a box it already
++ *  captured (no DOM after an await — CLAUDE.md's own trap) and gets back the SAME row look above,
++ *  so there is only ever one way an ask row looks. Matched case-INSENSITIVELY (review,
++ *  2026-10-02): `module_paths()` (`Asks.js`) names `public/framework/servex/page.js`'s own
++ *  module lowercase (`"servex"`), distinct from the top-level `Servex/` server code it shares a
++ *  name with by coincidence — a reader of either page still expects "did a task touch ME" to
++ *  work regardless of that one path's casing. */
++export function module_asks($into, prefix){
++	const low = prefix.toLowerCase();
++	read_text(ASKS_URL).then(text => {
++		const asks = Object.values(fold_asks(parse_lines(text)))
++			.filter(a => (a.paths ?? []).some(p => { const pl = p.toLowerCase(); return pl === low || pl.startsWith(low + "/"); }))
++			.sort((x, y) => Date.parse(y.status_at ?? y.at ?? 0) - Date.parse(x.status_at ?? x.at ?? 0));
++		$into.empty(() => {
++			if (!asks.length) return void small.c("muted").text("No landed task has touched " + prefix + " yet.");
++			asks.forEach(ask => ask_row(ask));
++		});
++	});
++	return $into;
++}
+diff --git a/public/framework/ai2/rail.js b/public/framework/ai2/rail.js
+index 558b48ba..20219e33 100644
+--- a/public/framework/ai2/rail.js
++++ b/public/framework/ai2/rail.js
+@@ -8,7 +8,8 @@ import { news_of, group_news, unseen } from "./activity.js";
+ import { plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
+ import composer from "./compose.js";
+ import Card, { card_link } from "./card.js";
+-import { watch_needs, score_for } from "./needs.js";
++import { watch_needs, score_for, needs_for } from "./needs.js";
++import { importance, is_blocker } from "./needs-rule.js";
+ import chat from "./chat.js";
+ import mount_chat from "/framework/ux/Dictate/chat.js";
+ import { LIVE, live_model, live_full, usage_head } from "./live.js";
+@@ -26,6 +27,26 @@ View.stylesheet(import.meta, "rail.css");
+ /* Servex down: the page is read-only — "+ New card" quietly goes away. */
+ servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.createElement("style"), { textContent: "@layer site { .ai2-newcard { display: none } }" })); });
+ 
++/* THE REASON NEXT TO THE NUMBER (card-pipeline, 2026-10-02, item 3: "the items above 90 seem
++ * arbitrary"). `importance()` (`needs-rule.js`) already picks a number with a written-down rule
++ * for every band — this just names, in five words or fewer, WHICH branch of that rule actually
++ * fired for this row, read straight off the same open needs `score_for()` already looked at
++ * (never a second idea of the score). A row with nothing open (a plain card, a note, a landed
++ * task) gets a plainer reason from how recently it changed, the same freshness rule `importance()`
++ * itself uses for that case. The full band legend, in prose: this module's own readme. */
++function reason_for(it, now = Date.now()){
++	const open = it.kind === "stalled" ? null : needs_for(it.id);
++	const top = open?.length ? open.reduce((a, b) => (importance(b, now) > importance(a, now) ? b : a)) : null;
++	if (top){
++		if (top.kind === "blocker" || is_blocker(top.title, top.question)) return "blocker word matched";
++		if (top.kind === "decision" || top.kind === "question") return top.from_live ? "open ask, agent waiting" : "open ask, waiting on you";
++	}
++	if (it.kind === "stalled") return "owner agent gone quiet";
++	const hours = (now - Date.parse(it.at ?? 0)) / 3600000;
++	if (Number.isFinite(hours) && hours < 24) return "recently active";
++	return "routine, resting score";
++}
++
+ const AUTO_KEY = "ai2-auto-transcribe";
+ const LIVEVIEW_KEY = "ai2-live-default";
+ // `Inbox.Rail.prototype` — its try/catch localStorage helpers (`store_get`/`store_set`),
+@@ -163,6 +184,9 @@ export default class AIRail extends Inbox.Rail {
+ 			it.unread = it.kind === "live" ? true : it.id === "now" ? false : !is_read(it.id);
+ 			// ⚠ `?? it.score`: `score_for()` only answers "needs you" and is null for most rows.
+ 			if (it.kind !== "stalled") it.score = score_for(it.id) ?? it.score;
++			// THE REASON NEXT TO THE NUMBER (item 3) — the rule that set this row's score,
++			// in five words, shown right beside it in `face_extra()` below.
++			it.reason = reason_for(it);
+ 		});
+ 	}
+ 
+@@ -226,6 +250,9 @@ export default class AIRail extends Inbox.Rail {
+ 
+ 	face_extra(it){
+ 		meter(it.progress, it.usd, it.usd_open);
++		// The reason beside the score (item 3) — only worth a line once the row carries a
++		// score at all; a plain "0" row (nothing ranked it) says nothing extra.
++		if (it.score != null && it.reason) small.c("ai2-row-reason muted").attr("title", "the rule that set this row's score").text(it.reason);
+ 		if (it.news) news_bar(it.news);
+ 	}
+ 
+diff --git a/public/framework/ai2/readme.md b/public/framework/ai2/readme.md
+index a8ed4de9..cbe6c26d 100644
+--- a/public/framework/ai2/readme.md
++++ b/public/framework/ai2/readme.md
+@@ -103,6 +103,25 @@ is the SYSTEM's own question (the heartbeat revives or stops a stalled task, and
+ mastermind decides), never the owner's, so it is filtered out (2026-09-30) — it still shows, and
+ still answers, on the card's own page.
+ 
++**The priority score, band by band** (card-pipeline, 2026-10-02 — the owner: "the items above 90
++seem arbitrary"). Every row's 0-100 number comes from one function, `importance()`
++([`needs-rule.js`](./needs-rule.js)), read by the Inbox floor (90), the Needs you tab and the
++asks ledger's own page alike — so the bands below are the WHOLE rule, not a summary of it:
++
++- **97-100 · Blocker** — a key, money, or something destructive is waiting on you right now.
++- **90-96 · Blocked** — an open question or decision an agent is actually, currently waiting on.
++- **40-55 · Plain ask** — an open question or decision, but nobody is known to be waiting on it.
++- **15-35 · Stalled** — an agent went quiet; Servex is already reviving it, nothing for you to do.
++- **30 · Decided** — the system already chose something; this row is only telling you.
++- **10 · FYI / default** — a note, a routine update, or a landed task nobody is waiting on.
++
++On top of whichever band above applies, any row can be LIFTED into the low 90s for about a day
++after it last changed — "may show briefly," as the owner put it — fading back down to its own
++band by about 24 hours old. This is why a 92 doesn't always mean "blocked": the number alone
++can't say which rule fired, which is exactly why every row also shows its own written-out
++**reason** right beside it (`rail.js`'s `reason_for()`), never just the number. An audit of every card sitting at 90+ right now, with its reason, and which ones had gone
++stale (a landed task still reading "needs the owner today"): [`ai/2026-10-02/card-pipeline/`](/framework/ai/2026-10-02/card-pipeline/).
++
+ **2026-09-30, latest: "Needs you" moved off the tab strip, onto the rail itself.** It is now the
+ rail's own filter checkbox — relabelled "Needs you" (was "Needs review"), right beside "+ New
+ card" — and carries a small count badge, hidden at zero, the same one the tab used to wear. The
+diff --git a/public/framework/servex/page.js b/public/framework/servex/page.js
+index 3fb6a34b..c46b2acd 100644
+--- a/public/framework/servex/page.js
++++ b/public/framework/servex/page.js
+@@ -1,4 +1,5 @@
+-import { Doc, md, file_link } from "/app.js";
++import { Doc, md, div, h2, file_link } from "/app.js";
++import { module_asks } from "/framework/ai/asks/rows.js";
+ 
+ // Servex's own source lives OUTSIDE `public/`, so it needs its own small route to be
+ // readable at all — `Server/plugins/DevSource.js` (dev server only) and the page
+@@ -29,5 +30,13 @@ export default new Doc({
+ - **Lifecycle** — what's left running (servers, agents, worktrees) and the reaper that closes it: [Lifecycle](/framework/servex/lifecycle/)`);
+ 
+ 		md(`Detail for every part: [Servex/readme.md](${file_link("Servex/readme.md")}) and [Servex/agents/readme.md](${file_link("Servex/agents/readme.md")}).`);
++
++		// THIS MODULE'S OWN ASKS (item 5, card-pipeline 2026-10-02) — a filtered read of the
++		// ONE ledger, `asks.jsonl`, never a second list: `module_asks()` is the exact same
++		// row the ledger's own page draws, just narrowed to asks whose landed task touched
++		// `Servex/`. Every other module's page.js gets this section the same one-call way.
++		h2("Asks");
++		md("Every owner ask whose landed task touched `Servex/` (the server code, e.g. `Servex/asks`, `Servex/cards`) — a filtered view of [the one ledger](/framework/ai/asks/), not a copy.");
++		module_asks(div.c("card pad"), "Servex");
+ 	},
+ });

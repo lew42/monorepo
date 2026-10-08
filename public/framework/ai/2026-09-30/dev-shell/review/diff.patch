@@ -1,0 +1,598 @@
+diff --git a/public/framework/core/Shell/Shell.css b/public/framework/core/Shell/Shell.css
+index da8b4095..f06200ae 100644
+--- a/public/framework/core/Shell/Shell.css
++++ b/public/framework/core/Shell/Shell.css
+@@ -10,14 +10,28 @@
+ @layer theme {
+ 
+ 	.core-shell-grid {
++		--core-shell-col-left: auto;
++		--core-shell-col-right: auto;
+ 		display: grid;
+ 		grid-template-areas: "head head head" "left main right" "foot foot foot";
+-		grid-template-columns: auto 1fr auto;
++		grid-template-columns: var(--core-shell-col-left) 1fr var(--core-shell-col-right);
+ 		grid-template-rows: auto 1fr auto;
+ 		height: 100%;
+ 		min-height: 0;
+ 	}
+ 
++	/* The two rail COLUMNS get a real, explicit size — `clamp(12rem, …, 50%)`
++	   — only once a rail actually exists (`:has()`, below); with no rail the
++	   column stays the literal keyword `auto`, which still collapses to zero
++	   width with nothing in it, the same "no content, no box" trick the rest
++	   of this file uses. Why the column, and not the ITEM's own `width`, carries
++	   the clamp now: doc/decisions.md ("the left/right clamp used to floor at
++	   12rem inside a demo stage"). */
++	@media (width >= 34em) {
++		.core-shell-grid:has(> .core-shell-left) { --core-shell-col-left: clamp(12rem, var(--core-shell-left-w, 18rem), 50%); }
++		.core-shell-grid:has(> .core-shell-right) { --core-shell-col-right: clamp(12rem, var(--core-shell-right-w, 18rem), 50%); }
++	}
++
+ 	.core-shell-head { grid-area: head; min-height: 2rem; display: flex; align-items: center; gap: 0.5em; padding-inline: 0.75em; border-block-end: 1px solid var(--line); }
+ 	.core-shell-foot { grid-area: foot; min-height: 2rem; display: flex; align-items: center; gap: 0.5em; padding-inline: 0.75em; border-block-start: 1px solid var(--line); }
+ 
+@@ -25,18 +39,18 @@
+ 	   `ext/grip`'s own absolutely-positioned strip sit inside this box rather
+ 	   than straddling its edge (grip's own doc/decisions.md says why: a strip
+ 	   hanging outside survives a shut rail as an invisible resize column). The
+-	   width is one custom property, set by a drag or a restored one
+-	   (`Shell.size()`) and inherited down from the shell's own root element —
+-	   never written on this box directly, so it stays right if the WINDOW
+-	   changes size mid-drag rather than the width last asked for (the same
+-	   clamp-lives-in-CSS rule `core/Sidebar` and `/layouts/shell/` both use). */
++	   WIDTH is `auto` on purpose — the box just fills whatever the grid already
++	   decided its column is (above), rather than sizing itself a second time;
++	   the custom property a drag or a restored size writes (`Shell.size()`) is
++	   read once, by the column itself, not by this box. */
+ 	.core-shell-left, .core-shell-right {
+ 		position: relative;
+ 		min-width: 0;
++		width: auto;
+ 		overflow: auto;
+ 	}
+-	.core-shell-left { grid-area: left; width: clamp(12rem, var(--core-shell-left-w, 18rem), 50%); border-inline-end: 1px solid var(--line); }
+-	.core-shell-right { grid-area: right; width: clamp(12rem, var(--core-shell-right-w, 18rem), 50%); border-inline-start: 1px solid var(--line); }
++	.core-shell-left { grid-area: left; border-inline-end: 1px solid var(--line); }
++	.core-shell-right { grid-area: right; border-inline-start: 1px solid var(--line); }
+ 
+ 	.core-shell-main { grid-area: main; min-width: 0; min-height: 0; overflow: auto; }
+ 
+@@ -47,6 +61,56 @@
+ 	   one level further to give it one. */
+ 	.core-shell-main > .core-shell-grid { height: 100%; }
+ 
++	/* `paper: true` — a real nine-grid instead of the plain one above:
++	     .     head   .
++	     left  main   right
++	     .     foot   .
++	   `main` is the "paper" (white, bordered, a small radius); `head`,
++	   `foot`, `left`, `right` and the four empty corners around them are the
++	   "well" (gray). The default grid's `head head head` / `foot foot foot`
++	   areas span every column — paper mode narrows them to the middle column
++	   only, so `head`/`foot` line up with `main`'s own left edge instead of
++	   floating over `left` too. The corners need no box of their own: "."  in
++	   `grid-template-areas` is a cell with no named area, so it just shows
++	   the grid's own `--well` background through the gap — the same
++	   "no content, no box" trick the plain grid already uses for a region
++	   nobody filled in.
++	   `--well` was the exact value `ai2.css` and `ext/Doc/Doc.css` already use
++	   for their own gray header bands — a translucent `rgba()`. But every
++	   demo on this site sits on `.checkered` (`framework.css`), a
++	   checkerboard of `--tint` and transparent squares, and a translucent
++	   well painted over THAT checkerboard shows the checker squares through
++	   it instead of reading as one solid gray (shell-paper-demo, 2026-09-30).
++	   `--wash` fixes it: one of framework.css's three OPAQUE elevation
++	   tokens (`--wash` / `--tint` / `--surface`, each pre-composited for
++	   exactly this reason — framework.css's own token comment), and a step
++	   darker than `--tint`, so the well still reads as clearly darker than
++	   the checkerboard's lightest square rather than the same gray twice. */
++	.core-shell-grid.core-shell-paper {
++		--well: var(--wash);
++		grid-template-areas: ". head ." "left main right" ". foot .";
++		gap: var(--gap-25);
++		background: var(--well);
++	}
++
++	/* The plain grid's dividing lines (head/foot's own border, left/right's
++	   own border) are for regions sitting flush against `main` with nothing
++	   between them. In paper mode the `gap` above already separates every
++	   region from the paper, so a second line here would be a border next to
++	   a border — only `main` (below) keeps one, as the paper's own edge. */
++	.core-shell-paper .core-shell-head,
++	.core-shell-paper .core-shell-foot,
++	.core-shell-paper .core-shell-left,
++	.core-shell-paper .core-shell-right {
++		border: 0;
++	}
++
++	.core-shell-paper .core-shell-main {
++		background: var(--surface);
++		border: 1px solid var(--line);
++		border-radius: var(--radius);
++	}
++
+ 	/* `dark: true` (the whole shell) or `dark: ["left","right"]` (named boxes
+ 	   only) — `apply_dark()` in Shell.js stamps this one class, and everything
+ 	   else is `color-scheme: dark` doing the whole job: every `light-dark()`
+@@ -91,5 +155,15 @@
+ 		}
+ 
+ 		.core-shell-left, .core-shell-right { width: auto; max-height: 40vh; }
++
++		/* Paper mode's own nine-grid areas (above) beat this plain rule on
++		   specificity alone (`.core-shell-grid.core-shell-paper` is two
++		   classes), so at this width it has to restate the SAME stacked
++		   areas or a paper shell would try to keep its three-column layout
++		   in a one-column space. The paper still reads white and the well
++		   still reads gray — only which cells exist changes. */
++		.core-shell-grid.core-shell-paper {
++			grid-template-areas: "head" "left" "main" "right" "foot";
++		}
+ 	}
+ }
+diff --git a/public/framework/core/Shell/Shell.js b/public/framework/core/Shell/Shell.js
+index 206289bd..e3f99f36 100644
+--- a/public/framework/core/Shell/Shell.js
++++ b/public/framework/core/Shell/Shell.js
+@@ -24,6 +24,15 @@ View.stylesheet(import.meta, "Shell.css");
+  *       tokens are `light-dark()` pairs, so this one line is the whole dark
+  *       theme — see framework.css and dev/DevBar/devbar.css's own `.dev-bar`).
+  *       An array (`dark: ["left", "right"]`) darkens only those regions.
++ *   paper    true = a real nine-grid. `main` becomes a white "paper" (a
++ *       border and a small radius); `header`/`left`/`right`/`footer` and the
++ *       four empty corners around them become a gray "well". Unlike the
++ *       plain grid above, `header`/`footer` sit ONLY above/below `main` —
++ *       never the full width — so their content starts at the same left
++ *       edge as the paper, and `left`/`right` start at the paper's own top
++ *       edge instead of reaching up under a header that isn't theirs. That
++ *       lineup is the whole point: it shows which paper a region belongs to.
++ *       Off (the default), nothing about the grid changes.
+  *   name     one word. With it, a dragged left/right width is remembered in
+  *       localStorage under that name and restored next time; without it, sizes
+  *       are for this visit only. `View.classify()` also stamps `name` on as a
+@@ -64,7 +73,7 @@ export class CoreShell extends View {
+ 	render(){
+ 		this.restore_sizes();
+ 
+-		div.c("core-shell-grid", () => {
++		this.$grid = div.c("core-shell-grid", () => {
+ 			this.header();
+ 			this.left();
+ 			this.main();
+@@ -72,6 +81,13 @@ export class CoreShell extends View {
+ 			this.footer();
+ 		});
+ 
++		// `paper: true` — one class, and Shell.css does the rest: a different
++		// `grid-template-areas` (header/footer over `main` only, not the full
++		// width) plus the white-paper/gray-well colouring. Everything else
++		// about render() — which regions exist, resizing, dark, frame — is
++		// identical whether this is on or off.
++		if (this.paper) this.$grid.ac("core-shell-paper");
++
+ 		this.apply_dark();
+ 
+ 		if (this.frame) this.watch_frame();
+diff --git a/public/framework/core/Shell/doc/decisions.md b/public/framework/core/Shell/doc/decisions.md
+index 2bf11e49..ec196116 100644
+--- a/public/framework/core/Shell/doc/decisions.md
++++ b/public/framework/core/Shell/doc/decisions.md
+@@ -57,6 +57,99 @@ under `id: "sidebar"` for the same reason (its own `Sidebar.Store` was deleted w
+ gained the `id:` seam, 2026-09-18). `Shell` does the same thing under `id: "shell:" + this.name`
+ — one key per named shell, nothing saved at all for an unnamed one.
+ 
++## `paper: true` narrows `head`/`foot` to `main`'s own column, and reuses `--well` rather than a framework token
++
++The brief (`ai/2026-09-30/dev-shell/shell-paper/requirements.md`) drew the nine-grid as three real
++rows and three real columns — `. head .` / `left main right` / `. foot .` — not the plain grid's
++`head head head` / `left main right` / `foot foot foot`, where the header and footer already span
++every column. That difference is not cosmetic: the brief's whole point is that a header's text
++lines up with the paper's own left edge, and a header spanning the full width (even one whose
++*text* was then padded to look aligned) would still sit *over* `left`, which is exactly the "reads
++like it belongs to something else" problem `design-2.md` is about. So paper mode gets its own
++`grid-template-areas`, not a padding trick on the existing one — `head`/`foot` are only ever above/
++below `main`, and the four corners are cells nobody ever puts a box in (the same "no content, no
++box" rule the plain grid already uses for a region you leave out), painted by the grid's own
++background rather than four extra divs.
++
++That background is `--well: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.35))` — not `--tint`
++(0.035, measurably lighter) or `--wash` (0.08, a generic fill used for code blocks and table
++heads), but the *exact* value `ai2.css` and `ext/Doc/Doc.css` already use for their own gray
++header bands. The brief asked to "pick the one that reads as the AI 2 header band's gray" — the
++closest answer wasn't picking between framework.css's two general-purpose tokens, it was reusing
++the specific value two other modules already settled on for this same look. Neither of those files
++exports `--well` as a shared token (it's declared locally in each), so this is a third, separate
++declaration of the same number rather than a new dependency between unrelated modules — if a
++fourth "well" shows up, hoisting all three into one framework.css token is the fix, not something
++this task's fence reaches.
++
++**Paper mode's regions lose their own border** (`.core-shell-head`/`-foot`/`-left`/`-right`
++border: 0, under `.core-shell-paper`). The plain grid's borders are dividing lines for regions
++sitting flush against `main` with nothing between them; paper mode already separates every region
++from the paper with `gap: var(--gap-25)`, so a line AND a gap together would read as two edges
++doing the same job. Only `main` keeps a border — it's the paper's own edge, not a divider.
++
++**Stacking below 34em needed an explicit override, not just "it already works."** The plain grid's
++`@media (width < 34em)` rule (`.core-shell-grid { grid-template-areas: "head" "left" "main"
++"right" "foot"; … }`) matches a paper shell too — it's the same element, one extra class — but
++`.core-shell-grid.core-shell-paper`'s own un-media-gated rule has higher specificity (two classes
++vs. one) and would otherwise keep trying to lay out three columns in a one-column space. The fix
++is one more rule, inside that same media block, restating the identical stacked areas under the
++two-class selector so it wins the specificity tie by coming later in the file — not a new stacked
++shape, the SAME one the plain grid already had.
++
++## The `left`/`right` clamp used to floor at 12rem inside a `container-type` ancestor — fixed by moving the clamp off the ITEM and onto the grid's own COLUMN
++
++First found in the paper demo (`ai/2026-09-30/dev-shell/shell-paper-demo/requirements.md`):
++`left`/`right` rendered as bare words with no visible rail. `.core-shell-left`/`-right`'s own
++`width: clamp(12rem, var(--core-shell-left-w, 18rem), 50%)` should render at 18rem (288px) by
++default — nothing writes `--core-shell-left-w` until a drag happens — but measured inside
++`ext/demo`'s own `.demo-stage` (a `container-type: inline-size` box, `ext/demo/stage.css`), it
++rendered at exactly 192px, the clamp's own 12rem FLOOR, instead. This reproduced even with a
++literal `width: clamp(12rem, 18rem, 50%)` and no `var()` at all. The same root cause, the other
++direction, had already hit `dev/DevShell`: its own `right` rail holds long paragraphs of real
++text, whose max-content width is "the whole paragraph on one line" (over 1000px), so instead of
++flooring, that side's `auto` TRACK ballooned past the page's own middle and the rail never
++reached the window's edge (`DevShell.css`, before this fix).
++
++**The cause:** CSS Grid sizes an `auto` COLUMN from each item's own preferred (intrinsic) width
++before the grid's final width is known. Resolving that preferred width means resolving the
++item's own `width: clamp(…, 50%)` — and inside a size-containment context (`container-type:
++inline-size` on an ancestor, which every `ext/demo` stage is), that intrinsic-sizing pass
++resolves a percentage against an indefinite size as `0`. `clamp(12rem, 18rem, 0px)` floors to
++12rem; a huge max-content paragraph instead drags the `auto` track the other way. Both symptoms
++are the same bug: an `auto` TRACK asking an ITEM what size it wants, when that item's own size
++depends on a percentage of the very track being measured.
++
++**The fix (this task, in `Shell.css` itself, not a workaround in `page.js` or `DevShell.css`):**
++move the `clamp()` off the item's `width` and onto the COLUMN, as an explicit track size instead
++of `auto` — an explicit track resolves its own percentage against the grid's (already known)
++content box, no item-intrinsic-sizing pass involved, so the floor/balloon bug has nothing left to
++trigger on. `.core-shell-grid` now carries two custom properties, `--core-shell-col-left` /
++`-right`, defaulting to the keyword `auto` (so a MISSING rail still collapses its column to zero
++width — the same "no content, no box" trick this file already uses everywhere else); a media
++query (`width >= 34em`, matching the existing 34em stack breakpoint) sets each one to
++`clamp(12rem, var(--core-shell-left-w, 18rem), 50%)` only when that rail actually exists
++(`.core-shell-grid:has(> .core-shell-left)` / `:has(> .core-shell-right)`). `.core-shell-left`/
++`-right` themselves are now just `width: auto` — they fill whichever column the grid already
++decided on, rather than sizing themselves a second time. Below 34em the existing stacked-layout
++rule still sets `grid-template-columns: 1fr` directly, which wins the cascade over these two
++variables regardless (same selector, later in the file), so phone layout is unaffected.
++
++Both `page.js`'s paper demo and `dev/DevShell/DevShell.css` had local workarounds for this same
++bug (an inline `width` on `$left`/`$right`, and a duplicate `grid-template-columns` +
++`width: auto` override, respectively) — both are removed now that the real fix lives in
++`Shell.css`. The paper demo still asks for two specific widths the brief named (the chat box at
++14rem, the nested paper's own rail at the 12rem floor, so it reads narrower than the outer
++18rem default) — it does that the ordinary way, by writing `--core-shell-right-w` /
++`--core-shell-left-w` on the shell itself (`shell.style("--core-shell-right-w", "14rem")`), the
++same custom property a drag or `Shell.size()` already writes; this is the intended mechanism,
++not a bypass.
++
++**What a fresh mastermind should check:** load `/framework/core/Shell/` and confirm the paper
++demo's outer `left` rail is a real ~288px (18rem) wide, not a bare word wrapped tight; load
++`dev/DevShell` (Ctrl + \\) at a wide window and confirm the dark right rail's own right edge sits
++flush against the window's right edge, with no blank strip between it and the glass.
++
+ ## What a fresh mastermind should check
+ 
+ - `new Shell({ left, main, right })` renders three boxes with nothing else on the grid — no
+@@ -69,3 +162,6 @@ gained the `id:` seam, 2026-09-18). `Shell` does the same thing under `id: "shel
+ - `frame: true`'s `main` cell never shows whatever `main` content was passed — see the page's own
+   `frame` demo, which pins the frame to a small preview box instead of the real window so it can
+   be shown without covering the page.
++- `new Shell({ paper: true, header, left, main, right, footer })` shows a white card (`main`) on a
++  gray well, with the four corners visibly empty and `header`/`footer` no wider than the card.
++  Without `paper`, every existing demo on this page looks exactly as it did before this task.
+diff --git a/public/framework/core/Shell/page.js b/public/framework/core/Shell/page.js
+index 0c5236ae..5da39928 100644
+--- a/public/framework/core/Shell/page.js
++++ b/public/framework/core/Shell/page.js
+@@ -1,4 +1,4 @@
+-import { Doc, demo, h2, md, div, p, toc } from "/app.js";
++import { Doc, demo, h2, md, div, p, ul, li, toc } from "/app.js";
+ import { Shell } from "/framework/core/Shell/Shell.js";
+ 
+ /* One line of filler content for a region — every demo below uses the same
+@@ -8,15 +8,35 @@ function fill(label){
+ 	return () => p.c("muted", label);
+ }
+ 
++/* Real content for the one "paper: true" demo below, ONLY — every other demo
++ * on this page still uses the plain `fill()` box above. A bare word floats in
++ * a rail with nothing to show its real size; a short nav list and a labelled
++ * box do, which is the whole point of this one demo (requirements.md,
++ * ai/2026-09-30/dev-shell/shell-paper-demo). */
++function paper_nav(items){
++	return () => ul(() => { for (const item of items) li(item); });
++}
++
++function paper_chat(){
++	// `--line` on `--wash` (two close grays) doesn't read as a box — `--surface`
++	// (white) does, the same surface-on-well contrast the paper itself uses.
++	return () => div(() => p.c("muted", "chat")).style({
++		height: "100%", minHeight: "6rem",
++		display: "flex", alignItems: "center", justifyContent: "center",
++		background: "var(--surface)",
++		border: "1px solid var(--line)", borderRadius: "var(--radius)",
++	});
++}
++
+ export default new Doc({
+ 	meta: import.meta,
+ 	title: "Shell",
+-	description: "Five optional regions around a CSS grid — header, left, right, footer, main. Wrap any page in one; put a Shell inside a Shell's main and they nest.",
++	description: "Five optional regions around a CSS grid — header, left, right, footer, main. Wrap any page in one; put a Shell inside a Shell's main and they nest. `paper: true` turns main into a white card on a gray well.",
+ 	icon: "dashboard_customize",
+ 
+ 	subject: Shell,
+ 
+-	properties: "content frame publish dark name",
++	properties: "content frame publish dark paper name",
+ 
+ 	methods: "render header footer left right main slot grab size restore_sizes store apply_dark watch_frame",
+ 
+@@ -30,6 +50,39 @@ export default new Doc({
+ 
+ 		md("**Five regions, all optional: header, left, right, footer, main.** Leave one out and there is no empty box where it would have been — the grid just gives the rest of the room to whatever you did pass. Every region is either a plain function (written exactly like a page's own `content()`) or a View.");
+ 
++		h2("`paper: true` — a real nine-grid");
++
++		demo(() => {
++			// A section, nested one size smaller — its own (narrower) `left`,
++			// its own header, three real lines of body (doc/decisions.md).
++			const inner = new Shell({
++				paper: true,
++				header: () => p("Section · Details"),
++				left: paper_nav(["Draft", "Final"]),
++				main: () => {
++					p.c("muted", "First line of the nested paper's own body.");
++					p.c("muted", "Second line — still the same small card.");
++					p.c("muted", "Third line, so it reads as a real section.");
++				},
++			});
++			// The rail's floor, named on purpose, so the nested paper reads
++			// smaller than the outer one below (doc/decisions.md).
++			inner.style("--core-shell-left-w", "12rem");
++
++			const shell = new Shell({
++				paper: true,
++				header: () => p("Page title · Tab · Tab"),
++				left: paper_nav(["Overview", "Members", "Billing", "Settings"]),
++				right: paper_chat(),
++				footer: () => p.c("muted", "Saved · 3 items"),
++				main: inner,
++			}).style({ height: "26rem" });
++
++			// The brief's own number for the chat box; `left` keeps the rail's
++			// own 18rem default — a 4-item list doesn't need to be any wider.
++			shell.style("--core-shell-right-w", "14rem");
++		}, "The middle cell is a white **paper** — a border and a small radius. Everything around it — `header`, `left`, `right`, `footer`, and the four empty corners you can see at top-left/top-right/bottom-left/bottom-right — is a gray **well**. `header` and `footer` sit only above/below `main`, not the full width, so their text lines up with the paper's own left edge. The paper's own `main` holds a second `paper: true` Shell — a section nested inside the page, the same idea one size smaller.");
++
+ 		h2("One region");
+ 
+ 		demo(() => {
+diff --git a/public/framework/core/Shell/readme.md b/public/framework/core/Shell/readme.md
+index 6670a6c6..494f4b20 100644
+--- a/public/framework/core/Shell/readme.md
++++ b/public/framework/core/Shell/readme.md
+@@ -30,6 +30,14 @@ time; without a `name`, sizes are for this visit only.
+ [`light-dark()`](/framework/styles/) pairs, so that one line is the whole dark theme, nothing
+ here ever names a colour. `dark: ["left", "right"]` darkens only those two boxes.
+ 
++`paper: true` turns `main` into a white "paper" (a border, a small radius) sitting on a gray
++"well" — `header`/`left`/`right`/`footer` and the four empty corners around them. Unlike the
++plain grid, `header`/`footer` sit only above/below `main`, never the full width, so their
++content lines up with the paper's own left edge, and `left`/`right` start at the paper's own
++top edge instead of reaching up under a header that isn't theirs — that lineup is what tells a
++reader which paper a region belongs to. `main` can be another `new Shell({ paper: true, … })`,
++so a paper nests inside a paper — a section, inside a page, inside a site.
++
+ `frame: true` turns the shell into the window's own frame — `position: fixed; inset: 0`, `main`
+ an empty hole the real page shows through — and writes each region's own size onto `<html>` as
+ `--shell-top` / `--shell-left` / `--shell-right` / `--shell-bottom`, so a page underneath can pad
+diff --git a/public/framework/dev/DevShell/DevShell.css b/public/framework/dev/DevShell/DevShell.css
+index 9dcd610e..b5ce29ee 100644
+--- a/public/framework/dev/DevShell/DevShell.css
++++ b/public/framework/dev/DevShell/DevShell.css
+@@ -16,33 +16,6 @@
+ 	   already 0 before this rule even runs. */
+ 	:root:not(.dev-shell-open) .dev-shell-root { display: none; }
+ 
+-	/* ⚠ `core/Shell`'s own `.core-shell-grid` columns are `auto 1fr auto` —
+-	   fine when `left`/`right`'s CSS width is used to size those `auto`
+-	   tracks, but that width is `clamp(12rem, …, 50%)` (Shell.css), and a
+-	   PERCENTAGE inside a clamp can't be resolved before the track itself is
+-	   sized (the same chicken-and-egg problem percentages always have in an
+-	   intrinsic-sizing context) — so the browser falls back to sizing the
+-	   `auto` track off its CONTENT's own max-content width instead. This
+-	   shell's right side holds paragraphs of real text (the mastermind log),
+-	   whose max-content is "the whole paragraph on one line", easily over
+-	   1000px — so the `right` track ballooned past the page's own middle,
+-	   landing the dark rail right beside `left` instead of at the window's
+-	   edge, and leaving the true right edge blank (nothing painted there,
+-	   `main` never reaches that far right either). Fixed HERE, not in
+-	   Shell.css: DEFINITE lengths for `left`/`right` (the same custom
+-	   properties `Shell.js`'s own `size()` already writes on a drag, with the
+-	   clamp's own 18rem default as the fallback) sidestep the percentage
+-	   entirely, so `1fr` gets the real leftover width and `right` lands
+-	   flush against the window's own edge. doc/decisions.md. */
+-	@media (width >= 34em) {
+-		.dev-shell-root .core-shell-grid, .dev-shell-root.core-shell-grid {
+-			grid-template-columns:
+-				var(--core-shell-left-w, 18rem)
+-				1fr
+-				var(--core-shell-right-w, 18rem);
+-		}
+-	}
+-
+ 	/* BELOW 34em (a phone): the left region goes, the right one is a bottom
+ 	   sheet the full width of the screen, and the head keeps only what fits on
+ 	   one line — the path, the toggles, v1 and ✕. The width presets and the
+@@ -58,12 +31,6 @@
+ 	/* Above the site's own fixed chrome (the ☰ at the top right sat over the head). */
+ 	.dev-shell-root.core-shell-frame, .dev-shell-root .core-shell-frame { z-index: 60; }
+ 
+-	/* ⚠ And the regions FILL those tracks. Shell.css sizes each region itself
+-	   with `clamp(12rem, …, 50%)`; inside a definite 18rem track that 50% is
+-	   9rem, so the clamp's 12rem floor won and the dark rail stopped 6rem short
+-	   of the window's edge, leaving a white strip (1920 shot, 2026-09-30). */
+-	.dev-shell-root :is(.core-shell-left, .core-shell-right) { width: auto; }
+-
+ 	.dev-shell-head-line {
+ 		flex: 1 1 auto;
+ 		min-width: 0;
+diff --git a/public/framework/ext/drawer/doc/decisions.md b/public/framework/ext/drawer/doc/decisions.md
+index 5398451d..c19f2609 100644
+--- a/public/framework/ext/drawer/doc/decisions.md
++++ b/public/framework/ext/drawer/doc/decisions.md
+@@ -133,6 +133,59 @@ kept in sync by hand.
+   truly on, the wording of each message) is `ux/Dictate`'s job; this sheet
+   only supplies where its widget lives and what a finished sentence becomes.
+ 
++## The ☰ and the drawer's own head read as SITE level, not AI 2's (2026-09-30)
++
++The problem (`ai/2026-09-30/dev-shell/shell-paper/requirements.md`, screenshot
++`1920-drawer.png`): AI 2's own gray header band (its title and tabs) ran to the drawer's
++edge, the floating ☰ still sat inside that same band while the drawer was open, and the
++drawer's own tab row sat at the same height as the page's tab row — so the whole thing
++read as one wide toolbar belonging to AI 2, not as a second piece of site chrome. Three
++changes, `drawer.css` only (no DOM changes — `drawer.js`/`tabs.js` are outside this task's
++fence):
++
++- **The floating ☰ disappears while the drawer is open.** One rule: `body:has(.drawer.on)
++  .drawer-menu { display: none; }`. Two buttons that both close the same rail — the ✕ inside
++  it and a ☰ floating over the page — was itself part of the "this belongs to the page" read.
++  `body`, not `.app`: measured with Playwright that opening the drawer by its routed
++  `?drawer=` url on a cold load hits `drawer.js`'s own documented fallback ("Inside `.app`,
++  not on `<body>`" — that comment names `.app` as the intended mount and `<body>` as what
++  happens when `.app` doesn't exist yet the first time `build()` runs), landing `.drawer.on`
++  as a direct child of `<body>`, not inside `.app` at all. A selector scoped to `.app` would
++  have silently missed exactly that case and left the ☰ showing on a cold `?drawer=` load —
++  `body` is the one ancestor both the normal case and the fallback always share.
++- **The drawer's own head now reads like `core/Sidebar`'s own head** — the "Framework"
++  brand row over its gray filter band — instead of a thin tab strip flush with whatever the
++  page's own header band is doing right next to it. `--darken-2` is the exact token
++  `Sidebar.css`'s own `.sidebar-filter` uses for "a bar, not a card in a rail" (the owner's
++  own direction there, 2026-09-19) — reused here rather than invented, so the two rails at
++  either edge of the screen share one material, not two that happen to look similar.
++  Padding went from `.drawer`'s old flat `0.9em` on every side to `1.1em 0.9em` on the head
++  alone, and `.drawer`'s own padding was removed so the head's gray band can run edge-to-edge
++  (`.drawer-body` restates the `0.9em` inset for everything under it instead). Measured with
++  Playwright at 1920: the left nav's own head (brand row + filter band together) is 103px
++  tall; the drawer's new head is 88px — not a pixel-exact match (the two are structurally
++  different, one row of tabs vs. two stacked rows), but close enough to read as the same
++  WEIGHT of chrome, which is what "a pair of bookends" needs. At 400 the drawer's head is
++  56px, wrapping the tab strip onto two lines inside the same gray band.
++- **The clear edge between page and drawer was already there and is unchanged**:
++  `border-inline-start: 1px solid var(--line)` on `.drawer` itself is the same line
++  `core/Sidebar`'s own `border-right: 1px solid var(--line)` draws on its edge — this task
++  only had to make sure restructuring the padding didn't remove it, which it doesn't (it's on
++  `.drawer`, not on the head or body). What changed is that the drawer's own gray band no
++  longer sits at the SAME ROW as the page's — the two bands are now different heights,
++  which is what stops them reading as one continuous toolbar across the line, not the line
++  itself (it was already there, and already worked, before this task).
++
++**Closed-state overlap, measured, not assumed (requirement 4).** At 1920 the ☰ sits at
++`x:1877–1912, y:8–43`; the last real page tab ("Overview" on AI 2) ends at `x:782` — a clear
++1095px gap, nowhere near the ☰. At 400 the ☰ is not rendered at all (`display: none`):
++`drawer.css`'s own pre-existing mobile rule, `.app:has(.sidebar) .drawer-menu { display: none;
++}` (a decision already on record above, "It docks beside the dev rail…"/mobile-nav section),
++already hides it below 52em whenever the page has an ancestor `core/Sidebar` — which every
++`/framework/...` page, AI 2 included, always does, whether or not that sidebar is itself
++visible at that width. So there is structurally no way for the closed ☰ to overlap a page's
++tabs at 400 today; nothing needed to change for that case, only measuring and recording it.
++
+ ## What will bite you
+ 
+ - **⚠ The rail mounts inside `.app`, never on `<body>`.** `color-scheme` is forced
+diff --git a/public/framework/ext/drawer/drawer.css b/public/framework/ext/drawer/drawer.css
+index 072f744f..e869e402 100644
+--- a/public/framework/ext/drawer/drawer.css
++++ b/public/framework/ext/drawer/drawer.css
+@@ -26,7 +26,10 @@
+ 		inset-inline-end: var(--devbar, 0px);
+ 		inline-size: min(var(--drawer, 19rem), 100%);
+ 		gap: calc(var(--gap) * 0.8);   /* was gap 0.8em - 2026-09-05 ramps */
+-		padding: 0.9em;
++		/* No padding here any more — SITE LEVEL below. `.drawer-head` now runs
++		   edge-to-edge, like `core/Sidebar`'s own brand-and-filter head does,
++		   instead of sitting inset inside a padded box; `.drawer-body` carries
++		   the inset that used to live here. doc/decisions.md. */
+ 		font-size: 0.85em;
+ 		background: var(--surface);
+ 		color: var(--ink);
+@@ -47,10 +50,27 @@
+ 	}
+ 
+ 	/* The head is pinned and the body scrolls under it — a rail whose ✕ scrolls away is a
+-	   rail you cannot shut. */
+-	.drawer-head { flex: 0 0 auto; gap: calc(var(--gap) * 0.5); }   /* was gap 0.5em - 2026-09-05 ramps */
++	   rail you cannot shut.
++	   ⚠ SITE LEVEL, LIKE THE LEFT NAV (2026-09-30): `core/Sidebar`'s own head — the
++	   "Framework" brand row over the gray filter band — reads as this site's OTHER
++	   rail, a fixed piece of chrome, because of its height and its gray band, not
++	   because of anything it says. This head borrows both: `--darken-2` is the exact
++	   pairing `sidebar-filter` already uses for "a bar, not a card in a rail"
++	   (`core/Sidebar/Sidebar.css`), and the padding is generous enough to read as a
++	   real head rather than one thin tab strip flush with whatever the page's own
++	   header happens to be doing next to it. `doc/decisions.md` has the measurements. */
++	.drawer-head {
++		flex: 0 0 auto;
++		gap: calc(var(--gap) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
++		padding: 1.1em 0.9em;
++		background: var(--darken-2);
++		border-block-end: 1px solid var(--line);
++	}
+ 	.drawer-slot { gap: calc(var(--gap) * 0.5); min-inline-size: 0; }   /* was gap 0.5em - 2026-09-05 ramps */
+-	.drawer-body { flex: 1 1 auto; min-block-size: 0; overflow: auto; gap: calc(var(--gap) * 1); }   /* was gap 1em - 2026-09-05 ramps */
++	/* Carries the inset `.drawer`'s own padding used to give every child — the head
++	   above now supplies its own (edge-to-edge, on purpose), so only the body needs
++	   restating it. */
++	.drawer-body { flex: 1 1 auto; min-block-size: 0; overflow: auto; gap: calc(var(--gap) * 1); padding: 0 0.9em 0.9em; }   /* was gap 1em - 2026-09-05 ramps */
+ 
+ 	/* ⚠ Two classes, so it clears the theme's `:is(button, .btn)` at 0-2-0 — which pads
+ 	   every button to 0.7em/1.4em and would make the ✕ four times the box it needs. */
+@@ -91,6 +111,27 @@
+ 	}
+ 	.app .drawer-menu:hover { color: var(--ink); background: var(--fill-a08); }
+ 
++	/* WHILE THE DRAWER IS OPEN, THE ☰ DISAPPEARS (2026-09-30). Its own ✕ is the way
++	   to shut it — two buttons that both close the same thing, one drawn inside the
++	   drawer and one floating over the page, was the drawer reading as something the
++	   PAGE owns (`design-2.md`).
++	   ⚠ `body:has(...)`, not `.app:has(...)` — `drawer.js`'s own `build()` mounts the
++	   rail on `.app` normally, but falls back to `document.body` if `.app` doesn't
++	   exist yet at the moment it first runs (its own comment: "Inside `.app`, not on
++	   `<body>`" names `.app` as the intended case, `<body>` as the fallback). Measured
++	   with Playwright (2026-09-30): opening the drawer by its routed `?drawer=` url on
++	   a cold load hits that fallback — `.drawer.on` ends up a direct child of `<body>`,
++	   not inside `.app` at all — so a selector scoped to `.app` would silently miss
++	   this exact case. `body` is the one ancestor both cases always share.
++	   Specificity, not `!important`: `body:has(.drawer.on) .drawer-menu` is one element
++	   selector plus `:has(.drawer.on)`'s two classes plus `.drawer-menu`'s one class —
++	   enough to beat both the plain rule above (two classes) and the mobile
++	   `:has(.sidebar)` rule below (three classes) in every case, so the ☰ stays gone
++	   even on a phone with its own sidebar. This is a CSS-only guard for what `.app`
++	   vs. `<body>` mounting is — `drawer.js` itself is outside this task's fence;
++	   `doc/decisions.md` has the measurement and names it for whoever owns that file. */
++	body:has(.drawer.on) .drawer-menu { display: none; }
++
+ 	/* Below 52em, a page with its own `.sidebar` (core/Sidebar) draws a NATIVE ☰ of
+ 	   its own — `.sidebar-toggle`, top right of the sticky bar, same corner as this
+ 	   fixed one. They fought for every tap: this button sits on top (z-index 39,
+diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
+index 9ee2a021..412c4d68 100644
+--- a/public/framework/ext/drawer/readme.md
++++ b/public/framework/ext/drawer/readme.md
+@@ -19,6 +19,8 @@ drawer.showing();     // is it open
+ 
+ Every page has a ☰ at its top right (`menu.js`, called once in `app.js`). It opens this drawer on five routed tabs — AI, Sessions, Dictation, Settings, Admin (`tabs.js`, `tabs/*.js`), plus Element while something is selected; off the dev server only AI, Sessions and Dictation show; `?drawer=sessions` opens on Sessions. The tab model, `send()` and `drawer.page()` · [doc/tabs.md](./doc/tabs.md)
+ 
++**While open, the ☰ disappears** — the drawer's own ✕ is the only way to shut it, so nothing of the page floats on top of the rail. The drawer's own head is styled like `core/Sidebar`'s own head (the same `--darken-2` gray band, a comparable height) rather than a thin strip flush with the page's own header, so the two rails at either edge of the screen read as a matched pair — site-level chrome, not something the page beside them owns · [doc/decisions.md](./doc/decisions.md)
++
+ **The AI tab is `ux/Dictate/chat.js`'s one mount** (one-dictation, 2026-09-30), full height, no model picker, on a plain page AND a card alike — the same call the ✦ sheet makes, below. The OLD tab (its own model picker, its own private session wiring) is kept reachable as `aiV2` (`tabs/ai.js`). **The Sessions tab lists voice sessions first** — this page's, from `Session.recent()`, the live one marked — then the dev bar Ask's own older threads, unchanged.
+ 
+ While it is open, a click selects any content on the page (`select.js`): its properties show on the Element tab, which appears only while something is selected, and "Ask about this" adds it to the AI tab's input as a chip that rides along as context · [doc/select.md](./doc/select.md)
+

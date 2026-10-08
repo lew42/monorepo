@@ -5,3 +5,4 @@
 {"file":"requirements.md"}
 {"file":"spend.json"}
 {"file":"task.jsonl"}
+{"inbox":{"id":"n-zgisbebg","from":"servex-heartbeat","text":"minion-live-not-polling its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T15:22:33.755-05:00"}}

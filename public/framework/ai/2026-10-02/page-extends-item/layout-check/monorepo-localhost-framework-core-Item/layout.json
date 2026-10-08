@@ -1,0 +1,40 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Item/",
+ "widths": {
+  "1280": {
+   "empty": 1,
+   "widest_text": 0,
+   "widest_text_sample": "",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.699,
+   "widest_text": 639,
+   "widest_text_sample": ", plus any LiveList property it gave its",
+   "overflow_x": false,
+   "items": 132,
+   "narrow_share": 0.712
+  },
+  "2560": {
+   "empty": 0.73,
+   "widest_text": 719,
+   "widest_text_sample": ", plus any LiveList property it gave its",
+   "overflow_x": false,
+   "items": 132,
+   "narrow_share": 0.72
+  },
+  "3440": {
+   "empty": 0.795,
+   "widest_text": 719,
+   "widest_text_sample": ", plus any LiveList property it gave its",
+   "overflow_x": false,
+   "items": 132,
+   "narrow_share": 0.735
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: net::ERR_EMPTY_RESPONSE"
+ ]
+}

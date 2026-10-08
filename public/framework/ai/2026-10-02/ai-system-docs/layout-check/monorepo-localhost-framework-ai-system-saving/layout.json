@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/system/saving/",
+ "widths": {
+  "1280": {
+   "empty": 0.555,
+   "widest_text": 601,
+   "widest_text_sample": "Change something on a page, and one line",
+   "overflow_x": false,
+   "items": 41,
+   "narrow_share": 0.293
+  },
+  "1920": {
+   "empty": 0.701,
+   "widest_text": 639,
+   "widest_text_sample": "Change something on a page, and one line",
+   "overflow_x": false,
+   "items": 41,
+   "narrow_share": 0.756
+  },
+  "2560": {
+   "empty": 0.768,
+   "widest_text": 719,
+   "widest_text_sample": "Change something on a page, and one line",
+   "overflow_x": false,
+   "items": 41,
+   "narrow_share": 0.756
+  },
+  "3440": {
+   "empty": 0.821,
+   "widest_text": 719,
+   "widest_text_sample": "Change something on a page, and one line",
+   "overflow_x": false,
+   "items": 41,
+   "narrow_share": 0.756
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

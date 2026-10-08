@@ -1,0 +1,24 @@
+{"assign":{"session_id":"361c4d18-e878-4c04-9537-444e847e13d5","tab":"servex-mastermind-opus","group":"ai-dashboard","title":"Screenshots: AI 2 cards at phone width","request":"take some screenshots of the AI kind of cards at mobile width","requested_at":"2026-09-29T18:42:11-05:00","model":"claude-opus-5-5","now":"screenshots taken; the fixes went to task-mastermind-mobile-nav","steps":["screenshot at 400px","route the fixes"],"step":2,"landed_at":"2026-09-29T18:42:11-05:00","outcome":"**Two phone-width screenshots** ([card](/framework/ai/2026-09-29/card-mobile/card-experiment-400.png), [inbox](/framework/ai/2026-09-29/card-mobile/inbox-400.png)): Folder twice, the title under Actions, and a card chat competing with the ✦ AI. The fixes were built by task-mastermind-mobile-nav."}}
+{"action":{"at":"2026-10-02T15:48:41-05:00","did":"edit","files":["public/framework/ext/grip/grip.css"]}}
+{"action":{"at":"2026-10-02T18:20:22-05:00","did":"edit","files":["public/framework/design/content/readme.md"]}}
+{"action":{"at":"2026-10-02T18:20:25-05:00","did":"edit","files":[".claude/skills/content/SKILL.md"]}}
+{"action":{"at":"2026-10-02T18:31:21-05:00","did":"edit","files":["public/framework/code/patterns/readme.md"]}}
+{"action":{"at":"2026-10-02T19:09:22-05:00","did":"edit","files":["CLAUDE.md"]}}
+{"action":{"at":"2026-10-02T19:27:44-05:00","did":"edit","files":["public/framework/core/Page/readme.md"]}}
+{"action":{"at":"2026-10-02T19:29:59-05:00","did":"edit","files":["Servex/agents/Global.js"]}}
+{"action":{"at":"2026-10-02T19:30:14-05:00","did":"edit","files":["Servex/readme.md"]}}
+{"action":{"at":"2026-10-02T19:37:28-05:00","did":"edit","files":[".claude/skills/mastermind/SKILL.md"]}}
+{"action":{"at":"2026-10-02T22:29:53-05:00","did":"edit","files":[".claude/skills/prompt-refine/SKILL.md"]}}
+{"action":{"at":"2026-10-03T00:39:11-05:00","did":"edit","files":["Servex/ext/openrouter/provider.js"]}}
+{"action":{"at":"2026-10-03T12:57:01-05:00","did":"edit","files":["public/framework/core/Page/Page.class.js"]}}
+{"action":{"at":"2026-10-03T13:01:36-05:00","did":"edit","files":["public/framework/ux/Card/Card.css"]}}
+{"action":{"at":"2026-10-03T13:49:08-05:00","did":"edit","files":[".claude/skills/finish-task/SKILL.md"]}}
+{"action":{"at":"2026-10-03T15:35:34-05:00","did":"edit","files":["public/framework/ai/handover.md"]}}
+{"action":{"at":"2026-10-03T15:41:49-05:00","did":"edit","files":["public/framework/ai/2026-10-03/readme-weight/readme-weight.mjs"]}}
+{"action":{"at":"2026-10-03T16:21:13-05:00","did":"edit","files":["public/framework/ai/2026-10-03/restart-observe/readme.md"]}}
+{"action":{"at":"2026-10-03T17:04:55-05:00","did":"edit","files":[".claude/skills/sub-mastermind/SKILL.md"]}}
+{"action":{"at":"2026-10-03T18:27:24-05:00","did":"edit","files":["public/framework/code/performance/readme.md"]}}
+{"action":{"at":"2026-10-03T18:27:25-05:00","did":"edit","files":["public/framework/code/performance/page.js"]}}
+{"action":{"at":"2026-10-03T18:27:41-05:00","did":"edit","files":[".claude/skills/performance/SKILL.md"]}}
+{"action":{"at":"2026-10-03T22:41:24-05:00","did":"edit","files":["public/framework/ai/2026-10-03/day-audit/day-audit.mjs"]}}
+{"action":{"at":"2026-10-03T22:42:14-05:00","did":"edit","files":["public/framework/ai/2026-10-03/day-audit/readme.md"]}}

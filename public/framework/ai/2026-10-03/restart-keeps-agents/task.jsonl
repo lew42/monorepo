@@ -1,0 +1,3 @@
+{"assign":{"now":"queued","title":"Servex: a restart keeps working agents, and a mastermind stays wakeable","brief":"public/framework/ai/2026-10-03/restart-keeps-agents/requirements.md","owner":"mastermind-servex","queue":"top (vscode-mastermind, 2026-10-03)","model":"claude-sonnet-5","effort":"high"}}
+{"action":{"at":"2026-10-03T15:41:13-05:00","did":"edit","files":["public/framework/ai/2026-10-03/restart-keeps-agents/requirements.md"]}}
+{"assign":{"title":"Servex: free 4 stuck landings, keep agents alive through restarts, and keep main on its branch"}}

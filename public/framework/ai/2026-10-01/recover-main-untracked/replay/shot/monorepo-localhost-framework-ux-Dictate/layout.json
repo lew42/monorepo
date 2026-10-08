@@ -1,0 +1,14 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/",
+ "widths": {
+  "1920": {
+   "empty": 0.683,
+   "widest_text": 614,
+   "widest_text_sample": "event — but Chrome can finish a WHOLE se",
+   "overflow_x": false,
+   "items": 104,
+   "narrow_share": 0.865
+  }
+ },
+ "errors": []
+}

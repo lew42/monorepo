@@ -1,0 +1,282 @@
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index 3a1eb394..a6051fe2 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -5,6 +5,8 @@ import { place } from "../home.js";
+ import Usage from "../Usage.js";
+ import { page_path } from "./Layers.js";
+ import { session_facts } from "./Agents.js";
++import { clean } from "../../public/framework/ext/Refine/engine.js";
++import { structure } from "../../public/framework/ext/Refine/structure.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const REPO = path.join(HERE, "../..");
+@@ -57,6 +59,45 @@ export const LONE_EMOJI = /^\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]
+ 
+ const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
+ 
++/* `structure()`'s `md` is "## Heading" / "- bullet [S1, S2]" markdown; this reads it into
++ * `{heading, items: [{text, cites}]}` and stamps ids, the exact small parser Echo.js already
++ * carries (its own `parse_sections`/`parse_cites`/`sections_with_ids`) — duplicated here on
++ * purpose, not imported: `ext/Refine/refine.js`'s own version is a browser View module and
++ * has no business loading inside Servex's Node process (Echo.js's own comment on this). */
++function parse_sections(md){
++	const sections = [];
++	let current = null;
++	const start_default = () => { current = { heading: "", items: [] }; sections.push(current); };
++	for (const line of String(md || "").split(/\r?\n/)){
++		const h = line.match(/^##\s+(.+)$/);
++		if (h){ current = { heading: h[1].trim(), items: [] }; sections.push(current); continue; }
++		const b = line.match(/^[-*]\s+(.+)$/);
++		if (b){
++			if (!current) start_default();
++			current.items.push(parse_cites(b[1]));
++		}
++	}
++	return sections;
++}
++function parse_cites(text){
++	const m = text.match(/\[(S\d+(?:\s*[-–]\s*S?\d+)?(?:\s*,\s*S?\d+(?:\s*[-–]\s*S?\d+)?)*)\]\s*$/);
++	if (!m) return { text: text.trim(), cites: [] };
++	const cites = [];
++	m[1].split(",").forEach(part => {
++		const range = part.trim().match(/^S?(\d+)\s*[-–]\s*S?(\d+)$/);
++		if (range){ const [lo, hi] = [Number(range[1]), Number(range[2])].sort((a, b) => a - b); for (let n = lo; n <= hi; n++) cites.push(n); return; }
++		const single = part.trim().match(/^S?(\d+)$/);
++		if (single) cites.push(Number(single[1]));
++	});
++	return { text: text.slice(0, m.index).trim(), cites };
++}
++function sections_with_ids(sections){
++	return sections.map((s, i) => ({
++		id: `sec${i + 1}`, heading: s.heading,
++		items: s.items.map((it, j) => ({ id: `sec${i + 1}-i${j + 1}`, text: it.text, cites: it.cites })),
++	}));
++}
++
+ /* Local time with its offset AND milliseconds — `2026-09-29T19:30:12.345-05:00`.
+  * The milliseconds matter: a reply's `re` names the owner line it answers by its
+  * `at`, so two lines said in the same second must not share one. */
+@@ -257,6 +298,40 @@ export default class Sessions {
+ 		this.push(s.id, { kind: "line", line });
+ 	}
+ 
++	/* THE FAST ASSISTANT'S REFINEMENT (one-dictation, minion-voice-refine, 2026-10-03): every
++	 * owner line the owner's own `say()` just wrote (above) runs through the SAME shared
++	 * Refine engine `Echo.js` already drives for VS Code prompts -- `clean()`
++	 * (`ext/Refine/engine.js`) then `structure()` (`ext/Refine/structure.js`) -- never a
++	 * second engine (law 6). This runs AFTER the line is written and the fast assistant is
++	 * already woken, and `say()` never awaits it: a slow or down model must never delay the
++	 * owner's own turn. Model calls go through `servex.echo.call()`, not a bare `askOnce` --
++	 * Echo.js already wraps that call with its own loop guard (`machine`/`inflight`, see
++	 * Echo.js's "THE ECHO LOOP" comment), so every session this spawns is one Echo itself
++	 * already knows is a machine call, never mistaken for a fresh owner prompt. One result
++	 * line lands once both calls finish: `{refined: {at, re, sentences, sections, flags,
++	 * cost_usd}}`, `re` = the owner line's own `at`. `cost_usd` sums `total_cost_usd` off
++	 * every model call this one utterance made (`ask-each.mjs`'s own `askOnce` return).
++	 * Returns the promise so a test can await it directly with a stubbed `servex.echo.call`;
++	 * `say()` itself only logs a failure (no model, Servex down) and otherwise lets go --
++	 * the raw bubble already stands on its own with nothing refined underneath it. */
++	refine(s, line){
++		const echo = this.servex?.echo;
++		if (!echo || !String(line?.text ?? "").trim()) return Promise.resolve();
++		let cost_usd = 0;
++		const call = async (prompt, opts) => {
++			const r = await echo.call(prompt, opts);
++			cost_usd += Number(r?.cost_usd) || 0;
++			return r;
++		};
++		return (async () => {
++			const { sentences, flags } = await clean(line.text, { call });
++			if (!sentences.length) return;
++			const built = await structure(sentences, { call });
++			const sections = built.md ? sections_with_ids(parse_sections(built.md)) : [];
++			this.write(s, { refined: { at: now_ms(), re: line.at, sentences, sections, flags, cost_usd } });
++		})();
++	}
++
+ 	/* The last `n` lines of a session's file, as text: the context a FRESH agent gets
+ 	 * when its old Claude session cannot be resumed. */
+ 	tail(s, n = 40){
+@@ -525,6 +600,7 @@ export default class Sessions {
+ 			...(thread && re ? { re: String(re), thread: true } : {}),
+ 			...(selection && typeof selection === "object" ? { selection: trim_sel(selection) } : {}) };
+ 		this.write(s, { chat: line });
++		this.refine(s, line).catch(e => this.servex?.say?.(`sessions: could not refine an utterance: ${e.message || e}`));
+ 		if (line.thread){
+ 			(s.threaded ??= []).push(line.at);
+ 			if (s.threaded.length > 50) s.threaded.shift();
+diff --git a/public/framework/ext/Session/Session.js b/public/framework/ext/Session/Session.js
+index 750f2e33..ce1578fd 100644
+--- a/public/framework/ext/Session/Session.js
++++ b/public/framework/ext/Session/Session.js
+@@ -196,6 +196,15 @@ export function entry(line){
+ 	// screen, and `ux/Dictate/Widget.js`'s `Thread` needs this shape to split it, and everything
+ 	// merged in after it, into a new bubble (`ext/Session/doc/markers.md`).
+ 	if (line.para) return { type: "para", at: line.para.at, re: line.para.re };
++	// `refined` (one-dictation, minion-voice-refine): the FAST assistant's own refinement of
++	// the owner line `re` names -- the same shared `ext/Refine/engine.js` + `structure.js`
++	// Echo.js already runs for VS Code prompts (law 6, no second engine), run here in the
++	// background by `Servex/agents/Sessions.js`'s `refine()`. Passed straight through to
++	// `ux/Dictate/Widget.js`'s `Thread.draw()`, which draws it as a small collapsed block
++	// under that owner bubble -- never a bubble of its own.
++	if (line.refined) return { type: "refined", at: line.refined.at, re: line.refined.re,
++		sentences: line.refined.sentences, sections: line.refined.sections,
++		flags: line.refined.flags, cost_usd: line.refined.cost_usd };
+ 	if (line.backing) return { type: "update", at: line.backing.at, text: "the assistants woke up" };
+ 	if (line.session) return { type: "update", at: line.session.at, text: `session ${line.session.id} started on ${line.session.home}` };
+ 	return null;
+diff --git a/public/framework/ext/Session/doc/markers.md b/public/framework/ext/Session/doc/markers.md
+index ed9a9f52..ca91d322 100644
+--- a/public/framework/ext/Session/doc/markers.md
++++ b/public/framework/ext/Session/doc/markers.md
+@@ -1,13 +1,13 @@
+-# Invisible markers — nav, pause, select, para — and the project-wide list
++# Invisible markers — nav, pause, select, para, refined — and the project-wide list
+ 
+ A voice session's file holds more than what the owner said and the assistants answered. A few
+ kinds of line are written automatically, in the background, and never drawn on screen as a
+ bubble of their own. They exist so the smart assistant can answer questions like "what was I
+-looking at when I said that?" even long after the moment has passed — `para` is the one
+-exception: still never a bubble itself, but passed through to the screen anyway, because it
+-changes how an EARLIER bubble is drawn (see its own row below).
++looking at when I said that?" even long after the moment has passed — `para` and `refined` are
++the two exceptions: never a bubble of their own, but passed through to the screen anyway,
++because each changes how an EARLIER bubble is drawn or decorated (see their own rows below).
+ 
+-## The four invisible markers
++## The five invisible markers
+ 
+ | Marker | Written when | What it is for |
+ |---|---|---|
+@@ -15,14 +15,20 @@ changes how an EARLIER bubble is drawn (see its own row below).
+ | `pause` | the mic stops altogether, and starts again later (not just an ordinary mid-sentence quiet gap) | tells the assistants "the owner put the mic down and picked it back up", which reads differently than a pause mid-thought |
+ | `select` | the reader picks (or clears) an element on the page, such as a paragraph or a card | lets the assistants know exactly what was on screen and selected at any past moment |
+ | `para` | the fast assistant decides a thought it just heard starts a new topic, not a continuation | tells [`ux/Dictate/Widget.js`](/framework/ux/Dictate/)'s `Thread` to split that paragraph, and everything merged in after it, out of its bubble into a new one — `doc/chat.md`'s "The para marker" |
++| `refined` | right after any owner line, in the background — the fast assistant ran the shared Refine engine on it | tells `Thread` to draw a small, collapsed "refined" block right under that owner's own bubble: the sentences grouped under headings, with each sentence's id, and what the model calls cost |
+ 
+-`pause` is written by `report_pause()`, which every chat mount turns on (`ux/Dictate/chat.js`). It hears the mic itself turn off and back on (`floor.js`), so no caller reports it by hand. `select` comes from the drawer's pick-an-element tool (`ext/drawer/select.js`). `para` is written by `Servex/agents/Sessions.js`'s `heard()`, the moment the fast assistant's reply starts with `(new paragraph)` (`Servex/agents/session-fast.md`'s own rule).
++`pause` is written by `report_pause()`, which every chat mount turns on (`ux/Dictate/chat.js`). It hears the mic itself turn off and back on (`floor.js`), so no caller reports it by hand. `select` comes from the drawer's pick-an-element tool (`ext/drawer/select.js`). `para` is written by `Servex/agents/Sessions.js`'s `heard()`, the moment the fast assistant's reply starts with `(new paragraph)` (`Servex/agents/session-fast.md`'s own rule). `refined` is written by that same file's `say()`, through its own `refine()` method — the SAME shared engine `Echo.js` already runs for VS Code prompts (`ext/Refine/engine.js`'s `clean()` + `structure.js`'s `structure()`, never a second one, law 6), called through `servex.echo.call()` so every model session it opens is one Echo's own loop guard (`machine`/`inflight`) already knows about.
+ 
+ `nav`, `pause` and `select` are written by `Session.js` and never turned into a chat bubble —
+ `Session.entry()` skips them on purpose, the same way it already skips `quiet` and `skip`
+-lines. `para` is skipped as a bubble too, but `entry()` passes it through (as `{type: "para",
+-re}`) instead of dropping it, because `ux/Dictate/Widget.js`'s `Thread` needs it to act on an
+-already-drawn bubble. The file format for each one is in [`doc/sessions.md`](./sessions.md).
++lines. `para` and `refined` are skipped as bubbles too, but `entry()` passes each through
++(`{type: "para", re}`, `{type: "refined", re, sentences, sections, flags, cost_usd}`) instead of
++dropping it, because `ux/Dictate/Widget.js`'s `Thread` needs it to act on an already-drawn
++bubble. `ux/Dictate/chat.js`'s own `draw()` — the one place every real stream line actually
++passes through, for both the ✦ sheet and the desktop drawer's AI tab — calls `Session.entry()`
++for a `refined` line the same way, so the block shows up wherever the chat shows up, not just on
++`ext/Session/page.js`'s own demo list. The file format for each one is in
++[`doc/sessions.md`](./sessions.md).
+ 
+ ## Card attribution: who gets credit for what was said
+ 
+diff --git a/public/framework/ext/Session/doc/sessions.md b/public/framework/ext/Session/doc/sessions.md
+index 73381aba..fa05ca46 100644
+--- a/public/framework/ext/Session/doc/sessions.md
++++ b/public/framework/ext/Session/doc/sessions.md
+@@ -18,6 +18,7 @@ One session is one append-only file, `public<home>ai/<session>.jsonl`. The brows
+ {"quiet": {"at": "…", "ms": 2500, "path": "/framework/"}}
+ {"skip": {"at": "…", "role": "fast", "text": "(listening)", "re": "<the owner line's at>"}}
+ {"react": {"at": "…", "session": "v-1xrmuro", "re": "<a line's at>", "emoji": "✅", "from": {"kind": "assistant", "id": "smart", "agent": "…"}}}
++{"refined": {"at": "…", "re": "<the owner line's at>", "sentences": [{"n": 1, "text": "…"}], "sections": [{"id": "sec1", "heading": "…", "items": [{"id": "sec1-i1", "text": "…", "cites": [1]}]}], "flags": [], "cost_usd": 0.0033}}
+ ```
+ 
+ A spoken owner line also carries `floor` (`speaking`/`done`) and, when the clean-up changed it, `raw` (what Whisper heard). `quiet` (the owner went quiet for `ms`) and `skip` (a fast reply that said nothing) are never drawn.
+@@ -53,6 +54,8 @@ A line from the smart assistant with `re` alone is a reply. With `re` AND `level
+ 
+ `level` is required on every refinement: without it, ext/Chat draws the line as an ordinary reply. The smart assistant writes these with the `session_line` tool. It hears every owner line as `[on /page/ at <at>]`, so it knows the `re` to give; a refinement with no `re` is refused, never guessed.
+ 
++**Not the same thing as a `{refined}` LINE** (its own top-level kind, in the code block above, minion-voice-refine) — that one is not a `chat` line at all, needs no model judgment call from either assistant, and is written automatically, in the background, for EVERY owner line, by `Servex/agents/Sessions.js`'s own `refine()`. It is the fast assistant's structured read of the sentence (grouped under headings, with each sentence's id, and what the model calls cost), never drawn as a bubble — see `doc/markers.md`'s own row for it.
++
+ ## The Servex tools
+ 
+ | Tool | Who calls it | What it writes |
+diff --git a/public/framework/ux/Dictate/Widget.css b/public/framework/ux/Dictate/Widget.css
+index 793bdd98..668f9fa0 100644
+--- a/public/framework/ux/Dictate/Widget.css
++++ b/public/framework/ux/Dictate/Widget.css
+@@ -97,6 +97,11 @@
+ 	.ux-dictate-widget-failed { font-size: 0.85em; }
+ 	.ux-dictate-widget-mark { font-size: 0.85em; margin-inline-start: 0.3em; }
+ 
++	/* THE REFINED BLOCK (minion-voice-refine) — a small collapsed `<details>` right after the
++	 * owner bubble it `re`s; closed by default, so it never competes with the raw words. */
++	.ux-dictate-widget-refined { font-size: 0.85em; margin-inline-start: 2.4em; }
++	.ux-dictate-widget-refined summary { cursor: pointer; }
++
+ 	/* A QUESTION FOR YOU (`answer`/choices, restored round 4) — one card, a short
+ 	 * heading, a row of buttons; the picked one stays visible once answered. */
+ 	.ux-dictate-widget-ask-heading { font-weight: 600; display: block; }
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index 660706e8..c7dfff27 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -1,4 +1,4 @@
+-import { View, div, span, button, select, option, label, textarea } from "../../core/View/View.js";
++import { View, div, span, button, select, option, label, textarea, details, summary, strong } from "../../core/View/View.js";
+ import Dictate, { remember_device, remembered_device } from "./Dictate.js";
+ import { pg } from "./playground/Playground.js";
+ import { marks as fetch_marks } from "../Understand/Understand.js";
+@@ -432,6 +432,7 @@ Widget.Thread = class WidgetThread extends View {
+ 	 *  `split_paragraph()` below. */
+ 	draw(entry){
+ 		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
++		if (entry?.type === "refined") return this.draw_refined(entry);
+ 		const para = entry?.para ?? (entry?.type === "para" ? entry : null);
+ 		if (para?.re) return this.split_paragraph(para.re);
+ 		const chat = entry?.chat;
+@@ -508,6 +509,33 @@ Widget.Thread = class WidgetThread extends View {
+ 		this.scroll.pin();
+ 	}
+ 
++	/** THE REFINED BLOCK (one-dictation, minion-voice-refine) -- `Session.js`'s own `entry()`
++	 *  turns a `{refined}` line into `{type: "refined", re, sentences, sections, flags,
++	 *  cost_usd}`; `re` is the owner bubble's own `at`, already drawn (`this.lines`, above).
++	 *  Drawn as a small collapsed `<details>` right after that bubble, closed by default --
++	 *  the raw bubble is the thing the owner actually said, and stays exactly as it is; this
++	 *  is the structured second look, one click away. Nothing is drawn if the owner bubble
++	 *  has not been seen yet (an out-of-order replay) -- it is background info, not essential,
++	 *  so a quiet skip beats a bubble with nothing to attach to. */
++	draw_refined(entry){
++		const line = this.lines.get(entry.re);
++		if (!line?.bubble) return;
++		let node;
++		this.$bubbles.append(() => {
++			node = details.c("ux-dictate-widget-refined muted", () => {
++				summary(`refined · $${Number(entry.cost_usd ?? 0).toFixed(4)}`);
++				const sections = entry.sections?.length ? entry.sections
++					: [{ heading: "", items: (entry.sentences ?? []).map(s => ({ text: s.text, cites: [s.n] })) }];
++				sections.forEach(sec => div(() => {
++					if (sec.heading) strong(sec.heading);
++					(sec.items ?? []).forEach(it => div(`${it.cites?.length ? it.cites.map(c => "S" + c).join(", ") + " — " : ""}${it.text}`));
++				}));
++			}).el;
++		});
++		line.bubble.insertAdjacentElement("afterend", node);
++		this.scroll.pin();
++	}
++
+ 	/** A reply STILL being written — a bubble of its own, parked at `this.lives`, never
+ 	 *  one of `speak()`'s own pieces (this class's own doc, and review finding 2). Every
+ 	 *  call for the same `who` redraws the SAME bubble's text whole, the same way
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index 4d9a6fd9..0df2dcfd 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -245,6 +245,12 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 	function draw(line){
+ 		if (line?.react) return void panel.say({ react: line.react });
+ 		if (line?.para) return void panel.say({ para: line.para });   // the fast assistant split a bubble (doc/chat.md)
++		// `refined` (one-dictation, minion-voice-refine): the fast assistant's own structured
++		// read of an owner line, written by `Servex/agents/Sessions.js`'s `refine()`.
++		// `Session.entry()` already knows this shape (the one other caller of this method,
++		// `ext/Session/page.js`); reused here rather than destructuring `line.refined` a
++		// second time (law 6).
++		if (line?.refined) return void panel.say(Session.entry(line));
+ 		if (!line?.chat) return;
+ 		if (own_ats.has(line.chat.at)) return;   // this mount's own send, already drawn optimistically
+ 		// `watch()` and `stream()` both call this for the SAME line (see the comment on

@@ -1,0 +1,40 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-10-03/",
+ "widths": {
+  "1280": {
+   "empty": 0.694,
+   "widest_text": 463,
+   "widest_text_sample": "A subagent's report is no longer logged ",
+   "overflow_x": false,
+   "items": 97,
+   "narrow_share": 0.216
+  },
+  "1920": {
+   "empty": 0.789,
+   "widest_text": 957,
+   "widest_text_sample": "Correction (clarity check): the after-sh",
+   "overflow_x": false,
+   "items": 97,
+   "narrow_share": 0.464
+  },
+  "2560": {
+   "empty": 0.828,
+   "widest_text": 1075,
+   "widest_text_sample": "merge 1 landed: dropped the ai2 nav entr",
+   "overflow_x": false,
+   "items": 96,
+   "narrow_share": 0.458
+  },
+  "3440": {
+   "empty": 0.866,
+   "widest_text": 1075,
+   "widest_text_sample": "merge 1 landed: dropped the ai2 nav entr",
+   "overflow_x": false,
+   "items": 97,
+   "narrow_share": 0.464
+  }
+ },
+ "errors": [
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

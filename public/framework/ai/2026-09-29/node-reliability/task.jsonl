@@ -1,0 +1,77 @@
+{"assign":{"now":"queued","brief":"ai/2026-09-29/node-reliability/requirements.md","requested_at":"2026-09-29T18:42:32-05:00","by":"mastermind-servex-6"}}
+{"log":{"at":"2026-09-29T18:43:30-05:00","msg":"task-loop chase 1 of 2: could not wake: no owning agent found","chase":1}}
+{"log":{"at":"2026-09-29T19:13:30-05:00","msg":"task-loop chase 2 of 2: could not wake: no owning agent found","chase":2}}
+{"log":{"at":"2026-09-29T19:45:37-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"assign":{"session_id":"486964ae-9bda-4468-ad79-5768e3c26d3e","agent":"task-mastermind-node-reliability","card":"live","brief":"public/framework/ai/2026-09-29/node-reliability/requirements.md","model":"claude-opus-5-5","requested_at":"2026-09-29T20:09:28-05:00","now":"starting","steps":[],"step":1}}
+{"assign":{"worktree":"C:\\Code\\lew42\\worktrees\\node-reliability","branch":"worktree/node-reliability"}}
+{"assign":{"now":"revive guard built and proven; fresh review running","steps":["revive guard (stopped_by, landed, cwd gone)","persist the spawn queue","queued spawns return an id + dedupe","finishing roles first","one-pass roles stop themselves"],"step":1,"worktree":"C:/Code/lew42/worktrees/node-reliability"}}
+{"decision":{"at":"2026-09-29T20:20:00-05:00","what":"One guard, Agents.blocked(row), asked by send/wake_parent/boot revive/heartbeat; stop_agent's caller is persisted as stopped_by in the registry row; send_to_agent revive:true overrides stopped/landed, never cwd-gone","alternative":"keep the heartbeat's in-memory stopped_by map only (lost on every restart, which is how mobile-nav came back)"}}
+{"experiment":{"try":"revive-guard-proof.mjs against a temp registry","measure":"cases passing","result":"14/14; private-port Servex boot answers GET /agents 200"}}
+{"log":{"at":"2026-09-29T20:22:00-05:00","msg":"review.mjs could not run its reviewer: spawn_agent was queued at the memory gate and returned no id (the 19:20 bug, hit live). Reviewing with an in-process fresh agent instead."}}
+{"review":{"found":9,"real":5,"fixed":5,"by":"fresh in-process Opus (review.mjs's reviewer was queued at the memory gate)"}}
+{"log":{"at":"2026-09-29T20:40:00-05:00","msg":"Caveats left: every in-process stop (reaper, Layers) still counts as on purpose in the heartbeat's memory map (predates this); find_task_dir picks the first log naming a reused id; a heartbeat revive of a task with no registry row still skips the cwd check. Proof 18/18."}}
+{"review":{"at":"2026-09-29T20:45:00-05:00","size":"full","verdict":"fix","findings":[{"n":1,"kind":"fix","text":"stop on a reaped agent never wrote stopped_by"},{"n":2,"kind":"fix","text":"role wake skips the guard"},{"n":3,"kind":"fix","text":"reused id inherits a landed task_dir"},{"n":4,"kind":"fix","text":"forced revive leaves the heartbeat mark"},{"n":5,"kind":"note","text":"in-process stops count as on purpose"},{"n":6,"kind":"note","text":"find_task_dir first match"},{"n":7,"kind":"note","text":"owner answer to a landed agent dropped"},{"n":8,"kind":"note","text":"heartbeat reopen path skips cwd check"},{"n":9,"kind":"note","text":"no other send() caller breaks"}],"branch":"worktree/node-reliability","head":"ec1dd9ceace2e4e96c9177249394e216027243ec","model":"claude-opus-5-5","file":"review.md","by":"fresh in-process agent"}}
+{"review":{"answer":{"n":1,"reply":"fixed: Agents.stop registers the row itself after marking (27cce3a9; proof case m-reaped)","at":"2026-09-29T20:45:00-05:00"}}}
+{"review":{"answer":{"n":2,"reply":"fixed: Global.mastermind asks agents.blocked before reopen and throws the reason","at":"2026-09-29T20:45:00-05:00"}}}
+{"review":{"answer":{"n":3,"reply":"fixed: task_dir is inherited only when the session_id matches (proof case m-reuse)","at":"2026-09-29T20:45:00-05:00"}}}
+{"review":{"answer":{"n":4,"reply":"fixed: send with revive:true calls forget_stop, which clears the heartbeat map","at":"2026-09-29T20:45:00-05:00"}}}
+{"review":{"answer":{"n":5,"reply":"noted: predates this; left as a caveat in task.jsonl, the lifecycle task owns reaper stops","at":"2026-09-29T20:45:00-05:00"}}}
+{"review":{"answer":{"n":6,"reply":"noted: acceptable — only reached for rows with no task_dir; new rows carry task_dir","at":"2026-09-29T20:45:00-05:00"}}}
+{"review":{"answer":{"n":7,"reply":"fixed: the owner answering a card question now passes revive:true (Cards.js), so it wakes the asker unless its cwd is gone","at":"2026-09-29T20:45:00-05:00"}}}
+{"review":{"answer":{"n":8,"reply":"noted: caveat logged; that path only runs for tasks whose owner left no registry row","at":"2026-09-29T20:45:00-05:00"}}}
+{"review":{"answer":{"n":9,"reply":"noted: checked, no change needed","at":"2026-09-29T20:45:00-05:00"}}}
+{"assign":{"now":"spawn queue built (691b1ee9); fresh review running","step":2}}
+{"experiment":{"try":"queue-proof.mjs: a Servex gate over a stubbed spawn","measure":"cases passing","result":"12/12 — id at once, dedupe by name/session/id, restored after a second gate reads the file, reviewer first under 1 GB, wait_for_agent on a queued id"}}
+{"experiment":{"try":"revive-guard-proof.mjs with mastermind-servex-7's 20:20 gaps","measure":"cases passing","result":"22/22 — legacy stops marked at boot; child of stopped -6 and a message to -5 reach -7"}}
+{"review":{"at":"2026-09-29T20:55:00-05:00","size":"full","verdict":"fix","findings":[{"n":1,"kind":"fix","text":"fresh-spawn dedupe drops a different job"},{"n":2,"kind":"fix","text":"legacy mark too broad"},{"n":3,"kind":"fix","text":"holder ignores the registry"},{"n":4,"kind":"fix","text":"restore/drain skip the guard"},{"n":5,"kind":"fix","text":"own-id resume starts a second process"},{"n":6,"kind":"note","text":"no drain without the monitor"},{"n":7,"kind":"note","text":"queued ids not addressable"},{"n":8,"kind":"note","text":"child.parent rewrite harmless"},{"n":9,"kind":"note","text":"finishing flag bypass"}],"branch":"worktree/node-reliability","head":"691b1ee9d5d4ee697fc338577d4daacb27c29f83","model":"claude-opus-5-5","file":"review-queue.md","by":"fresh in-process agent"}}
+{"review":{"answer":{"n":1,"reply":"fixed: a fresh spawn dedupes only when prompt, parent and cwd match (34b3ed93; proof: different job is its own entry)","at":"2026-09-29T20:55:00-05:00"}}}
+{"review":{"answer":{"n":2,"reply":"fixed: legacy is marked only on retired mastermind-servex-N rows below the highest N (proof)","at":"2026-09-29T20:55:00-05:00"}}}
+{"review":{"answer":{"n":3,"reply":"fixed: holder falls back to the highest N in the registry (proof)","at":"2026-09-29T20:55:00-05:00"}}}
+{"review":{"answer":{"n":4,"reply":"fixed: stale(spec) asks agents.blocked in restore and drain, and logs the drop","at":"2026-09-29T20:55:00-05:00"}}}
+{"review":{"answer":{"n":5,"reply":"fixed: exclusion removed","at":"2026-09-29T20:55:00-05:00"}}}
+{"review":{"answer":{"n":6,"reply":"fixed: admission schedules one drain 5 s after boot","at":"2026-09-29T20:55:00-05:00"}}}
+{"review":{"answer":{"n":7,"reply":"fixed: send holds messages in a queued entry, stop_agent removes it from the queue (proof); when_started still waits to its timeout if a start throws","at":"2026-09-29T20:55:00-05:00"}}}
+{"review":{"answer":{"n":8,"reply":"noted: no change","at":"2026-09-29T20:55:00-05:00"}}}
+{"review":{"answer":{"n":9,"reply":"fixed: finishing is decided by role only","at":"2026-09-29T20:55:00-05:00"}}}
+{"experiment":{"try":"one-pass roles stop themselves","measure":"state after one turn","result":"reviewer stopped, minion idle (queue-proof 15/15)"}}
+{"review":{"at":"2026-09-30T17:25:45.521Z","size":"full","verdict":"fix","findings":[{"n":1,"kind":"fix","text":"plain git merge path has no protection for a log appended after the dirty check"},{"n":2,"kind":"note","text":"keepLive used utf8, rest of merge.mjs latin1"},{"n":3,"kind":"note","text":"blank lines dropped"},{"n":4,"kind":"note","text":"assumes append-only"}],"branch":"worktree/node-reliability","head":"35c5acdf01f6ea4d3d62d1882b8d5f5684822042","model":"claude-sonnet-5","file":"(in-process reviewer)","by":"fresh in-process agent"}}
+{"review":{"answer":{"n":1,"reply":"fixed: the dirty check runs again right before git merge; a late overlap goes three-way, which keeps every line (scratch proof: overlap and clean paths both keep the live line)","at":"2026-09-30T17:25:45.521Z"}}}
+{"review":{"answer":{"n":2,"reply":"fixed: keepLive is latin1 throughout; proof case for UTF-8 bytes","at":"2026-09-30T17:25:45.521Z"}}}
+{"review":{"answer":{"n":3,"reply":"fixed: only empty lines are skipped now","at":"2026-09-30T17:25:45.521Z"}}}
+{"review":{"answer":{"n":4,"reply":"noted: jsonl here is append-only by contract; a rewrite would duplicate, never lose","at":"2026-09-30T17:25:45.521Z"}}}
+{"log":{"at":"2026-09-30T17:25:45.521Z","msg":"Agents.js: a child wake (done/blocked/error) now carries 4000 chars, not 300, so a report no longer arrives cut after one table row (asked by mastermind-servex-8)"}}
+{"action":{"at":"2026-09-30T12:28:11-05:00","did":"edit","files":["public/framework/ai/2026-09-29/node-reliability/checkpoint-1.md"]}}
+{"log":{"at":"2026-09-30T12:45:00-05:00","msg":"jsonl-keep + 4000-char child wake MERGED (e710dc3c); awaits a Servex restart for the Agents.js line (merge.mjs is live at once). Worktree dev server stopped. Checkpoint for the fresh session: checkpoint-1.md."}}
+{"log":{"at":"2026-09-30T12:45:00-05:00","msg":"spend this resumed stretch: about $4 (two short in-process reviews plus this session's turns); cap $20"}}
+{"assign":{"now":"checkpoint-1 written; handing the rest of the list to a fresh session","step":3}}
+{"assign":{"session_id":"0016d87b-6ce4-46d8-95f7-4a601cfd2901","agent":"task-mastermind-node-reliability-2","brief":"ai/2026-09-29/node-reliability/checkpoint-1.md (fresh session, continuing)","model":"claude-opus-5-5","requested_at":"2026-09-30T12:39:50-05:00","now":"starting","steps":[],"step":1}}
+{"assign":{"now":"item 1: smoke skips uncommitted-in-main targets + merge refuses mangled paths; Sonnet minion smoke-uncommitted","step":2,"steps":["smoke-uncommitted","budget-heartbeat","pool-prune","idle-release/peer/via","finish"]}}
+{"decision":{"at":"2026-09-30T12:50:00-05:00","what":"items run one minion at a time in the node-reliability worktree, so each merges on its own","alternative":"parallel minions in two worktrees — rejected: 2.1 GB free RAM, spawns already queue"}}
+{"decision":{"at":"2026-09-30T12:50:00-05:00","what":"budget cap = refuse (not queue) child spawns of an over-cap owner, tell owner + its parent once; keep the brief's 150% minion stop","alternative":"drop the 150% stop — rejected: the 20:35 brief names it"}}
+{"log":{"at":"2026-09-30T12:50:00-05:00","msg":"briefs written: smoke-uncommitted (spawned, queued for RAM), budget-heartbeat, pool-prune"}}
+{"action":{"at":"2026-09-30T12:50:33-05:00","did":"edit","files":["public/framework/ai/2026-09-29/node-reliability/review.md"]}}
+{"review":{"answer":{"n":1,"reply":"fixed: merge.mjs header names the refusal (e5692e42)"}}}
+{"review":{"answer":{"n":2,"reply":"fixed: usage() names --main"}}}
+{"review":{"answer":{"n":3,"reply":"fixed: the guard also checks --main's value"}}}
+{"review":{"answer":{"n":4,"reply":"fixed: merge.mjs forwards --main to smoke.mjs"}}}
+{"review":{"found":4,"real":4,"fixed":4}}
+{"experiment":{"try":"smoke skip for uncommitted-in-main targets","measure":"smoke on an uncommitted card url + a true 404","result":"skip vs FAIL, exit 1 only from the 404 (smoke-uncommitted-proof.txt)"}}
+{"review":{"answer":{"n":1,"reply":"fixed: merge.mjs header names the refusal (e5692e42)"}}}
+{"review":{"answer":{"n":2,"reply":"fixed: usage() names --main"}}}
+{"review":{"answer":{"n":3,"reply":"fixed: the guard also checks --main's value"}}}
+{"review":{"answer":{"n":4,"reply":"fixed: merge.mjs forwards --main to smoke.mjs"}}}
+{"review":{"found":4,"real":4,"fixed":4}}
+{"experiment":{"try":"smoke skip for uncommitted-in-main targets","measure":"smoke on an uncommitted card url + a true 404","result":"skip vs FAIL, exit 1 only from the 404 (smoke-uncommitted-proof.txt)"}}
+{"review":{"answer":{"n":1,"reply":"fixed: :8137 restarted hidden (answers 200); the proof and the landing line say it was down ~15 min by my mistake; worktree-prune.mjs never touches a main-tree server"}}}
+{"review":{"answer":{"n":2,"reply":"noted"}}}
+{"review":{"answer":{"n":3,"reply":"declined: git clean -fdx deletes untracked files for good, against 'nothing is ever discarded'; qf-8 is locked and skipped; a slot with untracked work is salvaged instead"}}}
+{"review":{"answer":{"n":4,"reply":"fixed: free_id checks merge-base --is-ancestor against this.base before branch -d"}}}
+{"review":{"answer":{"n":5,"reply":"fixed: exact path or path + '/'; stop_node_in matches '<dir>\\\\' too"}}}
+{"review":{"answer":{"n":6,"reply":"fixed: missing folder checked first, message says the closing worktree prune clears it"}}}
+{"review":{"answer":{"n":7,"reply":"fixed: a kept branch is named on the pruned line"}}}
+{"review":{"answer":{"n":8,"reply":"noted: Pool.js needs a Servex restart; asked of mastermind-servex-8 in the merge line"}}}
+{"review":{"found":8,"real":6,"fixed":6}}
+{"log":{"at":"2026-09-30T13:22:00-05:00","msg":"MISTAKE: stopped the :8137 dev server (keep list, the owner's phone) as a 'leftover' ~13:05; the review caught it; restarted hidden ~13:20. Pruned 38 worktrees (76 -> 38); take_worktree works again (qf-2). Item 2 minion cancelled after 12 min at the RAM gate; building 1b+2 in-process."}}
+{"experiment":{"try":"prune merged idle worktrees","measure":"git worktree list count; take_worktree","result":"76 -> 38; take_worktree returned qf-2 (it failed before)"}}
+{"assign":{"step":5,"landed_at":"2026-09-30T13:15:17-05:00","title":"Servex reliability: smoke, pool, budgets, aliases","outcome":"**Merges pass again, take_worktree works, budgets are enforced** (needs a Servex restart). reviewed: 4 fixed, 2 noted, [review.md](review.md)\n\n- [x] smoke skips targets uncommitted in the main tree; merge refuses a mangled path: [proof](smoke-uncommitted-proof.txt)\n- [x] resumed id is an alias: [proof](proof-alias.txt)\n- [x] budgets: at the cap, spawns refused, parent told once: [proof](budget-proof.txt)\n- [x] prune + take_worktree: 76 → 38 worktrees: [proof](pool-prune-proof.txt)\n- [x] idle-release, peer messages, via:worktree: [idle](idle-release-proof.txt) · [peer](peer-proof.txt) · [via](via-proof.txt)\n- [ ] dispatch queue, land tool, skill log, hold --paths, checkpoints: open, [checkpoint-2](checkpoint-2.md)\n\nMy mistake: I stopped the :8137 phone server; restarted, down ~15 min.","links":[{"url":"/framework/ai/2026-09-29/node-reliability/checkpoint-2.md","label":"checkpoint 2: merged, open, traps"},{"url":"/Servex/doc/budget.md","label":"Budgets doc"}],"window":null,"tokens":null}}
+{"log":{"at":"2026-09-30T13:15:17-05:00","msg":"spend this stretch: about $15 estimated (Servex's live counter reset at a restart); cap $25. Docs-check spawn (build-order step 3) skipped for budget; each piece had a fresh review instead."}}

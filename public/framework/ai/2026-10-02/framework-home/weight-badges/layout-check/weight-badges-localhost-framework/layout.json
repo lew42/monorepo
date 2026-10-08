@@ -1,0 +1,43 @@
+{
+ "url": "http://weight-badges.localhost/framework/",
+ "widths": {
+  "400": {
+   "empty": 0.515,
+   "widest_text": 350,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 114,
+   "narrow_share": 0
+  },
+  "1200": {
+   "empty": 0.692,
+   "widest_text": 533,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 135,
+   "narrow_share": 0.067
+  },
+  "1920": {
+   "empty": 0.752,
+   "widest_text": 572,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 135,
+   "narrow_share": 0.889
+  },
+  "3440": {
+   "empty": 0.738,
+   "widest_text": 704,
+   "widest_text_sample": "This page used to open with a live clock",
+   "overflow_x": false,
+   "items": 133,
+   "narrow_share": 0.902
+  }
+ },
+ "errors": [
+  "400: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

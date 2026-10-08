@@ -1,0 +1,5 @@
+verdict: pass
+
+1. [note] **The writer counts don't match their source.** The "Data: how it's written" page (`overview.js:75-85`) says 9 routes, but the brief it's built from (`2026-10-02/jsonl-writers/requirements.md:5`) says 12 writers and 5 gaps, not 9 and 4. The page admits it isn't exhaustive, but never explains the gap between the two numbers.
+2. [note] **One cell is built the fragile way.** In `render_writers` (`overview.js:76-80`), the "checked?" cell calls `span.c(...)` directly instead of wrapping it in `() => ...`. It works today by append-time ordering, but `allRows` right below it (`overview.js:386-389`) uses the safe lazy form for the same case — a future edit could easily copy the fragile one.
+3. [note] **Everything else checks out.** All 9 target files in `file_link()` exist, every doc link resolves, and `data`/`saving` are wired into `SYSTEM_PARTS` so both tabs route. Deliverables 1, 4 and 5 (map, skills/roles, tasks/cards) were already live from earlier same-day work; this diff only had to add 2 and 3, and does.

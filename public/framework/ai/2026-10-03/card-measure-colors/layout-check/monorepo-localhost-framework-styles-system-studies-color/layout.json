@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/styles/system/studies/color/",
+ "widths": {
+  "1280": {
+   "empty": 0.566,
+   "widest_text": 586,
+   "widest_text_sample": "paint the identical pixel. Nothing moved",
+   "overflow_x": false,
+   "items": 186,
+   "narrow_share": 0.323
+  },
+  "1920": {
+   "empty": 0.672,
+   "widest_text": 617,
+   "widest_text_sample": "A vivid accent is the colour most likely",
+   "overflow_x": false,
+   "items": 186,
+   "narrow_share": 0.516
+  },
+  "2560": {
+   "empty": 0.714,
+   "widest_text": 694,
+   "widest_text_sample": "A vivid accent is the colour most likely",
+   "overflow_x": false,
+   "items": 186,
+   "narrow_share": 0.919
+  },
+  "3440": {
+   "empty": 0.769,
+   "widest_text": 694,
+   "widest_text_sample": "A vivid accent is the colour most likely",
+   "overflow_x": false,
+   "items": 186,
+   "narrow_share": 0.919
+  }
+ },
+ "errors": []
+}

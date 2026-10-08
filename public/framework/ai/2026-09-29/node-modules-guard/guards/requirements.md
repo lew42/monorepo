@@ -1,0 +1,17 @@
+# Minion: three guards so node_modules can never be emptied again
+
+Load the `minion` skill first (then `code`). Parent task: `public/framework/ai/2026-09-29/node-modules-guard/` — read its `requirements.md` (the owner's brief, verbatim) start to finish.
+
+**Work only in the worktree `C:\Code\lew42\worktrees\node-modules-guard` (branch `worktree/node-modules-guard`); commit there by exact path. Never touch the main tree `C:\Code\lew42\monorepo` except to read.** Never run a guard's destructive path against a real tree: prove every guard on a scratch copy in your session scratchpad (make a fake "main" dir with node_modules, a fake worktree with a junction into it via `mklink /J`, then run the guarded code and show the fake main survived).
+
+Fence (the only files you write): `Server/junction-check.mjs` (new), `Server/worktree-up.mjs`, `Server/worktree-down.mjs`, `Server/worktree-sweep.mjs`, `Server/merge.mjs`, `Servex/Pool.js`, `Servex/sustain.mjs` (respawn path only), `Server/doc/worktrees.md`, a shared helper if you need one (e.g. `Server/junction-guard.mjs`), and your notes under `public/framework/ai/2026-09-29/node-modules-guard/guards/`.
+
+## Deliver
+1. **Guard 1.** Before any recursive `rm`/`rmSync`, `git worktree remove`, or `npm ci`/`npm install` in worktree-up, worktree-down, worktree-sweep, Pool.js and merge.mjs: refuse (throw/exit with a clear message naming the path) if any path inside the target is a reparse point (junction or symlink) that resolves into the main checkout. One small shared function, called at each site. Walk cheaply: a junction is found with `lstat().isSymbolicLink()` on Windows; don't descend into links; `fs.realpathSync` to see where it lands. Skip `.git`.
+2. **Guard 2.** In `Servex/sustain.mjs`, before each respawn: check that `node_modules/express` (repo root) and `Servex/node_modules/@anthropic-ai/claude-agent-sdk` resolve (e.g. `createRequire(...).resolve` or the package.json exists). If one doesn't, run `npm install` in that directory (`windowsHide: true`, `shell: true` on Windows — see the comment at worktree-up.mjs ~line 130 on npm.cmd EINVAL), log it where sustain already logs, then respawn. Rate-limit it (once per N minutes per dir) so a broken network can't loop npm. **Do NOT touch the `--restart` path** — task `restart-outside-tree` (agent `task-mastermind-restart-outside-tree`) owns it and may be editing sustain.mjs in its own branch; keep your diff to the respawn function so the merge is clean.
+3. **Sweep.** `Server/junction-check.mjs` lists every junction/symlink under the worktrees root (`C:/Code/lew42/worktrees` and the repo's `.claude/worktrees`), printing path → target and flagging ones that land in the main checkout; exit code 1 if any flagged. `--json` flag. Called from worktree-up (after `git worktree add`, print its warning; don't fail the up).
+4. **Proof.** `guards/proof.md`: for each guard, the scratch command you ran and its output (the refusal message; fake main's node_modules still there; sustain's check detecting a missing package and reinstalling in a scratch dir). Log each as `{"experiment":{"try","measure","result"}}` in your task.jsonl.
+5. A short section in `Server/doc/worktrees.md`: "node_modules: never a junction" — what happened 09-22 and 09-29, what the guards refuse, how to run junction-check.
+6. `node --check` every file you touched. Commit in the worktree. Don't merge — the task mastermind merges.
+
+Every spawn/exec sets `windowsHide: true`. No new npm dependency. Model Opus, medium. End your turn with a two-line summary.

@@ -1,0 +1,734 @@
+diff --git a/public/app.js b/public/app.js
+index 7dabecb3..a3241c7e 100644
+--- a/public/app.js
++++ b/public/app.js
+@@ -125,6 +125,7 @@ import "./framework/ext/demo/layout.js";
+ // Imports markdown (the notes ARE markdown) and files (the Files tab); leans on
+ // highlight only if it's loaded. See ext/Doc/readme.md.
+ export { Doc } from "./framework/ext/Doc/Doc.js";
++export { System } from "./framework/core/System/System.js";   // a Doc that is a whole system: core/System/
+ 
+ // Patches this.tabs() onto every Page — the side effect IS the export, same
+ // shape as highlight below. ext/Doc already imports it for its own vertical
+diff --git a/public/framework/code/page.js b/public/framework/code/page.js
+index 689f4673..a3bfef33 100644
+--- a/public/framework/code/page.js
++++ b/public/framework/code/page.js
+@@ -1,23 +1,23 @@
+-import { Page, md, div } from "/app.js";
+-import Concepts from "/framework/ux/Content/Concepts/Concepts.js";
++import { System, md, div } from "/app.js";
+ 
+-const items = [
+-	{ name: "Patterns", slug: "patterns", icon: "extension" },
+-	{ name: "Dos and don'ts", slug: "dos-and-donts", icon: "rule" },
+-	{ name: "CSS", slug: "css", icon: "style" },
+-	{ name: "Objects", slug: "objects", icon: "hub" },
+-];
+-
+-export default new Page({
++// A System (core/System): Overview · Inbox, the same strip as every other system.
++// The four parts are the tiles at the top of the Overview, not tabs (`omit: "parts"`).
++export default new System({
+ 	meta: import.meta,
+ 	title: "Code",
+ 	description: "The code in this framework — HTML, CSS, JS: how it's written, what to never do, and how a class shows its own state.",
+ 	icon: "code",
+ 	children: "patterns dos-and-donts css objects",
++	omit: "parts",
+ 
+-	content(){
+-		div.c("pad", () => new Concepts({ items }));
++	concepts: [
++		{ name: "Patterns", slug: "patterns", icon: "extension" },
++		{ name: "Dos and don'ts", slug: "dos-and-donts", icon: "rule" },
++		{ name: "CSS", slug: "css", icon: "style" },
++		{ name: "Objects", slug: "objects", icon: "hub" },
++	],
+ 
++	content(){
+ 		md(`**No build, real ESM.** \`public/\` runs in the browser exactly as written — no bundler, no transpile. The four topics here are how this framework's own code stays readable as it grows:`);
+ 
+ 		div.c("flow", () => {
+@@ -26,7 +26,5 @@ export default new Page({
+ 			md(`- **[CSS](./css/)** — layers, where a declaration belongs, class naming. The vocabulary itself — utilities, tokens, the layout words — lives at [/framework/styles/](/framework/styles/); this page never repeats it.`);
+ 			md(`- **[Objects](./objects/)** — every class ships a view of its own state: a chip, a row, a panel, so you can see what an instance knows without reading its source.`);
+ 		});
+-
+-		md.details(import.meta, "readme.md", "Readme");
+ 	},
+ });
+diff --git a/public/framework/core/Shell/doc/property/content.md b/public/framework/core/Shell/doc/property/content.md
+new file mode 100644
+index 00000000..0fc030ca
+--- /dev/null
++++ b/public/framework/core/Shell/doc/property/content.md
+@@ -0,0 +1 @@
++`content` is what the constructor was given, reshaped: `{ header, left, right, footer, main }`, one function or View per region. `header()`, `left()`, `right()`, `footer()` and `main()` each read their own slice of it and build that one region — nothing else on the shell reads `content` directly.
+diff --git a/public/framework/core/Shell/doc/property/files.jsonl b/public/framework/core/Shell/doc/property/files.jsonl
+new file mode 100644
+index 00000000..3e0f3693
+--- /dev/null
++++ b/public/framework/core/Shell/doc/property/files.jsonl
+@@ -0,0 +1 @@
++{"file":"content.md"}
+diff --git a/public/framework/core/Shell/page.js b/public/framework/core/Shell/page.js
+index 0c5236ae..0138f234 100644
+--- a/public/framework/core/Shell/page.js
++++ b/public/framework/core/Shell/page.js
+@@ -3,9 +3,15 @@ import { Shell } from "/framework/core/Shell/Shell.js";
+ 
+ /* One line of filler content for a region — every demo below uses the same
+  * little box, so the only thing that changes from demo to demo is which
+- * regions exist, never what they look like. */
++ * regions exist, never what they look like.
++ * ⚠ `.pad`: found cold landing core/System (2026-10-03) — `.core-shell-left`/
++ *   `-right` carry no padding of their own (Shell.css's own "optional
++ *   regions" note: a region is a bare box, content brings its own padding),
++ *   so this bare `<p>` sat flush against the rail's edge — the layout-edge
++ *   gate's "text touching its box" finding, on the live site too, not just
++ *   this diff. One class, this page's own demo filler only; no other caller.*/
+ function fill(label){
+-	return () => p.c("muted", label);
++	return () => p.c("muted pad", label);
+ }
+ 
+ export default new Doc({
+diff --git a/public/framework/core/System/System.js b/public/framework/core/System/System.js
+new file mode 100644
+index 00000000..f2ff4ef0
+--- /dev/null
++++ b/public/framework/core/System/System.js
+@@ -0,0 +1,246 @@
++import { div, ul, li, strong, span, small, a } from "../View/View.js";
++import { Doc } from "../../ext/Doc/Doc.js";
++import { Page } from "../Page/Page.class.js";
++import md from "../../ext/markdown/md.js";
++
++/**
++ * System — a page that is a whole system of rules: Design, Code, UI, UX, AI.
++ *
++ *   export default new System({
++ *       meta: import.meta,
++ *       title: "Design", icon: "palette",
++ *       children: "layout color navigation content ui",
++ *       concepts: [{ name: "Layout", slug: "layout", icon: "view_quilt" }, …],
++ *       omit: "parts",          // the parts are tiles on the Overview, not tabs
++ *       content(){ md("…"); },  // the intro, between the tiles and the readme
++ *   });
++ *
++ * or, with no page.js at all, line 1 of a page.jsonl:
++ *
++ *   {"class": "/framework/core/System/System.js", "title": "Demo", "concepts": […]}
++ *
++ * It IS a Doc (ext/Doc), so it has Doc's routed top tabs; what it adds:
++ *   - the Overview is: the `concepts` as tiles, then `content()`, then the readme;
++ *   - an Inbox tab, on every System (`inbox: false` turns it off) — the page's
++ *     `{"ext": "Inbox"}` extension, switched on here, so messaging a system is easy;
++ *   - `omit:` — one word to drop a tab that does not apply ("api", "overview", or
++ *     "parts" for every declared child). Its url still answers when it is a child.
++ *
++ * An upgrade made here reaches every system at once — that is the point of the class.
++ * Docs: core/System/readme.md, doc/system.md.
++ */
++export class System extends Doc {
++
++	// ⚠ Runs inside the Page constructor (Doc's note: no class fields, ever).
++	// `leaf`: the tabs ARE my navigation, so the site's sidebar shows me as one link
++	// rather than spilling Overview · Inbox · Docs into it as if they were pages.
++	//
++	// ⚠ A REAL COLLISION, found cold (not guessed) landing this class: Doc's own
++	//   `notes:` config word (a space-separated list of doc names — "job", "system
++	//   decisions", …) and the Inbox extension's `page.notes` (an ARRAY it collects
++	//   `{"note": …}` lines into, added 2026-10-02, after this class was written)
++	//   share one property name. `ext("Inbox")` is async (Page.ext()'s dynamic
++	//   import), so it clobbers `this.notes` into `[]` sometime after this method
++	//   returns — too late for docs_section() (which already read the right string,
++	//   synchronously, below) but in time to break every LATER read, such as
++	//   bar()'s own `Doc.names(this.notes)` at render. Captured once, here, before
++	//   Inbox ever runs, and bar() (below) reads this copy instead of the live
++	//   (clobberable) `this.notes`. The two-`notes`-names problem belongs to
++	//   Doc/Inbox, not this class — logged as a `need` line, not fixed there.
++	initialize(){
++		this.leaf ??= true;
++		this._doc_notes = this.notes;
++
++		// ⚠ ANOTHER REAL GAP, found cold landing this: `Page.log_pages` (Page.class.js)
++		//   is only ever filled by the page.jsonl build path — a page.js page (every
++		//   System except the demo) is never in it. The Inbox extension's own
++		//   `own_notes()` (Inbox.js) reads this registry FIRST, before fetching
++		//   `<url>page.jsonl` as a fallback — a fallback that always 404s for a page.js
++		//   page, since there is no such file. Registering myself here (same Map, same
++		//   key the jsonl path already uses, `log_folder()`) makes that lookup hit
++		//   instead of fetching — zero 404s, and `live.notes` then reads the exact
++		//   array Inbox collects into. The broader fix (every page registering itself,
++		//   not just System) belongs to core/Page, not this class — logged as a `need`.
++		(Page.log_pages ??= new Map()).set(this.log_folder(), this);
++
++		if (this.inbox !== false) this.ext("Inbox");
++		this.sections();
++	}
++
++	// An extension runs once, however many times it is asked for: I switch Inbox on
++	// myself, and a page.jsonl may ALSO carry `{"ext": "Inbox"}` — a second setup()
++	// would empty `page.inbox` and collect every later line twice.
++	ext(name){
++		if ((this.exts ??= new Set()).has(name)) return;
++		this.exts.add(name);
++		return super.ext(name);
++	}
++
++	sections(){
++		this.overview_section();
++		this.inbox_section();
++		if (!this.omitted("api")) this.api_section();
++		if (!this.omitted("doc")) this.docs_section();
++		if (!this.omitted("files")) this.files_section();
++		return this;
++	}
++
++	// ════ THE DOCS TAB — Doc's own, but reading the captured string ═══════════
++	// ⚠ Same collision as bar() above: Doc.js's docs_section() closes over `this.notes`
++	//   inside its render() callback, which runs LATE (whenever the reader actually
++	//   clicks into /doc/) — by then Inbox has long since clobbered it. Copied here
++	//   reading `this._doc_notes` instead, flat-list only (none of the five systems
++	//   nest a note name with "/", so note_tree() — Doc.js-private, unexported — never
++	//   needs to be reached). Doc/Inbox still own the real fix; see the `need` above.
++	docs_section(){
++		const has_notes = Doc.names(this._doc_notes).length > 0;
++		const has_members = [...(this.member_index?.values() ?? [])].some(names => names.size);
++		if (!has_notes && !has_members) return;
++
++		const doc = this;
++		return this.section("doc", "Docs", {
++			initialize(){ if (has_notes) doc.docs(this); },
++			render(){
++				const names = Doc.names(doc._doc_notes);
++				return this.view ??= div.c("page doc-section", () => {
++					if (!names.length) return;
++					this.tabs(names.join(" ")).ac("vertical");
++				})
++					.ac("page--" + this.name);
++			},
++			route(name){ return (name === "method" || name === "property") && doc.member_group(name); },
++		});
++	}
++
++	// ════ OMIT — the one config word that drops a tab ═════════════════════════
++	// A derived tab (overview, inbox, api, doc, files) named here is never built.
++	// A declared child named here — or every one, with "parts" — stays a real page
++	// at its own url; it is only left off the strip.
++	omitted(name){
++		const words = Doc.names(this.omit);
++		return words.includes(name)
++			|| words.includes("parts") && this.children.has(name) && !System.SECTIONS.includes(name);
++	}
++
++	// My declared children, without the tabs I derived — what the Overview's wall shows.
++	parts(){
++		return new Map([...this.children].filter(([name]) => !System.SECTIONS.includes(name)));
++	}
++
++	wall(){ return this.previews(this.parts()); }
++
++	// ════ THE OVERVIEW — tiles, the intro, the readme ═════════════════════════
++	// Doc binds `this.content` into its Overview section at construction; handing it
++	// overview_content() instead, for that one call, puts the tiles above and the readme below
++	// whatever the page wrote. `content` itself is untouched afterwards — overview_content()
++	// reads it LATE, so a page.jsonl page (whose `content` is only set after the
++	// constructor, Log.js jsonl()) still gets its own.
++	overview_section(){
++		if (this.omitted("overview")) return;
++
++		const own = this.content;
++		this.content = System.prototype.overview_content;
++		try { return super.overview_section(); }
++		finally { this.content = own; }
++	}
++
++	overview_content(){
++		if (this.concepts?.length) this.concept_tiles();
++		const out = typeof this.content === "function" ? this.content() : this.content && md(this.content);
++		this.readme();
++		return out;
++	}
++
++	// The Concepts tiles (ux/Content/Concepts). Imported on demand, so the ~every page
++	// that loads /app.js does not pay for a module only five pages draw. The box is
++	// captured NOW and filled after the import (no DOM after an await).
++	concept_tiles(){
++		const $box = div.c("pad system-concepts");
++		import("../../ux/Content/Concepts/Concepts.js")
++			.then(({ default: Concepts }) => $box.append(() => new Concepts({ items: this.concepts, page: this })));
++		return $box;
++	}
++
++	// The module's readme.md, folded, at the end of the Overview — the same readme
++	// chain every agent reads, shown to the reader where they already are.
++	// ⚠ A page.jsonl System has no `meta`, so its folder stands in for one.
++	readme(){
++		if (this.readme_file === false) return;
++		return md.details(this.meta ?? { url: new URL(this.url, location.origin).href }, this.readme_file ?? "readme.md", "Readme");
++	}
++
++	// ════ THE INBOX TAB ═══════════════════════════════════════════════════════
++	inbox_section(){
++		if (this.inbox === false || this.omitted("inbox")) return;
++
++		const system = this;
++		return this.section("inbox", "Inbox", {
++			render(){
++				return this.view ??= div.c("page doc-section", () => system.inbox_content(this))
++					.ac("page--" + this.name);
++			},
++		});
++	}
++
++	// What the Inbox tab shows. ONE seam: the InboxRail (task-mastermind-inbox-ext)
++	// replaces this method's body, and every System gets it.
++	//   1. the page's own `{"inbox": …}` lines, collected by the Inbox extension;
++	//   2. "Leave a note": the Servex-backed notes on this path, the drawer's own box;
++	//   3. the way to the full inbox, AI 2.
++	inbox_content(){
++		md(`**Messages to ${this.title}.** A note left here reaches the agent that owns this system.`);
++
++		const $lines = div.c("system-inbox flex v gap-50");
++		Promise.all(this.ext_ready ?? []).then(() => $lines.append(() => {
++			const list = [...this.inbox ?? []].reverse();
++			if (!list.length) return small.c("muted", "No messages in this page's log yet.");
++			ul.c("system-inbox-list", () => list.forEach(m => li(() => {
++				strong(m.author ?? "someone");
++				small.c("muted", ` ${m.type ?? "message"}${m.at ? " · " + m.at.slice(0, 16).replace("T", " ") : ""} `);
++				span(m.text ?? "");
++			})));
++		}));
++
++		const $notes = div.c("system-inbox-notes flex v gap-50");
++		import("../Page/ext/Inbox/Inbox.js").then(({ DrawerInbox }) => $notes.append(() => {
++			const inbox = new DrawerInbox({ page: this.url });
++			inbox.button();
++			inbox.view();
++		}));
++
++		div(() => a("Open the full inbox, on AI 2").href("/framework/ai2/"));
++	}
++
++	// The strip: Overview, Inbox, my parts, then Doc's reference tabs — minus `omit`.
++	// Written out rather than built on Doc.bar(): that one asks tab_visible() of EVERY
++	// child, and /framework/ai/ has forty dated children that are never tabs.
++	bar(){
++		const parts = [...this.parts().keys()]
++			.filter(name => !this.omitted(name) && this.tab_visible(name))
++			.sort((a, b) => this.tab_order(a) - this.tab_order(b));
++
++		return ["overview", "inbox", ...parts, "api", "doc", "files"]
++			.filter(name => name === "doc" ? this.children.has("doc") && Doc.names(this._doc_notes).length > 0 : this.children.has(name))
++			.filter(name => !this.omitted(name));
++	}
++
++	// A part left off the strip still needs a region. tabs() registers one only for
++	// the names it draws, so without this container() walks up to the site's own
++	// `$pages` and draws the part OVER the sidebar (ext/Doc's own warning; ui/ hit it).
++	// It mounts in the Overview's panel, under my title. With no Overview (AI), a part
++	// mounts where it always did.
++	render(){
++		const $view = super.render();
++		const $panel = this.regions?.get("overview");
++
++		if ($panel) for (const name of this.parts().keys())
++			if (!this.regions.has(name)) this.regions.set(name, $panel);
++
++		return $view;
++	}
++}
++
++// The tabs a System derives, as opposed to the parts a page declared.
++System.SECTIONS = [...Doc.SECTIONS, "inbox"];
++
++export default System;
+diff --git a/public/framework/core/System/demo/page.jsonl b/public/framework/core/System/demo/page.jsonl
+new file mode 100644
+index 00000000..a8c37e61
+--- /dev/null
++++ b/public/framework/core/System/demo/page.jsonl
+@@ -0,0 +1,2 @@
++{"class":"/framework/core/System/System.js","title":"Demo","description":"A System built with no page.js at all — this whole page is this one line.","icon":"hub","concepts":[{"name":"Design","slug":"x","icon":"palette","href":"/framework/design/"},{"name":"Code","slug":"y","icon":"code","href":"/framework/code/"}],"omit":"api"}
++{"file":"readme.md"}
+diff --git a/public/framework/core/System/demo/readme.md b/public/framework/core/System/demo/readme.md
+new file mode 100644
+index 00000000..8330fafc
+--- /dev/null
++++ b/public/framework/core/System/demo/readme.md
+@@ -0,0 +1,3 @@
++# Demo
++
++This whole page is one line: `page.jsonl`'s first line names `System.js` as its class. No `page.js` at all.
+diff --git a/public/framework/core/System/doc/system.md b/public/framework/core/System/doc/system.md
+new file mode 100644
+index 00000000..15ed9f69
+--- /dev/null
++++ b/public/framework/core/System/doc/system.md
+@@ -0,0 +1,42 @@
++# What a System is
++
++A System is **more than a page — "a whole system of rules"** (the owner's own words,
++`public/framework/ai/2026-09-30/ui-system/requirements.md`, ask 1). Design is not just a url;
++it is layout, color, navigation, content and UI, all governed the same way, with its own
++action (the Inbox) and its own map of parts (the concept tiles). `System`
++(`core/System/System.js`) is the one class that carries that shape — Design, Code, UI and UX
++are all a `System` already. A change to the class reaches every one of them at once.
++
++## How to add one
++
++Two ways, both already written out in `System.js`'s own doc comment at the top of the file:
++
++1. **`page.js`** — construct it directly, like any other page:
++   ```js
++   export default new System({
++       meta: import.meta,
++       title: "Design", icon: "palette",
++       children: "layout color navigation content ui",
++       concepts: [{ name: "Layout", slug: "layout", icon: "view_quilt" }, …],
++       omit: "parts",
++       content(){ md("…"); },
++   });
++   ```
++2. **`page.jsonl`, with no `page.js` at all** — line 1 names the class, and `Log.js`'s
++   `log_class()` loads that module before constructing anything:
++   ```json
++   {"class": "/framework/core/System/System.js", "title": "Demo", "concepts": [...]}
++   ```
++
++Either way you get, for free: the Overview's concept tiles (`concepts:`), the readme folded
++in at the end of the Overview, an Inbox tab (turn it off with `inbox: false`), and `omit:` —
++one word to drop a derived tab or every declared child from the top strip without taking away
++its own url.
++
++## Open question
++
++Should `System` also replace the plain class-doc page for a core class that is really a
++system in its own right — `Page`, `View`, `App` — since a System's whole feature is top tabs,
++and a class-doc page's whole feature is the same top tabs? Not decided (the owner, 2026-10-01,
++`ui-system/requirements.md` ask 13) — recorded here rather than built, since this task's fence
++is `core/System/` only.
+diff --git a/public/framework/core/System/page.js b/public/framework/core/System/page.js
+new file mode 100644
+index 00000000..8a904692
+--- /dev/null
++++ b/public/framework/core/System/page.js
+@@ -0,0 +1,61 @@
++import { Doc, md, code } from "/app.js";
++import { Concepts } from "../../ux/Content/Concepts/Concepts.js";
++import { System } from "./System.js";
++
++// Show, don't tell: the five systems the class already builds, as the same tile row
++// System.js's own concept_tiles() draws — this page eats its own dog food rather than
++// describing the tiles in prose.
++const SYSTEMS = [
++	{ name: "Design", slug: "design", icon: "palette", href: "/framework/design/" },
++	{ name: "Code", slug: "code", icon: "code", href: "/framework/code/" },
++	{ name: "UI", slug: "ui", icon: "widgets", href: "/framework/ui/" },
++	{ name: "UX", slug: "ux", icon: "layers", href: "/framework/ux/" },
++	{ name: "AI", slug: "ai", icon: "smart_toy", href: "/framework/ai/" },
++];
++
++// A Doc (NOT a System) — this page documents the System *class*, the exact shape
++// ext/Doc/page.js documents Doc and core/Page/page.js documents Page.
++export default new Doc({
++	meta: import.meta,
++	title: "System",
++	description: "The shared top-tab template behind Design, Code, UI, UX and (soon) AI — one class, five pages.",
++	icon: "hub",
++
++	// The tabs below (Overview · Demo · API · Docs) ARE my navigation — without this,
++	// the site sidebar would spill them into it as if they were pages of their own
++	// (every other doc page, e.g. ext/Doc/page.js, sets it for the same reason).
++	leaf: true,
++	subject: System,
++	methods: "omitted parts wall overview_content concept_tiles readme inbox_section inbox_content bar render",
++	notes: "system",
++	files: "System.js readme.md",
++	children: "demo/page.jsonl",
++
++	content(){
++
++		md("**A System is a page that is a whole system of rules.** Click any of the five below to see one running — they all share the same tabs, the same tiles, the same Inbox, because they are all built from this one class.");
++
++		new Concepts({ items: SYSTEMS });
++
++		md("**AI is not a System yet.** Its `page.js` is still a plain `Page`; converting it is the next step, not part of this page.");
++
++		md("A page becomes a System one of two ways — construct it in a `page.js`, or name the class on line 1 of a `page.jsonl` with no `page.js` at all:");
++
++		code.js(`export default new System({
++    meta: import.meta,
++    title: "Design", icon: "palette",
++    children: "layout color navigation content ui",
++    concepts: [{ name: "Layout", slug: "layout", icon: "view_quilt" }, …],
++    omit: "parts",          // the parts are tiles on the Overview, not tabs
++    content(){ md("…"); },  // the intro, between the tiles and the readme
++});`);
++
++		md("The same class, with no `page.js` at all — line 1 of a bare `page.jsonl` names it instead: [see it live](./demo/) (that whole page is [one line](./demo/page.jsonl)).");
++
++		md("`System extends Doc` (`core/System/System.js`), so it inherits every top tab Doc already builds — API, Docs, Files — and adds three things of its own: the **concept tiles** above (the same [Concepts](/framework/ux/Content/Concepts/) component this page just used on itself), an **Inbox** tab so any agent can leave a note on the system, and `omit:` — the one config word that drops a derived tab (`\"api\"`, `\"overview\"`) or every declared child at once (`\"parts\"`) without hiding its url.");
++
++		md("More: [doc/system.md](./doc/system.md) — what a System is beyond a page, and the two ways to add one.");
++
++		md.details(import.meta, "readme.md", "Readme");
++	},
++});
+diff --git a/public/framework/core/System/readme.md b/public/framework/core/System/readme.md
+new file mode 100644
+index 00000000..3bc56749
+--- /dev/null
++++ b/public/framework/core/System/readme.md
+@@ -0,0 +1,42 @@
++# System — one shared page template behind Design, Code, UI, UX and (soon) AI
++
++`core/System/System.js` extends [Doc](/framework/ext/Doc/): the same top-tab strip
++(Overview · Inbox · its own parts · API · Docs · Files), the same concept tiles on the
++Overview, and the same Inbox tab, on every system page. Fix something here and all five
++improve for free. Full story: [the page](/framework/core/System/), [doc/system.md](./doc/system.md).
++
++## Use
++```js
++export default new System({
++    meta: import.meta,
++    title: "Design", icon: "palette",
++    children: "layout color navigation content ui",
++    concepts: [{ name: "Layout", slug: "layout", icon: "view_quilt" }, …],
++    omit: "parts",          // the parts are tiles on the Overview, not tabs
++    content(){ md("…"); },  // the intro, between the tiles and the readme
++});
++```
++Or, with no `page.js` at all, line 1 of a `page.jsonl`:
++```json
++{"class": "/framework/core/System/System.js", "title": "Demo", "concepts": [...]}
++```
++
++## The five systems
++- [Design](/framework/design/) — layout, color, navigation, content, UI
++- [Code](/framework/code/) — patterns, dos-and-don'ts, CSS, objects
++- [UI](/framework/ui/) — the component library
++- [UX](/framework/ux/) — the behavior classes
++- AI: pending — `/framework/ai/` is still a plain `Page`; converting it is the next step
++
++## Watch out
++- `omit:` is the one word that drops a tab — a derived one (`"api"`, `"overview"`, `"inbox"`,
++  `"doc"`, `"files"`) or every declared child at once (`"parts"`) — without hiding that
++  child's own url.
++- `ext("Inbox")` is idempotent on purpose: a `page.jsonl` line may ALSO carry
++  `{"ext": "Inbox"}`, and running setup() twice would empty `page.inbox` and double up every
++  later line.
++
++## More
++- [Overview](/framework/core/System/) · [`doc/system.md`](./doc/system.md) — what a System is
++  (more than a page) and the two ways to add one.
++- Files: `System.js` (the class) · `page.js` (System documenting System)
+diff --git a/public/framework/core/page.js b/public/framework/core/page.js
+index 804f983f..cc6e6337 100644
+--- a/public/framework/core/page.js
++++ b/public/framework/core/page.js
+@@ -6,7 +6,7 @@ export default new Page({
+ 	description: "The core classes. Five are an element you can point at in the inspector; four are not.",
+ 	icon: "dashboard",
+ 
+-	children: "View Page Router App Sidebar Shell Search Layout Section Item List Task",
++	children: "View Page Router App Sidebar Shell Search Layout Section Item List Task System",
+ 
+ 	content(){
+ 
+diff --git a/public/framework/design/page.js b/public/framework/design/page.js
+index 1491702d..585a0e6c 100644
+--- a/public/framework/design/page.js
++++ b/public/framework/design/page.js
+@@ -1,31 +1,31 @@
+-import { Page, md, div } from "/app.js";
+-import Concepts from "/framework/ux/Content/Concepts/Concepts.js";
++import { System, md } from "/app.js";
+ 
+-const items = [
+-	{ name: "Layout", slug: "layout", icon: "view_quilt" },
+-	{ name: "Color", slug: "color", icon: "palette" },
+-	{ name: "Navigation", slug: "navigation", icon: "explore" },
+-	{ name: "Content", slug: "content", icon: "article" },
+-	{ name: "UI", slug: "ui", icon: "smart_button" },
+-];
+-
+-export default new Page({
++// A System (core/System): Overview · Inbox · Docs, the same strip as every other system.
++// The five parts are the tiles at the top of the Overview, not tabs (`omit: "parts"`).
++export default new System({
+ 	meta: import.meta,
+ 	title: "Design",
+ 	description: "Everything that goes into making anything new: layout, color, navigation, content and UI.",
+ 	icon: "palette",
+ 	children: "layout color navigation content ui",
++	omit: "parts",
++	notes: "job",
++
++	concepts: [
++		{ name: "Layout", slug: "layout", icon: "view_quilt" },
++		{ name: "Color", slug: "color", icon: "palette" },
++		{ name: "Navigation", slug: "navigation", icon: "explore" },
++		{ name: "Content", slug: "content", icon: "article" },
++		{ name: "UI", slug: "ui", icon: "smart_button" },
++	],
+ 
+ 	content(){
+-		div.c("pad", () => new Concepts({ items }));
+ 		md("**Design is what decides how a page, a card or a view looks and behaves — before any code is written.** It is browsable: a readme per topic, live examples, detail one click down.");
+ 
+-		md("## The order of the job\n\n1. What is it, and who is it for?\n2. Where does it live, and how is it reached? → [navigation](/framework/design/navigation/)\n3. How big is it, and how does it use the space? → [layout](/framework/design/layout/)\n4. What does it say, and in what order? → [content](/framework/design/content/)\n5. What does the reader press, and how does it feel? → [ui](/framework/design/ui/), carried by [color](/framework/design/color/)\n\nFull version: [doc/job.md](/framework/design/doc/job.md).");
++		md("## The order of the job\n\n1. What is it, and who is it for?\n2. Where does it live, and how is it reached? → [navigation](/framework/design/navigation/)\n3. How big is it, and how does it use the space? → [layout](/framework/design/layout/)\n4. What does it say, and in what order? → [content](/framework/design/content/)\n5. What does the reader press, and how does it feel? → [ui](/framework/design/ui/), carried by [color](/framework/design/color/)\n\nFull version: [doc/job](/framework/design/doc/job/).");
+ 
+ 		md("**The two tests for every element:** self-evident (would the reader know what it is and does without reading more?) and necessary (does it earn its space here?).");
+ 
+ 		md("This page links to, and never repeats, [/framework/styles/](/framework/styles/) (the CSS vocabulary) and [/framework/ui/](/framework/ui/) (the component gallery).");
+-
+-		md.details(import.meta, "readme.md", "Readme");
+ 	},
+ });
+diff --git a/public/framework/ui/page.js b/public/framework/ui/page.js
+index 3777086b..ef0ef75c 100644
+--- a/public/framework/ui/page.js
++++ b/public/framework/ui/page.js
+@@ -1,4 +1,4 @@
+-import { Doc, md, code, ui } from "/app.js";
++import { System, md, code, ui } from "/app.js";
+ 
+ /* Record: readme.md. Declared once, most-useful-first, and `children:` is derived from
+    it so no component is named twice.
+@@ -16,17 +16,14 @@ const BANDS = {
+ 
+ const names = Object.values(BANDS).flatMap(band => band.split(" "));
+ 
+-export default new Doc({
++// A System (core/System): Overview · Inbox · API · Docs · Files. The components are
++// the Overview's browse wall, not tabs (`omit: "parts"`), each still its own url.
++export default new System({
+ 	meta: import.meta,
+ 	title: "UI",
+ 	description: "Twenty-two in four bands — the control grammar, four functions, eighteen copy-paste templates.",
+ 	icon: "widgets",
+ 
+-	// ⚠ Required on a Doc that is ALSO a nav section. framework/page.js's sections()
+-	// lists a section's children as sidebar sub-entries, which for a Doc means
+-	// spilling Overview · API · Docs · Files into the site nav as if they were pages.
+-	leaf: true,
+-
+ 	// Real directories, real urls — Router.child() resolves each from <name>/page.js.
+ 	// ⚠ `background` is appended here, NOT added to BANDS above: it would make
+ 	// Surfaces seven and break the "six, six, six, five" the browse() wall's own
+@@ -42,27 +39,11 @@ export default new Doc({
+ 	// inserted into Marks, which is already five — icon-system task, 2026-09-30.
+ 	children: names.join(" ") + " background scale section item icon",
+ 
+-	/* Overview · API · Docs · Files, and nothing else. Doc's own bar() lists every
+-	   declared child between the Overview and the reference sections, which is right
+-	   for the three or four a module usually has and a wall of chrome at nineteen —
+-	   the components are the Overview's browse wall instead. This is a reading of THIS
+-	   module's shape, not a change to the contract: core/Page (5), ext/DesignTool (5)
+-	   and ext/catalog (4) still tab their children. */
+-	bar(){ return Doc.SECTIONS.filter(name => this.children.has(name)); },
+-
+-	/* ⚠ tabs() registers a child's mount region from the SAME list it draws the strip
+-	   from (ext/tabs/tabs.js), so a name dropped from bar() also loses its region —
+-	   and container() then walks up to /framework/'s own `$pages` and renders the
+-	   component OVER the framework sidebar instead of inside this doc. The nineteen
+-	   keep their urls and their region; only the strip got shorter. */
+-	render(){
+-		const $view = Doc.prototype.render.call(this);
+-		const $panel = this.regions.get("overview");
+-
+-		this.children.forEach((page, name) => this.regions.set(name, $panel));
+-
+-		return $view;
+-	},
++	// Overview · Inbox · API · Docs · Files, and nothing else: at twenty-four components a tab
++	// each is a wall of chrome, so they are the browse wall instead. `omit: "parts"` is the
++	// System word for that; it also mounts each component under this page's title (the region
++	// trap ui/ used to fix here by hand, with its own bar() and render()).
++	omit: "parts",
+ 
+ 	subject: ui,
+ 	methods: "table timeline keys item",
+@@ -118,6 +99,5 @@ ui.item({ icon: "folder", name: "core", children: [
+ 
+ 		md("Start at [Card](/framework/ui/card/) — the first card in the first band, and there is no `ui.card()` behind it.");
+ 
+-		md.details(import.meta, "readme.md", "Readme");
+ 	},
+ });
+diff --git a/public/framework/ux/page.js b/public/framework/ux/page.js
+index 77f990d3..b2b1334a 100644
+--- a/public/framework/ux/page.js
++++ b/public/framework/ux/page.js
+@@ -1,4 +1,4 @@
+-import { Page, View, md, div, p, h3, button, icon, ui } from "/app.js";
++import { System, View, md, div, p, h3, button, icon, ui } from "/app.js";
+ import Socket from "/framework/dev/Socket/Socket.js";
+ import { edit } from "/framework/ext/Ask/edit.js";
+ 
+@@ -54,7 +54,7 @@ function flaggable(card, id, label){
+ // appends one button after it.
+ function wall(page){
+ 	return div.c("page-previews bleed", () => {
+-		[...page.children].forEach(([name, child]) => {
++		[...page.parts()].forEach(([name, child]) => {   // my parts, never my own tabs
+ 			const nav = page.nav_for(name);
+ 			const card = child ? child.preview(nav) : page.preview_card(nav);
+ 			flaggable(card, `ux/${name}`, nav.label);
+@@ -62,7 +62,9 @@ function wall(page){
+ 	});
+ }
+ 
+-export default new Page({
++// A System (core/System): Overview · Inbox · Docs. The fourteen classes are the wall on
++// the Overview, not tabs (`omit: "parts"`); each is still its own url.
++export default new System({
+ 	meta: import.meta,
+ 	title: "UX",
+ 	description: "The behavior tier — ui/ hands you markup, ux/ hands you a class you can extend.",
+@@ -70,28 +72,11 @@ export default new Page({
+ 
+ 	children: "Auth Wizard Tree Course Filter Menu Pagination Tags Dictate Revise Popover Content Understand Rename Inbox Card",
+ 
+-	// The two long-form docs — `doc/system.md`, `doc/decisions.md` — are NOT declared
+-	// children: a declared child is a CARD in the wall below, and a doc page is not a
+-	// module. `route()` answers just these two names on demand instead, the same
+-	// lever `ext/Doc`'s own member pages use for an address nobody declared — so
+-	// `/framework/ux/doc/system/` still resolves (every module readme links it)
+-	// without "doc" ever sitting in the wall or the sidebar tree.
+-	route(name){
+-		return name === "doc" && {
+-			title: `${this.title} Docs`,
+-			content(){ return md("Two long-form pages: [System](system/) — the tier boundary argued, the config-word contract, the naming rules. [Decisions](decisions/) — every call made and rejected on 2026-08-21."); },
+-			// The two pages themselves, one level further — same lever again, so
+-			// `/framework/ux/doc/system/` and `.../decisions/` actually resolve
+-			// instead of 404ing (found while landing an unrelated task: every
+-			// module readme links `doc/system/`, and it never worked). 2026-09-29.
+-			route(sub){
+-				return (sub === "system" || sub === "decisions") && {
+-					title: `${this.title} — ${sub === "system" ? "System" : "Decisions"}`,
+-					content(){ return md.file(import.meta, `doc/${sub}.md`); },
+-				};
+-			},
+-		};
+-	},
++	omit: "parts",
++
++	// The two long-form docs are the Docs tab, at the urls every module readme links:
++	// /framework/ux/doc/system/ and /framework/ux/doc/decisions/.
++	notes: "system decisions",
+ 
+ 	content(){
+ 
+@@ -139,6 +124,5 @@ export default new Page({
+ 
+ 		md("The long form is [`doc/system.md`](/framework/ux/doc/system/) — the tier boundary argued, the config-word contract, the naming rules. Every call made and rejected on 2026-08-21 is in [`doc/decisions.md`](/framework/ux/doc/decisions/).");
+ 
+-		md.details(import.meta, "readme.md", "Readme");
+ 	},
+ });

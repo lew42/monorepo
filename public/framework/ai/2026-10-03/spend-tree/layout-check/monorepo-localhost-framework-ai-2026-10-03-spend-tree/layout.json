@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-10-03/spend-tree/",
+ "widths": {
+  "1280": {
+   "empty": 0.533,
+   "widest_text": 850,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 56,
+   "narrow_share": 0.554
+  },
+  "1920": {
+   "empty": 0.653,
+   "widest_text": 904,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 56,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.694,
+   "widest_text": 1017,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 56,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.762,
+   "widest_text": 1017,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 56,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

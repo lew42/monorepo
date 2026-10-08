@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/",
+ "widths": {
+  "1280": {
+   "empty": 0.428,
+   "widest_text": 3665,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 55,
+   "narrow_share": 0.073
+  },
+  "1920": {
+   "empty": 0.467,
+   "widest_text": 3900,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 55,
+   "narrow_share": 0.436
+  },
+  "2560": {
+   "empty": 0.456,
+   "widest_text": 4387,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 55,
+   "narrow_share": 0.436
+  },
+  "3440": {
+   "empty": 0.578,
+   "widest_text": 4387,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 55,
+   "narrow_share": 0.618
+  }
+ },
+ "errors": []
+}

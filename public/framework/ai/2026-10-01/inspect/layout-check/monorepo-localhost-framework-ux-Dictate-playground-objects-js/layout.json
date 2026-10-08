@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/playground/objects.js",
+ "widths": {
+  "1280": {
+   "empty": 0.522,
+   "widest_text": 715,
+   "widest_text_sample": "/**\n * The playground's data, as real cl",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.679,
+   "widest_text": 715,
+   "widest_text_sample": "/**\n * The playground's data, as real cl",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.754,
+   "widest_text": 715,
+   "widest_text_sample": "/**\n * The playground's data, as real cl",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.813,
+   "widest_text": 715,
+   "widest_text_sample": "/**\n * The playground's data, as real cl",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": []
+}

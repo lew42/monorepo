@@ -1,0 +1,1 @@
+1. [accept] The card's page.jsonl is live, uncommitted data that other agents append to, so committing the worktree's copy would clobber their lines — that's a real risk worth avoiding. The seed script itself is committed and will run against the live card right after merge, so the decisions do land, just not via a commit of the data file.

@@ -1,0 +1,212 @@
+{
+ "url": "http://127.0.0.1:59352/imagine/lines/",
+ "widths": {
+  "400": {
+   "empty": 0.144,
+   "widest_text": 356,
+   "widest_text_sample": "Darker means more likely to be a line. D",
+   "overflow_x": false,
+   "items": 25,
+   "narrow_share": 0,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 11,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 11
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-column-body",
+     "y": 38,
+     "h": 912,
+     "share": 0.912,
+     "ink": 0.85,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.451,
+   "widest_text": 469,
+   "widest_text_sample": "Darker means more likely to be a line. D",
+   "overflow_x": false,
+   "items": 25,
+   "narrow_share": 0.16,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 19,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 19
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-column-body",
+     "y": 40,
+     "h": 960,
+     "share": 0.96,
+     "ink": 0.564,
+     "big_empty": false
+    },
+    {
+     "cls": "page-column-grab",
+     "y": 40,
+     "h": 960,
+     "share": 0.96,
+     "ink": 0.564,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.418,
+   "widest_text": 504,
+   "widest_text_sample": "Darker means more likely to be a line. D",
+   "overflow_x": false,
+   "items": 25,
+   "narrow_share": 0.16,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 31,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 31
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-column-body",
+     "y": 43,
+     "h": 957,
+     "share": 0.957,
+     "ink": 0.601,
+     "big_empty": false
+    },
+    {
+     "cls": "page-column-grab",
+     "y": 43,
+     "h": 957,
+     "share": 0.957,
+     "ink": 0.601,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.624,
+   "widest_text": 567,
+   "widest_text_sample": "Darker means more likely to be a line. D",
+   "overflow_x": false,
+   "items": 25,
+   "narrow_share": 1,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 49,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 49
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-column-body",
+     "y": 48,
+     "h": 952,
+     "share": 0.952,
+     "ink": 0.388,
+     "big_empty": false
+    },
+    {
+     "cls": "page-column-grab",
+     "y": 48,
+     "h": 952,
+     "share": 0.952,
+     "ink": 0.388,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/drawer/",
+ "widths": {
+  "1280": {
+   "empty": 0.543,
+   "widest_text": 592,
+   "widest_text_sample": "yields, written onto the same element th",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 0.266
+  },
+  "1920": {
+   "empty": 0.666,
+   "widest_text": 630,
+   "widest_text_sample": "yields, written onto the same element th",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 0.851
+  },
+  "2560": {
+   "empty": 0.719,
+   "widest_text": 709,
+   "widest_text_sample": "yields, written onto the same element th",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 0.851
+  },
+  "3440": {
+   "empty": 0.792,
+   "widest_text": 709,
+   "widest_text_sample": "yields, written onto the same element th",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 0.851
+  }
+ },
+ "errors": []
+}

@@ -1,0 +1,4 @@
+{"assign":{"now":"queued","title":"Servex: spend follows results, tested and live","brief":"public/framework/ai/2026-10-03/spend-gate/requirements.md","owner":"mastermind-servex","queue":"top (vscode-mastermind, 01:37)","model":"claude-sonnet-5","effort":"high"}}
+{"action":{"at":"2026-10-03T22:51:00-05:00","did":"edit","files":["public/framework/ai/2026-10-03/spend-gate/requirements.md"]}}
+{"action":{"at":"2026-10-03T23:30:00-05:00","did":"edit","files":["public/framework/ai/2026-10-03/spend-gate/requirements.md"],"what":"clarity: title matched to the body's own name (spend gate) and cut to 7 words, from a 10-word title that merged two tasks without naming either"}}
+{"assign":{"title":"Spend gate: tested, then OpenRouter caching fixed"}}

@@ -112,3 +112,4 @@
 {"log":{"at":"2026-10-08T14:10:01-05:00","heartbeat":"check","msg":"status check sent to minion-prompt-audit"}}
 {"log":{"at":"2026-10-08T14:10:04-05:00","heartbeat":"answered","msg":"Idle."}}
 {"assign":{"cost_usd":13.1414,"cost":{"root":"minion-prompt-audit","agents":[{"id":"minion-prompt-audit","model":"claude-haiku-4-5-20251001","role":"minion","usd":13.1414,"usd_breakdown":{"in":0,"out":0.562,"cache_read":4.454,"cache_write":8.1217},"cache_read_pct":33.8929}],"own_usd":13.14,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-07T22:48:34-05:00","to":null},"at":"2026-10-08T14:10:10-05:00"}}}
+{"log":{"at":"2026-10-08T14:17:25-05:00","heartbeat":"escalated","msg":"minion-prompt-audit its agent is not running, and was already revived 0 times this hour (5 today)"}}

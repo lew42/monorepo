@@ -1,0 +1,55 @@
+{
+	"task": "public/framework/ai/2026-10-01/local-ai",
+	"n_auditors": 4,
+	"checks": {
+		"files_ok": "2/2",
+		"syntax_ok": true,
+		"urls_ok": "0/1",
+		"urls_checked": [
+			{
+				"u": "http://127.0.0.1:PORT`,",
+				"ok": false
+			}
+		]
+	},
+	"cost_usd": null,
+	"medians": {
+		"complete": -1,
+		"obedience": -0.5,
+		"utility": 0.5
+	},
+	"agreement": {
+		"complete": 1,
+		"obedience": 1,
+		"utility": 0.75
+	},
+	"missing_union": [],
+	"review_done": true,
+	"name_ok": true,
+	"icon_ok": true,
+	"q": 0.19444444444444445,
+	"value": null,
+	"failed": false,
+	"by_model": [
+		{
+			"model": "claude-sonnet-5",
+			"by": "task-mastermind-task-audit",
+			"distance_from_median": 2
+		},
+		{
+			"model": "deepseek/deepseek-v4.1-flash",
+			"by": "auditor-deepseek",
+			"distance_from_median": 2
+		},
+		{
+			"model": "openai/gpt-6-luna",
+			"by": "cheap-auditor-gpt6luna",
+			"distance_from_median": 2
+		},
+		{
+			"model": "google/gemini-3.8-flash",
+			"by": "cheap-auditor-gemini",
+			"distance_from_median": 1
+		}
+	]
+}

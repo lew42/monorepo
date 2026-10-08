@@ -28,8 +28,8 @@ export default class TaskLoop {
 
     initialize(){
         this.every_min ??= Number(process.env.SERVEX_TASKLOOP_EVERY_MIN) || 5;
-        this.quiet_min ??= Number(process.env.SERVEX_TASKLOOP_QUIET_MIN) || 20;
-        this.gap_min ??= Number(process.env.SERVEX_TASKLOOP_GAP_MIN) || 30;
+        this.quiet_min ??= Number(process.env.SERVEX_TASKLOOP_QUIET_MIN) || 10;
+        this.gap_min ??= Number(process.env.SERVEX_TASKLOOP_GAP_MIN) || 15;
         this.max_escalations ??= 5;
         this.root ??= process.cwd();
         this.queues = new Map();      // task.jsonl path -> write chain, one writer per file

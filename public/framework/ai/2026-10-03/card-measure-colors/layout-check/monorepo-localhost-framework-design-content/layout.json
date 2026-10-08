@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/design/content/",
+ "widths": {
+  "1280": {
+   "empty": 0.707,
+   "widest_text": 582,
+   "widest_text_sample": "Files → a tree. An object → its live ins",
+   "overflow_x": false,
+   "items": 31,
+   "narrow_share": 0.129
+  },
+  "1920": {
+   "empty": 0.771,
+   "widest_text": 620,
+   "widest_text_sample": "Files → a tree. An object → its live ins",
+   "overflow_x": false,
+   "items": 31,
+   "narrow_share": 0.871
+  },
+  "2560": {
+   "empty": 0.799,
+   "widest_text": 697,
+   "widest_text_sample": "Files → a tree. An object → its live ins",
+   "overflow_x": false,
+   "items": 31,
+   "narrow_share": 0.871
+  },
+  "3440": {
+   "empty": 0.841,
+   "widest_text": 697,
+   "widest_text_sample": "Files → a tree. An object → its live ins",
+   "overflow_x": false,
+   "items": 31,
+   "narrow_share": 0.871
+  }
+ },
+ "errors": []
+}

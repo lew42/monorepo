@@ -1,0 +1,3 @@
+[
+  {"decision":{"at":"NOW","what":"the resize grip's hit area spans the header cell's own height only, not the full scrollable grid height","alt":"a hit strip spanning the whole grid's visible height (closer to a spreadsheet's column-boundary cursor) -- not built: the owner's complaint was the DELAY before the handle appeared and the CPU cost of ext/grip's near-zone watcher, not the strip's vertical span; a header-only strip already fixes both (instant :hover, zero document listeners) for the fastest working version (CLAUDE.md law 1). Noted in ui/datagrid/datagrid.js's own header comment as a known, deliberate scope cut, not a miss."}}
+]

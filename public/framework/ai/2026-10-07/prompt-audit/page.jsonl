@@ -13,3 +13,4 @@
 {"inbox":{"id":"n-b0o7lgqg","from":"servex-heartbeat","text":"minion-prompt-audit its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T03:58:23.505-05:00"}}
 {"inbox":{"id":"n-gbrnktpj","from":"servex-heartbeat","text":"minion-prompt-audit its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T06:26:59.264-05:00"}}
 {"inbox":{"id":"n-lgj876dg","from":"servex-heartbeat","text":"minion-prompt-audit its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T08:50:39.703-05:00"}}
+{"inbox":{"id":"n-x4vj6ndk","from":"servex-heartbeat","text":"minion-prompt-audit its agent is not running, and was already revived 0 times this hour (5 today). Servex could not fix it; please look.","at":"2026-10-08T14:17:31.170-05:00"}}
