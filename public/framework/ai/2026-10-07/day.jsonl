@@ -1,1 +1,2 @@
 {"log":{"at":"2026-10-07T22:42:56-05:00","task":"token-accounting","msg":"landed — fixed find_transcript()'s case-sensitivity bug (undercounted 144/145 project folders, likely why the week ran out early); reconciled 3 real sessions; planned a realtime sessions.jsonl stream per the owner's mid-task addition"}}
+{"log":{"at":"2026-10-07T23:57:03-05:00","task":"docs-vs-code-audit","msg":"landed — 2 stale MCP tool-count claims fixed in doc/systems-overview.md, one heartbeat name-collision flagged on the board"}}
