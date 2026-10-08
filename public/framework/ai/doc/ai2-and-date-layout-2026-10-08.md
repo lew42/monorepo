@@ -1,8 +1,9 @@
 # AI 2 vs AI, and the date directory layout — owner decisions, 2026-10-08
 
 Recorded from dictation. **Facts found by looking:**
-- `framework/ai2/` is a separate module (the "AI 2" dashboard: `card.js`, `rail.js`, chat, compose, agents…). It also holds **card data** in its own date tree (`ai2/2026/10/08/<card>/`), while the `create_card` tool wrote another card to `ai/2026/10/08/<card>/`. So cards are split over two stores. The card at `/framework/ai2/2026/10/08/task-audit-what-was-asked-and-never-fini/` is the task-audit Inbox card (its folder name was cut off by the slug length); the plan itself is under `ai/2026-10-08/task-audit/`.
-- `ai/` has **46 hyphen-dated directories** (`2026-10-08/`) and also a year tree (`ai/2026/10/08/`). About 40 `worktree/ai2-*` branches linger in git (zombie branches).
+- `framework/ai2/` is a separate module (the "AI 2" dashboard: `card.js`, `rail.js`, chat, compose, agents…). **Correction (checked after writing the first version):** it has **no card data tree of its own**: `ai2/2026/10/08/` does not exist on disk; the card at `/framework/ai2/2026/10/08/task-audit-what-was-asked-and-never-fini/` lives in `ai/2026/10/08/` and the `ai2` URL is another way to view it (find the route/alias that makes `/framework/ai2/<date-path>/` resolve). So the question is not two data stores but **two URL spaces and two UIs (AI 1 and AI 2) over the same data**, plus the unfinished merge.
+- The plan itself is under `ai/2026-10-08/task-audit/` (hyphen layout); the card folder name was cut by the slug length (`…never-fini`).
+- `ai/` has **46 hyphen-dated directories** (`2026-10-08/`) plus the year tree (`ai/2026/10/08/`, 393 entries). Git has **141 `worktree/*` branches**, 11 of them `worktree/ai2-*` (zombie candidates).
 
 **Owner's decisions / directives**
 1. The intent was to **merge AI 2 into AI (AI 1)**. Find out how far that got, what is still only in `ai2/`, and what uses it. Do not duplicate data.
