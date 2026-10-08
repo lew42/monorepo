@@ -10,7 +10,18 @@ You are a **Sonnet 5.5 mastermind** orchestrating **Haiku minions**. Budget **$6
 - Do not read raw session files into any model. Never replay sessions.
 
 ## Step 1 — find the sources of truth (Haiku or script; start from what exists)
-Already done, reuse it: `public/framework/ai/2026-10-08/mastermind-cheap-models/ask-ledger/` (`extract-and-match.mjs`, `candidates.jsonl`, `shortlist.json`: 1,650 owner-prompt candidates from the raw Claude session files, 1,483 unmatched against `asks.jsonl` + git log), `public/framework/ai/doc/log-sources.md` (the source map), and `2026-10-07/prompt-audit/` (audit.mjs, report.md). Extend the map with: the Claude session files in `~/.claude/projects/` (every session id maps to a file; it contains the VS Code sidebar prompts, the voice sessions spawned via the SDK, and OpenRouter sessions), `asks.jsonl`, `cards.jsonl`, `servex-queue.json`, `todo.md`, every `task.jsonl` (`landed_at` missing / stopped), earlier audit reports, Servex logs (`%LOCALAPPDATA%/lew42/servex/logs`). One short table: source → what it holds → how trusted → how to query it cheaply.
+Start from work already done (reuse it, don't redo it):
+- `public/framework/ai/2026-10-08/mastermind-cheap-models/ask-ledger/` — 1,650 owner prompts pulled from the raw Claude session files; 1,483 have no match in `asks.jsonl` or the git log.
+- `public/framework/ai/doc/log-sources.md` — the map of where each log lives.
+- `public/framework/ai/2026-10-07/prompt-audit/` — an earlier audit (`audit.mjs`, `report.md`).
+
+Add these sources to the map:
+- `~/.claude/projects/` session files (sidebar, voice and OpenRouter prompts)
+- `asks.jsonl`, `cards.jsonl`, `servex-queue.json`, `todo.md`
+- every `task.jsonl` with no `landed_at`, or stopped
+- earlier audit reports, and the Servex logs in `%LOCALAPPDATA%/lew42/servex/logs`
+
+Show the map as one short table: source → what it holds → how far to trust it → how to query it cheaply.
 
 ## Step 2 — the list
 Build `loose-ends.jsonl` (one row per ask/task: title, quote of the ask, source+date, state, evidence, suggested owner module) written through the Servex append tool/script, never hand-typed JSON. Rank: asked-never-started first, then half-done, then done-but-unverified. Merge duplicates (the same ask repeated across days = one row with a count).
