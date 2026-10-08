@@ -36,6 +36,7 @@
 	.sessions-chips { display: contents; }
 	.sessions-summary { flex-wrap: wrap; }
 	.sessions-grid {
+		max-width: 110rem;
 		--col-name: 28rem; --col-cost: 12rem; --col-updated: 6rem; --col-duration: 6rem;
 		--col-role: 8rem; --col-source: 6rem; --col-model: 8rem; --col-state: 4rem;
 		display: grid;
@@ -111,6 +112,8 @@
 		.sessions-head { display: none; }
 		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }
 		.sessions-cell { padding-block: 0; border-block-end: none; }
+		.sessions-row > .sessions-cell:first-child { flex: 1 1 100%; }
+		.sessions-row > .sessions-cell { min-width: 0; }
 	}
 
 	/* One colour per source, so "what kind of session is this" reads before the
