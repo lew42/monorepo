@@ -18,6 +18,8 @@
 
 ## `cache.jsonl` (one per session, gitignored)
 
+This is a rebuildable cache, so it is rewritten freely (it folds when long); the never-destructive rule applies to `session.jsonl`, the record. The brief put usage and cost in `session.jsonl`; the split exists so the record can be tracked in git while the numbers are not. On the static production site the index files are absent, so the Cost cell falls back to the older figures and the detail view says the dev-server route is not running.
+
 `sessions/<session-id>/cache.jsonl`. Each line is `{summary, at, by}` (the rolling totals plus a byte cursor and a ring of the last 40 message ids; the byte cursor is the real guard against double counting, the ring only covers a cursor reset) or `{audit, at, by}` (time, old totals, new totals, match, diff). More than 30 lines fold into one summary plus the latest audit.
 
 ## Loading and saving

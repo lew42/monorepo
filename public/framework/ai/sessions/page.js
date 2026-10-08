@@ -639,6 +639,7 @@ export default new Page({
 					});
 				});
 			}
+			div.c("sessions-filters flex gap-100 v-center wrap", () => {   // one compact row: closed, attention, tag, dates
 			label.c("flex gap-35 v-center h4", () => {
 					const $box = input().attr("type", "checkbox");
 					$box.el.checked = !!this.show_closed;
@@ -669,6 +670,7 @@ export default new Page({
 				const $to = input().attr("type", "date");
 				$to.el.value = this.date_to;
 				$to.on("change", () => { this.date_to = $to.el.value; this.render_rows(); });
+			});
 			});
 			this.$summary = div.c("sessions-summary flex gap-50 v-center");
 			this.$by_role = div.c("sessions-by-role flow");
@@ -1369,7 +1371,6 @@ function session_page(root, id){
 				});
 			});
 
-			$session;
 			$costs;
 			$box;
 			$spawn;

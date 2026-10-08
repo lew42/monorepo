@@ -12,7 +12,7 @@ Every line carries `at` (time), `by` (author) and `session` (the uuid); the writ
 |---|---|---|
 | `tag` | `{"tag":"refactor"}` (1 to 40 chars) | A short label. One tag per line. |
 | `note` | `{"note":"Built the audit button; merge is pending."}` | A plain sentence for the next reader. |
-| `alert` | `{"alert":"asked for X, never followed up","level":"warn"}` | Needs attention. `level` is `info`, `warn` or `error` (default `info`). |
+| `alert` | `{"alert":"asked for X, never followed up","level":"warn"}` | Needs attention. `level` is `info`, `warn` or `error` (default `info`; `urgent` is not a level). |
 | `weight` | `{"weight":7}` (0 to 10) | How important the session was. Drives sort order. |
 | `closed` | `{"closed":true}` or `{"closed":false}` | Done (rubber stamp) or reopened. Closed sessions hide by default. |
 | `question` | `{"question":"Keep the old table?","options":["yes","no"]}` | Two or more options for the owner. |
@@ -20,7 +20,7 @@ Every line carries `at` (time), `by` (author) and `session` (the uuid); the writ
 
 ## How to write a line
 
-The log tool is not built yet. Until it is, use the script, which checks the shape and stamps the line:
+The Servex tool `log_session` and this script both check the shape and stamp the line:
 
 ```
 SESSIONS_ROOT=C:/Code/lew42/monorepo/public/framework/ai/sessions \
@@ -28,7 +28,7 @@ node C:/Code/lew42/worktrees/session-class/Server/session-summary.mjs \
   --log <session-uuid> '{"tag":"refactor"}' --by mastermind-task-audit
 ```
 
-`SESSIONS_ROOT` makes it write into the main tree's `sessions/` folder (the file is gitignored, so it never conflicts). A bad shape exits with code 2 and says why. After the branch merges, the same command runs as `node Server/session-summary.mjs --log ...` without `SESSIONS_ROOT`. The Servex tool will wrap the same function (`Session.log`); the arguments will be `session`, `line`, and your agent name as `by`.
+`SESSIONS_ROOT` makes it write into the main tree's `sessions/` folder (this file is tracked and append-only, so two writers never conflict). A bad shape exits with code 2 and says why. After the branch merges, the same command runs as `node Server/session-summary.mjs --log ...` without `SESSIONS_ROOT`. The Servex tool wraps the same function (`Session.log`); its arguments are `session`, `line`, and your agent name as `by`.
 
 Required: the session uuid (36 characters, the Claude session id), `by`, and one valid key. Never write `at`.
 
