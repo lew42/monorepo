@@ -37,3 +37,4 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 - [`doc/scroll.md`](./doc/scroll.md) — Follow-bottom scroll logic and resize observers.
 - [`doc/reactions.md`](./doc/reactions.md) — Emoji tap-backs and threaded replies.
 - [`doc/floor.md`](./doc/floor.md) — Minimum height constraints and layout sizing.
+- [`doc/panel-composition-2026-10-08.md`](./doc/panel-composition-2026-10-08.md) — the owner's idea: one Chat panel owning the whole window, dictation built into it (open design).

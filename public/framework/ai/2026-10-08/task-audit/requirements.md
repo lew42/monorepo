@@ -42,3 +42,10 @@ Branch/worktree for any site file; task-dir-only writes may commit directly. Com
 - **Red flags**: anything held up, unfinished, or **needing the owner** gets an `alert` line (with priority). The Sessions tab must be able to **filter for sessions that need attention, prioritized**.
 - **Cost validity**: audit whether past tasks' costs are right, but going forward matters more than retroactive. **Never instantiate or resume an SDK session just to read its cost** (that triggers a cache write and costs money). Read the session file with a script. If the SDK offers a no-send way to read a session's usage, note it, and test it only if it provably sends nothing.
 - Cross-domain, your call as mastermind: decide what is worth doing now vs queued, keep everything under the pace rule, and keep unblocked.
+
+## Addendum 3 (owner, 2026-10-08, later) — focus systems, session readmes
+- **Focus the audit on these systems first:** **transcription** (Whisper via Servex, the Dictate class, the Chat widget), and **prompt refinement** (part of that). Open design: whether the Chat window should be part of Dictate or the other way round — see `public/framework/ext/Chat/doc/panel-composition-2026-10-08.md` and `ext/Refine/doc/vision-2026-10-08.md`. Report what was asked vs built for each, as a loose-end list per system.
+- **Each audited session gets a short readme** (create it if missing, update it if present, keep it under ~100 lines): an overview + inbox for the AI, linking to the session's data. Most of the data goes to JSONL for the UI; the readme is the always-fresh cheap context. Whether the Sessions page loads the readme as a tab or inline is undecided; just write it where the session's page can load it.
+- **Watch the readme cost**: note any readme over ~100 lines in the chain you read, as a finding (a readme audit comes later, not now, to avoid a fan-out).
+- New agents read `CLAUDE.md` then the readme chain to their path automatically; verify whether that actually happens in Servex spawns (grep the opening/preamble code) and report.
+- Haiku 5.5 under ~100k tokens is ~1/20th the cost of Sonnet 5.5 (owner's figure): use Haiku for every audit-type job.
