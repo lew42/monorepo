@@ -37,6 +37,11 @@ Source: [task-audit/plan.md](../task-audit/plan.md) (354 loose ends; its agent e
 - **Missing `/framework/ai/models` page:** small Sonnet coder task; I am not building it, so it is free to take.
 - Where a system has many open items (transcription, AI), do the docs index first, pick the top three, and mark the rest superseded with a reason.
 
+## 9. Inbox, Log and streaming (stage 1 done)
+Findings: [inbox-log-streaming-findings-2026-10-08.md](../../doc/inbox-log-streaming-findings-2026-10-08.md). The Inbox class exists (`core/Page/ext/Inbox/`); creation likely "broke" because `board.jsonl` has been dead since 10-04 and the rail refreshes every 20 s; unread is per browser (`localStorage`).
+**Default:** converge on `ext/JSONL` `live()` plus the dev-server socket. Order: (1) replace the `ai2/live.js` pollers with file tails, (2) make read state a shared `read` event on the card, (3) retire `board.jsonl`. **Alternative:** one multiplexed Servex `/api/stream`. Step 1 is a bite-sized Sonnet coder task once `ai2/` is free of other agents; first confirm by creating one card with the tool and timing when it shows.
+Also from the owner's layout questions: [ai2-merge-and-layout-proposal-2026-10-08.md](../../doc/ai2-merge-and-layout-proposal-2026-10-08.md) (port ai2 into ai with stubs; keep the hybrid date layout; two-line slug fix for the Servex owner).
+
 ## Blockers
 - The pool cannot make a worktree for minions, so no Sonnet coder can be spawned yet; items 1 to 3 wait for it or I do them by hand with `worktree-up.mjs`.
 - No spawns made, so `spawns.jsonl` is empty by design.
