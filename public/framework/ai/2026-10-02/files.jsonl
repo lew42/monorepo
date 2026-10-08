@@ -62,3 +62,15 @@
 {"file":"standing-voice-pair/"}
 {"file":"task-audit/page.jsonl"}
 {"file":"task-class/"}
+{"file":"page-extends-item/"}
+{"file":"panel2-sessions/"}
+{"file":"prompt-refine/"}
+{"file":"prompt-review/"}
+{"file":"session-costs/"}
+{"file":"task-audit/"}
+{"file":"servex-mastermind/","gone":true}
+{"file":"card-pipeline-2/","gone":true}
+{"file":"known-issues/","gone":true}
+{"file":"layout-approval/","gone":true}
+{"file":"stamped-logs/","gone":true}
+{"file":"standing-voice-pair/","gone":true}

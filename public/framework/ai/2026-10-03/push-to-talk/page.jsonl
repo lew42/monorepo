@@ -20,3 +20,5 @@
 {"inbox":{"id":"n-lptm2j2s","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived.","at":"2026-10-04T20:59:02.186-05:00"}}
 {"inbox":{"id":"n-ndpzejap","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived.","at":"2026-10-04T21:45:36.842-05:00"}}
 {"inbox":{"id":"n-qyebl5ju","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived.","at":"2026-10-04T23:25:40.353-05:00"}}
+{"file":"shots/","gone":true}
+{"file":"layout-check/","gone":true}

@@ -5,6 +5,19 @@
 - New: `Servex/doc/sdk.md` (how an agent is started, tools, session files, `sdk-ts` vs `claude-vscode`, verified against real session files), `Servex/doc/architecture.md`, `ai/doc/architecture.md`; linked from `ai/readme.md` and `Servex/readme.md`.
 - `ai/concepts.js` minions line no longer says "Opus judges" and now says the mastermind/minion line is not a fence.
 
+## Review answers (the fresh reviewer's 8 points)
+- Why not `ext/Doc`? `Doc` and `inspect()` take a real class as `subject`; Servex classes are node code and cannot be imported in the browser. The cards reuse the same look (`page-surface-dark`, icon + name, core-API list). Extending `Doc` to accept a descriptor is the proper next step, not built now.
+- CORS: `/api/agents` does send `access-control-allow-origin: *` (checked with `curl -I`). On the static production site Servex is absent, so the card shows its "not answering" line by design.
+- `systems-map.md` is now added (linked from `ai/readme.md`); skill and prompt study below is sizing only, no edits.
+- Doc links now point at the real files. Member lists are now checked by `check-classes.mjs` (all found). Four-width shots taken at 400 and 1400 on the worktree.
+
+## Skills and prompts (sizing only)
+- `mastermind` is 47 KB (~12k tokens), `sub-mastermind` 27 KB, `minion` 25 KB, `ui-test` 26 KB. Proposal: split each into a short core plus linked reference files read on demand (additive: new files first, shrink after a Haiku duplicate check). Not changed.
+- Not yet measured: per-role system prompts in `Servex/agents/*.md`; duplicates and contradictions between skills and CLAUDE.md.
+
+## Queued (do not start until well under pace)
+Dashboard overview: the Now card (messages have no timestamps; may be stale), the Log page (should be a live stream of every system event), Inbox and Dashboard pages. Proposed order: Log stream, Now card timestamps, Inbox, Dashboard.
+
 ## Stale or missing
 - `Servex/readme.md` is 388 lines, far over the ~100 target. Not cut now (non-destructive); a Haiku pass should split it into a short index plus `doc/` files.
 - `ai/readme.md` is 71 lines but still lists AI 2 / `ai2/` as live in places the root readme calls retired.

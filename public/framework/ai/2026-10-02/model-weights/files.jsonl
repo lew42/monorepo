@@ -8,3 +8,8 @@
 {"file":"overhead-runs/page.js"}
 {"file":"spend.json"}
 {"file":"system-overhead-results.jsonl"}
+{"file":"detail/","gone":true}
+{"file":"layout-check/","gone":true}
+{"file":"overhead-runs/page.js","gone":true}
+{"file":"spend.json","gone":true}
+{"file":"system-overhead-results.jsonl","gone":true}

@@ -14,8 +14,9 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 
 ## Start here
 
+- [systems-map.md](systems-map.md): where every major system lives, how long its readme is, and when it last changed.
 - [doc/architecture.md](doc/architecture.md): the decisions behind this folder, and where they came from.
-- [Servex SDK](/framework/servex/): how an agent is started (`Servex/doc/sdk.md`) and [Servex's own decisions](/framework/servex/) (`Servex/doc/architecture.md`).
+- Servex SDK: how an agent is started ([`Servex/doc/sdk.md`](/framework/servex/doc/sdk.md)) and Servex's own decisions ([`Servex/doc/architecture.md`](/framework/servex/doc/architecture.md)).
 - [doc/systems-overview.md](doc/systems-overview.md): full AI architecture, persistence, triggers, and MCP tool/session logging audit.
 - [todo.md](todo.md): what's waiting, in priority order, and what only you can do.
 - [handover.md](handover.md): the state of the world for a fresh tab or mastermind.

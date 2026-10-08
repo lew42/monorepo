@@ -1,6 +1,6 @@
 # AI architecture: the decisions, and where they came from
 
-`/framework/ai/` is where the agents' work is recorded and shown. Servex (the process that runs the agents) is documented in [Servex/doc/architecture.md](/framework/servex/); this page covers the data and the page.
+`/framework/ai/` is where the agents' work is recorded and shown. Servex (the process that runs the agents) is documented in [Servex/doc/architecture.md](/framework/servex/doc/architecture.md); this page covers the data and the page.
 
 ## Decisions
 
@@ -12,4 +12,4 @@
 
 ## Related
 
-[handover.md](../handover.md) · [todo.md](../todo.md) · [systems-overview.md](systems-overview.md) · [Servex architecture](/framework/servex/) · [session classes](/framework/ai/sessions/) (owned by minion-session-class)
+[handover.md](../handover.md) · [todo.md](../todo.md) · [systems-overview.md](systems-overview.md) · [Servex architecture](/framework/servex/doc/architecture.md) · [session classes](/framework/ai/sessions/) (owned by minion-session-class)
