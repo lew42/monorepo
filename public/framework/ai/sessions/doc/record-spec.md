@@ -24,7 +24,7 @@ The Servex tool `log_session` and this script both check the shape and stamp the
 
 ```
 SESSIONS_ROOT=C:/Code/lew42/monorepo/public/framework/ai/sessions \
-node C:/Code/lew42/worktrees/session-class/Server/session-summary.mjs \
+node Server/session-summary.mjs \
   --log <session-uuid> '{"tag":"refactor"}' --by mastermind-task-audit
 ```
 

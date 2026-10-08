@@ -383,7 +383,7 @@ export function row_view(r, url, page_dirs, spend, session_index){
 				});
 			} else if (typeof r.cost === "number") {
 				small.c("muted", "$" + r.cost.toFixed(2));
-			}
+			} else small.c("muted", "—").attr("title", "cost not measured: this session is not in the session index yet");
 			// Nested cost (spend-tree): this row's OWN $ is what's above; if it ever
 			// spawned anything, a second line shows the whole subtree's $ too — the
 			// owner's own ask ("the agent that spawns a bunch of sub agents probably

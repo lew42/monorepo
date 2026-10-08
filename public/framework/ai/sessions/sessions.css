@@ -29,10 +29,11 @@
 	   Source/Name and State/Cost; Stop and Duration (sessions-date-homes,
 	   2026-10-03 — "show the start time, stop time, duration and cost on
 	   every row") added right after Start — same mechanism, more tokens. */
+	.sessions-filters { column-gap: 2rem; row-gap: .5rem; }
 	.sessions-grid {
 		--col-time: 8rem; --col-stop: 8rem; --col-duration: 6rem;
 		--col-source: 6rem; --col-role: 7rem; --col-name: 16rem;
-		--col-model: 8rem; --col-state: 5.5rem; --col-ram: 4.5rem; --col-cost: 12rem;
+		--col-model: 8rem; --col-state: 5.5rem; --col-ram: 4.5rem; --col-cost: 8rem;
 		display: grid;
 		grid-template-columns:
 			minmax(7rem, var(--col-time))
