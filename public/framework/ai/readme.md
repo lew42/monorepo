@@ -50,6 +50,8 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 - Agent concurrency, serial prompt-response loops, and the two-tier listener/minion pattern: [doc/concurrency.md](doc/concurrency.md).
 - Model evaluation, what is "truth", and avoiding circular grading: [doc/eval-truth.md](doc/eval-truth.md).
 - MCP tool doors and multi-harness config locations (Claude vs. Antigravity): [doc/mcp.md](doc/mcp.md).
+- Which log is ground truth for "what did the owner ask, and did it land" (session files vs.
+  asks.jsonl vs. task dirs vs. Servex logs): [doc/log-sources.md](doc/log-sources.md).
 - Cost: `node Server/task-cost.mjs --date <YYYY-MM-DD>`. A follow-up task that reused its
   parent's session currently shows the parent's whole total, not its own share.
 - `tasks.json` — stalled, budget vs. actual, snooze/kill/re-prioritise — is DERIVED: Servex's

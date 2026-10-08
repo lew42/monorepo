@@ -1,0 +1,14 @@
+{"assign":{"session_id":"eddd03ac-6629-475a-abff-58fbe7b6b14b","agent":"mastermind-cheap-models","card":"mastermind: cheap-model routing + Haiku proving ground","brief":"public/framework/ai/2026-10-08/mastermind-cheap-models/requirements.md","model":"claude-sonnet-5","requested_at":"2026-10-08T00:21:42-05:00","now":"starting","steps":[],"step":1}}
+{"log":{"at":"2026-10-08T00:21:46-05:00","msg":"skill: servex-mastermind"}}
+{"log":{"at":"2026-10-08T00:21:50-05:00","msg":"skill: decide"}}
+{"action":{"at":"2026-10-08T00:23:37-05:00","did":"edit","files":["Servex/ext/openrouter/evals/facts.mjs"]}}
+{"action":{"at":"2026-10-08T00:23:52-05:00","did":"edit","files":["Servex/ext/openrouter/evals/known-answer.mjs"]}}
+{"action":{"at":"2026-10-08T00:30:34-05:00","did":"edit","files":["public/framework/ai/2026-10-08/mastermind-cheap-models/pace.mjs"]}}
+{"action":{"at":"2026-10-08T00:35:57-05:00","did":"edit","files":["public/framework/ai/doc/log-sources.md"]}}
+{"action":{"at":"2026-10-08T00:36:04-05:00","did":"edit","files":["public/framework/ai/readme.md"]}}
+{"action":{"at":"2026-10-08T00:37:00-05:00","did":"edit","files":["public/framework/ai/2026-10-08/mastermind-cheap-models/ask-ledger/extract-and-match.mjs"]}}
+{"action":{"at":"2026-10-08T00:40:54-05:00","did":"edit","files":["public/framework/ai/2026-10-08/mastermind-cheap-models/decisions.mjs"]}}
+{"action":{"at":"2026-10-08T00:45:23-05:00","did":"edit","files":["public/framework/ai/2026-10-08/mastermind-cheap-models/ask-ledger/readme.md"]}}
+{"action":{"at":"2026-10-08T00:50:02-05:00","did":"edit","files":["public/framework/ai/2026-10-08/mastermind-cheap-models/rules.md"]}}
+{"log":{"at":"2026-10-08T00:52:18-05:00","msg":"deliverables built: spawns.jsonl + decisions.mjs; 5-question Haiku proving ground (facts.mjs orphans()+leastCommented() added); pace.mjs calibration+admit() + decide.mjs record d-how-should-the-mastermind-decide; ask-audit extend-and-match.mjs + doc/log-sources.md + ask-ledger/"}}
+{"log":{"at":"2026-10-08T00:52:18-05:00","msg":"BLOCKED (named, not waited on): 6 real minion/task-mastermind spawns stuck 15+ min on worktree pool starvation (Note card posted: 2026/10/08/note-worktree-pool-stuck-minion-task-mas); landing the task with results pending rather than holding"}}

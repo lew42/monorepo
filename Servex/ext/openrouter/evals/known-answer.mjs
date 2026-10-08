@@ -22,20 +22,30 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { naming, comments, structure } from "./facts.mjs";
+import { naming, comments, structure, orphans, leastCommented } from "./facts.mjs";
 import { mcp, appendJSON, readJsonl, nowLocal, waitForRealTurn } from "./library.mjs";
 import { provider_for } from "../provider.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../../..");
 const RESULTS_PATH = path.join(HERE, "known-answer-results.jsonl");
+// Same escape hatch as library.mjs (2026-10-01 comment there): role:"minion" in the main tree
+// routes through the quick-fix pool, which refuses outright with no wait when no worktree is
+// `ready` that instant. --role task-mastermind spawns in the main tree directly instead
+// (2026-10-08, mastermind-cheap-models: this script hit the exact same refusal library.mjs
+// already documents — the pool had 7 worktrees, all still cycling back to `pool` state, none
+// `ready` the moment this ran).
+const SPAWN_ROLE = (() => {
+	const i = process.argv.indexOf("--role");
+	return (i >= 0 && process.argv[i + 1]) || "minion";
+})();
 const OR_LOG_PATH = path.join(process.env.LOCALAPPDATA || path.join(process.env.HOME, "AppData/Local"), "lew42", "servex", "logs", "openrouter.jsonl");
 
 /* ── the three questions, each with its own ground truth computed straight from facts.mjs — never
  * typed by hand, so if the rule in facts.mjs changes, the question's right answer changes with it
  * (CLAUDE.md law 7: compute, don't recall). ── */
 function buildQuestions(dir){
-	const n = naming(dir), c = comments(dir), s = structure(dir);
+	const n = naming(dir), c = comments(dir), s = structure(dir), o = orphans(dir), lc = leastCommented(dir);
 	return [
 		{
 			id: "naming",
@@ -52,6 +62,17 @@ function buildQuestions(dir){
 			id: "structure",
 			ask: `Here is a JSON list of every module (a folder with a page.js) under ${dir}, with whether it has a readme.md and a doc/ folder:\n\n${JSON.stringify(s.rows.map(r => ({ module: r.module, has_readme: r.has_readme, has_doc: r.has_doc })), null, 1)}\n\nList the module paths that are MISSING a readme.md, a doc/ folder, or both.`,
 			truth: new Set(s.incomplete),
+		},
+		{
+			id: "orphans",
+			ask: `Here is a JSON list of every module (a folder with a page.js) under ${dir}, each with the child module names it declares in its own "children:" list:\n\n${JSON.stringify(o.rows.map(r => ({ module: r.module, declared_children: r.declared_children })), null, 1)}\n\nThe rule: a module is reachable only if SOME OTHER module's declared_children names it (by its last path segment). List the module paths that NO other module's declared_children names — these are orphans, unreachable by a click. Do not list the one you'd call the "root" of this list if it has no obvious parent in the list at all.`,
+			truth: new Set(o.orphaned),
+		},
+		{
+			id: "least_commented",
+			ask: `Here is a JSON list of every .js file under ${dir} with its line count and comment-line ratio:\n\n${JSON.stringify(lc.rows.map(r => ({ file: r.file, lines: r.lines, comment_ratio: r.comment_ratio })), null, 1)}\n\nName the 3 files with the LOWEST comment_ratio, lowest first.`,
+			truth: new Set(lc.rows.slice(0, 3).map(r => r.file)),
+			ordered: lc.rows.slice(0, 3).map(r => r.file),
 		},
 	];
 }
@@ -81,7 +102,7 @@ async function runOne(model, question, runTag){
 		`Reply with ONLY a JSON array of strings (the file/module paths you found), nothing else — no markdown fence, no explanation. An empty array ("[]") is a valid answer if you find nothing.`,
 	].join("\n\n");
 	const name = `known-answer-${question.id}-${model.replace(/[^a-z0-9]+/gi, "-")}-${Date.now()}`;
-	const spawned = await mcp("spawn_agent", { role: "minion", name, prompt, model, effort: "low", cwd: ROOT, permission_mode: "bypassPermissions" });
+	const spawned = await mcp("spawn_agent", { role: SPAWN_ROLE, name, prompt, model, effort: "low", cwd: ROOT, permission_mode: "bypassPermissions" });
 	if (!spawned.id) return { ok: false, why: spawned.raw || spawned.why || "spawn failed" };
 	const t0 = Date.now();
 	const waited = await waitForRealTurn(spawned, 180_000, 300_000);

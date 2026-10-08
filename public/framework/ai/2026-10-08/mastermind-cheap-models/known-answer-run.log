@@ -1,0 +1,16 @@
+known-answer.mjs: 5 question(s) x 2 model(s) over public/framework/ai/tests
+  naming / claude-haiku-4-5-20251001 ... SKIPPED (Bad log name "agent-task-mastermind-known-answer-naming-claude-haiku-4-5-20251001-1791437305744" — letters, digits, dot, dash and underscore only (or "cards/<slug>").)
+  comments / claude-haiku-4-5-20251001 ... SKIPPED (Bad log name "agent-task-mastermind-known-answer-comments-claude-haiku-4-5-20251001-1791437305773" — letters, digits, dot, dash and underscore only (or "cards/<slug>").)
+  structure / claude-haiku-4-5-20251001 ... SKIPPED (Bad log name "agent-task-mastermind-known-answer-structure-claude-haiku-4-5-20251001-1791437305781" — letters, digits, dot, dash and underscore only (or "cards/<slug>").)
+  orphans / claude-haiku-4-5-20251001 ... recall 0 precision 0 $? 490902ms
+  least_commented / claude-haiku-4-5-20251001 ... recall 0 precision 0 $0 98123ms
+  naming / claude-sonnet-5 ... SKIPPED (Bad log name "agent-task-mastermind-known-answer-naming-claude-sonnet-5-1791437894921" — letters, digits, dot, dash and underscore only (or "cards/<slug>").)
+  comments / claude-sonnet-5 ... SKIPPED (Bad log name "agent-task-mastermind-known-answer-comments-claude-sonnet-5-1791437894927" — letters, digits, dot, dash and underscore only (or "cards/<slug>").)
+  structure / claude-sonnet-5 ... recall 0 precision 0 $? 489944ms
+  orphans / claude-sonnet-5 ... SKIPPED (Bad log name "agent-task-mastermind-known-answer-orphans-claude-sonnet-5-1791438384925" — letters, digits, dot, dash and underscore only (or "cards/<slug>").)
+  least_commented / claude-sonnet-5 ... SKIPPED (Bad log name "agent-task-mastermind-known-answer-least-commented-claude-sonnet-5-1791438384933" — letters, digits, dot, dash and underscore only (or "cards/<slug>").)
+
+model                          question    recall  precision  cost       ms      tier
+claude-haiku-4-5-20251001      orphans     0       0          ?          490902  
+claude-haiku-4-5-20251001      least_commented 0       0          0          98123   
+claude-sonnet-5                structure   0       0          ?          489944  reference

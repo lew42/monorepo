@@ -7,18 +7,27 @@
  * ("which 3 files have the fewest comment lines?", "which module is missing a readme.md?"),
  * and known-answer.mjs (sibling script) scores its claim against what ran here.
  *
- * Three facts, one per the owner's own list ("comments per line, page structure and naming"):
- *   naming()    — reuses /framework/code/patterns/class-census.mjs's own rule (does
- *                 dir/File/Class match?) rather than re-implementing it (CLAUDE.md law 6).
- *   comments(dir)  — for every .js file: lines, comment lines (// or inside /* ... *\/), ratio.
- *   structure(dir) — for every directory that has a page.js: does it also have a readme.md
- *                 and a doc/ folder (CLAUDE.md: "Every module: readme.md, page.js, doc/").
+ * Five facts (2026-10-08, mastermind-cheap-models: two more added so the Haiku proving ground has
+ * at least 5 small checkable tasks, per the owner's own list plus two obvious extensions of the
+ * same "read a list, pick the right items out of it" shape):
+ *   naming()        — reuses /framework/code/patterns/class-census.mjs's own rule (does
+ *                     dir/File/Class match?) rather than re-implementing it (CLAUDE.md law 6).
+ *   comments(dir)      — for every .js file: lines, comment lines (// or inside /* ... *\/), ratio.
+ *   structure(dir)     — for every directory that has a page.js: does it also have a readme.md
+ *                     and a doc/ folder (CLAUDE.md: "Every module: readme.md, page.js, doc/").
+ *   orphans(dir)       — a page.js dir that no OTHER page.js's `children:` list names (CLAUDE.md:
+ *                     "a page exists once its parent's children: names it" — the reverse is just
+ *                     as checkable: a page nobody's parent names is unreachable by a click).
+ *   leastCommented(dir) — the opposite end of comments(): the 3 files with the LOWEST comment
+ *                     ratio, same data, a different read of the same list.
  *
  * usage:
  *   node Servex/ext/openrouter/evals/facts.mjs naming [dir]
  *   node Servex/ext/openrouter/evals/facts.mjs comments <dir>
  *   node Servex/ext/openrouter/evals/facts.mjs structure <dir>
- *   node Servex/ext/openrouter/evals/facts.mjs all <dir>      -- all three, one JSON object
+ *   node Servex/ext/openrouter/evals/facts.mjs orphans <dir>
+ *   node Servex/ext/openrouter/evals/facts.mjs least-commented <dir>
+ *   node Servex/ext/openrouter/evals/facts.mjs all <dir>      -- all five, one JSON object
  * Every command prints ONE JSON object to stdout — the ground truth a known-answer run reads.
  */
 import fs from "node:fs";
@@ -103,15 +112,36 @@ export function structure(dir){
 		broken_children: rows.filter(r => r.missing_children.length).map(r => `${r.module}: ${r.missing_children.join(", ")}`), rows };
 }
 
+/* ── orphans: a page.js dir no OTHER page.js's children: list names — reuses structure()'s own
+ * walk rather than a second one (CLAUDE.md law 6). The scan root itself is excluded (nobody is
+ * expected to declare the folder you pointed this at). */
+export function orphans(dir){
+	const s = structure(dir);
+	const root = path.relative(ROOT, dir).replaceAll("\\", "/");
+	const named = new Set();
+	for (const r of s.rows) for (const c of r.declared_children) named.add(path.join(r.module, c).replaceAll("\\", "/"));
+	const orphaned = s.rows.map(r => r.module).filter(m => m !== root && !named.has(m));
+	return { checked: s.rows.length, orphaned, rows: s.rows };
+}
+
+/* ── leastCommented: the opposite end of comments() — same rows, lowest ratio first. ── */
+export function leastCommented(dir){
+	const c = comments(dir);
+	const lowest = [...c.rows].sort((a, b) => a.comment_ratio - b.comment_ratio);
+	return { checked: c.checked, rows: lowest };
+}
+
 function main(){
 	const [cmd, dirArg] = process.argv.slice(2);
 	const dir = dirArg ? path.resolve(ROOT, dirArg) : path.join(ROOT, "public/framework");
 	const out = cmd === "naming" ? naming(dir)
 		: cmd === "comments" ? comments(dir)
 		: cmd === "structure" ? structure(dir)
-		: cmd === "all" ? { naming: naming(dir), comments: comments(dir), structure: structure(dir) }
+		: cmd === "orphans" ? orphans(dir)
+		: cmd === "least-commented" ? leastCommented(dir)
+		: cmd === "all" ? { naming: naming(dir), comments: comments(dir), structure: structure(dir), orphans: orphans(dir), least_commented: leastCommented(dir) }
 		: null;
-	if (!out){ console.error("usage: node facts.mjs naming|comments|structure|all [dir]"); process.exitCode = 1; return; }
+	if (!out){ console.error("usage: node facts.mjs naming|comments|structure|orphans|least-commented|all [dir]"); process.exitCode = 1; return; }
 	console.log(JSON.stringify(out, null, "\t"));
 }
 
