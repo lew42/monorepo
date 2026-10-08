@@ -4,3 +4,6 @@
 {"log":{"at":"2026-10-08T17:13:53-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-08T17:13:55-05:00","heartbeat":"answered","msg":"Done: the summary is written to C:/Users/mike/AppData/Local/Temp/ta2/summary.md, and I'm not doing anything else on it."}}
 {"log":{"at":"2026-10-08T17:17:55-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-08T17:28:55-05:00","heartbeat":"check","msg":"status check sent to helper-summarise"}}
+{"log":{"at":"2026-10-08T17:28:56-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-08T17:28:59-05:00","heartbeat":"answered","msg":"Idle: the summary is finished and I have no work running. I'm waiting for the next task."}}

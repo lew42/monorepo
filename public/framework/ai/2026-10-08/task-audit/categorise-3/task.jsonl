@@ -4,3 +4,6 @@
 {"log":{"at":"2026-10-08T17:14:54-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-08T17:14:56-05:00","heartbeat":"answered","msg":"Done: cat3.out.txt is written with 326 lines, one per input task, in order. Nothing is still running."}}
 {"log":{"at":"2026-10-08T17:18:57-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-08T17:29:57-05:00","heartbeat":"check","msg":"status check sent to helper-categorise-3"}}
+{"log":{"at":"2026-10-08T17:29:59-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-08T17:30:01-05:00","heartbeat":"answered","msg":"Still done, no work in progress: `cat3.out.txt` holds 326 lines, one per task in input order. I'm idle until a new task arrives."}}

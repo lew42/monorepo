@@ -12,3 +12,10 @@
 {"at":"2026-10-08T17:14:56-05:00","from":"helper-categorise-4","kind":"done","text":"Done: the categorisation is written to cat4.out.txt (325 lines), and I'm idle now. The one open gap is that I haven't checked the output's ids and line count against the input."}
 {"at":"2026-10-08T17:14:57-05:00","from":"helper-fix-2","kind":"done","text":"Finished: the 122-line fix list is written to C:/Users/mike/AppData/Local/Temp/ta2/fix2.out.txt (50 small, 67 work, 5 dead). Nothing is running; I'm waiting for the next task."}
 {"at":"2026-10-08T17:14:57-05:00","from":"helper-fix-1","kind":"done","text":"Done: the audit file is written, all 122 lines, nothing left open on my side."}
+{"at":"2026-10-08T17:28:59-05:00","from":"helper-summarise","kind":"done","text":"Idle: the summary is finished and I have no work running. I'm waiting for the next task."}
+{"at":"2026-10-08T17:30:00-05:00","from":"helper-categorise-1","kind":"done","text":"Status: finished. `C:/Users/mike/AppData/Local/Temp/ta2/cat1.out.txt` has 326 tab-separated lines, one per input task, and I'm not running anything else."}
+{"at":"2026-10-08T17:30:01-05:00","from":"helper-categorise-2","kind":"done","text":"Finished, nothing running. `C:/Users/mike/AppData/Local/Temp/ta2/cat2.out.txt` holds 326 lines, one per input task, in order."}
+{"at":"2026-10-08T17:30:01-05:00","from":"helper-categorise-3","kind":"done","text":"Still done, no work in progress: `cat3.out.txt` holds 326 lines, one per task in input order. I'm idle until a new task arrives."}
+{"at":"2026-10-08T17:30:01-05:00","from":"helper-fix-2","kind":"done","text":"Status: done. The fix list is in C:/Users/mike/AppData/Local/Temp/ta2/fix2.out.txt (122 lines: 50 small, 67 work, 5 dead). No task is running, so there is nothing new to report."}
+{"at":"2026-10-08T17:30:01-05:00","from":"helper-fix-1","kind":"done","text":"Idle: `fix1.out.txt` is written (122 lines) and I have no further steps."}
+{"at":"2026-10-08T17:30:02-05:00","from":"helper-categorise-4","kind":"done","text":"Still idle: cat4.out.txt is written (325 lines), and I have not yet checked its ids and line count against the input."}

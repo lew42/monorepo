@@ -4,3 +4,6 @@
 {"log":{"at":"2026-10-08T17:14:55-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-08T17:14:56-05:00","heartbeat":"answered","msg":"Done: the categorisation is written to cat4.out.txt (325 lines), and I'm idle now. The one open gap is that I haven't checked the output's ids and line count against the input."}}
 {"log":{"at":"2026-10-08T17:18:57-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-08T17:29:58-05:00","heartbeat":"check","msg":"status check sent to helper-categorise-4"}}
+{"log":{"at":"2026-10-08T17:30:00-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-08T17:30:02-05:00","heartbeat":"answered","msg":"Still idle: cat4.out.txt is written (325 lines), and I have not yet checked its ids and line count against the input."}}
