@@ -291,7 +291,7 @@ export function readme_chain(dir = "public/framework/ai/"){
 	const parts = dir.split("/").filter(Boolean);
 	const levels = [""].concat(parts.map((_, i) => parts.slice(0, i + 1).join("/") + "/"));
 	const box = div.c("wide").style({ display: "grid", gap: ".5rem" });
-	const url_of = d => d.startsWith("public/") ? d.slice("public".length) + "readme.md" : null;   // public/ is the site root
+	const url_of = d => d.startsWith("public/") && d !== "public/" ? d.slice("public".length) + "readme.md" : null;   // public/ is the site root
 	const fs = d => "/framework/servex/fs/?file=" + d + "readme.md";
 	Promise.all(levels.map(d => url_of(d)
 		? fetch(url_of(d)).then(r => r.ok ? r.text() : null).catch(() => null)
