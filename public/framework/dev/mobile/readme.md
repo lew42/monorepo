@@ -17,4 +17,4 @@ Read [mobile.md](./mobile.md) on the page itself: `/framework/dev/mobile/`.
 
 ## More
 - [Dev](/framework/dev/) — the parent tier this page belongs to
-- Research behind this page: [ai/2026-10-08/mobile-voice-access/findings.md](/framework/ai/2026-10-08/mobile-voice-access/findings.md)
+- Research behind this page: `ai/2026-10-08/mobile-voice-access/findings.md` (this task's own folder — not a routed page)
