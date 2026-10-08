@@ -1,0 +1,1 @@
+{"assign":{"session_id":"ad39a74d-3a3f-4151-b8e3-9511e2d0a370","agent":"helper-categorise-2","card":"task-audit: categorise batch 2","brief":"Haiku: categorise tasks in ta2/cat2.jsonl by ask and system.","model":"claude-haiku-5-5","parent_task":"public/framework/ai/2026-10-08/task-audit","requested_at":"2026-10-08T17:04:10-05:00","now":"starting","steps":[],"step":1}}

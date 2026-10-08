@@ -21,6 +21,8 @@ The audit judged all 254 open tasks in one pass at about $0.002 to $0.0035 per t
 
 ## Haiku accuracy (my spot check, 24 sampled verdicts against files and git subjects)
 
+**What the 24 were, exactly (honest answer):** an informal check, not a measured test. I picked about 24 of the Haiku verdicts by hand while reading the batch output (no random draw), mixing "delivered", "partial" and "not found" and leaning on ones that looked odd, so the sample is biased toward doubtful cases and 58% understates the average. The ground truth was my own reading of the task folder (do the named files exist, do the git subjects for that folder say landed) plus the cheap script rule in `build.mjs` (a "delivered" verdict with 0 commits, or a "not found" with 3+ commits, is suspect). "Right" meant the verdict agreed with that evidence. I did not save the list of 24 ids, so it cannot be re-checked; treat 58% as a warning, not a statistic. Better test next time: a script draws 30 rows at random and a second reader marks each.
+
 About 14 of 24 right (58%). It fails on three shapes, all fixed or flagged by script afterwards:
 - **Harness run folders** (`.../runs/...-17xxxxxxxxxxx`, OpenRouter test runs) are not tasks. Haiku called them "not found" or "partial". `build.mjs` now marks them `scratch`.
 - **Folders with parent commits**: commit counts include shared commits, so "5 commits" says nothing. Haiku leaned on them.

@@ -1,0 +1,1 @@
+{"assign":{"session_id":"273efa90-1940-49e8-b541-7b935f22b945","agent":"helper-fix-2","card":"task-audit: suggested fixes batch 2","brief":"Haiku: suggest the smallest fix per loose end in ta2/fix2.jsonl.","model":"claude-haiku-5-5","parent_task":"public/framework/ai/2026-10-08/task-audit","requested_at":"2026-10-08T17:04:20-05:00","now":"starting","steps":[],"step":1}}

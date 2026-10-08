@@ -51,3 +51,4 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) 
 - `doc/raw-match.md` — the word-overlap heuristic that lights up Raw, worked example
 - `Server/doc/refine.md` — what `refine.mjs` writes, and why each file looks the way it does
 - `doc/refine-engine.md` — `engine.js`'s `clean()` and `structure.js`'s `structure()`: the shared, two-speed clean step Dictate and the prompt-log processor both call, its mechanical glossary/strike/diff-check rules, and the 3-model litmus test that picked the cheap model to run it on
+- Open work: [loose ends by system](/framework/ai/2026-10-08/task-audit/by-system.md) — unbuilt Refine stages (context cards, interactive request cards, handoff, request filing) with the smallest fix per row; source rows in `/framework/ai/2026-10-08/task-audit/loose-ends.jsonl`
