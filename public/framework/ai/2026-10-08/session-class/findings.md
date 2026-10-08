@@ -78,3 +78,45 @@ Item 4 is fixed and committed in worktree `session-class`. Items 1 to 3 and 5 ar
 5. **Session icon:** one icon constant exported from `Session.js`'s view file (`SessionView.js`), used by the table, the detail page and the inbox session-context card, so a session looks the same everywhere. The glyph is a pick (`forum`); changing it later means editing one line.
 
 **Freshness check:** `sessions.json` was generated 2026-10-06 and `week.json` ends 2026-10-08 02:59Z. The page polls, but the files behind it are written by hand. The fix to build first: have `session-summary.mjs --index` (and Servex, on a timer) regenerate both files, and show an "as of" time on the toolbar.
+
+## 9. Why three numbers disagree for the same agent (mastermind relay, 2026-10-08)
+
+| Number | Where | Verdict |
+|---|---|---|
+| Session file (deduped by message id, with subagents) | `Session.js` / `session-cost.mjs`, the Sessions grid | **The truth.** |
+| `spend.json` `total` | `Server/task-cost.mjs` | **About 2x too high, same cause as my 2x fix.** |
+| Registry `cost` | `Servex/agents/Agents.js` (`cost: 0` at spawn) | **Resets on a Servex restart.** |
+
+**spend.json.** `task-cost.mjs` prices an agent through `cost_of_transcript(path).by_prompt` in `Server/session-cost.mjs`. On main, that function still prices every transcript line, and a Claude transcript writes one line per content block, each repeating the message's `usage`. That is the 2x. My fix (dedupe by message id, last line wins) is committed in worktree `session-class` and goes live when it merges. Then `node Server/task-cost.mjs <task-dir>` regenerates a correct `spend.json`. Nothing else in `task-cost.mjs` needs changing for the 2x, since it already trusts the transcript over the agent log. One gap remains: it prices only the main transcript, so subagent files (billed, but in `<session>/subagents/`) are missed. Switching it to `cost_of_session` would close that; I did not do it because `by_prompt` has no subagent breakdown and the change needs a test.
+
+**Registry.** `Agents.js` starts `cost` at 0 and adds the SDK result's cumulative `total_cost_usd`, which is per process. A Servex restart or revive starts a fresh process, so the number starts again from zero (the three disagreements $3.16, $4.14, $0.12 against file truth fit that). Document it, don't fix it: the registry cost is a "since this process started" figure. Anything that wants lifetime cost reads the session file, which the Sessions cell now does. The registry's number stays as a fallback when there is no transcript.
+
+**The Sessions table** already shows the session-file number wherever `session-index.json` has the row, and falls back to the old cost only when it doesn't.
+
+## 10. What is left, for whoever lands this
+
+Built and committed in worktree `session-class` (not merged): Session class, audit, `session-summary.mjs`, cost cell and detail view, entrypoint labels, close/reopen lifecycle, docs. Needs, in order: docs-check, `review.mjs` from MAIN, `merge.mjs`, Servex restart (for `audit_session`), then `node Server/session-summary.mjs --index` and `node Server/task-cost.mjs` to refresh the numbers. Not built: live refresh of `week.json`/`sessions.json`, table redesign (toolbar, recency sort, columns, chips, icon), tags and alerts, per-session index, subagents in `task-cost.mjs`.
+
+## 11. Old sessions and core links on the card (owner, 2026-10-08). Plan, not built
+
+**Old sessions.** Today `Session.js` reads one shape: a Claude transcript (`~/.claude/projects/.../<id>.jsonl`, plus `subagents/`). The default is a small **adapter per old shape**, each one a function that returns the same plain facts (id, first and last time, cost if known, prompts, model) and says honestly what it cannot know. The shapes to cover: SDK and CLI transcripts (done), the Servex launch lines in each task's log, the daily log, and the legacy `session.json` (read-only). A session with no transcript shows cost as "not measured", never 0. The loader picks the adapter by what exists for the id, so nothing old is rewritten or deleted. The task-audit mastermind will say which old shapes it meets; those adapters get added to the list one at a time, each with a test on a real old file.
+
+**Core links on the card.** Two or three links per card (a class, file or page the session made or edited) are read from the tag lines the task audit writes into the session's own log through the tags tool from the addendum. The class does not work them out. The grid's index file carries a short `links` list per row (at most three, most important first), and the card renders them as text links. Until the tags tool and the audit's first writes exist, the card shows none.
+
+**Alternative:** compute the links from the transcript's edited paths. Rejected, because the owner said to consume the audit's tags, and computing them twice makes two answers.
+
+## 12. Recommendation: the session index (mastermind relay, 2026-10-08). Plan, first item of the build
+
+**Default: an append-only index of one line per session update, partitioned by day.** A new session folder alone shows nothing on the dashboard; the index is what the dashboard reads.
+
+- **Where:** `sessions/index/<YYYY>/<MM>/<DD>.jsonl`, the same year/month/day shape the site's dated folders already use. The partition is the day of the update, not the day the session began, so a session that ran for three days has a line in each of three partitions.
+- **One line:** `{"id","name","icon","usd","cost_complete","state","started","updated","tags":[],"links":[],"alerts":0,"model","effort","closed"}`. `cost_complete` is false when the transcript could not be found or a subagent file is missing, so a partial number is never shown as a whole one. `links` holds at most three.
+- **Latest line per id wins.** The dashboard keeps a map as it reads. Nothing is ever edited.
+- **Filtering:** a date filter loads only the partitions in range (a week is seven small files, not 4,000 sessions). Tag, role, source and needs-attention filters run over those lines in the browser. The list shows these lines only; a session's own `session.jsonl` and transcript load on click.
+- **Live:** today's partition is tailed with the existing `live()` JSONL tail, so a new line appears on the dashboard without a refresh and the "as of" time is the last line's time. This also fixes the stale `sessions.json` and `week.json`.
+- **Derived, never hand-edited:** a writer appends a line whenever something that matters changes (a refresh of the cost, a tag, an alert, `closed`), in the same code path as that change. `node Server/session-summary.mjs --index --rebuild` recreates every partition from the transcripts and each `session.jsonl`, so losing the index loses nothing. The audit action adds one more check: the newest index line for the session must equal the recomputed preview, and a difference is recorded like any audit mismatch.
+- **Directory deltas:** the day folders' `page.jsonl` files already carry `{"file":"28/"}` lines. I have not confirmed which process writes them. They can say which partitions exist, so the dashboard needs no directory listing.
+
+**Alternative: one `sessions.jsonl` for everything.** It is simpler to write and tail, but every visit reads the whole history, which grows forever, and a date filter cannot skip anything. At about 7,400 sessions a month this becomes the very problem the index is meant to solve.
+
+**Build order:** (1) the line shape and `Session.index_line()` from `preview()`; (2) the append in `refresh`, `log` and `close`; (3) `--rebuild`; (4) the dashboard reads partitions and tails today's; (5) the audit check. The current `session-index.json` stays until step 4 replaces it. Not built: it needs the tags and alerts fields settled first.
