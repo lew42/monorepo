@@ -1,0 +1,227 @@
+[
+ {
+  "id": "clarity-session-class",
+  "model": "claude-sonnet-5-5",
+  "ledger": 0.2939,
+  "raw": 0.3079,
+  "dedup": 0.1622,
+  "raw_vs_ledger": 1.048,
+  "dedup_vs_ledger": 0.552
+ },
+ {
+  "id": "mastermind-task-audit",
+  "model": "claude-sonnet-5-5",
+  "ledger": 2.0084,
+  "raw": 3.1516,
+  "dedup": 0.9138,
+  "raw_vs_ledger": 1.569,
+  "dedup_vs_ledger": 0.455
+ },
+ {
+  "id": "clarity-live-not-polling",
+  "model": "claude-sonnet-5-5",
+  "ledger": 0.2682,
+  "raw": 0.3185,
+  "dedup": 0.1492,
+  "raw_vs_ledger": 1.188,
+  "dedup_vs_ledger": 0.556
+ },
+ {
+  "id": "minion-live-not-polling",
+  "model": "claude-sonnet-5-5",
+  "ledger": 2.6925,
+  "raw": 3.5565,
+  "dedup": 1.9169,
+  "raw_vs_ledger": 1.321,
+  "dedup_vs_ledger": 0.712
+ },
+ {
+  "id": "clarity-cache-ttl-and-plan",
+  "model": "claude-sonnet-5-5",
+  "ledger": 0.2729,
+  "raw": 0.3256,
+  "dedup": 0.1517,
+  "raw_vs_ledger": 1.193,
+  "dedup_vs_ledger": 0.556
+ },
+ {
+  "id": "session-smart-v-0kfikyu",
+  "model": "claude-sonnet-5-5",
+  "ledger": 0.5109,
+  "raw": 0.8094,
+  "dedup": 0.4951,
+  "raw_vs_ledger": 1.584,
+  "dedup_vs_ledger": 0.969
+ },
+ {
+  "id": "clarity-mastermind-cheap-models-2",
+  "model": "claude-sonnet-5",
+  "ledger": 0.5065,
+  "raw": 1.1705,
+  "dedup": 0.6195,
+  "raw_vs_ledger": 2.311,
+  "dedup_vs_ledger": 1.223
+ },
+ {
+  "id": "reviewer-mobile-voice-access-3",
+  "model": "claude-sonnet-5",
+  "ledger": 0.7826,
+  "raw": 1.8675,
+  "dedup": 0.7814,
+  "raw_vs_ledger": 2.386,
+  "dedup_vs_ledger": 0.998
+ },
+ {
+  "id": "reviewer-mobile-voice-access-2",
+  "model": "claude-opus-5-5",
+  "ledger": 0.7148,
+  "raw": 1.8035,
+  "dedup": 0.7915,
+  "raw_vs_ledger": 2.523,
+  "dedup_vs_ledger": 1.107
+ },
+ {
+  "id": "echo-107ca73d",
+  "model": "google/gemini-3.8-flash",
+  "ledger": 0.2421,
+  "raw": 1.98,
+  "dedup": 0.8747,
+  "raw_vs_ledger": 8.178,
+  "dedup_vs_ledger": 3.613
+ },
+ {
+  "id": "reviewer-mobile-voice-access",
+  "model": "claude-opus-5-5",
+  "ledger": 0.6573,
+  "raw": 1.1693,
+  "dedup": 0.7538,
+  "raw_vs_ledger": 1.779,
+  "dedup_vs_ledger": 1.147
+ },
+ {
+  "id": "echo-cc794224",
+  "model": "google/gemini-3.8-flash",
+  "ledger": 0.2776,
+  "raw": 4.0524,
+  "dedup": 1.9783,
+  "raw_vs_ledger": 14.596,
+  "dedup_vs_ledger": 7.125
+ },
+ {
+  "id": "clarity-mastermind-cheap-models",
+  "model": "claude-sonnet-5",
+  "ledger": 0.6521,
+  "raw": 1.1959,
+  "dedup": 0.651,
+  "raw_vs_ledger": 1.834,
+  "dedup_vs_ledger": 0.998
+ },
+ {
+  "id": "mastermind-cheap-models",
+  "model": "claude-sonnet-5",
+  "ledger": 8.7905,
+  "raw": 18.5471,
+  "dedup": 8.7869,
+  "raw_vs_ledger": 2.11,
+  "dedup_vs_ledger": 1
+ },
+ {
+  "id": "clarity-mobile-voice-access",
+  "model": "claude-sonnet-5",
+  "ledger": 0.2215,
+  "raw": 0.4502,
+  "dedup": 0.2205,
+  "raw_vs_ledger": 2.032,
+  "dedup_vs_ledger": 0.995
+ },
+ {
+  "id": "minion-mobile-voice-access",
+  "model": "claude-sonnet-5",
+  "ledger": 3.6086,
+  "raw": 7.686,
+  "dedup": 3.605,
+  "raw_vs_ledger": 2.13,
+  "dedup_vs_ledger": 0.999
+ },
+ {
+  "id": "clarity-docs-vs-code-audit",
+  "model": "claude-sonnet-5",
+  "ledger": 0.2383,
+  "raw": 0.5015,
+  "dedup": 0.2373,
+  "raw_vs_ledger": 2.104,
+  "dedup_vs_ledger": 0.996
+ },
+ {
+  "id": "minion-docs-vs-code-audit",
+  "model": "claude-sonnet-5",
+  "ledger": 2.1096,
+  "raw": 4.1654,
+  "dedup": 2.106,
+  "raw_vs_ledger": 1.975,
+  "dedup_vs_ledger": 0.998
+ },
+ {
+  "id": "reviewer-prompt-audit",
+  "model": "claude-opus-5-5",
+  "ledger": 0.5757,
+  "raw": 0.9084,
+  "dedup": 0.6316,
+  "raw_vs_ledger": 1.578,
+  "dedup_vs_ledger": 1.097
+ },
+ {
+  "id": "minion-prompt-audit",
+  "model": "claude-haiku-4-5-20251001",
+  "ledger": 3.2406,
+  "raw": 13.1414,
+  "dedup": 6.4739,
+  "raw_vs_ledger": 4.055,
+  "dedup_vs_ledger": 1.998
+ },
+ {
+  "id": "minion-checker-1",
+  "model": "claude-sonnet-5",
+  "ledger": 1.5705,
+  "raw": 3.1714,
+  "dedup": 1.5669,
+  "raw_vs_ledger": 2.019,
+  "dedup_vs_ledger": 0.998
+ },
+ {
+  "id": "task-mastermind-chat-bubble-duplicates",
+  "model": "openai/gpt-6-luna",
+  "ledger": 0.3254,
+  "raw": 5.1609,
+  "dedup": 1.1222,
+  "raw_vs_ledger": 15.858,
+  "dedup_vs_ledger": 3.448
+ },
+ {
+  "id": "session-fast-v-omwdzl5",
+  "model": "openai/gpt-6-luna",
+  "ledger": 0.2247,
+  "raw": 0.0515,
+  "dedup": 0.025,
+  "raw_vs_ledger": 0.229,
+  "dedup_vs_ledger": 0.111
+ },
+ {
+  "id": "echo-506e906c",
+  "model": "google/gemini-3.8-flash",
+  "ledger": 0.6126,
+  "raw": 1.9411,
+  "dedup": 0.6594,
+  "raw_vs_ledger": 3.169,
+  "dedup_vs_ledger": 1.076
+ },
+ {
+  "id": "echo-f331b18d",
+  "model": "google/gemini-3.8-flash",
+  "ledger": 0.6126,
+  "raw": 2.3943,
+  "dedup": 1.0803,
+  "raw_vs_ledger": 3.909,
+  "dedup_vs_ledger": 1.764
+ }
+]
