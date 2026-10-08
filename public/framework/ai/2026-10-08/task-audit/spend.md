@@ -37,3 +37,7 @@ About $1 to $1.50 with this design (Haiku batches), if the 26 batches are re-jud
 ## What was not done
 
 The 1,483 unmatched owner prompts from the session files were not judged (they are a separate pile in `ask-ledger/`). Only the prompt-refinement slice of them was read, by script search.
+
+## Addendum 7 helpers: real cost (read from the registry when stopped)
+
+Seven Haiku helpers cost **$7.44 in total**: categorise 1 to 4 were $1.43, $1.17, $1.28 and $1.38; fix 1 and 2 were $0.72 and $0.71; summarise was $0.75. That is far above the "well under a dollar" hope. Each helper ran 4 turns, because the heartbeat status checks woke the idle helpers and each wake re-read a 76k to 113k token context. The work itself was one turn each. Lesson: stop a helper the moment its result is in (I stopped them late), and expect an inlined 20k-token batch to cost about $0.25 to $0.40, not pennies. With the mastermind at about $9.19, this task is now roughly $16.6 against a $6 plan.
