@@ -34,3 +34,18 @@ Five places hold "things to do": `ai/todo.md` (177 lines, owner prose), `ai/asks
 **Alternative:** make `asks.jsonl` the single queue and have `task.jsonl` link back. It already has owners and status, but it holds asks, not work, so cost and landing would need a second join.
 
 **The message channel** is cheapest as `append_log` to a path plus one `Monitor` tail per listener (no polling, no wake on unrelated lines); addressing is the file path itself. Detail: [task-queue-2026-10-08.md](doc/task-queue-2026-10-08.md).
+
+## Tools and pathways (inventory + recommendation, no build)
+
+| Pathway | What it is | Context cost | Where |
+|---|---|---|---|
+| MCP over HTTP | `servex` (agents, tasks, pages, cards, sessions), `site` (pages, shot, eval, research), `figma`; Servex agents reach theirs through `door()` | every tool definition loads, always | `Servex/MCP.js`, `Server/plugins/MCP.js`, `.mcp.json` |
+| In-process SDK tools | node functions wrapped with `tool()` + `createSdkMcpServer()`; no network hop | same as MCP | `Servex/agents/tools.js` |
+| Skill | markdown loaded **on demand** | zero until used | `.claude/skills/` (34) |
+| Shell | `node Server/*.mjs`, git; the script reads and computes, the model reads its summary | zero | `Server/`, `.claude/hooks/` |
+
+Open mismatch: `ai/doc/mcp.md` says Servex agents get in-process tools; `Servex/doc/sdk.md` found the live path is HTTP via `door()`. One of them is stale; check `Servex/agents/tools.js` before relying on either.
+
+**Recommendation (default): the session template is the unit of control.** Tools cannot load on demand, skills can, so a template is one bundle of tools, MCPs, skills, system prompt and model per purpose (close to a role), shown on the agent's card and editable. Roles already carry the model (`Servex/agents/roles.js`); extending a role to name its tools and skills is the smallest step. Alternative: per-agent tool lists chosen at spawn; flexible but unvisible and unrepeatable.
+
+**Generic path-and-method tool:** one tool taking an object path, a method and arguments, applied by a node function that stamps time, author and cost (the `page.jsonl` delta style). It replaces many hand-made tools; a skill lists the callable methods on demand. Trade-off: one powerful tool needs strict validation and an allow-list of paths. Detail: [tooling-architecture-2026-10-08.md](doc/tooling-architecture-2026-10-08.md).
