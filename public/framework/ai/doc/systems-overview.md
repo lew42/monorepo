@@ -113,24 +113,23 @@ Implemented across `public/framework/ai2/inbox.js`, `needs-rule.js`, and `core/P
 ### A. Registered MCP Tools Catalog
 The environment exposes two primary MCP endpoints over loopback JSON-RPC 2.0:
 
-1. **Site Dev Server MCP (`http://monorepo.localhost/mcp`)** (5 tools):
-   - `pages`: Lists connected browser tabs and claims.
-   - `eval`: Runs JavaScript in a live browser tab (DOM truth).
-   - `shot`: Captures headless Chromium screenshots.
-   - `claim`: Marks a browser tab with an orange ring and owner slug.
-   - `release`: Drops browser tab ownership.
+Both tool lists grow often — a fixed count here goes stale fast (last checked 2026-10-07: site had 12, Servex had 77). Don't trust the numbers below; count a fresh session's own deferred-tools list instead (`mcp__site__*`, `mcp__servex__*`) before relying on either being complete.
 
-2. **Servex MCP (`http://servex.localhost/mcp`)** (68 tools total):
+1. **Site Dev Server MCP (`http://monorepo.localhost/mcp`)** — was `pages`, `eval`, `shot`, `claim`, `release` only; now also seven `research_*` tools (`research_agent`, `research_log`, `research_outline`, `research_say`, `research_summary`, `research_verdict`, `research_vote`) for the [research](/framework/research/) program.
+
+2. **Servex MCP (`http://servex.localhost/mcp`)**:
    - **Agent Control**: `spawn_agent`, `fork_self`, `wait_for_agent`, `send_to_agent`, `interrupt_agent`, `list_agents`, `stop_agent`.
    - **Operations**: `restart_servex`, `pause_dispatch`, `resume_dispatch`, `system_health`.
    - **Background Jobs**: `start_job`, `job_result`.
-   - **Knowledge & Experts**: `ask_expert`, `list_experts`, `load_module`, `readme_modules`, `ask_directory`.
+   - **Knowledge & Experts**: `ask_expert`, `list_experts`, `load_module`, `readme_modules`, `ask_directory`, `ask_module`, `ask_manager`.
    - **Worktree Pool**: `take_worktree`, `return_worktree`.
-   - **Cards & Inbox**: `create_card`, `read_card`, `attach_card`, `list_cards`, `card_ask`, `list_waiting`, `drop`, `clear`, `inbox`.
-   - **Live Pages (`page.jsonl`)**: `page_call`, `page_add`, `page_set`, `page_log`, `page_read`.
+   - **Cards & Inbox**: `create_card`, `create_page`, `read_card`, `attach_card`, `list_cards`, `card_ask`, `card_reply`, `card_set`, `card_summary`, `list_waiting`, `drop`, `clear`, `inbox`, `add_item`, `amend_bubble`, `place`.
+   - **Live Pages (`page.jsonl`)**: `page_call`, `page_add`, `page_set`, `page_log`, `page_read`, `page_reply`.
    - **Tasks & Status**: `snooze_task`, `kill_task`, `reprioritise_task`, `close_task`, `task_loop_status`, `heartbeat_status`.
-   - **Voice & Quick-Fix**: `session_summary`, `session_line`, `quick_fix`, `quick_fix_landed`, `dir_log`.
+   - **Voice & Quick-Fix**: `session_summary`, `session_line`, `quick_fix`, `quick_fix_landed`, `dir_log`, `refine_step`.
    - **Server Management**: `list_servers`, `start_server`, `check_page`, `restart_server`, `stop_server`, `server_logs`, `append_log`.
+   - **Topics & Sessions**: `claim_topic`, `release_topic`, `list_claims`, `follow`, `unfollow`, `list_follows`, `register_session`, `set_focus`, `set_layout`, `list_pages`, `list_servers`.
+   - (This list is still not guaranteed exhaustive — see the caveat above.)
 
 3. **Antigravity Builtin Harness**:
    - Connects to `site` and `servex` via `~/.gemini/config/mcp_config.json`.

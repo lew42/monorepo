@@ -1,0 +1,2 @@
+{"assign":{"session_id":"d624553d-39c3-4257-952b-5add43601bb3","agent":"minion-docs-vs-code-audit","card":"docs-vs-code-audit: do the docs add up with the code","brief":"public/framework/ai/2026-10-07/docs-vs-code-audit/requirements.md","model":"claude-sonnet-5","worktree":"C:/Code/lew42/worktrees/qf-6","requested_at":"2026-10-07T23:49:51-05:00","now":"starting","steps":[],"step":1}}
+{"assign":{"step":2,"now":"reading readme chain + Servex docs + ai docs"}}
