@@ -8,3 +8,9 @@
 {"log":{"at":"2026-10-07T23:01:34-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
 {"log":{"at":"2026-10-07T23:03:34-05:00","heartbeat":"deliberate","msg":"minion-checker-1 its agent is not running: it was stopped on purpose by task-mastermind-feedback-council at 2026-10-07T22:57:39-05:00; not revived."}}
 {"log":{"at":"2026-10-07T23:31:34-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-08T00:01:34-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-08T00:17:31-05:00","heartbeat":"deliberate","msg":"minion-checker-1 its agent is not running: it was stopped on purpose by task-mastermind-feedback-council at 2026-10-07T22:57:39-05:00; not revived."}}
+{"log":{"at":"2026-10-08T00:55:30-05:00","heartbeat":"deliberate","msg":"minion-checker-1 its agent is not running: it was stopped on purpose by task-mastermind-feedback-council at 2026-10-07T22:57:39-05:00; not revived."}}
+{"log":{"at":"2026-10-08T03:58:18-05:00","heartbeat":"deliberate","msg":"minion-checker-1 its agent is not running: it was stopped on purpose by task-mastermind-feedback-council at 2026-10-07T22:57:39-05:00; not revived."}}
+{"log":{"at":"2026-10-08T06:26:54-05:00","heartbeat":"deliberate","msg":"minion-checker-1 its agent is not running: it was stopped on purpose by task-mastermind-feedback-council at 2026-10-07T22:57:39-05:00; not revived."}}
+{"log":{"at":"2026-10-08T08:50:34-05:00","heartbeat":"deliberate","msg":"minion-checker-1 its agent is not running: it was stopped on purpose by task-mastermind-feedback-council at 2026-10-07T22:57:39-05:00; not revived."}}

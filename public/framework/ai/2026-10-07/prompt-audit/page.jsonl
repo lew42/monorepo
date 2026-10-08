@@ -1,0 +1,15 @@
+{"inbox":{"id":"n-34rpb9nq","from":"servex-heartbeat","text":"minion-prompt-audit its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T00:17:37.727-05:00"}}
+{"file":"audit.json"}
+{"file":"audit.mjs"}
+{"file":"report.md"}
+{"file":"requirements.md"}
+{"file":"review/"}
+{"file":"review.jsonl"}
+{"file":"review.md"}
+{"file":"spend.json"}
+{"file":"task.jsonl"}
+{"inbox":{"id":"n-4k2tukx8","from":"servex-heartbeat","text":"minion-prompt-audit its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T00:57:31.602-05:00"}}
+{"inbox":{"id":"n-4u8ymlot","from":"servex-task-loop","text":"prompt-audit has been quiet since 2026-10-08T00:57:40-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-08T01:05:26.110-05:00"}}
+{"inbox":{"id":"n-b0o7lgqg","from":"servex-heartbeat","text":"minion-prompt-audit its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T03:58:23.505-05:00"}}
+{"inbox":{"id":"n-gbrnktpj","from":"servex-heartbeat","text":"minion-prompt-audit its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T06:26:59.264-05:00"}}
+{"inbox":{"id":"n-lgj876dg","from":"servex-heartbeat","text":"minion-prompt-audit its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T08:50:39.703-05:00"}}

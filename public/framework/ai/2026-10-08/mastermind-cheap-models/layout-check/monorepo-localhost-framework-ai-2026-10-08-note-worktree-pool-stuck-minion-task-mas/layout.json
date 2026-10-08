@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026/10/08/note-worktree-pool-stuck-minion-task-mas/",
+ "widths": {
+  "1280": {
+   "empty": 0.994,
+   "widest_text": 178,
+   "widest_text_sample": "server restarting… reconnecting",
+   "overflow_x": false,
+   "items": 16,
+   "narrow_share": 0.938
+  },
+  "1920": {
+   "empty": 0.996,
+   "widest_text": 178,
+   "widest_text_sample": "server restarting… reconnecting",
+   "overflow_x": false,
+   "items": 16,
+   "narrow_share": 0.938
+  },
+  "2560": {
+   "empty": 0.996,
+   "widest_text": 178,
+   "widest_text_sample": "server restarting… reconnecting",
+   "overflow_x": false,
+   "items": 16,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.996,
+   "widest_text": 178,
+   "widest_text_sample": "server restarting… reconnecting",
+   "overflow_x": false,
+   "items": 16,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}
