@@ -285,3 +285,8 @@
 {"at":"2026-10-08T03:29:25.094Z","target":"public/framework/ai/2026-10-07/token-accounting/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-10-08T03:30:26.081Z","target":"public/framework/ai/2026-10-07/token-accounting/requirements.md","verdict":"spawned","to":"clarity-token-accounting"}
 {"at":"2026-10-07T22:35:00-05:00","target":"public/framework/ai/2026-10-07/token-accounting/requirements.md","verdict":"clear","what":"Proposal reads clearly: title names the topic in 10 seconds, phases/deliverables are numbered checklists, kept close to the owner's words, text-check.mjs returned no flags.","to":"requirements.md"}
+{"at":"2026-10-08T03:43:16.926Z","target":"public/framework/ai/2026-10-07/token-accounting","verdict":"queued","kind":"landing"}
+{"at":"2026-10-08T03:43:17.095Z","target":"public/framework/ai/2026-10-07/token-accounting","verdict":"spawned","to":"clarity-token-accounting"}
+{"at":"2026-10-08T03:48:29.019Z","target":"public/framework/ai/2026-10-07/prompt-audit/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-08T03:49:30.010Z","target":"public/framework/ai/2026-10-07/prompt-audit/requirements.md","verdict":"spawned","to":"clarity-prompt-audit"}
+{"at":"2026-10-07T00:00:00.000Z","target":"public/framework/ai/2026-10-07/prompt-audit/requirements.md","verdict":"clear","what":"Proposal brief is scannable: one-line title, prioritized sources/deliverables/rules, short plain sentences, compute-not-recall deliverable 1.","to":"public/framework/ai/2026-10-07/prompt-audit/requirements.md"}

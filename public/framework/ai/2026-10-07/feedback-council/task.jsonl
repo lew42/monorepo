@@ -3,3 +3,5 @@
 {"log":{"at":"2026-10-07T22:46:34-05:00","msg":"task-loop chase 1 of 2: could not wake: no owning agent found","chase":1}}
 {"action":{"at":"2026-10-07T22:56:59-05:00","did":"edit","files":["public/framework/ai/2026-10-07/feedback-council/votes/mastermind.json"]}}
 {"action":{"at":"2026-10-07T22:57:10-05:00","did":"edit","files":["public/framework/ai/2026-10-07/feedback-council/aggregate.mjs"]}}
+{"log":{"at":"2026-10-07T23:16:34-05:00","msg":"task-loop chase 2 of 2: could not wake: no owning agent found","chase":2}}
+{"log":{"at":"2026-10-07T23:46:34-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}

@@ -1,2 +1,10 @@
 {"file":"requirements.md"}
 {"file":"requirements.md"}
+{"file":"audit-90.mjs"}
+{"file":"audit-cards.mjs"}
+{"file":"review/"}
+{"file":"review.jsonl"}
+{"file":"run-pipeline.mjs"}
+{"file":"shots/"}
+{"file":"spend.json"}
+{"file":"task.jsonl"}

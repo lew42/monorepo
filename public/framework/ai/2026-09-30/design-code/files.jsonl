@@ -17,3 +17,5 @@
 {"file":"review.jsonl"}
 {"file":"code/"}
 {"file":"docs-check.md"}
+{"file":"inbox.jsonl","gone":true}
+{"file":"review.jsonl","gone":true}

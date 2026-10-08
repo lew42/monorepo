@@ -33,3 +33,6 @@
 {"file":"review.md"}
 {"file":"spend.json"}
 {"file":"task.jsonl"}
+{"file":"inbox.jsonl","gone":true}
+{"file":"layout-check/","gone":true}
+{"file":"review.jsonl","gone":true}

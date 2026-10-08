@@ -1145,3 +1145,8 @@
 {"log":{"at":"2026-10-07T22:16:37-05:00","session":0,"weekly_all":0,"weekly_scoped":0,"resets_at":"2026-10-08T04:39:59.952324+00:00"}}
 {"log":{"at":"2026-10-07T22:32:09-05:00","session":2,"weekly_all":0,"weekly_scoped":0,"resets_at":"2026-10-08T04:40:00.371303+00:00"}}
 {"log":{"at":"2026-10-07T22:32:22-05:00","session":2,"weekly_all":0,"weekly_scoped":0,"resets_at":"2026-10-08T04:39:59.736078+00:00"}}
+{"log":{"at":"2026-10-07T22:47:23-05:00","session":4,"weekly_all":1,"weekly_scoped":0,"resets_at":"2026-10-08T04:40:00.097445+00:00"}}
+{"log":{"at":"2026-10-07T22:56:34-05:00","session":6,"weekly_all":1,"weekly_scoped":0,"resets_at":"2026-10-08T04:39:59.520434+00:00"}}
+{"log":{"at":"2026-10-07T23:11:34-05:00","session":7,"weekly_all":1,"weekly_scoped":0,"resets_at":"2026-10-08T04:39:59.766004+00:00"}}
+{"log":{"at":"2026-10-07T23:26:34-05:00","session":7,"weekly_all":2,"weekly_scoped":0,"resets_at":"2026-10-08T04:39:59.620510+00:00"}}
+{"log":{"at":"2026-10-07T23:41:34-05:00","session":0,"weekly_all":2,"weekly_scoped":0,"resets_at":null}}

@@ -6,3 +6,6 @@
 {"file":"task.jsonl"}
 {"file":"test-context.md"}
 {"file":"test-questions.md"}
+{"file":"answers-one-prompt.md","gone":true}
+{"file":"test-context.md","gone":true}
+{"file":"test-questions.md","gone":true}

@@ -5,3 +5,6 @@
 {"log":{"at":"2026-10-07T22:53:34-05:00","msg":"B15: no 'about' page exists at /about/ or /framework/about/ (confirmed 404 via Playwright, not just curl). Voted 'not done' and flagged that the ask may refer to a page that was renamed or removed."}}
 {"action":{"at":"2026-10-07T22:53:34-05:00","did":"write","files":["public/framework/ai/2026-10-07/feedback-council/votes/checker-1.json"]}}
 {"assign":{"now":"done","landed_at":"2026-10-07T22:53:34-05:00"}}
+{"log":{"at":"2026-10-07T23:01:34-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"log":{"at":"2026-10-07T23:03:34-05:00","heartbeat":"deliberate","msg":"minion-checker-1 its agent is not running: it was stopped on purpose by task-mastermind-feedback-council at 2026-10-07T22:57:39-05:00; not revived."}}
+{"log":{"at":"2026-10-07T23:31:34-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}

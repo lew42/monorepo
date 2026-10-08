@@ -3,3 +3,8 @@
 {"file":"requirements.md"}
 {"file":"harness-findings.md"}
 {"file":"task.jsonl"}
+{"file":"detail/"}
+{"file":"layout-check/"}
+{"file":"overhead-runs/page.js"}
+{"file":"spend.json"}
+{"file":"system-overhead-results.jsonl"}
