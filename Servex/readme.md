@@ -386,3 +386,4 @@ launches the gate at boot.
   (the agents, the live dashboard and the keeper — start here, it is a page, not a readme)
 - The repo this was ported from: `C:/Code/servex` — read, never edited. Its
   `servex-mvp.md` lists the gaps; the ones that are closed are closed here.
+- Decisions and the SDK: [`doc/architecture.md`](./doc/architecture.md) · [`doc/sdk.md`](./doc/sdk.md) (how an agent is started and kept alive)

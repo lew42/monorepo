@@ -12,8 +12,27 @@ A tab after Inbox is **detected, not hand-listed**: any folder whose own `page.j
 
 The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 draws; how it works is at [/framework/ux/Inbox/](/framework/ux/Inbox/). The old board is at [/framework/ai/v/3/](/framework/ai/v/3/) (and `?v1`).
 
+## Every system, one line each
+
+Accounting first. Each link is that system's own short readme; follow it to go one level deeper.
+
+- **Accounting**: [token accounting](doc/token-accounting.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md)
+- **Servex** (runs the agents): [readme](/framework/servex/) · [SDK](/framework/servex/doc/sdk.md) · [decisions](/framework/servex/doc/architecture.md)
+- **Dev server**: [Server/readme.md](/framework/dev/)
+- **MCP tools**: [doc/mcp.md](doc/mcp.md)
+- **Models**: [system/models](system/models/) · [OpenRouter](/framework/servex/) · local
+- **Sessions** (VS Code tabs, browser voice agents): [sessions/](sessions/readme.md) · [conversations](doc/conversations.md)
+- **Transcription**: [ux/Dictate](/framework/ux/Dictate/)
+- **Page system**: [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/)
+- **Skills and CLAUDE.md**: [skills](skills/)
+- **Dashboard, Log, Inbox**: the tabs above · [AI 2](/framework/ai2/)
+- Sizes and freshness of all of them: [systems-map.md](systems-map.md)
+
 ## Start here
 
+- [systems-map.md](systems-map.md): where every major system lives, how long its readme is, and when it last changed.
+- [doc/architecture.md](doc/architecture.md): the decisions behind this folder, and where they came from.
+- Servex SDK: how an agent is started ([`Servex/doc/sdk.md`](/framework/servex/doc/sdk.md)) and Servex's own decisions ([`Servex/doc/architecture.md`](/framework/servex/doc/architecture.md)).
 - [doc/systems-overview.md](doc/systems-overview.md): full AI architecture, persistence, triggers, and MCP tool/session logging audit.
 - [todo.md](todo.md): what's waiting, in priority order, and what only you can do.
 - [handover.md](handover.md): the state of the world for a fresh tab or mastermind.

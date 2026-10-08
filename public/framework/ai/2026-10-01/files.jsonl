@@ -73,3 +73,7 @@
 {"file":"inspect/"}
 {"file":"line-filter/"}
 {"file":"recover-main-untracked/"}
+{"file":"nested-sheet-example/"}
+{"file":"remote-access/","gone":true}
+{"file":"list-order/","gone":true}
+{"file":"home-blog/","gone":true}

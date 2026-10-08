@@ -8,3 +8,11 @@
 {"file":"shots/"}
 {"file":"spend.json"}
 {"file":"task.jsonl"}
+{"file":"audit-90.mjs","gone":true}
+{"file":"audit-cards.mjs","gone":true}
+{"file":"review/","gone":true}
+{"file":"review.jsonl","gone":true}
+{"file":"run-pipeline.mjs","gone":true}
+{"file":"shots/","gone":true}
+{"file":"spend.json","gone":true}
+{"file":"task.jsonl","gone":true}

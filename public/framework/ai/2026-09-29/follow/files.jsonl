@@ -4,3 +4,6 @@
 {"file":"task.jsonl"}
 {"file":"build/"}
 {"file":"build/"}
+{"file":"requirements.md","gone":true}
+{"file":"task.jsonl","gone":true}
+{"file":"build/","gone":true}

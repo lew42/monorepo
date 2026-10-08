@@ -15,3 +15,6 @@
 {"file":"week.json"}
 {"file":"weight.jsonl"}
 {"file":"transcripts/","gone":true}
+{"file":"sessions.json","gone":true}
+{"file":"spend-tree.json","gone":true}
+{"file":"week.json","gone":true}

@@ -30,7 +30,7 @@ export const CONCEPTS = [
 	{ group: "who", slug: "minions", name: "Minions", icon: "engineering",
 		gist: "A minion is a worker: one brief (requirements.md), one fence of files, one result.",
 		items: [
-			"Haiku scans, Sonnet builds, Opus judges.",
+			"Haiku by default (scans, audits, fan-outs); Sonnet for UI and object-oriented code. A minion that can do a mastermind's job just does it: the line between the two is not a fence.",
 			"Each minion gets its own task log, a subtask of its mastermind's.",
 			"It is stopped once its result has been read, so it stops holding memory.",
 		],
