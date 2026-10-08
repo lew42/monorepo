@@ -160,6 +160,7 @@ merge.
 
 ## More
 
+- [`doc/data-architecture-2026-10-08.md`](./doc/data-architecture-2026-10-08.md) — the owner's open design: index files, several files per session, what session.jsonl keeps, routes, what the task audit leaves behind
 - [`doc/realtime-plan.md`](./doc/realtime-plan.md) — the owner's ask (2026-10-07): this page
   must go realtime using the site's EXISTING jsonl stream, never a second one. What that stream
   already is, why this tab has never actually used it, and the staged plan to get a session's own
