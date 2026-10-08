@@ -73,6 +73,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
   asks.jsonl vs. task dirs vs. Servex logs): [doc/log-sources.md](doc/log-sources.md).
 - Where tasks should live (session first, then the module) and a JSONL message channel the owner can watch: [doc/task-queue-2026-10-08.md](doc/task-queue-2026-10-08.md) (open design).
 - Tools, session templates and a generic path+method tool (owner thinking, open design): [doc/tooling-architecture-2026-10-08.md](doc/tooling-architecture-2026-10-08.md).
+- Long-term direction: the website must show all the work (index pages, demos, a recently-landed view): [doc/website-shows-everything-2026-10-08.md](doc/website-shows-everything-2026-10-08.md).
 - Cost: `node Server/task-cost.mjs --date <YYYY-MM-DD>`. A follow-up task that reused its
   parent's session currently shows the parent's whole total, not its own share.
 - `tasks.json` — stalled, budget vs. actual, snooze/kill/re-prioritise — is DERIVED: Servex's
