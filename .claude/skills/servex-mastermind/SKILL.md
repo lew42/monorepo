@@ -116,3 +116,7 @@ Every piece of work ends committed, and merged if it is on a branch. Work on a b
 ## Check usage with one command, not your own polling (the owner, 2026-10-08)
 
 Before each spawn, and at every natural checkpoint, run `node Server/usage-now.mjs`. It reads the shared `usage.json` (Servex refreshes it every 15 min) and re-fetches only if the file is over 5 minutes old, one caller at a time, so many masterminds can ask often without getting rate-limited. It prints one pace line and exits 2 when over pace. **Over pace: spawn nothing new, queue the work, finish what is in flight.** Never call the usage script yourself.
+
+## Review the diff before you merge (the owner, 2026-10-08)
+
+A minion's worktree change is merged by the mastermind, not on the minion's say-so. Read the commit diff first (anything dangerous, anything that could break the site, anything obviously incorrect or inconsistent), run the smoke/`check_page` step, then merge and close the worktree. A small change needs only a quick look. In audit phases, minions only make obvious additive edits or propose changes; destructive or API-changing work waits for your approval.
