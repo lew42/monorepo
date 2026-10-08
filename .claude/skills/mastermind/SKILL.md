@@ -508,3 +508,7 @@ stale. Then open a run task (group `ai-ops`) on "begin" — it is your memory; a
 recovers by reading the handover and the newest run. Two failures on one item → park it. Never commit or push. CLAUDE.md
 outranks every brief and every mastermind. Improve this skill:
 [`improvements.md`](improvements.md).
+
+## Land everything: commit, then merge (the owner, 2026-10-08)
+
+Every piece of work ends committed, and merged if it is on a branch. Work on a branch or worktree by default; only a live fix goes straight to `michael/dev`. Before you call a task done, check its files are committed and its branch merged (`merge.mjs`); unmerged or uncommitted work is not delivered. Never leave a loose file in the tree.

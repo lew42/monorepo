@@ -104,3 +104,7 @@ A finished child's "done" is lost if its parent is stopped (2026-09-28: five mas
 One task per day, `public/framework/ai/<date>/servex-mastermind/`, landed at the end of that
 day. It holds what you audited, what you changed in the system, and what you proposed. Report in
 plain sentences, one screen at most, on card "live". Never write the owner's name.
+
+## Land everything: commit, then merge (the owner, 2026-10-08)
+
+Every piece of work ends committed, and merged if it is on a branch. Work on a branch or worktree by default; only a live fix goes straight to `michael/dev`. When a minion or child lands, check that its files are committed and its branch merged (`merge.mjs`) before you count it done: unmerged or uncommitted work is not delivered, and it is the first thing lost when an agent stops. Never leave a loose file in the tree.
