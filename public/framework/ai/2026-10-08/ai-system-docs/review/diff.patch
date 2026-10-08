@@ -2721,10 +2721,10 @@ index 000000000..ffb480f49
 +{"file":"check-classes.mjs"}
 diff --git a/public/framework/ai/2026-10-08/ai-system-docs/findings.md b/public/framework/ai/2026-10-08/ai-system-docs/findings.md
 new file mode 100644
-index 000000000..a0771ddfa
+index 000000000..213d6fefb
 --- /dev/null
 +++ b/public/framework/ai/2026-10-08/ai-system-docs/findings.md
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,39 @@
 +# Findings: AI system docs (2026-10-08)
 +
 +## Changed
@@ -2761,6 +2761,9 @@ index 000000000..a0771ddfa
 +## Note: owner
 +Note: the Servex pool failed to produce a worktree (log event `pool`); I made one by hand with `Server/worktree-up.mjs`. Worth a look.
 +Reused: docs-vs-code-audit (heartbeat name clash is still open), task-audit, token-accounting.
++
++## Addendum 2 done
++Root `readme.md` and `ai/readme.md` now carry a one-line-per-system index (accounting first), each linking that system's own readme. Several linked readmes are over 100 lines (Servex, Servex/agents, Dictate, ai2, sessions): shortening them is the next Haiku pass, listed in `systems-map.md`. Shots of the System page at 400, 1200, 1920 and 3440 are in `shots/`: no overflow, cards reflow 1 to 5 across.
 diff --git a/public/framework/ai/2026-10-08/files.jsonl b/public/framework/ai/2026-10-08/files.jsonl
 index e12b9a5e4..3c3063104 100644
 --- a/public/framework/ai/2026-10-08/files.jsonl
@@ -4739,11 +4742,29 @@ index aa9596d50..9b2c664b6 100644
  				md("A page joins this strip (Inbox, Log, System, and whatever shows up next to them) by writing one line in its own `page.jsonl` (or `settings.jsonl`, when the folder has a `page.js`): `{\"settings\":{\"tab\":true,\"weight\":5}}`. `weight` orders it, smallest first (default 1), and Inbox always sits first no matter what. Adding a tab is that one line — nobody has to remember to list it anywhere else.");
  				heading("How it works together", "The path your words take, from the moment you speak to the card that shows the result.");
 diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
-index 545038832..b6f7ad0c8 100644
+index 545038832..0e6fb1ef5 100644
 --- a/public/framework/ai/readme.md
 +++ b/public/framework/ai/readme.md
-@@ -14,6 +14,9 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2
+@@ -12,8 +12,27 @@ A tab after Inbox is **detected, not hand-listed**: any folder whose own `page.j
  
+ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 draws; how it works is at [/framework/ux/Inbox/](/framework/ux/Inbox/). The old board is at [/framework/ai/v/3/](/framework/ai/v/3/) (and `?v1`).
+ 
++## Every system, one line each
++
++Accounting first. Each link is that system's own short readme; follow it to go one level deeper.
++
++- **Accounting**: [token accounting](doc/token-accounting.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md)
++- **Servex** (runs the agents): [readme](/framework/servex/) · [SDK](/framework/servex/doc/sdk.md) · [decisions](/framework/servex/doc/architecture.md)
++- **Dev server**: [Server/readme.md](/framework/dev/)
++- **MCP tools**: [doc/mcp.md](doc/mcp.md)
++- **Models**: [system/models](system/models/) · [OpenRouter](/framework/servex/) · local
++- **Sessions** (VS Code tabs, browser voice agents): [sessions/](sessions/readme.md) · [conversations](doc/conversations.md)
++- **Transcription**: [ux/Dictate](/framework/ux/Dictate/)
++- **Page system**: [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/)
++- **Skills and CLAUDE.md**: [skills](skills/)
++- **Dashboard, Log, Inbox**: the tabs above · [AI 2](/framework/ai2/)
++- Sizes and freshness of all of them: [systems-map.md](systems-map.md)
++
  ## Start here
  
 +- [systems-map.md](systems-map.md): where every major system lives, how long its readme is, and when it last changed.
@@ -4859,7 +4880,7 @@ index 000000000..32d8150fe
 +}
 diff --git a/public/framework/ai/systems-map.md b/public/framework/ai/systems-map.md
 new file mode 100644
-index 000000000..72b1a255e
+index 000000000..4c9ede3a7
 --- /dev/null
 +++ b/public/framework/ai/systems-map.md
 @@ -0,0 +1,26 @@
@@ -4873,7 +4894,7 @@ index 000000000..72b1a255e
 +| Servex (the always-on process, agents) | `Servex/` | [Servex/readme.md](/framework/servex/) | 388 · 10-03 | **long**; decisions in `Servex/doc/architecture.md` |
 +| Servex agents (roles, spawn, sessions) | `Servex/agents/` | `Servex/agents/readme.md` | 289 · 10-04 | **long** |
 +| Agent SDK (how an agent is started) | `Servex/agents/Agents.js` | `Servex/doc/sdk.md` | 50 · 10-08 | new |
-+| Models (Anthropic, OpenRouter, local) | `Servex/ext/openrouter/`, `Servex/ext/local/`, `ai/system/models/` | `Servex/ext/local/readme.md` | n/a | OpenRouter has no readme, only `gaps.md` and `decisions/` |
++| Models (Anthropic, OpenRouter, local) | `Servex/ext/openrouter/`, `Servex/ext/local/`, `ai/system/models/` | `Servex/ext/openrouter/readme.md`, `Servex/ext/local/readme.md` | n/a | both exist |
 +| Sessions (voice and chat) | `public/framework/ai/sessions/` | [sessions/readme.md](sessions/readme.md) | 177 · 10-08 | **long**; owned by minion-session-class |
 +| Dashboard (AI 2) | `public/framework/ai2/` | `ai2/readme.md` | 387 · 10-06 | **long**; the AI readme calls it retired in places, the System tab still links it |
 +| Page system | `public/framework/core/Page/` | `core/Page/readme.md` | 105 · 10-06 | about right |
@@ -4889,3 +4910,27 @@ index 000000000..72b1a255e
 +`mastermind` 47 KB · `sub-mastermind` 27 KB · `ui-test` 26 KB · `minion` 25 KB · `fork-claude-session` 19 KB · `servex-mastermind` 12 KB · `finish-task` 9 KB · `research` 9 KB.
 +
 +A mastermind loads its 47 KB skill (~12k tokens) on top of CLAUDE.md (~4k) every turn it re-reads. That is the cheapest saving on offer; see `2026-10-08/ai-system-docs/findings.md`.
+diff --git a/readme.md b/readme.md
+index 3c187ff39..fd9211172 100644
+--- a/readme.md
++++ b/readme.md
+@@ -9,6 +9,19 @@ Servex holds port 80 and starts the site the first time you visit it (`Servex/re
+ - Simple `div()` view system with capturing
+ - No new npm dependencies (`chokidar`, `express`, `ws` are the dev server); `npx` and globally-installed tools are fine
+ 
++## Systems (one line each; every link opens that system's own short readme)
++
++- **Accounting** (spend, tokens, pace): [token accounting](public/framework/ai/doc/token-accounting.md) · [usage and budgets](Servex/doc/budget.md) · [session spend](public/framework/ai/sessions/readme.md)
++- **Servex** (the always-on process that runs every agent): [Servex/readme.md](Servex/readme.md) · [how an agent is started (SDK)](Servex/doc/sdk.md) · [decisions](Servex/doc/architecture.md)
++- **Dev server** (local only, live reload): [Server/readme.md](Server/readme.md)
++- **MCP servers** (the tools agents call: `servex`, `site`): [ai/doc/mcp.md](public/framework/ai/doc/mcp.md)
++- **Models** (Anthropic, OpenRouter, local): [OpenRouter](Servex/ext/openrouter/readme.md) · [local](Servex/ext/local/readme.md) · [which is best value](public/framework/ai/system/models/)
++- **Sessions** (VS Code sidebar tabs, browser voice agents, resumable chats): [ai/sessions](public/framework/ai/sessions/readme.md) · [conversations](public/framework/ai/doc/conversations.md)
++- **Transcription** (Whisper, Dictate): [ux/Dictate](public/framework/ux/Dictate/readme.md)
++- **Page system** (pages, routing, JSONL streaming): [core/Page](public/framework/core/Page/readme.md) · [ext/JSONL](public/framework/ext/JSONL/readme.md)
++- **Skills and CLAUDE.md** (what every agent reads first): [CLAUDE.md](CLAUDE.md) · [skills](public/framework/ai/skills/)
++- **Dashboard, Log, Inbox, tasks**: [ai/readme.md](public/framework/ai/readme.md) · [all systems, with size and freshness](public/framework/ai/systems-map.md)
++
+ ## Cloudflare Previews
+ 
+ The current `main` branch is deployed at: https://monorepo.lew42.workers.dev/
