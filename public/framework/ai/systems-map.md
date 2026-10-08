@@ -24,3 +24,13 @@ One row per system: its entry readme, its size and last change (computed 2026-10
 `mastermind` 47 KB · `sub-mastermind` 27 KB · `ui-test` 26 KB · `minion` 25 KB · `fork-claude-session` 19 KB · `servex-mastermind` 12 KB · `finish-task` 9 KB · `research` 9 KB.
 
 A mastermind loads its 47 KB skill (~12k tokens) on top of CLAUDE.md (~4k) every turn it re-reads. That is the cheapest saving on offer; see `2026-10-08/ai-system-docs/findings.md`.
+
+## Where tasks live today (a recommendation, no build)
+
+Five places hold "things to do": `ai/todo.md` (177 lines, owner prose), `ai/asks.jsonl` (258 routed asks and their owners), `ai/cards.jsonl` (521 board cards), `ai/servex-queue.json` (the Dispatcher's queue), and each task folder's `task.jsonl` (the only one with cost and landing). Counts from `wc -l` on 2026-10-08.
+
+**Default: `task.jsonl` is the record, and everything else points at it.** A task is born in the session folder that created it. When its module is known, a one-line reference to it is appended to that module's `doc/` or `tasks.jsonl`; the source folder keeps the record and the cost. The board (`cards.jsonl`) and the queue become views computed from the task folders, not separate stores (Law 7).
+
+**Alternative:** make `asks.jsonl` the single queue and have `task.jsonl` link back. It already has owners and status, but it holds asks, not work, so cost and landing would need a second join.
+
+**The message channel** is cheapest as `append_log` to a path plus one `Monitor` tail per listener (no polling, no wake on unrelated lines); addressing is the file path itself. Detail: [task-queue-2026-10-08.md](doc/task-queue-2026-10-08.md).
