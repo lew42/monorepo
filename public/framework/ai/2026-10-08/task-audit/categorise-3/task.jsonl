@@ -7,3 +7,10 @@
 {"log":{"at":"2026-10-08T17:29:57-05:00","heartbeat":"check","msg":"status check sent to helper-categorise-3"}}
 {"log":{"at":"2026-10-08T17:29:59-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-08T17:30:01-05:00","heartbeat":"answered","msg":"Still done, no work in progress: `cat3.out.txt` holds 326 lines, one per task in input order. I'm idle until a new task arrives."}}
+{"log":{"at":"2026-10-08T17:33:59-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-08T17:46:49-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-08T17:46:47-05:00","msg":"task-loop chase 1 of 2: woke helper-categorise-3","chase":1}}
+{"log":{"at":"2026-10-08T17:47:00-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-08T17:52:57-05:00","heartbeat":"deliberate","msg":"helper-categorise-3 its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:00-05:00; not revived."}}
+{"log":{"at":"2026-10-08T18:06:45-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-08T18:21:45-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"task-audit: categorise batch 3\\\"\"\n}","chase":"escalated"}}

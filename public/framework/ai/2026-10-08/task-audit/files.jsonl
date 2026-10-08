@@ -32,3 +32,10 @@
 {"file":"by-system.md"}
 {"file":"by-system.mjs"}
 {"file":"patch.mjs","gone":true}
+{"file":"categorise-1/page.jsonl"}
+{"file":"categorise-2/page.jsonl"}
+{"file":"categorise-3/page.jsonl"}
+{"file":"categorise-4/page.jsonl"}
+{"file":"fix-1/page.jsonl"}
+{"file":"fix-2/page.jsonl"}
+{"file":"summarise/page.jsonl"}

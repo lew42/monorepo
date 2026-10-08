@@ -1,0 +1,3 @@
+{"inbox":{"id":"n-4tx8ryqe","from":"servex-heartbeat","text":"helper-categorise-1 its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:46:57-05:00; not revived.","at":"2026-10-08T17:52:57.099-05:00"}}
+{"file":"task.jsonl"}
+{"inbox":{"id":"n-5oj7o5kz","from":"servex-task-loop","text":"task-audit/categorise-1 has been quiet since 2026-10-08T18:01:45-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-08T18:16:45.252-05:00"}}
