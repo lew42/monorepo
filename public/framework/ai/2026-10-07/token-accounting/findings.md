@@ -285,6 +285,142 @@ a hard rule rather than a suggestion:
    owner's actual complaint), not a $ ceiling that could be hit by one single
    expensive turn instead.
 
+## Addition (owner, same day): the formal `session.jsonl` spec — answered, with evidence
+
+Four explicit requirements. Answered in the order asked — parent/child FIRST, since
+that's the one the owner said to answer first.
+
+### 3. Parent/child — is a sub-session properly linked to its parent today? Mostly not, and ONE present-tense bug is most of why.
+
+**Measured** (`spend-tree.json`, regenerated): of **1,958** agents, **922 (47%)**
+have no resolved parent at all (`parent_source: "unknown"`) — **$5,460.87** of their
+own $ that never rolls up into anyone's subtree total. `818` have a real registry
+parent; `218` more are recovered by `spend-tree.mjs`'s own reconstruction heuristics
+(task membership, name matching — `doc/spend-tree.md` already documents this).
+Filtering the 922 down to ones that AREN'T plausible root masterminds (a root
+spawned directly by the owner correctly has no parent) still leaves **317 agents,
+$3,820.04**, mostly real `task-mastermind` roots that by this system's own design
+(the sub-mastermind skill: "the master-mastermind hands you one task") should have a
+spawner recorded.
+
+**Found the actual cause, not just "it's old data":** `spawn_agent` (`Servex/agents/
+tools.js`) has a `parent` parameter, but — unlike every sibling tool that needs
+"who is calling me" (`fork_self`'s `from`, `follow`'s `agent`, both already default
+to `ctx.caller`) — it NEVER defaulted to the caller. A spawning agent had to
+remember to type its own id every time; forgetting it (easy — the param reads as
+optional, and it IS correct to omit for a genuine top-level spawn) orphans the
+child forever, with no later recovery except the reconstruction heuristics. This is
+not only historical (the 2026-10-03 fix made the registry WIRE a `parent` field
+through at all) — it is a live, ongoing gap every time a mastermind spawns without
+remembering the parameter. **Fixed** (small, additive, the kind of fix the owner's
+every-prompt skill flags "fix what is small" for): `spawn_agent`'s handler now
+defaults `parent: args.parent ?? ctx.caller ?? null` — an explicit `parent` still
+wins, a deliberate top-level spawn with no caller to blame (a VS Code tab's own
+direct MCP call) still works exactly as before; only the "forgot to pass it"
+case is fixed.
+
+**Every other way a child can fail to be linked, checked:**
+- **Fork (`claude --resume --fork-session`):** already correct — `Agents.js`'s
+  `fork()` explicitly sets `parent: caller?.id ?? null`. No gap found here.
+- **Agent-tool sidechains (the SDK's own in-process subagent feature, `parent_tool_
+  use_id`/`forwardSubagentText`):** these stay INSIDE the same transcript file
+  (`isSidechain`/nested lines), never a separate session id — checked directly:
+  `cost_of_transcript()` does not filter assistant lines by `isSidechain`, so a
+  nested subagent's usage already lands inside its parent's own total, correctly,
+  with nothing to link (there is no separate agent to orphan). Confirmed on a real
+  transcript: 0 sidechain lines in a sample, consistent with Servex routing real
+  minion spawns through separate `spawn_agent` processes rather than this SDK
+  feature.
+- **Resumed sessions counted twice:** checked — `agentLogSteps()`'s own banking
+  rule (a cost that DROPS means a restart, bank the old total) already prevents a
+  resumed agent's running total from double-counting itself; a fork's own session
+  id is a different file entirely, so a fork and its caller are two distinct,
+  non-overlapping transcripts, never summed twice.
+- **A session started from the CLI, outside Servex entirely** (a human running
+  `claude` directly in a worktree, or an agent shelling out to `claude -p` instead
+  of `spawn_agent`): this has NO registry row at all — totally invisible to
+  `spend-tree.json`, not even as an "unknown"-parent orphan, because it was never
+  counted as a node in the first place. Named as a real blind spot, not fixable by
+  anything that reads the registry (there's nothing there to read) — the only
+  detection available is `sessions.mjs`'s own transcript scan tagging a session
+  `"cli"` by its `turnOrigin` heuristic (already built, `doc/decisions.md`'s
+  "VS-Code-vs-CLI heuristic" section), which sees the session but still can't name
+  its parent.
+- **OpenRouter agents:** the parent-recording code path is identical regardless of
+  provider — no OpenRouter-specific gap found.
+
+**Required: own $ AND rolled-up subtree $, so no cost source is missing.**
+Already true today for every agent with a resolved parent — `spend-tree.json`
+already carries both `own_claude_usd`/`own_or_usd` and `subtree_claude_usd`/
+`subtree_or_usd` per node, recursive (`children_count`/`descendant_count`). The gap
+is coverage (the 47% above), not the computation itself.
+
+### 1. Completeness from the raw API
+
+**Checked directly against real transcripts, not assumed:**
+- Every assistant message line carries `uuid` (unique per message, confirmed: 0
+  duplicate uuids across 20 real transcript files) and `requestId` — a solid
+  idempotency key for "count this message's usage once." `sessionId` is on every
+  line too.
+- **The raw data DOES carry a 5m-vs-1h cache split** (`message.usage.cache_creation.
+  ephemeral_5m_input_tokens` / `ephemeral_1h_input_tokens`) that `cost_of_transcript()`
+  today ignores — it only reads the flat `cache_creation_input_tokens` total and
+  prices ALL of it at the 1h rate. Checked across 590 real usage-bearing lines, 20
+  files: `ephemeral_5m_input_tokens` was 0 every single time on this machine — so
+  today's flat 1h assumption is empirically correct FOR NOW, but it is an assumption
+  resting on "nobody has used a 5-minute cache call on this machine yet," not a
+  structural guarantee. `session.jsonl` should carry the real split straight from
+  the field that already has it, not keep assuming.
+- **No raw field names a message's PARENT SESSION** — `parentUuid` is the previous
+  MESSAGE in the same conversation, not "which agent spawned this session." That
+  lineage lives only in Servex's own registry (the `parent` field above) — a
+  `session.jsonl` line needs that joined in from Servex at write time, it cannot be
+  derived from the transcript alone. Any later audit that tries to rebuild parent
+  links from transcripts only, without the registry, will fail by design — the data
+  isn't there.
+- **Sidechain/sub-agent turns, compaction/summary calls:** already shown to land in
+  the same file as plain `assistant` lines with `isSidechain`/nested markers;
+  `cost_of_transcript()` already picks up their usage (see parent/child section,
+  above) because it doesn't filter on it.
+- **The precedent for "does the arithmetic actually add up, exactly":** already
+  proven once, on 2026-10-04 (decisions.md) — the SDK's own billed `cost` on 3 real
+  agents matched `(input×in + output×out + cache_read×in×0.1 + cache_write×in×2)/1e6`
+  to the last decimal, every turn. The pricing formula is exact; the open work is
+  packaging it per-message with the idempotency key and the parent join, not
+  re-deriving the math.
+
+**The completeness proof script itself does not exist yet** (there is no
+`session.jsonl` to sum) — specified, not built, in `plan.md` item 13: sum every
+`session.jsonl` line for a session, recompute independently straight from the raw
+transcript (reusing `cost_of_transcript()`, which already does this), diff the two,
+report the gap per session (target exactly 0), across a real sample before this
+ships.
+
+### 2. Realtime — what latency does the source actually allow?
+
+**The Claude CLI file flushes per turn, not per session** — already established
+(`core/Page/jsonl/doc/timing.md`: "a tool, card, or agent line lands the instant the
+call returns") and reused by the Stop hook today. **For a Servex-spawned agent, the
+SDK's own in-process event stream delivers `message.usage` to `Agents.js` directly,
+in the same process, the moment the API response arrives** — strictly at or before
+the CLI subprocess's own file write, since both are fed from the same response;
+Servex never needs to read the file at all for its own agents (and today mostly
+doesn't — see the session-freshness and spend-tree work above, all transcript-file-
+based, which is the SLOWER of the two available paths). **For a VS Code tab or a
+bare CLI session, Servex has no in-process access — the file IS the only source**,
+and it is already turn-granular, not session-granular; the existing jsonl-over-
+websocket stream (`realtime-plan.md`) can tail it at that same per-turn grain. No
+sub-turn (per-API-call-inside-one-turn) signal is available for this kind, named
+already in `realtime-plan.md`.
+
+### 4. Display
+
+Already specified in `plan.md` item 4 (the `sessions/` grid: `Claude $<n>` vs bare
+`$<n>` for OpenRouter, a breakdown view of per-message/tool/model/cache
+contribution) — unchanged by this addition; `session.jsonl`'s own per-message rows
+(once built) are the breakdown view's real data source instead of the current
+whole-transcript re-scan.
+
 ## Also noted (not this task's to fix): the quick-fix worktree pool is stuck
 
 7 stale worktrees (`qf-2`, `qf-4` through `qf-9`) sit in `C:/Code/lew42/worktrees/`,

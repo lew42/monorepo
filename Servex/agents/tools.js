@@ -249,7 +249,21 @@ return [
 			if (!args.prompt && !args.resume) throw new Error("spawn_agent needs a `prompt` (or a `resume` to reopen).");
 			const ruling = policy.spawn(ctx.caller ?? null, args.role);
 			if (!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
-			return card(agents.spawn(args));
+			/* ⚠ FIXED 2026-10-07 (token-accounting, parent/child answer): `parent` used to be
+			 * ONLY whatever the caller explicitly typed, with no fallback to who is actually
+			 * calling — every other tool that needs "who is calling me" (fork_self's `from`,
+			 * follow's `agent`) already defaults to `ctx.caller`; this was the one spawn path
+			 * that didn't. Measured: 47% of all registered agents (922 of 1958) have no
+			 * resolved parent at all in spend-tree.json, $5,460.87 of their own $ un-rolled-up
+			 * into any parent's subtree — not only old data (the 2026-10-03 registry fix was
+			 * about Servex.js wiring a `parent` field through at all), but an ONGOING gap every
+			 * time a spawning agent forgets to pass its own id. `ctx.caller` is already right
+			 * there (the field `policy.spawn()` on the line above already reads) — an explicit
+			 * `args.parent` still wins; this only fills in when the caller omitted it, so a
+			 * deliberate top-level spawn (`parent` left out on purpose, per this tool's own
+			 * description) still works exactly as before whenever Servex has no caller to blame
+			 * either (a VS Code tab's own direct MCP call, ctx.caller null). */
+			return card(agents.spawn({ ...args, parent: args.parent ?? ctx.caller ?? null }));
 		}),
 
 	tool("fork_self",

@@ -177,6 +177,45 @@ deciding what the budget mastermind does next. Not duplicating `prompt-audit`
 (Haiku, auditing unbuilt owner asks) — that script answers a different question
 (what was asked but never built); this one answers what WAS built and what it cost.
 
+## 13. `session.jsonl` — the formal shape, the proof script, and the fix already landed
+
+Full evidence: findings.md's "formal `session.jsonl` spec" section.
+
+**Already fixed, this task:** `spawn_agent` now defaults `parent: args.parent ??
+ctx.caller ?? null` (`Servex/agents/tools.js`) — the single biggest lever on the
+parent/child question, since it stops the ONGOING source of new orphans (not just
+old data). Measured before the fix: 922 of 1958 agents (47%, $5,460.87 own $) had
+no resolved parent.
+
+**To build, in order:**
+1. **The schema**, one line per costed message: `{ts, session_id, parent_session_id,
+   message_uuid, request_id, model, usage: {input, output, cache_read, cache_write_
+   5m, cache_write_1h}, usd, tools: [name, ...]}`. `parent_session_id` is JOINED from
+   Servex's registry `parent` field (a session_id lookup on the parent agent's own
+   row) — it cannot be derived from the transcript (findings.md, item 1). Keyed by
+   `message_uuid` for idempotency (confirmed unique per file; cross-file duplication
+   from a resume/fork still needs the completeness script, next, to actually prove
+   zero).
+2. **The completeness proof script** (the owner's own bar: sum of `session.jsonl` ==
+   sum recomputed independently from the raw transcript, gap reported, target
+   exactly 0): once (1) exists, write `session-jsonl-audit.mjs` — for N real
+   sessions, diff `session.jsonl`'s own summed `usd` against `cost_of_transcript()`'s
+   independent total (same function, called a second, unrelated way — not the same
+   code path writing both numbers). The underlying pricing math is ALREADY proven
+   exact to the last decimal against the SDK's own billed cost (2026-10-04) — this
+   script is proving the NEW file's completeness, not re-deriving the formula.
+3. **The writer:** Servex (`Agents.js`, in-process, for its own agents — true
+   realtime, sub-turn where the SDK provides it) for Servex rows; the existing Stop
+   hook (`session-cost.mjs --append-stdin`, turn-granular, its real ceiling) for VS
+   Code/CLI rows. Same split `realtime-plan.md` already specifies.
+4. **The 5m/1h cache split:** read `usage.cache_creation.ephemeral_5m_input_tokens`/
+   `ephemeral_1h_input_tokens` directly from the raw message instead of assuming
+   100% 1h (today's `PRICES` table assumption, empirically true on this machine so
+   far but not structurally guaranteed — findings.md).
+5. **Grid wiring:** once `session.jsonl` exists and streams (item 7, `realtime-plan.
+   md`), the Sessions grid's cost cells and breakdown view read it directly instead
+   of re-scanning the whole transcript on every page load.
+
 ## Optimization items the owner asked to be recorded (Phase 2, items 1-6)
 
 Each gets what data it needs, so whoever builds it doesn't have to re-derive this:
