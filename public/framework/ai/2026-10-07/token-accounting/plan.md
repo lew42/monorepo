@@ -24,6 +24,15 @@ which `task-cost.mjs`/`spend-tree.mjs` learn to prefer over the stale `result` l
 try. Needs its own real-agent proof (spawn a cheap OpenRouter agent, 2 turns, check the
 correction line lands and the total matches `openrouter.jsonl`).
 
+**Owner decision (2026-10-08): Claude and OpenRouter are separate accounting systems —
+this item stays entirely inside the OpenRouter path.** The correction line in (b) is an
+`openrouter`-only line shape, keyed to OpenRouter's own `/generation` truth; it never
+touches `cost_of_transcript()`'s Claude-side `usd_breakdown`, and `task-cost.mjs`/
+`spend-tree.mjs` must keep reading the two as separate fields (`own_claude_usd` /
+`own_or_usd`, already the case today) rather than folding this fix into one shared
+"turn cost" value. No change needed to the fix itself — this just rules out ever
+merging its output into the Claude total.
+
 ## 2. Re-run `spend-tree.mjs`/`week-cost.mjs` and refresh the live snapshots — Sonnet, 15 min
 
 Both are "run by hand, refresh when needed" scripts (documented, not a gap). Now that
@@ -58,6 +67,19 @@ labeling + wiring pass, not new computation:
   wire the grid to read it fresh, not a stale snapshot, the same "run it, don't recall it"
   rule the rest of this system already follows.
 
+**Owner decision (2026-10-08): two columns/sections, not one.** `Claude $<n>` and
+`$<n>` (OpenRouter) are two separate cells on a row (a row with both shows both,
+never one summed figure), and the SUBTREE figure above is really two subtree figures
+— `subtree_claude_usd` and `subtree_or_usd`, shown side by side — because a subtree
+can mix Claude and OpenRouter descendants. `spend-tree.json` already keeps these as
+separate fields (no change needed there); the grid work is making sure the UI never
+collapses them into one number. **Alternative considered and rejected:** a single
+"Cost" column holding whichever of the two a row has, with a small tag (`[OR]`)
+when it's OpenRouter — rejected because the owner explicitly ruled out a shared
+column/schema for the two systems: a reader must never have to infer which pricing
+model produced a number from a tag, and a PARENT row with children of both kinds
+would have nowhere to put two numbers in one cell.
+
 ## 5. Per-session cost breakdown view (message/tool/model/cache) — Sonnet, half a day
 
 `cost_of_transcript()` and `trace_of_transcript()` (`Server/session-cost.mjs`) already
@@ -69,6 +91,21 @@ ONE session's own calls, not just the all-time `spend-tree.json` rollup. Small a
 tag each `by_prompt` group with whichever tool names dominated it (already have
 `trace_of_transcript`'s per-call data) and group by that tag client-side — no new
 computation, a new view of data already gathered.
+
+**Owner decision (2026-10-08): this breakdown view is Claude-only; OpenRouter gets its
+own, separate breakdown, never merged into the same table.** A Claude session's
+breakdown is `cost_of_transcript()`'s token-kind split (input/output/cache_read/
+cache_write, each priced at the model's own per-token rate) — unchanged, above. An
+OpenRouter session's breakdown is a DIFFERENT shape entirely: one row per `/generation`
+call, each already priced by OpenRouter itself (`openrouter.jsonl`'s own `cost_usd`,
+real billed money, not a token-rate computation) — there is no "cache_read tokens" or
+per-model rate to show for it, because that isn't how OpenRouter prices a call.
+**Alternative considered and rejected:** one shared breakdown table with a `cache_read`
+column that reads `—`/null for every OpenRouter row — rejected as exactly the "mixed
+schema" the owner ruled out; it would also mislead a reader into thinking OpenRouter
+calls don't use caching (they might; OpenRouter just never reports it the same way).
+Build two small, separately-labelled sections instead, one per source, each only ever
+showing the fields that source actually has.
 
 ## 6. "Realtime, never stale" for the Sessions tab — Sonnet, investigate first, ~1 hour
 
@@ -99,6 +136,21 @@ not a second system. Staged:
    (one request, not worth streaming), the per-open-session view goes live.
 4. **Retire the polling once (3) is trusted** — side-by-side, not a flag day.
 Not started; (1) is the small, provable first step, not a rewrite.
+
+**Owner decision (2026-10-08): one file, two line TYPES, never one blended schema.**
+`session.jsonl` stays a single stream (one file per session to subscribe to — the
+owner's own "two files, two subscriptions" tradeoff from `realtime-plan.md` is
+unaffected), but a Claude line and an OpenRouter line are different verbs with
+different fields, the same way this repo's `JSONL` format already carries several
+verbs in one file (`ext/JSONL/readme.md`'s own convention — `assign`/`log`/`chat`/
+etc., each shaped for what it is). The grid's live subscriber reads both verbs but
+renders them into the two separate columns/sections item 4/5 specify — it never
+adds a Claude line's $ to an OpenRouter line's $ to produce one running total.
+**Alternative considered and rejected:** one `cost` verb shared by both, with a
+`source` field distinguishing them — rejected because a shared shape invites exactly
+the blended-total bug the owner is ruling out here (a careless reducer that sums
+every `cost` line regardless of `source`); two distinctly-named verbs make that
+mistake visibly wrong in the code, not just a style preference.
 
 ## 8. Extend Layers.js's "fresh, not compacted" rule to masterminds — Sonnet, ~half a day, careful (it changes when a live agent restarts)
 
@@ -187,34 +239,69 @@ parent/child question, since it stops the ONGOING source of new orphans (not jus
 old data). Measured before the fix: 922 of 1958 agents (47%, $5,460.87 own $) had
 no resolved parent.
 
+**Owner decision (2026-10-08), superseding the single shared shape originally
+drafted here: Claude and OpenRouter are separate accounting systems end to end —
+separate line schema, separate proof script, separate rollup field.** Rationale:
+they are not the same KIND of fact. A Claude line is derived — tokens, priced at a
+published per-model rate we compute ourselves. An OpenRouter line is reported — the
+`/generation` endpoint's own settled price, which can resolve LATE (the stale-cost
+race in item 1 exists precisely because it's a separate async fact, not a same-
+request number) and is already real billed money, not a rate we apply. Treating
+them as one schema with optional fields was the alternative actually drafted in
+this plan's first pass; it's rejected now because it would let a reader (or a
+careless script) treat "tokens × rate" and "what OpenRouter actually charged" as
+interchangeable, which they aren't — the whole point of reading the raw API per
+item 1's investigation was that only one of the two is ever a derived estimate.
+
 **To build, in order:**
-1. **The schema**, one line per costed message: `{ts, session_id, parent_session_id,
-   message_uuid, request_id, model, usage: {input, output, cache_read, cache_write_
-   5m, cache_write_1h}, usd, tools: [name, ...]}`. `parent_session_id` is JOINED from
-   Servex's registry `parent` field (a session_id lookup on the parent agent's own
-   row) — it cannot be derived from the transcript (findings.md, item 1). Keyed by
-   `message_uuid` for idempotency (confirmed unique per file; cross-file duplication
-   from a resume/fork still needs the completeness script, next, to actually prove
-   zero).
-2. **The completeness proof script** (the owner's own bar: sum of `session.jsonl` ==
-   sum recomputed independently from the raw transcript, gap reported, target
-   exactly 0): once (1) exists, write `session-jsonl-audit.mjs` — for N real
-   sessions, diff `session.jsonl`'s own summed `usd` against `cost_of_transcript()`'s
-   independent total (same function, called a second, unrelated way — not the same
-   code path writing both numbers). The underlying pricing math is ALREADY proven
-   exact to the last decimal against the SDK's own billed cost (2026-10-04) — this
-   script is proving the NEW file's completeness, not re-deriving the formula.
-3. **The writer:** Servex (`Agents.js`, in-process, for its own agents — true
-   realtime, sub-turn where the SDK provides it) for Servex rows; the existing Stop
-   hook (`session-cost.mjs --append-stdin`, turn-granular, its real ceiling) for VS
-   Code/CLI rows. Same split `realtime-plan.md` already specifies.
-4. **The 5m/1h cache split:** read `usage.cache_creation.ephemeral_5m_input_tokens`/
-   `ephemeral_1h_input_tokens` directly from the raw message instead of assuming
-   100% 1h (today's `PRICES` table assumption, empirically true on this machine so
-   far but not structurally guaranteed — findings.md).
-5. **Grid wiring:** once `session.jsonl` exists and streams (item 7, `realtime-plan.
-   md`), the Sessions grid's cost cells and breakdown view read it directly instead
-   of re-scanning the whole transcript on every page load.
+1. **Two line verbs, one file per session** (same file `session.jsonl` streams
+   from — just two shapes in it, see item 7's own alternative-rejected note):
+   - `{claude_usage: {ts, session_id, parent_session_id, message_uuid, request_id,
+     model, usage: {input, output, cache_read, cache_write_5m, cache_write_1h},
+     usd, tools: [name, ...]}}` — `usd` computed by us, from the model's published
+     rate (`session-cost.mjs`'s `PRICES` table).
+   - `{openrouter_usage: {ts, session_id, parent_session_id, request_id, model,
+     usd, source: "generation"|"key_diff", tools: [name, ...]}}` — `usd` is
+     OpenRouter's own reported price, copied, never recomputed from a rate table;
+     `source` records which of the two existing lookup paths
+     (`message_cost()`/`generation_cost()`, `Agents.js`'s `price()`/`meter()`)
+     actually produced it, since the owner's own words name this as something that
+     "can resolve late" — a reader needs to know a given line might still be
+     provisional.
+   - `parent_session_id` is JOINED from Servex's registry `parent` field for BOTH
+     verbs the same way (that lineage question doesn't depend on which pricing
+     system priced the line) — it cannot be derived from either raw source
+     (findings.md, item 1).
+2. **Two completeness proof scripts, not one parameterized by a flag:**
+   - `session-jsonl-audit-claude.mjs` — sum of a session's `claude_usage` lines ==
+     `cost_of_transcript()`'s independent total, gap reported, target exactly 0.
+     The underlying pricing math is ALREADY proven exact to the last decimal
+     against the SDK's own billed cost (2026-10-04) — this script proves the NEW
+     file's completeness, not the formula.
+   - `session-jsonl-audit-openrouter.mjs` — sum of a session's `openrouter_usage`
+     lines == the sum of that session's real entries in `openrouter.jsonl` (the
+     actual ground truth for this system, per `Agents.js:1561`'s own comment) —
+     a DIFFERENT ground truth than the Claude script checks against, because the
+     two systems' truth lives in different places.
+3. **The writer:** Servex (`Agents.js`, in-process) for Servex rows — it already
+   has both facts live (`message.usage` for Claude, `price()`/`meter()` for
+   OpenRouter) and should write each straight to its own verb the moment it's
+   known, never through a shared "turn cost" variable first. The existing Stop
+   hook (`session-cost.mjs --append-stdin`) only ever sees Claude data (a VS
+   Code/CLI session has no OpenRouter agent concept) — it writes `claude_usage`
+   lines only; nothing here needs an OpenRouter path for that kind of row.
+4. **The 5m/1h cache split (Claude only — OpenRouter has no equivalent field):**
+   read `usage.cache_creation.ephemeral_5m_input_tokens`/`ephemeral_1h_input_tokens`
+   directly from the raw message instead of assuming 100% 1h (today's `PRICES`
+   table assumption, empirically true on this machine so far but not structurally
+   guaranteed — findings.md).
+5. **Grid wiring:** once `session.jsonl` exists and streams (item 7), the Sessions
+   grid's two separate cost cells/breakdown sections (item 4/5) each read their own
+   verb directly, instead of re-scanning the whole transcript (Claude) or
+   `openrouter.jsonl` (OpenRouter) on every page load. A row's rollup, when it has
+   descendants of both kinds, shows `subtree_claude_usd` and `subtree_or_usd` side
+   by side — already `spend-tree.json`'s own shape today, unchanged, carried
+   through to the new per-session view rather than collapsed into one number.
 
 ## Optimization items the owner asked to be recorded (Phase 2, items 1-6)
 
