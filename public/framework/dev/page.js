@@ -7,7 +7,7 @@ export default new Page({
 	description: "Local-only tooling: live reload.",
 	icon: "terminal",
 
-	children: "Socket DevBar DevShell Claim",
+	children: "Socket DevBar DevShell Claim mobile/page.jsonl",
 
 	content(){
 
