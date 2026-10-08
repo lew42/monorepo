@@ -8,7 +8,6 @@ import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
-import Usage from "../Usage.js";
 import { first_prompt } from "./readme-chain.js";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";

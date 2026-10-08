@@ -36,20 +36,6 @@ export default class Usage {
 
 	stop(){ clearTimeout(this.first); clearInterval(this.timer); }
 
-	/* ON PACE (2026-10-07, the owner: "it's the mastermind's job to manage the token budget; if we're on pace and it's not
-	 * risky, make the judgement call"): weekly use no more than the share of the week gone, plus a 5-point margin for the
-	 * first days, and under 85% outright. Unknown usage is NOT on pace. Agents.gate_check() auto-continues a productive agent only then. */
-	static on_pace(repo = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")){
-		try {
-			const j = JSON.parse(fs.readFileSync(path.join(repo, "public/framework/ai/usage.json"), "utf8"));
-			const week = (j.utilization?.limits ?? []).find(l => l.kind === "weekly_all");
-			const used = Number(week?.percent), resets = Date.parse(week?.resets_at ?? "");
-			if (!Number.isFinite(used) || !Number.isFinite(resets)) return false;
-			const elapsed = 100 * (1 - (resets - Date.now()) / (7 * 24 * 3600 * 1000));
-			return used < 85 && used <= elapsed + 5;
-		} catch { return false; }
-	}
-
 	/* Opus when the week is over 60% gone and weekly use is under the elapsed share (usage to spare); else Sonnet. `fast` is always Sonnet. */
 	static pick(role, repo = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")){
 		const SONNET = "claude-sonnet-5", OPUS = "claude-opus-5-5", WEEK = 7 * 24 * 3600 * 1000;
