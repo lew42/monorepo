@@ -73,3 +73,17 @@
 {"file":"spawn-logs-ask/","gone":true}
 {"file":"spend-shape/","gone":true}
 {"file":"worktree-servers-revive/","gone":true}
+{"file":"main-branch-guard/"}
+{"file":"merge-commits/"}
+{"file":"node-reap-run/"}
+{"file":"openrouter-reads-cache/"}
+{"file":"perf-audit/"}
+{"file":"phone-server/"}
+{"file":"pool-unstick/"}
+{"file":"ref-row-context-card/"}
+{"file":"restart-keeps-agents/"}
+{"file":"review-empty-diff/"}
+{"file":"spawn-logs-ask/"}
+{"file":"spend-gate/"}
+{"file":"spend-shape/"}
+{"file":"worktree-servers-revive/"}

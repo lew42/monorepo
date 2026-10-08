@@ -120,3 +120,6 @@
 {"file":"ask-turn-quiet/","gone":true}
 {"file":"refine-today/","gone":true}
 {"file":"reply-latency/","gone":true}
+{"file":"ask-turn-quiet/"}
+{"file":"refine-today/"}
+{"file":"reply-latency/"}

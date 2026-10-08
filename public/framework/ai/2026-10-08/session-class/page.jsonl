@@ -7,3 +7,16 @@
 {"file":"spend.json"}
 {"file":"task.jsonl"}
 {"inbox":{"id":"n-1m26c93t","from":"servex-heartbeat","text":"minion-session-class its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T16:22:51.396-05:00"}}
+{"file":"review/"}
+{"file":"shots/"}
+{"file":"review.jsonl"}
+{"file":"review/","gone":true}
+{"file":"shots/","gone":true}
+{"file":"review/"}
+{"file":"shots/"}
+{"file":"review/","gone":true}
+{"file":"shots/","gone":true}
+{"file":"review.jsonl","gone":true}
+{"file":"review/"}
+{"file":"shots/"}
+{"file":"review.jsonl"}

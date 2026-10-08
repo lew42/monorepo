@@ -9,3 +9,4 @@
 {"inbox":{"id":"n-1jhmdjg7","from":"servex-heartbeat","text":"minion-live-not-polling its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T16:20:51.445-05:00"}}
 {"inbox":{"id":"n-1wi4k3rl","from":"servex-heartbeat","text":"minion-live-not-polling its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-08T16:30:58.628-05:00"}}
 {"inbox":{"id":"n-2d5gylpl","from":"servex-task-loop","text":"live-not-polling has been quiet since 2026-10-08T16:31:07-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-08T16:43:55.378-05:00"}}
+{"inbox":{"id":"n-2tw1fkw9","from":"servex-heartbeat","text":"minion-live-not-polling its agent is not running, and was already revived 2 times this hour (4 today). Servex could not fix it; please look.","at":"2026-10-08T16:56:56.307-05:00"}}
