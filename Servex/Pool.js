@@ -31,6 +31,7 @@ const slash = p => String(p).split(path.sep).join("/");
  * `.worktree-pool.json` at the main repo's root, so it survives a restart.
  * The whole story for a reader: Servex/doc/pool.md. */
 export default class Pool extends Events {
+    static GRACE_MIN = 30;   // a holder stopped this long, with nothing alive in its slot, is salvaged and its slot freed (reclaim)
 
     initialize(){
         this.K ??= 3;
@@ -231,7 +232,7 @@ export default class Pool extends Events {
      *      descends from the holder (a minion writes by absolute path from anywhere);
      *   3. it holds no changes of its own and no commits outside michael/dev — give_back()'s
      *      own check, so a slot with work is refused, KEPT and named.
-     * Reclaim never salvages (it did until 2026-09-30, and twice that day moved a working
+     * Reclaim salvages only a holder stopped 30+ min with nothing alive in the slot (2026-10-07); before that it never did (it did until 2026-09-30, and twice that day moved a working
      * minion's files out from under it: qf-9 at 12:53 and 13:23). Salvage is by hand only:
      * `node Servex/Lifecycle.js --salvage qf-N`. */
     async reclaim(){
@@ -244,7 +245,18 @@ export default class Pool extends Events {
                 continue;
             }
             try {
-                await this.give_back(slot.id);
+                try { await this.give_back(slot.id); }
+                catch (e) {
+                    /* SELF-CLEANUP (2026-10-07): the pool filled with 7 dead holders whose only "work" was server-written
+                     * log churn plus branches already holding their commits, and take_worktree refused every agent. A holder
+                     * stopped for GRACE_MIN minutes, with no live worker (held() above), is salvaged — non-destructively, to
+                     * salvage/<slot>-<date>, never deleted — and the slot handed back. A running holder never reaches here. */
+                    const row = rows.find(r => r.id === holder || r.name === holder), gone = Date.now() - Date.parse(row?.stopped_at || row?.last_at || Date.now());
+                    if (!/uncommitted changes|not yet in/.test(e.message) || gone < Pool.GRACE_MIN * 60000) throw e;
+                    const r = await this.salvage(slot, holder);
+                    this.say(`pool: ${slot.id} self-cleaned after ${holder} stopped — ${r.what}`, { id: slot.id, from: holder });
+                    await this.give_back(slot.id);
+                }
                 if (!(await this.answers(slot.url))){ this.remove(slot); this.top_up(); }   // handed back, but its server is dead: make a fresh one
                 reclaimed.push(slot.id);
                 this.say(`pool: ${slot.id} reclaimed from ${holder}, which has stopped`, { id: slot.id, from: holder });
