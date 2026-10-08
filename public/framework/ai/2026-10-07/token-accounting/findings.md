@@ -219,6 +219,72 @@ deliberately batched re-read — exactly what Layers.js already builds, not what
 cache-read-cost column on the Sessions grid, a "consider fresh session" signal, and
 the handoff shape) for the next task to build.
 
+## Addition (owner, same day): post-analysis over real history — where the $ went
+
+Now that `find_transcript()` is fixed and `spend-tree.json` is reliable (re-run,
+see above), `post-analysis.mjs` (this dir, rerunnable) scans every registered agent
+and every `task.jsonl`. Real numbers, this run:
+
+- **Total: $9,730.54 Claude $, 2,113 agents.** By model: `claude-opus-5-5` $4,569 and
+  `claude-sonnet-5` $4,142 are nearly even — Opus is NOT a small minority of spend.
+  By role: `task-mastermind` $4,429, `minion` $2,969, `mastermind` $1,406.
+- **Opus/Fable spent on minion-tier work: $499.07 across 82 minions**, with no
+  stated reason recorded on any of them — against the house rule (model-defaults
+  memory note): "spawn on Sonnet by default, Opus only with a reason." This is the
+  single most directly actionable number in this whole report: ~5% of all spend is
+  minions that should, by policy, have been on Sonnet.
+- **"Long window" candidates (the session-freshness signature, applied as a real
+  filter): $2,265.92 across 62 agents** — over 70% cache-read AND over $15 real
+  money. These are exactly the agents plan.md item 8 (extend `Layers.js`'s fresh-not-
+  compacted rule) would have caught.
+- **Stopped-in-flight waste: $1,675.37 subtree $ across 14 roots whose own
+  `task.jsonl` never got a `landed_at` line** (checked against the real file — a few
+  of these may be genuinely still-open tasks, not abandoned ones; read the task dir
+  before assuming waste). The two biggest: `task-mastermind-openrouter` ($619 subtree)
+  and `task-mastermind-one-dictation` ($609 subtree).
+
+**Not duplicated:** a separate Haiku agent (`prompt-audit`) is already auditing
+unbuilt owner asks — a different question (what was asked but never built) from this
+one (what was built and cost money, landed or not). No overlap.
+
+## Addition (owner, same day): cheap-first-opinion — and its own real cost
+
+The owner's proposal: for most tasks, have a Sonnet minion take a quick first look
+(readmes, a quick answer) before a bigger/pricier agent spends anything — but with
+the owner's own caveat that a cheap agent reading hundreds of files is itself not
+free. Measured, not assumed (`cheap-first-tradeoff.mjs`, this dir): the 8
+highest-spending real Sonnet minions each made 74-206 Read/Grep/Glob/ToolSearch
+calls, costing **$0.15-$0.39 per read-shaped call** (**$0.26 average**) — a minion
+doing 200 unscoped reads can cost $30-70 on its own, on the "cheap" model. **The
+caveat is real, confirmed by real data**, not a hypothetical.
+
+**Proposal:** a cheap-first-opinion pattern, with the owner's own caveat built in as
+a hard rule rather than a suggestion:
+1. Before a mastermind spawns a bigger/pricier agent for genuinely new-looking work,
+   it first spawns (or does itself, if cheap enough) a quick Sonnet pass — but that
+   pass answers from the readme chain and a SCRIPT-computed shortlist (grep/glob run
+   as a tool, not 100 individual Read calls the model chooses one at a time), never
+   an open-ended "look around" with no file budget. This is already half-policy
+   (CLAUDE.md law 7, "compute, don't recall" — a script finds the files, the model
+   only reads what the script names) — the gap is that nothing currently REFUSES a
+   cheap-first pass that blows past a read budget without producing an answer.
+2. **Mechanism:** reuse `Agents.js`'s own existing read-loop guard
+   (`tool_started()`'s `SERVEX_READ_WARN`, already fires a warning at 40 reads) —
+   extend it from a warning to an actual gate for a cheap-first-opinion role
+   specifically: past N reads with no shortlist/grep call among them, refuse further
+   individual `Read` calls and tell the agent to compute a shortlist instead. Reuses
+   an existing mechanism (law 6) rather than building a second budget system (the
+   spend gate, `gate()`/`allowance_usd()`, already exists for $ — this is the same
+   idea applied to read COUNT for this one role).
+3. **Default, alternative named:** default the read ceiling to 40 (the number
+   already live as a warning threshold, just promoted to a real gate for this role)
+   rather than inventing a new number from nothing. Alternative considered: gate on
+   $ spent instead of read count — rejected as the first choice because the`spend
+   gate already exists for $ project-wide (`gated_role()`), and a read-count gate is
+   the more direct lever for "stop reading file-by-file, compute a shortlist" (the
+   owner's actual complaint), not a $ ceiling that could be hit by one single
+   expensive turn instead.
+
 ## Also noted (not this task's to fix): the quick-fix worktree pool is stuck
 
 7 stale worktrees (`qf-2`, `qf-4` through `qf-9`) sit in `C:/Code/lew42/worktrees/`,

@@ -1,0 +1,400 @@
+{
+  "generated_at": "2026-10-08T03:50:26.884Z",
+  "totals": {
+    "claude_usd": 9730.54
+  },
+  "by_day": [
+    {
+      "day": "2026-09-22",
+      "usd": 6.31
+    },
+    {
+      "day": "2026-09-23",
+      "usd": 11.15
+    },
+    {
+      "day": "2026-09-24",
+      "usd": 545.14
+    },
+    {
+      "day": "2026-09-25",
+      "usd": 459.57
+    },
+    {
+      "day": "2026-09-26",
+      "usd": 3.78
+    },
+    {
+      "day": "2026-09-28",
+      "usd": 736.11
+    },
+    {
+      "day": "2026-09-29",
+      "usd": 1927.39
+    },
+    {
+      "day": "2026-09-30",
+      "usd": 2802.26
+    },
+    {
+      "day": "2026-10-01",
+      "usd": 1178.26
+    },
+    {
+      "day": "2026-10-02",
+      "usd": 571.14
+    },
+    {
+      "day": "2026-10-03",
+      "usd": 1217.66
+    },
+    {
+      "day": "2026-10-04",
+      "usd": 273.87
+    },
+    {
+      "day": "2026-10-05",
+      "usd": 6.39
+    },
+    {
+      "day": "unknown",
+      "usd": 16.61
+    }
+  ],
+  "by_model": [
+    {
+      "model": "claude-opus-5-5",
+      "usd": 4569.23
+    },
+    {
+      "model": "claude-sonnet-5",
+      "usd": 4142.13
+    },
+    {
+      "model": "claude-fable-5-1",
+      "usd": 436.61
+    },
+    {
+      "model": "opus",
+      "usd": 210.52
+    },
+    {
+      "model": "unknown",
+      "usd": 206.43
+    },
+    {
+      "model": "sonnet",
+      "usd": 145.8
+    },
+    {
+      "model": "google/gemini-3.8-flash",
+      "usd": 20.46
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "usd": 15.62
+    },
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "usd": 3.2
+    },
+    {
+      "model": "claude-opus-4-7",
+      "usd": 2.37
+    },
+    {
+      "model": "fable",
+      "usd": 1.84
+    },
+    {
+      "model": "deepseek/deepseek-v4.1-flash",
+      "usd": 0.58
+    },
+    {
+      "model": "openai/gpt-6-luna",
+      "usd": 0.54
+    },
+    {
+      "model": "deepseek/deepseek-v4-pro",
+      "usd": 0.3
+    },
+    {
+      "model": "openai/gpt-oss-120b",
+      "usd": 0
+    }
+  ],
+  "by_role": [
+    {
+      "role": "task-mastermind",
+      "usd": 4429
+    },
+    {
+      "role": "minion",
+      "usd": 2969
+    },
+    {
+      "role": "mastermind",
+      "usd": 1406.04
+    },
+    {
+      "role": "reviewer",
+      "usd": 424.5
+    },
+    {
+      "role": "clarity",
+      "usd": 359.99
+    },
+    {
+      "role": "card-manager",
+      "usd": 45.25
+    },
+    {
+      "role": "session-smart",
+      "usd": 25.45
+    },
+    {
+      "role": "assistant",
+      "usd": 17.57
+    },
+    {
+      "role": "unknown",
+      "usd": 16.61
+    },
+    {
+      "role": "card-assistant",
+      "usd": 16.27
+    },
+    {
+      "role": "echo",
+      "usd": 15.75
+    },
+    {
+      "role": "master-assistant",
+      "usd": 10.16
+    },
+    {
+      "role": "agent",
+      "usd": 6.13
+    },
+    {
+      "role": "helper",
+      "usd": 5.96
+    },
+    {
+      "role": "checker",
+      "usd": 2.75
+    },
+    {
+      "role": "voter",
+      "usd": 1.58
+    },
+    {
+      "role": "directory-mastermind",
+      "usd": 0.95
+    },
+    {
+      "role": "expert-ask",
+      "usd": 0.91
+    },
+    {
+      "role": "expert",
+      "usd": 0.83
+    },
+    {
+      "role": "session-fast",
+      "usd": 0.69
+    },
+    {
+      "role": "fixer",
+      "usd": 0.24
+    }
+  ],
+  "minion_on_expensive_model": {
+    "total_usd": 499.07,
+    "count": 82,
+    "top": [
+      {
+        "id": "minion-chat-reactions",
+        "model": "claude-opus-5-5",
+        "usd": 51.01
+      },
+      {
+        "id": "minion-dictation-stream",
+        "model": "claude-opus-5-5",
+        "usd": 46.29
+      },
+      {
+        "id": "minion-rail",
+        "model": "claude-opus-5-5",
+        "usd": 22.16
+      },
+      {
+        "id": "minion-nested-view",
+        "model": "claude-opus-5-5",
+        "usd": 17.06
+      },
+      {
+        "id": "minion-layout-unify",
+        "model": "claude-opus-5-5",
+        "usd": 16.8
+      },
+      {
+        "id": "minion-layout-docs",
+        "model": "claude-opus-5-5",
+        "usd": 16.8
+      },
+      {
+        "id": "minion-drawer-tabs",
+        "model": "claude-opus-5-5",
+        "usd": 16.15
+      },
+      {
+        "id": "minion-now-chat-side",
+        "model": "claude-opus-5-5",
+        "usd": 14.84
+      },
+      {
+        "id": "minion-sheet-as-page",
+        "model": "claude-opus-5-5",
+        "usd": 14.73
+      },
+      {
+        "id": "minion-layout-system",
+        "model": "claude-opus-5-5",
+        "usd": 12.46
+      }
+    ]
+  },
+  "long_windows": {
+    "total_usd": 2265.92,
+    "count": 62,
+    "top": [
+      {
+        "id": "mastermind-servex",
+        "role": "mastermind",
+        "cache_read_pct": 74.6932,
+        "usd": 175.48
+      },
+      {
+        "id": "mastermind-servex-8",
+        "role": "mastermind",
+        "cache_read_pct": 70.4467,
+        "usd": 86.22
+      },
+      {
+        "id": "task-mastermind-panel2-sessions",
+        "role": "task-mastermind",
+        "cache_read_pct": 74.5651,
+        "usd": 70.93
+      },
+      {
+        "id": "task-mastermind-assistant-layers",
+        "role": "task-mastermind",
+        "cache_read_pct": 74.2296,
+        "usd": 66.36
+      },
+      {
+        "id": "task-mastermind-ai2-dashboard",
+        "role": "task-mastermind",
+        "cache_read_pct": 77.1971,
+        "usd": 57.89
+      },
+      {
+        "id": "task-mastermind-mobile-nav",
+        "role": "task-mastermind",
+        "cache_read_pct": 79.3261,
+        "usd": 57.67
+      },
+      {
+        "id": "task-mastermind-file-system",
+        "role": "task-mastermind",
+        "cache_read_pct": 78.1186,
+        "usd": 54.37
+      },
+      {
+        "id": "task-mastermind-source-library",
+        "role": "task-mastermind",
+        "cache_read_pct": 85.4556,
+        "usd": 53.83
+      },
+      {
+        "id": "task-mastermind-voice-sessions",
+        "role": "task-mastermind",
+        "cache_read_pct": 70.1882,
+        "usd": 52.55
+      },
+      {
+        "id": "task-mastermind-voice-sessions-2",
+        "role": "task-mastermind",
+        "cache_read_pct": 70.1882,
+        "usd": 52.55
+      }
+    ]
+  },
+  "abandoned_spend": {
+    "total_subtree_usd": 1675.37,
+    "count": 14,
+    "top": [
+      {
+        "id": "task-mastermind-openrouter",
+        "task_dir": "public/framework/ai/2026-09-30/openrouter-harness",
+        "own_usd": 500.85,
+        "subtree_usd": 619.34
+      },
+      {
+        "id": "task-mastermind-one-dictation",
+        "task_dir": "public/framework/ai/2026-10-02/drawer-close",
+        "own_usd": 385.66,
+        "subtree_usd": 609.03
+      },
+      {
+        "id": "mastermind-servex-10",
+        "task_dir": "public/framework/ai/2026-10-02/servex-mastermind",
+        "own_usd": 113.62,
+        "subtree_usd": 200.18
+      },
+      {
+        "id": "task-mastermind-waiting-on-you",
+        "task_dir": "public/framework/ai/2026-09-28/waiting-on-you",
+        "own_usd": 21.48,
+        "subtree_usd": 47.98
+      },
+      {
+        "id": "task-mastermind-asks-ledger",
+        "task_dir": "public/framework/ai/2026-09-30/asks-ledger",
+        "own_usd": 22.8,
+        "subtree_usd": 43.29
+      },
+      {
+        "id": "task-mastermind-push-to-talk",
+        "task_dir": "public/framework/ai/2026-10-03/push-to-talk",
+        "own_usd": 16.18,
+        "subtree_usd": 38.21
+      },
+      {
+        "id": "task-mastermind-page-tools",
+        "task_dir": "public/framework/ai/2026-10-02/page-tools",
+        "own_usd": 27.86,
+        "subtree_usd": 28.66
+      },
+      {
+        "id": "task-mastermind-framework-home-grids",
+        "task_dir": "public/framework/ai/2026-10-03/framework-home-grids",
+        "own_usd": 25.24,
+        "subtree_usd": 25.7
+      },
+      {
+        "id": "minion-clean-dictate-mode",
+        "task_dir": "public/framework/ai/2026-10-01/clean-dictate-mode",
+        "own_usd": 13.56,
+        "subtree_usd": 13.56
+      },
+      {
+        "id": "minion-chat-autoscroll",
+        "task_dir": "public/framework/ai/2026-10-01/chat-autoscroll",
+        "own_usd": 11.89,
+        "subtree_usd": 11.89
+      }
+    ]
+  }
+}

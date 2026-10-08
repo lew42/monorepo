@@ -137,6 +137,46 @@ threshold, not new computation:
   `ask_checkpoint()`'s own `card_summary` call, already built — this item is display
   only, not a new handoff mechanism.
 
+## 10. Stop Opus/Fable minions without a stated reason — Sonnet, cheap, high leverage
+
+Real, measured (`post-analysis.mjs`): **$499.07 across 82 minions** ran on Opus or
+Fable with no reason recorded, against the standing house policy. Smallest real fix
+on this whole list: have `spawn_agent` (`tools.js`) require a one-line `why` when
+`role: "minion"` and `model` is Opus/Fable-family, logged onto the agent itself (not
+just chat) so a later audit (this script) can tell "stated reason" from "just
+happened." Does not need to BLOCK the spawn — a required, logged reason is enough
+friction to end the silent default, per the owner's own "decide and say why" pattern
+(CLAUDE.md law 4) rather than a hard gate nobody asked for.
+
+## 11. A real "cheap-first-opinion" gate — Sonnet, half a day, extends an existing mechanism
+
+Full evidence: findings.md's "cheap-first-opinion" section. Real data confirms the
+owner's own caveat: a Sonnet minion doing 100-200 individual reads already costs
+$25-70 (**$0.26/read-call average**), so "cheap model first" only saves money if
+it's also SCOPED — a script-computed shortlist, not an open-ended look-around.
+**Mechanism (reuses, doesn't duplicate):** `Agents.js`'s `tool_started()` already
+warns at `SERVEX_READ_WARN` reads (default 40) for any gated role — promote that
+from a warning to a real refusal for a new `cheap-first` role specifically: past the
+ceiling with no grep/glob-shaped call among them, Servex refuses the next individual
+`Read` and tells the agent to compute a shortlist instead (same `gate()`/spend-gate
+pattern already governs $; this is the same idea for read COUNT). **Default:** keep
+the existing 40-read number rather than inventing a new one. **Alternative
+considered, rejected as the first choice:** gate on $ instead of read count — the
+existing $ spend gate already exists project-wide; a read-count gate more directly
+targets the actual complaint (reading file-by-file instead of computing a
+shortlist).
+
+## 12. Re-run `post-analysis.mjs` periodically, not just once — small, process not code
+
+The script (`post-analysis.mjs`, this dir) is cheap (reads `spend-tree.json`, no
+network, no model call) and already answers "where did it go, by day/model/role" and
+three concrete waste signals (Opus-on-minions, long-windows, stopped-in-flight). The
+only thing needed to keep it useful is habit, not more code: re-run it after
+`spend-tree.mjs` refreshes (item 2, above), and read the top of each section before
+deciding what the budget mastermind does next. Not duplicating `prompt-audit`
+(Haiku, auditing unbuilt owner asks) — that script answers a different question
+(what was asked but never built); this one answers what WAS built and what it cost.
+
 ## Optimization items the owner asked to be recorded (Phase 2, items 1-6)
 
 Each gets what data it needs, so whoever builds it doesn't have to re-derive this:

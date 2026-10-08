@@ -13,3 +13,8 @@
 {"file":"layout-check/"}
 {"file":"spend.json"}
 {"file":"context-measure.mjs"}
+{"file":"day-log.json","gone":true}
+{"file":"post-analysis.mjs"}
+{"file":"post-analysis.json"}
+{"file":"post-analysis.md"}
+{"file":"cheap-first-tradeoff.mjs"}
