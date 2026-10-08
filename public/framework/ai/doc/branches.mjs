@@ -1,0 +1,10 @@
+import {execSync as x} from "child_process";
+const sh=c=>x(c,{encoding:"utf8"}).trim();
+const bs=sh("git for-each-ref --format=%(refname:short) refs/heads/worktree").split("\n").filter(Boolean);
+const merged=new Set(sh("git for-each-ref --merged michael/dev --format=%(refname:short) refs/heads/worktree").split("\n"));
+const rows=bs.map(b=>[b,merged.has(b),merged.has(b)?0:+sh(`git rev-list --count michael/dev..${b}`),sh(`git log -1 --format=%cs ${b}`)]);
+const un=rows.filter(r=>!r[1]);
+let o=`# Worktree branches — merged vs unmerged (computed ${new Date().toISOString().slice(0,10)}, nothing deleted)\n\n${rows.length} \`worktree/*\` branches: ${rows.length-un.length} merged into \`michael/dev\` (safe to retire later, after a tag), ${un.length} with commits not in \`michael/dev\` (keep; review). \`worktree/ai2-*\`: ${rows.filter(r=>r[0].startsWith("worktree/ai2-")).length}.\n\nRegenerate: \`node public/framework/ai/doc/branches.mjs\`.\n\n## Unmerged (ahead commits, last commit)\n`;
+for(const r of un.sort((a,b)=>b[3].localeCompare(a[3])))o+=`- \`${r[0]}\` +${r[2]} · ${r[3]}\n`;
+o+=`\n## Merged\n`+rows.filter(r=>r[1]).map(r=>`\`${r[0]}\``).join(" · ")+"\n";
+console.log(o);
