@@ -169,6 +169,7 @@ merge.
   idle gap past the cache TTL prices the next turn 15-50x higher. Servex already has the right
   "fresh, not compacted" pattern (`Layers.js`) for assistants/managers; masterminds don't have it
   yet — the recommendation and plan to extend it.
+- [`doc/record-spec.md`](./doc/record-spec.md) — the line types a session record accepts (tag, note, alert, weight, closed, question, links) and how to write them
 - [`doc/session-class.md`](./doc/session-class.md) — `Session.js` (cost, model + effort, tokens by purpose, audit), the `session.jsonl` cache, `session-index.json`; the Cost cell and the detail's Audit button come from it (`SessionView.js`)
 - [`doc/decisions.md`](./doc/decisions.md) — the full data-source decision, the `css-scopes.txt`
   reservation note, and the VS-Code-vs-CLI heuristic, checked against a real session

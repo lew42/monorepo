@@ -133,7 +133,12 @@ if (is_main){
 	const args = process.argv.slice(2);
 	const flag = n => args.includes(n);
 	const num = (n, d) => { const i = args.indexOf(n); return i >= 0 && Number(args[i + 1]) ? Number(args[i + 1]) : d; };
-	if (flag("--close") || flag("--reopen")){
+	if (flag("--log")){
+		// node Server/session-summary.mjs --log <session-uuid> '<json line>' --by <author>
+		const i = args.indexOf("--log"), id = args[i + 1], raw = args[i + 2], by = args.includes("--by") ? args[args.indexOf("--by") + 1] : null;
+		try { console.log(JSON.stringify(await Session.log(id, JSON.parse(raw), by))); }
+		catch (e){ console.error("session-summary --log: " + e.message); process.exit(2); }
+	} else if (flag("--close") || flag("--reopen")){
 		const id = args.find(a => /^[0-9a-f-]{36}$/.test(a));
 		if (!id){ console.error("usage: --close|--reopen <session-uuid> [--by name]"); process.exit(2); }
 		const by = args.includes("--by") ? args[args.indexOf("--by") + 1] : "owner";

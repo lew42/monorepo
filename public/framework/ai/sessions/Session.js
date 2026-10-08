@@ -328,7 +328,36 @@ export default class Session {
 
 	// ---- cache I/O (the server writes it, the browser reads it) -----------------------------
 
-	static dir_url(id){ return new URL(`./${id}/`, import.meta.url); }
+	static dir_url(id){
+		// SESSIONS_ROOT (node only) lets a script run from a worktree write into the main tree's sessions/ folder.
+		const root = typeof process !== "undefined" && process.env?.SESSIONS_ROOT;
+		return root ? new URL(`./${id}/`, "file:///" + root.replace(/\\/g, "/").replace(/\/?$/, "/").replace(/^\/+/, "")) : new URL(`./${id}/`, import.meta.url);
+	}
+
+	// ---- the record: what a session's session.jsonl accepts (doc/record-spec.md) ----
+	static LINE_TYPES = {
+		tag:      l => typeof l.tag === "string" && l.tag.length > 0 && l.tag.length <= 40,
+		note:     l => typeof l.note === "string" && l.note.length > 0,
+		alert:    l => typeof l.alert === "string" && l.alert.length > 0 && (l.level == null || ["info", "warn", "error"].includes(l.level)),
+		weight:   l => typeof l.weight === "number" && l.weight >= 0 && l.weight <= 10,
+		closed:   l => typeof l.closed === "boolean",
+		question: l => typeof l.question === "string" && Array.isArray(l.options) && l.options.length >= 2 && l.options.every(o => typeof o === "string"),
+		links:    l => Array.isArray(l.links) && l.links.length >= 1 && l.links.length <= 3 && l.links.every(k => typeof k?.path === "string" && k.path),
+	};
+
+	// Validate and append one record line. Returns the stored line, or throws with the reason. Append only.
+	static async log(id, line, by){
+		if (!/^[0-9a-f-]{36}$/.test(id)) throw new Error("session id must be the 36-character session uuid");
+		if (!by || typeof by !== "string") throw new Error("`by` (the author) is required");
+		const types = Object.keys(Session.LINE_TYPES).filter(k => k in line);
+		if (types.length !== 1) throw new Error("a line has exactly one of: " + Object.keys(Session.LINE_TYPES).join(", "));
+		if (!Session.LINE_TYPES[types[0]](line)) throw new Error(`bad shape for "${types[0]}" (see sessions/doc/record-spec.md)`);
+		const fs = await import("node:fs/promises"), dir = Session.dir_url(id);
+		await fs.mkdir(dir, { recursive: true });
+		const out = { ...line, at: new Date().toISOString(), by, session: id };
+		await fs.appendFile(new URL("session.jsonl", dir), JSON.stringify(out) + "\n");
+		return out;
+	}
 
 	// Browser or node: the newest saved summary for an id, or null. One small request.
 	static async load_cached(id){
@@ -382,7 +411,7 @@ export default class Session {
 		let old = ""; try { old = await fs.readFile(file, "utf8"); } catch {}
 		const lines = old.split("\n").filter(l => l.trim());
 		if (lines.length > 30){      // fold: the newest audit lines survive, the stale summaries do not
-			const audits = [...lines.filter(l => l.startsWith('{"audit"')).slice(-10), ...lines.filter(l => l.startsWith('{"closed"')).slice(-5)];   // closed lines survive too
+			const audits = [...lines.filter(l => l.startsWith('{"audit"')).slice(-10), ...lines.filter(l => !l.startsWith('{"audit"') && !l.startsWith('{"summary"'))];   // only old summaries and old audits are dropped; every tag, note, alert, closed line stays
 			await fs.writeFile(file, audits.join("\n") + (audits.length ? "\n" : ""));
 		}
 		await fs.appendFile(file, JSON.stringify({ summary: s, at, by }) + "\n");
