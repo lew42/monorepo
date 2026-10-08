@@ -43,8 +43,11 @@ OpenRouter and local models do not have their own loop. They only change the add
 - `env_for("local")` in `Servex/ext/local/provider.js` does the same, pointing at Servex's local proxy on loopback.
 - `door()` merges these variables into the process environment. `provider_for()` chooses OpenRouter when the model name contains a `/`.
 
+## Entrypoints: which session is which
+
+Every line in a session file carries an `entrypoint`. `sdk-ts` means the session was started through the Agent SDK, so Servex started it (every agent above). `claude-vscode` means a person started it from the VS Code sidebar. Counted over the 40 newest session files for this repo on 2026-10-08: 38 `sdk-ts`, 2 `claude-vscode`.
+
 ## Not verified
 
-- The meaning of the entrypoints `sdk-ts` and `claude-vscode`. Neither string appears anywhere in `Servex/`, so which sessions carry them is unknown here.
 - Whether `Servex/agents/Sessions.js` reads the SDK session files. Its own text covers the `ai/log.jsonl` index and session pages, and it does not touch `~/.claude`.
 - The exact resume path through `wake()` and `reopen()`, beyond the `resume:` option shown in `Agents.js`.
