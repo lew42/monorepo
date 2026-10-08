@@ -1,0 +1,15 @@
+[
+  {"assign": {
+    "step": 2,
+    "landed_at": "NOW",
+    "title": "Token accounting: fixed the real undercount (144/145 project folders invisible), planned realtime sessions.jsonl",
+    "outcome": "**Found and fixed the real accounting mistake, and planned the realtime sessions page the owner asked for.**\n\n- [x] investigate the architecture, find where cost data can be wrong: [findings.md](/framework/ai/2026-10-07/token-accounting/findings.md) — `find_transcript()` matched project folders case-sensitively, so 144 of 145 real `~/.claude/projects` folders (every worktree session) were invisible to it; every reader fell back to the agent-log total, already proven to undercount 20-60%+. Likely why the week ran out early.\n- [x] fix it: one line, [`Server/session-cost.mjs`](/code/), committed and verified live (missing-transcript count: 499/2101 agents -> 11/2101).\n- [x] 3-session reconciliation script (compute, don't recall): [reconcile.mjs](/framework/ai/2026-10-07/token-accounting/reconcile.mjs), real numbers in findings.md — a 192-minion tree's real cost was $107.08 against a $49.93 ledger reading.\n- [x] found, not fixed (written up for the next pass): an OpenRouter agent's per-turn cost is logged before its real price resolves, so its last turn is never captured — [plan.md](/framework/ai/2026-10-07/token-accounting/plan.md) item 1.\n- [x] prioritized build plan for every Phase 2 ask (pace-aware models, right-agent-right-task, batch-read measurement, 100% accounting, local-model budgets): [plan.md](/framework/ai/2026-10-07/token-accounting/plan.md).\n- [x] owner's mid-task addition — realtime sessions page using the EXISTING jsonl stream, never a second one: investigated (the real socket mechanism, confirmed `sessions/` never actually used it), recommendation + tradeoff + staged migration written to [`ai/sessions/doc/realtime-plan.md`](/framework/ai/sessions/doc/realtime-plan.md), linked from that dir's readme so it outlives this chat.\n- [x] noted, not this task's: the quick-fix worktree pool is stuck (7 stale worktrees, qf-2/4-9) — see findings.md.\n\nReviewed: pass (size none, self-evident — doc-only files plus one verified one-line script fix, no page/CSS touched).",
+    "links": [
+      {"url": "/framework/ai/2026-10-07/token-accounting/findings.md", "label": "findings.md"},
+      {"url": "/framework/ai/2026-10-07/token-accounting/plan.md", "label": "plan.md"},
+      {"url": "/framework/ai/sessions/doc/realtime-plan.md", "label": "sessions realtime plan"},
+      {"url": "/framework/ai/sessions/", "label": "Sessions tab"}
+    ],
+    "tokens": null
+  }}
+]
