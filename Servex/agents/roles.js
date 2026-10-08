@@ -22,7 +22,7 @@ export const ROLES = {
 	 * tools, and under acceptEdits every one of those is refused with nobody to approve — the
 	 * minion only finds out when its first call fails (minion-framework-home lost a turn this way;
 	 * the CLI-launcher version of the same bug is 2026-09-19's). Same reasoning as task-mastermind below. */
-	minion:             { skill: "minion",           prefix: "minion",           tier: "fast",      model: model("fast"),       effort: "high", permission_mode: "bypassPermissions" },
+	minion:             { skill: "minion",           prefix: "minion",           tier: "scan",      model: model("scan"),       effort: "low", permission_mode: "bypassPermissions" },
 	/* bypassPermissions, not acceptEdits: this role's whole job is calling
 	 * spawn_agent/send_to_agent/list_agents, and an MCP tool call needs the same
 	 * approval a Bash command would under acceptEdits — approval nobody can give

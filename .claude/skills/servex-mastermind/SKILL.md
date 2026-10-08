@@ -108,3 +108,7 @@ plain sentences, one screen at most, on card "live". Never write the owner's nam
 ## Land everything: commit, then merge (the owner, 2026-10-08)
 
 Every piece of work ends committed, and merged if it is on a branch. Work on a branch or worktree by default; only a live fix goes straight to `michael/dev`. When a minion or child lands, check that its files are committed and its branch merged (`merge.mjs`) before you count it done: unmerged or uncommitted work is not delivered, and it is the first thing lost when an agent stops. Never leave a loose file in the tree.
+
+## Minions default to Haiku (the owner, 2026-10-08)
+
+`roles.js` defaults the `minion` role to Haiku (effort low). Pass `model: "claude-sonnet-5-5"` explicitly only for UI design or object-oriented code. Research, audits and fan-outs stay on Haiku in small inlined batches under ~100k tokens each.

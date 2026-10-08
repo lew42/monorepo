@@ -47,6 +47,7 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) 
 
 ## More
 - [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
+- `doc/vision-2026-10-08.md` — the owner's intended pipeline (raw → clean → refined cards, every sentence accounted, context cards); check the built state against it
 - `doc/raw-match.md` — the word-overlap heuristic that lights up Raw, worked example
 - `Server/doc/refine.md` — what `refine.mjs` writes, and why each file looks the way it does
 - `doc/refine-engine.md` — `engine.js`'s `clean()` and `structure.js`'s `structure()`: the shared, two-speed clean step Dictate and the prompt-log processor both call, its mechanical glossary/strike/diff-check rules, and the 3-model litmus test that picked the cheap model to run it on
