@@ -8,6 +8,7 @@ import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
+import Usage from "../Usage.js";
 import { first_prompt } from "./readme-chain.js";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
@@ -1504,6 +1505,17 @@ Agents.Agent = class Agent {
 		g.due = false;
 		if (this.state === "working") this.interrupt().catch?.(() => {});
 		if (g.gated) return;   // one card per gate, however often the agent is woken past it
+		/* THE MASTERMIND'S JUDGEMENT CALL (2026-10-07): a productive agent (it has results, and made one recently), a fully priced
+		 * spend, the week on pace, no more than 2 auto-grants and never past 2x the ceiling: continue it without bothering the
+		 * owner; log it. Anything else falls through to the card below, unchanged. */
+		const recent = g.results.length > 0 && (spent - g.spent_at_result) < (Number(process.env.SERVEX_GATE_STEP_USD) || 3) * 1.5;
+		if (!unpriced && recent && (g.auto ?? 0) < 2 && allowance + 5 <= this.ceiling_usd() * 2 && Usage.on_pace()){
+			g.auto = (g.auto ?? 0) + 1;
+			this.gate_log("auto-grant", { auto: g.auto, since_result_usd: +(spent - g.spent_at_result).toFixed(4) });
+			this.grant(5);
+			try { this.send(`Servex: you are productive and the week is on pace, so the mastermind gave you $5 more — continue.`, { from: "servex", revive: true }); } catch {}
+			return;
+		}
 		g.gated = true;
 		this.gate_log("gate", { since_result_usd: +(spent - g.spent_at_result).toFixed(4), unpriced_calls: this.unpriced_calls ?? 0 });
 		const made = g.results.length ? g.results.map(r => `${r.kind}: ${r.what}`).slice(-5).join("; ") : "nothing yet";
