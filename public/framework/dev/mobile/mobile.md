@@ -1,20 +1,29 @@
 # Open this site on your phone
 
-| Feature | On the phone (LAN address) | Why |
-|---|---|---|
-| Pages, nav, reading | ✅ works | plain HTTP, no restriction |
-| Whisper transcription (upload-based) | ✅ works | sent as a plain HTTP request, not from a secure context |
-| Live reload while editing | ❌ silently retries | the dev socket only accepts connections from this machine itself (it can run shell commands) |
-| Microphone (live dictation) | ❌ browser refuses it | **only `https://` or a `localhost` address gets a real microphone** — a phone's `http://<LAN-IP>:...` is neither |
+| On the phone | Works? |
+|---|---|
+| Pages, nav, reading | ✅ |
+| Whisper transcription (upload-based) | ✅ |
+| Live reload while editing | ❌ silently retries |
+| Microphone (live dictation) | ❌ browser refuses it |
 
-## 1. Find the address, and open it
-On this PC, run `ipconfig` and read the **IPv4 Address** under your Wi-Fi adapter (something like
-`10.0.0.135`). Then find the site's own port — `node server.js` prints it when it starts, or ask
-Servex (`list_servers`); it changes per worktree, so there's no one number to memorize. Type
-`http://<address>:<port>/` on the phone, on the **same Wi-Fi**. `monorepo.localhost` will **not**
-work on the phone — only this machine answers to `.localhost` names (next section).
+Live reload fails because the dev socket only accepts connections from this machine itself (it
+can run shell commands). The microphone fails because only `https://` or a `localhost` address
+gets a real microphone — a phone's `http://<LAN-IP>:...` is neither.
 
-## 2. Fix the microphone: three options, one recommended
+## 1. Find the address
+Run `ipconfig` on this PC and read the **IPv4 Address** under your Wi-Fi adapter (something like
+`10.0.0.135`).
+
+## 2. Open it on the phone
+Find the site's own port — `node server.js` prints it when it starts, or ask Servex
+(`list_servers`); it changes per worktree, so there's no one number to memorize. Type
+`http://<address>:<port>/` on the phone, on the same Wi-Fi.
+
+`monorepo.localhost` will **not** work on the phone. Only this machine answers `.localhost`
+names (next section).
+
+## 3. Fix the microphone
 A browser will not hand out `navigator.mediaDevices` on a plain `http://` LAN address — the
 browser's own rule, not a bug in this app. Full detail and exact commands:
 [ux/Dictate/doc/https-lan.md](/framework/ux/Dictate/doc/https-lan.md). Short version:
@@ -30,12 +39,14 @@ browser's own rule, not a bug in this app. Full detail and exact commands:
 
 ## Why `.localhost` fails on the phone
 Servex's own proxy (what `monorepo.localhost` and `servex.localhost` resolve to) binds **only**
-`127.0.0.1` and `::1` — this machine talking to itself — on purpose, so nobody else on the Wi-Fi
-can reach Servex's dashboard or its dangerous dev-socket commands. The site's actual dev server
-(`Server/server.js`) binds every network interface (`0.0.0.0`) by default, which is *why* the LAN
-address works at all — it is a different, plainer server, reached directly, bypassing Servex.
+`127.0.0.1` and `::1` — this machine talking to itself — on purpose. Nobody else on the Wi-Fi can
+reach Servex's dashboard or its dangerous dev-socket commands that way.
 
-## What's hard-coded to `localhost` (checked, not assumed)
+The site's actual dev server (`Server/server.js`) binds every network interface (`0.0.0.0`) by
+default. That's *why* the LAN address works at all: it's a different, plainer server, reached
+directly, bypassing Servex.
+
+## What's hard-coded to localhost
 - `dev/Socket/Socket.js` refuses to connect off `localhost` on purpose (it carries shell-command
   RPCs) — a documented safety rule, not a bug: [doc/localhost.md](/framework/dev/Socket/doc/localhost.md).
 - `ux/Dictate/Dictate.js`'s `whisper_base()` already resolves correctly for a phone: on
