@@ -93,7 +93,7 @@ export function recipe(module){
 		? fs.readdirSync(path.join(dir, "doc")).filter(f => f.endsWith(".md")).map(f => `doc/${f}`) : [];
 	return { module, title: `${module} expert`, covers: `the ${module} module`, chain: true,
 		load: ["readme.md"].filter(f => fs.existsSync(path.join(dir, f))), also: [], on_demand: docs,
-		model: "claude-sonnet-5", deep_model: "claude-opus-5-5", dir, file: null };
+		model: "claude-sonnet-5", deep_model: "claude-sonnet-5", dir, file: null };
 }
 
 /* One line saying what a file is: its first heading, else its first comment line. */

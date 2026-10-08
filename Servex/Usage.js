@@ -46,7 +46,7 @@ export default class Usage {
 			const used = week?.percent ?? j.utilization?.seven_day?.utilization;
 			const resets = Date.parse(week?.resets_at ?? j.utilization?.seven_day?.resets_at ?? "");
 			const elapsed = 100 * (1 - (resets - Date.now()) / WEEK);
-			return elapsed > 60 && used < elapsed ? OPUS : SONNET;
+			return SONNET; /* 2026-10-07: Sonnet only until the owner lifts it */
 		} catch { return SONNET; }
 	}
 
