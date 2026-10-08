@@ -112,3 +112,7 @@ Every piece of work ends committed, and merged if it is on a branch. Work on a b
 ## Minions default to Haiku (the owner, 2026-10-08)
 
 `roles.js` defaults the `minion` role to Haiku (effort low). Pass `model: "claude-sonnet-5-5"` explicitly only for UI design or object-oriented code. Research, audits and fan-outs stay on Haiku in small inlined batches under ~100k tokens each.
+
+## Check usage with one command, not your own polling (the owner, 2026-10-08)
+
+Before each spawn, and at every natural checkpoint, run `node Server/usage-now.mjs`. It reads the shared `usage.json` (Servex refreshes it every 15 min) and re-fetches only if the file is over 5 minutes old, one caller at a time, so many masterminds can ask often without getting rate-limited. It prints one pace line and exits 2 when over pace. **Over pace: spawn nothing new, queue the work, finish what is in flight.** Never call the usage script yourself.

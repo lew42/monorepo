@@ -290,3 +290,27 @@
 {"at":"2026-10-08T03:48:29.019Z","target":"public/framework/ai/2026-10-07/prompt-audit/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-10-08T03:49:30.010Z","target":"public/framework/ai/2026-10-07/prompt-audit/requirements.md","verdict":"spawned","to":"clarity-prompt-audit"}
 {"at":"2026-10-07T00:00:00.000Z","target":"public/framework/ai/2026-10-07/prompt-audit/requirements.md","verdict":"clear","what":"Proposal brief is scannable: one-line title, prioritized sources/deliverables/rules, short plain sentences, compute-not-recall deliverable 1.","to":"public/framework/ai/2026-10-07/prompt-audit/requirements.md"}
+{"at":"2026-10-08T04:49:44.527Z","target":"public/framework/ai/2026-10-07/docs-vs-code-audit/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-08T04:50:45.540Z","target":"public/framework/ai/2026-10-07/docs-vs-code-audit/requirements.md","verdict":"spawned","to":"clarity-docs-vs-code-audit"}
+{"at":"2026-10-07T00:00:00.000Z","target":"public/framework/ai/2026-10-07/docs-vs-code-audit/requirements.md","verdict":"clear","what":"Proposal is scoped, numbered, dedups against token-accounting/prompt-audit, deliverables concrete; text-check clean.","to":"clarity-docs-vs-code-audit"}
+{"at":"2026-10-08T05:19:33.916Z","target":"public/framework/ai/2026-10-08/mobile-voice-access/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-08T05:20:34.912Z","target":"public/framework/ai/2026-10-08/mobile-voice-access/requirements.md","verdict":"spawned","to":"clarity-mobile-voice-access"}
+{"at":"2026-10-08T00:00:00.000Z","target":"public/framework/ai/2026-10-08/mobile-voice-access/requirements.md","verdict":"clear","what":"text-check clean; headings/bullets structured, numbered deliverables and questions, title states scope in ten seconds","to":"clarity-mobile-voice-access"}
+{"at":"2026-10-08T05:21:37.998Z","target":"public/framework/ai/2026-10-08/mastermind-cheap-models/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-08T05:22:38.980Z","target":"public/framework/ai/2026-10-08/mastermind-cheap-models/requirements.md","verdict":"spawned","to":"clarity-mastermind-cheap-models"}
+{"at":"2026-10-08T05:30:00.000Z","target":"public/framework/ai/2026-10-08/mastermind-cheap-models/requirements.md","verdict":"rewrote","what":"opening was one 130-word paragraph mixing 4 asks; split into bold-titled Asks, tightened 2 dense Deliverables bullets, dropped a pronoun naming the owner — could not message the running agent (30-min contact window), so edited and committed the file directly","to":"mastermind-cheap-models"}
+{"at":"2026-10-08T05:55:16.433Z","target":"public/framework/ai/2026-10-08/mastermind-cheap-models","verdict":"queued","kind":"landing"}
+{"at":"2026-10-08T05:55:17.162Z","target":"public/framework/ai/2026-10-08/mastermind-cheap-models","verdict":"spawned","to":"clarity-mastermind-cheap-models-2"}
+{"at":"2026-10-08T05:57:18.851Z","target":"/framework/ai/2026/10/08/note-worktree-pool-stuck-minion-task-mas/","verdict":"rewrote","what":"Note card's chat was one 122-word run-on sentence bundling two unrelated bugs with no mention links; owning agent (mastermind-cheap-models) is gone so I appended a 54-word two-sentence replacement with @mastermind-servex and /path links.","to":"/framework/ai/2026/10/08/note-worktree-pool-stuck-minion-task-mas/"}
+{"at":"2026-10-08T19:25:28.398Z","target":"public/framework/ai/2026-10-08/cache-ttl-and-plan/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-08T19:26:29.397Z","target":"public/framework/ai/2026-10-08/cache-ttl-and-plan/requirements.md","verdict":"spawned","to":"clarity-cache-ttl-and-plan"}
+{"at":"2026-10-08T12:00:00.000Z","target":"public/framework/ai/2026-10-08/cache-ttl-and-plan/requirements.md","verdict":"clear","what":"Agent brief, numbered deliverables, text-check clean; owner-facing proposal.md is the later deliverable","to":"clarity-cache-ttl-and-plan"}
+{"at":"2026-10-08T19:27:28.024Z","target":"public/framework/ai/2026-10-08/live-not-polling/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-08T19:28:29.378Z","target":"public/framework/ai/2026-10-08/live-not-polling/requirements.md","verdict":"spawned","to":"clarity-live-not-polling"}
+{"at":"2026-10-08T12:00:00Z","target":"public/framework/ai/2026-10-08/live-not-polling/requirements.md","verdict":"clear","what":"Agent brief: text-check clean, four numbered deliverables, asks traceable","to":"none"}
+{"at":"2026-10-08T19:40:12.449Z","target":"public/framework/ai/2026-10-08/task-audit/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-08T19:40:13.520Z","target":"public/framework/ai/2026-10-08/session-class/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-08T19:41:13.483Z","target":"public/framework/ai/2026-10-08/task-audit/requirements.md","verdict":"spawned","to":"clarity-task-audit"}
+{"at":"2026-10-08T19:41:14.527Z","target":"public/framework/ai/2026-10-08/session-class/requirements.md","verdict":"spawned","to":"clarity-session-class"}
+{"at":"2026-10-08T12:00:00.000Z","target":"public/framework/ai/2026-10-08/task-audit/requirements.md","verdict":"rewrote","what":"Step 1 was one 150-word paragraph; split into short bullet lists and a table instruction","to":"requirements.md"}
+{"at":"2026-10-08T14:41:29.526756-05:00","target":"public/framework/ai/2026-10-08/session-class/requirements.md","verdict":"rewrote","what":"Shortened title; split two over-long asks into short bullets","to":"requirements.md"}
