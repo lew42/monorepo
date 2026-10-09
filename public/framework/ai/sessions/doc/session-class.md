@@ -56,7 +56,7 @@ The owner can mark a session done ("rubber stamp"). `Session.close(id, by, close
 
 ## A Session draws itself
 
-`Session.View = SessionView` is set when the browser loads `SessionView.js`, so `session.render()` draws that session as a grid row. It does `new this.constructor.View({ session: this, ... })`, a fresh view each call, the same way `core/Item`, `audio/Part` and `lab/LiveView` do, so a subclass can override `static View`. The other classes nest beneath it as helpers:
+`Session.View = SessionView` is attached after the class (the last line of `SessionView.js`, not a static field) when the browser loads `SessionView.js`, so `session.render()` draws that session as a grid row. It does `new this.constructor.View({ session: this, ... })`, a fresh view each call, the same way `core/Item`, `audio/Part` and `lab/LiveView` do, so a subclass can override `static View`. The other classes nest beneath it as helpers:
 
 - `SessionView` is the row. It subscribes to its Session (`ses.on`) and redraws only itself.
 - `SessionDetail` is the session's own page; it opens from a row.
