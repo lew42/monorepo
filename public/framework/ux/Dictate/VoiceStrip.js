@@ -1,6 +1,7 @@
 import { View, div, span } from "../../core/View/View.js";
 import Dictate from "./Dictate.js";
 import Connection from "./Connection.js";
+import ErrorLog from "../../ext/ErrorLog/ErrorLog.js";
 
 View.stylesheet(import.meta, "VoiceStrip.css");
 
@@ -30,7 +31,7 @@ export default class VoiceStrip extends View {
 			this.dictate = new Dictate({
 				$input: this.$input,
 				mode: this.mode,
-				on_error: e => { this.conn.set("mic", "bad", "error: " + String(e?.message ?? e).slice(0, 60)); this.said(); this.on_error?.(e); },
+				on_error: e => { if (this.conn.state.mic.state !== "bad") this.conn.set("mic", "bad", "error: " + String(e?.message ?? e).slice(0, 90)); this.said(); ErrorLog.report(e, { where: "VoiceStrip.mic" }); this.on_error?.(e); },
 				on_step: (stage, detail) => { this.step(stage, detail); this.on_step?.(stage, detail); },
 				on_meter: level => { this.conn.level(level); this.on_meter?.(level); },
 				on_guess: text => { this.$guess.text(text); this.on_guess?.(text); },
@@ -41,6 +42,12 @@ export default class VoiceStrip extends View {
 		this.$guess = div.c("voice-strip-guess muted");
 		this.conn.check_whisper().then(() => this.said());
 		this.said();
+	}
+
+	/** Dictate's short reasons, in words a reader can act on. */
+	static plain(reason){
+		return { "insecure context": "this address is not https or localhost, so the browser hides the mic (doc/https-lan.md)",
+			"permission denied": "the browser has the mic blocked for this site" }[reason] ?? reason;
 	}
 
 	/** Words now in the target box (0 when there is none, e.g. a caller using `on_text` only). */
@@ -56,7 +63,7 @@ export default class VoiceStrip extends View {
 		if (stage === "mic"){
 			if (detail === "on, level ok") this.conn.set("level", "ok", "");
 			else if (detail === "ok") this.conn.set("mic", "ok", "on").set("level", "wait", "");
-			else this.conn.set("mic", bad ? "bad" : "wait", bad ? "error: " + detail.replace(/^refused: /, "") : detail);
+			else this.conn.set("mic", bad ? "bad" : "wait", bad ? "error: " + VoiceStrip.plain(detail.replace(/^refused: /, "")) : detail);
 		} else if (stage === "whisper" && /^(connected, last reply|stopped answering)/.test(detail)){
 			this.conn.set("whisper", bad ? "bad" : "ok", bad ? "error: " + detail : detail);
 		}
@@ -66,7 +73,7 @@ export default class VoiceStrip extends View {
 	/** The one-sentence status, the same facts the row shows: the first red step wins. */
 	said(){
 		const s = this.conn.state;
-		const bad = ["mic", "whisper", "refine"].find(id => s[id].state === "bad");
+		const bad = ["mic", "whisper", "refine"].find(id => s[id]?.state === "bad");
 		const text = bad === "mic" ? "The microphone could not start: " + s.mic.why.replace(/^error: /, "")
 			: bad ? `${bad[0].toUpperCase() + bad.slice(1)} has a problem: ${s[bad].why.replace(/^error: /, "")}`
 			: s.mic.state === "ok" ? "Listening." : s.whisper.state === "ok" ? "Ready. Press the mic." : "Checking Whisper…";

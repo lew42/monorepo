@@ -1,5 +1,6 @@
 import { Doc, md, demo, div, span, textarea, h2, icon, a, small, h4 } from "/app.js";
 import Dictate from "./Dictate.js";
+import VoiceStrip from "./VoiceStrip.js";
 import chat, { new_session_button } from "./chat.js";
 import { page_work_strip } from "/framework/core/Page/ai/work.js";
 
@@ -13,6 +14,7 @@ const CONCEPTS = [
 	{ name: "The mic button", icon: "mic", href: "demo/", blurb: "press it, watch the state — idle → listening → transcribing" },
 	{ name: "Playground", icon: "science", href: "playground/", blurb: "raw whisper text, the fast assistant's corrections, and the live diff" },
 	{ name: "Variants", icon: "style", href: "variants/", blurb: "v1, Cards, Compact — same engine, three different looks" },
+	{ name: "Architecture", icon: "account_tree", href: "doc/voice-architecture/", blurb: "which class owns what: Dictate, VoiceStrip, Widget, the drawer and the phone sheet" },
 	{ name: "Decisions", icon: "menu_book", href: "doc/decisions/", blurb: "the install, the segment/resend mechanics, who starts whisper-server" },
 ];
 
@@ -43,7 +45,7 @@ const demo_box = () => {
 	let $ta, $out;
 
 	const $box = div.c("flex v gap", () => {
-		new Dictate({ $input: () => $ta });
+		new VoiceStrip({ template: "compact", $input: () => $ta });   // the compact dictation panel; doc/voice-architecture.md
 		$ta = textarea.c("ux-dictate-demo-box").attr("rows", "3")
 			.attr("placeholder", "click 🎤 and talk — or type here")
 			.on("input", () => $out.text($ta.el.value || "(empty)"));
