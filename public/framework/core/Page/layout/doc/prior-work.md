@@ -54,7 +54,7 @@ The raw surveys: `public/framework/ai/2026-09-29/page-system/inventory/` (A, B a
 | Page generator — a spec string becomes a real page tree | [core/Page/generator](/framework/core/Page/generator/) · [task](/framework/ai/2026-08-26/page-generator/) | live | keep | five behavior words: wall list prose tabs vtabs |
 | core/Page/overview — one picture card per page building block | [core/Page/overview](/framework/core/Page/overview/) | live | keep | the largest set of page-layout examples |
 | Nested or full — a child inside its parent, or taking the screen | [doc/layout.md](/framework/core/Page/doc/layout.md) | open question | keep | the owner has not ruled; read as evidence |
-| Where each layout part lives — grid, columns, containers, padding | [doc/layout-overview.md](/framework/core/Page/doc/layout-overview.md) | live | keep | the class-side pointer page |
+| Where each layout part lives — grid, columns, containers, padding | [doc/layout-overview.md](/framework/core/Page/doc/archive/layout-overview.md) | live | keep | the class-side pointer page |
 | **decided** One panel open at a time; `.bleed` in a column is flush | [column-pages-2](/framework/ai/2026-08-27/column-pages-2/) | decided | keep | multi-panel rejected: the Router follows one chain |
 | **decided** "The layout never jumps" | the `layout` skill (owner, 2026-09-22) | decided | keep | new items wait behind an "N new" pill; a selection opens its own column |
 | **decided** Router walks declared `children:`; the old Pager is dead code | `core/legacy/` | decided | keep | don't resurrect the Pager |

@@ -23,7 +23,7 @@ A page keeps its data in plain text files inside its own folder. Anything can ad
 | File | What it is | Writes it | Reads it |
 |---|---|---|---|
 | `page.js` | The page's code (a tiny file: import the class, instantiate it). | a person or builder agent | the browser |
-| `page.jsonl` | The page's content as lines, when it has no `page.js` ([`page-jsonl.md`](page-jsonl.md), [`jsonl.md`](jsonl.md)). Each line is one `set()` call. | the page tools, `append_log`, a browser tab | `Page.Reader` |
+| `page.jsonl` | The page's content as lines, when it has no `page.js` ([`page-jsonl.md`](archive/page-jsonl.md), [`jsonl.md`](jsonl.md)). Each line is one `set()` call. | the page tools, `append_log`, a browser tab | `Page.Reader` |
 | `files.jsonl` | The folder's own file list, one line per file that appeared or went (`{"file":"x.png"}`). | `Server/plugins/PageFiles.js`, automatically | `Page.class.js` (the tab strip, listings) |
 | `settings.jsonl` | A page's preferences about itself (a `settings` line, e.g. its tab weight), for a folder that has a `page.js`. | the page tools, `append.mjs` | the parent page's tab strip |
 | `readme.md` | The folder's short index. | a person or agent | people, agents, `md/` route |

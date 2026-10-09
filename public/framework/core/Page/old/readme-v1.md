@@ -57,8 +57,8 @@ Nothing crawls: a page exists once its parent's `children:` (or a `file` line, o
 
 ## Read next
 
-**Layout** — [Layout tab](./layout/) starts with *Choosing a layout*: standard, split, columns, floating page and top-down shape, one line and one link each. [`doc/layout-overview.md`](./doc/layout-overview.md) and [`doc/columns.md`](./doc/columns.md) go deeper.
+**Layout** — [Layout tab](./layout/) starts with *Choosing a layout*: standard, split, columns, floating page and top-down shape, one line and one link each. [`doc/layout-overview.md`](./doc/archive/layout-overview.md) and [`doc/columns.md`](./doc/columns.md) go deeper.
 
 **Navigation** — [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, and where a click opens)
 
-**Reference** — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/more-features.md`](./doc/more-features.md) · [`doc/decisions.md`](./doc/decisions.md), [`doc/findings.md`](./doc/findings.md) (the record) · Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette)
+**Reference** — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/more-features.md`](./doc/archive/more-features.md) · [`doc/decisions.md`](./doc/decisions.md), [`doc/findings.md`](./doc/archive/findings.md) (the record) · Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette)
