@@ -7,6 +7,7 @@ import AISessionFollow from "./AISessionFollow.js";
 import AISessionTrace from "./AISessionTrace.js";
 import AISession from "./AISession.js";
 import AISessionConversation from "./AISessionConversation.js";
+import JSONL from "/framework/ext/JSONL/JSONL.js";
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
 // view). Built with `new AISessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
@@ -18,7 +19,7 @@ export default class AISessionDetail extends Page {
 		super({ home, id, width: "fill", title: id, url: home.url + id + "/" });
 	}
 
-	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; }
+	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.cards?.unsubscribe(); this.cards = null; }
 
 	content(){
 		const { home, id } = this, url = home.url;
@@ -29,14 +30,13 @@ export default class AISessionDetail extends Page {
 			a.c("muted sessions-template", "AISessionDetail.js").href("/framework/ai/AISession/AISessionDetail.js");
 		});
 
-		let $box, $conv, $related, $costs, $spawn, $session, $trace, $cards;
+		let $box, $conv, $related, $costs, $spawn, $session, $trace;
 		div.c("cols main-aside sessions-detail-body", () => {
 			div.c("flow sessions-detail-main", () => {
 				$box = div.c("flow");     // which session this is (source tag, tab title, model)
 				$conv = div.c("flow sessions-conv");   // the live conversation
 			});
 			div.c("flow sessions-detail-aside", () => {
-				$cards = div.c("flow");   // cards the AI posted to this session (doc/session-cards.md)
 				$costs = div.c("flow");
 				$session = div.c("flow"); // the Session class: cost tree, model + effort, tokens by purpose, audit
 				$spawn = div.c("flow");   // who spawned this, why, and what it spawned
@@ -44,7 +44,8 @@ export default class AISessionDetail extends Page {
 				$related = div.c("flow"); // the other records of this session: card, task, brief, report, parent, children
 			});
 		});
-		const conv = new AISessionConversation($conv);
+		const conv = new AISessionConversation();
+		$conv.append(conv.view);
 
 		// `row` first: for a Servex row the url's id is the AGENT's id, a different string from its session_id,
 		// and the transcript and the date-path lookup both need the session_id.
@@ -53,8 +54,8 @@ export default class AISessionDetail extends Page {
 			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)){
 				const f = new AISessionFollow(session_id); f.on_lines = lines => conv.add(lines);   // the first pull draws the history, later pulls append live
 				this.follow = f.start();   // tails the log and corrects the grid row (doc/realtime.md)
-				this.follow.then(() => { if (!conv.count) $conv.append(() => p.c("muted", "No transcript for this session yet: either /ai-logs/ (the dev-server-only route this reads it through) isn't running, or this session's own file has no real prompt in it yet.")); });
-			} else if (!this.follow) AISessionDetail.load_lines(session_id).then(lines => lines && conv.add(lines));
+				this.follow.then(() => { if (!conv.count) $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
+			} else if (!this.follow) AISessionDetail.load_lines(session_id).then(lines => { if (lines) conv.add(lines); else $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
 			Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
 			AISessionRows.load_index(url).then(async () => { const snap = await AISessionDetail.load_snapshot(session_id); $related.empty(() => AISessionDetail.render_related(snap, url)); });
 			// the card's page.jsonl and trace.json live in the session's own folder now; the old card folder is the fallback until a checkout is migrated
@@ -63,7 +64,7 @@ export default class AISessionDetail extends Page {
 				AISessionDetail.load_cost_log(own).then(c => c ?? AISessionDetail.load_cost_log(old)),
 				AISessionRows.load_index(url).then(ix => ix?.traces?.includes(session_id) ? AISessionDetail.load_trace(own_dir).then(t => t ?? AISessionDetail.load_trace(old)) : null),   // a trace.json exists for few sessions: ask only for those the index lists
 			]);
-			AISessionDetail.load_cards(own ?? old).then(cards => $cards.empty(() => AISessionDetail.render_cards(cards)));
+			if (own ?? old) this.cards = new AISessionDetail.Cards((own ?? old) + "page.jsonl", c => conv.add_card(c)).live();   // AI cards arrive live, inline (doc/session-cards.md)
 
 			$costs.empty(() => {
 				if (!costs) return;
@@ -153,38 +154,7 @@ export default class AISessionDetail extends Page {
 	/** The raw transcript lines of a session whose id the live tail cannot follow (null when there are none). */
 	static load_lines(session_id){ return raw_transcript_lines(session_id); }
 
-	/** Cards the AI posted to this session: `{"card":{title,text,href}}` lines in the session folder's page.jsonl (doc/session-cards.md). */
-	static async load_cards(dir){
-		if (!dir) return null;
-		const lines = await AISessionRows.get_jsonl(dir + "page.jsonl");
-		const cards = (lines ?? []).filter(l => l.card?.title).map(l => ({ at: l.at ?? l.ts, ...l.card }));
-		return cards.length ? cards : null;
-	}
-
-	static render_cards(cards){
-		if (!cards) return;
-		small.c("muted", "Cards the AI posted here");
-		cards.forEach(c => div.c("card flow", () => {
-			(c.href ? a.c("page-link", c.title).href(c.href) : span.c("sessions-row-title", c.title));
-			if (c.text) p(c.text);
-			if (c.at) small.c("muted", age(c.at));
-		}));
-	}
-
-	/** A session's prompts, fetched live through /ai-logs/<session_id> (Server/plugins/AILogs.js); nothing is copied anywhere. The last 50. */
-	static async load_transcript(session_id){
-		const lines = await raw_transcript_lines(session_id);
-		if (!lines) return null;
-		const prompts = lines
-			.filter(l => l.type === "user" && !l.isMeta && !l.isSidechain && l.turnOrigin !== "task_notification")
-			.map(l => {
-				const c = l.message?.content;
-				const text = typeof c === "string" ? c : Array.isArray(c) ? c.find(b => b?.type === "text")?.text : null;
-				return text ? { at: l.timestamp, text } : null;
-			})
-			.filter(Boolean);
-		return prompts.length ? prompts.slice(-50) : null;
-	}
+	static NO_TRANSCRIPT = "No transcript for this session yet: either /ai-logs/ (the dev-server-only route this reads it through) isn't running, or this session's own file has no real prompt in it yet.";
 
 	/** Every `ai/<Y>/<M>/<D>/<slug>-<id8>/` folder, keyed by its id8: one walk of /framework/directory.json, shared by the grid and the detail page. */
 	static async dir_index(){
@@ -225,3 +195,16 @@ export default class AISessionDetail extends Page {
 		return trace?.calls && trace?.turns ? trace : null;
 	}
 }
+
+/** The session folder's page.jsonl, streamed: each `page_add` item that has a title is a card the AI posted here (doc/session-cards.md). */
+AISessionDetail.Cards = class Cards extends JSONL {
+	constructor(url, on_card){ super(); this.url = url; this.on_card = on_card; this.cards = new Set(); }
+	read(entries){
+		for (const e of entries){
+			const item = e.content?.add;
+			if (item?.title && item.id && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
+		}
+		return this;
+	}
+	live(){ super.live(() => {}); return this; }
+};

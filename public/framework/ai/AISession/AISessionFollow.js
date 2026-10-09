@@ -9,7 +9,7 @@ import AISession from "./AISession.js";
 // log itself prices: provider "claude". For any other it leaves the server's number alone.
 export default class AISessionFollow {
 
-	static EVERY_MS = 1000;   // a Range request for new bytes is cheap (usually a 416); the dev socket carries no per-line feed yet
+	static EVERY_MS = 250;   // a Range request for new bytes is cheap (usually a 416). The transcript lives outside the repo, so the dev socket (ext/JSONL live()) cannot watch it: a per-line server push is the open item (doc/realtime.md)
 
 	constructor(id, { subagents = true } = {}){
 		this.id = id;
@@ -43,6 +43,12 @@ export default class AISessionFollow {
 
 	/** Fetch every part's new bytes (complete lines only) and fold them in. Returns the number of lines applied. */
 	async pull(){
+		if (this.busy) return 0;   // a slow read must not overlap the next tick (it would fold the same bytes twice)
+		this.busy = true;
+		try { return await this.pull_once(); } finally { this.busy = false; }
+	}
+
+	async pull_once(){
 		await this.discover();
 		let n = 0;
 		for (const [part, p] of this.parts){

@@ -1,13 +1,13 @@
 # Cards the AI posts to a session page
 
-A session page (`/framework/ai/sessions/<id>/`) shows the live conversation, and beside it a "Cards the AI posted here" box.
+A session page (`/framework/ai/sessions/<id>/`) shows the live conversation drawn by `ext/Chat`. A card the AI posts appears in that conversation, at its time, as it arrives.
 
-**Design choice.** A session already has its own folder with a `page.jsonl` (the same card stream the AI board reads, written through `page_add` / `page_note`). So a card for a session is one line in that file, not a new store:
+**Design choice.** A session already has its own folder with a `page.jsonl`, written by the `page_add` tool. So a card is one `page_add` call on that page, not a new store (a separate `cards.jsonl` was rejected: a second card system, law 6):
 
-```json
-{"card":{"title":"Merge report","text":"Landed 3 commits","href":"/framework/ai/2026-10-09/session-detail-live/"}}
+```
+page_add(path: "<session folder url>", item: { title: "Merge report", text: "Landed 3 commits", href: "/framework/ai/..." })
 ```
 
-`AISessionDetail.load_cards` reads those lines; `render_cards` draws them. Alternative rejected: a new `cards.jsonl` per session (a second card system, law 6).
+`AISessionDetail.Cards` (an `ext/JSONL` subclass) streams that file with `live()`; every `{"content":{"add":{title,...}}}` line becomes one bubble through `AISessionConversation.add_card`.
 
-**Not yet:** cards are read once at load, not tailed live, and they sit in the side column, not inline at their time in the conversation. Next step: tail `page.jsonl` like `AISessionFollow` tails the transcript, and merge cards into the conversation by timestamp.
+**Open items.** (1) The conversation itself is tailed by a 250 ms range request (`AISessionFollow`), not pushed: the transcript lives outside the repo, so the dev socket cannot watch it; a per-line server push is the real fix. (2) Cards are only found when the session has a folder with a `page.jsonl`. (3) Tool-call runs that straddle two batches show as two short "N tool calls" lines.
