@@ -24,6 +24,18 @@ This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 (events are built in); an #Item when it is a thing (an icon, a title, saved); a
 #Page when it has a URL.
 
+## Storage and streaming (the tip; the rest is one click down)
+
+A page is a folder, and the folder is its storage:
+
+- `page.js` — a page written as code (import a class, instantiate it).
+- `page.jsonl` — a page written as a log: line 1 builds it, each later line is one change. Appending a line redraws every open tab, no reload.
+- `files.jsonl` — the folder's own file list, kept by the dev server. (`directory.json`, the old whole-site list, is off: `Server/doc/directory-off.md`.)
+
+How a line travels from a writer to the screen, and who may write: [`doc/streaming.md`](doc/streaming.md).
+The classes and the decisions (log growth, big collections, file vs database): [`doc/architecture.md`](doc/architecture.md).
+**Agents change any page with one tool**, `page_set(path, delta)`: a tab, a layout word, an item. Live demo: [tool](./tool/).
+
 ## Architecture
 
 ```js
@@ -100,7 +112,7 @@ Nothing crawls: a page exists once its parent's `children:` (or a `file` line, o
 
 **Navigation** — [navigation](./navigation/) (the pattern: persistent vs switching) · [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, and where a click opens)
 
-**Agents change pages** — [`doc/page-tool-2026-10-09.md`](./doc/page-tool-2026-10-09.md) (path + delta; `page_call`/`page_set`/`page_add`/`page_read` exist in `Servex/agents/page_tools.js`; tabs, layout, session pages are the gap)
+**Agents change pages** — [`doc/architecture.md`](./doc/architecture.md) (path + delta through `page_set`, `Servex/agents/page_tools.js`; tabs, layout words and session pages work live) · the ask: [`doc/page-tool-2026-10-09.md`](./doc/page-tool-2026-10-09.md)
 
 **A thing has a page** — [`doc/composition.md`](./doc/composition.md) (tasks and sessions hold a page by reference, not by extending it; page CRUD/move is a known gap)
 

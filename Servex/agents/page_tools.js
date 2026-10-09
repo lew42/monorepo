@@ -48,6 +48,50 @@ function resolve_file(url){
 	return path.join(dir, "page.jsonl");
 }
 
+/* ROUTE PATHS (2026-10-09, the page tool): an agent names the page it SEES, and this finds
+ * the file behind it, even when none exists yet. Today one family of routes keeps its file
+ * somewhere else: a session page, `/framework/ai/sessions/<id>/`, is drawn by a template
+ * (ai/AISession/AISessionDetail.js) and its page.jsonl lives in the session's own dated
+ * folder, `sessions/YYYY/MM/DD/<slug>/` (AISession.locate() makes one for a session that has
+ * none). `<id>` is a session uuid or a Servex agent id (its registry row holds the uuid). A
+ * deeper path, `/framework/ai/sessions/<id>/notes/`, is a tab built from a line in that same
+ * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
+ * resolves the plain way above. Returns { file, target } or null. */
+const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+async function resolve(url, target = []){
+	const hit = SESSION_ROUTE.exec(String(url ?? ""));
+	if (hit && !/^\d{4}$/.test(hit[1])){
+		const file = await session_file(hit[1]);
+		if (file) return { file, target: [...hit[2].split("/").filter(Boolean), ...(target ?? [])] };
+	}
+	const file = resolve_file(url);
+	return file ? { file, target: target ?? [] } : null;
+}
+
+async function session_file(id){
+	// A folder made here is named for the agent (its Servex id), not left as session-<id8> (brief: "sessions get a name").
+	let uuid = UUID.test(id) ? id : null, name = uuid ? null : id;
+	try {
+		const { default: Registry } = await import("./registry.js"), agents = new Registry().read();
+		if (!uuid) uuid = agents[id]?.session_id ?? null;
+		else name = Object.entries(agents).find(([, a]) => a?.session_id === uuid)?.[0] ?? null;
+	} catch {}
+	if (!uuid) return null;
+	const slug = /^[a-z0-9][a-z0-9-]{2,60}$/.test(name ?? "") ? `${name}-${uuid.slice(0, 8)}` : undefined;
+	const { default: AISession } = await import("../../public/framework/ai/AISession/AISession.js");
+	if (!AISession.days.has(uuid)) AISession.scanned = false;   // a long-lived Servex: a folder made since the last scan must be found, never doubled
+	const file = fileURLToPath(new URL("page.jsonl", await AISession.locate(uuid, undefined, slug)));
+	// A brand-new folder says whose it is on its first line, so AISession.scan() finds it again (never a second folder).
+	if (!fs.existsSync(file)){ fs.mkdirSync(path.dirname(file), { recursive: true }); fs.appendFileSync(file, JSON.stringify({ session: uuid, ts: new Date().toISOString() }) + "\n"); }
+	return file;
+}
+
+// "This page" when an agent names none: its own session page. Servex passes the caller's
+// agent id; a VS Code tab has none here, so it is told its path instead (the prompt hook).
+const own_page = ctx => ctx?.caller && ctx.caller !== "owner" ? `/framework/ai/sessions/${ctx.caller}/` : null;
+
 // Nests `payload` one level per step in `target`, innermost (the payload itself) last —
 // `nest(["k2","answers"], {add: {...}})` → `{k2: {answers: {add: {...}}}}`. `nest([], x)`
 // is `x` itself, flat — the exact same helper Store.js's own `wrap()` is, kept separate
@@ -68,6 +112,29 @@ function write_line(file, line){
 
 	fs.mkdirSync(path.dirname(file), { recursive: true });
 	fs.appendFileSync(file, JSON.stringify(line) + "\n");
+	return size_of(file);
+}
+
+/* SIZE FEEDBACK (the owner, 2026-10-09 18:25): every write answers with the log's new size,
+ * so the writer sees it growing. Past LARGE the answer says so; compaction is designed in
+ * core/Page/doc/architecture.md ("Log growth"). */
+const LARGE = 1024 * 1024;
+function size_of(file){
+	const buf = fs.readFileSync(file);
+	let lines = 0;
+	for (let i = 0; i < buf.length; i++) if (buf[i] === 10) lines++;
+	return { file: path.relative(ROOT, file).replaceAll("\\", "/"), bytes: buf.length, lines, ...(buf.length > LARGE ? { large: true } : {}) };
+}
+
+/* Every `add` in a delta, at any depth, gets an id if it brought none — the agent never
+ * invents ids (the owner, 2026-10-09: "the tool stamps those"). */
+function stamp_ids(value){
+	if (Array.isArray(value)) return value.map(stamp_ids);
+	if (!is_plain(value)) return value;
+	const out = {};
+	for (const [key, v] of Object.entries(value))
+		out[key] = key === "add" && is_plain(v) ? { id: v.id ?? crypto.randomUUID(), ...stamp_ids(v) } : stamp_ids(v);
+	return out;
 }
 
 const now = () => new Date().toISOString();
@@ -76,7 +143,7 @@ const is_plain = v => !!v && typeof v === "object" && !Array.isArray(v);
 const tool = (name, description, properties, required, handler) =>
 	({ name, description, inputSchema: { type: "object", required, properties }, handler });
 
-const PAGE_PATH = { type: "string", description: "The page's own url, e.g. \"/framework/ai/2026-10-02/page-tools/demo/\" — its page.jsonl is public<path>page.jsonl. The folder must already exist (create_page, or a task's own dir)." };
+const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session page \"/framework/ai/sessions/<id>/\" (its file is found for you, even if none exists yet). Omit it to mean YOUR OWN page, /framework/ai/sessions/<your agent id>/." };
 const TARGET = { type: "array", items: { type: "string" }, description: "The path to the target, as a list of hops — each one a property name (\"content\") or a child's id, never a string with slashes or dots. [] (or omit) targets the PAGE itself. [\"content\"] targets its content list. [\"k2\"] targets the existing item with id \"k2\", wherever it lives. [\"k2\",\"answers\"] walks into k2's own \"answers\" list." };
 
 /* ---------- page_read's COMPUTED state (deliverable 2) ----------
@@ -132,6 +199,9 @@ function replay(lines){
 			const value = obj[key];
 
 			if (key === "content" && is_plain(value)){ content_verbs(value); continue; }
+			if (key === "tab" && is_plain(value) && value.name){ (page.tabs ??= {})[value.name] = { ...page.tabs?.[value.name], ...value }; continue; }
+			if (page.tabs?.[key] && is_plain(value)){ const t = page.tabs[key]; if (is_plain(value.content?.add)) (t.items ??= []).push(value.content.add); continue; }
+			if (key === "by" || key === "ts") continue;
 			if (items.has(key) && is_plain(value)){ items.set(key, { ...items.get(key), ...value }); continue; }
 			page[key] = value;
 		}
@@ -177,6 +247,9 @@ function render_markdown({ page, items }){
 	lines.push(`# ${page.title ?? "(untitled)"}`);
 	if (page.description) lines.push(page.description);
 	if (page.log?.text) lines.push(`_doing: ${page.log.text}_`);
+	const words = ["navigation", "width", "arrangement", "surface", "background", "type_size"].filter(w => page[w]).map(w => `${w}: ${page[w]}`);
+	if (words.length) lines.push(`_layout: ${words.join(", ")}_`);
+	for (const [name, t] of Object.entries(page.tabs ?? {})) lines.push(`- tab [${name}] ${t.title ?? name}${t.items?.length ? ` (${t.items.length} items)` : ""}`);
 
 	lines.push("");
 	lines.push("## Content");
@@ -227,16 +300,17 @@ export function page_tools(){
 			{ path: PAGE_PATH, target: TARGET,
 				method: { type: "string", description: "The verb to call at the target — a method on whatever `target` resolves to: `add`, `remove`, `move`, `order`, or any method the item's own class defines." },
 				args: { description: "The method's one argument — an object for `add`, a string id for `remove`, etc. If it's a plain object, `by` and `ts` are stamped onto it." } },
-			["path", "method"],
-			({ path: url, target, method, args }, ctx = {}) => {
-				const file = resolve_file(url);
-				if (!file) return not_a_page(url);
+			["method"],
+			async ({ path: url, target, method, args }, ctx = {}) => {
+				url ??= own_page(ctx);
+				const at = await resolve(url, target);
+				if (!at) return not_a_page(url);
 
-				const stamped = is_plain(args) ? { ...args, by: ctx.caller ?? "agent", ts: now() } : args;
-				const line = nest(target ?? [], { [method]: stamped });
+				const stamped = is_plain(args) ? { ...(method === "add" ? { id: crypto.randomUUID() } : {}), ...stamp_ids(args), by: ctx.caller ?? "agent", ts: now() } : args;
+				const line = nest(at.target, { [method]: stamped });
 
-				write_line(file, line);
-				return JSON.stringify({ ok: true, line });
+				const size = write_line(at.file, line);
+				return JSON.stringify({ ok: true, line, size });
 			}),
 
 		tool("page_add",
@@ -246,37 +320,44 @@ export function page_tools(){
 			{ path: PAGE_PATH,
 				item: { type: "object", description: "The item's own fields — whatever the content list draws: `title`, `text`, `type` (a registered class name, e.g. \"Question\", with its own `text`/`answer`), or any plain data. `id` is optional; one is made for you." },
 				after: { type: "string", description: "The id to land after. Omit to append at the end; `null` to land first." } },
-			["path", "item"],
-			({ path: url, item, after }, ctx = {}) => {
-				const file = resolve_file(url);
-				if (!file) return not_a_page(url);
+			["item"],
+			async ({ path: url, item, after }, ctx = {}) => {
+				url ??= own_page(ctx);
+				const at = await resolve(url, ["content"]);
+				if (!at) return not_a_page(url);
 
 				const id = item?.id ?? crypto.randomUUID();
 				const add = { ...item, id, by: ctx.caller ?? "agent", ts: now(), ...(after !== undefined ? { after } : {}) };
-				const line = nest(["content"], { add });
+				const line = nest(at.target, { add });
 
-				write_line(file, line);
-				return JSON.stringify({ ok: true, id, line });
+				const size = write_line(at.file, line);
+				return JSON.stringify({ ok: true, id, line, size });
 			}),
 
 		tool("page_set",
-			"Change data at one target — sugar for `page_call` with no verb: the delta is handed straight to"
-			+ " the target's own `set()` (core/Item/Item.js's rule — a plain nested delta IS a set, no `\"set\"`"
-			+ " key needed in the line). `page_set(path, [], {\"title\":\"New\"})` changes the PAGE's own title;"
-			+ " `page_set(path, [\"k2\"], {\"answer\":\"42\"})` changes item k2's data, wherever it lives. Stamps"
-			+ " `by` and `ts` onto the same line.",
+			"THE PAGE TOOL: a path and a raw JSON delta, appended as one line to that page's log; every open tab"
+			+ " redraws with no reload. Send only the path and the delta: `by`, `ts` and every missing `id` are"
+			+ " stamped for you. The delta goes to the target's own `set()`: a plain key is data, a key naming a"
+			+ " method calls it. A page accepts (core/Page/doc/architecture.md): `{\"title\":\"New\"}`;"
+			+ " a layout word `{\"navigation\":\"tabs\"}` (also width, arrangement, surface, background, type_size);"
+			+ " a new TAB `{\"tab\":{\"name\":\"notes\",\"title\":\"Notes\",\"content\":\"text\"}}` (turns tabs on if the"
+			+ " page had none); an item `{\"content\":{\"add\":{\"title\":\"…\",\"text\":\"…\"}}}`; an item inside a tab"
+			+ " `{\"notes\":{\"content\":{\"add\":{…}}}}`. `target` (optional) nests the delta under a child or item"
+			+ " id: `page_set(path, [\"k2\"], {\"answer\":\"42\"})`. Answers with the log's new size; `large: true`"
+			+ " past 1 MB.",
 			{ path: PAGE_PATH, target: TARGET,
 				delta: { type: "object", description: "The fields to change, e.g. {\"answer\": \"42\"} or {\"title\": \"Renamed\"}." } },
-			["path", "delta"],
-			({ path: url, target, delta }, ctx = {}) => {
-				const file = resolve_file(url);
-				if (!file) return not_a_page(url);
+			["delta"],
+			async ({ path: url, target, delta }, ctx = {}) => {
+				url ??= own_page(ctx);
+				const at = await resolve(url, target);
+				if (!at) return not_a_page(url);
 
-				const stamped = { ...delta, by: ctx.caller ?? "agent", ts: now() };
-				const line = nest(target ?? [], stamped);
+				const stamped = { ...stamp_ids(delta), by: ctx.caller ?? "agent", ts: now() };
+				const line = nest(at.target, stamped);
 
-				write_line(file, line);
-				return JSON.stringify({ ok: true, line });
+				const size = write_line(at.file, line);
+				return JSON.stringify({ ok: true, line, size });
 			}),
 
 		tool("page_log",
@@ -286,14 +367,15 @@ export function page_tools(){
 			+ " `page_add` for anything that should stay on the page.",
 			{ path: PAGE_PATH,
 				text: { type: "string", description: "What you're doing right now, in a few words, e.g. \"researching X\"." } },
-			["path", "text"],
-			({ path: url, text }, ctx = {}) => {
-				const file = resolve_file(url);
-				if (!file) return not_a_page(url);
+			["text"],
+			async ({ path: url, text }, ctx = {}) => {
+				url ??= own_page(ctx);
+				const at = await resolve(url);
+				if (!at) return not_a_page(url);
 
-				const line = { log: { text, by: ctx.caller ?? "agent", ts: now() } };
-				write_line(file, line);
-				return JSON.stringify({ ok: true, line });
+				const line = nest(at.target, { log: { text, by: ctx.caller ?? "agent", ts: now() } });
+				const size = write_line(at.file, line);
+				return JSON.stringify({ ok: true, line, size });
 			}),
 
 		tool("page_read",
@@ -305,10 +387,12 @@ export function page_tools(){
 			+ " no navigation chrome, when you need the structure (each item's `<li data-id>`) instead.",
 			{ path: PAGE_PATH,
 				format: { type: "string", enum: ["markdown", "html"], description: "\"markdown\" (default, fewest tokens) or \"html\" (the content's own markup, no nav chrome)." } },
-			["path"],
-			({ path: url, format }) => {
-				const file = resolve_file(url);
-				if (!file) return not_a_page(url);
+			[],
+			async ({ path: url, format }, ctx = {}) => {
+				url ??= own_page(ctx);
+				const at = await resolve(url);
+				if (!at) return not_a_page(url);
+				const file = at.file;
 				if (!fs.existsSync(file)) return JSON.stringify({ ok: false, why: `no page.jsonl at "${url}" yet` });
 
 				const state = replay(parse_lines(file));

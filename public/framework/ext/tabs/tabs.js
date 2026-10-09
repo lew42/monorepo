@@ -14,7 +14,7 @@ View.stylesheet(import.meta, "tabs.css");
  *
  * Design record: framework/ext/tabs/readme.md.
  */
-Page.prototype.tabs = function(names){
+Page.prototype.tabs = function(names, { home } = {}){
 	const list = names ? names.trim().split(/\s+/) : [...this.children.keys()];
 
 	// A `{"tab": {"name": "x", "active": true}}` line (core/Page/Log.js) names the
@@ -23,7 +23,10 @@ Page.prototype.tabs = function(names){
 	// `list` order wins if more than one ever claims it; nobody using this line at
 	// all falls straight back to `list[0]`, today's only behaviour.
 	const active = list.find(name => this.tab_state(name).active === true);
-	const owns_url = !this.default_tab && (this.default_tab = active ?? list[0]);
+	// `home` (2026-10-09, core/Page/Frame.js): a function drawing the page's OWN
+	// content as the first tab, at the page's own url — then no child owns that url,
+	// and the panel shows `home` until a child is routed into it.
+	const owns_url = !home && !this.default_tab && (this.default_tab = active ?? list[0]);
 	let $bar, $panel;
 
 	// placed NOW, while the captor is still ours; filled once the first tab lands
@@ -39,10 +42,11 @@ Page.prototype.tabs = function(names){
 	// reads differently per entry point. `this.loading` is the guarantee that every
 	// title is real; the `name === this.default_tab` fallback covers a page built
 	// without a url (its one, preloaded child -- see `filling` below).
+	// A tab built from a `tab` line (`from_tab`, Page.tab()) has its real title already.
 	const label = name => {
 		const page = this.children.get(name);
 		const text = page?.label ?? page?.title;
-		return (this.loading || name === this.default_tab) && text ? text : name;
+		return (this.loading || name === this.default_tab || page?.from_tab) && text ? text : name;
 	};
 
 	// A `tab` line (core/Page/Log.js) can hide a name from the STRIP (`nav: false` —
@@ -62,7 +66,9 @@ Page.prototype.tabs = function(names){
 
 		// ⚠ `tab-default` marks the one whose href is MY url: every sibling url
 		// starts with it, so mark_links() would give it `.in-path` on every tab.
-		$bar.empty(() => shown.forEach(name => {
+		$bar.empty(() => {
+			if (home) a.c("tab tab-default", this.home_tab ?? "Overview").href(this.url);
+			shown.forEach(name => {
 			const disabled = !!this.tab_state(name).disabled;
 			const is_default = owns_url && name === this.default_tab;
 
@@ -71,7 +77,8 @@ Page.prototype.tabs = function(names){
 				.ac(disabled && "tab-disabled")
 				.style(disabled ? { opacity: "0.5", pointerEvents: "none" } : {})
 				.href(disabled ? undefined : is_default ? this.url : this.url + name + "/");
-		}));
+			});
+		});
 
 		// ⚠ these links were built after mark() ran, so they missed the pass
 		this.app?.router?.mark_links();
@@ -79,7 +86,9 @@ Page.prototype.tabs = function(names){
 
 	(this._tab_redraws ??= new Set()).add(draw_bar);
 
-	const filling = Promise.resolve(this.loading ?? this.child(this.default_tab)).then(() => {
+	if (home) $panel.append(() => div.c("tab-home", home));
+
+	const filling = Promise.resolve(this.loading ?? (home ? null : this.child(this.default_tab))).then(() => {
 		draw_bar();
 
 		// EVERY set renders its default, so no panel is ever blank. ⚠ `app` is handed

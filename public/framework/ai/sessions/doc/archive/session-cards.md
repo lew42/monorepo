@@ -11,3 +11,5 @@ page_add(path: "<session folder url>", item: { title: "Merge report", text: "Lan
 `AISessionDetail.Cards` (an `ext/JSONL` subclass) streams that file with `live()`; every `{"content":{"add":{title,...}}}` line becomes one bubble through `AISessionConversation.add_card`.
 
 **Open items.** (1) The conversation itself is tailed by a 250 ms range request (`AISessionFollow`), not pushed: the transcript lives outside the repo, so the dev socket cannot watch it; a per-line server push is the real fix. (2) Cards are only found when the session has a folder with a `page.jsonl`. (3) Tool-call runs that straddle two batches show as two short "N tool calls" lines.
+
+**The same file reshapes the page** (2026-10-09, page tool): a `tab` line adds a tab (the conversation becomes the first tab, "Conversation"), and the six layout words change the layout, live. Only those shape keys apply to the page (`Page.overlay()`); everything else in the file stays card data. Classes and decisions: `core/Page/doc/architecture.md`.

@@ -19,7 +19,44 @@ export default class AISessionDetail extends Page {
 		super({ home, id, width: "fill", title: id, url: home.url + id + "/" });
 	}
 
-	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.cards?.unsubscribe(); this.cards = null; }
+	// With tabs on (a `tab` line in the session's page.jsonl), the template itself is the first tab.
+	home_tab = "Conversation";
+
+	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
+
+	/* THE SESSION'S OWN PAGE LOG (2026-10-09, the page tool): `page.jsonl` in the session's folder can
+	   reshape this page on top of the template — tabs, the six layout words — and carries the cards the
+	   AI posts. Found once (log_url), read before a child is resolved (so `/<id>/notes/` survives a
+	   reload), and streamed while the page is open (content()). core/Page/doc/architecture.md. */
+	// The SAME file the page tool writes (Servex/agents/page_tools.js → AISession.locate()): the session's own
+	// dated folder; a session the index has not seen yet gets the folder locate() makes, today's `session-<id8>/`.
+	// The old card folder (ai/YYYY/MM/DD/<slug>-<id8>/, where prompt-relay.mjs still writes the owner's prompts)
+	// is read as well, while it exists — found through directory.json, which is big and slow, so it never
+	// holds up the own log. Returns [own] at once, then [own, old] once the old folder is known.
+	log_urls(){
+		return this._log_urls ??= AISessionDetail.load_row(this.home.url, this.id).then(async row => {
+			const session_id = row?.session_id ?? this.id;
+			if (!/^[0-9a-f]{8}-/.test(session_id)) return [];
+			await AISessionRows.load_index(this.home.url);   // fills AISession.days, so the dated folder is known
+			const own = AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname
+				: new URL(`./${AISession.day(new Date())}/${AISessionDetail.slug(row, session_id)}/`, AISession.root_url()).pathname;
+			this._old_url = AISessionDetail.dir_index().then(index => {
+				const old = AISessionDetail.dir_of(index, session_id);
+				return old && old !== own ? old + "page.jsonl" : null;
+			});
+			return [own + "page.jsonl"];
+		});
+	}
+
+	/** The folder name the page tool gives a session it makes a folder for: the Servex agent's id + id8, else session-<id8> (Servex/agents/page_tools.js). */
+	static slug(row, session_id){
+		const name = row?.id !== session_id && /^[a-z0-9][a-z0-9-]{2,60}$/.test(row?.id ?? "") ? row.id : "session";
+		return `${name}-${session_id.slice(0, 8)}`;
+	}
+
+	log_loaded(){ return this._log_loaded ??= this.log_urls().then(urls => Promise.all(urls.map(url => new AISessionDetail.Log({ url, page: this }).load()))); }
+
+	async child(name, levels){ await this.log_loaded(); return super.child(name, levels); }
 
 	content(){
 		const { home, id } = this, url = home.url;
@@ -51,6 +88,13 @@ export default class AISessionDetail extends Page {
 		// and the transcript and the date-path lookup both need the session_id.
 		AISessionDetail.load_row(url, id).then(async row => {
 			const session_id = row?.session_id ?? id;
+			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
+			this.log_urls().then(urls => {
+				if (this.logs) return;
+				const open = url => new AISessionDetail.Log({ url, page: this, on_card: c => conv.add_card(c) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
+				const logs = this.logs = urls.map(open);
+				this._old_url?.then(old => { if (old && this.logs === logs) logs.push(open(old)); });
+			});
 			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)){
 				const f = new AISessionFollow(session_id); f.on_lines = lines => conv.add(lines);   // the first pull draws the history, later pulls append live
 				this.follow = f.start();   // tails the log and corrects the grid row (doc/realtime.md)
@@ -64,7 +108,6 @@ export default class AISessionDetail extends Page {
 				AISessionDetail.load_cost_log(own).then(c => c ?? AISessionDetail.load_cost_log(old)),
 				AISessionRows.load_index(url).then(ix => ix?.traces?.includes(session_id) ? AISessionDetail.load_trace(own_dir).then(t => t ?? AISessionDetail.load_trace(old)) : null),   // a trace.json exists for few sessions: ask only for those the index lists
 			]);
-			if (own ?? old) this.cards = new AISessionDetail.Cards((own ?? old) + "page.jsonl", c => conv.add_card(c)).live();   // AI cards arrive live, inline (doc/session-cards.md)
 
 			$costs.empty(() => {
 				if (!costs) return;
@@ -196,13 +239,15 @@ export default class AISessionDetail extends Page {
 	}
 }
 
-/** The session folder's page.jsonl, streamed: each `page_add` item that has a title is a card the AI posted here (doc/session-cards.md). */
-AISessionDetail.Cards = class Cards extends JSONL {
-	constructor(url, on_card){ super(); this.url = url; this.on_card = on_card; this.cards = new Set(); }
+/** The session folder's page.jsonl, read or streamed: a `page_add` item with a title is a card the AI posted here
+ *  (doc/session-cards.md); the shape of every line (tabs, layout words) goes onto the page through `Page.overlay()`. */
+AISessionDetail.Log = class SessionPageLog extends JSONL {
+	cards = new Set();
 	read(entries){
 		for (const e of entries){
 			const item = e.content?.add;
-			if (item?.title && item.id && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
+			if (item?.title && item.id && this.on_card && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
+			this.page?.overlay(e);
 		}
 		return this;
 	}

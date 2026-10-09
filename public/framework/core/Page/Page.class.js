@@ -115,6 +115,7 @@ export class Page extends Item {
 
 		(this.jsonl_lines ??= []).push(obj);
 		this.emit("line", obj);
+		obj = this.take_words(obj);
 
 		if ("content" in obj && !(this.content instanceof List)){
 			const { content, ...rest } = obj;
@@ -255,12 +256,109 @@ export class Page extends Item {
 	// can be how a tab comes to exist at all, with nothing yet to draw there.
 	// ⚠ Repeat lines for the same name MERGE (the new keys land on top of the old),
 	//   never replace — set() calling this again is just one more spread.
+	// (2026-10-09, the page tool) A `tab` line that also brings PAGE DATA (`title`,
+	// `icon`, `description`, `content`) builds that tab's page right here, in memory,
+	// so an agent's "add a tab" draws at once: `{"tab": {"name": "notes", "title":
+	// "Notes", "content": "…"}}`. Its own items arrive later as `{"notes": {"content":
+	// {"add": {…}}}}` (`get("notes")` finds the child in `pages`). A page with no tab
+	// strip yet turns `navigation: "tabs"` on, because a tab nobody can see is not
+	// what was asked. doc/architecture.md.
 	tab(obj){
-		const { name, ...state } = obj;
+		const { name, title, icon, description, content, ...state } = obj;
 		if (!name) return;
 
 		(this.tabs_state ??= new Map()).set(name, { ...this.tabs_state.get(name), ...state });
-		if (!this.children.has(name)) this.children.set(name, null);
+		const data = Object.fromEntries(Object.entries({ title, icon, description, content }).filter(([, v]) => v !== undefined));
+		if (!Object.keys(data).length){
+			if (!this.children.has(name)) this.children.set(name, null);
+			return;
+		}
+
+		const had = this.children.get(name);
+		if (had instanceof Page){
+			const { content: text, ...labels } = data;
+			if (Object.keys(labels).length) had.set(labels);
+			if (text !== undefined && !(had.content instanceof List)) had.content = text;
+			had.rerender();
+			if (this.view) queueMicrotask(() => this.nav_redraw?.());
+			return;
+		}
+
+		this.add(name, data).from_tab = true;
+		if (!this.navigation && !this._tab_redraws?.size){ this.navigation = "tabs"; this.words(); }
+		this.reshape();
+	}
+
+	// ════ THE SIX WORDS AS A DELTA (2026-10-09, the page tool) ═══════════════
+	// `{"navigation": "tabs"}` or `{"width": "fill"}` on a live page.jsonl reshapes the
+	// page: the word lands on the PAGE ITSELF, where render() reads it (never in
+	// `data`, where Item's routing would have put it), and a page already on screen
+	// redraws. A word that did not change redraws nothing, so a log replayed twice
+	// is quiet.
+	static WORDS = ["navigation", "width", "arrangement", "surface", "background", "type_size"];
+
+	take_words(obj){
+		const said = Page.WORDS.filter(word => word in obj);
+		if (!said.length) return obj;
+
+		const rest = { ...obj };
+		let changed = false;
+		for (const word of said){
+			if (this[word] !== rest[word]){ this[word] = rest[word]; changed = true; }
+			delete rest[word];
+		}
+		if (changed){ this.words(); this.reshape(); }
+		return rest;
+	}
+
+	/* A LOG ON TOP OF A TEMPLATE. A page drawn by code (a template, like a session
+	   page) can still be reshaped by a page.jsonl beside its data: only the SHAPE of
+	   a line applies here — the six words, `tab` lines, `title`, and lines addressed
+	   to a tab that a `tab` line built. Everything else in such a log (a card's own
+	   fields, cost lines, `add`/`at` lines older code wrote) stays that log's data,
+	   because an unknown key can name a Page METHOD (`add`, `move`) and must never
+	   call it. Returns the part it applied, or null. */
+	overlay(line){
+		if (!line || typeof line !== "object" || Array.isArray(line)) return null;
+		const shape = {};
+		for (const [key, value] of Object.entries(line))
+			if (Page.WORDS.includes(key) || key === "tab" || key === "title" || this.children.get(key)?.from_tab) shape[key] = value;
+		return Object.keys(shape).length ? (this.set(shape), shape) : null;
+	}
+
+	// One redraw per burst of lines: a batch of lines read together (a replay, or a
+	// delta naming three words) lands as ONE rerender, on the next microtask.
+	reshape(){
+		if (!this.view || this._reshaping) return;
+		this._reshaping = true;
+		queueMicrotask(() => { this._reshaping = false; this.rerender(); });
+	}
+
+	/* DRAW ME AGAIN, IN PLACE — no reload. The old element is swapped for a fresh
+	   render(); the pages the router has open BELOW me were mounted in my old regions
+	   (a tab panel), so each is activated again and lands in the new one; then the
+	   router re-marks the chain. `deactivated()`/`activated()` run around it, so a
+	   page that starts a stream in content() stops the old one first.
+	   ⚠ Not `redraw()`: `Card` (ai/cards/card.js) already has its own. */
+	rerender(){
+		const old = this.view?.el;
+		if (!old) return this;
+
+		this.deactivated?.();
+		const was_default = old.classList.contains("default");
+		Page.views.delete(old);
+		this.view = null; this.regions = null; this._tab_redraws = null; this.default_tab = undefined; this.related_drawn = false;
+
+		this.render();
+		if (was_default) this.view.ac("default");
+		old.replaceWith(this.view.el);
+		this.activated?.();
+
+		const router = this.app?.router, open = router?.chain?.() ?? [];
+		const at = open.indexOf(this);
+		if (at >= 0) open.slice(at + 1).forEach(page => page.activate());
+		if (router?.active) router.mark();
+		return this;
 	}
 
 	// The state a `tab` line recorded for one name — `{}` when nobody ever set one, so
@@ -682,7 +780,7 @@ export class Page extends Item {
 		// a fresh insert. `page.pages` (above) is the real storage; `this.children`
 		// above is only the Map-shaped view over it.
 		const stub = this.pages.find(name);
-		stub ? this.pages.replace(stub, page) : this.pages.insert(page);
+		stub ? this.pages.replace(stub, page) : this.children.put(page);   // put(): a child may share a config key's name (PageChildren.put)
 		return page;
 	}
 
@@ -1457,7 +1555,14 @@ export class Page extends Item {
 
 	// Asked at RENDER time, never walked — so a child that only loads when you
 	// navigate to it is a column too. Undefined when I am not in a columns tree.
-	column_host(){ return this.chain().find(page => page.columnar); }
+	// ⚠ A page under a TAB STRIP is a tab: drawn as a page in that strip's panel, never as
+	//   one more column in the row (2026-10-09, the page tool — a session page is a column,
+	//   and a tab an agent adds to it must open inside it).
+	column_host(){
+		const chain = this.chain(), at = chain.findIndex(page => page.columnar);
+		if (at < 0 || chain.slice(at, -1).some(page => page.navigation === "tabs")) return undefined;
+		return chain[at];
+	}
 
 	// My column, then the region MY children mount in — so the DOM stays an ordinary
 	// tree and the visibility contract holds; Page.css flattens only the LAYOUT. The
@@ -1527,7 +1632,11 @@ export class Page extends Item {
 			     columns row printed its own address as a line of text (2026-09-06) — one
 			     of the two places what-is-in-the-box is decided, disagreeing with the
 			     other. There is one now. */
-			if (this.content)
+			// A column that says `navigation: "tabs"` draws the one tab strip (ext/tabs), its own
+			// content as the first tab, instead of listing its children as rows that open beside it.
+			const tabbed = this.navigation === "tabs" && is.fn(this.tabs);
+			if (tabbed) this.tabs(undefined, { home: () => div.c("page-column-prose flow", () => this.render_content()) });
+			else if (this.content)
 				div.c("page-column-prose flow", () => this.render_content());
 
 			// ⚠ `index: true` — my content ALREADY shows my children, as a `previews()`
@@ -1536,7 +1645,7 @@ export class Page extends Item {
 			//   out by hand to say it. A FIELD, not a method — and not `nav:` (`nav()` is
 			//   a method here) or `rail:` (four pages already declare it as their own
 			//   word): the `opens()` collision, avoided by grepping first. doc/columns.md.
-			if (!this.index) this.children.forEach((child, name) => {
+			if (!this.index && !tabbed) this.children.forEach((child, name) => {
 				const nav = this.nav_for(name);
 
 				a.c("page-column-item").href(nav.url).append(() => {
@@ -1917,12 +2026,23 @@ class PageChildren extends Map {
 		const had = this.pages.find(name);
 
 		if (value === null){
-			if (!had) this.pages.insert({ id: name, name, stub: true });
+			if (!had) this.put({ id: name, name, stub: true });
 			return this;
 		}
 
-		had ? this.pages.replace(had, value) : this.pages.insert(value);
+		had ? this.pages.replace(had, value) : this.put(value);
 		return this;
+	}
+
+	// List.insert() refuses an id that equals a property of the list's owner (core/List/List.js, because
+	// `get(name)` reads properties first). A child page is found by `pages.find(name)`, never by `get()`, and
+	// its name may equal a config key of its parent: core/Page's own `overview:` and `files:` strings name its
+	// Overview and Files tabs. The guard hid those tabs and every link into them (2026-10-09), so children skip it.
+	put(x){
+		const pages = this.pages, made = pages.make(x);
+		pages.insert_before(made, null);
+		pages.adopted(made);
+		return made;
 	}
 
 	// Quiet — a Map never announced either. `release()` is List's quiet remove
