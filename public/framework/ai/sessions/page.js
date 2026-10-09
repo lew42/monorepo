@@ -458,8 +458,8 @@ export function row_view(r, url, page_dirs, spend, session_index, nest){
 // ---- filters + summary + "cost by role", all computed client-side over the
 // rows already fetched (CLAUDE.md law 7: no new endpoint). ----
 
-function claude_usd_of(r){ const ix = row_of(IX, r.session_id || r.id); if (ix) return ix.usd; return typeof r.cost_claude_usd === "number" ? r.cost_claude_usd : (typeof r.cost === "number" ? r.cost : 0); }
-function openrouter_usd_of(r){ return typeof r.cost_openrouter_usd === "number" ? r.cost_openrouter_usd : 0; }
+function claude_usd_of(r){ const ix = row_of(IX, r.session_id || r.id); if (ix) return ix.provider === "openrouter" ? 0 : ix.usd; /* OpenRouter is not Claude spend */ return typeof r.cost_claude_usd === "number" ? r.cost_claude_usd : (typeof r.cost === "number" ? r.cost : 0); }
+function openrouter_usd_of(r){ const ix = row_of(IX, r.session_id || r.id); if (ix?.provider === "openrouter") return ix.usd; return typeof r.cost_openrouter_usd === "number" ? r.cost_openrouter_usd : 0; }
 
 function in_date_range(r, from, to){
 	if (!r.last_activity) return true;   // nothing to filter on — don't hide it

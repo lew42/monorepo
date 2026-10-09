@@ -19,10 +19,12 @@ export async function load_index(root_url){
 }
 
 // The grid file keeps one short array per session (see Server/session-summary.mjs); this reads it as an object.
+// "Claude $1.20" for a Claude session; just "$1.20" for OpenRouter (its model name already says who it is).
+export const provider_label = provider => provider === "openrouter" ? "" : "Claude ";
 export function row_of(index, id){
 	const v = index?.rows?.[id];
 	if (!v) return null;
-	return { id, usd: v[0], tree_usd: v[1], children: v[2], wall_ms: v[3], model: v[4] || null, effort: v[5] || null, flags: v[6], day: v[7] || null };
+	return { id, usd: v[0], tree_usd: v[1], children: v[2], wall_ms: v[3], model: v[4] || null, effort: v[5] || null, flags: v[6], day: v[7] || null, provider: v[8] || "claude" };
 }
 export async function load_tree(root_url){
 	try { const r = await fetch(root_url + "session-tree.json", { cache: "no-store" }); return r.ok ? await r.json() : {}; } catch { return {}; }
@@ -32,7 +34,7 @@ export async function load_tree(root_url){
 export function cost_lines(row, index){
 	if (!row) return;
 	const kids = row.children || 0;
-	span.c("sessions-cost-main").text("Claude " + usd(row.tree_usd ?? row.usd))
+	span.c("sessions-cost-main").text(provider_label(row.provider) + usd(row.tree_usd ?? row.usd))
 		.attr("title", kids ? `This session ${usd(row.usd)} + ${kids} descendant${kids > 1 ? "s" : ""} ${usd(row.tree_usd - row.usd)}` : "This session, counted from its own transcript");
 	if (kids) small.c("muted sessions-subtree-note", `own ${usd(row.usd)} + ${kids} child${kids > 1 ? "ren" : ""}`);
 	if (row.flags) small.c("sessions-flag").text("⚠ " + row.flags + " flag" + (row.flags > 1 ? "s" : "")).attr("title", "Open the session to read the flags");
@@ -75,15 +77,15 @@ export function detail_section($el, id, index, tree = {}){
 			if (!d){ p.c("muted", "No Session numbers for this id — it has no Claude transcript, or the dev-server route (GET /ai-logs/<id>/session) is not running."); return; }
 			const mine = row_of(index, id);
 			div.c("sessions-detail-head flex gap-50 v-center", () => {
-				span.c("sessions-row-title").text("Claude " + usd(mine?.tree_usd ?? d.usd));
-				small.c("muted", `own ${usd(d.usd)} · ${runtime(d.wall_ms)} wall, ${runtime(d.active_ms)} active · ${d.messages} messages, ${d.prompts} prompts · ${d.cache_read_pct}% of the $ is cache reads`);
+				span.c("sessions-row-title").text(provider_label(d.provider) + usd(mine?.tree_usd ?? d.usd));
+				small.c("muted", `own ${usd(d.usd)} · ${runtime(d.wall_ms)} wall, ${runtime(d.active_ms)} active · ${d.messages} ${d.provider === "openrouter" ? "turns" : "messages"}, ${d.prompts} prompts${d.provider === "openrouter" ? " · cost and turns from the Servex registry (OpenRouter)" : ` · ${d.cache_read_pct}% of the $ is cache reads`}`);
 			});
 			// model + effort: the unit that prices a session
 			div.c("flow", () => {
 				small.c("muted", "Models that ran (from the session file, version included) · effort");
 				d.units.forEach(u => div.c("flex gap-50 v-center", () => {
 					span(`${u.model} · ${u.effort ?? "effort unknown"}`);
-					small.c("muted", `${usd(u.usd)} · ${u.n} messages`);
+					small.c("muted", d.provider === "openrouter" ? `${u.n} messages` : `${usd(u.usd)} · ${u.n} messages`);
 				}));
 				const c = d.configured;
 				if (c?.model || c?.effort) small.c("muted", `Servex registry says: ${c.model ?? "?"} · ${c.effort ?? "?"}`);

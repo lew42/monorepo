@@ -40,7 +40,7 @@ export async function refresh(id, { registry = registry_rows(), main_path } = {}
 	const session = (await Session.load_cached(id)) ?? new Session(id);
 	const { new_lines } = await session.update(files);
 	const reg = registry.find(r => r.session_id === id);
-	session.set_configured(reg ? { model: reg.model, effort: reg.effort, parent: reg.parent, role: reg.role, agent: reg.id } : null);
+	session.set_configured(reg ? { model: reg.model, effort: reg.effort, parent: reg.parent, role: reg.role, agent: reg.id, cost: reg.cost, turns: reg.turns } : null);
 	if (new_lines) await session.save();
 	return { session, new_lines, files: files.length };
 }
@@ -96,11 +96,14 @@ export async function build_index({ days = 30 } = {}){
 		const reg = registry.find(x => x.session_id === id);
 		const pv = r.session.preview();
 		rows[id] = { id, agent: reg?.id ?? null, role: reg?.role ?? null, parent: reg?.parent ?? null, usd: pv.usd, wall_ms: pv.wall_ms, active_ms: pv.active_ms,
-			model: pv.model, effort: pv.effort, flags: pv.flags.length, first_at: r.session.s.first_at, last_at: r.session.s.last_at };
+			model: pv.model, provider: pv.provider, effort: pv.effort, flags: pv.flags.length, first_at: r.session.s.first_at, last_at: r.session.s.last_at };
 	}
 	// a registry parent is an AGENT id; the tree is keyed by session id
 	const agent_to_session = new Map(registry.filter(r => r.session_id).map(r => [r.id, r.session_id]));
-	const tree_rows = Object.values(rows).map(r => ({ id: r.id, usd: r.usd, parent: r.parent ? agent_to_session.get(r.parent) : null }));
+	// An echo agent is named echo-<first 8 of the owner chat session it serves>: that session is its parent.
+	const by8 = new Map(Object.keys(rows).map(id => [id.slice(0, 8), id]));
+	const echo_parent = r => { const m = /^echo-([0-9a-f]{8})$/.exec(r.agent || ""); const s = m && by8.get(m[1]); return s && s !== r.id ? s : null; };
+	const tree_rows = Object.values(rows).map(r => ({ id: r.id, usd: r.usd, parent: r.parent ? agent_to_session.get(r.parent) : echo_parent(r) }));
 	const roll = Session.rollup(tree_rows);
 	for (const r of Object.values(rows)){ const t = roll.get(r.id); r.tree_usd = t.tree_usd; r.children = t.children; r.kids = t.kids; r.parent = tree_rows.find(x => x.id === r.id).parent ?? null; }
 	// Spawned agents (anything the registry knows with a session) whose parent was never recorded: a defect, counted.
@@ -121,12 +124,12 @@ export async function build_index({ days = 30 } = {}){
 		const rec = await Session.record(id);
 		if (rec.closed) closed[id] = rec.closed.at;
 		if (rec.tags.length || rec.alerts || rec.links.length || rec.weight != null) meta[id] = { tags: rec.tags, alerts: rec.alerts, links: rec.links.slice(0, 3), weight: rec.weight };
-		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, Session.day(r.first_at) ?? 0];
+		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, Session.day(r.first_at) ?? 0, r.provider === "openrouter" ? "openrouter" : 0];
 		if (r.parent || r.kids.length) tree[id] = { agent: r.agent ?? undefined, role: r.role ?? undefined, parent: r.parent ?? undefined, kids: r.kids.length ? r.kids : undefined };
 	}
 	// sessions that have a trace.json: the page asks for one only for these (a 404 is a smoke-test failure)
 	const traces = Object.keys(slim).filter(id => fs.existsSync(path.join(fileURLToPath(Session.dir_url(id, Session.day(rows[id].first_at) ?? undefined)), "trace.json")));
-	const index = { generated_at: new Date().toISOString(), days, traces, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
+	const index = { generated_at: new Date().toISOString(), days, traces, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day", "provider"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-tree.json"), JSON.stringify(tree));
 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-index.json"), JSON.stringify(index));
 	return { ...index, rows: undefined, new_lines };
