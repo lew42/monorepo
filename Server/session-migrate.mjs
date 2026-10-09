@@ -8,7 +8,7 @@
 // What moves, per session (joined by the Claude session id):
 //   ai/sessions/YYYY/MM/DD/<uuid>/            -> ai/sessions/YYYY/MM/DD/<slug>/            (cache.jsonl, session.jsonl, index.json, trace.json: the whole folder)
 //   ai/YYYY/MM/DD/session-<id8>/ (the card)   -> ai/sessions/YYYY/MM/DD/<slug>/            (its files, so page.jsonl lands at <slug>/page.jsonl; a name that clashes goes under card/)
-//   ai/YYYY-MM-DD/<task>/ (the task)          -> ai/sessions/YYYY/MM/DD/<slug>/task/       (whole folder; joined by session_id in task.jsonl)
+//   ai/YYYY-MM-DD/<task>/ (the task)          -> ai/sessions/YYYY/MM/DD/<slug>/task/       ONLY with --tasks (whole folder; joined by session_id in task.jsonl). Off by default: see MOVE_TASKS.
 // The slug is descriptive and unique within its day: the task's folder name, else the session's title (Sessions list), else the first
 // words of its first prompt, else session-<id8>. A collision on a day gets the id8 appended. The UUID stays inside index.json.
 // Nothing is deleted. Tracked files move with `git mv`, untracked and ignored ones (cache.jsonl) with a plain rename.
@@ -20,9 +20,11 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const argv = process.argv.slice(2), flag = n => argv.includes(n), val = n => argv[argv.indexOf(n) + 1];
+const argv = process.argv.slice(2), flag = n => argv.includes(n), val = n => flag(n) ? argv[argv.indexOf(n) + 1] : undefined;   // undefined, never argv[0], when the flag is absent
 const REPO = path.resolve(val("--repo") ?? path.join(here, ".."));
 const AI = path.join(REPO, "public", "framework", "ai"), SESS = path.join(AI, "sessions"), MANIFEST = path.join(SESS, "migration-manifest.json");
+// Task folders stay where they are unless --tasks: a task is a page tree, and a page exists only while its parent declares it, so a moved task has no route yet (doc/migration-dry-run-2026-10-09.md).
+const MOVE_TASKS = flag("--tasks");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 // The first real prompt of a session, from its raw transcript (~/.claude/projects/<cwd>/<id>.jsonl); the first 256 KB are enough.
 const PROJECTS = path.join(os.homedir(), ".claude", "projects");
@@ -89,7 +91,7 @@ export function plan(){
 		const task_name = s.tasks.length ? path.basename(s.tasks[0]) : "";
 		const pick = [["task", slugify(task_name, 12)], ["title", s.title && !/^(monorepo|lew42|untitled)$/i.test(s.title) ? slugify(s.title) : ""], ["prompt", slugify(s.first || s.prompt, 6)]].find(([, v]) => v) ?? ["id", fallback(s)];
 		let slug = pick[1], day = taken.get(s.day) ?? taken.set(s.day, new Set()).get(s.day);
-		if (day.has(slug)){ collisions.push(`${s.day}/${slug}`); slug = `${slug}-${s.id.slice(0, 8)}`; }
+		if (day.has(slug)){ collisions.push(`${s.day}/${slug}`); const base = slug; slug = `${base}-${s.id.slice(0, 8)}`; if (day.has(slug)) slug = `${base}-${s.id}`; }   // two sessions sharing an id8 (test fixtures) fall back to the full id, which is unique
 		day.add(slug); s.slug = slug; s.slug_from = pick[0];
 		if (s.day === "unknown") continue;   // no first_at to date it: it stays where it is
 		const [Y, M, D] = s.day.split("-"), to = path.join(SESS, Y, M, D, slug);
@@ -97,7 +99,7 @@ export function plan(){
 		// the card's files go straight into the session folder (page.jsonl -> <slug>/page.jsonl); a name already there goes under card/ instead
 		const used = new Set(["cache.jsonl", "session.jsonl", "index.json", "trace.json", "task", "card"]);
 		s.cards.forEach(c => { for (const e of fs.readdirSync(c)){ const clash = used.has(e); used.add(e); moves.push({ id: s.id, from: path.join(c, e), to: path.join(to, clash ? "card" : "", e), kind: "card", card_dir: c }); } });
-		s.tasks.forEach((t, i) => moves.push({ id: s.id, from: t, to: path.join(to, i ? `task-${i + 1}` : "task"), kind: "task" }));
+		if (MOVE_TASKS) s.tasks.forEach((t, i) => moves.push({ id: s.id, from: t, to: path.join(to, i ? `task-${i + 1}` : "task"), kind: "task" }));
 	}
 	return { sessions, moves, cards, card_orphans, tasks, task_orphans, multi_session, collisions };
 }
@@ -146,11 +148,13 @@ function apply(p){
 	// the manifest is written FIRST and then updated as the moves land, so an interrupted run can still be undone
 	const write = () => fs.writeFileSync(MANIFEST, JSON.stringify({ at: new Date().toISOString(), repo: rel(REPO) || ".", moves: done }, null, 1));
 	let n = 0;
-	for (const m of p.moves){
-		move(m.from, m.to);
-		done.push({ id: m.id, kind: m.kind, from: rel(m.from), to: rel(m.to) });
-		if (++n % 500 === 0) write();
-	}
+	try {
+		for (const m of p.moves){
+			move(m.from, m.to);
+			done.push({ id: m.id, kind: m.kind, from: rel(m.from), to: rel(m.to) });
+			if (++n % 500 === 0) write();
+		}
+	} finally { write(); }   // an interrupted run still leaves a manifest that covers every move that landed
 	// each session's index.json gets its folder name; its UUID is already inside it
 	for (const m of p.moves.filter(m => m.kind === "session")){
 		const f = path.join(m.to, "index.json");

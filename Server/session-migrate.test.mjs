@@ -25,7 +25,7 @@ execFileSync("git", ["-C", repo, "add", "-A"]); execFileSync("git", ["-C", repo,
 const run = (...a) => execFileSync("node", [path.join(here, "session-migrate.mjs"), "--repo", repo, ...a], { encoding: "utf8" });
 const dry = run();
 check(dry.includes("nothing was changed") && fs.existsSync(path.join(day, id)), "the dry run touches nothing");
-run("--apply");
+run("--apply", "--tasks");
 const slug = path.join(day, "build-the-thing");
 check(fs.existsSync(path.join(slug, "cache.jsonl")) && fs.existsSync(path.join(slug, "index.json")), "the session folder moved to its slug (named after its task)");
 check(JSON.parse(fs.readFileSync(path.join(slug, "index.json"), "utf8")).folder === "build-the-thing", "index.json carries the folder; the uuid stays inside it");
