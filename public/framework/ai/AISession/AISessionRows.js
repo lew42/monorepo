@@ -113,8 +113,8 @@ export default class AISessionRows {
 		if (r.source === "servex") return r.role || known;
 		if (known) return known;
 		if (/^echo-/.test(r.id || "")) return "echo/refiner";
-		if (r.source === "vscode") return "vscode mastermind";
-		if (r.source === "cli") return "cli";
+		if (r.source === "vscode") return "vscode tab";
+		if (r.source === "cli") return "terminal";
 		if (r.source === "sdk") return "sdk run";
 		return null;
 	}
