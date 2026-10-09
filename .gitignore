@@ -138,3 +138,7 @@ test-layout-out/
 Server/.push-vapid.json
 # the old day-file shape (YYYY/MM/DD/index.jsonl) is superseded by the day composite index.json; stale copies stay ignored
 public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/index.jsonl
+# a session's card (moved here from ai/YYYY/MM/DD/session-<id8>/, which was ignored whole): live card state, not source
+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/page.jsonl
+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/trace.json
+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/card/
