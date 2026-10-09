@@ -108,7 +108,7 @@
 	.sessions-fold { cursor: pointer; margin-inline-end: .4em; color: var(--prim-ink); font-weight: 400; }
 	.sessions-row-prompt { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-	/* Below `ext/panel2`'s own 30em container floor, a 6-column grid has
+	/* Compact cards below 88em of the panel (this em is the panel's 13.3px: about 1170px, just over the grid's true minimum of about 1090px; 56em let it scroll sideways at 1100 and 1400). Before: below `ext/panel2`'s own 30em container floor, a 6-column grid has
 	   nowhere left to shrink to — the owner's narrow-screen answer elsewhere
 	   on the site is always "one column at a time" (`core/Page`'s own < 32em
 	   phone regime), so the grid becomes a plain stacked card per row instead
@@ -118,7 +118,7 @@
 	   `fill` page its third; this puts it back to a half. */
 	.sessions-page.active-ancestor > .page-column-body.page-column-fill { --page-column-flex: 0 0 50%; --page-column-min: 16em; --page-column-max: 50%; }
 
-	@container (width < 56em) {
+	@container (width < 88em) {
 		.sessions-grid { display: flex; flex-direction: column; width: auto; max-width: 100%; }
 		.sessions-head { display: none; }
 		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }
