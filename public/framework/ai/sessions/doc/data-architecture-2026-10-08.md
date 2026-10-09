@@ -29,3 +29,21 @@ The JSONL streaming system (sessions, logs, tasks, boards, the `live()` tail and
 
 ## 7. Budgeting must run on the ledger (owner, 2026-10-08; queued)
 Budgets and the spend gate (`Servex/agents/Agents.js` `gate_check`, `allowance_usd`) must read spend from the programmatic per-message ledger (`session.jsonl`, computed from the raw session file's usage lines, deduped by message id), not from the SDK's end-of-turn total or the registry's `cost` (which resets on Servex restart) or the task `spend.json` (observed ~2x high). No AI judges spend. The budget NUMBER stays an estimate set by whoever spawns (default $20), but enforcement (80%/100% warnings, 2x hard stop) reads the ledger. Do this after the Session class lands and its audit shows a 0 gap.
+
+## 8. The live index: state, not events (owner decision, 2026-10-08)
+
+**Decided.** The index holds **state**: each day-index line is the latest summary of one session (id, name, parent, model and effort, provider, state, started and updated, cost parts, tokens, tags, alert count). Last write wins per id, so a client reduces the lines by id into the current state without reading a transcript. Detail (every message, every tool call) stays in the transcript and cache and loads only on drill-down.
+
+**Rejected: an event-sourced index** (one line per transcript event, with the client replaying history to learn the state). It would make every query a replay, and the file would grow with activity instead of with sessions. Also rejected for now: a database. A gitignored local SQLite mirror, built by Servex purely as a query accelerator (derived, rebuildable), is the optional later alternative. Not built.
+
+**Bloat control.** A day index is append-only while the day is live. When the day closes (no live sessions), a script writes a **compacted** day index: one line per session, as a new file. The old file is kept; nothing is deleted. A closed day is then immutable, so it can be cached forever.
+
+**Roll-ups.** The month index is per-day totals plus one compact summary row per session (a few hundred sessions a day times 30 is about 1 to 2 MB). The year index is per-month totals. A month's cost comes from roll-ups only, never by loading sessions.
+
+**Query rule.** Filter by date range first, then load only those day indexes, in parallel. A range over about 7 days shows roll-ups first and loads day lists on demand. The default view is today or the last day, with that day's total cost. State, model, tag, role and cost filters run client-side over the loaded summary rows.
+
+**Built versus planned** (today's tailer, `Server/SessionTailer.mjs`; see [realtime.md](realtime.md)):
+- Built: append-only day index, keyframe line per session per day, month and year roll-ups of count, cost and flagged (not yet a summary row per session), client reduce by id, audit.
+- Not yet: the line carries cost, state and timing but not name, parent, tokens, tags or alert count; the day-close compaction script; summary rows in the month index; roll-ups-first for ranges over 7 days.
+
+**Counting.** The unit is the Claude session id. [patterns.md](patterns.md) holds the script-computed overlap table (distinct ids and, per storage pattern, how many it covers and how many are also elsewhere). The card and task folders are views onto the same ids, which is why 7,751 / 4,072 / 1,064 / 7,793 do not add up.

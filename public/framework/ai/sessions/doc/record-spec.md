@@ -58,3 +58,5 @@ Not a record line: this is the **computed** feed in `sessions/YYYY/MM/DD/index.j
 - A session's first line each day is a **keyframe** with every field: `usd, tree_usd, children, wall_ms, model, effort, flags, day, provider, state, first_at, last_activity`.
 - Later lines win, field by field (`Session.apply_delta` in the browser, `SessionDays.fold` on the server).
 - `state` is `active` when the last transcript line is under 5 minutes old, else `idle`.
+
+**What a day-index line is (decided 2026-10-08).** It is a **state summary** of one session, not a log of events: later lines win per `id`, so a reader reduces the file into the current state with no transcript read. An event-sourced index (replaying one line per transcript event) was rejected. While a day is live the file only grows; once it closes, a script is to write a compacted copy (one line per session, a new file, the old one kept), after which the day never changes. Fields planned for the line beyond the ones above: `name`, `parent`, `tokens`, `tags`, `alerts`. Full reasoning: [data-architecture, section 8](data-architecture-2026-10-08.md#8-the-live-index-state-not-events-owner-decision-2026-10-08).
