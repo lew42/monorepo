@@ -166,6 +166,7 @@ merge.
 
 ## More
 
+- [`doc/migration-dry-run-2026-10-09.md`](./doc/migration-dry-run-2026-10-09.md) — folder migration counts on the main data: 7,784 sessions (7,783 move), 4,555 cards = 4,089 joined + 466 other, 1,066 tasks = 271 joined + 795 orphans, 6,582 name collisions all resolved by an id suffix; tasks stay put for now
 - [`doc/realtime.md`](./doc/realtime.md) — snapshots, day files and the socket: the path, what is live, measured latency
 - [`../doc/tasks.md`](../doc/tasks.md) — proposal: tasks as `core/Task` with `origin` = the creating session; session cost rolls up into its tasks
 - [`doc/data-architecture-2026-10-08.md`](./doc/data-architecture-2026-10-08.md) — the owner's open design: index files, several files per session, what session.jsonl keeps, routes, what the task audit leaves behind

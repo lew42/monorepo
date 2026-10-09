@@ -136,3 +136,5 @@ test-layout-out/
 
 # push-notification VAPID private key, local secret (2026-10-09)
 Server/.push-vapid.json
+# the old day-file shape (YYYY/MM/DD/index.jsonl) is superseded by the day composite index.json; stale copies stay ignored
+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/index.jsonl
