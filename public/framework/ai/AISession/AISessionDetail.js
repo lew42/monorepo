@@ -6,6 +6,7 @@ import AISessionView from "./AISessionView.js";
 import AISessionFollow from "./AISessionFollow.js";
 import AISessionTrace from "./AISessionTrace.js";
 import AISession from "./AISession.js";
+import AISessionConversation from "./AISessionConversation.js";
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
 // view). Built with `new AISessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
@@ -13,39 +14,56 @@ import AISession from "./AISession.js";
 export default class AISessionDetail extends Page {
 
 	constructor({ home, id }){
-		// A uuid is too long to be a page title; the short form still tells two sessions apart, and the full id sits below it.
-		super({ home, id, width: "fill", title: id.length > 24 ? id.slice(0, 8) + "…" : id, url: home.url + id + "/" });
+		// The title is the page's path, so it is shown whole (the header line is compact; the row's tab title sits in the conversation's head).
+		super({ home, id, width: "fill", title: id, url: home.url + id + "/" });
 	}
 
 	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; }
 
 	content(){
 		const { home, id } = this, url = home.url;
-		a.c("page-link", "← all sessions").href(url);
-		small.c("muted sessions-full-id", id);
-		small.c("muted", "Template: AISession/AISessionDetail.js");   // which template draws this page (doc/templates.md)
+		// One compact header line: back link, the whole id, and the template (which file draws this page, doc/templates.md) as a small source link.
+		div.c("sessions-detail-head flex gap-50 v-center wrap", () => {
+			a.c("page-link", "← all sessions").href(url);
+			small.c("sessions-full-id", id);
+			a.c("muted sessions-template", "AISessionDetail.js").href("/framework/ai/AISession/AISessionDetail.js");
+		});
 
-		const $related = div.c("flow");   // the other records of this session: card, task, brief, report, parent, children
-		const $box = div.c("flow");
-		const $costs = div.c("flow");
-		const $spawn = div.c("flow");     // who spawned this, why, and what it spawned
-		const $session = div.c("flow");   // the Session class: cost tree, model + effort, tokens by purpose, audit
-		const $trace = div.c("flow");     // the cost-over-time chart and the per-tool table
+		let $box, $conv, $related, $costs, $spawn, $session, $trace, $cards;
+		div.c("cols main-aside sessions-detail-body", () => {
+			div.c("flow sessions-detail-main", () => {
+				$box = div.c("flow");     // which session this is (source tag, tab title, model)
+				$conv = div.c("flow sessions-conv");   // the live conversation
+			});
+			div.c("flow sessions-detail-aside", () => {
+				$cards = div.c("flow");   // cards the AI posted to this session (doc/session-cards.md)
+				$costs = div.c("flow");
+				$session = div.c("flow"); // the Session class: cost tree, model + effort, tokens by purpose, audit
+				$spawn = div.c("flow");   // who spawned this, why, and what it spawned
+				$trace = div.c("flow");   // the cost-over-time chart and the per-tool table
+				$related = div.c("flow"); // the other records of this session: card, task, brief, report, parent, children
+			});
+		});
+		const conv = new AISessionConversation($conv);
 
 		// `row` first: for a Servex row the url's id is the AGENT's id, a different string from its session_id,
 		// and the transcript and the date-path lookup both need the session_id.
 		AISessionDetail.load_row(url, id).then(async row => {
 			const session_id = row?.session_id ?? id;
-			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)) this.follow = new AISessionFollow(session_id).start();   // tails the log and corrects the grid row (doc/realtime.md)
+			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)){
+				const f = new AISessionFollow(session_id); f.on_lines = lines => conv.add(lines);   // the first pull draws the history, later pulls append live
+				this.follow = f.start();   // tails the log and corrects the grid row (doc/realtime.md)
+				this.follow.then(() => { if (!conv.count) $conv.append(() => p.c("muted", "No transcript for this session yet: either /ai-logs/ (the dev-server-only route this reads it through) isn't running, or this session's own file has no real prompt in it yet.")); });
+			} else if (!this.follow) AISessionDetail.load_lines(session_id).then(lines => lines && conv.add(lines));
 			Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
 			AISessionRows.load_index(url).then(async () => { const snap = await AISessionDetail.load_snapshot(session_id); $related.empty(() => AISessionDetail.render_related(snap, url)); });
 			// the card's page.jsonl and trace.json live in the session's own folder now; the old card folder is the fallback until a checkout is migrated
 			const own_dir = AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname : null, own = (await AISessionDetail.load_snapshot(session_id))?.links?.card ? own_dir : null, old = AISessionDetail.dir_of(await AISessionDetail.dir_index(), session_id);
-			const [costs, trace, prompts] = await Promise.all([
+			const [costs, trace] = await Promise.all([
 				AISessionDetail.load_cost_log(own).then(c => c ?? AISessionDetail.load_cost_log(old)),
 				AISessionRows.load_index(url).then(ix => ix?.traces?.includes(session_id) ? AISessionDetail.load_trace(own_dir).then(t => t ?? AISessionDetail.load_trace(old)) : null),   // a trace.json exists for few sessions: ask only for those the index lists
-				AISessionDetail.load_transcript(session_id),
 			]);
+			AISessionDetail.load_cards(own ?? old).then(cards => $cards.empty(() => AISessionDetail.render_cards(cards)));
 
 			$costs.empty(() => {
 				if (!costs) return;
@@ -75,18 +93,6 @@ export default class AISessionDetail extends Page {
 						span.c("sessions-row-title", row.tab_title || row.id);
 						if (row.model) small.c("muted", row.model);
 					});
-				}
-				if (prompts?.length){
-					div.c("flow", () => prompts.forEach(pr => {
-						div.c("sessions-prompt card", () => {
-							small.c("muted", pr.at ? age(pr.at) : "");
-							p(pr.text);
-						});
-					}));
-				} else if (!costs) {
-					p.c("muted", "No transcript for this session — either /ai-logs/ (the dev-server-only "
-						+ "route this reads it through) isn't running, or this session's own file has no "
-						+ "real prompt in it yet.");
 				}
 			});
 
@@ -142,6 +148,27 @@ export default class AISessionDetail extends Page {
 	static async load_row(root_url, id){
 		const snap = await AISessionRows.get_json(root_url + "sessions.json");
 		return snap?.rows?.find(r => r.id === id || r.session_id === id) ?? null;
+	}
+
+	/** The raw transcript lines of a session whose id the live tail cannot follow (null when there are none). */
+	static load_lines(session_id){ return raw_transcript_lines(session_id); }
+
+	/** Cards the AI posted to this session: `{"card":{title,text,href}}` lines in the session folder's page.jsonl (doc/session-cards.md). */
+	static async load_cards(dir){
+		if (!dir) return null;
+		const lines = await AISessionRows.get_jsonl(dir + "page.jsonl");
+		const cards = (lines ?? []).filter(l => l.card?.title).map(l => ({ at: l.at ?? l.ts, ...l.card }));
+		return cards.length ? cards : null;
+	}
+
+	static render_cards(cards){
+		if (!cards) return;
+		small.c("muted", "Cards the AI posted here");
+		cards.forEach(c => div.c("card flow", () => {
+			(c.href ? a.c("page-link", c.title).href(c.href) : span.c("sessions-row-title", c.title));
+			if (c.text) p(c.text);
+			if (c.at) small.c("muted", age(c.at));
+		}));
 	}
 
 	/** A session's prompts, fetched live through /ai-logs/<session_id> (Server/plugins/AILogs.js); nothing is copied anywhere. The last 50. */

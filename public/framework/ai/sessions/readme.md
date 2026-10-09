@@ -195,3 +195,4 @@ merge.
 - OpenRouter dollars are real, Claude dollars are an equivalent, and the gap to the account is stated: [`doc/openrouter-dollars.md`](doc/openrouter-dollars.md).
 - The grid switches to compact cards below 88em of panel, checked at four widths: [`doc/grid-widths.md`](doc/grid-widths.md).
 - Tasks migration dry run (2026-10-09): 64 tasks join a session, 1003 orphans, 651 slug collisions resolved by id8; not applied until moved tasks have a route.
+- A session page shows the live conversation (both sides, tool calls folded) and cards the AI posts: [`doc/session-cards.md`](doc/session-cards.md).

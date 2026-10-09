@@ -9,7 +9,7 @@ import AISession from "./AISession.js";
 // log itself prices: provider "claude". For any other it leaves the server's number alone.
 export default class AISessionFollow {
 
-	static EVERY_MS = 3000;
+	static EVERY_MS = 1000;   // a Range request for new bytes is cheap (usually a 416); the dev socket carries no per-line feed yet
 
 	constructor(id, { subagents = true } = {}){
 		this.id = id;
@@ -18,6 +18,7 @@ export default class AISessionFollow {
 		this.subagents = subagents;
 		this.timer = null;
 		this.stopped = false;
+		this.on_lines = null;         // (objects[]) => void, called with each batch of new MAIN-log lines (the conversation draws from this)
 	}
 
 	/** Read the whole log once, correct the row, then keep tailing. Returns this. */
@@ -54,7 +55,12 @@ export default class AISessionFollow {
 			const fresh = whole && p.off ? new TextDecoder().decode(bytes.slice(p.off)) : text;
 			const upto = fresh.lastIndexOf("\n") + 1;
 			if (!upto) continue;
-			n += this.session.apply_text(fresh.slice(0, upto), part);
+			const batch = fresh.slice(0, upto);
+			n += this.session.apply_text(batch, part);
+			if (part === "main" && this.on_lines){
+				const objs = []; for (const ln of batch.split("\n")){ if (!ln.trim()) continue; try { objs.push(JSON.parse(ln)); } catch {} }
+				if (objs.length) this.on_lines(objs);
+			}
 			p.off += new TextEncoder().encode(fresh.slice(0, upto)).length;
 		}
 		if (n) this.correct();

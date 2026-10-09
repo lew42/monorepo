@@ -194,7 +194,17 @@
 
 	.sessions-prompt, .sessions-cost-row { padding: var(--gap-50); }
 
-	.sessions-full-id { display: block; font-family: monospace; margin-block: var(--gap-35) var(--gap); }
+	.sessions-full-id { font-family: monospace; font-weight: bold; overflow-wrap: anywhere; }
+	.sessions-template { font-size: 0.8em; margin-inline-start: auto; }
+	.sessions-detail-head { padding-block: var(--gap-35); }
+	/* the conversation fills the main column; the side cards flow in their own column beside it */
+	.sessions-detail-body { gap: var(--gap); }
+	.sessions-detail-aside { align-content: start; }
+	.conv-msg { max-width: 100%; overflow-wrap: anywhere; padding: var(--gap-50); }
+	.conv-msg p { margin: 0; }
+	.conv-user { border-inline-start: 4px solid var(--prim-ink, var(--ink)); }
+	.conv-assistant { margin-inline-start: var(--gap); }
+	.conv-tools { padding-inline-start: var(--gap); }
 
 	/* The two empty gray bands above the white card (the owner's own words,
 	   2026-10-03, sessions-tab-polish: "two faint gray lines between the top
