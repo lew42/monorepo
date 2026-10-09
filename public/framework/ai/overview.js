@@ -52,6 +52,10 @@ export async function detect_tabs(root){
 // cards() and flow() live in ux/Content/structure (Structure.js), shown on its page.
 export { cards, card, flow };
 // A heading and its gist line: the reader knows what the section is before any detail.
+/* A bordered section: heading and its one-line gist on one row, then the cards straight under it (no paragraph between). */
+function section(title, gist, body){
+	return div.c("wide card ai-section flex v gap-50", () => { div.c("flex wrap gap-50", () => { h2(title); if (gist) small.c("muted", gist); }).style({ alignItems: "baseline" }); body(); });
+}
 export function heading(title, gist){ h2(title); if (gist) md(gist); }
 const concept_card = (base, c) => ({ name: c.name, icon: c.icon, gist: c.gist, href: base + c.slug + "/" });
 // Fetch, then fill a box captured NOW (no DOM after an await: CLAUDE.md's traps).
@@ -99,34 +103,29 @@ export function tab_page(root, name, url = root.url + name + "/"){
 		system: {
 			title: "System", icon: "account_tree", classes: "inbox-takeover inbox-tab",
 			content(){
-				heading("Servex", "The always-on process that runs everything below. Each card is one class of the AI system: agents, sessions, spawning, the pool, usage. Its self-watching classes are folded below.");
-				class_cards(["Servex", "Agents", "Dispatcher", "Sessions", "Pool", "Usage", "Budget"]);
-				details(() => { summary("Servex also watches itself"); class_cards(["Heartbeat", "TaskLoop", "Worktrees", "Monitor", "Assistant"]); });
-				heading("Running now", "The agents this Servex holds right now.");
-				live_agents();
-				heading("Where each piece lives", "Servex starts agents through the Claude Agent SDK; models come from Anthropic, OpenRouter or a local server.");
-				cards([
+				section("AI system classes", "Servex is the one always-on process; each card is one of its classes.", () => {
+					class_cards(["Servex", "Agents", "Dispatcher", "Sessions", "Pool", "Usage", "Budget"]);
+					details(() => { summary("Servex also watches itself"); class_cards(["Heartbeat", "TaskLoop", "Worktrees", "Monitor", "Assistant"]); });
+				});
+				section("Running now", "The agents this Servex holds right now.", () => live_agents());
+				section("Where each piece lives", "Agents start through the Claude Agent SDK; models come from Anthropic, OpenRouter or a local server.", () => cards([
 					{ name: "Servex", icon: "hub", gist: "The process: agents, dev servers, logs, port 80.", href: "/framework/servex/" },
 					{ name: "Agent SDK", icon: "terminal", gist: "How an agent is started, how its tools arrive, where its session is saved.", href: file_link("Servex/doc/sdk.md") },
 					{ name: "Models", icon: "query_stats", gist: "Anthropic, OpenRouter and local models, by value for the job.", href: url + "models/" },
 					{ name: "Sessions", icon: "forum", gist: "Voice and chat sessions, resumable.", href: "/framework/ai/sessions/" },
 					{ name: "Dashboard", icon: "dashboard", gist: "Talk to the assistants, see tasks and cost.", href: "/framework/ai2/" },
 					{ name: "Inbox and tasks", icon: "inbox", gist: "What needs you, and every task by day.", href: base + "all-tasks/" },
-				]);
-				heading("Concepts", "The same system in words: who does the work, what they know, how work is tracked and lands.");
-				details(() => {
+				]));
+				section("Concepts", "The same system in words: who works, what they know, how work lands.", () => details(() => {
 					summary("Open the concept cards");
 					for (const g of GROUPS){
 						heading(g.title, g.gist);
 						cards([...CONCEPTS.filter(c => c.group === g.id).map(c => concept_card(base, c)), ...(g.links ?? [])]);
 					}
-				});
-				heading("How a page becomes a tab", "Declared, not crawled: the page reads its own file index (files.jsonl, which the watcher writes), never the disk.");
-				md("A page joins this strip (Inbox, Log, System, and whatever shows up next to them) by writing one line in its own `page.jsonl` (or `settings.jsonl`, when the folder has a `page.js`): `{\"settings\":{\"tab\":true,\"weight\":5}}`. `weight` orders it, smallest first (default 1), and Inbox always sits first no matter what. Adding a tab is that one line — nobody has to remember to list it anywhere else.");
-				heading("How it works together", "The path your words take, from the moment you speak to the card that shows the result.");
-				flow(FLOW.map(([n, slug, text]) => [n, base + slug + "/", text]));
-				heading("Its documentation", "One page each. Servex, design and code have their own pages; these cards link there.");
-				cards([
+				}));
+				section("How a page becomes a tab", "Declared, not crawled: one line in its own page.jsonl.", () => md("A page joins this strip (Inbox, Log, System, and whatever shows up next to them) by writing one line in its own `page.jsonl` (or `settings.jsonl`, when the folder has a `page.js`): `{\"settings\":{\"tab\":true,\"weight\":5}}`. `weight` orders it, smallest first (default 1), and Inbox always sits first no matter what. Adding a tab is that one line — nobody has to remember to list it anywhere else."));
+				section("How it works together", "The path your words take, from speech to the card that shows the result.", () => flow(FLOW.map(([n, slug, text]) => [n, base + slug + "/", text])));
+				section("Its documentation", "One page each; Servex, design and code have their own.", () => cards([
 					{ name: "Skills", icon: "school", gist: "How to do one kind of job well, one page per skill.", href: url + "skills/" },
 					{ name: "CLAUDE.md", icon: "gavel", gist: "The file every agent loads first, and an audit of what it names.", href: url + "claude-md/" },
 					{ name: "Readmes", icon: "menu_book", gist: "The chain of readmes an agent reads, root first.", href: base + "readmes/" },
@@ -138,8 +137,9 @@ export function tab_page(root, name, url = root.url + name + "/"){
 					{ name: "Servex", icon: "hub", gist: "The process that runs the agents. Its own docs.", href: "/framework/servex/" },
 					{ name: "Design system", icon: "palette", gist: "How a page looks: layout, spacing, colour, controls, content.", href: "/framework/design/" },
 					{ name: "Code system", icon: "code", gist: "How the code is written: objects, pages, views, the traps.", href: "/framework/code/" },
-				]);
-				heading("Where AI data lives", "Everything is a page; a page's data is a line in its own page.jsonl until it grows. The rule and the table: [Page inboxes](" + base + "inboxes/).");
+					{ name: "Per-module ai/ folders", icon: "folder_special", gist: "What writes log.jsonl and the voice transcripts beside each module.", href: file_link("public/framework/ai/doc/module-ai-dirs.md") },
+				]));
+				section("Where AI data lives", "Everything is a page; its data is a line in its own page.jsonl.", () => md("The rule and the table: [Page inboxes](" + base + "inboxes/)."));
 			},
 			route(name){ if (SYSTEM_PARTS.includes(name)) return tab_page(root, name, url + name + "/"); },
 		},
