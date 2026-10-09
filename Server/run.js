@@ -12,7 +12,7 @@ import DevSource from "./plugins/DevSource.js";   // read-only Servex/Server bro
 import DevSocket from "./plugins/DevSocket/DevSocket.js";
 import Runtime from "./plugins/SocketServer/Runtime.js";
 import AILogs from "./plugins/AILogs.js";
-import SessionTail from "./plugins/SessionTail.js";
+import AISessionTailer, { AISessionSub } from "../public/framework/ai/AISession/AISessionTailer.mjs";
 import Ask, { AskRoute } from "./plugins/Ask.js";
 import CardAnswer from "./plugins/CardAnswer.js";
 import MCP from "./plugins/MCP.js";
@@ -21,7 +21,7 @@ import Research from "./plugins/Research.js";
 import Screenshots from "./plugins/Screenshots.js";
 import ServexProxy from "./plugins/ServexProxy.js";
 import Start from "./plugins/Start.js";
-import Push from "./plugins/Push.js";   // Web Push for the notifications lab � Server/plugins/Push.js
+import Push from "./plugins/Push.js";   // Web Push for the notifications lab � Server/plugins/Push.js
 import Whisper from "./plugins/Whisper.js";
 import Tab from "./plugins/SocketServer/Tab.js";
 import Tail from "./plugins/SocketServer/Tail.js";
@@ -32,6 +32,7 @@ DevSocket.Socket.use(Ask);
 DevSocket.Socket.use(CardAnswer);
 DevSocket.Socket.use(Start);
 DevSocket.Socket.use(Tab);
+DevSocket.Socket.use(AISessionSub);   // pushes changed session snapshots - ai/AISession/AISessionTailer.mjs
 DevSocket.Socket.use(Tail);
 DevSocket.Socket.use(Append);
 Server.use(DevSocket);
@@ -40,7 +41,7 @@ Server.use(MentionSync);
 Server.use(PageFiles);   // appends {"file"} lines to page.jsonl — Server/plugins/PageFiles.js
 Server.use(DevSource);   // /devsource.json + /devsource/<path> — Servex/Server source, read-only
 Server.use(AILogs);
-Server.use(SessionTail);   // follows transcripts, feeds the Sessions tab - Server/SessionTailer.mjs
+Server.use(AISessionTailer);   // follows transcripts, writes index.json files - ai/AISession/AISessionIndex.mjs
 Server.use(MCP);
 Server.use(Recordings);
 Server.use(Research);   // registers its tools on MCP — after it

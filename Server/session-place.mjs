@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import Session from "../public/framework/ai/sessions/Session.js";
+import AISession from "../public/framework/ai/AISession/AISession.js";
 
 const DIR = process.env.SESSIONS_ROOT || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public", "framework", "ai", "sessions");
 const dry = process.argv.includes("--dry");
@@ -27,7 +27,7 @@ for (const id of fs.readdirSync(DIR)){
 	if (!fs.statSync(dir).isDirectory()) continue;
 	const listing = path.join(dir, "files.jsonl");
 	if (fs.existsSync(listing)){ listings++; if (!dry) fs.rmSync(listing); }
-	const day = Session.day(first_at_of(dir));
+	const day = AISession.day(first_at_of(dir));
 	if (!day){ undated++; continue; }
 	const to = path.join(DIR, ...day.split("/"), id);
 	if (dry){ moved++; continue; }

@@ -37,7 +37,7 @@ export function replay(session_id, label = "session"){
 export async function load(id){
 	const res = await fetch("/ai-logs/" + id).catch(() => null);
 	// The SPA fallback answers unknown paths with index.html and a 200 — a miss, not a hit.
-	if (!res?.ok || (res.headers.get("content-type") ?? "").includes("html")) return null;
+	if (!res?.ok || res.status === 204 || (res.headers.get("content-type") ?? "").includes("html")) return null;
 	const text = await res.text();
 	return text.split("\n").filter(Boolean).flatMap(line => {
 		try { return [JSON.parse(line)] } catch { return [] }

@@ -51,15 +51,15 @@ A single index grows without bound (hundreds of sessions a day for months can re
 
 **Query rule.** Filter by date range first, then load only those day indexes, in parallel. A range over about 7 days shows roll-ups first and loads day lists on demand. The default view is today or the last day, with that day's total cost. State, model, tag, role and cost filters run client-side over the loaded summary rows.
 
-**Built versus planned** (today's tailer, `Server/SessionTailer.mjs`; see [realtime.md](realtime.md)):
-- Built: append-only day index, keyframe line per session per day, month and year roll-ups of count, cost and flagged (not yet a summary row per session), client reduce by id, audit.
+**Built versus planned** (the first tailer, now replaced; see [realtime.md](realtime.md)):
+- (Replaced by the per-session snapshot and day composite in the second section 9 below; built as `ai/AISession/AISessionIndex.mjs`, see [realtime.md](realtime.md).) Was built: append-only day index, keyframe line per session per day, month and year roll-ups of count, cost and flagged (not yet a summary row per session), client reduce by id, audit.
 - Not yet: the line carries cost, state and timing but not name, parent, tokens, tags or alert count; the day-close compaction script; summary rows in the month index; roll-ups-first for ranges over 7 days.
 
 **Counting.** The unit is the Claude session id. [patterns.md](patterns.md) holds the script-computed overlap table (distinct ids and, per storage pattern, how many it covers and how many are also elsewhere). The card and task folders are views onto the same ids, which is why 7,751 / 4,072 / 1,064 / 7,793 do not add up.
 
 ## 9. Per-session snapshot + a server-held composite (owner, 2026-10-08; decision, supersedes the day-index JSONL of section 8 where they differ)
 - **Each session folder holds `index.json`: a minimal SNAPSHOT of its current state** (name, parent, model+effort, provider, state, started/updated, cost, tokens, tags, alert count), **rewritten atomically** (temp file + rename), never a history. The history is the session's own log/transcript, the source of truth.
-- **The server keeps all current snapshots in memory** (a `SessionIndex` class in Servex/dev server) and is the single writer: it updates a snapshot when a session's data changes, **throttled** (at most about once a second per session) so a busy session does not rewrite constantly. No appended index file, so nothing to bloat and **no compaction race**.
+- **The server keeps all current snapshots in memory** (a `AISessionIndex` class in Servex/dev server) and is the single writer: it updates a snapshot when a session's data changes, **throttled** (at most about once a second per session) so a busy session does not rewrite constantly. No appended index file, so nothing to bloat and **no compaction race**.
 - **Composite on demand:** any path level (a day, a month) is served as ONE bundled response built from memory, plus a **socket subscription** that pushes only the changed snapshot when one changes (a delta from memory, not a file tail). The grid asks for the days its filter needs. Old days are not subscribed to (they rarely change; a revived session notifies whoever is subscribed to its day).
 - **Frozen bundles:** when a day closes, the server writes an immutable `day.json` bundle (and month/year roll-ups of totals). Production is static, so the static site reads those frozen bundles; live subscription is a dev/Servex feature.
 - **Detail view = source of truth:** opening a session loads and tails its own log, recomputes from it (the `Session` class applies lines), and if it finds the snapshot stale, the grid row is corrected. The grid may be a little stale; the open session never is.

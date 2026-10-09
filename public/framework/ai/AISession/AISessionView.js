@@ -1,0 +1,221 @@
+import { View, div, span, small, p, a } from "/app.js";
+import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
+import { dur, elapsed } from "/framework/ext/AITask/stats.js";
+import AISessionRows from "./AISessionRows.js";
+import AISession from "./AISession.js";
+
+// One session, drawn. `new AISessionView({ row, url, ... })` is one grid row (an <a> of cells, in the order of
+// AISessionRows.COLUMNS: the grid tracks are positional). The statics draw the pieces the Session class computed
+// (AISession.js): the Cost cell, the banner above the grid, and the detail section. It computes nothing; the numbers come
+// from session-index.json (the grid) and GET /ai-logs/<id>/session (the detail, served by Server/plugins/AILogs.js).
+// Docs: doc/session-class.md
+//
+// Options: row (a merged row), url (the tab's url), page_dirs, spend, session_index, and an optional
+// nest = { depth, kids, open, toggle } (how deep the row sits, how many children, whether they show, the click).
+export default class AISessionView extends View {
+
+	// Getters, not class fields: prerender() runs inside View's constructor, before a subclass's fields exist.
+	get tag(){ return "a"; }
+	get classes(){ return "sessions-row"; }
+
+	prerender(){
+		super.prerender();
+		this.href(this.url + this.row.id + "/");   // one route per session: this tab's own detail view
+	}
+
+	// Subscribes to this row's Session: a delta from the live feed redraws THIS row and no other (doc/realtime.md).
+	initialize(){
+		super.initialize();
+		const ses = AISession.all.get(this.row.session_id || this.row.id);
+		if (ses?.subs) this.unsubscribe = ses.on(() => this.changed(ses));
+	}
+
+	/** A row whose element left the page (the grid was redrawn) quietly drops its subscription instead of leaking it. */
+	changed(ses){
+		if (!this.el.isConnected) return void this.unsubscribe?.();
+		AISessionRows.apply_live(this.row, ses);
+		this.empty(() => this.render());
+	}
+
+	render(){
+		const { row: r, nest } = this, { SOURCE, WORKING_STATES, is_in_flight, display_name, role_label, row_of } = AISessionRows;
+		const src = SOURCE[r.source] ?? { label: r.source, icon: "help" };
+		const working = WORKING_STATES.has(r.state);
+		// Stop and Duration read "—" for a Servex row that finished without an explicit stop: nothing knows either number.
+		const span_end = r.stopped_at ?? (working ? new Date().toISOString() : null);
+
+		// State first: a blinking ▶ while working, a filled dot when alive and waiting, a quiet dot otherwise.
+		div.c("sessions-cell", () => {
+			if (!r.state) return;
+			const ready = !working && is_in_flight(r);
+			span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : ready ? "ready" : "idle")).attr("title", r.state + (working ? "" : ready ? " (alive, waiting for work)" : " (not working right now)")).text(working ? "▶" : ready ? "●" : "•");
+		});
+
+		const name = display_name(r, AISessionRows.tree);
+		div.c("sessions-cell", () => div.c("sessions-name-stack", () => {
+			span.c("sessions-row-title").style(nest?.depth ? { paddingInlineStart: nest.depth * 1.5 + "em" } : {}).append(() => {
+				if (nest?.kids) span.c("sessions-fold").attr("role", "button").attr("tabindex", "0").attr("title", nest.open ? "Hide the sessions this one started" : "Show the sessions this one started")
+					.text((nest.open ? "▾ " : "▸ ") + nest.kids).on("click", e => { e.preventDefault(); e.stopPropagation(); nest.toggle(); });
+				span(name.text);
+			});
+			if (r.last_prompt_first_line && name.from !== "prompt") small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
+		}));
+
+		div.c("sessions-cell", () => {
+			// The session index is the truth for a Claude session's cost. A row it does not know keeps the older figures below.
+			const ix = row_of(this.session_index, r.session_id || r.id);
+			if (ix){ div.c("sessions-name-stack", () => AISessionView.cost_lines(ix)); return; }
+			const has_split = typeof r.cost_claude_usd === "number" || typeof r.cost_openrouter_usd === "number";
+			if (has_split){
+				if (typeof r.cost_claude_usd === "number") small.c("muted", "$" + r.cost_claude_usd.toFixed(2));
+				if (typeof r.cost_openrouter_usd === "number") div.c("sessions-cost-or flex gap-35 v-center", () => {
+					span.c("sessions-tag sessions-tag-or", "OR");
+					small.c("muted", "$" + r.cost_openrouter_usd.toFixed(2));
+				});
+			} else if (typeof r.cost === "number") {
+				small.c("muted", "$" + r.cost.toFixed(2));
+			} else small.c("muted", "—").attr("title", "cost not measured: this session is not in the session index yet");
+			// the whole subtree's $ on a second line, only when it adds up to more than the row's own
+			const node = this.spend?.by_id.get(r.id);
+			if (node?.children_count > 0){
+				const subtree = node.subtree_claude_usd + node.subtree_or_usd;
+				const own = (node.own_claude_usd ?? 0) + (node.own_or_usd ?? 0);
+				if (subtree > own + 0.004) small.c("muted sessions-subtree-note", `$${subtree.toFixed(2)} w/ ${node.descendant_count}`);
+			}
+		});
+
+		div.c("sessions-cell", () => small.c("muted").text(working ? "now" : (r.last_activity ? age(r.last_activity) : "—")).attr("title", r.last_activity ?? ""));
+		div.c("sessions-cell", () => small.c("muted", dur(elapsed(r.started_at, span_end))));
+		div.c("sessions-cell", () => { if (r.role) { const { label: text, title } = role_label(r.role); small.c("muted").attr("title", title).text(text); } });
+		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
+		// Plain `if`s, not `&&`: a cell callback's return value can end up rendered as a stray text node (a `false` once printed "false").
+		div.c("sessions-cell", () => { if (r.model) small.c("muted", r.model); });
+	}
+
+	// ---- the pieces ----------------------------------------------------------------------------------
+
+	static usd(n){ return "$" + (n >= 100 ? n.toFixed(0) : n.toFixed(2)); }
+
+	static runtime(ms){
+		if (!(ms > 0)) return "—";
+		const m = Math.round(ms / 60000);
+		return m < 1 ? "<1m" : m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
+	}
+
+	/** "Claude $1.20" for a Claude session; just "$1.20" for OpenRouter (its model name already says who it is). */
+	static provider_label(provider){ return provider === "openrouter" ? "" : "Claude "; }
+
+	/** Inside the Cost cell: $ for the whole tree, what the session itself cost, and any flags. */
+	static cost_lines(row){
+		if (!row) return;
+		const { usd, provider_label } = AISessionView, kids = row.children || 0;
+		span.c("sessions-cost-main").text(provider_label(row.provider) + usd(row.tree_usd ?? row.usd))
+			.attr("title", kids ? `This session ${usd(row.usd)} + ${kids} descendant${kids > 1 ? "s" : ""} ${usd(row.tree_usd - row.usd)}` : "This session, counted from its own transcript");
+		if (kids) small.c("muted sessions-subtree-note", `own ${usd(row.usd)} + ${kids} child${kids > 1 ? "ren" : ""}`);
+		if (row.flags) small.c("sessions-flag").text("⚠ " + row.flags + " flag" + (row.flags > 1 ? "s" : "")).attr("title", "Open the session to read the flags");
+	}
+
+	/** The banner above the grid: spawned agents with no recorded parent are a defect. */
+	static defect_line(index){
+		if (!index?.unlinked_spawned) return;
+		small.c("muted").text(`${index.unlinked_spawned} spawned agents have no recorded parent`)
+			.attr("title", "Not in any tree, so their cost is counted on its own. Examples: " + (index.unlinked_sample || []).join(", "));
+	}
+
+	// ---- the detail ----------------------------------------------------------------------------------
+
+	static async get(url, init){ try { const r = await fetch(url, init); return r.ok ? await r.json() : null; } catch { return null; } }
+
+	static tree_rows(index, tree, id, depth = 0){
+		const { usd, tree_rows } = AISessionView, row = AISessionRows.row_of(index, id), t = tree[id] || {};
+		if (!row) return;
+		div.c("sessions-tree-row flex gap-50 v-center").style("padding-inline-start", depth * 1.5 + "em").append(() => {
+			const label = t.agent || id.slice(0, 8);
+			a(label).href("../" + (t.agent || id) + "/");
+			small.c("muted", `${t.role ?? ""} ${row.model ?? ""}${row.effort ? " · " + row.effort : ""}`);
+			span.c("sessions-tree-usd").text(usd(row.usd) + (row.children ? " own · " + usd(row.tree_usd) + " with children" : ""));
+		});
+		for (const kid of t.kids || []) tree_rows(index, tree, kid, depth + 1);
+	}
+
+	static audit_result(r){
+		if (!r) return "audit unavailable (the dev server route is not running)";
+		if (r.error) return "audit failed: " + r.error;
+		if (r.match) return `✓ match — rolling $${r.old.usd.toFixed(4)} = recomputed $${r.new.usd.toFixed(4)} from ${r.new.messages} messages`;
+		return "✗ MISMATCH — " + Object.entries(r.diff).map(([k, v]) => `${k}: rolling ${v.rolling}, recomputed ${v.recomputed} (off ${v.diff})`).join("; ");
+	}
+
+	/** Fill `$el` with the detail section for one Claude session id. `index` is the grid's session-index (for the tree). */
+	static detail_section($el, id, index, tree = {}){
+		const { usd, runtime, provider_label, get, tree_rows, audit_result } = AISessionView;
+		$el.empty(() => small.c("muted", "Loading the Session class numbers…"));
+		get(`/ai-logs/${id}/session`).then(d => {
+			$el.empty(() => {
+				if (!d){ p.c("muted", "No Session numbers for this id — it has no Claude transcript, or the dev-server route (GET /ai-logs/<id>/session) is not running."); return; }
+				const mine = AISessionRows.row_of(index, id);
+				div.c("sessions-detail-head flex gap-50 v-center", () => {
+					span.c("sessions-row-title").text(provider_label(d.provider) + usd(mine?.tree_usd ?? d.usd));
+					small.c("muted", `own ${usd(d.usd)} · ${runtime(d.wall_ms)} wall, ${runtime(d.active_ms)} active · ${d.messages} ${d.provider === "openrouter" ? "turns" : "messages"}, ${d.prompts} prompts${d.provider === "openrouter" ? " · cost and turns from the Servex registry (OpenRouter)" : ` · ${d.cache_read_pct}% of the $ is cache reads`}`);
+				});
+				// model + effort: the unit that prices a session
+				div.c("flow", () => {
+					small.c("muted", "Models that ran (from the session file, version included) · effort");
+					d.units.forEach(u => div.c("flex gap-50 v-center", () => {
+						span(`${u.model} · ${u.effort ?? "effort unknown"}`);
+						small.c("muted", d.provider === "openrouter" ? `${u.n} messages` : `${usd(u.usd)} · ${u.n} messages`);
+					}));
+					const c = d.configured;
+					if (c?.model || c?.effort) small.c("muted", `Servex registry says: ${c.model ?? "?"} · ${c.effort ?? "?"}`);
+					else small.c("muted", "No Servex spawn record, so the configured model and effort cannot be compared (a VS Code or CLI session).");
+				});
+				if (d.flags?.length) div.c("flow", () => d.flags.forEach(f => small.c("sessions-flag").text("⚠ " + f)));
+				// the tree: parent = own + children, visibly
+				if (mine?.children) div.c("flow", () => {
+					small.c("muted", `Tree: ${usd(mine.tree_usd)} = own ${usd(mine.usd)} + ${mine.children} descendant${mine.children > 1 ? "s" : ""}`);
+					tree_rows(index, tree, id);
+				});
+				// tokens by purpose
+				div.c("flow", () => {
+					small.c("muted", "What the tokens were for (an estimate, see the method)");
+					d.purpose.forEach(r => div.c("sessions-purpose-row flex gap-50 v-center", () => {
+						span.c("sessions-purpose-label").text(r.label);
+						span.c("sessions-purpose-bar").style("--pct", Math.min(100, r.pct) + "%");
+						small.c("muted", `${r.pct}% · ${r.tokens.toLocaleString()} tok · ${usd(r.usd)}`);
+					}));
+					small.c("muted sessions-method").text(d.method);
+				});
+				if (d.tools.length) small.c("muted").text("Tools: " + d.tools.slice(0, 12).map(t => `${t.name} ${t.n}`).join(", "));
+				// lifecycle: "done, rubber stamp". Appends a stamped `closed` line (nothing is deleted); the table hides it by default.
+				div.c("sessions-audit flex gap-50 v-center", () => {
+					const $st = small.c("muted");
+					let is_closed = !!index?.closed?.[id];
+					const show = () => { $st.text(is_closed ? "closed — hidden from the table unless 'show closed' is ticked" : "open"); $b.text(is_closed ? "Reopen" : "Close (done)"); };
+					const $b = span.c("sessions-audit-btn").attr("role", "button").attr("tabindex", "0")
+						.attr("title", "Mark this session done. It drops out of the default table and stops being chased. Nothing is deleted.")
+						.click(async () => {
+							const r = await get(`/ai-logs/${id}/close${is_closed ? "?undo=1" : ""}`, { method: "POST" });
+							if (r && !r.error){ is_closed = !is_closed; if (index?.closed){ if (is_closed) index.closed[id] = r.at; else delete index.closed[id]; } show(); }
+							else $st.text("could not save (the dev server route is not running)");
+						})
+						.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); e.target.click(); } });
+					show();
+				});
+				div.c("sessions-audit flex gap-50 v-center", () => {
+					const $out = small.c("sessions-audit-result muted");
+					const last = d.audit;
+					$out.text(last ? `last audit ${last.match ? "✓ match" : "✗ mismatch"} at ${last.at}` : "never audited");
+					span.c("sessions-audit-btn").text("Audit").attr("role", "button").attr("tabindex", "0")
+						.attr("title", "Recompute everything from the raw transcript by an independent code path and compare")
+						.click(async () => {
+							$out.text("auditing…");
+							const r = await get(`/ai-logs/${id}/audit`, { method: "POST" });
+							$out.text(audit_result(r?.audit)).attr("class", "sessions-audit-result " + (r?.audit?.match ? "sessions-audit-ok" : "sessions-flag"));
+						})
+						.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); e.target.click(); } });
+				});
+			});
+		});
+	}
+}
+
+AISession.View = AISessionView;   // so a Session can draw itself: session.render() (AISession.js)

@@ -156,7 +156,7 @@
             "type": "command",
             "command": "node",
             "args": [
-              "${CLAUDE_PROJECT_DIR}/Server/session-cost.mjs",
+              "${CLAUDE_PROJECT_DIR}/public/framework/ai/AISession/AISessionAudit.mjs",
               "--append-stdin"
             ],
             "timeout": 15

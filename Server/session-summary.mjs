@@ -10,15 +10,14 @@
 //                                                                     write sessions/session-index.json (the grid's one file)
 //   node Server/session-summary.mjs --watch [seconds]                keep the index fresh (default 20 s), changed files only
 //
-// The work is done by public/framework/ai/sessions/Session.js (same class the page uses).
+// The work is done by public/framework/ai/AISession/AISession.js (same class the page uses).
 // Cache: public/framework/ai/sessions/<id>/cache.jsonl (gitignored machine state); the record is <id>/session.jsonl (tracked). Docs: sessions/doc/session-class.md
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
-import Session from "../public/framework/ai/sessions/Session.js";
-import { find_transcript, subagent_files } from "./session-cost.mjs";
-import SessionDays from "./SessionDays.mjs";
+import AISession from "../public/framework/ai/AISession/AISession.js";
+import { find_transcript, subagent_files } from "../public/framework/ai/AISession/AISessionAudit.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const SESSIONS_DIR = path.join(here, "..", "public", "framework", "ai", "sessions");
@@ -38,7 +37,7 @@ export function files_of(id, main_path){
 export async function refresh(id, { registry = registry_rows(), main_path } = {}){
 	const files = files_of(id, main_path);
 	if (!files.length) return null;
-	const session = (await Session.load_cached(id)) ?? new Session(id);
+	const session = (await AISession.load_cached(id)) ?? new AISession(id);
 	const { new_lines } = await session.update(files);
 	const reg = registry.find(r => r.session_id === id);
 	session.set_configured(reg ? { model: reg.model, effort: reg.effort, parent: reg.parent, role: reg.role, agent: reg.id, cost: reg.cost, turns: reg.turns } : null);
@@ -56,7 +55,7 @@ export function print_summary(session){
 	out.push(`  cost: input ${usd(d.usd_parts.in)} · output ${usd(d.usd_parts.out)} · cache read ${usd(d.usd_parts.cache_read)} (${d.cache_read_pct}%) · cache write ${usd(d.usd_parts.cache_write)}`);
 	out.push(`  tokens: in ${s.tokens.input} · out ${s.tokens.output} · cache read ${s.tokens.cache_read} · cache write 5m ${s.tokens.cache_write_5m} / 1h ${s.tokens.cache_write_1h}`);
 	if (s.sidechain.messages) out.push(`  subagents (in the total): ${s.sidechain.messages} messages, ${usd(s.sidechain.usd)}`);
-	out.push("  model + effort:  " + d.units.map(u => `${Session.model_label(u.model)}·${u.effort ?? "?"} ${usd(u.usd)} (${u.n})`).join("  "));
+	out.push("  model + effort:  " + d.units.map(u => `${AISession.model_label(u.model)}·${u.effort ?? "?"} ${usd(u.usd)} (${u.n})`).join("  "));
 	out.push("  tools: " + (d.tools.slice(0, 8).map(t => `${t.name} ${t.n}`).join(", ") || "none"));
 	out.push("  tokens by purpose (estimate): " + d.purpose.map(p => `${p.key} ${p.pct}% ${usd(p.usd)}`).join(" · "));
 	for (const f of d.flags) out.push("  ! " + f);
@@ -76,10 +75,10 @@ export function print_audit(r){
 }
 
 // ---- the grid's one file ----------------------------------------------------------------------------
-/** One grid row as the short array the index stores. The tailer (Server/SessionTailer.mjs) writes the same shape, so a live line and an index row are interchangeable. */
+/** One grid row as the short array the index stores.  */
 export function slim_of(r){
 	const r4 = n => Math.round(n * 1e4) / 1e4;
-	return [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, Session.day(r.first_at) ?? 0, r.provider === "openrouter" ? "openrouter" : 0];
+	return [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, AISession.day(r.first_at) ?? 0, r.provider === "openrouter" ? "openrouter" : 0];
 }
 
 export async function build_index({ days = 30 } = {}){
@@ -111,21 +110,8 @@ export async function build_index({ days = 30 } = {}){
 	const by8 = new Map(Object.keys(rows).map(id => [id.slice(0, 8), id]));
 	const echo_parent = r => { const m = /^echo-([0-9a-f]{8})$/.exec(r.agent || ""); const s = m && by8.get(m[1]); return s && s !== r.id ? s : null; };
 	const tree_rows = Object.values(rows).map(r => ({ id: r.id, usd: r.usd, parent: r.parent ? agent_to_session.get(r.parent) : echo_parent(r) }));
-	const roll = Session.rollup(tree_rows);
+	const roll = AISession.rollup(tree_rows);
 	for (const r of Object.values(rows)){ const t = roll.get(r.id); r.tree_usd = t.tree_usd; r.children = t.children; r.kids = t.kids; r.parent = tree_rows.find(x => x.id === r.id).parent ?? null; }
-	// Backfill the partitioned index (SessionDays): every scanned session gets ONE keyframe line in the day index of the day it was last
-	// active, unless that day already has a line for it. Append-only and idempotent; the tailer keeps today current after this.
-	const have = new Map();
-	for (const r of Object.values(rows)){
-		if (!r.last_at) continue;
-		const file = SessionDays.day_file(r.last_at);
-		if (!have.has(file)) have.set(file, new Set(SessionDays.lines(file).map(l => l.id)));
-		if (have.get(file).has(r.id)) continue;
-		const slim = slim_of(r), idle = Date.now() - Date.parse(r.last_at) > 5 * 60000;
-		SessionDays.append(r.last_at, { id: r.id, at: r.last_at, ...Object.fromEntries(Session.INDEX_COLUMNS.map((c, i) => [c, slim[i]])), state: idle ? "idle" : "active", first_at: r.first_at, last_activity: r.last_at });
-		have.get(file).add(r.id);
-	}
-	SessionDays.roll();
 	// Spawned agents (anything the registry knows with a session) whose parent was never recorded: a defect, counted.
 	const spawned = registry.filter(r => r.session_id && ["minion", "reviewer", "clarity", "assistant", "manager"].includes(r.role));
 	const unlinked = spawned.filter(r => !r.parent && !r.forked_from && !r.resumed_from).map(r => r.id);
@@ -141,14 +127,14 @@ export async function build_index({ days = 30 } = {}){
 	for (const id of want){
 		const r = rows[id]; if (!r) continue;
 		// the hand-written record (tags, alerts, links, weight, closed) from the session's own tracked session.jsonl
-		const rec = await Session.record(id);
+		const rec = await AISession.record(id);
 		if (rec.closed) closed[id] = rec.closed.at;
 		if (rec.tags.length || rec.alerts || rec.links.length || rec.weight != null) meta[id] = { tags: rec.tags, alerts: rec.alerts, links: rec.links.slice(0, 3), weight: rec.weight };
 		slim[id] = slim_of(r);
 		if (r.parent || r.kids.length) tree[id] = { agent: r.agent ?? undefined, role: r.role ?? undefined, parent: r.parent ?? undefined, kids: r.kids.length ? r.kids : undefined };
 	}
 	// sessions that have a trace.json: the page asks for one only for these (a 404 is a smoke-test failure)
-	const traces = Object.keys(slim).filter(id => fs.existsSync(path.join(fileURLToPath(Session.dir_url(id, Session.day(rows[id].first_at) ?? undefined)), "trace.json")));
+	const traces = Object.keys(slim).filter(id => fs.existsSync(path.join(fileURLToPath(AISession.dir_url(id, AISession.day(rows[id].first_at) ?? undefined)), "trace.json")));
 	const index = { generated_at: new Date().toISOString(), days, traces, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day", "provider"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-tree.json"), JSON.stringify(tree));
 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-index.json"), JSON.stringify(index));
@@ -164,13 +150,13 @@ if (is_main){
 	if (flag("--log")){
 		// node Server/session-summary.mjs --log <session-uuid> '<json line>' --by <author>
 		const i = args.indexOf("--log"), id = args[i + 1], raw = args[i + 2], by = args.includes("--by") ? args[args.indexOf("--by") + 1] : null;
-		try { console.log(JSON.stringify(await Session.log(id, JSON.parse(raw), by))); }
+		try { console.log(JSON.stringify(await AISession.log(id, JSON.parse(raw), by))); }
 		catch (e){ console.error("session-summary --log: " + e.message); process.exit(2); }
 	} else if (flag("--close") || flag("--reopen")){
 		const id = args.find(a => /^[0-9a-f-]{36}$/.test(a));
 		if (!id){ console.error("usage: --close|--reopen <session-uuid> [--by name]"); process.exit(2); }
 		const by = args.includes("--by") ? args[args.indexOf("--by") + 1] : "owner";
-		console.log(JSON.stringify(await Session.close(id, by, flag("--close"))));
+		console.log(JSON.stringify(await AISession.close(id, by, flag("--close"))));
 	} else if (flag("--index")){
 		const t0 = Date.now(), r = await build_index({ days: num("--days", 30) });
 		console.log(`session-index: ${r.count} sessions, ${r.new_lines} new transcript lines read, ${r.unlinked_spawned} spawned agents with no recorded parent, ${Date.now() - t0} ms`);

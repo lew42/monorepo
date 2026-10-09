@@ -46,17 +46,42 @@ More about the class: [session-class.md](session-class.md).
 
 The Servex tool `log_session {session, line, by}` wraps `Session.log` (restart Servex to see it). From a script: `node Server/session-summary.mjs --log <uuid> '<json>' --by <name>`. The Sessions table filters by tag and by "needs attention" (any alert line).
 
-## The day index line
+## Asking about past sessions
 
-Not a record line: this is the **computed** feed in `sessions/YYYY/MM/DD/index.jsonl`, written by `Server/SessionTailer.mjs`, never by hand (design: [realtime.md](realtime.md)). One JSON object per line:
+To find past work (by tag or system) and see what it cost, run the same query the dashboard filters use. It reads the day files, counts each session once (on the day it was last active), and caps the rows so the answer stays small. The totals always cover every match.
+
+`node Server/session-query.mjs [flags] [--json]`. Every flag is optional:
+
+| Flag | Meaning |
+|---|---|
+| `--since` `--until` | First and last day, `YYYY-MM-DD`. |
+| `--tag` | Comma-separated tags; a session needs all of them. |
+| `--system` | A module tag in repo form (`ext/Dictate`, `core/Page`, `Server/refine.mjs`; any part of one works, so `Server/` finds them all) or a task category. |
+| `--state` `--model` `--provider` | `active`/`idle`/`closed`; part of a model name (`opus`); `claude` or `openrouter`. |
+| `--parent` | A session id: only its children. |
+| `--min-cost` | Dollars; hides cheaper sessions. |
+| `--text` | A word found in the id, agent, category, tags or modules. |
+| `--sort` `--limit` | `recent` (default), `oldest`, `cost`; rows to show, default 25, at most 200. |
+
+The answer is `{count, claude_api_equivalent_usd, openrouter_real_usd, rows}`. Claude sessions are priced at API-equivalent rates (what the plan saves); OpenRouter dollars are real money, so the two are never added together.
+
+Three example questions:
+
+1. *What did we do on dictation this week, and what did it cost?* `node Server/session-query.mjs --system dictat --since 2026-10-02 --json`
+2. *Which sessions tagged `transcription` cost the most?* `node Server/session-query.mjs --tag transcription --sort cost --limit 5`
+3. *Which expensive Opus sessions ran this month?* `node Server/session-query.mjs --model opus --min-cost 20 --since 2026-10-01`
+
+An in-process agent can call the SDK tool `query_sessions` instead (same arguments, same code, no network hop). It is not loaded by default: `Servex/agents/tools.js` exports `query_sessions_tool()`, and a role that needs it adds it to the tool list it gives `server()`.
+
+## The snapshot
+
+Not a record line: a session's `index.json` is the **computed** current state, written atomically by `ai/AISession/AISessionIndex.mjs`, never by hand (design: [realtime.md](realtime.md)). The day composite `sessions/YYYY/MM/DD/index.json` bundles the snapshots of one day.
 
 ```json
-{"id":"<session uuid>","at":"2026-10-08T21:55:33.120Z","usd":6.0,"tree_usd":6.0,"state":"active","last_activity":"2026-10-08T21:55:31Z"}
+{"id":"<session uuid>","state":"active","model":"claude-sonnet-5","provider":"claude","usd":6.0,"tree_usd":6.0,"children":0,"tags":[],"alerts":0,"first_at":"2026-10-08T21:50:00Z","last_activity":"2026-10-08T21:55:31Z"}
 ```
 
-- `id` and `at` are always there. Every other key is a field that **changed**; a missing key means unchanged.
-- A session's first line each day is a **keyframe** with every field: `usd, tree_usd, children, wall_ms, model, effort, flags, day, provider, state, first_at, last_activity`.
-- Later lines win, field by field (`Session.apply_delta` in the browser, `SessionDays.fold` on the server).
+- It is **state, not events** (decided 2026-10-08): a reader needs no transcript read, and an event-sourced index was rejected. It is never a history; the history is the transcript and the session's cache.
 - `state` is `active` when the last transcript line is under 5 minutes old, else `idle`.
-
-**What a day-index line is (decided 2026-10-08).** It is a **state summary** of one session, not a log of events: later lines win per `id`, so a reader reduces the file into the current state with no transcript read. An event-sourced index (replaying one line per transcript event) was rejected. While a day is live the file only grows; once it closes, a script is to write a compacted copy (one line per session, a new file, the old one kept), after which the day never changes. Fields planned for the line beyond the ones above: `name`, `parent`, `tokens`, `tags`, `alerts`. Full reasoning: [data-architecture, section 9](data-architecture-2026-10-08.md#9-what-a-day-index-line-holds-state-not-events-owner-decision-2026-10-08).
+- The same object reaches the browser over the socket, and `Session.apply_delta` folds it field by field.
+- `links` is `{parent, children, cards, tasks, brief, report}`: the session's other records, as site paths. `Server/session-links.mjs` works it out from the real folders (card folders by their `session-<id8>` name, task folders by `session_id` in `task.jsonl`); the detail view's Related section and the grid's `records` filter read it. Findings: [findings.md](findings.md).

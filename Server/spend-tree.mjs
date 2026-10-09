@@ -25,7 +25,7 @@
 import { readFileSync, readdirSync, existsSync, writeFileSync, statSync } from "node:fs";
 import { join, resolve, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
-import { find_transcript, cost_of_transcript } from "./session-cost.mjs";
+import { find_transcript, cost_of_transcript } from "../public/framework/ai/AISession/AISessionAudit.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVEX = join(process.env.LOCALAPPDATA || "", "lew42", "servex");
@@ -145,7 +145,7 @@ const isOpenRouter = model => typeof model === "string" && model.includes("/");
 // ---- the cache $ breakdown, straight from the agent's own transcript (token-accounting,
 // 2026-10-04) — the owner's own ask: "keeping track of these tokens very precisely in terms of
 // their cache costs... a breakdown on a session or an agent or however we're grouping these".
-// Priced through `Server/session-cost.mjs`'s one PRICES table (never a second copy — fixing the
+// Priced through `public/framework/ai/AISession/AISessionAudit.mjs`'s one PRICES table (never a second copy — fixing the
 // cache-write price there fixes every reader, this one included). `null` for an OpenRouter agent
 // (no Claude transcript to read; its own $ is already real money, not a derived estimate) or one
 // whose transcript has aged off disk — never a fabricated split.

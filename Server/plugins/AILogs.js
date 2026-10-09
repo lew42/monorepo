@@ -78,7 +78,7 @@ export default class AILogs {
         this.server.router.get("/ai-logs/:id/subagents/", async (req, res) => {
             if (!this.guard(req, res)) return;
             if (!UUID.test(req.params.id)) return res.status(400).end();
-            if (!fs.existsSync(path.join(this.dir, req.params.id + ".jsonl"))) return res.status(404).end();
+            if (!fs.existsSync(path.join(this.dir, req.params.id + ".jsonl"))) return res.status(204).end();   // 204 = "no transcript here", an answer, not a missing route (a 404 is a console error on every page that asks)
             res.json(await this.subagents(req.params.id));
         });
 
@@ -90,7 +90,7 @@ export default class AILogs {
             this.serve(req, res, path.join(this.dir, req.params.id, "subagents", req.params.file));
         });
 
-        // The Session class's numbers (ai/sessions/Session.js), computed here in code, never by reading a file in a
+        // The Session class's numbers (ai/AISession/AISession.js), computed here in code, never by reading a file in a
         // model: GET /ai-logs/<uuid>/session = the cached detail (reads only new bytes), POST /ai-logs/<uuid>/audit =
         // recompute the whole raw log by the independent path, compare, record. Doc: ai/sessions/doc/session-class.md
         // Lifecycle: POST /ai-logs/<uuid>/close (or ?undo=1 to reopen) appends a stamped `closed` line to session.jsonl.
@@ -98,8 +98,8 @@ export default class AILogs {
             if (!this.guard(req, res)) return;
             if (!UUID.test(req.params.id)) return res.status(400).end();
             try {
-                const { default: Session } = await import("../../public/framework/ai/sessions/Session.js");
-                res.json(await Session.close(req.params.id, "owner", !req.query.undo));
+                const { default: AISession } = await import("../../public/framework/ai/AISession/AISession.js");
+                res.json(await AISession.close(req.params.id, "owner", !req.query.undo));
             } catch (e) { res.status(500).json({ error: String(e.message || e) }); }
         });
 
@@ -120,15 +120,15 @@ export default class AILogs {
         this.server.router.get("/ai-logs/:id", (req, res) => {
             if (!this.guard(req, res)) return;
             if (!UUID.test(req.params.id)) return res.status(400).end();
-            this.serve(req, res, path.join(this.dir, req.params.id + ".jsonl"));
+            this.serve(req, res, path.join(this.dir, req.params.id + ".jsonl"), true);
         });
     }
 
     /* Range: bytes=<from>- → 206 with only the tail; the feed polls this way
        instead of re-downloading the whole transcript every poll (3 MB, and a
        minion's own transcript can run past 2 MB by itself — see doc/decisions.md). */
-    serve(req, res, file) {
-        if (!fs.existsSync(file)) return res.status(404).end();
+    serve(req, res, file, optional = false) {
+        if (!fs.existsSync(file)) return res.status(optional ? 204 : 404).end();
 
         const size = fs.statSync(file).size;
         const m = /^bytes=([0-9]+)-$/.exec(req.headers.range ?? "");

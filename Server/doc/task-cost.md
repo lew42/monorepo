@@ -89,7 +89,7 @@ a 59% undercount the task's own card was showing as its whole cost.
 So for any agent that isn't OpenRouter (an OpenRouter agent's own `cost` is already real billed
 money, not a derived estimate — untouched), `task-cost.mjs` now prefers the transcript: it finds
 the agent's own session transcript by its registry `session_id`
-(`Server/session-cost.mjs`'s `find_transcript`), prices every turn through that same script's one
+(`public/framework/ai/AISession/AISessionAudit.mjs`'s `find_transcript`), prices every turn through that same script's one
 `PRICES` table (`cost_of_transcript`), and uses THAT total instead of the agent log's — but only
 when it reads at least as large as the agent log's own total (the transcript should always be a
 superset; a *lower* reading means something else is wrong — an aged-off transcript, a reused
