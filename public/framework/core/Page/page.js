@@ -113,8 +113,9 @@ export default new Doc({
 					// `api`, not `doc`: this card sits right above the rail below it, and that
 					// rail already answers `api/<name>/` for every one of these names — a
 					// second address at `doc/method/<name>/` would be two urls for one member.
-					object(example, { api: "/framework/core/Page/api/", properties: doc.properties, methods: doc.methods });
+					// below the rail, not above it: the smoke gate's layout check (Server/smoke.mjs) fails anything above a page's title
 					this.tabs().ac("vertical");
+					object(example, { api: "/framework/core/Page/api/", properties: doc.properties, methods: doc.methods });
 				}).ac("page--" + this.name);
 			},
 		});

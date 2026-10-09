@@ -780,7 +780,7 @@ export class Page extends Item {
 		// a fresh insert. `page.pages` (above) is the real storage; `this.children`
 		// above is only the Map-shaped view over it.
 		const stub = this.pages.find(name);
-		stub ? this.pages.replace(stub, page) : this.pages.insert(page);
+		stub ? this.pages.replace(stub, page) : this.children.put(page);   // put(): a child may share a config key's name (PageChildren.put)
 		return page;
 	}
 
@@ -2026,12 +2026,23 @@ class PageChildren extends Map {
 		const had = this.pages.find(name);
 
 		if (value === null){
-			if (!had) this.pages.insert({ id: name, name, stub: true });
+			if (!had) this.put({ id: name, name, stub: true });
 			return this;
 		}
 
-		had ? this.pages.replace(had, value) : this.pages.insert(value);
+		had ? this.pages.replace(had, value) : this.put(value);
 		return this;
+	}
+
+	// List.insert() refuses an id that equals a property of the list's owner (core/List/List.js, because
+	// `get(name)` reads properties first). A child page is found by `pages.find(name)`, never by `get()`, and
+	// its name may equal a config key of its parent: core/Page's own `overview:` and `files:` strings name its
+	// Overview and Files tabs. The guard hid those tabs and every link into them (2026-10-09), so children skip it.
+	put(x){
+		const pages = this.pages, made = pages.make(x);
+		pages.insert_before(made, null);
+		pages.adopted(made);
+		return made;
 	}
 
 	// Quiet — a Map never announced either. `release()` is List's quiet remove
