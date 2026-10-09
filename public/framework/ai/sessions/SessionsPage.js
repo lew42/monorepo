@@ -231,7 +231,7 @@ export default class SessionsPage extends Page {
 	static RECORDS = ["has-card", "no-card", "has-task", "no-task", "has-brief", "has-report", "has-parent", "has-children"];
 	static has_records(ix, key){
 		if (!key || !ix) return true;
-		const L = ix.links ?? {}, [want, kind] = key.split("-"), n = { card: L.cards?.length, task: L.tasks?.length, brief: L.brief ? 1 : 0, report: L.report ? 1 : 0, parent: L.parent ? 1 : 0, children: L.children?.length }[kind] ?? 0;
+		const L = ix.links ?? {}, [want, kind] = key.split("-"), n = { card: L.card ? 1 : 0, task: L.task ? 1 : 0, brief: L.brief ? 1 : 0, report: L.report ? 1 : 0, parent: L.parent ? 1 : 0, children: L.children?.length }[kind] ?? 0;
 		return want === "has" ? n > 0 : n === 0;
 	}
 

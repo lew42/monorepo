@@ -375,6 +375,7 @@ export default class Session {
 			const n = Session.norm(k, v);
 			if (Array.isArray(n) ? JSON.stringify(ses.ix[k]) !== JSON.stringify(n) : ses.ix[k] !== n){ ses.ix[k] = n; fields.push(k); }
 		}
+		if (line.folder){ Session.slugs.set(line.id, line.folder); if (line.day) Session.days.set(line.id, line.day); }   // where this session's folder is (browser: from the snapshot)
 		if (fields.length) ses.subs.forEach(fn => fn(ses, fields));
 		return { ses, fields, is_new };
 	}
@@ -409,30 +410,47 @@ export default class Session {
 		const root = typeof process !== "undefined" && process.env?.SESSIONS_ROOT;
 		return root ? new URL("file:///" + root.replace(/\\/g, "/").replace(/\/?$/, "/").replace(/^\/+/, "")) : new URL("./", import.meta.url);
 	}
+	// One folder per session: sessions/YYYY/MM/DD/<slug>/ (doc/data-architecture-2026-10-08.md, section 12). The slug is descriptive and unique
+	// within its day; the session's uuid is inside its index.json, and `slugs` maps id -> slug. A session with no slug is in an old uuid-named folder.
+	static slugs = new Map();
 	// Sync: the dated folder when the day is known, else the old flat one.
-	static dir_url(id, day = Session.days.get(id)){ return new URL(day ? `./${day}/${id}/` : `./${id}/`, Session.root_url()); }
+	static dir_url(id, day = Session.days.get(id)){ return new URL(day ? `./${day}/${Session.slugs.get(id) ?? id}/` : `./${id}/`, Session.root_url()); }
 
-	// Node, async: the folder to WRITE into. Day from first_at, else what we already know, else the index on disk, else an old
-	// flat folder, else today. An old flat folder is moved into its day (a plain rename: it is regenerable cache plus the record).
-	static async locate(id, first_at){
+	// Node, async: read every dated folder once to learn which folder holds which session. A uuid-named folder is its own id; any other
+	// folder says its id in index.json (or, before the first snapshot, in its cache summary). Fills `days` (where it really lives) and `slugs`.
+	static async scan(){
+		if (Session.scanned) return;
+		Session.scanned = true;
+		const fs = await import("node:fs/promises"), root = Session.root_url(), UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+		const ls = async u => fs.readdir(u, { withFileTypes: true }).then(r => r.filter(d => d.isDirectory()).map(d => d.name), () => []);
+		for (const y of await ls(root)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, root))) for (const d of await ls(new URL(`./${y}/${m}/`, root))) for (const name of await ls(new URL(`./${y}/${m}/${d}/`, root))){
+			const dir = new URL(`./${y}/${m}/${d}/${name}/`, root);
+			let id = UUID.test(name) ? name : null;
+			if (!id) try { id = JSON.parse(await fs.readFile(new URL("index.json", dir), "utf8")).id; } catch {}
+			if (!id) try { id = JSON.parse((await fs.readFile(new URL("cache.jsonl", dir), "utf8")).split("\n").find(l => l.startsWith('{"summary"'))).summary.id; } catch {}
+			if (!id || !UUID.test(id)) continue;
+			Session.days.set(id, `${y}/${m}/${d}`);
+			if (name !== id) Session.slugs.set(id, name);
+		}
+	}
+
+	// Node, async: the folder to WRITE into. Where the session already lives (found by scan), else an old flat uuid folder (moved into its
+	// day), else a new folder named `slug` (default session-<id8>) under the day of first_at, else today.
+	static async locate(id, first_at, slug){
 		const fs = await import("node:fs/promises"), root = Session.root_url();
-		let day = Session.day(first_at) ?? Session.days.get(id);
-		if (!day && !Session.ix_read){ Session.ix_read = true; try { const ix = JSON.parse(await fs.readFile(new URL("session-index.json", root), "utf8")); Session.use_index(ix); day = Session.days.get(id); } catch {} }
+		if (!Session.days.has(id)) await Session.scan();
+		if (Session.days.has(id)) return Session.dir_url(id);
 		const flat = new URL(`./${id}/`, root), exists = u => fs.stat(u).then(() => true, () => false);
+		let day = Session.day(first_at);
 		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
 			try { for (const l of (await fs.readFile(new URL("cache.jsonl", flat), "utf8")).split("\n")) if (l.startsWith('{"summary"')) day = Session.day(JSON.parse(l).summary?.first_at) ?? day; } catch {}
+			if (!day) return flat;             // known only by an old flat folder: leave it until its first_at is known
 		}
-		else if (!day){                       // not in the index, no flat folder: look through the day folders (a few dozen), else it is new: today
-			const ls = async u => fs.readdir(u).catch(() => []);
-			for (const y of await ls(root)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, root))) for (const d of await ls(new URL(`./${y}/${m}/`, root)))
-				if (await exists(new URL(`./${y}/${m}/${d}/${id}/`, root))) day = `${y}/${m}/${d}`;
-			day ??= Session.day(new Date());
-		}
-		if (!day) return flat;                                   // known only by an old flat folder: leave it until its first_at is known
+		day ??= Session.day(new Date());
 		Session.days.set(id, day);
-		const dated = new URL(`./${day}/${id}/`, root);
-		if (await exists(flat) && !(await exists(dated))){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, dated); }
-		return dated;
+		if (await exists(flat)){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, new URL(`./${day}/${id}/`, root)); return Session.dir_url(id); }
+		Session.slugs.set(id, slug || "session-" + id.slice(0, 8));
+		return Session.dir_url(id);
 	}
 
 	// ---- the record: what a session's session.jsonl accepts (doc/record-spec.md) ----

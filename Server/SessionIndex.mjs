@@ -16,7 +16,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Session from "../public/framework/ai/sessions/Session.js";
 import { files_of, registry_rows } from "./session-summary.mjs";
-import { scan, links_of, children_map } from "./session-links.mjs";
+import { links_of, children_map } from "./session-links.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(here, "..");
@@ -93,7 +93,7 @@ export default class SessionIndex {
 			this.dirs.set(id, dir);
 			let snap = null;
 			try { snap = JSON.parse(await fsp.readFile(path.join(dir, "index.json"), "utf8")); } catch {}
-			if (snap?.id === id){ this.snaps.set(id, snap); if (this.join(snap)) this.queue(id); } else todo.push({ id, dir });
+			if (snap?.id === id){ if (snap.folder !== path.basename(dir)){ snap.folder = path.basename(dir); this.queue(id); } this.snaps.set(id, snap); if (this.join(snap)) this.queue(id); } else todo.push({ id, dir });
 		});
 		this.log(`SessionIndex: ${this.snaps.size} snapshots on disk, ${todo.length} to build`);
 		await this.each(todo, async ({ id, dir }) => {
@@ -109,11 +109,16 @@ export default class SessionIndex {
 		this.freeze();
 	}
 
-	/** Every snapshot gets its `links` (cards, tasks, brief, report, parent, children), computed from the real folders; rewritten only when they changed. */
+	/** Every snapshot gets its `links` (card, task, brief, report, parent, children), computed from the real folders; rewritten only when they changed. */
 	link_all(){
-		this.scanned = scan(path.join(this.repo, "public", "framework", "ai"));
 		this.kids = children_map([...this.snaps.values()]);
-		for (const snap of this.snaps.values()){ const links = links_of(snap, this.scanned, this.kids); if (!same(links, snap.links)){ snap.links = links; this.queue(snap.id); } }
+		for (const snap of this.snaps.values()){ const links = this.links(snap); if (!same(links, snap.links)){ snap.links = links; this.queue(snap.id); } }
+	}
+
+	/** One snapshot's links: what its own folder holds (card, task, brief, report) and the sessions it is tied to (parent, children). */
+	links(snap){
+		const dir = this.dirs.get(snap.id), url = dir ? "/framework/ai/sessions/" + path.relative(this.root, dir).split(path.sep).join("/") + "/" : null;
+		return links_of(snap, dir, url, this.kids ?? new Map());
 	}
 
 	/** The old whole-file index, only for each session's descendants total (a tree the transcript alone cannot give). id -> { usd, tree_usd, children }. */
@@ -126,11 +131,17 @@ export default class SessionIndex {
 		return out;
 	}
 
-	/** Every dated session folder: [{ id, dir }]. The old flat folders and the named ones are not sessions of this shape. */
+	/** Every dated session folder: [{ id, dir }]. A uuid-named folder is its own id; a slug-named one says its id in index.json (or its cache summary).
+	 *  The old flat folders and other named ones are not sessions of this shape. */
 	async session_dirs(){
 		const out = [], ls = async p => fsp.readdir(p, { withFileTypes: true }).then(r => r.filter(d => d.isDirectory()).map(d => d.name), () => []);
 		for (const y of await ls(this.root)) if (/^\d{4}$/.test(y)) for (const m of await ls(path.join(this.root, y))) for (const d of await ls(path.join(this.root, y, m)))
-			for (const id of await ls(path.join(this.root, y, m, d))) if (UUID.test(id)) out.push({ id, dir: path.join(this.root, y, m, d, id) });
+			for (const name of await ls(path.join(this.root, y, m, d))){
+				const dir = path.join(this.root, y, m, d, name); let id = UUID.test(name) ? name : null;
+				if (!id) try { id = JSON.parse(await fsp.readFile(path.join(dir, "index.json"), "utf8")).id; } catch {}
+				if (!id) try { id = JSON.parse((await fsp.readFile(path.join(dir, "cache.jsonl"), "utf8")).split("\n").find(l => l.startsWith('{"summary"'))).summary.id; } catch {}
+				if (id && UUID.test(id)) out.push({ id, dir });
+			}
 		return out;
 	}
 
@@ -181,11 +192,11 @@ export default class SessionIndex {
 			id, state: age < SessionIndex.ACTIVE_MS ? "active" : "idle", model: pv.model === "unknown" ? null : pv.model, effort: pv.effort ?? null,
 			provider: pv.provider === "openrouter" ? "openrouter" : "claude", usd: own, tree_usd: r4(own + below),
 			children: prev?.children ?? 0, wall_ms: Math.round(pv.wall_ms), flags: pv.flags.length, tokens, first_at: s.first_at ?? null, last_activity: s.last_at ?? null,
-			day: Session.day(s.first_at) ?? prev?.day ?? null, tags: prev?.tags ?? [], alerts: prev?.alerts ?? 0,
+			day: Session.day(s.first_at) ?? prev?.day ?? null, folder: this.dirs.has(id) ? path.basename(this.dirs.get(id)) : (this.snaps.get(id)?.folder ?? null), tags: prev?.tags ?? [], alerts: prev?.alerts ?? 0,
 			parent: reg?.parent ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
 		};
 		this.join(snap);
-		if (this.scanned) snap.links = links_of(snap, this.scanned, this.kids ?? new Map());   // keeps the links a rebuild would otherwise drop
+		if (this.kids) snap.links = this.links(snap);   // keeps the links a rebuild would otherwise drop
 		return snap;
 	}
 
@@ -237,6 +248,7 @@ export default class SessionIndex {
 	async dir_of(id, snap){
 		let dir = this.dirs.get(id);
 		if (!dir){ dir = fileURLToPath(await Session.locate(id, snap.first_at)); this.dirs.set(id, dir); }
+		if (snap.folder !== path.basename(dir)) snap.folder = path.basename(dir);   // the folder name travels with the snapshot, so the browser can find the folder
 		return dir;
 	}
 

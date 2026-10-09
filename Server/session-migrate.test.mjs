@@ -1,0 +1,42 @@
+// node Server/session-migrate.test.mjs — builds a tiny fake checkout, migrates it, checks every folder arrived, then undoes it.
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+let failed = 0;
+const check = (ok, msg) => { console.log((ok ? "PASS " : "FAIL ") + msg); if (!ok) failed++; };
+const repo = fs.mkdtempSync(path.join(os.tmpdir(), "migrate-"));
+const ai = path.join(repo, "public", "framework", "ai"), id = "11111111-2222-4333-8444-555555555555", other = "99999999-2222-4333-8444-555555555555";
+const put = (p, text = "x\n") => { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, text); };
+const day = path.join(ai, "sessions", "2026", "10", "08");
+put(path.join(day, id, "cache.jsonl"), JSON.stringify({ summary: { id, first_at: "2026-10-08T10:00:00Z" } }) + "\n");
+put(path.join(day, id, "index.json"), JSON.stringify({ id }));
+put(path.join(day, other, "cache.jsonl"), "{}\n");
+put(path.join(ai, "2026", "10", "08", "session-" + id.slice(0, 8), "page.jsonl"));
+put(path.join(ai, "2026", "10", "08", "unrelated-card", "page.jsonl"));
+put(path.join(ai, "2026-10-08", "build-the-thing", "task.jsonl"), JSON.stringify({ session_id: id }) + "\n");
+put(path.join(ai, "2026-10-08", "orphan-task", "task.jsonl"), "{}\n");
+execFileSync("git", ["init", "-q", repo]);
+execFileSync("git", ["-C", repo, "add", "-A"]); execFileSync("git", ["-C", repo, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "fixture"]);
+
+const run = (...a) => execFileSync("node", [path.join(here, "session-migrate.mjs"), "--repo", repo, ...a], { encoding: "utf8" });
+const dry = run();
+check(dry.includes("nothing was changed") && fs.existsSync(path.join(day, id)), "the dry run touches nothing");
+run("--apply");
+const slug = path.join(day, "build-the-thing");
+check(fs.existsSync(path.join(slug, "cache.jsonl")) && fs.existsSync(path.join(slug, "index.json")), "the session folder moved to its slug (named after its task)");
+check(JSON.parse(fs.readFileSync(path.join(slug, "index.json"), "utf8")).folder === "build-the-thing", "index.json carries the folder; the uuid stays inside it");
+check(fs.existsSync(path.join(slug, "page.jsonl")) && !fs.existsSync(path.join(ai, "2026", "10", "08", "session-" + id.slice(0, 8))), "the card's page.jsonl moved in beside the cache, and the card folder is gone");
+check(fs.existsSync(path.join(slug, "task", "task.jsonl")), "the task moved in whole as task/");
+check(fs.existsSync(path.join(day, "session-" + other.slice(0, 8), "cache.jsonl")), "a session with nothing else is named session-<id8>");
+check(fs.existsSync(path.join(ai, "2026", "10", "08", "unrelated-card", "page.jsonl")) && fs.existsSync(path.join(ai, "2026-10-08", "orphan-task", "task.jsonl")), "orphans stay where they were");
+const man = JSON.parse(fs.readFileSync(path.join(ai, "sessions", "migration-manifest.json"), "utf8"));
+check(man.moves.length === 4 && man.moves.every(m => m.from && m.to), "the manifest lists every old path -> new path (4 moves)");
+run("--undo");
+check(fs.existsSync(path.join(day, id, "cache.jsonl")) && fs.existsSync(path.join(ai, "2026", "10", "08", "session-" + id.slice(0, 8), "page.jsonl")) && fs.existsSync(path.join(ai, "2026-10-08", "build-the-thing", "task.jsonl")), "undo puts every folder back");
+fs.rmSync(repo, { recursive: true, force: true });
+console.log(failed ? `${failed} failed` : "all passed");
+process.exit(failed ? 1 : 0);
