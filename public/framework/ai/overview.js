@@ -105,6 +105,7 @@ export function tab_page(root, name, url = root.url + name + "/"){
 			content(){
 				section("AI system classes", "Servex is the one always-on process; each card is one of its classes.", () => {
 					class_cards(["Servex", "Agents", "Dispatcher", "Sessions", "Pool", "Usage", "Budget"]);
+					a("Class cards with a live debug view").attr("href", "/framework/ai/classes/");
 					details(() => { summary("Servex also watches itself"); class_cards(["Heartbeat", "TaskLoop", "Worktrees", "Monitor", "Assistant"]); });
 				});
 				section("Documentation and readmes", "How agents and you find what is true: readmes are the index, doc/ holds the detail, skills say how to write both.", () => cards([

@@ -23,6 +23,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Models**: [system/models](system/models/) · [OpenRouter](/framework/servex/) · local
 - **Sessions** (VS Code tabs, browser voice agents): [sessions/](sessions/readme.md) · [conversations](doc/conversations.md)
 - **Transcription**: [ux/Dictate](/framework/ux/Dictate/)
+- **Class cards, live** ([classes](/framework/ai/classes/)): a class, its API, and a debug tree of a live instance beside its rendered view. First: Session.
 - **Prompt refinement** (Echo, running now): [Servex/doc/echo.md](/framework/servex/doc/echo.md) · [ext/Refine live demo + Prompt class](/framework/ext/Refine/) · [vision](/framework/ext/Refine/doc/vision-2026-10-08.md) · [dictation connection map](/framework/ai/doc/dictation-refine-connection-map-2026-10-08.md)
 - **Page system**: [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/)
 - **Skills and CLAUDE.md**: [skills](skills/)
