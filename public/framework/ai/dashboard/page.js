@@ -47,7 +47,7 @@ function progress_bar(spent, budget){
 }
 
 function task_row(t){
-	const href = t.card ? "/framework/ai2/" + t.card + "/" : t.dir ? "/framework/ai/" + t.dir.replace(/^public/framework/ai//, "") + "/" : null;
+	const href = t.card ? "/framework/ai2/" + t.card + "/" : t.dir ? "/framework/ai/" + t.dir.replace(/^public\/framework\/ai\//, "") + "/" : null;
 	const inner = () => {
 		div.c("flex gap-50 v-center", () => {
 			span.c("dash-task-title", t.title || t.dir || "Untitled task");
