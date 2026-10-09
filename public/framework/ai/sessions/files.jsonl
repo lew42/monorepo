@@ -30238,3 +30238,8 @@
 {"file":"week.json","gone":true}
 {"file":"session-index.json","gone":true}
 {"file":"session-tree.json","gone":true}
+{"file":"session-index.json"}
+{"file":"session-tree.json"}
+{"file":"sessions.json"}
+{"file":"spend-tree.json"}
+{"file":"week.json"}
