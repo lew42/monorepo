@@ -2,7 +2,7 @@ import { Page, demo, md, div, a } from "/app.js";
 
 // The AI 2 index pattern, at demo scale: a page whose CHILD is a name read off
 // disk, never declared with a children: list. The real one is Card.Folder
-// (public/framework/ai/cards/card.js:964-990) — this is its smallest real piece,
+// (public/framework/ai2/card.js:964-990) — this is its smallest real piece,
 // same shape, no calendar math: a name comes in, a page goes out, remembered.
 const years = () => new Page({
 	title: "Years",

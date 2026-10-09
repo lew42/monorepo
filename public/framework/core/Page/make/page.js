@@ -96,7 +96,7 @@ export default new Page({
 		md("Live: [overview/route](/framework/core/Page/overview/route/) — the same textbook case, at its own url.");
 
 		h3("4. folders — an index with no folder on disk");
-		md("`route()`'s biggest job: a page whose child is a *name*, read straight off disk instead of declared. This is the pattern behind `ai2/`'s day and card pages (`Card.Folder`, [`ai2/card.js`](/framework/ai/cards/card.js)) — the smallest real piece of it:");
+		md("`route()`'s biggest job: a page whose child is a *name*, read straight off disk instead of declared. This is the pattern behind `ai2/`'s day and card pages (`Card.Folder`, [`ai2/card.js`](/framework/ai2/card.js)) — the smallest real piece of it:");
 		code.js(`async child(name, levels){
     if (!/^\\d{4}$/.test(name)) return null;                 // not a name I answer for
     return this.add(name, { title: name, content(){ … } })   // build it, on the fly
