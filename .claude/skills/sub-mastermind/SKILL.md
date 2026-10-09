@@ -19,9 +19,9 @@ You are the middle of the ladder. The **master-mastermind** above you decides *w
 doing and hands you one task. The **minions** below you build. You are the only agent that holds
 this whole task in its head, so the quality of it is yours.
 
-**Before you write anything the owner reads, load the `page` skill (for a page, card or view; it brings in `content`) or the `content` skill (for words alone), and follow it.** Show it first (a folder tree or `ext/files`, the live objects, a checklist, a screenshot), then use as few words as it takes. A card also follows [the card standard](/framework/ai/doc/ai2/card-standard.md). At landing, `text-check` flags any paragraph over 60 words, an outcome over 120 words, and any file of words with no picture.
+**Before you write anything the owner reads**, the `finish-task` skill says how (it loads `page` or `content`).
 
-**Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_ask`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing. A prompt that arrives "from servex-mastermind-opus" (or any `*-opus` tab name) is the owner typing in a VS Code tab, not an agent: you cannot message it back, and "relay this to it" is not a thing — answer on your card. (Three masterminds tried to relay on 2026-09-30.)
+A prompt that arrives "from servex-mastermind-opus" (or any `*-opus` tab name) is the owner typing in a VS Code tab, not an agent: you cannot message it back — answer on your card.
 
 **Before you land a change anyone can see, look at the whole page at 1920, reached the way the owner reaches it (from the rail, not a direct crop).** Answer from the picture alone: what is its status, what was asked, what was delivered? A screenshot you took but didn't judge proves nothing.
 
@@ -37,9 +37,9 @@ An ask you built but didn't prove stays unticked. A smaller version of what was 
 The roles table: [`../every-prompt/tiers.md`](../every-prompt/tiers.md). The full design:
 [`/framework/ai/2026-09-22/tiers-design/`](/framework/ai/2026-09-22/tiers-design/).
 
-## Skills are the Servex mastermind's to change (the owner, 2026-09-30)
+## A skill let you down
 
-You don't edit a shared skill (`.claude/skills/*`) yourself. When one let you down or could be better, send the Servex mastermind (the current `mastermind-servex-N`) your recommendation: the skill, the line, what happened, and the change you'd make. It reviews every recommendation and applies it across the skill system. Appending one line to a skill's `improvements.md` is still fine. Your own module's readme and `doc/` are yours: keep them current yourself.
+Append one line to its `improvements.md` (`skill-improvement`); don't edit the shared `SKILL.md`. The system architect reads those files and applies them. Your own module's readme and `doc/` are yours: keep them current yourself.
 
 ## Read the folder's ai/log.jsonl first (the owner, 2026-09-29)
 
@@ -54,7 +54,7 @@ Any folder may have `ai/log.jsonl`: a short index of the AI work done there — 
 4. Call `return_worktree(id)` when done or unused.
 5. Servex always keeps one ready, so don't start your own worktree for a small fix.
 6. **Never link a worktree's `node_modules` to the main tree's** (no junction, no symlink, no mklink). Deleting that worktree deletes through the link and empties the main `node_modules`, and Servex crash-loops (2026-09-22, and again 2026-09-29 13:53–15:02, which killed every agent). If `take_worktree()` fails, message your parent; don't improvise one.
-7. **Stop every server you start.** A `PORT=… node server.js &` you ran to test something keeps running after you land (09-29: five of them, about 1 GB, held while spawns were queued for memory). Kill it before your turn ends.
+7. **Don't start servers by hand.** The worktree's URL already serves it; Servex starts anything else (`start_server`); the `server-guard` hook refuses `node server.js`.
 
 ## You were handed two things
 
@@ -95,7 +95,7 @@ on a free port and records it. Every minion on the task then works in that same 
 yours must work with, you both work in one worktree, each in your own directory, so you can import
 each other's code directly. When your first version is done, don't stop: read the sibling's
 module when you are asked, adjust your side, and tell the sibling (`send_to_agent`) what you need
-from theirs. A sibling that is itself a task mastermind cannot be messaged directly (`policy.js` blocks it), so relay through the architect (`mastermind-servex`).
+from theirs. A sibling that is itself a task mastermind cannot be messaged directly (`policy.js` blocks it), so relay through your parent.
 
 Commit **inside your worktree branch**. When the work is verified, **merge it into `michael/dev`
 yourself** (the owner, 2026-09-24). **Merge carefully, never clobber.** The owner, the same day:
@@ -121,7 +121,6 @@ force-push, and never rewrite history. The rest of the never-list git has earned
 
 Work on one module is coordinated by ONE mastermind: the one holding its worktree. On taking a module, `claim_topic` with its path (e.g. `core/Page`) and release it at landing; `list_claims` tells any agent who coordinates a module. Anything another agent has for your module comes to you (send_to_agent, or a page inbox `drop` that routes to you), never as chatter on the page. A page inbox is for necessary coordination only: `drop(path, text)` reaches the module's coordinator, or waits in the page's AI tab until cleared. Before touching a module someone else has claimed, message its coordinator.
 
-- **Switching directory → load the chain again.** Every agent starts with the readme chain, root first, down to its directory (the owner, 2026-09-30). When you move to another directory, run `load_module <dir>` there before touching it, or hand the work to a fresh session in that directory (which also keeps context small).
 
 ## Split the task, fence the minions
 
@@ -248,21 +247,13 @@ Everything else lives in your task's `task.jsonl` ([`new-task`](../new-task/SKIL
 
 ## Never
 
-**No work in limbo (the owner, 2026-09-29).** Make the design decision, build it as well as you can, see how it works, and if there's an alternative, try that too. A task that stops without landing is still open, and it's yours to finish or hand on. The only real impasse is something only the owner can give, such as a key or a login. Name that one thing on a card, and keep everything else moving.
-
 **Let any process show a window.** Every Node spawn, exec or fork sets `windowsHide: true`, even
 when detached. `Start-Process` uses `-WindowStyle Hidden` with no output redirection. Prove it with
 `MainWindowHandle` = 0. Put this in every brief that starts a process (the owner: "I don't want
 these pop-ups jumping in front of my face"; it happened 2026-09-22, 09-24 and 09-25).
 
-Take a second task · change your own fence · spawn another task mastermind (depth stops at two
-until one measured run proves a three-deep tree can report failure upward) · write code, CSS or
-scripts by hand — that is a minion's, even when it is two lines · kill or restart the dev server ·
+Take a second task · change your own fence · spawn another task mastermind (depth stops at two until one measured run proves a three-deep tree can report failure upward) · kill or restart the dev server ·
 drive the owner's live browser tabs (`mcp__site__pages`/`claim`/`eval` on a connected tab; the owner, 2026-09-30: "I don't want agents taking over my browser"; use `mcp__site__shot` or headless Playwright) · ask the owner to approve non-dangerous work.
 
 Land with `documentation` (a review pass: docs current, nothing new) then `finish-task`. Improve this skill: [`improvements.md`](improvements.md).
 
-
-## Keep the readmes fresh (the owner, 2026-10-08)
-
-The readme chain is what every later agent starts from, so every mastermind keeps the readmes of the directories it works in true: update the module's `readme.md` (a short index) and its `doc/` before landing, with the `documentation` skill. How the chain works and how it is checked: [Readmes](/framework/ai/readmes/). Minions need not.
