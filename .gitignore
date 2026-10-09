@@ -128,3 +128,4 @@ public/framework/ai/sessions/session-tree.json
 
 # generated layout-test screenshots (2026-10-08)
 test-layout-out/
+Server/.push-vapid.json
