@@ -399,7 +399,8 @@ export function row_view(r, url, page_dirs, spend, session_index, nest){
 		// The state icon comes first: as important as the name. A blinking ▶ while in flight, a quiet dot otherwise (a ✓ for "done" belongs only on the detail page).
 		div.c("sessions-cell", () => {
 			if (!r.state) return;
-			span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : "idle")).attr("title", r.state + (working ? "" : " (not working right now)")).text(working ? "▶" : "•");
+			const ready = !working && is_in_flight(r);   // alive and waiting: a filled dot, so the strip's rows never read as quiet
+				span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : ready ? "ready" : "idle")).attr("title", r.state + (working ? "" : ready ? " (alive, waiting for work)" : " (not working right now)")).text(working ? "▶" : ready ? "●" : "•");
 		});
 		const name = display_name(r, TREE);
 		div.c("sessions-cell", () => div.c("sessions-name-stack", () => {

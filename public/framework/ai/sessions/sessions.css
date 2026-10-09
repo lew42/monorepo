@@ -162,6 +162,7 @@
 	   silences motion everywhere else. */
 	.sessions-state-dot { font-size: 0.9em; line-height: 1; }
 	.sessions-state-dot-working { color: var(--prim); animation: sessions-blink 1.2s steps(2, start) infinite; }
+	.sessions-state-dot-ready { color: var(--prim); }
 	.sessions-state-dot-idle { color: var(--subtle); }
 	@keyframes sessions-blink { 50% { opacity: 0.2; } }
 	@media (prefers-reduced-motion: reduce) {
