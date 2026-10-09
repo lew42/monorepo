@@ -1,0 +1,2189 @@
+{
+	"at": "2026-10-09T22:28:09.209Z",
+	"roots": [
+		"public",
+		"Servex",
+		"Server"
+	],
+	"total": 311,
+	"pages": 126,
+	"rows": [
+		{
+			"file": "public/framework/core/new/1/site/ui.js",
+			"imp": 177,
+			"fn": 2,
+			"exp": 2,
+			"lines": 13
+		},
+		{
+			"file": "public/framework/ext/markdown/md.js",
+			"imp": 42,
+			"fn": 1,
+			"exp": 1,
+			"lines": 180
+		},
+		{
+			"file": "public/framework/core/new/1/site/nav/ui.js",
+			"imp": 30,
+			"fn": 1,
+			"exp": 1,
+			"lines": 27
+		},
+		{
+			"file": "public/framework/core/new/1/site/compound/recipe.js",
+			"imp": 29,
+			"fn": 3,
+			"exp": 3,
+			"lines": 27
+		},
+		{
+			"file": "public/framework/ext/demo/demo.js",
+			"imp": 29,
+			"fn": 7,
+			"exp": 2,
+			"lines": 256
+		},
+		{
+			"file": "public/framework/ui/parts.js",
+			"imp": 28,
+			"fn": 2,
+			"exp": 2,
+			"lines": 22
+		},
+		{
+			"file": "Servex/home.js",
+			"imp": 26,
+			"fn": 2,
+			"exp": 2,
+			"lines": 41
+		},
+		{
+			"file": "public/framework/styles/layouts/web.js",
+			"imp": 22,
+			"fn": 2,
+			"exp": 1,
+			"lines": 153
+		},
+		{
+			"file": "public/framework/core/new/1/site/deep/probe.js",
+			"imp": 21,
+			"fn": 4,
+			"exp": 4,
+			"lines": 82
+		},
+		{
+			"file": "public/framework/ext/Ask/edit.js",
+			"imp": 21,
+			"fn": 3,
+			"exp": 3,
+			"lines": 58
+		},
+		{
+			"file": "public/framework/util/source/source.js",
+			"imp": 19,
+			"fn": 5,
+			"exp": 4,
+			"lines": 83
+		},
+		{
+			"file": "public/framework/styles/sections/tone.js",
+			"imp": 17,
+			"fn": 2,
+			"exp": 2,
+			"lines": 82
+		},
+		{
+			"file": "public/framework/core/new/1/site/urls/ui.js",
+			"imp": 17,
+			"fn": 2,
+			"exp": 2,
+			"lines": 37
+		},
+		{
+			"file": "public/framework/core/new/1/site/patterns/recipe.js",
+			"imp": 17,
+			"fn": 2,
+			"exp": 1,
+			"lines": 34
+		},
+		{
+			"file": "public/imagine/paging/blocks.js",
+			"imp": 15,
+			"fn": 13,
+			"exp": 12,
+			"lines": 228
+		},
+		{
+			"file": "public/framework/ext/AITask/stats.js",
+			"imp": 15,
+			"fn": 17,
+			"exp": 12,
+			"lines": 159
+		},
+		{
+			"file": "public/imagine/paging/templates/families.js",
+			"imp": 15,
+			"fn": 4,
+			"exp": 1,
+			"lines": 574
+		},
+		{
+			"file": "public/framework/ext/grip/grip.js",
+			"imp": 15,
+			"fn": 1,
+			"exp": 1,
+			"lines": 156
+		},
+		{
+			"file": "public/framework/core/new/1/site/forms/this_file.js",
+			"imp": 15,
+			"fn": 1,
+			"exp": 1,
+			"lines": 26
+		},
+		{
+			"file": "public/framework/ext/Ask/chat.js",
+			"imp": 14,
+			"fn": 3,
+			"exp": 2,
+			"lines": 166
+		},
+		{
+			"file": "public/framework/dev/servex_url.js",
+			"imp": 13,
+			"fn": 1,
+			"exp": 1,
+			"lines": 22
+		},
+		{
+			"file": "public/framework/ext/AITask/cost.js",
+			"imp": 12,
+			"fn": 14,
+			"exp": 10,
+			"lines": 151
+		},
+		{
+			"file": "public/arya/lib/ui.js",
+			"imp": 12,
+			"fn": 7,
+			"exp": 6,
+			"lines": 69
+		},
+		{
+			"file": "public/framework/ext/highlight/highlight.js",
+			"imp": 12,
+			"fn": 6,
+			"exp": 1,
+			"lines": 312
+		},
+		{
+			"file": "public/framework/core/new/1/site/forms/field.js",
+			"imp": 12,
+			"fn": 1,
+			"exp": 1,
+			"lines": 40
+		},
+		{
+			"file": "public/framework/core/new/1/site/async/lab.js",
+			"imp": 11,
+			"fn": 5,
+			"exp": 5,
+			"lines": 97
+		},
+		{
+			"file": "Servex/ext/openrouter/provider.js",
+			"imp": 10,
+			"fn": 19,
+			"exp": 15,
+			"lines": 332
+		},
+		{
+			"file": "public/framework/core/new/1/site/a11y/ui.js",
+			"imp": 10,
+			"fn": 11,
+			"exp": 11,
+			"lines": 152
+		},
+		{
+			"file": "public/framework/ai/cards/faces.js",
+			"imp": 10,
+			"fn": 12,
+			"exp": 10,
+			"lines": 282
+		},
+		{
+			"file": "public/framework/ext/Panel/glyphs.js",
+			"imp": 10,
+			"fn": 9,
+			"exp": 7,
+			"lines": 238
+		},
+		{
+			"file": "public/framework/ext/DesignTool/score.js",
+			"imp": 10,
+			"fn": 9,
+			"exp": 7,
+			"lines": 91
+		},
+		{
+			"file": "public/framework/core/new/1/site/versus/ui.js",
+			"imp": 10,
+			"fn": 12,
+			"exp": 6,
+			"lines": 183
+		},
+		{
+			"file": "public/framework/core/new/1/site/content/list.js",
+			"imp": 10,
+			"fn": 6,
+			"exp": 5,
+			"lines": 78
+		},
+		{
+			"file": "public/framework/core/new/1/site/content/show.js",
+			"imp": 10,
+			"fn": 4,
+			"exp": 4,
+			"lines": 69
+		},
+		{
+			"file": "public/alex/ui/docs.js",
+			"imp": 10,
+			"fn": 2,
+			"exp": 2,
+			"lines": 31
+		},
+		{
+			"file": "public/framework/ext/files/files.js",
+			"imp": 9,
+			"fn": 8,
+			"exp": 7,
+			"lines": 350
+		},
+		{
+			"file": "public/framework/ext/layout/controls.js",
+			"imp": 9,
+			"fn": 7,
+			"exp": 6,
+			"lines": 79
+		},
+		{
+			"file": "public/imagine/blogx/posts.js",
+			"imp": 9,
+			"fn": 6,
+			"exp": 4,
+			"lines": 175
+		},
+		{
+			"file": "public/layouts/labs/blogx/posts.js",
+			"imp": 9,
+			"fn": 6,
+			"exp": 4,
+			"lines": 175
+		},
+		{
+			"file": "public/framework/ai/audits/paging/types/types.js",
+			"imp": 9,
+			"fn": 6,
+			"exp": 4,
+			"lines": 66
+		},
+		{
+			"file": "public/framework/dev/DevBar/parts.js",
+			"imp": 9,
+			"fn": 3,
+			"exp": 3,
+			"lines": 42
+		},
+		{
+			"file": "public/framework/ux/Dictate/chat.js",
+			"imp": 9,
+			"fn": 6,
+			"exp": 2,
+			"lines": 392
+		},
+		{
+			"file": "public/framework/core/new/1/site/motion/ui.js",
+			"imp": 9,
+			"fn": 2,
+			"exp": 2,
+			"lines": 84
+		},
+		{
+			"file": "public/framework/ext/layout/layout.js",
+			"imp": 9,
+			"fn": 5,
+			"exp": 1,
+			"lines": 95
+		},
+		{
+			"file": "public/framework/core/track/track.js",
+			"imp": 9,
+			"fn": 1,
+			"exp": 1,
+			"lines": 44
+		},
+		{
+			"file": "public/blog/posts.js",
+			"imp": 8,
+			"fn": 18,
+			"exp": 18,
+			"lines": 289
+		},
+		{
+			"file": "public/framework/core/new/1/site/content/posts.js",
+			"imp": 8,
+			"fn": 9,
+			"exp": 9,
+			"lines": 164
+		},
+		{
+			"file": "public/framework/ext/demo/stage.js",
+			"imp": 8,
+			"fn": 10,
+			"exp": 7,
+			"lines": 262
+		},
+		{
+			"file": "public/framework/ext/Panel/workspace.js",
+			"imp": 8,
+			"fn": 4,
+			"exp": 3,
+			"lines": 194
+		},
+		{
+			"file": "public/framework/ext/Refine/engine.js",
+			"imp": 8,
+			"fn": 18,
+			"exp": 2,
+			"lines": 384
+		},
+		{
+			"file": "public/framework/core/Page/ai/work.js",
+			"imp": 8,
+			"fn": 16,
+			"exp": 2,
+			"lines": 218
+		},
+		{
+			"file": "public/imagine/paging/presets.js",
+			"imp": 8,
+			"fn": 2,
+			"exp": 2,
+			"lines": 114
+		},
+		{
+			"file": "public/framework/ext/filesystem/file_link.js",
+			"imp": 8,
+			"fn": 2,
+			"exp": 1,
+			"lines": 89
+		},
+		{
+			"file": "public/framework/ext/demo/sample.js",
+			"imp": 8,
+			"fn": 1,
+			"exp": 1,
+			"lines": 57
+		},
+		{
+			"file": "public/framework/ux/Content/fixtures.js",
+			"imp": 7,
+			"fn": 8,
+			"exp": 7,
+			"lines": 69
+		},
+		{
+			"file": "Servex/ext/local/provider.js",
+			"imp": 7,
+			"fn": 5,
+			"exp": 4,
+			"lines": 115
+		},
+		{
+			"file": "public/framework/ext/AITask/message.js",
+			"imp": 7,
+			"fn": 7,
+			"exp": 4,
+			"lines": 61
+		},
+		{
+			"file": "public/framework/core/Page/generator/gen.js",
+			"imp": 7,
+			"fn": 2,
+			"exp": 2,
+			"lines": 130
+		},
+		{
+			"file": "public/framework/styles/layouts/space/spec.js",
+			"imp": 7,
+			"fn": 5,
+			"exp": 2,
+			"lines": 121
+		},
+		{
+			"file": "public/framework/ext/drawer/drawer.js",
+			"imp": 7,
+			"fn": 4,
+			"exp": 1,
+			"lines": 144
+		},
+		{
+			"file": "public/framework/ai/cards/chat.js",
+			"imp": 7,
+			"fn": 1,
+			"exp": 1,
+			"lines": 16
+		},
+		{
+			"file": "public/framework/ai/rail/needs-rule.js",
+			"imp": 6,
+			"fn": 14,
+			"exp": 7,
+			"lines": 346
+		},
+		{
+			"file": "public/framework/ext/AITask/card.js",
+			"imp": 6,
+			"fn": 15,
+			"exp": 7,
+			"lines": 148
+		},
+		{
+			"file": "public/framework/ai/rail/needs.js",
+			"imp": 6,
+			"fn": 20,
+			"exp": 6,
+			"lines": 288
+		},
+		{
+			"file": "public/framework/ext/Panel/vocab.js",
+			"imp": 6,
+			"fn": 4,
+			"exp": 4,
+			"lines": 29
+		},
+		{
+			"file": "public/framework/ext/Panel/tools.js",
+			"imp": 6,
+			"fn": 4,
+			"exp": 3,
+			"lines": 165
+		},
+		{
+			"file": "public/framework/ext/DesignTool/taste/taste.js",
+			"imp": 6,
+			"fn": 1,
+			"exp": 1,
+			"lines": 64
+		},
+		{
+			"file": "public/imagine/paging/build/words.js",
+			"imp": 5,
+			"fn": 22,
+			"exp": 21,
+			"lines": 268
+		},
+		{
+			"file": "public/framework/styles/stacks/stacks.js",
+			"imp": 5,
+			"fn": 7,
+			"exp": 7,
+			"lines": 99
+		},
+		{
+			"file": "public/framework/core/new/1/site/urls/proposals.js",
+			"imp": 5,
+			"fn": 6,
+			"exp": 6,
+			"lines": 197
+		},
+		{
+			"file": "public/framework/ext/Panel/size.js",
+			"imp": 5,
+			"fn": 6,
+			"exp": 5,
+			"lines": 139
+		},
+		{
+			"file": "public/framework/core/Page/generator/spec.js",
+			"imp": 5,
+			"fn": 5,
+			"exp": 5,
+			"lines": 102
+		},
+		{
+			"file": "public/framework/ext/Panel/Workspace/documents.js",
+			"imp": 5,
+			"fn": 7,
+			"exp": 5,
+			"lines": 65
+		},
+		{
+			"file": "public/framework/ai/cards/fold.js",
+			"imp": 5,
+			"fn": 4,
+			"exp": 4,
+			"lines": 40
+		},
+		{
+			"file": "public/framework/ext/AITask/usage.js",
+			"imp": 5,
+			"fn": 5,
+			"exp": 2,
+			"lines": 91
+		},
+		{
+			"file": "public/framework/ai/asks/fold.js",
+			"imp": 5,
+			"fn": 2,
+			"exp": 2,
+			"lines": 64
+		},
+		{
+			"file": "Servex/agents/tiers.js",
+			"imp": 5,
+			"fn": 3,
+			"exp": 2,
+			"lines": 42
+		},
+		{
+			"file": "public/framework/ext/AITask/tree/design.js",
+			"imp": 5,
+			"fn": 2,
+			"exp": 2,
+			"lines": 35
+		},
+		{
+			"file": "public/imagine/vary/colstyles/tree.js",
+			"imp": 5,
+			"fn": 1,
+			"exp": 1,
+			"lines": 39
+		},
+		{
+			"file": "Server/stamp.js",
+			"imp": 5,
+			"fn": 1,
+			"exp": 1,
+			"lines": 14
+		},
+		{
+			"file": "public/framework/ext/DesignTool/ratios.js",
+			"imp": 4,
+			"fn": 21,
+			"exp": 14,
+			"lines": 286
+		},
+		{
+			"file": "public/framework/ext/Panel/persist.js",
+			"imp": 4,
+			"fn": 19,
+			"exp": 11,
+			"lines": 244
+		},
+		{
+			"file": "public/framework/ai/cards/activity.js",
+			"imp": 4,
+			"fn": 15,
+			"exp": 10,
+			"lines": 210
+		},
+		{
+			"file": "public/framework/ext/Panel/text.js",
+			"imp": 4,
+			"fn": 15,
+			"exp": 7,
+			"lines": 303
+		},
+		{
+			"file": "public/framework/ai/cards/tasks.js",
+			"imp": 4,
+			"fn": 10,
+			"exp": 6,
+			"lines": 173
+		},
+		{
+			"file": "public/framework/core/Layout/fixtures.js",
+			"imp": 4,
+			"fn": 7,
+			"exp": 4,
+			"lines": 170
+		},
+		{
+			"file": "public/framework/dev/DevBar/settings.js",
+			"imp": 4,
+			"fn": 4,
+			"exp": 4,
+			"lines": 58
+		},
+		{
+			"file": "public/layouts/decide/demo.js",
+			"imp": 4,
+			"fn": 4,
+			"exp": 4,
+			"lines": 57
+		},
+		{
+			"file": "public/framework/dev/DevShell/pref.js",
+			"imp": 4,
+			"fn": 4,
+			"exp": 4,
+			"lines": 36
+		},
+		{
+			"file": "public/framework/ext/Panel/generate.js",
+			"imp": 4,
+			"fn": 9,
+			"exp": 3,
+			"lines": 154
+		},
+		{
+			"file": "public/framework/styles/layouts/space/gen.js",
+			"imp": 4,
+			"fn": 4,
+			"exp": 2,
+			"lines": 167
+		},
+		{
+			"file": "Servex/agents/readme-chain.js",
+			"imp": 4,
+			"fn": 6,
+			"exp": 2,
+			"lines": 116
+		},
+		{
+			"file": "public/framework/ai/cards/compose.js",
+			"imp": 4,
+			"fn": 4,
+			"exp": 2,
+			"lines": 66
+		},
+		{
+			"file": "public/framework/core/Layout/layouts.js",
+			"imp": 4,
+			"fn": 1,
+			"exp": 1,
+			"lines": 703
+		},
+		{
+			"file": "public/framework/ext/DesignTool/taste/ranges.js",
+			"imp": 4,
+			"fn": 1,
+			"exp": 1,
+			"lines": 126
+		},
+		{
+			"file": "public/framework/ext/Refine/structure.js",
+			"imp": 4,
+			"fn": 2,
+			"exp": 1,
+			"lines": 106
+		},
+		{
+			"file": "Server/watch.js",
+			"imp": 4,
+			"fn": 3,
+			"exp": 1,
+			"lines": 92
+		},
+		{
+			"file": "public/framework/ext/Chat/md.js",
+			"imp": 4,
+			"fn": 2,
+			"exp": 1,
+			"lines": 37
+		},
+		{
+			"file": "public/framework/styles/layouts/full.js",
+			"imp": 4,
+			"fn": 1,
+			"exp": 1,
+			"lines": 33
+		},
+		{
+			"file": "public/framework/core/Sidebar/variants/preview-nav.js",
+			"imp": 4,
+			"fn": 1,
+			"exp": 1,
+			"lines": 28
+		},
+		{
+			"file": "public/framework/core/Page/object.js",
+			"imp": 4,
+			"fn": 1,
+			"exp": 1,
+			"lines": 22
+		},
+		{
+			"file": "public/framework/styles/layouts/400/entry.js",
+			"imp": 4,
+			"fn": 1,
+			"exp": 1,
+			"lines": 15
+		},
+		{
+			"file": "public/framework/core/new/1/site/sitemap/crawl.js",
+			"imp": 3,
+			"fn": 10,
+			"exp": 10,
+			"lines": 166
+		},
+		{
+			"file": "public/framework/ext/DesignTool/defer.js",
+			"imp": 3,
+			"fn": 9,
+			"exp": 7,
+			"lines": 49
+		},
+		{
+			"file": "public/framework/ext/drawer/tabs/ai.js",
+			"imp": 3,
+			"fn": 16,
+			"exp": 6,
+			"lines": 643
+		},
+		{
+			"file": "public/framework/ai/cards/outline.js",
+			"imp": 3,
+			"fn": 9,
+			"exp": 6,
+			"lines": 136
+		},
+		{
+			"file": "public/framework/ext/Panel/paint.js",
+			"imp": 3,
+			"fn": 6,
+			"exp": 6,
+			"lines": 85
+		},
+		{
+			"file": "public/imagine/paging/url.js",
+			"imp": 3,
+			"fn": 8,
+			"exp": 5,
+			"lines": 171
+		},
+		{
+			"file": "public/framework/core/Page/words.js",
+			"imp": 3,
+			"fn": 5,
+			"exp": 5,
+			"lines": 166
+		},
+		{
+			"file": "public/framework/ext/DesignTool/library/entry.js",
+			"imp": 3,
+			"fn": 6,
+			"exp": 5,
+			"lines": 107
+		},
+		{
+			"file": "public/framework/ext/Research/entries.js",
+			"imp": 3,
+			"fn": 7,
+			"exp": 5,
+			"lines": 93
+		},
+		{
+			"file": "public/framework/ext/Chat/roles.js",
+			"imp": 3,
+			"fn": 6,
+			"exp": 5,
+			"lines": 69
+		},
+		{
+			"file": "public/framework/ai/v/3/prompts.js",
+			"imp": 3,
+			"fn": 9,
+			"exp": 4,
+			"lines": 295
+		},
+		{
+			"file": "public/framework/ui/datagrid/datagrid.js",
+			"imp": 3,
+			"fn": 5,
+			"exp": 4,
+			"lines": 143
+		},
+		{
+			"file": "public/framework/ai/system-classes.js",
+			"imp": 3,
+			"fn": 4,
+			"exp": 4,
+			"lines": 95
+		},
+		{
+			"file": "public/framework/ai/cards/rules.js",
+			"imp": 3,
+			"fn": 6,
+			"exp": 4,
+			"lines": 84
+		},
+		{
+			"file": "public/imagine/gallery/foreign.js",
+			"imp": 3,
+			"fn": 5,
+			"exp": 4,
+			"lines": 83
+		},
+		{
+			"file": "public/framework/dev/Claim/claim.js",
+			"imp": 3,
+			"fn": 6,
+			"exp": 4,
+			"lines": 78
+		},
+		{
+			"file": "public/framework/ext/AITask/prompt.js",
+			"imp": 3,
+			"fn": 4,
+			"exp": 4,
+			"lines": 35
+		},
+		{
+			"file": "Servex/agents/tools.js",
+			"imp": 3,
+			"fn": 11,
+			"exp": 3,
+			"lines": 458
+		},
+		{
+			"file": "public/framework/dev/DevBar/chat.js",
+			"imp": 3,
+			"fn": 5,
+			"exp": 3,
+			"lines": 158
+		},
+		{
+			"file": "public/framework/ext/AITask/needs.js",
+			"imp": 3,
+			"fn": 9,
+			"exp": 3,
+			"lines": 116
+		},
+		{
+			"file": "public/framework/ext/DesignTool/highlight.js",
+			"imp": 3,
+			"fn": 7,
+			"exp": 3,
+			"lines": 109
+		},
+		{
+			"file": "public/framework/ai/cards/meter.js",
+			"imp": 3,
+			"fn": 4,
+			"exp": 3,
+			"lines": 52
+		},
+		{
+			"file": "public/framework/core/Page/ai/live.js",
+			"imp": 3,
+			"fn": 5,
+			"exp": 3,
+			"lines": 42
+		},
+		{
+			"file": "public/framework/ext/Panel/repeat.js",
+			"imp": 3,
+			"fn": 9,
+			"exp": 2,
+			"lines": 141
+		},
+		{
+			"file": "public/framework/ai/cards/agents.js",
+			"imp": 3,
+			"fn": 6,
+			"exp": 2,
+			"lines": 120
+		},
+		{
+			"file": "public/framework/ext/JSONL/live.js",
+			"imp": 3,
+			"fn": 6,
+			"exp": 2,
+			"lines": 115
+		},
+		{
+			"file": "public/framework/ext/Panel/grip.js",
+			"imp": 3,
+			"fn": 5,
+			"exp": 2,
+			"lines": 110
+		},
+		{
+			"file": "Servex/agents/tidy.js",
+			"imp": 3,
+			"fn": 2,
+			"exp": 2,
+			"lines": 110
+		},
+		{
+			"file": "public/framework/ext/Panel/display.js",
+			"imp": 3,
+			"fn": 4,
+			"exp": 2,
+			"lines": 88
+		},
+		{
+			"file": "public/arya/lib/nav.js",
+			"imp": 3,
+			"fn": 2,
+			"exp": 2,
+			"lines": 51
+		},
+		{
+			"file": "public/framework/ext/DesignTool/probe.js",
+			"imp": 3,
+			"fn": 14,
+			"exp": 1,
+			"lines": 265
+		},
+		{
+			"file": "public/notes/doodles/doodles.js",
+			"imp": 3,
+			"fn": 2,
+			"exp": 1,
+			"lines": 236
+		},
+		{
+			"file": "public/framework/ext/Refine/prompt-card.js",
+			"imp": 3,
+			"fn": 6,
+			"exp": 1,
+			"lines": 204
+		},
+		{
+			"file": "public/framework/core/Page/settings/settings.js",
+			"imp": 3,
+			"fn": 6,
+			"exp": 1,
+			"lines": 157
+		},
+		{
+			"file": "public/framework/ext/DesignTool/report.js",
+			"imp": 3,
+			"fn": 7,
+			"exp": 1,
+			"lines": 134
+		},
+		{
+			"file": "public/framework/core/Page/weight/weight.js",
+			"imp": 3,
+			"fn": 4,
+			"exp": 1,
+			"lines": 85
+		},
+		{
+			"file": "public/framework/dev/DevBar/hold.js",
+			"imp": 3,
+			"fn": 3,
+			"exp": 1,
+			"lines": 83
+		},
+		{
+			"file": "public/framework/ai/v/3/compose.js",
+			"imp": 3,
+			"fn": 1,
+			"exp": 1,
+			"lines": 77
+		},
+		{
+			"file": "public/framework/dev/DevBar/width.js",
+			"imp": 3,
+			"fn": 3,
+			"exp": 1,
+			"lines": 77
+		},
+		{
+			"file": "public/framework/dev/DevBar/blocked.js",
+			"imp": 3,
+			"fn": 1,
+			"exp": 1,
+			"lines": 56
+		},
+		{
+			"file": "public/framework/ext/demo/pane.js",
+			"imp": 3,
+			"fn": 1,
+			"exp": 1,
+			"lines": 54
+		},
+		{
+			"file": "public/framework/stats.js",
+			"imp": 3,
+			"fn": 1,
+			"exp": 1,
+			"lines": 24
+		},
+		{
+			"file": "public/framework/core/new/1/site/forms/post.js",
+			"imp": 3,
+			"fn": 1,
+			"exp": 1,
+			"lines": 18
+		},
+		{
+			"file": "Servex/agents/experts.js",
+			"imp": 2,
+			"fn": 28,
+			"exp": 13,
+			"lines": 371
+		},
+		{
+			"file": "public/framework/ext/AITask/dashboard.js",
+			"imp": 2,
+			"fn": 30,
+			"exp": 12,
+			"lines": 491
+		},
+		{
+			"file": "public/framework/core/Page/generator/export.js",
+			"imp": 2,
+			"fn": 18,
+			"exp": 10,
+			"lines": 377
+		},
+		{
+			"file": "public/framework/core/Page/generator/controls.js",
+			"imp": 2,
+			"fn": 11,
+			"exp": 8,
+			"lines": 210
+		},
+		{
+			"file": "public/framework/core/Layout/rules.js",
+			"imp": 2,
+			"fn": 15,
+			"exp": 6,
+			"lines": 309
+		},
+		{
+			"file": "public/layouts/browse/decide.js",
+			"imp": 2,
+			"fn": 12,
+			"exp": 6,
+			"lines": 179
+		},
+		{
+			"file": "public/framework/ai/rail/processes.js",
+			"imp": 2,
+			"fn": 21,
+			"exp": 4,
+			"lines": 327
+		},
+		{
+			"file": "public/framework/ext/Panel/focus.js",
+			"imp": 2,
+			"fn": 16,
+			"exp": 4,
+			"lines": 241
+		},
+		{
+			"file": "public/framework/core/Page/generator/rolls.js",
+			"imp": 2,
+			"fn": 5,
+			"exp": 4,
+			"lines": 146
+		},
+		{
+			"file": "public/framework/ext/Research/verbs.js",
+			"imp": 2,
+			"fn": 7,
+			"exp": 4,
+			"lines": 116
+		},
+		{
+			"file": "public/framework/ext/AITask/module-spend.js",
+			"imp": 2,
+			"fn": 6,
+			"exp": 4,
+			"lines": 86
+		},
+		{
+			"file": "public/framework/ext/AITask/asks.js",
+			"imp": 2,
+			"fn": 29,
+			"exp": 3,
+			"lines": 493
+		},
+		{
+			"file": "Servex/agents/jobs.js",
+			"imp": 2,
+			"fn": 12,
+			"exp": 3,
+			"lines": 310
+		},
+		{
+			"file": "public/framework/styles/layouts/cols/words.js",
+			"imp": 2,
+			"fn": 4,
+			"exp": 3,
+			"lines": 235
+		},
+		{
+			"file": "Servex/pages.js",
+			"imp": 2,
+			"fn": 13,
+			"exp": 3,
+			"lines": 222
+		},
+		{
+			"file": "Servex/agents/hitl.js",
+			"imp": 2,
+			"fn": 6,
+			"exp": 3,
+			"lines": 108
+		},
+		{
+			"file": "public/framework/core/new/1/site/mutation/autosave.js",
+			"imp": 2,
+			"fn": 3,
+			"exp": 3,
+			"lines": 67
+		},
+		{
+			"file": "public/framework/core/Page/ext/Inbox/servex.js",
+			"imp": 2,
+			"fn": 3,
+			"exp": 3,
+			"lines": 36
+		},
+		{
+			"file": "public/framework/ext/Panel/properties.js",
+			"imp": 2,
+			"fn": 16,
+			"exp": 2,
+			"lines": 459
+		},
+		{
+			"file": "public/framework/dev/DevBar/ask.js",
+			"imp": 2,
+			"fn": 6,
+			"exp": 2,
+			"lines": 154
+		},
+		{
+			"file": "public/framework/ai/rail/log.js",
+			"imp": 2,
+			"fn": 4,
+			"exp": 2,
+			"lines": 130
+		},
+		{
+			"file": "public/framework/ext/AITask/shots.js",
+			"imp": 2,
+			"fn": 3,
+			"exp": 2,
+			"lines": 36
+		},
+		{
+			"file": "Servex/agents/brief.js",
+			"imp": 2,
+			"fn": 2,
+			"exp": 2,
+			"lines": 36
+		},
+		{
+			"file": "public/framework/ext/Panel/random.js",
+			"imp": 2,
+			"fn": 3,
+			"exp": 2,
+			"lines": 31
+		},
+		{
+			"file": "public/framework/ext/AITask/decisions.js",
+			"imp": 2,
+			"fn": 13,
+			"exp": 1,
+			"lines": 213
+		},
+		{
+			"file": "public/framework/ext/depth/depth.js",
+			"imp": 2,
+			"fn": 4,
+			"exp": 1,
+			"lines": 194
+		},
+		{
+			"file": "public/framework/ext/Panel/split.js",
+			"imp": 2,
+			"fn": 3,
+			"exp": 1,
+			"lines": 191
+		},
+		{
+			"file": "public/framework/ux/Dictate/push-to-talk.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 177
+		},
+		{
+			"file": "public/framework/ai/rail/overview.js",
+			"imp": 2,
+			"fn": 7,
+			"exp": 1,
+			"lines": 146
+		},
+		{
+			"file": "public/framework/util/markup/markup.js",
+			"imp": 2,
+			"fn": 5,
+			"exp": 1,
+			"lines": 144
+		},
+		{
+			"file": "public/framework/ext/DesignTool/audit/twin.js",
+			"imp": 2,
+			"fn": 7,
+			"exp": 1,
+			"lines": 124
+		},
+		{
+			"file": "public/framework/ext/sprawl/sprawl.js",
+			"imp": 2,
+			"fn": 4,
+			"exp": 1,
+			"lines": 122
+		},
+		{
+			"file": "public/framework/ext/toc/toc.js",
+			"imp": 2,
+			"fn": 6,
+			"exp": 1,
+			"lines": 122
+		},
+		{
+			"file": "public/imagine/paging/build/draw.js",
+			"imp": 2,
+			"fn": 5,
+			"exp": 1,
+			"lines": 109
+		},
+		{
+			"file": "public/framework/ext/DesignTool/live.js",
+			"imp": 2,
+			"fn": 3,
+			"exp": 1,
+			"lines": 97
+		},
+		{
+			"file": "public/framework/ux/Hotkeys/row.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 90
+		},
+		{
+			"file": "public/framework/ui/section/section.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 85
+		},
+		{
+			"file": "public/imagine/lines/lines.js",
+			"imp": 2,
+			"fn": 4,
+			"exp": 1,
+			"lines": 81
+		},
+		{
+			"file": "public/framework/ext/DesignTool/vision.js",
+			"imp": 2,
+			"fn": 3,
+			"exp": 1,
+			"lines": 80
+		},
+		{
+			"file": "public/imagine/decks/slides.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 80
+		},
+		{
+			"file": "public/layouts/labs/decks/slides.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 80
+		},
+		{
+			"file": "public/framework/styles/layouts/word.js",
+			"imp": 2,
+			"fn": 4,
+			"exp": 1,
+			"lines": 74
+		},
+		{
+			"file": "public/framework/ai/v/versions.js",
+			"imp": 2,
+			"fn": 3,
+			"exp": 1,
+			"lines": 71
+		},
+		{
+			"file": "public/framework/styles/layouts/masonry/masonry.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 66
+		},
+		{
+			"file": "public/framework/ext/Panel/insert.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 64
+		},
+		{
+			"file": "Servex/asks/stalled.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 58
+		},
+		{
+			"file": "public/framework/core/Page/generator/rules.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 57
+		},
+		{
+			"file": "public/framework/dev/DevBar/pathbar.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 56
+		},
+		{
+			"file": "public/framework/ext/filesystem/menu.js",
+			"imp": 2,
+			"fn": 2,
+			"exp": 1,
+			"lines": 50
+		},
+		{
+			"file": "public/framework/core/App/mode.js",
+			"imp": 2,
+			"fn": 3,
+			"exp": 1,
+			"lines": 46
+		},
+		{
+			"file": "public/framework/ext/layout/words.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 39
+		},
+		{
+			"file": "public/framework/core/new/1/site/forms/notify.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 32
+		},
+		{
+			"file": "public/framework/styles/layouts/preview.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 28
+		},
+		{
+			"file": "public/framework/styles/layers/theme/lew42/lew42.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 20
+		},
+		{
+			"file": "public/castin/components/snippet.js",
+			"imp": 2,
+			"fn": 0,
+			"exp": 1,
+			"lines": 15
+		},
+		{
+			"file": "public/framework/core/new/1/site/content/slug.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 14
+		},
+		{
+			"file": "public/framework/ext/DesignTool/address.js",
+			"imp": 2,
+			"fn": 1,
+			"exp": 1,
+			"lines": 12
+		},
+		{
+			"file": "public/framework/core/new/1/site/a11y/audit/audit.js",
+			"imp": 1,
+			"fn": 14,
+			"exp": 9,
+			"lines": 127
+		},
+		{
+			"file": "public/imagine/vary/colstyles/hooks/trees.js",
+			"imp": 1,
+			"fn": 8,
+			"exp": 8,
+			"lines": 109
+		},
+		{
+			"file": "public/framework/ext/AITask/tree.js",
+			"imp": 1,
+			"fn": 13,
+			"exp": 7,
+			"lines": 207
+		},
+		{
+			"file": "Servex/asks/tasks.js",
+			"imp": 1,
+			"fn": 14,
+			"exp": 6,
+			"lines": 240
+		},
+		{
+			"file": "Servex/agents/directory.js",
+			"imp": 1,
+			"fn": 15,
+			"exp": 5,
+			"lines": 257
+		},
+		{
+			"file": "public/framework/styles/system/studies/themes/generate.js",
+			"imp": 1,
+			"fn": 7,
+			"exp": 5,
+			"lines": 109
+		},
+		{
+			"file": "public/framework/ext/layout/panel.js",
+			"imp": 1,
+			"fn": 9,
+			"exp": 5,
+			"lines": 101
+		},
+		{
+			"file": "public/framework/ai/audits/paging/types.js",
+			"imp": 1,
+			"fn": 5,
+			"exp": 5,
+			"lines": 33
+		},
+		{
+			"file": "public/imagine/paging/config.js",
+			"imp": 1,
+			"fn": 22,
+			"exp": 4,
+			"lines": 668
+		},
+		{
+			"file": "public/framework/ai/overview.js",
+			"imp": 1,
+			"fn": 23,
+			"exp": 4,
+			"lines": 574
+		},
+		{
+			"file": "public/framework/core/Page/generator/tree.js",
+			"imp": 1,
+			"fn": 9,
+			"exp": 4,
+			"lines": 288
+		},
+		{
+			"file": "public/framework/core/new/1/site/kit/kit.js",
+			"imp": 1,
+			"fn": 11,
+			"exp": 4,
+			"lines": 243
+		},
+		{
+			"file": "public/imagine/paging/demos.js",
+			"imp": 1,
+			"fn": 4,
+			"exp": 4,
+			"lines": 201
+		},
+		{
+			"file": "Servex/ext/clean-test/run.js",
+			"imp": 1,
+			"fn": 5,
+			"exp": 4,
+			"lines": 153
+		},
+		{
+			"file": "public/framework/core/Page/generator/fill.js",
+			"imp": 1,
+			"fn": 5,
+			"exp": 4,
+			"lines": 92
+		},
+		{
+			"file": "public/framework/core/new/1/site/patterns/wiki/notes.js",
+			"imp": 1,
+			"fn": 4,
+			"exp": 4,
+			"lines": 89
+		},
+		{
+			"file": "public/framework/dev/DevBar/sessions.js",
+			"imp": 1,
+			"fn": 6,
+			"exp": 4,
+			"lines": 67
+		},
+		{
+			"file": "public/framework/core/new/1/site/motion/direction/direction.js",
+			"imp": 1,
+			"fn": 4,
+			"exp": 4,
+			"lines": 56
+		},
+		{
+			"file": "public/framework/ext/AITask/board.js",
+			"imp": 1,
+			"fn": 10,
+			"exp": 4,
+			"lines": 56
+		},
+		{
+			"file": "public/framework/ext/AITask/conversation.js",
+			"imp": 1,
+			"fn": 21,
+			"exp": 3,
+			"lines": 333
+		},
+		{
+			"file": "public/framework/ext/DesignTool/taste/corpus.js",
+			"imp": 1,
+			"fn": 11,
+			"exp": 3,
+			"lines": 199
+		},
+		{
+			"file": "public/framework/ext/drawer/tabs/sessions.js",
+			"imp": 1,
+			"fn": 6,
+			"exp": 3,
+			"lines": 147
+		},
+		{
+			"file": "public/framework/core/new/1/site/patterns/api/symbols.js",
+			"imp": 1,
+			"fn": 3,
+			"exp": 3,
+			"lines": 141
+		},
+		{
+			"file": "public/imagine/importance/ranked/ranked.js",
+			"imp": 1,
+			"fn": 8,
+			"exp": 3,
+			"lines": 129
+		},
+		{
+			"file": "public/framework/ext/layout/body.js",
+			"imp": 1,
+			"fn": 11,
+			"exp": 3,
+			"lines": 126
+		},
+		{
+			"file": "Servex/agents/roles.js",
+			"imp": 1,
+			"fn": 6,
+			"exp": 3,
+			"lines": 126
+		},
+		{
+			"file": "public/framework/ext/AITask/highlights.js",
+			"imp": 1,
+			"fn": 11,
+			"exp": 3,
+			"lines": 114
+		},
+		{
+			"file": "public/framework/styles/layouts/space/search.js",
+			"imp": 1,
+			"fn": 5,
+			"exp": 3,
+			"lines": 107
+		},
+		{
+			"file": "public/layouts/labs/trees/draw.js",
+			"imp": 1,
+			"fn": 6,
+			"exp": 3,
+			"lines": 106
+		},
+		{
+			"file": "public/framework/styles/system/studies/themes/mock.js",
+			"imp": 1,
+			"fn": 3,
+			"exp": 3,
+			"lines": 66
+		},
+		{
+			"file": "public/framework/core/new/1/site/patterns/shop/catalog.js",
+			"imp": 1,
+			"fn": 3,
+			"exp": 3,
+			"lines": 59
+		},
+		{
+			"file": "public/framework/core/new/1/site/motion/head-start/head-start.js",
+			"imp": 1,
+			"fn": 3,
+			"exp": 3,
+			"lines": 52
+		},
+		{
+			"file": "public/framework/core/new/1/site/motion/view-transitions/wrap.js",
+			"imp": 1,
+			"fn": 3,
+			"exp": 3,
+			"lines": 43
+		},
+		{
+			"file": "public/imagine/scenes/observatory/plates.js",
+			"imp": 1,
+			"fn": 6,
+			"exp": 2,
+			"lines": 301
+		},
+		{
+			"file": "public/framework/ext/AITask/day-prompts.js",
+			"imp": 1,
+			"fn": 16,
+			"exp": 2,
+			"lines": 268
+		},
+		{
+			"file": "public/framework/ext/Panel/Workspace/viewports.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 2,
+			"lines": 193
+		},
+		{
+			"file": "public/framework/ext/AITask/replay.js",
+			"imp": 1,
+			"fn": 10,
+			"exp": 2,
+			"lines": 130
+		},
+		{
+			"file": "public/framework/styles/rules/demos.js",
+			"imp": 1,
+			"fn": 4,
+			"exp": 2,
+			"lines": 111
+		},
+		{
+			"file": "public/framework/ext/Ask/stream.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 2,
+			"lines": 90
+		},
+		{
+			"file": "public/imagine/platform/like.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 2,
+			"lines": 73
+		},
+		{
+			"file": "public/framework/core/new/1/site/forms/leave.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 2,
+			"lines": 69
+		},
+		{
+			"file": "public/layouts/labs/trees/gen.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 2,
+			"lines": 68
+		},
+		{
+			"file": "public/framework/ext/Panel/overlays.js",
+			"imp": 1,
+			"fn": 3,
+			"exp": 2,
+			"lines": 50
+		},
+		{
+			"file": "public/framework/ext/filesystem/tree.js",
+			"imp": 1,
+			"fn": 4,
+			"exp": 2,
+			"lines": 48
+		},
+		{
+			"file": "public/framework/core/new/1/site/patterns/gallery/albums.js",
+			"imp": 1,
+			"fn": 3,
+			"exp": 2,
+			"lines": 45
+		},
+		{
+			"file": "public/framework/ext/AITask/effort.js",
+			"imp": 1,
+			"fn": 5,
+			"exp": 2,
+			"lines": 44
+		},
+		{
+			"file": "Servex/ext/local/chat.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 2,
+			"lines": 43
+		},
+		{
+			"file": "public/framework/core/new/1/site/forms/draft.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 2,
+			"lines": 40
+		},
+		{
+			"file": "public/framework/ext/DesignTool/taste/read.js",
+			"imp": 1,
+			"fn": 19,
+			"exp": 1,
+			"lines": 379
+		},
+		{
+			"file": "public/framework/ext/DesignTool/vision/browse.js",
+			"imp": 1,
+			"fn": 27,
+			"exp": 1,
+			"lines": 342
+		},
+		{
+			"file": "public/framework/dev/DevBar/says.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 1,
+			"lines": 334
+		},
+		{
+			"file": "Servex/agents/page_tools.js",
+			"imp": 1,
+			"fn": 14,
+			"exp": 1,
+			"lines": 321
+		},
+		{
+			"file": "public/framework/ui/background/background.js",
+			"imp": 1,
+			"fn": 9,
+			"exp": 1,
+			"lines": 295
+		},
+		{
+			"file": "public/framework/core/Page/generator/specs.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 1,
+			"lines": 272
+		},
+		{
+			"file": "public/framework/ext/Collab/view.js",
+			"imp": 1,
+			"fn": 15,
+			"exp": 1,
+			"lines": 249
+		},
+		{
+			"file": "public/framework/dev/DevBar/log.js",
+			"imp": 1,
+			"fn": 8,
+			"exp": 1,
+			"lines": 193
+		},
+		{
+			"file": "public/framework/dev/DevBar/layout.js",
+			"imp": 1,
+			"fn": 16,
+			"exp": 1,
+			"lines": 179
+		},
+		{
+			"file": "public/imagine/paging/content.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 154
+		},
+		{
+			"file": "public/framework/ai/v/3/agents.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 150
+		},
+		{
+			"file": "public/framework/ai/v/new.js",
+			"imp": 1,
+			"fn": 3,
+			"exp": 1,
+			"lines": 148
+		},
+		{
+			"file": "public/framework/ext/demo/mini.js",
+			"imp": 1,
+			"fn": 13,
+			"exp": 1,
+			"lines": 130
+		},
+		{
+			"file": "public/framework/styles/layouts/space/words/words.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 1,
+			"lines": 129
+		},
+		{
+			"file": "public/framework/ext/drawer/tabs/settings.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 1,
+			"lines": 119
+		},
+		{
+			"file": "Server/compress.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 112
+		},
+		{
+			"file": "public/framework/styles/layouts/space/ruler.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 111
+		},
+		{
+			"file": "public/imagine/lines/tool.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 103
+		},
+		{
+			"file": "public/framework/ext/DesignTool/mirror.js",
+			"imp": 1,
+			"fn": 7,
+			"exp": 1,
+			"lines": 93
+		},
+		{
+			"file": "public/framework/styles/layouts/space/draw.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 1,
+			"lines": 86
+		},
+		{
+			"file": "public/framework/ai/v/3/ask.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 77
+		},
+		{
+			"file": "public/framework/core/Page/weight/ai-cost.js",
+			"imp": 1,
+			"fn": 4,
+			"exp": 1,
+			"lines": 71
+		},
+		{
+			"file": "public/fly/joystick.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 1,
+			"lines": 70
+		},
+		{
+			"file": "Servex/agents/ops.js",
+			"imp": 1,
+			"fn": 3,
+			"exp": 1,
+			"lines": 66
+		},
+		{
+			"file": "public/framework/dev/DevBar/structure.js",
+			"imp": 1,
+			"fn": 8,
+			"exp": 1,
+			"lines": 61
+		},
+		{
+			"file": "public/framework/ext/AITask/compose.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 60
+		},
+		{
+			"file": "public/framework/ext/drawer/tabs/element.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 1,
+			"lines": 59
+		},
+		{
+			"file": "public/framework/core/new/1/site/mutation/upload.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 54
+		},
+		{
+			"file": "public/framework/ext/drawer/menu.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 50
+		},
+		{
+			"file": "public/framework/ext/Panel/seam.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 1,
+			"lines": 47
+		},
+		{
+			"file": "public/framework/ai/health/devbar.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 44
+		},
+		{
+			"file": "public/framework/core/new/1/site/mutation/record.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 44
+		},
+		{
+			"file": "public/framework/core/Layout/strip.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 42
+		},
+		{
+			"file": "public/framework/ext/Doc/decisions.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 39
+		},
+		{
+			"file": "public/framework/ux/Understand/fixtures.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 30
+		},
+		{
+			"file": "public/framework/ext/AITask/listing.js",
+			"imp": 1,
+			"fn": 2,
+			"exp": 1,
+			"lines": 29
+		},
+		{
+			"file": "public/imagine/lines/samples.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 29
+		},
+		{
+			"file": "public/framework/core/new/1/site/state/store.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 25
+		},
+		{
+			"file": "public/framework/ext/drawer/tabs/admin.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 24
+		},
+		{
+			"file": "Servex/ext/refine/run.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 23
+		},
+		{
+			"file": "public/framework/ext/drawer/tabs/dictation.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 19
+		},
+		{
+			"file": "public/framework/ux/Rename/fixtures.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 17
+		},
+		{
+			"file": "public/framework/ai/v/3/demos.js",
+			"imp": 1,
+			"fn": 1,
+			"exp": 1,
+			"lines": 14
+		},
+		{
+			"file": "public/nav.js",
+			"imp": 1,
+			"fn": 0,
+			"exp": 1,
+			"lines": 12
+		},
+		{
+			"file": "public/framework/core/new/1/site/perf/ui.js",
+			"imp": 0,
+			"fn": 12,
+			"exp": 9,
+			"lines": 199
+		},
+		{
+			"file": "public/imagine/design/themes/generate.js",
+			"imp": 0,
+			"fn": 7,
+			"exp": 5,
+			"lines": 109
+		},
+		{
+			"file": "public/framework/core/new/1/site/perf/prefetch.js",
+			"imp": 0,
+			"fn": 5,
+			"exp": 3,
+			"lines": 82
+		},
+		{
+			"file": "public/imagine/design/themes/mock.js",
+			"imp": 0,
+			"fn": 3,
+			"exp": 3,
+			"lines": 66
+		},
+		{
+			"file": "public/framework/ext/Panel/toolbar.js",
+			"imp": 0,
+			"fn": 5,
+			"exp": 3,
+			"lines": 64
+		},
+		{
+			"file": "public/framework/core/new/1/site/budget/budget.js",
+			"imp": 0,
+			"fn": 4,
+			"exp": 2,
+			"lines": 181
+		},
+		{
+			"file": "public/framework/ai/asks/rows.js",
+			"imp": 0,
+			"fn": 7,
+			"exp": 2,
+			"lines": 88
+		},
+		{
+			"file": "public/framework/dev/DevBar/history.js",
+			"imp": 0,
+			"fn": 3,
+			"exp": 1,
+			"lines": 176
+		},
+		{
+			"file": "public/framework/ext/AITask/feed.js",
+			"imp": 0,
+			"fn": 12,
+			"exp": 1,
+			"lines": 151
+		},
+		{
+			"file": "Servex/public/docs.js",
+			"imp": 0,
+			"fn": 1,
+			"exp": 1,
+			"lines": 137
+		},
+		{
+			"file": "public/framework/ext/DesignTool/sweep.js",
+			"imp": 0,
+			"fn": 4,
+			"exp": 1,
+			"lines": 72
+		},
+		{
+			"file": "public/framework/core/Page/jsonl/system.js",
+			"imp": 0,
+			"fn": 4,
+			"exp": 1,
+			"lines": 70
+		},
+		{
+			"file": "public/framework/core/Page/ext/demo.js",
+			"imp": 0,
+			"fn": 1,
+			"exp": 1,
+			"lines": 36
+		},
+		{
+			"file": "public/framework/core/Page/ext/paths.js",
+			"imp": 0,
+			"fn": 1,
+			"exp": 1,
+			"lines": 36
+		},
+		{
+			"file": "public/framework/core/Page/jsonl/full/content.js",
+			"imp": 0,
+			"fn": 0,
+			"exp": 1,
+			"lines": 17
+		},
+		{
+			"file": "public/framework/ext/highlight/example.js",
+			"imp": 0,
+			"fn": 1,
+			"exp": 1,
+			"lines": 7
+		},
+		{
+			"file": "public/framework/ai/tests/broken-import/fixture/dates.js",
+			"imp": 0,
+			"fn": 1,
+			"exp": 1,
+			"lines": 6
+		}
+	]
+}
