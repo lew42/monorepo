@@ -67,3 +67,22 @@ A single index grows without bound (hundreds of sessions a day for months can re
 
 ## 10. Static-compatible without a build step or a database (owner, 2026-10-08; refines section 9)
 The composite for a day/month is **always a real file at a stable URL** (`.../YYYY/MM/DD/index.json`), kept current by the `SessionIndex` writer (atomic, debounced to a few seconds), never a virtual endpoint only our server can answer. A static host serves that exact file. The dev server's **socket is only an accelerator** (live deltas between file writes), not the data path. So production needs no build step: the file is already there, and a closed day's file is frozen. Git hygiene: a day's file changes constantly while the day is live, so the live (today) composite is gitignored and **committed once at day close**; closed days are committed and immutable. A database stays rejected for now (it would need install, sync and deploy hooks); a derived gitignored mirror remains the only acceptable form, later, as a query accelerator.
+
+## 11. Folder shape and write policy (owner, 2026-10-08; decision)
+```
+ai/sessions/
+  index.json                  years present, with roll-up totals
+  2026/index.json             months present, with roll-up totals
+  2026/10/index.json          days present: [{day, count, cost}]  (<= 31 rows, a listing, not the sessions)
+  2026/10/08/index.json       the DAY COMPOSITE: one minimal summary row per session that day
+  2026/10/08/<session-name>/
+      index.json              this session's snapshot (source of its row)
+      session.jsonl           the session's own log (history)
+      page.jsonl              page-level data
+      <child-name>/...        child sessions nest inside the parent folder
+```
+- **Only the day level is a real composite** (rows inline). Month and year are short listings with roll-ups that point at the level below; they change rarely.
+- **Rows are minimal** (about 150-500 bytes: id, name, state, cost, updated, model, tags, alerts). A day of a few hundred sessions is about 100 KB; even thousands stay under about 1 MB.
+- **Single writer, in memory:** every agent's update goes through the one `SessionIndex` object; parallel agents cannot race. The live state is served from memory (socket + the composite response). **The disk is written trailing-debounced:** flush after 5 s of quiet, and always at least every 60 s while changing, atomically (temp + rename). Per-session snapshots use the same rule. Month/year listings flush about once a minute and only when a roll-up changed.
+- **No index deltas on disk.** Deltas exist only over the socket from memory, so nothing grows. After a crash or restart, memory is rebuilt from the per-session snapshots and the recent session logs, so the lost seconds self-heal; the session's own log is always the truth.
+- If a day ever exceeds the comfortable size, shard that day's composite by hour; not needed now.
