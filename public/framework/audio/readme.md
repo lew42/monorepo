@@ -72,3 +72,7 @@ The old six-class version — same classes, same three demo pages, unchanged —
 - [v1](./v1/) — the old six-class version, kept clickable for comparison
 - Files: one folder per class (`MicStream/`, `Recorder/`, `Transcriber/`), each with its class
   file, `page.js`, `readme.md`
+
+
+## Known issue (2026-10-09)
+The owner reports the `Transcriber` page layout "is all broken". Not investigated yet (noted only; the Refine task fenced it). Look at `Transcriber/page.js` at 1400 and 400 wide first.

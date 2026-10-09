@@ -1,6 +1,6 @@
 @layer base, theme, site, util;
 
-/* The connection row: five equal fixed columns (two on a phone), each a dot, a name and at most two
+/* The connection row: five equal fixed columns (two on a phone), each a dot, a name and at most three
    lines of reason, so nothing moves while words arrive. */
 @layer site {
 	.refine-conn { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.5em 0.75em; font-size: 0.85em; margin-block-end: 0.75em; }
@@ -10,7 +10,7 @@
 	.refine-conn-step[data-state="ok"] .refine-conn-dot { background: #2a9d4b; }
 	.refine-conn-step[data-state="bad"] .refine-conn-dot { background: var(--error, #d33); }
 	.refine-conn-step[data-state="wait"] .refine-conn-dot { background: #e0a000; }
-	.refine-conn-why { opacity: 0.75; block-size: 2.6em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+	.refine-conn-why { opacity: 0.75; block-size: 4.2em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 	.refine-conn-step[data-state="bad"] .refine-conn-why { color: var(--error, #d33); opacity: 1; }
 	.refine-conn-retry { margin-inline-start: auto; padding: 0 0.4em; line-height: 1.4; }
 	.refine-conn .audio-levelmeter { margin-block-start: 0.3em; }
