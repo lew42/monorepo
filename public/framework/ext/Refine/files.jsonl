@@ -26,6 +26,12 @@
 {"file":"RefineDemo.js"}
 {"file":"RefineSystem.js"}
 {"file":"Scorer.js"}
+{"file":"ai/"}
+{"file":"test/"}
+{"file":"Connection.css"}
+{"file":"Connection.js"}
+{"file":"Connection.css","gone":true}
+{"file":"Connection.js","gone":true}
 {"file":"test/"}
 {"file":"RefineExplorer.js"}
 {"file":"ladder/"}
