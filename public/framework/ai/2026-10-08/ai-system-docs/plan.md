@@ -42,6 +42,16 @@ Findings: [inbox-log-streaming-findings-2026-10-08.md](../../doc/inbox-log-strea
 **Default:** converge on `ext/JSONL` `live()` plus the dev-server socket. Order: (1) replace the `ai2/live.js` pollers with file tails, (2) make read state a shared `read` event on the card, (3) retire `board.jsonl`. **Alternative:** one multiplexed Servex `/api/stream`. Step 1 is a bite-sized Sonnet coder task once `ai2/` is free of other agents; first confirm by creating one card with the tool and timing when it shows.
 Also from the owner's layout questions: [ai2-merge-and-layout-proposal-2026-10-08.md](../../doc/ai2-merge-and-layout-proposal-2026-10-08.md) (port ai2 into ai with stubs; keep the hybrid date layout; two-line slug fix for the Servex owner).
 
+## 10. Why agents write function bags (the `code` skill review, 2026-10-08)
+**Cause, in order of weight:**
+1. **The skill never said it.** The old `code` skill (18 lines) said "assign-based OOP" and pointed away; "one class per file", "no loose functions" and "a page is a class" were nowhere in it.
+2. **The docs contradicted the rule.** `code/patterns/readme.md` said a lowercase file "holds functions, helpers or views", which blesses the bag. `new-page`'s blessed `page.js` is a script of bare calls (`content(){ p("Body.") }`), so every page grows inline helpers.
+3. **The rule sits in CLAUDE.md among about 30 others,** and a skill that only points means the agent follows its neighbours instead. The neighbours are bags: 286 files hold 3+ loose functions and no class, 97 of them `page.js` (`ai/sessions/page.js` 1,428 lines, `ext/Chat/Chat.js` 1,018, `ext/Session/Session.js` has 17 functions and no class despite its name).
+4. **The only census checked file-class naming, not bags.**
+
+**Done (small, clearly right):** rewrote `.claude/skills/code/SKILL.md` as a six-point rule first (one class per file, helpers are methods or statics, a page extends `Page` and `page.js` stays tiny, check a neighbour is a class before copying it); fixed the contradicting line in `patterns/readme.md`; added `code/patterns/function-bag-census.mjs`, which ranks the backlog (run it for the list; top: `ai/sessions/page.js`, `ext/Chat/Chat.js`, `ext/AITask/dashboard.js`, `ext/DesignTool/ratios.js`, `ext/Session/Session.js`).
+**Not done, for a coder task:** the `new-page` skill's `page.js` shape still shows bare calls; change it to "import a class and instantiate it" once a template class exists (`class System extends Page` is the first candidate). Refactors themselves: top-10 files above, one Sonnet coder each, no refactor now.
+
 ## Blockers
 - The pool cannot make a worktree for minions, so no Sonnet coder can be spawned yet; items 1 to 3 wait for it or I do them by hand with `worktree-up.mjs`.
 - No spawns made, so `spawns.jsonl` is empty by design.
