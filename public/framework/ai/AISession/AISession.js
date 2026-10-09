@@ -433,6 +433,7 @@ export default class AISession {
 			let id = UUID.test(name) ? name : null;
 			if (!id) try { id = JSON.parse(await fs.readFile(new URL("index.json", dir), "utf8")).id; } catch {}
 			if (!id) try { id = JSON.parse((await fs.readFile(new URL("cache.jsonl", dir), "utf8")).split("\n").find(l => l.startsWith('{"summary"'))).summary.id; } catch {}
+			if (!id) try { id = JSON.parse((await fs.readFile(new URL("page.jsonl", dir), "utf8")).split("\n")[0]).session; } catch {}   // a folder the page tool made first (Servex/agents/page_tools.js)
 			if (!id || !UUID.test(id)) continue;
 			AISession.days.set(id, `${y}/${m}/${d}`);
 			if (name !== id) AISession.slugs.set(id, name);

@@ -71,15 +71,21 @@ async function resolve(url, target = []){
 }
 
 async function session_file(id){
-	let uuid = UUID.test(id) ? id : null;
-	if (!uuid) try {
-		const { default: Registry } = await import("./registry.js");
-		uuid = new Registry().read()[id]?.session_id ?? null;
+	// A folder made here is named for the agent (its Servex id), not left as session-<id8> (brief: "sessions get a name").
+	let uuid = UUID.test(id) ? id : null, name = uuid ? null : id;
+	try {
+		const { default: Registry } = await import("./registry.js"), agents = new Registry().read();
+		if (!uuid) uuid = agents[id]?.session_id ?? null;
+		else name = Object.entries(agents).find(([, a]) => a?.session_id === uuid)?.[0] ?? null;
 	} catch {}
 	if (!uuid) return null;
+	const slug = /^[a-z0-9][a-z0-9-]{2,60}$/.test(name ?? "") ? `${name}-${uuid.slice(0, 8)}` : undefined;
 	const { default: AISession } = await import("../../public/framework/ai/AISession/AISession.js");
 	if (!AISession.days.has(uuid)) AISession.scanned = false;   // a long-lived Servex: a folder made since the last scan must be found, never doubled
-	return fileURLToPath(new URL("page.jsonl", await AISession.locate(uuid)));
+	const file = fileURLToPath(new URL("page.jsonl", await AISession.locate(uuid, undefined, slug)));
+	// A brand-new folder says whose it is on its first line, so AISession.scan() finds it again (never a second folder).
+	if (!fs.existsSync(file)){ fs.mkdirSync(path.dirname(file), { recursive: true }); fs.appendFileSync(file, JSON.stringify({ session: uuid, ts: new Date().toISOString() }) + "\n"); }
+	return file;
 }
 
 // "This page" when an agent names none: its own session page. Servex passes the caller's

@@ -39,13 +39,19 @@ export default class AISessionDetail extends Page {
 			if (!/^[0-9a-f]{8}-/.test(session_id)) return [];
 			await AISessionRows.load_index(this.home.url);   // fills AISession.days, so the dated folder is known
 			const own = AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname
-				: new URL(`./${AISession.day(new Date())}/session-${session_id.slice(0, 8)}/`, AISession.root_url()).pathname;
+				: new URL(`./${AISession.day(new Date())}/${AISessionDetail.slug(row, session_id)}/`, AISession.root_url()).pathname;
 			this._old_url = AISessionDetail.dir_index().then(index => {
 				const old = AISessionDetail.dir_of(index, session_id);
 				return old && old !== own ? old + "page.jsonl" : null;
 			});
 			return [own + "page.jsonl"];
 		});
+	}
+
+	/** The folder name the page tool gives a session it makes a folder for: the Servex agent's id + id8, else session-<id8> (Servex/agents/page_tools.js). */
+	static slug(row, session_id){
+		const name = row?.id !== session_id && /^[a-z0-9][a-z0-9-]{2,60}$/.test(row?.id ?? "") ? row.id : "session";
+		return `${name}-${session_id.slice(0, 8)}`;
 	}
 
 	log_loaded(){ return this._log_loaded ??= this.log_urls().then(urls => Promise.all(urls.map(url => new AISessionDetail.Log({ url, page: this }).load()))); }
