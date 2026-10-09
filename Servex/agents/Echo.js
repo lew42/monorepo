@@ -258,7 +258,13 @@ export default class Echo {
 		} catch (e){ return { ok: false, why: String(e.message || e) }; }
 	}
 
+	/* OFF BY DEFAULT (the owner, 2026-10-08: "why are we spending so much money on prompt refinement that's not
+	 * contributing to anything yet?"). The echo spent real OpenRouter dollars (the week stood at $24 against a $12.50
+	 * cap) on output nobody saw. It runs only when SERVEX_ECHO=on, until its output is visible on the site and worth its cost. */
+	enabled(){ return process.env.SERVEX_ECHO === "on"; }
+
 	async heard(evt){
+		if (!this.enabled()) return;
 		// TEMP DIAGNOSTIC (task prompts-live, 2026-10-03) — remove once the pipeline is confirmed
 		// live again: proves whether this handler is even reached at all.
 		this.servex.say(`echo: heard() entered for session ${String(evt?.session_id).slice(0, 8)}, item ${String(evt?.item_id).slice(0, 8)}`);
@@ -287,6 +293,7 @@ export default class Echo {
 	 * nothing useful to tell it, so this is a quiet no-op rather than starting one just to hand
 	 * it a reply with no prompt behind it. */
 	heard_reply(evt){
+		if (!this.enabled()) return;
 		if (!evt?.session_id || !evt?.page || !evt.item_id) return;
 		const live = this.live(evt.session_id);
 		if (!live) return;
