@@ -16,17 +16,19 @@ Before you write a function, ask "which class owns this?" A thing with state or 
 5. **Before you copy a neighbour, check it is a class.** Many old files are bags (`node public/framework/code/patterns/function-bag-census.mjs` ranks them); they are a refactor backlog, not a pattern to imitate. When you edit one, move what you touch into a class.
 6. Mind the base API: `Page` extends `Item`, so check for a name clash (`render()` collides with core).
 
-**The view pattern, from `lab/EventLog/EventLog.js` and `lab/LiveView/LiveView.js`:** the view is a static part of the class, and it is always reached through `this.constructor`, so a subclass can replace it.
+**The view pattern (the owner, 2026-10-08):** the view class is attached AFTER the class, never nested inside its body, and the instance reaches it through `this.constructor`, so a subclass can replace it.
 ```js
-class EventLog extends Lab {                      // Lab: get view(){ return this._view ??= new this.constructor.View({ item: this }); }
+class EventLog extends Lab {
 	entries = [];
-	static View = class extends LiveView {         // LiveView.render() subscribes, then calls draw()
-		draw(){ div.c("lab-log", () => this.item.entries.forEach(e => div(e.text))); }
-	};
+	render(){ return new this.constructor.View({ item: this }); }
 }
-class PrettyLog extends EventLog { static View = class extends EventLog.View { /* override draw() */ }; }
+EventLog.View = class EventLogView extends LiveView {   // or: EventLog.View = EventLogView, from its own file
+	draw(){ div.c("lab-log", () => this.item.entries.forEach(e => div(e.text))); }
+};
+class PrettyLog extends EventLog {}
+PrettyLog.View = class PrettyLogView extends EventLog.View { /* override draw() */ };
 ```
-Never `new EventLog.View(...)` (the lexical name defeats the subclass), and never a hand-built `.view` field; `item.view` is the lazy getter over `new this.constructor.View(...)`. `Item`, `audio/Part.js` and `Lab` all do it this way.
+Never `static View = class …` inside the class body, never `new EventLog.View(…)` (the lexical name defeats the subclass), never a hand-built `.view` field. Reference: `audio/Voice/Voice.js` (`Voice.View = class extends PartView`); some older lab classes still nest it and are being moved.
 
 The shape, the statics and the naming: [/framework/code/patterns/](/framework/code/patterns/) (read it, then `dos-and-donts` and `objects`).
 
