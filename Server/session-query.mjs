@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Server/session-query.mjs — find past sessions the way the Sessions dashboard does, and say what they cost.
-// Doc: public/framework/ai/sessions/doc/record-spec.md ("Asking about past sessions")
+// Doc: public/framework/ai/sessions/doc/data/record-spec.md ("Asking about past sessions")
 //
 //   node Server/session-query.mjs --tag transcription --since 2026-10-01 --json
 //   node Server/session-query.mjs --system dictation --since 2026-10-02 --sort cost

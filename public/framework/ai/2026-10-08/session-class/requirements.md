@@ -1,6 +1,6 @@
 # Session class: exact cost per session, cached
 
-Owner (2026-10-08, dictated). Build on `public/framework/ai/2026-10-07/token-accounting/` (`findings.md`, `plan.md` items 4–7 and 13, `sessions/doc/realtime-plan.md`) — do not redo its investigation. Budget **$6**, Sonnet 5.5, medium effort. Batch reads; scripts read raw data; chat = one sentence.
+Owner (2026-10-08, dictated). Build on `public/framework/ai/2026-10-07/token-accounting/` (`findings.md`, `plan.md` items 4–7 and 13, `sessions/doc/live/realtime.md`) — do not redo its investigation. Budget **$6**, Sonnet 5.5, medium effort. Batch reads; scripts read raw data; chat = one sentence.
 
 ## What the owner wants
 1. **Account for every message and every tool call** that accrues token cost, in every session (Claude and OpenRouter, **kept separate** — different data, accounting and rendering; Claude = "Claude $total", OpenRouter = "$total"). First check whether the **Claude Agent SDK already does its own real-time accounting** (result messages, per-message usage events); if it does, lean on it, otherwise our own script.

@@ -51,7 +51,7 @@ tool("interrupt_agent",
 
 ## 3. The Three Principles of Queue Preemption
 
-To prevent queue lag and eliminate wasted compute, agent harnesses must implement three rules:
+To prevent queue lag and eliminate wasted compute, agent harnesses should implement three rules:
 
 ### 1. Out-of-Band Stop / Interrupt Signal
 The UI or client harness must provide an immediate interrupt button (or hotkey `Escape` / voice command *"Stop"*).

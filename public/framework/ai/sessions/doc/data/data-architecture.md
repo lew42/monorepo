@@ -51,8 +51,8 @@ A single index grows without bound (hundreds of sessions a day for months can re
 
 **Query rule.** Filter by date range first, then load only those day indexes, in parallel. A range over about 7 days shows roll-ups first and loads day lists on demand. The default view is today or the last day, with that day's total cost. State, model, tag, role and cost filters run client-side over the loaded summary rows.
 
-**Built versus planned** (the first tailer, now replaced; see [realtime.md](realtime.md)):
-- (Replaced by the per-session snapshot and day composite in the second section 9 below; built as `ai/AISession/AISessionIndex.mjs`, see [realtime.md](realtime.md).) Was built: append-only day index, keyframe line per session per day, month and year roll-ups of count, cost and flagged (not yet a summary row per session), client reduce by id, audit.
+**Built versus planned** (the first tailer, now replaced; see [../live/realtime.md](../live/realtime.md)):
+- (Replaced by the per-session snapshot and day composite in the second section 9 below; built as `ai/AISession/AISessionIndex.mjs`, see [../live/realtime.md](../live/realtime.md).) Was built: append-only day index, keyframe line per session per day, month and year roll-ups of count, cost and flagged (not yet a summary row per session), client reduce by id, audit.
 - Not yet: the line carries cost, state and timing but not name, parent, tokens, tags or alert count; the day-close compaction script; summary rows in the month index; roll-ups-first for ranges over 7 days.
 
 **Counting.** The unit is the Claude session id. [patterns.md](patterns.md) holds the script-computed overlap table (distinct ids and, per storage pattern, how many it covers and how many are also elsewhere). The card and task folders are views onto the same ids, which is why 7,751 / 4,072 / 1,064 / 7,793 do not add up.
@@ -103,4 +103,4 @@ The owner's call: no UUID-named folders, no separate card folders, no separate t
 - Payoff (the owner's goal): browse and filter everything we have spent money on by day, class and activity, to find broken systems that burn tokens.
 
 ## 10. Path tags, topic scans, the audit button (owner, 2026-10-09)
-See [path-tags-2026-10-09.md](path-tags-2026-10-09.md).
+See [patterns.md](patterns.md).

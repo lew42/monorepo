@@ -21,4 +21,4 @@ Checked by script on what the audit already read; not exhaustive.
 - **Cost:** must be summed from the usage fields by a script, never by resuming a session.
 
 ## Status
-`public/framework/ai/sessions/doc/record-spec.md` did not exist when checked, so no Haiku minion was briefed and nothing was tagged or logged. Next step once it lands: brief minions with its line shapes, run `node Server/usage-now.mjs` first.
+`public/framework/ai/sessions/doc/data/record-spec.md` did not exist when checked, so no Haiku minion was briefed and nothing was tagged or logged. Next step once it lands: brief minions with its line shapes, run `node Server/usage-now.mjs` first.

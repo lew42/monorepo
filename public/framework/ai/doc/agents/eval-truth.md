@@ -33,7 +33,7 @@ To make evaluations robust rather than subjective, test suites in this framework
 ## 3. Practical Guidance for Framework AI
 
 1. **Prefer Running Code Over Asking a Model:**
-   - Never ask an AI: *"Does this component render properly?"*
+   - Prefer a script over asking an AI: *"Does this component render properly?"*
    - Take a screenshot with headless Chromium (`shot`) or query the computed DOM box with `eval`. Pixels and bounding boxes are truth; an LLM's guess is speculation.
 2. **Do Not Rely on Unanimous Agreement:**
    - Even if three models all agree on an answer, they may simply share common training biases. Agreement is not truth.

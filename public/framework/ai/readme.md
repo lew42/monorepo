@@ -6,7 +6,7 @@ The page has three tabs:
 
 - **Inbox** (the default): a rail of what needs you, only rows scoring 90 and up. The card you pick opens beside it, at its own address (`/framework/ai/2026/09/30/<card>/`).
 - **Log**: the same rail, showing everything (`?min=0`). Every task by day is at [all-tasks/](all-tasks/).
-- **System**: the whole AI system explained, full width — the map, [Skills](skills.json) (rerun `node public/framework/ai/skills.mjs` after a skill changes), [Readmes](readmes/), how data is written and how a page saves, Objects ([objects.js](objects.js)), Authoring, Models (and [how thinking works](system/thinking/)) and CLAUDE.md. Concept text: [concepts.js](concepts.js); tabs: [overview.js](overview.js).
+- **System**: the whole AI system explained, full width — the map, [Skills](skills.json) (rerun `node public/framework/ai/skills.mjs` after a skill changes), [Readmes](readmes/), how data is written and how a page saves, Objects ([objects.js](objects.js)), Authoring, Models and CLAUDE.md. Concept text: [concepts.js](concepts.js); tabs: [overview.js](overview.js).
 
 A tab after Inbox is **detected, not hand-listed**: any folder whose own `page.jsonl` (or `settings.jsonl`, beside a `page.js`) has `{"settings":{"tab":true,"weight":5}}` joins the strip there, ordered by `weight` (`overview.js`'s `detect_tabs()`; more on the System tab).
 
@@ -16,15 +16,15 @@ The rail is `AIRail` ([ai/rail/rail.js](/framework/ai/rail/rail.js)), the same o
 
 Accounting first. Each link is that system's own short readme; follow it to go one level deeper.
 
-- **Accounting**: [token accounting](doc/token-accounting.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md)
+- **Accounting**: [token accounting](doc/tokens/tokens.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md)
 - **Servex** (runs the agents): [readme](/framework/servex/) · [SDK](/framework/servex/doc/sdk.md) · [decisions](/framework/servex/doc/architecture.md)
 - **Dev server**: [Server/readme.md](/framework/dev/)
-- **MCP tools**: [doc/mcp.md](doc/mcp.md)
+- **MCP tools**: [doc/agents/mcp.md](doc/agents/mcp.md)
 - **Models**: [system/models](system/models/) · [OpenRouter](/framework/servex/) · local
-- **Sessions** (VS Code tabs, browser voice agents): [sessions/](sessions/readme.md) · [conversations](doc/conversations.md)
+- **Sessions** (VS Code tabs, browser voice agents): [sessions/](sessions/readme.md) · [conversations](doc/logs/conversations.md)
 - **Transcription**: [ux/Dictate](/framework/ux/Dictate/)
 - **Class cards, live** ([classes](/framework/ai/classes/)): a class, its API, and a debug tree of a live instance beside its rendered view. First: Session.
-- **Prompt refinement** (Echo, running now): [Servex/doc/echo.md](/framework/servex/doc/echo.md) · [ext/Refine live demo + Prompt class](/framework/ext/Refine/) · [vision](/framework/ext/Refine/doc/vision-2026-10-08.md) · [dictation connection map](/framework/ai/doc/dictation-refine-connection-map-2026-10-08.md)
+- **Prompt refinement** (Echo, running now): [Servex/doc/echo.md](/framework/servex/doc/echo.md) · [ext/Refine live demo + Prompt class](/framework/ext/Refine/) · [vision](/framework/ext/Refine/doc/vision-2026-10-08.md) · [dictation connection map](/framework/ai/doc/design/dictation-refine-connection-map.md)
 - **Page system**: [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/)
 - **Skills and CLAUDE.md**: [skills](skills/)
 - **Dashboard, Log, Inbox**: the tabs above · [AI 2 (merged into this folder, old address kept)](/framework/ai2/readme.md)
@@ -36,12 +36,13 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 ## Start here
 
 - [systems-map.md](systems-map.md): where every major system lives, how long its readme is, and when it last changed.
+- **[doc/readme.md](doc/readme.md): the index of every AI-system doc**, by subsystem (design, agents, tokens, logs, tasks, ai2, meta). Sessions docs: [sessions/doc/readme.md](sessions/doc/readme.md).
 - [doc/architecture.md](doc/architecture.md): the decisions behind this folder, and where they came from.
 - Servex SDK: how an agent is started ([`Servex/doc/sdk.md`](/framework/servex/doc/sdk.md)) and Servex's own decisions ([`Servex/doc/architecture.md`](/framework/servex/doc/architecture.md)).
-- [doc/systems-overview.md](doc/systems-overview.md): full AI architecture, persistence, triggers, and MCP tool/session logging audit.
+- [doc/design/systems-overview.md](doc/design/systems-overview.md): full AI architecture, persistence, triggers, and MCP tool/session logging audit.
 - [todo.md](todo.md): what's waiting, in priority order, and what only you can do.
 - [handover.md](handover.md): the state of the world for a fresh tab or mastermind.
-- [doc/autonomy.md](doc/autonomy.md): dynamic heartbeat, unstuck protocol, node-based steps, truthful token accounting.
+- [doc/agents/autonomy.md](doc/agents/autonomy.md): dynamic heartbeat, unstuck protocol, node-based steps, truthful token accounting.
 - [Asks](asks/): every ask you made today onward, who owns it, and whether it landed or stalled.
 - [The ask loop](council/): everything you asked, whether it was built, and what the council found. Open asks come first.
 - [AI 2, now part of this folder](/framework/ai2/readme.md): the old dashboard address. Talk to the assistants, see tasks by group, and see
@@ -54,9 +55,9 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 ## For a fresh session
 
 - [handover.md](handover.md): the state of the world, in one screen.
-- [doc/systems-overview.md](doc/systems-overview.md): full architecture, data flow, MCP tools catalog, and logging gaps.
-- [doc/autonomy.md](doc/autonomy.md): rules for hands-free masterminds, pacing, and minion delegation.
-- [doc/conversations.md](doc/conversations.md): where web dictation logs and VS Code sidebar mastermind sessions live.
+- [doc/design/systems-overview.md](doc/design/systems-overview.md): full architecture, data flow, MCP tools catalog, and logging gaps.
+- [doc/agents/autonomy.md](doc/agents/autonomy.md): rules for hands-free masterminds, pacing, and minion delegation.
+- [doc/logs/conversations.md](doc/logs/conversations.md): where web dictation logs and VS Code sidebar mastermind sessions live.
 - [handoff2.md](handoff2.md): the plan from 2026-09-24, with
   [your exact words](handoff2-owner-words.md).
 - A task's folder holds `task.jsonl` (its log) and usually `requirements.md` (its brief).
@@ -64,24 +65,24 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 ## Watch out
 
 - Agents put work you didn't ask for into [todo.md](todo.md) rather than starting it.
-- Dynamic heartbeats & the unstuck protocol: [doc/autonomy.md](doc/autonomy.md).
-- How cost is counted (per request, not per token; why agents read millions; the cache discount): [doc/token-accounting.md](doc/token-accounting.md).
-- Token efficiency, batching rules, and pre-processing: [doc/token-efficiency.md](doc/token-efficiency.md).
-- Context windows, primacy/recency attention bias, and token budgets: [doc/context-window.md](doc/context-window.md).
-- Single universal log tool for constrained models & file system truth: [doc/log-tool.md](doc/log-tool.md).
-- Pass-by-reference message routing & queue latency handling: [doc/pass-by-reference.md](doc/pass-by-reference.md).
-- Agent interrupts, queue preemption, and the stop-and-switch pattern: [doc/interrupts.md](doc/interrupts.md).
-- Agent concurrency, serial prompt-response loops, and the two-tier listener/minion pattern: [doc/concurrency.md](doc/concurrency.md).
-- Model evaluation, what is "truth", and avoiding circular grading: [doc/eval-truth.md](doc/eval-truth.md).
-- MCP tool doors and multi-harness config locations (Claude vs. Antigravity): [doc/mcp.md](doc/mcp.md).
+- Dynamic heartbeats & the unstuck protocol: [doc/agents/autonomy.md](doc/agents/autonomy.md).
+- How cost is counted (per request, not per token; why agents read millions; the cache discount): [doc/tokens/tokens.md](doc/tokens/tokens.md).
+- Token efficiency, batching rules, and pre-processing: [doc/tokens/tokens.md](doc/tokens/tokens.md).
+- Context windows, primacy/recency attention bias, and token budgets: [doc/tokens/context-window.md](doc/tokens/context-window.md).
+- Single universal log tool for constrained models & file system truth: [doc/logs/log-tool.md](doc/logs/log-tool.md).
+- Pass-by-reference message routing & queue latency handling: [doc/agents/pass-by-reference.md](doc/agents/pass-by-reference.md).
+- Agent interrupts, queue preemption, and the stop-and-switch pattern: [doc/agents/interrupts.md](doc/agents/interrupts.md).
+- Agent concurrency, serial prompt-response loops, and the two-tier listener/minion pattern: [doc/agents/concurrency.md](doc/agents/concurrency.md).
+- Model evaluation, what is "truth", and avoiding circular grading: [doc/agents/eval-truth.md](doc/agents/eval-truth.md).
+- MCP tool doors and multi-harness config locations (Claude vs. Antigravity): [doc/agents/mcp.md](doc/agents/mcp.md).
 - Which log is ground truth for "what did the owner ask, and did it land" (session files vs.
-  asks.jsonl vs. task dirs vs. Servex logs): [doc/log-sources.md](doc/log-sources.md).
-- Where tasks should live (session first, then the module) and a JSONL message channel the owner can watch: [doc/task-queue-2026-10-08.md](doc/task-queue-2026-10-08.md) (open design).
-- Tools, session templates and a generic path+method tool (owner thinking, open design): [doc/tooling-architecture-2026-10-08.md](doc/tooling-architecture-2026-10-08.md).
-- Long-term direction: the website must show all the work (index pages, demos, a recently-landed view): [doc/website-shows-everything-2026-10-08.md](doc/website-shows-everything-2026-10-08.md).
-- AI 2 vs AI (two card stores), the date directory layout, zombie branches: [doc/ai2-and-date-layout-2026-10-08.md](doc/ai2-and-date-layout-2026-10-08.md) (open, owner decisions). Inventory and proposal: [doc/ai2-merge-and-layout-proposal-2026-10-08.md](doc/ai2-merge-and-layout-proposal-2026-10-08.md). Inbox/Log/streaming: [doc/inbox-log-streaming-findings-2026-10-08.md](doc/inbox-log-streaming-findings-2026-10-08.md). History: [doc/history.md](doc/history.md). Per-module `ai/` folders: [doc/module-ai-dirs.md](doc/module-ai-dirs.md). Readme and documentation system status: [doc/readme-system-status-2026-10-08.md](doc/readme-system-status-2026-10-08.md).
-- Inbox, Log and one streaming system, programmatic writes: [doc/inbox-log-streaming-2026-10-08.md](doc/inbox-log-streaming-2026-10-08.md).
-- Ranked priorities and who owns what: [doc/priorities-2026-10-08.md](doc/priorities-2026-10-08.md).
+  asks.jsonl vs. task dirs vs. Servex logs): [doc/logs/log-sources.md](doc/logs/log-sources.md).
+- Where tasks should live (session first, then the module) and a JSONL message channel the owner can watch: [doc/tasks/tasks.md](doc/tasks/tasks.md) (open design).
+- Tools, session templates and a generic path+method tool (owner thinking, open design): [doc/design/tooling-architecture.md](doc/design/tooling-architecture.md).
+- Long-term direction: the website must show all the work (index pages, demos, a recently-landed view): [doc/design/website-shows-everything.md](doc/design/website-shows-everything.md).
+- AI 2 vs AI (two card stores), the date directory layout, zombie branches: [doc/ai2/ai2-vs-ai.md](doc/ai2/ai2-vs-ai.md) (open, owner decisions). Inventory and proposal: [doc/ai2/ai2-vs-ai.md](doc/ai2/ai2-vs-ai.md). Inbox/Log/streaming: [doc/logs/inbox-log-streaming.md](doc/logs/inbox-log-streaming.md). History: [doc/meta/history.md](doc/meta/history.md). Per-module `ai/` folders: [doc/design/module-ai-dirs.md](doc/design/module-ai-dirs.md). Readme and documentation system status: [doc/meta/readme-system-status.md](doc/meta/readme-system-status.md).
+- Inbox, Log and one streaming system, programmatic writes: [doc/logs/inbox-log-streaming.md](doc/logs/inbox-log-streaming.md).
+- Ranked priorities and who owns what: [doc/tasks/priorities.md](doc/tasks/priorities.md).
 - Cost: `node Server/task-cost.mjs --date <YYYY-MM-DD>`. A follow-up task that reused its
   parent's session currently shows the parent's whole total, not its own share.
 - `tasks.json` — stalled, budget vs. actual, snooze/kill/re-prioritise — is DERIVED: Servex's

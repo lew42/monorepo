@@ -101,7 +101,7 @@ the same reason, so the two scripts' own-$ numbers for one agent never disagree.
 — it was wrong until this same task fixed it: cache **writes** were priced at `in × 1.25` (the
 5-minute-cache rate) when every agent on this machine actually runs the 1-hour-cache rate, `in ×
 2`. Proved against three real agents' own billed `cost` field, turn by turn, exact to the last
-decimal once the multiplier was `× 2`. See `public/framework/ai/sessions/doc/decisions.md`'s
+decimal once the multiplier was `× 2`. See `public/framework/ai/sessions/doc/asks/decisions.md`'s
 2026-10-04 entry for the full math and the per-agent before/after numbers.
 
 ## One agent, several tasks: split by time

@@ -8,7 +8,7 @@ How serial prompt-response loops, multi-step tool execution pipelines, and timin
 
 In autonomous agent systems (Antigravity, Claude Code, Servex), agents face a fork in how they communicate:
 - **Option A: The Long-Winded Chat Trap:** Generating elaborate architectural essays and diagrams directly into the ephemeral chat stream. When the conversation window truncates or rolls over, that entire synthesis vanishes forever.
-- **Option B: File System First (The Law):** Write comprehensive architectural analysis, discoveries, and timing mechanics directly to committed markdown documents in the repository (`doc/*.md`). In the chat, output only concise clickable pointers ([`filename.md`](file:///path/to/filename.md)).
+- **Option B: File System First (the preferred way):** Write comprehensive architectural analysis, discoveries, and timing mechanics directly to committed markdown documents in the repository (`doc/*.md`). In the chat, output only concise clickable pointers ([`filename.md`](file:///path/to/filename.md)).
 
 ---
 

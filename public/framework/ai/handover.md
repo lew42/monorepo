@@ -12,8 +12,8 @@ keep it one screen.
 - **16:58 spawned `minion-session-detail-live`** (Sonnet; brief `ai/2026-10-09/session-detail-live/requirements.md`): the session page tails live, shows the AI's replies too, compact header, fills the width, smallest slice of AI-posted cards. Fenced apart from sessions-red-flags (grid vs detail files).
 - **17:35:** fixed the site lag: `directory.json` was 16 MB (58% `ai/sessions/2026/`) and rebuilt about once a second; now 5.8 MB (commit 9b7f9b686). Derived nav-index recommendation in `core/Page/doc/indexing-2026-10-08.md`. Spawned `task-mastermind-production-stack` (Sonnet; inventory of past Cloudflare/auth/user/payment work, what breaks in production, first slice). `task-mastermind-refine-dictate-ui` continues into `phase-2.md` (voice UI class architecture, one dictation panel for Dictate/Refine/drawer, mobile socket, errors to the page log).
 - **Owner on the task audit (2026-10-08):** it read a lot but did not categorise or find loose ends well, and its agents disagreed on what was correct. What matters is tagging everything so tags find it later, not who is right. Before extending it to older days: fix the rubric (tags first, then loose ends), Haiku per day, under 60k each. Not started.
-- **Sessions index, current state:** per-session snapshot + per-day `index.json` (about 100 KB for 200 sessions) built; month/year roll-ups designed (`ai/sessions/doc/data-architecture-2026-10-08.md` section 8-9) but the grid still loads one `session-index.json`; roll-ups-first for long ranges not built. Next for sessions after the red-flags task.
-- **18:00: one task queue** (owner): proposal in `ai/doc/one-queue-2026-10-09.md` — `servex-queue.json` becomes THE queue (it is a week stale: 19 open items to triage first); "top priority" = start now if there is room, else next spawn; never pause in-flight work. Next to start when a slot frees.
+- **Sessions index, current state:** per-session snapshot + per-day `index.json` (about 100 KB for 200 sessions) built; month/year roll-ups designed (`ai/sessions/doc/data/data-architecture.md` section 8-9) but the grid still loads one `session-index.json`; roll-ups-first for long ranges not built. Next for sessions after the red-flags task.
+- **18:00: one task queue** (owner): proposal in `ai/doc/tasks/tasks.md` — `servex-queue.json` becomes THE queue (it is a week stale: 19 open items to triage first); "top priority" = start now if there is room, else next spawn; never pause in-flight work. Next to start when a slot frees.
 - **Owner, 17:05: NO site-wide layout audits** (past ones fixed a little and broke a lot). Better ideas, not started: a convergence audit of the ~12 padding systems down to one; a "this page is broken" red-flag button on any page/element. Spend tokens on prioritized work only; launch nothing new without the owner.
 
 ## EARLIER, 2026-10-09 morning: handover from mastermind session 87bec773 (VS Code tab, wound down because its context was bloated)
@@ -27,12 +27,12 @@ keep it one screen.
 - The owner is on a membership: Claude dollars are API-equivalent, OpenRouter dollars are real. Never present one as the other.
 - Working tree: commit agent task logs with `git add -A -- . ':!public/framework/ai/sessions/2026'`; `ai/sessions/2026/` (live composites, caches) has no commit rule yet.
 
-**Open, in priority order (full ranking: `ai/doc/priorities-2026-10-08.md`)**
+**Open, in priority order (full ranking: `ai/doc/tasks/priorities.md`)**
 1. **Sessions + accounting** (owner: `minion-session-class`, session 3f5a5fec, dormant, ~$54). Landed: `AISession` class family in `ai/AISession/` (shims at old paths), per-session `index.json`, day composites, live tailer 50-200 ms, In-flight strip, pace bars, compact cards, unknown model = UNPRICED, OpenRouter real dollars attributed from Servex's `openrouter.jsonl`, scripted migration of session folders and cards into `ai/sessions/YYYY/MM/DD/<slug>/`, query CLI. Left: the `--tasks` migration (dry run counts, then apply), account-vs-log OpenRouter gap, a commit rule for `ai/sessions/2026/`, the owner's review of the page (tag filters from the task audit, nesting, names).
 2. **Prompt refinement + dictation** (owner: `mastermind-refine-demo`, dormant). Landed: `Prompt`, `RefineSystem`, `Scorer`, demo page `/framework/ext/Refine/` with a live debug tree. Next (design in `ext/Refine/doc/vision-2026-10-08.md`, three addenda): prompts stored in the session log (raw immutable, clean final with numbered sentences, refined cards citing indexes), per-sentence streaming, alternates and names through a Haiku pass, tags, phone mic over HTTPS (`framework/dev/mobile`), hand-off to agents. Echo stays off until its output is visible and cheap.
 3. **Page system + task system** (designed, not built): composition pattern (`thing.page`), CRUD/move with backlinks, directory deltas and indexing (`core/Page/doc/indexing-2026-10-08.md`), one streaming mechanism, the recursive task system (`ai/2026-10-08/task-system-design/`). Build the smallest slice with the session folder first.
 4. **Task audit** (`mastermind-task-audit`, dormant): 354 loose ends, 73 re-verified with tool-using Haiku receipts (`verified.jsonl`; the first Haiku pass was only about 58% right), `work-items.md` has 22 clusters. Unowned: the Sessions list on DataGrid (probably skip: duplicate grid), node-reap dry run, card-kind merge 4. The raw-prompt audit (`chunk-sessions.mjs`) is the cheap way to canvass past prompts, one day at a time.
-5. **AI system docs** (`mastermind-ai-system-docs`, dormant): the Inbox/Log/streaming study, the readme/documentation-system status check, the code-skill review (classes, `Thing.View = ...` attached after the class), `ai/doc/history.md`, AI-focused class cards. See its `plan.md`.
+5. **AI system docs** (`mastermind-ai-system-docs`, dormant): the Inbox/Log/streaming study, the readme/documentation-system status check, the code-skill review (classes, `Thing.View = ...` attached after the class), `ai/doc/meta/history.md`, AI-focused class cards. See its `plan.md`.
 6. **Tidy**: AI 2 merged into AI at 06:42 (53 files moved, 23 shims; class files still lowercase, a later rename); 141 `worktree/*` branches (8 `worktree/ai2-*` unmerged) listed, none deleted; hyphen date dirs `ai/YYYY-MM-DD/` vs the year tree: pick one with a resolver; card slug truncation bug.
 7. **Notifications Lab** landed (`framework/lab/notifications/`, report, phone checklist); the real Android test is the owner's.
 8. **Housekeeping**: a Servex job that commits machine-written logs in batches; the unused `Usage.on_pace` was removed; `Server/.push-vapid.json` is gitignored (secret).
@@ -50,7 +50,7 @@ keep it one screen.
 **Session 45d8d4c7 winding down for compaction. All work landed directly on `michael/dev`. Background crons killed.**
 - **CRON STOPPED (task-1565):** The static 5-minute heartbeat cron was terminated. No background crons run in the chat session.
 - **Dynamic Heartbeat & Autonomy Policy Landed:**
-  - `doc/autonomy.md`: State-driven wakeups (no polling when idle, one-shot timer when tasks are in flight, sleep until reset when quota exhausted).
+  - `doc/agents/autonomy.md`: State-driven wakeups (no polling when idle, one-shot timer when tasks are in flight, sleep until reset when quota exhausted).
   - Unstuck protocol: Mastermind acts as executive decision-maker; minions are forbidden from stopping mid-flight for trivial user questions.
   - Truthful token accounting: Zero hallucinated tokens; ground truth from `Server/antigravity-usage.mjs` and OpenRouter `/generation`.
 - **Todo Items 153 & 158 Landed & Retired (commit `a5cc0a04`):**
@@ -65,18 +65,18 @@ keep it one screen.
 ## EARLIER, 2026-10-05 11:25 pm: Antigravity Session (45d8d4c7) taking over Mastermind
 **Claude Code weekly usage reached 100% lockout (resets Wed Oct 7, 9:59 pm UTC). Work continues under Google Antigravity, local GPU models, and Servex/OpenRouter.**
 - **Context Windows & Attention Dynamics Documented:**
-  - `doc/context-window.md`: Details Primacy bias (token 0 KV priming, RoPE distance anchor), Recency bias (autoregressive next-token steering), and Lost in the Middle.
+  - `doc/tokens/context-window.md`: Details Primacy bias (token 0 KV priming, RoPE distance anchor), Recency bias (autoregressive next-token steering), and Lost in the Middle.
   - Linked in `public/framework/ai/readme.md` (committed `eb75fbd6`).
 - **Single Universal Log Tool for Constrained Models:**
-  - `doc/log-tool.md`: Architecture for single ~120-token unopinionated log tool replacing 75k-token MCP catalogs.
+  - `doc/logs/log-tool.md`: Architecture for single ~120-token unopinionated log tool replacing 75k-token MCP catalogs.
   - `public/framework/ai/local/log-tool.js`: Reusable implementation with automatic timestamping, duration calculation (`delta_ms`), sequence counters, and caller attribution.
   - Verified live on local RTX 4070 Super: Qwen3-8B executed `log` tool in 7.1s with native reasoning and structured JSON payload.
 - **Pass-by-Reference Messaging & Queue Latency:**
-  - `doc/pass-by-reference.md`: Passing `msg_id` or `(file, line)` instead of re-generating walls of text in tool arguments; 98% reduction in relay output tokens and zero transcription drift. Architecture for out-of-band priority channels to bypass FIFO queue blackout during emergencies.
-  - Linked in `doc/token-efficiency.md` and `public/framework/ai/readme.md`.
+  - `doc/agents/pass-by-reference.md`: Passing `msg_id` or `(file, line)` instead of re-generating walls of text in tool arguments; 98% reduction in relay output tokens and zero transcription drift. Architecture for out-of-band priority channels to bypass FIFO queue blackout during emergencies.
+  - Linked in `doc/tokens/tokens.md` and `public/framework/ai/readme.md`.
 - **Agent Interrupts, Queue Preemption & Concurrency Decoupling:**
-  - `doc/interrupts.md`: Analysis of the FIFO queue trap during human dictation/redirection. Explains the Claude Agent SDK `query.interrupt()`, Servex `interrupt_agent`, and the stop-and-switch pattern where obsolete queued prompts are folded/superseded rather than serially executed.
-  - `doc/concurrency.md`: Comprehensive breakdown of agent concurrency vs serial prompt-response loops; why the 12-step tool pipeline causes a 3–5 minute human conversational lockout; parallel tool batching dynamics; and the two-tier Dictate architecture (Fast Listener with `tools: []` + Minion background dispatch via pass-by-reference) that keeps voice chat fluid while executing complex work asynchronously.
+  - `doc/agents/interrupts.md`: Analysis of the FIFO queue trap during human dictation/redirection. Explains the Claude Agent SDK `query.interrupt()`, Servex `interrupt_agent`, and the stop-and-switch pattern where obsolete queued prompts are folded/superseded rather than serially executed.
+  - `doc/agents/concurrency.md`: Comprehensive breakdown of agent concurrency vs serial prompt-response loops; why the 12-step tool pipeline causes a 3–5 minute human conversational lockout; parallel tool batching dynamics; and the two-tier Dictate architecture (Fast Listener with `tools: []` + Minion background dispatch via pass-by-reference) that keeps voice chat fluid while executing complex work asynchronously.
   - Linked in `public/framework/ai/readme.md`.
 - **Models Catalog & Context Windows Grid Fixed:**
   - `/framework/ai/system/models/` (`overview.js` `render_catalog`): Fixed `fmt_ctx` formatter to display million-token windows cleanly as `1M` and `1.05M` instead of `1000K` / `1049K`. Populated context sizes for local models (`36k` for Qwen3, `32k` for Hermes3 / Qwen2.5-Coder, `8k` for Gemma) in `models.json` (committed `993dc7a8`).

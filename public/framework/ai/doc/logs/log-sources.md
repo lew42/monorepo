@@ -54,7 +54,7 @@ not re-derive it from scratch. Written 2026-10-08 (mastermind-cheap-models), ext
 6. **Servex's own logs**, `%LOCALAPPDATA%\lew42\servex\logs\` — `lifecycle.jsonl` (agent start/stop,
    useful for matching a session uuid to an agent id and a task dir) and `openrouter.jsonl` (real
    dollar cost per OpenRouter turn, keyed by agent id — see also
-   [doc/token-accounting.md](token-accounting.md) for the Claude-side cost story). Not a source of
+   [doc/tokens/tokens.md](../tokens/tokens.md) for the Claude-side cost story). Not a source of
    owner words at all; it is the join key between a raw session (source 1) and a task (source 4).
 
 ## What this means for an ask→delivered audit

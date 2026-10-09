@@ -13,7 +13,7 @@
 
 ## Two files per session
 
-- `session.jsonl` is the **record**: tags, notes, alerts, weight, closed, questions, links. Tracked in git, append-only, written only by `Session.log` (see [record-spec](record-spec.md)). Never folded or rewritten.
+- `session.jsonl` is the **record**: tags, notes, alerts, weight, closed, questions, links. Tracked in git, append-only, written only by `Session.log` (see [record-spec](../data/record-spec.md)). Never folded or rewritten.
 - `cache.jsonl` is the **computed numbers**, gitignored and rebuildable, described next.
 
 ## `cache.jsonl` (one per session, gitignored)

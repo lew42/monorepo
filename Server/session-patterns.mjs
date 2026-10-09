@@ -1,5 +1,5 @@
 // node Server/session-patterns.mjs [--write]   Counts every place a session's data lives today and prints the table
-// (pattern, example, count, how it is read). --write puts it in public/framework/ai/sessions/doc/patterns.md.
+// (pattern, example, count, how it is read). --write puts it in public/framework/ai/sessions/doc/data/patterns.md.
 // Read-only: it only lists folders.
 import fs from "node:fs";
 import path from "node:path";
@@ -78,5 +78,5 @@ Every count that is a link opens the Sessions grid already filtered (\`?records=
 
 How the folders are arranged is in [layout](layout.md).
 `;
-if (process.argv.includes("--write")) fs.writeFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "../public/framework/ai/sessions/doc/patterns.md"), md);
+if (process.argv.includes("--write")) fs.writeFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "../public/framework/ai/sessions/doc/data/patterns.md"), md);
 else console.log(md);

@@ -75,6 +75,6 @@ Context capacity dictates architectural design and tooling strategy:
 
 ## Related Documentation
 
-- [Token Efficiency & Batching](token-efficiency.md) — Pre-processing and minimizing input tokens before submission.
+- [Token Efficiency & Batching](tokens.md) — Pre-processing and minimizing input tokens before submission.
 - [Local Context Budget & Tool Bloat](../local/doc/context-budget.md) — Exact math on local 32k limits and MCP tool avoidance.
 - [Local Model Strategy](../local/doc/strategy.md) — VRAM allocation, 8B vs 3B performance, and prompt design.
