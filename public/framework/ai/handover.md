@@ -4,7 +4,37 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 2026-09-22 15:55 by the Servex run's mastermind. Replace the dated sections as they go stale;
 keep it one screen.
 
-## LATEST, 2026-10-06 12:22 pm: Handover for New Tab / Mastermind
+## LATEST, 2026-10-09 morning: handover from mastermind session 87bec773 (VS Code tab, wound down because its context was bloated)
+**Nothing is in flight. Everything below was landed or is queued. Start by reading `CLAUDE.md` (it holds the owner's rules, most written 2026-10-08), then this.**
+
+**State of the world**
+- Usage: week 11% used, 24% gone (about 13 points under pace). `node Server/usage-now.mjs` before every spawn (shared, rate-safe; exit 2 = over pace, spawn nothing).
+- Models: everything Sonnet 5.5 (`claude-sonnet-5-5`); minions default to Haiku 5.5 (`claude-haiku-5-5`; the API accepts it, its price is ASSUMED = Haiku 4.5, unverified). Haiku jobs stay well under 100k tokens (aim 30-60k, past 100k it costs about 5x); Sonnet has no such limit.
+- OpenRouter spawns are PAUSED by default (`SERVEX_OPENROUTER_PAUSED=0` re-enables) and the echo (prompt-refine agent) is OFF (`SERVEX_ECHO=on` enables). Reason: OpenRouter spent about $56 since Oct 5, $50 of it on echo Gemini calls nobody saw. Its account accounting is not trusted yet.
+- Budgets are advisory. Servex enforces only a $100 runaway ceiling plus the results-gated allowance ($2 to the first result, +$3 per verified result).
+- The owner is on a membership: Claude dollars are API-equivalent, OpenRouter dollars are real. Never present one as the other.
+- Working tree: commit agent task logs with `git add -A -- . ':!public/framework/ai/sessions/2026'`; `ai/sessions/2026/` (live composites, caches) has no commit rule yet.
+
+**Open, in priority order (full ranking: `ai/doc/priorities-2026-10-08.md`)**
+1. **Sessions + accounting** (owner: `minion-session-class`, session 3f5a5fec, dormant, ~$54). Landed: `AISession` class family in `ai/AISession/` (shims at old paths), per-session `index.json`, day composites, live tailer 50-200 ms, In-flight strip, pace bars, compact cards, unknown model = UNPRICED, OpenRouter real dollars attributed from Servex's `openrouter.jsonl`, scripted migration of session folders and cards into `ai/sessions/YYYY/MM/DD/<slug>/`, query CLI. Left: the `--tasks` migration (dry run counts, then apply), account-vs-log OpenRouter gap, a commit rule for `ai/sessions/2026/`, the owner's review of the page (tag filters from the task audit, nesting, names).
+2. **Prompt refinement + dictation** (owner: `mastermind-refine-demo`, dormant). Landed: `Prompt`, `RefineSystem`, `Scorer`, demo page `/framework/ext/Refine/` with a live debug tree. Next (design in `ext/Refine/doc/vision-2026-10-08.md`, three addenda): prompts stored in the session log (raw immutable, clean final with numbered sentences, refined cards citing indexes), per-sentence streaming, alternates and names through a Haiku pass, tags, phone mic over HTTPS (`framework/dev/mobile`), hand-off to agents. Echo stays off until its output is visible and cheap.
+3. **Page system + task system** (designed, not built): composition pattern (`thing.page`), CRUD/move with backlinks, directory deltas and indexing (`core/Page/doc/indexing-2026-10-08.md`), one streaming mechanism, the recursive task system (`ai/2026-10-08/task-system-design/`). Build the smallest slice with the session folder first.
+4. **Task audit** (`mastermind-task-audit`, dormant): 354 loose ends, 73 re-verified with tool-using Haiku receipts (`verified.jsonl`; the first Haiku pass was only about 58% right), `work-items.md` has 22 clusters. Unowned: the Sessions list on DataGrid (probably skip: duplicate grid), node-reap dry run, card-kind merge 4. The raw-prompt audit (`chunk-sessions.mjs`) is the cheap way to canvass past prompts, one day at a time.
+5. **AI system docs** (`mastermind-ai-system-docs`, dormant): the Inbox/Log/streaming study, the readme/documentation-system status check, the code-skill review (classes, `Thing.View = ...` attached after the class), `ai/doc/history.md`, AI-focused class cards. See its `plan.md`.
+6. **Tidy**: AI 2 merged into AI at 06:42 (53 files moved, 23 shims; class files still lowercase, a later rename); 141 `worktree/*` branches (8 `worktree/ai2-*` unmerged) listed, none deleted; hyphen date dirs `ai/YYYY-MM-DD/` vs the year tree: pick one with a resolver; card slug truncation bug.
+7. **Notifications Lab** landed (`framework/lab/notifications/`, report, phone checklist); the real Android test is the owner's.
+8. **Housekeeping**: a Servex job that commits machine-written logs in batches; the unused `Usage.on_pace` was removed; `Server/.push-vapid.json` is gitignored (secret).
+
+**Ways agents get stuck (learned)**
+- A Servex restart DROPS running agents; batch restarts and revive them (`send_to_agent` with `revive: true`). The pool of quick-fix worktrees refuses minions when all slots are held by stopped agents; `Pool.reclaim` now self-cleans after 30 minutes.
+- Guards: `jsonl-guard` blocks hand writes that mention `.jsonl` in a command (write the text to a scratch file with Write, then `cat >>`), `server-guard` blocks `node server.js` (use `node Server/worktree-restart.mjs <name>`), `git-guard` blocks `checkout --`/stash in the main tree. The auto-mode classifier sometimes refuses bulk git/salvage commands: do them scoped or tell the owner.
+- A worktree's smoke test fails on same-origin 404s: fix the source of each 404 or add a dated `Server/console-allow.jsonl` entry.
+
+**The owner's way of working (also in CLAUDE.md)**: they mostly do not read chat: reply in 1-2 sentences and put important or contingent things as a `Note:` card too; decide and keep going, never wait; never destructive (move/archive, scripted, dry-run first, manifest); commit after every working step once smoke-tested; every file linked from the site; write classes (one per file, file = class name, `Thing.View = ...` after the class); show the class (class card + live debug view); design the class architecture before building; cheap models and scripts for reading, Haiku for audits; stream, never poll.
+
+**Fail-safe crons from the old session are all spent; none pending.** Agents to revive by name: minion-session-class, mastermind-ai-system-docs, mastermind-refine-demo, mastermind-task-audit, mastermind-task-system-design, mastermind-ai2-merge, mastermind-notifications-lab.
+
+## EARLIER, 2026-10-06 12:22 pm: Handover for New Tab / Mastermind
 **Session 45d8d4c7 winding down for compaction. All work landed directly on `michael/dev`. Background crons killed.**
 - **CRON STOPPED (task-1565):** The static 5-minute heartbeat cron was terminated. No background crons run in the chat session.
 - **Dynamic Heartbeat & Autonomy Policy Landed:**
