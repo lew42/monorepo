@@ -13,5 +13,5 @@ export default class ClassIndexPage extends Page {
 		}, ...args);
 	}
 
-	content(){ class_cards(["Session"]); }
+	content(){ class_cards(["Session", "Prompt"]); }
 }
