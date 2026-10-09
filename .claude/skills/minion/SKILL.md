@@ -7,9 +7,9 @@ description: Load this first, before touching anything, when you have been start
 
 **First call refused with nobody to approve it? Stop and tell your parent — in one message.** A minion spawned with `permission_mode: acceptEdits` can Write and Edit but every Bash, node and MCP call (servex, site) is refused, and no approver exists in a Servex session. Say "my Bash/MCP calls are refused — respawn me with `permission_mode: bypassPermissions`" to your parent and end the turn. Never try a second mechanism to get the same thing done (three failed cross-session attempts cost a turn on 2026-10-02, `framework-home`; the CLI version of the same bug is 2026-09-19's). Servex's `minion` role now spawns with `bypassPermissions` by default, so this should be rare.
 
-**Your part of the build order:** build (in the worktree), then make the docs true (`documentation`). Your mastermind runs the docs check, the review and the merge unless your brief hands them to you (the order is in `sub-mastermind`).
+**Your part of the build order:** build (in the worktree), test, fix. Readmes and skills are your mastermind's to refine, not yours: say in your report which readme or doc your change made out of date, and it updates them. A module you create from scratch gets its first readme as part of building it. Your mastermind runs the docs, the review and the merge unless your brief hands them to you (the order is in `sub-mastermind`).
 
-**A skill let you down?** Append one line to its `improvements.md` (`skill-improvement`); don't edit the shared `SKILL.md` itself. The system architect reads those files and applies them. Your own module's readme and `doc/` are yours: keep them current.
+**A skill let you down?** Append one line to its `improvements.md` (`skill-improvement`); don't edit the shared `SKILL.md` itself. The system architect reads those files and applies them. Refining readmes is your mastermind's job, not yours.
 
 ## Read the folder's ai/log.jsonl first (the owner, 2026-09-29)
 
@@ -45,7 +45,7 @@ If you were opened with `spawn_agent`'s `task: {dir}` option, you start with the
 
 Run `new-task` inside the task dir your brief names — it already exists; you write its `task.jsonl` launch line, with your own `session_id`. **No brief and no task dir?** (a rough prompt such as "make a new page here") Run `new-task` FIRST, before the first edit, so the task opens under `public/framework/ai/<today>/<slug>/` — never a `task.jsonl` at a path you invent. (2026-10-01: the probe runs showed every model skipping this, so it was the skill, not the model.)
 
-**This skill and `new-task` are all you carry by default. Everything else is "read X when Y":** `code` before your first JS edit under `public/` · `layout` before building or restyling anything with a size · `css` before a declaration, `new-css-class` before a new class name · `new-page` before creating a `page.js` · `ui-test` to prove a drag, resize or hover really works · `research` before writing down anything you researched · `documentation` then `finish-task` at landing · `skill-improvement` for any skill that misled you.
+**This skill and `new-task` are all you carry by default. Everything else is "read X when Y":** `code` before your first JS edit under `public/` · `layout` before building or restyling anything with a size · `css` before a declaration, `new-css-class` before a new class name · `new-page` before creating a `page.js` · `ui-test` to prove a drag, resize or hover really works · `research` before writing down anything you researched · `finish-task` at landing · `skill-improvement` for any skill that misled you.
 
 **Any page you build is seen on a 3440 screen.** Give it several columns, or a navigation column beside a centred main one, rather than one narrow column. Padding is opted into where it is needed, never a default others must undo: a region gets `.pad`, a framed box (background, border or rounded corners) gets `.card`, and a deliberate no is marked `.bleed`. Text never touches an edge, and framed boxes get a gap around them. The `page` skill's step 4 has the detail. When your task lands, a layout check screenshots its pages at four widths and flags wasted space. (In the logs of 40 tasks on 2026-09-24 and 25, the `layout` skill was never loaded, and the owner's top complaint was empty wide pages. These two lines are the part of it that matters most.)
 
@@ -106,7 +106,7 @@ A problem you find is yours to fix now, the best way you can, kept easy to chang
 
 ## Landing
 
-If you touched a module, run `documentation` (a review: docs current, nothing new), then `finish-task` to land. **Land in your OWN task's `task.jsonl`, never your parent's:** a `landed_at` in the parent's log tells everyone the whole task is finished (2026-09-28: that got a live task's server stopped mid-work). With no task of your own, report to your parent and let it land. Run `skill-improvement` for any skill that misled you along the way. Your final report is one screen of plain sentences with links to what you built — the numbers belong in the task log, not the report.
+Run `finish-task` to land, naming any readme or doc your change made out of date. **Land in your OWN task's `task.jsonl`, never your parent's:** a `landed_at` in the parent's log tells everyone the whole task is finished (2026-09-28: that got a live task's server stopped mid-work). With no task of your own, report to your parent and let it land. Run `skill-improvement` for any skill that misled you along the way. Your final report is one screen of plain sentences with links to what you built — the numbers belong in the task log, not the report.
 
 **A reviewer's finding is answered, not debated:** reply in `task.jsonl` as `fixed` or `declined: <why>` (`Server/doc/review.md`).
 

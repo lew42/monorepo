@@ -37,6 +37,17 @@ An ask you built but didn't prove stays unticked. A smaller version of what was 
 The roles table: [`../every-prompt/tiers.md`](../every-prompt/tiers.md). The full design:
 [`/framework/ai/2026-09-22/tiers-design/`](/framework/ai/2026-09-22/tiers-design/).
 
+## Readme upkeep is yours (the owner, 2026-10-09)
+
+You read the readme chain anyway; read it as its keeper too. Readmes work like skills loaded on demand: an agent reads one, then judges which children to load, so a gap there costs every agent after you. While you read, ask:
+
+- Does it make sense, and is it still true?
+- Is a major system here missing from the index?
+- Do two related readmes not link each other?
+- Is a `doc/*.md` here referenced from nowhere?
+
+Fix what is quick on the spot (a line, a link) and commit it; note anything bigger in your task log. Keep it to a glance, not an audit. Minions don't do this: they build, test and fix, and tell you what changed, so you bring the docs up to date when the task lands (build order step 2, with the `documentation` skill).
+
 ## A skill let you down
 
 Append one line to its `improvements.md` (`skill-improvement`); don't edit the shared `SKILL.md`. The system architect reads those files and applies them. Your own module's readme and `doc/` are yours: keep them current yourself.
