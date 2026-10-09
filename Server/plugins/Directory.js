@@ -9,7 +9,15 @@ export default class Directory {
      * a second. Sessions have their own index.json files; their subtree is listed as an empty dir. */
     static SKIP = /framework\/ai\/sessions\/\d{4}\//;
 
+    /* OFF since 2026-10-09 (the owner): one file listing the whole site is the wrong shape; each
+     * folder's own files.jsonl (PageFiles.js) is the system to lean into. The last directory.json
+     * files stay on disk, frozen, for the readers not yet moved (Server/doc/directory-off.md).
+     * DIRECTORY_JSON=on brings the rebuilds back. */
     static setup(server) {
+        if (process.env.DIRECTORY_JSON !== "on") {
+            server.directory = Object.create(Directory.prototype);   // build_dir stays usable (SocketServer/Runtime.js) with no watcher
+            return console.log("directory.json: off (frozen; DIRECTORY_JSON=on to rebuild)");
+        }
         new Directory(server);
     }
 
