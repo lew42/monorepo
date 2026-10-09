@@ -77,6 +77,14 @@ Every `.md` link opens rendered at `/<module>/md/doc/<name>/` ([`core/Page/doc/m
 
 A Doc's `notes:` land at `/module/doc/<name>/`, `methods:`/`properties:` at `/module/api/<name>/`; `files:` have **no per-name route** (they render in the shared `/module/files/` browser). For a `note()`-shaped page the URL slugifies from the **title**, not the file name.
 
+## 4. Where docs go, and cleaning them up (the owner, 2026-10-09)
+
+**Where:** `readme.md` is the index (one line per thing, a link each, read whole). The detail goes in `doc/<topic>.md`, one topic per file. Decisions go in `doc/architecture.md`, a line or two each, linking the session or task where it was decided. When a folder passes about 10–15 files, group them into subfolders, each with its own small readme, so the parent stays an index.
+
+**Who:** the mastermind of the task keeps the docs it reads true ("Readme upkeep is yours" in `sub-mastermind`); minions report what went stale.
+
+**Cleanup:** a mastermind spawns one Haiku per `doc/*.md`, given that file and the files it describes, asking "still true? duplicated elsewhere? superseded?". The mastermind reads the answers and decides. A superseded doc moves to an `archive/` folder beside it (`git mv`, one line in the readme saying why), never deleted.
+
 ## Before finish-task
 
 - Every `doc/*.md` named in the readme, every `notes:`/`files:` entry exists — both directions.
