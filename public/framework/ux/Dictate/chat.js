@@ -210,6 +210,11 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	// guard, widened to every chat line, keyed the same way `ext/Chat/Chat.js`'s own `chat()`
 	// factory already dedupes its `source()` lines (`at` + whether it's a `fix` + the text).
 	let seen_chat = new Set();
+	// IN-FLIGHT ECHO (2026-10-09, dup-chat-bubbles): the stream can push the owner's own line back BEFORE
+	// `Session.say` resolves, so `own_ats` lacks its `at` and it drew twice. Texts being sent wait here;
+	// the first owner line matching one is that echo.
+	const sending = [];
+	const flat = t => String(t ?? "").replace(/\s+/g, " ").trim();
 
 	new View({ el, capture: false }).append(() => {
 		panel = new Widget({
@@ -223,8 +228,12 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 					const via = entry.via === "typed" ? "text" : "voice";
 					floor.stamp(entry);
 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};
-					const r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
-						via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
+					const mine = { text: flat(entry.text), at: entry.at }; sending.push(mine);
+					let r;
+					try {
+						r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
+							via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
+					} finally { const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); }
 					own_ats.add(r.at);
 					panel.retag(entry.at, r.at);
 					if (entry.floor === "speaking") owner.watch_floor();
@@ -252,6 +261,9 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		// second time (law 6).
 		if (line?.refined) return void panel.say(Session.entry(line));
 		if (!line?.chat) return;
+		// Only when this send's own optimistic bubble is still on screen: after a reset it is gone, so the copy is drawn.
+		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
+		if (echo){ own_ats.add(line.chat.at); panel.retag(echo.at, line.chat.at); return; }   // in-flight echo
 		if (own_ats.has(line.chat.at)) return;   // this mount's own send, already drawn optimistically
 		// `watch()` and `stream()` both call this for the SAME line (see the comment on
 		// `seen_chat`, above) — a `fix` carries its own text, so a later correction at the

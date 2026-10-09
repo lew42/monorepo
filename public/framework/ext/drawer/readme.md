@@ -28,7 +28,7 @@ drawer.showing();     // boolean
 - `drawer.js` / `drawer.css`: Shell, push layout, ✕ close, and `--drawer-w` token.
 - `menu.js`: The top-right ☰ button.
 - `tabs.js`: Tab switcher routing (`AI`, `Dictate`, `Settings`, `Element`).
-- `rail.js` / `rail.css`: Phone bottom rail and voice sheet.
+- `rail.js` / `rail.css`: Phone bottom rail and voice sheet. **The mobile sheet for dictation is `DrawerRailSheetChat`** (the name its title shows; it extends `DrawerRailSheetPanel` > `DrawerRailSheet` > `DrawerRailSheetV1`).
 - `page.js`: Live interactive demo.
 
 ## Doc topics

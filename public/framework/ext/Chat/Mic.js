@@ -138,15 +138,43 @@ export function unfill(text){
 	return t;
 }
 
-/* `text` without the words `sent` already covers at its start, compared word by word
-   ignoring case and punctuation (Whisper's final often re-punctuates its own guess).
-   If the two do not agree, nothing is removed. */
+/* `text` without the words `sent` already covers at its start. A guess that went out with Send is
+   cumulative and Whisper's FINAL for the same speech never matches it word for word ("county" for
+   "country", "check mark" / "checkmark"), so an exact-prefix test let the whole final through as a
+   second message ~200 ms after the first — the owner's duplicate bubble (ext/Chat/doc/duplicate-bubbles.md).
+   Words are lined up with an edit distance (a word costs 0 when equal, else its letter-level distance);
+   when the two are at least 65% alike the sent part is dropped and only the words after it are returned.
+   If they do not agree, nothing is removed. */
 export function strip_words(text, sent){
 	const norm = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
 	const tw = text.split(/\s+/).filter(Boolean), sw = sent.split(/\s+/).filter(Boolean);
-	let i = 0;
-	while (i < tw.length && i < sw.length && norm(tw[i]) === norm(sw[i])) i++;
-	return i && i === Math.min(tw.length, sw.length) ? tw.slice(i).join(" ") : text;
+	const T = tw.map(norm), S = sw.map(norm);
+	const lev = (a, b) => {
+		let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+		for (let i = 1; i <= a.length; i++){
+			const cur = [i];
+			for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+			prev = cur;
+		}
+		return prev[b.length];
+	};
+	const word = (a, b) => a === b ? 0 : Math.min(1, lev(a, b) / Math.max(a.length, b.length, 1));
+	const D = Array.from({ length: S.length + 1 }, (_, i) => Array(T.length + 1).fill(i));
+	for (let j = 0; j <= T.length; j++) D[0][j] = j;
+	for (let i = 1; i <= S.length; i++) for (let j = 1; j <= T.length; j++)
+		D[i][j] = Math.min(D[i - 1][j] + 1, D[i][j - 1] + 1, D[i - 1][j - 1] + word(S[i - 1], T[j - 1]));
+	// Either all of `sent` is matched against the front of `text` (the final goes on past the guess), or all of
+	// `text` is matched against the front of `sent` (the guess ran longer than the final).
+	let best = null;
+	const consider = (i, j) => {
+		if (!i || !j) return;
+		const score = D[i][j] / Math.max(i, j);
+		if (score > 0.35 || (best && (score > best.score || (score === best.score && j <= best.j)))) return;
+		best = { score, i, j };
+	};
+	for (let j = 1; j <= T.length; j++) consider(S.length, j);
+	for (let i = 1; i <= S.length; i++) consider(i, T.length);
+	return best ? tw.slice(best.j).join(" ") : text;
 }
 
 export class ComposerMic extends Dictate {
@@ -827,15 +855,27 @@ export class ComposerMic extends Dictate {
 		// Same normalisation `strip_words()` already uses above (word-for-word, ignoring
 		// case and punctuation) — Whisper's own re-punctuation of an identical resend
 		// ("turn on the lights" vs "Turn on the lights.") must still count as the same words.
-		const norm = String(text ?? "").toLowerCase().split(/\s+/).map(w => w.replace(/[^\p{L}\p{N}]/gu, "")).filter(Boolean).join(" ");
-		const now = performance.now();
-		const dup = !!norm && norm === this.last_sent_norm && now - (this.last_sent_at ?? -Infinity) < ComposerMic.DUP_WINDOW_MS;
-		this.last_sent_norm = norm; this.last_sent_at = now;
+		// Same words, or words that differ only by what Whisper mishears (`strip_words` is the one fuzzy matcher):
+		// "What is minion-kak?" then "What is minion-kaq?" 300 ms apart is ONE utterance (the owner's 4-copies bubble, 2026-10-09).
+		const now = performance.now(), prev = this.last_sent_text, t = String(text ?? "").trim();
+		const close = !!prev && !!t && now - (this.last_sent_at ?? -Infinity) < ComposerMic.DUP_WINDOW_MS;
+		const dup = close && (strip_words(t, prev) === "" && strip_words(prev, t) === "")   // BOTH ways: "Okay." then "Okay, now delete it." is two messages;
+		this.last_sent_text = t; this.last_sent_at = now;
 		return dup;
 	}
 
+	/* A repeated phrase inside ONE text ("What is it? What is it?"): Whisper's own doubling when the live guess and the
+	   final are joined. The first half is kept. Only a whole-text repeat of 2+ words counts. */
+	static collapse_repeat(text){
+		const w = String(text ?? "").trim().split(/\s+/).filter(Boolean);
+		if (w.length < 4 || w.length % 2) return text;
+		const h1 = w.slice(0, w.length / 2).join(" "), h2 = w.slice(w.length / 2).join(" ");
+		return strip_words(h2, h1) === "" ? h1 : text;
+	}
+
 	async post_held(item){
-		const { text, raw } = typeof item === "string" ? { text: item, raw: null } : item;
+		const got = typeof item === "string" ? { text: item, raw: null } : item;
+		const text = ComposerMic.collapse_repeat(got.text), raw = got.raw && ComposerMic.collapse_repeat(got.raw);
 		if (this.same_as_last_send(text)){ console.warn("chat: dropped a duplicate send (same words, " + ComposerMic.DUP_WINDOW_MS + "ms window):", text); return; }
 		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
 		if (raw && raw.trim() && raw.trim() !== text.trim()){ entry.raw = raw; entry.level = "clean"; }

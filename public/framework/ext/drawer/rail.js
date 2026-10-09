@@ -339,7 +339,7 @@ export class DrawerRailSheetV1 extends View {
 	head(){
 		return div.c("drawer-rail-sheet-head flex v-center", () => {
 			div.c("drawer-rail-sheet-heading flex v-center wrap", () => {
-				span.c("drawer-rail-sheet-title", "Ask, by voice");
+				span.c("drawer-rail-sheet-title", this.constructor.name);
 				this.$path = span.c("drawer-rail-sheet-path muted");
 			});
 			button.c("drawer-x", "✕").attr("type", "button").attr("title", "Close").click(() => this.close());
