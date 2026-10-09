@@ -56,7 +56,7 @@ Live demo: [/framework/core/Page/tool/](/framework/core/Page/tool/) (every line 
 - **A tab line with no strip turns tabs on.** "Add a tab here" must show a tab.
 - **Paths are route paths.** The agent names the page it sees (`/framework/ai/sessions/<id>/`); the tool finds the file, even when none exists yet. A session's file is its own dated folder (`AISession.locate()`).
 - **A template page takes only the shape of its log** (`Page.overlay()`): words, `tab`, `title`, lines addressed to a tab. Other keys in such a log stay data, because a key can name a Page method (`add`, `move`).
-- **Every agent knows its page.** Servex's first-turn line names `/framework/ai/sessions/<id>/`; a VS Code tab is told on its first prompt (`.claude/hooks/prompt-relay.mjs`).
+- **Every agent knows its page.** Servex's first-turn line (`Agents.whoami()`) and, for a VS Code tab, the SessionStart hook `.claude/hooks/session-page.mjs` name `/framework/ai/sessions/<session id>/` (built by mastermind-ai-system: `Servex/agents/doc/own-page.md`). With no path, `page_set` also defaults to the caller's own page.
 
 ## Log growth (the owner, 18:25): designed, size feedback built
 

@@ -290,19 +290,6 @@ const run = async () => {
 		].join("\n"));
 	}
 
-	// 3b. The owner's own interactive session, FIRST prompt only: tell it which page is its own, so
-	//     "add a tab here" has a "here" (2026-10-09, the page tool: core/Page/doc/architecture.md).
-	//     Once per session (a temp marker), so it costs one line of context, not one per turn.
-	if (owner_interactive) {
-		try {
-			const hint = session_marker_file(session_id) + "-page-hint";
-			if (!fs.existsSync(hint)) {
-				fs.writeFileSync(hint, now());
-				console.log(`This session's own page: /framework/ai/sessions/${session_id}/ — "this page" or "here" means it. Change it live with the servex page_set tool: path + a JSON delta (a tab: {"tab":{"name":"notes","title":"Notes"}}).`);
-			}
-		} catch {}
-	}
-
 	// 4. The owner's own interactive session, no polling: if the echo assistant finished
 	//    refining an EARLIER prompt since this session's last turn, say so in one line — the
 	//    "VS Code mastermind" path (minion-echo, 2026-10-02): a session Servex isn't hosting has
