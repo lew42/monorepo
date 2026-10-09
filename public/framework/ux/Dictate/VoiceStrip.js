@@ -35,6 +35,7 @@ export default class VoiceStrip extends View {
 				on_step: (stage, detail) => { this.step(stage, detail); this.on_step?.(stage, detail); },
 				on_meter: level => { this.conn.level(level); this.on_meter?.(level); },
 				on_guess: text => { this.$guess.text(text); this.on_guess?.(text); },
+				on_whisper: line => this.on_whisper?.(line),
 				on_text: text => { this.conn.set("transcript", "ok", this.words() + " words"); this.said(); this.on_text?.(text); },
 			});
 			this.toolbar?.();

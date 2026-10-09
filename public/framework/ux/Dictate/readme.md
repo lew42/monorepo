@@ -207,6 +207,8 @@ and off also post a `{type: "floor"}` line. `floor.on_quiet(fn)` fires once each
 goes quiet for 2.5 s: a voice session's assistants answer on it. The contract for readers:
 [`ext/Chat/doc/floor.md`](/framework/ext/Chat/).
 
+- **See what Whisper says, and where the period comes from:** `WhisperLog` on the Refine page streams every interim and final answer; the trailing period is Whisper's own. [doc/whisper-log.md](doc/whisper-log.md)
+
 ## Watch out
 
 - **A page reload could still abort the microphone itself, even with whisper reachable** —
