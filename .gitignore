@@ -118,9 +118,11 @@ public/framework/ai/servex-queue.json
 
 # Session class machine state (Server/session-summary.mjs writes these)
 public/framework/ai/sessions/session-index.json
-public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/index.json
-public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/index.json
-public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/index.jsonl
+# live state: each session snapshot, and a day composite while it is still being written. A day composite is committed ONCE, when the day closes (git add -f). Month and year roll-ups are committed normally.
+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/index.json
+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/index.json
+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/index.tmp.json
+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/index.tmp.json
 # cache.jsonl = computed numbers (rebuildable). session.jsonl = the hand-written record: TRACKED, append-only.
 public/framework/ai/sessions/*/cache.jsonl
 public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/**/cache.jsonl

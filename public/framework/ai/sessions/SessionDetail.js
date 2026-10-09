@@ -3,6 +3,7 @@ import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { load as raw_transcript_lines } from "/framework/ext/AITask/replay.js";
 import SessionRows from "./SessionRows.js";
 import SessionView from "./SessionView.js";
+import SessionFollow from "./SessionFollow.js";
 import SessionTrace from "./SessionTrace.js";
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
@@ -14,6 +15,8 @@ export default class SessionDetail extends Page {
 		// A uuid is too long to be a page title; the short form still tells two sessions apart, and the full id sits below it.
 		super({ home, id, width: "fill", title: id.length > 24 ? id.slice(0, 8) + "…" : id, url: home.url + id + "/" });
 	}
+
+	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; }
 
 	content(){
 		const { home, id } = this, url = home.url;
@@ -31,6 +34,7 @@ export default class SessionDetail extends Page {
 		// and the transcript and the date-path lookup both need the session_id.
 		SessionDetail.load_row(url, id).then(async row => {
 			const session_id = row?.session_id ?? id;
+			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)) this.follow = new SessionFollow(session_id).start();   // tails the log and corrects the grid row (doc/realtime.md)
 			Promise.all([SessionRows.load_index(url), SessionRows.load_tree(url)]).then(([index, tree]) => SessionView.detail_section($session, session_id, index, tree));
 			const dir = SessionDetail.dir_of(await SessionDetail.dir_index(), session_id);
 			const [costs, trace, prompts] = await Promise.all([

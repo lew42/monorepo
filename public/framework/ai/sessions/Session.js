@@ -345,7 +345,7 @@ export default class Session {
 		if (index?.columns && typeof document !== "undefined") for (const [id, v] of Object.entries(index.rows)) Session.from_index(id, v, index.columns);
 	}
 
-	// ---- the live index (browser): one light Session per id, kept current by delta lines (doc/realtime.md) ----------
+	// ---- the live index (browser): one light Session per id, kept current by snapshots (doc/realtime.md) ----------
 	// `all` is the registry. A light Session carries only the grid's fields in `ix`; the full computed totals stay in `s`
 	// (blank here) and arrive from the session's own cache when its detail page opens.
 	static all = new Map();
@@ -366,14 +366,14 @@ export default class Session {
 
 	static norm(key, v){ return key === "model" || key === "effort" || key === "day" ? (v || null) : key === "provider" ? (v || "claude") : v; }
 
-	/** One feed line ({ id, at, ...only the fields that changed }) folded into the Session it names. Returns { ses, fields, is_new }. */
+	/** One snapshot or feed line ({ id, ...fields }) folded into the Session it names. Returns { ses, fields, is_new }. */
 	static apply_delta(line){
 		const is_new = !Session.all.has(line.id), ses = Session.of(line.id), fields = [];
 		ses.live = true;
 		for (const [k, v] of Object.entries(line)){
 			if (k === "id" || k === "at") continue;
 			const n = Session.norm(k, v);
-			if (ses.ix[k] !== n){ ses.ix[k] = n; fields.push(k); }
+			if (Array.isArray(n) ? JSON.stringify(ses.ix[k]) !== JSON.stringify(n) : ses.ix[k] !== n){ ses.ix[k] = n; fields.push(k); }
 		}
 		if (fields.length) ses.subs.forEach(fn => fn(ses, fields));
 		return { ses, fields, is_new };

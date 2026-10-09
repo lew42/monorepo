@@ -6,6 +6,7 @@ import { grip } from "/framework/ext/grip/grip.js";
 import SessionRows from "./SessionRows.js";
 import SessionView from "./SessionView.js";
 import SessionLive from "./SessionLive.js";
+import Session from "./Session.js";
 import SessionDetail from "./SessionDetail.js";
 
 View.stylesheet(import.meta, "sessions.css");
@@ -166,15 +167,18 @@ export default class SessionsPage extends Page {
 				check("show closed", "show_closed", "Sessions you marked done are hidden by default. They are never deleted.");
 				check("needs attention", "attention_only", "Only sessions with an alert in their session.jsonl record.");
 				check("in flight", "inflight_only", "Only sessions working right now (a transcript that moved in the last 5 minutes, or a Servex agent that is running).");
-				const tags = [...new Set(Object.values(this.session_index?.meta ?? {}).flatMap(m => m.tags))].sort();
-				if (tags.length) label.c("flex gap-35 v-center h4", () => {
-					span("tag");
+				const pick = (name, key, values, title) => values.length && label.c("flex gap-35 v-center h4", () => {
+					span(name);
 					const sel = document.createElement("select");   // no select() helper in the framework
-					for (const t of ["", ...tags]){ const o = document.createElement("option"); o.value = t; o.textContent = t || "any"; sel.append(o); }
-					sel.value = this.tag_filter || "";
-					sel.addEventListener("change", () => { this.tag_filter = sel.value; this.render_rows(); });
+					for (const t of ["", ...values]){ const o = document.createElement("option"); o.value = t; o.textContent = t || "any"; sel.append(o); }
+					sel.value = this[key] || "";
+					sel.addEventListener("change", () => { this[key] = sel.value; this.render_rows(); });
 					div().el.append(sel);
-				});
+				}).attr("title", title);
+				const live = [...Session.all.values()].map(s => s.ix);
+				pick("tag", "tag_filter", [...new Set(Object.values(this.session_index?.meta ?? {}).flatMap(m => m.tags))].sort(), "A tag written into a session's session.jsonl.");
+				pick("category", "category_filter", [...new Set(live.map(x => x.category).filter(Boolean))].sort(), "The category of the task that launched the session (the task audit).");
+				pick("core", "core_filter", [...new Set(live.flatMap(x => x.core ?? []))].sort(), "A framework module the session edited (the task audit).");
 				div.c("sessions-daterange flex gap-50 v-center", () => {
 					small.c("muted", "from");
 					const $from = input().attr("type", "date");
@@ -206,7 +210,9 @@ export default class SessionsPage extends Page {
 		const base = this.last_rows.filter(r => (this.show_closed || !closed[id_of(r)]) && in_date_range(r, from, to)
 			&& (!this.inflight_only || is_in_flight(r))
 			&& (!this.attention_only || meta[id_of(r)]?.alerts)
-			&& (!this.tag_filter || meta[id_of(r)]?.tags.includes(this.tag_filter)));
+			&& (!this.tag_filter || meta[id_of(r)]?.tags.includes(this.tag_filter))
+			&& (!this.category_filter || Session.all.get(id_of(r))?.ix.category === this.category_filter)
+			&& (!this.core_filter || Session.all.get(id_of(r))?.ix.core?.includes(this.core_filter)));
 		const filtered = base.filter(r => this.role_filter.has(r.role || "(unknown)") && this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)"));
 		return { base, filtered, sorted: sort_rows(filtered, this.sort) };
 	}
@@ -357,21 +363,18 @@ export default class SessionsPage extends Page {
 		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });   // the plan's own meter, kept fresh by Servex
 	}
 
-	/** Load the day indexes the date filter needs, then tail TODAY's (deltas from Server/SessionTailer.mjs). A cost change redraws its own row (SessionView); a new or active/idle session redraws the grid now, a newer last activity a moment later. */
+	/** Load the day files the date filter needs (real files: closed days, plus today's live one), then ask the dev socket to push today's changes. With no dev socket the 30-second tick re-reads today's file. A cost change redraws its own row (SessionView); a new or active/idle session redraws the grid now, a newer last activity a moment later. */
 	async follow_live(){
-		const today = SessionLive.ymd(new Date());
-		if (this.live_day === today) return;
-		this.live_day = today;
-		this.live?.unsubscribe();
-		const root = this.url;
+		const today = SessionLive.ymd(new Date()).replaceAll("/", "-");
 		let timer = null;
 		const redraw = ms => { if (this.polling) timer ??= setTimeout(() => { timer = null; this.draw(); }, ms); };
-		const structural = (moved, later) => redraw(moved.length ? 100 : 1500);
-		const urls = await SessionLive.days(root, this.date_from, this.date_to);
-		await SessionLive.load_days(urls.filter(u => !u.includes("/" + today + "/")), structural);
-		this.live = new SessionLive(root + today + "/index.jsonl", structural);
-		await this.live.live();
-		this.draw();
+		this.live ??= new SessionLive((moved, later) => redraw(moved.length ? 100 : 1500));
+		if (this.live_day !== today){
+			this.live_day = today;
+			await this.live.load(await SessionLive.days(this.url, this.date_from, this.date_to));
+			this.draw();
+		} else if (!SessionLive.socket()) await this.live.load([`${this.url}${today.replace(/-/g, "/")}/index.json`]);   // static host: re-read the file
+		this.live.follow(today);
 	}
 
 	deactivated(){ this.polling = false; this.source?.close(); this.source = null; this.stream_open = false; clearInterval(this.tick); }

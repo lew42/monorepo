@@ -52,7 +52,7 @@ The owner can mark a session done ("rubber stamp"). `Session.close(id, by, close
 | `use_index`, `from_index`, `of`, `apply_delta`, `on`, `index_row`, `grid_row` | no use | yes (the light live Session) |
 | `render()` | throws (`Session.View` is unset) | yes |
 
-`Server/SessionTailer.mjs` is the server user; `SessionLive.js` is the client user.
+`Server/SessionIndex.mjs` is the server user; `SessionLive.js` and `SessionFollow.js` are the client users.
 
 ## A Session draws itself
 

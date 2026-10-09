@@ -46,17 +46,14 @@ More about the class: [session-class.md](session-class.md).
 
 The Servex tool `log_session {session, line, by}` wraps `Session.log` (restart Servex to see it). From a script: `node Server/session-summary.mjs --log <uuid> '<json>' --by <name>`. The Sessions table filters by tag and by "needs attention" (any alert line).
 
-## The day index line
+## The snapshot
 
-Not a record line: this is the **computed** feed in `sessions/YYYY/MM/DD/index.jsonl`, written by `Server/SessionTailer.mjs`, never by hand (design: [realtime.md](realtime.md)). One JSON object per line:
+Not a record line: a session's `index.json` is the **computed** current state, written atomically by `Server/SessionIndex.mjs`, never by hand (design: [realtime.md](realtime.md)). The day composite `sessions/YYYY/MM/DD/index.json` bundles the snapshots of one day.
 
 ```json
-{"id":"<session uuid>","at":"2026-10-08T21:55:33.120Z","usd":6.0,"tree_usd":6.0,"state":"active","last_activity":"2026-10-08T21:55:31Z"}
+{"id":"<session uuid>","state":"active","model":"claude-sonnet-5","provider":"claude","usd":6.0,"tree_usd":6.0,"children":0,"tags":[],"alerts":0,"first_at":"2026-10-08T21:50:00Z","last_activity":"2026-10-08T21:55:31Z"}
 ```
 
-- `id` and `at` are always there. Every other key is a field that **changed**; a missing key means unchanged.
-- A session's first line each day is a **keyframe** with every field: `usd, tree_usd, children, wall_ms, model, effort, flags, day, provider, state, first_at, last_activity`.
-- Later lines win, field by field (`Session.apply_delta` in the browser, `SessionDays.fold` on the server).
+- It is **state, not events** (decided 2026-10-08): a reader needs no transcript read, and an event-sourced index was rejected. It is never a history; the history is the transcript and the session's cache.
 - `state` is `active` when the last transcript line is under 5 minutes old, else `idle`.
-
-**What a day-index line is (decided 2026-10-08).** It is a **state summary** of one session, not a log of events: later lines win per `id`, so a reader reduces the file into the current state with no transcript read. An event-sourced index (replaying one line per transcript event) was rejected. While a day is live the file only grows; once it closes, a script is to write a compacted copy (one line per session, a new file, the old one kept), after which the day never changes. Fields planned for the line beyond the ones above: `name`, `parent`, `tokens`, `tags`, `alerts`. Full reasoning: [data-architecture, section 9](data-architecture-2026-10-08.md#9-what-a-day-index-line-holds-state-not-events-owner-decision-2026-10-08).
+- The same object reaches the browser over the socket, and `Session.apply_delta` folds it field by field.

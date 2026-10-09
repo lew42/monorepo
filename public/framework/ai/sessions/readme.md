@@ -160,13 +160,13 @@ merge.
 
 ## Real time: true now versus planned
 
-- **True now:** a session's cost, state and last activity update the grid in about 0.25 s, and a new session appears the same way. A server-side tailer appends changed fields to `sessions/YYYY/MM/DD/index.jsonl`; the page tails today's file. The tailer runs on the main dev server only, after a restart.
+- **True now:** a session's cost, state and last activity reach the grid in well under a second, and a new session appears the same way. A server-side `SessionIndex` keeps one small snapshot per session, writes it to the session's `index.json` and the day's `YYYY/MM/DD/index.json` (real files a static host serves), and pushes each changed snapshot over the dev socket. An open session page tails its own log and corrects the grid row. It runs on the main dev server only, after a restart.
 - **Not yet:** a parent's tree total when a child changes, and the tree, closed list and traces (still the `session-index.json` snapshot).
 - Detail, latency numbers and the scripts: [`doc/realtime.md`](./doc/realtime.md).
 
 ## More
 
-- [`doc/realtime.md`](./doc/realtime.md) — the day-partitioned live index: the path, what is live, measured latency
+- [`doc/realtime.md`](./doc/realtime.md) — snapshots, day files and the socket: the path, what is live, measured latency
 - [`../doc/tasks.md`](../doc/tasks.md) — proposal: tasks as `core/Task` with `origin` = the creating session; session cost rolls up into its tasks
 - [`doc/data-architecture-2026-10-08.md`](./doc/data-architecture-2026-10-08.md) — the owner's open design: index files, several files per session, what session.jsonl keeps, routes, what the task audit leaves behind
 - [`doc/session-as-container-2026-10-08.md`](./doc/session-as-container-2026-10-08.md) — idea: a session as a container for a whole AI setup (roles, models, tools); open
