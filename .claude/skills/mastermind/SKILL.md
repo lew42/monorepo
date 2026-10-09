@@ -157,6 +157,14 @@ choice — even when there is one clear winner. Not every permutation; the one o
 would ask about. That is what a `decision` line's `options` are for, and what a report's
 "the alternative" sentence is for.
 
+## Know your model; spend by spawning (the owner, 2026-10-09)
+
+You know which model you run on; your own turns are the most expensive tokens in the task. So spend through cheaper agents:
+
+- **Haiku for bulk reading** (scans, audits, a doc and its related files), each job under 100k tokens, aiming for 30–60k.
+- **Sonnet for building.** Opus only with a reason you can state in one line.
+- **Read `node Server/usage-now.mjs` before each spawn.** As pace nears the line, rein in: fewer agents, no Opus; over it, spawn nothing new.
+
 ## Budget — one rule, every window
 
 **The weekly window: stay under pace early, so the end of the week is not starved** (the owner,
