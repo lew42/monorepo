@@ -66,6 +66,16 @@
     ],
     "SessionStart": [
       {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/session-page.mjs"],
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "resume",
         "hooks": [
           {

@@ -165,11 +165,13 @@ export class Agents {
 			const guard = spend_guard();
 			if (!guard.ok) throw new Error(`openrouter spawn refused: ${guard.reason}`);
 		}
-		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
+		/* Minted here for every fresh spawn (the constructor would mint the same thing later), so
+		 * the first-turn line can tell the agent its own page, /framework/ai/sessions/<session_id>/. */
+		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		const fresh = !again && !spec.system;
 		const dir = fresh ? directory_of(spec) : null;
-		const opened = again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt);
+		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + opening(spec.role, spec.prompt);
 		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
 		const prompt = spec.task
 			? `${base}\n\nYour task is already open at ${spec.task.dir}/task.jsonl; don't run new-task, log there.`
@@ -194,7 +196,10 @@ export class Agents {
 
 	/* An agent has to know its own id to pass it as `from` to fork_self or as
 	 * `parent` to spawn_agent — nothing else tells it. One line, first turn only. */
-	whoami(id){ return `[You are Servex agent ${id}.]\n`; }
+	whoami(id, session_id){
+		return `[You are Servex agent ${id}.]\n` + (session_id
+			? `[Your own page is /framework/ai/sessions/${session_id}/ — pass it as \`path\` to page_set, page_add, page_call and page_read to change what the owner sees there.]\n` : "");
+	}
 
 	/* FORK_SELF — a copy of a session, asked ONE question in the background.
 	 *
