@@ -5,9 +5,9 @@ description: Run once a task's decisions are made and before finish-task — mak
 
 # Documentation — the final review
 
-**The build order (the owner, 2026-09-29).** This pass is step (2) of every task, and step (3) tests it: (1) build in the worktree; (2) update the docs, the readme and what it links to, so they are true now, pointing to a log for ongoing detail and never holding log data; (3) spawn a FRESH mastermind that reads only those docs, as a smoke test: `spawn_agent` role `reviewer`, Sonnet, prompt "You are a mastermind working in <dir>. Load its readme chain with `load_module` and nothing else. Does it make sense? Is anything unclear or missing? Write <taskdir>/docs-check.md, then stop." Fix what it finds; (4) THEN the fresh-eyes review (`review.mjs`), which now reads current docs; (5) then merge. The reason: every later mastermind starts from a blank slate and learns the directory only from its readme.
+**This pass is step (2) of the build order** (in `sub-mastermind`): a fresh agent then reads only these docs, so they must stand alone.
 
-How the chain reaches agents, and its cap, is explained at [Readmes](/framework/ai/readmes/) and `Servex/doc/readme-chain.md`; this skill is how to write them. Size: CLAUDE.md says a readme is an index under about 100 lines, but the chain injects only the first 40 lines (or up to `## More`), so put the index first.
+How the chain reaches agents, and its cap, is explained at [Readmes](/framework/ai/readmes/) and `Servex/doc/readme-chain.md`; this skill is how to write them. Size: a readme is a short index (CLAUDE.md: under about 100 lines), and the chain injects only the first 40 lines (or up to `## More`), so put the index first.
 
 Read the directory's readme index first — it lists what exists — before working with anything in that directory.
 
@@ -23,12 +23,13 @@ Everything here is writing files: no registration, no build. `./doc/` stands on 
 The AI (and the owner) reads this first and must not have to open every doc to know it exists.
 
 **A readme is the curated context (the owner, 2026-09-29).** It's the top 20% of the detail that serves 80% of the tasks in this module. Say exactly what is, now: not a rule set, not a vague tour. Leave out timestamps, decision history and anything the code already says plainly; that goes one click down, to `doc/decisions.md`. Test each line with one question: would the next agent building here do worse without it? If not, cut it. Every agent spawned for a directory gets this readme in its first prompt (`readme_chain`), so each extra line is paid for many times.
-**The Readme budget is about 150 words (law #1).** A module readme covers four things and nothing else:
+**Keep it short (law #1).** Most readmes land near 20–30 lines. A module readme covers four things and nothing else:
 1. *What the module is* (and for whom)
 2. *Its core ideas / concepts* (how it works)
 3. *The files to read* (entry points)
 4. *The `doc/` topics* (linked for deep dive)
-Move the extra detail, history, deep mechanics, and examples into `doc/<topic>.md`. Most readmes land near 20–30 lines. Shape:
+
+Extra detail, history and examples go in `doc/<topic>.md`. Shape:
 
 ```md
 # Panel — one line: what it is, for whom

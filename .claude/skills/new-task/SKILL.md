@@ -16,9 +16,6 @@ If your brief names a task dir, Servex already opened it: log there and skip ste
 - ⚠ **Build it at an ABSOLUTE path**, or `cd` to the repo root in the same call. The Bash tool's
   cwd persists between calls, so an earlier `cd` into a module silently puts the whole task dir
   under it — `mkdir -p` cannot warn you, and a minion dispatched to read the brief finds nothing.
-- ⚠ **A new day needs more than the dir.** `<date>/page.js` (clone yesterday's — `warm()`,
-  `route()`, `dashboard(this)`) **and** the date added to `ai/page.js` `children:`, or the day
-  404s and every task under it is invisible.
 - `requirements.md` — the ask **verbatim**, plus scope and file-ownership fences if agents will run.
 - **A brief made from dictation is made with `refine.mjs`, not by hand-summarizing.** If the request started as a long spoken or typed dictation, run `node Server/refine.mjs <raw.txt | date:line> --out ai/<date>/<slug>/runs/<name>` first — it turns the raw talking into a checked `brief.md`, and its `coverage.md` proves nothing important was silently dropped or turned into a stricter rule on the way. Use `brief.md`'s numbered asks as `requirements.md`'s own content, and keep `coverage.md` sitting right beside `requirements.md` (`Server/doc/refine.md`).
 - ⚠ Scratch (probes, transcripts, intermediate JSON) goes in the session scratchpad, not the repo — and that
@@ -54,20 +51,7 @@ on any other task's log.
 ## 2. Register + usage
 
 - Leave the task dir **undeclared** — do NOT add it to the day page's `children:` unless the dir has its own `page.js` (a declared child skips the dynamic `route()` and 404s). The dashboard enumerates task dirs from `directory.json` either way.
-- ⚠ **Check your brief's write fence before the next step.** If it does not name `ai/usage.json` and `ai/usage.jsonl`, SKIP the usage refresh entirely and log that you skipped it — the mastermind keeps the snapshot current. Two agents ran it past this caveat on 2026-09-19 and one then destroyed five days of samples trying to undo its own write ([`reset-recovery`](/framework/ai/2026-09-19/reset-recovery/)).
-- Refresh the usage snapshot — **run this FIRST, before the launch line** (`window.before` is its `five_hour` percent DIVIDED BY 100 — the file says `2.0`, the line wants `0.02`; the divide happens here), then about every 15 minutes while working, never tighter (the endpoint 429s):
-
-```bash
-python "$USERPROFILE/.claude/bin/claude-usage.py" --json > public/framework/ai/usage.json
-```
-
-Each refresh, also append the snapshot to `public/framework/ai/usage.jsonl`:
-
-```json
-{"log": {"at": "<ISO>", "session": <pct>, "weekly_all": <pct>, "weekly_scoped": <pct>, "resets_at": "<five_hour.resets_at>"}}
-```
-
-⚠ **Append, never rewrite** — `usage.jsonl` is shared and append-only; a Write to it destroys every other agent's samples.
+- `window.before` is the 5-hour fraction from `node Server/usage-now.mjs` (it prints a percent; divide by 100). Never run the usage script or write `usage.json` yourself: Servex refreshes it every 15 minutes.
 
 ## 3. While working, log
 

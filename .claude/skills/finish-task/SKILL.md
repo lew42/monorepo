@@ -5,7 +5,7 @@ description: Run every time a task lands — the closing report the /framework/a
 
 # Finish a task
 
-**The build order (the owner, 2026-09-29).** Landing comes after all five steps: (1) build in the worktree; (2) update the docs, the readme and what it links to, so they are true now, pointing to a log for ongoing detail and never holding log data; (3) spawn a FRESH mastermind that reads only those docs, as a smoke test: `spawn_agent` role `reviewer`, Sonnet, prompt "You are a mastermind working in <dir>. Load its readme chain with `load_module` and nothing else. Does it make sense? Is anything unclear or missing? Write <taskdir>/docs-check.md, then stop." Fix what it finds; (4) THEN the fresh-eyes review (`review.mjs`), which now reads current docs; (5) then merge. The reason: every later mastermind starts from a blank slate and learns the directory only from its readme.
+**The build order** (docs, docs check, review, merge) is in `sub-mastermind`; landing comes after it.
 
 Run `documentation` first if the task touched a module. Then run `node Server/review.mjs <taskdir> <worktree>` (sizes none/light/full, see `Server/doc/review.md`), answer every finding, and put `node Server/review.mjs --status <taskdir>`'s phrase ("reviewed: pass" / "reviewed: 2 fixed, 1 declined") and a link to `review.md` in the outcome. Then, in order:
 
@@ -77,7 +77,7 @@ one as a command substitution, the append succeeds and nothing complains (a 74-l
 `doc/decisions.md` addition landed with every code word blank, 2026-09-19). Write it to a file
 with the Write tool and append that file's bytes, whatever the extension.
 
-`window.after` from `check-claude-usage`. Token cost is written by Servex; write `"tokens": null` if you cannot sum it. `landed_at` and `outcome` go **inside** `assign`.
+`window.after` from `node Server/usage-now.mjs`. Token cost is written by Servex; write `"tokens": null` if you cannot sum it. `landed_at` and `outcome` go **inside** `assign`.
 
 **If your task answers an ask in `public/framework/ai/asks.jsonl`, mark it landed** (asks-ledger, 2026-09-30): `node Servex/asks/mark.mjs "<id or title words>" landed "<one line>"` (`--list` shows the ids). An unmarked ask shows as stalled in the owner's Inbox even though you finished it.
 
