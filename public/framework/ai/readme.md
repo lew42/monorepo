@@ -78,6 +78,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - Long-term direction: the website must show all the work (index pages, demos, a recently-landed view): [doc/website-shows-everything-2026-10-08.md](doc/website-shows-everything-2026-10-08.md).
 - AI 2 vs AI (two card stores), the date directory layout, zombie branches: [doc/ai2-and-date-layout-2026-10-08.md](doc/ai2-and-date-layout-2026-10-08.md) (open, owner decisions). Inventory and proposal: [doc/ai2-merge-and-layout-proposal-2026-10-08.md](doc/ai2-merge-and-layout-proposal-2026-10-08.md). Inbox/Log/streaming: [doc/inbox-log-streaming-findings-2026-10-08.md](doc/inbox-log-streaming-findings-2026-10-08.md). History: [doc/history.md](doc/history.md). Per-module `ai/` folders: [doc/module-ai-dirs.md](doc/module-ai-dirs.md). Readme and documentation system status: [doc/readme-system-status-2026-10-08.md](doc/readme-system-status-2026-10-08.md).
 - Inbox, Log and one streaming system, programmatic writes: [doc/inbox-log-streaming-2026-10-08.md](doc/inbox-log-streaming-2026-10-08.md).
+- Ranked priorities and who owns what: [doc/priorities-2026-10-08.md](doc/priorities-2026-10-08.md).
 - Cost: `node Server/task-cost.mjs --date <YYYY-MM-DD>`. A follow-up task that reused its
   parent's session currently shows the parent's whole total, not its own share.
 - `tasks.json` — stalled, budget vs. actual, snooze/kill/re-prioritise — is DERIVED: Servex's

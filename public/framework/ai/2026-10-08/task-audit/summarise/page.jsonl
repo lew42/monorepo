@@ -1,3 +1,5 @@
 {"inbox":{"id":"n-4txqlvv2","from":"servex-heartbeat","text":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived.","at":"2026-10-08T17:52:57.741-05:00"}}
 {"file":"task.jsonl"}
 {"inbox":{"id":"n-61e8ma22","from":"servex-task-loop","text":"task-audit/summarise has been quiet since 2026-10-08T18:06:45-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-08T18:26:45.334-05:00"}}
+{"inbox":{"id":"n-c45tm4p6","from":"servex-heartbeat","text":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived.","at":"2026-10-08T21:16:52.090-05:00"}}
+{"inbox":{"id":"n-fko1axn1","from":"servex-heartbeat","text":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived.","at":"2026-10-08T22:53:41.038-05:00"}}

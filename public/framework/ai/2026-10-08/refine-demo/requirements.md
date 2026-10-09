@@ -1,6 +1,14 @@
 # Refine demo — a Prompt class you can talk to, with a live debug view
 
-Owner (2026-10-08). You are a **Sonnet 5.5 mastermind** owning one task end to end; build it yourself, spawn a Haiku 5.5 minion (parent = you, <60k tokens) only for cheap reading. Work in a worktree; smoke-test, then commit after each working step; read the diff; merge. Run `node Server/usage-now.mjs` before spawns. **Do NOT use OpenRouter** (paused; its accounting is untrusted): use Claude Haiku 5.5, the local model, or deterministic code. Keep `STATE.md` in the task dir current after every step so a fresh session can resume. Everything you create must be linked from the site. Non-destructive; chat replies one sentence.
+Owner (2026-10-08). **Goal:** a page where you speak one prompt and watch it become raw, clean and structured text, beside a live view of the `Prompt` object doing it.
+
+**How to work**
+- **Who:** you are a Sonnet 5.5 mastermind owning this task end to end; build it yourself. Spawn a Haiku 5.5 minion (parent = you, under 60k tokens) only for cheap reading.
+- **Git:** work in a worktree, smoke-test, commit after each working step, read the diff, merge.
+- **Budget:** run `node Server/usage-now.mjs` before any spawn.
+- **No OpenRouter** (paused, its accounting is untrusted): use Claude Haiku 5.5, the local model, or plain code.
+- **Resume:** keep `STATE.md` in the task dir current after every step so a fresh session can continue.
+- **Always:** link everything you create from the site; destroy nothing; reply in chat with one sentence.
 
 ## Read first
 `public/framework/ext/Refine/doc/vision-2026-10-08.md` (the owner's whole design, both addenda: pipeline, per-sentence clarity and weight, flags, alternates, names, the `Prompt` class), `ext/Refine/readme.md` and its `doc/`, `Server/refine.mjs`, `ext/Refine/engine.js` + `structure.js`, `ux/Dictate`, and CLAUDE.md ("Write classes", "Show the class", "Name things", "Link every mention").

@@ -1,63 +1,57 @@
 verdict: pass
-1. [note] The diff carries about 70 unrelated generated `files.jsonl` / `page.jsonl` changes (dated task dirs under `ai/2026-08-17` … `ai/2026/10/08`) beside the real work; they bury the review and are not "docs only" — commit them separately or confirm they are machine output.
-2. [note] At 400 the system page is 2.34 screens of cards in one column (layout.json bands, `wide` share 2.337) — long to scroll; two columns of the smaller cards would fit more above the fold.
-3. [note] At 1920 and 3440 the card grid fills only the left ~60% and the page is 59–63% empty (layout.json empty 0.591 / 0.625, narrow_share 0.77) — fine as a reading column, but the right side is unused.
-4. [note] The page's scope is not stated in one line at the top (a name is a name plus its scope): the title is "Servex" while the page also holds Agent SDK, models and sessions material — shots/…system/1200.png, top band.
-5. [note] Only the shot of the system page was reviewed with layout.json; the other shot folders are the dated task pages touched by the jsonl churn and show no change attributable to this work.
+1. [note] /framework/ai/classes/ holds one card, and that card stretches across the whole column. At 3440 the page is 90% empty, and the card's one line of text runs 928px (sizing, measure) — shots/127-0-0-1-61721-framework-ai-classes/sheet.png. Cap the card's width, or lay the cards out in a grid now, so the page does not change shape when the second class arrives.
+2. [note] /framework/ai/classes/Session/ is 84% empty at 3440. The rendered row and the debug tree sit far apart, with a wide gap between them (layout, fill) — shots/127-0-0-1-61721-framework-ai-classes-Session/sheet.png, band 3.
+3. [note] The /framework/ai/system/ shots date from 16:03, which is before this diff. They still show the heading "Servex" and a gist paragraph between the heading and the cards. Addendum 4 asks for no paragraph there; the new code still has a one-line gist ("Servex is the one always-on process; each card is one of its classes."). That passes as the one-line answer to "why is it titled Servex", but it needs a fresh shot to confirm — shots/aisysdocs-localhost-framework-ai-system/sheet.png.
+4. [note] The self-monitoring classes (Heartbeat, TaskLoop, Worktrees, Monitor, Assistant) still sit inside a `details` block. Addendum 3 asks for them to be de-emphasised, which this does. Addendum 5 says not to hide a large body of data behind an expander. Five cards is borderline; this is the owner's call (overview.js).
+5. [note] review.mjs also shot many unrelated dated task pages (2026-10-02, 2026-10-03-*, ai2-*), probably because `children:` in ai/page.js changed. They do not bear on this diff.
+
+Widths given: 400, 1200, 1920 and 3440 for /framework/ai/, /framework/ai/classes/, /framework/ai/classes/Session/ and /framework/ai/system/ (the last one shot before this diff).
 
 ## Requirements
-- 1 "restructured `/framework/ai/system/` page that is mostly cards of classes and live instances with minimal words" — yes — shots/…system/sheet.png: dark class cards (icon, name, core API, source link) for Servex, Agents, Dispatcher, Sessions, Assistant, Pool, Usage, Budget, Heartbeat, TaskLoop, Worktrees, Monitor; an `ai-live-agents` band is the live-instances part
-- 1 four-width check — yes — shots/ holds 400, 1200, 1920, 3440; overflow_x false at all four
-- 2 "Readmes + architecture.md for ai/ (and Servex/)" — yes — diff adds `ai/doc/architecture.md`, `Servex/doc/architecture.md`, edits `ai/readme.md`, `Servex/readme.md`, root `readme.md`
-- 3 "findings.md" — yes — diff adds `ai-system-docs/findings.md`
-- 4 "reuse other agents' outputs" — not checked — outside what the shots and diff show
-- Addendum 1 `systems-map.md` linked from `ai/readme.md` — yes — diff adds `ai/systems-map.md` and edits `ai/readme.md`
-- SDK section/page — yes — diff adds `Servex/doc/sdk.md`
-- Addendum 2 iceberg index, accounting listed first — not verified — readme bodies were not opened in this pass
-- Reuse the existing class-doc mechanism, no second version — not measured — new `system-classes.js` and `check-classes.mjs` appear in the diff; whether they extend `ext/Doc` was not checked
+- 1 "restructured /framework/ai/system/ … mostly cards of classes and live instances" — yes — system sheet: a grid of 14 class cards; this diff adds a link to the live debug view (overview.js)
+- 1b "class card … and show live instances where they exist" — yes — classes-Session sheet: the Session card, then session.render() beside inspect(session), both redrawn by session.on()
+- 1c "find the existing mechanism … do not build a second" — yes — the card reuses class_card/find from system-classes.js and inspect() from ux/Content; no new card system
+- 2 "Readmes + architecture.md … linking the others" — yes, for this slice — ai/readme.md gains a one-line Class cards entry; the architecture docs are outside this diff
+- 3 "findings.md" — n/a
+- 4 "Reuse the other agents' outputs" — n/a
+- A4 "link to the ai/ subdirectory system" — n/a
+- A5 "Link the readme system from /framework/ai/system/" — yes — overview.js section "Documentation and readmes" (context lines)
 
 ## Page structure
-- page 1 (the title says what it is) — yes — shots/…system/1200.png: "Servex" with one intro sentence
-- page 2 (level 1 is one page, shown not told) — yes — cards come straight after the one-line intro
-- page 3 (detail one click down) — yes — each card links to its source
-- scope sentence at top — no — see finding 4
+- page 1 (title says what it is) — yes — classes-Session 1920: "Session" with the card directly beneath
+- page 2 (one takeaway) — yes — the class, then its live object
+- page 3 (reachable by a visible link) — yes — ai/page.js children "classes", the readme entry and the system section link
+- page 4 (route) — yes — /framework/ai/classes/Session/ has its own URL
 
 ## Navigation
-- identify — tabs (Inbox, Dashboard, Log, System, Sessions, Tests), a left sidebar tree, a drawer menu
-- tabs — yes — layout.json tab_rows 1 at all four widths
-- sidebar — yes — shots/…system/1920.png, left; collapses at 400
-- the active tab is marked — yes — "System" is underlined in the sheet at every width
-- routed — yes — page has its own URL `/framework/ai/system/`
+- navigation 1 — tabs (the AI band), sidebar tree
+- tab rows — yes — layout.json tab_rows 1 at every width, on every page shot
 
 ## Layout
-- cards in a grid that adapts — yes — 1 column at 400, 3 at 1200, 5 at 1920, 9 at 3440 (sheet.png)
-- nothing overflows — yes — overflow_x false at 400, 1200, 1920, 3440
-- live-agents band sits under the cards — yes — `ai-live-agents` band in layout.json
+- fills the width — no (note) — classes page 3440: empty 0.90; Session page 3440: empty 0.84
+- side by side when there is room — yes — Session 1200+: the view and the tree are columns; at 400 they stack
+- overflow — yes — overflow_x false at all widths
 
 ## Sizing
-- cards share one size — yes — sheet.png, every width
-- text readable at 3440 — yes — widest_text 699 px, and the cards are small but legible
-- large empty areas — no, a note — layout.json empty 0.625 at 3440 (finding 3)
+- measure — no (note) — classes 3440 widest_text 928
+- card size suits its content — yes on Session (card about 600px at 1920); no on the class index (the card is full width)
 
 ## Wrapping
-- headings and card text wrap cleanly — yes — shots/…system/400.png, no clipped words
-- buttons wrapping — n/a at 1200 and up (`mode-btn`, `drawer-menu` are icon buttons, lines 1.7–1.8, the icon-font name measured as text); at 400 the `drawer-rail-ai` and `drawer-rail-menu` buttons read 3.2 lines, but that is the shared chrome rail, not this change
+- unwanted wraps — yes (only chrome) — wraps lists only the drawer-rail buttons at 400 and mode-btn at 1200, which come from the shared shell, not this diff
 
 ## Spacing and padding
-- h1 and p sit on the same left edge — yes — layout.json left_stack: h1 total 14 and p total 28 at 400, 19 and 38 at 1200 (p is inset deeper than h1 by one `page` layer — consistent site-wide, not this change)
-- gaps between cards even — yes — sheet.png
-- room to breathe at the top — yes — first band h2 at y 127 (400) / 97 (1200)
+- left stack — yes — h1 14/19px from doc-well; consistent with sibling pages
+- gaps — yes — gap-100 between the columns; the bands show no big_empty
 
 ## Colour and contrast
-- dark cards on a light page: light text on dark, readable — yes — shots/…system/1200.png
-- the card dark theme is the same in light and dark mode — not measured
+- dark class card on a light page — yes — the same card as the system page; the code text is readable in the shots
+- muted loading note — n/a
 
 ## Flow
-- most important first — yes — Servex, Agents, Dispatcher lead; accounting-style cards (Usage, Budget) follow the core three
-- one clear reading order — yes — cards, then live agents, then the written sections
-- length at 400 — no, a note — finding 2
+- order — yes — card, then the rendered view, then the debug tree
+- loading state — yes — "Loading the live session index…", replaced by "No sessions found." or the demo
 
 ## Words
-- the intro adds something the reader does not know — yes — "The always-on process that runs everything below. Each card is one of its classes: its core API, and a link to the source." states what the cards are
-- jargon undefined — note — cards use terms such as "quick-fix pool", "heartbeat", "worktrees" in one line each; the card text is short but assumes the reader knows them
-- links for every named thing — yes — each card has a source link
+- content 1 (gist in one line) — yes — "A class, its core API, and a live instance you can watch change."
+- content 2 (no filler) — yes — labels are the call names ("Rendered: session.render()", "Debug tree: inspect(session)")
+- content 3 (link every mention) — yes — readme entry and system-section link point at /framework/ai/classes/

@@ -1,17 +1,17 @@
 # Task audit: spend
 
-> **Accuracy caveat: Haiku was only about 58% right (14 of 24 spot-checked verdicts).** Treat every `half-done` row as a lead to check, not a fact. The Haiku reads (26 judging batches, 1 refinement read, 9 raw-prompt reads of 2026-10-08, and the 2 sample reads) ran through the Agent tool, so they do not appear in the Sessions registry. Future minions are spawned with `spawn_agent` (claude-haiku-5-5, role minion, parent = this mastermind).
+> **The audit cost $17.99 against a $6 plan.** The mastermind was $10.55 and seven Haiku helpers $7.44 (the task record has the exact split).
 >
-> **Budget:** the task record now shows this mastermind at about $9.19 against the $6 plan (mostly cache reads and output in one long session). No further spawns until the owner says so.
-
-Budget was $6 total. The task card shows $4.27 for the mastermind alone when this was written; the Haiku minions are on top of it.
+> **Haiku was only about 58% right** (14 of 24 spot-checked verdicts). Treat every `half-done` row as a lead to check, not a fact.
+>
+> No further spawns until the owner says so.
 
 | Step | Who | Tokens | Rough $ |
 |---|---|---|---|
 | Scan 1,303 task.jsonl, git evidence, batching, build | scripts | 0 | 0 |
 | 26 judging batches (10 tasks each, one Read of an inlined file) | 26 Haiku, about 33k tokens each | about 870k | about $0.4 to $0.9 |
 | Prompt-refinement audit (the owner's priority ask) | 1 Haiku, 38k tokens | 38k | about $0.04 |
-| Orchestration and fixes | Sonnet 5.5 mastermind | n/a | $4.27 (cache-heavy, long context) |
+| Orchestration and fixes | Sonnet 5.5 mastermind | n/a | $10.55 (cache-heavy, long context) |
 
 The $ range for Haiku is a bound: the transcripts report tokens, not dollars, so it is priced at all-input rates (upper) or half cached (lower).
 
