@@ -23,7 +23,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Models**: [system/models](system/models/) · [OpenRouter](/framework/servex/) · local
 - **Sessions** (VS Code tabs, browser voice agents): [sessions/](sessions/readme.md) · [conversations](doc/conversations.md)
 - **Transcription**: [ux/Dictate](/framework/ux/Dictate/)
-- **Prompt refinement** (Echo, running now): [Servex/doc/echo.md](/framework/servex/doc/echo.md) · [ext/Refine](/framework/ext/Refine/) · [vision](/framework/ext/Refine/doc/vision-2026-10-08.md)
+- **Prompt refinement** (Echo, running now): [Servex/doc/echo.md](/framework/servex/doc/echo.md) · [ext/Refine](/framework/ext/Refine/) · [vision](/framework/ext/Refine/doc/vision-2026-10-08.md) · [live demo + Prompt class](/framework/ext/Refine/)
 - **Page system**: [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/)
 - **Skills and CLAUDE.md**: [skills](skills/)
 - **Dashboard, Log, Inbox**: the tabs above · [AI 2](/framework/ai2/)

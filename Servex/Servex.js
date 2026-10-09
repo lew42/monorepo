@@ -44,6 +44,7 @@ import agent_tools from "./agents/tools.js";
 import { directory_tools } from "./agents/directory.js";
 import tidy from "./agents/tidy.js";
 import { run_clean, model_choices, list_examples, save_example } from "./ext/clean-test/run.js";
+import { run_refine } from "./ext/refine/run.js";
 import hitl from "./agents/hitl.js";
 import Inbox from "./agents/inbox.js";
 import { docs_list, docs_read_file } from "./pages.js";
@@ -657,6 +658,14 @@ export default class Servex extends Events {
 
         router.post("/api/clean-test/examples", cors, express.json({ limit: "64kb" }), (req, res) => {
             res.json(save_example(req.body ?? {}));
+        });
+
+        /* THE LIVE DEMO ON ext/Refine (ai/2026-10-08/refine-demo) — one prompt in, the same
+         * clean() + structure() Echo runs out (Servex/ext/refine/run.js). */
+        router.options("/api/refine", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/refine", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            res.json(await run_refine(req.body ?? {}));
         });
 
         router.get("/api/logs", (req, res) => res.json(this.log.names()));

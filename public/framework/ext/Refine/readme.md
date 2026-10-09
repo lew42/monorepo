@@ -1,4 +1,6 @@
-# Refine — a dictation shown as a ladder: raw → clean → structured → brief, with a coverage table
+# Refine — speak one prompt and watch it refine (raw → clean → cards, with flags); plus a saved run shown as a ladder
+
+The page opens on a **live demo**: a mic/text box, the result, and beside it the live `Prompt` instance and its class card. Class doc: `doc/prompt.md`. Files: `Prompt.js` (the class), `RefineDemo.js` (the demo view), `Prompt.css`; the server half is `Servex/ext/refine/run.js` (`POST /api/refine`).
 
 `refine()` fetches one run of `Server/refine.mjs` (dev-only — see `Server/doc/refine.md`) and lays it out as four columns side by side: what was said, then each refinement step. Click an ask, or a bullet in Structured, and its source sentences light up in Clean and Raw — "wait, what did I actually say?" answered without reading anything twice.
 
@@ -46,6 +48,7 @@ pulling a sample straight from a recent voice session — no index of raw dictat
 today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
 
 ## More
+- [Prompt](/framework/ext/Refine/md/doc/prompt/) — the class: what it holds, how scores are computed, what is not built yet (`doc/prompt.md`)
 - [Echo](/framework/servex/doc/echo.md) — the running pipeline that uses this engine on every prompt you type in VS Code: triggers, output, cost, and the gaps against the vision (`Servex/doc/echo.md`)
 - [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
 - `doc/vision-2026-10-08.md` — the owner's intended pipeline (raw → clean → refined cards, every sentence accounted, context cards); check the built state against it
