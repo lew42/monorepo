@@ -35,13 +35,16 @@ const PRICES = {
 };
 for (const p of Object.values(PRICES)){ p.cache_read = p.in * 0.1; p.cache_write_5m = p.in * 1.25; p.cache_write_1h = p.in * 2; p.cache_write = p.cache_write_1h; }
 
-// Exact name first, then the name without a date suffix (claude-haiku-4-5-20251001), else the default.
+// What a model with no rate costs: nothing. It is UNPRICED, flagged on the session, never guessed from another model's rate.
+const UNPRICED = { in: 0, out: 0, cache_read: 0, cache_write_5m: 0, cache_write_1h: 0, cache_write: 0, unpriced: true };
+
+// Exact name first, then the name without a date suffix (claude-haiku-4-5-20251001), else UNPRICED (and the model is added to `unknown`).
 function price_for(model, unknown){
 	if (PRICES[model]) return PRICES[model];
 	const bare = String(model || "").replace(/-\d{8}$/, "");
 	if (PRICES[bare]) return PRICES[bare];
 	if (model && model !== "<synthetic>") unknown?.add(model);
-	return PRICES[DEFAULT_MODEL];
+	return UNPRICED;
 }
 
 // claude-sonnet-5-5 -> "Sonnet 5.5"; claude-haiku-4-5-20251001 -> "Haiku 4.5"
@@ -163,7 +166,7 @@ export default class AISession {
 		if (m.model === "<synthetic>") return;
 		this._blocks(m);                                     // tools are per line, not per message
 
-		const u = m.usage, model = bare_model(m.model || DEFAULT_MODEL);
+		const u = m.usage, model = bare_model(m.model || "unknown");
 		const cw5 = u.cache_creation?.ephemeral_5m_input_tokens, cw1 = u.cache_creation?.ephemeral_1h_input_tokens, split = cw5 != null || cw1 != null;
 		const cw_total = u.cache_creation_input_tokens || 0;
 		const e = { id, model, effort: o.effort ?? o.perTurnEffort ?? null, side: !!(o.isSidechain || part !== "main"), part,
@@ -291,7 +294,7 @@ export default class AISession {
 		if (cfg.effort && efforts.length && !efforts.includes(cfg.effort))
 			s.flags.push(`effort: configured ${cfg.effort}, the file shows ${efforts.join(", ")}`);
 		if (!cfg.effort && efforts.length) s.flags.push("effort: no configured effort recorded (a VS Code or CLI tab), the file says " + efforts.join(", "));
-		if (s.unknown_models.length) s.flags.push("price: no rate for " + s.unknown_models.join(", ") + " (priced as " + DEFAULT_MODEL + ")");
+		if (s.unknown_models.length) s.flags.push("price: no rate for " + s.unknown_models.join(", ") + " (UNPRICED: counted as $0)");
 		return this;
 	}
 
@@ -630,4 +633,4 @@ export default class AISession {
 }
 
 // The helpers other files need ride on the class: AISession.price_for(model), AISession.PRICES, ...
-Object.assign(AISession, { DEFAULT_MODEL, PRICES, price_for, model_label, provider_of, PURPOSE_LABELS, PURPOSE_METHOD });
+Object.assign(AISession, { DEFAULT_MODEL, UNPRICED, PRICES, price_for, model_label, provider_of, PURPOSE_LABELS, PURPOSE_METHOD });

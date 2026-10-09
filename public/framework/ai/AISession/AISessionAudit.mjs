@@ -100,7 +100,7 @@ export function cost_of_transcript(path){
 		if (last_line_of.get(o.message.id || o.uuid) !== i) continue;   // an earlier line of a message already seen
 		messages++;
 		const g = current ?? group_for("unknown");
-		const model = o.message?.model ?? g.model ?? DEFAULT_MODEL;
+		const model = o.message?.model ?? g.model ?? "unknown";
 		const price = price_for(model, unknown_models);
 		const input = usage.input_tokens || 0, output = usage.output_tokens || 0;
 		const cache_read = usage.cache_read_input_tokens || 0, cache_write = usage.cache_creation_input_tokens || 0;
