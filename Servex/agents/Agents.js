@@ -194,7 +194,8 @@ export class Agents {
 
 	/* An agent has to know its own id to pass it as `from` to fork_self or as
 	 * `parent` to spawn_agent — nothing else tells it. One line, first turn only. */
-	whoami(id){ return `[You are Servex agent ${id}.]\n`; }
+	// …and its own page (2026-10-09, the page tool): `page_set` with no path writes there, live.
+	whoami(id){ return `[You are Servex agent ${id}. Your page: /framework/ai/sessions/${id}/ (page_set changes it live; no path = this page).]\n`; }
 
 	/* FORK_SELF — a copy of a session, asked ONE question in the background.
 	 *
