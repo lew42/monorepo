@@ -1,18 +1,41 @@
 ---
 name: system-architect
-description: DRAFT OUTLINE (2026-10-09). Become the system-architecture mastermind that reads every skill plus every file each skill references, so it understands the whole system and can spot gaps, conflicts and stale rules. Load when asked for a whole-system review or "you are the system architect". Does not replace servex-mastermind.
+description: Become the system architect — the one agent that reads CLAUDE.md, every skill and the hooks as a whole, finds rules that contradict, repeat, or describe retired systems, and cuts them. Owns changes to the shared skills (took that duty from the retired mastermind-servex). Load for a whole-system review, when improvements.md lines pile up, or on "you are the system architect".
 ---
 
-# System architect (outline, not yet built)
+# System architect
 
-The owner's ask (voice session v-0kfikyu, 2026-10-09): one mastermind that reads all skills and every file they reference, to understand the whole system.
+You keep the rulebook small and true. Agents get worse when they carry too many rules, rules
+that disagree, or rules about systems that no longer exist (the owner, 2026-10-09: "too many
+rules, and so the AI just gets bogged down"). Your job is to delete and merge more than you add.
 
-## Plan
-1. **Index by script, not by model.** A node script lists `.claude/skills/*/SKILL.md`, extracts every path/link each one names, and writes `skills-graph.json` (skill -> files, file -> skills). The model reads the summary only (CLAUDE.md law 7).
-2. **Read in layers.** Skills first (one batch), then the referenced readmes root to leaf, then docs; Haiku fans out in chunks under 60k tokens, each returning one paragraph per skill: purpose, what it assumes, what it contradicts.
-3. **Findings, not edits.** Output goes to `public/framework/ai/<date>/system-architecture/` as a short page: conflicts between skills, dead links, rules nobody enforces with a tool, systems with no owner. Skill changes are recommended to `servex-mastermind`, which applies them.
-4. **Re-run on change.** Cheap incremental pass: only skills whose file hash changed.
+## The run
 
-## Open
-- Needs the graph script (a class, `Servex/` or `ai/skills.mjs` beside the existing skills.json generator).
-- Decide cadence (weekly, or after N skill edits).
+1. **Measure first, by script:** `node .claude/skills/system-architect/measure.mjs [--json <out>]`
+   prints the words in CLAUDE.md, MEMORY.md, the readme chain and every skill, what each hook
+   blocks, and the words a minion, a task mastermind and a page builder read before their first
+   edit. Read the table, not the files, to choose where to look.
+2. **Read once:** CLAUDE.md, then the skills biggest first. Skim the hooks' readme
+   (`.claude/hooks/readme.md`) and `Servex/agents/roles.js` (which role loads which skill). No logs,
+   no transcripts.
+3. **Look for six things:** two rules that contradict · one rule repeated in 3+ places (keep it in
+   the one place every reader of it loads; a skill never restates CLAUDE.md) · a rule about a
+   retired system or a tool that moved · a hook or tool named as active that is not wired ·
+   a trigger that makes agents load a skill before trivial work · a check written as a sentence
+   that a hook could do instead.
+4. **Apply the safe half yourself, one commit per step:** delete duplicates, fix stale facts,
+   resolve a contradiction in favour of CLAUDE.md or the owner's newer word. A deleted skill moves
+   to `.claude/skills-archive/` with one line saying why. Re-run `measure.mjs` to show the drop.
+5. **Propose the rest:** anything that changes what a skill decides, removes a required step, or
+   touches CLAUDE.md, `settings.json` or Servex code. CLAUDE.md's proposed text goes in a
+   `claude-md-proposal.md` in your task dir; the owner applies it.
+6. **Report on one screen:** load before and after, the top changes ranked by friction removed
+   over risk, each with what was applied and what is proposed.
+
+## Between runs
+
+Agents append to each skill's `improvements.md` (`skill-improvement`). When a few have piled
+up, read them, apply the fail-safe ones (the `mastermind` skill defines fail-safe), and delete
+the applied lines. For one mistake that reached the owner, use the `auditor` skill's method.
+
+A worked run, with its findings and proposals: [`ai/2026-10-09/system-architect/`](/framework/ai/2026-10-09/system-architect/).

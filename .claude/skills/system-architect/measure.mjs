@@ -1,13 +1,13 @@
 // measure.mjs — how much an agent reads before its first edit, and what the hooks block.
-// Run: node public/framework/ai/2026-10-09/system-architect/measure.mjs [--json]
-// Prints a table; --json writes load.json beside this file (the page reads it).
+// Run: node .claude/skills/system-architect/measure.mjs [--json <out.json>]
+// Prints a table; --json writes the same numbers to <out.json>, for a task page to draw.
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(here, "../../../../../");
+const root = path.resolve(here, "../../../");
 const rel = p => path.relative(root, p).replaceAll("\\", "/");
 
 function count(file) {
@@ -20,7 +20,6 @@ function count(file) {
 // 1. CLAUDE.md files
 const claude = [
 	path.join(root, "CLAUDE.md"),
-	path.join(root, "public/framework/ai/CLAUDE.md"),
 	path.join(os.homedir(), ".claude/CLAUDE.md"),
 ].map(f => ({ file: f.startsWith(root) ? rel(f) : "~/.claude/CLAUDE.md", ...count(f) })).filter(r => r.lines);
 
@@ -61,7 +60,7 @@ const readmeChain = ["readme.md", "public/framework/readme.md", "public/framewor
 	.map(f => ({ file: f, ...count(path.join(root, f)) }));
 const sk = n => skills.find(s => s.skill === n)?.words || 0;
 const descTotal = skills.reduce((a, s) => a + s.descWords, 0);
-const base = claude.filter(c => c.file !== "public/framework/ai/CLAUDE.md").reduce((a, c) => a + c.words, 0)
+const base = claude.reduce((a, c) => a + c.words, 0)
 	+ (memory?.words || 0) + readmeChain.reduce((a, r) => a + r.words, 0) + descTotal;
 const profiles = {
 	"minion (minion + code)": base + sk("minion") + sk("code"),
@@ -72,7 +71,8 @@ const profiles = {
 const out = { at: new Date().toISOString(), claude, memory, readmeChain, skillDescWords: descTotal, skills, hooks, base, profiles,
 	totals: { skillWords: skills.reduce((a, s) => a + s.words, 0), skillLines: skills.reduce((a, s) => a + s.lines, 0), skillCount: skills.length } };
 
-if (process.argv.includes("--json")) fs.writeFileSync(path.join(here, "load.json"), JSON.stringify(out, null, "\t"));
+const j = process.argv.indexOf("--json");
+if (j > 0) fs.writeFileSync(path.resolve(process.argv[j + 1] || "load.json"), JSON.stringify(out, null, "\t"));
 
 const pad = (s, n) => String(s).padEnd(n);
 console.log("CLAUDE.md files"); for (const c of claude) console.log(" ", pad(c.file, 40), pad(c.lines, 6), c.words, "words");
