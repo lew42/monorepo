@@ -330,3 +330,6 @@
 {"at":"2026-10-09T03:57:37.737Z","target":"public/framework/ai/2026-10-08/refine-demo","verdict":"spawned","to":"clarity-refine-demo"}
 {"at":"2026-10-08T23:10:00-05:00","target":"public/framework/ai/2026-10-08/refine-demo","verdict":"rewrote","what":"STATE.md paragraph split; outcome rewritten as ask checklist","to":"public/framework/ai/2026-10-08/refine-demo/STATE.md"}
 {"at":"2026-10-09T10:51:45.705Z","target":"public/framework/ai/2026-10-09/ai2-merge/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T11:03:22.404Z","target":"look:ai2","verdict":"queued","kind":"look"}
+{"at":"2026-10-09T11:03:23.715Z","target":"look:ai2","verdict":"spawned","to":"clarity-look-ai2-2"}
+{"at":"2026-10-09T06:20:00-05:00","target":"http://monorepo.localhost/framework/ai2/","verdict":"ui","what":"Rail top card 'Now' is stale (Oct 6, 'agent not running, stopped on purpose') and opens as the first thing the owner sees; status/asked/delivered not answerable from it. Fix: show the live Now text, or drop it when over a day old. Also /framework/ai2/2026-10-08/live-not-polling says 'No card by that name' so no done card could be viewed; the rail's task cards (e.g. 'Task audit plan: 354 loose ends') carry red score badges with no label. Screenshot: C:/Users/mike/AppData/Local/Temp/cl/monorepo-localhost-framework-ai2/1920.png","to":"mastermind-servex"}
