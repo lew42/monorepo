@@ -6,8 +6,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const base = fs.mkdtempSync(path.join(os.tmpdir(), "sess-place-")), root = path.join(base, "ai", "sessions"), store = path.join(base, "ai");
-fs.mkdirSync(root, { recursive: true });
+const root = fs.mkdtempSync(path.join(os.tmpdir(), "sess-place-"));
 process.env.SESSIONS_ROOT = root;
 const { default: Session } = await import("../public/framework/ai/sessions/Session.js");
 let fails = 0;
@@ -19,7 +18,7 @@ fs.writeFileSync(path.join(root, id, "cache.jsonl"), JSON.stringify({ summary: {
 fs.writeFileSync(path.join(root, id, "files.jsonl"), "{}\n");
 fs.mkdirSync(path.join(root, id2));                          // no first_at anywhere: stays flat
 execFileSync("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "session-place.mjs")], { env: process.env });
-const dated = path.join(store, "2026", "10", "03", "session-11111111");
+const dated = path.join(root, "2026", "10", "03", id);
 check(fs.existsSync(path.join(dated, "cache.jsonl")), "the folder moved to its first_at day (UTC)");
 check(!fs.existsSync(path.join(root, id)), "the flat folder is gone");
 check(!fs.existsSync(path.join(dated, "files.jsonl")), "the stray files.jsonl listing was dropped");
@@ -36,18 +35,9 @@ fs.writeFileSync(path.join(root, id3, "session.jsonl"), "{}\n");
 fs.writeFileSync(path.join(root, id3, "cache.jsonl"), JSON.stringify({ summary: { first_at: "2026-09-01T10:00:00.000Z" } }) + "\n");
 Session.days.clear();
 await Session.close(id3, "test");
-const lazy = path.join(store, "2026", "09", "01", "session-99999999");
+const lazy = path.join(root, "2026", "09", "01", id3);
 check(fs.existsSync(path.join(lazy, "session.jsonl")) && !fs.existsSync(path.join(root, id3)), "a flat folder is moved by the first writer that touches it");
 
-// an interim-shape folder and a card folder that already exists
-const id4 = "abcdef01-aaaa-4bbb-8ccc-dddddddddddd";
-fs.mkdirSync(path.join(root, "2026", "08", "08", id4), { recursive: true });
-fs.writeFileSync(path.join(root, "2026", "08", "08", id4, "cache.jsonl"), JSON.stringify({ summary: { first_at: "2026-08-08T12:00:00.000Z" } }) + "\n");
-fs.mkdirSync(path.join(store, "2026", "08", "07", "session-abcdef01"), { recursive: true });   // the card was made the day before
-fs.writeFileSync(path.join(store, "2026", "08", "07", "session-abcdef01", "page.jsonl"), "{}\n");
-execFileSync("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "session-place.mjs")], { env: process.env });
-check(fs.existsSync(path.join(store, "2026", "08", "07", "session-abcdef01", "cache.jsonl")) && fs.existsSync(path.join(store, "2026", "08", "07", "session-abcdef01", "page.jsonl")), "an existing card folder wins the day, and the cache is merged in beside its page");
-check(!fs.existsSync(path.join(root, "2026")), "the interim day folders are gone");
-fs.rmSync(base, { recursive: true, force: true });
+fs.rmSync(root, { recursive: true, force: true });
 console.log(fails ? `${fails} failed` : "all passed");
 process.exit(fails ? 1 : 0);

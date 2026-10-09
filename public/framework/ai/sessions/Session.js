@@ -330,58 +330,40 @@ export default class Session {
 	// ---- cache I/O (the server writes it, the browser reads it) -----------------------------
 
 	// ---- where a session's folder lives (doc/layout.md) ---------------------------------------
-	// ONE store: the ai date tree, ai/YYYY/MM/DD/session-<first 8 of the id>/ , the same folder the session's card page
-	// lives in. The day is the card's day if a card folder exists, else the day the session FIRST appeared (UTC).
-	// Older shapes (sessions/<id>/ and sessions/YYYY/MM/DD/<id>/) are still read, and move into the store when a node writer touches them.
+	// sessions/YYYY/MM/DD/<id>/ , the day the session FIRST appeared (UTC), the same year/month/day tree the ai cards use.
+	// Old flat folders (sessions/<id>/) are still read, and are moved into their day the first time a node writer touches them.
 	static days = new Map();                       // id -> "2026/10/03", filled from the index (browser) or the disk (node)
 	static day(first_at){ const d = new Date(first_at); return first_at && !isNaN(d) ? d.toISOString().slice(0, 10).replace(/-/g, "/") : null; }
 	static use_index(index){ const i = index?.columns?.indexOf("day"); if (i >= 0) for (const [id, v] of Object.entries(index.rows)) if (v[i]) Session.days.set(id, v[i]); }
-	static short(id){ return "session-" + String(id).slice(0, 8); }
 
 	static root_url(){
 		// SESSIONS_ROOT (node only) lets a script run from a worktree write into the main tree's sessions/ folder.
 		const root = typeof process !== "undefined" && process.env?.SESSIONS_ROOT;
 		return root ? new URL("file:///" + root.replace(/\\/g, "/").replace(/\/?$/, "/").replace(/^\/+/, "")) : new URL("./", import.meta.url);
 	}
-	static store_url(){ return new URL("../", Session.root_url()); }   // the ai/ folder: the date tree's root
-	// Sync: the store folder when the day is known, else the oldest flat one.
-	static dir_url(id, day = Session.days.get(id)){ return day ? new URL(`./${day}/${Session.short(id)}/`, Session.store_url()) : new URL(`./${id}/`, Session.root_url()); }
+	// Sync: the dated folder when the day is known, else the old flat one.
+	static dir_url(id, day = Session.days.get(id)){ return new URL(day ? `./${day}/${id}/` : `./${id}/`, Session.root_url()); }
 
-	// Node, async: every card folder `ai/YYYY/MM/DD/session-*` as short name -> day (one pass over the ~100 day folders).
-	static async card_days(){
-		if (Session.cards) return Session.cards;
-		const fs = await import("node:fs/promises"), ls = async u => fs.readdir(u).catch(() => []), store = Session.store_url(), cards = new Map();
-		for (const y of await ls(store)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, store))) if (/^\d\d$/.test(m)) for (const d of await ls(new URL(`./${y}/${m}/`, store)))
-			if (/^\d\d$/.test(d)) for (const n of await ls(new URL(`./${y}/${m}/${d}/`, store))) if (n.startsWith("session-") && !cards.has(n)) cards.set(n, `${y}/${m}/${d}`);
-		return Session.cards = cards;
-	}
-
-	// Node, async: the folder to WRITE into. Day: an existing card folder, else first_at, else what we already know, else the index
-	// on disk, else the old folder's own summary, else today. An older folder is moved in (a plain rename, or its files are merged in).
+	// Node, async: the folder to WRITE into. Day from first_at, else what we already know, else the index on disk, else an old
+	// flat folder, else today. An old flat folder is moved into its day (a plain rename: it is regenerable cache plus the record).
 	static async locate(id, first_at){
-		const fs = await import("node:fs/promises"), root = Session.root_url(), store = Session.store_url(), name = Session.short(id);
-		const exists = u => fs.stat(u).then(() => true, () => false);
-		let day = (await Session.card_days()).get(name) ?? Session.days.get(id) ?? Session.day(first_at);
+		const fs = await import("node:fs/promises"), root = Session.root_url();
+		let day = Session.day(first_at) ?? Session.days.get(id);
 		if (!day && !Session.ix_read){ Session.ix_read = true; try { const ix = JSON.parse(await fs.readFile(new URL("session-index.json", root), "utf8")); Session.use_index(ix); day = Session.days.get(id); } catch {} }
-		const flat = new URL(`./${id}/`, root);
-		const old = [flat];                                        // older shapes to move in: flat, then sessions/YYYY/MM/DD/<id>/
-		const read_day = async dir => { try { for (const l of (await fs.readFile(new URL("cache.jsonl", dir), "utf8")).split("\n")) if (l.startsWith('{"summary"')) return Session.day(JSON.parse(l).summary?.first_at); } catch {} return null; };
-		if (!day && await exists(flat)) day = await read_day(flat);
-		if (!day){
+		const flat = new URL(`./${id}/`, root), exists = u => fs.stat(u).then(() => true, () => false);
+		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
+			try { for (const l of (await fs.readFile(new URL("cache.jsonl", flat), "utf8")).split("\n")) if (l.startsWith('{"summary"')) day = Session.day(JSON.parse(l).summary?.first_at) ?? day; } catch {}
+		}
+		else if (!day){                       // not in the index, no flat folder: look through the day folders (a few dozen), else it is new: today
 			const ls = async u => fs.readdir(u).catch(() => []);
 			for (const y of await ls(root)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, root))) for (const d of await ls(new URL(`./${y}/${m}/`, root)))
 				if (await exists(new URL(`./${y}/${m}/${d}/${id}/`, root))) day = `${y}/${m}/${d}`;
 			day ??= Session.day(new Date());
 		}
-		if (!day) return flat;
+		if (!day) return flat;                                   // known only by an old flat folder: leave it until its first_at is known
 		Session.days.set(id, day);
-		for (const dd of new Set([day, Session.day(first_at)])) if (dd) old.push(new URL(`./${dd}/${id}/`, root));   // the interim shape sat in the first_at day
-		const dated = new URL(`./${day}/${name}/`, store);
-		for (const src of old){
-			if (!(await exists(src))) continue;
-			if (!(await exists(dated))){ await fs.mkdir(new URL(`./${day}/`, store), { recursive: true }); await fs.rename(src, dated); }
-			else for (const f of await fs.readdir(src)) if (!(await exists(new URL(f, dated)))) await fs.rename(new URL(f, src), new URL(f, dated));   // merge into the card's folder
-		}
+		const dated = new URL(`./${day}/${id}/`, root);
+		if (await exists(flat) && !(await exists(dated))){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, dated); }
 		return dated;
 	}
 
