@@ -174,12 +174,12 @@ merge.
   yet — the recommendation and plan to extend it.
 - [`doc/priorities.md`](./doc/priorities.md) — the owner's asks for this page, most important first: follow this list
 - [`doc/patterns.md`](./doc/patterns.md) — every place session data lives today, counted by a script
-- [`doc/templates.md`](./doc/templates.md) — which function draws which page
+- [`doc/templates.md`](./doc/templates.md) — which class draws which page; [`doc/classes.md`](./doc/classes.md) — the classes, one per file
 - [`doc/layout.md`](./doc/layout.md) — where a session's folder lives (`ai/sessions/YYYY/MM/DD/<id>/`), how old paths still load, the scripted conversion, why ids and not task names
 - [`doc/record-spec.md`](./doc/record-spec.md) — the line types a session record accepts (tag, note, alert, weight, closed, question, links) and how to write them
 - [`doc/session-class.md`](./doc/session-class.md) — `Session.js` (cost, model + effort, tokens by purpose, audit), the `session.jsonl` cache, `session-index.json`; the Cost cell and the detail's Audit button come from it (`SessionView.js`)
 - [`doc/decisions.md`](./doc/decisions.md) — the full data-source decision, the `css-scopes.txt`
   reservation note, and the VS-Code-vs-CLI heuristic, checked against a real session
 - [`ext/panel2`](/framework/ext/panel2/) — the header/main chrome this tab is built from
-- Files: `page.js` (the tab and its detail route), `sessions.css` (the row), `settings.jsonl`
+- Files: `page.js` (creates `SessionsPage`), `SessionsPage.js`, `SessionDetail.js`, `SessionView.js`, `SessionRows.js`, `SessionTrace.js`, `sessions.css` (the row), `settings.jsonl`
   (`{"tab":true}`, how this folder joined the strip)
