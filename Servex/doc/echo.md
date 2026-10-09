@@ -2,6 +2,8 @@
 
 Echo is **built and running**. For every prompt you type in a VS Code Claude chat, it cleans the text, groups it under headings, files what you asked for with a size, and writes all of it onto that session's page. Code: `Servex/agents/Echo.js` (its system prompt is `Servex/agents/echo.md`); the cleaning engine is [ext/Refine](/framework/ext/Refine/) (`engine.js`, `structure.js`). The intended end state is in [vision-2026-10-08.md](/framework/ext/Refine/doc/vision-2026-10-08.md); the gaps are at the bottom.
 
+How dictation, Chat, Refine and the fast assistant connect, and where the chat-window cost comes from: [connection map](/framework/ai/doc/dictation-refine-connection-map-2026-10-08.md).
+
 ## What triggers it
 1. You submit a prompt in your own VS Code chat. The hook `.claude/hooks/prompt-relay.mjs` adds it as an item on the session's page and posts only its position (not the text) to `POST /log/echo`. `reply-relay.mjs` does the same when the assistant finishes a reply.
 2. `Echo.listen()` hears the log line and reads the text back off the page. Servex agents and minions never trigger it, and a loop guard drops Echo's own model calls.
