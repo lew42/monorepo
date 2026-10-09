@@ -1,4 +1,4 @@
-import { View, div, span, textarea, button } from "../../core/View/View.js";
+import { View, div, span, textarea, button, select, option, details, summary, label } from "../../core/View/View.js";
 import ErrorLog from "../ErrorLog/ErrorLog.js";
 import VoiceStrip from "../../ux/Dictate/VoiceStrip.js";
 import Whisper from "../../audio/Whisper/Whisper.js";
@@ -29,7 +29,8 @@ export default class RefineDemo extends View {
 		this.system.whisper.on_change = () => this.draw_whisper();
 		ErrorLog.watch(() => ({ status: this.prompt.status, raw: this.prompt.raw, error: this.prompt.error }));
 
-		div.c("refine-input", () => {
+		// ONE workspace (the owner, 2026-10-09): a sticky toolbar on top, the stages side by side, a sticky footer.
+		div.c("refine-toolbar", () => {
 			// ux/Dictate/VoiceStrip: the one compact dictation panel (mic, steps, grey guess), fixed size.
 			this.strip = new VoiceStrip({
 				template: "full", refine: true,
@@ -38,20 +39,37 @@ export default class RefineDemo extends View {
 				on_guess: () => this.quick(),
 				$input: () => this.$box,   // the View, not its element: Dictate reads `.el` itself
 				toolbar: () => {
-					this.$go = button("Refine").click(() => this.go());
-					button("Record next prompt").click(() => this.next());
+					this.$go = button("Refine").ac("refine-go").click(() => this.go());
+					button("New prompt").click(() => this.next());
+					label.c("refine-model", () => {
+						span("Model");
+						this.$model = select(() => {
+							option("Sonnet 5.5 (faster)").attr("value", "claude-sonnet-5-5");
+							option("Haiku 5.5 (cheapest)").attr("value", "claude-haiku-5-5");
+						});
+						this.$model.el.addEventListener("change", () => { this.system.model = this.$model.el.value; });
+					});
+					this.$cost = span.c("refine-cost");
 				},
 			});
 			this.dictate = this.strip.dictate;
 			this.conn = this.strip.conn;
-			this.$note = span.c("refine-input-note");
+			div.c("refine-said", () => {
+				span.c("refine-said-label", "1 · Said: speak, or type or paste here");
+				this.$note = span.c("refine-input-note");
+			});
 			this.$box = textarea.c().attr("placeholder", "Speak with the mic, or type or paste a prompt here…");
 			this.$box.el.addEventListener("input", () => this.quick());
 		});
 
 		this.$result = div.c("refine-result");
-		this.$whisper = div.c("refine-whisper");
-		this.explorer = new RefineExplorer({ subject: this.system });
+		div.c("refine-foot", () => {
+			this.$whisper = div.c("refine-whisper");
+			details.c("refine-foot-more", () => {
+				summary("The live objects behind this page (counts, classes, every property)");
+				this.explorer = new RefineExplorer({ subject: this.system });
+			});
+		});
 
 		this.system.whisper.check();
 		this.draw();
@@ -94,10 +112,11 @@ export default class RefineDemo extends View {
 
 	draw(){
 		const prompt = this.prompt;
-		this.$result.empty(() => new Prompt.View({ subject: prompt }));
+		this.$result.empty(() => new Prompt.View({ subject: prompt, show_raw: false }));
 		const st = prompt.status;
 		this.conn?.set("refine", st === "done" ? "ok" : st === "error" ? "bad" : st === "working" ? "wait" : "idle",
 			st === "done" ? `done, ${(prompt.ms / 1000).toFixed(1)} s` : st === "error" ? "error: " + String(prompt.error).slice(0, 60) : st === "working" ? "working…" : "not yet");
+		this.$cost?.text(prompt.runs.length ? "$" + prompt.runs.reduce((n, r) => n + (r.cost_usd || 0), 0).toFixed(3) + " · " + (prompt.ms / 1000).toFixed(1) + " s" : "");
 		this.explorer?.draw();
 	}
 

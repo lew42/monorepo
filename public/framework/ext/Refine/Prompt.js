@@ -125,31 +125,42 @@ export default class Prompt {
  *  card's source chip are linked: click either and the other side lights up. */
 Prompt.View = class extends View {
 
+	/** Each stage names itself: a number, a plain title, what it is in one line, and the class that makes it. */
+	static STAGES = {
+		said:    { title: "1 · Said",    what: "Exactly what Whisper heard. Type here too.", by: "Dictate", href: "/framework/ux/Dictate/" },
+		clean:   { title: "2 · Cleaned", what: "Your words, fixed: fillers out, sentences numbered. Nothing reworded.", by: "Cleaner", href: "/framework/ext/Refine/md/doc/refine-engine/" },
+		refined: { title: "3 · Outline", what: "The same ideas as a short outline. Click an S1 chip to jump to its sentence.", by: "Structurer", href: "/framework/ext/Refine/structure.js" },
+		scores:  { title: "4 · Scores",  what: "How clear each sentence is (1 = clear). ⚑ marks a sentence worth a second look.", by: "ClarityScorer", href: "/framework/ext/Refine/md/doc/prompt/" },
+	};
+
 	render(){
 		const prompt = this.subject;
 		this.ac("refine-prompt");
 
-		if (prompt.status === "empty") return p.c("refine-empty", "Say or type a prompt, then press Refine.");
-		if (prompt.status === "error") return p.c("refine-error", "Could not refine: " + prompt.error);
-		if (!prompt.raw && !prompt.clean.length) return p.c("refine-empty", "Say or type a prompt, then press Refine.");
-
+		const empty = !prompt.clean.length;
 		const working = prompt.status === "working";
+		const done = prompt.status === "done";
 		const sentence_els = new Map();
 		const light = n => {
 			sentence_els.forEach(($s, k) => $s.el.classList.toggle("lit", k === n));
 			sentence_els.get(n)?.el.scrollIntoView({ block: "nearest", behavior: "smooth" });
 		};
 		const secs = ms => (ms / 1000).toFixed(1) + " s";
-		const section = (title, note, fn) => div.c("refine-section", () => {
-			h4.c("refine-prompt-h", () => { span(title); if (note) span.c("refine-s-scores", note); });
-			fn();
-		});
+		const section = (key, note, fn) => {
+			const st = Prompt.View.STAGES[key];
+			return div.c("refine-section", () => {
+				h4.c("refine-prompt-h", () => { span(st.title); if (note) span.c("refine-s-scores", note); });
+				p.c("refine-what", () => { span(st.what + " "); a(st.by).href(st.href).ac("refine-class-key"); });
+				fn();
+			});
+		};
 
-		if (working) p.c("refine-working", `Refining with ${prompt.model || "a model"}… usually about 8 s and about 3 cents. The cleaned text below is already the instant clean.`);
+		if (working) p.c("refine-working", `Refining with ${prompt.model || "a model"}… usually about 8 s and about 3 cents. The cleaned text is already usable.`);
+		if (prompt.status === "error") p.c("refine-error", "Could not refine: " + prompt.error);
+		if (this.show_raw !== false) section("said", "", () => p.c("refine-prompt-raw", prompt.raw));
 
-		section("Whisper raw", "as heard", () => p.c("refine-prompt-raw", prompt.raw));
-
-		section("Clean", prompt.quick || working ? `instant clean, ${prompt.timings.quick_ms ?? 0} ms (no model)` : `by model, ${secs(prompt.stages.clean_ms ?? 0)}`, () => {
+		section("clean", empty ? "" : prompt.quick || working ? `instant, ${prompt.timings.quick_ms ?? 0} ms, no model` : `by ${prompt.model || "a model"}, ${secs(prompt.stages.clean_ms ?? 0)}`, () => {
+			if (empty) return p.c("refine-empty", "Waiting for words.");
 			prompt.clean.forEach(s => {
 				const $s = div.c("refine-sentence", () => {
 					span.c("refine-s-num", "S" + s.n);
@@ -164,7 +175,9 @@ Prompt.View = class extends View {
 			});
 		});
 
-		if (prompt.status === "done") section("Refined — " + (prompt.subject || "cards"), `${secs(prompt.stages.structure_ms ?? 0)}`, () => {
+		section("refined", done ? secs(prompt.stages.structure_ms ?? 0) : "", () => {
+			if (!done) return p.c("refine-empty", working ? "Working… the model is writing the outline." : "Press Refine.");
+			if (prompt.subject) p.c("refine-subject", prompt.subject);
 			const cites = list => list.forEach(n => button.c("refine-cite", "S" + n).click(() => light(n)));
 			const draw = cards => cards.forEach(c => div.c("refine-card", () => {
 				span.c("refine-card-text", c.text);
@@ -178,20 +191,19 @@ Prompt.View = class extends View {
 			}));
 		});
 
-		if (prompt.status === "done") section("Scores", `clarity by ${prompt.runs.some(r => r.stage.startsWith("clarity")) ? "a cheap model, one sentence at a time" : "rules"}, ${secs(prompt.stages.clarity_ms ?? 0)}`, () => {
+		section("scores", done ? `${prompt.flagged.length} of ${prompt.clean.length} flagged` : "", () => {
+			if (!done) return p.c("refine-empty", working ? "Scoring each sentence…" : "Press Refine.");
 			prompt.clean.forEach(s => div.c("refine-score", () => {
 				span.c("refine-s-num", "S" + s.n);
 				span.c("refine-bar").attr("style", `--v:${s.clarity ?? 0}`);
-				span.c("refine-s-text", `clarity ${s.clarity ?? "–"} · weight ${s.weight}`);
+				span.c("refine-s-text", `${s.clarity ?? "–"}`);
 				if (s.why) span.c("refine-s-scores", s.why);
 			}));
-			p.c("refine-s-scores", `${prompt.clean.length} sentences · ${prompt.flagged.length} flagged`);
-		});
-
-		if (prompt.status === "done") section("Model runs", `${secs(prompt.ms)} on the server · ${secs(prompt.timings.total_ms ?? 0)} total · $${prompt.runs.reduce((a, r) => a + r.cost_usd, 0).toFixed(3)}`, () => {
+			h4.c("refine-prompt-h", () => span("Model runs"));
+			p.c("refine-what", "Each run is its own session: click one to see exactly what was asked.");
 			prompt.runs.forEach(r => div.c("refine-run", () => {
-				a(r.stage).href(`/framework/ai/sessions/${r.session_id}/`).attr("title", "this run's own session page");
-				span.c("refine-s-scores", `${r.model} · ${secs(r.duration_ms)} · ${r.tokens.in}→${r.tokens.out} tokens · $${r.cost_usd}`);
+				a(r.stage).href(`/framework/ai/sessions/${r.session_id}/`);
+				span.c("refine-s-scores", `${r.model} · ${secs(r.duration_ms)} · $${r.cost_usd}`);
 			}));
 		});
 	}
