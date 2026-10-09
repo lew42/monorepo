@@ -1,7 +1,7 @@
-# STATE — refine-demo (mastermind-refine-demo)
+# STATE — refine-demo (mastermind-refine-demo): LANDED 2026-10-08
 
-Worktree: C:/Code/lew42/worktrees/refine-demo (branch worktree/refine-demo). Model: Sonnet 5.5, no OpenRouter, no minions.
-
-Done: Prompt.js (class + View + scoring rules), RefineDemo.js (mic/text, result, DefaultView debug tree, class card), Prompt.css, Servex/ext/refine/run.js + POST /api/refine in Servex.js, doc/prompt.md, readme + ai/readme links, page.js shows demo first.
-Next: commit, merge to michael/dev, restart Servex (route is new), headless check at 400/1200/1920/3440, finish-task.
-Decisions: scores = rules (Haiku per prompt was the alternative); one /api/refine route because structure() is Node-only.
+Merged to michael/dev, Servex restarted, verified headless (refine → flag → S# click-through → live debug tree).
+Live: /framework/ext/Refine/ · architecture: ext/Refine/doc/architecture.md · class: doc/prompt.md.
+Built: RefineSystem (boss), Prompt (+View), Scorer (rules), RefineDemo, Servex POST /api/refine.
+Decisions: scores = rules (Haiku per prompt was the alternative); Cleaner/Structurer named but still the two existing functions; one route because structure() is Node-only.
+Next steps: alternates + names via a Haiku pass; per-sentence streaming; Prompt carries its session id; hand-off to agents; phone mic over https (dev/mobile).
