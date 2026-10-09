@@ -54,12 +54,21 @@ function inside_task_interior(segs) {
     return after.length > 2;   // deeper than day/task (after[0]=day, after[1]=task)
 }
 
+// ai/sessions/<uuid>/ and ai/sessions/YYYY/MM/DD/<uuid>/ are machine cache folders (thousands of them, one per Claude
+// session): never listed, so the server writes no files.jsonl into them and the git tree stays clean.
+function in_session_cache(segs) {
+    const i = segs.findIndex((s, k) => s === "sessions" && segs[k - 1] === "ai" && segs[k - 2] === "framework");
+    const first = i === -1 ? "" : segs[i + 1] ?? "";
+    return /^\d{4}$/.test(first) || /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(first);
+}
+
 function covers(full) {
     const rel = path.relative(PUBLIC, full);
     if (rel.startsWith("..")) return false;   // outside public/ entirely
     const segs = rel ? rel.split(path.sep) : [];
     if (segs.some(s => s === "node_modules" || s.startsWith("."))) return false;
     if (inside_task_interior(segs)) return false;
+    if (in_session_cache(segs)) return false;
     return true;
 }
 

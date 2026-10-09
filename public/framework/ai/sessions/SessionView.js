@@ -15,14 +15,14 @@ export function runtime(ms){
 
 // ---- the grid ------------------------------------------------------------------------------------
 export async function load_index(root_url){
-	try { const r = await fetch(root_url + "session-index.json", { cache: "no-store" }); return r.ok ? await r.json() : null; } catch { return null; }
+	try { const r = await fetch(root_url + "session-index.json", { cache: "no-store" }); const ix = r.ok ? await r.json() : null; if (ix) (await import("./Session.js")).default.use_index(ix); return ix; } catch { return null; }
 }
 
 // The grid file keeps one short array per session (see Server/session-summary.mjs); this reads it as an object.
 export function row_of(index, id){
 	const v = index?.rows?.[id];
 	if (!v) return null;
-	return { id, usd: v[0], tree_usd: v[1], children: v[2], wall_ms: v[3], model: v[4] || null, effort: v[5] || null, flags: v[6] };
+	return { id, usd: v[0], tree_usd: v[1], children: v[2], wall_ms: v[3], model: v[4] || null, effort: v[5] || null, flags: v[6], day: v[7] || null };
 }
 export async function load_tree(root_url){
 	try { const r = await fetch(root_url + "session-tree.json", { cache: "no-store" }); return r.ok ? await r.json() : {}; } catch { return {}; }

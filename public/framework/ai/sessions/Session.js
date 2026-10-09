@@ -2,7 +2,7 @@
 //
 // WHY: a transcript is the only place per-message token counts exist, and it can be tens of MB.
 // This class reads it ONCE, keeps running totals (updated per message), and saves a small summary
-// (`sessions/<id>/session.jsonl`) so a page never re-reads the raw file. Same file runs on the
+// (`sessions/YYYY/MM/DD/<id>/cache.jsonl`, see doc/layout.md) so a page never re-reads the raw file. Same file runs on the
 // server (reads transcripts, writes the cache) and in the browser (reads the cache, renders).
 //
 // THE TRUTH (token-accounting + session-class findings): Anthropic's usage is repeated on EVERY
@@ -329,10 +329,42 @@ export default class Session {
 
 	// ---- cache I/O (the server writes it, the browser reads it) -----------------------------
 
-	static dir_url(id){
+	// ---- where a session's folder lives (doc/layout.md) ---------------------------------------
+	// sessions/YYYY/MM/DD/<id>/ , the day the session FIRST appeared (UTC), the same year/month/day tree the ai cards use.
+	// Old flat folders (sessions/<id>/) are still read, and are moved into their day the first time a node writer touches them.
+	static days = new Map();                       // id -> "2026/10/03", filled from the index (browser) or the disk (node)
+	static day(first_at){ const d = new Date(first_at); return first_at && !isNaN(d) ? d.toISOString().slice(0, 10).replace(/-/g, "/") : null; }
+	static use_index(index){ const i = index?.columns?.indexOf("day"); if (i >= 0) for (const [id, v] of Object.entries(index.rows)) if (v[i]) Session.days.set(id, v[i]); }
+
+	static root_url(){
 		// SESSIONS_ROOT (node only) lets a script run from a worktree write into the main tree's sessions/ folder.
 		const root = typeof process !== "undefined" && process.env?.SESSIONS_ROOT;
-		return root ? new URL(`./${id}/`, "file:///" + root.replace(/\\/g, "/").replace(/\/?$/, "/").replace(/^\/+/, "")) : new URL(`./${id}/`, import.meta.url);
+		return root ? new URL("file:///" + root.replace(/\\/g, "/").replace(/\/?$/, "/").replace(/^\/+/, "")) : new URL("./", import.meta.url);
+	}
+	// Sync: the dated folder when the day is known, else the old flat one.
+	static dir_url(id, day = Session.days.get(id)){ return new URL(day ? `./${day}/${id}/` : `./${id}/`, Session.root_url()); }
+
+	// Node, async: the folder to WRITE into. Day from first_at, else what we already know, else the index on disk, else an old
+	// flat folder, else today. An old flat folder is moved into its day (a plain rename: it is regenerable cache plus the record).
+	static async locate(id, first_at){
+		const fs = await import("node:fs/promises"), root = Session.root_url();
+		let day = Session.day(first_at) ?? Session.days.get(id);
+		if (!day && !Session.ix_read){ Session.ix_read = true; try { const ix = JSON.parse(await fs.readFile(new URL("session-index.json", root), "utf8")); Session.use_index(ix); day = Session.days.get(id); } catch {} }
+		const flat = new URL(`./${id}/`, root), exists = u => fs.stat(u).then(() => true, () => false);
+		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
+			try { for (const l of (await fs.readFile(new URL("cache.jsonl", flat), "utf8")).split("\n")) if (l.startsWith('{"summary"')) day = Session.day(JSON.parse(l).summary?.first_at) ?? day; } catch {}
+		}
+		else if (!day){                       // not in the index, no flat folder: look through the day folders (a few dozen), else it is new: today
+			const ls = async u => fs.readdir(u).catch(() => []);
+			for (const y of await ls(root)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, root))) for (const d of await ls(new URL(`./${y}/${m}/`, root)))
+				if (await exists(new URL(`./${y}/${m}/${d}/${id}/`, root))) day = `${y}/${m}/${d}`;
+			day ??= Session.day(new Date());
+		}
+		if (!day) return flat;                                   // known only by an old flat folder: leave it until its first_at is known
+		Session.days.set(id, day);
+		const dated = new URL(`./${day}/${id}/`, root);
+		if (await exists(flat) && !(await exists(dated))){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, dated); }
+		return dated;
 	}
 
 	// ---- the record: what a session's session.jsonl accepts (doc/record-spec.md) ----
@@ -353,7 +385,7 @@ export default class Session {
 		const types = Object.keys(Session.LINE_TYPES).filter(k => k in line);
 		if (types.length !== 1) throw new Error("a line has exactly one of: " + Object.keys(Session.LINE_TYPES).join(", "));
 		if (!Session.LINE_TYPES[types[0]](line)) throw new Error(`bad shape for "${types[0]}" (see sessions/doc/record-spec.md)`);
-		const fs = await import("node:fs/promises"), dir = Session.dir_url(id);
+		const fs = await import("node:fs/promises"), dir = await Session.locate(id);
 		await fs.mkdir(dir, { recursive: true });
 		const out = { ...line, at: new Date().toISOString(), by, session: id };
 		await fs.appendFile(new URL("session.jsonl", dir), JSON.stringify(out) + "\n");
@@ -362,11 +394,16 @@ export default class Session {
 
 	// Browser or node: read one of a session's small log files as text, or "" when it does not exist.
 	static async read_text(id, name){
-		const url = new URL(name, Session.dir_url(id));
-		try {
-			if (url.protocol === "file:"){ const fs = await import("node:fs/promises"); return await fs.readFile(url, "utf8"); }
-			const r = await fetch(url, { cache: "no-store" }); return r.ok ? await r.text() : "";
-		} catch { return ""; }
+		const one = async url => {
+			try {
+				if (url.protocol === "file:"){ const fs = await import("node:fs/promises"); return await fs.readFile(url, "utf8"); }
+				const r = await fetch(url, { cache: "no-store" }); return r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? await r.text() : "";
+			} catch { return ""; }
+		};
+		const node = typeof process !== "undefined" && process.versions?.node;
+		let text = await one(new URL(name, node ? await Session.locate(id) : Session.dir_url(id)));
+		if (!text && Session.days.has(id)) text = await one(new URL(name, Session.dir_url(id, null)));   // not moved yet: the old flat path
+		return text;
 	}
 	static lines_of(text){ const out = []; for (const l of text.split("\n")) if (l.trim()) try { out.push(JSON.parse(l)); } catch {} return out; }
 
@@ -424,7 +461,7 @@ export default class Session {
 
 	// Node: append the summary to <id>/cache.jsonl (stamped), folding that cache file so it stays tiny. Never touches session.jsonl.
 	async save(by = "session-summary"){
-		const fs = await import("node:fs/promises"), dir = Session.dir_url(this.id), file = new URL("cache.jsonl", dir);
+		const fs = await import("node:fs/promises"), dir = await Session.locate(this.id, this.s.first_at), file = new URL("cache.jsonl", dir);
 		await fs.mkdir(dir, { recursive: true });
 		const at = new Date().toISOString(), s = { ...this.s }; delete s.audit; delete s.closed;
 		let old = ""; try { old = await fs.readFile(file, "utf8"); } catch {}
@@ -439,7 +476,7 @@ export default class Session {
 	// Lifecycle: the owner marks a session done ("rubber stamp"). An appended, stamped, authored line; nothing is deleted.
 	// closed:false re-opens it (a later line wins). The table hides closed sessions by default; chasing skips them.
 	static async close(id, by = "owner", closed = true){
-		const fs = await import("node:fs/promises"), dir = Session.dir_url(id);
+		const fs = await import("node:fs/promises"), dir = await Session.locate(id);
 		await fs.mkdir(dir, { recursive: true });
 		const line = { closed, at: new Date().toISOString(), by };
 		await fs.appendFile(new URL("session.jsonl", dir), JSON.stringify(line) + "\n");
@@ -447,7 +484,7 @@ export default class Session {
 	}
 
 	async save_audit(result, by = "session-summary --audit"){
-		const fs = await import("node:fs/promises"), dir = Session.dir_url(this.id);
+		const fs = await import("node:fs/promises"), dir = await Session.locate(this.id, this.s.first_at);
 		await fs.mkdir(dir, { recursive: true });
 		await fs.appendFile(new URL("cache.jsonl", dir), JSON.stringify({ audit: result, at: result.at, by }) + "\n");
 		this.s.audit = result;
