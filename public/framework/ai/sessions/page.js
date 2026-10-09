@@ -1,6 +1,8 @@
-import { Page, div, a, span, small, p, label, input, button, View } from "/app.js";
+import { servex_base } from "/framework/ai/v/3/prompts.js";
+import { Page, h3, div, a, span, small, p, label, input, button, View } from "/app.js";
 import Panel2 from "/framework/ext/panel2/Panel2.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
+import { usage_rail } from "/framework/ext/AITask/usage.js";
 import { grip } from "/framework/ext/grip/grip.js";
 import { load as raw_transcript_lines } from "/framework/ext/AITask/replay.js";
 import { dur, elapsed } from "/framework/ext/AITask/stats.js";
@@ -83,12 +85,20 @@ export const SOURCE = {
 	page: { label: "Page", icon: "description" },
 };
 
+View.stylesheet("/framework/ext/AITask/ai.css");   // the usage rail's bars
+
 const POLL_MS = 20000;
+let TREE = null;   // session-tree.json (who spawned whom, and each agent's own name), set when it loads
 
 // A row's own `state` word that counts as "in flight" — the state cell shows a
 // blinking ▶ for these, a plain quiet dot for anything else (idle, dormant,
 // stopped, gone, or no state at all).
 const WORKING_STATES = new Set(["working", "active"]);
+
+// "In flight" = running or ready to be: a Servex agent that is working, starting or idle-but-live (not dormant, stopped or gone), or a
+// VS Code/CLI session whose transcript moved in the last five minutes. One rule for the strip above the grid and the "in flight" checkbox.
+const NOT_IN_FLIGHT = new Set(["dormant", "stopped", "gone", "done", "failed", "error", "ended"]);
+export const is_in_flight = r => r.source === "servex" ? !!r.state && !NOT_IN_FLIGHT.has(r.state) && r.session_id != null : r.state === "active";
 
 // One row per column, one token, one minimum — `write()` below never touches
 // any token but its own (the owner's own ask: "resizing a column changes the
@@ -99,6 +109,7 @@ export const COLUMNS = [
 	// Stop/Duration (2026-10-03, sessions-date-homes — the owner's own ask: "show
 	// the start time, stop time, duration and cost on every row"), right beside
 	// Start since all three describe the same span.
+	{ key: "state",    label: "State",    min: 56, hint: "Working now (blinking ▶) or not (•). Click to put the working ones first." },
 	{ key: "name",     label: "Name",     min: 160 },
 	{ key: "cost",     label: "Cost",     min: 120, hint: "Click to sort. Without a sort, rows are ordered by cost weighted by recency: a cost counts half as much for every 3 days since the session was last active." },
 	{ key: "updated",  label: "Updated",  min: 88, hint: "Click to sort by the last activity, newest first." },
@@ -106,7 +117,6 @@ export const COLUMNS = [
 	{ key: "role",     label: "Role",     min: 110 },
 	{ key: "source",   label: "Source",   min: 88 },
 	{ key: "model",    label: "Model",    min: 88 },
-	{ key: "state",    label: "State",    min: 60 },
 ];
 
 // Every header is a sort toggle: first click = the natural order (words A to Z, numbers biggest first), second click =
@@ -255,6 +265,29 @@ export function with_date_path_rows(rows, page_dirs){
 
 // The snapshot's VS Code/CLI rows, plus Servex's own live list laid on top —
 // a Servex row always wins its own session_id, since it is the live truth.
+// A snapshot row's state word was true when sessions.json was written and is stale the moment you read it, so the page works
+// state out again from facts it can check now: a VS Code/CLI/SDK session is working only if its transcript moved in the last
+// five minutes; a Servex agent is working only if the live agent list (GET /api/agents) still says so. A Servex row the live
+// list no longer has is stopped, whatever the snapshot said. (An empty live list means "could not ask", so it changes nothing.)
+export const WORKING_WINDOW_MS = 5 * 60 * 1000;
+export function true_state(r, live_ids, now = Date.now()){
+	if (r.source === "servex") return live_ids?.size && !live_ids.has(r.session_id) ? "stopped" : r.state;
+	const last = Date.parse(r.last_activity ?? 0);
+	return last && now - last < WORKING_WINDOW_MS ? "active" : "idle";
+}
+
+// What to call a row. A VS Code tab's folder name ("monorepo") is where it ran, not what it is, so a name comes from the first
+// of: the session tree's agent name, a Servex agent's own id, the last prompt, else "session" plus the first 8 of the id.
+export function display_name(r, tree){
+	const sid = r.session_id || r.id;
+	const named = tree?.[sid]?.agent;
+	if (named) return { text: named, from: "agent" };
+	if (r.source === "servex" && r.tab_title) return { text: r.tab_title, from: "agent" };
+	// a prompt that is only a routing tag or a skill preamble says nothing about the session: keep it as the second line, not the name
+	if (r.last_prompt_first_line && !/^\[from:|^Base directory for this skill/.test(r.last_prompt_first_line)) return { text: r.last_prompt_first_line.replace(/\s+/g, " ").trim().slice(0, 70), from: "prompt" };
+	return { text: (SOURCE[r.source]?.label ?? "session") + " " + String(sid).slice(0, 8), from: "id" };
+}
+
 export function merge(snapshot_rows, agents){
 	const by_id = new Map(snapshot_rows.map(r => [r.session_id, r]));
 	agents.forEach(a => {
@@ -291,13 +324,14 @@ export function merge(snapshot_rows, agents){
 			started_at: null, stopped_at: null,
 			...r, // a real value already on the row (set above for a Servex row, or already on a snapshot row) always wins these defaults
 		}))
+		.map(r => { const live = new Set(agents.map(a => a.session_id).filter(Boolean)); return { ...r, state: true_state(r, live) }; })
 		.sort((x, y) => Date.parse(y.last_activity ?? 0) - Date.parse(x.last_activity ?? 0));
 }
 
 // What each column sorts by. A number or a lowercase word; null = unknown, which sorts LAST in either direction
 // (a session nobody has priced yet must not look like the cheapest one).
 const SORT_VALUE = {
-	name:     r => (r.tab_title || r.id || "").toLowerCase(),
+	name:     r => display_name(r, TREE).text.toLowerCase(),
 	cost:     r => cost_value(r),
 	updated:  r => Date.parse(r.last_activity ?? 0) || null,
 	duration: r => { const e = elapsed(r.started_at, r.stopped_at ?? (WORKING_STATES.has(r.state) ? new Date().toISOString() : null)); return typeof e === "number" && !isNaN(e) ? e : null; },
@@ -344,10 +378,11 @@ const WORKING_STATE_ATTR = state => WORKING_STATES.has(state) ? "working" : "idl
 // this tab's own `/sessions/<id>/` view, same as before this task. Omitted
 // entirely (the Dashboard tile's own call) just means every row falls back,
 // which is harmless and correct — no session has a date-path page yet.
-export function row_view(r, url, page_dirs, spend, session_index){
+// `nest` (optional) = { depth, kids, open, toggle }: how deep this row sits, how many children it has, whether they show, and the click.
+export function row_view(r, url, page_dirs, spend, session_index, nest){
 	const src = SOURCE[r.source] ?? { label: r.source, icon: "help" };
-	const dated = page_dirs?.get((r.session_id || r.id || "").slice(0, 8));
-	const href = dated ?? (url + r.id + "/");
+	// One route per session, whichever way you arrive: this tab's own detail view.
+	const href = url + r.id + "/";
 	return a.c("sessions-row").href(href).append(() => {
 		// Start / Stop / Duration (the owner's own ask, requirement 3).
 		// ⚠ Three honest states, not two (review finding, 2026-10-03): still
@@ -361,9 +396,19 @@ export function row_view(r, url, page_dirs, spend, session_index){
 		// finished minutes ago would be worse than admitting it's unknown.
 		const working = WORKING_STATES.has(r.state);
 		const span_end = r.stopped_at ?? (working ? new Date().toISOString() : null);
+		// The state icon comes first: as important as the name. A blinking ▶ while in flight, a quiet dot otherwise (a ✓ for "done" belongs only on the detail page).
+		div.c("sessions-cell", () => {
+			if (!r.state) return;
+			span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : "idle")).attr("title", r.state + (working ? "" : " (not working right now)")).text(working ? "▶" : "•");
+		});
+		const name = display_name(r, TREE);
 		div.c("sessions-cell", () => div.c("sessions-name-stack", () => {
-			span.c("sessions-row-title", r.tab_title || r.id);
-			if (r.last_prompt_first_line) small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
+			span.c("sessions-row-title").style(nest?.depth ? { paddingInlineStart: nest.depth * 1.5 + "em" } : {}).append(() => {
+				if (nest?.kids) span.c("sessions-fold").attr("role", "button").attr("tabindex", "0").attr("title", nest.open ? "Hide the sessions this one started" : "Show the sessions this one started")
+					.text((nest.open ? "▾ " : "▸ ") + nest.kids).on("click", e => { e.preventDefault(); e.stopPropagation(); nest.toggle(); });
+				span(name.text);
+			});
+			if (r.last_prompt_first_line && name.from !== "prompt") small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
 		}));
 		div.c("sessions-cell", () => {
 			// The Session class row (session-index.json) is the truth for a Claude session's cost: whole tree, runtime, model + effort.
@@ -406,15 +451,6 @@ export function row_view(r, url, page_dirs, spend, session_index){
 		// … === "number"`, rendered the literal word "false" in the Cost
 		// column because the arrow function's own return value WAS `false`).
 		div.c("sessions-cell", () => { if (r.model) small.c("muted", r.model); });
-		// A ▶ that blinks while the row is in flight, a plain quiet dot
-		// otherwise — a ✓ for "done" belongs only on the detail page
-		// (the owner's own words: this grid never shows it).
-		div.c("sessions-cell", () => {
-			if (!r.state) return;
-			const working = WORKING_STATES.has(r.state);
-			span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : "idle"))
-				.attr("title", r.state).text(working ? "▶" : "•");
-		});
 	});
 }
 
@@ -517,7 +553,11 @@ export default new Page({
 		// (see dashboard/page.js's own note for the measured number).
 		const panel = new Panel2({ title: "Sessions" }).ac("wide");
 		this.$asof = null;
-		panel.header.append(() => { this.$asof = small.c("muted", "loading…"); });
+		panel.header.append(() => {
+			a.c("sessions-doclink").href(this.url + "doc/priorities/").text("Priorities").attr("title", "What the owner asked for, most important first");
+			a.c("sessions-doclink").href(this.url + "doc/").text("Readme & docs").attr("title", "The readme and every doc for this page");
+			this.$asof = small.c("muted", "loading…");
+		});
 
 		this.sort = null;           // null (default order) | { key, dir } — set by clicking a column header
 		this.$sort_labels = {};
@@ -537,9 +577,13 @@ export default new Page({
 		// auto` + `surface pad flex v gap` + `h4 muted` / `h2`, no new CSS) —
 		// `render_stats()` below fills it in once real data (week.json, or a
 		// filter change) arrives.
-		this.$stats = div.c("sessions-stats grid gap auto").style("--column", "11em");
+		this.$stats = div.c("sessions-stats");
 		panel.main.append(this.$stats);
 		this.render_stats();
+
+		// IN FLIGHT: what is running right now, above everything else, redrawn on every event of the Servex agent stream.
+		this.$flight = div.c("sessions-flight");
+		panel.main.append(this.$flight);
 
 		this.$controls = div.c("sessions-controls");
 		panel.main.append(this.$controls);
@@ -563,25 +607,23 @@ export default new Page({
 	// `render_rows()` already uses for the grid/summary/by-role list.
 	render_stats(){
 		if (!this.$stats) return;
-		const usage = this.usage?.utilization;   // ai/usage.json: the plan's own meter, the one source for "how much of the week is used"
-		const pct = w => typeof w?.utilization === "number" ? Math.round(w.utilization) + "%" : "—";
-		const resets = w => w?.resets_at ? "resets " + new Date(w.resets_at).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : null;
-
-		const tile = (label_text, body, title, foot) => {
-			const $tile = div.c("surface pad flex v gap", () => {
-				div.c("h4 muted", label_text);
-				div.c("h2", body);
-				if (foot) small.c("muted", foot);
-			}).style("--gap", "calc(var(--gap) * 0.1)");
-			if (title) $tile.attr("title", title);
-			return $tile;
-		};
-
+		// The plan's own meters as progress bars with the pace marker (ext/AITask/usage.js, the same rail the Dashboard shows), then one line of counts.
 		this.$stats.empty(() => {
-			tile("Plan used this week", pct(usage?.seven_day), "The plan's own weekly meter (ai/usage.json).", resets(usage?.seven_day));
-			tile("Last 5 hours", pct(usage?.five_hour), "The plan's own 5-hour meter (ai/usage.json).", resets(usage?.five_hour));
-			tile("Claude cost shown", "$" + (this.shown_usd ?? 0).toFixed(2), "Own cost of the sessions in the table below, from the session files (not from spend.json).", "from the session files");
-			tile("Sessions shown", String(this.filtered_count), null, this.date_from + " to " + this.date_to);
+			if (this.usage) usage_rail(this.usage);
+			small.c("muted sessions-counts", `${this.filtered_count} sessions shown · $${(this.shown_usd ?? 0).toFixed(2)} Claude cost · ${this.date_from} to ${this.date_to}`)
+				.attr("title", "Cost is summed from the session files (the session index), for the rows in the table below.");
+		});
+	},
+
+	// The strip above the grid: every session in flight, newest activity first, each drawn by the same row_view as the grid below (one component).
+	render_flight(){
+		if (!this.$flight) return;
+		const live = this.last_rows.filter(is_in_flight).sort((x, y) => Date.parse(y.last_activity ?? 0) - Date.parse(x.last_activity ?? 0));
+		this.$flight.empty(() => {
+			h3.c("sessions-flight-head", `In flight now · ${live.length}`).attr("title", "Running or ready to run right now. Updates live from the Servex agent stream.");
+			if (!live.length) return void small.c("muted", "Nothing is in flight right now.");
+			div.c("sessions-grid sessions-flight-grid", () => div.c("sessions-rows", () => live.forEach(r =>
+				row_view(r, this.url, this.page_dirs, this.spend, this.session_index, null))));
 		});
 	},
 
@@ -631,6 +673,12 @@ export default new Page({
 					$a.on("change", () => { this.attention_only = $a.el.checked; this.render_rows(); });
 					span("needs attention");
 				}).attr("title", "Only sessions with an alert in their session.jsonl record.");
+			label.c("flex gap-35 v-center h4", () => {
+				const $f = input().attr("type", "checkbox");
+				$f.el.checked = !!this.inflight_only;
+				$f.on("change", () => { this.inflight_only = $f.el.checked; this.render_rows(); });
+				span("in flight");
+			}).attr("title", "Only sessions working right now (a transcript that moved in the last 5 minutes, or a Servex agent that is running).");
 				const tags = [...new Set(Object.values(this.session_index?.meta ?? {}).flatMap(m => m.tags))].sort();
 				if (tags.length) label.c("flex gap-35 v-center h4", () => {
 					span("tag");
@@ -674,10 +722,21 @@ export default new Page({
 		const id_of = r => r.session_id || r.id;
 		// "base" = every filter except role and trigger, so the role/trigger chips can show what each choice would add.
 		const base = this.last_rows.filter(r => (this.show_closed || !closed[id_of(r)]) && in_date_range(r, from, to)
+			&& (!this.inflight_only || is_in_flight(r))
 			&& (!this.attention_only || meta[id_of(r)]?.alerts)
 			&& (!this.tag_filter || meta[id_of(r)]?.tags.includes(this.tag_filter)));
 		const filtered = base.filter(r => this.role_filter.has(r.role || "(unknown)") && this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)"));
-		const sorted = sort_rows(filtered, this.sort);
+		const sorted_all = sort_rows(filtered, this.sort);
+		// Children nest under their parent, collapsed until opened (the session tree says who started whom). A row whose parent is not in view stays a top-level row.
+		const shown_ids = new Set(sorted_all.map(id_of)), kids_of = new Map();
+		for (const r of sorted_all){ const par = TREE?.[id_of(r)]?.parent; if (par && par !== id_of(r) && shown_ids.has(par)) (kids_of.get(par) ?? kids_of.set(par, []).get(par)).push(r); }
+		const sorted = sorted_all.filter(r => { const par = TREE?.[id_of(r)]?.parent; return !(par && par !== id_of(r) && shown_ids.has(par)); });
+		this.open_ids ??= new Set();
+		const place = (r, depth, seen) => {
+			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = this.open_ids.has(id_of(r));
+			row_view(r, this.url, this.page_dirs, this.spend, this.session_index, { depth, kids: kids.length, open, toggle: () => { open ? this.open_ids.delete(id_of(r)) : this.open_ids.add(id_of(r)); this.render_rows(); } });
+			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
+		};
 
 		// Paging, not windowing: rows are variable-height (a title line plus an
 		// optional wrapped prompt-preview line), so there's no fixed row height
@@ -691,7 +750,7 @@ export default new Page({
 		const visible = sorted.slice(0, this.shown);
 		this.$rows.empty(() => {
 			if (!sorted.length) return void p.c("muted").style({ gridColumn: "1 / -1" }).text("No sessions with an id yet.");
-			visible.forEach(r => row_view(r, this.url, this.page_dirs, this.spend, this.session_index));
+			visible.forEach(r => place(r, 0, new Set([id_of(r)])));
 			if (sorted.length > visible.length){
 				div.c("sessions-show-more").style({ gridColumn: "1 / -1" }).append(() => {
 					small.c("muted").text(`Showing ${visible.length} of ${sorted.length} — `);
@@ -705,6 +764,7 @@ export default new Page({
 		this.shown_usd = filtered.reduce((n, r) => n + claude_usd_of(r), 0);
 		this.filtered_count = filtered.length;
 		this.render_stats();
+		this.render_flight();
 
 		this.$summary?.empty(() => {
 			defect_line(this.session_index);
@@ -761,15 +821,36 @@ export default new Page({
 			this.$asof?.text("updated " + new Date().toLocaleTimeString());
 		};
 
-		const poll = async () => {
+			// First paint from GET /api/agents, then every change arrives on Servex's event stream (no polling while it is open).
+			// The 20 s poll stays only as the fallback for a stream that is closed (Servex restarting).
+			const base = servex_base();
+			const fetch_agents = async () => (await get_json(base + "/api/agents")) ?? (await get_json("/api/agents")) ?? [];
+			let timer = null;
+			const soon = () => { timer ??= setTimeout(() => { timer = null; draw(); }, 250); };
+			const poll = async () => {
 			if (!this.polling) return;
-			if (!document.hidden){ this.last_agents = (await get_json("/api/agents")) ?? []; draw(); }
+				if (!document.hidden && !this.stream_open){ this.last_agents = await fetch_agents(); draw(); }
 			if (this.polling) setTimeout(poll, POLL_MS);
-		};
+			};
+			this.source?.close();
+			try {
+				this.source = new EventSource(base + "/api/stream");
+				this.source.onopen = () => { this.stream_open = true; };
+				this.source.onerror = () => { this.stream_open = false; };
+				this.source.addEventListener("agent", msg => {
+					let ev; try { ev = JSON.parse(msg.data); } catch { return; }
+					if (!ev?.card?.id) return;
+					const i = this.last_agents.findIndex(a => a.id === ev.card.id);
+					i < 0 ? this.last_agents.push(ev.card) : (this.last_agents[i] = ev.card);
+					soon();
+				});
+			} catch {}
+			clearInterval(this.tick); this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length) this.render_flight(); }, 30000);   // running times advance
 
-		get_json(this.url + "sessions.json").then(snap => {
+		get_json(this.url + "sessions.json").then(async snap => {
 			this.snapshot_rows = snap?.rows ?? [];
-			if (this.polling) poll();
+			this.last_agents = await fetch_agents();
+			if (this.polling){ draw(); poll(); }
 		});
 
 		// The spend tree (2026-10-03, spend-tree) — a snapshot too (Server/spend-tree.mjs,
@@ -777,6 +858,7 @@ export default new Page({
 		// Fetched once per activation; redraw ONLY if real rows are already on screen, same
 		// guard the date-path index below already needs for the identical reason (it would
 		// otherwise lock render_controls()'s trigger filter to an empty Set forever).
+		load_tree(this.url).then(tree => { TREE = this.tree = tree; if (this.last_rows.length) this.render_rows(); });
 		load_index(this.url).then(index => {
 			this.session_index = index;
 			IX = index;
@@ -823,7 +905,7 @@ export default new Page({
 		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });
 	},
 
-	deactivated(){ this.polling = false; },
+	deactivated(){ this.polling = false; this.source?.close(); this.source = null; this.stream_open = false; clearInterval(this.tick); },
 
 	// `/framework/ai/sessions/<id>/` — one session's own prompts, in order.
 	// A real route, not a client-side peek state: reload lands on the same

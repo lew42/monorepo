@@ -43,14 +43,14 @@
 		--col-role: 8rem; --col-source: 6rem; --col-model: 8rem; --col-state: 4rem;
 		display: grid;
 		grid-template-columns:
+			minmax(3rem, var(--col-state))
 			minmax(10rem, 1fr)
 			minmax(8rem, var(--col-cost))
 			minmax(5rem, var(--col-updated))
 			minmax(5rem, var(--col-duration))
 			minmax(6rem, var(--col-role))
 			minmax(5rem, var(--col-source))
-			minmax(5rem, var(--col-model))
-			minmax(3rem, var(--col-state));
+			minmax(5rem, var(--col-model));
 		column-gap: var(--gap-50);
 		/* `width: max-content` + `min-width: 100%` (review finding, 2026-10-03):
 		   without this, a block-level grid defaults to the width of its own
@@ -102,6 +102,10 @@
 	   into its prompt preview with no break: "monorepoSo how would you…"). */
 	.sessions-name-stack { display: flex; flex-direction: column; gap: var(--gap-35); min-width: 0; }
 	.sessions-row-title { font-weight: 600; }
+	.sessions-flight { margin-block-end: 1.5em; }
+	.sessions-flight-head { margin-block: 0 var(--gap-50); }
+	.sessions-doclink { margin-inline-end: 1em; font-size: .9em; }
+	.sessions-fold { cursor: pointer; margin-inline-end: .4em; color: var(--prim-ink); font-weight: 400; }
 	.sessions-row-prompt { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 	/* Below `ext/panel2`'s own 30em container floor, a 6-column grid has
@@ -114,8 +118,8 @@
 		.sessions-head { display: none; }
 		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }
 		.sessions-cell { padding-block: 0; border-block-end: none; }
-		.sessions-row > .sessions-cell:first-child { flex: 1 1 100%; min-width: 0; }
-		.sessions-row > .sessions-cell:not(:first-child) { flex: 0 0 auto; max-width: 100%; }
+		.sessions-row > .sessions-cell:nth-child(2) { order: -1; flex: 1 1 100%; min-width: 0; }
+		.sessions-row > .sessions-cell:not(:nth-child(2)) { flex: 0 0 auto; max-width: 100%; }
 	}
 
 	/* One colour per source, so "what kind of session is this" reads before the
@@ -214,7 +218,8 @@
 	   owner's own words, "maybe the cents smaller than the dollars" — a plain
 	   size/weight/colour step down from the `h2` it sits inside, not a new
 	   type-scale step (the type scale itself is untouched). */
-	.sessions-stats { margin-block-end: var(--gap); }
+	.sessions-stats { margin-block-end: var(--gap); display: flex; flex-wrap: wrap; gap: .5em 2em; align-items: center; }
+	.sessions-stats .ai-usage { flex: 1 1 24em; }
 	.sessions-stat-cents { font-size: 0.55em; font-weight: 400; color: var(--subtle); }
 
 	/* Filters, the summary line and "cost by role" (session-costs
