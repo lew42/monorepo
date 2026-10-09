@@ -1,0 +1,11 @@
+@layer site {
+	.lab-row { display: flex; gap: 1em; padding: .15em 0; border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+	.lab-k { flex: 0 0 11em; opacity: .7; }
+	.lab-v { overflow-wrap: anywhere; }
+	.lab-row.ok .lab-v { color: green; }
+	.lab-row.bad .lab-v { color: crimson; }
+	.lab-log { font-family: monospace; font-size: .85em; max-height: 20em; overflow: auto; }
+	.lab-log-row { padding: .1em 0; }
+	.lab-src { font-weight: 600; }
+	.lab-demo { display: flex; gap: .5em; flex-wrap: wrap; margin-block: .5em; }
+}
