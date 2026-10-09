@@ -340,7 +340,68 @@ export default class Session {
 	// Old flat folders (sessions/<id>/) are still read, and are moved into their day the first time a node writer touches them.
 	static days = new Map();                       // id -> "2026/10/03", filled from the index (browser) or the disk (node)
 	static day(first_at){ const d = new Date(first_at); return first_at && !isNaN(d) ? d.toISOString().slice(0, 10).replace(/-/g, "/") : null; }
-	static use_index(index){ const i = index?.columns?.indexOf("day"); if (i >= 0) for (const [id, v] of Object.entries(index.rows)) if (v[i]) Session.days.set(id, v[i]); }
+	static use_index(index){
+		const i = index?.columns?.indexOf("day"); if (i >= 0) for (const [id, v] of Object.entries(index.rows)) if (v[i]) Session.days.set(id, v[i]);
+		if (index?.columns && typeof document !== "undefined") for (const [id, v] of Object.entries(index.rows)) Session.from_index(id, v, index.columns);
+	}
+
+	// ---- the live index (browser): one light Session per id, kept current by delta lines (doc/realtime.md) ----------
+	// `all` is the registry. A light Session carries only the grid's fields in `ix`; the full computed totals stay in `s`
+	// (blank here) and arrive from the session's own cache when its detail page opens.
+	static all = new Map();
+	static INDEX_COLUMNS = ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day", "provider"];
+
+	/** The light Session for an id, made from one index row (the short array build_index writes). Re-reading the index refreshes it in place. */
+	static from_index(id, arr, columns = Session.INDEX_COLUMNS){
+		const ses = Session.all.get(id) ?? Session.of(id);
+		columns.forEach((c, i) => { if (!(c in ses.ix && ses.live)) ses.ix[c] = Session.norm(c, arr[i]); });
+		return ses;
+	}
+
+	static of(id){
+		let ses = Session.all.get(id);
+		if (!ses){ ses = new Session(id); ses.ix = {}; ses.subs = new Set(); Session.all.set(id, ses); }
+		return ses;
+	}
+
+	static norm(key, v){ return key === "model" || key === "effort" || key === "day" ? (v || null) : key === "provider" ? (v || "claude") : v; }
+
+	/** One feed line ({ id, at, ...only the fields that changed }) folded into the Session it names. Returns { ses, fields, is_new }. */
+	static apply_delta(line){
+		const is_new = !Session.all.has(line.id), ses = Session.of(line.id), fields = [];
+		ses.live = true;
+		for (const [k, v] of Object.entries(line)){
+			if (k === "id" || k === "at") continue;
+			const n = Session.norm(k, v);
+			if (ses.ix[k] !== n){ ses.ix[k] = n; fields.push(k); }
+		}
+		if (fields.length) ses.subs.forEach(fn => fn(ses, fields));
+		return { ses, fields, is_new };
+	}
+
+	/** Subscribe to this session's changes: fn(session, changed_field_names). Returns the unsubscribe function. */
+	on(fn){ this.subs.add(fn); return () => this.subs.delete(fn); }
+
+	// ---- its view (browser) -------------------------------------------------------------------------------------
+	// The house pattern: the class owns its template. `View` stays empty on the server (this file imports no browser code);
+	// SessionView.js sets it when the browser loads that file, so `session.render()` draws this session as a grid row. Like every framework class with a template (core/Item, audio/Part, lab/LiveView), it reaches the View through `this.constructor`, so a subclass can swap `static View`.
+	static View = null;
+
+	/** This session drawn as a grid row (SessionView). `opts` can carry the page's merged `row`, `url`, `spend`, `nest`. */
+	render(opts = {}){
+		if (!this.constructor.View) throw new Error("Session.View is not set: import SessionView.js first (a server never draws a session)");
+		return new this.constructor.View({ session: this, row: this.grid_row(), url: Session.root_url(), ...opts });
+	}
+
+	/** The row the grid draws for a session that only the live index knows (no VS Code tab record, no Servex agent). */
+	grid_row(){
+		const { first_at, model, state, last_activity } = this.ix;
+		return { id: this.id, session_id: this.id, source: "vscode", entrypoint: null, tab_title: null, model, state: state ?? "idle", role: null,
+			started_at: first_at ?? null, stopped_at: null, last_activity: last_activity ?? first_at ?? null, cost: null, last_prompt_first_line: null };
+	}
+
+	/** The grid row for this session in the object shape SessionRows.row_of has always returned. */
+	index_row(){ const { usd, tree_usd, children, wall_ms, model, effort, flags, day, provider } = this.ix; return { id: this.id, usd, tree_usd, children, wall_ms, model, effort, flags, day, provider: provider || "claude" }; }
 
 	static root_url(){
 		// SESSIONS_ROOT (node only) lets a script run from a worktree write into the main tree's sessions/ folder.

@@ -5,6 +5,7 @@ import { usage_rail } from "/framework/ext/AITask/usage.js";
 import { grip } from "/framework/ext/grip/grip.js";
 import SessionRows from "./SessionRows.js";
 import SessionView from "./SessionView.js";
+import SessionLive from "./SessionLive.js";
 import SessionDetail from "./SessionDetail.js";
 
 View.stylesheet(import.meta, "sessions.css");
@@ -292,7 +293,7 @@ export default class SessionsPage extends Page {
 
 	/** Recompute the rows from the latest snapshot, agent list and date-path index, then redraw. */
 	draw(){
-		this.last_rows = SessionRows.with_date_path_rows(SessionRows.merge(this.snapshot_rows, this.last_agents), this.page_dirs);
+		this.last_rows = SessionRows.with_date_path_rows(SessionRows.with_live_rows(SessionRows.merge(this.snapshot_rows, this.last_agents)), this.page_dirs);
 		this.render_rows();
 		this.$asof?.text("updated " + new Date().toLocaleTimeString());
 	}
@@ -326,7 +327,7 @@ export default class SessionsPage extends Page {
 				soon();
 			});
 		} catch {}
-		clearInterval(this.tick); this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length) this.render_flight(); }, 30000);   // running times advance
+		clearInterval(this.tick); this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length) this.render_flight(); this.follow_live(); }, 30000);   // running times advance
 
 		get_json(this.url + "sessions.json").then(async snap => {
 			this.snapshot_rows = snap?.rows ?? [];
@@ -340,6 +341,7 @@ export default class SessionsPage extends Page {
 		load_index(this.url).then(index => {
 			this.session_index = SessionRows.ix = index;
 			if (this.last_rows.length) this.render_rows();
+			this.follow_live();
 		});
 		load_spend_tree(this.url).then(spend => {
 			this.spend = spend;
@@ -353,6 +355,23 @@ export default class SessionsPage extends Page {
 			if (this.last_rows.length) this.draw();   // upgrades drawn rows to their date-path links
 		});
 		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });   // the plan's own meter, kept fresh by Servex
+	}
+
+	/** Load the day indexes the date filter needs, then tail TODAY's (deltas from Server/SessionTailer.mjs). A cost change redraws its own row (SessionView); a new or active/idle session redraws the grid now, a newer last activity a moment later. */
+	async follow_live(){
+		const today = SessionLive.ymd(new Date());
+		if (this.live_day === today) return;
+		this.live_day = today;
+		this.live?.unsubscribe();
+		const root = this.url;
+		let timer = null;
+		const redraw = ms => { if (this.polling) timer ??= setTimeout(() => { timer = null; this.draw(); }, ms); };
+		const structural = (moved, later) => redraw(moved.length ? 100 : 1500);
+		const urls = await SessionLive.days(root, this.date_from, this.date_to);
+		await SessionLive.load_days(urls.filter(u => !u.includes("/" + today + "/")), structural);
+		this.live = new SessionLive(root + today + "/index.jsonl", structural);
+		await this.live.live();
+		this.draw();
 	}
 
 	deactivated(){ this.polling = false; this.source?.close(); this.source = null; this.stream_open = false; clearInterval(this.tick); }

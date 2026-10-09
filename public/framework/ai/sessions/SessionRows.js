@@ -1,4 +1,5 @@
 import { elapsed } from "/framework/ext/AITask/stats.js";
+import Session from "./Session.js";
 
 // The data side of the Sessions tab: turns the raw feeds (sessions.json, Servex's agent list, the Session class
 // index, the session tree, the spend tree) into the rows the page shows. It draws nothing. Everything is a static,
@@ -84,6 +85,8 @@ export default class SessionRows {
 
 	/** The grid file keeps one short array per session (Server/session-summary.mjs); this reads it as an object. */
 	static row_of(index, id){
+		const ses = Session.all.get(id);   // the live Session wins: deltas keep it newer than the index file
+		if (ses?.ix.usd != null) return ses.index_row();
 		const v = index?.rows?.[id];
 		if (!v) return null;
 		return { id, usd: v[0], tree_usd: v[1], children: v[2], wall_ms: v[3], model: v[4] || null, effort: v[5] || null, flags: v[6], day: v[7] || null, provider: v[8] || "claude" };
@@ -178,6 +181,29 @@ export default class SessionRows {
 				cost: null, cost_claude_usd: null, cost_openrouter_usd: null, ram_mb: null, ram_sample_age_ms: null,
 				last_prompt_first_line: null,
 			});
+		}
+		return extra.length ? [...rows, ...extra] : rows;
+	}
+
+	/** Lay a live Session's state and last activity over a row. A Servex row keeps its own state (the agent list is the truth for that). */
+	static apply_live(r, ses){
+		if (r.source !== "servex" && ses.ix.state) r.state = ses.ix.state;
+		if (ses.ix.last_activity) r.last_activity = ses.ix.last_activity;
+		return r;
+	}
+
+	/** Rows with the live feed applied: every row a delta touched is updated, and a session the snapshot never heard of gets a row of its own. */
+	static with_live_rows(rows){
+		const known = new Set();
+		for (const r of rows){
+			const sid = r.session_id || r.id, ses = Session.all.get(sid);
+			known.add(sid);
+			if (ses?.live) SessionRows.apply_live(r, ses);
+		}
+		const extra = [];
+		for (const [id, ses] of Session.all){
+			if (!ses.live || known.has(id) || !ses.ix.first_at) continue;
+			extra.push(ses.grid_row());
 		}
 		return extra.length ? [...rows, ...extra] : rows;
 	}

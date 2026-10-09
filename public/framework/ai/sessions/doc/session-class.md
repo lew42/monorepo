@@ -40,3 +40,24 @@ The tree uses the Servex registry; spawned agents with no recorded parent are co
 ## Lifecycle: closing a session
 
 The owner can mark a session done ("rubber stamp"). `Session.close(id, by, closed)` appends a stamped `{closed: true|false, at, by}` line to `session.jsonl` (the record); a later line wins, so `closed:false` reopens it. Nothing is deleted. The detail view has a Close/Reopen button (`POST /ai-logs/<id>/close`, `?undo=1` to reopen), and `node Server/session-summary.mjs --close|--reopen <id> [--by name]` does the same from a script or an agent. `--index` lists closed sessions in `session-index.json` (`closed: {id: at}`); the table hides them unless "show closed" is ticked. Anything that chases or wakes sessions should skip an id listed there.
+
+## Where each part runs
+
+`Session.js` imports no node code at the top, so the browser loads it. Node-only methods load their modules inside the method.
+
+| Method | Server | Client |
+|---|---|---|
+| `apply_line`, `preview`, `set_configured`, the numbers | yes | yes |
+| `update`, `save`, `audit`, `locate`, `load_cached` | yes | no |
+| `use_index`, `from_index`, `of`, `apply_delta`, `on`, `index_row`, `grid_row` | no use | yes (the light live Session) |
+| `render()` | throws (`Session.View` is unset) | yes |
+
+`Server/SessionTailer.mjs` is the server user; `SessionLive.js` is the client user.
+
+## A Session draws itself
+
+`Session.View = SessionView` is set when the browser loads `SessionView.js`, so `session.render()` draws that session as a grid row. It does `new this.constructor.View({ session: this, ... })`, a fresh view each call, the same way `core/Item`, `audio/Part` and `lab/LiveView` do, so a subclass can override `static View`. The other classes nest beneath it as helpers:
+
+- `SessionView` is the row. It subscribes to its Session (`ses.on`) and redraws only itself.
+- `SessionDetail` is the session's own page; it opens from a row.
+- `SessionRows` is the data helper (fetch, merge, sort, nest). `SessionTrace` is the chart and tool-table helper used by the detail page.

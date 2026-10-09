@@ -18,6 +18,7 @@ import os from "node:os";
 import { fileURLToPath } from "node:url";
 import Session from "../public/framework/ai/sessions/Session.js";
 import { find_transcript, subagent_files } from "./session-cost.mjs";
+import SessionDays from "./SessionDays.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const SESSIONS_DIR = path.join(here, "..", "public", "framework", "ai", "sessions");
@@ -75,6 +76,12 @@ export function print_audit(r){
 }
 
 // ---- the grid's one file ----------------------------------------------------------------------------
+/** One grid row as the short array the index stores. The tailer (Server/SessionTailer.mjs) writes the same shape, so a live line and an index row are interchangeable. */
+export function slim_of(r){
+	const r4 = n => Math.round(n * 1e4) / 1e4;
+	return [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, Session.day(r.first_at) ?? 0, r.provider === "openrouter" ? "openrouter" : 0];
+}
+
 export async function build_index({ days = 30 } = {}){
 	const registry = registry_rows(), cutoff = Date.now() - days * 86400000;
 	const base = path.join(os.homedir(), ".claude", "projects");
@@ -106,6 +113,19 @@ export async function build_index({ days = 30 } = {}){
 	const tree_rows = Object.values(rows).map(r => ({ id: r.id, usd: r.usd, parent: r.parent ? agent_to_session.get(r.parent) : echo_parent(r) }));
 	const roll = Session.rollup(tree_rows);
 	for (const r of Object.values(rows)){ const t = roll.get(r.id); r.tree_usd = t.tree_usd; r.children = t.children; r.kids = t.kids; r.parent = tree_rows.find(x => x.id === r.id).parent ?? null; }
+	// Backfill the partitioned index (SessionDays): every scanned session gets ONE keyframe line in the day index of the day it was last
+	// active, unless that day already has a line for it. Append-only and idempotent; the tailer keeps today current after this.
+	const have = new Map();
+	for (const r of Object.values(rows)){
+		if (!r.last_at) continue;
+		const file = SessionDays.day_file(r.last_at);
+		if (!have.has(file)) have.set(file, new Set(SessionDays.lines(file).map(l => l.id)));
+		if (have.get(file).has(r.id)) continue;
+		const slim = slim_of(r), idle = Date.now() - Date.parse(r.last_at) > 5 * 60000;
+		SessionDays.append(r.last_at, { id: r.id, at: r.last_at, ...Object.fromEntries(Session.INDEX_COLUMNS.map((c, i) => [c, slim[i]])), state: idle ? "idle" : "active", first_at: r.first_at, last_activity: r.last_at });
+		have.get(file).add(r.id);
+	}
+	SessionDays.roll();
 	// Spawned agents (anything the registry knows with a session) whose parent was never recorded: a defect, counted.
 	const spawned = registry.filter(r => r.session_id && ["minion", "reviewer", "clarity", "assistant", "manager"].includes(r.role));
 	const unlinked = spawned.filter(r => !r.parent && !r.forked_from && !r.resumed_from).map(r => r.id);
@@ -124,7 +144,7 @@ export async function build_index({ days = 30 } = {}){
 		const rec = await Session.record(id);
 		if (rec.closed) closed[id] = rec.closed.at;
 		if (rec.tags.length || rec.alerts || rec.links.length || rec.weight != null) meta[id] = { tags: rec.tags, alerts: rec.alerts, links: rec.links.slice(0, 3), weight: rec.weight };
-		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, Session.day(r.first_at) ?? 0, r.provider === "openrouter" ? "openrouter" : 0];
+		slim[id] = slim_of(r);
 		if (r.parent || r.kids.length) tree[id] = { agent: r.agent ?? undefined, role: r.role ?? undefined, parent: r.parent ?? undefined, kids: r.kids.length ? r.kids : undefined };
 	}
 	// sessions that have a trace.json: the page asks for one only for these (a 404 is a smoke-test failure)

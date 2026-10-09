@@ -45,3 +45,16 @@ More about the class: [session-class.md](session-class.md).
 ## Writing a line from an agent
 
 The Servex tool `log_session {session, line, by}` wraps `Session.log` (restart Servex to see it). From a script: `node Server/session-summary.mjs --log <uuid> '<json>' --by <name>`. The Sessions table filters by tag and by "needs attention" (any alert line).
+
+## The day index line
+
+Not a record line: this is the **computed** feed in `sessions/YYYY/MM/DD/index.jsonl`, written by `Server/SessionTailer.mjs`, never by hand (design: [realtime.md](realtime.md)). One JSON object per line:
+
+```json
+{"id":"<session uuid>","at":"2026-10-08T21:55:33.120Z","usd":6.0,"tree_usd":6.0,"state":"active","last_activity":"2026-10-08T21:55:31Z"}
+```
+
+- `id` and `at` are always there. Every other key is a field that **changed**; a missing key means unchanged.
+- A session's first line each day is a **keyframe** with every field: `usd, tree_usd, children, wall_ms, model, effort, flags, day, provider, state, first_at, last_activity`.
+- Later lines win, field by field (`Session.apply_delta` in the browser, `SessionDays.fold` on the server).
+- `state` is `active` when the last transcript line is under 5 minutes old, else `idle`.
