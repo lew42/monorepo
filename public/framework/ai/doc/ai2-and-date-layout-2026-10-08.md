@@ -12,3 +12,8 @@ Recorded from dictation. **Facts found by looking:**
 4. Fix the **slug truncation** (a task-audit card became `…never-fini`); folder names should not cut a word.
 
 Owner of the investigation: `2026-10-08/ai-system-docs` (AI system overview must cover AI 2). Output: an inventory (what lives where) and a migration proposal with the least breakage; do the safe, additive parts only.
+
+
+## Update 2026-10-09: the merge happened
+
+One script ([migrate.mjs](/framework/ai/2026-10-09/ai2-merge/migrate.mjs)) moved the live AI 2 code to [ai/cards](/framework/ai/cards/) and [ai/rail](/framework/ai/rail/), the docs to [doc/ai2/](doc/ai2/history.md), and old page logs to [archive/ai2](archive/ai2/readme.md). The old `ai2/*.js` paths are one-line re-export shims, and `/framework/ai2/...` still routes through `ai2/page.js`. Every move is in [manifest.json](/framework/ai/2026-10-09/ai2-merge/manifest.json) (`node migrate.mjs --revert` undoes it); the file-by-file facts are in [inventory.md](/framework/ai/2026-10-09/ai2-merge/inventory.md). Not done: the date-layout and zombie-branch parts of the decisions above.

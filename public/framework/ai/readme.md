@@ -10,7 +10,7 @@ The page has three tabs:
 
 A tab after Inbox is **detected, not hand-listed**: any folder whose own `page.jsonl` (or `settings.jsonl`, beside a `page.js`) has `{"settings":{"tab":true,"weight":5}}` joins the strip there, ordered by `weight` (`overview.js`'s `detect_tabs()`; more on the System tab).
 
-The rail is `AIRail` ([ai2/rail.js](/framework/ai/rail/rail.js)), the same one AI 2 draws; how it works is at [/framework/ux/Inbox/](/framework/ux/Inbox/). The old board is at [/framework/ai/v/3/](/framework/ai/v/3/) (and `?v1`).
+The rail is `AIRail` ([ai/rail/rail.js](/framework/ai/rail/rail.js)), the same one AI 2 draws; how it works is at [/framework/ux/Inbox/](/framework/ux/Inbox/). The old board is at [/framework/ai/v/3/](/framework/ai/v/3/) (and `?v1`).
 
 ## Every system, one line each
 
@@ -27,7 +27,8 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Prompt refinement** (Echo, running now): [Servex/doc/echo.md](/framework/servex/doc/echo.md) · [ext/Refine live demo + Prompt class](/framework/ext/Refine/) · [vision](/framework/ext/Refine/doc/vision-2026-10-08.md) · [dictation connection map](/framework/ai/doc/dictation-refine-connection-map-2026-10-08.md)
 - **Page system**: [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/)
 - **Skills and CLAUDE.md**: [skills](skills/)
-- **Dashboard, Log, Inbox**: the tabs above · [AI 2](/framework/ai2/)
+- **Dashboard, Log, Inbox**: the tabs above · [AI 2 (merged into this folder, old address kept)](/framework/ai2/readme.md)
+- **Classes that draw it** (moved here from `ai2/`, 2026-10-09): [cards/](cards/) — `Card` and what a card shows (chat, compose, outline, activity, tasks, faces…) · [rail/](rail/) — `AIRail`, `CardList`, `Groups`, the Live card, Needs, Log, Overview, Processes · [archive/ai2](archive/ai2/readme.md) — old AI 2 page logs, kept
 - Sizes and freshness of all of them: [systems-map.md](systems-map.md)
 
 ## Start here
@@ -44,7 +45,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - [AI 2](/framework/ai2/): the dashboard. Talk to the assistants, see tasks by group, and see
   what each one cost.
 - **Today** and **Yesterday** are pinned rows above the rail (same mechanism as the Now card,
-  `ai2/rail.js`'s `build_day_items()`) — each opens that day's summary: cost (two currencies),
+  `ai/rail/rail.js`'s `build_day_items()`) — each opens that day's summary: cost (two currencies),
   tasks started/landed/open, and the owner's own prompts, refined (`ext/AITask/day-prompts.js`).
   Yesterday stays bold until opened. Prev/next day arrows sit on the day page itself.
 
