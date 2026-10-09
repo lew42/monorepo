@@ -135,8 +135,8 @@ export default class AISessionsPage extends Page {
 			small.c("muted sessions-counts", `${this.filtered_count} sessions shown · $${(this.shown_usd ?? 0).toFixed(2)} Claude cost · ${this.date_from} to ${this.date_to}`)
 				.attr("title", "Claude cost is the API-equivalent price of the tokens, summed from the session files. It is not a bill.");
 			const r = this.reconcile;
-			if (r?.account_total_usd != null) small.c("muted sessions-counts", `OpenRouter (real dollars, apart from the Claude cost above): ${r.recorded_verified_usd.toFixed(2)} recorded · account says ${r.account_total_usd.toFixed(2)} · gap ${r.gap_total_usd.toFixed(2)}`)
-				.attr("title", `${r.sessions.unverified} older sessions carry ${r.recorded_unverified_usd.toFixed(2)} of unverified numbers (not counted); ${r.sessions.unrecorded} have no recorded cost. This week: account ${r.account_week_usd?.toFixed(2)}, recorded ${r.week.verified_usd.toFixed(2)}.`);
+			if (r?.account_total_usd != null) small.c("muted sessions-counts", `OpenRouter (real dollars, apart from the Claude cost above): $${r.recorded_verified_usd.toFixed(2)} recorded · account says $${r.account_total_usd.toFixed(2)} · gap $${r.gap_total_usd.toFixed(2)}`)
+				.attr("title", `${r.sessions.unverified} older sessions carry $${r.recorded_unverified_usd.toFixed(2)} of unverified numbers (not counted); ${r.sessions.unrecorded} have no recorded cost. This week: account $${r.account_week_usd?.toFixed(2)}, recorded $${r.week.verified_usd.toFixed(2)}.`);
 		});
 	}
 
