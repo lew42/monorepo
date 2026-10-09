@@ -2,3 +2,4 @@
 {"log":{"at":"2026-10-08","msg":"words.jsonl is empty (0 lines): no new asks to extract. asks.jsonl has 69 asks: 46 done, 17 partly, 6 not done. Verdicts come from the earlier council run; no new evidence arrived, so none were re-voted."}}
 {"log":{"at":"2026-10-08T22:58:29-05:00","msg":"task-loop chase 1 of 2: could not wake: no owning agent found","chase":1}}
 {"log":{"at":"2026-10-08T23:13:29-05:00","msg":"task-loop chase 2 of 2: could not wake: no owning agent found","chase":2}}
+{"log":{"at":"2026-10-08T23:28:30-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}

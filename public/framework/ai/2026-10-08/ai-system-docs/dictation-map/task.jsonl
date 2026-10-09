@@ -4,3 +4,9 @@
 {"log":{"at":"2026-10-08T22:54:37-05:00","heartbeat":"answered","msg":"Status: the task is finished. The map is written to `public/framework/ai/doc/dictation-refine-connection-map-2026-10-08.md`, and I'm not doing anything further on it. The file changed on disk after I "}}
 {"log":{"at":"2026-10-08T23:06:33-05:00","heartbeat":"check","msg":"status check sent to minion-dictation-map"}}
 {"log":{"at":"2026-10-08T23:06:37-05:00","heartbeat":"answered","msg":"Status: the map is finished and saved at `public/framework/ai/doc/dictation-refine-connection-map-2026-10-08.md`, and I am not running any further work on it. That file was changed on disk by someone "}}
+{"log":{"at":"2026-10-08T23:18:30-05:00","msg":"task-loop chase 1 of 2: woke minion-dictation-map","chase":1}}
+{"log":{"at":"2026-10-08T23:25:37-05:00","heartbeat":"check","msg":"status check sent to minion-dictation-map"}}
+{"log":{"at":"2026-10-08T23:25:42-05:00","heartbeat":"answered","msg":"Status: the map is finished and saved at `public/framework/ai/doc/dictation-refine-connection-map-2026-10-08.md`, and I am not running anything else on it. The file has changed on disk since I wrote i"}}
+{"log":{"at":"2026-10-08T23:33:30-05:00","msg":"task-loop chase 2 of 2: woke minion-dictation-map","chase":2}}
+{"log":{"at":"2026-10-08T23:39:39-05:00","heartbeat":"deliberate","msg":"minion-dictation-map its agent is not running: it was stopped on purpose by mastermind-ai-system-docs at 2026-10-08T23:33:37-05:00; not revived."}}
+{"log":{"at":"2026-10-08T23:48:31-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}

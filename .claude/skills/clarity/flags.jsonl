@@ -317,3 +317,15 @@
 {"at":"2026-10-08T22:16:10.032Z","target":"public/framework/ai/2026-10-08/task-system-design","verdict":"queued","kind":"landing"}
 {"at":"2026-10-08T22:16:12.161Z","target":"public/framework/ai/2026-10-08/task-system-design","verdict":"spawned","to":"clarity-task-system-design"}
 {"at":"2026-10-08T17:45:00-05:00","target":"public/framework/ai/2026-10-08/task-system-design","verdict":"rewrote","what":"design.md cut 712 to ~480 words, added structure tree","to":"design.md"}
+{"at":"2026-10-08T23:27:02.183Z","target":"public/framework/ai/2026-10-08/task-audit","verdict":"queued","kind":"landing"}
+{"at":"2026-10-08T23:27:03.366Z","target":"public/framework/ai/2026-10-08/task-audit","verdict":"spawned","to":"clarity-task-audit"}
+{"at":"2026-10-08T18:40:00-05:00","target":"public/framework/ai/2026-10-08/task-audit","verdict":"rewrote","what":"spend.md opened with contradicting costs ($4.27, $9.19, $6 plan); replaced with the task record's $17.99 / $10.55 / $7.44. by-system.md and plan.md still exceed 500 words with no picture.","to":"spend.md"}
+{"at":"2026-10-09T01:17:05.978Z","target":"public/framework/ai/2026-10-08/notifications-lab/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T01:18:06.948Z","target":"public/framework/ai/2026-10-08/notifications-lab/requirements.md","verdict":"spawned","to":"clarity-notifications-lab"}
+{"at":"2026-10-08T12:00:00.000Z","target":"public/framework/ai/2026-10-08/notifications-lab/requirements.md","verdict":"clear","what":"text-check clean; agent-facing brief states goal, constraints, classes, demos, report and phone checklist plainly","to":"clarity-notifications-lab"}
+{"at":"2026-10-09T03:50:01.059Z","target":"public/framework/ai/2026-10-08/refine-demo/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T03:51:02.062Z","target":"public/framework/ai/2026-10-08/refine-demo/requirements.md","verdict":"spawned","to":"clarity-refine-demo"}
+{"at":"2026-10-08T12:00:00.000Z","target":"public/framework/ai/2026-10-08/refine-demo/requirements.md","verdict":"rewrote","what":"Opening 100-word paragraph became a goal line plus a short bullet list; build steps left as is","to":"requirements.md"}
+{"at":"2026-10-09T03:57:36.875Z","target":"public/framework/ai/2026-10-08/refine-demo","verdict":"queued","kind":"landing"}
+{"at":"2026-10-09T03:57:37.737Z","target":"public/framework/ai/2026-10-08/refine-demo","verdict":"spawned","to":"clarity-refine-demo"}
+{"at":"2026-10-08T23:10:00-05:00","target":"public/framework/ai/2026-10-08/refine-demo","verdict":"rewrote","what":"STATE.md paragraph split; outcome rewritten as ask checklist","to":"public/framework/ai/2026-10-08/refine-demo/STATE.md"}

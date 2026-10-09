@@ -133,3 +133,6 @@ public/framework/ai/sessions/session-tree.json
 
 # generated layout-test screenshots (2026-10-08)
 test-layout-out/
+
+# push-notification VAPID private key, local secret (2026-10-09)
+Server/.push-vapid.json
