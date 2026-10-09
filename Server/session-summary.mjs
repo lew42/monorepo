@@ -121,10 +121,12 @@ export async function build_index({ days = 30 } = {}){
 		const rec = await Session.record(id);
 		if (rec.closed) closed[id] = rec.closed.at;
 		if (rec.tags.length || rec.alerts || rec.links.length || rec.weight != null) meta[id] = { tags: rec.tags, alerts: rec.alerts, links: rec.links.slice(0, 3), weight: rec.weight };
-		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, Session.day(r.first_at) ?? 0];
+		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, (await Session.card_days()).get(Session.short(id)) ?? Session.day(r.first_at) ?? Session.days.get(id) ?? 0];
 		if (r.parent || r.kids.length) tree[id] = { agent: r.agent ?? undefined, role: r.role ?? undefined, parent: r.parent ?? undefined, kids: r.kids.length ? r.kids : undefined };
 	}
-	const index = { generated_at: new Date().toISOString(), days, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
+	const await_days = await Session.card_days();
+	const traces = Object.keys(slim).filter(id => fs.existsSync(path.join(fileURLToPath(Session.dir_url(id, (await_days.get(Session.short(id)) ?? Session.day(rows[id].first_at) ?? Session.days.get(id) ?? undefined))), "trace.json")));
+	const index = { generated_at: new Date().toISOString(), days, traces, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-tree.json"), JSON.stringify(tree));
 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-index.json"), JSON.stringify(index));
 	return { ...index, rows: undefined, new_lines };
