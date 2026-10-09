@@ -2,3 +2,5 @@
 {"log":{"at":"2026-10-09T18:11:19-05:00","msg":"skill: servex-mastermind"}}
 {"log":{"at":"2026-10-09T18:30:00-05:00","msg":"landed be4e78aa0: view() shown/hidden, code page dedupe, three-systems proposal in result.md; skill merge left for system-architect (could not message it)"}}
 {"assign":{"landed_at":"2026-10-09T18:30:00-05:00","now":"landed"}}
+{"log":{"at":"2026-10-09T18:12:03-05:00","msg":"landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}."}}
+{"assign":{"outcome":"**One default object view, a cleaner code page, a three-systems proposal** — view() in DefaultView now honours static shown/hidden; the code page lost its duplicate list; code/objects and code/readme updated; skill merges proposed in result.md for system-architect."}}
