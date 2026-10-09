@@ -63,13 +63,8 @@ export default class RefineDemo extends View {
 		});
 
 		this.$result = div.c("refine-result");
-		div.c("refine-foot", () => {
-			this.$whisper = div.c("refine-whisper");
-			details.c("refine-foot-more", () => {
-				summary("The live objects behind this page (counts, classes, every property)");
-				this.explorer = new RefineExplorer({ subject: this.system });
-			});
-		});
+		this.explorer = new RefineExplorer({ subject: this.system });
+		div.c("refine-foot", () => { this.$whisper = div.c("refine-whisper"); });
 
 		this.system.whisper.check();
 		this.draw();

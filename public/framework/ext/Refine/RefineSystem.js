@@ -70,7 +70,7 @@ export default class RefineSystem {
 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
 			prompt.load(out);
 			prompt.timings = { ...prompt.timings, total_ms: Math.round(performance.now() - t_start) };
-			this.history.push({ at: new Date().toISOString(), words: text.split(/s+/).length, total_ms: prompt.timings.total_ms, cost_usd: +prompt.runs.reduce((a, r) => a + r.cost_usd, 0).toFixed(4), runs: prompt.runs.length });
+			this.history.push({ at: new Date().toISOString(), words: text.split(/\s+/).length, total_ms: prompt.timings.total_ms, cost_usd: +prompt.runs.reduce((a, r) => a + r.cost_usd, 0).toFixed(4), runs: prompt.runs.length });
 		} catch (e){
 			prompt.set({ status: "error", error: String(e?.message ?? e) });
 			ErrorLog.report(e, { where: "RefineSystem.go" });

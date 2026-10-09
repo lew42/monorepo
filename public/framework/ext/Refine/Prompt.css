@@ -50,14 +50,18 @@
 	.refine-cost { margin-inline-start: auto; opacity: .75; }
 	.refine-what { margin: 0 0 .4em; font-size: .9em; opacity: .8; }
 	.refine-foot { position: sticky; bottom: 0; z-index: 5; padding-block: .3em; background: var(--paper, #fff); border-block-start: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
-	.refine-foot-more > :not(summary) { max-height: 45vh; overflow: auto; }
-	.refine-foot-more summary { cursor: pointer; opacity: .8; }
 }
 
 @layer site {
 	.refine-toolbar { gap: .2em; }
 	.refine-toolbar .voice-strip-guess { min-block-size: 0; }
-	.refine-toolbar .voice-conn { max-block-size: 4.5em; overflow: hidden; }
+	.refine-toolbar .voice-conn { max-block-size: none; }
 	.refine-toolbar textarea { min-height: 0; block-size: 3.4em; }
 	.refine-toolbar .voice-strip { gap: .2em; }
+}
+
+@layer site {
+	.refine-toolbar .voice-strip-bar { flex-wrap: wrap; block-size: auto; }
+	.refine-toolbar .refine-cost { margin-inline-start: 0; }
+	@media (max-width: 700px) { .refine-toolbar .voice-conn { display: none; } }
 }

@@ -1,4 +1,4 @@
-import { Page, p, a } from "/app.js";
+import { Page, p, a, span } from "/app.js";
 import RefineDemo from "./RefineDemo.js";
 
 /**
@@ -17,7 +17,9 @@ export default new Page({
 		new RefineDemo().ac("wide");
 		p(() => {
 			a("Saved long run (ladder)").href(new URL("ladder/", import.meta.url).pathname);
+			span(" · ");
 			a("Compare models (try)").href(new URL("try/", import.meta.url).pathname);
+			span(" · ");
 			a("How it fits (architecture)").href("/framework/ext/Refine/md/doc/architecture/");
 		});
 	},
