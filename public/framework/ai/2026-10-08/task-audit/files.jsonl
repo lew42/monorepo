@@ -40,3 +40,11 @@
 {"file":"fix-2/page.jsonl"}
 {"file":"summarise/page.jsonl"}
 {"file":"layout-check/"}
+{"file":"diagnosis.md"}
+{"file":"receipts.mjs"}
+{"file":"verify-brief.mjs"}
+{"file":"verified.jsonl"}
+{"file":"aggregate.mjs"}
+{"file":"verified.md"}
+{"file":"work-items.md"}
+{"file":"briefs/"}

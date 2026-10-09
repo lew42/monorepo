@@ -1,5 +1,7 @@
 # Plan of action: what to do about the loose ends
 
+**Newest:** [work-items.md](work-items.md) (ranked, owned vs unowned, with one brief per unowned cluster), [verified.md](verified.md) (73 loose ends re-checked with receipts), [diagnosis.md](diagnosis.md) (why the first pass was unreliable).
+
 The audit found 354 loose ends (full list: `loose-ends.jsonl`, browse at `/framework/ai/2026-10-08/task-audit/`). **Caveat: the "half-done" labels are only about 58% right**, so every item below is a lead to check first, not a fact (see `spend.md`).
 
 Order: quick and cheap first, grouped by system. Nothing here is started; no coder has been spawned (budget: this task is already over its $6 plan, see `spend.md`, and `mastermind-ai-system-docs` and `minion-session-class` own the sessions and AI docs files).

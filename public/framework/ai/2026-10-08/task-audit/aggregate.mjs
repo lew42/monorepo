@@ -46,5 +46,15 @@ items.forEach((g, n) => {
 });
 w += `\nEstimated cost counts only the \`now\` rows, at about $${COST} each for a Sonnet coder. Row detail: [by-system.md](by-system.md). How rows were checked: [verified.md](verified.md).\n`;
 w += `\n## Row ids per cluster (for briefs)\n\n` + items.map(g => `- **${g.cat}** (${g.o}): ${g.rows.map(r => r.i).join(", ")}`).join("\n") + "\n";
+// One brief per unowned cluster, for ONE mastermind each. Lists only open rows, now first, with the verified next step.
+fs.mkdirSync(path.join(here, "briefs"), { recursive: true });
+const briefed = [];
+for (const g of items.filter(g => g.o === "unowned")) {
+	const f = `briefs/${g.cat}.md`, rs = [...g.rows].sort((a, b) => (eff(a) === "now" ? 0 : 1) - (eff(b) === "now" ? 0 : 1));
+	let b = `# Brief: close the open ${g.cat} loose ends\n\nOne mastermind owns this whole cluster (${g.rows.length} open rows, ${g.now} marked now). Work the \`now\` rows first, smallest step each, commit after each, and log to your card. Rows marked "likely done" only need a quick look. Source: [work-items.md](../work-items.md); how the rows were checked: [verified.md](../verified.md). Never delete; add and link.\n\n| Row | Task | Status | Smallest next step |\n|---|---|---|---|\n`;
+	for (const r of rs) b += `| ${r.i} | ${String(r.title).replace(/\|/g, "/").slice(0, 70)} | ${eff(r)}${r.v ? ", checked: " + r.v.verdict : ""} | ${String(r.v?.next_step || r.fix || "").replace(/\|/g, "/").replace(/\s+/g, " ").slice(0, 160)} |\n`;
+	fs.writeFileSync(path.join(here, f), b); briefed.push(`[${g.cat}](${f})`);
+}
+w += `\n## Briefs for unowned clusters (one mastermind each)\n\n${briefed.join(", ")}\n`;
 fs.writeFileSync(path.join(here, "work-items.md"), w);
 console.log(items.length, "items;", vs.length, "receipts;", agree, "agree");

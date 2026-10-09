@@ -41,3 +41,7 @@ The 1,483 unmatched owner prompts from the session files were not judged (they a
 ## Addendum 7 helpers: real cost (read from the registry when stopped)
 
 Seven Haiku helpers cost **$7.44 in total**: categorise 1 to 4 were $1.43, $1.17, $1.28 and $1.38; fix 1 and 2 were $0.72 and $0.71; summarise was $0.75. That is far above the "well under a dollar" hope. Each helper ran 4 turns, because the heartbeat status checks woke the idle helpers and each wake re-read a 76k to 113k token context. The work itself was one turn each. Lesson: stop a helper the moment its result is in (I stopped them late), and expect an inlined 20k-token batch to cost about $0.25 to $0.40, not pennies. With the mastermind at about $9.19, this task is now roughly $16.6 against a $6 plan.
+
+## Addendum 8 verifiers: real cost
+
+19 Haiku verifiers (helpers with Read, Grep and git, 3 to 4 tasks each, one turn each) checked 73 loose ends and cost about $11 in total, about $0.57 per verifier and $0.15 per task. Almost all of that is the fixed 60k to 70k token context each helper starts with, so a bigger brief is cheaper per task; the first estimate of $0.05 to $0.10 per helper was 5 to 10 times too low. Each was stopped the moment its receipts landed, so none was woken by a heartbeat. Accuracy and the spot check are in [verified.md](verified.md).

@@ -1,16 +1,16 @@
 # Verified loose ends: what the receipts say
 
-> **54 rows checked with tools. The verifier agreed with the old label on 25 (46%).** Disagreeing means the old label was wrong, not that the verifier was: each receipt lists what it searched, found and could not find (`verified.jsonl`, written only by `receipts.mjs`).
+> **73 rows checked with tools. The verifier agreed with the old label on 34 (47%).** Disagreeing means the old label was wrong, not that the verifier was: each receipt lists what it searched, found and could not find (`verified.jsonl`, written only by `receipts.mjs`).
 
 | Old label | Rows | Verifier agreed |
 |---|---|---|
-| half-done | 27 | 11 |
-| never-started | 2 | 0 |
+| half-done | 36 | 15 |
+| never-started | 12 | 5 |
 | done-unverified | 25 | 14 |
 
 Low-confidence receipts: 3. Receipts citing a path or commit that does not exist: 0 (flagged in the receipt, not trusted).
 
-Verdicts: done 28, partial 23, not-started 1, superseded 0, unclear 2.
+Verdicts: done 34, partial 31, not-started 6, superseded 0, unclear 2.
 
 ## My spot check (5 receipts, about 10%), read against the files and git
 
