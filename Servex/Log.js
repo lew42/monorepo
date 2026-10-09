@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { createHash } from "crypto";
 import Events from "../Server/Events.js";
 import { place, stamp } from "./home.js";
 
@@ -111,7 +112,16 @@ export default class Log extends Events {
         this.dir = path.dirname(place("logs", "any.jsonl"));   // and creates it
     }
 
+    /* An agent id can pass the 64-character name rule (task-mastermind-<long slug>): shorten it to 55 characters plus a hash of
+     * the whole name, the same every time, so no append fails with "Bad log name" (2026-10-09). */
+    static safe(name){
+        name = String(name);
+        if (name.length <= 64 || !NAME.test(name.slice(0, 64))) return name;
+        return `${name.slice(0, 55)}-${createHash("sha1").update(name).digest("hex").slice(0, 8)}`;
+    }
+
     file(name){
+        name = Log.safe(name);
         if (!NAME.test(name) && !CARD_NAME.test(name))
             throw new Error(`Bad log name "${name}" — letters, digits, dot, dash and underscore only (or "cards/<slug>").`);
         if (this.files.has(name)) return this.files.get(name);

@@ -31,6 +31,8 @@ const slash = p => String(p).split(path.sep).join("/");
  * `.worktree-pool.json` at the main repo's root, so it survives a restart.
  * The whole story for a reader: Servex/doc/pool.md. */
 export default class Pool extends Events {
+    static ORPHAN_HOURS = 12;  // a holder the registry does not know, this long, with nobody working in its slot, is gone
+    static STUCK_MIN = 10;     // a spawn waiting for a pool worktree this long raises an alert
     static GRACE_MIN = 30;   // a holder stopped this long, with nothing alive in its slot, is salvaged and its slot freed (reclaim)
 
     initialize(){
@@ -251,7 +253,7 @@ export default class Pool extends Events {
                      * log churn plus branches already holding their commits, and take_worktree refused every agent. A holder
                      * stopped for GRACE_MIN minutes, with no live worker (held() above), is salvaged — non-destructively, to
                      * salvage/<slot>-<date>, never deleted — and the slot handed back. A running holder never reaches here. */
-                    const row = rows.find(r => r.id === holder || r.name === holder), gone = Date.now() - Date.parse(row?.stopped_at || row?.last_at || Date.now());
+                    const row = rows.find(r => r.id === holder || r.name === holder), gone = Date.now() - Date.parse(row?.stopped_at || row?.last_at || slot.taken_at || Date.now());
                     if (!/uncommitted changes|not yet in/.test(e.message) || gone < Pool.GRACE_MIN * 60000) throw e;
                     const r = await this.salvage(slot, holder);
                     this.say(`pool: ${slot.id} self-cleaned after ${holder} stopped — ${r.what}`, { id: slot.id, from: holder });
@@ -282,7 +284,14 @@ export default class Pool extends Events {
         if (slot.held_by) return { why: `held by ${slot.held_by}` };   // an explicit hold wins outright — see hold() above
         const LIVE = ["idle", "working", "queued", "starting"];
         const row = rows.find(r => r.id === slot.taken_by || r.name === slot.taken_by);
-        if (!row) return { why: `${slot.taken_by} is not a Servex agent` };
+        if (!row){
+            /* 2026-10-09: a holder the registry forgot (pruned) kept qf-6 and qf-9 for 7 and 2 days. A holder unknown for ORPHAN_HOURS,
+             * with nothing alive working in the slot, is as good as gone; give_back and salvage still protect any work. */
+            const age = Date.now() - Date.parse(slot.taken_at || Date.now()), base = slash(path.resolve(slot.path)).toLowerCase();
+            const live = rows.find(r => LIVE.includes(r.state) && r.cwd && slash(path.resolve(String(r.cwd))).toLowerCase().startsWith(base));
+            if (age > Pool.ORPHAN_HOURS * 3600000 && !live && !/^(session|claude|cli)/i.test(String(slot.taken_by))) return null;
+            return { why: `${slot.taken_by} is not a Servex agent` };
+        }
         if (row.state !== "stopped" && row.state !== "gone") return { why: `${slot.taken_by} is ${row.state}` };
         const inside = cwd => { const c = slash(path.resolve(String(cwd || "."))).toLowerCase(), p = slash(path.resolve(slot.path)).toLowerCase(); return !!cwd && (c === p || c.startsWith(p + "/")); };
         const worker = rows.find(r => LIVE.includes(r.state) && inside(r.cwd));
@@ -473,7 +482,63 @@ export default class Pool extends Events {
         for (const slot of ready.slice(1)){
             if (this.slots.length > this.K || Date.parse(slot.idle_since) < cutoff) this.remove(slot);
         }
+        await this.heal();
         this.top_up();
+    }
+
+    /* SELF-HEALING (2026-10-09): the pool filled with worktrees it had forgotten. remove() "forgets" a slot that holds work and leaves it
+     * on disk; free_id() then skipped every such name (and every unmerged leftover branch), so prepare() found no name, nothing was ever
+     * made ready and every spawn and quick fix failed. Each sweep now reclaims dead holders, recycles those forgotten ones, and raises an
+     * alert on a spawn that waited too long. Nothing is deleted: work goes to salvage/<slot>-<date>. Story: doc/pool-stuck-2026-10-09.md */
+    async heal(){
+        const out = { reclaimed: [], orphans: [], branches: [] };
+        try { out.reclaimed = (await this.reclaim()).reclaimed; } catch (e) { this.say(`pool: reclaim failed: ${e.message}`); }
+        try { Object.assign(out, await this.recycle_orphans()); } catch (e) { this.say(`pool: recycle failed: ${e.message}`); }
+        this.watch_queue();
+        return out;
+    }
+
+    /* Worktrees named qf-1..9 on disk that the pool no longer tracks, and unmerged worktree/qf-N branches with no worktree. */
+    async recycle_orphans(){
+        const done = { orphans: [], branches: [] }, wt = path.resolve(this.main, "..", "worktrees");
+        const known = new Set([...this.slots, ...this.leaving].map(s => s.id));
+        for (let i = 1; i <= 9; i++){
+            const id = `${this.prefix}-${i}`, dir = path.join(wt, id);
+            if (known.has(id)) continue;
+            if (fs.existsSync(path.join(dir, ".git"))){
+                const entry = this.registry()[id] ?? {};
+                const slot = { id, path: slash(dir), branch: `worktree/${id}`, state: "orphan", port: entry.port ?? null, server_pid: entry.pid ?? null, watcher_pid: null, taken_by: "orphan" };
+                const base = slash(dir).toLowerCase();
+                const live = this.holders().find(r => ["idle", "working", "queued", "starting"].includes(r.state) && r.cwd && slash(path.resolve(String(r.cwd))).toLowerCase().startsWith(base));
+                if (live){ this.once(slot, `pool: ${id} is on disk, not in the pool, and ${live.id} works in it — left alone`, "orphan"); continue; }
+                const r = await this.salvage(slot, "orphan (forgotten by the pool)");
+                this.say(`pool: ${id} recycled — ${r.what}`, { id });
+                await this.remove(slot);   // forget() is a no-op for it; the chain then removes the (now clean) worktree
+                done.orphans.push(id);
+            } else {
+                if (!(await this.git(this.main, ["rev-parse", "--verify", "--quiet", `refs/heads/worktree/${id}`])).ok) continue;
+                if ((await this.git(this.main, ["merge-base", "--is-ancestor", `worktree/${id}`, this.base])).ok){ await this.git(this.main, ["branch", "-D", `worktree/${id}`]); continue; }   // merged: only a name
+                const day = stamp().slice(0, 10);
+                let to = `salvage/${id}-${day}`;   // moved, never deleted: the commits stay reachable
+                for (let n = 2; (await this.git(this.main, ["rev-parse", "--verify", "--quiet", `refs/heads/${to}`])).ok; n++) to = `salvage/${id}-${day}-${n}`;
+                if ((await this.git(this.main, ["branch", "-m", `worktree/${id}`, to])).ok){ this.say(`pool: leftover branch worktree/${id} (unmerged) moved to ${to}`, { id }); done.branches.push(id); }
+            }
+        }
+        return done;
+    }
+
+    /* A spawn waiting for a pool worktree over STUCK_MIN minutes is a system failure: said loudly, once per spawn, in the Servex log. */
+    watch_queue(){
+        let queued = [];
+        try { queued = this.servex?.queued?.() ?? []; } catch {}
+        this.alerted ??= new Set();
+        for (const q of queued){
+            if (!/pool worktree/.test(q.reason || "")) continue;
+            const mins = (Date.now() - Date.parse(q.since || Date.now())) / 60000;
+            if (mins < Pool.STUCK_MIN || this.alerted.has(q.id)) continue;
+            this.alerted.add(q.id);
+            this.say(`ALERT pool: ${q.id} has waited ${Math.round(mins)} min for a pool worktree (slots: ${this.slots.map(s => `${s.id}:${s.state}`).join(" ") || "none"}). See Servex/doc/pool-stuck-2026-10-09.md`, { event: "pool-alert", id: q.id });
+        }
     }
 
     /* ── helpers ──────────────────────────────────────────────────────── */
