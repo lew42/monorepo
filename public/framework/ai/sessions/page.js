@@ -100,8 +100,8 @@ export const COLUMNS = [
 	// the start time, stop time, duration and cost on every row"), right beside
 	// Start since all three describe the same span.
 	{ key: "name",     label: "Name",     min: 160 },
-	{ key: "cost",     label: "Cost",     min: 120 },
-	{ key: "updated",  label: "Updated",  min: 88 },
+	{ key: "cost",     label: "Cost",     min: 120, hint: "Click to sort. Without a sort, rows are ordered by cost weighted by recency: a cost counts half as much for every 3 days since the session was last active." },
+	{ key: "updated",  label: "Updated",  min: 88, hint: "Click to sort by the last activity, newest first." },
 	{ key: "duration", label: "Duration", min: 84 },
 	{ key: "role",     label: "Role",     min: 110 },
 	{ key: "source",   label: "Source",   min: 88 },
@@ -109,19 +109,16 @@ export const COLUMNS = [
 	{ key: "state",    label: "State",    min: 60 },
 ];
 
-// The Cost header is also a sort toggle: default (newest-activity-first) →
-// highest cost first → lowest cost first → back to default. `page` carries
-// the state (`page.cost_sort`) and the arrow label (`page.$cost_label`).
+// Every header is a sort toggle: first click = the natural order (words A to Z, numbers biggest first), second click =
+// reversed, third click = back to the default order. `page` carries the state (`page.sort`) and the labels (`page.$sort_labels`).
 function header_row($grid, page){
 	div.c("sessions-head", () => {
 		COLUMNS.forEach((col, i) => {
 			div.c("sessions-cell sessions-head-cell", () => {
-				if (col.key === "cost"){
-					page.$cost_label = span.c("sessions-sort-label").click(() => page.toggle_cost_sort());
-					page.render_cost_label();
-				} else {
-					span(col.label);
-				}
+				const label = span.c("sessions-sort-label").attr("role", "button").attr("tabindex", "0").attr("title", col.hint ?? "Click to sort; click again to reverse; a third click goes back to the default order");
+				label.click(() => page.toggle_sort(col.key));
+				label.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); page.toggle_sort(col.key); } });
+				page.$sort_labels[col.key] = label;
 				// The last column has nothing to its right to resize into —
 				// no grip on it, same as the Page columns system leaves the
 				// rightmost column's own outer edge alone.
@@ -138,6 +135,7 @@ function header_row($grid, page){
 			});
 		});
 	});
+	page.render_sort_labels();
 }
 
 export async function get_json(url){
@@ -296,12 +294,24 @@ export function merge(snapshot_rows, agents){
 		.sort((x, y) => Date.parse(y.last_activity ?? 0) - Date.parse(x.last_activity ?? 0));
 }
 
-// Missing/null sorts LAST regardless of direction — a session nobody has
-// priced yet shouldn't look like the cheapest one. `null` (the default) does
-// nothing: the rows already arrive newest-activity-first from `merge()`.
-export function sort_by_cost(rows, direction){
-	if (!direction){
-		// Default: cost weighted by recency (a cost halves every 3 days since last activity), so what matters now is on top.
+// What each column sorts by. A number or a lowercase word; null = unknown, which sorts LAST in either direction
+// (a session nobody has priced yet must not look like the cheapest one).
+const SORT_VALUE = {
+	name:     r => (r.tab_title || r.id || "").toLowerCase(),
+	cost:     r => cost_value(r),
+	updated:  r => Date.parse(r.last_activity ?? 0) || null,
+	duration: r => { const e = elapsed(r.started_at, r.stopped_at ?? (WORKING_STATES.has(r.state) ? new Date().toISOString() : null)); return typeof e === "number" && !isNaN(e) ? e : null; },
+	role:     r => r.role || null,
+	source:   r => r.source || null,
+	model:    r => r.model ? String(r.model).toLowerCase() : null,
+	state:    r => r.state ? (WORKING_STATES.has(r.state) ? 0 : 1) : null,
+};
+const TEXT_COLUMNS = new Set(["name", "role", "source", "model"]);   // these start A to Z; the rest start biggest first
+export const natural_dir = key => TEXT_COLUMNS.has(key) ? "asc" : "desc";
+
+// sort = null (the default: cost weighted by recency, a cost halves every 3 days since last activity) or { key, dir }.
+export function sort_rows(rows, sort){
+	if (!sort){
 		const now = Date.now();
 		const score = r => {
 			const ix = row_of(IX, r.session_id || r.id);
@@ -310,11 +320,14 @@ export function sort_by_cost(rows, direction){
 		};
 		return rows.map(r => [score(r), r]).sort((a, b) => b[0] - a[0]).map(x => x[1]);
 	}
-	const priced = rows.filter(r => cost_value(r) !== null);
-	const unpriced = rows.filter(r => cost_value(r) === null);
-	priced.sort((a, b) => direction === "desc" ? cost_value(b) - cost_value(a) : cost_value(a) - cost_value(b));
-	return [...priced, ...unpriced];
+	const get = SORT_VALUE[sort.key], sign = sort.dir === "asc" ? 1 : -1;
+	const keyed = rows.map(r => [get(r), r]);
+	const known = keyed.filter(x => x[0] !== null && x[0] !== undefined), unknown = keyed.filter(x => x[0] === null || x[0] === undefined);
+	known.sort((x, y) => (x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : 0) * sign);
+	return [...known, ...unknown].map(x => x[1]);
 }
+// The old name, still used by tests and the dashboard tile.
+export function sort_by_cost(rows, direction){ return sort_rows(rows, direction ? { key: "cost", dir: direction } : null); }
 
 const WORKING_STATE_ATTR = state => WORKING_STATES.has(state) ? "working" : "idle";
 
@@ -506,7 +519,8 @@ export default new Page({
 		this.$asof = null;
 		panel.header.append(() => { this.$asof = small.c("muted", "loading…"); });
 
-		this.cost_sort = null;      // null | "desc" | "asc" — the Cost header's own toggle
+		this.sort = null;           // null (default order) | { key, dir } — set by clicking a column header
+		this.$sort_labels = {};
 		this.role_filter = null;    // Set<string> | null (null = "everything", until the first real data arrives)
 		this.trigger_filter = null; // Set<string> | null — same shape, for the spend tree's trigger tag (2026-10-03, spend-tree)
 		const today = new Date();
@@ -571,15 +585,19 @@ export default new Page({
 		});
 	},
 
-	render_cost_label(){
-		if (!this.$cost_label) return;
-		const arrow = this.cost_sort === "desc" ? " ↓" : this.cost_sort === "asc" ? " ↑" : "";
-		this.$cost_label.text("Cost" + arrow);
+	render_sort_labels(){
+		for (const col of COLUMNS){
+			const on = this.sort?.key === col.key;
+			this.$sort_labels[col.key]?.text(col.label + (on ? (this.sort.dir === "desc" ? " ↓" : " ↑") : ""));
+		}
 	},
 
-	toggle_cost_sort(){
-		this.cost_sort = this.cost_sort === null ? "desc" : this.cost_sort === "desc" ? "asc" : null;
-		this.render_cost_label();
+	toggle_sort(key){
+		const nat = natural_dir(key), rev = nat === "asc" ? "desc" : "asc";
+		if (this.sort?.key !== key) this.sort = { key, dir: nat };
+		else if (this.sort.dir === nat) this.sort = { key, dir: rev };
+		else this.sort = null;
+		this.render_sort_labels();
 		this.render_rows();
 	},
 
@@ -659,7 +677,7 @@ export default new Page({
 			&& (!this.attention_only || meta[id_of(r)]?.alerts)
 			&& (!this.tag_filter || meta[id_of(r)]?.tags.includes(this.tag_filter)));
 		const filtered = base.filter(r => this.role_filter.has(r.role || "(unknown)") && this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)"));
-		const sorted = sort_by_cost(filtered, this.cost_sort);
+		const sorted = sort_rows(filtered, this.sort);
 
 		// Paging, not windowing: rows are variable-height (a title line plus an
 		// optional wrapped prompt-preview line), so there's no fixed row height

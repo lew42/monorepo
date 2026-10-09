@@ -120,6 +120,10 @@ public/framework/ai/servex-queue.json
 public/framework/ai/sessions/session-index.json
 # cache.jsonl = computed numbers (rebuildable). session.jsonl = the hand-written record: TRACKED, append-only.
 public/framework/ai/sessions/*/cache.jsonl
+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/**/cache.jsonl
+# a folder listing for a cache folder is noise (PageFiles skips them now); the day folders hold only <id>/ dirs
+public/framework/ai/sessions/[0-9a-f]*-*/files.jsonl
+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/**/files.jsonl
 public/framework/ai/sessions/session-tree.json
 
 # generated layout-test screenshots (2026-10-08)
