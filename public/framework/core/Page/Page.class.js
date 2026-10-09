@@ -311,6 +311,21 @@ export class Page extends Item {
 		return rest;
 	}
 
+	/* A LOG ON TOP OF A TEMPLATE. A page drawn by code (a template, like a session
+	   page) can still be reshaped by a page.jsonl beside its data: only the SHAPE of
+	   a line applies here — the six words, `tab` lines, `title`, and lines addressed
+	   to a tab that a `tab` line built. Everything else in such a log (a card's own
+	   fields, cost lines, `add`/`at` lines older code wrote) stays that log's data,
+	   because an unknown key can name a Page METHOD (`add`, `move`) and must never
+	   call it. Returns the part it applied, or null. */
+	overlay(line){
+		if (!line || typeof line !== "object" || Array.isArray(line)) return null;
+		const shape = {};
+		for (const [key, value] of Object.entries(line))
+			if (Page.WORDS.includes(key) || key === "tab" || key === "title" || this.children.get(key)?.from_tab) shape[key] = value;
+		return Object.keys(shape).length ? (this.set(shape), shape) : null;
+	}
+
 	// One redraw per burst of lines: a batch of lines read together (a replay, or a
 	// delta naming three words) lands as ONE rerender, on the next microtask.
 	reshape(){
@@ -1540,7 +1555,14 @@ export class Page extends Item {
 
 	// Asked at RENDER time, never walked — so a child that only loads when you
 	// navigate to it is a column too. Undefined when I am not in a columns tree.
-	column_host(){ return this.chain().find(page => page.columnar); }
+	// ⚠ A page under a TAB STRIP is a tab: drawn as a page in that strip's panel, never as
+	//   one more column in the row (2026-10-09, the page tool — a session page is a column,
+	//   and a tab an agent adds to it must open inside it).
+	column_host(){
+		const chain = this.chain(), at = chain.findIndex(page => page.columnar);
+		if (at < 0 || chain.slice(at, -1).some(page => page.navigation === "tabs")) return undefined;
+		return chain[at];
+	}
 
 	// My column, then the region MY children mount in — so the DOM stays an ordinary
 	// tree and the visibility contract holds; Page.css flattens only the LAYOUT. The
@@ -1610,7 +1632,11 @@ export class Page extends Item {
 			     columns row printed its own address as a line of text (2026-09-06) — one
 			     of the two places what-is-in-the-box is decided, disagreeing with the
 			     other. There is one now. */
-			if (this.content)
+			// A column that says `navigation: "tabs"` draws the one tab strip (ext/tabs), its own
+			// content as the first tab, instead of listing its children as rows that open beside it.
+			const tabbed = this.navigation === "tabs" && is.fn(this.tabs);
+			if (tabbed) this.tabs(undefined, { home: () => div.c("page-column-prose flow", () => this.render_content()) });
+			else if (this.content)
 				div.c("page-column-prose flow", () => this.render_content());
 
 			// ⚠ `index: true` — my content ALREADY shows my children, as a `previews()`
@@ -1619,7 +1645,7 @@ export class Page extends Item {
 			//   out by hand to say it. A FIELD, not a method — and not `nav:` (`nav()` is
 			//   a method here) or `rail:` (four pages already declare it as their own
 			//   word): the `opens()` collision, avoided by grepping first. doc/columns.md.
-			if (!this.index) this.children.forEach((child, name) => {
+			if (!this.index && !tabbed) this.children.forEach((child, name) => {
 				const nav = this.nav_for(name);
 
 				a.c("page-column-item").href(nav.url).append(() => {
