@@ -46,6 +46,7 @@ pulling a sample straight from a recent voice session — no index of raw dictat
 today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
 
 ## More
+- [Echo](/framework/servex/doc/echo.md) — the running pipeline that uses this engine on every prompt you type in VS Code: triggers, output, cost, and the gaps against the vision (`Servex/doc/echo.md`)
 - [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
 - `doc/vision-2026-10-08.md` — the owner's intended pipeline (raw → clean → refined cards, every sentence accounted, context cards); check the built state against it
 - `doc/raw-match.md` — the word-overlap heuristic that lights up Raw, worked example

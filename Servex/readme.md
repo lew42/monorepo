@@ -157,7 +157,7 @@ replayed the same way, cold: `agents/echo-replay.mjs` reads a session's real
 prompt+reply pairs straight off its own transcript file, in order, for a
 FRESH echo session to work through one at a time — see
 `public/framework/ai/2026-10-02/prompt-refine/minion-echo/` for the first
-test's results.
+test's results. How it works, what it costs and the gaps against the vision: [doc/echo.md](doc/echo.md).
 
 **Cards** — `cards/`, one folder per card, and the `create_card` tool that makes
 them. [`cards/readme.md`](./cards/readme.md) defines every line.
