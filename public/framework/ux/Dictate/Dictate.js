@@ -319,6 +319,7 @@ export default class Dictate extends View {
 		(this.stage_log ??= []).push({ stage, detail, ms, at: Date.now() });
 		if (this.stage_log.length > 12) this.stage_log.shift();
 		console.log(`[dictate] ${stage}: ${detail}`);
+		this.on_step?.(stage, detail);   // optional: a caller drawing its own connection view (ext/Refine/Connection)
 		this.draw_diag();
 		this.draw_stage_tray?.();
 		if (this.state === "connecting" && stage === "mic") this.$status?.rc("error").text(this.timed_text("mic"));
@@ -337,7 +338,9 @@ export default class Dictate extends View {
 	draw_diag(){
 		if (!this.$diag) return;
 		const s = this.steps;
-		this.$diag.text(`mic: ${s.mic || "idle"} · socket: ${s.socket || "—"} · whisper: ${s.whisper || "—"}`);
+		// Plain words (the owner, 2026-10-09). The dev-reload socket is not part of dictation, so it is
+		// kept in `steps.socket` for the console trail but no longer printed here.
+		this.$diag.text(`Mic: ${s.mic || "idle"} · Whisper: ${s.whisper || "—"}`);
 	}
 
 	/* "connected" / "retrying" — read straight off the dev socket singleton (the one the
@@ -368,7 +371,7 @@ export default class Dictate extends View {
 			this.log_step("whisper", attempt === 1 ? "checking…" : "checking again…");
 			try {
 				const r = await fetch_timeout(this.whisper_url + "/", {}, 2500);
-				if (r.ok){ this.log_step("whisper", "answering"); mark_whisper_seen(); return "whisper"; }
+				if (r.ok){ this.log_step("whisper", "connected"); mark_whisper_seen(); return "whisper"; }
 			} catch { /* not reachable — retry once, then fall through */ }
 			if (attempt === 1) await new Promise(res => setTimeout(res, 400));
 		}
@@ -664,7 +667,7 @@ export default class Dictate extends View {
 		// asked for (mic open, first samples, first Whisper answer): this is the first time
 		// `AudioWorklet` has actually handed back a real frame, proof the mic isn't just
 		// "open" but genuinely feeding audio.
-		if (!this.heard_first_sample){ this.heard_first_sample = true; this.log_step("mic", "hearing audio"); }
+		if (!this.heard_first_sample){ this.heard_first_sample = true; this.log_step("mic", "on, level ok"); }
 		this.level = this.level * 0.6 + level * 0.4;
 		this.$button.style("--ux-dictate-level", Math.min(1, this.level * 6).toFixed(3));
 		this.on_meter?.(Math.min(1, this.level * 6));   // same smoothed number, for a caller's own bigger bar
@@ -849,7 +852,7 @@ export default class Dictate extends View {
 		// FIRST WHISPER ANSWER, timed (2026-10-05) — the third checkpoint: proof the whole
 		// pipeline (mic → samples → whisper-server → a real reply) works, not just that the
 		// mic opened.
-		if (!this.heard_first_answer){ this.heard_first_answer = true; this.log_step("whisper", "first answer"); }
+		if (!this.heard_first_answer){ this.heard_first_answer = true; this.log_step("whisper", `connected, last reply ${(this.whisper_ms / 1000).toFixed(1)} s`); }
 		// ⚠ Whisper puts "\n" between ITS OWN segments, mid-speech ("Testing, testing.\n My name is…") —
 		// left in, every one became a paragraph break in the box. Real breaks come from real pauses only.
 		return (body.text ?? "").replace(/\s+/g, " ").trim();
