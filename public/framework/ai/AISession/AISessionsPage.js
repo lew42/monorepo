@@ -133,7 +133,10 @@ export default class AISessionsPage extends Page {
 		this.$stats.empty(() => {
 			if (this.usage) usage_rail(this.usage);
 			small.c("muted sessions-counts", `${this.filtered_count} sessions shown · $${(this.shown_usd ?? 0).toFixed(2)} Claude cost · ${this.date_from} to ${this.date_to}`)
-				.attr("title", "Cost is summed from the session files (the session index), for the rows in the table below.");
+				.attr("title", "Claude cost is the API-equivalent price of the tokens, summed from the session files. It is not a bill.");
+			const r = this.reconcile;
+			if (r?.account_total_usd != null) small.c("muted sessions-counts", `OpenRouter (real dollars, apart from the Claude cost above): ${r.recorded_verified_usd.toFixed(2)} recorded · account says ${r.account_total_usd.toFixed(2)} · gap ${r.gap_total_usd.toFixed(2)}`)
+				.attr("title", `${r.sessions.unverified} older sessions carry ${r.recorded_unverified_usd.toFixed(2)} of unverified numbers (not counted); ${r.sessions.unrecorded} have no recorded cost. This week: account ${r.account_week_usd?.toFixed(2)}, recorded ${r.week.verified_usd.toFixed(2)}.`);
 		});
 	}
 
@@ -379,6 +382,7 @@ export default class AISessionsPage extends Page {
 			if (this.last_rows.length) this.draw();   // upgrades drawn rows to their date-path links
 		});
 		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });   // the plan's own meter, kept fresh by Servex
+		get_json(this.url + "../sessions/openrouter-reconcile.json").then(r => { this.reconcile = r; this.render_stats(); }).catch(() => {});   // written by Server/openrouter-reconcile.mjs
 	}
 
 	/** Load the day files the date filter needs (real files: closed days, plus today's live one), then ask the dev socket to push today's changes. With no dev socket the 30-second tick re-reads today's file. A cost change redraws its own row (AISessionView); a new or active/idle session redraws the grid now, a newer last activity a moment later. */

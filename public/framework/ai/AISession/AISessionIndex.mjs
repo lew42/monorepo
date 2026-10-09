@@ -187,10 +187,14 @@ export default class AISessionIndex {
 	build(id, session, { prev, reg } = {}){
 		const s = session.s, pv = session.preview(), age = s.last_at ? Date.now() - Date.parse(s.last_at) : Infinity;
 		const tokens = Object.values(s.tokens ?? {}).reduce((n, v) => n + (typeof v === "number" ? v : 0), 0);
-		const own = r4(pv.usd), below = prev ? Math.max(0, (prev.tree_usd ?? 0) - (prev.usd ?? 0)) : 0;   // the descendants, which the transcript alone cannot give
+		// A real OpenRouter cost, once recorded, is kept: the registry row that carried it goes away when Servex restarts, and the transcript alone cannot give it back.
+		// A snapshot from before usd_source existed keeps its number too, but labelled "unverified": it may be a Claude-rate guess.
+		const keep_real = pv.usd_source === "unrecorded" && prev?.usd_source === "openrouter";
+		const keep_old = pv.usd_source === "unrecorded" && prev && prev.provider === "openrouter" && (prev.usd_source == null || prev.usd_source === "unverified") && prev.usd > 0;
+		const own = keep_real || keep_old ? r4(prev.usd) : r4(pv.usd), usd_source = keep_real ? "openrouter" : keep_old ? "unverified" : pv.usd_source, below = prev ? Math.max(0, (prev.tree_usd ?? 0) - (prev.usd ?? 0)) : 0;   // the descendants, which the transcript alone cannot give
 		const snap = {
 			id, state: age < AISessionIndex.ACTIVE_MS ? "active" : "idle", model: pv.model === "unknown" ? null : pv.model, effort: pv.effort ?? null,
-			provider: pv.provider === "openrouter" ? "openrouter" : "claude", usd: own, tree_usd: r4(own + below),
+			provider: pv.provider === "openrouter" ? "openrouter" : "claude", usd: own, usd_source, tree_usd: r4(own + below),
 			children: prev?.children ?? 0, wall_ms: Math.round(pv.wall_ms), flags: pv.flags.length, tokens, first_at: s.first_at ?? null, last_activity: s.last_at ?? null,
 			day: AISession.day(s.first_at) ?? prev?.day ?? null, folder: this.dirs.has(id) ? path.basename(this.dirs.get(id)) : (this.snaps.get(id)?.folder ?? null), tags: prev?.tags ?? [], alerts: prev?.alerts ?? 0,
 			parent: reg?.parent ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
@@ -351,18 +355,18 @@ export default class AISessionIndex {
 		try { return fs.readdirSync(dir, { withFileTypes: true }).filter(d => d.isDirectory() && new RegExp(`^\\d{${width}}$`).test(d.name)).map(d => d.name).sort(); } catch { return []; }
 	}
 
-	/** The totals the closed day files imply: { "2026/10": { "08": {count, usd, flagged} }, ... } and per year. A day's usd is the lifetime cost of the sessions whose last activity was that day. */
+	/** The totals the closed day files imply: { "2026/10": { "08": {count, usd, flagged} }, ... } and per year. usd is Claude API-equivalent dollars only; usd_openrouter is OpenRouter's own billed dollars, never added to it. A day's usd is the lifetime cost of the sessions whose last activity was that day. */
 	static compute(root = SESSIONS_DIR){
 		const months = {}, years = {};
 		for (const y of AISessionIndex.numbered(root, 4)) for (const m of AISessionIndex.numbered(path.join(root, y), 2)) for (const d of AISessionIndex.numbered(path.join(root, y, m), 2)){
 			let day; try { day = JSON.parse(fs.readFileSync(path.join(root, y, m, d, "index.json"), "utf8")); } catch { continue; }
 			if (!day.closed) continue;
 			const list = day.snapshots ?? [];
-			(months[`${y}/${m}`] ??= {})[d] = { count: list.length, usd: r4(list.reduce((n, s) => n + (s.usd || 0), 0)), flagged: list.filter(s => s.flags > 0 || s.alerts > 0).length };
+			(months[`${y}/${m}`] ??= {})[d] = { count: list.length, usd: r4(list.reduce((n, s) => n + (s.provider === "openrouter" ? 0 : s.usd || 0), 0)), usd_openrouter: r4(list.reduce((n, s) => n + (s.provider === "openrouter" ? s.usd || 0 : 0), 0)), flagged: list.filter(s => s.flags > 0 || s.alerts > 0).length };
 		}
 		for (const [ym, days] of Object.entries(months)){
 			const [y, m] = ym.split("/"), all = Object.values(days);
-			(years[y] ??= {})[m] = { days: all.length, count: all.reduce((n, x) => n + x.count, 0), usd: r4(all.reduce((n, x) => n + x.usd, 0)), flagged: all.reduce((n, x) => n + x.flagged, 0) };
+			(years[y] ??= {})[m] = { days: all.length, count: all.reduce((n, x) => n + x.count, 0), usd: r4(all.reduce((n, x) => n + x.usd, 0)), usd_openrouter: r4(all.reduce((n, x) => n + (x.usd_openrouter || 0), 0)), flagged: all.reduce((n, x) => n + x.flagged, 0) };
 		}
 		return { months, years };
 	}

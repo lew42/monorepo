@@ -310,9 +310,11 @@ export default class AISession {
 		// ONE source per provider. An OpenRouter session is billed by OpenRouter and recorded by the Servex registry
 		// (cost, turns, model); its transcript priced at Claude rates would be a made-up number. A Claude session reads its transcript.
 		const provider = provider_of(cfg?.model || me.id), or = provider === "openrouter";
-		const usd = or && typeof cfg?.cost === "number" ? cfg.cost : s.usd;
+		// Real dollars only: OpenRouter's own per-call cost, summed by Servex into the registry row (cfg.cost). A session with no such row has NO
+		// recorded cost; its transcript priced at Claude rates is a made-up number, so it is kept apart as usd_estimate and never added to usd.
+		const real = or && typeof cfg?.cost === "number", usd = or ? (real ? cfg.cost : 0) : s.usd;
 		return {
-			id: s.id, provider, usd: r6(usd), tree_usd: or ? r6(usd) : (t.tree_usd ?? r6(s.usd)), children: t.children ?? 0,
+			id: s.id, provider, usd: r6(usd), usd_source: or ? (real ? "openrouter" : "unrecorded") : "claude", ...(or && !real ? { usd_estimate: r6(s.usd) } : {}), tree_usd: or ? r6(usd) : (t.tree_usd ?? r6(s.usd)), children: t.children ?? 0,
 			wall_ms: this.wall_ms, active_ms: s.active_ms, messages: or && typeof cfg?.turns === "number" ? cfg.turns : s.messages,
 			model: or ? (cfg?.model || me.id) : me.label, model_id: or ? (cfg?.model || me.id) : me.id, effort: me.effort,
 			flags: s.flags, cache_read_pct: this.cache_read_pct(),

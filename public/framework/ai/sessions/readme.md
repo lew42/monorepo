@@ -192,3 +192,4 @@ merge.
 - [`ext/panel2`](/framework/ext/panel2/) — the header/main chrome this tab is built from
 - Files: the classes live in [`../AISession/`](../AISession/) (see [`doc/classes.md`](./doc/classes.md), which also lists the names rejected); here: `page.js` (creates `AISessionsPage`), `AISessionsPage.js`, `AISessionDetail.js`, `AISessionView.js`, `AISessionRows.js`, `AISessionTrace.js`, `sessions.css` (the row), `settings.jsonl`
   (`{"tab":true}`, how this folder joined the strip)
+- OpenRouter dollars are real, Claude dollars are an equivalent, and the gap to the account is stated: [`doc/openrouter-dollars.md`](doc/openrouter-dollars.md).
