@@ -14,7 +14,7 @@ const CONCEPTS = [
 	{ name: "The mic button", icon: "mic", href: "demo/", blurb: "press it, watch the state — idle → listening → transcribing" },
 	{ name: "Playground", icon: "science", href: "playground/", blurb: "raw whisper text, the fast assistant's corrections, and the live diff" },
 	{ name: "Variants", icon: "style", href: "variants/", blurb: "v1, Cards, Compact — same engine, three different looks" },
-	{ name: "Architecture", icon: "account_tree", href: "doc/voice-architecture/", blurb: "which class owns what: Dictate, VoiceStrip, Widget, the drawer and the phone sheet" },
+	{ name: "Architecture", icon: "account_tree", href: "md/doc/voice-architecture/", blurb: "which class owns what: Dictate, VoiceStrip, Widget, the drawer and the phone sheet" },
 	{ name: "Decisions", icon: "menu_book", href: "doc/decisions/", blurb: "the install, the segment/resend mechanics, who starts whisper-server" },
 ];
 
