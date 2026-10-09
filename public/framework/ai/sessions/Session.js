@@ -314,7 +314,7 @@ export default class Session {
 		return {
 			id: s.id, provider, usd: r6(usd), tree_usd: or ? r6(usd) : (t.tree_usd ?? r6(s.usd)), children: t.children ?? 0,
 			wall_ms: this.wall_ms, active_ms: s.active_ms, messages: or && typeof cfg?.turns === "number" ? cfg.turns : s.messages,
-			model: or ? cfg.model : me.label, model_id: or ? cfg.model : me.id, effort: me.effort,
+			model: or ? (cfg?.model || me.id) : me.label, model_id: or ? (cfg?.model || me.id) : me.id, effort: me.effort,
 			flags: s.flags, cache_read_pct: this.cache_read_pct(),
 		};
 	}
