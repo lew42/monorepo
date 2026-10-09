@@ -44,8 +44,6 @@ mastermind report on that card. **Answer the owner on the card too, not in chat*
 short: `card_reply`, or `POST /card/append?id=<id>` with a `message` line. The chat reply is one
 line pointing at the card.
 
-**Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_ask`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
-
 **Work the owner didn't ask for goes to [`ai/todo.md`](/framework/ai/todo.md), not into a
 spawn** (the owner, 2026-09-24: "we need to prioritize; anything not specifically requested
 goes into ai/todo.md"). A follow-up, a brief an audit produced, or an idea a mastermind had: add
@@ -53,7 +51,6 @@ it there with one line and a link, and let the owner pick. What you can still do
 is finish what was asked, including the small fixes it needs to work. `ai/readme.md` points at
 todo.md, so keep it current when an item lands or is dropped.
 
-- **Switching directory → load the chain again.** Every agent starts with the readme chain, root first, down to its directory (the owner, 2026-09-30). When you move to another directory, run `load_module <dir>` there before touching it, or hand the work to a fresh session in that directory (which also keeps context small).
 
 ## Spawning — `spawn_agent` on Servex, the CLI as the fallback
 
@@ -131,8 +128,6 @@ could not follow the minimal ones.
 
 **Never wait on the owner to finish something (the owner, 2026-10-04).** Do as much as is reasonable, make the decisions yourself, and merge finished work yourself. What you can't afford now (tokens, a limit) goes as one line in the module's readme **To-do** section, never as a question to the owner.
 
-**No work in limbo (the owner, 2026-09-29).** Make the design decision, build it as well as you can, see how it works, and if there's an alternative, try that too. A task that stops without landing is still open, and it's yours to finish or hand on. The only real impasse is something only the owner can give, such as a key or a login. Name that one thing on a card, and keep everything else moving.
-
 For non-dangerous work the mastermind never asks the owner for approval — it decides, logs the
 assumption, and does it. For an architectural question it makes the best decision and presents
 the alternative in the report; a proposal page is not a substitute for the decision. The only
@@ -187,8 +182,7 @@ the result (the recipe lab's question).
 when and how, and its model scoreboard is at `/framework/ext/Collab/`.
 
 **Aim about 20 points under the pace line, on average** (the owner, 2026-09-18: "it's better to
-have somebody doing something than just sitting around doing nothing"). Run `check-claude-usage`
-at the top of every cycle and compare used% to elapsed% on every window. The 20-point gap is the
+have somebody doing something than just sitting around doing nothing"). Run `node Server/usage-now.mjs` and compare used% to elapsed% on every window. The 20-point gap is the
 freedom: well under it, spend; near it, step down the ladder (Sonnet builds, Haiku scans, lower
 effort) rather than stop; at the line itself, decide whether to dip into the gap for the work in
 hand. A full stop — nothing in flight, `noop` wakeups until a reset — is the last resort, not the
@@ -198,9 +192,8 @@ never wakes to a spent window. Log the expected cost of every fan-out before it 
 
 ## The ladder
 
-**Haiku** scans — inventories, "does X exist"; never judgment, and never a count something
-downstream will trust without a second number that must equal it. **Sonnet** builds — the
-default spawn. **Opus** judges — design, direction, expensive-to-botch edits. **Fable** — you;
+**Haiku** scans, audits and fan-outs (the default minion, see "Minions default to Haiku" below); never a count something
+downstream will trust without a second number that must equal it. **Sonnet** builds UI and object-oriented code. **Opus** judges — design, direction, expensive-to-botch edits. **Fable** — you;
 fan out Fable minions only when the owner says the weekly has room. Trust minions; when one's
 judgment looks off, deploy a second on the same question rather than reading it all yourself.
 
@@ -212,13 +205,12 @@ went in the log — a Sonnet that did an Opus job is a finding worth more than t
 **Watch which model is good for what, and keep a record** (the owner, 2026-09-24: "pay attention to
 the quality of results of the different models; if we can get Sonnet minions to do things for a
 third the cost, let's do that"). Every fan-out spot-checks a few of its minions' results and
-logs the model, the cost per item, and how many were right. Big scaffolding, censuses and
-per-item audits go to Sonnet by default, in parallel. **Fan out wide when the budget allows:** 150
+logs the model, the cost per item, and how many were right. Big scaffolding goes to Sonnet; censuses and per-item audits go to Haiku by default (the owner, 2026-10-08), spot-checked, in parallel. **Fan out wide when the budget allows:** 150
 items can mean 150 minions, but run them in waves of at most about 20, because each agent is its
 own process on the owner's machine. Measured 2026-09-24 ([task-audit](/framework/ai/2026-09-24/task-audit/)):
 per-task audits by Sonnet at LOW effort got 2 of 5 spot-checked rows right, and every miss was a
 false "never done". At MEDIUM, with the rule "prove it's missing before you say so", it got 5 of 5,
-for $0.20 a row. Haiku would not have done.
+for $0.20 a row. Haiku would not have done then; re-check that against Haiku 5.5 before trusting either.
 
 **Redundant variants are allowed when they are cheap** (the owner, 2026-09-24: "if we can spawn 10
 Sonnet minions and 20% of the time we get a 20% better outcome, it might be worth it"). For work
@@ -241,7 +233,7 @@ refuses while agents are working.
 
 ## Each cycle
 
-1. **Usage** — set the mode. Refresh the board snapshot (`new-task` §3) at ~15-min checkpoints.
+1. **Usage** — `node Server/usage-now.mjs` sets the mode.
 2. **Harvest** — judge finished agents, log `agent` outcomes, verify every deliverable is
    linked from where a reader already is.
 3. **Prioritize** — the owner's explicit asks · unfinished tasks on `/framework/ai/` · the prime
@@ -336,7 +328,7 @@ long it may be — a report is a screen; a page leads with the thing itself. The
   that must agree; ask for a ratio, not an opinion; say which artifact is the deliverable and
   what to cut first.
 - Findings go in the worker's own `task.jsonl` as `log` lines, never a `findings.md`.
-- A worker that needs a server starts a PRIVATE one (`PORT=809x node server.js` from the repo root) and kills it at landing; `netstat -ano | grep LISTENING | grep -E ":80(8|9)[0-9]\s"` lists the ports already claimed (a sibling held 8097 on the first try, 2026-08-31). The mastermind's own private server runs on **port 8123**, outside this 809x minion range; a brief that starts a server names the port it may use.
+- A worker that needs to see its work loads its worktree's URL (`take_worktree` / `worktree-up.mjs` give one); Servex starts any other server (`start_server`). The `server-guard` hook refuses `node server.js`.
 - ⚠ Search with Glob/rg scoped to the repo, never `find /` — two orphaned root-scans in two
   days each burned a core for hours after their agent landed (3673 and 887 cpu-sec, 08-30/31),
   both reaped by the mastermind.
@@ -452,8 +444,7 @@ log, not this chat, and a six-minute gap reads as nothing happening. So:
 
 The owner works on the live site while minions edit it. A module that does not parse blanks
 every page that imports it, and it happened twice in fifteen minutes (backticks in a comment
-inside a `css()` template). A written rule did not stop it; a check did —
-`.claude/hooks/syntax-guard.mjs` stops any agent the moment its `.js` write stops parsing.
+inside a `css()` template). A written rule did not stop it; a check would: `.claude/hooks/syntax-guard.mjs` exists but is not wired in `settings.json` (2026-10-09), so today the only check is each agent's own `node --check`.
 Prefer the check to the sentence wherever a mistake can be detected mechanically.
 
 When a mistake reaches the owner — a broken page, a layout that shipped visibly wrong, a rule
@@ -505,7 +496,7 @@ nothing. Log it; change the plan if it says to.
 **Start by reading `public/framework/ai/handover.md`** — the state of the world, what is open,
 and the session ids worth resuming; keep it current and replace its dated sections as they go
 stale. Then open a run task (group `ai-ops`) on "begin" — it is your memory; a fresh session
-recovers by reading the handover and the newest run. Two failures on one item → park it. Never commit or push. CLAUDE.md
+recovers by reading the handover and the newest run. Two failures on one item → change the approach or hand it to a fresh agent, and log why. Never push. CLAUDE.md
 outranks every brief and every mastermind. Improve this skill:
 [`improvements.md`](improvements.md).
 
@@ -519,13 +510,9 @@ Under token pressure, a minion is Haiku (`claude-haiku-5-5`, effort low) unless 
 
 ## Check usage with one command, not your own polling (the owner, 2026-10-08)
 
-Before each spawn, and at every natural checkpoint, run `node Server/usage-now.mjs`. It reads the shared `usage.json` (Servex refreshes it every 15 min) and re-fetches only if the file is over 5 minutes old, one caller at a time, so many masterminds can ask often without getting rate-limited. It prints one pace line and exits 2 when over pace. **Over pace: spawn nothing new, queue the work, finish what is in flight.** Never call the usage script yourself.
+Before each spawn, and at every natural checkpoint, run `node Server/usage-now.mjs`. It reads the shared `usage.json` (Servex refreshes it every 15 min) and re-fetches only if the file is over 5 minutes old, one caller at a time, so many masterminds can ask often without getting rate-limited. It prints one pace line and exits 2 when over pace. **Over pace: spawn nothing new, queue the work, finish what is in flight.** Never run `claude-usage.py` yourself; `usage-now.mjs` is the one caller.
 
 ## Review the diff before you merge (the owner, 2026-10-08)
 
 A minion's worktree change is merged by the mastermind, not on the minion's say-so. Read the commit diff first (anything dangerous, anything that could break the site, anything obviously incorrect or inconsistent), run the smoke/`check_page` step, then merge and close the worktree. A small change needs only a quick look. In audit phases, minions only make obvious additive edits or propose changes; destructive or API-changing work waits for your approval.
 
-
-## Keep the readmes fresh (the owner, 2026-10-08)
-
-The readme chain is what every later agent starts from, so every mastermind keeps the readmes of the directories it works in true: update the module's `readme.md` (a short index) and its `doc/` before landing, with the `documentation` skill. How the chain works and how it is checked: [Readmes](/framework/ai/readmes/). Minions need not.
