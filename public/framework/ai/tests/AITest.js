@@ -3,7 +3,7 @@ import { Page, div, p, h2, ul, li, small, table, thead, tbody, tr, th, td, a } f
 /* AITest — ONE test of the openrouter test library, as a real page.
  *
  * Amendment 5 (test-library/requirements.md, "Phase 10: an AITest is a PAGE"): the SAME shape
- * AI 2's card (`/framework/ai2/card.js`) already uses for a card-as-a-folder — this file IS the
+ * AI 2's card (`/framework/ai/cards/card.js`) already uses for a card-as-a-folder — this file IS the
  * class, and `public/framework/ai/tests/<slug>/page.jsonl`'s line 1 names it:
  *
  *   {"class": "/framework/ai/tests/AITest.js", "title", "kind", "rung", "skills",

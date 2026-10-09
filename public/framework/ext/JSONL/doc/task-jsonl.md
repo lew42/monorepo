@@ -305,7 +305,7 @@ next time a verb happens to share a field's name.
 
 ## `{"group": "<id>"}` — which AI 2 group the task is filed under (latest line wins)
 
-⚠ Not `assign.group`, the older "effort" field. `TaskJSONL` does not know it yet (one console warning per file); AI 2 reads it — [`ai2/doc/groups.md`](/framework/ai2/doc/groups.md).
+⚠ Not `assign.group`, the older "effort" field. `TaskJSONL` does not know it yet (one console warning per file); AI 2 reads it — [`ai2/doc/groups.md`](/framework/ai/doc/ai2/groups.md).
 
 ## Progress is two assigned fields, never a verb
 

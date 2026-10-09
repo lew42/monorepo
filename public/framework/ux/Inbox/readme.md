@@ -44,6 +44,6 @@ this.rail = new MyRail({ page: this }).mount();
 ## More
 
 - [`Inbox.css`](./Inbox.css) — the whole look, including the phone rule (one screen at a time)
-- [`ai2/rail.js`](/framework/ai2/rail.js) — `AIRail`, the subclass with the usage meters
+- [`ai2/rail.js`](/framework/ai/rail/rail.js) — `AIRail`, the subclass with the usage meters
 - [`core/Page/ext/Inbox/`](/framework/core/Page/ext/Inbox/) — the Inbox extension the class lives in
-- History of every rule: [`ai2/doc/decisions.md`](/framework/ai2/doc/decisions.md)
+- History of every rule: [`ai2/doc/decisions.md`](/framework/ai/doc/ai2/decisions.md)

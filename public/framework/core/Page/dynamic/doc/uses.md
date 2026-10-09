@@ -4,7 +4,7 @@ Two real, already-running systems build their pages this way today. Neither has 
 
 ## AI 2's cards — a folder listing, then `page.jsonl`
 
-[`ai2/card.js`](/framework/ai2/card.js), `Card.Folder.child()` (around line 1000): a year or month segment (`2026`, `2026/09`) builds a plain index page from the id alone; a day segment (`2026/09/24`) reads that day's card straight off its `page.jsonl` with `Card.jsonl(...)`. No `page.js` exists for any year, month, day or card — `child()` is the only reason `/framework/ai2/2026/09/24/<card>/` opens at all. Format: [`core/Page/jsonl/`](/framework/core/Page/jsonl/) (a page built from log lines, live — the format is shown there, not repeated here).
+[`ai2/card.js`](/framework/ai/cards/card.js), `Card.Folder.child()` (around line 1000): a year or month segment (`2026`, `2026/09`) builds a plain index page from the id alone; a day segment (`2026/09/24`) reads that day's card straight off its `page.jsonl` with `Card.jsonl(...)`. No `page.js` exists for any year, month, day or card — `child()` is the only reason `/framework/ai2/2026/09/24/<card>/` opens at all. Format: [`core/Page/jsonl/`](/framework/core/Page/jsonl/) (a page built from log lines, live — the format is shown there, not repeated here).
 
 ## The AI day pages — `route()` + one dashboard function
 

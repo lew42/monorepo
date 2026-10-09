@@ -1,8 +1,8 @@
 import { Page, div, a, p, span, small, View } from "/app.js";
 import Panel2 from "/framework/ext/panel2/Panel2.js";
-import { watch_needs } from "/framework/ai2/needs.js";
+import { watch_needs } from "/framework/ai/rail/needs.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
-import { CardList } from "/framework/ai2/inbox.js";
+import { CardList } from "/framework/ai/rail/inbox.js";
 import AISessionRows from "../AISession/AISessionRows.js";
 import AISessionView from "../AISession/AISessionView.js";
 const { merge: merge_sessions, get_json } = AISessionRows;
@@ -47,7 +47,7 @@ function progress_bar(spent, budget){
 }
 
 function task_row(t){
-	const href = t.card ? "/framework/ai2/" + t.card + "/" : t.dir ? "/framework/ai/" + t.dir + "/" : null;
+	const href = t.card ? "/framework/ai2/" + t.card + "/" : t.dir ? "/framework/ai/" + t.dir.replace(/^public\/framework\/ai\//, "") + "/" : null;
 	const inner = () => {
 		div.c("flex gap-50 v-center", () => {
 			span.c("dash-task-title", t.title || t.dir || "Untitled task");

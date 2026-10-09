@@ -13,7 +13,7 @@ const SURFACES = [
 		says: "On a desktop, the ☰ at the top right opens it. The chat fills the drawer's full height.",
 		shots: ["drawer-ai-1920.png"],
 		call: `chat($slot.el, { path: page, card: card?.id })` },
-	{ name: "An AI 2 card's sidebar", file: "/framework/ai2/card.js",
+	{ name: "An AI 2 card's sidebar", file: "/framework/ai/cards/card.js",
 		says: "Every card page has it on the right, under a line naming the card.",
 		shots: ["card-sidebar-1920.png"],
 		call: `chat(slot.el, { path: this.url, card: this.id })` },

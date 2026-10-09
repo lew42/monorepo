@@ -48,7 +48,7 @@ function icon_from_page_js(page_path){
 
 // A page.jsonl page ("page.jsonl pages included" — the owner, 2026-10-03) has no icon of its
 // own: its identity is its first (`assign`) line, not a page.js. That line's `class` names the
-// page TEMPLATE it actually renders through (e.g. "/framework/ai2/card.js", an AITask card) —
+// page TEMPLATE it actually renders through (e.g. "/framework/ai/cards/card.js", an AITask card) —
 // borrow THAT page's own icon, the same way a concept-only entry borrows a url: one real
 // `icon:` literal, never a second guess at it. No current refs.js entry is backed by a
 // page.jsonl page, but a future one works through this exact same code path, not a new one.

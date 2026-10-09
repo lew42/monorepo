@@ -37,7 +37,7 @@ export default class Assistant {
 	defaults(){
 		return { id: "assistant-fast", role: "assistant", name: "fast", log: "prompts", current: null, minted: [], last_card: null,
 			selected: null, card: null, prompt: null,
-			groups_file: path.join(REPO, "public/framework/ai2/groups.json"),
+			groups_file: path.join(REPO, "public/framework/ai/rail/groups.json"),
 			root: path.join(HERE, "../../public/framework") };
 	}
 

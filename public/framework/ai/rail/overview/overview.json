@@ -1205,7 +1205,7 @@
 				},
 				{
 					"task": "2026-09-25/now-card-tabs",
-					"quote": "Card 2026/09/25/now — its whole log, 13 lines, oldest first:\n{\"class\":\"/framework/ai2/card.js\",\"title\":\"Now\",\"type\":\"no…",
+					"quote": "Card 2026/09/25/now — its whole log, 13 lines, oldest first:\n{\"class\":\"/framework/ai/cards/card.js\",\"title\":\"Now\",\"type\":\"no…",
 					"owner": true,
 					"words_url": "/framework/ai/2026-09-25/now-card-tabs/",
 					"asked_at": "2026-09-25T17:37:19-05:00",
@@ -1369,7 +1369,7 @@
 					"hours": 0.5,
 					"cost_usd": 12.2246,
 					"outcome": "Every dashboard ask you made this week is on one page, and the two layout breaks it found are fixed on AI 2.",
-					"result_url": "/framework/ai2/doc/owner-asks.md",
+					"result_url": "/framework/ai/doc/ai2/owner-asks.md",
 					"state": "done"
 				},
 				{

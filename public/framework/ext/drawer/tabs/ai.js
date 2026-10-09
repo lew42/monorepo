@@ -4,7 +4,7 @@ import Widget, { model, MODELS } from "/framework/ux/Dictate/Widget.js";
 import chat, { ago } from "/framework/ux/Dictate/chat.js";
 import { composer } from "/framework/ext/Chat/Composer.js";
 import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
-import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai2/inbox.js";
+import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai/rail/inbox.js";
 import { ask, available } from "/framework/ext/Ask/Ask.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 import drawer from "../drawer.js";
@@ -599,7 +599,7 @@ export function aiV1({ page, card, tabs }){
 
 		if (card){
 			const $thread = div.c("drawer-ai-list flex v");
-			import("/framework/ai2/chat.js").then(m => {
+			import("/framework/ai/cards/chat.js").then(m => {
 				$thread.empty(() => { talk = m.default({ source: () => card.chat_entries(), re: () => card.id }); });
 				talk.sync();
 			});

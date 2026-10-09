@@ -1,0 +1,631 @@
+{
+ "total": 63,
+ "code": 33,
+ "live": 28,
+ "dead": 5,
+ "urlReferrers": 91,
+ "rows": [
+  {
+   "file": "public/framework/ai2/activity.js",
+   "importers": [
+    "public/framework/ai2/card.js",
+    "public/framework/ai2/rail.js",
+    "public/framework/ai2/real.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/agents.js",
+   "importers": [
+    "public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md",
+    "public/framework/ai2/card.js",
+    "public/framework/ai2/rail.js",
+    "public/framework/ext/drawer/tabs/ai.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/ai/files.jsonl",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/ai/log.jsonl",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/ai2.css",
+   "importers": [
+    "public/framework/core/Page/card/inventory.json",
+    "public/framework/ux/Content/catalog/catalog.json",
+    "public/framework/ux/Content/plan/plan.json",
+    "Servex/processes.test.mjs"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/card.js",
+   "importers": [
+    ".claude/skills/code/improvements.md",
+    "public/framework/ai/audits/paging/content.md",
+    "public/framework/ai/audits/paging/types.json",
+    "public/framework/ai/audits/paging/types.md",
+    "public/framework/ai/doc/systems-overview.md",
+    "public/framework/ai/page.js",
+    "public/framework/ai/tests/AITest.js",
+    "public/framework/ai/todo.md",
+    "public/framework/ai2/doc/cards.md",
+    "public/framework/ai2/live.js",
+    "public/framework/ai2/overview/overview.json",
+    "public/framework/ai2/rail.js",
+    "public/framework/ai2/readme.md",
+    "public/framework/core/Page/dynamic/doc/uses.md",
+    "public/framework/core/Page/ext/doc/path-extensions.md",
+    "public/framework/core/Page/ext/readme.md",
+    "public/framework/core/Page/make/page.js",
+    "public/framework/core/Page/overview/folders/page.js",
+    "public/framework/core/Page/readme.md",
+    "public/framework/ext/Chat/Mic.js",
+    "public/framework/ext/drawer/rail.js",
+    "public/framework/ext/drawer/tabs/ai.js",
+    "public/framework/ext/drawer/tabs.js",
+    "public/framework/ext/Mention/doc/syntax.md",
+    "public/framework/ext/Mention/sync-icon.mjs",
+    "public/framework/ux/Card/page.js",
+    "public/framework/ux/Card/readme.md",
+    "public/framework/ux/Content/catalog/catalog.json",
+    "public/framework/ux/Content/plan/plan.json",
+    "public/framework/ux/Dictate/doc/chat.md",
+    "public/framework/ux/Dictate/surfaces/page.js",
+    "Servex/agents/layers.test.mjs",
+    "Servex/cards/Cards.js",
+    "Servex/cards/migrate.mjs",
+    "Servex/cards/readme.md",
+    "Servex/cards/test.mjs",
+    "Servex/ext/openrouter/evals/library.mjs"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/chat.js",
+   "importers": [
+    "public/framework/ai2/card.js",
+    "public/framework/ai2/faces.js",
+    "public/framework/ai2/live.js",
+    "public/framework/ai2/rail.js",
+    "public/framework/ext/drawer/rail.css",
+    "public/framework/ext/drawer/rail.js",
+    "public/framework/ext/drawer/tabs/ai.js",
+    "public/framework/ux/Content/catalog/catalog.json",
+    "public/framework/ux/Content/plan/plan.json"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/compose.js",
+   "importers": [
+    "public/framework/ai/doc/systems-overview.md",
+    "public/framework/ai2/card.js",
+    "public/framework/ai2/chat.js",
+    "public/framework/ai2/rail.js",
+    "public/framework/ext/Chat/doc/decisions.md",
+    "public/framework/ext/Chat/Mic.js",
+    "public/framework/ext/drawer/tabs/ai.js",
+    "public/framework/ux/Content/catalog/catalog.json",
+    "public/framework/ux/Dictate/playground/doc/decisions.md",
+    "public/framework/ux/Dictate/playground/readme.md",
+    "public/framework/ux/Dictate/readme.md",
+    "Servex/cards/Cards.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/card-standard.md",
+   "importers": [
+    ".claude/skills/every-prompt/page-assistant.md",
+    ".claude/skills/every-prompt/SKILL.md",
+    ".claude/skills/finish-task/SKILL.md",
+    ".claude/skills/sub-mastermind/SKILL.md",
+    "public/framework/ai/todo.md",
+    "Servex/agents/assistant.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/cards.md",
+   "importers": [
+    "public/framework/ux/Card/readme.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/columns-seams.md",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/doc/columns.md",
+   "importers": [
+    "public/framework/ux/Card/Card.css",
+    "public/framework/ux/Card/readme.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/decisions.md",
+   "importers": [
+    "public/framework/ux/Card/Card.css",
+    "public/framework/ux/Card/readme.md",
+    "public/framework/ux/Inbox/Inbox.css",
+    "public/framework/ux/Inbox/readme.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/files.jsonl",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/doc/groups.md",
+   "importers": [
+    "public/framework/ext/JSONL/doc/task-jsonl.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/img/files.jsonl",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/doc/img/needs-you-1920.png",
+   "importers": [
+    "public/framework/ai2/doc/needs-you.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/img/wide-after-1280-agent.jpg",
+   "importers": [
+    "public/framework/ai2/doc/columns.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/img/wide-after-1280.jpg",
+   "importers": [
+    "public/framework/ai2/doc/columns.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/img/wide-after-1920-agent.jpg",
+   "importers": [
+    "public/framework/ai2/doc/columns.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/img/wide-after-1920.jpg",
+   "importers": [
+    "public/framework/ai2/doc/columns.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/img/wide-after-2560-agent.jpg",
+   "importers": [
+    "public/framework/ai2/doc/columns.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/img/wide-after-2560.jpg",
+   "importers": [
+    "public/framework/ai2/doc/columns.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/img/wide-after-3440-agent.jpg",
+   "importers": [
+    "public/framework/ai2/doc/columns.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/img/wide-after-3440.jpg",
+   "importers": [
+    "public/framework/ai2/doc/columns.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/img/wide-before-3440.jpg",
+   "importers": [
+    "public/framework/ai2/doc/columns.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/logs.md",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/doc/needs-you.md",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/doc/one-ai.md",
+   "importers": [
+    "public/framework/ext/drawer/rail.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/overview.md",
+   "importers": [
+    "Server/ai2-overview.mjs"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/owner-asks.md",
+   "importers": [
+    "public/framework/ai2/overview/overview.json"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/doc/persistence.md",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/doc/processes.md",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/faces.js",
+   "importers": [
+    "public/framework/ai/audits/paging/types.md",
+    "public/framework/ai2/activity.js",
+    "public/framework/ai2/card.js",
+    "public/framework/ai2/log.js",
+    "public/framework/ai2/needs.js",
+    "public/framework/ai2/outline.js",
+    "public/framework/ai2/overview.js",
+    "public/framework/ai2/rail.js",
+    "public/framework/ai2/real.js",
+    "public/framework/ai2/tasks.js",
+    "public/framework/ext/Refine/prompt-card.js",
+    "public/framework/ext/Refine/readme.md",
+    "public/framework/ux/Content/plan/plan.json"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/files.jsonl",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/floating.js",
+   "importers": [
+    "public/framework/ai2/card.js",
+    "public/framework/ai2/doc/decisions.md",
+    "public/framework/core/Page/layout/floating/floating.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/fold.js",
+   "importers": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    "public/framework/ai/doc/ai2-merge-and-layout-proposal-2026-10-08.md",
+    "public/framework/ai2/activity.js",
+    "public/framework/ai2/inbox.js",
+    "public/framework/ai2/needs.js",
+    "Servex/agents/inbox.js",
+    "Servex/cards/Cards.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/groups.js",
+   "importers": [
+    ".claude/hooks/jsonl-schema.mjs",
+    "public/framework/ai2/log.js",
+    "public/framework/ai2/rail.js",
+    "public/framework/core/Page/Log.js",
+    "public/framework/core/Page/Page.class.js",
+    "Servex/agents/Assistant.js",
+    "Servex/agents/layers-proof.mjs"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/groups.json",
+   "importers": [
+    "public/framework/ai2/groups.js",
+    "Servex/agents/Assistant.js",
+    "Servex/agents/layers-proof.mjs"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/inbox.js",
+   "importers": [
+    ".claude/hooks/jsonl-schema.mjs",
+    "public/framework/ai/dashboard/doc/decisions.md",
+    "public/framework/ai/dashboard/page.js",
+    "public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md",
+    "public/framework/ai/doc/systems-overview.md",
+    "public/framework/ai/todo.md",
+    "public/framework/ai2/activity.js",
+    "public/framework/ai2/agents.js",
+    "public/framework/ai2/card.js",
+    "public/framework/ai2/compose.js",
+    "public/framework/ai2/faces.js",
+    "public/framework/ai2/groups.js",
+    "public/framework/ai2/live.js",
+    "public/framework/ai2/needs.js",
+    "public/framework/ai2/outline.js",
+    "public/framework/ai2/processes.js",
+    "public/framework/ai2/rail.js",
+    "public/framework/ai2/real.js",
+    "public/framework/ai2/rules.js",
+    "public/framework/ai2/tasks.js",
+    "public/framework/core/Page/ext/Inbox/readme.md",
+    "public/framework/core/Page/ext/Inbox/servex.js",
+    "public/framework/ext/drawer/doc/select.md",
+    "public/framework/ext/drawer/tabs/ai.js",
+    "public/framework/ext/drawer/tabs.js",
+    "public/framework/ext/Refine/prompt-card.js",
+    "public/framework/ext/Refine/readme.md",
+    "Servex/proof/migrate-cards.mjs"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/live.js",
+   "importers": [
+    "public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md",
+    "public/framework/ai/todo.md",
+    "public/framework/ai2/page.js",
+    "public/framework/ai2/rail.js",
+    "public/framework/dev/DevBar/chat.js",
+    "public/framework/ux/Content/catalog/catalog.json",
+    "public/framework/ux/Content/plan/plan.json",
+    "public/framework/ux/Dictate/doc/decisions.md",
+    "Server/smoke.mjs"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/log.js",
+   "importers": [
+    "public/framework/ai2/page.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/meter.js",
+   "importers": [
+    "public/framework/ai/todo.md",
+    "public/framework/ai2/faces.js",
+    "public/framework/ai2/rail.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/needs-rule.js",
+   "importers": [
+    "public/framework/ai/asks/readme.md",
+    "public/framework/ai/doc/ai2-merge-and-layout-proposal-2026-10-08.md",
+    "public/framework/ai2/groups.js",
+    "public/framework/ai2/inbox.js",
+    "public/framework/ai2/needs.js",
+    "public/framework/ai2/rail.js",
+    "Servex/cards/Cards.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/needs.js",
+   "importers": [
+    "public/framework/ai/asks/readme.md",
+    "public/framework/ai/dashboard/doc/decisions.md",
+    "public/framework/ai/dashboard/page.js",
+    "public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md",
+    "public/framework/ai2/card.js",
+    "public/framework/ai2/page.js",
+    "public/framework/ai2/rail.js",
+    "public/framework/ai2/rules.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/outline.js",
+   "importers": [
+    "public/framework/ai2/activity.js",
+    "public/framework/ai2/card.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/overview/ai/files.jsonl",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/overview/ai/log.jsonl",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/overview/files.jsonl",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/overview/overview.json",
+   "importers": [
+    "public/framework/ai2/doc/overview.md",
+    "Server/ai2-overview.mjs"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/overview.js",
+   "importers": [
+    "public/framework/ai2/page.js",
+    "public/framework/ux/Content/catalog/catalog.json",
+    "public/framework/ux/Content/plan/plan.json"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/page.js",
+   "importers": [
+    "public/framework/ai/doc/ai2-merge-and-layout-proposal-2026-10-08.md",
+    "public/framework/ai/page.js",
+    "public/framework/ai/todo.md",
+    "public/framework/core/Page/audit/data.js",
+    "public/framework/core/Page/card/page.js",
+    "public/framework/ux/Content/plan/plan.json",
+    "public/framework/ux/Dictate/surfaces/page.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/page.jsonl",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/processes.css",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/processes.js",
+   "importers": [
+    "public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md",
+    "public/framework/ai2/live.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/rail.css",
+   "importers": [
+    "public/framework/ai/v/3/v3.css",
+    "public/framework/ux/Card/Card.css",
+    "public/framework/ux/Card/readme.md",
+    "public/framework/ux/Inbox/Inbox.css"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/rail.js",
+   "importers": [
+    "public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md",
+    "public/framework/ai/overview.js",
+    "public/framework/ai/page.js",
+    "public/framework/ai/readme.md",
+    "public/framework/ai2/page.js",
+    "public/framework/core/Page/ext/Inbox/Rail.js",
+    "public/framework/core/Page/ext/Inbox/readme.md",
+    "public/framework/ux/Dictate/doc/chat.md",
+    "public/framework/ux/Inbox/page.js",
+    "public/framework/ux/Inbox/readme.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/readme.md",
+   "importers": [
+    "public/framework/ai/systems-map.md",
+    "public/framework/ux/Card/readme.md"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/real.js",
+   "importers": [
+    "public/framework/ai2/rail.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/rules.js",
+   "importers": [
+    "public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md",
+    "public/framework/ai2/card.js",
+    "public/framework/ai2/rail.js",
+    "public/framework/ext/AITask/dashboard.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/tasks.js",
+   "importers": [
+    "public/framework/ai2/card.js",
+    "public/framework/ai2/outline.js",
+    "public/framework/ai2/rail.js",
+    "public/framework/core/Page/Log.js",
+    "public/framework/core/Page/Page.class.js"
+   ]
+  },
+  {
+   "file": "public/framework/ai2/weight.jsonl",
+   "importers": []
+  },
+  {
+   "file": "public/framework/ai2/workspace.js",
+   "importers": [
+    "public/framework/ai2/card.js",
+    "public/framework/ai2/rail.js"
+   ]
+  }
+ ],
+ "urlRefs": [
+  ".claude/hooks/jsonl-schema.mjs",
+  ".claude/hooks/jsonl-schema.test.mjs",
+  ".claude/skills/every-prompt/page-assistant.md",
+  ".claude/skills/every-prompt/SKILL.md",
+  ".claude/skills/finish-task/SKILL.md",
+  ".claude/skills/minion/improvements.md",
+  ".claude/skills/minion/SKILL.md",
+  ".claude/skills/sub-mastermind/improvements.md",
+  ".claude/skills/sub-mastermind/SKILL.md",
+  "public/framework/ai/asks/page.js",
+  "public/framework/ai/asks/readme.md",
+  "public/framework/ai/asks/rows.js",
+  "public/framework/ai/audits/paging/page-css.md",
+  "public/framework/ai/dashboard/page.js",
+  "public/framework/ai/doc/ai2-and-date-layout-2026-10-08.md",
+  "public/framework/ai/doc/ai2-merge-and-layout-proposal-2026-10-08.md",
+  "public/framework/ai/doc/systems-overview.md",
+  "public/framework/ai/handoff2.md",
+  "public/framework/ai/handover.md",
+  "public/framework/ai/local/page.js",
+  "public/framework/ai/overview.js",
+  "public/framework/ai/page.js",
+  "public/framework/ai/readme.md",
+  "public/framework/ai/systems-map.md",
+  "public/framework/ai/talk/page.js",
+  "public/framework/ai/tests/AITest.js",
+  "public/framework/ai/todo.md",
+  "public/framework/core/Page/ai/work.js",
+  "public/framework/core/Page/audit/data.js",
+  "public/framework/core/Page/audit/design/data.js",
+  "public/framework/core/Page/audit/design/findings.md",
+  "public/framework/core/Page/audit/sheets/localhost-80-framework-ai2/layout.json",
+  "public/framework/core/Page/audit/sheets/summary.md",
+  "public/framework/core/Page/card/inventory.json",
+  "public/framework/core/Page/dynamic/doc/uses.md",
+  "public/framework/core/Page/ext/doc/path-extensions.md",
+  "public/framework/core/Page/ext/Inbox/readme.md",
+  "public/framework/core/Page/ext/paths.js",
+  "public/framework/core/Page/ext/readme.md",
+  "public/framework/core/Page/make/page.js",
+  "public/framework/core/Page/overview/folders/page.js",
+  "public/framework/core/Page/Page.css",
+  "public/framework/core/Sidebar/variants/walkthrough/page.js",
+  "public/framework/ext/AITask/doc/cost.md",
+  "public/framework/ext/drawer/doc/select.md",
+  "public/framework/ext/drawer/rail.js",
+  "public/framework/ext/drawer/tabs/ai.js",
+  "public/framework/ext/grip/readme.md",
+  "public/framework/ext/JSONL/doc/decisions.md",
+  "public/framework/ext/JSONL/doc/task-jsonl.md",
+  "public/framework/ext/Mention/doc/syntax.md",
+  "public/framework/ext/Mention/sync-icon.mjs",
+  "public/framework/ui/scale/page.js",
+  "public/framework/ui/scale/readme.md",
+  "public/framework/ux/Card/Card.css",
+  "public/framework/ux/Card/page.js",
+  "public/framework/ux/Card/readme.md",
+  "public/framework/ux/Content/catalog/catalog.json",
+  "public/framework/ux/Content/plan/plan.json",
+  "public/framework/ux/Dictate/page.js",
+  "public/framework/ux/Dictate/surfaces/page.js",
+  "public/framework/ux/Dictate/v1/page.js",
+  "public/framework/ux/Inbox/readme.md",
+  "Server/ai2-overview.mjs",
+  "Server/clarity.mjs",
+  "Server/council.mjs",
+  "Server/crawl.mjs",
+  "Server/doc/health.md",
+  "Server/health.mjs",
+  "Server/merge.mjs",
+  "Server/plugins/CardAnswer.js",
+  "Server/README.md",
+  "Server/review.mjs",
+  "Server/smoke.mjs",
+  "Servex/agents/Assistant.js",
+  "Servex/agents/assistant.md",
+  "Servex/agents/Dispatcher.js",
+  "Servex/agents/layers-proof.mjs",
+  "Servex/agents/Layers.js",
+  "Servex/agents/layers.test.mjs",
+  "Servex/agents/page-assistant-proof.mjs",
+  "Servex/agents/readme.md",
+  "Servex/asks/readme.md",
+  "Servex/cards/Cards.js",
+  "Servex/cards/migrate.mjs",
+  "Servex/cards/readme.md",
+  "Servex/cards/test.mjs",
+  "Servex/doc/readme-chain.md",
+  "Servex/ext/openrouter/evals/library.mjs",
+  "Servex/processes.test.mjs",
+  "Servex/Servex.js"
+ ]
+}

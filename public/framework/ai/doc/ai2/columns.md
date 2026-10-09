@@ -7,7 +7,7 @@ single column. No line of text ever gets wider than the site's reading width (`-
 40em, about 75 characters), and the whole card still scrolls as one page — no box inside
 it has a scrollbar of its own.
 
-![The Live card at 3440 wide: usage and tasks, the running list, one agent's conversation, the chat](/framework/ai2/doc/img/wide-after-3440.jpg)
+![The Live card at 3440 wide: usage and tasks, the running list, one agent's conversation, the chat](/framework/ai/doc/ai2/img/wide-after-3440.jpg)
 
 ## The rule: count the levels of navigation
 
@@ -37,7 +37,7 @@ window's, because dragging the rail wider takes room from the card.
 - **The conversation sits level with its row**, and the row stays highlighted, so your eye
   does not have to hunt for it.
 
-![2560, an agent picked from further down the list](/framework/ai2/doc/img/wide-after-2560-agent.jpg)
+![2560, an agent picked from further down the list](/framework/ai/doc/ai2/img/wide-after-2560-agent.jpg)
 
 ## When there is no room: the conversation takes over
 
@@ -47,15 +47,15 @@ top. **← Live** brings the card back exactly where you were scrolled. A half-t
 survives all of it, and widening the window past the switch turns the takeover back into
 the column without losing the conversation.
 
-![1920, an agent's conversation taking over the card](/framework/ai2/doc/img/wide-after-1920-agent.jpg)
+![1920, an agent's conversation taking over the card](/framework/ai/doc/ai2/img/wide-after-1920-agent.jpg)
 
 ## All the screenshots
 
-- Before, at 3440 — one narrow column and the chat the whole width: [wide-before-3440](/framework/ai2/doc/img/wide-before-3440.jpg)
-- 3440: [as it loads](/framework/ai2/doc/img/wide-after-3440.jpg) · [another agent picked](/framework/ai2/doc/img/wide-after-3440-agent.jpg)
-- 2560: [as it loads](/framework/ai2/doc/img/wide-after-2560.jpg) · [another agent picked](/framework/ai2/doc/img/wide-after-2560-agent.jpg)
-- 1920: [as it loads](/framework/ai2/doc/img/wide-after-1920.jpg) · [an agent taking over](/framework/ai2/doc/img/wide-after-1920-agent.jpg)
-- 1280: [as it loads](/framework/ai2/doc/img/wide-after-1280.jpg) · [an agent taking over](/framework/ai2/doc/img/wide-after-1280-agent.jpg)
+- Before, at 3440 — one narrow column and the chat the whole width: [wide-before-3440](/framework/ai/doc/ai2/img/wide-before-3440.jpg)
+- 3440: [as it loads](/framework/ai/doc/ai2/img/wide-after-3440.jpg) · [another agent picked](/framework/ai/doc/ai2/img/wide-after-3440-agent.jpg)
+- 2560: [as it loads](/framework/ai/doc/ai2/img/wide-after-2560.jpg) · [another agent picked](/framework/ai/doc/ai2/img/wide-after-2560-agent.jpg)
+- 1920: [as it loads](/framework/ai/doc/ai2/img/wide-after-1920.jpg) · [an agent taking over](/framework/ai/doc/ai2/img/wide-after-1920-agent.jpg)
+- 1280: [as it loads](/framework/ai/doc/ai2/img/wide-after-1280.jpg) · [an agent taking over](/framework/ai/doc/ai2/img/wide-after-1280-agent.jpg)
 
 ## Why columns, and not something else
 

@@ -41,7 +41,7 @@ export const schemas = {
 			shots:      { fields: ["pages"], eg: { at: "NOW", pages: ["/x/"], dir: "shots/" } },
 			bands:      { fields: [], eg: { at: "NOW", page: "/x/", bands: 3 } },
 			// `{"group": "slug"}` puts the task in a group — read by ai2/groups.js's Member.apply(), not a verb method.
-			group:      { type: "string", extra: "public/framework/ai2/groups.js", eg: "system-design" },
+			group:      { type: "string", extra: "public/framework/ai/rail/groups.js", eg: "system-design" },
 			// The Dashboard's three task buttons (stalled-and-budgets, 2026-10-02): a verb line, never
 			// a hand edit. `tasks.js` honours them; TaskJSONL (ext/JSONL/JSONL.js) does not replay
 			// them yet, so they stay `pending` below until that reader catches up.
@@ -53,7 +53,7 @@ export const schemas = {
 	},
 	"day.jsonl": {
 		what: "a day's log (public/framework/ai/<date>/day.jsonl)",
-		reader: { file: "public/framework/ai2/inbox.js", class: "Day" },
+		reader: { file: "public/framework/ai/rail/inbox.js", class: "Day" },
 		verbs: {
 			assign: { fields: [], eg: { title: "…" } },
 			log:    { fields: ["at", "task", "msg"], eg: { at: "NOW", task: "slug", msg: "task opened — one line" } },
@@ -62,7 +62,7 @@ export const schemas = {
 	},
 	"board.jsonl": {
 		what: "the AI board (public/framework/ai/board.jsonl)",
-		reader: { file: "public/framework/ai2/inbox.js", class: "Board" },
+		reader: { file: "public/framework/ai/rail/inbox.js", class: "Board" },
 		verbs: {
 			assign: { fields: [], eg: { title: "…" } },
 			log:    { fields: ["at", "msg"], eg: { at: "NOW", msg: "…" } },
@@ -112,7 +112,7 @@ export const schemas = {
 	 * So only the line's shape is judged, plus the keys whose value the fold reads as an object. */
 	"page.jsonl": {
 		what: "a page's or card's log (…/page.jsonl) — write cards with Servex's card_reply / card_set, which own these files",
-		reader: { file: "public/framework/ai2/fold.js", fn: "absorb" },
+		reader: { file: "public/framework/ai/cards/fold.js", fn: "absorb" },
 		open: true,
 		verbs: {
 			message: { fields: ["text"], eg: { by: "agent-id", text: "…", at: "NOW" } },

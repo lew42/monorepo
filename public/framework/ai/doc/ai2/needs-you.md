@@ -1,6 +1,6 @@
 # Needs you — one ranked list of everything waiting on the owner
 
-![The Needs you tab: a blocker first, then decisions and questions, each with its answer control right there](/framework/ai2/doc/img/needs-you-1920.png)
+![The Needs you tab: a blocker first, then decisions and questions, each with its answer control right there](/framework/ai/doc/ai2/img/needs-you-1920.png)
 
 **What it lists.** Every card that is still waiting on you: an unanswered Decision or Question
 placed on a card (`ux/Content`'s widgets), a card typed `"question"`, or a card whose own last

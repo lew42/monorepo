@@ -57,7 +57,7 @@ A card is a directory containing an append-only log:
 `public/framework/ai/<YYYY>/<MM>/<DD>/<slug>/page.jsonl`.
 
 1. **Card Ingestion**:
-   - The owner dictates or types in the composer (`public/framework/ai2/compose.js` / `ux/Dictate`).
+   - The owner dictates or types in the composer (`public/framework/ai/cards/compose.js` / `ux/Dictate`).
    - Browser POSTs to `http://servex.localhost/log/prompts` (or `/card/append` when scoped to an open card).
    - `Log.js` commits the prompt to `%LOCALAPPDATA%/lew42/servex/logs/prompts.jsonl` and emits an `append` event.
    - `Assistant.js` (holding the warm `assistant-fast` Claude session) hears the prompt. Once speech pauses, it classifies the utterance and calls `append_prompt_event` or `create_card`.
@@ -65,7 +65,7 @@ A card is a directory containing an append-only log:
    - `Cards.create()` resolves or creates the date hierarchy (`public/framework/ai/YYYY/MM/DD/`).
    - Claims a unique slug with atomic `mkdir` (`<slug>`, `<slug>-2`).
    - Line 1 of `page.jsonl` writes the card metadata:
-     `{"class": "/framework/ai2/card.js", "title": "...", "type": "...", "id": "...", "created": "...", "by": "...", "tags": [...]}`.
+     `{"class": "/framework/ai/cards/card.js", "title": "...", "type": "...", "id": "...", "created": "...", "by": "...", "tags": [...]}`.
    - The parent date folder's `page.jsonl` appends `{"file": "<slug>/page.jsonl"}`.
 3. **Static Index Regeneration (`cards.jsonl`)**:
    - Any write to any card triggers `Cards.index_soon()` (debounced by 1,000 ms).
@@ -73,7 +73,7 @@ A card is a directory containing an append-only log:
    - Browser clients (`AIRail`) fetch this static index directly—allowing the dashboard to display ~400 cards without walking directory trees.
 
 ### B. The Inbox System (Scoring, Priorities, Filters)
-Implemented across `public/framework/ai2/inbox.js`, `needs-rule.js`, and `core/Page/ext/Inbox/Rail.js`.
+Implemented across `public/framework/ai/rail/inbox.js`, `needs-rule.js`, and `core/Page/ext/Inbox/Rail.js`.
 
 - **Score Calculation (`importance(item)` in `needs-rule.js`)**:
   - Scores range from `0` to `100`.

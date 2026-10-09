@@ -11,7 +11,7 @@ This module is `Card.css` alone — every rule a card's own page needs that has 
 do with being "AI 2" specifically: the card grid, its measure, the cost table, the outline
 rows, card folders, the Live card and talking to a running agent, the tiny-tabs layout. The
 **class** that actually draws a card — reads its `page.jsonl`, decides what tab is open,
-appends a chat line — is still [`ai2/card.js`](/framework/ai2/card.js); this module exists
+appends a chat line — is still [`ai2/card.js`](/framework/ai/cards/card.js); this module exists
 so the CSS a card wears is not locked inside the AI 2 module, the way `ux/Inbox/Inbox.css`
 freed the rail's look from `ai2/rail.css`. A future module that draws its own card-shaped
 page (the owner's "any page could have an inbox" plan) loads this file and gets the same
@@ -69,6 +69,6 @@ Log tab's rows) and this file's own `@keyframes ai2-pulse`, which two of its rul
   ([`ai/2026-09-30/inbox-ext/`](/framework/ai/2026-09-30/inbox-ext/), merge 7)
 - [`ai2/readme.md`](/framework/ai2/) — the module that still draws a card, and what is left
   in `ai2.css` now that this file carries everything reusable
-- [`ai2/doc/cards.md`](/framework/ai2/doc/cards.md) — a card folder's full vocabulary
-- [`ai2/doc/columns.md`](/framework/ai2/doc/columns.md) — how the Live card splits into
+- [`ai2/doc/cards.md`](/framework/ai/doc/ai2/cards.md) — a card folder's full vocabulary
+- [`ai2/doc/columns.md`](/framework/ai/doc/ai2/columns.md) — how the Live card splits into
   columns on a wide screen

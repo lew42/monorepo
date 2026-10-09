@@ -7,7 +7,7 @@
    that used to be here (a card's own grid, the Live card, the outline, card folders,
    the tiny tabs) is ux/Card/Card.css now, loaded by card.js and this page's own
    page.js. The Processes section (the Live card's RAM/CPU graph) is its own file,
-   ai2/processes.css, loaded by processes.js.
+   ai/rail/processes.css, loaded by processes.js.
    */
 @layer theme {
 

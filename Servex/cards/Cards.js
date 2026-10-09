@@ -3,8 +3,8 @@ import path from "path";
 import express from "express";
 import { fileURLToPath } from "url";
 import { stamp } from "../home.js";
-import { parse_lines, fold_card, summary } from "../../public/framework/ai2/fold.js";
-import { card_needs } from "../../public/framework/ai2/needs-rule.js";
+import { parse_lines, fold_card, summary } from "../../public/framework/ai/cards/fold.js";
+import { card_needs } from "../../public/framework/ai/rail/needs-rule.js";
 
 /* CARDS — one folder per card, one append-only `page.jsonl` per folder.
  *
@@ -20,7 +20,7 @@ import { card_needs } from "../../public/framework/ai2/needs-rule.js";
  * ONLY writer of these files — `create_card` is the only way a card is made. */
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../public/framework/ai");
-const CLASS = "/framework/ai2/card.js";
+const CLASS = "/framework/ai/cards/card.js";
 const OWNER = "owner";            // what ai2/compose.js and ux/Dictate stamp as `by` on the owner's words
 const SLUG = /^[a-z0-9][a-z0-9-]*$/;
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

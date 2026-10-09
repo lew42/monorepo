@@ -91,6 +91,6 @@ nothing from AI 2).
 
 ## More
 
-- [`ai2/rail.js`](/framework/ai2/rail.js) — `AIRail`, the subclass with the usage meters
+- [`ai2/rail.js`](/framework/ai/rail/rail.js) — `AIRail`, the subclass with the usage meters
 - [`/framework/ux/Inbox/`](/framework/ux/Inbox/) — `Inbox.Rail`'s own demo and look
 - `ext/drawer/` and `doc/inbox.md` — the drawer's "Leave a note" box, `Inbox.Compact`

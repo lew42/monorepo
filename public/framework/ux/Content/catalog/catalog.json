@@ -402,7 +402,7 @@
    {
     "name": "name chip",
     "census": "c",
-    "source": "public/framework/ai2/card.js:74"
+    "source": "public/framework/ai/cards/card.js:74"
    }
   ],
   "classes": [
@@ -1598,7 +1598,7 @@
    {
     "name": "inbox full card",
     "census": "c",
-    "source": "public/framework/ai2/card.js:51"
+    "source": "public/framework/ai/cards/card.js:51"
    }
   ],
   "classes": [
@@ -1616,7 +1616,7 @@
    ".ai2-said",
    ".ai2-proposal"
   ],
-  "render": "import { div } from '/app.js'; import { full } from '/framework/ai2/card.js'; div.c('ai2-full', () => full({ title: 'Demo', at: new Date().toISOString(), author: 'owner', kind: 'prompt', text: 'Say it once.', refined: '', names: ['a-name'], said: ['Hello.'], proposals: [{ title: 'Sketch', shape: ['One idea.'] }], links: [{ url: '/framework/ai2/', label: 'AI 2' }] }, { held(){}, flag(){}, unflag(){} }));",
+  "render": "import { div } from '/app.js'; import { full } from '/framework/ai/cards/card.js'; div.c('ai2-full', () => full({ title: 'Demo', at: new Date().toISOString(), author: 'owner', kind: 'prompt', text: 'Say it once.', refined: '', names: ['a-name'], said: ['Hello.'], proposals: [{ title: 'Sketch', shape: ['One idea.'] }], links: [{ url: '/framework/ai2/', label: 'AI 2' }] }, { held(){}, flag(){}, unflag(){} }));",
   "used_in": [
    "/framework/ai2/",
    "/framework/ai/"
@@ -2154,7 +2154,7 @@
    {
     "name": "chat line",
     "census": "c",
-    "source": "public/framework/ai2/chat.js:36"
+    "source": "public/framework/ai/cards/chat.js:36"
    }
   ],
   "classes": [
@@ -2256,12 +2256,12 @@
    {
     "name": "inbox row (rail preview)",
     "census": "c",
-    "source": "public/framework/ai2/card.js:28"
+    "source": "public/framework/ai/cards/card.js:28"
    },
    {
     "name": "overview row",
     "census": "c",
-    "source": "public/framework/ai2/overview.js:88"
+    "source": "public/framework/ai/rail/overview.js:88"
    },
    {
     "name": "v3 compact row",
@@ -2285,7 +2285,7 @@
    ".v3-tile-compact",
    ".v3-inbox-card"
   ],
-  "render": "import { div } from '/app.js'; import { row } from '/framework/ai2/card.js'; div.c('ai2-row', () => row({ title: 'Demo card', at: new Date().toISOString(), author: 'owner', text: 'The card says one thing.', said: [], refined: '' }));",
+  "render": "import { div } from '/app.js'; import { row } from '/framework/ai/cards/card.js'; div.c('ai2-row', () => row({ title: 'Demo card', at: new Date().toISOString(), author: 'owner', text: 'The card says one thing.', said: [], refined: '' }));",
   "used_in": [
    "/framework/ai/",
    "/framework/ai2/",
@@ -2377,7 +2377,7 @@
    {
     "name": "overview usage bar",
     "census": "c",
-    "source": "public/framework/ai2/overview.js:198"
+    "source": "public/framework/ai/rail/overview.js:198"
    }
   ],
   "classes": [
@@ -2561,7 +2561,7 @@
    {
     "name": "sub-card table of contents",
     "census": "c",
-    "source": "public/framework/ai2/card.js:116"
+    "source": "public/framework/ai/cards/card.js:116"
    },
    {
     "name": "v3 day row",
@@ -2577,7 +2577,7 @@
    ".v3-day-summary",
    ".v3-day-body"
   ],
-  "render": "import { toc } from '/framework/ai2/card.js'; toc([{ icon: 'task_alt', sub: 'a', title: 'Build the wall', line: 'a task' }, { icon: 'lightbulb', sub: 'b', title: 'A first sketch', line: 'a proposal' }], '/framework/ai2/');",
+  "render": "import { toc } from '/framework/ai/cards/card.js'; toc([{ icon: 'task_alt', sub: 'a', title: 'Build the wall', line: 'a task' }, { icon: 'lightbulb', sub: 'b', title: 'A first sketch', line: 'a proposal' }], '/framework/ai2/');",
   "used_in": [
    "/framework/ai2/",
    "/framework/ai/v/3/"
@@ -2616,7 +2616,7 @@
    {
     "name": "flag box",
     "census": "c",
-    "source": "public/framework/ai2/card.js:158"
+    "source": "public/framework/ai/cards/card.js:158"
    }
   ],
   "classes": [
@@ -2657,7 +2657,7 @@
    {
     "name": "proposal quote (sketch)",
     "census": "c",
-    "source": "public/framework/ai2/card.js:88"
+    "source": "public/framework/ai/cards/card.js:88"
    }
   ],
   "classes": [
@@ -2696,7 +2696,7 @@
    {
     "name": "overview column",
     "census": "c",
-    "source": "public/framework/ai2/overview.js:45"
+    "source": "public/framework/ai/rail/overview.js:45"
    },
    {
     "name": "v2 panel / topic",
@@ -2758,7 +2758,7 @@
    {
     "name": "live item",
     "census": "c",
-    "source": "public/framework/ai2/live.js:198"
+    "source": "public/framework/ai/rail/live.js:198"
    }
   ],
   "classes": [
@@ -2768,7 +2768,7 @@
    ".ai2-live-line",
    ".ai2-live-bar"
   ],
-  "render": "import { live_row } from '/framework/ai2/live.js'; import { div } from '/app.js'; div.c('ai2-row', () => live_row({ icon: 'bolt', title: 'catalog', at: new Date().toISOString(), bars: [{ label: 'session', percent: 40 }], agents: [1], tasks: [], last: '' }));",
+  "render": "import { live_row } from '/framework/ai/rail/live.js'; import { div } from '/app.js'; div.c('ai2-row', () => live_row({ icon: 'bolt', title: 'catalog', at: new Date().toISOString(), bars: [{ label: 'session', percent: 40 }], agents: [1], tasks: [], last: '' }));",
   "used_in": [
    "/framework/ai2/"
   ],
@@ -2801,7 +2801,7 @@
    {
     "name": "composer",
     "census": "c",
-    "source": "public/framework/ai2/compose.js:81"
+    "source": "public/framework/ai/cards/compose.js:81"
    },
    {
     "name": "v3 composer",
@@ -2819,7 +2819,7 @@
    ".v3-compose-input",
    ".v3-compose-send"
   ],
-  "render": "import { composer } from '/framework/ai2/compose.js'; composer({ mic: false });",
+  "render": "import { composer } from '/framework/ai/cards/compose.js'; composer({ mic: false });",
   "used_in": [
    "/framework/ai2/",
    "/framework/ai/v/3/"

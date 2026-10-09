@@ -266,7 +266,7 @@ export class DrawerRail extends View {
  *  stays on, nothing is ever written into a box, every finished sentence reaches
  *  `on_text` instead).
  *
- *  ONE AI, NOT TWO (one-ai, 2026-09-29; `ai2/doc/one-ai.md` has the full finding).
+ *  ONE AI, NOT TWO (one-ai, 2026-09-29; `ai/doc/ai2/one-ai.md` has the full finding).
  *  On a CARD PAGE (`/framework/ai2/…`), this sheet now talks into that card's own
  *  session — the exact route the card's own (now-removed) composer used
  *  (`ext/drawer/tabs/ai.js`'s `send({card, text})`, called here, never edited) —
@@ -571,7 +571,7 @@ export class DrawerRailSheetV1 extends View {
 			return;
 		}
 		const token = this.sync_token = (this.sync_token ?? 0) + 1;
-		import("/framework/ai2/chat.js").then(m => {
+		import("/framework/ai/cards/chat.js").then(m => {
 			if (this.sync_token !== token) return;   // moved to a different card (or a plain page) while this loaded
 			this.$thread.empty(() => {
 				this.talk = m.default({ source: () => card.chat_entries(), re: () => card.id });

@@ -1,0 +1,137 @@
+# ai2 inventory (computed by inventory.mjs)
+
+- files: 63 (code/data 33: 28 live, 5 no importers)
+- files outside ai2 naming `/framework/ai2`: 91
+
+## Live (has importers)
+
+- `public/framework/ai2/activity.js` ← 3: `public/framework/ai2/card.js`, `public/framework/ai2/rail.js`, `public/framework/ai2/real.js`
+- `public/framework/ai2/agents.js` ← 4: `public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md`, `public/framework/ai2/card.js`, `public/framework/ai2/rail.js`, `public/framework/ext/drawer/tabs/ai.js`
+- `public/framework/ai2/ai2.css` ← 4: `public/framework/core/Page/card/inventory.json`, `public/framework/ux/Content/catalog/catalog.json`, `public/framework/ux/Content/plan/plan.json`, `Servex/processes.test.mjs`
+- `public/framework/ai2/card.js` ← 37: `.claude/skills/code/improvements.md`, `public/framework/ai/audits/paging/content.md`, `public/framework/ai/audits/paging/types.json`, `public/framework/ai/audits/paging/types.md` …
+- `public/framework/ai2/chat.js` ← 9: `public/framework/ai2/card.js`, `public/framework/ai2/faces.js`, `public/framework/ai2/live.js`, `public/framework/ai2/rail.js` …
+- `public/framework/ai2/compose.js` ← 12: `public/framework/ai/doc/systems-overview.md`, `public/framework/ai2/card.js`, `public/framework/ai2/chat.js`, `public/framework/ai2/rail.js` …
+- `public/framework/ai2/faces.js` ← 13: `public/framework/ai/audits/paging/types.md`, `public/framework/ai2/activity.js`, `public/framework/ai2/card.js`, `public/framework/ai2/log.js` …
+- `public/framework/ai2/floating.js` ← 3: `public/framework/ai2/card.js`, `public/framework/ai2/doc/decisions.md`, `public/framework/core/Page/layout/floating/floating.js`
+- `public/framework/ai2/fold.js` ← 8: `.claude/hooks/jsonl-schema.mjs`, `.claude/hooks/jsonl-schema.test.mjs`, `public/framework/ai/doc/ai2-merge-and-layout-proposal-2026-10-08.md`, `public/framework/ai2/activity.js` …
+- `public/framework/ai2/groups.js` ← 7: `.claude/hooks/jsonl-schema.mjs`, `public/framework/ai2/log.js`, `public/framework/ai2/rail.js`, `public/framework/core/Page/Log.js` …
+- `public/framework/ai2/groups.json` ← 3: `public/framework/ai2/groups.js`, `Servex/agents/Assistant.js`, `Servex/agents/layers-proof.mjs`
+- `public/framework/ai2/inbox.js` ← 28: `.claude/hooks/jsonl-schema.mjs`, `public/framework/ai/dashboard/doc/decisions.md`, `public/framework/ai/dashboard/page.js`, `public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md` …
+- `public/framework/ai2/live.js` ← 9: `public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md`, `public/framework/ai/todo.md`, `public/framework/ai2/page.js`, `public/framework/ai2/rail.js` …
+- `public/framework/ai2/log.js` ← 1: `public/framework/ai2/page.js`
+- `public/framework/ai2/meter.js` ← 3: `public/framework/ai/todo.md`, `public/framework/ai2/faces.js`, `public/framework/ai2/rail.js`
+- `public/framework/ai2/needs-rule.js` ← 7: `public/framework/ai/asks/readme.md`, `public/framework/ai/doc/ai2-merge-and-layout-proposal-2026-10-08.md`, `public/framework/ai2/groups.js`, `public/framework/ai2/inbox.js` …
+- `public/framework/ai2/needs.js` ← 8: `public/framework/ai/asks/readme.md`, `public/framework/ai/dashboard/doc/decisions.md`, `public/framework/ai/dashboard/page.js`, `public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md` …
+- `public/framework/ai2/outline.js` ← 2: `public/framework/ai2/activity.js`, `public/framework/ai2/card.js`
+- `public/framework/ai2/overview/overview.json` ← 2: `public/framework/ai2/doc/overview.md`, `Server/ai2-overview.mjs`
+- `public/framework/ai2/overview.js` ← 3: `public/framework/ai2/page.js`, `public/framework/ux/Content/catalog/catalog.json`, `public/framework/ux/Content/plan/plan.json`
+- `public/framework/ai2/page.js` ← 7: `public/framework/ai/doc/ai2-merge-and-layout-proposal-2026-10-08.md`, `public/framework/ai/page.js`, `public/framework/ai/todo.md`, `public/framework/core/Page/audit/data.js` …
+- `public/framework/ai2/processes.js` ← 2: `public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md`, `public/framework/ai2/live.js`
+- `public/framework/ai2/rail.css` ← 4: `public/framework/ai/v/3/v3.css`, `public/framework/ux/Card/Card.css`, `public/framework/ux/Card/readme.md`, `public/framework/ux/Inbox/Inbox.css`
+- `public/framework/ai2/rail.js` ← 10: `public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md`, `public/framework/ai/overview.js`, `public/framework/ai/page.js`, `public/framework/ai/readme.md` …
+- `public/framework/ai2/real.js` ← 1: `public/framework/ai2/rail.js`
+- `public/framework/ai2/rules.js` ← 4: `public/framework/ai/doc/inbox-log-streaming-findings-2026-10-08.md`, `public/framework/ai2/card.js`, `public/framework/ai2/rail.js`, `public/framework/ext/AITask/dashboard.js`
+- `public/framework/ai2/tasks.js` ← 5: `public/framework/ai2/card.js`, `public/framework/ai2/outline.js`, `public/framework/ai2/rail.js`, `public/framework/core/Page/Log.js` …
+- `public/framework/ai2/workspace.js` ← 2: `public/framework/ai2/card.js`, `public/framework/ai2/rail.js`
+
+## No importers found (archive candidates)
+
+- `public/framework/ai2/ai/log.jsonl`
+- `public/framework/ai2/overview/ai/log.jsonl`
+- `public/framework/ai2/page.jsonl`
+- `public/framework/ai2/processes.css`
+- `public/framework/ai2/weight.jsonl`
+
+## Files outside ai2 that name /framework/ai2
+
+- `.claude/hooks/jsonl-schema.mjs`
+- `.claude/hooks/jsonl-schema.test.mjs`
+- `.claude/skills/every-prompt/page-assistant.md`
+- `.claude/skills/every-prompt/SKILL.md`
+- `.claude/skills/finish-task/SKILL.md`
+- `.claude/skills/minion/improvements.md`
+- `.claude/skills/minion/SKILL.md`
+- `.claude/skills/sub-mastermind/improvements.md`
+- `.claude/skills/sub-mastermind/SKILL.md`
+- `public/framework/ai/asks/page.js`
+- `public/framework/ai/asks/readme.md`
+- `public/framework/ai/asks/rows.js`
+- `public/framework/ai/audits/paging/page-css.md`
+- `public/framework/ai/dashboard/page.js`
+- `public/framework/ai/doc/ai2-and-date-layout-2026-10-08.md`
+- `public/framework/ai/doc/ai2-merge-and-layout-proposal-2026-10-08.md`
+- `public/framework/ai/doc/systems-overview.md`
+- `public/framework/ai/handoff2.md`
+- `public/framework/ai/handover.md`
+- `public/framework/ai/local/page.js`
+- `public/framework/ai/overview.js`
+- `public/framework/ai/page.js`
+- `public/framework/ai/readme.md`
+- `public/framework/ai/systems-map.md`
+- `public/framework/ai/talk/page.js`
+- `public/framework/ai/tests/AITest.js`
+- `public/framework/ai/todo.md`
+- `public/framework/core/Page/ai/work.js`
+- `public/framework/core/Page/audit/data.js`
+- `public/framework/core/Page/audit/design/data.js`
+- `public/framework/core/Page/audit/design/findings.md`
+- `public/framework/core/Page/audit/sheets/localhost-80-framework-ai2/layout.json`
+- `public/framework/core/Page/audit/sheets/summary.md`
+- `public/framework/core/Page/card/inventory.json`
+- `public/framework/core/Page/dynamic/doc/uses.md`
+- `public/framework/core/Page/ext/doc/path-extensions.md`
+- `public/framework/core/Page/ext/Inbox/readme.md`
+- `public/framework/core/Page/ext/paths.js`
+- `public/framework/core/Page/ext/readme.md`
+- `public/framework/core/Page/make/page.js`
+- `public/framework/core/Page/overview/folders/page.js`
+- `public/framework/core/Page/Page.css`
+- `public/framework/core/Sidebar/variants/walkthrough/page.js`
+- `public/framework/ext/AITask/doc/cost.md`
+- `public/framework/ext/drawer/doc/select.md`
+- `public/framework/ext/drawer/rail.js`
+- `public/framework/ext/drawer/tabs/ai.js`
+- `public/framework/ext/grip/readme.md`
+- `public/framework/ext/JSONL/doc/decisions.md`
+- `public/framework/ext/JSONL/doc/task-jsonl.md`
+- `public/framework/ext/Mention/doc/syntax.md`
+- `public/framework/ext/Mention/sync-icon.mjs`
+- `public/framework/ui/scale/page.js`
+- `public/framework/ui/scale/readme.md`
+- `public/framework/ux/Card/Card.css`
+- `public/framework/ux/Card/page.js`
+- `public/framework/ux/Card/readme.md`
+- `public/framework/ux/Content/catalog/catalog.json`
+- `public/framework/ux/Content/plan/plan.json`
+- `public/framework/ux/Dictate/page.js`
+- `public/framework/ux/Dictate/surfaces/page.js`
+- `public/framework/ux/Dictate/v1/page.js`
+- `public/framework/ux/Inbox/readme.md`
+- `Server/ai2-overview.mjs`
+- `Server/clarity.mjs`
+- `Server/council.mjs`
+- `Server/crawl.mjs`
+- `Server/doc/health.md`
+- `Server/health.mjs`
+- `Server/merge.mjs`
+- `Server/plugins/CardAnswer.js`
+- `Server/README.md`
+- `Server/review.mjs`
+- `Server/smoke.mjs`
+- `Servex/agents/Assistant.js`
+- `Servex/agents/assistant.md`
+- `Servex/agents/Dispatcher.js`
+- `Servex/agents/layers-proof.mjs`
+- `Servex/agents/Layers.js`
+- `Servex/agents/layers.test.mjs`
+- `Servex/agents/page-assistant-proof.mjs`
+- `Servex/agents/readme.md`
+- `Servex/asks/readme.md`
+- `Servex/cards/Cards.js`
+- `Servex/cards/migrate.mjs`
+- `Servex/cards/readme.md`
+- `Servex/cards/test.mjs`
+- `Servex/doc/readme-chain.md`
+- `Servex/ext/openrouter/evals/library.mjs`
+- `Servex/processes.test.mjs`
+- `Servex/Servex.js`
