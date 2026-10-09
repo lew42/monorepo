@@ -1,0 +1,10 @@
+# Phase 2 (after phase 1 lands): the voice UI class architecture, mobile socket, errors to the page log
+
+The owner, 2026-10-09 ~17:30 (VS Code tab 7efd07d5), their words condensed:
+
+- **Too many dictation widgets.** Dictate (`/framework/ux/Dictate/`), the one on Refine, the one in the right-hand drawer (`?drawer=ai`, tabs AI / Dictation / Settings / Files, with New session / Switch session) look like copies. The little pop-up rail and the drawer should be **the same thing**. Keep: the small AI button, which can open page settings or go straight into live-transcribe (just starts listening). But the drawer is more a properties sidebar; it should not *be* the whole dictation widget.
+- **Write the class architecture first** (CLAUDE.md "design the class architecture before you build"): one short page naming each class and its job, what extends / composes what, for: the sidebar/drawer, the rail, Dictate, the compact dictation panel, Refine, the chat window, the status bar. Which one is the orchestrator. Maybe the panel has templates (compact vs full). Show it where the owner can see it, linked from `ux/Dictate/readme.md`. Then the smallest slice: one dictation panel component used by Dictate, Refine and the drawer.
+- **The panel today**: too big, layout breaks often, the status bar rarely helps. It must be compact.
+- **Mobile socket**: the owner believes the WebSocket never connects on mobile (status stuck on "socket waiting / connecting"); suspected IP/host issue (phone uses http://10.0.0.135:...). Diagnose on a phone-like headless run against the LAN address and fix, or write exactly why not.
+- **Status words**: every state has a plain explanation, including "the microphone could not start: <reason>".
+- **Every error reaches the page's log.** Any UI or code error is sent over the socket and appended to that page's log (`ext/ErrorLog` is the start), so any AI reading the page's data knows a user hit an error there. Mind the bloat (dedupe, cap per page) and production (static site, no file writes: see the production-stack task).
