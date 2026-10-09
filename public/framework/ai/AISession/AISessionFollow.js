@@ -36,7 +36,7 @@ export default class AISessionFollow {
 		this.found = true;
 		try {
 			const r = await fetch(`/ai-logs/${this.id}/subagents/`);
-			if (r.ok) for (const f of await r.json()){ const name = f.file ?? f.name ?? f; if (typeof name === "string") this.parts.set(name.replace(/.jsonl$/, ""), { url: `/ai-logs/${this.id}/subagents/${name}`, off: 0 }); }
+			if (r.status === 200) for (const f of await r.json()){ const name = f.file ?? f.name ?? f; if (typeof name === "string") this.parts.set(name.replace(/.jsonl$/, ""), { url: `/ai-logs/${this.id}/subagents/${name}`, off: 0 }); }
 		} catch {}
 	}
 

@@ -78,7 +78,7 @@ export default class AILogs {
         this.server.router.get("/ai-logs/:id/subagents/", async (req, res) => {
             if (!this.guard(req, res)) return;
             if (!UUID.test(req.params.id)) return res.status(400).end();
-            if (!fs.existsSync(path.join(this.dir, req.params.id + ".jsonl"))) return res.status(404).end();
+            if (!fs.existsSync(path.join(this.dir, req.params.id + ".jsonl"))) return res.status(204).end();   // 204 = "no transcript here", an answer, not a missing route (a 404 is a console error on every page that asks)
             res.json(await this.subagents(req.params.id));
         });
 
@@ -120,15 +120,15 @@ export default class AILogs {
         this.server.router.get("/ai-logs/:id", (req, res) => {
             if (!this.guard(req, res)) return;
             if (!UUID.test(req.params.id)) return res.status(400).end();
-            this.serve(req, res, path.join(this.dir, req.params.id + ".jsonl"));
+            this.serve(req, res, path.join(this.dir, req.params.id + ".jsonl"), true);
         });
     }
 
     /* Range: bytes=<from>- → 206 with only the tail; the feed polls this way
        instead of re-downloading the whole transcript every poll (3 MB, and a
        minion's own transcript can run past 2 MB by itself — see doc/decisions.md). */
-    serve(req, res, file) {
-        if (!fs.existsSync(file)) return res.status(404).end();
+    serve(req, res, file, optional = false) {
+        if (!fs.existsSync(file)) return res.status(optional ? 204 : 404).end();
 
         const size = fs.statSync(file).size;
         const m = /^bytes=([0-9]+)-$/.exec(req.headers.range ?? "");

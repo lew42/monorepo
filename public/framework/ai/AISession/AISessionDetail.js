@@ -40,10 +40,10 @@ export default class AISessionDetail extends Page {
 			Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
 			AISessionRows.load_index(url).then(async () => { const snap = await AISessionDetail.load_snapshot(session_id); $related.empty(() => AISessionDetail.render_related(snap, url)); });
 			// the card's page.jsonl and trace.json live in the session's own folder now; the old card folder is the fallback until a checkout is migrated
-			const own = AISession.dir_url(session_id).pathname, old = AISessionDetail.dir_of(await AISessionDetail.dir_index(), session_id);
+			const own_dir = AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname : null, own = (await AISessionDetail.load_snapshot(session_id))?.links?.card ? own_dir : null, old = AISessionDetail.dir_of(await AISessionDetail.dir_index(), session_id);
 			const [costs, trace, prompts] = await Promise.all([
 				AISessionDetail.load_cost_log(own).then(c => c ?? AISessionDetail.load_cost_log(old)),
-				AISessionRows.load_index(url).then(ix => ix?.traces?.includes(session_id) ? AISessionDetail.load_trace(own).then(t => t ?? AISessionDetail.load_trace(old)) : null),   // a trace.json exists for few sessions: ask only for those the index lists
+				AISessionRows.load_index(url).then(ix => ix?.traces?.includes(session_id) ? AISessionDetail.load_trace(own_dir).then(t => t ?? AISessionDetail.load_trace(old)) : null),   // a trace.json exists for few sessions: ask only for those the index lists
 				AISessionDetail.load_transcript(session_id),
 			]);
 
@@ -116,7 +116,7 @@ export default class AISessionDetail extends Page {
 	/** This session's own index.json (its snapshot), from its dated folder; null when it has none yet. */
 	static async load_snapshot(id){
 		const ix = AISession.all.get(id)?.ix;   // the live copy the grid already holds (it carries `folder`, so the folder is findable)
-		return ix?.links ? { id, ...ix } : AISessionRows.get_json(AISession.dir_url(id).href + "index.json");
+		return ix ? { id, ...ix } : null;   // never probe index.json: the grid already holds the snapshot, and a probe for a missing file is a 404
 	}
 
 	/** The "Related" section: one line per record of the session: its kind, what it is, and where it lives. */
@@ -173,7 +173,7 @@ export default class AISessionDetail extends Page {
 					for (const s of d.children ?? []){
 						if (s.type !== "dir") continue;
 						const hit = /-([0-9a-f]{8})$/.exec(s.name);
-						if (hit) index.set(hit[1], `/framework/ai/${y.name}/${m.name}/${d.name}/${s.name}/`);
+						if (hit && s.children?.some(c => c.name === "page.jsonl")) index.set(hit[1], `/framework/ai/${y.name}/${m.name}/${d.name}/${s.name}/`);
 					}
 				}
 			}
