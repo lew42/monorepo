@@ -383,9 +383,10 @@ export default class Session {
 	on(fn){ this.subs.add(fn); return () => this.subs.delete(fn); }
 
 	// ---- its view (browser) -------------------------------------------------------------------------------------
-	// The house pattern: the class owns its template. `View` stays empty on the server (this file imports no browser code);
-	// SessionView.js sets it when the browser loads that file, so `session.render()` draws this session as a grid row. Like every framework class with a template (core/Item, audio/Part, lab/LiveView), it reaches the View through `this.constructor`, so a subclass can swap `static View`.
-	static View = null;
+	// The house pattern: the class owns its template. `Session.View` is unset on the server (this file imports no browser code);
+	// `Session.View = SessionView` is attached after the class, on the last line of SessionView.js (never a static field), so a browser
+	// that has loaded it can call `session.render()` to draw this session as a grid row. It reaches the View through `this.constructor`
+	// like core/Item, audio/Part and lab/LiveView, so a subclass can swap `View`.
 
 	/** This session drawn as a grid row (SessionView). `opts` can carry the page's merged `row`, `url`, `spend`, `nest`. */
 	render(opts = {}){
