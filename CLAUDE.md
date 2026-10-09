@@ -78,6 +78,7 @@ This file and every `readme.md` bring a topic to your attention; the detail is i
 
 ## Where to look
 
+- **First, every new session:** `public/framework/ai/handover.md` (state of the world, what is open) and `git log --oneline -20` (what landed recently). Query the logs only when you need a detail; never read them whole. (the owner, 2026-10-09)
 - `readme.md` (root) — setup, branches, deploy
 - `public/framework/readme.md` → `core/` `ext/` `styles/` `ui/` `web/` — each dir's readme is its entry
 - `public/framework/ai/` — the task log: open a task before the first edit (`new-task`), log as you go, land it (`finish-task`)

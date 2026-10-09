@@ -411,10 +411,16 @@ return [
 		+ " see it, its session uuid for `claude --resume`, when it started and its parent — the"
 		+ " same rows `GET /agents` returns, so this survives a Servex restart the in-memory list"
 		+ " does not. A row whose host process died (a Servex restart it did not survive) reads"
-		+ " `gone`, never idle or working.",
-		{},
+		+ " `gone`, never idle or working. By default only working and idle rows, plus dormant ones active in the last 48 hours:"
+		+ " the full registry is 2,000+ rows and 3 MB, far past any context window.",
+		{ all: { type: "boolean", description: "Every row ever registered, stopped and gone included." } },
 		[],
-		() => JSON.stringify(agents.registry_list(), null, 2)),
+		({ all }) => {
+			const since = new Date(Date.now() - 48 * 3600e3).toISOString();
+			const rows = agents.registry_list().filter(r => all || ["working", "idle"].includes(r.state)
+				|| (r.state === "dormant" && (r.last_at ?? r.started_at ?? "") > since));
+			return JSON.stringify(rows.map(r => Object.fromEntries(Object.entries(r).filter(([k, v]) => v != null && k !== "spec"))));  // spec holds the whole first prompt
+		}),
 
 	tool("stop_agent",
 		"End a session for good. The agent stops, its `claude` process exits, and its log stays on"
