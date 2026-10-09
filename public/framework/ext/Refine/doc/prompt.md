@@ -12,15 +12,15 @@
 | `subject` | the outline's heading: what the prompt is about |
 | `status`, `ms`, `error` | `empty → working → done` (or `error`), how long it took |
 
-`prompt.refine(text)` fills it. `prompt.flagged` lists the sentences that get the yellow ⚑. `prompt.view` is a `Prompt.View` (the rendered result). The debug tree on the page is the generic `ux/Content/Object/DefaultView` pointed at the same instance.
+`RefineSystem.go(text)` fills it (via `prompt.load()`); see [architecture](architecture.md). `prompt.flagged` lists the sentences that get the yellow ⚑. `prompt.view` is a `Prompt.View` (the rendered result). The debug tree on the page is the generic `ux/Content/Object/DefaultView` pointed at the same instance.
 
 ## How it works (no second pipeline)
 
-Browser → `POST /api/refine` (Servex, `Servex/ext/refine/run.js`) → the same `engine.js` `clean()` and `structure.js` `structure()` that Echo runs → plain data back → `Prompt.load()`. The route exists only because `structure()` is Node-only.
+Browser → `POST /api/refine` (Servex, `Servex/ext/refine/run.js`) → the same `engine.js` `clean()` and `structure.js` `structure()` that Echo runs → plain data back → `Prompt.load()` → `Scorer.score()`. The route exists only because `structure()` is Node-only.
 
 ## Scores: rules, not model calls (decision, 2026-10-08)
 
-The alternative was a Haiku call per prompt. Rules won for the first version: instant, free, repeatable, and they use what the pipeline already reports. The rules live in `Prompt.score()`'s comment:
+The alternative was a Haiku call per prompt. Rules won for the first version: instant, free, repeatable, and they use what the pipeline already reports. The rules live in `Scorer.js`'s comment:
 
 - **clarity** starts at 1 and only goes down: the model said "unsure" (max 0.3), the checker found a word nobody said (max 0.5), a glossary fix (×0.85, a guessed reference), a self-correction (×0.8), under 3 words (×0.7). Under 0.6, or any model/checker question, gets the yellow flag. It never nags: the flag is a tooltip.
 - **weight** = how sure the outline placed the sentence (`structure()` confidence: cited once 1, twice 0.4, never 0.2), a little lower for a sub-point, pulled down by low clarity.

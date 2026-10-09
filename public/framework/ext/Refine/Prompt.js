@@ -1,16 +1,17 @@
+import Scorer from "./Scorer.js";
 import { View, div, span, p, h4, button } from "../../core/View/View.js";
 
 View.stylesheet(import.meta, "Prompt.css");
 
 /**
  * class Prompt — ONE prompt, seen at every step of its refinement (the owner's design:
- * `doc/vision-2026-10-08.md`, addendum 2). It only holds data and computes scores; it
- * does not clean or structure anything itself — `refine()` hands the text to Servex
+ * `doc/vision-2026-10-08.md`, addendum 2). It only holds data; it does not clean,
+ * structure or score anything itself — `RefineSystem` sends the text to Servex
  * (`/api/refine`), which runs the SAME `engine.js` `clean()` and `structure.js`
  * `structure()` Echo runs, so there is still exactly one pipeline.
  *
  *   const prompt = new Prompt({ on_change: () => redraw() });
- *   await prompt.refine("so the thing should uh show a flag when it is unclear");
+ *   prompt.load(await (await fetch("/api/refine", …)).json());   // RefineSystem does this for you
  *   prompt.clean[0]      // { n, text, clarity, weight, flags, alternates, names, card }
  *   prompt.refined       // [{ title, cites, cards: [{ text, cites, cards: [...] }] }]
  *   prompt.view          // a Prompt.View: the rendered result (the debug tree is DefaultView)
@@ -18,9 +19,7 @@ View.stylesheet(import.meta, "Prompt.css");
  * Only plain data lives on an instance (strings, numbers, arrays, objects) so the debug
  * tree (`ux/Content/Object/DefaultView.js`) can show every property by type.
  *
- * SCORES ARE RULES, NOT MODEL CALLS (first version; the choice is recorded in
- * `doc/prompt.md`). `clarity` and `weight` are 0–1, computed in `score()` from what the
- * pipeline already reported. Cheap, instant, repeatable, and good enough to show the flag.
+ * Scores come from `Scorer` (rules; see `doc/prompt.md`). The whole system: `doc/architecture.md`.
  */
 export default class Prompt {
 
@@ -37,24 +36,6 @@ export default class Prompt {
 
 	constructor(...args){ Object.assign(this, ...args); }
 
-	/** Run the pipeline on `text`. Never throws: a failure becomes `status: "error"`. */
-	async refine(text, { url } = {}){
-		this.set({ status: "working", raw: text, subject: "", clean: [], refined: [], error: "", ms: 0 });
-		try {
-			if (!url){
-				const { servex_url } = await import("/framework/dev/servex_url.js");
-				url = servex_url("/api/refine");
-			}
-			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
-			const out = await res.json();
-			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
-			this.load(out);
-		} catch (e){
-			this.set({ status: "error", error: String(e?.message ?? e) });
-		}
-		return this;
-	}
-
 	/** Fill the instance from one `/api/refine` answer (also how a saved answer is replayed). */
 	load({ clean, structure, ms }){
 		const parsed = Prompt.parse_outline(structure?.md ?? "");
@@ -64,7 +45,7 @@ export default class Prompt {
 		this.clean = (clean?.sentences ?? []).map(s => ({
 			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], card: "",
 		}));
-		this.score({ clean, structure, parsed });
+		Scorer.score(this, { clean, structure });
 		this.set({ status: "done" });
 	}
 
@@ -78,54 +59,6 @@ export default class Prompt {
 
 	/** Sentences worth a yellow flag: unclear enough, or the pipeline asked a question about them. */
 	get flagged(){ return this.clean.filter(s => s.clarity < Prompt.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
-
-	/**
-	 * clarity (can we tell what this sentence means?) starts at 1 and only goes down:
-	 *   the model said "unsure" (S2?)          → at most 0.3
-	 *   the checker found a word nobody said   → at most 0.5
-	 *   a glossary fix (heard "Servex" as…)    → ×0.85 per fix: we guessed a reference
-	 *   a spoken self-correction               → ×0.8: the speaker changed their mind here
-	 *   under 3 words                          → ×0.7: too short to carry a meaning
-	 * weight (does it matter, does it still apply?) = how sure the outline placed it
-	 * (`structure()` confidence: once = 1, twice = 0.4, never = 0.2), halved a little for a
-	 * sub-point, then pulled down by low clarity.
-	 */
-	score({ clean, structure, parsed }){
-		const depth = new Map();   // sentence n -> shallowest card depth that cites it
-		const card_of = new Map();
-		const walk = (cards, depth_n, path) => cards.forEach(c => {
-			c.cites.forEach(n => {
-				if (!depth.has(n) || depth_n < depth.get(n)){ depth.set(n, depth_n); card_of.set(n, path + c.text); }
-			});
-			walk(c.cards, depth_n + 1, path);
-		});
-		parsed.sections.forEach(sec => {
-			sec.cites.forEach(n => { depth.set(n, 0); card_of.set(n, sec.title); });
-			walk(sec.cards, 1, sec.title + " › ");
-		});
-
-		this.clean.forEach(s => {
-			const flags = [];
-			for (const f of clean?.flags ?? []) if (f.sentence_n === s.n) flags.push({ kind: f.source, question: f.question, confidence: f.confidence });
-			for (const m of clean?.misheard ?? []) if (m.sentence_n === s.n) flags.push({ kind: "misheard", question: `Heard "${m.from}", read as ${m.to}.`, confidence: 0.85 });
-			for (const k of clean?.strikes ?? []) if (k.sentence_n === s.n) flags.push({ kind: "strike", question: `Self-correction: "${k.struck_text}" was struck.`, confidence: 0.8 });
-
-			let clarity = 1;
-			for (const f of flags){
-				if (f.kind === "model") clarity = Math.min(clarity, 0.3);
-				else if (f.kind === "mechanical") clarity = Math.min(clarity, 0.5);
-				else clarity *= f.confidence;
-			}
-			if (s.text.trim().split(/\s+/).length < 3) clarity *= 0.7;
-			s.clarity = +clarity.toFixed(2);
-
-			const placed = structure?.confidence?.[s.n] ?? (depth.has(s.n) ? 1 : 0.2);
-			const sub = depth.get(s.n) >= 2 ? 0.8 : 1;
-			s.weight = +(placed * sub * (0.5 + 0.5 * s.clarity)).toFixed(2);
-			s.flags = flags;
-			s.card = card_of.get(s.n) ?? "";
-		});
-	}
 
 	/**
 	 * The outline `structure()` writes ("# subject", "## card", "- sub-card [S1, S2]", indented
@@ -168,19 +101,6 @@ export default class Prompt {
 	/** The rendered result. */
 	get view(){ return new this.constructor.View({ subject: this }); }
 
-	/** Who uses this class and what to know first (shown on the class card on the page). */
-	static card = {
-		icon: "article",
-		name: "Prompt",
-		api: [
-			["refine(text)", "run the pipeline on one prompt; fills everything below"],
-			["raw · clean · refined", "what was said, numbered sentences, cards with sub-cards"],
-			["clean[i].clarity · weight", "0–1 scores (rules); flags and alternates ride along"],
-			["flagged", "the sentences that get the yellow flag"],
-			["view", "a Prompt.View of this instance"],
-		],
-		callers: [["ext/Refine", "/framework/ext/Refine/"], ["Servex /api/refine", "/framework/servex/"]],
-	};
 }
 
 /** Prompt.View — raw, clean (with scores and yellow flags), refined cards. A sentence and a

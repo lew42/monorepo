@@ -22,8 +22,8 @@ export default new Page({
 	content(){
 		// The demo comes first (the owner, 2026-10-08): speak one prompt, see it refined. The saved
 		// ladder below is the older, longer view of the same pipeline on a finished dictation.
-		p("Speak or type **one prompt** and press Refine: you get what was said, the cleaned numbered sentences, and the refined cards. A yellow ⚑ marks a sentence that may be unclear. Click a card's `S#` to jump to its source sentence. The class behind it is [Prompt](/framework/ext/Refine/md/doc/prompt/).");
-		new RefineDemo();
+		md("Speak or type **one prompt** and press Refine: you get what was said, the cleaned numbered sentences, and the refined cards. A yellow ⚑ marks a sentence that may be unclear; click a card's `S#` to jump to its source sentence. How the classes fit: [architecture](/framework/ext/Refine/md/doc/architecture/) · the data class: [Prompt](/framework/ext/Refine/md/doc/prompt/).");
+		new RefineDemo().ac("wide");
 
 		h2("A saved run — the same pipeline on a long dictation");
 		p("`Server/refine.mjs` turns a long, rambling dictation into a numbered brief a mastermind can act on — and keeps every step, so you can always ask \"wait, what did I actually say?\" Click an ask below, or a bullet in Structured, and its source sentences light up in Clean and Raw.");

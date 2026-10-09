@@ -2,6 +2,7 @@ import { View, div, span, p, textarea, button, h4, a } from "../../core/View/Vie
 import Dictate from "../../ux/Dictate/Dictate.js";
 import DefaultView from "../../ux/Content/Object/DefaultView.js";
 import Prompt from "./Prompt.js";
+import RefineSystem from "./RefineSystem.js";
 
 View.stylesheet(import.meta, "Prompt.css");
 
@@ -11,7 +12,7 @@ View.stylesheet(import.meta, "Prompt.css");
  * yellow flag on anything unclear. "Record next prompt" starts over.
  *
  * Beside the result is the debug view: the live `Prompt` instance drawn property by property
- * (`ux/Content/Object/DefaultView`, the generic tree) and its class card (`Prompt.card`).
+ * (`ux/Content/Object/DefaultView`, the generic tree) and the architecture card (`RefineSystem.parts`).
  * One `Prompt` instance is the single source for all three, so they cannot disagree.
  *
  * The mic is `ux/Dictate` (the same one every page uses; on a phone it needs the https/LAN
@@ -21,7 +22,8 @@ export default class RefineDemo extends View {
 
 	render(){
 		this.ac("refine-demo");
-		this.prompt = new Prompt({ on_change: () => this.draw() });
+		this.system = new RefineSystem({ on_change: () => this.draw() });
+		this.prompt = this.system.prompt;
 
 		div.c("refine-demo-main", () => {
 			div.c("refine-input", () => {
@@ -38,7 +40,7 @@ export default class RefineDemo extends View {
 
 		div.c("refine-demo-debug", () => {
 			this.card();
-			h4.c("refine-prompt-h", "The live Prompt instance");
+			h4.c("refine-prompt-h", "The live Prompt instance (debug view)");
 			this.$debug = div.c("refine-debug");
 		});
 
@@ -50,14 +52,14 @@ export default class RefineDemo extends View {
 		if (!text) return this.$note.text("Nothing to refine yet.");
 		this.$note.text("");
 		if (this.dictate.state === "listening") this.dictate.stop();
-		this.prompt.refine(text);
+		this.system.go(text);
 	}
 
 	/** Start over with a fresh prompt and open the mic if it is not already listening. */
 	next(){
 		this.$box.el.value = "";
 		this.$note.text("");
-		this.prompt.set({ status: "empty", raw: "", subject: "", clean: [], refined: [], error: "", ms: 0 });
+		this.system.next();
 		if (this.dictate.state === "idle") this.dictate.start();
 	}
 
@@ -69,16 +71,13 @@ export default class RefineDemo extends View {
 
 	/** The class card: icon + name, core API, who calls it. */
 	card(){
-		const c = Prompt.card;
 		div.c("refine-class-card", () => {
-			span.c("refine-card-title", c.icon === "article" ? "▤ " + c.name : c.name);
-			div.c("refine-class-api", () => c.api.forEach(([k, v]) => { span.c("refine-class-key", k); span(v); }));
-			p.c("refine-input-note", () => {
-				span("Called by ");
-				c.callers.forEach(([name, href], i) => { if (i) span(" · "); a(name).href(href); });
-				span(" · docs: ");
-				a("Prompt").href("/framework/ext/Refine/md/doc/prompt/");
-			});
+			span.c("refine-card-title", "▤ RefineSystem — the boss; the parts it composes");
+			RefineSystem.parts.forEach(part => div.c("refine-part", () => {
+				a(part.name).href(part.href).ac("refine-class-key");
+				span.c("refine-part-job", part.job);
+				span.c("refine-s-scores", part.relation);
+			}));
 		});
 	}
 }
