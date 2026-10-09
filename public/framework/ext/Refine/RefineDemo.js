@@ -1,4 +1,5 @@
 import { View, div, span, p, textarea, button, h4, a } from "../../core/View/View.js";
+import ErrorLog from "../ErrorLog/ErrorLog.js";
 import Dictate from "../../ux/Dictate/Dictate.js";
 import DefaultView from "../../ux/Content/Object/DefaultView.js";
 import Prompt from "./Prompt.js";
@@ -24,6 +25,7 @@ export default class RefineDemo extends View {
 		this.ac("refine-demo");
 		this.system = new RefineSystem({ on_change: () => this.draw() });
 		this.prompt = this.system.prompt;
+		ErrorLog.watch(() => ({ status: this.prompt.status, raw: this.prompt.raw, error: this.prompt.error }));
 
 		div.c("refine-demo-main", () => {
 			div.c("refine-input", () => {
