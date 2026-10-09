@@ -852,7 +852,9 @@ export default class Dictate extends View {
 		// FIRST WHISPER ANSWER, timed (2026-10-05) — the third checkpoint: proof the whole
 		// pipeline (mic → samples → whisper-server → a real reply) works, not just that the
 		// mic opened.
-		if (!this.heard_first_answer){ this.heard_first_answer = true; this.log_step("whisper", `connected, last reply ${(this.whisper_ms / 1000).toFixed(1)} s`); }
+		const reply = `connected, last reply ${(this.whisper_ms / 1000).toFixed(1)} s`;
+		if (!this.heard_first_answer){ this.heard_first_answer = true; this.log_step("whisper", reply); }
+		else { this.steps.whisper = reply; this.draw_diag(); this.on_step?.("whisper", reply); }   // every answer updates the line; only the first is console-logged
 		// ⚠ Whisper puts "\n" between ITS OWN segments, mid-speech ("Testing, testing.\n My name is…") —
 		// left in, every one became a paragraph break in the box. Real breaks come from real pauses only.
 		return (body.text ?? "").replace(/\s+/g, " ").trim();
