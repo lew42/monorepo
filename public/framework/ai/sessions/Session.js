@@ -49,6 +49,8 @@ export function model_label(model){
 	const m = /^claude-([a-z]+)-(\d+)(?:-(\d{1,2}))?(?:-\d{8})?$/.exec(model || "");
 	return m ? `${m[1][0].toUpperCase()}${m[1].slice(1)} ${m[2]}${m[3] ? "." + m[3] : ""}` : (model || "unknown");
 }
+// Who bills a model: an OpenRouter id is "vendor/model" (google/gemini-3.8-flash); a Claude one never has a slash.
+export const provider_of = model => String(model || "").includes("/") ? "openrouter" : "claude";
 const bare_model = m => String(m || "").replace(/-\d{8}$/, "");
 
 const BUCKETS = ["preamble", "user", "tool_result", "assistant", "thinking", "other"];
@@ -304,11 +306,15 @@ export default class Session {
 
 	// Display mode 1: the data-grid row. Plain strings and numbers; SessionView.js draws them.
 	preview(tree){
-		const s = this.s, me = this.model_effort(), t = tree ?? {};
+		const s = this.s, me = this.model_effort(), t = tree ?? {}, cfg = s.configured;
+		// ONE source per provider. An OpenRouter session is billed by OpenRouter and recorded by the Servex registry
+		// (cost, turns, model); its transcript priced at Claude rates would be a made-up number. A Claude session reads its transcript.
+		const provider = provider_of(cfg?.model || me.id), or = provider === "openrouter";
+		const usd = or && typeof cfg?.cost === "number" ? cfg.cost : s.usd;
 		return {
-			id: s.id, usd: r6(s.usd), tree_usd: t.tree_usd ?? r6(s.usd), children: t.children ?? 0,
-			wall_ms: this.wall_ms, active_ms: s.active_ms, messages: s.messages,
-			model: me.label, model_id: me.id, effort: me.effort,
+			id: s.id, provider, usd: r6(usd), tree_usd: or ? r6(usd) : (t.tree_usd ?? r6(s.usd)), children: t.children ?? 0,
+			wall_ms: this.wall_ms, active_ms: s.active_ms, messages: or && typeof cfg?.turns === "number" ? cfg.turns : s.messages,
+			model: or ? cfg.model : me.label, model_id: or ? cfg.model : me.id, effort: me.effort,
 			flags: s.flags, cache_read_pct: this.cache_read_pct(),
 		};
 	}
