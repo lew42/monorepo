@@ -105,7 +105,7 @@ page system, "there's no better spot for layout and navigation". Decision:
 Alternative weighed: a drawer as a separate app-level system that pages cannot touch (today's shape). Rejected,
 because then every page that wants a side panel invents its own.
 
-## Session: one core class for time-based pages (the owner, 19:05): decided, not built
+## Session: one core class for time-based pages (the owner, 19:05): `Session` built, `RefineSession` next
 
 A session is a page that is made automatically, at a moment: it has a start time, a name (a slug), a dated folder,
 a log and any data. `AISession` already does this for Claude sessions, and Refine's `RefineSystem` does it again for
@@ -123,7 +123,7 @@ Session.Page extends Page                   the default page template; the folde
 
 Each subclass names its own root folder and keeps its own `days`/`slugs` maps (statics are per class). The generic part
 of `AISession` (locate, scan, day, dir_url, slugs) moves up unchanged; `AISession` keeps the rest. Order: extract
-`Session` first (with mastermind-ai-system, which owns `AISession`), then `task-mastermind-refine-v3` builds `RefineSession` on it.
+`Session` first (done: [core/Session](../../Session/readme.md), commit 938b27dd0, by mastermind-ai-system), then `task-mastermind-refine-v3` builds `RefineSession` on it (not yet). `Session.Page` (the shared template) is not built: `AISessionDetail` still extends `Page` directly.
 
 ## Open
 
@@ -133,3 +133,7 @@ of `AISession` (locate, scan, day, dir_url, slugs) moves up unchanged; `AISessio
   card folder (`ai/YYYY/MM/DD/session-<id8>/`); the session page reads both. One resolver for "a session's
   page file" is asked of `mastermind-ai-system`.
 - The owner's session-page design ([ai/sessions/doc/session-page-2026-10-09.md](../../../ai/sessions/doc/session-page-2026-10-09.md)): the tabs (including an AI-filled **Now** tab) work through this tool today; the fixed header, dictation footer, cache timer and settings menu are not built.
+- Page-log compaction (above) is designed, not built; it waits on a node-side replay of `Page.set()`.
+- The drawer (above) is decided, not built: `ext/drawer` is still a function, and `?sheet=` is still separate.
+- Doc pages built from optional files 404 when the file is missing (List's `api` → `items.md`, Dictate's Files → `Dictate.js.md`, View's `doc/file`); the page should skip a file that is not there.
+- Doc audit 2026-10-09 ([ai/2026-10-09/page-mastermind/doc-audit/](../../../ai/2026-10-09/page-mastermind/doc-audit/requirements.md)): 4 docs archived ([archive/moved.md](archive/moved.md)). Left as they are: `layout.md` stays here as the open layout question, and `previews.md` (it covers borrowing a page) is linked from `layout/readme.md` for preview cards, where `method/previews.md` fits better.
