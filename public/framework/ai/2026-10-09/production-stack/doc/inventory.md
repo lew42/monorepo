@@ -52,3 +52,17 @@ The slice demo needs one `npx wrangler` download, so I did not run it (the 15-mi
 
 ## Recommended first slice (not built)
 **Sign in with GitHub + one like, live on Cloudflare.** It is the slice already running locally: deploy `worker/index.js` (not `dev.js`) with a real D1 and `SESSION_SECRET`, `run_worker_first: ["/api/*"]`, on a preview branch URL, one OAuth app. Everything else stays static. Cost $0. Missing code: the OAuth callback route, and a production wrangler config on a branch (never on `main` until it works).
+
+## The owner's own asks, found by the topic scan
+`node topic-scan.mjs doc/topic-scan.md cloudflare wrangler "durable object" D1 authentication login stripe payment tunnel ...` (arguments are the topic keywords; reads all session transcripts by script, nothing enters a model's context). Result: [doc/topic-scan.md](topic-scan.md), 47 sentences from 21 sessions, with date, session link and path tags. Limits: tags are the module paths named anywhere in that prompt (preamble paths add noise), and a few agent briefs slip through. Cross-checked against what exists:
+
+| Owner ask (date, session) | Built? |
+|---|---|
+| Cloudflare auth, database, storage, payments as local simulated services (09-08, 080bcce3) | Auth + D1 + Durable Object: yes, locally via wrangler dev ([slice](/framework/ai/2026-09-06/platform-slice/run.md)). Storage (R2) and payments: no |
+| Password reset, social-login avatars/Gravatar, study the sign-up UX (09-18, 0d555c50) | Partly: `ux/Auth` and `ux/MagicAuth` classes exist as UI; no avatar/Gravatar, no real reset, no backend wired |
+| "Cloudflare API setup, 5 min" as the owner item (09-18) | Never done; it is blocker 1 above |
+| Payments: "did we build any modules?" (09-05) | No code; only the research answer |
+| Cloudflare Tunnel so the PC serves the site remotely (10-01, 10-05) | Decided ([remote-access](/framework/ai/2026-10-01/remote-access/requirements.md)), not installed |
+| Cloudflare page-to-markdown API for agent web search (10-01) | Not built, not researched beyond the ask |
+| Keep auth from shutting everything down; refresh on a timer (10-05) | Not built |
+| Find past Cloudflare/auth/payment/user work, scan prompts by keyword (10-09) | This task |
