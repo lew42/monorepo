@@ -47,11 +47,24 @@ export default class RefineDemo extends View {
 		this.draw();
 	}
 
-	go(){
-		const text = this.$box.el.value.trim();
+	/** The one transcript the owner sees: whatever Dictate has committed into the box, plus the
+	 *  grey still-moving guess if the mic has not settled it yet. Reading the box alone missed
+	 *  text that was on screen only as that guess (2026-10-09). */
+	transcript(){
+		const boxed = this.$box.el.value.trim();
+		const guess = (this.dictate.partial_text || "").trim();
+		return guess && !boxed.endsWith(guess) ? (boxed + " " + guess).trim() : boxed;
+	}
+
+	async go(){
+		// Stop the mic FIRST and wait: stop() settles the open segment into the box. Reading the
+		// box before that (the old order) saw it empty while the transcript was plainly on screen.
+		const live = this.dictate.state === "listening" || this.dictate.state === "connecting";
+		if (live) this.$note.text("Finishing the last words…");
+		if (live) await this.dictate.stop();
+		const text = this.transcript();
 		if (!text) return this.$note.text("Nothing to refine yet.");
 		this.$note.text("");
-		if (this.dictate.state === "listening") this.dictate.stop();
 		this.system.go(text);
 	}
 
