@@ -1,4 +1,5 @@
 import AISessionRows from "./AISessionRows.js";
+import AISession from "./AISession.js";
 
 // Red flags: what looks wrong with a session, worked out from numbers, never guessed. `Server/session-flags.mjs` reads the
 // transcripts and writes sessions/session-flags.json (role, mastermind, last-turn context, last line time, the hour's $);
@@ -8,7 +9,7 @@ export default class AISessionFlags {
 
 	static rows = {};   // id -> { role, mm, ep, ctx, last, model, hour_usd }, set by load()
 
-	static LIMITS = { usd: 10, hour_usd: 5, quiet_ms: 5 * 60 * 1000, ctx: 300000 };
+	static LIMITS = { usd: 10, hour_usd: 5, quiet_ms: 5 * 60 * 1000, ctx: 300000, fresh_ms: 3 * 60 * 1000 };
 
 	static FLAGS = {
 		expensive: { label: "$$$", title: "Expensive: this session cost over $10, or over $5 in its last hour." },
@@ -19,6 +20,7 @@ export default class AISessionFlags {
 
 	static async load(url){
 		const data = await AISessionRows.get_json(url + "session-flags.json");
+		AISessionFlags.generated_at = Date.parse(data?.generated_at ?? 0) || 0;
 		AISessionFlags.rows = AISessionRows.flag_rows = data?.rows ?? {};   // the same table gives AISessionRows its roles
 		return data;
 	}
@@ -33,8 +35,10 @@ export default class AISessionFlags {
 		const { LIMITS } = AISessionFlags, f = AISessionFlags.of(r), out = [];
 		const usd = AISessionRows.claude_usd_of(r);
 		if (usd > LIMITS.usd || (f?.hour_usd ?? 0) > LIMITS.hour_usd) out.push("expensive");
-		// the newest sign of life: the transcript's last line, the live index, the row's own stamp
-		const last = Math.max(Date.parse(f?.last ?? 0) || 0, Date.parse(r.last_activity ?? 0) || 0);
+		// The newest sign of life: the live index (always current), or the transcript's last line from session-flags.json,
+		// which counts only while that file is fresh. With neither, a quiet session cannot be proven stalled, so it is not flagged.
+		const fresh = now - AISessionFlags.generated_at < AISessionFlags.LIMITS.fresh_ms;
+		const last = Math.max(Date.parse(AISession.all.get(r.session_id || r.id)?.ix.last_activity ?? 0) || 0, fresh ? Date.parse(f?.last ?? 0) || 0 : 0, r.source === "servex" ? 0 : Date.parse(r.last_activity ?? 0) || 0);
 		if (AISessionRows.WORKING_STATES.has(r.state) && last && now - last >= LIMITS.quiet_ms) out.push("stalled");
 		if ((r.context ?? f?.ctx ?? 0) > LIMITS.ctx) out.push("bloat");
 		const model = String(r.model ?? f?.model ?? ""), role = f?.role ?? r.role ?? "";

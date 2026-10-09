@@ -61,3 +61,4 @@
 {"log":{"at":"2026-10-02T19:50:26-05:00","msg":"task-loop escalated: {\n  \"ok\": true,\n  \"id\": \"2026/10/02/framework-home-sections-dark-class-cards\",\n  \"ask\": \"d-murodwcfw9\"\n}","chase":"escalated"}}
 {"log":{"at":"2026-10-02T20:12:27-05:00","heartbeat":"check","msg":"status check sent to minion-framework-home-2"}}
 {"log":{"at":"2026-10-02T20:12:31-05:00","heartbeat":"answered","msg":"All four review rounds' fixes are done, verified, and committed (latest `7e387f89`) — reported to `task-mastermind-framework-home` and now just waiting on their landing review, no action pending on my"}}
+{"log":{"at":"2026-10-09T16:29:57-05:00","msg":"health: 6 pages — 11 errors, 0 stalls, worst /framework/ai/v/3/, shots /framework/ai/health/shots/2026-10-09/ — first: status: 404 http://127.0.0.1:60289/framework/ai/usage.json"}}

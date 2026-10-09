@@ -222,7 +222,8 @@ export default class AISessionRows {
 		const extra = [];
 		for (const [id, ses] of AISession.all){
 			if (!ses.live || known.has(id) || !ses.ix.first_at) continue;
-			extra.push(ses.grid_row());
+			const row = ses.grid_row();
+			extra.push({ ...row, role: AISessionRows.role_of(row) });   // a session only the live index knows still gets its role
 		}
 		return extra.length ? [...rows, ...extra] : rows;
 	}

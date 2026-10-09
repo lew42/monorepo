@@ -306,5 +306,5 @@
 	.sessions-chip-head { align-self: center; }
 	/* A one-line name and fixed-height cells in the In flight strip: it redraws on every agent event, and rows that grew or shrank made it jump. */
 	.sessions-row-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.sessions-flight-grid .sessions-cell { block-size: 3.6em; overflow: hidden; }
+	.sessions-flight-grid .sessions-cell { block-size: 3em; overflow: hidden; }
 }
