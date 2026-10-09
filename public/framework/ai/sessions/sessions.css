@@ -113,7 +113,12 @@
 	   on the site is always "one column at a time" (`core/Page`'s own < 32em
 	   phone regime), so the grid becomes a plain stacked card per row instead
 	   of fighting for six columns in no room. */
-	@container (width < 30em) {
+	/* Master-detail, like the Inbox (Addendum 9): with a session open the list holds
+	   exactly half the row and the detail FILLS the other half. Core hands a yielding
+	   `fill` page its third; this puts it back to a half. */
+	.sessions-page.active-ancestor > .page-column-body.page-column-fill { --page-column-flex: 0 0 50%; --page-column-min: 16em; --page-column-max: 50%; }
+
+	@container (width < 56em) {
 		.sessions-grid { display: flex; flex-direction: column; width: auto; max-width: 100%; }
 		.sessions-head { display: none; }
 		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }

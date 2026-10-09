@@ -546,6 +546,7 @@ export default new Page({
 	// default reading width, leaving the detail page the rest of the row — the
 	// side peek, for free, from a rule this page did not have to write.
 	width: "fill",
+	classes: "sessions-page",
 	initialize(){ this.columns(); },
 
 	content(){
@@ -1304,6 +1305,7 @@ function render_spawn_section($el, node, spend, root_url){
 function docs_page(root, id){
 	const file = id === "readme" ? "readme.md" : "doc/priorities.md";
 	return new Page({
+		width: "fill",
 		title: id === "readme" ? "Sessions readme" : "Sessions: priorities",
 		url: root.url + id + "/",
 		content(){
@@ -1315,6 +1317,7 @@ function docs_page(root, id){
 
 function session_page(root, id){
 	return new Page({
+		width: "fill",   // the detail fills its half (Addendum 9): no fixed width
 		// A session id is a raw uuid or an agent name — fine as a url, too long and
 		// too opaque to read as a page's own giant h1 (a card's title is the one
 		// precedent for showing a raw id here, and a card's id is a short slug, not
@@ -1325,6 +1328,7 @@ function session_page(root, id){
 		content(){
 			a.c("page-link", "← all sessions").href(root.url);
 			small.c("muted sessions-full-id", id);
+			small.c("muted", "Template: sessions/page.js, session_page()");   // which template draws this page (doc/templates.md)
 
 			const $box = div.c("flow");
 			const $costs = div.c("flow");

@@ -174,6 +174,7 @@ merge.
   yet — the recommendation and plan to extend it.
 - [`doc/priorities.md`](./doc/priorities.md) — the owner's asks for this page, most important first: follow this list
 - [`doc/patterns.md`](./doc/patterns.md) — every place session data lives today, counted by a script
+- [`doc/templates.md`](./doc/templates.md) — which function draws which page
 - [`doc/layout.md`](./doc/layout.md) — where a session's folder lives (`ai/sessions/YYYY/MM/DD/<id>/`), how old paths still load, the scripted conversion, why ids and not task names
 - [`doc/record-spec.md`](./doc/record-spec.md) — the line types a session record accepts (tag, note, alert, weight, closed, question, links) and how to write them
 - [`doc/session-class.md`](./doc/session-class.md) — `Session.js` (cost, model + effort, tokens by purpose, audit), the `session.jsonl` cache, `session-index.json`; the Cost cell and the detail's Audit button come from it (`SessionView.js`)
