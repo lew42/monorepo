@@ -4,7 +4,13 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 2026-09-22 15:55 by the Servex run's mastermind. Replace the dated sections as they go stale;
 keep it one screen.
 
-## LATEST, 2026-10-09 morning: handover from mastermind session 87bec773 (VS Code tab, wound down because its context was bloated)
+## LATEST, 2026-10-09 16:40: mastermind = VS Code tab 7efd07d5 (Opus)
+- **In flight:** `minion-sessions-red-flags` (Sonnet; brief `ai/2026-10-09/sessions-red-flags/requirements.md`: negative durations, $12.7k under "(unknown)" role, duplicate chips, red-flag filters for expensive/stalled/bloated/Opus-minion, a mastermind tag, stable In-flight order). `mastermind-system-architect` (Opus, owner asked for it; brief `ai/2026-10-09/system-architect/requirements.md`: measure the rule load, propose cuts, apply the safe half; CLAUDE.md changes only as a proposal file). Also from the voice session: `task-mastermind-dup-chat-bubbles` + an Opus reviewer.
+- **Landed:** Refine "Nothing to refine" fixed (merge 8c1c7f7b3). `list_agents` now returns live rows only (was 3 MB; `all: true` for everything; takes effect at the next Servex restart, not done because it drops running agents). CLAUDE.md "Where to look" now says: read this file and `git log -20` first.
+- **Next, owner asked "see what it would take":** refine a VS Code tab's prompt from its row on the Sessions page. Pieces exist (`Prompt`, `RefineSystem` in `ext/Refine`, the session's prompts on its detail page); missing is a Refine button per prompt that runs one Haiku pass and appends the refined card to that session's record (priority 2 below, the "prompts stored in the session log" step). Start after sessions-red-flags lands, Sonnet, one agent.
+- **Later (recorded, not now):** Sessions page redesign: visual hierarchy, most text can go.
+
+## EARLIER, 2026-10-09 morning: handover from mastermind session 87bec773 (VS Code tab, wound down because its context was bloated)
 **Nothing is in flight. Everything below was landed or is queued. Start by reading `CLAUDE.md` (it holds the owner's rules, most written 2026-10-08), then this.**
 
 **State of the world**
