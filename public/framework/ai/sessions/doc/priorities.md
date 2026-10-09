@@ -9,7 +9,7 @@ This is the list to follow. Higher means do it first and never break it for some
 
 ## 2. One store, one route
 - **Asked:** a session is stored once; the same detail view opens however you arrive.
-- **Decided:** the date tree, `ai/YYYY/MM/DD/session-<id8>/`. Every row opens `/framework/ai/sessions/<id>/`. Old shapes still load through `Session.locate`.
+- **Decided:** the dated store, `ai/sessions/YYYY/MM/DD/<id>/`. Every row opens `/framework/ai/sessions/<id>/`. Old shapes still load through `Session.locate`. Every pattern and its count: [patterns](patterns.md).
 - **Lives in:** [layout](layout.md), `Session.js`.
 
 ## 3. The page tells the truth
@@ -24,7 +24,7 @@ This is the list to follow. Higher means do it first and never break it for some
 - **Lives in:** `page.js`, `sessions.css`.
 
 ## 5. Children nest under their parent
-- **Asked:** a child session is a sub-folder of its parent (`parent/child`), and the grid shows nested rows, collapsed, with the rolled-up cost.
+- **Asked:** a child session is a sub-folder of its parent (`parent/child`), and the grid shows nested rows, collapsed, with the rolled-up cost. Opening a session shows it in the right-hand column, a 50/50 split.
 - **Decided and built:** the grid nests rows from `session-tree.json`, collapsed, with the whole tree's cost on the parent row.
 - **Not built:** the folder rule. A child can start a day later than its parent, so its date folder and its parent's disagree. Proposal and reason: [findings 14](/framework/ai/2026-10-08/session-class/).
 

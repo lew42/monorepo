@@ -96,9 +96,7 @@ layout-check-out/
 .merge-landed.json
 
 # session folders (voice turns, dictation cleanups, agent transcripts)
-public/framework/ai/20??/??/??/session-*/*
-# ...except the hand-written record (tags, notes, alerts, closed): the one tracked file in a session folder (sessions/doc/layout.md)
-!public/framework/ai/20??/??/??/session-*/session.jsonl
+public/framework/ai/20??/??/??/session-*/
 public/framework/ai/v-*.jsonl
 public/framework/ai/v-*.summary.json
 public/framework/ux/Dictate/ai/v-*.jsonl
@@ -130,4 +128,3 @@ public/framework/ai/sessions/session-tree.json
 
 # generated layout-test screenshots (2026-10-08)
 test-layout-out/
-Server/.push-vapid.json
