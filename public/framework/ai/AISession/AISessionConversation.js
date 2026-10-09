@@ -3,11 +3,9 @@ import { chat } from "/framework/ext/Chat/Chat.js";
 // The conversation on a session's page: the owner's prompts and the AI's text replies, drawn by `ext/Chat`
 // (the one chat renderer: bubbles, smart scroll, one draw per line). This class only turns raw transcript lines into chat entries.
 // Tool calls are not shown one by one; a run of them between two messages is one quiet update line, "12 tool calls".
-// Feed it raw transcript lines with `add(lines)`: the first call draws the history (newest MAX messages), later calls append live.
+// Feed it raw transcript lines with `add(lines)`: the first call draws the history (Chat shows the newest 50, the rest behind "show earlier"), later calls append live.
 // Built with `new AISessionConversation()`; put `.view` where it should show (the view is a normal Chat box, `.view` is a View).
 export default class AISessionConversation {
-
-	static MAX = 200;   // a long session would otherwise draw thousands of bubbles
 
 	constructor(){
 		this.seen = new Set();   // line uuids already read (a re-read must not draw twice)
@@ -51,8 +49,7 @@ export default class AISessionConversation {
 		flush();
 		const talk = out.filter(e => e.chat);
 		if (!talk.length && !out.length) return 0;
-		const first = !this.count;
-		this.entries = first && talk.length > AISessionConversation.MAX ? out.slice(out.findIndex(e => e === talk[talk.length - AISessionConversation.MAX])) : out;
+		this.entries = out;   // Chat shows the newest 50 and keeps the rest behind "show earlier"
 		this.count += talk.length;
 		this.talk.sync();
 		return talk.length;

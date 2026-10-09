@@ -1,0 +1,82 @@
+[
+	{
+		"slug": "markdown-class",
+		"files": ["public/framework/ext/markdown/md.js"],
+		"class": "Markdown",
+		"to": "public/framework/ext/Markdown/Markdown.js",
+		"why": "The most-imported bag in the framework. A Markdown class is also the natural home for the one text processor CLAUDE.md asks for (mentions, backlinks) beside the markdown method.",
+		"keep": "md() stays as a one-line factory that captures, so the 42 callers do not change."
+	},
+	{
+		"slug": "demo-class",
+		"files": ["public/framework/ext/demo/demo.js", "public/framework/ext/demo/stage.js", "public/framework/ext/demo/sample.js"],
+		"class": "Demo",
+		"to": "public/framework/ext/Demo/Demo.js",
+		"why": "Every demo page builds on it; one manager class with its parts as statics (Demo.Stage, Demo.Sample, Demo.Source) shows how a demo is put together.",
+		"keep": "demo() stays as the factory call demo pages already use."
+	},
+	{
+		"slug": "servex-home-class",
+		"files": ["Servex/home.js"],
+		"class": "ServexHome",
+		"to": "Servex/ServexHome.js",
+		"why": "26 Servex files import its three loose exports (HOME, place, stamp); a tiny class with statics is a quick, safe win at the root of Servex.",
+		"keep": "Re-export HOME, place and stamp from home.js until every importer has moved; tests set SERVEX_HOME before a dynamic import."
+	},
+	{
+		"slug": "edit-mode-class",
+		"files": ["public/framework/ext/Ask/edit.js"],
+		"class": "EditMode",
+		"to": "public/framework/ext/Ask/EditMode.js",
+		"why": "Pure state plus listeners (edit, set_edit, on_edit) spread over three functions: the textbook case for one small class with a live instance.",
+		"keep": "One shared instance (Ask.edit or EditMode.current); the 21 importers switch to it."
+	},
+	{
+		"slug": "source-text-class",
+		"files": ["public/framework/util/source/source.js"],
+		"class": "SourceText",
+		"to": "public/framework/util/SourceText/SourceText.js",
+		"why": "Reads a function's source, a member, dedents: four related helpers that become statics on one class. Named SourceText because a class Source already exists in ux/Dictate/playground.",
+		"keep": "source() and dedent() stay as re-exports while callers move."
+	},
+	{
+		"slug": "task-record-class",
+		"files": ["public/framework/ext/AITask/stats.js", "public/framework/ext/AITask/cost.js"],
+		"class": "TaskJSONL methods (or TaskRecord)",
+		"to": "public/framework/ext/JSONL/JSONL.js (TaskJSONL) or public/framework/ext/AITask/TaskRecord.js",
+		"why": "22 functions that all read one task's lines (state, usage, cost, elapsed). They belong on the task record itself; TaskJSONL already exists, so extend it before adding a class (one of everything).",
+		"keep": "Formatting helpers (money, clock, count) can become statics on a small Format part; check the task page and the board at all four widths."
+	},
+	{
+		"slug": "grip-class",
+		"files": ["public/framework/ext/grip/grip.js"],
+		"class": "Grip",
+		"to": "public/framework/ext/Grip/Grip.js",
+		"why": "A drag handle with state (axis, from, mirror, write/done/reset callbacks) written as one 150-line function; as a class with a view it can be shown live on its page.",
+		"keep": "grip() stays as a factory; prove the drag with the ui-test skill before and after."
+	},
+	{
+		"slug": "highlight-class",
+		"files": ["public/framework/ext/highlight/highlight.js"],
+		"class": "Highlight",
+		"to": "public/framework/ext/Highlight/Highlight.js",
+		"why": "Every code block on the site goes through it (code(), highlight()); a class with Highlight.View makes the code widget one component.",
+		"keep": "code() stays as the capture factory."
+	},
+	{
+		"slug": "openrouter-class",
+		"files": ["Servex/ext/openrouter/provider.js"],
+		"class": "OpenRouter",
+		"to": "Servex/ext/openrouter/OpenRouter.js",
+		"why": "15 exports about one thing (the key, its env, usage and status, which tools a model may use): state that a class holds once instead of re-reading the key in every function.",
+		"keep": "provider.test.mjs must pass unchanged before and after."
+	},
+	{
+		"slug": "files-class",
+		"files": ["public/framework/ext/files/files.js"],
+		"class": "Files",
+		"to": "public/framework/ext/Files/Files.js",
+		"why": "The file-tree widget the owner asks for on every page ('show it with the widget'); as Files with Files.Tree and Files.Source parts, a page can subclass one part.",
+		"keep": "files(meta, names, …) stays as the factory; check a page with a long tree at 400 and 3440."
+	}
+]

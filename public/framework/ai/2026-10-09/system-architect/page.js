@@ -7,8 +7,10 @@ const words = t => t.split(/\s+/).filter(Boolean).length;
 
 export default new AITask({
 	meta: import.meta,
+	children: "oo-census",
 
 	extra(){
+		md("**Follow-up, same day:** [which function files to turn into classes first](oo-census/) (the OO census, ten conversions queued).");
 		md("**A fresh agent reads about 10,000 words of rules before it does anything; a task mastermind about 18,000.** Many of those rules contradicted each other or described systems that are gone. The safe half is fixed; cutting CLAUDE.md is the big remaining win.");
 		const $bars = div.c("flow");
 		Promise.all([

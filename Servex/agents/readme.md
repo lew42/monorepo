@@ -283,7 +283,5 @@ How agents should work together (the design, with a picture):
 
 ## Tools are node functions, not HTTP
 
-An agent Servex spawns gets its tools in-process: `tool(name, description, schema, handler)`
-+ `createSdkMcpServer` in the spawn's `mcpServers` — the handler runs inside Servex with the
-log, the registry and the agents in scope. The HTTP `/mcp` is for sessions outside Servex.
+An agent Servex spawns gets its tools over HTTP: `Agents.door()` points it at the loopback `/mcp` (`?as=<id>`, served by `Servex/MCP.js`); in-process `tool()` servers are only for hosts with no HTTP door (tests). How it learns its own page: [`doc/own-page.md`](./doc/own-page.md).
 Why, and what moves to tools first: [`tiers-design/doc/tools.md`](/framework/ai/2026-09-22/tiers-design/doc/tools.md).
