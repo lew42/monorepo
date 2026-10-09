@@ -1,1 +1,15 @@
 {"file":"requirements.md"}
+{"file":"task.jsonl"}
+{"file":"review/"}
+{"file":"shots/"}
+{"file":"review/","gone":true}
+{"file":"shots/","gone":true}
+{"file":"review/"}
+{"file":"shots/"}
+{"file":"review.jsonl"}
+{"file":"inventory.json"}
+{"file":"inventory.md"}
+{"file":"inventory.mjs"}
+{"file":"manifest.json"}
+{"file":"migrate.mjs"}
+{"file":"STATE.md"}
