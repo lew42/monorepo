@@ -75,7 +75,7 @@ An in-process agent can call the SDK tool `query_sessions` instead (same argumen
 
 ## The snapshot
 
-Not a record line: a session's `index.json` is the **computed** current state, written atomically by `Server/SessionIndex.mjs`, never by hand (design: [realtime.md](realtime.md)). The day composite `sessions/YYYY/MM/DD/index.json` bundles the snapshots of one day.
+Not a record line: a session's `index.json` is the **computed** current state, written atomically by `ai/AISession/AISessionIndex.mjs`, never by hand (design: [realtime.md](realtime.md)). The day composite `sessions/YYYY/MM/DD/index.json` bundles the snapshots of one day.
 
 ```json
 {"id":"<session uuid>","state":"active","model":"claude-sonnet-5","provider":"claude","usd":6.0,"tree_usd":6.0,"children":0,"tags":[],"alerts":0,"first_at":"2026-10-08T21:50:00Z","last_activity":"2026-10-08T21:55:31Z"}

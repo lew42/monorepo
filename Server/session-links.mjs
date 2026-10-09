@@ -1,5 +1,5 @@
 // Server/session-links.mjs — what a session's own folder holds, and which other sessions it is tied to.
-// Used by SessionIndex, which writes the result into each snapshot as `links`. Nothing is stored anywhere new.
+// Used by AISessionIndex, which writes the result into each snapshot as `links`. Nothing is stored anywhere new.
 //
 //   links = { parent, children: [id], card, task, brief, report }
 //

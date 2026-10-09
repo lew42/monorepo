@@ -15,7 +15,7 @@ import { join, resolve, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
-import { find_transcript, cost_of_transcript } from "./session-cost.mjs";
+import { find_transcript, cost_of_transcript } from "../public/framework/ai/AISession/AISessionAudit.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVEX = join(process.env.LOCALAPPDATA || "", "lew42", "servex");
@@ -114,7 +114,7 @@ function agentLogSteps(id){
 const isOpenRouterModel = m => typeof m === "string" && m.includes("/");
 
 // An agent's spend straight from ITS OWN Claude Code transcript, priced by
-// `Server/session-cost.mjs`'s one PRICES table (token-accounting, 2026-10-04).
+// `public/framework/ai/AISession/AISessionAudit.mjs`'s one PRICES table (token-accounting, 2026-10-04).
 // WHY: the CLI writes every turn to the transcript directly, independent of Servex's own
 // result-event pipeline — `agentLogSteps()` above can go quiet mid-session (a Servex restart,
 // or a revive, can drop one `result` hook event without Servex ever noticing), and when it

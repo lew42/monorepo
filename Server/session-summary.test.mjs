@@ -1,12 +1,12 @@
 // node Server/session-summary.test.mjs [session-id]
 // Loads a real session, checks the rolling total against the independent recomputation
-// (Server/session-cost.mjs), checks idempotence + incremental reads, then CORRUPTS a total and
+// (public/framework/ai/AISession/AISessionAudit.mjs), checks idempotence + incremental reads, then CORRUPTS a total and
 // confirms the audit catches it. No cache is written. Exit 1 on any failure.
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import Session from "../public/framework/ai/sessions/Session.js";
-import { find_transcript, cost_of_session } from "./session-cost.mjs";
+import AISession from "../public/framework/ai/AISession/AISession.js";
+import { find_transcript, cost_of_session } from "../public/framework/ai/AISession/AISessionAudit.mjs";
 import { files_of } from "./session-summary.mjs";
 
 let failed = 0;
@@ -29,7 +29,7 @@ const id = pick();
 console.log("session", id, find_transcript(id));
 
 // 1. full load, rolling vs independent recomputation
-const s1 = new Session(id);
+const s1 = new AISession(id);
 await s1.update(files_of(id));
 const truth = cost_of_session(id);
 const gap = Math.abs(s1.total_usd - truth.total_usd);
@@ -43,20 +43,20 @@ ok(again.new_lines === 0, "second update reads 0 new lines");
 
 // 3. idempotent by message id: re-applying the newest lines of the file read last (the ring remembers the last 40 messages) changes nothing
 const main = find_transcript(id), text = fs.readFileSync(main, "utf8");
-const s5 = new Session(id); s5.apply_text(text, "main");
+const s5 = new AISession(id); s5.apply_text(text, "main");
 const before = s5.total_usd;
 s5.apply_text(text.trimEnd().split("\n").slice(-25).join("\n"), "main");
 ok(s5.total_usd === before, "re-applying already-seen lines adds $0");
 
 // 4. incremental: first half, then the rest, equals the full load
 const cut = text.indexOf("\n", text.length >> 1) + 1;
-const s2 = new Session(id);
+const s2 = new AISession(id);
 s2.apply_text(text.slice(0, cut), "main"); const mid = s2.total_usd; s2.apply_text(text.slice(cut), "main");
-const s3 = new Session(id); s3.apply_text(text, "main");
+const s3 = new AISession(id); s3.apply_text(text, "main");
 ok(mid < s2.total_usd && Math.abs(s2.total_usd - s3.total_usd) < 1e-9, `two-step load equals one-step load ($${s2.total_usd}, was $${mid} halfway)`);
 
 // 5. corrupt a rolling total: the audit must catch it, and say which field and by how much
-const s4 = new Session(id, JSON.parse(JSON.stringify(s1.s)));
+const s4 = new AISession(id, JSON.parse(JSON.stringify(s1.s)));
 s4.s.usd += 1.25; s4.s.usd_parts.out += 1.25; s4.s.tokens.output += 5000;
 const a2 = await s4.audit(id);
 ok(!a2.match && a2.diff.usd && a2.diff.output, `corrupted totals caught: ${Object.entries(a2.diff).map(([k, v]) => `${k} off by ${-v.diff}`).join(", ")}`);

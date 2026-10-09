@@ -25,7 +25,7 @@ This is a rebuildable cache, so it is rewritten freely (it folds when long); the
 ## Loading and saving
 
 - `node Server/session-summary.mjs <id>` reads only the bytes after the cursor, then saves.
-- `--audit` recomputes everything with `Server/session-cost.mjs` (a separate parser) and records the verdict. The page's Audit button calls `POST /ai-logs/<id>/audit`; Servex agents call the `audit_session` tool.
+- `--audit` recomputes everything with `public/framework/ai/AISession/AISessionAudit.mjs` (a separate parser) and records the verdict. The page's Audit button calls `POST /ai-logs/<id>/audit`; Servex agents call the `audit_session` tool.
 - `--index` writes `session-index.json` (one short array per session, what the grid loads) and `session-tree.json` (parents and children, loaded by the detail view only).
 - `node Server/session-summary.test.mjs [id]` checks the rolling total against the audit path, replay safety, and that a corrupted total is caught.
 
@@ -52,12 +52,12 @@ The owner can mark a session done ("rubber stamp"). `Session.close(id, by, close
 | `use_index`, `from_index`, `of`, `apply_delta`, `on`, `index_row`, `grid_row` | no use | yes (the light live Session) |
 | `render()` | throws (`Session.View` is unset) | yes |
 
-`Server/SessionIndex.mjs` is the server user; `SessionLive.js` and `SessionFollow.js` are the client users.
+`ai/AISession/AISessionIndex.mjs` is the server user; `AISessionLive.js` and `AISessionFollow.js` are the client users.
 
 ## A Session draws itself
 
-`Session.View = SessionView` is attached after the class (the last line of `SessionView.js`, not a static field) when the browser loads `SessionView.js`, so `session.render()` draws that session as a grid row. It does `new this.constructor.View({ session: this, ... })`, a fresh view each call, the same way `core/Item`, `audio/Part` and `lab/LiveView` do, so a subclass can override `static View`. The other classes nest beneath it as helpers:
+`Session.View = AISessionView` is attached after the class (the last line of `AISessionView.js`, not a static field) when the browser loads `AISessionView.js`, so `session.render()` draws that session as a grid row. It does `new this.constructor.View({ session: this, ... })`, a fresh view each call, the same way `core/Item`, `audio/Part` and `lab/LiveView` do, so a subclass can override `static View`. The other classes nest beneath it as helpers:
 
-- `SessionView` is the row. It subscribes to its Session (`ses.on`) and redraws only itself.
-- `SessionDetail` is the session's own page; it opens from a row.
-- `SessionRows` is the data helper (fetch, merge, sort, nest). `SessionTrace` is the chart and tool-table helper used by the detail page.
+- `AISessionView` is the row. It subscribes to its Session (`ses.on`) and redraws only itself.
+- `AISessionDetail` is the session's own page; it opens from a row.
+- `AISessionRows` is the data helper (fetch, merge, sort, nest). `AISessionTrace` is the chart and tool-table helper used by the detail page.

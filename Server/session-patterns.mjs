@@ -43,12 +43,12 @@ const pair = names.map(a => [a, ...names.map(b => a === b ? "-" : [...sets[a]].f
 const GRID = "/framework/ai/sessions/", link = (n, q) => q ? `[${n}](${GRID}?records=${q})` : `[${n}](${GRID})`;
 const FILTER = { "Session store": "", "Card folders": "has-card", "Task folders": "has-task", "Raw transcripts": "" };
 const rows = [
-	["Session store, dated", count.dated_ex, link(count.dated), "`Session.dir_url(id)` from the index `day` column. The shape new sessions are written in."],
-	["Session store, flat (old)", count.flat_ex, count.flat, "`Session.locate` finds it and moves it into the dated shape on first write; `session-place.mjs` moves all."],
+	["Session store, dated", count.dated_ex, link(count.dated), "`AISession.dir_url(id)` from the index `day` column. The shape new sessions are written in."],
+	["Session store, flat (old)", count.flat_ex, count.flat, "`AISession.locate` finds it and moves it into the dated shape on first write; `session-place.mjs` moves all."],
 	...(count.named ? [["Named session folder", count.named_ex, count.named, "A folder beside the store with a name, not an id. Listed from `sessions.json` if it has a session id."]] : []),
 	["Card folder by date", count.card_ex, link(count.card, "has-card"), "A Servex or VS Code card's `page.jsonl`. Listed from `sessions.json`; opens in the same detail view."],
 	["Task folder", count.task_ex, link(count.task, "has-task"), "`task.jsonl` and the brief. Joined to a session by the `session_id` in its launch line."],
-	["Raw transcript (outside the repo)", "~/.claude/projects/<cwd>/<id>.jsonl", transcripts, "The source of truth, never copied. `Server/session-cost.mjs` reads it; the page reads the small cached summaries."],
+	["Raw transcript (outside the repo)", "~/.claude/projects/<cwd>/<id>.jsonl", transcripts, "The source of truth, never copied. `public/framework/ai/AISession/AISessionAudit.mjs` reads it; the page reads the small cached summaries."],
 ];
 const md = `# Where session data lives today
 

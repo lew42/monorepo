@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import Session from "../public/framework/ai/sessions/Session.js";
+import AISession from "../public/framework/ai/AISession/AISession.js";
 import { refresh } from "./session-summary.mjs";
 
 /** Every top-level transcript the CLI wrote for this repo's folders: id -> path. (Subagent files hang off a main one.) */
@@ -18,7 +18,7 @@ export function transcripts(){
 	return out;
 }
 
-export async function has_cache(id){ return !!(await Session.load_cached(id)); }
+export async function has_cache(id){ return !!(await AISession.load_cached(id)); }
 
 export async function gap(){
 	const all = transcripts(), missing = [];

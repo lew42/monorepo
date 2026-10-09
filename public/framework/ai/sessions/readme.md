@@ -44,7 +44,7 @@ older `cost` figure:**
   full reasoning for why these cards are the trustworthy number and the range summary below the
   grid is not.
 - **A session's own detail page** shows a compact row per logged cost line (time, tokens, $) above
-  its prompts, when `Server/session-cost.mjs` has logged one.
+  its prompts, when `public/framework/ai/AISession/AISessionAudit.mjs` has logged one.
 - **Below that (session-trace, 2026-10-03): a cost-over-time chart and a "what was it doing"
   table**, when a `trace.json` exists for that session (a manual, run-by-hand file today — see
   below). The chart is cumulative $ over elapsed time, with a tick per tool call; the table groups
@@ -82,15 +82,15 @@ the full story.
 
 Two SEPARATE scripts, neither live — both are run by hand and read by the page, same shape as
 `sessions.mjs` above:
-- [`Server/session-cost.mjs`](/code/) reads one Claude Code session's own transcript (the only
+- [`public/framework/ai/AISession/AISessionAudit.mjs`](/code/) reads one Claude Code session's own transcript (the only
   place per-prompt token counts exist) and sums it into a total + a per-prompt breakdown, priced
   by model. A Stop hook (`.claude/settings.json`) runs it after every turn, appending one
   `{"cost":{...}}` line to that session's own `page.jsonl` — the file
   [`task-mastermind-prompt-refine`](/framework/ai/) owns creating, this task only ever appends to.
-  `node Server/session-cost.mjs <session-id>` prints the JSON on its own, for testing.
+  `node public/framework/ai/AISession/AISessionAudit.mjs <session-id>` prints the JSON on its own, for testing.
   The same script's `trace_of_transcript()` answers a DIFFERENT question — not the $ total, but
   every individual tool call and its own timestamp, behind the chart + table above: `node
-  Server/session-cost.mjs --trace-file <session-id> <out-path>` writes it as `<out-path>`, read by
+  public/framework/ai/AISession/AISessionAudit.mjs --trace-file <session-id> <out-path>` writes it as `<out-path>`, read by
   the detail page as `<session-dir>/trace.json`. Manual/on-demand only (doc/decisions.md).
 - [`Server/week-cost.mjs`](/code/) writes this week's Claude $ and OpenRouter $ against the $200
   Max plan to `week.json` beside this readme — the stat cards' own source. Two ways to run it:
@@ -160,7 +160,7 @@ merge.
 
 ## Real time: true now versus planned
 
-- **True now:** a session's cost, state and last activity reach the grid in well under a second, and a new session appears the same way. A server-side `SessionIndex` keeps one small snapshot per session, writes it to the session's `index.json` and the day's `YYYY/MM/DD/index.json` (real files a static host serves), and pushes each changed snapshot over the dev socket. An open session page tails its own log and corrects the grid row. It runs on the main dev server only, after a restart.
+- **True now:** a session's cost, state and last activity reach the grid in well under a second, and a new session appears the same way. A server-side `AISessionIndex` keeps one small snapshot per session, writes it to the session's `index.json` and the day's `YYYY/MM/DD/index.json` (real files a static host serves), and pushes each changed snapshot over the dev socket. An open session page tails its own log and corrects the grid row. It runs on the main dev server only, after a restart.
 - **Not yet:** a parent's tree total when a child changes, and the tree, closed list and traces (still the `session-index.json` snapshot).
 - Detail, latency numbers and the scripts: [`doc/realtime.md`](./doc/realtime.md).
 
@@ -185,9 +185,9 @@ merge.
 - [`doc/templates.md`](./doc/templates.md) — which class draws which page; [`doc/classes.md`](./doc/classes.md) — the classes, one per file
 - [`doc/layout.md`](./doc/layout.md) — where a session's folder lives (`ai/sessions/YYYY/MM/DD/<id>/`), how old paths still load, the scripted conversion, why ids and not task names
 - [`doc/record-spec.md`](./doc/record-spec.md) — the line types a session record accepts (tag, note, alert, weight, closed, question, links) and how to write them
-- [`doc/session-class.md`](./doc/session-class.md) — `Session.js` (cost, model + effort, tokens by purpose, audit), the `session.jsonl` cache, `session-index.json`; the Cost cell and the detail's Audit button come from it (`SessionView.js`)
+- [`doc/session-class.md`](./doc/session-class.md) — `AISession.js` (cost, model + effort, tokens by purpose, audit), the `session.jsonl` cache, `session-index.json`; the Cost cell and the detail's Audit button come from it (`AISessionView.js`)
 - [`doc/decisions.md`](./doc/decisions.md) — the full data-source decision, the `css-scopes.txt`
   reservation note, and the VS-Code-vs-CLI heuristic, checked against a real session
 - [`ext/panel2`](/framework/ext/panel2/) — the header/main chrome this tab is built from
-- Files: `page.js` (creates `SessionsPage`), `SessionsPage.js`, `SessionDetail.js`, `SessionView.js`, `SessionRows.js`, `SessionTrace.js`, `sessions.css` (the row), `settings.jsonl`
+- Files: the classes live in [`../AISession/`](../AISession/) (see [`doc/classes.md`](./doc/classes.md), which also lists the names rejected); here: `page.js` (creates `AISessionsPage`), `AISessionsPage.js`, `AISessionDetail.js`, `AISessionView.js`, `AISessionRows.js`, `AISessionTrace.js`, `sessions.css` (the row), `settings.jsonl`
   (`{"tab":true}`, how this folder joined the strip)

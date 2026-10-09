@@ -13,7 +13,7 @@
 // agree. The exported functions below are the one place that question gets answered now; nothing
 // that imports this file for them also re-runs the write-week.json side effect — that only
 // happens when this script is run directly (`node Server/week-cost.mjs`), same `is_main` pattern
-// Server/session-cost.mjs already uses.
+// public/framework/ai/AISession/AISessionAudit.mjs already uses.
 //
 // usage:
 //   node Server/week-cost.mjs [--root <repo>]                 this week → writes week.json, once

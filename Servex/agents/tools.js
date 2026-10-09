@@ -206,8 +206,8 @@ function session_tools(agents){
 				by: { type: "string", description: "Your agent name, e.g. mastermind-task-audit." } },
 			["session", "line", "by"],
 			async args => {
-				const { default: Session } = await import("../../public/framework/ai/sessions/Session.js");
-				try { return JSON.stringify({ ok: true, line: await Session.log(args.session, args.line, args.by) }); }
+				const { default: AISession } = await import("../../public/framework/ai/AISession/AISession.js");
+				try { return JSON.stringify({ ok: true, line: await AISession.log(args.session, args.line, args.by) }); }
 				catch (e){ return JSON.stringify({ error: String(e.message || e) }); }
 			}),
 		tool("session_line",

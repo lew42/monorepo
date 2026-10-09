@@ -38,9 +38,9 @@ await page.goto(url);
 await page.waitForSelector(".sessions-row", { timeout: 30000 });
 await page.waitForTimeout(2500);   // the socket subscription answers
 await page.evaluate(async () => {
-	const { default: Session } = await import("/framework/ai/sessions/Session.js");
-	const apply = Session.apply_delta; window.__arrived = [];
-	Session.apply_delta = snap => { window.__arrived.push([snap.id, Date.now()]); return apply.call(Session, snap); };
+	const { default: AISession } = await import("/framework/ai/AISession/AISession.js");
+	const apply = AISession.apply_delta; window.__arrived = [];
+	AISession.apply_delta = snap => { window.__arrived.push([snap.id, Date.now()]); return apply.call(AISession, snap); };
 });
 
 const watch = want => page.evaluate(([id, want]) => new Promise(resolve => {

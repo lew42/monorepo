@@ -7,7 +7,7 @@ we're not logging them to the same system... we should be... use hooks." Full br
 [`/framework/ai/2026-10-04/vscode-session-cost/requirements.md`](/framework/ai/2026-10-04/vscode-session-cost/requirements.md).
 
 **Item 1 (hooks, no timer) was already landed** by the same-day `token-accounting` task below —
-`.claude/settings.json`'s `Stop` hook already runs `node Server/session-cost.mjs --append-stdin`
+`.claude/settings.json`'s `Stop` hook already runs `node public/framework/ai/AISession/AISessionAudit.mjs --append-stdin`
 on every turn, for every session including a VS Code tab's. Checked, not assumed, before
 building anything new (CLAUDE.md law 6/7).
 
@@ -25,8 +25,8 @@ thrown error, so nothing ever surfaced this). The cost just stopped climbing, fo
 the clock rolled over.
 
 **The fix:** `find_page_jsonl()` now walks every `<Y>/<M>/<D>/` folder for the session's own
-`*-<id8>` directory — the identical rule `ai/sessions/SessionsPage.js`'s own
-`SessionDetail.dir_index()` already uses client-side (CLAUDE.md law 6: one rule for "which folder
+`*-<id8>` directory — the identical rule `ai/AISession/AISessionsPage.js`'s own
+`AISessionDetail.dir_index()` already uses client-side (CLAUDE.md law 6: one rule for "which folder
 is this session's page"). Verified against the real files: it now finds `60d9def6`'s page under
 `ai/2026/10/03/`, appends the correct $110.07, and `week.json` (re-run by hand, the same manual
 snapshot it's always been) now shows it.
@@ -66,17 +66,17 @@ an agent... grouped by role, maybe even per prompt type." Full brief:
 | writer | reads from | what |
 |---|---|---|
 | `Agents.js` (Servex) | the Anthropic/OpenRouter SDK response | `agent-<id>.jsonl`'s own `result` lines: a RUNNING `cost` total + that turn's `usage` |
-| `Server/session-cost.mjs` | a session's own `~/.claude/projects/.../*.jsonl` transcript | per-prompt $, token counts, now a $-by-token-kind split — appended to that session's `page.jsonl` as `{"cost":{...}}` after every turn (a Stop hook) |
+| `public/framework/ai/AISession/AISessionAudit.mjs` | a session's own `~/.claude/projects/.../*.jsonl` transcript | per-prompt $, token counts, now a $-by-token-kind split — appended to that session's `page.jsonl` as `{"cost":{...}}` after every turn (a Stop hook) |
 | `Server/task-cost.mjs` | the registry + every agent's own log, **now also the transcript** | a task's `cost_usd` on its own `task.jsonl`, the figure the AI board shows |
 | `Server/spend-tree.mjs` | the registry + every agent's own log, **now also the transcript** | `spend-tree.json`: every agent ever registered, its own $, its subtree $, by role, by trigger — now with a cache $ split too |
 | `Server/day-spend.mjs` | `task-cost.mjs`'s own `cost_usd` (never recomputes) | a day's Claude $ vs real $, by module |
 | `Server/week-cost.mjs` | `session-cost.mjs`'s own `page.jsonl` cost lines | this week's real $ against the plan, the Sessions tab's stat cards |
-| `ai/sessions/SessionsPage.js` | `GET /api/agents`, `sessions.json`, `spend-tree.json`, a session's own `page.jsonl`/transcript | the whole Sessions tab |
+| `ai/AISession/AISessionsPage.js` | `GET /api/agents`, `sessions.json`, `spend-tree.json`, a session's own `page.jsonl`/transcript | the whole Sessions tab |
 | `core/Page/weight/ai-cost.js` | `task-cost.mjs`'s own `cost_usd`/`cost.agents` (never recomputes) | the task-card breakdown table |
 | VS Code tabs | nothing writes a $ for them at all until a Stop hook runs `session-cost.mjs --append-stdin` | — |
 
 **Mistake 1 (item 2/3): the cache-write price was wrong, in the one place every reader prices a
-token.** `Server/session-cost.mjs`'s `PRICES` table (the ONLY price table in this repo — every
+token.** `public/framework/ai/AISession/AISessionAudit.mjs`'s `PRICES` table (the ONLY price table in this repo — every
 other script above imports it rather than keeping its own copy) multiplied a cache-write token by
 `in × 1.25`, the rate for a 5-minute cache. Every Claude Code agent on this machine actually runs
 the 1-hour-cache rate, `in × 2`. Checked against 3 real agents, not assumed — every `result` line
@@ -104,7 +104,7 @@ hours — most of its real turns were never captured at all). Across every agent
 registered, `spend-tree.mjs`'s own total moved from $4749 to $9622 Claude $ once both scripts
 preferred the transcript.
 
-**The fix: pick the one source (item 2).** Both scripts now call `Server/session-cost.mjs`'s
+**The fix: pick the one source (item 2).** Both scripts now call `public/framework/ai/AISession/AISessionAudit.mjs`'s
 `find_transcript(session_id)` + `cost_of_transcript(path)` — the same function `session-cost.mjs`
 itself already used for the Sessions tab's per-prompt view — and use ITS total for a non-OpenRouter
 agent whenever it reads at least as large as the agent log's own total (never smaller: a transcript
@@ -225,7 +225,7 @@ inside this task's fence, so a fully live range figure is not buildable here —
 gap below, not hidden. What WAS buildable and is now built: `Server/week-cost.mjs`'s own windowed
 computation (`claude_spend(from,to)`, `openrouter_spend(from,to)`) is now `compute_window(from,to)`,
 exported with no import-time side effect (the compute/write/log path only runs when the script is
-executed directly — the same `is_main` pattern `Server/session-cost.mjs` already used) — so the
+executed directly — the same `is_main` pattern `public/framework/ai/AISession/AISessionAudit.mjs` already used) — so the
 week figure (the stat cards) and ANY future arbitrary-range figure go through the exact same real
 computation and can never disagree with each other, only with whatever a client-side row sum
 guesses. The RANGE summary line below the grid now only claims what it can actually compute (Claude
@@ -273,7 +273,7 @@ Start/Stop/Duration alongside Cost on every row. Full brief:
 straight from `~/.claude/projects/...`. `load_transcript()` (`page.js`) now calls that instead of
 reading a copy, and filters for real prompts the same way `sessions.mjs` already does server-side
 — a second, small implementation of that filter was accepted rather than threading one shared
-function across the node/browser boundary (the same tradeoff `SessionDetail.dir_index()`'s own
+function across the node/browser boundary (the same tradeoff `AISessionDetail.dir_index()`'s own
 directory.json walk already made, noted below it).
 
 **A session's home is its date path — built as a seam, because nothing to list exists yet.**
@@ -282,7 +282,7 @@ machine — `task-mastermind-prompt-refine`'s hooks that would write one haven't
 plan for the exact path shape changed three times while this task alone was open (see the FYIs
 logged in `task.jsonl`, 2026-10-02/03). Chasing a moving, not-yet-real target would be guessing,
 not computing (CLAUDE.md law 7) — so this task built the LOOKUP instead of the DATA:
-`SessionDetail.dir_index()` walks `/framework/directory.json` once per grid load for any
+`AISessionDetail.dir_index()` walks `/framework/directory.json` once per grid load for any
 `<slug>-<id8>` folder, keyed by id8, and every row's own `href` prefers that date path when found,
 falling back to this tab's own `/sessions/<id>/` view otherwise. Today every row falls back — the
 index is always empty — and the day a real page appears, the very same code links to it, with
@@ -361,7 +361,7 @@ folds it to one screen at a time; nothing extra was written for narrow screens e
 literal text "false" in the Cost column, because a live agent's `cost` field really was the
 boolean `false` (not a number, not null) — the arrow function's own return value (`false`) was
 the thing that ended up as a stray text node. Rewritten as plain `if` statements. The Dashboard
-tab's own Sessions tile (`ai/dashboard/page.js`) reuses `SessionView`/`SessionRows.merge()` (law 6, one row
+tab's own Sessions tile (`ai/dashboard/page.js`) reuses `AISessionView`/`AISessionRows.merge()` (law 6, one row
 renderer) and needed the same `sessions-grid` class added to its own container, since a cell's
 grid position depends on the parent actually being that grid.
 
@@ -432,7 +432,7 @@ sessions-    ai/sessions
 
 Full brief: [`/framework/ai/2026-10-02/session-costs/minion-build/requirements.md`](/framework/ai/2026-10-02/session-costs/minion-build/requirements.md).
 
-**Why two more scripts, not one bigger one.** `Server/session-cost.mjs` (per-session, per-prompt,
+**Why two more scripts, not one bigger one.** `public/framework/ai/AISession/AISessionAudit.mjs` (per-session, per-prompt,
 from a raw transcript) and `Server/week-cost.mjs` (the week's totals, from every session's own
 logged cost) are kept separate from `Server/task-cost.mjs` (a Servex agent's own running total,
 from its agent log) on purpose — they answer different questions from different sources, and
@@ -463,7 +463,7 @@ real needs the session's own line 1 to record its role going forward** — outsi
 same as the RAM gap below.
 
 **RAM stays blank — `GET /api/agents` doesn't carry it yet.** The column, the `ram_mb` /
-`ram_sample_age_ms` fields and the "under 10 seconds old" check are all in `SessionRows.merge()` and `SessionView`
+`ram_sample_age_ms` fields and the "under 10 seconds old" check are all in `AISessionRows.merge()` and `AISessionView`
 now, so the moment Servex's own agent card adds real-time RAM, the column lights up with no further
 change here. Until then it is correctly, permanently blank — never a fabricated or stale number.
 
@@ -501,7 +501,7 @@ changes the row set.
 main checkout's own sessions. A session run from a worktree (including this very task's own)
 writes to a differently-named project folder and never shows up here. Scanning every
 `c--Code-lew42-*` folder would catch them, at the cost of reading many more files on every run;
-**`Server/session-cost.mjs`'s own `find_transcript()` already does scan every `c--Code-lew42-*`
+**`public/framework/ai/AISession/AISessionAudit.mjs`'s own `find_transcript()` already does scan every `c--Code-lew42-*`
 folder** (it has to, to find ONE session by id, cheaply — unlike `sessions.mjs`, it never reads
 every file in every folder, just checks whether `<folder>/<session-id>.jsonl` exists) — so a
 worktree session's own cost IS found and logged correctly today, even though it still never shows
@@ -536,10 +536,10 @@ tells us whether an agent did anything unnecessary." Full brief:
 [`/framework/ai/2026-10-03/session-trace/requirements.md`](/framework/ai/2026-10-03/session-trace/requirements.md).
 
 **`trace.json` is a manual, on-demand file today, same honesty `week.json`'s own note already
-uses.** `Server/session-cost.mjs`'s new `trace_of_transcript(path)` walks a session's raw
+uses.** `public/framework/ai/AISession/AISessionAudit.mjs`'s new `trace_of_transcript(path)` walks a session's raw
 transcript a second time (alongside `cost_of_transcript()`, untouched) and returns one row per
 `tool_use` block plus the per-turn `$` groups the chart's y-axis steps on. `node
-Server/session-cost.mjs --trace-file <id> <out-path>` writes it to disk — run by hand, same as
+public/framework/ai/AISession/AISessionAudit.mjs --trace-file <id> <out-path>` writes it to disk — run by hand, same as
 `sessions.mjs`/`week-cost.mjs` already are. It is **not** wired into the Stop hook: a long session
 can have thousands of tool calls (the real test case below has 4,225), so a trace file can run into
 several megabytes — appending one after every turn, for every session, forever, was judged not
@@ -569,7 +569,7 @@ acceptable ("a single Claude-$ line is an honest MVP") rather than drawing a fab
 line — the moment real per-turn OpenRouter data exists somewhere, the chart's own one-series-only
 code path is the thing to change, not the chart's shape.
 
-**Proof, against real data, not a hand-built fixture:** `node Server/session-cost.mjs --trace
+**Proof, against real data, not a hand-built fixture:** `node public/framework/ai/AISession/AISessionAudit.mjs --trace
 355eb7ba-ed23-46bb-ab6f-77c073a23571` (this task's own mastermind session) returned 84 calls / 87
 turns. For a session that actually has repeated reads, `361c4d18-e878-4c04-9537-444e847e13d5` — the
 SAME transcript this brief's own "what a transcript line actually looks like" section was verified
@@ -586,7 +586,7 @@ correctly).
 **The chart is plain inline SVG, no charting library** (CLAUDE.md: no new npm dependency) — same
 house style `ux/Content/Spend.js`'s own $-over-time bar chart already uses (`el.innerHTML =` a
 built-up SVG string; this page uses `View.html_unsafe()` instead, the same mechanism under a
-different name). `SessionTrace.chart_svg()`'s own `nice_step()` helper is a direct copy of `Spend.js`'s
+different name). `AISessionTrace.chart_svg()`'s own `nice_step()` helper is a direct copy of `Spend.js`'s
 identical function, not an import — `Spend` is a `ContentModule` built around its own fetch
 lifecycle, not a plain function this page could call standalone, and the function itself is four
 lines.
