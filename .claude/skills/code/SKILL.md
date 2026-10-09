@@ -41,6 +41,8 @@ Never `static View = class …` inside the class body, never `new EventLog.View(
 
 The shape, the statics and the naming: [/framework/code/patterns/](/framework/code/patterns/) (read it, then `dos-and-donts` and `objects`).
 
+**A system's logs and debug view belong to its class (the owner, 2026-10-09).** Whisper's log is `Whisper`'s own view, not something a page like `ext/Refine` builds by hand; any page that uses Whisper shows that view. A server and its many uses are separate instances (one `Whisper` server, many `WhisperSession`s, one per dictation surface), each with its own log. Every system renders the same way: an icon item you can expand into its live properties and log (the instance explorer), so the class hierarchy and the live UI sit side by side and you watch instances appear and change as you use it. Never build a page-specific debug UI for a class.
+
 ## Always
 
 `public/` is no-build native ESM: read a class top to bottom and know what happens. Every constructor is assign-based (`this.assign(...args)`). Capturing is synchronous: never build DOM after an `await`. Every process you start is hidden (`windowsHide: true`). Every class ends up with a view of its own state (a chip, a row, a panel).
