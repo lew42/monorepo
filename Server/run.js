@@ -12,6 +12,7 @@ import DevSource from "./plugins/DevSource.js";   // read-only Servex/Server bro
 import DevSocket from "./plugins/DevSocket/DevSocket.js";
 import Runtime from "./plugins/SocketServer/Runtime.js";
 import AILogs from "./plugins/AILogs.js";
+import SessionTail from "./plugins/SessionTail.js";
 import Ask, { AskRoute } from "./plugins/Ask.js";
 import CardAnswer from "./plugins/CardAnswer.js";
 import MCP from "./plugins/MCP.js";
@@ -39,6 +40,7 @@ Server.use(MentionSync);
 Server.use(PageFiles);   // appends {"file"} lines to page.jsonl — Server/plugins/PageFiles.js
 Server.use(DevSource);   // /devsource.json + /devsource/<path> — Servex/Server source, read-only
 Server.use(AILogs);
+Server.use(SessionTail);   // follows transcripts, feeds the Sessions tab - Server/SessionTailer.mjs
 Server.use(MCP);
 Server.use(Recordings);
 Server.use(Research);   // registers its tools on MCP — after it

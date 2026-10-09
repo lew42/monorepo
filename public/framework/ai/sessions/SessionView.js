@@ -2,6 +2,7 @@ import { View, div, span, small, p, a } from "/app.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { dur, elapsed } from "/framework/ext/AITask/stats.js";
 import SessionRows from "./SessionRows.js";
+import Session from "./Session.js";
 
 // One session, drawn. `new SessionView({ row, url, ... })` is one grid row (an <a> of cells, in the order of
 // SessionRows.COLUMNS: the grid tracks are positional). The statics draw the pieces the Session class computed
@@ -20,6 +21,20 @@ export default class SessionView extends View {
 	prerender(){
 		super.prerender();
 		this.href(this.url + this.row.id + "/");   // one route per session: this tab's own detail view
+	}
+
+	// Subscribes to this row's Session: a delta from the live feed redraws THIS row and no other (doc/realtime.md).
+	initialize(){
+		super.initialize();
+		const ses = Session.all.get(this.row.session_id || this.row.id);
+		if (ses?.subs) this.unsubscribe = ses.on(() => this.changed(ses));
+	}
+
+	/** A row whose element left the page (the grid was redrawn) quietly drops its subscription instead of leaking it. */
+	changed(ses){
+		if (!this.el.isConnected) return void this.unsubscribe?.();
+		SessionRows.apply_live(this.row, ses);
+		this.empty(() => this.render());
 	}
 
 	render(){
@@ -202,3 +217,5 @@ export default class SessionView extends View {
 		});
 	}
 }
+
+Session.View = SessionView;   // so a Session can draw itself: session.render() (Session.js)
