@@ -455,8 +455,8 @@ export function sticky_scroll(box){
 	return { pin, locked: () => locked };
 }
 
-export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open, on_react, on_reply } = {}){
-	let $script;
+export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open, on_react, on_reply, recent = 50 } = {}){
+	let $script, drawn = false, earlier = [], $earlier = null;
 	const seen = new Set();
 
 	const view = div.c("chatbox-log", $s => {
@@ -928,6 +928,30 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 	}
 	let sent_n = 0;
 
+	const CHUNK = 50;
+	function show_earlier_button(){
+		if (!earlier.length){ $earlier?.remove(); $earlier = null; return; }
+		if (!$earlier){
+			$earlier = document.createElement("button");
+			$earlier.type = "button"; $earlier.className = "chatbox-earlier";
+			$earlier.addEventListener("click", load_earlier);
+		}
+		$earlier.textContent = "show earlier (" + earlier.length + ")";
+		$script.el.prepend($earlier);
+	}
+	/** Draw the previous chunk ABOVE what is on screen, keeping the reader where they were. Merge logic only ever looks at the last bubble, so the chunk is drawn into an emptied box and the old children put back after it. */
+	function load_earlier(){
+		const box = $script.el, chunk = earlier.splice(Math.max(0, earlier.length - CHUNK));
+		const before = box.scrollHeight - box.scrollTop;
+		$earlier?.remove();
+		const old = [...box.children];
+		old.forEach(c => c.remove());
+		chunk.forEach(draw);
+		old.forEach(c => box.append(c));
+		show_earlier_button();
+		box.scrollTop = box.scrollHeight - before;
+	}
+
 	function draw(e){
 		if (e.react) return react_line(e.react);
 		if (e.chat) return chat_line(e.chat);
@@ -1006,7 +1030,12 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				seen.add(k);
 				return keep(e);
 			});
-			fresh.sort((a, b) => Date.parse(a.at ?? 0) - Date.parse(b.at ?? 0)).forEach(draw);
+			fresh.sort((a, b) => Date.parse(a.at ?? 0) - Date.parse(b.at ?? 0));
+			// WINDOW: the first draw shows only the newest `recent` entries (default 50; pass Infinity for all) (a chat may hold thousands); the rest wait behind a
+			// "show earlier" button at the top. Oldest-to-newest stays the order; the box opens at the newest (sticky_scroll).
+			if (!drawn && fresh.length > recent){ earlier = fresh.slice(0, fresh.length - recent); fresh.splice(0, earlier.length); show_earlier_button(); }
+			drawn = true;
+			fresh.forEach(draw);
 		},
 	};
 }

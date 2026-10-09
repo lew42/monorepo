@@ -577,3 +577,7 @@
 	.chatbox-drill-text > :first-child { margin-block-start: 0; }
 	.chatbox-drill-text > :last-child { margin-block-end: 0; }
 }
+
+@layer theme {
+	.chatbox-earlier { align-self: center; margin-block: var(--gap-35); cursor: pointer; }
+}
