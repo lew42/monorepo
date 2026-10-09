@@ -3,6 +3,7 @@ import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { dur, elapsed } from "/framework/ext/AITask/stats.js";
 import AISessionRows from "./AISessionRows.js";
 import AISession from "./AISession.js";
+import AISessionFlags from "./AISessionFlags.js";
 
 // One session, drawn. `new AISessionView({ row, url, ... })` is one grid row (an <a> of cells, in the order of
 // AISessionRows.COLUMNS: the grid tracks are positional). The statics draw the pieces the Session class computed
@@ -41,8 +42,6 @@ export default class AISessionView extends View {
 		const { row: r, nest } = this, { SOURCE, WORKING_STATES, is_in_flight, display_name, role_label, row_of } = AISessionRows;
 		const src = SOURCE[r.source] ?? { label: r.source, icon: "help" };
 		const working = WORKING_STATES.has(r.state);
-		// Stop and Duration read "—" for a Servex row that finished without an explicit stop: nothing knows either number.
-		const span_end = r.stopped_at ?? (working ? new Date().toISOString() : null);
 
 		// State first: a blinking ▶ while working, a filled dot when alive and waiting, a quiet dot otherwise.
 		div.c("sessions-cell", () => {
@@ -57,6 +56,7 @@ export default class AISessionView extends View {
 				if (nest?.kids) span.c("sessions-fold").attr("role", "button").attr("tabindex", "0").attr("title", nest.open ? "Hide the sessions this one started" : "Show the sessions this one started")
 					.text((nest.open ? "▾ " : "▸ ") + nest.kids).on("click", e => { e.preventDefault(); e.stopPropagation(); nest.toggle(); });
 				span(name.text);
+				AISessionView.flag_tags(r);   // red tags, inline on the title line so a row never changes height
 			});
 			if (r.last_prompt_first_line && name.from !== "prompt") small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
 		}));
@@ -85,11 +85,16 @@ export default class AISessionView extends View {
 		});
 
 		div.c("sessions-cell", () => small.c("muted").text(working ? "now" : (r.last_activity ? age(r.last_activity) : "—")).attr("title", r.last_activity ?? ""));
-		div.c("sessions-cell", () => small.c("muted", dur(elapsed(r.started_at, span_end))));
-		div.c("sessions-cell", () => { if (r.role) { const { label: text, title } = role_label(r.role); small.c("muted").attr("title", title).text(text); } });
+		div.c("sessions-cell", () => small.c("muted", dur(AISessionRows.span_ms(r))));
+		div.c("sessions-cell", () => { if (r.role) { const { label: text, title } = role_label(r.role); small.c("muted").attr("title", title).text(text); } if (AISessionFlags.is_mastermind(r)) span.c("sessions-tag sessions-tag-mm", "mastermind").attr("title", "A mastermind: it registered as one in Servex, or its first prompt loads the mastermind skill."); });
 		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
 		// Plain `if`s, not `&&`: a cell callback's return value can end up rendered as a stray text node (a `false` once printed "false").
 		div.c("sessions-cell", () => { if (r.model) small.c("muted", r.model); });
+	}
+
+	/** One small red tag per flag that applies to the row (AISessionFlags). */
+	static flag_tags(r){
+		for (const k of AISessionFlags.flags_of(r)){ const f = AISessionFlags.FLAGS[k]; span.c("sessions-redflag", f.label).attr("title", f.title); }
 	}
 
 	// ---- the pieces ----------------------------------------------------------------------------------

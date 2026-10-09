@@ -8,6 +8,7 @@ import AISessionView from "./AISessionView.js";
 import AISessionLive from "./AISessionLive.js";
 import AISession from "./AISession.js";
 import AISessionDetail from "./AISessionDetail.js";
+import AISessionFlags from "./AISessionFlags.js";
 
 const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
 View.stylesheet(sessions_dir, "sessions.css");
@@ -143,7 +144,9 @@ export default class AISessionsPage extends Page {
 	/** The strip above the grid: every session in flight, newest activity first, drawn by the same AISessionView as the grid below. */
 	render_flight(){
 		if (!this.$flight) return;
-		const live = this.last_rows.filter(AISessionRows.is_in_flight).sort((x, y) => Date.parse(y.last_activity ?? 0) - Date.parse(x.last_activity ?? 0));
+		// Ordered by START time (oldest first, id as the tie-break), never by last activity: that moved every row on every event.
+			const start = r => Date.parse(r.started_at ?? 0) || 0;
+			const live = this.last_rows.filter(AISessionRows.is_in_flight).sort((x, y) => start(x) - start(y) || String(x.id).localeCompare(String(y.id)));
 		this.$flight.empty(() => {
 			h3.c("sessions-flight-head", `In flight now · ${live.length}`).attr("title", "Running or ready to run right now. Updates live from the Servex agent stream.");
 			if (!live.length) return void small.c("muted", "Nothing is in flight right now.");
@@ -164,12 +167,15 @@ export default class AISessionsPage extends Page {
 			const $box = input().attr("type", "checkbox");
 			$box.el.checked = !!this[key];
 			$box.on("change", () => { this[key] = $box.el.checked; this.render_rows(); });
-			span(text);
+			this[key + "_text"] = span(text);
 		}).attr("title", title);
 		this.$controls.empty(() => {
 			div.c("sessions-filters flex gap-100 v-center wrap", () => {   // one compact row: closed, attention, in flight, tag, dates
 				check("show closed", "show_closed", "Sessions you marked done are hidden by default. They are never deleted.");
-				check("needs attention", "attention_only", "Only sessions with an alert in their session.jsonl record.");
+				const red = AISessionFlags.counts(this.last_rows), flagged = red.any;
+					check(`needs attention · ${flagged}`, "attention_only", "Sessions with a red flag (expensive, stalled, context bloat, Opus minion) or an alert in their session.jsonl record.");
+					
+					this.$red_counts = small.c("sessions-redflag-counts").attr("title", "How many sessions carry each red flag right now");
 				check("in flight", "inflight_only", "Only sessions working right now (a transcript that moved in the last 5 minutes, or a Servex agent that is running).");
 				const pick = (name, key, values, title, group = false) => values.length && label.c("flex gap-35 v-center h4", () => {
 					span(name);
@@ -221,7 +227,7 @@ export default class AISessionsPage extends Page {
 		const id_of = r => r.session_id || r.id;
 		const base = this.last_rows.filter(r => (this.show_closed || !closed[id_of(r)]) && in_date_range(r, from, to)
 			&& (!this.inflight_only || is_in_flight(r))
-			&& (!this.attention_only || meta[id_of(r)]?.alerts)
+			&& (!this.attention_only || meta[id_of(r)]?.alerts || AISessionFlags.flags_of(r).length)
 			&& (!this.tag_filter || meta[id_of(r)]?.tags.includes(this.tag_filter))
 			&& (!this.category_filter || AISession.all.get(id_of(r))?.ix.category === this.category_filter)
 			&& AISessionsPage.has_records(AISession.all.get(id_of(r))?.ix, this.records_filter)
@@ -269,6 +275,9 @@ export default class AISessionsPage extends Page {
 		});
 
 		// Cost comes from the session files (the index), never from a registry that resets on restart.
+		const red = AISessionFlags.counts(this.last_rows);   // the "needs attention" label and the per-flag counts follow the live rows
+		this.attention_only_text?.text(`needs attention · ${red.any}`);
+		this.$red_counts?.text(Object.keys(AISessionFlags.FLAGS).filter(k => red[k]).map(k => `${red[k]} ${AISessionFlags.FLAGS[k].label}`).join(" · "));
 		this.shown_usd = filtered.reduce((n, r) => n + AISessionRows.claude_usd_of(r), 0);
 		this.filtered_count = filtered.length;
 		this.render_stats();
@@ -281,14 +290,15 @@ export default class AISessionsPage extends Page {
 		});
 
 		// Chips list every group present in `base`, so a deselected group stays visible and can be clicked back.
-		this.render_chips(this.$by_role, AISessionRows.by_role_totals(base), this.role_filter, g => g.role, g => AISessionRows.role_label(g.role));
-		if (this.spend && AISessionRows.by_trigger_totals(base, this.spend).length > 1) this.render_chips(this.$by_trigger, AISessionRows.by_trigger_totals(base, this.spend), this.trigger_filter, g => g.trigger, g => ({ label: g.trigger }));
+		this.render_chips(this.$by_role, AISessionRows.by_role_totals(base), this.role_filter, g => g.role, g => AISessionRows.role_label(g.role), "role");
+		if (this.spend && AISessionRows.by_trigger_totals(base, this.spend).length > 1) this.render_chips(this.$by_trigger, AISessionRows.by_trigger_totals(base, this.spend), this.trigger_filter, g => g.trigger, g => ({ label: g.trigger === "(n/a)" ? "(none)" : g.trigger }), "started by");
 		this.render_cache_breakdown();
 	}
 
 	/** One row of clickable chips. Click one to show only that group; click again to show all. */
-	render_chips(host, groups, filter, key_of, label_of){
+	render_chips(host, groups, filter, key_of, label_of, heading){
 		host?.empty(() => {
+			if (heading) small.c("muted sessions-chip-head", heading);
 			const all_on = groups.every(g => filter.has(key_of(g)));
 			groups.forEach(g => {
 				const key = key_of(g), on = filter.has(key) && !all_on;
@@ -319,8 +329,10 @@ export default class AISessionsPage extends Page {
 	// ---- lifecycle -----------------------------------------------------------------------------------
 
 	/** Recompute the rows from the latest snapshot, agent list and date-path index, then redraw. */
+	build_rows(){ this.last_rows = AISessionRows.with_date_path_rows(AISessionRows.with_live_rows(AISessionRows.merge(this.snapshot_rows, this.last_agents)), this.page_dirs); }
+
 	draw(){
-		this.last_rows = AISessionRows.with_date_path_rows(AISessionRows.with_live_rows(AISessionRows.merge(this.snapshot_rows, this.last_agents)), this.page_dirs);
+		this.build_rows();
 		this.render_rows();
 		this.$asof?.text("updated " + new Date().toLocaleTimeString());
 	}
@@ -354,8 +366,13 @@ export default class AISessionsPage extends Page {
 				soon();
 			});
 		} catch {}
-		clearInterval(this.tick); this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length) this.render_flight(); this.follow_live(); }, 30000);   // running times advance
+		clearInterval(this.tick); this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length){ this.render_flight(); AISessionFlags.load(this.url).then(() => this.draw()); } this.follow_live(); }, 30000);   // running times advance
 
+		AISessionFlags.load(this.url).then(() => {   // roles and red flags: the roles change, so the role filter is rebuilt from them
+			if (!this.last_rows.length) return;
+			this.role_filter = null;
+			this.build_rows(); this.render_controls(); this.render_rows();
+		});
 		get_json(this.url + "sessions.json").then(async snap => {
 			this.snapshot_rows = snap?.rows ?? [];
 			this.last_agents = await fetch_agents();

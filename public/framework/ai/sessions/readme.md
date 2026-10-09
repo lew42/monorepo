@@ -195,3 +195,5 @@ merge.
 - OpenRouter dollars are real, Claude dollars are an equivalent, and the gap to the account is stated: [`doc/openrouter-dollars.md`](doc/openrouter-dollars.md).
 - The grid switches to compact cards below 88em of panel, checked at four widths: [`doc/grid-widths.md`](doc/grid-widths.md).
 - Tasks migration dry run (2026-10-09): 64 tasks join a session, 1003 orphans, 651 slug collisions resolved by id8; not applied until moved tasks have a route.
+- Red flags (`$$$`, stalled, context, Opus minion) and the mastermind tag are computed by `node Server/session-flags.mjs --watch` into `session-flags.json` (gitignored; keep the watcher running) and drawn by `AISessionFlags.js`; thresholds sit in its `LIMITS`.
+- The owner wants a later redesign (less text, clear hierarchy, the home of everything real-time): [`doc/redesign-asks-2026-10-09.md`](doc/redesign-asks-2026-10-09.md).
