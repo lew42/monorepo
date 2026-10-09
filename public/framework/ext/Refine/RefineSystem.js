@@ -26,7 +26,7 @@ export default class RefineSystem {
 		{ name: "Cleaner", job: "raw → numbered near-verbatim sentences (engine.js clean())", relation: "step; runs in Servex", href: "/framework/ext/Refine/md/doc/refine-engine/" },
 		{ name: "Structurer", job: "sentences → outline of cards citing them (structure.js)", relation: "step; runs in Servex", href: "/framework/ext/Refine/structure.js" },
 		{ name: "DictationSource", job: "where words come from: mic (ux/Dictate) or the text box", relation: "wraps Dictate", href: "/framework/ux/Dictate/" },
-		{ name: "Echo", job: "the same steps on every VS Code prompt", relation: "second caller of the steps", href: "/framework/servex/md/doc/echo/" },
+		{ name: "Echo", job: "the same steps on every VS Code prompt", relation: "second caller of the steps", href: "/framework/servex/" },
 	];
 
 	prompt = new Prompt();
