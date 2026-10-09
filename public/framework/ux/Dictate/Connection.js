@@ -8,8 +8,7 @@ View.stylesheet(import.meta, "Connection.css");
  * which step is stuck:  Mic → Level → Whisper → Transcript → Refine.
  *
  * Each step is a dot (grey = not yet, green = fine, red = failed) plus a few plain words saying why.
- * The row never changes size: every step has a fixed column, and the reason is cut with "…" rather
- * than wrapped, so nothing a reader might click moves while words arrive.
+ * The row never changes size: every step has a fixed column, and the reason sits in a fixed box (it may wrap onto up to three lines inside it, then is clipped), so nothing a reader might click moves while words arrive.
  *
  *   const c = new Connection({ whisper_url, on_retry });
  *   c.set("mic", "ok", "on");            // step ids: mic level whisper transcript refine
