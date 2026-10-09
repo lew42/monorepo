@@ -1,5 +1,5 @@
 import Scorer from "./Scorer.js";
-import { View, div, span, p, h4, button } from "../../core/View/View.js";
+import { View, div, span, p, h4, button, a } from "../../core/View/View.js";
 
 View.stylesheet(import.meta, "Prompt.css");
 
@@ -36,6 +36,7 @@ export default class Prompt {
 	stages = {};        // { clean_ms, structure_ms, clarity_ms } from the server
 	runs = [];          // one per model call: { stage, model, session_id, cost_usd, duration_ms, tokens }
 	timings = {};       // { quick_ms } measured in the browser
+	model = "";         // the model the server is using for the current run
 	quick = false;      // true while `clean` holds the instant (no-model) clean, before the real one lands
 
 	constructor(...args){ Object.assign(this, ...args); }
@@ -129,37 +130,41 @@ Prompt.View = class extends View {
 		this.ac("refine-prompt");
 
 		if (prompt.status === "empty") return p.c("refine-empty", "Say or type a prompt, then press Refine.");
-		if (prompt.status === "working") return p.c("refine-empty", "Refining… (clean, then structure — a few seconds)");
 		if (prompt.status === "error") return p.c("refine-error", "Could not refine: " + prompt.error);
+		if (!prompt.raw && !prompt.clean.length) return p.c("refine-empty", "Say or type a prompt, then press Refine.");
 
+		const working = prompt.status === "working";
 		const sentence_els = new Map();
 		const light = n => {
 			sentence_els.forEach(($s, k) => $s.el.classList.toggle("lit", k === n));
 			sentence_els.get(n)?.el.scrollIntoView({ block: "nearest", behavior: "smooth" });
 		};
+		const secs = ms => (ms / 1000).toFixed(1) + " s";
+		const section = (title, note, fn) => div.c("refine-section", () => {
+			h4.c("refine-prompt-h", () => { span(title); if (note) span.c("refine-s-scores", note); });
+			fn();
+		});
 
-		div.c("refine-prompt-col", () => {
-			h4.c("refine-prompt-h", "Raw — as heard");
-			p.c("refine-prompt-raw", prompt.raw);
+		if (working) p.c("refine-working", `Refining with ${prompt.model || "a model"}… usually about 8 s and about 3 cents. The cleaned text below is already the instant clean.`);
 
-			h4.c("refine-prompt-h", "Clean — numbered, near-verbatim");
+		section("Whisper raw", "as heard", () => p.c("refine-prompt-raw", prompt.raw));
+
+		section("Clean", prompt.quick || working ? `instant clean, ${prompt.timings.quick_ms ?? 0} ms (no model)` : `by model, ${secs(prompt.stages.clean_ms ?? 0)}`, () => {
 			prompt.clean.forEach(s => {
 				const $s = div.c("refine-sentence", () => {
 					span.c("refine-s-num", "S" + s.n);
 					span.c("refine-s-text", s.text);
 					if (prompt.flagged.includes(s)){
-						const q = s.flags.map(f => f.question).join(" ") || "This one may be unclear.";
+						const q = s.flags.map(f => f.question).join(" ") || s.why || "This one may be unclear.";
 						span.c("refine-flag", "⚑").attr("title", q);
 					}
-					span.c("refine-s-scores", `clarity ${s.clarity} · weight ${s.weight}`);
 				});
 				$s.click(() => light(s.n));
 				sentence_els.set(s.n, $s);
 			});
 		});
 
-		div.c("refine-prompt-col", () => {
-			h4.c("refine-prompt-h", "Refined — " + (prompt.subject || "cards"));
+		if (prompt.status === "done") section("Refined — " + (prompt.subject || "cards"), `${secs(prompt.stages.structure_ms ?? 0)}`, () => {
 			const cites = list => list.forEach(n => button.c("refine-cite", "S" + n).click(() => light(n)));
 			const draw = cards => cards.forEach(c => div.c("refine-card", () => {
 				span.c("refine-card-text", c.text);
@@ -171,7 +176,23 @@ Prompt.View = class extends View {
 				cites(sec.cites);
 				div.c("refine-subcards", () => draw(sec.cards));
 			}));
-			p.c("refine-s-scores", `${prompt.clean.length} sentences · ${prompt.flagged.length} flagged · ${(prompt.ms / 1000).toFixed(1)}s`);
+		});
+
+		if (prompt.status === "done") section("Scores", `clarity by ${prompt.runs.some(r => r.stage.startsWith("clarity")) ? "a cheap model, one sentence at a time" : "rules"}, ${secs(prompt.stages.clarity_ms ?? 0)}`, () => {
+			prompt.clean.forEach(s => div.c("refine-score", () => {
+				span.c("refine-s-num", "S" + s.n);
+				span.c("refine-bar").attr("style", `--v:${s.clarity ?? 0}`);
+				span.c("refine-s-text", `clarity ${s.clarity ?? "–"} · weight ${s.weight}`);
+				if (s.why) span.c("refine-s-scores", s.why);
+			}));
+			p.c("refine-s-scores", `${prompt.clean.length} sentences · ${prompt.flagged.length} flagged`);
+		});
+
+		if (prompt.status === "done") section("Model runs", `${secs(prompt.ms)} on the server · ${secs(prompt.timings.total_ms ?? 0)} total · $${prompt.runs.reduce((a, r) => a + r.cost_usd, 0).toFixed(3)}`, () => {
+			prompt.runs.forEach(r => div.c("refine-run", () => {
+				a(r.stage).href(`/framework/ai/sessions/${r.session_id}/`).attr("title", "this run's own session page");
+				span.c("refine-s-scores", `${r.model} · ${secs(r.duration_ms)} · ${r.tokens.in}→${r.tokens.out} tokens · $${r.cost_usd}`);
+			}));
 		});
 	}
 };

@@ -4,14 +4,19 @@
 @layer util {
 
 	.refine-demo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); margin-block-end: var(--gap); }
-	@media (min-width: 1200px) { .refine-demo { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
+	.refine-working { padding: 0.4em 0.6em; border-radius: 0.3em; background: color-mix(in srgb, var(--warn) 15%, transparent); grid-column: 1 / -1; margin: 0; }
+	.refine-section { min-width: 0; }
+	.refine-score, .refine-run { display: flex; flex-wrap: wrap; gap: 0.4em; align-items: center; padding-block: 0.15em; }
+	.refine-bar { display: inline-block; inline-size: 4em; block-size: 0.6em; border-radius: 1em; background: linear-gradient(to right, var(--warn) calc(var(--v) * 100%), color-mix(in srgb, currentColor 15%, transparent) 0); }
+	.refine-explorer-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22em), 1fr)); gap: var(--gap); align-items: start; }
+	.refine-section-tree { max-block-size: 40em; overflow: auto; }
 
 	.refine-input { display: flex; flex-direction: column; gap: 0.5em; }
 	.refine-input textarea { width: 100%; min-height: 6em; font: inherit; }
 	.refine-input-note { color: var(--muted, inherit); opacity: 0.75; font-size: 0.9em; min-block-size: 1.4em; }
 
 	.refine-prompt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); }
-	@media (min-width: 700px) { .refine-prompt { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+	.refine-prompt { grid-template-columns: repeat(auto-fit, minmax(min(100%, 22em), 1fr)); align-items: start; }
 	.refine-prompt-h { margin-block: 0.5em 0.25em; }
 	.refine-prompt-raw { opacity: 0.8; }
 	.refine-error { color: var(--error); }

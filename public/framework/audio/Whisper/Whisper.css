@@ -1,0 +1,17 @@
+@layer base, theme, site, util;
+@layer site {
+	.whisper-session { display: grid; gap: .25em; font-size: .85em; }
+	.whisper-h { margin: 0; display: flex; flex-wrap: wrap; gap: .2em .8em; align-items: baseline; }
+	.whisper-stat { font-weight: normal; opacity: .7; }
+	.whisper-rows { max-height: 14em; overflow: auto; display: grid; gap: .1em; }
+	.whisper-row { display: grid; grid-template-columns: 6.5em 4.5em 4.5em 8em 3.5em 1fr; gap: .5em; align-items: baseline; }
+	.whisper-row.is-interim { opacity: .65; }
+	.whisper-row.is-amended { background: color-mix(in srgb, orange 18%, transparent); }
+	.whisper-amend { padding-left: .5em; border-left: 3px solid orange; }
+	.whisper-empty { opacity: .6; }
+	.whisper-server { display: flex; flex-wrap: wrap; gap: .2em .8em; align-items: baseline; margin-bottom: .4em; }
+	.whisper-dot.is-up { color: seagreen; }
+	.whisper-dot.is-down { color: crimson; }
+	.whisper-dot.is-unknown { opacity: .4; }
+	.whisper-name { font-weight: 600; }
+}

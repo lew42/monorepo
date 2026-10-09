@@ -859,7 +859,7 @@ export default class Dictate extends View {
 		// left in, every one became a paragraph break in the box. Real breaks come from real pauses only.
 		const text = (body.text ?? "").replace(/\s+/g, " ").trim();
 		// The WhisperLog hook: exactly what whisper-server answered (`raw`) and what we kept (`text`).
-		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "" });
+		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000) });
 		return text;
 	}
 
