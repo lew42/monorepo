@@ -122,3 +122,11 @@ Built and committed in worktree `session-class` (not merged): Session class, aud
 **Alternative: one `sessions.jsonl` for everything.** It is simpler to write and tail, but every visit reads the whole history, which grows forever, and a date filter cannot skip anything. At about 7,400 sessions a month this becomes the very problem the index is meant to solve.
 
 **Build order:** (1) the line shape and `Session.index_line()` from `preview()`; (2) the append in `refresh`, `log` and `close`; (3) `--rebuild`; (4) the dashboard reads partitions and tails today's; (5) the audit check. The current `session-index.json` stays until step 4 replaces it. Not built: it needs the tags and alerts fields settled first.
+
+## 13. Day folders for sessions, and why a session is keyed by id (mastermind relay, 2026-10-08)
+
+**Done.** A session's folder is now `ai/sessions/YYYY/MM/DD/<id>/`, the day of its first message (UTC). It holds `cache.jsonl` (rebuilt freely, gitignored) and `session.jsonl` (the hand-written record, tracked). `Session.locate()` decides the path and moves an old flat folder into its day on first touch; `Server/session-place.mjs` moves all of them at once (a plain rename, nothing regenerated); old flat paths still load. The dev server no longer writes a `files.jsonl` into these folders and `.gitignore` covers it, so the tree stays clean. Every table column now sorts. The full explanation is `sessions/doc/layout.md`.
+
+**Chosen:** `ai/sessions/YYYY/MM/DD/<id>/`. **Alternative:** `ai/YYYY/MM/DD/<id>/`, rejected because that tree is made of card pages and 7,700 cache folders would bury them. It sits beside the index design in section 12 (`sessions/index/YYYY/MM/DD.jsonl`, by day of update) without colliding.
+
+**Why ids, not the named task folders.** A task folder is a unit of work with a human name; a session is one transcript. A task can span several sessions, and most sessions (every VS Code tab, SDK run and reviewer) have no task. The session id is the only key they all share. The two folders hold different things, so nothing is stored twice: the task folder holds the work (`task.jsonl`, brief, findings); the session folder holds the money and the record. They join by id: a task's launch line names its `session_id`, and the Servex registry maps an agent to its `session_id`, which is how the table shows names.

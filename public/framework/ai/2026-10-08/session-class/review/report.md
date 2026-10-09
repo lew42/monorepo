@@ -1,48 +1,110 @@
 verdict: fix
-1. [fix] At 3440 the grid stretches: Name takes 1fr and Cost sits far right, so the Name→Cost gap is huge and the page is 77% empty (layout.json empty 0.768, ink 0.229) — shots/.../3440.png, table band. Cap the Name column or the grid's max width (layout 5).
-2. [fix] At 400 the table is wider than the screen (widest_text 443 vs 400 wide, wide grid with 8 columns, min widths sum >400) so Cost/Updated sit off-screen or need sideways scroll; the first thing a phone reader needs (name + cost) should fit — shots/.../400.png, bottom band; the owner flagged mobile as already slow.
-3. [fix] This diff shows only page edits (page.js, SessionView.js, sessions.css). Deliverables 1, 2, 4, 5 (findings.md, Session.js + node test, Server/session-summary.mjs, doc note) and the before/after bytes-and-requests measurement (ask 4) are not in the diff, so they could not be checked; confirm they landed in the same branch.
-4. [note] The default sort now weights cost by recency (halves every 3 days). It is a ranking the owner did not ask for in the brief and is not named anywhere on the page — say so in a title on the Cost header or in doc/.
-5. [note] The "updated HH:MM" header text replaces "live — polls every 20s" but polling still happens (poll loop remains); the page is a poll, not the stream the brief says to use (live-not-polling).
-6. [note] Page-shell rail buttons wrap to 3.2 lines at 400 (layout.json wraps drawer-rail-ai/menu) — not caused by this diff, left as is.
-7. [note] Four stat tiles and a chip row sit above the table; at 1200 the table starts roughly mid-screen. Fine, but the cost-breakdown link text is small — shots/.../1200.png, band 2.
+1. [fix] At 400 a row's meta line runs past the right edge and is cut off: "claude-s…" and the State cell are lost on the monorepo row, and the prompt preview stops mid-word with no ellipsis (layout 26, wrapping 23) — shots/…sessions/400.png, rows band (y≈840–870). layout.json reports overflow_x false, so the box clips rather than scrolls; the meta line should wrap (it is a control-style row) or drop the model to its own line.
+2. [note] The headers are now all sort toggles, but nothing shows it until one is clicked: plain text, no arrow or hover cue at rest (page 8) — shots/…/1200.png, header row. A faint ↕ on hover, or the default-order arrow on Cost, would make it self-evident.
+3. [note] `State` sorts "biggest first", so the first click puts idle sessions (1) above working ones (0) — the reverse of what a reader wants first (page.js `SORT_VALUE.state` + `natural_dir`). Make `state` start ascending.
+4. [note] `Session.read_text` in node now calls `Session.locate`, so a READ can rename a flat folder into its day folder, and an unknown id gets today's day cached. A read with a move side effect is surprising; doc/layout.md mentions it only for writers.
+5. [note] The diff deletes ~140 tracked `sessions/<id>/files.jsonl` listings and `session-place.mjs` `rmSync`s them. They are server-generated and now gitignored, so nothing is lost, but "Never destructive" asks that the landing report say so.
+6. [note] At 3440 the Name column takes ~60% of the grid while Updated / Duration / Role sit in ~70px tracks (shots/…/3440.png, rows band; layout.json empty 0.75 at 3440). Not wrong, but a Name ceiling would let the numbers breathe.
+7. [note] Previous round's fix (empty shots, no index) is resolved: every width now shows 603 sessions and priced rows.
+
+Widths given: 400, 1200, 1920, 3440 (page /framework/ai/sessions/, one sheet).
 
 ## Requirements
-- 1 "Account for every message and tool call; Claude and OpenRouter kept separate" — not shown in this diff; the table now says "Claude $…" only and drops the OpenRouter tile/summary, so OpenRouter is no longer visible on the page
-- 2 "A Session class on server and client" — not measured, not in diff (the page reads IX from the session index, which implies it exists)
-- 3 "Preview row + detailed view on the Sessions page" — yes — the row shows cost/tree/updated/duration (shots/.../1920.png); detail view in SessionView.js was not changed here and not shown in the shots
-- 4 "Never reprocess raw file; page loads small cached data; measure bytes/requests before and after" — not measured; no figures in what I was given
-- 5 "Per-session folder with session.jsonl" — not in diff
-- Addendum "tags/alerts filter, needs-attention filter" — yes — "Needs attention" checkbox and tag filter are in the filters row (shots/.../1200.png)
+- 1 "Account for every message and every tool call… Claude and OpenRouter kept separate" — yes — cost cells read "Claude $109" etc. (1200.png); this diff does not touch the accounting
+- 2 "A Session class, usable on the server AND the client" — yes — Session.js keeps its node/browser split; `locate` (node) and `dir_url` + `use_index` (browser) added for day folders; Server/session-place.test.mjs covers the move, the record and the reader
+- 3 "A preview row… and a detailed view (click-through)" — yes for the row (1200.png, rows band); detail view not in the shots — not re-proved by this diff
+- 4 "Never reprocess a huge raw file on load… measure the bytes" — yes — the page still reads only session-index.json; the new `day` column adds ~13 bytes per row; no new request
+- 5 "Per-session folder… session.jsonl beside page.jsonl; a Servex tool writes each line" — yes, changed — folders move to `sessions/YYYY/MM/DD/<id>/` (doc/layout.md gives the reason and the rejected alternative); writes still go through `Session.log`/`close`
+- Addendum "filters/sorts by tag and has a needs-attention filter" — yes — NEEDS ATTENTION checkbox (1200.png, filter row); every column now sorts (page.js `sort_rows`)
 ## Page structure
-- one clear title and purpose — yes — shots/.../1920.png: "Sessions" with four tiles
-- level 1 above the fold, detail one click down — yes — cache breakdown is now behind a link
-- one component per surface (no second version) — yes — same Panel2 and tile helper reused
+- page 1 — yes — "Sessions" panel under the AI tabs; the four tiles say what it measures (1200.png, top band)
+- page 2 — yes — usage / cost / count tiles first
+- page 3 — yes — state tiles, then filters, then the table
+- page 4 — n/a
+- page 5 — yes — SESSIONS tab in the AI tab bar
+- page 6 — no — the sort state (`page.sort`) is not in the URL, so a reload drops it (note-level; pre-existing for Cost)
+- page 7 — yes — the existing grid, no new page CSS in this diff
+- page 8 — no — headers give no sortable cue at rest (finding 2); "(n/a)" and "(unknown)" chips are not self-evident
+- page 9 — yes
+- page 10 — yes — a grid with numbers
+- page 11 — yes
+- page 12 — n/a
 ## Navigation
-- techniques used — AI tabs (Index, Dashboard, Log, System, Sessions, Tests), left sidebar tree, filter chips
-- tabs one row — yes — layout.json tab_rows 1 at all four widths
-- role/trigger filter is reachable and reversible — yes — a chip click again shows all
-- every view has a URL — n/a (no new views)
+- nav 1 — tabs, a sidebar, a bottom rail (400)
+- nav 2 — yes — layout.json tab_rows 1 at every width
+- nav 3 — yes — /framework/ai/sessions/
+- nav 4 — yes — six tabs
+- nav 5 — yes — sidebar beside the main column at 3440; folds to a menu at 400
+- nav 6 — yes
+- nav 7 — yes — 400.png: the bottom rail sits below the last visible row
+- nav 8 — n/a
+- nav 9 — n/a
+- nav 10 — not shown in these shots
 ## Layout
-- main content leads, nothing wasted — no — 3440: empty 0.768 (finding 1)
-- bands sensible — yes — bar 1–2%, one big row 83–93% (layout.json bands)
-- overflow — yes — overflow_x false at every width
+- layout 1 — yes — sidebar + full-width grid at 3440
+- layout 2 — yes — Rail + content
+- layout 3 — no — at 400 the row meta line is wider than its box (finding 1); at 3440 Name is over-wide (finding 6)
+- layout 4 — yes
+- layout 5 — no — 400.png: row text runs to the box edge and is cut
+- layout 6 — yes
+- layout 7 — yes — layout.json rows band share 0.83–0.93 with ink 0.25–0.70; bar band 0.015–0.019
+- layout 8 — n/a
+- layout 9 — yes
+- layout 10 — yes
+- layout 11 — yes — the four tiles fill one row at 1200+ and 2×2 at 400
+- layout 12 — yes
 ## Sizing
-- columns sized by content — no — Name 1fr balloons at 3440; Cost 8–12rem fine (finding 1)
-- touch targets — yes — chips and checkboxes are readable at 400 (shots/.../400.png)
+- sizing 13 — yes
+- sizing 14 — yes
+- sizing 15 — no — the prompt preview line is clipped with no ellipsis (1200.png row 2, 400.png)
+- sizing 16 — yes
+- sizing 17 — yes
+- sizing 18 — yes — layout.json overflow_x false at all four widths
+- sizing 19 — not measured
 ## Wrapping
-- nothing wraps that shouldn't — no — 400: grid exceeds viewport (finding 2); rail buttons 3.2 lines at 400 (note 6)
+- wrap 20 — yes — tab_rows 1; layout.json wraps list only the drawer/mode buttons (icon glyphs, not this diff)
+- wrap 21 — yes — same wraps at 1200 and 1920
+- wrap 22 — yes — the chip row wraps cleanly at 400 and 1200
+- wrap 23 — no — 400.png: the row meta line crushes off the edge instead of stacking (finding 1)
+- wrap 24 — n/a
 ## Spacing and padding
-- consistent gaps — yes — controls column uses .5rem gaps, margin-block-end 1rem (sessions.css)
-- left stack — yes — layout.json left_stack h1 14/19/33/54 scales by width
+- space 33 — yes — layout.json left_stack h1 14px at 400
+- space 34 — yes
+- space 35 — yes
+- space 36 — no — 400.png: row text meets the right edge
+- space 37 — not measured; no CSS in this diff
+- space 38 — yes — chips keep em padding
+- space 39 — yes — the panel is white on the grey ground
+- space 40 — n/a
+- space 41 — yes — no CSS in this diff
+- space 42 — yes
 ## Colour and contrast
-- chips and flags readable — yes — chip-on uses tint plus border plus weight, not colour alone
-- muted small text — note: tiny muted cost-breakdown link at 400 (not measured)
+- colour 1 — yes — dark ink on white; muted lines read (1200.png)
+- colour 2 — yes — orange SERVEX / blue VS CODE badges are outlined and legible
+- colour 3 — yes — no colours in this diff
+- colour 4 — yes — tiles are outlined boxes
+- colour 5 — not shown (light shots only)
+- colour 6 — yes
+- colour 7 — yes — the source badges repeat identically
+- colour 8 — yes
 ## Flow
-- reading order top → bottom — yes — tiles, filters, chips, table
-- stale data never shown as live — no — "updated" label is honest but data still polls (note 5)
+- flow 25 — yes — tiles, filters, then the most costly rows first
+- flow 26 — no — 400.png: model and State cut off past the right edge (finding 1)
+- flow 27 — yes
+- flow 28 — yes
+- flow 29 — not shown
+- flow 30 — yes — layout.json widest_text 430–552px
+- flow 31 — yes
+- flow 32 — yes
 ## Words
-- plain sentences, no jargon — yes — "Claude cost shown", "Plan used this week" are clear
-- every number explained — yes — titles give the source (ai/usage.json, session files)
-- defect line — yes — now "N spawned agents have no recorded parent", detail in title
-- file paths in tile titles are not links — note: "ai/usage.json" is plain text, not a mention link
+- words 1 — yes — numbers in tiles, rows in a grid
+- words 2 — yes
+- words 3 — yes — doc/layout.md paragraphs are short
+- words 4 — yes
+- words 5 — yes
+- words 6 — n/a
+- words 7 — yes — "day folder" and `first_at` used the same way across Session.js, doc/layout.md and session-place.mjs
+- words 8 — yes — readme links doc/layout.md as a plain file path
+- words 9 — no — doc/layout.md has a path tree in text but no picture; fine for a deep doc
+- words 10 — yes
+- words 11 — no — "814 spawned agents have no recorded parent" and the "(n/a)" / "(unknown)" chips are unexplained on the page (pre-existing)

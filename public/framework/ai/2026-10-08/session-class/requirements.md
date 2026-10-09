@@ -25,3 +25,18 @@ Worktree + merge gate for site files; commit with attribution; no loose files; l
 
 ## Addendum (owner, 2026-10-08, later) — tags and alerts on sessions
 Sessions can carry **tags** (icon-item references to a class/page/system/file) and **alerts** (needs attention, with priority), both appended as lines to `session.jsonl` by a **log tool** that any minion can call for any session (stamped time + author, outside the session's own prompt). The Sessions table filters/sorts by tag and has a "needs attention" filter, prioritized. The task-audit mastermind (`2026-10-08/task-audit`) will be the first writer: agree the line shapes with its `requirements.md` addendum; you own the tool and the table. Never trigger an SDK resume to read cost — files only.
+
+## Addendum 8 (owner, 2026-10-08, after using the Sessions tab) — one store, real names, compact grid
+**Storage and links (answer in findings.md first, then fix):**
+- Session cards link to **two different places**: `framework/ai/2026/10/07/session-<short-uuid>/` (date tree, opens in the Inbox view, little info, badly laid out) and `framework/ai/sessions/mastermind-servex-10` (opens as a right sidebar column, which is nice). There are three stores: UUID folders (the cache), named folders under `ai/sessions/`, and date-tree `session-<id>` folders (VS Code tabs live here). **Pick ONE store** (the date tree, `ai/YYYY/MM/DD/`, is the owner's preference) and write a **non-destructive conversion script** (move/rename, no rewrite; old links resolve via a resolver) that ports old session data to it. Name the alternative.
+- "4,000 sessions": how is that computed? If the client loads all of them to count, that is wrong: serve counts/filters from the session index.
+- **State flashes "running"** on some cards when it isn't. Find why and make state true (derived from the registry/ledger by code).
+- **Names**: many cards are named "monorepo" (the repo name, not a session name), so the owner cannot match a card to what they know. Derive a useful name (task/card title, the first real prompt, or the agent id), never the repo name. **Going forward every session/task gets a proper name.** **Child sessions nest by path: `parent/child`, sub-sub-sessions `parent/child/grandchild`, literally subdirectories of the parent's directory** (not a `--` suffix); the grid shows nested rows under their parent, collapsed by default, with the rolled-up cost.
+
+**Grid and layout:**
+- Replace the big status tiles (5-hour / weekly numbers) with the **progress bars with the pace marker** that the Dashboard already has (reuse that component; one of everything).
+- Wasted space above the grid: cut it. The list of sessions should be as compact as possible.
+- A quick **"in flight / now / active"** filter next to the existing checkboxes; **sort toggles** (recency, cost, model, ...) to flip between chronological and cost views; the **state icon moves to the first column** (as important as the name). Don't over-build yet.
+- Clicking through should open the same detail view whichever way you arrive (one route per session).
+
+**Sub-pages inside the Sessions tab:** the grid fills the tab, so find a way to host sub-pages (readme, a decisions/notes page) within the tab. Create a **readme and a decisions doc** for the Sessions system showing the owner's asks and architectural decisions, **priority-ordered with the top priorities first** so they are always followed, and make them reachable from the tab (a visible link). Everything you create must be linked from the site (see CLAUDE.md "Everything is linked").
