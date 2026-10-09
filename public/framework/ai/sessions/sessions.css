@@ -30,6 +30,8 @@
 	   2026-10-03 — "show the start time, stop time, duration and cost on
 	   every row") added right after Start — same mechanism, more tokens. */
 	.sessions-filters { column-gap: 2rem; row-gap: .5rem; }
+	.sessions-sort-label { cursor: pointer; }
+	.sessions-sort-label:hover { text-decoration: underline; }
 	.sessions-controls { display: flex; flex-direction: column; gap: .5rem; margin-block-end: 1rem; }
 	.sessions-controls > * { margin: 0; }
 	.sessions-chiprow { display: flex; flex-wrap: wrap; gap: .4rem .5rem; }
@@ -113,7 +115,7 @@
 		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }
 		.sessions-cell { padding-block: 0; border-block-end: none; }
 		.sessions-row > .sessions-cell:first-child { flex: 1 1 100%; }
-		.sessions-row > .sessions-cell { min-width: 0; }
+		.sessions-row > .sessions-cell:not(:first-child) { flex: 0 0 auto; max-width: 100%; }
 	}
 
 	/* One colour per source, so "what kind of session is this" reads before the

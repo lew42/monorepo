@@ -29,6 +29,7 @@ A folder with no `first_at` anywhere (an empty session, a test fixture) stays fl
 
 ## Two things to know
 
+- **A read can move a folder too.** In node, `read_text` calls `Session.locate`, so even a read renames an old flat folder into its day (and an id nobody knows gets today). That keeps one rule, "the path comes from `locate`", at the price of a surprising side effect on reads.
 - **A move is a rename.** A reader that holds the old flat path gets an empty answer for one call while a writer moves the folder. For a cache that is fine; the next read finds it.
 - **The browser finds a dated folder through `session-index.json`** (its `day` column). A session missing from the index reads from the flat path and shows nothing until the index is rebuilt (`node Server/session-summary.mjs --index`). Every session the table lists is in the index, so the table itself is never affected.
 

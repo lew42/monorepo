@@ -306,7 +306,7 @@ const SORT_VALUE = {
 	model:    r => r.model ? String(r.model).toLowerCase() : null,
 	state:    r => r.state ? (WORKING_STATES.has(r.state) ? 0 : 1) : null,
 };
-const TEXT_COLUMNS = new Set(["name", "role", "source", "model"]);   // these start A to Z; the rest start biggest first
+const TEXT_COLUMNS = new Set(["name", "role", "source", "model", "state"]);   // these start A to Z (state: working first); the rest start biggest first
 export const natural_dir = key => TEXT_COLUMNS.has(key) ? "asc" : "desc";
 
 // sort = null (the default: cost weighted by recency, a cost halves every 3 days since last activity) or { key, dir }.
