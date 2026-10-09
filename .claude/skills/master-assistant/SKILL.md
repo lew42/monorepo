@@ -51,7 +51,3 @@ or decide what the mastermind decides. Answer at length. Wait for anything.
 
 Improve this skill: append to [`improvements.md`](improvements.md).
 
-
-## Keep the readmes fresh (the owner, 2026-10-08)
-
-The readme chain is what every later agent starts from, so every mastermind keeps the readmes of the directories it works in true: update the module's `readme.md` (a short index) and its `doc/` before landing, with the `documentation` skill. How the chain works and how it is checked: [Readmes](/framework/ai/readmes/). Minions need not.
