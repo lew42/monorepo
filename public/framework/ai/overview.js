@@ -99,8 +99,9 @@ export function tab_page(root, name, url = root.url + name + "/"){
 		system: {
 			title: "System", icon: "account_tree", classes: "inbox-takeover inbox-tab",
 			content(){
-				heading("Servex", "The always-on process that runs everything below. Each card is one of its classes: its core API, and a link to the source.");
-				class_cards();
+				heading("Servex", "The always-on process that runs everything below. Each card is one class of the AI system: agents, sessions, spawning, the pool, usage. Its self-watching classes are folded below.");
+				class_cards(["Servex", "Agents", "Dispatcher", "Sessions", "Pool", "Usage", "Budget"]);
+				details(() => { summary("Servex also watches itself"); class_cards(["Heartbeat", "TaskLoop", "Worktrees", "Monitor", "Assistant"]); });
 				heading("Running now", "The agents this Servex holds right now.");
 				live_agents();
 				heading("Where each piece lives", "Servex starts agents through the Claude Agent SDK; models come from Anthropic, OpenRouter or a local server.");
