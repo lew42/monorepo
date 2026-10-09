@@ -194,7 +194,13 @@
 
 	.sessions-prompt, .sessions-cost-row { padding: var(--gap-50); }
 
-	.sessions-full-id { display: block; font-family: monospace; margin-block: var(--gap-35) var(--gap); }
+	.sessions-full-id { font-family: monospace; font-weight: bold; overflow-wrap: anywhere; }
+	.sessions-template { font-size: 0.8em; margin-inline-start: auto; }
+	.sessions-detail-head { padding-block: var(--gap-35); }
+	/* the conversation fills the main column; the side cards flow in their own column beside it */
+	.sessions-detail-body { gap: var(--gap); }
+	.sessions-detail-aside { align-content: start; }
+	.sessions-conv .chatbox-log { max-height: 80vh; }   /* ext/Chat draws the bubbles; it scrolls inside this box and keeps the newest in view */
 
 	/* The two empty gray bands above the white card (the owner's own words,
 	   2026-10-03, sessions-tab-polish: "two faint gray lines between the top

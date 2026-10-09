@@ -9,7 +9,7 @@ import AISession from "./AISession.js";
 // log itself prices: provider "claude". For any other it leaves the server's number alone.
 export default class AISessionFollow {
 
-	static EVERY_MS = 3000;
+	static EVERY_MS = 250;   // a Range request for new bytes is cheap (usually a 416). The transcript lives outside the repo, so the dev socket (ext/JSONL live()) cannot watch it: a per-line server push is the open item (doc/realtime.md)
 
 	constructor(id, { subagents = true } = {}){
 		this.id = id;
@@ -18,6 +18,7 @@ export default class AISessionFollow {
 		this.subagents = subagents;
 		this.timer = null;
 		this.stopped = false;
+		this.on_lines = null;         // (objects[]) => void, called with each batch of new MAIN-log lines (the conversation draws from this)
 	}
 
 	/** Read the whole log once, correct the row, then keep tailing. Returns this. */
@@ -42,6 +43,12 @@ export default class AISessionFollow {
 
 	/** Fetch every part's new bytes (complete lines only) and fold them in. Returns the number of lines applied. */
 	async pull(){
+		if (this.busy) return 0;   // a slow read must not overlap the next tick (it would fold the same bytes twice)
+		this.busy = true;
+		try { return await this.pull_once(); } finally { this.busy = false; }
+	}
+
+	async pull_once(){
 		await this.discover();
 		let n = 0;
 		for (const [part, p] of this.parts){
@@ -54,7 +61,12 @@ export default class AISessionFollow {
 			const fresh = whole && p.off ? new TextDecoder().decode(bytes.slice(p.off)) : text;
 			const upto = fresh.lastIndexOf("\n") + 1;
 			if (!upto) continue;
-			n += this.session.apply_text(fresh.slice(0, upto), part);
+			const batch = fresh.slice(0, upto);
+			n += this.session.apply_text(batch, part);
+			if (part === "main" && this.on_lines){
+				const objs = []; for (const ln of batch.split("\n")){ if (!ln.trim()) continue; try { objs.push(JSON.parse(ln)); } catch {} }
+				if (objs.length) this.on_lines(objs);
+			}
 			p.off += new TextEncoder().encode(fresh.slice(0, upto)).length;
 		}
 		if (n) this.correct();
