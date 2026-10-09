@@ -46,6 +46,33 @@ More about the class: [session-class.md](session-class.md).
 
 The Servex tool `log_session {session, line, by}` wraps `Session.log` (restart Servex to see it). From a script: `node Server/session-summary.mjs --log <uuid> '<json>' --by <name>`. The Sessions table filters by tag and by "needs attention" (any alert line).
 
+## Asking about past sessions
+
+To find past work (by tag or system) and see what it cost, run the same query the dashboard filters use. It reads the day files, counts each session once (on the day it was last active), and caps the rows so the answer stays small. The totals always cover every match.
+
+`node Server/session-query.mjs [flags] [--json]`. Every flag is optional:
+
+| Flag | Meaning |
+|---|---|
+| `--since` `--until` | First and last day, `YYYY-MM-DD`. |
+| `--tag` | Comma-separated tags; a session needs all of them. |
+| `--system` | A core module (`ext/Dictate`, or any part of it) or a task category. |
+| `--state` `--model` `--provider` | `active`/`idle`/`closed`; part of a model name (`opus`); `claude` or `openrouter`. |
+| `--parent` | A session id: only its children. |
+| `--min-cost` | Dollars; hides cheaper sessions. |
+| `--text` | A word found in the id, agent, category, tags or modules. |
+| `--sort` `--limit` | `recent` (default), `oldest`, `cost`; rows to show, default 25, at most 200. |
+
+The answer is `{count, claude_api_equivalent_usd, openrouter_real_usd, rows}`. Claude sessions are priced at API-equivalent rates (what the plan saves); OpenRouter dollars are real money, so the two are never added together.
+
+Three example questions:
+
+1. *What did we do on dictation this week, and what did it cost?* `node Server/session-query.mjs --system dictat --since 2026-10-02 --json`
+2. *Which sessions tagged `transcription` cost the most?* `node Server/session-query.mjs --tag transcription --sort cost --limit 5`
+3. *Which expensive Opus sessions ran this month?* `node Server/session-query.mjs --model opus --min-cost 20 --since 2026-10-01`
+
+An in-process agent can call the SDK tool `query_sessions` instead (same arguments, same code, no network hop). It is not loaded by default: `Servex/agents/tools.js` exports `query_sessions_tool()`, and a role that needs it adds it to the tool list it gives `server()`.
+
 ## The snapshot
 
 Not a record line: a session's `index.json` is the **computed** current state, written atomically by `Server/SessionIndex.mjs`, never by hand (design: [realtime.md](realtime.md)). The day composite `sessions/YYYY/MM/DD/index.json` bundles the snapshots of one day.

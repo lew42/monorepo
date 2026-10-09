@@ -66,6 +66,25 @@ export function tools(agents = singleton){
 	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents), ...task_tools(agents), ...page_tools()];
 }
 
+/* query_sessions: find past sessions by tag, system, date, model or cost, with totals. NOT in tools(): it is opt-in, so it costs no
+ * context in a session that never asks. A role that needs it adds it to the list it hands `server()`:
+ * `server(host, ctx, [...loader_tools(), query_sessions_tool()])`. Same code as the CLI `node Server/session-query.mjs`
+ * (public/framework/ai/sessions/doc/record-spec.md, "Asking about past sessions"); in-process, no MCP network hop. */
+export function query_sessions_tool(){
+	const str = description => ({ type: "string", description });
+	return tool("query_sessions",
+		"Find past Claude/OpenRouter sessions the way the Sessions dashboard does, and what they cost. Returns {count, claude_api_equivalent_usd, openrouter_real_usd, rows}:"
+		+ " the totals cover every match; rows are the first `limit` (default 25), compact: {id, day, state, model, provider, usd, tags, category, core, parent, agent}.",
+		{ since: str("First day, YYYY-MM-DD (UTC day of last activity)."), until: str("Last day, YYYY-MM-DD."),
+			tags: str("Comma-separated tags; a session must have all of them."), system: str("A core module (`ext/Dictate`, or any part of it) or a task category."),
+			state: str("active, idle or closed."), model: str("Part of a model name, e.g. `opus`."), provider: str("claude or openrouter."),
+			parent: str("A parent session id: its children."), min_cost: { type: "number", description: "Only sessions costing at least this many dollars." },
+			text: str("A word matched against id, agent, category, tags and modules."), sort: str("recent (default), oldest or cost."),
+			limit: { type: "number", description: "Rows to return, default 25, at most 200." } },
+		[],
+		async args => { const { query } = await import("../../Server/session-query.mjs"); return JSON.stringify(query(args)); });
+}
+
 /* ---------- the Dashboard's three task buttons (stalled-and-budgets, 2026-10-02) ---------- */
 
 /* Appends ONE verb line to a task's own task.jsonl through append.mjs — the one writer every
