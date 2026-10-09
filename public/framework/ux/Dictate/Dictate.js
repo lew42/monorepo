@@ -319,7 +319,7 @@ export default class Dictate extends View {
 		(this.stage_log ??= []).push({ stage, detail, ms, at: Date.now() });
 		if (this.stage_log.length > 12) this.stage_log.shift();
 		console.log(`[dictate] ${stage}: ${detail}`);
-		this.on_step?.(stage, detail);   // optional: a caller drawing its own connection view (ext/Refine/Connection)
+		this.on_step?.(stage, detail);   // optional: a caller drawing its own connection view (ux/Dictate/Connection)
 		this.draw_diag();
 		this.draw_stage_tray?.();
 		if (this.state === "connecting" && stage === "mic") this.$status?.rc("error").text(this.timed_text("mic"));

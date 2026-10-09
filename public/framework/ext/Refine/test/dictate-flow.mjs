@@ -17,9 +17,9 @@ for (const w of [1400, 400]) {
 	p.on("requestfailed", r => { const e = r.failure()?.errorText; (r.url().includes(":8178") ? whisper : errs).push((r.url().includes(":8178") ? "FAILED " : "requestfailed ") + r.url().slice(0, 90) + " " + e); });
 	p.on("response", r => { if (r.url().includes(":8178")) whisper.push(`${r.request().method()} ${r.url().split("8178")[1]} ${r.status()}`); });
 	await p.goto(base + "/framework/ext/Refine/", { waitUntil: "networkidle" });
-	const conn = () => p.locator(".refine-conn").innerText().then(t => t.replace(/\s+/g, " "));
+	const conn = () => p.locator(".voice-conn").innerText().then(t => t.replace(/\s+/g, " "));
 	console.log(w, "on load:", await conn());
-	const boxes = async () => p.evaluate(() => [...document.querySelectorAll(".refine-toolbar .ux-dictate-btn,.refine-toolbar > button")].map(e => { const r = e.getBoundingClientRect(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)].join(","); }).join(" | "));
+	const boxes = async () => p.evaluate(() => [...document.querySelectorAll(".voice-strip-bar .ux-dictate-btn,.voice-strip-bar > button")].map(e => { const r = e.getBoundingClientRect(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)].join(","); }).join(" | "));
 	const before = await boxes();
 	await p.locator(".ux-dictate-btn").click();
 	let moved = 0;

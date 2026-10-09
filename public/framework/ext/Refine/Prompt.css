@@ -8,15 +8,7 @@
 
 	.refine-input { display: flex; flex-direction: column; gap: 0.5em; }
 	.refine-input textarea { width: 100%; min-height: 6em; font: inherit; }
-	/* The toolbar never changes size: fixed-height row, the mic is a fixed square, Dictate's own
-	   status/caption block is hidden (the connection row above says it, the grey guess has its own line). */
-	.refine-toolbar { display: flex; flex-wrap: nowrap; gap: 0.5em; align-items: center; block-size: 2.75em; }
-	.refine-toolbar button { block-size: 2.5em; white-space: nowrap; flex: none; }
-	.refine-toolbar .ux-dictate { flex: none; align-items: center; }
-	.refine-toolbar .ux-dictate-btn { inline-size: 3.5em; display: inline-flex; align-items: center; justify-content: center; }
-	.refine-toolbar .ux-dictate-info { display: none; }
 	.refine-input-note { color: var(--muted, inherit); opacity: 0.75; font-size: 0.9em; min-block-size: 1.4em; }
-	.refine-guess { min-block-size: 3em; font-size: 0.9em; }
 
 	.refine-prompt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); }
 	@media (min-width: 700px) { .refine-prompt { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
