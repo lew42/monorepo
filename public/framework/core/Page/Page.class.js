@@ -115,6 +115,7 @@ export class Page extends Item {
 
 		(this.jsonl_lines ??= []).push(obj);
 		this.emit("line", obj);
+		obj = this.take_words(obj);
 
 		if ("content" in obj && !(this.content instanceof List)){
 			const { content, ...rest } = obj;
@@ -255,12 +256,94 @@ export class Page extends Item {
 	// can be how a tab comes to exist at all, with nothing yet to draw there.
 	// ⚠ Repeat lines for the same name MERGE (the new keys land on top of the old),
 	//   never replace — set() calling this again is just one more spread.
+	// (2026-10-09, the page tool) A `tab` line that also brings PAGE DATA (`title`,
+	// `icon`, `description`, `content`) builds that tab's page right here, in memory,
+	// so an agent's "add a tab" draws at once: `{"tab": {"name": "notes", "title":
+	// "Notes", "content": "…"}}`. Its own items arrive later as `{"notes": {"content":
+	// {"add": {…}}}}` (`get("notes")` finds the child in `pages`). A page with no tab
+	// strip yet turns `navigation: "tabs"` on, because a tab nobody can see is not
+	// what was asked. doc/page-tool-architecture.md.
 	tab(obj){
-		const { name, ...state } = obj;
+		const { name, title, icon, description, content, ...state } = obj;
 		if (!name) return;
 
 		(this.tabs_state ??= new Map()).set(name, { ...this.tabs_state.get(name), ...state });
-		if (!this.children.has(name)) this.children.set(name, null);
+		const data = Object.fromEntries(Object.entries({ title, icon, description, content }).filter(([, v]) => v !== undefined));
+		if (!Object.keys(data).length){
+			if (!this.children.has(name)) this.children.set(name, null);
+			return;
+		}
+
+		const had = this.children.get(name);
+		if (had instanceof Page){
+			const { content: text, ...labels } = data;
+			if (Object.keys(labels).length) had.set(labels);
+			if (text !== undefined && !(had.content instanceof List)) had.content = text;
+			had.rerender();
+			if (this.view) queueMicrotask(() => this.nav_redraw?.());
+			return;
+		}
+
+		this.add(name, data).from_tab = true;
+		if (!this.navigation && !this._tab_redraws?.size){ this.navigation = "tabs"; this.words(); }
+		this.reshape();
+	}
+
+	// ════ THE SIX WORDS AS A DELTA (2026-10-09, the page tool) ═══════════════
+	// `{"navigation": "tabs"}` or `{"width": "fill"}` on a live page.jsonl reshapes the
+	// page: the word lands on the PAGE ITSELF, where render() reads it (never in
+	// `data`, where Item's routing would have put it), and a page already on screen
+	// redraws. A word that did not change redraws nothing, so a log replayed twice
+	// is quiet.
+	static WORDS = ["navigation", "width", "arrangement", "surface", "background", "type_size"];
+
+	take_words(obj){
+		const said = Page.WORDS.filter(word => word in obj);
+		if (!said.length) return obj;
+
+		const rest = { ...obj };
+		let changed = false;
+		for (const word of said){
+			if (this[word] !== rest[word]){ this[word] = rest[word]; changed = true; }
+			delete rest[word];
+		}
+		if (changed){ this.words(); this.reshape(); }
+		return rest;
+	}
+
+	// One redraw per burst of lines: a batch of lines read together (a replay, or a
+	// delta naming three words) lands as ONE rerender, on the next microtask.
+	reshape(){
+		if (!this.view || this._reshaping) return;
+		this._reshaping = true;
+		queueMicrotask(() => { this._reshaping = false; this.rerender(); });
+	}
+
+	/* DRAW ME AGAIN, IN PLACE — no reload. The old element is swapped for a fresh
+	   render(); the pages the router has open BELOW me were mounted in my old regions
+	   (a tab panel), so each is activated again and lands in the new one; then the
+	   router re-marks the chain. `deactivated()`/`activated()` run around it, so a
+	   page that starts a stream in content() stops the old one first.
+	   ⚠ Not `redraw()`: `Card` (ai/cards/card.js) already has its own. */
+	rerender(){
+		const old = this.view?.el;
+		if (!old) return this;
+
+		this.deactivated?.();
+		const was_default = old.classList.contains("default");
+		Page.views.delete(old);
+		this.view = null; this.regions = null; this._tab_redraws = null; this.default_tab = undefined; this.related_drawn = false;
+
+		this.render();
+		if (was_default) this.view.ac("default");
+		old.replaceWith(this.view.el);
+		this.activated?.();
+
+		const router = this.app?.router, open = router?.chain?.() ?? [];
+		const at = open.indexOf(this);
+		if (at >= 0) open.slice(at + 1).forEach(page => page.activate());
+		if (router?.active) router.mark();
+		return this;
 	}
 
 	// The state a `tab` line recorded for one name — `{}` when nobody ever set one, so

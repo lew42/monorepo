@@ -52,6 +52,10 @@ export default class PageFrame extends View {
 			if (page.arrangement === "rail-left") this.panel("left");
 
 			div.c("page-frame-mid", () => {
+				// A page with content of its own AND tabs: its content is the first tab
+				// (the page's own url), so a child tab replaces it instead of stacking
+				// above it. A page with only children keeps today's shape. (2026-10-09)
+				if (page.navigation === "tabs" && page.content !== undefined) return void this.tabs({ home: () => this.box() });
 				if (page.navigation === "tabs") this.tabs();
 				this.box();
 			});
@@ -118,8 +122,8 @@ export default class PageFrame extends View {
 	/* ext/tabs, never a second tab implementation — this site has exactly one, and
 	   `app.js` imports it for every page here, so the fallback line below is a
 	   development message rather than a normal path. Core still imports no `ext`. */
-	tabs(){
-		if (is.fn(this.page.tabs)) return this.page.tabs();
+	tabs(options){
+		if (is.fn(this.page.tabs)) return this.page.tabs(undefined, options);
 		return p.c("muted", 'navigation: "tabs" needs `import "/framework/ext/tabs/tabs.js"`.');
 	}
 
