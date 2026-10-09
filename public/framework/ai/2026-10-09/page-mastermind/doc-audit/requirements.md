@@ -2,7 +2,9 @@
 
 Budget: $1 per minion. Model: Haiku. Read only, except your own `recs.md`. Stay under 60k tokens: read each file once, and grep (do not read whole) to find related docs.
 
-The owner (2026-10-09, 19:05) wants the page system's docs cleaned up: merged, condensed or moved where they overlap, and superseded files archived with a note. You recommend; the mastermind (`mastermind-page-system`) decides and does the moves with a script. **Change no file except your own `recs.md`.**
+The owner (2026-10-09, 19:05) wants the page system's docs cleaned up: merged, condensed or moved where they overlap, and superseded files archived with a note.
+
+You recommend; the mastermind (`mastermind-page-system`) decides and does the moves with a script. **Change no file except your own `recs.md`**, written in this folder (`doc-audit/`).
 
 ## What to read
 
