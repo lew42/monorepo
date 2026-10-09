@@ -869,7 +869,7 @@ export default class Card extends Page {
 		// DASHBOARD ABOVE TOPICS (now-card-blank, 2026-10-03): the Now card's own written sections
 		this.dashboard_list();
 
-		// THE CARD STANDARD (ai2/doc/card-standard.md):
+		// THE CARD STANDARD (ai/doc/ai2/card-standard.md):
 		// 1. Name + one sentence: what it is
 		const line = about_line(this, g);
 		if (line) p.c("ai2-ol-about").text(line);

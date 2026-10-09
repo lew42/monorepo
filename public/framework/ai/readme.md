@@ -42,7 +42,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - [doc/autonomy.md](doc/autonomy.md): dynamic heartbeat, unstuck protocol, node-based steps, truthful token accounting.
 - [Asks](asks/): every ask you made today onward, who owns it, and whether it landed or stalled.
 - [The ask loop](council/): everything you asked, whether it was built, and what the council found. Open asks come first.
-- [AI 2](/framework/ai2/): the dashboard. Talk to the assistants, see tasks by group, and see
+- [AI 2, now part of this folder](/framework/ai2/readme.md): the old dashboard address. Talk to the assistants, see tasks by group, and see
   what each one cost.
 - **Today** and **Yesterday** are pinned rows above the rail (same mechanism as the Now card,
   `ai/rail/rail.js`'s `build_day_items()`) — each opens that day's summary: cost (two currencies),

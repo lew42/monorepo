@@ -9,7 +9,7 @@
    classes too (`.ai2-row`'s family, see ai2.css). This file stands alone: its
    `@keyframes ai2-pulse` lives here, beside the two rules that pulse with it.
    Why anything here is the way it is: the inline comments carry the full history, and
-   ai2/doc/decisions.md and ai2/doc/columns.md have the rest. */
+   ai/doc/ai2/decisions.md and ai/doc/ai2/columns.md have the rest. */
 
 @layer theme {
 

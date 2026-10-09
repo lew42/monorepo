@@ -5,7 +5,7 @@
    whole from ai2.css (2026-09-30) and renamed `ai2-*` → `inbox-*`, so any page's rail
    looks the same. The AI-only parts (usage meters, a row's progress bar) are in
    ai2/rail.css. Why each rule is the way it is: ux/Inbox/doc/decisions.md and, for the
-   history, ai2/doc/decisions.md. */
+   history, ai/doc/ai2/decisions.md. */
 @layer theme {
 
 	/* The rail head's gap and a row's one step, each frozen into a real length — see

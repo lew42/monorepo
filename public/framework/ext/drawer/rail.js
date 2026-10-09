@@ -266,7 +266,7 @@ export class DrawerRail extends View {
  *  stays on, nothing is ever written into a box, every finished sentence reaches
  *  `on_text` instead).
  *
- *  ONE AI, NOT TWO (one-ai, 2026-09-29; `ai2/doc/one-ai.md` has the full finding).
+ *  ONE AI, NOT TWO (one-ai, 2026-09-29; `ai/doc/ai2/one-ai.md` has the full finding).
  *  On a CARD PAGE (`/framework/ai2/…`), this sheet now talks into that card's own
  *  session — the exact route the card's own (now-removed) composer used
  *  (`ext/drawer/tabs/ai.js`'s `send({card, text})`, called here, never edited) —
