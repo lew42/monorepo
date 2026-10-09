@@ -254,7 +254,7 @@ export default class Pool extends Events {
                      * stopped for GRACE_MIN minutes, with no live worker (held() above), is salvaged — non-destructively, to
                      * salvage/<slot>-<date>, never deleted — and the slot handed back. A running holder never reaches here. */
                     const row = rows.find(r => r.id === holder || r.name === holder), gone = Date.now() - Date.parse(row?.stopped_at || row?.last_at || slot.taken_at || Date.now());
-                    if (!/uncommitted changes|not yet in/.test(e.message) || gone < Pool.GRACE_MIN * 60000) throw e;
+                    if (!/uncommitted changes|not yet in|would not fast-forward/.test(e.message) || gone < Pool.GRACE_MIN * 60000) throw e;
                     const r = await this.salvage(slot, holder);
                     this.say(`pool: ${slot.id} self-cleaned after ${holder} stopped — ${r.what}`, { id: slot.id, from: holder });
                     await this.give_back(slot.id);
