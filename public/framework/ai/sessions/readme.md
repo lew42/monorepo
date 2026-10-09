@@ -195,6 +195,7 @@ merge.
 - OpenRouter dollars are real, Claude dollars are an equivalent, and the gap to the account is stated: [`doc/openrouter-dollars.md`](doc/openrouter-dollars.md).
 - The grid switches to compact cards below 88em of panel, checked at four widths: [`doc/grid-widths.md`](doc/grid-widths.md).
 - Tasks migration dry run (2026-10-09): 64 tasks join a session, 1003 orphans, 651 slug collisions resolved by id8; not applied until moved tasks have a route.
+- A session page shows the live conversation (both sides, tool calls folded) and cards the AI posts: [`doc/session-cards.md`](doc/session-cards.md).
 - Red flags (`$$$`, stalled, context, Opus minion) and the mastermind tag are computed by `node Server/session-flags.mjs --watch` into `session-flags.json` (gitignored; keep the watcher running) and drawn by `AISessionFlags.js`; thresholds sit in its `LIMITS`.
 - The owner wants a later redesign (less text, clear hierarchy, the home of everything real-time): [`doc/redesign-asks-2026-10-09.md`](doc/redesign-asks-2026-10-09.md).
 - Why some tabs read as running when they are not, and which launcher made them: [`doc/stuck-sessions-2026-10-09.md`](doc/stuck-sessions-2026-10-09.md).
