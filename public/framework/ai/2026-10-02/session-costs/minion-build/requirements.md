@@ -48,7 +48,7 @@ mastermind so it can `node Server/merge.mjs <your worktree path> [pages]` into `
    - `cost_of_transcript(path)`: reads one Claude Code session transcript (a `.jsonl` file of
      `{type, message, ...}` lines). Walk it in order; group every `assistant` line's
      `message.usage` under the nearest earlier REAL `user` line (same rule
-     `ai/sessions/doc/decisions.md` already documents for VS-Code-vs-CLI tagging: skip
+     `ai/sessions/doc/asks/decisions.md` already documents for VS-Code-vs-CLI tagging: skip
      `isSidechain`/`type:"task_notification"` lines — they are not a real prompt boundary).
      Sum each group's `input_tokens`, `output_tokens`, `cache_read_input_tokens`,
      `cache_creation_input_tokens` × that message's own `message.model` price. Return
@@ -57,7 +57,7 @@ mastermind so it can `node Server/merge.mjs <your worktree path> [pages]` into `
    - Find a session's transcript by id: search every
      `%USERPROFILE%\.claude\projects\c--Code-lew42-*\<session-id>.jsonl` (not just the main
      checkout's own folder — a worktree session lives under a differently-named project folder;
-     this is `ai/sessions/doc/decisions.md`'s own noted open gap, and this script is the right
+     this is `ai/sessions/doc/asks/decisions.md`'s own noted open gap, and this script is the right
      place to fix it since it already needs every folder).
    - CLI: `node Server/session-cost.mjs <session-id>` prints the JSON result (for testing).
      `node Server/session-cost.mjs --append <session-id>` computes it, then looks for
@@ -126,7 +126,7 @@ mastermind so it can `node Server/merge.mjs <your worktree path> [pages]` into `
    neither a transcript nor a cost line.
 
 6. **Docs pass.** Update `ai/sessions/readme.md` (what's new, one line each) and
-   `ai/sessions/doc/decisions.md` (append, don't rewrite — two open items: RAM waiting on a
+   `ai/sessions/doc/asks/decisions.md` (append, don't rewrite — two open items: RAM waiting on a
    Servex field, week.json being a manual snapshot not yet scheduled).
 
 7. **Owner addition (fold in, same brief, don't split into a second minion):**

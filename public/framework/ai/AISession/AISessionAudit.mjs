@@ -65,7 +65,7 @@ const lines_of = file => existsSync(file)
 
 // Read one Claude Code session transcript and sum its cost, per prompt and in total.
 // Every `assistant` line's `message.usage` is grouped under the nearest EARLIER real
-// `user` line — same prompt-boundary rule ai/sessions/doc/decisions.md already documents
+// `user` line — same prompt-boundary rule ai/sessions/doc/asks/decisions.md already documents
 // for VS-Code-vs-CLI tagging: a sidechain line, or one whose `turnOrigin` is
 // "task_notification" (the harness telling itself a background task finished), is not a
 // real prompt boundary and is skipped when looking for "the nearest earlier user line".
@@ -227,7 +227,7 @@ export function trace_of_transcript(path){
 // Find a session's transcript by id. Search EVERY `c--Code-lew42-*` project folder, not
 // just the main checkout's own (`c--Code-lew42-monorepo`) — a worktree session's own
 // files live under a differently-named folder, keyed by its own path. This is
-// ai/sessions/doc/decisions.md's own noted open gap ("only one project's session files
+// ai/sessions/doc/asks/decisions.md's own noted open gap ("only one project's session files
 // are scanned"); this script is the right place to fix it, since it already needs to
 // open every folder to find one session id.
 //

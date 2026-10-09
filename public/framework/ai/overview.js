@@ -121,7 +121,7 @@ export function tab_page(root, name, url = root.url + name + "/"){
 					{ name: "Servex", icon: "hub", gist: "The process that runs the agents. Its own docs.", href: "/framework/servex/" },
 					{ name: "Design system", icon: "palette", gist: "How a page looks: layout, spacing, colour, controls, content.", href: "/framework/design/" },
 					{ name: "Code system", icon: "code", gist: "How the code is written: objects, pages, views, the traps.", href: "/framework/code/" },
-					{ name: "Per-module ai/ folders", icon: "folder_special", gist: "What writes log.jsonl and the voice transcripts beside each module.", href: file_link("public/framework/ai/doc/module-ai-dirs.md") },
+					{ name: "Per-module ai/ folders", icon: "folder_special", gist: "What writes log.jsonl and the voice transcripts beside each module.", href: file_link("public/framework/ai/doc/design/module-ai-dirs.md") },
 				]));
 				section("Running now", "The agents this Servex holds right now.", () => live_agents());
 				section("Where each piece lives", "Agents start through the Claude Agent SDK; models come from Anthropic, OpenRouter or a local server.", () => cards([

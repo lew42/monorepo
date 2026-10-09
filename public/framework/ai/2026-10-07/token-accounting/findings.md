@@ -88,7 +88,7 @@ that SDK feature for real minion spawns (every minion in the registry has its ow
 — named as a minor open question in `plan.md`, not guessed at.
 
 **3. Where today's cost computation can be wrong.** Full map already lives in
-`ai/sessions/doc/decisions.md`'s 2026-10-04 entry (re-verified here, still accurate) —
+`ai/sessions/doc/asks/decisions.md`'s 2026-10-04 entry (re-verified here, still accurate) —
 the short version: `session-cost.mjs` reads a session's own transcript (now fixed to find
 ALL of them, see above); `task-cost.mjs`/`spend-tree.mjs` prefer that transcript over the
 agent's own log, falling back only when no transcript is found (now much rarer). The
@@ -129,7 +129,7 @@ closed transcript) would be a cleaner check than guessing now. Named as an open 
 ## Addition (owner, same day): realtime — using the existing stream, not a new one
 
 Checked, as asked, before writing the plan (full detail now lives at
-[`ai/sessions/doc/realtime-plan.md`](/framework/ai/sessions/doc/realtime-plan.md), linked
+[`ai/sessions/doc/live/realtime.md`](/framework/ai/sessions/doc/live/realtime.md), linked
 from that dir's readme so it survives past this chat):
 
 **(1) How core/Page streams `page.jsonl` today.** A WebSocket, not SSE, not polling:
@@ -161,7 +161,7 @@ live `session.jsonl`, Servex rows first) are all in `realtime-plan.md`.
 
 ## Addition (owner, same day): session freshness — is a long session quietly expensive?
 
-Full writeup: [`ai/sessions/doc/context-cost.md`](/framework/ai/sessions/doc/context-cost.md),
+Full writeup: [`ai/sessions/doc/cost/context-cost.md`](/framework/ai/sessions/doc/cost/context-cost.md),
 linked from that dir's readme. Measured against a real 5,142-turn session
 (`361c4d18…`, `context-measure.mjs` in this dir, rerunnable on any session id) —
 the owner's instinct was right, and by a bigger margin than guessed:

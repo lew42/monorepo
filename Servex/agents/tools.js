@@ -69,7 +69,7 @@ export function tools(agents = singleton){
 /* query_sessions: find past sessions by tag, system, date, model or cost, with totals. NOT in tools(): it is opt-in, so it costs no
  * context in a session that never asks. A role that needs it adds it to the list it hands `server()`:
  * `server(host, ctx, [...loader_tools(), query_sessions_tool()])`. Same code as the CLI `node Server/session-query.mjs`
- * (public/framework/ai/sessions/doc/record-spec.md, "Asking about past sessions"); in-process, no MCP network hop. */
+ * (public/framework/ai/sessions/doc/data/record-spec.md, "Asking about past sessions"); in-process, no MCP network hop. */
 export function query_sessions_tool(){
 	const str = description => ({ type: "string", description });
 	return tool("query_sessions",
@@ -200,7 +200,7 @@ function session_tools(agents){
 			"Append ONE stamped line to a Claude session's own record (`sessions/<id>/session.jsonl`, tracked, append-only). `line` is"
 			+ " exactly one of: {tag:'name'}, {note:'text'}, {alert:'text', level:'info|warn|error'}, {weight:0-10}, {closed:true|false},"
 			+ " {question:'text', options:[..]}, {links:[{path,label}]} (1 to 3 core links). Refused with the reason if the shape is wrong."
-			+ " Shapes: /framework/ai/sessions/doc/record-spec.md. Use it to tag or flag a session you audited; never to rewrite one.",
+			+ " Shapes: /framework/ai/sessions/doc/data/record-spec.md. Use it to tag or flag a session you audited; never to rewrite one.",
 			{ session: { type: "string", description: "The Claude session id (uuid) the line is about." },
 				line: { type: "object", description: "One line in a shape from the record spec." },
 				by: { type: "string", description: "Your agent name, e.g. mastermind-task-audit." } },

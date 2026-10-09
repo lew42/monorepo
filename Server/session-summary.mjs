@@ -11,7 +11,7 @@
 //   node Server/session-summary.mjs --watch [seconds]                keep the index fresh (default 20 s), changed files only
 //
 // The work is done by public/framework/ai/AISession/AISession.js (same class the page uses).
-// Cache: public/framework/ai/sessions/<id>/cache.jsonl (gitignored machine state); the record is <id>/session.jsonl (tracked). Docs: sessions/doc/session-class.md
+// Cache: public/framework/ai/sessions/<id>/cache.jsonl (gitignored machine state); the record is <id>/session.jsonl (tracked). Docs: sessions/doc/ui/session-class.md
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";

@@ -40,7 +40,7 @@ Required: the session uuid (36 characters, the Claude session id), `by`, and one
 - Finished and unremarkable: add `closed`.
 - Never write a cost, runtime or model. If the numbers look wrong, run `node Server/session-summary.mjs <uuid> --audit` and note the mismatch.
 
-More about the class: [session-class.md](session-class.md).
+More about the class: [../ui/session-class.md](../ui/session-class.md).
 
 ## Writing a line from an agent
 
@@ -75,7 +75,7 @@ An in-process agent can call the SDK tool `query_sessions` instead (same argumen
 
 ## The snapshot
 
-Not a record line: a session's `index.json` is the **computed** current state, written atomically by `ai/AISession/AISessionIndex.mjs`, never by hand (design: [realtime.md](realtime.md)). The day composite `sessions/YYYY/MM/DD/index.json` bundles the snapshots of one day.
+Not a record line: a session's `index.json` is the **computed** current state, written atomically by `ai/AISession/AISessionIndex.mjs`, never by hand (design: [../live/realtime.md](../live/realtime.md)). The day composite `sessions/YYYY/MM/DD/index.json` bundles the snapshots of one day.
 
 ```json
 {"id":"<session uuid>","state":"active","model":"claude-sonnet-5","provider":"claude","usd":6.0,"tree_usd":6.0,"children":0,"tags":[],"alerts":0,"first_at":"2026-10-08T21:50:00Z","last_activity":"2026-10-08T21:55:31Z"}

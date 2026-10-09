@@ -13,7 +13,7 @@ Visit [`/framework/ai/sessions/`](/framework/ai/sessions/). Ten columns, newest 
 Start, Stop, Duration, Source (a coloured tag), Role, Name, Model, State, RAM, Cost. Drag a column
 header's own right edge to resize just that column — each one is a single `--col-<name>` CSS
 custom property, with its own minimum width so a column never collapses to nothing. It's a CSS
-grid, not a `<table>`: `doc/decisions.md` says why, and what that bought (one token per column)
+grid, not a `<table>`: `doc/asks/decisions.md` says why, and what that bought (one token per column)
 that a table couldn't.
 
 **Start / Stop / Duration (2026-10-03):** Start and Stop are both real timestamps where known;
@@ -28,7 +28,7 @@ older `cost` figure:**
 - **The State column is an icon now**, not a word: a blinking green ▶ for a working/active row, a
   quiet dot for everything else. A ✓ for "done" only ever shows on a session's own detail page.
 - **A Role column** — real for a Servex row (straight from the agent registry), a best-effort guess
-  for a VS Code/CLI row (`doc/decisions.md` says exactly how, and why it's a guess there).
+  for a VS Code/CLI row (`doc/asks/decisions.md` says exactly how, and why it's a guess there).
 - **A RAM column** — blank until Servex's own agent feed carries a real-time sample; never a stale
   number.
 - **Claude $ next to OpenRouter $** when a row carries the split (an "OR" tag marks the real-money
@@ -40,7 +40,7 @@ older `cost` figure:**
 - **Five stat cards across the top** (sessions-tab-polish, 2026-10-03): Claude $ this week,
   OpenRouter $ this week, plan used % this week, the plan's own $-per-1% (spelled out as a label,
   not crammed into the number), and the current filtered session count — the real `week.json`
-  figures, big bold dollars with smaller cents, not a line of plain text. `doc/decisions.md` has the
+  figures, big bold dollars with smaller cents, not a line of plain text. `doc/asks/decisions.md` has the
   full reasoning for why these cards are the trustworthy number and the range summary below the
   grid is not.
 - **A session's own detail page** shows a compact row per logged cost line (time, tokens, $) above
@@ -50,7 +50,7 @@ older `cost` figure:**
   below). The chart is cumulative $ over elapsed time, with a tick per tool call; the table groups
   every tool call by tool (Read/Edit/Bash/spawn…) with its count, $ and share, and flags waste it
   can actually compute — the same file read 3+ times, chunked reads, polling, and long runs of
-  reads with no write. `doc/decisions.md` has the full case, the real test, and the thresholds
+  reads with no write. `doc/asks/decisions.md` has the full case, the real test, and the thresholds
   used.
 - **The spend tree (2026-10-03):** every row's Cost cell gets a second, quieter line —
   "$X w/ N" — when that agent ever spawned anything, showing the whole subtree's $ (own +
@@ -58,7 +58,7 @@ older `cost` figure:**
   task, owner prompt, review gate, clarity, heartbeat/revive, assistant, echo) sits next to
   the role filter, and a session's own detail page shows who spawned IT and what it spawned
   in turn, each a link one level down. All from `Server/spend-tree.mjs` →
-  `spend-tree.json` — [`doc/spend-tree.md`](doc/spend-tree.md) says exactly how a parent and
+  `spend-tree.json` — [`doc/cost/spend-tree.md`](doc/cost/spend-tree.md) says exactly how a parent and
   a trigger get worked out, and where that guessing is honestly weakest. The one-screen
   reading of what it's for — does a review pay for itself, where the dollars go — is
   [`ai/2026-10-03/spend-tree/study.md`](/framework/ai/2026-10-03/spend-tree/).
@@ -69,13 +69,13 @@ older `cost` figure:**
   breakdown" list, same split, grouped.
 - **Two real accounting bugs**, found while building that breakdown: a wrong cache-write
   price, and a task's own `cost_usd` undercounting a revived agent by up to 59%.
-  `doc/decisions.md`'s 2026-10-04 entry has the full story.
+  `doc/asks/decisions.md`'s 2026-10-04 entry has the full story.
 
 **A VS Code tab's own $ stopped updating after midnight (vscode-session-cost, 2026-10-04) — fixed.**
 A session's cost is found by its own page folder, wherever it lives (not just today's), so a tab
 left open overnight keeps pricing correctly instead of silently stalling. The "Per 1% of your
 weekly plan" stat tile now also shows the two numbers it divides underneath the figure, not just
-in a hover title. `doc/decisions.md`'s own 2026-10-04 entry (above the token-accounting one) has
+in a hover title. `doc/asks/decisions.md`'s own 2026-10-04 entry (above the token-accounting one) has
 the full story.
 
 ## Where the real dollars come from
@@ -91,18 +91,18 @@ Two SEPARATE scripts, neither live — both are run by hand and read by the page
   The same script's `trace_of_transcript()` answers a DIFFERENT question — not the $ total, but
   every individual tool call and its own timestamp, behind the chart + table above: `node
   public/framework/ai/AISession/AISessionAudit.mjs --trace-file <session-id> <out-path>` writes it as `<out-path>`, read by
-  the detail page as `<session-dir>/trace.json`. Manual/on-demand only (doc/decisions.md).
+  the detail page as `<session-dir>/trace.json`. Manual/on-demand only (doc/asks/decisions.md).
 - [`Server/week-cost.mjs`](/code/) writes this week's Claude $ and OpenRouter $ against the $200
   Max plan to `week.json` beside this readme — the stat cards' own source. Two ways to run it:
   a plain `node Server/week-cost.mjs` writes a one-time snapshot (re-run it by hand to refresh);
   `node Server/week-cost.mjs --watch [minutes]` keeps running and rewrites `week.json` on that
   interval (default 10) until stopped — no HTTP route or dev-server watcher needed (both are
-  outside this fence, `doc/decisions.md`), just a plain process somebody starts. `week.json`'s own
+  outside this fence, `doc/asks/decisions.md`), just a plain process somebody starts. `week.json`'s own
   `note` field always says which mode actually wrote it. Its windowed computation
   (`compute_window(from, to)`) is reusable for ANY date range, not just "this week" — `node
   Server/week-cost.mjs --from <iso> --to <iso>` prints one straight to the terminal, no file
   written — so a future live range feature has one real function to call instead of a second,
-  possibly-disagreeing one (`doc/decisions.md`, "Why OpenRouter read $0.00 in range").
+  possibly-disagreeing one (`doc/asks/decisions.md`, "Why OpenRouter read $0.00 in range").
 
 This is a DIFFERENT system from `Server/task-cost.mjs` (a Servex agent's own running total, no
 per-prompt detail) — see that script's own doc, `Server/doc/task-cost.md`, for why the two don't
@@ -123,7 +123,7 @@ merge.
   `GET /api/sessions` route (Servex/agents inbox, 2026-10-02) and none had landed when this was
   built; this task's own fence is `public/framework/ai/` only, so it cannot add a route under
   `Server/` itself. The full reasoning, and what a real route would fix, is in
-  [`doc/decisions.md`](./doc/decisions.md).
+  [`doc/asks/decisions.md`](doc/asks/decisions.md).
 - **`sessions.json` is gitignored**, the same way `ai/usage.json` already is — machine state
   written by a script, a COMPUTED CACHE never the record itself (the owner's own words). Running
   `sessions.mjs` regenerates it locally; it is never committed.
@@ -162,40 +162,42 @@ merge.
 
 - **True now:** a session's cost, state and last activity reach the grid in well under a second, and a new session appears the same way. A server-side `AISessionIndex` keeps one small snapshot per session, writes it to the session's `index.json` and the day's `YYYY/MM/DD/index.json` (real files a static host serves), and pushes each changed snapshot over the dev socket. An open session page tails its own log and corrects the grid row. It runs on the main dev server only, after a restart.
 - **Not yet:** a parent's tree total when a child changes, and the tree, closed list and traces (still the `session-index.json` snapshot).
-- Detail, latency numbers and the scripts: [`doc/realtime.md`](./doc/realtime.md).
+- Detail, latency numbers and the scripts: [`doc/live/realtime.md`](doc/live/realtime.md).
 
 ## More
 
-- [`doc/migration-dry-run-2026-10-09.md`](./doc/migration-dry-run-2026-10-09.md) — folder migration counts on the main data: 7,784 sessions (7,783 move), 4,555 cards = 4,089 joined + 466 other, 1,066 tasks = 271 joined + 795 orphans, 6,582 name collisions all resolved by an id suffix; tasks stay put for now
-- [`doc/realtime.md`](./doc/realtime.md) — snapshots, day files and the socket: the path, what is live, measured latency
-- [`../doc/tasks.md`](../doc/tasks.md) — proposal: tasks as `core/Task` with `origin` = the creating session; session cost rolls up into its tasks
-- [`doc/data-architecture-2026-10-08.md`](./doc/data-architecture-2026-10-08.md) — the owner's open design: index files, several files per session, what session.jsonl keeps, routes, what the task audit leaves behind
-- [`doc/session-as-container-2026-10-08.md`](./doc/session-as-container-2026-10-08.md) — idea: a session as a container for a whole AI setup (roles, models, tools); open
-- [`doc/realtime-plan.md`](./doc/realtime-plan.md) — the owner's ask (2026-10-07): this page
+Every Sessions doc, by subsystem: [`doc/readme.md`](doc/readme.md).
+
+- [`doc/data/layout.md`](doc/data/layout.md) — folder migration counts on the main data: 7,784 sessions (7,783 move), 4,555 cards = 4,089 joined + 466 other, 1,066 tasks = 271 joined + 795 orphans, 6,582 name collisions all resolved by an id suffix; tasks stay put for now
+- [`doc/live/realtime.md`](doc/live/realtime.md) — snapshots, day files and the socket: the path, what is live, measured latency
+- [`../doc/tasks/tasks.md`](../doc/tasks/tasks.md) — proposal: tasks as `core/Task` with `origin` = the creating session; session cost rolls up into its tasks
+- [`doc/data/data-architecture.md`](doc/data/data-architecture.md) — the owner's open design: index files, several files per session, what session.jsonl keeps, routes, what the task audit leaves behind
+- [`doc/asks/asks.md`](doc/asks/asks.md) — idea: a session as a container for a whole AI setup (roles, models, tools); open
+- [`doc/live/realtime.md`](doc/live/realtime.md) — the owner's ask (2026-10-07): this page
   must go realtime using the site's EXISTING jsonl stream, never a second one. What that stream
   already is, why this tab has never actually used it, and the staged plan to get a session's own
   `session.jsonl` streaming live instead of the current stale snapshots.
-- [`doc/context-cost.md`](./doc/context-cost.md) — the owner's ask (2026-10-07): is a long
+- [`doc/cost/context-cost.md`](doc/cost/context-cost.md) — the owner's ask (2026-10-07): is a long
   session quietly expensive? Measured: 79-93% of a long session's $ is repeated context, and an
   idle gap past the cache TTL prices the next turn 15-50x higher. Servex already has the right
   "fresh, not compacted" pattern (`Layers.js`) for assistants/managers; masterminds don't have it
   yet — the recommendation and plan to extend it.
-- [`doc/priorities.md`](./doc/priorities.md) — the owner's asks for this page, most important first: follow this list
-- [`doc/patterns.md`](./doc/patterns.md) — every place session data lives today, counted by a script; each count opens the grid filtered
-- [`doc/findings.md`](./doc/findings.md) — what the detail view loads for a row, and where each number comes from
-- [`doc/templates.md`](./doc/templates.md) — which class draws which page; [`doc/classes.md`](./doc/classes.md) — the classes, one per file
-- [`doc/layout.md`](./doc/layout.md) — where a session's folder lives (`ai/sessions/YYYY/MM/DD/<id>/`), how old paths still load, the scripted conversion, why ids and not task names
-- [`doc/record-spec.md`](./doc/record-spec.md) — the line types a session record accepts (tag, note, alert, weight, closed, question, links) and how to write them
-- [`doc/session-class.md`](./doc/session-class.md) — `AISession.js` (cost, model + effort, tokens by purpose, audit), the `session.jsonl` cache, `session-index.json`; the Cost cell and the detail's Audit button come from it (`AISessionView.js`)
-- [`doc/decisions.md`](./doc/decisions.md) — the full data-source decision, the `css-scopes.txt`
+- [`doc/asks/asks.md`](doc/asks/asks.md) — the owner's asks for this page, most important first: follow this list
+- [`doc/data/patterns.md`](doc/data/patterns.md) — every place session data lives today, counted by a script; each count opens the grid filtered
+- [`doc/data/findings.md`](doc/data/findings.md) — what the detail view loads for a row, and where each number comes from
+- [`doc/ui/views.md`](doc/ui/views.md) — which class draws which page; [`doc/ui/classes.md`](doc/ui/classes.md) — the classes, one per file
+- [`doc/data/layout.md`](doc/data/layout.md) — where a session's folder lives (`ai/sessions/YYYY/MM/DD/<id>/`), how old paths still load, the scripted conversion, why ids and not task names
+- [`doc/data/record-spec.md`](doc/data/record-spec.md) — the line types a session record accepts (tag, note, alert, weight, closed, question, links) and how to write them
+- [`doc/ui/session-class.md`](doc/ui/session-class.md) — `AISession.js` (cost, model + effort, tokens by purpose, audit), the `session.jsonl` cache, `session-index.json`; the Cost cell and the detail's Audit button come from it (`AISessionView.js`)
+- [`doc/asks/decisions.md`](doc/asks/decisions.md) — the full data-source decision, the `css-scopes.txt`
   reservation note, and the VS-Code-vs-CLI heuristic, checked against a real session
 - [`ext/panel2`](/framework/ext/panel2/) — the header/main chrome this tab is built from
-- Files: the classes live in [`../AISession/`](../AISession/) (see [`doc/classes.md`](./doc/classes.md), which also lists the names rejected); here: `page.js` (creates `AISessionsPage`), `AISessionsPage.js`, `AISessionDetail.js`, `AISessionView.js`, `AISessionRows.js`, `AISessionTrace.js`, `sessions.css` (the row), `settings.jsonl`
+- Files: the classes live in [`../AISession/`](../AISession/) (see [`doc/ui/classes.md`](doc/ui/classes.md), which also lists the names rejected); here: `page.js` (creates `AISessionsPage`), `AISessionsPage.js`, `AISessionDetail.js`, `AISessionView.js`, `AISessionRows.js`, `AISessionTrace.js`, `sessions.css` (the row), `settings.jsonl`
   (`{"tab":true}`, how this folder joined the strip)
-- OpenRouter dollars are real, Claude dollars are an equivalent, and the gap to the account is stated: [`doc/openrouter-dollars.md`](doc/openrouter-dollars.md).
-- The grid switches to compact cards below 88em of panel, checked at four widths: [`doc/grid-widths.md`](doc/grid-widths.md).
+- OpenRouter dollars are real, Claude dollars are an equivalent, and the gap to the account is stated: [`doc/cost/openrouter-dollars.md`](doc/cost/openrouter-dollars.md).
+- The grid switches to compact cards below 88em of panel, checked at four widths: [`doc/ui/views.md`](doc/ui/views.md).
 - Tasks migration dry run (2026-10-09): 64 tasks join a session, 1003 orphans, 651 slug collisions resolved by id8; not applied until moved tasks have a route.
-- A session page shows the live conversation (both sides, tool calls folded) and cards the AI posts: [`doc/session-cards.md`](doc/session-cards.md).
+- A session page shows the live conversation (both sides, tool calls folded) and cards the AI posts: [`doc/ui/views.md`](doc/ui/views.md).
 - Red flags (`$$$`, stalled, context, Opus minion) and the mastermind tag are computed by `node Server/session-flags.mjs --watch` into `session-flags.json` (gitignored; keep the watcher running) and drawn by `AISessionFlags.js`; thresholds sit in its `LIMITS`.
-- The owner wants a later redesign (less text, clear hierarchy, the home of everything real-time): [`doc/redesign-asks-2026-10-09.md`](doc/redesign-asks-2026-10-09.md).
-- Why some tabs read as running when they are not, and which launcher made them: [`doc/stuck-sessions-2026-10-09.md`](doc/stuck-sessions-2026-10-09.md).
+- The owner wants a later redesign (less text, clear hierarchy, the home of everything real-time): [`doc/asks/asks.md`](doc/asks/asks.md).
+- Why some tabs read as running when they are not, and which launcher made them: [`doc/asks/stuck-sessions.md`](doc/asks/stuck-sessions.md).

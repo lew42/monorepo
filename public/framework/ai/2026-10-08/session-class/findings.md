@@ -2,7 +2,7 @@
 
 **One screen.** A `Session` class prices a Claude session from its transcript (deduped by message id, subagents included) and an independent audit proves it; the Sessions page shows it. Each session has two files: tracked `session.jsonl` (the hand-written record: tags, alerts, links, closed) and gitignored `cache.jsonl` (computed numbers). `session-index.json` carries cost, `closed` and `meta` for the table, which filters by tag, needs-attention and closed. The old 2x overcount is fixed. Unverified rates (opus-5-5, sonnet-5-5, haiku-5-5) are marked. Not built: the day-partitioned index (section 12), old-shape adapters, the table redesign (section 8). Servex needs a restart for `audit_session` and `log_session`.
 
-Outcome: `Session.js`, the Sessions page cost cell and detail view, the audit (button, route, `audit_session` tool, CLI), `Server/session-summary.mjs`. Docs: [`sessions/doc/session-class.md`](/framework/ai/sessions/doc/session-class.md).
+Outcome: `Session.js`, the Sessions page cost cell and detail view, the audit (button, route, `audit_session` tool, CLI), `Server/session-summary.mjs`. Docs: [`sessions/doc/ui/session-class.md`](/framework/ai/sessions/doc/ui/session-class.md).
 
 ## 1. Does the SDK account in real time, and which source is the truth?
 
@@ -36,7 +36,7 @@ When a session creates a task or request that is later filed in a page's `page.j
 
 ## 6. Recommendation: session files and the index (mastermind relay, 2026-10-08)
 
-Plan form only. Nothing here is built, and nothing is deleted. The owner's thinking is in [`sessions/doc/data-architecture-2026-10-08.md`](/framework/ai/sessions/doc/data-architecture-2026-10-08.md).
+Plan form only. Nothing here is built, and nothing is deleted. The owner's thinking is in [`sessions/doc/data/data-architecture.md`](/framework/ai/sessions/doc/data/data-architecture.md).
 
 **Default: one derived index per session.** `sessions/<id>/index.json` holds only what a list row needs: title, path, cost, runtime, state, tags, model and effort, and a small inbox of the highest-priority alerts. It is derived, so a script rebuilds it from the logs and nobody edits it by hand. Whatever appends a line that matters (the tags/alerts tool, the audit) also rewrites the index in the same code path. The Sessions list loads indexes, never a whole `session.jsonl`. The grid's `session-index.json` is already this idea in one combined file; the per-session file is its next step.
 *Alternative:* keep the single combined grid file and add tags and alerts to it. It is simpler and one request, but it grows with every session and it cannot preview a page.
@@ -125,7 +125,7 @@ Built and committed in worktree `session-class` (not merged): Session class, aud
 
 ## 13. Day folders for sessions, and why a session is keyed by id (mastermind relay, 2026-10-08)
 
-**Done.** A session's folder is now `ai/sessions/YYYY/MM/DD/<id>/`, the day of its first message (UTC). It holds `cache.jsonl` (rebuilt freely, gitignored) and `session.jsonl` (the hand-written record, tracked). `Session.locate()` decides the path and moves an old flat folder into its day on first touch; `Server/session-place.mjs` moves all of them at once (a plain rename, nothing regenerated); old flat paths still load. The dev server no longer writes a `files.jsonl` into these folders and `.gitignore` covers it, so the tree stays clean. Every table column now sorts. The full explanation is `sessions/doc/layout.md`.
+**Done.** A session's folder is now `ai/sessions/YYYY/MM/DD/<id>/`, the day of its first message (UTC). It holds `cache.jsonl` (rebuilt freely, gitignored) and `session.jsonl` (the hand-written record, tracked). `Session.locate()` decides the path and moves an old flat folder into its day on first touch; `Server/session-place.mjs` moves all of them at once (a plain rename, nothing regenerated); old flat paths still load. The dev server no longer writes a `files.jsonl` into these folders and `.gitignore` covers it, so the tree stays clean. Every table column now sorts. The full explanation is `sessions/doc/data/layout.md`.
 
 **Chosen:** `ai/sessions/YYYY/MM/DD/<id>/`. **Alternative:** `ai/YYYY/MM/DD/<id>/`, rejected because that tree is made of card pages and 7,700 cache folders would bury them. It sits beside the index design in section 12 (`sessions/index/YYYY/MM/DD.jsonl`, by day of update) without colliding.
 

@@ -215,7 +215,7 @@ export default new Page({
 					span(", and the specific question/format at the ");
 					strong("BOTTOM");
 					span(" (Recency / autoregressive steering). ");
-					a("Full attention mechanics doc").href("/framework/ai/doc/context-window.md");
+					a("Full attention mechanics doc").href("/framework/ai/doc/tokens/context-window.md");
 				});
 			});
 		});

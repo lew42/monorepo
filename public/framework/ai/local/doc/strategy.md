@@ -66,7 +66,7 @@ Modern LLMs exhibit two proven attention biases:
   - When Servex spawned `task-mastermind-3` with default `sub-mastermind` and `page` skills, the initial prompt ballooned to **82,101 tokens**, immediately crashing `qwen3-8b` with HTTP 400.
   - When benchmarked with a **lean system prompt (< 200 tokens)**, `qwen3-8b` responded in **8.2 seconds** at **$0.00**, delivering sharp, structured analysis.
   - **The Law of Local Spawns:** A local model must NEVER be spawned with multi-skill catalogs. It requires a dedicated zero-tool or single-tool (`UniversalLogTool`) harness capped under 1,500 prompt tokens.
-- **The Ideal Paradigm:** Provide a single unopinionated [Universal Log Tool](../../doc/log-tool.md) (~120 tokens). It accepts arbitrary JSON payloads (metrics, parameters, insights) while the server automatically stamps ISO timestamps, elapsed duration (`delta_ms`), and author attribution without hallucination.
+- **The Ideal Paradigm:** Provide a single unopinionated [Universal Log Tool](../../doc/logs/log-tool.md) (~120 tokens). It accepts arbitrary JSON payloads (metrics, parameters, insights) while the server automatically stamps ISO timestamps, elapsed duration (`delta_ms`), and author attribution without hallucination.
 
 ---
 

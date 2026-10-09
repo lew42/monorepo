@@ -205,7 +205,7 @@ function reconstructParent(row){
 }
 
 // ---- trigger tag: best-effort, computed from role + reconstruction, never hand-guessed
-// per agent — see doc/spend-tree.md for exactly what each tag means and its false-negative
+// per agent — see ai/sessions/doc/cost/spend-tree.md for exactly what each tag means and its false-negative
 // rate. The fixed set the owner asked for: owner prompt, task, review gate, clarity,
 // heartbeat/revive, assistant, echo — plus "dispatcher" for the one routing agent itself. ----
 function triggerOf(row, parentInfo){
@@ -278,7 +278,7 @@ function subtreeDescendantCount(id, seen = new Set()){
 // roots: no parent at all, or a parent that didn't make it into `nodes` (shouldn't happen)
 const out = {
 	generated_at: new Date().toISOString(),
-	note: "Computed by Server/spend-tree.mjs — see public/framework/ai/sessions/doc/spend-tree.md. "
+	note: "Computed by Server/spend-tree.mjs — see public/framework/ai/sessions/doc/cost/spend-tree.md. "
 		+ "own_*_usd is null when no result line was ever billed for that agent (not the same as $0). "
 		+ "parent_source: \"registry\" = Servex recorded it at spawn time; \"reconstructed: *\" = this "
 		+ "script inferred it from task.jsonl; \"unknown\" = no evidence either way.",

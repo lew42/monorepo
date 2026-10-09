@@ -31,7 +31,7 @@ When an agent harness connects to MCP:
 2. **The Single Universal Log Tool (`tools: [log]`):**
    - When the agent must mutate state or persist its findings, provide **exactly one tool: `log`** (~120 tokens schema overhead).
    - Allows logging arbitrary unopinionated JSON data (params, insights, notes, metrics, state) with automated timestamping, latency tracking (`delta_ms`), and author attribution.
-   - See [The Single Universal Log Tool](../../doc/log-tool.md) for architecture, schema, and live test proofs.
+   - See [The Single Universal Log Tool](../../doc/logs/log-tool.md) for architecture, schema, and live test proofs.
 3. **Small Focused Snippets (10k tokens or less):**
    - Ideal for:
      - Reviewing a class hierarchy (classes, methods, signatures) and suggesting alternate namings.

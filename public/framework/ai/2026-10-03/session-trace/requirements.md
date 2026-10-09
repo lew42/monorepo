@@ -132,7 +132,7 @@ system, not a second page). Read these first:
        sentences, explain it like I'm five). Zero flags → say so briefly ("nothing flagged"), don't
        just show an empty section (a reader shouldn't wonder if the check ran).
 
-5. **Docs pass.** Append to `ai/sessions/doc/decisions.md` (don't rewrite existing sections): why
+5. **Docs pass.** Append to `ai/sessions/doc/asks/decisions.md` (don't rewrite existing sections): why
    `trace.json` is a manual/on-demand file today (same shape of honesty as `week.json`'s own note),
    the waste thresholds chosen (3+ same-file reads, 15s polling window, 5-call read-no-write run)
    and that they're tunable, and whether a real per-turn OpenRouter split existed in the data you

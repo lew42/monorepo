@@ -4,7 +4,7 @@ How a single unopinionated logging tool solves the context-window crisis for loc
 
 ---
 
-## 1. The Core Law: The File System is the Ground Truth
+## 1. The Core Principle: The File System is the Ground Truth
 
 Whenever an agent or minion is running—whether paying cloud API rates (Opus, Sonnet, GPT-6) or running free local GPU cycles (Qwen 3 8B, Hermes 3)—compute, memory, and time are consumed.
 

@@ -65,6 +65,6 @@ run of this study can give clarity the same real fix-rate table.
 - Per-task totals by module/day are a separate, already-built tool — see
   @task-mastermind-day-overview; this study doesn't repeat it.
 - What "trigger" means, and where it's a guess:
-  [`sessions/doc/spend-tree.md`](/framework/ai/sessions/doc/spend-tree.md).
+  [`sessions/doc/cost/spend-tree.md`](/framework/ai/sessions/doc/cost/spend-tree.md).
 
 ![The Sessions tab with the trigger filter and "cost by trigger" list](sessions-tab.png)

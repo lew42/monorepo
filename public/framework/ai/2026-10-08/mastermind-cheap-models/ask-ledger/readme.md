@@ -3,7 +3,7 @@
 **What this is:** [2026-10-07/prompt-audit](/framework/ai/2026-10-07/prompt-audit/) only ever
 read `asks.jsonl` (259 rows, curated). This folder extends that pass to the full Claude Code
 session history — the raw transcripts, which are ground truth for what the owner actually said
-(see [doc/log-sources.md](/framework/ai/doc/log-sources.md) for why, and the limits).
+(see [doc/logs/log-sources.md](/framework/ai/doc/logs/log-sources.md) for why, and the limits).
 
 ## The pipeline (compute first, model only on the leftovers)
 

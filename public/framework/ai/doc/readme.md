@@ -1,0 +1,16 @@
+# AI system docs: the index
+
+One folder per subsystem, one current doc per topic. Load the folder you need; the rest costs nothing. Superseded files sit in [`archive/`](archive/moved.md) with a line saying where their content went (nothing is deleted). The Sessions tab has its own docs: [`../sessions/doc/`](../sessions/doc/readme.md).
+
+| Folder | What is in it | Load it when |
+|---|---|---|
+| [`architecture.md`](architecture.md) | The decisions behind the AI system, newest first | you change how it is built |
+| [`design/`](design/systems-overview.md) | The big picture: [systems overview](design/systems-overview.md), [tooling](design/tooling-architecture.md), [per-module `ai/` folders](design/module-ai-dirs.md), [dictation to Refine](design/dictation-refine-connection-map.md), [the website shows everything](design/website-shows-everything.md) | you are new, or crossing systems |
+| [`agents/`](agents/mcp.md) | How agents behave: [MCP tools](agents/mcp.md), [autonomy](agents/autonomy.md), [concurrency](agents/concurrency.md), [interrupts](agents/interrupts.md), [pass by reference](agents/pass-by-reference.md), [ground truth](agents/eval-truth.md) | you touch Servex agents or their tools |
+| [`tokens/`](tokens/tokens.md) | [How cost is counted and cut](tokens/tokens.md), [context windows](tokens/context-window.md) | you spend or measure tokens |
+| [`logs/`](logs/log-sources.md) | [Where the owner's asks live](logs/log-sources.md), [the universal log tool](logs/log-tool.md), [inbox + streaming](logs/inbox-log-streaming.md), [conversation logs](logs/conversations.md) | you read or write a log |
+| [`tasks/`](tasks/tasks.md) | [Tasks and the one queue](tasks/tasks.md), [priorities](tasks/priorities.md) | you change tasks or the queue |
+| [`ai2/`](ai2/overview.md) | AI 2 (the card dashboard): its own docs, plus [AI 2 vs AI](ai2/ai2-vs-ai.md) and [branches](ai2/branches.md) | you work on the board |
+| [`meta/`](meta/history.md) | [How the AI system evolved](meta/history.md), [readme system status](meta/readme-system-status.md) | you audit the docs |
+
+Naming rule: a doc is named for its topic, not its date; the date and the session that decided it go on its first lines. Words like "never" are for what really breaks; the rest are suggestions.
