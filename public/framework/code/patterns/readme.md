@@ -42,7 +42,7 @@ MyList.View = class MyListView extends List.View { }   // …so a subclass swaps
 
 - **Capturing is synchronous** — a factory call written after an `await` appends to the wrong
   place, and nothing throws. Capture the container first, fill it in a callback.
-- **A page method named `render()` collides with core** — `draw()` and `report()` are free names.
+- **A page method named `render()` collides with core** — `draw()` is a free name; `report()` is free on `Page` but `AITask` owns it (overriding it blanks a task page).
   The full list of names core already owns is on [dos-and-donts](../dos-and-donts/).
 
 ## More
