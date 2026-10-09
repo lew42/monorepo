@@ -43,6 +43,9 @@ const slot = { id: "qf-1", path: wt("qf-1"), state: "taken", taken_by: "task-gon
 assert.equal(pool.held(slot, [], []), null, "forgotten holder, 13h: released");
 assert.ok(pool.held({ ...slot, taken_at: new Date().toISOString() }, [], []), "fresh unknown holder stays held");
 
+assert.equal(pool.held(slot, [{ id: "task-gone-agent", state: "dormant", last_at: new Date(Date.now() - 13 * 3600000).toISOString() }], []), null, "dormant 13h = gone");
+assert.ok(pool.held(slot, [{ id: "task-gone-agent", state: "dormant", last_at: new Date().toISOString() }], []), "fresh dormant stays held");
+
 pool.slots = [];
 git(main, "worktree", "add", "-q", "-b", "worktree/qf-1", wt("qf-1"));
 Object.assign(pool, { slots: [{ id: "qf-1", path: wt("qf-1").split(path.sep).join("/"), branch: "worktree/qf-1", state: "ready", url: "http://x/" }] });

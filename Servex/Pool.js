@@ -292,7 +292,10 @@ export default class Pool extends Events {
             if (age > Pool.ORPHAN_HOURS * 3600000 && !live && !/^(session|claude|cli)/i.test(String(slot.taken_by))) return null;
             return { why: `${slot.taken_by} is not a Servex agent` };
         }
-        if (row.state !== "stopped" && row.state !== "gone") return { why: `${slot.taken_by} is ${row.state}` };
+        /* dormant = its process is released and it only wakes if resumed; dormant for ORPHAN_HOURS counts as gone (qf-9: dormant 7 days, 2026-10-09) */
+        const idle_h = (Date.now() - Date.parse(row.last_at || row.stopped_at || Date.now())) / 3600000;
+        const done = row.state === "stopped" || row.state === "gone" || (row.state === "dormant" && idle_h > Pool.ORPHAN_HOURS);
+        if (!done) return { why: `${slot.taken_by} is ${row.state}` };
         const inside = cwd => { const c = slash(path.resolve(String(cwd || "."))).toLowerCase(), p = slash(path.resolve(slot.path)).toLowerCase(); return !!cwd && (c === p || c.startsWith(p + "/")); };
         const worker = rows.find(r => LIVE.includes(r.state) && inside(r.cwd));
         if (worker) return { dead: true, why: `${worker.id} (${worker.state}) works in it` };
