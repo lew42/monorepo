@@ -27,7 +27,7 @@ export default class AISessionDetail extends Page {
 	/* THE SESSION'S OWN PAGE LOG (2026-10-09, the page tool): `page.jsonl` in the session's folder can
 	   reshape this page on top of the template — tabs, the six layout words — and carries the cards the
 	   AI posts. Found once (log_url), read before a child is resolved (so `/<id>/notes/` survives a
-	   reload), and streamed while the page is open (content()). core/Page/doc/page-tool-architecture.md. */
+	   reload), and streamed while the page is open (content()). core/Page/doc/architecture.md. */
 	// The SAME file the page tool writes (Servex/agents/page_tools.js → AISession.locate()): the session's own
 	// dated folder; a session the index has not seen yet gets the folder locate() makes, today's `session-<id8>/`.
 	// The old card folder (ai/YYYY/MM/DD/<slug>-<id8>/, where prompt-relay.mjs still writes the owner's prompts)

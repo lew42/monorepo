@@ -262,7 +262,7 @@ export class Page extends Item {
 	// "Notes", "content": "…"}}`. Its own items arrive later as `{"notes": {"content":
 	// {"add": {…}}}}` (`get("notes")` finds the child in `pages`). A page with no tab
 	// strip yet turns `navigation: "tabs"` on, because a tab nobody can see is not
-	// what was asked. doc/page-tool-architecture.md.
+	// what was asked. doc/architecture.md.
 	tab(obj){
 		const { name, title, icon, description, content, ...state } = obj;
 		if (!name) return;

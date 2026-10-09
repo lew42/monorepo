@@ -47,7 +47,7 @@ A JSONL page (no `page.js`) keeps its file list inside its own `page.jsonl`; eve
 
 ## 3. Who writes
 
-- **`page_set` and the other page tools**: [`Servex/agents/page_tools.js`](../../../../Servex/agents/page_tools.js). An agent gives a page path plus a change; the tool validates and appends one line ([`page-tool-architecture.md`](page-tool-architecture.md)).
+- **`page_set` and the other page tools**: [`Servex/agents/page_tools.js`](../../../../Servex/agents/page_tools.js). An agent gives a page path plus a change; the tool validates and appends one line ([`architecture.md`](architecture.md)).
 - **Servex `append_log`**: the MCP tool that appends one JSON line to a named log through Servex, the single writer of logs.
 - **`.claude/hooks/append.mjs`**: the command-line append (`node .claude/hooks/append.mjs <file.jsonl> <lines.json>`); it validates, fills `"NOW"` with the real clock and re-parses the file.
 - **A browser tab**: through `Item.Store` and `Append.js`, above.

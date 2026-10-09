@@ -111,7 +111,7 @@ function write_line(file, line){
 
 /* SIZE FEEDBACK (the owner, 2026-10-09 18:25): every write answers with the log's new size,
  * so the writer sees it growing. Past LARGE the answer says so; compaction is designed in
- * core/Page/doc/page-tool-architecture.md ("Log growth"). */
+ * core/Page/doc/architecture.md ("Log growth"). */
 const LARGE = 1024 * 1024;
 function size_of(file){
 	const buf = fs.readFileSync(file);
@@ -332,7 +332,7 @@ export function page_tools(){
 			"THE PAGE TOOL: a path and a raw JSON delta, appended as one line to that page's log; every open tab"
 			+ " redraws with no reload. Send only the path and the delta: `by`, `ts` and every missing `id` are"
 			+ " stamped for you. The delta goes to the target's own `set()`: a plain key is data, a key naming a"
-			+ " method calls it. A page accepts (core/Page/doc/page-tool-architecture.md): `{\"title\":\"New\"}`;"
+			+ " method calls it. A page accepts (core/Page/doc/architecture.md): `{\"title\":\"New\"}`;"
 			+ " a layout word `{\"navigation\":\"tabs\"}` (also width, arrangement, surface, background, type_size);"
 			+ " a new TAB `{\"tab\":{\"name\":\"notes\",\"title\":\"Notes\",\"content\":\"text\"}}` (turns tabs on if the"
 			+ " page had none); an item `{\"content\":{\"add\":{\"title\":\"…\",\"text\":\"…\"}}}`; an item inside a tab"

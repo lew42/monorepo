@@ -4,3 +4,7 @@
 {"notes":{"content":{"add":{"id":"n1","title":"First note","text":"Added inside the new tab.","by":"mastermind-page-system","ts":"2026-10-09T22:32:21.664Z"}}}}
 {"navigation":"rail","by":"mastermind-page-system","ts":"2026-10-09T22:33:10.398Z"}
 {"navigation":"tabs","by":"mastermind-page-system","ts":"2026-10-09T22:33:11.910Z"}
+{"content":{"add":{"id":"how","title":"How to use it","text":"page_set(path, delta). The path is the url you see; leave it out to mean your own session page. The delta is plain JSON: the tool adds the time, your name and any missing ids.","by":"mastermind-page-system","ts":"2026-10-09T22:48:06.673Z"}}}
+{"content":{"add":{"id":"tab","title":"Add a tab","text":"{\"tab\": {\"name\": \"now\", \"title\": \"Now\", \"content\": \"…\"}} — the Notes tab above was made this way. A page with no tabs gets a tab strip, and its own content becomes the first tab.","by":"mastermind-page-system","ts":"2026-10-09T22:48:06.676Z"}}}
+{"content":{"add":{"id":"words","title":"Change the layout","text":"{\"navigation\": \"rail\"} or any of the six page words: navigation, width, arrangement, surface, background, type_size. The page redraws in place.","by":"mastermind-page-system","ts":"2026-10-09T22:48:06.676Z"}}}
+{"content":{"add":{"id":"inside","title":"Add to a tab","text":"{\"notes\": {\"content\": {\"add\": {\"title\": \"…\"}}}} — the nesting is the path: the notes tab, its content list, add.","by":"mastermind-page-system","ts":"2026-10-09T22:48:06.677Z"}}}
