@@ -130,7 +130,7 @@ export default new Doc({
 	files: "Part.js audio.css page.js readme.md",
 	notes: "decisions",
 
-	children: "Whisper MicStream Recorder Transcriber v1 MicPicker LevelMeter PushToTalk sound-recorder push-to-talk mic-to-text",
+	children: "MicStream Recorder Transcriber v1 MicPicker LevelMeter PushToTalk sound-recorder push-to-talk mic-to-text",
 
 	content(){
 		// "audio v1" OUT OF THE TAB STRIP (fix 5) — same `tab({nav:false})` +

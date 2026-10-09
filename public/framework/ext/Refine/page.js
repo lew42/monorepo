@@ -20,6 +20,8 @@ export default new Page({
 			span(" · ");
 			a("Compare models (try)").href(new URL("try/", import.meta.url).pathname);
 			span(" · ");
+			a("Whisper (server and session logs)").href("/framework/audio/Whisper/");
+			span(" · ");
 			a("How it fits (architecture)").href("/framework/ext/Refine/md/doc/architecture/");
 		});
 	},
