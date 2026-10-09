@@ -57,7 +57,14 @@ export default class DefaultView extends View {
 	properties(subject, path){
 		if (!subject || typeof subject !== "object") return;
 
-		Object.keys(subject).forEach(name => {
+		// The class chooses what matters: `static shown = ["title", "state"]` lists
+		// those properties first, in that order; `static hidden = ["_timer"]` drops
+		// internal state (timers, handles). Everything else follows in its own order.
+		const Klass = subject.constructor, hidden = Klass?.hidden ?? [], shown = Klass?.shown ?? [];
+		const keys = Object.keys(subject).filter(k => !hidden.includes(k));
+		const first = shown.filter(k => keys.includes(k));
+
+		[...first, ...keys.filter(k => !first.includes(k))].forEach(name => {
 			const value = subject[name];
 			if (value === undefined) return;   // declared but never set — nothing to show
 			if (typeof value === "function") return;

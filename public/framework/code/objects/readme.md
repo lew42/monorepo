@@ -11,6 +11,14 @@ knows, at three sizes.
 - The debug view: `inspect(thing)` — the fourth size, separate from `render()`
 - Objects the owner sees (`AIObject`, `Skill`, `Ask`, `Task`)
 
+## The one default view
+
+`view(thing)` (`ux/Content/Object/DefaultView.js`) is the survivor: every class renders itself
+with it, and `Thing.View = class extends DefaultView` overrides it. The class chooses what matters:
+`static shown = ["title","state"]` lists those first, in order; `static hidden = ["_timer"]` drops
+internal state. `ObjectCard` (`object()`, the small API card) and `inspect()` (the recursive
+debug card) are older siblings, kept until their callers move to `view()`.
+
 ## Use
 
 ```js
