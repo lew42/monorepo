@@ -22,8 +22,8 @@ const r6 = n => Math.round(n * 1e6) / 1e6;
 // $ per million tokens. `verified` = checked against the SDK's own billed total on real sessions
 // (public/framework/ai/2026-10-08/session-class/fit-rates.mjs). One price table for the whole repo:
 // Server/session-cost.mjs re-exports these.
-export const DEFAULT_MODEL = "claude-sonnet-5";
-export const PRICES = {
+const DEFAULT_MODEL = "claude-sonnet-5";
+const PRICES = {
 	"claude-sonnet-5":   { in: 2,  out: 10, verified: true },
 	"claude-sonnet-5-5": { in: 2,  out: 10, verified: false },   // ASSUMED equal to sonnet-5: only 2 sessions measured, implied in-price 2.8-3.5
 	"claude-opus-5":     { in: 5,  out: 25, verified: false },
@@ -36,7 +36,7 @@ export const PRICES = {
 for (const p of Object.values(PRICES)){ p.cache_read = p.in * 0.1; p.cache_write_5m = p.in * 1.25; p.cache_write_1h = p.in * 2; p.cache_write = p.cache_write_1h; }
 
 // Exact name first, then the name without a date suffix (claude-haiku-4-5-20251001), else the default.
-export function price_for(model, unknown){
+function price_for(model, unknown){
 	if (PRICES[model]) return PRICES[model];
 	const bare = String(model || "").replace(/-\d{8}$/, "");
 	if (PRICES[bare]) return PRICES[bare];
@@ -45,12 +45,12 @@ export function price_for(model, unknown){
 }
 
 // claude-sonnet-5-5 -> "Sonnet 5.5"; claude-haiku-4-5-20251001 -> "Haiku 4.5"
-export function model_label(model){
+function model_label(model){
 	const m = /^claude-([a-z]+)-(\d+)(?:-(\d{1,2}))?(?:-\d{8})?$/.exec(model || "");
 	return m ? `${m[1][0].toUpperCase()}${m[1].slice(1)} ${m[2]}${m[3] ? "." + m[3] : ""}` : (model || "unknown");
 }
 // Who bills a model: an OpenRouter id is "vendor/model" (google/gemini-3.8-flash); a Claude one never has a slash.
-export const provider_of = model => String(model || "").includes("/") ? "openrouter" : "claude";
+const provider_of = model => String(model || "").includes("/") ? "openrouter" : "claude";
 const bare_model = m => String(m || "").replace(/-\d{8}$/, "");
 
 const BUCKETS = ["preamble", "user", "tool_result", "assistant", "thinking", "other"];
@@ -60,12 +60,12 @@ const add_to = (a, b) => { for (const k in b) a[k] = (a[k] || 0) + b[k]; return 
 const RING = 40;                   // recent message ids remembered, so a re-read line is never counted twice
 const ACTIVE_GAP_MS = 5 * 60000;   // a gap longer than the cache TTL is idle, not active
 
-export const PURPOSE_LABELS = {
+const PURPOSE_LABELS = {
 	preamble: "System prompt, tools, CLAUDE.md, skills, memory (first call)",
 	user: "Your prompts", tool_result: "Tool results (reads, greps, command output)",
 	assistant: "Assistant replies and tool-call inputs", thinking: "Thinking", other: "Other (attachments, reminders, after a compaction)",
 };
-export const PURPOSE_METHOD =
+const PURPOSE_METHOD =
 	"Estimate. The first call's whole context is the preamble (minus your first prompt, sized by chars/4). After that, each call's context growth " +
 	"is exact; it is split into the previous reply (its exact output tokens, thinking from the usage detail), then new tool results / prompts / " +
 	"attachments in proportion to their characters (chars/4 weights, scaled to the exact growth). Typical error: tens of percent on the split between " +
@@ -546,3 +546,6 @@ export default class Session {
 		return out;
 	}
 }
+
+// The helpers other files need ride on the class: Session.price_for(model), Session.PRICES, ...
+Object.assign(Session, { DEFAULT_MODEL, PRICES, price_for, model_label, provider_of, PURPOSE_LABELS, PURPOSE_METHOD });

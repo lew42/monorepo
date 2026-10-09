@@ -16,7 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
-import Session, { model_label } from "../public/framework/ai/sessions/Session.js";
+import Session from "../public/framework/ai/sessions/Session.js";
 import { find_transcript, subagent_files } from "./session-cost.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -55,7 +55,7 @@ export function print_summary(session){
 	out.push(`  cost: input ${usd(d.usd_parts.in)} · output ${usd(d.usd_parts.out)} · cache read ${usd(d.usd_parts.cache_read)} (${d.cache_read_pct}%) · cache write ${usd(d.usd_parts.cache_write)}`);
 	out.push(`  tokens: in ${s.tokens.input} · out ${s.tokens.output} · cache read ${s.tokens.cache_read} · cache write 5m ${s.tokens.cache_write_5m} / 1h ${s.tokens.cache_write_1h}`);
 	if (s.sidechain.messages) out.push(`  subagents (in the total): ${s.sidechain.messages} messages, ${usd(s.sidechain.usd)}`);
-	out.push("  model + effort:  " + d.units.map(u => `${model_label(u.model)}·${u.effort ?? "?"} ${usd(u.usd)} (${u.n})`).join("  "));
+	out.push("  model + effort:  " + d.units.map(u => `${Session.model_label(u.model)}·${u.effort ?? "?"} ${usd(u.usd)} (${u.n})`).join("  "));
 	out.push("  tools: " + (d.tools.slice(0, 8).map(t => `${t.name} ${t.n}`).join(", ") || "none"));
 	out.push("  tokens by purpose (estimate): " + d.purpose.map(p => `${p.key} ${p.pct}% ${usd(p.usd)}`).join(" · "));
 	for (const f of d.flags) out.push("  ! " + f);

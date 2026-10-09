@@ -98,7 +98,7 @@ export default class AILogs {
             if (!this.guard(req, res)) return;
             if (!UUID.test(req.params.id)) return res.status(400).end();
             try {
-                const { Session } = await import("../../public/framework/ai/sessions/Session.js");
+                const { default: Session } = await import("../../public/framework/ai/sessions/Session.js");
                 res.json(await Session.close(req.params.id, "owner", !req.query.undo));
             } catch (e) { res.status(500).json({ error: String(e.message || e) }); }
         });

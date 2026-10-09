@@ -49,7 +49,8 @@ const ROOT = join(here, "..");
 // per CLAUDE.md law 6: no second copy of a price table to go stale separately.
 // The price table and price_for() now live in Session.js (2026-10-08, session-class): the browser
 // class and this script must never disagree on a rate. Re-exported so every old importer still works.
-import { PRICES, DEFAULT_MODEL, price_for } from "../public/framework/ai/sessions/Session.js";
+import Session from "../public/framework/ai/sessions/Session.js";
+const { PRICES, DEFAULT_MODEL, price_for } = Session;
 export { PRICES, DEFAULT_MODEL, price_for };
 
 const r4 = n => Math.round(n * 10000) / 10000;
