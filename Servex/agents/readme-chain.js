@@ -14,9 +14,8 @@
  * `first_prompt(dir, extras)` is the seam another program (task-placement's
  * "Recent sessions" block, or anything else that wants to prepend context to a
  * fresh agent's first message) is meant to call: it formats the chain as one
- * block, applies a rough 3,000-token cap (cutting the MOST GENERAL readmes —
- * root, then `public/`, then … — first, so what's closest to `dir` survives
- * longest), then appends each of `extras` as its own `## <label>` section.
+ * block, applies a rough 3,000-token cap (cutting the MIDDLE levels first, then
+ * the root, so the root context and `dir`'s own readme survive longest), then appends each of `extras` as its own `## <label>` section.
  *
  * Plain functions, no class, never throw: a readme this can't read (permissions,
  * a symlink loop, whatever) is just skipped, the same as a level with no readme

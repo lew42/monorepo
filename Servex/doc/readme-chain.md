@@ -16,8 +16,8 @@ anything. Built in `Servex/agents/readme-chain.js`; wired in by
   different way.
 - `first_prompt(dir, extras = [])` — the seam other code should call: formats
   the chain as one `Where you are: …` block, caps it at ~3,000 tokens
-  (dropping whole readmes from the top — the most general one first — never
-  the leaf), then appends each of `extras` (`{label, text}`) as its own
+  (dropping whole middle-level readmes first, then the root — never the
+  leaf), then appends each of `extras` (`{label, text}`) as its own
   `## <label>` section. A caller like `task-placement`'s "Recent sessions"
   block never has to touch the chain's own formatting or its cap.
 

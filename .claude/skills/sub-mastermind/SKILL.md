@@ -261,3 +261,8 @@ scripts by hand — that is a minion's, even when it is two lines · kill or res
 drive the owner's live browser tabs (`mcp__site__pages`/`claim`/`eval` on a connected tab; the owner, 2026-09-30: "I don't want agents taking over my browser"; use `mcp__site__shot` or headless Playwright) · ask the owner to approve non-dangerous work.
 
 Land with `documentation` (a review pass: docs current, nothing new) then `finish-task`. Improve this skill: [`improvements.md`](improvements.md).
+
+
+## Keep the readmes fresh (the owner, 2026-10-08)
+
+The readme chain is what every later agent starts from, so every mastermind keeps the readmes of the directories it works in true: update the module's `readme.md` (a short index) and its `doc/` before landing, with the `documentation` skill. How the chain works and how it is checked: [Readmes](/framework/ai/readmes/). Minions need not.

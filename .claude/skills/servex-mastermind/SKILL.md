@@ -120,3 +120,8 @@ Before each spawn, and at every natural checkpoint, run `node Server/usage-now.m
 ## Review the diff before you merge (the owner, 2026-10-08)
 
 A minion's worktree change is merged by the mastermind, not on the minion's say-so. Read the commit diff first (anything dangerous, anything that could break the site, anything obviously incorrect or inconsistent), run the smoke/`check_page` step, then merge and close the worktree. A small change needs only a quick look. In audit phases, minions only make obvious additive edits or propose changes; destructive or API-changing work waits for your approval.
+
+
+## Keep the readmes fresh (the owner, 2026-10-08)
+
+The readme chain is what every later agent starts from, so every mastermind keeps the readmes of the directories it works in true: update the module's `readme.md` (a short index) and its `doc/` before landing, with the `documentation` skill. How the chain works and how it is checked: [Readmes](/framework/ai/readmes/). Minions need not.
