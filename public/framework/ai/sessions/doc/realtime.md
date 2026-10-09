@@ -56,7 +56,7 @@ The index runs only on the **main checkout's** dev server (a worktree's `.git` i
 
 ## Measured latency
 
-`node Server/session-latency.mjs` starts a private dev server, writes fake transcript lines and times a headless page. Run on 2026-10-08:
+`node Server/session-latency.mjs` starts a private dev server, writes fake transcript lines and times a headless page. Run on 2026-10-08 and again on 2026-10-09, after the AISession rename (wire 49 to 62 ms, page 49 to 202 ms, no page errors; the 5 s file write was not observed in the 2026-10-09 run, its figure is from the first run):
 
 | Step | Result |
 |---|---|
