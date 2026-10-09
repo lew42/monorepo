@@ -48,6 +48,8 @@ pulling a sample straight from a recent voice session — no index of raw dictat
 today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
 
 ## More
+- [Refine v3](/framework/ext/Refine/md/doc/refine-v3-2026-10-09/) — the one-screen workspace, instant clean, a session per model run, per-sentence clarity, numbers (`doc/refine-v3-2026-10-09.md`). The old saved-run ladder moved to `ladder/`.
+- [audio/Whisper](/framework/audio/Whisper/) — the Whisper server and per-surface session classes (`Whisper`, `WhisperSession`)
 - [Architecture](/framework/ext/Refine/md/doc/architecture/) — the classes, the boss (`RefineSystem`), what composes what (`doc/architecture.md`)
 - [Nothing to refine yet](/framework/ext/Refine/md/doc/nothing-to-refine-2026-10-09/) — the mic-input bug and its test (`doc/nothing-to-refine-2026-10-09.md`)
 - [Whisper flow](/framework/ext/Refine/md/doc/whisper-flow-2026-10-09/) — measured: Whisper did not fail; the errors were a page bug. Recommendation: keep local Whisper (`doc/whisper-flow-2026-10-09.md`)

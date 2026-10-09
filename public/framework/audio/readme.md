@@ -3,6 +3,8 @@
 Three small classes, each a build block: **[MicStream](./MicStream/)** opens the microphone and
 hands out its live stream, raw samples, level, and now also device choice and
 hold/toggle-to-talk (`mode`); **[Recorder](./Recorder/)** records, plays back and saves a clip;
+**[Whisper](./Whisper/)** is the whisper-server as an object plus a log per dictation surface.
+
 **[Transcriber](./Transcriber/)** turns a stream into text, with Whisper or Chrome as the engine.
 The [live demo at the top of this page](./) shows all three working together — pick a mic, talk,
 watch the transcript settle, optionally record.
