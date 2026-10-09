@@ -5,6 +5,7 @@ import SessionRows from "./SessionRows.js";
 import SessionView from "./SessionView.js";
 import SessionFollow from "./SessionFollow.js";
 import SessionTrace from "./SessionTrace.js";
+import Session from "./Session.js";
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
 // view). Built with `new SessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
@@ -24,6 +25,7 @@ export default class SessionDetail extends Page {
 		small.c("muted sessions-full-id", id);
 		small.c("muted", "Template: sessions/SessionDetail.js");   // which template draws this page (doc/templates.md)
 
+		const $related = div.c("flow");   // the other records of this session: card, task, brief, report, parent, children
 		const $box = div.c("flow");
 		const $costs = div.c("flow");
 		const $spawn = div.c("flow");     // who spawned this, why, and what it spawned
@@ -36,6 +38,7 @@ export default class SessionDetail extends Page {
 			const session_id = row?.session_id ?? id;
 			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)) this.follow = new SessionFollow(session_id).start();   // tails the log and corrects the grid row (doc/realtime.md)
 			Promise.all([SessionRows.load_index(url), SessionRows.load_tree(url)]).then(([index, tree]) => SessionView.detail_section($session, session_id, index, tree));
+			SessionRows.load_index(url).then(async () => { const snap = await SessionDetail.load_snapshot(session_id); $related.empty(() => SessionDetail.render_related(snap, url)); });
 			const dir = SessionDetail.dir_of(await SessionDetail.dir_index(), session_id);
 			const [costs, trace, prompts] = await Promise.all([
 				SessionDetail.load_cost_log(dir),
@@ -96,6 +99,36 @@ export default class SessionDetail extends Page {
 				});
 			});
 		});
+	}
+
+	/** What each kind of record is, in one line (the same words as doc/patterns.md). */
+	static RELATED = {
+		summary: { icon: "🧾", label: "Accounting summary", what: "this session's own folder: tokens, cost parts, models, tools; no conversation text" },
+		card: { icon: "🗂", label: "Inbox card", what: "the dashboard card (Asked / Status / Next step); joined by its session-<id8> folder name" },
+		task: { icon: "📋", label: "Task folder", what: "the task's brief, report and task.jsonl; joined by session_id in its launch line" },
+		brief: { icon: "📝", label: "Brief", what: "what the task was asked to do (requirements.md)" },
+		report: { icon: "✅", label: "Report", what: "what the task found or built (report.md or findings.md)" },
+		parent: { icon: "⬆", label: "Parent session", what: "the session that spawned this one" },
+		child: { icon: "⬇", label: "Child session", what: "a session this one spawned" },
+	};
+
+	/** This session's own index.json (its snapshot), from its dated folder; null when it has none yet. */
+	static async load_snapshot(id){ return SessionRows.get_json(Session.dir_url(id).href + "index.json"); }
+
+	/** The "Related" section: one line per record of the session: its kind, what it is, and where it lives. */
+	static render_related(snap, url){
+		if (!snap) return;
+		const L = snap.links ?? {}, R = SessionDetail.RELATED, items = [["summary", Session.dir_url(snap.id).pathname]];
+		L.cards?.forEach(h => items.push(["card", h])); L.tasks?.forEach(h => items.push(["task", h]));
+		if (L.brief) items.push(["brief", L.brief]);
+		if (L.report) items.push(["report", L.report]);
+		if (L.parent) items.push(["parent", url + L.parent + "/"]);
+		L.children?.forEach(c => items.push(["child", url + c + "/"]));
+		small.c("muted", "Related — the records that belong to this session");
+		div.c("flow", () => items.forEach(([kind, href]) => div.c("flex gap-50 v-center", () => {
+			a.c("page-link", `${R[kind].icon} ${R[kind].label}`).href(href);
+			small.c("muted", R[kind].what + " · " + href.replace("/framework/", ""));
+		})));
 	}
 
 	// ---- loaders -------------------------------------------------------------------------------------

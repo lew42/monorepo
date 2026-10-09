@@ -56,7 +56,7 @@ To find past work (by tag or system) and see what it cost, run the same query th
 |---|---|
 | `--since` `--until` | First and last day, `YYYY-MM-DD`. |
 | `--tag` | Comma-separated tags; a session needs all of them. |
-| `--system` | A core module (`ext/Dictate`, or any part of it) or a task category. |
+| `--system` | A module tag in repo form (`ext/Dictate`, `core/Page`, `Server/refine.mjs`; any part of one works, so `Server/` finds them all) or a task category. |
 | `--state` `--model` `--provider` | `active`/`idle`/`closed`; part of a model name (`opus`); `claude` or `openrouter`. |
 | `--parent` | A session id: only its children. |
 | `--min-cost` | Dollars; hides cheaper sessions. |
@@ -84,3 +84,4 @@ Not a record line: a session's `index.json` is the **computed** current state, w
 - It is **state, not events** (decided 2026-10-08): a reader needs no transcript read, and an event-sourced index was rejected. It is never a history; the history is the transcript and the session's cache.
 - `state` is `active` when the last transcript line is under 5 minutes old, else `idle`.
 - The same object reaches the browser over the socket, and `Session.apply_delta` folds it field by field.
+- `links` is `{parent, children, cards, tasks, brief, report}`: the session's other records, as site paths. `Server/session-links.mjs` works it out from the real folders (card folders by their `session-<id8>` name, task folders by `session_id` in `task.jsonl`); the detail view's Related section and the grid's `records` filter read it. Findings: [findings.md](findings.md).

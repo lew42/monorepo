@@ -16,6 +16,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Session from "../public/framework/ai/sessions/Session.js";
 import { files_of, registry_rows } from "./session-summary.mjs";
+import { scan, links_of, children_map } from "./session-links.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(here, "..");
@@ -104,7 +105,15 @@ export default class SessionIndex {
 			await this.fill_record(id, snap);
 			this.snaps.set(id, snap); this.queue(id);
 		});
+		this.link_all();
 		this.freeze();
+	}
+
+	/** Every snapshot gets its `links` (cards, tasks, brief, report, parent, children), computed from the real folders; rewritten only when they changed. */
+	link_all(){
+		this.scanned = scan(path.join(this.repo, "public", "framework", "ai"));
+		this.kids = children_map([...this.snaps.values()]);
+		for (const snap of this.snaps.values()){ const links = links_of(snap, this.scanned, this.kids); if (!same(links, snap.links)){ snap.links = links; this.queue(snap.id); } }
 	}
 
 	/** The old whole-file index, only for each session's descendants total (a tree the transcript alone cannot give). id -> { usd, tree_usd, children }. */
@@ -176,6 +185,7 @@ export default class SessionIndex {
 			parent: reg?.parent ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
 		};
 		this.join(snap);
+		if (this.scanned) snap.links = links_of(snap, this.scanned, this.kids ?? new Map());   // keeps the links a rebuild would otherwise drop
 		return snap;
 	}
 

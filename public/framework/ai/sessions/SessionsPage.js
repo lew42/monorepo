@@ -185,6 +185,8 @@ export default class SessionsPage extends Page {
 				pick("tag", "tag_filter", [...new Set(Object.values(this.session_index?.meta ?? {}).flatMap(m => m.tags))].sort(), "A tag written into a session's session.jsonl.");
 				pick("category", "category_filter", [...new Set(live.map(x => x.category).filter(Boolean))].sort(), "The category of the task that launched the session (the task audit).");
 				pick("core", "core_filter", [...new Set(live.flatMap(x => x.core ?? []))].sort(), "A framework module the session edited (the task audit): folder/Name, as in the repo.", true);
+				this.records_filter ??= new URLSearchParams(location.search).get("records") || "";   // /sessions/?records=has-card (doc/patterns.md links here)
+				pick("records", "records_filter", SessionsPage.RECORDS, "Which other records the session has: an inbox card, a task folder, a brief, a report, a parent or children.");
 				div.c("sessions-daterange flex gap-50 v-center", () => {
 					small.c("muted", "from");
 					const $from = input().attr("type", "date");
@@ -218,12 +220,21 @@ export default class SessionsPage extends Page {
 			&& (!this.attention_only || meta[id_of(r)]?.alerts)
 			&& (!this.tag_filter || meta[id_of(r)]?.tags.includes(this.tag_filter))
 			&& (!this.category_filter || Session.all.get(id_of(r))?.ix.category === this.category_filter)
+			&& SessionsPage.has_records(Session.all.get(id_of(r))?.ix, this.records_filter)
 			&& (!this.core_filter || Session.all.get(id_of(r))?.ix.core?.includes(this.core_filter)));
 		const filtered = base.filter(r => this.role_filter.has(r.role || "(unknown)") && this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)"));
 		return { base, filtered, sorted: sort_rows(filtered, this.sort) };
 	}
 
 	/** Recomputes the filtered + sorted rows from `this.last_rows` and redraws the grid, summary and chips. Never a new fetch. */
+	/** The `records` filter values: has/no card, task, brief, report. */
+	static RECORDS = ["has-card", "no-card", "has-task", "no-task", "has-brief", "has-report", "has-parent", "has-children"];
+	static has_records(ix, key){
+		if (!key || !ix) return true;
+		const L = ix.links ?? {}, [want, kind] = key.split("-"), n = { card: L.cards?.length, task: L.tasks?.length, brief: L.brief ? 1 : 0, report: L.report ? 1 : 0, parent: L.parent ? 1 : 0, children: L.children?.length }[kind] ?? 0;
+		return want === "has" ? n > 0 : n === 0;
+	}
+
 	render_rows(){
 		if (!this.$controls) return;
 		if (!this.$summary) this.render_controls();

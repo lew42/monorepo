@@ -180,7 +180,8 @@ merge.
   "fresh, not compacted" pattern (`Layers.js`) for assistants/managers; masterminds don't have it
   yet — the recommendation and plan to extend it.
 - [`doc/priorities.md`](./doc/priorities.md) — the owner's asks for this page, most important first: follow this list
-- [`doc/patterns.md`](./doc/patterns.md) — every place session data lives today, counted by a script
+- [`doc/patterns.md`](./doc/patterns.md) — every place session data lives today, counted by a script; each count opens the grid filtered
+- [`doc/findings.md`](./doc/findings.md) — what the detail view loads for a row, and where each number comes from
 - [`doc/templates.md`](./doc/templates.md) — which class draws which page; [`doc/classes.md`](./doc/classes.md) — the classes, one per file
 - [`doc/layout.md`](./doc/layout.md) — where a session's folder lives (`ai/sessions/YYYY/MM/DD/<id>/`), how old paths still load, the scripted conversion, why ids and not task names
 - [`doc/record-spec.md`](./doc/record-spec.md) — the line types a session record accepts (tag, note, alert, weight, closed, question, links) and how to write them
