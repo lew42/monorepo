@@ -1,3 +1,4 @@
+import ErrorLog from "../ErrorLog/ErrorLog.js";
 import Prompt from "./Prompt.js";
 
 /**
@@ -51,6 +52,7 @@ export default class RefineSystem {
 			prompt.load(out);
 		} catch (e){
 			prompt.set({ status: "error", error: String(e?.message ?? e) });
+			ErrorLog.report(e, { where: "RefineSystem.go" });
 		}
 		return prompt;
 	}
