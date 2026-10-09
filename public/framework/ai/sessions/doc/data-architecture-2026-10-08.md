@@ -29,3 +29,12 @@ The JSONL streaming system (sessions, logs, tasks, boards, the `live()` tail and
 
 ## 7. Budgeting must run on the ledger (owner, 2026-10-08; queued)
 Budgets and the spend gate (`Servex/agents/Agents.js` `gate_check`, `allowance_usd`) must read spend from the programmatic per-message ledger (`session.jsonl`, computed from the raw session file's usage lines, deduped by message id), not from the SDK's end-of-turn total or the registry's `cost` (which resets on Servex restart) or the task `spend.json` (observed ~2x high). No AI judges spend. The budget NUMBER stays an estimate set by whoever spawns (default $20), but enforcement (80%/100% warnings, 2x hard stop) reads the ledger. Do this after the Session class lands and its audit shows a 0 gap.
+
+## 8. Partitioned index: one per day, listed by month and year (owner, 2026-10-08; supersedes "start a new generation file")
+A single index grows without bound (hundreds of sessions a day for months can reach gigabytes). Instead the index lives **next to the data it describes**, in the same `YYYY/MM/DD/` tree the sessions use:
+- **Day index** (`.../YYYY/MM/DD/`): JSONL deltas, one line per changed session that day. Only **today's** day index is tailed live; older days are loaded once, on demand.
+- **Month index** (`.../YYYY/MM/`): which days exist, with a small per-day roll-up (session count, cost, alerts), so the grid can show a month without opening every day.
+- **Year index** (`.../YYYY/`): which months exist, with roll-ups.
+- The grid loads only the partitions the date filter and the default recent window need. Filters over a long range read the month/year roll-ups first.
+- **Housekeeping falls out of the layout:** back up, move or archive one year at a time, one month at a time; each partition is self-contained. Nothing is deleted (CLAUDE.md "Never destructive"); old partitions are moved aside.
+- Indexes are derived and rebuildable from the sessions' own files; the audit checks them. This matches the existing `ai/YYYY/MM/DD/page.jsonl` directory-delta files.
