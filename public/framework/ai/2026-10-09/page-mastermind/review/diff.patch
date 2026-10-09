@@ -1,0 +1,859 @@
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index b452f6707..3c4ed7117 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -48,6 +48,44 @@ function resolve_file(url){
+ 	return path.join(dir, "page.jsonl");
+ }
+ 
++/* ROUTE PATHS (2026-10-09, the page tool): an agent names the page it SEES, and this finds
++ * the file behind it, even when none exists yet. Today one family of routes keeps its file
++ * somewhere else: a session page, `/framework/ai/sessions/<id>/`, is drawn by a template
++ * (ai/AISession/AISessionDetail.js) and its page.jsonl lives in the session's own dated
++ * folder, `sessions/YYYY/MM/DD/<slug>/` (AISession.locate() makes one for a session that has
++ * none). `<id>` is a session uuid or a Servex agent id (its registry row holds the uuid). A
++ * deeper path, `/framework/ai/sessions/<id>/notes/`, is a tab built from a line in that same
++ * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
++ * resolves the plain way above. Returns { file, target } or null. */
++const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
++const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
++
++async function resolve(url, target = []){
++	const hit = SESSION_ROUTE.exec(String(url ?? ""));
++	if (hit && !/^\d{4}$/.test(hit[1])){
++		const file = await session_file(hit[1]);
++		if (file) return { file, target: [...hit[2].split("/").filter(Boolean), ...(target ?? [])] };
++	}
++	const file = resolve_file(url);
++	return file ? { file, target: target ?? [] } : null;
++}
++
++async function session_file(id){
++	let uuid = UUID.test(id) ? id : null;
++	if (!uuid) try {
++		const { default: Registry } = await import("./registry.js");
++		uuid = new Registry().read()[id]?.session_id ?? null;
++	} catch {}
++	if (!uuid) return null;
++	const { default: AISession } = await import("../../public/framework/ai/AISession/AISession.js");
++	if (!AISession.days.has(uuid)) AISession.scanned = false;   // a long-lived Servex: a folder made since the last scan must be found, never doubled
++	return fileURLToPath(new URL("page.jsonl", await AISession.locate(uuid)));
++}
++
++// "This page" when an agent names none: its own session page. Servex passes the caller's
++// agent id; a VS Code tab has none here, so it is told its path instead (the prompt hook).
++const own_page = ctx => ctx?.caller && ctx.caller !== "owner" ? `/framework/ai/sessions/${ctx.caller}/` : null;
++
+ // Nests `payload` one level per step in `target`, innermost (the payload itself) last —
+ // `nest(["k2","answers"], {add: {...}})` → `{k2: {answers: {add: {...}}}}`. `nest([], x)`
+ // is `x` itself, flat — the exact same helper Store.js's own `wrap()` is, kept separate
+@@ -68,6 +106,29 @@ function write_line(file, line){
+ 
+ 	fs.mkdirSync(path.dirname(file), { recursive: true });
+ 	fs.appendFileSync(file, JSON.stringify(line) + "\n");
++	return size_of(file);
++}
++
++/* SIZE FEEDBACK (the owner, 2026-10-09 18:25): every write answers with the log's new size,
++ * so the writer sees it growing. Past LARGE the answer says so; compaction is designed in
++ * core/Page/doc/architecture.md ("Log growth"). */
++const LARGE = 1024 * 1024;
++function size_of(file){
++	const buf = fs.readFileSync(file);
++	let lines = 0;
++	for (let i = 0; i < buf.length; i++) if (buf[i] === 10) lines++;
++	return { file: path.relative(ROOT, file).replaceAll("\\", "/"), bytes: buf.length, lines, ...(buf.length > LARGE ? { large: true } : {}) };
++}
++
++/* Every `add` in a delta, at any depth, gets an id if it brought none — the agent never
++ * invents ids (the owner, 2026-10-09: "the tool stamps those"). */
++function stamp_ids(value){
++	if (Array.isArray(value)) return value.map(stamp_ids);
++	if (!is_plain(value)) return value;
++	const out = {};
++	for (const [key, v] of Object.entries(value))
++		out[key] = key === "add" && is_plain(v) ? { id: v.id ?? crypto.randomUUID(), ...stamp_ids(v) } : stamp_ids(v);
++	return out;
+ }
+ 
+ const now = () => new Date().toISOString();
+@@ -76,7 +137,7 @@ const is_plain = v => !!v && typeof v === "object" && !Array.isArray(v);
+ const tool = (name, description, properties, required, handler) =>
+ 	({ name, description, inputSchema: { type: "object", required, properties }, handler });
+ 
+-const PAGE_PATH = { type: "string", description: "The page's own url, e.g. \"/framework/ai/2026-10-02/page-tools/demo/\" — its page.jsonl is public<path>page.jsonl. The folder must already exist (create_page, or a task's own dir)." };
++const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session page \"/framework/ai/sessions/<id>/\" (its file is found for you, even if none exists yet). Omit it to mean YOUR OWN page, /framework/ai/sessions/<your agent id>/." };
+ const TARGET = { type: "array", items: { type: "string" }, description: "The path to the target, as a list of hops — each one a property name (\"content\") or a child's id, never a string with slashes or dots. [] (or omit) targets the PAGE itself. [\"content\"] targets its content list. [\"k2\"] targets the existing item with id \"k2\", wherever it lives. [\"k2\",\"answers\"] walks into k2's own \"answers\" list." };
+ 
+ /* ---------- page_read's COMPUTED state (deliverable 2) ----------
+@@ -132,6 +193,9 @@ function replay(lines){
+ 			const value = obj[key];
+ 
+ 			if (key === "content" && is_plain(value)){ content_verbs(value); continue; }
++			if (key === "tab" && is_plain(value) && value.name){ (page.tabs ??= {})[value.name] = { ...page.tabs?.[value.name], ...value }; continue; }
++			if (page.tabs?.[key] && is_plain(value)){ const t = page.tabs[key]; if (is_plain(value.content?.add)) (t.items ??= []).push(value.content.add); continue; }
++			if (key === "by" || key === "ts") continue;
+ 			if (items.has(key) && is_plain(value)){ items.set(key, { ...items.get(key), ...value }); continue; }
+ 			page[key] = value;
+ 		}
+@@ -177,6 +241,9 @@ function render_markdown({ page, items }){
+ 	lines.push(`# ${page.title ?? "(untitled)"}`);
+ 	if (page.description) lines.push(page.description);
+ 	if (page.log?.text) lines.push(`_doing: ${page.log.text}_`);
++	const words = ["navigation", "width", "arrangement", "surface", "background", "type_size"].filter(w => page[w]).map(w => `${w}: ${page[w]}`);
++	if (words.length) lines.push(`_layout: ${words.join(", ")}_`);
++	for (const [name, t] of Object.entries(page.tabs ?? {})) lines.push(`- tab [${name}] ${t.title ?? name}${t.items?.length ? ` (${t.items.length} items)` : ""}`);
+ 
+ 	lines.push("");
+ 	lines.push("## Content");
+@@ -227,16 +294,17 @@ export function page_tools(){
+ 			{ path: PAGE_PATH, target: TARGET,
+ 				method: { type: "string", description: "The verb to call at the target — a method on whatever `target` resolves to: `add`, `remove`, `move`, `order`, or any method the item's own class defines." },
+ 				args: { description: "The method's one argument — an object for `add`, a string id for `remove`, etc. If it's a plain object, `by` and `ts` are stamped onto it." } },
+-			["path", "method"],
+-			({ path: url, target, method, args }, ctx = {}) => {
+-				const file = resolve_file(url);
+-				if (!file) return not_a_page(url);
++			["method"],
++			async ({ path: url, target, method, args }, ctx = {}) => {
++				url ??= own_page(ctx);
++				const at = await resolve(url, target);
++				if (!at) return not_a_page(url);
+ 
+-				const stamped = is_plain(args) ? { ...args, by: ctx.caller ?? "agent", ts: now() } : args;
+-				const line = nest(target ?? [], { [method]: stamped });
++				const stamped = is_plain(args) ? { ...(method === "add" ? { id: crypto.randomUUID() } : {}), ...stamp_ids(args), by: ctx.caller ?? "agent", ts: now() } : args;
++				const line = nest(at.target, { [method]: stamped });
+ 
+-				write_line(file, line);
+-				return JSON.stringify({ ok: true, line });
++				const size = write_line(at.file, line);
++				return JSON.stringify({ ok: true, line, size });
+ 			}),
+ 
+ 		tool("page_add",
+@@ -246,37 +314,44 @@ export function page_tools(){
+ 			{ path: PAGE_PATH,
+ 				item: { type: "object", description: "The item's own fields — whatever the content list draws: `title`, `text`, `type` (a registered class name, e.g. \"Question\", with its own `text`/`answer`), or any plain data. `id` is optional; one is made for you." },
+ 				after: { type: "string", description: "The id to land after. Omit to append at the end; `null` to land first." } },
+-			["path", "item"],
+-			({ path: url, item, after }, ctx = {}) => {
+-				const file = resolve_file(url);
+-				if (!file) return not_a_page(url);
++			["item"],
++			async ({ path: url, item, after }, ctx = {}) => {
++				url ??= own_page(ctx);
++				const at = await resolve(url, ["content"]);
++				if (!at) return not_a_page(url);
+ 
+ 				const id = item?.id ?? crypto.randomUUID();
+ 				const add = { ...item, id, by: ctx.caller ?? "agent", ts: now(), ...(after !== undefined ? { after } : {}) };
+-				const line = nest(["content"], { add });
++				const line = nest(at.target, { add });
+ 
+-				write_line(file, line);
+-				return JSON.stringify({ ok: true, id, line });
++				const size = write_line(at.file, line);
++				return JSON.stringify({ ok: true, id, line, size });
+ 			}),
+ 
+ 		tool("page_set",
+-			"Change data at one target — sugar for `page_call` with no verb: the delta is handed straight to"
+-			+ " the target's own `set()` (core/Item/Item.js's rule — a plain nested delta IS a set, no `\"set\"`"
+-			+ " key needed in the line). `page_set(path, [], {\"title\":\"New\"})` changes the PAGE's own title;"
+-			+ " `page_set(path, [\"k2\"], {\"answer\":\"42\"})` changes item k2's data, wherever it lives. Stamps"
+-			+ " `by` and `ts` onto the same line.",
++			"THE PAGE TOOL: a path and a raw JSON delta, appended as one line to that page's log; every open tab"
++			+ " redraws with no reload. Send only the path and the delta: `by`, `ts` and every missing `id` are"
++			+ " stamped for you. The delta goes to the target's own `set()`: a plain key is data, a key naming a"
++			+ " method calls it. A page accepts (core/Page/doc/architecture.md): `{\"title\":\"New\"}`;"
++			+ " a layout word `{\"navigation\":\"tabs\"}` (also width, arrangement, surface, background, type_size);"
++			+ " a new TAB `{\"tab\":{\"name\":\"notes\",\"title\":\"Notes\",\"content\":\"text\"}}` (turns tabs on if the"
++			+ " page had none); an item `{\"content\":{\"add\":{\"title\":\"…\",\"text\":\"…\"}}}`; an item inside a tab"
++			+ " `{\"notes\":{\"content\":{\"add\":{…}}}}`. `target` (optional) nests the delta under a child or item"
++			+ " id: `page_set(path, [\"k2\"], {\"answer\":\"42\"})`. Answers with the log's new size; `large: true`"
++			+ " past 1 MB.",
+ 			{ path: PAGE_PATH, target: TARGET,
+ 				delta: { type: "object", description: "The fields to change, e.g. {\"answer\": \"42\"} or {\"title\": \"Renamed\"}." } },
+-			["path", "delta"],
+-			({ path: url, target, delta }, ctx = {}) => {
+-				const file = resolve_file(url);
+-				if (!file) return not_a_page(url);
++			["delta"],
++			async ({ path: url, target, delta }, ctx = {}) => {
++				url ??= own_page(ctx);
++				const at = await resolve(url, target);
++				if (!at) return not_a_page(url);
+ 
+-				const stamped = { ...delta, by: ctx.caller ?? "agent", ts: now() };
+-				const line = nest(target ?? [], stamped);
++				const stamped = { ...stamp_ids(delta), by: ctx.caller ?? "agent", ts: now() };
++				const line = nest(at.target, stamped);
+ 
+-				write_line(file, line);
+-				return JSON.stringify({ ok: true, line });
++				const size = write_line(at.file, line);
++				return JSON.stringify({ ok: true, line, size });
+ 			}),
+ 
+ 		tool("page_log",
+@@ -286,14 +361,15 @@ export function page_tools(){
+ 			+ " `page_add` for anything that should stay on the page.",
+ 			{ path: PAGE_PATH,
+ 				text: { type: "string", description: "What you're doing right now, in a few words, e.g. \"researching X\"." } },
+-			["path", "text"],
+-			({ path: url, text }, ctx = {}) => {
+-				const file = resolve_file(url);
+-				if (!file) return not_a_page(url);
+-
+-				const line = { log: { text, by: ctx.caller ?? "agent", ts: now() } };
+-				write_line(file, line);
+-				return JSON.stringify({ ok: true, line });
++			["text"],
++			async ({ path: url, text }, ctx = {}) => {
++				url ??= own_page(ctx);
++				const at = await resolve(url);
++				if (!at) return not_a_page(url);
++
++				const line = nest(at.target, { log: { text, by: ctx.caller ?? "agent", ts: now() } });
++				const size = write_line(at.file, line);
++				return JSON.stringify({ ok: true, line, size });
+ 			}),
+ 
+ 		tool("page_read",
+@@ -305,10 +381,12 @@ export function page_tools(){
+ 			+ " no navigation chrome, when you need the structure (each item's `<li data-id>`) instead.",
+ 			{ path: PAGE_PATH,
+ 				format: { type: "string", enum: ["markdown", "html"], description: "\"markdown\" (default, fewest tokens) or \"html\" (the content's own markup, no nav chrome)." } },
+-			["path"],
+-			({ path: url, format }) => {
+-				const file = resolve_file(url);
+-				if (!file) return not_a_page(url);
++			[],
++			async ({ path: url, format }, ctx = {}) => {
++				url ??= own_page(ctx);
++				const at = await resolve(url);
++				if (!at) return not_a_page(url);
++				const file = at.file;
+ 				if (!fs.existsSync(file)) return JSON.stringify({ ok: false, why: `no page.jsonl at "${url}" yet` });
+ 
+ 				const state = replay(parse_lines(file));
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 58d033180..b2da7ce93 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -19,7 +19,38 @@ export default class AISessionDetail extends Page {
+ 		super({ home, id, width: "fill", title: id, url: home.url + id + "/" });
+ 	}
+ 
+-	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.cards?.unsubscribe(); this.cards = null; }
++	// With tabs on (a `tab` line in the session's page.jsonl), the template itself is the first tab.
++	home_tab = "Conversation";
++
++	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
++
++	/* THE SESSION'S OWN PAGE LOG (2026-10-09, the page tool): `page.jsonl` in the session's folder can
++	   reshape this page on top of the template — tabs, the six layout words — and carries the cards the
++	   AI posts. Found once (log_url), read before a child is resolved (so `/<id>/notes/` survives a
++	   reload), and streamed while the page is open (content()). core/Page/doc/architecture.md. */
++	// The SAME file the page tool writes (Servex/agents/page_tools.js → AISession.locate()): the session's own
++	// dated folder; a session the index has not seen yet gets the folder locate() makes, today's `session-<id8>/`.
++	// The old card folder (ai/YYYY/MM/DD/<slug>-<id8>/, where prompt-relay.mjs still writes the owner's prompts)
++	// is read as well, while it exists — found through directory.json, which is big and slow, so it never
++	// holds up the own log. Returns [own] at once, then [own, old] once the old folder is known.
++	log_urls(){
++		return this._log_urls ??= AISessionDetail.load_row(this.home.url, this.id).then(async row => {
++			const session_id = row?.session_id ?? this.id;
++			if (!/^[0-9a-f]{8}-/.test(session_id)) return [];
++			await AISessionRows.load_index(this.home.url);   // fills AISession.days, so the dated folder is known
++			const own = AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname
++				: new URL(`./${AISession.day(new Date())}/session-${session_id.slice(0, 8)}/`, AISession.root_url()).pathname;
++			this._old_url = AISessionDetail.dir_index().then(index => {
++				const old = AISessionDetail.dir_of(index, session_id);
++				return old && old !== own ? old + "page.jsonl" : null;
++			});
++			return [own + "page.jsonl"];
++		});
++	}
++
++	log_loaded(){ return this._log_loaded ??= this.log_urls().then(urls => Promise.all(urls.map(url => new AISessionDetail.Log({ url, page: this }).load()))); }
++
++	async child(name, levels){ await this.log_loaded(); return super.child(name, levels); }
+ 
+ 	content(){
+ 		const { home, id } = this, url = home.url;
+@@ -51,6 +82,13 @@ export default class AISessionDetail extends Page {
+ 		// and the transcript and the date-path lookup both need the session_id.
+ 		AISessionDetail.load_row(url, id).then(async row => {
+ 			const session_id = row?.session_id ?? id;
++			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
++			this.log_urls().then(urls => {
++				if (this.logs) return;
++				const open = url => new AISessionDetail.Log({ url, page: this, on_card: c => conv.add_card(c) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
++				const logs = this.logs = urls.map(open);
++				this._old_url?.then(old => { if (old && this.logs === logs) logs.push(open(old)); });
++			});
+ 			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)){
+ 				const f = new AISessionFollow(session_id); f.on_lines = lines => conv.add(lines);   // the first pull draws the history, later pulls append live
+ 				this.follow = f.start();   // tails the log and corrects the grid row (doc/realtime.md)
+@@ -64,7 +102,6 @@ export default class AISessionDetail extends Page {
+ 				AISessionDetail.load_cost_log(own).then(c => c ?? AISessionDetail.load_cost_log(old)),
+ 				AISessionRows.load_index(url).then(ix => ix?.traces?.includes(session_id) ? AISessionDetail.load_trace(own_dir).then(t => t ?? AISessionDetail.load_trace(old)) : null),   // a trace.json exists for few sessions: ask only for those the index lists
+ 			]);
+-			if (own ?? old) this.cards = new AISessionDetail.Cards((own ?? old) + "page.jsonl", c => conv.add_card(c)).live();   // AI cards arrive live, inline (doc/session-cards.md)
+ 
+ 			$costs.empty(() => {
+ 				if (!costs) return;
+@@ -196,13 +233,15 @@ export default class AISessionDetail extends Page {
+ 	}
+ }
+ 
+-/** The session folder's page.jsonl, streamed: each `page_add` item that has a title is a card the AI posted here (doc/session-cards.md). */
+-AISessionDetail.Cards = class Cards extends JSONL {
+-	constructor(url, on_card){ super(); this.url = url; this.on_card = on_card; this.cards = new Set(); }
++/** The session folder's page.jsonl, read or streamed: a `page_add` item with a title is a card the AI posted here
++ *  (doc/session-cards.md); the shape of every line (tabs, layout words) goes onto the page through `Page.overlay()`. */
++AISessionDetail.Log = class SessionPageLog extends JSONL {
++	cards = new Set();
+ 	read(entries){
+ 		for (const e of entries){
+ 			const item = e.content?.add;
+-			if (item?.title && item.id && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
++			if (item?.title && item.id && this.on_card && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
++			this.page?.overlay(e);
+ 		}
+ 		return this;
+ 	}
+diff --git a/public/framework/ai/AISession/files.jsonl b/public/framework/ai/AISession/files.jsonl
+index 380e96e9b..fe3e3a466 100644
+--- a/public/framework/ai/AISession/files.jsonl
++++ b/public/framework/ai/AISession/files.jsonl
+@@ -11,3 +11,4 @@
+ {"file":"AISessionView.js"}
+ {"file":"rename-manifest.json"}
+ {"file":"AISessionFlags.js"}
++{"file":"AISessionConversation.js"}
+diff --git a/public/framework/core/Page/Frame.js b/public/framework/core/Page/Frame.js
+index 6087137c7..2c4c005ec 100644
+--- a/public/framework/core/Page/Frame.js
++++ b/public/framework/core/Page/Frame.js
+@@ -52,6 +52,10 @@ export default class PageFrame extends View {
+ 			if (page.arrangement === "rail-left") this.panel("left");
+ 
+ 			div.c("page-frame-mid", () => {
++				// A page with content of its own AND tabs: its content is the first tab
++				// (the page's own url), so a child tab replaces it instead of stacking
++				// above it. A page with only children keeps today's shape. (2026-10-09)
++				if (page.navigation === "tabs" && page.content !== undefined) return void this.tabs({ home: () => this.box() });
+ 				if (page.navigation === "tabs") this.tabs();
+ 				this.box();
+ 			});
+@@ -118,8 +122,8 @@ export default class PageFrame extends View {
+ 	/* ext/tabs, never a second tab implementation — this site has exactly one, and
+ 	   `app.js` imports it for every page here, so the fallback line below is a
+ 	   development message rather than a normal path. Core still imports no `ext`. */
+-	tabs(){
+-		if (is.fn(this.page.tabs)) return this.page.tabs();
++	tabs(options){
++		if (is.fn(this.page.tabs)) return this.page.tabs(undefined, options);
+ 		return p.c("muted", 'navigation: "tabs" needs `import "/framework/ext/tabs/tabs.js"`.');
+ 	}
+ 
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index 782bada15..897b88c54 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -115,6 +115,7 @@ export class Page extends Item {
+ 
+ 		(this.jsonl_lines ??= []).push(obj);
+ 		this.emit("line", obj);
++		obj = this.take_words(obj);
+ 
+ 		if ("content" in obj && !(this.content instanceof List)){
+ 			const { content, ...rest } = obj;
+@@ -255,12 +256,109 @@ export class Page extends Item {
+ 	// can be how a tab comes to exist at all, with nothing yet to draw there.
+ 	// ⚠ Repeat lines for the same name MERGE (the new keys land on top of the old),
+ 	//   never replace — set() calling this again is just one more spread.
++	// (2026-10-09, the page tool) A `tab` line that also brings PAGE DATA (`title`,
++	// `icon`, `description`, `content`) builds that tab's page right here, in memory,
++	// so an agent's "add a tab" draws at once: `{"tab": {"name": "notes", "title":
++	// "Notes", "content": "…"}}`. Its own items arrive later as `{"notes": {"content":
++	// {"add": {…}}}}` (`get("notes")` finds the child in `pages`). A page with no tab
++	// strip yet turns `navigation: "tabs"` on, because a tab nobody can see is not
++	// what was asked. doc/architecture.md.
+ 	tab(obj){
+-		const { name, ...state } = obj;
++		const { name, title, icon, description, content, ...state } = obj;
+ 		if (!name) return;
+ 
+ 		(this.tabs_state ??= new Map()).set(name, { ...this.tabs_state.get(name), ...state });
+-		if (!this.children.has(name)) this.children.set(name, null);
++		const data = Object.fromEntries(Object.entries({ title, icon, description, content }).filter(([, v]) => v !== undefined));
++		if (!Object.keys(data).length){
++			if (!this.children.has(name)) this.children.set(name, null);
++			return;
++		}
++
++		const had = this.children.get(name);
++		if (had instanceof Page){
++			const { content: text, ...labels } = data;
++			if (Object.keys(labels).length) had.set(labels);
++			if (text !== undefined && !(had.content instanceof List)) had.content = text;
++			had.rerender();
++			if (this.view) queueMicrotask(() => this.nav_redraw?.());
++			return;
++		}
++
++		this.add(name, data).from_tab = true;
++		if (!this.navigation && !this._tab_redraws?.size){ this.navigation = "tabs"; this.words(); }
++		this.reshape();
++	}
++
++	// ════ THE SIX WORDS AS A DELTA (2026-10-09, the page tool) ═══════════════
++	// `{"navigation": "tabs"}` or `{"width": "fill"}` on a live page.jsonl reshapes the
++	// page: the word lands on the PAGE ITSELF, where render() reads it (never in
++	// `data`, where Item's routing would have put it), and a page already on screen
++	// redraws. A word that did not change redraws nothing, so a log replayed twice
++	// is quiet.
++	static WORDS = ["navigation", "width", "arrangement", "surface", "background", "type_size"];
++
++	take_words(obj){
++		const said = Page.WORDS.filter(word => word in obj);
++		if (!said.length) return obj;
++
++		const rest = { ...obj };
++		let changed = false;
++		for (const word of said){
++			if (this[word] !== rest[word]){ this[word] = rest[word]; changed = true; }
++			delete rest[word];
++		}
++		if (changed){ this.words(); this.reshape(); }
++		return rest;
++	}
++
++	/* A LOG ON TOP OF A TEMPLATE. A page drawn by code (a template, like a session
++	   page) can still be reshaped by a page.jsonl beside its data: only the SHAPE of
++	   a line applies here — the six words, `tab` lines, `title`, and lines addressed
++	   to a tab that a `tab` line built. Everything else in such a log (a card's own
++	   fields, cost lines, `add`/`at` lines older code wrote) stays that log's data,
++	   because an unknown key can name a Page METHOD (`add`, `move`) and must never
++	   call it. Returns the part it applied, or null. */
++	overlay(line){
++		if (!line || typeof line !== "object" || Array.isArray(line)) return null;
++		const shape = {};
++		for (const [key, value] of Object.entries(line))
++			if (Page.WORDS.includes(key) || key === "tab" || key === "title" || this.children.get(key)?.from_tab) shape[key] = value;
++		return Object.keys(shape).length ? (this.set(shape), shape) : null;
++	}
++
++	// One redraw per burst of lines: a batch of lines read together (a replay, or a
++	// delta naming three words) lands as ONE rerender, on the next microtask.
++	reshape(){
++		if (!this.view || this._reshaping) return;
++		this._reshaping = true;
++		queueMicrotask(() => { this._reshaping = false; this.rerender(); });
++	}
++
++	/* DRAW ME AGAIN, IN PLACE — no reload. The old element is swapped for a fresh
++	   render(); the pages the router has open BELOW me were mounted in my old regions
++	   (a tab panel), so each is activated again and lands in the new one; then the
++	   router re-marks the chain. `deactivated()`/`activated()` run around it, so a
++	   page that starts a stream in content() stops the old one first.
++	   ⚠ Not `redraw()`: `Card` (ai/cards/card.js) already has its own. */
++	rerender(){
++		const old = this.view?.el;
++		if (!old) return this;
++
++		this.deactivated?.();
++		const was_default = old.classList.contains("default");
++		Page.views.delete(old);
++		this.view = null; this.regions = null; this._tab_redraws = null; this.default_tab = undefined; this.related_drawn = false;
++
++		this.render();
++		if (was_default) this.view.ac("default");
++		old.replaceWith(this.view.el);
++		this.activated?.();
++
++		const router = this.app?.router, open = router?.chain?.() ?? [];
++		const at = open.indexOf(this);
++		if (at >= 0) open.slice(at + 1).forEach(page => page.activate());
++		if (router?.active) router.mark();
++		return this;
+ 	}
+ 
+ 	// The state a `tab` line recorded for one name — `{}` when nobody ever set one, so
+@@ -1457,7 +1555,14 @@ export class Page extends Item {
+ 
+ 	// Asked at RENDER time, never walked — so a child that only loads when you
+ 	// navigate to it is a column too. Undefined when I am not in a columns tree.
+-	column_host(){ return this.chain().find(page => page.columnar); }
++	// ⚠ A page under a TAB STRIP is a tab: drawn as a page in that strip's panel, never as
++	//   one more column in the row (2026-10-09, the page tool — a session page is a column,
++	//   and a tab an agent adds to it must open inside it).
++	column_host(){
++		const chain = this.chain(), at = chain.findIndex(page => page.columnar);
++		if (at < 0 || chain.slice(at, -1).some(page => page.navigation === "tabs")) return undefined;
++		return chain[at];
++	}
+ 
+ 	// My column, then the region MY children mount in — so the DOM stays an ordinary
+ 	// tree and the visibility contract holds; Page.css flattens only the LAYOUT. The
+@@ -1527,7 +1632,11 @@ export class Page extends Item {
+ 			     columns row printed its own address as a line of text (2026-09-06) — one
+ 			     of the two places what-is-in-the-box is decided, disagreeing with the
+ 			     other. There is one now. */
+-			if (this.content)
++			// A column that says `navigation: "tabs"` draws the one tab strip (ext/tabs), its own
++			// content as the first tab, instead of listing its children as rows that open beside it.
++			const tabbed = this.navigation === "tabs" && is.fn(this.tabs);
++			if (tabbed) this.tabs(undefined, { home: () => div.c("page-column-prose flow", () => this.render_content()) });
++			else if (this.content)
+ 				div.c("page-column-prose flow", () => this.render_content());
+ 
+ 			// ⚠ `index: true` — my content ALREADY shows my children, as a `previews()`
+@@ -1536,7 +1645,7 @@ export class Page extends Item {
+ 			//   out by hand to say it. A FIELD, not a method — and not `nav:` (`nav()` is
+ 			//   a method here) or `rail:` (four pages already declare it as their own
+ 			//   word): the `opens()` collision, avoided by grepping first. doc/columns.md.
+-			if (!this.index) this.children.forEach((child, name) => {
++			if (!this.index && !tabbed) this.children.forEach((child, name) => {
+ 				const nav = this.nav_for(name);
+ 
+ 				a.c("page-column-item").href(nav.url).append(() => {
+diff --git a/public/framework/core/Page/doc/architecture.md b/public/framework/core/Page/doc/architecture.md
+new file mode 100644
+index 000000000..21b230e51
+--- /dev/null
++++ b/public/framework/core/Page/doc/architecture.md
+@@ -0,0 +1,94 @@
++# Page system: class architecture and decisions
++
++The page system is the site's **storage and streaming container**: a page is a folder, its state is an
++append-only log (`page.jsonl`), and every open tab redraws as lines arrive. How a line travels is
++[streaming.md](streaming.md); the owner's ask behind the page tool is [page-tool-2026-10-09.md](page-tool-2026-10-09.md).
++Older history of individual choices: [decisions.md](decisions.md).
++
++## The classes
++
++```
++Servex (node)                                   Browser
++─────────────                                   ───────
++page_tools.js  ── appends one line ──►  <folder>/page.jsonl  ── tailed live ──►  Page.Reader (extends Item.Store)
++  page_set(path, delta)                                                             │ replays each line
++  stamps by, ts, ids; answers the size                                              ▼
++  resolves a ROUTE path to its file                                              Page (extends Item)
++                                                                                   set(delta)  → words, tab(), content List
++                                                                                   overlay()   → only the shape of a line
++                                                                                   rerender()  → in place, no reload
++                                                                                   │ draws
++                                                                                   ▼
++                                                                                 PageFrame (extends View) ── tabs ──► ext/tabs
++                                                                                   the page's own content = the first ("home") tab
++
++AISessionDetail (extends Page) — the default session template
++  AISessionDetail.Log (extends ext/JSONL) streams the session folder's page.jsonl:
++  content items → cards in the conversation; the shape of every line → page.overlay()
++```
++
++| Class | File | Job |
++|---|---|---|
++| `page_tools` | `Servex/agents/page_tools.js` | The agent's door: one validated, stamped line appended to the page's log. Never interprets the page. |
++| `Page` | `core/Page/Page.class.js` | Applies a delta. The six page words (`navigation`, `width`, `arrangement`, `surface`, `background`, `type_size`) arrive as a delta and redraw the page; a `tab` line with a `title` or `content` builds that tab's page. |
++| `Page.Reader` | same file | One per `page.jsonl`: tails it, hands each new line to `page.set()`. |
++| `PageFrame` | `core/Page/Frame.js` | Draws the words. With `navigation: "tabs"`, the page's own content is the first tab. |
++| `tabs()` | `ext/tabs/tabs.js` | The one tab strip, also inside a column page. `home` holds the page's own content. |
++| `AISessionDetail` | `ai/AISession/AISessionDetail.js` | The session page; its folder's `page.jsonl` reshapes it on top of the template. |
++
++Live demo: [/framework/core/Page/tool/](/framework/core/Page/tool/) (every line on it came from the tool).
++
++## The delta language (one line each)
++
++```jsonc
++{"navigation": "tabs"}                                          // a layout word: any of the six
++{"tab": {"name": "now", "title": "Now", "content": "…"}}        // a new tab, with its own page
++{"now": {"content": {"add": {"title": "First item"}}}}          // an item inside that tab's live list
++{"content": {"add": {"title": "Merge report", "text": "…"}}}    // an item on the page itself
++```
++
++`page_set(path, delta)` writes any of these; `path` is the url you see, omitted = your own session page.
++
++## Decisions (2026-10-09, task `ai/2026-10-09/page-mastermind/`)
++
++- **The tool appends; the page interprets.** The owner offered two options: a blind "append any delta" tool, or routing through a Page method. Both, split by side: the write is a blind, schema-checked append (stamped with `by`, `ts` and missing ids), and the browser's `Page.set()` is the one place a delta means something. No page parsing on the server; `page_read` only summarises.
++- **Tabs are child pages.** A tab has its own url (`…/now/`), its own live content list, and the one tab strip (`ext/tabs`). No second tab system.
++- **A tab line with no strip turns tabs on.** "Add a tab here" must show a tab.
++- **Paths are route paths.** The agent names the page it sees (`/framework/ai/sessions/<id>/`); the tool finds the file, even when none exists yet. A session's file is its own dated folder (`AISession.locate()`).
++- **A template page takes only the shape of its log** (`Page.overlay()`): words, `tab`, `title`, lines addressed to a tab. Other keys in such a log stay data, because a key can name a Page method (`add`, `move`).
++- **Every agent knows its page.** Servex's first-turn line (`Agents.whoami()`) and, for a VS Code tab, the SessionStart hook `.claude/hooks/session-page.mjs` name `/framework/ai/sessions/<session id>/` (built by mastermind-ai-system: `Servex/agents/doc/own-page.md`). With no path, `page_set` also defaults to the caller's own page.
++
++## Log growth (the owner, 18:25): designed, size feedback built
++
++A page log or chat can reach thousands of lines. **Built:** every page-tool write answers with the log's
++new `{bytes, lines}`, and `large: true` past 1 MB. **Designed, not built:** past ~1 MB the log is
++compacted — the old lines move, unchanged, to `page.<n>.jsonl` beside it (never deleted), and the live
++file restarts with one **snapshot line** (the page's state at that moment) followed by new lines. A page
++then loads its current state from one short file; history is one click down. The open question is the
++snapshot: it needs a node-side replay that matches `Page.set()` exactly, which `page_read`'s partial
++replay does not yet. Until that exists, nothing is compacted (a wrong snapshot would lose information).
++
++## Many records (the owner, 18:25): the general rule
++
++No file over ~1 MB, and never load all records at once. A collection that grows (7,000 sessions) is
++**partitioned** by the window a reader looks at, usually time: one small index per day, listed by month
++and year, loaded for the visible range only. Each index line is the record's current state, not its
++events. The sessions system already follows this ([ai/sessions/doc/data-architecture-2026-10-08.md](../../../ai/sessions/doc/data-architecture-2026-10-08.md), sections 8–9); any page that lists a growing collection does the same.
++
++## File today, database later
++
++Production will likely add Cloudflare D1 or Durable Objects (the production-stack task inventories it);
++the file system stays the local, always-working fallback. So the page log is defined as **an ordered,
++append-only list of JSON lines per page path**, and nothing above the storage depends on files:
++`page_tools` appends through one function (`write_line`), the browser reads through one class
++(`Page.Reader`, an `Item.Store`). Moving a page log to a Durable Object (one per page: append + subscribe)
++or a D1 table (`path, seq, line`) replaces those two seams only.
++
++## Open
++
++- A session that has no folder yet: the tool makes one, but a tab already open on that session is not
++  subscribed to the new folder's file until a reload (an existing folder works live).
++- The session page and prompt storage: `prompt-relay.mjs` still writes the owner's prompts into the old
++  card folder (`ai/YYYY/MM/DD/session-<id8>/`); the session page reads both. One resolver for "a session's
++  page file" is asked of `mastermind-ai-system`.
++- The owner's session-page design ([ai/sessions/doc/session-page-2026-10-09.md](../../../ai/sessions/doc/session-page-2026-10-09.md)): the tabs (including an AI-filled **Now** tab) work through this tool today; the fixed header, dictation footer, cache timer and settings menu are not built.
+diff --git a/public/framework/core/Page/doc/page-tool-2026-10-09.md b/public/framework/core/Page/doc/page-tool-2026-10-09.md
+index 9463a0dff..c2100842e 100644
+--- a/public/framework/core/Page/doc/page-tool-2026-10-09.md
++++ b/public/framework/core/Page/doc/page-tool-2026-10-09.md
+@@ -11,6 +11,9 @@ Dictated in VS Code tab 7efd07d5. Shared by the page system and the AI system (l
+ ## What already exists (verified 2026-10-09)
+ `Servex/agents/page_tools.js`: `page_call(path, target, verb, args)` (the general tool: one verb at one target), `page_set` (a plain delta = set), `page_add` (one content item; stamps id, `by`, `ts`), `page_read` (current state computed from the log). So the tool is largely built; the gaps are below.
+ 
++## Status (2026-10-09, evening): the four gaps are closed
++Built and shown live, no reload: a delta adds a tab, changes a layout word or the navigation; a session page is reshaped by its folder's `page.jsonl`; every agent is told its own page; the tool stamps `by`/`ts`/ids and resolves the route path. Classes and decisions: [architecture.md](architecture.md). What is still open is listed there under "Open".
++
+ ## Gaps to close (the page mastermind's job)
+ 1. Can a delta add a **tab**, change the **layout**, or the **navigation**? Find what `Page` accepts from page.jsonl today, and close the gap with the smallest change to `Page.class.js`.
+ 2. Session pages have **no page.jsonl hook**: give each session folder one, rendered on top of the default template, live.
+diff --git a/public/framework/core/Page/doc/streaming.md b/public/framework/core/Page/doc/streaming.md
+new file mode 100644
+index 000000000..5b9707d0b
+--- /dev/null
++++ b/public/framework/core/Page/doc/streaming.md
+@@ -0,0 +1,70 @@
++# Page storage and streaming — one line in a file, one redraw on screen
++
++A page keeps its data in plain text files inside its own folder. Anything can add a line to one of those files, and every open browser tab shows the new line a moment later, without a reload. This page follows that trip from start to finish.
++
++```
++ writer ──append one line──▶  page.jsonl  (on disk)
++ (page_set, append_log,          │
++  append.mjs, a browser tab)     │ file changes
++                                 ▼
++                  dev server watcher (chokidar)
++                                 ▼
++          Server/plugins/SocketServer/Tail.js   reads only the NEW bytes
++                                 ▼  socket frame: "jsonl", path, lines, offset
++          ext/JSONL/live.js                     hands lines to the reader
++                                 ▼
++          Page.Reader  (Page.class.js, extends Item.Store)
++                                 ▼  host.set(line)   one line = one set() call
++          the Page changes ──▶ changed() ──▶ log_redraw() / nav_redraw() / rerender()
++```
++
++## 1. The files in a folder
++
++| File | What it is | Writes it | Reads it |
++|---|---|---|---|
++| `page.js` | The page's code (a tiny file: import the class, instantiate it). | a person or builder agent | the browser |
++| `page.jsonl` | The page's content as lines, when it has no `page.js` ([`page-jsonl.md`](page-jsonl.md), [`jsonl.md`](jsonl.md)). Each line is one `set()` call. | the page tools, `append_log`, a browser tab | `Page.Reader` |
++| `files.jsonl` | The folder's own file list, one line per file that appeared or went (`{"file":"x.png"}`). | `Server/plugins/PageFiles.js`, automatically | `Page.class.js` (the tab strip, listings) |
++| `settings.jsonl` | A page's preferences about itself (a `settings` line, e.g. its tab weight), for a folder that has a `page.js`. | the page tools, `append.mjs` | the parent page's tab strip |
++| `readme.md` | The folder's short index. | a person or agent | people, agents, `md/` route |
++| `doc/` | Longer notes, one `.md` each, linked from the readme. | a person or agent | `md/` route |
++| `directory.json` | The old one-file listing of the whole site. **Off since 2026-10-09** (it was 16 MB and reloaded every tab). The last copy is frozen on disk. See [`../../../../Server/doc/directory-off.md`](../../../../Server/doc/directory-off.md). | nothing now | a few old readers, listed there |
++
++A JSONL page (no `page.js`) keeps its file list inside its own `page.jsonl`; every other folder uses `files.jsonl`. `PageFiles.js` decides which, in one place.
++
++## 2. One line's journey
++
++1. **A writer appends** one JSON line to a `.jsonl` file (section 3 lists the writers).
++2. **The dev server notices.** Its file watcher calls `Tail.changed(file)` in [`Server/plugins/SocketServer/Tail.js`](../../../../Server/plugins/SocketServer/Tail.js). Tab sockets subscribed to that file; `Tail` remembers how many bytes each file had been read, reads only what is new, and keeps a half-written last line for next time.
++3. **It sends a frame** over the socket: the file path, the new lines and the new offset. If the file shrank or was rewritten it sends `jsonl_reset` instead.
++4. **The browser receives it.** [`ext/JSONL/live.js`](../../ext/JSONL/live.js) finds every reader of that path and calls its `read()`. Two readers of one file (a card and a task page) both get the lines.
++5. **`Page.Reader`** (in [`Page.class.js`](../Page.class.js), extends [`Item.Store`](../../Item/Store.js)) replays each line through `page.set(line)`. Lines it sent itself are skipped (the echo skip), so a writer never applies its own line twice.
++6. **The page redraws.** `Page.Reader.changed()` calls `log_redraw()` for the content; a `tab` or `file` line also calls `nav_redraw()` (the tab strip); a `settings` line asks the parent to redraw its strip. A change to the page's shape lands as one `rerender()` on the next microtask.
++
++**Opening a page** is the same road, started by `Reader.open()`: it subscribes from offset 0, so the file's existing lines arrive as the first frame. Off localhost there is no socket: the file is fetched once and nothing streams ([`loading.md`](loading.md)).
++
++**What a tab writes back.** When a page changes in the browser, `Item.Store` listens for the host's `delta` event, queues the change and sends the lines in one call through [`ext/filesystem/FsFile.js`](../../../ext/filesystem/FsFile.js) to [`Server/plugins/SocketServer/Append.js`](../../../../Server/plugins/SocketServer/Append.js). `Append` validates every line, then `appendFileSync`s them. The same watcher then streams them back to every tab, the writer included.
++
++## 3. Who writes
++
++- **`page_set` and the other page tools**: [`Servex/agents/page_tools.js`](../../../../Servex/agents/page_tools.js). An agent gives a page path plus a change; the tool validates and appends one line ([`architecture.md`](architecture.md)).
++- **Servex `append_log`**: the MCP tool that appends one JSON line to a named log through Servex, the single writer of logs.
++- **`.claude/hooks/append.mjs`**: the command-line append (`node .claude/hooks/append.mjs <file.jsonl> <lines.json>`); it validates, fills `"NOW"` with the real clock and re-parses the file.
++- **A browser tab**: through `Item.Store` and `Append.js`, above.
++- **Hand edits are blocked.** [`.claude/hooks/jsonl-guard.mjs`](../../../../.claude/hooks/jsonl-guard.mjs) refuses shell redirection and Write/Edit onto an existing `.jsonl`.
++
++## 4. Rules that keep it safe
++
++- **Append only.** Never rewrite a `.jsonl`; a rewrite makes every tab reset and replay from line 1.
++- **One writer per line.** Appends go in whole lines, so two writers interleave between lines and never inside one.
++- **Validated before writing.** [`.claude/hooks/jsonl-schema.mjs`](../../../../.claude/hooks/jsonl-schema.mjs) judges each line; one bad line refuses the whole batch. `Tail` and `Append` only accept paths under `public/` that end in `.jsonl`.
++- **Localhost only.** Streaming exists only on the dev server. Production is static: the page loads its files once.
++
++## 5. Path-based per-directory systems
++
++A path system answers a url the page never declared. The census with costs is [`../ext/doc/path-extensions.md`](../ext/doc/path-extensions.md).
++
++- **`md/`**: this folder's `.md` files rendered, one page each ([`markdown.md`](markdown.md)).
++- **`fs/`**: this folder's real files, browsable full screen (`ext/files`).
++- **The page inbox**: a note left on a page reaches the agent that owns it ([`../ext/Inbox/readme.md`](../ext/Inbox/readme.md)).
++- **`files.jsonl` listing**: the per-folder file index from section 1, written live by `Server/plugins/PageFiles.js`.
+diff --git a/public/framework/core/Page/page.js b/public/framework/core/Page/page.js
+index c70eb4c05..69bdd850a 100644
+--- a/public/framework/core/Page/page.js
++++ b/public/framework/core/Page/page.js
+@@ -63,7 +63,7 @@ export default new Doc({
+ 	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
+ 	// links to it, same as before. `settings` (same day, tabs-settings task): tabs
+ 	// that manage themselves via a `tab` line, and a page's own nav switch.
+-	children: "make layout navigation ai dynamic weight card generator old jsonl/page.jsonl settings/page.jsonl ext/page.jsonl audit",
++	children: "make layout navigation tool/page.jsonl ai dynamic weight card generator old jsonl/page.jsonl settings/page.jsonl ext/page.jsonl audit",
+ 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
+ 
+ 	// Every member, in the order a reader meets them: the tree, then rendering,
+diff --git a/public/framework/core/Page/readme.md b/public/framework/core/Page/readme.md
+index ea565595f..919aafc41 100644
+--- a/public/framework/core/Page/readme.md
++++ b/public/framework/core/Page/readme.md
+@@ -24,6 +24,18 @@ This module has an expert: ask it with `ask_expert core/Page …` (Servex).
+ (events are built in); an #Item when it is a thing (an icon, a title, saved); a
+ #Page when it has a URL.
+ 
++## Storage and streaming (the tip; the rest is one click down)
++
++A page is a folder, and the folder is its storage:
++
++- `page.js` — a page written as code (import a class, instantiate it).
++- `page.jsonl` — a page written as a log: line 1 builds it, each later line is one change. Appending a line redraws every open tab, no reload.
++- `files.jsonl` — the folder's own file list, kept by the dev server. (`directory.json`, the old whole-site list, is off: `Server/doc/directory-off.md`.)
++
++How a line travels from a writer to the screen, and who may write: [`doc/streaming.md`](doc/streaming.md).
++The classes and the decisions (log growth, big collections, file vs database): [`doc/architecture.md`](doc/architecture.md).
++**Agents change any page with one tool**, `page_set(path, delta)`: a tab, a layout word, an item. Live demo: [tool](./tool/).
++
+ ## Architecture
+ 
+ ```js
+@@ -100,7 +112,7 @@ Nothing crawls: a page exists once its parent's `children:` (or a `file` line, o
+ 
+ **Navigation** — [navigation](./navigation/) (the pattern: persistent vs switching) · [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, and where a click opens)
+ 
+-**Agents change pages** — [`doc/page-tool-2026-10-09.md`](./doc/page-tool-2026-10-09.md) (path + delta; `page_call`/`page_set`/`page_add`/`page_read` exist in `Servex/agents/page_tools.js`; tabs, layout, session pages are the gap)
++**Agents change pages** — [`doc/architecture.md`](./doc/architecture.md) (path + delta through `page_set`, `Servex/agents/page_tools.js`; tabs, layout words and session pages work live) · the ask: [`doc/page-tool-2026-10-09.md`](./doc/page-tool-2026-10-09.md)
+ 
+ **A thing has a page** — [`doc/composition.md`](./doc/composition.md) (tasks and sessions hold a page by reference, not by extending it; page CRUD/move is a known gap)
+ 
+diff --git a/public/framework/core/Page/tool/page.jsonl b/public/framework/core/Page/tool/page.jsonl
+new file mode 100644
+index 000000000..8fdb5a488
+--- /dev/null
++++ b/public/framework/core/Page/tool/page.jsonl
+@@ -0,0 +1,10 @@
++{"title":"Page tool","icon":"edit_note","description":"Agents change this page live: a path and a delta, one line appended to its page.jsonl."}
++{"content":{"add":{"id":"what","title":"What this page is","text":"Every line below was written by the page tool, not by hand. An agent sends a path and a delta; the page redraws with no reload."}}}
++{"tab":{"name":"notes","title":"Notes","content":"A tab an agent added."},"by":"mastermind-page-system","ts":"2026-10-09T22:32:20.149Z"}
++{"notes":{"content":{"add":{"id":"n1","title":"First note","text":"Added inside the new tab.","by":"mastermind-page-system","ts":"2026-10-09T22:32:21.664Z"}}}}
++{"navigation":"rail","by":"mastermind-page-system","ts":"2026-10-09T22:33:10.398Z"}
++{"navigation":"tabs","by":"mastermind-page-system","ts":"2026-10-09T22:33:11.910Z"}
++{"content":{"add":{"id":"how","title":"How to use it","text":"page_set(path, delta). The path is the url you see; leave it out to mean your own session page. The delta is plain JSON: the tool adds the time, your name and any missing ids.","by":"mastermind-page-system","ts":"2026-10-09T22:48:06.673Z"}}}
++{"content":{"add":{"id":"tab","title":"Add a tab","text":"{\"tab\": {\"name\": \"now\", \"title\": \"Now\", \"content\": \"…\"}} — the Notes tab above was made this way. A page with no tabs gets a tab strip, and its own content becomes the first tab.","by":"mastermind-page-system","ts":"2026-10-09T22:48:06.676Z"}}}
++{"content":{"add":{"id":"words","title":"Change the layout","text":"{\"navigation\": \"rail\"} or any of the six page words: navigation, width, arrangement, surface, background, type_size. The page redraws in place.","by":"mastermind-page-system","ts":"2026-10-09T22:48:06.676Z"}}}
++{"content":{"add":{"id":"inside","title":"Add to a tab","text":"{\"notes\": {\"content\": {\"add\": {\"title\": \"…\"}}}} — the nesting is the path: the notes tab, its content list, add.","by":"mastermind-page-system","ts":"2026-10-09T22:48:06.677Z"}}}
+diff --git a/public/framework/ext/tabs/tabs.css b/public/framework/ext/tabs/tabs.css
+index 5b974ec02..80417476a 100644
+--- a/public/framework/ext/tabs/tabs.css
++++ b/public/framework/ext/tabs/tabs.css
+@@ -22,6 +22,10 @@
+ 	.tab-panel:has(> .page:is(.active-page, .active-ancestor))
+ 		> .page.default:not(.active-page, .active-ancestor) { display: none; }
+ 
++	/* The page's own content as the first tab (`tabs(names, { home })`): shown until a
++	   child tab is routed into the same panel. */
++	.tab-panel:has(> .page:is(.active-page, .active-ancestor)) > .tab-home { display: none; }
++
+ 	/* ⚠ framework.css's util-layer `:last-child { margin-bottom: 0 }` reaches the LAST
+ 	   tab in a strip and cancels the -1px that seats a tab ON the bar's rule. One tab
+ 	   per strip therefore sat a pixel low — and because the bar stretches its items,
+diff --git a/public/framework/ext/tabs/tabs.js b/public/framework/ext/tabs/tabs.js
+index 1986e6419..b36e3724a 100644
+--- a/public/framework/ext/tabs/tabs.js
++++ b/public/framework/ext/tabs/tabs.js
+@@ -14,7 +14,7 @@ View.stylesheet(import.meta, "tabs.css");
+  *
+  * Design record: framework/ext/tabs/readme.md.
+  */
+-Page.prototype.tabs = function(names){
++Page.prototype.tabs = function(names, { home } = {}){
+ 	const list = names ? names.trim().split(/\s+/) : [...this.children.keys()];
+ 
+ 	// A `{"tab": {"name": "x", "active": true}}` line (core/Page/Log.js) names the
+@@ -23,7 +23,10 @@ Page.prototype.tabs = function(names){
+ 	// `list` order wins if more than one ever claims it; nobody using this line at
+ 	// all falls straight back to `list[0]`, today's only behaviour.
+ 	const active = list.find(name => this.tab_state(name).active === true);
+-	const owns_url = !this.default_tab && (this.default_tab = active ?? list[0]);
++	// `home` (2026-10-09, core/Page/Frame.js): a function drawing the page's OWN
++	// content as the first tab, at the page's own url — then no child owns that url,
++	// and the panel shows `home` until a child is routed into it.
++	const owns_url = !home && !this.default_tab && (this.default_tab = active ?? list[0]);
+ 	let $bar, $panel;
+ 
+ 	// placed NOW, while the captor is still ours; filled once the first tab lands
+@@ -39,10 +42,11 @@ Page.prototype.tabs = function(names){
+ 	// reads differently per entry point. `this.loading` is the guarantee that every
+ 	// title is real; the `name === this.default_tab` fallback covers a page built
+ 	// without a url (its one, preloaded child -- see `filling` below).
++	// A tab built from a `tab` line (`from_tab`, Page.tab()) has its real title already.
+ 	const label = name => {
+ 		const page = this.children.get(name);
+ 		const text = page?.label ?? page?.title;
+-		return (this.loading || name === this.default_tab) && text ? text : name;
++		return (this.loading || name === this.default_tab || page?.from_tab) && text ? text : name;
+ 	};
+ 
+ 	// A `tab` line (core/Page/Log.js) can hide a name from the STRIP (`nav: false` —
+@@ -62,7 +66,9 @@ Page.prototype.tabs = function(names){
+ 
+ 		// ⚠ `tab-default` marks the one whose href is MY url: every sibling url
+ 		// starts with it, so mark_links() would give it `.in-path` on every tab.
+-		$bar.empty(() => shown.forEach(name => {
++		$bar.empty(() => {
++			if (home) a.c("tab tab-default", this.home_tab ?? "Overview").href(this.url);
++			shown.forEach(name => {
+ 			const disabled = !!this.tab_state(name).disabled;
+ 			const is_default = owns_url && name === this.default_tab;
+ 
+@@ -71,7 +77,8 @@ Page.prototype.tabs = function(names){
+ 				.ac(disabled && "tab-disabled")
+ 				.style(disabled ? { opacity: "0.5", pointerEvents: "none" } : {})
+ 				.href(disabled ? undefined : is_default ? this.url : this.url + name + "/");
+-		}));
++			});
++		});
+ 
+ 		// ⚠ these links were built after mark() ran, so they missed the pass
+ 		this.app?.router?.mark_links();
+@@ -79,7 +86,9 @@ Page.prototype.tabs = function(names){
+ 
+ 	(this._tab_redraws ??= new Set()).add(draw_bar);
+ 
+-	const filling = Promise.resolve(this.loading ?? this.child(this.default_tab)).then(() => {
++	if (home) $panel.append(() => div.c("tab-home", home));
++
++	const filling = Promise.resolve(this.loading ?? (home ? null : this.child(this.default_tab))).then(() => {
+ 		draw_bar();
+ 
+ 		// EVERY set renders its default, so no panel is ever blank. ⚠ `app` is handed
