@@ -19,14 +19,7 @@ export default new Page({
 	content(){
 		div.c("pad", () => new Concepts({ items }));
 
-		md(`**No build, real ESM.** \`public/\` runs in the browser exactly as written — no bundler, no transpile. The four topics here are how this framework's own code stays readable as it grows:`);
-
-		div.c("flow", () => {
-			md(`- **[Patterns](./patterns/)** — a module is a class; parts are classes too, hung on the constructor as statics so a subclass inherits the whole machine.`);
-			md(`- **[Dos and don'ts](./dos-and-donts/)** — the traps that never throw (nothing here raises an error, so only the list catches it), plus the house opinions on formatting and file size.`);
-			md(`- **[CSS](./css/)** — layers, where a declaration belongs, class naming. The vocabulary itself — utilities, tokens, the layout words — lives at [/framework/styles/](/framework/styles/); this page never repeats it.`);
-			md(`- **[Objects](./objects/)** — every class ships a view of its own state: a chip, a row, a panel, so you can see what an instance knows without reading its source.`);
-		});
+		md(`**No build, real ESM.** \`public/\` runs in the browser exactly as written. Pick a topic above.`);
 
 		md.details(import.meta, "readme.md", "Readme");
 	},

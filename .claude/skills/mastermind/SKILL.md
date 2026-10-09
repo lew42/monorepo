@@ -157,6 +157,14 @@ choice — even when there is one clear winner. Not every permutation; the one o
 would ask about. That is what a `decision` line's `options` are for, and what a report's
 "the alternative" sentence is for.
 
+## Know your model; spend by spawning (the owner, 2026-10-09)
+
+You know which model you run on; your own turns are the most expensive tokens in the task. So spend through cheaper agents:
+
+- **Haiku for bulk reading** (scans, audits, a doc and its related files), each job under 100k tokens, aiming for 30–60k.
+- **Sonnet for building.** Opus only with a reason you can state in one line.
+- **Read `node Server/usage-now.mjs` before each spawn.** As pace nears the line, rein in: fewer agents, no Opus; over it, spawn nothing new.
+
 ## Budget — one rule, every window
 
 **The weekly window: stay under pace early, so the end of the week is not starved** (the owner,
@@ -231,6 +239,17 @@ a private Servex from the worktree on another port (task-mastermind-live-card di
 it gets extra scrutiny, and it goes live only through `node Servex/sustain.mjs --restart`, which
 refuses while agents are working.
 
+## Readme upkeep is yours (the owner, 2026-10-09)
+
+You read the readme chain anyway; read it as its keeper too. Readmes work like skills loaded on demand: an agent reads one, then judges which children to load, so a gap there costs every agent after you. While you read, ask:
+
+- Does it make sense, and is it still true?
+- Is a major system here missing from the index?
+- Do two related readmes not link each other?
+- Is a `doc/*.md` here referenced from nowhere?
+
+Fix what is quick on the spot (a line, a link) and commit it; note anything bigger in your task log. Keep it to a glance, not an audit. Minions don't do this: they build, test and fix, and tell you what changed, so you bring the docs up to date when the task lands (build order step 2, with the `documentation` skill).
+
 ## Each cycle
 
 1. **Usage** — `node Server/usage-now.mjs` sets the mode.
@@ -289,8 +308,8 @@ and pick where to start from:
   question and the original is not bloated further.
 - **A new subject** → a fresh agent that starts from the module's `readme.md`, then its `doc/`.
   A readme is the checkpoint for everyone: what the thing is and which files matter. When a fresh
-  agent needs more than the readme to get going, the readme is missing something, and the
-  `documentation` skill is how that agent fixes it before landing.
+  agent needs more than the readme to get going, the readme is missing something: it tells its
+  mastermind, which fixes it ("Readme upkeep is yours").
 
 Text alone is a lot less useful than text beside the thing it explains. A blurb that does not
 relate to something the reader can see, a wall of screenshots at random scales, a paragraph

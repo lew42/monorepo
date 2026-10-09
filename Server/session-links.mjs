@@ -3,7 +3,7 @@
 //
 //   links = { parent, children: [id], card, task, brief, report }
 //
-// Since one folder holds a whole session (doc/data-architecture-2026-10-08.md, section 12), the card, task, brief and report are just files
+// Since one folder holds a whole session (sessions/doc/data/data-architecture.md, section 12), the card, task, brief and report are just files
 // inside it: <folder>/page.jsonl (the inbox card), <folder>/task/ (the task), <folder>/task/requirements.md (the brief), <folder>/task/report.md
 // (the report; findings.md when there is no report). Only the ties BETWEEN sessions (parent, children) need computing. Paths are site URLs.
 import fs from "node:fs";

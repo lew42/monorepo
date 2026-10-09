@@ -1,5 +1,5 @@
 // ai/AISession/AISessionIndex.mjs — every session's current state, in memory, and the ONE writer of the per-session `index.json`.
-// Doc: public/framework/ai/sessions/doc/realtime.md
+// Doc: public/framework/ai/sessions/doc/live/realtime.md
 //
 //   transcript line appended -> fs.watch -> AISession.update() reads only the new bytes (AISession.apply_line per line)
 //   -> the session's SNAPSHOT is rebuilt; if a field changed it is stored, `change` listeners hear it (the socket plugin pushes it

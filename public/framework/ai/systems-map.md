@@ -33,7 +33,7 @@ Five places hold "things to do": `ai/todo.md` (177 lines, owner prose), `ai/asks
 
 **Alternative:** make `asks.jsonl` the single queue and have `task.jsonl` link back. It already has owners and status, but it holds asks, not work, so cost and landing would need a second join.
 
-**The message channel** is cheapest as `append_log` to a path plus one `Monitor` tail per listener (no polling, no wake on unrelated lines); addressing is the file path itself. Detail: [task-queue-2026-10-08.md](doc/task-queue-2026-10-08.md).
+**The message channel** is cheapest as `append_log` to a path plus one `Monitor` tail per listener (no polling, no wake on unrelated lines); addressing is the file path itself. Detail: [task-queue-2026-10-08.md](doc/tasks/tasks.md).
 
 ## Tools and pathways (inventory + recommendation, no build)
 
@@ -44,18 +44,18 @@ Five places hold "things to do": `ai/todo.md` (177 lines, owner prose), `ai/asks
 | Skill | markdown loaded **on demand** | zero until used | `.claude/skills/` (34) |
 | Shell | `node Server/*.mjs`, git; the script reads and computes, the model reads its summary | zero | `Server/`, `.claude/hooks/` |
 
-Settled 2026-10-09: the live path is HTTP via `door()` (`Servex/doc/sdk.md`); the in-process `server()` is for tests and hosts with no HTTP door. `ai/doc/mcp.md` now says so.
+Settled 2026-10-09: the live path is HTTP via `door()` (`Servex/doc/sdk.md`); the in-process `server()` is for tests and hosts with no HTTP door. `ai/doc/agents/mcp.md` now says so.
 
 **Recommendation (default): the session template is the unit of control.** Tools cannot load on demand, skills can, so a template is one bundle of tools, MCPs, skills, system prompt and model per purpose (close to a role), shown on the agent's card and editable. Roles already carry the model (`Servex/agents/roles.js`); extending a role to name its tools and skills is the smallest step. Alternative: per-agent tool lists chosen at spawn; flexible but unvisible and unrepeatable.
 
-**Generic path-and-method tool:** one tool taking an object path, a method and arguments, applied by a node function that stamps time, author and cost (the `page.jsonl` delta style). It replaces many hand-made tools; a skill lists the callable methods on demand. Trade-off: one powerful tool needs strict validation and an allow-list of paths. Detail: [tooling-architecture-2026-10-08.md](doc/tooling-architecture-2026-10-08.md).
+**Generic path-and-method tool:** one tool taking an object path, a method and arguments, applied by a node function that stamps time, author and cost (the `page.jsonl` delta style). It replaces many hand-made tools; a skill lists the callable methods on demand. Trade-off: one powerful tool needs strict validation and an allow-list of paths. Detail: [tooling-architecture-2026-10-08.md](doc/design/tooling-architecture.md).
 
 ## How each system streams, and its main class (2026-10-09)
 
 | System | Main class | Stream |
 | :--- | :--- | :--- |
 | Servex | `Servex` (`Servex/Servex.js`), agents: `Agents`, `Agent` | agent state and logs to JSONL files Servex alone writes; the UI tails them |
-| Sessions page | `AISessionsPage`, rows `AISessionRows` (`ai/AISession/`) | day files + `session-flags.json` (rewritten every 30 s by `Server/session-flags.mjs --watch`); `sessions.json` is an old snapshot, see [stuck sessions](sessions/doc/stuck-sessions-2026-10-09.md) |
+| Sessions page | `AISessionsPage`, rows `AISessionRows` (`ai/AISession/`) | day files + `session-flags.json` (rewritten every 30 s by `Server/session-flags.mjs --watch`); `sessions.json` is an old snapshot, see [stuck sessions](sessions/doc/asks/stuck-sessions.md) |
 | Board, Inbox, Log | `AIRail`, `Card` (`ai/rail/`, `ai/cards/`) | `cards.jsonl` appended, tailed with `live()` |
 | Pages | `Page` (`core/Page`) | each page's `page.jsonl` through the page tools |
 | Voice, dictation | `Dictate` (`ux/Dictate`), voice sessions (`Servex/agents/Sessions.js`) | transcript lines appended as they arrive |

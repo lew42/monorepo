@@ -22,7 +22,7 @@
 ## 2. Ask → delivered audit (owner add-on)
 
 Extended [2026-10-07/prompt-audit](/framework/ai/2026-10-07/prompt-audit/) to the raw session
-history. Map: [doc/log-sources.md](/framework/ai/doc/log-sources.md). Pipeline + numbers:
+history. Map: [doc/logs/log-sources.md](/framework/ai/doc/logs/log-sources.md). Pipeline + numbers:
 [ask-ledger/readme.md](ask-ledger/readme.md).
 
 - 6.5 GB / 6,654 files scanned in 37s → 1,650 real candidates after two rounds of noise filtering.

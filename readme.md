@@ -11,12 +11,12 @@ Servex holds port 80 and starts the site the first time you visit it (`Servex/re
 
 ## Systems (one line each; every link opens that system's own short readme)
 
-- **Accounting** (spend, tokens, pace): [token accounting](public/framework/ai/doc/token-accounting.md) · [usage and budgets](Servex/doc/budget.md) · [session spend](public/framework/ai/sessions/readme.md)
+- **Accounting** (spend, tokens, pace): [token accounting](public/framework/ai/doc/tokens/tokens.md) · [usage and budgets](Servex/doc/budget.md) · [session spend](public/framework/ai/sessions/readme.md)
 - **Servex** (the always-on process that runs every agent): [Servex/readme.md](Servex/readme.md) · [how an agent is started (SDK)](Servex/doc/sdk.md) · [decisions](Servex/doc/architecture.md)
 - **Dev server** (local only, live reload): [Server/readme.md](Server/readme.md)
-- **MCP servers** (the tools agents call: `servex`, `site`): [ai/doc/mcp.md](public/framework/ai/doc/mcp.md)
+- **MCP servers** (the tools agents call: `servex`, `site`): [ai/doc/agents/mcp.md](public/framework/ai/doc/agents/mcp.md)
 - **Models** (Anthropic, OpenRouter, local): [OpenRouter](Servex/ext/openrouter/readme.md) · [local](Servex/ext/local/readme.md) · [which is best value](public/framework/ai/system/models/)
-- **Sessions** (VS Code sidebar tabs, browser voice agents, resumable chats): [ai/sessions](public/framework/ai/sessions/readme.md) · [conversations](public/framework/ai/doc/conversations.md)
+- **Sessions** (VS Code sidebar tabs, browser voice agents, resumable chats): [ai/sessions](public/framework/ai/sessions/readme.md) · [conversations](public/framework/ai/doc/logs/conversations.md)
 - **Transcription** (Whisper, Dictate): [ux/Dictate](public/framework/ux/Dictate/readme.md)
 - **Page system** (pages, routing, JSONL streaming): [core/Page](public/framework/core/Page/readme.md) · [ext/JSONL](public/framework/ext/JSONL/readme.md)
 - **Skills and CLAUDE.md** (what every agent reads first): [CLAUDE.md](CLAUDE.md) · [skills](public/framework/ai/skills/)

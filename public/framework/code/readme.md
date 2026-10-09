@@ -16,6 +16,13 @@ at [/framework/styles/](/framework/styles/), this page never repeats it
 [objects](./objects/) — object-oriented design: every class ships a view of its own state (a
 chip, a row, a panel)
 
+## Code, design, content: three sides of one thing
+
+[Code](/framework/code/) is syntax and patterns (JS vs CSS dos and don'ts, classes, reuse the tokens and
+layouts, never add CSS); [Design](/framework/design/) is contrast, layout, navigation, what goes where;
+[Content](/framework/design/content/) is writing it down (readmes, markdown, later `page.jsonl`). Skills:
+`code` (this), `design` (layout, color, navigation, one entry), `content` (documentation folded in).
+
 ## Use
 
 Read the child page for the thing you're about to do — a new class, a CSS rule, a class name, a

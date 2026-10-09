@@ -23,7 +23,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2), flag = n => argv.includes(n), val = n => flag(n) ? argv[argv.indexOf(n) + 1] : undefined;   // undefined, never argv[0], when the flag is absent
 const REPO = path.resolve(val("--repo") ?? path.join(here, ".."));
 const AI = path.join(REPO, "public", "framework", "ai"), SESS = path.join(AI, "sessions"), MANIFEST = path.join(SESS, "migration-manifest.json");
-// Task folders stay where they are unless --tasks: a task is a page tree, and a page exists only while its parent declares it, so a moved task has no route yet (doc/migration-dry-run-2026-10-09.md).
+// Task folders stay where they are unless --tasks: a task is a page tree, and a page exists only while its parent declares it, so a moved task has no route yet (sessions/doc/data/layout.md).
 const MOVE_TASKS = flag("--tasks");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 // The first real prompt of a session, from its raw transcript (~/.claude/projects/<cwd>/<id>.jsonl); the first 256 KB are enough.

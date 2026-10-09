@@ -121,7 +121,7 @@ not squeezed into this one.
 
 ## 7. Go realtime: `session.jsonl`, streamed, replacing the stale snapshots — Sonnet, staged (see below), do step 1 first and prove it before touching the browser
 
-Full writeup, recommendation and tradeoff: [`ai/sessions/doc/realtime-plan.md`](/framework/ai/sessions/doc/realtime-plan.md).
+Full writeup, recommendation and tradeoff: [`ai/sessions/doc/live/realtime.md`](/framework/ai/sessions/doc/live/realtime.md).
 One-line version: extend the site's EXISTING jsonl-over-websocket stream
 (`JSONL.live()`/`dev/Socket`) — this page has never actually used it, so this is adoption,
 not a second system. Staged:
@@ -154,7 +154,7 @@ mistake visibly wrong in the code, not just a style preference.
 
 ## 8. Extend Layers.js's "fresh, not compacted" rule to masterminds — Sonnet, ~half a day, careful (it changes when a live agent restarts)
 
-Full evidence and recommendation: [`ai/sessions/doc/context-cost.md`](/framework/ai/sessions/doc/context-cost.md)
+Full evidence and recommendation: [`ai/sessions/doc/cost/context-cost.md`](/framework/ai/sessions/doc/cost/context-cost.md)
 / findings.md's "session freshness" section. Measured: 79-93% of a long session's $ is
 repeated context (cache read + cache write), and any idle gap past the 1-hour cache
 TTL turns the next turn into a 15-50x-priced cache miss. `Layers.js` already has the

@@ -26,7 +26,7 @@ Each Servex tool in [`Servex/agents/tools.js`](/Servex/agents/tools.js) is one p
 - **In-process (no network), only where there is no HTTP door:** `server()` in `tools.js` wraps the same tool list with the SDK's `tool()` and `createSdkMcpServer()`; used by tests such as `Servex/agents/fork-proof.mjs`, not by a live agent. The tools: agents (`spawn_agent`, `send_to_agent`, ...), tasks, sessions, jobs, experts, pages.
 - **Network by nature:** the `site` server (`eval`, `shot`, `claim`), because it talks to a browser.
 
-Rule: write handlers as plain functions, and never make an agent call its own host over HTTP. The planned task tools (`task_create`, `task_plan`, `task_set`, `task_move`, `task_link`, `task_read`, `task_list`) follow it: see [tasks.md](tasks.md).
+Rule: write handlers as plain functions, and never make an agent call its own host over HTTP. The planned task tools (`task_create`, `task_plan`, `task_set`, `task_move`, `task_link`, `task_read`, `task_list`) follow it: see [../tasks/tasks.md](../tasks/tasks.md).
 
 ---
 

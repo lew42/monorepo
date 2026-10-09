@@ -32,7 +32,7 @@ export function replay(session_id, label = "session"){
 // transcript IN PLACE the same way `replay()` above does, through the same
 // `/ai-logs/<id>` route, rather than keeping its own second copy of a
 // session's prompts on disk (the owner's own "no duplicate data" decision;
-// see `ai/sessions/doc/decisions.md`). One network/parse function, two
+// see `ai/sessions/doc/asks/decisions.md`). One network/parse function, two
 // different renderings of the same raw lines (law 6).
 export async function load(id){
 	const res = await fetch("/ai-logs/" + id).catch(() => null);

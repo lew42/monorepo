@@ -14,7 +14,7 @@ script-verified in [claims.json](claims.json) — see
 | UNDOCUMENTED | 1 | code/a name means two things and no doc says so |
 | MISSING | 0 | nothing found promised in docs with no code behind it |
 
-**The good news first:** most of what `doc/systems-overview.md` claims about *how* things work —
+**The good news first:** most of what `doc/design/systems-overview.md` claims about *how* things work —
 the dormant-agent mechanism, the results-gated $2/$3 spend policy, `spawn_agent`'s new
 caller-as-parent default, the tool-result logging gap it calls out as unfinished — checked out
 exactly against the code. The owner's worry ("omissions between the request and the product")
@@ -22,7 +22,7 @@ did not show up as a missing *feature*; it showed up as a stale *count*.
 
 ## The two real mismatches (now fixed)
 
-1. **The Servex MCP tool catalog undercounted itself.** `doc/systems-overview.md` claimed
+1. **The Servex MCP tool catalog undercounted itself.** `doc/design/systems-overview.md` claimed
    "68 tools total" but only named 52 of them; the live count today is 77. At least 22 real
    tools — `ask_module`, `card_set`, `card_summary`, `claim_topic`, `create_page`, `follow`,
    `list_claims`, `list_follows`, `list_pages`, `page_reply`, `place`, `refine_step`,
@@ -39,12 +39,12 @@ did not show up as a missing *feature*; it showed up as a stale *count*.
 
 ## The one undocumented name collision
 
-**"Heartbeat" means two different things and no doc says so.** `doc/autonomy.md`'s "dynamic
+**"Heartbeat" means two different things and no doc says so.** `doc/agents/autonomy.md`'s "dynamic
 heartbeat" is a Claude Code session's own wakeup-timing decision (the now-stopped `task-1565`
 cron). `Servex/Heartbeat.js` is a completely different mechanism: it pings a *task's silent
 owner agent* and revives dead ones. A reader who knows one will reasonably assume they know the
 other. **Left as a `Note:` card** rather than fixed now, because picking which doc keeps the
-word and which one gets renamed is a judgment call for whoever owns `doc/autonomy.md` next, not
+word and which one gets renamed is a judgment call for whoever owns `doc/agents/autonomy.md` next, not
 a one-line text fix.
 
 ## What was checked and held up (no action needed)

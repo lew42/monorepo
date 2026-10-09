@@ -29,7 +29,7 @@ Counted by searching `public/framework/**/*.js` for the file name. Zero or one h
 | File | Shown on | Note |
 |---|---|---|
 | `task.jsonl`, `page.jsonl`, `requirements.md` | AI board, task pages, `ext/AITask` | well covered |
-| `log.jsonl` (per module `ai/`), `v-*.jsonl` | Dictate and Session pages | [module-ai-dirs.md](module-ai-dirs.md) |
+| `log.jsonl` (per module `ai/`), `v-*.jsonl` | Dictate and Session pages | [../design/module-ai-dirs.md](../design/module-ai-dirs.md) |
 | `asks.jsonl`, `cards.jsonl`, `prompts.jsonl`, `usage.json` | `ai2` inbox and dashboard | few readers each |
 | `spawns.jsonl` (a mastermind's list of what it spawned) | **nowhere** | blind spot: no page reads it |
 | `heartbeat.jsonl` | **nowhere** by that name | blind spot: Servex writes it, the dashboard shows the heartbeat card only |

@@ -8,7 +8,7 @@
 // 2026-10-03 (sessions-tab-polish): the "this week" window and an ARBITRARY {from,to} window
 // now go through the SAME function, `compute_window()` — the Sessions tab's own date-range
 // filter used to sum a different, incomplete thing client-side (whatever rows the page already
-// had, which never carry a real per-session OpenRouter $ at all — see ai/sessions/doc/decisions.md,
+// had, which never carry a real per-session OpenRouter $ at all — see ai/sessions/doc/asks/decisions.md,
 // "Why OpenRouter read $0.00 in range"), so the week figure and the range figure could never
 // agree. The exported functions below are the one place that question gets answered now; nothing
 // that imports this file for them also re-runs the write-week.json side effect — that only

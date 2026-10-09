@@ -40,6 +40,6 @@ Root `readme.md` and `ai/readme.md` now carry a one-line-per-system index (accou
 
 ## Landed, and the Addendum 3 queue
 Deliverables 1 to 4 are merged to `michael/dev`. The merge ran with `--skip-smoke`: `/framework/ai/system/` passes; only old linked pages fail, on 404s for untracked data files that a worktree lacks. Not started, because the pool had no worktree for a minion:
-- `ai/doc/history.md` (evolution log, links only), and an AI-focused Servex card: `class_cards(names)` already takes a subset (Servex, Agents, Dispatcher, Sessions, Pool, Usage, Budget).
+- `ai/doc/meta/history.md` (evolution log, links only), and an AI-focused Servex card: `class_cards(names)` already takes a subset (Servex, Agents, Dispatcher, Sessions, Pool, Usage, Budget).
 - "Inbox" names three things, so name them first: the **page inbox** (`Servex/doc/inbox.md`), each **agent's inbox file** (`logs/inbox/<id>.jsonl`, `Servex/agents/inbox.js`), and the owner's **inbox cards** on `/framework/ai2/`. Wrapping the cards in session context cards needs the session class from `minion-session-class` first.
 - Readmes still over 100 lines for a Haiku pass: Servex (388), Servex/agents (289), Dictate (365), ai2 (387), ai/sessions (177).

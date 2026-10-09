@@ -5,7 +5,7 @@ description: Run once a task's decisions are made and before finish-task — mak
 
 # Documentation — the final review
 
-**This pass is step (2) of the build order** (in `sub-mastermind`): a fresh agent then reads only these docs, so they must stand alone.
+**This pass is step (2) of the build order** (in `sub-mastermind`): a fresh agent then reads only these docs, so they must stand alone. **The task's mastermind runs it**, from what its minions report changed; minions build, test and fix and don't refine readmes. The quick look a mastermind gives every readme it reads is in `sub-mastermind` ("Readme upkeep is yours").
 
 How the chain reaches agents, and its cap, is explained at [Readmes](/framework/ai/readmes/) and `Servex/doc/readme-chain.md`; this skill is how to write them. Size: a readme is a short index (CLAUDE.md: under about 100 lines), and the chain injects only the first 40 lines (or up to `## More`), so put the index first.
 
@@ -76,6 +76,14 @@ A new `doc/<name>.md` is in the Docs rail only once `page.js` names it (`notes:`
 Every `.md` link opens rendered at `/<module>/md/doc/<name>/` ([`core/Page/doc/markdown.md`](/framework/core/Page/doc/markdown.md)); link with an absolute path, and cite a method or selector, never a line number. `doc/decisions.md` holds the record; `doc/<topic>.md` holds a trap or design worth its own url.
 
 A Doc's `notes:` land at `/module/doc/<name>/`, `methods:`/`properties:` at `/module/api/<name>/`; `files:` have **no per-name route** (they render in the shared `/module/files/` browser). For a `note()`-shaped page the URL slugifies from the **title**, not the file name.
+
+## 4. Where docs go, and cleaning them up (the owner, 2026-10-09)
+
+**Where:** `readme.md` is the index (one line per thing, a link each, read whole). The detail goes in `doc/<topic>.md`, one topic per file. Decisions go in `doc/architecture.md`, a line or two each, linking the session or task where it was decided. When a folder passes about 10–15 files, group them into subfolders, each with its own small readme, so the parent stays an index.
+
+**Who:** the mastermind of the task keeps the docs it reads true ("Readme upkeep is yours" in `sub-mastermind`); minions report what went stale.
+
+**Cleanup:** a mastermind spawns one Haiku per `doc/*.md`, given that file and the files it describes, asking "still true? duplicated elsewhere? superseded?". The mastermind reads the answers and decides. A superseded doc moves to an `archive/` folder beside it (`git mv`, one line in the readme saying why), never deleted.
 
 ## Before finish-task
 

@@ -12,4 +12,4 @@
 
 ## Related
 
-[handover.md](../handover.md) · [todo.md](../todo.md) · [systems-overview.md](systems-overview.md) · [Servex architecture](/framework/servex/doc/architecture.md) · [session classes](/framework/ai/sessions/) (owned by minion-session-class)
+[handover.md](../handover.md) · [todo.md](../todo.md) · [design/systems-overview.md](design/systems-overview.md) · [Servex architecture](/framework/servex/doc/architecture.md) · [session classes](/framework/ai/sessions/) (owned by minion-session-class)

@@ -32,6 +32,12 @@ rules, and so the AI just gets bogged down"). Your job is to delete and merge mo
 6. **Report on one screen:** load before and after, the top changes ranked by friction removed
    over risk, each with what was applied and what is proposed.
 
+## Working with system masterminds (2026-10-09)
+
+A mastermind that owns one system (code, design, content…) edits its own readmes and `doc/` freely; that is where its rules live. It does not edit a shared `SKILL.md`: it writes the text it proposes in its task dir and tells you, and you apply it. Aim for the fewest skills, each about 10–20 lines (when to load it, the few rules that break things, a link to its system's readme), never a copy of the readme.
+
+**Is a skill used?** `node .claude/skills/system-architect/skill-usage.mjs` counts skill calls in the task logs (only logged while a task is open, so it undercounts) and which Servex role loads which skill. No calls and no role means fold it into a neighbour or archive it. 2026-10-09: color, ui, performance, prompt-refine and fork-claude-session had no calls in 30 days.
+
 ## Between runs
 
 Agents append to each skill's `improvements.md` (`skill-improvement`). When a few have piled

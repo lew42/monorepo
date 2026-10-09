@@ -15,7 +15,7 @@
 // (`cost_of_session`, its own parser and grouping) and compares. A bug in one shows up as a diff.
 //
 // Browser-safe: no top-level node imports. Node-only parts (`update`, `audit`, `save`) import
-// node:fs lazily. Docs: sessions/doc/session-class.md
+// node:fs lazily. Docs: sessions/doc/ui/session-class.md
 
 const r6 = n => Math.round(n * 1e6) / 1e6;
 
@@ -475,7 +475,7 @@ export default class AISession {
 		if (!by || typeof by !== "string") throw new Error("`by` (the author) is required");
 		const types = Object.keys(AISession.LINE_TYPES).filter(k => k in line);
 		if (types.length !== 1) throw new Error("a line has exactly one of: " + Object.keys(AISession.LINE_TYPES).join(", "));
-		if (!AISession.LINE_TYPES[types[0]](line)) throw new Error(`bad shape for "${types[0]}" (see sessions/doc/record-spec.md)`);
+		if (!AISession.LINE_TYPES[types[0]](line)) throw new Error(`bad shape for "${types[0]}" (see sessions/doc/data/record-spec.md)`);
 		const fs = await import("node:fs/promises"), dir = await AISession.locate(id);
 		await fs.mkdir(dir, { recursive: true });
 		const out = { ...line, at: new Date().toISOString(), by, session: id };
