@@ -25,8 +25,8 @@ thrown error, so nothing ever surfaced this). The cost just stopped climbing, fo
 the clock rolled over.
 
 **The fix:** `find_page_jsonl()` now walks every `<Y>/<M>/<D>/` folder for the session's own
-`*-<id8>` directory — the identical rule `ai/sessions/page.js`'s own
-`session_page_dir_index()` already uses client-side (CLAUDE.md law 6: one rule for "which folder
+`*-<id8>` directory — the identical rule `ai/sessions/SessionsPage.js`'s own
+`SessionDetail.dir_index()` already uses client-side (CLAUDE.md law 6: one rule for "which folder
 is this session's page"). Verified against the real files: it now finds `60d9def6`'s page under
 `ai/2026/10/03/`, appends the correct $110.07, and `week.json` (re-run by hand, the same manual
 snapshot it's always been) now shows it.
@@ -71,7 +71,7 @@ an agent... grouped by role, maybe even per prompt type." Full brief:
 | `Server/spend-tree.mjs` | the registry + every agent's own log, **now also the transcript** | `spend-tree.json`: every agent ever registered, its own $, its subtree $, by role, by trigger — now with a cache $ split too |
 | `Server/day-spend.mjs` | `task-cost.mjs`'s own `cost_usd` (never recomputes) | a day's Claude $ vs real $, by module |
 | `Server/week-cost.mjs` | `session-cost.mjs`'s own `page.jsonl` cost lines | this week's real $ against the plan, the Sessions tab's stat cards |
-| `ai/sessions/page.js` | `GET /api/agents`, `sessions.json`, `spend-tree.json`, a session's own `page.jsonl`/transcript | the whole Sessions tab |
+| `ai/sessions/SessionsPage.js` | `GET /api/agents`, `sessions.json`, `spend-tree.json`, a session's own `page.jsonl`/transcript | the whole Sessions tab |
 | `core/Page/weight/ai-cost.js` | `task-cost.mjs`'s own `cost_usd`/`cost.agents` (never recomputes) | the task-card breakdown table |
 | VS Code tabs | nothing writes a $ for them at all until a Stop hook runs `session-cost.mjs --append-stdin` | — |
 
@@ -273,7 +273,7 @@ Start/Stop/Duration alongside Cost on every row. Full brief:
 straight from `~/.claude/projects/...`. `load_transcript()` (`page.js`) now calls that instead of
 reading a copy, and filters for real prompts the same way `sessions.mjs` already does server-side
 — a second, small implementation of that filter was accepted rather than threading one shared
-function across the node/browser boundary (the same tradeoff `session_page_dir_index()`'s own
+function across the node/browser boundary (the same tradeoff `SessionDetail.dir_index()`'s own
 directory.json walk already made, noted below it).
 
 **A session's home is its date path — built as a seam, because nothing to list exists yet.**
@@ -282,7 +282,7 @@ machine — `task-mastermind-prompt-refine`'s hooks that would write one haven't
 plan for the exact path shape changed three times while this task alone was open (see the FYIs
 logged in `task.jsonl`, 2026-10-02/03). Chasing a moving, not-yet-real target would be guessing,
 not computing (CLAUDE.md law 7) — so this task built the LOOKUP instead of the DATA:
-`session_page_dir_index()` walks `/framework/directory.json` once per grid load for any
+`SessionDetail.dir_index()` walks `/framework/directory.json` once per grid load for any
 `<slug>-<id8>` folder, keyed by id8, and every row's own `href` prefers that date path when found,
 falling back to this tab's own `/sessions/<id>/` view otherwise. Today every row falls back — the
 index is always empty — and the day a real page appears, the very same code links to it, with
@@ -361,7 +361,7 @@ folds it to one screen at a time; nothing extra was written for narrow screens e
 literal text "false" in the Cost column, because a live agent's `cost` field really was the
 boolean `false` (not a number, not null) — the arrow function's own return value (`false`) was
 the thing that ended up as a stray text node. Rewritten as plain `if` statements. The Dashboard
-tab's own Sessions tile (`ai/dashboard/page.js`) reuses `row_view()`/`merge()` (law 6, one row
+tab's own Sessions tile (`ai/dashboard/page.js`) reuses `SessionView`/`SessionRows.merge()` (law 6, one row
 renderer) and needed the same `sessions-grid` class added to its own container, since a cell's
 grid position depends on the parent actually being that grid.
 
@@ -463,7 +463,7 @@ real needs the session's own line 1 to record its role going forward** — outsi
 same as the RAM gap below.
 
 **RAM stays blank — `GET /api/agents` doesn't carry it yet.** The column, the `ram_mb` /
-`ram_sample_age_ms` fields and the "under 10 seconds old" check are all in `merge()` and `row_view()`
+`ram_sample_age_ms` fields and the "under 10 seconds old" check are all in `SessionRows.merge()` and `SessionView`
 now, so the moment Servex's own agent card adds real-time RAM, the column lights up with no further
 change here. Until then it is correctly, permanently blank — never a fabricated or stale number.
 
@@ -586,7 +586,7 @@ correctly).
 **The chart is plain inline SVG, no charting library** (CLAUDE.md: no new npm dependency) — same
 house style `ux/Content/Spend.js`'s own $-over-time bar chart already uses (`el.innerHTML =` a
 built-up SVG string; this page uses `View.html_unsafe()` instead, the same mechanism under a
-different name). `trace_chart_svg()`'s own `nice_step()` helper is a direct copy of `Spend.js`'s
+different name). `SessionTrace.chart_svg()`'s own `nice_step()` helper is a direct copy of `Spend.js`'s
 identical function, not an import — `Spend` is a `ContentModule` built around its own fetch
 lifecycle, not a plain function this page could call standalone, and the function itself is four
 lines.

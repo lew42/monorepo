@@ -3,7 +3,9 @@ import Panel2 from "/framework/ext/panel2/Panel2.js";
 import { watch_needs } from "/framework/ai2/needs.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { CardList } from "/framework/ai2/inbox.js";
-import { row_view as session_row, merge as merge_sessions, get_json } from "../sessions/page.js";
+import SessionRows from "../sessions/SessionRows.js";
+import SessionView from "../sessions/SessionView.js";
+const { merge: merge_sessions, get_json } = SessionRows;
 
 View.stylesheet(import.meta, "dashboard.css");
 
@@ -23,7 +25,7 @@ View.stylesheet(import.meta, "dashboard.css");
  *             tab's rail is built from, read directly instead of through the
  *             whole rail (which also builds a composer, flagging, live
  *             sockets — far more than a 5-row preview needs).
- *   Sessions→ `row_view()`/`merge()`, exported from `sessions/page.js` — the
+ *   Sessions→ `SessionView`/`SessionRows.merge()` (`sessions/SessionView.js`, `SessionRows.js`) — the
  *             identical row the Sessions tab itself draws.
  *   Stalled / In flight → `tasks.json`, a file a sibling task
  *             (`stalled-and-budgets`) owns and writes; read defensively since
@@ -147,7 +149,7 @@ function log_tile(get_excluded){
 	return { panel, stop, redraw: draw };
 }
 
-// Live-ish — the same row the Sessions tab draws (`sessions/page.js`), top 5,
+// Live-ish — the same row the Sessions tab draws (`sessions/SessionView.js`), top 5,
 // re-polled on the same cadence. Returns a teardown, same shape as the other tiles.
 function sessions_tile(){
 	const panel = new Panel2({ title: "Sessions" });
@@ -164,7 +166,7 @@ function sessions_tile(){
 	const draw = agents => $list.empty(() => {
 		const rows = merge_sessions(snapshot_rows, agents).slice(0, 5);
 		if (!rows.length) return void empty_tile("No sessions with an id yet.")();
-		rows.forEach(r => session_row(r, SESSIONS_URL));
+		rows.forEach(r => new SessionView({ row: r, url: SESSIONS_URL }));
 	});
 	const poll = async () => {
 		if (!live) return;
