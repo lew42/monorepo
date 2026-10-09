@@ -24,10 +24,13 @@ assign(...args){ return Object.assign(this, ...args); }
 ```js
 List.View = class ListView extends View { }   // list.View and ListView are the same class
 new this.constructor.View({ list: this })      // use the part through the constructor…
-class MyList extends List { static View = class extends List.View { } }   // …so a subclass swaps it
+class MyList extends List {}
+MyList.View = class MyListView extends List.View { }   // …so a subclass swaps it
 ```
 
 **Folder, file and class share one name** (the owner, 2026-10-02): `ext/JSONL/JSONL.js` exports `class JSONL`; `core/Task/Task.js` exports `class Task`. The same capitalisation everywhere, and the capital letter says "this is a class". Allowed: a subclass defined inside the main file (`TaskJSONL` in JSONL.js), or a part in its own capitalised file in the same folder (`Inbox/Rail.js` → `Inbox.Rail`). A lowercase file or folder (`objects.js`, `rail.js`, `ext/drawer/`) is the old way and a refactor target, not a pattern: new code is **a class per file, never a pile of exported functions** (CLAUDE.md "Write classes, not function bags"; backlog: `node public/framework/code/patterns/function-bag-census.mjs`, 286 files and 97 `page.js` on 2026-10-08). **Census:** `node public/framework/code/patterns/class-census.mjs` lists every mismatch (81 on 2026-10-02: ai/objects.js, ai2/*.js, ext/drawer/rail.js, ext/AITask/nested.js, core/Page/Page.class.js…). Fix a module's mismatches whenever you work in it.
+
+**The view, in one example** (owner, 2026-10-08): attach it after the class, never nested: `Thing.View = class ThingView extends View { … }` (or `Thing.View = ThingView` from its own file; real code: `audio/Voice/Voice.js`). The instance's `render()` does `new this.constructor.View({ item: this })`, never `new Thing.View(…)`, so a subclass sets its own `Sub.View = …`. No `static View = class …` inside the class body.
 
 **Naming a part's instance:** the property is the class name, lowercased: `inbox.rail` holds an `Inbox.Rail`, `item.store` a `Store`, `x.view` a `View`. Never `inbox_rail`. (the owner, 2026-10-02)
 

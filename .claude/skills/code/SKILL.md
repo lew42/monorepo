@@ -16,6 +16,20 @@ Before you write a function, ask "which class owns this?" A thing with state or 
 5. **Before you copy a neighbour, check it is a class.** Many old files are bags (`node public/framework/code/patterns/function-bag-census.mjs` ranks them); they are a refactor backlog, not a pattern to imitate. When you edit one, move what you touch into a class.
 6. Mind the base API: `Page` extends `Item`, so check for a name clash (`render()` collides with core).
 
+**The view pattern (the owner, 2026-10-08):** the view class is attached AFTER the class, never nested inside its body, and the instance reaches it through `this.constructor`, so a subclass can replace it.
+```js
+class EventLog extends Lab {
+	entries = [];
+	render(){ return new this.constructor.View({ item: this }); }
+}
+EventLog.View = class EventLogView extends LiveView {   // or: EventLog.View = EventLogView, from its own file
+	draw(){ div.c("lab-log", () => this.item.entries.forEach(e => div(e.text))); }
+};
+class PrettyLog extends EventLog {}
+PrettyLog.View = class PrettyLogView extends EventLog.View { /* override draw() */ };
+```
+Never `static View = class …` inside the class body, never `new EventLog.View(…)` (the lexical name defeats the subclass), never a hand-built `.view` field. Reference: `audio/Voice/Voice.js` (`Voice.View = class extends PartView`); some older lab classes still nest it and are being moved.
+
 The shape, the statics and the naming: [/framework/code/patterns/](/framework/code/patterns/) (read it, then `dos-and-donts` and `objects`).
 
 ## Always
