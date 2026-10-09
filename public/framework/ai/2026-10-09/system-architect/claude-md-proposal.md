@@ -66,3 +66,7 @@ The owner uses the running site while agents write to it, so build in a worktree
 - Resolve URLs against `import.meta`, never the document.
 - Only `p()`/`h1`–`h6` read backticks; one backtick inside `` css(`…`) `` kills every page.
 - Imports flow down; a parent↔child import cycle breaks only on deep reload.
+
+
+---
+**Owner decision, 2026-10-09 17:10:** keep CLAUDE.md as it is; nothing here seemed wrong, but the current text stays. This file remains as a reference.
