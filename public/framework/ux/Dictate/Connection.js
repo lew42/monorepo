@@ -8,8 +8,7 @@ View.stylesheet(import.meta, "Connection.css");
  * which step is stuck:  Mic → Level → Whisper → Transcript → Refine.
  *
  * Each step is a dot (grey = not yet, green = fine, red = failed) plus a few plain words saying why.
- * The row never changes size: every step has a fixed column, and the reason is cut with "…" rather
- * than wrapped, so nothing a reader might click moves while words arrive.
+ * The row never changes size: every step has a fixed column, and the reason sits in a fixed box (it may wrap onto up to three lines inside it, then is clipped), so nothing a reader might click moves while words arrive.
  *
  *   const c = new Connection({ whisper_url, on_retry });
  *   c.set("mic", "ok", "on");            // step ids: mic level whisper transcript refine
@@ -30,22 +29,24 @@ export default class Connection extends View {
 	];
 
 	render(){
-		this.ac("refine-conn");
+		this.ac("voice-conn");
 		/** `{ state: "idle" | "ok" | "bad" | "wait", why }` per step id: plain data, so the debug tree can show it.
 		 *  Set here, not as a class field: a View runs render() before subclass fields exist. */
 		this.state = {};
 		this.meter = new LevelMeter();
-		Connection.steps.forEach((s, i) => {
+		this.steps = this.steps ?? Connection.steps;   // a caller may show fewer: new Connection({ steps })
+		this.style("--steps", this.steps.length);
+		this.steps.forEach((s, i) => {
 			this.state[s.id] = { state: "idle", why: "not yet" };
-			div.c("refine-conn-step", () => {
-				div.c("refine-conn-head", () => {
-					span.c("refine-conn-dot");
-					span.c("refine-conn-label", s.label);
-					if (s.id === "whisper") this.$retry = button("↻").ac("refine-conn-retry").attr("type", "button")
+			div.c("voice-conn-step", () => {
+				div.c("voice-conn-head", () => {
+					span.c("voice-conn-dot");
+					span.c("voice-conn-label", s.label);
+					if (s.id === "whisper") this.$retry = button("↻").ac("voice-conn-retry").attr("type", "button")
 						.attr("title", "Check Whisper again").click(() => this.check_whisper());
 				});
 				if (s.id === "level") new LevelMeter.View({ subject: this.meter });
-				else span.c("refine-conn-why");
+				else span.c("voice-conn-why");
 			}).attr("data-step", s.id);
 		});
 		this.draw();
@@ -67,13 +68,13 @@ export default class Connection extends View {
 	}
 
 	draw(only){
-		for (const s of Connection.steps){
+		for (const s of this.steps){
 			if (only && s.id !== only) continue;
 			const { state, why } = this.state[s.id];
 			const el = this.el.querySelector(`[data-step="${s.id}"]`);
 			if (!el) continue;
 			el.dataset.state = state;
-			const w = el.querySelector(".refine-conn-why");
+			const w = el.querySelector(".voice-conn-why");
 			if (w){ w.textContent = why; w.title = why; }
 		}
 	}
