@@ -1,6 +1,7 @@
 import { View, div, span, p, textarea, button, h4, a } from "../../core/View/View.js";
 import ErrorLog from "../ErrorLog/ErrorLog.js";
 import VoiceStrip from "../../ux/Dictate/VoiceStrip.js";
+import WhisperLog from "../../ux/Dictate/WhisperLog.js";
 import DefaultView from "../../ux/Content/Object/DefaultView.js";
 import Prompt from "./Prompt.js";
 import RefineSystem from "./RefineSystem.js";
@@ -32,6 +33,7 @@ export default class RefineDemo extends View {
 				// ux/Dictate/VoiceStrip: the one compact dictation panel (mic, steps, grey guess), fixed size.
 				this.strip = new VoiceStrip({
 					template: "full", refine: true,
+					on_whisper: line => WhisperLog.record(line),
 					$input: () => this.$box,   // the View, not its element: Dictate reads `.el` itself
 					toolbar: () => {
 						this.$go = button("Refine").click(() => this.go());
@@ -48,6 +50,7 @@ export default class RefineDemo extends View {
 
 		div.c("refine-demo-debug", () => {
 			this.card();
+			new WhisperLog();
 			h4.c("refine-prompt-h", "The live Prompt instance (debug view)");
 			this.$debug = div.c("refine-debug");
 		});

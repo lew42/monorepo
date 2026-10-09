@@ -722,7 +722,7 @@ export default class Dictate extends View {
 		if (!this.worth_sending(samples)) return;
 
 		const seq = ++this.req_seq;
-		this.inflight = this.transcribe(samples);
+		this.inflight = this.transcribe(samples, "interim");
 		let text;
 		try { text = await this.inflight; } catch { return; } finally { this.inflight = null; }
 		// The segment may have closed WHILE this was in flight — a stale partial must never
@@ -766,7 +766,7 @@ export default class Dictate extends View {
 		if (this.inflight) try { await this.inflight; } catch { /* ignored — see above */ }
 
 		const seq = ++this.req_seq;
-		this.inflight = this.transcribe(samples);
+		this.inflight = this.transcribe(samples, "final");
 		let text;
 		try { text = await this.inflight; }
 		catch (e){
@@ -831,7 +831,7 @@ export default class Dictate extends View {
 		return false;
 	}
 
-	async transcribe(samples){
+	async transcribe(samples, kind = "final"){
 		const wav = this.mic.wav(samples);
 		this.dump(wav, samples);
 		const form = new FormData();
@@ -857,7 +857,10 @@ export default class Dictate extends View {
 		else { this.steps.whisper = reply; this.draw_diag(); this.on_step?.("whisper", reply); }   // every answer updates the line; only the first is console-logged
 		// ⚠ Whisper puts "\n" between ITS OWN segments, mid-speech ("Testing, testing.\n My name is…") —
 		// left in, every one became a paragraph break in the box. Real breaks come from real pauses only.
-		return (body.text ?? "").replace(/\s+/g, " ").trim();
+		const text = (body.text ?? "").replace(/\s+/g, " ").trim();
+		// The WhisperLog hook: exactly what whisper-server answered (`raw`) and what we kept (`text`).
+		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "" });
+		return text;
 	}
 
 	/** **The debug seam.** Off unless you turn it on, in the console of the tab
