@@ -84,6 +84,47 @@ append-only list of JSON lines per page path**, and nothing above the storage de
 (`Page.Reader`, an `Item.Store`). Moving a page log to a Durable Object (one per page: append + subscribe)
 or a D1 table (`path, seq, line`) replaces those two seams only.
 
+## Side panels and drawers belong to the page (the owner, 18:58): decided, not built
+
+Today three things look alike and confuse: the right drawer (`?drawer=ai`, [ext/drawer](../../../ext/drawer/readme.md)),
+the far-right dictation column, and the phone's rail sheet (`?sheet=`). The owner: sidebars and drawers belong to the
+page system, "there's no better spot for layout and navigation". Decision:
+
+- **One `Drawer`** (today `ext/drawer/drawer.js`, a function, to become a class that extends `View`) is the side region
+  of `PageFrame`, beside the page's own content. On a phone the same drawer draws as a bottom sheet, so `?sheet=` folds
+  into `?drawer=`.
+- **A page declares what goes in it**, the same way it declares tabs: a `{"drawer": {"name": "dictate", "title": "Dictation"}}`
+  line (or `drawer:` in page.js) adds a drawer tab whose content is a page. Site-wide tabs (AI, Settings, Files) are
+  declared once on the root page and inherited.
+- **It routes by query**: `?drawer=<name>` opens that tab on top of whatever page the path names, so a reload or Back
+  lands the same way (CLAUDE.md "Route everything").
+- **The dictation panel is content placed in the drawer, never the drawer itself.** It is one view from `ux/Dictate`,
+  used the same in the drawer, on Dictate's own page and on Refine
+  ([phase-2.md](../../../ai/2026-10-09/refine-dictate-ui/phase-2.md), owned by `task-mastermind-refine-v3`).
+
+Alternative weighed: a drawer as a separate app-level system that pages cannot touch (today's shape). Rejected,
+because then every page that wants a side panel invents its own.
+
+## Session: one core class for time-based pages (the owner, 19:05): decided, not built
+
+A session is a page that is made automatically, at a moment: it has a start time, a name (a slug), a dated folder,
+a log and any data. `AISession` already does this for Claude sessions, and Refine's `RefineSystem` does it again for
+dictations. Decision, yes, one class:
+
+```
+Session (core/Session/Session.js)          the record: id, started_at, name, dated folder <root>/YYYY/MM/DD/<name>/,
+  │                                         locate() / scan() / day() / dir_url(), its page.jsonl
+  ├── AISession   (ai/AISession)            + cache.jsonl, costs, transcript
+  └── RefineSession (ext/Refine, was RefineSystem)  + the dictation's rounds
+Session.Page extends Page                   the default page template; the folder's own page.jsonl reshapes it
+  ├── AISessionDetail                       (Page.overlay(), above)
+  └── RefineSession.Page
+```
+
+Each subclass names its own root folder and keeps its own `days`/`slugs` maps (statics are per class). The generic part
+of `AISession` (locate, scan, day, dir_url, slugs) moves up unchanged; `AISession` keeps the rest. Order: extract
+`Session` first (with mastermind-ai-system, which owns `AISession`), then `task-mastermind-refine-v3` builds `RefineSession` on it.
+
 ## Open
 
 - A session that has no folder yet: the tool makes one, but a tab already open on that session is not
