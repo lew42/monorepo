@@ -167,10 +167,16 @@ export default class SessionsPage extends Page {
 				check("show closed", "show_closed", "Sessions you marked done are hidden by default. They are never deleted.");
 				check("needs attention", "attention_only", "Only sessions with an alert in their session.jsonl record.");
 				check("in flight", "inflight_only", "Only sessions working right now (a transcript that moved in the last 5 minutes, or a Servex agent that is running).");
-				const pick = (name, key, values, title) => values.length && label.c("flex gap-35 v-center h4", () => {
+				const pick = (name, key, values, title, group = false) => values.length && label.c("flex gap-35 v-center h4", () => {
 					span(name);
 					const sel = document.createElement("select");   // no select() helper in the framework
-					for (const t of ["", ...values]){ const o = document.createElement("option"); o.value = t; o.textContent = t || "any"; sel.append(o); }
+					const option = t => { const o = document.createElement("option"); o.value = t; o.textContent = t || "any"; return o; };
+					sel.append(option(""));
+					if (group){   // module tags grouped by their top folder: core, ext, ux, ui, Server, Servex...
+						const tops = new Map();
+						for (const t of values) (tops.get(t.split("/")[0]) ?? tops.set(t.split("/")[0], []).get(t.split("/")[0])).push(t);
+						for (const [top, items] of tops){ const g = document.createElement("optgroup"); g.label = top; for (const t of items) g.append(option(t)); sel.append(g); }
+					} else for (const t of values) sel.append(option(t));
 					sel.value = this[key] || "";
 					sel.addEventListener("change", () => { this[key] = sel.value; this.render_rows(); });
 					div().el.append(sel);
@@ -178,7 +184,7 @@ export default class SessionsPage extends Page {
 				const live = [...Session.all.values()].map(s => s.ix);
 				pick("tag", "tag_filter", [...new Set(Object.values(this.session_index?.meta ?? {}).flatMap(m => m.tags))].sort(), "A tag written into a session's session.jsonl.");
 				pick("category", "category_filter", [...new Set(live.map(x => x.category).filter(Boolean))].sort(), "The category of the task that launched the session (the task audit).");
-				pick("core", "core_filter", [...new Set(live.flatMap(x => x.core ?? []))].sort(), "A framework module the session edited (the task audit).");
+				pick("core", "core_filter", [...new Set(live.flatMap(x => x.core ?? []))].sort(), "A framework module the session edited (the task audit): folder/Name, as in the repo.", true);
 				div.c("sessions-daterange flex gap-50 v-center", () => {
 					small.c("muted", "from");
 					const $from = input().attr("type", "date");

@@ -92,7 +92,7 @@ export default class SessionIndex {
 			this.dirs.set(id, dir);
 			let snap = null;
 			try { snap = JSON.parse(await fsp.readFile(path.join(dir, "index.json"), "utf8")); } catch {}
-			if (snap?.id === id){ this.snaps.set(id, snap); this.join(snap); } else todo.push({ id, dir });
+			if (snap?.id === id){ this.snaps.set(id, snap); if (this.join(snap)) this.queue(id); } else todo.push({ id, dir });
 		});
 		this.log(`SessionIndex: ${this.snaps.size} snapshots on disk, ${todo.length} to build`);
 		await this.each(todo, async ({ id, dir }) => {
@@ -146,13 +146,21 @@ export default class SessionIndex {
 		} catch {}
 	}
 
-	/** "/public/framework/ai/sessions/Session.js" -> "ai/sessions"; "/Server/x.mjs" -> "Server". The small label the grid filters by. */
+	/** A file path -> the familiar repo-relative tag: "/public/framework/ext/Refine/Refine.js" -> "ext/Refine", "/public/framework/ai/sessions/Session.js" -> "ai/sessions",
+	 *  "/public/framework/page.js" -> "page.js", "/Server/refine.mjs" -> "Server/refine.mjs", "/Servex/agents/tools.js" -> "Servex/agents/tools.js". Root files (CLAUDE.md, *.json) give "" (no tag). */
 	static module_of(p){
 		const parts = String(p).replace(/^\//, "").replace(/^public\/framework\//, "").split("/");
-		return parts.length < 2 ? parts[0] : parts[0] === "Server" || parts[0] === "Servex" ? parts[0] : parts.slice(0, 2).join("/");
+		if (parts[0] === "Server" || parts[0] === "Servex") return parts.length > 1 ? parts.slice(0, 4).join("/") : "";
+		if (parts.length < 2) return "";
+		return parts.length === 2 ? parts.join("/") : parts.slice(0, 2).join("/");
 	}
 
-	join(snap){ snap.core ??= this.joins.core.get(snap.id) ?? []; snap.category ??= this.joins.category.get(snap.id) ?? null; }
+	/** Fold the audit's joins into a snapshot (the joins win: they are recomputed from the audit files on every load). Returns true if it changed. */
+	join(snap){
+		const core = this.joins.core.get(snap.id) ?? snap.core ?? [], category = this.joins.category.get(snap.id) ?? snap.category ?? null;
+		const changed = !same(core, snap.core) || category !== snap.category;
+		snap.core = core; snap.category = category; return changed;
+	}
 
 	// ---- the snapshot ---------------------------------------------------------------------------------------------
 	/** A snapshot from a Session (its transcript totals) plus what we already knew (`prev`: the descendants total, the record, the registry row). */
