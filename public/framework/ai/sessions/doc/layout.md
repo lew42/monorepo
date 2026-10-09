@@ -27,6 +27,11 @@ node Server/session-place.mjs           # a plain rename; the only thing removed
 
 A folder with no `first_at` anywhere (an empty session, a test fixture) stays flat. The script is safe to run again.
 
+## Two things to know
+
+- **A move is a rename.** A reader that holds the old flat path gets an empty answer for one call while a writer moves the folder. For a cache that is fine; the next read finds it.
+- **The browser finds a dated folder through `session-index.json`** (its `day` column). A session missing from the index reads from the flat path and shows nothing until the index is rebuilt (`node Server/session-summary.mjs --index`). Every session the table lists is in the index, so the table itself is never affected.
+
 ## Why this layout, and the alternative
 
 - **Chosen: `ai/sessions/YYYY/MM/DD/<id>/`.** It keeps all session data in one module, it matches the card tree's shape, and `session-index.json` (the page's only fast read) carries the day, so the browser never lists a directory.
