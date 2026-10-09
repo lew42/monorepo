@@ -85,7 +85,7 @@
 		"kind": "trigger",
 		"for": "Run once a task's decisions are made and before finish-task — makes the touched module's docs current and conclusive: readme.md (the reader's index), page.js (show, don't tell), doc/*.md (the detail, one topic each).",
 		"when": "Also when asked to document, audit docs, write a readme, or add a doc page. Trigger skill: every task that touched a module under public/.",
-		"lines": 87,
+		"lines": 88,
 		"improvements": true,
 		"questions": []
 	},
@@ -95,7 +95,7 @@
 		"kind": "role",
 		"for": "Become the owner's fast assistant — the front desk for a running mastermind.",
 		"when": "Invoke on \"/every-prompt\" or \"you are the assistant\", and re-invoke on EVERY prompt: it is short on purpose, so re-reading costs little and keeps you who you are. You answer on the owner's screen (the dev bar log) with one shell command and relay their words to the mastermind. You do no building, read no code, and keep your context tiny. Sonnet at low effort, in its own tab.",
-		"lines": 73,
+		"lines": 69,
 		"improvements": false,
 		"questions": []
 	},
@@ -145,7 +145,7 @@
 		"kind": "role",
 		"for": "Become the master assistant — the supervising half of the front desk.",
 		"when": "You know what is going on, you give an opinion in one or two sentences when the fast assistant or the mastermind asks, you keep one page current on how the process itself is going, and between questions you are the system auditor. You do no building and never edit the site. Opus; Fable for an architecture question.",
-		"lines": 58,
+		"lines": 54,
 		"improvements": true,
 		"questions": []
 	},
@@ -155,7 +155,7 @@
 		"kind": "role",
 		"for": "Become the mastermind — the continuously-running Fable executive that governs the usage budget, finds the highest-priority work, and spawns minions down the model ladder (Haiku scans, Sonnet builds, Opus judges, Fable when the owner says) to do it — several tasks at once.",
 		"when": "Invoke on \"you are the mastermind, begin\", \"/mastermind\", or any wakeup carrying /mastermind. Fable decides, workers execute; only the owner stands it down.",
-		"lines": 532,
+		"lines": 519,
 		"improvements": true,
 		"questions": []
 	},
@@ -165,7 +165,7 @@
 		"kind": "trigger",
 		"for": "Load this first, before touching anything, when you have been started as a minion — a worker `claude` CLI session, with its own session id, given a task and a requirements.md brief to execute for the mastermind or another orchestrator.",
 		"when": "Triggers on \"you are a minion\", \"your brief is at\", or any prompt that names a requirements.md. Points you at your brief, the three laws, the never-list that has actually burned agents before, and how to land.",
-		"lines": 143,
+		"lines": 114,
 		"improvements": true,
 		"questions": []
 	},
@@ -215,7 +215,7 @@
 		"kind": "trigger",
 		"for": "Open a task — create its ai/<date>/<slug>/ dir, open its task.jsonl log, and give it presence on the owner's dashboard.",
 		"when": "Run this BEFORE THE FIRST EDIT in ANY Claude session in this repo — building, changing, fixing, adding, refactoring, restyling, a doc pass, a rename, a demo, a bug fix — and when an agent embarks on a distinct sub-project. Also on \"new task\" / \"start a task\". Not needed to answer a question, read, investigate, or prepare — but the moment that turns into an edit, run it. Unsure? Run it.",
-		"lines": 92,
+		"lines": 76,
 		"improvements": true,
 		"questions": []
 	},
@@ -285,7 +285,7 @@
 		"kind": "role",
 		"for": "Become the Servex Mastermind — the systems architect that runs on Servex as `mastermind-servex`.",
 		"when": "You oversee how the whole agent system works (quality audits of layout, contrast and use of space; spend; coordination; crashes) and improve the SYSTEM (skills, briefs, tools), never doing routine work yourself. Load when started as mastermind-servex, or on \"you are the Servex mastermind\".",
-		"lines": 128,
+		"lines": 122,
 		"improvements": true,
 		"questions": []
 	},
@@ -305,17 +305,17 @@
 		"kind": "role",
 		"for": "Become a task mastermind — the agent that owns exactly ONE task end to end.",
 		"when": "The master-mastermind hands you a requirements page and a fence; you decide whether the task needs a worktree, split it into minion-sized pieces with non-overlapping file fences, spawn and watch the minions, judge each deliverable against the owner's own sentence, land the task, and report one screen upward. Invoke when a brief names you a task mastermind, or on \"you own this task\".",
-		"lines": 269,
+		"lines": 260,
 		"improvements": true,
 		"questions": []
 	},
 	{
 		"id": "system-architect",
-		"title": "System architect (outline, not yet built)",
-		"kind": "trigger",
-		"for": "DRAFT OUTLINE (2026-10-09).",
-		"when": "Become the system-architecture mastermind that reads every skill plus every file each skill references, so it understands the whole system and can spot gaps, conflicts and stale rules. Load when asked for a whole-system review or \"you are the system architect\". Does not replace servex-mastermind.",
-		"lines": 19,
+		"title": "System architect",
+		"kind": "role",
+		"for": "Become the system architect — the one agent that reads CLAUDE.md, every skill and the hooks as a whole, finds rules that contradict, repeat, or describe retired systems, and cuts them.",
+		"when": "Owns changes to the shared skills (took that duty from the retired mastermind-servex). Load for a whole-system review, when improvements.md lines pile up, or on \"you are the system architect\".",
+		"lines": 42,
 		"improvements": false,
 		"questions": []
 	},

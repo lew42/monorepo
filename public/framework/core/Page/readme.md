@@ -100,6 +100,8 @@ Nothing crawls: a page exists once its parent's `children:` (or a `file` line, o
 
 **Navigation** — [navigation](./navigation/) (the pattern: persistent vs switching) · [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, and where a click opens)
 
+**Agents change pages** — [`doc/page-tool-2026-10-09.md`](./doc/page-tool-2026-10-09.md) (path + delta; `page_call`/`page_set`/`page_add`/`page_read` exist in `Servex/agents/page_tools.js`; tabs, layout, session pages are the gap)
+
 **A thing has a page** — [`doc/composition.md`](./doc/composition.md) (tasks and sessions hold a page by reference, not by extending it; page CRUD/move is a known gap)
 
 **Content inside a page** — icon items, sections, outlines: [ux/Content/structure](/framework/ux/Content/structure/)

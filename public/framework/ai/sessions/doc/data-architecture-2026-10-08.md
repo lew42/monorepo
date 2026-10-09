@@ -101,3 +101,6 @@ The owner's call: no UUID-named folders, no separate card folders, no separate t
 - **Scripted, dry-run first, `git mv`, manifest of every old to new path, reversible, old paths resolve through the manifest, nothing deleted** (CLAUDE.md). Report counts before moving: how many folders per source, how many join, how many are orphans.
 - The accounting-summary writer keeps running; its output moves into the named folder (or folds into the session log as a summary line if that is simpler); decide and record the alternative.
 - Payoff (the owner's goal): browse and filter everything we have spent money on by day, class and activity, to find broken systems that burn tokens.
+
+## 10. Path tags, topic scans, the audit button (owner, 2026-10-09)
+See [path-tags-2026-10-09.md](path-tags-2026-10-09.md).

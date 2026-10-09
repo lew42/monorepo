@@ -8,8 +8,7 @@
 
 	.refine-input { display: flex; flex-direction: column; gap: 0.5em; }
 	.refine-input textarea { width: 100%; min-height: 6em; font: inherit; }
-	.refine-input-row { display: flex; flex-wrap: wrap; gap: 0.5em; align-items: center; }
-	.refine-input-note { color: var(--muted, inherit); opacity: 0.75; font-size: 0.9em; }
+	.refine-input-note { color: var(--muted, inherit); opacity: 0.75; font-size: 0.9em; min-block-size: 1.4em; }
 
 	.refine-prompt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); }
 	@media (min-width: 700px) { .refine-prompt { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

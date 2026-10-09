@@ -1,0 +1,21 @@
+@layer base, theme, site, util;
+
+/* The strip never changes size: a fixed-height toolbar, a one-line status, a fixed-height guess line.
+   The row of steps shows in the "full" template; the "compact" one shows only the sentence. */
+@layer site {
+	.voice-strip { display: grid; gap: 0.5em; }
+	.voice-strip-bar { display: flex; flex-wrap: nowrap; gap: 0.5em; align-items: center; block-size: 2.75em; }
+	.voice-strip-bar button { block-size: 2.5em; white-space: nowrap; flex: none; }
+	.voice-strip-bar .ux-dictate { flex: none; align-items: center; }
+	.voice-strip-bar .ux-dictate-btn { inline-size: 3.5em; display: inline-flex; align-items: center; justify-content: center; }
+	.voice-strip-say { font-size: 0.9em; min-block-size: 1.4em; }
+	.voice-strip-guess { min-block-size: 3em; font-size: 0.9em; }
+	.voice-strip[data-template="full"] .voice-strip-say { display: none; }
+	.voice-strip[data-template="compact"] .voice-conn { display: none; }
+	.voice-strip[data-template="compact"] .voice-strip-guess { min-block-size: 1.5em; }
+}
+
+/* Dictate's own status block is hidden here (the strip says it). In util because Dictate's `.flex` class is util and would win. */
+@layer util {
+	.voice-strip-bar .ux-dictate-info { display: none; }
+}

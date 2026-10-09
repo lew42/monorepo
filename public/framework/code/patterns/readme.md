@@ -28,7 +28,7 @@ class MyList extends List {}
 MyList.View = class MyListView extends List.View { }   // …so a subclass swaps it
 ```
 
-**Folder, file and class share one name** (the owner, 2026-10-02): `ext/JSONL/JSONL.js` exports `class JSONL`; `core/Task/Task.js` exports `class Task`. The same capitalisation everywhere, and the capital letter says "this is a class". Allowed: a subclass defined inside the main file (`TaskJSONL` in JSONL.js), or a part in its own capitalised file in the same folder (`Inbox/Rail.js` → `Inbox.Rail`). A lowercase file or folder (`objects.js`, `rail.js`, `ext/drawer/`) is the old way and a refactor target, not a pattern: new code is **a class per file, never a pile of exported functions** (CLAUDE.md "Write classes, not function bags"; backlog: `node public/framework/code/patterns/function-bag-census.mjs`, 286 files and 97 `page.js` on 2026-10-08). **Census:** `node public/framework/code/patterns/class-census.mjs` lists every mismatch (81 on 2026-10-02: ai/objects.js, ai2/*.js, ext/drawer/rail.js, ext/AITask/nested.js, core/Page/Page.class.js…). Fix a module's mismatches whenever you work in it.
+**Folder, file and class share one name** (the owner, 2026-10-02): `ext/JSONL/JSONL.js` exports `class JSONL`; `core/Task/Task.js` exports `class Task`. The same capitalisation everywhere, and the capital letter says "this is a class". Allowed: a subclass defined inside the main file (`TaskJSONL` in JSONL.js), or a part in its own capitalised file in the same folder (`Inbox/Rail.js` → `Inbox.Rail`). A lowercase file or folder (`objects.js`, `rail.js`, `ext/drawer/`) is the old way and a refactor target, not a pattern: new code is **a class per file, never a pile of exported functions** (CLAUDE.md "Write classes, not function bags"; backlog: `node public/framework/code/patterns/function-bag-census.mjs --repo`, ranked by how many files import each one: 311 lowercase files across `public/`, `Servex/` and `Server/` on 2026-10-09, plus 126 `page.js`; the first ten conversions are queued at [ai/2026-10-09/system-architect/oo-census](/framework/ai/2026-10-09/system-architect/oo-census/)). **Census:** `node public/framework/code/patterns/class-census.mjs` lists every mismatch (81 on 2026-10-02: ai/objects.js, ai2/*.js, ext/drawer/rail.js, ext/AITask/nested.js, core/Page/Page.class.js…). Fix a module's mismatches whenever you work in it.
 
 **The view, in one example** (owner, 2026-10-08): attach it after the class, never nested: `Thing.View = class ThingView extends View { … }` (or `Thing.View = ThingView` from its own file; real code: `audio/Voice/Voice.js`). The instance's `render()` does `new this.constructor.View({ item: this })`, never `new Thing.View(…)`, so a subclass sets its own `Sub.View = …`. No `static View = class …` inside the class body.
 
@@ -42,7 +42,7 @@ MyList.View = class MyListView extends List.View { }   // …so a subclass swaps
 
 - **Capturing is synchronous** — a factory call written after an `await` appends to the wrong
   place, and nothing throws. Capture the container first, fill it in a callback.
-- **A page method named `render()` collides with core** — `draw()` and `report()` are free names.
+- **A page method named `render()` collides with core** — `draw()` is a free name; `report()` is free on `Page` but `AITask` owns it (overriding it blanks a task page).
   The full list of names core already owns is on [dos-and-donts](../dos-and-donts/).
 
 ## More

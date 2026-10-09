@@ -304,4 +304,13 @@
 	.sessions-method { max-width: 70ch; }
 	.sessions-audit-btn { cursor: pointer; padding: var(--gap-35) var(--gap-50); border: 1px solid var(--line); border-radius: 0.4em; user-select: none; }
 	.sessions-audit-btn:hover { border-color: var(--prim-ink); }
+
+	/* Red flags (AISessionFlags): small red tags inline after the name, so a row never changes height; --prim-ink would read as a normal tag, these must stand out. */
+	.sessions-redflag { display: inline-block; margin-inline-start: var(--gap-35); font-size: 0.7em; font-weight: 700; padding: 0.1em 0.45em; border-radius: var(--radius); color: #fff; background: #b3261e; white-space: nowrap; vertical-align: middle; }
+	.sessions-redflag-counts { color: #b3261e; font-weight: 600; }
+	.sessions-tag-mm { --sessions-tag-color: #7b3fa0; margin-inline-start: var(--gap-35); }
+	.sessions-chip-head { align-self: center; }
+	/* A one-line name and fixed-height cells in the In flight strip: it redraws on every agent event, and rows that grew or shrank made it jump. */
+	.sessions-row-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.sessions-flight-grid .sessions-cell { block-size: 3em; overflow: hidden; }
 }

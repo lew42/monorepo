@@ -9,6 +9,7 @@ export default class AISessionRows {
 
 	static ix = null;     // session-index.json, set once it loads
 	static tree = null;   // session-tree.json (who spawned whom, each agent's own name)
+	static flag_rows = {};   // session-flags.json rows (set by AISessionFlags.load): each session's role, read from its first prompt
 
 	static SOURCE = {
 		servex: { label: "Servex", icon: "hub" },
@@ -39,6 +40,11 @@ export default class AISessionRows {
 		"cli": { label: "Terminal sessions", title: "A standalone `claude` run from a terminal — not a VS Code tab, not a Servex-spawned agent." },
 		"sdk run": { label: "SDK runs", title: "A session the Agent SDK ran (the file's entrypoint is sdk-ts) that Servex has no record of. Not a terminal, not a VS Code tab." },
 		"vscode mastermind": { label: "VS Code tabs", title: "An interactive VS Code tab — a human typing, not a spawned agent." },
+		"vscode tab": { label: "VS Code tabs", title: "An interactive VS Code tab: a person typing, not a spawned agent." },
+		"terminal": { label: "Terminal sessions", title: "A standalone claude run from a terminal." },
+		"sdk job": { label: "SDK jobs", title: "A one-off job run through the Agent SDK whose first prompt names no agent (a cleanup, an outline, a script)." },
+		"dictation cleanup": { label: "Dictation cleanup", title: "Cleans up one chunk of dictated text. Cheap and plentiful." },
+		"outliner": { label: "Outliner", title: "Turns a cleaned transcript into an outline." },
 		"echo/refiner": { label: "Echo / refiner", title: "A session whose id starts \"echo-\" — the one naming convention this page can see." },
 	};
 
@@ -102,17 +108,20 @@ export default class AISessionRows {
 
 	/** A Servex row carries its real role. A VS Code/CLI row has none, so this is a guess from the id and source tag. */
 	static role_of(r){
-		if (r.source === "servex") return r.role || null;
+		const computed = AISessionRows.flag_rows[r.session_id || r.id]?.role;   // read from the transcript by Server/session-flags.mjs
+		const known = computed && computed !== "(unknown)" ? computed : null;
+		if (r.source === "servex") return r.role || known;
+		if (known) return known;
 		if (/^echo-/.test(r.id || "")) return "echo/refiner";
-		if (r.source === "vscode") return "vscode mastermind";
-		if (r.source === "cli") return "cli";
+		if (r.source === "vscode") return "vscode tab";
+		if (r.source === "cli") return "terminal";
 		if (r.source === "sdk") return "sdk run";
 		return null;
 	}
 
 	static role_label(role){
 		const key = role || "(unknown)";
-		return AISessionRows.ROLE_LABELS[key] ?? { label: key, title: "A Servex agent's own role, straight from the agent registry." };
+		return AISessionRows.ROLE_LABELS[key] ?? { label: key, title: "The role from the Servex agent registry, or read from the session's first prompt (Server/session-flags.mjs)." };
 	}
 
 	/** "$X.YZ" split into a whole-dollar part and a cents part. */
@@ -163,6 +172,16 @@ export default class AISessionRows {
 		return { text: (AISessionRows.SOURCE[r.source]?.label ?? "session") + " " + String(sid).slice(0, 8), from: "id" };
 	}
 
+	/** `end` if it is a real time at or after `start`, else null. */
+	static after(start, end){ return end && (!start || Date.parse(end) >= Date.parse(start)) ? end : null; }
+
+	/** How long a row ran, in ms: never negative (a stop before the start is dropped, a working row runs to now); null when unknown. */
+	static span_ms(r, now = Date.now()){
+		const end = AISessionRows.after(r.started_at, r.stopped_at) ?? (AISessionRows.WORKING_STATES.has(r.state) ? new Date(now).toISOString() : null);
+		const ms = elapsed(r.started_at, end);
+		return typeof ms === "number" && ms >= 0 ? ms : null;
+	}
+
 	static trigger_of(r, spend){ return spend?.by_id.get(r.id)?.trigger ?? null; }
 
 	// ---- the row set --------------------------------------------------------------------------------
@@ -203,7 +222,8 @@ export default class AISessionRows {
 		const extra = [];
 		for (const [id, ses] of AISession.all){
 			if (!ses.live || known.has(id) || !ses.ix.first_at) continue;
-			extra.push(ses.grid_row());
+			const row = ses.grid_row();
+			extra.push({ ...row, role: AISessionRows.role_of(row) });   // a session only the live index knows still gets its role
 		}
 		return extra.length ? [...rows, ...extra] : rows;
 	}
@@ -216,14 +236,15 @@ export default class AISessionRows {
 			const had = by_id.get(a.session_id);
 			by_id.set(a.session_id, {
 				id: a.id, source: "servex", session_id: a.session_id, tab_title: a.id,
-				model: a.model, state: a.state, role: a.role ?? had?.role ?? null,
+				model: a.model, state: a.state, role: a.role ?? had?.role ?? null, context: a.context ?? null,
 				cost: typeof a.cost === "number" ? a.cost : (typeof had?.cost === "number" ? had.cost : null),
 				cost_claude_usd: typeof a.cost_claude_usd === "number" ? a.cost_claude_usd : (had?.cost_claude_usd ?? null),
 				cost_openrouter_usd: typeof a.cost_openrouter_usd === "number" ? a.cost_openrouter_usd : (had?.cost_openrouter_usd ?? null),
 				ram_mb: typeof a.ram_mb === "number" ? a.ram_mb : (had?.ram_mb ?? null),
 				ram_sample_age_ms: typeof a.ram_sample_age_ms === "number" ? a.ram_sample_age_ms : (had?.ram_sample_age_ms ?? null),
 				started_at: a.started_at ?? had?.started_at ?? null,
-				stopped_at: a.stopped_at ?? had?.stopped_at ?? null,
+				// a resumed agent gets a fresh started_at but may keep the OLD run's stopped_at; an end before the start is that stale stamp (it made durations like -93102s)
+				stopped_at: AISessionRows.after(a.started_at ?? had?.started_at, a.stopped_at ?? had?.stopped_at),
 				last_activity: a.started_at ?? had?.last_activity ?? null,
 				last_prompt_first_line: null,   // the live route carries no transcript
 			});
@@ -245,7 +266,7 @@ export default class AISessionRows {
 		name:     r => AISessionRows.display_name(r, AISessionRows.tree).text.toLowerCase(),
 		cost:     r => AISessionRows.cost_value(r),
 		updated:  r => Date.parse(r.last_activity ?? 0) || null,
-		duration: r => { const e = elapsed(r.started_at, r.stopped_at ?? (AISessionRows.WORKING_STATES.has(r.state) ? new Date().toISOString() : null)); return typeof e === "number" && !isNaN(e) ? e : null; },
+		duration: r => AISessionRows.span_ms(r),
 		role:     r => r.role || null,
 		source:   r => r.source || null,
 		model:    r => r.model ? String(r.model).toLowerCase() : null,

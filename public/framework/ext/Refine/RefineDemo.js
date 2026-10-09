@@ -1,6 +1,6 @@
 import { View, div, span, p, textarea, button, h4, a } from "../../core/View/View.js";
 import ErrorLog from "../ErrorLog/ErrorLog.js";
-import Dictate from "../../ux/Dictate/Dictate.js";
+import VoiceStrip from "../../ux/Dictate/VoiceStrip.js";
 import DefaultView from "../../ux/Content/Object/DefaultView.js";
 import Prompt from "./Prompt.js";
 import RefineSystem from "./RefineSystem.js";
@@ -29,13 +29,19 @@ export default class RefineDemo extends View {
 
 		div.c("refine-demo-main", () => {
 			div.c("refine-input", () => {
-				this.$box = textarea.c().attr("placeholder", "Speak with the mic, or type or paste a prompt here…");
-				div.c("refine-input-row", () => {
-					this.dictate = new Dictate({ $input: () => this.$box.el, on_error: e => this.$note.text(String(e)) });
-					this.$go = button("Refine").click(() => this.go());
-					button("Record next prompt").click(() => this.next());
-					this.$note = span.c("refine-input-note");
+				// ux/Dictate/VoiceStrip: the one compact dictation panel (mic, steps, grey guess), fixed size.
+				this.strip = new VoiceStrip({
+					template: "full", refine: true,
+					$input: () => this.$box,   // the View, not its element: Dictate reads `.el` itself
+					toolbar: () => {
+						this.$go = button("Refine").click(() => this.go());
+						button("Record next prompt").click(() => this.next());
+					},
 				});
+				this.dictate = this.strip.dictate;
+				this.conn = this.strip.conn;
+				this.$note = span.c("refine-input-note");
+				this.$box = textarea.c().attr("placeholder", "Speak with the mic, or type or paste a prompt here…");
 			});
 			this.$result = div.c("refine-result");
 		});
@@ -81,6 +87,9 @@ export default class RefineDemo extends View {
 	draw(){
 		const prompt = this.prompt;
 		this.$result.empty(() => new Prompt.View({ subject: prompt }));
+		const st = prompt.status;
+		this.conn?.set("refine", st === "done" ? "ok" : st === "error" ? "bad" : st === "working" ? "wait" : "idle",
+			st === "done" ? `done, ${(prompt.ms / 1000).toFixed(1)} s` : st === "error" ? "error: " + String(prompt.error).slice(0, 60) : st === "working" ? "working…" : "not yet");
 		this.$debug.empty(() => new DefaultView({ subject: prompt }));
 	}
 

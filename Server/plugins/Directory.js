@@ -4,7 +4,20 @@ import watch from "../watch.js";
 
 export default class Directory {
 
+    /* `ai/sessions/<year>/` holds 32,650 machine-written files (2026-10-09: 58% of directory.json,
+     * which had grown to 16 MB) and its writers never stop, so it rebuilt the whole tree about once
+     * a second. Sessions have their own index.json files; their subtree is listed as an empty dir. */
+    static SKIP = /framework\/ai\/sessions\/\d{4}\//;
+
+    /* OFF since 2026-10-09 (the owner): one file listing the whole site is the wrong shape; each
+     * folder's own files.jsonl (PageFiles.js) is the system to lean into. The last directory.json
+     * files stay on disk, frozen, for the readers not yet moved (Server/doc/directory-off.md).
+     * DIRECTORY_JSON=on brings the rebuilds back. */
     static setup(server) {
+        if (process.env.DIRECTORY_JSON !== "on") {
+            server.directory = Object.create(Directory.prototype);   // build_dir stays usable (SocketServer/Runtime.js) with no watcher
+            return console.log("directory.json: off (frozen; DIRECTORY_JSON=on to rebuild)");
+        }
         new Directory(server);
     }
 
@@ -21,7 +34,7 @@ export default class Directory {
          * blocking walk, so those are dropped here. (This also fixes an old gap:
          * a new EMPTY directory used to appear in directory.json only once a file
          * landed in it.) The watcher itself: ../watch.js. */
-        watch((file, kind) => { if (kind === "rename") this.update(); });
+        watch((file, kind) => { if (kind === "rename" && !Directory.SKIP.test(file.replaceAll("\\", "/"))) this.update(); });
 
         this.update();
     }
@@ -69,7 +82,7 @@ export default class Directory {
             };
             entry.full = path.join(entry.path, entry.name).replace(/\\/g, '/');
 
-            if (file.isDirectory() && file.name !== ".git" && file.name !== "node_modules") {
+            if (file.isDirectory() && file.name !== ".git" && file.name !== "node_modules" && !Directory.SKIP.test(entry.full + "/")) {
                 entry.children = this.build_dir(path.join(dir, file.name));
             } else if (file.isDirectory()) {
                 entry.children = [];
