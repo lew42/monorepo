@@ -13,3 +13,5 @@
 {"file":"manifest.json"}
 {"file":"migrate.mjs"}
 {"file":"STATE.md"}
+{"file":"layout-check/"}
+{"file":"spend.json"}

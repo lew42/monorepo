@@ -1,6 +1,10 @@
 # Merge AI 2 into AI — archive and move, never delete
 
-Owner (2026-10-08, dictated): the intent was to merge the AI 2 dashboard (`public/framework/ai2/`) into the main AI module (`public/framework/ai/`) and not leave a zombie; nothing may be deleted, data is ported by **moving** it (no rewriting), no duplicates. The task audit's work item 3 ("page" cluster; `public/framework/ai/2026-10-08/task-audit/work-items.md`, merge 2 from `2026-09-24/card-consolidation/`) says the same. Related facts already written: `public/framework/ai/doc/ai2-and-date-layout-2026-10-08.md` (ai2 has no data tree of its own; `/framework/ai2/<date>/<card>/` is another URL for cards stored under `ai/YYYY/MM/DD/`), and `ai-system-docs` inventory/plan if present.
+**Goal (owner, 2026-10-08):** fold the AI 2 dashboard (`public/framework/ai2/`) into the AI module (`public/framework/ai/`) so no zombie is left.
+
+- **Rules:** nothing is deleted; data is moved by script, never rewritten; no duplicates.
+- **Same ask elsewhere:** work item 3 in `public/framework/ai/2026-10-08/task-audit/work-items.md`.
+- **Key fact:** ai2 has no data tree of its own. `/framework/ai2/<date>/<card>/` is just another URL for cards stored under `ai/YYYY/MM/DD/` (`ai/doc/ai2-and-date-layout-2026-10-08.md`).
 
 You are a **Sonnet 5.5 mastermind** owning this task end to end; build it yourself (Haiku 5.5 minion via `spawn_agent`, parent = you, only for cheap reading, under 60k tokens). Work in a **worktree**; scripted moves only (see CLAUDE.md "Moves and renames are scripted"); smoke-test, commit after each working step, review the diff, merge. Run `node Server/usage-now.mjs` before spawning. No OpenRouter. Keep `STATE.md` in this dir current so a fresh session can resume. Everything you create is linked from the site. One-sentence chat replies.
 
