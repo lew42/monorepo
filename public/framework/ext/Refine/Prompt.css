@@ -1,0 +1,36 @@
+/* Prompt.View and the Refine demo page: two columns (what was said | what it became),
+   the demo above the saved ladder. Tokens only; the yellow flag is --warn, never an error. */
+
+@layer util {
+
+	.refine-demo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); margin-block-end: var(--gap); }
+	@media (min-width: 1200px) { .refine-demo { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
+
+	.refine-input { display: flex; flex-direction: column; gap: 0.5em; }
+	.refine-input textarea { width: 100%; min-height: 6em; font: inherit; }
+	.refine-input-row { display: flex; flex-wrap: wrap; gap: 0.5em; align-items: center; }
+	.refine-input-note { color: var(--muted, inherit); opacity: 0.75; font-size: 0.9em; }
+
+	.refine-prompt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); }
+	@media (min-width: 700px) { .refine-prompt { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+	.refine-prompt-h { margin-block: 0.5em 0.25em; }
+	.refine-prompt-raw { opacity: 0.8; }
+	.refine-error { color: var(--error); }
+
+	.refine-sentence { display: flex; flex-wrap: wrap; gap: 0.4em; align-items: baseline; padding: 0.25em 0.4em; border-radius: 0.3em; cursor: pointer; }
+	.refine-sentence.lit, .refine-card.lit { background: color-mix(in srgb, var(--warn) 25%, transparent); }
+	.refine-s-num { font-weight: 600; opacity: 0.6; }
+	.refine-s-scores { font-size: 0.8em; opacity: 0.55; margin-inline-start: auto; }
+	.refine-flag { color: var(--warn); font-weight: 700; cursor: help; }
+
+	.refine-card { padding: 0.3em 0.5em; border-inline-start: 2px solid color-mix(in srgb, currentColor 25%, transparent); margin-block: 0.25em; }
+	.refine-card-top { margin-block: 0.6em; }
+	.refine-card-title { font-weight: 600; }
+	.refine-subcards { margin-inline-start: 0.75em; }
+	.refine-cite { font: inherit; font-size: 0.75em; padding: 0 0.4em; margin-inline-start: 0.3em; border-radius: 1em; cursor: pointer; }
+
+	.refine-class-card { display: flex; flex-direction: column; gap: 0.4em; padding: 0.6em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 0.5em; margin-block-end: var(--gap); }
+	.refine-part { display: flex; flex-direction: column; padding-block: 0.25em; border-block-start: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+	.refine-part-job { font-size: 0.9em; }
+	.refine-class-key { font-family: monospace; }
+}

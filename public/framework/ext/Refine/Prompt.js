@@ -1,0 +1,160 @@
+import Scorer from "./Scorer.js";
+import { View, div, span, p, h4, button } from "../../core/View/View.js";
+
+View.stylesheet(import.meta, "Prompt.css");
+
+/**
+ * class Prompt — ONE prompt, seen at every step of its refinement (the owner's design:
+ * `doc/vision-2026-10-08.md`, addendum 2). It only holds data; it does not clean,
+ * structure or score anything itself — `RefineSystem` sends the text to Servex
+ * (`/api/refine`), which runs the SAME `engine.js` `clean()` and `structure.js`
+ * `structure()` Echo runs, so there is still exactly one pipeline.
+ *
+ *   const prompt = new Prompt({ on_change: () => redraw() });
+ *   prompt.load(await (await fetch("/api/refine", …)).json());   // RefineSystem does this for you
+ *   prompt.clean[0]      // { n, text, clarity, weight, flags, alternates, names, card }
+ *   prompt.refined       // [{ title, cites, cards: [{ text, cites, cards: [...] }] }]
+ *   prompt.view          // a Prompt.View: the rendered result (the debug tree is DefaultView)
+ *
+ * Only plain data lives on an instance (strings, numbers, arrays, objects) so the debug
+ * tree (`ux/Content/Object/DefaultView.js`) can show every property by type.
+ *
+ * Scores come from `Scorer` (rules; see `doc/prompt.md`). The whole system: `doc/architecture.md`.
+ */
+export default class Prompt {
+
+	static icon = "article";
+	static LOW_CLARITY = 0.6;   // below this a sentence gets the yellow flag
+
+	status = "empty";   // empty | working | done | error
+	raw = "";
+	subject = "";       // the "# heading" of the refined outline: what the prompt is about
+	clean = [];
+	refined = [];
+	ms = 0;
+	error = "";
+
+	constructor(...args){ Object.assign(this, ...args); }
+
+	/** Fill the instance from one `/api/refine` answer (also how a saved answer is replayed). */
+	load({ clean, structure, ms }){
+		const parsed = Prompt.parse_outline(structure?.md ?? "");
+		this.subject = parsed.subject;
+		this.refined = parsed.sections;
+		this.ms = ms ?? 0;
+		this.clean = (clean?.sentences ?? []).map(s => ({
+			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], card: "",
+		}));
+		Scorer.score(this, { clean, structure });
+		this.set({ status: "done" });
+	}
+
+	set(fields){
+		Object.assign(this, fields);
+		this.on_change?.(this);
+		return this;
+	}
+
+	sentence(n){ return this.clean.find(s => s.n === n); }
+
+	/** Sentences worth a yellow flag: unclear enough, or the pipeline asked a question about them. */
+	get flagged(){ return this.clean.filter(s => s.clarity < Prompt.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
+
+	/**
+	 * The outline `structure()` writes ("# subject", "## card", "- sub-card [S1, S2]", indented
+	 * deeper bullets) as nested cards. (`Refine.js`'s `parse_structured` flattens the nesting
+	 * and drops the "#" line, which this view needs, so this is the nested sibling of it.)
+	 */
+	static parse_outline(md){
+		let subject = "";
+		const sections = [];
+		let sec = null;
+		const stack = [];   // [{indent, card}]
+		const cites = text => {
+			const found = new Set();
+			for (const m of text.matchAll(/S(\d+)\s*[-–]\s*S(\d+)/g))
+				for (let n = Math.min(+m[1], +m[2]); n <= Math.max(+m[1], +m[2]); n++) found.add(n);
+			for (const m of text.replace(/S\d+\s*[-–]\s*S\d+/g, " ").matchAll(/S(\d+)/g)) found.add(+m[1]);
+			return [...found].sort((a, b) => a - b);
+		};
+		const strip = text => text.replace(/\[[^\]]*S\d[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
+		for (const line of String(md).split(/\r?\n/)){
+			const h = /^(#{1,3})\s+(.+)$/.exec(line);
+			if (h){
+				if (h[1] === "#" && !subject){ subject = strip(h[2]); continue; }
+				sec = { title: strip(h[2]), cites: cites(h[2]), cards: [] };
+				sections.push(sec); stack.length = 0;
+				continue;
+			}
+			const b = /^(\s*)[-*]\s+(.+)$/.exec(line);
+			if (!b) continue;
+			if (!sec){ sec = { title: subject || "Overview", cites: [], cards: [] }; sections.push(sec); }
+			const indent = b[1].replace(/\t/g, "  ").length;
+			const card = { text: strip(b[2]), cites: cites(b[2]), cards: [] };
+			while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
+			(stack.length ? stack[stack.length - 1].card.cards : sec.cards).push(card);
+			stack.push({ indent, card });
+		}
+		return { subject, sections };
+	}
+
+	/** The rendered result. */
+	get view(){ return new this.constructor.View({ subject: this }); }
+
+}
+
+/** Prompt.View — raw, clean (with scores and yellow flags), refined cards. A sentence and a
+ *  card's source chip are linked: click either and the other side lights up. */
+Prompt.View = class extends View {
+
+	render(){
+		const prompt = this.subject;
+		this.ac("refine-prompt");
+
+		if (prompt.status === "empty") return p.c("refine-empty", "Say or type a prompt, then press Refine.");
+		if (prompt.status === "working") return p.c("refine-empty", "Refining… (clean, then structure — a few seconds)");
+		if (prompt.status === "error") return p.c("refine-error", "Could not refine: " + prompt.error);
+
+		const sentence_els = new Map();
+		const light = n => {
+			sentence_els.forEach(($s, k) => $s.el.classList.toggle("lit", k === n));
+			sentence_els.get(n)?.el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+		};
+
+		div.c("refine-prompt-col", () => {
+			h4.c("refine-prompt-h", "Raw — as heard");
+			p.c("refine-prompt-raw", prompt.raw);
+
+			h4.c("refine-prompt-h", "Clean — numbered, near-verbatim");
+			prompt.clean.forEach(s => {
+				const $s = div.c("refine-sentence", () => {
+					span.c("refine-s-num", "S" + s.n);
+					span.c("refine-s-text", s.text);
+					if (prompt.flagged.includes(s)){
+						const q = s.flags.map(f => f.question).join(" ") || "This one may be unclear.";
+						span.c("refine-flag", "⚑").attr("title", q);
+					}
+					span.c("refine-s-scores", `clarity ${s.clarity} · weight ${s.weight}`);
+				});
+				$s.click(() => light(s.n));
+				sentence_els.set(s.n, $s);
+			});
+		});
+
+		div.c("refine-prompt-col", () => {
+			h4.c("refine-prompt-h", "Refined — " + (prompt.subject || "cards"));
+			const cites = list => list.forEach(n => button.c("refine-cite", "S" + n).click(() => light(n)));
+			const draw = cards => cards.forEach(c => div.c("refine-card", () => {
+				span.c("refine-card-text", c.text);
+				cites(c.cites);
+				if (c.cards.length) div.c("refine-subcards", () => draw(c.cards));
+			}));
+			prompt.refined.forEach(sec => div.c("refine-card refine-card-top", () => {
+				span.c("refine-card-text refine-card-title", sec.title);
+				cites(sec.cites);
+				div.c("refine-subcards", () => draw(sec.cards));
+			}));
+			p.c("refine-s-scores", `${prompt.clean.length} sentences · ${prompt.flagged.length} flagged · ${(prompt.ms / 1000).toFixed(1)}s`);
+		});
+	}
+};
