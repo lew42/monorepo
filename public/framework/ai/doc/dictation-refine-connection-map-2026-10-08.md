@@ -1,6 +1,6 @@
 # Dictation, clean and cost: how the pieces connect (2026-10-08)
 
-Every finished sentence is posted to Servex's session log. Servex then runs `clean()` and `structure()` (in `ext/Refine/engine.js` and `structure.js`) on that same sentence, through Echo, and writes a `refined` line. The chat window shows that line's cost as `refined · $x`, so the money you saw is the clean step, not the fast assistant.
+There are two clean paths. The browser one (`Revise.run` in Dictate, then `/api/tidy`) is off by default and writes no cost line. The one that produces the `refined · $x` box is the Servex one: every finished sentence is posted to Servex's session log. Servex then runs `clean()` and `structure()` (in `ext/Refine/engine.js` and `structure.js`) on that same sentence, through Echo, and writes a `refined` line. The chat window shows that line's cost as `refined · $x`, so the money you saw is the clean-and-structure step, not the fast assistant.
 
 `Server/refine.mjs` is a dev-only batch tool and is not on the live dictation path.
 
@@ -29,7 +29,7 @@ Every finished sentence is posted to Servex's session log. Servex then runs `cle
 
 ## Unknowns
 
-- I did not confirm the exact URL `Revise.run` posts to. The file is `public/framework/ux/Revise/Revise.js`, not read. It probably reaches `/api/tidy`.
+- `Revise.run` (`ux/Revise/Revise.js:8`) posts to `servex_url("/api/tidy")`.
 - I did not trace whether each sentence also wakes `assistant-fast`. `Sessions.say()` wakes the assistants (its comments say so), but I did not follow that path.
 - I did not check whether `Assistant.js` is still running on your machine right now. That depends on the `SERVEX_NO_ASSISTANT` setting.
-- I did not check `Servex/Servex.js` line 275 for a switch that turns off `Sessions`.
+- `Servex.js:273`: `SERVEX_NO_LAYERS` turns off Layers, Global and Sessions, and with them the `refined` cost line.
