@@ -99,7 +99,7 @@ back the same way.
 **"page.jsonl pages included" (the owner's own words)** — `sync-icon.mjs`'s `resolve_icon()`
 checks for a `page.js` first, same as always, and when a url has none but a `page.jsonl` instead,
 reads that page's own first (`assign`) line for its `class` (the template it renders through,
-e.g. `/framework/ai2/card.js`) and borrows THAT page's icon. No current `refs.js` entry is
+e.g. `/framework/ai/cards/card.js`) and borrows THAT page's icon. No current `refs.js` entry is
 backed by a page.jsonl page — the curated ~30 are all classic modules — but a future one the
 owner adds works the same way, through the one function, not a second code path.
 

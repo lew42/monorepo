@@ -24,7 +24,7 @@ const cards = {
 	transcript: id => (logs.get(id) ?? []).map(l => JSON.stringify(l)).join("\n"),
 	append(id, line){ logs.get(id).push(line); },
 	on(fn){ listeners.push(fn); return () => {}; },
-	make(id){ logs.set(id, [{ class: "/framework/ai2/card.js", id, title: id }]); }
+	make(id){ logs.set(id, [{ class: "/framework/ai/cards/card.js", id, title: id }]); }
 };
 const prompt = (card, text) => {
 	const p = { id: "p-" + Math.random().toString(36).slice(2), text, raw: text, on: card };

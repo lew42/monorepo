@@ -1,7 +1,7 @@
 # overview.json — how it is built
 
 `Server/ai2-overview.mjs` reads every task's `task.jsonl` (~800) plus the owner's own prompts in
-`.claude/prompts/*.jsonl`, and writes `public/framework/ai2/overview/overview.json`. The Overview
+`.claude/prompts/*.jsonl`, and writes `public/framework/ai/rail/overview/overview.json`. The Overview
 tab's page reads that file straight off disk; it does no computing of its own.
 
 **How a task joins a concept:** the seven concepts (Servex, Page, View, App, AI 2, Dictation,

@@ -32,7 +32,7 @@ Line 1 builds the card; every later line is one change, and the latest line wins
 
 | Line | Meaning |
 |---|---|
-| `{"class": "/framework/ai2/card.js", "title", "type", "id", "created", "by", "tags": []}` | Line 1 only. |
+| `{"class": "/framework/ai/cards/card.js", "title", "type", "id", "created", "by", "tags": []}` | Line 1 only. |
 | `{"type": "request"}` | Turns the card into another kind — question, request, task… |
 | `{"tags": ["site"]}` · `{"status": "open"\|"done"}` · `{"title": "…"}` | Latest wins. |
 | `{"message": {"by", "text", "at", "kind", "id", "re"}}` | Anything said or that happened (`kind` = reply, update, task…). `at` and `id` are stamped if missing. |

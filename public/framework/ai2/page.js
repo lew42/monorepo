@@ -1,9 +1,9 @@
 import { Page, View, div, span, small, a, h1 } from "/app.js";
-import AIRail, { card_page } from "./rail.js";
-import overview from "./overview.js";
-import needs_view from "./needs.js";
-import log_view from "./log.js";
-import { LIVE } from "./live.js";
+import AIRail, { card_page } from "../ai/rail/rail.js";
+import overview from "../ai/rail/overview.js";
+import needs_view from "../ai/rail/needs.js";
+import log_view from "../ai/rail/log.js";
+import { LIVE } from "../ai/rail/live.js";
 
 // ai2.css is only the v1 screens this file routes to (needs/, log/, overview/);
 // everything about a card's own look is the ux block, loaded here too because this

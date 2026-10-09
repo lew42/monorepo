@@ -578,7 +578,7 @@ filtered list with to-do first, and Live opens no chat until you click. Walkthro
 
 ## Open
 
-- Reserve the `floating-` prefix in `styles/css-scopes.txt` (outside this task's fence): `floating-   /framework/ai2/floating.js (moving to core/Page Layout)`.
+- Reserve the `floating-` prefix in `styles/css-scopes.txt` (outside this task's fence): `floating-   /framework/ai/cards/floating.js (moving to core/Page Layout)`.
 
 # Inbox default, the Log tab, and a stable rail (2026-09-30)
 

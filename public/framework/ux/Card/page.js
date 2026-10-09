@@ -72,7 +72,7 @@ export default new Page({
 
 		details.c("ai2-more", () => {
 			summary.c("ai2-more-head muted").text("Where each piece comes from");
-			md("The head, the outline, the properties sidebar and the grid are [`ai2/card.js`](/framework/ai2/card.js)'s own markup; this demo copies the classes by hand so the look can be seen with no real card to open. The Live row is the same `.ai2-live-item` every row in [the Live card](/framework/ai2/live/) wears.");
+			md("The head, the outline, the properties sidebar and the grid are [`ai2/card.js`](/framework/ai/cards/card.js)'s own markup; this demo copies the classes by hand so the look can be seen with no real card to open. The Live row is the same `.ai2-live-item` every row in [the Live card](/framework/ai2/live/) wears.");
 		});
 
 		md("The whole look, as CSS alone: [`Card.css`](/framework/ux/Card/Card.css).");

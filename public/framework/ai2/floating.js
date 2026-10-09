@@ -1,4 +1,3 @@
-/* The floating page moved into core/Page/layout/floating/ (core/Page's Layout tab, "Floating
-   page" word). This file just re-exports it so AI 2's workspace view needs no other change. */
-export * from "/framework/core/Page/layout/floating/floating.js";
-export { default } from "/framework/core/Page/layout/floating/floating.js";
+// Moved to ai/cards/floating.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+export * from "../ai/cards/floating.js";
+export { default } from "../ai/cards/floating.js";

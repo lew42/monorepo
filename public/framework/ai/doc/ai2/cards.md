@@ -18,7 +18,7 @@ readme defines every line.
 
 ## card.js is the card's page
 
-Line 1 of every card's `page.jsonl` says `"class": "/framework/ai2/card.js"`, so core's
+Line 1 of every card's `page.jsonl` says `"class": "/framework/ai/cards/card.js"`, so core's
 `Page.jsonl()` builds a `Card`, and every later line is `card.set(line)`. A key that names a
 method calls it; anything else is kept as data. The methods are the vocabulary:
 

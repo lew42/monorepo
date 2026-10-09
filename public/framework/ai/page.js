@@ -1,5 +1,5 @@
 import { Page, md, div, a, h1, icon, span, AITask } from "/app.js";
-import AIRail, { card_page } from "/framework/ai2/rail.js";   // the Inbox and Log tabs: the same rail AI 2 draws
+import AIRail, { card_page } from "/framework/ai/rail/rail.js";   // the Inbox and Log tabs: the same rail AI 2 draws
 
 /* WHAT A RAIL ROW CAN BE CALLED — the tabs beside it, Live, Now, the views, a changed site
    page, a dated card folder (`2026/…`), and the ids of rows that are not folders: a spoken

@@ -27,7 +27,7 @@ const catchUp = args.includes("--catch-up");
 const oi = args.indexOf("--out");
 const out = path.resolve(oi >= 0 ? args[oi + 1] : path.join(root, "public/framework/ai"));
 
-const CLASS = "/framework/ai2/card.js";
+const CLASS = "/framework/ai/cards/card.js";
 const NOT_CARDS = new Set(["live", "state"]);            // streams, not cards
 const listing = child => ({ file: `${child}/page.jsonl` }); // the one shape of a parent's listing line
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];

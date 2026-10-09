@@ -118,11 +118,11 @@ const dirty_before = new Set(dirty());
 let touched = [];
 /* Check 8 needs ai2-dashboard's groups file, which this branch does not have
  * yet: copied in from michael/dev for the run, removed again at cleanup. */
-const GROUPS = path.join(REPO, "public/framework/ai2/groups.json");
+const GROUPS = path.join(REPO, "public/framework/ai/rail/groups.json");
 const groups_before = fs.existsSync(GROUPS);
 function groups_in(){
 	if (groups_before) return JSON.parse(fs.readFileSync(GROUPS, "utf8"));
-	const text = execFileSync("git", ["show", "michael/dev:public/framework/ai2/groups.json"], { cwd: REPO, encoding: "utf8", windowsHide: true });
+	const text = execFileSync("git", ["show", "michael/dev:public/framework/ai/rail/groups.json"], { cwd: REPO, encoding: "utf8", windowsHide: true });
 	fs.writeFileSync(GROUPS, text);
 	return JSON.parse(text);
 }

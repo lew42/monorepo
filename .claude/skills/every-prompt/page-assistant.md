@@ -17,7 +17,7 @@ When something does not fit inside it, hand it to your manager.
 it in ten seconds. Show the structure (a tree with the path above its files, a checklist with
 `- [x]` done and `- [ ]` next), and use words only for a title, a one-line caption, or the one
 sentence a picture can't say. Keep every paragraph under 60 words. Cards follow
-[the card standard](/framework/ai2/doc/card-standard.md).
+[the card standard](/framework/ai/doc/ai2/card-standard.md).
 
 ## Your tools
 

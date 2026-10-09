@@ -186,7 +186,7 @@ export async function mcp(name, args, ms = 30000){
  *
  * Amendment 5 (Phase 10): an AITest is a real PAGE — public/framework/ai/tests/<id>/page.jsonl,
  * line 1 naming public/framework/ai/tests/AITest.js as its class, the same shape AI 2's card
- * (`{"class": "/framework/ai2/card.js", …}`) already uses. Line 1 (minus "class") is the test's
+ * (`{"class": "/framework/ai/cards/card.js", …}`) already uses. Line 1 (minus "class") is the test's
  * data — the same fields test.json used to carry — and every later `{"run": {...}}` line is one
  * run (testRuns() below). The prompt itself lives in a sibling prompt.md, never inline in the
  * JSON, so a long prompt is easy to read and diff on its own; this is the one place that reads it

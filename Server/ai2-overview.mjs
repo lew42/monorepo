@@ -1,4 +1,4 @@
-// Server/ai2-overview.mjs — builds public/framework/ai2/overview/overview.json
+// Server/ai2-overview.mjs — builds public/framework/ai/rail/overview/overview.json
 //
 // Plain node, no dependency, run it with:  node Server/ai2-overview.mjs
 // (must be run from the repo root, so its relative reads below find the files)
@@ -9,7 +9,7 @@
 // Overview tab's page.js reads straight off disk — no server route, no
 // live computation in the browser.
 //
-// See public/framework/ai2/doc/overview.md for how a task joins a concept
+// See public/framework/ai/doc/ai2/overview.md for how a task joins a concept
 // and how to change the concept list.
 
 import fs from "node:fs";
@@ -17,7 +17,7 @@ import path from "node:path";
 
 const ROOT = process.cwd(); // must be the repo root — see the header comment
 const AI_DIR = path.join(ROOT, "public/framework/ai");
-const OUT_FILE = path.join(ROOT, "public/framework/ai2/overview/overview.json");
+const OUT_FILE = path.join(ROOT, "public/framework/ai/rail/overview/overview.json");
 const PROMPTS_DIR = path.join(ROOT, ".claude/prompts");
 
 // ---------------------------------------------------------------------------

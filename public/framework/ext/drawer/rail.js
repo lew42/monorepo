@@ -571,7 +571,7 @@ export class DrawerRailSheetV1 extends View {
 			return;
 		}
 		const token = this.sync_token = (this.sync_token ?? 0) + 1;
-		import("/framework/ai2/chat.js").then(m => {
+		import("/framework/ai/cards/chat.js").then(m => {
 			if (this.sync_token !== token) return;   // moved to a different card (or a plain page) while this loaded
 			this.$thread.empty(() => {
 				this.talk = m.default({ source: () => card.chat_entries(), re: () => card.id });
