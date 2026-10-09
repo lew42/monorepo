@@ -228,7 +228,7 @@ export function tab_page(root, name, url = root.url + name + "/"){
 		content(){
 			md("**CLAUDE.md is the one skill every agent loads by itself.** It is all an agent knows before it asks, so it holds the laws, and one line for each system that has an effect, with a link. How to do anything goes one click down, in a skill.");
 			div.c("wide", () => div().style({ display: "grid", gap: "2rem", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 30rem), 1fr))", alignItems: "start" }).append(() => {
-				div(() => { small.c("muted", "The file, as agents get it. It is a copy: node public/framework/ai/skills.mjs refreshes it."); const $file = div(); code.file(import.meta, "CLAUDE.md", { lang: "markdown", lines: true }).then(v => $file.append(v)); });
+				div(() => { small.c("muted", "The file, as agents get it. It is a copy: node public/framework/ai/skills.mjs refreshes it."); const $file = div(); code.file(import.meta, "CLAUDE.copy.md", { lang: "markdown", lines: true }).then(v => $file.append(v)); });
 				div.c("flex v gap", () => {
 					heading("What goes in it", "Anything that changes what an agent does on its first turn.");
 					md("- The laws, the presentation rule, the ask-before list, the traps that never throw.\n- One line per system that has an effect: its name, the effect, a link.");

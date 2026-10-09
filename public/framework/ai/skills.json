@@ -33,9 +33,9 @@
 		"id": "code",
 		"title": "Code",
 		"kind": "reference",
-		"for": "Load once per session before writing or editing JS under public/ — the lifecycle of a task, house style (assign-based OOP, every method a seam, parts as static subclasses), and the traps that never throw.",
+		"for": "Load once per session before writing or editing JS under public/ — classes not function bags (one class per file, named for the file, page templates extend Page), assign-based OOP, every method a seam, the lifecycle of a task, and the traps that never throw.",
 		"when": "Reference skill; reload only after a long gap. Companions it will remind you of — new-task, layout, css, new-css-class, new-page, documentation, finish-task.",
-		"lines": 19,
+		"lines": 40,
 		"improvements": true,
 		"questions": []
 	},
@@ -55,7 +55,7 @@
 		"kind": "trigger",
 		"for": "Invoke before writing anything the owner will read — a card, a report, a task outcome, a readme, a page's text, a chat reply.",
 		"when": "How to make it understood at a glance. Thirty seconds; re-read it whenever a reply is getting long.",
-		"lines": 16,
+		"lines": 18,
 		"improvements": false,
 		"questions": []
 	},
@@ -85,7 +85,7 @@
 		"kind": "trigger",
 		"for": "Run once a task's decisions are made and before finish-task — makes the touched module's docs current and conclusive: readme.md (the reader's index), page.js (show, don't tell), doc/*.md (the detail, one topic each).",
 		"when": "Also when asked to document, audit docs, write a readme, or add a doc page. Trigger skill: every task that touched a module under public/.",
-		"lines": 79,
+		"lines": 87,
 		"improvements": true,
 		"questions": []
 	},
@@ -105,7 +105,7 @@
 		"kind": "trigger",
 		"for": "Run every time a task lands — the closing report the /framework/ai/ board renders: a landing line whose `outcome` is the report (a headline, then links to everything produced, a picture when there is one, what was left), the deliverables linked from where a reader already is, and the day log closed.",
 		"when": "Simple, clear, visual — a screen, not an essay. Trigger skill; the Stop hook will nag until it runs.",
-		"lines": 97,
+		"lines": 101,
 		"improvements": true,
 		"questions": []
 	},
@@ -125,7 +125,7 @@
 		"kind": "reference",
 		"for": "Invoke before building or restyling anything with a size — a page, a container, a card, a grid, a dashboard — and again when a page looks cramped, squeezed, or wastes the screen.",
 		"when": "Reference; re-invoke when stale.",
-		"lines": 14,
+		"lines": 15,
 		"improvements": true,
 		"questions": []
 	},
@@ -145,7 +145,7 @@
 		"kind": "role",
 		"for": "Become the master assistant — the supervising half of the front desk.",
 		"when": "You know what is going on, you give an opinion in one or two sentences when the fast assistant or the mastermind asks, you keep one page current on how the process itself is going, and between questions you are the system auditor. You do no building and never edit the site. Opus; Fable for an architecture question.",
-		"lines": 53,
+		"lines": 58,
 		"improvements": true,
 		"questions": []
 	},
@@ -155,7 +155,7 @@
 		"kind": "role",
 		"for": "Become the mastermind — the continuously-running Fable executive that governs the usage budget, finds the highest-priority work, and spawns minions down the model ladder (Haiku scans, Sonnet builds, Opus judges, Fable when the owner says) to do it — several tasks at once.",
 		"when": "Invoke on \"you are the mastermind, begin\", \"/mastermind\", or any wakeup carrying /mastermind. Fable decides, workers execute; only the owner stands it down.",
-		"lines": 489,
+		"lines": 532,
 		"improvements": true,
 		"questions": []
 	},
@@ -165,7 +165,7 @@
 		"kind": "trigger",
 		"for": "Load this first, before touching anything, when you have been started as a minion — a worker `claude` CLI session, with its own session id, given a task and a requirements.md brief to execute for the mastermind or another orchestrator.",
 		"when": "Triggers on \"you are a minion\", \"your brief is at\", or any prompt that names a requirements.md. Points you at your brief, the three laws, the never-list that has actually burned agents before, and how to land.",
-		"lines": 141,
+		"lines": 143,
 		"improvements": true,
 		"questions": []
 	},
@@ -240,6 +240,26 @@
 		"questions": []
 	},
 	{
+		"id": "performance",
+		"title": "Performance",
+		"kind": "trigger",
+		"for": "Invoke before building anything that shows many items (a list, grid, table, log, feed) or a drag / resize / scroll gesture, and when a page or the machine feels slow.",
+		"when": "Draw only what's visible, one variable per drag, measure the load.",
+		"lines": 15,
+		"improvements": false,
+		"questions": []
+	},
+	{
+		"id": "prompt-refine",
+		"title": "Prompt refine",
+		"kind": "trigger",
+		"for": "Refine one of the OWNER's prompts (a VS Code tab message or a Dictate/chat message) into a structured card without losing a word.",
+		"when": "Load once, as an assistant's standing instructions; never re-invoke per prompt. Not for minion, mastermind or reviewer prompts.",
+		"lines": 19,
+		"improvements": false,
+		"questions": []
+	},
+	{
 		"id": "research",
 		"title": "Research",
 		"kind": "trigger",
@@ -255,7 +275,7 @@
 		"kind": "role",
 		"for": "Become the fresh-eyes reviewer — one pass that checks finished work against the owner's asks and every design system (page, navigation, layout, sizing, wrapping, spacing, colour, flow, words), answering each system's questions with a screenshot or a number as proof.",
 		"when": "Invoke on \"review\", \"use your review skill\", \"fresh-eyes review\", \"review this page\", or when Server/review.mjs starts you.",
-		"lines": 94,
+		"lines": 87,
 		"improvements": false,
 		"questions": []
 	},
@@ -265,7 +285,7 @@
 		"kind": "role",
 		"for": "Become the Servex Mastermind — the systems architect that runs on Servex as `mastermind-servex`.",
 		"when": "You oversee how the whole agent system works (quality audits of layout, contrast and use of space; spend; coordination; crashes) and improve the SYSTEM (skills, briefs, tools), never doing routine work yourself. Load when started as mastermind-servex, or on \"you are the Servex mastermind\".",
-		"lines": 107,
+		"lines": 128,
 		"improvements": true,
 		"questions": []
 	},
@@ -285,8 +305,18 @@
 		"kind": "role",
 		"for": "Become a task mastermind — the agent that owns exactly ONE task end to end.",
 		"when": "The master-mastermind hands you a requirements page and a fence; you decide whether the task needs a worktree, split it into minion-sized pieces with non-overlapping file fences, spawn and watch the minions, judge each deliverable against the owner's own sentence, land the task, and report one screen upward. Invoke when a brief names you a task mastermind, or on \"you own this task\".",
-		"lines": 261,
+		"lines": 269,
 		"improvements": true,
+		"questions": []
+	},
+	{
+		"id": "system-architect",
+		"title": "System architect (outline, not yet built)",
+		"kind": "trigger",
+		"for": "DRAFT OUTLINE (2026-10-09).",
+		"when": "Become the system-architecture mastermind that reads every skill plus every file each skill references, so it understands the whole system and can spot gaps, conflicts and stale rules. Load when asked for a whole-system review or \"you are the system architect\". Does not replace servex-mastermind.",
+		"lines": 19,
+		"improvements": false,
 		"questions": []
 	},
 	{
@@ -305,7 +335,7 @@
 		"kind": "trigger",
 		"for": "Prove a UI interaction instead of describing it — drive the page headless and screenshot after every gesture.",
 		"when": "Use for \"test the drag\", \"does the resize work\", \"ui-test this page\", any drag / drop / sort / resize / hover / keyboard / pointer gesture you must show working, a layout you suspect is broken at some size, and for \"force the state and shoot it\" when the state is easier to set than to reach.",
-		"lines": 286,
+		"lines": 292,
 		"improvements": true,
 		"questions": []
 	}
