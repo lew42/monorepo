@@ -38,7 +38,7 @@ export default class AISessionFlags {
 		// The newest sign of life: the live index (always current), or the transcript's last line from session-flags.json,
 		// which counts only while that file is fresh. With neither, a quiet session cannot be proven stalled, so it is not flagged.
 		const fresh = now - AISessionFlags.generated_at < AISessionFlags.LIMITS.fresh_ms;
-		const last = Math.max(Date.parse(AISession.all.get(r.session_id || r.id)?.ix.last_activity ?? 0) || 0, fresh ? Date.parse(f?.last ?? 0) || 0 : 0, r.source === "servex" ? 0 : Date.parse(r.last_activity ?? 0) || 0);
+		const last = fresh ? Date.parse(f?.last ?? 0) || 0 : 0;
 		if (AISessionRows.WORKING_STATES.has(r.state) && last && now - last >= LIMITS.quiet_ms) out.push("stalled");
 		if ((r.context ?? f?.ctx ?? 0) > LIMITS.ctx) out.push("bloat");
 		const model = String(r.model ?? f?.model ?? ""), role = f?.role ?? r.role ?? "";
