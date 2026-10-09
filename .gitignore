@@ -143,3 +143,4 @@ public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/page.j
 public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/trace.json
 public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/card/
 public/framework/ai/sessions/openrouter-reconcile.json
+public/framework/ai/sessions/openrouter-costs.json
