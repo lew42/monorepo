@@ -28,7 +28,7 @@ export default class SessionClassPage extends Page {
 		const demo = div.c("wide flex gap-100").style({ alignItems: "flex-start", flexWrap: "wrap" });
 		const note = small.c("muted", "Loading the live session index…");
 		demo.append(() => {
-			this.$view = div.c("flex v gap-50 session-demo-view").style({ flex: "1 1 24rem", minWidth: 0 });
+			this.$view = div.c("flex v gap-50 session-demo-view").style({ flex: "1 1 24rem", minWidth: 0, overflowX: "auto" });
 			this.$tree = div.c("flex v gap-50 session-demo-tree").style({ flex: "1 1 24rem", minWidth: 0 });
 		});
 		this.start(note);
@@ -61,7 +61,10 @@ export default class SessionClassPage extends Page {
 
 	draw(){
 		const ses = this.session;
-		this.$view.empty(() => { strong("Rendered: session.render()"); div.c("sessions-grid", () => ses.render()); });
-		this.$tree.empty(() => { strong("Debug tree: inspect(session)"); inspect(ses, { variant: "card" }); });
+		this.$view.empty(() => { strong("Rendered: session.render()"); div.c("sessions-grid", () => { div.c("sessions-head", () => SessionRows.COLUMNS.forEach(c => div.c("sessions-cell sessions-head-cell", c.label))); ses.render(); }); });
+		this.$tree.empty(() => {
+			strong("Debug tree: inspect(session)"); inspect(ses, { variant: "card" });
+			strong("session.ix: the fields the grid reads, live"); inspect(ses.ix, { variant: "card" });
+		});
 	}
 }
