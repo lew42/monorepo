@@ -33,20 +33,30 @@ export default class Prompt {
 	refined = [];
 	ms = 0;
 	error = "";
+	stages = {};        // { clean_ms, structure_ms, clarity_ms } from the server
+	runs = [];          // one per model call: { stage, model, session_id, cost_usd, duration_ms, tokens }
+	timings = {};       // { quick_ms } measured in the browser
+	quick = false;      // true while `clean` holds the instant (no-model) clean, before the real one lands
 
 	constructor(...args){ Object.assign(this, ...args); }
 
 	/** Fill the instance from one `/api/refine` answer (also how a saved answer is replayed). */
-	load({ clean, structure, ms }){
+	load({ clean, structure, ms, clarity, stages, runs }){
 		const parsed = Prompt.parse_outline(structure?.md ?? "");
 		this.subject = parsed.subject;
 		this.refined = parsed.sections;
 		this.ms = ms ?? 0;
 		this.clean = (clean?.sentences ?? []).map(s => ({
-			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], card: "",
+			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], card: "", why: "",
 		}));
 		Scorer.score(this, { clean, structure });
-		this.set({ status: "done" });
+		// The cheap model's per-sentence score replaces the rule score when it answered; the rule
+		// score stays as `rule_clarity` so both can be compared (doc/refine-v3-2026-10-09.md).
+		for (const c of clarity ?? []){
+			const s = this.sentence(c.n);
+			if (s && c.clarity != null){ s.rule_clarity = s.clarity; s.clarity = +c.clarity.toFixed(2); s.why = c.why; }
+		}
+		this.set({ status: "done", quick: false, stages: stages ?? {}, runs: runs ?? [] });
 	}
 
 	set(fields){
@@ -57,8 +67,15 @@ export default class Prompt {
 
 	sentence(n){ return this.clean.find(s => s.n === n); }
 
+	/** The instant clean (no model): shown within a moment of each Whisper chunk, before any refinement. */
+	load_quick(sentences, quick_ms){
+		this.clean = sentences.map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], card: "", why: "" }));
+		this.timings = { ...this.timings, quick_ms };
+		this.set({ quick: true });
+	}
+
 	/** Sentences worth a yellow flag: unclear enough, or the pipeline asked a question about them. */
-	get flagged(){ return this.clean.filter(s => s.clarity < Prompt.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
+	get flagged(){ return this.clean.filter(s => (s.clarity ?? 1) < Prompt.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
 
 	/**
 	 * The outline `structure()` writes ("# subject", "## card", "- sub-card [S1, S2]", indented

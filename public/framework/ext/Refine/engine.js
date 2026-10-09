@@ -362,6 +362,29 @@ export async function clean(text, { prev = "", onFlag, call, cwd, model } = {}){
 	};
 }
 
+/* quick_clean — the INSTANT clean (no model, a few ms): what the page shows within a moment of each
+ * Whisper chunk, before the model clean lands. Only the mechanical part of "Clean": drop filler words
+ * ("um", "uh", "ah", "er", "you know", "like," used as a pause) and stutters ("the, the"), capitalise
+ * each sentence, make sure it ends in punctuation. It never rewords. Returns the same
+ * `[{ n, text }]` shape clean() returns, so the page draws both the same way. */
+export function quick_clean(text){
+	const t = String(text ?? "").replace(/\s+/g, " ").trim();
+	if (!t) return [];
+	const cleaned = t
+		.replace(/\b(?:um+|uh+|ah+|er+|erm|hmm+)\b[,.]?\s*/gi, "")
+		.replace(/\byou know,?\s*/gi, "")
+		.replace(/\blike,\s*/gi, "")
+		.replace(/\b(\w+)(?:,?\s+\1\b)+/gi, "$1")
+		.replace(/\s+([,.!?;:])/g, "$1")
+		.replace(/\s+/g, " ").trim();
+	return mechanicalSplit(cleaned).map((s, i) => {
+		let x = s.replace(/^[\s,;:-]+/, "");
+		x = x.charAt(0).toUpperCase() + x.slice(1);
+		if (!/[.!?]$/.test(x)) x += /^(who|what|when|where|why|how|is|are|do|does|can|could|should|would)\b/i.test(x) ? "?" : ".";
+		return { n: i + 1, text: x };
+	}).filter(s => s.text.length > 1);
+}
+
 /* "A simple word-level diff %" (the owner, 2026-10-04, clean-test-page) — a plain Dice
  * coefficient over each text's own set of 3+ letter words: 1.0 means the two share every
  * word, 0 means no overlap at all. Same shape of heuristic `contentWords`/`stemsMatch`
