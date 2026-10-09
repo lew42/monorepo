@@ -1,186 +1,25 @@
 diff --git a/public/framework/ai/classes/ClassIndexPage.js b/public/framework/ai/classes/ClassIndexPage.js
-new file mode 100644
-index 000000000..58be5044b
---- /dev/null
+index 58be5044b..4f7e403ff 100644
+--- a/public/framework/ai/classes/ClassIndexPage.js
 +++ b/public/framework/ai/classes/ClassIndexPage.js
-@@ -0,0 +1,17 @@
-+import { Page } from "/app.js";
-+import { class_cards } from "../system-classes.js";
-+
-+// The class cards: one page per class (a child), each showing the class beside a live debug view of an instance.
-+// The cards themselves are ../system-classes.js; this page only lists the ones that have a live page yet.
-+export default class ClassIndexPage extends Page {
-+	constructor(...args){
-+		super({
-+			title: "Class cards",
-+			description: "A class, its core API, and a live instance you can watch change.",
-+			icon: "data_object",
-+			children: "Session",
-+		}, ...args);
-+	}
-+
-+	content(){ class_cards(["Session"]); }
-+}
-diff --git a/public/framework/ai/classes/Session/SessionClassPage.js b/public/framework/ai/classes/Session/SessionClassPage.js
-new file mode 100644
-index 000000000..cfb46e55f
---- /dev/null
-+++ b/public/framework/ai/classes/Session/SessionClassPage.js
-@@ -0,0 +1,70 @@
-+import { Page, View, div, h3, small, strong, button } from "/app.js";
-+import "/framework/ux/Content/ContentModule.js";   // loads the card styles `inspect()` uses
-+import { inspect } from "/framework/ux/Content/Object/Inspect.js";
-+import Session from "../../sessions/Session.js";
-+import SessionView from "../../sessions/SessionView.js";
-+import SessionLive from "../../sessions/SessionLive.js";
-+import SessionRows from "../../sessions/SessionRows.js";
-+import { class_card, find } from "../../system-classes.js";
-+
-+View.stylesheet("/framework/ai/sessions/sessions.css");
-+Session.View = SessionView;
-+
-+// THE SESSION CLASS CARD with a live debug view. Left: one real Session drawn by its own View (session.render()).
-+// Right: the same instance as a property tree (inspect()). When the live index changes that session, both redraw,
-+// so you see which property moved. It follows the session that was active most recently.
-+// The class card (name, icon, core API) is the entry in ../../system-classes.js; nothing here is a second card system.
-+export default class SessionClassPage extends Page {
-+	constructor(...args){
-+		super({
-+			title: "Session",
-+			description: "One Claude session's cost and state, rendered, beside the live object behind it.",
-+			icon: "history_toggle_off",
-+		}, ...args);
-+	}
-+
-+	content(){
-+		class_card(find("Session"));
-+		const demo = div.c("wide flex gap-100").style({ alignItems: "flex-start", flexWrap: "wrap" });
-+		const note = small.c("muted", "Loading the live session index…");
-+		demo.append(() => {
-+			this.$view = div.c("flex v gap-50 session-demo-view").style({ flex: "1 1 24rem", minWidth: 0, overflowX: "auto" });
-+			this.$tree = div.c("flex v gap-50 session-demo-tree").style({ flex: "1 1 24rem", minWidth: 0 });
-+		});
-+		this.start(note);
-+	}
-+
-+	/** Load the index, pick the most recently active session, draw it, then redraw on every change to it. */
-+	async start(note){
-+		const root = Session.root_url().href;
-+		Session.use_index(await SessionRows.get_json(root + "session-index.json"));
-+		const today = SessionLive.ymd(new Date());
-+		this.live = new SessionLive(root + today + "/index.jsonl", () => {});
-+		await SessionLive.load_days(await SessionLive.days(root, today.replace(/\//g, "-"), today.replace(/\//g, "-")), () => {});
-+		await this.live.live();
-+		this.session = this.latest();
-+		if (!this.session) return void note.text("No sessions found.");
-+		note.text("");
-+		this.session.on(() => this.draw());
-+		this.draw();
-+	}
-+
-+	/** The Session whose index row says it was active last. */
-+	latest(){
-+		let best = null;
-+		for (const ses of Session.all.values()){
-+			const t = ses.ix.last_activity ?? ses.ix.first_at ?? "";
-+			if (!best || t > (best.ix.last_activity ?? best.ix.first_at ?? "")) best = ses;
-+		}
-+		return best;
-+	}
-+
-+	draw(){
-+		const ses = this.session;
-+		this.$view.empty(() => { strong("Rendered: session.render()"); div.c("sessions-grid", () => { div.c("sessions-head", () => SessionRows.COLUMNS.forEach(c => div.c("sessions-cell sessions-head-cell", c.label))); ses.render(); }); });
-+		this.$tree.empty(() => {
-+			strong("Debug tree: inspect(session)"); inspect(ses, { variant: "card" });
-+			strong("session.ix: the fields the grid reads, live"); inspect(ses.ix, { variant: "card" });
-+		});
-+	}
-+}
-diff --git a/public/framework/ai/classes/Session/files.jsonl b/public/framework/ai/classes/Session/files.jsonl
-new file mode 100644
-index 000000000..204cb87f3
---- /dev/null
-+++ b/public/framework/ai/classes/Session/files.jsonl
-@@ -0,0 +1,2 @@
-+{"file":"SessionClassPage.js"}
-+{"file":"page.js"}
-diff --git a/public/framework/ai/classes/Session/page.js b/public/framework/ai/classes/Session/page.js
-new file mode 100644
-index 000000000..b7a13646d
---- /dev/null
-+++ b/public/framework/ai/classes/Session/page.js
-@@ -0,0 +1,3 @@
-+import SessionClassPage from "./SessionClassPage.js";
-+
-+export default new SessionClassPage({ meta: import.meta });
-diff --git a/public/framework/ai/classes/files.jsonl b/public/framework/ai/classes/files.jsonl
-new file mode 100644
-index 000000000..203942d0b
---- /dev/null
-+++ b/public/framework/ai/classes/files.jsonl
-@@ -0,0 +1,4 @@
-+{"file":"ClassIndexPage.js"}
-+{"file":"page.js"}
-+{"file":"Session/"}
-+{"file":"Session/page.js"}
-diff --git a/public/framework/ai/classes/page.js b/public/framework/ai/classes/page.js
-new file mode 100644
-index 000000000..23e7987c0
---- /dev/null
-+++ b/public/framework/ai/classes/page.js
-@@ -0,0 +1,3 @@
-+import ClassIndexPage from "./ClassIndexPage.js";
-+
-+export default new ClassIndexPage({ meta: import.meta });
-diff --git a/public/framework/ai/overview.js b/public/framework/ai/overview.js
-index 7d0117b91..4e084ad89 100644
---- a/public/framework/ai/overview.js
-+++ b/public/framework/ai/overview.js
-@@ -105,6 +105,7 @@ export function tab_page(root, name, url = root.url + name + "/"){
- 			content(){
- 				section("AI system classes", "Servex is the one always-on process; each card is one of its classes.", () => {
- 					class_cards(["Servex", "Agents", "Dispatcher", "Sessions", "Pool", "Usage", "Budget"]);
-+					a("Class cards with a live debug view").attr("href", "/framework/ai/classes/");
- 					details(() => { summary("Servex also watches itself"); class_cards(["Heartbeat", "TaskLoop", "Worktrees", "Monitor", "Assistant"]); });
- 				});
- 				section("Documentation and readmes", "How agents and you find what is true: readmes are the index, doc/ holds the detail, skills say how to write both.", () => cards([
-diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
-index 0051aec2c..9e2f0fe17 100644
---- a/public/framework/ai/page.js
-+++ b/public/framework/ai/page.js
-@@ -33,7 +33,7 @@ export default new Page({
- 	leaf: true,
- 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
- 	classes: v1() ? undefined : "full fill",
--	children: "quick-fix asks process review council audits tests 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08 local",
-+	children: "classes quick-fix asks process review council audits tests 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08 local",
+@@ -13,5 +13,5 @@ export default class ClassIndexPage extends Page {
+ 		}, ...args);
+ 	}
  
- 	/* LEVEL 1 IS THE AI SYSTEM, SHOWN (the owner, 2026-09-30: "just delete the
- 	   current AI page"). The V3 board that stood here lives on at /framework/ai/v/3/,
-diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
-index a22e93399..9943bebe3 100644
---- a/public/framework/ai/readme.md
-+++ b/public/framework/ai/readme.md
-@@ -23,6 +23,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
- - **Models**: [system/models](system/models/) · [OpenRouter](/framework/servex/) · local
- - **Sessions** (VS Code tabs, browser voice agents): [sessions/](sessions/readme.md) · [conversations](doc/conversations.md)
- - **Transcription**: [ux/Dictate](/framework/ux/Dictate/)
-+- **Class cards, live** ([classes](/framework/ai/classes/)): a class, its API, and a debug tree of a live instance beside its rendered view. First: Session.
- - **Prompt refinement** (Echo, running now): [Servex/doc/echo.md](/framework/servex/doc/echo.md) · [ext/Refine live demo + Prompt class](/framework/ext/Refine/) · [vision](/framework/ext/Refine/doc/vision-2026-10-08.md) · [dictation connection map](/framework/ai/doc/dictation-refine-connection-map-2026-10-08.md)
- - **Page system**: [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/)
- - **Skills and CLAUDE.md**: [skills](skills/)
+-	content(){ class_cards(["Session"]); }
++	content(){ class_cards(["Session", "Prompt"]); }
+ }
 diff --git a/public/framework/ai/system-classes.js b/public/framework/ai/system-classes.js
-index 32d8150fe..042b763c4 100644
+index 042b763c4..28ab70d3d 100644
 --- a/public/framework/ai/system-classes.js
 +++ b/public/framework/ai/system-classes.js
 @@ -19,6 +19,9 @@ export const CLASSES = [
  	{ name: "Dispatcher", icon: "alt_route", file: "Servex/agents/Dispatcher.js", doc: "/framework/servex/",
  		gist: "Takes a prompt that arrives and routes it to the agent that owns it.",
  		api: ["queue", "running", "dispatch(prompt)", "pump()", "listen()"] },
-+	{ name: "Session", icon: "history_toggle_off", file: "public/framework/ai/sessions/Session.js", doc: "/framework/ai/classes/Session/",
-+		gist: "One Claude session's cost and state, computed in code from its transcript. Same file runs on the server and in the browser.",
-+		api: ["id", "ix", "s", "total_usd", "wall_ms", "render()", "on(fn)", "detail()", "Session.of(id)", "Session.all", "Session.apply_delta(line)"] },
- 	{ name: "Sessions", icon: "forum", file: "Servex/agents/Sessions.js", doc: "/framework/ai/sessions/",
- 		gist: "The owner's voice and chat sessions: what was said, which assistant answered, resumable.",
- 		api: ["create()", "resume(id)", "say(session, text)", "recent()", "summarize(id)", "brief(id)"] },
++	{ name: "Prompt", icon: "edit_note", file: "public/framework/ext/Refine/Prompt.js", doc: "/framework/ext/Refine/",
++		gist: "One owner prompt: raw text, clean numbered sentences, structured sections. Its page shows the rendered result beside a live debug tree.",
++		api: ["raw", "clean", "structure", "ms", "load({ clean, structure, ms })", "set(fields)", "sentence(n)", "render()"] },
+ 	{ name: "Session", icon: "history_toggle_off", file: "public/framework/ai/sessions/Session.js", doc: "/framework/ai/classes/Session/",
+ 		gist: "One Claude session's cost and state, computed in code from its transcript. Same file runs on the server and in the browser.",
+ 		api: ["id", "ix", "s", "total_usd", "wall_ms", "render()", "on(fn)", "detail()", "Session.of(id)", "Session.all", "Session.apply_delta(line)"] },
