@@ -329,3 +329,4 @@
 {"at":"2026-10-09T03:57:36.875Z","target":"public/framework/ai/2026-10-08/refine-demo","verdict":"queued","kind":"landing"}
 {"at":"2026-10-09T03:57:37.737Z","target":"public/framework/ai/2026-10-08/refine-demo","verdict":"spawned","to":"clarity-refine-demo"}
 {"at":"2026-10-08T23:10:00-05:00","target":"public/framework/ai/2026-10-08/refine-demo","verdict":"rewrote","what":"STATE.md paragraph split; outcome rewritten as ask checklist","to":"public/framework/ai/2026-10-08/refine-demo/STATE.md"}
+{"at":"2026-10-09T10:51:45.705Z","target":"public/framework/ai/2026-10-09/ai2-merge/requirements.md","verdict":"queued","kind":"proposal"}

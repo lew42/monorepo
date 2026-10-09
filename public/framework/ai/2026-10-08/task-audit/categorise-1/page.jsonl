@@ -3,3 +3,4 @@
 {"inbox":{"id":"n-5oj7o5kz","from":"servex-task-loop","text":"task-audit/categorise-1 has been quiet since 2026-10-08T18:01:45-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-08T18:16:45.252-05:00"}}
 {"inbox":{"id":"n-c451gnc1","from":"servex-heartbeat","text":"helper-categorise-1 its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:46:57-05:00; not revived.","at":"2026-10-08T21:16:51.076-05:00"}}
 {"inbox":{"id":"n-fkne4jxv","from":"servex-heartbeat","text":"helper-categorise-1 its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:46:57-05:00; not revived.","at":"2026-10-08T22:53:40.204-05:00"}}
+{"inbox":{"id":"n-rhijv6qb","from":"servex-heartbeat","text":"helper-categorise-1 its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:46:57-05:00; not revived.","at":"2026-10-09T04:27:09.355-05:00"}}
