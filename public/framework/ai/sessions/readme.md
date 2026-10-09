@@ -197,3 +197,4 @@ merge.
 - Tasks migration dry run (2026-10-09): 64 tasks join a session, 1003 orphans, 651 slug collisions resolved by id8; not applied until moved tasks have a route.
 - Red flags (`$$$`, stalled, context, Opus minion) and the mastermind tag are computed by `node Server/session-flags.mjs --watch` into `session-flags.json` (gitignored; keep the watcher running) and drawn by `AISessionFlags.js`; thresholds sit in its `LIMITS`.
 - The owner wants a later redesign (less text, clear hierarchy, the home of everything real-time): [`doc/redesign-asks-2026-10-09.md`](doc/redesign-asks-2026-10-09.md).
+- Why some tabs read as running when they are not, and which launcher made them: [`doc/stuck-sessions-2026-10-09.md`](doc/stuck-sessions-2026-10-09.md).

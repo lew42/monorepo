@@ -22,8 +22,8 @@ Both endpoints answer standard JSON-RPC 2.0 over HTTP POST on loopback (`127.0.0
 
 Each Servex tool in [`Servex/agents/tools.js`](/Servex/agents/tools.js) is one plain definition (`name, description, inputSchema, handler`) served two ways:
 
-- **In-process (no network):** for agents Servex spawns, `server()` wraps every tool with the SDK's `tool()` and `createSdkMcpServer()`; the handler is a node function call. This is all the `servex` tools: agents (`spawn_agent`, `send_to_agent`, ...), tasks (`snooze_task`, `kill_task`, `reprioritise_task`), sessions, jobs, experts, and pages (`page_add/set/log/read`).
-- **HTTP MCP:** `Servex/MCP.js` serves the same list to outside sessions (VS Code tabs, the CLI). Needed only where the caller is not a Servex agent.
+- **HTTP (the live path for every Servex agent):** `Agents.js door()` points each agent at Servex's own loopback `/mcp` URL with `?as=<agent id>`, built by `Servex/MCP.js`. The same URL serves outside sessions (VS Code tabs, the CLI). Checked 2026-10-09 against `Servex/doc/sdk.md` step 3.
+- **In-process (no network), only where there is no HTTP door:** `server()` in `tools.js` wraps the same tool list with the SDK's `tool()` and `createSdkMcpServer()`; used by tests such as `Servex/agents/fork-proof.mjs`, not by a live agent. The tools: agents (`spawn_agent`, `send_to_agent`, ...), tasks, sessions, jobs, experts, pages.
 - **Network by nature:** the `site` server (`eval`, `shot`, `claim`), because it talks to a browser.
 
 Rule: write handlers as plain functions, and never make an agent call its own host over HTTP. The planned task tools (`task_create`, `task_plan`, `task_set`, `task_move`, `task_link`, `task_read`, `task_list`) follow it: see [tasks.md](tasks.md).

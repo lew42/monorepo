@@ -10,7 +10,7 @@ One row per system: its entry readme, its size and last change (computed 2026-10
 | Agent SDK (how an agent is started) | `Servex/agents/Agents.js` | `Servex/doc/sdk.md` | 50 · 10-08 | new |
 | Models (Anthropic, OpenRouter, local) | `Servex/ext/openrouter/`, `Servex/ext/local/`, `ai/system/models/` | `Servex/ext/openrouter/readme.md`, `Servex/ext/local/readme.md` | n/a | both exist |
 | Sessions (voice and chat) | `public/framework/ai/sessions/` | [sessions/readme.md](sessions/readme.md) | 177 · 10-08 | **long**; owned by minion-session-class |
-| Dashboard (AI 2) | `public/framework/ai2/` | `ai2/readme.md` | 387 · 10-06 | **long**; the AI readme calls it retired in places, the System tab still links it |
+| Dashboard (AI 2, merged into AI) | `public/framework/ai2/` (old address), classes in `ai/cards/`, `ai/rail/` | `ai2/readme.md` | 11 · 10-09 | now a pointer; the cards and rail moved under `ai/` |
 | Page system | `public/framework/core/Page/` | `core/Page/readme.md` | 105 · 10-06 | about right |
 | JSONL streaming | `public/framework/ext/JSONL/` | `ext/JSONL/readme.md` | 36 · 10-02 | short and old |
 | Transcription (Whisper, Dictate) | `public/framework/ux/Dictate/` | `ux/Dictate/readme.md` | 365 · 10-05 | **long** |
@@ -44,8 +44,20 @@ Five places hold "things to do": `ai/todo.md` (177 lines, owner prose), `ai/asks
 | Skill | markdown loaded **on demand** | zero until used | `.claude/skills/` (34) |
 | Shell | `node Server/*.mjs`, git; the script reads and computes, the model reads its summary | zero | `Server/`, `.claude/hooks/` |
 
-Open mismatch: `ai/doc/mcp.md` says Servex agents get in-process tools; `Servex/doc/sdk.md` found the live path is HTTP via `door()`. One of them is stale; check `Servex/agents/tools.js` before relying on either.
+Settled 2026-10-09: the live path is HTTP via `door()` (`Servex/doc/sdk.md`); the in-process `server()` is for tests and hosts with no HTTP door. `ai/doc/mcp.md` now says so.
 
 **Recommendation (default): the session template is the unit of control.** Tools cannot load on demand, skills can, so a template is one bundle of tools, MCPs, skills, system prompt and model per purpose (close to a role), shown on the agent's card and editable. Roles already carry the model (`Servex/agents/roles.js`); extending a role to name its tools and skills is the smallest step. Alternative: per-agent tool lists chosen at spawn; flexible but unvisible and unrepeatable.
 
 **Generic path-and-method tool:** one tool taking an object path, a method and arguments, applied by a node function that stamps time, author and cost (the `page.jsonl` delta style). It replaces many hand-made tools; a skill lists the callable methods on demand. Trade-off: one powerful tool needs strict validation and an allow-list of paths. Detail: [tooling-architecture-2026-10-08.md](doc/tooling-architecture-2026-10-08.md).
+
+## How each system streams, and its main class (2026-10-09)
+
+| System | Main class | Stream |
+| :--- | :--- | :--- |
+| Servex | `Servex` (`Servex/Servex.js`), agents: `Agents`, `Agent` | agent state and logs to JSONL files Servex alone writes; the UI tails them |
+| Sessions page | `AISessionsPage`, rows `AISessionRows` (`ai/AISession/`) | day files + `session-flags.json` (rewritten every 30 s by `Server/session-flags.mjs --watch`); `sessions.json` is an old snapshot, see [stuck sessions](sessions/doc/stuck-sessions-2026-10-09.md) |
+| Board, Inbox, Log | `AIRail`, `Card` (`ai/rail/`, `ai/cards/`) | `cards.jsonl` appended, tailed with `live()` |
+| Pages | `Page` (`core/Page`) | each page's `page.jsonl` through the page tools |
+| Voice, dictation | `Dictate` (`ux/Dictate`), voice sessions (`Servex/agents/Sessions.js`) | transcript lines appended as they arrive |
+| Accounting | `AISessionAudit`, `Budget` (`Servex/Budget.js`) | cost lines per session; `usage.json` refreshed every 15 min by Servex |
+| Page tool, tasks | `task.jsonl` per task folder | appended by `log_session` / `page_*` tools |
