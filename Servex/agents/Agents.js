@@ -160,8 +160,8 @@ export class Agents {
 			 * model_for() already checks for echoes, now also covering real spawns.
 			 * The cost fix landed 2026-10-04 (meter() reads usage.cost), so the pause is
 			 * now opt-in: set SERVEX_OPENROUTER_PAUSED=1 to stop OpenRouter spawns. */
-			if (process.env.SERVEX_OPENROUTER_PAUSED === "1")
-				throw new Error(`OpenRouter spawns are paused: their cost isn't being measured (2026-10-04/openrouter-cost-blind)`);
+			if (process.env.SERVEX_OPENROUTER_PAUSED !== "0")   // PAUSED BY DEFAULT (the owner, 2026-10-08: OpenRouter accounting is not trusted; avoid it). SERVEX_OPENROUTER_PAUSED=0 re-enables.
+				throw new Error(`OpenRouter spawns are paused: the owner does not trust OpenRouter accounting yet (set SERVEX_OPENROUTER_PAUSED=0 to allow)`);
 			const guard = spend_guard();
 			if (!guard.ok) throw new Error(`openrouter spawn refused: ${guard.reason}`);
 		}

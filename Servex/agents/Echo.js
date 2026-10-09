@@ -139,7 +139,7 @@ export default class Echo {
 	 * SERVEX_ECHO_OR narrows it to a comma-separated list of session-id prefixes; "none" puts every
 	 * echo back on Claude. Token-reduction item 13 rotates a share to the other cheap models. */
 	model_for(session_id){
-		if (process.env.SERVEX_OPENROUTER_PAUSED === "1") return {};   // OpenRouter is paused (Agents.spawn): echoes stay on Claude
+		if (process.env.SERVEX_OPENROUTER_PAUSED !== "0") return {};   // OpenRouter is paused (Agents.spawn): echoes stay on Claude
 		const list = String(process.env.SERVEX_ECHO_OR ?? "all").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
 		const sid = String(session_id).toLowerCase();
 		if (!list.includes("all") && !list.some(p => sid.startsWith(p))) return {};
