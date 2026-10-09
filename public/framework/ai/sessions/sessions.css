@@ -110,11 +110,11 @@
 	   phone regime), so the grid becomes a plain stacked card per row instead
 	   of fighting for six columns in no room. */
 	@container (width < 30em) {
-		.sessions-grid { display: flex; flex-direction: column; }
+		.sessions-grid { display: flex; flex-direction: column; width: auto; max-width: 100%; }
 		.sessions-head { display: none; }
 		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }
 		.sessions-cell { padding-block: 0; border-block-end: none; }
-		.sessions-row > .sessions-cell:first-child { flex: 1 1 100%; }
+		.sessions-row > .sessions-cell:first-child { flex: 1 1 100%; min-width: 0; }
 		.sessions-row > .sessions-cell:not(:first-child) { flex: 0 0 auto; max-width: 100%; }
 	}
 
