@@ -3,6 +3,7 @@ import ErrorLog from "../ErrorLog/ErrorLog.js";
 import Dictate from "../../ux/Dictate/Dictate.js";
 import DefaultView from "../../ux/Content/Object/DefaultView.js";
 import Prompt from "./Prompt.js";
+import Connection from "./Connection.js";
 import RefineSystem from "./RefineSystem.js";
 
 View.stylesheet(import.meta, "Prompt.css");
@@ -28,15 +29,27 @@ export default class RefineDemo extends View {
 		ErrorLog.watch(() => ({ status: this.prompt.status, raw: this.prompt.raw, error: this.prompt.error }));
 
 		div.c("refine-demo-main", () => {
+			this.conn = new Connection({ whisper_url: Dictate.prototype.whisper_url });
 			div.c("refine-input", () => {
-				this.$box = textarea.c().attr("placeholder", "Speak with the mic, or type or paste a prompt here…");
-				div.c("refine-input-row", () => {
-					this.dictate = new Dictate({ $input: () => this.$box.el, on_error: e => this.$note.text(String(e)) });
+				// The controls sit in their own fixed row; the transcript is in the box below. Nothing
+				// the reader can click shares a line with text that changes while they talk.
+				div.c("refine-toolbar", () => {
+					this.dictate = new Dictate({
+						$input: () => this.$box,   // the View, not its element: Dictate reads `.el` itself (passing the element threw on every sentence)
+						on_error: e => this.conn.set("mic", "bad", "error: " + String(e).slice(0, 60)),
+						on_step: (stage, detail) => this.step(stage, detail),
+						on_meter: level => this.conn.level(level),
+						on_guess: text => this.$guess.text(text),
+						on_text: () => this.conn.set("transcript", "ok", this.words() + " words"),
+					});
 					this.$go = button("Refine").click(() => this.go());
 					button("Record next prompt").click(() => this.next());
-					this.$note = span.c("refine-input-note");
 				});
+				this.$note = span.c("refine-input-note");
+				this.$box = textarea.c().attr("placeholder", "Speak with the mic, or type or paste a prompt here…");
+				this.$guess = div.c("refine-guess muted");
 			});
+			this.conn.check_whisper();
 			this.$result = div.c("refine-result");
 		});
 
@@ -47,6 +60,20 @@ export default class RefineDemo extends View {
 		});
 
 		this.draw();
+	}
+
+	words(){ return (this.transcript().match(/\S+/g) ?? []).length; }
+
+	/** One of Dictate's steps changed: turn its words into the connection row's plain ones. */
+	step(stage, detail){
+		const bad = /^(refused|timed out)|stopped answering|not reachable/.test(detail);
+		if (stage === "mic"){
+			if (detail === "on, level ok") this.conn.set("level", "ok", "");
+			else if (detail === "ok") this.conn.set("mic", "ok", "on").set("level", "wait", "");
+			else this.conn.set("mic", bad ? "bad" : "wait", bad ? "error: " + detail.replace(/^refused: /, "") : detail);
+		} else if (stage === "whisper" && /^(connected, last reply|stopped answering)/.test(detail)){
+			this.conn.set("whisper", bad ? "bad" : "ok", bad ? "error: " + detail : detail);
+		}
 	}
 
 	/** The one transcript the owner sees: whatever Dictate has committed into the box, plus the
@@ -81,6 +108,9 @@ export default class RefineDemo extends View {
 	draw(){
 		const prompt = this.prompt;
 		this.$result.empty(() => new Prompt.View({ subject: prompt }));
+		const st = prompt.status;
+		this.conn?.set("refine", st === "done" ? "ok" : st === "error" ? "bad" : st === "working" ? "wait" : "idle",
+			st === "done" ? `done, ${(prompt.ms / 1000).toFixed(1)} s` : st === "error" ? "error: " + String(prompt.error).slice(0, 60) : st === "working" ? "working…" : "not yet");
 		this.$debug.empty(() => new DefaultView({ subject: prompt }));
 	}
 
