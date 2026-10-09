@@ -1,5 +1,5 @@
 import { servex_base } from "/framework/ai/v/3/prompts.js";
-import { Page, h3, div, a, span, small, p, label, input, button, View } from "/app.js";
+import { Page, md, h3, div, a, span, small, p, label, input, button, View } from "/app.js";
 import Panel2 from "/framework/ext/panel2/Panel2.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { usage_rail } from "/framework/ext/AITask/usage.js";
@@ -555,8 +555,8 @@ export default new Page({
 		const panel = new Panel2({ title: "Sessions" }).ac("wide");
 		this.$asof = null;
 		panel.header.append(() => {
-			a.c("sessions-doclink").href(this.url + "doc/priorities/").text("Priorities").attr("title", "What the owner asked for, most important first");
-			a.c("sessions-doclink").href(this.url + "doc/").text("Readme & docs").attr("title", "The readme and every doc for this page");
+			a.c("sessions-doclink").href(this.url + "doc/").text("Priorities").attr("title", "What the owner asked for, most important first");
+			a.c("sessions-doclink").href(this.url + "readme/").text("Readme").attr("title", "What this tab is, and the docs it links to");
 			this.$asof = small.c("muted", "loading…");
 		});
 
@@ -914,6 +914,7 @@ export default new Page({
 	// to the same view").
 	route(id){
 		if (id.includes(".")) return;   // a stray asset request, not a session id
+		if (id === "doc" || id === "readme") return docs_page(this, id);   // this page's own docs, not a session
 		return session_page(this, id);
 	},
 });
@@ -1299,6 +1300,19 @@ function render_spawn_section($el, node, spend, root_url){
 	}));
 }
 
+// The page's own docs: "readme" is its readme, "doc" is the priority list (the rest of the docs link from it).
+function docs_page(root, id){
+	const file = id === "readme" ? "readme.md" : "doc/priorities.md";
+	return new Page({
+		title: id === "readme" ? "Sessions readme" : "Sessions: priorities",
+		url: root.url + id + "/",
+		content(){
+			a.c("page-link", "← all sessions").href(root.url);
+			div.c("flow").append(md.file(import.meta, file));
+		},
+	});
+}
+
 function session_page(root, id){
 	return new Page({
 		// A session id is a raw uuid or an agent name — fine as a url, too long and
@@ -1332,7 +1346,8 @@ function session_page(root, id){
 				const dir_index = await session_page_dir_index();
 				const dir = session_page_dir(dir_index, session_id);
 				const [costs, trace, prompts] = await Promise.all([
-					load_cost_log(dir), load_trace(dir), load_transcript(session_id),
+					load_cost_log(dir), load_index(root.url).then(ix => ix?.traces?.includes(session_id) ? load_trace(dir) : null),   // a trace.json exists for few sessions: ask only for those the index lists
+					load_transcript(session_id),
 				]);
 
 				$costs.empty(() => {

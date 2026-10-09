@@ -1,16 +1,16 @@
 # Sessions: what the owner asked for, most important first
 
-This is the list to follow. Higher means do it first and never break it for something lower. Each line says what was asked, what is decided, and where it lives. The long history is in [decisions](/framework/ai/sessions/doc/decisions/).
+This is the list to follow. Higher means do it first and never break it for something lower. Each line says what was asked, what is decided, and where it lives. The long history is in [decisions](decisions.md).
 
 ## 1. Data is never lost, and moves are scripted
 - **Asked:** move and rename with a script, never by retyping; do not delete logs or records; git is the undo.
 - **Decided:** `Server/session-place.mjs` only renames, runs `--dry` first, is safe to run again, and writes `moves.jsonl` (old path, new path) in the task folder. The one thing it removes is the `files.jsonl` folder listing a dev server wrote into cache folders: noise that is rebuilt on demand.
-- **Lives in:** [layout](/framework/ai/sessions/doc/layout/).
+- **Lives in:** [layout](layout.md).
 
 ## 2. One store, one route
 - **Asked:** a session is stored once; the same detail view opens however you arrive.
 - **Decided:** the date tree, `ai/YYYY/MM/DD/session-<id8>/`. Every row opens `/framework/ai/sessions/<id>/`. Old shapes still load through `Session.locate`.
-- **Lives in:** [layout](/framework/ai/sessions/doc/layout/), `Session.js`.
+- **Lives in:** [layout](layout.md), `Session.js`.
 
 ## 3. The page tells the truth
 - **Asked:** state must be real; names must be useful, never "monorepo"; counts must come from the index, not from loading everything.
