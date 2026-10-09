@@ -86,3 +86,18 @@ ai/sessions/
 - **Single writer, in memory:** every agent's update goes through the one `SessionIndex` object; parallel agents cannot race. The live state is served from memory (socket + the composite response). **The disk is written trailing-debounced:** flush after 5 s of quiet, and always at least every 60 s while changing, atomically (temp + rename). Per-session snapshots use the same rule. Month/year listings flush about once a minute and only when a roll-up changed.
 - **No index deltas on disk.** Deltas exist only over the socket from memory, so nothing grows. After a crash or restart, memory is rebuilt from the per-session snapshots and the recent session logs, so the lost seconds self-heal; the session's own log is always the truth.
 - If a day ever exceeds the comfortable size, shard that day's composite by hour; not needed now.
+
+## 12. ONE session folder, named, wrapping everything (owner decision, 2026-10-08; supersedes the UUID-named folders)
+The owner's call: no UUID-named folders, no separate card folders, no separate task folders, and no second date layout. **`ai/sessions/YYYY/MM/DD/<slug>/` is the single home** for all AI session data. Today's pieces and where they go:
+
+| Today | Made by | Goes to |
+|---|---|---|
+| `ai/sessions/YYYY/MM/DD/<uuid>/` accounting summary (the cache file) | `Server/SessionTailer.mjs` + `Session.js` (`session-place.mjs` placed them); still running | `<slug>/` as the session's accounting summary; the UUID lives **inside** `index.json`, not in the folder name |
+| `ai/YYYY/MM/DD/<slug>/` Inbox/dashboard **card** (its page log) | the card tool / AI 2 | `<slug>/` (the same file, moved in) |
+| `ai/YYYY-MM-DD/<slug>/` **task** folder (brief, report, task log) | task launch | `<slug>/task/` (moved in whole) |
+
+- **Slug** = short, descriptive, unique within the day (from the task/card title; else the agent name; else the first prompt's words; last resort `session-<id8>`). The UUID(s) are recorded in the snapshot, and the day composite maps id to folder.
+- Join key is the Claude session id: one folder per session id; a card and a task that came from it are wrapped into its folder. Task folders with no session id become their own folders, typed as task-only. Children nest inside the parent.
+- **Scripted, dry-run first, `git mv`, manifest of every old to new path, reversible, old paths resolve through the manifest, nothing deleted** (CLAUDE.md). Report counts before moving: how many folders per source, how many join, how many are orphans.
+- The accounting-summary writer keeps running; its output moves into the named folder (or folds into the session log as a summary line if that is simpler); decide and record the alternative.
+- Payoff (the owner's goal): browse and filter everything we have spent money on by day, class and activity, to find broken systems that burn tokens.
