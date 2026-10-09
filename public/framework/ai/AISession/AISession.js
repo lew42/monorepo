@@ -74,9 +74,11 @@ const PURPOSE_METHOD =
 	"attachments in proportion to their characters (chars/4 weights, scaled to the exact growth). Typical error: tens of percent on the split between " +
 	"tool results and prompts, none on the total. Dollars follow tokens: a token pays its cache-write once, then a cache-read on every later call.";
 
-export default class AISession {
+import Session from "../../core/Session/Session.js";
+
+export default class AISession extends Session {
 	constructor(id, data){
-		this.id = id;
+		super(id);
 		this.s = data || AISession.blank(id);
 	}
 
@@ -415,49 +417,9 @@ export default class AISession {
 		const root = typeof process !== "undefined" && process.env?.SESSIONS_ROOT;
 		return root ? new URL("file:///" + root.replace(/\\/g, "/").replace(/\/?$/, "/").replace(/^\/+/, "")) : new URL("../sessions/", import.meta.url);
 	}
-	// One folder per session: sessions/YYYY/MM/DD/<slug>/ (doc/data-architecture-2026-10-08.md, section 12). The slug is descriptive and unique
-	// within its day; the session's uuid is inside its index.json, and `slugs` maps id -> slug. A session with no slug is in an old uuid-named folder.
+	// day(), dir_url(), scan() and locate() are inherited from core/Session; the maps below are this class's own (statics inherit by reference).
 	static slugs = new Map();
-	// Sync: the dated folder when the day is known, else the old flat one.
-	static dir_url(id, day = AISession.days.get(id)){ return new URL(day ? `./${day}/${AISession.slugs.get(id) ?? id}/` : `./${id}/`, AISession.root_url()); }
-
-	// Node, async: read every dated folder once to learn which folder holds which session. A uuid-named folder is its own id; any other
-	// folder says its id in index.json (or, before the first snapshot, in its cache summary). Fills `days` (where it really lives) and `slugs`.
-	static async scan(){
-		if (AISession.scanned) return;
-		AISession.scanned = true;
-		const fs = await import("node:fs/promises"), root = AISession.root_url(), UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-		const ls = async u => fs.readdir(u, { withFileTypes: true }).then(r => r.filter(d => d.isDirectory()).map(d => d.name), () => []);
-		for (const y of await ls(root)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, root))) for (const d of await ls(new URL(`./${y}/${m}/`, root))) for (const name of await ls(new URL(`./${y}/${m}/${d}/`, root))){
-			const dir = new URL(`./${y}/${m}/${d}/${name}/`, root);
-			let id = UUID.test(name) ? name : null;
-			if (!id) try { id = JSON.parse(await fs.readFile(new URL("index.json", dir), "utf8")).id; } catch {}
-			if (!id) try { id = JSON.parse((await fs.readFile(new URL("cache.jsonl", dir), "utf8")).split("\n").find(l => l.startsWith('{"summary"'))).summary.id; } catch {}
-			if (!id) try { id = JSON.parse((await fs.readFile(new URL("page.jsonl", dir), "utf8")).split("\n")[0]).session; } catch {}   // a folder the page tool made first (Servex/agents/page_tools.js)
-			if (!id || !UUID.test(id)) continue;
-			AISession.days.set(id, `${y}/${m}/${d}`);
-			if (name !== id) AISession.slugs.set(id, name);
-		}
-	}
-
-	// Node, async: the folder to WRITE into. Where the session already lives (found by scan), else an old flat uuid folder (moved into its
-	// day), else a new folder named `slug` (default session-<id8>) under the day of first_at, else today.
-	static async locate(id, first_at, slug){
-		const fs = await import("node:fs/promises"), root = AISession.root_url();
-		if (!AISession.days.has(id)) await AISession.scan();
-		if (AISession.days.has(id)) return AISession.dir_url(id);
-		const flat = new URL(`./${id}/`, root), exists = u => fs.stat(u).then(() => true, () => false);
-		let day = AISession.day(first_at);
-		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
-			try { for (const l of (await fs.readFile(new URL("cache.jsonl", flat), "utf8")).split("\n")) if (l.startsWith('{"summary"')) day = AISession.day(JSON.parse(l).summary?.first_at) ?? day; } catch {}
-			if (!day) return flat;             // known only by an old flat folder: leave it until its first_at is known
-		}
-		day ??= AISession.day(new Date());
-		AISession.days.set(id, day);
-		if (await exists(flat)){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, new URL(`./${day}/${id}/`, root)); return AISession.dir_url(id); }
-		AISession.slugs.set(id, slug || "session-" + id.slice(0, 8));
-		return AISession.dir_url(id);
-	}
+	static scanned = false;
 
 	// ---- the record: what a session's session.jsonl accepts (doc/record-spec.md) ----
 	static LINE_TYPES = {

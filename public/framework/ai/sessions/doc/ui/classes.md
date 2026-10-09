@@ -4,7 +4,7 @@ All of them live in [`ai/AISession/`](../../AISession/) (renamed from `Session*`
 
 | File | Class | Job |
 |---|---|---|
-| [`AISession.js`](../../AISession/AISession.js) | `AISession` | The ONE class for a session's data: load, sum costs, process. Same logic on server and client (node:fs is imported lazily). `AISession.View = AISessionView` is attached after the class. See [session-class](session-class.md). |
+| [`AISession.js`](../../AISession/AISession.js) | `AISession` | The ONE class for a session's data (extends [`core/Session`](../../../core/Session/), which owns the dated folder: `locate`, `scan`, `dir_url`): load, sum costs, process. Same logic on server and client (node:fs is imported lazily). `AISession.View = AISessionView` is attached after the class. See [session-class](session-class.md). |
 | [`AISessionsPage.js`](../../AISession/AISessionsPage.js) | `AISessionsPage extends Page` | The tab: header, stats, in-flight strip, filters, grid, the live stream. `route(id)` opens a detail page. |
 | [`AISessionDetail.js`](../../AISession/AISessionDetail.js) | `AISessionDetail extends Page` | One session's page (`new AISessionDetail({ home, id })`). Statics load its files. |
 | [`AISessionView.js`](../../AISession/AISessionView.js) | `AISessionView extends View` | One grid row. Statics draw the cost cell and the detail section. |

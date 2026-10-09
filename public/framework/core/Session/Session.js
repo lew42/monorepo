@@ -1,0 +1,59 @@
+// Session.js — a time-based record that lives in its own dated folder: <root>/YYYY/MM/DD/<slug>/, with a page.jsonl inside.
+//
+// The generic part of what AISession always did. A subclass names its root folder (override root_url) and declares its OWN
+// `days`, `slugs` and `scanned` (statics inherit by reference, so a shared map would mix two kinds of session). Everything here
+// reads `this`, never a class name. See core/Page/doc/architecture.md ("Session") and ai/sessions/doc/data/layout.md.
+
+export default class Session {
+	static days = new Map();     // id -> "2026/10/03"
+	static slugs = new Map();    // id -> folder name; a session with no slug is in an old uuid-named folder
+	static scanned = false;
+
+	constructor(id){ this.id = id; }
+
+	// The folder every session of this kind lives under. Override in the subclass.
+	static root_url(){ return new URL("../../ai/sessions/", import.meta.url); }
+
+	static day(first_at){ const d = new Date(first_at); return first_at && !isNaN(d) ? d.toISOString().slice(0, 10).replace(/-/g, "/") : null; }
+
+	// Sync: the dated folder when the day is known, else the old flat one.
+	static dir_url(id, day = this.days.get(id)){ return new URL(day ? `./${day}/${this.slugs.get(id) ?? id}/` : `./${id}/`, this.root_url()); }
+
+	// Node, async: read every dated folder once to learn which folder holds which session. A uuid-named folder is its own id; any other
+	// folder says its id in index.json, in its cache summary, or in the first line of its page.jsonl ({"session":uuid}, made by the page tool).
+	static async scan(){
+		if (Object.hasOwn(this, "scanned") ? this.scanned : false) return;
+		this.scanned = true;
+		const fs = await import("node:fs/promises"), root = this.root_url(), UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+		const ls = async u => fs.readdir(u, { withFileTypes: true }).then(r => r.filter(d => d.isDirectory()).map(d => d.name), () => []);
+		for (const y of await ls(root)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, root))) for (const d of await ls(new URL(`./${y}/${m}/`, root))) for (const name of await ls(new URL(`./${y}/${m}/${d}/`, root))){
+			const dir = new URL(`./${y}/${m}/${d}/${name}/`, root);
+			let id = UUID.test(name) ? name : null;
+			if (!id) try { id = JSON.parse(await fs.readFile(new URL("index.json", dir), "utf8")).id; } catch {}
+			if (!id) try { id = JSON.parse((await fs.readFile(new URL("cache.jsonl", dir), "utf8")).split("\n").find(l => l.startsWith('{"summary"'))).summary.id; } catch {}
+			if (!id) try { id = JSON.parse((await fs.readFile(new URL("page.jsonl", dir), "utf8")).split("\n")[0]).session; } catch {}   // a folder the page tool made first (Servex/agents/page_tools.js)
+			if (!id || !UUID.test(id)) continue;
+			this.days.set(id, `${y}/${m}/${d}`);
+			if (name !== id) this.slugs.set(id, name);
+		}
+	}
+
+	// Node, async: the folder to WRITE into. Where the session already lives (found by scan), else an old flat uuid folder (moved into its
+	// day), else a new folder named `slug` (default session-<id8>) under the day of first_at, else today.
+	static async locate(id, first_at, slug){
+		const fs = await import("node:fs/promises"), root = this.root_url();
+		if (!this.days.has(id)) await this.scan();
+		if (this.days.has(id)) return this.dir_url(id);
+		const flat = new URL(`./${id}/`, root), exists = u => fs.stat(u).then(() => true, () => false);
+		let day = this.day(first_at);
+		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
+			try { for (const l of (await fs.readFile(new URL("cache.jsonl", flat), "utf8")).split("\n")) if (l.startsWith('{"summary"')) day = this.day(JSON.parse(l).summary?.first_at) ?? day; } catch {}
+			if (!day) return flat;             // known only by an old flat folder: leave it until its first_at is known
+		}
+		day ??= this.day(new Date());
+		this.days.set(id, day);
+		if (await exists(flat)){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, new URL(`./${day}/${id}/`, root)); return this.dir_url(id); }
+		this.slugs.set(id, slug || "session-" + id.slice(0, 8));
+		return this.dir_url(id);
+	}
+}
