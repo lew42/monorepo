@@ -1,1461 +1,737 @@
 diff --git a/.gitignore b/.gitignore
-index 40afc4ae3..9b660a72d 100644
+index 9b660a72d..91d14d730 100644
 --- a/.gitignore
 +++ b/.gitignore
-@@ -120,6 +120,10 @@ public/framework/ai/servex-queue.json
- public/framework/ai/sessions/session-index.json
- # cache.jsonl = computed numbers (rebuildable). session.jsonl = the hand-written record: TRACKED, append-only.
- public/framework/ai/sessions/*/cache.jsonl
-+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/**/cache.jsonl
-+# a folder listing for a cache folder is noise (PageFiles skips them now); the day folders hold only <id>/ dirs
-+public/framework/ai/sessions/[0-9a-f]*-*/files.jsonl
-+public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/**/files.jsonl
- public/framework/ai/sessions/session-tree.json
+@@ -96,7 +96,9 @@ layout-check-out/
+ .merge-landed.json
  
- # generated layout-test screenshots (2026-10-08)
-diff --git a/Server/plugins/PageFiles.js b/Server/plugins/PageFiles.js
-index 6c6df6880..3a8106a3a 100644
---- a/Server/plugins/PageFiles.js
-+++ b/Server/plugins/PageFiles.js
-@@ -54,12 +54,21 @@ function inside_task_interior(segs) {
-     return after.length > 2;   // deeper than day/task (after[0]=day, after[1]=task)
- }
- 
-+// ai/sessions/<uuid>/ and ai/sessions/YYYY/MM/DD/<uuid>/ are machine cache folders (thousands of them, one per Claude
-+// session): never listed, so the server writes no files.jsonl into them and the git tree stays clean.
-+function in_session_cache(segs) {
-+    const i = segs.findIndex((s, k) => s === "sessions" && segs[k - 1] === "ai" && segs[k - 2] === "framework");
-+    const first = i === -1 ? "" : segs[i + 1] ?? "";
-+    return /^\d{4}$/.test(first) || /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(first);
-+}
-+
- function covers(full) {
-     const rel = path.relative(PUBLIC, full);
-     if (rel.startsWith("..")) return false;   // outside public/ entirely
-     const segs = rel ? rel.split(path.sep) : [];
-     if (segs.some(s => s === "node_modules" || s.startsWith("."))) return false;
-     if (inside_task_interior(segs)) return false;
-+    if (in_session_cache(segs)) return false;
-     return true;
- }
- 
+ # session folders (voice turns, dictation cleanups, agent transcripts)
+-public/framework/ai/20??/??/??/session-*/
++public/framework/ai/20??/??/??/session-*/*
++# ...except the hand-written record (tags, notes, alerts, closed): the one tracked file in a session folder (sessions/doc/layout.md)
++!public/framework/ai/20??/??/??/session-*/session.jsonl
+ public/framework/ai/v-*.jsonl
+ public/framework/ai/v-*.summary.json
+ public/framework/ux/Dictate/ai/v-*.jsonl
 diff --git a/Server/session-place.mjs b/Server/session-place.mjs
-new file mode 100644
-index 000000000..b84903a76
---- /dev/null
+index b84903a76..0b41dc2bb 100644
+--- a/Server/session-place.mjs
 +++ b/Server/session-place.mjs
-@@ -0,0 +1,39 @@
-+// Moves every flat session folder (ai/sessions/<id>/) into its day (ai/sessions/YYYY/MM/DD/<id>/), the day of its
-+// first_at. A plain rename: nothing is regenerated or deleted except the stray files.jsonl folder listings, which are noise.
-+// Safe to run again: a folder already in its day is left alone. Folders with no known first_at (empty sessions, test fixtures) stay where they are.
-+//   node Server/session-place.mjs [--dry]
-+import fs from "node:fs";
-+import path from "node:path";
-+import { fileURLToPath } from "node:url";
-+import Session from "../public/framework/ai/sessions/Session.js";
-+
-+const DIR = process.env.SESSIONS_ROOT || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public", "framework", "ai", "sessions");
-+const dry = process.argv.includes("--dry");
-+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-+
-+// first_at from the cache's newest summary, else the earliest `at` in the hand-written record.
-+function first_at_of(dir){
-+	let first = null;
-+	try { for (const l of fs.readFileSync(path.join(dir, "cache.jsonl"), "utf8").split("\n")) if (l.startsWith('{"summary"')) { try { first = JSON.parse(l).summary.first_at ?? first; } catch {} } } catch {}
-+	if (first) return first;
-+	try { for (const l of fs.readFileSync(path.join(dir, "session.jsonl"), "utf8").split("\n")) if (l.trim()) { try { const at = JSON.parse(l).at; if (at && (!first || at < first)) first = at; } catch {} } } catch {}
-+	return first;
+@@ -1,6 +1,9 @@
+-// Moves every flat session folder (ai/sessions/<id>/) into its day (ai/sessions/YYYY/MM/DD/<id>/), the day of its
+-// first_at. A plain rename: nothing is regenerated or deleted except the stray files.jsonl folder listings, which are noise.
+-// Safe to run again: a folder already in its day is left alone. Folders with no known first_at (empty sessions, test fixtures) stay where they are.
++// Moves every older session folder into the ONE store, the ai date tree: ai/YYYY/MM/DD/session-<first 8 of the id>/ .
++// Two older shapes are moved: the flat ai/sessions/<id>/ and the interim ai/sessions/YYYY/MM/DD/<id>/. The day is the day of
++// an existing card folder with that name, else the day of first_at. A plain rename (or, when the card folder already exists,
++// its files are moved in beside the card's page.jsonl); nothing is regenerated. The only thing deleted is the stray
++// files.jsonl folder listing a dev server once wrote into each cache folder. Safe to run again.
++// A folder with no known first_at and no card stays where it is.
+ //   node Server/session-place.mjs [--dry]
+ import fs from "node:fs";
+ import path from "node:path";
+@@ -9,6 +12,11 @@ import Session from "../public/framework/ai/sessions/Session.js";
+ 
+ const DIR = process.env.SESSIONS_ROOT || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public", "framework", "ai", "sessions");
+ const dry = process.argv.includes("--dry");
++// Every move is recorded old -> new (paths relative to ai/) so the whole conversion can be reversed by a script. --manifest <file> overrides the default.
++const mi = process.argv.indexOf("--manifest");
++const MANIFEST = mi > 0 ? process.argv[mi + 1] : path.join(DIR, "..", "2026-10-08", "session-class", "moves.jsonl");
++const manifest = [];
++const rel = p => path.relative(path.join(DIR, ".."), p).replaceAll("\\", "/");
+ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+ 
+ // first_at from the cache's newest summary, else the earliest `at` in the hand-written record.
+@@ -20,20 +28,29 @@ function first_at_of(dir){
+ 	return first;
+ }
+ 
++// every old folder: [id, dir]
++const found = [];
++for (const a of fs.readdirSync(DIR)){
++	const p = path.join(DIR, a);
++	if (UUID.test(a) && fs.statSync(p).isDirectory()) found.push([a, p]);
++	else if (/^\d{4}$/.test(a) && fs.statSync(p).isDirectory())
++		for (const m of fs.readdirSync(p)) for (const d of fs.readdirSync(path.join(p, m))) for (const id of fs.readdirSync(path.join(p, m, d)))
++			if (UUID.test(id)) found.push([id, path.join(p, m, d, id)]);
 +}
 +
-+let moved = 0, undated = 0, listings = 0;
-+for (const id of fs.readdirSync(DIR)){
-+	if (!UUID.test(id)) continue;
-+	const dir = path.join(DIR, id);
-+	if (!fs.statSync(dir).isDirectory()) continue;
-+	const listing = path.join(dir, "files.jsonl");
-+	if (fs.existsSync(listing)){ listings++; if (!dry) fs.rmSync(listing); }
-+	const day = Session.day(first_at_of(dir));
-+	if (!day){ undated++; continue; }
-+	const to = path.join(DIR, ...day.split("/"), id);
-+	if (dry){ moved++; continue; }
-+	if (fs.existsSync(to)){ console.error("exists, left alone:", id); continue; }
-+	fs.mkdirSync(path.dirname(to), { recursive: true });
-+	fs.renameSync(dir, to);
-+	moved++;
-+}
-+console.log(`${dry ? "would move" : "moved"} ${moved} session folders (${undated} left flat: no first_at), removed ${listings} files.jsonl listings`);
+ let moved = 0, undated = 0, listings = 0;
+-for (const id of fs.readdirSync(DIR)){
+-	if (!UUID.test(id)) continue;
+-	const dir = path.join(DIR, id);
+-	if (!fs.statSync(dir).isDirectory()) continue;
++const cards = await Session.card_days();
++for (const [id, dir] of found){
+ 	const listing = path.join(dir, "files.jsonl");
+ 	if (fs.existsSync(listing)){ listings++; if (!dry) fs.rmSync(listing); }
+-	const day = Session.day(first_at_of(dir));
+-	if (!day){ undated++; continue; }
+-	const to = path.join(DIR, ...day.split("/"), id);
++	const first = first_at_of(dir);
++	if (!first && !cards.has(Session.short(id))){ undated++; continue; }
+ 	if (dry){ moved++; continue; }
+-	if (fs.existsSync(to)){ console.error("exists, left alone:", id); continue; }
+-	fs.mkdirSync(path.dirname(to), { recursive: true });
+-	fs.renameSync(dir, to);
++	const to = fileURLToPath(await Session.locate(id, first));
++	if (path.resolve(to) !== path.resolve(dir)) manifest.push(JSON.stringify({ id, from: rel(dir), to: rel(to) }));
+ 	moved++;
+ }
+-console.log(`${dry ? "would move" : "moved"} ${moved} session folders (${undated} left flat: no first_at), removed ${listings} files.jsonl listings`);
++if (!dry && manifest.length){ fs.mkdirSync(path.dirname(MANIFEST), { recursive: true }); fs.appendFileSync(MANIFEST, manifest.join("\n") + "\n"); }
++// the empty day folders the interim shape leaves behind
++if (!dry) for (const y of fs.readdirSync(DIR)) if (/^\d{4}$/.test(y)) { const prune = d => { for (const n of fs.readdirSync(d)) { const q = path.join(d, n); if (fs.statSync(q).isDirectory()) prune(q); } if (!fs.readdirSync(d).length) fs.rmdirSync(d); }; prune(path.join(DIR, y)); }
++console.log(`${dry ? "would move" : "moved"} ${moved} session folders into the date tree (${undated} left where they are: no first_at), removed ${listings} files.jsonl listings`);
 diff --git a/Server/session-place.test.mjs b/Server/session-place.test.mjs
-new file mode 100644
-index 000000000..cffc7a55e
---- /dev/null
+index cffc7a55e..eb73786b7 100644
+--- a/Server/session-place.test.mjs
 +++ b/Server/session-place.test.mjs
-@@ -0,0 +1,43 @@
-+// The day layout: a flat session folder is moved into its first_at day by the first writer, and the record survives the move.
-+//   node Server/session-place.test.mjs
-+import fs from "node:fs";
-+import os from "node:os";
-+import path from "node:path";
-+import { execFileSync } from "node:child_process";
-+import { fileURLToPath } from "node:url";
-+
-+const root = fs.mkdtempSync(path.join(os.tmpdir(), "sess-place-"));
-+process.env.SESSIONS_ROOT = root;
-+const { default: Session } = await import("../public/framework/ai/sessions/Session.js");
-+let fails = 0;
-+const check = (ok, what) => { console.log((ok ? "PASS " : "FAIL ") + what); if (!ok) fails++; };
-+
-+const id = "11111111-2222-4333-8444-555555555555", id2 = "66666666-7777-4888-8999-aaaaaaaaaaaa";
-+fs.mkdirSync(path.join(root, id));
-+fs.writeFileSync(path.join(root, id, "cache.jsonl"), JSON.stringify({ summary: { first_at: "2026-10-03T23:30:00.000Z" } }) + "\n");
-+fs.writeFileSync(path.join(root, id, "files.jsonl"), "{}\n");
-+fs.mkdirSync(path.join(root, id2));                          // no first_at anywhere: stays flat
+@@ -6,7 +6,8 @@ import path from "node:path";
+ import { execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ 
+-const root = fs.mkdtempSync(path.join(os.tmpdir(), "sess-place-"));
++const base = fs.mkdtempSync(path.join(os.tmpdir(), "sess-place-")), root = path.join(base, "ai", "sessions"), store = path.join(base, "ai");
++fs.mkdirSync(root, { recursive: true });
+ process.env.SESSIONS_ROOT = root;
+ const { default: Session } = await import("../public/framework/ai/sessions/Session.js");
+ let fails = 0;
+@@ -18,7 +19,7 @@ fs.writeFileSync(path.join(root, id, "cache.jsonl"), JSON.stringify({ summary: {
+ fs.writeFileSync(path.join(root, id, "files.jsonl"), "{}\n");
+ fs.mkdirSync(path.join(root, id2));                          // no first_at anywhere: stays flat
+ execFileSync("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "session-place.mjs")], { env: process.env });
+-const dated = path.join(root, "2026", "10", "03", id);
++const dated = path.join(store, "2026", "10", "03", "session-11111111");
+ check(fs.existsSync(path.join(dated, "cache.jsonl")), "the folder moved to its first_at day (UTC)");
+ check(!fs.existsSync(path.join(root, id)), "the flat folder is gone");
+ check(!fs.existsSync(path.join(dated, "files.jsonl")), "the stray files.jsonl listing was dropped");
+@@ -35,9 +36,18 @@ fs.writeFileSync(path.join(root, id3, "session.jsonl"), "{}\n");
+ fs.writeFileSync(path.join(root, id3, "cache.jsonl"), JSON.stringify({ summary: { first_at: "2026-09-01T10:00:00.000Z" } }) + "\n");
+ Session.days.clear();
+ await Session.close(id3, "test");
+-const lazy = path.join(root, "2026", "09", "01", id3);
++const lazy = path.join(store, "2026", "09", "01", "session-99999999");
+ check(fs.existsSync(path.join(lazy, "session.jsonl")) && !fs.existsSync(path.join(root, id3)), "a flat folder is moved by the first writer that touches it");
+ 
+-fs.rmSync(root, { recursive: true, force: true });
++// an interim-shape folder and a card folder that already exists
++const id4 = "abcdef01-aaaa-4bbb-8ccc-dddddddddddd";
++fs.mkdirSync(path.join(root, "2026", "08", "08", id4), { recursive: true });
++fs.writeFileSync(path.join(root, "2026", "08", "08", id4, "cache.jsonl"), JSON.stringify({ summary: { first_at: "2026-08-08T12:00:00.000Z" } }) + "\n");
++fs.mkdirSync(path.join(store, "2026", "08", "07", "session-abcdef01"), { recursive: true });   // the card was made the day before
++fs.writeFileSync(path.join(store, "2026", "08", "07", "session-abcdef01", "page.jsonl"), "{}\n");
 +execFileSync("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "session-place.mjs")], { env: process.env });
-+const dated = path.join(root, "2026", "10", "03", id);
-+check(fs.existsSync(path.join(dated, "cache.jsonl")), "the folder moved to its first_at day (UTC)");
-+check(!fs.existsSync(path.join(root, id)), "the flat folder is gone");
-+check(!fs.existsSync(path.join(dated, "files.jsonl")), "the stray files.jsonl listing was dropped");
-+check(fs.existsSync(path.join(root, id2)), "a folder with no first_at stays flat");
-+
-+await Session.log(id, { tag: "x" }, "test");
-+check(fs.readFileSync(path.join(dated, "session.jsonl"), "utf8").includes('"tag":"x"'), "the record is written into the dated folder");
-+check(!fs.existsSync(path.join(root, id)), "the writer did not recreate a flat folder");
-+check((await Session.read_text(id, "cache.jsonl")).includes("first_at"), "the reader finds the dated cache");
-+
-+const id3 = "99999999-aaaa-4bbb-8ccc-dddddddddddd";           // old flat folder, moved lazily by a writer
-+fs.mkdirSync(path.join(root, id3));
-+fs.writeFileSync(path.join(root, id3, "session.jsonl"), "{}\n");
-+fs.writeFileSync(path.join(root, id3, "cache.jsonl"), JSON.stringify({ summary: { first_at: "2026-09-01T10:00:00.000Z" } }) + "\n");
-+Session.days.clear();
-+await Session.close(id3, "test");
-+const lazy = path.join(root, "2026", "09", "01", id3);
-+check(fs.existsSync(path.join(lazy, "session.jsonl")) && !fs.existsSync(path.join(root, id3)), "a flat folder is moved by the first writer that touches it");
-+
-+fs.rmSync(root, { recursive: true, force: true });
-+console.log(fails ? `${fails} failed` : "all passed");
-+process.exit(fails ? 1 : 0);
++check(fs.existsSync(path.join(store, "2026", "08", "07", "session-abcdef01", "cache.jsonl")) && fs.existsSync(path.join(store, "2026", "08", "07", "session-abcdef01", "page.jsonl")), "an existing card folder wins the day, and the cache is merged in beside its page");
++check(!fs.existsSync(path.join(root, "2026")), "the interim day folders are gone");
++fs.rmSync(base, { recursive: true, force: true });
+ console.log(fails ? `${fails} failed` : "all passed");
+ process.exit(fails ? 1 : 0);
 diff --git a/Server/session-summary.mjs b/Server/session-summary.mjs
-index cfd8e8115..01b17c9d8 100644
+index 01b17c9d8..5247c2b28 100644
 --- a/Server/session-summary.mjs
 +++ b/Server/session-summary.mjs
-@@ -121,10 +121,10 @@ export async function build_index({ days = 30 } = {}){
+@@ -121,7 +121,7 @@ export async function build_index({ days = 30 } = {}){
  		const rec = await Session.record(id);
  		if (rec.closed) closed[id] = rec.closed.at;
  		if (rec.tags.length || rec.alerts || rec.links.length || rec.weight != null) meta[id] = { tags: rec.tags, alerts: rec.alerts, links: rec.links.slice(0, 3), weight: rec.weight };
--		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags];
-+		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, Session.day(r.first_at) ?? 0];
+-		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, Session.day(r.first_at) ?? 0];
++		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, (await Session.card_days()).get(Session.short(id)) ?? Session.day(r.first_at) ?? Session.days.get(id) ?? 0];
  		if (r.parent || r.kids.length) tree[id] = { agent: r.agent ?? undefined, role: r.role ?? undefined, parent: r.parent ?? undefined, kids: r.kids.length ? r.kids : undefined };
  	}
--	const index = { generated_at: new Date().toISOString(), days, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
-+	const index = { generated_at: new Date().toISOString(), days, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
- 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-tree.json"), JSON.stringify(tree));
- 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-index.json"), JSON.stringify(index));
- 	return { ...index, rows: undefined, new_lines };
-diff --git a/public/framework/ai/sessions/00078f57-49f6-4e19-bc1e-9d57df4781df/files.jsonl b/public/framework/ai/sessions/00078f57-49f6-4e19-bc1e-9d57df4781df/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/00078f57-49f6-4e19-bc1e-9d57df4781df/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/0016d87b-6ce4-46d8-95f7-4a601cfd2901/files.jsonl b/public/framework/ai/sessions/0016d87b-6ce4-46d8-95f7-4a601cfd2901/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/0016d87b-6ce4-46d8-95f7-4a601cfd2901/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/00197e27-a5d4-4eee-8570-2d9bf56211f9/files.jsonl b/public/framework/ai/sessions/00197e27-a5d4-4eee-8570-2d9bf56211f9/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/00197e27-a5d4-4eee-8570-2d9bf56211f9/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/001ee2f9-777d-49b3-8094-27c7f818b2c5/files.jsonl b/public/framework/ai/sessions/001ee2f9-777d-49b3-8094-27c7f818b2c5/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/001ee2f9-777d-49b3-8094-27c7f818b2c5/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/002b91f9-4589-49cc-8491-7b0beb337c74/files.jsonl b/public/framework/ai/sessions/002b91f9-4589-49cc-8491-7b0beb337c74/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/002b91f9-4589-49cc-8491-7b0beb337c74/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/002e7ce2-4a1a-4400-877f-b67d568231e5/files.jsonl b/public/framework/ai/sessions/002e7ce2-4a1a-4400-877f-b67d568231e5/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/002e7ce2-4a1a-4400-877f-b67d568231e5/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/0034335c-4631-4c84-b8d2-c9f60890b7bb/files.jsonl b/public/framework/ai/sessions/0034335c-4631-4c84-b8d2-c9f60890b7bb/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/0034335c-4631-4c84-b8d2-c9f60890b7bb/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/004aff0f-5d49-4491-9ab5-e99db749be22/files.jsonl b/public/framework/ai/sessions/004aff0f-5d49-4491-9ab5-e99db749be22/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/004aff0f-5d49-4491-9ab5-e99db749be22/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/0062d672-e50e-4ff6-818c-d8a173acb172/files.jsonl b/public/framework/ai/sessions/0062d672-e50e-4ff6-818c-d8a173acb172/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/0062d672-e50e-4ff6-818c-d8a173acb172/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/006f267a-1218-40a5-86ee-f106cce6c41c/files.jsonl b/public/framework/ai/sessions/006f267a-1218-40a5-86ee-f106cce6c41c/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/006f267a-1218-40a5-86ee-f106cce6c41c/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/00797a13-2951-48fa-b12d-913bc1f40776/files.jsonl b/public/framework/ai/sessions/00797a13-2951-48fa-b12d-913bc1f40776/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/00797a13-2951-48fa-b12d-913bc1f40776/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/007d8771-dd8c-4c94-b374-24cd3d6e3906/files.jsonl b/public/framework/ai/sessions/007d8771-dd8c-4c94-b374-24cd3d6e3906/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/007d8771-dd8c-4c94-b374-24cd3d6e3906/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/00eaf8e6-fb8f-48bd-b8f6-ad854653bd8f/files.jsonl b/public/framework/ai/sessions/00eaf8e6-fb8f-48bd-b8f6-ad854653bd8f/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/00eaf8e6-fb8f-48bd-b8f6-ad854653bd8f/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/00eba02b-3474-4374-832c-f9baeda095b3/files.jsonl b/public/framework/ai/sessions/00eba02b-3474-4374-832c-f9baeda095b3/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/00eba02b-3474-4374-832c-f9baeda095b3/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/00f52de1-cef9-49b6-b2f8-8c5c3900ae77/files.jsonl b/public/framework/ai/sessions/00f52de1-cef9-49b6-b2f8-8c5c3900ae77/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/00f52de1-cef9-49b6-b2f8-8c5c3900ae77/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/01125afa-ca0f-43b5-be20-864830c0bb5e/files.jsonl b/public/framework/ai/sessions/01125afa-ca0f-43b5-be20-864830c0bb5e/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/01125afa-ca0f-43b5-be20-864830c0bb5e/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/01158d10-c160-49fe-8717-d322a035d4e2/files.jsonl b/public/framework/ai/sessions/01158d10-c160-49fe-8717-d322a035d4e2/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/01158d10-c160-49fe-8717-d322a035d4e2/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/0117f5f0-38c5-4ab7-ac2c-8332bd6d32a1/files.jsonl b/public/framework/ai/sessions/0117f5f0-38c5-4ab7-ac2c-8332bd6d32a1/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/0117f5f0-38c5-4ab7-ac2c-8332bd6d32a1/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/012b7b92-1d94-4ff6-9b27-ba85ebb3294f/files.jsonl b/public/framework/ai/sessions/012b7b92-1d94-4ff6-9b27-ba85ebb3294f/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/012b7b92-1d94-4ff6-9b27-ba85ebb3294f/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/01345157-6c64-42f6-80cb-0715750cfd52/files.jsonl b/public/framework/ai/sessions/01345157-6c64-42f6-80cb-0715750cfd52/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/01345157-6c64-42f6-80cb-0715750cfd52/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/013e3c66-28e8-47ce-9bd7-f6932c4fbff9/files.jsonl b/public/framework/ai/sessions/013e3c66-28e8-47ce-9bd7-f6932c4fbff9/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/013e3c66-28e8-47ce-9bd7-f6932c4fbff9/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/013e7a4b-018e-41ef-90a6-f4c17c2dcd1d/files.jsonl b/public/framework/ai/sessions/013e7a4b-018e-41ef-90a6-f4c17c2dcd1d/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/013e7a4b-018e-41ef-90a6-f4c17c2dcd1d/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/016756ee-1cb3-4b42-b20f-3ef5f0659261/files.jsonl b/public/framework/ai/sessions/016756ee-1cb3-4b42-b20f-3ef5f0659261/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/016756ee-1cb3-4b42-b20f-3ef5f0659261/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/016cb858-fb4a-402a-afe6-0d13e26e92f4/files.jsonl b/public/framework/ai/sessions/016cb858-fb4a-402a-afe6-0d13e26e92f4/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/016cb858-fb4a-402a-afe6-0d13e26e92f4/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/02144b70-f976-4c60-b0d1-1a84c5e41434/files.jsonl b/public/framework/ai/sessions/02144b70-f976-4c60-b0d1-1a84c5e41434/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/02144b70-f976-4c60-b0d1-1a84c5e41434/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/03b90ba2-190d-454b-a074-566c3f809696/files.jsonl b/public/framework/ai/sessions/03b90ba2-190d-454b-a074-566c3f809696/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/03b90ba2-190d-454b-a074-566c3f809696/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/03b997ab-3644-492e-b5a8-a01927b4d179/files.jsonl b/public/framework/ai/sessions/03b997ab-3644-492e-b5a8-a01927b4d179/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/03b997ab-3644-492e-b5a8-a01927b4d179/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/03c1f17c-6059-4795-b778-bfadbd68ca03/files.jsonl b/public/framework/ai/sessions/03c1f17c-6059-4795-b778-bfadbd68ca03/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/03c1f17c-6059-4795-b778-bfadbd68ca03/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/03c25c86-81f1-49fe-a090-478c7215a9aa/files.jsonl b/public/framework/ai/sessions/03c25c86-81f1-49fe-a090-478c7215a9aa/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/03c25c86-81f1-49fe-a090-478c7215a9aa/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/046c65cd-3a10-4a28-8c3e-68de6a140d59/files.jsonl b/public/framework/ai/sessions/046c65cd-3a10-4a28-8c3e-68de6a140d59/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/046c65cd-3a10-4a28-8c3e-68de6a140d59/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/086e88e7-bb5e-4276-9b97-2c0136f96748/files.jsonl b/public/framework/ai/sessions/086e88e7-bb5e-4276-9b97-2c0136f96748/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/086e88e7-bb5e-4276-9b97-2c0136f96748/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/0e0df188-e47f-4bac-8b6f-2c64e347e83b/files.jsonl b/public/framework/ai/sessions/0e0df188-e47f-4bac-8b6f-2c64e347e83b/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/0e0df188-e47f-4bac-8b6f-2c64e347e83b/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/0ec4f84f-591d-4ae9-bd90-3226f7af809b/files.jsonl b/public/framework/ai/sessions/0ec4f84f-591d-4ae9-bd90-3226f7af809b/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/0ec4f84f-591d-4ae9-bd90-3226f7af809b/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/1449ada2-29e4-4a04-8c19-8bd6f14d3592/files.jsonl b/public/framework/ai/sessions/1449ada2-29e4-4a04-8c19-8bd6f14d3592/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/1449ada2-29e4-4a04-8c19-8bd6f14d3592/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/150d039c-4721-4936-be70-5208ba83d503/files.jsonl b/public/framework/ai/sessions/150d039c-4721-4936-be70-5208ba83d503/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/150d039c-4721-4936-be70-5208ba83d503/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/152b28d5-a6e7-4c34-9f1e-074b3fbf5073/files.jsonl b/public/framework/ai/sessions/152b28d5-a6e7-4c34-9f1e-074b3fbf5073/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/152b28d5-a6e7-4c34-9f1e-074b3fbf5073/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/1558b9f2-ef1b-4ae4-a227-46c3f71f68ca/files.jsonl b/public/framework/ai/sessions/1558b9f2-ef1b-4ae4-a227-46c3f71f68ca/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/1558b9f2-ef1b-4ae4-a227-46c3f71f68ca/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/15c8b2e7-1303-4736-81f4-3ee7fe4a0392/files.jsonl b/public/framework/ai/sessions/15c8b2e7-1303-4736-81f4-3ee7fe4a0392/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/15c8b2e7-1303-4736-81f4-3ee7fe4a0392/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/1717eb1c-b729-4124-889c-7e12b012aae5/files.jsonl b/public/framework/ai/sessions/1717eb1c-b729-4124-889c-7e12b012aae5/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/1717eb1c-b729-4124-889c-7e12b012aae5/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/1a4fa923-103c-4cd5-a116-5ee64953e866/files.jsonl b/public/framework/ai/sessions/1a4fa923-103c-4cd5-a116-5ee64953e866/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/1a4fa923-103c-4cd5-a116-5ee64953e866/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/1cead666-9be4-43f2-9dfe-2e2e48e1d836/files.jsonl b/public/framework/ai/sessions/1cead666-9be4-43f2-9dfe-2e2e48e1d836/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/1cead666-9be4-43f2-9dfe-2e2e48e1d836/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/1ecc2da0-2027-4143-9d76-21b944675809/files.jsonl b/public/framework/ai/sessions/1ecc2da0-2027-4143-9d76-21b944675809/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/1ecc2da0-2027-4143-9d76-21b944675809/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/1f352c51-2bda-4368-bf20-a6a2ac0db827/files.jsonl b/public/framework/ai/sessions/1f352c51-2bda-4368-bf20-a6a2ac0db827/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/1f352c51-2bda-4368-bf20-a6a2ac0db827/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/25007179-7bd0-46c8-bfb6-f812c43957d3/files.jsonl b/public/framework/ai/sessions/25007179-7bd0-46c8-bfb6-f812c43957d3/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/25007179-7bd0-46c8-bfb6-f812c43957d3/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/2535b37a-a9c9-4211-a2ad-21c1e88acb60/files.jsonl b/public/framework/ai/sessions/2535b37a-a9c9-4211-a2ad-21c1e88acb60/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/2535b37a-a9c9-4211-a2ad-21c1e88acb60/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/27b80ca6-08f1-4959-802d-4033671520b0/files.jsonl b/public/framework/ai/sessions/27b80ca6-08f1-4959-802d-4033671520b0/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/27b80ca6-08f1-4959-802d-4033671520b0/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/2d90e42c-123c-4f69-ab8c-263d656a59d0/files.jsonl b/public/framework/ai/sessions/2d90e42c-123c-4f69-ab8c-263d656a59d0/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/2d90e42c-123c-4f69-ab8c-263d656a59d0/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/30552d72-e153-4868-9dff-cd402e7ca1f0/files.jsonl b/public/framework/ai/sessions/30552d72-e153-4868-9dff-cd402e7ca1f0/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/30552d72-e153-4868-9dff-cd402e7ca1f0/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/31bdb9f1-0f42-424d-9271-ae1d7c534a94/files.jsonl b/public/framework/ai/sessions/31bdb9f1-0f42-424d-9271-ae1d7c534a94/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/31bdb9f1-0f42-424d-9271-ae1d7c534a94/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/36e7b4cf-5f14-4734-a131-047d8d425aa8/files.jsonl b/public/framework/ai/sessions/36e7b4cf-5f14-4734-a131-047d8d425aa8/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/36e7b4cf-5f14-4734-a131-047d8d425aa8/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/3780bbd0-cf11-4c02-9b1a-7a39cbc4a664/files.jsonl b/public/framework/ai/sessions/3780bbd0-cf11-4c02-9b1a-7a39cbc4a664/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/3780bbd0-cf11-4c02-9b1a-7a39cbc4a664/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/3801d20f-d09b-45dc-9efa-87fe18823799/files.jsonl b/public/framework/ai/sessions/3801d20f-d09b-45dc-9efa-87fe18823799/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/3801d20f-d09b-45dc-9efa-87fe18823799/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/3921b323-97fe-474e-9da5-4c66844e54b8/files.jsonl b/public/framework/ai/sessions/3921b323-97fe-474e-9da5-4c66844e54b8/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/3921b323-97fe-474e-9da5-4c66844e54b8/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/3c47a110-5059-4dc2-ba38-2bc392d5236e/files.jsonl b/public/framework/ai/sessions/3c47a110-5059-4dc2-ba38-2bc392d5236e/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/3c47a110-5059-4dc2-ba38-2bc392d5236e/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/3d2883cc-2c94-4775-86bd-ac3214e59be1/files.jsonl b/public/framework/ai/sessions/3d2883cc-2c94-4775-86bd-ac3214e59be1/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/3d2883cc-2c94-4775-86bd-ac3214e59be1/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/3d819805-9ec6-4fa0-9804-521300e2106d/files.jsonl b/public/framework/ai/sessions/3d819805-9ec6-4fa0-9804-521300e2106d/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/3d819805-9ec6-4fa0-9804-521300e2106d/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/3da90cb1-f9da-4f30-92dc-56823e4d4f54/files.jsonl b/public/framework/ai/sessions/3da90cb1-f9da-4f30-92dc-56823e4d4f54/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/3da90cb1-f9da-4f30-92dc-56823e4d4f54/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/3e0863da-2de1-428b-9d02-d04b0677bcd6/files.jsonl b/public/framework/ai/sessions/3e0863da-2de1-428b-9d02-d04b0677bcd6/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/3e0863da-2de1-428b-9d02-d04b0677bcd6/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/4068804f-1b76-4d74-b497-8c5225bba194/files.jsonl b/public/framework/ai/sessions/4068804f-1b76-4d74-b497-8c5225bba194/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/4068804f-1b76-4d74-b497-8c5225bba194/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/423d1111-4d50-49ca-b5be-f09410216fae/files.jsonl b/public/framework/ai/sessions/423d1111-4d50-49ca-b5be-f09410216fae/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/423d1111-4d50-49ca-b5be-f09410216fae/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/449eb6e9-d748-4026-9c2c-b95e820a0a5e/files.jsonl b/public/framework/ai/sessions/449eb6e9-d748-4026-9c2c-b95e820a0a5e/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/449eb6e9-d748-4026-9c2c-b95e820a0a5e/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/46a0dd22-edf4-484f-bb41-700e317a791e/files.jsonl b/public/framework/ai/sessions/46a0dd22-edf4-484f-bb41-700e317a791e/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/46a0dd22-edf4-484f-bb41-700e317a791e/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/46cc1bb8-5432-4a06-b787-5c8e5afa6119/files.jsonl b/public/framework/ai/sessions/46cc1bb8-5432-4a06-b787-5c8e5afa6119/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/46cc1bb8-5432-4a06-b787-5c8e5afa6119/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/5105ba10-cb14-4df4-915d-c1cce658f2d9/files.jsonl b/public/framework/ai/sessions/5105ba10-cb14-4df4-915d-c1cce658f2d9/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/5105ba10-cb14-4df4-915d-c1cce658f2d9/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/58f3fe75-0a06-477d-9b47-d22eb75df2e6/files.jsonl b/public/framework/ai/sessions/58f3fe75-0a06-477d-9b47-d22eb75df2e6/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/58f3fe75-0a06-477d-9b47-d22eb75df2e6/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/5d6464a7-2064-4d40-ab8c-be36a51491b5/files.jsonl b/public/framework/ai/sessions/5d6464a7-2064-4d40-ab8c-be36a51491b5/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/5d6464a7-2064-4d40-ab8c-be36a51491b5/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/5dce41f7-56df-4edb-8b84-6cf4d23bb67f/files.jsonl b/public/framework/ai/sessions/5dce41f7-56df-4edb-8b84-6cf4d23bb67f/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/5dce41f7-56df-4edb-8b84-6cf4d23bb67f/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/5f4b44bf-2321-4638-918d-49cf825e5532/files.jsonl b/public/framework/ai/sessions/5f4b44bf-2321-4638-918d-49cf825e5532/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/5f4b44bf-2321-4638-918d-49cf825e5532/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/679f168e-f62b-4cec-9056-ee51c01eb082/files.jsonl b/public/framework/ai/sessions/679f168e-f62b-4cec-9056-ee51c01eb082/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/679f168e-f62b-4cec-9056-ee51c01eb082/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/6ed33004-6c84-44f2-9a1f-e75cc6dc022e/files.jsonl b/public/framework/ai/sessions/6ed33004-6c84-44f2-9a1f-e75cc6dc022e/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/6ed33004-6c84-44f2-9a1f-e75cc6dc022e/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/6f443226-dc2b-4bae-83ec-13b0f9a68c4f/files.jsonl b/public/framework/ai/sessions/6f443226-dc2b-4bae-83ec-13b0f9a68c4f/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/6f443226-dc2b-4bae-83ec-13b0f9a68c4f/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/71f18307-d13b-4093-a1d9-bc827edf6d30/files.jsonl b/public/framework/ai/sessions/71f18307-d13b-4093-a1d9-bc827edf6d30/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/71f18307-d13b-4093-a1d9-bc827edf6d30/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/71f3d18f-e15c-4a1b-bdb9-628effb59a7d/files.jsonl b/public/framework/ai/sessions/71f3d18f-e15c-4a1b-bdb9-628effb59a7d/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/71f3d18f-e15c-4a1b-bdb9-628effb59a7d/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/71f49508-9152-430a-a6ad-2d825e76f0c8/files.jsonl b/public/framework/ai/sessions/71f49508-9152-430a-a6ad-2d825e76f0c8/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/71f49508-9152-430a-a6ad-2d825e76f0c8/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/71fe4d46-ccbd-4907-a2e0-4637b44822d7/files.jsonl b/public/framework/ai/sessions/71fe4d46-ccbd-4907-a2e0-4637b44822d7/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/71fe4d46-ccbd-4907-a2e0-4637b44822d7/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/720bff37-2c48-4dee-90ad-2c118dd1db24/files.jsonl b/public/framework/ai/sessions/720bff37-2c48-4dee-90ad-2c118dd1db24/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/720bff37-2c48-4dee-90ad-2c118dd1db24/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/721f2b83-bb0c-4c91-a795-87c8bd9b7c6b/files.jsonl b/public/framework/ai/sessions/721f2b83-bb0c-4c91-a795-87c8bd9b7c6b/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/721f2b83-bb0c-4c91-a795-87c8bd9b7c6b/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/72282229-51aa-46a4-b793-2761b846a0d9/files.jsonl b/public/framework/ai/sessions/72282229-51aa-46a4-b793-2761b846a0d9/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/72282229-51aa-46a4-b793-2761b846a0d9/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/722a8697-59c7-4279-baf9-106c12255352/files.jsonl b/public/framework/ai/sessions/722a8697-59c7-4279-baf9-106c12255352/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/722a8697-59c7-4279-baf9-106c12255352/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/784d1039-7b02-4336-b87f-c1fcca58184b/files.jsonl b/public/framework/ai/sessions/784d1039-7b02-4336-b87f-c1fcca58184b/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/784d1039-7b02-4336-b87f-c1fcca58184b/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/8141b5c6-5a32-4aa8-a902-ec6f2baa7b40/files.jsonl b/public/framework/ai/sessions/8141b5c6-5a32-4aa8-a902-ec6f2baa7b40/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/8141b5c6-5a32-4aa8-a902-ec6f2baa7b40/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/81ded70a-d269-43ac-ad1f-fbb1df704ea6/files.jsonl b/public/framework/ai/sessions/81ded70a-d269-43ac-ad1f-fbb1df704ea6/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/81ded70a-d269-43ac-ad1f-fbb1df704ea6/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/87485aee-b691-418f-a4c4-6f162d27e64e/files.jsonl b/public/framework/ai/sessions/87485aee-b691-418f-a4c4-6f162d27e64e/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/87485aee-b691-418f-a4c4-6f162d27e64e/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/874defe4-34de-4530-9e2d-55bf55786129/files.jsonl b/public/framework/ai/sessions/874defe4-34de-4530-9e2d-55bf55786129/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/874defe4-34de-4530-9e2d-55bf55786129/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/8750d476-167b-408b-869e-11d67bb9595f/files.jsonl b/public/framework/ai/sessions/8750d476-167b-408b-869e-11d67bb9595f/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/8750d476-167b-408b-869e-11d67bb9595f/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/87783fad-bc57-49a3-b933-8bd0d0a18975/files.jsonl b/public/framework/ai/sessions/87783fad-bc57-49a3-b933-8bd0d0a18975/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/87783fad-bc57-49a3-b933-8bd0d0a18975/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/877c2fd8-1418-424d-a1a0-c4aedd0e9612/files.jsonl b/public/framework/ai/sessions/877c2fd8-1418-424d-a1a0-c4aedd0e9612/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/877c2fd8-1418-424d-a1a0-c4aedd0e9612/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/8780cac4-651c-42ff-9d54-07d335ddb9d9/files.jsonl b/public/framework/ai/sessions/8780cac4-651c-42ff-9d54-07d335ddb9d9/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/8780cac4-651c-42ff-9d54-07d335ddb9d9/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/87828eb6-9e6c-4a12-906b-10c27c5260d9/files.jsonl b/public/framework/ai/sessions/87828eb6-9e6c-4a12-906b-10c27c5260d9/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/87828eb6-9e6c-4a12-906b-10c27c5260d9/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/8790615c-841b-4e33-8ad0-eaa2b2e3f281/files.jsonl b/public/framework/ai/sessions/8790615c-841b-4e33-8ad0-eaa2b2e3f281/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/8790615c-841b-4e33-8ad0-eaa2b2e3f281/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/87a85cd1-7999-4860-b1b8-107baa982b20/files.jsonl b/public/framework/ai/sessions/87a85cd1-7999-4860-b1b8-107baa982b20/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/87a85cd1-7999-4860-b1b8-107baa982b20/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/8cec5264-9c3c-4acd-99b5-0192feb54746/files.jsonl b/public/framework/ai/sessions/8cec5264-9c3c-4acd-99b5-0192feb54746/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/8cec5264-9c3c-4acd-99b5-0192feb54746/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/8eb00d5f-51c5-4eb5-87ee-79561de4a453/files.jsonl b/public/framework/ai/sessions/8eb00d5f-51c5-4eb5-87ee-79561de4a453/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/8eb00d5f-51c5-4eb5-87ee-79561de4a453/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/95501d18-468f-478c-8f4f-671d2a1fab77/files.jsonl b/public/framework/ai/sessions/95501d18-468f-478c-8f4f-671d2a1fab77/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/95501d18-468f-478c-8f4f-671d2a1fab77/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/9553ed8d-7693-4bb7-ad6c-655ed6118d13/files.jsonl b/public/framework/ai/sessions/9553ed8d-7693-4bb7-ad6c-655ed6118d13/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/9553ed8d-7693-4bb7-ad6c-655ed6118d13/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/9694cd45-e0eb-49f1-89d2-04835d040e25/files.jsonl b/public/framework/ai/sessions/9694cd45-e0eb-49f1-89d2-04835d040e25/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/9694cd45-e0eb-49f1-89d2-04835d040e25/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
+ 	const index = { generated_at: new Date().toISOString(), days, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
 diff --git a/public/framework/ai/sessions/Session.js b/public/framework/ai/sessions/Session.js
-index 1286155a1..4e939c469 100644
+index 4e939c469..ac75db386 100644
 --- a/public/framework/ai/sessions/Session.js
 +++ b/public/framework/ai/sessions/Session.js
-@@ -2,7 +2,7 @@
- //
- // WHY: a transcript is the only place per-message token counts exist, and it can be tens of MB.
- // This class reads it ONCE, keeps running totals (updated per message), and saves a small summary
--// (`sessions/<id>/session.jsonl`) so a page never re-reads the raw file. Same file runs on the
-+// (`sessions/YYYY/MM/DD/<id>/cache.jsonl`, see doc/layout.md) so a page never re-reads the raw file. Same file runs on the
- // server (reads transcripts, writes the cache) and in the browser (reads the cache, renders).
- //
- // THE TRUTH (token-accounting + session-class findings): Anthropic's usage is repeated on EVERY
-@@ -329,10 +329,42 @@ export default class Session {
- 
+@@ -330,40 +330,58 @@ export default class Session {
  	// ---- cache I/O (the server writes it, the browser reads it) -----------------------------
  
--	static dir_url(id){
-+	// ---- where a session's folder lives (doc/layout.md) ---------------------------------------
-+	// sessions/YYYY/MM/DD/<id>/ , the day the session FIRST appeared (UTC), the same year/month/day tree the ai cards use.
-+	// Old flat folders (sessions/<id>/) are still read, and are moved into their day the first time a node writer touches them.
-+	static days = new Map();                       // id -> "2026/10/03", filled from the index (browser) or the disk (node)
-+	static day(first_at){ const d = new Date(first_at); return first_at && !isNaN(d) ? d.toISOString().slice(0, 10).replace(/-/g, "/") : null; }
-+	static use_index(index){ const i = index?.columns?.indexOf("day"); if (i >= 0) for (const [id, v] of Object.entries(index.rows)) if (v[i]) Session.days.set(id, v[i]); }
-+
-+	static root_url(){
+ 	// ---- where a session's folder lives (doc/layout.md) ---------------------------------------
+-	// sessions/YYYY/MM/DD/<id>/ , the day the session FIRST appeared (UTC), the same year/month/day tree the ai cards use.
+-	// Old flat folders (sessions/<id>/) are still read, and are moved into their day the first time a node writer touches them.
++	// ONE store: the ai date tree, ai/YYYY/MM/DD/session-<first 8 of the id>/ , the same folder the session's card page
++	// lives in. The day is the card's day if a card folder exists, else the day the session FIRST appeared (UTC).
++	// Older shapes (sessions/<id>/ and sessions/YYYY/MM/DD/<id>/) are still read, and move into the store when a node writer touches them.
+ 	static days = new Map();                       // id -> "2026/10/03", filled from the index (browser) or the disk (node)
+ 	static day(first_at){ const d = new Date(first_at); return first_at && !isNaN(d) ? d.toISOString().slice(0, 10).replace(/-/g, "/") : null; }
+ 	static use_index(index){ const i = index?.columns?.indexOf("day"); if (i >= 0) for (const [id, v] of Object.entries(index.rows)) if (v[i]) Session.days.set(id, v[i]); }
++	static short(id){ return "session-" + String(id).slice(0, 8); }
+ 
+ 	static root_url(){
  		// SESSIONS_ROOT (node only) lets a script run from a worktree write into the main tree's sessions/ folder.
  		const root = typeof process !== "undefined" && process.env?.SESSIONS_ROOT;
--		return root ? new URL(`./${id}/`, "file:///" + root.replace(/\\/g, "/").replace(/\/?$/, "/").replace(/^\/+/, "")) : new URL(`./${id}/`, import.meta.url);
-+		return root ? new URL("file:///" + root.replace(/\\/g, "/").replace(/\/?$/, "/").replace(/^\/+/, "")) : new URL("./", import.meta.url);
+ 		return root ? new URL("file:///" + root.replace(/\\/g, "/").replace(/\/?$/, "/").replace(/^\/+/, "")) : new URL("./", import.meta.url);
+ 	}
+-	// Sync: the dated folder when the day is known, else the old flat one.
+-	static dir_url(id, day = Session.days.get(id)){ return new URL(day ? `./${day}/${id}/` : `./${id}/`, Session.root_url()); }
++	static store_url(){ return new URL("../", Session.root_url()); }   // the ai/ folder: the date tree's root
++	// Sync: the store folder when the day is known, else the oldest flat one.
++	static dir_url(id, day = Session.days.get(id)){ return day ? new URL(`./${day}/${Session.short(id)}/`, Session.store_url()) : new URL(`./${id}/`, Session.root_url()); }
++
++	// Node, async: every card folder `ai/YYYY/MM/DD/session-*` as short name -> day (one pass over the ~100 day folders).
++	static async card_days(){
++		if (Session.cards) return Session.cards;
++		const fs = await import("node:fs/promises"), ls = async u => fs.readdir(u).catch(() => []), store = Session.store_url(), cards = new Map();
++		for (const y of await ls(store)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, store))) if (/^\d\d$/.test(m)) for (const d of await ls(new URL(`./${y}/${m}/`, store)))
++			if (/^\d\d$/.test(d)) for (const n of await ls(new URL(`./${y}/${m}/${d}/`, store))) if (n.startsWith("session-") && !cards.has(n)) cards.set(n, `${y}/${m}/${d}`);
++		return Session.cards = cards;
 +	}
-+	// Sync: the dated folder when the day is known, else the old flat one.
-+	static dir_url(id, day = Session.days.get(id)){ return new URL(day ? `./${day}/${id}/` : `./${id}/`, Session.root_url()); }
-+
-+	// Node, async: the folder to WRITE into. Day from first_at, else what we already know, else the index on disk, else an old
-+	// flat folder, else today. An old flat folder is moved into its day (a plain rename: it is regenerable cache plus the record).
-+	static async locate(id, first_at){
-+		const fs = await import("node:fs/promises"), root = Session.root_url();
-+		let day = Session.day(first_at) ?? Session.days.get(id);
-+		if (!day && !Session.ix_read){ Session.ix_read = true; try { const ix = JSON.parse(await fs.readFile(new URL("session-index.json", root), "utf8")); Session.use_index(ix); day = Session.days.get(id); } catch {} }
-+		const flat = new URL(`./${id}/`, root), exists = u => fs.stat(u).then(() => true, () => false);
-+		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
-+			try { for (const l of (await fs.readFile(new URL("cache.jsonl", flat), "utf8")).split("\n")) if (l.startsWith('{"summary"')) day = Session.day(JSON.parse(l).summary?.first_at) ?? day; } catch {}
+ 
+-	// Node, async: the folder to WRITE into. Day from first_at, else what we already know, else the index on disk, else an old
+-	// flat folder, else today. An old flat folder is moved into its day (a plain rename: it is regenerable cache plus the record).
++	// Node, async: the folder to WRITE into. Day: an existing card folder, else first_at, else what we already know, else the index
++	// on disk, else the old folder's own summary, else today. An older folder is moved in (a plain rename, or its files are merged in).
+ 	static async locate(id, first_at){
+-		const fs = await import("node:fs/promises"), root = Session.root_url();
+-		let day = Session.day(first_at) ?? Session.days.get(id);
++		const fs = await import("node:fs/promises"), root = Session.root_url(), store = Session.store_url(), name = Session.short(id);
++		const exists = u => fs.stat(u).then(() => true, () => false);
++		let day = (await Session.card_days()).get(name) ?? Session.days.get(id) ?? Session.day(first_at);
+ 		if (!day && !Session.ix_read){ Session.ix_read = true; try { const ix = JSON.parse(await fs.readFile(new URL("session-index.json", root), "utf8")); Session.use_index(ix); day = Session.days.get(id); } catch {} }
+-		const flat = new URL(`./${id}/`, root), exists = u => fs.stat(u).then(() => true, () => false);
+-		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
+-			try { for (const l of (await fs.readFile(new URL("cache.jsonl", flat), "utf8")).split("\n")) if (l.startsWith('{"summary"')) day = Session.day(JSON.parse(l).summary?.first_at) ?? day; } catch {}
+-		}
+-		else if (!day){                       // not in the index, no flat folder: look through the day folders (a few dozen), else it is new: today
++		const flat = new URL(`./${id}/`, root);
++		const old = [flat];                                        // older shapes to move in: flat, then sessions/YYYY/MM/DD/<id>/
++		const read_day = async dir => { try { for (const l of (await fs.readFile(new URL("cache.jsonl", dir), "utf8")).split("\n")) if (l.startsWith('{"summary"')) return Session.day(JSON.parse(l).summary?.first_at); } catch {} return null; };
++		if (!day && await exists(flat)) day = await read_day(flat);
++		if (!day){
+ 			const ls = async u => fs.readdir(u).catch(() => []);
+ 			for (const y of await ls(root)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, root))) for (const d of await ls(new URL(`./${y}/${m}/`, root)))
+ 				if (await exists(new URL(`./${y}/${m}/${d}/${id}/`, root))) day = `${y}/${m}/${d}`;
+ 			day ??= Session.day(new Date());
+ 		}
+-		if (!day) return flat;                                   // known only by an old flat folder: leave it until its first_at is known
++		if (!day) return flat;
+ 		Session.days.set(id, day);
+-		const dated = new URL(`./${day}/${id}/`, root);
+-		if (await exists(flat) && !(await exists(dated))){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, dated); }
++		for (const dd of new Set([day, Session.day(first_at)])) if (dd) old.push(new URL(`./${dd}/${id}/`, root));   // the interim shape sat in the first_at day
++		const dated = new URL(`./${day}/${name}/`, store);
++		for (const src of old){
++			if (!(await exists(src))) continue;
++			if (!(await exists(dated))){ await fs.mkdir(new URL(`./${day}/`, store), { recursive: true }); await fs.rename(src, dated); }
++			else for (const f of await fs.readdir(src)) if (!(await exists(new URL(f, dated)))) await fs.rename(new URL(f, src), new URL(f, dated));   // merge into the card's folder
 +		}
-+		else if (!day){                       // not in the index, no flat folder: look through the day folders (a few dozen), else it is new: today
-+			const ls = async u => fs.readdir(u).catch(() => []);
-+			for (const y of await ls(root)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, root))) for (const d of await ls(new URL(`./${y}/${m}/`, root)))
-+				if (await exists(new URL(`./${y}/${m}/${d}/${id}/`, root))) day = `${y}/${m}/${d}`;
-+			day ??= Session.day(new Date());
-+		}
-+		if (!day) return flat;                                   // known only by an old flat folder: leave it until its first_at is known
-+		Session.days.set(id, day);
-+		const dated = new URL(`./${day}/${id}/`, root);
-+		if (await exists(flat) && !(await exists(dated))){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, dated); }
-+		return dated;
+ 		return dated;
  	}
  
- 	// ---- the record: what a session's session.jsonl accepts (doc/record-spec.md) ----
-@@ -353,7 +385,7 @@ export default class Session {
- 		const types = Object.keys(Session.LINE_TYPES).filter(k => k in line);
- 		if (types.length !== 1) throw new Error("a line has exactly one of: " + Object.keys(Session.LINE_TYPES).join(", "));
- 		if (!Session.LINE_TYPES[types[0]](line)) throw new Error(`bad shape for "${types[0]}" (see sessions/doc/record-spec.md)`);
--		const fs = await import("node:fs/promises"), dir = Session.dir_url(id);
-+		const fs = await import("node:fs/promises"), dir = await Session.locate(id);
- 		await fs.mkdir(dir, { recursive: true });
- 		const out = { ...line, at: new Date().toISOString(), by, session: id };
- 		await fs.appendFile(new URL("session.jsonl", dir), JSON.stringify(out) + "\n");
-@@ -362,11 +394,16 @@ export default class Session {
- 
- 	// Browser or node: read one of a session's small log files as text, or "" when it does not exist.
- 	static async read_text(id, name){
--		const url = new URL(name, Session.dir_url(id));
--		try {
--			if (url.protocol === "file:"){ const fs = await import("node:fs/promises"); return await fs.readFile(url, "utf8"); }
--			const r = await fetch(url, { cache: "no-store" }); return r.ok ? await r.text() : "";
--		} catch { return ""; }
-+		const one = async url => {
-+			try {
-+				if (url.protocol === "file:"){ const fs = await import("node:fs/promises"); return await fs.readFile(url, "utf8"); }
-+				const r = await fetch(url, { cache: "no-store" }); return r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? await r.text() : "";
-+			} catch { return ""; }
-+		};
-+		const node = typeof process !== "undefined" && process.versions?.node;
-+		let text = await one(new URL(name, node ? await Session.locate(id) : Session.dir_url(id)));
-+		if (!text && Session.days.has(id)) text = await one(new URL(name, Session.dir_url(id, null)));   // not moved yet: the old flat path
-+		return text;
- 	}
- 	static lines_of(text){ const out = []; for (const l of text.split("\n")) if (l.trim()) try { out.push(JSON.parse(l)); } catch {} return out; }
- 
-@@ -424,7 +461,7 @@ export default class Session {
- 
- 	// Node: append the summary to <id>/cache.jsonl (stamped), folding that cache file so it stays tiny. Never touches session.jsonl.
- 	async save(by = "session-summary"){
--		const fs = await import("node:fs/promises"), dir = Session.dir_url(this.id), file = new URL("cache.jsonl", dir);
-+		const fs = await import("node:fs/promises"), dir = await Session.locate(this.id, this.s.first_at), file = new URL("cache.jsonl", dir);
- 		await fs.mkdir(dir, { recursive: true });
- 		const at = new Date().toISOString(), s = { ...this.s }; delete s.audit; delete s.closed;
- 		let old = ""; try { old = await fs.readFile(file, "utf8"); } catch {}
-@@ -439,7 +476,7 @@ export default class Session {
- 	// Lifecycle: the owner marks a session done ("rubber stamp"). An appended, stamped, authored line; nothing is deleted.
- 	// closed:false re-opens it (a later line wins). The table hides closed sessions by default; chasing skips them.
- 	static async close(id, by = "owner", closed = true){
--		const fs = await import("node:fs/promises"), dir = Session.dir_url(id);
-+		const fs = await import("node:fs/promises"), dir = await Session.locate(id);
- 		await fs.mkdir(dir, { recursive: true });
- 		const line = { closed, at: new Date().toISOString(), by };
- 		await fs.appendFile(new URL("session.jsonl", dir), JSON.stringify(line) + "\n");
-@@ -447,7 +484,7 @@ export default class Session {
- 	}
- 
- 	async save_audit(result, by = "session-summary --audit"){
--		const fs = await import("node:fs/promises"), dir = Session.dir_url(this.id);
-+		const fs = await import("node:fs/promises"), dir = await Session.locate(this.id, this.s.first_at);
- 		await fs.mkdir(dir, { recursive: true });
- 		await fs.appendFile(new URL("cache.jsonl", dir), JSON.stringify({ audit: result, at: result.at, by }) + "\n");
- 		this.s.audit = result;
-diff --git a/public/framework/ai/sessions/SessionView.js b/public/framework/ai/sessions/SessionView.js
-index d123d2a1c..b3d569276 100644
---- a/public/framework/ai/sessions/SessionView.js
-+++ b/public/framework/ai/sessions/SessionView.js
-@@ -15,14 +15,14 @@ export function runtime(ms){
- 
- // ---- the grid ------------------------------------------------------------------------------------
- export async function load_index(root_url){
--	try { const r = await fetch(root_url + "session-index.json", { cache: "no-store" }); return r.ok ? await r.json() : null; } catch { return null; }
-+	try { const r = await fetch(root_url + "session-index.json", { cache: "no-store" }); const ix = r.ok ? await r.json() : null; if (ix) (await import("./Session.js")).default.use_index(ix); return ix; } catch { return null; }
- }
- 
- // The grid file keeps one short array per session (see Server/session-summary.mjs); this reads it as an object.
- export function row_of(index, id){
- 	const v = index?.rows?.[id];
- 	if (!v) return null;
--	return { id, usd: v[0], tree_usd: v[1], children: v[2], wall_ms: v[3], model: v[4] || null, effort: v[5] || null, flags: v[6] };
-+	return { id, usd: v[0], tree_usd: v[1], children: v[2], wall_ms: v[3], model: v[4] || null, effort: v[5] || null, flags: v[6], day: v[7] || null };
- }
- export async function load_tree(root_url){
- 	try { const r = await fetch(root_url + "session-tree.json", { cache: "no-store" }); return r.ok ? await r.json() : {}; } catch { return {}; }
-diff --git a/public/framework/ai/sessions/a1aa8851-ac21-462f-b73f-0553dc7f822b/files.jsonl b/public/framework/ai/sessions/a1aa8851-ac21-462f-b73f-0553dc7f822b/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/a1aa8851-ac21-462f-b73f-0553dc7f822b/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/a1af8e45-2746-4bbc-a62f-24863e3d9915/files.jsonl b/public/framework/ai/sessions/a1af8e45-2746-4bbc-a62f-24863e3d9915/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/a1af8e45-2746-4bbc-a62f-24863e3d9915/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/a1c1d1e1-0001-4a19-9b01-000000000001/files.jsonl b/public/framework/ai/sessions/a1c1d1e1-0001-4a19-9b01-000000000001/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/a1c1d1e1-0001-4a19-9b01-000000000001/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/a1c1d1e1-0002-4a19-9b01-000000000002/files.jsonl b/public/framework/ai/sessions/a1c1d1e1-0002-4a19-9b01-000000000002/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/a1c1d1e1-0002-4a19-9b01-000000000002/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/a1c1d1e1-0003-4a19-9b01-000000000003/files.jsonl b/public/framework/ai/sessions/a1c1d1e1-0003-4a19-9b01-000000000003/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/a1c1d1e1-0003-4a19-9b01-000000000003/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/a1c1d1e1-0004-4a19-9b01-000000000004/files.jsonl b/public/framework/ai/sessions/a1c1d1e1-0004-4a19-9b01-000000000004/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/a1c1d1e1-0004-4a19-9b01-000000000004/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b7d014fc-134a-46ff-b9d6-499b91b38250/files.jsonl b/public/framework/ai/sessions/b7d014fc-134a-46ff-b9d6-499b91b38250/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b7d014fc-134a-46ff-b9d6-499b91b38250/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b7efed07-d3a7-4e3b-8179-3c2e9aff14c1/files.jsonl b/public/framework/ai/sessions/b7efed07-d3a7-4e3b-8179-3c2e9aff14c1/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b7efed07-d3a7-4e3b-8179-3c2e9aff14c1/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b7ffe810-fff2-40a1-a282-b3a3d9759003/files.jsonl b/public/framework/ai/sessions/b7ffe810-fff2-40a1-a282-b3a3d9759003/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b7ffe810-fff2-40a1-a282-b3a3d9759003/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b814c30b-a7bc-4834-bf85-dff7e895678a/files.jsonl b/public/framework/ai/sessions/b814c30b-a7bc-4834-bf85-dff7e895678a/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b814c30b-a7bc-4834-bf85-dff7e895678a/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b818d250-a0c8-40fb-811e-e65c33a7b442/files.jsonl b/public/framework/ai/sessions/b818d250-a0c8-40fb-811e-e65c33a7b442/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b818d250-a0c8-40fb-811e-e65c33a7b442/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b8237b4c-5104-4d01-a127-f034f798f96d/files.jsonl b/public/framework/ai/sessions/b8237b4c-5104-4d01-a127-f034f798f96d/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b8237b4c-5104-4d01-a127-f034f798f96d/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b8259b84-ca1a-47ae-9516-1d5e8099b025/files.jsonl b/public/framework/ai/sessions/b8259b84-ca1a-47ae-9516-1d5e8099b025/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b8259b84-ca1a-47ae-9516-1d5e8099b025/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b83500b4-c8d3-453d-ab7b-981436fffcde/files.jsonl b/public/framework/ai/sessions/b83500b4-c8d3-453d-ab7b-981436fffcde/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b83500b4-c8d3-453d-ab7b-981436fffcde/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b8475897-895b-4095-b16e-5a266f768e96/files.jsonl b/public/framework/ai/sessions/b8475897-895b-4095-b16e-5a266f768e96/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b8475897-895b-4095-b16e-5a266f768e96/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b84d48ad-dd97-4e70-8dd5-3dc70ec44d89/files.jsonl b/public/framework/ai/sessions/b84d48ad-dd97-4e70-8dd5-3dc70ec44d89/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b84d48ad-dd97-4e70-8dd5-3dc70ec44d89/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b84ee56e-bbdc-49e5-ae6c-a0a8431025c7/files.jsonl b/public/framework/ai/sessions/b84ee56e-bbdc-49e5-ae6c-a0a8431025c7/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b84ee56e-bbdc-49e5-ae6c-a0a8431025c7/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b862bff3-2a65-4aeb-8b17-b020113977ce/files.jsonl b/public/framework/ai/sessions/b862bff3-2a65-4aeb-8b17-b020113977ce/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b862bff3-2a65-4aeb-8b17-b020113977ce/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/b87f2b41-39c0-4183-86cb-60da0633defc/files.jsonl b/public/framework/ai/sessions/b87f2b41-39c0-4183-86cb-60da0633defc/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/b87f2b41-39c0-4183-86cb-60da0633defc/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/d6699955-ef6f-466f-bc88-e0a1e4cb1aa1/files.jsonl b/public/framework/ai/sessions/d6699955-ef6f-466f-bc88-e0a1e4cb1aa1/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/d6699955-ef6f-466f-bc88-e0a1e4cb1aa1/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/d6742977-ec2d-43d3-a317-c01781b87fbe/files.jsonl b/public/framework/ai/sessions/d6742977-ec2d-43d3-a317-c01781b87fbe/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/d6742977-ec2d-43d3-a317-c01781b87fbe/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/d677c129-4374-4967-b6d2-21b0b730133a/files.jsonl b/public/framework/ai/sessions/d677c129-4374-4967-b6d2-21b0b730133a/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/d677c129-4374-4967-b6d2-21b0b730133a/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/d682faf0-6d43-4585-8791-a7069bc12279/files.jsonl b/public/framework/ai/sessions/d682faf0-6d43-4585-8791-a7069bc12279/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/d682faf0-6d43-4585-8791-a7069bc12279/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/d692ff14-6e21-4fe6-8cd4-a261329399b5/files.jsonl b/public/framework/ai/sessions/d692ff14-6e21-4fe6-8cd4-a261329399b5/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/d692ff14-6e21-4fe6-8cd4-a261329399b5/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/d6942ce7-1a9c-4e7e-81f9-549ce30fb716/files.jsonl b/public/framework/ai/sessions/d6942ce7-1a9c-4e7e-81f9-549ce30fb716/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/d6942ce7-1a9c-4e7e-81f9-549ce30fb716/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/d69ab4c7-58e3-4467-8cdc-230a2a9838ba/files.jsonl b/public/framework/ai/sessions/d69ab4c7-58e3-4467-8cdc-230a2a9838ba/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/d69ab4c7-58e3-4467-8cdc-230a2a9838ba/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
 diff --git a/public/framework/ai/sessions/doc/layout.md b/public/framework/ai/sessions/doc/layout.md
-new file mode 100644
-index 000000000..69e8271d9
---- /dev/null
+index 7ddd0c954..0be9d26f6 100644
+--- a/public/framework/ai/sessions/doc/layout.md
 +++ b/public/framework/ai/sessions/doc/layout.md
-@@ -0,0 +1,50 @@
-+# Where a session's files live
+@@ -1,51 +1,47 @@
+ # Where a session's files live
+ 
+-A Claude session has one folder, named by its session id, and the folder sits inside the **day the session first appeared**:
++A Claude session has **one folder**, in the same date tree as every AI card:
+ 
+ ```
+-ai/sessions/2026/10/03/<session-id>/
+-    session.jsonl   the record: tags, notes, alerts, weight, closed, questions, links. Tracked in git, append only.
++ai/2026/10/03/session-1a2b3c4d/      "session-" + the first 8 characters of the session id
++    page.jsonl      the card's page, if the session has one (Servex and VS Code cards do)
++    session.jsonl   the hand-written record: tags, notes, alerts, weight, closed, questions, links. Tracked in git, append only.
+     cache.jsonl     the computed cost summary and audits. Gitignored, rebuilt freely.
+ ```
+ 
+-The day is the date of the session's first message (`first_at`, in UTC), written `YYYY/MM/DD`. It is the same year/month/day tree the site's AI cards use, so a reader who knows one knows the other.
++The day is the day of the card folder if one exists, else the day of the session's first message (`first_at`, UTC). The full id is written inside the files, so the short name is only a label.
+ 
+ ## The three rules
+ 
+-1. **The folder is cache plus record, nothing else.** Nothing here is a work log. A session's story lives in its task folder (see "Why ids, not task names" below).
+-2. **Only code writes the path.** `Session.locate(id, first_at)` (node) decides it and moves an old flat folder into its day. `Session.dir_url(id)` (browser) reads it from the day column of `session-index.json`. Nobody builds the path by hand.
+-3. **The listing is never written.** The dev server does not create a `files.jsonl` inside `ai/sessions/<id>/` or `ai/sessions/YYYY/...` (`Server/plugins/PageFiles.js`, `in_session_cache`), and `.gitignore` covers both, so thousands of session folders cannot dirty the git tree.
++1. **One folder per session.** Nothing about a session is stored in a second place. The older shapes below are only read, never written.
++2. **Only code writes the path.** `Session.locate(id, first_at)` (node) decides it and moves an older folder in. `Session.dir_url(id)` (browser) reads the day from the `day` column of `session-index.json`. Nobody builds the path by hand.
++3. **The listing is never written.** The dev server does not create a `files.jsonl` inside a session folder (`Server/plugins/PageFiles.js`, `in_session_cache`), and `.gitignore` keeps `cache.jsonl` and everything but `session.jsonl` out of git, so thousands of folders cannot dirty the tree.
+ 
+ ## Old paths still load
+ 
+-The old flat folders (`ai/sessions/<id>/`) are still read. `Session.read_text` tries the dated folder first and falls back to the flat one. The first writer that touches an old folder moves it. To move everything at once:
++Two older shapes exist: the flat `ai/sessions/<id>/` and the interim `ai/sessions/YYYY/MM/DD/<id>/`. `Session.locate` finds a session under any of them. The first writer that touches an older folder moves it into the date tree. To move everything at once, with a record of every move:
+ 
+ ```
+-node Server/session-place.mjs --dry     # say what would move
+-node Server/session-place.mjs           # a plain rename; the only thing removed is the stray files.jsonl listings
++node Server/session-place.mjs --dry     # say what would move; changes nothing
++node Server/session-place.mjs           # renames only; writes moves.jsonl (id, from, to) so a script can reverse it
+ ```
+ 
+-A folder with no `first_at` anywhere (an empty session, a test fixture) stays flat. The script is safe to run again.
++If the card's folder already exists, the cache is moved in beside its `page.jsonl`; no file is overwritten. A folder with no known day (an empty session, a test fixture) stays where it is. The script is safe to run again. The only thing it deletes is the stray `files.jsonl` listing a dev server once wrote into each cache folder.
+ 
+ ## Two things to know
+ 
+-- **A read can move a folder too.** In node, `read_text` calls `Session.locate`, so even a read renames an old flat folder into its day (and an id nobody knows gets today). That keeps one rule, "the path comes from `locate`", at the price of a surprising side effect on reads.
+-- **A move is a rename.** A reader that holds the old flat path gets an empty answer for one call while a writer moves the folder. For a cache that is fine; the next read finds it.
+-- **The browser finds a dated folder through `session-index.json`** (its `day` column). A session missing from the index reads from the flat path and shows nothing until the index is rebuilt (`node Server/session-summary.mjs --index`). Every session the table lists is in the index, so the table itself is never affected.
++- **A read can move a folder too.** In node, `read_text` calls `Session.locate`, so even a read renames an older folder into place. That keeps one rule, "the path comes from `locate`", at the price of a surprising side effect on reads.
++- **The browser finds the folder through `session-index.json`.** A session missing from the index reads from the flat path and shows nothing until the index is rebuilt (`node Server/session-summary.mjs --index`). Every session the table lists is in the index, so the table itself is not affected.
+ 
+ ## Why this layout, and the alternative
+ 
+-- **Chosen: `ai/sessions/YYYY/MM/DD/<id>/`.** It keeps all session data in one module, it matches the card tree's shape, and `session-index.json` (the page's only fast read) carries the day, so the browser never lists a directory.
+-- **Alternative: `ai/YYYY/MM/DD/<id>/`.** Closer to the cards, but that tree is made of pages (each folder a card with a `page.jsonl`), and 7,700 machine-cache folders would sit among them. Rejected for that reason.
+-- The index design in `findings.md` (section 12) partitions the index by day of *update* in `ai/sessions/index/YYYY/MM/DD.jsonl`. That is a different thing from this layout (the day a session *began*, for its folder), and the two do not collide: `index` is not a year.
++- **Chosen: the date tree, `ai/YYYY/MM/DD/session-<id8>/`.** The owner's preference (2026-10-08): the cards already live there, so a session and its card are one folder and the site has one place to look.
++- **Alternative, rejected: `ai/sessions/YYYY/MM/DD/<id>/`.** It was the first answer, and it kept session data apart from the cards, which is the split being removed.
++- **Not built yet: child sessions as subdirectories (`parent/child`).** The grid already nests children under their parent from `session-tree.json`. The folder rule is queued in `2026-10-08/session-class/findings.md` section 14, with the reason: a child can start on a later day than its parent.
++- The day-partitioned index in that file's section 12 (`sessions/index/YYYY/MM/DD.jsonl`, by day of update) is a different thing from where a session's folder lives and does not collide with it.
+ 
+ ## Why ids, not task names
+ 
+-A task folder (`ai/2026-10-08/session-class/`) is a unit of work with a human name. A Claude session is one transcript. They are not one-to-one: a task can take several sessions (a mastermind, its minions, a resumed run), and most sessions (every VS Code tab, every SDK run, every reviewer) have no task at all. The Claude session id is the only key all of them share, so the cost cache is keyed by it.
++A task folder (`ai/2026-10-08/session-class/`) is a unit of work with a human name. A Claude session is one transcript. They are not one-to-one: a task can take several sessions (a mastermind, its minions, a resumed run), and most sessions (every VS Code tab, every SDK run, every reviewer) have no task at all. The session id is the only key all of them share.
+ 
+-A session is not stored twice, because the two folders hold different things:
+-
+-- the **task folder** holds the work: `task.jsonl`, the brief, the findings.
+-- the **session folder** holds the money and the record: the cost cache, tags, alerts, closed.
+-
+-They join by id. A task's launch line in `task.jsonl` names its `session_id`, and the Servex registry (`agents.jsonl`, read by `registry_rows()` in `Server/session-summary.mjs`) maps an agent's name and parent to its `session_id`. The Sessions table shows the name from that mapping. Naming a session after its task would only work for the minority that have one.
++A session is not stored twice, because the two folders hold different things: the **task folder** holds the work (`task.jsonl`, the brief, the findings), and the **session folder** holds the money and the record. They join by id. A task's launch line in `task.jsonl` names its `session_id`, and the Servex registry (`agents.jsonl`, read by `registry_rows()` in `Server/session-summary.mjs`) maps an agent's name and parent to its `session_id`. The Sessions table shows the name from that mapping.
+diff --git a/public/framework/ai/sessions/doc/priorities.md b/public/framework/ai/sessions/doc/priorities.md
+new file mode 100644
+index 000000000..1120d604b
+--- /dev/null
++++ b/public/framework/ai/sessions/doc/priorities.md
+@@ -0,0 +1,33 @@
++# Sessions: what the owner asked for, most important first
 +
-+A Claude session has one folder, named by its session id, and the folder sits inside the **day the session first appeared**:
++This is the list to follow. Higher means do it first and never break it for something lower. Each line says what was asked, what is decided, and where it lives. The long history is in [decisions](/framework/ai/sessions/doc/decisions/).
 +
-+```
-+ai/sessions/2026/10/03/<session-id>/
-+    session.jsonl   the record: tags, notes, alerts, weight, closed, questions, links. Tracked in git, append only.
-+    cache.jsonl     the computed cost summary and audits. Gitignored, rebuilt freely.
-+```
++## 1. Data is never lost, and moves are scripted
++- **Asked:** move and rename with a script, never by retyping; do not delete logs or records; git is the undo.
++- **Decided:** `Server/session-place.mjs` only renames, runs `--dry` first, is safe to run again, and writes `moves.jsonl` (old path, new path) in the task folder. The one thing it removes is the `files.jsonl` folder listing a dev server wrote into cache folders: noise that is rebuilt on demand.
++- **Lives in:** [layout](/framework/ai/sessions/doc/layout/).
 +
-+The day is the date of the session's first message (`first_at`, in UTC), written `YYYY/MM/DD`. It is the same year/month/day tree the site's AI cards use, so a reader who knows one knows the other.
++## 2. One store, one route
++- **Asked:** a session is stored once; the same detail view opens however you arrive.
++- **Decided:** the date tree, `ai/YYYY/MM/DD/session-<id8>/`. Every row opens `/framework/ai/sessions/<id>/`. Old shapes still load through `Session.locate`.
++- **Lives in:** [layout](/framework/ai/sessions/doc/layout/), `Session.js`.
 +
-+## The three rules
++## 3. The page tells the truth
++- **Asked:** state must be real; names must be useful, never "monorepo"; counts must come from the index, not from loading everything.
++- **Decided:** state is worked out on every draw from the live agent list and the transcript clock (`true_state`). A name is the agent's name, else the last real prompt, else the source and id. Counts come from the rows and `session-index.json`.
++- **Lives in:** `page.js` (`true_state`, `display_name`), [findings 14](/framework/ai/2026-10-08/session-class/).
++- **Still to do:** Servex names every session when it spawns it; the dev server stops writing stale state into `sessions.json`.
 +
-+1. **The folder is cache plus record, nothing else.** Nothing here is a work log. A session's story lives in its task folder (see "Why ids, not task names" below).
-+2. **Only code writes the path.** `Session.locate(id, first_at)` (node) decides it and moves an old flat folder into its day. `Session.dir_url(id)` (browser) reads it from the day column of `session-index.json`. Nobody builds the path by hand.
-+3. **The listing is never written.** The dev server does not create a `files.jsonl` inside `ai/sessions/<id>/` or `ai/sessions/YYYY/...` (`Server/plugins/PageFiles.js`, `in_session_cache`), and `.gitignore` covers both, so thousands of session folders cannot dirty the git tree.
++## 4. A compact grid you can scan
++- **Asked:** state icon first, plan usage as bars with the pace marker (the Dashboard's), no wasted space above the list, an "in flight" filter, sort toggles for recency and cost.
++- **Decided:** all of it is built. The bars are `usage_rail` from `ext/AITask/usage.js`, the same component the Dashboard uses. Every column header sorts; the default order is cost weighted by recency; "Updated" sorts newest first.
++- **Lives in:** `page.js`, `sessions.css`.
 +
-+## Old paths still load
++## 5. Children nest under their parent
++- **Asked:** a child session is a sub-folder of its parent (`parent/child`), and the grid shows nested rows, collapsed, with the rolled-up cost.
++- **Decided and built:** the grid nests rows from `session-tree.json`, collapsed, with the whole tree's cost on the parent row.
++- **Not built:** the folder rule. A child can start a day later than its parent, so its date folder and its parent's disagree. Proposal and reason: [findings 14](/framework/ai/2026-10-08/session-class/).
 +
-+The old flat folders (`ai/sessions/<id>/`) are still read. `Session.read_text` tries the dated folder first and falls back to the flat one. The first writer that touches an old folder moves it. To move everything at once:
-+
-+```
-+node Server/session-place.mjs --dry     # say what would move
-+node Server/session-place.mjs           # a plain rename; the only thing removed is the stray files.jsonl listings
-+```
-+
-+A folder with no `first_at` anywhere (an empty session, a test fixture) stays flat. The script is safe to run again.
-+
-+## Two things to know
-+
-+- **A move is a rename.** A reader that holds the old flat path gets an empty answer for one call while a writer moves the folder. For a cache that is fine; the next read finds it.
-+- **The browser finds a dated folder through `session-index.json`** (its `day` column). A session missing from the index reads from the flat path and shows nothing until the index is rebuilt (`node Server/session-summary.mjs --index`). Every session the table lists is in the index, so the table itself is never affected.
-+
-+## Why this layout, and the alternative
-+
-+- **Chosen: `ai/sessions/YYYY/MM/DD/<id>/`.** It keeps all session data in one module, it matches the card tree's shape, and `session-index.json` (the page's only fast read) carries the day, so the browser never lists a directory.
-+- **Alternative: `ai/YYYY/MM/DD/<id>/`.** Closer to the cards, but that tree is made of pages (each folder a card with a `page.jsonl`), and 7,700 machine-cache folders would sit among them. Rejected for that reason.
-+- The index design in `findings.md` (section 12) partitions the index by day of *update* in `ai/sessions/index/YYYY/MM/DD.jsonl`. That is a different thing from this layout (the day a session *began*, for its folder), and the two do not collide: `index` is not a year.
-+
-+## Why ids, not task names
-+
-+A task folder (`ai/2026-10-08/session-class/`) is a unit of work with a human name. A Claude session is one transcript. They are not one-to-one: a task can take several sessions (a mastermind, its minions, a resumed run), and most sessions (every VS Code tab, every SDK run, every reviewer) have no task at all. The Claude session id is the only key all of them share, so the cost cache is keyed by it.
-+
-+A session is not stored twice, because the two folders hold different things:
-+
-+- the **task folder** holds the work: `task.jsonl`, the brief, the findings.
-+- the **session folder** holds the money and the record: the cost cache, tags, alerts, closed.
-+
-+They join by id. A task's launch line in `task.jsonl` names its `session_id`, and the Servex registry (`agents.jsonl`, read by `registry_rows()` in `Server/session-summary.mjs`) maps an agent's name and parent to its `session_id`. The Sessions table shows the name from that mapping. Naming a session after its task would only work for the minority that have one.
-diff --git a/public/framework/ai/sessions/f16b14a3-c9a8-4828-8049-ed59ab985bc0/files.jsonl b/public/framework/ai/sessions/f16b14a3-c9a8-4828-8049-ed59ab985bc0/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f16b14a3-c9a8-4828-8049-ed59ab985bc0/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f16d6b53-add7-4c93-97fc-7fd5b205ceeb/files.jsonl b/public/framework/ai/sessions/f16d6b53-add7-4c93-97fc-7fd5b205ceeb/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f16d6b53-add7-4c93-97fc-7fd5b205ceeb/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f173d24b-ec11-4e31-a6f4-4c5f7fc070bb/files.jsonl b/public/framework/ai/sessions/f173d24b-ec11-4e31-a6f4-4c5f7fc070bb/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f173d24b-ec11-4e31-a6f4-4c5f7fc070bb/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f17fcb94-9d72-4c4f-babc-f2fc574d7ab1/files.jsonl b/public/framework/ai/sessions/f17fcb94-9d72-4c4f-babc-f2fc574d7ab1/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f17fcb94-9d72-4c4f-babc-f2fc574d7ab1/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f180ed6b-9ac9-4b3d-a105-95d34d419756/files.jsonl b/public/framework/ai/sessions/f180ed6b-9ac9-4b3d-a105-95d34d419756/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f180ed6b-9ac9-4b3d-a105-95d34d419756/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f188c95a-c0b6-4358-8229-5d3c6966f125/files.jsonl b/public/framework/ai/sessions/f188c95a-c0b6-4358-8229-5d3c6966f125/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f188c95a-c0b6-4358-8229-5d3c6966f125/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f1898dbf-f295-48a1-ab03-139588a49286/files.jsonl b/public/framework/ai/sessions/f1898dbf-f295-48a1-ab03-139588a49286/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f1898dbf-f295-48a1-ab03-139588a49286/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f19645be-43c3-4ef7-a13e-a750b9bda82a/files.jsonl b/public/framework/ai/sessions/f19645be-43c3-4ef7-a13e-a750b9bda82a/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f19645be-43c3-4ef7-a13e-a750b9bda82a/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f19ad87c-38ac-4417-9b89-fe78f43cb0d7/files.jsonl b/public/framework/ai/sessions/f19ad87c-38ac-4417-9b89-fe78f43cb0d7/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f19ad87c-38ac-4417-9b89-fe78f43cb0d7/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f1b60e1d-8114-45e6-b5a5-5bec57f5f138/files.jsonl b/public/framework/ai/sessions/f1b60e1d-8114-45e6-b5a5-5bec57f5f138/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f1b60e1d-8114-45e6-b5a5-5bec57f5f138/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f1b82617-ec43-4125-88d4-d6e810bc2cd4/files.jsonl b/public/framework/ai/sessions/f1b82617-ec43-4125-88d4-d6e810bc2cd4/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f1b82617-ec43-4125-88d4-d6e810bc2cd4/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f1b8c7d9-d356-464f-b307-aa298926930b/files.jsonl b/public/framework/ai/sessions/f1b8c7d9-d356-464f-b307-aa298926930b/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f1b8c7d9-d356-464f-b307-aa298926930b/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f1bf6e06-17d3-4eb8-9049-399b6acd2c7a/files.jsonl b/public/framework/ai/sessions/f1bf6e06-17d3-4eb8-9049-399b6acd2c7a/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f1bf6e06-17d3-4eb8-9049-399b6acd2c7a/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f1c06cbb-58c9-4283-82f5-582b17b69aff/files.jsonl b/public/framework/ai/sessions/f1c06cbb-58c9-4283-82f5-582b17b69aff/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f1c06cbb-58c9-4283-82f5-582b17b69aff/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
-diff --git a/public/framework/ai/sessions/f1ce2aa4-7f78-4d81-b962-9b15a34b4bf8/files.jsonl b/public/framework/ai/sessions/f1ce2aa4-7f78-4d81-b962-9b15a34b4bf8/files.jsonl
-deleted file mode 100644
-index f9a55af24..000000000
---- a/public/framework/ai/sessions/f1ce2aa4-7f78-4d81-b962-9b15a34b4bf8/files.jsonl
-+++ /dev/null
-@@ -1 +0,0 @@
--{"file":"cache.jsonl"}
++## 6. Everything is linked
++- **Asked:** a file that exists but is not linked from the site will never be found.
++- **Decided:** this page links to the readme, this list and the docs from its header; the readme links every doc.
 diff --git a/public/framework/ai/sessions/page.js b/public/framework/ai/sessions/page.js
-index fff639bd9..e75577201 100644
+index df118e700..10b2746fc 100644
 --- a/public/framework/ai/sessions/page.js
 +++ b/public/framework/ai/sessions/page.js
-@@ -100,8 +100,8 @@ export const COLUMNS = [
+@@ -1,6 +1,8 @@
+-import { Page, div, a, span, small, p, label, input, button, View } from "/app.js";
++import { servex_base } from "/framework/ai/v/3/prompts.js";
++import { Page, h3, div, a, span, small, p, label, input, button, View } from "/app.js";
+ import Panel2 from "/framework/ext/panel2/Panel2.js";
+ import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
++import { usage_rail } from "/framework/ext/AITask/usage.js";
+ import { grip } from "/framework/ext/grip/grip.js";
+ import { load as raw_transcript_lines } from "/framework/ext/AITask/replay.js";
+ import { dur, elapsed } from "/framework/ext/AITask/stats.js";
+@@ -83,13 +85,21 @@ export const SOURCE = {
+ 	page: { label: "Page", icon: "description" },
+ };
+ 
++View.stylesheet("/framework/ext/AITask/ai.css");   // the usage rail's bars
++
+ const POLL_MS = 20000;
++let TREE = null;   // session-tree.json (who spawned whom, and each agent's own name), set when it loads
+ 
+ // A row's own `state` word that counts as "in flight" — the state cell shows a
+ // blinking ▶ for these, a plain quiet dot for anything else (idle, dormant,
+ // stopped, gone, or no state at all).
+ const WORKING_STATES = new Set(["working", "active"]);
+ 
++// "In flight" = running or ready to be: a Servex agent that is working, starting or idle-but-live (not dormant, stopped or gone), or a
++// VS Code/CLI session whose transcript moved in the last five minutes. One rule for the strip above the grid and the "in flight" checkbox.
++const NOT_IN_FLIGHT = new Set(["dormant", "stopped", "gone", "done", "failed", "error", "ended"]);
++export const is_in_flight = r => r.source === "servex" ? !!r.state && !NOT_IN_FLIGHT.has(r.state) && r.session_id != null : r.state === "active";
++
+ // One row per column, one token, one minimum — `write()` below never touches
+ // any token but its own (the owner's own ask: "resizing a column changes the
+ // one token"). `min` mirrors sessions.css's own `minmax()` floor for the same
+@@ -99,6 +109,7 @@ export const COLUMNS = [
+ 	// Stop/Duration (2026-10-03, sessions-date-homes — the owner's own ask: "show
  	// the start time, stop time, duration and cost on every row"), right beside
  	// Start since all three describe the same span.
++	{ key: "state",    label: "State",    min: 56, hint: "Working now (blinking ▶) or not (•). Click to put the working ones first." },
  	{ key: "name",     label: "Name",     min: 160 },
--	{ key: "cost",     label: "Cost",     min: 120 },
--	{ key: "updated",  label: "Updated",  min: 88 },
-+	{ key: "cost",     label: "Cost",     min: 120, hint: "Click to sort. Without a sort, rows are ordered by cost weighted by recency: a cost counts half as much for every 3 days since the session was last active." },
-+	{ key: "updated",  label: "Updated",  min: 88, hint: "Click to sort by the last activity, newest first." },
- 	{ key: "duration", label: "Duration", min: 84 },
+ 	{ key: "cost",     label: "Cost",     min: 120, hint: "Click to sort. Without a sort, rows are ordered by cost weighted by recency: a cost counts half as much for every 3 days since the session was last active." },
+ 	{ key: "updated",  label: "Updated",  min: 88, hint: "Click to sort by the last activity, newest first." },
+@@ -106,7 +117,6 @@ export const COLUMNS = [
  	{ key: "role",     label: "Role",     min: 110 },
  	{ key: "source",   label: "Source",   min: 88 },
-@@ -109,19 +109,16 @@ export const COLUMNS = [
- 	{ key: "state",    label: "State",    min: 60 },
+ 	{ key: "model",    label: "Model",    min: 88 },
+-	{ key: "state",    label: "State",    min: 60 },
  ];
  
--// The Cost header is also a sort toggle: default (newest-activity-first) →
--// highest cost first → lowest cost first → back to default. `page` carries
--// the state (`page.cost_sort`) and the arrow label (`page.$cost_label`).
-+// Every header is a sort toggle: first click = the natural order (words A to Z, numbers biggest first), second click =
-+// reversed, third click = back to the default order. `page` carries the state (`page.sort`) and the labels (`page.$sort_labels`).
- function header_row($grid, page){
- 	div.c("sessions-head", () => {
- 		COLUMNS.forEach((col, i) => {
- 			div.c("sessions-cell sessions-head-cell", () => {
--				if (col.key === "cost"){
--					page.$cost_label = span.c("sessions-sort-label").click(() => page.toggle_cost_sort());
--					page.render_cost_label();
--				} else {
--					span(col.label);
--				}
-+				const label = span.c("sessions-sort-label").attr("role", "button").attr("tabindex", "0").attr("title", col.hint ?? "Click to sort; click again to reverse; a third click goes back to the default order");
-+				label.click(() => page.toggle_sort(col.key));
-+				label.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); page.toggle_sort(col.key); } });
-+				page.$sort_labels[col.key] = label;
- 				// The last column has nothing to its right to resize into —
- 				// no grip on it, same as the Page columns system leaves the
- 				// rightmost column's own outer edge alone.
-@@ -138,6 +135,7 @@ function header_row($grid, page){
- 			});
- 		});
- 	});
-+	page.render_sort_labels();
- }
+ // Every header is a sort toggle: first click = the natural order (words A to Z, numbers biggest first), second click =
+@@ -255,6 +265,29 @@ export function with_date_path_rows(rows, page_dirs){
  
- export async function get_json(url){
-@@ -296,12 +294,24 @@ export function merge(snapshot_rows, agents){
+ // The snapshot's VS Code/CLI rows, plus Servex's own live list laid on top —
+ // a Servex row always wins its own session_id, since it is the live truth.
++// A snapshot row's state word was true when sessions.json was written and is stale the moment you read it, so the page works
++// state out again from facts it can check now: a VS Code/CLI/SDK session is working only if its transcript moved in the last
++// five minutes; a Servex agent is working only if the live agent list (GET /api/agents) still says so. A Servex row the live
++// list no longer has is stopped, whatever the snapshot said. (An empty live list means "could not ask", so it changes nothing.)
++export const WORKING_WINDOW_MS = 5 * 60 * 1000;
++export function true_state(r, live_ids, now = Date.now()){
++	if (r.source === "servex") return live_ids?.size && !live_ids.has(r.session_id) ? "stopped" : r.state;
++	const last = Date.parse(r.last_activity ?? 0);
++	return last && now - last < WORKING_WINDOW_MS ? "active" : "idle";
++}
++
++// What to call a row. A VS Code tab's folder name ("monorepo") is where it ran, not what it is, so a name comes from the first
++// of: the session tree's agent name, a Servex agent's own id, the last prompt, else "session" plus the first 8 of the id.
++export function display_name(r, tree){
++	const sid = r.session_id || r.id;
++	const named = tree?.[sid]?.agent;
++	if (named) return { text: named, from: "agent" };
++	if (r.source === "servex" && r.tab_title) return { text: r.tab_title, from: "agent" };
++	// a prompt that is only a routing tag or a skill preamble says nothing about the session: keep it as the second line, not the name
++	if (r.last_prompt_first_line && !/^\[from:|^Base directory for this skill/.test(r.last_prompt_first_line)) return { text: r.last_prompt_first_line.replace(/\s+/g, " ").trim().slice(0, 70), from: "prompt" };
++	return { text: (SOURCE[r.source]?.label ?? "session") + " " + String(sid).slice(0, 8), from: "id" };
++}
++
+ export function merge(snapshot_rows, agents){
+ 	const by_id = new Map(snapshot_rows.map(r => [r.session_id, r]));
+ 	agents.forEach(a => {
+@@ -291,13 +324,14 @@ export function merge(snapshot_rows, agents){
+ 			started_at: null, stopped_at: null,
+ 			...r, // a real value already on the row (set above for a Servex row, or already on a snapshot row) always wins these defaults
+ 		}))
++		.map(r => { const live = new Set(agents.map(a => a.session_id).filter(Boolean)); return { ...r, state: true_state(r, live) }; })
  		.sort((x, y) => Date.parse(y.last_activity ?? 0) - Date.parse(x.last_activity ?? 0));
  }
  
--// Missing/null sorts LAST regardless of direction — a session nobody has
--// priced yet shouldn't look like the cheapest one. `null` (the default) does
--// nothing: the rows already arrive newest-activity-first from `merge()`.
--export function sort_by_cost(rows, direction){
--	if (!direction){
--		// Default: cost weighted by recency (a cost halves every 3 days since last activity), so what matters now is on top.
-+// What each column sorts by. A number or a lowercase word; null = unknown, which sorts LAST in either direction
-+// (a session nobody has priced yet must not look like the cheapest one).
-+const SORT_VALUE = {
-+	name:     r => (r.tab_title || r.id || "").toLowerCase(),
-+	cost:     r => cost_value(r),
-+	updated:  r => Date.parse(r.last_activity ?? 0) || null,
-+	duration: r => { const e = elapsed(r.started_at, r.stopped_at ?? (WORKING_STATES.has(r.state) ? new Date().toISOString() : null)); return typeof e === "number" && !isNaN(e) ? e : null; },
-+	role:     r => r.role || null,
-+	source:   r => r.source || null,
-+	model:    r => r.model ? String(r.model).toLowerCase() : null,
-+	state:    r => r.state ? (WORKING_STATES.has(r.state) ? 0 : 1) : null,
-+};
-+const TEXT_COLUMNS = new Set(["name", "role", "source", "model"]);   // these start A to Z; the rest start biggest first
-+export const natural_dir = key => TEXT_COLUMNS.has(key) ? "asc" : "desc";
-+
-+// sort = null (the default: cost weighted by recency, a cost halves every 3 days since last activity) or { key, dir }.
-+export function sort_rows(rows, sort){
-+	if (!sort){
- 		const now = Date.now();
- 		const score = r => {
- 			const ix = row_of(IX, r.session_id || r.id);
-@@ -310,11 +320,14 @@ export function sort_by_cost(rows, direction){
- 		};
- 		return rows.map(r => [score(r), r]).sort((a, b) => b[0] - a[0]).map(x => x[1]);
- 	}
--	const priced = rows.filter(r => cost_value(r) !== null);
--	const unpriced = rows.filter(r => cost_value(r) === null);
--	priced.sort((a, b) => direction === "desc" ? cost_value(b) - cost_value(a) : cost_value(a) - cost_value(b));
--	return [...priced, ...unpriced];
-+	const get = SORT_VALUE[sort.key], sign = sort.dir === "asc" ? 1 : -1;
-+	const keyed = rows.map(r => [get(r), r]);
-+	const known = keyed.filter(x => x[0] !== null && x[0] !== undefined), unknown = keyed.filter(x => x[0] === null || x[0] === undefined);
-+	known.sort((x, y) => (x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : 0) * sign);
-+	return [...known, ...unknown].map(x => x[1]);
+ // What each column sorts by. A number or a lowercase word; null = unknown, which sorts LAST in either direction
+ // (a session nobody has priced yet must not look like the cheapest one).
+ const SORT_VALUE = {
+-	name:     r => (r.tab_title || r.id || "").toLowerCase(),
++	name:     r => display_name(r, TREE).text.toLowerCase(),
+ 	cost:     r => cost_value(r),
+ 	updated:  r => Date.parse(r.last_activity ?? 0) || null,
+ 	duration: r => { const e = elapsed(r.started_at, r.stopped_at ?? (WORKING_STATES.has(r.state) ? new Date().toISOString() : null)); return typeof e === "number" && !isNaN(e) ? e : null; },
+@@ -344,10 +378,11 @@ const WORKING_STATE_ATTR = state => WORKING_STATES.has(state) ? "working" : "idl
+ // this tab's own `/sessions/<id>/` view, same as before this task. Omitted
+ // entirely (the Dashboard tile's own call) just means every row falls back,
+ // which is harmless and correct — no session has a date-path page yet.
+-export function row_view(r, url, page_dirs, spend, session_index){
++// `nest` (optional) = { depth, kids, open, toggle }: how deep this row sits, how many children it has, whether they show, and the click.
++export function row_view(r, url, page_dirs, spend, session_index, nest){
+ 	const src = SOURCE[r.source] ?? { label: r.source, icon: "help" };
+-	const dated = page_dirs?.get((r.session_id || r.id || "").slice(0, 8));
+-	const href = dated ?? (url + r.id + "/");
++	// One route per session, whichever way you arrive: this tab's own detail view.
++	const href = url + r.id + "/";
+ 	return a.c("sessions-row").href(href).append(() => {
+ 		// Start / Stop / Duration (the owner's own ask, requirement 3).
+ 		// ⚠ Three honest states, not two (review finding, 2026-10-03): still
+@@ -361,9 +396,19 @@ export function row_view(r, url, page_dirs, spend, session_index){
+ 		// finished minutes ago would be worse than admitting it's unknown.
+ 		const working = WORKING_STATES.has(r.state);
+ 		const span_end = r.stopped_at ?? (working ? new Date().toISOString() : null);
++		// The state icon comes first: as important as the name. A blinking ▶ while in flight, a quiet dot otherwise (a ✓ for "done" belongs only on the detail page).
++		div.c("sessions-cell", () => {
++			if (!r.state) return;
++			span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : "idle")).attr("title", r.state + (working ? "" : " (not working right now)")).text(working ? "▶" : "•");
++		});
++		const name = display_name(r, TREE);
+ 		div.c("sessions-cell", () => div.c("sessions-name-stack", () => {
+-			span.c("sessions-row-title", r.tab_title || r.id);
+-			if (r.last_prompt_first_line) small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
++			span.c("sessions-row-title").style(nest?.depth ? { paddingInlineStart: nest.depth * 1.5 + "em" } : {}).append(() => {
++				if (nest?.kids) span.c("sessions-fold").attr("role", "button").attr("tabindex", "0").attr("title", nest.open ? "Hide the sessions this one started" : "Show the sessions this one started")
++					.text((nest.open ? "▾ " : "▸ ") + nest.kids).on("click", e => { e.preventDefault(); e.stopPropagation(); nest.toggle(); });
++				span(name.text);
++			});
++			if (r.last_prompt_first_line && name.from !== "prompt") small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
+ 		}));
+ 		div.c("sessions-cell", () => {
+ 			// The Session class row (session-index.json) is the truth for a Claude session's cost: whole tree, runtime, model + effort.
+@@ -406,15 +451,6 @@ export function row_view(r, url, page_dirs, spend, session_index){
+ 		// … === "number"`, rendered the literal word "false" in the Cost
+ 		// column because the arrow function's own return value WAS `false`).
+ 		div.c("sessions-cell", () => { if (r.model) small.c("muted", r.model); });
+-		// A ▶ that blinks while the row is in flight, a plain quiet dot
+-		// otherwise — a ✓ for "done" belongs only on the detail page
+-		// (the owner's own words: this grid never shows it).
+-		div.c("sessions-cell", () => {
+-			if (!r.state) return;
+-			const working = WORKING_STATES.has(r.state);
+-			span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : "idle"))
+-				.attr("title", r.state).text(working ? "▶" : "•");
+-		});
+ 	});
  }
-+// The old name, still used by tests and the dashboard tile.
-+export function sort_by_cost(rows, direction){ return sort_rows(rows, direction ? { key: "cost", dir: direction } : null); }
  
- const WORKING_STATE_ATTR = state => WORKING_STATES.has(state) ? "working" : "idle";
- 
-@@ -506,7 +519,8 @@ export default new Page({
+@@ -517,7 +553,11 @@ export default new Page({
+ 		// (see dashboard/page.js's own note for the measured number).
+ 		const panel = new Panel2({ title: "Sessions" }).ac("wide");
  		this.$asof = null;
- 		panel.header.append(() => { this.$asof = small.c("muted", "loading…"); });
+-		panel.header.append(() => { this.$asof = small.c("muted", "loading…"); });
++		panel.header.append(() => {
++			a.c("sessions-doclink").href(this.url + "doc/priorities/").text("Priorities").attr("title", "What the owner asked for, most important first");
++			a.c("sessions-doclink").href(this.url + "doc/").text("Readme & docs").attr("title", "The readme and every doc for this page");
++			this.$asof = small.c("muted", "loading…");
++		});
  
--		this.cost_sort = null;      // null | "desc" | "asc" — the Cost header's own toggle
-+		this.sort = null;           // null (default order) | { key, dir } — set by clicking a column header
-+		this.$sort_labels = {};
- 		this.role_filter = null;    // Set<string> | null (null = "everything", until the first real data arrives)
- 		this.trigger_filter = null; // Set<string> | null — same shape, for the spend tree's trigger tag (2026-10-03, spend-tree)
- 		const today = new Date();
-@@ -571,15 +585,19 @@ export default new Page({
+ 		this.sort = null;           // null (default order) | { key, dir } — set by clicking a column header
+ 		this.$sort_labels = {};
+@@ -537,10 +577,14 @@ export default new Page({
+ 		// auto` + `surface pad flex v gap` + `h4 muted` / `h2`, no new CSS) —
+ 		// `render_stats()` below fills it in once real data (week.json, or a
+ 		// filter change) arrives.
+-		this.$stats = div.c("sessions-stats grid gap auto").style("--column", "11em");
++		this.$stats = div.c("sessions-stats");
+ 		panel.main.append(this.$stats);
+ 		this.render_stats();
+ 
++		// IN FLIGHT: what is running right now, above everything else, redrawn on every event of the Servex agent stream.
++		this.$flight = div.c("sessions-flight");
++		panel.main.append(this.$flight);
++
+ 		this.$controls = div.c("sessions-controls");
+ 		panel.main.append(this.$controls);
+ 
+@@ -563,25 +607,23 @@ export default new Page({
+ 	// `render_rows()` already uses for the grid/summary/by-role list.
+ 	render_stats(){
+ 		if (!this.$stats) return;
+-		const usage = this.usage?.utilization;   // ai/usage.json: the plan's own meter, the one source for "how much of the week is used"
+-		const pct = w => typeof w?.utilization === "number" ? Math.round(w.utilization) + "%" : "—";
+-		const resets = w => w?.resets_at ? "resets " + new Date(w.resets_at).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : null;
+-
+-		const tile = (label_text, body, title, foot) => {
+-			const $tile = div.c("surface pad flex v gap", () => {
+-				div.c("h4 muted", label_text);
+-				div.c("h2", body);
+-				if (foot) small.c("muted", foot);
+-			}).style("--gap", "calc(var(--gap) * 0.1)");
+-			if (title) $tile.attr("title", title);
+-			return $tile;
+-		};
+-
++		// The plan's own meters as progress bars with the pace marker (ext/AITask/usage.js, the same rail the Dashboard shows), then one line of counts.
+ 		this.$stats.empty(() => {
+-			tile("Plan used this week", pct(usage?.seven_day), "The plan's own weekly meter (ai/usage.json).", resets(usage?.seven_day));
+-			tile("Last 5 hours", pct(usage?.five_hour), "The plan's own 5-hour meter (ai/usage.json).", resets(usage?.five_hour));
+-			tile("Claude cost shown", "$" + (this.shown_usd ?? 0).toFixed(2), "Own cost of the sessions in the table below, from the session files (not from spend.json).", "from the session files");
+-			tile("Sessions shown", String(this.filtered_count), null, this.date_from + " to " + this.date_to);
++			if (this.usage) usage_rail(this.usage);
++			small.c("muted sessions-counts", `${this.filtered_count} sessions shown · $${(this.shown_usd ?? 0).toFixed(2)} Claude cost · ${this.date_from} to ${this.date_to}`)
++				.attr("title", "Cost is summed from the session files (the session index), for the rows in the table below.");
++		});
++	},
++
++	// The strip above the grid: every session in flight, newest activity first, each drawn by the same row_view as the grid below (one component).
++	render_flight(){
++		if (!this.$flight) return;
++		const live = this.last_rows.filter(is_in_flight).sort((x, y) => Date.parse(y.last_activity ?? 0) - Date.parse(x.last_activity ?? 0));
++		this.$flight.empty(() => {
++			h3.c("sessions-flight-head", `In flight now · ${live.length}`).attr("title", "Running or ready to run right now. Updates live from the Servex agent stream.");
++			if (!live.length) return void small.c("muted", "Nothing is in flight right now.");
++			div.c("sessions-grid sessions-flight-grid", () => div.c("sessions-rows", () => live.forEach(r =>
++				row_view(r, this.url, this.page_dirs, this.spend, this.session_index, null))));
  		});
  	},
  
--	render_cost_label(){
--		if (!this.$cost_label) return;
--		const arrow = this.cost_sort === "desc" ? " ↓" : this.cost_sort === "asc" ? " ↑" : "";
--		this.$cost_label.text("Cost" + arrow);
-+	render_sort_labels(){
-+		for (const col of COLUMNS){
-+			const on = this.sort?.key === col.key;
-+			this.$sort_labels[col.key]?.text(col.label + (on ? (this.sort.dir === "desc" ? " ↓" : " ↑") : ""));
-+		}
- 	},
- 
--	toggle_cost_sort(){
--		this.cost_sort = this.cost_sort === null ? "desc" : this.cost_sort === "desc" ? "asc" : null;
--		this.render_cost_label();
-+	toggle_sort(key){
-+		const nat = natural_dir(key), rev = nat === "asc" ? "desc" : "asc";
-+		if (this.sort?.key !== key) this.sort = { key, dir: nat };
-+		else if (this.sort.dir === nat) this.sort = { key, dir: rev };
-+		else this.sort = null;
-+		this.render_sort_labels();
- 		this.render_rows();
- 	},
- 
-@@ -659,7 +677,7 @@ export default new Page({
+@@ -631,6 +673,12 @@ export default new Page({
+ 					$a.on("change", () => { this.attention_only = $a.el.checked; this.render_rows(); });
+ 					span("needs attention");
+ 				}).attr("title", "Only sessions with an alert in their session.jsonl record.");
++			label.c("flex gap-35 v-center h4", () => {
++				const $f = input().attr("type", "checkbox");
++				$f.el.checked = !!this.inflight_only;
++				$f.on("change", () => { this.inflight_only = $f.el.checked; this.render_rows(); });
++				span("in flight");
++			}).attr("title", "Only sessions working right now (a transcript that moved in the last 5 minutes, or a Servex agent that is running).");
+ 				const tags = [...new Set(Object.values(this.session_index?.meta ?? {}).flatMap(m => m.tags))].sort();
+ 				if (tags.length) label.c("flex gap-35 v-center h4", () => {
+ 					span("tag");
+@@ -674,10 +722,21 @@ export default new Page({
+ 		const id_of = r => r.session_id || r.id;
+ 		// "base" = every filter except role and trigger, so the role/trigger chips can show what each choice would add.
+ 		const base = this.last_rows.filter(r => (this.show_closed || !closed[id_of(r)]) && in_date_range(r, from, to)
++			&& (!this.inflight_only || is_in_flight(r))
  			&& (!this.attention_only || meta[id_of(r)]?.alerts)
  			&& (!this.tag_filter || meta[id_of(r)]?.tags.includes(this.tag_filter)));
  		const filtered = base.filter(r => this.role_filter.has(r.role || "(unknown)") && this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)"));
--		const sorted = sort_by_cost(filtered, this.cost_sort);
-+		const sorted = sort_rows(filtered, this.sort);
+-		const sorted = sort_rows(filtered, this.sort);
++		const sorted_all = sort_rows(filtered, this.sort);
++		// Children nest under their parent, collapsed until opened (the session tree says who started whom). A row whose parent is not in view stays a top-level row.
++		const shown_ids = new Set(sorted_all.map(id_of)), kids_of = new Map();
++		for (const r of sorted_all){ const par = TREE?.[id_of(r)]?.parent; if (par && par !== id_of(r) && shown_ids.has(par)) (kids_of.get(par) ?? kids_of.set(par, []).get(par)).push(r); }
++		const sorted = sorted_all.filter(r => { const par = TREE?.[id_of(r)]?.parent; return !(par && par !== id_of(r) && shown_ids.has(par)); });
++		this.open_ids ??= new Set();
++		const place = (r, depth, seen) => {
++			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = this.open_ids.has(id_of(r));
++			row_view(r, this.url, this.page_dirs, this.spend, this.session_index, { depth, kids: kids.length, open, toggle: () => { open ? this.open_ids.delete(id_of(r)) : this.open_ids.add(id_of(r)); this.render_rows(); } });
++			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
++		};
  
  		// Paging, not windowing: rows are variable-height (a title line plus an
  		// optional wrapped prompt-preview line), so there's no fixed row height
+@@ -691,7 +750,7 @@ export default new Page({
+ 		const visible = sorted.slice(0, this.shown);
+ 		this.$rows.empty(() => {
+ 			if (!sorted.length) return void p.c("muted").style({ gridColumn: "1 / -1" }).text("No sessions with an id yet.");
+-			visible.forEach(r => row_view(r, this.url, this.page_dirs, this.spend, this.session_index));
++			visible.forEach(r => place(r, 0, new Set([id_of(r)])));
+ 			if (sorted.length > visible.length){
+ 				div.c("sessions-show-more").style({ gridColumn: "1 / -1" }).append(() => {
+ 					small.c("muted").text(`Showing ${visible.length} of ${sorted.length} — `);
+@@ -705,6 +764,7 @@ export default new Page({
+ 		this.shown_usd = filtered.reduce((n, r) => n + claude_usd_of(r), 0);
+ 		this.filtered_count = filtered.length;
+ 		this.render_stats();
++		this.render_flight();
+ 
+ 		this.$summary?.empty(() => {
+ 			defect_line(this.session_index);
+@@ -761,15 +821,36 @@ export default new Page({
+ 			this.$asof?.text("updated " + new Date().toLocaleTimeString());
+ 		};
+ 
+-		const poll = async () => {
++			// First paint from GET /api/agents, then every change arrives on Servex's event stream (no polling while it is open).
++			// The 20 s poll stays only as the fallback for a stream that is closed (Servex restarting).
++			const base = servex_base();
++			const fetch_agents = async () => (await get_json(base + "/api/agents")) ?? (await get_json("/api/agents")) ?? [];
++			let timer = null;
++			const soon = () => { timer ??= setTimeout(() => { timer = null; draw(); }, 250); };
++			const poll = async () => {
+ 			if (!this.polling) return;
+-			if (!document.hidden){ this.last_agents = (await get_json("/api/agents")) ?? []; draw(); }
++				if (!document.hidden && !this.stream_open){ this.last_agents = await fetch_agents(); draw(); }
+ 			if (this.polling) setTimeout(poll, POLL_MS);
+-		};
++			};
++			this.source?.close();
++			try {
++				this.source = new EventSource(base + "/api/stream");
++				this.source.onopen = () => { this.stream_open = true; };
++				this.source.onerror = () => { this.stream_open = false; };
++				this.source.addEventListener("agent", msg => {
++					let ev; try { ev = JSON.parse(msg.data); } catch { return; }
++					if (!ev?.card?.id) return;
++					const i = this.last_agents.findIndex(a => a.id === ev.card.id);
++					i < 0 ? this.last_agents.push(ev.card) : (this.last_agents[i] = ev.card);
++					soon();
++				});
++			} catch {}
++			clearInterval(this.tick); this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length) this.render_flight(); }, 30000);   // running times advance
+ 
+-		get_json(this.url + "sessions.json").then(snap => {
++		get_json(this.url + "sessions.json").then(async snap => {
+ 			this.snapshot_rows = snap?.rows ?? [];
+-			if (this.polling) poll();
++			this.last_agents = await fetch_agents();
++			if (this.polling){ draw(); poll(); }
+ 		});
+ 
+ 		// The spend tree (2026-10-03, spend-tree) — a snapshot too (Server/spend-tree.mjs,
+@@ -777,6 +858,7 @@ export default new Page({
+ 		// Fetched once per activation; redraw ONLY if real rows are already on screen, same
+ 		// guard the date-path index below already needs for the identical reason (it would
+ 		// otherwise lock render_controls()'s trigger filter to an empty Set forever).
++		load_tree(this.url).then(tree => { TREE = this.tree = tree; if (this.last_rows.length) this.render_rows(); });
+ 		load_index(this.url).then(index => {
+ 			this.session_index = index;
+ 			IX = index;
+@@ -823,7 +905,7 @@ export default new Page({
+ 		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });
+ 	},
+ 
+-	deactivated(){ this.polling = false; },
++	deactivated(){ this.polling = false; this.source?.close(); this.source = null; this.stream_open = false; clearInterval(this.tick); },
+ 
+ 	// `/framework/ai/sessions/<id>/` — one session's own prompts, in order.
+ 	// A real route, not a client-side peek state: reload lands on the same
 diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
-index c92e1dfc2..35c6ff44d 100644
+index 35c6ff44d..daad244da 100644
 --- a/public/framework/ai/sessions/readme.md
 +++ b/public/framework/ai/sessions/readme.md
-@@ -172,6 +172,7 @@ merge.
+@@ -172,7 +172,8 @@ merge.
    idle gap past the cache TTL prices the next turn 15-50x higher. Servex already has the right
    "fresh, not compacted" pattern (`Layers.js`) for assistants/managers; masterminds don't have it
    yet — the recommendation and plan to extend it.
-+- [`doc/layout.md`](./doc/layout.md) — where a session's folder lives (`ai/sessions/YYYY/MM/DD/<id>/`, the day it first appeared), how old flat paths still load, why ids and not task names, and why the dev server writes no listing there
+-- [`doc/layout.md`](./doc/layout.md) — where a session's folder lives (`ai/sessions/YYYY/MM/DD/<id>/`, the day it first appeared), how old flat paths still load, why ids and not task names, and why the dev server writes no listing there
++- [`doc/priorities.md`](./doc/priorities.md) — the owner's asks for this page, most important first: follow this list
++- [`doc/layout.md`](./doc/layout.md) — where a session's folder lives (the ONE store, `ai/YYYY/MM/DD/session-<id8>/`), how old paths still load, the scripted conversion, why ids and not task names
  - [`doc/record-spec.md`](./doc/record-spec.md) — the line types a session record accepts (tag, note, alert, weight, closed, question, links) and how to write them
  - [`doc/session-class.md`](./doc/session-class.md) — `Session.js` (cost, model + effort, tokens by purpose, audit), the `session.jsonl` cache, `session-index.json`; the Cost cell and the detail's Audit button come from it (`SessionView.js`)
  - [`doc/decisions.md`](./doc/decisions.md) — the full data-source decision, the `css-scopes.txt`
+diff --git a/public/framework/ai/sessions/sessions.css b/public/framework/ai/sessions/sessions.css
+index 388efd237..f650bba48 100644
+--- a/public/framework/ai/sessions/sessions.css
++++ b/public/framework/ai/sessions/sessions.css
+@@ -43,14 +43,14 @@
+ 		--col-role: 8rem; --col-source: 6rem; --col-model: 8rem; --col-state: 4rem;
+ 		display: grid;
+ 		grid-template-columns:
++			minmax(3rem, var(--col-state))
+ 			minmax(10rem, 1fr)
+ 			minmax(8rem, var(--col-cost))
+ 			minmax(5rem, var(--col-updated))
+ 			minmax(5rem, var(--col-duration))
+ 			minmax(6rem, var(--col-role))
+ 			minmax(5rem, var(--col-source))
+-			minmax(5rem, var(--col-model))
+-			minmax(3rem, var(--col-state));
++			minmax(5rem, var(--col-model));
+ 		column-gap: var(--gap-50);
+ 		/* `width: max-content` + `min-width: 100%` (review finding, 2026-10-03):
+ 		   without this, a block-level grid defaults to the width of its own
+@@ -102,6 +102,10 @@
+ 	   into its prompt preview with no break: "monorepoSo how would you…"). */
+ 	.sessions-name-stack { display: flex; flex-direction: column; gap: var(--gap-35); min-width: 0; }
+ 	.sessions-row-title { font-weight: 600; }
++	.sessions-flight { margin-block-end: 1.5em; }
++	.sessions-flight-head { margin-block: 0 var(--gap-50); }
++	.sessions-doclink { margin-inline-end: 1em; font-size: .9em; }
++	.sessions-fold { cursor: pointer; margin-inline-end: .4em; color: var(--prim-ink); font-weight: 400; }
+ 	.sessions-row-prompt { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ 
+ 	/* Below `ext/panel2`'s own 30em container floor, a 6-column grid has
+@@ -114,8 +118,8 @@
+ 		.sessions-head { display: none; }
+ 		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }
+ 		.sessions-cell { padding-block: 0; border-block-end: none; }
+-		.sessions-row > .sessions-cell:first-child { flex: 1 1 100%; min-width: 0; }
+-		.sessions-row > .sessions-cell:not(:first-child) { flex: 0 0 auto; max-width: 100%; }
++		.sessions-row > .sessions-cell:nth-child(2) { order: -1; flex: 1 1 100%; min-width: 0; }
++		.sessions-row > .sessions-cell:not(:nth-child(2)) { flex: 0 0 auto; max-width: 100%; }
+ 	}
+ 
+ 	/* One colour per source, so "what kind of session is this" reads before the
+@@ -214,7 +218,8 @@
+ 	   owner's own words, "maybe the cents smaller than the dollars" — a plain
+ 	   size/weight/colour step down from the `h2` it sits inside, not a new
+ 	   type-scale step (the type scale itself is untouched). */
+-	.sessions-stats { margin-block-end: var(--gap); }
++	.sessions-stats { margin-block-end: var(--gap); display: flex; flex-wrap: wrap; gap: .5em 2em; align-items: center; }
++	.sessions-stats .ai-usage { flex: 1 1 24em; }
+ 	.sessions-stat-cents { font-size: 0.55em; font-weight: 400; color: var(--subtle); }
+ 
+ 	/* Filters, the summary line and "cost by role" (session-costs

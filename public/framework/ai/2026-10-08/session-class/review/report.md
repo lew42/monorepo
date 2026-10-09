@@ -1,110 +1,70 @@
 verdict: fix
-1. [fix] At 400 a row's meta line runs past the right edge and is cut off: "claude-s…" and the State cell are lost on the monorepo row, and the prompt preview stops mid-word with no ellipsis (layout 26, wrapping 23) — shots/…sessions/400.png, rows band (y≈840–870). layout.json reports overflow_x false, so the box clips rather than scrolls; the meta line should wrap (it is a control-style row) or drop the model to its own line.
-2. [note] The headers are now all sort toggles, but nothing shows it until one is clicked: plain text, no arrow or hover cue at rest (page 8) — shots/…/1200.png, header row. A faint ↕ on hover, or the default-order arrow on Cost, would make it self-evident.
-3. [note] `State` sorts "biggest first", so the first click puts idle sessions (1) above working ones (0) — the reverse of what a reader wants first (page.js `SORT_VALUE.state` + `natural_dir`). Make `state` start ascending.
-4. [note] `Session.read_text` in node now calls `Session.locate`, so a READ can rename a flat folder into its day folder, and an unknown id gets today's day cached. A read with a move side effect is surprising; doc/layout.md mentions it only for writers.
-5. [note] The diff deletes ~140 tracked `sessions/<id>/files.jsonl` listings and `session-place.mjs` `rmSync`s them. They are server-generated and now gitignored, so nothing is lost, but "Never destructive" asks that the landing report say so.
-6. [note] At 3440 the Name column takes ~60% of the grid while Updated / Duration / Role sit in ~70px tracks (shots/…/3440.png, rows band; layout.json empty 0.75 at 3440). Not wrong, but a Name ceiling would let the numbers breathe.
-7. [note] Previous round's fix (empty shots, no index) is resolved: every width now shows 603 sessions and priced rows.
-
-Widths given: 400, 1200, 1920, 3440 (page /framework/ai/sessions/, one sheet).
+1. [fix] Child sessions are not nested by path (requirements, Addendum 8, "literally subdirectories of the parent's directory") and "every session gets a proper name going forward" is not built: the diff only nests rows in the grid from session-tree.json, and priorities.md/layout.md list both as "not built / still to do". The reason is written down (a child can start a day later), but the owner's ask is unmet.
+2. [fix] "In flight" has two definitions that disagree: `is_in_flight` counts an idle-but-live Servex agent as in flight, but the state column's ▶ uses `WORKING_STATES` (working/active) only, so rows in the "In flight now" strip show a quiet • (diff, page.js `row_view` vs `is_in_flight`). The state flashing the owner reported can reappear as a mismatch.
+3. [fix] The new "In flight now" strip repeats the same rows as the grid and pushes the grid down: at 1920 and 3440 only the first few grid rows appear below the strip (shots/127-0-0-1-50850-framework-ai-sessions/1920.png, bands 2-3). The owner asked for a compact grid and a filter next to the checkboxes, not a second section (CLAUDE.md law 6, law 4).
+4. [note] Before/after bytes and requests for the Sessions page (requirements item 4) are not in the diff or the shots; not measured here.
+5. [note] The shots folder holds two runs. Port 63872 shows the old page (big tiles, State last); port 50850 shows the new one. I judged the 50850 run. Check the other is not what gets kept.
+6. [note] page.js indentation is off in the controls block (the `const tags` line sits after the new in-flight label) and in the poll/stream block. It parses, but confirm the tag filter still renders inside its intended condition.
+7. [note] `session-place.mjs` still deletes the stray `files.jsonl` listings, which is outside "never destructive". It is documented as regenerable noise, so a note only.
+8. [note] The 400 shot has 43% empty and the two drawer rail buttons wrap to 3.2 lines (layout.json wraps); the rail wrap is older than this change.
 
 ## Requirements
-- 1 "Account for every message and every tool call… Claude and OpenRouter kept separate" — yes — cost cells read "Claude $109" etc. (1200.png); this diff does not touch the accounting
-- 2 "A Session class, usable on the server AND the client" — yes — Session.js keeps its node/browser split; `locate` (node) and `dir_url` + `use_index` (browser) added for day folders; Server/session-place.test.mjs covers the move, the record and the reader
-- 3 "A preview row… and a detailed view (click-through)" — yes for the row (1200.png, rows band); detail view not in the shots — not re-proved by this diff
-- 4 "Never reprocess a huge raw file on load… measure the bytes" — yes — the page still reads only session-index.json; the new `day` column adds ~13 bytes per row; no new request
-- 5 "Per-session folder… session.jsonl beside page.jsonl; a Servex tool writes each line" — yes, changed — folders move to `sessions/YYYY/MM/DD/<id>/` (doc/layout.md gives the reason and the rejected alternative); writes still go through `Session.log`/`close`
-- Addendum "filters/sorts by tag and has a needs-attention filter" — yes — NEEDS ATTENTION checkbox (1200.png, filter row); every column now sorts (page.js `sort_rows`)
+Widths given: all four (400, 1200, 1920, 3440), two runs.
+- 1 "Account for every message and tool call" — n/a — not in this diff (page and storage changes only)
+- 2 "A Session class on server and client" — yes — Session.js changed to resolve one store; node test updated
+- 3 "Preview row and detailed view on the Sessions page" — yes — shots/…50850…/1200.png, grid rows
+- 4 "Never reprocess a huge raw file; page loads small cached data" — yes — the page reads session-index.json; bytes before/after not measured (note 4)
+- 5 "Per-session folder with session.jsonl beside page.jsonl" — yes — layout.md and `Session.locate` merge into the card folder
+- Addendum, tags and alerts filters — yes — "needs attention" and tag filter retained
+- 8a "Pick ONE store, non-destructive conversion script, old links resolve" — yes — session-place.mjs, moves.jsonl manifest, `--dry`, test; alternative named in layout.md
+- 8b "4,000 sessions counted from the index" — yes — counts come from rows and session-index.json
+- 8c "State flashes running; make state true" — yes, with a caveat — `true_state` derives it; see finding 2
+- 8d "Useful names, never the repo name" — yes — `display_name`
+- 8e "Child sessions nest by path, grid nests collapsed with rolled-up cost" — no — grid nesting built, folder rule not built (finding 1)
+- 8f "Bars with pace marker, reused from Dashboard" — yes — `usage_rail`, 1200.png top band
+- 8g "Cut wasted space above the grid" — no — the stats are compact but the new strip takes the space back (finding 3)
+- 8h "In flight filter, sort toggles, state icon first" — yes — checkbox, sortable headers, State is the first column
+- 8i "One route per session" — yes — `href = url + r.id + "/"`
+- 8j "Sub-pages in the tab, readme and decisions doc, priority ordered, linked" — yes — header links "Priorities" and "Readme & docs"; priorities.md added and linked from the readme
+
 ## Page structure
-- page 1 — yes — "Sessions" panel under the AI tabs; the four tiles say what it measures (1200.png, top band)
-- page 2 — yes — usage / cost / count tiles first
-- page 3 — yes — state tiles, then filters, then the table
-- page 4 — n/a
-- page 5 — yes — SESSIONS tab in the AI tab bar
-- page 6 — no — the sort state (`page.sort`) is not in the URL, so a reload drops it (note-level; pre-existing for Cost)
-- page 7 — yes — the existing grid, no new page CSS in this diff
-- page 8 — no — headers give no sortable cue at rest (finding 2); "(n/a)" and "(unknown)" chips are not self-evident
-- page 9 — yes
-- page 10 — yes — a grid with numbers
-- page 11 — yes
-- page 12 — n/a
+- page 1 (title says what it is) — yes — shots/…50850…/1920.png: "Sessions" heading
+- page 2 (one takeaway above the fold) — no — at 1920 the fold holds bars and an In flight strip; the grid is below it
+- page 3 (everything linked) — yes — readme links priorities.md and layout.md
+
 ## Navigation
-- nav 1 — tabs, a sidebar, a bottom rail (400)
-- nav 2 — yes — layout.json tab_rows 1 at every width
-- nav 3 — yes — /framework/ai/sessions/
-- nav 4 — yes — six tabs
-- nav 5 — yes — sidebar beside the main column at 3440; folds to a menu at 400
-- nav 6 — yes
-- nav 7 — yes — 400.png: the bottom rail sits below the last visible row
-- nav 8 — n/a
-- nav 9 — n/a
-- nav 10 — not shown in these shots
+- Techniques: tabs (AI tab bar), a sidebar (page tree), header text links (Priorities, Readme & docs)
+- tabs wrap — no — layout.json tab_rows 1 at all widths
+- every view has a URL — yes — `/sessions/<id>/`, `/doc/priorities/`
+- doc links leave the tab or stay inside it — not measured
+
 ## Layout
-- layout 1 — yes — sidebar + full-width grid at 3440
-- layout 2 — yes — Rail + content
-- layout 3 — no — at 400 the row meta line is wider than its box (finding 1); at 3440 Name is over-wide (finding 6)
-- layout 4 — yes
-- layout 5 — no — 400.png: row text runs to the box edge and is cut
-- layout 6 — yes
-- layout 7 — yes — layout.json rows band share 0.83–0.93 with ink 0.25–0.70; bar band 0.015–0.019
-- layout 8 — n/a
-- layout 9 — yes
-- layout 10 — yes
-- layout 11 — yes — the four tiles fill one row at 1200+ and 2×2 at 400
-- layout 12 — yes
+- no horizontal overflow — yes — layout.json overflow_x false at all widths
+- primary content leads — no — at 1920 and 3440 the In flight strip precedes the grid (finding 3)
+- empty space — no — layout.json empty 0.43 / 0.47 / 0.51 / 0.69 at 400 / 1200 / 1920 / 3440; 69% at 3440 is high
+
 ## Sizing
-- sizing 13 — yes
-- sizing 14 — yes
-- sizing 15 — no — the prompt preview line is clipped with no ellipsis (1200.png row 2, 400.png)
-- sizing 16 — yes
-- sizing 17 — yes
-- sizing 18 — yes — layout.json overflow_x false at all four widths
-- sizing 19 — not measured
+- bars take a sensible width — yes — 1200.png, top band; they flex from 24em
+- the grid fits its container — yes — no overflow_x
+- row height stays steady — yes — 1920.png, flight rows
+
 ## Wrapping
-- wrap 20 — yes — tab_rows 1; layout.json wraps list only the drawer/mode buttons (icon glyphs, not this diff)
-- wrap 21 — yes — same wraps at 1200 and 1920
-- wrap 22 — yes — the chip row wraps cleanly at 400 and 1200
-- wrap 23 — no — 400.png: the row meta line crushes off the edge instead of stacking (finding 1)
-- wrap 24 — n/a
+- unwanted wraps — no — layout.json wraps at 400: the two drawer rail buttons at 3.2 lines (pre-existing, note 8); none in the sessions content
+- the row collapses on narrow screens — yes — the CSS puts the name cell first at 400 (`:nth-child(2)` order)
+
 ## Spacing and padding
-- space 33 — yes — layout.json left_stack h1 14px at 400
-- space 34 — yes
-- space 35 — yes
-- space 36 — no — 400.png: row text meets the right edge
-- space 37 — not measured; no CSS in this diff
-- space 38 — yes — chips keep em padding
-- space 39 — yes — the panel is white on the grey ground
-- space 40 — n/a
-- space 41 — yes — no CSS in this diff
-- space 42 — yes
+- band share and padding right — yes — layout.json bands: bar 1.6% and row 92.6% at 1200, no `big_empty`
+- the strip's margin (1.5em) before the controls — yes — 1920.png, a clear gap, not wasteful
+
 ## Colour and contrast
-- colour 1 — yes — dark ink on white; muted lines read (1200.png)
-- colour 2 — yes — orange SERVEX / blue VS CODE badges are outlined and legible
-- colour 3 — yes — no colours in this diff
-- colour 4 — yes — tiles are outlined boxes
-- colour 5 — not shown (light shots only)
-- colour 6 — yes
-- colour 7 — yes — the source badges repeat identically
-- colour 8 — yes
+- state dot, source chips and bars readable — yes — 1920.png, the blinking ▶ in the red SERVEX chip rows
+- not measured numerically
+
 ## Flow
-- flow 25 — yes — tiles, filters, then the most costly rows first
-- flow 26 — no — 400.png: model and State cut off past the right edge (finding 1)
-- flow 27 — yes
-- flow 28 — yes
-- flow 29 — not shown
-- flow 30 — yes — layout.json widest_text 430–552px
-- flow 31 — yes
-- flow 32 — yes
+- order of top-to-bottom reading — no — bars, In flight, filters, summary, grid; the grid, the main thing, comes last (finding 3)
+- state first in each row — yes
+
 ## Words
-- words 1 — yes — numbers in tiles, rows in a grid
-- words 2 — yes
-- words 3 — yes — doc/layout.md paragraphs are short
-- words 4 — yes
-- words 5 — yes
-- words 6 — n/a
-- words 7 — yes — "day folder" and `first_at` used the same way across Session.js, doc/layout.md and session-place.mjs
-- words 8 — yes — readme links doc/layout.md as a plain file path
-- words 9 — no — doc/layout.md has a path tree in text but no picture; fine for a deep doc
-- words 10 — yes
-- words 11 — no — "814 spawned agents have no recorded parent" and the "(n/a)" / "(unknown)" chips are unexplained on the page (pre-existing)
+- headings name their topic — yes — "In flight now · 4", "Sessions"
+- priorities.md is plain and ordered — yes — each item has Asked, Decided, Lives in
+- jargon undefined — note — "true_state", "session-tree.json" appear in priorities.md without a gloss
