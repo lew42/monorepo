@@ -189,6 +189,8 @@ the result (the recipe lab's question).
 (`node Server/collab.mjs`, about $1.50 to $2 for 3 cheap members). The sub-mastermind skill says
 when and how, and its model scoreboard is at `/framework/ext/Collab/`.
 
+**Close the gap as the week goes on** (the owner, 2026-10-10). A usage point is always 1% of the weekly allowance, but the unspent allowance piles up behind you, so the later it gets, the more headroom a big gap holds. Being half the pace line (say 15% used at 31% elapsed) is waste, not safety: add a task or two in parallel and move toward the line, aiming to sit about 5 to 10 points under it. Stay careful, never use the gap as an excuse to burn tokens on work nobody needs, and never cross the line.
+
 **Aim about 20 points under the pace line, on average** (the owner, 2026-09-18: "it's better to
 have somebody doing something than just sitting around doing nothing"). Run `node Server/usage-now.mjs` and compare used% to elapsed% on every window. The 20-point gap is the
 freedom: well under it, spend; near it, step down the ladder (Sonnet builds, Haiku scans, lower
