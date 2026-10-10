@@ -1,4 +1,5 @@
 import Scorer from "./Scorer.js";
+import Outline from "./Outline.js";
 import { View, div, span, p, h4, button, a } from "../../core/View/View.js";
 
 View.stylesheet(import.meta, "Prompt.css");
@@ -78,43 +79,8 @@ export default class Prompt {
 	/** Sentences worth a yellow flag: unclear enough, or the pipeline asked a question about them. */
 	get flagged(){ return this.clean.filter(s => (s.clarity ?? 1) < Prompt.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
 
-	/**
-	 * The outline `structure()` writes ("# subject", "## card", "- sub-card [S1, S2]", indented
-	 * deeper bullets) as nested cards. (`Refine.js`'s `parse_structured` flattens the nesting
-	 * and drops the "#" line, which this view needs, so this is the nested sibling of it.)
-	 */
-	static parse_outline(md){
-		let subject = "";
-		const sections = [];
-		let sec = null;
-		const stack = [];   // [{indent, card}]
-		const cites = text => {
-			const found = new Set();
-			for (const m of text.matchAll(/S(\d+)\s*[-–]\s*S(\d+)/g))
-				for (let n = Math.min(+m[1], +m[2]); n <= Math.max(+m[1], +m[2]); n++) found.add(n);
-			for (const m of text.replace(/S\d+\s*[-–]\s*S\d+/g, " ").matchAll(/S(\d+)/g)) found.add(+m[1]);
-			return [...found].sort((a, b) => a - b);
-		};
-		const strip = text => text.replace(/\[[^\]]*S\d[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
-		for (const line of String(md).split(/\r?\n/)){
-			const h = /^(#{1,3})\s+(.+)$/.exec(line);
-			if (h){
-				if (h[1] === "#" && !subject){ subject = strip(h[2]); continue; }
-				sec = { title: strip(h[2]), cites: cites(h[2]), cards: [] };
-				sections.push(sec); stack.length = 0;
-				continue;
-			}
-			const b = /^(\s*)[-*]\s+(.+)$/.exec(line);
-			if (!b) continue;
-			if (!sec){ sec = { title: subject || "Overview", cites: [], cards: [] }; sections.push(sec); }
-			const indent = b[1].replace(/\t/g, "  ").length;
-			const card = { text: strip(b[2]), cites: cites(b[2]), cards: [] };
-			while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
-			(stack.length ? stack[stack.length - 1].card.cards : sec.cards).push(card);
-			stack.push({ indent, card });
-		}
-		return { subject, sections };
-	}
+	/** The outline `structure()` writes, as nested cards (`Outline.parse`). */
+	static parse_outline(md){ return Outline.parse(md); }
 
 	/** The rendered result. */
 	get view(){ return new this.constructor.View({ subject: this }); }
