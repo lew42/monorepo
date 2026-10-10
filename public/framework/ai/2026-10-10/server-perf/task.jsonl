@@ -19,3 +19,5 @@
 {"log":{"at":"2026-10-10T02:53:29-05:00","heartbeat":"check","msg":"status check sent to mastermind-server-perf"}}
 {"log":{"at":"2026-10-10T02:53:31-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-10T02:53:38-05:00","msg":"skill: finish-task"}}
+{"action":{"at":"2026-10-10T02:53:57-05:00","did":"edit","files":[".scratch-landing-server-perf.json"]}}
+{"assign":{"step":5,"landed_at":"2026-10-10T02:53:59-05:00","title":"Server perf: socket logging off, findings recorded","outcome":"**Per-message socket/RPC logging is off by default** (`SOCKET_LOG=on` restores it); needs a dev-server restart.\n\n- [x] Directory rebuild: already off since 2026-10-09, see Server/doc/directory-off.md\n- [x] Logging: `Socket message` / `RPC:` lines removed, errors kept\n- [ ] Pool dev servers: finding only, `Servex/Pool.js` is Servex-owned\n- [x] Whisper: exit code and signal already logged; no restart loop found\n- [ ] Private-port restart proof: not run (merged with --skip-smoke after an import check)\n\nDetails: `Server/doc/perf-2026-10-09.md`.","links":[],"tokens":null}}
