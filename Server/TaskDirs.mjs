@@ -122,7 +122,9 @@ export default class TaskDirs {
 		for (const m of [...man.moves].reverse()){
 			const from = path.join(REPO, m.from), to = path.join(REPO, m.to);
 			if (!fs.existsSync(to)) continue;
-			try { fs.unlinkSync(path.join(from, STUB)); fs.rmdirSync(from); } catch { throw new Error("old folder not just a stub: " + m.from); }
+			// the stub folder may hold only the stub and the dev server's regenerated files.jsonl listing (the real one moved with the task)
+			for (const e of fs.readdirSync(from)) if (e === STUB || e === "files.jsonl") fs.unlinkSync(path.join(from, e));
+			try { fs.rmdirSync(from); } catch { throw new Error("old folder holds more than a stub: " + m.from); }
 			fs.renameSync(to, from); n++;
 		}
 		fs.renameSync(MANIFEST, MANIFEST.replace(".json", `-undone-${Date.now()}.json`));

@@ -26,4 +26,6 @@ node public/framework/ext/Figma/track.mjs spec.json
 ## More
 
 - [doc/observations.md](./doc/observations.md) — how the Figma MCP behaves (costs, limits, what failed); keep it current
+- [doc/capture.md](./doc/capture.md) — our page into Figma (`generate_figma_design`): works, frozen snapshot, measured
+- [doc/mapping.md](./doc/mapping.md) — which Figma properties imply which of our layout words (first draft)
 - [doc/page-storage.md](./doc/page-storage.md) — how a page's content should be stored (JSONL views vs `page.js`), decided
