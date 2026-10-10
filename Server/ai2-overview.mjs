@@ -13,6 +13,7 @@
 // and how to change the concept list.
 
 import fs from "node:fs";
+import TaskDirs from "./TaskDirs.mjs";
 import path from "node:path";
 
 const ROOT = process.cwd(); // must be the repo root — see the header comment
@@ -76,7 +77,7 @@ function findTaskFiles() {
 		const dateDirPath = path.join(AI_DIR, dateDir.name);
 		for (const slugDir of fs.readdirSync(dateDirPath, { withFileTypes: true })) {
 			if (!slugDir.isDirectory()) continue;
-			const file = path.join(dateDirPath, slugDir.name, "task.jsonl");
+			const file = path.join(TaskDirs.follow(path.join(dateDirPath, slugDir.name)), "task.jsonl");
 			if (fs.existsSync(file)) out.push({ date: dateDir.name, slug: slugDir.name, file });
 		}
 	}

@@ -23,6 +23,7 @@
 //   node Server/spend-tree.mjs --dry       prints the top spenders, writes nothing
 //   node Server/spend-tree.mjs --root <repo>
 import { readFileSync, readdirSync, existsSync, writeFileSync, statSync } from "node:fs";
+import TaskDirs from "./TaskDirs.mjs";
 import { join, resolve, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { find_transcript, cost_of_transcript } from "../public/framework/ai/AISession/AISessionAudit.mjs";
@@ -57,7 +58,7 @@ function allTaskDirs(){
 		const day = join(AI, d.name);
 		for (const t of readdirSync(day, { withFileTypes: true })) {
 			if (!t.isDirectory()) continue;
-			const dir = join(day, t.name);
+			const dir = TaskDirs.follow(join(day, t.name));
 			if (existsSync(join(dir, "task.jsonl"))) out.push(dir);
 			// one level of sub-task dirs (minion briefs, part2-*, etc.) also carry their own task.jsonl
 			for (const sub of readdirSync(dir, { withFileTypes: true })) {

@@ -77,7 +77,7 @@ export function plan(){
 	}
 	const tasks = [], task_orphans = [], multi_session = [];
 	for (const d of dirs(AI).filter(n => /^\d{4}-\d{2}-\d{2}$/.test(n))) for (const t of dirs(path.join(AI, d))){
-		const dir = path.join(AI, d, t); let log = ""; try { log = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch {}
+		const dir = path.join(AI, d, t); if (fs.existsSync(path.join(dir, "moved.json"))) continue;   /* already moved into its session (Server/TaskDirs.mjs) */ let log = ""; try { log = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch {}
 		const ids = [...new Set([...log.matchAll(/"session_id":"([0-9a-f-]{36})"/g)].map(x => x[1]))].filter(id => sessions.has(id));
 		if (!ids.length){ task_orphans.push(dir); continue; }
 		if (ids.length > 1) multi_session.push(dir);

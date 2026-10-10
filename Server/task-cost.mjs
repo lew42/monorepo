@@ -11,6 +11,7 @@
 //   --dry            print the table, append nothing
 //   --root <repo>    the repo whose public/framework/ai/ holds the tasks (default: this script's repo)
 import { readFileSync, readdirSync, existsSync, writeFileSync, mkdtempSync } from "node:fs";
+import TaskDirs from "./TaskDirs.mjs";
 import { join, resolve, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
@@ -42,7 +43,7 @@ function allTasks(){
 		if (!d.isDirectory() || !/^\d{4}-\d{2}-\d{2}$/.test(d.name)) continue;
 		for (const t of readdirSync(join(AI, d.name), { withFileTypes: true })) {
 			if (!t.isDirectory()) continue;
-			const dir = join(AI, d.name, t.name);
+			const dir = TaskDirs.follow(join(AI, d.name, t.name));   // a finished task may now sit inside its session folder
 			if (existsSync(join(dir, "task.jsonl"))) out.push(dir);
 		}
 	}

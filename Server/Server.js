@@ -2,8 +2,10 @@ import Events from "./Events.js";
 import express from "express";
 import http from "http";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from 'url';
 import compress from "./compress.js";
+import TaskDirs from "./TaskDirs.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,6 +40,9 @@ export default class Server extends Events {
         // `cacheControl`/`etag` stay at their defaults (true): this only overrides the
         // header text so every static file says "always ask first", matching compress.js.
         this.app.use(express.static("public", { redirect: false, setHeaders: res => res.setHeader("Cache-Control", "no-cache") }));
+
+        // A finished task moved into its session folder (Server/TaskDirs.mjs): its old address keeps serving the files from the new place.
+        this.app.use((req, res, next) => { const f = TaskDirs.alias(decodeURIComponent(req.path)); if (f && fs.existsSync(f) && fs.statSync(f).isFile()) return res.sendFile(f, { dotfiles: "allow", headers: { "Cache-Control": "no-cache" } }); next(); });
 
         // hook point for subclasses/plugins to add routes before the fallback
         this.app.use(this.router);

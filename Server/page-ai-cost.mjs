@@ -29,6 +29,7 @@
 //      Skipped when the figure didn't change, so running this twice in a row appends nothing.
 
 import fs from "node:fs";
+import TaskDirs from "./TaskDirs.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -63,7 +64,7 @@ function all_task_dirs(){
 		const day_dir = path.join(AI, d.name);
 		for (const t of fs.readdirSync(day_dir, { withFileTypes: true })){
 			if (!t.isDirectory()) continue;
-			const dir = path.join(day_dir, t.name);
+			const dir = TaskDirs.follow(path.join(day_dir, t.name));
 			if (fs.existsSync(path.join(dir, "task.jsonl"))) out.push(dir);
 		}
 	}
