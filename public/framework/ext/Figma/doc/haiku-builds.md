@@ -42,3 +42,9 @@ Method: I read the section with `get_design_context` (exact tokens), write a min
 **Right:** the three pricing cards (white, dark, prime, with their different dividers and check colours), full-width buttons, the whole dashboard (sidebar, active nav item, user box, KPI tiles, activity rows), `prc-` prefix, no API traps, 56px page pad from the spec.
 **Wrong:** one miss. The spec listed the sidebar's nav items flat among the sidebar's 24px-gap children, and Haiku wrapped them in a group with `gap: 0`, so the nav items sat 24px too close. Fixed by hand.
 **Lesson:** when a gap applies between items that look like one group, say "no wrapper; each item is a direct child of the sidebar" or give the group its own gap.
+
+## Section 6 · Task Management (47k tokens, ~55 s)
+
+**Right:** the whole page structure (two-column task row, three progress cards, the priority row with the clipped P1/P2 cards), the pill and avatar-stack helpers, 5-step bars, the milestone line, the `tsk-` prefix, no wrappers, 56px page pad.
+**Wrong:** one miss. The sub-task dots: the spec said "filled dot" and "hollow dot", and Haiku drew them as text glyphs ("●" and "○") with inline styles, so the done dots came out tiny and the open dots came out dark. Replaced by two CSS classes (`tsk-dot-done`, `tsk-dot-open`).
+**Lesson:** for any small shape (dot, bar, circle) say "an empty div sized W x H with this background and border, no text glyph".
