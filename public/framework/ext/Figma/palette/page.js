@@ -91,6 +91,7 @@ export default new Page({
 	title: "The Approved Schemes",
 	icon: "palette",
 	width: "full",
+	children: "typography",
 	description,
 	content() {
 		div.c("pal-card", () => {

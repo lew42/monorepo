@@ -14,3 +14,11 @@ Method: I read the section with `get_design_context` (exact tokens), write a min
 - Padding "24/20 x 28" was ambiguous; it used 20 everywhere. My wording.
 
 **Verdict:** with exact tokens in the spec Haiku builds the static look reliably; the misses are framework quirks (factory signature, grid tracks) that a spec must name. Cost is small enough to spend one spec round per section.
+
+## 2 · Typography ([/framework/ext/Figma/palette/typography/](/framework/ext/Figma/palette/typography/)), 46k tokens, about 1.5 minutes
+
+**Right:** every size, weight, colour and string; the three columns; link underline bars via `::after`; none of the section 1 traps again (factory signature, `width: "full"`, grid span, align start) because the spec named them. Naming the pitfalls in the spec worked.
+
+**Wrong:** chips stretched full width (a flex item needs `align-self: flex-start`; the spec said "chip" but not "hugs its text"); the link row was centered, not left; the Prime inset's colour is identical to its column in the design, which it rendered correctly, so this is only my reading. Three small CSS fixes, no rework.
+
+**Pattern:** HUG in Figma (a chip sized to its text) must be written out in the spec as "does not stretch"; that is the single most repeated gap. See [mapping.md](./mapping.md).
