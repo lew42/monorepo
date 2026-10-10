@@ -43,6 +43,7 @@ export default new Page({
 	icon: "schedule",
 	width: "full",
 	description: "A 15-minute timeline and a structured task detail card.",
+	children: "collab",
 	content() {
 		div.c("tln-card", () => {
 			// Header

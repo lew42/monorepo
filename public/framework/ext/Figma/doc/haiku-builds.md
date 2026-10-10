@@ -54,3 +54,9 @@ Method: I read the section with `get_design_context` (exact tokens), write a min
 **Right:** everything. Nine 42px rows with the hour labels bold and the quarter hours soft, the three absolutely-placed event cards at their exact left/top/width/height (including the clipped last line), the now-line with its dot, and the whole detail card (pill, title, footer, divider, facts, activity box). No fixes needed; compared against the Figma screenshot at 1920.
 **Why it worked:** the spec gave exact pixel offsets for the absolute items, said "empty div, never a text glyph" for shapes, and said "no wrappers". All three lessons from sections 4-6 were in the pitfall list.
 **Lesson:** a spec with exact numbers for absolute positioning and an explicit "this clips, that is correct" note leaves Haiku nothing to guess.
+
+## Section 8 · AI Collaboration (47.7k tokens, ~60 s)
+
+**Right:** the compact footer and expanded composer side by side, the release-readiness conversation with three message bubbles, the code block with its COPY header, the status pills, the action buttons, the footer composer, the `col-` prefix, no wrappers.
+**Wrong:** one miss. The spec said the message bubble has a 4px top-left corner and 10px elsewhere; Haiku applied a 4px radius to the first child (`:nth-child(1)`) instead of the bubble itself. Fixed as `border-radius: 4px 10px 10px 10px` on `.col-bubble`.
+**Lesson:** write per-corner radii as the CSS shorthand itself ("border-radius: 4px 10px 10px 10px on the bubble"), never in words.
