@@ -22,3 +22,11 @@ Method: I read the section with `get_design_context` (exact tokens), write a min
 **Wrong:** chips stretched full width (a flex item needs `align-self: flex-start`; the spec said "chip" but not "hugs its text"); the link row was centered, not left; the Prime inset's colour is identical to its column in the design, which it rendered correctly, so this is only my reading. Three small CSS fixes, no rework.
 
 **Pattern:** HUG in Figma (a chip sized to its text) must be written out in the spec as "does not stretch"; that is the single most repeated gap. See [mapping.md](./mapping.md).
+
+## 3 · Controls ([/framework/ext/Figma/palette/controls/](/framework/ext/Figma/palette/controls/)), 49k tokens, about 1.4 minutes
+
+**Right:** layout of both rows, every colour and stacked gradient, chips and badges HUG (the spec named it), toggles drawn in CSS, progress fills in percentages, no section 1 or 2 traps.
+
+**Wrong (4 small fixes):** input text missing because it wrote `input.placeholder = ...` on the class instead of `.attr("placeholder", ...)` (and "Jane Cooper" is a value, not a placeholder); the toggle class was passed as a second argument so `ctl-off` printed as text; the white form title used an `h4` so the Label style won over the 24px/600 title; dark placeholders were too faint (browser default opacity). Haiku itself flagged the input API as its unsure point.
+
+**Pattern:** form elements need the element API spelled out (`.attr`), and `c("a b")` takes ONE class string; put that in every spec's pitfall list.
