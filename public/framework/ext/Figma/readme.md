@@ -2,7 +2,7 @@
 
 ## Use
 
-Page: [/framework/ext/Figma/](/framework/ext/Figma/) — files, then a file's pages as a preview grid, then one page large with its frames (`?file=<key>&page=<node id>`). Rebuilt designs: [Color Schemes](/framework/ext/Figma/colors/), Palette section 1 [The Approved Schemes](/framework/ext/Figma/palette/) (more to follow).
+Page: [/framework/ext/Figma/](/framework/ext/Figma/) — files, then a file's pages as a preview grid, then one page large with its frames (`?file=<key>&page=<node id>`). Rebuilt designs: [Color Schemes](/framework/ext/Figma/colors/), all nine Palette sections from Page 7, starting at [The Approved Schemes](/framework/ext/Figma/palette/) and chained by each page's `children:` down to [Hero & Navigation](/framework/ext/Figma/palette/hero/).
 
 Track or refresh a file (the Figma MCP only answers inside an agent session, so an agent supplies a spec of node ids and screenshot URLs; the script computes the rest):
 
@@ -30,3 +30,4 @@ node public/framework/ext/Figma/track.mjs spec.json
 - [doc/mapping.md](./doc/mapping.md) — which Figma properties imply which of our layout words (first draft)
 - [doc/haiku-builds.md](./doc/haiku-builds.md) — what Haiku got right and wrong, per Palette section
 - [doc/page-storage.md](./doc/page-storage.md) — how a page's content should be stored (JSONL views vs `page.js`), decided
+- Open threads (linked, not repeated): the page-as-JSONL-views idea is item 5 of [the brief](/framework/ai/2026-10-10/figma-system/requirements.md), answered in doc/page-storage.md; the "code mastermind" discussion notes live under `ai/` (see `ai/2026-10-02/standing-voice-pair/requirements.md`)
