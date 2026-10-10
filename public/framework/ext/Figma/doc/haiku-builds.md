@@ -30,3 +30,9 @@ Method: I read the section with `get_design_context` (exact tokens), write a min
 **Wrong (4 small fixes):** input text missing because it wrote `input.placeholder = ...` on the class instead of `.attr("placeholder", ...)` (and "Jane Cooper" is a value, not a placeholder); the toggle class was passed as a second argument so `ctl-off` printed as text; the white form title used an `h4` so the Label style won over the 24px/600 title; dark placeholders were too faint (browser default opacity). Haiku itself flagged the input API as its unsure point.
 
 **Pattern:** form elements need the element API spelled out (`.attr`), and `c("a b")` takes ONE class string; put that in every spec's pitfall list.
+
+## Section 4 · Feature Cards & Lists (46k tokens, ~1 min)
+
+**Right:** all three feature cards (eyebrow dot, title, body, divider, full-width button, Prime blend-in), the three list panels, markers, colours, `fea-` prefix, `.attr`/single-string `c()` lessons applied without reminders.
+**Wrong:** the fourth dark-list row ("PRIME LABEL ON DARK") rendered twice, because the spec said "marker AND text are Label style" and Haiku emitted both; the page card kept a 120px top pad copied from earlier sections (Figma ~56px). Both fixed by hand.
+**Lesson:** when a spec says a row has no marker, say "one text only"; ambiguous "marker and text" wording is read literally.
