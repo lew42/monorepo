@@ -22,6 +22,7 @@ export default class Socket extends Events {
     message(data) {
         try {
             const message = JSON.parse(data.toString());
+            if (process.env.SOCKET_LOG === "on") console.log("Socket message", message);   // off by default: it grew monorepo.out to 36 MB
             this.emit("message", message);
 			console.log("Socket message", message);
 
