@@ -10,6 +10,7 @@ export default new Page({
 	icon: "toggle_on",
 	width: "full",
 	description: "Forms, buttons, toggles, chips, badges and progress bars on each base.",
+	children: "features",
 	content() {
 		div.c("ctl-card", () => {
 			div.c("ctl-header", () => {
