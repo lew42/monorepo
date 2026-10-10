@@ -10,6 +10,7 @@ export default new Page({
 	icon: "view_agenda",
 	width: "full",
 	description: "Feature cards and lists on each of the three approved bases.",
+	children: "pricing",
 	content() {
 		div.c("fea-card", () => {
 			// Header

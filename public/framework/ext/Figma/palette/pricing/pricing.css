@@ -1,0 +1,342 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	.prc-card {
+		background: #fff;
+		border-radius: 16px;
+		padding: 56px 48px;
+		display: flex;
+		flex-direction: column;
+		gap: 32px;
+	}
+
+	.prc-header {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.prc-card .prc-title {
+		font-family: Montserrat, sans-serif;
+		font-weight: 900;
+		font-size: 48px;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.prc-tagline {
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 1.8;
+		margin: 0;
+		text-align: center;
+	}
+
+	.prc-row {
+		display: flex;
+		flex-direction: row;
+		gap: 24px;
+		width: 100%;
+		align-items: start;
+	}
+
+	/* Pricing Cards */
+	.prc-pricing-card {
+		flex: 1 1 0;
+		min-width: 0;
+		border-radius: 16px;
+		padding: 32px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.prc-plan-name {
+		font-size: 14px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.prc-price {
+		font-family: Montserrat, sans-serif;
+		font-weight: 900;
+		font-size: 48px;
+		line-height: normal;
+		margin: 0;
+	}
+
+	.prc-period {
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 1.8;
+		margin: 0;
+	}
+
+	.prc-divider {
+		width: 100%;
+		height: 1px;
+		background: #000;
+	}
+
+	.prc-pro .prc-divider,
+	.prc-enterprise .prc-divider {
+		background: #fff;
+	}
+
+	.prc-checks {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		width: 100%;
+	}
+
+	.prc-check-row {
+		display: flex;
+		flex-direction: row;
+		gap: 10px;
+		align-items: center;
+		width: 100%;
+	}
+
+	.prc-checkmark {
+		font-size: 14px;
+		font-weight: 700;
+		line-height: 1.4;
+		margin: 0;
+		flex-shrink: 0;
+	}
+
+	.prc-check-text {
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 1.8;
+		margin: 0;
+		flex: 1;
+		min-width: 0;
+	}
+
+	.prc-button {
+		padding: 12px 24px;
+		border-radius: 8px;
+		font-size: 14px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		line-height: 1.4;
+		border: none;
+		cursor: pointer;
+		font-family: inherit;
+		align-self: stretch;
+		width: 100%;
+		box-sizing: border-box;
+		background: linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25)), #72c4ff;
+	}
+
+	/* Dashboard */
+	.prc-dashboard {
+		display: flex;
+		flex-direction: row;
+		border-radius: 16px;
+		overflow: hidden;
+		align-items: start;
+		width: 100%;
+	}
+
+	.prc-sidebar {
+		width: 280px;
+		flex-shrink: 0;
+		background: #675f56;
+		padding: 32px 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 24px;
+	}
+
+	.prc-sidebar-title {
+		font-size: 24px;
+		font-weight: 600;
+		line-height: 1.5;
+		margin: 0;
+	}
+
+	.prc-nav-items {
+		display: flex;
+		flex-direction: column;
+		gap: 24px;
+		width: 100%;
+	}
+
+	.prc-nav-item {
+		width: 100%;
+		padding: 8px 12px;
+		border-radius: 6px;
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 1.8;
+		margin: 0;
+		cursor: pointer;
+	}
+
+	.prc-nav-item:first-child {
+		background: linear-gradient(rgba(255,255,255,.1),rgba(255,255,255,.1)), #675f56;
+	}
+
+	.prc-user-box {
+		width: 100%;
+		padding: 12px;
+		border-radius: 8px;
+		display: flex;
+		flex-direction: row;
+		gap: 10px;
+		align-items: center;
+		background: linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #675f56;
+	}
+
+	.prc-avatar {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25)), #72c4ff;
+		flex-shrink: 0;
+	}
+
+	.prc-user-info {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		flex: 1;
+	}
+
+	.prc-user-name {
+		font-size: 14px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.prc-user-role {
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 1.8;
+		margin: 0;
+	}
+
+	.prc-main {
+		flex: 1;
+		min-width: 0;
+		background: #fff;
+		padding: 32px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.prc-overview-title {
+		font-size: 36px;
+		font-weight: 700;
+		line-height: 1.5;
+		margin: 0;
+	}
+
+	.prc-kpi-row {
+		display: flex;
+		flex-direction: row;
+		gap: 12px;
+		width: 100%;
+	}
+
+	.prc-kpi-tile {
+		flex: 1 1 0;
+		min-width: 0;
+		padding: 16px;
+		border-radius: 10px;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		background: linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff;
+	}
+
+	.prc-kpi-label {
+		font-size: 14px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.prc-kpi-value {
+		font-size: 24px;
+		font-weight: 600;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.prc-activity {
+		width: 100%;
+		padding: 16px;
+		border-radius: 10px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		background: linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff;
+	}
+
+	.prc-activity-label {
+		font-size: 14px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.prc-activity-items {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		width: 100%;
+	}
+
+	.prc-activity-row {
+		width: 100%;
+		background: #fff;
+		border-radius: 6px;
+		padding: 10px 12px;
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.prc-activity-bar {
+		width: 4px;
+		height: 20px;
+		border-radius: 2px;
+		background: linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25)), #72c4ff;
+		flex-shrink: 0;
+	}
+
+	.prc-activity-text {
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 1.8;
+		margin: 0;
+		flex: 1;
+		min-width: 0;
+	}
+}
+
+@layer theme {
+	.prc-card {
+		grid-column: 1 / -1;
+		max-width: none;
+		box-sizing: border-box;
+	}
+}

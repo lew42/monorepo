@@ -36,3 +36,9 @@ Method: I read the section with `get_design_context` (exact tokens), write a min
 **Right:** all three feature cards (eyebrow dot, title, body, divider, full-width button, Prime blend-in), the three list panels, markers, colours, `fea-` prefix, `.attr`/single-string `c()` lessons applied without reminders.
 **Wrong:** the fourth dark-list row ("PRIME LABEL ON DARK") rendered twice, because the spec said "marker AND text are Label style" and Haiku emitted both; the page card kept a 120px top pad copied from earlier sections (Figma ~56px). Both fixed by hand.
 **Lesson:** when a spec says a row has no marker, say "one text only"; ambiguous "marker and text" wording is read literally.
+
+## Section 5 · Pricing & Dashboard (45k tokens, ~47 s)
+
+**Right:** the three pricing cards (white, dark, prime, with their different dividers and check colours), full-width buttons, the whole dashboard (sidebar, active nav item, user box, KPI tiles, activity rows), `prc-` prefix, no API traps, 56px page pad from the spec.
+**Wrong:** one miss. The spec listed the sidebar's nav items flat among the sidebar's 24px-gap children, and Haiku wrapped them in a group with `gap: 0`, so the nav items sat 24px too close. Fixed by hand.
+**Lesson:** when a gap applies between items that look like one group, say "no wrapper; each item is a direct child of the sidebar" or give the group its own gap.
