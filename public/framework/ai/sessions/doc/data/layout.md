@@ -61,7 +61,7 @@ The task folder holds the work (`task.jsonl`, the brief, the findings). The sess
 - Folder names come from: task name 232, title 35, first prompt 7,431, `session-<id8>` 86.
 - 6,582 names collide on a day. The id8 is appended; if that still clashes (test fixtures share an id8) the full id is used, so no collision is left unresolved.
 
-### Decision: tasks stay where they are (for now)
+### Decision: tasks stay where they are (superseded 2026-10-10: finished tasks now move, see [tasks-in-sessions.md](tasks-in-sessions.md))
 
 Applied in a worktree with tasks included, the smoke test failed: a task is a page tree, and a page exists only while its parent names it, so a task moved under `sessions/…/<slug>/task/` has no route (404 "nothing matches"), and the day pages `ai/<day>/page.js` still declared the moved names. Fixing it means 5,497 rewritten URLs in 562 files plus routing for every folder level under `sessions/`. That is its own piece of work, so tasks move only with `--tasks`. Session folders and cards move now; a session's `links.task` still points at the task's original place.
 

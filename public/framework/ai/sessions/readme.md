@@ -166,6 +166,8 @@ merge.
 
 ## More
 
+- A finished task lives inside the session that ran it (`<session>/task/`), old addresses still work: [doc/data/tasks-in-sessions.md](doc/data/tasks-in-sessions.md)
+
 Every Sessions doc, by subsystem: [`doc/readme.md`](doc/readme.md).
 
 - [`doc/data/layout.md`](doc/data/layout.md) — folder migration counts on the main data: 7,784 sessions (7,783 move), 4,555 cards = 4,089 joined + 466 other, 1,066 tasks = 271 joined + 795 orphans, 6,582 name collisions all resolved by an id suffix; tasks stay put for now
