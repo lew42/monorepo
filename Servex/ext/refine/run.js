@@ -51,10 +51,10 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
 					return { i, clarity: cl?.clarity ?? null, why: cl?.why ?? "", alternates: by.get(i)?.alternates ?? [], names: by.get(i)?.names ?? [], tags: by.get(i)?.tags ?? [] };
 				}) });
 			}
-			return { c, s, clar };
+			return { c, s, clar, notes };
 		});
 		return {
-			ok: true, ms: Date.now() - t0, stages, ...(id ? { prompt: id, session, log_errors } : {}), clean: result.c, structure: result.s, clarity: result.clar,
+			ok: true, ms: Date.now() - t0, stages, ...(id ? { prompt: id, session, log_errors } : {}), clean: result.c, structure: result.s, clarity: result.clar, ...(id ? { notes: result.notes } : {}),
 			runs: runs.map(r => ({ stage: r.stage, model: r.model, session_id: r.session_id, cost_usd: r.cost_usd, duration_ms: r.duration_ms, tokens: r.tokens })),
 		};
 	} catch (e){

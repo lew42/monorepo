@@ -38,11 +38,22 @@ export default class RefineSystem {
 	whisper = Whisper.shared;
 	session = this.whisper.session("Refine demo");   // Dictate's on_whisper feeds it: system.session.record(line)
 	model = "claude-sonnet-5-5";                    // measured fastest cheap model: doc/refine-v3-2026-10-09.md
+	session_id = RefineSystem.session_id();            // the session whose log keeps this page's prompts (ai/AISession/PromptLog.js)
 	history = [];                                   // finished prompts of this page visit (plain summaries), newest last
 
 	constructor(...args){
 		Object.assign(this, ...args);
 		this.prompt.on_change = p => this.on_change?.(p, this);
+	}
+
+	/** The demo page's own session: a uuid made once per browser and kept, so its prompts pile up in ONE session log
+	 *  (`ai/sessions/…/prompts.jsonl`) the way a VS Code tab's do. A caller with a real session passes `session_id`. */
+	static session_id(){
+		try {
+			let id = localStorage.getItem("refine.session");
+			if (!/^[0-9a-f-]{36}$/.test(id ?? "")) localStorage.setItem("refine.session", id = crypto.randomUUID());
+			return id;
+		} catch { return crypto.randomUUID(); }
 	}
 
 	/** Show the cleaned text NOW, with no model: the instant stage. Cheap enough to run on every chunk. */
@@ -65,7 +76,7 @@ export default class RefineSystem {
 				const { servex_url } = await import("/framework/dev/servex_url.js");
 				url = servex_url("/api/refine");
 			}
-			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model }) });
+			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model, session: this.session_id, source: this.source ?? "typed" }) });
 			const out = await res.json();
 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
 			prompt.load(out);

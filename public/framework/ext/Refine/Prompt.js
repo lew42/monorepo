@@ -38,18 +38,20 @@ export default class Prompt {
 	runs = [];          // one per model call: { stage, model, session_id, cost_usd, duration_ms, tokens }
 	timings = {};       // { quick_ms } measured in the browser
 	model = "";         // the model the server is using for the current run
+	prompt_id = "";      // the id this prompt has in its session's log (PromptLog), when it was saved there
+	session = "";         // the session whose prompts.jsonl holds it
 	quick = false;      // true while `clean` holds the instant (no-model) clean, before the real one lands
 
 	constructor(...args){ Object.assign(this, ...args); }
 
 	/** Fill the instance from one `/api/refine` answer (also how a saved answer is replayed). */
-	load({ clean, structure, ms, clarity, stages, runs }){
+	load({ clean, structure, ms, clarity, stages, runs, notes, prompt: prompt_id, session }){
 		const parsed = Prompt.parse_outline(structure?.md ?? "");
 		this.subject = parsed.subject;
 		this.refined = parsed.sections;
 		this.ms = ms ?? 0;
 		this.clean = (clean?.sentences ?? []).map(s => ({
-			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], card: "", why: "",
+			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "",
 		}));
 		Scorer.score(this, { clean, structure });
 		// The cheap model's per-sentence score replaces the rule score when it answered; the rule
@@ -58,7 +60,12 @@ export default class Prompt {
 			const s = this.sentence(c.n);
 			if (s && c.clarity != null){ s.rule_clarity = s.clarity; s.clarity = +c.clarity.toFixed(2); s.why = c.why; }
 		}
-		this.set({ status: "done", quick: false, stages: stages ?? {}, runs: runs ?? [] });
+		// The Haiku pass (Servex/ext/refine/Annotator.js): alternates, names and tags per sentence, by 0-based index.
+		for (const n of notes ?? []){
+			const s = this.clean[n.i];
+			if (s){ s.alternates = n.alternates ?? []; s.names = n.names ?? []; s.tags = n.tags ?? []; }
+		}
+		this.set({ status: "done", quick: false, stages: stages ?? {}, runs: runs ?? [], prompt_id: prompt_id ?? "", session: session ?? "" });
 	}
 
 	set(fields){
@@ -71,9 +78,26 @@ export default class Prompt {
 
 	/** The instant clean (no model): shown within a moment of each Whisper chunk, before any refinement. */
 	load_quick(sentences, quick_ms){
-		this.clean = sentences.map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], card: "", why: "" }));
+		this.clean = sentences.map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" }));
 		this.timings = { ...this.timings, quick_ms };
 		this.set({ quick: true });
+	}
+
+	/**
+	 * Replay one prompt from its session log (`PromptLog.fold` row): the saved raw, the final clean sentences,
+	 * the cards (their 0-based cites become S numbers again) and the Haiku notes. No model call.
+	 */
+	static from_log(row, session = ""){
+		const up = cards => (cards ?? []).map(c => ({ ...c, cites: (c.cites ?? []).map(i => i + 1), cards: up(c.cards) }));
+		const prompt = new Prompt({ raw: row.raw ?? "", subject: row.subject ?? "", prompt_id: row.id, session });
+		prompt.clean = row.clean.map((text, i) => ({ n: i + 1, text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" }));
+		for (const n of row.notes ?? []){
+			const s = prompt.clean[n.i];
+			if (s) Object.assign(s, { clarity: n.clarity ?? null, why: n.why ?? "", alternates: n.alternates ?? [], names: n.names ?? [], tags: n.tags ?? [] });
+		}
+		prompt.refined = up(row.refined);
+		prompt.status = row.final ? "done" : "working";
+		return prompt;
 	}
 
 	/** Sentences worth a yellow flag: unclear enough, or the pipeline asked a question about them. */
@@ -164,7 +188,14 @@ Prompt.View = class extends View {
 				span.c("refine-bar").attr("style", `--v:${s.clarity ?? 0}`);
 				span.c("refine-s-text", `${s.clarity ?? "–"}`);
 				if (s.why) span.c("refine-s-scores", s.why);
+				if (s.names.length) span.c("refine-s-scores", "name: " + s.names.join(", "));
+				s.tags.forEach(t => span.c("refine-class-key", t));
+				if (s.alternates.length) div.c("refine-s-scores", "or: " + s.alternates.join(" / "));
 			}));
+			if (prompt.session) p.c("refine-what", () => {
+				span("Kept in the session log as raw, clean, outline and notes: ");
+				a("open the session").href("/framework/ai/sessions/" + prompt.session + "/").ac("refine-class-key");
+			});
 			h4.c("refine-prompt-h", () => span("Model runs"));
 			p.c("refine-what", "Each run is its own session: click one to see exactly what was asked.");
 			prompt.runs.forEach(r => div.c("refine-run", () => {
