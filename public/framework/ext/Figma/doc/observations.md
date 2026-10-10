@@ -7,5 +7,6 @@
 - **Page 7 verdict: the nested shades are alpha overlays**, black or white at 10% / 25% / 50%, not fixed greys. The Prime card is `#72c4ff` with a 25% darken card inside so white text keeps contrast.
 - **Contrast** (computed in `colors/page.js`): white text on Prime alone is 1.9:1, so the 25% darken (3.3:1 for black text, white text is better on it) is what makes the card usable. Light mode nests as deep as dark mode as far as the numbers go; see the page.
 - **Metadata nodes**: `symbol` is a component, `instance` a use of one. Instances show no children in `get_metadata`; `get_design_context` expands them.
+- **`generate_figma_design` works on a local page** (headless Chromium + capture script, poll by id): viewport only, 429 frames for one screen, layout frozen; details in [capture.md](./capture.md). `get_design_context` over ~90 KB returns metadata only.
 - **Not yet checked:** Figma embed responsiveness (the owner thinks embeds are not responsive; screenshots in our own grid make it moot), rate limits, a `use_figma` write.
 - The dev server's `jsonl-guard` hook blocks any shell command that writes a `.jsonl`; generate those through a node script (`track.mjs`), as the repo intends.
