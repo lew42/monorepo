@@ -7,6 +7,7 @@
 - [Chat](./Chat/) — a chat log that follows new messages only while you are at the bottom
 - [DesignTool](./DesignTool/) — measures a layout numerically: what is broken, off or good; no AI at runtime
 - [Doc](./Doc/) — document a module as a page (Overview, API, Docs, Files) — use it in a module's `page.js`
+- [Figma](./Figma/) — tracked Figma files as JSONL + screenshots, browsed as previews, designs rebuilt as pages
 - [Draggable](./Draggable/) — grab-and-move for any View; `Sortable` reorders, crosses lists and nests
 - [Dropdown](./Dropdown/) — pick one choice from a list; the list opens in the top layer so nothing clips it
 - [JSONL](./JSONL/) — append-only `.jsonl` logs replayed into object state — what the task and day logs use
