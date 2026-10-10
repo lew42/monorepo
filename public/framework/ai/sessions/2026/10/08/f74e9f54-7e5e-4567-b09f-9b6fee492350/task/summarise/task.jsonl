@@ -1,0 +1,28 @@
+{"assign":{"session_id":"11721252-f6bb-4b3b-9d2f-eb2d30859de9","agent":"helper-summarise","card":"task-audit: pattern summary","brief":"Haiku: summarise loose-ends.jsonl by pattern, topic and class.","model":"claude-haiku-5-5","parent_task":"public/framework/ai/2026-10-08/task-audit","requested_at":"2026-10-08T17:04:23-05:00","now":"starting","steps":[],"step":1}}
+{"log":{"at":"2026-10-08T17:07:53-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-08T17:13:51-05:00","heartbeat":"check","msg":"status check sent to helper-summarise"}}
+{"log":{"at":"2026-10-08T17:13:53-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-08T17:13:55-05:00","heartbeat":"answered","msg":"Done: the summary is written to C:/Users/mike/AppData/Local/Temp/ta2/summary.md, and I'm not doing anything else on it."}}
+{"log":{"at":"2026-10-08T17:17:55-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-08T17:28:55-05:00","heartbeat":"check","msg":"status check sent to helper-summarise"}}
+{"log":{"at":"2026-10-08T17:28:56-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-08T17:28:59-05:00","heartbeat":"answered","msg":"Idle: the summary is finished and I have no work running. I'm waiting for the next task."}}
+{"log":{"at":"2026-10-08T17:32:58-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-08T17:46:51-05:00","msg":"task-loop chase 1 of 2: woke helper-summarise","chase":1}}
+{"log":{"at":"2026-10-08T17:46:53-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-08T17:47:04-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-08T17:52:57-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-08T18:06:45-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-08T18:26:45-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"task-audit: pattern summary\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-08T21:16:52-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-08T22:53:41-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-09T04:27:10-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-09T06:23:11-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-09T07:41:41-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-09T10:25:06-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-09T10:37:26-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-09T12:54:16-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-09T16:19:50-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-09T16:25:06-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-09T18:24:39-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
+{"log":{"at":"2026-10-09T18:44:32-05:00","heartbeat":"deliberate","msg":"helper-summarise its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:04-05:00; not revived."}}
