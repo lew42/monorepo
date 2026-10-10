@@ -48,3 +48,9 @@ Method: I read the section with `get_design_context` (exact tokens), write a min
 **Right:** the whole page structure (two-column task row, three progress cards, the priority row with the clipped P1/P2 cards), the pill and avatar-stack helpers, 5-step bars, the milestone line, the `tsk-` prefix, no wrappers, 56px page pad.
 **Wrong:** one miss. The sub-task dots: the spec said "filled dot" and "hollow dot", and Haiku drew them as text glyphs ("●" and "○") with inline styles, so the done dots came out tiny and the open dots came out dark. Replaced by two CSS classes (`tsk-dot-done`, `tsk-dot-open`).
 **Lesson:** for any small shape (dot, bar, circle) say "an empty div sized W x H with this background and border, no text glyph".
+
+## Section 7 · Timeline & Task Detail (49k tokens, ~59 s)
+
+**Right:** everything. Nine 42px rows with the hour labels bold and the quarter hours soft, the three absolutely-placed event cards at their exact left/top/width/height (including the clipped last line), the now-line with its dot, and the whole detail card (pill, title, footer, divider, facts, activity box). No fixes needed; compared against the Figma screenshot at 1920.
+**Why it worked:** the spec gave exact pixel offsets for the absolute items, said "empty div, never a text glyph" for shapes, and said "no wrappers". All three lessons from sections 4-6 were in the pitfall list.
+**Lesson:** a spec with exact numbers for absolute positioning and an explicit "this clips, that is correct" note leaves Haiku nothing to guess.
