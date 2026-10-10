@@ -2,7 +2,7 @@
 
 ## Use
 
-Page: [/framework/ext/Figma/](/framework/ext/Figma/) — files, then a file's pages as a preview grid, then one page large with its frames (`?file=<key>&page=<node id>`). First rebuilt design: [Color Schemes](/framework/ext/Figma/colors/).
+Page: [/framework/ext/Figma/](/framework/ext/Figma/) — files, then a file's pages as a preview grid, then one page large with its frames (`?file=<key>&page=<node id>`). Rebuilt designs: [Color Schemes](/framework/ext/Figma/colors/), Palette section 1 [The Approved Schemes](/framework/ext/Figma/palette/) (more to follow).
 
 Track or refresh a file (the Figma MCP only answers inside an agent session, so an agent supplies a spec of node ids and screenshot URLs; the script computes the rest):
 
@@ -28,4 +28,5 @@ node public/framework/ext/Figma/track.mjs spec.json
 - [doc/observations.md](./doc/observations.md) — how the Figma MCP behaves (costs, limits, what failed); keep it current
 - [doc/capture.md](./doc/capture.md) — our page into Figma (`generate_figma_design`): works, frozen snapshot, measured
 - [doc/mapping.md](./doc/mapping.md) — which Figma properties imply which of our layout words (first draft)
+- [doc/haiku-builds.md](./doc/haiku-builds.md) — what Haiku got right and wrong, per Palette section
 - [doc/page-storage.md](./doc/page-storage.md) — how a page's content should be stored (JSONL views vs `page.js`), decided

@@ -5,5 +5,5 @@ export default new FigmaBrowse({
 	title: "Figma",
 	description: "Figma files we track, as previews you can browse; every design in them can become a framework page.",
 	icon: "design_services",
-	children: "colors",
+	children: "colors, palette",
 });

@@ -8,5 +8,6 @@
 - **Contrast** (computed in `colors/page.js`): white text on Prime alone is 1.9:1, so the 25% darken (3.3:1 for black text, white text is better on it) is what makes the card usable. Light mode nests as deep as dark mode as far as the numbers go; see the page.
 - **Metadata nodes**: `symbol` is a component, `instance` a use of one. Instances show no children in `get_metadata`; `get_design_context` expands them.
 - **`generate_figma_design` works on a local page** (headless Chromium + capture script, poll by id): viewport only, 429 frames for one screen, layout frozen; details in [capture.md](./capture.md). `get_design_context` over ~90 KB returns metadata only.
+- **Sept-2026 Palette sections use real auto layout** (`flex flex-col gap-[var(--gap,16px)]`, `flex-[1_0_0]`, variables like `--section-pad-x`), so `get_design_context` maps them to flex directly; the Colors capture of our site had none. Overlays arrive as stacked `linear-gradient(rgba..)` backgrounds, base colour last.
 - **Not yet checked:** Figma embed responsiveness (the owner thinks embeds are not responsive; screenshots in our own grid make it moot), rate limits, a `use_figma` write.
 - The dev server's `jsonl-guard` hook blocks any shell command that writes a `.jsonl`; generate those through a node script (`track.mjs`), as the repo intends.
