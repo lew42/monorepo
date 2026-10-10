@@ -42,7 +42,7 @@ export default class PromptLog {
 		if (line.stage === "raw" && seen?.raw != null) throw new Error("raw is immutable: this prompt already has one");
 		if (line.stage === "clean" && seen?.final) throw new Error("clean is final: this prompt's sentences are set");
 		if (line.stage !== "raw" && seen?.raw == null) throw new Error("write the raw line first");
-		const fs = await import("node:fs/promises"), dir = await AISession.locate(id);
+		const fs = await import("node:fs/promises"), dir = await AISession.locate(id, undefined, id);   // folder named by the uuid, so a later scan always finds it
 		await fs.mkdir(dir, { recursive: true });
 		const out = { ...line, at: new Date().toISOString(), by, session: id };
 		await fs.appendFile(new URL(PromptLog.FILE, dir), JSON.stringify(out) + "\n");

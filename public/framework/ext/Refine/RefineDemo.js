@@ -88,6 +88,7 @@ export default class RefineDemo extends View {
 	async go(){
 		// Stop the mic FIRST and wait: stop() settles the open segment into the box.
 		const live = this.dictate.state === "listening" || this.dictate.state === "connecting";
+		this.system.source = live || this.dictate.partial_text ? "dictated" : "typed";   // the raw line of the session log says how the words arrived
 		if (live) this.$note.text("Finishing the last words…");
 		if (live) await this.dictate.stop();
 		const text = this.transcript();
