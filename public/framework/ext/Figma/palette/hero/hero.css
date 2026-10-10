@@ -1,0 +1,288 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	.hro-card {
+		background: #fff;
+		border-radius: 16px;
+		padding: 56px 48px;
+		display: flex;
+		flex-direction: column;
+		gap: 32px;
+		grid-column: 1 / -1;
+		max-width: none;
+		box-sizing: border-box;
+	}
+
+	.hro-header {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.hro-title {
+		font-family: Montserrat, sans-serif;
+		font-weight: 900;
+		font-size: 48px;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.hro-tagline {
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 1.8;
+		margin: 0;
+		text-align: center;
+	}
+
+	.hro-label {
+		font-size: 14px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.hro-body {
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 1.8;
+		margin: 0;
+	}
+
+	/* Block A: Nav + Hero + Footer */
+	.hro-block {
+		width: 1000px;
+		border-radius: 0 0 12px 12px;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		margin: 0 auto;
+		flex-shrink: 0;
+	}
+
+	.hro-nav-bar {
+		background: #fff;
+		border-bottom: 1px solid rgba(0,0,0,.1);
+		padding: 14px 28px;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.hro-nav-links {
+		display: flex;
+		flex-direction: row;
+		gap: 24px;
+		align-items: center;
+	}
+
+	.hro-hero-section {
+		background: #fff;
+		padding: 40px 48px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		align-items: flex-start;
+	}
+
+	.hro-hero-title {
+		font-family: Montserrat, sans-serif;
+		font-weight: 900;
+		font-size: 48px;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.hro-stats-row {
+		display: flex;
+		flex-direction: row;
+		gap: 16px;
+		align-self: flex-start;
+	}
+
+	.hro-stat-card {
+		width: 140px;
+		padding: 16px;
+		border-radius: 8px;
+		background: linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		box-sizing: border-box;
+	}
+
+	.hro-stat-number {
+		font-family: Montserrat, sans-serif;
+		font-weight: 900;
+		font-size: 48px;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.hro-footer-bar {
+		background: #675f56;
+		padding: 16px 28px;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	/* Block B: Split Hero */
+	.hro-split-hero {
+		width: 1000px;
+		height: 360px;
+		border-radius: 0;
+		overflow: hidden;
+		display: flex;
+		flex-direction: row;
+		align-items: stretch;
+		margin: 0 auto;
+		flex-shrink: 0;
+	}
+
+	.hro-split-left,
+	.hro-split-right {
+		flex: 1 1 0;
+		min-width: 0;
+		padding: 36px 32px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		justify-content: center;
+		align-items: flex-start;
+	}
+
+	.hro-split-title {
+		font-family: Montserrat, sans-serif;
+		font-weight: 700;
+		font-size: 36px;
+		line-height: 1.5;
+		margin: 0;
+	}
+
+	.hro-buttons-row {
+		display: flex;
+		flex-direction: row;
+		gap: 16px;
+		width: 100%;
+	}
+
+	.hro-button-primary,
+	.hro-button-secondary {
+		padding: 16px 26px;
+		border-radius: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		align-self: flex-start;
+		width: fit-content;
+	}
+
+	.hro-split-row {
+		display: flex;
+		flex-direction: row;
+		gap: 16px;
+		align-items: center;
+		width: 100%;
+		padding: 16px 26px;
+		border-radius: 4px;
+		background: linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff;
+		box-sizing: border-box;
+	}
+
+	.hro-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 12px;
+		flex-shrink: 0;
+	}
+
+	/* Block C: Settings Layout */
+	.hro-settings-block {
+		width: 820px;
+		border-radius: 12px;
+		overflow: hidden;
+		display: flex;
+		flex-direction: row;
+		align-items: start;
+		margin: 0 auto;
+		flex-shrink: 0;
+	}
+
+	.hro-settings-sidebar {
+		width: 220px;
+		background: #fff;
+		border-right: 1px solid rgba(0,0,0,.1);
+		padding: 24px 20px;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		align-items: flex-start;
+		box-sizing: border-box;
+	}
+
+	.hro-settings-spacer {
+		width: 180px;
+		height: 12px;
+	}
+
+	.hro-nav-item {
+		width: 180px;
+		padding: 8px 12px;
+		border-radius: 6px;
+		box-sizing: border-box;
+	}
+
+	.hro-nav-active {
+		background: linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff;
+	}
+
+	.hro-settings-content {
+		width: 600px;
+		background: #fff;
+		padding: 24px 32px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		align-items: flex-start;
+		box-sizing: border-box;
+	}
+
+	.hro-settings-title {
+		font-family: Montserrat, sans-serif;
+		font-size: 24px;
+		font-weight: 600;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.hro-swatches-row {
+		display: flex;
+		flex-direction: row;
+		gap: 12px;
+		align-self: flex-start;
+		width: fit-content;
+	}
+
+	.hro-swatch {
+		width: 120px;
+		padding: 12px;
+		border-radius: 8px;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		align-items: flex-start;
+		box-sizing: border-box;
+	}
+
+	.hro-swatch-bar {
+		width: 96px;
+		height: 3px;
+		border-radius: 2px;
+	}
+}

@@ -60,3 +60,9 @@ Method: I read the section with `get_design_context` (exact tokens), write a min
 **Right:** the compact footer and expanded composer side by side, the release-readiness conversation with three message bubbles, the code block with its COPY header, the status pills, the action buttons, the footer composer, the `col-` prefix, no wrappers.
 **Wrong:** one miss. The spec said the message bubble has a 4px top-left corner and 10px elsewhere; Haiku applied a 4px radius to the first child (`:nth-child(1)`) instead of the bubble itself. Fixed as `border-radius: 4px 10px 10px 10px` on `.col-bubble`.
 **Lesson:** write per-corner radii as the CSS shorthand itself ("border-radius: 4px 10px 10px 10px on the bubble"), never in words.
+
+## Section 9 · Hero & Navigation (48.8k tokens, ~87 s)
+
+**Right:** nav, the two-line hero title, both body lines, the three stat cards, the brown footer, the split hero with buttons and dot rows, the settings sidebar and the three theme swatches, the `hro-` prefix, no wrappers.
+**Wrong:** the sidebar list put Appearance first instead of after General (the spec named the active item out of order), and every block got all four corners rounded where Figma has a flat top on the footer block and a square split panel. Fixed by hand.
+**Lesson:** list sidebar items in their display order and mark the active one, and write corner radii as the CSS shorthand for each block (`0 0 12px 12px`), as in section 8.
