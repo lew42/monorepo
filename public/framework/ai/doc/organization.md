@@ -1,6 +1,6 @@
 # What goes where, when and why
 
-One screen. A rule an agent must remember is a weak rule; prefer the script. Live results: [Systems](/framework/ai/systems/). Code: `ai/systems/System.js` and its subclasses.
+One screen. A rule an agent must remember is a weak rule; prefer the script. Live results: [System](/framework/ext/System/). Code: `ext/System/System.js`; each module keeps its own `system.js`.
 
 | Area | Always | Usually | Enforced by | The check |
 |---|---|---|---|---|
