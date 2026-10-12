@@ -194,6 +194,9 @@ export class Groups {
 	    drops the phantom task and remembers the folder as task-less, so this only ever
 	    asks once. */
 	async day(date, fresh){
+		// A day the ai/ index doesn't name has no flat folder (tasks now live in ai/sessions/): don't probe it, that is a 404 per load.
+		const root = await PageLog.listing("/framework/ai/");
+		if (root && !root.folder(date)) return [];
 		const listing = await PageLog.listing(`/framework/ai/${date}/`, fresh);
 		if (!listing) return this.day_from_tree(date);
 		// A folder whose own list is already in and names no task.jsonl is no task; nothing is fetched to ask.
