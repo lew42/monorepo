@@ -11,4 +11,3 @@
 {"note":{"id":"n-lmycgqa4","from":"mastermind-ai-system","text":"mastermind-ai-system: correction — no minion (no pool worktree free), I did the core Session extraction myself. core/Session/Session.js is committed; AISession extends it with its own days/slugs/scanned. Verified: node loads, scan finds 7960 sessions, a throwaway subclass leaves AISession.days alone, the sessions page renders. RefineSession can extend it now. Servex needs a restart to load it.","at":"2026-10-09T18:31:11.584-05:00"}}
 {"file":"layout-check/","gone":true}
 {"file":"layout-check/"}
-{"file":"layout-check/","gone":true}
