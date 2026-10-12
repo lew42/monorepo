@@ -1,4 +1,4 @@
-import { Doc, md, code } from "/app.js";
+import { Doc, md, code, div, pre } from "/app.js";
 import DataGrid from "./DataGrid.js";
 
 const STATUSES = ["queued", "working", "done", "failed"];
@@ -52,8 +52,8 @@ export default new Doc({
 	description: "A table that resizes, sorts and filters itself, and stays fast even with thousands of rows.",
 	icon: "grid_on",
 
-	files: "DataGrid.js DataGrid.css page.js readme.md perf.mjs doc/perf.md",
-	notes: "perf",
+	files: "DataGrid.js DataGridDrawer.js DataGridTable.js DataGridRail.js DataGrid.css page.js readme.md perf.mjs doc/perf.md doc/architecture.md",
+	notes: "architecture perf",
 
 	content(){
 		md("**A table that resizes, sorts and filters itself, and stays fast even with thousands of rows.** Drag a column's right edge to resize it, click a header to sort by it, and use the controls above the grid to filter — all live, right now, on the 2,000 rows below. Scroll inside the grid: only the rows actually on screen are ever in the page's DOM.");
@@ -68,7 +68,21 @@ export default new Doc({
 		// capped to the reading column with 77% of a 3440px screen empty next
 		// to it (review.mjs caught it; `.wide` is the framework's own existing
 		// escape hatch, see `core/Page/doc/css.md`, not a new class).
-		new DataGrid({ columns: COLUMNS, rows: ROWS }).ac("wide");
+		// The live grid, and beside it a debug view of the same instance that updates as you click.
+		div.c("wide datagrid-demo", () => {
+			const grid = new DataGrid({ columns: COLUMNS, rows: ROWS }).style("--datagrid-height", "32rem");
+			div.c("datagrid-debug card", () => {
+				md("**The live instance**");
+				const $out = pre.c("datagrid-debug-out");
+				grid.watch(g => $out.text(JSON.stringify({
+					view: g.view,
+					sort: g.sort_key ? g.sort_key + " " + g.sort_dir : null,
+					rows: { all: g.all_rows.length, filtered: g.view_rows.length, drawn: g.drawer.shown || g.view_rows.length },
+					windowed: !!g.drawer.windowed,
+					widths: g.saved_widths(),
+				}, null, 2)));
+			});
+		});
 
 		code.js(`import DataGrid from "/framework/ext/DataGrid/DataGrid.js";
 
@@ -81,6 +95,10 @@ new DataGrid({
 	],
 	rows,   // a plain array, or an async function that returns one (a jsonl source)
 });`);
+
+		md("Use **Table / Rail** above the grid to swap how the same rows are drawn (`?view=rail` is the address of the rail). Details: [`doc/architecture.md`](./doc/architecture.md).");
+
+		md("**The class architecture** — one grid, two views (table or rail) as a setting, and why the click from a row to its detail belongs to the page: [`doc/architecture.md`](./doc/architecture.md).");
 
 		md("## Why it stays fast");
 

@@ -50,5 +50,93 @@
 	   further down the grid you scroll. Only applied once windowing turns on
 	   (`.datagrid-windowed`, past 300 rows); a short, unwindowed grid keeps its
 	   natural, auto-height rows. */
-	.datagrid.datagrid-windowed .datagrid-cell { block-size: 36px; overflow: hidden; }
+	.datagrid.datagrid-windowed .datagrid-cell { block-size: var(--datagrid-row-h, 36px); overflow: hidden; }
+}
+
+@layer theme {
+	/* `--datagrid-height`: the default cap on a plain markup-only grid, so a
+	   long one (ext/DataGrid's real use) scrolls INSIDE its own box instead of
+	   stretching the page — override with `.style("--datagrid-height", "...")`
+	   or `"none"` to let it grow with its content instead. */
+	.datagrid { display: grid; column-gap: var(--gap-50); overflow: auto; position: relative; max-height: var(--datagrid-height, 28rem); }
+	.datagrid-head, .datagrid-body, .datagrid-row { display: contents; }
+
+	.datagrid-cell {
+		display: flex; align-items: center; min-width: 0;
+		/* Inline padding too, not just block -- without it the text sits flush
+		   against the column's left edge (caught by merge.mjs's smoke test:
+		   "text touching its box", 0px from left). column-gap on .datagrid
+		   already spaces cells from EACH OTHER; this is each cell's own edge. */
+		padding: var(--gap-50);
+		border-block-end: 1px solid var(--line);
+	}
+
+	/* Sticky so a tall, internally-scrolling grid (ext/DataGrid's windowing)
+	   keeps its header in view — the box that scrolls is `.datagrid` itself. */
+	.datagrid-head-cell {
+		position: sticky; inset-block-start: 0; z-index: 1;
+		background: var(--surface);
+		font-weight: 600; border-block-end-width: 2px;
+	}
+
+	/* The resize handle — the owner's measured bug was ext/grip's "near zone":
+	   a document-wide pointermove listener computing distance-to-edge every
+	   frame just to decide whether to light up. This is one plain :hover rule
+	   instead — the browser does that work for free, instantly, with no JS at
+	   all needed for the handle to appear. */
+	.datagrid-grip {
+		position: absolute; inset-block: 0;
+		inset-inline-end: calc(var(--gap-50) / -2 - 3px);
+		width: calc(var(--gap-50) + 6px);
+		cursor: col-resize; touch-action: none; z-index: 2;
+	}
+	.datagrid-grip::after {
+		content: ""; position: absolute; inset-block: 0; inset-inline-start: 50%;
+		width: 2px; transform: translateX(-50%);
+		background: var(--prim); opacity: 0; transition: opacity 0.1s;
+	}
+	.datagrid-grip:hover::after, .datagrid-grip:focus-visible::after { opacity: 0.6; }
+
+	.datagrid-label { display: inline-flex; align-items: center; gap: var(--gap-35); }
+	.datagrid-sortable .datagrid-label { cursor: pointer; }
+	.datagrid-sortable .datagrid-label:hover { text-decoration: underline; }
+}
+@layer theme {
+	.ui-table { width: 100%; }
+	.ui-table.num th + th, .ui-table.num td + td { text-align: end; }
+}
+
+@layer theme {
+	/* The header bar: the row count, and the Table / Rail toggle at the end. */
+	.datagrid-bar { justify-content: space-between; }
+	.datagrid-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+	.datagrid-toggle-btn { border: 0; border-radius: 0; background: none; padding: 0.25em 0.8em; cursor: pointer; font: inherit; }
+	.datagrid-toggle-btn.on { background: var(--prim); color: var(--bg); }
+
+	/* The stage holds whichever drawer is current; the rail view fills its box. */
+	.datagrid-stage { display: flex; flex-direction: column; min-block-size: 0; flex: 1 1 auto; }
+	.datagrid-ext.datagrid-view-rail { block-size: 100%; }
+
+	/* A row that is a link: still display: contents, so its cells sit in the grid. */
+	a.datagrid-row { color: inherit; text-decoration: none; }
+	a.datagrid-row:hover > .datagrid-cell { background: var(--darken-1); }
+	.datagrid-row.active > .datagrid-cell { background: var(--darken-1); }
+
+	/* Show more: the sentinel after the last drawn row. */
+	.datagrid-more { grid-column: 1 / -1; padding: var(--gap-50); text-align: center; }
+	.datagrid-more-btn { border: 0; background: none; color: var(--prim); cursor: pointer; font: inherit; text-decoration: underline; }
+
+	/* The rail: flush to its box, full height, scrolls inside; one .card per row. */
+	.datagrid-rail { flex: 1 1 auto; min-block-size: 0; overflow: auto; max-block-size: var(--datagrid-height, none); }
+	.datagrid-card { display: flex; flex-direction: column; gap: 0.15em; border-block-end: 1px solid var(--line); }
+	.datagrid-card.active { box-shadow: inset 4px 0 0 var(--prim); background: var(--darken-1); }
+	.datagrid-card-title { overflow-wrap: anywhere; font-weight: 600; }
+	.datagrid-card-line { font-size: 0.85em; overflow-wrap: anywhere; }
+}
+
+@layer theme {
+	.datagrid-demo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(14rem, 20rem); gap: var(--gap-100, 1.5rem); align-items: start; }
+	.datagrid-debug { font-size: 0.85em; }
+	.datagrid-debug-out { margin: 0; white-space: pre-wrap; }
+	@container (max-width: 40em) { .datagrid-demo { grid-template-columns: 1fr; } }
 }
