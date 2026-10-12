@@ -54,6 +54,7 @@ export default class LiveRefine {
 		this.cost_usd = 0;
 		this.calls = [];                // every RefineCall.run result, for measurement ({stage, tokens, cost_usd, duration_ms})
 		this.last_batch = { clean_ms: 0, amend_ms: 0 };
+		this.op_counts = { edit: 0, add: 0 };   // read by the measurement script: real edits vs adds, across the whole prompt
 		this.voice = null;
 		this.done = false;
 		this.touch();
@@ -170,11 +171,14 @@ export default class LiveRefine {
 					if (typeof op.edit.text === "string" && op.edit.text.trim()) card.text = op.edit.text.trim();
 					this.cite(card, cites);
 					this.last_section = card.section;
+					this.op_counts.edit++;
 				} else {
 					this.add_card({ section: this.last_section ?? DEFAULT_SECTION, text: op.edit.text, cites });
+					this.op_counts.add++;
 				}
 			} else if (op?.add){
 				this.add_card({ section: op.add.section ?? this.last_section ?? DEFAULT_SECTION, text: op.add.text, cites: Array.isArray(op.add.cites) ? op.add.cites.filter(Number.isInteger) : [] });
+				this.op_counts.add++;
 			}
 		}
 		for (const n of batch){
