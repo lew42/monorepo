@@ -500,3 +500,15 @@
 {"at":"2026-10-12T09:34:47.850Z","target":"public/framework/ai/2026-10-12/page-columns-asks","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T09:34:48.047Z","target":"public/framework/ai/2026-10-12/page-columns-asks","verdict":"spawned","to":"clarity-page-columns-asks"}
 {"at":"2026-10-12T09:35:01.556Z","target":"public/framework/ai/2026-10-12/page-columns-asks","verdict":"rewrote","what":"outcome lacked the asks.md-updated ask; added ticked with commit","to":"task.jsonl"}
+{"at":"2026-10-12T10:07:07.593Z","target":"look:ai2","verdict":"queued","kind":"look"}
+{"at":"2026-10-12T10:07:07.753Z","target":"look:ai2","verdict":"spawned","to":"clarity-look-ai2"}
+{"at":"2026-10-12T05:10:00.000Z","target":"http://monorepo.localhost/framework/ai2/","verdict":"ui","what":"1920 shot (C:/Users/mike/AppData/Local/Temp/cl/monorepo-localhost-framework-ai2/1920.png): Working on says 'nothing in progress' while Running now lists 3 working agents and Live card says '3 working'; Now card shows raw task id and ISO timestamp sentence instead of a plain status; no done card visible in the first screen of the rail; 404 resource on load at every width. Fix: derive Working on from the same running list; rewrite Now card as 'Stopped on purpose: openrouter agent trial'.","to":"mastermind-servex"}
+{"at":"2026-10-12T10:20:53.112Z","target":"public/framework/ai/2026-10-12/page-split-1","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T10:20:53.215Z","target":"public/framework/ai/2026-10-12/page-split-1","verdict":"spawned","to":"clarity-page-split-1"}
+{"at":"2026-10-12T10:21:06.676Z","target":"public/framework/ai/2026-10-12/page-split-1","verdict":"rewrote","what":"STATE.md 87-word proof paragraph turned into a list; outcome and asks clear","to":"STATE.md"}
+{"at":"2026-10-12T10:30:27.007Z","target":"public/framework/ai/2026-10-12/voice-verify","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T10:30:27.123Z","target":"public/framework/ai/2026-10-12/voice-verify","verdict":"spawned","to":"clarity-voice-verify"}
+{"at":"2026-10-12T10:30:41.265Z","target":"public/framework/ai/2026-10-12/voice-verify","verdict":"rewrote","what":"outcome dropped the Whisper-kill ask tick; restored with proof","to":"task.jsonl"}
+{"at":"2026-10-12T10:53:03.224Z","target":"public/framework/ai/2026-10-12/page-context-asks","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T10:53:03.340Z","target":"public/framework/ai/2026-10-12/page-context-asks","verdict":"spawned","to":"clarity-page-context-asks"}
+{"at":"2026-10-12T06:10:00-05:00","target":"public/framework/ai/2026-10-12/page-context-asks","verdict":"ui","what":"/framework/ai/2026-10-12/page-context-asks/proof/ 404s (folder of pngs/txt, no page.js or readme, so the owner cannot reach the proof): add a page.js showing weighted-1920.png + the order txts. Also STATE.md is 416 words with a 78-word bullet and no picture; shorten it and link the proof shot. /framework/core/Page/weight/ renders clean, but its two intro paragraphs run long (~70 words each).","to":"mastermind-servex"}
