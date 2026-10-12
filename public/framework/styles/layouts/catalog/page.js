@@ -15,6 +15,8 @@ export default new Page({
 	description: "Every layout we ship, ranked, with how many pages use it and what content it suits.",
 
 	content(){
+		md("Browse these as a wall in the [library](/framework/library/?at=layouts&view=wall).");
+
 		md("Find your content below, then use the layout beside it. Each picture is the live page (click it); the count is how many of our pages build with it, counted by `census.mjs`. Short version: [content → layout](/framework/styles/layouts/catalog/doc/matching.md).");
 
 		div.c("wall wide catalog-wall", () => {

@@ -60,7 +60,8 @@ export default class Library extends Page {
 				no_parent_padding: true,
 				load: async () => {
 					const { default: sections } = await import("/framework/styles/sections/page.js");
-					return Promise.all([...sections.children.keys()].map(async key => [key, await sections.child(key)]));
+					const pages = await Promise.all([...sections.children.keys()].map(async key => [key, await sections.child(key)]));
+					return pages.filter(([, page]) => page?.section);   // the page's own first card has no band
 				},
 			});
 		},
@@ -117,15 +118,15 @@ export default class Library extends Page {
 	}
 
 	// view "" = browse (three columns), "wall" = the whole collection in one grid; default: keep the current one.
-	href_for(path, view = this.view){ return `${location.pathname}?at=${path}${view ? "&view=" + view : ""}`; }
+	href_for(path, view = this.mode){ return `${location.pathname}?at=${path}${view ? "&view=" + view : ""}`; }
 
-	get view(){ return new URLSearchParams(location.search).get("view") === "wall" ? "wall" : ""; }
+	get mode(){ return new URLSearchParams(location.search).get("view") === "wall" ? "wall" : ""; }
 
 	read(){ return new URLSearchParams(location.search).get("at") || Library.DEFAULT; }
 
 	content(){
 		p.c("muted", this.description);
-		this.$top = div.c("library-top");
+		this.$top = div.c("library-top wide");
 		this.$grid = div.c("library bleed wide", () => {
 			this.$left = div.c("library-col library-left");
 			this.$mid = div.c("library-col library-mid");
@@ -143,7 +144,7 @@ export default class Library extends Page {
 		addEventListener("popstate", () => this.$mid?.el.isConnected && this.show(this.read()));
 	}
 
-	go(path, view = this.view){
+	go(path, view = this.mode){
 		history.pushState(null, "", this.href_for(path, view));
 		this.show(path);
 	}
@@ -160,7 +161,7 @@ export default class Library extends Page {
 	async show(path){
 		const epoch = ++this.epoch;
 		const { collection, item } = await this.resolve(path);
-		const wall = this.view === "wall";
+		const wall = this.mode === "wall";
 		if (wall){
 			const items = await collection.items();
 			if (epoch !== this.epoch) return;
@@ -195,7 +196,7 @@ export default class Library extends Page {
 
 			div.c("library-collections library-toggle", () => [["browse", ""], ["wall", "wall"]].forEach(([label, view]) => {
 				const $chip = a.c("library-chip", label).href(this.href_for(active.name, view));
-				if (view === this.view) $chip.ac("on");
+				if (view === this.mode) $chip.ac("on");
 				$chip.on("click", event => { event.preventDefault(); this.go(active.name, view); });
 			}));
 		});
