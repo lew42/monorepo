@@ -22,7 +22,7 @@ Each has a `View` attached after the class (`PageCode.View = …`). `PageContent
 - **A class-body `content(){}` is hoisted.** It shadows the `Page.prototype` accessor, so the constructor moves it into the list and puts the accessor on the instance (`hoist_content()`). `ai/cards/card.js` and the other class-body pages keep working untouched.
 - **`page.jsonl` default.** `Jsonl.js` used `page.content ??= page.log_view`; it now adds `log_view` as a `fallback` item, dropped when real parts arrive (what the old replace did).
 - **`Page` assigns twice** (once inside `super()`); the setter replaces, so one item results.
-- **Callers.** `this.content()` became `this.content.render()` in about 25 files; truthiness tests on `page.content` became `page.has_content()`; `ext/Doc` and `ext/catalog` read `page.content.value` / `take_content()` for the raw function.
+- **Callers.** `this.content()` became `this.content.render()` in about 25 files; truthiness tests on `page.content` became `page.has_content()`; `ext/Doc` and `ext/catalog` read `page.content.value` / `take_content()` for the raw function. `take_content()` hands the content to the catalog's intro page and clears it, so on that one page `page.content` becomes a fresh List afterwards.
 
 ## New ability
 
