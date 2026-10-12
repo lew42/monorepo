@@ -812,7 +812,7 @@ export function top_level(page, initial_id, url_view, root) {
 				// AGENTS STRIP (board-from-events, 2026-09-22, phase-2 item 5) —
 				// every Servex-hosted agent that is actually WORKING, one chip
 				// each, on the same line; the idle ones collapse into a single
-				// count at the end of it (`agents.js`). Built once, like
+				// count at the end of it (`AgentsStrip.js`). Built once, like
 				// `$footer` below — never rebuilt on a view switch or a redraw.
 				$agents_host = div.c("v3-agents");
 				$agents_host.el.hidden = true;   // AgentsStrip.show() shows it once Servex actually answers

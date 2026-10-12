@@ -282,7 +282,7 @@ export class Prompts {
 	   preview card like any other, so it joins the timeline and the grid through
 	   the model they already read — see page.js's call site and this task's own
 	   `decision` line for why this mapping is six lines here rather than a shared
-	   helper with `agents.js`. */
+	   helper with `AgentsStrip.js`. */
 	static board_cards(on_card, base = Prompts.base()) {
 		const stream = Prompts.stream(base);
 		const send = e => e.type === "card" && on_card({

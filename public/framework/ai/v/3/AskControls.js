@@ -13,7 +13,7 @@ import { edit } from "/framework/ext/Ask/edit.js";
  * demo dir (this whole realm's own convention — scratch boards, one-off shots,
  * proof scripts), not somewhere a live page should import from for the rest of
  * its life; a future cleanup of that folder would 404 this page's own JS. `v/3/`
- * is this feature's real, permanent home, the same reason `compose.js` lives
+ * is this feature's real, permanent home, the same reason `Composer.js` lives
  * here instead of inside whichever task first built it.
  *
  * The one thing this depends on that lives OUTSIDE this file: the server side,
