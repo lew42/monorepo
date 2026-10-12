@@ -6,7 +6,7 @@ are getting kind of left in limbo" (the owner, 2026-09-30). The live page is
 
 ## What
 
-- [`fold.js`](fold.js) — the ledger's own reading, `ask_id(ask)` and `fold_asks(lines)`. Pure
+- [`AskFold.js`](AskFold.js) — the ledger's own reading, `AskFold.id(ask)` and `AskFold.fold(lines)`. Pure
   (no DOM, no Servex): it runs straight in the browser (this page, `ai2/needs.js`'s Needs you
   tab) and in node (`Servex/asks/Asks.js`). **The one vocabulary — never hand-roll a fold.**
 - [`page.js`](page.js) — the ledger's page: a count strip (Stalled · Building · Routed ·
@@ -27,7 +27,7 @@ Land your own task and want its ask marked? That's the Servex CLI, not this fold
 node Servex/asks/mark.mjs "asks ledger" landed "shipped, merged" --by your-agent-id
 ```
 
-Reading the ledger from a page or from node always goes through `fold_asks` — see `fold.js`'s
+Reading the ledger from a page or from node always goes through `AskFold.fold` — see `AskFold.js`'s
 own comment for the exact shape (`at`, `title`, `words`, `owner`, `card`, `status`, plus the
 folded `status_at` and full `history`).
 

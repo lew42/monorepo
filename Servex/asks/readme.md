@@ -48,8 +48,8 @@ that is the whole point of "re-prioritise."
 
 ## What
 
-- [`fold.js`](/framework/ai/asks/fold.js) (pure, node + browser) — turns the ledger's lines into
-  one object per ask: `ask_id(ask)` and `fold_asks(lines)`. This is the one vocabulary; nothing
+- [`AskFold.js`](/framework/ai/asks/AskFold.js) (pure, node + browser) — turns the ledger's lines into
+  one object per ask: `AskFold.id(ask)` and `AskFold.fold(lines)`. This is the one vocabulary; nothing
   else folds the ledger a different way.
 - [`stalled.js`](stalled.js) — one pure function, `stalled(ask, owner_row, now)`, that says
   whether an ask's owner has gone quiet. The rule is written in full at the top of the file.
@@ -74,13 +74,13 @@ just enough of its title or id to be unique:
 node Servex/asks/mark.mjs "asks ledger" landed "shipped, merged" --by your-agent-id
 ```
 
-Reading the ledger from code (Servex or a page) goes through `fold_asks` — never hand-roll a
+Reading the ledger from code (Servex or a page) goes through `AskFold.fold` — never hand-roll a
 fold, it will disagree with this one the moment the ledger grows an update line.
 
 ## Watch out
 
 - **The ledger is append-only.** `Asks.mark()` and `mark.mjs` only ever add a line; nothing here
-  ever rewrites `asks.jsonl`. A status is the LATEST line for that id, which is what `fold_asks`
+  ever rewrites `asks.jsonl`. A status is the LATEST line for that id, which is what `AskFold.fold`
   computes — read the file yourself and you'll see every line still there, including old ones.
 - **`stalled` is a pure judgment, not a side effect.** It never marks anything; `Asks.tick()`
   reads the verdict and decides whether a mark is actually new (stalled once, not every tick).
