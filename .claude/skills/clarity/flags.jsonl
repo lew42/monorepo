@@ -569,3 +569,40 @@
 {"at":"2026-10-12T19:30:38.860Z","target":"public/framework/ai/2026-10-12/sidebar-index","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T19:30:39.067Z","target":"public/framework/ai/2026-10-12/sidebar-index","verdict":"spawned","to":"clarity-sidebar-index-2"}
 {"at":"2026-10-12T19:35:00.000Z","target":"public/framework/ai/2026-10-12/sidebar-index","verdict":"clear","what":"outcome ticks each ask with proof, short, linked; text-check clean","to":"flags.jsonl"}
+{"at":"2026-10-12T19:36:44.578Z","target":"public/framework/ai/2026-10-12/sessions-detail","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T19:36:44.686Z","target":"public/framework/ai/2026-10-12/sessions-detail","verdict":"spawned","to":"clarity-sessions-detail-2"}
+{"at":"2026-10-12T14:40:00-05:00","target":"public/framework/ai/2026-10-12/sessions-detail","verdict":"sent","what":"outcome missing stale-fields/footer/smoke asks; Conversation tab shot is empty","to":"mastermind-sessions-detail"}
+{"at":"2026-10-12T14:41:00-05:00","target":"public/framework/ai/2026-10-12/sessions-detail","verdict":"ui","what":"could not message owner agent; outcome lacks stale-fields/footer-decision/smoke asks; final-1920 Conversation tab is an empty grey box (chat unproven) - re-shoot with a real session","to":"mastermind-servex"}
+{"at":"2026-10-12T19:37:15.663Z","target":"public/framework/ai/2026-10-12/data-grid/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T19:38:16.659Z","target":"public/framework/ai/2026-10-12/data-grid/requirements.md","verdict":"spawned","to":"clarity-data-grid"}
+{"at":"2026-10-12T12:00:00Z","target":"public/framework/ai/2026-10-12/data-grid/requirements.md","verdict":"rewrote","what":"title shortened to concept-first; added one-sentence summary at top","to":"public/framework/ai/2026-10-12/data-grid/requirements.md"}
+{"at":"2026-10-12T19:41:08.375Z","target":"public/framework/ai/2026-10-12/data-grid/grid-core/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T19:41:16.468Z","target":"public/framework/ai/2026-10-12/data-grid/sessions-perf/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T19:42:09.405Z","target":"public/framework/ai/2026-10-12/data-grid/grid-core/requirements.md","verdict":"spawned","to":"clarity-grid-core"}
+{"at":"2026-10-12T19:42:17.220Z","target":"public/framework/ai/2026-10-12/data-grid/sessions-perf/requirements.md","verdict":"spawned","to":"clarity-sessions-perf"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/data-grid/grid-core/requirements.md","verdict":"clear","what":"Agent-facing minion brief; text-check clean, numbered steps, proof list and final-message format are explicit.","to":"clarity-grid-core"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/data-grid/sessions-perf/requirements.md","verdict":"clear","what":"Agent brief: text-check clean, goal, steps and done-message all explicit","to":"clarity-sessions-perf"}
+{"at":"2026-10-12T19:57:44.387Z","target":"public/framework/ai/2026-10-12/data-grid/sessions-adopt/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T19:58:45.398Z","target":"public/framework/ai/2026-10-12/data-grid/sessions-adopt/requirements.md","verdict":"spawned","to":"clarity-sessions-adopt"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/data-grid/sessions-adopt/requirements.md","verdict":"clear","what":"Agent-facing brief; text-check clean, title states the goal, four numbered deliverables and proof list.","to":"none"}
+{"at":"2026-10-12T20:05:16.382Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/past-work-skill/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T20:05:17.690Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T20:05:18.481Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/layout-catalog/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T20:06:17.242Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/past-work-skill/requirements.md","verdict":"spawned","to":"clarity-past-work-skill"}
+{"at":"2026-10-12T20:06:18.479Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/requirements.md","verdict":"spawned","to":"clarity-page-templates"}
+{"at":"2026-10-12T20:06:19.477Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/layout-catalog/requirements.md","verdict":"spawned","to":"clarity-layout-catalog"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/past-work-skill/requirements.md","verdict":"clear","what":"text-check clean; title, owner quote, 5 unticked asks each with proof criteria, short","to":"clarity/flags.jsonl"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/requirements.md","verdict":"clear","what":"text-check clean; asks are a tickable checklist, decisions numbered","to":"requirements.md"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/layout-catalog/requirements.md","verdict":"clear","what":"text-check clean; asks are an unticked proof checklist, scoped and ownable","to":"clarity-layout-catalog"}
+{"at":"2026-10-12T20:11:18.221Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/perf-system/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T20:12:19.151Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/perf-system/requirements.md","verdict":"spawned","to":"clarity-perf-system"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/perf-system/requirements.md","verdict":"clear","what":"text-check clean; asks are a tickable checklist, each with proof wording, short","to":"clarity-perf-system"}
+{"at":"2026-10-12T20:14:55.416Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/past-work-skill","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T20:14:55.579Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/past-work-skill","verdict":"spawned","to":"clarity-past-work-skill-2"}
+{"at":"2026-10-12T20:20:00.000Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/past-work-skill","verdict":"clear","what":"Outcome ticks each ask with proof; text-check clean; worktree deviation disclosed","to":"flags.jsonl"}
+{"at":"2026-10-12T20:17:43.163Z","target":"public/framework/ai/2026-10-12/refine-haiku-live","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T20:17:44.358Z","target":"public/framework/ai/2026-10-12/refine-haiku-live","verdict":"spawned","to":"clarity-refine-haiku-live"}
+{"at":"2026-10-12T20:18:10.746Z","target":"public/framework/ai/2026-10-12/refine-haiku-live","verdict":"rewrote","what":"outcome omitted ask 3 (mic always refines, clean bubbles); added as unticked item. Refine page and proof clear.","to":"task.jsonl"}
+{"at":"2026-10-12T20:21:36.588Z","target":"public/framework/ai/2026-10-12/data-grid","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T20:21:36.740Z","target":"public/framework/ai/2026-10-12/data-grid","verdict":"spawned","to":"clarity-data-grid"}
+{"at":"2026-10-12T15:30:00-05:00","target":"public/framework/ai/2026-10-12/data-grid","verdict":"clear","what":"text-check clean; outcome ticks each ask with proof; DataGrid and Sessions pages show table/rail toggle and live instance","to":"clarity-data-grid"}
