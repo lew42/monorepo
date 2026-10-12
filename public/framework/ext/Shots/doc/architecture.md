@@ -45,3 +45,37 @@ One default clamped padding token should work in about 90% of places: a containe
 - **Does the overlay help a model?** One trial, Haiku, same question: with the two pictures alone it found 6 of the changes and missed the recoloured "prime-bound" labels; with the overlay and the diff line added it found 7, including those labels (it placed them in the wrong card). A small gain for about 2k more tokens; repeat on a padding change before trusting it.
 - **Small false "moved" regions** (a 16 × 44 px block of text "moved by −3, +68") appear on colour-only changes; ignore moved regions under two cells until the threshold is tuned.
 - **Next:** run the line filter (`public/imagine/lines/lines.js`) on both pictures to report edges that moved, which is the padding question.
+
+## Figma mode (build-c, 2026-10-12)
+
+`Shots.figma(figmaRef, url, {width})` (CLI: `--figma`) compares a Figma frame's own screenshot
+against the built page at the same width — figma-browser-loop.md's missing piece. Both pictures
+are cropped to content with `PNG.trim` (walks uniform background in from every edge, by the
+corner pixel's own colour) and the Figma one is scaled to the page's width with `PNG.scale`
+(nearest-neighbour; Diff compares in 16px cells, so a box filter would buy nothing) when the two
+widths differ after cropping. `Shots.mjs` is a plain node script with no MCP access, so the Figma
+png must already exist at `ext/Figma/data/<fileKey>/shots/<nodeId, ":"→"-">.png` (`track.mjs`'s
+own naming) before `--figma key:nodeId` is used — an agent session fetches it first with
+`mcp__figma__get_screenshot` and saves it there.
+
+There is no earlier `run` line to be the round's `parent` (a figma round isn't compared with a
+previous page round), so the chosen shape is: `parent: null`, the Figma picture copied into the
+round's own folder as `figma.png`, and the `diff` line's `vs` set to the pseudo id
+`figma-<key>-<node>` purely as a label. `ShotsView.detail()` special-cases `run.kind === "figma"`
+to show `figma.png` as the BEFORE pane instead of looking up a parent round that was never
+written — simplest shape that keeps the log readable, at the cost of a reader not being able to
+click through "vs" to another real round (there isn't one).
+
+**First real pair (2026-10-12):** `QYN0G2URSBHYH5I06MOjxU` frame `131:1062` ("How Claude draws in
+Figma", a design mock of the Figma guide's own content) vs `/framework/ext/Figma/guide/` at 3440 —
+`node Server/shots.mjs --figma QYN0G2URSBHYH5I06MOjxU:131:1062 /framework/ext/Figma/guide/ 3440`.
+Round `2026-10-12-171622`; overlay at
+`public/framework/ext/Figma/guide/screenshots/2026-10-12-171622/diff-3440.png`. The diff reports a
+height change (1236→1967) and most of the page as changed, which matches what the overlay shows
+by eye: the Figma frame is a flat mock-up of the three content cards (white/prime/dark bases)
+with no real site chrome, while the built guide page is the live framework site — a real sidebar
+nav, a taller document (more guide sections below the fold), and dark-mode colours the mock never
+drew. The few genuinely small, real differences (card corner radii, a couple of heading sizes) are
+swamped by that structural gap, so this first pair mostly proves the plumbing works end to end,
+not yet a useful "is this still on-spec" check — that wants a frame actually built to the guide
+page's own chrome, which build-c didn't have time to pick and track.
