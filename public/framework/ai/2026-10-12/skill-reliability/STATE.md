@@ -1,0 +1,2 @@
+Done: miss check (true rate 98.0%, 39 real misses), never-called six explained, node inlines role skills in opening() + `skills` log, Servex/doc/skills.md linked from the Servex readme (commit 321d5980c).
+Open: Servex restart to activate (not done here: other masterminds are running; alternative was restarting now); after it, read the `skills` log for the "after" rate. Reviewer/checker/voter roles still have no skills row.
