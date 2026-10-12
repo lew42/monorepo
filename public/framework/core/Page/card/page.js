@@ -1,4 +1,4 @@
-import { Page, View, p, div, span, button, icon } from "/app.js";
+import { Page, View, md, p, div, span, button, icon } from "/app.js";
 
 // The card system's own stylesheet — loaded once, here, because every page
 // under this one is reached by walking DOWN through this file first (the
@@ -40,6 +40,8 @@ export default new Page({
 	children: "grounds nesting headers mini-pages/page.jsonl scale log",
 
 	content(){
+		md("> Superseded 2026-10-12: the one card page is [/framework/ui/card/](/framework/ui/card/); the grounds here became `bg-white` `bg-light` `bg-prime` `bg-dark` in framework.css.");
+
 		// Show, don't tell (the owner): the first thing on the page is a LIVE sample,
 		// not a description of one — one card per ground, three levels deep, with a
 		// header bar and a ⋯ menu. `wide` breaks it out of the narrow prose column so
