@@ -52,8 +52,8 @@ export default new Doc({
 	description: "A table that resizes, sorts and filters itself, and stays fast even with thousands of rows.",
 	icon: "grid_on",
 
-	files: "DataGrid.js DataGrid.css page.js readme.md perf.mjs doc/perf.md",
-	notes: "perf",
+	files: "DataGrid.js DataGrid.css page.js readme.md perf.mjs doc/perf.md doc/architecture.md",
+	notes: "architecture perf",
 
 	content(){
 		md("**A table that resizes, sorts and filters itself, and stays fast even with thousands of rows.** Drag a column's right edge to resize it, click a header to sort by it, and use the controls above the grid to filter — all live, right now, on the 2,000 rows below. Scroll inside the grid: only the rows actually on screen are ever in the page's DOM.");
@@ -81,6 +81,8 @@ new DataGrid({
 	],
 	rows,   // a plain array, or an async function that returns one (a jsonl source)
 });`);
+
+		md("**The class architecture** — one grid, two views (table or rail) as a setting, and why the click from a row to its detail belongs to the page: [`doc/architecture.md`](./doc/architecture.md).");
 
 		md("## Why it stays fast");
 

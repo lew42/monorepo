@@ -12,6 +12,8 @@ JavaScript to exist. Resize, sort, filter and windowing are *behaviour*, so they
 class built on top of that same markup. `ext/DataGrid` is the two bundled together — the thing you
 actually import and use.
 
+**Architecture:** one grid, a table or a rail of cards as a setting, the page owns row → detail — [doc/architecture.md](./doc/architecture.md).
+
 ## Use
 
 ```js
