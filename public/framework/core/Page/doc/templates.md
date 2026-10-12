@@ -12,14 +12,14 @@ card.render();          // a view; render() again for a second view
 cost.set("$1.25");      // every view of this card updates, no rerender
 ```
 
-Live demo: [Templates](/framework/core/Page/Template/). Plan and decisions: [plan.md](/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/plan.md).
+Live demo: [Templates](/framework/core/Page/Template/). How binding works and why, measured: [binding.md](binding.md). Plan and decisions: [plan.md](/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/plan.md).
 
 ## The classes
 
 | Class | File | Job |
 |---|---|---|
 | `Property extends Events(Object)` | `core/Property/Property.js` | One live value: `get()`, `set(v)`, a `change` event, `bind(fn)` that returns its own unbind. Never bubbles. |
-| `Template extends Page` | `core/Page/Template/Template.js` | A page that renders many times: `views`, `clone(data)`, `show(name)`, `set` / `unset`, `drop(view)`, `refresh()`. |
+| `Template extends Page` | `core/Page/Template/Template.js` | A page that renders many times: `views`, `clone(data)` (linked), `copy(data)` (hard copy), `show(name)`, `set` / `unset`, `overrides(prefix)`, `drop(view)`, `dispose()`, `refresh()`. |
 | `BigCard extends Template` | `core/Page/Template/BigCard/BigCard.js` | The first template: the Figma palette's big white card — a mark, a heading, a lead line and a grid of column cards. |
 
 What composes what: a template's `map` holds plain values (`data`) and `Property` objects (`props`) side by side. A view holds the unbind functions of the Properties it drew.
@@ -36,12 +36,12 @@ What composes what: a template's `map` holds plain values (`data`) and `Property
 2. `render()` calls `draw()`; `draw()` asks `this.show("cost")`.
 3. `show()` asks the map for the field's Property (`prop(name)`, made lazily on the layer that owns the value), draws a span and binds it; the unbind is filed on the view being drawn.
 4. `prop.set("$1.25")` emits `change`; every bound span, in every view of every clone that reads through to it, updates its own text. Nothing else redraws.
-5. `clone.set("cost", v)` on a value the clone inherits as a Property makes a new own Property (a "rebind") and redraws that clone's views; it never sets the parent's. A plain value is written and redrawn (`refresh()`), also in clones that inherit it. `unset(name)` deletes the clone's own key, so reads fall back, and redraws.
-6. `drop(view)` runs the view's unbinds and removes it, so the listener count goes back down.
+5. `clone.set("cost", v)` on a value the clone inherits as a Property makes a new own Property (a "rebind") and redraws that clone's views; it never sets the parent's. A plain value is written and redrawn (`refresh()`). `unset(name)` deletes the clone's own key, so reads fall back. Both redraw every clone, at any depth, that reads the name through this one (`redraw(name)`).
+6. `drop(view)` runs the view's unbinds and removes it, so the listener count goes back down. `dispose()` does that for every view of a clone, and its clones, and takes it off its template's list.
 
 ## Why Property and not Item's events
 
-Item emits one `change` for every key, so a view of one field wakes on all of them; listeners are never removed when a view goes away; and Events bubble to the parent by default. A Property wakes only the views of its own value, each binding carries its own unbind, and it never bubbles. Item is unchanged: Property is opt-in.
+A Property wakes only the views of its own value, each binding carries its own unbind, and it never bubbles; it is the right shape for a single value shared through clones. For a record that is already an `Item`, its own `change` event measured just as well: [binding.md](binding.md#3-a-property-only-where-it-pays). Item is unchanged: Property is opt-in.
 
 ## Watch out
 
