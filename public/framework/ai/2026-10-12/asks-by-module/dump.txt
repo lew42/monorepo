@@ -1,0 +1,295 @@
+## page
+1|09-01|Use % clamp for gaps and padding on containers, fix homepage spacing at 3440.
+5|09-04|Make class to equalize column widths for tables, add to platform MVP page.
+7|09-04|Add imagine/paging/ page exploring page transitions, navigation structures, and content variations.
+8|09-04|Screenshot imagine/platform/cloudflare/verdict at 3440; fix research column too large, right columns too small.
+10|09-05|Improve paging UX: focus on stacks vs splits, fix vertical spacing, ensure non-jarring transitions.
+11|09-05|Refactor pages for clarity: one-page demos explaining single concepts, stay above fold.
+12|09-05|Build multi-column section UI: 2/3/4 column layouts that utilize 3440 width well, varied arrangements.
+13|09-05|Fix imagine/paging/mechanisms/swap page: icons out of alignment, toolbar sprawling, consolidate with dropdowns.
+15|09-06|Build layout browser: separate global layouts from component templates, enable approval workflow.
+15|09-06|Consolidate demo/stage/playground/workspace into unified system with viewport, toolbar, footer.
+16|09-06|Identify layout restrictions: content scale vs container size, responsive breakpoints, never-break layouts.
+20|09-06|Fix doodles page: bleed grid needs padding, items butting viewport edge.
+21|09-06|Add URL bar to paging demo showing current path, fix default content routing.
+21|09-06|Fix paging left sidebar padding; may need to use container queries for % of self.
+22|09-08|Browse external sites, document responsive layout patterns and CSS techniques by resolution.
+23|09-08|Fix imagine/paging page: CSS overflow rule prevents paging-home page from scrolling.
+27|09-08|Fix imagine/platform: URL should say imagine/platform/mvp/ when MVP launches automatically.
+27|09-08|Fix MVP page table: first column chopped off, no horizontal scroll, layout too cramped.
+28|09-13|Enable create/edit sub pages via UI plus socket, either via page.jsonl append or real /path/page.js.
+29|09-14|Add h1 'Notes' to Notes page for clarity.
+29|09-14|Fix Page sidebar: add white bg (not hovering), fix column widths, Today/Later shouldn't be 300px.
+31|09-17|Build layout browser to browse and approve/improve every layout on site; separate global layouts from templates.
+32|09-18|Create minimal design system with padding tokens; document design system foundation.
+33|09-18|Focus on N even columns: auto-compute column count based on min/max width and available space.
+34|09-18|Build/merge tree UI component for left sidebar: expandable/collapsible navigation for deep nesting.
+35|09-18|Explore typography and color permutations: test font size/weight/color with background variations, document in layout skill.
+37|09-18|Design and build left sidebar navigation with tree structure for deep multi-level nested systems.
+38|09-18|Explore list UI variations: single-column hierarchy, accordion, expandable, drag-and-drop team management.
+47|09-18|Explore two-column demo plus text layout; lead-in text should relate to demos for clarity.
+48|09-18|Explore internal right sidebar for related topics: icon and title imports that auto-update.
+48|09-18|Build import tracking system: auto-update import paths when pages dragged/dropped to new locations.
+54|09-18|Build infinite canvas layout system (like Whimsical): vertical/horizontal scrolling, zoom, auto-layout for flowcharts.
+55|09-18|Allow page.js with JSON flag to auto-load page.json; flexible hybrid for dynamic pages.
+60|09-19|Fix sidebar layout: footer should be one row not 50% of height; icon alignment should be vertically centered.
+196|09-23|I don't like these small scrollable areas. We have the needs you column uh, on the AI2 page is short and scrollable. I don't know why it's s
+211|09-24|Yeah, and just to reiterate um, on the multi-column layouts, sometimes they should be full screen, like fill width, fill height. Uh, sometim
+212|09-24|All right, so I'm really struggling with this paging system, even at like the core level. So a page.js can import modules and render custom 
+214|09-24|All right, so give me a quick overview of, you know, how this would work. Uh, in particular, the JSON-L data structure. Um, what I think mig
+230|09-25|All right, so I'm finally looking at the content, UX content page, and there's no padding on this three column area here where it demos the 
+233|09-25|I don't know if we necessarily need to create a, a database or anything right now. It's sort of just uh, you know tra tracking, creating dif
+235|09-25|Could we make a CSS uh, before, like pseudo element before every, uh, like element on our site? maybe not everyone, but maybe maybe if we pu
+236|09-25|So the uh, the core page overview tab is now three equal columns, which is good. The vertical rhythm here is a little there's a huge amount 
+266|09-28|why didn't we test these pages? a smoke test should show this, and we should always be doing full review (screenshot every page...?)
+289|09-28|All right, so part of the, the research process that I want to really, uh, you know, add to here it, about collaborative planning and just, 
+296|09-28|All right, so the whole thing here is about taking over the left sidebar. Uh, don't remember exactly what I said so far. Um, generally, the 
+297|09-28|All right, so I don't know where our layout system is at in terms of like making the decisions to produce the right layout. And so I wanted 
+298|09-28|On a 3440px screen, should this page use columns? If yes, exactly how many, what goes in each one, and why that split?
+302|09-29|Let's move the floating page thing to the actual page itself. And so basically that's just a slight page layout difference. You're basically
+315|09-29|All right, so I've tried to design a layout explorer in the past, and it hasn't really worked. We have a lot of pages with layout previews, 
+318|09-29|Yeah, so we need our navigation back. The uh, the homepage navigation, the, the the hamburger menu on mobile should be the homepage, like on
+349|09-29|Fix spacing issues on dictate page, especially mobile.
+349|09-29|Have minions analyze layout screenshot of dictate page.
+349|09-29|Implement flexible padding using clamp and container queries.
+351|09-29|Use IP address for links instead of localhost.
+353|09-29|Clean up AI dashboard card layouts on mobile.
+354|09-29|Make each page.jsonl contain directory data.
+358|09-29|Generalize responsive two-column layout as vertical tabs.
+364|09-29|Show open tasks and AI activity on each page.
+371|09-29|Move AI button to right side of mobile rail.
+372|09-29|Use auto height for preview cards instead.
+372|09-29|Fix spacing to show card association with labels.
+379|09-29|Create visual templates showing class state simply.
+492|09-30|Add tree UI with icon items to the dev bar.
+501|09-30|Establish preview rail as named standard layout with proper terminology.
+518|09-30|Screenshot dictation UI at 3440x1440 to review layout quality.
+532|09-30|Implement weight system applicable to any object in page system.
+606|10-01|Create tools for page system available on any page.
+612|10-01|Define when to create pages versus embedded cards.
+612|10-01|Implement efficient granular updates to pages.
+613|10-01|Show how content can be updated granularly through JSON-L.
+614|10-01|Design content class extending list for editing.
+615|10-01|Add sortable drag-and-drop with borders to items.
+616|10-01|Integrate item persistence into page system.
+617|10-01|Harmonize page and item hydration systems.
+618|10-01|Show example of page-item relationship.
+619|10-01|Provide overview of page, item, content, list relationships.
+620|10-01|Show class definitions with minimal syntax.
+621|10-01|Use list terminology consistently not collection.
+622|10-01|Keep list and view separate with view property.
+623|10-01|Document class properties using bracket notation.
+624|10-01|Include item items array in architecture docs.
+626|10-01|Put class architecture in README with heading.
+750|10-02|Make card size follow module weight; show core API for big modules.
+761|10-02|Pages must update themselves in real-time via page.jsonl when agents modify them.
+868|10-05|Make tabs responsive on mobile by using dropdown or scrollable view instead of wrapping flex layout.
+886|10-05|Implement file-change monitoring that tests dependent pages and detects issues before user sees.
+1052|10-09|Make session detail sidebar content fill available width with proper responsive padding.
+1054|10-09|Update session detail page in real-time as new messages arrive without page refresh.
+1060|10-09|Build sidebar navigation index so unloaded pages are searchable and load faster.
+## ai
+0|09-01|Pull and merge GitHub branch into michael/dev, don't merge to main yet.
+1|09-01|Edit layout skill to fix broken layouts and spacing; extreme care required not to repeat errors.
+4|09-04|Mastermind should only relay questions to other sessions, not execute skills itself.
+4|09-04|Provide way to silence tool calls in VS Code sidebar chat.
+9|09-04|Update CLAUDE.md clarity law: emphasize clear explanations, plain sentences, no minimal speak.
+9|09-04|Have minion review imagine pages for layout and clarity; spawn managers for UI tests on each page.
+24|09-08|Filter framework/ai page to show only major accomplishments with icons by default.
+25|09-08|Make notes/redactions page showing exactly what was removed verbatim with links to original images.
+30|09-14|Build importance system: typed graph for topics/questions/options/caveats with collaborative judging of what matters most.
+31|09-17|Revamp AI logging: show every ask summarized with links to original prompts as visual previews with iceberg UX.
+33|09-18|Build 'approve or improve' feedback system for decisions; decisions documented as structured page tree.
+36|09-18|Mastermind should make decisions and document alternatives; never defer decisions, keep context clean.
+37|09-18|Lean into Sonnet and Opus when low on tokens; downgrade level/effort when needed to manage usage.
+40|09-18|Mastermind: put work in detailed reports with visual nav/hierarchy, not long-winded chat replies.
+41|09-18|Build real-time task creation and UI while owner dictates: tasks appear on screen as they speak.
+42|09-18|Document platform workflows with grid of workflow cards; show registration, login, auth flow designs.
+43|09-18|Maintain 20% buffer below usage pace: stay at pace minus 20% to give freedom for decisions.
+45|09-18|Show task/request structure in real-time while dictating; live updates to chat/board visible as they speak.
+50|09-18|Reply threads should fold shut when they get long to keep log concise.
+58|09-19|Debug and fix page reload issue; figure out what's writing to filesystem and causing reloads.
+58|09-19|Enable dev server restart capability: spin up second dev server on different port independent of running server.
+59|09-19|Rename dashboard versions cleanly: V1 and V2; create automatically with button clicks.
+61|09-19|Ability to read past session transcripts; access all VS Code Claude Code sessions.
+62|09-19|Create assistant mode: relays user messages to mastermind, keeps context minimal for faster responses.
+66|09-19|Assistant should automatically relay every prompt to mastermind; every prompt uses assistant skill.
+177|09-23|Generally, what makes a lot of sense to me is that the data structures should be simple and clear and you know they might have to adapt a li
+180|09-23|But yeah, to finish up on that last question that I was kind of looking into is what what kind of hooks are we using? What are we relying li
+184|09-23|Explain simply how all the different masterminds and assistants and whatever, how they speak to each other. Is it is basically via the SDK a
+186|09-23|So you just described uh, both ways, uh, adding the Servex MCP to the agent. So it uses HTTP to do things, which if it's just coming back to
+187|09-23|Well, just uh, make note in the whole system architecture readmes or documentation or whatever about... Uh, I'm not sure where our system do
+190|09-23|does the servex mcp have a way to restart itself, after updates? does that need to shut down and restart any running servers, to get the new
+199|09-23|figure out why the framework/ai2/ new card -> dictation, which works, but the fast assistant isn't able to respond? my statements properly a
+200|09-23|we sort of have a Servex claude sdk thing... but i don't really trust it, not even sure how to use it right now. don't make any changes, don
+206|09-24|go ahead and delete the worktrees, i committed. yes, remove that file, but also look into the assistant system. what model does it spawn? do
+208|09-24|Explain very briefly the mastermind system in terms of skills and roles. Like when you spawn an agent with a role, what does that mean? Is, 
+209|09-24|if we want any ai dashboard card to be able to have any number of child cards, with their own child cards, we probably want to use directori
+217|09-24|Yeah, go ahead and write the handoff too, and also add to it your session ID. And so if the new mastermind wants to ask any questions about 
+218|09-24|Also, uh, while you're doing this, try to make the, uh, well, try and make it clear how the MCP Servex system should work. I mean, it sounds
+226|09-25|All right, here's what I want you to do. For the audits in terms of like things that we've built and kind of overlapping content and merging
+229|09-25|I don't like these text tables you're making. If you're making a table, make a real, you just use a real table. and it's still not clear to 
+231|09-25|Well, it's definitely work on staying under budget on tokens. Like, um, I mean, I, I think if, if there's a use for burning tokens, like if 
+232|09-25|All right, so yeah, focusing on the paging system. The, the system, the Servex mastermind should be involved in, you know, this process. Lik
+234|09-25|Yeah, don't don't clobber the the core page overview previews. This grid is actually really good. I haven't really studied this enough. Ther
+238|09-25|but let's let's go ahead and create a new card uh put a new card at the top of my my inbox here
+239|09-25|This um, this new card well so all the cards in this template is it has this little expando thing the summary element that says more this ca
+242|09-25|All right, so we need in the inbox for cards that are resurfacing. It's like a sub, it's like a notification with, creating a grid of naviga
+244|09-25|I thought we were supposed to have for every new task a work tree where the changes get tested and you know smoke tested for, for at least f
+245|09-25|So remind me, is there a like a systems mastermind in addition to just a normal mastermind? Like, when you ask the uh, you know the Servex S
+246|09-25|All right, so this is important. We don't want to be making, uh, you know, like UI that is in the wrong place, essentially. So this um, who'
+247|09-25|yeah, the uh, if I hadn't said it, master assistant should be Opus too. I would say the master assistant could make edits, especially if it'
+248|09-25|In terms of spawning like the quick fixes, I'm thinking that any mastermind could use, hmm, how would that work? I was thinking like a maste
+249|09-25|All right, so create a new card on the on the dashboard and call it now, I guess. Um, I wanna I wanna play around with how quickly we can.
+252|09-25|Follow-up from manager-now, same card, same fence, same rules (hold on/off, headless only, windowsHide). The owner's new request (card dir p
+255|09-25|Are you in mastermind mode? Are you like managing usage and uh, I mean, our weekly usage is actually kind of higher than it maybe should be.
+265|09-28|http://monorepo.localhost/framework/ai/2026/09/24/system-design/servex/ 404's (no servex/page.js or servex.md)
+267|09-28|just got a users/mike/appdata/local terminal popup... ask servex mastermind why we still get these terminal popups... make them hidden pleas
+268|09-28|the uh, system, design card, just dropped off my inbox. I was actually looking for it and I couldn't see it in the inbox. I was scrolling up
+270|09-28|All right, I want you to spawn, create a task, a mastermind. Um, I don't know if it's the orchestrator and the, I mean, you use the research
+272|09-28|Uh, short messages that sh you know tell me that you heard what I said and that you know you've updated a UI card, for example, uh, or just 
+274|09-28|https://www.figma.com/design/QYN0G2URSBHYH5I06MOjxU/Sept-2026?node-id=43-12913&t=zxLkbVIHIU5Irk4Z-4 You should have access to this via the F
+275|09-28|What is the uh, CSS system for resizable columns right now? Look at the imagine paging uh, column system. I think that might be kind of uniq
+276|09-28|So we've had some audits of lots of different things lately. Um, one of them recently was just look at everything that was asked over the la
+278|09-28|Uh, one layout that I think I, you know, I'd like to add to the uh, the paging mastermind here is the inner left navigation. And so the, wit
+279|09-28|All right, so I believe we did a research task about using uh, using the um, open router stuff, right? So what I want you to do is spawn a.
+283|09-28|The fresh-eyes review said "fix". It's at public/framework/ai/2026-09-28/organization/review.md. Same worktree (qf-1), same fence. Do these 
+284|09-28|Second review (review.md) says fix. There are three small changes, all in qf-1, same fence: (1) Finding 1, which is the owner's own ask ("th
+285|09-28|Yeah, so we don't just want to have like only one runner up. We want to be able to, okay, so generally the decisions, we should just assume 
+286|09-28|So just something I want to reiterate, uh, I was talking about like a context, uh, a content system that's like very structured, you know, v
+287|09-28|Oh yeah, so I was talking about the documentation system and writing content. And so for all of these tasks, I think I was saying, you know,
+288|09-28|All right, so here's something to consider. I'm, I'm thinking through the way the masterminds uh, communicate with each other, like in memor
+290|09-28|I'm thinking in the AI2 dashboard on the the preview rail, we have an overview button that kind of links to a whole different view. And I, I
+291|09-28|Your mastermind judged your shots. The top tabs are right. Two misses against the brief, same worktree (qf-1), same fence: (1) Deliverable 6
+292|09-28|Yeah, so for the inbox uh, rail thing that I'm talking about, um, if there's an existing page, then we shouldn't need to make a new page. We
+294|09-28|# Autonomous loop tick (dynamic pacing) Run the autonomous check using the loop instructions established earlier in this conversation. If yo
+301|09-29|Round two, same worktree and fence (plus public/framework/ai2/overview.js for fix 3 only, one line). The reviewer found: 1. Most quotes are 
+303|09-29|One small fix, same worktree and fence: the smoke test found the Overview links to /Server/review.mjs, which the static site can't serve. In
+304|09-29|Merged to michael/dev; this last fix goes in the MAIN tree C:\Code\lew42\monorepo (the worktree is done), file Server/ai2-overview.mjs only,
+306|09-29|All right, so for things that we've, uh, you know, spent money on and haven't, you know, published, look into why they're not being finished
+307|09-29|Well, I mean, you don't want to demand that the mastermind land it or say why. It's more like just first ask for a status update, and if it 
+309|09-29|You already have WebSearch and WebFetch enabled and approved for this session — use them right away, do not ask for permission or say you ne
+310|09-29|All right, well, I'm not sure what you just said in terms of where we're at with the open router stuff, but let's definitely move forward wi
+313|09-29|All right, so we need to create a little filters UX for the AI2 inbox. Right now, the listing is more of a log of everything. And I guess th
+322|09-29|But just to summarize my intention here and what I want to see happen is I, I want the mastermind system, you know, the Cervex, you know, sy
+323|09-29|But but again, to clarify the intent of this uh, per directory mastermind thing, um, you know, if we're using the dictation, we need the fas
+324|09-29|All right, so for the page mastermind system, as I was just explaining, for, I'm kind of torn between whether it should be a checkpoint, lik
+325|09-29|All right, so I'm, I'm thinking again about this page mastermind and how this should actually work. So I do think the page, the core page RE
+326|09-29|yeah, so the page, uh, the page system, you know, the, the core page class is so fun foundational to this whole thing, to this whole system 
+327|09-29|Where you are: readmes from the root down to public/framework/ai/2026-09-29/servex-mastermind/audit/skills readme.md (truncated — read the r
+328|09-29|Where you are: readmes from the root down to public/framework/ai/2026-09-29/servex-mastermind/audit/tools readme.md (truncated — read the re
+329|09-29|Where you are: readmes from the root down to public/framework/ai/2026-09-29/servex-mastermind/audit/loose-ends readme.md (truncated — read t
+330|09-29|Where you are: readmes from the root down to public/framework/ai/2026/09/29/personal-errands readme.md (truncated — read the rest at this pa
+331|09-29|Where you are: readmes from the root down to public/framework/ai/2026/09/29/personal-errands-2 readme.md (truncated — read the rest at this 
+332|09-29|This is an interesting idea. So for any higher level session that I wanted to talk to, so let's say we create a, even, I don't know, let's j
+333|09-29|Where you are: readmes from the root down to public/framework/ai/2026-09-29/item-ui/a-item readme.md (truncated — read the rest at this path
+334|09-29|Where you are: readmes from the root down to public/framework/ai/2026-09-29/item-ui/b-census readme.md (truncated — read the rest at this pa
+335|09-29|So yeah, to kind of reiterate my last uh, message there, I was saying how we could create a assistant in front of any higher level agent and
+336|09-29|Well, one thing to think about with the transcription process, uh, a note to be made in the whole dictation and, you know, so, so part of th
+339|09-29|Spawn a mastermind to work on the file explorer system.
+343|09-29|Add clarity, simplicity, and naming rules to claude.md.
+374|09-29|Make mastermind context-aware of page navigation.
+376|09-29|Cache mastermind spawning for same directory and prompt.
+472|09-30|Queue a future merge process task when tokens are available.
+473|09-30|Document the README system in framework/ai documentation.
+473|09-30|Get Servex mastermind review of README documentation after building.
+475|09-30|Tell Servex mastermind about in-flight documentation and system upgrade tasks.
+476|09-30|Remove blocker marking if it is not actually blocking work.
+477|09-30|Enable ability to clear or zero out inbox items.
+477|09-30|Add search functionality to AI card pages.
+477|09-30|Eventually merge AI2 dashboard into framework/ai page.
+486|09-30|Add system tab to framework/ai page for documentation and skills.
+491|09-30|Show running tasks based on claude.exe process list with memory info.
+492|09-30|Define UI as a system class analogous to page system.
+497|09-30|Clarify in CLAUDE.md that agents must keep working without waiting.
+502|09-30|Filter inbox to show only top priority items by importance score.
+505|09-30|Create monitor agent that runs Playwright to screenshot page changes.
+509|09-30|Create a now card at framework/ai/now for live work discussion.
+510|09-30|Audit last 20 AI2 inbox messages to assess importance scoring.
+513|09-30|Set inbox priority threshold at 90 or above to reduce clutter.
+519|09-30|Check card-measure-gap sub-agent progress and unblock if needed.
+528|09-30|Prioritize tasks by value not just token burn to stay efficient.
+528|09-30|Set up Open Router as alternative model provider.
+530|09-30|Check progress with Open Router model testing agent.
+531|09-30|Test that models properly follow Claude.md rules and features.
+531|09-30|Create tests with known answers to compare model performance.
+534|09-30|Focus on documenting entire AI system process from prompt to execution.
+551|09-30|Implement weighted list system to prioritize and converge on important items.
+567|10-01|Prioritize testing whether models properly use Claude features.
+595|10-01|Create concrete model test tasks with clear outcomes.
+597|10-01|Figure out how to do web search efficiently across models.
+599|10-01|Research Cloudflare web page to markdown API.
+600|10-01|Compare tasks between different models for cost and performance.
+601|10-01|Deploy multiple models to work on priority tasks.
+602|10-01|Test models at two thinking levels around 33% and 66%.
+603|10-01|Make tool call passing between minions programmatic.
+604|10-01|Clarify how thinking level affects token consumption.
+605|10-01|Use multiple LLMs to identify consensus answers.
+606|10-01|Compare OpenRouter models against Claude models.
+607|10-01|Find token optimization to make fifty dollars last longer.
+608|10-01|Research which providers are available on OpenRouter.
+610|10-01|Create tests that differentiate model capabilities.
+611|10-01|Analyze past prompts to extract keys to success.
+625|10-01|Test cheap models on OpenRouter.
+627|10-01|Research cheapest models on OpenRouter.
+640|10-01|Build system for creating reusable UI cards.
+641|10-01|Track token consumption per model.
+642|10-01|Test free models and monitor rate limiting.
+645|10-01|Create page documenting local AI tools.
+646|10-01|Merge inbox view into default AI dashboard.
+740|10-02|Clarify mastermind code review workflow when spawning minions to build.
+741|10-02|Update mastermind skill to read diffs first and spawn reviewers only when needed.
+743|10-02|Fix phantom processes that remain alive after being stopped in Servex.
+743|10-02|Ensure reviewers use Sonnet by default when under token pace, not Opus.
+745|10-02|Document configurable saving patterns and clarify AI session logging and data storage.
+746|10-02|Add Approve and Unclear buttons to each task card for auditing.
+746|10-02|Show module cards in Inbox when work lands on a module.
+746|10-02|Replace score hack with plain categories: blocking, review, fyi.
+746|10-02|Name all task cards and titles as module-colon-outcome format.
+747|10-02|Build Sessions tab as a data grid of every session with session detail pages routed.
+747|10-02|Document three preview levels for class views: inline, card, detail.
+749|10-02|Propose class architecture for logging AI sessions and clarify if sessions are committed.
+750|10-02|Show unread badge counts rolled up from Inbox items by module.
+751|10-02|Each ask should carry a confidence level; low becomes a clarification question.
+754|10-02|Fix every-prompt skill: load once as system prompt, remove per-message re-invoke.
+755|10-02|Create a hook system to audit prompts without requiring agent tool calls.
+757|10-02|Create a pinned Inbox card showing latest prompt topics with newest-first timeline.
+762|10-02|Verify that owner prompts are delivered programmatically to both assistant pair members.
+762|10-02|Audit AI logs for any place where AI writes raw JSON or copies files via tool call.
+763|10-02|Document what tasks are acceptable to run on cloud VMs and what limitations apply.
+770|10-02|Create a live known issues page where masterminds report problems without duplication.
+771|10-02|Refiner should propose where each ask should live and in what form by weight.
+872|10-05|Audit which local models are available and which have been tested for performance.
+875|10-05|Implement global session namespace accessible from any page instead of page-specific session paths.
+877|10-05|Implement tiered session resumption: auto-resume within 10 min, prompt within 60 min, auto-new after.
+879|10-05|Add Opus mastermind to oversee voice sessions, handle recovery, and manage reliability issues.
+880|10-05|Reduce token usage by using cheaper models and offloading to OpenRouter and local models.
+891|10-05|Create card-based documentation views for core classes showing methods and live property values.
+892|10-05|Enable model and configuration testing with visibility into test runs and different prompt sets.
+895|10-05|Shut down Servex mastermind temporarily to conserve tokens during high usage periods.
+897|10-05|Create UI to configure and test different assistant models and system prompts for dictation.
+899|10-05|Project token burnout timeline and document hierarchical mastermind system with delegation patterns.
+901|10-05|Switch voice assistants to OpenRouter models now with selectable config template dropdown.
+902|10-05|Monitor web dictation for issues, manage token consumption conservatively, coordinate work.
+903|10-05|Implement session notification queue with batched updates every few minutes for web chat tracking.
+904|10-05|Configure permission mode to allow mastermind autonomous editing without approval prompts.
+905|10-05|Ensure mastermind works without requiring approval for every action and edit.
+906|10-05|Ensure voice agents use non-Anthropic models only to conserve Anthropic tokens.
+907|10-05|Verify voice system uses non-Anthropic models, update handover file, coordinate with other mastermind.
+1011|10-09|Ensure all masterminds know about and can find the README documentation system.
+1012|10-09|Move scattered session data into /ai/sessions/ organized by year/month/day using procedural scripts.
+1015|10-09|Update the sessions tab to show real-time representation of what tasks are in flight.
+1016|10-09|Store sessions in /ai/sessions/ hierarchy and open them in right sidebar column on click.
+1018|10-09|Properly track OpenRouter spending as real dollars separate from Claude API equivalent.
+1019|10-09|Refactor AI code to use object-oriented patterns with clear class hierarchies throughout.
+1021|10-09|Convert session index from JSON to JSONL format to support real-time tail operations.
+1022|10-09|Create index files at year/month/day levels for quick session querying and browsing.
+1027|10-09|Batch and compact session index writes to prevent file bloat and sync issues.
+1028|10-09|Create snapshot indices at month/day/session levels showing what data exists at each tier.
+1030|10-09|Create MCP tool interface for agents to programmatically query sessions by criteria.
+1031|10-09|Create Prompt class and tag prompts by directory/class name path for filtering.
+1033|10-09|Avoid using OpenRouter credits due to accounting uncertainty.
+1038|10-09|Refactor session class to framework/ai/AISession/AISession.js with AISession class name.
+1039|10-09|Implement prompt refinement tagging system to identify and filter prompts by module.
+1043|10-09|Update handover file with current in-flight work and priorities before ending session.
+1049|10-09|Investigate and fix site crashes during transcription and page reload failures.

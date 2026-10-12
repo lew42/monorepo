@@ -348,3 +348,11 @@
 		.sidebar .grip { display: none; }
 	}
 }
+
+/* Search results: the flat list that replaces the tree while a query is typed. */
+@layer site {
+	.sidebar-results { display: flex; flex-direction: column; padding: 0.4em 0.6em; }
+	.sidebar-result { display: flex; flex-direction: column; padding: 0.4em 0.6em; border-radius: 0.3em; text-decoration: none; color: inherit; }
+	.sidebar-result:hover, .sidebar-result:focus-visible { background: color-mix(in srgb, currentColor 10%, transparent); outline: none; }
+	.sidebar-result small { opacity: 0.6; }
+}

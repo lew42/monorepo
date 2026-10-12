@@ -28,7 +28,7 @@ export default new Doc({
 
 	properties: "root pages brand brand_url logo logo_url app",
 
-	methods: "render bar header toggle open menu filter nav filtered apply_filter fold_state restore_fold tree_nodes reveal footer grab size store favicon",
+	methods: "render bar header toggle open menu filter nav filtered remember index show_results results arrow restore_query tree_nodes reveal footer grab size store favicon",
 
 	notes: "entries placement views tokens narrow comp decisions",
 

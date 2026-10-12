@@ -1,0 +1,38 @@
+{"id":597,"module":"ai","topic":"web-search-efficiency","ask":"Figure out how to do web search efficiently across models.","quote":"web search is very important, obviously"}
+{"id":599,"module":"ai","topic":"web-search-tool","ask":"Research Cloudflare web page to markdown API.","quote":"Cloudflare has a like web page to Markdown uh API"}
+{"id":600,"module":"ai","topic":"model-benchmarking","ask":"Compare tasks between different models for cost and performance.","quote":"we want to compare certain tasks between different models"}
+{"id":601,"module":"ai","topic":"model-fan-out","ask":"Deploy multiple models to work on priority tasks.","quote":"trying to do anything new and productive we do not have"}
+{"id":602,"module":"ai","topic":"thinking-level-test","ask":"Test models at two thinking levels around 33% and 66%.","quote":"two sample points both roughly in the middle"}
+{"id":603,"module":"ai","topic":"tool-call-efficiency","ask":"Make tool call passing between minions programmatic.","quote":"passing prompts along to another minion should be programmatic"}
+{"id":604,"module":"ai","topic":"thinking-token-cost","ask":"Clarify how thinking level affects token consumption.","quote":"I am not clear how the thinking works"}
+{"id":605,"module":"ai","topic":"consensus-testing","ask":"Use multiple LLMs to identify consensus answers.","quote":"if you ask five to ten LLMs the same type"}
+{"id":606,"module":"ai","topic":"openrouter-benchmarking","ask":"Compare OpenRouter models against Claude models.","quote":"how can we compare them to Claude models"}
+{"id":606,"module":"page","topic":"page-system-tools","ask":"Create tools for page system available on any page.","quote":"for any system really any module or any path"}
+{"id":607,"module":"ai","topic":"token-efficiency","ask":"Find token optimization to make fifty dollars last longer.","quote":"figure out how to use let that fifty dollars"}
+{"id":608,"module":"ai","topic":"openrouter-providers","ask":"Research which providers are available on OpenRouter.","quote":"how many different models does OpenRouter have"}
+{"id":610,"module":"ai","topic":"model-differentiation","ask":"Create tests that differentiate model capabilities.","quote":"property called differentiation for each AI test"}
+{"id":611,"module":"ai","topic":"prompt-essence-analysis","ask":"Analyze past prompts to extract keys to success.","quote":"work on reanalyzing those prompts for their essence"}
+{"id":612,"module":"page","topic":"page-card-distinction","ask":"Define when to create pages versus embedded cards.","quote":"when do we create pages versus having dynamic"}
+{"id":612,"module":"page","topic":"granular-page-updates","ask":"Implement efficient granular updates to pages.","quote":"we do not want to just overwrite we want"}
+{"id":613,"module":"page","topic":"content-jsonl-updates","ask":"Show how content can be updated granularly through JSON-L.","quote":"how does that data get saved what would be"}
+{"id":614,"module":"page","topic":"content-class-design","ask":"Design content class extending list for editing.","quote":"content class content extends list"}
+{"id":615,"module":"page","topic":"content-item-ui","ask":"Add sortable drag-and-drop with borders to items.","quote":"each root level item in content list"}
+{"id":616,"module":"page","topic":"item-page-integration","ask":"Integrate item persistence into page system.","quote":"how should we integrate items with pages"}
+{"id":617,"module":"page","topic":"page-item-hydration","ask":"Harmonize page and item hydration systems.","quote":"we obviously want to harmonize that"}
+{"id":618,"module":"page","topic":"page-item-hierarchy","ask":"Show example of page-item relationship.","quote":"show me a simple example from you know top"}
+{"id":619,"module":"page","topic":"class-architecture","ask":"Provide overview of page, item, content, list relationships.","quote":"your proposal like how are how should we set"}
+{"id":620,"module":"page","topic":"class-architecture","ask":"Show class definitions with minimal syntax.","quote":"give me code blocks that use very simple"}
+{"id":621,"module":"page","topic":"list-naming","ask":"Use list terminology consistently not collection.","quote":"stay away from collection I think list is good"}
+{"id":622,"module":"page","topic":"list-view-pattern","ask":"Keep list and view separate with view property.","quote":"a list should have a view"}
+{"id":623,"module":"page","topic":"class-api-documentation","ask":"Document class properties using bracket notation.","quote":"use the properties to kind of identify what"}
+{"id":624,"module":"page","topic":"class-architecture","ask":"Include item items array in architecture docs.","quote":"the item has an items array"}
+{"id":625,"module":"ai","topic":"openrouter-benchmarking","ask":"Test cheap models on OpenRouter.","quote":"how do we do on open router"}
+{"id":626,"module":"page","topic":"readme-architecture","ask":"Put class architecture in README with heading.","quote":"just put it in the actual README"}
+{"id":627,"module":"ai","topic":"model-cost-research","ask":"Research cheapest models on OpenRouter.","quote":"if a model costs like a tenth"}
+{"id":640,"module":"voice","topic":"dictate-consistency","ask":"Fix inconsistencies between dictate widget and chat.","quote":"see if you can check those conversation"}
+{"id":640,"module":"ai","topic":"context-cards-system","ask":"Build system for creating reusable UI cards.","quote":"we want to create a library of useful cards"}
+{"id":641,"module":"ai","topic":"model-token-tracking","ask":"Track token consumption per model.","quote":"we want to track uh token consumption"}
+{"id":642,"module":"ai","topic":"free-model-testing","ask":"Test free models and monitor rate limiting.","quote":"definitely lean into those free models"}
+{"id":645,"module":"ai","topic":"local-ai-inventory","ask":"Create page documenting local AI tools.","quote":"create a page in the AI system"}
+{"id":646,"module":"ai","topic":"ai-dashboard-merge","ask":"Merge inbox view into default AI dashboard.","quote":"merging the inbox view into the main"}
+{"id":647,"module":"voice","topic":"dictate-sheet-bug","ask":"Fix abort error and UI shift issues.","quote":"first there was some abort error"}

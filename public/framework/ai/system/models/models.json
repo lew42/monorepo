@@ -1059,5 +1059,99 @@
     }
   ],
   "catalog_generated_at": "2026-10-05T02:02:08.737Z",
-  "catalog_note": "price_in/out/cache are OpenRouter's /api/v1/models catalog, $ per million tokens; Claude (direct) rows use Anthropic's own list prices (docs.claude.com, checked 2026-10-04) because OpenRouter's catalog serves a newer generation under the same short id. docs/reasoning/refine are pass-rates (0..1) from the new-brain eval (public/framework/ai/2026-10-03/new-brain/); a blank score means every call for that row failed, rather than scoring 0%. typical_minion_usd applies this week's median minion token mix (11.3M read, 99% cached, 43k written) to the model's own price. The Groq and Google AI Studio rows show OpenRouter's catalog price for that model id, not necessarily the exact price that pinned provider billed. A local model's context window is left blank — it needs a live query to the running llama-server, not done by this pass."
+  "catalog_note": "price_in/out/cache are OpenRouter's /api/v1/models catalog, $ per million tokens; Claude (direct) rows use Anthropic's own list prices (docs.claude.com, checked 2026-10-04) because OpenRouter's catalog serves a newer generation under the same short id. docs/reasoning/refine are pass-rates (0..1) from the new-brain eval (public/framework/ai/2026-10-03/new-brain/); a blank score means every call for that row failed, rather than scoring 0%. typical_minion_usd applies this week's median minion token mix (11.3M read, 99% cached, 43k written) to the model's own price. The Groq and Google AI Studio rows show OpenRouter's catalog price for that model id, not necessarily the exact price that pinned provider billed. A local model's context window is left blank — it needs a live query to the running llama-server, not done by this pass.",
+  "quick": {
+    "generated_at": "2026-10-12T08:34:50.340Z",
+    "tasks": [
+      {
+        "id": "code-add",
+        "kind": "code edit"
+      },
+      {
+        "id": "code-bug",
+        "kind": "code edit"
+      },
+      {
+        "id": "classify-1",
+        "kind": "classification"
+      },
+      {
+        "id": "classify-2",
+        "kind": "classification"
+      },
+      {
+        "id": "summary-facts",
+        "kind": "summary"
+      },
+      {
+        "id": "extract-json",
+        "kind": "extraction"
+      },
+      {
+        "id": "arith",
+        "kind": "reasoning"
+      },
+      {
+        "id": "logic",
+        "kind": "reasoning"
+      }
+    ],
+    "rows": [
+      {
+        "model": "openai/gpt-6-luna",
+        "effort": "low",
+        "passed": 8,
+        "of": 8,
+        "seconds": 1.3,
+        "cost_usd": 0.00015
+      },
+      {
+        "model": "openai/gpt-6-luna",
+        "effort": "high",
+        "passed": 8,
+        "of": 8,
+        "seconds": 2.2,
+        "cost_usd": 0.00028
+      },
+      {
+        "model": "deepseek/deepseek-v4.1-flash",
+        "effort": "high",
+        "passed": 8,
+        "of": 8,
+        "seconds": 1,
+        "cost_usd": 0.00066
+      },
+      {
+        "model": "deepseek/deepseek-v4.1-flash",
+        "effort": "low",
+        "passed": 8,
+        "of": 8,
+        "seconds": 1.8,
+        "cost_usd": 0.00091
+      },
+      {
+        "model": "google/gemini-3.8-flash",
+        "effort": "low",
+        "passed": 8,
+        "of": 8,
+        "seconds": 1.7,
+        "cost_usd": 0.00153
+      },
+      {
+        "model": "google/gemini-3.8-flash",
+        "effort": "high",
+        "passed": 7,
+        "of": 8,
+        "seconds": 6.9,
+        "cost_usd": 0.02436
+      }
+    ]
+  },
+  "accounting": {
+    "at": "2026-10-12T08:34:50.509Z",
+    "account_usd": 64.45,
+    "ledger_usd": 110.08,
+    "difference_usd": 45.63,
+    "key_diff_repeat_usd": 18.54
+  }
 }

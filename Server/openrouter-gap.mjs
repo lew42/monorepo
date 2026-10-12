@@ -32,3 +32,11 @@ const out = {
 };
 if (process.argv.includes("--json")) console.log(JSON.stringify(out, null, 1));
 else { console.log(`account $${out.account_usd} · ledger $${out.ledger_usd} · ledger above account by $${out.ledger_minus_account}`); console.log(`exact lines $${out.exact_usd} · key_diff lines $${out.key_diff_usd} (of which identical repeats $${out.key_diff_identical_repeat_usd})`); console.table(out.by_day); console.table(out.by_model); console.table(out.by_agent_kind); }
+
+// --publish: put the two numbers where the Models tab reads them
+if (process.argv.includes("--publish")){
+	const f = path.resolve(import.meta.dirname, "../public/framework/ai/system/models/models.json");
+	const d = JSON.parse(fs.readFileSync(f, "utf8"));
+	d.accounting = { at: new Date().toISOString(), account_usd: out.account_usd, ledger_usd: out.ledger_usd, difference_usd: out.ledger_minus_account, key_diff_repeat_usd: out.key_diff_identical_repeat_usd };
+	fs.writeFileSync(f, JSON.stringify(d, null, 2) + "\n");
+}

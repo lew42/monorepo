@@ -16,3 +16,5 @@ One folder per subsystem, one current doc per topic. Load the folder you need; t
 | [`meta/`](meta/history.md) | [How the AI system evolved](meta/history.md), [readme system status](meta/readme-system-status.md) | you audit the docs |
 
 Naming rule: a doc is named for its topic, not its date; the date and the session that decided it go on its first lines. Words like "never" are for what really breaks; the rest are suggestions.
+
+- [`asks.md`](asks.md) — the owner's repeated asks about the AI system, merged and checked against the code, open first.

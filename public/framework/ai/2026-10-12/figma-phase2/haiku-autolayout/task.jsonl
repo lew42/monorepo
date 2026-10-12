@@ -6,3 +6,7 @@
 {"log":{"at":"2026-10-12T01:48:24-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"log":{"at":"2026-10-12T02:03:24-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
 {"log":{"at":"2026-10-12T02:20:48-05:00","heartbeat":"deliberate","msg":"minion-figma-autolayout its agent is not running: it was stopped on purpose by lifecycle at 2026-10-12T01:29:59-05:00; not revived."}}
+{"log":{"at":"2026-10-12T03:14:27-05:00","heartbeat":"revive-queued","msg":"minion-figma-autolayout its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-12T03:14:28-05:00","heartbeat":"revive","msg":"revived minion-figma-autolayout from session 98ff1d86-02cc-42fc-9228-e25dd6a674f7"}}
+{"log":{"at":"2026-10-12T03:14:36-05:00","heartbeat":"answered","msg":"The build is done and I'm not doing anything else. `page.js` and `autolayout.css` are written in `public/framework/ext/Figma/autolayout/`, uncommitted, and I haven't checked the page in a browser. The"}}
+{"log":{"at":"2026-10-12T03:31:20-05:00","heartbeat":"deliberate","msg":"minion-figma-autolayout its agent is not running: it was stopped on purpose by in-process at 2026-10-12T03:20:25-05:00; not revived."}}

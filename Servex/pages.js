@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import Subpages from "./agents/Subpages.js";
 
 const MAIN = "C:\\Code\\lew42\\monorepo";
 const json = v => JSON.stringify(v, null, 2);
@@ -86,7 +87,7 @@ export const page_tools = () => {
 				return { ok: true, kind, title: pick("title"), icon: pick("icon"), children: pick("children"), layout: pick("layout"), cols: pick("cols"), room: pick("room") };
 			}),
 
-		tool("create_page", "Make a new child page reliably: folder + page.jsonl line 1 (title, icon, description, optional layout) + a readme.md stub, then link it from the parent (one appended {file} line, or the name added to the parent page.js children string). The empty doc/ dir is NOT created — one appears only once there is a real doc. Returns the PARENT's context (title, layout words, sibling names, readme url) so the calling agent looks at where this page sits before filling it in.",
+		tool("create_page", "Alias of page_set({pages:{add:{name,title,icon,description}}}), see core/Page/doc/ai-api.md. Makes a new child page reliably: folder + page.jsonl line 1 (title, icon, description, optional layout) + a readme.md stub, then link it from the parent (one appended {file} line, or the name added to the parent page.js children string). The empty doc/ dir is NOT created — one appears only once there is a real doc. Returns the PARENT's context (title, layout words, sibling names, readme url) so the calling agent looks at where this page sits before filling it in.",
 			{ parent: P, name: { type: "string", description: "a-z0-9- only" }, title: { type: "string" }, icon: { type: "string" }, description: { type: "string", description: "One sentence — the card's subtitle everywhere this page is previewed." }, layout: { type: "string", description: "optional layout name" } },
 			["parent", "name", "title", "icon", "description"], a => {
 				if (!NAME.test(a.name || "")) throw new Error("name must be a-z0-9- only");
@@ -96,26 +97,22 @@ export const page_tools = () => {
 				const dir = path.join(pdir, a.name);
 				if (fs.existsSync(dir)) throw new Error(`${a.name} already exists under ${a.parent}`);
 				if (a.layout && !layout_names(a).includes(a.layout)) throw new Error(`unknown layout; valid: ${layout_names(a).join(", ")}`);
-				let parent_js = null;
-				if (pkind === "page.js") {
-					const file = path.join(pdir, "page.js"), src = fs.readFileSync(file, "utf8");
-					const m = /(children:\s*")([^"]*)(")/.exec(src);
-					if (!m) throw new Error("parent page.js has no `children: \"...\"` string to extend");
-					parent_js = { file, src, m };
-				}
-				// Read the parent's own context BEFORE writing anything, so the new page's own
-				// line (about to be appended below) never shows up as one of its own siblings.
+				// Read the parent's own context BEFORE writing anything, so the new page never lists itself as a sibling.
 				const parent_layout = layout_of(pdir, pkind);
 				const siblings = children_of(pdir).map(c => c.name);
 				const parent_readme = `${a.parent.replace(/\/?$/, "/")}md/readme/`;
-				fs.mkdirSync(dir);
-				const first = { title: a.title, icon: a.icon, description: a.description, ...(a.layout ? { layout: a.layout } : {}) };
-				fs.writeFileSync(path.join(dir, "page.jsonl"), JSON.stringify(first) + "\n");
-				fs.writeFileSync(path.join(dir, "readme.md"), `# ${a.title} — ${a.description}\n\n## Index\n\n## Use\n\n## Watch out\n\n## More\n`);
-				if (parent_js) {
-					const { file, src, m } = parent_js, i = m.index + m[1].length, sep = m[2].trim() ? " " : "";
-					fs.writeFileSync(file, src.slice(0, i) + m[2].replace(/\s+$/, "") + sep + a.name + "/page.jsonl" + src.slice(i + m[2].length));
-				} else append(path.join(pdir, "page.jsonl"), { file: `${a.name}/page.jsonl` });
+				// The folder, line 1 and the parent link are ONE implementation: Servex/agents/Subpages.js.
+				new Subpages(pdir).add({ name: a.name, title: a.title, icon: a.icon, description: a.description, ...(a.layout ? { layout: a.layout } : {}) });
+				fs.writeFileSync(path.join(dir, "readme.md"), `# ${a.title} — ${a.description}
+
+## Index
+
+## Use
+
+## Watch out
+
+## More
+`);
 				return {
 					ok: true, made: `${a.parent.replace(/\/?$/, "/")}${a.name}/`, linked_in: pkind,
 					parent: { title: parent_layout.title, layout: parent_layout.layout, cols: parent_layout.cols, room: parent_layout.room, siblings, readme: parent_readme }
