@@ -430,8 +430,8 @@ export default class AISessionsPage extends Page {
 	/** The spec for the current filters and sort. */
 	remote_spec(){
 		const r = this.remote, where = [
-			{ field: "last_activity", op: "gte", value: this.date_from + "T00:00:00" },
-			{ field: "last_activity", op: "lte", value: this.date_to + "T23:59:59.999Z" },
+			{ field: "last_activity", op: "gte", value: new Date(this.date_from + "T00:00:00").toISOString() }, // local midnight, as the files path reads the dates
+			{ field: "last_activity", op: "lte", value: new Date(this.date_to + "T23:59:59.999").toISOString() },
 		];
 		if (this.inflight_only) where.push({ field: "state", op: "eq", value: "active" });
 		if (!this.show_closed) where.push({ field: "closed", op: "eq", value: false });   // closed sessions hide unless ticked (never deleted)
@@ -455,7 +455,7 @@ export default class AISessionsPage extends Page {
 			const rows = res.rows.map(snap => this.remote_row_of(snap));
 			Object.assign(r, { rows: more ? [...r.rows, ...rows] : rows, total: res.total, totals: res.totals, ms: res.ms });
 			this.filtered_count = res.matched ?? res.total; this.shown_usd = res.totals.claude_usd ?? 0;
-				this.attention_only_text?.text(`needs attention · ${res.totals.attention ?? 0}`);
+			this.attention_only_text?.text(`needs attention · ${res.totals.attention ?? 0}`);
 			this.nests = new Map(r.rows.filter(x => !x.bucket).map(x => [x, { ...x.nest, toggle: () => { x.nest.open ? this.open_ids.delete(x.id) : this.open_ids.add(x.id); this.remote_ask(); } }]));
 			this.grid.set_rows(r.rows, first);
 			this.$empty.el.hidden = r.rows.length > 0;
