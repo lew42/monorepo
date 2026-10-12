@@ -109,7 +109,7 @@ export default class AISessionDetail extends Page {
 		AISessionDetail.load_row(url, id).then(async row => {
 			const session_id = row?.session_id ?? id;
 			conv.session = session_id;
-			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
+			voice.follow(session_id); voice.session = session_id;   // a phone has no dev socket: it follows Servex's voice stream
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
 			this.log_urls().then(urls => {
 				if (this.logs) return;

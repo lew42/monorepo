@@ -19,6 +19,7 @@ export default class VoiceFlow {
 
 	/** Off localhost the dev socket is off (it carries rpc:write), so the page file is only loaded once; a phone follows Servex's read-only voice stream instead (`GET /api/voice/stream`). */
 	follow(session){
+		this.session = session;
 		if (!Socket.singleton().disabled || this.source || typeof EventSource === "undefined") return this;
 		this.source = new EventSource(servex_url(`/api/voice/stream?session=${encodeURIComponent(session)}`));
 		this.source.onmessage = e => { try { this.read(JSON.parse(e.data)); } catch {} };
@@ -33,7 +34,7 @@ export default class VoiceFlow {
 			const add = line.content?.add;
 			if (add?.type === "voice-prompt" && add.id){
 				const fresh = !this.prompts.has(add.id);
-				if (fresh) this.prompts.set(add.id, new VoicePrompt(add.id));
+				if (fresh){ const vp = new VoicePrompt(add.id); vp.session = this.session; this.prompts.set(add.id, vp); }
 				const p = this.prompts.get(add.id);
 				note(p, p.apply(add));
 				if (fresh) touched.get(p).add("*");
