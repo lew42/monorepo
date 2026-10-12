@@ -12,9 +12,12 @@ export default class HttpsLan {
             const creds = HttpsCert.load();
             if (!creds || process.env.NO_HTTPS) return;
             const https_port = Number(process.env.HTTPS_PORT) || Number(port) + 10000;
+            // A random worktree port above 55535 gives a port over 65535, and listen() THROWS on it (RangeError), killing the server right after "listening".
+            if (!(https_port > 0 && https_port < 65536)) return console.log(`[https] skipped: ${https_port} is not a port (http is on ${port}); set HTTPS_PORT.`);
             server.https = https.createServer(creds, server.app);
             server.https.on("error", e => console.log(`[https] not listening on ${https_port}: ${e.code || e.message}`));
-            server.https.listen(https_port, host, () => console.log(`[https] listening on ${host}:${https_port}`));
+            try { server.https.listen(https_port, host, () => console.log(`[https] listening on ${host}:${https_port}`)); }
+            catch (e) { console.log(`[https] not listening on ${https_port}: ${e.code || e.message}`); }
         });
     }
 }

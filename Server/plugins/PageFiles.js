@@ -105,7 +105,7 @@ export default class PageFiles {
     constructor(server) {
         this.server = server;
         this.pending = new Map();
-        if (process.env.BOOT_TEST) return;   // a candidate boot test must never write files (see server.js)
+        if (process.env.BOOT_TEST || process.env.NO_PAGEFILES) return;   // NO_PAGEFILES: a proof run (Server/TranscribeLoop.mjs) must not rewrite files.jsonl. A candidate boot test must never write files (see server.js)
 
         watch(file => this.event(file));
 

@@ -6,7 +6,7 @@ import { lan, safe_host } from "./MCP.js";
 const HOME = process.env.WHISPER_HOME || path.join(process.env.LOCALAPPDATA || "", "lew42", "whisper");
 const EXE = path.join(HOME, "bin", "whisper-server.exe");
 const MODEL = path.join(HOME, "models", "ggml-large-v3-turbo.bin");
-const PORT = process.env.WHISPER_TEST ? 8179 : 8178;
+const PORT = Number(process.env.WHISPER_PORT) || (process.env.WHISPER_TEST ? 8179 : 8178);   // WHISPER_PORT: a proof run with its own whisper-server (Server/TranscribeLoop.mjs)
 const OWNER_FACING = !process.env.PORT || Number(process.env.PORT) === 80;
 const MAX_RESTARTS = 3;
 const LINES_SHOWN = 20;   // whisper.cpp logs its startup banner to STDERR, not stdout -- both streams share this cap
