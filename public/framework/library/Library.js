@@ -1,4 +1,4 @@
-import { Page, View, div, a } from "/app.js";
+import { Page, View, div, a, p } from "/app.js";
 import Collection from "./Collection.js";
 import Item from "./Item.js";
 import Rail from "./Rail.js";
@@ -56,6 +56,7 @@ export default class Library extends Page {
 	read(){ return new URLSearchParams(location.search).get("at") || Library.DEFAULT; }
 
 	content(){
+		p.c("muted", this.description);
 		div.c("library bleed wide", () => {
 			this.$left = div.c("library-col library-left");
 			this.$mid = div.c("library-col library-mid");

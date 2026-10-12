@@ -34,14 +34,19 @@
 	.library-chips { display: flex; gap: 0.4em; flex-wrap: wrap; }
 
 	/* The viewport scrolls; the render inside is as wide as the chip, shrunk with `zoom` when the column is narrower. */
-	.library-screen { overflow: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+	.library-screen { display: flex; justify-content: safe center; overflow: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 	.library-render { padding: 1.5rem; box-sizing: border-box; }
 	.library-render.bleed { padding: 0; }
 
 	@media (max-width: 60em) {
 		.library { grid-template-columns: minmax(0, 1fr); }
-		.library-left, .library-right { position: static; max-height: none; }
+		/* Mobile first: the filter, then the stage, then the rails as two-up grids. */
+		.library-left { display: contents; }
+		.library-collections { order: -2; }
 		.library-mid { order: -1; }
+		.library-right { position: static; max-height: none; }
+		.library-rail-section { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		.library-rail-title { grid-column: 1 / -1; }
 	}
 }
 
