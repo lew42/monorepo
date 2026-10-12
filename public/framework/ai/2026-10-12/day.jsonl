@@ -6,3 +6,4 @@
 {"log":{"at":"2026-10-12T03:50:42-05:00","task":"sidebar-search","msg":"landed — sidebar search indexes the whole tree"}}
 {"log":{"at":"2026-10-12T04:02:50-05:00","task":"sessions-asks","msg":"landed — sessions cluster closed, resumption rule added"}}
 {"log":{"at":"2026-10-12T05:30:02-05:00","task":"voice-verify","msg":"landed — try-it walk passes at 400 and 1400, Whisper restart said in one line"}}
+{"log":{"at":"2026-10-12T05:52:52-05:00","task":"page-context-asks","msg":"landed — open-work line on every page, PageWeight on any object, asks #6/#7 updated"}}
