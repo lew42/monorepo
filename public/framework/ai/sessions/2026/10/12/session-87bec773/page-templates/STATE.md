@@ -2,7 +2,7 @@
 
 - ✅ Past work: [past-work.md](past-work.md) (Haiku minion). No old `Property` class exists in git history.
 - ✅ Plan with a decision per question: [plan.md](plan.md). Architecture draft: [templates-draft.md](templates-draft.md) (becomes `core/Page/doc/templates.md`).
-- ⬜ Build (Sonnet minion `minion-templates-build`, in a pool worktree): Property, Template, BigCard, demo, doc, shots at four widths.
+- ⬜ Build: `minion-templates-build` (Sonnet) in worktree qf-2, to plan.md decisions 1–12 (owner notes 2 folded in: fallthrough maps, copy-on-write Properties, lazy binding, node tests). Clone-as-a-delta is design only.
 - ⬜ Review the diff, merge, land.
 
 ## Coordination (Servex refused direct messages to peer masterminds; defaults taken)
