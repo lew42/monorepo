@@ -5,11 +5,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { browser, close } from "../../../../../../Server/browser.mjs";
 
-const ROW_SELECTORS = [".sessions-row", ".datagrid-row", ".card"];
+const ROW_SELECTORS = ["a.sessions-row", ".datagrid-card"];   // a drawn session row (table) or card (rail); the header row is not one
 const WIDTHS = [400, 1200, 1920, 3440];
 const here = path.dirname(fileURLToPath(import.meta.url));
 const base = (process.argv[2] || "http://monorepo.localhost").replace(/\/$/, "");
 const label = process.argv[3] || "run";
+const query = process.argv[4] || "";   // e.g. "?view=rail"
 const sel = ROW_SELECTORS.join(",");
 
 const b = await browser();
@@ -21,8 +22,8 @@ for (const width of WIDTHS) {
 		new PerformanceObserver(l => { for (const e of l.getEntries()) window.__lt.push(e.duration); }).observe({ type: "longtask", buffered: true });
 	});
 	const t0 = Date.now();
-	await page.goto(`${base}/framework/ai/sessions/`, { waitUntil: "commit" });
-	await page.waitForSelector(sel, { timeout: 60000 });
+	await page.goto(`${base}/framework/ai/sessions/${query}`, { waitUntil: "commit" });
+	await page.waitForSelector(sel, { timeout: 60000, state: "attached" });   // attached, not visible: a table row is display: contents
 	const first_row_ms = Date.now() - t0;
 	await page.waitForTimeout(1500);
 	const m = await page.evaluate((sel) => ({

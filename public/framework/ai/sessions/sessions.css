@@ -37,51 +37,20 @@
 	.sessions-chiprow { display: flex; flex-wrap: wrap; gap: .4rem .5rem; }
 	.sessions-chips { display: contents; }
 	.sessions-summary { flex-wrap: wrap; }
-	.sessions-grid {
-		max-width: 110rem;
-		--col-name: 26rem; --col-cost: 14rem;   /* name is capped (it took every spare pixel); cost grows to its widest cell so a flag never clips it */ --col-updated: 6rem; --col-duration: 6rem;
-		--col-role: 8rem; --col-source: 6rem; --col-model: 8rem; --col-state: 4rem;
-		display: grid;
-		grid-template-columns:
-			minmax(3rem, var(--col-state))
-			minmax(12rem, var(--col-name))
-			minmax(var(--col-cost), max-content)
-			minmax(5rem, var(--col-updated))
-			minmax(5rem, var(--col-duration))
-			minmax(6rem, max-content)
-			minmax(5rem, var(--col-source))
-			minmax(5rem, max-content);
-		justify-content: start;   /* spare room stays empty at the right: no column stretches to fill it */
-		column-gap: var(--gap-50);
-		/* `width: max-content` + `min-width: 100%` (review finding, 2026-10-03):
-		   without this, a block-level grid defaults to the width of its own
-		   CONTAINER (`width: auto` still resolves to "fill the parent" for a
-		   block box) even when its ten `minmax()` floors need more room than
-		   that — so columns were silently compressing/wrapping text BELOW
-		   their own floor (Model wrapping to two lines, Cost missing
-		   entirely at 1200) instead of the grid actually growing past its
-		   container and letting `.panel2-main`'s own `overflow: auto` turn
-		   that into a real, scrollable row — the behavior this grid was
-		   already supposed to have (doc/decisions.md, "the grid itself
-		   refuses to go under the minimum"). `max-content` lets it grow to
-		   its true minimum-floor width when that is wider than the
-		   container; `min-width: 100%` keeps it filling the full row on a
-		   screen that already has room to spare, same as before. */
-		width: max-content;
-		min-width: 100%;
-	}
+	/* The list is ext/DataGrid (columns and widths: AISessionsPage.WIDTHS). It scrolls inside itself so its "load more" sentinel works. */
+	.sessions-page .datagrid { --datagrid-height: max(24rem, calc(100dvh - 20rem)); max-width: 110rem; justify-content: start; }
+	.sessions-page .datagrid-count { display: none; }
+	.sessions-page .datagrid-head-cell .grip, .sessions-page .datagrid-grip { opacity: .35; }
+	.sessions-page .datagrid-more { grid-column: 1 / -1; }
+	/* Rail view: the list is flush with the left nav, full height, no padding of its own; each card is padded. */
+	.sessions-page .datagrid-view-rail { block-size: calc(100dvh - 12rem); }
+	.sessions-page .datagrid-view-rail .datagrid-rail { max-block-size: none; }
+	.sessions-page:has(.datagrid-view-rail) .sessions-stats, .sessions-page:has(.datagrid-view-rail) .sessions-chiprow, .sessions-page:has(.datagrid-view-rail) .sessions-summary { display: none; }
+	.sessions-card { display: flex; flex-direction: column; gap: var(--gap-35); padding: var(--gap-50); min-width: 0; }
+	.sessions-card-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-35); min-width: 0; }
+	.sessions-card .sessions-row-title { flex: 1 1 8em; white-space: normal; overflow-wrap: anywhere; }   /* a card has the room to wrap a long name; the table row keeps its one line */
 
-	/* After the first drag every column is exactly its token (set from the measured widths), so each handle moves its own column. */
-	.sessions-grid-fixed {
-		grid-template-columns: var(--col-state) var(--col-name) var(--col-cost) var(--col-updated) var(--col-duration) var(--col-role) var(--col-source) var(--col-model);
-	}
-	.sessions-grid-fixed .sessions-rows .sessions-cell { overflow: hidden; text-overflow: ellipsis; }
-	/* The handle is always faintly there (it used to appear only when the pointer was near) and its grab strip is wider. */
-	.sessions-head-cell .grip { --grip-out: 0.6rem; --grip-in: 0.6rem; }
-	.sessions-head-cell .grip::before { opacity: .25; }
-	.sessions-head-cell .grip:hover::before { opacity: 1; }
-
-	.sessions-head, .sessions-rows, .sessions-row { display: contents; }
+	.sessions-row { display: contents; }
 
 	.sessions-cell {
 		display: flex; align-items: center; min-width: 0;
@@ -93,7 +62,7 @@
 	   nobody sees costs nothing, and `:last-child` can't target "the whole
 	   bottom row" once every row is unwrapped into flat grid items. */
 
-	.sessions-head-cell { font-weight: 600; position: relative; border-block-end-width: 2px; }
+	.sessions-page .datagrid-head-cell { padding-block: var(--gap-50); }
 
 	/* A row is one `<a>`, `display: contents`, so it paints nothing of its
 	   own — the hover/focus wash has to land on each of ITS cells instead.
@@ -128,10 +97,12 @@
 	   exactly half the row and the detail FILLS the other half. Core hands a yielding
 	   `fill` page its third; this puts it back to a half. */
 	.sessions-page.active-ancestor > .page-column-body.page-column-fill { --page-column-flex: 0 0 50%; --page-column-min: 16em; --page-column-max: 50%; }
+	/* Rail view: a session card needs about 24em (name, cost, role on three short lines); core's `small` gives 14em at 1920. */
+	.sessions-page > .page-columns-row > .page-column-body.page-column-small { --page-column-w: clamp(18em, 22cqi, 28em); }
 
 	@container (width < 88em) {
-		.sessions-grid { display: flex; flex-direction: column; width: auto; max-width: 100%; }
-		.sessions-head { display: none; }
+		.sessions-page .datagrid:not(.datagrid-rail) { display: flex; flex-direction: column; width: auto; max-width: 100%; }
+		.sessions-page .datagrid-head { display: none; }
 		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }
 		.sessions-cell { padding-block: 0; border-block-end: none; }
 		.sessions-row > .sessions-cell:nth-child(2) { order: -1; flex: 1 1 100%; min-width: 0; }
