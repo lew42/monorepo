@@ -40,3 +40,8 @@
 {"review":{"answer":{"n":5,"reply":"confirmed: the Figma png sits in ext/Figma/data/<key>/shots/, the track.mjs store, not a screenshots/ folder"}}}
 {"review":{"answer":{"n":6,"reply":"checked: the subagent shot the Shots page at 400 and 1920 headless, no errors"}}}
 {"review":{"answer":{"n":7,"reply":"covered by builds A and B, already merged"}}}
+{"review":{"answer":{"n":2,"reply":"declined: 131:1062 vs /guide/ at 3440 is the pair the owner asked for; the doc says the diff is mostly structural (no site chrome in the mock), which is the finding"}}}
+{"review":{"answer":{"n":3,"reply":"noted: share the shoot/diff/append sequence once a third caller appears"}}}
+{"review":{"answer":{"n":5,"reply":"noted: the Figma png sits in ext/Figma/data/<key>/shots/ (the track.mjs store), not a screenshots/ folder"}}}
+{"review":{"answer":{"n":6,"reply":"noted: the builder shot the Shots page at 400 and 1920 headless with no errors"}}}
+{"review":{"answer":{"n":7,"reply":"noted: covered by builds A and B, already merged"}}}
