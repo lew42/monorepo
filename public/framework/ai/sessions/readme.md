@@ -10,6 +10,7 @@ opens as a side peek beside the grid instead of replacing it.
 - **Use** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#use), verbatim.
 - **Where the real dollars come from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-real-dollars-come-from), verbatim.
 - **Where the data comes from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-data-comes-from), verbatim.
+- **Buckets** — thousands of routine sessions roll up into a few rows with their own totals: [doc/buckets.md](doc/buckets.md).
 ## Watch out
 
 - **"Session" means two different things on this site.** This tab is a *Claude Code* session
