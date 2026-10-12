@@ -11,7 +11,7 @@ Make a folder with a `page.jsonl`; line 1 names the class, later lines are the p
 {"content":{"move":{"id":"t","after":null}}}
 {"content":{"remove":"h"}}
 ```
-Agents write these with `page_set` / `page_add`; code calls the content list: `page.ensure_content().add(...)`, `.move(...)`, `.remove(...)`. A plain `Page` draws them; `"class": "./Parts.js"` still works (an empty `PartsPage` subclass).
+Agents write these with `page_set` / `page_add`; code calls the content list: `page.content.add(...)`, `.move(...)`, `.remove(...)`. A plain `Page` draws them; `"class": "./Parts.js"` still works (an empty `PartsPage` subclass).
 
 ## Index
 - Classes: `PageHeading`, `PageText`, `PageCard`, each an `Item` with its own `View` (no base class); `Part.js`, `HeadingPart.js`, `TextPart.js`, `CardPart.js` and `Parts.js` (`PartsPage`) are shims for the old names — [doc/architecture.md](doc/architecture.md), [../doc/content.md](../doc/content.md)

@@ -69,7 +69,7 @@ export function body(path){
 
 	load(path).then(page => $box.empty(() => {
 		if (!page) return p.c("muted", path + " did not load.");
-		return is.fn(page.content) ? page.content.call(page) : page.content;
+		return page.render_content();
 	}));
 
 	return $box;

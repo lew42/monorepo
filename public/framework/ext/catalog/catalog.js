@@ -27,14 +27,14 @@ View.stylesheet(import.meta, "catalog.css");
 Page.prototype.catalog = function(){
 	// Rebuilt rather than appended to: the intro leads the rail, and `add()` sets last.
 	const rest = [...this.children];
-	const content = this.content;
+	const content = this.has_content() ? this.take_content() : undefined;
 	this.children.clear();
 
 	// ⚠ The content keeps MY `this`. It was written as a method of this page, so
 	// `this.whole()` and `this.parent` must still mean what the author typed.
 	this.add("intro", {
 		title: this.title, label: this.label ?? this.title, icon: this.icon,
-		content: is.fn(content) ? () => content.call(this) : content,
+		content,
 	});
 
 	rest.forEach(([name, page]) => this.children.set(name, page));

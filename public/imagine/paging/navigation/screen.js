@@ -101,7 +101,7 @@ export class PagingNavSub extends Page {
 
 		this.view = div.c("page flow paging-nav-sub", () => {
 			if (this.title) h1.c("page-title", this.title);
-			typeof this.content === "function" ? this.content() : this.content;
+			this.content.render();
 		});
 
 		return this.view;

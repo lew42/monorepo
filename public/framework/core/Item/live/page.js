@@ -33,13 +33,9 @@ export default new Page({
 	// ⚠ ASYNC on purpose: `page.file(name)` called from CODE (not a replayed line)
 	//   returns a Promise<FsFile> (Log.js, deliverable 4/11) — core never statically
 	//   imports ext/filesystem, so the file class arrives by dynamic import either way.
-	//   `ensure_content()` runs FIRST, synchronously, before the first `await` — so
-	//   `page.content` is already a (still empty) List by the time `render()`
-	//   runs, moments later; the four seed rows pop in when the file finishes
-	//   loading, through the same "add" events the UI already listens for.
+	//   `page.content` is always a List (still empty here); the four seed rows pop in
+	//   when the file finishes loading, through the same "add" events the UI listens for.
 	async initialize(){
-		this.ensure_content();
-
 		const file = await this.file("demo.jsonl");
 		this.file_store = file.store;             // Item.Store.for(url) — one per file
 		await this.file_store.open();              // actually fetches/streams demo.jsonl's lines into it

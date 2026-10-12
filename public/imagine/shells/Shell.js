@@ -89,7 +89,7 @@ export class Shell extends Page {
 	// overrides this; everything else gets the same document.
 	main(){
 		return div.c("shell-main", () => div.c("shell-doc flow", () => {
-			this.content();
+			this.content.render();
 			this.verdict();
 		}));
 	}

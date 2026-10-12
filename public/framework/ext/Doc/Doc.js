@@ -1,4 +1,4 @@
-import { View, div, h1, code, span, a, icon } from "../../core/View/View.js";
+import { View, div, h1, code, span, a, icon, is } from "../../core/View/View.js";
 import { Page } from "../../core/Page/Page.class.js";
 import PageWork from "../../core/Page/ai/PageWork.js";
 import { member, patched, dedent } from "../../util/source/source.js";
@@ -124,11 +124,11 @@ export class Doc extends Page {
 		return this.section("overview", "Overview", {
 			title: this.title,
 			icon: this.icon,
-			content: typeof this.content === "function" ? this.content.bind(this) : this.content,
+			content: is.fn(this.content.value) ? this.content.value.bind(this) : this.content.value,
 			children: Array.isArray(this.overview) ? this.overview : Doc.names(this.overview),
 			initialize(){ this.catalog(); },
 			render(){
-				return this.view ??= div.c("page doc-section", () => this.content())
+				return this.view ??= div.c("page doc-section", () => this.content.render())
 					.ac("page--" + this.name);
 			},
 		});

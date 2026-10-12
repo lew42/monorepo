@@ -47,7 +47,7 @@ export default new Page({
 
 			// bare `pages` — the region default IS the sheet now (Page.css)
 			div.c("pages", () => {
-				div.c("default", () => this.content());
+				div.c("default", () => this.content.render());
 			});
 		}).ac(this.classes);
 	},

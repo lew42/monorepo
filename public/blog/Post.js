@@ -158,7 +158,7 @@ export class Post extends Page {
 	read(){
 		if (this.parts) return this.part_default()?.assign({ app: this.app }).render();
 
-		return is.fn(this.content) ? this.content() : this.prose(md.file(this.meta, "post.md", { h1: false }));
+		return this.has_content() ? this.content.render() : this.prose(md.file(this.meta, "post.md", { h1: false }));
 	}
 
 	/* One markdown file, dressed as the two-track reading grid (blog.css). The class

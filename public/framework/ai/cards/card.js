@@ -160,9 +160,7 @@ export default class Card extends Page {
 	 *  `this.content` onto `this.dashboard` only for the one call that reads it. */
 	dashboard_list(){
 		if (!(this.dashboard instanceof List)) return;
-		const real = this.content;
-		this.content = this.dashboard;
-		try { return this.render_content_list(); } finally { this.content = real; }
+		return this.render_content_list(this.dashboard);
 	}
 
 	/* ── the vocabulary: one method per kind of line ─────────────────────── */

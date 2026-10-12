@@ -55,7 +55,7 @@ export default class PageFrame extends View {
 				// A page with content of its own AND tabs: its content is the first tab
 				// (the page's own url), so a child tab replaces it instead of stacking
 				// above it. A page with only children keeps today's shape. (2026-10-09)
-				if (page.navigation === "tabs" && page.content !== undefined) return void this.tabs({ home: () => this.box() });
+				if (page.navigation === "tabs" && page.has_content()) return void this.tabs({ home: () => this.box() });
 				if (page.navigation === "tabs") this.tabs();
 				this.box();
 			});

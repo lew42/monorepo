@@ -56,6 +56,7 @@ async function run(label, base){
 		for (const w of WIDTHS){
 			if (w !== 1200 && !FULL.has(url)) continue;
 			const ctx = await b.newContext({ viewport: { width: w, height: 900 } });
+			await ctx.clock.setFixedTime(new Date("2026-10-12T12:00:00-05:00"));   // page clocks stop being diff noise
 			const page = await ctx.newPage();
 			const errors = [];
 			page.on("pageerror", e => errors.push("pageerror: " + String(e.message).slice(0, 200)));
@@ -66,7 +67,8 @@ async function run(label, base){
 				if (w === 1200){
 					rec.state = await page.evaluate(state).catch(e => ({ error: String(e) }));
 					rec.outline = crypto.createHash("md5").update(await page.evaluate(outline)).digest("hex");
-					rec.text = crypto.createHash("md5").update(await page.evaluate(() => document.body.innerText)).digest("hex");
+					rec.lines = (await page.evaluate(() => document.body.innerText)).split("\n");
+					rec.text = crypto.createHash("md5").update(rec.lines.join("\n")).digest("hex");
 				}
 				const png = await page.screenshot({ path: path.join(dir, `${key}-${w}.png`) });
 				rec.shots[w] = crypto.createHash("md5").update(png).digest("hex");
@@ -94,6 +96,10 @@ function diff(a, c){
 		const ed = JSON.stringify(x.errors) !== JSON.stringify(y.errors);
 		if (sd) state++; if (od) outline++; if (td) text++; if (shd.length) shots += shd.length; if (ed) errs++;
 		if (sd || od || td || shd.length || ed) console.log(url, { state: sd, outline: od, text: td, shots: shd, errors: ed ? [x.errors, y.errors] : false });
+		if (td && x.lines && y.lines){
+			const gone = x.lines.filter(l => !y.lines.includes(l)).slice(0, 4), came = y.lines.filter(l => !x.lines.includes(l)).slice(0, 4);
+			console.log("   lines -", JSON.stringify(gone), "+", JSON.stringify(came));
+		}
 	}
 	console.log(`\n${total} pages: ${state} state diffs, ${outline} outline diffs, ${text} text diffs, ${shots} screenshot diffs, ${errs} error diffs`);
 }

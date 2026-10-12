@@ -246,7 +246,7 @@ export class Realm extends Paging {
 			// position — otherwise the next Tab starts from the rail again.
 			this.$pages = div.c("pages paging-app-centre", () => {
 				this.$home = div.c("paging-home flow", () => {
-					if (is.fn(this.content)) this.content();
+					this.content.render();
 				});
 			}).attr("id", "paging-middle").attr("tabindex", "-1");
 		});
