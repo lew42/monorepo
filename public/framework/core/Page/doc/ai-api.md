@@ -13,6 +13,7 @@ page.jsonl          one JSON line per change, appended, never rewritten
 A delta is applied key by key:
 
 - **A plain key is a property**: `{"title":"Notes"}` sets the title.
+- **Code and parts share one list**: a page's `content(){…}` is one item in `page.content` and `{"content":{"add":…}}` lines add more beside it; both show ([live](/framework/core/Page/content/both/)).
 - **A key naming a method calls it**: `{"content":{"add":{…}}}` calls `add` on the content list.
 - **A key that is an id walks into that item**: `{"c1":{"text":"new"}}` changes the card `c1`.
 

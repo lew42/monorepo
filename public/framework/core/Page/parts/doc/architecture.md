@@ -16,7 +16,7 @@ The owner's idea: a page's body is a list of views loaded from the page's own JS
 | `CardPart` | `CardPart.js` | `part-card`, a boxed title and a line. | extends `Part` |
 | `MdToParts` | `MdToParts.mjs` | Script: markdown file to parts lines (so no AI retypes a page). | standalone |
 
-`PartsPage` composes `Page`'s own `content` `List` (made by `ensure_content()`); its `Part` items are hydrated from the `type` on each `add` line by `Item.hydrate`. Storage, the live tail, and a second tab are all the existing `Page.Reader` / `Item.Store`: nothing was added there.
+`PartsPage` composes `Page`'s own `content` `List` (`page.content`, a `PageContent`); its `Part` items are hydrated from the `type` on each `add` line by `Item.hydrate`. Storage, the live tail, and a second tab are all the existing `Page.Reader` / `Item.Store`: nothing was added there.
 
 ## Decisions
 - **`page.jsonl` with a class line, not `page.js`.** Today most pages are code; here the page is data, and the only code is one shared class. Alternative kept: `page.js` calling `content()`.

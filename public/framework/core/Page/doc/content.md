@@ -72,6 +72,8 @@ return is.fn(this.content) ? this.content() : this.content;            // conten
 
 ### 1. `page.content` never changes type
 
+**Built 2026-10-12** (step 1 only; steps 2 and 3 are not): [content-list-step-1.md](content-list-step-1.md) has what was built and where it differs from the text below. Live: [/framework/core/Page/content/](/framework/core/Page/content/).
+
 ```js
 page.content                                  // always a List, the same object for the page's life
 new Page({ content(){ h1("Hi") } })           // a function  -> one PageCode item added to the list

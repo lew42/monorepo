@@ -11,7 +11,7 @@ const NEW = new Set(["/framework/core/Page/content/both/"]);
 const WIDTHS = [400, 1200, 1920, 3440];
 const FULL = new Set(["/framework/core/Page/content/", "/framework/core/Page/content/string-1/", "/framework/core/Page/content/address-1/", "/framework/core/Page/content/class-body/", "/framework/core/Page/content/code/", "/framework/core/Page/", "/framework/ai/", "/imagine/paging/", "/framework/core/Page/overview/columns/", "/framework/ext/markdown/open/", "/framework/core/Page/parts/example/", "/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/sessions/"]);
 
-const URLS = [
+const URLS = (process.env.ONLY ? process.env.ONLY.split(",") : null) ?? [
 	"/framework/", "/framework/core/", "/framework/core/Page/", "/framework/core/View/", "/framework/core/Router/", "/framework/core/App/",
 	"/framework/core/Page/overview/columns/", "/framework/core/Page/overview/tabs/", "/framework/core/Page/overview/rail/", "/framework/core/Page/overview/wall/",
 	"/framework/core/Page/overview/grid/", "/framework/core/Page/overview/prose/", "/framework/core/Page/overview/width/", "/framework/core/Page/overview/site/",

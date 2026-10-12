@@ -120,19 +120,7 @@ export default class Card extends Page {
 	   `{"type": "refined", "text", "by", "at", …}` to a card; through core's `set()`
 	   its `type` would turn the card into a "refined" and its `text` and `by` would
 	   overwrite the card's own. It is kept whole instead, the latest wins. */
-	/* ⚠ "CONTENT" NAMES TWO DIFFERENT THINGS (found 2026-10-03, building the properties
-	   sidebar): core's `Page.set()` treats any `{"content": …}` line as a DATA delta —
-	   the moment one arrives it makes `page.content` a `List` and keeps adding to it
-	   (`ensure_content()`) — but every Card ALSO defines `content()` as its own RENDER
-	   METHOD (how its outline, tabs and sidebar draw). A card whose log uses
-	   `page_add()`'s content list (the Now card's whole dashboard: "Working on now",
-	   "Fixed today" …) would have that first line silently REPLACE the render method
-	   with a plain List — content() never runs again, so `$pages` never gets handed to
-	   its sub-card, which is why the Now card's one sub-card opens as a takeover
-	   instead of a second column (ux/Card/readme.md has the fuller story). The exact
-	   "a POJO key collides with a Page method" trap CLAUDE.md already names for
-	   `render` — here for `content`. Redirected to `this.dashboard` instead, a List of
-	   its own; `dashboard_list()` below draws it, reusing core's own row look. */
+	// A card's `content()` is its render method, so `{"content":…}` log lines go to `this.dashboard` instead: core/Page/doc/content-list-step-1.md.
 	set(obj){
 		if (obj?.type === "refined"){ this.refined = obj; return this; }
 		// ⚠ EVERY line with a `content` key, not only the first — `page_add()` appends one
