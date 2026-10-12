@@ -10,6 +10,7 @@ import PageLogReader from "./Reader.js";
 import PageListing from "./Listing.js";
 import PagePrefs from "./Prefs.js";
 import PageRelated from "./Related.js";
+import PagePreviews from "./Previews.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -1256,78 +1257,18 @@ export class Page extends Item {
 		return { ...child?.nav(), url: this.url + name + "/", label: child?.label ?? child?.title ?? name };
 	}
 
-	// A card per child, drawn by the child; a declared-but-unresolved one gets the default card. (doc/previews.md)
-	previews(pages = this.children){
-		let group;
-
-		return div.c("page-previews bleed", () => pages.forEach((page, name) => {
-			if (page?.group && page.group !== group)
-				h4.c("page-previews-group", group = page.group);
-
-			const nav = this.nav_for(name);
-			page ? page.preview(nav) : this.preview_card(nav);
-		}));
-	}
-
-	// One rung per child: its name, then ITS children as cards. ⚠ `leaf` opts a child out whole.
-	// wall_rungs() is the array (built detached); walls() is the one flex column. (doc/watch-out.md)
-	walls(){
-		return div.c("page-walls bleed flex v gap", $box => this.wall_rungs().forEach(rung => $box.append(rung)))
-			.style("--gap", "3em");
-	}
-
-	wall_rungs(){
-		const saved = View.captor;
-		View.captor = null;
-		try {
-			const rungs = [];
-			this.children.forEach((page, name) => {
-				if (!page?.children.size || page.leaf) return;
-
-				const nav = this.nav_for(name);
-
-				rungs.push(div.c("page-wall flex v gap", () => {
-					h2.c("page-wall-title", () => a.c("page-link", nav.label).href(nav.url));
-					page.previews();
-				}).style("--gap", "1em"));
-			});
-			return rungs;
-		} finally {
-			View.captor = saved;
-		}
-	}
+	// ════ PREVIEWS — a card per child, a wall of rungs, one card (Previews.js, doc/previews.md) ═══
+	// Facades: a page overrides `preview(nav)` and calls `preview_card` (the hook below), so these stay Page methods.
+	previews(pages){ return new this.constructor.Previews({ page: this }).list(pages); }
+	walls(){ return new this.constructor.Previews({ page: this }).walls(); }
+	wall_rungs(){ return new this.constructor.Previews({ page: this }).rungs(); }
 
 	// The one card shape. A page that wants a live render overrides this method:
 	// `preview(nav){ return this.preview_card(nav, () => div.c("zoom-25", () => this.layout())); }`
 	preview(nav){ return this.preview_card(nav); }
-
-	// ⚠ The thumb is INERT (Page.css): a live render here would nest an <a> in an <a>. `class_card` wears the dark surface. (doc/watch-out.md)
-	preview_card(nav = this.nav(), thumb){
-		return div.c("page-preview", () => {
-			if (thumb) this.preview_thumb(thumb);
-			this.preview_link(nav);
-			if (!thumb && nav.description) p.c("page-preview-desc", nav.description);
-		}).ac(nav.card).ac(nav.class_card && "page-surface-dark");
-	}
-
-	// The thumb, plus the one measurement CSS can't make: `.capped` when a live render is taller than --stage-max. (doc/previews.md)
-	preview_thumb(thumb){
-		const $thumb = div.c("page-preview-thumb", thumb);
-
-		requestAnimationFrame(() => {
-			if ($thumb.el.scrollHeight > $thumb.el.clientHeight + 1) $thumb.ac("capped");
-		});
-
-		return $thumb;
-	}
-
-	// The card's only real link — Page.css spreads its ::after over the whole card.
-	preview_link(nav){
-		return a.c("page-preview-link", () => {
-			if (nav.icon) icon(nav.icon);
-			span.c("page-preview-title", nav.label);
-		}).href(nav.url);
-	}
+	preview_card(nav = this.nav(), thumb){ return new this.constructor.Previews({ page: this }).card(nav, thumb); }
+	preview_thumb(thumb){ return new this.constructor.Previews({ page: this }).thumb(thumb); }
+	preview_link(nav){ return new this.constructor.Previews({ page: this }).link(nav); }
 
 	// How deep my declared subtree is FETCHED (default 2; 1 = my children; 0 = none). A declared `depth:` wins. (doc/declaring.md)
 	depth = 2;
@@ -1365,6 +1306,7 @@ Page.Reader = PageLogReader;
 Page.Listing = PageListing;
 Page.Prefs = PagePrefs;
 Page.Related = PageRelated;
+Page.Previews = PagePreviews;
 
 // Opt-in instance tracking, installed once so every Page shares one list (core/track/track.js). (doc/decisions.md)
 track(Page);
