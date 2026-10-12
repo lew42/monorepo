@@ -5,6 +5,7 @@ import List from "../List/List.js";
 import { track } from "../track/track.js";
 import ai_cost from "./weight/ai-cost.js";
 import PageWork from "./ai/PageWork.js";
+import PageInbox from "./PageInbox.js";
 import PageChildren from "./Children.js";
 import PageLogReader from "./Reader.js";
 import PageListing from "./Listing.js";
@@ -413,6 +414,9 @@ export class Page extends Item {
 		// above, one door over in ext, so no page.js exists for it anywhere.
 		if (name === "fs" && known === undefined) return this.add(name, await this.fs_folder()).load_all_children(levels);
 
+		// Every page has an `inbox/`: what agents left on it, unread first. A Doc page has it as a real tab (ext/Doc), which wins above. (doc/inbox-tab.md)
+		if (name === "inbox" && known === undefined && !this.no_inbox) return this.add(name, PageInbox.route(this)).load_all_children(levels);
+
 		const claimed = known === undefined && is.fn(this.route) && this.route(name);
 		if (claimed) return this.add(name, claimed).load_all_children(levels);
 
@@ -652,6 +656,9 @@ export class Page extends Item {
 		// "N open tasks touch this page", computed into ai/page-work.json; nothing drawn when there is none. (ai/doc/page-work-line.md)
 		if (this.title && this.url) this.view.append(() => { span.c("page-open").append(PageWork.line(this.url)); });
 
+		// "Inbox · N": a link to inbox/, drawn only when this page has open notes. (doc/inbox-tab.md)
+		if (this.title && this.url && !this.no_inbox) this.view.append(() => { span.c("page-inbox-chip").append(PageInbox.chip(this)); });
+
 		Page.views.set(this.view.el, this);
 		this.emit("render", this.view);   // once, here — the early return above skips a second draw
 		return this.view;
@@ -800,6 +807,7 @@ Page.Related = PageRelated;
 Page.Previews = PagePreviews;
 Page.Columns = PageColumns;
 Page.Links = PageLinks;
+Page.Inbox = PageInbox;
 
 // Opt-in instance tracking, installed once so every Page shares one list (core/track/track.js). (doc/decisions.md)
 track(Page);
