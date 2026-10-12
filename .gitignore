@@ -144,3 +144,6 @@ public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/trace.
 public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/card/
 public/framework/ai/sessions/openrouter-reconcile.json
 public/framework/ai/sessions/openrouter-costs.json
+
+# derived summary beside a voice log (rebuildable cache; session-housekeeping, 2026-10-12)
+public/ai/*.summary.json

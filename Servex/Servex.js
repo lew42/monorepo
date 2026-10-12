@@ -16,6 +16,7 @@ import TaskLoop from "./TaskLoop.js";
 import { check_page, cap } from "../Server/browser-check.mjs";
 import { pid as browser_pid } from "../Server/browser.mjs";
 import Heartbeat from "./Heartbeat.js";
+import LogSweeper from "./LogSweeper.js";
 import Usage from "./Usage.js";
 import Pool from "./Pool.js";
 import Lifecycle from "./Lifecycle.js";
@@ -230,6 +231,10 @@ export default class Servex extends Events {
         }
         /* THE PROCESS MONITOR (process-monitor, 2026-09-30): every process, ours vs.
          * everything else, RAM and CPU per task, orphans reaped. Processes.js says how. */
+        /* THE LOG SWEEPER (session-housekeeping, 2026-10-12): every 30 min commits the machine-written
+         * logs (allowlist only, "servex: log sweep"). SERVEX_NO_SWEEP=1 boots without it, SERVEX_SWEEP_DRY=1
+         * only reports. LogSweeper.js says what it never touches. */
+        if (!process.env.SERVEX_NO_SWEEP) this.sweeper = new this.constructor.LogSweeper({ servex: this, root: REPO }).start();
         if (!process.env.SERVEX_NO_PROCESSES) this.procmon = new this.constructor.Processes({ servex: this }).start();
         /* GAMES (same task, ask 4): close StarCraft (and similar) only when the PC has
          * been idle past SERVEX_GAME_IDLE_MIN AND RAM is tight — never while playing.
@@ -1514,6 +1519,7 @@ Servex.Games = Games;
 Servex.Worktrees = Worktrees;
 Servex.TaskLoop = TaskLoop;
 Servex.Heartbeat = Heartbeat;
+Servex.LogSweeper = LogSweeper;
 Servex.Pool = Pool;
 Servex.Lifecycle = Lifecycle;
 Servex.Follow = Follow;

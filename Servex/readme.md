@@ -162,6 +162,8 @@ test's results. How it works, what it costs and the gaps against the vision: [do
 **Cards** — `cards/`, one folder per card, and the `create_card` tool that makes
 them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
+**Log sweeper**: `LogSweeper.js` commits the machine-written logs (allowlist only, `servex: log sweep`) every 30 minutes; rule and limits in [`public/framework/ai/sessions/doc/commit-rule.md`](../public/framework/ai/sessions/doc/commit-rule.md). `SERVEX_NO_SWEEP=1` turns it off, `SERVEX_SWEEP_DRY=1` only reports; proof: `node Servex/LogSweeper.test.mjs`.
+
 **Task loop and heartbeat**: `TaskLoop.js` chases an open task whose log has gone quiet. `Heartbeat.js` sends a task mastermind that has been silent for 5 minutes a neutral status check, revives a dead one from its session (with a ration), and posts on the card only when that fails. A landed task's worktree server is taken down by `Server/worktree-sweep.mjs`. See [`doc/task-loop.md`](./doc/task-loop.md). `SERVEX_NO_TASKLOOP=1` and `SERVEX_NO_HEARTBEAT=1` turn them off.
 
 **Dormant agents and the working cap**: an agent idle for 3 minutes goes dormant (its claude process exits; a message resumes it by session), at most 5 agents work at once, and an agent past 200k tokens or 500 MB is compacted. See [`doc/dormant.md`](./doc/dormant.md). Waking a dormant agent used to be able to lose the very message that woke it (a phantom "working" row with no process behind it) — the seven fixes that close every way that was found to happen, and the reconcile that catches what nothing moment-to-moment does, are at [`doc/never-lose-a-wake.md`](./doc/never-lose-a-wake.md).
