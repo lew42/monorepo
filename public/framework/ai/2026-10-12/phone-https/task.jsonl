@@ -1,3 +1,5 @@
 {"assign":{"session_id":"f73e4a4a-c675-4fea-b311-ca5261439133","agent":"mastermind-phone-https","brief":"public/framework/ai/2026-10-12/phone-https/requirements.md","model":"claude-sonnet-5-5","requested_at":"2026-10-12T08:30:46-05:00","now":"starting","steps":[],"step":1}}
 {"log":{"at":"2026-10-12T09:00:00-05:00","msg":"landed: https on PORT+10000 live; proof headless 400px secure context true"}}
 {"assign":{"now":"landed","landed_at":"2026-10-12T09:00:00-05:00"}}
+{"log":{"at":"2026-10-12T08:33:51-05:00","msg":"landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}."}}
+{"assign":{"outcome":"**Phone mic over https landed** — self-signed cert via Server/https-cert.mjs, HttpsLan plugin listens on PORT+10000 (https://10.0.0.135:13104); proven headless at 400px (secure context, mediaDevices); docs and owner note updated."}}
