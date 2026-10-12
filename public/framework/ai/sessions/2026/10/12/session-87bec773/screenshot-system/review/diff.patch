@@ -12,10 +12,10 @@ index f0d644e8c..6ae2ffe3d 100644
 +**/screenshots/
 diff --git a/Server/shots.mjs b/Server/shots.mjs
 new file mode 100644
-index 000000000..a645ab6e7
+index 000000000..87dfd70fc
 --- /dev/null
 +++ b/Server/shots.mjs
-@@ -0,0 +1,82 @@
+@@ -0,0 +1,88 @@
 +/* `node Server/shots.mjs <url or path> [widths] [--note "..."] [--css "rules"] [--vs <round id>]
 + *    [--task <task dir>] [--by <agent>] [--base <origin>]`
 + *   Shoots one round of a page at its own widths (or the comma list given), diffs it against
@@ -88,8 +88,14 @@ index 000000000..a645ab6e7
 +		const diff = diffs.find(d => d.width === w);
 +		const line = [`  ${w}px: ${run.dir}/${shot.file}`, `h${shot.height}${shot.cut ? " (cut)" : ""}`];
 +		if (diff){
-+			const top = diff.regions.slice(0, 3).map(([x, y, rw, rh, amt]) => `[${x},${y},${rw}x${rh}]@${amt}`).join(" ");
-+			line.push(`vs ${diff.vs}: ${diff.regions.length} region${diff.regions.length === 1 ? "" : "s"}${top ? " " + top : ""}`);
++			const movedTotal = diff.moved.length + (diff.movedMore || 0);
++			const changedTotal = diff.regions.length + (diff.regionsMore || 0);
++			const signed = n => (n >= 0 ? "+" : "") + n;
++			const largestMoved = diff.moved[0];
++			const movedPart = `moved ${movedTotal} region${movedTotal === 1 ? "" : "s"}` + (largestMoved ? ` (largest ${largestMoved[2]}×${largestMoved[3]} by ${signed(largestMoved[4])},${signed(largestMoved[5])})` : "");
++			const largestChanged = diff.regions[0];
++			const changedPart = `changed ${changedTotal}` + (largestChanged ? ` (largest ${largestChanged[2]}×${largestChanged[3]} at ${largestChanged[0]},${largestChanged[1]})` : "");
++			line.push(`vs ${diff.vs}: ${movedPart}, ${changedPart}`);
 +			if (diff.height[0] !== diff.height[1]) line.push(`height ${diff.height[0]}→${diff.height[1]}`);
 +			line.push(`overlay: ${run.dir}/${diff.overlay}`);
 +		}
@@ -98,6 +104,18 @@ index 000000000..a645ab6e7
 +}
 +
 +main().then(() => closeBrowser()).catch(e => { console.error(e); closeBrowser().finally(() => process.exit(1)); });
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/STATE.md b/public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/STATE.md
+index ef0937cd0..803a005b6 100644
+--- a/public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/STATE.md
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/STATE.md
+@@ -2,6 +2,6 @@
+ 
+ - ✅ Past work and [plan.md](plan.md) (classes, files, widths rule, diff, the loop).
+ - ⏳ Build A, node side: `PNG`, `Diff`, `Shots`, `Server/shots.mjs` ([build-a.md](build-a.md)), Sonnet in a worktree.
+-- ⏳ Build B, browser side: `ShotsView`, the Screenshots tab, `/framework/ext/Shots/` ([build-b.md](build-b.md)).
++- ✅ Build B, browser side: `ShotsView`, the Screenshots tab, `/framework/ext/Shots/` ([build-b.md](build-b.md)) — landed in worktree `agent-a3c7fdb6298cb9b59`, commits `0e10a9854`/`b0fe2f8df`, not yet merged.
+ - ⬜ Run on the Figma pages with @mastermind-figma-colors-fix; measure whether the overlay helps.
+ - ⬜ `merge.mjs` reminder; commands sent to @mastermind-step-runner.
 diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/task.jsonl b/public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/task.jsonl
 index eefab8c9b..3d711d9b2 100644
 --- a/public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/task.jsonl
@@ -109,25 +127,84 @@ index eefab8c9b..3d711d9b2 100644
 +{"log":{"at":"2026-10-12T16:14:21-05:00","msg":"build-a minion: worktree-up.mjs screenshot-build-a (Servex pool had none free); branch worktree/screenshot-build-a at C:\\Code\\lew42\\worktrees\\screenshot-build-a"}}
 +{"log":{"at":"2026-10-12T16:14:21-05:00","msg":"build-a: PNG.mjs (decode/encode, hand-rolled on node zlib), Diff.mjs (cell diff + overlay), Shots.test.mjs — 7/7 pass. Commit 62f3b8647."}}
 +{"log":{"at":"2026-10-12T16:14:21-05:00","msg":"build-a: Shots.mjs (widths/dir/run/judge/rounds) + Server/shots.mjs CLI + .gitignore line. Real two-round run against http://monorepo.localhost/framework/ext/Figma/ — overlay confirmed by eye. Commit d77e081eb."}}
+diff --git a/public/framework/dev/DevBar/shots.js b/public/framework/dev/DevBar/shots.js
+new file mode 100644
+index 000000000..317815395
+--- /dev/null
++++ b/public/framework/dev/DevBar/shots.js
+@@ -0,0 +1,17 @@
++import { section } from "./parts.js";
++import { ShotsView } from "../../ext/Shots/ShotsView.js";
++
++/**
++ * The dev bar's Screenshots tab — the active page's own shots
++ * (`node Server/shots.mjs <url>` fills `runs.jsonl`; this just reads it).
++ * Same `ShotsView` the module page renders at `/framework/ext/Shots/`, so a
++ * fix here is a fix everywhere (CLAUDE.md law 6).
++ */
++export default function shots(app){
++	const page = app?.router?.active;
++	const url = (page?.url ?? location.pathname).endsWith("/") ? (page?.url ?? location.pathname) : (page?.url ?? location.pathname) + "/";
++
++	section("screenshots", () => {
++		new ShotsView({ url });
++	});
++}
+diff --git a/public/framework/dev/DevBar/tools.js b/public/framework/dev/DevBar/tools.js
+index 657131742..4a00a705e 100644
+--- a/public/framework/dev/DevBar/tools.js
++++ b/public/framework/dev/DevBar/tools.js
+@@ -7,6 +7,7 @@ import structure from "./structure.js";
+ import says from "./says.js";
+ 
+ import page_chat from "./chat.js";
++import shots from "./shots.js";
+ 
+ /* What the rail shows, in order, one array per tab. Each section renders itself into
+    the captor. ⚠ `layout` is alone on a tab on purpose — it is the one section that
+@@ -19,6 +20,7 @@ export const tabs = [
+ 	["layout", [layout]],
+ 	["ai", [ask]],
+ 	["chat", [page_chat]],
++	["screenshots", [shots]],
+ ];
+ 
+ const LINKS = [
 diff --git a/public/framework/ext/Shots/Diff.mjs b/public/framework/ext/Shots/Diff.mjs
 new file mode 100644
-index 000000000..687d1ad29
+index 000000000..a6a9e53a6
 --- /dev/null
 +++ b/public/framework/ext/Shots/Diff.mjs
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,322 @@
 +/* Diff.mjs — cell-by-cell comparison of two decoded images (plan.md "The diff"). Pure JS, no
-+ * dependency on PNG.mjs: callers decode, Diff only ever sees {width, height, data} RGBA. */
++ * dependency on PNG.mjs: callers decode, Diff only ever sees {width, height, data} RGBA.
++ *
++ * build-a2: a changed cell is tested for a MOVE before it is called "changed" — padding that
++ * pushes everything below it down should read as "this block moved by (0, +48)", not as one
++ * giant red smear. See doc/moved-vs-changed.md for the search and the near-perfect threshold.
++ */
 +
 +const CELL = 16;
 +const THRESHOLD = 24;     // mean per-channel colour move, 0-255, before a cell counts as "changed"
 +const FADE = 0.35;        // the AFTER picture's own brightness in the overlay, outside red cells
++const MOVE_RANGE = 64;    // search this far in every direction for a match elsewhere
++const COARSE_STEP = 4;    // coarse search step AND downsample factor (plan.md step 1)
++const REGION_CAP = 8;     // keep at most this many of each kind in the log (build-a2 step 2)
++const MIN_MOVED_CELLS = 2; // a one-cell "move" is too likely to be an alias; needs a neighbour too
 +
 +export class Diff {
 +
-+	/** Diff.compare(before, after, {cell, threshold}) → {changed, regions, overlay, height}.
++	/** Diff.compare(before, after, {cell, threshold}) → {changed, regions, regionsMore,
++	 * moved, movedMore, changed_regions, overlay, height}.
 +	 * `before`/`after` are decoded images ({width, height, data}, RGBA). Both are cut to the
 +	 * SHORTER height before comparing (plan.md) — `height` reports [before.height, after.height]
 +	 * so a caller can tell a layout grew or shrank even when nothing else moved.
++	 * `regions` = [x, y, w, h, amount] — truly changed cells (new/gone content), red in the
++	 * overlay. `moved` = [x, y, w, h, dx, dy] — cells whose content is found elsewhere in the
++	 * BEFORE image, blue in the overlay. Both are sorted largest-area first and capped at
++	 * REGION_CAP, with a `*More` count of whatever didn't fit.
++	 * `changed_regions` is the same array as `regions` (build-a2 brief: "diff gains moved and
++	 * changed_regions; rename nothing else, keep regions = the red ones for the view").
 +	 * `overlay` is a decoded image ({width, height, data}) the same size as the cut area —
 +	 * PNG.encode() turns it into a file; Diff never touches PNG itself. */
 +	static compare(before, after, { cell = CELL, threshold = THRESHOLD } = {}){
@@ -135,35 +212,150 @@ index 000000000..687d1ad29
 +		const height = Math.min(before.height, after.height);
 +		const cols = Math.ceil(width / cell), rows = Math.ceil(height / cell);
 +		const cellChanged = new Float64Array(cols * rows);   // amount, 0 when unchanged
-+		let changed = 0;
++		const changedCells = [];                             // indices flagged above threshold
 +
 +		for (let cy = 0; cy < rows; cy++){
 +			for (let cx = 0; cx < cols; cx++){
 +				const x0 = cx * cell, y0 = cy * cell;
 +				const x1 = Math.min(x0 + cell, width), y1 = Math.min(y0 + cell, height);
-+				let sum = 0, n = 0;
-+				for (let y = y0; y < y1; y++){
-+					for (let x = x0; x < x1; x++){
-+						const bi = (y * before.width + x) * 4, ai = (y * after.width + x) * 4;
-+						sum += Math.abs(before.data[bi] - after.data[ai]) + Math.abs(before.data[bi + 1] - after.data[ai + 1]) + Math.abs(before.data[bi + 2] - after.data[ai + 2]);
-+						n++;
-+					}
-+				}
-+				const amount = n ? sum / (n * 3) : 0;
-+				if (amount > threshold){ cellChanged[cy * cols + cx] = amount; changed++; }
++				const amount = cell_diff(before, after, x0, y0, x1, y1, 0, 0);
++				if (amount > threshold){ cellChanged[cy * cols + cx] = amount; changedCells.push(cy * cols + cx); }
 +			}
 +		}
 +
-+		const regions = merge_regions(cellChanged, cols, rows, cell, width, height);
-+		const overlay = make_overlay(after, width, height, cellChanged, cols, cell, regions);
++		// Per-cell displacement search (build-a2 step 1): does this changed cell's AFTER content
++		// appear, near-perfectly, somewhere else in BEFORE? If so it moved; if not it changed.
++		// A real page has plenty of small REPEATING tiles (whitespace, a recurring icon, a line
++		// of body text) that can alias onto each other within ±64px by pure chance, so a single
++		// cell's good match is not trusted alone: it must also agree with its grouped neighbours
++		// on a sizeable area (merge_moved_regions below drops anything under MIN_MOVED_CELLS).
++		const movedCells = new Float64Array(cols * rows);
++		const changedOnly = new Float64Array(cols * rows);
++		const offsetOf = new Map();   // cell index -> [dx, dy]
++		for (const i of changedCells){
++			const cx = i % cols, cy = Math.floor(i / cols);
++			const x0 = cx * cell, y0 = cy * cell;
++			const x1 = Math.min(x0 + cell, width), y1 = Math.min(y0 + cell, height);
++			// A near-flat cell (background showing through where content left, say) matches
++			// ANY equally flat patch elsewhere — that's not a move, there's nothing to match on.
++			if (!has_texture(after, x0, y0, x1, y1)){ changedOnly[i] = cellChanged[i]; continue; }
++			const found = find_move(before, after, x0, y0, x1, y1, width, height, cellChanged[i], threshold);
++			if (found){ movedCells[i] = cellChanged[i]; offsetOf.set(i, found); }
++			else changedOnly[i] = cellChanged[i];
++		}
++
++		// Reclassify tiny "moved" groups (noise — an isolated cell that happened to alias onto
++		// a lookalike elsewhere) back to changed, before the final region lists are built.
++		const movedGroups = merge_moved_regions(movedCells, offsetOf, cols, rows, cell, width, height);
++		for (const group of movedGroups){
++			if (group.cells.length >= MIN_MOVED_CELLS) continue;
++			for (const i of group.cells){ changedOnly[i] = cellChanged[i]; movedCells[i] = 0; offsetOf.delete(i); }
++		}
++
++		const changedRegions = merge_regions(changedOnly, cols, rows, cell, width, height);
++		const movedRegions = movedGroups.filter(g => g.cells.length >= MIN_MOVED_CELLS).map(g => g.region);
++
++		const { kept: regions, more: regionsMore } = cap_by_area(changedRegions, REGION_CAP);
++		const { kept: moved, more: movedMore } = cap_by_area(movedRegions, REGION_CAP);
++
++		const overlay = make_overlay(after, width, height, changedOnly, cols, cell, regions, moved);
 +
 +		return {
-+			changed,
-+			regions,
++			changed: changedCells.length - offsetOf.size,   // truly-changed cells, not moved ones
++			regions, regionsMore,
++			moved, movedMore,
++			changed_regions: regions,
 +			overlay,
 +			height: [before.height, after.height],
 +		};
 +	}
++}
++
++// Mean per-channel colour move between AFTER's cell at (x0,y0)-(x1,y1) and BEFORE's cell at the
++// same box shifted by (dx, dy). Returns a huge number (never a match) if the shifted box falls
++// outside BEFORE. Shared by the initial scan (dx=dy=0) and the move search below.
++function cell_diff(before, after, x0, y0, x1, y1, dx, dy){
++	const bx0 = x0 + dx, by0 = y0 + dy;
++	if (bx0 < 0 || by0 < 0 || bx0 + (x1 - x0) > before.width || by0 + (y1 - y0) > before.height) return Infinity;
++	let sum = 0, n = 0;
++	for (let y = y0; y < y1; y++){
++		const by = by0 + (y - y0);
++		for (let x = x0; x < x1; x++){
++			const bx = bx0 + (x - x0);
++			const bi = (by * before.width + bx) * 4, ai = (y * after.width + x) * 4;
++			sum += Math.abs(before.data[bi] - after.data[ai]) + Math.abs(before.data[bi + 1] - after.data[ai + 1]) + Math.abs(before.data[bi + 2] - after.data[ai + 2]);
++			n++;
++		}
++	}
++	return n ? sum / (n * 3) : Infinity;
++}
++
++// Coarse-then-fine search for a near-perfect match elsewhere in BEFORE (build-a2 step 1):
++// step COARSE_STEP over ±MOVE_RANGE, sampling only every COARSE_STEP-th pixel for speed, then
++// refine with a full-resolution comparison in a small window around the coarse winner.
++// Returns [dx, dy] (never [0, 0]) if the refined match is at or under `threshold` AND clearly
++// better than the cell's own amount (ownAmount, at offset 0 — a real page has plenty of small
++// repeating tiles, whitespace and recurring glyphs especially, that tie or barely beat the
++// cell's own mismatch by chance; requiring a real improvement keeps those out), else null.
++function find_move(before, after, x0, y0, x1, y1, width, height, ownAmount, threshold){
++	let bestDx = 0, bestDy = 0, bestAmount = Infinity;
++	for (let dy = -MOVE_RANGE; dy <= MOVE_RANGE; dy += COARSE_STEP){
++		for (let dx = -MOVE_RANGE; dx <= MOVE_RANGE; dx += COARSE_STEP){
++			if (dx === 0 && dy === 0) continue;   // that's the already-known "changed" case
++			const amount = coarse_diff(before, after, x0, y0, x1, y1, dx, dy);
++			if (amount < bestAmount){ bestAmount = amount; bestDx = dx; bestDy = dy; }
++		}
++	}
++	if (bestAmount === Infinity) return null;
++
++	// Refine at full resolution within COARSE_STEP of the coarse winner.
++	let fineDx = bestDx, fineDy = bestDy, fineAmount = cell_diff(before, after, x0, y0, x1, y1, bestDx, bestDy);
++	for (let dy = bestDy - COARSE_STEP; dy <= bestDy + COARSE_STEP; dy++){
++		for (let dx = bestDx - COARSE_STEP; dx <= bestDx + COARSE_STEP; dx++){
++			if (dx === 0 && dy === 0) continue;
++			const amount = cell_diff(before, after, x0, y0, x1, y1, dx, dy);
++			if (amount < fineAmount){ fineAmount = amount; fineDx = dx; fineDy = dy; }
++		}
++	}
++	// cell_diff's (dx, dy) locates the match INSIDE before relative to the cell — the content's
++	// own displacement (what the overlay draws, and what a caller reads as "moved by") is the
++	// opposite: it travelled FROM (x0+dx, y0+dy) TO (x0, y0).
++	const good = fineAmount <= threshold && fineAmount <= ownAmount * 0.5;
++	return good ? [-fineDx, -fineDy] : null;
++}
++
++// True if this AFTER cell has enough internal variation that a match elsewhere is meaningful —
++// a flat cell (plain background showing through where content left) matches any equally flat
++// patch and would read as a bogus "move".
++const TEXTURE_MIN = 10;
++function has_texture(after, x0, y0, x1, y1){
++	let min = Infinity, max = -Infinity;
++	for (let y = y0; y < y1; y++){
++		for (let x = x0; x < x1; x++){
++			const i = (y * after.width + x) * 4;
++			const v = after.data[i] + after.data[i + 1] + after.data[i + 2];
++			if (v < min) min = v;
++			if (v > max) max = v;
++		}
++	}
++	return max - min >= TEXTURE_MIN;
++}
++
++// Downsampled version of cell_diff for the coarse search — every COARSE_STEP-th pixel only.
++function coarse_diff(before, after, x0, y0, x1, y1, dx, dy){
++	const bx0 = x0 + dx, by0 = y0 + dy;
++	if (bx0 < 0 || by0 < 0 || bx0 + (x1 - x0) > before.width || by0 + (y1 - y0) > before.height) return Infinity;
++	let sum = 0, n = 0;
++	for (let y = y0; y < y1; y += COARSE_STEP){
++		const by = by0 + (y - y0);
++		for (let x = x0; x < x1; x += COARSE_STEP){
++			const bx = bx0 + (x - x0);
++			const bi = (by * before.width + bx) * 4, ai = (y * after.width + x) * 4;
++			sum += Math.abs(before.data[bi] - after.data[ai]) + Math.abs(before.data[bi + 1] - after.data[ai + 1]) + Math.abs(before.data[bi + 2] - after.data[ai + 2]);
++			n++;
++		}
++	}
++	return n ? sum / (n * 3) : Infinity;
 +}
 +
 +// Flood-fill 4-connected changed cells into rectangular regions, largest (by total changed
@@ -201,35 +393,108 @@ index 000000000..687d1ad29
 +	return regions;
 +}
 +
-+// The AFTER picture faded to FADE brightness, changed cells tinted red by how much they
-+// changed, each merged region boxed in solid red (plan.md "The diff").
-+function make_overlay(after, width, height, cellChanged, cols, cell, regions){
++// Same flood-fill, but neighbouring moved cells only merge when their offsets agree within
++// ±2px (build-a2 step 2) — two unrelated shifts never get glued into one region.
++// Returns [{region: [x,y,w,h,dx,dy], cells: [index, ...]}] — the caller (Diff.compare) drops
++// any group smaller than MIN_MOVED_CELLS, since a single aliased cell is noise, not a move.
++function merge_moved_regions(movedCells, offsetOf, cols, rows, cell, width, height){
++	const seen = new Uint8Array(cols * rows);
++	const groups = [];
++	for (let cy = 0; cy < rows; cy++){
++		for (let cx = 0; cx < cols; cx++){
++			const i = cy * cols + cx;
++			if (seen[i] || !movedCells[i]) continue;
++			const [dx0, dy0] = offsetOf.get(i);
++			let minX = cx, maxX = cx, minY = cy, maxY = cy, sumDx = 0, sumDy = 0, n = 0;
++			const cells = [];
++			const queue = [i]; seen[i] = 1;
++			while (queue.length){
++				const q = queue.pop();
++				cells.push(q);
++				const qx = q % cols, qy = Math.floor(q / cols);
++				const [qdx, qdy] = offsetOf.get(q);
++				sumDx += qdx; sumDy += qdy; n++;
++				minX = Math.min(minX, qx); maxX = Math.max(maxX, qx);
++				minY = Math.min(minY, qy); maxY = Math.max(maxY, qy);
++				const neighbors = [[qx + 1, qy], [qx - 1, qy], [qx, qy + 1], [qx, qy - 1]];
++				for (const [nx, ny] of neighbors){
++					if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
++					const ni = ny * cols + nx;
++					if (seen[ni] || !movedCells[ni]) continue;
++					const [ndx, ndy] = offsetOf.get(ni);
++					if (Math.abs(ndx - dx0) > 2 || Math.abs(ndy - dy0) > 2) continue;
++					seen[ni] = 1; queue.push(ni);
++				}
++			}
++			const x = minX * cell, y = minY * cell;
++			const w = Math.min((maxX - minX + 1) * cell, width - x);
++			const h = Math.min((maxY - minY + 1) * cell, height - y);
++			groups.push({ region: [x, y, w, h, Math.round(sumDx / n), Math.round(sumDy / n)], cells });
++		}
++	}
++	groups.sort((a, b) => b.region[2] * b.region[3] - a.region[2] * a.region[3]);
++	return groups;
++}
++
++// Sort by area (w*h), largest first, keep the first `cap`; `more` is a count of the rest.
++function cap_by_area(regions, cap){
++	const sorted = [...regions].sort((a, b) => b[2] * b[3] - a[2] * a[3]);
++	return { kept: sorted.slice(0, cap), more: Math.max(0, sorted.length - cap) };
++}
++
++// The AFTER picture faded to FADE brightness, TRULY-CHANGED cells tinted red by how much they
++// changed (moved cells stay at the fade — they didn't change, they relocated), each changed
++// region boxed in red, each moved region boxed in blue with a line from its old top-left to its
++// new one (plan.md "The diff"; build-a2 step 3 — no font, so a line stands in for the label).
++function make_overlay(after, width, height, changedOnly, cols, cell, regions, moved){
 +	const data = new Uint8Array(width * height * 4);
 +	for (let y = 0; y < height; y++){
 +		for (let x = 0; x < width; x++){
 +			const ai = (y * after.width + x) * 4, oi = (y * width + x) * 4;
 +			const cx = Math.floor(x / cell), cy = Math.floor(y / cell);
-+			const amount = cellChanged[cy * cols + cx] || 0;
-+			const tint = Math.min(1, amount / 128);   // how red this cell gets, capped at full red
-+			const base = FADE;
++			const amount = changedOnly[cy * cols + cx] || 0;
++			// a changed cell stays at FULL brightness with a light red wash, so the overlay shows what it
++			// became (a solid red fill hid it: first real run, 2026-10-12); unchanged cells fade
++			const tint = amount ? Math.min(0.3, 0.1 + amount / 400) : 0;
++			const base = amount ? 1 : FADE;
 +			data[oi] = Math.round(after.data[ai] * base * (1 - tint) + 255 * tint);
 +			data[oi + 1] = Math.round(after.data[ai + 1] * base * (1 - tint));
 +			data[oi + 2] = Math.round(after.data[ai + 2] * base * (1 - tint));
 +			data[oi + 3] = 255;
 +		}
 +	}
-+	for (const [rx, ry, rw, rh] of regions) draw_box(data, width, height, rx, ry, rw, rh);
++	for (const [rx, ry, rw, rh] of regions) draw_box(data, width, height, rx, ry, rw, rh, 255, 40, 40);
++	for (const [mx, my, mw, mh, dx, dy] of moved){
++		draw_box(data, width, height, mx, my, mw, mh, 60, 120, 255);
++		draw_line(data, width, height, mx - dx, my - dy, mx, my, 60, 120, 255);
++	}
 +	return { width, height, data };
 +}
 +
-+function draw_box(data, width, height, x, y, w, h){
++function draw_box(data, width, height, x, y, w, h, r, g, b){
 +	const set = (px, py) => {
 +		if (px < 0 || py < 0 || px >= width || py >= height) return;
 +		const i = (py * width + px) * 4;
-+		data[i] = 255; data[i + 1] = 40; data[i + 2] = 40; data[i + 3] = 255;
++		data[i] = r; data[i + 1] = g; data[i + 2] = b; data[i + 3] = 255;
 +	};
 +	for (let px = x; px < x + w; px++){ set(px, y); set(px, y + h - 1); }
 +	for (let py = y; py < y + h; py++){ set(x, py); set(x + w - 1, py); }
++}
++
++// A plain line (the "arrow shaft" — no font to draw a head or a label) from (x0,y0) to (x1,y1).
++function draw_line(data, width, height, x0, y0, x1, y1, r, g, b){
++	const set = (px, py) => {
++		if (px < 0 || py < 0 || px >= width || py >= height) return;
++		const i = (py * width + px) * 4;
++		data[i] = r; data[i + 1] = g; data[i + 2] = b; data[i + 3] = 255;
++	};
++	let x = x0, y = y0;
++	const dx = x1 - x0, dy = y1 - y0;
++	const steps = Math.max(Math.abs(dx), Math.abs(dy));
++	if (!steps){ set(x, y); return; }
++	for (let s = 0; s <= steps; s++){
++		set(Math.round(x0 + (dx * s) / steps), Math.round(y0 + (dy * s) / steps));
++	}
 +}
 +
 +export default Diff;
@@ -391,10 +656,10 @@ index 000000000..55ac15b9d
 +export default PNG;
 diff --git a/public/framework/ext/Shots/Shots.mjs b/public/framework/ext/Shots/Shots.mjs
 new file mode 100644
-index 000000000..4299368d1
+index 000000000..40f833476
 --- /dev/null
 +++ b/public/framework/ext/Shots/Shots.mjs
-@@ -0,0 +1,213 @@
+@@ -0,0 +1,264 @@
 +/* Shots.mjs — the system class (plan.md): picks a page's widths, loads it, writes one round of
 + * screenshots, diffs it against the round before, and appends the log. `Server/shots.mjs` is
 + * the CLI; `ShotsView` (browser, built in step 2 of the slice) only reads what this writes.
@@ -484,15 +749,18 @@ index 000000000..4299368d1
 +		const shots = {};
 +		for (const w of widths){
 +			const height = w <= 400 ? 860 : 1080;
++			// Review fix 1: keep the NORMAL viewport height — resizing it to the doc's full
++			// height before shooting stretches every `vh`-sized section, so the picture isn't
++			// what a user sees. Shoot full-page instead, then crop to MAX_HEIGHT afterwards.
 +			await page.setViewportSize({ width: w, height });
 +			await settle(page);
-+			const docH = await page.evaluate(() => document.documentElement.scrollHeight);
-+			const shotHeight = Math.min(Math.max(docH, height), MAX_HEIGHT);
-+			const cut = docH > MAX_HEIGHT;
-+			await page.setViewportSize({ width: w, height: shotHeight });
-+			await settle(page);
 +			const file = `${w}.png`;
-+			await page.screenshot({ path: path.join(roundDir, file) });
++			const img = await full_picture(page);
++			const buf = PNG.encode(img);
++			const cut = !!img.cut || img.height > MAX_HEIGHT;
++			const shotHeight = cut ? MAX_HEIGHT : img.height;
++			if (cut) fs.writeFileSync(path.join(roundDir, file), PNG.encode({ width: img.width, height: MAX_HEIGHT, data: img.data.subarray(0, img.width * MAX_HEIGHT * 4) }));
++			else fs.writeFileSync(path.join(roundDir, file), buf);
 +			shots[w] = { file, height: shotHeight, cut };
 +		}
 +		await context.close();
@@ -523,7 +791,12 @@ index 000000000..4299368d1
 +				const result = Diff.compare(before, after);
 +				const overlay = `diff-${w}.png`;
 +				fs.writeFileSync(path.join(roundDir, overlay), PNG.encode(result.overlay));
-+				const diff = { id, vs: vsId, width: w, changed: result.changed, regions: result.regions, overlay, height: result.height };
++				const diff = {
++					id, vs: vsId, width: w, changed: result.changed,
++					regions: result.regions, regionsMore: result.regionsMore,
++					moved: result.moved, movedMore: result.movedMore,
++					overlay, height: result.height,
++				};
 +				append_line({ diff });
 +				diffs.push(diff);
 +			}
@@ -548,24 +821,75 @@ index 000000000..4299368d1
 +	 * log order (oldest first) — a caller builds the parent/child tree from each run's `parent`. */
 +	static rounds(url){
 +		const want = as_url(url);
-+		return read_lines().filter(l => (l.run && l.run.url === want) || (l.diff && is_diff_for(l.diff, want)) || (l.judge && is_judge_for(l.judge, want)));
++		const lines = read_lines();   // review fix 6: one read for the whole call, not one per line
++		const runsById = new Map();
++		for (const l of lines) if (l.run) runsById.set(l.run.id, l.run);
++		return lines.filter(l => (l.run && l.run.url === want) || (l.diff && runsById.get(l.diff.id)?.url === want) || (l.judge && runsById.get(l.judge.id)?.url === want));
 +	}
++}
++
++/* The whole page, top to bottom. Most pages here scroll an inner box (the app shell), not the
++ * document, so Playwright's fullPage returns one screen (first real run, 2026-10-12). Find the
++ * tallest scrolling box, scroll it a screen at a time, and paste its rows into one tall picture;
++ * whatever sits outside the box (the sidebar) comes from the first screen. Cut at MAX_HEIGHT. */
++async function full_picture(page){
++	const box = await page.evaluate(() => {
++		const doc = document.scrollingElement;
++		if (doc.scrollHeight > doc.clientHeight + 4) return null;
++		let best = null;
++		for (const el of document.querySelectorAll("*")){
++			const oy = getComputedStyle(el).overflowY;
++			if (!/(auto|scroll)/.test(oy) || el.scrollHeight <= el.clientHeight + 4) continue;
++			if (!best || el.clientWidth * el.clientHeight > best.clientWidth * best.clientHeight) best = el;
++		}
++		if (!best) return null;
++		best.setAttribute("data-shots-scroller", "");
++		const r = best.getBoundingClientRect();
++		return { x: Math.round(r.left + best.clientLeft), y: Math.round(r.top + best.clientTop), w: best.clientWidth, h: best.clientHeight, total: best.scrollHeight };
++	});
++	if (!box) return PNG.decode(await page.screenshot({ fullPage: true }));
++	const first = PNG.decode(await page.screenshot());
++	const W = first.width, H = Math.min(MAX_HEIGHT, first.height + box.total - box.h);
++	const out = new Uint8Array(W * H * 4);
++	out.set(first.data.subarray(0, W * Math.min(first.height, H) * 4));
++	for (let t = box.h; t < box.total && box.y + t < H; t += box.h){
++		const top = await page.evaluate(t => { const el = document.querySelector("[data-shots-scroller]"); el.scrollTop = t; return el.scrollTop; }, t);
++		await page.waitForTimeout(150);
++		const shot = PNG.decode(await page.screenshot());
++		for (let row = 0; row < box.h; row++){
++			const dy = box.y + top + row;
++			if (dy >= H) break;
++			const si = ((box.y + row) * shot.width + box.x) * 4;
++			out.set(shot.data.subarray(si, si + box.w * 4), (dy * W + box.x) * 4);
++		}
++	}
++	await page.evaluate(() => { const el = document.querySelector("[data-shots-scroller]"); el.scrollTop = 0; el.removeAttribute("data-shots-scroller"); });
++	return { width: W, height: H, data: out, cut: first.height + box.total - box.h > MAX_HEIGHT };
 +}
 +
 +function settle(page){
 +	return page.waitForLoadState("networkidle", { timeout: 4000 }).catch(() => {}).then(() => page.waitForTimeout(300));
 +}
 +
++// Review fix 6: ids have one-second resolution, so two rounds in the same second would share a
++// folder — a repeat gets a `-2`, `-3`, ... suffix instead of silently colliding.
 +function round_id(){
 +	const d = new Date();
 +	const pad = n => String(n).padStart(2, "0");
-+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
++	const base = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
++	const existing = new Set(read_lines().filter(l => l.run).map(l => l.run.id));
++	if (!existing.has(base)) return base;
++	let n = 2;
++	while (existing.has(`${base}-${n}`)) n++;
++	return `${base}-${n}`;
 +}
 +
 +function now_iso(){ return new Date().toISOString(); }
 +
++// Review fix 6: drop `?query`/`#hash` so such urls join the SAME round history as the bare path.
 +function as_url(url){
 +	let u = String(url).replace(/^https?:\/\/[^/]+/, "");
++	u = u.split("?")[0].split("#")[0];
 +	if (!u.startsWith("/")) u = "/" + u;
 +	if (!u.endsWith("/")) u += "/";
 +	return u;
@@ -598,22 +922,14 @@ index 000000000..4299368d1
 +	return runs.length ? runs[runs.length - 1].id : null;
 +}
 +
-+function is_diff_for(diff, want){
-+	const run = find_run(diff.id);
-+	return run?.url === want;
-+}
-+function is_judge_for(judge, want){
-+	const run = find_run(judge.id);
-+	return run?.url === want;
-+}
 +
 +export default Shots;
 diff --git a/public/framework/ext/Shots/Shots.test.mjs b/public/framework/ext/Shots/Shots.test.mjs
 new file mode 100644
-index 000000000..6176c60a7
+index 000000000..0c9a947df
 --- /dev/null
 +++ b/public/framework/ext/Shots/Shots.test.mjs
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,102 @@
 +// Shots.test.mjs — PNG round-trip and Diff region-finding, no browser involved.
 +// Run: node public/framework/ext/Shots/Shots.test.mjs
 +import { PNG } from "./PNG.mjs";
@@ -665,33 +981,573 @@ index 000000000..6176c60a7
 +	check("Diff: overlay is the same size as the compared area", result.overlay.width === width && result.overlay.height === height);
 +	check("Diff: height report is [before, after]", result.height[0] === height && result.height[1] === height);
 +	check("Diff: unchanged image reports zero regions", Diff.compare(before, base()).regions.length === 0);
++	check("Diff: changed_regions is the same array as regions", result.changed_regions === result.regions);
++}
++
++// ---- Diff: moved vs changed — one block shifts by (10, 20), another is recoloured ----------
++{
++	const width = 256, height = 192;
++	const base = () => {
++		const data = new Uint8Array(width * height * 4);
++		for (let i = 0; i < data.length; i += 4){ data[i] = 180; data[i + 1] = 180; data[i + 2] = 180; data[i + 3] = 255; }
++		return { width, height, data };
++	};
++	const before = base();
++	// A distinctive block in BEFORE, at (80, 64), 48x48 — a diagonal gradient, not a flat colour,
++	// so every 16px cell inside it is unique and a shift can't alias onto a neighbouring cell.
++	const MOVED = { x: 80, y: 64, w: 48, h: 48 };
++	for (let y = MOVED.y; y < MOVED.y + MOVED.h; y++){
++		for (let x = MOVED.x; x < MOVED.x + MOVED.w; x++){
++			const i = (y * width + x) * 4;
++			before.data[i] = 10; before.data[i + 1] = 40 + (x - MOVED.x) * 3; before.data[i + 2] = 40 + (y - MOVED.y) * 3;
++		}
++	}
++	const after = base();
++	const DX = 10, DY = 20;
++	for (let y = MOVED.y; y < MOVED.y + MOVED.h; y++){
++		for (let x = MOVED.x; x < MOVED.x + MOVED.w; x++){
++			const i = ((y + DY) * width + (x + DX)) * 4;
++			after.data[i] = 10; after.data[i + 1] = 40 + (x - MOVED.x) * 3; after.data[i + 2] = 40 + (y - MOVED.y) * 3;
++		}
++	}
++	// A second, unrelated block that is recoloured in place — must land as CHANGED, not moved.
++	const CHANGED = { x: 160, y: 16, w: 32, h: 32 };
++	for (let y = CHANGED.y; y < CHANGED.y + CHANGED.h; y++){
++		for (let x = CHANGED.x; x < CHANGED.x + CHANGED.w; x++){
++			const i = (y * width + x) * 4;
++			after.data[i] = 220; after.data[i + 1] = 10; after.data[i + 2] = 10;
++		}
++	}
++	const result = Diff.compare(before, after, { cell: 16 });
++	check("Diff: finds one moved region", result.moved.length === 1);
++	const [, , , , mdx, mdy] = result.moved[0] || [];
++	check("Diff: moved region reports the right offset", mdx === DX && mdy === DY);
++	// The recoloured block must show up as a changed region — plus, honestly, the strip the
++	// moved block uncovered (no longer overlapped by its new position) is a real "gone" area,
++	// so a second changed region there is correct, not a bug (doc/moved-vs-changed.md).
++	const foundChanged = result.regions.some(([x, y, w, h]) => x === CHANGED.x && y === CHANGED.y && w === CHANGED.w && h === CHANGED.h);
++	check("Diff: finds the recoloured block as a changed region", foundChanged);
 +}
 +
 +const failed = results.filter(([, ok]) => !ok);
 +console.log(`\n${results.length - failed.length}/${results.length} passed`);
 +process.exit(failed.length ? 1 : 0);
+diff --git a/public/framework/ext/Shots/ShotsView.css b/public/framework/ext/Shots/ShotsView.css
+new file mode 100644
+index 000000000..91d2cc881
+--- /dev/null
++++ b/public/framework/ext/Shots/ShotsView.css
+@@ -0,0 +1,44 @@
++/* ext/Shots — the screenshot tree: a round's width thumbnails (top-cropped so
++   a 4,000px page reads as one row), then before/after/overlay for the
++   selected width, side by side when wide and stacked when narrow (one
++   flex-wrap rule, no JS breakpoint). doc/architecture.md has the log shape. */
++
++@layer theme {
++
++	.shots-view { --flow: 0.8em; }
++	.shots-empty { padding: 1em 0; }
++
++	.shots-tree { --flow: 0.4em; }
++	.shots-round { --flow: 0.4em; }
++	/* One indent per generation — a variant branch reads as a child, not a
++	   sibling. 1.4em is the glyph-plus-gap a round's own head already uses. */
++	.shots-nested { margin-left: 1.4em; border-left: 1px solid var(--line); padding-left: 1em; }
++
++	.shots-round-head { color: inherit; text-decoration: none; padding: 0.2em 0; }
++	.shots-round-head.selected .shots-round-id { font-weight: 600; }
++	.shots-round-id { font-family: var(--mono, monospace); font-size: 0.9em; }
++	.shots-judge-badge { font-size: 0.85em; }
++	.shots-judge-badge.worse { color: var(--warn); }
++
++	/* ── thumbnails: top of the picture only ── */
++	.shots-thumbs { --gap: 0.5em; }
++	.shots-thumb { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 0; cursor: pointer; overflow: hidden; }
++	.shots-thumb-img { display: block; width: 8em; height: 6em; object-fit: cover; object-position: top; }
++	.shots-thumb-w, .shots-thumb-cut { display: block; font-size: 0.75em; padding: 0.15em 0.4em; }
++
++	/* ── the open round's detail ── */
++	.shots-detail { --flow: 0.6em; padding: 0.6em 0 1em; }
++	.shots-width-picker { --gap: 0.4em; }
++	.shots-width-btn.selected { border-color: var(--prime); color: var(--prime-ink); }
++
++	.shots-compare { --gap: 1em; align-items: flex-start; }
++	.shots-pane { flex: 1 1 18em; min-width: 14em; }
++	.shots-pane-img { display: block; width: 100%; border: 1px solid var(--line); border-radius: var(--radius); }
++
++	.shots-diff-pct { font-weight: 600; }
++	.shots-judges { --flow: 0.2em; }
++	.shots-judge-line { font-size: 0.9em; }
++
++	.shots-verdict-btns { --gap: 0.5em; }
++	.shots-btn-worse { color: var(--subtle); }
++}
+diff --git a/public/framework/ext/Shots/ShotsView.js b/public/framework/ext/Shots/ShotsView.js
+new file mode 100644
+index 000000000..16e017389
+--- /dev/null
++++ b/public/framework/ext/Shots/ShotsView.js
+@@ -0,0 +1,236 @@
++import { View, div, p, span, img, button, a } from "../../core/View/View.js";
++import { JSONL } from "../JSONL/JSONL.js";
++import FsFile from "../filesystem/FsFile.js";
++
++View.stylesheet(import.meta, "ShotsView.css");
++
++/**
++ * The one log this module reads — `public/framework/ext/Shots/runs.jsonl`.
++ * Three verbs, schema in plan.md:
++ *
++ *   {"run":   {"id","url","dir","widths","parent","note","css","task","by","at","shots"}}
++ *   {"diff":  {"id","vs","width","changed","regions","overlay","height"}}
++ *   {"judge": {"id","vs","verdict","by","why","at"}}
++ *
++ * `run` and `diff` are both keyed by the NEW round's id, so a round's own
++ * diffs are "every diff whose id is this round". `judge` can repeat (the
++ * owner clicking twice) — every press stays, newest read last.
++ */
++export class ShotsJSONL extends JSONL {
++	static verbs = [...JSONL.verbs, "run", "diff", "judge"];
++
++	runs = new Map();     // id → run
++	diffs = new Map();    // id → [diff, …] (one per width)
++	judges = new Map();   // id → [judge, …]
++
++	run(value){ this.runs.set(value.id, value); }
++	diff(value){ this.diffs.set(value.id, [...(this.diffs.get(value.id) ?? []), value]); }
++	judge(value){ this.judges.set(value.id, [...(this.judges.get(value.id) ?? []), value]); }
++
++	reset(){
++		this.runs = new Map();
++		this.diffs = new Map();
++		this.judges = new Map();
++		return super.reset();
++	}
++
++	/** Every run for one page url, newest first. */
++	runs_for(url){
++		return [...this.runs.values()].filter(r => r.url === url).sort((a, b) => b.id.localeCompare(a.id));
++	}
++
++	/** The roots of the tree (no parent, or a parent not in this set) for one url. */
++	roots_for(url){
++		const ids = new Set(this.runs_for(url).map(r => r.id));
++		return this.runs_for(url).filter(r => !r.parent || !ids.has(r.parent));
++	}
++
++	/** Direct children of one round, newest first. */
++	children_of(id){
++		return [...this.runs.values()].filter(r => r.parent === id).sort((a, b) => b.id.localeCompare(a.id));
++	}
++
++	/** The one diff line for a round at a given width, or null. */
++	diff_at(id, width){
++		return (this.diffs.get(id) ?? []).find(d => String(d.width) === String(width)) ?? null;
++	}
++
++	/** Every page url that has at least one run. */
++	urls(){
++		return [...new Set([...this.runs.values()].map(r => r.url))];
++	}
++}
++
++/* An image's real url from the log's own `dir` + `file` — plan.md's rule. */
++function shot_url(dir, file){
++	return "/" + dir.replace(/^public\//, "") + "/" + file;
++}
++
++/**
++ * One page's shots as a tree: round → width thumbnails (the top of each
++ * picture only — a 4,000px shot would flood the rail) → click a round to see
++ * before / after / overlay for one width, the diff's changed % and every
++ * judge line, and the owner's Better / Not better buttons.
++ *
++ * Reads `runs.jsonl` live (`ShotsJSONL.live()` streams it over the dev
++ * socket) — a new round from `node Server/shots.mjs` appears with no reload.
++ */
++export class ShotsView extends View {
++
++	/** `{ url, round?, width? }` — the page url to show, and an optional
++	    round/width the caller already knows (from `?round=&width=` on the
++	    module page). */
++	render(){
++		if (this.round) this.selected = { id: this.round, width: this.width };
++
++		// ⚠ No DOM after the await: `draw()` builds inside `empty()`, which
++		// re-establishes the captor the first await dropped (Research.js's own rule).
++		div.c("shots-view flow", async $v => {
++			this.$root = $v;
++			this.log = new ShotsJSONL({ url: this.log_url ?? "/framework/ext/Shots/runs.jsonl" });
++			await this.log.live(() => this.draw());
++			this.draw();
++		});
++	}
++
++	draw(){
++		this.$root.empty(() => {
++			const roots = this.log.roots_for(this.url);
++
++			if (!this.log.loaded || !roots.length){
++				p.c("muted shots-empty", `No shots of this page yet: \`node Server/shots.mjs ${this.url}\``);
++				return;
++			}
++
++			div.c("shots-tree flow", () => roots.forEach(run => this.branch(run, 0)));
++		});
++	}
++
++	/* One round, newest-first children nested under it — a row of width
++	   thumbnails, then its own children one indent in. */
++	// ⚠ Not named `round` — a `{round}` constructor option (the query-param
++	// name the brief asks for) would overwrite a method of that name on this
++	// instance (JSONL.js's own trap: a field never replaces a method).
++	branch(run, depth){
++		const selected = this.selected?.id === run.id;
++
++		div.c("shots-round" + (depth ? " shots-nested" : "")).style("--shots-depth", depth).append(() => {
++			a.c("shots-round-head flex gap v-center" + (selected ? " selected" : ""))
++				.click(e => { e.preventDefault(); this.select(run); })
++				.href("#" + run.id)
++				.append(() => {
++					span.c("shots-round-id", run.id);
++					if (run.note) span.c("shots-round-note muted", run.note);
++					this.judge_badge(run.id);
++				});
++
++			div.c("shots-thumbs flex wrap gap", () =>
++				(run.widths ?? []).forEach(w => this.thumb(run, w)));
++
++			if (selected) this.detail(run);
++
++			this.children_of(run).forEach(child => this.branch(child, depth + 1));
++		});
++	}
++
++	children_of(run){ return this.log.children_of(run.id); }
++
++	/* The newest judge line for a round, as a small ✓/✗ badge — plain text,
++	   no icon-per-line (CLAUDE.md: icons are status only, next to the words). */
++	judge_badge(id){
++		const judges = this.log.judges.get(id);
++		if (!judges?.length) return;
++		const last = judges.at(-1);
++		span.c("shots-judge-badge").ac(last.verdict).text(
++			last.verdict === "better" ? "✅ better" : last.verdict === "worse" ? "⚠️ worse" : "same");
++	}
++
++	/* One width's thumbnail — top-cropped (CSS, not JS) so a tall page reads
++	   as one row, not a flood. */
++	thumb(run, w){
++		const shot = run.shots?.[w];
++		if (!shot) return;
++
++		button.c("shots-thumb").click(() => this.select(run, w)).append(() => {
++			img.c("shots-thumb-img").attr("src", shot_url(run.dir, shot.file)).attr("alt", `${run.url} at ${w}px`);
++			span.c("shots-thumb-w muted", w + "px");
++			if (shot.cut) span.c("shots-thumb-cut muted", "cut");
++		});
++	}
++
++	select(run, width){
++		this.selected = { id: run.id, width: width ?? this.selected?.width ?? run.widths?.[0] };
++		this.draw();
++	}
++
++	/* Before / after / overlay for the selected width, side by side when the
++	   viewport is wide, stacked when narrow — one flex-wrap rule in the CSS,
++	   never a JS breakpoint. Then the diff number and every judge line. */
++	detail(run){
++		const width = this.selected.width ?? run.widths?.[0];
++		const parent = run.parent ? this.log.runs.get(run.parent) : null;
++		const diff = this.log.diff_at(run.id, width);
++
++		div.c("shots-detail flow").append(() => {
++			if ((run.widths ?? []).length > 1) this.width_picker(run, width);
++
++			div.c("shots-compare flex wrap gap", () => {
++				if (parent?.shots?.[width]) this.pane("before", shot_url(parent.dir, parent.shots[width].file));
++				if (run.shots?.[width]) this.pane("after", shot_url(run.dir, run.shots[width].file));
++				if (diff?.overlay) this.pane("overlay", shot_url(run.dir, diff.overlay));
++			});
++
++			if (diff) this.diff_line(diff);
++
++			this.judges(run.id);
++			this.verdict_buttons(run.id, parent?.id);
++		});
++	}
++
++	width_picker(run, active){
++		div.c("shots-width-picker flex gap", () =>
++			(run.widths ?? []).forEach(w =>
++				button.c("shots-width-btn" + (String(w) === String(active) ? " selected" : ""), w + "px")
++					.click(() => this.select(run, w))));
++	}
++
++	pane(label, url){
++		div.c("shots-pane flow").append(() => {
++			span.c("shots-pane-label muted", label);
++			img.c("shots-pane-img").attr("src", url).attr("alt", label);
++		});
++	}
++
++	diff_line(diff){
++		div.c("shots-diff-line flex gap v-center", () => {
++			span.c("shots-diff-pct", Math.round((diff.changed ?? 0) * 100) + "% changed");
++			if (diff.height && diff.height[0] !== diff.height[1])
++				span.c("muted", `height ${diff.height[0]} → ${diff.height[1]}`);
++		});
++	}
++
++	judges(id){
++		const list = this.log.judges.get(id);
++		if (!list?.length) return;
++
++		div.c("shots-judges flow", () => list.forEach(j =>
++			p.c("shots-judge-line muted", `${j.verdict} — ${j.why ?? ""} (${j.by ?? "?"})`)));
++	}
++
++	/* The owner's last word: Better / Not better, written straight to the
++	   real log over the dev socket. `vs` is the round compared against, so a
++	   judge line always says what it was measured against. */
++	verdict_buttons(id, vs){
++		div.c("shots-verdict-btns flex gap", () => {
++			button.c("shots-btn-better", "Better").click(() => this.judge(id, vs, "better"));
++			button.c("shots-btn-worse", "Not better").click(() => this.judge(id, vs, "worse"));
++		});
++	}
++
++	judge(id, vs, verdict){
++		const line = { judge: { id, vs, verdict, by: "owner", at: new Date().toISOString() } };
++		new FsFile({ path: "framework/ext/Shots/runs.jsonl" }).append(line);
++	}
++}
++
++export default ShotsView;
+diff --git a/public/framework/ext/Shots/doc/architecture.md b/public/framework/ext/Shots/doc/architecture.md
+new file mode 100644
+index 000000000..9c536c565
+--- /dev/null
++++ b/public/framework/ext/Shots/doc/architecture.md
+@@ -0,0 +1,47 @@
++# Shots — architecture and decisions
++
++Full plan and the owner's original brief: [`plan.md`](../../../ai/sessions/2026/10/12/session-87bec773/screenshot-system/plan.md), [`build-b.md`](../../../ai/sessions/2026/10/12/session-87bec773/screenshot-system/build-b.md) (this build).
++
++## Widths (decided)
++1. The template's own `resolutions` list wins.
++2. Else `optimalWidth` W (ui-library): the standard widths below W, then W itself — nothing above W, since a capped layout shows nothing new past its cap. A mobile button (W ≤ 400) gets only 400.
++3. Else the four standard widths: 400, 1200, 1920, 3440.
++
++## Tall pages
++Every width is shot full page, cut at 4,000px tall; the log records `cut: true`. The first screen is just the top of that picture, so it needs no second shot. *Rejected:* shooting only the first screen below the optimal width — cheaper, but misses a broken footer or a long list at 400.
++
++## The log — `runs.jsonl`, one file, committed (pictures are gitignored)
++```
++{"run":   {"id","url","dir","widths","parent","note","css","task","by","at","shots":{"400":{"file","height","cut"}}}}
++{"diff":  {"id","vs","width","changed","regions":[[x,y,w,h,amount]],"overlay","height":[before,after]}}
++{"judge": {"id","vs","verdict":"better"|"worse"|"same","by","why","at"}}
++```
++`id` is `YYYY-MM-DD-HHMMSS`; `parent` is the round it was compared with, so rounds form a tree — a variant branches from the same parent. An image's real url is `"/" + dir.replace(/^public\//, "") + "/" + file`.
++
++## The diff
++16px cells; a cell changed when its mean colour moved more than a small threshold, neighbours merged into regions, largest first. The overlay is the AFTER picture faded to 35%, changed cells tinted red, each region boxed — an agent reads the overlay and the regions list instead of guessing the difference between two similar pictures. **Next, recorded not built:** run `imagine/lines/lines.js`'s line filter on both pictures and report edges that moved ("this edge moved 24px down") — the padding question the owner actually cares about.
++
++## Who does what
++- **node** (`Shots`, build A): shoots, diffs, logs — everything procedural.
++- **This view** (`ShotsView`, build B): reads the log and the images; writes nothing except the owner's own judge click.
++- **The mastermind / UI agent**: reads the shots and overlay, judges from the CLI (`node Server/shots.mjs --judge <round> better "why"`).
++- **The owner**: the last word, one click in the Screenshots tab — only for rounds that differ visibly, never a 2px nudge.
++
++## Why one `ShotsView`, not two
++The dev bar's Screenshots tab (`dev/DevBar/shots.js`) and the module page (`page.js`) render the exact same class for the exact same reason the whole framework avoids a second copy of anything that shows the same thing (CLAUDE.md law 6): a fix to how a round reads lands in both places at once.
++
++## The padding principle this whole system checks for
++One default clamped padding token should work in about 90% of places: a container has padding or it doesn't. Compact and spacious remaps come later. Aim for 80/20 — less CSS, nothing broken. Shots exists so that claim can be checked with a picture, not an argument.
++
++## Build B's own notes (2026-10-12)
++- Built before build A landed `Shots.mjs`/the real log — tested against three hand-written fake lines in a scratch copy (`runs.scratch.jsonl`, never committed, never the real `runs.jsonl`), per the brief.
++- `ShotsJSONL` lives inside `ShotsView.js` rather than its own file: it is a small reader with no behaviour the node side needs, and the `code` skill allows a small helper class in its parent's file.
++- The tree renders every round open to one level of nesting via indentation (`.shots-nested`, CSS margin, no JS breakpoint) rather than a collapsible widget — "fastest working version first" (CLAUDE.md law 1); a fold-away control is a cheap follow-up once there are real rounds to see it fail against.
++
++## First real run (2026-10-12, `/framework/ext/Figma/colors/`, the blue override vs the site tokens)
++
++- **Most pages scroll an inner box, not the document**, so Playwright's `fullPage` gave one screen. `Shots` now finds the tallest scrolling box, scrolls it a screen at a time and stitches the rows (`full_picture()` in `Shots.mjs`). Known marks: a fixed button inside the box repeats once per screen, and the area below a short sidebar is black.
++- **A solid red fill hid what a region became**; changed cells now stay at full brightness under a light red wash, and only unchanged cells fade.
++- **Does the overlay help a model?** One trial, Haiku, same question: with the two pictures alone it found 6 of the changes and missed the recoloured "prime-bound" labels; with the overlay and the diff line added it found 7, including those labels (it placed them in the wrong card). A small gain for about 2k more tokens; repeat on a padding change before trusting it.
++- **Small false "moved" regions** (a 16 × 44 px block of text "moved by −3, +68") appear on colour-only changes; ignore moved regions under two cells until the threshold is tuned.
++- **Next:** run the line filter (`public/imagine/lines/lines.js`) on both pictures to report edges that moved, which is the padding question.
+diff --git a/public/framework/ext/Shots/doc/files.jsonl b/public/framework/ext/Shots/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ext/Shots/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
 diff --git a/public/framework/ext/Shots/files.jsonl b/public/framework/ext/Shots/files.jsonl
 new file mode 100644
-index 000000000..a62fee366
+index 000000000..caeaaeb11
 --- /dev/null
 +++ b/public/framework/ext/Shots/files.jsonl
-@@ -0,0 +1,7 @@
+@@ -0,0 +1,10 @@
 +{"file":"PNG.mjs"}
 +{"file":"Diff.mjs"}
 +{"file":"Shots.test.mjs"}
 +{"file":"Shots.mjs"}
 +{"file":"runs.jsonl"}
-+{"file":"runs.jsonl","gone":true}
-+{"file":"runs.jsonl"}
++{"file":"doc/"}
++{"file":"page.js"}
++{"file":"readme.md"}
++{"file":"ShotsView.css"}
++{"file":"ShotsView.js"}
+diff --git a/public/framework/ext/Shots/page.js b/public/framework/ext/Shots/page.js
+new file mode 100644
+index 000000000..733d350a0
+--- /dev/null
++++ b/public/framework/ext/Shots/page.js
+@@ -0,0 +1,56 @@
++import { Page, md, div, a, p } from "/app.js";
++import { ShotsJSONL, ShotsView } from "./ShotsView.js";
++
++/* ?url=&round=&width= routes the view, so a reload or a shared link lands on
++   the same picture — see doc/architecture.md. No url: the index, every page
++   that has a shot, newest run first. */
++export default new Page({
++	meta: import.meta,
++	title: "Shots",
++	label: "Screenshots",
++	description: "Shoot a page at the widths its template needs, keep the rounds, diff each one against the last, and judge with a click — the owner's dev bar Screenshots tab and this page share the same view.",
++	icon: "compare",
++
++	content(){
++		const params = new URLSearchParams(location.search);
++		const url = params.get("url");
++
++		md("`node Server/shots.mjs <url>` shoots a page; this reads the log it writes, `runs.jsonl`, and never shoots anything itself. The same tree also opens in the dev bar's **Screenshots** tab for whichever page you're on.");
++
++		if (url){
++			a.c("shots-back", "← every page with shots").href(this.url);
++			div.c("shots-page-view").append(() => new ShotsView({
++				url,
++				round: params.get("round") ?? undefined,
++				width: params.get("width") ?? undefined,
++			}));
++			return;
++		}
++
++		// ⚠ No DOM after the await — `draw()` builds inside `empty()`, which
++		// re-establishes the captor (Research.js's own rule for this pattern).
++		div.c("shots-index flow", async $i => {
++			const log = new ShotsJSONL({ url: "/framework/ext/Shots/runs.jsonl" });
++
++			const draw = () => $i.empty(() => {
++				const urls = log.urls();
++				if (!urls.length){
++					p.c("muted", "No shots yet anywhere: `node Server/shots.mjs <url>`");
++					return;
++				}
++				urls.forEach(u => {
++					const runs = log.runs_for(u);
++					a.c("shots-index-row flex gap v-center").href(`${this.url}?url=${encodeURIComponent(u)}`).append(() => {
++						p(u);
++						p.c("muted", `${runs.length} round${runs.length === 1 ? "" : "s"}`);
++					});
++				});
++			});
++
++			await log.live(() => draw());
++			draw();
++		});
++
++		md.details(import.meta, "readme.md", "Readme");
++	},
++});
+diff --git a/public/framework/ext/Shots/readme.md b/public/framework/ext/Shots/readme.md
+new file mode 100644
+index 000000000..51a813c6f
+--- /dev/null
++++ b/public/framework/ext/Shots/readme.md
+@@ -0,0 +1,31 @@
++# Shots — the screenshot system: shoot, diff, judge
++
++**Shots** takes a page's screenshots at the widths its template needs, keeps every round in that page's own folder, diffs each round against the one before it, and draws an overlay of what changed. An agent runs it, reads the pictures; the owner gives the last word with one click.
++
++## Run it
++```
++node Server/shots.mjs <url>
++```
++Writes `<page folder>/screenshots/<round id>/<width>.png` (and `diff-<width>.png`) plus one line here, in [`runs.jsonl`](runs.jsonl).
++
++## See it
++- The dev bar's **Screenshots** tab — the page you're on, right now.
++- [`/framework/ext/Shots/`](/framework/ext/Shots/) — every page that has a round, and `?url=` opens one.
++
++## Classes
++- `class ShotsJSONL extends JSONL` (`ShotsView.js`) — reads `runs.jsonl`'s `run`/`diff`/`judge` lines into a tree.
++- `class ShotsView extends View` (`ShotsView.js`) — the one view: round tree, before/after/overlay, Better / Not better. Shared by the dev bar tab and the module page — one fix updates both (CLAUDE.md law 6).
++- `Shots` / `PNG` / `Diff` (node side, `Shots.mjs` `PNG.mjs` `Diff.mjs`) — the half that shoots and writes the log; see [plan.md](../../ai/sessions/2026/10/12/session-87bec773/screenshot-system/plan.md).
++
++## Files
++- `ShotsView.js`, `ShotsView.css` — the browser side (this build).
++- `page.js` — the module page.
++- `../../dev/DevBar/shots.js` — the dev bar tab (registered in `tools.js`'s `tabs`).
++- `runs.jsonl` — the committed log (pictures themselves are gitignored under `screenshots/`).
++
++## Watch out
++- `runs.jsonl`'s exact line shapes are the contract between the node side and this view — see [`doc/architecture.md`](doc/architecture.md) before changing either.
++- The diff's line-filter upgrade (reporting a moved edge, not just a changed cell) is recorded, not built — [plan.md](../../ai/sessions/2026/10/12/session-87bec773/screenshot-system/plan.md#the-diff).
++
++## More
++[Overview](/framework/ext/) · [`doc/architecture.md`](doc/architecture.md): the log shape, who writes what, the padding principle it checks for.
 diff --git a/public/framework/ext/Shots/runs.jsonl b/public/framework/ext/Shots/runs.jsonl
 new file mode 100644
-index 000000000..76961dff6
+index 000000000..996981830
 --- /dev/null
 +++ b/public/framework/ext/Shots/runs.jsonl
-@@ -0,0 +1,6 @@
-+{"run":{"id":"2026-10-12-161325","url":"/framework/ext/Figma/","dir":"public/framework/ext/Figma/screenshots/2026-10-12-161325","widths":[400,1200,1920,3440],"parent":null,"note":"round 1","css":null,"task":null,"by":null,"at":"2026-10-12T21:13:31.083Z","shots":{"400":{"file":"400.png","height":860,"cut":false},"1200":{"file":"1200.png","height":1080,"cut":false},"1920":{"file":"1920.png","height":1080,"cut":false},"3440":{"file":"3440.png","height":1080,"cut":false}}}}
-+{"run":{"id":"2026-10-12-161331","url":"/framework/ext/Figma/","dir":"public/framework/ext/Figma/screenshots/2026-10-12-161331","widths":[400,1200,1920,3440],"parent":"2026-10-12-161325","note":"round 2 — padding","css":"body{padding:3em}","task":null,"by":null,"at":"2026-10-12T21:13:36.825Z","shots":{"400":{"file":"400.png","height":860,"cut":false},"1200":{"file":"1200.png","height":1080,"cut":false},"1920":{"file":"1920.png","height":1080,"cut":false},"3440":{"file":"3440.png","height":1080,"cut":false}}}}
-+{"diff":{"id":"2026-10-12-161331","vs":"2026-10-12-161325","width":400,"changed":479,"regions":[[32,304,336,304,15718],[208,624,160,112,4258],[16,64,176,112,3257],[16,192,336,112,3161],[32,656,160,144,2239],[48,16,96,16,347],[256,160,80,16,155],[32,576,32,16,66],[192,160,32,16,64],[320,48,16,32,63],[368,16,16,16,61],[144,160,32,16,61],[272,784,16,16,49],[64,672,16,16,45],[288,832,16,16,45],[16,16,16,16,34],[128,592,16,16,27],[144,640,16,16,27],[112,784,16,16,25]],"overlay":"diff-400.png","height":[860,860]}}
-+{"diff":{"id":"2026-10-12-161331","vs":"2026-10-12-161325","width":1200,"changed":1269,"regions":[[752,240,384,208,15339],[288,256,288,256,11073],[640,528,208,272,8264],[288,896,288,184,8130],[272,32,192,96,4168],[880,576,128,128,2742],[272,144,544,48,2211],[32,336,144,240,2175],[592,256,128,128,1886],[432,528,112,144,1854],[288,656,144,80,1631],[272,208,432,16,1464],[48,800,128,144,1303],[592,784,128,48,1154],[336,544,96,96,992],[608,928,96,96,914],[736,928,80,80,777],[48,688,112,96,691],[48,944,144,64,640],[64,64,128,32,501],[32,272,112,48,472],[976,656,80,48,472],[880,176,224,16,459],[16,16,128,16,442],[32,96,96,48,403],[64,208,96,48,391],[320,240,80,32,327],[64,160,64,32,214],[112,592,80,16,178],[112,1008,64,16,175],[432,672,16,32,156],[208,48,32,48,155],[704,352,16,32,153],[48,1024,64,16,135],[304,544,32,32,117],[48,640,48,16,115],[0,48,16,48,111],[608,848,48,16,109],[48,576,48,16,97],[592,560,16,32,85],[112,624,32,16,80],[608,400,32,16,75],[832,176,32,16,74],[208,1056,16,24,74],[672,768,32,16,72],[64,672,32,16,69],[64,784,32,16,69],[144,336,32,16,66],[912,464,32,16,66],[640,272,16,32,65],[1088,144,32,16,61],[416,976,32,16,61],[608,592,16,16,60],[656,144,32,16,59],[864,144,32,16,58],[592,688,16,32,56],[288,480,32,16,55],[64,608,32,16,53],[1024,144,32,16,51],[256,128,32,16,50],[608,144,32,16,50],[880,464,16,16,45],[32,192,16,16,44],[32,256,16,16,44],[672,272,16,16,42],[16,1056,16,16,42],[720,768,16,16,41],[656,400,16,16,38],[64,192,16,16,37],[64,256,16,16,37],[736,272,16,16,36],[112,656,16,16,36],[32,224,16,16,34],[608,272,16,16,34],[800,144,16,16,31],[48,928,16,16,31],[1088,368,16,16,30],[48,704,16,16,28],[736,304,16,16,27],[592,608,16,16,27],[928,144,16,16,26],[624,256,16,16,26],[32,320,16,16,26],[32,64,16,16,25],[256,96,16,16,25],[32,160,16,16,25],[288,928,16,16,25],[784,992,16,16,25]],"overlay":"diff-1200.png","height":[1080,1080]}}
-+{"diff":{"id":"2026-10-12-161331","vs":"2026-10-12-161325","width":1920,"changed":1902,"regions":[[336,272,368,320,19068],[384,608,320,352,18677],[1104,240,320,272,14843],[1104,608,352,224,14132],[912,240,160,144,5324],[320,48,208,128,4751],[1504,656,304,144,4619],[1472,1008,368,72,3583],[1680,240,128,208,3260],[720,256,192,176,3206],[32,384,160,240,2616],[720,672,160,64,2260],[1472,416,128,80,1767],[1552,256,80,144,1665],[336,960,176,48,1612],[32,64,224,96,1556],[32,160,144,128,1229],[48,720,128,128,1189],[48,848,144,112,1035],[1424,208,208,32,712],[1392,160,192,32,670],[720,752,176,16,621],[32,288,128,48,525],[1504,848,112,48,466],[80,960,112,48,452],[1280,208,128,32,434],[1248,160,112,32,416],[32,16,128,16,395],[320,208,128,32,382],[736,784,96,16,367],[80,1024,128,32,349],[480,912,64,32,297],[368,256,80,32,290],[848,784,80,16,271],[80,352,112,16,268],[1504,256,48,32,238],[112,640,96,16,218],[1120,640,80,16,217],[1104,832,96,16,204],[352,1008,64,32,196],[1488,304,32,32,191],[1600,416,32,32,182],[48,1008,64,16,139],[448,912,32,32,124],[336,656,32,16,122],[1648,416,32,16,115],[48,688,48,16,114],[384,688,32,16,113],[64,624,48,16,100],[112,672,48,16,99],[1472,496,48,16,94],[32,336,48,16,91],[0,64,16,32,86],[1376,752,48,16,85],[384,576,32,16,81],[224,1056,16,24,81],[1104,528,32,16,80],[1552,496,32,16,77],[1120,208,48,16,74],[1152,528,32,16,73],[1376,416,32,16,70],[384,832,16,32,66],[432,768,16,16,58],[336,816,16,32,58],[384,720,16,32,56],[1088,160,32,16,55],[288,112,16,32,54],[1776,848,16,32,54],[944,160,32,16,52],[784,208,16,32,52],[1776,896,16,32,52],[1232,208,32,16,50],[880,160,32,16,49],[1008,160,32,16,49],[336,608,16,32,49],[16,1056,16,16,49],[64,368,16,16,41],[80,656,16,16,39],[128,704,16,16,39],[800,272,16,16,38],[928,336,16,16,38],[1168,400,16,16,38],[336,704,16,16,36],[1664,320,16,16,34],[512,848,16,16,31],[384,160,16,16,30],[1504,960,16,16,30],[432,1024,16,16,30],[1200,208,16,16,29],[32,368,16,16,29],[1776,944,16,16,29],[992,208,16,16,28],[1056,208,16,16,28],[1088,208,16,16,28],[1632,304,16,16,28],[1648,384,16,16,28],[320,160,16,16,27],[704,208,16,16,27],[1664,256,16,16,27],[1168,336,16,16,27],[560,160,16,16,26],[624,160,16,16,26],[576,208,16,16,26],[928,208,16,16,26],[1120,608,16,16,26],[752,624,16,16,26],[384,656,16,16,26],[1264,736,16,16,26],[1568,752,16,16,26],[1728,752,16,16,26],[1760,752,16,16,26],[1504,912,16,16,26],[480,160,16,16,25],[512,160,16,16,25],[592,160,16,16,25],[784,160,16,16,25],[464,208,16,16,25],[896,208,16,16,25],[1328,448,16,16,25],[1120,704,16,16,25],[656,160,16,16,24],[752,160,16,16,24],[1200,160,16,16,24],[640,208,16,16,24],[1600,752,16,16,24]],"overlay":"diff-1920.png","height":[1080,1080]}}
-+{"diff":{"id":"2026-10-12-161331","vs":"2026-10-12-161325","width":3440,"changed":3460,"regions":[[384,336,736,544,54499],[1888,272,288,480,28215],[2160,896,432,184,26522],[640,896,480,184,20635],[1104,240,768,288,15376],[2976,272,304,368,12577],[2208,352,336,96,6786],[2784,288,128,224,6457],[1136,368,384,224,6367],[2688,976,304,104,6219],[368,48,240,128,5878],[3024,992,240,88,4209],[496,896,144,128,3814],[2208,544,368,96,3199],[64,432,160,272,3070],[0,64,320,128,2830],[1904,912,176,168,2813],[2608,608,176,80,2621],[2208,448,224,32,2076],[2608,304,144,112,1970],[1520,368,144,144,1784],[1136,1008,160,48,1629],[384,192,672,16,1547],[1072,192,512,16,1361],[48,256,144,128,1293],[64,800,144,128,1287],[2208,320,112,16,1041],[2208,496,176,32,943],[384,240,304,32,873],[64,944,128,96,867],[640,1056,80,24,843],[1600,192,208,16,705],[432,608,128,48,704],[3008,528,48,96,618],[3056,528,48,96,616],[448,560,112,48,565],[64,16,112,32,555],[416,992,32,48,545],[432,288,96,32,505],[64,704,160,32,441],[448,432,96,32,426],[1136,1072,112,8,420],[64,192,96,48,411],[2000,496,80,96,382],[704,240,176,16,372],[1376,288,112,64,367],[96,400,128,16,366],[2608,704,128,16,337],[2976,352,80,32,308],[2080,1024,64,16,305],[944,240,144,16,293],[2816,528,32,32,284],[2144,944,32,80,251],[2288,656,96,16,244],[2960,576,32,48,235],[448,944,48,48,219],[3072,352,32,32,217],[1552,336,64,16,189],[1216,336,64,16,162],[2400,656,64,16,159],[48,240,48,16,149],[2208,656,64,16,147],[112,752,64,16,141],[1632,336,32,16,130],[1296,336,32,16,126],[384,832,48,16,123],[384,1072,64,8,123],[1456,336,48,16,119],[64,736,48,16,107],[48,416,48,16,105],[64,768,48,16,103],[2032,464,48,16,101],[1888,768,32,16,101],[2928,304,32,16,99],[400,912,32,32,97],[896,560,16,32,89],[2992,304,16,32,86],[2944,368,32,16,86],[1168,576,32,32,86],[144,928,48,16,85],[1216,944,32,16,85],[1232,976,32,16,85],[1056,672,16,16,84],[240,1056,32,16,84],[48,384,32,16,83],[2016,416,32,32,82],[1936,768,32,16,82],[736,512,16,32,81],[1056,720,16,16,81],[896,240,32,16,79],[2448,560,48,16,76],[448,864,32,16,75],[2080,560,32,16,69],[2976,528,32,16,68],[1904,576,32,16,68],[176,192,32,16,61],[432,400,32,16,61],[2944,480,16,32,59],[16,1056,32,16,58],[32,16,16,32,56],[3088,480,16,32,56],[320,128,16,32,55],[2032,368,16,16,51],[3040,480,16,32,51],[2544,560,32,16,51],[800,368,32,16,50],[2032,928,32,16,48],[2944,400,16,16,35],[2192,912,16,16,33],[3280,352,16,16,30],[64,480,16,16,30],[1920,544,16,16,30],[2944,336,16,16,29],[2640,320,16,16,28],[720,368,16,16,28],[128,432,16,16,28],[2384,560,16,16,27],[2128,592,16,16,27],[1952,928,16,16,27],[3312,432,16,16,26],[2416,560,16,16,26],[2000,928,16,16,26],[1328,944,16,16,26],[2656,1008,16,16,26],[3312,320,16,16,25],[1360,944,16,16,25],[2096,944,16,16,25],[1376,976,16,16,25],[48,496,16,16,24],[144,800,16,16,24]],"overlay":"diff-3440.png","height":[1080,1080]}}
+@@ -0,0 +1,10 @@
++{"run":{"id":"2026-10-12-164136","url":"/framework/ext/Figma/colors/","dir":"public/framework/ext/Figma/colors/screenshots/2026-10-12-164136","widths":[400,1920],"parent":null,"note":"before: the blue Figma override (pre 9ca7fa778), re-injected","css":".figma-scheme{--prime:#72c4ff;--dark:#675f56}.figma-scheme .bg-prime{color:#fff;--subtle:rgb(255 255 255/.8)}.figma-scheme button.prim,.figma-scheme .btn.prim{color:#fff}","task":null,"by":"mastermind-screenshot-system","at":"2026-10-12T21:41:40.155Z","shots":{"400":{"file":"400.png","height":860,"cut":false},"1920":{"file":"1920.png","height":1080,"cut":false}}}}
++{"run":{"id":"2026-10-12-164140","url":"/framework/ext/Figma/colors/","dir":"public/framework/ext/Figma/colors/screenshots/2026-10-12-164140","widths":[400,1920],"parent":"2026-10-12-164136","note":"after: site tokens (9ca7fa778)","css":null,"task":null,"by":"mastermind-screenshot-system","at":"2026-10-12T21:41:43.564Z","shots":{"400":{"file":"400.png","height":860,"cut":false},"1920":{"file":"1920.png","height":1080,"cut":false}}}}
++{"diff":{"id":"2026-10-12-164140","vs":"2026-10-12-164136","width":400,"changed":216,"regions":[[16,672,352,144,20264],[48,416,80,16,140],[64,576,80,16,139],[192,576,64,16,115],[176,416,64,16,112],[144,416,16,16,29],[160,576,16,16,27]],"regionsMore":0,"moved":[],"movedMore":0,"overlay":"diff-400.png","height":[860,860]}}
++{"diff":{"id":"2026-10-12-164140","vs":"2026-10-12-164136","width":1920,"changed":956,"regions":[[832,304,512,448,93832],[1392,640,224,32,699],[1376,432,224,16,640],[1536,592,128,16,441],[1520,384,112,16,267],[352,432,80,16,143],[528,432,32,16,59],[448,432,32,16,53]],"regionsMore":3,"moved":[],"movedMore":0,"overlay":"diff-1920.png","height":[1080,1080]}}
++{"run":{"id":"2026-10-12-164502","url":"/framework/ext/Figma/colors/","dir":"public/framework/ext/Figma/colors/screenshots/2026-10-12-164502","widths":[400,1920],"parent":"2026-10-12-164140","note":"before: the blue Figma override (pre 9ca7fa778), re-injected; stitched full page","css":".figma-scheme{--prime:#72c4ff;--dark:#675f56}.figma-scheme .bg-prime{color:#fff;--subtle:rgb(255 255 255/.8)}.figma-scheme button.prim,.figma-scheme .btn.prim{color:#fff}","task":null,"by":"mastermind-screenshot-system","at":"2026-10-12T21:45:06.966Z","shots":{"400":{"file":"400.png","height":2681,"cut":false},"1920":{"file":"1920.png","height":2433,"cut":false}}}}
++{"diff":{"id":"2026-10-12-164502","vs":"2026-10-12-164140","width":400,"changed":283,"regions":[[16,672,352,188,26977],[48,416,80,16,140],[64,576,80,16,139],[192,576,64,16,115],[176,416,64,16,112],[144,416,16,16,29],[160,576,16,16,27]],"regionsMore":0,"moved":[[368,816,16,44,-3,68]],"movedMore":0,"overlay":"diff-400.png","height":[860,2681]}}
++{"diff":{"id":"2026-10-12-164502","vs":"2026-10-12-164140","width":1920,"changed":954,"regions":[[832,304,512,448,93832],[1392,640,224,32,699],[1376,432,224,16,640],[1520,384,112,16,267],[1536,592,96,16,345],[352,432,80,16,143],[528,432,32,16,59],[448,432,32,16,53]],"regionsMore":3,"moved":[[1632,592,32,16,-5,0]],"movedMore":0,"overlay":"diff-1920.png","height":[1080,2433]}}
++{"run":{"id":"2026-10-12-164508","url":"/framework/ext/Figma/colors/","dir":"public/framework/ext/Figma/colors/screenshots/2026-10-12-164508","widths":[400,1920],"parent":"2026-10-12-164502","note":"after: site tokens (9ca7fa778); stitched full page","css":null,"task":null,"by":"mastermind-screenshot-system","at":"2026-10-12T21:45:12.493Z","shots":{"400":{"file":"400.png","height":2681,"cut":false},"1920":{"file":"1920.png","height":2433,"cut":false}}}}
++{"diff":{"id":"2026-10-12-164508","vs":"2026-10-12-164502","width":400,"changed":495,"regions":[[16,672,352,288,40047],[48,1008,224,64,909],[64,1168,224,48,748],[96,2032,112,16,195],[128,2400,48,32,118],[48,416,80,16,140],[64,576,80,16,139],[64,1872,80,16,139]],"regionsMore":12,"moved":[[176,1056,64,16,68,-61],[224,1168,64,16,4,0]],"movedMore":0,"overlay":"diff-400.png","height":[2681,2681]}}
++{"diff":{"id":"2026-10-12-164508","vs":"2026-10-12-164502","width":1920,"changed":987,"regions":[[832,304,512,448,93832],[1392,640,224,32,699],[1376,432,224,16,640],[1536,592,128,16,441],[1520,384,112,16,267],[496,2112,96,16,181],[608,2112,96,16,176],[352,432,80,16,143]],"regionsMore":14,"moved":[],"movedMore":0,"overlay":"diff-1920.png","height":[2433,2433]}}
+diff --git a/public/framework/ext/page.js b/public/framework/ext/page.js
+index d7783ae6b..cc001c583 100644
+--- a/public/framework/ext/page.js
++++ b/public/framework/ext/page.js
+@@ -6,7 +6,7 @@ export default new Page({
+ 	label: "Extensions",
+ 	description: "Opt-in addons. They may extend core; core never depends on them.",
+ 	icon: "extension",
+-	children: "Classify markdown demo highlight filesystem files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel panel2 Timeline AITask JSONL Research Ask Chat Collab Refine ErrorLog Session Mention sprawl Figma System",
++	children: "Classify markdown demo highlight filesystem files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel panel2 Timeline AITask JSONL Research Ask Chat Collab Refine ErrorLog Session Mention sprawl Figma System Shots",
+ 
+ 	content(){
+ 
+diff --git a/public/framework/ext/readme.md b/public/framework/ext/readme.md
+index cd130d9f4..63dabbce2 100644
+--- a/public/framework/ext/readme.md
++++ b/public/framework/ext/readme.md
+@@ -16,6 +16,7 @@
+ - [panel2](./panel2/) — header/main/footer chrome you ship: an optional sidebar that becomes a drawer, a resizable split, a dashboard grid
+ - [Research](./Research/) — a question dug by several minions into append-only files, rendered live with credence per claim
+ - [Saver](./Saver/) — `save` / `load` / `delete` over one write queue, for anything that persists JSON
++- [Shots](./Shots/) — screenshot a page at its widths, diff each round against the last, judge with a click — the dev bar's Screenshots tab and `/framework/ext/Shots/` share one view
+ - [Timeline](./Timeline/) — horizontal or vertical timeline for dated items
+ - [catalog](./catalog/) — `catalog()` rail and `browse()` wall of `previews()` — use it for an index page
+ - [demo](./demo/) — show the code and run it from one source — the site's example mechanism
+diff --git a/public/framework/styles/css-scopes.txt b/public/framework/styles/css-scopes.txt
+index 10be5f531..4e7291c20 100644
+--- a/public/framework/styles/css-scopes.txt
++++ b/public/framework/styles/css-scopes.txt
+@@ -252,3 +252,6 @@ prompt-review-
+ # public/framework/ux/Objects — live object inspector widget (2026-10-06)
+ ux-objects-
+ objects-
++
++# public/framework/ext/Shots — the screenshot tree view, dev bar tab + module page (2026-10-12)
++shots-
