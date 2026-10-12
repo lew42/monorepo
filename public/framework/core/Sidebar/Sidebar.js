@@ -106,6 +106,7 @@ export class Sidebar extends View {
 		return div.c("sidebar-menu", () => {
 			this.filter();
 			this.nav();
+			this.restore_query();
 			this.footer?.();
 		}).on("click", e => e.target.closest("a") && this.open(false));
 	}
@@ -129,10 +130,20 @@ export class Sidebar extends View {
 	// ground it sat on, which is backwards. At 16% the bar is plainly a bar and the
 	// white field is the brightest thing on it, which is the whole point of the pair.
 	filter(){
-		return this.$filter = new Filter({
+		const f = this.$filter = new Filter({
 			segments: [], chrome: false, search_field: "text", placeholder: "Filter pages…",
 			onChange: predicate => this.filtered(predicate),
 		}).ac("sidebar-filter darken-2");
+		f.$field.on("keydown", e => this.arrow(e, "field"));
+		return f;
+	}
+
+	// A reload keeps the query: `?q=` goes back into the box and runs.
+	restore_query(){
+		const q = new URLSearchParams(location.search).get("q");
+		if (!q) return;
+		this.$filter.$field.el.value = q;
+		this.$filter.query(q);
 	}
 
 	// THE TREE. `root`: the live thing, walked lazily by `ux/Tree` — a branch's
@@ -144,7 +155,7 @@ export class Sidebar extends View {
 		return div.c("sidebar-nav", () => {
 			if (this.root){
 				this.$tree = new Tree({ nodes: [], adapt: true });
-				Tree.nodes_of(this.root).then(nodes => this.visible_nodes(this.root, nodes)).then(nodes => this.$tree.draw(nodes))
+				this.$drawn = Tree.nodes_of(this.root).then(nodes => this.visible_nodes(this.root, nodes)).then(nodes => this.$tree.draw(nodes))
 					.then(() => this.reveal())
 					// ⚠ A slow load racing a fast typist: nodes that arrive after the
 					// reader has already started filtering would otherwise all show,
@@ -163,6 +174,7 @@ export class Sidebar extends View {
 				this.$tree = new Tree({ nodes: this.tree_nodes(this.pages), adapt: true });
 				this.reveal();
 			}
+			this.results();
 		});
 	}
 
@@ -219,68 +231,90 @@ export class Sidebar extends View {
 			});
 	}
 
-	// THE WIRE. `predicate` is a plain function, fresh from `ux/Filter` — never a DOM
-	// read (its own readme's rule). Sidebar owns the two things a tree-filter needs
-	// that a generic `Filter` has no idea about: which branches were open before the
-	// reader typed anything, and opening the ones that lead to a match so it is not
-	// hidden inside a shut branch. `this.$tree.rows` (node → its `ux/Tree` Row view)
-	// is `ux/Tree`'s own public map — consumed here, not edited, per this task's fence.
+	// THE WIRE. A query swaps the tree for a flat list of results taken from the
+	// WHOLE site: `index()` walks every branch of the live page tree, loaded or not, once.
+	// The tree itself is never touched, so clearing the box puts back exactly what was
+	// open. The query lives in the url (`?q=`), so a reload keeps it.
 	filtered(predicate){
 		if (!this.$tree) return;
+		const q = this.$filter.needle.trim();
 
-		if (this.$filter.needle.trim()){
-			this.folded ??= this.fold_state();
-			this.apply_filter(this.$tree.nodes, predicate);
-		} else if (this.folded){
-			this.restore_fold();
+		this.remember(q);
+		this.$tree.el.style.display = q ? "none" : "";
+		this.$results.el.style.display = q ? "" : "none";
+		if (!q) return;
+
+		const ask = this.asked = {};
+		this.$results.el.textContent = "Searching…";
+		this.index().then(list => {
+			if (this.asked !== ask) return;                 // a newer keystroke won
+			this.show_results(list.filter(predicate));
+		});
+	}
+
+	// `?q=` in the address bar, without adding a history entry per keystroke.
+	remember(q){
+		const url = new URL(location.href);
+		q ? url.searchParams.set("q", q) : url.searchParams.delete("q");
+		history.replaceState(history.state, "", url);
+	}
+
+	// Every page under the root as { text, href, trail } — memoised. Branches are
+	// opened through ux/Tree's own lazy `children()`, so hidden pages stay hidden.
+	index(){
+		return this._index ??= (async () => {
+			const out = [];
+			const walk = async (nodes, trail) => {
+				await Promise.all(nodes.map(async node => {
+					if (node.href) out.push({ text: node.text, href: node.href, trail: trail.join(" › ") });
+					const kids = is.fn(node.children) ? await node.children() : node.children;
+					if (is.arr(kids)) await walk(kids, [...trail, node.text]);
+				}));
+			};
+			await this.$drawn;                               // the first level exists only once drawn
+			await walk(this.$tree.nodes, []);
+			return out;
+		})();
+	}
+
+	// Links, so click, middle-click and Enter all work; ArrowUp/Down move between them.
+	show_results(list){
+		const box = this.$results.el;
+		box.textContent = "";
+		if (!list.length){ box.textContent = "No page matches."; return; }
+
+		for (const hit of list.slice(0, 100)){
+			const link = document.createElement("a");
+			link.href = hit.href;
+			link.className = "sidebar-result";
+			link.innerHTML = "<b></b><small></small>";
+			link.firstChild.textContent = hit.text;
+			link.lastChild.textContent = hit.trail;
+			box.append(link);
 		}
 	}
 
-	// A row shows if its OWN title matches, or if something under it does — so the
-	// path to a hit never disappears and nothing floats with no context above it.
-	// Only ever searches into children `ux/Tree` has already LOADED (`is.arr`): an
-	// unopened lazy branch's `children` is still a function (core/Page/doc/
-	// data-children.md), and asking one to search itself would fetch a whole subtree
-	// on every keystroke — it is judged by its own title alone, same as a leaf. Left
-	// open for the same reason: a lazy branch that never gets opened can hide a real
-	// match forever; there is no cheap fix without `ux/Tree` fetching eagerly, which
-	// would cost every OTHER keystroke a network round trip to find out.
-	// Returns whether anything under `nodes` is now showing, so the caller one level
-	// up knows whether to open ITS OWN branch.
-	apply_filter(nodes, predicate){
-		let any = false;
-
-		nodes.forEach(node => {
-			const deeper = is.arr(node.children) && this.apply_filter(node.children, predicate);
-			const show = predicate(node) || deeper;
-			const row = this.$tree.rows.get(node);
-
-			row?.[show ? "show" : "hide"]();
-			if (deeper) row.item.open();
-
-			any = any || show;
-		});
-
-		return any;
+	// Opening a result: the router takes the click, then the query is cleared and the
+	// tree opens down to the page (reveal()).
+	results(){
+		return this.$results = div.c("sidebar-results")
+			.style("display", "none")
+			.on("click", e => {
+				if (!e.target.closest("a")) return;
+				setTimeout(() => { this.$filter.clear_query(); this.reveal(); }, 0);
+			})
+			.on("keydown", e => this.arrow(e, "results"));
 	}
 
-	// One snapshot, taken the moment the reader's FIRST keystroke starts a search —
-	// every row's own open/closed fact. `??=` in `filtered()` is what keeps this from
-	// overwriting itself on the second keystroke, so what comes back on clear is
-	// always "how it looked before you typed anything," never "a moment ago."
-	fold_state(){
-		const state = new Map();
-		this.$tree.rows.forEach((row, node) => state.set(node, row.item.opened()));
-		return state;
-	}
-
-	// Every row back on screen, every branch back to the fact this took down.
-	restore_fold(){
-		this.$tree.rows.forEach((row, node) => {
-			row.show();
-			row.item[this.folded.get(node) ? "open" : "close"]();
-		});
-		this.folded = null;
+	// Field → first result → … and back. Enter on the field opens the first result.
+	arrow(e, from){
+		const links = [...this.$results.el.querySelectorAll("a")];
+		const i = links.indexOf(document.activeElement);
+		if (e.key === "ArrowDown") links[i + 1]?.focus();
+		else if (e.key === "ArrowUp") (i > 0 ? links[i - 1] : this.$filter.$field.el).focus();
+		else if (e.key === "Enter" && from === "field") links[0]?.click();
+		else return;
+		e.preventDefault();
 	}
 
 	// One entry → one Tree node. A group (an entry with its own `pages`) becomes a
