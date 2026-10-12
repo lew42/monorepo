@@ -17,4 +17,8 @@
 	.figma-side img { width: 100%; height: auto; display: block; }
 	.figma-stage { position: relative; overflow: hidden; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
 	.figma-stage iframe { position: absolute; inset: 0 auto auto 0; }
+
+	/* build-c: the latest Shots figma-kind round, hung under the compare view. */
+	.figma-overlay { margin-top: 1em; }
+	.figma-overlay-img { max-width: 100%; display: block; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
 }
