@@ -2,6 +2,7 @@ import { Page } from "/app.js";
 import "./PageHeading.js";
 import "./PageText.js";
 import "./PageCard.js";
+import "./PageLink.js";
 
 /* Shim: PartsPage is retired (2026-10-12). Page.render_content_list() now draws each
    part through its class's View, so a plain Page is a "parts page". This file stays

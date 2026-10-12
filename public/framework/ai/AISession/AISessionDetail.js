@@ -13,6 +13,7 @@ import Item from "/framework/core/Item/Item.js";
 import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
 import "/framework/core/Page/parts/PageText.js";
 import "/framework/core/Page/parts/PageCard.js";
+import "/framework/core/Page/parts/PageLink.js";
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
 // view). Built with `new AISessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
