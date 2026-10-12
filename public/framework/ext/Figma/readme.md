@@ -24,7 +24,7 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 ## Watch out
 
 - No tool lists a user's files: every fetch needs a file key from a Figma URL. Tracked now: Sept-2026 `QYN0G2URSBHYH5I06MOjxU`.
-- Never modify the Sept-2026 or July-2026 Figma files (read only); scratch writes go to `T5PuB8EhKhfyh0xtpIT1L0`.
+- Never modify the Sept-2026 or July-2026 Figma files (read only); scratch writes go to `T5PuB8EhKhfyh0xtpIT1L0` or the Sept-2026 "Claude test page" (`124:1062`). `use_figma` draws (auto-layout frames, text, fills); proven there 2026-10-12. Load the `figma-use` skill resource first.
 - Screenshots over 600 KB are refused by `track.mjs`; the Figma screenshot URL is short-lived.
 
 ## More
