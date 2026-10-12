@@ -67,7 +67,6 @@ export default new Page({
 	icon: "forum",
 	width: "full",
 	description: "Compact footer, expanded composer and a full review conversation.",
-	children: "hero",
 	content() {
 		div.c("col-card", () => {
 			// Header

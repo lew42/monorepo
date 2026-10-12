@@ -10,7 +10,6 @@ export default new Page({
 	icon: "payments",
 	width: "full",
 	description: "Pricing cards and a dashboard on the approved solid bases.",
-	children: "tasks",
 	content() {
 		div.c("prc-card", () => {
 			// Header

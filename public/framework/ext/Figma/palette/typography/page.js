@@ -80,7 +80,6 @@ export default new Page({
 	title: "Typography",
 	icon: "text_fields",
 	width: "full",
-	children: "controls",
 	description,
 	content() {
 		div.c("typ-card", () => {
