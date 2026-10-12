@@ -234,6 +234,11 @@ export default class AISession extends Session {
 			seen.push(b.id); if (seen.length > 80) seen.shift();
 			(s.tools[b.name] ||= { n: 0, result_tokens: 0 }).n++;
 			s.state.tu[b.id] = b.name;
+			const fp = b.input?.file_path ?? b.input?.notebook_path;
+			if (fp && /^(Edit|Write|MultiEdit|NotebookEdit)$/.test(b.name)){   // what this session wrote: repo-relative path -> times
+				const rel = String(fp).replaceAll("\\", "/").replace(/^.*?\/(?:monorepo|worktrees\/[^/]+|\.claude\/worktrees\/[^/]+)\//, ""), t = (s.touched ||= {});
+				if (t[rel] || Object.keys(t).length < 200) t[rel] = (t[rel] || 0) + 1;
+			}
 		}
 	}
 

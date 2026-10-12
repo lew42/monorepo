@@ -175,6 +175,13 @@ export default class AISessionIndex {
 		return parts.length === 2 ? parts.join("/") : parts.slice(0, 2).join("/");
 	}
 
+	/** The modules a session edited most, from `touched` ({ path: times }): up to 4, most-edited first. */
+	static modules_of(touched){
+		const by = {};
+		for (const [p, n] of Object.entries(touched ?? {})){ const m = AISessionIndex.module_of(p); if (m) by[m] = (by[m] || 0) + n; }
+		return Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 4).map(e => e[0]);
+	}
+
 	/** Fold the audit's joins into a snapshot (the joins win: they are recomputed from the audit files on every load). Returns true if it changed. */
 	join(snap){
 		const core = this.joins.core.get(snap.id) ?? snap.core ?? [], category = this.joins.category.get(snap.id) ?? snap.category ?? null;
@@ -198,7 +205,8 @@ export default class AISessionIndex {
 			children: prev?.children ?? 0, wall_ms: Math.round(pv.wall_ms), flags: pv.flags.length, tokens, first_at: s.first_at ?? null, last_activity: s.last_at ?? null,
 			day: AISession.day(s.first_at) ?? prev?.day ?? null, folder: this.dirs.has(id) ? path.basename(this.dirs.get(id)) : (this.snaps.get(id)?.folder ?? null), tags: prev?.tags ?? [], alerts: prev?.alerts ?? 0,
 			parent: reg?.parent ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
-			title: s.title ?? prev?.title ?? null,   // the tab's own title (VS Code sidebar / phone), from the transcript's title lines
+			title: s.title ?? prev?.title ?? null,
+			core: AISessionIndex.modules_of(s.touched), files: Object.keys(s.touched ?? {}).length,   // from the transcript's own Edit/Write calls; the task audit join (below) wins where it has one   // the tab's own title (VS Code sidebar / phone), from the transcript's title lines
 		};
 		this.join(snap);
 		if (this.kids) snap.links = this.links(snap);   // keeps the links a rebuild would otherwise drop

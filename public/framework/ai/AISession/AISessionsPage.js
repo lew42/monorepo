@@ -255,7 +255,8 @@ export default class AISessionsPage extends Page {
 
 		const { PAGE_SIZE } = AISessionsPage, id_of = r => r.session_id || r.id;
 		const { base, filtered, sorted: sorted_all } = this.filter_rows();
-		const { top: sorted, kids_of } = AISessionRows.nest(sorted_all);   // children nest under their parent, collapsed until opened
+		const in_now = new Set(this.last_rows.filter(AISessionRows.is_in_flight).map(id_of));   // one row per session: what the Now strip shows is not listed again below
+		const { top: sorted, kids_of } = AISessionRows.nest(sorted_all.filter(r => !in_now.has(id_of(r))));   // children nest under their parent, collapsed until opened
 		this.open_ids ??= new Set();
 		const place = (r, depth, seen) => {
 			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = this.open_ids.has(id_of(r));
@@ -335,7 +336,14 @@ export default class AISessionsPage extends Page {
 	/** Recompute the rows from the latest snapshot, agent list and date-path index, then redraw. */
 	build_rows(){ this.last_rows = AISessionRows.with_date_path_rows(AISessionRows.with_live_rows(AISessionRows.merge(this.snapshot_rows, this.last_agents)), this.page_dirs); }
 
+	/** A full redraw at most every 3 s however many changes arrive (doc/live/grid-loading.md, lag). */
+	draw_later(ms = 0){
+		if (this.draw_timer) return;
+		this.draw_timer = setTimeout(() => { this.draw_timer = null; this.draw(); }, Math.max(ms, 3000 - (Date.now() - (this.last_draw ?? 0))));
+	}
+
 	draw(){
+		this.last_draw = Date.now();
 		this.build_rows();
 		this.render_rows();
 		this.$asof?.text("updated " + new Date().toLocaleTimeString());
@@ -351,7 +359,8 @@ export default class AISessionsPage extends Page {
 		const base = Prompts.base();
 		const fetch_agents = async () => (await get_json(base + "/api/agents")) ?? (await get_json("/api/agents")) ?? [];
 		let timer = null;
-		const soon = () => { timer ??= setTimeout(() => { timer = null; this.draw(); }, 250); };
+		// An agent event redraws the small Now strip in 250 ms; the 200-row grid (~45 ms a draw, it was drawn about once a second) at most every 3 s.
+		const soon = () => { timer ??= setTimeout(() => { timer = null; this.build_rows(); this.render_flight(); this.draw_later(); }, 250); };
 		const poll = async () => {
 			if (!this.polling) return;
 			if (!document.hidden && !this.stream_open){ this.last_agents = await fetch_agents(); this.draw(); }
@@ -370,7 +379,7 @@ export default class AISessionsPage extends Page {
 				soon();
 			});
 		} catch {}
-		clearInterval(this.tick); this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length){ this.render_flight(); AISessionFlags.load(this.url).then(() => this.draw()); } this.follow_live(); }, 30000);   // running times advance
+		clearInterval(this.tick); let n = 0; this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length){ this.render_flight(); if (++n % 4 === 0) AISessionFlags.load(this.url).then(() => this.draw()); } this.follow_live(); }, 30000);   // the 1.4 MB flags file and a full redraw: every 2 minutes, not every 30 s   // running times advance
 
 		AISessionFlags.load(this.url).then(() => {   // roles and red flags: the roles change, so the role filter is rebuilt from them
 			if (!this.last_rows.length) return;
@@ -410,7 +419,7 @@ export default class AISessionsPage extends Page {
 	async follow_live(){
 		const today = AISessionLive.ymd(new Date()).replaceAll("/", "-");
 		let timer = null;
-		const redraw = ms => { if (this.polling) timer ??= setTimeout(() => { timer = null; this.draw(); }, ms); };
+		const redraw = ms => { if (this.polling) this.draw_later(ms); };
 		this.live ??= new AISessionLive((moved, later) => redraw(moved.length ? 100 : 1500));
 		if (this.live_day !== today){
 			this.live_day = today;

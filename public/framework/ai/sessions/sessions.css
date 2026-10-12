@@ -39,18 +39,19 @@
 	.sessions-summary { flex-wrap: wrap; }
 	.sessions-grid {
 		max-width: 110rem;
-		--col-name: 28rem; --col-cost: 12rem; --col-updated: 6rem; --col-duration: 6rem;
+		--col-name: 26rem; --col-cost: 14rem;   /* name is capped (it took every spare pixel); cost grows to its widest cell so a flag never clips it */ --col-updated: 6rem; --col-duration: 6rem;
 		--col-role: 8rem; --col-source: 6rem; --col-model: 8rem; --col-state: 4rem;
 		display: grid;
 		grid-template-columns:
 			minmax(3rem, var(--col-state))
-			minmax(10rem, 1fr)
-			minmax(8rem, var(--col-cost))
+			minmax(12rem, var(--col-name))
+			minmax(var(--col-cost), max-content)
 			minmax(5rem, var(--col-updated))
 			minmax(5rem, var(--col-duration))
-			minmax(6rem, var(--col-role))
+			minmax(6rem, max-content)
 			minmax(5rem, var(--col-source))
-			minmax(5rem, var(--col-model));
+			minmax(5rem, max-content);
+		justify-content: start;   /* spare room stays empty at the right: no column stretches to fill it */
 		column-gap: var(--gap-50);
 		/* `width: max-content` + `min-width: 100%` (review finding, 2026-10-03):
 		   without this, a block-level grid defaults to the width of its own

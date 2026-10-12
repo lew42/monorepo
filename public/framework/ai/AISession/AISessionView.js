@@ -60,6 +60,8 @@ export default class AISessionView extends View {
 				if (name.agent && name.agent !== name.text) small.c("sessions-row-agent muted").attr("title", "Registered name (register_session)").text(" · " + name.agent);
 				AISessionView.flag_tags(r);   // red tags, inline on the title line so a row never changes height
 			});
+			const touched = AISession.all.get(r.session_id || r.id)?.ix;   // what it spent on: the modules it edited and how many files (from its own Edit/Write calls, or the task audit)
+			if (touched?.core?.length) small.c("sessions-row-core muted").attr("title", (touched.files ? touched.files + " files edited · " : "") + "modules: " + touched.core.join(", ")).text(touched.core.join(" · ") + (touched.files ? " · " + touched.files + " files" : ""));
 			if (r.last_prompt_first_line && name.from !== "prompt") small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
 		}));
 
