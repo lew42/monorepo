@@ -5,6 +5,10 @@ import List from "../List/List.js";
 import { page_settings } from "./settings/settings.js";
 import { track } from "../track/track.js";
 import ai_cost from "./weight/ai-cost.js";
+import PageChildren from "./Children.js";
+import PageLogReader from "./Reader.js";
+import PageListing from "./Listing.js";
+import PagePrefs from "./Prefs.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -23,8 +27,7 @@ const is_address = value => is.str(value) && value.startsWith("/");
 const is_md = url => /\.md(\?|#|$)/i.test(url);
 
 // "kid/page.jsonl" → ["kid", "jsonl"]; key_of() keys a file line by its FIRST path segment, latest wins. (doc/decisions.md)
-const CHILD = /^([^/]+)\/page\.(jsonl|js)$/;
-const key_of = name => name.split("/")[0];
+const { CHILD, key_of } = PageListing;
 
 // Page extends Item directly (no PageLog middle class). (doc/decisions.md)
 export class Page extends Item {
@@ -1389,228 +1392,11 @@ Page.Frame = PageFrame;
 // Registered so define_fields() builds the title/icon/description accessors. (doc/decisions.md)
 Item.register(Page, "Page");
 
-// The shim: a Map-shaped view over `page.pages`; `instanceof Map` stays true. (doc/decisions.md)
-class PageChildren extends Map {
-
-	constructor(page){ super(); this.page = page; }
-
-	get pages(){ return this.page.pages; }
-
-	// The page, `null` for a stub (declared but not yet loaded), `undefined` if the
-	// name is absent altogether.
-	get(name){
-		const found = this.pages.find(name);
-		return found === undefined ? undefined : found.stub ? null : found;
-	}
-
-	has(name){ return this.pages.find(name) !== undefined; }
-
-	// `null` adds a stub (quietly — declaring a child is not a live edit); a real
-	// page quietly inserts, or quietly REPLACES the stub that already held this name
-	// (`List.replace`, which never announces: loading is not a change).
-	set(name, value){
-		const had = this.pages.find(name);
-
-		if (value === null){
-			if (!had) this.put({ id: name, name, stub: true });
-			return this;
-		}
-
-		had ? this.pages.replace(had, value) : this.put(value);
-		return this;
-	}
-
-	// put() skips List.insert()'s owner-property guard (a child may share a config key's name). (doc/decisions.md)
-	put(x){
-		const pages = this.pages, made = pages.make(x);
-		pages.insert_before(made, null);
-		pages.adopted(made);
-		return made;
-	}
-
-	// Quiet — a Map never announced either. `release()` is List's quiet remove
-	// (core/List/List.js), the counterpart to `remove()`'s announcing one.
-	delete(name){
-		const had = this.pages.find(name);
-		if (!had) return false;
-		this.pages.release(had);
-		return true;
-	}
-
-	get size(){ return this.pages.length; }
-
-	// Returns undefined, like Map.forEach: a View capture `() => x.children.forEach(…)` renders its return value.
-	forEach(fn, thisArg){ this.pages.forEach(page => fn.call(thisArg, page.stub ? null : page, page.id, this)); }
-	keys(){ return this.pages.map(page => page.id)[Symbol.iterator](); }
-	values(){ return this.pages.map(page => page.stub ? null : page)[Symbol.iterator](); }
-	entries(){ return this.pages.map(page => [page.id, page.stub ? null : page])[Symbol.iterator](); }
-	[Symbol.iterator](){ return this.entries(); }
-
-	clear(){ [...this.pages].forEach(page => this.pages.release(page)); }
-}
-
-// `Item.Store` for a page.jsonl file, one per URL (`Reader.for`); `page.store` IS this once a jsonl page loaded. (doc/method/prefs.md)
-Page.Reader = class PageLogReader extends Item.Store {
-
-	get page(){ return this.host; }
-	set page(host){ this.host = host; }
-
-	// ⚠ core never statically imports ext; live.js is imported only on localhost.
-	// `this.live` (kept, not on the base Store) is what `close()` needs to drop the
-	// subscription — Item.Store itself never tails more than once and never closes.
-	open(){
-		if (!dev) return this.load();
-		return import("../../ext/JSONL/live.js")
-			.then(live => (this.live = live).stream(this, () => this.changed()));
-	}
-
-	close(){ this.live?.drop(this); }
-
-	// Tracks which KEYS arrived in this batch — `changed()` below reads it to decide
-	// whether a live line is worth a nav redraw, same as before the fold-in.
-	read(entries){
-		for (const entry of entries) for (const key of Object.keys(entry)) (this._seen ??= new Set()).add(key);
-		return super.read(entries);
-	}
-
-	// Line 1 already built the page (`Page.jsonl()` above) — HOLD UNTIL LINE 1,
-	// never replay it a second time. Everything else is Item.Store's own `attach()`
-	// (the "delta" listener, the echo skip, the replaying flag).
-	attach(host){
-		this.host = host;
-		host.store = this;
-		host.on("delta", (line, origin) => {
-			if (this.replaying) return;
-			this.append(this.line_for(line, origin, host));
-		});
-
-		const held = this.entries.splice(0).slice(1);
-		this.read(held);
-		this._seen = null;   // the load's keys are not news; changed() redraws for live lines only
-
-		host.report_unknown();
-		return this;
-	}
-
-	// A `tab`/`file` line redraws MY tab strip; a `settings` line redraws my PARENT's. No reload. (doc/decisions.md)
-	changed(){
-		this.host?.report_unknown();
-		this.host?.log_redraw();
-
-		const seen = this._seen; this._seen = null;
-		if (seen?.has("tab") || seen?.has("file")) this.host?.nav_redraw?.();
-		if (seen?.has("settings")) this.host?.parent?.nav_redraw?.();
-	}
-
-	// A REWRITTEN (not appended) file replays from line 1 onto a clean slate.
-	reset(){
-		this.count = 0;
-		this.host?.log_forget();
-		delete this.loaded;
-		return this;
-	}
-};
-
-// What listing() answers: files, dirs, pages (Map kid → js/jsonl), page (is this log a page?), log (the source file). (doc/decisions.md)
-Page.Listing = class PageListing {
-
-	files = [];
-	dirs = [];
-	pages = new Map();
-
-	// `page`: is this folder a jsonl page? Unknown (undefined) means "read line 1".
-	// `log`: the file the list came from ("files.jsonl" or "page.jsonl") — a real file there too.
-	static from(entries, page, log = "page.jsonl"){
-		const latest = new Map();
-		for (const { file, gone } of entries){
-			if (typeof file !== "string") continue;
-			gone ? latest.delete(key_of(file)) : latest.set(key_of(file), file);
-		}
-
-		const listing = new this();
-		listing.log = log;
-		listing.page = page ?? (!!entries[0] && typeof entries[0].file !== "string");   // line 1 builds a page; a listing-only log starts with a file line
-		latest.forEach((name, key) => {
-			const kind = name.match(CHILD)?.[2];
-			if (kind) listing.pages.set(key, kind);
-			else if (name.includes("/")) listing.dirs.push(key);
-			else listing.files.push(name);
-		});
-		return listing;
-	}
-
-	// Is `name` a folder here, page or not?
-	folder(name){ return this.dirs.includes(name) || this.pages.has(name); }
-};
+Page.Reader = PageLogReader;
+Page.Listing = PageListing;
+Page.Prefs = PagePrefs;
 
 // Opt-in instance tracking, installed once so every Page shares one list (core/track/track.js). (doc/decisions.md)
 track(Page);
-
-// Fallback store when localStorage will not take a save (private mode, full quota): memory for the session. (doc/method/prefs.md)
-const memory = new Map();
-let warned = false;
-
-// ⚠ ONCE a session, not once a write: a run saves on every move, and a console
-//   filling with the same line is a console nobody reads.
-function warn(key, error){
-	if (warned) return;
-	warned = true;
-	console.warn(`prefs(${key}) — localStorage is unavailable (${error.name}); this session is kept in memory only.`);
-}
-
-Page.Prefs = class PagePrefs {
-
-	// The app's own namespace: one origin serves /notes/, /imagine/ and every demo,
-	// so an unprefixed url is a collision waiting for the next site on this domain.
-	prefix = "lew42:";
-
-	constructor(...args){ this.assign(...args); }
-	assign(...args){ return Object.assign(this, ...args); }
-
-	// `id` is the seam for a caller that is not a page; `store_key` for a page that MOVED. (doc/decisions.md)
-	key(){ return this.prefix + (this.id ?? this.page.store_key ?? this.page.url); }
-
-	// The guarded pair (read_raw/write_raw/clear_raw): one JSON value under one key, never throwing. (doc/method/prefs.md)
-	static read_raw(key){
-		try { return JSON.parse(localStorage.getItem(key) ?? "null"); }
-		catch { return undefined; }   // JSON.parse never legitimately yields undefined
-	}
-
-	static write_raw(key, value){
-		try { localStorage.setItem(key, JSON.stringify(value)); return true; }
-		catch (error){ warn(key, error); return false; }
-	}
-
-	static clear_raw(key){
-		try { localStorage.removeItem(key); return true; }
-		catch { return false; }
-	}
-
-	// null when nothing is saved OR the saved value is corrupt — `get()` decides
-	// what that means, because only the caller knows its defaults.
-	read(){
-		const value = PagePrefs.read_raw(this.key());
-		return value === undefined ? memory.get(this.key()) ?? null : value;
-	}
-
-	get(fallback = {}){ return { ...fallback, ...(this.read() ?? {}) }; }
-
-	// Always "succeeds" from the caller's own point of view — write_raw's own
-	// return is ignored here on purpose, the same silent-degrade Page.Prefs has
-	// always promised (see the comment above `memory`).
-	set(data){
-		memory.set(this.key(), data);
-		PagePrefs.write_raw(this.key(), data);
-		return data;
-	}
-
-	// The call every page actually makes: change one field, keep the rest.
-	patch(part, fallback){ return this.set({ ...this.get(fallback), ...part }); }
-
-	clear(){
-		memory.delete(this.key());
-		PagePrefs.clear_raw(this.key());
-	}
-};
 
 export default Page;
