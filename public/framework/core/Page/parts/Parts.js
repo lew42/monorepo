@@ -16,7 +16,7 @@ export default class PartsPage extends Page {
 	render_content(){
 		const list = this.ensure_content();
 		let $rows;
-		const draw = () => list.forEach(part => this.draw_part(part));
+		const draw = () => { list.forEach(part => { this.draw_part(part); }); };
 		const box = div.c("parts flow", () => { $rows = div.c("parts-rows flow", draw); });
 		["add", "remove", "move", "order", "change"].forEach(verb => list.on(verb, () => $rows.empty(draw)));
 		return box;
