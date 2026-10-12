@@ -7,3 +7,5 @@ Cluster: servex-infra-health in [asks.md](/framework/ai/doc/asks.md).
 - Done: private Servex boot on port 18090 with current code answered `/agents`; `sustain.mjs --restart --dry-run` passed `node --check` and listed mid-turn agents that get revived.
 - Done: one batched restart (also activates openrouter-gap's `Agents.js` change). After-rate: see the end of this file.
 - Open, smallest next step: transcription crash cause is still unnamed (needs a reproduction with `server_logs` during a dictation); phantom process reap dry run (`Servex/orphan.mjs --dry`) has no owner yet.
+
+Restart done 09:03 (Servex pid 27084). After-rate: 21 spawns logged in the skills log, 0 fallbacks, so 21/21 had the skill text injected.
