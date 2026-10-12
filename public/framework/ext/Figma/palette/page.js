@@ -91,7 +91,7 @@ export default new Page({
 	title: "The Approved Schemes",
 	icon: "palette",
 	width: "full",
-	children: "typography",
+	children: "typography controls features pricing tasks timeline collab hero",
 	description,
 	content() {
 		div.c("pal-card", () => {

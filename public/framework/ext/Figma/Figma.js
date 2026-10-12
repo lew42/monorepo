@@ -3,7 +3,11 @@ import { FigmaFile } from "./FigmaFile.js";
 /* The system: knows which Figma files are tracked (index.jsonl) and loads them.
    The Figma MCP only answers inside an agent session, so tracking is done by track.mjs; the browser only reads. */
 export class Figma {
-	static async files(){
+	static #files;
+	/* Loaded once per tab: a click that only changes ?file= or ?page= redraws from memory, no refetch. */
+	static files(){ return this.#files ??= this.load(); }
+
+	static async load(){
 		const text = await (await fetch(import.meta.resolve("./index.jsonl"))).text();
 		const files = text.split("\n").filter(Boolean).map(l => new FigmaFile(JSON.parse(l)));
 		return Promise.all(files.map(f => f.load()));

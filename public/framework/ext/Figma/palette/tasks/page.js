@@ -51,7 +51,6 @@ export default new Page({
 	icon: "task_alt",
 	width: "full",
 	description: "Task cards, progress patterns and priority treatments.",
-	children: "timeline",
 	content() {
 		div.c("tsk-card", () => {
 			// Header

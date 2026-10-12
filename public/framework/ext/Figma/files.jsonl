@@ -12,3 +12,6 @@
 {"file":"readme.md"}
 {"file":"palette/"}
 {"file":"palette/page.js"}
+{"file":"built.mjs"}
+{"file":"visibility.mjs"}
+{"file":"thumbs.mjs"}
