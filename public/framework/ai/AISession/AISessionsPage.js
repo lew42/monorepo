@@ -454,7 +454,7 @@ export default class AISessionsPage extends Page {
 		if (this.attention_only) where.push({ field: "flags", op: "gte", value: 1 });
 		if (r.search) where.push({ fields: AISessionsPage.SEARCH_FIELDS, op: "contains", value: r.search });
 		const [key, dir] = r.sort_key ? r.sort_key.split(":") : ["updated", "desc"];
-		return { where, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["usd", "tokens"] };
+		return { where, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["claude_usd", "tokens"] };
 	}
 
 	/** Ask for a page. `first`/default = a fresh query; `more` = the next 50; `refresh` = the same query again, keeping the rows already loaded. */
@@ -469,7 +469,7 @@ export default class AISessionsPage extends Page {
 			if (res.error) return false;
 			const rows = res.rows.map(snap => this.remote_row_of(snap));
 			Object.assign(r, { rows: more ? [...r.rows, ...rows] : rows, total: res.total, totals: res.totals, ms: res.ms });
-			this.filtered_count = res.total; this.shown_usd = res.totals.usd ?? 0;
+			this.filtered_count = res.total; this.shown_usd = res.totals.claude_usd ?? 0;
 			this.grid.set_rows(r.rows, first);
 			this.$empty.el.hidden = r.rows.length > 0;
 			this.render_stats();

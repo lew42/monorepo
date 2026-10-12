@@ -21,5 +21,8 @@ export default class AISessionSource {
 	/** A Servex-spawned session has a registry agent id; any other is the tag sessions.json gave it, else a VS Code tab (what the files path draws for a session only the index knows). */
 	static source_of(snap) { return snap.agent ? "servex" : AISessionSource.tags.get(snap.id) ?? "vscode"; }
 
-	static shape(snap) { return { ...snap, source: AISessionSource.source_of(snap) }; }
+	/** The Claude spend the files path totals (AISessionRows.claude_usd_of): OpenRouter dollars are not Claude's. */
+	static claude_usd_of(snap) { return snap.provider === "openrouter" ? 0 : snap.usd ?? 0; }
+
+	static shape(snap) { return { ...snap, source: AISessionSource.source_of(snap), claude_usd: AISessionSource.claude_usd_of(snap) }; }
 }
