@@ -33,6 +33,7 @@ export default class AISessionsPage extends Page {
 
 	static POLL_MS = 20000;
 	static PAGE_SIZE = 200;
+	static TOP_CHIPS = 5;
 
 	constructor(...args){
 		super({
@@ -70,9 +71,6 @@ export default class AISessionsPage extends Page {
 		panel.main.append(this.$stats);
 		this.render_stats();
 
-		this.$flight = div.c("sessions-flight");   // what is running right now, redrawn on every event of the agent stream
-		panel.main.append(this.$flight);
-
 		this.$controls = div.c("sessions-controls");
 		panel.main.append(this.$controls);
 
@@ -100,17 +98,33 @@ export default class AISessionsPage extends Page {
 					if (i < COLUMNS.length - 1){
 						grip({
 							from: "start",   // this cell's own left edge is the column's start
-							write(px){
-								const clamped = Math.max(col.min, Math.round(px));
-								$grid.style("--col-" + col.key, clamped + "px");
-								return clamped;
-							},
+							write: px => this.resize_col($grid, col, px),
+							reset: () => this.unfreeze_cols($grid),   // double-click: back to widths that fit the content
 						});
 					}
 				});
 			});
 		});
 		this.render_sort_labels();
+	}
+
+	/** Columns size to their content until the first drag; then every width is frozen at what it measured (so each column answers the drag, not just the capped ones) and `px` goes to the dragged one. */
+	resize_col($grid, col, px){
+		const el = $grid.el;
+		if (!el.classList.contains("sessions-grid-fixed")){
+			const widths = getComputedStyle(el).gridTemplateColumns.split(" ").map(parseFloat);
+			AISessionRows.COLUMNS.forEach((c, i) => el.style.setProperty("--col-" + c.key, (widths[i] || c.min) + "px"));
+			el.classList.add("sessions-grid-fixed");
+		}
+		const clamped = Math.max(48, Math.round(px));
+		cancelAnimationFrame(this.resize_raf);
+		this.resize_raf = requestAnimationFrame(() => el.style.setProperty("--col-" + col.key, clamped + "px"));   // once per frame
+		return clamped;
+	}
+
+	unfreeze_cols($grid){
+		$grid.el.classList.remove("sessions-grid-fixed");
+		AISessionRows.COLUMNS.forEach(c => $grid.el.style.removeProperty("--col-" + c.key));
 	}
 
 	render_sort_labels(){
@@ -144,19 +158,6 @@ export default class AISessionsPage extends Page {
 		});
 	}
 
-	/** The strip above the grid: every session in flight, newest activity first, drawn by the same AISessionView as the grid below. */
-	render_flight(){
-		if (!this.$flight) return;
-		// Ordered by START time (oldest first, id as the tie-break), never by last activity: that moved every row on every event.
-			const start = r => Date.parse(r.started_at ?? 0) || 0;
-			const live = this.last_rows.filter(AISessionRows.is_in_flight).sort((x, y) => start(x) - start(y) || String(x.id).localeCompare(String(y.id)));
-		this.$flight.empty(() => {
-			h3.c("sessions-flight-head", `Now · ${live.length}`).attr("title", "Running or ready to run right now. Updates live from the Servex agent stream.");
-			if (!live.length) return void small.c("muted", "Nothing is in flight right now.");
-			div.c("sessions-grid sessions-flight-grid", () => div.c("sessions-rows", () => live.forEach(r => this.row_view(r, null))));
-		});
-	}
-
 	row_view(row, nest){
 		return new AISessionView({ row, url: this.url, page_dirs: this.page_dirs, spend: this.spend, session_index: this.session_index, nest });
 	}
@@ -180,26 +181,7 @@ export default class AISessionsPage extends Page {
 					
 					this.$red_counts = small.c("sessions-redflag-counts").attr("title", "How many sessions carry each red flag right now");
 				check("in flight", "inflight_only", "Only sessions working right now (a transcript that moved in the last 5 minutes, or a Servex agent that is running).");
-				const pick = (name, key, values, title, group = false) => values.length && label.c("flex gap-35 v-center h4", () => {
-					span(name);
-					const sel = document.createElement("select");   // no select() helper in the framework
-					const option = t => { const o = document.createElement("option"); o.value = t; o.textContent = t || "any"; return o; };
-					sel.append(option(""));
-					if (group){   // module tags grouped by their top folder: core, ext, ux, ui, Server, Servex...
-						const tops = new Map();
-						for (const t of values) (tops.get(t.split("/")[0]) ?? tops.set(t.split("/")[0], []).get(t.split("/")[0])).push(t);
-						for (const [top, items] of tops){ const g = document.createElement("optgroup"); g.label = top; for (const t of items) g.append(option(t)); sel.append(g); }
-					} else for (const t of values) sel.append(option(t));
-					sel.value = this[key] || "";
-					sel.addEventListener("change", () => { this[key] = sel.value; this.render_rows(); });
-					div().el.append(sel);
-				}).attr("title", title);
-				const live = [...AISession.all.values()].map(s => s.ix);
-				pick("tag", "tag_filter", [...new Set(Object.values(this.session_index?.meta ?? {}).flatMap(m => m.tags))].sort(), "A tag written into a session's session.jsonl.");
-				pick("category", "category_filter", [...new Set(live.map(x => x.category).filter(Boolean))].sort(), "The category of the task that launched the session (the task audit).");
-				pick("core", "core_filter", [...new Set(live.flatMap(x => x.core ?? []))].sort(), "A framework module the session edited (the task audit): folder/Name, as in the repo.", true);
-				this.records_filter ??= new URLSearchParams(location.search).get("records") || "";   // /sessions/?records=has-card (doc/patterns.md links here)
-				pick("records", "records_filter", AISessionsPage.RECORDS, "Which other records the session has: an inbox card, a task folder, a brief, a report, a parent or children.");
+					this.records_filter ??= new URLSearchParams(location.search).get("records") || "";   // /sessions/?records=has-card still works (doc/patterns.md); the tag, category, core and records pickers were cut (2026-10-12)
 				div.c("sessions-daterange flex gap-50 v-center", () => {
 					small.c("muted", "from");
 					const $from = input().attr("type", "date");
@@ -215,7 +197,6 @@ export default class AISessionsPage extends Page {
 			this.$summary = div.c("sessions-summary flex gap-50 v-center");
 			div.c("sessions-chiprow", () => {
 				this.$by_role = div.c("sessions-chips");
-				this.$by_trigger = div.c("sessions-chips");
 			});
 			this.$cache_breakdown = div.c("sessions-by-role flow");
 		});
@@ -255,8 +236,7 @@ export default class AISessionsPage extends Page {
 
 		const { PAGE_SIZE } = AISessionsPage, id_of = r => r.session_id || r.id;
 		const { base, filtered, sorted: sorted_all } = this.filter_rows();
-		const in_now = new Set(this.last_rows.filter(AISessionRows.is_in_flight).map(id_of));   // one row per session: what the Now strip shows is not listed again below
-		const { top: sorted, kids_of } = AISessionRows.nest(sorted_all.filter(r => !in_now.has(id_of(r))));   // children nest under their parent, collapsed until opened
+		const { top: sorted, kids_of } = AISessionRows.nest(sorted_all);   // children nest under their parent, collapsed until opened
 		this.open_ids ??= new Set();
 		const place = (r, depth, seen) => {
 			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = this.open_ids.has(id_of(r));
@@ -286,22 +266,21 @@ export default class AISessionsPage extends Page {
 		this.shown_usd = filtered.reduce((n, r) => n + AISessionRows.claude_usd_of(r), 0);
 		this.filtered_count = filtered.length;
 		this.render_stats();
-		this.render_flight();
 
 		this.$summary?.empty(() => {
 			AISessionView.defect_line(this.session_index);
-			a.c("sessions-show-more-link").href("#").text(this.show_cache ? "hide cache breakdown" : "cache breakdown")
+			a.c("sessions-show-more-link").href("#").text((this.show_cache ? "hide cache breakdown" : "cache breakdown") + " · " + AISessionsPage.age_of(this.spend?.generated_at))
 				.on("click", e => { e.preventDefault(); this.show_cache = !this.show_cache; this.render_rows(); });
 		});
 
 		// Chips list every group present in `base`, so a deselected group stays visible and can be clicked back.
 		this.render_chips(this.$by_role, AISessionRows.by_role_totals(base), this.role_filter, g => g.role, g => AISessionRows.role_label(g.role), "role");
-		if (this.spend && AISessionRows.by_trigger_totals(base, this.spend).length > 1) this.render_chips(this.$by_trigger, AISessionRows.by_trigger_totals(base, this.spend), this.trigger_filter, g => g.trigger, g => ({ label: g.trigger === "(n/a)" ? "(none)" : g.trigger }), "started by");
 		this.render_cache_breakdown();
 	}
 
 	/** One row of clickable chips. Click one to show only that group; click again to show all. */
-	render_chips(host, groups, filter, key_of, label_of, heading){
+	render_chips(host, all_groups, filter, key_of, label_of, heading){
+		const groups = this.all_roles ? all_groups : all_groups.slice().sort((x, y) => y.claude_usd - x.claude_usd).slice(0, AISessionsPage.TOP_CHIPS);   // the few that matter: the biggest spenders
 		host?.empty(() => {
 			if (heading) small.c("muted sessions-chip-head", heading);
 			const all_on = groups.every(g => filter.has(key_of(g)));
@@ -315,7 +294,15 @@ export default class AISessionsPage extends Page {
 						this.render_rows();
 					});
 			});
+			if (all_groups.length > AISessionsPage.TOP_CHIPS) button.c("sessions-chip", this.all_roles ? "fewer" : `+${all_groups.length - AISessionsPage.TOP_CHIPS} more`).on("click", () => { this.all_roles = !this.all_roles; this.render_rows(); });
 		});
+	}
+
+	/** "computed 3 h ago" for a timestamp, or "age unknown": how fresh a derived file is. */
+	static age_of(iso){
+		const t = Date.parse(iso ?? ""); if (!t) return "age unknown";
+		const m = Math.round((Date.now() - t) / 6e4);
+		return "computed " + (m < 1 ? "just now" : m < 90 ? m + " min ago" : m < 2880 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " days ago");
 	}
 
 	/** The cache $ breakdown (all-time, from Server/spend-tree.mjs): one click down, not on level 1. */
@@ -326,7 +313,7 @@ export default class AISessionsPage extends Page {
 			const by_trigger = (this.spend?.by_trigger ?? []).filter(g => g.claude_usd);
 			const row = g => small.c("muted", `${g.key}: $${g.cache_read_usd.toFixed(2)} cache reads of $${g.claude_usd.toFixed(2)}`
 				+ (g.cache_read_pct != null ? ` (${g.cache_read_pct}%)` : "") + ` · ${g.count} agent${g.count === 1 ? "" : "s"}`);
-			div.c("muted").text("Cache $ breakdown, all-time — share of each group's $ spent re-reading cached context");
+			div.c("muted").text("Cache $ breakdown, all-time — share of each group's $ spent re-reading cached context · " + AISessionsPage.age_of(this.spend?.generated_at));
 			div.c("sessions-cache-cols", () => { div.c("flow", () => by_role.forEach(g => div(() => row(g)))); div.c("flow", () => by_trigger.forEach(g => div(() => row(g)))); });
 		});
 	}
@@ -359,8 +346,8 @@ export default class AISessionsPage extends Page {
 		const base = Prompts.base();
 		const fetch_agents = async () => (await get_json(base + "/api/agents")) ?? (await get_json("/api/agents")) ?? [];
 		let timer = null;
-		// An agent event redraws the small Now strip in 250 ms; the 200-row grid (~45 ms a draw, it was drawn about once a second) at most every 3 s.
-		const soon = () => { timer ??= setTimeout(() => { timer = null; this.build_rows(); this.render_flight(); this.draw_later(); }, 250); };
+		// An agent event redraws the grid at most every 3 s (a draw is ~45 ms).
+		const soon = () => { timer ??= setTimeout(() => { timer = null; this.build_rows(); this.draw_later(); }, 250); };
 		const poll = async () => {
 			if (!this.polling) return;
 			if (!document.hidden && !this.stream_open){ this.last_agents = await fetch_agents(); this.draw(); }
@@ -379,7 +366,7 @@ export default class AISessionsPage extends Page {
 				soon();
 			});
 		} catch {}
-		clearInterval(this.tick); let n = 0; this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length){ this.render_flight(); if (++n % 4 === 0) AISessionFlags.load(this.url).then(() => this.draw()); } this.follow_live(); }, 30000);   // the 1.4 MB flags file and a full redraw: every 2 minutes, not every 30 s   // running times advance
+		clearInterval(this.tick); let n = 0; this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length){ this.render_stats(); if (++n % 4 === 0) AISessionFlags.load(this.url).then(() => this.draw()); } this.follow_live(); }, 30000);   // the 1.4 MB flags file and a full redraw: every 2 minutes, not every 30 s   // running times advance
 
 		AISessionFlags.load(this.url).then(() => {   // roles and red flags: the roles change, so the role filter is rebuilt from them
 			if (!this.last_rows.length) return;

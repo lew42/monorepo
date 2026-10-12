@@ -27,7 +27,7 @@ export default class AISessionRows {
 	static COLUMNS = [
 		{ key: "state",    label: "State",    min: 56, hint: "Working now (blinking ▶) or not (•). Click to put the working ones first." },
 		{ key: "name",     label: "Name",     min: 160 },
-		{ key: "cost",     label: "Cost",     min: 120, hint: "Click to sort. Without a sort, rows are ordered by cost weighted by recency: a cost counts half as much for every 3 days since the session was last active." },
+		{ key: "cost",     label: "Cost",     min: 120, hint: "Click to sort. Without a sort, rows run newest activity first." },
 		{ key: "updated",  label: "Updated",  min: 88, hint: "Click to sort by the last activity, newest first." },
 		{ key: "duration", label: "Duration", min: 84 },
 		{ key: "role",     label: "Role",     min: 110 },
@@ -279,14 +279,9 @@ export default class AISessionRows {
 
 	/** sort = null (the default: cost weighted by recency, halving every 3 days since last activity) or { key, dir }. */
 	static sort_rows(rows, sort){
-		if (!sort){
-			const now = Date.now();
-			const score = r => {
-				const ix = AISessionRows.row_of(AISessionRows.ix, r.session_id || r.id);
-				const days = Math.max(0, (now - Date.parse(r.last_activity ?? 0)) / 864e5);
-				return ((ix?.tree_usd ?? ix?.usd ?? AISessionRows.cost_value(r) ?? 0) + 0.01) * Math.pow(0.5, days / 3);
-			};
-			return rows.map(r => [score(r), r]).sort((a, b) => b[0] - a[0]).map(x => x[1]);
+		if (!sort){   // one list, newest activity first: a running session is the newest, so it sits at the top
+			const now = Date.now(), t = r => AISessionRows.is_in_flight(r) ? now : Date.parse(r.last_activity ?? 0) || 0;
+			return rows.slice().sort((x, y) => t(y) - t(x));
 		}
 		const get = AISessionRows.SORT_VALUE[sort.key], sign = sort.dir === "asc" ? 1 : -1;
 		const keyed = rows.map(r => [get(r), r]);

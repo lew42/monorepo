@@ -71,6 +71,16 @@
 		min-width: 100%;
 	}
 
+	/* After the first drag every column is exactly its token (set from the measured widths), so each handle moves its own column. */
+	.sessions-grid-fixed {
+		grid-template-columns: var(--col-state) var(--col-name) var(--col-cost) var(--col-updated) var(--col-duration) var(--col-role) var(--col-source) var(--col-model);
+	}
+	.sessions-grid-fixed .sessions-rows .sessions-cell { overflow: hidden; text-overflow: ellipsis; }
+	/* The handle is always faintly there (it used to appear only when the pointer was near) and its grab strip is wider. */
+	.sessions-head-cell .grip { --grip-out: 0.6rem; --grip-in: 0.6rem; }
+	.sessions-head-cell .grip::before { opacity: .25; }
+	.sessions-head-cell .grip:hover::before { opacity: 1; }
+
 	.sessions-head, .sessions-rows, .sessions-row { display: contents; }
 
 	.sessions-cell {

@@ -30,3 +30,14 @@ On the real data (30 days of day files, about 4.7 MB) the same cut removes Septe
 | 7 | What each session spent on | Each row shows the modules it edited and the count of files, from its own Edit/Write calls (`s.touched`), with the task audit's module join winning where it has one. `files.jsonl` in a task folder is only a directory listing, so it was not a source. Which session spent how much on a given *file* is not stored; a per-file list would extend `s.touched` (it already holds file to times). |
 
 Tab title, registered name, current model, a **Now** strip on top and stale rows below: the row title is the tab's own title (`ai-title`/`custom-title` line in the transcript) with the `register_session` name beside it.
+
+## Follow-up 2026-10-12, round 2 (one grid, fewer chips, resize, freshness)
+
+| Ask | Result |
+|---|---|
+| One grid sorted by recency, not "Now" plus a full grid | The Now strip is gone. One list, newest activity first; a session in flight counts as "now", so it sits on top. Count of live ones stays in the state dot. `AISessionRows.sort_rows`. |
+| Cut the 15-20 chips | Role chips show the 5 biggest spenders plus "+N more"; the "started by" chip row and the tag, category, core and records pickers are gone (`?records=has-card` still works from the URL). `AISessionsPage.render_chips`. |
+| Resize handles barely work and lag | Cause: Cost, Role, Model and State were `max-content` tracks that ignored their token, and the handle only showed when the pointer was near. Now the first drag freezes every column at its measured width, then each handle moves exactly its own column (one write per frame, double-click goes back to fit-to-content), and the handle is always faintly visible with a wider grab strip. Headless, 204 rows at 1920: about 25 ms per drag step. `shots/one-grid-*.png`. |
+| How fresh is the cost breakdown | The "cache breakdown" link and its panel say "computed 3 h ago", read from `spend-tree.json`'s `generated_at` (`AISessionsPage.age_of`). The per-row cost is the live index, not that file. |
+
+The detail view, footer and stale model field belong to the sessions-detail task; this round touched only the grid files (`AISessionsPage.js`, `AISessionRows.js`, `sessions.css`).
