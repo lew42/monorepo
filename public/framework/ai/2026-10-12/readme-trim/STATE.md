@@ -1,0 +1,1 @@
+Done 2026-10-12: Page 127->76, sessions 206->83, Servex 391->98 lines. Sections moved verbatim to each module's doc/readme-full-2026-10-12.md; trim.mjs verified 0 missing sentences of 748. Committed per readme on the current branch.
