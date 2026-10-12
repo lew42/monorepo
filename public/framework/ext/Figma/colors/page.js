@@ -27,14 +27,14 @@ function live_contrast($box, $line){
 }
 
 // One ground card, `depth` more `.card`s nested straight inside it.
-function card(cls, label, depth){
+function card(cls, label, depth, on_prime = cls.includes("bg-prime")){
 	div.c(cls, $box => {
 		h4(label);
 		const $line = p("Text on this card: — : 1 contrast");
-		if (!cls.includes("bg-prime")) p.c("fs-prime-text", "Prime-bound text specimen");   // blue on blue is invisible; the design omits it
+		if (!on_prime) p.c("fs-prime-text", "Prime-bound text specimen");   // prime text on a prime ground is invisible; skip it there
 		p.c("muted", "Secondary text specimen");
 		live_contrast($box, $line);
-		if (depth > 0) card("card", "↳ Nested card", depth - 1);
+		if (depth > 0) card("card", "↳ Nested card", depth - 1, on_prime);
 	});
 }
 

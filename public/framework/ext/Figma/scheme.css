@@ -1,12 +1,7 @@
 @layer base, theme, site, util;
 
-/* The Figma Sept-2026 file's own palette, scoped to the pages rebuilt from it:
-   `prime` is its blue and `dark` its brown-grey, so a ground, a label or a bar that
-   the design calls prime IS `--prime` (the token), never our orange mapped in its
-   place. Ink on its prime ground is white, as drawn. See doc/scheme.md. */
+/* Pages rebuilt from the Figma Sept-2026 file use the SITE's tokens (`--prime`, `--dark`,
+   dark ink on `.bg-prime`); only the one "prime-bound text" specimen line lives here. */
 @layer theme {
-	.figma-scheme { --prime: #72c4ff; --dark: #675f56; }
-	.figma-scheme .bg-prime { color: #fff; --subtle: rgb(255 255 255 / 0.8); }
-	.figma-scheme button.prim, .figma-scheme .btn.prim { color: #fff; }
 	.figma-scheme .fs-prime-text { color: var(--prime); font-weight: 700; font-size: .75em; letter-spacing: .07em; text-transform: uppercase; }
 }
