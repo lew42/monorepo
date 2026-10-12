@@ -13,7 +13,7 @@ import { module_list, module_detail } from "/framework/ext/AITask/module-spend.j
 import { Versions } from "/framework/ai/v/Versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
 import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
-import { VIRTUAL_TABS, SYSTEM_PARTS, tab_page, readme_chain, heading, detect_tabs } from "./overview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
+import { AIOverview } from "./AIOverview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
 
 // "tests" → "Tests" — the label a detected tab wears when nobody says otherwise.
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
@@ -50,11 +50,11 @@ export default new Page({
 				div.c("tabs block", () => {
 					// Inbox has no folder of its own — the band always draws it first.
 					const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Inbox"); });
-					// The REST of the strip is DETECTED, not hand-listed (overview.js's
-					// detect_tabs(), the owner, 2026-10-01): these links render after
+					// The REST of the strip is DETECTED, not hand-listed (AIOverview.js's
+					// AIOverview.detectTabs(), the owner, 2026-10-01): these links render after
 					// the page's own mark() pass, so they need their own, same as a late
 					// ext/tabs strip does (tabs.js's draw_bar()).
-					detect_tabs(this).then(tabs => {
+					AIOverview.detectTabs(this).then(tabs => {
 						$bar.append(() => tabs.forEach(({ name }) => a.c("tab").href(this.url + name + "/").text(cap(name))));
 						this.app?.router?.mark_links();
 					});
@@ -113,10 +113,10 @@ export default new Page({
 		   itself owns the routing (`v/3/page.js`'s own `board_route`), so
 		   `/framework/ai/grid/` and `/framework/ai/v/3/grid/` cannot drift. */
 		// (Under ?v1 the old board owns `log/`: the task log below.)
-		if (VIRTUAL_TABS.includes(name) && !(v1() && name === "log")) return tab_page(this, name);
+		if (AIOverview.VIRTUAL_TABS.includes(name) && !(v1() && name === "log")) return AIOverview.tabPage(this, name);
 		// Old urls keep working: the Overview is now System, and its parts moved under it.
-		if (name === "overview") return tab_page(this, "system", this.url + "overview/");
-		if (SYSTEM_PARTS.includes(name)) return tab_page(this, name);
+		if (name === "overview") return AIOverview.tabPage(this, "system", this.url + "overview/");
+		if (AIOverview.SYSTEM_PARTS.includes(name)) return AIOverview.tabPage(this, name);
 		const concept = CONCEPTS.find(c => c.slug === name);
 		if (concept) return concept_page(this, concept);
 
@@ -231,7 +231,7 @@ function concept_page(parent, c){
 			// A system is shown by its effect (the owner, 2026-09-30: the iceberg).
 			// Where a page's data lives (mastermind-servex-9's merge-approval proposal, §7).
 			if (c.slug === "inboxes"){
-				heading("Everything is a page", "A page gets a directory once it has grown. Until then it is a line in its parent's `page.jsonl`. A name that only groups pages is a namespace.");
+				AIOverview.heading("Everything is a page", "A page gets a directory once it has grown. Until then it is a line in its parent's `page.jsonl`. A name that only groups pages is a namespace.");
 				md([
 					"| State | On disk | Reached at | Example |",
 					"|---|---|---|---|",
@@ -239,7 +239,7 @@ function concept_page(parent, c){
 					"| **Virtual page** | one line with an `id` in the parent's `page.jsonl` | `parent/<id>/` | a chat message, an inbox note |",
 					"| **Namespace** | nothing: a key other lines carry | a filtered view, `?tag=servex` | a tag, a kind, a day |",
 				].join("\n"));
-				heading("Where per-path AI data lives today");
+				AIOverview.heading("Where per-path AI data lives today");
 				md([
 					"| What | File |",
 					"|---|---|",
@@ -250,8 +250,8 @@ function concept_page(parent, c){
 				md("**Proposed, not built:** `promote(parent, id)` turns a virtual page into a real one. The thread moves into its own folder, and a `moved` line keeps the old url working. The whole case: [the proposal, §7](/framework/ai/2026-09-30/servex-mastermind/merge-approval-proposal.md).");
 			}
 			if (c.slug === "readmes"){
-				heading("The chain, live", "What a fresh agent in `public/framework/ai/` is handed, root first.");
-				readme_chain("public/framework/ai/");
+				AIOverview.heading("The chain, live", "What a fresh agent in `public/framework/ai/` is handed, root first.");
+				AIOverview.readmeChain("public/framework/ai/");
 			}
 		},
 	});

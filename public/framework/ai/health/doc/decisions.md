@@ -92,15 +92,15 @@ above is what actually reaches `JSON.parse` intact; the first few attempts silen
 
 ## The dev-bar line — built, not wired (fence: not `dev/DevBar/**`)
 
-`devbar.js` is the same shape as `dev/DevBar/hold.js` beside it: a function returning one `span`,
+`HealthDevbar.js` is the same shape as `dev/DevBar/hold.js` beside it: a function returning one `span`,
 `hidden` when there's nothing to say, showing `page health: N broken [+M warn]` linked to
 `/framework/ai/health/` otherwise. Two lines for whoever owns `DevBar.js` (verified against its
 current shape: `hold.js` is imported at the top and called at `DevBar.js`'s own dev-head-line row,
 line 8 and line 48 today):
 
 ```js
-import health_devbar from "../../ai/health/devbar.js";   // beside: import hold from "./hold.js";
-health_devbar();                                          // beside: hold();
+import { HealthDevbar } from "../../ai/health/HealthDevbar.js";   // beside: import hold from "./hold.js";
+HealthDevbar.line();                                       // beside: hold();
 ```
 
 ## Two spacing lint checks (`card-word`, 2026-09-19)

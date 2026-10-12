@@ -6,7 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import Asks from "./Asks.js";
-import { fold_asks, ask_id } from "../../public/framework/ai/asks/fold.js";
+import { AskFold } from "../../public/framework/ai/asks/AskFold.js";
 import { stalled } from "./stalled.js";
 
 let pass = 0, fail = 0;
@@ -43,15 +43,15 @@ const SIXTEEN = [
 ];
 
 function test_fold(){
-	const folded = fold_asks(SIXTEEN);
+	const folded = AskFold.fold(SIXTEEN);
 	check("16 real lines fold to 16 asks", Object.keys(folded).length === 16);
 	check("every folded ask keeps its route fields", Object.values(folded).every(a => a.title && a.owner !== undefined && a.status));
 	check("each history is one entry (one line each)", Object.values(folded).every(a => a.history.length === 1));
 	check("no status_at yet (no update line seen)", Object.values(folded).every(a => a.status_at === undefined));
 
 	// a status update line merges over, `at` stays the ROUTE time, `status_at` becomes the update's
-	const id = ask_id(SIXTEEN[0].ask);
-	const updated = fold_asks([...SIXTEEN, { ask: { id, status: "stalled", why: "quiet", by: "servex-asks-tick", at: "2026-09-30T20:00:00-05:00" } }]);
+	const id = AskFold.id(SIXTEEN[0].ask);
+	const updated = AskFold.fold([...SIXTEEN, { ask: { id, status: "stalled", why: "quiet", by: "servex-asks-tick", at: "2026-09-30T20:00:00-05:00" } }]);
 	check("a later line overwrites status", updated[id].status === "stalled");
 	check("a later line's `at` becomes status_at, not `at`", updated[id].at === "2026-09-30T13:47:28-05:00" && updated[id].status_at === "2026-09-30T20:00:00-05:00");
 	check("history now has 2 entries", updated[id].history.length === 2);
@@ -84,7 +84,7 @@ function test_stalled_rules(){
 
 async function test_mark_once_and_speak_again(){
 	const file = tmpfile();
-	const id = ask_id({ title: "Test ask for the tick" });
+	const id = AskFold.id({ title: "Test ask for the tick" });
 	fs.writeFileSync(file, JSON.stringify({ ask: { at: "2026-09-30T10:00:00-05:00", title: "Test ask for the tick", owner: "agent-x", status: "building" } }) + "\n");
 
 	const asks = new Asks({ file });   // no `servex` yet: initialize() must not start ticking on its own
@@ -114,7 +114,7 @@ async function test_mark_once_and_speak_again(){
 
 async function test_mark_refuses_bad_input(){
 	const file = tmpfile();
-	const id = ask_id({ title: "Refuse me" });
+	const id = AskFold.id({ title: "Refuse me" });
 	fs.writeFileSync(file, JSON.stringify({ ask: { at: "2026-09-30T10:00:00-05:00", title: "Refuse me", owner: "agent-y", status: "routed" } }) + "\n");
 	const asks = new Asks({ file });
 

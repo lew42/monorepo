@@ -1,7 +1,7 @@
 // page_settings(page_url) — this page's own settings, read without loading the page: {
 //   nav: true|false    "does this page appear in its parent's navigation?"
 //   tab: true|false|undefined   "does this page join a DETECTED tab bar?" (added 2026-10-01,
-//                        ai/overview.js's detect_tabs() — undefined means the line was never set)
+//                        ai/AIOverview.js's detectTabs() — undefined means the line was never set)
 //   weight: number       orders a detected tab, ascending (default 1; only means anything when tab is true)
 // }
 //

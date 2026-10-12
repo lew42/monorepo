@@ -33,7 +33,7 @@ Then look at the whole page at 1920 and 3440, reached the way the owner reaches 
 
 ## Which kind of page is this?
 
-Pick a type from [`/framework/ai/audits/paging/types.json`](/framework/ai/audits/paging/), most-used first (`uses`). Each type is a template: its `template` field names the Page words that build it, so no page-specific CSS. If none fits, propose a new type. Every page made with a type bumps its `uses` by one (`bump(id)` in `types.js`: read the file, uses + 1, write), so the common types rise to the top.
+Pick a type from [`/framework/ai/audits/paging/types.json`](/framework/ai/audits/paging/), most-used first (`uses`). Each type is a template: its `template` field names the Page words that build it, so no page-specific CSS. If none fits, propose a new type. Every page made with a type bumps its `uses` by one (`PageTypes.bump(id)` in `PageTypes.js`: read the file, uses + 1, write), so the common types rise to the top.
 
 Creating a new page needs:
 1. A line in the parent's `children:` (no line, no page).

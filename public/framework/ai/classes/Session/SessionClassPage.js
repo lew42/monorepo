@@ -5,7 +5,7 @@ import Session from "../../sessions/Session.js";
 import SessionView from "../../sessions/SessionView.js";
 import SessionLive from "../../sessions/SessionLive.js";
 import SessionRows from "../../sessions/SessionRows.js";
-import { class_card, find } from "../../system-classes.js";
+import { SystemClasses } from "../../SystemClasses.js";
 
 View.stylesheet("/framework/ai/sessions/sessions.css");
 Session.View = SessionView;
@@ -13,7 +13,7 @@ Session.View = SessionView;
 // THE SESSION CLASS CARD with a live debug view. Left: one real Session drawn by its own View (session.render()).
 // Right: the same instance as a property tree (inspect()). When the live index changes that session, both redraw,
 // so you see which property moved. It follows the session that was active most recently.
-// The class card (name, icon, core API) is the entry in ../../system-classes.js; nothing here is a second card system.
+// The class card (name, icon, core API) is the entry in ../../SystemClasses.js; nothing here is a second card system.
 export default class SessionClassPage extends Page {
 	constructor(...args){
 		super({
@@ -24,7 +24,7 @@ export default class SessionClassPage extends Page {
 	}
 
 	content(){
-		class_card(find("Session"));
+		SystemClasses.card(SystemClasses.find("Session"));
 		const demo = div.c("wide flex gap-100").style({ alignItems: "flex-start", flexWrap: "wrap" });
 		const note = small.c("muted", "Loading the live session index…");
 		demo.append(() => {

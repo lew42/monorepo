@@ -11,12 +11,14 @@
  * isn't `{"ask": {...}}` (a stray blank line, a line for another ledger) is
  * skipped. */
 
+export class AskFold {
+
 /** An ask's id: what it already carries, or a short kebab slug of its title —
  * lowercase, every run of non-alphanumeric characters becomes one `-`, no
  * leading or trailing `-`, at most 48 characters. `mark.mjs` needs something
  * typeable, and the 16 lines already in the ledger have no `id` field at all,
  * so this is what makes them addressable. */
-export function ask_id(ask){
+static id(ask){
 	if (ask && ask.id) return ask.id;
 	const title = (ask && ask.title) || "";
 	return String(title)
@@ -35,12 +37,12 @@ export function ask_id(ask){
  * last changed" (`status_at`). Every line seen for the id, in order, is also
  * kept as `history: [{status, why, by, at}]`, so a reader can show the whole
  * trail, not just where it landed. */
-export function fold_asks(lines){
+static fold(lines){
 	const out = {};
 	for (const line of lines ?? []){
 		const ask = line && typeof line === "object" && !Array.isArray(line) ? line.ask : null;
 		if (!ask || typeof ask !== "object") continue;
-		const id = ask_id(ask);
+		const id = AskFold.id(ask);
 		if (!id) continue;
 
 		// An update for an id never routed (a typo'd id, written by hand) has no title or owner:
@@ -61,3 +63,7 @@ export function fold_asks(lines){
 	}
 	return out;
 }
+
+}
+
+export default AskFold;

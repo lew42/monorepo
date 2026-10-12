@@ -1,4 +1,4 @@
-import { typesWall } from "./types/types.js";
+import { PageTypePages } from "./types/PageTypePages.js";
 import { Page, p, b, md, div, a, img, details, summary, h2, span } from "/app.js";
 
 /* ── layout ────────────────────────────────────────────────────────────────
@@ -87,7 +87,7 @@ export default new Page({
 
 		h2("Round 3: the page-type library");
 		p("Pick a type; it opens a wall of its variants, each its own page. Data: ", a("types.json").attr("href", here("types.json")), ". ", a("The wall on its own page").attr("href", "types/"), ".");
-		typesWall({ url: here("types/") });
+		PageTypePages.wall({ url: here("types/") });
 
 		h2("Round 4: page-specific CSS");
 		div(() => {

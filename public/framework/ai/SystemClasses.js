@@ -2,14 +2,14 @@ import { div, a, span, small, strong, icon } from "/app.js";
 import { file_link } from "/framework/ext/filesystem/file_link.js";
 
 /* THE AI SYSTEM AS CLASSES (the owner, 2026-10-08: "show structure, not prose").
-   `CLASSES` is the hand-picked core API of each Servex class: the few members a newcomer
-   should know, judged by reading the source, not weighted by a script. `class_card()` draws one;
-   `live_agents()` draws the running Servex's agents. Servex classes are node code, so they
+   `SystemClasses.CLASSES` is the hand-picked core API of each Servex class: the few members a newcomer
+   should know, judged by reading the source, not weighted by a script. `SystemClasses.card()` draws one;
+   `SystemClasses.liveAgents()` draws the running Servex's agents. Servex classes are node code, so they
    cannot be imported here, and this list is the card's data. Source of truth: the file named on
    each card. When a class changes shape, edit its entry.
    Not-yet-classes (loose functions that should become one) are listed in
    ai/2026-10-08/ai-system-docs/findings.md. */
-export const CLASSES = [
+const CLASSES = [
 	{ name: "Servex", icon: "hub", file: "Servex/Servex.js", doc: "/framework/servex/",
 		gist: "The always-on process. It owns port 80, the logs, the dev servers, and holds every agent.",
 		api: ["agents", "dispatcher", "pool", "usage", "heartbeat", "monitor", "command(name, verb)", "routes()", "health()", "listen(port)"] },
@@ -55,40 +55,49 @@ export const CLASSES = [
 ];
 
 const by_name = Object.fromEntries(CLASSES.map(c => [c.name, c]));
-export const find = name => by_name[name];
-
-/* One class: icon + name on a dark card, its gist, then its core API as plain unboxed
-   items (no cards inside the card). The source file is the second link. */
-export function class_card(c){
-	return div.c("card page-surface-dark flex v gap-35 ai-class-card", () => {
-		a.c("flex gap-50", () => { icon(c.icon).style({ fontSize: "2rem" }); strong(c.name); })
-			.attr("href", c.doc).style({ textDecoration: "none", color: "inherit", alignItems: "center" });
-		small.c("muted", c.gist);
-		div.c("flex wrap gap-50", () => c.api.forEach(m => span.c("ai-class-api", m).style({ fontFamily: "var(--mono, monospace)", fontSize: ".8em" })));
-		small(() => a("source").attr("href", file_link(c.file)));
-	});
-}
-
-export function class_cards(names){
-	const list = (names ? names.map(find) : CLASSES).filter(Boolean);
-	return div.c("wide", () => list.forEach(class_card))
-		.style({ display: "grid", gap: "var(--gap, 1rem)", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 17rem), 1fr))" });
-}
-
-/* LIVE INSTANCES: the agents the running Servex holds right now. Fetched from Servex's own
-   /api/agents (port 80); if Servex is not running, a quiet line says so. The box is captured
-   now and filled in the callback (no DOM after an await). */
 const SERVEX = "http://localhost/api/agents";
-export function live_agents(limit = 12){
-	const box = div.c("ai-live-agents flex v gap-25");
-	small.c("muted", "Live from Servex.");
-	fetch(SERVEX).then(r => r.json()).then(rows => {
-		const live = rows.filter(r => r.state !== "stopped").sort((x, y) => String(y.started_at).localeCompare(String(x.started_at))).slice(0, limit);
-		box.append(() => live.forEach(r => div.c("flex gap-50", () => {
-			icon(r.role === "mastermind" ? "psychology" : r.role === "minion" ? "engineering" : "smart_toy");
-			strong(r.id);
-			small.c("muted", [r.role, r.model?.replace("claude-", ""), r.state, "$" + (r.cost ?? 0).toFixed(2)].filter(Boolean).join(" · "));
-		}).style({ alignItems: "center" })));
-	}).catch(() => box.append(() => small.c("muted", "Servex is not answering, so no agents to show.")));
-	return box;
+
+export class SystemClasses {
+
+	static find(name){ return by_name[name]; }
+
+	/* One class: icon + name on a dark card, its gist, then its core API as plain unboxed
+	   items (no cards inside the card). The source file is the second link. */
+	static card(c){
+		return div.c("card page-surface-dark flex v gap-35 ai-class-card", () => {
+			a.c("flex gap-50", () => { icon(c.icon).style({ fontSize: "2rem" }); strong(c.name); })
+				.attr("href", c.doc).style({ textDecoration: "none", color: "inherit", alignItems: "center" });
+			small.c("muted", c.gist);
+			div.c("flex wrap gap-50", () => c.api.forEach(m => span.c("ai-class-api", m).style({ fontFamily: "var(--mono, monospace)", fontSize: ".8em" })));
+			small(() => a("source").attr("href", file_link(c.file)));
+		});
+	}
+
+	static cards(names){
+		const list = (names ? names.map(SystemClasses.find) : CLASSES).filter(Boolean);
+		return div.c("wide", () => list.forEach(c => SystemClasses.card(c)))
+			.style({ display: "grid", gap: "var(--gap, 1rem)", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 17rem), 1fr))" });
+	}
+
+	/* LIVE INSTANCES: the agents the running Servex holds right now. Fetched from Servex's own
+	   /api/agents (port 80); if Servex is not running, a quiet line says so. The box is captured
+	   now and filled in the callback (no DOM after an await). */
+	static liveAgents(limit = 12){
+		const box = div.c("ai-live-agents flex v gap-25");
+		small.c("muted", "Live from Servex.");
+		fetch(SERVEX).then(r => r.json()).then(rows => {
+			const live = rows.filter(r => r.state !== "stopped").sort((x, y) => String(y.started_at).localeCompare(String(x.started_at))).slice(0, limit);
+			box.append(() => live.forEach(r => div.c("flex gap-50", () => {
+				icon(r.role === "mastermind" ? "psychology" : r.role === "minion" ? "engineering" : "smart_toy");
+				strong(r.id);
+				small.c("muted", [r.role, r.model?.replace("claude-", ""), r.state, "$" + (r.cost ?? 0).toFixed(2)].filter(Boolean).join(" · "));
+			}).style({ alignItems: "center" })));
+		}).catch(() => box.append(() => small.c("muted", "Servex is not answering, so no agents to show.")));
+		return box;
+	}
+
+	static CLASSES = CLASSES;
+
 }
+
+export default SystemClasses;

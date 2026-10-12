@@ -5,13 +5,13 @@ import { Faces } from "../cards/faces.js";
 import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
 import { Fold } from "../cards/Fold.js";
 import { NeedsRule } from "./NeedsRule.js";
-import { fold_asks } from "../asks/fold.js";
+import { AskFold } from "../asks/AskFold.js";
 
 /**
  * NEEDS YOU — one ranked list of everything waiting on the owner, read off the
  * SAME card logs every other AI 2 view already reads (no new datastore, no
  * Servex change, per brief D), PLUS every STALLED line in the asks ledger
- * (`../ai/asks/fold.js`'s `fold_asks` — the one vocabulary Servex's own
+ * (`../ai/asks/AskFold.js`'s `AskFold.fold` — the one vocabulary Servex's own
  * `Asks.js` folds the same way, so the two can never disagree). The rule for
  * what counts as "open" lives in `needs-rule.js` (`card_needs`, `is_blocker`),
  * shared with brief E's rail filter and Servex's `list_waiting` tool; the rule
@@ -68,7 +68,7 @@ export class Needs {
 	static async stalled_rows(){
 		const text = await Needs.read_text(ASKS_URL);
 		if (!text) return [];
-		const folded = fold_asks(Fold.parse_lines(text));
+		const folded = AskFold.fold(Fold.parse_lines(text));
 		return Object.values(folded).filter(a => a.status === "stalled").map(ask => {
 			const hours = NeedsRule.silent_hours(ask);
 			return {

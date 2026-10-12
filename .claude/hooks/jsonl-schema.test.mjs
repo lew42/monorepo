@@ -60,9 +60,9 @@ for (const [kind, s] of Object.entries(schemas)){
 	}
 }
 {
-	const { fold_asks } = await import(pathToFileURL(join(ROOT, "public/framework/ai/asks/fold.js")).href);
-	const folded = fold_asks([{ ask: { at: "t", title: "One ask" } }, { other: { at: "t" } }]);
-	ok(Object.keys(folded).length === 1, "asks.jsonl: fold_asks reads `ask` lines and skips anything else");
+	const { AskFold } = await import(pathToFileURL(join(ROOT, "public/framework/ai/asks/AskFold.js")).href);
+	const folded = AskFold.fold([{ ask: { at: "t", title: "One ask" } }, { other: { at: "t" } }]);
+	ok(Object.keys(folded).length === 1, "asks.jsonl: AskFold.fold reads `ask` lines and skips anything else");
 	const fold_src = readFileSync(join(ROOT, "public/framework/ai/cards/fold.js"), "utf8");
 	ok(Object.keys(schemas["page.jsonl"].verbs).every(k => fold_src.includes(`key === "${k}"`)), "page.jsonl: every structured key is one ai2/fold.js absorb() reads");
 }

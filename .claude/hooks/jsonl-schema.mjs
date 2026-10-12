@@ -73,7 +73,7 @@ export const schemas = {
 	},
 	"asks.jsonl": {
 		what: "the owner's routed asks (public/framework/ai/asks.jsonl)",
-		reader: { file: "public/framework/ai/asks/fold.js", fn: "fold_asks" },
+		reader: { file: "public/framework/ai/asks/AskFold.js", fn: "AskFold.fold" },
 		verbs: {
 			ask: { fields: ["at"], any: ["id", "title"], eg: { at: "NOW", id: "slug", status: "building", why: "…", by: "agent-id" } },
 		},

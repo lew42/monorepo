@@ -1,2 +1,2 @@
-import { typePage } from "../types.js";
-export default typePage(import.meta, "task");
+import { PageTypePages } from "../PageTypePages.js";
+export default PageTypePages.page(import.meta, "task");
