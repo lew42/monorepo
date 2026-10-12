@@ -62,6 +62,7 @@ import { fileURLToPath } from "node:url";
 import { sizeOf, status as reviewStatus, diffStat, pageUrlFor, widthsFor, splitPatch, writeNoReviewPass } from "./review.mjs";
 import { keepLive } from "./jsonl-keep.mjs";
 import TaskDirs from "./TaskDirs.mjs";
+import { OrphanCheck } from "./OrphanCheck.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 
 const BASE = "michael/dev";
@@ -442,6 +443,8 @@ try {
 			if (gateWhy) { console.error(gateWhy); code = 1; proceed = false; }
 		}
 		if (proceed) {
+		// Warning only, never a refusal: a changed page.js its parent does not name is invisible in the nav.
+		try { const { nameStatus: ns } = diffStat(MAIN, `${BASE}...${branch}`); for (const w of OrphanCheck.warn(ns.filter(x => x.status !== "D").map(x => x.f), path.join(dir, "public", "framework"))) console.warn(w); } catch {}
 		// --no-renames: a renamed file must list its old path too, or the old one would never be deleted
 		const changed = lines(git(MAIN, "diff", "--name-only", "--no-renames", `${BASE}...${branch}`).stdout);
 		const status = lines(git(MAIN, "diff", "--name-status", "--no-renames", `${BASE}...${branch}`).stdout)
