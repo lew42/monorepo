@@ -15,7 +15,7 @@ import { author_word, role_word, type_icon, create_card, append_card, cards_read
 import { watch_needs, needs_for, needs_soon } from "../rail/needs.js";
 import "/framework/ext/tabs/tabs.js";   // for its stylesheet: a card's tab strip wears .tabs / .tab-bar / .tab
 import { seen, mark_seen, card_events, activity_list } from "./activity.js";
-import { mark_read, is_read } from "./rules.js";
+import { Rules } from "./Rules.js";
 import floating from "./floating.js";
 import workspace from "./workspace.js";
 
@@ -1052,7 +1052,7 @@ export default class Card extends Page {
 		// a second tracker. It clears itself the moment the topic's own card page opens
 		// (`activated()`, below, already calls `mark_read(this.id)` on every card) — no new code
 		// needed to clear it, only to show it.
-		const fresh = r.topic && !is_read(r.id);
+		const fresh = r.topic && !Rules.is_read(r.id);
 		div.c("ai2-ol-row" + (r.topic ? " topic" : r.done ? " done" : " open") + (r.live ? " live" : ""), () => {
 			span.c("ai2-ol-mark").text(r.topic ? "•" : r.done ? "✓" : "☐");
 			if (r.proof) a.c("ai2-ol-title page-link").href(r.proof).text(r.title);
@@ -1306,7 +1306,7 @@ export default class Card extends Page {
 		// browser `localStorage` flag (`rules.js`) that only ever un-bolds a title; the row never
 		// leaves the Inbox and nobody else's copy changes. The Live card has no `id` worth
 		// marking and is always drawn fresh regardless, so this is harmless for it either way.
-		mark_read(this.id);
+		Rules.mark_read(this.id);
 		// An owner note is read for good (a shared `reviewed` line) the moment you open it, so it leaves the top of the Inbox.
 		if (this.shell?.ai2?.cards?.by_id?.get(this.id)?.tags?.includes("owner-note")) append_card(this.id, { reviewed: { at: stamp(), by: "owner" } });
 		this.shell?.ai2?.repaint?.();

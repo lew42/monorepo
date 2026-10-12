@@ -18,7 +18,7 @@ import { Meter } from "../cards/Meter.js";
 import { agent_cost } from "../cards/agents.js";
 import workspace from "../cards/workspace.js";
 import { RealPage, page_events, real_title } from "../cards/real.js";
-import { is_read, mark_read, archive_row, is_resolved } from "../cards/rules.js";
+import { Rules } from "../cards/Rules.js";
 
 /* The AI-only look: the usage meters, a row's progress meter, "what happened", groups.
    The rail itself is styled by the ux block (ux/Inbox/Inbox.css), loaded by Inbox.Rail. */
@@ -224,7 +224,7 @@ export default class AIRail extends Inbox.Rail {
 			links: [], flag: null, author: "owner", unread: false, status: "open" };
 		this.yesterday_item = { id: "day-" + yesterdayDate, kind: "day-pin", icon: "history",
 			title: "Yesterday", text: nice(yesterday), at: yesterday.toISOString(), href: `/framework/ai/${yesterdayDate}/`,
-			links: [], flag: null, author: "owner", unread: !is_read("day-" + yesterdayDate), status: "open" };
+			links: [], flag: null, author: "owner", unread: !Rules.is_read("day-" + yesterdayDate), status: "open" };
 	}
 
 	/* READ/UNREAD is this browser's own flag (rules.js); the Live card is always fresh and
@@ -232,7 +232,7 @@ export default class AIRail extends Inbox.Rail {
 	   highest open need. */
 	decorate(list){
 		list.forEach(it => {
-			it.unread = it.kind === "live" ? true : (it.id === "now" || it.id === this.now_real_id || it.id === "your-prompts") ? false : !is_read(it.id);
+			it.unread = it.kind === "live" ? true : (it.id === "now" || it.id === this.now_real_id || it.id === "your-prompts") ? false : !Rules.is_read(it.id);
 			// ⚠ `?? it.score`: `score_for()` only answers "needs you" and is null for most rows.
 			if (it.kind !== "stalled") it.score = score_for(it.id) ?? it.score;
 			// THE REASON NEXT TO THE NUMBER (item 3) — the rule that set this row's score,
@@ -298,15 +298,15 @@ export default class AIRail extends Inbox.Rail {
 		return list.filter(it => it.id !== "now" && it.id !== this.now_real_id && it.id !== "your-prompts" && !group_cards.has(it.id) && (!this.groups.filed(it) || fresh(it)));
 	}
 	pool_archived(list){ return list.filter(it => !this.groups.filed(it)); }
-	resolved(it){ return is_resolved(it); }
+	resolved(it){ return Rules.is_resolved(it); }
 	exempt(it){ return it.kind === "live"; }
 	// A stalled ask has no card to archive (it leaves when the ledger moves on); Live and the
 	// pinned Your-prompts summary never leave either — there is nothing to archive on either.
 	archivable(it){ return it.kind !== "stalled" && it.kind !== "live" && it.kind !== "prompts-pin"; }
 
-	is_read(id){ return is_read(id); }
-	mark_read(id, val){ mark_read(id, val); }
-	archive(it){ return archive_row(it); }
+	is_read(id){ return Rules.is_read(id); }
+	mark_read(id, val){ Rules.mark_read(id, val); }
+	archive(it){ return Rules.archive_row(it); }
 	// A folder card's row is polled every 20s — asking now shows its archived state at once.
 	archived_soon(){ this.cards.soon(); }
 
