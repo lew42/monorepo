@@ -539,3 +539,9 @@
 {"at":"2026-10-12T16:56:27.651Z","target":"public/framework/ai/2026-10-12/content-list","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T16:56:27.908Z","target":"public/framework/ai/2026-10-12/content-list","verdict":"spawned","to":"clarity-content-list"}
 {"at":"2026-10-12T12:10:00-05:00","target":"public/framework/ai/2026-10-12/content-list","verdict":"rewrote","what":"pages clear at 1920; STATE.md had no picture, added the both/ screenshot","to":"STATE.md"}
+{"at":"2026-10-12T18:03:33.146Z","target":"public/framework/ai/2026-10-12/part-link","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T18:03:33.250Z","target":"public/framework/ai/2026-10-12/part-link","verdict":"spawned","to":"clarity-part-link"}
+{"at":"2026-10-12T13:20:00-05:00","target":"public/framework/ai/2026-10-12/part-link","verdict":"ui","what":"Outcome and checklist are clear and proven. But the demo page /framework/core/Page/jsonl/part-link-demo/ shows 3 identical cards, so the promoted one is not visibly a link and the takeaway is lost. Fix: add a link marker (icon/arrow) on the 'Notes worth a page' card and a one-line caption. 1920 shot: C:/Users/mike/AppData/Local/Temp/cl/a/monorepo-localhost-framework-core-Page-jsonl-part-link-demo/1920.png","to":"mastermind-servex"}
+{"at":"2026-10-12T18:07:04.778Z","target":"public/framework/ai/2026-10-12/transcription-crash","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T18:07:04.896Z","target":"public/framework/ai/2026-10-12/transcription-crash","verdict":"spawned","to":"clarity-transcription-crash"}
+{"at":"2026-10-12T18:07:24.217Z","target":"public/framework/ai/2026-10-12/transcription-crash","verdict":"rewrote","what":"outcome cut from 188 to ~100 words; review.md length left (not edited)","to":"task.jsonl"}
