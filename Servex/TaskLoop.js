@@ -70,7 +70,7 @@ export default class TaskLoop {
                 open++;
 
                 // step-runner, 2026-10-12: a step past 2x its estimate gets ONE nudge, independent of the quiet-chase below.
-                const mtime = fs.statSync(file).mtimeMs;   // read BEFORE the nudge, so a nudge line never resets the quiet chase
+                const mtime = fs.statSync(file).mtimeMs;   // read before the nudge; the nudge line resets the quiet timer from the next tick on (a nudge counts as a chase)
                 await this.nudge_step(file, info.state, registry, now);
                 const quiet_expired = now - mtime >= this.quiet_min * 60000;
                 if (quiet_expired) quiet++;

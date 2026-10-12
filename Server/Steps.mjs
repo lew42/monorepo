@@ -23,7 +23,7 @@ export default class Steps {
 	};
 	// the note a template step carries into its prompt, keyed by the step text without its estimate
 	static NOTES = {
-		"Shoot the page at its widths": `Use the mcp__site__shot tool at 400, 1200, 1920 and 3440 (${SHOTS}).`,
+		"Shoot the page at its widths": `Use the mcp__site__shot tool at the widths the brief picks for this change (${SHOTS}; Server/doc/review.md).`,
 		"Read the shots and judge": `Look at every shot for wasted space and breakage (${SHOTS}).`,
 		"Fix and re-shoot": "Fix what the shots showed, then shoot again with mcp__site__shot.",
 		"Compare before/after": "Put the first and last shots side by side and say what changed.",
