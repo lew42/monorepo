@@ -29,9 +29,24 @@ Brief: [requirements.md](requirements.md) · past work: [past-work.md](past-work
    - **`views` is a record, not the update path.** Item chose events over a `views[]` registry ([core/Item/doc/decisions.md](../../../../../../core/Item/doc/decisions.md)). That still holds: updates travel by events; `views` only lists what was drawn, so `drop()` can unbind and `refresh()` can redraw.
    - **No restructuring.** Item keeps its events; Property is opt-in, used only by Template for now. Measure (below) before using it anywhere else.
 
+## Owner notes 2: fallthrough, lazy properties, clone as a delta, tests
+
+Source: [owner-notes-2.md](owner-notes-2.md). These revise decisions 3 and 5.
+
+6. **Anything can become a template.** ✅ `Template` holds no layout of its own. Anything with a `draw()` that proves useful can become one, so the clone and property logic must not depend on BigCard.
+7. **Fallthrough through the prototype.** ✅ Each layer is `Object.create` of the layer below, so there can be any number of fallbacks. Each instance has **two maps**, and both fall through:
+   - `data`: plain values, `Object.create(source.data)` (as in decision 3).
+   - `props`: the live `Property` objects, name → Property, `Object.create(source.props)`. A clone writes its overrides into its own map and never into its prototype's.
+   - **Delete falls back.** `clone.unset("cost")` deletes the clone's own key in both maps; the next read finds the parent's value, and that clone's views redraw.
+8. **Is each Property cloned? No: it is shared until it is written, then copied.** A clone that doesn't override `cost` reads the parent's Property through the map, so both stay live together. That is correct: it IS the same value. The moment a clone sets `cost`, `set()` sees the key isn't its own, makes a **new own Property** with the new value, and redraws that clone's views so they bind to it. It never calls `set` on the inherited Property, because that would change the parent and every other clone. *Alternative:* copy every Property at clone time; rejected, because it breaks live fallthrough and costs a Property per field per clone.
+9. **Lazy: a Property exists only when something is bound.** ✅ A static field stays a plain value in `data` with no events at all. `prop(name)` makes the Property the first time a view binds that field, and it is created on **the layer that owns the value** (found by walking the prototype chain), so a clone's view of an inherited field listens to the parent's value. With a thousand nested objects, only the bound fields pay for listeners. After that, `set(name, v)` on a bound field goes through its Property (only those spans update), and an unbound field is a plain write.
+10. **Clone as a delta.** ⬜ Untried, designed only, so it doesn't block the slice. A duplicate button or an alt-drag appends one line to the page's log, `{"content": {"clone": {"from": "<id>", "set": {...}}}}`. The content List's `clone` method copies item `<id>` with `Template`'s rule, applies the overrides, and inserts the copy after the original. Replaying the log rebuilds the same chain, so any item can be changed procedurally. The open question for step 2: saving a clone stores the `from` link plus only its own keys, not a full copy.
+11. **Tests.** ✅ The repo already has a test system: plain `node <Module>.test.mjs` files using `node:assert`, beside the module (`core/Item/Item.test.mjs`, `Servex/**/*.test.mjs`). There is no runner and no new dependency. So the map and fallthrough logic lives in a DOM-free `Property.Map` (a static helper class in `Property.js`), tested in node: clone, override, delete-falls-back, a shared Property until written, a lazy Property only on bind, listeners going back to 0 after unbind. The DOM half (spans updating in two views) is checked on the demo page with `check_page` + `eval`.
+12. **Batched DOM updates** belong to [perf-system](../perf-system/requirements.md), not here. A Property updates its spans directly; if perf-system adds a frame batcher, `Property` hands its update to it, a one-line change.
+
 ## The smallest slice
 
-- `core/Property/Property.js` — the class above.
+- `core/Property/Property.js` — the class above, plus `Property.Map` (decisions 7–9), with `Property.test.mjs` beside it (decision 11).
 - `core/Page/Template/Template.js` — `class Template extends Page`: `render()`, `views`, `clone()`, `field()`, `show()`, `drop()`, `refresh()`.
 - `core/Page/Template/BigCard/BigCard.js` — the Figma palette's big white card (mark, heading, lead, a grid of column cards), as `class BigCard extends Template`.
 - `core/Page/Template/page.js` — the demo: one BigCard, two clones with different data, one field (`cost`) bound to a live Property with a button and a tick; each rendered view beside `inspect()` of its live instance; clone B rendered twice to prove `views`.
