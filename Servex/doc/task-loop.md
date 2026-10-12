@@ -21,6 +21,8 @@ A task is **open** when its `task.jsonl` has no `landed_at` carrying a non-empty
 starting from Servex's own repo root — a worktree's Servex chases the worktree's own tasks, never
 the live site's.
 
+A step overdue past 2x its estimate gets one nudge too, independent of the chase: [steps.md](steps.md) (the Step runner).
+
 ## Chase
 
 Only a task that opted in is chased (the heartbeat's own `opted_in()` test, so a first live boot
