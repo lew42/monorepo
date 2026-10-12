@@ -1,0 +1,20 @@
+import { Page, div, button, span } from "/app.js";
+import { Property } from "./Property.js";
+
+export default new Page({
+	meta: import.meta,
+	title: "Property",
+	icon: "tune",
+	description: "One live value. Two spans bound to it update together; unbinding drops the listener.",
+	content(){
+		const p = new Property(0), count = span();
+		div.c("card flex gap v-center", () => {
+			const spans = [span(), span()];
+			const offs = spans.map(s => p.bind(v => s.text(`value ${v}`)));
+			button("+1").on("click", () => p.set(p.get() + 1));
+			button("unbind one").on("click", () => { offs.pop()?.(); count.text(`listeners: ${p.listeners()}`); });
+			p.on("change", () => count.text(`listeners: ${p.listeners()}`));
+			count.text(`listeners: ${p.listeners()}`);
+		});
+	},
+});
