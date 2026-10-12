@@ -125,6 +125,10 @@ Each subclass names its own root folder and keeps its own `days`/`slugs` maps (s
 of `AISession` (locate, scan, day, dir_url, slugs) moves up unchanged; `AISession` keeps the rest. Order: extract
 `Session` first (done: [core/Session](../../Session/readme.md), commit 938b27dd0, by mastermind-ai-system), then `task-mastermind-refine-v3` builds `RefineSession` on it (not yet). `Session.Page` (the shared template) is not built: `AISessionDetail` still extends `Page` directly.
 
+## A Page on the server (2026-10-12)
+
+The data half of a page can live in node as a `QueryServer` source; see [server.md](server.md).
+
 ## Open
 
 - A session that has no folder yet: the tool makes one, but a tab already open on that session is not

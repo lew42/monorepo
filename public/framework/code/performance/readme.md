@@ -31,5 +31,6 @@ A page should stay smooth with thousands of rows and multi-megabyte logs. The ru
 ## More
 
 - [doc/batching.md](doc/batching.md) — the measured comparison and the one helper (`Batch.js`).
+- [doc/server-query.md](doc/server-query.md) — the Sessions page asks node for its rows: before and after.
 - [ai/sessions/doc/buckets.md](/framework/ai/sessions/doc/buckets.md) — condensing thousands of sessions.
 - [/framework/servex/](/framework/servex/) — the machine-level monitor (CPU, RAM, processes) agents read through `system_health`.

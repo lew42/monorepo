@@ -12,6 +12,7 @@ import DevSource from "./plugins/DevSource.js";   // read-only Servex/Server bro
 import DevSocket from "./plugins/DevSocket/DevSocket.js";
 import Runtime from "./plugins/SocketServer/Runtime.js";
 import AILogs from "./plugins/AILogs.js";
+import QueryServer from "../public/framework/ext/Query/QueryServer.mjs";
 import AISessionTailer, { AISessionSub } from "../public/framework/ai/AISession/AISessionTailer.mjs";
 import Ask, { AskRoute } from "./plugins/Ask.js";
 import CardAnswer from "./plugins/CardAnswer.js";
@@ -34,6 +35,7 @@ DevSocket.Socket.use(CardAnswer);
 DevSocket.Socket.use(Start);
 DevSocket.Socket.use(Tab);
 DevSocket.Socket.use(AISessionSub);   // pushes changed session snapshots - ai/AISession/AISessionTailer.mjs
+DevSocket.Socket.use(QueryServer);   // rpc:query over in-memory sources - ext/Query
 DevSocket.Socket.use(Tail);
 DevSocket.Socket.use(Append);
 Server.use(DevSocket);

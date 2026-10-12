@@ -13,6 +13,7 @@ import AISession from "./AISession.js";
 import AISessionDetail from "./AISessionDetail.js";
 import AISessionFlags from "./AISessionFlags.js";
 import StoreFolder from "./StoreFolder.js";
+import QueryClient from "/framework/ext/Query/QueryClient.js";
 
 const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
 View.stylesheet(sessions_dir, "sessions.css");
@@ -102,7 +103,9 @@ export default class AISessionsPage extends Page {
 			href: r => r.bucket ? null : this.url + r.id + "/",
 			row: r => r.bucket ? this.bucket_view(r) : this.row_view(r, this.nests.get(r)),
 			card: r => r.bucket ? this.bucket_view(r, true) : new AISessionView({ row: r, url: this.url, spend: this.spend, session_index: this.session_index, card: true }),
-			sort_rows: (rows, sort) => this.arrange(rows, sort),
+			sort_rows: (rows, sort) => this.remote ? this.remote_sort(rows, sort) : this.arrange(rows, sort),
+			has_more: () => !!this.remote && this.remote.rows.length < this.remote.total,   // the server holds the rest: the drawer's sentinel asks for it
+			load_more: () => this.remote_ask({ more: true }),
 			natural_dir: key => AISessionRows.natural_dir(key),
 		});
 	}
@@ -329,8 +332,13 @@ export default class AISessionsPage extends Page {
 	// ⚠ A lifecycle, not a one-shot in content(): content() runs once ever (a cached singleton Page), while
 	// activated()/deactivated() fire every time the reader leaves and comes back, which is what starts and stops the stream.
 	activated(){
-		const { get_json, load_index, load_tree, load_spend_tree } = AISessionRows;
 		this.polling = true;
+		this.start_remote().then(ok => { if (!ok && this.polling) this.activate_files(); });
+	}
+
+	/** The files path: every day file, the session index, the tree, the flags and Servex's agent list, loaded and merged in the browser. */
+	activate_files(){
+		const { get_json, load_index, load_tree, load_spend_tree } = AISessionRows;
 		this.last_agents = [];
 
 		const base = Prompts.base();
@@ -411,8 +419,108 @@ export default class AISessionsPage extends Page {
 		if (!from) return;
 		this.date_from = from;
 		if (this.$from) this.$from.el.value = from;
+		if (this.remote) return void this.remote_ask();
 		this.render_rows(); this.render_stats();
 		if (this.live){ await this.live.load(await AISessionLive.days(this.url, from, this.date_to)); this.draw(); }
+	}
+
+	// ---- remote mode: node holds the sessions, the browser asks for the rows it shows (ext/Query, doc/server-query.md) --------------
+
+	static SORT_FIELD = { state: "state", name: "title", cost: "usd", updated: "last_activity", duration: "wall_ms", role: "agent", source: "provider", model: "model" };
+	static SEARCH_FIELDS = ["title", "agent", "id", "folder", "model"];
+
+	/** With `?source=node`: true when the dev server answers the first query; otherwise false and the page reads files (the default until remote mode reaches parity). */
+	async start_remote(){
+		if (new URLSearchParams(location.search).get("source") !== "node" || !AISessionLive.socket()) return false;   // opt-in until parity (buckets, nesting, provider): ext/Query/doc/architecture.md
+		this.remote = { rows: [], total: 0, totals: {}, ms: null, sort_key: "", search: "", busy: false };
+		this.client = new QueryClient("sessions", { row: snap => this.remote_row(snap), stale: () => this.polling && this.remote_ask({ refresh: true }) });
+		const ok = await this.remote_ask({ first: true });
+		if (!ok) { this.remote = null; this.client = null; return false; }
+		this.nests = new Map();
+		this.remote_controls();
+		const get_json = AISessionRows.get_json;
+		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });
+		get_json(this.url + "../sessions/openrouter-reconcile.json").then(r => { this.reconcile = r; this.render_stats(); }).catch(() => {});
+		return true;
+	}
+
+	/** The spec for the current filters and sort. */
+	remote_spec(){
+		const r = this.remote, where = [
+			{ field: "last_activity", op: "gte", value: this.date_from + "T00:00:00" },
+			{ field: "last_activity", op: "lte", value: this.date_to + "T23:59:59.999Z" },
+		];
+		if (this.inflight_only) where.push({ field: "state", op: "eq", value: "active" });
+		if (this.attention_only) where.push({ field: "flags", op: "gte", value: 1 });
+		if (r.search) where.push({ fields: AISessionsPage.SEARCH_FIELDS, op: "contains", value: r.search });
+		const [key, dir] = r.sort_key ? r.sort_key.split(":") : ["updated", "desc"];
+		return { where, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["usd", "tokens"] };
+	}
+
+	/** Ask for a page. `first`/default = a fresh query; `more` = the next 50; `refresh` = the same query again, keeping the rows already loaded. */
+	async remote_ask({ first, more, refresh } = {}){
+		const r = this.remote;
+		if (!r) return false;
+		if (r.busy && !first){ if (!more) r.pending = true; return true; }   // a new filter waits for the page in flight, then asks
+		r.busy = true;
+		try {
+			const spec = { ...this.remote_spec(), offset: more ? r.rows.length : 0, limit: refresh ? Math.max(AISessionsPage.PAGE_SIZE, r.rows.length) : AISessionsPage.PAGE_SIZE };
+			const res = await this.client.ask(spec, { more: more || refresh });
+			if (res.error) return false;
+			const rows = res.rows.map(snap => this.remote_row_of(snap));
+			Object.assign(r, { rows: more ? [...r.rows, ...rows] : rows, total: res.total, totals: res.totals, ms: res.ms });
+			this.filtered_count = res.total; this.shown_usd = res.totals.usd ?? 0;
+			this.grid.set_rows(r.rows, first);
+			this.$empty.el.hidden = r.rows.length > 0;
+			this.render_stats();
+			this.$asof?.text(`${res.ms} ms in node · updated ${new Date().toLocaleTimeString()}`);
+			return true;
+		} finally { r.busy = false; if (r.pending){ r.pending = false; this.remote_ask(); } }
+	}
+
+	/** One snapshot becomes the row AISessionView draws: the live Session holds its numbers, the row holds the identity. */
+	remote_row_of(snap){
+		const { ses } = AISession.apply_delta(snap), row = { ...ses.grid_row(), role: null };
+		row.role = AISessionRows.role_of(row);
+		return row;
+	}
+
+	/** A shown session changed: its Session notifies its own row view (AISessionView subscribes); the row object follows. */
+	remote_row(snap){
+		const { ses } = AISession.apply_delta(snap), row = this.remote?.rows.find(x => x.id === snap.id);
+		if (row) AISessionRows.apply_live(row, ses);
+	}
+
+	/** The grid's sort hook in remote mode: the server sorted the rows; a header click asks it again. */
+	remote_sort(rows, sort){
+		const key = sort ? sort.key + ":" + sort.dir : "";
+		if (key !== this.remote.sort_key){ this.remote.sort_key = key; queueMicrotask(() => this.remote_ask()); }
+		return rows;
+	}
+
+	/** The remote controls: the same checkboxes and dates as the files path, plus a search box (the server's `contains`). */
+	remote_controls(){
+		const check = (text, key, title) => label.c("flex gap-35 v-center h4", () => {
+			const $box = input().attr("type", "checkbox");
+			$box.el.checked = !!this[key];
+			$box.on("change", () => { this[key] = $box.el.checked; this.remote_ask(); });
+			span(text);
+		}).attr("title", title);
+		this.$controls.empty(() => div.c("sessions-filters flex gap-100 v-center wrap", () => {
+			const $q = input().attr("type", "search").attr("placeholder", "search title, agent, id, model").attr("title", "Searched in node (ext/Query `contains`)");
+			let t = null;
+			$q.on("input", () => { clearTimeout(t); t = setTimeout(() => { this.remote.search = $q.el.value.trim(); this.remote_ask(); }, 250); });
+			check("in flight", "inflight_only", "Only sessions working right now.");
+			check("needs attention", "attention_only", "Sessions with a red flag.");
+			div.c("sessions-daterange flex gap-50 v-center", () => {
+				small.c("muted", "from");
+				const $from = input().attr("type", "date"); $from.el.value = this.date_from; this.$from = $from;
+				$from.on("change", () => this.set_from($from.el.value));
+				small.c("muted", "to");
+				const $to = input().attr("type", "date"); $to.el.value = this.date_to;
+				$to.on("change", () => { this.date_to = $to.el.value; this.remote_ask(); });
+			});
+		}));
 	}
 
 	deactivated(){ this.polling = false; this.source?.close(); this.source = null; this.stream_open = false; clearInterval(this.tick); }
