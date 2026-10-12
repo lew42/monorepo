@@ -3,3 +3,6 @@
 {"file":"new.js"}
 {"file":"page.js"}
 {"file":"versions.js"}
+{"file":"NewVersion.js"}
+{"file":"Versions.js"}
+{"file":"new.js","gone":true}

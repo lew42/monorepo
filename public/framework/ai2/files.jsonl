@@ -60,3 +60,8 @@
 {"file":"groups.json","gone":true}
 {"file":"processes.css","gone":true}
 {"file":"rail.css","gone":true}
+{"file":"log.js","gone":true}
+{"file":"needs-rule.js","gone":true}
+{"file":"needs.js","gone":true}
+{"file":"overview.js","gone":true}
+{"file":"processes.js","gone":true}

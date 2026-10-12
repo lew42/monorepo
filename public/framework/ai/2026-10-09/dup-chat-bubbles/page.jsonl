@@ -14,3 +14,7 @@
 {"file":"review/"}
 {"file":"review.jsonl"}
 {"file":"review.md"}
+{"file":"review/","gone":true}
+{"file":"review.jsonl","gone":true}
+{"file":"review.md","gone":true}
+{"file":"layout-check/","gone":true}
