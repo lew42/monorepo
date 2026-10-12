@@ -14,7 +14,8 @@ export { fold };
  *  sorts with this same function after it sets each card row's own score, so there is one
  *  order, never two. */
 export const HOT = 90;
-const hot = it => (it.score >= HOT ? it.score : 0);
+// An unread owner note outranks even a blocker at 100 (`importance()`): a half point puts it first.
+const hot = it => (it.score >= HOT ? it.score + (it.kind === "owner_note" && it.score >= 100 ? 0.5 : 0) : 0);
 export const inbox_order = (a, b) => (hot(b) - hot(a)) || (Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
 
 /**
@@ -640,16 +641,18 @@ export class CardList {
 export function folder_item(c){
 	return {
 		id: c.id,
-		kind: c.type === "note" ? "note" : "card",
+		kind: c.owner_note ? "owner_note" : c.type === "note" ? "note" : "card",
+		owner_kind: c.owner_note?.kind ?? null,
+		reviewed: c.reviewed ?? null,
 		folder: true,
 		type: c.type,
 		at: c.last ?? c.created,
-		icon: type_icon(c.type),
+		icon: c.owner_note ? "campaign" : type_icon(c.type),
 		title: c.title || "Untitled card",   // never the slug — the owner reads names, not ids
 		text: "",
 		preview: c.preview ?? null,
 		state: c.state ?? null,
-		sub: c.preview || c.state || null,
+		sub: c.owner_note ? c.owner_note.kind + " · " + c.owner_note.text : c.preview || c.state || null,
 		tags: c.tags ?? [],
 		status: c.status,
 		links: [],

@@ -82,6 +82,25 @@ try {
 	} catch (e) {
 		try { append(task, "doc-check: not run — " + String(e && e.message || e).slice(0, 200)); } catch {}
 	}
+	// OWNER NOTE (owner-inbox, 2026-10-12): a task that decided things on the owner's behalf (its
+	// `decision` lines) tells them ONCE, as one `owner_note` card pinned to the top of the AI Inbox,
+	// never in chat. One digest per landing; the same `POST /owner_note` every agent's tool uses.
+	try {
+		const made = entries.filter(e => e.decision && (e.decision.chose || e.decision.question));
+		if (made.length){
+			const lines = made.slice(0, 6).map(e => "- " + String(e.decision.chose || e.decision.question).slice(0, 160)
+				+ (e.decision.why ? " (" + String(e.decision.why).slice(0, 120) + ")" : "")
+				+ (e.decision.options?.length ? "; alternatives: " + [].concat(e.decision.options).filter(o => o !== e.decision.chose).slice(0, 3).join(" / ") : ""));
+			const name = path.basename(dir);
+			const text = `${name} landed after deciding ${made.length} thing${made.length === 1 ? "" : "s"} for you:\n${lines.join("\n")}`;
+			const r = await fetch(`http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/owner_note`, {
+				method: "POST", headers: { "content-type": "application/json" },
+				body: JSON.stringify({ title: `${name} decided ${made.length} thing${made.length === 1 ? "" : "s"} for you`, text, kind: "decision", by: "on-landing", links: [`/framework/ai/${path.basename(path.dirname(dir))}/${name}/`] }),
+				signal: AbortSignal.timeout(3000),
+			});
+			append(task, "owner-note: " + (r.ok ? `posted ${made.length} decision${made.length === 1 ? "" : "s"} to the Inbox` : "not posted (HTTP " + r.status + ")"));
+		}
+	} catch (e) { try { append(task, "owner-note: not posted - " + String(e && e.message || e).slice(0, 150)); } catch {} }
 	// Owner-check (session-gate, 2026-10-01): does this LANDED task do what the owner actually
 	// asked, item by item — not just match requirements.md's own summary of the ask? Detached,
 	// same reason as the clarity agent above: it spawns its own fresh reviewer and can wait

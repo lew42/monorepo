@@ -1313,6 +1313,8 @@ export default class Card extends Page {
 		// leaves the Inbox and nobody else's copy changes. The Live card has no `id` worth
 		// marking and is always drawn fresh regardless, so this is harmless for it either way.
 		mark_read(this.id);
+		// An owner note is read for good (a shared `reviewed` line) the moment you open it, so it leaves the top of the Inbox.
+		if (this.shell?.ai2?.cards?.by_id?.get(this.id)?.tags?.includes("owner-note")) append_card(this.id, { reviewed: { at: stamp(), by: "owner" } });
 		this.shell?.ai2?.repaint?.();
 		// `top`/`ws` (page.js's rail header, the `workspace` word): both are `tabbed()` here —
 		// a top-level card fills `$detail` AND is exactly what `in_workspace()` would change;

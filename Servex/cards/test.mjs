@@ -103,7 +103,7 @@ check("list open skips done", !(await cards.list({ view: "open" })).some(x => x.
 check("list today", (await cards.list({ view: "today" })).length === 10);
 check("list by tag", (await cards.list({ tag: "sidebar" })).map(x => x.id).join() === a.id);
 check("list by a tag as the view", (await cards.list({ view: "sidebar" })).length === 1);
-check("summary shape", Object.keys(all[0]).join() === "id,title,type,status,tags,created,last", Object.keys(all[0]));
+check("summary shape", Object.keys(all[0]).join() === "id,title,type,status,tags,created,last,preview,state,owner_note,reviewed", Object.keys(all[0]));
 
 // attach, and prompts forwarded — never to a minion, a stopped agent or a detached one
 await cards.attach(b.id, "assistant-desk");
@@ -144,7 +144,7 @@ check("the remover stops listening", heard.length === 3 && cards.listeners.size 
 
 // the MCP tools
 const tools = Object.fromEntries(cards.tools().map(t => [t.name, t]));
-check("six tools", Object.keys(tools).join() === "create_card,read_card,attach_card,list_cards,card_ask,list_waiting", Object.keys(tools));
+check("seven tools", Object.keys(tools).join() === "create_card,owner_note,read_card,attach_card,list_cards,card_ask,list_waiting", Object.keys(tools));
 check("create_card says it is the only way", /ONLY way/.test(tools.create_card.description));
 const made = JSON.parse(await tools.create_card.handler({ parent: d.id, title: "From a tool", type: "note" }));
 check("create_card makes a sub-card", made.ok && made.id === `${d.id}/from-a-tool`, made);
@@ -247,6 +247,14 @@ await cards.append(legacyCard.id, { answer: { ask: "ask-1", text: "x", at: stamp
 check("legacy answer.ask wakes the asker", sends.some(s => s.id === "assistant-desk" && s.text.includes("x")), sends);
 waiting = await cards.waiting();
 check("legacy ask answered leaves waiting()", !waiting.some(w => w.card === legacyCard.id && w.ask === "ask-1"), waiting);
+
+// owner_note: one card, tagged, summary carries the note, bad input refused
+const on = await cards.owner_note({ title: "I picked Sonnet", text: "Chose Sonnet over Opus for cost.", kind: "decision", links: ["/framework/ai/"], by: "t" });
+const onSum = (await cards.list({ view: "all" })).find(c => c.id === on.id);
+check("owner_note makes a tagged note card whose summary carries the note", on.ok && onSum?.type === "note" && onSum.tags.includes("owner-note") && onSum.owner_note?.kind === "decision" && onSum.reviewed === null, onSum);
+check("owner_note refuses empty text and unknown kinds", !(await cards.owner_note({ text: "" })).ok && !(await cards.owner_note({ text: "x", kind: "fyi" })).ok);
+await cards.append(on.id, { reviewed: { at: stamp(), by: "owner" } });
+check("opening it records reviewed", (await cards.list({ view: "all" })).find(c => c.id === on.id)?.reviewed != null);
 
 fs.rmSync(root, { recursive: true, force: true });
 console.log(failed ? `\n${failed} FAILED` : "\nall passed");
