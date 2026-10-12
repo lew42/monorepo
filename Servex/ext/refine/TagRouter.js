@@ -30,10 +30,21 @@ export default class TagRouter {
 		if (!rel || rel.split("/").some(p => !p || p === "." || p === "..")) return null;
 		for (const base of ["framework", ""]){
 			const disk = path.join(this.repo, "public", base, rel);
+			if (!this.exact(path.join(this.repo, "public", base), rel)) continue;   // Windows ignores case; a tag must spell the real folder
 			if (fs.existsSync(path.join(disk, "page.js")) || fs.existsSync(path.join(disk, "page.jsonl")))
 				return "/" + [base, rel].filter(Boolean).join("/") + "/";
 		}
 		return null;
+	}
+
+	exact(root, rel){
+		let dir = root;
+		for (const part of rel.split("/")){
+			let names; try { names = fs.readdirSync(dir); } catch { return false; }
+			if (!names.includes(part)) return false;
+			dir = path.join(dir, part);
+		}
+		return true;
 	}
 
 	/** tag -> the 0-based sentence indexes that carry it. */
