@@ -1,5 +1,6 @@
 import fs from "fs";
 import AISessionIndex from "./AISessionIndex.mjs";
+import QueryServer from "../../ext/Query/QueryServer.mjs";
 
 /* Starts the AISessionIndex inside the dev server (ai/AISession/AISessionIndex.mjs): transcripts in, per-session index.json and the
  * day composite files out, snapshot changes pushed to subscribed pages by AISessionSub (below). Runs on the MAIN checkout's
@@ -7,6 +8,15 @@ import AISessionIndex from "./AISessionIndex.mjs";
  * the same transcripts. SESSION_TAIL=1 forces it on (a private proof server), SESSION_TAIL=0 forces it off.
  * SESSION_TAIL_DIR points it at a scratch transcript folder; SESSION_ROOT at a scratch sessions folder. */
 export const live = { index: null };
+
+/* The "sessions" query source (ext/Query): the index already holds every snapshot in memory, so load is its `ready` and unload is a no-op.
+ * Unavailable on a server with no index (a worktree's): the query answers { error: "no source" } and the page reads the files. */
+QueryServer.source("sessions", {
+    available: () => !!live.index,
+    load: () => live.index.ready,
+    items: () => live.index.snaps.values(),
+    on: fn => live.index.on(fn),
+});
 
 export default class AISessionTailer {
 

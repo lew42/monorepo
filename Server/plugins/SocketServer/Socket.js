@@ -24,10 +24,9 @@ export default class Socket extends Events {
             const message = JSON.parse(data.toString());
             if (process.env.SOCKET_LOG === "on") console.log("Socket message", message);   // off by default: it grew monorepo.out to 36 MB
             this.emit("message", message);
-			console.log("Socket message", message);
 
             if (message.method) {
-				console.log(`RPC: ${message.method}`);
+				if (process.env.SOCKET_LOG === "on") console.log(`RPC: ${message.method}`);
                 this.emit(`rpc:${message.method}`, message.args, message.index);
             }
         } catch (e) {
