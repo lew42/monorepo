@@ -11,6 +11,7 @@ One folder per subsystem, one current doc per topic. Load the folder you need; t
 | [`logs/`](logs/log-sources.md) | [Where the owner's asks live](logs/log-sources.md), [the universal log tool](logs/log-tool.md), [inbox + streaming](logs/inbox-log-streaming.md), [conversation logs](logs/conversations.md) | you read or write a log |
 | [`tasks/`](tasks/tasks.md) | [Tasks and the one queue](tasks/tasks.md), [priorities](tasks/priorities.md) | you change tasks or the queue |
 | [`ai2/`](ai2/overview.md) | AI 2 (the card dashboard): its own docs, plus [AI 2 vs AI](ai2/ai2-vs-ai.md) and [branches](ai2/branches.md) | you work on the board |
+| [`organization.md`](organization.md) | What goes where, when and why; the System class and hourly check | you add a page, readme or check |
 | [`meta/`](meta/history.md) | [How the AI system evolved](meta/history.md), [readme system status](meta/readme-system-status.md) | you audit the docs |
 
 Naming rule: a doc is named for its topic, not its date; the date and the session that decided it go on its first lines. Words like "never" are for what really breaks; the rest are suggestions.
