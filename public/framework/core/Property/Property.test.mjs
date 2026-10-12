@@ -39,4 +39,16 @@ t(base.listeners("cost") === 2, "listeners counted through the layers");
 offs.forEach(f => f());
 t(base.listeners() === 0, "listeners back to 0 after unbind");
 
+// Linked vs hard copy, and what is overridden (binding.md §2).
+const card = new Property.Map().assign({ heading: "H", "columns.0.title": "T0", "columns.1.title": "T1", live: new Property(1) });
+const linked = card.clone({ "columns.1.title": "mine", heading: "mine" });
+t(linked.overrides().sort().join() === "columns.1.title,heading", "overrides lists own names");
+t(linked.overrides("columns.").join() === "columns.1.title", "overrides narrows to a section");
+const hard = card.copy({ heading: "copy" });
+t(hard.parent === null && hard.get("columns.0.title") === "T0" && hard.get("heading") === "copy", "a copy holds every value itself");
+card.set("columns.0.title", "changed"); card.set("live", 2);
+t(hard.get("columns.0.title") === "T0" && hard.get("live") === 1, "a copy is not linked");
+t(linked.get("columns.0.title") === "changed" && linked.get("live") === 2, "a clone is linked");
+t(!Property.is(hard.props.live) && hard.data.live === 1, "a copy holds plain values, no shared Property");
+
 console.log(`Property.test.mjs: ${n} checks passed`);
