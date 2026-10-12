@@ -3,3 +3,17 @@
 {"assign":{"kind":"system","steps":["Past work survey (10 min)","Write plan.md (10 min)","Build in a worktree (Sonnet minion) (45 min)","Review the diff, smoke, merge (15 min)","Restart Servex, prove on two real tasks (20 min)","Docs, mastermind skill line, finish-task (15 min)"],"step":3,"now":"plan written; spawning the build minion"}}
 {"log":{"at":"2026-10-12T15:58:46-05:00","msg":"before: 116 tasks in 7 days, 15 with steps (13%), 0 with estimates; 11 of 14 landed-with-steps reached the last step (79%). TaskLoop walks only ai/YYYY-MM-DD/, so it chases nothing in the sessions store."}}
 {"decision":{"at":"2026-10-12T15:58:46-05:00","question":"where the steps live","chose":"task.jsonl assign.steps as strings ending '(N min)'","why":"every reader already reads it; strings keep the board checklist working","alternative":"a steps section in plan.md parsed by node"}}
+{"log":{"at":"2026-10-12T16:32:06-05:00","msg":"session resumed"}}
+{"experiment":{"at":"2026-10-12T16:33:02-05:00","try":"Step runner live: estimated steps, step-prompt hook, 2x nudge in TaskLoop, Steps.mjs --report","measure":"followed fully = estimated steps, every step after the first bumped on its own line, landed with an outcome (node Server/Steps.mjs --report)","result":"before (7 days, 114 tasks): 16 with steps, 1 with estimates, 0 followed fully (0%). After, two real tasks: refine-parse-fix planned with Steps.mjs --plan, all 5 steps bumped, landed: followed fully; step-runner: steps 3-6 bumped, but 1-3 were set at once before the system existed, so strictly not followed fully. Rate of estimated tasks 0% -> 50% (1 of 2). The hook prompted live on a step bump; it was silent on a $VAR path, fixed in 9892d5ff3."}}
+{"assign":{"step":6,"at":"2026-10-12T16:33:02-05:00"}}
+{"assign":{"step":4,"at":"2026-10-12T16:16:56-05:00"}}
+{"log":{"at":"2026-10-12T16:16:56-05:00","msg":"build landed on worktree/step-runner (de61ef02d, 5562d6c85, proof c16ecb675); tests pass; private Servex on 8390 boots and TaskLoop ticks over the sessions store (open 9, chased 5); fresh-eyes review running"}}
+{"review":{"answer":{"n":1,"reply":"noted: the two-task proof and before/after happen after merge + restart (step 5); the task will not land without it"}}}
+{"review":{"answer":{"n":2,"reply":"noted: merge.mjs merges commits only; the uncommitted files.jsonl churn is generated and stays out"}}}
+{"review":{"answer":{"n":3,"reply":"fixed: the comment now says the nudge resets the quiet timer from the next tick (a nudge counts as a chase)"}}}
+{"review":{"answer":{"n":4,"reply":"fixed: the shot note points at the brief's widths and Server/doc/review.md"}}}
+{"review":{"answer":{"n":5,"reply":"noted: Heartbeat.opted_in also opts in any task whose line 1 is dated after SERVEX_HEARTBEAT_SINCE, so new spawned tasks are in by default"}}}
+{"assign":{"step":5,"at":"2026-10-12T16:22:42-05:00"}}
+{"log":{"at":"2026-10-12T16:22:42-05:00","msg":"merged worktree/step-runner into michael/dev (review pass); restarting Servex"}}
+{"log":{"at":"2026-10-12T16:33:35-05:00","msg":"restored: lines 6-23 of this file (written 16:16:56-16:22:42) were gone by 16:32 (the file was back to its committed 5 lines; cause unknown, no stash/reset in the reflog). Re-appended from my own append payloads with their original times; step 6 re-asserted below"}}
+{"assign":{"step":6,"at":"2026-10-12T16:33:02-05:00"}}
