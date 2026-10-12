@@ -4,7 +4,7 @@ import grip from "/framework/ext/grip/grip.js";
 import { JSONL, TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
 import { edit } from "/framework/ext/Ask/edit.js";
 import Socket from "/framework/dev/Socket/Socket.js";
-import picker from "../versions.js";
+import { Versions } from "../Versions.js";
 import { Demos } from "./Demos.js";
 import { Timeline, BOARD, LOG_URL, VERDICTS_URL, clock, text_lines, author_of, author_label, author_kind, status_word } from "./timeline.js";
 import { Composer } from "./Composer.js";
@@ -737,7 +737,7 @@ export function top_level(page, initial_id, url_view, root) {
 				a.c("v3-ways-out-link").href("/framework/ai/2026-09-20/start-here/").text("Start here");
 			});
 
-			picker(root);
+			Versions.picker(root);
 
 			// THE COUNT — still the point, still one press away (`paint_count()`).
 			$count = div.c("v3-count flex v-center");
@@ -2302,7 +2302,7 @@ function verdict_controls(c, verdicts, on_verdict) {
 		// tell a genuine owner press from a script driving the same button
 		// headless to prove it works, so every proof this task ran wrote fabricated
 		// owner critiques into a permanent, append-only file. `window.$VERDICT_AUTHOR`
-		// is the same shape as `window.$BLOCKRELOAD` (`v/new.js`) — a page-global
+		// is the same shape as `window.$BLOCKRELOAD` (`v/NewVersion.js`) — a page-global
 		// escape hatch nothing but a test script ever sets — so a real click in a
 		// real browser still writes "owner" (the default), and driving this same
 		// control through `ui-test`/Playwright can set it to the driver's own name
