@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Subpages from "./Subpages.js";
+import Promote from "./Promote.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -311,6 +312,7 @@ function apply_pages(at, pages, url){
 		for (const spec of [].concat(pages.add ?? [])){ subs.add(spec); done.push({ added: spec.name, url: base + spec.name + "/" }); }
 		for (const spec of [].concat(pages.rename ?? [])){ subs.rename(spec); done.push({ renamed: spec.name, to: spec.to, url: base + spec.to + "/" }); }
 		for (const name of [].concat(pages.remove ?? [])){ subs.remove(name); done.push({ removed: name }); }
+		for (const spec of [].concat(pages.promote ?? [])){ new Promote(subs).promote(spec); done.push({ promoted: spec.id, url: base + spec.name + "/" }); }
 	} catch (e){ return { why: e.message, done }; }
 	return { done };
 }

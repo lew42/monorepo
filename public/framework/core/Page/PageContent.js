@@ -77,6 +77,13 @@ PageContent.View = class PageContentView extends PageContentItem.View {
 		return result;
 	}
 
+	// `#id` in the url scrolls to the block with that id (rows carry id=). Rows draw in a later frame, so look then.
+	scroll_to_hash(){
+		const id = decodeURIComponent(location.hash.slice(1));
+		if (!id) return;
+		requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ block: "start" }));
+	}
+
 	// ⚠ `item: { items: list }` on the container's Sortable, `item` on each row's. doc/content.md
 	rows(){
 		const { list, page } = this;
@@ -114,6 +121,7 @@ PageContent.View = class PageContentView extends PageContentItem.View {
 			if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
 				new Sortable({ view: $row, item });
 			});
+			$row.attr("id", item.id);
 			return $row;
 		};
 
@@ -126,8 +134,10 @@ PageContent.View = class PageContentView extends PageContentItem.View {
 			new Sortable({ view: $rows, handle: false, $items: $rows, item: { items: list, root(){ return this; } } });
 		});
 
-		const redraw = () => $rows.empty(() => { list.forEach(draw_row); });
+		const redraw = () => { $rows.empty(() => { list.forEach(draw_row); }); this.scroll_to_hash(); };
 		["add", "remove", "move", "order"].forEach(verb => list.on(verb, redraw));
+		this.scroll_to_hash();
+		window.addEventListener("hashchange", () => this.scroll_to_hash());
 
 		return box;
 	}

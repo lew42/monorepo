@@ -36,6 +36,8 @@ The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`
 | reorder all cards | `{"content":{"order":["h1","c2","c1"]}}` |
 | call any method | `{"<id or property>":{"<method>":<argument>}}`, e.g. add an answer to question card k2: `{"k2":{"answers":{"add":{…}}}}` |
 | **create a subpage** | `{"pages":{"add":{"name":"notes","title":"Notes","icon":"📝","description":"One line."}}}` |
+| add a link card to a subpage | `{"content":{"add":{"type":"part-link","path":"./notes/","title":"Notes"}}}` ([part-link.md](part-link.md)) |
+| **promote a card to its own subpage** | `{"pages":{"promote":{"id":"c1","name":"notes"}}}` (the card moves into `notes/`, a link card stays) |
 | rename a subpage | `{"pages":{"rename":{"name":"notes","to":"ideas"}}}` |
 | remove a subpage | `{"pages":{"remove":"notes"}}` (moved aside, never deleted) |
 | write on a subpage | the same deltas, with `path` set to the subpage's url (`…/notes/`) |
