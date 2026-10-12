@@ -2,6 +2,6 @@
 
 - ✅ Past work (Haiku scan) — summarised in [plan.md](plan.md#past-work-it-reuses-scan-2026-10-12).
 - ✅ Plan + class architecture: [plan.md](plan.md).
-- ⬜ Slice: `minion-library-build` (Sonnet) building in worktree `C:/Code/lew42/worktrees/ui-library` (branch `worktree/ui-library`), started 15:40, brief [build/requirements.md](build/requirements.md).
-- ⬜ Widen to ux, sections, layouts, templates.
+- ✅ Slice built: commit c8bd9c436 on `worktree/ui-library`. [/framework/library/](/framework/library/) has ui · figma, width chips, zoom-to-fit, `?at=` routes and PaddingContract. Smoke is clean. Fresh-eyes review is running, then the merge.
+- ⬜ Widen: brief [widen/requirements.md](widen/requirements.md) covers ux, sections, layouts, templates, the span-by-width wall and generalised related. Spawn it after the merge.
 - Coordination: Servex refused messages to peer masterminds (page-templates); the width/padding props are in plan.md for them.
