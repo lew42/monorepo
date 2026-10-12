@@ -8,3 +8,5 @@
 {"log":{"at":"2026-10-12T05:30:02-05:00","task":"voice-verify","msg":"landed — try-it walk passes at 400 and 1400, Whisper restart said in one line"}}
 {"log":{"at":"2026-10-12T05:52:52-05:00","task":"page-context-asks","msg":"landed — open-work line on every page, PageWeight on any object, asks #6/#7 updated"}}
 {"log":{"at":"2026-10-12T06:37:14-05:00","task":"asks-transcription","msg":"landed: merged voice asks doc, two small builds"}}
+{"log":{"at":"2026-10-12T07:04:49-05:00","task":"page-split-2","msg":"landed — Columns and Links moved out of Page.class.js (1315 to 1086 lines), facades kept, merged to michael/dev"}}
+{"log":{"at":"2026-10-12T07:36:00-05:00","task":"voice-asks-2","msg":"landed — echo mirror, to-board cards, whisper stream, opt-in live clean; duplicate-bubbles not reproduced"}}
