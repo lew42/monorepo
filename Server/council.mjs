@@ -284,6 +284,8 @@ export async function runCouncil(targetDir) {
 	fs.mkdirSync(outDir, { recursive: true });
 
 	const col = await collect(outDir);
+	// no new owner words = nothing to check; it spawned 13 empty passes on 2026-10-12
+	if (!col.count && !targetDir) return { ran: false, why: "no new owner words", wordsCount: 0 };
 
 	// Initialize task.jsonl in run directory if not present
 	const taskPath = path.join(outDir, "task.jsonl");
