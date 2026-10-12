@@ -165,8 +165,14 @@ Prompt.View = class extends View {
 			});
 		});
 
-		section("refined", done ? secs(prompt.stages.structure_ms ?? 0) : "", () => {
-			if (!done) return p.c("refine-empty", working ? "Working… the model is writing the outline." : "Press Refine.");
+		// LIVE, NOT JUST DONE (one-input, 2026-10-12): `RefineSystem.live()` writes `refined`
+		// straight onto this same `Prompt` as the mic talks, before a real Refine ever runs —
+		// the outline underneath updates live, CLAUDE.md law 2's "the outline refines live
+		// underneath". `have` is true the instant there is anything to show, `done` only once
+		// a full Refine has actually finished (its own timing label still waits for that).
+		const have = done || prompt.refined.length > 0;
+		section("refined", done ? secs(prompt.stages.structure_ms ?? 0) : have ? "live" : "", () => {
+			if (!have) return p.c("refine-empty", working ? "Working… the model is writing the outline." : "Press Refine.");
 			if (prompt.subject) p.c("refine-subject", prompt.subject);
 			const cites = list => list.forEach(n => button.c("refine-cite", "S" + n).click(() => light(n)));
 			const draw = cards => cards.forEach(c => div.c("refine-card", () => {

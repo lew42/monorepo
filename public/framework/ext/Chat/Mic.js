@@ -2,6 +2,7 @@ import Socket from "/framework/dev/Socket/Socket.js";
 import Dictate from "/framework/ux/Dictate/Dictate.js";
 import Capture from "/framework/ux/Dictate/capture.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
+import { refine_live } from "/framework/ext/Refine/RefineSystem.js";
 
 /**
  * THE MICROPHONE of a composer: `ux/Dictate` with a few methods redirected, and
@@ -41,9 +42,11 @@ export const SETTINGS = {
 	pause_send_ms: 1500,        // quiet time before everything left on screen is sent (was 2500: the owner asked for a shorter delay, 2026-09-30; before that 4000, words without a closing full stop waited 4 s, the owner's "four or five seconds", 2026-09-29)
 	break_pause_ms: 1500,       // quiet before a segment may start a new paragraph in the box
 	guess_ms: 900,              // how often the growing sentence is re-sent to Whisper
-	box_lines: 3,               // the box grows to this many lines, then scrolls (the owner, round 2, 2026-10-04:
-	                            // "as I hit transcribe, the text area grows… gets so big I can't read anything
-	                            // else" — was 7)
+	box_lines: 5,               // the box grows to this many lines, then scrolls (one-input, 2026-10-12 — the
+	                            // mastermind's decided shape: a textarea, one line empty, ~5 lines ceiling,
+	                            // `doc/one-input-2026-10-12.md`. Was 3, round 2, 2026-10-04 — the owner: "as I
+	                            // hit transcribe, the text area grows… gets so big I can't read anything else"
+	                            // — before that 7.)
 	fillers: "ah uh um er erm hmm mm",   // words that never reach the box
 	clean: true,                // KILL SWITCH (ai/2026-09-29/audio/next-clean-transcription/a-clean-mode, deliverable 4):
 	                            // on, a composer built with `revise:` set (`ai2/compose.js` turns it on by default)
@@ -319,6 +322,56 @@ export class ComposerMic extends Dictate {
 		this.own = false;
 		if (box === this.ghost) this.show_live(said);
 		this.mark(t0, t1, t2, t3, performance.now());
+		this.refine_tick(next);
+	}
+
+	/* EVERY MIC REFINES LIVE (one-input, 2026-10-12, CLAUDE.md law 2/6): whatever is in the
+	 * box right now — raw while speaking, already true above — is also posted to
+	 * `/api/refine/live` (`refine_live()`, `ext/Refine/RefineSystem.js`) so the outline keeps
+	 * up underneath, debounced so a run of Whisper updates sends one batch, not one per
+	 * keystroke. Gated on `this.revise`, the same switch `clean_active()` already reads: a
+	 * composer that never asked for the dictation pipeline is untouched either way.
+	 * `doc/one-input-2026-10-12.md` has the decision; `contract.md` the wire shape. Fails
+	 * quietly — the route 404s until Servex restarts with `LiveRefine.js` wired in. */
+	live_prompt_id(){ return this._live_prompt_id ??= "composer-" + Math.random().toString(36).slice(2, 10); }
+
+	refine_tick(text){
+		if (!this.revise || !text?.trim()) return;
+		clearTimeout(this._live_timer);
+		this._live_timer = setTimeout(() => {
+			refine_live({ prompt: this.live_prompt_id(), text, final: false, session: this.refine_session_id?.() })
+				.then(out => { if (out) this.on_refine_live?.(out); });
+		}, 400);
+	}
+
+	/* THE SEND ITSELF closes the batch (`final: true`) — the contract's own "drains the queue,
+	 * logs the prompt, marks it done". A caller (`send_screen()`/`flush_held()`, below) awaits
+	 * this right before building the entry that actually posts, and swaps in the paragraphed
+	 * slots text when one comes back; `null` (today, before the route exists) means "keep doing
+	 * what you were already doing" — never a blocked or failed send. */
+	async refine_final(text){
+		if (!this.revise || !text?.trim()) return null;
+		clearTimeout(this._live_timer);
+		return refine_live({ prompt: this.live_prompt_id(), text, final: true, session: this.refine_session_id?.() });
+	}
+
+	/* CHAT BUBBLES SHOW THE CLEAN TEXT, PARAGRAPHED — NEVER A WALL OF RAW (CLAUDE.md law 2).
+	 * One paragraph per outline section the slots cite, or every ~4 sentences within the same
+	 * section, whichever comes first — a topic change reads as a topic change, not a run-on. */
+	static paragraph_from_slots(slots, outline){
+		if (!slots?.length) return "";
+		const sections = outline?.sections ?? [];
+		const section_of = n => sections.find(s => (s.cards ?? []).some(c => (c.cites ?? []).includes(n)))?.title ?? null;
+		const paras = []; let cur = [], cur_sec, count = 0;
+		for (const s of slots){
+			const text = (s.clean ?? s.raw ?? "").trim();
+			if (!text) continue;
+			const sec = section_of(s.n);
+			if (cur.length && (sec !== cur_sec || count >= 4)){ paras.push(cur.join(" ")); cur = []; count = 0; }
+			cur.push(text); cur_sec = sec; count++;
+		}
+		if (cur.length) paras.push(cur.join(" "));
+		return paras.join("\n\n");
 	}
 
 	/* The growing bubble's words: `settled` is what Whisper has finished (and the clean-up has
@@ -781,7 +834,10 @@ export class ComposerMic extends Dictate {
 			const raw = (this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim() || text;
 			this.consume_sent();
 			this.draw_caption();   // empty the box now, in this same tick, so no second check can send it again
-			this.enqueue([{ text, raw }]);
+			// ONE LAST LIVE-REFINE CALL, final: true (law 2/6) — paragraphed slots replace the plain
+			// joined `text` when the route answers; `null` (today) keeps `text` exactly as it was.
+			const live = await this.refine_final(raw);
+			this.enqueue([{ text: live?.slots?.length ? ComposerMic.paragraph_from_slots(live.slots, live.outline) : text, raw }]);
 		} finally { this.sending_screen = false; }
 	}
 
@@ -826,7 +882,9 @@ export class ComposerMic extends Dictate {
 		// their own chat bubble when Servex logs them.
 		this.draw_caption();
 		if (!this.pending?.length && !this.partial_text) this.release_height();
-		return this.post_held({ text, raw });
+		// ONE LAST LIVE-REFINE CALL, final: true — same rule as `send_screen()` above.
+		const live = await this.refine_final(raw);
+		return this.post_held({ text: live?.slots?.length ? ComposerMic.paragraph_from_slots(live.slots, live.outline) : text, raw });
 	}
 
 	/* Hand the finished words to the caller's `deliver(entry)` (how a send is posted is
