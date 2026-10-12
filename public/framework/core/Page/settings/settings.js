@@ -96,6 +96,7 @@ function read_settings_line(obj, out){
 	if (typeof obj.settings?.nav === "boolean") out.nav = obj.settings.nav;
 	if (typeof obj.settings?.tab === "boolean") out.tab = obj.settings.tab;
 	if (typeof obj.settings?.weight === "number") out.weight = obj.settings.weight;
+	if (typeof obj.settings?.view === "string") out.view = obj.settings.view;   // a list page's default view, e.g. "table" or "rail" (ext/DataGrid/doc/architecture.md)
 }
 
 export async function page_settings(page_url){

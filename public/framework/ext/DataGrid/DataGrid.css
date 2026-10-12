@@ -129,6 +129,8 @@
 	/* The rail: flush to its box, full height, scrolls inside; one .card per row. */
 	.datagrid-rail { flex: 1 1 auto; min-block-size: 0; overflow: auto; max-block-size: var(--datagrid-height, none); }
 	.datagrid-card { display: flex; flex-direction: column; gap: 0.15em; border-block-end: 1px solid var(--line); }
+	a.datagrid-card { color: inherit; text-decoration: none; }   /* the card is the link; its lines are not each underlined */
+	a.datagrid-card:hover { background: var(--darken-1); }
 	.datagrid-card.active { box-shadow: inset 4px 0 0 var(--prim); background: var(--darken-1); }
 	.datagrid-card-title { overflow-wrap: anywhere; font-weight: 600; }
 	.datagrid-card-line { font-size: 0.85em; overflow-wrap: anywhere; }

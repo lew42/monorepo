@@ -2,7 +2,8 @@ import { Prompts } from "/framework/ai/v/3/Prompts.js";
 import { Page, md, h3, div, a, span, small, p, label, input, button, View } from "/app.js";
 import Panel2 from "/framework/ext/panel2/Panel2.js";
 import { usage_rail } from "/framework/ext/AITask/usage.js";
-import { grip } from "/framework/ext/grip/grip.js";
+import DataGrid from "/framework/ext/DataGrid/DataGrid.js";
+import { page_settings } from "/framework/core/Page/settings/settings.js";
 import AISessionRows from "./AISessionRows.js";
 import AISessionView from "./AISessionView.js";
 import AISessionLive from "./AISessionLive.js";
@@ -23,8 +24,9 @@ View.stylesheet("/framework/ext/AITask/ai.css");   // the usage rail's bars
 // a 20 s poll is only the fallback), sessions.json (the VS Code/CLI snapshot, written by sessions.mjs), and the
 // computed files session-index.json, session-tree.json, spend-tree.json (written by scripts under Server/).
 //
-// `width: "fill"` + `columns()`: the grid claims the whole row until a row is clicked; then `fill` yields to the
-// open child and the detail opens beside the grid, as a master-detail (core/Page doc/columns.md).
+// The list is one ext/DataGrid, a table or a rail of cards (its `view` setting; ext/DataGrid/doc/architecture.md).
+// `width` follows the view: "fill" for the table, "small" for the rail. `columns()`: the detail opens beside the list
+// as a master-detail (core/Page doc/columns.md).
 //
 // Page/Item name clashes found while converting this from an object config: none. The members this class adds
 // (content, route, activated, deactivated, render_*, toggle_sort, filter_rows, draw, plus data fields such as
@@ -33,7 +35,7 @@ View.stylesheet("/framework/ext/AITask/ai.css");   // the usage rail's bars
 export default class AISessionsPage extends Page {
 
 	static POLL_MS = 20000;
-	static PAGE_SIZE = 200;
+	static PAGE_SIZE = 50;   // the first page; the next one loads by itself as the sentinel scrolls into view (ext/DataGrid paging)
 	static TOP_CHIPS = 5;
 
 	constructor(...args){
@@ -57,8 +59,7 @@ export default class AISessionsPage extends Page {
 			this.$asof = small.c("muted", "loading…");
 		});
 
-		this.sort = null;           // null (default order) | { key, dir }, set by clicking a column header
-		this.$sort_labels = {};
+		this.$summary = null;       // a re-render builds the controls again
 		this.role_filter = null;    // Set<string> | null (null until the first real data arrives)
 		this.trigger_filter = null; // same shape, for the spend tree's trigger tag
 		const today = new Date();
@@ -75,73 +76,58 @@ export default class AISessionsPage extends Page {
 		this.$controls = div.c("sessions-controls");
 		panel.main.append(this.$controls);
 
-		this.$grid = div.c("sessions-grid", $grid => {
-			this.render_head($grid);
-			this.$rows = div.c("sessions-rows");
-		});
-		panel.main.append(this.$grid);
+		this.grid = this.make_grid();
+		this.$empty = p.c("muted", "No sessions with an id yet.");
+		this.$empty.el.hidden = true;
+		panel.main.append(this.grid, this.$empty);
+		this.arrange_for(this.grid.view);
+		this.grid.watch(g => this.arrange_for(g.view));
+		const grid = this.grid;
+		page_settings(this.url).then(s => { if (s.view) grid.default_view(s.view); });   // the default in settings.jsonl, unless the url or your last toggle chose
 		this.snapshot_rows = [];
 	}
 
 	// ---- drawing -------------------------------------------------------------------------------------
 
-	/** Every header is a sort toggle: first click = the natural order, second = reversed, third = back to the default. */
-	render_head($grid){
-		const { COLUMNS } = AISessionRows;
-		div.c("sessions-head", () => {
-			COLUMNS.forEach((col, i) => {
-				div.c("sessions-cell sessions-head-cell", () => {
-					const label = span.c("sessions-sort-label").attr("role", "button").attr("tabindex", "0").attr("title", col.hint ?? "Click to sort; click again to reverse; a third click goes back to the default order");
-					label.click(() => this.toggle_sort(col.key));
-					label.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); this.toggle_sort(col.key); } });
-					this.$sort_labels[col.key] = label;
-					// the last column has nothing to its right to resize into
-					if (i < COLUMNS.length - 1){
-						grip({
-							from: "start",   // this cell's own left edge is the column's start
-							write: px => this.resize_col($grid, col, px),
-							reset: () => this.unfreeze_cols($grid),   // double-click: back to widths that fit the content
-						});
-					}
-				});
-			});
+	static WIDTHS = { state: "4rem", name: "26rem", cost: "14rem", updated: "6rem", duration: "6rem", role: "13rem", source: "6rem", model: "9rem" };
+
+	/** The one DataGrid: the table's columns are AISessionRows.COLUMNS; the rows, their order and their nesting are this page's hooks. */
+	make_grid(){
+		return new DataGrid({
+			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key] })),
+			rows: [], filters: false, row_height: null, page_size: AISessionsPage.PAGE_SIZE,
+			prefs_id: "sessions", settings: this.settings,
+			href: r => this.url + r.id + "/",
+			row: r => this.row_view(r, this.nests.get(r)),
+			card: r => new AISessionView({ row: r, url: this.url, spend: this.spend, session_index: this.session_index, card: true }),
+			sort_rows: (rows, sort) => this.arrange(rows, sort),
+			natural_dir: key => AISessionRows.natural_dir(key),
 		});
-		this.render_sort_labels();
 	}
 
-	/** Columns size to their content until the first drag; then every width is frozen at what it measured (so each column answers the drag, not just the capped ones) and `px` goes to the dragged one. */
-	resize_col($grid, col, px){
-		const el = $grid.el;
-		if (!el.classList.contains("sessions-grid-fixed")){
-			const widths = getComputedStyle(el).gridTemplateColumns.split(" ").map(parseFloat);
-			AISessionRows.COLUMNS.forEach((c, i) => el.style.setProperty("--col-" + c.key, (widths[i] || c.min) + "px"));
-			el.classList.add("sessions-grid-fixed");
-		}
-		const clamped = Math.max(48, Math.round(px));
-		cancelAnimationFrame(this.resize_raf);
-		this.resize_raf = requestAnimationFrame(() => el.style.setProperty("--col-" + col.key, clamped + "px"));   // once per frame
-		return clamped;
+	/** The page's width follows the grid's view: the table fills the row, the rail is a narrow list with the detail beside it. */
+	arrange_for(view){
+		const width = view === "rail" ? "small" : "fill";
+		if (this.width === width) return;
+		this.width = width;
+		this.reshape();
 	}
 
-	unfreeze_cols($grid){
-		$grid.el.classList.remove("sessions-grid-fixed");
-		AISessionRows.COLUMNS.forEach(c => $grid.el.style.removeProperty("--col-" + c.key));
-	}
-
-	render_sort_labels(){
-		for (const col of AISessionRows.COLUMNS){
-			const on = this.sort?.key === col.key;
-			this.$sort_labels[col.key]?.text(col.label + (on ? (this.sort.dir === "desc" ? " ↓" : " ↑") : ""));
-		}
-	}
-
-	toggle_sort(key){
-		const nat = AISessionRows.natural_dir(key), rev = nat === "asc" ? "desc" : "asc";
-		if (this.sort?.key !== key) this.sort = { key, dir: nat };
-		else if (this.sort.dir === nat) this.sort = { key, dir: rev };
-		else this.sort = null;
-		this.render_sort_labels();
-		this.render_rows();
+	/** The grid's sort hook: the default or header order, then children nested under their parent (collapsed until opened), flattened for the grid. */
+	arrange(rows, sort){
+		const id_of = r => r.session_id || r.id;
+		const { top, kids_of } = AISessionRows.nest(AISessionRows.sort_rows(rows, sort));
+		this.open_ids ??= new Set();
+		this.nests = new Map();
+		const out = [];
+		const place = (r, depth, seen) => {
+			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = this.open_ids.has(id_of(r));
+			this.nests.set(r, { depth, kids: kids.length, open, toggle: () => { open ? this.open_ids.delete(id_of(r)) : this.open_ids.add(id_of(r)); this.grid.apply(false); } });
+			out.push(r);
+			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
+		};
+		top.forEach(r => place(r, 0, new Set([id_of(r)])));
+		return out;
 	}
 
 	/** The plan's meters as progress bars with the pace marker (ext/AITask/usage.js), then one line of counts. */
@@ -203,9 +189,9 @@ export default class AISessionsPage extends Page {
 		});
 	}
 
-	/** `base` = every filter except role and trigger (so the chips can show what each choice would add), `filtered` = base plus those two, `sorted` = filtered in order. */
+	/** `base` = every filter except role and trigger (so the chips can show what each choice would add), `filtered` = base plus those two (the grid sorts and nests them). */
 	filter_rows(){
-		const { in_date_range, is_in_flight, trigger_of, sort_rows } = AISessionRows;
+		const { in_date_range, is_in_flight, trigger_of } = AISessionRows;
 		const from = Date.parse(this.date_from + "T00:00:00");
 		const to = Date.parse(this.date_to + "T23:59:59.999");
 		const meta = this.session_index?.meta ?? {};
@@ -219,7 +205,7 @@ export default class AISessionsPage extends Page {
 			&& AISessionsPage.has_records(AISession.all.get(id_of(r))?.ix, this.records_filter)
 			&& (!this.core_filter || AISession.all.get(id_of(r))?.ix.core?.includes(this.core_filter)));
 		const filtered = base.filter(r => this.role_filter.has(r.role || "(unknown)") && this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)"));
-		return { base, filtered, sorted: sort_rows(filtered, this.sort) };
+		return { base, filtered };
 	}
 
 	/** Recomputes the filtered + sorted rows from `this.last_rows` and redraws the grid, summary and chips. Never a new fetch. */
@@ -235,30 +221,9 @@ export default class AISessionsPage extends Page {
 		if (!this.$controls) return;
 		if (!this.$summary) this.render_controls();
 
-		const { PAGE_SIZE } = AISessionsPage, id_of = r => r.session_id || r.id;
-		const { base, filtered, sorted: sorted_all } = this.filter_rows();
-		const { top: sorted, kids_of } = AISessionRows.nest(sorted_all);   // children nest under their parent, collapsed until opened
-		this.open_ids ??= new Set();
-		const place = (r, depth, seen) => {
-			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = this.open_ids.has(id_of(r));
-			this.row_view(r, { depth, kids: kids.length, open, toggle: () => { open ? this.open_ids.delete(id_of(r)) : this.open_ids.add(id_of(r)); this.render_rows(); } });
-			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
-		};
-
-		// Paging, not windowing: rows are variable-height, so only the first PAGE_SIZE render and "show more" grows it.
-		this.shown ??= PAGE_SIZE;
-		const visible = sorted.slice(0, this.shown);
-		this.$rows.empty(() => {
-			if (!sorted.length) return void p.c("muted").style({ gridColumn: "1 / -1" }).text("No sessions with an id yet.");
-			visible.forEach(r => place(r, 0, new Set([id_of(r)])));
-			if (sorted.length > visible.length){
-				div.c("sessions-show-more").style({ gridColumn: "1 / -1" }).append(() => {
-					small.c("muted").text(`Showing ${visible.length} of ${sorted.length} — `);
-					a.c("sessions-show-more-link").href("#").text(`show ${Math.min(PAGE_SIZE, sorted.length - visible.length)} more`)
-						.on("click", e => { e.preventDefault(); this.shown += PAGE_SIZE; this.render_rows(); });
-				});
-			}
-		});
+		const { base, filtered } = this.filter_rows();
+		this.grid.set_rows(filtered);   // the grid sorts, nests and pages them; scroll and sort survive
+		this.$empty.el.hidden = filtered.length > 0;
 
 		// Cost comes from the session files (the index), never from a registry that resets on restart.
 		const red = AISessionFlags.counts(this.last_rows);   // the "needs attention" label and the per-flag counts follow the live rows

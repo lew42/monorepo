@@ -75,7 +75,7 @@ function cell_content(value, row, column){
 function datagrid_head(columns){
 	return div.c("datagrid-head datagrid-row", () => {
 		columns.forEach((c, i) => {
-			div.c("datagrid-cell datagrid-head-cell").attr("data-key", c.key).append(() => {
+			div.c("datagrid-cell datagrid-head-cell").attr("data-key", c.key).attr("title", c.hint).append(() => {
 				span.c("datagrid-label", c.label);
 				if (i < columns.length - 1) div.c("datagrid-grip");
 			});
@@ -200,6 +200,14 @@ export default class DataGrid extends View {
 	}
 
 	// The reader's click: also writes the url and the pref.
+	// The page's own default, read later (settings.jsonl is fetched): applies only if the url and the reader's pref said nothing.
+	default_view(name){
+		this.settings = { ...this.settings, view: name };
+		const said = new URLSearchParams(location.search).get("view") ?? this.prefs.get().view;
+		if (!said && DataGrid.views[name] && name !== this.view) this.set_view(name);
+		return this;
+	}
+
 	choose_view(name){
 		this.set_view(name);
 		const url = new URL(location.href);
@@ -245,7 +253,7 @@ export default class DataGrid extends View {
 	// The one recompute path: filter, sort, count, hand the result to the drawer.
 	apply(reset_scroll = true){
 		let rows = this.all_rows.filter(r => this.row_matches(r));
-		if (this.sort_key) rows = this.sort_rows(rows, { key: this.sort_key, dir: this.sort_dir });
+		rows = this.sort_rows(rows, this.sort_key ? { key: this.sort_key, dir: this.sort_dir } : null);   // always called: a page's hook supplies its own default order for null
 		this.view_rows = rows;
 		this.$count.text(rows.length === this.all_rows.length
 			? `${rows.length} row${rows.length === 1 ? "" : "s"}`
@@ -256,8 +264,9 @@ export default class DataGrid extends View {
 
 	// ---- hooks (a page passes its own instead of subclassing) ----
 
-	sort_rows(rows, { key, dir }){
-		const col = this.columns.find(c => c.key === key);
+	sort_rows(rows, sort){
+		const { key, dir } = sort ?? {};
+		const col = sort && this.columns.find(c => c.key === key);
 		if (!col) return rows;
 		rows = [...rows].sort(comparator(col));
 		return dir === "desc" ? rows.reverse() : rows;

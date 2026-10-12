@@ -17,12 +17,12 @@ import AISessionResume from "./AISessionResume.js";
 export default class AISessionView extends View {
 
 	// Getters, not class fields: prerender() runs inside View's constructor, before a subclass's fields exist.
-	get tag(){ return "a"; }
-	get classes(){ return "sessions-row"; }
+	get tag(){ return this.card ? "div" : "a"; }   // `card`: drawn inside a rail card, which is the link
+	get classes(){ return this.card ? "sessions-card" : "sessions-row"; }
 
 	prerender(){
 		super.prerender();
-		this.href(this.url + this.row.id + "/");   // one route per session: this tab's own detail view
+		if (!this.card) this.href(this.url + this.row.id + "/");   // one route per session: this tab's own detail view
 	}
 
 	// Subscribes to this row's Session: a delta from the live feed redraws THIS row and no other (doc/realtime.md).
@@ -40,16 +40,12 @@ export default class AISessionView extends View {
 	}
 
 	render(){
+		if (this.card) return this.render_card();
 		const { row: r, nest } = this, { SOURCE, WORKING_STATES, is_in_flight, display_name, role_label, row_of } = AISessionRows;
 		const src = SOURCE[r.source] ?? { label: r.source, icon: "help" };
 		const working = WORKING_STATES.has(r.state);
 
-		// State first: a blinking ▶ while working, a filled dot when alive and waiting, a quiet dot otherwise.
-		div.c("sessions-cell", () => {
-			if (!r.state) return;
-			const ready = !working && is_in_flight(r);
-			span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : ready ? "ready" : "idle")).attr("title", r.state + (working ? "" : ready ? " (alive, waiting for work)" : " (not working right now)")).text(working ? "▶" : ready ? "●" : "•");
-		});
+		div.c("sessions-cell", () => AISessionView.state_dot(r));
 
 		const name = display_name(r, AISessionRows.tree);
 		div.c("sessions-cell", () => div.c("sessions-name-stack", () => {
@@ -94,6 +90,32 @@ export default class AISessionView extends View {
 		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
 		// Plain `if`s, not `&&`: a cell callback's return value can end up rendered as a stray text node (a `false` once printed "false").
 		div.c("sessions-cell", () => { const m = row_of(this.session_index, r.session_id || r.id)?.model || r.model; if (m) small.c("muted", m); });   // the latest turn's model, not the configured one
+	}
+
+	/** State first: a blinking ▶ while working, a filled dot when alive and waiting, a quiet dot otherwise. */
+	static state_dot(r){
+		if (!r.state) return;
+		const { WORKING_STATES, is_in_flight } = AISessionRows, working = WORKING_STATES.has(r.state), ready = !working && is_in_flight(r);
+		span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : ready ? "ready" : "idle")).attr("title", r.state + (working ? "" : ready ? " (alive, waiting for work)" : " (not working right now)")).text(working ? "▶" : ready ? "●" : "•");
+	}
+
+	/** The rail card (the grid's `card` hook): a snapshot of one session in three lines. Redraws itself on a live change, like a row. */
+	render_card(){
+		const { row: r } = this, { WORKING_STATES, display_name, role_label, row_of, SOURCE } = AISessionRows, { usd, state_dot, flag_tags } = AISessionView;
+		const working = WORKING_STATES.has(r.state), name = display_name(r, AISessionRows.tree);
+		div.c("sessions-card-line", () => {
+			state_dot(r);
+			span.c("sessions-row-title", name.text);
+			flag_tags(r);
+		});
+		div.c("sessions-card-line muted", () => {
+			const ix = row_of(this.session_index, r.session_id || r.id);
+			const cost = ix ? usd(ix.tree_usd ?? ix.usd) : typeof r.cost_claude_usd === "number" ? usd(r.cost_claude_usd) : typeof r.cost === "number" ? usd(r.cost) : "—";
+			small(cost);
+			if (ix?.flags) small.c("sessions-flag").text("⚠ " + ix.flags).attr("title", "Open the session to read the flags");
+			small("· " + (working ? "updated now" : r.last_activity ? "updated " + age(r.last_activity) : "—")).attr("title", r.last_activity ?? "");
+		});
+		small.c("muted sessions-card-line", [r.role && role_label(r.role).label, (SOURCE[r.source] ?? { label: r.source }).label, row_of(this.session_index, r.session_id || r.id)?.model || r.model].filter(Boolean).join(" · "));
 	}
 
 	/** One small red tag per flag that applies to the row (AISessionFlags). */
