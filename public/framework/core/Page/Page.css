@@ -1467,4 +1467,14 @@
 	     overflowed the wall. It needed a `@media (max-width: 28em)` rule to undo
 	     itself. Two rules for one void: `vision-after/proposal.md` #6. */
 	.page-preview:is(.tall, .big) .page-preview-thumb { --stage: 8 / 10; --stage-max: 24em; }
+
+	/* Weighted previews (`previews(pages, { weight: true })`, PageWeight.js): the size follows the page's weight, the number is on hover (display A). `weighty` = past 10, bigger again. */
+	.page-preview.w1 .page-preview-thumb { --stage-max: 7em; }
+	.page-preview.w3 .page-preview-thumb { --stage-max: 16em; }
+	.page-preview.w1 { font-size: 0.9em; }
+	.page-preview.w3 { font-size: 1.1em; }
+	.page-preview.w3 .page-preview-title { font-weight: 600; }
+	.page-preview.weighty { font-size: 1.3em; }
+	.page-preview.weighty .page-preview-thumb { --stage-max: 22em; }
+	.page-preview[hidden] { display: none; }
 }

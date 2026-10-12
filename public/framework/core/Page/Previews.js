@@ -1,3 +1,4 @@
+import PageWeight from "./PageWeight.js";
 import { View, div, p, h2, h4, a, span, icon } from "../View/View.js";
 
 // The cards a page draws for its children: a card list, a wall of rungs, one card. `page.previews()` etc. build one of these. (doc/previews.md)
@@ -10,16 +11,20 @@ export default class PagePreviews {
 	assign(...args){ return Object.assign(this, ...args); }
 
 	// A card per child, drawn by the child; a declared-but-unresolved one gets the default card.
-	list(pages = this.page.children){
+	// `{ weight: true, min }` ranks the cards heaviest first, sizes them w1..w3 and hides any lighter than `min`. (weight/readme.md)
+	list(pages = this.page.children, opts = {}){
 		let group;
 
-		return div.c("page-previews bleed", () => pages.forEach((child, name) => {
+		const $list = div.c("page-previews bleed", () => pages.forEach((child, name) => {
 			if (child?.group && child.group !== group)
 				h4.c("page-previews-group", group = child.group);
 
 			const nav = this.page.nav_for(name);
 			child ? child.preview(nav) : this.page.preview_card(nav);
 		}));
+
+		if (opts.weight) PageWeight.apply($list, opts);
+		return $list;
 	}
 
 	// One rung per child: its name, then ITS children as cards. ⚠ `leaf` opts a child out whole.

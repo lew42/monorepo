@@ -1263,7 +1263,7 @@ export class Page extends Item {
 
 	// ════ PREVIEWS — a card per child, a wall of rungs, one card (Previews.js, doc/previews.md) ═══
 	// Facades: a page overrides `preview(nav)` and calls `preview_card` (the hook below), so these stay Page methods.
-	previews(pages){ return new this.constructor.Previews({ page: this }).list(pages); }
+	previews(pages, opts){ return new this.constructor.Previews({ page: this }).list(pages, opts); }
 	walls(){ return new this.constructor.Previews({ page: this }).walls(); }
 	wall_rungs(){ return new this.constructor.Previews({ page: this }).rungs(); }
 
