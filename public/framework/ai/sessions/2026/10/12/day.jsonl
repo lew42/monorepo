@@ -3,3 +3,4 @@
 {"log":{"at":"2026-10-12T15:21:21-05:00","task":"data-grid","msg":"landed — one DataGrid (ui/datagrid + ui/table re-export it); Sessions on it as table or rail; long tasks ~430-680 ms -> ~50-130 ms"}}
 {"log":{"at":"2026-10-12T15:32:00-05:00","task":"task-folders","msg":"landed — every ai/<date>/ task folder moved into ai/sessions/YYYY/MM/DD/<session>/<task>/; old URLs redirect"}}
 {"log":{"at":"2026-10-12T15:41:19-05:00","task":"page-templates","msg":"landed — Template + Property binding + binding.md merged"}}
+{"log":{"at":"2026-10-12T15:49:05-05:00","task":"data-grid","msg":"landed — Sessions buckets: routine sessions fold into 5 rows; grid rows 5,810 -> 347, redraw 36-39 -> 25-29 ms"}}
