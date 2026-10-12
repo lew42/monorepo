@@ -3,7 +3,7 @@ import Socket from "/framework/dev/Socket/Socket.js";
 import { edit } from "/framework/ext/Ask/edit.js";
 
 /**
- * `ask_controls()` — a prompt card's own Yes/No (or option-card) buttons, wired
+ * `AskControls.draw()` — a prompt card's own Yes/No (or option-card) buttons, wired
  * to the server and back.
  *
  * COPIED HERE, not imported from a task dir (2026-09-19, `v3-timeline`, item 4):
@@ -31,46 +31,48 @@ import { edit } from "/framework/ext/Ask/edit.js";
 const ring_listeners = new Map();
 Socket.prototype.card_rung = function(e){ ring_listeners.get(e.id)?.(e); ring_listeners.delete(e.id); };
 
-export function ask_controls(card, on_answer){
-	const options = (card.ask || []).map(o => typeof o === "string" ? { label: o } : o);
-	const flat = options.every(o => o.note === undefined);
-	let $box;
+export class AskControls {
+	static draw(card, on_answer){
+		const options = (card.ask || []).map(o => typeof o === "string" ? { label: o } : o);
+		const flat = options.every(o => o.note === undefined);
+		let $box;
 
-	const $view = div.c("v3-ask" + (flat ? "" : " v3-ask-options"), $b => {
-		$box = $b;
-		options.forEach(draw);
-	});
+		const $view = div.c("v3-ask" + (flat ? "" : " v3-ask-options"), $b => {
+			$box = $b;
+			options.forEach(draw);
+		});
 
-	function draw(opt){
-		if (flat){
-			button().attr("type", "button").text(opt.label).click(() => answer(opt.label));
-		} else {
-			div.c("card").attr("tabindex", "0").click(() => answer(opt.label)).append(() => {
-				p(opt.label);
-				if (opt.note) small(opt.note);
-			});
+		function draw(opt){
+			if (flat){
+				button().attr("type", "button").text(opt.label).click(() => answer(opt.label));
+			} else {
+				div.c("card").attr("tabindex", "0").click(() => answer(opt.label)).append(() => {
+					p(opt.label);
+					if (opt.note) small(opt.note);
+				});
+			}
 		}
+
+		function answer(value){
+			if (!edit()){ $box.append(p.c("muted", "dev socket is off — nothing to send this to.")); return; }
+
+			const clicked = performance.now();
+			Socket.singleton().request({ method: "card_answer", args: [{ id: card.id, answer: value }] })
+				.then(reply => {
+					const ack_ms = Math.round(performance.now() - clicked);
+					done(value);
+					on_answer?.(value, { ack_ms });
+					ring_listeners.set(card.id, e => on_answer?.(value, { ack_ms, ring_ms: Math.round(performance.now() - clicked), ok: e.ok, error: e.error }));
+				});
+		}
+
+		function done(value){
+			const time = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+			$box.empty(() => { small(`you answered: ${value} · ${time}`); });
+		}
+
+		return $view;
 	}
-
-	function answer(value){
-		if (!edit()){ $box.append(p.c("muted", "dev socket is off — nothing to send this to.")); return; }
-
-		const clicked = performance.now();
-		Socket.singleton().request({ method: "card_answer", args: [{ id: card.id, answer: value }] })
-			.then(reply => {
-				const ack_ms = Math.round(performance.now() - clicked);
-				done(value);
-				on_answer?.(value, { ack_ms });
-				ring_listeners.set(card.id, e => on_answer?.(value, { ack_ms, ring_ms: Math.round(performance.now() - clicked), ok: e.ok, error: e.error }));
-			});
-	}
-
-	function done(value){
-		const time = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-		$box.empty(() => { small(`you answered: ${value} · ${time}`); });
-	}
-
-	return $view;
 }
 
-export default ask_controls;
+export default AskControls;

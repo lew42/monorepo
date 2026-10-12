@@ -5,11 +5,11 @@ import { JSONL, TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
 import { edit } from "/framework/ext/Ask/edit.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import picker from "../versions.js";
-import * as DEMOS from "./demos.js";
+import { Demos } from "./Demos.js";
 import { Timeline, BOARD, LOG_URL, VERDICTS_URL, clock, text_lines, author_of, author_label, author_kind, status_word } from "./timeline.js";
 import { Composer } from "./Composer.js";
-import { ask_controls } from "./ask.js";
-import { agents_strip } from "./agents.js";
+import { AskControls } from "./AskControls.js";
+import { AgentsStrip } from "./AgentsStrip.js";
 import { prompts_view, prompt_board_cards } from "./prompts.js";
 import { usage_rail } from "/framework/ext/AITask/usage.js";
 import { current } from "/framework/ext/AITask/card.js";
@@ -815,7 +815,7 @@ export function top_level(page, initial_id, url_view, root) {
 				// count at the end of it (`agents.js`). Built once, like
 				// `$footer` below — never rebuilt on a view switch or a redraw.
 				$agents_host = div.c("v3-agents");
-				$agents_host.el.hidden = true;   // agents_strip() shows it once Servex actually answers
+				$agents_host.el.hidden = true;   // AgentsStrip.show() shows it once Servex actually answers
 				$more_btn = button.c("v3-more-btn").attr("type", "button")
 					.attr("aria-expanded", "false")
 					.attr("title", "More: the ways out of this board, the version picker, Live, the author filter, the card-width slider and the count of what is left to review — folded away only to save room, always here")
@@ -849,7 +849,7 @@ export function top_level(page, initial_id, url_view, root) {
 	// written to `board.jsonl`, this task's own fence and `decision` line) —
 	// so every view that already reads `log.cards` shows it with no code of
 	// its own for "an agent finished".
-	agents_strip($agents_host, card => { log.card(card); redraw(); });
+	AgentsStrip.show($agents_host, card => { log.card(card); redraw(); });
 
 	// EVERY CARD THE FAST ASSISTANT MAKES OF YOUR WORDS lands on the normal
 	// timeline and grid too (prompt-lifecycle, 2026-09-22) — merged straight
@@ -2139,7 +2139,7 @@ function detail(c, log, page, verdicts, { skip_back = false, on_verdict } = {}) 
 		   inside that boundary today; if this board ever serves a second person,
 		   that is the line to re-read. */
 		if (String(c.text ?? "").trim()) div.c("v3-detail-text").md(String(c.text));
-		if (c.demo && DEMOS[c.demo]) demo(DEMOS[c.demo], c.caption ?? "");
+		if (c.demo && typeof Demos[c.demo] === "function") demo(Demos[c.demo], c.caption ?? "");
 		if (c.code) pre.c("v3-code", c.code);
 		if (c.links?.length) div.c("v3-links flex wrap", () => c.links.forEach(l => a(l.label ?? l.url).href(l.url)));
 
@@ -2168,7 +2168,7 @@ function detail(c, log, page, verdicts, { skip_back = false, on_verdict } = {}) 
 		// PROMPT CARDS (item 4, 2026-09-19: "every question I have for the
 		// owner sits in a card they have to read and answer somewhere else —
 		// this closes that loop"). `c.ask` is `say.mjs --ask`'s own shape
-		// (`["yes","no"]` or `[{label,note}]`); `ask_controls()` (`./ask.js`)
+		// (`["yes","no"]` or `[{label,note}]`); `AskControls.draw()` (`./AskControls.js`)
 		// is the reusable button/answer render `card-replies` already built
 		// and proved against the real mastermind (13ms ack, 9.6s ring) — see
 		// this task's own decision log for why that RPC beats a bare append.
@@ -2182,7 +2182,7 @@ function detail(c, log, page, verdicts, { skip_back = false, on_verdict } = {}) 
 		if (Array.isArray(c.ask) && c.ask.length && edit()) {
 			div.c("v3-ask-block").append(() => {
 				if (c.answer) small.c("muted", `you answered: ${c.answer}`);
-				else ask_controls(c, () => {});
+				else AskControls.draw(c, () => {});
 			});
 		}
 
