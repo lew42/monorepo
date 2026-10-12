@@ -83,10 +83,12 @@ export class ShotsView extends View {
 	render(){
 		if (this.round) this.selected = { id: this.round, width: this.width };
 
-		div.c("shots-view flow", $v => {
+		// ⚠ No DOM after the await: `draw()` builds inside `empty()`, which
+		// re-establishes the captor the first await dropped (Research.js's own rule).
+		div.c("shots-view flow", async $v => {
 			this.$root = $v;
-			this.log = new ShotsJSONL({ url: this.log_url ?? "/framework/ext/Shots/runs.test.jsonl" }); // TEMP smoke-test override — reverted before commit
-			this.log.live(() => this.draw());
+			this.log = new ShotsJSONL({ url: this.log_url ?? "/framework/ext/Shots/runs.jsonl" });
+			await this.log.live(() => this.draw());
 			this.draw();
 		});
 	}
@@ -100,13 +102,16 @@ export class ShotsView extends View {
 				return;
 			}
 
-			div.c("shots-tree flow", () => roots.forEach(run => this.round(run, 0)));
+			div.c("shots-tree flow", () => roots.forEach(run => this.branch(run, 0)));
 		});
 	}
 
 	/* One round, newest-first children nested under it — a row of width
 	   thumbnails, then its own children one indent in. */
-	round(run, depth){
+	// ⚠ Not named `round` — a `{round}` constructor option (the query-param
+	// name the brief asks for) would overwrite a method of that name on this
+	// instance (JSONL.js's own trap: a field never replaces a method).
+	branch(run, depth){
 		const selected = this.selected?.id === run.id;
 
 		div.c("shots-round" + (depth ? " shots-nested" : "")).style("--shots-depth", depth).append(() => {
@@ -124,7 +129,7 @@ export class ShotsView extends View {
 
 			if (selected) this.detail(run);
 
-			this.children_of(run).forEach(child => this.round(child, depth + 1));
+			this.children_of(run).forEach(child => this.branch(child, depth + 1));
 		});
 	}
 

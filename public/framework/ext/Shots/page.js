@@ -27,10 +27,10 @@ export default new Page({
 			return;
 		}
 
+		// ⚠ No DOM after the await — `draw()` builds inside `empty()`, which
+		// re-establishes the captor (Research.js's own rule for this pattern).
 		div.c("shots-index flow", async $i => {
-			const log = new ShotsJSONL({ url: "/framework/ext/Shots/runs.test.jsonl" }); // TEMP smoke-test override — reverted before commit
-			await log.load();
-			log.live(() => draw());
+			const log = new ShotsJSONL({ url: "/framework/ext/Shots/runs.jsonl" });
 
 			const draw = () => $i.empty(() => {
 				const urls = log.urls();
@@ -47,6 +47,7 @@ export default new Page({
 				});
 			});
 
+			await log.live(() => draw());
 			draw();
 		});
 
