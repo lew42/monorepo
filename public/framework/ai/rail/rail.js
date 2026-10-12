@@ -14,7 +14,7 @@ import chat from "../cards/chat.js";
 import mount_chat from "/framework/ux/Dictate/chat.js";
 import { LIVE, live_model, live_full, usage_head } from "./live.js";
 import { cost_of } from "/framework/ext/AITask/cost.js";
-import { progress_of, meter } from "../cards/meter.js";
+import { Meter } from "../cards/Meter.js";
 import { agent_cost } from "../cards/agents.js";
 import workspace from "../cards/workspace.js";
 import { RealPage, page_events, real_title } from "../cards/real.js";
@@ -282,7 +282,7 @@ export default class AIRail extends Inbox.Rail {
 		const c = cost_of(t);
 		it.usd = c ? c.usd : (it.folder ? agent_cost(it.id, () => this.paint_soon()) : null);
 		it.usd_open = !!c?.open;
-		it.progress = progress_of(t, it.status);
+		it.progress = Meter.progress_of(t, it.status);
 		return null;
 	}
 
@@ -336,7 +336,7 @@ export default class AIRail extends Inbox.Rail {
 	}
 
 	face_extra(it){
-		meter(it.progress, it.usd, it.usd_open);
+		Meter.meter(it.progress, it.usd, it.usd_open);
 		// The reason beside the score (item 3) — only worth a line once the row carries a
 		// score at all; a plain "0" row (nothing ranked it) says nothing extra.
 		if (it.score != null && it.reason) small.c("ai2-row-reason muted").attr("title", "the rule that set this row's score").text(it.reason);
@@ -398,7 +398,7 @@ export default class AIRail extends Inbox.Rail {
 		const tasks = members.filter(m => m.kind === "task");
 		const done = tasks.filter(m => m.landed).length;
 		this.row_head({ icon: g.icon, title: name, at: this.groups.at(g), dot: false, plain: true }, {});
-		meter({ pct: tasks.length ? Math.round(100 * done / tasks.length) : 0, live: tasks.length > done, done, total: tasks.length, unit: "tasks" },
+		Meter.meter({ pct: tasks.length ? Math.round(100 * done / tasks.length) : 0, live: tasks.length > done, done, total: tasks.length, unit: "tasks" },
 			spent?.tracked ? spent.usd : null, !!spent?.open);
 	}
 
