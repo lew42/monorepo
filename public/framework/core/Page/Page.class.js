@@ -9,6 +9,7 @@ import PageChildren from "./Children.js";
 import PageLogReader from "./Reader.js";
 import PageListing from "./Listing.js";
 import PagePrefs from "./Prefs.js";
+import PageRelated from "./Related.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -1069,40 +1070,8 @@ export class Page extends Item {
 		}));
 	}
 
-	// ════ RELATED — a pinned aside of links to other pages ═══════════════════
-	// `related: "/a/ /b/"` — a string of urls, one row each. doc/property/related.md.
-	related_list(){ return (this.related ?? "").trim().split(/\s+/).filter(Boolean); }
-
-	// Is there already a heading with this word on my view? Checked synchronously: the aside is appended last. (doc/property/related.md)
-	has_heading(word){
-		return [...this.view?.el.querySelectorAll("h1,h2,h3,h4,h5,h6") ?? []]
-			.some(node => node.textContent.trim().toLowerCase() === word);
-	}
-
-	// The aside: a Related heading, then one row per url, icon and title read live.
-	// ⚠ `Page.load(url, 0)`, not `Page.from`; a url that 404s drops its row silently (doc/property/related.md).
-	related_aside(){
-		this.related_drawn = true;
-		const urls = this.related_list();
-		if (!urls.length) return null;
-
-		return div.c("page-related", () => {
-			if (!this.has_heading("related")) span.c("page-related-title h4", "Related");
-
-			div.c("page-related-links", () => urls.forEach(url => {
-				const $row = div.c("page-related-row");
-
-				Page.load(url, 0).catch(() => null).then(page => {
-					if (!page?.title) return void $row.remove();
-
-					$row.empty(() => a.c("page-related-link", () => {
-						if (page.icon) icon(page.icon);
-						span(page.title);
-					}).href(page.url ?? url));
-				});
-			}));
-		});
-	}
+	// ════ RELATED — a pinned aside of links to other pages (Related.js; `related: "/a/ /b/"`, doc/property/related.md) ═══
+	related_aside(){ return new this.constructor.Related({ page: this }).aside(); }
 
 	// ════ COLUMNS — the Finder shape ═══
 	// ⚠ `this.columns({ even: true })`, never a declared `columns:` field: it would shadow this method.
@@ -1395,6 +1364,7 @@ Item.register(Page, "Page");
 Page.Reader = PageLogReader;
 Page.Listing = PageListing;
 Page.Prefs = PagePrefs;
+Page.Related = PageRelated;
 
 // Opt-in instance tracking, installed once so every Page shares one list (core/track/track.js). (doc/decisions.md)
 track(Page);
