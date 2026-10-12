@@ -99,7 +99,9 @@ ${text}` };
 		if(f === "master") return t === "assistant" || this.is_mastermind(to);
 		/* PEERS (brief 19:25 (3), 2026-09-30): two task masterminds talk directly instead of
 		 * relaying through mastermind-servex; send_to_agent copies the sender's parent. */
-		if(f === "task-mastermind" && t === "task-mastermind") return "peer";
+		/* No fence between teammates (2026-10-12): `mastermind-X` ids are kind "worker", so the old
+		 * prefix-only test refused every peer. Any mastermind may message another. */
+		if(this.is_mastermind(from) && this.is_mastermind(to)) return "peer";
 		return false;
 	}
 

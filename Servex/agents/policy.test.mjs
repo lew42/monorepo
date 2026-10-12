@@ -123,3 +123,7 @@ console.log(`policy: ${n} checks passed`);
   t(q.message("master-assistant", "mastermind-x").ok, "master-assistant may relay on to a mastermind");
   t(q.message(null, "mastermind-x").ok && got.length === 1, "plain mastermind id now counted as relay-bypass (was missed: kind() calls it a worker)"); }
 console.log("relay rule checks passed");
+{ const q = new Policy(); t(q.message("mastermind-a", "mastermind-b").rule === "peer" && q.message("mastermind-b", "mastermind-a").rule === "peer", "plain mastermind ids message each other both ways (2026-10-12)");
+  t(!q.message("minion-a", "mastermind-b").ok, "a stranger worker still refused");
+  q.assign({ agents: { live: new Map(), reg: () => ({ read: () => ({ "tab-x": { kind: "external" } }) }) } });
+  t(q.route("tab-x", "mastermind-b", "hi", { assistant_live: true })?.to === "master-assistant", "owner-tab message still routes through the assistant"); }
