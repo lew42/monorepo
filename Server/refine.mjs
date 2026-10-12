@@ -51,6 +51,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { askOnce } from "./ask-each.mjs";
+import RefineStyle from "../public/framework/ext/Refine/RefineStyle.js";
 
 const MODELS = {
 	haiku: "claude-haiku-5-5",
@@ -348,6 +349,9 @@ function structuredPromptDefault(sentences) {
 		+ `  only numbers that appear below.
 
 `
+		+ `${RefineStyle.for("outline")}
+
+`
 		+ `Cleaned transcript:
 """
 ${cleanTextForPrompt(sentences)}
@@ -473,6 +477,7 @@ function briefPromptDefault(structuredMd) {
 		+ `- If the outline hedges ("maybe", "I think", "I guess"), phrase the ask as "the owner suggests ...",\n`
 		+ `  never as a flat instruction. A suggestion must never read like a rule.\n`
 		+ `- Number the asks 1, 2, 3, ... — one ask per idea, don't merge unrelated ideas into one ask.\n\n`
+		+ `${RefineStyle.for("asks")}\n\n`
 		+ `Outline:\n"""\n${structuredMd}\n"""\n\n`
 		+ `Output ONLY the numbered list, nothing else.`;
 }
@@ -969,4 +974,4 @@ if (isMain) main().catch(e => { console.error(String(e?.stack || e)); process.ex
 // Exported for Server/refine/compare-structured.mjs (the before/after proof for the structured
 // rung's rewrite, 2026-09-29) — nothing else in this repo imports this file, so this list stays
 // exactly as small as that one script needs.
-export { stepClean, draftStructured, structuredPromptDefault, modelIdFor, RUNGS, repoRoot };
+export { stepClean, draftStructured, structuredPromptDefault, briefPromptDefault, modelIdFor, RUNGS, repoRoot };
