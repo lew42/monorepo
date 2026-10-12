@@ -288,7 +288,7 @@ export class Day extends JSONL {
 }
 
 export const day_log = (date = today_str()) =>
-	new Day({ url: `/framework/ai/${date}/day.jsonl`, date });
+	new Day({ url: `/framework/ai/sessions/${date.replaceAll("-", "/")}/day.jsonl`, date });   // the day log lives in the sessions store (ai/doc/task-folders.md)
 
 /* ── a stalled ask, as one more Inbox row (course correction, 2026-09-30) ─────────────────
  * The owner: "the inbox and the needs you, that sounds like the same thing... let's forget

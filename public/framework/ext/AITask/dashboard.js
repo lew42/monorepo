@@ -127,7 +127,7 @@ export function has_page_js(date, name){
 /* day.jsonl is plain JSONL, not a directory manifest — its own small reader,
    same SPA-fallback guard as json() above. */
 async function day_log(date){
-	const res = await fetch(`/framework/ai/${date}/day.jsonl`).catch(() => null);
+	const res = await fetch(`/framework/ai/sessions/${date.replaceAll("-", "/")}/day.jsonl`).catch(() => null);   // the day log lives in the sessions store (ai/doc/task-folders.md)
 	if (!res?.ok || (res.headers.get("content-type") ?? "").includes("html")) return [];
 	const text = await res.text();
 	return text.split("\n").filter(Boolean).flatMap(line => {

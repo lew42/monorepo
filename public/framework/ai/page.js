@@ -144,9 +144,8 @@ export default new Page({
 		if (board_view) return board_view;
 
 		if (/^\d{4}-\d{2}-\d{2}$/.test(name)){
-			// Task folders moved into the sessions store (ai/doc/task-folders.md): an old day or task address redirects.
-			const day_to = StoreFolder.moved(this.url + name + "/");
-			if (day_to && !AITask.has(this.url + name + "/day.jsonl")) return StoreFolder.redirect(this.url + name + "/", day_to);
+			// The day stays a dashboard at this address (a view, not a folder); its tasks moved into the sessions store
+			// (ai/doc/task-folders.md) and route(task) below redirects each old task address.
 			// Fired the instant this day is routed to, not when its dashboard()
 			// happens to render — a cold deep link straight to a task below has
 			// no earlier chance, and every other child() hop still ahead (this

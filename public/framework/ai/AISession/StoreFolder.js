@@ -48,18 +48,38 @@ export default class StoreFolder extends Page {
 		} });
 	}
 
+	/** What the move log already knows, so a known folder routes without a probe (a 404 probe is a console error):
+	    the moved task urls, and the ones with their own page.js (ai/sessions/task-pages.json, Server/TaskMove.mjs --pages). */
+	static known(){
+		if (!this._known){
+			StoreFolder.moved("/");   // loads the move log
+			const x = new XMLHttpRequest();
+			x.open("GET", "/framework/ai/sessions/task-pages.json", false);
+			try { x.send(); } catch {}
+			let pages = [];
+			if (x.status === 200 && !(x.getResponseHeader("content-type") ?? "").includes("html")) try { pages = JSON.parse(x.responseText).pages ?? []; } catch {}
+			this._known = { tasks: new Set(this._moves.values()), pages: new Set(pages.map(u => u.replace(/\/$/, ""))) };
+		}
+		return this._known;
+	}
+
 	route(name){
 		if (name.includes(".")) return;
-		const url = this.url + name + "/";
-		if (this.segs.length >= 3 && AITask.has(url + "page.js")) return;   // a folder with its own page: Page.child() loads it
-		if (this.segs.length >= 3 && AITask.has(url + "task.jsonl"))
-			return new AITask({ title: name, icon: "receipt_long", url, src: url + "session.json" });
-		return new StoreFolder({ home: this.home, segs: [...this.segs, name] });
+		const url = this.url + name + "/", bare = url.slice(0, -1), next = () => new StoreFolder({ home: this.home, segs: [...this.segs, name] });
+		const task = () => new AITask({ title: name, icon: "receipt_long", url, src: url + "session.json" });
+		if (this.segs.length < 3) return next();
+		const { tasks, pages } = StoreFolder.known();
+		if (tasks.has(bare)) return pages.has(bare) ? undefined : task();   // undefined: Page.child() loads the folder's own page.js
+		for (const t of tasks) if (t.startsWith(url)) return next();        // a session folder holding moved tasks
+		if (AITask.has(url + "page.js")) return;                             // unknown (a task made after the move): probe
+		if (AITask.has(url + "task.jsonl")) return task();
+		return next();
 	}
 
 	content(){
 		const name = this.segs.at(-1);
 		if (this.segs.length === 4) p(() => a().href(this.home.url + name + "/").text("This session's page →"));
+		if (this.segs.length === 3) p(() => a().href("/framework/ai/" + this.segs.join("-") + "/").text("This day's dashboard →"));
 		const box = div.c("flow");   // captured now: the list fills in after the fetch (no DOM after an await)
 		StoreFolder.urls().then(urls => {
 			const mine = urls.filter(u => u.startsWith(this.url) && u !== this.url);

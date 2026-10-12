@@ -11,6 +11,7 @@
 //   node Server/TaskMove.mjs --undo   [--repo <path>]
 //   node Server/TaskMove.mjs --relink [--dry] [--repo <path>]
 //   node Server/TaskMove.mjs --redirects [--repo <path>]
+//   node Server/TaskMove.mjs --pages     [--repo <path>]                      ai/sessions/task-pages.json: moved tasks with their own page.js
 //
 // The ledger is two files, both repo-relative/forward-slash, so the browser can fetch the small one to redirect an
 // old URL without ever loading a snapshot: ai/sessions/task-moves.jsonl ({at,kind,from,to,session}, one line per
@@ -315,6 +316,16 @@ export default class TaskMove {
 		return { files, hits, importHits, claudeMdHits, samples };
 	}
 
+	/** ai/sessions/task-pages.json: the moved task folders that carry their own page.js, as site urls. StoreFolder.js reads it so
+	 *  routing a moved task never probes (a 404 probe is a console error the smoke gate counts). Regenerate after every --apply. */
+	static pages(repo){
+		const live = this.#active(repo).filter(m => m.kind === "task" || m.kind === "rename");
+		const urls = [...new Set(live.map(m => m.to))].filter(to => fs.existsSync(path.join(repo, to, "page.js"))).map(to => "/" + to.slice("public/".length) + "/").sort();
+		const out = path.join(this.sessStore(repo), "task-pages.json");
+		fs.writeFileSync(out, JSON.stringify({ note: "moved task folders with their own page.js; written by node Server/TaskMove.mjs --pages", pages: urls }, null, "\t") + "\n");
+		return { count: urls.length, out: slash(path.relative(repo, out)) };
+	}
+
 	// ---- redirects: public/_redirects lines for Cloudflare ----
 	static redirects(repo, moves){
 		const seen = new Set(), lines = [];
@@ -355,6 +366,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 		console.log(r.samples.slice(0, 20));
 		console.log(dry ? "(dry run: nothing was changed)" : "written.");
 	}
+	else if (flag("--pages")) console.log(TaskMove.pages(REPO));
 	else if (flag("--redirects")){
 		const real = jsonl(TaskMove.ledger(REPO)).filter(l => ["task", "rename", "stub", "dayfile", "redirect"].includes(l.kind));
 		const moves = real.length ? real : (await TaskMove.plan(REPO)).moves;
