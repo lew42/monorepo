@@ -1,0 +1,1 @@
+{"kind":"note","text":"The task-folder move log: one line per moved path {at, kind: task|rename|stub|dayfile|redirect, from, to, session}. Written only by Server/TaskMove.mjs; read by Server/TaskDirs.mjs and ai/AISession/StoreFolder.js. Decision: ai/doc/task-folders.md."}
