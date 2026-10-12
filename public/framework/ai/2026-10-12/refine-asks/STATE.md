@@ -25,3 +25,5 @@ Asks [#7 asks-prompts-refine and #10 realtime-dictation-tasks](/framework/ai/doc
 ## Notes
 - Sessions missing from the AISession index read a `page.jsonl` in today's `session-<id8>/` while Servex writes to the older dated folder, so stages do not show for them. Found, not mine; the fix is in the index.
 - The voice flow `ai/2026-10-12/voice-verify/walk.mjs` is re-run after the merge (result in `task.jsonl`).
+- **Landed** as merge `a66e3b2dd` (smoke clean, review answered). Voice walk re-run after the merge: raw and clean at the first words, structure/refined/cards 6.4 s after Refine (baseline 6.6 s), no overflow, no errors. The walk's words name no module, so it does not draw the Things stage; `things-proof.mjs` covers that.
+- The Refine button sends the whole bubble; a very long prompt (over 20k characters) is refused by `/api/refine` and the error shows on the button. Smallest next step: trim the text before sending.
