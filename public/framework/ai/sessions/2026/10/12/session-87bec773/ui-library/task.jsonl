@@ -16,3 +16,5 @@
 {"review":{"answer":{"n":5,"reply":"noted: assembler refusal deferred, decisions §7"}}}
 {"review":{"answer":{"n":6,"reply":"declined: the grey block is the media card's real image placeholder (ui/card), not a broken thumb"}}}
 {"action":{"at":"2026-10-12T16:05:14-05:00","did":"edit","files":["Server/merge.mjs"]}}
+{"log":{"at":"2026-10-12T16:40:00-05:00","msg":"widen merged in ee988ca9a with merge.mjs --skip-smoke: every page the branch changed passed; the 2 failures (/framework/styles/layouts/ and /layouts/flex/, layout gate 'text touching its box') fail the same on michael/dev and were reached only by link-following from styles/sections/"}}
+{"note":{"at":"2026-10-12T16:40:00-05:00","msg":"Pre-existing smoke failure for layout-catalog/style owners: /framework/styles/layouts/ (12) and /framework/styles/layouts/flex/ (5) fail the layout-edge gate on michael/dev (.pad.wash text 0px from its box). Any branch touching styles/sections or catalog will trip it until fixed."}}
