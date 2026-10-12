@@ -196,21 +196,34 @@ export default class Socket {
 	reload() {
 		if (window.$BLOCKRELOAD) { this.mark_stale(); return this.skip(); }
 		if (this.busy()) { this.mark_stale(); return this.defer(); }
-		this.stash();
-		window.location.reload();
+		this.preflight().then(ok => {
+			if (!ok) return this.mark_stale("This page changed but would not load yet — kept the old one. Reload");
+			this.stash();
+			window.location.reload();
+		});
+	}
+
+	/* THE PRE-FLIGHT (2026-10-12, live-page-error). A reload that lands while a batch of writes is
+	 * half done shows the reader a load error. Fetch the page and every module that changed first;
+	 * if any answer is not OK, keep the old page and show the pill instead. Fails open. */
+	async preflight() {
+		try {
+			const urls = [location.href, ...(this.changed_paths ?? [])];
+			const rs = await Promise.all(urls.map(u => fetch(u, { cache: "no-store" })));
+			return rs.every(r => r.ok);
+		} catch { return true; }
 	}
 
 	/* THE OUT-OF-DATE PILL. A reload this tab refused or postponed (blocked, or busy
 	 * with the mic) means code on screen is older than the file on disk. Say so, with
 	 * one click to fix it; never reload by itself. Plain DOM, so it works on any page. */
-	mark_stale() {
+	mark_stale(text = "This page is out of date — reload") {
 		if (this.pill || !document.body) return;
 		this.inject_style("dev-stale", "@layer util { .dev-stale-pill { position: fixed; inset-block-end: 1rem; inset-inline-start: 1rem; z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }");
 		const pill = this.pill = document.createElement("button");
 		pill.className = "dev-stale-pill";
-		pill.textContent = "This page is out of date — reload";
+		pill.textContent = text;
 		pill.onclick = () => { this.stash(); window.location.reload(); };
-		document.head.append(style);
 		document.body.append(pill);
 	}
 
@@ -301,7 +314,7 @@ export default class Socket {
 			if (!(swappable && this.restyle(path))) stale = true;
 		}
 
-		if (stale) this.reload();
+		if (stale) { this.changed_paths = paths.filter(path => loaded.has(path)); this.reload(); }
 	}
 
 	/* ── WHAT A RELOAD THROWS AWAY ──────────────────────────────────────────────

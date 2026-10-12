@@ -238,3 +238,15 @@ These sentences were cut from the root `CLAUDE.md` because they belong here. The
 **(The site is live while you edit it (the owner, 2026-09-19))** — L104.3
 
 Streams (the chat log, the AI board) keep flowing during a hold; it expires by itself after five minutes.
+
+## A tab reloaded mid-batch, and a load error (2026-10-12)
+
+**What happened.** The owner had `/framework/ai/sessions/` open. The sessions-grid agent edited `AISession*.js` / `sessions.css` straight in the main tree (commits `a3275bd04` 14:07 and `31ef0c85d` 14:14, 8 files), with no reload hold taken: taking one was opt-in, and the hold-guard only renews a hold an agent already took. Each file written reloaded the tab (the tab had loaded those modules), so one reload landed between two files of the same batch and the page loaded a half-written import graph. By the time anyone looked the page loaded clean (`check_page`: no errors), which is what "half-written, then fixed" looks like. `merge.mjs` was not the cause: it holds, writes, releases once.
+
+**Fixed in code** (smallest fix; the alternatives are below):
+- [`.claude/hooks/auto-hold.mjs`](../../.claude/hooks/auto-hold.mjs), a PreToolUse hook on Write/Edit/MultiEdit: the first write to a site `.js/.mjs/.css/.html` under `public/` takes a 30 s hold fenced to `public/<a>/<b>/**`; every further write renews it; when the writes stop it lapses and the server sends ONE reload for the finished state. Worktree writes never match. Tradeoff: your own save inside that fence waits up to 30 s while an agent is writing there.
+- [`Socket.js`](../../public/framework/dev/Socket/Socket.js): `reload()` first fetches the page and every module that changed; if any answer is not OK it keeps the old page and shows the pill "This page changed but would not load yet — kept the old one. Reload". Also fixed there: `mark_stale()` referenced an undefined `style` and threw, so the out-of-date pill had never actually appeared.
+
+**Screenshots gate.** `merge.mjs`'s review gate only checked that `review/report.md` existed. It now also requires a `<width>.png` under the task's `shots/` for every width `widthsFor` picks for the change (one to four), else it refuses. `--no-review "why"` still skips and is logged; `--quick` takes its own shot and is unchanged.
+
+**Alternatives not taken:** a post-merge headless boot of the changed pages before releasing the hold (slower for every merge, and merge was not the cause); a longer server-side debounce (agent edits are seconds apart, so no window spans a batch); a global hold (the 2026-09-22 verdict says never). **Not covered:** an agent that writes via Bash/PowerShell rather than Edit/Write.
