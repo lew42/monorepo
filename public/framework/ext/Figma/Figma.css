@@ -9,3 +9,12 @@
 	.figma-card :is(h2, p) { margin: 0; }
 	.figma-large { max-width: 100%; margin-block: 1em; }
 }
+
+@layer theme {
+	.figma-links { display: flex; gap: 1em; flex-wrap: wrap; }
+	.figma-built { font-weight: 700; }
+	.figma-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24em), 1fr)); gap: 1em; align-items: start; }
+	.figma-side img { width: 100%; height: auto; display: block; }
+	.figma-stage { position: relative; overflow: hidden; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+	.figma-stage iframe { position: absolute; inset: 0 auto auto 0; }
+}

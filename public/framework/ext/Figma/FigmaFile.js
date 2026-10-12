@@ -4,7 +4,7 @@ import { FigmaNode } from "./FigmaNode.js";
    Data lives in data/<key>/pages.jsonl, written by track.mjs; a re-track appends, the newest line per id wins. */
 export class FigmaFile {
 	constructor({ key, name, url }){
-		Object.assign(this, { key, name, url, pages: [] });
+		Object.assign(this, { key, name, url, pages: [], built: new Map() });
 	}
 
 	async load(){
@@ -21,8 +21,13 @@ export class FigmaFile {
 			node.frames = (p.frames || []).map(f => new FigmaNode(f, this));
 			return node;
 		});
+		const built = await fetch(import.meta.resolve(`./data/${this.key}/built.jsonl`)).then(r => r.ok ? r.text() : "").catch(() => "");
+		for (const line of built.split("\n")) try { const b = JSON.parse(line); this.built.set(b.node, b); } catch {} // blank line or fallback html
 		return this;
 	}
+
+	/* A page or a frame of a page, by node id. */
+	find(id){ return this.pages.find(p => p.id === id) || this.pages.flatMap(p => p.frames).find(f => f.id === id); }
 
 	page(id){ return this.pages.find(p => p.id === id); }
 }
