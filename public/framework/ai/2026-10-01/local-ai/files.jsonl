@@ -35,3 +35,4 @@
 {"file":"consensus.json"}
 {"file":"shots/"}
 {"file":"spend.json"}
+{"file":"shots/","gone":true}

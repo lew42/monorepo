@@ -4,3 +4,6 @@
 {"file":"task.jsonl"}
 {"file":"spend.json"}
 {"file":"layout-check/"}
+{"file":"review.jsonl","gone":true}
+{"file":"review.md","gone":true}
+{"file":"layout-check/","gone":true}

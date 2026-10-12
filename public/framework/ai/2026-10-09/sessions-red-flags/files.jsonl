@@ -4,3 +4,6 @@
 {"file":"shots/"}
 {"file":"review.jsonl"}
 {"file":"spend.json"}
+{"file":"review/","gone":true}
+{"file":"shots/","gone":true}
+{"file":"review.jsonl","gone":true}

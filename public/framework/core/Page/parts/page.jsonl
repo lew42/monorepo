@@ -19,3 +19,6 @@
 {"file":"readme.md"}
 {"content":{"add":{"id":"docs","type":"part-text","text":"How it works: [doc/architecture.md](doc/architecture.md) · [readme.md](readme.md) · a real page drawn this way: [example/](example/)."}}}
 {"docs":{"text":"How it works: [architecture](/framework/core/Page/parts/md/doc/architecture/) · [readme](/framework/core/Page/parts/md/readme/) · a real page drawn this way: [the Item readme](/framework/core/Page/parts/example/)."}}
+{"file":"PageCard.js"}
+{"file":"PageHeading.js"}
+{"file":"PageText.js"}

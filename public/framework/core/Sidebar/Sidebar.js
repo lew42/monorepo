@@ -106,6 +106,7 @@ export class Sidebar extends View {
 		return div.c("sidebar-menu", () => {
 			this.filter();
 			this.nav();
+			this.restore_query();
 			this.footer?.();
 		}).on("click", e => e.target.closest("a") && this.open(false));
 	}
@@ -154,7 +155,7 @@ export class Sidebar extends View {
 		return div.c("sidebar-nav", () => {
 			if (this.root){
 				this.$tree = new Tree({ nodes: [], adapt: true });
-				Tree.nodes_of(this.root).then(nodes => this.visible_nodes(this.root, nodes)).then(nodes => this.$tree.draw(nodes))
+				this.$drawn = Tree.nodes_of(this.root).then(nodes => this.visible_nodes(this.root, nodes)).then(nodes => this.$tree.draw(nodes))
 					.then(() => this.reveal())
 					// ⚠ A slow load racing a fast typist: nodes that arrive after the
 					// reader has already started filtering would otherwise all show,
@@ -270,6 +271,7 @@ export class Sidebar extends View {
 					if (is.arr(kids)) await walk(kids, [...trail, node.text]);
 				}));
 			};
+			await this.$drawn;                               // the first level exists only once drawn
 			await walk(this.$tree.nodes, []);
 			return out;
 		})();
