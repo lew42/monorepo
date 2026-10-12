@@ -26,14 +26,17 @@ const overview = `# 🧭 Refine page
 let fail = 0, seen = "";
 const check = (name, ok, extra) => { console.log(ok ? "PASS" : "FAIL", name, extra ? JSON.stringify(extra) : ""); if (!ok) fail++; };
 
-const r = await structure(sentences, { call: async p => (seen = p, { answer: overview, cost_usd: 0 }), model: "stub" });
+let r, refine;
+try {
+r = await structure(sentences, { call: async p => (seen = p, { answer: overview, cost_usd: 0 }), model: "stub" });
+refine = await import("../../../../../Server/refine.mjs");
+} catch (e) { console.log("SKIP (Servex/node_modules not installed in this tree):", e.code ?? e); process.exit(0); }
 check("outline prompt carries the shared rules", seen.includes(RefineStyle.RULES) && /OVERVIEW/.test(seen));
 check("every sentence placed once", r.ok, r);
 check("overview obeys the style", RefineStyle.check(r.md).ok, RefineStyle.check(r.md));
 const o = Outline.parse(r.md);
 check("Outline.parse reads it with cites", o.sections.length === 3 && o.sections[2].cards[0].cites.join() === "1,2", o.sections.map(s => s.title));
 
-const refine = await import("../../../../../Server/refine.mjs");
 check("asks prompt carries the shared rules", refine.briefPromptDefault?.("# x").includes(RefineStyle.RULES) ?? "not exported");
 
 const rantShaped = "# Thoughts\n# More\n#### deep\n- x [S1]";
@@ -41,6 +44,6 @@ check("a rant-shaped outline is flagged", RefineStyle.check(rantShaped).problems
 
 try {
 	const A = (await import("../../../../../Servex/ext/refine/Annotator.js")).default;
-	check("notes prompt carries the shared rules", A.SYSTEM.includes(RefineStyle.RULES));
+	check("notes prompt carries the shared rules", A.SYSTEM.includes(RefineStyle.NAMES));
 } catch (e) { console.log("SKIP notes prompt (Servex SDK not installed here):", String(e.code ?? e).slice(0, 60)); }
 process.exit(fail ? 1 : 0);

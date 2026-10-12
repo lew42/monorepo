@@ -26,10 +26,12 @@ export default class RefineStyle {
 	static KIND = {
 		outline: "Apply this to the headings and bullets of the outline.",
 		asks: "Apply this to the numbered asks: one per idea, each with its action baked in, easiest and prerequisite ones first.",
-		notes: "Apply this to names and alternates: prefer a name already in use over a new one.",
 	};
 
+	static NAMES = "Reuse the same names for the same things every time, so they become familiar; prefer a name already in use over a new one.";
+
 	static for(kind){
+		if (kind === "notes") return RefineStyle.NAMES;
 		return RefineStyle.RULES + "\n" + (RefineStyle.KIND[kind] ?? "");
 	}
 

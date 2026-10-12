@@ -13,6 +13,8 @@ The owner's rule (2026-10-12, `CLAUDE.md` "How to respond"): a refined prompt is
 - Same names every time, context always named.
 - `#` / `##` / `###` headings only, each with an icon; ✅ / ⬜ status bullets; cards cite `[S#]`.
 
+Outlines use `#` / `##` (the parser and the existing outline prompt are built on them); chat replies follow `CLAUDE.md` "How to respond". The Haiku notes prompt gets only the short `RefineStyle.NAMES` line, since its output is JSON.
+
 ## What code checks
 `RefineStyle.check(md)` flags a heading deeper than `###`, a heading with no icon, and more than one `#`. The rest (ordering, "overview not retelling") is judgment, left to the model.
 
