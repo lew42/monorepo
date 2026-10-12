@@ -887,7 +887,7 @@
 
     a * { cursor: pointer; }
     /* ⚠ THESE TWO STAY OPAQUE, on purpose. `--prime` and `--bg` are the two SOLID
-       fills — a hue and a dark neutral, each with a hardcoded white label — and a
+       fills — a hue and a dark neutral, each with a hardcoded label (dark on prime, white on dark) — and a
        rung cannot replace either without turning a filled CTA into a wash. Each is
        invisible on exactly one floor, its own, and that is a PLACEMENT error, not a
        token error: don't put a `.prim` button on a `--prime` band or a `.bg` button on
@@ -895,12 +895,11 @@
        2026-08-30 hunt is the matrix cell that exists to demonstrate it.
        `styles/doc/stacking.md` §placement.
 
-       The shadow is accessibility, not decoration: white on `--prime` is ~2.2:1, and
-       a shadow lifts the edges where a letterform is thinnest. */
+       The `.prim` label is dark, the same ink `.bg-prime` sets (decision 2,
+       styles/doc/architecture.md): white on `--prime` measured ~2:1. */
     button.bg, .btn.bg { background-color: var(--dark); color: white; border-color: var(--dark); }
     button.prim, .btn.prim {
-        background-color: var(--prime); color: white; border-color: var(--prime);
-        text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+        background-color: var(--prime); color: #1a1a1a; border-color: var(--prime);
     }
 
 }
