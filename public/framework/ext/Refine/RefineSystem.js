@@ -37,7 +37,7 @@ export default class RefineSystem {
 	prompt = new Prompt();
 	whisper = Whisper.shared;
 	session = this.whisper.session("Refine demo");   // Dictate's on_whisper feeds it: system.session.record(line)
-	model = "openai/gpt-6-luna";                    // non-Anthropic voice model, Claude Haiku fallback server-side: ai/doc/models.md
+	model = "";                                     // empty: the server picks (Haiku, or OpenRouter when session-backend.txt says so): ai/doc/models.md
 	session_id = RefineSystem.session_id();            // the session whose log keeps this page's prompts (ai/AISession/PromptLog.js)
 	prompt_id = RefineSystem.new_prompt_id();          // names this prompt on the session page (`voice-<id>`); a new one per prompt
 	history = [];                                   // finished prompts of this page visit (plain summaries), newest last
@@ -102,7 +102,7 @@ export default class RefineSystem {
 				const { servex_url } = await import("/framework/dev/servex_url.js");
 				url = servex_url("/api/refine");
 			}
-			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model, session: this.session_id, prompt: this.prompt_id, source: this.source ?? "typed" }) });
+			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model || undefined, session: this.session_id, prompt: this.prompt_id, source: this.source ?? "typed" }) });
 			const out = await res.json();
 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
 			prompt.load(out);

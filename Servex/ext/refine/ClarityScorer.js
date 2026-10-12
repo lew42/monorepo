@@ -16,7 +16,7 @@ export default class ClarityScorer {
 	static SYSTEM = `You rate how clear ONE sentence from a dictated message is, to a reader who sees only it and its neighbours. Clear = a reader knows exactly what is being said or asked. Unclear = vague ("it", "that thing" with no referent), cut off, contradictory, or missing what it is about.
 Reply with ONLY compact JSON: {"clarity": <0.0-1.0>, "why": "<under 12 words>"}. Use the whole range: 1.0 only if nothing could be misread; 0.5 if a reader would have to guess; 0.2 if it cannot be understood.`;
 
-	static async score(sentences, { model = "openai/gpt-6-luna" } = {}){
+	static async score(sentences, { model = RefineCall.model() } = {}){
 		return Promise.all(sentences.map(async (s, i) => {
 			const prev = sentences[i - 1]?.text, next = sentences[i + 1]?.text;
 			const prompt = `${prev ? `Before: ${prev}\n` : ""}SENTENCE: ${s.text}${next ? `\nAfter: ${next}` : ""}`;

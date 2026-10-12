@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import Sessions, { PAUSE_PHASES, VOICE_MODELS, FALLBACK_MODEL } from "./Sessions.js";
+import Sessions, { PAUSE_PHASES, FALLBACK_MODEL } from "./Sessions.js";
 
 let checks = 0;
 const check = (name, fn) => { fn(); checks++; };
@@ -209,17 +209,12 @@ check("recent_project() lists every session of one project, newest first, across
 	assert.deepEqual(rows.map(r => r.session), [b.session, a.session]);
 });
 
-// ── voice model policy (models-asks, 2026-10-12): off Claude by default, Claude only as the fallback ──
-check("voice roles run on OpenRouter when it is ready, on Claude when it is not, and `claude` forces Claude", () => {
+// ── voice model policy (refine-haiku-live, 2026-10-12): Claude by default, OpenRouter only by the switch or a refusal ──
+check("voice roles run on Claude by default, even with OpenRouter ready; a Claude refusal moves that role to OpenRouter", () => {
 	const s = make(), sess = s.create({ path: "/a/", host: "siteA.localhost" }), row = s.map[sess.session];
 	s.or_ready = () => true;
-	assert.equal(s.session_model(row, "fast"), VOICE_MODELS.fast);
-	assert.equal(s.session_model(row, "smart"), VOICE_MODELS.smart);
-	assert.ok(VOICE_MODELS.fast.includes("/") && !VOICE_MODELS.smart.startsWith("claude"));
-	s.or_ready = () => false;   // OpenRouter down: no key, or the spend guard refuses
 	assert.equal(s.session_model(row, "fast"), "claude-sonnet-5-5");
 	assert.ok(String(s.session_model(row, "smart")).startsWith("claude"));
-	s.or_ready = () => true;
 	row.fallback = { fast: true };   // Claude was refused once for this session: it stays on OpenRouter
 	assert.equal(s.session_model(row, "fast"), FALLBACK_MODEL);
 });
