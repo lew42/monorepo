@@ -18,7 +18,18 @@ export default class CardAsk {
 	/** Same card, same id: a second press finds the first. */
 	static id({ session, prompt, index }){ return `voice-${String(session).slice(0, 8)}-${prompt}-c${index}`; }
 
-	async make({ session, prompt, index, title, items = [], cites = [] } = {}){
+	/** Presses in flight, by card id: two at once (two tabs) share one run, so only one board card is made. */
+	static busy = new Map();
+
+	make(input = {}){
+		const id = CardAsk.id(input);
+		if (CardAsk.busy.has(id)) return CardAsk.busy.get(id);
+		const run = this.make_one(input).finally(() => CardAsk.busy.delete(id));
+		CardAsk.busy.set(id, run);
+		return run;
+	}
+
+	async make_one({ session, prompt, index, title, items = [], cites = [] } = {}){
 		if (!/^[0-9a-f-]{36}$/.test(session ?? "") || !/^[\w-]{4,60}$/.test(prompt ?? "") || !Number.isInteger(index) || index < 0) return { ok: false, why: "needs session (uuid), prompt (id) and the card's index" };
 		title = String(title ?? "").trim().slice(0, 120);
 		if (!title) return { ok: false, why: "the card has no title" };

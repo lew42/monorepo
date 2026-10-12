@@ -66,17 +66,19 @@ try {
 	{ // C
 		const session = randomUUID(), prompt = "ptest" + Date.now().toString(36);
 		const body = { session, prompt, index: 0, title: "Voice proof card (safe to delete)", items: ["first point", "second point"], cites: [1, 2] };
-		const a = await post("/api/voice/card", body), b = await post("/api/voice/card", body);
+		const [a, b] = await Promise.all([post("/api/voice/card", body), post("/api/voice/card", body)]);   // two presses at the same moment
 		console.log("   first:", JSON.stringify(a), "\n   second:", JSON.stringify(b));
-		check("C. card created and an ask line queued", a.ok && a.fresh && a.card, a.card);
-		check("C. second press finds the same card (idempotent)", b.ok && b.fresh === false && b.card === a.card);
+		check("C. card created and an ask line queued", a.ok && a.card, a.card);
+		check("C. two presses at once make ONE card (the other finds it)", a.ok && b.ok && a.card === b.card, a.card + " / " + b.card);
+		const c3 = await post("/api/voice/card", body);
+		check("C. a later press finds the same card too", c3.ok && c3.fresh === false && c3.card === a.card);
 		const bad = await post("/api/voice/card", { session: "nope" });
 		check("C. a bad request is refused, not crashed", bad.ok === false, bad.why);
 		const asks = fs.readFileSync(path.join(REPO, "public/framework/ai/asks.jsonl"), "utf8").split("\n").filter(l => l.includes(a.id));
 		check("C. exactly one asks.jsonl line for it", asks.length === 1, asks[0]?.slice(0, 160));
 	}
 
-	{ // D
+	if (!process.env.SKIP_D) { // D (costs about $0.20: three small model calls; SKIP_D=1 leaves it out)
 		const session = randomUUID(), prompt = "plive" + Date.now().toString(36);
 		const text = "So the page should fill in as I talk. Um each sentence gets its own small clean. And the cost shows beside it.";
 		const lines = [];

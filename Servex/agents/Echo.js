@@ -343,10 +343,14 @@ export default class Echo {
 		const show = work => work(voice).catch(e => this.servex.say?.(`echo: voice page write failed: ${e.message || e}`));
 		await show(v => v.raw(text, { final: true, source: "vscode" }));
 		const t_clean = Date.now();
-		const { sentences, strikes, misheard, flags } = await clean(text, { call });
+		let cleaned, built;
+		try { cleaned = await clean(text, { call }); }
+		catch (e){ await show(v => v.failed(e?.message ?? e)); throw e; }   // the page says it stopped instead of staying on "Cleaning"
+		const { sentences, strikes, misheard, flags } = cleaned;
 		await show(v => v.clean(sentences.map(x => x.text), { ms: Date.now() - t_clean }));
 		const t_structure = Date.now();
-		const built = await structure(sentences, { call });
+		try { built = await structure(sentences, { call }); }
+		catch (e){ await show(v => v.failed(e?.message ?? e)); throw e; }
 		await show(v => v.structured(built.md ?? "", { ms: Date.now() - t_structure }));
 		await show(v => v.notes([], { ms: 0 }));
 		voice.done();

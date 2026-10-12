@@ -7,13 +7,12 @@ export default class CardsStage extends VoiceStage {
 	static label = "5 · Cards";
 	static fields = ["cards"];
 
-	/** How much of what you said this card covers (0-1): the share of the prompt's sentences it cites. Computed, never guessed. */
 	/** Cards already sent to the board, by index: { url } once it landed, { error } if it did not. */
 	sent = {};
 
 	/** Make this card a board card and an ask in asks.jsonl (Servex/ext/refine/CardAsk.js). Pressing it twice finds the same card. */
 	async send(card, index){
-		const session = this.prompt.session;
+		const session = this.prompt.flow?.session;   // read at click time: the flow learns its session after the first lines arrive
 		if (!session) return { error: "this page does not know its session" };
 		try {
 			const { servex_url } = await import("/framework/dev/servex_url.js");
@@ -22,6 +21,7 @@ export default class CardsStage extends VoiceStage {
 		} catch (e){ return { error: "Servex is not reachable" }; }
 	}
 
+	/** How much of what you said this card covers (0-1): the share of the prompt's sentences it cites. Computed, never guessed. */
 	weight(card){ const n = this.data.clean?.length || 0; return n ? Math.min(1, (card.cites?.length ?? 0) / n) : null; }
 }
 

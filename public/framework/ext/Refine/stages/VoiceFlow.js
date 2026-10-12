@@ -34,7 +34,7 @@ export default class VoiceFlow {
 			const add = line.content?.add;
 			if (add?.type === "voice-prompt" && add.id){
 				const fresh = !this.prompts.has(add.id);
-				if (fresh){ const vp = new VoicePrompt(add.id); vp.session = this.session; this.prompts.set(add.id, vp); }
+				if (fresh){ const vp = new VoicePrompt(add.id); vp.flow = this; this.prompts.set(add.id, vp); }
 				const p = this.prompts.get(add.id);
 				note(p, p.apply(add));
 				if (fresh) touched.get(p).add("*");
