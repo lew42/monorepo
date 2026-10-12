@@ -92,7 +92,7 @@ export default class AISessionsPage extends Page {
 
 	// ---- drawing -------------------------------------------------------------------------------------
 
-	static WIDTHS = { state: "4rem", name: "26rem", cost: "14rem", updated: "6rem", duration: "6rem", role: "13rem", source: "6rem", model: "9rem" };
+	static WIDTHS = { state: "4rem", name: "1fr", cost: "14rem", updated: "6rem", duration: "6rem", role: "13rem", source: "6rem", model: "9rem" };
 
 	/** The one DataGrid: the table's columns are AISessionRows.COLUMNS; the rows, their order and their nesting are this page's hooks. */
 	make_grid(){
