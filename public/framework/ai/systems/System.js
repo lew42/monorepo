@@ -1,6 +1,8 @@
 // A System is anything we keep in order (code, design, layout, the readmes). It mostly DOCUMENTS
 // itself: where its files live, its rules, and a check() that computes whether the rules hold.
 // Extend it: set name/root/rules in a subclass and write check(). Doc: ../doc/organization.md
+// A README system for a directory: the bridge between the readmes an AI loads and code that checks them; a human can use it too.
+// Composition, not a Page subclass (extend Page only for a plain doc-page template).
 // Isomorphic on purpose (no fs here): the page imports it; node-only subclasses do the reading.
 export default class System {
 	name = "System";
