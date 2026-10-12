@@ -18,7 +18,7 @@ The dev socket (and so the page-file tail) is localhost-only because it also car
 ## Classes
 
 - Server: `VoicePage` (per-prompt write queue; `raw`, `clean`, `structured`, `notes`, `failed`, `done`).
-- Browser: `VoiceFlow` > `VoicePrompt` > five `*Stage` (base `VoiceStage`).
+- Browser: `VoiceFlow` > `VoicePrompt` > six `*Stage` (base `VoiceStage`).
 - Shared, DOM-free: `Compose` (brief, cards).
 
 ## Decisions and the rejected alternative
@@ -42,3 +42,6 @@ The dev socket (and so the page-file tail) is localhost-only because it also car
 ## Proofs
 
 `ai/2026-10-12/voice-to-session-page/`: `proof.mjs` (server stages), `whisper-proof.mjs` (kill and restart), `phone-proof.mjs` (400 px browser).
+
+## Things you mentioned (2026-10-12)
+`ThingsStage` sits under the raw words and turns every module name you say into a link card, with no model and no server (the fast assistant the owner scrapped did this job with a model; this does it in the browser in about a millisecond). It matches `things.json` (built from the folders by `ThingsIndex.mjs`) plus the `#` Mention map; ordinary-English names (Page, Tree) only match when spoken capitalised. Proof: `ai/2026-10-12/refine-asks/things-proof.mjs`.

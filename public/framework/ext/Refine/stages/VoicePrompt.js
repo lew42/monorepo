@@ -1,5 +1,6 @@
 import { View, div, span } from "../../../core/View/View.js";
 import RawStage from "./RawStage.js";
+import ThingsStage from "./ThingsStage.js";
 import CleanStage from "./CleanStage.js";
 import StructureStage from "./StructureStage.js";
 import RefinedStage from "./RefinedStage.js";
@@ -7,18 +8,18 @@ import CardsStage from "./CardsStage.js";
 
 /**
  * class VoicePrompt — one spoken prompt on a session page: the folded state of a `voice-prompt` item
- * and its five stages. A delta merges shallowly into `data` (the same rule the page replay uses), and
+ * and its six stages. A delta merges shallowly into `data` (the same rule the page replay uses), and
  * `apply()` says which stages it touched so only those redraw.
  *
  *   const p = new VoicePrompt("voice-ab12", { raw: "so the page should" });
  *   p.apply({ raw: "so the page should show", raw_final: true });   // -> ["raw"]
- *   p.stages        // [RawStage, CleanStage, StructureStage, RefinedStage, CardsStage]
+ *   p.stages        // [RawStage, ThingsStage, CleanStage, StructureStage, RefinedStage, CardsStage]
  *
  * Wire format and who writes it: ../doc/voice-to-page.md (server half: Servex/ext/refine/VoicePage.js).
  */
 export default class VoicePrompt {
 
-	static STAGES = [RawStage, CleanStage, StructureStage, RefinedStage, CardsStage];
+	static STAGES = [RawStage, ThingsStage, CleanStage, StructureStage, RefinedStage, CardsStage];
 
 	data = {};
 
