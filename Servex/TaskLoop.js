@@ -70,9 +70,8 @@ export default class TaskLoop {
                 open++;
 
                 // step-runner, 2026-10-12: a step past 2x its estimate gets ONE nudge, independent of the quiet-chase below.
+                const mtime = fs.statSync(file).mtimeMs;   // read BEFORE the nudge, so a nudge line never resets the quiet chase
                 await this.nudge_step(file, info.state, registry, now);
-
-                const mtime = fs.statSync(file).mtimeMs;
                 const quiet_expired = now - mtime >= this.quiet_min * 60000;
                 if (quiet_expired) quiet++;
                 if (info.escalated) continue;
@@ -184,7 +183,7 @@ export default class TaskLoop {
         if (!due) return;
         const id = this.owning_agent_id(state, registry);
         if (!id || this.agent_gone(state, registry)) return;
-        const text = `You were on step ${due.n} (${due.do}, ${due.min} min) since ${this.at(now - due.since_ms)}. Is it done? If you are further along, log {"assign":{"step":<the step you are on>}}; if not, say what is holding it.`;
+        const text = `You were on step ${due.n} (${due.do}, ${due.min} min) since ${this.at(now - due.since_ms)}. Is it done? If you are further along, log {"assign":{"step":<the step you are on>,"at":"NOW"}}; if not, say what is holding it.`;
         try { this.servex.agents.send(id, text, { from: "servex-step-runner" }); } catch { return; }
         await this.write_line(file, { log: { at: stamp(), msg: `step-runner nudge: step ${due.n}`, nudge: due.n } });
         try { await this.servex.log?.append("steps", { type: "nudge", task: this.slug(file), step: due.n, agent: id }); } catch {}

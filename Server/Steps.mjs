@@ -106,7 +106,7 @@ export default class Steps {
 	/** Followed-rate over the task dirs of the last `days` days. */
 	static report(days = 7){
 		const r = { tasks: 0, with_steps: 0, with_estimates: 0, landed: 0, all_reported: 0, followed_fully: 0, rate: null, rate_all_with_steps: null };
-		let landed_steps = 0, fully_steps = 0;
+		let fully_steps = 0;
 		for (const t of TaskDirs.list(days)){
 			const info = this.read(path.join(t.dir, "task.jsonl"));
 			if (!info) continue;
@@ -116,12 +116,12 @@ export default class Steps {
 			const est = info.steps.some(s => s.min != null);
 			if (est) r.with_estimates++;
 			if (info.landed) r.landed++;
-			const reported = info.step >= info.steps.length || info.steps.every(s => info.seen.has(s.n));
+			// every step after the first was bumped to on its own line (a jump from 1 to the last does not count)
+			const reported = info.steps.every(s => s.n === 1 || info.seen.has(s.n));
 			if (reported) r.all_reported++;
 			const fully = reported && info.landed;
 			if (fully) fully_steps++;
 			if (fully && est) r.followed_fully++;
-			if (info.landed) landed_steps++;
 		}
 		r.rate = r.with_estimates ? r.followed_fully / r.with_estimates : null;
 		r.rate_all_with_steps = r.with_steps ? fully_steps / r.with_steps : null;

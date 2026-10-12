@@ -20,4 +20,5 @@
 ## Watch out
 
 - A step's start time is the `at` on its `assign` line; write `"at":"NOW"` with every step bump, or the nudge counts from the task's start.
+- Only a task that opted in to the heartbeat (`heartbeat.opted_in`, as for the chase) is nudged; a task with steps but no opt-in is prompted by the hook only.
 - Before this, the TaskLoop never walked the sessions store (`ai/sessions/…`), so no task there was chased; it now walks both shapes.
