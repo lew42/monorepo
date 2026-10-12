@@ -1,0 +1,21 @@
+{"inbox":{"id":"n-oh59o3q4","from":"servex-heartbeat","text":"minion-sessions-perf its agent is not running, and the revive failed: Agent minion-sessions-perf was not woken: it was stopped on purpose by mastermind-data-grid at 2026-10-12T15:01:11-05:00. Pass revive: true to wake it anyway. Servex could not fix it; please look.","at":"2026-10-12T15:01:44.172-05:00"}}
+{"file":"task.jsonl"}
+{"file":"after-1200.png"}
+{"file":"after-1920.png"}
+{"file":"after-3440.png"}
+{"file":"after-400.png"}
+{"file":"after-50-1200.png"}
+{"file":"after-50-1920.png"}
+{"file":"after-50-3440.png"}
+{"file":"after-50-400.png"}
+{"file":"after-rail-1200.png"}
+{"file":"after-rail-1920.png"}
+{"file":"after-rail-3440.png"}
+{"file":"after-rail-400.png"}
+{"file":"after-rail-detail-1920.png"}
+{"file":"after-table-1200.png"}
+{"file":"after-table-1920.png"}
+{"file":"after-table-3440.png"}
+{"file":"after-table-400.png"}
+{"file":"before-2-1200.png"}
+{"file":"before-2-1920.png"}
