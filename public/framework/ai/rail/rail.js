@@ -2,7 +2,7 @@ import { Page, View, div, span, small, a, button, label, input, details, summary
 import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
 import { Groups } from "./groups.js";
-import { task_of, task_region } from "../cards/tasks.js";
+import { Tasks } from "../cards/Tasks.js";
 import { Faces } from "../cards/faces.js";
 import { news_of, group_news, unseen } from "../cards/activity.js";
 import { plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
@@ -278,7 +278,7 @@ export default class AIRail extends Inbox.Rail {
 	   redraws it when either moves. */
 	row_cost(it){
 		if (it.kind === "live") return null;
-		const t = this.groups.task_member(task_of(it) ?? task_of(this.groups.folds.get(it.id)?.fold));
+		const t = this.groups.task_member(Tasks.task_of(it) ?? Tasks.task_of(this.groups.folds.get(it.id)?.fold));
 		const c = cost_of(t);
 		it.usd = c ? c.usd : (it.folder ? Agents.agent_cost(it.id, () => this.paint_soon()) : null);
 		it.usd_open = !!c?.open;
@@ -630,7 +630,7 @@ function card_page(root, id){
 	function draw(it){
 		latest_it = it;
 		talk?.sync();
-		if ($tasks) task_region($tasks, root.ai2.groups.task_at(task_of(it)), task_state, { head: false });
+		if ($tasks) Tasks.task_region($tasks, root.ai2.groups.task_at(Tasks.task_of(it)), task_state, { head: false });
 		const next = JSON.stringify(it) + "|" + clog.entries.length;
 		if (held || next === sig) return;
 		sig = next;

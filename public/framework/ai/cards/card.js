@@ -3,7 +3,7 @@ import { icon, table, thead, tbody, tr, th, td } from "/framework/core/View/View
 import List from "/framework/core/List/List.js";
 import { Faces } from "./faces.js";
 import { money, cost_of, summary_line as cost_line } from "/framework/ext/AITask/cost.js";
-import { task_of, task_region, face_row, group_faces } from "./tasks.js";
+import { Tasks } from "./Tasks.js";
 
 import grip from "/framework/ext/grip/grip.js";
 import Menu from "/framework/ux/Menu/Menu.js";
@@ -484,7 +484,7 @@ export default class Card extends Page {
 			needs_for(this.id).map(n => n.ask).join(","),
 			this.description, this.links, this.flag_note, this.attached?.length, this.md_names(), this.placed, [...this.listed?.values() ?? []], cards_ready.known,
 			this.group_info(), this.subs().map(s => cards?.card(this.id + "/" + s) ?? s), this.cost_model(this.group_info()),
-			Agents.agent_cost(this.id, () => this.redraw()), this.shell?.ai2?.groups?.task_member(task_of(this))?.landed_at,
+			Agents.agent_cost(this.id, () => this.redraw()), this.shell?.ai2?.groups?.task_member(Tasks.task_of(this))?.landed_at,
 			!this.tiny() && this.shows_tabs() && this.open_tab(), [...(this.sub_group ?? [])], [...(this.sub_done ?? [])], [...(this.sub_meta ?? [])], this.refined?.text, this.prompts?.[0]?.text, [...(this.outline_items?.values() ?? [])], this.chats]);
 	}
 
@@ -531,7 +531,7 @@ export default class Card extends Page {
 	task_list(){
 		const g = this.group_info();
 		if (g) return this.shell.ai2.groups.members(g.id).filter(m => m.kind !== "said");
-		return this.shell?.ai2?.groups?.task_at(task_of(this)) ?? [];
+		return this.shell?.ai2?.groups?.task_at(Tasks.task_of(this)) ?? [];
 	}
 
 	fill_tasks(){
@@ -540,7 +540,7 @@ export default class Card extends Page {
 		// The task pages are what agents did for this card's requests: the Tasks tab.
 		// With no Tasks tab, a card's one task page still follows its Overview, never its Activity.
 		if (this.$tasks) this.$tasks.el.hidden = this.shows_tabs() && (this.has_tasks() ? this.open_tab() !== "tasks" : this.open_tab() === "activity");
-		if (this.$tasks) task_region(this.$tasks, this.task_list().filter(m => !g || m.kind !== "task"), this.task_state ??= {}, { head: !!g });
+		if (this.$tasks) Tasks.task_region(this.$tasks, this.task_list().filter(m => !g || m.kind !== "task"), this.task_state ??= {}, { head: !!g });
 	}
 
 	/* A TOP-LEVEL CARD HAS TWO TABS (the owner, 2026-09-25): Overview — what the card
@@ -609,7 +609,7 @@ export default class Card extends Page {
 	cost_now(g){
 		const groups = this.shell?.ai2?.groups;
 		if (g){ const s = groups?.cost(g.id); return s?.tracked ? { usd: s.usd, open: !!s.open } : {}; }
-		const c = cost_of(groups?.task_member(task_of(this)));
+		const c = cost_of(groups?.task_member(Tasks.task_of(this)));
 		return c ? { usd: c.usd, open: !!c.open } : { usd: Agents.agent_cost(this.id, () => this.redraw()) };
 	}
 
@@ -1104,8 +1104,8 @@ export default class Card extends Page {
 	cost_model(g){
 		const groups = this.shell?.ai2?.groups;
 		if (!groups) return null;
-		if (!g) return { line: cost_line(groups.task_member(task_of(this))) };
-		const rows = groups.members(g.id).filter(m => m.kind === "task").map(m => face_row(groups, m))
+		if (!g) return { line: cost_line(groups.task_member(Tasks.task_of(this))) };
+		const rows = groups.members(g.id).filter(m => m.kind === "task").map(m => Tasks.face_row(groups, m))
 			.sort((a, b) => (b.usd ?? -1) - (a.usd ?? -1) || a.title.localeCompare(b.title));
 		const s = groups.cost(g.id);
 		return { rows, sum: { usd: s.usd, tracked: s.tracked, untracked: s.untracked, open: !!s.open } };
@@ -1117,7 +1117,7 @@ export default class Card extends Page {
 		if (!g) return;
 		const { rows, sum } = model;
 		if (!rows.length) return;
-		group_faces(rows, sum, this.face_state ??= {});
+		Tasks.group_faces(rows, sum, this.face_state ??= {});
 	}
 
 	/** Turn this card into another kind: one `{"type": …}` line, and the latest wins. */
