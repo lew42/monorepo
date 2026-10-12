@@ -7,9 +7,9 @@ import { browser, close } from "../../../../../Server/browser.mjs";
 
 const OUT = process.env.OUT ?? path.join(process.env.TEMP, "content-list");
 // New ability by design: these differ between old and new code; diff skips them.
-const NEW = new Set(["/framework/core/Page/content/both/"]);
+const NEW = new Set(["/framework/core/Page/content-shapes/both/"]);
 const WIDTHS = [400, 1200, 1920, 3440];
-const FULL = new Set(["/framework/core/Page/content/", "/framework/core/Page/content/string-1/", "/framework/core/Page/content/address-1/", "/framework/core/Page/content/class-body/", "/framework/core/Page/content/code/", "/framework/core/Page/", "/framework/ai/", "/imagine/paging/", "/framework/core/Page/overview/columns/", "/framework/ext/markdown/open/", "/framework/core/Page/parts/example/", "/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/sessions/"]);
+const FULL = new Set(["/framework/core/Page/content-shapes/", "/framework/core/Page/content-shapes/string-1/", "/framework/core/Page/content-shapes/address-1/", "/framework/core/Page/content-shapes/class-body/", "/framework/core/Page/content-shapes/code/", "/framework/core/Page/", "/framework/ai/", "/imagine/paging/", "/framework/core/Page/overview/columns/", "/framework/ext/markdown/open/", "/framework/core/Page/parts/example/", "/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/sessions/"]);
 
 const URLS = (process.env.ONLY ? process.env.ONLY.split(",") : null) ?? [
 	"/framework/", "/framework/core/", "/framework/core/Page/", "/framework/core/View/", "/framework/core/Router/", "/framework/core/App/",
@@ -19,11 +19,11 @@ const URLS = (process.env.ONLY ? process.env.ONLY.split(",") : null) ?? [
 	"/framework/ai/", "/framework/ai/sessions/", "/framework/ai/sessions/2026/10/", "/framework/ai/cards/", "/framework/ai/rail/", "/framework/ai/classes/",
 	"/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/2026-10-12/page-split-2/", "/framework/ai/2026-10-12/page-split-3/", "/framework/ai/2026-10-12/",
 	"/framework/ext/markdown/open/", "/framework/ext/markdown/open/columns/", "/framework/ext/JSONL/", "/framework/ext/Refine/",
-	"/framework/core/Page/content/", "/framework/core/Page/content/code/", "/framework/core/Page/content/class-body/",
-	"/framework/core/Page/content/string-1/", "/framework/core/Page/content/string-2/", "/framework/core/Page/content/string-3/", "/framework/core/Page/content/string-4/", "/framework/core/Page/content/string-5/",
-	"/framework/core/Page/content/address-1/", "/framework/core/Page/content/address-2/", "/framework/core/Page/content/address-3/", "/framework/core/Page/content/address-4/", "/framework/core/Page/content/address-5/",
+	"/framework/core/Page/content-shapes/", "/framework/core/Page/content-shapes/code/", "/framework/core/Page/content-shapes/class-body/",
+	"/framework/core/Page/content-shapes/string-1/", "/framework/core/Page/content-shapes/string-2/", "/framework/core/Page/content-shapes/string-3/", "/framework/core/Page/content-shapes/string-4/", "/framework/core/Page/content-shapes/string-5/",
+	"/framework/core/Page/content-shapes/address-1/", "/framework/core/Page/content-shapes/address-2/", "/framework/core/Page/content-shapes/address-3/", "/framework/core/Page/content-shapes/address-4/", "/framework/core/Page/content-shapes/address-5/",
 	"/framework/core/Page/tool/", "/framework/ai/sessions/2026/10/03/71eead80-a869-421f-83bb-eba7ff83510e/task/", "/framework/ai/sessions/2026/10/12/session-3c35b6e2/seeds/",
-	"/framework/core/Page/content/both/",
+	"/framework/core/Page/content-shapes/both/",
 	"/imagine/paging/", "/imagine/paging/arrangement/", "/imagine/", "/framework/ux/Dictate/", "/framework/ux/Inbox/", "/framework/ui/", "/framework/styles/", "/web/",
 ];
 

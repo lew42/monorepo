@@ -1,6 +1,6 @@
 # content is always a List: step 1, as built (2026-10-12)
 
-Step 1 of [content.md](content.md), "Design: `content` is always a List". Steps 2 and 3 (`children`) are not built. Live: [/framework/core/Page/content/](/framework/core/Page/content/), proof in [STATE.md](../../ai/2026-10-12/content-list/STATE.md).
+Step 1 of [content.md](content.md), "Design: `content` is always a List". Steps 2 and 3 (`children`) are not built. Live: [/framework/core/Page/content-shapes/](/framework/core/Page/content-shapes/), proof in [STATE.md](../../ai/2026-10-12/content-list/STATE.md).
 
 ## The classes
 
@@ -26,4 +26,4 @@ Each has a `View` attached after the class (`PageCode.View = …`). `PageContent
 
 ## New ability
 
-A page with `content(){…}` and a `{"content":…}` jsonl line shows both: [/framework/core/Page/content/both/](/framework/core/Page/content/both/). Before, the line replaced the function.
+A page with `content(){…}` and a `{"content":…}` jsonl line shows both: [/framework/core/Page/content-shapes/both/](/framework/core/Page/content-shapes/both/). Before, the line replaced the function.
