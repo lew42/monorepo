@@ -8,6 +8,7 @@ prompts live inside their session, never a separate log page, and on a wide scre
 opens as a side peek beside the grid instead of replacing it.
 
 - **The grid is [ext/DataGrid](/framework/ext/DataGrid/)**: a table or a rail of cards (the Table / Rail toggle, `?view=rail`, default in `settings.jsonl`); rows are `AISessionView`, order and nesting are `AISessionsPage.arrange()`.
+- **Routine sessions roll up** (prompt cleaning, short headless runs, clarity, reviews, helpers): one row each on top, click to show them; [doc/buckets.md](doc/buckets.md).
 - **Use** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#use), verbatim.
 - **Where the real dollars come from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-real-dollars-come-from), verbatim.
 - **Where the data comes from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-data-comes-from), verbatim.

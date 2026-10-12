@@ -6,6 +6,8 @@ import DataGrid from "/framework/ext/DataGrid/DataGrid.js";
 import { page_settings } from "/framework/core/Page/settings/settings.js";
 import AISessionRows from "./AISessionRows.js";
 import AISessionView from "./AISessionView.js";
+import AISessionBuckets from "./AISessionBuckets.js";
+import AISessionBucketView from "./AISessionBucketView.js";
 import AISessionLive from "./AISessionLive.js";
 import AISession from "./AISession.js";
 import AISessionDetail from "./AISessionDetail.js";
@@ -97,9 +99,9 @@ export default class AISessionsPage extends Page {
 			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key] })),
 			rows: [], filters: false, row_height: null, page_size: AISessionsPage.PAGE_SIZE,
 			prefs_id: "sessions", settings: this.settings,
-			href: r => this.url + r.id + "/",
-			row: r => this.row_view(r, this.nests.get(r)),
-			card: r => new AISessionView({ row: r, url: this.url, spend: this.spend, session_index: this.session_index, card: true }),
+			href: r => r.bucket ? null : this.url + r.id + "/",
+			row: r => r.bucket ? this.bucket_view(r) : this.row_view(r, this.nests.get(r)),
+			card: r => r.bucket ? this.bucket_view(r, true) : new AISessionView({ row: r, url: this.url, spend: this.spend, session_index: this.session_index, card: true }),
 			sort_rows: (rows, sort) => this.arrange(rows, sort),
 			natural_dir: key => AISessionRows.natural_dir(key),
 		});
@@ -113,10 +115,17 @@ export default class AISessionsPage extends Page {
 		this.reshape();
 	}
 
-	/** The grid's sort hook: the default or header order, then children nested under their parent (collapsed until opened), flattened for the grid. */
+	/** The grid's sort hook: routine sessions roll up into one bucket row each (on top), then the default or header order,
+	 * then children nested under their parent (collapsed until opened), flattened for the grid. Doc: ai/sessions/doc/buckets.md */
 	arrange(rows, sort){
 		const id_of = r => r.session_id || r.id;
-		const { top, kids_of } = AISessionRows.nest(AISessionRows.sort_rows(rows, sort));
+		this.buckets ??= new AISessionBuckets([], { of: r => AISession.all.get(id_of(r))?.ix ?? null, key: id_of });   // a row not in the index yet is never hidden
+		this.open_kinds ??= new Set();
+		this.buckets.sync(rows);   // only new, changed or gone rows touch their buckets
+		const kept = this.buckets.rollup(rows, { expand: this.open_kinds }).filter(r => !r.bucket);
+		const heads = Object.entries(this.buckets.index.kind).filter(([k, b]) => this.buckets.routine.has(k) && b.n)
+			.sort((x, y) => y[1].n - x[1].n).map(([k, b]) => ({ bucket: "kind", key: k, id: "bucket-" + k, ...b }));
+		const { top, kids_of } = AISessionRows.nest(AISessionRows.sort_rows(kept, sort));
 		this.open_ids ??= new Set();
 		this.nests = new Map();
 		const out = [];
@@ -127,7 +136,13 @@ export default class AISessionsPage extends Page {
 			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
 		};
 		top.forEach(r => place(r, 0, new Set([id_of(r)])));
-		return out;
+		return [...heads, ...out];
+	}
+
+	/** A bucket row: a click shows or hides the routine sessions it holds. */
+	bucket_view(b, card = false){
+		const open = this.open_kinds.has(b.key);
+		return new AISessionBucketView({ row: b, open, card, toggle: () => { open ? this.open_kinds.delete(b.key) : this.open_kinds.add(b.key); this.grid.apply(false); } });
 	}
 
 	/** The plan's meters as progress bars with the pace marker (ext/AITask/usage.js), then one line of counts. */
