@@ -47,8 +47,8 @@ export default class RefineDemo extends View {
 				label.c("refine-model", () => {
 					span("Model");
 					this.$model = select(() => {
-						option("Sonnet 5.5 (faster)").attr("value", "claude-sonnet-5-5");
-						option("Haiku 5.5 (cheapest)").attr("value", "claude-haiku-5-5");
+						option("Haiku 5.5 (default)").attr("value", "claude-haiku-5-5");   // the server default (RefineCall.model()); ai/doc/models.md
+						option("Sonnet 5.5 (sharper)").attr("value", "claude-sonnet-5-5");
 					});
 					this.$model.el.addEventListener("change", () => { this.system.model = this.$model.el.value; });
 				});
