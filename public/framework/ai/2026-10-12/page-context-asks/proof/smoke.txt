@@ -1,30 +1,6 @@
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:3217/framework/ai/2026-09-22/sub-mastermind-live/page.js)
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:3217/framework/ai/2026-09-22/skills-shrink-2/page.js)
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:3217/framework/ai/2026-09-22/object-layer/page.js)
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:3217/framework/ai/2026-09-25/ai2-lead.md)
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:3217/framework/ai/2026-09-25/servex-mastermind.md)
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:3217/framework/ai/2026-09-22/inbox-model.md)
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:3217/framework/ai/2026-09-22/prompt-lifecycle.md)
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:3217/framework/ai/2026-09-22/dictate-silence.md)
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:3217/framework/ai/2026-09-22/sub-mastermind-live.md)
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:3217/framework/ai/2026-09-22/skills-shrink-2.md)
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:3217/framework/ai/2026-09-22/object-layer.md)
-  noise Socket error.
-  noise Socket closed, reconnecting in 250ms.
-  noise Socket closed, reconnecting in 500ms.
-  noise Socket closed, reconnecting in 1000ms.
-  (2 warn/log lines allow-listed — console-allow.jsonl)
-FAIL /framework/dev/  1 error
-       console: WebSocket connection to 'ws://127.0.0.1:3217/' failed: Error during WebSocket handshake: Unexpected response code: 200  (http://127.0.0.1:3217/framework/dev/Socket/Socket.js)
-  noise Socket error.
-  noise Socket closed, reconnecting in 250ms.
-  noise Socket closed, reconnecting in 500ms.
-  noise Socket closed, reconnecting in 1000ms.
-  (2 warn/log lines allow-listed — console-allow.jsonl)
-FAIL /framework/ux/Dictate/  1 error
-       console: WebSocket connection to 'ws://127.0.0.1:3217/' failed: Error during WebSocket handshake: Unexpected response code: 200  (http://127.0.0.1:3217/framework/dev/Socket/Socket.js)
-  noise Socket error.
-  noise Socket closed, reconnecting in 250ms.
-  noise Socket closed, reconnecting in 500ms.
-  noise Socket closed, reconnecting in 1000ms.
-  (2 warn/log lines allow-listed — console-allow.jsonl)
+ok   /framework/
+ok   /framework/ai2/
+ok   /framework/core/Page/weight/
+FAIL /framework/ai/  17 errors
+ok   /framework/dev/
+ok   /framework/ux/Dictate/
