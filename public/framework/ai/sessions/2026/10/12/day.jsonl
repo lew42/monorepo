@@ -7,3 +7,4 @@
 {"log":{"at":"2026-10-12T16:29:56-05:00","task":"ui-library","msg":"landed — /framework/library/: six collections, three columns, wall view, padding contract"}}
 {"log":{"at":"2026-10-12T17:12:10-05:00","task":"server-query","msg":"landed — Sessions rows come from a node query (ext/Query); default on the dev socket"}}
 {"log":{"at":"2026-10-12T17:17:11-05:00","task":"data-grid","msg":"landed — Sessions grid: one scroller + solid sticky header at 3440; routine kinds as chips; search over every session; newest-then-costliest; compact header"}}
+{"log":{"at":"2026-10-12T17:21:40-05:00","task":"screenshot-system","msg":"landed — Shots live: rounds, diff overlay, Figma compare, Screenshots tab"}}
