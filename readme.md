@@ -19,6 +19,7 @@ Servex holds port 80 and starts the site the first time you visit it (`Servex/re
 - **Sessions** (VS Code sidebar tabs, browser voice agents, resumable chats): [ai/sessions](public/framework/ai/sessions/readme.md) · [conversations](public/framework/ai/doc/logs/conversations.md)
 - **Transcription** (Whisper, Dictate): [ux/Dictate](public/framework/ux/Dictate/readme.md)
 - **Page system** (pages, routing, JSONL streaming): [core/Page](public/framework/core/Page/readme.md) · [ext/JSONL](public/framework/ext/JSONL/readme.md)
+- **Organization** (what goes where, the System class): [organization.md](public/framework/ai/doc/organization.md)
 - **Skills and CLAUDE.md** (what every agent reads first): [CLAUDE.md](CLAUDE.md) · [skills](public/framework/ai/skills/)
 - **Dashboard, Log, Inbox, tasks**: [ai/readme.md](public/framework/ai/readme.md) · [all systems, with size and freshness](public/framework/ai/systems-map.md)
 
