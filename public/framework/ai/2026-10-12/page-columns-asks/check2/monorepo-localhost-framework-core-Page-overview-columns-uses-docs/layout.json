@@ -1,0 +1,238 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/overview/columns/uses/docs/",
+ "widths": {
+  "400": {
+   "empty": 0.259,
+   "widest_text": 375,
+   "widest_text_sample": ", so it cannot lag. A tab is not a step ",
+   "overflow_x": false,
+   "items": 23,
+   "narrow_share": 0.522,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 11,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 11
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-columns-bar",
+     "y": 51,
+     "h": 38,
+     "share": 0.038,
+     "ink": 0.1,
+     "big_empty": false
+    },
+    {
+     "cls": "page-columns-row",
+     "y": 89,
+     "h": 861,
+     "share": 0.861,
+     "ink": 0.777,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.675,
+   "widest_text": 295,
+   "widest_text_sample": ", so it cannot lag. A tab is not a step ",
+   "overflow_x": false,
+   "items": 104,
+   "narrow_share": 0.212,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 15,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 15
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-columns-bar",
+     "y": 0,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.2,
+     "big_empty": false
+    },
+    {
+     "cls": "page-columns-row",
+     "y": 40,
+     "h": 960,
+     "share": 0.96,
+     "ink": 0.33,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.75,
+   "widest_text": 501,
+   "widest_text_sample": ", so it cannot lag. A tab is not a step ",
+   "overflow_x": false,
+   "items": 104,
+   "narrow_share": 0.952,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 27,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 27
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-columns-bar",
+     "y": 0,
+     "h": 43,
+     "share": 0.043,
+     "ink": 0.175,
+     "big_empty": false
+    },
+    {
+     "cls": "page-columns-row",
+     "y": 43,
+     "h": 957,
+     "share": 0.957,
+     "ink": 0.254,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.789,
+   "widest_text": 617,
+   "widest_text_sample": ", so it cannot lag. A tab is not a step ",
+   "overflow_x": false,
+   "items": 104,
+   "narrow_share": 0.952,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 49,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 49
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-columns-bar",
+     "y": 0,
+     "h": 48,
+     "share": 0.048,
+     "ink": 0.15,
+     "big_empty": false
+    },
+    {
+     "cls": "page-columns-row",
+     "y": 48,
+     "h": 952,
+     "share": 0.952,
+     "ink": 0.214,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}
