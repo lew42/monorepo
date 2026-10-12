@@ -39,8 +39,8 @@ Held by reference, the way `prefs()` already does it: `columns(o){ return new th
 
 ## Order, lowest risk first
 
-1. ⬜ **Already-classes out** (`Reader`, `Listing`, `Prefs`, `PageChildren`): ~260 lines, pure move, one attach line each stays. Risk: none (`Page.Reader` etc. keep the same names; only `loaded_listing` has outside callers, 2).
-2. ⬜ **Comments to `doc/`**: 60 lines mention dates/renames/"was". They are history, not explanation. Candidates: the `PageLog` fold note (l.72), the `surface/wash` alias (l.17), the `opens()` collision (1526+), the `static View` compat note, the `at` compat note (l.127), the `store()` rename (1973). Move to `doc/decisions.md` with a one-line pointer. About -300 comment lines, zero risk, do it with the moves above.
+1. ⬜ **Comments first** (owner, 2026-10-12: a comment is a pointer, not an essay). 97 blocks of 4+ lines, 772 lines: 37 history to `doc/decisions.md`, 26 traps (keep one warning line, story to `doc/watch-out.md`), 12 banners (title only), 21 explanations (one line, rest to the topic doc), 1 obsolete. About -660 lines, zero behaviour risk, and every later move gets cheaper. Per-block table: [comment-plan.md](./comment-plan.md); script `doc/comment-blocks.mjs`.
+2. ⬜ **Already-classes out** (`Reader`, `Listing`, `Prefs`, `PageChildren`): ~260 lines, pure move, one attach line each stays. Risk: none (`Page.Reader` etc. keep the same names; only `loaded_listing` has outside callers, 2).
 3. ⬜ **Related** (52 lines): no outside callers, only `related_aside` is reached via render. Risk: low.
 4. ⬜ **Previews/walls** (150): callers `previews` (212 files mention it, mostly page.js declarations of the word, so keep the `previews()` facade), `wall_rungs` 1. Risk: low-medium.
 5. ⬜ **Columns** (296): 74 mentions of `columns(` in page.js files; keep `columns()`, `column()`, `column_host` as facades. Biggest comment share (163) so shrinks the file most. Risk: medium, needs the `/imagine/paging` and Finder pages checked at the four widths.
