@@ -1,5 +1,6 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import { read_key, has_key, spend_guard } from "../openrouter/provider.js";
+import { session_backend } from "../../agents/Sessions.js";
 
 /**
  * class RefineCall — ONE model call as its OWN NEW session (never resumed), with the lean
@@ -21,6 +22,11 @@ import { read_key, has_key, spend_guard } from "../openrouter/provider.js";
 export default class RefineCall {
 
 	static FALLBACK = "claude-haiku-5-5";
+	static OPENROUTER = "openai/gpt-6-luna";
+
+	/** The model every clean/refine call uses: Haiku, unless session-backend.txt says `openrouter`
+	 *  (the owner's switch for when Claude tokens run out; read per call, no restart). ai/doc/models.md */
+	static model(){ return session_backend() === "openrouter" ? RefineCall.OPENROUTER : RefineCall.FALLBACK; }
 
 	static async run(prompt, { model = "claude-haiku-5-5", system, stage = "" } = {}){
 		if (String(model).includes("/")){

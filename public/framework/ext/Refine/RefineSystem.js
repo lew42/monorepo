@@ -20,6 +20,26 @@ import { quick_clean } from "./engine.js";
  */
 export default class RefineSystem {
 
+	/** POST one live-refine batch (`doc/live-refine-2026-10-12.md`, wire shape at
+	 *  `ai/2026-10-12/refine-haiku-live/contract.md`). Static, so a plain `ComposerMic` (`ext/Chat/Mic.js`), with no `RefineSystem` instance
+	 *  of its own, can call it too: CLAUDE.md law 2/6, "every mic refines live", not just the Refine
+	 *  demo's own page. Fails quietly (`null`) until Servex's own `/api/refine/live` route lands
+	 *  (`Servex/ext/refine/LiveRefine.js`) and the dev server restarts — a 404, any non-OK status,
+	 *  or a network error are all exactly "today's behaviour", never thrown, never blocking a send. */
+	static async post_live({ prompt, text, final = false, session, source = "dictated" } = {}){
+		if (!prompt || (!text && !final)) return null;
+		try {
+			const { servex_url } = await import("/framework/dev/servex_url.js");
+			const res = await fetch(servex_url("/api/refine/live"), {
+				method: "POST", headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ prompt, session, text, final, source }),
+			});
+			if (!res.ok) return null;
+			const out = await res.json();
+			return out?.ok ? out : null;
+		} catch { return null; }
+	}
+
 	static icon = "hub";
 
 	/** The architecture table the demo's class card draws (same rows as `doc/architecture.md`). */
@@ -37,7 +57,7 @@ export default class RefineSystem {
 	prompt = new Prompt();
 	whisper = Whisper.shared;
 	session = this.whisper.session("Refine demo");   // Dictate's on_whisper feeds it: system.session.record(line)
-	model = "openai/gpt-6-luna";                    // non-Anthropic voice model, Claude Haiku fallback server-side: ai/doc/models.md
+	model = "";                                     // empty: the server picks (Haiku, or OpenRouter when session-backend.txt says so): ai/doc/models.md
 	session_id = RefineSystem.session_id();            // the session whose log keeps this page's prompts (ai/AISession/PromptLog.js)
 	prompt_id = RefineSystem.new_prompt_id();          // names this prompt on the session page (`voice-<id>`); a new one per prompt
 	history = [];                                   // finished prompts of this page visit (plain summaries), newest last
@@ -102,7 +122,7 @@ export default class RefineSystem {
 				const { servex_url } = await import("/framework/dev/servex_url.js");
 				url = servex_url("/api/refine");
 			}
-			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model, session: this.session_id, prompt: this.prompt_id, source: this.source ?? "typed" }) });
+			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model || undefined, session: this.session_id, prompt: this.prompt_id, source: this.source ?? "typed" }) });
 			const out = await res.json();
 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
 			prompt.load(out);
@@ -113,6 +133,21 @@ export default class RefineSystem {
 			ErrorLog.report(e, { where: "RefineSystem.go" });
 		}
 		return prompt;
+	}
+
+	/** Live refine for THIS prompt (`RefineSystem.post_live()` above): keeps only the newest `seq` (a reply
+	 *  for an older batch, arrived late, is dropped), and writes the outline straight onto the
+	 *  live `Prompt` so any host watching it (its own `on_change`, `Prompt.View`'s "3 · Outline"
+	 *  section) sees it update as the words arrive — the same redraw path `go()` and `quick()`
+	 *  already use, never a second one. */
+	async live(text, { final = false } = {}){
+		const out = await RefineSystem.post_live({ prompt: this.prompt_id, text, final, session: this.session_id, source: this.source ?? "dictated" });
+		if (!out) return null;
+		if ((out.seq ?? 0) < (this._live_seq ?? -1)) return null;
+		this._live_seq = out.seq ?? 0;
+		this.live_md = out.md; this.live_outline = out.outline; this.live_slots = out.slots;
+		if (out.outline) this.prompt.set({ subject: out.outline.subject ?? this.prompt.subject, refined: out.outline.sections ?? this.prompt.refined });
+		return out;
 	}
 
 	/** Start over: the same Prompt object, emptied (so the debug tree keeps showing the live one). */

@@ -50,6 +50,12 @@ export function composer({
 	device_id,         // forwarded straight to `Dictate`'s own `device_id` — a caller that already picked one mic by hand. Unset, every
 	                    // `Dictate` reads `remembered_device()` on its own, which a caller's own device PICKER (not built here — this
 	                    // composer has no UI for choosing a mic) writes to through `remember_device()`, `ux/Dictate/Dictate.js`.
+	session,           // this mount's own session id (a string, or a function read fresh) — forwarded to `ComposerMic`'s live-refine
+	                    // calls (`Mic.js`'s `refine_tick`/`refine_final`) so the outline lands under `/framework/ai/sessions/<id>/`
+	                    // same as every other stage (`contract.md`). Unset is fine — the live call just has no session to attach to.
+	on_refine_live,    // (answer) => … — forwarded straight to `ComposerMic`'s own `on_refine_live`: the live `/api/refine/live`
+	                    // answer (`{ md, outline, slots, … }`), the instant one arrives, for a host that draws the growing outline
+	                    // (the Refine demo feeds `answer.md`/`outline` into its own `Prompt.View`).
 } = {}){
 	let $box, $input, $note, $raw_btn, mic;
 
@@ -58,7 +64,10 @@ export function composer({
 			$box = $f;
 			// `.auto` = `field-sizing: content` (framework.css, util layer): the box grows with the
 			// text, full width, up to `Chat.css`'s own ceiling (`.chatbox-compose-input`'s `max-height`).
-			$input = textarea().attr("rows", "2").ac("auto chatbox-compose-input").attr("placeholder", placeholder);
+			// ONE LINE TALL WHEN EMPTY, UP TO 3 THEN SCROLLS (one-input, 2026-10-12 — decided over a
+			// single-line `<input>` that scrolls sideways: it cannot show a paragraph of raw dictation,
+			// which is the whole point of the raw reference while speaking. `doc/one-input-2026-10-12.md`).
+			$input = textarea().attr("rows", "1").ac("auto chatbox-compose-input").attr("placeholder", placeholder);
 		});
 
 		// ONE ROW, UNDER THE BOX: mic on the left, the gear next to it, Send pinned to the
@@ -78,6 +87,8 @@ export function composer({
 				on_live,
 				on_send_start,
 				on_meter, device_id,
+				on_refine_live,
+				refine_session_id: typeof session === "function" ? session : () => session,
 				field: $input,
 				// ONE STATUS LINE REPLACES ERROR ROWS (round 2, 2026-10-04 — the owner: "an
 				// error happens and that error doesn't get cleared out… wasting three more

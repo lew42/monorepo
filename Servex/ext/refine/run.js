@@ -17,13 +17,12 @@ import VoicePage from "./VoicePage.js";
 import LiveClean from "./LiveClean.js";
 import PromptLog from "../../../public/framework/ai/AISession/PromptLog.js";
 
-const MODEL = "openai/gpt-6-luna";   // non-Anthropic, 29/29 on the known-answer suite, ~$0.00003 a call, falls back to Claude Haiku if OpenRouter is down (RefineCall.js, ai/doc/models.md)
 
 /* With `session` (a Claude session uuid) the prompt is also kept in that session's own log
  * (ai/AISession/PromptLog.js): raw first and untouched, then the clean sentences set as final, then
  * the refined cards citing sentence indexes, then the Haiku notes (clarity, alternates, names, tags).
  * Logging never fails the refine: a refusal comes back as `log_error`. */
-export async function run_refine({ text, model = MODEL, clarity_model = MODEL, session = "", prompt = "", source = "typed", inbox = null, clean_live = false } = {}){
+export async function run_refine({ text, model = RefineCall.model(), clarity_model = RefineCall.model(), session = "", prompt = "", source = "typed", inbox = null, clean_live = false } = {}){
 	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
 	if (text.length > 20000) return { ok: false, why: "text is over 20000 characters" };
 	let voice = null;   // outside the try so the catch can mark a generated prompt id as failed too

@@ -151,9 +151,9 @@ export const now_ms = () => {
  * Claude itself refuses it for usage limits, no setting change needed. That refusal is the
  * whole point of this switch: Dictate keeps answering even once Claude is cut off. */
 export const SESSION_BACKENDS = ["auto", "claude", "openrouter", "local"];
-/* VOICE MODEL POLICY (the owner, 2026-10-05..08; ai/2026-10-12/models-asks): the voice assistants run on a NON-Anthropic
- * model by default ("auto"). If OpenRouter is down (no key, spend guard refusing, or a spawn error) the session
- * falls back to Claude for that turn and says so; `claude` in session-backend.txt forces Claude. Why these two: ai/doc/models.md. */
+/* VOICE MODEL POLICY (the owner, 2026-10-12, ai/2026-10-12/refine-haiku-live: "while we pay for Claude tokens anyway, keep
+ * OpenRouter to a minimum"): "auto" now means CLAUDE. OpenRouter only when session-backend.txt says `openrouter`, or when
+ * Claude refuses a session (usage limit, logged out: the automatic fallback in woken()). Was: luna first (2026-10-05..08). */
 export const VOICE_MODELS = { fast: "openai/gpt-6-luna", smart: "openai/gpt-6-luna" };
 export const FALLBACK_MODEL = "openai/gpt-6-luna";
 /* Overridable (review finding 6) so a test can point this at a throwaway file instead of the
@@ -997,7 +997,6 @@ export default class Sessions {
 		const backend = s.fallback?.[role] ? "openrouter" : session_backend();
 		if (backend === "openrouter") return FALLBACK_MODEL;
 		if (backend === "local") return role === "fast" ? "local/qwen2.5-coder" : FALLBACK_MODEL;
-		if (backend === "auto" && this.or_ready()) return VOICE_MODELS[role];
 		return this.claude_model(role);
 	}
 
