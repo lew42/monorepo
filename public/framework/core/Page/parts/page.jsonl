@@ -7,3 +7,13 @@
 {"file":"Part.js"}
 {"file":"Parts.js"}
 {"file":"TextPart.js"}
+{"content":{"add":{"id":"c2","type":"part-card","title":"Added later","text":"One appended line."}}}
+{"content":{"move":{"id":"c2","after":"h1"}}}
+{"content":{"remove":"c1"}}
+{"file":"example/"}
+{"file":"MdToParts.mjs"}
+{"file":"example/page.jsonl"}
+{"file":"example/"}
+{"file":"example/page.jsonl"}
+{"file":"doc/"}
+{"file":"readme.md"}
