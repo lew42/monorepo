@@ -1,8 +1,7 @@
-import { View, div, p, h1, h4, a, span, icon, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
+import { View, div, p, h1, h4, a, span, icon, is } from "../View/View.js";
 import PageFrame from "./Frame.js";
 import Item from "../Item/Item.js";
 import List from "../List/List.js";
-import { page_settings } from "./settings/settings.js";
 import { track } from "../track/track.js";
 import ai_cost from "./weight/ai-cost.js";
 import PageWork from "./ai/PageWork.js";
@@ -14,6 +13,7 @@ import PageRelated from "./Related.js";
 import PagePreviews from "./Previews.js";
 import PageColumns from "./Columns.js";
 import PageLinks from "./Links.js";
+import PageJsonl from "./Jsonl.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -30,9 +30,6 @@ const ALIAS = { surface: "card", wash: "tint" };
 // prose, anything else is the `page.json` at that address.
 const is_address = value => is.str(value) && value.startsWith("/");
 const is_md = url => /\.md(\?|#|$)/i.test(url);
-
-// "kid/page.jsonl" → ["kid", "jsonl"]; key_of() keys a file line by its FIRST path segment, latest wins. (doc/decisions.md)
-const { CHILD, key_of } = PageListing;
 
 // Page extends Item directly (no PageLog middle class). (doc/decisions.md)
 export class Page extends Item {
@@ -130,97 +127,20 @@ export class Page extends Item {
 		(this.ext_ready ??= []).push(ready);
 	}
 
-	// ════ STEP 1 — the file EXISTS (recorded, never rendered; a code call returns the real FsFile) ═══ (doc/jsonl.md)
-	file(name){
-		if (this.store?.replaying){
-			(this.listed ??= new Map()).set(this.last_file = key_of(name), name);
-			CHILD.test(name) ? this.link_child(name) : this.unlink_child(key_of(name));
-			return undefined;
-		}
+	// ════ PAGE.JSONL HOOKS — the file steps, tab state, the word delta (Jsonl.js, doc/jsonl.md) ═══
+	// The state stays here (`listed`, `placed`, `child_kinds`, `tabs_state`); a page overrides a facade and Jsonl calls back through it.
+	file(name){ return new this.constructor.Jsonl({ page: this }).file(name); }
+	gone(yes){ return new this.constructor.Jsonl({ page: this }).gone(yes); }
+	child_file(entry){ return new this.constructor.Jsonl({ page: this }).child_file(entry); }
+	link_child(name){ return new this.constructor.Jsonl({ page: this }).link_child(name); }
+	unlink_child(key){ return new this.constructor.Jsonl({ page: this }).unlink_child(key); }
+	tab(obj){ return new this.constructor.Jsonl({ page: this }).tab(obj); }
 
-		const path = (this.log_folder() + name).replace(/^\/+/, "");
-		return import("../../ext/filesystem/FsFile.js").then(({ default: FsFile }) => new FsFile({ path, name }));
-	}
-
-	// `{"file": "x", "gone": true}` — `set()` calls file("x") first, then this.
-	gone(yes){
-		if (!yes || !this.last_file) return;
-		this.listed?.delete(this.last_file);
-		this.unlink_child(this.last_file);
-	}
-
-	// ════ STEP 2 — a child page is LINKED, automatically ("kid/page.jsonl" → child "kid") ═══ (doc/jsonl.md)
-	child_file(entry){
-		const [, dir, kind] = entry.match(CHILD) ?? [];
-		if (!kind) return entry;
-
-		(this.child_kinds ??= new Map()).set(dir, kind);
-		return dir;
-	}
-
-	link_child(name){
-		const dir = this.child_file(name);
-		if (!this.children.has(dir)) this.children.set(dir, null);
-	}
-
-	unlink_child(key){
-		if (!this.child_kinds?.delete(key)) return;
-		this.children.delete(key);
-	}
-
-	// ════ TAB STATE — {"tab": {"name": "x", "disabled": true, "nav": false, "order": 3}} ═══
-	// ⚠ Repeat lines for a name MERGE, never replace. (doc/jsonl.md)
-	tab(obj){
-		const { name, title, icon, description, content, ...state } = obj;
-		if (!name) return;
-
-		(this.tabs_state ??= new Map()).set(name, { ...this.tabs_state.get(name), ...state });
-		const data = Object.fromEntries(Object.entries({ title, icon, description, content }).filter(([, v]) => v !== undefined));
-		if (!Object.keys(data).length){
-			if (!this.children.has(name)) this.children.set(name, null);
-			return;
-		}
-
-		const had = this.children.get(name);
-		if (had instanceof Page){
-			const { content: text, ...labels } = data;
-			if (Object.keys(labels).length) had.set(labels);
-			if (text !== undefined && !(had.content instanceof List)) had.content = text;
-			had.rerender();
-			if (this.view) queueMicrotask(() => this.nav_redraw?.());
-			return;
-		}
-
-		this.add(name, data).from_tab = true;
-		if (!this.navigation && !this._tab_redraws?.size){ this.navigation = "tabs"; this.words(); }
-		this.reshape();
-	}
-
-	// ════ THE SIX WORDS AS A DELTA — a word on a live page.jsonl reshapes the page, redrawn once ═══ (doc/jsonl.md)
+	// The six page words a delta may carry. (doc/jsonl.md)
 	static WORDS = ["navigation", "width", "arrangement", "surface", "background", "type_size"];
 
-	take_words(obj){
-		const said = Page.WORDS.filter(word => word in obj);
-		if (!said.length) return obj;
-
-		const rest = { ...obj };
-		let changed = false;
-		for (const word of said){
-			if (this[word] !== rest[word]){ this[word] = rest[word]; changed = true; }
-			delete rest[word];
-		}
-		if (changed){ this.words(); this.reshape(); }
-		return rest;
-	}
-
-	// A log on top of a template: only the SHAPE of a line applies (the words, `tab`, `title`). (doc/jsonl.md)
-	overlay(line){
-		if (!line || typeof line !== "object" || Array.isArray(line)) return null;
-		const shape = {};
-		for (const [key, value] of Object.entries(line))
-			if (Page.WORDS.includes(key) || key === "tab" || key === "title" || this.children.get(key)?.from_tab) shape[key] = value;
-		return Object.keys(shape).length ? (this.set(shape), shape) : null;
-	}
+	take_words(obj){ return new this.constructor.Jsonl({ page: this }).take_words(obj); }
+	overlay(line){ return new this.constructor.Jsonl({ page: this }).overlay(line); }
 
 	// One redraw per burst of lines: a batch of lines read together (a replay, or a
 	// delta naming three words) lands as ONE rerender, on the next microtask.
@@ -252,186 +172,29 @@ export class Page extends Item {
 		return this;
 	}
 
-	// The state a `tab` line recorded for one name — `{}` when nobody ever set one, so
-	// every caller (Doc.bar(), tabs()) reads `.disabled` / `.nav` / `.order` with no guard.
-	tab_state(name){ return this.tabs_state?.get(name) ?? {}; }
+	tab_state(name){ return new this.constructor.Jsonl({ page: this }).tab_state(name); }
+	tab_visible(name){ return new this.constructor.Jsonl({ page: this }).tab_visible(name); }
+	nav_ready(name){ return new this.constructor.Jsonl({ page: this }).nav_ready(name); }
+	tab_order(name){ return new this.constructor.Jsonl({ page: this }).tab_order(name); }
 
-	// ════ NAV VISIBILITY — one rule for the rail, the tab strip and the drawer's checkbox ═══
-	// Synchronous and optimistic (true first, corrected by nav_redraw()); nav_ready() is the awaited answer. (doc/jsonl.md)
-	tab_visible(name){
-		const set = this.tab_state(name).nav;
-		if (set === false) return false;
-		if (set === true) return true;
-
-		this._nav ??= new Map();
-		if (!this._nav.has(name)){
-			this._nav.set(name, true);
-			this.nav_ready(name).then(nav => {
-				if (this._nav.get(name) === nav) return;
-				this._nav.set(name, nav);
-				this.nav_redraw?.();
-			});
-		}
-		return this._nav.get(name);
-	}
-
-	// The real, awaited answer tab_visible() above is a synchronous, cached,
-	// eventually-consistent stand-in for.
-	async nav_ready(name){
-		const set = this.tab_state(name).nav;
-		if (typeof set === "boolean") return set;
-		return (await page_settings(this.url + name + "/")).nav;
-	}
-
-	// Sort key: an explicit `order` wins; everyone else ties at `Infinity`, and
-	// `Array.prototype.sort` is stable — a tie keeps the names in whatever order they
-	// already had, so a page that names no order at all is untouched.
-	tab_order(name){ return this.tab_state(name).order ?? Infinity; }
-
-	// ════ STEP 3 — PLACED in the content, deliberately ════════════════════════
-	// A name, an array of names, or `{"module": "x.js", …data}`. In order; once each.
-	place(value){
-		this.placed ??= [];
-
-		for (const entry of [value].flat()){
-			const id = JSON.stringify(entry);
-			if (!this.placed.some(had => JSON.stringify(had) === id)) this.placed.push(entry);
-		}
-	}
-
-	// What a page.jsonl page draws when it has no `content()` of its own: its placed
-	// files, in order. The box is kept so a line appended later can redraw it.
-	log_view(){
-		return div.c("flow", () => {
-			this.$log = div.c("page-log flow", () => { this.log_draw(); });
-			this.draw_folder();
-		});
-	}
-
-	// The page shows its own folder (page.jsonl and the files its lines name). ⚠ core does not import ext: dynamic import. (doc/watch-out.md)
-	draw_folder(){
-		const url = location.origin + this.log_folder();
-		const names = new Set(["page.jsonl", ...[...this.listed?.values() ?? []].filter(name => !CHILD.test(name))]);
-
-		return div.c("page-log-files", $box => {
-			import("../../ext/files/files.js")
-				.then(({ default: files }) => $box.append(() => { files({ url }, [...names].join(" ")); }));
-		});
-	}
-
-	log_draw(){ (this.placed ?? []).forEach(entry => this.draw_placed(entry)); }
-
-	// Where the log's files really are. A page's `url` is its ADDRESS; a card shown at
-	// another address (AI 2) still keeps its files in its own folder.
-	log_folder(){ return String(this.jsonl_url ?? this.url).replace(/page\.jsonl$/, ""); }
-
-	log_redraw(){ this.$log?.empty(() => { this.log_draw(); }); }
-
-	// `.md` is prose. `.js` is a module, one rule: a default export with a `render`
-	// (a View) is constructed as `new Default({ page, …data })`; anything else is
-	// called as `fn(page, box, data)`. A child's name draws nothing — it is linked.
-	draw_placed(entry){
-		const { module, ...data } = is.str(entry) ? { module: entry } : entry;
-		const url = new URL(module, location.origin + this.log_folder()).href;
-
-		if (/\.md$/i.test(module)) return this.draw_md(url);
-		if (/\.m?js$/i.test(module)) return this.draw_module(url, data);
-	}
-
-	// ⚠ core does not import ext: the import is dynamic, as in file() above.
-	draw_md(url){
-		return div.c("page-log-md", $box => {
-			import("../../ext/markdown/md.js")
-				.then(({ default: md }) => $box.append(() => md.file({ url }, url, { h1: false })));
-		});
-	}
-
-	// ⚠ THE BOX IS CAPTURED NOW, before the import resolves — a dozen modules can
-	//   arrive in any order and each fills the box it was given.
-	draw_module(url, data){
-		return div.c("page-log-module", $box => {
-			import(url).then(({ default: Default }) => $box.append(() => {
-				if (!Default?.prototype?.render) return void Default?.(this, $box, data);
-
-				const made = new Default({ page: this, ...data });
-				if (!(made instanceof View)) made.render();   // a View drew itself already
-			})).catch(error => console.error(`${this.log_label()} — ${url} failed to load:`, error));
-		});
-	}
-
-	// ════ THE DEBUG VIEW — every file, and which of the three steps it reached ═══
-	listing(){
-		const rows = new Map();
-		this.listed?.forEach((name, key) => rows.set(key, { name, exists: true }));
-		(this.placed ?? []).forEach(entry => {
-			const name = is.str(entry) ? entry : entry.module;
-			rows.set(key_of(name), { name, exists: false, ...rows.get(key_of(name)), placed: true });
-		});
-
-		const mark = yes => td(yes ? "yes" : "—");
-
-		return div.c("page-log-listing", () => {
-			table(() => {
-				thead(() => { tr(() => { ["File", "Exists", "Linked", "Placed"].forEach(head => th(head)); }); });
-				tbody(() => rows.forEach((row, key) => tr(() => {
-					td(() => { code(row.name); });
-					mark(row.exists);
-					mark(this.child_kinds?.has(key));
-					mark(row.placed);
-				})));
-			});
-
-			if (this.unknown.length)
-				p.c("muted", "Kept as data, no method or property knew them: " + this.unknown.join(", ") + ".");
-		});
-	}
+	place(value){ return new this.constructor.Jsonl({ page: this }).place(value); }
+	log_view(){ return new this.constructor.Jsonl({ page: this }).log_view(); }
+	draw_folder(){ return new this.constructor.Jsonl({ page: this }).draw_folder(); }
+	log_draw(){ return new this.constructor.Jsonl({ page: this }).log_draw(); }
+	log_folder(){ return new this.constructor.Jsonl({ page: this }).log_folder(); }
+	log_redraw(){ return new this.constructor.Jsonl({ page: this }).log_redraw(); }
+	draw_placed(entry){ return new this.constructor.Jsonl({ page: this }).draw_placed(entry); }
+	draw_md(url){ return new this.constructor.Jsonl({ page: this }).draw_md(url); }
+	draw_module(url, data){ return new this.constructor.Jsonl({ page: this }).draw_module(url, data); }
+	listing(){ return new this.constructor.Jsonl({ page: this }).listing(); }
 
 	// Every `data` key that is not a declared field. (doc/decisions.md)
 	get unknown(){ return Object.keys(this.data).filter(key => !this.constructor.fields.includes(key)); }
 
-	// One console.info per batch that taught the page a key nobody knew. Never a warn.
-	report_unknown(){
-		const fresh = this.unknown.filter(key => !this.reported?.has(key));
-		if (!dev || !fresh.length) return;
+	report_unknown(){ return new this.constructor.Jsonl({ page: this }).report_unknown(); }
+	log_forget(){ return new this.constructor.Jsonl({ page: this }).log_forget(); }
 
-		fresh.forEach(key => (this.reported ??= new Set()).add(key));
-		console.info(`${this.log_label()} — page.jsonl keys no method or property knew, kept as data:`, fresh);
-	}
-
-	// A rewritten (not appended) log replays from line 1 onto a clean slate.
-	log_forget(){
-		this.listed?.clear();
-		this.placed = [];
-	}
-
-	// THE LOADER: `url` is the folder; line 1 builds the page, later lines are set(). Streams on localhost.
-	// ⚠ Two callers can race for one url: `reader._building` joins them. (doc/watch-out.md)
-	static async jsonl(url){
-		const reader = this.Reader.for(url + "page.jsonl");
-
-		// A page already built for this reader — the common case on a SECOND visit,
-		// well after the first call settled. One page, built once, every later
-		// caller gets the SAME live object back.
-		if (reader.host) return reader.host;
-		if (reader._building) return reader._building;
-
-		return reader._building = (async () => {
-			await reader.open();
-
-			// A log whose line 1 is a `file` line is a folder's listing, not a page.
-			const [first] = reader.entries;
-			if (!first || typeof first.file === "string") { reader.close(); return null; }
-
-			const Class = first.class ? await this.log_class(first.class, url) : this;
-			const { class: _, ...line } = first;
-			const page = new Class(line, { url, jsonl_url: reader.url });
-
-			page.content ??= page.log_view;
-			reader.attach(page);
-			(Page.log_pages ??= new Map()).set(page.log_folder(), page);   // listing() reads it for free
-			return page;
-		})().finally(() => { reader._building = null; });
-	}
+	static jsonl(url){ return this.Jsonl.load(this, url); }
 
 	// A folder's own file list: a loaded page's lines, else files.jsonl, else page.jsonl, else null. Memoised per folder. (doc/decisions.md)
 	static listing(url, fresh){
@@ -478,13 +241,7 @@ export class Page extends Item {
 		return Page.page_listing(url) ?? Page.loaded_listings?.get(url);
 	}
 
-	static async log_class(module, url){
-		const Class = (await import(new URL(module, location.origin + url).href)).default;
-		if (Class?.prototype instanceof Page) return Class;
-
-		console.error(`page.jsonl at ${url} — "class": "${module}" is not a Page subclass; building a ${this.name}.`);
-		return this;
-	}
+	static log_class(module, url){ return this.Jsonl.log_class(this, module, url); }
 
 	naming(){
 		this.url   ??= this.meta ? new URL(".", this.meta.url).pathname
@@ -1078,6 +835,8 @@ Item.register(Page, "Page");
 Page.Reader = PageLogReader;
 Page.Listing = PageListing;
 Page.Prefs = PagePrefs;
+Page.Jsonl = PageJsonl;
+PageJsonl.Page = Page;
 Page.Related = PageRelated;
 Page.Previews = PagePreviews;
 Page.Columns = PageColumns;

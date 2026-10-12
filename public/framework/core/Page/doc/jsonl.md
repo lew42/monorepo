@@ -373,3 +373,5 @@ answer disagrees, corrects the cache and calls `nav_redraw()`
 itself with no reload. `nav_ready()` below is the same answer, awaited, with
 no flash — used the one place that can afford to await before its first
 paint (Sidebar.visible_nodes()).
+
+Code: the replay hooks, the three file steps, tab state and the placed-file drawing live in [`Jsonl.js`](/framework/core/Page/Jsonl.js) (`Page.Jsonl`); `Page.class.js` keeps one-line facades.
