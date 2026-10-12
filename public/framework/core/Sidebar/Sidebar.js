@@ -248,7 +248,7 @@ export class Sidebar extends View {
 		this.$results.el.textContent = "Searching…";
 		this.index().then(list => {
 			if (this.asked !== ask) return;                 // a newer keystroke won
-			this.show_results(list.filter(predicate));
+			this.show_results(this.ranked(list.filter(predicate), q));
 		});
 	}
 
@@ -263,11 +263,17 @@ export class Sidebar extends View {
 	// opened through ux/Tree's own lazy `children()`, so hidden pages stay hidden.
 	index(){
 		return this._index ??= (async () => {
-			const out = [];
+			const out = [], seen = new Set();
 			const walk = async (nodes, trail) => {
 				await Promise.all(nodes.map(async node => {
+					// Once per url, and only urls that stay under their parent (a page whose child resolves back up the tree would loop).
+					if (node.href && (seen.has(node.href) || node.href.includes("//"))) return;
+					if (node.href) seen.add(node.href);
 					if (node.href) out.push({ text: node.text, href: node.href, trail: trail.join(" › ") });
-					const kids = is.fn(node.children) ? await node.children() : node.children;
+					let kids = is.fn(node.children) ? await node.children() : node.children;
+					// A `leaf: true` page (ui/, ...) draws flat in the rail but its declared children are still pages; data-fed ones (ai/ days) stay out.
+					if (!kids && node.page?.leaf && node.page.children.size && !node.page.child_source)
+						kids = await this.visible_nodes(node.page, await Tree.nodes_of(node.page));
 					if (is.arr(kids)) await walk(kids, [...trail, node.text]);
 				}));
 			};
@@ -275,6 +281,14 @@ export class Sidebar extends View {
 			await walk(this.$tree.nodes, []);
 			return out;
 		})();
+	}
+
+	// Best first: exact title, then title starts with it, then contains it, then trail-only
+	// matches; ties go to the shallowest url, so a module page beats its demos.
+	ranked(list, q){
+		const n = q.toLowerCase(), depth = h => h.split("/").filter(Boolean).length;
+		const score = h => { const t = h.text.toLowerCase(); return t === n ? 0 : t.startsWith(n) ? 1 : t.includes(n) ? 2 : 3; };
+		return [...list].sort((a, b) => score(a) - score(b) || depth(a.href) - depth(b.href) || a.text.localeCompare(b.text));
 	}
 
 	// Links, so click, middle-click and Enter all work; ArrowUp/Down move between them.
