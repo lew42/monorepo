@@ -20,7 +20,9 @@ No horizontal overflow, no page errors, at either width.
 - Doc: Clean arrives with Raw; restart takes 2 to 30 s (a cold restart reloads the 1.6 GB model, about 25 s).
 
 ## Whisper kill
-Killed mid-dictation: Servex restarted it by itself (about 2 s warm, about 25 s cold); the status line followed the restart and the full sentence still arrived. The page asks Servex every 5 s only while the mic is open, and every 2 s only while Whisper is down; a Servex status stream would be the other way and needs a Servex restart (not done, recorded in `try-it.md`).
+Killed mid-dictation: Servex restarted it by itself (about 2 s warm, about 25 s cold); the status line followed it and the full sentence arrived.
+
+- The page asks Servex every 5 s only while the mic is open, and every 2 s only while Whisper is down; a Servex status stream would be the other way and needs a Servex restart (not done, recorded in `try-it.md`).
 
 ## What the owner must know
 - A real phone on plain `http` hides the mic (browser rule, [https-lan.md](/framework/ux/Dictate/doc/https-lan.md)); the walk used a Chromium flag to stand in for https. Typing or the phone keyboard's dictation button works anyway.
