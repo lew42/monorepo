@@ -103,7 +103,7 @@ export default class Connection extends View {
 		try {
 			const w = await (await fetch(servex_url("/api/whisper"), { signal: AbortSignal.timeout(1500) })).json();
 			const t = w.last_crash && new Date(w.last_crash.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-			if (w.status !== "online") return " · Whisper stopped and Servex is restarting it";
+			if (["launching", "restarting", "crashed", "starting"].includes(w.status)) return " · Whisper stopped and Servex is restarting it";
 			return w.crashes ? ` · Whisper stopped at ${t} and Servex restarted it` : "";
 		} catch { return ""; }
 	}

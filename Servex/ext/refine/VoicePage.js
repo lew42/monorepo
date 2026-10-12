@@ -20,6 +20,10 @@ export default class VoicePage {
 
 	static open = new Map();   // "session/prompt" -> VoicePage, dropped when the prompt is done
 	static tools = null;
+	static listeners = new Set();   // (session, line) => void: the read-only stream a phone follows (GET /api/voice/stream)
+
+	/** Every line this session's open prompts have written, in order: what a late-joining follower replays. */
+	static lines(session){ return [...VoicePage.open.values()].filter(v => v.session === session).flatMap(v => v.lines); }
 
 	static get(session, prompt, by){
 		const key = session + "/" + prompt;
@@ -35,6 +39,7 @@ export default class VoicePage {
 		this.queue = Promise.resolve();
 		this.ms = {};
 		this.sentences = [];
+		this.lines = [];
 		this.parsed = null;
 	}
 
@@ -50,6 +55,10 @@ export default class VoicePage {
 
 	/** Queue one delta. The first ever delta for this prompt adds the item; the rest set fields on it. */
 	write(delta){
+		const first = this.lines.length === 0;
+		const line = first ? { content: { add: { id: this.id, type: "voice-prompt", ...delta } } } : { [this.id]: delta };
+		this.lines.push(line);
+		for (const fn of VoicePage.listeners) try { fn(this.session, line); } catch {}
 		const run = async () => {
 			if (!this.created){
 				this.created = true;
@@ -63,8 +72,20 @@ export default class VoicePage {
 
 	/** The words so far. Also writes the instant mechanical clean (no model) so stage 2 moves with the voice. */
 	raw(text, { final = false, source } = {}){
-		if (this.raw_closed) return this.queue;   // a late partial must not reopen words that were already finalised
-		if (final) this.raw_closed = true;
+		if (!final && this.raw_closed_at && Date.now() - this.raw_closed_at < 3000) return this.queue;   // a late partial must not reopen words that were already finalised
+		if (final){ this.raw_closed_at = Date.now(); clearTimeout(this.pending_timer); this.pending_timer = null; return this.raw_write(text, true, source); }
+		// Partials are coalesced to one write per 700 ms: page.jsonl is replayed on every load, so it must not grow with every 150 ms post.
+		const wait = 700 - (Date.now() - (this.last_partial ?? 0));
+		if (wait > 0){
+			this.pending = [text, source];
+			this.pending_timer ??= setTimeout(() => { this.pending_timer = null; const [t, src] = this.pending; this.raw_write(t, false, src); }, wait);
+			return this.queue;
+		}
+		return this.raw_write(text, false, source);
+	}
+
+	raw_write(text, final, source){
+		this.last_partial = Date.now();
 		const sentences = this.clean_final ? null : quick_clean(text).map(s => s.text);
 		return this.write({ text: text.slice(0, 400), raw: text, raw_final: final, status: final ? "Cleaning" : "Hearing you", ...(source ? { source } : {}), ...(sentences ? { clean: sentences, clean_final: false } : {}) });
 	}

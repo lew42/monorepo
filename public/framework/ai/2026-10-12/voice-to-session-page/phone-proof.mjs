@@ -25,26 +25,30 @@ const kill = () => kids.forEach(c => { try { execFileSync("taskkill", ["/PID", S
 process.on("exit", kill);
 const wait = async url => { for (let i = 0; i < 80; i++){ try { if ((await fetch(url)).ok) return; } catch {} await sleep(500); } throw new Error("no answer: " + url); };
 run(process.execPath, ["Servex/index.js"], env);
-run(process.execPath, ["server.js"], { ...process.env, NO_SUPERVISE: "1", PORT: "8211", HOST: "127.0.0.1" });
+run(process.execPath, ["server.js"], { ...process.env, NO_SUPERVISE: "1", PORT: "8211", HOST: process.env.LAN_HOST ? "0.0.0.0" : "127.0.0.1" });
+const LAN = process.env.LAN_HOST, WEB = `http://${LAN || "127.0.0.1"}:8211`;   // LAN_HOST=10.0.0.135 loads the pages the way the phone does: Servex calls go to <origin>/servex
 try {
 	await wait("http://127.0.0.1:8190/api/agents"); await wait("http://127.0.0.1:8211/framework/");
 	const session = randomUUID();
 	const b = await browser();
 	const ctx = await b.newContext({ viewport: { width: 400, height: 800 }, hasTouch: true, isMobile: true });
-	await ctx.route("http://127.0.0.1:8090/**", async route => {
-		const req = route.request(); if (req.url().includes("/api/voice")) say("browser -> /api/voice " + (JSON.parse(req.postData() || "{}").text || "").length + " chars"); const u = req.url().replace(":8090", ":8190");
+	await ctx.route(LAN ? `${WEB}/servex/**` : "http://127.0.0.1:8090/**", async route => {
+		const req = route.request(); if (req.url().includes("/api/voice")) say("browser -> /api/voice " + (JSON.parse(req.postData() || "{}").text || "").length + " chars"); const u = LAN ? req.url().replace(`${WEB}/servex`, "http://127.0.0.1:8190") : req.url().replace(":8090", ":8190");
 		const res = await route.fetch({ url: u }).catch(() => null);
 		if (!res) return route.abort();
 		await route.fulfill({ response: res, headers: { ...res.headers(), "access-control-allow-origin": "*", "access-control-allow-headers": "*" } });
 	});
+	// Playwright's route.fetch cannot carry a never-ending SSE body, so the stream goes straight to the private Servex (the dev proxy in front of it is plain http-proxy, not exercised here).
+	if (LAN) await ctx.addInitScript(() => { const E = window.EventSource; window.EventSource = function(u, o){ return new E(String(u).replace(location.origin + "/servex", "http://127.0.0.1:8190"), o); }; });
 	const refine = await ctx.newPage(); const errs = [];
 	refine.on("pageerror", e => errs.push(e.message));
-	await refine.goto(`http://127.0.0.1:8211/framework/ext/Refine/?session=${session}`, { waitUntil: "load" });
+	await refine.goto(`${WEB}/framework/ext/Refine/?session=${session}`, { waitUntil: "load" });
 	await sleep(2500);
 	const watch = await refine.$eval(".refine-watch", e => e.getAttribute("href")).catch(() => null);
 	say("watch link: " + watch);
 	const watcher = await ctx.newPage();
-	await watcher.goto(`http://127.0.0.1:8211/framework/ai/sessions/${session}/`, { waitUntil: "load" });
+	watcher.on("response", r => { if (r.url().includes(session.slice(0, 8)) && r.url().includes("page.jsonl")) say("watcher " + r.status() + " " + r.url()); }); watcher.on("pageerror", e => say("watcher pageerror " + e.message));
+	await watcher.goto(`${WEB}/framework/ai/sessions/${session}/`, { waitUntil: "load" });
 	const seen = {}; const poll = setInterval(async () => {
 		try { for (const s of await watcher.$$eval(".voice-stage:not([hidden])", els => els.map(e => e.className.split(" ")[0]))) if (!seen[s]) { seen[s] = Date.now() - t0; say("stage visible on session page: " + s); } } catch {}
 	}, 150);

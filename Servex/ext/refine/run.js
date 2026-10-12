@@ -25,6 +25,7 @@ const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models tha
 export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5", session = "", prompt = "", source = "typed", inbox = null } = {}){
 	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
 	if (text.length > 20000) return { ok: false, why: "text is over 20000 characters" };
+	let voice = null;   // outside the try so the catch can mark a generated prompt id as failed too
 	try {
 		const t0 = Date.now();
 		const stages = {};
@@ -32,7 +33,7 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
 		const log_errors = [];
 		let tag_notes = null;
 		// Each stage is also written onto the session's page as it lands (VoicePage.js), so a tab watching it sees raw -> cards live.
-		const voice = id ? VoicePage.get(session, id) : null;
+		voice = id ? VoicePage.get(session, id) : null;
 		const page = work => voice ? work(voice).catch(e => log_errors.push("page: " + String(e.message ?? e))) : null;
 		await page(v => v.raw(text, { final: true, source }));
 		const log = async line => { if (id) try { await PromptLog.add(session, { prompt: id, ...line }, "refine"); } catch (e){ log_errors.push(String(e.message ?? e)); } };
@@ -70,7 +71,7 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
 			runs: runs.map(r => ({ stage: r.stage, model: r.model, session_id: r.session_id, cost_usd: r.cost_usd, duration_ms: r.duration_ms, tokens: r.tokens })),
 		};
 	} catch (e){
-		if (session && prompt) VoicePage.get(session, prompt).failed(e?.message ?? e).catch(() => {});
+		voice?.failed(e?.message ?? e).catch(() => {});
 		return { ok: false, why: String(e?.message ?? e) };
 	}
 }

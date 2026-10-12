@@ -1,5 +1,7 @@
 import { View, div } from "../../../core/View/View.js";
 import VoicePrompt from "./VoicePrompt.js";
+import Socket from "/framework/dev/Socket/Socket.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 
 /**
  * class VoiceFlow — every spoken prompt on one session page, drawn live, newest first.
@@ -14,6 +16,14 @@ export default class VoiceFlow {
 
 	prompts = new Map();
 	view = new VoiceFlow.View({ flow: this });
+
+	/** Off localhost the dev socket is off (it carries rpc:write), so the page file is only loaded once; a phone follows Servex's read-only voice stream instead (`GET /api/voice/stream`). */
+	follow(session){
+		if (!Socket.singleton().disabled || this.source || typeof EventSource === "undefined") return this;
+		this.source = new EventSource(servex_url(`/api/voice/stream?session=${encodeURIComponent(session)}`));
+		this.source.onmessage = e => { try { this.read(JSON.parse(e.data)); } catch {} };
+		return this;
+	}
 
 	read(entries){
 		const touched = new Map();

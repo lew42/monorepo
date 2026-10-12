@@ -7,6 +7,10 @@ Task: `ai/2026-10-12/voice-to-session-page/` (requirements.md, STATE.md).
 Browser `RefineSystem.stream(text)` (150 ms trailing throttle) → `POST /api/voice {session, prompt, text, final, source}` → `Servex/ext/refine/VoicePage` → page tools (`page_add` then `page_set`) → `page.jsonl` of the session → `VoiceFlow` on the session page (tails it, about 100 ms).
 `/api/refine` runs the same stages (`Servex/ext/refine/run.js`) and calls `VoicePage` after raw, clean, structure and notes.
 
+## On a phone: no dev socket, so a read-only stream
+
+The dev socket (and so the page-file tail) is localhost-only because it also carries `rpc:write`; from `10.0.0.135` a page file is loaded once, not streamed. So `VoiceFlow.follow(session)` opens `EventSource` on `GET /api/voice/stream?session=<uuid>` (Servex, read-only, through the dev proxy at `<origin>/servex`). It replays the open prompts' lines, then sends each new line. Same lines as the page file, so `VoiceFlow.read` folds both the same way. Rejected: opening the dev socket to the LAN (RCE), polling the page file.
+
 ## Wire format (one item per prompt)
 
 `{"content":{"add":{"id":"voice-<prompt>","type":"voice-prompt", ...}}}` first, then `{"voice-<prompt>": {raw, clean, structure, subject, refined, cards, notes, ms, status}}` shallow-merged. No `title`, so the chat does not draw a bubble for it.
@@ -18,6 +22,9 @@ Browser `RefineSystem.stream(text)` (150 ms trailing throttle) → `POST /api/vo
 - Shared, DOM-free: `Compose` (brief, cards).
 
 ## Decisions and the rejected alternative
+
+- **Cards and the refined prompt are composed in code** (`Compose`), not written by a model: the brief said the refining model writes the cards, but the structure stage already returns the outline the cards are made from, so a third model call would add seconds and cost for the same text (law 7: compute, don't recall). The clarity flags and tags on the cards still come from the Haiku pass. Alternative if the owner wants model-written cards: one more call after `structured()`.
+- **Partials are coalesced** server-side to one page write per 700 ms (the browser posts every 150 ms), so a long dictation does not bloat `page.jsonl`, which every load replays.
 
 - **Names `VoiceStage`/`VoiceStageView`**, not `Stage`: the auto class `.stage` collides with the framework preview rule in `Page.css` (the box was 242 px wide).
 - **`Compose` is DOM-free** because Servex imports it; `View.js` needs `Element`.

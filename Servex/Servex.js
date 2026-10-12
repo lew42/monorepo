@@ -686,6 +686,20 @@ export default class Servex extends Events {
             catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
         });
 
+        /* The same voice lines as a read-only stream (SSE), for a phone: the dev socket is localhost-only, so a LAN page cannot tail page.jsonl and follows this instead. */
+        router.get("/api/voice/stream", cors, (req, res) => {
+            const session = String(req.query.session ?? "");
+            if (!/^[0-9a-f-]{36}$/.test(session)) return res.status(400).json({ ok: false, why: "needs session (uuid)" });
+            res.set({ "content-type": "text/event-stream", "cache-control": "no-cache, no-transform", connection: "keep-alive", "x-accel-buffering": "no" });
+            res.flushHeaders?.();
+            const send = line => res.write("data: " + JSON.stringify(line) + "\n\n");
+            for (const line of VoicePage.lines(session)) send(line);
+            const fn = (s, line) => { if (s === session) send(line); };
+            VoicePage.listeners.add(fn);
+            const beat = setInterval(() => res.write(": ok\n\n"), 20000);
+            req.on("close", () => { clearInterval(beat); VoicePage.listeners.delete(fn); });
+        });
+
         /* Whisper in one plain line for a page (ux/Dictate): is it up, and did Servex have to restart it? */
         router.get("/api/whisper", cors, (req, res) => {
             const w = this.processes.get("whisper")?.toJSON?.() ?? null;

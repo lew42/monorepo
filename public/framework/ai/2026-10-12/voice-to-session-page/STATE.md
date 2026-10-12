@@ -10,7 +10,20 @@ Landed in branch `voice-session` (worktree), merging into `michael/dev`; one Ser
 
 - Raw words stream to the page about every 150 ms while speaking or typing; clean 3-11 s; structure, subject, refined, cards, notes then done (7-15 s after Refine, Haiku latency varies). Model times are unchanged; the stages now arrive live.
 - Whisper: `whisper-proof.mjs` kills it; Servex restarts it in about 2 s (`crashes:1`). `GET /api/whisper` reports it; the Dictate row shows one plain line.
-- Phone: `phone-proof.mjs` (400 px, touch emulation, typing) shows all stages, no overflow. Four widths 400/1200/1920/3440 have no overflow.
+- Phone: `phone-proof.mjs` (400 px, touch emulation, typing; `LAN_HOST=10.0.0.135` for the LAN path) shows all stages, no overflow. Four widths 400/1200/1920/3440 have no overflow.
+
+## Review round 1 (fresh Opus, verdict fix) — answers
+
+1. Cards composed in code, not by a model: recorded as a decision with the alternative in `stages/doc/voice-to-page.md`.
+2. The phone path was untested, and testing it found a real bug: off localhost the dev socket is off, so the session page loaded once and never streamed. Fixed: `GET /api/voice/stream` (SSE) + `VoiceFlow.follow`. `LAN_HOST=10.0.0.135 node phone-proof.mjs` now loads both pages by the LAN address (Servex calls go to `<origin>/servex`) and shows all five stages at 400 px. The dev proxy in front of the stream is plain http-proxy and was not exercised against a private Servex.
+3. Fixed: the "Servex is restarting it" line shows only for launching/restarting/crashed.
+4. `owner_note` posted (needs-you, links `ux/Dictate/doc/try-it.md`); landing is last.
+5. Not timed: Whisper to raw (no audio file run); Whisper itself is measured in `ux/Dictate/doc/whisper-flow`. Accepted gap.
+6. Whisper is Servex's child, so a page reload or a phone reconnect cannot touch it; only the crash restart was exercised.
+7. Fixed: partials coalesced to one write per 700 ms (8 partials became 3 lines).
+8. Fixed: a late partial is dropped only within 3 s of the final; `failed()` now reaches generated prompt ids.
+9. Only the Refine page streams to `/api/voice`; the VS Code app path is not wired (open).
+10. Layout: width probes at 400/1200/1920/3440 had no overflow; `layout-check.mjs` itself not run.
 
 ## Not proven (and why)
 
