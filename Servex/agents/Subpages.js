@@ -47,7 +47,7 @@ export default class Subpages {
 
 	/** Move the folder `name` to `to` and relink: a `gone` line for the old name, a `file` line for the new. */
 	rename({ name, to }){
-		this.check_name(to);
+		this.check_name(name); this.check_name(to);
 		const from = path.join(this.dir, name), dest = path.join(this.dir, to), kind = this.need_kind();
 		if (!fs.existsSync(from)) throw new Error(`${name} does not exist under ${this.dir}`);
 		if (fs.existsSync(dest)) throw new Error(`${to} already exists under ${this.dir}`);
@@ -64,6 +64,7 @@ export default class Subpages {
 
 	/** Move the folder aside to `_removed/<name>-<time>/` and unlink it. Never deletes. */
 	remove(name){
+		this.check_name(name);
 		const from = path.join(this.dir, name), kind = this.need_kind();
 		if (!fs.existsSync(from)) throw new Error(`${name} does not exist under ${this.dir}`);
 		const dest = path.join(this.dir, "_removed", `${name}-${stamp()}`);

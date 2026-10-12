@@ -171,6 +171,10 @@ the repo. This is the projection a dashboard reads.
   Servex overrides it to push the event to the dashboard (`Servex.Agents`, `Stream.js`);
   `demo.mjs` overrides it too, and that override is the demo's entire user interface.
 
+## An agent can write pages
+
+Every agent gets the page tools (`page_tools.js`): `page_set(path, delta)` writes a property, a card or a subpage (`Subpages.js` makes, renames and moves aside the folders), and `page_read(path)` shows the current state. The model and the delta table: [`public/framework/core/Page/doc/ai-api.md`](../../public/framework/core/Page/doc/ai-api.md).
+
 ## An agent can hire agents
 
 Every agent Servex spawns is handed Servex's own `/mcp` url two ways — `Agent.door()` puts it

@@ -33,7 +33,7 @@ The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`
 | move a card | `{"content":{"move":{"id":"c1","after":"h1"}}}` |
 | remove a card | `{"content":{"remove":"c1"}}` |
 | reorder all cards | `{"content":{"order":["h1","c2","c1"]}}` |
-| call any method | `{"<id or property>":{"<method>":<argument>}}`, e.g. a question card: `{"q1":{"answer":"42"}}` |
+| call any method | `{"<id or property>":{"<method>":<argument>}}`, e.g. add an answer to question card k2: `{"k2":{"answers":{"add":{…}}}}` |
 | **create a subpage** | `{"pages":{"add":{"name":"notes","title":"Notes","icon":"📝","description":"One line."}}}` |
 | rename a subpage | `{"pages":{"rename":{"name":"notes","to":"ideas"}}}` |
 | remove a subpage | `{"pages":{"remove":"notes"}}` (moved aside, never deleted) |

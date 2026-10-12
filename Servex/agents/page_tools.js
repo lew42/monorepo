@@ -322,7 +322,7 @@ export function page_tools(){
 
 	return [
 
-				tool("page_call",
+		tool("page_call",
 			"Alias of page_set: one method call at one target, `page_call(path, [\"k2\",\"answers\"], \"add\", {…})` = `{\"k2\":{\"answers\":{\"add\":{…}}}}`. Prefer page_set (core/Page/doc/ai-api.md).",
 			{ path: PAGE_PATH, target: TARGET,
 				method: { type: "string", description: "The verb to call at the target — a method on whatever `target` resolves to: `add`, `remove`, `move`, `order`, or any method the item's own class defines." },
@@ -340,7 +340,7 @@ export function page_tools(){
 				return JSON.stringify({ ok: true, line, size });
 			}),
 
-				tool("page_add",
+		tool("page_add",
 			"Alias of page_set `{\"content\":{\"add\":item}}`: add one card (type part-heading | part-text | part-card). Prefer page_set (core/Page/doc/ai-api.md).",
 			{ path: PAGE_PATH,
 				item: { type: "object", description: "The item's own fields — whatever the content list draws: `title`, `text`, `type` (a registered class name, e.g. \"Question\", with its own `text`/`answer`), or any plain data. `id` is optional; one is made for you." },
@@ -394,7 +394,7 @@ export function page_tools(){
 				return JSON.stringify({ ok: true, ids, line, size, ...(made ? { pages: made.done } : {}) });
 			}),
 
-				tool("page_log",
+		tool("page_log",
 			"Alias of page_set `{\"log\":{\"text\":…}}`: the \"now doing X\" line, overwritten each time; post it BEFORE a long step (core/Page/doc/ai-api.md).",
 			{ path: PAGE_PATH,
 				text: { type: "string", description: "What you're doing right now, in a few words, e.g. \"researching X\"." } },
@@ -409,7 +409,7 @@ export function page_tools(){
 				return JSON.stringify({ ok: true, line, size });
 			}),
 
-				tool("page_read",
+		tool("page_read",
 			"The page's CURRENT state, replayed fresh from page.jsonl: title, the `doing:` line, every card as `[id] (type) text`, and its subpages with their urls. Read it before you change anything; `format:\"html\"` gives the cards' markup (core/Page/doc/ai-api.md).",
 			{ path: PAGE_PATH,
 				format: { type: "string", enum: ["markdown", "html"], description: "\"markdown\" (default, fewest tokens) or \"html\" (the content's own markup, no nav chrome)." } },
