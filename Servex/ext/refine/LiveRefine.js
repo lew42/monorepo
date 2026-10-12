@@ -1,4 +1,4 @@
-import { quick_clean, clean } from "../../../public/framework/ext/Refine/engine.js";
+import { quick_clean, word_overlap_score } from "../../../public/framework/ext/Refine/engine.js";
 import RefineStyle from "../../../public/framework/ext/Refine/RefineStyle.js";
 import RefineCall from "./RefineCall.js";
 import VoicePage from "./VoicePage.js";
@@ -16,7 +16,9 @@ const DEFAULT_SECTION = "📝 Notes";
  *
  * Per POST (`quick_clean(text)` gives the mechanical sentences; every finished one beyond the slots
  * already taken becomes a new slot, number fixed forever):
- *   - each new slot gets its OWN Haiku `clean()` call, in parallel, never blocking the answer.
+ *   - ONE Haiku call per batch both cleans the new sentences and amends the outline (measured 2026-10-12:
+ *     a call per slot spawned ~100 CLI sessions at once, 42 s median, $6 for one dictation). A clean is
+ *     kept only if it shares most words with the raw (`CLEAN_MIN_OVERLAP`), so it stays near-verbatim.
  *   - all new slots across the prompt so far go into ONE queue; at most one "amend" Haiku call is
  *     in flight, so slots that arrive mid-call coalesce into the NEXT one (never a backlog).
  *   - the POST answers once the batch holding ITS new slots has been placed (`seq` grows per answer).
@@ -26,6 +28,10 @@ const DEFAULT_SECTION = "📝 Notes";
 export default class LiveRefine {
 
 	static BUDGET_TOKENS = 60000;
+	static MIN_BATCH = 3;             // pacing: an amend waits for this many new sentences...
+	static MAX_WAIT_MS = 6000;        // ...or this long after the oldest one queued, whichever comes first (measure/summary.md)
+	static MAX_BATCH = 12;            // sentences per amend call: more and the model stops citing them all (measure/summary.md)
+	static CLEAN_MIN_OVERLAP = 0.6;   // a model clean that keeps less of the raw's words than this is dropped
 	static DROP_AFTER_MS = 5 * 60 * 1000;   // dropped some minutes after final (or after going quiet)
 
 	static open = new Map();
@@ -76,11 +82,13 @@ export default class LiveRefine {
 		}
 		if (session && prompt){ this.voice ??= VoicePage.get(session, prompt); this.voice.raw(text, { final, source }); }
 
+		if (final) this.final_seen = true;
 		if (fresh.length){
-			for (const slot of fresh) this.run_clean_for_slot(slot);   // fire-and-forget, in parallel, never blocks the amend
+			if (!this.queue.size) this.queued_at = Date.now();
 			for (const slot of fresh) this.queue.add(slot.n);
 			this.ensure_drain();
 		}
+		this.wake?.();
 
 		const need = fresh.length ? Math.max(...fresh.map(s => s.n)) : 0;
 		if (need) await this.wait_for(need);
@@ -112,11 +120,23 @@ export default class LiveRefine {
 		this.drain_running = this.drain().finally(() => { this.draining = false; });
 	}
 
+	/** Wait until MIN_BATCH sentences are queued, MAX_WAIT_MS has passed since the oldest, or `final` arrived. */
+	async pace(){
+		while (!this.final_seen && this.queue.size < LiveRefine.MIN_BATCH){
+			const left = LiveRefine.MAX_WAIT_MS - (Date.now() - (this.queued_at ?? 0));
+			if (left <= 0) return;
+			await new Promise(r => { this.wake = r; setTimeout(r, left); });
+			this.wake = null;
+		}
+	}
+
 	/** One amend call at a time; whatever landed in the queue while it ran goes together in the next one (coalescing). */
 	async drain(){
 		while (this.queue.size){
-			const batch = [...this.queue].sort((a, b) => a - b);
-			this.queue.clear();
+			await this.pace();
+			const batch = [...this.queue].sort((a, b) => a - b).slice(0, LiveRefine.MAX_BATCH);
+			for (const n of batch) this.queue.delete(n);
+			this.queued_at = Date.now();
 			await this.run_amend_batch(batch);
 			const covered = Math.max(this.max_covered, ...batch);
 			this.max_covered = covered;
@@ -126,36 +146,26 @@ export default class LiveRefine {
 		}
 	}
 
-	/** One Haiku call per new slot, in parallel; a failed call just keeps the mechanical (quick_clean) text. */
-	async run_clean_for_slot(slot){
-		const t0 = Date.now();
-		const idx = this.slots.indexOf(slot);
-		const prev = idx > 0 ? (this.slots[idx - 1].clean ?? this.slots[idx - 1].raw) : "";
-		try {
-			const r = await clean(slot.raw, { call: this.call("clean"), model: RefineCall.model(), prev });
-			slot.clean = r.sentences.map(s => s.text).join(" ").trim() || slot.raw;
-		} catch { /* mechanical text stands */ }
-		slot.cleaned = true;
-		slot.clean_ms = Date.now() - t0;
-	}
-
 	/** One amend call: the outline with ids + the new numbered sentences -> JSON ops (never a rewrite). */
 	async run_amend_batch(batch){
 		const t0 = Date.now();
 		const system = RefineStyle.for("outline") + "\n\nAnswer ONLY a JSON object, no prose: "
-			+ `{"subject": string|null, "ops": [{"edit": {"id": "c3", "text": "...", "cites": [9]}} | {"add": {"section": "...", "text": "...", "cites": [10]}}]}. `
+			+ `{"subject": string|null, "clean": {"9": "..."}, "ops": [{"edit": {"id": "c3", "text": "...", "cites": [9]}} | {"add": {"section": "...", "text": "...", "cites": [10]}}]}. `
 			+ "edit = the new sentence clarifies or corrects point `id`: rewrite its text. add = a new point, under an existing section title or a brand new one (one emoji icon). "
-			+ "subject = a new \"#\" title ONLY if the topic truly changed, else null. Cite every new sentence number at least once.";
+			+ "subject = a new \"#\" title ONLY if the topic truly changed, else null. Cite every new sentence number at least once. "
+			+ "Also add \"clean\": {\"<n>\": \"<sentence n with fillers, false starts and repeats removed, every other word kept as said>\"} for every new sentence.";
 		const prompt = `Current outline:\n${this.render_outline_for_model() || "(empty)"}\n\nNew sentences:\n${batch.map(n => `S${n}: ${this.slot_text(n)}`).join("\n")}`;
-		let ops = [], subject = null;
+		let ops = [], subject = null, cleaned = {};
 		try {
 			const r = await this.call("amend")(prompt, { model: RefineCall.model(), system });
 			const m = /\{[\s\S]*\}/.exec(r.answer ?? "");
-			if (m){ const j = JSON.parse(m[0]); subject = j.subject ?? null; ops = Array.isArray(j.ops) ? j.ops : []; }
+			if (m){ const j = JSON.parse(m[0]); subject = j.subject ?? null; ops = Array.isArray(j.ops) ? j.ops : []; cleaned = j.clean && typeof j.clean === "object" ? j.clean : {}; }
 		} catch { /* ops stays empty: every new sentence below falls through to unplaced */ }
+		this.apply_clean(cleaned, batch);
 		this.apply_ops(ops, subject, batch);
-		const clean_ms = Math.max(0, ...batch.map(n => this.slots.find(s => s.n === n)?.clean_ms ?? 0));
-		this.last_batch = { clean_ms, amend_ms: Date.now() - t0 };
+		const ms = Date.now() - t0;
+		this.last_batch = { clean_ms: ms, amend_ms: ms };   // one call does both now
+		if (this.voice) this.voice.clean(this.slots.map(s => s.clean ?? s.raw), { final: false });
 		if (this.voice) this.voice.structured(this.render_md(), { ms: this.last_batch.amend_ms, cost: this.cost_usd });
 	}
 
@@ -185,6 +195,16 @@ export default class LiveRefine {
 			if (this.all_cited.has(n)) continue;
 			this.add_card({ section: this.last_section ?? DEFAULT_SECTION, text: this.slot_text(n), cites: [n] });
 			this.unplaced.push(n);
+		}
+	}
+
+	/** Keep a model clean only when it is near-verbatim (shares most words with the raw); else the mechanical text stands. */
+	apply_clean(cleaned, batch){
+		for (const n of batch){
+			const slot = this.slots.find(s => s.n === n);
+			const c = typeof cleaned[n] === "string" ? cleaned[n].trim() : "";
+			if (slot && c && word_overlap_score(c, slot.raw) >= LiveRefine.CLEAN_MIN_OVERLAP) slot.clean = c;
+			if (slot) slot.cleaned = true;
 		}
 	}
 

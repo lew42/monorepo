@@ -32,6 +32,8 @@ const RAW_PATH = raw_i >= 0 ? path.resolve(args[raw_i + 1]) : path.join(REPO,
 	"public/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/task/runs/a/raw.txt");
 const cost_i = args.indexOf("--max-cost");
 const MAX_COST = cost_i >= 0 ? +args[cost_i + 1] : 5;
+const limit_i = args.indexOf("--limit");   // replay only the first N sentences
+const LIMIT = limit_i >= 0 ? +args[limit_i + 1] : Infinity;
 
 const OUT_DIR = path.join(REPO, "public/framework/ai/2026-10-12/refine-haiku-live/measure");
 fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -44,9 +46,9 @@ const p90 = ns => { const s = [...ns].sort((a, b) => a - b); return s.length ? s
 
 async function main(){
 	const raw = fs.readFileSync(RAW_PATH, "utf8");
-	const all_sentences = raw.replace(/\s+/g, " ").trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+	const all_sentences = raw.replace(/\s+/g, " ").trim().split(/(?<=[.!?])\s+/).filter(Boolean).slice(0, LIMIT);
 	console.log(`replaying up to ${all_sentences.length} sentences from ${path.relative(REPO, RAW_PATH)}`
-		+ (fast ? " (--fast: fired without waiting — exercises coalescing)" : " (~4s apart, one at a time)")
+		+ (fast ? " (--fast: fired without waiting — exercises coalescing)" : " (one every ~4s, like speech: never waits for the previous one to place)")
 		+ ` (--max-cost $${MAX_COST})`);
 
 	const key = "measure-" + Date.now();
@@ -65,11 +67,12 @@ async function main(){
 		const final = i === all_sentences.length - 1;
 		const p = r.step({ prompt: "measure", text, final }).then(out => { process.stdout.write(`\r${n} placed_ms=${out.timing.placed_ms} pending=${out.pending} cost=$${r.cost_usd}   `); return out; });
 		sent.push({ n, t0 });
-		if (fast) sent[sent.length - 1].promise = p; else { sent[sent.length - 1].out = await p; if (!final) await sleep(4000); }
+		sent[sent.length - 1].promise = p;
+		if (!fast && !final) await sleep(4000);
 	}
 	// make sure the very last thing sent really does close the prompt (final:true), even if --max-cost cut the run short
 	const sentences = all_sentences.slice(0, stopped_at);
-	if (fast) for (const s of sent) s.out = await s.promise;
+	for (const s of sent) s.out = await s.promise;
 	await sleep(1000);   // a straggling clean() can still be settling after the last amend placed everything
 	const final_out = await r.step({ prompt: "measure", text: cumulative, final: true });
 
@@ -93,22 +96,22 @@ async function main(){
 	console.log("");
 	const summary = `# Live refine — measured (${new Date().toISOString().slice(0, 10)})
 
-Replayed ${sentences.length}${sentences.length < all_sentences.length ? ` of ${all_sentences.length}` : ""} sentences from \`${path.relative(REPO, RAW_PATH)}\` (a real dictation), ${fast ? "fired back to back without waiting (--fast)" : "one every ~4s"}, through \`LiveRefine\` directly (real Haiku via RefineCall, no Servex process). Raw: [results.jsonl](./results.jsonl).
+Replayed ${sentences.length}${sentences.length < all_sentences.length ? ` of ${all_sentences.length}` : ""} sentences from \`${path.relative(REPO, RAW_PATH)}\` (a real dictation), ${fast ? "fired back to back without waiting (--fast)" : "one every ~4s like speech (never waiting for placement)"}, through \`LiveRefine\` directly (real Haiku via RefineCall, no Servex process). Raw: [results.jsonl](./results.jsonl).
 ${sentences.length < all_sentences.length ? `\n**Stopped early** at the \`--max-cost $${MAX_COST}\` safety net — the full file would have cost proportionally more; the numbers below are real and representative either way (medians/p90 over ${sentences.length} real placed sentences).\n` : ""}
 ## Numbers
 
 - **placed_ms** (sentence arrival → in the outline): median ${median(placed)} ms, p90 ${p90(placed)} ms
-- **clean_ms**: median ${median(clean_ms)} ms, p90 ${p90(clean_ms)} ms (${clean_calls} clean calls, one per slot)
-- **amend_ms**: median ${median(amend_ms)} ms, p90 ${p90(amend_ms)} ms (${amend_calls} amend calls for ${sentences.length} sentences${fast ? " — coalescing" : ""})
+- **clean_ms**: median ${median(clean_ms)} ms, p90 ${p90(clean_ms)} ms (clean now rides in the amend call: one call per batch does both)
+- **amend_ms**: median ${median(amend_ms)} ms, p90 ${p90(amend_ms)} ms (${amend_calls} calls for ${sentences.length} sentences — coalescing, at most ${LiveRefine.MAX_BATCH} per call)
 - **tokens per call**: max in ${max_tokens_in}, max out ${max_tokens_out} (well under 100k)
 - **total cost**: $${final_out.cost_usd}
 - **ops**: ${r.op_counts.edit} edits, ${r.op_counts.add} adds (model-chosen); ${r.unplaced.length} sentence(s) force-placed as unplaced
 - **coverage**: ${coverage_ok ? "every sentence cited at least once" : "BROKEN — a sentence was never cited"}
 
 ## What to try next
-- **Cost is dominated by a fixed per-call overhead, not by the outline's size**: every call (clean OR amend) measured 8,000-10,000 input tokens even on the very first, near-empty call — likely the Claude Agent SDK's own baseline context, paid fresh every time since each \`RefineCall\` is a brand-new, never-resumed session. A resumed Haiku session (prompt caching) for the amend call, or batching several slots' clean calls into one, would cut this the most.
-- Fold clean + amend into one call per batch while the outline is still small (fewer round trips while BUDGET_TOKENS is far off), falling back to two calls once it grows.
-- Measure \`--fast\` against realistic (~4s) pacing side by side on the same text: this run shows coalescing cuts amend call COUNT hard, but the fixed per-call token overhead above means the real lever for cost is calls made, not tokens sent — so pacing-driven coalescing is the main cost control available today.
+- **Per-call overhead dominates cost**: each call is a fresh Agent-SDK session (~8-10k input tokens before the outline). A resumed Haiku session with prompt caching, reset when it nears 100k, would cut most of it.
+- **Pacing is on** (`MIN_BATCH` 3 / `MAX_WAIT_MS` 6000), measured on the same 30 sentences: without it 26 calls, $2.22, 7.3 s median placement; with it 15 calls, $1.27, 9.1 s. Tune those two numbers first if it feels slow or costs too much.
+- **Earlier measurement** (one clean call per sentence, everything fired at once): 98 sentences, 42 s median clean, $6.03, 33 unplaced. That is why clean now rides in the amend call and a batch is capped.
 `;
 	fs.writeFileSync(SUMMARY, summary);
 	console.log(summary);
