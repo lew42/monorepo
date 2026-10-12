@@ -4,7 +4,7 @@ import { usage_rail } from "/framework/ext/AITask/usage.js";
 import { servex_base, servex_fetch, card_stream, agent_frames } from "./inbox.js";
 import { Faces } from "../cards/faces.js";
 import { md_into, who_label, speak } from "../cards/chat.js";
-import { create_processes, processes_section, running_index, process_badge } from "./processes.js";
+import { Processes } from "./Processes.js";
 
 /**
  * THE LIVE CARD — `/framework/ai2/live/`, the first card that does not come
@@ -76,7 +76,7 @@ export function live_model({ prompts, day }){
 	   (skips itself while the tab is hidden, shows nothing until Servex has
 	   the route). `item()` hands its latest snapshot to `live_full` as
 	   `it.processes`, which is null until the first answer arrives. */
-	const proc = create_processes(changed);
+	const proc = Processes.create(changed);
 
 	async function poll_agents(){
 		if (document.hidden) return;
@@ -350,7 +350,7 @@ export function live_full(it, model){
 	// Ask 2 (process-monitor): each running agent's own line gains the real
 	// process behind it — "pid 47356 · 248 MB", "no process" when `running[]`
 	// marks it lost, or nothing yet when an older Servex has no `running[]` at all.
-	const running_by_id = running_index(it.processes?.running);
+	const running_by_id = Processes.running_index(it.processes?.running);
 	// Processes (ask 1) sits directly under "Running now", in the SAME grid
 	// column (`.ai2-live-run-col`, ux/Card/Card.css) — not its own row after both
 	// columns. A row of its own only starts once the TALLER column (tasks +
@@ -359,8 +359,8 @@ export function live_full(it, model){
 	// box instead, Processes starts the moment Running now's own list ends.
 	div.c("ai2-live-run-col", () => {
 		list("Running now", it.agents, "nothing is running", { talkable: true, fold: true, cls: "ai2-live-running",
-			extra: x => process_badge(x.id, x.state, running_by_id) });
-		processes_section(it.processes);
+			extra: x => Processes.badge(x.id, x.state, running_by_id) });
+		Processes.section(it.processes);
 	});
 	div.c("ai2-live-tasks", () => {
 		list("Working on", it.tasks, "nothing in progress", { clearable: true });

@@ -2,7 +2,7 @@ import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
 import { resolve_card, plain, headline, first_sentence } from "./inbox.js";
 import { total } from "/framework/ext/AITask/cost.js";
 import { PageLog } from "/framework/core/Page/Log.js";
-import { is_heartbeat_line } from "./needs-rule.js";
+import { NeedsRule } from "./NeedsRule.js";
 
 /**
  * THE GROUPS — a few familiar names the work is filed under (the owner,
@@ -36,7 +36,7 @@ export class Member extends TaskJSONL {
 		// further down, so a task-loop escalation inside it (`log.js`'s `task_status()`) is still
 		// seen — only the ACTIVITY-TIME bump is skipped.
 		for (const v of Object.values(entry ?? {})){
-			if (is_heartbeat_line(v)) continue;
+			if (NeedsRule.is_heartbeat_line(v)) continue;
 			for (const at of [v?.at, v?.requested_at, v?.landed_at])
 				if (at && (!this.last_at || Date.parse(at) > Date.parse(this.last_at))) this.last_at = at;
 		}
@@ -64,7 +64,7 @@ export class Member extends TaskJSONL {
  *  has said nothing real yet. `Groups.real_at()` (above) is how a caller reaches this. */
 function real_activity_at(fold){
 	const real = [...(fold?.messages ?? []), ...(fold?.prompts ?? [])]
-		.filter(m => !is_heartbeat_line(m)).map(m => m?.at).filter(Boolean).sort();
+		.filter(m => !NeedsRule.is_heartbeat_line(m)).map(m => m?.at).filter(Boolean).sort();
 	return real.at(-1) ?? fold?.created ?? null;
 }
 
