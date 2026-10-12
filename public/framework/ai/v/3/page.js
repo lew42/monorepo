@@ -10,7 +10,7 @@ import { Timeline, BOARD, LOG_URL, VERDICTS_URL, clock, text_lines, author_of, a
 import { Composer } from "./Composer.js";
 import { AskControls } from "./AskControls.js";
 import { AgentsStrip } from "./AgentsStrip.js";
-import { prompts_view, prompt_board_cards } from "./prompts.js";
+import { Prompts } from "./Prompts.js";
 import { usage_rail } from "/framework/ext/AITask/usage.js";
 import { current } from "/framework/ext/AITask/card.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
@@ -643,7 +643,7 @@ export function top_level(page, initial_id, url_view, root) {
 		if (view === "prompts") {
 			md = null; nv = null; dv = null;
 			if (pv) return pv.update();
-			return $wall.empty(() => { pv = prompts_view(); });
+			return $wall.empty(() => { pv = Prompts.view(); });
 		}
 		if (view !== "timeline") {
 			md = null; nv = null; dv = null; pv = null;
@@ -863,7 +863,7 @@ export function top_level(page, initial_id, url_view, root) {
 	// never hit this because its cards can only arrive much later, when an
 	// agent actually lands.
 	Promise.all([log.live(redraw), verdicts.live(redraw)]).then(() => {
-		prompt_board_cards(card => { log.card(card); redraw(); });
+		Prompts.board_cards(card => { log.card(card); redraw(); });
 		redraw();
 	});
 }

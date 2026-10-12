@@ -30,7 +30,7 @@ export class Composer {
 
 		let $input, $note;
 		const NOTE = "the fast assistant inside Servex · names in ~2 s · ✓ ✗ optional";
-		// `?servex=` — the same test-flag device `prompts.js`'s own `servex_base()`
+		// `?servex=` — the same test-flag device `Prompts.js`'s own `Prompts.base()`
 		// uses, so a proof run can point this box at a dead port without touching
 		// the real assistant (`ai/2026-09-22/talk-to-assistant/`).
 		const servex_url = () => (new URLSearchParams(location.search).get("servex") || "http://127.0.0.1:8090") + "/log/prompts";
