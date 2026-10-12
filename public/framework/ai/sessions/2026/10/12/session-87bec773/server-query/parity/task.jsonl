@@ -5,3 +5,7 @@
 {"log":{"at":"2026-10-12T17:05:52-05:00","msg":"review fixes: window gap traced (local midnight), in-flight first, flags loaded, join 8.8ms, doc+shots committed; default flip kept"}}
 {"log":{"at":"2026-10-12T17:16:38-05:00","heartbeat":"check","msg":"status check sent to minion-server-query-parity"}}
 {"log":{"at":"2026-10-12T17:16:41-05:00","heartbeat":"answered","msg":"I'm done and idle. The last task, the cost-gap trace and the cold-start fix, is committed as `cf2be4598` on `worktree/server-query-cost` and reported to the parent. I haven't merged, and I've started "}}
+{"log":{"at":"2026-10-12T17:28:40-05:00","heartbeat":"check","msg":"status check sent to minion-server-query-parity"}}
+{"log":{"at":"2026-10-12T17:28:43-05:00","heartbeat":"answered","msg":"Still idle. Both tasks are finished, the last commit is `cf2be4598` on `worktree/server-query-cost`, nothing is merged, and I'm waiting on the parent."}}
+{"log":{"at":"2026-10-12T17:35:40-05:00","heartbeat":"check","msg":"status check sent to minion-server-query-parity"}}
+{"log":{"at":"2026-10-12T17:35:46-05:00","heartbeat":"answered","msg":"Idle and finished. The parent merged my work (`cf2be4598` is on `michael/dev`) and told me to stop, so I'm not doing anything."}}

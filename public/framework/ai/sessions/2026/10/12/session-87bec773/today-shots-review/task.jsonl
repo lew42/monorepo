@@ -10,3 +10,8 @@
 {"log":{"at":"2026-10-12T18:00:23-05:00","msg":"skill: finish-task"}}
 {"review":{"at":"2026-10-12T18:00:31-05:00","size":"none","verdict":"pass","findings":[],"branch":"michael/dev","head":"5422a2ebe7f56216a818f397dd0cbc61bf2efe4c","model":null,"cost":0,"file":"review.md"}}
 {"assign":{"step":1,"landed_at":"2026-10-12T18:00:37-05:00","title":"Today's UI: shot, read, two narrow-screen fixes","outcome":"**Shot 10 of today's pages at 400/1200/1920/3440 and fixed two defects.** [Report](/framework/ai/sessions/2026/10/12/session-87bec773/today-shots-review/report.md)\n\n- [x] DataGrid demo overlap at 400: fixed (916492fc2), re-shot\n- [x] Refine 'Said' label squeeze at 400: fixed (8a7e0a6d3), re-shot\n- [x] reviewed: pass (size none)\n- [ ] Sessions at 3440, session-detail 404s, tab bar hidden tabs at 400: handed to ai/todo.md\n- [ ] inbox-scrollbar rail and Inbox tab: not checked (need live interaction)","links":[{"url":"/framework/ai/sessions/2026/10/12/session-87bec773/today-shots-review/report.md","label":"report"}],"window":{"before":null,"after":0.2},"tokens":null}}
+{"log":{"at":"2026-10-12T18:00:39-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-12T18:00:39-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-12T18:00:39-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-12T18:00:42-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-12T18:00:42-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
