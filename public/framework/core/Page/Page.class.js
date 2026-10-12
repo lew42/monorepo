@@ -1,4 +1,4 @@
-import { View, div, p, h1, h2, h4, a, span, ul, li, button, icon, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
+import { View, div, p, h1, h4, a, span, icon, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
 import PageFrame from "./Frame.js";
 import Item from "../Item/Item.js";
 import List from "../List/List.js";
@@ -12,6 +12,7 @@ import PagePrefs from "./Prefs.js";
 import PageRelated from "./Related.js";
 import PagePreviews from "./Previews.js";
 import PageColumns from "./Columns.js";
+import PageLinks from "./Links.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -678,103 +679,14 @@ export class Page extends Item {
 	// elsewhere overrides this.
 	md_dir(){ return this.folder ?? this.url; }
 
-	// A url to navigate to, or nothing when I showed the link myself. The default
-	// navigates; in a columns tree, a doc from my own folder opens as the next column.
-	open_link(link){
-		const file = Page.md_file(link);
-		if (!file) return link.pathname;
-
-		const dir = this.md_dir(), rel = dir && file.startsWith(dir) && file.slice(dir.length);
-		if (!rel || !this.column_host()) return Page.md_url(file);
-
-		// A doc beside me becomes my child, so it opens as the very next column.
-		// One in a subfolder goes through my md/, which is a column of its own.
-		if (rel.includes("/")) return this.url + "md/" + rel.replace(/\.md$/i, "/");
-
-		const name = rel.slice(0, -3);
-		if (!this.children.has(name)) this.add(name, Page.md_page(file));
-		return this.url + name + "/";
-	}
-
-	// A page that is one .md file, headed by its file name; the file keeps its own h1.
-	static md_page(file){
-		return {
-			folder: file.replace(/[^/]*$/, ""),
-			content(){ return import("../../ext/markdown/md.js").then(({ md }) => md.file({ url: location.href }, file)); },
-		};
-	}
-
-	// Draw the doc inside me with a way back, at its own address `<my url>md/<doc>/`. (doc/decisions.md)
-	swap_link(link){
-		const file = Page.md_file(link);
-		if (!file) return link.pathname;
-
-		this.swap_close?.();
-		const shown = [...this.view.el.children].filter(el => !el.matches(".page-swap"));
-		shown.forEach(el => el.style.display = "none");
-
-		const url = this.swap_url(file);
-		const back = () => location.pathname === url ? history.back() : close();
-		const on_pop = () => { if (location.pathname !== url) close(); };
-		let $shell;
-		const close = () => {
-			$shell?.el.remove();
-			shown.forEach(el => el.style.display = "");
-			removeEventListener("popstate", on_pop);
-			this.swap_close = null;
-		};
-
-		this.view.append(() => {
-			div.c("page-swap pad", $swap => {
-				$shell = $swap;
-				button.c("page-swap-back flex v-center gap", () => { icon("arrow_back"); span("Back"); }).on("click", back);
-				Page.file(file).then(doc => {
-					$swap.append(() => { doc ? doc.title && h2(doc.title) : p.c("muted", "Nothing could be read at " + file + "."); });
-					if (doc) $swap.append(doc.content());
-				});
-			});
-		});
-
-		this.swap_close = close;
-		if (location.pathname !== url) history.pushState({}, "", url + link.hash);
-		addEventListener("popstate", on_pop);
-	}
-
-	// Where a swapped doc lives: my own md/ when the doc is in my folder, else its module's.
-	swap_url(file){
-		const dir = this.md_dir();
-		return dir && file.startsWith(dir) ? this.url + "md/" + file.slice(dir.length).replace(/\.md$/i, "/") : Page.md_url(file);
-	}
-
-	// My own folder's .md files, as links — the Router hands each click back to me.
-	// `names` when the caller knows them (a card's own file lines); else the dev
-	// server's file list, which production does not have (so: nothing there).
-	md_files(names){
-		const dir = this.md_dir();
-
-		return ul.c("page-md-files", $list => {
-			const list = names ? Promise.resolve(names)
-				: import("./Markdown.js").then(({ default: PageMarkdown }) => PageMarkdown.files(dir));
-
-			list.then(files => $list.append(() => {
-				(files ?? []).filter(name => /\.md$/i.test(name) && !name.includes("/"))
-					.forEach(name => li(() => { a(name.slice(0, -3)).href(dir + name); }));
-			}));
-		});
-	}
-
-	// The .md file a link points at — its href, or what md.route() rewrote it from.
-	static md_file(link){
-		return link.dataset?.md ?? (/\.md$/i.test(link.pathname) && !link.search ? link.pathname : null);
-	}
-
-	// A .md file's page when nothing nearer claims it: `<module>/md/<path>/` (module = the folder above doc/).
-	// ⚠ The trailing slash is load-bearing: a url ending in `.js` is answered as a file.
-	static md_url(file){
-		const doc = file.indexOf("/doc/");
-		const base = doc >= 0 ? file.slice(0, doc + 1) : file.replace(/[^/]*$/, "");
-		return base + "md/" + file.slice(base.length).replace(/\.md$/i, "/");
-	}
+	// The link's decision lives in Links.js; a page overrides these and the Router calls them. (doc/open.md)
+	open_link(link){ return new this.constructor.Links({ page: this }).open(link); }
+	swap_link(link){ return new this.constructor.Links({ page: this }).swap(link); }
+	swap_url(file){ return new this.constructor.Links({ page: this }).swap_url(file); }
+	md_files(names){ return new this.constructor.Links({ page: this }).files(names); }
+	static md_page(file){ return this.Links.md_page(file); }
+	static md_file(link){ return this.Links.md_file(link); }
+	static md_url(file){ return this.Links.md_url(file); }
 
 	// Which page drew this element — the nearest one up. Filled by render().
 	static views = new WeakMap();
@@ -1165,6 +1077,7 @@ Page.Prefs = PagePrefs;
 Page.Related = PageRelated;
 Page.Previews = PagePreviews;
 Page.Columns = PageColumns;
+Page.Links = PageLinks;
 
 // Opt-in instance tracking, installed once so every Page shares one list (core/track/track.js). (doc/decisions.md)
 track(Page);
