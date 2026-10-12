@@ -16,6 +16,7 @@ const photos = () => div.c("flex gap v-center", () => {
 });
 
 export default new Page({
+	specimen: stack,
 	meta: import.meta,
 	title: "Avatar",
 	description: "One class, sized by a token — and the circle, the ring and the overlap are all CSS.",

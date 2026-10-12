@@ -74,6 +74,7 @@ const mobile = () => div.c("flex v gap", () => {
 });
 
 export default new Page({
+	specimen: toolbar,
 	meta: import.meta,
 	title: "Toolbar",
 	description: "A template, not a function — groups, a growing field, and why `flex-1` beats `split`.",

@@ -7,7 +7,7 @@ import { Doc, md, code, ui } from "/app.js";
    ⚠ Six, six, six and five — the sizes are load-bearing. A band is its own grid and
      `auto-fit` stretches it to fill the row, so at 3440 a band of three would draw
      three cards a thousand pixels wide. Even bands mean even cards. */
-const BANDS = {
+export const BANDS = {
 	Surfaces: "card toolbar panel stats accordion decision",
 	Data:     "table timeline tree progress pagination crumbs",
 	Forms:    "controls field dialog tags menu tooltip",

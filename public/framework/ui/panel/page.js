@@ -22,6 +22,7 @@ const headless = () => div.c("ui-panel surface raised", () => {
 });
 
 export default new Page({
+	specimen: panel,
 	meta: import.meta,
 	title: "Panel",
 	description: "A template plus three rules — and `reverse`, the right-aligned action row nobody expects.",

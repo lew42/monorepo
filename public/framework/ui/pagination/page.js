@@ -35,6 +35,7 @@ const context = () => div.c("pad flex v gap", () => {
 }).style("--gap", "calc(var(--gap) * 0.6)");
 
 export default new Page({
+	specimen: pager,
 	meta: import.meta,
 	title: "Pagination",
 	description: "A template, not a function — real buttons, and the caller holds the page number.",

@@ -22,6 +22,7 @@ const decision = () => div.c("ui-decision", () => {
 });
 
 export default new Page({
+	specimen: decision,
 	meta: import.meta,
 	title: "Decision",
 	description: "The options as cards, the chosen one marked — a choice you can see.",
