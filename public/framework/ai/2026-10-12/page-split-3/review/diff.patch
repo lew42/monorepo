@@ -1,0 +1,972 @@
+diff --git a/public/framework/ai/2026-10-12/page-split-3/STATE.md b/public/framework/ai/2026-10-12/page-split-3/STATE.md
+new file mode 100644
+index 000000000..2a5b44a2e
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/page-split-3/STATE.md
+@@ -0,0 +1,30 @@
++# page-split-3: STATE (step 7, jsonl, done)
++
++The jsonl replay, file steps, tab state, word delta, nav visibility and placed-file drawing are out of `Page.class.js` into [`Jsonl.js`](/framework/core/Page/Jsonl.js) (`PageJsonl`, attached as `Page.Jsonl`). That finishes the split: [split-plan.md](/framework/core/Page/doc/split-plan.md) now says complete. Follows [page-split-2](/framework/ai/2026-10-12/page-split-2/STATE.md).
++
++## Measure (`node public/framework/core/Page/doc/split-measure.mjs`)
++
++| | Page.class.js lines | code | comment | blank | methods | New file |
++|---|---|---|---|---|---|---|
++| before | 1090 | 692 | 192 | 206 | 114 | |
++| after | 849 | 528 | 156 | 165 | 114 | `Jsonl.js` (`PageJsonl`, 297 lines) |
++
++Whole split: 2270 to 849 lines (-63%). Methods stay 114: every moved method keeps a one-line facade on Page, because pages call and override them (`file`, `tab`, `place`, `log_view`, `draw_*`, `listing`).
++
++## Proof (baseline before, same pages after; `baseline.mjs`, `stream-proof.mjs` in this folder)
++
++- **40 pages**, saved at 1200 (computed replay state of every jsonl page, a DOM outline hash, the text hash, a screenshot) and, for 8 of them, at 400/1200/1920/3440 (core/Page, columns demo, markdown open demo, `/framework/ai/`, sessions, a parts page, a page-tool page, `/imagine/paging/`). 299 jsonl pages' state compared in total.
++- **Noise floor first:** two baseline runs (A1, A2) on the unchanged code differ on 5 live pages (`/framework/`, `/framework/ai/`, `/framework/ai/sessions/`, `/framework/ext/Refine/`, `/framework/ux/Inbox/`: clocks, counters, a routed-chain race). After (B) differs from A1 on exactly the same 5 pages and the same fields, and is **byte-identical on the other 35** (state, outline, text, every screenshot hash at every width). 0 new console or page errors on any page.
++- **Streaming:** a script appended `page_set`-shaped lines to `core/Page/jsonl/live/page.jsonl` while a headless browser watched it. Old code: heading 6 ms, card 26 ms, text 32 ms. New code: 7, 25, 33 ms. Two probes (a card update by id, a title change) are not shown on that demo page on the old code either (same result both runs), so they say nothing about the move. Files: `stream-proof.json`, `stream-proof-old.json`, `stream-proof.png`. The real `page_set` MCP tool writes to the main tree, which still ran the old code until the merge; re-proved after the merge (below).
++- **Smoke** (`node Server/smoke.mjs`, 6 seeds): the only FAIL lines are 404s for the worktree's missing gitignored data files (`directory.json`, `page-work.json`, `weight.jsonl`), as in page-split-2; 0 JS errors.
++
++## Decisions (alternative in brackets)
++
++- Same part shape as steps 2 to 6: `new this.constructor.Jsonl({ page: this })`, state on the page, calls back through `this.page.*`. [Moving the state into the part: rejected, `Page.listing`, `Reader` and `card.js` read `page.listed` / `placed` directly.]
++- `Page.jsonl(url)` is a facade over `PageJsonl.load(host, url)`; `host` is the (sub)class it was called on, so `Class.jsonl()` still builds a `Class`, and the `log_pages` map still lives on `Page` itself.
++- `PageJsonl.Page` is assigned after `Page` is defined: importing `Page` into `Jsonl.js` would be a cycle that breaks on deep reload.
++- The listing statics (`listing`, `fetch_listing`, `page_listing`, `loaded_listing`, `UNLOGGED`) stay on Page, as in step 2: they own `Page.listings` / `Page.log_pages`, which outside code (`rail/groups.js`, `Page/Log.js`, `ext/Inbox`) reads by name.
++
++## Open
++
++Nothing for the split. `reshape()` / `rerender()` stay on Page (rendering, not jsonl).
+diff --git a/public/framework/ai/2026-10-12/page-split-3/baseline.mjs b/public/framework/ai/2026-10-12/page-split-3/baseline.mjs
+new file mode 100644
+index 000000000..449a9fd23
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/page-split-3/baseline.mjs
+@@ -0,0 +1,95 @@
++// node baseline.mjs <label> [port]   → saves state + screenshots under $OUT/<label>/ ; node baseline.mjs diff <a> <b>
++// Replay state = every Page in Page.log_pages (the jsonl pages) plus the routed chain, serialised; DOM = a normalised outline.
++import fs from "node:fs";
++import path from "node:path";
++import crypto from "node:crypto";
++import { browser, close } from "../../../../../Server/browser.mjs";
++
++const OUT = process.env.OUT ?? path.join(process.env.TEMP, "page-split-3");
++const WIDTHS = [400, 1200, 1920, 3440];
++const FULL = new Set(["/framework/core/Page/", "/framework/ai/", "/imagine/paging/", "/framework/core/Page/overview/columns/", "/framework/ext/markdown/open/", "/framework/core/Page/parts/example/", "/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/sessions/"]);
++
++const URLS = [
++	"/framework/", "/framework/core/", "/framework/core/Page/", "/framework/core/View/", "/framework/core/Router/", "/framework/core/App/",
++	"/framework/core/Page/overview/columns/", "/framework/core/Page/overview/tabs/", "/framework/core/Page/overview/rail/", "/framework/core/Page/overview/wall/",
++	"/framework/core/Page/overview/grid/", "/framework/core/Page/overview/prose/", "/framework/core/Page/overview/width/", "/framework/core/Page/overview/site/",
++	"/framework/core/Page/parts/", "/framework/core/Page/parts/example/", "/framework/core/Page/jsonl/", "/framework/core/Page/jsonl/live/",
++	"/framework/ai/", "/framework/ai/sessions/", "/framework/ai/sessions/2026/10/", "/framework/ai/cards/", "/framework/ai/rail/", "/framework/ai/classes/",
++	"/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/2026-10-12/page-split-2/", "/framework/ai/2026-10-12/page-split-3/", "/framework/ai/2026-10-12/",
++	"/framework/ext/markdown/open/", "/framework/ext/markdown/open/columns/", "/framework/ext/JSONL/", "/framework/ext/Refine/",
++	"/imagine/paging/", "/imagine/paging/arrangement/", "/imagine/", "/framework/ux/Dictate/", "/framework/ux/Inbox/", "/framework/ui/", "/framework/styles/", "/web/",
++];
++
++const outline = `(() => {
++	const walk = (el, depth) => depth > 12 ? "" : "<" + el.tagName.toLowerCase() + "." + [...el.classList].filter(c => !/^(active|hover|focus)/.test(c)).sort().join(".") + ">" + [...el.children].map(c => walk(c, depth + 1)).join("");
++	return walk(document.body, 0);
++})()`;
++
++const state = async () => {
++	const { default: Page } = await import("/framework/core/Page/Page.class.js").then(m => ({ default: m.Page ?? m.default }));
++	const ser = page => ({
++		url: page.url, name: page.name, title: page.title, nav: page.navigation, width: page.width, arr: page.arrangement, surface: page.surface, bg: page.background, ts: page.type_size,
++		lines: page.jsonl_lines, listed: [...page.listed ?? []], placed: page.placed, kinds: [...page.child_kinds ?? []], tabs: [...page.tabs_state ?? []],
++		children: [...page.children.keys()], data: page.data, unknown: page.unknown, contents: page.content?.length ?? null,
++		jsonl_url: page.jsonl_url, has_view: !!page.view,
++	});
++	const logs = [...Page.log_pages ?? []].map(([k, p]) => [k, ser(p)]).sort((a, b) => a[0].localeCompare(b[0]));
++	const chain = (window.app?.router?.chain?.() ?? []).map(p => p.url);
++	return { logs, chain, path: location.pathname };
++};
++
++async function run(label, base){
++	const dir = path.join(OUT, label);
++	fs.mkdirSync(dir, { recursive: true });
++	const b = await browser();
++	const summary = {};
++	for (const url of URLS){
++		const key = url.replace(/\W+/g, "_");
++		const rec = { errors: [], shots: {} };
++		for (const w of WIDTHS){
++			if (w !== 1200 && !FULL.has(url)) continue;
++			const ctx = await b.newContext({ viewport: { width: w, height: 900 } });
++			const page = await ctx.newPage();
++			const errors = [];
++			page.on("pageerror", e => errors.push("pageerror: " + String(e.message).slice(0, 200)));
++			page.on("console", m => { if (m.type() === "error" && !/404|Failed to load resource/.test(m.text())) errors.push("console: " + m.text().slice(0, 200)); });
++			try {
++				await page.goto(base + url, { waitUntil: "load", timeout: 30000 });
++				await page.waitForTimeout(1800);
++				if (w === 1200){
++					rec.state = await page.evaluate(state).catch(e => ({ error: String(e) }));
++					rec.outline = crypto.createHash("md5").update(await page.evaluate(outline)).digest("hex");
++					rec.text = crypto.createHash("md5").update(await page.evaluate(() => document.body.innerText)).digest("hex");
++				}
++				const png = await page.screenshot({ path: path.join(dir, `${key}-${w}.png`) });
++				rec.shots[w] = crypto.createHash("md5").update(png).digest("hex");
++			} catch (e){ errors.push("load: " + e.message.slice(0, 200)); }
++			rec.errors.push(...errors.map(e => `${w}: ${e}`));
++			await ctx.close();
++		}
++		summary[url] = rec;
++		console.log(url, rec.errors.length ? "ERR " + rec.errors.length : "ok", Object.keys(rec.shots).length + " shots", rec.state?.logs?.length ?? "-" + " logs");
++	}
++	fs.writeFileSync(path.join(dir, "summary.json"), JSON.stringify(summary, null, 1));
++	await close();
++}
++
++function diff(a, c){
++	const A = JSON.parse(fs.readFileSync(path.join(OUT, a, "summary.json"))), C = JSON.parse(fs.readFileSync(path.join(OUT, c, "summary.json")));
++	let state = 0, outline = 0, text = 0, shots = 0, errs = 0, total = 0;
++	for (const url of URLS){
++		const x = A[url], y = C[url];
++		if (!x || !y) { console.log("MISSING", url); continue; }
++		total++;
++		const sd = JSON.stringify(x.state) !== JSON.stringify(y.state), od = x.outline !== y.outline, td = x.text !== y.text;
++		const shd = Object.keys(x.shots).filter(w => x.shots[w] !== y.shots[w]);
++		const ed = JSON.stringify(x.errors) !== JSON.stringify(y.errors);
++		if (sd) state++; if (od) outline++; if (td) text++; if (shd.length) shots += shd.length; if (ed) errs++;
++		if (sd || od || td || shd.length || ed) console.log(url, { state: sd, outline: od, text: td, shots: shd, errors: ed ? [x.errors, y.errors] : false });
++	}
++	console.log(`\n${total} pages: ${state} state diffs, ${outline} outline diffs, ${text} text diffs, ${shots} screenshot diffs, ${errs} error diffs`);
++}
++
++const [cmd, a, b] = process.argv.slice(2);
++if (cmd === "diff") diff(a, b);
++else await run(cmd, `http://localhost:${a ?? 51858}`);
+diff --git a/public/framework/ai/2026-10-12/page-split-3/page.jsonl b/public/framework/ai/2026-10-12/page-split-3/page.jsonl
+new file mode 100644
+index 000000000..598381a0f
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/page-split-3/page.jsonl
+@@ -0,0 +1,10 @@
++{"title":"page-split-3: jsonl","icon":"🧩","description":"Step 7 of the Page.class.js split: the page.jsonl replay and file steps move to Jsonl.js."}
++{"file":"requirements.md"}
++{"file":"scratch/page.jsonl"}
++{"file":"baseline.mjs"}
++{"file":"stream-proof.json"}
++{"file":"stream-proof.mjs"}
++{"file":"stream-proof.png"}
++{"file":"stream-proof-old.json"}
++{"file":"stream-proof-old.png"}
++{"file":"scratch/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-10-12/page-split-3/stream-proof-old.json b/public/framework/ai/2026-10-12/page-split-3/stream-proof-old.json
+new file mode 100644
+index 000000000..cec8adf6e
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/page-split-3/stream-proof-old.json
+@@ -0,0 +1,25 @@
++{
++ "result": [
++  {
++   "name": "heading",
++   "ms": 6
++  },
++  {
++   "name": "card",
++   "ms": 26
++  },
++  {
++   "name": "update",
++   "ms": null
++  },
++  {
++   "name": "text",
++   "ms": 32
++  },
++  {
++   "name": "title",
++   "ms": null
++  }
++ ],
++ "errors": []
++}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-10-12/page-split-3/stream-proof.json b/public/framework/ai/2026-10-12/page-split-3/stream-proof.json
+new file mode 100644
+index 000000000..3695235de
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/page-split-3/stream-proof.json
+@@ -0,0 +1,25 @@
++{
++ "result": [
++  {
++   "name": "heading",
++   "ms": 7
++  },
++  {
++   "name": "card",
++   "ms": 25
++  },
++  {
++   "name": "update",
++   "ms": null
++  },
++  {
++   "name": "text",
++   "ms": 33
++  },
++  {
++   "name": "title",
++   "ms": null
++  }
++ ],
++ "errors": []
++}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-10-12/page-split-3/stream-proof.mjs b/public/framework/ai/2026-10-12/page-split-3/stream-proof.mjs
+new file mode 100644
+index 000000000..1ed69340b
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/page-split-3/stream-proof.mjs
+@@ -0,0 +1,40 @@
++// node stream-proof.mjs <port> <out.json> — appends page_set-shaped lines to a scratch page and times when a watching headless browser shows each (core/Page/doc/ai-api.md, "The live proof").
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { browser, close } from "../../../../../Server/browser.mjs";
++
++const here = path.dirname(fileURLToPath(import.meta.url));
++const file = path.join(here, "../../../core/Page/jsonl/live/page.jsonl");   // the page-tools demo page: a routed page.jsonl
++const [port = "51858", out = "stream-proof.json"] = process.argv.slice(2);
++const b = await browser();
++const page = await (await b.newContext({ viewport: { width: 1200, height: 900 } })).newPage();
++const errors = [];
++page.on("pageerror", e => errors.push(String(e.message)));
++page.on("console", m => { if (m.type() === "error" && !/404|Failed to load/.test(m.text())) errors.push(m.text()); });
++await page.goto(`http://localhost:${port}/framework/core/Page/jsonl/live/`, { waitUntil: "load" });
++await page.waitForTimeout(2500);
++
++const steps = [
++	["heading", { content: { add: { type: "part-heading", text: "Proof heading", id: "h1" } } }, "Proof heading"],
++	["card", { content: { add: { type: "part-card", title: "Cache", text: "Hit rate 92%.", id: "c1" } } }, "Hit rate 92%."],
++	["update", { c1: { text: "Hit rate 95%." } }, "Hit rate 95%."],
++	["text", { content: { add: { type: "part-text", text: "A **markdown** line.", id: "t1" } } }, "A markdown line."],
++	["title", { title: "Stream proof renamed" }, "Stream proof renamed"],
++];
++const result = [];
++for (const [name, delta, expect] of steps){
++	const line = { ...delta, by: "mastermind-page-split-3", ts: new Date().toISOString() };
++	const wrote = Date.now();
++	fs.appendFileSync(file, JSON.stringify(line) + "\n");
++	let seen = null;
++	while (Date.now() - wrote < 5000){
++		if (await page.evaluate(t => document.body.innerText.includes(t), expect)){ seen = Date.now() - wrote; break; }
++		await page.waitForTimeout(20);
++	}
++	result.push({ name, ms: seen });
++	console.log(name, seen === null ? "NOT SEEN in 5 s" : seen + " ms");
++}
++fs.writeFileSync(path.join(here, out), JSON.stringify({ result, errors }, null, 1));
++await page.screenshot({ path: path.join(here, out.replace(/\.json$/, ".png")) });
++await close();
+diff --git a/public/framework/ai/2026-10-12/page-split-3/stream-proof.png b/public/framework/ai/2026-10-12/page-split-3/stream-proof.png
+new file mode 100644
+index 000000000..3645b2d83
+Binary files /dev/null and b/public/framework/ai/2026-10-12/page-split-3/stream-proof.png differ
+diff --git a/public/framework/core/Page/Jsonl.js b/public/framework/core/Page/Jsonl.js
+new file mode 100644
+index 000000000..fa33aeaff
+--- /dev/null
++++ b/public/framework/core/Page/Jsonl.js
+@@ -0,0 +1,297 @@
++import { View, div, p, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
++import List from "../List/List.js";
++import { page_settings } from "./settings/settings.js";
++import PageListing from "./Listing.js";
++
++const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
++
++// "kid/page.jsonl" → ["kid", "jsonl"]; key_of() keys a file line by its FIRST path segment, latest wins. (doc/decisions.md)
++const { CHILD, key_of } = PageListing;
++
++// What a page.jsonl does to a page: the loader, the three file steps, tab state, the word delta, nav visibility, the placed files. (doc/jsonl.md)
++// `page.file()`, `tab()`, `place()` and the rest are facades on Page: a page overrides them, so every call back into
++// the page goes through `this.page.*` and the override still wins. The state stays on the page (`listed`, `placed`, `child_kinds`, `tabs_state`).
++export default class PageJsonl {
++
++	page = null;
++	static Page = null;   // Page.class.js sets it: importing Page here would be a cycle
++
++	constructor(...args){ this.assign(...args); }
++	assign(...args){ return Object.assign(this, ...args); }
++	get Page(){ return this.constructor.Page; }
++
++	// ════ THE LOADER ═══
++	// `url` is the folder; line 1 builds the page, later lines are set(). Streams on localhost.
++	// ⚠ Two callers can race for one url: `reader._building` joins them. (doc/watch-out.md)
++	static async load(host, url){
++		const reader = host.Reader.for(url + "page.jsonl");
++
++		// A page already built for this reader — a SECOND visit gets the SAME live object back.
++		if (reader.host) return reader.host;
++		if (reader._building) return reader._building;
++
++		return reader._building = (async () => {
++			await reader.open();
++
++			// A log whose line 1 is a `file` line is a folder's listing, not a page.
++			const [first] = reader.entries;
++			if (!first || typeof first.file === "string") { reader.close(); return null; }
++
++			const Class = first.class ? await host.log_class(first.class, url) : host;
++			const { class: _, ...line } = first;
++			const page = new Class(line, { url, jsonl_url: reader.url });
++
++			page.content ??= page.log_view;
++			reader.attach(page);
++			(this.Page.log_pages ??= new Map()).set(page.log_folder(), page);   // listing() reads it for free
++			return page;
++		})().finally(() => { reader._building = null; });
++	}
++
++	static async log_class(host, module, url){
++		const Class = (await import(new URL(module, location.origin + url).href)).default;
++		if (Class?.prototype instanceof this.Page) return Class;
++
++		console.error(`page.jsonl at ${url} — "class": "${module}" is not a Page subclass; building a ${host.name}.`);
++		return host;
++	}
++
++	// ════ STEP 1 — the file EXISTS (recorded, never rendered; a code call returns the real FsFile) ═══ (doc/jsonl.md)
++	file(name){
++		const page = this.page;
++		if (page.store?.replaying){
++			(page.listed ??= new Map()).set(page.last_file = key_of(name), name);
++			CHILD.test(name) ? page.link_child(name) : page.unlink_child(key_of(name));
++			return undefined;
++		}
++		const path = (page.log_folder() + name).replace(/^\/+/, "");
++		return import("../../ext/filesystem/FsFile.js").then(({ default: FsFile }) => new FsFile({ path, name }));
++	}
++
++	// `{"file": "x", "gone": true}` — `set()` calls file("x") first, then this.
++	gone(yes){
++		const page = this.page;
++		if (!yes || !page.last_file) return;
++		page.listed?.delete(page.last_file);
++		page.unlink_child(page.last_file);
++	}
++
++	// ════ STEP 2 — a child page is LINKED, automatically ("kid/page.jsonl" → child "kid") ═══ (doc/jsonl.md)
++	child_file(entry){
++		const [, dir, kind] = entry.match(CHILD) ?? [];
++		if (!kind) return entry;
++
++		(this.page.child_kinds ??= new Map()).set(dir, kind);
++		return dir;
++	}
++
++	link_child(name){
++		const dir = this.page.child_file(name);
++		if (!this.page.children.has(dir)) this.page.children.set(dir, null);
++	}
++
++	unlink_child(key){
++		if (!this.page.child_kinds?.delete(key)) return;
++		this.page.children.delete(key);
++	}
++
++	// ════ TAB STATE — {"tab": {"name": "x", "disabled": true, "nav": false, "order": 3}} ═══
++	// ⚠ Repeat lines for a name MERGE, never replace. (doc/jsonl.md)
++	tab(obj){
++		const page = this.page;
++		const { name, title, icon, description, content, ...state } = obj;
++		if (!name) return;
++
++		(page.tabs_state ??= new Map()).set(name, { ...page.tabs_state.get(name), ...state });
++		const data = Object.fromEntries(Object.entries({ title, icon, description, content }).filter(([, v]) => v !== undefined));
++		if (!Object.keys(data).length){
++			if (!page.children.has(name)) page.children.set(name, null);
++			return;
++		}
++
++		const had = page.children.get(name);
++		if (had instanceof this.Page){
++			const { content: text, ...labels } = data;
++			if (Object.keys(labels).length) had.set(labels);
++			if (text !== undefined && !(had.content instanceof List)) had.content = text;
++			had.rerender();
++			if (page.view) queueMicrotask(() => page.nav_redraw?.());
++			return;
++		}
++
++		page.add(name, data).from_tab = true;
++		if (!page.navigation && !page._tab_redraws?.size){ page.navigation = "tabs"; page.words(); }
++		page.reshape();
++	}
++
++	// ════ THE SIX WORDS AS A DELTA — a word on a live page.jsonl reshapes the page, redrawn once ═══ (doc/jsonl.md)
++	take_words(obj){
++		const page = this.page;
++		const said = this.Page.WORDS.filter(word => word in obj);
++		if (!said.length) return obj;
++
++		const rest = { ...obj };
++		let changed = false;
++		for (const word of said){
++			if (page[word] !== rest[word]){ page[word] = rest[word]; changed = true; }
++			delete rest[word];
++		}
++		if (changed){ page.words(); page.reshape(); }
++		return rest;
++	}
++
++	// A log on top of a template: only the SHAPE of a line applies (the words, `tab`, `title`). (doc/jsonl.md)
++	overlay(line){
++		if (!line || typeof line !== "object" || Array.isArray(line)) return null;
++		const shape = {};
++		for (const [key, value] of Object.entries(line))
++			if (this.Page.WORDS.includes(key) || key === "tab" || key === "title" || this.page.children.get(key)?.from_tab) shape[key] = value;
++		return Object.keys(shape).length ? (this.page.set(shape), shape) : null;
++	}
++
++	// The state a `tab` line recorded for one name — `{}` when nobody set one, so callers read `.disabled` / `.nav` / `.order` with no guard.
++	tab_state(name){ return this.page.tabs_state?.get(name) ?? {}; }
++
++	// ════ NAV VISIBILITY — one rule for the rail, the tab strip and the drawer's checkbox ═══
++	// Synchronous and optimistic (true first, corrected by nav_redraw()); nav_ready() is the awaited answer. (doc/jsonl.md)
++	tab_visible(name){
++		const page = this.page;
++		const set = page.tab_state(name).nav;
++		if (set === false) return false;
++		if (set === true) return true;
++
++		page._nav ??= new Map();
++		if (!page._nav.has(name)){
++			page._nav.set(name, true);
++			page.nav_ready(name).then(nav => {
++				if (page._nav.get(name) === nav) return;
++				page._nav.set(name, nav);
++				page.nav_redraw?.();
++			});
++		}
++		return page._nav.get(name);
++	}
++
++	// The awaited answer tab_visible() above stands in for.
++	async nav_ready(name){
++		const set = this.page.tab_state(name).nav;
++		if (typeof set === "boolean") return set;
++		return (await page_settings(this.page.url + name + "/")).nav;
++	}
++
++	// An explicit `order` wins; the rest tie at `Infinity` and the stable sort keeps their order.
++	tab_order(name){ return this.page.tab_state(name).order ?? Infinity; }
++
++	// ════ STEP 3 — PLACED in the content, deliberately ════════════════════════
++	// A name, an array of names, or `{"module": "x.js", …data}`. In order; once each.
++	place(value){
++		const page = this.page;
++		page.placed ??= [];
++
++		for (const entry of [value].flat()){
++			const id = JSON.stringify(entry);
++			if (!page.placed.some(had => JSON.stringify(had) === id)) page.placed.push(entry);
++		}
++	}
++
++	// What a page.jsonl page draws when it has no `content()` of its own: its placed files, in order. The box is kept so a later line can redraw it.
++	log_view(){
++		const page = this.page;
++		return div.c("flow", () => {
++			page.$log = div.c("page-log flow", () => { page.log_draw(); });
++			page.draw_folder();
++		});
++	}
++
++	// The page shows its own folder (page.jsonl and the files its lines name). ⚠ core does not import ext: dynamic import. (doc/watch-out.md)
++	draw_folder(){
++		const url = location.origin + this.page.log_folder();
++		const names = new Set(["page.jsonl", ...[...this.page.listed?.values() ?? []].filter(name => !CHILD.test(name))]);
++
++		return div.c("page-log-files", $box => {
++			import("../../ext/files/files.js")
++				.then(({ default: files }) => $box.append(() => { files({ url }, [...names].join(" ")); }));
++		});
++	}
++
++	log_draw(){ (this.page.placed ?? []).forEach(entry => this.page.draw_placed(entry)); }
++
++	// Where the log's files really are. A page's `url` is its ADDRESS; a card shown at another address (AI 2) keeps its files in its own folder.
++	log_folder(){ return String(this.page.jsonl_url ?? this.page.url).replace(/page\.jsonl$/, ""); }
++
++	log_redraw(){ this.page.$log?.empty(() => { this.page.log_draw(); }); }
++
++	// `.md` is prose. `.js` is a module: a default export with a `render` (a View) is built as `new Default({ page, …data })`, anything else called as `fn(page, box, data)`.
++	draw_placed(entry){
++		const { module, ...data } = is.str(entry) ? { module: entry } : entry;
++		const url = new URL(module, location.origin + this.page.log_folder()).href;
++
++		if (/\.md$/i.test(module)) return this.page.draw_md(url);
++		if (/\.m?js$/i.test(module)) return this.page.draw_module(url, data);
++	}
++
++	// ⚠ core does not import ext: the import is dynamic, as in file() above.
++	draw_md(url){
++		return div.c("page-log-md", $box => {
++			import("../../ext/markdown/md.js")
++				.then(({ default: md }) => $box.append(() => md.file({ url }, url, { h1: false })));
++		});
++	}
++
++	// ⚠ THE BOX IS CAPTURED NOW, before the import resolves: a dozen modules can arrive in any order and each fills the box it was given.
++	draw_module(url, data){
++		const page = this.page;
++		return div.c("page-log-module", $box => {
++			import(url).then(({ default: Default }) => $box.append(() => {
++				if (!Default?.prototype?.render) return void Default?.(page, $box, data);
++
++				const made = new Default({ page, ...data });
++				if (!(made instanceof View)) made.render();   // a View drew itself already
++			})).catch(error => console.error(`${page.log_label()} — ${url} failed to load:`, error));
++		});
++	}
++
++	// ════ THE DEBUG VIEW — every file, and which of the three steps it reached ═══
++	listing(){
++		const page = this.page;
++		const rows = new Map();
++		page.listed?.forEach((name, key) => rows.set(key, { name, exists: true }));
++		(page.placed ?? []).forEach(entry => {
++			const name = is.str(entry) ? entry : entry.module;
++			rows.set(key_of(name), { name, exists: false, ...rows.get(key_of(name)), placed: true });
++		});
++
++		const mark = yes => td(yes ? "yes" : "—");
++
++		return div.c("page-log-listing", () => {
++			table(() => {
++				thead(() => { tr(() => { ["File", "Exists", "Linked", "Placed"].forEach(head => th(head)); }); });
++				tbody(() => rows.forEach((row, key) => tr(() => {
++					td(() => { code(row.name); });
++					mark(row.exists);
++					mark(page.child_kinds?.has(key));
++					mark(row.placed);
++				})));
++			});
++
++			if (page.unknown.length)
++				p.c("muted", "Kept as data, no method or property knew them: " + page.unknown.join(", ") + ".");
++		});
++	}
++
++	// One console.info per batch that taught the page a key nobody knew. Never a warn.
++	report_unknown(){
++		const page = this.page;
++		const fresh = page.unknown.filter(key => !page.reported?.has(key));
++		if (!dev || !fresh.length) return;
++
++		fresh.forEach(key => (page.reported ??= new Set()).add(key));
++		console.info(`${page.log_label()} — page.jsonl keys no method or property knew, kept as data:`, fresh);
++	}
++
++	// A rewritten (not appended) log replays from line 1 onto a clean slate.
++	log_forget(){
++		this.page.listed?.clear();
++		this.page.placed = [];
++	}
++}
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index cf2de8ade..9c881f23b 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -1,8 +1,7 @@
+-import { View, div, p, h1, h4, a, span, icon, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
++import { View, div, p, h1, h4, a, span, icon, is } from "../View/View.js";
+ import PageFrame from "./Frame.js";
+ import Item from "../Item/Item.js";
+ import List from "../List/List.js";
+-import { page_settings } from "./settings/settings.js";
+ import { track } from "../track/track.js";
+ import ai_cost from "./weight/ai-cost.js";
+ import PageWork from "./ai/PageWork.js";
+@@ -14,6 +13,7 @@ import PageRelated from "./Related.js";
+ import PagePreviews from "./Previews.js";
+ import PageColumns from "./Columns.js";
+ import PageLinks from "./Links.js";
++import PageJsonl from "./Jsonl.js";
+ 
+ View.stylesheet(import.meta, "Page.css");
+ 
+@@ -31,9 +31,6 @@ const ALIAS = { surface: "card", wash: "tint" };
+ const is_address = value => is.str(value) && value.startsWith("/");
+ const is_md = url => /\.md(\?|#|$)/i.test(url);
+ 
+-// "kid/page.jsonl" → ["kid", "jsonl"]; key_of() keys a file line by its FIRST path segment, latest wins. (doc/decisions.md)
+-const { CHILD, key_of } = PageListing;
+-
+ // Page extends Item directly (no PageLog middle class). (doc/decisions.md)
+ export class Page extends Item {
+ 
+@@ -130,97 +127,20 @@ export class Page extends Item {
+ 		(this.ext_ready ??= []).push(ready);
+ 	}
+ 
+-	// ════ STEP 1 — the file EXISTS (recorded, never rendered; a code call returns the real FsFile) ═══ (doc/jsonl.md)
+-	file(name){
+-		if (this.store?.replaying){
+-			(this.listed ??= new Map()).set(this.last_file = key_of(name), name);
+-			CHILD.test(name) ? this.link_child(name) : this.unlink_child(key_of(name));
+-			return undefined;
+-		}
+-
+-		const path = (this.log_folder() + name).replace(/^\/+/, "");
+-		return import("../../ext/filesystem/FsFile.js").then(({ default: FsFile }) => new FsFile({ path, name }));
+-	}
+-
+-	// `{"file": "x", "gone": true}` — `set()` calls file("x") first, then this.
+-	gone(yes){
+-		if (!yes || !this.last_file) return;
+-		this.listed?.delete(this.last_file);
+-		this.unlink_child(this.last_file);
+-	}
+-
+-	// ════ STEP 2 — a child page is LINKED, automatically ("kid/page.jsonl" → child "kid") ═══ (doc/jsonl.md)
+-	child_file(entry){
+-		const [, dir, kind] = entry.match(CHILD) ?? [];
+-		if (!kind) return entry;
+-
+-		(this.child_kinds ??= new Map()).set(dir, kind);
+-		return dir;
+-	}
+-
+-	link_child(name){
+-		const dir = this.child_file(name);
+-		if (!this.children.has(dir)) this.children.set(dir, null);
+-	}
+-
+-	unlink_child(key){
+-		if (!this.child_kinds?.delete(key)) return;
+-		this.children.delete(key);
+-	}
+-
+-	// ════ TAB STATE — {"tab": {"name": "x", "disabled": true, "nav": false, "order": 3}} ═══
+-	// ⚠ Repeat lines for a name MERGE, never replace. (doc/jsonl.md)
+-	tab(obj){
+-		const { name, title, icon, description, content, ...state } = obj;
+-		if (!name) return;
+-
+-		(this.tabs_state ??= new Map()).set(name, { ...this.tabs_state.get(name), ...state });
+-		const data = Object.fromEntries(Object.entries({ title, icon, description, content }).filter(([, v]) => v !== undefined));
+-		if (!Object.keys(data).length){
+-			if (!this.children.has(name)) this.children.set(name, null);
+-			return;
+-		}
+-
+-		const had = this.children.get(name);
+-		if (had instanceof Page){
+-			const { content: text, ...labels } = data;
+-			if (Object.keys(labels).length) had.set(labels);
+-			if (text !== undefined && !(had.content instanceof List)) had.content = text;
+-			had.rerender();
+-			if (this.view) queueMicrotask(() => this.nav_redraw?.());
+-			return;
+-		}
++	// ════ PAGE.JSONL HOOKS — the file steps, tab state, the word delta (Jsonl.js, doc/jsonl.md) ═══
++	// The state stays here (`listed`, `placed`, `child_kinds`, `tabs_state`); a page overrides a facade and Jsonl calls back through it.
++	file(name){ return new this.constructor.Jsonl({ page: this }).file(name); }
++	gone(yes){ return new this.constructor.Jsonl({ page: this }).gone(yes); }
++	child_file(entry){ return new this.constructor.Jsonl({ page: this }).child_file(entry); }
++	link_child(name){ return new this.constructor.Jsonl({ page: this }).link_child(name); }
++	unlink_child(key){ return new this.constructor.Jsonl({ page: this }).unlink_child(key); }
++	tab(obj){ return new this.constructor.Jsonl({ page: this }).tab(obj); }
+ 
+-		this.add(name, data).from_tab = true;
+-		if (!this.navigation && !this._tab_redraws?.size){ this.navigation = "tabs"; this.words(); }
+-		this.reshape();
+-	}
+-
+-	// ════ THE SIX WORDS AS A DELTA — a word on a live page.jsonl reshapes the page, redrawn once ═══ (doc/jsonl.md)
++	// The six page words a delta may carry. (doc/jsonl.md)
+ 	static WORDS = ["navigation", "width", "arrangement", "surface", "background", "type_size"];
+ 
+-	take_words(obj){
+-		const said = Page.WORDS.filter(word => word in obj);
+-		if (!said.length) return obj;
+-
+-		const rest = { ...obj };
+-		let changed = false;
+-		for (const word of said){
+-			if (this[word] !== rest[word]){ this[word] = rest[word]; changed = true; }
+-			delete rest[word];
+-		}
+-		if (changed){ this.words(); this.reshape(); }
+-		return rest;
+-	}
+-
+-	// A log on top of a template: only the SHAPE of a line applies (the words, `tab`, `title`). (doc/jsonl.md)
+-	overlay(line){
+-		if (!line || typeof line !== "object" || Array.isArray(line)) return null;
+-		const shape = {};
+-		for (const [key, value] of Object.entries(line))
+-			if (Page.WORDS.includes(key) || key === "tab" || key === "title" || this.children.get(key)?.from_tab) shape[key] = value;
+-		return Object.keys(shape).length ? (this.set(shape), shape) : null;
+-	}
++	take_words(obj){ return new this.constructor.Jsonl({ page: this }).take_words(obj); }
++	overlay(line){ return new this.constructor.Jsonl({ page: this }).overlay(line); }
+ 
+ 	// One redraw per burst of lines: a batch of lines read together (a replay, or a
+ 	// delta naming three words) lands as ONE rerender, on the next microtask.
+@@ -252,186 +172,29 @@ export class Page extends Item {
+ 		return this;
+ 	}
+ 
+-	// The state a `tab` line recorded for one name — `{}` when nobody ever set one, so
+-	// every caller (Doc.bar(), tabs()) reads `.disabled` / `.nav` / `.order` with no guard.
+-	tab_state(name){ return this.tabs_state?.get(name) ?? {}; }
+-
+-	// ════ NAV VISIBILITY — one rule for the rail, the tab strip and the drawer's checkbox ═══
+-	// Synchronous and optimistic (true first, corrected by nav_redraw()); nav_ready() is the awaited answer. (doc/jsonl.md)
+-	tab_visible(name){
+-		const set = this.tab_state(name).nav;
+-		if (set === false) return false;
+-		if (set === true) return true;
+-
+-		this._nav ??= new Map();
+-		if (!this._nav.has(name)){
+-			this._nav.set(name, true);
+-			this.nav_ready(name).then(nav => {
+-				if (this._nav.get(name) === nav) return;
+-				this._nav.set(name, nav);
+-				this.nav_redraw?.();
+-			});
+-		}
+-		return this._nav.get(name);
+-	}
+-
+-	// The real, awaited answer tab_visible() above is a synchronous, cached,
+-	// eventually-consistent stand-in for.
+-	async nav_ready(name){
+-		const set = this.tab_state(name).nav;
+-		if (typeof set === "boolean") return set;
+-		return (await page_settings(this.url + name + "/")).nav;
+-	}
++	tab_state(name){ return new this.constructor.Jsonl({ page: this }).tab_state(name); }
++	tab_visible(name){ return new this.constructor.Jsonl({ page: this }).tab_visible(name); }
++	nav_ready(name){ return new this.constructor.Jsonl({ page: this }).nav_ready(name); }
++	tab_order(name){ return new this.constructor.Jsonl({ page: this }).tab_order(name); }
+ 
+-	// Sort key: an explicit `order` wins; everyone else ties at `Infinity`, and
+-	// `Array.prototype.sort` is stable — a tie keeps the names in whatever order they
+-	// already had, so a page that names no order at all is untouched.
+-	tab_order(name){ return this.tab_state(name).order ?? Infinity; }
+-
+-	// ════ STEP 3 — PLACED in the content, deliberately ════════════════════════
+-	// A name, an array of names, or `{"module": "x.js", …data}`. In order; once each.
+-	place(value){
+-		this.placed ??= [];
+-
+-		for (const entry of [value].flat()){
+-			const id = JSON.stringify(entry);
+-			if (!this.placed.some(had => JSON.stringify(had) === id)) this.placed.push(entry);
+-		}
+-	}
+-
+-	// What a page.jsonl page draws when it has no `content()` of its own: its placed
+-	// files, in order. The box is kept so a line appended later can redraw it.
+-	log_view(){
+-		return div.c("flow", () => {
+-			this.$log = div.c("page-log flow", () => { this.log_draw(); });
+-			this.draw_folder();
+-		});
+-	}
+-
+-	// The page shows its own folder (page.jsonl and the files its lines name). ⚠ core does not import ext: dynamic import. (doc/watch-out.md)
+-	draw_folder(){
+-		const url = location.origin + this.log_folder();
+-		const names = new Set(["page.jsonl", ...[...this.listed?.values() ?? []].filter(name => !CHILD.test(name))]);
+-
+-		return div.c("page-log-files", $box => {
+-			import("../../ext/files/files.js")
+-				.then(({ default: files }) => $box.append(() => { files({ url }, [...names].join(" ")); }));
+-		});
+-	}
+-
+-	log_draw(){ (this.placed ?? []).forEach(entry => this.draw_placed(entry)); }
+-
+-	// Where the log's files really are. A page's `url` is its ADDRESS; a card shown at
+-	// another address (AI 2) still keeps its files in its own folder.
+-	log_folder(){ return String(this.jsonl_url ?? this.url).replace(/page\.jsonl$/, ""); }
+-
+-	log_redraw(){ this.$log?.empty(() => { this.log_draw(); }); }
+-
+-	// `.md` is prose. `.js` is a module, one rule: a default export with a `render`
+-	// (a View) is constructed as `new Default({ page, …data })`; anything else is
+-	// called as `fn(page, box, data)`. A child's name draws nothing — it is linked.
+-	draw_placed(entry){
+-		const { module, ...data } = is.str(entry) ? { module: entry } : entry;
+-		const url = new URL(module, location.origin + this.log_folder()).href;
+-
+-		if (/\.md$/i.test(module)) return this.draw_md(url);
+-		if (/\.m?js$/i.test(module)) return this.draw_module(url, data);
+-	}
+-
+-	// ⚠ core does not import ext: the import is dynamic, as in file() above.
+-	draw_md(url){
+-		return div.c("page-log-md", $box => {
+-			import("../../ext/markdown/md.js")
+-				.then(({ default: md }) => $box.append(() => md.file({ url }, url, { h1: false })));
+-		});
+-	}
+-
+-	// ⚠ THE BOX IS CAPTURED NOW, before the import resolves — a dozen modules can
+-	//   arrive in any order and each fills the box it was given.
+-	draw_module(url, data){
+-		return div.c("page-log-module", $box => {
+-			import(url).then(({ default: Default }) => $box.append(() => {
+-				if (!Default?.prototype?.render) return void Default?.(this, $box, data);
+-
+-				const made = new Default({ page: this, ...data });
+-				if (!(made instanceof View)) made.render();   // a View drew itself already
+-			})).catch(error => console.error(`${this.log_label()} — ${url} failed to load:`, error));
+-		});
+-	}
+-
+-	// ════ THE DEBUG VIEW — every file, and which of the three steps it reached ═══
+-	listing(){
+-		const rows = new Map();
+-		this.listed?.forEach((name, key) => rows.set(key, { name, exists: true }));
+-		(this.placed ?? []).forEach(entry => {
+-			const name = is.str(entry) ? entry : entry.module;
+-			rows.set(key_of(name), { name, exists: false, ...rows.get(key_of(name)), placed: true });
+-		});
+-
+-		const mark = yes => td(yes ? "yes" : "—");
+-
+-		return div.c("page-log-listing", () => {
+-			table(() => {
+-				thead(() => { tr(() => { ["File", "Exists", "Linked", "Placed"].forEach(head => th(head)); }); });
+-				tbody(() => rows.forEach((row, key) => tr(() => {
+-					td(() => { code(row.name); });
+-					mark(row.exists);
+-					mark(this.child_kinds?.has(key));
+-					mark(row.placed);
+-				})));
+-			});
+-
+-			if (this.unknown.length)
+-				p.c("muted", "Kept as data, no method or property knew them: " + this.unknown.join(", ") + ".");
+-		});
+-	}
++	place(value){ return new this.constructor.Jsonl({ page: this }).place(value); }
++	log_view(){ return new this.constructor.Jsonl({ page: this }).log_view(); }
++	draw_folder(){ return new this.constructor.Jsonl({ page: this }).draw_folder(); }
++	log_draw(){ return new this.constructor.Jsonl({ page: this }).log_draw(); }
++	log_folder(){ return new this.constructor.Jsonl({ page: this }).log_folder(); }
++	log_redraw(){ return new this.constructor.Jsonl({ page: this }).log_redraw(); }
++	draw_placed(entry){ return new this.constructor.Jsonl({ page: this }).draw_placed(entry); }
++	draw_md(url){ return new this.constructor.Jsonl({ page: this }).draw_md(url); }
++	draw_module(url, data){ return new this.constructor.Jsonl({ page: this }).draw_module(url, data); }
++	listing(){ return new this.constructor.Jsonl({ page: this }).listing(); }
+ 
+ 	// Every `data` key that is not a declared field. (doc/decisions.md)
+ 	get unknown(){ return Object.keys(this.data).filter(key => !this.constructor.fields.includes(key)); }
+ 
+-	// One console.info per batch that taught the page a key nobody knew. Never a warn.
+-	report_unknown(){
+-		const fresh = this.unknown.filter(key => !this.reported?.has(key));
+-		if (!dev || !fresh.length) return;
++	report_unknown(){ return new this.constructor.Jsonl({ page: this }).report_unknown(); }
++	log_forget(){ return new this.constructor.Jsonl({ page: this }).log_forget(); }
+ 
+-		fresh.forEach(key => (this.reported ??= new Set()).add(key));
+-		console.info(`${this.log_label()} — page.jsonl keys no method or property knew, kept as data:`, fresh);
+-	}
+-
+-	// A rewritten (not appended) log replays from line 1 onto a clean slate.
+-	log_forget(){
+-		this.listed?.clear();
+-		this.placed = [];
+-	}
+-
+-	// THE LOADER: `url` is the folder; line 1 builds the page, later lines are set(). Streams on localhost.
+-	// ⚠ Two callers can race for one url: `reader._building` joins them. (doc/watch-out.md)
+-	static async jsonl(url){
+-		const reader = this.Reader.for(url + "page.jsonl");
+-
+-		// A page already built for this reader — the common case on a SECOND visit,
+-		// well after the first call settled. One page, built once, every later
+-		// caller gets the SAME live object back.
+-		if (reader.host) return reader.host;
+-		if (reader._building) return reader._building;
+-
+-		return reader._building = (async () => {
+-			await reader.open();
+-
+-			// A log whose line 1 is a `file` line is a folder's listing, not a page.
+-			const [first] = reader.entries;
+-			if (!first || typeof first.file === "string") { reader.close(); return null; }
+-
+-			const Class = first.class ? await this.log_class(first.class, url) : this;
+-			const { class: _, ...line } = first;
+-			const page = new Class(line, { url, jsonl_url: reader.url });
+-
+-			page.content ??= page.log_view;
+-			reader.attach(page);
+-			(Page.log_pages ??= new Map()).set(page.log_folder(), page);   // listing() reads it for free
+-			return page;
+-		})().finally(() => { reader._building = null; });
+-	}
++	static jsonl(url){ return this.Jsonl.load(this, url); }
+ 
+ 	// A folder's own file list: a loaded page's lines, else files.jsonl, else page.jsonl, else null. Memoised per folder. (doc/decisions.md)
+ 	static listing(url, fresh){
+@@ -478,13 +241,7 @@ export class Page extends Item {
+ 		return Page.page_listing(url) ?? Page.loaded_listings?.get(url);
+ 	}
+ 
+-	static async log_class(module, url){
+-		const Class = (await import(new URL(module, location.origin + url).href)).default;
+-		if (Class?.prototype instanceof Page) return Class;
+-
+-		console.error(`page.jsonl at ${url} — "class": "${module}" is not a Page subclass; building a ${this.name}.`);
+-		return this;
+-	}
++	static log_class(module, url){ return this.Jsonl.log_class(this, module, url); }
+ 
+ 	naming(){
+ 		this.url   ??= this.meta ? new URL(".", this.meta.url).pathname
+@@ -1078,6 +835,8 @@ Item.register(Page, "Page");
+ Page.Reader = PageLogReader;
+ Page.Listing = PageListing;
+ Page.Prefs = PagePrefs;
++Page.Jsonl = PageJsonl;
++PageJsonl.Page = Page;
+ Page.Related = PageRelated;
+ Page.Previews = PagePreviews;
+ Page.Columns = PageColumns;
+diff --git a/public/framework/core/Page/doc/jsonl.md b/public/framework/core/Page/doc/jsonl.md
+index afe596813..6acdb56ce 100644
+--- a/public/framework/core/Page/doc/jsonl.md
++++ b/public/framework/core/Page/doc/jsonl.md
+@@ -373,3 +373,5 @@ answer disagrees, corrects the cache and calls `nav_redraw()`
+ itself with no reload. `nav_ready()` below is the same answer, awaited, with
+ no flash — used the one place that can afford to await before its first
+ paint (Sidebar.visible_nodes()).
++
++Code: the replay hooks, the three file steps, tab state and the placed-file drawing live in [`Jsonl.js`](/framework/core/Page/Jsonl.js) (`Page.Jsonl`); `Page.class.js` keeps one-line facades.
+diff --git a/public/framework/core/Page/doc/split-plan.md b/public/framework/core/Page/doc/split-plan.md
+index 902f7c1be..2d4e06226 100644
+--- a/public/framework/core/Page/doc/split-plan.md
++++ b/public/framework/core/Page/doc/split-plan.md
+@@ -1,4 +1,4 @@
+-# Page.class.js split plan (steps 1-6 done 2026-10-12: 2270 → 1086 lines; see [STATE 1-4](/framework/ai/2026-10-12/page-split-1/STATE.md), [STATE 5-6](/framework/ai/2026-10-12/page-split-2/STATE.md))
++# Page.class.js split plan (COMPLETE 2026-10-12: 2270 → 849 lines; see [STATE 1-4](/framework/ai/2026-10-12/page-split-1/STATE.md), [STATE 5-6](/framework/ai/2026-10-12/page-split-2/STATE.md), [STATE 7](/framework/ai/2026-10-12/page-split-3/STATE.md))
+ 
+ **Answer to "is 2,000 lines a mistake?"** Half of it is comments. `Page.class.js` is 2,270 lines: **1,027 code, 926 comment (40%), 317 blank**, 150 methods. And ~270 lines are already four helper classes living in the same file. Re-measure any time: `node public/framework/core/Page/doc/split-measure.mjs --callers` (per method: code/comment lines and how many repo files mention the name; generic names like `set`/`get`/`add` over-count, so judge those by hand).
+ 
+@@ -45,10 +45,11 @@ Held by reference, the way `prefs()` already does it: `columns(o){ return new th
+ 4. ✅ **Previews/walls** (150): callers `previews` (212 files mention it, mostly page.js declarations of the word, so keep the `previews()` facade), `wall_rungs` 1. Risk: low-medium.
+ 5. ✅ **Columns** (296): 74 mentions of `columns(` in page.js files; keep `columns()`, `column()`, `column_host` as facades. Biggest comment share (163) so shrinks the file most. Risk: medium, needs the `/imagine/paging` and Finder pages checked at the four widths.
+ 6. ✅ **Links** (200): `open_link`/`swap_link` called from card.js, markdown open pages. Risk: medium (click routing, reload on deep link).
+-7. ⬜ **Jsonl** (470): the core path of every page, replay order matters, `set()` calls it. Do last; risk: high; run `check_page` on a sample of pages and the page tool (`page-tool-2026-10-09.md`).
++7. ✅ **Jsonl** (470): the core path of every page, replay order matters, `set()` calls it. Do last; risk: high; run `check_page` on a sample of pages and the page tool (`page-tool-2026-10-09.md`).
+ 
+ ## Do not move
+ 
+ `set`/`get`/`add`/`child`/`render`/`activate`: hundreds of callers and they ARE the Page. Leave them.
+ 
+ Steps 1-6 executed 2026-10-12, one commit each; 7 (jsonl) is a later task. Step 5: `Columns.js` (`PageColumns`) holds the layout; `columns()`, `column()`, `column_host` stay as facades. Step 6: `Links.js` (`PageLinks`) holds `open_link`/`swap_link` and the md helpers; `child_md`, `md_folder`, `fs_folder`, `md_dir` stay on Page. Step 2 deviation: the 5 listing statics stay on Page (they use `Page.*` state). Step 4: `preview*` stay as facades because pages override them.
++Step 7: `Jsonl.js` (`PageJsonl`, held as `Page.Jsonl`) holds the loader (`Page.jsonl()` is a facade over `Jsonl.load`), the three file steps, tab state, the word delta, nav visibility and the placed-file drawing. The state (`listed`, `placed`, `child_kinds`, `tabs_state`) stays on the page and every call back goes through `this.page.*`, so a page that overrides `file`, `tab` or `place` still wins. The listing statics (`Page.listing`, `loaded_listing`, `log_pages`) stay on Page, as in step 2. `Page.Jsonl.Page` is set by `Page.class.js` because importing `Page` from `Jsonl.js` would be a cycle. Proof and measure: [page-split-3/STATE.md](/framework/ai/2026-10-12/page-split-3/STATE.md). The split is complete.
