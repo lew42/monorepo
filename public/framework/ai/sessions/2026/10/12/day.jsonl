@@ -4,3 +4,4 @@
 {"log":{"at":"2026-10-12T15:32:00-05:00","task":"task-folders","msg":"landed — every ai/<date>/ task folder moved into ai/sessions/YYYY/MM/DD/<session>/<task>/; old URLs redirect"}}
 {"log":{"at":"2026-10-12T15:41:19-05:00","task":"page-templates","msg":"landed — Template + Property binding + binding.md merged"}}
 {"log":{"at":"2026-10-12T15:49:05-05:00","task":"data-grid","msg":"landed — Sessions buckets: routine sessions fold into 5 rows; grid rows 5,810 -> 347, redraw 36-39 -> 25-29 ms"}}
+{"log":{"at":"2026-10-12T16:29:56-05:00","task":"ui-library","msg":"landed — /framework/library/: six collections, three columns, wall view, padding contract"}}
