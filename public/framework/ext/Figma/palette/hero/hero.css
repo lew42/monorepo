@@ -1,288 +1,37 @@
 @layer base, theme, site, util;
 
 @layer theme {
-	.hro-card {
-		background: #fff;
-		border-radius: 16px;
-		padding: 56px 48px;
-		display: flex;
-		flex-direction: column;
-		gap: 32px;
-		grid-column: 1 / -1;
-		max-width: none;
-		box-sizing: border-box;
-	}
+	/* `width: "full"` needs the page's own box to span the grid; the look is `.card`. */
+	.hro-page { grid-column: 1 / -1; max-width: none; box-sizing: border-box; }
 
-	.hro-header {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 8px;
-	}
+	.hro-header { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 
-	.hro-title {
-		font-family: Montserrat, sans-serif;
-		font-weight: 900;
-		font-size: 48px;
-		line-height: 1.4;
-		margin: 0;
-	}
+	/* An accent label — except on the prime ground itself, see features.css's own note. */
+	.hro-accent { color: var(--prime); }
+	.card.bg-prime .hro-accent { color: inherit; }
 
-	.hro-tagline {
-		font-size: 16px;
-		font-weight: 500;
-		line-height: 1.8;
-		margin: 0;
-		text-align: center;
-	}
+	.hro-dot, .hro-swatch-bar { background: var(--prime); }
+	.card.bg-prime .hro-dot, .card.bg-prime .hro-swatch-bar { background: #fff; }
+	.hro-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+	.hro-swatch-bar { width: 100%; height: 3px; border-radius: 2px; }
 
-	.hro-label {
-		font-size: 14px;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.07em;
-		line-height: 1.4;
-		margin: 0;
-	}
+	/* Three device-frame mockups: fixed poster width, but never wider than the
+	   viewport, so they shrink from 3440 down to 400 with no media query. */
+	.hro-block, .hro-split-hero { width: min(1000px, 100%); border-radius: 0 0 12px 12px; overflow: hidden; margin: 0 auto; box-sizing: border-box; }
+	.hro-settings-block { width: min(820px, 100%); border-radius: 12px; overflow: hidden; margin: 0 auto; box-sizing: border-box; display: flex; align-items: start; }
 
-	.hro-body {
-		font-size: 16px;
-		font-weight: 500;
-		line-height: 1.8;
-		margin: 0;
-	}
+	.hro-nav-bar { border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: var(--pad); }
+	.hro-hero-section { padding: calc(var(--pad) * 2); display: flex; flex-direction: column; gap: var(--gap); align-items: flex-start; }
+	.hro-stat-card { width: 140px; }
+	.hro-footer-bar { display: flex; justify-content: space-between; align-items: center; padding: var(--pad); }
 
-	/* Block A: Nav + Hero + Footer */
-	.hro-block {
-		width: 1000px;
-		border-radius: 0 0 12px 12px;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-		margin: 0 auto;
-		flex-shrink: 0;
-	}
+	.hro-split-hero { display: flex; align-items: stretch; }
+	.hro-split-left, .hro-split-right { flex: 1 1 0; min-width: 0; padding: calc(var(--pad) * 2); display: flex; flex-direction: column; gap: var(--gap); justify-content: center; align-items: flex-start; }
+	.hro-ghost-button { color: #fff; }
 
-	.hro-nav-bar {
-		background: #fff;
-		border-bottom: 1px solid rgba(0,0,0,.1);
-		padding: 14px 28px;
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.hro-nav-links {
-		display: flex;
-		flex-direction: row;
-		gap: 24px;
-		align-items: center;
-	}
-
-	.hro-hero-section {
-		background: #fff;
-		padding: 40px 48px;
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-		align-items: flex-start;
-	}
-
-	.hro-hero-title {
-		font-family: Montserrat, sans-serif;
-		font-weight: 900;
-		font-size: 48px;
-		line-height: 1.4;
-		margin: 0;
-	}
-
-	.hro-stats-row {
-		display: flex;
-		flex-direction: row;
-		gap: 16px;
-		align-self: flex-start;
-	}
-
-	.hro-stat-card {
-		width: 140px;
-		padding: 16px;
-		border-radius: 8px;
-		background: linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff;
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		box-sizing: border-box;
-	}
-
-	.hro-stat-number {
-		font-family: Montserrat, sans-serif;
-		font-weight: 900;
-		font-size: 48px;
-		line-height: 1.4;
-		margin: 0;
-	}
-
-	.hro-footer-bar {
-		background: #675f56;
-		padding: 16px 28px;
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	/* Block B: Split Hero */
-	.hro-split-hero {
-		width: 1000px;
-		height: 360px;
-		border-radius: 0;
-		overflow: hidden;
-		display: flex;
-		flex-direction: row;
-		align-items: stretch;
-		margin: 0 auto;
-		flex-shrink: 0;
-	}
-
-	.hro-split-left,
-	.hro-split-right {
-		flex: 1 1 0;
-		min-width: 0;
-		padding: 36px 32px;
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-		justify-content: center;
-		align-items: flex-start;
-	}
-
-	.hro-split-title {
-		font-family: Montserrat, sans-serif;
-		font-weight: 700;
-		font-size: 36px;
-		line-height: 1.5;
-		margin: 0;
-	}
-
-	.hro-buttons-row {
-		display: flex;
-		flex-direction: row;
-		gap: 16px;
-		width: 100%;
-	}
-
-	.hro-button-primary,
-	.hro-button-secondary {
-		padding: 16px 26px;
-		border-radius: 4px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		align-self: flex-start;
-		width: fit-content;
-	}
-
-	.hro-split-row {
-		display: flex;
-		flex-direction: row;
-		gap: 16px;
-		align-items: center;
-		width: 100%;
-		padding: 16px 26px;
-		border-radius: 4px;
-		background: linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff;
-		box-sizing: border-box;
-	}
-
-	.hro-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 12px;
-		flex-shrink: 0;
-	}
-
-	/* Block C: Settings Layout */
-	.hro-settings-block {
-		width: 820px;
-		border-radius: 12px;
-		overflow: hidden;
-		display: flex;
-		flex-direction: row;
-		align-items: start;
-		margin: 0 auto;
-		flex-shrink: 0;
-	}
-
-	.hro-settings-sidebar {
-		width: 220px;
-		background: #fff;
-		border-right: 1px solid rgba(0,0,0,.1);
-		padding: 24px 20px;
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		align-items: flex-start;
-		box-sizing: border-box;
-	}
-
-	.hro-settings-spacer {
-		width: 180px;
-		height: 12px;
-	}
-
-	.hro-nav-item {
-		width: 180px;
-		padding: 8px 12px;
-		border-radius: 6px;
-		box-sizing: border-box;
-	}
-
-	.hro-nav-active {
-		background: linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff;
-	}
-
-	.hro-settings-content {
-		width: 600px;
-		background: #fff;
-		padding: 24px 32px;
-		display: flex;
-		flex-direction: column;
-		gap: 20px;
-		align-items: flex-start;
-		box-sizing: border-box;
-	}
-
-	.hro-settings-title {
-		font-family: Montserrat, sans-serif;
-		font-size: 24px;
-		font-weight: 600;
-		line-height: 1.4;
-		margin: 0;
-	}
-
-	.hro-swatches-row {
-		display: flex;
-		flex-direction: row;
-		gap: 12px;
-		align-self: flex-start;
-		width: fit-content;
-	}
-
-	.hro-swatch {
-		width: 120px;
-		padding: 12px;
-		border-radius: 8px;
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		align-items: flex-start;
-		box-sizing: border-box;
-	}
-
-	.hro-swatch-bar {
-		width: 96px;
-		height: 3px;
-		border-radius: 2px;
-	}
+	.hro-settings-sidebar { width: 220px; flex-shrink: 0; padding: var(--pad); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; box-sizing: border-box; }
+	.hro-settings-spacer { height: 12px; }
+	.hro-nav-item { width: 100%; padding: 8px 12px; box-sizing: border-box; }
+	.hro-settings-content { flex: 1; padding: var(--pad); display: flex; flex-direction: column; gap: var(--gap); align-items: flex-start; box-sizing: border-box; }
+	.hro-swatch { width: 120px; }
 }
