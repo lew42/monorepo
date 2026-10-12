@@ -10,7 +10,7 @@ A browser only ever hands a page the microphone on a **secure context**. That me
 either a real `https://` address, or one of a short, fixed list of addresses every
 browser treats as secure even over plain `http://`: `localhost`, `127.0.0.1`, and any
 name ending in `.localhost`. A phone opening this site by its LAN address — something
-like `http://10.0.0.135:8137` — is on NONE of those, so the browser makes
+like `http://10.0.0.135:3104` — is on NONE of those, so the browser makes
 `navigator.mediaDevices` simply not exist, silently. That is exactly what caused the
 owner's bug: the "listening" sound played, but nothing was really listening, and no
 error explained why (traced and fixed in `ai/2026-09-29/mobile-nav/` — see this
@@ -83,7 +83,7 @@ Chrome has a flag that tells it "treat this one address as secure even over plai
 http" — perfect for a quick test, with no certificate and nothing to install:
 
 1. On the PHONE, open `chrome://flags/#unsafely-treat-insecure-origin-as-secure`.
-2. Type the exact address, including the port, e.g. `http://10.0.0.135:8137`
+2. Type the exact address, including the port, e.g. `http://10.0.0.135:3104`
    (comma-separate more than one if several ports are used).
 3. Set the flag to **Enabled**, then tap **Relaunch** at the bottom of the screen.
 
