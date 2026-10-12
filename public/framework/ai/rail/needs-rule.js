@@ -222,6 +222,7 @@ export const IMPORTANCE = {
 	DECIDED: 30,
 	FYI: 10,
 	DEFAULT: 10,
+	OWNER_NOTE: 100,          // `owner_note`: unread, pinned first, no decay (Servex/cards owner_note)
 	FRESH_FLOOR: 90, FRESH_MAX: 99, FRESH_HOURS: 24,   // "may show briefly… drops below 90 after about a day"
 	PROMPT_FRESH_HOURS: 1,    // item C: a raw "You said…" row is "current" for about an hour, not a day
 };
@@ -300,6 +301,9 @@ function fresh_bonus(at, now, window = IMPORTANCE.FRESH_HOURS){
 
 export function importance(item, now = Date.now()){
 	const kind = item?.kind;
+	// OWNER NOTE (2026-10-12): an agent told the owner something via `owner_note`. Top of the Inbox,
+	// never decaying, until the owner opens it (a shared `reviewed` line) or archives it.
+	if (kind === "owner_note") return item?.reviewed ? Math.max(IMPORTANCE.FYI, fresh_bonus(item?.at, now)) : IMPORTANCE.OWNER_NOTE;
 	// A blocker never decays — 100 when a live agent is also waiting on it, else 97.
 	if (kind === "blocker" || blocker_signal(item)) return item?.from_live ? IMPORTANCE.BLOCKER_MAX : IMPORTANCE.BLOCKER_BASE;
 	// item B: a stalled ask is never lifted by freshness — the owner has nothing to do about
@@ -339,6 +343,7 @@ export function reason_of(top, item, now = Date.now()){
 		if (top.ask === "last") return "last message ends in \"?\"";
 	}
 	if (item?.kind === "stalled") return "owner agent gone quiet";
+	if (item?.kind === "owner_note") return item.reviewed ? "owner note, read" : "an agent left you a note";
 	const hours = (now - Date.parse(item?.at ?? 0)) / 3600000;
 	if (Number.isFinite(hours) && hours < 24) return "recently active";
 	return "routine, resting score";

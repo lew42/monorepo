@@ -21,6 +21,7 @@ import { card_needs } from "../../public/framework/ai/rail/needs-rule.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../public/framework/ai");
 const CLASS = "/framework/ai/cards/card.js";
+export const OWNER_NOTE_KINDS = ["decision", "risk", "needs-you"];
 const OWNER = "owner";            // what ai2/compose.js and ux/Dictate stamp as `by` on the owner's words
 const SLUG = /^[a-z0-9][a-z0-9-]*$/;
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -159,6 +160,25 @@ export default class Cards {
 			this.emit(id, head, { created: true });
 			return { ok: true, id, url: this.url(id), path: this.file(id) };
 		} catch (e){ return { ok: false, why: String(e.message || e) }; }
+	}
+
+	/* ---------- owner_note: the ONE way to tell the owner something ---------- */
+
+	/* THE OWNER INBOX (2026-10-12): the owner does not read chat, and an agent never waits on it. Anything
+	 * they should see (a decision made for them, a risk, something only they can do) is ONE card with an
+	 * `owner_note` line. The AI Inbox scores it 100 and sorts it first until the owner opens or archives
+	 * it (needs-rule.js `importance()`, inbox.js `inbox_order`). No second inbox. */
+	async owner_note({ title, text, kind = "decision", links = [], by = "agent" } = {}){
+		if (!OWNER_NOTE_KINDS.includes(kind)) return { ok: false, why: `kind is one of ${OWNER_NOTE_KINDS.join(", ")}` };
+		if (!text || !String(text).trim()) return { ok: false, why: "say it in `text`: a sentence or two" };
+		const body = String(text).trim();
+		const out = await this.create({ parent: "today", title: title || body.slice(0, 80), type: "note", by, tags: ["owner-note", kind] });
+		if (!out.ok) return out;
+		const at = stamp();
+		const clean = [].concat(links ?? []).filter(l => typeof l === "string" ? l : l?.url);
+		await this.append(out.id, { owner_note: { kind, text: body, links: clean, by, at } });
+		await this.append(out.id, { message: { by, kind: "note", text: body, at } });
+		return out;
 	}
 
 	/* ---------- ask → card, the iceberg tip (card-pipeline, 2026-10-02) ---------- */
@@ -456,8 +476,9 @@ export default class Cards {
 		const json = express.json({ limit: "1mb" });
 		const reply = (res, out, bad = 400) => res.status(out && out.ok !== false ? 200 : bad).json(out ?? { ok: false, why: "not found" });
 
-		for (const p of ["/cards", "/card", "/card/create", "/card/append", "/waiting"]) router.options(p, cors, (req, res) => res.status(204).end());
+		for (const p of ["/cards", "/card", "/card/create", "/card/append", "/owner_note", "/waiting"]) router.options(p, cors, (req, res) => res.status(204).end());
 		router.get("/cards", cors, async (req, res) => res.json(await this.list({ view: req.query.view || "today", tag: req.query.tag || undefined })));
+		router.post("/owner_note", cors, json, async (req, res) => reply(res, await this.owner_note(req.body ?? {})));
 		router.get("/waiting", cors, async (req, res) => res.json(await this.waiting()));
 		router.get("/card", cors, async (req, res) => reply(res, await this.fold(String(req.query.id ?? "")), 404));
 		router.post("/card/create", cors, json, async (req, res) => reply(res, await this.create(req.body ?? {})));
@@ -512,6 +533,18 @@ export default class Cards {
 					}
 					return say(out);
 				}),
+
+			this.tool("owner_note",
+				"THE ONE WAY to tell the owner something. They do not read chat and you never wait on an answer: a decision you made on their behalf, a risk, or something only they can do goes HERE, as a card pinned at the top of the AI Inbox until they open or archive it. Post it, then keep going. Returns `{ok, id, url}`.",
+				{
+					title: { type: "string", description: "What happened and why it matters, in plain words (the row's title)." },
+					text: { type: "string", description: "One or two plain sentences: what you decided or found, and the alternative if you chose for them." },
+					kind: { type: "string", enum: OWNER_NOTE_KINDS, description: "`decision` (you chose for them), `risk` (something may go wrong), `needs-you` (only they can do it). Default decision." },
+					links: { type: "array", items: { type: "string" }, description: "Page or file urls, e.g. `/framework/ai/2026-10-12/my-task/`." },
+					by: { type: "string", description: "Your own agent id." }
+				},
+				["text"],
+				async a => say(await this.owner_note(a ?? {}))),
 
 			this.tool("read_card",
 				"A card's whole log, oldest line first — read it when you start work on a card, so you know everything said on it.",
