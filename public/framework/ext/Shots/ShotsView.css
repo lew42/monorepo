@@ -8,6 +8,18 @@
 	.shots-view { --flow: 0.8em; }
 	.shots-empty { padding: 1em 0; }
 
+	/* Stacked by default (narrow); ≥1200px puts the tree left and the
+	   selected round's detail right, so the detail never falls below the
+	   fold (first live look, build-c). */
+	.shots-layout { --gap: 1.2em; flex-direction: column; align-items: stretch; }
+	.shots-tree-col { flex: 1 1 auto; }
+	.shots-detail-col { flex: 1 1 auto; }
+	@media (min-width: 1200px) {
+		.shots-layout { flex-direction: row; align-items: flex-start; }
+		.shots-tree-col { flex: 1 1 20em; min-width: 18em; max-width: 26em; }
+		.shots-detail-col { flex: 2 1 32em; min-width: 0; }
+	}
+
 	.shots-tree { --flow: 0.4em; }
 	.shots-round { --flow: 0.4em; }
 	/* One indent per generation — a variant branch reads as a child, not a
@@ -35,7 +47,13 @@
 	.shots-pane { flex: 1 1 18em; min-width: 14em; }
 	.shots-pane-img { display: block; width: 100%; border: 1px solid var(--line); border-radius: var(--radius); }
 
+	/* A missing picture (gitignored — another machine has the log but not
+	   the png) reads as a small labelled box, never a broken image icon. */
+	.shots-missing { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 4em; border: 1px dashed var(--line); border-radius: var(--radius); text-align: center; padding: 0.5em; }
+	.shots-thumb-img.shots-missing { width: 8em; height: 6em; min-height: 0; font-size: 0.7em; }
+
 	.shots-diff-pct { font-weight: 600; }
+	.shots-diff-moved { font-size: 0.9em; }
 	.shots-judges { --flow: 0.2em; }
 	.shots-judge-line { font-size: 0.9em; }
 

@@ -58,6 +58,56 @@ export class PNG {
 		return { width, height, data: channels === 4 ? data : rgbToRgba(data, width, height) };
 	}
 
+	/** PNG.trim(image, {tolerance}) → {width, height, data, x, y} — strips uniform margins of the
+	 * image's own corner colour from every edge (build-c, figma mode: a Figma frame and a browser
+	 * screenshot both carry flat background around the real content, at different sizes, and a
+	 * diff over that margin is noise). Only full rows/columns that are entirely within `tolerance`
+	 * of the top-left pixel's colour are stripped — an inner row of the same colour (a plain
+	 * section of the page) survives, because trimming walks in from the edges only. `x`/`y` are
+	 * the crop's own offset into the source image, for a caller that wants to say where it fell. */
+	static trim(image, { tolerance = 8 } = {}){
+		const { width, height, data } = image;
+		const bg = [data[0], data[1], data[2]];
+		const close = (x, y) => {
+			const i = (y * width + x) * 4;
+			return Math.abs(data[i] - bg[0]) <= tolerance && Math.abs(data[i + 1] - bg[1]) <= tolerance && Math.abs(data[i + 2] - bg[2]) <= tolerance;
+		};
+		const rowIsBg = y => { for (let x = 0; x < width; x++) if (!close(x, y)) return false; return true; };
+		let top = 0, bottom = height - 1;
+		while (top < bottom && rowIsBg(top)) top++;
+		while (bottom > top && rowIsBg(bottom)) bottom--;
+		const colIsBg = x => { for (let y = top; y <= bottom; y++) if (!close(x, y)) return false; return true; };
+		let left = 0, right = width - 1;
+		while (left < right && colIsBg(left)) left++;
+		while (right > left && colIsBg(right)) right--;
+
+		const w = right - left + 1, h = bottom - top + 1;
+		const out = new Uint8Array(w * h * 4);
+		for (let y = 0; y < h; y++){
+			const si = ((top + y) * width + left) * 4;
+			out.set(data.subarray(si, si + w * 4), y * w * 4);
+		}
+		return { width: w, height: h, data: out, x: left, y: top };
+	}
+
+	/** PNG.scale(image, targetWidth, targetHeight) → {width, height, data} — nearest-neighbour
+	 * resample (no npm dependency; a box filter would look smoother but Diff compares in 16px
+	 * cells anyway, so nearest-neighbour costs nothing it will notice). Used to bring a Figma
+	 * frame's own picture to the built page's width before comparing them (build-c). */
+	static scale(image, targetWidth, targetHeight){
+		const { width, height, data } = image;
+		const out = new Uint8Array(targetWidth * targetHeight * 4);
+		for (let y = 0; y < targetHeight; y++){
+			const sy = Math.min(height - 1, Math.floor((y * height) / targetHeight));
+			for (let x = 0; x < targetWidth; x++){
+				const sx = Math.min(width - 1, Math.floor((x * width) / targetWidth));
+				const si = (sy * width + sx) * 4, di = (y * targetWidth + x) * 4;
+				out[di] = data[si]; out[di + 1] = data[si + 1]; out[di + 2] = data[si + 2]; out[di + 3] = data[si + 3];
+			}
+		}
+		return { width: targetWidth, height: targetHeight, data: out };
+	}
+
 	/** PNG.encode({width, height, data}) → Buffer. `data` is RGBA, same layout as decode()
 	 * returns. Always writes colour type 6, filter 0 (no per-row filtering — Diff's overlay
 	 * gains nothing from the extra CPU a real filter choice would cost). */

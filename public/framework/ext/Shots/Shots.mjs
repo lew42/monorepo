@@ -143,6 +143,87 @@ export class Shots {
 		return { run, diffs };
 	}
 
+	/** Shots.resolveFigmaRef(ref) → {key, node, pngPath} — `ref` is either a direct png path, or
+	 * "<fileKey>:<nodeId>" (the node id itself may contain its own ":", e.g. "131:1062", so only
+	 * the FIRST colon splits key from node). The png path for the id form follows `ext/Figma/
+	 * track.mjs`'s own naming: `ext/Figma/data/<key>/shots/<node, ":" → "-">.png`. */
+	static resolveFigmaRef(ref){
+		if (/\.png$/i.test(ref)) return { key: null, node: null, pngPath: path.resolve(ROOT, ref) };
+		const i = ref.indexOf(":");
+		if (i < 0) throw new Error(`Shots.figma: expected "<png path>" or "<fileKey>:<nodeId>", got "${ref}"`);
+		const key = ref.slice(0, i), node = ref.slice(i + 1);
+		const slug = node.replace(/[:;]/g, "-");
+		const pngPath = path.join(ROOT, "public/framework/ext/Figma/data", key, "shots", `${slug}.png`);
+		return { key, node, pngPath };
+	}
+
+	/** Shots.figma(figmaRef, url, opts) → one round comparing a Figma frame's own screenshot
+	 * against the built page at the same width (figma-browser-loop.md "What is missing").
+	 * The Figma picture must already sit at the resolved path — `Shots.mjs` is a plain node
+	 * script and cannot call the Figma MCP itself; an agent session fetches it first with
+	 * `mcp__figma__get_screenshot` and saves it the way `ext/Figma/track.mjs` does (see
+	 * doc/architecture.md). Both pictures are cropped to their content (PNG.trim), the Figma one
+	 * then scaled to the page's own width (PNG.scale) when they differ, and diffed exactly as a
+	 * normal round. There is no earlier `run` line to point `parent` at, so the round's `vs` is
+	 * the pseudo id `figma-<key>-<node>` and the Figma picture is copied into the round's own
+	 * folder as `figma.png` — a reader never has to resolve a parent round that doesn't exist. */
+	static async figma(figmaRef, url, opts = {}){
+		const { key, node, pngPath } = Shots.resolveFigmaRef(figmaRef);
+		if (!fs.existsSync(pngPath))
+			throw new Error(`Shots.figma: no local png at ${repo_rel(pngPath)} — fetch it with the Figma MCP's get_screenshot (key ${key}, node ${node}) and save the image there first, the way ext/Figma/track.mjs does (doc/architecture.md)`);
+
+		const figmaRaw = PNG.decode(fs.readFileSync(pngPath));
+		const width = opts.width || figmaRaw.width;
+
+		const base = opts.base || DEFAULT_BASE;
+		const full = new URL(url, base).toString();
+		const screenshotsRoot = Shots.dir(url);
+		const id = round_id();
+		const roundDir = path.join(screenshotsRoot, id);
+		fs.mkdirSync(roundDir, { recursive: true });
+
+		const b = await launch();
+		const context = await b.newContext();
+		const page = await context.newPage();
+		await page.goto(full, { waitUntil: "load", timeout: 20000 });
+		await page.setViewportSize({ width, height: 1080 });
+		await settle(page);
+		const pageRaw = await full_picture(page);
+		await context.close();
+
+		const figmaCropped = PNG.trim(figmaRaw);
+		const pageCropped = PNG.trim(pageRaw);
+		const figmaScaled = figmaCropped.width === pageCropped.width ? figmaCropped
+			: PNG.scale(figmaCropped, pageCropped.width, Math.round((figmaCropped.height * pageCropped.width) / figmaCropped.width));
+
+		fs.writeFileSync(path.join(roundDir, "figma.png"), PNG.encode(figmaScaled));
+		const file = `${width}.png`;
+		fs.writeFileSync(path.join(roundDir, file), PNG.encode(pageCropped));
+
+		const result = Diff.compare(figmaScaled, pageCropped);
+		const overlay = `diff-${width}.png`;
+		fs.writeFileSync(path.join(roundDir, overlay), PNG.encode(result.overlay));
+
+		const vsId = `figma-${key ?? "png"}-${node ?? path.basename(pngPath, ".png")}`;
+		const run = {
+			id, url: as_url(url), dir: repo_rel(roundDir), widths: [width], parent: null,
+			note: opts.note ?? null, css: null, task: opts.task ?? null, by: opts.by ?? null,
+			at: now_iso(), shots: { [width]: { file, height: pageCropped.height, cut: false } },
+			kind: "figma", figma: { key, node, file: "figma.png" },
+		};
+		append_line({ run });
+
+		const diff = {
+			id, vs: vsId, width, changed: result.changed,
+			regions: result.regions, regionsMore: result.regionsMore,
+			moved: result.moved, movedMore: result.movedMore,
+			overlay, height: result.height,
+		};
+		append_line({ diff });
+
+		return { run, diffs: [diff] };
+	}
+
 	/** Shots.judge(id, verdict, why, by) → appends a `judge` line. `vs` is read back off the
 	 * round's own `run` line (its `parent`) so a caller never has to look it up by hand. */
 	static judge(id, verdict, why, by){

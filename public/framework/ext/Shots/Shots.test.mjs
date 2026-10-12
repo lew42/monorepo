@@ -97,6 +97,27 @@ function check(name, ok){ results.push([name, ok]); console.log(`${ok ? "PASS" :
 	check("Diff: finds the recoloured block as a changed region", foundChanged);
 }
 
+// ---- PNG.trim + PNG.scale: a known content rectangle inside a flat background ------------
+{
+	const width = 120, height = 80;
+	const data = new Uint8Array(width * height * 4);
+	for (let i = 0; i < data.length; i += 4){ data[i] = 240; data[i + 1] = 240; data[i + 2] = 240; data[i + 3] = 255; }
+	const CONTENT = { x: 20, y: 10, w: 60, h: 40 };
+	for (let y = CONTENT.y; y < CONTENT.y + CONTENT.h; y++){
+		for (let x = CONTENT.x; x < CONTENT.x + CONTENT.w; x++){
+			const i = (y * width + x) * 4;
+			data[i] = 10; data[i + 1] = 100; data[i + 2] = 200;
+		}
+	}
+	const trimmed = PNG.trim({ width, height, data });
+	check("PNG.trim: crops to the content rectangle", trimmed.width === CONTENT.w && trimmed.height === CONTENT.h && trimmed.x === CONTENT.x && trimmed.y === CONTENT.y);
+	check("PNG.trim: cropped pixels are the content colour", trimmed.data[0] === 10 && trimmed.data[1] === 100 && trimmed.data[2] === 200);
+
+	const scaled = PNG.scale(trimmed, 120, 80);
+	check("PNG.scale: reports the requested size", scaled.width === 120 && scaled.height === 80);
+	check("PNG.scale: a pixel near the middle keeps the content colour", scaled.data[((40 * 120 + 60) * 4)] === 10);
+}
+
 const failed = results.filter(([, ok]) => !ok);
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
 process.exit(failed.length ? 1 : 0);
