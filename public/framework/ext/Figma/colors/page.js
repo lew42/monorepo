@@ -39,6 +39,7 @@ function card(cls, label, depth){
 export default new Page({
 	meta: import.meta,
 	title: "Color Schemes",
+	width: "full",
 	description: "Figma's nested cards rebuilt in the real system: `.card` steps one notch darker inside itself, and the contrast number is read off the rendered pixels, not guessed.",
 	icon: "palette",
 	content(){

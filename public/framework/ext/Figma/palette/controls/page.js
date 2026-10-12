@@ -16,9 +16,9 @@ export default new Page({
 			});
 
 			// Row 1: Form White | Toggles/Chips/Badges (Prime bg) | Form Dark
-			div.c("flex wrap gap", () => {
+			div.c("grid gap auto", () => {
 				// Column 1: Form White
-				div.c("card flex-1", () => {
+				div.c("card", () => {
 					h4.c("ctl-column-title", "Form · White");
 
 					[
@@ -43,7 +43,7 @@ export default new Page({
 				});
 
 				// Column 2: Toggles/Chips/Badges on Prime
-				div.c("card bg-prime flex-1", () => {
+				div.c("card bg-prime", () => {
 					h4.c("muted", "TOGGLES");
 					div.c("flex v gap", () => {
 						[
@@ -82,7 +82,7 @@ export default new Page({
 				});
 
 				// Column 3: Form Dark
-				div.c("card bg-dark flex-1", () => {
+				div.c("card bg-dark", () => {
 					h4.c("ctl-column-title", "Form · Dark");
 
 					[
@@ -108,13 +108,13 @@ export default new Page({
 			});
 
 			// Row 2: Progress bars on White | Dark | Prime
-			div.c("flex wrap gap", () => {
+			div.c("grid gap auto", () => {
 				[
 					{ ground: "", title: "Progress · White" },
 					{ ground: "bg-dark", title: "Progress · Dark" },
 					{ ground: "bg-prime", title: "Progress · Prime" },
 				].forEach(col => {
-					div.c(("card flex-1 " + col.ground).trim(), () => {
+					div.c(("card " + col.ground).trim(), () => {
 						h4.c("ctl-column-title", col.title);
 
 						[
