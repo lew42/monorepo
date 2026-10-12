@@ -14,6 +14,7 @@ import Annotator from "./Annotator.js";
 import Outline from "../../../public/framework/ext/Refine/Outline.js";
 import TagRouter from "./TagRouter.js";
 import VoicePage from "./VoicePage.js";
+import LiveClean from "./LiveClean.js";
 import PromptLog from "../../../public/framework/ai/AISession/PromptLog.js";
 
 const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models that do the job: doc/refine-v3-2026-10-09.md
@@ -22,7 +23,7 @@ const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models tha
  * (ai/AISession/PromptLog.js): raw first and untouched, then the clean sentences set as final, then
  * the refined cards citing sentence indexes, then the Haiku notes (clarity, alternates, names, tags).
  * Logging never fails the refine: a refusal comes back as `log_error`. */
-export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5", session = "", prompt = "", source = "typed", inbox = null } = {}){
+export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5", session = "", prompt = "", source = "typed", inbox = null, clean_live = false } = {}){
 	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
 	if (text.length > 20000) return { ok: false, why: "text is over 20000 characters" };
 	let voice = null;   // outside the try so the catch can mark a generated prompt id as failed too
@@ -40,14 +41,18 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
 		await log({ stage: "raw", text, source });
 		const [result, runs] = await RefineCall.collect(async () => {
 			const call = stage => (p, o) => RefineCall.run(p, { ...o, stage });
+			const spent = stage => +(RefineCall.sink ?? []).filter(r => r.stage === stage).reduce((a, r) => a + r.cost_usd, 0).toFixed(5);   // measured, from the calls so far
 			const t_clean = Date.now();
-			const c = await clean(text, { call: call("clean"), model });
+			// clean_live (opt-in): one small Haiku call per sentence, each landing on the page as it returns; costs more than one call (LiveClean.js).
+			const c = clean_live
+				? await LiveClean.run(text, { call: call("clean"), model: clarity_model, on_sentence: (sentences, done, total) => page(v => v.clean(sentences, { final: false, cost: spent("clean") })) })
+				: await clean(text, { call: call("clean"), model });
 			stages.clean_ms = Date.now() - t_clean;
 			await log({ stage: "clean", sentences: c.sentences.map(x => x.text), final: true });
-			await page(v => v.clean(c.sentences.map(x => x.text), { ms: stages.clean_ms }));
+			await page(v => v.clean(c.sentences.map(x => x.text), { ms: stages.clean_ms, cost: spent("clean") }));
 			const t_next = Date.now();
 			const [s, clar, notes] = await Promise.all([
-				structure(c.sentences, { call: call("structure"), model }).then(async r => (stages.structure_ms = Date.now() - t_next, await page(v => v.structured(r?.md ?? "", { ms: stages.structure_ms })), r)),
+				structure(c.sentences, { call: call("structure"), model }).then(async r => (stages.structure_ms = Date.now() - t_next, await page(v => v.structured(r?.md ?? "", { ms: stages.structure_ms, cost: spent("structure") })), r)),
 				ClarityScorer.score(c.sentences, { model: clarity_model }).then(r => (stages.clarity_ms = Date.now() - t_next, r)),
 				id ? Annotator.annotate(c.sentences.map(x => x.text)).then(r => (stages.notes_ms = Date.now() - t_next, r)) : [],
 			]);
@@ -67,7 +72,7 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
 			return { c, s, clar, notes };
 		});
 		return {
-			ok: true, ms: Date.now() - t0, stages, ...(id ? { prompt: id, session, log_errors, tag_notes } : {}), clean: result.c, structure: result.s, clarity: result.clar, ...(id ? { notes: result.notes } : {}),
+			ok: true, ms: Date.now() - t0, stages, ...(id ? { prompt: id, session, log_errors, tag_notes } : {}), clean: result.c, ...(result.c.live ? { clean_live: result.c.live } : {}), structure: result.s, clarity: result.clar, ...(id ? { notes: result.notes } : {}),
 			runs: runs.map(r => ({ stage: r.stage, model: r.model, session_id: r.session_id, cost_usd: r.cost_usd, duration_ms: r.duration_ms, tokens: r.tokens })),
 		};
 	} catch (e){

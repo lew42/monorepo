@@ -27,6 +27,8 @@ export default class VoiceStage {
 	get live(){ return false; }
 	/** Milliseconds this stage took (from the server's timing), or null. */
 	get ms(){ return this.data.ms?.[this.constructor.key] ?? null; }
+	/** Dollars the model spent on this stage (from the server's measured cost), or null. */
+	get cost(){ return this.data.cost?.[this.constructor.key] ?? null; }
 }
 
 VoiceStage.View = class VoiceStageView extends View {
@@ -45,7 +47,7 @@ VoiceStage.View = class VoiceStageView extends View {
 	draw(){
 		const stage = this.stage;
 		this.el.hidden = !stage.ready;
-		this.$tag.text(stage.live ? "live" : stage.ms != null ? (stage.ms / 1000).toFixed(1) + " s" : "");
+		this.$tag.text(stage.live ? "live" : stage.ms != null ? (stage.ms / 1000).toFixed(1) + " s" + (stage.cost ? " · $" + stage.cost.toFixed(4) : "") : "");
 		this.$body.empty(() => { if (stage.ready) this.body(); });   // a stage with nothing yet draws nothing (its body reads fields that are not there)
 	}
 

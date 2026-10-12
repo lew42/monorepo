@@ -6,21 +6,13 @@ Walk through it yourself: [try-it.md](try-it.md).
 
 ## Open
 
-- **vscode-voice-path** (6x, 2026-09-29 to 2026-10-09): The VS Code app path (Echo) should feed the same five-stage flow as the Refine page: one dictation system, one widget.
-  - Now: Only the Refine page streams to `/api/voice`; the VS Code path is not wired ([voice-to-page.md](/framework/ext/Refine/stages/doc/voice-to-page.md), "Open"). `VoiceStrip` is already shared by Refine and the demo.
-  - Next: Wire Echo's output to `VoicePage`; Echo is off by default for cost (`SERVEX_ECHO`).
-  - Sources: `60d9def6` `87bec773` `7efd07d5` `.claude/`
-- **prompt-to-board-cards** (5x, 2026-09-18 to 2026-10-02): A refined prompt's cards become board cards and `asks.jsonl` lines (approve or improve), and the board creates tasks while you dictate.
-  - Now: Stages, cards, tags and a `TagRouter` note on the module page stream to the session page; the route that turns one card into an ask line plus a board card is not built ([refine-asks STATE](/framework/ai/2026-10-12/refine-asks/STATE.md)).
-  - Next: A Servex route `card -> asks.jsonl + board card`; one restart.
-  - Sources: `0d555c50` `.claude/`
 - **real-phone-mic** (4x, 2026-09-29 to 2026-10-08): Use it on a phone: the mic must work on the LAN address.
   - Now: A phone on plain `http` hides the mic (browser rule); typing or the keyboard's dictation button works. Walks used a Chromium flag as a stand-in ([https-lan.md](/framework/ux/Dictate/doc/https-lan.md) lists three ways).
   - Next: The owner picks one https option; then one real-phone walk.
   - Sources: `.claude/` `87bec773`
 - **per-sentence-model-clean** (4x, 2026-09-30 to 2026-10-09): The live clean text should be model-cleaned per sentence, cheap in tokens, with a cost shown per message.
-  - Now: A mechanical per-sentence clean is live; the model clean runs once per Refine (about 3 s). Clarity score and refined cost show on the cards. A per-sentence model call costs more than the whole prompt.
-  - Next: A `clean_live` flag in `Servex/ext/refine/run.js` for one opt-in session ([refine-asks STATE](/framework/ai/2026-10-12/refine-asks/STATE.md)).
+  - Now: A mechanical per-sentence clean is live; the model clean runs once per Refine (about 3 s). Built 2026-10-12 ([6f0133c](https://github.com/lew42/monorepo/commit/6f0133cc1)): `run_refine({ clean_live: true })` cleans each sentence with its own small Haiku call and each lands on the page as it returns; the measured cost shows beside the stage's time. **Measured: about $0.07 per sentence** (about $0.21 for three), more than the whole-prompt clean, so it stays opt-in and off.
+  - Next: Switch it on for one session if wanted; to make it cheaper the per-call cost (a fresh session per call) is the thing to cut, not the sentence count.
   - Sources: `.claude/` `60d9def6` `b7b63380` `0115b9e8`
 - **voice-model-policy** (3x, 2026-10-05 to 2026-10-08): Voice assistants (fast and smart) must not run on Anthropic models; use the best non-Anthropic model for the smart one.
   - Now: `Servex/agents/roles.js` maps `session-fast`, `session-smart` and `assistant` to `model("fast")`, which is Sonnet (a comment says: saving credits); no OpenRouter route for voice roles.
@@ -30,11 +22,6 @@ Walk through it yourself: [try-it.md](try-it.md).
   - Now: Structure and refined stages exist on the session page; an agent-driven `amend_bubble` that swaps a raw bubble for cited sections is open ([handover](/framework/ux/Dictate/doc/handover.md)).
   - Next: Decide whether the box keeps raw while chat shows cleaned; then build the tool.
   - Sources: `.claude/`
-- **whisper-status-stream** (2x, 2026-09-29 to 2026-10-05): Whisper restarts should show the moment they happen, not by polling.
-  - Now: The page asks `GET /api/whisper` every 5 s only while the mic is open and every 2 s while Whisper is down ([try-it.md](/framework/ux/Dictate/doc/try-it.md)).
-  - Next: A Servex status SSE; one restart.
-  - Sources: `e3ade6ce` `.claude/`
-
 ## Partly done
 
 - **prompt-review-and-durability** (6x, 2026-10-01 to 2026-10-04): Every prompt is logged raw-first, durable, reviewable and reprocessable without losing data when sessions move.
@@ -46,8 +33,8 @@ Walk through it yourself: [try-it.md](try-it.md).
   - Next: Tracked in [core/Page asks](/framework/core/Page/doc/asks.md); nothing to build here.
   - Sources: `.claude/`
 - **duplicate-bubbles** (2x, 2026-10-05 to 2026-10-09): Duplicate messages in voice chat must stop.
-  - Now: Fixed once only one mic could run ([duplicate-bubbles.md](/framework/ext/Chat/doc/duplicate-bubbles.md), proofs `prove-dup-*.mjs`); not re-run after tonight's changes.
-  - Next: Rerun the two proofs.
+  - Now: Fixed once only one mic could run ([duplicate-bubbles.md](/framework/ext/Chat/doc/duplicate-bubbles.md)). Re-run 2026-10-12: both `prove-dup-*.mjs` pass, the walk shows one prompt, and a real-Whisper mic run sends exactly one `say`. **Not reproduced**, so no new fix; `dup-e2e.mjs` is the check to run when it shows again. One thing seen: a mid-word pause can repeat one word across a chunk seam (see [STATE](/framework/ai/2026-10-12/voice-asks-2/STATE.md)).
+  - Next: When it shows again, note the page and the time; `dup-e2e.mjs` counts the `say` posts and bubbles.
   - Sources: `f04c6d27` `87bec773`
 - **long-prompt-refine** (2x, 2026-10-02 to 2026-10-02): Refining a very long prompt should work.
   - Now: Built tonight: the Refine button sends the most recent 19,000 characters (`AISessionConversation.fit`) instead of failing at 20,000.
@@ -60,6 +47,15 @@ Walk through it yourself: [try-it.md](try-it.md).
 
 ## Done (short)
 
+- **vscode-voice-path** (6x, 2026-09-29 to 2026-10-09): The VS Code app path (Echo) feeds the same five-stage flow as Refine: one dictation system, one widget.
+  - Now: Built 2026-10-12 ([8d80ff0](https://github.com/lew42/monorepo/commit/8d80ff02a)): `Servex/agents/Echo.js` writes raw, clean and structure through `VoicePage`, same id scheme as the Refine button. Echo stays off by default (`SERVEX_ECHO`); a failed stage is marked on the page (review fix [debc6f4](https://github.com/lew42/monorepo/commit/debc6f4b5)). Proof: [voice-asks-2](/framework/ai/2026-10-12/voice-asks-2/STATE.md), `proof.mjs` A.
+  - Sources: `60d9def6` `87bec773` `7efd07d5` `.claude/`
+- **prompt-to-board-cards** (5x, 2026-09-18 to 2026-10-02): A refined prompt's cards become board cards and `asks.jsonl` lines.
+  - Now: Built 2026-10-12: a **To board** button on each card ([cd75306](https://github.com/lew42/monorepo/commit/cd75306a0)) posts `POST /api/voice/card` ([984df59](https://github.com/lew42/monorepo/commit/984df598c), [045c5c0](https://github.com/lew42/monorepo/commit/045c5c097)); `CardAsk` makes one board card plus one `queued` ask line, and a second press (or a second tab, [debc6f4](https://github.com/lew42/monorepo/commit/debc6f4b5)) finds the same card. Left: approve/improve on the ask, and the board creating tasks while you dictate. Proof: `proof.mjs` C, `ui-proof.mjs` 1.
+  - Sources: `0d555c50` `.claude/`
+- **whisper-status-stream** (2x, 2026-09-29 to 2026-10-05): Whisper restarts show the moment they happen, not by polling.
+  - Now: Built 2026-10-12 ([045c5c0](https://github.com/lew42/monorepo/commit/045c5c097)): `GET /api/whisper/stream` (SSE) pushes the status on connect and on every change; `VoiceStrip` listens instead of the 5 s poll, and `recover()` polls only when no stream is open. Proof: `proof.mjs` B, `ui-proof.mjs` 2.
+  - Sources: `e3ade6ce` `.claude/`
 - **whisper-working-live** (9x, 2026-09-19 to 2026-09-29): Local Whisper works, streams words in real time, continuous until stopped, with the 'Thank you' silence bug fixed.
   - Now: `audio/Whisper`, `ux/Dictate`, [silence.md](/framework/ux/Dictate/doc/silence.md); Servex restarts Whisper itself in about 2 s ([voice-verify](/framework/ai/2026-10-12/voice-verify/STATE.md)).
   - Sources: `cfca18c9` `e2b82220` `.claude/`

@@ -34,7 +34,7 @@ export default class VoicePrompt {
 		for (const [key, value] of Object.entries(delta ?? {})){
 			if (key === "id" || key === "type" || key === "by" || key === "ts") continue;
 			this.data[key] = value;
-			for (const s of this.stages) if (s.constructor.fields.includes(key) || (key === "raw_final" && s instanceof RawStage) || (key === "clean_final" && s instanceof CleanStage) || key === "ms") touched.add(s.constructor.key);
+			for (const s of this.stages) if (s.constructor.fields.includes(key) || (key === "raw_final" && s instanceof RawStage) || (key === "clean_final" && s instanceof CleanStage) || key === "ms" || key === "cost") touched.add(s.constructor.key);
 		}
 		return touched;
 	}
