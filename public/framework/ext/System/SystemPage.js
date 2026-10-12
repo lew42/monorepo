@@ -59,13 +59,13 @@ export default class SystemPage extends Page {
 			for (const l of text.split("\n")) if (l.trim()) { const r = JSON.parse(l); latest[r.system] = r; }
 			box.el.append(this.el("h3", "Real systems, last check"));
 			for (const [name, r] of Object.entries(latest)){
-				const card = this.card();
-				card.el.append(
+				const card = this.el("div", undefined, "card");
+				card.append(
 					this.el("h3", `${name}: ${r.count ? r.count + " finding(s)" : "healthy"}`),
 					this.el("small", `checked ${r.at}`),
 					...r.findings.slice(0, 5).map(f => this.el("p", `${f.rule}: ${f.path} — ${f.text}`)),
 				);
-				box.el.append(card.el);
+				box.el.append(card);
 			}
 		});
 	}
