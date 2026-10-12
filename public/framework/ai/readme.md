@@ -101,3 +101,4 @@ Accounting first. Each link is that system's own short readme; follow it to go o
   against `ext/Refine/engine.js`'s `GLOSSARY`, not a model's judgment — cheap and code-only (law
   7), but a sentence naming no module lands in "General" even when a reader would call it
   something else. A model-graded version is a fair upgrade once there's budget for it.
+- **Owner asks by module** — [`doc/asks.md`](doc/asks.md) (merged, open first); page system: [`core/Page/doc/asks.md`](../core/Page/doc/asks.md).

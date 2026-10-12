@@ -20,3 +20,7 @@
 {"file":"clusters.mjs"}
 {"file":"verify-brief.md"}
 {"file":"01_temp.json.tmp","gone":true}
+{"file":"verdicts-page.json"}
+{"file":"verdicts-ai.json"}
+{"file":"gen.mjs"}
+{"file":"STATE.md"}
