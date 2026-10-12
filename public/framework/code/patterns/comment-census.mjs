@@ -1,5 +1,7 @@
 import fs from "node:fs"; import path from "node:path";
-const root = new URL("../..", import.meta.url).pathname.replace(/^/(w:)/, "$1");
+import { fileURLToPath } from "node:url";
+// counts comment lines and 4+ line comment blocks in framework JS (code skill, "Comments")
+const root = fileURLToPath(new URL("../..", import.meta.url));
 const rows = [];
 (function walk(d){ for (const e of fs.readdirSync(d, { withFileTypes: true })){
 	const p = path.join(d, e.name);
