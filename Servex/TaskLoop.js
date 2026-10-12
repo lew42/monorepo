@@ -3,6 +3,8 @@ import path from "path";
 import { spawn } from "child_process";
 import { stamp } from "./home.js";
 import { CHECK } from "./Heartbeat.js";
+import Steps from "../Server/Steps.mjs";
+import TaskDirs from "../Server/TaskDirs.mjs";
 
 /* THE TASK LOOP — nobody should have to remember to land a task.
  *
@@ -33,8 +35,8 @@ export default class TaskLoop {
         this.max_escalations ??= 5;
         this.root ??= process.cwd();
         this.queues = new Map();      // task.jsonl path -> write chain, one writer per file
-        this.totals = { chased: 0, escalated: 0 };
-        this.status_now = { open: 0, quiet: 0, chased: 0, escalated: 0, last_tick: null };
+        this.totals = { chased: 0, escalated: 0, nudged: 0 };
+        this.status_now = { open: 0, quiet: 0, chased: 0, escalated: 0, nudged: 0, last_tick: null };
         this.first_run = false;
     }
 
@@ -67,6 +69,9 @@ export default class TaskLoop {
                 if (!this.servex.heartbeat?.opted_in(info.state)) continue;
                 open++;
 
+                // step-runner, 2026-10-12: a step past 2x its estimate gets ONE nudge, independent of the quiet-chase below.
+                await this.nudge_step(file, info.state, registry, now);
+
                 const mtime = fs.statSync(file).mtimeMs;
                 const quiet_expired = now - mtime >= this.quiet_min * 60000;
                 if (quiet_expired) quiet++;
@@ -83,7 +88,7 @@ export default class TaskLoop {
                 }
             }
 
-            this.status_now = { open, quiet, chased: this.totals.chased, escalated: this.totals.escalated, last_tick: stamp() };
+            this.status_now = { open, quiet, chased: this.totals.chased, escalated: this.totals.escalated, nudged: this.totals.nudged, last_tick: stamp() };
             if (!this.first_run){
                 this.first_run = true;
                 this.servex.say(`task-loop: first run, ${open} open tasks today (${quiet} quiet)`);
@@ -93,11 +98,13 @@ export default class TaskLoop {
 
     /* ── finding tasks ────────────────────────────────────────────────── */
 
+    /* The sessions store (ai/sessions/YYYY/MM/DD/..., Server/TaskDirs.mjs) PLUS the old ai/YYYY-MM-DD/ walk, de-duplicated. */
     find_task_files(){
         const today = new Date(), out = [];
+        try { for (const t of TaskDirs.list(2)) out.push(path.join(t.dir, "task.jsonl")); } catch {}
         for (const d of [today, new Date(today.getTime() - 86400000)])
             this.walk(path.join(this.root, "public", "framework", "ai", this.date_id(d)), out);
-        return out;
+        return [...new Set(out.map(f => path.resolve(f)))];
     }
 
     walk(dir, out){
@@ -171,6 +178,19 @@ export default class TaskLoop {
         this.totals.chased++;
     }
 
+    /* The Step runner's nudge (Server/Steps.mjs): the current step ran past 2x its estimate and the owning agent is live. Once per step. */
+    async nudge_step(file, state, registry, now){
+        const due = Steps.overdue(Steps.read(file), now);
+        if (!due) return;
+        const id = this.owning_agent_id(state, registry);
+        if (!id || this.agent_gone(state, registry)) return;
+        const text = `You were on step ${due.n} (${due.do}, ${due.min} min) since ${this.at(now - due.since_ms)}. Is it done? If you are further along, log {"assign":{"step":<the step you are on>}}; if not, say what is holding it.`;
+        try { this.servex.agents.send(id, text, { from: "servex-step-runner" }); } catch { return; }
+        await this.write_line(file, { log: { at: stamp(), msg: `step-runner nudge: step ${due.n}`, nudge: due.n } });
+        try { await this.servex.log?.append("steps", { type: "nudge", task: this.slug(file), step: due.n, agent: id }); } catch {}
+        this.totals.nudged++;
+    }
+
     /* `card_ask` (waiting-on-you) called in-process once it registers a handler
      * on the same MCP door every tool here goes through; a plain card message
      * until then — exactly as interfaces.md agrees. */
@@ -222,10 +242,13 @@ export default class TaskLoop {
 
     relative(file){ return path.relative(this.root, file).split(path.sep).join("/"); }
 
-    /* `.../ai/<date>/<slug...>/task.jsonl` -> `<slug...>`, a sub-task included. */
+    /* Old `.../ai/<date>/<slug...>/task.jsonl`, new `.../ai/sessions/Y/M/D/[session-xxxx/]<slug...>/task.jsonl` -> `<slug...>`, a sub-task included. */
     slug(file){
-        const parts = this.relative(file).split("/");
-        return parts.slice(parts.indexOf("ai") + 2, -1).join("/");
+        const parts = this.relative(file).split("/"), ai = parts.indexOf("ai");
+        if (parts[ai + 1] !== "sessions") return parts.slice(ai + 2, -1).join("/");
+        let rest = parts.slice(ai + 5, -1);
+        if (rest.length > 1 && /^(session-[0-9a-f]+|[0-9a-f]{8}-[0-9a-f-]{27})$/.test(rest[0])) rest = rest.slice(1);
+        return rest.join("/");
     }
 
     /* Local time with its offset, `home.js`'s `stamp()` format for an arbitrary
