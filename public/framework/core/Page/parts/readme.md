@@ -14,7 +14,7 @@ Make a folder with a `page.jsonl`; line 1 names the class, later lines are the p
 Agents write these with `page_set` / `page_add`; code calls the content list: `page.content.add(...)`, `.move(...)`, `.remove(...)`. A plain `Page` draws them; `"class": "./Parts.js"` still works (an empty `PartsPage` subclass).
 
 ## Index
-- Classes: `PageHeading`, `PageText`, `PageCard`, each an `Item` with its own `View` (no base class); `Part.js`, `HeadingPart.js`, `TextPart.js`, `CardPart.js` and `Parts.js` (`PartsPage`) are shims for the old names — [doc/architecture.md](doc/architecture.md), [../doc/content.md](../doc/content.md)
+- Classes: `PageHeading`, `PageText`, `PageCard`, `PageLink` (a card to a child page; [../doc/part-link.md](../doc/part-link.md)), each an `Item` with its own `View` (no base class); `Part.js`, `HeadingPart.js`, `TextPart.js`, `CardPart.js` and `Parts.js` (`PartsPage`) are shims for the old names — [doc/architecture.md](doc/architecture.md), [../doc/content.md](../doc/content.md)
 - `MdToParts.mjs` — turns a markdown file into parts lines (`node MdToParts.mjs in.md out.json "Title"`)
 
 ## Watch out

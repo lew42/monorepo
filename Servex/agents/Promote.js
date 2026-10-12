@@ -58,7 +58,8 @@ export default class Promote {
 		if (this.dry) return { ok: true, dry: true, ...plan };
 		// The child is drawn by the parent's own class (a relative path gets one more "../").
 		const first = this.lines()[0] ?? {}, cls = first.class && (first.class.startsWith(".") ? "../" + first.class : first.class);
-		this.subs.add({ name, title, ...(cls ? { class: cls } : {}) });
+		const description = block.title && block.text ? String(block.text).slice(0, 140) : undefined;   // the link card's summary
+		this.subs.add({ name, title, ...(description ? { description } : {}), ...(cls ? { class: cls } : {}) });
 		const child = path.join(this.dir, name, "page.jsonl");
 		const add = obj => fs.appendFileSync(child, JSON.stringify(obj) + "\n");
 		add({ content: { add: { ...item, after: null } } });

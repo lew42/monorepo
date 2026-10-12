@@ -56,7 +56,7 @@ The owner's idea to evaluate: an **embedded sub-page** (no folder; its data sits
 
 The two meet in the middle without a new class: a block can *point at* a child page (a `part-link` kind holding the child's path, drawn as a card with the child's title and summary). Growing is a promotion: when a block needs a url, a script moves its line into a new folder (dry run, manifest) and leaves a `part-link` behind.
 
-Not built: `part-link`, the promote script, and scrolling to a block by `#id`. The alternative (embedded sub-pages as full `Page`s inside one `page.jsonl`) is recorded, not rejected on principle: revisit it if `Page` ever gets a light core that is cheap to create in bulk.
+Built 2026-10-12: `part-link`, the promote script and `#id` scrolling ([part-link.md](part-link.md)). The alternative (embedded sub-pages as full `Page`s inside one `page.jsonl`) is recorded, not rejected on principle: revisit it if `Page` ever gets a light core that is cheap to create in bulk.
 
 ## Design (owner, 2026-10-12, not built): `content` is always a List, and each kind draws itself
 
