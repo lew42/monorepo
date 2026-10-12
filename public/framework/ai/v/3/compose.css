@@ -1,4 +1,4 @@
-/* compose.js's own look — small enough to load from anywhere composer() is
+/* Composer.js's own look — small enough to load from anywhere Composer.box() is
    called (the dev bar's mastermind log, the V3 Now view), so it is its OWN
    stylesheet rather than living inside v3.css, which only the V3 page loads
    and the dev bar (present on every page of the whole site) cannot assume.

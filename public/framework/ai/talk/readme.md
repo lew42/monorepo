@@ -32,7 +32,7 @@ Nothing imports this — it is a page, not a component. What it is built from:
 - `ux/Dictate` is the microphone, used unchanged. `TalkMic` is a four-line subclass whose only
   job is to redirect the live guess into this page's card: see
   [`ux/Dictate`](/framework/ux/Dictate/) for the engines, the hotkey and the pause rules.
-- `v/3/prompts.js`'s `prompt_stream()` is the live connection to Servex — shared, so this page
+- `v/3/Prompts.js`'s `Prompts.stream()` is the live connection to Servex — shared, so this page
   opens no second socket.
 
 ## Watch out

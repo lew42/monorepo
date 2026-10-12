@@ -1,6 +1,6 @@
 import { Page, View, div, p, span, button, a } from "/app.js";
 import Dictate from "/framework/ux/Dictate/Dictate.js";
-import { prompt_stream } from "/framework/ai/v/3/prompts.js";
+import { Prompts } from "/framework/ai/v/3/Prompts.js";
 
 View.stylesheet(import.meta, "talk.css");
 
@@ -26,7 +26,7 @@ View.stylesheet(import.meta, "talk.css");
  * also posted to Servex's prompt log, and within about two seconds the fast
  * assistant answers it with a `card` line (a title for the idea) and `name`
  * lines (the things you named). This page listens to that same live stream
- * `v/3/prompts.js` already opens — one connection, shared — and puts the title
+ * `v/3/Prompts.js` already opens — one connection, shared — and puts the title
  * in the card's heading and the names in the chips under the text, IN PLACE.
  *
  * **Why nothing jumps** — the one requirement, and the reason for the shape:
@@ -196,7 +196,7 @@ function talk(page) {
 }
 
 /**
- * WHAT THE ASSISTANT MADE OF IT, live. `prompt_stream()` is `v/3/prompts.js`'s
+ * WHAT THE ASSISTANT MADE OF IT, live. `Prompts.stream()` is `v/3/Prompts.js`'s
  * own single shared connection to Servex — subscribing here opens no second
  * socket — and `stream.on()` fires only for lines that arrive from now on,
  * which is exactly what this page wants: it answers what you say while you are
@@ -219,7 +219,7 @@ function talk(page) {
  * do now, which is the whole point of keeping the two halves separate.
  */
 function from_assistant(cards) {
-	const stream = prompt_stream();
+	const stream = Prompts.stream();
 	stream.ready.then(() => stream.on(e => {
 		if (e?.type === "prompt") return claim(cards, e);
 		const answering = refs(e);

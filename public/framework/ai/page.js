@@ -10,7 +10,7 @@ const RAIL_ID = /^(inbox|log|live|now|view|framework|\d{4}|p-\d+|ask:.+|topic-[\
 const CARD_ID = /^(p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
 import { dashboard, rail, effort_board, log_board, has_page_js, warm, daySystemPage, monthPage } from "/framework/ext/AITask/dashboard.js";
 import { module_list, module_detail } from "/framework/ext/AITask/module-spend.js";
-import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
+import { Versions } from "/framework/ai/v/Versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
 import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
 import { VIRTUAL_TABS, SYSTEM_PARTS, tab_page, readme_chain, heading, detect_tabs } from "./overview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
@@ -71,7 +71,7 @@ export default new Page({
 		   just before it calls content(), so the row is made here and the h1 it
 		   follows is moved into it — no core edit, and if core ever stops drawing
 		   the title first, the row simply holds the picker alone. */
-		const $head = div.c("ai-head", () => picker("/framework/ai/?v1"));
+		const $head = div.c("ai-head", () => Versions.picker("/framework/ai/?v1"));
 		const $title = $head.el.previousElementSibling;
 		if ($title?.matches(".page-title")) $head.el.prepend($title);
 		md("A card for each thing worth going back to. Everything else is in [the log](/framework/ai/log/).");

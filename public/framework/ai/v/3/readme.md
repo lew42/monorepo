@@ -33,9 +33,9 @@ does nothing at any width is not worth a slot. **prompts** (`prompt-lifecycle`, 
 other odd one out: it reads neither file, only Servex's own prompt log — see below. `page.js`
 is the whole page (about 1600 lines — five views is a lot for one file, named as a known cost,
 not an oversight); `v3.css` is its styling, `timeline.js` the board's own data model and shared
-card helpers, `compose.js` the one text/dictate box every reply goes through, `ask.js` a prompt
-card's Yes/No controls, `demos.js` the live examples a card can name, `agents.js` the Agents
-strip and `prompts.js` the Prompts view (both below).
+card helpers, `Composer.js` the one text/dictate box every reply goes through, `AskControls.js` a prompt
+card's Yes/No controls, `Demos.js` the live examples a card can name, `AgentsStrip.js` the Agents
+strip and `Prompts.js` the Prompts view (both below).
 
 `?log=`/`?verdicts=` point the page at a scratch pair instead of the real `board.jsonl`/
 `verdicts.jsonl` — the device every proof run against this page should use (never write to the
@@ -47,7 +47,7 @@ one chip per Servex-hosted Claude session that is actually **working** (`GET /ag
 for its live transcript. Idle sessions get no chip: they collapse into one `N idle` fold at the
 end of the same line, which lists them by name when pressed (`board-declutter`, 2026-09-22). A landed `minion`/`task-mastermind` becomes a real board card with nobody writing
 one — folded from its own log, merged straight into this page's data, never into `board.jsonl`.
-`agents.js` is the whole thing; see the task page for the proof.
+`AgentsStrip.js` is the whole thing; see the task page for the proof.
 
 The **Prompts** view (`prompt-lifecycle`, 2026-09-22) is the thread of what the owner said and
 what was made of it: newest prompt first, their sentences on the left never tidied, and on the
@@ -58,7 +58,7 @@ carries a mode switch** (Condensed → Structured → Clean → Raw, `prompt-ref
 `ai2` needed the same piece for its own pinned "Your prompts" card and this board is being
 replaced. A ✓ or ✗ on any
 chip or card appends one more line through `POST /log/prompts` and is never required — the
-appender's naming checks are the authority, this only shows the 200 or the 409. `prompts.js`
+appender's naming checks are the authority, this only shows the 200 or the 409. `Prompts.js`
 holds it and exports `prompt_stream()` (one shared `EventSource` for everything reading that
 log) and `prompt_board_cards()` (every assistant card, folded onto the normal timeline and grid
 the same way a landed agent's is). `?servex=<url>` points it at another Servex, which is how the
@@ -174,7 +174,7 @@ approved toggle, **Live**, the author filter and the card-width slider. Nothing 
 - **The Agents strip only rebuilds its row list when who is live actually changes** — a busy
   agent's own `delta` events repaint every OTHER row's state too, and rebuilding the whole list
   on each one made a chip briefly unclickable (a headless click kept landing mid-teardown).
-  `agents.js`'s `paint()` keys a sorted-ids string and only rebuilds on a real join/leave.
+  `AgentsStrip.js`'s `paint()` keys a sorted-ids string and only rebuilds on a real join/leave.
 - **Every card on this board stands on one of three grounds, and `--v3-card` is the middle one**
   (`board-declutter`, 2026-09-22): the page is `--wash`, a card is `--v3-card` (exactly halfway
   from that to white), and the selected or open one is `--surface`, white. Two equal steps, no
@@ -185,7 +185,7 @@ approved toggle, **Live**, the author filter and the card-width slider. Nothing 
 - **`VERDICTS_PATH` exists because of a real `Server/` bug**, not by choice — see the long
   comment at the top of `page.js` for what it works around and why the real fix waits on a
   fenced restart window.
-- **`ask.js` is a byte-for-byte copy**, not an import, of a file in a dated task folder — see its
+- **`AskControls.js` is a byte-for-byte copy**, not an import, of a file in a dated task folder — see its
   own top comment before "cleaning up" that folder.
 
 ## More
@@ -214,5 +214,5 @@ approved toggle, **Live**, the author filter and the card-width slider. Nothing 
 - [`ai/2026-09-22/board-from-events/`](/framework/ai/2026-09-22/board-from-events/) — the Agents
   strip and the landed-agent-becomes-a-card fold: proof screenshots, the paint() fix, the
   double-mount finding
-- Files: `page.js` (the page, all five views and their routes), `v3.css`, `timeline.js` (the board's data model), `compose.js`,
-  `ask.js`, `demos.js`, `agents.js` (the Agents strip)
+- Files: `page.js` (the page, all five views and their routes), `v3.css`, `timeline.js` (the board's data model), `Composer.js`,
+  `AskControls.js`, `Demos.js`, `AgentsStrip.js` (the Agents strip)

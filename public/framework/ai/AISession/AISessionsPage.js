@@ -1,4 +1,4 @@
-import { servex_base } from "/framework/ai/v/3/prompts.js";
+import { Prompts } from "/framework/ai/v/3/Prompts.js";
 import { Page, md, h3, div, a, span, small, p, label, input, button, View } from "/app.js";
 import Panel2 from "/framework/ext/panel2/Panel2.js";
 import { usage_rail } from "/framework/ext/AITask/usage.js";
@@ -344,7 +344,7 @@ export default class AISessionsPage extends Page {
 		this.polling = true;
 		this.last_agents = [];
 
-		const base = servex_base();
+		const base = Prompts.base();
 		const fetch_agents = async () => (await get_json(base + "/api/agents")) ?? (await get_json("/api/agents")) ?? [];
 		let timer = null;
 		const soon = () => { timer ??= setTimeout(() => { timer = null; this.draw(); }, 250); };
