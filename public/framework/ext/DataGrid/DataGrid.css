@@ -140,5 +140,5 @@
 	.datagrid-demo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(14rem, 20rem); gap: var(--gap-100, 1.5rem); align-items: start; }
 	.datagrid-debug { font-size: 0.85em; }
 	.datagrid-debug-out { margin: 0; white-space: pre-wrap; }
-	@container (max-width: 40em) { .datagrid-demo { grid-template-columns: 1fr; } }
+	@media (max-width: 900px) { .datagrid-demo { grid-template-columns: minmax(0, 1fr); } }
 }
