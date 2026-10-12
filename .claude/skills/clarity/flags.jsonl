@@ -494,3 +494,9 @@
 {"at":"2026-10-12T09:32:22.403Z","target":"public/framework/ai/2026-10-12/relay-asks","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T09:32:22.606Z","target":"public/framework/ai/2026-10-12/relay-asks","verdict":"spawned","to":"clarity-relay-asks"}
 {"at":"2026-10-12T04:40:00-05:00","target":"public/framework/ai/2026-10-12/relay-asks","verdict":"clear","what":"asks ticked with proof, short, text-check clean","to":"none"}
+{"at":"2026-10-12T09:33:53.463Z","target":"public/framework/ai/2026-10-12/ai-classes-asks","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T09:33:53.581Z","target":"public/framework/ai/2026-10-12/ai-classes-asks","verdict":"spawned","to":"clarity-ai-classes-asks"}
+{"at":"2026-10-12T10:00:00-05:00","target":"public/framework/ai/2026-10-12/ai-classes-asks","verdict":"clear","what":"Outcome short, asks ticked with proof, STATE linked; text-check clean","to":"clarity-ai-classes-asks"}
+{"at":"2026-10-12T09:34:47.850Z","target":"public/framework/ai/2026-10-12/page-columns-asks","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T09:34:48.047Z","target":"public/framework/ai/2026-10-12/page-columns-asks","verdict":"spawned","to":"clarity-page-columns-asks"}
+{"at":"2026-10-12T09:35:01.556Z","target":"public/framework/ai/2026-10-12/page-columns-asks","verdict":"rewrote","what":"outcome lacked the asks.md-updated ask; added ticked with commit","to":"task.jsonl"}
