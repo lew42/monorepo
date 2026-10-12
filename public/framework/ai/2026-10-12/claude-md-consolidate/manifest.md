@@ -4,9 +4,9 @@ Base: `87afbdd55:CLAUDE.md`. Every sentence of the old file has exactly one row 
 
 | action | count |
 |---|---|
-| keep | 159 |
+| keep | 162 |
 | move | 24 |
-| merge | 24 |
+| merge | 21 |
 
 ## Moved to a topic doc (verbatim)
 
@@ -33,12 +33,10 @@ Base: `87afbdd55:CLAUDE.md`. Every sentence of the old file has exactly one row 
 - **L12 Keep working; never wait on the owner** → `public/framework/ai/doc/claude-md-archive.md`: L12.10 “If there is a safe, quick fix, attempt it; if not, **record …”; L12.11 “Write notes, legitimate questions, tradeoffs or implications…”; L12.13 “Superceded docs can be deleted cleanly in the future, but un…”
 - **L24 Link every mention** → `public/framework/ai/doc/claude-md-archive.md`: L24.1 “**Link every mention** (the owner, 2026-10-08): whenever tex…”; L24.2 “Use the mention system (`ext/Mention`, `#Page` `@agent` `/pa…”
 - **L28 Audits go to Haiku** → `public/framework/ai/doc/claude-md-archive.md`: L28.2 “Task audits, readme audits, searches and fan-outs use Haiku …”
-- **L30 Link, don't regenerate** → `public/framework/ai/doc/claude-md-archive.md`: L30.2 “Reference the original prompt, session, task or doc by link …”
-- **L32 Classes are the structure; show them** → `public/framework/ai/doc/claude-md-archive.md`: L32.1 “**Classes are the structure; show them** (the owner, 2026-10…”; L32.2 “Prefer a class over loose functions or one-off scripts where…”
+- **L32 Classes are the structure; show them** → `public/framework/ai/doc/claude-md-archive.md`: L32.1 “**Classes are the structure; show them** (the owner, 2026-10…”
 - **L34 A readme is a module's memory** → `public/framework/ai/doc/claude-md-archive.md`: L34.1 “**A readme is a module's memory** (the owner, 2026-10-08): e…”; L34.2 “Keep both fresh, so a new agent that reads them is fully up …”
 - **L38 The iceberg readme** → `public/framework/ai/doc/claude-md-archive.md`: L38.1 “**The iceberg readme** (the owner, 2026-10-08): a parent rea…”
 - **L42 Haiku stays under 100k tokens** → `public/framework/ai/doc/claude-md-archive.md`: L42.2 “A node script chunks big inputs (a raw session file, a log) …”
-- **L46 Stream, don't poll** → `public/framework/ai/doc/claude-md-archive.md`: L46.3 “Treat this file as the root readme; the core docs index ever…”
 - **L48 Everything is linked** → `public/framework/ai/doc/claude-md-archive.md`: L48.1 “**Everything is linked** (the owner, 2026-10-08): the owner …”
 - **L50 Moves and renames are scripted, never retyped** → `public/framework/ai/doc/claude-md-archive.md`: L50.3 “Also run a **visibility check** on anything we work on: if i…”
 - **L54 Write classes, not function bags** → `public/framework/ai/doc/claude-md-archive.md`: L54.1 “**Write classes, not function bags** (the owner, 2026-10-08)…”; L54.2 “One class per file, the file named for the class (`SessionsP…”
