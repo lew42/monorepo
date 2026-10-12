@@ -1,2 +1,7 @@
 {"file":"readme.md"}
 {"file":"page.js"}
+{"file":"Batch.js"}
+{"file":"bench/page.js"}
+{"file":"bench/Bench.js"}
+{"file":"bench/bench.mjs"}
+{"file":"doc/batching.md"}
