@@ -34,7 +34,7 @@ A page is a folder, and the folder is its storage:
 
 How a line travels from a writer to the screen, and who may write: [`doc/streaming.md`](doc/streaming.md).
 The classes and the decisions (log growth, big collections, file vs database): [`doc/architecture.md`](doc/architecture.md).
-**A page body as a list of parts** (heading, text, card; each one a line in `page.jsonl`): [`parts/`](parts/readme.md), [architecture](parts/doc/architecture.md).
+**A page body as a list of parts** (heading, text, card; each one a line in `page.jsonl`): [`parts/`](parts/readme.md), [architecture](parts/doc/architecture.md). **Pages, content, parts: one way each, and the plan for `children` and `content`:** [`doc/content.md`](doc/content.md).
 **Agents change any page with one tool**, `page_set(path, delta)`: a tab, a layout word, an item. Live demo: [tool](./tool/).
 
 ## Architecture
@@ -44,7 +44,7 @@ Page extends Item                     // ✅ page instanceof Item is true — no
   url, title, parent: Page
   pages: List                         // ✅ the real storage — sub-pages, keyed by id (= folder name)
   children                            // ✅ a Map-SHAPED VIEW over `pages` — ~215 existing callers unchanged (not List's old `children` field, now `items`)
-  content: List                       // ✅ made lazily, the page's own visible blocks — render_content_list() draws it
+  content: List<PagePart>             // ✅ made lazily, the page's own blocks; render_content_list() draws each through its class's View (doc/content.md)
   store: Item.Store                   // ✅ attached by Page.jsonl() — one per page.jsonl, append + tail, written through FsFile.append
   prefs()                             // ✅ localStorage (was `store()` — renamed, `page.store` is the jsonl Store now)
   view: View
