@@ -102,6 +102,7 @@
 		background: var(--well);
 		flex: 1 1 16em;
 		min-width: 0;
+		flex-wrap: wrap;   /* a handful of tabs: wrap on a phone rather than hide SESSIONS/TESTS off the edge with no scroll cue (2026-10-12) */
 		align-items: flex-end;
 		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
 		padding-inline-end: 0.8em;
