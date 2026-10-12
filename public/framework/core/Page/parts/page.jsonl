@@ -1,0 +1,21 @@
+{"title":"Parts","icon":"view_agenda","class":"./Parts.js","description":"A page whose body is a list of parts stored in its own page.jsonl."}
+{"content":{"add":{"id":"h1","type":"part-heading","text":"A page made of parts"}}}
+{"content":{"add":{"id":"t1","type":"part-text","text":"Every block on this page is one line in its own `page.jsonl`. Add, move or remove a line and every open tab redraws, with no reload."}}}
+{"content":{"add":{"id":"c1","type":"part-card","title":"Three kinds so far","text":"heading, text and card. A new kind is one small class."}}}
+{"file":"CardPart.js"}
+{"file":"HeadingPart.js"}
+{"file":"Part.js"}
+{"file":"Parts.js"}
+{"file":"TextPart.js"}
+{"content":{"add":{"id":"c2","type":"part-card","title":"Added later","text":"One appended line."}}}
+{"content":{"move":{"id":"c2","after":"h1"}}}
+{"content":{"remove":"c1"}}
+{"file":"example/"}
+{"file":"MdToParts.mjs"}
+{"file":"example/page.jsonl"}
+{"file":"example/"}
+{"file":"example/page.jsonl"}
+{"file":"doc/"}
+{"file":"readme.md"}
+{"content":{"add":{"id":"docs","type":"part-text","text":"How it works: [doc/architecture.md](doc/architecture.md) · [readme.md](readme.md) · a real page drawn this way: [example/](example/)."}}}
+{"docs":{"text":"How it works: [architecture](/framework/core/Page/parts/md/doc/architecture/) · [readme](/framework/core/Page/parts/md/readme/) · a real page drawn this way: [the Item readme](/framework/core/Page/parts/example/)."}}

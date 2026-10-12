@@ -34,6 +34,7 @@ A page is a folder, and the folder is its storage:
 
 How a line travels from a writer to the screen, and who may write: [`doc/streaming.md`](doc/streaming.md).
 The classes and the decisions (log growth, big collections, file vs database): [`doc/architecture.md`](doc/architecture.md).
+**A page body as a list of parts** (heading, text, card; each one a line in `page.jsonl`): [`parts/`](parts/readme.md), [architecture](parts/doc/architecture.md).
 **Agents change any page with one tool**, `page_set(path, delta)`: a tab, a layout word, an item. Live demo: [tool](./tool/).
 
 ## Architecture
