@@ -127,6 +127,7 @@ export default class AISession extends Session {
 				}
 			}
 		}
+		if (o.type === "custom-title" || o.type === "ai-title"){ const t = o.customTitle ?? o.aiTitle; if (t && (o.type === "custom-title" || !s.custom_title)){ s.title = t; if (o.type === "custom-title") s.custom_title = true; } return; }   // the tab title the owner sees
 		if (o.type === "user") return this._user(o, part);
 		if (o.type === "attachment"){ this._pend(part).other += this._chars(o.attachment); return; }
 		if (o.type === "assistant" && o.message?.usage) return this._assistant(o, part);
@@ -197,6 +198,7 @@ export default class AISession extends Session {
 		if (!e.side){
 			s.main_models[model] = (s.main_models[model] || 0) + 1;
 			s.main_efforts[e.effort ?? "?"] = (s.main_efforts[e.effort ?? "?"] || 0) + 1;
+			s.current = { model, effort: e.effort ?? null };   // the LATEST main turn: a tab can change model mid-session
 		}
 		this._purpose(part, { id, input: e.input, output: e.output, cread: e.cread, cw: e.w5 + e.w1, usd, think });
 	}
@@ -307,11 +309,17 @@ export default class AISession extends Session {
 		return best ? { model: best.model, effort: best.effort, label: model_label(best.model) + (best.effort ? " · " + best.effort : ""), id: best.model } : { model: null, effort: null, label: "unknown", id: null };
 	}
 
+	/** The model the main thread runs NOW (the latest turn), else the one it ran most (an older cached session with no latest yet). */
+	current_model(){
+		const c = this.s.current, me = this.model_effort();
+		return c?.model ? { model: c.model, effort: c.effort ?? me.effort, label: model_label(c.model) + ((c.effort ?? me.effort) ? " · " + (c.effort ?? me.effort) : ""), id: c.model } : me;
+	}
+
 	cache_read_pct(){ const s = this.s; return s.usd ? Math.round(s.usd_parts.cache_read / s.usd * 1000) / 10 : 0; }
 
 	// Display mode 1: the data-grid row. Plain strings and numbers; AISessionView.js draws them.
 	preview(tree){
-		const s = this.s, me = this.model_effort(), t = tree ?? {}, cfg = s.configured;
+		const s = this.s, me = this.current_model(), t = tree ?? {}, cfg = s.configured;
 		// ONE source per provider. An OpenRouter session is billed by OpenRouter and recorded by the Servex registry
 		// (cost, turns, model); its transcript priced at Claude rates would be a made-up number. A Claude session reads its transcript.
 		const provider = provider_of(cfg?.model || me.id), or = provider === "openrouter";

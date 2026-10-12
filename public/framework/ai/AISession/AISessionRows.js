@@ -164,7 +164,8 @@ export default class AISessionRows {
 	/** What to call a row: the tree's agent name, a Servex agent's id, the last prompt, else "session" plus the first 8 of the id. */
 	static display_name(r, tree){
 		const sid = r.session_id || r.id;
-		const named = tree?.[sid]?.agent;
+		const ix = AISession.all.get(sid)?.ix, named = tree?.[sid]?.agent ?? ix?.agent ?? null;
+		if (ix?.title) return { text: ix.title, from: "title", agent: named };   // the tab title first, the registered name beside it
 		if (named) return { text: named, from: "agent" };
 		if (r.source === "servex" && r.tab_title) return { text: r.tab_title, from: "agent" };
 		// a prompt that is only a routing tag or a skill preamble says nothing about the session
