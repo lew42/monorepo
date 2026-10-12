@@ -1,4 +1,4 @@
-import { Page, div, span, small, p, a } from "/app.js";
+import { Page, div, span, small, p, a, button } from "/app.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { load as raw_transcript_lines } from "/framework/ext/AITask/replay.js";
 import AISessionRows from "./AISessionRows.js";
@@ -76,30 +76,29 @@ export default class AISessionDetail extends Page {
 
 	content(){
 		const { home, id } = this, url = home.url;
-		// One compact header line: back link, the whole id, and the template (which file draws this page, doc/templates.md) as a small source link.
-		div.c("sessions-detail-head flex gap-50 v-center wrap", () => {
-			a.c("page-link", "← all sessions").href(url);
-			small.c("sessions-full-id", id);
-			a.c("muted sessions-template", "AISessionDetail.js").href("/framework/ai/AISession/AISessionDetail.js");
-		});
-
 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
 		this.parts = new AISessionDetail.Parts($parts);
 		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace;
-		div.c("cols main-aside sessions-detail-body", () => {
-			div.c("flow sessions-detail-main", () => {
+		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
+		const TABS = [["conversation", "Conversation"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+		const want = new URLSearchParams(location.search).get("tab"), panels = {}, buttons = {};
+		const show = key => {
+			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
+			const q = new URLSearchParams(location.search); key === "conversation" ? q.delete("tab") : q.set("tab", key);
+			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
+		};
+		div.c("sessions-tabs flex gap-50 wrap", () => TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k))));
+		div.c("sessions-detail-body", () => {
+			panels.conversation = div.c("flow sessions-panel", () => {
 				$box = div.c("flow");     // which session this is (source tag, tab title, model)
 				$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
 				$conv = div.c("flow sessions-conv");   // the live conversation
 			});
-			div.c("flow sessions-detail-aside", () => {
-				$costs = div.c("flow");
-				$session = div.c("flow"); // the Session class: cost tree, model + effort, tokens by purpose, audit
-				$spawn = div.c("flow");   // who spawned this, why, and what it spawned
-				$trace = div.c("flow");   // the cost-over-time chart and the per-tool table
-				$related = div.c("flow"); // the other records of this session: card, task, brief, report, parent, children
-			});
+			panels.cost = div.c("flow sessions-panel", () => { $costs = div.c("flow"); $trace = div.c("flow"); });   // logged cost, the cost-over-time chart and the per-tool table
+			panels.models = div.c("flow sessions-panel", () => { $session = div.c("flow"); });   // the Session class: cost tree, model + effort, tokens by purpose, audit
+			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
 		});
+		show(TABS.some(([k]) => k === want) ? want : "conversation");
 		const conv = new AISessionConversation();
 		const voice = new VoiceFlow();
 		$voice.append(voice.view);
@@ -126,24 +125,30 @@ export default class AISessionDetail extends Page {
 			Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
 			AISessionRows.load_index(url).then(async () => { const snap = await AISessionDetail.load_snapshot(session_id); $related.empty(() => AISessionDetail.render_related(snap, url)); });
 			// the card's page.jsonl and trace.json live in the session's own folder now; the old card folder is the fallback until a checkout is migrated
-			const own_dir = AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname : null, own = (await AISessionDetail.load_snapshot(session_id))?.links?.card ? own_dir : null, old = AISessionDetail.dir_of(await AISessionDetail.dir_index(), session_id);
+			await AISessionRows.load_index(url);   // fills AISession.days; without this wait own_dir was computed before the index arrived, so the cost log and trace silently never showed
+			const fill = async () => {
+			await this.follow?.catch(() => {});   // the first feed pull names the real folder (a card-slug folder is not <id>/) via AISession.slugs
+			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;
+			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
 			const [costs, trace] = await Promise.all([
-				AISessionDetail.load_cost_log(own).then(c => c ?? AISessionDetail.load_cost_log(old)),
-				AISessionRows.load_index(url).then(ix => ix?.traces?.includes(session_id) ? AISessionDetail.load_trace(own_dir).then(t => t ?? AISessionDetail.load_trace(old)) : null),   // a trace.json exists for few sessions: ask only for those the index lists
+				AISessionDetail.load_cost_log(own).then(async c => c ?? AISessionDetail.load_cost_log(await old_dir())),
+				AISessionRows.load_index(url).then(ix => ix?.traces?.includes(session_id) ? AISessionDetail.load_trace(own_dir).then(async t => t ?? AISessionDetail.load_trace(await old_dir())) : null),   // a trace.json exists for few sessions: ask only for those the index lists
 			]);
 
 			$costs.empty(() => {
 				if (!costs) return;
-				small.c("muted", "Logged cost (public/framework/ai/AISession/AISessionAudit.mjs, after each turn)");
-				costs.forEach(c => div.c("sessions-cost-row card flex gap-50 v-center", () => {
-					small.c("muted", c.at ? age(c.at) : "");
-					small(`${c.last_prompt_input ?? 0} in / ${c.last_prompt_output ?? 0} out`);
-					small.c("sessions-row-title", "$" + (c.last_prompt_usd ?? 0).toFixed(4));
-					small.c("muted", "running total $" + (c.total_usd ?? 0).toFixed(2));
-				}));
+				small.c("muted", "Logged cost, one row per hour, newest first (AISessionAudit.mjs logs each turn)");
+				// One row per hour (newest first), not per turn: turns, tokens, dollars in that hour and the running total at its end.
+				div.c("sessions-cost-table", () => {
+					div.c("sessions-cost-line sessions-cost-headline", () => ["Hour", "Turns", "In tok", "Out tok", "Cost", "Running total"].forEach(h => small.c("muted", h)));
+					AISessionDetail.by_hour(costs).forEach(h => div.c("sessions-cost-line", () => {
+						small(h.label); small(String(h.turns)); small(h.input.toLocaleString()); small(h.output.toLocaleString());
+						small.c("sessions-cost-main", "$" + h.usd.toFixed(2)); small.c("muted", "$" + h.total.toFixed(2));
+					}));
+				});
 				// the latest logged line already holds the whole session's totals, split by token kind
 				const last = costs.at(-1);
-				if (last?.usd_breakdown) div.c("sessions-cost-breakdown card flex gap-50 v-center muted", () => {
+				if (last?.usd_breakdown) div.c("sessions-cost-breakdown card flex gap-50 wrap muted", () => {
 					const b = last.usd_breakdown, t = last.token_totals ?? {};
 					small(`input ${t.input ?? "?"} tok $${b.in.toFixed(4)}`);
 					small(`cache write ${t.cache_write ?? "?"} tok $${b.cache_write.toFixed(4)}`);
@@ -158,12 +163,17 @@ export default class AISessionDetail extends Page {
 					div.c("flex gap-50 v-center", () => {
 						span.c("sessions-tag sessions-tag-" + row.source, src.label);
 						span.c("sessions-row-title", row.tab_title || row.id);
-						if (row.model) small.c("muted", row.model);
+						const cur = AISession.all.get(row.session_id ?? id)?.ix, model = cur?.model ?? row.model;   // the index is rewritten every turn; sessions.json is written once
+						if (model) small.c("muted", model + (cur?.effort ? " · " + cur.effort : ""));
 					});
 				}
 			});
 
 			$trace.empty(() => { if (trace) AISessionTrace.render(trace); });
+			};
+			// the folder name (a card slug, not the id) arrives with the live feed; draw again the moment it does
+			fill();
+			if (!AISession.slugs.has(session_id)){ const off = AISession.of(session_id).on((_, fields) => { if (fields.includes("folder")){ off(); fill(); } }); }
 
 			// Only a Servex agent is in the spend tree; any other row's section just stays empty.
 			AISessionRows.load_spend_tree(url).then(spend => {
@@ -173,6 +183,17 @@ export default class AISessionDetail extends Page {
 				});
 			});
 		});
+	}
+
+	/** The logged turns folded to one row per local hour, newest hour first: turns, tokens, dollars, and the running total at the hour's end. */
+	static by_hour(costs){
+		const hours = new Map();
+		for (const c of costs){
+			const d = c.at ? new Date(c.at) : null, key = d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:00` : "undated";
+			const h = hours.get(key) ?? hours.set(key, { label: key, turns: 0, input: 0, output: 0, usd: 0, total: 0 }).get(key);
+			h.turns++; h.input += c.last_prompt_input ?? 0; h.output += c.last_prompt_output ?? 0; h.usd += c.last_prompt_usd ?? 0; h.total = c.total_usd ?? h.total;
+		}
+		return [...hours.values()].reverse();
 	}
 
 	/** What each kind of record is, in one line (the same words as doc/patterns.md). */

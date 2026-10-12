@@ -162,8 +162,8 @@ export default class AISessionView extends View {
 			$el.empty(() => {
 				if (!d){ p.c("muted", "No Session numbers for this id — it has no Claude transcript, or the dev-server route (GET /ai-logs/<id>/session) is not running."); return; }
 				const mine = AISessionRows.row_of(index, id);
-				div.c("sessions-detail-head flex gap-50 v-center", () => {
-					span.c("sessions-row-title").text(provider_label(d.provider) + usd(mine?.tree_usd ?? d.usd));
+				div.c("sessions-summary flex gap-50 wrap", () => {
+					span.c("sessions-summary-cost").text(provider_label(d.provider) + usd(mine?.tree_usd ?? d.usd));
 					small.c("muted", `own ${usd(d.usd)} · ${runtime(d.wall_ms)} wall, ${runtime(d.active_ms)} active · ${d.messages} ${d.provider === "openrouter" ? "turns" : "messages"}, ${d.prompts} prompts${d.provider === "openrouter" ? " · cost and turns from the Servex registry (OpenRouter)" : ` · ${d.cache_read_pct}% of the $ is cache reads`}`);
 				});
 				// model + effort: the unit that prices a session

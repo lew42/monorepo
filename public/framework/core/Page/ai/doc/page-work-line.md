@@ -10,3 +10,4 @@
 **Differs from [work.md](work.md):** `page_work()` is the opt-in, live, keyword-matched block with agents and parents; this line is on every page and matched by files touched, not keywords. They share no code on purpose: one is a quick signal, the other a detailed view.
 
 **Open:** nothing runs `--work` on a timer yet. Wiring it into Servex's task tick needs a Servex change, so it waits for the next batched restart (`public/framework/ai/2026-10-12/page-context-asks/STATE.md`). Until then, run the command by hand; a stale file only shows older tasks.
+**Not a stream:** the line refetches `tasks.json` per render (so no stale "stalled" or landed tasks), but it does not update while you watch; a stream needs a Servex change.

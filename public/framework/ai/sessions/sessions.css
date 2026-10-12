@@ -195,13 +195,20 @@
 
 	.sessions-prompt, .sessions-cost-row { padding: var(--gap-50); }
 
-	.sessions-full-id { font-family: monospace; font-weight: bold; overflow-wrap: anywhere; }
-	.sessions-template { font-size: 0.8em; margin-inline-start: auto; }
-	.sessions-detail-head { padding-block: var(--gap-35); }
-	/* the conversation fills the main column; the side cards flow in their own column beside it */
-	.sessions-detail-body { gap: var(--gap); }
-	.sessions-detail-aside { align-content: start; }
-	.sessions-conv .chatbox-log { max-height: 80vh; }   /* ext/Chat draws the bubbles; it scrolls inside this box and keeps the newest in view */
+	/* The detail is one panel at a time under a tab strip (AISessionDetail.content): each panel is its own section, full width, so a table is never squeezed. */
+	.sessions-tabs { padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
+	.sessions-panel { padding: var(--gap-50); background: var(--tint); border-radius: var(--radius); }
+	.sessions-panel { display: grid; gap: var(--gap-50); align-content: start; }
+	.sessions-panel > * { margin: 0; }
+	.sessions-panel > :not(:has(*:not(:empty))) { display: none; }   /* a slot with nothing in it (no voice stages, no spawn) takes no space: no blank band above the chat */
+	.sessions-panel[hidden] { display: none; }
+	.sessions-summary-cost { font-weight: 600; white-space: nowrap; }
+	.sessions-cost-line { display: grid; grid-template-columns: minmax(8em, 1.4fr) repeat(5, minmax(4.5em, 1fr)); gap: var(--gap-50); padding-block: var(--gap-35); border-block-end: 1px solid var(--line); align-items: baseline; }
+	.sessions-cost-line > * { text-align: end; overflow-wrap: anywhere; }
+	.sessions-cost-line > :first-child { text-align: start; }
+	.sessions-cost-headline { font-weight: 600; border-block-end-width: 2px; }
+	.sessions-purpose-row { display: grid; grid-template-columns: minmax(10em, 16em) minmax(6em, 1fr) minmax(12em, 18em); gap: var(--gap-50); align-items: center; }
+	.sessions-conv .chatbox-log { height: max(22em, calc(100dvh - 20em)); max-height: none; overflow-y: auto; }   /* the chat fills the view and scrolls inside itself, so the other tabs never push it away; ext/Chat keeps the newest in view */
 
 	/* The two empty gray bands above the white card (the owner's own words,
 	   2026-10-03, sessions-tab-polish: "two faint gray lines between the top
@@ -300,8 +307,7 @@
 	.sessions-flag { color: var(--ink); border-inline-start: 2px solid var(--prim-ink); padding-inline-start: var(--gap-35); }
 	.sessions-tree-row { padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
 	.sessions-tree-usd { margin-inline-start: auto; font-variant-numeric: tabular-nums; }
-	.sessions-purpose-label { flex: 0 0 11em; }
-	.sessions-purpose-bar { flex: 1 1 6em; height: 0.6em; min-width: 0; border-radius: 0.3em; background: linear-gradient(to right, var(--prim-ink) var(--pct, 0%), var(--line) var(--pct, 0%)); }
+		.sessions-purpose-bar { height: 0.6em; min-width: 0; border-radius: 0.3em; background: linear-gradient(to right, var(--prim-ink) var(--pct, 0%), var(--line) var(--pct, 0%)); }
 	.sessions-method { max-width: 70ch; }
 	.sessions-audit-btn { cursor: pointer; padding: var(--gap-35) var(--gap-50); border: 1px solid var(--line); border-radius: 0.4em; user-select: none; }
 	.sessions-audit-btn:hover { border-color: var(--prim-ink); }
