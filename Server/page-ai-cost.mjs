@@ -12,7 +12,7 @@
 // page, so it keeps using that file.
 //
 // usage:
-//   node Server/page-ai-cost.mjs [--root <repo>] [--dry]
+//   node Server/page-ai-cost.mjs [--root <repo>] [--dry] [--work]   (--work: only ai/page-work.json, see "open work" below)
 //
 // What it does, in order:
 //   1. Walks every ai/<date>/<slug>/task.jsonl.
@@ -139,6 +139,45 @@ for (const dir of all_task_dirs()){
 		per_page.set(page_dir, row);
 	}
 }
+
+// ---- open work: every task not yet landed -> the pages it touched or its brief names ----
+// Written to ai/page-work.json, read by core/Page/ai/PageWork.js (a line on every page). The task
+// list comes from ai/tasks.json (Servex/asks/tasks.js derives it); this only adds the page mapping.
+const OPEN_FILE = path.join(AI, "page-work.json");
+function open_work(){
+	let tasks = [];
+	try { tasks = JSON.parse(fs.readFileSync(path.join(AI, "tasks.json"), "utf8")).tasks ?? []; } catch { return null; }
+	const pages = {};
+	for (const t of tasks){
+		if (t.landed) continue;
+		const dir = path.join(root, t.dir);
+		const found = new Map(); // page folder -> how we know ("edited" | "briefed")
+		for (const f of pages_touched(dir)) found.set(f, "edited");
+		if (t.brief && fs.existsSync(path.join(root, t.brief))){
+			const text = fs.readFileSync(path.join(root, t.brief), "utf8");
+			for (const m of text.matchAll(/public\/framework\/[\w\-./]+/g)){
+				if (/\/ai\/\d{4}-\d{2}-\d{2}\//.test(m[0])) continue; // another task dir, not a page
+				const folder = page_folder_for(m[0].replace(/[.,;:)]+$/, ""));
+				if (folder && !found.has(folder)) found.set(folder, "briefed");
+			}
+		}
+		for (const [folder, how] of found){
+			const url = "/" + path.relative(path.join(root, "public"), folder).replace(/\\/g, "/") + "/";
+			(pages[url] ??= []).push({ title: t.title, state: t.state, how, task: "/" + t.dir.replace(/^public\//, "") + "/", agent: t.agent });
+		}
+	}
+	return pages;
+}
+{
+	const pages = open_work();
+	if (pages && !dry){
+		const next = JSON.stringify(pages);
+		let prev = ""; try { prev = JSON.stringify(JSON.parse(fs.readFileSync(OPEN_FILE, "utf8")).pages); } catch {}
+		if (prev !== next) fs.writeFileSync(OPEN_FILE, JSON.stringify({ generated_at: new Date().toISOString(), note: "DERIVED by Server/page-ai-cost.mjs — open (unlanded) tasks per page folder. Never hand-edit.", pages }, null, 1) + "\n");
+		console.log("page-work: " + Object.keys(pages).length + " page(s) with open work" + (prev === next ? " (unchanged)" : " (written)"));
+	}
+}
+if (process.argv.includes("--work")) process.exit(0);   // --work: only the open-work index, no cost lines
 
 // ---- write: one line per page, skipped when unchanged ----
 const r2 = n => Math.round(n * 100) / 100;

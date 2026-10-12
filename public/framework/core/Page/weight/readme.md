@@ -13,6 +13,7 @@ and the "Continued, 4:55 PM" half of [`ai/2026/09/29/familiar-structure-every-na
 
 ## Use
 
+- **`PageWeight`** (`../PageWeight.js`) — one weight for anything: `PageWeight.of(url | {url} | {weight})`, `rank(list, {min})`, `classes(w)`. `page.previews(pages, { weight: true, min: 2 })` draws a card list heaviest first, sized w1 to w3, lighter ones hidden, number on hover (display A, decided: `doc/design.md`).
 - **`weight(page_url)`** (`weight.js`) — `await weight("/framework/core/Page/layout/")` →
   `{ weight, refs, manual }`. Fails soft to `{ weight: 1, refs: [], manual: 0 }` for any page
   with no log at all, including a plain `page.js` page.

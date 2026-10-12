@@ -1,5 +1,6 @@
 import { Page, md, h2, h3, div, a, span, icon } from "/app.js";
 import { weight as page_weight } from "./weight.js";
+import PageWeight from "../PageWeight.js";
 
 /* Weight — the owner's own words, 2026-09-29 (4:45 PM): "let's create a weight system for
    pages... normally... a weight of one... increase that if it becomes heavier... The weight
@@ -135,6 +136,17 @@ export default new Page({
 				});
 			});
 		});
+
+		h2("On any object: Items and cards carry a weight too");
+		md("**The same number works on anything with a `weight`.** `PageWeight.of(target)` takes a url, an object with a `url`, or any object with a numeric `weight` (an Item, a card), and answers 1 when there is none. `page.previews(pages, { weight: true, min: 2 })` draws a page's child cards heaviest first, sizes them w1 to w3, hides any lighter than `min`, and puts the number in the card's hover title. **Display A won** (size scale, number on hover); B's plain number stays in the demo above as the alternative. Why: size is readable at a glance across a wall, a printed number is one more thing to read on every card. [doc/design.md](/framework/core/Page/weight/doc/design.md)");
+		div.c("card pad flow wide", $box => {
+			h3("Plain objects, ranked and filtered (min 2)");
+			const things = [{ name: "Note", weight: 1 }, { name: "Task", weight: 3 }, { name: "Decision", weight: 12 }, { name: "Idea", weight: 2 }, { name: "Scrap", weight: 1 }];
+			PageWeight.rank(things, { min: 2 }).then(rows => $box.append(() => div.c("ux-content-icards", () => rows.forEach(({ target, weight }) =>
+				div.c(`ux-content-icard ${PageWeight.classes(weight)}`, () => { span(target.name); span.c("muted", " weight " + weight); }).attr("title", "weight " + weight)))));
+		});
+		h3("A page's real child cards, weighted (core/Page, min 2)");
+		this.parent?.previews?.(undefined, { weight: true, min: 2 });
 
 		h2("Run it yourself");
 		md("`node Server/page-refs.mjs <from-url> <to-url>` appends one `referenced_by` line to the target's own log — running it twice for the same pair adds one line, not two. `node Server/page-refs.mjs <to-url> --weight <N>` sets the manual number the same way. The log is `weight.jsonl` beside a `page.js` folder, or the page's own `page.jsonl` when it has no `page.js` — [`doc/design.md`](/framework/core/Page/weight/doc/design.md) has the rule and why. `weight(page_url)` (`weight.js`) reads it all back as `{ weight, refs, manual }`. Not built: wiring this into `Page`'s own real navigation menu — a core change that needs the owner's own yes first (`doc/design.md`).");

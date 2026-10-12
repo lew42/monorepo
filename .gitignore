@@ -13,6 +13,7 @@ public/framework/ai/usage.json
 # stalled/budget rows for the Dashboard — regenerated every ~60s by Servex/asks/tasks.js,
 # same reason as usage.json above: machine state, not a record (stalled-and-budgets, 2026-10-02)
 public/framework/ai/tasks.json
+public/framework/ai/page-work.json
 
 # the Sessions tab's own snapshot — written by sessions.mjs from this machine's own
 # .claude/projects/*.jsonl files, same shape as usage.json above: machine state, not

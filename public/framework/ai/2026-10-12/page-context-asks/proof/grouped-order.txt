@@ -1,0 +1,1 @@
+grouped list ranked inside each group (probe6, 2026-10-12): G1 | heavy(12) | light(1) | G2 | mid(3) | light2(1)

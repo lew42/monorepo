@@ -215,6 +215,12 @@
 	/* An app-shaped page (a Doc with tabs, a full-height board) has no reading end to sit at. */
 	.page:has(.doc-title) > .page-ai-cost { display: none; }
 
+	/* "N open tasks touch this page" — PageWork.js, from ai/page-work.json. Same place and size as the cost line; empty = no box. */
+	.page .page-open { display: block; font-size: small; padding: 0 var(--gutter-x, 1rem); }
+	.page .page-open:empty { display: none; }
+	.page-open-line summary { cursor: pointer; color: var(--muted, inherit); }
+	.page-open-rows { display: flex; flex-direction: column; gap: 0.25em; padding: 0.5em 0 var(--gap, 1rem); }
+
 	/* ════ RELATED — a pinned third region: links to other pages ═════════════
 	   `related: "/a/ /b/"` (Page.class.js's `related_aside()`,
 	   `doc/property/related.md`) draws one row per url — the target's own icon
@@ -1461,4 +1467,14 @@
 	     overflowed the wall. It needed a `@media (max-width: 28em)` rule to undo
 	     itself. Two rules for one void: `vision-after/proposal.md` #6. */
 	.page-preview:is(.tall, .big) .page-preview-thumb { --stage: 8 / 10; --stage-max: 24em; }
+
+	/* Weighted previews (`previews(pages, { weight: true })`, PageWeight.js): the size follows the page's weight, the number is on hover (display A). `weighty` = past 10, bigger again. */
+	.page-preview.w1 .page-preview-thumb { --stage-max: 7em; }
+	.page-preview.w3 .page-preview-thumb { --stage-max: 16em; }
+	.page-preview.w1 { font-size: 0.9em; }
+	.page-preview.w3 { font-size: 1.1em; }
+	.page-preview.w3 .page-preview-title { font-weight: 600; }
+	.page-preview.weighty { font-size: 1.3em; }
+	.page-preview.weighty .page-preview-thumb { --stage-max: 22em; }
+	.page-preview[hidden] { display: none; }
 }

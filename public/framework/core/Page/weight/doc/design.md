@@ -87,3 +87,11 @@ section above — turns out to subscribe that folder to the dev server's file wa
 2026-09-29 review. `weight.js` and `Server/page-refs.mjs` both try `weight.jsonl` first and fall
 back to `page.jsonl` only for a folder with no `page.js` of its own — a real page.jsonl PAGE
 (`core/Page/jsonl/` itself) keeps its weight lines where its content already is.
+
+## Weight on any object, and how it is shown (2026-10-12, asks.md #7)
+
+**One class, `PageWeight` (`core/Page/PageWeight.js`).** `PageWeight.of(target)` takes a url, an object with a `url`, or any object with a numeric `weight` (an Item, a card, a plain record) and answers 1 when there is none. `rank(targets, {min})` sorts heaviest first and drops anything under `min`. `classes(w)` gives `w1` to `w3` (the same tiers as the ux/Content icards), plus `weighty` past 10. `page.previews(pages, { weight: true, min })` applies all of it to a page's child cards; without `weight` nothing changes.
+
+**Display: A, a size scale with the number on hover (decided).** The alternative, B, prints the plain number on every card. A wins because size reads across a whole wall at a glance and costs no extra words on each card; B stays in the demo at `/framework/core/Page/weight/` for comparison. The reasoning is a default, not a law: if the owner prefers B, change the one CSS block at the end of `Page.css` and the `title` line in `PageWeight.apply`.
+
+**Not done:** a manual weight line for an Item or card (they carry the number as a property; there is no `weight.jsonl` beside an object that is not a page).
