@@ -6,6 +6,7 @@
 - [Item](./Item/) — one node of a persistent document tree, no DOM; base for anything that nests and saves
 - [Layout](./Layout/) — thirty browsable page arrangements, each proven at seven widths
 - [List](./List/) — the ordered collection behind `item.items`; an Item detail
+- [Property](./Property/) — one live value; `bind(fn)` returns its own unbind (used by Template)
 - [Page](./Page/) — a folder with `page.js`: a url, content and children
 - [Session](./Session/) — a record in its own dated folder with a `page.jsonl`; `AISession` extends it
 - [Router](./Router/) — turns a url change into the DOM state; for anyone building pages or links
