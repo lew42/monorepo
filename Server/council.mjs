@@ -126,6 +126,8 @@ export function isOwnerPrompt(p, agentSessions, sinceAt) {
 	if (text.startsWith("You were stopped last night before landing.")) return false;
 	if (text.startsWith("You are on duty. The next message will be the owner's words.")) return false;
 	if (/^Card \d{4}\/\d{2}\/\d{2}.*— its whole log/i.test(text)) return false;
+	// the Whisper sample clip the voice walk scripts feed as the mic (JFK); 2026-10-12 it ran 8 empty passes
+	if (/ask not what your country can do for you/i.test(text)) return false;
 
 	return true;
 }
