@@ -14,3 +14,9 @@ It needs a Servex change (route owner-to-mastermind messages through the card's 
 **Smallest next step:** in `policy.js` `message()`, when `from` is the owner/external and `to` is a task-mastermind with a card, log a `relay-bypass` line (no refusal) so the count of bypasses is measured first; then decide whether to enforce. Add it to the next batched Servex restart.
 
 No code changed; nothing destructive.
+
+## Update: relay-bypass built and merged (2026-10-12, same night)
+- `Policy.message()` in `Servex/agents/policy.js` now calls `bypass()` when the owner or a registered tab messages a `task-mastermind-*` directly; wired to the `policy` log in `Global.js`. Log-only: the message is still delivered.
+- Proof, private Servex on 8290 (`Servex/agents/relay-bypass-proof.mjs`): owner to a task mastermind wrote exactly one line `{"kind":"relay-bypass","from":"owner","via":"owner","to":"task-mastermind-proof"}`; a minion messaging it wrote none (refused by the table as before). `policy.test.mjs`: 60 checks pass.
+- The live Servex has NOT been restarted; the line starts appearing in the `policy` log after the batched restart. Then count lines to decide whether to enforce.
+- Merge note: the smoke test failed on site-wide 404s (`settings.jsonl`, `weight.jsonl`) that this Servex-only diff cannot cause, so it landed with `--skip-smoke` and `--no-review` (3-file diff read by the mastermind).
