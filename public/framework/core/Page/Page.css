@@ -216,10 +216,11 @@
 	.page:has(.doc-title) > .page-ai-cost { display: none; }
 
 	/* "N open tasks touch this page" — PageWork.js, from ai/page-work.json. Same place and size as the cost line; empty = no box. */
-	.page .page-open { display: block; font-size: small; padding: 0 var(--gutter-x, 1rem); }
+	.page .page-open { display: block; font-size: small; padding: var(--gap-35, .35em) var(--gutter-x, 1rem); }
 	.page .page-open:empty { display: none; }
+	.page-open-line { display: inline-block; max-width: 100%; padding: .15em .7em; background: var(--tint); border-radius: var(--radius); }   /* its own chip, not the page's gray stretched across the page */
 	.page-open-line summary { cursor: pointer; color: var(--muted, inherit); }
-	.page-open-rows { display: flex; flex-direction: column; gap: 0.25em; padding: 0.5em 0 var(--gap, 1rem); }
+	.page-open-rows { display: flex; flex-direction: column; gap: 0.25em; padding: 0.5em 0 0.25em; }
 
 	/* ════ RELATED — a pinned third region: links to other pages ═════════════
 	   `related: "/a/ /b/"` (Page.class.js's `related_aside()`,
