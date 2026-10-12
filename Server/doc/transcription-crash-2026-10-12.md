@@ -30,12 +30,18 @@ So the loop that reproduces dictation and reload passes on the dev server. What 
 
 ## After
 
-Same measure across a live Servex restart: [after](#after-numbers) (filled in once the fix is live).
+Same dictate + reload loop (`--against http://127.0.0.1:3104`, 2.5 min) run across a live `restart_servex` with the fix loaded:
+
+| | Before (old code) | After |
+|---|---|---|
+| Whisper on a Servex restart | killed, started again (`whisper.jsonl`: "started" at 12:56:03 and 12:58:57, each a restart) | **kept**: pid 41348 started 13:03:19, "adopted" at 13:04:23 by the new Servex, no model reload |
+| Dictations during the restart | fail until Whisper is back (2–14 s) | 85 sent, **0 failed** (p95 346 ms) |
+| Page reloads during the restart | | 50, **0 failed** |
+
+The before-side of this table comes from the logs, not the loop: two attempts to run the loop through a restart on the old code were killed with the restart itself (the loop was started from a shell Servex took down), and the 10-minute loop on the private servers is the dev-server control (0 failures).
+
+The pid file is `procs/whisper.json` in the Servex home; `stop_server whisper` still kills it by pid.
 
 ## Reproduce
 
 `node Server/TranscribeLoop.mjs --minutes 10 [--churn]` runs its own private dev server and Whisper on free ports, then writes `Server/logs/transcribe-loop-*.json` (every request, every CPU/RAM/handle sample). `--against <origin>` runs the same two loops against a site that is already up. Switches the private run needs: `WHISPER_PORT` (Whisper.js) and `NO_PAGEFILES` (PageFiles.js, so the run does not rewrite `files.jsonl`).
-
-## After numbers
-
-_pending_
