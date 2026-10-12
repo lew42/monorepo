@@ -68,4 +68,7 @@
 
 @layer site {
 	.refine-toolbar, .refine-foot { padding-inline: .6em; }
+	/* The Whisper log grows with every chunk; uncapped it covered the Refine button on a phone (voice-verify walk, 2026-10-12). */
+	.refine-foot { max-block-size: 30vh; overflow: auto; }
+	@media (max-width: 700px) { .refine-foot { position: static; } }
 }
