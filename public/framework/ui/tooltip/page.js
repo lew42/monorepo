@@ -45,6 +45,7 @@ const context = () => div.c("pad flex v gap", () => {
 }).style("--gap", "calc(var(--gap) * 0.4)");
 
 export default new Page({
+	specimen: tooltip,
 	meta: import.meta,
 	title: "Tooltip",
 	description: "Three spans and a stylesheet — the CSS is the whole component.",

@@ -29,6 +29,7 @@ const context = () => div.c("pad flex v gap", () => {
 }).style("--gap", "calc(var(--gap) * 0.4)");
 
 export default new Page({
+	specimen: crumbs,
 	meta: import.meta,
 	title: "Breadcrumbs",
 	description: "A template, not a function — a trail derives from where you are, not from typed pairs.",

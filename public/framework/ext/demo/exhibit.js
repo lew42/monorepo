@@ -99,6 +99,8 @@ function variants(page){
 demo.page = (name, fn, config) => ({
 	name,
 
+	specimen: fn,
+
 	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", fn)); },
 
 	content(){

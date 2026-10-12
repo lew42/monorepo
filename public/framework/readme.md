@@ -5,6 +5,7 @@
 - [core](./core/) — the seven classes under every page (View, Page, Router, App, Sidebar, Item, List)
 - [ext](./ext/) — opt-in addons; core never imports them
 - [ui](./ui/) — the template tier: components, one page each
+- [library](./library/) — every ui and Figma item in three columns: siblings, the chosen one at full size, its variants
 - [ux](./ux/) — the behavior tier: classes you can extend
 - [styles](./styles/) — the CSS strategy: four layers, one vocabulary
 - [web](/web/) — the guide tier, live (it lives at `public/web/`, not in this folder; no readme here)

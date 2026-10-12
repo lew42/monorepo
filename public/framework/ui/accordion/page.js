@@ -32,6 +32,7 @@ const markers = () => div.c("surface flex v", () => {
 });
 
 export default new Page({
+	specimen: faq,
 	meta: import.meta,
 	title: "Accordion",
 	description: "One at a time, with no JS — the exclusivity is an attribute you can see.",

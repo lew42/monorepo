@@ -24,6 +24,7 @@ const with_icons = () => div.c("grid gap auto", () => [
 }).style("--gap", "calc(var(--gap) * 0.1)"))).style("--column", "10em");
 
 export default new Page({
+	specimen: stats,
 	meta: import.meta,
 	title: "Stat tiles",
 	description: "A template, not a function — a card wall with one token retuned.",

@@ -18,6 +18,7 @@ const composed = () => div.c("flex wrap v-center gap", () =>
 		}).style("--gap", "calc(var(--gap) * 0.35)"))).style("--gap", "calc(var(--gap) * 0.4)");
 
 export default new Page({
+	specimen: badges,
 	meta: import.meta,
 	title: "Badges",
 	description: "A template plus four variant classes — the class name is the component.",

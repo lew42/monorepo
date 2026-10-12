@@ -27,6 +27,7 @@ const action = () => div.c("ui-alert card flex gap v-center accent", () => {
 });
 
 export default new Page({
+	specimen: alert,
 	meta: import.meta,
 	title: "Alerts",
 	description: "A template plus six lines of CSS — a coloured edge that is one token.",

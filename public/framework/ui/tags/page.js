@@ -25,6 +25,7 @@ const plain = () => div.c("flex v gap", () => {
 }).style("--gap", "calc(var(--gap) * 0.4)");
 
 export default new Page({
+	specimen: tags,
 	meta: import.meta,
 	title: "Tag input",
 	description: "A template, plus the library's one opt-out of a base rule.",

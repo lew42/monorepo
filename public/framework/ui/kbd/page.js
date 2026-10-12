@@ -27,6 +27,7 @@ const bare = () => div.c("flex v gap", () => {
 }).style("--gap", "calc(var(--gap) * 0.8)");
 
 export default new Page({
+	specimen: list,
 	meta: import.meta,
 	title: "Keys",
 	description: "keys() is the one function here — the box and the row are markup.",
