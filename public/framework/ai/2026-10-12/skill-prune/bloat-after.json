@@ -1,0 +1,216 @@
+{
+ "claude_md_words": 3870,
+ "claude_md_tokens_est": 5418,
+ "skill_descriptions_words_every_session": 1888,
+ "readme_chain_words": [
+  559,
+  510,
+  1183
+ ],
+ "skills_count": 32,
+ "total_skill_words": 33082,
+ "skills": {
+  "auditor": {
+   "words": 782,
+   "description_words": 83,
+   "tokens_est": 1095
+  },
+  "check-claude-usage": {
+   "words": 748,
+   "description_words": 71,
+   "tokens_est": 1047
+  },
+  "clarity": {
+   "words": 756,
+   "description_words": 62,
+   "tokens_est": 1058
+  },
+  "code": {
+   "words": 794,
+   "description_words": 67,
+   "tokens_est": 1112
+  },
+  "color": {
+   "words": 99,
+   "description_words": 19,
+   "tokens_est": 139
+  },
+  "content": {
+   "words": 269,
+   "description_words": 42,
+   "tokens_est": 377
+  },
+  "css": {
+   "words": 222,
+   "description_words": 63,
+   "tokens_est": 311
+  },
+  "decide": {
+   "words": 639,
+   "description_words": 62,
+   "tokens_est": 895
+  },
+  "documentation": {
+   "words": 1230,
+   "description_words": 58,
+   "tokens_est": 1722
+  },
+  "every-prompt": {
+   "words": 678,
+   "description_words": 82,
+   "tokens_est": 949
+  },
+  "finish-task": {
+   "words": 1413,
+   "description_words": 71,
+   "tokens_est": 1978
+  },
+  "fork-claude-session": {
+   "words": 2938,
+   "description_words": 74,
+   "tokens_est": 4113
+  },
+  "layout": {
+   "words": 136,
+   "description_words": 37,
+   "tokens_est": 190
+  },
+  "log-assistant": {
+   "words": 565,
+   "description_words": 77,
+   "tokens_est": 791
+  },
+  "master-assistant": {
+   "words": 533,
+   "description_words": 70,
+   "tokens_est": 746
+  },
+  "mastermind": {
+   "words": 3672,
+   "description_words": 58,
+   "tokens_est": 5141
+  },
+  "minion": {
+   "words": 3114,
+   "description_words": 77,
+   "tokens_est": 4360
+  },
+  "naming": {
+   "words": 377,
+   "description_words": 41,
+   "tokens_est": 528
+  },
+  "navigation": {
+   "words": 108,
+   "description_words": 29,
+   "tokens_est": 151
+  },
+  "new-css-class": {
+   "words": 86,
+   "description_words": 49,
+   "tokens_est": 120
+  },
+  "new-page": {
+   "words": 752,
+   "description_words": 37,
+   "tokens_est": 1053
+  },
+  "new-task": {
+   "words": 1158,
+   "description_words": 92,
+   "tokens_est": 1621
+  },
+  "openrouter": {
+   "words": 52,
+   "description_words": 30,
+   "tokens_est": 73
+  },
+  "page": {
+   "words": 154,
+   "description_words": 58,
+   "tokens_est": 216
+  },
+  "research": {
+   "words": 1464,
+   "description_words": 74,
+   "tokens_est": 2050
+  },
+  "review": {
+   "words": 921,
+   "description_words": 57,
+   "tokens_est": 1289
+  },
+  "servex-mastermind": {
+   "words": 1811,
+   "description_words": 61,
+   "tokens_est": 2535
+  },
+  "skill-improvement": {
+   "words": 337,
+   "description_words": 54,
+   "tokens_est": 472
+  },
+  "sub-mastermind": {
+   "words": 2478,
+   "description_words": 78,
+   "tokens_est": 3469
+  },
+  "system-architect": {
+   "words": 584,
+   "description_words": 61,
+   "tokens_est": 818
+  },
+  "ui": {
+   "words": 97,
+   "description_words": 18,
+   "tokens_est": 136
+  },
+  "ui-test": {
+   "words": 4115,
+   "description_words": 76,
+   "tokens_est": 5761
+  }
+ },
+ "duplicates": [
+  {
+   "skill": "code",
+   "skill_sentence": "write classes, not function bags (the owner, 20261008; claude.md)",
+   "claude_sentence": "write classes, not function bags (the owner, 20261008): code is objectoriented."
+  },
+  {
+   "skill": "code",
+   "skill_sentence": "a page is a class that extends page; a view extends view. page.js stays tiny: import the class, instantiate it.",
+   "claude_sentence": "a page.js stays tiny: import the class and instantiate it."
+  },
+  {
+   "skill": "finish-task",
+   "skill_sentence": "nothing crawls: a page exists only once its parent's children: names it or the page it",
+   "claude_sentence": "nothing crawls — a page exists once its parent's children: names it."
+  },
+  {
+   "skill": "new-task",
+   "skill_sentence": "⚠ scratch (probes, transcripts, intermediate json) goes in the session scratchpad, not the repo — and that",
+   "claude_sentence": "scratch — scripts, transcripts, intermediate json — goes in the session scratchpad, not the repo"
+  }
+ ],
+ "retired_mentions": {
+  "mastermind-servex": {
+   "clarity": 1,
+   "servex-mastermind": 4,
+   "system-architect": 1
+  },
+  "ai2/": {
+   "finish-task": 1
+  },
+  "council": {
+   "fork-claude-session": 1
+  },
+  "persona": {
+   "fork-claude-session": 1
+  },
+  "ai/v/3": {
+   "master-assistant": 1,
+   "mastermind": 1
+  }
+ }
+}
