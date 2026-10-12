@@ -16,7 +16,7 @@ A delta is applied key by key:
 - **A key naming a method calls it**: `{"content":{"add":{…}}}` calls `add` on the content list.
 - **A key that is an id walks into that item**: `{"c1":{"text":"new"}}` changes the card `c1`.
 
-The tool stamps `id`, `by` and `ts` for you, and answers with the ids it made. Every open tab redraws within about a second, with no reload.
+The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`: `ids` lists every id it made. Every open tab redraws within about a second, with no reload.
 
 ## To do X, call `page_set` with delta Z
 
@@ -62,6 +62,10 @@ The tool stamps `id`, `by` and `ts` for you, and answers with the ids it made. E
 
 ## The live proof
 
-Not run yet. A fresh Haiku agent, given only the tool descriptions, builds a heading, three cards and a subpage on its own session page while a headless browser times each card's appearance. Results go here.
+Built 2026-10-12 (`Servex/agents/Subpages.js`, `page_tools.js`, `ai/AISession/AISessionDetail.js`). A headless Chromium on a private worktree server, writing through the real `page_tools`, saw on a session page (`/framework/ai/sessions/<id>/`): a `part-heading` after 39 ms, a `part-text` after 12 ms, a `part-card` and its in-place update after 14 ms, with no reload; a subpage made by `pages.add` opened at `…/<id>/notes/` and survived a reload (about 0.4 s). Probe and screenshots: `ai/2026-10-12/page-ai-api/build/` (`probe.mjs`, `session.png`, `notes.png`).
+
+How the session page draws it: `AISessionDetail.Parts` keeps the `part-*` items of the session's `page.jsonl` and draws them with the same Items and Views a `Page` content list uses; a `{"file":"notes/page.jsonl"}` line makes `AISessionDetail.child("notes")` load that folder from the session's own dated folder and show it at the session route. Not yet run: the fresh-Haiku test below.
+
+The "fresh Haiku builds a heading, three cards and a subpage from the descriptions alone" test is still to do.
 
 Related: [content.md](content.md) (what content is), [page-tool-2026-10-09.md](page-tool-2026-10-09.md) (the first version of the tool), [jsonl.md](jsonl.md) (the wire format).
