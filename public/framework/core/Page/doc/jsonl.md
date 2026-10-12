@@ -161,6 +161,8 @@ is the nesting"): `page_call(path, ["k2","answers"], "add", {...})` writes
 each hop is a property name (`"content"`) or a child's id, found by scanning the lists a node
 owns, never a slash- or dot-path. `page_add`/`page_set` are sugar for the two common calls.
 
+**Now (2026-10-12):** `page_set` is the one write tool (it also makes subpages); `page_call`, `page_add` and `page_log` below are its aliases. The current model: [ai-api.md](ai-api.md).
+
 - **`page_call(path, target, method, args)`** — the general tool: one verb at one target.
 - **`page_add(path, item, {after})`** — sugar for `page_call(path, ["content"], "add", item)`.
 - **`page_set(path, target, delta)`** — sugar for a plain nested delta (no verb at all — a

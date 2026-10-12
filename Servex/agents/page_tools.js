@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import Subpages from "./Subpages.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -64,7 +65,12 @@ async function resolve(url, target = []){
 	const hit = SESSION_ROUTE.exec(String(url ?? ""));
 	if (hit && !/^\d{4}$/.test(hit[1])){
 		const file = await session_file(hit[1]);
-		if (file) return { file, target: [...hit[2].split("/").filter(Boolean), ...(target ?? [])] };
+		if (file){
+			// A real subpage folder (made by pages.add) wins; a segment with no folder is still a tab target.
+			let dir = path.dirname(file), rest = hit[2].split("/").filter(Boolean), at = file;
+			while (rest.length && fs.existsSync(path.join(dir, rest[0], "page.jsonl"))){ dir = path.join(dir, rest[0]); at = path.join(dir, "page.jsonl"); rest = rest.slice(1); }
+			return { file: at, target: [...rest, ...(target ?? [])] };
+		}
 	}
 	const file = resolve_file(url);
 	return file ? { file, target: target ?? [] } : null;
@@ -128,12 +134,17 @@ function size_of(file){
 
 /* Every `add` in a delta, at any depth, gets an id if it brought none — the agent never
  * invents ids (the owner, 2026-10-09: "the tool stamps those"). */
-function stamp_ids(value){
-	if (Array.isArray(value)) return value.map(stamp_ids);
+function stamp_ids(value, ids){
+	if (Array.isArray(value)) return value.map(v => stamp_ids(v, ids));
 	if (!is_plain(value)) return value;
 	const out = {};
-	for (const [key, v] of Object.entries(value))
-		out[key] = key === "add" && is_plain(v) ? { id: v.id ?? crypto.randomUUID(), ...stamp_ids(v) } : stamp_ids(v);
+	for (const [key, v] of Object.entries(value)){
+		if (key === "add" && is_plain(v)){
+			const id = v.id ?? crypto.randomUUID();
+			ids?.push(id);
+			out[key] = { id, ...stamp_ids(v, ids) };
+		} else out[key] = stamp_ids(v, ids);
+	}
 	return out;
 }
 
@@ -242,7 +253,7 @@ function render_item(item){
 	return Object.keys(data).length ? JSON.stringify(data) : "(empty)";
 }
 
-function render_markdown({ page, items }){
+function render_markdown({ page, items }, subpages){
 	const lines = [];
 	lines.push(`# ${page.title ?? "(untitled)"}`);
 	if (page.description) lines.push(page.description);
@@ -254,7 +265,12 @@ function render_markdown({ page, items }){
 	lines.push("");
 	lines.push("## Content");
 	if (!items.length) lines.push("(empty)");
-	else for (const item of items) lines.push(`- [${item.id}] ${render_item(item)}`);
+	else for (const item of items) lines.push(`- [${item.id}] (${item.type ?? "item"}) ${render_item(item)}`);
+
+	if (subpages?.length){
+		lines.push("", "## Subpages");
+		for (const { name, url } of subpages) lines.push(`- ${name} ${url}`);
+	}
 
 	return lines.join("\n");
 }
@@ -268,19 +284,35 @@ function render_item_html(item){
 	const body = (item.type === "Question" || ("text" in item && "answer" in item))
 		? `<dl><dt>Q</dt><dd>${esc(item.text)}</dd><dt>A</dt><dd>${esc(item.answer ?? "…")}</dd></dl>`
 		: `<p>${esc(render_item(item))}</p>`;
-	return `<li data-id="${esc(item.id)}">${body}</li>`;
+	return `<li data-id="${esc(item.id)}" data-type="${esc(item.type ?? "item")}">${body}</li>`;
 }
 
 // The page's own CONTENT, as HTML — no nav, no tab strip, no sidebar: this never drew any
 // chrome to begin with, so "without navigation chrome" costs nothing extra here. Structure
 // an agent can parse (an id per `<li>`), not a styled page.
-function render_html({ page, items }){
+function render_html({ page, items }, subpages){
 	const lines = [`<h1>${esc(page.title ?? "(untitled)")}</h1>`];
 	if (page.description) lines.push(`<p>${esc(page.description)}</p>`);
 	if (page.log?.text) lines.push(`<p class="muted">doing: ${esc(page.log.text)}</p>`);
 
 	lines.push(items.length ? `<ul>${items.map(render_item_html).join("")}</ul>` : "<p>(empty)</p>");
+	if (subpages?.length) lines.push(`<ul class="subpages">${subpages.map(s => `<li><a href="${esc(s.url)}">${esc(s.name)}</a></li>`).join("")}</ul>`);
 	return lines.join("\n");
+}
+
+/* `{"pages":{"add":{name,title,icon,description}, "rename":{name,to}, "remove":"name"}}`:
+ * folders sit beside the page's own page.jsonl, so a session page's subpage goes in the
+ * session's own folder. Only on the page itself (no target): a subpage is a folder. */
+function apply_pages(at, pages, url){
+	if (at.target.length) return { why: "`pages` works on the page itself, not inside a target" };
+	if (!is_plain(pages)) return { why: "`pages` must be {add|rename|remove: …}" };
+	const subs = new Subpages(path.dirname(at.file)), base = String(url ?? "").replace(/\/?$/, "/"), done = [];
+	try {
+		for (const spec of [].concat(pages.add ?? [])){ subs.add(spec); done.push({ added: spec.name, url: base + spec.name + "/" }); }
+		for (const spec of [].concat(pages.rename ?? [])){ subs.rename(spec); done.push({ renamed: spec.name, to: spec.to, url: base + spec.to + "/" }); }
+		for (const name of [].concat(pages.remove ?? [])){ subs.remove(name); done.push({ removed: name }); }
+	} catch (e){ return { why: e.message, done }; }
+	return { done };
 }
 
 /* ---------- the six tools ---------- */
@@ -291,12 +323,7 @@ export function page_tools(){
 	return [
 
 		tool("page_call",
-			"The general tool: ONE verb call at ONE target, written as the canonical nested line"
-			+ " (2026-10-03, \"no at, no dots: the path is the nesting\") — `page_call(path, [\"k2\",\"answers\"],"
-			+ " \"add\", {...})` writes `{\"k2\":{\"answers\":{\"add\":{...}}}}`, meaning \"k2 → its answers list →"
-			+ " add\". `target` is an array of hops (property names or ids), never a slash- or dot-path. Reach"
-			+ " for `page_add`/`page_set` for the two common cases; reach for this one for anything else — a"
-			+ " deeper list, `remove`/`move`/`order`, or a method on a specific item.",
+			"Alias of page_set: one method call at one target, `page_call(path, [\"k2\",\"answers\"], \"add\", {…})` = `{\"k2\":{\"answers\":{\"add\":{…}}}}`. Prefer page_set (core/Page/doc/ai-api.md).",
 			{ path: PAGE_PATH, target: TARGET,
 				method: { type: "string", description: "The verb to call at the target — a method on whatever `target` resolves to: `add`, `remove`, `move`, `order`, or any method the item's own class defines." },
 				args: { description: "The method's one argument — an object for `add`, a string id for `remove`, etc. If it's a plain object, `by` and `ts` are stamped onto it." } },
@@ -314,9 +341,7 @@ export function page_tools(){
 			}),
 
 		tool("page_add",
-			"Add ONE item to a live page's own content list — sugar for `page_call(path, [\"content\"], \"add\","
-			+ " item)`. One line appended to page.jsonl, picked up by every open tab with no reload. Stamps a"
-			+ " fresh id (unless `item.id` is given), the calling agent as `by`, and the time as `ts`.",
+			"Alias of page_set `{\"content\":{\"add\":item}}`: add one card (type part-heading | part-text | part-card). Prefer page_set (core/Page/doc/ai-api.md).",
 			{ path: PAGE_PATH,
 				item: { type: "object", description: "The item's own fields — whatever the content list draws: `title`, `text`, `type` (a registered class name, e.g. \"Question\", with its own `text`/`answer`), or any plain data. `id` is optional; one is made for you." },
 				after: { type: "string", description: "The id to land after. Omit to append at the end; `null` to land first." } },
@@ -335,16 +360,18 @@ export function page_tools(){
 			}),
 
 		tool("page_set",
-			"THE PAGE TOOL: a path and a raw JSON delta, appended as one line to that page's log; every open tab"
-			+ " redraws with no reload. Send only the path and the delta: `by`, `ts` and every missing `id` are"
-			+ " stamped for you. The delta goes to the target's own `set()`: a plain key is data, a key naming a"
-			+ " method calls it. A page accepts (core/Page/doc/architecture.md): `{\"title\":\"New\"}`;"
-			+ " a layout word `{\"navigation\":\"tabs\"}` (also width, arrangement, surface, background, type_size);"
-			+ " a new TAB `{\"tab\":{\"name\":\"notes\",\"title\":\"Notes\",\"content\":\"text\"}}` (turns tabs on if the"
-			+ " page had none); an item `{\"content\":{\"add\":{\"title\":\"…\",\"text\":\"…\"}}}`; an item inside a tab"
-			+ " `{\"notes\":{\"content\":{\"add\":{…}}}}`. `target` (optional) nests the delta under a child or item"
-			+ " id: `page_set(path, [\"k2\"], {\"answer\":\"42\"})`. Answers with the log's new size; `large: true`"
-			+ " past 1 MB.",
+			"THE PAGE TOOL: append one JSON delta to a page's log; every open tab redraws within a second, no reload."
+			+ " `path` = the page's url (omit = your own session page). `by`, `ts` and every missing `id` are stamped"
+			+ " for you, and the answer lists them as `ids` (use one to change that card later). THREE KEY RULES:"
+			+ " a plain key is a property `{\"title\":\"Notes\",\"description\":\"…\"}` (also the layout words navigation,"
+			+ " width, arrangement, surface, background, type_size); a key naming a method calls it"
+			+ " `{\"content\":{\"add\":{…}}}` (also remove \"id\", move {id,after}, order [ids]); a key that is a card id"
+			+ " walks into that card `{\"<id>\":{\"text\":\"new\"}}`. CARD TYPES, added with content.add: heading"
+			+ " `{\"type\":\"part-heading\",\"text\":\"…\"}`, paragraph `{\"type\":\"part-text\",\"text\":\"markdown\"}`, card"
+			+ " `{\"type\":\"part-card\",\"title\":\"…\",\"text\":\"…\"}` (`after:\"<id>\"` places it). A SUBPAGE (own folder"
+			+ " and url, made on disk for you): `{\"pages\":{\"add\":{\"name\":\"notes\",\"title\":\"Notes\",\"icon\":\"📝\","
+			+ " \"description\":\"One line.\"}}}`, also `rename:{name,to}` and `remove:\"name\"` (moved aside, never deleted);"
+			+ " write on it with `path` = its url. Look first with page_read. Full model: /framework/core/Page/doc/ai-api.md.",
 			{ path: PAGE_PATH, target: TARGET,
 				delta: { type: "object", description: "The fields to change, e.g. {\"answer\": \"42\"} or {\"title\": \"Renamed\"}." } },
 			["delta"],
@@ -353,18 +380,22 @@ export function page_tools(){
 				const at = await resolve(url, target);
 				if (!at) return not_a_page(url);
 
-				const stamped = { ...stamp_ids(delta), by: ctx.caller ?? "agent", ts: now() };
-				const line = nest(at.target, stamped);
+				// `pages` is the one key the tool handles itself: a folder is made on disk (Subpages.js).
+				const { pages, ...rest } = is_plain(delta) ? delta : {};
+				const made = pages === undefined ? null : apply_pages(at, pages, url);
+				if (made?.why) return JSON.stringify({ ok: false, why: made.why, done: made.done });
 
-				const size = write_line(at.file, line);
-				return JSON.stringify({ ok: true, line, size });
+				const ids = [];
+				let line = null, size;
+				if (pages === undefined || Object.keys(rest).length){
+					line = nest(at.target, { ...stamp_ids(pages === undefined ? delta : rest, ids), by: ctx.caller ?? "agent", ts: now() });
+					size = write_line(at.file, line);
+				} else size = size_of(at.file);
+				return JSON.stringify({ ok: true, ids, line, size, ...(made ? { pages: made.done } : {}) });
 			}),
 
 		tool("page_log",
-			"A \"now doing X\" line — post BEFORE a long step so the owner can watch the page grow"
-			+ " while you work, not just at the end (CLAUDE.md, \"Pages are live\"). Overwrites the"
-			+ " page's own `log` field each time — this is a status line, not a running list; use"
-			+ " `page_add` for anything that should stay on the page.",
+			"Alias of page_set `{\"log\":{\"text\":…}}`: the \"now doing X\" line, overwritten each time; post it BEFORE a long step (core/Page/doc/ai-api.md).",
 			{ path: PAGE_PATH,
 				text: { type: "string", description: "What you're doing right now, in a few words, e.g. \"researching X\"." } },
 			["text"],
@@ -379,12 +410,7 @@ export function page_tools(){
 			}),
 
 		tool("page_read",
-			"The page's CURRENT state, computed fresh from page.jsonl every time — never a second,"
-			+ " stored copy (CLAUDE.md law 7). Replays the log into title, the `doing:` line if one is"
-			+ " set, and every content item with its id, a question card drawn as \"Q: … / A: …\"."
-			+ " Default `format` is markdown — the fewest tokens, read this before deciding what to add"
-			+ " or change next. `format: \"html\"` gives the same replay as the page's own content HTML,"
-			+ " no navigation chrome, when you need the structure (each item's `<li data-id>`) instead.",
+			"The page's CURRENT state, replayed fresh from page.jsonl: title, the `doing:` line, every card as `[id] (type) text`, and its subpages with their urls. Read it before you change anything; `format:\"html\"` gives the cards' markup (core/Page/doc/ai-api.md).",
 			{ path: PAGE_PATH,
 				format: { type: "string", enum: ["markdown", "html"], description: "\"markdown\" (default, fewest tokens) or \"html\" (the content's own markup, no nav chrome)." } },
 			[],
@@ -396,7 +422,9 @@ export function page_tools(){
 				if (!fs.existsSync(file)) return JSON.stringify({ ok: false, why: `no page.jsonl at "${url}" yet` });
 
 				const state = replay(parse_lines(file));
-				return format === "html" ? render_html(state) : render_markdown(state);
+				const base = String(url ?? "").replace(/\/?$/, "/");
+				const subpages = Subpages.listed(file).map(name => ({ name, url: base + name + "/" }));
+				return format === "html" ? render_html(state, subpages) : render_markdown(state, subpages);
 			}),
 	];
 }
