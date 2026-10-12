@@ -7,3 +7,4 @@
 {"log":{"at":"2026-10-12T15:20:43-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"action":{"at":"2026-10-12T15:33:57-05:00","did":"edit","files":["public/framework/ai/2026-10-12/data-grid/sessions-perf/probe-redraw.mjs"]}}
 {"log":{"at":"2026-10-12T15:35:45-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"data-grid\\\"\"\n}","chase":"escalated"}}
+{"action":{"at":"2026-10-12T16:54:14-05:00","did":"edit","files":["public/framework/ai/2026-10-12/data-grid/sessions-perf/probe-scroll.mjs"]}}

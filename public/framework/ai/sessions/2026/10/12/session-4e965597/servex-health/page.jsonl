@@ -14,3 +14,5 @@
 {"inbox":{"id":"n-ke2w0b06","from":"servex-heartbeat","text":"mastermind-servex-health its agent is not running: its task servex-health has landed; not revived.","at":"2026-10-12T13:07:22.657-05:00"}}
 {"inbox":{"id":"n-ntnvg1zo","from":"servex-heartbeat","text":"mastermind-servex-health its agent is not running: its task servex-health has landed; not revived.","at":"2026-10-12T14:43:28.540-05:00"}}
 {"inbox":{"id":"n-og2du2nd","from":"servex-heartbeat","text":"mastermind-servex-health its agent is not running: its task servex-health has landed; not revived.","at":"2026-10-12T15:00:53.778-05:00"}}
+{"inbox":{"id":"n-rzo92e1n","from":"servex-heartbeat","text":"mastermind-servex-health its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-12T16:40:07.430-05:00"}}
+{"inbox":{"id":"n-sekjat9b","from":"servex-heartbeat","text":"mastermind-servex-health its agent is not running, and was already revived 2 times this hour (2 today). Servex could not fix it; please look.","at":"2026-10-12T16:51:42.454-05:00"}}

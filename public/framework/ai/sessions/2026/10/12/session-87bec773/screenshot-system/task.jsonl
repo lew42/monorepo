@@ -45,3 +45,4 @@
 {"review":{"answer":{"n":5,"reply":"noted: the Figma png sits in ext/Figma/data/<key>/shots/ (the track.mjs store), not a screenshots/ folder"}}}
 {"review":{"answer":{"n":6,"reply":"noted: the builder shot the Shots page at 400 and 1920 headless with no errors"}}}
 {"review":{"answer":{"n":7,"reply":"noted: covered by builds A and B, already merged"}}}
+{"log":{"at":"2026-10-12T17:21:23-05:00","msg":"skill: finish-task"}}
