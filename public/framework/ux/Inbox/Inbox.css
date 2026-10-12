@@ -407,7 +407,18 @@
 		flex: 1 1 auto;
 		min-width: 0;
 		overflow-y: auto;
+		/* Thin, and invisible until the rail is hovered: only the colour changes, so nothing jumps. */
+		scrollbar-width: thin;
+		scrollbar-color: transparent transparent;
 	}
+
+	.inbox-rows:hover {
+		scrollbar-color: var(--line) transparent;
+	}
+
+	.inbox-rows::-webkit-scrollbar { width: 8px; }
+	.inbox-rows::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; }
+	.inbox-rows:hover::-webkit-scrollbar-thumb { background: var(--line); }
 
 	/* ── a row ──
 	   A ROW IS AN ANCHOR — a real link to its page, which is what makes Back, a reload and
@@ -421,6 +432,7 @@
 		color: inherit;
 		text-decoration: none;
 		cursor: pointer;
+		background: var(--surface);   /* white on the rail's gray ground */
 	}
 
 	.inbox-row:hover {
