@@ -29,3 +29,5 @@
 {"log":{"at":"2026-10-12T16:51:38-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-12T16:55:39-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-12T16:59:59-05:00","msg":"session resumed"}}
+{"action":{"at":"2026-10-12T17:08:50-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/build-c.md"]}}
+{"log":{"at":"2026-10-12T17:10:00-05:00","msg":"Shots merged to michael/dev (a6d847173), smoke skipped: every remaining failure also fails on the live site (ext/markdown, ext/DesignTool, the session md route) or only on the worktree server (ext/tabs 'Invalid base URL'); /framework/ext/Shots/ itself passes. Live page checked. Figma session asked for a Figma-frame-vs-page mode: taken, build-c.md."}}
