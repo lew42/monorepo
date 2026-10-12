@@ -14,24 +14,24 @@ export default class PageLinks {
 	// A url to navigate to, or nothing when the page showed the link itself. The default navigates;
 	// in a columns tree, a doc from the page's own folder opens as the next column.
 	open(link){
-		const page = this.page, file = this.constructor.md_file(link);
+		const page = this.page, file = this.page.constructor.md_file(link);
 		if (!file) return link.pathname;
 
 		const dir = page.md_dir(), rel = dir && file.startsWith(dir) && file.slice(dir.length);
-		if (!rel || !page.column_host()) return this.constructor.md_url(file);
+		if (!rel || !page.column_host()) return this.page.constructor.md_url(file);
 
 		// A doc beside me becomes my child, so it opens as the very next column.
 		// One in a subfolder goes through my md/, which is a column of its own.
 		if (rel.includes("/")) return page.url + "md/" + rel.replace(/\.md$/i, "/");
 
 		const name = rel.slice(0, -3);
-		if (!page.children.has(name)) page.add(name, this.constructor.md_page(file));
+		if (!page.children.has(name)) page.add(name, this.page.constructor.md_page(file));
 		return page.url + name + "/";
 	}
 
 	// Draw the doc inside the page with a way back, at its own address `<page url>md/<doc>/`. (doc/decisions.md)
 	swap(link){
-		const page = this.page, file = this.constructor.md_file(link);
+		const page = this.page, file = this.page.constructor.md_file(link);
 		if (!file) return link.pathname;
 
 		page.swap_close?.();
@@ -68,7 +68,7 @@ export default class PageLinks {
 	// Where a swapped doc lives: the page's own md/ when the doc is in its folder, else its module's.
 	swap_url(file){
 		const dir = this.page.md_dir();
-		return dir && file.startsWith(dir) ? this.page.url + "md/" + file.slice(dir.length).replace(/\.md$/i, "/") : this.constructor.md_url(file);
+		return dir && file.startsWith(dir) ? this.page.url + "md/" + file.slice(dir.length).replace(/\.md$/i, "/") : this.page.constructor.md_url(file);
 	}
 
 	// The page's own folder's .md files, as links: the Router hands each click back to the page.
