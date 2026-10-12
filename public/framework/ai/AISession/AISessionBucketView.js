@@ -22,6 +22,6 @@ export default class AISessionBucketView extends View {
 		const b = this.row, name = AISessionBucketView.LABELS[b.key] ?? b.key;
 		span.c("sessions-fold", this.open ? "▾" : "▸");
 		span.c("sessions-row-title", `${b.n.toLocaleString()} ${name} session${b.n === 1 ? "" : "s"}`);
-		small.c("muted", `${AISessionView.usd(b.usd)} · routine, one row · ${this.open ? "hide" : "show"}`);
+		small.c("muted", `${AISessionView.usd(b.usd)} total · click to ${this.open ? "hide" : "show"} them`);
 	}
 }

@@ -115,20 +115,29 @@ export default class AISessionsPage extends Page {
 		this.reshape();
 	}
 
-	/** The grid's sort hook: routine sessions roll up into one bucket row each (on top), then the default or header order,
-	 * then children nested under their parent (collapsed until opened), flattened for the grid. Doc: ai/sessions/doc/buckets.md */
+	/** The grid's sort hook: routine sessions roll up into one bucket row each (on top, whatever the sort; an open bucket's
+	 * sessions sit right under it), then the default or header order, then children nested under their parent (collapsed
+	 * until opened), flattened for the grid. Doc: ai/sessions/doc/buckets.md */
 	arrange(rows, sort){
 		const id_of = r => r.session_id || r.id;
-		this.buckets ??= new AISessionBuckets([], { of: r => AISession.all.get(id_of(r))?.ix ?? null, key: id_of });   // a row not in the index yet is never hidden
+		// Only a day-snapshot record carries `agent` and `folder`, which the kind rules read; any other row is never hidden.
+		this.buckets ??= new AISessionBuckets([], { of: r => { const ix = AISession.all.get(id_of(r))?.ix; return ix && "folder" in ix ? ix : null; }, key: id_of });
 		this.open_kinds ??= new Set();
 		this.buckets.sync(rows);   // only new, changed or gone rows touch their buckets
-		const kept = this.buckets.rollup(rows, { expand: this.open_kinds }).filter(r => !r.bucket);
-		const heads = Object.entries(this.buckets.index.kind).filter(([k, b]) => this.buckets.routine.has(k) && b.n)
-			.sort((x, y) => y[1].n - x[1].n).map(([k, b]) => ({ bucket: "kind", key: k, id: "bucket-" + k, ...b }));
+		const kept = [], held = new Map();   // kind -> its rows
+		for (const r of rows){
+			const ix = this.buckets.of(r), k = ix && AISessionBuckets.kind_of(ix);
+			if (k && this.buckets.routine.has(k)) (held.get(k) ?? held.set(k, []).get(k)).push(r); else kept.push(r);
+		}
+		const heads = [...held.keys()].map(k => ({ bucket: "kind", key: k, id: "bucket-" + k, ...this.buckets.index.kind[k] })).sort((x, y) => y.n - x.n);
 		const { top, kids_of } = AISessionRows.nest(AISessionRows.sort_rows(kept, sort));
 		this.open_ids ??= new Set();
 		this.nests = new Map();
 		const out = [];
+		for (const h of heads){
+			out.push(h);
+			if (this.open_kinds.has(h.key)) for (const r of AISessionRows.sort_rows(held.get(h.key), sort)){ this.nests.set(r, { depth: 1, kids: 0 }); out.push(r); }
+		}
 		const place = (r, depth, seen) => {
 			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = this.open_ids.has(id_of(r));
 			this.nests.set(r, { depth, kids: kids.length, open, toggle: () => { open ? this.open_ids.delete(id_of(r)) : this.open_ids.add(id_of(r)); this.grid.apply(false); } });
@@ -136,7 +145,7 @@ export default class AISessionsPage extends Page {
 			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
 		};
 		top.forEach(r => place(r, 0, new Set([id_of(r)])));
-		return [...heads, ...out];
+		return out;
 	}
 
 	/** A bucket row: a click shows or hides the routine sessions it holds. */

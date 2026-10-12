@@ -25,14 +25,18 @@ Nothing is deleted: `rollup(rows, { expand })` only swaps routine rows for their
 ## In the Sessions grid (2026-10-12)
 ![The five routine buckets on top of the Sessions table](/framework/ai/2026-10-12/data-grid/sessions-perf/buckets-table-1920.png)
 
-`AISessionsPage.arrange()` (the grid's sort hook) keeps one `AISessionBuckets`, keyed by the grid's row id, reading each session's index record (`of: r => AISession.all.get(id).ix`; a row not indexed yet is never hidden). Each redraw calls `sync(rows)`, so only a new, changed or gone session touches its buckets, then `rollup()`. The routine buckets draw on top as one row each (`AISessionBucketView`, a card in the rail); a click shows or hides the sessions inside it. Totals follow the filters, since the buckets hold the filtered rows.
+`AISessionsPage.arrange()` (the grid's sort hook) keeps one `AISessionBuckets`, keyed by the grid's row id, reading each session's day-snapshot record (`of: r => AISession.all.get(id).ix`). A row with no such record (not indexed yet, or known only from a month index, which has no `agent` or `folder`) is never hidden. Each redraw calls `sync(rows)`, so only a new, changed or gone session touches its buckets.
+
+- The routine buckets draw on top as one row each, whatever column is sorted (`AISessionBucketView`, a card in the rail).
+- A click opens a bucket: its sessions appear right under it, in the current sort, indented like child sessions. Click again to fold them.
+- Totals follow the filters, since the buckets hold the filtered rows. The grid's own row count would count a bucket as one row; Sessions hides that count and shows its own "sessions shown" line.
 
 Measured, same scripts, worktree, 6,044 sessions in the window ([redraw.jsonl](/framework/ai/2026-10-12/data-grid/sessions-perf/redraw.jsonl), [results.jsonl](/framework/ai/2026-10-12/data-grid/sessions-perf/results.jsonl)):
 
 | | before | after |
 |---|---|---|
-| Rows the grid sorts, nests and pages | 5,810 | 324 (5 bucket rows + 319) |
-| One full redraw (`DataGrid.apply`, median of 6) | 36–39 ms | 25–27 ms |
+| Rows the grid sorts, nests and pages | 5,810 | 347 (5 bucket rows + 342) |
+| One full redraw (`DataGrid.apply`, median of 6) | 36–39 ms | 25–29 ms |
 | Load: first row, long tasks, DOM nodes (4 widths) | ~850 ms, 1 × 50 ms, 2,702 | ~850 ms, 0–1 × 50 ms, 2,628 |
 
 Load barely moves because the grid already draws only the first 50 rows; the win is every redraw after it.
