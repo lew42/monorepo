@@ -42,14 +42,10 @@ export default class SkillUsage {
 		}
 		if (skills.length) this.sessions_with_skill++;
 		const has = n => skills.includes(n);
-		const opened = (re) => re.test(txt);
-		for (const [k, re, sk] of [
-			["new_task", /new-task\b|"assign":\{/, "new-task"],
-			["finish_task", /finish-task\b|"landed_at"/, "finish-task"],
-			["new_page", /create_page|page\.jsonl/, "new-page"],
-		]) {
-			if (opened(re)) { this.triggers[k].opened++; if (has(sk)) this.triggers[k].loaded++; }
-		}
+		// a trigger counts only when the session really did the thing (a tool_use line), not when prompt text mentions it
+		const did = { new_task: /"name":"Bash"[^\n]*new-task/, finish_task: /"name":"Bash"[^\n]*finish-task|"name":"mcp__servex__close_task"/, new_page: /"name":"mcp__servex__create_page"/ };
+		const sk = { new_task: "new-task", finish_task: "finish-task", new_page: "new-page" };
+		for (const k in did) if (did[k].test(txt)) { this.triggers[k].opened++; if (has(sk[k])) this.triggers[k].loaded++; }
 		if (/You are Servex agent/.test(txt.slice(0, 200000))) { this.triggers.minion.opened++; if (has("minion") || has("mastermind") || has("servex-mastermind")) this.triggers.minion.loaded++; }
 	}
 	run() {

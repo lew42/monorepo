@@ -49,16 +49,16 @@
  ],
  "triggers": {
   "new_task": {
-   "opened": 7892,
-   "loaded": 185
+   "opened": 592,
+   "loaded": 177
   },
   "finish_task": {
-   "opened": 7893,
-   "loaded": 306
+   "opened": 671,
+   "loaded": 266
   },
   "new_page": {
-   "opened": 7291,
-   "loaded": 48
+   "opened": 353,
+   "loaded": 16
   },
   "minion": {
    "opened": 2166,
