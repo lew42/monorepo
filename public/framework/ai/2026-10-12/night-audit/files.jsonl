@@ -5,3 +5,7 @@
 {"file":"refs-missing.json"}
 {"file":"refs.mjs"}
 {"file":"load.mjs"}
+{"file":"load.json"}
+{"file":"peek.mjs"}
+{"file":"probe2.mjs"}
+{"file":"report.md"}

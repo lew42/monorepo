@@ -1,0 +1,969 @@
+[
+ {
+  "task": "ai-classes-asks",
+  "landed": true,
+  "title": "AI code as classes: every census bag under ai/ converted",
+  "at": "2026-10-12T05:12:35-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "Classes, not function bags: merges d50fc40bb and 396f10190, rename f704c9389; proof: `node --check` clean, `/framework/ai/`, `/framework/ai/system/`, `/framework/ai/asks/` and `/framework/ai2/live/` load with no page errors"
+   },
+   {
+    "ticked": false,
+    "text": "Loose helpers still in `rail/inbox.js`, `cards/card.js`, `rail/live.js` (dozens of callers each) and the inline/card/detail preview levels with live-property class cards: smallest next steps in [STATE](/framework/ai/2026-10-12/ai-classes-asks/STATE.md)"
+   }
+  ],
+  "commits": [
+   "d50fc40bb",
+   "396f10190",
+   "f704c9389"
+  ],
+  "commitsOnDev": [
+   "d50fc40bb",
+   "396f10190",
+   "f704c9389"
+  ],
+  "outcome": "**Every function bag the census listed under `framework/ai/` is now a class**, one per commit, merged to michael/dev: `Faces`, the nine `cards/` classes, the `rail/` classes, `AskFold`, `AskRows`, `PageTypes`, `SystemClasses`, `HealthDevbar` and `AIOverview`.\n\n- [x] Classes, not function bags: merges d50fc40bb and 396f10190, rename f704c9389; proof: `node --check` clean, `/framework/ai/`, `/framework/ai/system/`, `/framework/ai/asks/` and `/framework/ai2/live/` load with no page errors\n- [ ] Loose helpers still in `rail/inbox.js`, `cards/card.js`, `rail/live.js` (dozens of callers each) and the inline/card/detail preview levels with live-property class cards: smallest next steps in [STATE](/framework/ai/2026-10-12/ai-classes-asks/STATE.md)\n\nAsks entry updated in [asks.md](/framework/ai/doc/asks.md). Review: self-read diffs; three runtime breaks from the merge overlap were found by a scan and fixed."
+ },
+ {
+  "task": "asks-by-module",
+  "landed": true,
+  "title": "Asks by module: page and AI asks merged and checked",
+  "at": "2026-10-12T03:13:49-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "Owner asks collected by script: 4,497 prompts, 1,142 candidates, 336 Haiku tags, `collect.mjs` to `gen.mjs` rerunnable"
+   },
+   {
+    "ticked": true,
+    "text": "Merged and checked: 20 clusters with counts, each verified by Sonnet; Haiku quote accuracy 77.8%, 4.8% agent-brief leaks"
+   },
+   {
+    "ticked": true,
+    "text": "Docs: [page asks](/framework/core/Page/doc/asks.md) (7 open, 2 done), [AI asks](/framework/ai/doc/asks.md) (10 open, 1 done), linked from both readmes"
+   },
+   {
+    "ticked": true,
+    "text": "Routed through the asks ledger (direct messages were refused): page-content-unify, page-ai-api, voice-to-session-page"
+   },
+   {
+    "ticked": true,
+    "text": "Docs review verdict in [STATE.md](/framework/ai/2026-10-12/asks-by-module/STATE.md): readmes current, three still over 100 lines; one dead Servex path fixed"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Page and AI asks are merged, checked against the code and linked from the readmes.**\n\n- [x] Owner asks collected by script: 4,497 prompts, 1,142 candidates, 336 Haiku tags, `collect.mjs` to `gen.mjs` rerunnable\n- [x] Merged and checked: 20 clusters with counts, each verified by Sonnet; Haiku quote accuracy 77.8%, 4.8% agent-brief leaks\n- [x] Docs: [page asks](/framework/core/Page/doc/asks.md) (7 open, 2 done), [AI asks](/framework/ai/doc/asks.md) (10 open, 1 done), linked from both readmes\n- [x] Routed through the asks ledger (direct messages were refused): page-content-unify, page-ai-api, voice-to-session-page\n- [x] Docs review verdict in [STATE.md](/framework/ai/2026-10-12/asks-by-module/STATE.md): readmes current, three still over 100 lines; one dead Servex path fixed\n\nLeft: 58 one-off tags unclustered; transcription is the next module."
+ },
+ {
+  "task": "asks-transcription",
+  "landed": true,
+  "title": "Dictate: merged transcription asks, two small builds",
+  "at": "2026-10-12T06:37:20-05:00",
+  "alreadyBuilt": false,
+  "points": [],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Transcription asks merged:** [Dictate asks doc](/framework/ux/Dictate/doc/asks.md), 19 clusters (7 open, 4 partly, 8 done), linked from the [Dictate readme](/framework/ux/Dictate/). Built tonight: Refine keeps the latest 19,000 characters of a long prompt; the voice strip re-checks Whisper when the tab is visible again. Voice walk re-run: desktop and phone pass, structure/refined/cards 7 s and 10.7 s after Refine (baseline 6.6 s). Left: model policy, prompt-to-board cards, VS Code path, Whisper status stream (need a Servex restart or the owner's call). Detail: [STATE](/framework/ai/2026-10-12/asks-transcription/STATE.md)."
+ },
+ {
+  "task": "claude-md-consolidate",
+  "landed": true,
+  "title": "CLAUDE.md: 11% shorter, zero loss proven",
+  "at": "2026-10-12T02:23:23-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "nothing useful lost: script proves 207 of 207 sentences (161 kept, 24 moved, 22 archived), [manifest.md](/framework/ai/2026-10-12/claude-md-consolidate/md/manifest/)"
+   },
+   {
+    "ticked": true,
+    "text": "moved text linked from [ai/doc](/framework/ai/doc/) and four module docs; originals in [claude-md-archive.md](/framework/ai/doc/claude-md-archive.md)"
+   },
+   {
+    "ticked": true,
+    "text": "fresh reviewer: 8 drifts found, 7 fixed, 1 deliberate cut (conflict with Never destructive), [report](/framework/ai/2026-10-12/claude-md-consolidate/review/md/report/)"
+   },
+   {
+    "ticked": true,
+    "text": "the owner's live edit to How to respond was merged in, not overwritten"
+   }
+  ],
+  "commits": [
+   "f52c16d86"
+  ],
+  "commitsOnDev": [
+   "f52c16d86"
+  ],
+  "outcome": "**CLAUDE.md consolidated** (merge f52c16d86), 3,870 → 3,436 words. Owner page: [review.md](/framework/ai/2026-10-12/claude-md-consolidate/md/review/)\n\n- [x] nothing useful lost: script proves 207 of 207 sentences (161 kept, 24 moved, 22 archived), [manifest.md](/framework/ai/2026-10-12/claude-md-consolidate/md/manifest/)\n- [x] moved text linked from [ai/doc](/framework/ai/doc/) and four module docs; originals in [claude-md-archive.md](/framework/ai/doc/claude-md-archive.md)\n- [x] fresh reviewer: 8 drifts found, 7 fixed, 1 deliberate cut (conflict with Never destructive), [report](/framework/ai/2026-10-12/claude-md-consolidate/review/md/report/)\n- [x] the owner's live edit to How to respond was merged in, not overwritten\n- left: landed with --no-review and --skip-smoke (docs only, own reviewer used)"
+ },
+ {
+  "task": "docs-handover",
+  "landed": true,
+  "title": "Docs and handover: asks #5/#6 closed, morning handover written",
+  "at": "2026-10-12T11:01:55.420Z",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "mastermind role runs `bypassPermissions`: `Servex/agents/roles.js`, commit 96f5ec3c2"
+   },
+   {
+    "ticked": true,
+    "text": "handover current, every night task computed from its log: [night.md](/framework/ai/2026-10-12/docs-handover/night.md), [handover.md](/framework/ai/handover.md)"
+   },
+   {
+    "ticked": true,
+    "text": "readme audit by script (links, length): one stale link fixed; `core/Page/generator/readme.md` is 282 lines and still needs trimming"
+   },
+   {
+    "ticked": false,
+    "text": "pace stays advisory by earlier decision; page-split-2 and refine-asks were still running when written"
+   }
+  ],
+  "commits": [
+   "96f5ec3c2"
+  ],
+  "commitsOnDev": [
+   "96f5ec3c2"
+  ],
+  "outcome": "**Handover rewritten and the two open asks closed; one Servex restart makes it live.** [STATE](/framework/ai/2026-10-12/docs-handover/STATE.md)\n\n- [x] mastermind role runs `bypassPermissions`: `Servex/agents/roles.js`, commit 96f5ec3c2\n- [x] handover current, every night task computed from its log: [night.md](/framework/ai/2026-10-12/docs-handover/night.md), [handover.md](/framework/ai/handover.md)\n- [x] readme audit by script (links, length): one stale link fixed; `core/Page/generator/readme.md` is 282 lines and still needs trimming\n- [ ] pace stays advisory by earlier decision; page-split-2 and refine-asks were still running when written"
+ },
+ {
+  "task": "feedback-council",
+  "landed": false
+ },
+ {
+  "task": "figma-phase2",
+  "landed": true,
+  "title": "Figma: capture proven, mapping table, Page 8 rebuilt",
+  "at": "2026-10-12T01:29:52-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "layout findings fixed on [Figma](/framework/ext/Figma/) and [Palette](/framework/ext/Figma/palette/): layout-check at 4 widths"
+   },
+   {
+    "ticked": true,
+    "text": "capture proven at 400/1200/1920: [capture.md](/framework/ext/Figma/doc/capture.md) (flex survives as auto layout, one breakpoint per capture)"
+   },
+   {
+    "ticked": true,
+    "text": "mapping table: [figma-to-framework.md](/framework/ext/Figma/doc/figma-to-framework.md)"
+   },
+   {
+    "ticked": true,
+    "text": "one more design: Page 8 as [Auto layout](/framework/ext/Figma/autolayout/), Haiku first try ([hits and misses](/framework/ext/Figma/doc/haiku-builds.md))"
+   },
+   {
+    "ticked": true,
+    "text": "owner feedback: nav, nine sections declared, Built page + Compare links, thumbnails, click redraw, visibility check in merge gate"
+   }
+  ],
+  "commits": [
+   "8af2af4f7"
+  ],
+  "commitsOnDev": [
+   "8af2af4f7"
+  ],
+  "outcome": "**Figma phase 2 landed** (merge 8af2af4f7). Summary: [STATE.md](/framework/ai/2026-10-12/figma-phase2/STATE.md)\n\n- [x] layout findings fixed on [Figma](/framework/ext/Figma/) and [Palette](/framework/ext/Figma/palette/): layout-check at 4 widths\n- [x] capture proven at 400/1200/1920: [capture.md](/framework/ext/Figma/doc/capture.md) (flex survives as auto layout, one breakpoint per capture)\n- [x] mapping table: [figma-to-framework.md](/framework/ext/Figma/doc/figma-to-framework.md)\n- [x] one more design: Page 8 as [Auto layout](/framework/ext/Figma/autolayout/), Haiku first try ([hits and misses](/framework/ext/Figma/doc/haiku-builds.md))\n- [x] owner feedback: nav, nine sections declared, Built page + Compare links, thumbnails, click redraw, visibility check in merge gate\n\nLeft: Figma grid and variant rows unconfirmed; merged with --no-review and --skip-smoke (baseline 404 noise)."
+ },
+ {
+  "task": "inbox-asks",
+  "landed": true,
+  "title": "Inbox: blocking/review/fyi chips",
+  "at": "2026-10-12T04:32:26-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "three chips beside \"Needs you\": `Rail.category_chips()` in `core/Page/ext/Inbox/Rail.js`, url `?cat=`"
+   },
+   {
+    "ticked": true,
+    "text": "bands by score: blocking 97+, review 90-96, fyi under 90 (fyi bypasses the floor)"
+   },
+   {
+    "ticked": true,
+    "text": "shot at 1200, 1920, 3440 with a chip pressed; 400 hides the rail on phones as before"
+   },
+   {
+    "ticked": false,
+    "text": "lowercase rail/cards files: still its own scripted task"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Built the plain blocking / review / fyi chips in the Inbox.**\n\n- [x] three chips beside \"Needs you\": `Rail.category_chips()` in `core/Page/ext/Inbox/Rail.js`, url `?cat=`\n- [x] bands by score: blocking 97+, review 90-96, fyi under 90 (fyi bypasses the floor)\n- [x] shot at 1200, 1920, 3440 with a chip pressed; 400 hides the rail on phones as before\n- [ ] lowercase rail/cards files: still its own scripted task\n\nSee [STATE.md](/framework/ai/2026-10-12/inbox-asks/STATE.md)."
+ },
+ {
+  "task": "openrouter-gap",
+  "landed": false
+ },
+ {
+  "task": "owner-inbox",
+  "landed": true,
+  "title": "Owner inbox: one owner_note path pinned to the top",
+  "at": "2026-10-12T02:21:10-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "note reaches the owner and stays: score 100, no decay, first row; headless at 400/1200/1920/3440, no errors ([STATE.md](/framework/ai/2026-10-12/owner-inbox/STATE.md))"
+   },
+   {
+    "ticked": true,
+    "text": "one path, no second inbox: `owner_note` MCP tool and `POST /owner_note` write a normal card"
+   },
+   {
+    "ticked": true,
+    "text": "wired: mastermind and sub-mastermind skills, landing hook posts a decision digest"
+   },
+   {
+    "ticked": true,
+    "text": "live: after the Servex restart a real note posted and was created"
+   },
+   {
+    "ticked": false,
+    "text": "on-landing digest not yet seen firing on a real landing"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**owner_note landed.** Agents now tell the owner through one tool; the note sits first in the AI Inbox until the owner opens it.\n\n- [x] note reaches the owner and stays: score 100, no decay, first row; headless at 400/1200/1920/3440, no errors ([STATE.md](/framework/ai/2026-10-12/owner-inbox/STATE.md))\n- [x] one path, no second inbox: `owner_note` MCP tool and `POST /owner_note` write a normal card\n- [x] wired: mastermind and sub-mastermind skills, landing hook posts a decision digest\n- [x] live: after the Servex restart a real note posted and was created\n- [ ] on-landing digest not yet seen firing on a real landing"
+ },
+ {
+  "task": "page-ai-api",
+  "landed": true,
+  "title": "Page AI API: one tool writes pages, cards and subpages",
+  "at": "2026-10-12T03:19:42-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "model + \"to do X, send delta Z\" table, linked from the core/Page and Servex agents readmes"
+   },
+   {
+    "ticked": true,
+    "text": "fewest tools: `page_set` + `page_read`; old names are aliases pointing at ai-api.md"
+   },
+   {
+    "ticked": true,
+    "text": "subpage create/rename/remove persists (`Subpages.js`; remove moves aside to `_removed/`)"
+   },
+   {
+    "ticked": true,
+    "text": "fresh Haiku built a heading, 3 cards and a subpage: 0 wrong deltas, seen in 21–111 ms ([proof](proof/sub-seen.png))"
+   },
+   {
+    "ticked": true,
+    "text": "layout at 400/1200/1920/3440: no overflow ([shots](proof/layout/))"
+   },
+   {
+    "ticked": true,
+    "text": "merged (1be2831e3, 4463ab0bf), one Servex restart"
+   }
+  ],
+  "commits": [
+   "1be2831e3",
+   "4463ab0bf"
+  ],
+  "commitsOnDev": [
+   "1be2831e3",
+   "4463ab0bf"
+  ],
+  "outcome": "**Agents now build pages with one tool, `page_set`, and a fresh Haiku did it first try.** Model and table: [ai-api.md](/framework/core/Page/doc/ai-api.md).\n\n- [x] model + \"to do X, send delta Z\" table, linked from the core/Page and Servex agents readmes\n- [x] fewest tools: `page_set` + `page_read`; old names are aliases pointing at ai-api.md\n- [x] subpage create/rename/remove persists (`Subpages.js`; remove moves aside to `_removed/`)\n- [x] fresh Haiku built a heading, 3 cards and a subpage: 0 wrong deltas, seen in 21–111 ms ([proof](proof/sub-seen.png))\n- [x] layout at 400/1200/1920/3440: no overflow ([shots](proof/layout/))\n- [x] merged (1be2831e3, 4463ab0bf), one Servex restart\n\nReview: reviewed: 4 fixed, 1 declined, 3 noted ([review.md](review.md)). Left: session parts fold into Page content after the split plan ([STATE.md](STATE.md))."
+ },
+ {
+  "task": "page-columns-asks",
+  "landed": true,
+  "title": "Page columns: layout-columns-spacing ask checked",
+  "at": "2026-10-12T04:34:43-05:00",
+  "alreadyBuilt": true,
+  "points": [
+   {
+    "ticked": true,
+    "text": "N even columns auto-computed: `Page.class.js:1551,1736`"
+   },
+   {
+    "ticked": true,
+    "text": "sometimes fill: `fill` word and `fit:\"round\"`"
+   },
+   {
+    "ticked": true,
+    "text": "no padding gaps: padding-check clean at 400/1200/1920/3440"
+   },
+   {
+    "ticked": true,
+    "text": "mobile tabs: `ext/tabs/tabs.css:288`"
+   },
+   {
+    "ticked": false,
+    "text": "switch /imagine/ to even columns: owner's call, next step in STATE.md"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**All open points were already built; ticked with proof, no code changed.**\n\n- [x] N even columns auto-computed: `Page.class.js:1551,1736`\n- [x] sometimes fill: `fill` word and `fit:\"round\"`\n- [x] no padding gaps: padding-check clean at 400/1200/1920/3440\n- [x] mobile tabs: `ext/tabs/tabs.css:288`\n- [ ] switch /imagine/ to even columns: owner's call, next step in STATE.md\n\nDetail: [STATE.md](/framework/ai/2026-10-12/page-columns-asks/STATE.md)"
+ },
+ {
+  "task": "page-content-unify",
+  "landed": true,
+  "title": "Page content: pages, content, PagePart — one way each",
+  "at": "2026-10-12T07:33:17.677Z",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "items draw through their class View: parts page renders at 400/1200/1920/3440, no overflow"
+   },
+   {
+    "ticked": true,
+    "text": "Part → PagePart (PageHeading/PageText/PageCard), shims at old names, PartsPage retired"
+   },
+   {
+    "ticked": true,
+    "text": "content.md: three concepts + deprecation plan with caller counts by script (255 .children files, 309 string children, 1,096 content() pages)"
+   },
+   {
+    "ticked": true,
+    "text": "readmes updated"
+   },
+   {
+    "ticked": false,
+    "text": "migrating .children and the overloaded content: not done, needs the owner (major surgery)"
+   }
+  ],
+  "commits": [
+   "c1b8bfe6f"
+  ],
+  "commitsOnDev": [
+   "c1b8bfe6f"
+  ],
+  "outcome": "**Page content simplified** (merge c1b8bfe6f). Plan and counts: [content.md](/framework/core/Page/doc/content.md); state: [STATE.md](/framework/ai/2026-10-12/page-content-unify/md/STATE/)\n\n- [x] items draw through their class View: parts page renders at 400/1200/1920/3440, no overflow\n- [x] Part → PagePart (PageHeading/PageText/PageCard), shims at old names, PartsPage retired\n- [x] content.md: three concepts + deprecation plan with caller counts by script (255 .children files, 309 string children, 1,096 content() pages)\n- [x] readmes updated\n- [ ] migrating .children and the overloaded content: not done, needs the owner (major surgery)"
+ },
+ {
+  "task": "page-context-asks",
+  "landed": true,
+  "title": "Page: open-work line on every page, weight on any object",
+  "at": "2026-10-12T05:52:52-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "#6 open tasks per page: a \"N open tasks on this page\" line on every Page and Doc page, from computed `ai/page-work.json` — [page-work-line.md](/framework/core/Page/ai/doc/page-work-line.md), [STATE.md](/framework/ai/2026-10-12/page-context-asks/STATE.md)"
+   },
+   {
+    "ticked": true,
+    "text": "#7 weight on any object, card size and filters: `PageWeight` and `page.previews(pages, {weight, min})`, display A chosen — [weight/](/framework/core/Page/weight/), proof in [proof/](/framework/ai/2026-10-12/page-context-asks/proof/)"
+   },
+   {
+    "ticked": true,
+    "text": "asks.md #6 and #7 updated with commit links — [asks.md](/framework/core/Page/doc/asks.md)"
+   },
+   {
+    "ticked": false,
+    "text": "the line refreshes only when `page-ai-cost.mjs --work` is run: a Servex tick plus one batched restart is the next step"
+   },
+   {
+    "ticked": false,
+    "text": "an Item or card has a `weight` property but no weight.jsonl of its own"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Every page now shows its open tasks, and any object can carry a weight.**\n\n- [x] #6 open tasks per page: a \"N open tasks on this page\" line on every Page and Doc page, from computed `ai/page-work.json` — [page-work-line.md](/framework/core/Page/ai/doc/page-work-line.md), [STATE.md](/framework/ai/2026-10-12/page-context-asks/STATE.md)\n- [x] #7 weight on any object, card size and filters: `PageWeight` and `page.previews(pages, {weight, min})`, display A chosen — [weight/](/framework/core/Page/weight/), proof in [proof/](/framework/ai/2026-10-12/page-context-asks/proof/)\n- [x] asks.md #6 and #7 updated with commit links — [asks.md](/framework/core/Page/doc/asks.md)\n- [ ] the line refreshes only when `page-ai-cost.mjs --work` is run: a Servex tick plus one batched restart is the next step\n- [ ] an Item or card has a `weight` property but no weight.jsonl of its own"
+ },
+ {
+  "task": "page-slice",
+  "landed": true,
+  "title": "Page parts: a page body as a streamed list of views",
+  "at": "2026-10-12T01:22:52-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "Class architecture shown on the site: /framework/core/Page/parts/doc/architecture.md"
+   },
+   {
+    "ticked": true,
+    "text": "One page renders heading, text and card: /framework/core/Page/parts/"
+   },
+   {
+    "ticked": true,
+    "text": "Add, move and remove append lines; replay shown in headless shots (a true two-tab check was not run; it relies on the existing Page.Reader stream)"
+   },
+   {
+    "ticked": true,
+    "text": "A real readme rendered through it: /framework/core/Page/parts/example/"
+   },
+   {
+    "ticked": true,
+    "text": "Decisions and the alternative recorded in doc/architecture.md, linked from the Page and AI readmes"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**A page body is now a list of heading, text and card parts streamed from its own page.jsonl.**\n\n- [x] Class architecture shown on the site: /framework/core/Page/parts/doc/architecture.md\n- [x] One page renders heading, text and card: /framework/core/Page/parts/\n- [x] Add, move and remove append lines; replay shown in headless shots (a true two-tab check was not run; it relies on the existing Page.Reader stream)\n- [x] A real readme rendered through it: /framework/core/Page/parts/example/\n- [x] Decisions and the alternative recorded in doc/architecture.md, linked from the Page and AI readmes\n\nLeft: templates as a part-slot kind; widths 400/1920/3440 not checked; merged with smoke test skipped (baseline 404s). Details: STATE.md."
+ },
+ {
+  "task": "page-split-1",
+  "landed": true,
+  "title": "Page.class.js: steps 1-4 of the split (2270 to 1315 lines)",
+  "at": "2026-10-12T05:20:48-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "comments as one-line pointers: 772 lines moved to `core/Page/doc/` by a script that checks every line landed (0 missing)"
+   },
+   {
+    "ticked": true,
+    "text": "`Reader`, `Listing`, `Prefs`, `PageChildren` in their own files, same names"
+   },
+   {
+    "ticked": true,
+    "text": "`Related.js` (`related_aside()` stays as the facade)"
+   },
+   {
+    "ticked": true,
+    "text": "`Previews.js` (`previews()`, `walls()` and the `preview*` hooks stay on Page, since pages override them)"
+   },
+   {
+    "ticked": true,
+    "text": "proof each step: 60 pages loaded, 0 JS errors, related asides and preview walls still draw"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Page.class.js is 42% shorter and nothing broke.** Four commits, merged to michael/dev; [STATE](/framework/ai/2026-10-12/page-split-1/STATE.md) has the before/after numbers.\n\n- [x] comments as one-line pointers: 772 lines moved to `core/Page/doc/` by a script that checks every line landed (0 missing)\n- [x] `Reader`, `Listing`, `Prefs`, `PageChildren` in their own files, same names\n- [x] `Related.js` (`related_aside()` stays as the facade)\n- [x] `Previews.js` (`previews()`, `walls()` and the `preview*` hooks stay on Page, since pages override them)\n- [x] proof each step: 60 pages loaded, 0 JS errors, related asides and preview walls still draw\n\nLeft for later: columns, links, jsonl ([split-plan](/framework/core/Page/doc/split-plan.md) steps 5-7). The 5 listing statics stayed on Page because they use `Page.*` state."
+ },
+ {
+  "task": "page-split-2",
+  "landed": true,
+  "title": "Page: Columns and Links move to their own classes",
+  "at": "2026-10-12T07:04:49-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "Step 5, Columns out of Page: `Columns.js` (`PageColumns`), `columns()`, `column()`, `column_host` unchanged. Commit d81c0cd91."
+   },
+   {
+    "ticked": true,
+    "text": "Step 6, Links out of Page: `Links.js` (`PageLinks`), `open_link`, `swap_link` unchanged. Commit 9e9da4840."
+   },
+   {
+    "ticked": true,
+    "text": "Columns and click routing behave as before: old-vs-new browser probes at 400/1200/1920/3440 on ~20 pages, click, back, forward and deep-link reload all matched."
+   },
+   {
+    "ticked": true,
+    "text": "Smoke clean, `check_page` shows 0 page errors."
+   },
+   {
+    "ticked": true,
+    "text": "Before/after measures in [STATE.md](/framework/ai/2026-10-12/page-split-2/STATE.md); steps 5 and 6 ticked in [split-plan.md](/framework/core/Page/doc/split-plan.md)."
+   },
+   {
+    "ticked": true,
+    "text": "Merged to michael/dev (d81c0cd91 and 9e9da4840 are on it)."
+   },
+   {
+    "ticked": false,
+    "text": "Step 7, Jsonl: out of scope, still open in the plan."
+   }
+  ],
+  "commits": [
+   "d81c0cd91",
+   "9e9da4840"
+  ],
+  "commitsOnDev": [
+   "d81c0cd91",
+   "9e9da4840"
+  ],
+  "outcome": "**Page.class.js is 1315 to 1086 lines.** Columns and Links now live in their own class files; `Page` keeps the same facades. Reviewed: 1 fixed, 4 noted ([review.md](/framework/ai/2026-10-12/page-split-2/review.md)).\n\n- [x] Step 5, Columns out of Page: `Columns.js` (`PageColumns`), `columns()`, `column()`, `column_host` unchanged. Commit d81c0cd91.\n- [x] Step 6, Links out of Page: `Links.js` (`PageLinks`), `open_link`, `swap_link` unchanged. Commit 9e9da4840.\n- [x] Columns and click routing behave as before: old-vs-new browser probes at 400/1200/1920/3440 on ~20 pages, click, back, forward and deep-link reload all matched.\n- [x] Smoke clean, `check_page` shows 0 page errors.\n- [x] Before/after measures in [STATE.md](/framework/ai/2026-10-12/page-split-2/STATE.md); steps 5 and 6 ticked in [split-plan.md](/framework/core/Page/doc/split-plan.md).\n- [x] Merged to michael/dev (d81c0cd91 and 9e9da4840 are on it).\n- [ ] Step 7, Jsonl: out of scope, still open in the plan."
+ },
+ {
+  "task": "page-split-plan",
+  "landed": true,
+  "title": "core/Page: Page.class.js split plan",
+  "at": "2026-10-12T02:42:48-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "measured by script: `core/Page/doc/split-measure.mjs`"
+   },
+   {
+    "ticked": true,
+    "text": "one-screen plan with class tree, risk and order: [split-plan.md](/framework/core/Page/doc/split-plan.md)"
+   },
+   {
+    "ticked": true,
+    "text": "linked from the [core/Page readme](/framework/core/Page/)"
+   },
+   {
+    "ticked": false,
+    "text": "executing the split: a later task, lowest risk first"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Split plan written, no code moved.** The file is 2,270 lines but only 1,027 are code: 926 (40%) are comments, and about 260 lines are four helper classes already living in it.\n\n- [x] measured by script: `core/Page/doc/split-measure.mjs`\n- [x] one-screen plan with class tree, risk and order: [split-plan.md](/framework/core/Page/doc/split-plan.md)\n- [x] linked from the [core/Page readme](/framework/core/Page/)\n- [ ] executing the split: a later task, lowest risk first"
+ },
+ {
+  "task": "readme-trim",
+  "landed": true,
+  "title": "Page, sessions and Servex readmes trimmed to an index",
+  "at": "2026-10-12T04:00:54-05:00",
+  "alreadyBuilt": false,
+  "points": [],
+  "commits": [
+   "c0b8fa1c0",
+   "164d22cd4",
+   "e0fbf9830",
+   "cc26c0d43"
+  ],
+  "commitsOnDev": [
+   "c0b8fa1c0",
+   "164d22cd4",
+   "e0fbf9830",
+   "cc26c0d43"
+  ],
+  "outcome": "**Three readmes trimmed; sections moved verbatim to doc/** (c0b8fa1c0, 164d22cd4, e0fbf9830, cc26c0d43, on michael/dev). Landed by the night mastermind: the session merged but ended before writing this line."
+ },
+ {
+  "task": "refine-asks",
+  "landed": true,
+  "title": "Refine asks: per-prompt Refine button, Things you mentioned, importance bars",
+  "at": "2026-10-12T06:05:04-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "Refine button on each of your prompts: `button-proof.png`"
+   },
+   {
+    "ticked": true,
+    "text": "Instant on-screen answer, no model: [Things you mentioned](/framework/ext/Refine/stages/), shots at the four widths"
+   },
+   {
+    "ticked": true,
+    "text": "Importance and confidence bars on cards: `cards-meters.png`"
+   },
+   {
+    "ticked": true,
+    "text": "[asks.md](/framework/ai/doc/asks.md) #7 and #10 updated with commit links"
+   },
+   {
+    "ticked": false,
+    "text": "Left, reasons in [STATE](/framework/ai/2026-10-12/refine-asks/STATE.md): per-sentence model clean, echo, Opus overseer, prompt cards to board cards (one Servex route and a batched restart)"
+   }
+  ],
+  "commits": [
+   "a66e3b2dd"
+  ],
+  "commitsOnDev": [
+   "a66e3b2dd"
+  ],
+  "outcome": "**Asks #7 and #10 are closed: three points built, the rest written up with the real blocker.** Merged as a66e3b2dd; the voice walk re-run after the merge is unbroken (cards 6.4 s after Refine, no overflow, no errors).\n\n- [x] Refine button on each of your prompts: `button-proof.png`\n- [x] Instant on-screen answer, no model: [Things you mentioned](/framework/ext/Refine/stages/), shots at the four widths\n- [x] Importance and confidence bars on cards: `cards-meters.png`\n- [x] [asks.md](/framework/ai/doc/asks.md) #7 and #10 updated with commit links\n- [ ] Left, reasons in [STATE](/framework/ai/2026-10-12/refine-asks/STATE.md): per-sentence model clean, echo, Opus overseer, prompt cards to board cards (one Servex route and a batched restart)\n\nReviewed by a fresh Opus agent; all findings answered: [review](/framework/ai/2026-10-12/refine-asks/review.md)."
+ },
+ {
+  "task": "refine-style",
+  "landed": true,
+  "at": "2026-10-12T01:37:19-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "one fragment file RefineStyle.js: used by the outline, asks and Haiku notes prompts"
+   },
+   {
+    "ticked": true,
+    "text": "fixture test, a rant in and an overview out: 6 PASS, no model call"
+   },
+   {
+    "ticked": true,
+    "text": "noted in ext/Refine/doc and linked from the readme"
+   },
+   {
+    "ticked": false,
+    "text": "a real-model run to confirm Sonnet follows the rules (first live refine)"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Every refine prompt now shares one style fragment.** [Refine style doc](/framework/ext/Refine/md/doc/refine-style-2026-10-12/)\n\n- [x] one fragment file RefineStyle.js: used by the outline, asks and Haiku notes prompts\n- [x] fixture test, a rant in and an overview out: 6 PASS, no model call\n- [x] noted in ext/Refine/doc and linked from the readme\n- [ ] a real-model run to confirm Sonnet follows the rules (first live refine)\n\nNote: live after a Servex restart."
+ },
+ {
+  "task": "relay-asks",
+  "landed": true,
+  "at": "2026-10-12T05:03:52-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "log-only `relay-bypass` in `Servex/agents/policy.js`: owner or tab to a task mastermind logs one line, still delivered"
+   },
+   {
+    "ticked": true,
+    "text": "proof on private Servex :8290: owner wrote 1 line, a minion wrote 0; `policy.test.mjs` 60 pass"
+   },
+   {
+    "ticked": false,
+    "text": "live Servex restart: batched, not done; the log fills after it"
+   },
+   {
+    "ticked": true,
+    "text": "asks.md updated"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Relay-bypass line built and merged** ([STATE](/framework/ai/2026-10-12/relay-asks/STATE.md)).\n- [x] log-only `relay-bypass` in `Servex/agents/policy.js`: owner or tab to a task mastermind logs one line, still delivered\n- [x] proof on private Servex :8290: owner wrote 1 line, a minion wrote 0; `policy.test.mjs` 60 pass\n- [ ] live Servex restart: batched, not done; the log fills after it\n- [x] asks.md updated"
+ },
+ {
+  "task": "servex-health",
+  "landed": true,
+  "at": "2026-10-12T09:03:12.268Z",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "reviewer/checker/voter skill rows: already in roles.js"
+   },
+   {
+    "ticked": true,
+    "text": "merged worktree branches pruned by script: 89 tagged salvage/, manifest in Server/logs, `Server/branch-prune.mjs`"
+   },
+   {
+    "ticked": true,
+    "text": "one batched restart, proved on private port 18090 first; skills log after: 21/21 injected, 0 fallbacks"
+   },
+   {
+    "ticked": false,
+    "text": "transcription crash cause and orphan-reap owner: open, next steps in STATE"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "Servex health, backend only ([STATE](/framework/ai/2026-10-12/servex-health/STATE.md)):\n- [x] reviewer/checker/voter skill rows: already in roles.js\n- [x] merged worktree branches pruned by script: 89 tagged salvage/, manifest in Server/logs, `Server/branch-prune.mjs`\n- [x] one batched restart, proved on private port 18090 first; skills log after: 21/21 injected, 0 fallbacks\n- [ ] transcription crash cause and orphan-reap owner: open, next steps in STATE\nReview: none (script and docs only)."
+ },
+ {
+  "task": "session-housekeeping",
+  "landed": true,
+  "at": "2026-10-12T02:00:00-05:00",
+  "alreadyBuilt": false,
+  "points": [],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "landed"
+ },
+ {
+  "task": "sessions-asks",
+  "landed": true,
+  "title": "Sessions: close the open asks",
+  "at": "2026-10-12T04:33:22-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "month/year roll-ups: `AISessionIndex.mjs --check` totals match"
+   },
+   {
+    "ticked": true,
+    "text": "red flags and mastermind tag: 0074f0578"
+   },
+   {
+    "ticked": true,
+    "text": "tasks migration: 7fa3d978b"
+   },
+   {
+    "ticked": true,
+    "text": "resume tier on each row: warm/cold/fresh tag, 1920 screenshot; layout-check at 400/1200/1920/3440 shows no overflow"
+   },
+   {
+    "ticked": true,
+    "text": "the 1,401 item: 1,400 were rename leftovers, not missing sessions; `--check` now exits clean"
+   },
+   {
+    "ticked": false,
+    "text": "a button that applies the tier"
+   }
+  ],
+  "commits": [
+   "0074f0578",
+   "7fa3d978b"
+  ],
+  "commitsOnDev": [
+   "0074f0578",
+   "7fa3d978b"
+  ],
+  "outcome": "**All four open points are done: roll-ups, red flags, tasks migration, and the resume tier now shown on every row.**\n\n- [x] month/year roll-ups: `AISessionIndex.mjs --check` totals match\n- [x] red flags and mastermind tag: 0074f0578\n- [x] tasks migration: 7fa3d978b\n- [x] resume tier on each row: warm/cold/fresh tag, 1920 screenshot; layout-check at 400/1200/1920/3440 shows no overflow\n- [x] the 1,401 item: 1,400 were rename leftovers, not missing sessions; `--check` now exits clean\n- [ ] a button that applies the tier\n\n[STATE.md](/framework/ai/2026-10-12/sessions-asks/STATE.md) · [resumption.md](/framework/ai/sessions/doc/data/resumption.md)"
+ },
+ {
+  "task": "sidebar-search",
+  "landed": true,
+  "title": "Sidebar: search finds every page, loaded or not",
+  "at": "2026-10-12T03:50:42-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "Uses existing page data, no second index: walks the live tree via ux/Tree children; opening a result reveals its ancestors"
+   },
+   {
+    "ticked": true,
+    "text": "Updates as you type, routed (?q= survives reload), keyboard reachable (arrows, Enter): checked headless"
+   },
+   {
+    "ticked": true,
+    "text": "Proof: 'v1 Overview' (4 levels deep, never opened) found and opened /framework/ux/Dictate/v1/; no horizontal scroll at 400/1200/1920/3440"
+   },
+   {
+    "ticked": true,
+    "text": "Ask #4 ticked in core/Page/doc/asks.md"
+   }
+  ],
+  "commits": [
+   "9ba19b2a6"
+  ],
+  "commitsOnDev": [
+   "9ba19b2a6"
+  ],
+  "outcome": "**Sidebar search now finds every page, opened or not** (merge 9ba19b2a6).\n\n- [x] Uses existing page data, no second index: walks the live tree via ux/Tree children; opening a result reveals its ancestors\n- [x] Updates as you type, routed (?q= survives reload), keyboard reachable (arrows, Enter): checked headless\n- [x] Proof: 'v1 Overview' (4 levels deep, never opened) found and opened /framework/ux/Dictate/v1/; no horizontal scroll at 400/1200/1920/3440\n- [x] Ask #4 ticked in core/Page/doc/asks.md\n\nLeft: layout-check.mjs not run (headless width check instead); merged with --skip-smoke. Detail: [STATE.md](/framework/ai/2026-10-12/sidebar-search/STATE.md)."
+ },
+ {
+  "task": "skill-prune",
+  "landed": true,
+  "title": "Skill prune: safe half of the usage audit",
+  "at": "2026-10-12T02:54:50-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "reviewer, checker, voter get a skill in roles.js: three rows added, module imports and resolves all three"
+   },
+   {
+    "ticked": true,
+    "text": "never-called skills archived: assistant, performance, prompt-refine in .claude/skills-archive/ with MANIFEST; log-assistant, master-assistant, fork-claude-session kept because something still loads or points at them"
+   },
+   {
+    "ticked": true,
+    "text": "retired-system references fixed in 7 skills, pointing to what replaced them"
+   },
+   {
+    "ticked": true,
+    "text": "mastermind 7,982 to 3,672 words, sub-mastermind 4,240 to 2,478"
+   },
+   {
+    "ticked": true,
+    "text": "measured with SkillBloat: skills 34 to 32, words 39,609 to 33,082"
+   },
+   {
+    "ticked": false,
+    "text": "Servex not restarted (it would stop agents): new roles go live at the next batched restart"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Safe half of the skill audit landed** — [STATE.md](/framework/ai/2026-10-12/skill-prune/STATE.md)\n\n- [x] reviewer, checker, voter get a skill in roles.js: three rows added, module imports and resolves all three\n- [x] never-called skills archived: assistant, performance, prompt-refine in .claude/skills-archive/ with MANIFEST; log-assistant, master-assistant, fork-claude-session kept because something still loads or points at them\n- [x] retired-system references fixed in 7 skills, pointing to what replaced them\n- [x] mastermind 7,982 to 3,672 words, sub-mastermind 4,240 to 2,478\n- [x] measured with SkillBloat: skills 34 to 32, words 39,609 to 33,082\n- [ ] Servex not restarted (it would stop agents): new roles go live at the next batched restart\n- Left for later: trim servex-mastermind, refresh skills.json. Skill injection and why-not-100% belong to mastermind-skill-reliability.\n\nReview: none needed (no page changed)."
+ },
+ {
+  "task": "skill-reliability",
+  "landed": true,
+  "at": "2026-10-12T03:15:40-05:00",
+  "alreadyBuilt": false,
+  "points": [],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Role skills are now inlined by node.** True miss rate was 2% (98.0%, not 96.5%); never-called six explained in Servex/doc/skills.md; `opening()` puts SKILL.md text in the first turn and logs it to the `skills` log. Activates on the next Servex restart."
+ },
+ {
+  "task": "skill-usage-audit",
+  "landed": true,
+  "title": "Skill audit: skills load when told, almost never otherwise",
+  "at": "2026-10-12T01:50:47-05:00",
+  "alreadyBuilt": false,
+  "points": [],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "Skills are loaded 95%+ when Servex tells the role to, ~0% for roles it does not (reviewer, checker, voter). Recommendation: enforce by tool and role prefix, cut CLAUDE.md to the 1,172-word proposal. See recommendation.md and Servex/doc/tool-process.md."
+ },
+ {
+  "task": "smoke-gate",
+  "landed": true,
+  "title": "Smoke gate passes on core pages",
+  "at": "2026-10-12T04:00:54-05:00",
+  "alreadyBuilt": false,
+  "points": [],
+  "commits": [
+   "1eacb8fd3"
+  ],
+  "commitsOnDev": [
+   "1eacb8fd3"
+  ],
+  "outcome": "**Smoke on core pages: 6 FAIL to 0 FAIL** (commit 1eacb8fd3, on michael/dev). Causes fixed, allow-list untouched. Landed by the night mastermind: the session merged but ended before writing this line."
+ },
+ {
+  "task": "systems",
+  "landed": true,
+  "title": "System: generic ext/System class with instances and beat",
+  "at": "2026-10-12T02:55:03-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "organization doc: `ai/doc/organization.md`"
+   },
+   {
+    "ticked": true,
+    "text": "System class + 2 subclasses: ReadmeSystem, NavigationSystem, shims at old `ai/systems/` paths (manifest in `ext/System/doc/move-manifest.md`)"
+   },
+   {
+    "ticked": true,
+    "text": "class card first, then live demo (check, heal one): screenshot of the card verified"
+   },
+   {
+    "ticked": true,
+    "text": "named instances beside their module: Sessions, Servex, Transcription, Prompt refinement (`system.js`)"
+   },
+   {
+    "ticked": true,
+    "text": "hourly wake: session cron at :17 running `Server/systems-beat.mjs` (skips over pace)"
+   },
+   {
+    "ticked": false,
+    "text": "durable Servex timer (needs restart), safe `heal()` on real systems, instances for Accounting, Page tool, Inbox, Skills"
+   },
+   {
+    "ticked": false,
+    "text": "reply-rules single home: proposal in `ai/doc/organization-decisions.md`; CLAUDE.md since consolidated by the owner"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**System class landed as `ext/System/`**: generic container with class card and live demo, the readme/navigation checks, and an hourly beat.\n\n- [x] organization doc: `ai/doc/organization.md`\n- [x] System class + 2 subclasses: ReadmeSystem, NavigationSystem, shims at old `ai/systems/` paths (manifest in `ext/System/doc/move-manifest.md`)\n- [x] class card first, then live demo (check, heal one): screenshot of the card verified\n- [x] named instances beside their module: Sessions, Servex, Transcription, Prompt refinement (`system.js`)\n- [x] hourly wake: session cron at :17 running `Server/systems-beat.mjs` (skips over pace)\n- [ ] durable Servex timer (needs restart), safe `heal()` on real systems, instances for Accounting, Page tool, Inbox, Skills\n- [ ] reply-rules single home: proposal in `ai/doc/organization-decisions.md`; CLAUDE.md since consolidated by the owner\n\nPage: /framework/ext/System/"
+ },
+ {
+  "task": "tag-notes",
+  "landed": true,
+  "at": "2026-10-12T01:44:46-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "tag to page path computed from the real tree: ext/Refine, core/Page, ext/Figma resolve; Server/refine.mjs and Page do not"
+   },
+   {
+    "ticked": true,
+    "text": "one note per tag via the existing Inbox writer, with a link to the session and sentence numbers, no copied text"
+   },
+   {
+    "ticked": true,
+    "text": "a tag with no page gets no note and is listed in tag_notes.unrouted; a re-run adds nothing (test, 6 PASS)"
+   },
+   {
+    "ticked": false,
+    "text": "seen in a live page rail after a real refine (needs a Servex restart)"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**A tagged refined prompt now leaves a note on the module page its tag names, through the one Inbox.** [Tag notes doc](/framework/ext/Refine/md/doc/tag-notes-2026-10-12/)\n\n- [x] tag to page path computed from the real tree: ext/Refine, core/Page, ext/Figma resolve; Server/refine.mjs and Page do not\n- [x] one note per tag via the existing Inbox writer, with a link to the session and sentence numbers, no copied text\n- [x] a tag with no page gets no note and is listed in tag_notes.unrouted; a re-run adds nothing (test, 6 PASS)\n- [ ] seen in a live page rail after a real refine (needs a Servex restart)\n\nNote: live after a Servex restart."
+ },
+ {
+  "task": "voice-asks-2",
+  "landed": true,
+  "title": "Voice: Echo mirror, To board cards, whisper stream, live clean",
+  "at": "2026-10-12T07:35:51-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "vscode-voice-path: Echo writes the same voice page; proof.mjs A"
+   },
+   {
+    "ticked": true,
+    "text": "prompt-to-board-cards: To board button, one card, one queued ask; proof.mjs C, ui-proof 1"
+   },
+   {
+    "ticked": true,
+    "text": "whisper-status-stream: `/api/whisper/stream` live on restarted Servex, ui-proof 2"
+   },
+   {
+    "ticked": true,
+    "text": "per-sentence-model-clean: `clean_live`, opt-in and off, about $0.07 a sentence; proof.mjs D"
+   },
+   {
+    "ticked": false,
+    "text": "duplicate-bubbles: both proofs and dup-e2e.mjs show one bubble; no fix to make"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Four of five voice asks built and live; duplicate-bubbles not reproduced.** Details: [STATE.md](STATE.md), [asks.md](/framework/ux/Dictate/doc/asks.md), [review](review.md) (reviewed: 3 fixed, 5 noted).\n\n- [x] vscode-voice-path: Echo writes the same voice page; proof.mjs A\n- [x] prompt-to-board-cards: To board button, one card, one queued ask; proof.mjs C, ui-proof 1\n- [x] whisper-status-stream: `/api/whisper/stream` live on restarted Servex, ui-proof 2\n- [x] per-sentence-model-clean: `clean_live`, opt-in and off, about $0.07 a sentence; proof.mjs D\n- [ ] duplicate-bubbles: both proofs and dup-e2e.mjs show one bubble; no fix to make\n\nWalk passes (desktop, phone); layout-check clean at 400, 1200, 1920 and 3440."
+ },
+ {
+  "task": "voice-to-session-page",
+  "landed": true,
+  "at": "2026-10-12T04:20:00-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "Whisper keeps working: crash restart proven (~2 s), timed 8 s clip 0.1-0.6 s"
+   },
+   {
+    "ticked": true,
+    "text": "raw, clean, structure, refined prompt, cards each land on `/framework/ai/sessions/<id>/`"
+   },
+   {
+    "ticked": true,
+    "text": "works from the phone at 400 px: read-only SSE `/api/voice/stream`"
+   },
+   {
+    "ticked": true,
+    "text": "10 transcription loose ends checked: [loose-ends.md](/framework/ai/2026-10-12/voice-to-session-page/loose-ends.md)"
+   },
+   {
+    "ticked": false,
+    "text": "Echo/VS Code path not wired to VoicePage; real-phone test unproven"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**Voice now shows up on the session page, stage by stage, live.** Start with [try-it.md](/framework/ux/Dictate/doc/try-it.md), then [voice-to-page.md](/framework/ext/Refine/stages/doc/voice-to-page.md) and [STATE.md](/framework/ai/2026-10-12/voice-to-session-page/STATE.md).\n\n- [x] Whisper keeps working: crash restart proven (~2 s), timed 8 s clip 0.1-0.6 s\n- [x] raw, clean, structure, refined prompt, cards each land on `/framework/ai/sessions/<id>/`\n- [x] works from the phone at 400 px: read-only SSE `/api/voice/stream`\n- [x] 10 transcription loose ends checked: [loose-ends.md](/framework/ai/2026-10-12/voice-to-session-page/loose-ends.md)\n- [ ] Echo/VS Code path not wired to VoicePage; real-phone test unproven\n\nMerged with `--skip-smoke`: the gate already fails on unrelated 404s (same as sidebar-search)."
+ },
+ {
+  "task": "voice-verify",
+  "landed": true,
+  "title": "Voice: the try-it walk passes on a phone-sized page",
+  "at": "2026-10-12T05:30:21-05:00",
+  "alreadyBuilt": false,
+  "points": [
+   {
+    "ticked": true,
+    "text": "walk at 400 and 1400: [STATE.md](/framework/ai/2026-10-12/voice-verify/STATE.md)"
+   },
+   {
+    "ticked": true,
+    "text": "fixed and merged: dead phone address (now 3104); Refine button covered; restart invisible on a phone"
+   },
+   {
+    "ticked": true,
+    "text": "doc: [try-it.md](/framework/ux/Dictate/doc/try-it.md)"
+   }
+  ],
+  "commits": [],
+  "commitsOnDev": [],
+  "outcome": "**The try-it walk passes**, headless at 400 px (`10.0.0.135:3104`) and 1400 px, with a recorded clip as the mic. All five stages show live; Structure, Refined and Cards land about 6.6 s after Refine. Whisper killed mid-sentence came back by itself and the status line said so.\n\n- [x] walk at 400 and 1400: [STATE.md](/framework/ai/2026-10-12/voice-verify/STATE.md)\n- [x] fixed and merged: dead phone address (now 3104); Refine button covered; restart invisible on a phone\n- [x] doc: [try-it.md](/framework/ux/Dictate/doc/try-it.md)\n\nLeft: a real phone's mic needs https."
+ }
+]

@@ -1,0 +1,30 @@
+[
+ {
+  "task": "ai-classes-asks",
+  "ref": "public/framework/ai2/live/"
+ },
+ {
+  "task": "claude-md-consolidate",
+  "ref": "public/framework/ai/2026-10-12/claude-md-consolidate/md/review/"
+ },
+ {
+  "task": "claude-md-consolidate",
+  "ref": "public/framework/ai/2026-10-12/claude-md-consolidate/md/manifest/"
+ },
+ {
+  "task": "claude-md-consolidate",
+  "ref": "public/framework/ai/2026-10-12/claude-md-consolidate/review/md/report/"
+ },
+ {
+  "task": "page-content-unify",
+  "ref": "public/framework/ai/2026-10-12/page-content-unify/md/STATE/"
+ },
+ {
+  "task": "refine-style",
+  "ref": "public/framework/ext/Refine/md/doc/refine-style-2026-10-12/"
+ },
+ {
+  "task": "tag-notes",
+  "ref": "public/framework/ext/Refine/md/doc/tag-notes-2026-10-12/"
+ }
+]
