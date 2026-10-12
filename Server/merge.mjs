@@ -180,8 +180,15 @@ function reviewGate(branch, head){
 		return out;
 	}
 	let best = null;
-	for (const day of fs.readdirSync(aiDir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && daysAgo(d) <= 3 && daysAgo(d) >= 0))
-		for (const tj of taskLogs(path.join(aiDir, day))) {
+	// Day dirs: ai/YYYY-MM-DD/ and, since sessions moved, ai/sessions/YYYY/MM/DD/ (2026-10-12).
+	const days = fs.readdirSync(aiDir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && daysAgo(d) <= 3 && daysAgo(d) >= 0).map(d => path.join(aiDir, d));
+	for (let i = 0; i <= 3; i++) {
+		const [y, m, dd] = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10).split("-");
+		const p = path.join(aiDir, "sessions", y, m, dd);
+		if (fs.existsSync(p)) days.push(p);
+	}
+	for (const day of days)
+		for (const tj of taskLogs(day)) {
 			const td = path.dirname(tj);
 			for (const l of lines(fs.readFileSync(tj, "utf8"))) {
 				let e; try { e = JSON.parse(l); } catch { continue; }
