@@ -13,3 +13,4 @@
 {"log":{"at":"2026-10-12T10:31:24-05:00","task":"page-split-3","msg":"landed — Jsonl.js split out of Page.class.js, split complete"}}
 {"log":{"at":"2026-10-12T11:56:17-05:00","task":"content-list","msg":"landed: page.content is one PageContent List; code and jsonl parts show together"}}
 {"log":{"at":"2026-10-12T13:06:50-05:00","task":"transcription-crash","msg":"landed — Whisper no longer dies with a Servex restart"}}
+{"log":{"at":"2026-10-12T14:15:37-05:00","task":"sessions-grid","msg":"landed — grid opens on the newest month, streams live, shows title/name/current model/modules; blockers in grid-loading.md"}}
