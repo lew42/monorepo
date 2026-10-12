@@ -8,7 +8,7 @@ shows it under the title, when there's a figure, as "$N.NN of AI work · M tasks
 
 Live: [`/framework/core/Page/weight/`](/framework/core/Page/weight/) — the formula, then four
 live demos with real data: main navigation, quick links, the size upgrade past 10, and two ways
-to SHOW the number (A/B, not decided yet). The owner's own words: [`ai/2026-09-29/page-system/weight-brief.md`](/framework/ai/2026-09-29/page-system/weight-brief.md)
+to SHOW the number (A/B, not decided yet). The owner's own words: [`ai/2026-09-29/page-system/weight-brief.md`](/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/task/weight-brief.md)
 and the "Continued, 4:55 PM" half of [`ai/2026/09/29/familiar-structure-every-named-system-ge/owner-words.md`](/framework/ai/2026/09/29/familiar-structure-every-named-system-ge/owner-words.md).
 
 ## Use

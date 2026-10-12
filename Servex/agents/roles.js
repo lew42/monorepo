@@ -33,7 +33,8 @@ export const ROLES = {
 	 * a task mastermind spawned under the old default had both its spawn_agent
 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
 	"task-mastermind":  { skills: ["sub-mastermind", "page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions" },
-	mastermind:         { skill: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "acceptEdits" },
+	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
+	mastermind:         { skill: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions" },
 	assistant:          { skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
 	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
 	 * included, and a page-mastermind — the same two roles Layers.js now spawns for a card
