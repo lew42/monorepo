@@ -25,6 +25,14 @@ Landed in branch `voice-session` (worktree), merging into `michael/dev`; one Ser
 9. Only the Refine page streams to `/api/voice`; the VS Code app path is not wired (open).
 10. Layout: width probes at 400/1200/1920/3440 had no overflow; `layout-check.mjs` itself not run.
 
+## Review round 2 — answers
+
+- Whisper to raw is now timed (`whisper-proof.mjs`): an 8 s clip takes 0.1 to 0.6 s in Whisper, then 3 to 16 ms to reach the page.
+- Layout check run (`layout-check.mjs --bands`, `shots/`): 400, 1200, 1920, 3440 show the five stages, no overflow, no big empty bands; the only wraps are site chrome buttons.
+- Idle prompts are forgotten 10 minutes after the last word (stream replay stays small).
+- The VS Code app path (Echo) is not wired: decision and next step in `stages/doc/voice-to-page.md` "Open".
+- Cards-by-code and the `/api/voice` open CORS are stated in try-it.md and the doc. SSE through the dev proxy remains unproven.
+
 ## Not proven (and why)
 
 - A real phone over `10.0.0.135`: the live Servex lacks the routes until the restart. Mic needs https (owner's choice, `ux/Dictate/doc/https-lan.md`); typing or the phone keyboard's dictation is the fallback.

@@ -25,6 +25,15 @@ const until = async (fn, ms) => { const end = Date.now() + ms; while (Date.now()
 try {
 	const up = await until(async () => (await get("/api/whisper"))?.status === "online" && await get("/api/whisper"), 90000);
 	say("first: " + JSON.stringify(up));
+	// Whisper -> raw: time a recorded clip through whisper, then the words through /api/voice onto a session page.
+	const clip = path.join(REPO, "public/framework/ai/2026-09-22/whisper-servex/clip.wav");
+	for (let i = 1; i <= 2; i++){
+		const form = new FormData(); form.append("file", new Blob([fs.readFileSync(clip)]), "clip.wav"); form.append("response_format", "json");
+		const tw = Date.now(); const heard = (await (await fetch("http://127.0.0.1:8187/inference", { method: "POST", body: form })).json()).text ?? "";
+		const tr = Date.now(); const session = "00000000-0000-4000-8000-000000000042";
+		const r = await (await fetch(BASE + "/api/voice", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ session, prompt: "whisper" + i, text: heard.trim() || "(nothing heard)", final: true, source: "whisper-proof" }) })).json();
+		say(`clip ${i}: whisper ${tr - tw} ms (${(fs.statSync(clip).size / 32000).toFixed(1)} s of audio), then /api/voice ok=${r.ok} in ${Date.now() - tr} ms; heard: ${heard.trim().slice(0, 70)}`);
+	}
 	const pid = execFileSync("powershell", ["-NoProfile", "-Command", "(Get-NetTCPConnection -LocalPort 8187 -State Listen).OwningProcess"], { encoding: "utf8" }).trim();
 	say("killing whisper-server pid " + pid);
 	execFileSync("taskkill", ["/PID", pid, "/F"], { stdio: "ignore" });

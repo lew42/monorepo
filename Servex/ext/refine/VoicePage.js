@@ -58,6 +58,7 @@ export default class VoicePage {
 		const first = this.lines.length === 0;
 		const line = first ? { content: { add: { id: this.id, type: "voice-prompt", ...delta } } } : { [this.id]: delta };
 		this.lines.push(line);
+		clearTimeout(this.idle); this.idle = setTimeout(() => VoicePage.open.delete(this.session + "/" + this.prompt), 600000); this.idle.unref?.();   // a dictation never refined is forgotten 10 min after its last word
 		for (const fn of VoicePage.listeners) try { fn(this.session, line); } catch {}
 		const run = async () => {
 			if (!this.created){

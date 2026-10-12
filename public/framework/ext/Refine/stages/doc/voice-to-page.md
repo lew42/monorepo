@@ -33,6 +33,12 @@ The dev socket (and so the page-file tail) is localhost-only because it also car
 - Rejected: a second WebSocket just for stages (the page tail already streams); writing hand-made JSON (the page tools only).
 - Whisper: supervised by Servex (`Process.Whisper`); `GET /api/whisper` reports `crashes`/`last_crash`, and `Connection.restart_note()` shows it in one line.
 
+## Open
+
+- **The VS Code app path** (Echo, `Servex/agents/Echo.js`) writes its own page items and does not call `VoicePage`; wiring it means calling `VoicePage.raw/clean/structured` from Echo's clean and structure steps. Decision: not tonight, a different system with its own owner; only the Refine page streams.
+- `POST /api/voice` has no auth and CORS open, like the other `/api/*` routes, and is reachable from the LAN through `<origin>/servex`: data only, 20k cap.
+- The SSE stream through the dev proxy (`Server/plugins/ServexProxy.js`) was not exercised against a private Servex (the proxy target is fixed at :8090).
+
 ## Proofs
 
 `ai/2026-10-12/voice-to-session-page/`: `proof.mjs` (server stages), `whisper-proof.mjs` (kill and restart), `phone-proof.mjs` (400 px browser).
