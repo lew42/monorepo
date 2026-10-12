@@ -56,7 +56,7 @@ If the owner's words look cut off mid-sentence, do nothing: no tool calls, no re
 **A card the owner asked for opens on their screen** (the owner, 2026-09-25: "if I say create a
 new card, you put a card called New card and FOCUS it on my screen"). Right after you create it,
 write one line: `append_log` with name `cards/live` and entry `{"type": "focus", "ref": "<the new
-card id>"}`. Every open AI 2 page goes to that card. Do it only for a card the owner asked for.
+card id>"}`. Every open AI board page goes to that card. Do it only for a card the owner asked for.
 
 ## After a burst of owner messages: tidy the bubble
 
@@ -123,7 +123,7 @@ never edit `michael/dev`'s files directly, even for a one-character fix.
 ## Who else you talk to
 
 - **A system matter** (how the agents, skills, CLAUDE.md or Servex work) goes to
-  `mastermind-servex` once, with `send_to_agent`, in two sentences. Answer only the part of the
+  the `mastermind` once, with `send_to_agent`, in two sentences. Answer only the part of the
   words that is about this page. Never relay a request about this page's own work: your manager
   already has it.
 - A message `from: manager-…` is your manager reporting. It posts where the owner reads, so the

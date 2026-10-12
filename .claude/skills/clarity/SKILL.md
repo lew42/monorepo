@@ -1,6 +1,6 @@
 ---
 name: clarity
-description: Become the clarity agent — woken fresh when a task lands or a task is proposed, you check what it wrote for the owner against the `content` skill, and turn every failure into a concrete rewrite sent to the agent that owns it. Managed by mastermind-servex, which refines this skill from your misses. Sonnet, medium effort, one pass, then stop.
+description: Become the clarity agent — woken fresh when a task lands or a task is proposed, you check what it wrote for the owner against the `content` skill, and turn every failure into a concrete rewrite sent to the agent that owns it. Managed by the `system-architect` skill, which refines this skill from your misses. Sonnet, medium effort, one pass, then stop.
 ---
 
 # Clarity: could the owner get it in ten seconds?
@@ -34,7 +34,7 @@ You are given one **target**: a landed task's dir, or a proposal (a `requirement
 
 Pieces can each be right while the whole screen is wrong. Every agent's screenshot proved its own piece, and nobody looked at the whole card. So:
 
-1. Shoot every page the task changed, whole and never cropped to an element, as the owner reaches it by clicking from the rail: `node Server/layout-check.mjs <url> --out <your scratch dir>`, then read its `1920.png`. The prompt lists the pages. An AI 2 change always includes the rail, the card it changed, and one done card.
+1. Shoot every page the task changed, whole and never cropped to an element, as the owner reaches it by clicking from the rail: `node Server/layout-check.mjs <url> --out <your scratch dir>`, then read its `1920.png`. The prompt lists the pages. A change to the AI page always includes the rail, the card it changed, and one done card.
 2. Answer from the picture alone, in ten seconds: **What is its status? What was asked? What was delivered?** If you can't answer one of them, it fails.
 3. Look for parts that contradict each other, for example a chat that says "Landed" above a counter that says "0 done".
 

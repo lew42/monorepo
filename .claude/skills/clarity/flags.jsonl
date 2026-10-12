@@ -335,3 +335,94 @@
 {"at":"2026-10-09T11:03:22.404Z","target":"look:ai2","verdict":"queued","kind":"look"}
 {"at":"2026-10-09T11:03:23.715Z","target":"look:ai2","verdict":"spawned","to":"clarity-look-ai2-2"}
 {"at":"2026-10-09T06:20:00-05:00","target":"http://monorepo.localhost/framework/ai2/","verdict":"ui","what":"Rail top card 'Now' is stale (Oct 6, 'agent not running, stopped on purpose') and opens as the first thing the owner sees; status/asked/delivered not answerable from it. Fix: show the live Now text, or drop it when over a day old. Also /framework/ai2/2026-10-08/live-not-polling says 'No card by that name' so no done card could be viewed; the rail's task cards (e.g. 'Task audit plan: 354 loose ends') carry red score badges with no label. Screenshot: C:/Users/mike/AppData/Local/Temp/cl/monorepo-localhost-framework-ai2/1920.png","to":"mastermind-servex"}
+{"at":"2026-10-09T21:27:08.117Z","target":"public/framework/ai/2026-10-09/refine-nothing-to-refine","verdict":"queued","kind":"landing"}
+{"at":"2026-10-09T21:27:08.309Z","target":"public/framework/ai/2026-10-09/refine-nothing-to-refine","verdict":"spawned","to":"clarity-refine-nothing-to-refine"}
+{"at":"2026-10-09T17:00:00-05:00","target":"public/framework/ai/2026-10-09/refine-nothing-to-refine","verdict":"rewrote","what":"outcome was a 66-word paragraph; rewritten as a ticked checklist","to":"task.jsonl"}
+{"at":"2026-10-09T21:32:34.493Z","target":"public/framework/ai/2026-10-09/sessions-red-flags/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T21:32:35.557Z","target":"public/framework/ai/2026-10-09/system-architect/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T21:33:35.510Z","target":"public/framework/ai/2026-10-09/sessions-red-flags/requirements.md","verdict":"spawned","to":"clarity-sessions-red-flags"}
+{"at":"2026-10-09T21:33:36.565Z","target":"public/framework/ai/2026-10-09/system-architect/requirements.md","verdict":"spawned","to":"clarity-system-architect"}
+{"at":"2026-10-09T17:00:00.000Z","target":"public/framework/ai/2026-10-09/sessions-red-flags/requirements.md","verdict":"rewrote","what":"text-check clean; turned the 3 defects, 4 flags and mastermind tag into - [ ] checkboxes so landing can tick each with proof","to":"requirements.md"}
+{"at":"2026-10-09T12:00:00.000Z","target":"public/framework/ai/2026-10-09/system-architect/requirements.md","verdict":"clear","what":"text-check clean; agent brief with a clear job list and ranked one-screen deliverable","to":"clarity"}
+{"at":"2026-10-09T21:39:54.839Z","target":"public/framework/ai/2026-10-09/session-detail-live/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T21:40:55.839Z","target":"public/framework/ai/2026-10-09/session-detail-live/requirements.md","verdict":"spawned","to":"clarity-session-detail-live"}
+{"at":"2026-10-09T17:10:00.000Z","target":"public/framework/ai/2026-10-09/session-detail-live","verdict":"rewrote","what":"steps turned into an unticked checklist; text-check clean, otherwise clear","to":"requirements.md"}
+{"at":"2026-10-09T21:43:19.391Z","target":"public/framework/ai/2026-10-09/refine-dictate-ui/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T21:43:26.100Z","target":"public/framework/ai/2026-10-09/system-architect","verdict":"queued","kind":"landing"}
+{"at":"2026-10-09T21:43:26.402Z","target":"public/framework/ai/2026-10-09/system-architect","verdict":"spawned","to":"clarity-system-architect-2"}
+{"at":"2026-10-09T16:50:00-05:00","target":"public/framework/ai/2026-10-09/system-architect","verdict":"ui","what":"Card is clear (status, asks, delivery all readable); two nits: cost table shows '64.2368% of $' (cache_read_pct unrounded, label garbled), and the measure.mjs link points at the page not the file. claude-md-proposal.md is a deep doc, so its length flags are accepted.","to":"mastermind-servex"}
+{"at":"2026-10-09T21:44:20.375Z","target":"public/framework/ai/2026-10-09/refine-dictate-ui/requirements.md","verdict":"spawned","to":"clarity-refine-dictate-ui"}
+{"at":"2026-10-09T17:30:00.000Z","target":"public/framework/ai/2026-10-09/refine-dictate-ui/requirements.md","verdict":"clear","what":"Proposal is specific, numbered, fenced; text-check clean","to":"clarity-refine-dictate-ui"}
+{"at":"2026-10-09T22:08:22.296Z","target":"public/framework/ai/2026-10-09/production-stack","verdict":"queued","kind":"landing"}
+{"at":"2026-10-09T22:08:22.422Z","target":"public/framework/ai/2026-10-09/production-stack","verdict":"spawned","to":"clarity-production-stack"}
+{"at":"2026-10-09T17:20:00-05:00","target":"public/framework/ai/2026-10-09/production-stack","verdict":"clear","what":"text-check clean; opening line states status, two short tables, blockers listed; no owner asks to prove","to":"none"}
+{"at":"2026-10-09T22:32:50.306Z","target":"public/framework/ai/2026-10-09/system-architect/oo-census/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T22:33:51.259Z","target":"public/framework/ai/2026-10-09/system-architect/oo-census/requirements.md","verdict":"spawned","to":"clarity-oo-census"}
+{"at":"2026-10-09T18:30:00.000Z","target":"public/framework/ai/2026-10-09/system-architect/oo-census/requirements.md","verdict":"clear","what":"Agent-facing proposal: title says the point, 3 numbered asks, no flags from text-check; only nit is the undefined phrase \"same frugality as the parent task\" (unlinked).","to":"clarity-oo-census"}
+{"at":"2026-10-09T22:47:13.330Z","target":"public/framework/ai/2026-10-09/refine-v3/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T22:48:14.333Z","target":"public/framework/ai/2026-10-09/refine-v3/requirements.md","verdict":"spawned","to":"clarity-refine-v3"}
+{"at":"2026-10-09T19:00:00.000Z","target":"public/framework/ai/2026-10-09/refine-v3/requirements.md","verdict":"clear","what":"text-check clean; agent-facing brief, owner asks are numbered and ordered","to":"clarity-refine-v3"}
+{"at":"2026-10-09T23:11:15.479Z","target":"public/framework/ai/2026-10-09/code-mastermind/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T23:12:16.538Z","target":"public/framework/ai/2026-10-09/code-mastermind/requirements.md","verdict":"spawned","to":"clarity-code-mastermind"}
+{"at":"2026-10-09T20:00:00Z","target":"public/framework/ai/2026-10-09/code-mastermind","verdict":"rewrote","what":"result.md cut to a tree plus checklists, 202 to ~120 words","to":"public/framework/ai/2026-10-09/code-mastermind/result.md"}
+{"at":"2026-10-09T23:25:08.378Z","target":"public/framework/ai/2026-10-09/ai-mastermind","verdict":"queued","kind":"landing"}
+{"at":"2026-10-09T23:25:08.505Z","target":"public/framework/ai/2026-10-09/ai-mastermind","verdict":"spawned","to":"clarity-ai-mastermind"}
+{"at":"2026-10-09T18:40:00-05:00","target":"/framework/ai/2026/10/09/note-ai-docs-consolidated-54-flat-files/","verdict":"ui","what":"Note body is one ~170-word paragraph (fails 60-word cap) and the page.jsonl file viewer fills the card. Rewrite: 'Before: 31+23 flat docs. After: 7 + 5 subfolders, each with a readme.' / '20 duplicates merged into 8; originals kept in archive/, nothing deleted.' / 'Open: System tab has no page for Servex agents, sessions, page system.' Details one click down in ai/doc/readme.md.","to":"mastermind-servex"}
+{"at":"2026-10-09T23:25:57.470Z","target":"public/framework/ai/2026-10-09/dup-chat-bubbles","verdict":"queued","kind":"landing"}
+{"at":"2026-10-09T23:25:57.855Z","target":"public/framework/ai/2026-10-09/dup-chat-bubbles","verdict":"spawned","to":"clarity-dup-chat-bubbles"}
+{"at":"2026-10-09T18:30:00-05:00","target":"public/framework/ai/2026-10-09/dup-chat-bubbles","verdict":"rewrote","what":"review.md split into Fix and Notes lists; outcome already clear with proofs","to":"review.md"}
+{"at":"2026-10-09T23:29:10.537Z","target":"public/framework/ai/2026-10-09/page-mastermind/doc-audit/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T23:29:21.054Z","target":"public/framework/ai/2026-10-09/core-session/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-09T23:30:11.536Z","target":"public/framework/ai/2026-10-09/page-mastermind/doc-audit/requirements.md","verdict":"spawned","to":"clarity-doc-audit"}
+{"at":"2026-10-09T19:30:00.000Z","target":"public/framework/ai/2026-10-09/page-mastermind/doc-audit","verdict":"rewrote","what":"split the 62-word intro paragraph and named the folder recs.md goes in","to":"doc-audit/requirements.md"}
+{"at":"2026-10-09T23:44:19.576Z","target":"public/framework/ai/2026-10-09/page-mastermind","verdict":"queued","kind":"landing"}
+{"at":"2026-10-09T23:44:19.733Z","target":"public/framework/ai/2026-10-09/page-mastermind","verdict":"spawned","to":"clarity-page-mastermind"}
+{"at":"2026-10-09T19:00:00-05:00","target":"/framework/core/Page/tool/","verdict":"ui","what":"Outcome and text clear, but the demo is one 600px column on a 1920 screen (74% empty) and 'Add a tab' / 'Add to a tab' cards read alike; fix: lay the cards in an auto-fit grid and rename the second 'Add to a tab's content'.","to":"mastermind-servex"}
+{"at":"2026-10-09T23:49:44.327Z","target":"public/framework/ai/2026-10-09/refine-dictate-ui","verdict":"queued","kind":"landing"}
+{"at":"2026-10-09T23:49:44.461Z","target":"public/framework/ai/2026-10-09/refine-dictate-ui","verdict":"spawned","to":"clarity-refine-dictate-ui"}
+{"at":"2026-10-09T19:10:00-05:00","target":"/framework/ux/Dictate/md/doc/voice-architecture/","verdict":"ui","what":"Class table is cut off at the right edge (the 'what it is' column is unreadable) and the page is 694 words; wrap the table (or render it as a table), open with one sentence naming the point, and move the detail one click down. Mobile-socket page is clear.","to":"mastermind-servex"}
+{"at":"2026-10-10T07:05:27.718Z","target":"public/framework/ai/2026-10-10/figma-system/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-10T07:05:55.405Z","target":"public/framework/ai/2026-10-10/server-perf/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-10T07:06:28.655Z","target":"public/framework/ai/2026-10-10/figma-system/requirements.md","verdict":"spawned","to":"clarity-figma-system"}
+{"at":"2026-10-10T12:00:00.000Z","target":"public/framework/ai/2026-10-10/figma-system/requirements.md","verdict":"clear","what":"text-check clean; agent brief with five numbered deliverables, fences and known facts; dense bullets 10 and 17 exceed 60 words but are agent-facing","to":"clarity-figma-system"}
+{"at":"2026-10-10T07:06:56.475Z","target":"public/framework/ai/2026-10-10/server-perf/requirements.md","verdict":"spawned","to":"clarity-server-perf"}
+{"at":"2026-10-10T12:00:00.000Z","target":"public/framework/ai/2026-10-10/server-perf/requirements.md","verdict":"rewrote","what":"Split 120-word Fences paragraph into 4 bullets; steps are now checkboxes","to":"requirements.md"}
+{"at":"2026-10-10T07:12:26.808Z","target":"public/framework/ai/2026-10-10/tasks-into-sessions/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-10T07:13:27.799Z","target":"public/framework/ai/2026-10-10/tasks-into-sessions/requirements.md","verdict":"spawned","to":"clarity-tasks-into-sessions"}
+{"at":"2026-10-10T12:00:00.000Z","target":"public/framework/ai/2026-10-10/tasks-into-sessions/requirements.md","verdict":"rewrote","what":"split 75-word bullet in two; steps made a tick checklist","to":"requirements.md"}
+{"at":"2026-10-10T07:17:18.096Z","target":"public/framework/ai/2026-10-10/refine-session-log/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-10T07:18:19.114Z","target":"public/framework/ai/2026-10-10/refine-session-log/requirements.md","verdict":"spawned","to":"clarity-refine-session-log"}
+{"at":"2026-10-10T12:00:00.000Z","target":"public/framework/ai/2026-10-10/refine-session-log/requirements.md","verdict":"rewrote","what":"plain goal line, stages and asks as a list, links for modules","to":"requirements.md"}
+{"at":"2026-10-10T07:54:01.493Z","target":"public/framework/ai/2026-10-10/server-perf","verdict":"queued","kind":"landing"}
+{"at":"2026-10-10T07:54:01.601Z","target":"public/framework/ai/2026-10-10/server-perf","verdict":"spawned","to":"clarity-server-perf-2"}
+{"at":"2026-10-10T03:00:00-05:00","target":"public/framework/ai/2026-10-10/server-perf","verdict":"clear","what":"outcome ticks all four asks with proof, short, text-check clean","to":"none"}
+{"at":"2026-10-10T08:55:30.992Z","target":"public/framework/ai/2026-10-10/figma-system","verdict":"queued","kind":"landing"}
+{"at":"2026-10-10T08:55:31.149Z","target":"public/framework/ai/2026-10-10/figma-system","verdict":"spawned","to":"clarity-figma-system-2"}
+{"at":"2026-10-10T04:10:00-05:00","target":"public/framework/ai/2026-10-10/figma-system","verdict":"clear","what":"Both pages read in ten seconds; only text-check flags are owner-notes verbatim and one STATE.md paragraph (agent-facing)","to":"clarity"}
+{"at":"2026-10-12T06:03:13.686Z","target":"public/framework/ai/2026-10-12/page-slice/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T06:03:14.762Z","target":"public/framework/ai/2026-10-12/figma-phase2/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T06:03:15.839Z","target":"public/framework/ai/2026-10-12/session-housekeeping/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T06:04:14.665Z","target":"public/framework/ai/2026-10-12/page-slice/requirements.md","verdict":"spawned","to":"clarity-page-slice"}
+{"at":"2026-10-12T06:04:15.778Z","target":"public/framework/ai/2026-10-12/figma-phase2/requirements.md","verdict":"spawned","to":"clarity-figma-phase2"}
+{"at":"2026-10-12T06:04:16.855Z","target":"public/framework/ai/2026-10-12/session-housekeeping/requirements.md","verdict":"spawned","to":"clarity-session-housekeeping"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/figma-phase2/requirements.md","verdict":"clear","what":"text-check clean; five numbered asks, fences stated, links to prior state","to":"figma-phase2"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/session-housekeeping/requirements.md","verdict":"rewrote","what":"Shortened title to 8 words; turned the four numbered asks into unticked checklist items","to":"requirements.md"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/page-slice/requirements.md","verdict":"rewrote","what":"added plain-words intro and a done-means checklist at top","to":"requirements.md"}
+{"at":"2026-10-12T06:08:14.358Z","target":"public/framework/ai/2026-10-12/session-housekeeping","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T06:08:14.492Z","target":"public/framework/ai/2026-10-12/session-housekeeping","verdict":"spawned","to":"clarity-session-housekeeping-2"}
+{"at":"2026-10-12T01:08:27-05:00","target":"public/framework/ai/2026-10-12/session-housekeeping","verdict":"rewrote","what":"outcome was bare 'landed'; added ticked asks with proof","to":"public/framework/ai/2026-10-12/session-housekeeping/task.jsonl"}
+{"at":"2026-10-12T06:22:54.988Z","target":"public/framework/ai/2026-10-12/page-slice","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T06:22:55.110Z","target":"public/framework/ai/2026-10-12/page-slice","verdict":"spawned","to":"clarity-page-slice-2"}
+{"at":"2026-10-12T06:30:00.000Z","target":"public/framework/ai/2026-10-12/page-slice","verdict":"clear","what":"text-check clean; outcome ticks each ask with links, short","to":"none"}
+{"at":"2026-10-12T06:27:21.188Z","target":"public/framework/ai/2026-10-12/systems/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T06:28:22.295Z","target":"public/framework/ai/2026-10-12/systems/requirements.md","verdict":"spawned","to":"clarity-systems"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/systems/requirements.md","verdict":"rewrote","what":"Shortened title to 5 words; split 150-word ask paragraph into a 4-item checklist","to":"requirements.md"}
+{"at":"2026-10-12T06:29:55.516Z","target":"public/framework/ai/2026-10-12/figma-phase2","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T06:29:55.642Z","target":"public/framework/ai/2026-10-12/figma-phase2","verdict":"spawned","to":"clarity-figma-phase2-2"}
+{"at":"2026-10-12T01:30:08-05:00","target":"public/framework/ai/2026-10-12/figma-phase2","verdict":"clear","what":"text-check clean; outcome ticks each ask with links; Figma page shows thumbnails","to":"none"}
+{"at":"2026-10-12T06:43:03.463Z","target":"public/framework/ai/2026-10-12/skill-usage-audit/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T06:44:04.503Z","target":"public/framework/ai/2026-10-12/skill-usage-audit/requirements.md","verdict":"spawned","to":"clarity-skill-usage-audit"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/skill-usage-audit/requirements.md","verdict":"rewrote","what":"shortened title; split 90-word question paragraph into a 4-item checklist","to":"requirements.md"}
+{"at":"2026-10-12T06:50:52.964Z","target":"public/framework/ai/2026-10-12/skill-usage-audit","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T06:50:53.109Z","target":"public/framework/ai/2026-10-12/skill-usage-audit","verdict":"spawned","to":"clarity-skill-usage-audit-2"}
+{"at":"2026-10-12T02:00:00-05:00","target":"public/framework/ai/2026-10-12/skill-usage-audit","verdict":"rewrote","what":"recommendation.md cut under 500 words with a table; outcome now ticks each owner ask with proof","to":"recommendation.md"}

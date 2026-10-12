@@ -13,7 +13,7 @@ description: Become a task mastermind — the agent that owns exactly ONE task e
 
 **Track your own experiments (the owner, 2026-09-29).** Only small ones, each checkable at a glance (a number before and after, a screenshot, a pass or fail). Log each in task.jsonl as `{"experiment":{"try","measure","result"}}`. Skip anything elaborate that can't be proven.
 
-**Nothing merges into michael/dev without a smoke test.** `node Server/merge.mjs <worktree> [pages]` loads the pages you touched, plus `/framework/` and `/framework/ai2/`, on the worktree's own server, and merges only with zero console errors, page errors and failed module requests. A full UI test is not needed to merge. `merge.mjs` now finds the changed pages itself from the branch's diff and `smoke.mjs` follows every link it finds on them one level deep, so `[pages]` only needs to name what the diff can't (a url no page.js maps to, a route a config file changed).
+**Nothing merges into michael/dev without a smoke test.** `node Server/merge.mjs <worktree> [pages]` loads the pages you touched, plus `/framework/` and `/framework/ai/`, on the worktree's own server, and merges only with zero console errors, page errors and failed module requests. A full UI test is not needed to merge. `merge.mjs` now finds the changed pages itself from the branch's diff and `smoke.mjs` follows every link it finds on them one level deep, so `[pages]` only needs to name what the diff can't (a url no page.js maps to, a route a config file changed).
 
 You are the middle of the ladder. The **master-mastermind** above you decides *what* is worth
 doing and hands you one task. The **minions** below you build. You are the only agent that holds
@@ -32,7 +32,7 @@ A prompt that arrives "from servex-mastermind-opus" (or any `*-opus` tab name) i
 - [ ] segmented progress bar: bars are still one solid line
 ```
 
-An ask you built but didn't prove stays unticked. A smaller version of what was named is a miss. (The feedback council, 2026-09-25, found 24 of 44 asks only "partly" done, most of them never proven: "confirm it's newest-first", "click and confirm it's top-aligned".)
+An ask you built but didn't prove stays unticked. A smaller version of what was named is a miss. (A feedback audit, 2026-09-25, found 24 of 44 asks only "partly" done, most of them never proven: "confirm it's newest-first", "click and confirm it's top-aligned".)
 
 The roles table: [`../every-prompt/tiers.md`](../every-prompt/tiers.md). The full design:
 [`/framework/ai/2026-09-22/tiers-design/`](/framework/ai/2026-09-22/tiers-design/).
@@ -118,7 +118,7 @@ of containers." Before merging:
   conflict by taking "ours" or "theirs" wholesale.
 - A change to shared CSS (`framework.css`, `styles/`, a `.page` or padding rule) needs a
   before-and-after screenshot of three pages that use it and that you did not build.
-- The merge itself is `node Server/merge.mjs <worktree> [pages]`: it locks, smoke-tests, holds reloads and merges. From the Bash tool (Git Bash) run it as `MSYS_NO_PATHCONV=1 node Server/merge.mjs ...`, or a page path like `/framework/ai2/` arrives mangled to `C:/Program Files/Git/framework/ai2/` and the smoke run holds everyone's merge lock while it hunts for it.
+- The merge itself is `node Server/merge.mjs <worktree> [pages]`: it locks, smoke-tests, holds reloads and merges. From the Bash tool (Git Bash) run it as `MSYS_NO_PATHCONV=1 node Server/merge.mjs ...`, or a page path like `/framework/ai/` arrives mangled to `C:/Program Files/Git/framework/ai/` and the smoke run holds everyone's merge lock while it hunts for it.
   It runs the MAIN tree's `smoke.mjs`, so a smoke fix on your branch does not apply to your own merge: fix the page, or land the smoke fix first.
 - **Every change to a page is reviewed from screenshots at 400, 1200, 1920 and 3440** (the owner, 2026-09-30), and YOU read the shots, never the minion's word for them (dev-shell, 2026-09-30: a minion reported zero errors while the right rail sat over the page): run `node Server/layout-check.mjs <url...> --widths 400,1200,1920,3440` on the pages it touched and read each shot in horizontal bands, top to bottom: how much of the screen the band takes, whether that is the right size, its padding (stacked padding at the left edge is the usual fault: the tab area's plus a card's plus another's), wasted space, and anything wrapping to another line that shouldn't (a tab bar over two rows, a title on two lines). Say what you saw per band, in one line each, in task.jsonl. A green build shows none of this.
 

@@ -38,7 +38,7 @@ These are the mechanics. What the page is, where it goes and what goes on it, to
    tab, a detail — has its own url (a child page, or `history.pushState` to one that reloads to
    the same view). A view with no address loses the reader's place on reload. `swap_link` does it
    for docs; core/Page's readme. Each view is a plain link, never a button that flips a class:
-   AI 2's "Open the full inbox" did that and the nav rail stopped switching pages (the owner,
+   The AI board's "Open the full inbox" did that and the nav rail stopped switching pages (the owner,
    2026-09-23). Check by clicking every view, then the site nav, then Back — the url must change.
 5. **Traps that still bite once the folder exists** — `create_page` gets you the folder, the
    file and the link; these are about what you put in `children:` and `icon:` by hand:

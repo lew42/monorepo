@@ -26,7 +26,7 @@ skip it.
 - [ ] segmented progress bar: bars are still one solid line
 ```
 
-An ask you built but didn't prove stays unticked. A smaller version of what was named is a miss. (The feedback council, 2026-09-25, found 24 of 44 asks only "partly" done, most of them never proven: "confirm it's newest-first", "click and confirm it's top-aligned".)
+An ask you built but didn't prove stays unticked. A smaller version of what was named is a miss. (A feedback audit, 2026-09-25, found 24 of 44 asks only "partly" done, most of them never proven: "confirm it's newest-first", "click and confirm it's top-aligned".)
 
 ## 1. Link the deliverables where a reader already is
 
@@ -59,7 +59,7 @@ board renders it in place of the generic viewer.
 {"assign": {"step": <last>, "landed_at": "<ISO with local offset>", "outcome": "**what landed** — …", "links": [{"url": "/…/", "label": "…"}], "window": {"before": <carried>, "after": <5h fraction now>}, "tokens": <total>, "usage": {"input": …, "cache_write": …, "cache_read": …, "output": …, "calls": …}}}
 ```
 
-**Give the task a plain `title`** in the same landing line (`"title": "Live card: replying hid the usage bars"`): the part it is about, then what changed, in a few words. AI 2 lists a task by it; without one it shows the request cut short, and "When I respond on that page" means nothing to the owner (2026-09-25).
+**Give the task a plain `title`** in the same landing line (`"title": "Live card: replying hid the usage bars"`): the part it is about, then what changed, in a few words. The AI board lists a task by it; without one it shows the request cut short, and "When I respond on that page" means nothing to the owner (2026-09-25).
 
 Optional, and only when this landing produced something the owner will go looking for later — a tier, a realm, a system, a class, a standard, a post, a tool, a study with a page — append one more line so it draws a card on the front of `/framework/ai/`: `{"assign": {"highlight": {"icon": "<one of layers explore science article build straighten>", "title": "<five words or fewer>", "line": "<one plain sentence>", "url": "<THE THING, never this task page>"}}}` — what earns one and what the six icons mean: [`ext/AITask/doc/highlights.md`](/framework/ext/AITask/doc/highlights.md).
 
