@@ -1,5 +1,5 @@
 import { details, summary } from "/framework/core/View/View.js";
-import { class_cards, live_agents } from "./system-classes.js";
+import { SystemClasses } from "./SystemClasses.js";
 import { Page, md, div, a, span, small, strong, icon, h2, h3 } from "/app.js";
 import { code } from "/framework/ext/highlight/highlight.js";
 import { file_link } from "/framework/ext/filesystem/file_link.js";
@@ -104,9 +104,9 @@ export function tab_page(root, name, url = root.url + name + "/"){
 			title: "System", icon: "account_tree", classes: "inbox-takeover inbox-tab",
 			content(){
 				section("AI system classes", "Servex is the one always-on process; each card is one of its classes.", () => {
-					class_cards(["Servex", "Agents", "Dispatcher", "Sessions", "Pool", "Usage", "Budget"]);
+					SystemClasses.cards(["Servex", "Agents", "Dispatcher", "Sessions", "Pool", "Usage", "Budget"]);
 					a("Class cards with a live debug view").attr("href", "/framework/ai/classes/");
-					details(() => { summary("Servex also watches itself"); class_cards(["Heartbeat", "TaskLoop", "Worktrees", "Monitor", "Assistant"]); });
+					details(() => { summary("Servex also watches itself"); SystemClasses.cards(["Heartbeat", "TaskLoop", "Worktrees", "Monitor", "Assistant"]); });
 				});
 				section("Documentation and readmes", "How agents and you find what is true: readmes are the index, doc/ holds the detail, skills say how to write both.", () => cards([
 					{ name: "Readmes", icon: "menu_book", gist: "Every folder's index, and the chain a fresh agent reads root first.", href: base + "readmes/" },
@@ -123,7 +123,7 @@ export function tab_page(root, name, url = root.url + name + "/"){
 					{ name: "Code system", icon: "code", gist: "How the code is written: objects, pages, views, the traps.", href: "/framework/code/" },
 					{ name: "Per-module ai/ folders", icon: "folder_special", gist: "What writes log.jsonl and the voice transcripts beside each module.", href: file_link("public/framework/ai/doc/design/module-ai-dirs.md") },
 				]));
-				section("Running now", "The agents this Servex holds right now.", () => live_agents());
+				section("Running now", "The agents this Servex holds right now.", () => SystemClasses.liveAgents());
 				section("Where each piece lives", "Agents start through the Claude Agent SDK; models come from Anthropic, OpenRouter or a local server.", () => cards([
 					{ name: "Servex", icon: "hub", gist: "The process: agents, dev servers, logs, port 80.", href: "/framework/servex/" },
 					{ name: "Agent SDK", icon: "terminal", gist: "How an agent is started, how its tools arrive, where its session is saved.", href: file_link("Servex/doc/sdk.md") },

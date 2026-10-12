@@ -1,8 +1,8 @@
 import { Page } from "/app.js";
-import { class_cards } from "../system-classes.js";
+import { SystemClasses } from "../SystemClasses.js";
 
 // The class cards: one page per class (a child), each showing the class beside a live debug view of an instance.
-// The cards themselves are ../system-classes.js; this page only lists the ones that have a live page yet.
+// The cards themselves are ../SystemClasses.js; this page only lists the ones that have a live page yet.
 export default class ClassIndexPage extends Page {
 	constructor(...args){
 		super({
@@ -13,5 +13,5 @@ export default class ClassIndexPage extends Page {
 		}, ...args);
 	}
 
-	content(){ class_cards(["Session", "Prompt"]); }
+	content(){ SystemClasses.cards(["Session", "Prompt"]); }
 }
