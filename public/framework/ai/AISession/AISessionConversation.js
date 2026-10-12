@@ -25,7 +25,7 @@ export default class AISessionConversation {
 		const was = button.textContent;
 		button.disabled = true; button.textContent = "Refining…";
 		try {
-			const prompt = "t" + (Number(at) || Date.now()).toString(36);
+			const prompt = "t" + (Date.parse(at) || Date.now()).toString(36);
 			const res = await fetch(servex_url("/api/refine"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, session: this.session, prompt, source: "vscode" }) });
 			const out = await res.json();
 			if (!out?.ok) throw new Error(out?.why ?? "Servex answered " + res.status);
