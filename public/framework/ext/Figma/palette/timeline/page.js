@@ -1,4 +1,5 @@
 import { Page, View, div, p, h1, h2, h4 } from "/app.js";
+View.stylesheet(import.meta, "../../scheme.css");
 
 View.stylesheet(import.meta, "timeline.css");
 
@@ -21,6 +22,7 @@ function AvatarStack(avatars) {
 
 export default new Page({
 	meta: import.meta,
+	classes: "figma-scheme",
 	title: "Timeline & Task Detail",
 	icon: "schedule",
 	width: "full",

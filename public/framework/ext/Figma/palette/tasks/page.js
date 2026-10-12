@@ -1,4 +1,5 @@
 import { Page, View, div, p, h1, h2, h4 } from "/app.js";
+View.stylesheet(import.meta, "../../scheme.css");
 
 View.stylesheet(import.meta, "tasks.css");
 
@@ -27,6 +28,7 @@ function TaskFooter(refLink, avatars) {
 
 export default new Page({
 	meta: import.meta,
+	classes: "figma-scheme",
 	title: "Task Management",
 	icon: "task_alt",
 	width: "full",

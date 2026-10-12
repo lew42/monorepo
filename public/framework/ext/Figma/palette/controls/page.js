@@ -1,9 +1,11 @@
 import { Page, View, div, p, h1, h4, button, input, textarea } from "/app.js";
+View.stylesheet(import.meta, "../../scheme.css");
 
 View.stylesheet(import.meta, "controls.css");
 
 export default new Page({
 	meta: import.meta,
+	classes: "figma-scheme",
 	title: "Controls",
 	icon: "toggle_on",
 	width: "full",

@@ -1,4 +1,5 @@
 import { Page, View, div, p, h1, h2, h4 } from "/app.js";
+View.stylesheet(import.meta, "../scheme.css");
 
 View.stylesheet(import.meta, "palette.css");
 
@@ -49,6 +50,7 @@ const columnSpecs = [
 ];
 
 const body = (text, i) => i ? p.c("muted", text) : p(text);
+const prime_line = ground => ground === "bg-prime" ? null : p.c("fs-prime-text", `Prime text on ${ground === "bg-dark" ? "dark" : "white"}`);
 
 function inset(spec){
 	div.c(spec.cls, () => {
@@ -60,6 +62,7 @@ function inset(spec){
 
 export default new Page({
 	meta: import.meta,
+	classes: "figma-scheme",
 	title: "The Approved Schemes",
 	icon: "palette",
 	width: "full",
@@ -78,6 +81,7 @@ export default new Page({
 						h4.c("muted", spec.label);
 						h2(spec.title);
 						spec.bodies.forEach(body);
+						prime_line(spec.ground);
 						spec.insets.forEach(inset);
 					});
 				});

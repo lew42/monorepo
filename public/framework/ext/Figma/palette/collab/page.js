@@ -1,4 +1,5 @@
 import { Page, View, div, p, button } from "/app.js";
+View.stylesheet(import.meta, "../../scheme.css");
 
 View.stylesheet(import.meta, "collab.css");
 
@@ -35,6 +36,7 @@ function Avatar(text, ground) {
 
 export default new Page({
 	meta: import.meta,
+	classes: "figma-scheme",
 	title: "AI Collaboration",
 	icon: "forum",
 	width: "full",

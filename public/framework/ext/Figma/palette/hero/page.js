@@ -1,9 +1,11 @@
 import { Page, View, div, p, button } from "/app.js";
+View.stylesheet(import.meta, "../../scheme.css");
 
 View.stylesheet(import.meta, "hero.css");
 
 export default new Page({
 	meta: import.meta,
+	classes: "figma-scheme",
 	title: "Hero & Navigation",
 	icon: "web",
 	width: "full",

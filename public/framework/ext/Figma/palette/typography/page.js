@@ -1,4 +1,5 @@
 import { Page, View, div, p, h1, h2, h3, h4, a } from "/app.js";
+View.stylesheet(import.meta, "../../scheme.css");
 
 View.stylesheet(import.meta, "typography.css");
 
@@ -21,6 +22,7 @@ function Specimen() {
 
 export default new Page({
 	meta: import.meta,
+	classes: "figma-scheme",
 	title: "Typography",
 	icon: "text_fields",
 	width: "full",

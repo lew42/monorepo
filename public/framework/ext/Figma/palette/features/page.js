@@ -1,4 +1,5 @@
 import { Page, View, div, p, button } from "/app.js";
+View.stylesheet(import.meta, "../../scheme.css");
 
 View.stylesheet(import.meta, "features.css");
 
@@ -35,6 +36,7 @@ function listPanel(heading, items, ground = "") {
 
 export default new Page({
 	meta: import.meta,
+	classes: "figma-scheme",
 	title: "Feature Cards & Lists",
 	icon: "view_agenda",
 	width: "full",

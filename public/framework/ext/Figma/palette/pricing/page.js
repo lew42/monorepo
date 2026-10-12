@@ -1,9 +1,11 @@
 import { Page, View, div, p, h1, h4, hr, button } from "/app.js";
+View.stylesheet(import.meta, "../../scheme.css");
 
 View.stylesheet(import.meta, "pricing.css");
 
 export default new Page({
 	meta: import.meta,
+	classes: "figma-scheme",
 	title: "Pricing & Dashboard",
 	icon: "payments",
 	width: "full",

@@ -1,5 +1,6 @@
-import { Page, div, p, h4, md } from "/app.js";
+import { Page, View, div, p, h4, md } from "/app.js";
 import { parse, over, ratio, floorOf } from "/framework/styles/stacks/stacks.js";
+View.stylesheet(import.meta, "../scheme.css");
 
 /* Figma Sept-2026, Page 7, frame "Color Schemes" (112:11362). Figma's nested cards
    are a black-or-white overlay at an alpha, so one rule works on any parent — our
@@ -30,6 +31,7 @@ function card(cls, label, depth){
 	div.c(cls, $box => {
 		h4(label);
 		const $line = p("Text on this card: — : 1 contrast");
+		if (!cls.includes("bg-prime")) p.c("fs-prime-text", "Prime-bound text specimen");   // blue on blue is invisible; the design omits it
 		p.c("muted", "Secondary text specimen");
 		live_contrast($box, $line);
 		if (depth > 0) card("card", "↳ Nested card", depth - 1);
@@ -38,6 +40,7 @@ function card(cls, label, depth){
 
 export default new Page({
 	meta: import.meta,
+	classes: "figma-scheme",
 	title: "Color Schemes",
 	description: "Figma's nested cards rebuilt in the real system: `.card` steps one notch darker inside itself, and the contrast number is read off the rendered pixels, not guessed.",
 	icon: "palette",

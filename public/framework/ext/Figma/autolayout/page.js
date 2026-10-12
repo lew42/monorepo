@@ -1,4 +1,5 @@
 import { Page, View, div, p } from "/app.js";
+View.stylesheet(import.meta, "../scheme.css");
 
 View.stylesheet(import.meta, "autolayout.css");
 
@@ -14,6 +15,7 @@ function pane(big, ground = "bg-white") {
 
 export default new Page({
 	meta: import.meta,
+	classes: "figma-scheme",
 	title: "Auto layout",
 	icon: "view_column",
 	width: "full",
