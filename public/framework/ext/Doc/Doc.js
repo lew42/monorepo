@@ -1,6 +1,7 @@
 import { View, div, h1, code, span, a, icon, is } from "../../core/View/View.js";
 import { Page } from "../../core/Page/Page.class.js";
 import PageWork from "../../core/Page/ai/PageWork.js";
+import PageInbox from "../../core/Page/PageInbox.js";
 import { member, patched, dedent } from "../../util/source/source.js";
 import md from "../markdown/md.js";
 import files, { nest } from "../files/files.js";
@@ -41,6 +42,7 @@ export class Doc extends Page {
 		this.api_section();
 		this.docs_section();
 		this.files_section();
+		this.inbox_section();
 		return this;
 	}
 
@@ -188,6 +190,17 @@ export class Doc extends Page {
 		const names = this.member_index?.get(kind) ?? new Map();
 
 		return { title: `${this.title} ${kind}s`, route(name){ return names.has(name) && doc.member_page_config(name, names.get(name), kind); } };
+	}
+
+	// Every Doc page gets an Inbox tab; `no_inbox: true` opts out. The tab label carries the unread count.
+	// ⚠ Stored as `mailbox`: `page.inbox` is already the array core/Page/ext/Inbox fills.
+	inbox_section(){
+		if (this.no_inbox) return;
+
+		const mailbox = this.mailbox = new PageInbox({ page: this });
+		const section = this.section("inbox", "Inbox", { render(){ return this.view ??= div.c("page doc-section", () => mailbox.view()).ac("page--inbox"); } });
+		mailbox.section = section;
+		return section;
 	}
 
 	// One view, not a rail — so it declares its own render rather than taking section()'s.
@@ -376,7 +389,7 @@ export class Doc extends Page {
 			.filter(name => this.tab_visible(name))
 			.sort((a, b) => this.tab_order(a) - this.tab_order(b));
 
-		return ["overview", ...middle, "api", "doc", "files"]
+		return ["overview", ...middle, "api", "doc", "files", "inbox"]
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	}
 
@@ -415,6 +428,7 @@ export class Doc extends Page {
 			.ac(this.classes);
 
 		// "N open tasks touch this page" (core/Page/ai/PageWork.js); a Doc draws its own view, so Page.render()'s line never reaches it.
+		if (fresh) this.mailbox?.start();   // streams page.jsonl so the tab shows its unread count
 		if (fresh && this.url) view.append(() => { span.c("page-open").append(PageWork.line(this.url)); });
 		return view;
 	}
@@ -446,7 +460,7 @@ function note_rows(node, base){
 
 // The sections this class derives, as opposed to the children a call site declared.
 // One list, two readers: `bar()` orders the strip by it, `wall()` subtracts it.
-Doc.SECTIONS = ["overview", "api", "doc", "files"];
+Doc.SECTIONS = ["overview", "api", "doc", "files", "inbox"];
 
 Doc.names = names => (names ?? "").trim().split(/\s+/).filter(Boolean);
 

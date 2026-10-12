@@ -8,4 +8,9 @@ The owner's rule (style-system brief): the rebuilt Figma pages use OUR `--prime`
 | Color Schemes, now | ![](shots/after2-colors-400.png) | ![](shots/after2-colors-1200.png) |
 | The Palette, now | ![](shots/after2-palette-400.png) | ![](shots/after2-palette-1200.png) |
 
-Figma frames for reference (blue, not used): ![](shots/figma-colors.png) ![](shots/figma-palette.png)
+## Beside the Figma frames (blue; reference only)
+
+| Figma frame | Ours at 400 | Ours at 1200 |
+|---|---|---|
+| ![](shots/figma-colors.png) | ![](shots/after2-colors-400.png) | ![](shots/after2-colors-1200.png) |
+| ![](shots/figma-palette.png) | ![](shots/after2-palette-400.png) | ![](shots/after2-palette-1200.png) |

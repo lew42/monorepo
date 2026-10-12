@@ -6,5 +6,5 @@ export default new FigmaBrowse({
 	description: "Figma files we track, as previews you can browse; every design in them can become a framework page.",
 	icon: "design_services",
 	width: "full",
-	children: "colors palette autolayout",
+	children: "guide colors palette autolayout",
 });

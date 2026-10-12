@@ -18,6 +18,7 @@ class Servex {                       // the always-on process, :8090 (proxy on :
   sessions: Sessions                 // voice: one fast + one smart assistant, global
   dispatcher: Dispatcher             // routes a prompt to the right agent
   task_loop: TaskLoop                // node-led: re-prompts and escalates a task's steps
+                                     // its step nudge: doc/steps.md (the Step runner)
   heartbeat: Heartbeat               // status check → triage → escalate
   lifecycle: Lifecycle               // reaps finished or stuck agents
   pool: Pool, worktrees: Worktrees   // the quick-fix pool; per-task worktrees
@@ -53,6 +54,7 @@ Either way it prints three URLs:
 Everything binds `127.0.0.1` and every route refuses a non-loopback caller
 twice over. These tools start processes; nothing here is for a network.
 
+- **The Step runner** — a task's steps carry estimates; node prompts each next step and nudges once at 2x: [doc/steps.md](doc/steps.md).
 - **The six parts** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-six-parts), verbatim.
 - **The Servex mastermind is always on** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-servex-mastermind-is-always-on), verbatim.
 - **The voice pair: one standing pair, recycled** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-voice-pair-one-standing-pair-recycled-the-owner-2026-10-02), verbatim.

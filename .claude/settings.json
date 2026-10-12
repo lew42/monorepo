@@ -138,6 +138,14 @@
               "post-tool-use"
             ],
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/step-prompt.mjs"
+            ],
+            "timeout": 5
           }
         ]
       }

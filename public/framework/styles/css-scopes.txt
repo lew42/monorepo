@@ -255,3 +255,5 @@ objects-
 
 # public/framework/ext/Shots — the screenshot tree view, dev bar tab + module page (2026-10-12)
 shots-
+# public/framework/ext/Figma/guide — the coded Figma guide (2026-10-12)
+fgd-

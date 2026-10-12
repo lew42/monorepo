@@ -1,0 +1,6 @@
+{"label":"before","width":400,"first_row_ms":952,"long_tasks":2,"long_ms":125,"dom_nodes":2889,"rows":45,"transfer_kb":4647,"heap_mb":84.1,"ws_kb":976,"scroll_long_ms":0,"at":"2026-10-12T21:10:44.580Z"}
+{"label":"before","width":1920,"first_row_ms":4163,"long_tasks":8,"long_ms":636,"dom_nodes":2889,"rows":45,"transfer_kb":4647,"heap_mb":65.8,"ws_kb":977,"scroll_long_ms":0,"at":"2026-10-12T21:10:52.569Z"}
+{"label":"after","width":400,"first_row_ms":1167,"long_tasks":1,"long_ms":52,"dom_nodes":2713,"rows":50,"transfer_kb":3174,"heap_mb":17.4,"ws_kb":630,"scroll_long_ms":0,"at":"2026-10-12T21:18:12.197Z"}
+{"label":"after","width":1920,"first_row_ms":1218,"long_tasks":1,"long_ms":53,"dom_nodes":2713,"rows":50,"transfer_kb":3174,"heap_mb":17.8,"ws_kb":631,"scroll_long_ms":0,"at":"2026-10-12T21:18:17.173Z"}
+{"label":"after-files","width":400,"first_row_ms":1155,"long_tasks":1,"long_ms":51,"dom_nodes":2627,"rows":50,"transfer_kb":3485,"heap_mb":34.1,"ws_kb":984,"scroll_long_ms":0,"at":"2026-10-12T21:18:24.145Z"}
+{"label":"after-files","width":1920,"first_row_ms":1270,"long_tasks":0,"long_ms":0,"dom_nodes":2627,"rows":50,"transfer_kb":3484,"heap_mb":32.5,"ws_kb":980,"scroll_long_ms":0,"at":"2026-10-12T21:18:29.177Z"}

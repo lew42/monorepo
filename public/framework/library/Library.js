@@ -1,5 +1,6 @@
-import { Page, View, div, a, p } from "/app.js";
+import { Page, View, div, a, p, img, button } from "/app.js";
 import Collection from "./Collection.js";
+import Entry from "./Entry.js";
 import Item from "./Item.js";
 import Rail from "./Rail.js";
 import Stage from "./Stage.js";
@@ -17,28 +18,93 @@ export default class Library extends Page {
 
 	static DEFAULT = "ui/card";
 	static FIGMA = ["palette", "colors", "autolayout"];
+	static TEMPLATES = [["BigCard", "/framework/core/Page/Template/BigCard/BigCard.js"]];
+	static ORDER = ["ui", "ux", "sections", "layouts", "templates", "figma"];
 
-	// ui: the children of /framework/ui/ (mobile first, 400). figma: the rebuilt Figma pages (1920).
+	// ui · ux · sections · layouts · templates · figma. Each loader lists [key, page]; Entry stands in where the thing is not a Page.
 	static collections(){
-		return this._collections ??= [
-			new Collection({
-				name: "ui", label: "ui", optimalWidth: 400, needs_parent_padding: true,
+		return this._collections ??= this.ORDER.map(name => this.COLLECTIONS[name].call(this));
+	}
+
+	static COLLECTIONS = {
+		ui(){
+			const collection = new Collection({
+				name: "ui", optimalWidth: 400, needs_parent_padding: true,
 				base: key => `/framework/ui/${key}/`,
 				load: async () => {
 					const { default: ui, BANDS } = await import("/framework/ui/page.js");
-					this._collections[0].bands = BANDS;
+					collection.bands = BANDS;
 					const keys = [...ui.children.keys()].filter(key => !ui.constructor.SECTIONS?.includes(key));
 					return Promise.all(keys.map(async key => [key, await ui.child(key)]));
 				},
-			}),
-			new Collection({
-				name: "figma", label: "figma", optimalWidth: 1920, draws_content: true,
+			});
+			return collection;
+		},
+
+		ux(){
+			return new Collection({
+				name: "ux", optimalWidth: 1000,
+				base: key => `/framework/ux/${key}/`,
+				load: async () => {
+					const { default: ux } = await import("/framework/ux/page.js");
+					return Promise.all([...ux.children.keys()].map(async key => [key, await ux.child(key)]));
+				},
+			});
+		},
+
+		sections(){
+			return new Collection({
+				name: "sections", optimalWidth: 1920,
+				base: key => `/framework/styles/sections/${key}/`,
+				specimen: item => item.page.section && (() => item.page.section(item.page.tone)),
+				no_parent_padding: true,
+				load: async () => {
+					const { default: sections } = await import("/framework/styles/sections/page.js");
+					const pages = await Promise.all([...sections.children.keys()].map(async key => [key, await sections.child(key)]));
+					return pages.filter(([, page]) => page?.section);   // the page's own first card has no band
+				},
+			});
+		},
+
+		layouts(){
+			return new Collection({
+				name: "layouts", optimalWidth: 1920,
+				base: key => `/framework/styles/layouts/catalog/#${key}`,
+				load: async () => {
+					const { default: LayoutCatalog } = await import("/framework/styles/layouts/catalog/LayoutCatalog.js");
+					const shots = new URL("/framework/styles/layouts/catalog/shots/", location.href);
+					return LayoutCatalog.entries.map(entry => [entry.name, new Entry({
+						title: entry.title, icon: "view_quilt", description: entry.why, optimalWidth: 1920,
+						specimen: () => div.c("flow", () => {
+							img().attr("src", new URL(`${entry.name}.jpg`, shots).href).attr("alt", entry.title).style({ width: "100%", display: "block" });
+							a.c("page-link", "Open the demo →").href(entry.demo);
+						}),
+					})]);
+				},
+			});
+		},
+
+		templates(){
+			return new Collection({
+				name: "templates", optimalWidth: 1000,
+				base: () => "/framework/core/Page/Template/",
+				load: async () => Promise.all(Library.TEMPLATES.map(async ([name, url]) => {
+					const Template = (await import(url))[name];
+					return [name, new Entry({ title: name, icon: "dashboard_customize", description: `A ${name} Template, one live instance.`,
+						optimalWidth: 1000, specimen: () => div.c("card bleed", () => new Template().render()) })];
+				})),
+			});
+		},
+
+		figma(){
+			return new Collection({
+				name: "figma", optimalWidth: 1920, draws_content: true,
 				base: key => `/framework/ext/Figma/${key}/`,
-				load: async () => Promise.all(this.FIGMA.map(async key =>
+				load: async () => Promise.all(Library.FIGMA.map(async key =>
 					[key, (await import(`/framework/ext/Figma/${key}/page.js`)).default])),
-			}),
-		];
-	}
+			});
+		},
+	};
 
 	constructor(...args){
 		super({
@@ -51,13 +117,17 @@ export default class Library extends Page {
 		this.rail = new Library.Rail({ library: this });
 	}
 
-	href_for(path){ return `${location.pathname}?at=${path}`; }
+	// view "" = browse (three columns), "wall" = the whole collection in one grid; default: keep the current one.
+	href_for(path, view = this.mode){ return `${location.pathname}?at=${path}${view ? "&view=" + view : ""}`; }
+
+	get mode(){ return new URLSearchParams(location.search).get("view") === "wall" ? "wall" : ""; }
 
 	read(){ return new URLSearchParams(location.search).get("at") || Library.DEFAULT; }
 
 	content(){
 		p.c("muted", this.description);
-		div.c("library bleed wide", () => {
+		this.$top = div.c("library-top wide");
+		this.$grid = div.c("library bleed wide", () => {
 			this.$left = div.c("library-col library-left");
 			this.$mid = div.c("library-col library-mid");
 			this.$right = div.c("library-col library-right");
@@ -74,8 +144,8 @@ export default class Library extends Page {
 		addEventListener("popstate", () => this.$mid?.el.isConnected && this.show(this.read()));
 	}
 
-	go(path){
-		history.pushState(null, "", this.href_for(path));
+	go(path, view = this.mode){
+		history.pushState(null, "", this.href_for(path, view));
 		this.show(path);
 	}
 
@@ -91,9 +161,21 @@ export default class Library extends Page {
 	async show(path){
 		const epoch = ++this.epoch;
 		const { collection, item } = await this.resolve(path);
+		const wall = this.mode === "wall";
+		if (wall){
+			const items = await collection.items();
+			if (epoch !== this.epoch) return;
+			this.collection_row(collection);
+			this.$grid.el.classList.add("is-wall");
+			this.rail.wall(this.$mid, items);
+			document.title = `${collection.label} wall — Library`;
+			return;
+		}
+
 		const [siblings, variants, related] = await Promise.all([item.siblings(), item.variants(), collection.related(item)]);
 		if (epoch !== this.epoch) return;   // a newer click overtook this one
 
+		this.$grid.el.classList.remove("is-wall");
 		this.collection_row(collection);
 		this.rail.draw(this.$left_list, [{ title: item.parent ? `${item.parent.title} — siblings` : collection.label, items: siblings }], item);
 		new Library.Stage({ library: this, item }).draw(this.$mid);
@@ -101,19 +183,22 @@ export default class Library extends Page {
 		document.title = `${item.title} — Library`;
 	}
 
-	// The collection filter on top of the left column; the list below it is drawn by the Rail.
+	// The collection filter and the wall / browse toggle, above the grid; the left list below is drawn by the Rail.
 	collection_row(active){
-		if (!this.$left_list){
-			this.$left.append(() => {
-				this.$chips = div.c("library-collections");
-				this.$left_list = div.c("library-list");
-			});
-		}
+		if (!this.$left_list) this.$left.append(() => { this.$left_list = div.c("library-list"); });
 
-		this.$chips.empty(() => Library.collections().forEach(one => {
-			const $chip = a.c("library-chip", one.label).href(this.href_for(one.name));
-			if (one === active) $chip.ac("on");
-			$chip.on("click", event => { event.preventDefault(); this.go(one.name); });
-		}));
+		this.$top.empty(() => {
+			div.c("library-collections", () => Library.collections().forEach(one => {
+				const $chip = a.c("library-chip", one.label).href(this.href_for(one.name));
+				if (one === active) $chip.ac("on");
+				$chip.on("click", event => { event.preventDefault(); this.go(one.name); });
+			}));
+
+			div.c("library-collections library-toggle", () => [["browse", ""], ["wall", "wall"]].forEach(([label, view]) => {
+				const $chip = a.c("library-chip", label).href(this.href_for(active.name, view));
+				if (view === this.mode) $chip.ac("on");
+				$chip.on("click", event => { event.preventDefault(); this.go(active.name, view); });
+			}));
+		});
 	}
 }

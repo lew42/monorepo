@@ -110,7 +110,7 @@ ${sentences.length < all_sentences.length ? `\n**Stopped early** at the \`--max-
 
 ## What to try next
 - **Per-call overhead dominates cost**: each call is a fresh Agent-SDK session (~8-10k input tokens before the outline). A resumed Haiku session with prompt caching, reset when it nears 100k, would cut most of it.
-- **Pacing is on** (`MIN_BATCH` 3 / `MAX_WAIT_MS` 6000), measured on the same 30 sentences: without it 26 calls, $2.22, 7.3 s median placement; with it 15 calls, $1.27, 9.1 s. Tune those two numbers first if it feels slow or costs too much.
+- **Pacing is on** (\`MIN_BATCH\` 3 / \`MAX_WAIT_MS\` 6000), measured on the same 30 sentences: without it 26 calls, $2.22, 7.3 s median placement; with it 15 calls, $1.27, 9.1 s. Tune those two numbers first if it feels slow or costs too much.
 - **Earlier measurement** (one clean call per sentence, everything fired at once): 98 sentences, 42 s median clean, $6.03, 33 unplaced. That is why clean now rides in the amend call and a batch is capped.
 `;
 	fs.writeFileSync(SUMMARY, summary);

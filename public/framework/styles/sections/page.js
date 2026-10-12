@@ -84,6 +84,8 @@ export default new Page({
 	// wordmarks as sections of this page. A wrong rail is worse than none.
 	content(){
 
+		md("Browse every band at full size in the [library](/framework/library/?at=sections).");
+
 		md("A layout says where things go. A **section** is a layout with real content in it — and it is the unit a page is actually built from.");
 
 		md("Every card in the rail is one of the eight [layouts](/framework/styles/layouts/), filled with [elements](/framework/styles/elements/) and [components](/framework/ui/), live at a quarter size. Click one for the band on a stage, the panel one click away, and the function that built it open underneath. **There is no stylesheet in this folder.**");
