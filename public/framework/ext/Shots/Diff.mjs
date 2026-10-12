@@ -83,7 +83,7 @@ export class Diff {
 		const overlay = make_overlay(after, width, height, changedOnly, cols, cell, regions, moved);
 
 		return {
-			changed: changedCells.length - offsetOf.size,   // truly-changed cells, not moved ones
+			changed: (changedCells.length - offsetOf.size) / (cols * rows),   // share of cells truly changed (moved ones excluded), 0..1
 			regions, regionsMore,
 			moved, movedMore,
 			changed_regions: regions,

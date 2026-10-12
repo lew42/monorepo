@@ -232,7 +232,7 @@ export class ShotsView extends View {
 	   this just shows what was there) and a height change, when there is one. */
 	diff_line(diff){
 		div.c("shots-diff-line flex gap v-center wrap", () => {
-			span.c("shots-diff-pct", Math.round((diff.changed ?? 0) * 100) + "% changed");
+			span.c("shots-diff-pct", /* old lines logged a cell count */ (diff.changed ?? 0) > 1 ? diff.changed + " cells changed" : Math.round((diff.changed ?? 0) * 100) + "% changed");
 			if (diff.moved?.length){
 				const total = diff.moved.length + (diff.movedMore || 0);
 				const [, , w, h, dx, dy] = diff.moved[0];

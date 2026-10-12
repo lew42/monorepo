@@ -49,7 +49,7 @@ export class FigmaComparePage extends Page {
 
 			h3("Latest Figma-vs-page overlay");
 			if (diff?.overlay) img.c("figma-overlay-img").attr("src", "/" + run.dir.replace(/^public\//, "") + "/" + diff.overlay).attr("alt", "diff overlay");
-			if (diff) p.c("muted", `${Math.round((diff.changed ?? 0) * 100)}% changed, round ${run.id} at ${width}px`);
+			if (diff) p.c("muted", `${(diff.changed ?? 0) > 1 ? diff.changed + " cells changed" : Math.round((diff.changed ?? 0) * 100) + "% changed"}, round ${run.id} at ${width}px`);
 			a.c("figma-overlay-link", "Open this round in Shots").href(`/framework/ext/Shots/?url=${encodeURIComponent(url)}&round=${run.id}`);
 		});
 	}
