@@ -1,5 +1,5 @@
 import { div, span, small } from "/app.js";
-import { when } from "./faces.js";
+import { Faces } from "./faces.js";
 import { plain, headline } from "../rail/inbox.js";
 import { parse_lines } from "./fold.js";
 import { about_line } from "./outline.js";
@@ -200,7 +200,7 @@ export function activity_list(evs, since){
 					if (e.who) span.c("ai2-act-who").text(e.who);
 					if (e.where) small.c("ai2-act-where muted").text("in " + e.where);
 					if (is_new) span.c("ai2-act-mark").text("new");
-					small.c("ai2-act-when muted").text(when(e.at));
+					small.c("ai2-act-when muted").text(Faces.when(e.at));
 				});
 				div.c("ai2-act-what").text(e.what);
 			});

@@ -1,5 +1,5 @@
 import { div, a, span, small, button } from "/app.js";
-import { when } from "../cards/faces.js";
+import { Faces } from "../cards/faces.js";
 import { task_words } from "./groups.js";
 
 /**
@@ -59,7 +59,7 @@ function log_row(m){
 		div.c("ai2-row-head flex gap-25", () => {
 			status_dot(status);
 			span.c("ai2-row-title").text(words.title);
-			small.c("ai2-row-when muted").text(when(m.last_at));
+			small.c("ai2-row-when muted").text(Faces.when(m.last_at));
 		});
 		if (words.words) small.c("ai2-log-line muted").text(words.words);
 	});

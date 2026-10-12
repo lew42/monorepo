@@ -1,14 +1,10 @@
 import { Page, View, div, p, span, small, a, button, input, select, option, details, summary } from "/app.js";
 import { icon, table, thead, tbody, tr, th, td } from "/framework/core/View/View.js";
 import List from "/framework/core/List/List.js";
-import { clock, flag_box, when } from "./faces.js";
+import { Faces } from "./faces.js";
 import { money, cost_of, summary_line as cost_line } from "/framework/ext/AITask/cost.js";
 import { task_of, task_region, face_row, group_faces } from "./tasks.js";
 
-/* The old board-card faces (the rail row, the whole board card) live in
-   `faces.js`. These re-exports keep an older `import { clock } from "./card.js"`
-   (live.js) working unchanged. */
-export { clock, row, full, flag_box, toc, sub_full, who, is_you } from "./faces.js";
 import grip from "/framework/ext/grip/grip.js";
 import Menu from "/framework/ux/Menu/Menu.js";
 import chat, { md_into } from "./chat.js";
@@ -65,12 +61,10 @@ export const TYPES = ["question", "request", "sub-question", "note", "task"];
    data — Servex writes both on line 1 — so `assign()` below calls them instead. */
 const VERBS = new Set(["type", "tags", "status", "message", "prompt", "attach", "detach", "legacy", "cites", "item", "chat", "state", "checklist", "objects", "preview"]);
 
-/** Today's time alone; any other day with its date — `faces.js` holds it now. */
-export { when };
 
 /** One card summary (`GET /cards`) as a row: icon, title, and what it is. */
 export const summary_line = s => [s.type, s.status && s.status !== "open" && s.status,
-	...(s.tags ?? []).map(t => "#" + t), when(s.last ?? s.created)].filter(Boolean).join(" · ");
+	...(s.tags ?? []).map(t => "#" + t), Faces.when(s.last ?? s.created)].filter(Boolean).join(" · ");
 
 const ASKS = new Set(["question", "request", "sub-question", "task"]);
 const DONE = new Set(["done", "closed", "resolved", "answered", "landed", "complete", "completed"]);
@@ -832,7 +826,7 @@ export default class Card extends Page {
 			.text("⚑ flagged").click(() => this.face().unflag());
 		const now = this.facts().type;
 		const items = [
-			!flag && { text: "Flag it: this is wrong, say why", act: () => this.$box.append(() => { flag_box(this.face()); }) },
+			!flag && { text: "Flag it: this is wrong, say why", act: () => this.$box.append(() => { Faces.flag_box(this.face()); }) },
 			ready && this.shell && { text: "Archive this card (nothing is deleted)", act: () => this.clear() },
 			...(ready && !this.group_info() ? TYPES.filter(t => t !== now).map(t => ({ text: "Mark it as a " + t, act: () => this.retype(t) })) : []),
 		].filter(Boolean);
@@ -1064,7 +1058,7 @@ export default class Card extends Page {
 			if (r.proof) a.c("ai2-ol-title page-link").href(r.proof).text(r.title);
 			else span.c("ai2-ol-title").text(r.title);
 			if (fresh) small.c("ai2-ol-new").text("new");
-			small.c("ai2-ol-time muted").text(r.asked_at ? when(r.asked_at) : "");
+			small.c("ai2-ol-time muted").text(r.asked_at ? Faces.when(r.asked_at) : "");
 		});
 	}
 
@@ -1081,7 +1075,7 @@ export default class Card extends Page {
 			if (this.links?.length) div.c("ai2-links flex wrap gap-25", () => {
 				this.links.forEach(l => { a.c("ai2-link page-link").href(l.url).text(l.label ?? l.url); });
 			});
-			small.c("muted").text([!g && role_word(this.by), when(this.created), ...f.tags.map(t => "#" + t)].filter(Boolean).join(" · "));
+			small.c("muted").text([!g && role_word(this.by), Faces.when(this.created), ...f.tags.map(t => "#" + t)].filter(Boolean).join(" · "));
 		});
 	}
 

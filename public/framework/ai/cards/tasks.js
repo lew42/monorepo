@@ -1,6 +1,6 @@
 import { div, p, pre, button, details, summary, section, span, small, a } from "/framework/core/View/View.js";
 import { icon } from "/framework/core/View/View.js";
-import { when } from "./faces.js";
+import { Faces } from "./faces.js";
 import { plain, headline } from "../rail/inbox.js";
 import { money, cost_of } from "/framework/ext/AITask/cost.js";
 import { PageLog } from "/framework/core/Page/Log.js";
@@ -39,7 +39,7 @@ export function task_section(m, { head = true } = {}){
 		if (head) div.c("ai2-task-head flex v-center wrap gap-25", () => {
 			icon("task_alt");
 			span.c("ai2-task-title").text(m.title || "Task");
-			if (m.at) small.c("muted").text(when(m.at));
+			if (m.at) small.c("muted").text(Faces.when(m.at));
 			a.c("ai2-link page-link").href(m.base).text("open the task page");
 		});
 		else a.c("ai2-link page-link").href(m.base).text("open the task page");

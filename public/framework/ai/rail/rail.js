@@ -3,7 +3,7 @@ import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
 import { Groups } from "./groups.js";
 import { task_of, task_region } from "../cards/tasks.js";
-import { clock, full, flag_box, toc, sub_full, news_bar } from "../cards/faces.js";
+import { Faces } from "../cards/faces.js";
 import { news_of, group_news, unseen } from "../cards/activity.js";
 import { plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
 import composer from "../cards/compose.js";
@@ -315,7 +315,7 @@ export default class AIRail extends Inbox.Rail {
 	row_classes(rec, it){ rec.$row.el.classList.toggle("ai2-row-live", it.kind === "live"); }
 
 	// The Live row says its clock; every other row the base's short date.
-	when(at, it){ return it?.kind === "live" ? clock(at) : super.when(at); }
+	when(at, it){ return it?.kind === "live" ? Faces.clock(at) : super.when(at); }
 
 	title_text($title, it){ if (!it.plain) mentions($title.el); }
 
@@ -340,7 +340,7 @@ export default class AIRail extends Inbox.Rail {
 		// The reason beside the score (item 3) — only worth a line once the row carries a
 		// score at all; a plain "0" row (nothing ranked it) says nothing extra.
 		if (it.score != null && it.reason) small.c("ai2-row-reason muted").attr("title", "the rule that set this row's score").text(it.reason);
-		if (it.news) news_bar(it.news);
+		if (it.news) Faces.news_bar(it.news);
 	}
 
 	/* ── the rows the base does not draw: groups and changed site pages ── */
@@ -382,7 +382,7 @@ export default class AIRail extends Inbox.Rail {
 			const sig = JSON.stringify([g, name, latest, size.length, spent, news]);
 			if (rec.sig === sig) return;
 			rec.sig = sig;
-			rec.$row.empty(() => { this.group_face(g, size, spent, name); if (news) news_bar(news); });
+			rec.$row.empty(() => { this.group_face(g, size, spent, name); if (news) Faces.news_bar(news); });
 		});
 		order.forEach(g => this.at_of.set("group:" + g.id, this.groups.at(g)));
 		const pressing = g => !this.floored() || [this.list.find(x => x.id === g.card), ...this.groups.members(g.id)].some(x => (x?.score ?? 0) >= this.min);
@@ -423,7 +423,7 @@ export default class AIRail extends Inbox.Rail {
 				const known = RealPage.known.get(path), top = evs[0];
 				this.row_head({ icon: known?.icon || "description", title: known?.title || path.split("/").filter(Boolean).at(-1), at: top?.at, dot: false, plain: true }, {});
 				small.c("ai2-real-path muted").text(path);
-				if (top && unseen("page:" + path, top.at)) news_bar({ who: top.who, what: top.what });
+				if (top && unseen("page:" + path, top.at)) Faces.news_bar({ who: top.who, what: top.what });
 			});
 		});
 	}
@@ -540,7 +540,7 @@ export default class AIRail extends Inbox.Rail {
 		$f.click(() => {
 			const quote = this.flagging;
 			hide();
-			if (quote && this.current) this.current.$box.append(() => flag_box(this.current.on, quote));
+			if (quote && this.current) this.current.$box.append(() => Faces.flag_box(this.current.on, quote));
 		});
 		this.$detail.on("mouseup", () => setTimeout(show, 0));
 		this.$detail.on("keyup", () => setTimeout(show, 0));
@@ -636,11 +636,11 @@ function card_page(root, id){
 		sig = next;
 		$box.empty(() => {
 			if (it?.kind === "live") return live_full(it, root.ai2.live);
-			if (it) full(it, on);
+			if (it) Faces.full(it, on);
 			else small.c("muted").text("No card by that name yet — it may still be on its way, or it has scrolled out of the log.");
 			// THE TABLE OF CONTENTS: every sub-card in this card's log, each opening the third column.
 			const rows = sub_rows(clog.entries);
-			if (rows.length) toc(rows, root.url + id + "/");
+			if (rows.length) Faces.toc(rows, root.url + id + "/");
 		});
 	}
 
@@ -744,7 +744,7 @@ function sub_card_page(root, id, sub, clog){
 		if (held || next === sig) return;
 		sig = next;
 		$box.empty(() => {
-			if (it) sub_full(it);
+			if (it) Faces.sub_full(it);
 			else small.c("muted").text("Still on its way, or it has scrolled out of the log.");
 		});
 	}
@@ -827,7 +827,7 @@ function your_prompts_page(root){
 				const paint = () => $box.empty(() => {
 					root.ai2.source();   // refreshes root.ai2.your_prompts_item from the live rows
 					const it = root.ai2.your_prompts_item;
-					if (it) full(it, {});
+					if (it) Faces.full(it, {});
 					else small.c("muted").text("No prompts yet — say something, and it shows up here.");
 				});
 				paint();
