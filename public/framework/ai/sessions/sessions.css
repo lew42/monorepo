@@ -51,7 +51,7 @@
 	/* Rail view: the list is flush with the left nav, full height, no padding of its own; each card is padded. */
 	.sessions-page .datagrid-view-rail { block-size: calc(100dvh - 12rem); }
 	.sessions-page .datagrid-view-rail .datagrid-rail { max-block-size: none; }
-	.sessions-page:has(.datagrid-view-rail) .sessions-stats, .sessions-page:has(.datagrid-view-rail) .sessions-chiprow, .sessions-page:has(.datagrid-view-rail) .sessions-summary { display: none; }
+	.sessions-page:has(.datagrid-view-rail) .sessions-stats, .sessions-page:has(.datagrid-view-rail) .sessions-chiprow, .sessions-page:has(.datagrid-view-rail) .sessions-summary, .sessions-page:has(.datagrid-view-rail) .sessions-kinds { display: none; }
 	.sessions-card { display: flex; flex-direction: column; gap: var(--gap-35); padding: var(--gap-50); min-width: 0; }
 	.sessions-card-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-35); min-width: 0; }
 	.sessions-card .sessions-row-title { flex: 1 1 8em; white-space: normal; overflow-wrap: anywhere; }   /* a card has the room to wrap a long name; the table row keeps its one line */
