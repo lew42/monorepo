@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Figma/",
+ "widths": {
+  "1280": {
+   "empty": 0.451,
+   "widest_text": 859,
+   "widest_text_sample": "Figma files the owner tracks, as preview",
+   "overflow_x": false,
+   "items": 66,
+   "narrow_share": 0.061
+  },
+  "1920": {
+   "empty": 0.455,
+   "widest_text": 914,
+   "widest_text_sample": "Figma files the owner tracks, as preview",
+   "overflow_x": false,
+   "items": 66,
+   "narrow_share": 0.879
+  },
+  "2560": {
+   "empty": 0.397,
+   "widest_text": 1028,
+   "widest_text_sample": "Figma files the owner tracks, as preview",
+   "overflow_x": false,
+   "items": 66,
+   "narrow_share": 0.879
+  },
+  "3440": {
+   "empty": 0.418,
+   "widest_text": 1028,
+   "widest_text_sample": "Figma files the owner tracks, as preview",
+   "overflow_x": false,
+   "items": 66,
+   "narrow_share": 0.879
+  }
+ },
+ "errors": []
+}

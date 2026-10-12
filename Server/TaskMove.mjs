@@ -156,9 +156,12 @@ export default class TaskMove {
 				? [{ p: path.basename(from), size: fs.statSync(from).size, sha1: crypto.createHash("sha1").update(fs.readFileSync(from)).digest("hex") }]
 				: TaskDirs.files(from);   // the snapshot: taken before the folder moves
 			fs.appendFileSync(filesMan, JSON.stringify({ from: m.from, to: m.to, files }) + "\n");   // recorded first, so an interrupted run can still be undone
-			fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), kind: m.kind, from: m.from, to: m.to, session: m.session }) + "\n");
 			fs.mkdirSync(path.dirname(to), { recursive: true });
-			fs.renameSync(from, to);
+			for (let n = 0; ; n++){   // Windows: a watcher or reader can hold a handle for a moment (EPERM/EBUSY); retry, then give up loudly
+				try { fs.renameSync(from, to); break; }
+				catch (e){ if (n >= 20 || !["EPERM", "EBUSY", "EACCES"].includes(e.code)) throw e; Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250); }
+			}
+			fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), kind: m.kind, from: m.from, to: m.to, session: m.session }) + "\n");   // after the rename: the log never claims a move that did not happen
 			moved++;
 		}
 		// a day folder that is now empty goes away (never recursive: a non-empty one throws here and is left alone)
@@ -174,7 +177,7 @@ export default class TaskMove {
 		const lines = jsonl(this.ledger(repo));
 		const cancelled = new Set();
 		for (const l of lines) if (l.undone) cancelled.add(`${l.to}|${l.from}`);
-		return lines.filter(l => !l.undone && l.kind !== "redirect" && !cancelled.has(`${l.from}|${l.to}`));
+		return lines.filter(l => !l.undone && ["task", "rename", "stub", "dayfile"].includes(l.kind) && !cancelled.has(`${l.from}|${l.to}`));
 	}
 	static #snapshot(repo, from, to){ return jsonl(this.filesLedger(repo)).find(f => f.from === from && f.to === to)?.files ?? []; }
 

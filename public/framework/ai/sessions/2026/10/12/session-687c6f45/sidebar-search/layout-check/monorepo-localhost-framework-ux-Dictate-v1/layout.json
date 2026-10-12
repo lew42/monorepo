@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/v1/",
+ "widths": {
+  "1280": {
+   "empty": 0.517,
+   "widest_text": 657,
+   "widest_text_sample": "Raw = Whisper's exact words, never edite",
+   "overflow_x": false,
+   "items": 116,
+   "narrow_share": 0.431
+  },
+  "1920": {
+   "empty": 0.597,
+   "widest_text": 1041,
+   "widest_text_sample": "Raw = Whisper's exact words, never edite",
+   "overflow_x": false,
+   "items": 116,
+   "narrow_share": 0.862
+  },
+  "2560": {
+   "empty": 0.606,
+   "widest_text": 1391,
+   "widest_text_sample": "Raw = Whisper's exact words, never edite",
+   "overflow_x": false,
+   "items": 116,
+   "narrow_share": 0.879
+  },
+  "3440": {
+   "empty": 0.651,
+   "widest_text": 1391,
+   "widest_text_sample": "Raw = Whisper's exact words, never edite",
+   "overflow_x": false,
+   "items": 116,
+   "narrow_share": 0.853
+  }
+ },
+ "errors": []
+}

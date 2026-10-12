@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Figma/palette/",
+ "widths": {
+  "1280": {
+   "empty": 0.576,
+   "widest_text": 592,
+   "widest_text_sample": "Three solid bases. A fixed set of approv",
+   "overflow_x": false,
+   "items": 74,
+   "narrow_share": 0.162
+  },
+  "1920": {
+   "empty": 0.655,
+   "widest_text": 715,
+   "widest_text_sample": "Three solid bases. A fixed set of approv",
+   "overflow_x": false,
+   "items": 74,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.748,
+   "widest_text": 837,
+   "widest_text_sample": "Three solid bases. A fixed set of approv",
+   "overflow_x": false,
+   "items": 74,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.819,
+   "widest_text": 1006,
+   "widest_text_sample": "Three solid bases. A fixed set of approv",
+   "overflow_x": false,
+   "items": 74,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

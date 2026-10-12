@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-10-12/claude-md-consolidate/md/manifest/",
+ "widths": {
+  "1280": {
+   "empty": 0.563,
+   "widest_text": 581,
+   "widest_text_sample": ": L18.4 “An index page is a wall of prev",
+   "overflow_x": false,
+   "items": 82,
+   "narrow_share": 0.329
+  },
+  "1920": {
+   "empty": 0.693,
+   "widest_text": 618,
+   "widest_text_sample": ": L18.4 “An index page is a wall of prev",
+   "overflow_x": false,
+   "items": 82,
+   "narrow_share": 0.573
+  },
+  "2560": {
+   "empty": 0.763,
+   "widest_text": 696,
+   "widest_text_sample": ": L18.4 “An index page is a wall of prev",
+   "overflow_x": false,
+   "items": 82,
+   "narrow_share": 0.573
+  },
+  "3440": {
+   "empty": 0.813,
+   "widest_text": 696,
+   "widest_text_sample": ": L18.4 “An index page is a wall of prev",
+   "overflow_x": false,
+   "items": 82,
+   "narrow_share": 0.598
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

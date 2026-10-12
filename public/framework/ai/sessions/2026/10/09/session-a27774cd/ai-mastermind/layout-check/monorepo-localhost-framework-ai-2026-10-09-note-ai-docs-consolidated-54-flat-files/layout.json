@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026/10/09/note-ai-docs-consolidated-54-flat-files/",
+ "widths": {
+  "1280": {
+   "empty": 0.441,
+   "widest_text": 7364,
+   "widest_text_sample": "{\"class\":\"/framework/ai/cards/card.js\",\"",
+   "overflow_x": false,
+   "items": 47,
+   "narrow_share": 0.426
+  },
+  "1920": {
+   "empty": 0.47,
+   "widest_text": 7838,
+   "widest_text_sample": "{\"class\":\"/framework/ai/cards/card.js\",\"",
+   "overflow_x": false,
+   "items": 47,
+   "narrow_share": 0.872
+  },
+  "2560": {
+   "empty": 0.558,
+   "widest_text": 8813,
+   "widest_text_sample": "{\"class\":\"/framework/ai/cards/card.js\",\"",
+   "overflow_x": false,
+   "items": 47,
+   "narrow_share": 0.872
+  },
+  "3440": {
+   "empty": 0.646,
+   "widest_text": 8813,
+   "widest_text_sample": "{\"class\":\"/framework/ai/cards/card.js\",\"",
+   "overflow_x": false,
+   "items": 47,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

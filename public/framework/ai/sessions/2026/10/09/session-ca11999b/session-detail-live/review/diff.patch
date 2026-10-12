@@ -1,0 +1,913 @@
+diff --git a/public/framework/ai/2026-08-17/designtool-ui-build/files.jsonl b/public/framework/ai/2026-08-17/designtool-ui-build/files.jsonl
+index 4af06e1d5..06a57007a 100644
+--- a/public/framework/ai/2026-08-17/designtool-ui-build/files.jsonl
++++ b/public/framework/ai/2026-08-17/designtool-ui-build/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/designtool-ui/files.jsonl b/public/framework/ai/2026-08-17/designtool-ui/files.jsonl
+index c113769ec..6efe57919 100644
+--- a/public/framework/ai/2026-08-17/designtool-ui/files.jsonl
++++ b/public/framework/ai/2026-08-17/designtool-ui/files.jsonl
+@@ -12,3 +12,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/layout-wave-2/files.jsonl b/public/framework/ai/2026-08-17/layout-wave-2/files.jsonl
+index c0df0e5f8..36213870a 100644
+--- a/public/framework/ai/2026-08-17/layout-wave-2/files.jsonl
++++ b/public/framework/ai/2026-08-17/layout-wave-2/files.jsonl
+@@ -11,3 +11,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/layout-wave-3/files.jsonl b/public/framework/ai/2026-08-17/layout-wave-3/files.jsonl
+index b689cc6cd..e72182cad 100644
+--- a/public/framework/ai/2026-08-17/layout-wave-3/files.jsonl
++++ b/public/framework/ai/2026-08-17/layout-wave-3/files.jsonl
+@@ -12,3 +12,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-after/files.jsonl b/public/framework/ai/2026-08-17/vision-after/files.jsonl
+index b9c32a4bf..82966af57 100644
+--- a/public/framework/ai/2026-08-17/vision-after/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-after/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-browse/files.jsonl b/public/framework/ai/2026-08-17/vision-browse/files.jsonl
+index 9b7c77ff3..4835610a8 100644
+--- a/public/framework/ai/2026-08-17/vision-browse/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-browse/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-direction/files.jsonl b/public/framework/ai/2026-08-17/vision-direction/files.jsonl
+index 9f932c3a2..0434774f5 100644
+--- a/public/framework/ai/2026-08-17/vision-direction/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-direction/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-fixes/files.jsonl b/public/framework/ai/2026-08-17/vision-fixes/files.jsonl
+index 8a057fcc1..f1a44ed49 100644
+--- a/public/framework/ai/2026-08-17/vision-fixes/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-fixes/files.jsonl
+@@ -9,3 +9,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-pilot/files.jsonl b/public/framework/ai/2026-08-17/vision-pilot/files.jsonl
+index 7a45ac0ec..aeaf66ad6 100644
+--- a/public/framework/ai/2026-08-17/vision-pilot/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-pilot/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-remeasure/files.jsonl b/public/framework/ai/2026-08-17/vision-remeasure/files.jsonl
+index 1a3881671..bf350e7a1 100644
+--- a/public/framework/ai/2026-08-17/vision-remeasure/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-remeasure/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl b/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl
+index 81fea308d..b9fec8d49 100644
+--- a/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl
++++ b/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-clarity/files.jsonl b/public/framework/ai/2026-09-04/paging-clarity/files.jsonl
+index 3ed326706..ee0d442c1 100644
+--- a/public/framework/ai/2026-09-04/paging-clarity/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-clarity/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-explorer/files.jsonl b/public/framework/ai/2026-09-04/paging-explorer/files.jsonl
+index 2709fc5ba..95569b47c 100644
+--- a/public/framework/ai/2026-09-04/paging-explorer/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-explorer/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl b/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl
+index 3ed326706..ee0d442c1 100644
+--- a/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl b/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl
+index 3ed326706..ee0d442c1 100644
+--- a/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/realm-alternates/files.jsonl b/public/framework/ai/2026-09-04/realm-alternates/files.jsonl
+index 3ed326706..ee0d442c1 100644
+--- a/public/framework/ai/2026-09-04/realm-alternates/files.jsonl
++++ b/public/framework/ai/2026-09-04/realm-alternates/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/codrops-2/files.jsonl b/public/framework/ai/2026-09-05/codrops-2/files.jsonl
+index 29a0ef875..028c45161 100644
+--- a/public/framework/ai/2026-09-05/codrops-2/files.jsonl
++++ b/public/framework/ai/2026-09-05/codrops-2/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/codrops-3/files.jsonl b/public/framework/ai/2026-09-05/codrops-3/files.jsonl
+index 29a0ef875..028c45161 100644
+--- a/public/framework/ai/2026-09-05/codrops-3/files.jsonl
++++ b/public/framework/ai/2026-09-05/codrops-3/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/codrops-4/files.jsonl b/public/framework/ai/2026-09-05/codrops-4/files.jsonl
+index 29a0ef875..028c45161 100644
+--- a/public/framework/ai/2026-09-05/codrops-4/files.jsonl
++++ b/public/framework/ai/2026-09-05/codrops-4/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/codrops/files.jsonl b/public/framework/ai/2026-09-05/codrops/files.jsonl
+index 6ff31118c..04a20020c 100644
+--- a/public/framework/ai/2026-09-05/codrops/files.jsonl
++++ b/public/framework/ai/2026-09-05/codrops/files.jsonl
+@@ -9,3 +9,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl
+index 81fea308d..b9fec8d49 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl b/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl
+index 56ff62f01..5eae562ae 100644
+--- a/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl b/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl
+index a4c0dee90..ffd50d2f7 100644
+--- a/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/tabs-panel/files.jsonl b/public/framework/ai/2026-09-05/tabs-panel/files.jsonl
+index 3ed326706..ee0d442c1 100644
+--- a/public/framework/ai/2026-09-05/tabs-panel/files.jsonl
++++ b/public/framework/ai/2026-09-05/tabs-panel/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-feeds/files.jsonl b/public/framework/ai/2026-09-05/ux-feeds/files.jsonl
+index 29a0ef875..028c45161 100644
+--- a/public/framework/ai/2026-09-05/ux-feeds/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-feeds/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-game/files.jsonl b/public/framework/ai/2026-09-05/ux-game/files.jsonl
+index 29a0ef875..028c45161 100644
+--- a/public/framework/ai/2026-09-05/ux-game/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-game/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-generated/files.jsonl b/public/framework/ai/2026-09-05/ux-generated/files.jsonl
+index 29a0ef875..028c45161 100644
+--- a/public/framework/ai/2026-09-05/ux-generated/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-generated/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl b/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl
+index a12b6e2e3..ce53d45ba 100644
+--- a/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl
++++ b/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl
+@@ -9,3 +9,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/ai2-master-detail/files.jsonl b/public/framework/ai/2026-09-22/ai2-master-detail/files.jsonl
+index b6cf3bb99..9d69ec998 100644
+--- a/public/framework/ai/2026-09-22/ai2-master-detail/files.jsonl
++++ b/public/framework/ai/2026-09-22/ai2-master-detail/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/board-declutter/files.jsonl b/public/framework/ai/2026-09-22/board-declutter/files.jsonl
+index b05043ca4..5c63a8929 100644
+--- a/public/framework/ai/2026-09-22/board-declutter/files.jsonl
++++ b/public/framework/ai/2026-09-22/board-declutter/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/tiers-design/files.jsonl b/public/framework/ai/2026-09-22/tiers-design/files.jsonl
+index 461e784e9..8aff01630 100644
+--- a/public/framework/ai/2026-09-22/tiers-design/files.jsonl
++++ b/public/framework/ai/2026-09-22/tiers-design/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/ux-subpages/files.jsonl b/public/framework/ai/2026-09-22/ux-subpages/files.jsonl
+index 3ed326706..ee0d442c1 100644
+--- a/public/framework/ai/2026-09-22/ux-subpages/files.jsonl
++++ b/public/framework/ai/2026-09-22/ux-subpages/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/whisper-servex/files.jsonl b/public/framework/ai/2026-09-22/whisper-servex/files.jsonl
+index 16dc0b99a..147d1b0f7 100644
+--- a/public/framework/ai/2026-09-22/whisper-servex/files.jsonl
++++ b/public/framework/ai/2026-09-22/whisper-servex/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/worktree-design/files.jsonl b/public/framework/ai/2026-09-22/worktree-design/files.jsonl
+index b05043ca4..5c63a8929 100644
+--- a/public/framework/ai/2026-09-22/worktree-design/files.jsonl
++++ b/public/framework/ai/2026-09-22/worktree-design/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/worktree-proof/files.jsonl b/public/framework/ai/2026-09-22/worktree-proof/files.jsonl
+index b05043ca4..5c63a8929 100644
+--- a/public/framework/ai/2026-09-22/worktree-proof/files.jsonl
++++ b/public/framework/ai/2026-09-22/worktree-proof/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-24/assistant-layers/files.jsonl b/public/framework/ai/2026-09-24/assistant-layers/files.jsonl
+index 02e382c84..8eb7ee26f 100644
+--- a/public/framework/ai/2026-09-24/assistant-layers/files.jsonl
++++ b/public/framework/ai/2026-09-24/assistant-layers/files.jsonl
+@@ -19,3 +19,4 @@
+ {"file":"weight.jsonl"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-30/audio-consolidate/files.jsonl b/public/framework/ai/2026-09-30/audio-consolidate/files.jsonl
+index e3e771792..9bfcb31e7 100644
+--- a/public/framework/ai/2026-09-30/audio-consolidate/files.jsonl
++++ b/public/framework/ai/2026-09-30/audio-consolidate/files.jsonl
+@@ -12,3 +12,4 @@
+ {"file":"task.jsonl"}
+ {"file":"spend.json"}
+ {"file":"spend.json"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-30/openrouter-harness/files.jsonl b/public/framework/ai/2026-09-30/openrouter-harness/files.jsonl
+index 079510ac1..5ac7d3869 100644
+--- a/public/framework/ai/2026-09-30/openrouter-harness/files.jsonl
++++ b/public/framework/ai/2026-09-30/openrouter-harness/files.jsonl
+@@ -67,3 +67,4 @@
+ {"file":"report.md"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-30/page-inbox/files.jsonl b/public/framework/ai/2026-09-30/page-inbox/files.jsonl
+index 413862c81..9ec053d42 100644
+--- a/public/framework/ai/2026-09-30/page-inbox/files.jsonl
++++ b/public/framework/ai/2026-09-30/page-inbox/files.jsonl
+@@ -14,3 +14,4 @@
+ {"file":"review.jsonl"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-30/process-monitor/files.jsonl b/public/framework/ai/2026-09-30/process-monitor/files.jsonl
+index 59d6791ec..2c9f6b981 100644
+--- a/public/framework/ai/2026-09-30/process-monitor/files.jsonl
++++ b/public/framework/ai/2026-09-30/process-monitor/files.jsonl
+@@ -45,3 +45,4 @@
+ {"file":"task.jsonl"}
+ {"file":"todo.md"}
+ {"file":"todo.md"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-02/files.jsonl b/public/framework/ai/2026-10-02/files.jsonl
+index 6df6d55f2..d82db3623 100644
+--- a/public/framework/ai/2026-10-02/files.jsonl
++++ b/public/framework/ai/2026-10-02/files.jsonl
+@@ -86,3 +86,4 @@
+ {"file":"stamped-logs/"}
+ {"file":"standing-voice-pair/"}
+ {"file":"task-audit/page.jsonl"}
++{"file":"layout-approval/","gone":true}
+diff --git a/public/framework/ai/2026-10-02/page-extends-item/page.jsonl b/public/framework/ai/2026-10-02/page-extends-item/page.jsonl
+index d8a897d0b..dd9e83294 100644
+--- a/public/framework/ai/2026-10-02/page-extends-item/page.jsonl
++++ b/public/framework/ai/2026-10-02/page-extends-item/page.jsonl
+@@ -37,3 +37,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/"}
+ {"file":"layout-check/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-10-02/task-audit/page.jsonl b/public/framework/ai/2026-10-02/task-audit/page.jsonl
+index 586c249e9..8223dde16 100644
+--- a/public/framework/ai/2026-10-02/task-audit/page.jsonl
++++ b/public/framework/ai/2026-10-02/task-audit/page.jsonl
+@@ -26,3 +26,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/"}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-03/data-grid/page.jsonl b/public/framework/ai/2026-10-03/data-grid/page.jsonl
+index 092090ceb..855851073 100644
+--- a/public/framework/ai/2026-10-03/data-grid/page.jsonl
++++ b/public/framework/ai/2026-10-03/data-grid/page.jsonl
+@@ -18,3 +18,4 @@
+ {"file":"revive-worktree/"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-03/day-overview/files.jsonl b/public/framework/ai/2026-10-03/day-overview/files.jsonl
+index ffcd22994..5e8c209d8 100644
+--- a/public/framework/ai/2026-10-03/day-overview/files.jsonl
++++ b/public/framework/ai/2026-10-03/day-overview/files.jsonl
+@@ -12,3 +12,4 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-10-03/layout-gate/files.jsonl b/public/framework/ai/2026-10-03/layout-gate/files.jsonl
+index bbd4d3237..5cc3b2c45 100644
+--- a/public/framework/ai/2026-10-03/layout-gate/files.jsonl
++++ b/public/framework/ai/2026-10-03/layout-gate/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"layout-check/"}
+ {"file":"link-and-gate/page.jsonl"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-10-03/now-card-blank/files.jsonl b/public/framework/ai/2026-10-03/now-card-blank/files.jsonl
+index 58af9c5b6..b2e327922 100644
+--- a/public/framework/ai/2026-10-03/now-card-blank/files.jsonl
++++ b/public/framework/ai/2026-10-03/now-card-blank/files.jsonl
+@@ -11,3 +11,4 @@
+ {"file":"spend.json","gone":true}
+ {"file":"layout-check/"}
+ {"file":"spend.json"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-03/prompts-live/page.jsonl b/public/framework/ai/2026-10-03/prompts-live/page.jsonl
+index 4feb563fd..9f65c3549 100644
+--- a/public/framework/ai/2026-10-03/prompts-live/page.jsonl
++++ b/public/framework/ai/2026-10-03/prompts-live/page.jsonl
+@@ -11,3 +11,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"minion-live-view/"}
++{"file":"minion-live-view/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-03/push-to-talk/page.jsonl b/public/framework/ai/2026-10-03/push-to-talk/page.jsonl
+index ea0509e16..e535c49e0 100644
+--- a/public/framework/ai/2026-10-03/push-to-talk/page.jsonl
++++ b/public/framework/ai/2026-10-03/push-to-talk/page.jsonl
+@@ -24,3 +24,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-03/sessions-date-homes/files.jsonl b/public/framework/ai/2026-10-03/sessions-date-homes/files.jsonl
+index 1e87a4db5..7d746b8b4 100644
+--- a/public/framework/ai/2026-10-03/sessions-date-homes/files.jsonl
++++ b/public/framework/ai/2026-10-03/sessions-date-homes/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"task.jsonl"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-10-03/sessions-tab-polish/page.jsonl b/public/framework/ai/2026-10-03/sessions-tab-polish/page.jsonl
+index ab5dc4a18..42a10a533 100644
+--- a/public/framework/ai/2026-10-03/sessions-tab-polish/page.jsonl
++++ b/public/framework/ai/2026-10-03/sessions-tab-polish/page.jsonl
+@@ -27,3 +27,5 @@
+ {"file":"shots-after-fix/"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-09/system-architect/files.jsonl b/public/framework/ai/2026-10-09/system-architect/files.jsonl
+index d4d0221e0..e482717bf 100644
+--- a/public/framework/ai/2026-10-09/system-architect/files.jsonl
++++ b/public/framework/ai/2026-10-09/system-architect/files.jsonl
+@@ -1,3 +1,7 @@
++{"file":"load.json"}
++{"file":"measure.mjs"}
++{"file":"requirements.md"}
++{"file":"task.jsonl"}
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
+ {"file":"measure.mjs"}
+diff --git a/public/framework/ai/AISession/AISessionConversation.js b/public/framework/ai/AISession/AISessionConversation.js
+new file mode 100644
+index 000000000..894fa5e9d
+--- /dev/null
++++ b/public/framework/ai/AISession/AISessionConversation.js
+@@ -0,0 +1,66 @@
++import { chat } from "/framework/ext/Chat/Chat.js";
++
++// The conversation on a session's page: the owner's prompts and the AI's text replies, drawn by `ext/Chat`
++// (the one chat renderer: bubbles, smart scroll, one draw per line). This class only turns raw transcript lines into chat entries.
++// Tool calls are not shown one by one; a run of them between two messages is one quiet update line, "12 tool calls".
++// Feed it raw transcript lines with `add(lines)`: the first call draws the history (Chat shows the newest 50, the rest behind "show earlier"), later calls append live.
++// Built with `new AISessionConversation()`; put `.view` where it should show (the view is a normal Chat box, `.view` is a View).
++export default class AISessionConversation {
++
++	constructor(){
++		this.seen = new Set();   // line uuids already read (a re-read must not draw twice)
++		this.entries = [];       // what the next sync() draws
++		this.count = 0;          // messages drawn so far
++		this.talk = chat({ source: () => this.entries });
++		this.view = this.talk.view;
++	}
++
++	/** Reduce one transcript line to { role, at, text } | { tools: n } | null. */
++	static read(l){
++		if (l.isMeta || l.isSidechain) return null;
++		const c = l.message?.content;
++		if (l.type === "user"){
++			if (l.turnOrigin === "task_notification") return null;
++			const text = typeof c === "string" ? c : Array.isArray(c) ? c.filter(b => b?.type === "text").map(b => b.text).join("\n") : "";
++			return text.trim() ? { role: "owner", at: l.timestamp, text } : null;
++		}
++		if (l.type === "assistant" && Array.isArray(c)){
++			const text = c.filter(b => b?.type === "text").map(b => b.text).join("\n").trim(), tools = c.filter(b => b?.type === "tool_use").length;
++			if (text) return { role: "assistant", at: l.timestamp, text, tools };
++			if (tools) return { tools };
++		}
++		return null;
++	}
++
++	/** Draw the new lines (Chat keeps the scroll where the reader left it). Returns how many messages were new. */
++	add(lines){
++		const out = [];
++		let run = 0, run_id = "";
++		const flush = () => { if (run) out.push({ type: "update", id: "tools-" + run_id, text: `${run} tool call${run > 1 ? "s" : ""}` }); run = 0; };
++		for (const l of lines){
++			if (l.uuid){ if (this.seen.has(l.uuid)) continue; this.seen.add(l.uuid); }
++			const m = AISessionConversation.read(l); if (!m) continue;
++			if (m.tools){ run += m.tools; run_id = l.uuid ?? l.timestamp; }
++			if (!m.text) continue;
++			flush();
++			out.push({ chat: { from: { kind: m.role, id: m.role === "owner" ? "owner" : "assistant" }, text: m.text, at: m.at } });
++			if (m.tools){ run = m.tools; run_id = l.uuid ?? l.timestamp; }
++		}
++		flush();
++		const talk = out.filter(e => e.chat);
++		if (!talk.length && !out.length) return 0;
++		this.entries = out;   // Chat shows the newest 50 and keeps the rest behind "show earlier"
++		this.count += talk.length;
++		this.talk.sync();
++		return talk.length;
++	}
++
++	/** A card the AI posted to this session (a `page_add` item in the session's page.jsonl: title, text, href): one bubble, drawn at its time. */
++	add_card(c){
++		if (this.seen.has("card:" + c.id)) return;
++		this.seen.add("card:" + c.id);
++		const text = `**${c.href ? `[${c.title}](${c.href})` : c.title}**` + (c.text ? "\n\n" + c.text : "");
++		this.entries = [{ chat: { from: { kind: "assistant", id: c.by ?? "card" }, text, at: c.ts ?? new Date().toISOString(), session: "card-" + c.id } }];
++		this.talk.sync();
++	}
++}
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 3e70c57bd..58d033180 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -6,6 +6,8 @@ import AISessionView from "./AISessionView.js";
+ import AISessionFollow from "./AISessionFollow.js";
+ import AISessionTrace from "./AISessionTrace.js";
+ import AISession from "./AISession.js";
++import AISessionConversation from "./AISessionConversation.js";
++import JSONL from "/framework/ext/JSONL/JSONL.js";
+ 
+ // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
+ // view). Built with `new AISessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
+@@ -13,39 +15,56 @@ import AISession from "./AISession.js";
+ export default class AISessionDetail extends Page {
+ 
+ 	constructor({ home, id }){
+-		// A uuid is too long to be a page title; the short form still tells two sessions apart, and the full id sits below it.
+-		super({ home, id, width: "fill", title: id.length > 24 ? id.slice(0, 8) + "…" : id, url: home.url + id + "/" });
++		// The title is the page's path, so it is shown whole (the header line is compact; the row's tab title sits in the conversation's head).
++		super({ home, id, width: "fill", title: id, url: home.url + id + "/" });
+ 	}
+ 
+-	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; }
++	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.cards?.unsubscribe(); this.cards = null; }
+ 
+ 	content(){
+ 		const { home, id } = this, url = home.url;
+-		a.c("page-link", "← all sessions").href(url);
+-		small.c("muted sessions-full-id", id);
+-		small.c("muted", "Template: AISession/AISessionDetail.js");   // which template draws this page (doc/templates.md)
++		// One compact header line: back link, the whole id, and the template (which file draws this page, doc/templates.md) as a small source link.
++		div.c("sessions-detail-head flex gap-50 v-center wrap", () => {
++			a.c("page-link", "← all sessions").href(url);
++			small.c("sessions-full-id", id);
++			a.c("muted sessions-template", "AISessionDetail.js").href("/framework/ai/AISession/AISessionDetail.js");
++		});
+ 
+-		const $related = div.c("flow");   // the other records of this session: card, task, brief, report, parent, children
+-		const $box = div.c("flow");
+-		const $costs = div.c("flow");
+-		const $spawn = div.c("flow");     // who spawned this, why, and what it spawned
+-		const $session = div.c("flow");   // the Session class: cost tree, model + effort, tokens by purpose, audit
+-		const $trace = div.c("flow");     // the cost-over-time chart and the per-tool table
++		let $box, $conv, $related, $costs, $spawn, $session, $trace;
++		div.c("cols main-aside sessions-detail-body", () => {
++			div.c("flow sessions-detail-main", () => {
++				$box = div.c("flow");     // which session this is (source tag, tab title, model)
++				$conv = div.c("flow sessions-conv");   // the live conversation
++			});
++			div.c("flow sessions-detail-aside", () => {
++				$costs = div.c("flow");
++				$session = div.c("flow"); // the Session class: cost tree, model + effort, tokens by purpose, audit
++				$spawn = div.c("flow");   // who spawned this, why, and what it spawned
++				$trace = div.c("flow");   // the cost-over-time chart and the per-tool table
++				$related = div.c("flow"); // the other records of this session: card, task, brief, report, parent, children
++			});
++		});
++		const conv = new AISessionConversation();
++		$conv.append(conv.view);
+ 
+ 		// `row` first: for a Servex row the url's id is the AGENT's id, a different string from its session_id,
+ 		// and the transcript and the date-path lookup both need the session_id.
+ 		AISessionDetail.load_row(url, id).then(async row => {
+ 			const session_id = row?.session_id ?? id;
+-			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)) this.follow = new AISessionFollow(session_id).start();   // tails the log and corrects the grid row (doc/realtime.md)
++			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)){
++				const f = new AISessionFollow(session_id); f.on_lines = lines => conv.add(lines);   // the first pull draws the history, later pulls append live
++				this.follow = f.start();   // tails the log and corrects the grid row (doc/realtime.md)
++				this.follow.then(() => { if (!conv.count) $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
++			} else if (!this.follow) AISessionDetail.load_lines(session_id).then(lines => { if (lines) conv.add(lines); else $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
+ 			Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
+ 			AISessionRows.load_index(url).then(async () => { const snap = await AISessionDetail.load_snapshot(session_id); $related.empty(() => AISessionDetail.render_related(snap, url)); });
+ 			// the card's page.jsonl and trace.json live in the session's own folder now; the old card folder is the fallback until a checkout is migrated
+ 			const own_dir = AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname : null, own = (await AISessionDetail.load_snapshot(session_id))?.links?.card ? own_dir : null, old = AISessionDetail.dir_of(await AISessionDetail.dir_index(), session_id);
+-			const [costs, trace, prompts] = await Promise.all([
++			const [costs, trace] = await Promise.all([
+ 				AISessionDetail.load_cost_log(own).then(c => c ?? AISessionDetail.load_cost_log(old)),
+ 				AISessionRows.load_index(url).then(ix => ix?.traces?.includes(session_id) ? AISessionDetail.load_trace(own_dir).then(t => t ?? AISessionDetail.load_trace(old)) : null),   // a trace.json exists for few sessions: ask only for those the index lists
+-				AISessionDetail.load_transcript(session_id),
+ 			]);
++			if (own ?? old) this.cards = new AISessionDetail.Cards((own ?? old) + "page.jsonl", c => conv.add_card(c)).live();   // AI cards arrive live, inline (doc/session-cards.md)
+ 
+ 			$costs.empty(() => {
+ 				if (!costs) return;
+@@ -76,18 +95,6 @@ export default class AISessionDetail extends Page {
+ 						if (row.model) small.c("muted", row.model);
+ 					});
+ 				}
+-				if (prompts?.length){
+-					div.c("flow", () => prompts.forEach(pr => {
+-						div.c("sessions-prompt card", () => {
+-							small.c("muted", pr.at ? age(pr.at) : "");
+-							p(pr.text);
+-						});
+-					}));
+-				} else if (!costs) {
+-					p.c("muted", "No transcript for this session — either /ai-logs/ (the dev-server-only "
+-						+ "route this reads it through) isn't running, or this session's own file has no "
+-						+ "real prompt in it yet.");
+-				}
+ 			});
+ 
+ 			$trace.empty(() => { if (trace) AISessionTrace.render(trace); });
+@@ -144,20 +151,10 @@ export default class AISessionDetail extends Page {
+ 		return snap?.rows?.find(r => r.id === id || r.session_id === id) ?? null;
+ 	}
+ 
+-	/** A session's prompts, fetched live through /ai-logs/<session_id> (Server/plugins/AILogs.js); nothing is copied anywhere. The last 50. */
+-	static async load_transcript(session_id){
+-		const lines = await raw_transcript_lines(session_id);
+-		if (!lines) return null;
+-		const prompts = lines
+-			.filter(l => l.type === "user" && !l.isMeta && !l.isSidechain && l.turnOrigin !== "task_notification")
+-			.map(l => {
+-				const c = l.message?.content;
+-				const text = typeof c === "string" ? c : Array.isArray(c) ? c.find(b => b?.type === "text")?.text : null;
+-				return text ? { at: l.timestamp, text } : null;
+-			})
+-			.filter(Boolean);
+-		return prompts.length ? prompts.slice(-50) : null;
+-	}
++	/** The raw transcript lines of a session whose id the live tail cannot follow (null when there are none). */
++	static load_lines(session_id){ return raw_transcript_lines(session_id); }
++
++	static NO_TRANSCRIPT = "No transcript for this session yet: either /ai-logs/ (the dev-server-only route this reads it through) isn't running, or this session's own file has no real prompt in it yet.";
+ 
+ 	/** Every `ai/<Y>/<M>/<D>/<slug>-<id8>/` folder, keyed by its id8: one walk of /framework/directory.json, shared by the grid and the detail page. */
+ 	static async dir_index(){
+@@ -198,3 +195,16 @@ export default class AISessionDetail extends Page {
+ 		return trace?.calls && trace?.turns ? trace : null;
+ 	}
+ }
++
++/** The session folder's page.jsonl, streamed: each `page_add` item that has a title is a card the AI posted here (doc/session-cards.md). */
++AISessionDetail.Cards = class Cards extends JSONL {
++	constructor(url, on_card){ super(); this.url = url; this.on_card = on_card; this.cards = new Set(); }
++	read(entries){
++		for (const e of entries){
++			const item = e.content?.add;
++			if (item?.title && item.id && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
++		}
++		return this;
++	}
++	live(){ super.live(() => {}); return this; }
++};
+diff --git a/public/framework/ai/AISession/AISessionFollow.js b/public/framework/ai/AISession/AISessionFollow.js
+index 945eccd50..321540f26 100644
+--- a/public/framework/ai/AISession/AISessionFollow.js
++++ b/public/framework/ai/AISession/AISessionFollow.js
+@@ -9,7 +9,7 @@ import AISession from "./AISession.js";
+ // log itself prices: provider "claude". For any other it leaves the server's number alone.
+ export default class AISessionFollow {
+ 
+-	static EVERY_MS = 3000;
++	static EVERY_MS = 250;   // a Range request for new bytes is cheap (usually a 416). The transcript lives outside the repo, so the dev socket (ext/JSONL live()) cannot watch it: a per-line server push is the open item (doc/realtime.md)
+ 
+ 	constructor(id, { subagents = true } = {}){
+ 		this.id = id;
+@@ -18,6 +18,7 @@ export default class AISessionFollow {
+ 		this.subagents = subagents;
+ 		this.timer = null;
+ 		this.stopped = false;
++		this.on_lines = null;         // (objects[]) => void, called with each batch of new MAIN-log lines (the conversation draws from this)
+ 	}
+ 
+ 	/** Read the whole log once, correct the row, then keep tailing. Returns this. */
+@@ -42,6 +43,12 @@ export default class AISessionFollow {
+ 
+ 	/** Fetch every part's new bytes (complete lines only) and fold them in. Returns the number of lines applied. */
+ 	async pull(){
++		if (this.busy) return 0;   // a slow read must not overlap the next tick (it would fold the same bytes twice)
++		this.busy = true;
++		try { return await this.pull_once(); } finally { this.busy = false; }
++	}
++
++	async pull_once(){
+ 		await this.discover();
+ 		let n = 0;
+ 		for (const [part, p] of this.parts){
+@@ -54,7 +61,12 @@ export default class AISessionFollow {
+ 			const fresh = whole && p.off ? new TextDecoder().decode(bytes.slice(p.off)) : text;
+ 			const upto = fresh.lastIndexOf("\n") + 1;
+ 			if (!upto) continue;
+-			n += this.session.apply_text(fresh.slice(0, upto), part);
++			const batch = fresh.slice(0, upto);
++			n += this.session.apply_text(batch, part);
++			if (part === "main" && this.on_lines){
++				const objs = []; for (const ln of batch.split("\n")){ if (!ln.trim()) continue; try { objs.push(JSON.parse(ln)); } catch {} }
++				if (objs.length) this.on_lines(objs);
++			}
+ 			p.off += new TextEncoder().encode(fresh.slice(0, upto)).length;
+ 		}
+ 		if (n) this.correct();
+diff --git a/public/framework/ai/AISession/files.jsonl b/public/framework/ai/AISession/files.jsonl
+index 380e96e9b..3d8e11171 100644
+--- a/public/framework/ai/AISession/files.jsonl
++++ b/public/framework/ai/AISession/files.jsonl
+@@ -10,4 +10,5 @@
+ {"file":"AISessionTrace.js"}
+ {"file":"AISessionView.js"}
+ {"file":"rename-manifest.json"}
++{"file":"AISessionConversation.js"}
+ {"file":"AISessionFlags.js"}
+diff --git a/public/framework/ai/files.jsonl b/public/framework/ai/files.jsonl
+index 93d2e886e..c4f811157 100644
+--- a/public/framework/ai/files.jsonl
++++ b/public/framework/ai/files.jsonl
+@@ -279,3 +279,27 @@
+ {"file":"v-z2l35rm.jsonl"}
+ {"file":"v-z2l7kof.jsonl"}
+ {"file":"v-z32l2dk.jsonl"}
++{"file":"CLAUDE.copy.md"}
++{"file":"recordings/","gone":true}
++{"file":"usage.json","gone":true}
++{"file":"CLAUDE.md","gone":true}
++{"file":"openrouter-usage.json","gone":true}
++{"file":"servex-queue.json","gone":true}
++{"file":"tasks.json","gone":true}
++{"file":"v-h999x0j.jsonl","gone":true}
++{"file":"v-h999x0j.summary.json","gone":true}
++{"file":"v-nfpj4z2.jsonl","gone":true}
++{"file":"v-05va2n7.jsonl","gone":true}
++{"file":"v-05vdrmk.jsonl","gone":true}
++{"file":"v-06cup4p.jsonl","gone":true}
++{"file":"v-09rornv.jsonl","gone":true}
++{"file":"v-09rrbo1.jsonl","gone":true}
++{"file":"v-0a0u4dv.jsonl","gone":true}
++{"file":"v-rzd5ehk.jsonl","gone":true}
++{"file":"v-s9g6vd1.jsonl","gone":true}
++{"file":"v-s9g6vd1.summary.json","gone":true}
++{"file":"v-z2l35rm.jsonl","gone":true}
++{"file":"v-z2l7kof.jsonl","gone":true}
++{"file":"v-z32l2dk.jsonl","gone":true}
++{"file":"v-omwdzl5.jsonl","gone":true}
++{"file":"v-omwdzl5.summary.json","gone":true}
+diff --git a/public/framework/ai/sessions/doc/session-cards.md b/public/framework/ai/sessions/doc/session-cards.md
+new file mode 100644
+index 000000000..c3492938f
+--- /dev/null
++++ b/public/framework/ai/sessions/doc/session-cards.md
+@@ -0,0 +1,13 @@
++# Cards the AI posts to a session page
++
++A session page (`/framework/ai/sessions/<id>/`) shows the live conversation drawn by `ext/Chat`. A card the AI posts appears in that conversation, at its time, as it arrives.
++
++**Design choice.** A session already has its own folder with a `page.jsonl`, written by the `page_add` tool. So a card is one `page_add` call on that page, not a new store (a separate `cards.jsonl` was rejected: a second card system, law 6):
++
++```
++page_add(path: "<session folder url>", item: { title: "Merge report", text: "Landed 3 commits", href: "/framework/ai/..." })
++```
++
++`AISessionDetail.Cards` (an `ext/JSONL` subclass) streams that file with `live()`; every `{"content":{"add":{title,...}}}` line becomes one bubble through `AISessionConversation.add_card`.
++
++**Open items.** (1) The conversation itself is tailed by a 250 ms range request (`AISessionFollow`), not pushed: the transcript lives outside the repo, so the dev socket cannot watch it; a per-line server push is the real fix. (2) Cards are only found when the session has a folder with a `page.jsonl`. (3) Tool-call runs that straddle two batches show as two short "N tool calls" lines.
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index dd50322a3..32dc915c2 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -195,6 +195,7 @@ merge.
+ - OpenRouter dollars are real, Claude dollars are an equivalent, and the gap to the account is stated: [`doc/openrouter-dollars.md`](doc/openrouter-dollars.md).
+ - The grid switches to compact cards below 88em of panel, checked at four widths: [`doc/grid-widths.md`](doc/grid-widths.md).
+ - Tasks migration dry run (2026-10-09): 64 tasks join a session, 1003 orphans, 651 slug collisions resolved by id8; not applied until moved tasks have a route.
++- A session page shows the live conversation (both sides, tool calls folded) and cards the AI posts: [`doc/session-cards.md`](doc/session-cards.md).
+ - Red flags (`$$$`, stalled, context, Opus minion) and the mastermind tag are computed by `node Server/session-flags.mjs --watch` into `session-flags.json` (gitignored; keep the watcher running) and drawn by `AISessionFlags.js`; thresholds sit in its `LIMITS`.
+ - The owner wants a later redesign (less text, clear hierarchy, the home of everything real-time): [`doc/redesign-asks-2026-10-09.md`](doc/redesign-asks-2026-10-09.md).
+ - Why some tabs read as running when they are not, and which launcher made them: [`doc/stuck-sessions-2026-10-09.md`](doc/stuck-sessions-2026-10-09.md).
+diff --git a/public/framework/ai/sessions/sessions.css b/public/framework/ai/sessions/sessions.css
+index 1fc379398..4dde4caeb 100644
+--- a/public/framework/ai/sessions/sessions.css
++++ b/public/framework/ai/sessions/sessions.css
+@@ -194,7 +194,13 @@
+ 
+ 	.sessions-prompt, .sessions-cost-row { padding: var(--gap-50); }
+ 
+-	.sessions-full-id { display: block; font-family: monospace; margin-block: var(--gap-35) var(--gap); }
++	.sessions-full-id { font-family: monospace; font-weight: bold; overflow-wrap: anywhere; }
++	.sessions-template { font-size: 0.8em; margin-inline-start: auto; }
++	.sessions-detail-head { padding-block: var(--gap-35); }
++	/* the conversation fills the main column; the side cards flow in their own column beside it */
++	.sessions-detail-body { gap: var(--gap); }
++	.sessions-detail-aside { align-content: start; }
++	.sessions-conv .chatbox-log { max-height: 80vh; }   /* ext/Chat draws the bubbles; it scrolls inside this box and keeps the newest in view */
+ 
+ 	/* The two empty gray bands above the white card (the owner's own words,
+ 	   2026-10-03, sessions-tab-polish: "two faint gray lines between the top
+diff --git a/public/framework/ext/Chat/Chat.css b/public/framework/ext/Chat/Chat.css
+index 953f01181..50f76bd02 100644
+--- a/public/framework/ext/Chat/Chat.css
++++ b/public/framework/ext/Chat/Chat.css
+@@ -577,3 +577,7 @@
+ 	.chatbox-drill-text > :first-child { margin-block-start: 0; }
+ 	.chatbox-drill-text > :last-child { margin-block-end: 0; }
+ }
++
++@layer theme {
++	.chatbox-earlier { align-self: center; margin-block: var(--gap-35); cursor: pointer; }
++}
+diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
+index f705af176..3bbdb83e4 100644
+--- a/public/framework/ext/Chat/Chat.js
++++ b/public/framework/ext/Chat/Chat.js
+@@ -455,8 +455,8 @@ export function sticky_scroll(box){
+ 	return { pin, locked: () => locked };
+ }
+ 
+-export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open, on_react, on_reply } = {}){
+-	let $script;
++export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open, on_react, on_reply, recent = 50 } = {}){
++	let $script, drawn = false, earlier = [], $earlier = null;
+ 	const seen = new Set();
+ 
+ 	const view = div.c("chatbox-log", $s => {
+@@ -928,6 +928,30 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 	}
+ 	let sent_n = 0;
+ 
++	const CHUNK = 50;
++	function show_earlier_button(){
++		if (!earlier.length){ $earlier?.remove(); $earlier = null; return; }
++		if (!$earlier){
++			$earlier = document.createElement("button");
++			$earlier.type = "button"; $earlier.className = "chatbox-earlier";
++			$earlier.addEventListener("click", load_earlier);
++		}
++		$earlier.textContent = "show earlier (" + earlier.length + ")";
++		$script.el.prepend($earlier);
++	}
++	/** Draw the previous chunk ABOVE what is on screen, keeping the reader where they were. Merge logic only ever looks at the last bubble, so the chunk is drawn into an emptied box and the old children put back after it. */
++	function load_earlier(){
++		const box = $script.el, chunk = earlier.splice(Math.max(0, earlier.length - CHUNK));
++		const before = box.scrollHeight - box.scrollTop;
++		$earlier?.remove();
++		const old = [...box.children];
++		old.forEach(c => c.remove());
++		chunk.forEach(draw);
++		old.forEach(c => box.append(c));
++		show_earlier_button();
++		box.scrollTop = box.scrollHeight - before;
++	}
++
+ 	function draw(e){
+ 		if (e.react) return react_line(e.react);
+ 		if (e.chat) return chat_line(e.chat);
+@@ -1006,7 +1030,12 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 				seen.add(k);
+ 				return keep(e);
+ 			});
+-			fresh.sort((a, b) => Date.parse(a.at ?? 0) - Date.parse(b.at ?? 0)).forEach(draw);
++			fresh.sort((a, b) => Date.parse(a.at ?? 0) - Date.parse(b.at ?? 0));
++			// WINDOW: the first draw shows only the newest `recent` entries (default 50; pass Infinity for all) (a chat may hold thousands); the rest wait behind a
++			// "show earlier" button at the top. Oldest-to-newest stays the order; the box opens at the newest (sticky_scroll).
++			if (!drawn && fresh.length > recent){ earlier = fresh.slice(0, fresh.length - recent); fresh.splice(0, earlier.length); show_earlier_button(); }
++			drawn = true;
++			fresh.forEach(draw);
+ 		},
+ 	};
+ }
+diff --git a/public/framework/ext/files.jsonl b/public/framework/ext/files.jsonl
+index 041b642de..b0776857c 100644
+--- a/public/framework/ext/files.jsonl
++++ b/public/framework/ext/files.jsonl
+@@ -106,3 +106,4 @@
+ {"file":"panel2/page.js"}
+ {"file":"Session/page.js"}
+ {"file":"sprawl/page.js"}
++{"file":"ErrorLog/page.js"}

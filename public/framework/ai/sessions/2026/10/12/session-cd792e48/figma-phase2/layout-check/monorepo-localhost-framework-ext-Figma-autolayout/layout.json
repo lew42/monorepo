@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Figma/autolayout/",
+ "widths": {
+  "1280": {
+   "empty": 0.8,
+   "widest_text": 336,
+   "widest_text_sample": "horizontal auto layout, two FIXED 960 pa",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 0.171
+  },
+  "1920": {
+   "empty": 0.867,
+   "widest_text": 499,
+   "widest_text_sample": "shift a = auto layout",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 0.943
+  },
+  "2560": {
+   "empty": 0.875,
+   "widest_text": 665,
+   "widest_text_sample": "shift a = auto layout",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 0.943
+  },
+  "3440": {
+   "empty": 0.916,
+   "widest_text": 715,
+   "widest_text_sample": "shift a = auto layout",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 0.943
+  }
+ },
+ "errors": []
+}

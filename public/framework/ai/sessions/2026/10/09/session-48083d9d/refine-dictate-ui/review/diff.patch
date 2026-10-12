@@ -1,0 +1,643 @@
+diff --git a/public/framework/ai/2026-10-09/refine-dictate-ui/phase-2-report.md b/public/framework/ai/2026-10-09/refine-dictate-ui/phase-2-report.md
+new file mode 100644
+index 000000000..e38b5a957
+--- /dev/null
++++ b/public/framework/ai/2026-10-09/refine-dictate-ui/phase-2-report.md
+@@ -0,0 +1,12 @@
++# Phase 2: one compact dictation panel, the voice class map, the phone answer
++
++Brief: [`phase-2.md`](phase-2.md). The one-screen version of what landed.
++
++- [x] **Class architecture first**: [`ux/Dictate/doc/voice-architecture.md`](/framework/ux/Dictate/doc/voice-architecture/) names every class, its job, who composes whom, which one orchestrates (the page), and which "widgets" are copies. Linked from the [Dictate readme](/framework/ux/Dictate/) and a tile on the Dictate page.
++- [x] **Smallest slice, one panel**: new [`VoiceStrip`](/framework/ux/Dictate/VoiceStrip.js) (Dictate + the Connection row + the live guess, fixed size, templates `full` and `compact`). Refine and the Dictate page's demo both use it. Proof: the Refine end-to-end run passes at 1400 and 400 (buttons do not move, 0 errors); shots below.
++- [x] **Compact, plain status**: the `compact` template is one sentence ("Ready. Press the mic." / "Listening." / "The microphone could not start: ...").
++- [x] **Mobile socket**: answered and measured in [`mobile-socket-2026-10-09.md`](/framework/ux/Dictate/doc/mobile-socket-2026-10-09/). Whisper works from a phone address (0.1 s). The "socket" was the dev reload socket, refused off the PC on purpose. The real block is that plain `http://` on the LAN hides the mic, so it needs https (the method is the owner's choice, see `https-lan.md`).
++- [x] **Errors reach the log**: a mic error is now appended to the day's error log through [`ext/ErrorLog`](/framework/ext/ErrorLog/) (deduped per page load). Installing it on every page, and phones (no dev socket), are listed as "not built" in the architecture doc.
++- [ ] **The drawer uses the same panel**: not done. It touches a dozen callers in `rail.js` and `tabs/`; it is step 1 of "Not built" in the architecture doc.
++
++Shots: [Refine, talking, 1400](voicestrip-refine-1400.png) · [Dictate demo 1400](voicestrip-dictate-1400.png) · [Dictate demo 400](voicestrip-dictate-400.png).
+diff --git a/public/framework/ai/2026-10-09/refine-dictate-ui/voicestrip-dictate-1400.png b/public/framework/ai/2026-10-09/refine-dictate-ui/voicestrip-dictate-1400.png
+new file mode 100644
+index 000000000..09ae48182
+Binary files /dev/null and b/public/framework/ai/2026-10-09/refine-dictate-ui/voicestrip-dictate-1400.png differ
+diff --git a/public/framework/ai/2026-10-09/refine-dictate-ui/voicestrip-dictate-400.png b/public/framework/ai/2026-10-09/refine-dictate-ui/voicestrip-dictate-400.png
+new file mode 100644
+index 000000000..725502828
+Binary files /dev/null and b/public/framework/ai/2026-10-09/refine-dictate-ui/voicestrip-dictate-400.png differ
+diff --git a/public/framework/ai/2026-10-09/refine-dictate-ui/voicestrip-refine-1400.png b/public/framework/ai/2026-10-09/refine-dictate-ui/voicestrip-refine-1400.png
+new file mode 100644
+index 000000000..5287e947b
+Binary files /dev/null and b/public/framework/ai/2026-10-09/refine-dictate-ui/voicestrip-refine-1400.png differ
+diff --git a/public/framework/ext/Refine/Connection.css b/public/framework/ext/Refine/Connection.css
+deleted file mode 100644
+index 486ce1591..000000000
+--- a/public/framework/ext/Refine/Connection.css
++++ /dev/null
+@@ -1,18 +0,0 @@
+-@layer base, theme, site, util;
+-
+-/* The connection row: five equal fixed columns (two on a phone), each a dot, a name and at most three
+-   lines of reason, so nothing moves while words arrive. */
+-@layer site {
+-	.refine-conn { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.5em 0.75em; font-size: 0.85em; margin-block-end: 0.75em; }
+-	.refine-conn-step { display: grid; gap: 0.15em; align-content: start; min-inline-size: 0; border-inline-start: 2px solid var(--wash, #ccc); padding-inline-start: 0.5em; }
+-	.refine-conn-head { display: flex; align-items: center; gap: 0.4em; font-weight: 600; block-size: 1.6em; }
+-	.refine-conn-dot { inline-size: 0.7em; block-size: 0.7em; border-radius: 50%; background: var(--wash, #bbb); flex: none; }
+-	.refine-conn-step[data-state="ok"] .refine-conn-dot { background: #2a9d4b; }
+-	.refine-conn-step[data-state="bad"] .refine-conn-dot { background: var(--error, #d33); }
+-	.refine-conn-step[data-state="wait"] .refine-conn-dot { background: #e0a000; }
+-	.refine-conn-why { opacity: 0.75; block-size: 4.2em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+-	.refine-conn-step[data-state="bad"] .refine-conn-why { color: var(--error, #d33); opacity: 1; }
+-	.refine-conn-retry { margin-inline-start: auto; padding: 0 0.4em; line-height: 1.4; }
+-	.refine-conn .audio-levelmeter { margin-block-start: 0.3em; }
+-	@media (max-width: 700px) { .refine-conn { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+-}
+diff --git a/public/framework/ext/Refine/Connection.js b/public/framework/ext/Refine/Connection.js
+deleted file mode 100644
+index d9e671d65..000000000
+--- a/public/framework/ext/Refine/Connection.js
++++ /dev/null
+@@ -1,98 +0,0 @@
+-import { View, div, span, button } from "../../core/View/View.js";
+-import LevelMeter from "../../audio/v1/LevelMeter/LevelMeter.js";
+-
+-View.stylesheet(import.meta, "Connection.css");
+-
+-/**
+- * class Connection — one small row that shows the path a spoken prompt takes, so a reader can see
+- * which step is stuck:  Mic → Level → Whisper → Transcript → Refine.
+- *
+- * Each step is a dot (grey = not yet, green = fine, red = failed) plus a few plain words saying why.
+- * The row never changes size: every step has a fixed column, and the reason is cut with "…" rather
+- * than wrapped, so nothing a reader might click moves while words arrive.
+- *
+- *   const c = new Connection({ whisper_url, on_retry });
+- *   c.set("mic", "ok", "on");            // step ids: mic level whisper transcript refine
+- *   c.level(0.4);                         // the bar inside the Level step (a LevelMeter)
+- *   await c.check_whisper();              // ONCE on page load, and again only when the reader clicks Retry
+- *
+- * Whisper is asked once, never polled (stream, don't poll): `check_whisper()` is called by the page
+- * on load and by the Retry click. Everything else is pushed in by the caller's events.
+- */
+-export default class Connection extends View {
+-
+-	static steps = [
+-		{ id: "mic", label: "Mic" },
+-		{ id: "level", label: "Level" },
+-		{ id: "whisper", label: "Whisper" },
+-		{ id: "transcript", label: "Transcript" },
+-		{ id: "refine", label: "Refine" },
+-	];
+-
+-	render(){
+-		this.ac("refine-conn");
+-		/** `{ state: "idle" | "ok" | "bad" | "wait", why }` per step id: plain data, so the debug tree can show it.
+-		 *  Set here, not as a class field: a View runs render() before subclass fields exist. */
+-		this.state = {};
+-		this.meter = new LevelMeter();
+-		Connection.steps.forEach((s, i) => {
+-			this.state[s.id] = { state: "idle", why: "not yet" };
+-			div.c("refine-conn-step", () => {
+-				div.c("refine-conn-head", () => {
+-					span.c("refine-conn-dot");
+-					span.c("refine-conn-label", s.label);
+-					if (s.id === "whisper") this.$retry = button("↻").ac("refine-conn-retry").attr("type", "button")
+-						.attr("title", "Check Whisper again").click(() => this.check_whisper());
+-				});
+-				if (s.id === "level") new LevelMeter.View({ subject: this.meter });
+-				else span.c("refine-conn-why");
+-			}).attr("data-step", s.id);
+-		});
+-		this.draw();
+-	}
+-
+-	/** Set one step. `why` is a few plain words ("on", "last reply 0.4 s", "no sound yet"). */
+-	set(id, state, why = ""){
+-		if (!this.state[id]) return this;
+-		this.state[id] = { state, why };
+-		this.draw(id);
+-		return this;
+-	}
+-
+-	/** The mic's smoothed 0..1 loudness, drawn by the shared LevelMeter bar. */
+-	level(value){
+-		this.meter.level = value;
+-		this.meter.on_change?.(value);
+-		if (value > 0.05 && this.state.level.state !== "ok") this.set("level", "ok", "");
+-	}
+-
+-	draw(only){
+-		for (const s of Connection.steps){
+-			if (only && s.id !== only) continue;
+-			const { state, why } = this.state[s.id];
+-			const el = this.el.querySelector(`[data-step="${s.id}"]`);
+-			if (!el) continue;
+-			el.dataset.state = state;
+-			const w = el.querySelector(".refine-conn-why");
+-			if (w){ w.textContent = why; w.title = why; }
+-		}
+-	}
+-
+-	/** Is Whisper reachable? One request, on load or on the Retry click, never on a timer. */
+-	async check_whisper(url = this.whisper_url){
+-		this.set("whisper", "wait", "checking…");
+-		const t = performance.now();
+-		const ctrl = new AbortController();
+-		const timer = setTimeout(() => ctrl.abort(), 2500);
+-		try {
+-			const r = await fetch(url + "/", { signal: ctrl.signal });
+-			const ms = performance.now() - t;
+-			if (!r.ok) return this.set("whisper", "bad", `error: HTTP ${r.status}`), false;
+-			this.set("whisper", "ok", `connected, ${(ms / 1000).toFixed(1)} s`);
+-			return true;
+-		} catch (e){
+-			this.set("whisper", "bad", `error: ${e?.name === "AbortError" ? "no answer in 2.5 s" : "not reachable"}`);
+-			return false;
+-		} finally { clearTimeout(timer); }
+-	}
+-}
+diff --git a/public/framework/ext/Refine/Prompt.css b/public/framework/ext/Refine/Prompt.css
+index fcdc31a42..edf97b784 100644
+--- a/public/framework/ext/Refine/Prompt.css
++++ b/public/framework/ext/Refine/Prompt.css
+@@ -8,15 +8,7 @@
+ 
+ 	.refine-input { display: flex; flex-direction: column; gap: 0.5em; }
+ 	.refine-input textarea { width: 100%; min-height: 6em; font: inherit; }
+-	/* The toolbar never changes size: fixed-height row, the mic is a fixed square, Dictate's own
+-	   status/caption block is hidden (the connection row above says it, the grey guess has its own line). */
+-	.refine-toolbar { display: flex; flex-wrap: nowrap; gap: 0.5em; align-items: center; block-size: 2.75em; }
+-	.refine-toolbar button { block-size: 2.5em; white-space: nowrap; flex: none; }
+-	.refine-toolbar .ux-dictate { flex: none; align-items: center; }
+-	.refine-toolbar .ux-dictate-btn { inline-size: 3.5em; display: inline-flex; align-items: center; justify-content: center; }
+-	.refine-toolbar .ux-dictate-info { display: none; }
+ 	.refine-input-note { color: var(--muted, inherit); opacity: 0.75; font-size: 0.9em; min-block-size: 1.4em; }
+-	.refine-guess { min-block-size: 3em; font-size: 0.9em; }
+ 
+ 	.refine-prompt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); }
+ 	@media (min-width: 700px) { .refine-prompt { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+diff --git a/public/framework/ext/Refine/RefineDemo.js b/public/framework/ext/Refine/RefineDemo.js
+index 4bf590117..a9fce149b 100644
+--- a/public/framework/ext/Refine/RefineDemo.js
++++ b/public/framework/ext/Refine/RefineDemo.js
+@@ -1,9 +1,8 @@
+ import { View, div, span, p, textarea, button, h4, a } from "../../core/View/View.js";
+ import ErrorLog from "../ErrorLog/ErrorLog.js";
+-import Dictate from "../../ux/Dictate/Dictate.js";
++import VoiceStrip from "../../ux/Dictate/VoiceStrip.js";
+ import DefaultView from "../../ux/Content/Object/DefaultView.js";
+ import Prompt from "./Prompt.js";
+-import Connection from "./Connection.js";
+ import RefineSystem from "./RefineSystem.js";
+ 
+ View.stylesheet(import.meta, "Prompt.css");
+@@ -29,27 +28,21 @@ export default class RefineDemo extends View {
+ 		ErrorLog.watch(() => ({ status: this.prompt.status, raw: this.prompt.raw, error: this.prompt.error }));
+ 
+ 		div.c("refine-demo-main", () => {
+-			this.conn = new Connection({ whisper_url: Dictate.prototype.whisper_url });
+ 			div.c("refine-input", () => {
+-				// The controls sit in their own fixed row; the transcript is in the box below. Nothing
+-				// the reader can click shares a line with text that changes while they talk.
+-				div.c("refine-toolbar", () => {
+-					this.dictate = new Dictate({
+-						$input: () => this.$box,   // the View, not its element: Dictate reads `.el` itself (passing the element threw on every sentence)
+-						on_error: e => this.conn.set("mic", "bad", "error: " + String(e).slice(0, 60)),
+-						on_step: (stage, detail) => this.step(stage, detail),
+-						on_meter: level => this.conn.level(level),
+-						on_guess: text => this.$guess.text(text),
+-						on_text: () => this.conn.set("transcript", "ok", this.words() + " words"),
+-					});
+-					this.$go = button("Refine").click(() => this.go());
+-					button("Record next prompt").click(() => this.next());
++				// ux/Dictate/VoiceStrip: the one compact dictation panel (mic, steps, grey guess), fixed size.
++				this.strip = new VoiceStrip({
++					template: "full", refine: true,
++					$input: () => this.$box,   // the View, not its element: Dictate reads `.el` itself
++					toolbar: () => {
++						this.$go = button("Refine").click(() => this.go());
++						button("Record next prompt").click(() => this.next());
++					},
+ 				});
++				this.dictate = this.strip.dictate;
++				this.conn = this.strip.conn;
+ 				this.$note = span.c("refine-input-note");
+ 				this.$box = textarea.c().attr("placeholder", "Speak with the mic, or type or paste a prompt here…");
+-				this.$guess = div.c("refine-guess muted");
+ 			});
+-			this.conn.check_whisper();
+ 			this.$result = div.c("refine-result");
+ 		});
+ 
+@@ -62,20 +55,6 @@ export default class RefineDemo extends View {
+ 		this.draw();
+ 	}
+ 
+-	words(){ return (this.transcript().match(/\S+/g) ?? []).length; }
+-
+-	/** One of Dictate's steps changed: turn its words into the connection row's plain ones. */
+-	step(stage, detail){
+-		const bad = /^(refused|timed out)|stopped answering|not reachable/.test(detail);
+-		if (stage === "mic"){
+-			if (detail === "on, level ok") this.conn.set("level", "ok", "");
+-			else if (detail === "ok") this.conn.set("mic", "ok", "on").set("level", "wait", "");
+-			else this.conn.set("mic", bad ? "bad" : "wait", bad ? "error: " + detail.replace(/^refused: /, "") : detail);
+-		} else if (stage === "whisper" && /^(connected, last reply|stopped answering)/.test(detail)){
+-			this.conn.set("whisper", bad ? "bad" : "ok", bad ? "error: " + detail : detail);
+-		}
+-	}
+-
+ 	/** The one transcript the owner sees: whatever Dictate has committed into the box, plus the
+ 	 *  grey still-moving guess if the mic has not settled it yet. Reading the box alone missed
+ 	 *  text that was on screen only as that guess (2026-10-09). */
+diff --git a/public/framework/ext/Refine/test/dictate-flow.mjs b/public/framework/ext/Refine/test/dictate-flow.mjs
+index c40480b83..2b7e5ceb3 100644
+--- a/public/framework/ext/Refine/test/dictate-flow.mjs
++++ b/public/framework/ext/Refine/test/dictate-flow.mjs
+@@ -17,9 +17,9 @@ for (const w of [1400, 400]) {
+ 	p.on("requestfailed", r => { const e = r.failure()?.errorText; (r.url().includes(":8178") ? whisper : errs).push((r.url().includes(":8178") ? "FAILED " : "requestfailed ") + r.url().slice(0, 90) + " " + e); });
+ 	p.on("response", r => { if (r.url().includes(":8178")) whisper.push(`${r.request().method()} ${r.url().split("8178")[1]} ${r.status()}`); });
+ 	await p.goto(base + "/framework/ext/Refine/", { waitUntil: "networkidle" });
+-	const conn = () => p.locator(".refine-conn").innerText().then(t => t.replace(/\s+/g, " "));
++	const conn = () => p.locator(".voice-conn").innerText().then(t => t.replace(/\s+/g, " "));
+ 	console.log(w, "on load:", await conn());
+-	const boxes = async () => p.evaluate(() => [...document.querySelectorAll(".refine-toolbar .ux-dictate-btn,.refine-toolbar > button")].map(e => { const r = e.getBoundingClientRect(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)].join(","); }).join(" | "));
++	const boxes = async () => p.evaluate(() => [...document.querySelectorAll(".voice-strip-bar .ux-dictate-btn,.voice-strip-bar > button")].map(e => { const r = e.getBoundingClientRect(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)].join(","); }).join(" | "));
+ 	const before = await boxes();
+ 	await p.locator(".ux-dictate-btn").click();
+ 	let moved = 0;
+diff --git a/public/framework/ux/Dictate/Connection.css b/public/framework/ux/Dictate/Connection.css
+new file mode 100644
+index 000000000..61f2c6dc0
+--- /dev/null
++++ b/public/framework/ux/Dictate/Connection.css
+@@ -0,0 +1,18 @@
++@layer base, theme, site, util;
++
++/* The connection row: five equal fixed columns (two on a phone), each a dot, a name and at most three
++   lines of reason, so nothing moves while words arrive. */
++@layer site {
++	.voice-conn { display: grid; grid-template-columns: repeat(var(--steps, 5), minmax(0, 1fr)); gap: 0.5em 0.75em; font-size: 0.85em; margin-block-end: 0.75em; }
++	.voice-conn-step { display: grid; gap: 0.15em; align-content: start; min-inline-size: 0; border-inline-start: 2px solid var(--wash, #ccc); padding-inline-start: 0.5em; }
++	.voice-conn-head { display: flex; align-items: center; gap: 0.4em; font-weight: 600; block-size: 1.6em; }
++	.voice-conn-dot { inline-size: 0.7em; block-size: 0.7em; border-radius: 50%; background: var(--wash, #bbb); flex: none; }
++	.voice-conn-step[data-state="ok"] .voice-conn-dot { background: #2a9d4b; }
++	.voice-conn-step[data-state="bad"] .voice-conn-dot { background: var(--error, #d33); }
++	.voice-conn-step[data-state="wait"] .voice-conn-dot { background: #e0a000; }
++	.voice-conn-why { opacity: 0.75; block-size: 4.2em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
++	.voice-conn-step[data-state="bad"] .voice-conn-why { color: var(--error, #d33); opacity: 1; }
++	.voice-conn-retry { margin-inline-start: auto; padding: 0 0.4em; line-height: 1.4; }
++	.voice-conn .audio-levelmeter { margin-block-start: 0.3em; }
++	@media (max-width: 700px) { .voice-conn { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
++}
+diff --git a/public/framework/ux/Dictate/Connection.js b/public/framework/ux/Dictate/Connection.js
+new file mode 100644
+index 000000000..53fd1ca11
+--- /dev/null
++++ b/public/framework/ux/Dictate/Connection.js
+@@ -0,0 +1,100 @@
++import { View, div, span, button } from "../../core/View/View.js";
++import LevelMeter from "../../audio/v1/LevelMeter/LevelMeter.js";
++
++View.stylesheet(import.meta, "Connection.css");
++
++/**
++ * class Connection — one small row that shows the path a spoken prompt takes, so a reader can see
++ * which step is stuck:  Mic → Level → Whisper → Transcript → Refine.
++ *
++ * Each step is a dot (grey = not yet, green = fine, red = failed) plus a few plain words saying why.
++ * The row never changes size: every step has a fixed column, and the reason is cut with "…" rather
++ * than wrapped, so nothing a reader might click moves while words arrive.
++ *
++ *   const c = new Connection({ whisper_url, on_retry });
++ *   c.set("mic", "ok", "on");            // step ids: mic level whisper transcript refine
++ *   c.level(0.4);                         // the bar inside the Level step (a LevelMeter)
++ *   await c.check_whisper();              // ONCE on page load, and again only when the reader clicks Retry
++ *
++ * Whisper is asked once, never polled (stream, don't poll): `check_whisper()` is called by the page
++ * on load and by the Retry click. Everything else is pushed in by the caller's events.
++ */
++export default class Connection extends View {
++
++	static steps = [
++		{ id: "mic", label: "Mic" },
++		{ id: "level", label: "Level" },
++		{ id: "whisper", label: "Whisper" },
++		{ id: "transcript", label: "Transcript" },
++		{ id: "refine", label: "Refine" },
++	];
++
++	render(){
++		this.ac("voice-conn");
++		/** `{ state: "idle" | "ok" | "bad" | "wait", why }` per step id: plain data, so the debug tree can show it.
++		 *  Set here, not as a class field: a View runs render() before subclass fields exist. */
++		this.state = {};
++		this.meter = new LevelMeter();
++		this.steps = this.steps ?? Connection.steps;   // a caller may show fewer: new Connection({ steps })
++		this.style("--steps", this.steps.length);
++		this.steps.forEach((s, i) => {
++			this.state[s.id] = { state: "idle", why: "not yet" };
++			div.c("voice-conn-step", () => {
++				div.c("voice-conn-head", () => {
++					span.c("voice-conn-dot");
++					span.c("voice-conn-label", s.label);
++					if (s.id === "whisper") this.$retry = button("↻").ac("voice-conn-retry").attr("type", "button")
++						.attr("title", "Check Whisper again").click(() => this.check_whisper());
++				});
++				if (s.id === "level") new LevelMeter.View({ subject: this.meter });
++				else span.c("voice-conn-why");
++			}).attr("data-step", s.id);
++		});
++		this.draw();
++	}
++
++	/** Set one step. `why` is a few plain words ("on", "last reply 0.4 s", "no sound yet"). */
++	set(id, state, why = ""){
++		if (!this.state[id]) return this;
++		this.state[id] = { state, why };
++		this.draw(id);
++		return this;
++	}
++
++	/** The mic's smoothed 0..1 loudness, drawn by the shared LevelMeter bar. */
++	level(value){
++		this.meter.level = value;
++		this.meter.on_change?.(value);
++		if (value > 0.05 && this.state.level.state !== "ok") this.set("level", "ok", "");
++	}
++
++	draw(only){
++		for (const s of this.steps){
++			if (only && s.id !== only) continue;
++			const { state, why } = this.state[s.id];
++			const el = this.el.querySelector(`[data-step="${s.id}"]`);
++			if (!el) continue;
++			el.dataset.state = state;
++			const w = el.querySelector(".voice-conn-why");
++			if (w){ w.textContent = why; w.title = why; }
++		}
++	}
++
++	/** Is Whisper reachable? One request, on load or on the Retry click, never on a timer. */
++	async check_whisper(url = this.whisper_url){
++		this.set("whisper", "wait", "checking…");
++		const t = performance.now();
++		const ctrl = new AbortController();
++		const timer = setTimeout(() => ctrl.abort(), 2500);
++		try {
++			const r = await fetch(url + "/", { signal: ctrl.signal });
++			const ms = performance.now() - t;
++			if (!r.ok) return this.set("whisper", "bad", `error: HTTP ${r.status}`), false;
++			this.set("whisper", "ok", `connected, ${(ms / 1000).toFixed(1)} s`);
++			return true;
++		} catch (e){
++			this.set("whisper", "bad", `error: ${e?.name === "AbortError" ? "no answer in 2.5 s" : "not reachable"}`);
++			return false;
++		} finally { clearTimeout(timer); }
++	}
++}
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index 347e783d2..fac4856e6 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -319,7 +319,7 @@ export default class Dictate extends View {
+ 		(this.stage_log ??= []).push({ stage, detail, ms, at: Date.now() });
+ 		if (this.stage_log.length > 12) this.stage_log.shift();
+ 		console.log(`[dictate] ${stage}: ${detail}`);
+-		this.on_step?.(stage, detail);   // optional: a caller drawing its own connection view (ext/Refine/Connection)
++		this.on_step?.(stage, detail);   // optional: a caller drawing its own connection view (ux/Dictate/Connection)
+ 		this.draw_diag();
+ 		this.draw_stage_tray?.();
+ 		if (this.state === "connecting" && stage === "mic") this.$status?.rc("error").text(this.timed_text("mic"));
+diff --git a/public/framework/ux/Dictate/VoiceStrip.css b/public/framework/ux/Dictate/VoiceStrip.css
+new file mode 100644
+index 000000000..b64e482da
+--- /dev/null
++++ b/public/framework/ux/Dictate/VoiceStrip.css
+@@ -0,0 +1,21 @@
++@layer base, theme, site, util;
++
++/* The strip never changes size: a fixed-height toolbar, a one-line status, a fixed-height guess line.
++   The row of steps shows in the "full" template; the "compact" one shows only the sentence. */
++@layer site {
++	.voice-strip { display: grid; gap: 0.5em; }
++	.voice-strip-bar { display: flex; flex-wrap: nowrap; gap: 0.5em; align-items: center; block-size: 2.75em; }
++	.voice-strip-bar button { block-size: 2.5em; white-space: nowrap; flex: none; }
++	.voice-strip-bar .ux-dictate { flex: none; align-items: center; }
++	.voice-strip-bar .ux-dictate-btn { inline-size: 3.5em; display: inline-flex; align-items: center; justify-content: center; }
++	.voice-strip-say { font-size: 0.9em; min-block-size: 1.4em; }
++	.voice-strip-guess { min-block-size: 3em; font-size: 0.9em; }
++	.voice-strip[data-template="full"] .voice-strip-say { display: none; }
++	.voice-strip[data-template="compact"] .voice-conn { display: none; }
++	.voice-strip[data-template="compact"] .voice-strip-guess { min-block-size: 1.5em; }
++}
++
++/* Dictate's own status block is hidden here (the strip says it). In util because Dictate's `.flex` class is util and would win. */
++@layer util {
++	.voice-strip-bar .ux-dictate-info { display: none; }
++}
+diff --git a/public/framework/ux/Dictate/VoiceStrip.js b/public/framework/ux/Dictate/VoiceStrip.js
+new file mode 100644
+index 000000000..815ce8a77
+--- /dev/null
++++ b/public/framework/ux/Dictate/VoiceStrip.js
+@@ -0,0 +1,82 @@
++import { View, div, span } from "../../core/View/View.js";
++import Dictate from "./Dictate.js";
++import Connection from "./Connection.js";
++import ErrorLog from "../../ext/ErrorLog/ErrorLog.js";
++
++View.stylesheet(import.meta, "VoiceStrip.css");
++
++/**
++ * class VoiceStrip — the compact dictation panel: a mic, the steps a spoken sentence passes through,
++ * and the still-moving guess, in a block whose size never changes while words arrive.
++ *
++ *   new VoiceStrip({ $input: () => this.$box, template: "full", toolbar: () => button("Refine") });
++ *
++ * It composes three things that already existed and adds only the glue between them:
++ *   - `Dictate`    the mic engine (unchanged; its own info block is hidden here),
++ *   - `Connection` the Mic → Level → Whisper → Transcript → Refine row (`template: "full"`),
++ *   - a one-line plain status (`template: "compact"`) saying the same thing in one sentence.
++ * Options: `$input` (where words land), `template`, `toolbar` (a function drawing extra buttons
++ * beside the mic), `refine` (true to show the Refine step), and the Dictate callbacks `on_text`,
++ * `on_error`, `on_step`, `on_meter`, `on_guess`, which are called after the strip has used them.
++ * Class architecture: `doc/voice-architecture.md`.
++ */
++export default class VoiceStrip extends View {
++
++	render(){
++		this.ac("voice-strip").attr("data-template", this.template ?? "full");
++		this.conn = new Connection({ whisper_url: Dictate.prototype.whisper_url,
++			steps: this.refine ? Connection.steps : Connection.steps.filter(s => s.id !== "refine") });
++		this.$say = span.c("voice-strip-say muted");
++		div.c("voice-strip-bar", () => {
++			this.dictate = new Dictate({
++				$input: this.$input,
++				mode: this.mode,
++				on_error: e => { if (this.conn.state.mic.state !== "bad") this.conn.set("mic", "bad", "error: " + String(e?.message ?? e).slice(0, 90)); this.said(); ErrorLog.report(e, { where: "VoiceStrip.mic" }); this.on_error?.(e); },
++				on_step: (stage, detail) => { this.step(stage, detail); this.on_step?.(stage, detail); },
++				on_meter: level => { this.conn.level(level); this.on_meter?.(level); },
++				on_guess: text => { this.$guess.text(text); this.on_guess?.(text); },
++				on_text: text => { this.conn.set("transcript", "ok", this.words() + " words"); this.said(); this.on_text?.(text); },
++			});
++			this.toolbar?.();
++		});
++		this.$guess = div.c("voice-strip-guess muted");
++		this.conn.check_whisper().then(() => this.said());
++		this.said();
++	}
++
++	/** Dictate's short reasons, in words a reader can act on. */
++	static plain(reason){
++		return { "insecure context": "this address is not https or localhost, so the browser hides the mic (doc/https-lan.md)",
++			"permission denied": "the browser has the mic blocked for this site" }[reason] ?? reason;
++	}
++
++	/** Words now in the target box (0 when there is none, e.g. a caller using `on_text` only). */
++	words(){
++		const box = typeof this.$input === "function" ? this.$input() : this.$input;
++		const text = (box?.el?.value ?? "") + " " + (this.dictate?.partial_text ?? "");
++		return (text.match(/\S+/g) ?? []).length;
++	}
++
++	/** One of Dictate's steps changed: turn its words into the connection row's plain ones. */
++	step(stage, detail){
++		const bad = /^(refused|timed out)|stopped answering|not reachable/.test(detail);
++		if (stage === "mic"){
++			if (detail === "on, level ok") this.conn.set("level", "ok", "");
++			else if (detail === "ok") this.conn.set("mic", "ok", "on").set("level", "wait", "");
++			else this.conn.set("mic", bad ? "bad" : "wait", bad ? "error: " + VoiceStrip.plain(detail.replace(/^refused: /, "")) : detail);
++		} else if (stage === "whisper" && /^(connected, last reply|stopped answering)/.test(detail)){
++			this.conn.set("whisper", bad ? "bad" : "ok", bad ? "error: " + detail : detail);
++		}
++		this.said();
++	}
++
++	/** The one-sentence status, the same facts the row shows: the first red step wins. */
++	said(){
++		const s = this.conn.state;
++		const bad = ["mic", "whisper", "refine"].find(id => s[id]?.state === "bad");
++		const text = bad === "mic" ? "The microphone could not start: " + s.mic.why.replace(/^error: /, "")
++			: bad ? `${bad[0].toUpperCase() + bad.slice(1)} has a problem: ${s[bad].why.replace(/^error: /, "")}`
++			: s.mic.state === "ok" ? "Listening." : s.whisper.state === "ok" ? "Ready. Press the mic." : "Checking Whisper…";
++		this.$say.text(text);
++	}
++}
+diff --git a/public/framework/ux/Dictate/doc/mobile-socket-2026-10-09.md b/public/framework/ux/Dictate/doc/mobile-socket-2026-10-09.md
+new file mode 100644
+index 000000000..3943ad777
+--- /dev/null
++++ b/public/framework/ux/Dictate/doc/mobile-socket-2026-10-09.md
+@@ -0,0 +1,14 @@
++# Mobile: why the phone said "socket connecting" (2026-10-09)
++
++**Short answer.** Whisper is not a socket and it works from a phone. The "socket" in the old status line was the dev site's live-reload socket, which the server refuses off the PC on purpose. The real thing that stops dictation on a phone is that the browser hides the microphone on an `http://` LAN address.
++
++**Measured** (headless Chromium, "Pixel 7" profile, page opened as `http://10.0.0.135:<port>/framework/ext/Refine/`, the PC's LAN address):
++
++| Check | Result |
++|---|---|
++| `isSecureContext`, `navigator.mediaDevices` | `false`, `false` (so no mic) |
++| Whisper | `connected, 0.1 s` through the same-origin `/whisper` proxy |
++| Mic after pressing it | `error: this address is not https or localhost, so the browser hides the mic` |
++| Dev socket | refused by `Server/` on purpose (`loopback()` guard, [`Server/doc/mobile-lan.md`](/Server/doc/mobile-lan.md)) |
++
++**What changed.** The status line no longer prints the socket (phase 1), so nothing says "waiting" for a thing dictation never needed. A refused mic now reads as a sentence with the reason. **What is not fixed:** a phone can only dictate over `https` or `localhost`; the how is [`https-lan.md`](https-lan.md), and it needs the owner's choice of certificate method.
+diff --git a/public/framework/ux/Dictate/doc/voice-architecture.md b/public/framework/ux/Dictate/doc/voice-architecture.md
+new file mode 100644
+index 000000000..c4e192ad9
+--- /dev/null
++++ b/public/framework/ux/Dictate/doc/voice-architecture.md
+@@ -0,0 +1,50 @@
++# The voice UI: classes, who owns what (2026-10-09)
++
++The owner's complaint: Dictate, Refine and the right-hand drawer each show "a dictation widget", and they look like copies. This page names every piece once, says what it is for, and says which one orchestrates. Written from the code, before any change; the first slice is built (see "Built").
++
++## The classes
++
++```
++Dictate                     ux/Dictate/Dictate.js        THE mic engine: record, send to Whisper, hand back words.
++ └ ComposerMic              ext/Chat/Mic.js              Dictate, writing into a chat composer instead of a box.
++Connection                  ux/Dictate/Connection.js     The row of steps: Mic → Level → Whisper → Transcript → Refine.
++VoiceStrip                  ux/Dictate/VoiceStrip.js     THE compact panel: Dictate + Connection + live guess, fixed size.   ← new
++Widget                      ux/Dictate/Widget.js         The chat-shaped panel: bubbles on top, a composer (box, mic, Send) below.
++ChatPanel / Composer        ext/Chat/                    The bubbles and the typed box that Widget (and the AI tab) are made of.
++DrawerTabs                  ext/drawer/tabs.js           The right-hand sidebar: tabs AI, Sessions, Dictation, Settings, Admin, Element.
++DrawerRail                  ext/drawer/rail.js           The phone's bottom bar (the ✦ button) that opens a sheet.
++ └ DrawerRailSheet*         ext/drawer/rail.js           The sheet: V1 → Sheet → Panel → Chat (each extends the one before).
++Refine (RefineDemo)         ext/Refine/RefineDemo.js     One page that USES a VoiceStrip and then refines the text.
++```
++
++## Who composes whom
++
++- **`Dictate` is the only engine.** Every mic on the site is a `Dictate` (or `ComposerMic`, its subclass). Nothing else records.
++- **`VoiceStrip` is the dictation panel** (compact, no chat). It owns a `Dictate`, a `Connection` and the guess line. Two templates: `full` shows the five-step row (Refine), `compact` shows one plain sentence (a small demo, the drawer's header).
++- **`Widget` is the chat panel**: bubbles plus a composer. It is for talking to an assistant, so it is not a `VoiceStrip`, and a `VoiceStrip` has no bubbles.
++- **The drawer and the phone sheet are containers, not widgets.** They hold a `Widget` (AI tab, sheet) or a `VoiceStrip` (a Dictation tab, later). A container decides where a panel sits and which page it is about; it never draws a mic itself.
++- **The orchestrator is the page** (`RefineDemo`, `DrawerTabs`, `DrawerRail`): it picks a panel, passes `$input`/`deliver`, and reacts to the callbacks. `VoiceStrip` and `Widget` only report.
++
++## What is a copy today, and what to do
++
++| Looks like a copy | It is really | Decision |
++|---|---|---|
++| Refine's mic | a `Dictate` (was hand-wrapped) | now a `VoiceStrip` — built |
++| The Dictate page's demo box | a bare `Dictate` | now a compact `VoiceStrip` — built |
++| The drawer's **Dictation** tab | the playground widget (`pg.widget()`), the heaviest of the lot | keep as the debug view; **next**: put a compact `VoiceStrip` above it as the tab's live-transcribe |
++| The drawer's **AI** tab and the phone sheet | `Widget` (chat) | already the same class; they stay `Widget` |
++| The small AI button | `DrawerRail`'s ✦ | keep; it should open the drawer or just start listening |
++
++The drawer should end up as a properties sidebar (page settings, session, files) that can hold a panel, not as a dictation widget itself. That is a larger move (a dozen callers in `rail.js`/`tabs/`); it is **not** done in this slice.
++
++## Built (slice 1, 2026-10-09)
++
++`VoiceStrip` (with `Connection` moved here from `ext/Refine`, `git mv`) is used by Refine (full template, tested headless at 1400 and 400, buttons do not move) and by the Dictate page's demo (compact). A mic error reads "The microphone could not start: <reason>" and is appended to the error log (`ext/ErrorLog`).
++
++## Not built, in order
++
++1. A compact `VoiceStrip` as the drawer Dictation tab's top, and the ✦ button's "just listen" mode.
++2. Every page installs `ErrorLog.watch` (today only Refine and VoiceStrip report), and an error is tagged with its page so the page's own log shows it. Phones are off-localhost, where the dev socket does not exist, so they need Servex's `/log` route as the transport; production (static) writes nothing and should send nothing.
++3. A status bar that is only the `VoiceStrip` `compact` sentence, replacing the several small status lines.
++
++Mobile: the socket question is answered in [`mobile-socket-2026-10-09.md`](mobile-socket-2026-10-09.md).
+diff --git a/public/framework/ux/Dictate/page.js b/public/framework/ux/Dictate/page.js
+index 7fb41b717..c187dba19 100644
+--- a/public/framework/ux/Dictate/page.js
++++ b/public/framework/ux/Dictate/page.js
+@@ -1,5 +1,6 @@
+ import { Doc, md, demo, div, span, textarea, h2, icon, a, small, h4 } from "/app.js";
+ import Dictate from "./Dictate.js";
++import VoiceStrip from "./VoiceStrip.js";
+ import chat, { new_session_button } from "./chat.js";
+ import { page_work_strip } from "/framework/core/Page/ai/work.js";
+ 
+@@ -13,6 +14,7 @@ const CONCEPTS = [
+ 	{ name: "The mic button", icon: "mic", href: "demo/", blurb: "press it, watch the state — idle → listening → transcribing" },
+ 	{ name: "Playground", icon: "science", href: "playground/", blurb: "raw whisper text, the fast assistant's corrections, and the live diff" },
+ 	{ name: "Variants", icon: "style", href: "variants/", blurb: "v1, Cards, Compact — same engine, three different looks" },
++	{ name: "Architecture", icon: "account_tree", href: "doc/voice-architecture/", blurb: "which class owns what: Dictate, VoiceStrip, Widget, the drawer and the phone sheet" },
+ 	{ name: "Decisions", icon: "menu_book", href: "doc/decisions/", blurb: "the install, the segment/resend mechanics, who starts whisper-server" },
+ ];
+ 
+@@ -43,7 +45,7 @@ const demo_box = () => {
+ 	let $ta, $out;
+ 
+ 	const $box = div.c("flex v gap", () => {
+-		new Dictate({ $input: () => $ta });
++		new VoiceStrip({ template: "compact", $input: () => $ta });   // the compact dictation panel; doc/voice-architecture.md
+ 		$ta = textarea.c("ux-dictate-demo-box").attr("rows", "3")
+ 			.attr("placeholder", "click 🎤 and talk — or type here")
+ 			.on("input", () => $out.text($ta.el.value || "(empty)"));
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 3aa0ad5e6..a9fe33676 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -6,6 +6,8 @@ microphone. Built 2026-09-19 to replace `ext/Ask/mic.js`'s button, whose failure
+ silent: the owner pressed 🎤, the browser's own recording light came on, and nothing
+ ever appeared — no error, no clue why.
+ 
++**Class architecture of the voice UI** (which class owns what, what is a copy of what): [`doc/voice-architecture.md`](doc/voice-architecture.md). **`VoiceStrip`** is the compact panel Refine and the demo below use; **mobile**: [`doc/mobile-socket-2026-10-09.md`](doc/mobile-socket-2026-10-09.md).
++
+ ## Use
+ 
+ ```js

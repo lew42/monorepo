@@ -1,0 +1,282 @@
+{
+ "url": "http://monorepo.localhost",
+ "widths": {
+  "400": {
+   "empty": 0.42,
+   "widest_text": 349,
+   "widest_text_sample": "Native ES modules, served exactly as wri",
+   "overflow_x": false,
+   "items": 57,
+   "narrow_share": 0.544,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 24,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 24
+      }
+     ]
+    },
+    "p": {
+     "total": 24,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 24
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "sidebar",
+     "y": 0,
+     "h": 51,
+     "share": 0.051,
+     "ink": 0.125,
+     "big_empty": false
+    },
+    {
+     "cls": "pages",
+     "y": 51,
+     "h": 898,
+     "share": 0.898,
+     "ink": 0.576,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "h1",
+     "cls": "page-title",
+     "text": "A web framework with no build ",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.597,
+   "widest_text": 386,
+   "widest_text_sample": "Four pages and their navigation, running",
+   "overflow_x": false,
+   "items": 66,
+   "narrow_share": 0.712,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 58,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 58
+      }
+     ]
+    },
+    "p": {
+     "total": 58,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 58
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "sidebar",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.403,
+     "big_empty": false
+    },
+    {
+     "cls": "pages",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.403,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h1",
+     "cls": "page-title",
+     "text": "A web framework with no build ",
+     "lines": 4
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.524,
+   "widest_text": 419,
+   "widest_text_sample": "A three.js flight demo — drag to fly, sp",
+   "overflow_x": false,
+   "items": 66,
+   "narrow_share": 0.985,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 80,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 80
+      }
+     ]
+    },
+    "p": {
+     "total": 80,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 80
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "sidebar",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.476,
+     "big_empty": false
+    },
+    {
+     "cls": "pages",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.476,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h1",
+     "cls": "page-title",
+     "text": "A web framework with no build ",
+     "lines": 3
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.639,
+   "widest_text": 984,
+   "widest_text_sample": "Gaussian splats rebuild a scene from blo",
+   "overflow_x": false,
+   "items": 66,
+   "narrow_share": 1,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "sidebar",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.361,
+     "big_empty": false
+    },
+    {
+     "cls": "pages",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.361,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "h1",
+     "cls": "page-title",
+     "text": "A web framework with no build ",
+     "lines": 3
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

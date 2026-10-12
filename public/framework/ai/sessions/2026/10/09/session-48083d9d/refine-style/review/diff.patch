@@ -1,0 +1,225 @@
+diff --git a/Server/refine.mjs b/Server/refine.mjs
+index 376a37e41..8e4b97a54 100644
+--- a/Server/refine.mjs
++++ b/Server/refine.mjs
+@@ -51,6 +51,7 @@ import path from "node:path";
+ import { spawnSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ import { askOnce } from "./ask-each.mjs";
++import RefineStyle from "../public/framework/ext/Refine/RefineStyle.js";
+ 
+ const MODELS = {
+ 	haiku: "claude-haiku-5-5",
+@@ -347,6 +348,9 @@ function structuredPromptDefault(sentences) {
+ `
+ 		+ `  only numbers that appear below.
+ 
++`
++		+ `${RefineStyle.for("outline")}
++
+ `
+ 		+ `Cleaned transcript:
+ """
+@@ -473,6 +477,7 @@ function briefPromptDefault(structuredMd) {
+ 		+ `- If the outline hedges ("maybe", "I think", "I guess"), phrase the ask as "the owner suggests ...",\n`
+ 		+ `  never as a flat instruction. A suggestion must never read like a rule.\n`
+ 		+ `- Number the asks 1, 2, 3, ... — one ask per idea, don't merge unrelated ideas into one ask.\n\n`
++		+ `${RefineStyle.for("asks")}\n\n`
+ 		+ `Outline:\n"""\n${structuredMd}\n"""\n\n`
+ 		+ `Output ONLY the numbered list, nothing else.`;
+ }
+@@ -969,4 +974,4 @@ if (isMain) main().catch(e => { console.error(String(e?.stack || e)); process.ex
+ // Exported for Server/refine/compare-structured.mjs (the before/after proof for the structured
+ // rung's rewrite, 2026-09-29) — nothing else in this repo imports this file, so this list stays
+ // exactly as small as that one script needs.
+-export { stepClean, draftStructured, structuredPromptDefault, modelIdFor, RUNGS, repoRoot };
++export { stepClean, draftStructured, structuredPromptDefault, briefPromptDefault, modelIdFor, RUNGS, repoRoot };
+diff --git a/Servex/ext/refine/Annotator.js b/Servex/ext/refine/Annotator.js
+index a529f5b79..0755acf34 100644
+--- a/Servex/ext/refine/Annotator.js
++++ b/Servex/ext/refine/Annotator.js
+@@ -1,4 +1,5 @@
+ import RefineCall from "./RefineCall.js";
++import RefineStyle from "../../../public/framework/ext/Refine/RefineStyle.js";
+ 
+ /**
+  * class Annotator — the Haiku pass over a CLEAN prompt (the owner's design, `ext/Refine/doc/vision-2026-10-08.md`
+@@ -21,7 +22,9 @@ export default class Annotator {
+ - "alternates": 0 to 2 shorter or simpler wordings with the same meaning (an empty list if the sentence is already short and plain),
+ - "names": 0 to 2 short names (one word best, two words great) for a core idea the sentence introduces, only if it deserves a name,
+ - "tags": 0 to 3 repo paths or class names the sentence is about, in the form "core/Page" or "ext/Refine" (only ones actually mentioned or clearly meant).
+-Never change the meaning. Never invent. Reply with ONLY compact JSON: {"notes":[{"i":0,"alternates":[],"names":[],"tags":[]}, ...]} with one entry per sentence.`;
++Never change the meaning. Never invent.
++${RefineStyle.for("notes")}
++Reply with ONLY compact JSON: {"notes":[{"i":0,"alternates":[],"names":[],"tags":[]}, ...]} with one entry per sentence.`;
+ 
+ 	/** Split sentences into batches no longer than BATCH_CHARS (keeps each call small and cheap). */
+ 	static batches(sentences){
+diff --git a/public/framework/ai/2026-10-12/refine-style/requirements.md b/public/framework/ai/2026-10-12/refine-style/requirements.md
+new file mode 100644
+index 000000000..3b70e16fa
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/refine-style/requirements.md
+@@ -0,0 +1,8 @@
++# Refine: the response style built into the refine prompts
++
++The owner's words (2026-10-12, relayed): the response style they want must be built into the prompt-refinement prompts themselves (the Haiku annotator and the refine prompts in ext/Refine and Server/refine.mjs). A refined prompt is an OVERVIEW of what they said in their own key words (never the whole rant), each point with its answer or action baked in; ordered by dependency and ease (clarifications and quick items first, else their order); the same names reused so things become familiar, with context always named; big headings (H2/H3, each with an icon, never H4 or smaller) and short titled lists, ✅/⬜ status bullets; cards cite the clean-sentence indexes they came from. Put these as a shared prompt fragment (one file, one source) used by every refine prompt, add one fixture test showing a rant in and a refined overview out, and note it in ext/Refine/doc.
++
++1. One shared fragment file: `ext/Refine/RefineStyle.js`.
++2. Used by the outline, asks and Haiku notes prompts.
++3. One fixture test: `ext/Refine/test/refine-style.mjs`.
++4. Noted in `ext/Refine/doc/refine-style-2026-10-12.md`, linked from the readme.
+diff --git a/public/framework/ai/2026-10-12/refine-style/task.jsonl b/public/framework/ai/2026-10-12/refine-style/task.jsonl
+new file mode 100644
+index 000000000..4bafce7d0
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/refine-style/task.jsonl
+@@ -0,0 +1 @@
++{"assign":{"session_id":"48083d9d-2275-4dcb-882a-a37e9fec4e76","tab":"task-mastermind-refine-dictate-ui","group":"refine","request":"Refine: build the owner's response style into every refine prompt as one shared fragment (RefineStyle), with a fixture test and a doc note.","model":"claude-sonnet-5-5","now":"review","steps":["RefineStyle fragment","wire outline, asks, notes","fixture test","doc and readme link"]}}
+diff --git a/public/framework/ext/Refine/RefineStyle.js b/public/framework/ext/Refine/RefineStyle.js
+new file mode 100644
+index 000000000..62c5aaa5c
+--- /dev/null
++++ b/public/framework/ext/Refine/RefineStyle.js
+@@ -0,0 +1,51 @@
++/**
++ * class RefineStyle — the ONE source for how a refined prompt must read (the owner, 2026-10-12, CLAUDE.md
++ * "How to respond"). Every refine prompt that writes something the owner reads pastes `RefineStyle.RULES`
++ * in, so a change here changes them all: the outline (`Server/refine.mjs structuredPromptDefault`), the
++ * asks (`briefPromptDefault`) and the Haiku notes (`Servex/ext/refine/Annotator`).
++ *
++ *   RefineStyle.RULES                 // the rules as text, to paste into a prompt
++ *   RefineStyle.for(kind)             // RULES plus the one line that fits `outline` | `asks` | `notes`
++ *   RefineStyle.check(md)             // the rules that code can test on an outline: { ok, problems: [] }
++ *
++ * DOM-free and import-free, so Node (Servex, Server) and the browser both load it.
++ * Detail: `doc/refine-style-2026-10-12.md`. The clean step is NOT styled: it must change as little as possible.
++ */
++export default class RefineStyle {
++
++	static RULES = `STYLE of anything the owner will read (the owner's rules):
++- It is an OVERVIEW of what was said, in the owner's own key words. Never the whole rant, never a retelling.
++- Each point has its answer or action baked in: say what is done, what to do, or what is still open. Do not invent an answer the transcript or the facts do not give; mark such a point open instead.
++- Order by dependency and ease: clarifications and quick items first, then what depends on them. If neither applies, keep the owner's order.
++- Reuse the same names for the same things every time, so they become familiar, and always name the context (the page, class, module or session) a point belongs to.
++- Headings are big: "#" for the one subject, "##" for each part, "###" only when a part truly needs a split. Never "####" or smaller. Every heading starts with one fitting emoji icon.
++- Under a heading: short titled lists. A status bullet starts with ✅ (done) or ⬜ (not done) when the status is known; otherwise a plain "-" bullet. Few emoji, never decoration.
++- Every card cites the clean-sentence numbers it came from, like [S3, S7], each number individually.`;
++
++	/** The last line that tells each prompt what its output is. */
++	static KIND = {
++		outline: "Apply this to the headings and bullets of the outline.",
++		asks: "Apply this to the numbered asks: one per idea, each with its action baked in, easiest and prerequisite ones first.",
++		notes: "Apply this to names and alternates: prefer a name already in use over a new one.",
++	};
++
++	static for(kind){
++		return RefineStyle.RULES + "\n" + (RefineStyle.KIND[kind] ?? "");
++	}
++
++	/** What code can check on an outline: no "####", every heading opens with an icon, only one "#". */
++	static check(md){
++		const problems = [];
++		const icon = /^\p{Extended_Pictographic}/u;
++		let h1 = 0;
++		for (const line of String(md).split(/\r?\n/)){
++			const h = /^(#{1,})\s+(.*)$/.exec(line);
++			if (!h) continue;
++			if (h[1].length > 3) problems.push(`heading deeper than ###: ${line.trim()}`);
++			if (h[1] === "#") h1++;
++			if (!icon.test(h[2].trim())) problems.push(`heading without an icon: ${line.trim()}`);
++		}
++		if (h1 > 1) problems.push(`${h1} "#" headings, expected one`);
++		return { ok: !problems.length, problems };
++	}
++}
+diff --git a/public/framework/ext/Refine/doc/refine-style-2026-10-12.md b/public/framework/ext/Refine/doc/refine-style-2026-10-12.md
+new file mode 100644
+index 000000000..1ab3bba43
+--- /dev/null
++++ b/public/framework/ext/Refine/doc/refine-style-2026-10-12.md
+@@ -0,0 +1,20 @@
++# Refine style: one source for how a refined prompt reads
++
++The owner's rule (2026-10-12, `CLAUDE.md` "How to respond"): a refined prompt is an overview of what was said, not the rant. The rules live once, in [`RefineStyle`](/framework/ext/Refine/RefineStyle.js), and every prompt that writes something the owner reads pastes them in.
++
++## Who uses it
++- `Server/refine.mjs` `structuredPromptDefault` (the outline cards, which `structure()` and `/api/refine` reuse) and `briefPromptDefault` (the numbered asks): `RefineStyle.for("outline" | "asks")`.
++- `Servex/ext/refine/Annotator.js` (the Haiku notes): `RefineStyle.for("notes")`.
++- Not the clean step: it must change as little as possible, so it stays unstyled.
++
++## The rules (the text is `RefineStyle.RULES`)
++- Overview in the owner's key words, answer or action baked into each point.
++- Ordered by dependency and ease; clarifications and quick items first.
++- Same names every time, context always named.
++- `#` / `##` / `###` headings only, each with an icon; ✅ / ⬜ status bullets; cards cite `[S#]`.
++
++## What code checks
++`RefineStyle.check(md)` flags a heading deeper than `###`, a heading with no icon, and more than one `#`. The rest (ordering, "overview not retelling") is judgment, left to the model.
++
++## Proof
++`test/refine-style.mjs`: no model call. A five-sentence rant goes through `structure()` with a stub model that answers with the overview; the test checks the prompt carries the rules, every sentence is cited once, the overview passes `check`, `Outline.parse` still reads it, and a rant-shaped outline is flagged. Run it with `node test/refine-style.mjs` where `Servex/node_modules` exists. Not yet measured with a real model: whether Sonnet follows the new rules; the first real run is the check.
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index 7e8dbf177..ce9d56609 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -57,6 +57,7 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`)
+ - [ErrorLog](/framework/ext/ErrorLog/) — UI errors become a log line a session can follow; design in `ErrorLog/doc/design.md`
+ - [Prompt](/framework/ext/Refine/md/doc/prompt/) — the class: what it holds, how scores are computed, what is not built yet (`doc/prompt.md`)
+ - [Session log](/framework/ext/Refine/md/doc/session-log-2026-10-10/) — each prompt kept as raw, clean, refined and notes in the session's `prompts.jsonl` (`doc/session-log-2026-10-10.md`)
++- [Refine style](/framework/ext/Refine/md/doc/refine-style-2026-10-12/) — the one shared rule fragment (`RefineStyle.js`) every refine prompt uses, so refined prompts read as short, iconned, ordered overviews (`doc/refine-style-2026-10-12.md`)
+ - [Echo](/framework/servex/doc/echo.md) — the running pipeline that uses this engine on every prompt you type in VS Code: triggers, output, cost, and the gaps against the vision (`Servex/doc/echo.md`)
+ - [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
+ - `doc/vision-2026-10-08.md` — the owner's intended pipeline (raw → clean → refined cards, every sentence accounted, context cards); check the built state against it
+diff --git a/public/framework/ext/Refine/test/refine-style.mjs b/public/framework/ext/Refine/test/refine-style.mjs
+new file mode 100644
+index 000000000..e82023943
+--- /dev/null
++++ b/public/framework/ext/Refine/test/refine-style.mjs
+@@ -0,0 +1,46 @@
++/* `node test/refine-style.mjs` — no model call. A rant goes in, a refined overview comes out of a stub model.
++ *   1. every refine prompt (outline, asks) carries the shared `RefineStyle.RULES`, the Haiku notes prompt too (when its SDK loads);
++ *   2. the stub's overview obeys the rules code can check (`RefineStyle.check`) and `Outline.parse` still reads it, with cites;
++ *   3. a rant-shaped outline (####, no icons, two "#") is flagged. */
++import structure from "../structure.js";
++import RefineStyle from "../RefineStyle.js";
++import Outline from "../Outline.js";
++
++const rant = [
++	"Okay so couple of things.", "The refine page should say what it is, like, up top.",
++	"And the replies need to be short lists with check marks.", "Oh and the mic button is broken on my phone.",
++	"Maybe we also want tags, I guess.",
++];
++const sentences = rant.map((text, i) => ({ n: i + 1, text }));
++
++const overview = `# 🧭 Refine page
++## ❓ Quick clarification
++- ⬜ Tags: the owner suggests them; open, no decision yet [S5]
++## 🔧 Quick fix
++- ⬜ Mic button broken on phone: check the phone layout first [S4]
++## 🧱 Page and replies
++- ✅ Say what the page is, up top: already the first line of the readme [S1, S2]
++- ⬜ Replies as short lists with check marks: use \`RefineStyle\` [S3]
++`;
++
++let fail = 0, seen = "";
++const check = (name, ok, extra) => { console.log(ok ? "PASS" : "FAIL", name, extra ? JSON.stringify(extra) : ""); if (!ok) fail++; };
++
++const r = await structure(sentences, { call: async p => (seen = p, { answer: overview, cost_usd: 0 }), model: "stub" });
++check("outline prompt carries the shared rules", seen.includes(RefineStyle.RULES) && /OVERVIEW/.test(seen));
++check("every sentence placed once", r.ok, r);
++check("overview obeys the style", RefineStyle.check(r.md).ok, RefineStyle.check(r.md));
++const o = Outline.parse(r.md);
++check("Outline.parse reads it with cites", o.sections.length === 3 && o.sections[2].cards[0].cites.join() === "1,2", o.sections.map(s => s.title));
++
++const refine = await import("../../../../../Server/refine.mjs");
++check("asks prompt carries the shared rules", refine.briefPromptDefault?.("# x").includes(RefineStyle.RULES) ?? "not exported");
++
++const rantShaped = "# Thoughts\n# More\n#### deep\n- x [S1]";
++check("a rant-shaped outline is flagged", RefineStyle.check(rantShaped).problems.length === 5, RefineStyle.check(rantShaped).problems);
++
++try {
++	const A = (await import("../../../../../Servex/ext/refine/Annotator.js")).default;
++	check("notes prompt carries the shared rules", A.SYSTEM.includes(RefineStyle.RULES));
++} catch (e) { console.log("SKIP notes prompt (Servex SDK not installed here):", String(e.code ?? e).slice(0, 60)); }
++process.exit(fail ? 1 : 0);

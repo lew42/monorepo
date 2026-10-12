@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/tool/",
+ "widths": {
+  "1280": {
+   "empty": 0.646,
+   "widest_text": 494,
+   "widest_text_sample": "Every line below was written by the page",
+   "overflow_x": false,
+   "items": 64,
+   "narrow_share": 0.188
+  },
+  "1920": {
+   "empty": 0.74,
+   "widest_text": 534,
+   "widest_text_sample": "{\"notes\": {\"content\": {\"add\": {\"title\": ",
+   "overflow_x": false,
+   "items": 64,
+   "narrow_share": 0.922
+  },
+  "2560": {
+   "empty": 0.771,
+   "widest_text": 604,
+   "widest_text_sample": "{\"tab\": {\"name\": \"now\", \"title\": \"Now\", ",
+   "overflow_x": false,
+   "items": 64,
+   "narrow_share": 0.922
+  },
+  "3440": {
+   "empty": 0.828,
+   "widest_text": 604,
+   "widest_text_sample": "{\"tab\": {\"name\": \"now\", \"title\": \"Now\", ",
+   "overflow_x": false,
+   "items": 64,
+   "narrow_share": 0.922
+  }
+ },
+ "errors": [
+  "2560: goto page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://monorepo.localhost/fram",
+  "3440: goto page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://monorepo.localhost/fram",
+  "1920: goto page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://monorepo.localhost/fram",
+  "1280: goto page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://monorepo.localhost/fram"
+ ]
+}

@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/",
+ "widths": {
+  "1280": {
+   "empty": 0.533,
+   "widest_text": 572,
+   "widest_text_sample": ". Words appear GREYED while whisper is s",
+   "overflow_x": false,
+   "items": 112,
+   "narrow_share": 0.384
+  },
+  "1920": {
+   "empty": 0.705,
+   "widest_text": 609,
+   "widest_text_sample": ". Words appear GREYED while whisper is s",
+   "overflow_x": false,
+   "items": 112,
+   "narrow_share": 0.911
+  },
+  "2560": {
+   "empty": 0.718,
+   "widest_text": 685,
+   "widest_text_sample": ". Words appear GREYED while whisper is s",
+   "overflow_x": false,
+   "items": 112,
+   "narrow_share": 0.92
+  },
+  "3440": {
+   "empty": 0.811,
+   "widest_text": 685,
+   "widest_text_sample": ". Words appear GREYED while whisper is s",
+   "overflow_x": false,
+   "items": 112,
+   "narrow_share": 0.938
+  }
+ },
+ "errors": []
+}

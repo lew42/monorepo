@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-10-09/production-stack/",
+ "widths": {
+  "1280": {
+   "empty": 0.529,
+   "widest_text": 844,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 59,
+   "narrow_share": 0.559
+  },
+  "1920": {
+   "empty": 0.675,
+   "widest_text": 898,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 59,
+   "narrow_share": 0.966
+  },
+  "2560": {
+   "empty": 0.707,
+   "widest_text": 1011,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 59,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.775,
+   "widest_text": 1011,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 59,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

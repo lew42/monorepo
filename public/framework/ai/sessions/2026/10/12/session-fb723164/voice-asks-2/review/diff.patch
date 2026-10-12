@@ -1,0 +1,903 @@
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 75c6b75f4..56836c6e4 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -47,6 +47,7 @@ import tidy from "./agents/tidy.js";
+ import { run_clean, model_choices, list_examples, save_example } from "./ext/clean-test/run.js";
+ import { run_refine } from "./ext/refine/run.js";
+ import VoicePage from "./ext/refine/VoicePage.js";
++import CardAsk from "./ext/refine/CardAsk.js";
+ import hitl from "./agents/hitl.js";
+ import Inbox from "./agents/inbox.js";
+ import { docs_list, docs_read_file } from "./pages.js";
+@@ -686,6 +687,14 @@ export default class Servex extends Events {
+             catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
+         });
+ 
++        /* ONE CARD OF A REFINED PROMPT -> a board card + an asks.jsonl line (Servex/ext/refine/CardAsk.js). Same card twice: the first answer again. */
++        router.options("/api/voice/card", cors, (req, res) => res.status(204).end());
++
++        router.post("/api/voice/card", cors, express.json({ limit: "64kb" }), async (req, res) => {
++            try { res.json(await new CardAsk({ cards: this.cards, asks: this.asks }).make(req.body ?? {})); }
++            catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
++        });
++
+         /* The same voice lines as a read-only stream (SSE), for a phone: the dev socket is localhost-only, so a LAN page cannot tail page.jsonl and follows this instead. */
+         router.get("/api/voice/stream", cors, (req, res) => {
+             const session = String(req.query.session ?? "");
+@@ -701,9 +710,22 @@ export default class Servex extends Events {
+         });
+ 
+         /* Whisper in one plain line for a page (ux/Dictate): is it up, and did Servex have to restart it? */
+-        router.get("/api/whisper", cors, (req, res) => {
++        const whisper_line = () => {
+             const w = this.processes.get("whisper")?.toJSON?.() ?? null;
+-            res.json({ ok: true, status: w?.status ?? "unknown", port: w?.port ?? null, crashes: w?.crashes ?? 0, last_crash: w?.last_crash ?? null, said: w?.said ?? "" });
++            return { ok: true, status: w?.status ?? "unknown", port: w?.port ?? null, crashes: w?.crashes ?? 0, last_crash: w?.last_crash ?? null, said: w?.said ?? "" };
++        };
++        router.get("/api/whisper", cors, (req, res) => res.json(whisper_line()));
++
++        /* The same answer pushed (SSE) the moment Whisper's status changes (stopped, restarting, online), so a page shows a restart as it happens and never polls (Process.js emits "status"). */
++        router.get("/api/whisper/stream", cors, (req, res) => {
++            res.set({ "content-type": "text/event-stream", "cache-control": "no-cache, no-transform", connection: "keep-alive", "x-accel-buffering": "no" });
++            res.flushHeaders?.();
++            const send = () => res.write("data: " + JSON.stringify(whisper_line()) + "\n\n");
++            const proc = this.processes.get("whisper");
++            send();
++            proc?.on?.("status", send);
++            const beat = setInterval(() => res.write(": ok\n\n"), 20000);
++            req.on("close", () => { clearInterval(beat); proc?.off?.("status", send); });
+         });
+ 
+         router.get("/api/logs", (req, res) => res.json(this.log.names()));
+diff --git a/Servex/agents/Echo.js b/Servex/agents/Echo.js
+index bd7bb830b..d8ea85fdb 100644
+--- a/Servex/agents/Echo.js
++++ b/Servex/agents/Echo.js
+@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
+ import { clean } from "../../public/framework/ext/Refine/engine.js";
+ import { structure } from "../../public/framework/ext/Refine/structure.js";
+ import { env_for } from "../ext/local/provider.js";
++import VoicePage from "../ext/refine/VoicePage.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const REPO = path.join(HERE, "../..");
+@@ -336,8 +337,23 @@ export default class Echo {
+ 			? (p, o) => base_call(p, { ...o, model: LOCAL_REFINE_MODEL, env: env_for("local") })
+ 				.catch(e => { this.servex.say?.(`echo: local model unavailable (${e.message || e}), falling back`); return base_call(p, o); })
+ 			: base_call;
+-		const { sentences, strikes, misheard, flags } = await clean(text, { call });
+-		const built = await structure(sentences, { call });
++		// The same five-stage view the Refine page fills (VoicePage -> the session page's VoiceFlow): one dictation system, one widget (Dictate/doc/asks.md, vscode-voice-path).
++		// Best-effort: a page-write failure never stops the echo. The prompt id matches the Refine button's ("t" + the line's time), so pressing it later refreshes these stages.
++		const voice = VoicePage.get(session_id, "t" + (Date.parse(at) || Date.now()).toString(36), "echo");
++		const show = work => work(voice).catch(e => this.servex.say?.(`echo: voice page write failed: ${e.message || e}`));
++		await show(v => v.raw(text, { final: true, source: "vscode" }));
++		const t_clean = Date.now();
++		let cleaned, built;
++		try { cleaned = await clean(text, { call }); }
++		catch (e){ await show(v => v.failed(e?.message ?? e)); throw e; }   // the page says it stopped instead of staying on "Cleaning"
++		const { sentences, strikes, misheard, flags } = cleaned;
++		await show(v => v.clean(sentences.map(x => x.text), { ms: Date.now() - t_clean }));
++		const t_structure = Date.now();
++		try { built = await structure(sentences, { call }); }
++		catch (e){ await show(v => v.failed(e?.message ?? e)); throw e; }
++		await show(v => v.structured(built.md ?? "", { ms: Date.now() - t_structure }));
++		await show(v => v.notes([], { ms: 0 }));
++		voice.done();
+ 		const sections = this.sections_with_ids(this.parse_sections(built.md));
+ 		const cited = [...new Set(sections.flatMap(s => s.items.flatMap(i => i.cites)))].sort((a, b) => a - b);
+ 		// `confidence`, per sentence -> section (day-cards, 2026-10-04): structure.js's own
+diff --git a/Servex/asks/Asks.js b/Servex/asks/Asks.js
+index c2889d6f0..c007eae6b 100644
+--- a/Servex/asks/Asks.js
++++ b/Servex/asks/Asks.js
+@@ -72,6 +72,15 @@ export default class Asks {
+ 		return { ok: true, id, status };
+ 	}
+ 
++	/* A NEW ask line (`{"ask":{id,at,title,words,owner,status,by}}`), once: an id the ledger already has is refused, so a second press adds nothing. */
++	async add({ id, title, words, owner = null, status = "queued", by, card = null } = {}){
++		if (!id || !title) return { ok: false, why: "an ask needs an id and a title" };
++		if (!STATUSES.includes(status)) return { ok: false, why: `unknown status "${status}"` };
++		if ((await this.read())[id]) return { ok: false, why: `ask "${id}" already exists` };
++		await this.append_line({ ask: { id, at: stamp(), title, words, ...(card ? { card } : {}), owner, status, by } });
++		return { ok: true, id };
++	}
++
+ 	/* One writer, queued behind whatever this instance already has in flight —
+ 	 * same shape as Cards.js's and TaskLoop.js's own per-file queues. Checks
+ 	 * the file's last byte itself (no dependency on `.claude/hooks/append.mjs`,
+diff --git a/Servex/ext/refine/CardAsk.js b/Servex/ext/refine/CardAsk.js
+new file mode 100644
+index 000000000..1f8bf8749
+--- /dev/null
++++ b/Servex/ext/refine/CardAsk.js
+@@ -0,0 +1,47 @@
++/**
++ * class CardAsk — turns ONE card of a refined prompt into a board card and an `asks.jsonl` line
++ * (Dictate/doc/asks.md, prompt-to-board-cards). The owner's words stay on the board card; the ask line only points at them.
++ *
++ *   const r = await new CardAsk({ cards: servex.cards, asks: servex.asks }).make({ session, prompt, index, title, items, cites });
++ *   // -> { ok, id, card, card_url, fresh }   (a second call for the same card answers fresh: false and adds nothing)
++ *
++ * Status `queued`: nobody owes a turn yet (`Servex/asks/stalled.js`), so Servex never marks it stalled; the owner or a
++ * mastermind picks it up from the board card (its Approve / Improve buttons).
++ */
++export default class CardAsk {
++
++	constructor({ cards, asks } = {}){
++		if (!cards || !asks) throw new Error("CardAsk needs servex.cards and servex.asks");
++		this.cards = cards; this.asks = asks;
++	}
++
++	/** Same card, same id: a second press finds the first. */
++	static id({ session, prompt, index }){ return `voice-${String(session).slice(0, 8)}-${prompt}-c${index}`; }
++
++	/** Presses in flight, by card id: two at once (two tabs) share one run, so only one board card is made. */
++	static busy = new Map();
++
++	make(input = {}){
++		const id = CardAsk.id(input);
++		if (CardAsk.busy.has(id)) return CardAsk.busy.get(id);
++		const run = this.make_one(input).finally(() => CardAsk.busy.delete(id));
++		CardAsk.busy.set(id, run);
++		return run;
++	}
++
++	async make_one({ session, prompt, index, title, items = [], cites = [] } = {}){
++		if (!/^[0-9a-f-]{36}$/.test(session ?? "") || !/^[\w-]{4,60}$/.test(prompt ?? "") || !Number.isInteger(index) || index < 0) return { ok: false, why: "needs session (uuid), prompt (id) and the card's index" };
++		title = String(title ?? "").trim().slice(0, 120);
++		if (!title) return { ok: false, why: "the card has no title" };
++		const id = CardAsk.id({ session, prompt, index });
++		const known = (await this.asks.read())[id];
++		if (known) return { ok: true, id, fresh: false, card: known.card ?? null, card_url: known.card ? this.cards.url(known.card) : null };
++		const source = `/framework/ai/sessions/${session}/`;
++		const made = await this.cards.create({ parent: "today", title, type: "request", by: "refine", tags: ["ask", "voice"] });
++		if (!made.ok) return made;
++		const text = [`From a spoken prompt (${source}, prompt ${prompt}, card ${index + 1}, sentences ${cites.map(n => "S" + n).join(" ") || "none cited"}):`, ...items.slice(0, 20).map(t => "- " + String(t).slice(0, 300))].join("\n");
++		await this.cards.append(made.id, { chat: { level: "summary", text, at: new Date().toISOString(), from: { kind: "system", id: "refine" } } });
++		await this.asks.add({ id, title, words: source, card: made.id, owner: null, status: "queued", by: "refine" });
++		return { ok: true, id, fresh: true, card: made.id, card_url: made.url };
++	}
++}
+diff --git a/Servex/ext/refine/LiveClean.js b/Servex/ext/refine/LiveClean.js
+new file mode 100644
+index 000000000..82fd87920
+--- /dev/null
++++ b/Servex/ext/refine/LiveClean.js
+@@ -0,0 +1,41 @@
++import { quick_clean, clean } from "../../../public/framework/ext/Refine/engine.js";
++
++/**
++ * class LiveClean — the opt-in per-sentence model clean (`run_refine({ clean_live: true })`).
++ * The mechanical split (quick_clean) gives the sentences at once; each one then gets its OWN small
++ * Haiku `clean()` call, all at the same time, and lands on the page the moment it returns, so the
++ * Clean stage fills in sentence by sentence instead of all at once after ~3 s.
++ * It returns the same shape `clean()` returns, plus `live`: the cost and time of each sentence.
++ *
++ *   const out = await LiveClean.run(text, { call, model, on_sentence: (sentences, done, total) => {} });
++ *   out.sentences; out.text; out.live.cost_usd; out.live.rows   // [{ text, cost_usd, ms }]
++ *
++ * Why opt-in: N small calls cost more than one call for the whole prompt (doc/asks.md, per-sentence-model-clean).
++ * `cost_of` reads the cost from the run `call` reports, so the number shown is measured, never guessed.
++ */
++export default class LiveClean {
++
++	static async run(text, { call, model = "claude-haiku-5-5", on_sentence, cost_of = r => r?.cost_usd ?? 0 } = {}){
++		const draft = quick_clean(text).map(s => s.text);
++		if (!draft.length) return { text: "", sentences: [], strikes: [], misheard: [], flags: [], live: { cost_usd: 0, rows: [] } };
++		const rows = draft.map(t => ({ text: t, cost_usd: 0, ms: 0, sentences: [{ text: t }], flags: [] }));
++		let landed = 0;
++		const push = () => on_sentence?.(rows.flatMap(r => r.sentences.map(s => s.text)), landed, rows.length);
++		await Promise.all(draft.map(async (t, i) => {
++			const t0 = Date.now();
++			const wrapped = async (p, o) => { const r = await call(p, o); rows[i].cost_usd += cost_of(r); return r; };
++			try {
++				const c = await clean(t, { call: wrapped, model, prev: draft.slice(Math.max(0, i - 1), i).join(" ") });
++				if (c.sentences.length) rows[i].sentences = c.sentences;
++				rows[i].flags = c.flags;
++			} catch { /* a failed sentence keeps its mechanical draft */ }
++			rows[i].ms = Date.now() - t0; landed++;
++			push();
++		}));
++		const sentences = rows.flatMap(r => r.sentences).map((s, i) => ({ ...s, n: i + 1 }));
++		return {
++			text: sentences.map(s => s.text).join(" "), sentences, strikes: [], misheard: [], flags: rows.flatMap(r => r.flags),
++			live: { cost_usd: +rows.reduce((a, r) => a + r.cost_usd, 0).toFixed(5), rows: rows.map(r => ({ text: r.text, cost_usd: +r.cost_usd.toFixed(5), ms: r.ms })) },
++		};
++	}
++}
+diff --git a/Servex/ext/refine/VoicePage.js b/Servex/ext/refine/VoicePage.js
+index acfbd9e03..61e5740e9 100644
+--- a/Servex/ext/refine/VoicePage.js
++++ b/Servex/ext/refine/VoicePage.js
+@@ -38,6 +38,7 @@ export default class VoicePage {
+ 		this.created = false;
+ 		this.queue = Promise.resolve();
+ 		this.ms = {};
++		this.cost = {};
+ 		this.sentences = [];
+ 		this.lines = [];
+ 		this.parsed = null;
+@@ -91,16 +92,19 @@ export default class VoicePage {
+ 		return this.write({ text: text.slice(0, 400), raw: text, raw_final: final, status: final ? "Cleaning" : "Hearing you", ...(source ? { source } : {}), ...(sentences ? { clean: sentences, clean_final: false } : {}) });
+ 	}
+ 
+-	clean(sentences, { ms } = {}){
+-		this.clean_final = true; this.sentences = sentences; this.ms.clean = ms;
+-		return this.write({ clean: sentences, clean_final: true, ms: { ...this.ms }, status: "Structuring" });
++	/** `final: false` is a live update (some sentences cleaned, the rest still the draft); `cost` is dollars the model spent on this stage, shown beside its time. */
++	clean(sentences, { ms, cost, final = true } = {}){
++		this.sentences = sentences;
++		if (!final) return this.write({ clean: sentences, clean_final: false, ...(cost != null ? { cost: { ...this.cost, clean: cost } } : {}) });
++		this.clean_final = true; this.ms.clean = ms; if (cost != null) this.cost.clean = cost;
++		return this.write({ clean: sentences, clean_final: true, ms: { ...this.ms }, cost: { ...this.cost }, status: "Structuring" });
+ 	}
+ 
+-	structured(md, { ms } = {}){
+-		this.parsed = Outline.parse(md); this.ms.structure = ms;
++	structured(md, { ms, cost } = {}){
++		this.parsed = Outline.parse(md); this.ms.structure = ms; if (cost != null) this.cost.structure = cost;
+ 		const refined = Compose.brief(this.parsed);
+ 		this.ms.refined = 0;
+-		return this.write({ structure: md, subject: this.parsed.subject, refined, cards: Compose.cards(this.parsed), ms: { ...this.ms }, status: "Checking clarity" });
++		return this.write({ structure: md, subject: this.parsed.subject, refined, cards: Compose.cards(this.parsed), ms: { ...this.ms }, cost: { ...this.cost }, status: "Checking clarity" });
+ 	}
+ 
+ 	/** The Haiku pass landed: cards get their clarity flags and tags. */
+diff --git a/Servex/ext/refine/run.js b/Servex/ext/refine/run.js
+index 2029573c7..b2dbf392a 100644
+--- a/Servex/ext/refine/run.js
++++ b/Servex/ext/refine/run.js
+@@ -14,6 +14,7 @@ import Annotator from "./Annotator.js";
+ import Outline from "../../../public/framework/ext/Refine/Outline.js";
+ import TagRouter from "./TagRouter.js";
+ import VoicePage from "./VoicePage.js";
++import LiveClean from "./LiveClean.js";
+ import PromptLog from "../../../public/framework/ai/AISession/PromptLog.js";
+ 
+ const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models that do the job: doc/refine-v3-2026-10-09.md
+@@ -22,7 +23,7 @@ const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models tha
+  * (ai/AISession/PromptLog.js): raw first and untouched, then the clean sentences set as final, then
+  * the refined cards citing sentence indexes, then the Haiku notes (clarity, alternates, names, tags).
+  * Logging never fails the refine: a refusal comes back as `log_error`. */
+-export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5", session = "", prompt = "", source = "typed", inbox = null } = {}){
++export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5", session = "", prompt = "", source = "typed", inbox = null, clean_live = false } = {}){
+ 	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
+ 	if (text.length > 20000) return { ok: false, why: "text is over 20000 characters" };
+ 	let voice = null;   // outside the try so the catch can mark a generated prompt id as failed too
+@@ -40,14 +41,18 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
+ 		await log({ stage: "raw", text, source });
+ 		const [result, runs] = await RefineCall.collect(async () => {
+ 			const call = stage => (p, o) => RefineCall.run(p, { ...o, stage });
++			const spent = stage => +(RefineCall.sink ?? []).filter(r => r.stage === stage).reduce((a, r) => a + r.cost_usd, 0).toFixed(5);   // measured, from the calls so far
+ 			const t_clean = Date.now();
+-			const c = await clean(text, { call: call("clean"), model });
++			// clean_live (opt-in): one small Haiku call per sentence, each landing on the page as it returns; costs more than one call (LiveClean.js).
++			const c = clean_live
++				? await LiveClean.run(text, { call: call("clean"), model: clarity_model, on_sentence: (sentences, done, total) => page(v => v.clean(sentences, { final: false, cost: spent("clean") })) })
++				: await clean(text, { call: call("clean"), model });
+ 			stages.clean_ms = Date.now() - t_clean;
+ 			await log({ stage: "clean", sentences: c.sentences.map(x => x.text), final: true });
+-			await page(v => v.clean(c.sentences.map(x => x.text), { ms: stages.clean_ms }));
++			await page(v => v.clean(c.sentences.map(x => x.text), { ms: stages.clean_ms, cost: spent("clean") }));
+ 			const t_next = Date.now();
+ 			const [s, clar, notes] = await Promise.all([
+-				structure(c.sentences, { call: call("structure"), model }).then(async r => (stages.structure_ms = Date.now() - t_next, await page(v => v.structured(r?.md ?? "", { ms: stages.structure_ms })), r)),
++				structure(c.sentences, { call: call("structure"), model }).then(async r => (stages.structure_ms = Date.now() - t_next, await page(v => v.structured(r?.md ?? "", { ms: stages.structure_ms, cost: spent("structure") })), r)),
+ 				ClarityScorer.score(c.sentences, { model: clarity_model }).then(r => (stages.clarity_ms = Date.now() - t_next, r)),
+ 				id ? Annotator.annotate(c.sentences.map(x => x.text)).then(r => (stages.notes_ms = Date.now() - t_next, r)) : [],
+ 			]);
+@@ -67,7 +72,7 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
+ 			return { c, s, clar, notes };
+ 		});
+ 		return {
+-			ok: true, ms: Date.now() - t0, stages, ...(id ? { prompt: id, session, log_errors, tag_notes } : {}), clean: result.c, structure: result.s, clarity: result.clar, ...(id ? { notes: result.notes } : {}),
++			ok: true, ms: Date.now() - t0, stages, ...(id ? { prompt: id, session, log_errors, tag_notes } : {}), clean: result.c, ...(result.c.live ? { clean_live: result.c.live } : {}), structure: result.s, clarity: result.clar, ...(id ? { notes: result.notes } : {}),
+ 			runs: runs.map(r => ({ stage: r.stage, model: r.model, session_id: r.session_id, cost_usd: r.cost_usd, duration_ms: r.duration_ms, tokens: r.tokens })),
+ 		};
+ 	} catch (e){
+diff --git a/public/framework/ai/2026-10-12/voice-asks-2/STATE.md b/public/framework/ai/2026-10-12/voice-asks-2/STATE.md
+new file mode 100644
+index 000000000..4d635d751
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-asks-2/STATE.md
+@@ -0,0 +1,31 @@
++# Voice asks, round 2: state
++
++Brief: [requirements.md](requirements.md). List: [ux/Dictate/doc/asks.md](/framework/ux/Dictate/doc/asks.md) (entries carry the commit links).
++
++| # | Ask | State | Proof |
++|---|---|---|---|
++| 1 | duplicate-bubbles | **Not reproduced.** No fix made. | `dup-e2e.mjs`, `prove-dup-*.mjs`, walk |
++| 2 | vscode-voice-path | Built: Echo writes the same voice page as Refine. Needs the Servex restart (below). | `proof.mjs` A |
++| 3 | prompt-to-board-cards | Built: **To board** button, `POST /api/voice/card`, one card + one `queued` ask line, idempotent. | `proof.mjs` C, `ui-proof.mjs` 1 |
++| 4 | whisper-status-stream | Built: `GET /api/whisper/stream` (SSE), `VoiceStrip` listens, poll kept only as the no-stream fallback. | `proof.mjs` B, `ui-proof.mjs` 2 |
++| 5 | per-sentence-model-clean | Built, **opt-in and off**: `run_refine({ clean_live: true })`. About $0.07 per sentence measured, more than one whole-prompt clean. | `proof.mjs` D |
++
++## 1. duplicate-bubbles: what was tried
++
++- Both `prove-dup-*.mjs` proofs pass. The voice walk (desktop and phone) shows one voice prompt and no chat duplicates.
++- `dup-e2e.mjs` drives the Dictate demo chat mic with a recorded clip against real Whisper and Servex. Exactly one `/api/session/say` per run. Bubble counts above one came from the demo session keeping its history between runs, not from duplicates.
++- One real oddity: a pause cut in the middle of a word repeated one word across the chunk seam ("ask not what" then "What your country"). It may come from how the test clip was cut, so it is recorded, not fixed. If a duplicate shows again: note the page and the time, run `dup-e2e.mjs`.
++
++## 5. The cost, measured
++
++Three sentences cost $0.21 (about $0.07 each): each call starts a fresh session. Cutting that per-call cost matters more than cutting the number of sentences. It stays off until you want it for one session.
++
++## Servex restart
++
++Four Servex changes (Echo mirror, `/api/voice/card`, `/api/whisper/stream`, `clean_live`) are proven together on a private Servex: `node public/framework/ai/2026-10-12/voice-asks-2/proof.mjs` (ports 8190/8189/8188, no Whisper; `SKIP_D=1` leaves out the $0.20 step). One batched restart makes them live (`node Servex/sustain.mjs --restart`). Until then an old Servex answers 404 on `/api/whisper/stream`, which the page treats as "no stream" and falls back.
++
++## Left
++
++- Approve/improve on a board ask, and the board creating tasks while you dictate (prompt-to-board-cards, second half).
++- Echo stays off by default (`SERVEX_ECHO`), for cost.
++- `ext/Refine/stages/files.jsonl` picked up three generated census lines for files unrelated to this task.
+diff --git a/public/framework/ai/2026-10-12/voice-asks-2/count.mjs b/public/framework/ai/2026-10-12/voice-asks-2/count.mjs
+new file mode 100644
+index 000000000..39156240c
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-asks-2/count.mjs
+@@ -0,0 +1,7 @@
++import path from "node:path"; import { fileURLToPath, pathToFileURL } from "node:url";
++const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../..");
++const { browser, close } = await import(pathToFileURL(REPO + "/Server/browser.mjs").href);
++const b = await browser(); const page = await (await b.newContext({ viewport: { width: +(process.env.W || 1400), height: 900 } })).newPage();
++await page.goto(process.argv[2], { waitUntil: "load" }); await page.waitForTimeout(4000);
++console.log(await page.evaluate(() => { const q = s => document.querySelectorAll(s).length; return { you: q(".chatbox-you"), reply: q(".chatbox-reply"), voicePrompts: q(".voice-prompt"), stages: q(".voice-stage:not([hidden])"), rawText: [...document.querySelectorAll(".voice-stage[data-stage=raw]")].length, entryTexts: [...document.querySelectorAll(".chatbox-you .chatbox-text")].map(e => e.textContent.slice(0, 80)) }; }));
++await close();
+diff --git a/public/framework/ai/2026-10-12/voice-asks-2/dup-e2e.mjs b/public/framework/ai/2026-10-12/voice-asks-2/dup-e2e.mjs
+new file mode 100644
+index 000000000..3308722df
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-asks-2/dup-e2e.mjs
+@@ -0,0 +1,29 @@
++/* node dup-e2e.mjs [origin] — duplicate-bubbles, end to end: a real session page, the chat composer's mic fed by a recorded clip,
++ * real Whisper + real Servex. Counts how many times the dictated words show on the page (chat bubbles + voice stages) over time.
++ * Usage: node dup-e2e.mjs [http://monorepo.localhost] [?session uuid]. Costs nothing (no refine). */
++import path from "node:path"; import { fileURLToPath, pathToFileURL } from "node:url"; import { randomUUID } from "node:crypto";
++const HERE = path.dirname(fileURLToPath(import.meta.url)), REPO = path.resolve(HERE, "../../../../..");
++const ORIGIN = process.argv[2] || "http://monorepo.localhost", session = process.argv[3] || randomUUID();
++const WAV = process.env.WAV || REPO + "/public/framework/ai/recordings/jfk.wav";
++const { browser, close } = await import(pathToFileURL(REPO + "/Server/browser.mjs").href);
++const b = await browser({ args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream", `--use-file-for-fake-audio-capture=${WAV}`] });
++const ctx = await b.newContext({ viewport: { width: +(process.env.W || 1400), height: 900 }, permissions: ["microphone"] });
++const page = await ctx.newPage(), errs = [];
++page.on("pageerror", e => errs.push(String(e.stack).split(String.fromCharCode(10)).slice(0, 4).join(" | ")));
++page.on("console", m => { if (process.env.V) console.log("  console", m.type(), m.text().slice(0,200)); });
++page.on("request", r => { if (/api[/](session|voice|refine)/.test(r.url()) && r.method() === "POST") console.log("  POST", r.url().split("/api")[1], (r.postData() || "").slice(0, 140)); });
++try {
++	await page.goto(`${ORIGIN}${process.env.PAGE || "/framework/ux/Dictate/"}`, { waitUntil: "load" });
++	await page.waitForSelector(".chatbox-mic .ux-dictate-btn", { timeout: 30000 });
++	await page.waitForTimeout(1500);
++	const base = await page.evaluate(() => document.querySelectorAll(".chatbox-you").length);
++	await page.click(".chatbox-mic .ux-dictate-btn");
++	const count = () => page.evaluate(() => {
++		const t = "ask not what your country can do for you", txt = document.body.innerText.toLowerCase();
++		const bubbles = [...document.querySelectorAll(".chatbox-you")].filter(e => e.textContent.toLowerCase().includes("ask not what")).length, shown = [...document.querySelectorAll(".chatbox-you .chatbox-text")].map(e => e.textContent.trim().slice(0, 200));
++		return { youBubbles: bubbles, shown: shown.map(x => x.slice(0, 50)) };
++	});
++	for (let i = 0; i < +(process.env.SECS || 10); i++){ await page.waitForTimeout(1000); { const c = await count(); console.log(i + 1 + "s", "NEW bubbles:", c.youBubbles - base, "(baseline " + base + ")"); } }
++	await page.screenshot({ path: path.join(process.env.OUT || HERE, "dup-e2e.png"), fullPage: false });
++	console.log("errors", errs.slice(0, 5), "session", session);
++} finally { await close(); }
+diff --git a/public/framework/ai/2026-10-12/voice-asks-2/padwav.mjs b/public/framework/ai/2026-10-12/voice-asks-2/padwav.mjs
+new file mode 100644
+index 000000000..dcd60039b
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-asks-2/padwav.mjs
+@@ -0,0 +1,8 @@
++// node padwav.mjs <in.wav> <out.wav> [lead_s] [tail_s] — the same 16 kHz mono clip with silence before and after, so a headless
++// fake mic starts speaking only AFTER the page has opened it (an engine check at load would otherwise eat the clip).
++import fs from "node:fs";
++const [, , inp, out, lead = 5, tail = 20] = process.argv, b = fs.readFileSync(inp), at = b.indexOf("data") + 8, pcm = b.subarray(at);
++const rate = b.readUInt32LE(24), z = s => Buffer.alloc(Math.round(rate * s) * 2), all = Buffer.concat([z(lead), pcm, z(tail)]);
++const h = Buffer.alloc(44); h.write("RIFF", 0); h.writeUInt32LE(36 + all.length, 4); h.write("WAVEfmt ", 8); h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20); h.writeUInt16LE(1, 22);
++h.writeUInt32LE(rate, 24); h.writeUInt32LE(rate * 2, 28); h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34); h.write("data", 36); h.writeUInt32LE(all.length, 40);
++fs.writeFileSync(out, Buffer.concat([h, all]));
+diff --git a/public/framework/ai/2026-10-12/voice-asks-2/peek.mjs b/public/framework/ai/2026-10-12/voice-asks-2/peek.mjs
+new file mode 100644
+index 000000000..7333363f3
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-asks-2/peek.mjs
+@@ -0,0 +1,7 @@
++import path from "node:path"; import { fileURLToPath, pathToFileURL } from "node:url";
++const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../..");
++const { browser, close } = await import(pathToFileURL(REPO + "/Server/browser.mjs").href);
++const b = await browser(); const page = await (await b.newContext({ viewport: { width: 1400, height: 900 } })).newPage();
++await page.goto(process.argv[2], { waitUntil: "load" }); await page.waitForTimeout(3000);
++console.log(await page.evaluate(() => [...document.querySelectorAll("[class*=chatbox], .ux-dictate-btn, textarea")].slice(0, 15).map(e => e.tagName + "." + e.className)));
++await page.screenshot({ path: process.argv[3] }); await close();
+diff --git a/public/framework/ai/2026-10-12/voice-asks-2/proof.mjs b/public/framework/ai/2026-10-12/voice-asks-2/proof.mjs
+new file mode 100644
+index 000000000..547d35ba1
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-asks-2/proof.mjs
+@@ -0,0 +1,101 @@
++/* node public/framework/ai/2026-10-12/voice-asks-2/proof.mjs [scratch]
++ * One batched proof of the four Servex changes, on a PRIVATE Servex (ports 8190/8189/8188, no whisper):
++ *   A  Echo mirror    — Echo.process() writes raw/clean/structure onto the voice page (stub model, in-process)
++ *   B  whisper stream — GET /api/whisper/stream sends the status at once, as SSE
++ *   C  card to board  — POST /api/voice/card makes a board card + a queued ask; a second POST finds the same one
++ *   D  clean_live     — /api/refine {clean_live:true} lands the clean stage sentence by sentence, with a measured cost
++ * Test pages land under public/framework/ai/sessions/ (untracked); the card and ask line are real files, so run it in a worktree. */
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawn, execFileSync } from "node:child_process";
++import { fileURLToPath, pathToFileURL } from "node:url";
++import { randomUUID } from "node:crypto";
++
++const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../..");
++const SCRATCH = path.resolve(process.argv[2] || fs.mkdtempSync(path.join(os.tmpdir(), "voice-asks2-")));
++const BASE = "http://127.0.0.1:8190";
++const sleep = ms => new Promise(r => setTimeout(r, ms));
++const t0 = Date.now(), say = s => console.log(`[${String(Date.now() - t0).padStart(6)}ms] ${s}`);
++const post = async (u, b) => (await fetch(BASE + u, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) })).json();
++const results = [], check = (name, ok, detail = "") => { results.push(ok); console.log((ok ? "PASS " : "FAIL ") + name + (detail ? " - " + detail : "")); };
++const body_of = l => l.content?.add ?? Object.values(l)[0] ?? {};
++
++/* A: Echo, in-process, with a stub model: the voice page must get raw, clean and structure. */
++{
++	const { default: Echo } = await import(pathToFileURL(REPO + "/Servex/agents/Echo.js").href);
++	const { default: VoicePage } = await import(pathToFileURL(REPO + "/Servex/ext/refine/VoicePage.js").href);
++	const seen = [];
++	VoicePage.listeners.add((s, line) => seen.push(line));
++	const session = randomUUID(), at = new Date().toISOString();
++	const echo = Object.create(Echo.prototype);
++	Object.assign(echo, { servex: { say: m => console.log("   servex.say:", m) }, call: async () => ({ answer: "", cost_usd: 0 }), pending: new Map(), session_cost: new Map() });
++	process.env.SERVEX_ECHO_LOCAL = "0";
++	await echo.process(session, "/framework/ai/sessions/" + session + "/", "item1", at, "So the editor path should look like the browser. It should show the same stages.").catch(e => console.log("   (Echo stopped after the voice writes, expected with a stub: " + String(e.message).slice(0, 80) + ")"));
++	await new Promise(r => setTimeout(r, 500));
++	check("A. Echo writes the voice page (raw, then final clean)", seen.length >= 3 && seen.some(l => body_of(l).raw) && seen.some(l => body_of(l).clean_final), seen.length + " lines");
++	const first = seen[0]?.content?.add;
++	check("A. same item shape as Refine (id voice-t..., source vscode)", /^voice-t/.test(first?.id ?? "") && first?.source === "vscode", first?.id + " " + first?.source);
++	await new Promise(r => setTimeout(r, 100)); VoicePage.listeners.clear();
++}
++
++/* Private Servex for B-D. */
++const local = path.join(SCRATCH, "localappdata");
++fs.mkdirSync(path.join(local, "lew42", "servex"), { recursive: true });
++fs.writeFileSync(path.join(local, "lew42", "servex", "dispatch.off"), "voice asks 2 proof\n");
++const env = { ...process.env, LOCALAPPDATA: local, SERVEX_PORT: "8190", SERVEX_PROXY_PORT: "8189", SERVEX_PROXY_INTERNAL: "8188", SERVEX_NO_GATE: "1", NO_WHISPER: "1", WHISPER_PORT: "8187" };
++for (const k of ["SERVEX_HOME", "SERVEX_NO_ASSISTANT", "SERVEX_NO_LAYERS", "SERVEX_NO_MONITOR", "PORT"]) delete env[k];
++const log = fs.openSync(path.join(SCRATCH, "servex.log"), "a");
++const child = spawn(process.execPath, ["Servex/index.js"], { cwd: REPO, env, stdio: ["ignore", log, log], windowsHide: true });
++const kill = () => { try { execFileSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true }); } catch {} };
++process.on("exit", kill);
++try {
++	let up = false;
++	for (let i = 0; i < 60 && !up; i++){ try { up = Array.isArray(await (await fetch(BASE + "/api/agents")).json()); } catch {} if (!up) await sleep(500); }
++	if (!up) throw new Error("Servex did not come up; see " + SCRATCH + "/servex.log");
++	say("private Servex up");
++
++	{ // B
++		const res = await fetch(BASE + "/api/whisper/stream"), reader = res.body.getReader();
++		const { value } = await Promise.race([reader.read(), sleep(3000).then(() => ({ value: null }))]);
++		const text = value ? new TextDecoder().decode(value) : "";
++		await reader.cancel().catch(() => {});
++		check("B. whisper stream sends the status at once", res.headers.get("content-type")?.includes("text/event-stream") && /^data: \{.*"status"/.test(text), text.trim().slice(0, 120));
++	}
++
++	{ // C
++		const session = randomUUID(), prompt = "ptest" + Date.now().toString(36);
++		const body = { session, prompt, index: 0, title: "Voice proof card (safe to delete)", items: ["first point", "second point"], cites: [1, 2] };
++		const [a, b] = await Promise.all([post("/api/voice/card", body), post("/api/voice/card", body)]);   // two presses at the same moment
++		console.log("   first:", JSON.stringify(a), "\n   second:", JSON.stringify(b));
++		check("C. card created and an ask line queued", a.ok && a.card, a.card);
++		check("C. two presses at once make ONE card (the other finds it)", a.ok && b.ok && a.card === b.card, a.card + " / " + b.card);
++		const c3 = await post("/api/voice/card", body);
++		check("C. a later press finds the same card too", c3.ok && c3.fresh === false && c3.card === a.card);
++		const bad = await post("/api/voice/card", { session: "nope" });
++		check("C. a bad request is refused, not crashed", bad.ok === false, bad.why);
++		const asks = fs.readFileSync(path.join(REPO, "public/framework/ai/asks.jsonl"), "utf8").split("\n").filter(l => l.includes(a.id));
++		check("C. exactly one asks.jsonl line for it", asks.length === 1, asks[0]?.slice(0, 160));
++	}
++
++	if (!process.env.SKIP_D) { // D (costs about $0.20: three small model calls; SKIP_D=1 leaves it out)
++		const session = randomUUID(), prompt = "plive" + Date.now().toString(36);
++		const text = "So the page should fill in as I talk. Um each sentence gets its own small clean. And the cost shows beside it.";
++		const lines = [];
++		fetch(BASE + "/api/voice/stream?session=" + session).then(async r => { const rd = r.body.getReader(), dec = new TextDecoder(); for (;;){ const { value, done } = await rd.read(); if (done) break; for (const l of dec.decode(value).split("\n")) if (l.startsWith("data: ")) lines.push(JSON.parse(l.slice(6))); } }).catch(() => {});
++		await sleep(300);
++		await post("/api/voice", { session, prompt, text, final: true, source: "proof" });
++		const r = await post("/api/refine", { text, session, prompt, clean_live: true });
++		await sleep(1500);
++		const flat = lines.flat().map(body_of);
++		const live = flat.filter(d => d.clean && d.clean_final === false);
++		console.log("   refine ok:", r.ok, "clean_live:", JSON.stringify(r.clean_live)?.slice(0, 400));
++		check("D. clean_live returns a measured cost per sentence", r.ok && r.clean_live?.rows?.length >= 2 && r.clean_live.cost_usd >= 0, r.clean_live?.rows?.length + " sentences, $" + r.clean_live?.cost_usd);
++		check("D. sentences land on the page one by one (live updates before the final)", live.length >= 3, live.length + " updates (1 draft + one per sentence)");
++		const fin = flat.filter(d => d.clean_final === true && d.cost);
++		check("D. final clean carries cost beside the time", fin.length >= 1 && fin[0].cost.clean >= 0, JSON.stringify(fin[0]?.cost));
++		check("D. the page still got structure and cards", flat.some(d => d.cards));
++	}
++} finally { kill(); }
++console.log(results.every(Boolean) ? "\nALL PASS" : "\nSOME FAILED");
++process.exit(results.every(Boolean) ? 0 : 1);
+diff --git a/public/framework/ai/2026-10-12/voice-asks-2/ui-proof.mjs b/public/framework/ai/2026-10-12/voice-asks-2/ui-proof.mjs
+new file mode 100644
+index 000000000..46abf8004
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-asks-2/ui-proof.mjs
+@@ -0,0 +1,59 @@
++/* node ui-proof.mjs [origin] — headless proof of the two browser halves (no Servex needed, its answers are stubbed at the network):
++ *   1. Cards stage: a "To board" button per card; pressing it POSTs /api/voice/card and the button becomes a link to the board card.
++ *   2. Dictate status line: an SSE message from /api/whisper/stream saying Whisper is restarting shows on the status line at once.
++ * Origin defaults to the worktree's private site; pass http://monorepo.localhost after the merge. */
++import path from "node:path";
++import { fileURLToPath, pathToFileURL } from "node:url";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url)), REPO = path.resolve(HERE, "../../../../..");
++const ORIGIN = process.argv[2] || "http://localhost:51720";
++const { browser, close } = await import(pathToFileURL(REPO + "/Server/browser.mjs").href);
++const b = await browser();
++const results = [], check = (name, ok, detail = "") => { results.push(ok); console.log((ok ? "PASS " : "FAIL ") + name + (detail ? " - " + detail : "")); };
++try {
++	const ctx = await b.newContext({ viewport: { width: 1000, height: 800 } });
++	const errs = [];
++
++	{ // 1 — cards stage
++		const page = await ctx.newPage();
++		page.on("pageerror", e => errs.push(e.message));
++		let posted = null;
++		await page.route("**/api/voice/card", async route => {
++			if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "*" } });
++			posted = JSON.parse(route.request().postData());
++			await route.fulfill({ contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ ok: true, id: "x", fresh: true, card: "2026/10/12/demo", card_url: "/framework/ai/2026/10/12/demo/" }) });
++		});
++		await page.goto(ORIGIN + "/framework/ext/Refine/", { waitUntil: "load" });
++		await page.evaluate(async () => {
++			const { default: VoiceFlow } = await import("/framework/ext/Refine/stages/VoiceFlow.js");
++			const flow = new VoiceFlow(); flow.session = "11111111-2222-3333-4444-555555555555";
++			document.body.prepend(flow.view.el);
++			flow.read([{ content: { add: { id: "voice-tdemo1", type: "voice-prompt", raw: "a b", raw_final: true, clean: ["A thing.", "Another thing."], clean_final: true, cards: [{ title: "First card", items: ["do x", "do y"], cites: [1, 2], tags: [] }, { title: "Second card", items: ["do z"], cites: [2] }] } } }]);
++			window.__flow = flow;
++		});
++		await page.waitForSelector(".voice-board", { timeout: 5000 });
++		const n = await page.$$eval("button.voice-board", e => e.length);
++		check("1. one To board button per card", n === 2, n + " buttons");
++		await page.click("button.voice-board");
++		await page.waitForSelector("a.voice-board", { timeout: 5000 });
++		const href = await page.$eval("a.voice-board", e => e.getAttribute("href"));
++		check("1. press posts the card and the button becomes a link", href === "/framework/ai/2026/10/12/demo/" && posted?.session === "11111111-2222-3333-4444-555555555555" && posted?.index === 0 && posted?.title === "First card" && posted?.prompt === "tdemo1", JSON.stringify(posted) + " -> " + href);
++		check("1. the other card still has its button", (await page.$$eval("button.voice-board", e => e.length)) === 1);
++		await page.screenshot({ path: path.join(process.env.OUT || HERE, "cards-to-board.png") });
++	}
++
++	{ // 2 — whisper status stream
++		const page = await ctx.newPage();
++		page.on("pageerror", e => errs.push(e.message));
++		const w = { ok: true, status: "restarting", port: 8187, crashes: 1, last_crash: { at: new Date().toISOString(), code: 1 }, said: "" };
++		await page.route("**/api/whisper/stream", route => route.fulfill({ status: 200, headers: { "content-type": "text/event-stream", "access-control-allow-origin": "*", "cache-control": "no-cache" }, body: "data: " + JSON.stringify(w) + "\n\n" }));
++		await page.goto(ORIGIN + "/framework/ux/Dictate/", { waitUntil: "load" });
++		await page.waitForFunction(() => /Servex is restarting it/.test(document.body.innerText), null, { timeout: 8000 }).catch(() => {});
++		const said = await page.evaluate(() => (document.body.innerText.match(/[^\n]*Servex is restarting it[^\n]*/) ?? [""])[0]);
++		check("2. a pushed 'restarting' shows on the status line without polling", /Servex is restarting it/.test(said), said.slice(0, 140));
++		await page.screenshot({ path: path.join(process.env.OUT || HERE, "whisper-stream.png") });
++	}
++	check("no page errors", errs.length === 0, errs.slice(0, 3).join(" | "));
++} finally { await close(); }
++console.log(results.every(Boolean) ? "\nALL PASS" : "\nSOME FAILED");
++process.exit(results.every(Boolean) ? 0 : 1);
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 1c610d688..2c00ccc29 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -109,7 +109,7 @@ export default class AISessionDetail extends Page {
+ 		AISessionDetail.load_row(url, id).then(async row => {
+ 			const session_id = row?.session_id ?? id;
+ 			conv.session = session_id;
+-			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
++			voice.follow(session_id); voice.session = session_id;   // a phone has no dev socket: it follows Servex's voice stream
+ 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
+ 			this.log_urls().then(urls => {
+ 				if (this.logs) return;
+diff --git a/public/framework/ext/Refine/files.jsonl b/public/framework/ext/Refine/files.jsonl
+index 1badb8be1..62648ae38 100644
+--- a/public/framework/ext/Refine/files.jsonl
++++ b/public/framework/ext/Refine/files.jsonl
+@@ -42,3 +42,4 @@
+ {"file":"ai/"}
+ {"file":"system.js"}
+ {"file":"ai/","gone":true}
++{"file":"stages/"}
+diff --git a/public/framework/ext/Refine/stages/CardsStage.js b/public/framework/ext/Refine/stages/CardsStage.js
+index ab018face..5d9c00f28 100644
+--- a/public/framework/ext/Refine/stages/CardsStage.js
++++ b/public/framework/ext/Refine/stages/CardsStage.js
+@@ -1,4 +1,4 @@
+-import { div, span } from "../../../core/View/View.js";
++import { a, button, div, span } from "../../../core/View/View.js";
+ import VoiceStage from "./VoiceStage.js";
+ 
+ /** Stage 5 · Cards: one card per heading, with the Haiku pass's clarity flag and tags once it lands. */
+@@ -7,6 +7,20 @@ export default class CardsStage extends VoiceStage {
+ 	static label = "5 · Cards";
+ 	static fields = ["cards"];
+ 
++	/** Cards already sent to the board, by index: { url } once it landed, { error } if it did not. */
++	sent = {};
++
++	/** Make this card a board card and an ask in asks.jsonl (Servex/ext/refine/CardAsk.js). Pressing it twice finds the same card. */
++	async send(card, index){
++		const session = this.prompt.flow?.session;   // read at click time: the flow learns its session after the first lines arrive
++		if (!session) return { error: "this page does not know its session" };
++		try {
++			const { servex_url } = await import("/framework/dev/servex_url.js");
++			const res = await (await fetch(servex_url("/api/voice/card"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session, prompt: this.prompt.id.replace(/^voice-/, ""), index, title: card.title, items: card.items ?? [], cites: card.cites ?? [] }) })).json();
++			return res.ok ? { url: res.card_url } : { error: res.why ?? "Servex said no" };
++		} catch (e){ return { error: "Servex is not reachable" }; }
++	}
++
+ 	/** How much of what you said this card covers (0-1): the share of the prompt's sentences it cites. Computed, never guessed. */
+ 	weight(card){ const n = this.data.clean?.length || 0; return n ? Math.min(1, (card.cites?.length ?? 0) / n) : null; }
+ }
+@@ -18,12 +32,20 @@ CardsStage.View = class CardsStageView extends VoiceStage.View {
+ 		bar("importance", w); bar("confidence", card.clarity);
+ 	}
+ 
++	/** The "To board" button, or the link to the board card once it exists. */
++	board(card, i){
++		const done = this.stage.sent[i];
++		if (done?.url) return a.c("voice-board", "On the board").attr("href", done.url);
++		const btn = button.c("voice-board", done?.error ? "Retry: " + done.error : "To board").attr("title", "Make this a card on the AI board and an ask in the ledger");
++		btn.click(async () => { btn.el.disabled = true; this.stage.sent[i] = await this.stage.send(card, i); this.draw(); });
++	}
++
+ 	body(){
+-		div.c("voice-cards", () => this.stage.data.cards.forEach(c => div.c("voice-card", () => {
++		div.c("voice-cards", () => this.stage.data.cards.forEach((c, i) => div.c("voice-card", () => {
+ 			div.c("voice-card-t", () => { span(c.title); if (c.clarity != null && c.clarity < 0.6) span.c("voice-flag", "⚑").attr("title", "Some of this was unclear when spoken"); });
+ 			c.items?.forEach(t => div.c("voice-card-i", "• " + t));
+ 			this.meters(c);
+-			div.c("voice-card-f muted", () => { span((c.cites ?? []).map(n => "S" + n).join(" ")); (c.tags ?? []).forEach(t => span.c("voice-tag", "#" + t)); });
++			div.c("voice-card-f muted", () => { span((c.cites ?? []).map(n => "S" + n).join(" ")); (c.tags ?? []).forEach(t => span.c("voice-tag", "#" + t)); this.board(c, i); });
+ 		})));
+ 	}
+ };
+diff --git a/public/framework/ext/Refine/stages/VoiceFlow.js b/public/framework/ext/Refine/stages/VoiceFlow.js
+index 3afa21f18..e4bb586d8 100644
+--- a/public/framework/ext/Refine/stages/VoiceFlow.js
++++ b/public/framework/ext/Refine/stages/VoiceFlow.js
+@@ -19,6 +19,7 @@ export default class VoiceFlow {
+ 
+ 	/** Off localhost the dev socket is off (it carries rpc:write), so the page file is only loaded once; a phone follows Servex's read-only voice stream instead (`GET /api/voice/stream`). */
+ 	follow(session){
++		this.session = session;
+ 		if (!Socket.singleton().disabled || this.source || typeof EventSource === "undefined") return this;
+ 		this.source = new EventSource(servex_url(`/api/voice/stream?session=${encodeURIComponent(session)}`));
+ 		this.source.onmessage = e => { try { this.read(JSON.parse(e.data)); } catch {} };
+@@ -33,7 +34,7 @@ export default class VoiceFlow {
+ 			const add = line.content?.add;
+ 			if (add?.type === "voice-prompt" && add.id){
+ 				const fresh = !this.prompts.has(add.id);
+-				if (fresh) this.prompts.set(add.id, new VoicePrompt(add.id));
++				if (fresh){ const vp = new VoicePrompt(add.id); vp.flow = this; this.prompts.set(add.id, vp); }
+ 				const p = this.prompts.get(add.id);
+ 				note(p, p.apply(add));
+ 				if (fresh) touched.get(p).add("*");
+diff --git a/public/framework/ext/Refine/stages/VoicePrompt.js b/public/framework/ext/Refine/stages/VoicePrompt.js
+index e18335493..ddcbe68ac 100644
+--- a/public/framework/ext/Refine/stages/VoicePrompt.js
++++ b/public/framework/ext/Refine/stages/VoicePrompt.js
+@@ -34,7 +34,7 @@ export default class VoicePrompt {
+ 		for (const [key, value] of Object.entries(delta ?? {})){
+ 			if (key === "id" || key === "type" || key === "by" || key === "ts") continue;
+ 			this.data[key] = value;
+-			for (const s of this.stages) if (s.constructor.fields.includes(key) || (key === "raw_final" && s instanceof RawStage) || (key === "clean_final" && s instanceof CleanStage) || key === "ms") touched.add(s.constructor.key);
++			for (const s of this.stages) if (s.constructor.fields.includes(key) || (key === "raw_final" && s instanceof RawStage) || (key === "clean_final" && s instanceof CleanStage) || key === "ms" || key === "cost") touched.add(s.constructor.key);
+ 		}
+ 		return touched;
+ 	}
+diff --git a/public/framework/ext/Refine/stages/VoiceStage.css b/public/framework/ext/Refine/stages/VoiceStage.css
+index 2dbccb206..d7fd13220 100644
+--- a/public/framework/ext/Refine/stages/VoiceStage.css
++++ b/public/framework/ext/Refine/stages/VoiceStage.css
+@@ -26,6 +26,7 @@
+ 	.voice-bar { flex: 0 1 8em; height: .35em; border-radius: 1em; background: color-mix(in srgb, currentColor 12%, transparent); position: relative; overflow: hidden; }
+ 	.voice-bar::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--v); background: color-mix(in srgb, currentColor 55%, transparent); }
+ 	.voice-card-f { display: flex; gap: .5em; flex-wrap: wrap; font-size: .8em; }
++	.voice-board { margin-inline-start: auto; font: inherit; }
+ 	.voice-flag { color: var(--warn); margin-inline-start: .4em; cursor: help; }
+ 	.voice-copy { margin-block-start: .4em; }
+ }
+diff --git a/public/framework/ext/Refine/stages/VoiceStage.js b/public/framework/ext/Refine/stages/VoiceStage.js
+index 80de7de17..d78691a9a 100644
+--- a/public/framework/ext/Refine/stages/VoiceStage.js
++++ b/public/framework/ext/Refine/stages/VoiceStage.js
+@@ -27,6 +27,8 @@ export default class VoiceStage {
+ 	get live(){ return false; }
+ 	/** Milliseconds this stage took (from the server's timing), or null. */
+ 	get ms(){ return this.data.ms?.[this.constructor.key] ?? null; }
++	/** Dollars the model spent on this stage (from the server's measured cost), or null. */
++	get cost(){ return this.data.cost?.[this.constructor.key] ?? null; }
+ }
+ 
+ VoiceStage.View = class VoiceStageView extends View {
+@@ -45,7 +47,7 @@ VoiceStage.View = class VoiceStageView extends View {
+ 	draw(){
+ 		const stage = this.stage;
+ 		this.el.hidden = !stage.ready;
+-		this.$tag.text(stage.live ? "live" : stage.ms != null ? (stage.ms / 1000).toFixed(1) + " s" : "");
++		this.$tag.text(stage.live ? "live" : stage.ms != null ? (stage.ms / 1000).toFixed(1) + " s" + (stage.cost ? " · $" + stage.cost.toFixed(4) : "") : "");
+ 		this.$body.empty(() => { if (stage.ready) this.body(); });   // a stage with nothing yet draws nothing (its body reads fields that are not there)
+ 	}
+ 
+diff --git a/public/framework/ext/Refine/stages/files.jsonl b/public/framework/ext/Refine/stages/files.jsonl
+index cf18a1c33..82a8b39c1 100644
+--- a/public/framework/ext/Refine/stages/files.jsonl
++++ b/public/framework/ext/Refine/stages/files.jsonl
+@@ -14,3 +14,6 @@
+ {"file":"Stage.css","gone":true}
+ {"file":"doc/"}
+ {"file":"readme.md"}
++{"file":"things.json"}
++{"file":"ThingsIndex.mjs"}
++{"file":"ThingsStage.js"}
+diff --git a/public/framework/ux/Dictate/Connection.js b/public/framework/ux/Dictate/Connection.js
+index 56d84ca5c..0881aba1e 100644
+--- a/public/framework/ux/Dictate/Connection.js
++++ b/public/framework/ux/Dictate/Connection.js
+@@ -108,11 +108,26 @@ export default class Connection extends View {
+ 
+ 	/** The same fact as a sentence of its own (the one-line status on a phone shows it). It takes about 25 s: Whisper reloads its speech model. */
+ 	static async restart_line(){
++		try { return Connection.line(await (await fetch(servex_url("/api/whisper"), { signal: AbortSignal.timeout(1500) })).json()); }
++		catch { return ""; }
++	}
++
++	/** The sentence for one `/api/whisper` answer (the same shape the stream pushes). Empty when all is well. */
++	static line(w){
++		const t = w.last_crash && new Date(w.last_crash.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
++		if (["launching", "restarting", "crashed", "starting"].includes(w.status)) return `Whisper stopped${t ? " at " + t : ""} and Servex is restarting it (2 to 30 s: it reloads its model)`;
++		return w.crashes ? `Whisper stopped at ${t} and Servex restarted it` : "";
++	}
++
++	/** Servex pushes Whisper's status the moment it changes (`GET /api/whisper/stream`, SSE): `on_status(w)` runs for the first answer and for every change, so a restart shows as it happens.
++	 *  Returns the EventSource (`.close()` to stop), or null where there is none (the caller keeps its old one-off checks). */
++	watch(on_status){
++		if (typeof EventSource === "undefined") return null;
+ 		try {
+-			const w = await (await fetch(servex_url("/api/whisper"), { signal: AbortSignal.timeout(1500) })).json();
+-			const t = w.last_crash && new Date(w.last_crash.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+-			if (["launching", "restarting", "crashed", "starting"].includes(w.status)) return `Whisper stopped${t ? " at " + t : ""} and Servex is restarting it (2 to 30 s: it reloads its model)`;
+-			return w.crashes ? `Whisper stopped at ${t} and Servex restarted it` : "";
+-		} catch { return ""; }
++			const es = new EventSource(servex_url("/api/whisper/stream"));
++			es.onmessage = e => { try { const w = JSON.parse(e.data); this.note = Connection.line(w); this.streaming = true; on_status(w); } catch {} };
++			es.onerror = () => { this.streaming = false; };
++			return es;
++		} catch { return null; }
+ 	}
+ }
+diff --git a/public/framework/ux/Dictate/VoiceStrip.js b/public/framework/ux/Dictate/VoiceStrip.js
+index d62f3e21f..3a77dff86 100644
+--- a/public/framework/ux/Dictate/VoiceStrip.js
++++ b/public/framework/ux/Dictate/VoiceStrip.js
+@@ -42,6 +42,7 @@ export default class VoiceStrip extends View {
+ 		});
+ 		this.$guess = div.c("voice-strip-guess muted");
+ 		this.conn.check_whisper().then(up => { this.said(); if (!up) this.recover(); });
++		this.watch_restarts();
+ 		// a phone that slept (or a tab left open) learns of a Whisper crash when it is looked at again, not only when the mic is pressed
+ 		document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && !this.recovering) this.conn.check_whisper().then(up => { this.said(); if (!up) this.recover(); }); });
+ 		this.said();
+@@ -65,7 +66,7 @@ export default class VoiceStrip extends View {
+ 		const bad = /^(refused|timed out)|stopped answering|not reachable/.test(detail);
+ 		if (stage === "mic"){
+ 			if (detail === "on, level ok") this.conn.set("level", "ok", "");
+-			else if (detail === "ok"){ this.conn.set("mic", "ok", "on").set("level", "wait", ""); this.watch_restarts(); }
++			else if (detail === "ok"){ this.conn.set("mic", "ok", "on").set("level", "wait", ""); }
+ 			else this.conn.set("mic", bad ? "bad" : "wait", bad ? "error: " + VoiceStrip.plain(detail.replace(/^refused: /, "")) : detail);
+ 		} else if (stage === "whisper" && /^(connected, last reply|stopped answering)/.test(detail)){
+ 			this.conn.set("whisper", bad ? "bad" : "ok", bad ? "error: " + detail : detail);
+@@ -74,23 +75,28 @@ export default class VoiceStrip extends View {
+ 		this.said();
+ 	}
+ 
+-	/** While the mic is on, look every 5 s whether Servex had to restart Whisper, so a restart in the middle of a sentence is said on the status line.
+-	 *  The mic being open is the only time it asks; a stream from Servex would be the alternative (`doc/try-it.md`, "Whisper restart"). */
++	/** Servex pushes Whisper's status the moment it changes, so a restart in the middle of a sentence is said on the status line at once (no timer).
++	 *  Without a stream (no Servex, old browser) the page falls back to `check_whisper()` on load and `recover()`. */
+ 	watch_restarts(){
+-		clearInterval(this.watching);
+-		const look = async () => {
+-			if (!["listening", "connecting"].includes(this.dictate?.state)) return clearInterval(this.watching);
+-			const line = await Connection.restart_line();
+-			if (line !== this.conn.note){ this.conn.note = line; this.said(); }
+-		};
+-		look();
+-		this.watching = setInterval(look, 5000);
++		if (this.stream) return;
++		let last = null;
++		this.stream = this.conn.watch(w => {
++			const down = ["launching", "restarting", "crashed", "starting", "stopped", "errored"].includes(w.status);
++			if (down && this.conn.state.whisper.state !== "bad") this.conn.set("whisper", "bad", "error: stopped answering" + (this.conn.note ? " · " + this.conn.note : ""));
++			else if (!down && last && last !== w.status && this.conn.state.whisper.state === "bad"){
++				this.conn.set("whisper", "ok", "back" + (this.conn.note ? " · " + this.conn.note : ""));
++				if (this.conn.state.mic.state === "bad") this.conn.set("mic", "idle", "");
++			}
++			last = w.status;
++			this.stream_down = down;
++			this.said();
++		});
+ 	}
+ 
+ 	/** Whisper is down: ask again every 2 s until it answers (2 minutes at most), so the status line follows Servex's restart (about 25 s: the model reloads).
+ 	 *  A short wait only while it is broken; healthy Whisper is never polled (`doc/try-it.md`). */
+ 	recover(){
+-		if (this.recovering) return;
++		if (this.recovering || (this.conn.streaming && this.stream_down)) return;   // Servex is already pushing the restart: wait for its message
+ 		this.recovering = true;
+ 		const t0 = Date.now();
+ 		const tick = async () => {
+diff --git a/public/framework/ux/Dictate/doc/asks.md b/public/framework/ux/Dictate/doc/asks.md
+index 828f1817e..f37217748 100644
+--- a/public/framework/ux/Dictate/doc/asks.md
++++ b/public/framework/ux/Dictate/doc/asks.md
+@@ -6,21 +6,13 @@ Walk through it yourself: [try-it.md](try-it.md).
+ 
+ ## Open
+ 
+-- **vscode-voice-path** (6x, 2026-09-29 to 2026-10-09): The VS Code app path (Echo) should feed the same five-stage flow as the Refine page: one dictation system, one widget.
+-  - Now: Only the Refine page streams to `/api/voice`; the VS Code path is not wired ([voice-to-page.md](/framework/ext/Refine/stages/doc/voice-to-page.md), "Open"). `VoiceStrip` is already shared by Refine and the demo.
+-  - Next: Wire Echo's output to `VoicePage`; Echo is off by default for cost (`SERVEX_ECHO`).
+-  - Sources: `60d9def6` `87bec773` `7efd07d5` `.claude/`
+-- **prompt-to-board-cards** (5x, 2026-09-18 to 2026-10-02): A refined prompt's cards become board cards and `asks.jsonl` lines (approve or improve), and the board creates tasks while you dictate.
+-  - Now: Stages, cards, tags and a `TagRouter` note on the module page stream to the session page; the route that turns one card into an ask line plus a board card is not built ([refine-asks STATE](/framework/ai/2026-10-12/refine-asks/STATE.md)).
+-  - Next: A Servex route `card -> asks.jsonl + board card`; one restart.
+-  - Sources: `0d555c50` `.claude/`
+ - **real-phone-mic** (4x, 2026-09-29 to 2026-10-08): Use it on a phone: the mic must work on the LAN address.
+   - Now: A phone on plain `http` hides the mic (browser rule); typing or the keyboard's dictation button works. Walks used a Chromium flag as a stand-in ([https-lan.md](/framework/ux/Dictate/doc/https-lan.md) lists three ways).
+   - Next: The owner picks one https option; then one real-phone walk.
+   - Sources: `.claude/` `87bec773`
+ - **per-sentence-model-clean** (4x, 2026-09-30 to 2026-10-09): The live clean text should be model-cleaned per sentence, cheap in tokens, with a cost shown per message.
+-  - Now: A mechanical per-sentence clean is live; the model clean runs once per Refine (about 3 s). Clarity score and refined cost show on the cards. A per-sentence model call costs more than the whole prompt.
+-  - Next: A `clean_live` flag in `Servex/ext/refine/run.js` for one opt-in session ([refine-asks STATE](/framework/ai/2026-10-12/refine-asks/STATE.md)).
++  - Now: A mechanical per-sentence clean is live; the model clean runs once per Refine (about 3 s). Built 2026-10-12 ([6f0133c](https://github.com/lew42/monorepo/commit/6f0133cc1)): `run_refine({ clean_live: true })` cleans each sentence with its own small Haiku call and each lands on the page as it returns; the measured cost shows beside the stage's time. **Measured: about $0.07 per sentence** (about $0.21 for three), more than the whole-prompt clean, so it stays opt-in and off.
++  - Next: Switch it on for one session if wanted; to make it cheaper the per-call cost (a fresh session per call) is the thing to cut, not the sentence count.
+   - Sources: `.claude/` `60d9def6` `b7b63380` `0115b9e8`
+ - **voice-model-policy** (3x, 2026-10-05 to 2026-10-08): Voice assistants (fast and smart) must not run on Anthropic models; use the best non-Anthropic model for the smart one.
+   - Now: `Servex/agents/roles.js` maps `session-fast`, `session-smart` and `assistant` to `model("fast")`, which is Sonnet (a comment says: saving credits); no OpenRouter route for voice roles.
+@@ -30,11 +22,6 @@ Walk through it yourself: [try-it.md](try-it.md).
+   - Now: Structure and refined stages exist on the session page; an agent-driven `amend_bubble` that swaps a raw bubble for cited sections is open ([handover](/framework/ux/Dictate/doc/handover.md)).
+   - Next: Decide whether the box keeps raw while chat shows cleaned; then build the tool.
+   - Sources: `.claude/`
+-- **whisper-status-stream** (2x, 2026-09-29 to 2026-10-05): Whisper restarts should show the moment they happen, not by polling.
+-  - Now: The page asks `GET /api/whisper` every 5 s only while the mic is open and every 2 s while Whisper is down ([try-it.md](/framework/ux/Dictate/doc/try-it.md)).
+-  - Next: A Servex status SSE; one restart.
+-  - Sources: `e3ade6ce` `.claude/`
+-
+ ## Partly done
+ 
+ - **prompt-review-and-durability** (6x, 2026-10-01 to 2026-10-04): Every prompt is logged raw-first, durable, reviewable and reprocessable without losing data when sessions move.
+@@ -46,8 +33,8 @@ Walk through it yourself: [try-it.md](try-it.md).
+   - Next: Tracked in [core/Page asks](/framework/core/Page/doc/asks.md); nothing to build here.
+   - Sources: `.claude/`
+ - **duplicate-bubbles** (2x, 2026-10-05 to 2026-10-09): Duplicate messages in voice chat must stop.
+-  - Now: Fixed once only one mic could run ([duplicate-bubbles.md](/framework/ext/Chat/doc/duplicate-bubbles.md), proofs `prove-dup-*.mjs`); not re-run after tonight's changes.
+-  - Next: Rerun the two proofs.
++  - Now: Fixed once only one mic could run ([duplicate-bubbles.md](/framework/ext/Chat/doc/duplicate-bubbles.md)). Re-run 2026-10-12: both `prove-dup-*.mjs` pass, the walk shows one prompt, and a real-Whisper mic run sends exactly one `say`. **Not reproduced**, so no new fix; `dup-e2e.mjs` is the check to run when it shows again. One thing seen: a mid-word pause can repeat one word across a chunk seam (see [STATE](/framework/ai/2026-10-12/voice-asks-2/STATE.md)).
++  - Next: When it shows again, note the page and the time; `dup-e2e.mjs` counts the `say` posts and bubbles.
+   - Sources: `f04c6d27` `87bec773`
+ - **long-prompt-refine** (2x, 2026-10-02 to 2026-10-02): Refining a very long prompt should work.
+   - Now: Built tonight: the Refine button sends the most recent 19,000 characters (`AISessionConversation.fit`) instead of failing at 20,000.
+@@ -60,6 +47,15 @@ Walk through it yourself: [try-it.md](try-it.md).
+ 
+ ## Done (short)
+ 
++- **vscode-voice-path** (6x, 2026-09-29 to 2026-10-09): The VS Code app path (Echo) feeds the same five-stage flow as Refine: one dictation system, one widget.
++  - Now: Built 2026-10-12 ([8d80ff0](https://github.com/lew42/monorepo/commit/8d80ff02a)): `Servex/agents/Echo.js` writes raw, clean and structure through `VoicePage`, same id scheme as the Refine button. Echo stays off by default (`SERVEX_ECHO`); a failed stage is marked on the page (review fix [debc6f4](https://github.com/lew42/monorepo/commit/debc6f4b5)). Proof: [voice-asks-2](/framework/ai/2026-10-12/voice-asks-2/STATE.md), `proof.mjs` A.
++  - Sources: `60d9def6` `87bec773` `7efd07d5` `.claude/`
++- **prompt-to-board-cards** (5x, 2026-09-18 to 2026-10-02): A refined prompt's cards become board cards and `asks.jsonl` lines.
++  - Now: Built 2026-10-12: a **To board** button on each card ([cd75306](https://github.com/lew42/monorepo/commit/cd75306a0)) posts `POST /api/voice/card` ([984df59](https://github.com/lew42/monorepo/commit/984df598c), [045c5c0](https://github.com/lew42/monorepo/commit/045c5c097)); `CardAsk` makes one board card plus one `queued` ask line, and a second press (or a second tab, [debc6f4](https://github.com/lew42/monorepo/commit/debc6f4b5)) finds the same card. Left: approve/improve on the ask, and the board creating tasks while you dictate. Proof: `proof.mjs` C, `ui-proof.mjs` 1.
++  - Sources: `0d555c50` `.claude/`
++- **whisper-status-stream** (2x, 2026-09-29 to 2026-10-05): Whisper restarts show the moment they happen, not by polling.
++  - Now: Built 2026-10-12 ([045c5c0](https://github.com/lew42/monorepo/commit/045c5c097)): `GET /api/whisper/stream` (SSE) pushes the status on connect and on every change; `VoiceStrip` listens instead of the 5 s poll, and `recover()` polls only when no stream is open. Proof: `proof.mjs` B, `ui-proof.mjs` 2.
++  - Sources: `e3ade6ce` `.claude/`
+ - **whisper-working-live** (9x, 2026-09-19 to 2026-09-29): Local Whisper works, streams words in real time, continuous until stopped, with the 'Thank you' silence bug fixed.
+   - Now: `audio/Whisper`, `ux/Dictate`, [silence.md](/framework/ux/Dictate/doc/silence.md); Servex restarts Whisper itself in about 2 s ([voice-verify](/framework/ai/2026-10-12/voice-verify/STATE.md)).
+   - Sources: `cfca18c9` `e2b82220` `.claude/`

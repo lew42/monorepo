@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/md/doc/mobile-socket-2026-10-09/",
+ "widths": {
+  "1280": {
+   "empty": 0.535,
+   "widest_text": 598,
+   "widest_text_sample": "Whisper is not a socket and it works fro",
+   "overflow_x": false,
+   "items": 65,
+   "narrow_share": 0.246
+  },
+  "1920": {
+   "empty": 0.657,
+   "widest_text": 636,
+   "widest_text_sample": "Whisper is not a socket and it works fro",
+   "overflow_x": false,
+   "items": 65,
+   "narrow_share": 0.938
+  },
+  "2560": {
+   "empty": 0.721,
+   "widest_text": 716,
+   "widest_text_sample": "Whisper is not a socket and it works fro",
+   "overflow_x": false,
+   "items": 65,
+   "narrow_share": 0.938
+  },
+  "3440": {
+   "empty": 0.786,
+   "widest_text": 716,
+   "widest_text_sample": "Whisper is not a socket and it works fro",
+   "overflow_x": false,
+   "items": 65,
+   "narrow_share": 0.938
+  }
+ },
+ "errors": []
+}

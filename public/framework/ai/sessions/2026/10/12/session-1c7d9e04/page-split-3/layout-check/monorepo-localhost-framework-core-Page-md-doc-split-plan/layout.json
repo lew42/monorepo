@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/md/doc/split-plan/",
+ "widths": {
+  "1280": {
+   "empty": 0.464,
+   "widest_text": 848,
+   "widest_text_sample": "// Stay in Page: static of/file/load/fro",
+   "overflow_x": false,
+   "items": 261,
+   "narrow_share": 0.605
+  },
+  "1920": {
+   "empty": 0.635,
+   "widest_text": 903,
+   "widest_text_sample": "// Stay in Page: static of/file/load/fro",
+   "overflow_x": false,
+   "items": 261,
+   "narrow_share": 0.808
+  },
+  "2560": {
+   "empty": 0.66,
+   "widest_text": 1015,
+   "widest_text_sample": "// Stay in Page: static of/file/load/fro",
+   "overflow_x": false,
+   "items": 261,
+   "narrow_share": 0.816
+  },
+  "3440": {
+   "empty": 0.741,
+   "widest_text": 1015,
+   "widest_text_sample": "// Stay in Page: static of/file/load/fro",
+   "overflow_x": false,
+   "items": 261,
+   "narrow_share": 0.824
+  }
+ },
+ "errors": []
+}

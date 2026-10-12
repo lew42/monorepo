@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/models",
+ "widths": {
+  "1280": {
+   "empty": 0.454,
+   "widest_text": 939,
+   "widest_text_sample": "27 small tasks in the shapes our agents ",
+   "overflow_x": false,
+   "items": 936,
+   "narrow_share": 0.781
+  },
+  "1920": {
+   "empty": 0.558,
+   "widest_text": 1529,
+   "widest_text_sample": "27 small tasks in the shapes our agents ",
+   "overflow_x": false,
+   "items": 936,
+   "narrow_share": 0.816
+  },
+  "2560": {
+   "empty": 0.628,
+   "widest_text": 2068,
+   "widest_text_sample": "27 small tasks in the shapes our agents ",
+   "overflow_x": false,
+   "items": 936,
+   "narrow_share": 0.834
+  },
+  "3440": {
+   "empty": 0.72,
+   "widest_text": 2753,
+   "widest_text_sample": "27 small tasks in the shapes our agents ",
+   "overflow_x": false,
+   "items": 936,
+   "narrow_share": 0.892
+  }
+ },
+ "errors": [
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

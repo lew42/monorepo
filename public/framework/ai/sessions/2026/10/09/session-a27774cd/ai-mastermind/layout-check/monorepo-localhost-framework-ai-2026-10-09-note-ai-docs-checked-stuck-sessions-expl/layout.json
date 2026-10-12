@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026/10/09/note-ai-docs-checked-stuck-sessions-expl/",
+ "widths": {
+  "1280": {
+   "empty": 0.448,
+   "widest_text": 5372,
+   "widest_text_sample": "{\"class\":\"/framework/ai/cards/card.js\",\"",
+   "overflow_x": false,
+   "items": 51,
+   "narrow_share": 0.392
+  },
+  "1920": {
+   "empty": 0.508,
+   "widest_text": 5718,
+   "widest_text_sample": "{\"class\":\"/framework/ai/cards/card.js\",\"",
+   "overflow_x": false,
+   "items": 51,
+   "narrow_share": 0.784
+  },
+  "2560": {
+   "empty": 0.595,
+   "widest_text": 6429,
+   "widest_text_sample": "{\"class\":\"/framework/ai/cards/card.js\",\"",
+   "overflow_x": false,
+   "items": 51,
+   "narrow_share": 0.804
+  },
+  "3440": {
+   "empty": 0.655,
+   "widest_text": 6429,
+   "widest_text_sample": "{\"class\":\"/framework/ai/cards/card.js\",\"",
+   "overflow_x": false,
+   "items": 51,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

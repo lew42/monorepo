@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Figma/palette/",
+ "widths": {
+  "1280": {
+   "empty": 0.626,
+   "widest_text": 561,
+   "widest_text_sample": "The Approved Schemes",
+   "overflow_x": false,
+   "items": 66,
+   "narrow_share": 0.182
+  },
+  "1920": {
+   "empty": 0.712,
+   "widest_text": 597,
+   "widest_text_sample": "The Approved Schemes",
+   "overflow_x": false,
+   "items": 66,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.763,
+   "widest_text": 671,
+   "widest_text_sample": "The Approved Schemes",
+   "overflow_x": false,
+   "items": 66,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.807,
+   "widest_text": 671,
+   "widest_text_sample": "The Approved Schemes",
+   "overflow_x": false,
+   "items": 66,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

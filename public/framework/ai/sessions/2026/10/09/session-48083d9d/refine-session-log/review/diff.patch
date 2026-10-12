@@ -1,0 +1,539 @@
+diff --git a/Servex/ext/refine/Annotator.js b/Servex/ext/refine/Annotator.js
+new file mode 100644
+index 000000000..a529f5b79
+--- /dev/null
++++ b/Servex/ext/refine/Annotator.js
+@@ -0,0 +1,54 @@
++import RefineCall from "./RefineCall.js";
++
++/**
++ * class Annotator — the Haiku pass over a CLEAN prompt (the owner's design, `ext/Refine/doc/vision-2026-10-08.md`
++ * addenda 2 and 3): for each sentence, one or two shorter ALTERNATE wordings, the NAMES of ideas worth
++ * naming again, and TAGS in the repo path form (`core/Page`, `ext/Refine`) so sessions can be found by system.
++ * The clean text itself is never changed; alternates are suggestions the owner can ignore.
++ *
++ *   const notes = await Annotator.annotate(["Sentence one.", "Sentence two."]);   // [{ i, alternates, names, tags }]
++ *
++ * One call per batch of sentences, never one per word. A batch is capped by characters (`BATCH_CHARS`, about
++ * 15k tokens of input), so a very long dictation becomes a few calls and every call stays far under the 60k
++ * token budget the owner set for Haiku. `i` is the sentence's 0-based index in `clean`, as the prompt log cites it.
++ */
++export default class Annotator {
++
++	static MODEL = "claude-haiku-5-5";
++	static BATCH_CHARS = 60000;
++
++	static SYSTEM = `You annotate a dictated message that was split into numbered sentences. For each sentence give:
++- "alternates": 0 to 2 shorter or simpler wordings with the same meaning (an empty list if the sentence is already short and plain),
++- "names": 0 to 2 short names (one word best, two words great) for a core idea the sentence introduces, only if it deserves a name,
++- "tags": 0 to 3 repo paths or class names the sentence is about, in the form "core/Page" or "ext/Refine" (only ones actually mentioned or clearly meant).
++Never change the meaning. Never invent. Reply with ONLY compact JSON: {"notes":[{"i":0,"alternates":[],"names":[],"tags":[]}, ...]} with one entry per sentence.`;
++
++	/** Split sentences into batches no longer than BATCH_CHARS (keeps each call small and cheap). */
++	static batches(sentences){
++		const out = [];
++		let cur = [], size = 0;
++		sentences.forEach((text, i) => {
++			if (cur.length && size + text.length > Annotator.BATCH_CHARS){ out.push(cur); cur = []; size = 0; }
++			cur.push({ i, text }); size += text.length;
++		});
++		if (cur.length) out.push(cur);
++		return out;
++	}
++
++	static async annotate(sentences, { model = Annotator.MODEL } = {}){
++		const parts = await Promise.all(Annotator.batches(sentences).map(async batch => {
++			const prompt = batch.map(s => `${s.i}: ${s.text}`).join("\n");
++			try {
++				const r = await RefineCall.run(prompt, { model, system: Annotator.SYSTEM, stage: `notes ${batch[0].i}-${batch.at(-1).i}` });
++				const j = JSON.parse(/\{[\s\S]*\}/.exec(r.answer)?.[0] ?? "{}");
++				return (j.notes ?? []).filter(n => Number.isInteger(n?.i) && n.i >= batch[0].i && n.i <= batch.at(-1).i).map(n => ({
++					i: n.i,
++					alternates: (n.alternates ?? []).map(String).slice(0, 2),
++					names: (n.names ?? []).map(String).slice(0, 2),
++					tags: (n.tags ?? []).map(String).slice(0, 3),
++				}));
++			} catch { return []; }
++		}));
++		return parts.flat().sort((a, b) => a.i - b.i);
++	}
++}
+diff --git a/Servex/ext/refine/run.js b/Servex/ext/refine/run.js
+index c2d8131a6..68b8fbf72 100644
+--- a/Servex/ext/refine/run.js
++++ b/Servex/ext/refine/run.js
+@@ -10,29 +10,51 @@ import { clean } from "../../../public/framework/ext/Refine/engine.js";
+ import { structure } from "../../../public/framework/ext/Refine/structure.js";
+ import RefineCall from "./RefineCall.js";
+ import ClarityScorer from "./ClarityScorer.js";
++import Annotator from "./Annotator.js";
++import Outline from "../../../public/framework/ext/Refine/Outline.js";
++import PromptLog from "../../../public/framework/ai/AISession/PromptLog.js";
+ 
+ const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models that do the job: doc/refine-v3-2026-10-09.md
+ 
+-export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5" } = {}){
++/* With `session` (a Claude session uuid) the prompt is also kept in that session's own log
++ * (ai/AISession/PromptLog.js): raw first and untouched, then the clean sentences set as final, then
++ * the refined cards citing sentence indexes, then the Haiku notes (clarity, alternates, names, tags).
++ * Logging never fails the refine: a refusal comes back as `log_error`. */
++export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5", session = "", prompt = "", source = "typed" } = {}){
+ 	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
+ 	if (text.length > 20000) return { ok: false, why: "text is over 20000 characters" };
+ 	try {
+ 		const t0 = Date.now();
+ 		const stages = {};
++		const id = session ? (prompt || PromptLog.new_id()) : "";
++		const log_errors = [];
++		const log = async line => { if (id) try { await PromptLog.add(session, { prompt: id, ...line }, "refine"); } catch (e){ log_errors.push(String(e.message ?? e)); } };
++		await log({ stage: "raw", text, source });
+ 		const [result, runs] = await RefineCall.collect(async () => {
+ 			const call = stage => (p, o) => RefineCall.run(p, { ...o, stage });
+ 			const t_clean = Date.now();
+ 			const c = await clean(text, { call: call("clean"), model });
+ 			stages.clean_ms = Date.now() - t_clean;
++			await log({ stage: "clean", sentences: c.sentences.map(x => x.text), final: true });
+ 			const t_next = Date.now();
+-			const [s, clar] = await Promise.all([
++			const [s, clar, notes] = await Promise.all([
+ 				structure(c.sentences, { call: call("structure"), model }).then(r => (stages.structure_ms = Date.now() - t_next, r)),
+ 				ClarityScorer.score(c.sentences, { model: clarity_model }).then(r => (stages.clarity_ms = Date.now() - t_next, r)),
++				id ? Annotator.annotate(c.sentences.map(x => x.text)).then(r => (stages.notes_ms = Date.now() - t_next, r)) : [],
+ 			]);
+-			return { c, s, clar };
++			if (id){
++				const parsed = Outline.parse(s?.md ?? "");
++				await log({ stage: "refined", subject: parsed.subject, cards: Outline.indexes(parsed.sections) });
++				const by = new Map(notes.map(n => [n.i, n]));
++				await log({ stage: "notes", notes: c.sentences.map((x, i) => {
++					const cl = clar.find(k => k.n === x.n);
++					return { i, clarity: cl?.clarity ?? null, why: cl?.why ?? "", alternates: by.get(i)?.alternates ?? [], names: by.get(i)?.names ?? [], tags: by.get(i)?.tags ?? [] };
++				}) });
++			}
++			return { c, s, clar, notes };
+ 		});
+ 		return {
+-			ok: true, ms: Date.now() - t0, stages, clean: result.c, structure: result.s, clarity: result.clar,
++			ok: true, ms: Date.now() - t0, stages, ...(id ? { prompt: id, session, log_errors } : {}), clean: result.c, structure: result.s, clarity: result.clar, ...(id ? { notes: result.notes } : {}),
+ 			runs: runs.map(r => ({ stage: r.stage, model: r.model, session_id: r.session_id, cost_usd: r.cost_usd, duration_ms: r.duration_ms, tokens: r.tokens })),
+ 		};
+ 	} catch (e){
+diff --git a/public/framework/ai/AISession/PromptLog.js b/public/framework/ai/AISession/PromptLog.js
+new file mode 100644
+index 000000000..e92b99582
+--- /dev/null
++++ b/public/framework/ai/AISession/PromptLog.js
+@@ -0,0 +1,72 @@
++import AISession from "./AISession.js";
++
++/**
++ * class PromptLog — the prompts of one session, kept in that session's own folder as `prompts.jsonl`
++ * (append only; the owner's design, `ext/Refine/doc/vision-2026-10-08.md` addendum 3). One file for
++ * the whole session, because a session can hold hundreds of prompts. Every line belongs to one
++ * prompt (`prompt` = its id) and is one STAGE of it:
++ *
++ *   raw      { text, source }                       what arrived. IMMUTABLE: a second raw for the same prompt is refused.
++ *   clean    { sentences: ["…", "…"], final }       near-verbatim sentences. Sentence i is `sentences[i]`, cited as index i.
++ *                                                    While `final` is false a later clean line replaces it; once a
++ *                                                    final one is written the clean is set in stone and more are refused.
++ *   refined  { subject, cards: [{ title|text, cites: [0, 2], cards: [...] }] }   cards cite clean indexes. Later wins.
++ *   notes    { notes: [{ i, clarity, why, alternates, names, tags }] }          the Haiku pass, per sentence index. Later wins.
++ *
++ *   await PromptLog.add(session_id, { prompt: id, stage: "raw", text }, "refine");   // node only; stamps at/by/session
++ *   const prompts = PromptLog.fold(await PromptLog.read(session_id));                // browser or node: { id → prompt }
++ *   prompts[id].clean   // ["sentence 0", …]     prompts[id].refined, .notes, .raw, .final
++ *
++ * `fold()` is also how a replay of a saved session becomes a `Prompt` (`ext/Refine/Prompt.js` `Prompt.from_log`).
++ * Sessions page tail: the same file, read with `AISession.read_text`, so a page can follow it live.
++ */
++export default class PromptLog {
++
++	static FILE = "prompts.jsonl";
++	static STAGES = {
++		raw:     l => typeof l.text === "string" && l.text.length > 0,
++		clean:   l => Array.isArray(l.sentences) && l.sentences.every(s => typeof s === "string"),
++		refined: l => Array.isArray(l.cards),
++		notes:   l => Array.isArray(l.notes) && l.notes.every(n => Number.isInteger(n?.i) && n.i >= 0),
++	};
++
++	/** Validate and append one line. Returns the stored line, or throws with the reason. Node only. */
++	static async add(id, line, by){
++		if (!/^[0-9a-f-]{36}$/.test(id)) throw new Error("session id must be the 36-character session uuid");
++		if (!by || typeof by !== "string") throw new Error("`by` (the author) is required");
++		if (typeof line.prompt !== "string" || !line.prompt) throw new Error("`prompt` (the prompt id) is required");
++		const check = PromptLog.STAGES[line.stage];
++		if (!check) throw new Error("`stage` is one of: " + Object.keys(PromptLog.STAGES).join(", "));
++		if (!check(line)) throw new Error(`bad shape for stage "${line.stage}" (see ai/AISession/PromptLog.js)`);
++		const seen = PromptLog.fold(await PromptLog.read(id))[line.prompt];
++		if (line.stage === "raw" && seen?.raw != null) throw new Error("raw is immutable: this prompt already has one");
++		if (line.stage === "clean" && seen?.final) throw new Error("clean is final: this prompt's sentences are set");
++		if (line.stage !== "raw" && seen?.raw == null) throw new Error("write the raw line first");
++		const fs = await import("node:fs/promises"), dir = await AISession.locate(id, undefined, id);   // folder named by the uuid, so a later scan always finds it
++		await fs.mkdir(dir, { recursive: true });
++		const out = { ...line, at: new Date().toISOString(), by, session: id };
++		await fs.appendFile(new URL(PromptLog.FILE, dir), JSON.stringify(out) + "\n");
++		return out;
++	}
++
++	/** Every line of the session's prompt log, in order ([] when it has none). Browser or node. */
++	static async read(id){
++		return AISession.lines_of(await AISession.read_text(id, PromptLog.FILE));
++	}
++
++	/** Lines to prompts: `{ id → { id, raw, source, clean, final, refined, subject, notes, at } }`, in first-seen order. */
++	static fold(lines){
++		const out = {};
++		for (const l of lines){
++			const p = out[l.prompt] ??= { id: l.prompt, raw: null, source: "", clean: [], final: false, refined: [], subject: "", notes: [], at: l.at };
++			if (l.stage === "raw"){ p.raw = l.text; p.source = l.source ?? ""; }
++			else if (l.stage === "clean" && !p.final){ p.clean = l.sentences; p.final = !!l.final; }
++			else if (l.stage === "refined"){ p.refined = l.cards; p.subject = l.subject ?? ""; }
++			else if (l.stage === "notes") p.notes = l.notes;
++		}
++		return out;
++	}
++
++	/** A fresh prompt id: sortable by time, unique enough inside one session. */
++	static new_id(){ return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
++}
+diff --git a/public/framework/ext/Refine/Outline.js b/public/framework/ext/Refine/Outline.js
+new file mode 100644
+index 000000000..62c08a2f7
+--- /dev/null
++++ b/public/framework/ext/Refine/Outline.js
+@@ -0,0 +1,50 @@
++/**
++ * class Outline — turns the markdown outline `structure()` writes ("# subject", "## card",
++ * "- sub-card [S1, S2]", indented deeper bullets) into nested cards. Pure text in, plain data out
++ * (no DOM), so Servex can use it too: `Prompt.parse_outline` (browser) and `Servex/ext/refine/run.js`
++ * (the session prompt log) both call this one. (`Refine.js`'s `parse_structured` flattens the
++ * nesting and drops the "#" line, which the Prompt view needs.)
++ *
++ *   Outline.parse(md)           // { subject, sections: [{ title, cites: [1, 2], cards: [{ text, cites, cards }] }] }; cites are S numbers (1-based)
++ *   Outline.indexes(sections)   // the same tree with 0-based `cites` (clean[i]): how the session log stores them
++ */
++export default class Outline {
++
++	static parse(md){
++		let subject = "";
++		const sections = [];
++		let sec = null;
++		const stack = [];   // [{indent, card}]
++		const cites = text => {
++			const found = new Set();
++			for (const m of text.matchAll(/S(\d+)\s*[-–]\s*S(\d+)/g))
++				for (let n = Math.min(+m[1], +m[2]); n <= Math.max(+m[1], +m[2]); n++) found.add(n);
++			for (const m of text.replace(/S\d+\s*[-–]\s*S\d+/g, " ").matchAll(/S(\d+)/g)) found.add(+m[1]);
++			return [...found].sort((a, b) => a - b);
++		};
++		const strip = text => text.replace(/\[[^\]]*S\d[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
++		for (const line of String(md).split(/\r?\n/)){
++			const h = /^(#{1,3})\s+(.+)$/.exec(line);
++			if (h){
++				if (h[1] === "#" && !subject){ subject = strip(h[2]); continue; }
++				sec = { title: strip(h[2]), cites: cites(h[2]), cards: [] };
++				sections.push(sec); stack.length = 0;
++				continue;
++			}
++			const b = /^(\s*)[-*]\s+(.+)$/.exec(line);
++			if (!b) continue;
++			if (!sec){ sec = { title: subject || "Overview", cites: [], cards: [] }; sections.push(sec); }
++			const indent = b[1].replace(/\t/g, "  ").length;
++			const card = { text: strip(b[2]), cites: cites(b[2]), cards: [] };
++			while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
++			(stack.length ? stack[stack.length - 1].card.cards : sec.cards).push(card);
++			stack.push({ indent, card });
++		}
++		return { subject, sections };
++	}
++
++	static indexes(sections){
++		const down = cards => cards.map(c => ({ ...c, cites: c.cites.map(n => n - 1), ...(c.cards ? { cards: down(c.cards) } : {}) }));
++		return down(sections);
++	}
++}
+diff --git a/public/framework/ext/Refine/Prompt.js b/public/framework/ext/Refine/Prompt.js
+index 27bde4a30..d5e2014ce 100644
+--- a/public/framework/ext/Refine/Prompt.js
++++ b/public/framework/ext/Refine/Prompt.js
+@@ -1,4 +1,5 @@
+ import Scorer from "./Scorer.js";
++import Outline from "./Outline.js";
+ import { View, div, span, p, h4, button, a } from "../../core/View/View.js";
+ 
+ View.stylesheet(import.meta, "Prompt.css");
+@@ -37,18 +38,20 @@ export default class Prompt {
+ 	runs = [];          // one per model call: { stage, model, session_id, cost_usd, duration_ms, tokens }
+ 	timings = {};       // { quick_ms } measured in the browser
+ 	model = "";         // the model the server is using for the current run
++	prompt_id = "";      // the id this prompt has in its session's log (PromptLog), when it was saved there
++	session = "";         // the session whose prompts.jsonl holds it
+ 	quick = false;      // true while `clean` holds the instant (no-model) clean, before the real one lands
+ 
+ 	constructor(...args){ Object.assign(this, ...args); }
+ 
+ 	/** Fill the instance from one `/api/refine` answer (also how a saved answer is replayed). */
+-	load({ clean, structure, ms, clarity, stages, runs }){
++	load({ clean, structure, ms, clarity, stages, runs, notes, prompt: prompt_id, session }){
+ 		const parsed = Prompt.parse_outline(structure?.md ?? "");
+ 		this.subject = parsed.subject;
+ 		this.refined = parsed.sections;
+ 		this.ms = ms ?? 0;
+ 		this.clean = (clean?.sentences ?? []).map(s => ({
+-			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], card: "", why: "",
++			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "",
+ 		}));
+ 		Scorer.score(this, { clean, structure });
+ 		// The cheap model's per-sentence score replaces the rule score when it answered; the rule
+@@ -57,7 +60,12 @@ export default class Prompt {
+ 			const s = this.sentence(c.n);
+ 			if (s && c.clarity != null){ s.rule_clarity = s.clarity; s.clarity = +c.clarity.toFixed(2); s.why = c.why; }
+ 		}
+-		this.set({ status: "done", quick: false, stages: stages ?? {}, runs: runs ?? [] });
++		// The Haiku pass (Servex/ext/refine/Annotator.js): alternates, names and tags per sentence, by 0-based index.
++		for (const n of notes ?? []){
++			const s = this.clean[n.i];
++			if (s){ s.alternates = n.alternates ?? []; s.names = n.names ?? []; s.tags = n.tags ?? []; }
++		}
++		this.set({ status: "done", quick: false, stages: stages ?? {}, runs: runs ?? [], prompt_id: prompt_id ?? "", session: session ?? "" });
+ 	}
+ 
+ 	set(fields){
+@@ -70,52 +78,34 @@ export default class Prompt {
+ 
+ 	/** The instant clean (no model): shown within a moment of each Whisper chunk, before any refinement. */
+ 	load_quick(sentences, quick_ms){
+-		this.clean = sentences.map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], card: "", why: "" }));
++		this.clean = sentences.map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" }));
+ 		this.timings = { ...this.timings, quick_ms };
+ 		this.set({ quick: true });
+ 	}
+ 
+-	/** Sentences worth a yellow flag: unclear enough, or the pipeline asked a question about them. */
+-	get flagged(){ return this.clean.filter(s => (s.clarity ?? 1) < Prompt.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
+-
+ 	/**
+-	 * The outline `structure()` writes ("# subject", "## card", "- sub-card [S1, S2]", indented
+-	 * deeper bullets) as nested cards. (`Refine.js`'s `parse_structured` flattens the nesting
+-	 * and drops the "#" line, which this view needs, so this is the nested sibling of it.)
++	 * Replay one prompt from its session log (`PromptLog.fold` row): the saved raw, the final clean sentences,
++	 * the cards (their 0-based cites become S numbers again) and the Haiku notes. No model call.
+ 	 */
+-	static parse_outline(md){
+-		let subject = "";
+-		const sections = [];
+-		let sec = null;
+-		const stack = [];   // [{indent, card}]
+-		const cites = text => {
+-			const found = new Set();
+-			for (const m of text.matchAll(/S(\d+)\s*[-–]\s*S(\d+)/g))
+-				for (let n = Math.min(+m[1], +m[2]); n <= Math.max(+m[1], +m[2]); n++) found.add(n);
+-			for (const m of text.replace(/S\d+\s*[-–]\s*S\d+/g, " ").matchAll(/S(\d+)/g)) found.add(+m[1]);
+-			return [...found].sort((a, b) => a - b);
+-		};
+-		const strip = text => text.replace(/\[[^\]]*S\d[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
+-		for (const line of String(md).split(/\r?\n/)){
+-			const h = /^(#{1,3})\s+(.+)$/.exec(line);
+-			if (h){
+-				if (h[1] === "#" && !subject){ subject = strip(h[2]); continue; }
+-				sec = { title: strip(h[2]), cites: cites(h[2]), cards: [] };
+-				sections.push(sec); stack.length = 0;
+-				continue;
+-			}
+-			const b = /^(\s*)[-*]\s+(.+)$/.exec(line);
+-			if (!b) continue;
+-			if (!sec){ sec = { title: subject || "Overview", cites: [], cards: [] }; sections.push(sec); }
+-			const indent = b[1].replace(/\t/g, "  ").length;
+-			const card = { text: strip(b[2]), cites: cites(b[2]), cards: [] };
+-			while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
+-			(stack.length ? stack[stack.length - 1].card.cards : sec.cards).push(card);
+-			stack.push({ indent, card });
++	static from_log(row, session = ""){
++		const up = cards => (cards ?? []).map(c => ({ ...c, cites: (c.cites ?? []).map(i => i + 1), cards: up(c.cards) }));
++		const prompt = new Prompt({ raw: row.raw ?? "", subject: row.subject ?? "", prompt_id: row.id, session });
++		prompt.clean = row.clean.map((text, i) => ({ n: i + 1, text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" }));
++		for (const n of row.notes ?? []){
++			const s = prompt.clean[n.i];
++			if (s) Object.assign(s, { clarity: n.clarity ?? null, why: n.why ?? "", alternates: n.alternates ?? [], names: n.names ?? [], tags: n.tags ?? [] });
+ 		}
+-		return { subject, sections };
++		prompt.refined = up(row.refined);
++		prompt.status = row.final ? "done" : "working";
++		return prompt;
+ 	}
+ 
++	/** Sentences worth a yellow flag: unclear enough, or the pipeline asked a question about them. */
++	get flagged(){ return this.clean.filter(s => (s.clarity ?? 1) < Prompt.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
++
++	/** The outline `structure()` writes, as nested cards (`Outline.parse`). */
++	static parse_outline(md){ return Outline.parse(md); }
++
+ 	/** The rendered result. */
+ 	get view(){ return new this.constructor.View({ subject: this }); }
+ 
+@@ -198,7 +188,14 @@ Prompt.View = class extends View {
+ 				span.c("refine-bar").attr("style", `--v:${s.clarity ?? 0}`);
+ 				span.c("refine-s-text", `${s.clarity ?? "–"}`);
+ 				if (s.why) span.c("refine-s-scores", s.why);
++				if (s.names.length) span.c("refine-s-scores", "name: " + s.names.join(", "));
++				s.tags.forEach(t => span.c("refine-class-key", t));
++				if (s.alternates.length) div.c("refine-s-scores", "or: " + s.alternates.join(" / "));
+ 			}));
++			if (prompt.session) p.c("refine-what", () => {
++				span("Kept in the session log as raw, clean, outline and notes: ");
++				a("open the session").href("/framework/ai/sessions/" + prompt.session + "/").ac("refine-class-key");
++			});
+ 			h4.c("refine-prompt-h", () => span("Model runs"));
+ 			p.c("refine-what", "Each run is its own session: click one to see exactly what was asked.");
+ 			prompt.runs.forEach(r => div.c("refine-run", () => {
+diff --git a/public/framework/ext/Refine/RefineDemo.js b/public/framework/ext/Refine/RefineDemo.js
+index 739bbaa28..45f781cd7 100644
+--- a/public/framework/ext/Refine/RefineDemo.js
++++ b/public/framework/ext/Refine/RefineDemo.js
+@@ -88,6 +88,7 @@ export default class RefineDemo extends View {
+ 	async go(){
+ 		// Stop the mic FIRST and wait: stop() settles the open segment into the box.
+ 		const live = this.dictate.state === "listening" || this.dictate.state === "connecting";
++		this.system.source = live || this.dictate.partial_text ? "dictated" : "typed";   // the raw line of the session log says how the words arrived
+ 		if (live) this.$note.text("Finishing the last words…");
+ 		if (live) await this.dictate.stop();
+ 		const text = this.transcript();
+diff --git a/public/framework/ext/Refine/RefineSystem.js b/public/framework/ext/Refine/RefineSystem.js
+index 87616ec51..c7eb0f8be 100644
+--- a/public/framework/ext/Refine/RefineSystem.js
++++ b/public/framework/ext/Refine/RefineSystem.js
+@@ -38,6 +38,7 @@ export default class RefineSystem {
+ 	whisper = Whisper.shared;
+ 	session = this.whisper.session("Refine demo");   // Dictate's on_whisper feeds it: system.session.record(line)
+ 	model = "claude-sonnet-5-5";                    // measured fastest cheap model: doc/refine-v3-2026-10-09.md
++	session_id = RefineSystem.session_id();            // the session whose log keeps this page's prompts (ai/AISession/PromptLog.js)
+ 	history = [];                                   // finished prompts of this page visit (plain summaries), newest last
+ 
+ 	constructor(...args){
+@@ -45,6 +46,16 @@ export default class RefineSystem {
+ 		this.prompt.on_change = p => this.on_change?.(p, this);
+ 	}
+ 
++	/** The demo page's own session: a uuid made once per browser and kept, so its prompts pile up in ONE session log
++	 *  (`ai/sessions/…/prompts.jsonl`) the way a VS Code tab's do. A caller with a real session passes `session_id`. */
++	static session_id(){
++		try {
++			let id = localStorage.getItem("refine.session");
++			if (!/^[0-9a-f-]{36}$/.test(id ?? "")) localStorage.setItem("refine.session", id = crypto.randomUUID());
++			return id;
++		} catch { return crypto.randomUUID(); }
++	}
++
+ 	/** Show the cleaned text NOW, with no model: the instant stage. Cheap enough to run on every chunk. */
+ 	quick(text){
+ 		const t0 = performance.now();
+@@ -65,7 +76,7 @@ export default class RefineSystem {
+ 				const { servex_url } = await import("/framework/dev/servex_url.js");
+ 				url = servex_url("/api/refine");
+ 			}
+-			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model }) });
++			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model, session: this.session_id, source: this.source ?? "typed" }) });
+ 			const out = await res.json();
+ 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
+ 			prompt.load(out);
+diff --git a/public/framework/ext/Refine/doc/session-log-2026-10-10.md b/public/framework/ext/Refine/doc/session-log-2026-10-10.md
+new file mode 100644
+index 000000000..09962215f
+--- /dev/null
++++ b/public/framework/ext/Refine/doc/session-log-2026-10-10.md
+@@ -0,0 +1,18 @@
++# Every prompt kept in its session's log (2026-10-10)
++
++**What:** a prompt refined on the Refine page is saved in the session's own folder, in `prompts.jsonl`, in stages. Nothing is ever overwritten.
++
++| Stage | Holds | Rule |
++|---|---|---|
++| `raw` | the words as heard | immutable: a second raw is refused |
++| `clean` | numbered sentences | final once `final:true` |
++| `refined` | cards citing sentence indexes | later line wins |
++| `notes` | per sentence: clarity, alternates, names, tags | later line wins |
++
++Cites in the log are 0-based (`clean[i]`); the screen shows `S` numbers (index + 1). The format and checks live in [`ai/AISession/PromptLog.js`](/framework/ai/AISession/) (its class comment is the spec). `Prompt.from_log` replays a saved prompt into the Refine view.
++
++**Who writes it:** `POST /api/refine` (`Servex/ext/refine/run.js`) when the page sends a `session` (the page keeps one uuid in `localStorage["refine.session"]`). `Annotator` (Haiku 5.5, batched by size, far under 60k tokens) adds alternates, names and tags. Echo stays off. A failed log write never fails the refine (`log_errors` in the answer).
++
++**Not built yet:** per-sentence streaming (plan: interim `clean` lines with `final:false`, tailed with `live()`); a Refine button per VS Code prompt; the cold-cache cost (about $0.30–0.43 per refine, see [refine v3](/framework/ext/Refine/md/doc/refine-v3-2026-10-09/)).
++
++**Going live** needs a Servex restart: the route runs in the Servex process.
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index 5c857db37..7e8dbf177 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -56,6 +56,7 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`)
+ - **The demo's dictation** is `ux/Dictate` (the same engine the voice chat's `ux/Dictate/Widget` wraps in its chat card; one engine, no second copy). Its controls sit in a fixed toolbar, and [`ux/Dictate/VoiceStrip`](/framework/ux/Dictate/md/doc/voice-architecture/) (its `Connection` row) draws the Mic → Level → Whisper → Transcript → Refine row (Whisper asked once on load, again only on the ↻ click). Proof: `test/dictate-flow.mjs`
+ - [ErrorLog](/framework/ext/ErrorLog/) — UI errors become a log line a session can follow; design in `ErrorLog/doc/design.md`
+ - [Prompt](/framework/ext/Refine/md/doc/prompt/) — the class: what it holds, how scores are computed, what is not built yet (`doc/prompt.md`)
++- [Session log](/framework/ext/Refine/md/doc/session-log-2026-10-10/) — each prompt kept as raw, clean, refined and notes in the session's `prompts.jsonl` (`doc/session-log-2026-10-10.md`)
+ - [Echo](/framework/servex/doc/echo.md) — the running pipeline that uses this engine on every prompt you type in VS Code: triggers, output, cost, and the gaps against the vision (`Servex/doc/echo.md`)
+ - [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
+ - `doc/vision-2026-10-08.md` — the owner's intended pipeline (raw → clean → refined cards, every sentence accounted, context cards); check the built state against it
+diff --git a/public/framework/ext/Refine/test/session-log.mjs b/public/framework/ext/Refine/test/session-log.mjs
+new file mode 100644
+index 000000000..1573b56e3
+--- /dev/null
++++ b/public/framework/ext/Refine/test/session-log.mjs
+@@ -0,0 +1,59 @@
++/* `PW_ROOT=<dir holding node_modules/playwright> node test/session-log.mjs <base url> [shots dir]`
++ * The prompt-in-the-session-log slice, headless, with NO model call: `/api/refine` is answered by a fixture
++ * shaped like the real answer (it carries `prompt`, `session` and `notes`), and a saved log is replayed.
++ *   1. Pressing Refine sends the page's session id and shows the Haiku notes (name, tag, alternate) and the
++ *      "open the session" link.
++ *   2. `Prompt.from_log(PromptLog.fold(lines))` rebuilds a finished prompt: 0-based cites come back as S numbers. */
++import { createRequire } from "module";
++const { chromium } = createRequire(process.env.PW_ROOT + "/")("playwright");
++const base = process.argv[2], dir = process.argv[3];
++const SESSION_RE = /^[0-9a-f-]{36}$/;
++const b = await chromium.launch(); let fail = 0;
++const check = (name, ok, extra) => { console.log(ok ? "PASS" : "FAIL", name, extra ? JSON.stringify(extra) : ""); if (!ok) fail++; };
++
++const p = await b.newPage({ viewport: { width: 1400, height: 900 } });
++const errs = []; p.on("pageerror", e => errs.push(String(e)));
++let sent = null;
++await p.route("**/api/refine", async r => {
++	if (r.request().method() === "OPTIONS") return r.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "*" } });
++	sent = JSON.parse(r.request().postData());
++	await r.fulfill({ status: 200, headers: { "access-control-allow-origin": "*" }, contentType: "application/json", body: JSON.stringify({
++		ok: true, ms: 5000, stages: {}, runs: [], prompt: "pfixture", session: sent.session,
++		clean: { sentences: [{ n: 1, text: "The page should show a flag when unclear." }] },
++		structure: { md: "# Flags\n## Flag unclear [S1]\n- show a flag [S1]\n" },
++		clarity: [{ n: 1, clarity: 0.8, why: "clear enough" }],
++		notes: [{ i: 0, alternates: ["Flag unclear sentences."], names: ["Yellow flag"], tags: ["ext/Refine"] }],
++	}) });
++});
++await p.goto(base + "/framework/ext/Refine/", { waitUntil: "networkidle" });
++await p.waitForSelector(".refine-toolbar textarea", { state: "attached", timeout: 15000 });
++await p.evaluate(t => { const el = document.querySelector(".refine-toolbar textarea"); el.value = t; el.dispatchEvent(new Event("input", { bubbles: true })); }, "the page should show a flag when unclear");
++await p.getByRole("button", { name: "Refine", exact: true }).click();
++await p.waitForSelector(".refine-score", { timeout: 8000 });
++const text = await p.locator(".refine-prompt").first().innerText();
++check("request carries a session uuid", SESSION_RE.test(sent?.session ?? ""), { session: sent?.session });
++check("session id is kept between prompts", sent?.session === await p.evaluate(() => localStorage.getItem("refine.session")));
++check("notes shown: name, tag, alternate", /name: Yellow flag/.test(text) && /ext\/Refine/.test(text) && /or: Flag unclear sentences\./.test(text), { text: text.slice(-260) });
++const href = await p.locator("a:has-text('open the session')").first().getAttribute("href").catch(() => null);
++check("link to the saved session", href === `/framework/ai/sessions/${sent?.session}/`, { href });
++if (dir) await p.screenshot({ path: `${dir}/session-log-1400.png` });
++
++// Replay a saved log (no model).
++const replay = await p.evaluate(async () => {
++	const { default: PromptLog } = await import("/framework/ai/AISession/PromptLog.js");
++	const { default: Prompt } = await import("/framework/ext/Refine/Prompt.js");
++	const at = "2026-10-10T00:00:00Z";
++	const lines = [
++		{ prompt: "p1", stage: "raw", text: "um raw words", at },
++		{ prompt: "p1", stage: "clean", sentences: ["First.", "Second."], final: true, at },
++		{ prompt: "p1", stage: "refined", subject: "Two", cards: [{ title: "Card", cites: [0, 1], cards: [{ text: "sub", cites: [1], cards: [] }] }], at },
++		{ prompt: "p1", stage: "notes", notes: [{ i: 1, clarity: 0.9, why: "ok", alternates: ["2nd."], names: ["Second"], tags: ["core/Page"] }], at },
++	];
++	const row = PromptLog.fold(lines).p1;
++	const pr = Prompt.from_log(row, "sess");
++	return { status: pr.status, clean: pr.clean.map(s => s.n + ":" + s.text), cites: pr.refined[0].cites, sub: pr.refined[0].cards[0].cites, note: pr.clean[1].names, tags: pr.clean[1].tags, id: pr.prompt_id };
++});
++check("replay: S numbers come back from indexes", replay.cites.join() === "1,2" && replay.sub.join() === "2" && replay.status === "done", replay);
++check("replay: notes land on the right sentence", replay.note[0] === "Second" && replay.tags[0] === "core/Page" && replay.id === "p1");
++check("no page errors", errs.length === 0, errs);
++await b.close(); process.exit(fail ? 1 : 0);
