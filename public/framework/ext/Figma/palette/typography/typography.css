@@ -1,154 +1,29 @@
 @layer base, theme, site, util;
 
 @layer theme {
-	.typ-card {
-		background: #fff;
-		border-radius: 16px;
-		padding: 120px 48px;
-		display: flex;
-		flex-direction: column;
-		align-items: start;
-		gap: 32px;
-	}
+	.typ-header { display: flex; flex-direction: column; align-items: center; gap: .5em; text-align: center; width: 100%; }
 
-	.typ-header {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 8px;
-		width: 100%;
-	}
+	.typ-column { display: flex; flex-direction: column; align-items: start; gap: 1em; min-width: 0; }
 
-	.typ-card h1 {
-		font-family: Montserrat, sans-serif;
-		font-weight: 900;
-		font-size: 48px;
-		color: rgba(0, 0, 0, 0.8);
-		margin: 0;
-	}
+	.typ-chip { padding: .35em .6em; border-radius: .25em; width: fit-content; }
 
-	.typ-tagline {
-		font-size: 16px;
-		font-weight: 500;
-		line-height: 1.8;
-		color: rgba(0, 0, 0, 0.8);
-		margin: 0;
-		text-align: center;
-	}
+	.typ-accent { color: var(--prime); font-size: .875em; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
 
-	.typ-columns {
-		display: flex;
-		flex-direction: row;
-		gap: 16px;
-		width: 100%;
-		align-items: start;
-	}
+	.typ-inset { padding: 1em; border-radius: .5em; display: flex; flex-direction: column; gap: 1em; }
 
-	.typ-column {
-		flex: 1 0 0;
-		min-width: 0;
-		border-radius: 12px;
-		padding: 28px;
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-	}
-
-	.typ-chip {
-		padding: 6px 12px;
-		border-radius: 4px;
-		font-size: 14px;
-		font-weight: bold;
-		text-transform: uppercase;
-		letter-spacing: 0.07em;
-		color: rgba(0, 0, 0, 0.8);
-		margin: 0;
-		align-self: fit-content;
-	}
-
-	.typ-white .typ-chip {
-		color: rgba(0, 0, 0, 0.8);
-	}
-
-	.typ-prime .typ-chip {
-		color: #fff;
-	}
-
-	.typ-dark .typ-chip {
-		color: #72c4ff;
-	}
-
-	.typ-item {
-		margin: 0;
-	}
-
-	.typ-inset {
-		padding: 16px;
-		border-radius: 8px;
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-	}
-
-	.typ-inset-label {
-		font-size: 14px;
-		font-weight: bold;
-		text-transform: uppercase;
-		letter-spacing: 0.07em;
-		line-height: 1.4;
-		margin: 0;
-	}
-
-	.typ-inset-body {
-		font-size: 16px;
-		font-weight: 500;
-		line-height: 1.8;
-		margin: 0;
-	}
-
-	.typ-links {
-		display: flex;
-		flex-direction: row;
-		gap: 16px;
-		justify-content: center;
-		align-items: center;
-	}
-
+	.typ-links { display: flex; gap: 1em; }
 	.typ-link {
-		font-size: 16px;
-		font-weight: 500;
 		text-decoration: none;
 		position: relative;
-		padding-bottom: 4px;
+		padding-bottom: .25em;
 	}
-
-	.typ-white .typ-link {
-		color: rgba(0, 0, 0, 0.8);
-	}
-
-	.typ-dark .typ-link {
-		color: #fff;
-	}
-
-	.typ-white .typ-link::after,
-	.typ-dark .typ-link::after {
+	.typ-link::after {
 		content: "";
 		position: absolute;
+		inset-inline: 0;
 		bottom: 0;
-		left: 0;
-		right: 0;
 		height: 2px;
 		border-radius: 1px;
-		background: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), #72c4ff;
+		background: var(--prime);
 	}
-}
-
-@layer theme {
-	.typ-card { grid-column: 1 / -1; max-width: none; box-sizing: border-box; }
-}
-
-@layer theme {
-	.typ-chip { align-self: flex-start; }
-	.typ-links { justify-content: flex-start; }
-	.typ-inset { background: linear-gradient(rgba(0,0,0,.25), rgba(0,0,0,.25)), #72c4ff; }
 }

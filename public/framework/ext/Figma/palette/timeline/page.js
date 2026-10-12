@@ -1,39 +1,21 @@
-import { Page, View, div, p } from "/app.js";
+import { Page, View, div, p, h1, h2, h4 } from "/app.js";
 
 View.stylesheet(import.meta, "timeline.css");
 
-const PRIME25 = "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25)), #72c4ff";
-const WHITE10 = "linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff";
-const INK = "rgba(0,0,0,.8)";
-const SOFT = "rgba(0,0,0,.55)";
-const LINE = "rgba(0,0,0,.1)";
-
-// Pill: padding 4px 8px, radius 999, label text, align-self flex-start, width fit-content
-function Pill(text, bgGradient, textColor) {
-	p.c("tln-pill", text)
-		.style("background", bgGradient)
-		.style("color", textColor)
-		.style("align-self", "flex-start")
-		.style("width", "fit-content");
+// Pill: a small label painted with whatever ground class it's given.
+function Pill(text, ground) {
+	p.c(`tln-pill ${ground}`, text);
 }
 
-// Avatar: 26x26 circle, border 2px white, label text white centred
-function Avatar(initials, bgGradient) {
-	div.c("tln-avatar", initials)
-		.style("background", bgGradient)
-		.style("border", "2px solid #fff")
-		.style("width", "26px")
-		.style("height", "26px");
+// Avatar: initials on a round badge, painted with whatever ground class it's given.
+function Avatar(initials, ground) {
+	div.c(`tln-avatar ${ground}`, initials);
 }
 
-// Avatar Stack: flex row, avatars except last have margin-right -6px
+// Avatar stack: overlapping circles, most recent last.
 function AvatarStack(avatars) {
 	div.c("tln-avatar-stack", () => {
-		avatars.forEach((av, i) => {
-			div.c("tln-avatar-item", () => {
-				Avatar(av.initials, av.bg);
-			});
-		});
+		avatars.forEach(av => div.c("tln-avatar-item", () => Avatar(av.initials, av.ground)));
 	});
 }
 
@@ -44,148 +26,104 @@ export default new Page({
 	width: "full",
 	description: "A 15-minute timeline and a structured task detail card.",
 	content() {
-		div.c("tln-card", () => {
-			// Header
+		div.c("card bleed tln-card", () => {
 			div.c("tln-header", () => {
-				p.c("tln-title", "TIMELINE & TASK DETAIL").style("color", INK);
-				p.c("tln-tagline", "15-minute scheduling and structured task detail views.").style("color", INK);
+				h1("TIMELINE & TASK DETAIL");
+				p.c("muted tln-tagline", "15-minute scheduling and structured task detail views.");
 			});
 
-			// Main row: two equal columns
 			div.c("tln-row", () => {
-				// LEFT column: Timeline
+				// LEFT column: the timeline
 				div.c("tln-col", () => {
-					// Header row: tag + date label
 					div.c("tln-timeline-header", () => {
-						div.c("tln-tag", () => {
-							p.c("tln-label", "TIMELINE PREVIEW").style("color", INK);
-						});
-						p.c("tln-label", "Tuesday · 24 Sep").style("color", INK);
+						div.c("tln-tag bg-darken", () => h4("TIMELINE PREVIEW"));
+						h4("Tuesday · 24 Sep");
 					});
 
-					// Timeline box
-					div.c("tln-timeline-box", () => {
-						// 9 rows with time labels and lines
+					div.c("surface tln-timeline-box", () => {
 						const times = [
-							{ label: "09:00", color: INK },
-							{ label: "09:15", color: SOFT },
-							{ label: "09:30", color: SOFT },
-							{ label: "09:45", color: SOFT },
-							{ label: "10:00", color: INK },
-							{ label: "10:15", color: SOFT },
-							{ label: "10:30", color: SOFT },
-							{ label: "10:45", color: SOFT },
-							{ label: "11:00", color: INK }
+							{ label: "09:00" }, { label: "09:15", muted: true }, { label: "09:30", muted: true },
+							{ label: "09:45", muted: true }, { label: "10:00" }, { label: "10:15", muted: true },
+							{ label: "10:30", muted: true }, { label: "10:45", muted: true }, { label: "11:00" },
 						];
-
 						times.forEach(t => {
 							div.c("tln-row-time", () => {
-								p.c("tln-label", t.label).style("color", t.color);
+								p.c(t.muted ? "tln-label muted" : "tln-label", t.label);
 								div.c("tln-line");
 							});
 						});
 
-						// Event cards (absolutely positioned)
-						// Card 1: 09:10–09:40
-						div.c("tln-event-card", () => {
+						// Event cards (absolutely positioned over the grid above)
+						div.c("card tln-event-card", () => {
 							div.c("tln-event-header", () => {
-								p.c("tln-label", "09:10–09:40").style("color", "#72c4ff");
-								Avatar("MC", PRIME25);
+								p.c("tln-label tln-accent", "09:10–09:40");
+								Avatar("MC", "bg-prime");
 							});
-							p.c("tln-event-title", "Triage launch blockers").style("color", INK);
-							p.c("tln-event-ref", "ops/launch#91d2").style("color", SOFT);
-						})
-							.style("left", "91px")
-							.style("top", "27px")
-							.style("width", "230px")
-							.style("height", "86px");
+							p("Triage launch blockers");
+							p.c("muted", "ops/launch#91d2");
+						}).style("--card-edge", "var(--prime)").style("left", "91px").style("top", "27px").style("width", "230px").style("height", "86px");
 
-						// Card 2: 09:30–10:15
-						div.c("tln-event-card", () => {
+						div.c("card tln-event-card", () => {
 							div.c("tln-event-header", () => {
-								p.c("tln-label", "09:30–10:15").style("color", "#72c4ff");
-								Avatar("AI", PRIME25);
+								p.c("tln-label tln-accent", "09:30–10:15");
+								Avatar("AI", "bg-prime");
 							});
-							p.c("tln-event-title", "Review command palette").style("color", INK);
-							p.c("tln-event-ref", "feature/cmd#c04b").style("color", SOFT);
-						})
-							.style("left", "341px")
-							.style("top", "69px")
-							.style("width", "244px")
-							.style("height", "112px");
+							p("Review command palette");
+							p.c("muted", "feature/cmd#c04b");
+						}).style("--card-edge", "var(--prime)").style("left", "341px").style("top", "69px").style("width", "244px").style("height", "112px");
 
-						// Card 3: 10:20–10:50
-						div.c("tln-event-card", () => {
+						div.c("card tln-event-card", () => {
 							div.c("tln-event-header", () => {
-								p.c("tln-label", "10:20–10:50").style("color", "#72c4ff");
-								Avatar("AK", PRIME25);
+								p.c("tln-label tln-accent", "10:20–10:50");
+								Avatar("AK", "bg-prime");
 							});
-							p.c("tln-event-title", "Publish release notes").style("color", INK);
-							p.c("tln-event-ref", "tasks/notes#a18f").style("color", SOFT);
-						})
-							.style("left", "169px")
-							.style("top", "223px")
-							.style("width", "252px")
-							.style("height", "92px");
+							p("Publish release notes");
+							p.c("muted", "tasks/notes#a18f");
+						}).style("--card-edge", "var(--prime)").style("left", "169px").style("top", "223px").style("width", "252px").style("height", "92px");
 
-						// Now line (absolutely positioned)
 						div.c("tln-now-line", () => {
 							div.c("tln-now-dot");
 							div.c("tln-now-bar");
-						})
-							.style("left", "73px")
-							.style("top", "201px")
-							.style("width", "716px");
+						}).style("left", "73px").style("top", "201px").style("width", "716px");
 					});
 
-					// Description
-					p.c("tln-body", "Fifteen-minute increments reveal sequencing, overlap, and handoff windows at a glance.").style("color", SOFT);
+					p.c("muted", "Fifteen-minute increments reveal sequencing, overlap, and handoff windows at a glance.");
 				});
 
-				// RIGHT column: Task detail
+				// RIGHT column: the task detail
 				div.c("tln-col", () => {
-					p.c("tln-label", "TASK DETAIL · IN REVIEW").style("color", INK);
+					h4("TASK DETAIL · IN REVIEW");
 
-					// Detail card
-					div.c("tln-detail-card", () => {
-						// Pill
-						Pill("IN REVIEW", PRIME25, "#fff");
+					div.c("card tln-detail-card", () => {
+						Pill("IN REVIEW", "bg-prime");
+						h2("Update release notes with the final accessibility fixes.");
 
-						// Title
-						p.c("tln-detail-title", "Update release notes with the final accessibility fixes.").style("color", INK);
-
-						// Footer row
 						div.c("tln-detail-footer", () => {
-							p.c("tln-body", "tasks/release-notes#a18f").style("color", SOFT);
+							p.c("muted", "tasks/release-notes#a18f");
 							AvatarStack([
-								{ initials: "AK", bg: PRIME25 },
-								{ initials: "AI", bg: PRIME25 }
+								{ initials: "AK", ground: "bg-prime" },
+								{ initials: "AI", ground: "bg-prime" },
 							]);
 						});
 
-						// Divider
 						div.c("tln-divider");
 
-						// Facts block
 						div.c("tln-facts", () => {
-							const facts = [
+							[
 								{ label: "DUE", value: "Today · 16:00" },
 								{ label: "PRIORITY", value: "High" },
-								{ label: "LABEL", value: "Documentation" }
-							];
-
-							facts.forEach(f => {
+								{ label: "LABEL", value: "Documentation" },
+							].forEach(f => {
 								div.c("tln-fact-row", () => {
-									p.c("tln-label", f.label).style("color", SOFT);
-									p.c("tln-body", f.value).style("color", INK);
+									p.c("tln-label muted", f.label);
+									p(f.value);
 								});
 							});
 						});
 
-						// Activity box
-						div.c("tln-activity-box", () => {
-							p.c("tln-label", "Latest activity").style("color", SOFT);
-							p.c("tln-body", "AI linked the keyboard-navigation fix and requested a final copy review.").style("color", INK);
+						div.c("bg-darken tln-activity-box", () => {
+							p.c("tln-label muted", "Latest activity");
+							p("AI linked the keyboard-navigation fix and requested a final copy review.");
 						});
 					});
 				});

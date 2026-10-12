@@ -1,46 +1,26 @@
-import { Page, View, div, p } from "/app.js";
+import { Page, View, div, p, h1, h2, h4 } from "/app.js";
 
 View.stylesheet(import.meta, "tasks.css");
 
-const PRIME25 = "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25)), #72c4ff";
-const WHITE10 = "linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff";
-const INK = "rgba(0,0,0,.8)";
-const SOFT = "rgba(0,0,0,.55)";
-const LINE = "rgba(0,0,0,.1)";
-
-// Pill: padding 4px 8px, radius 999, label text, align-self flex-start, width fit-content
-function Pill(text, bgGradient, textColor) {
-	p.c("tsk-pill", text)
-		.style("background", bgGradient)
-		.style("color", textColor)
-		.style("align-self", "flex-start")
-		.style("width", "fit-content");
+// Pill: a small label painted with whatever ground class it's given.
+function Pill(text, ground) {
+	p.c(`tsk-pill ${ground}`, text);
 }
 
-// Avatar: 26x26 circle, border 2px white, label text white centred
-function Avatar(initials, bgGradient) {
-	div.c("tsk-avatar", initials)
-		.style("background", bgGradient)
-		.style("border", "2px solid #fff")
-		.style("width", "26px")
-		.style("height", "26px");
+// Avatar: initials on a round badge, painted with whatever ground class it's given.
+function Avatar(initials, ground) {
+	div.c(`tsk-avatar ${ground}`, initials);
 }
 
-// Avatar Stack: flex row, avatars except last have margin-right -6px
 function AvatarStack(avatars) {
 	div.c("tsk-avatar-stack", () => {
-		avatars.forEach((av, i) => {
-			div.c("tsk-avatar-item", () => {
-				Avatar(av.initials, av.bg);
-			});
-		});
+		avatars.forEach(av => div.c("tsk-avatar-item", () => Avatar(av.initials, av.ground)));
 	});
 }
 
-// Task Card Footer: flex, space-between, align center, full width
 function TaskFooter(refLink, avatars) {
 	div.c("tsk-footer", () => {
-		p.c("tsk-footer-text", refLink).style("color", SOFT);
+		p.c("muted", refLink);
 		AvatarStack(avatars);
 	});
 }
@@ -52,152 +32,126 @@ export default new Page({
 	width: "full",
 	description: "Task cards, progress patterns and priority treatments.",
 	content() {
-		div.c("tsk-card", () => {
-			// Header
+		div.c("card bleed tsk-card", () => {
 			div.c("tsk-header", () => {
-				p.c("tsk-title", "TASK MANAGEMENT").style("color", INK);
-				p.c("tsk-tagline", "Task cards, progress patterns, and priority treatments across approved bases.").style("color", INK);
+				h1("TASK MANAGEMENT");
+				p.c("muted tsk-tagline", "Task cards, progress patterns, and priority treatments across approved bases.");
 			});
 
-			// Row 1: Two Columns
+			// Row 1: two columns
 			div.c("tsk-row", () => {
-				// Left Column (380px)
-				div.c("tsk-col-left", () => {
-					p.c("tsk-label", "SIMPLE · DESCRIPTION ONLY").style("color", INK);
-
-					div.c("tsk-task-card", () => {
-						Pill("TODAY", PRIME25, "#fff");
-						p.c("tsk-body", "Update release notes with the final accessibility fixes.").style("color", INK);
+				div.c("tsk-col flex-1", () => {
+					h4("SIMPLE · DESCRIPTION ONLY");
+					div.c("card tsk-task-card", () => {
+						Pill("TODAY", "bg-prime");
+						p("Update release notes with the final accessibility fixes.");
 						TaskFooter("tasks/release-notes#a18f", [
-							{ initials: "AK", bg: PRIME25 },
-							{ initials: "AI", bg: PRIME25 }
+							{ initials: "AK", ground: "bg-prime" },
+							{ initials: "AI", ground: "bg-prime" },
 						]);
 					});
 				});
 
-				// Right Column (flex 1)
-				div.c("tsk-col-right", () => {
-					p.c("tsk-label", "COMPLEX · SUB-TASKS").style("color", INK);
-
-					div.c("tsk-task-card", () => {
-						// Header row
+				div.c("tsk-col flex-1", () => {
+					h4("COMPLEX · SUB-TASKS");
+					div.c("card tsk-task-card", () => {
 						div.c("tsk-task-header", () => {
 							div.c("tsk-header-left", () => {
-								Pill("FEATURE", "#675f56", "#fff");
-								p.c("tsk-task-title", "Ship command palette").style("color", INK);
+								Pill("FEATURE", "bg-dark");
+								h2("Ship command palette");
 							});
-							p.c("tsk-task-status", "2 / 4").style("color", SOFT);
+							p.c("tsk-label muted", "2 / 4");
 						});
-
-						// Body
-						p.c("tsk-body", "Unify navigation, search, and common actions behind one keyboard-first surface.").style("color", SOFT);
-
-						// Sub-task list
+						p.c("muted", "Unify navigation, search, and common actions behind one keyboard-first surface.");
 						div.c("tsk-subtasks", () => {
 							[
 								{ text: "Map keyboard shortcuts", done: true },
 								{ text: "Build command search", done: true },
 								{ text: "Add recent actions", done: false },
-								{ text: "Run accessibility pass", done: false }
+								{ text: "Run accessibility pass", done: false },
 							].forEach(st => {
 								div.c("tsk-subtask-row", () => {
-									div.c(st.done ? "tsk-dot tsk-dot-done" : "tsk-dot tsk-dot-open");
-									p.c("tsk-subtask-text", st.text).style("color", st.done ? SOFT : INK);
+									div.c(st.done ? "bg-prime tsk-dot" : "surface tsk-dot");
+									p.c(st.done ? "muted" : "", st.text);
 								});
 							});
 						});
-
-						// Footer
 						TaskFooter("feature/command-menu#c04b", [
-							{ initials: "MC", bg: "#675f56" },
-							{ initials: "AI", bg: PRIME25 },
-							{ initials: "JD", bg: PRIME25 }
+							{ initials: "MC", ground: "bg-dark" },
+							{ initials: "AI", ground: "bg-prime" },
+							{ initials: "JD", ground: "bg-prime" },
 						]);
 					});
 				});
 			});
 
-			// Row 2: Three Progress Cards
-			div.c("tsk-row", () => {
-				// Five-step rollout
-				div.c("tsk-progress-card", () => {
+			// Row 2: three progress cards
+			div.c("grid auto gap tsk-progress-row", () => {
+				div.c("card tsk-progress-card", () => {
 					div.c("tsk-progress-header", () => {
-						p.c("tsk-label", "Five-step rollout").style("color", INK);
-						p.c("tsk-label", "STEP 3").style("color", SOFT);
+						h4("Five-step rollout");
+						p.c("tsk-label muted", "STEP 3");
 					});
 					div.c("tsk-bars", () => {
-						[1, 2, 3, 4, 5].forEach(i => {
-							div.c("tsk-bar")
-								.style("background", i <= 3 ? "#72c4ff" : "#000");
-						});
+						[1, 2, 3, 4, 5].forEach(i => div.c(i <= 3 ? "bg-prime tsk-bar" : "bg-darken tsk-bar"));
 					});
-					p.c("tsk-body", "Review in progress").style("color", SOFT);
+					p.c("muted", "Review in progress");
 				});
 
-				// Migration
-				div.c("tsk-progress-card", () => {
+				div.c("card tsk-progress-card", () => {
 					div.c("tsk-progress-header", () => {
-						p.c("tsk-label", "Migration").style("color", INK);
-						p.c("tsk-label", "68%").style("color", SOFT);
+						h4("Migration");
+						p.c("tsk-label muted", "68%");
 					});
-					div.c("tsk-track", () => {
-						div.c("tsk-fill").style("width", "68%");
+					div.c("bg-darken tsk-track", () => {
+						div.c("bg-prime tsk-fill").style("width", "68%");
 					});
-					p.c("tsk-body", "17 of 25 modules").style("color", SOFT);
+					p.c("muted", "17 of 25 modules");
 				});
 
-				// Milestones
-				div.c("tsk-progress-card", () => {
-					p.c("tsk-label", "Milestones").style("color", INK);
+				div.c("card tsk-progress-card", () => {
+					h4("Milestones");
 					div.c("tsk-milestone-row", () => {
-						[1, 2, 3].forEach(i => {
+						[1, 2, 3].forEach(() => {
 							div.c("tsk-milestone-item", () => {
-								div.c("tsk-milestone-circle", "✓")
-									.style("background", "#72c4ff")
-									.style("color", "#fff");
-								div.c("tsk-milestone-line");
+								div.c("bg-prime tsk-milestone-circle", "✓");
+								div.c("bg-prime tsk-milestone-line");
 							});
 						});
 						div.c("tsk-milestone-final", () => {
-							div.c("tsk-milestone-circle-hollow")
-								.style("background", "#fff")
-								.style("border", `2px solid ${LINE}`);
+							div.c("surface tsk-milestone-circle-hollow");
 						});
 					});
-					p.c("tsk-body", "QA is the final gate").style("color", SOFT);
+					p.c("muted", "QA is the final gate");
 				});
 			});
 
-			// Row 3: Priority by scale title
-			p.c("tsk-section-title", "Priority by scale").style("color", INK);
+			// Row 3: priority by scale
+			h2("Priority by scale");
 
-			// Row 4: Priority Cards
+			// Row 4: priority cards
 			div.c("tsk-row", () => {
-				// P0 Card
-				div.c("tsk-p0-card", () => {
-					Pill("P0 · BLOCKER", PRIME25, "#72c4ff");
-					p.c("tsk-priority-title", "Resolve release-blocking focus trap").style("color", INK);
-					p.c("tsk-body", "Blocks the release candidate. Receives strongest visual weight.").style("color", SOFT);
+				div.c("card tsk-p0-card flex-1", () => {
+					Pill("P0 · BLOCKER", "bg-prime");
+					h2("Resolve release-blocking focus trap");
+					p.c("muted", "Blocks the release candidate. Receives strongest visual weight.");
 					TaskFooter("fix/focus-trap#b912", [
-						{ initials: "MC", bg: "#675f56" },
-						{ initials: "AI", bg: PRIME25 }
+						{ initials: "MC", ground: "bg-dark" },
+						{ initials: "AI", ground: "bg-prime" },
 					]);
 				});
 
-				// Right column with P1 and P2
-				div.c("tsk-col-p-right", () => {
-					// P1 Card
-					div.c("tsk-p1-card", () => {
-						Pill("P1 · HIGH", PRIME25, "#fff");
-						p.c("tsk-priority-title", "Ship command palette").style("color", INK);
-						p.c("tsk-body", "feature/cmd#c04b").style("color", SOFT);
+				div.c("tsk-col-p-right flex-1", () => {
+					div.c("card tsk-p1-card", () => {
+						Pill("P1 · HIGH", "bg-prime");
+						h2("Ship command palette");
+						p.c("muted", "feature/cmd#c04b");
 					});
 
-					// P2 Card
-					div.c("tsk-p2-card", () => {
-						Pill("P2", WHITE10, SOFT);
-						p.c("tsk-body", "Update changelog").style("color", INK);
-						p.c("tsk-body", "docs/changelog#ec21").style("color", SOFT);
+					div.c("card tsk-p2-card", () => {
+						Pill("P2", "bg-darken muted");
+						p("Update changelog");
+						p.c("muted", "docs/changelog#ec21");
 					});
 				});
 			});
