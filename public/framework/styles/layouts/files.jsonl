@@ -41,3 +41,11 @@
 {"file":"word.js"}
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
+{"file":"catalog/"}
+{"file":"catalog/page.js"}
+{"file":"catalog/LayoutCatalog.js"}
+{"file":"catalog/catalog.css"}
+{"file":"catalog/census.mjs"}
+{"file":"catalog/shots.mjs"}
+{"file":"catalog/doc/matching.md"}
+{"file":"catalog/page.js"}

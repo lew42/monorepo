@@ -4,10 +4,12 @@
 
 ## Index
 
+- [colour schemes](./doc/colour-schemes.md) — one simple default (white, light, dark ground stack freely); prime is a checked callout
+
 - [system](./system/) — the design system: the seven spacing lengths, painted live
 - [elements](./elements/) — every element `framework.css` styles, for plain-HTML writers
 - [layers](./layers/) — the four cascade layers and their order
-- [layouts](./layouts/) — every whole-page layout as a class string on one filterable wall
+- [layouts](./layouts/) — [ranked catalog](./layouts/catalog/) and every whole-page layout as a class string on one filterable wall
 - [rules](./rules/) — layout dos and don'ts, one page each, with self-measuring examples
 - [sections](./sections/) — fifteen content bands that compose into a page
 - [stacks](./stacks/) — every fill on every floor, measured, and the alpha ladder

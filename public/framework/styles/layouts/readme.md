@@ -2,6 +2,8 @@
 
 ## Index
 
+- [catalog](./catalog/) — every layout ranked, with use count, what content it suits and when not to; [content → layout](./catalog/doc/matching.md)
+
 - [400](./400/) — five class strings, one column at 400px
 - [anatomy](./anatomy/) — seven generic layouts and the two strings behind them
 - [apidoc](./apidoc/) — API-documentation page layouts (no readme yet)

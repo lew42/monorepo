@@ -8,6 +8,7 @@ View.stylesheet(import.meta, "layouts.css");
    these cannot express: Words is grandchildren (see browse.js's entry()), and
    `space/` belongs to another effort. */
 const BANDS = {
+	Choose:    "catalog",
 	Words:     "flex/gap flex/v flex/split flex/basis flex/auto grid/auto",
 	Pages:     "document docs landing hero home pricing stack toc-studio apidoc bold-editorial",
 	Apps:      "shell dashboard split overlay gallery sidebar masonry feed carousel mail chat",

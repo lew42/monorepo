@@ -6,6 +6,8 @@ description: Invoke before building or restyling anything with a size — a page
 Read the readme chain at /framework/design/layout/ (root → design → layout), then its
 doc/rules.md, doc/caveats.md and questions.md.
 
+Before C1: read the content → layout table at public/framework/styles/layouts/catalog/doc/matching.md (14 ranked layouts; colour rule at public/framework/styles/doc/colour-schemes.md).
+
 Overview: choose the layout first (C1–C5: room, content, outline, fill, which approved layout);
 prefer approved layouts most of the time, and check at four widths (400, 1200, 1920, 3440) before merging;
 then five sizing questions (container, size at 400/1200/1920/3440, its own layout, how many

@@ -1,0 +1,6 @@
+@layer theme {
+	.catalog-card { --flow: var(--gap-50); --gap: var(--gap-50); }
+	.catalog-card p { margin: 0; }
+	.catalog-shot { display: block; aspect-ratio: 3 / 2; overflow: hidden; border-radius: 0.4em; }
+	.catalog-shot img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+}

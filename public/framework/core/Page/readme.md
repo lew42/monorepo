@@ -48,7 +48,7 @@ each step and the two traps that catch people, is [`doc/loading.md`](./doc/loadi
 ## Making a page: reuse a layout first
 
 Load the `page` skill (what, where, layout, content) and let `create_page` make the files.
-Pick the layout from **[the audit](./audit/)**: the layouts the site already uses, most-used
+**Match your content first:** [content → layout](/framework/styles/layouts/catalog/doc/matching.md) (ranked [catalog](/framework/styles/layouts/catalog/), with use counts). Then pick the layout from **[the audit](./audit/)**: the layouts the site already uses, most-used
 first, each with its one opt-in call. Doc pages (top tabs) and column pages are the two that
 cover most modules. A child starts from its parent's layout. Pages drift two ways: building
 their own tab strip, sidebar or shell, or a one-page CSS tweak on top of a shared layout (a

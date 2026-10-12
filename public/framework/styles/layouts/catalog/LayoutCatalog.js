@@ -1,0 +1,51 @@
+/* The layout catalog as data: each entry is one way to arrange a page, ranked, with the content it suits.
+   Use counts come from census.json (node census.mjs); screenshots from shots/ (node shots.mjs).
+   Why each score, and how to choose: doc/matching.md. */
+export default class LayoutCatalog {
+	/* score: 1-5, how often it is the right answer × how well our version works today.
+	   suits: items (how many) · info each · what you do with them. */
+	static entries = [
+		{ name: "document", title: "Reading page", score: 5, census: "standard", demo: "/framework/styles/layouts/document/", words: "page (no class)",
+			why: "The default: one 40em reading column; every page starts here and 745 of 986 never leave it.",
+			suits: "One topic · prose, code, a few cards · read top to bottom.", avoid: "Anything you compare, sort or jump between." },
+		{ name: "left-nav", title: "Left-nav site", score: 5, census: "left-nav", demo: "/framework/core/Sidebar/", words: "Sidebar + page",
+			why: "A tree of pages always in view: jump anywhere in one click, the place is never lost.",
+			suits: "20+ pages in a hierarchy · a title and an icon each · browse, then read.", avoid: "A one-screen tool or a flow with a fixed order." },
+		{ name: "docs", title: "Menu, article, contents", score: 4, census: "toc", demo: "/framework/styles/layouts/docs/", words: "rail + page + toc rail",
+			why: "Left-nav plus a contents rail for one long article; it sheds rails as the room shrinks.",
+			suits: "One long article · many headings · skim, then dive.", avoid: "Short pages: two rails around three paragraphs is noise." },
+		{ name: "rail-wall", title: "Filter rail beside a wall", score: 4, census: "rail-wall", demo: "/framework/styles/layouts/gallery/", words: "browse() · rail + wall",
+			why: "Previews that count their own columns, filtered from a rail; the one pattern for 'find a thing by looking'.",
+			suits: "10–300 items · a picture and a title each · scan, filter, open one.", avoid: "Items that differ only in their numbers: use a data grid." },
+		{ name: "inbox", title: "Inbox: rail, preview, detail", score: 5, census: "inbox", demo: "/framework/ux/Inbox/", words: "Inbox.Rail + route(id)",
+			why: "A rail of previews beside the page you picked and nothing jumps; reload and Back land in the same place.",
+			suits: "20–500 items that arrive over time · a title, a line and a status each · triage, then open one.", avoid: "A fixed handful of items, or items with nothing to preview." },
+		{ name: "split", title: "List and detail", score: 4, census: "split", demo: "/framework/styles/layouts/split/", words: "flex wrap + basis",
+			why: "The no-class version of the inbox: two scrollers, the list picks what the detail shows.",
+			suits: "10–50 rows · a title and a sentence each · pick one, read it.", avoid: "When rows need a status, search and a route per row: use the inbox." },
+		{ name: "data-grid", title: "Data grid", score: 4, census: "data-grid", demo: "/framework/ext/DataGrid/", words: "ext/DataGrid",
+			why: "Sortable columns, one row per record; strong for numbers, but only two pages use it so far.",
+			suits: "50–10,000 rows · 4–12 comparable fields each · sort, filter, compare, then act.", avoid: "Fewer than ten rows or rows that are mostly prose." },
+		{ name: "dashboard", title: "Number strip over panels", score: 3, census: "wall", demo: "/framework/styles/layouts/dashboard/", words: "wall + wall",
+			why: "Headline numbers over a wall of panels; reads well, but a dashboard is rarely what a page needs.",
+			suits: "4–8 headline numbers, 3–9 panels · a figure or chart each · glance, do not read.", avoid: "Anything the reader must read in order." },
+		{ name: "columns", title: "Columns (drill down)", score: 3, census: "columns", demo: "/framework/styles/layouts/cols/", words: "cols words · Page columns",
+			why: "Parent, child, grandchild side by side; strong for depth, heavy on small screens, which collapse it to one.",
+			suits: "A tree 2–3 levels deep · a name each · drill down and keep your place.", avoid: "Flat lists, or phones as the main audience." },
+		{ name: "steps", title: "Steps (wizard)", score: 4, census: "steps", demo: "/framework/ext/drawer/walkthrough/", words: "ux/Wizard",
+			why: "One step per screen, the step in the address; the clearest layout for a first-time walk-through.",
+			suits: "3–10 steps in a fixed order · a picture and a sentence each · go forward, go back.", avoid: "Content people dip into out of order." },
+		{ name: "properties", title: "Properties rail (ask about this)", score: 4, census: "rail", demo: "/framework/ext/drawer/", words: "ext/drawer · rail",
+			why: "A right rail that follows what you selected: its fields, and a chat about that one thing.",
+			suits: "One selected item · 5–20 fields plus a conversation · inspect, edit, ask.", avoid: "A page with nothing selectable." },
+		{ name: "chat", title: "Chat", score: 3, census: "chat", demo: "/framework/styles/layouts/chat/", words: "flex v + pinned composer",
+			why: "Transcript above, composer pinned below; the demo is good, and the real chats live in ai/ and ux/.",
+			suits: "A growing message log · short messages · talk, then scroll back.", avoid: "Static content." },
+		{ name: "landing", title: "Landing bands", score: 3, census: "hero", demo: "/framework/styles/layouts/landing/", words: "full-bleed bands",
+			why: "Stacked full-width sections with a hero first; excellent for a front door, wrong for working pages.",
+			suits: "5–10 bands · a headline and a picture each · persuade, then send them on.", avoid: "Daily-use pages." },
+		{ name: "figma-card", title: "Big white card (Figma palette)", score: 2, census: "figma-card", demo: "/framework/ext/Figma/palette/", words: "one full-width white .card",
+			why: "Even spacing, simple to scroll, a bit big: calm for one idea at a time. Documented, not for everywhere.",
+			suits: "1 idea per card · a heading and a short demo · scroll through a showcase.", avoid: "Dense or repeated content: it wastes the screen." },
+	];
+}
