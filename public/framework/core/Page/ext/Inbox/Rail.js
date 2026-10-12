@@ -71,6 +71,8 @@ export default class Rail {
 
 	/** The Inbox's floor: rows scoring under this stay out of it (inbox zero, 2026-09-30). */
 	static FLOOR = 90;
+	/** The three plain words a row is sorted into by its score (the owner's ask: blocking / review / fyi). */
+	static CATEGORIES = ["blocking", "review", "fyi"];
 
 	/** The page this rail belongs to — rows link under its url. */
 	get url(){ return this.page.url; }
@@ -81,6 +83,7 @@ export default class Rail {
 	mount(){
 		const q = new URLSearchParams(location.search);
 		this.review_only = q.get("review") === "1";
+		this.cat = Rail.CATEGORIES.includes(q.get("cat")) ? q.get("cat") : null;
 		this.min = this.floor_from_url(this.min_default);
 		// A fresh mount keeps applying every reorder for a moment while the data's several
 		// streams each finish their first load — see `order_rows()`.
@@ -122,6 +125,7 @@ export default class Rail {
 			this.$chrome = div.c("inbox-chrome flex v-center gap-25", () => {
 				this.actions();
 				this.needs_chip();
+				this.category_chips();
 				this.floor();
 				this.toggles();
 				this.search();
@@ -150,6 +154,34 @@ export default class Rail {
 			span("Needs you");
 			this.$needs_count = small.c("inbox-badge").attr("hidden", "");
 		});
+	}
+
+	/* BLOCKING / REVIEW / FYI — three chips; click one to show only that kind, click again for all.
+	   State is the url (`?cat=`). FYI shows rows under the floor, since that is where they live. */
+	category_chips(){
+		this.$cats = span.c("inbox-cats flex v-center gap-25", () => {
+			Rail.CATEGORIES.forEach(word => {
+				button.c("inbox-cat").attr("type", "button").attr("data-cat", word)
+					.attr("title", Rail.CAT_HELP[word]).text(word)
+					.click(() => {
+						this.cat = this.cat === word ? null : word;
+						this.set_query("cat", this.cat);
+						this.paint_cats();
+						this.relist();
+					});
+			});
+		});
+		this.paint_cats();
+	}
+	paint_cats(){
+		this.$cats.el.querySelectorAll(".inbox-cat").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cat === this.cat)));
+	}
+	static CAT_HELP = { blocking: "a blocker: score 97 and up", review: "waiting on you: score 90 to 96", fyi: "good to know: score under 90" };
+
+	/** Which plain word a row is: by its importance score (needs-rule.js). A subclass can override. */
+	category(it){
+		const n = it.score ?? 0;
+		return n >= 97 ? "blocking" : n >= this.min_default ? "review" : "fyi";
 	}
 
 	/* SEARCH — title and text, archived rows included ("find this, wherever it is"). */
@@ -281,17 +313,19 @@ export default class Rail {
 		if (this.only_notes) base = base.filter(it => it.kind === "note");
 		base = base.filter(it => !this.resolved(it));
 		if (this.review_only) base = base.filter(it => this.needs(it));
+		if (this.cat) base = base.filter(it => this.exempt(it) || this.category(it) === this.cat);
 		const archived = this.pool_archived(this.list.archived ?? []);
 		if (this.search_q){
 			const hit = it => this.haystack(it).includes(this.search_q);
 			return [...base.filter(hit), ...archived.filter(hit)];
 		}
 		if (this.show_archived) return [...base, ...archived];
+		if (this.cat === "fyi") return base;
 		return base.filter(it => this.exempt(it) || (it.score ?? 0) >= this.min);
 	}
 
 	/** Is the floor on right now? Off while searching, showing archived, or at 0. */
-	floored(){ return this.min > 0 && !this.search_q && !this.show_archived; }
+	floored(){ return this.min > 0 && this.cat !== "fyi" && !this.search_q && !this.show_archived; }
 
 	/* ── read / unread and archive — a subclass writes them somewhere real ── */
 	is_read(id){ return this.read_set().has(id); }

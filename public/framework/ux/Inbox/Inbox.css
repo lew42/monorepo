@@ -298,6 +298,18 @@
 		gap: 0.3em;
 	}
 
+	/* BLOCKING / REVIEW / FYI chips: small, the pressed one filled. */
+	.inbox-cat {
+		min-height: 0;
+		padding: 0.1em 0.5em;
+		border-radius: 1em;
+		font-size: 0.85em;
+	}
+	.inbox-cat[aria-pressed="true"] {
+		background: var(--prim);
+		color: var(--prim-ink);
+	}
+
 	/* SEARCH takes the row's leftover space instead of sizing to its placeholder. */
 	.inbox-search {
 		flex: 1 1 8em;
