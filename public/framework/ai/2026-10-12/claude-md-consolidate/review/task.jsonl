@@ -13,3 +13,7 @@
 {"log":{"at":"2026-10-12T06:30:42-05:00","heartbeat":"deliberate","msg":"minion-claude-md-review its agent is not running: it was stopped on purpose by lifecycle at 2026-10-12T02:23:41-05:00; not revived."}}
 {"log":{"at":"2026-10-12T07:10:31-05:00","heartbeat":"deliberate","msg":"minion-claude-md-review its agent is not running: it was stopped on purpose by lifecycle at 2026-10-12T02:23:41-05:00; not revived."}}
 {"log":{"at":"2026-10-12T07:32:12-05:00","heartbeat":"deliberate","msg":"minion-claude-md-review its agent is not running: it was stopped on purpose by lifecycle at 2026-10-12T02:23:41-05:00; not revived."}}
+{"log":{"at":"2026-10-12T09:46:34-05:00","heartbeat":"revive-queued","msg":"minion-claude-md-review its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-12T09:46:36-05:00","heartbeat":"revive","msg":"revived minion-claude-md-review from session fa94d9b8-1e1c-4c5c-9e0d-479d4a33da34"}}
+{"log":{"at":"2026-10-12T09:46:43-05:00","heartbeat":"answered","msg":"I'm idle and have nothing left to do. The review is finished, and the report is at `public/framework/ai/2026-10-12/claude-md-consolidate/review/report.md`.\n\nThe task is still open because `task.jsonl`"}}
+{"log":{"at":"2026-10-12T10:03:29-05:00","heartbeat":"deliberate","msg":"minion-claude-md-review its agent is not running: it was stopped on purpose by in-process at 2026-10-12T09:52:33-05:00; not revived."}}

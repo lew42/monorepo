@@ -530,3 +530,6 @@
 {"at":"2026-10-12T13:11:06.546Z","target":"public/framework/ai/2026-10-12/night-audit","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T13:11:06.674Z","target":"public/framework/ai/2026-10-12/night-audit","verdict":"spawned","to":"clarity-night-audit"}
 {"at":"2026-10-12T13:30:00.000Z","target":"public/framework/ai/2026-10-12/night-audit","verdict":"rewrote","what":"report.md cut from 377 words, added checked-counts block and tick list","to":"night-audit/report.md"}
+{"at":"2026-10-12T14:49:03.798Z","target":"public/framework/ai/2026-10-12/models-asks","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T14:49:03.914Z","target":"public/framework/ai/2026-10-12/models-asks","verdict":"spawned","to":"clarity-models-asks"}
+{"at":"2026-10-12T10:00:00-05:00","target":"public/framework/ai/2026-10-12/models-asks","verdict":"rewrote","what":"shortened stale STATE-paused-earlier.md to a pointer; outcome asks ticked with proof","to":"public/framework/ai/2026-10-12/models-asks/STATE-paused-earlier.md"}
