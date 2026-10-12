@@ -25,3 +25,4 @@
 {"log":{"at":"2026-10-12T19:16:18.912Z","msg":"nineteenth pass: words.jsonl now holds 2 real owner lines (Whisper period, Whisper log). Added asks F1 (partly: period is Whisper own, strip option unbuilt) and F2 (done: WhisperLog exists). Other open asks unchanged, not re-verified."}}
 {"log":{"at":"2026-10-12T19:30:00Z","msg":"twentieth pass: F1/F2 were logged but missing from asks.jsonl; now appended. No other new words."}}
 {"log":{"at":"2026-10-12T16:32:00-05:00","msg":"council-2: 2 words became F1 (done) and F2 (partly) in asks.jsonl; 23 older open asks not re-verified, they need the 5-checker pass"}}
+{"log":{"at":"2026-10-12T17:00:00-05:00","msg":"Checkers stopped after 21 min at the spawn gate (no pool worktree). W1, W2 appended to asks.jsonl. The 23 open asks keep their 2026-10-07 verdicts (1029 commits since); re-check once spawn capacity frees."}}
