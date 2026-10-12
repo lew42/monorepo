@@ -599,8 +599,8 @@ export function aiV1({ page, card, tabs }){
 
 		if (card){
 			const $thread = div.c("drawer-ai-list flex v");
-			import("/framework/ai/cards/chat.js").then(m => {
-				$thread.empty(() => { talk = m.default({ source: () => card.chat_entries(), re: () => card.id }); });
+			import("/framework/ai/cards/CardChat.js").then(m => {
+				$thread.empty(() => { talk = m.CardChat.chat({ source: () => card.chat_entries(), re: () => card.id }); });
 				talk.sync();
 			});
 		} else {

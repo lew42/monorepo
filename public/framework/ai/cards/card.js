@@ -3,19 +3,19 @@ import { icon, table, thead, tbody, tr, th, td } from "/framework/core/View/View
 import List from "/framework/core/List/List.js";
 import { Faces } from "./faces.js";
 import { money, cost_of, summary_line as cost_line } from "/framework/ext/AITask/cost.js";
-import { task_of, task_region, face_row, group_faces } from "./tasks.js";
+import { Tasks } from "./Tasks.js";
 
 import grip from "/framework/ext/grip/grip.js";
 import Menu from "/framework/ux/Menu/Menu.js";
-import chat, { md_into } from "./chat.js";
-import composer from "./compose.js";
-import agents_panel, { agent_cost } from "./agents.js";
-import { items_of, about_line, outline, state_span, short } from "./outline.js";
+import { CardChat, md_into } from "./CardChat.js";
+import { Compose } from "./Compose.js";
+import { Agents } from "./Agents.js";
+import { Outline } from "./Outline.js";
 import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "../rail/inbox.js";
 import { Needs } from "../rail/Needs.js";
 import "/framework/ext/tabs/tabs.js";   // for its stylesheet: a card's tab strip wears .tabs / .tab-bar / .tab
-import { seen, mark_seen, card_events, activity_list } from "./activity.js";
-import { mark_read, is_read } from "./rules.js";
+import { Activity } from "./Activity.js";
+import { Rules } from "./Rules.js";
 import floating from "./floating.js";
 import workspace from "./workspace.js";
 
@@ -345,9 +345,9 @@ export default class Card extends Page {
 		const fresh = !!shell && shell.opening === this.id;
 		if (this.chat_v1()){
 			div.c("ai2-foot", () => {
-				this.talk = chat({ source: () => this.chat_entries(), re: () => this.id });
+				this.talk = CardChat.chat({ source: () => this.chat_entries(), re: () => this.id });
 				if (fresh) shell.opening = null;
-				this.$composer = composer({
+				this.$composer = Compose.composer({
 					re: () => this.id,
 					placeholder: sub ? "talk into this request" : "talk into this card",
 					on_text: text => this.talk.echo(text),
@@ -408,7 +408,7 @@ export default class Card extends Page {
 	/** THE CARD'S OWN PROPERTIES — small and quiet (one-card-props, 2026-10-03 follow-up).
 	 *  Replaces the per-card chat column: nothing here is talked into, it is read. Type,
 	 *  status, tags, who worked on it, its files, then Actions — the same `type_picker()`,
-	 *  `agents_panel()`, `draw_folder()` and `actions()` the card already had, moved out
+	 *  `Agents.panel()`, `draw_folder()` and `actions()` the card already had, moved out
 	 *  of the header and the "More…" fold into their own column. */
 	properties_sidebar(sub){
 		const f = this.facts();
@@ -426,7 +426,7 @@ export default class Card extends Page {
 			});
 			div.c("ai2-props-section", () => {
 				div.c("ai2-props-head muted").text("Who worked on it");
-				agents_panel(this.id);
+				Agents.panel(this.id);
 			});
 			div.c("ai2-props-section", () => {
 				div.c("ai2-props-head muted").text("Files in this " + (sub ? "request's" : "card's") + " folder");
@@ -484,7 +484,7 @@ export default class Card extends Page {
 			Needs.for_card(this.id).map(n => n.ask).join(","),
 			this.description, this.links, this.flag_note, this.attached?.length, this.md_names(), this.placed, [...this.listed?.values() ?? []], cards_ready.known,
 			this.group_info(), this.subs().map(s => cards?.card(this.id + "/" + s) ?? s), this.cost_model(this.group_info()),
-			agent_cost(this.id, () => this.redraw()), this.shell?.ai2?.groups?.task_member(task_of(this))?.landed_at,
+			Agents.agent_cost(this.id, () => this.redraw()), this.shell?.ai2?.groups?.task_member(Tasks.task_of(this))?.landed_at,
 			!this.tiny() && this.shows_tabs() && this.open_tab(), [...(this.sub_group ?? [])], [...(this.sub_done ?? [])], [...(this.sub_meta ?? [])], this.refined?.text, this.prompts?.[0]?.text, [...(this.outline_items?.values() ?? [])], this.chats]);
 	}
 
@@ -531,7 +531,7 @@ export default class Card extends Page {
 	task_list(){
 		const g = this.group_info();
 		if (g) return this.shell.ai2.groups.members(g.id).filter(m => m.kind !== "said");
-		return this.shell?.ai2?.groups?.task_at(task_of(this)) ?? [];
+		return this.shell?.ai2?.groups?.task_at(Tasks.task_of(this)) ?? [];
 	}
 
 	fill_tasks(){
@@ -540,7 +540,7 @@ export default class Card extends Page {
 		// The task pages are what agents did for this card's requests: the Tasks tab.
 		// With no Tasks tab, a card's one task page still follows its Overview, never its Activity.
 		if (this.$tasks) this.$tasks.el.hidden = this.shows_tabs() && (this.has_tasks() ? this.open_tab() !== "tasks" : this.open_tab() === "activity");
-		if (this.$tasks) task_region(this.$tasks, this.task_list().filter(m => !g || m.kind !== "task"), this.task_state ??= {}, { head: !!g });
+		if (this.$tasks) Tasks.task_region(this.$tasks, this.task_list().filter(m => !g || m.kind !== "task"), this.task_state ??= {}, { head: !!g });
 	}
 
 	/* A TOP-LEVEL CARD HAS TWO TABS (the owner, 2026-09-25): Overview — what the card
@@ -571,13 +571,13 @@ export default class Card extends Page {
 	   this visit (`seen_from`, reset in `activated()`), so they stay while you read;
 	   what is stored is the card's newest time, which takes the bar off its rail row. */
 	activity_tab(){
-		const since = this.seen_from ??= seen(this.id);
+		const since = this.seen_from ??= Activity.seen(this.id);
 		const g = this.group_info();
 		div.c("ai2-activity-box", $box => {
 			small.c("muted").text("Reading this card's log…");
-			card_events(this.id, this.drawn_sig).then(evs => {
+			Activity.card_events(this.id, this.drawn_sig).then(evs => {
 				const all = [...evs, ...(g ? this.member_events(g) : [])];
-				$box.empty(() => { activity_list(all, since); });
+				$box.empty(() => { Activity.activity_list(all, since); });
 				this.saw(...all.map(e => e.at), this.row_at, g && this.shell?.ai2?.groups?.at(g));
 			});
 		});
@@ -595,22 +595,22 @@ export default class Card extends Page {
 	/** Store the newest of these times as seen; the rail repaints when it moved. */
 	saw(...ats){
 		const t = Math.max(0, ...ats.map(a => Date.parse(a ?? 0) || 0));
-		if (t && mark_seen(this.id, new Date(t).toISOString())) this.shell?.ai2?.repaint?.();
+		if (t && Activity.mark_seen(this.id, new Date(t).toISOString())) this.shell?.ai2?.repaint?.();
 	}
 
 	/** The Tasks tab: the requests, then what each cost and who worked on it, then the task pages below. */
 	tasks_tab(g){
 		this.contents();
 		this.cost_block(g);
-		agents_panel(this.id);
+		Agents.panel(this.id);
 	}
 
 	/** The card's dollars: a group's from its tasks, else its task's, else its own agents'. */
 	cost_now(g){
 		const groups = this.shell?.ai2?.groups;
 		if (g){ const s = groups?.cost(g.id); return s?.tracked ? { usd: s.usd, open: !!s.open } : {}; }
-		const c = cost_of(groups?.task_member(task_of(this)));
-		return c ? { usd: c.usd, open: !!c.open } : { usd: agent_cost(this.id, () => this.redraw()) };
+		const c = cost_of(groups?.task_member(Tasks.task_of(this)));
+		return c ? { usd: c.usd, open: !!c.open } : { usd: Agents.agent_cost(this.id, () => this.redraw()) };
 	}
 
 	tabbed(){ return !(this.parent instanceof Card); }
@@ -644,7 +644,7 @@ export default class Card extends Page {
 	tab_list(){
 		const list = [{ key: "outline", label: "Outline", draw: () => {
 			const g = this.group_info();
-			this.overview(this.facts(), g, items_of(this, g), false, false);
+			this.overview(this.facts(), g, Outline.items_of(this, g), false, false);
 		} }];
 		const keys = new Set(["outline", "tasks", "activity", "md", ...this.subs()]);
 		const free = key => { let k = key, n = 1; if (keys.has(k)) k = key + "-tab"; while (keys.has(k)) k = key + "-tab-" + ++n; keys.add(k); return k; };
@@ -789,7 +789,7 @@ export default class Card extends Page {
 			div.c("ai2-full-name", () => {
 				span.c("ai2-full-title").md(this.title ?? this.name);
 				const { usd, open } = this.cost_now(g);
-				state_span(items, usd, open);
+				Outline.state_span(items, usd, open);
 			});
 			this.reviewed_control();
 		});
@@ -865,7 +865,7 @@ export default class Card extends Page {
 
 		// THE CARD STANDARD (ai/doc/ai2/card-standard.md):
 		// 1. Name + one sentence: what it is
-		const line = about_line(this, g);
+		const line = Outline.about_line(this, g);
 		if (line) p.c("ai2-ol-about").text(line);
 
 		// 2. State: explicit one-line state if declared
@@ -912,7 +912,7 @@ export default class Card extends Page {
 		// 5. Checklist: explicit checklist items or outline requests
 		if (this.checklist_items?.length) this.render_checklist();
 		else if (this.by_request()) this.request_outline(items);
-		else outline(this, items);
+		else Outline.outline(this, items);
 
 		// A card nothing was asked in yet (a topic stub, a new sub-card) says so, instead of a blank page.
 		if (!line && !this._state && !this._objects && !items.length && !this.prompts?.length && !this.messages?.length && !this.chats?.length)
@@ -943,9 +943,9 @@ export default class Card extends Page {
 	   listed, never counted as "to do". The card's own task pages (a group's members) are
 	   counted beside its requests, as outline.js always did. */
 	overview_items(g){
-		if (!this.by_request()) return items_of(this, g);
+		if (!this.by_request()) return Outline.items_of(this, g);
 		const subs = new Set(this.subs().map(s => this.id + "/" + s));
-		const tasks = items_of(this, g).filter(i => !subs.has(i.id) && !/^p-/.test(i.id));
+		const tasks = Outline.items_of(this, g).filter(i => !subs.has(i.id) && !/^p-/.test(i.id));
 		return [...tasks.map(t => ({ ...t, proof: this.task_href(t.proof) })), ...this.request_items().filter(i => i.asked)];
 	}
 
@@ -963,7 +963,7 @@ export default class Card extends Page {
 		const cards = this.shell?.ai2?.cards;
 		return this.subs().map(slug => {
 			const id = this.id + "/" + slug, s = cards?.card(id), m = this.sub_meta?.get(slug) ?? {};
-			return { id, slug, title: short(this.sub_title(slug)), asked_at: m.created ?? s?.created, asked: !!m.asked,
+			return { id, slug, title: Outline.short(this.sub_title(slug)), asked_at: m.created ?? s?.created, asked: !!m.asked,
 				done: !!this.sub_done?.get(slug), proof: this.url + slug + "/" };
 		});
 	}
@@ -1052,7 +1052,7 @@ export default class Card extends Page {
 		// a second tracker. It clears itself the moment the topic's own card page opens
 		// (`activated()`, below, already calls `mark_read(this.id)` on every card) — no new code
 		// needed to clear it, only to show it.
-		const fresh = r.topic && !is_read(r.id);
+		const fresh = r.topic && !Rules.is_read(r.id);
 		div.c("ai2-ol-row" + (r.topic ? " topic" : r.done ? " done" : " open") + (r.live ? " live" : ""), () => {
 			span.c("ai2-ol-mark").text(r.topic ? "•" : r.done ? "✓" : "☐");
 			if (r.proof) a.c("ai2-ol-title page-link").href(r.proof).text(r.title);
@@ -1104,8 +1104,8 @@ export default class Card extends Page {
 	cost_model(g){
 		const groups = this.shell?.ai2?.groups;
 		if (!groups) return null;
-		if (!g) return { line: cost_line(groups.task_member(task_of(this))) };
-		const rows = groups.members(g.id).filter(m => m.kind === "task").map(m => face_row(groups, m))
+		if (!g) return { line: cost_line(groups.task_member(Tasks.task_of(this))) };
+		const rows = groups.members(g.id).filter(m => m.kind === "task").map(m => Tasks.face_row(groups, m))
 			.sort((a, b) => (b.usd ?? -1) - (a.usd ?? -1) || a.title.localeCompare(b.title));
 		const s = groups.cost(g.id);
 		return { rows, sum: { usd: s.usd, tracked: s.tracked, untracked: s.untracked, open: !!s.open } };
@@ -1117,7 +1117,7 @@ export default class Card extends Page {
 		if (!g) return;
 		const { rows, sum } = model;
 		if (!rows.length) return;
-		group_faces(rows, sum, this.face_state ??= {});
+		Tasks.group_faces(rows, sum, this.face_state ??= {});
 	}
 
 	/** Turn this card into another kind: one `{"type": …}` line, and the latest wins. */
@@ -1306,7 +1306,7 @@ export default class Card extends Page {
 		// browser `localStorage` flag (`rules.js`) that only ever un-bolds a title; the row never
 		// leaves the Inbox and nobody else's copy changes. The Live card has no `id` worth
 		// marking and is always drawn fresh regardless, so this is harmless for it either way.
-		mark_read(this.id);
+		Rules.mark_read(this.id);
 		// An owner note is read for good (a shared `reviewed` line) the moment you open it, so it leaves the top of the Inbox.
 		if (this.shell?.ai2?.cards?.by_id?.get(this.id)?.tags?.includes("owner-note")) append_card(this.id, { reviewed: { at: stamp(), by: "owner" } });
 		this.shell?.ai2?.repaint?.();

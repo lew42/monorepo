@@ -3,7 +3,7 @@ import { icon } from "/framework/core/View/View.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
 import { Faces } from "../cards/faces.js";
 import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
-import { parse_lines } from "../cards/fold.js";
+import { Fold } from "../cards/Fold.js";
 import { NeedsRule } from "./NeedsRule.js";
 import { fold_asks } from "../asks/fold.js";
 
@@ -68,7 +68,7 @@ export class Needs {
 	static async stalled_rows(){
 		const text = await Needs.read_text(ASKS_URL);
 		if (!text) return [];
-		const folded = fold_asks(parse_lines(text));
+		const folded = fold_asks(Fold.parse_lines(text));
 		return Object.values(folded).filter(a => a.status === "stalled").map(ask => {
 			const hours = NeedsRule.silent_hours(ask);
 			return {
@@ -115,7 +115,7 @@ export class Needs {
 		const rows = await Promise.all(live.map(async c => {
 			const text = await Needs.read_text(AI_ROOT + c.id + "/page.jsonl");
 			if (!text) return [];
-			return NeedsRule.card_needs(c.id, parse_lines(text), c).map(n => ({ ...n, url: "/framework/ai2/" + c.id + "/" }));
+			return NeedsRule.card_needs(c.id, Fold.parse_lines(text), c).map(n => ({ ...n, url: "/framework/ai2/" + c.id + "/" }));
 		}));
 		return rows.flat();
 	}

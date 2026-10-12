@@ -2,23 +2,23 @@ import { Page, View, div, span, small, a, button, label, input, details, summary
 import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
 import { Groups } from "./groups.js";
-import { task_of, task_region } from "../cards/tasks.js";
+import { Tasks } from "../cards/Tasks.js";
 import { Faces } from "../cards/faces.js";
-import { news_of, group_news, unseen } from "../cards/activity.js";
+import { Activity } from "../cards/Activity.js";
 import { plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
-import composer from "../cards/compose.js";
+import { Compose } from "../cards/Compose.js";
 import Card, { card_link } from "../cards/card.js";
 import { Needs } from "./Needs.js";
 import { NeedsRule } from "./NeedsRule.js";
-import chat from "../cards/chat.js";
+import { CardChat } from "../cards/CardChat.js";
 import mount_chat from "/framework/ux/Dictate/chat.js";
 import { LIVE, live_model, live_full, usage_head } from "./live.js";
 import { cost_of } from "/framework/ext/AITask/cost.js";
-import { progress_of, meter } from "../cards/meter.js";
-import { agent_cost } from "../cards/agents.js";
+import { Meter } from "../cards/Meter.js";
+import { Agents } from "../cards/Agents.js";
 import workspace from "../cards/workspace.js";
 import { RealPage, page_events, real_title } from "../cards/real.js";
-import { is_read, mark_read, archive_row, is_resolved } from "../cards/rules.js";
+import { Rules } from "../cards/Rules.js";
 
 /* The AI-only look: the usage meters, a row's progress meter, "what happened", groups.
    The rail itself is styled by the ux block (ux/Inbox/Inbox.css), loaded by Inbox.Rail. */
@@ -224,7 +224,7 @@ export default class AIRail extends Inbox.Rail {
 			links: [], flag: null, author: "owner", unread: false, status: "open" };
 		this.yesterday_item = { id: "day-" + yesterdayDate, kind: "day-pin", icon: "history",
 			title: "Yesterday", text: nice(yesterday), at: yesterday.toISOString(), href: `/framework/ai/${yesterdayDate}/`,
-			links: [], flag: null, author: "owner", unread: !is_read("day-" + yesterdayDate), status: "open" };
+			links: [], flag: null, author: "owner", unread: !Rules.is_read("day-" + yesterdayDate), status: "open" };
 	}
 
 	/* READ/UNREAD is this browser's own flag (rules.js); the Live card is always fresh and
@@ -232,7 +232,7 @@ export default class AIRail extends Inbox.Rail {
 	   highest open need. */
 	decorate(list){
 		list.forEach(it => {
-			it.unread = it.kind === "live" ? true : (it.id === "now" || it.id === this.now_real_id || it.id === "your-prompts") ? false : !is_read(it.id);
+			it.unread = it.kind === "live" ? true : (it.id === "now" || it.id === this.now_real_id || it.id === "your-prompts") ? false : !Rules.is_read(it.id);
 			// ⚠ `?? it.score`: `score_for()` only answers "needs you" and is null for most rows.
 			if (it.kind !== "stalled") it.score = Needs.score_for(it.id) ?? it.score;
 			// THE REASON NEXT TO THE NUMBER (item 3) — the rule that set this row's score,
@@ -267,7 +267,7 @@ export default class AIRail extends Inbox.Rail {
 	prepare(rows){
 		rows.forEach(it => { it.cost = this.row_cost(it); });
 		// What bumped each row, while it is new to you (activity.js).
-		this.list.forEach(it => { it.news = news_of(it, this.groups.folds); });
+		this.list.forEach(it => { it.news = Activity.news_of(it, this.groups.folds); });
 		// Every paint can change the Now card's data or the latest prompt, so the pinned
 		// row(s) above the list redraw here too, every time — not only the one time
 		// `resolve_card("now")` first settles (see that call site, below).
@@ -278,11 +278,11 @@ export default class AIRail extends Inbox.Rail {
 	   redraws it when either moves. */
 	row_cost(it){
 		if (it.kind === "live") return null;
-		const t = this.groups.task_member(task_of(it) ?? task_of(this.groups.folds.get(it.id)?.fold));
+		const t = this.groups.task_member(Tasks.task_of(it) ?? Tasks.task_of(this.groups.folds.get(it.id)?.fold));
 		const c = cost_of(t);
-		it.usd = c ? c.usd : (it.folder ? agent_cost(it.id, () => this.paint_soon()) : null);
+		it.usd = c ? c.usd : (it.folder ? Agents.agent_cost(it.id, () => this.paint_soon()) : null);
 		it.usd_open = !!c?.open;
-		it.progress = progress_of(t, it.status);
+		it.progress = Meter.progress_of(t, it.status);
 		return null;
 	}
 
@@ -298,15 +298,15 @@ export default class AIRail extends Inbox.Rail {
 		return list.filter(it => it.id !== "now" && it.id !== this.now_real_id && it.id !== "your-prompts" && !group_cards.has(it.id) && (!this.groups.filed(it) || fresh(it)));
 	}
 	pool_archived(list){ return list.filter(it => !this.groups.filed(it)); }
-	resolved(it){ return is_resolved(it); }
+	resolved(it){ return Rules.is_resolved(it); }
 	exempt(it){ return it.kind === "live"; }
 	// A stalled ask has no card to archive (it leaves when the ledger moves on); Live and the
 	// pinned Your-prompts summary never leave either — there is nothing to archive on either.
 	archivable(it){ return it.kind !== "stalled" && it.kind !== "live" && it.kind !== "prompts-pin"; }
 
-	is_read(id){ return is_read(id); }
-	mark_read(id, val){ mark_read(id, val); }
-	archive(it){ return archive_row(it); }
+	is_read(id){ return Rules.is_read(id); }
+	mark_read(id, val){ Rules.mark_read(id, val); }
+	archive(it){ return Rules.archive_row(it); }
 	// A folder card's row is polled every 20s — asking now shows its archived state at once.
 	archived_soon(){ this.cards.soon(); }
 
@@ -336,7 +336,7 @@ export default class AIRail extends Inbox.Rail {
 	}
 
 	face_extra(it){
-		meter(it.progress, it.usd, it.usd_open);
+		Meter.meter(it.progress, it.usd, it.usd_open);
 		// The reason beside the score (item 3) — only worth a line once the row carries a
 		// score at all; a plain "0" row (nothing ranked it) says nothing extra.
 		if (it.score != null && it.reason) small.c("ai2-row-reason muted").attr("title", "the rule that set this row's score").text(it.reason);
@@ -376,9 +376,9 @@ export default class AIRail extends Inbox.Rail {
 			// The name is the card's LATEST title; groups.json only names it first.
 			const name = this.cards.card(g.card)?.title || g.name;
 			// Money: the member tasks, else what the card's own agents spent (agents.js).
-			const agents = tasks_cost?.tracked ? null : agent_cost(g.card, () => this.paint_soon());
+			const agents = tasks_cost?.tracked ? null : Agents.agent_cost(g.card, () => this.paint_soon());
 			const spent = tasks_cost?.tracked ? tasks_cost : (agents ? { tracked: true, usd: agents, open: false } : tasks_cost);
-			const news = group_news(g, latest, this.groups.at(g));
+			const news = Activity.group_news(g, latest, this.groups.at(g));
 			const sig = JSON.stringify([g, name, latest, size.length, spent, news]);
 			if (rec.sig === sig) return;
 			rec.sig = sig;
@@ -398,7 +398,7 @@ export default class AIRail extends Inbox.Rail {
 		const tasks = members.filter(m => m.kind === "task");
 		const done = tasks.filter(m => m.landed).length;
 		this.row_head({ icon: g.icon, title: name, at: this.groups.at(g), dot: false, plain: true }, {});
-		meter({ pct: tasks.length ? Math.round(100 * done / tasks.length) : 0, live: tasks.length > done, done, total: tasks.length, unit: "tasks" },
+		Meter.meter({ pct: tasks.length ? Math.round(100 * done / tasks.length) : 0, live: tasks.length > done, done, total: tasks.length, unit: "tasks" },
 			spent?.tracked ? spent.usd : null, !!spent?.open);
 	}
 
@@ -416,14 +416,14 @@ export default class AIRail extends Inbox.Rail {
 			rec.$row.style({ display: (this.review_only || this.floored()) ? "none" : "" });
 			real_title(path, this.router, () => this.paint_soon());
 			this.at_of.set("page:" + path, evs[0].at);
-			const sig = JSON.stringify([evs[0], RealPage.known.get(path), unseen("page:" + path, evs[0].at)]);
+			const sig = JSON.stringify([evs[0], RealPage.known.get(path), Activity.unseen("page:" + path, evs[0].at)]);
 			if (rec.sig === sig) return;
 			rec.sig = sig;
 			rec.$row.empty(() => {
 				const known = RealPage.known.get(path), top = evs[0];
 				this.row_head({ icon: known?.icon || "description", title: known?.title || path.split("/").filter(Boolean).at(-1), at: top?.at, dot: false, plain: true }, {});
 				small.c("ai2-real-path muted").text(path);
-				if (top && unseen("page:" + path, top.at)) Faces.news_bar({ who: top.who, what: top.what });
+				if (top && Activity.unseen("page:" + path, top.at)) Faces.news_bar({ who: top.who, what: top.what });
 			});
 		});
 	}
@@ -630,7 +630,7 @@ function card_page(root, id){
 	function draw(it){
 		latest_it = it;
 		talk?.sync();
-		if ($tasks) task_region($tasks, root.ai2.groups.task_at(task_of(it)), task_state, { head: false });
+		if ($tasks) Tasks.task_region($tasks, root.ai2.groups.task_at(Tasks.task_of(it)), task_state, { head: false });
 		const next = JSON.stringify(it) + "|" + clog.entries.length;
 		if (held || next === sig) return;
 		sig = next;
@@ -663,10 +663,10 @@ function card_page(root, id){
 
 			// v1: the card's own log as a conversation, and its own composer.
 			const foot = () => div.c("ai2-foot", () => {
-				talk = chat({ source, keep: mine });
+				talk = CardChat.chat({ source, keep: mine });
 				const fresh = root.opening === id;
 				if (fresh) root.opening = null;
-				box = composer({
+				box = Compose.composer({
 					re: () => id,   // asked fresh on every send: this composer belongs to this card
 					placeholder: id === LIVE ? "talk to the assistant about what is running" : "talk into this card",
 					on_text: text => talk.echo(text),
@@ -760,8 +760,8 @@ function sub_card_page(root, id, sub, clog){
 			a.c("ai2-back ai2-sub-back page-link").href(root.url + id + "/").text("← " + id);
 			$box = div.c("ai2-full");
 			div.c("ai2-foot", () => {
-				talk = chat({ source: () => clog.entries, keep: e => refs(e).includes(re()) });
-				box = composer({ re, placeholder: "talk into this sub-card", on_text: text => talk.echo(text) });
+				talk = CardChat.chat({ source: () => clog.entries, keep: e => refs(e).includes(re()) });
+				box = Compose.composer({ re, placeholder: "talk into this sub-card", on_text: text => talk.echo(text) });
 			});
 		},
 

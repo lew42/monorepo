@@ -1,7 +1,7 @@
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
-import { fold_card, parse_lines, summary } from "../cards/fold.js";
+import { Fold } from "../cards/Fold.js";
 import { fold_asks } from "../asks/fold.js";
 import { NeedsRule } from "./NeedsRule.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
@@ -329,7 +329,7 @@ function words_url(words){
 function fetch_asks(){
 	return fetch(ASKS_URL, { cache: "no-store" }).then(r => (r.ok ? r.text() : "")).catch(() => "")
 		.then(text => {
-			const folded = text ? fold_asks(parse_lines(text)) : {};
+			const folded = text ? fold_asks(Fold.parse_lines(text)) : {};
 			const rows = Object.values(folded).filter(a => a.status === "stalled");
 			asks_cache = { rows, at: Date.now(), loading: false };
 			return rows;
@@ -510,18 +510,18 @@ const AI_ROOT = new URL("../", import.meta.url).pathname;
 const read_text = url => fetch(url, { cache: "no-store" }).then(r => (r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? r.text() : "")).catch(() => "");
 
 async function walk_cards(){
-	const kids = async dir => parse_lines(await read_text(AI_ROOT + dir + "page.jsonl")).filter(l => l.file).map(l => dir + l.file.replace(/page\.jsonl$/, ""));
+	const kids = async dir => Fold.parse_lines(await read_text(AI_ROOT + dir + "page.jsonl")).filter(l => l.file).map(l => dir + l.file.replace(/page\.jsonl$/, ""));
 	let dirs = ["2026/"];
 	for (let depth = 0; depth < 2; depth++) dirs = (await Promise.all(dirs.map(kids))).flat();   // → day folders
 	const ids = (await Promise.all(dirs.map(kids))).flat().map(d => d.replace(/\/$/, ""));
-	const rows = await Promise.all(ids.map(async id => fold_card(id, parse_lines(await read_text(AI_ROOT + id + "/page.jsonl")))));
-	return rows.map(summary);
+	const rows = await Promise.all(ids.map(async id => Fold.fold_card(id, Fold.parse_lines(await read_text(AI_ROOT + id + "/page.jsonl")))));
+	return rows.map(Fold.summary);
 }
 
 /** Every card's summary, or null when there is neither an index nor a walkable tree. */
 export async function static_cards(){
 	const text = await read_text(AI_ROOT + "cards.jsonl");
-	const rows = text ? parse_lines(text).filter(r => r.id) : await walk_cards().catch(() => []);
+	const rows = text ? Fold.parse_lines(text).filter(r => r.id) : await walk_cards().catch(() => []);
 	return rows.length ? rows : null;
 }
 
@@ -549,7 +549,7 @@ export async function resolve_card(id){
 	}
 	if (is_folder_id(id)){
 		const text = await read_text(AI_ROOT + id + "/page.jsonl");
-		if (text) return fold_card(id, parse_lines(text));
+		if (text) return Fold.fold_card(id, Fold.parse_lines(text));
 	}
 	if (id.startsWith("ask:")){
 		// Awaited, not the plain cache read `items()` uses — see `stalled_asks_ready()`'s own

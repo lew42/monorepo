@@ -3,7 +3,7 @@ import { View, icon } from "/framework/core/View/View.js";
 import { usage_rail } from "/framework/ext/AITask/usage.js";
 import { servex_base, servex_fetch, card_stream, agent_frames } from "./inbox.js";
 import { Faces } from "../cards/faces.js";
-import { md_into, who_label, speak } from "../cards/chat.js";
+import { md_into, who_label, speak } from "../cards/CardChat.js";
 import { Processes } from "./Processes.js";
 
 /**
