@@ -48,7 +48,7 @@ export class Template extends Page {
 	// A new use of this layout: reads through to this one, writes only to itself.
 	clone(data){
 		const c = Object.create(this);
-		c._on = {};
+		c._on = null;   // shadows the template's listeners; Events makes its own on the first on()
 		c.views = [];
 		c.clones = [];
 		c.view = null;
@@ -62,16 +62,27 @@ export class Template extends Page {
 	set(a, b){
 		const delta = typeof a === "string" ? { [a]: b } : a;
 		for (const [name, value] of Object.entries(delta ?? {})){
-			const how = this.map.set(name, value);
-			if (how !== "prop") this.refresh();
-			if (how === "plain") this.clones.forEach(c => c.inherits(name) && c.refresh());
+			// "prop": the bound spans update themselves, here and in every clone reading through.
+			if (this.map.set(name, value) !== "prop") this.redraw(name);
 		}
 		return this;
 	}
 
 	unset(name){
-		if (this.map.unset(name)) this.refresh();
+		if (this.map.unset(name)) this.redraw(name);
 		return this;
+	}
+
+	// Redraw me and every clone, at any depth, that still reads `name` through me.
+	redraw(name){
+		this.refresh();
+		this.inheritors(name).forEach(c => c.refresh());
+		return this;
+	}
+
+	inheritors(name, out = []){
+		for (const c of this.clones) if (c.inherits(name)){ out.push(c); c.inheritors(name, out); }
+		return out;
 	}
 
 	inherits(name){ return !this.map.has_own(name); }
@@ -104,6 +115,15 @@ export class Template extends Page {
 		this.release(view);
 		view.el.remove();
 		if (this.view === view) this.view = this.views.at(-1) ?? null;
+		return this;
+	}
+
+	// A clone that dies: its clones first (they read through it), then its views, then the record.
+	dispose(){
+		this.clones.slice().forEach(c => c.dispose());
+		this.views.slice().forEach(v => this.drop(v));
+		const list = this.source?.clones, at = list?.indexOf(this) ?? -1;
+		if (at >= 0) list.splice(at, 1);
 		return this;
 	}
 

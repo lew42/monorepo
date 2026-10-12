@@ -35,6 +35,13 @@ const results = await page.evaluate(async () => {
 	t(text(g.views[0]) === "e", "and the base drives it again");
 	t(base.listeners("x") === 1, "one listener, none left on dead Properties");
 
+	// A clone's listeners are its own, made lazily on its first on().
+	const k = base.clone(), before = base._on?.render?.length ?? 0;
+	t(!Object.hasOwn(k, "_on") || k._on === null, "no listener object until one is added");
+	k.on("render", () => {});
+	t((base._on?.render?.length ?? 0) === before && k._on.render.length === 1, "a clone's listener stays on the clone");
+	k.dispose();
+
 	// dispose(): a clone that dies takes its views, listeners and record with it.
 	const c = base.clone(); c.render(); c.render();
 	t(base.listeners("x") === 3, "two more views, two more listeners");
