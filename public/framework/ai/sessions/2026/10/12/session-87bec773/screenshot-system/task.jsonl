@@ -3,3 +3,6 @@
 {"action":{"at":"2026-10-12T16:01:29-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/build-a.md"]}}
 {"log":{"at":"2026-10-12T16:20:00-05:00","msg":"plan.md written; build A (node: PNG, Diff, Shots CLI) running as a Sonnet worktree subagent (Servex pool had no worktree)"}}
 {"action":{"at":"2026-10-12T16:02:21-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/build-b.md"]}}
+{"log":{"at":"2026-10-12T16:14:21-05:00","msg":"build-a minion: worktree-up.mjs screenshot-build-a (Servex pool had none free); branch worktree/screenshot-build-a at C:\\Code\\lew42\\worktrees\\screenshot-build-a"}}
+{"log":{"at":"2026-10-12T16:14:21-05:00","msg":"build-a: PNG.mjs (decode/encode, hand-rolled on node zlib), Diff.mjs (cell diff + overlay), Shots.test.mjs — 7/7 pass. Commit 62f3b8647."}}
+{"log":{"at":"2026-10-12T16:14:21-05:00","msg":"build-a: Shots.mjs (widths/dir/run/judge/rounds) + Server/shots.mjs CLI + .gitignore line. Real two-round run against http://monorepo.localhost/framework/ext/Figma/ — overlay confirmed by eye. Commit d77e081eb."}}
