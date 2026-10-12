@@ -37,3 +37,11 @@ One default clamped padding token should work in about 90% of places: a containe
 - Built before build A landed `Shots.mjs`/the real log — tested against three hand-written fake lines in a scratch copy (`runs.scratch.jsonl`, never committed, never the real `runs.jsonl`), per the brief.
 - `ShotsJSONL` lives inside `ShotsView.js` rather than its own file: it is a small reader with no behaviour the node side needs, and the `code` skill allows a small helper class in its parent's file.
 - The tree renders every round open to one level of nesting via indentation (`.shots-nested`, CSS margin, no JS breakpoint) rather than a collapsible widget — "fastest working version first" (CLAUDE.md law 1); a fold-away control is a cheap follow-up once there are real rounds to see it fail against.
+
+## First real run (2026-10-12, `/framework/ext/Figma/colors/`, the blue override vs the site tokens)
+
+- **Most pages scroll an inner box, not the document**, so Playwright's `fullPage` gave one screen. `Shots` now finds the tallest scrolling box, scrolls it a screen at a time and stitches the rows (`full_picture()` in `Shots.mjs`). Known marks: a fixed button inside the box repeats once per screen, and the area below a short sidebar is black.
+- **A solid red fill hid what a region became**; changed cells now stay at full brightness under a light red wash, and only unchanged cells fade.
+- **Does the overlay help a model?** One trial, Haiku, same question: with the two pictures alone it found 6 of the changes and missed the recoloured "prime-bound" labels; with the overlay and the diff line added it found 7, including those labels (it placed them in the wrong card). A small gain for about 2k more tokens; repeat on a padding change before trusting it.
+- **Small false "moved" regions** (a 16 × 44 px block of text "moved by −3, +68") appear on colour-only changes; ignore moved regions under two cells until the threshold is tuned.
+- **Next:** run the line filter (`public/imagine/lines/lines.js`) on both pictures to report edges that moved, which is the padding question.

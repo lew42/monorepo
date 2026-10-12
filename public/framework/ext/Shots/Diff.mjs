@@ -275,8 +275,10 @@ function make_overlay(after, width, height, changedOnly, cols, cell, regions, mo
 			const ai = (y * after.width + x) * 4, oi = (y * width + x) * 4;
 			const cx = Math.floor(x / cell), cy = Math.floor(y / cell);
 			const amount = changedOnly[cy * cols + cx] || 0;
-			const tint = Math.min(1, amount / 128);   // how red this cell gets, capped at full red
-			const base = FADE;
+			// a changed cell stays at FULL brightness with a light red wash, so the overlay shows what it
+			// became (a solid red fill hid it: first real run, 2026-10-12); unchanged cells fade
+			const tint = amount ? Math.min(0.3, 0.1 + amount / 400) : 0;
+			const base = amount ? 1 : FADE;
 			data[oi] = Math.round(after.data[ai] * base * (1 - tint) + 255 * tint);
 			data[oi + 1] = Math.round(after.data[ai + 1] * base * (1 - tint));
 			data[oi + 2] = Math.round(after.data[ai + 2] * base * (1 - tint));

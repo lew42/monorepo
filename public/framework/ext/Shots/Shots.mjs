@@ -93,9 +93,9 @@ export class Shots {
 			await page.setViewportSize({ width: w, height });
 			await settle(page);
 			const file = `${w}.png`;
-			const buf = await page.screenshot({ fullPage: true });
-			const img = PNG.decode(buf);
-			const cut = img.height > MAX_HEIGHT;
+			const img = await full_picture(page);
+			const buf = PNG.encode(img);
+			const cut = !!img.cut || img.height > MAX_HEIGHT;
 			const shotHeight = cut ? MAX_HEIGHT : img.height;
 			if (cut) fs.writeFileSync(path.join(roundDir, file), PNG.encode({ width: img.width, height: MAX_HEIGHT, data: img.data.subarray(0, img.width * MAX_HEIGHT * 4) }));
 			else fs.writeFileSync(path.join(roundDir, file), buf);
@@ -164,6 +164,45 @@ export class Shots {
 		for (const l of lines) if (l.run) runsById.set(l.run.id, l.run);
 		return lines.filter(l => (l.run && l.run.url === want) || (l.diff && runsById.get(l.diff.id)?.url === want) || (l.judge && runsById.get(l.judge.id)?.url === want));
 	}
+}
+
+/* The whole page, top to bottom. Most pages here scroll an inner box (the app shell), not the
+ * document, so Playwright's fullPage returns one screen (first real run, 2026-10-12). Find the
+ * tallest scrolling box, scroll it a screen at a time, and paste its rows into one tall picture;
+ * whatever sits outside the box (the sidebar) comes from the first screen. Cut at MAX_HEIGHT. */
+async function full_picture(page){
+	const box = await page.evaluate(() => {
+		const doc = document.scrollingElement;
+		if (doc.scrollHeight > doc.clientHeight + 4) return null;
+		let best = null;
+		for (const el of document.querySelectorAll("*")){
+			const oy = getComputedStyle(el).overflowY;
+			if (!/(auto|scroll)/.test(oy) || el.scrollHeight <= el.clientHeight + 4) continue;
+			if (!best || el.clientWidth * el.clientHeight > best.clientWidth * best.clientHeight) best = el;
+		}
+		if (!best) return null;
+		best.setAttribute("data-shots-scroller", "");
+		const r = best.getBoundingClientRect();
+		return { x: Math.round(r.left + best.clientLeft), y: Math.round(r.top + best.clientTop), w: best.clientWidth, h: best.clientHeight, total: best.scrollHeight };
+	});
+	if (!box) return PNG.decode(await page.screenshot({ fullPage: true }));
+	const first = PNG.decode(await page.screenshot());
+	const W = first.width, H = Math.min(MAX_HEIGHT, first.height + box.total - box.h);
+	const out = new Uint8Array(W * H * 4);
+	out.set(first.data.subarray(0, W * Math.min(first.height, H) * 4));
+	for (let t = box.h; t < box.total && box.y + t < H; t += box.h){
+		const top = await page.evaluate(t => { const el = document.querySelector("[data-shots-scroller]"); el.scrollTop = t; return el.scrollTop; }, t);
+		await page.waitForTimeout(150);
+		const shot = PNG.decode(await page.screenshot());
+		for (let row = 0; row < box.h; row++){
+			const dy = box.y + top + row;
+			if (dy >= H) break;
+			const si = ((box.y + row) * shot.width + box.x) * 4;
+			out.set(shot.data.subarray(si, si + box.w * 4), (dy * W + box.x) * 4);
+		}
+	}
+	await page.evaluate(() => { const el = document.querySelector("[data-shots-scroller]"); el.scrollTop = 0; el.removeAttribute("data-shots-scroller"); });
+	return { width: W, height: H, data: out, cut: first.height + box.total - box.h > MAX_HEIGHT };
 }
 
 function settle(page){
