@@ -190,6 +190,19 @@ function reviewGate(branch, head){
 	// change gets — review.mjs only writes review/report.md when it saw a page in the diff.
 	if (nameStatus.filter(x => x.status !== "D").some(x => pageUrlFor(x.f)) && (!best.e.review.report || !fs.existsSync(path.join(best.td, best.e.review.report))))
 		return `refused: ${branch} changes a page and its review has no report (review/report.md); run: ${cmd}`;
+	/* Screenshots gate (live-page-error, 2026-10-12): the report must stand on real pictures. Every width
+	 * widthsFor picks for this change needs a <width>.png somewhere under the task's shots/, or the
+	 * review is refused as unlooked-at. (Slug dirs carry the worktree host, so only the width is matched.) */
+	if (nameStatus.filter(x => x.status !== "D").some(x => pageUrlFor(x.f))) {
+		const patches = splitPatch(git(MAIN, "diff", "--no-renames", `${BASE}...${branch}`).stdout);
+		const pages = [...new Set(nameStatus.filter(x => x.status !== "D").map(x => pageUrlFor(x.f)).filter(Boolean))];
+		const need = widthsFor(nameStatus.map(x => ({ ...x, patch: patches.get(x.f) || "" })), numstat, pages);
+		const have = new Set();
+		const walk = d => { try { for (const e of fs.readdirSync(d, { withFileTypes: true })) e.isDirectory() ? walk(path.join(d, e.name)) : /^\d+\.png$/.test(e.name) && have.add(Number(e.name.slice(0, -4))); } catch {} };
+		walk(path.join(best.td, "shots"));
+		const missing = need.filter(w => !have.has(w));
+		if (missing.length) return `refused: ${branch} changes a page but ${path.relative(MAIN, best.td).replaceAll("\\", "/")}/shots/ has no screenshot at ${missing.join(", ")}px; re-run: ${cmd}  (--no-review "why" skips, and is logged)`;
+	}
 	return null;
 }
 
