@@ -6,6 +6,7 @@ other than `0.0.0.0` — Servex passes `HOST=127.0.0.1` to the servers it starts
 Reuse the one already running. ⚠ It used to pin a core (~130%) every few days;
 **fixed 2026-09-06**, but a server started before that is still running the old
 code — restart it. What it was: [`doc/spin.md`](./doc/spin.md).
+Slow or crashing again (2026-10-09 first look): [`doc/perf-2026-10-09.md`](./doc/perf-2026-10-09.md).
 
 Dictation failing while the page will not reload: Whisper died with a Servex restart, now fixed, with the loop that reproduces it: [`doc/transcription-crash-2026-10-12.md`](./doc/transcription-crash-2026-10-12.md).
 
