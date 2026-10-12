@@ -5,3 +5,4 @@
 - **System is isomorphic; subclasses are node-only.** The page imports the base without fs; the checks read files.
 - **Navigation check is lenient**: a page counts as linked if any file in the parent dir mentions its folder name. Alternative: parse `children:`. Stricter later.
 - **Known gap:** ReadmeSystem's first run found readmes over 100 lines; not fixed here.
+- **Wake is a session cron** (hourly at :17, 2026-10-12): it dies with the session and after 7 days, so the mastermind re-arms it. Durable alternative: a Servex timer calling `Systems.run()` (needs a restart; next step).
