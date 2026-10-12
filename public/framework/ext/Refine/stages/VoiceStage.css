@@ -22,6 +22,9 @@
 	.voice-cards { display: grid; gap: .4em; }
 	.voice-card { padding: .3em .5em; border-radius: .3em; background: color-mix(in srgb, currentColor 6%, transparent); }
 	.voice-card-i { padding-inline-start: .4em; }
+	.voice-meter { display: flex; align-items: center; gap: .5em; font-size: .75em; }
+	.voice-bar { flex: 0 1 8em; height: .35em; border-radius: 1em; background: color-mix(in srgb, currentColor 12%, transparent); position: relative; overflow: hidden; }
+	.voice-bar::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--v); background: color-mix(in srgb, currentColor 55%, transparent); }
 	.voice-card-f { display: flex; gap: .5em; flex-wrap: wrap; font-size: .8em; }
 	.voice-flag { color: var(--warn); margin-inline-start: .4em; cursor: help; }
 	.voice-copy { margin-block-start: .4em; }

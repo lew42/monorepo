@@ -19,7 +19,10 @@ const out = await page.evaluate(async () => {
 	const p = new VoicePrompt("voice-proof", { raw }), v = new VoicePrompt.View({ prompt: p });
 	const box = document.createElement("div"); box.id = "things-proof"; box.style.cssText = "position:fixed;inset:0;overflow:auto;background:Canvas;color:CanvasText;z-index:99999;padding:1em";
 	box.append(v.el); document.body.append(box);
-	return { names: ThingsStage.find(raw).map(t => t.name), links: [...box.querySelectorAll(".voice-stage[data-stage=things] a")].map(a => a.getAttribute("href")), hidden: box.querySelector(".voice-stage[data-stage=things]").hidden, none: ThingsStage.find("the page should show a tree of cards").map(t => t.name) };
+	const p2 = new VoicePrompt("voice-proof2", { raw, clean: ["So where is Dictate.", "The page should show a flag.", "The Page class needs a Tree."], cards: [{ title: "Dictate", items: ["where it is"], cites: [1], clarity: 0.9, tags: ["dictate"] }, { title: "Page flag", items: ["show a flag"], cites: [2, 3], clarity: 0.4, tags: [] }] });
+	box.append(new VoicePrompt.View({ prompt: p2 }).el);
+	const bars = box.querySelectorAll(".voice-stage[data-stage=cards] .voice-bar").length;
+	return { bars, names: ThingsStage.find(raw).map(t => t.name), links: [...box.querySelectorAll(".voice-stage[data-stage=things] a")].map(a => a.getAttribute("href")), hidden: box.querySelector(".voice-stage[data-stage=things]").hidden, none: ThingsStage.find("the page should show a tree of cards").map(t => t.name) };
 });
 console.log(JSON.stringify(out));
 for (const w of [400, 1200, 1920, 3440]){
@@ -28,5 +31,6 @@ for (const w of [400, 1200, 1920, 3440]){
 	console.log("width", w, "overflow:", over);
 	await page.screenshot({ path: path.join(HERE, `things-proof-${w}.png`) });
 }
+await page.setViewportSize({ width: 1200, height: 900 }); await page.locator(".voice-stage[data-stage=cards]").last().screenshot({ path: path.join(HERE, "cards-meters.png") });
 console.log("errors:", errs);
 await b.close();
