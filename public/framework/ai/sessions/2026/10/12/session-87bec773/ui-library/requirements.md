@@ -1,6 +1,10 @@
 # UI library: one browsable library of everything we built, that is itself built with the kit (mastermind brief)
 
-**Owner (2026-10-12, dictated):** "What I've always wanted is a browsable UI kit where the UI kit itself is designed with the UI kit." You browse pages that each use a different kind of navigation, and so experience the whole system until it is self-evident. We never got there: many preview grids link to a stage with code, but it never clicks, and the layouts look broken. Start with a **mobile UI collection**, and gather what we've built (Figma cards and controls, ui, ux, sections, layouts, templates) into **one unified library**: "if we can do 5,000 sessions, why couldn't we do 5,000 layouts".
+**Owner (2026-10-12, dictated):** "What I've always wanted is a browsable UI kit where the UI kit itself is designed with the UI kit." You browse pages that each use a different kind of navigation, and so experience the whole system until it is self-evident.
+
+**Why it is not done yet:** many preview grids link to a stage with code, but it never clicks, and the layouts look broken.
+
+**What to build:** start with a **mobile UI collection**. Then gather what we've built (Figma cards and controls, ui, ux, sections, layouts, templates) into **one unified library**: "if we can do 5,000 sessions, why couldn't we do 5,000 layouts".
 
 **Not now:** the stage redesign. The owner will design it in Figma first.
 

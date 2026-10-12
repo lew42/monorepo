@@ -1,0 +1,4 @@
+{"assign":{"session_id":"5195c22d-64ba-4220-b12c-dd0ad41e648e","agent":"minion-library-build","card":"ui-library","brief":"public/framework/ai/sessions/2026/10/12/session-87bec773/ui-library/build/requirements.md","model":"claude-sonnet-5-5","worktree":"C:\\Code\\lew42\\worktrees\\ui-library","parent_task":"public/framework/ai/sessions/2026/10/12/session-87bec773/ui-library","requested_at":"2026-10-12T15:39:52-05:00","now":"starting","steps":[],"step":1}}
+
+{"experiment":{"try":"PaddingContract.check, padding:0 parent vs padded parent, headless","measure":"class on child + console.error count","result":"unpadded child got .padding-misuse and one console.error; padded untouched; 29 ui items render 0 misuse"}}
+{"log":{"at":"2026-10-12T20:54:32.772Z","msg":"Library built in worktree/ui-library; shots in build/shots"}}
