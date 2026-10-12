@@ -6,11 +6,11 @@ import { task_of, task_region } from "../cards/tasks.js";
 import { Faces } from "../cards/faces.js";
 import { news_of, group_news, unseen } from "../cards/activity.js";
 import { plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
-import composer from "../cards/compose.js";
+import { Compose } from "../cards/Compose.js";
 import Card, { card_link } from "../cards/card.js";
 import { watch_needs, score_for, needs_for } from "./needs.js";
 import { importance, reason_of } from "./needs-rule.js";
-import chat from "../cards/chat.js";
+import { CardChat } from "../cards/CardChat.js";
 import mount_chat from "/framework/ux/Dictate/chat.js";
 import { LIVE, live_model, live_full, usage_head } from "./live.js";
 import { cost_of } from "/framework/ext/AITask/cost.js";
@@ -663,10 +663,10 @@ function card_page(root, id){
 
 			// v1: the card's own log as a conversation, and its own composer.
 			const foot = () => div.c("ai2-foot", () => {
-				talk = chat({ source, keep: mine });
+				talk = CardChat.chat({ source, keep: mine });
 				const fresh = root.opening === id;
 				if (fresh) root.opening = null;
-				box = composer({
+				box = Compose.composer({
 					re: () => id,   // asked fresh on every send: this composer belongs to this card
 					placeholder: id === LIVE ? "talk to the assistant about what is running" : "talk into this card",
 					on_text: text => talk.echo(text),
@@ -760,8 +760,8 @@ function sub_card_page(root, id, sub, clog){
 			a.c("ai2-back ai2-sub-back page-link").href(root.url + id + "/").text("← " + id);
 			$box = div.c("ai2-full");
 			div.c("ai2-foot", () => {
-				talk = chat({ source: () => clog.entries, keep: e => refs(e).includes(re()) });
-				box = composer({ re, placeholder: "talk into this sub-card", on_text: text => talk.echo(text) });
+				talk = CardChat.chat({ source: () => clog.entries, keep: e => refs(e).includes(re()) });
+				box = Compose.composer({ re, placeholder: "talk into this sub-card", on_text: text => talk.echo(text) });
 			});
 		},
 

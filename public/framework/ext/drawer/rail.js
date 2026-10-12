@@ -571,10 +571,10 @@ export class DrawerRailSheetV1 extends View {
 			return;
 		}
 		const token = this.sync_token = (this.sync_token ?? 0) + 1;
-		import("/framework/ai/cards/chat.js").then(m => {
+		import("/framework/ai/cards/CardChat.js").then(m => {
 			if (this.sync_token !== token) return;   // moved to a different card (or a plain page) while this loaded
 			this.$thread.empty(() => {
-				this.talk = m.default({ source: () => card.chat_entries(), re: () => card.id });
+				this.talk = m.CardChat.chat({ source: () => card.chat_entries(), re: () => card.id });
 			});
 			// ⚠ `chat()` BUILDS AN EMPTY BOX — it only paints once `sync()` runs (every
 			// caller in `ai2/card.js` does the same right after constructing one).

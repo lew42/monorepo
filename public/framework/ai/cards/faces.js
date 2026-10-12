@@ -2,7 +2,7 @@ import { div, p, span, small, a, details, summary, button, input, md } from "/ap
 import { icon } from "/framework/core/View/View.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
 import { author_word, plain } from "../rail/inbox.js";
-import { md_into } from "./chat.js";
+import { md_into } from "./CardChat.js";
 import { Meter } from "./Meter.js";
 import { prompt_modes } from "/framework/ext/Refine/prompt-card.js";
 

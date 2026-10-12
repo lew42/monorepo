@@ -7,8 +7,8 @@ import { task_of, task_region, face_row, group_faces } from "./tasks.js";
 
 import grip from "/framework/ext/grip/grip.js";
 import Menu from "/framework/ux/Menu/Menu.js";
-import chat, { md_into } from "./chat.js";
-import composer from "./compose.js";
+import { CardChat, md_into } from "./CardChat.js";
+import { Compose } from "./Compose.js";
 import { Agents } from "./Agents.js";
 import { items_of, about_line, outline, state_span, short } from "./outline.js";
 import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "../rail/inbox.js";
@@ -345,9 +345,9 @@ export default class Card extends Page {
 		const fresh = !!shell && shell.opening === this.id;
 		if (this.chat_v1()){
 			div.c("ai2-foot", () => {
-				this.talk = chat({ source: () => this.chat_entries(), re: () => this.id });
+				this.talk = CardChat.chat({ source: () => this.chat_entries(), re: () => this.id });
 				if (fresh) shell.opening = null;
-				this.$composer = composer({
+				this.$composer = Compose.composer({
 					re: () => this.id,
 					placeholder: sub ? "talk into this request" : "talk into this card",
 					on_text: text => this.talk.echo(text),
