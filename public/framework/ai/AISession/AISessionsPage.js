@@ -412,9 +412,9 @@ export default class AISessionsPage extends Page {
 	static SORT_FIELD = { state: "state", name: "title", cost: "usd", updated: "last_activity", duration: "wall_ms", role: "agent", source: "provider", model: "model" };
 	static SEARCH_FIELDS = ["title", "agent", "id", "folder", "model"];
 
-	/** With `?source=node`: true when the dev server answers the first query; otherwise false and the page reads files (the default until remote mode reaches parity). */
+	/** True when the dev socket answers the first query (the default); `?source=files`, no socket or no source on this server: false, and the page reads files. */
 	async start_remote(){
-		if (new URLSearchParams(location.search).get("source") !== "node" || !AISessionLive.socket()) return false;   // opt-in until parity (buckets, nesting, provider): ext/Query/doc/architecture.md
+		if (new URLSearchParams(location.search).get("source") === "files" || !AISessionLive.socket()) return false;   // the default on the dev socket; `?source=files` forces the files path (ext/Query/doc/architecture.md)
 		this.remote = { rows: [], total: 0, totals: {}, ms: null, sort_key: "", search: "", busy: false };
 		this.client = new QueryClient("sessions", { row: snap => this.remote_row(snap), stale: () => this.polling && this.remote_ask({ refresh: true }) });
 		this.nests = new Map();
