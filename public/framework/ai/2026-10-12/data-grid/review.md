@@ -1,22 +1,19 @@
-verdict: fix
-1. [fix] `ai/sessions/doc/buckets.md:26` embeds `sessions-perf/buckets-table-1920.png`, and line 30 links `sessions-perf/redraw.jsonl`. Neither file exists in the worktree or in git, so the doc shows a broken image, and its before/after redraw numbers (36–39 ms → 25–27 ms) have nothing behind them. Commit the shot and the redraw log, or drop the claims.
-2. [note] The grid's row count now counts the bucket rows as rows: `DataGrid.apply()` counts the `arrange()` output. The header reads about "324 of 5,810 rows" while 5,486 sessions sit inside the 5 bucket rows. Count the sessions, or label the buckets separately.
-3. [note] Opening a bucket (`AISessionsPage.js` `bucket_view` → `open_kinds`) puts its sessions back into the normal sorted list, scattered among the other rows instead of under the bucket row. You can't see which rows the click revealed. Nesting them under their bucket head would match how child sessions already nest.
-4. [note] There is a simpler way in `AISessionsPage.arrange()`: `rollup()` builds the bucket objects and the next step throws them away (`.filter(r => !r.bucket)`), then `heads` rebuilds them from `index.kind`. A plain filter (`routine.has(kind) && !open_kinds.has(kind)`) would do the same work once, and `rollup()` would stay the one place that makes bucket rows.
-5. [note] Sorting into buckets depends on `AISession.ix` having `agent` and `folder`. The day snapshots carry both (checked: `sessions/2026/10/12/index.json`, 708 of 708 have `folder`), but `from_index` only fills `INDEX_COLUMNS`, which has neither. A session known only from a month index has no agent name, so a cheap, short minion or mastermind run would land in "short headless" and be hidden. Check this against month loading.
-6. [note] The bucket rows always sit on top, whatever column header is sorted (`return [...heads, ...out]`). That is probably what you want, but it isn't written in `doc/buckets.md`.
-7. [note] The `Server/review.mjs:639` change (the raw-write scan also skips `ai/sessions/20…`) has nothing to do with this brief. It is harmless, in its own commit (`40cfe061c`), and the regex is right.
-8. [note] Scope check: this diff is a follow-on step, routine sessions rolled up into bucket rows. It does not reopen the brief's five asks, which `STATE.md` records as landed earlier (`137750706`, `fa8b19bc9`). A bucket with a null `href` draws safely in both views (`DataGridTable.js:52` and `DataGridRail.js:38` fall back to a `div`). This review had no screenshots, so it covers requirements and words only.
+verdict: pass
+1. [note] The fix works where it was reported: `sessions-perf/scroll-3440-after.png` shows the grid's rows filling the 3440 screen under a solid sticky header, where `scroll-3440-before.png` gave them about a third of it, with rows showing through the header's column gaps. Only the 3440 and 1920 shots are committed; the probe also measures 1200 and 400, but those shots and the probe's JSON output are not in the task folder, so narrow widths are unproven.
+2. [note] `sessions.css:43` sets `--datagrid-height: none` on a grid that pages rows in as you scroll, so drawn rows only ever grow during one visit. The ext/DataGrid readme says past 300 rows windowing needs a real height. That is fine today (the buckets cut it to about 347 rows and this page pages instead of windowing), but it is worth one line in `doc/perf.md` so a later change to windowing doesn't trip on it.
+3. [note] `sessions.css:44` unclips `.panel2-body`, whose `overflow: hidden` exists to hide a closed side drawer's shadow (`panel2.css:49`). Sessions' Panel2 has no sides today (`AISessionsPage.js:57`), so nothing shows, but adding a side later would expose a closed drawer at narrow widths.
+4. [note] The header change in `DataGrid.css:62-68` (one sticky subgrid row in place of a sticky cell each) applies to every DataGrid, including AIOverview and windowed grids. It is the right single fix (one header, opaque across the gaps), but only the Sessions page was shot afterward. `layout-check/…ext-DataGrid` predates this commit.
+5. [note] `DataGridTable.js:32` now pages against the viewport (`root: null`). IntersectionObserver still accounts for every clipping ancestor, so grids that scroll inside themselves keep working; this is simpler than passing a scroller, and Rail could do the same (`DataGridRail.js:16`).
 
 ## Requirements
-- 1 "One grid" — n/a — this diff doesn't touch it; already landed per STATE.md
-- 2 "Sessions on it without regression" — yes, partly — recency sort, nesting, live rows and the views are kept; the bucket rows add a count and expand regression (findings 2–3), and the claimed redraw gain has no committed evidence (finding 1)
-- 3 "Architecture page first" — n/a — not touched
-- 4 "Two views as a setting, not two classes" — yes — one `AISessionBucketView` draws in both views through the `card` flag, with no new grid class
-- 5 "Coordinate with the sessions masterminds" — not checked — doc/buckets.md's hand-off names @mastermind-data-grid as the caller, and this diff follows that
-- 6 "Smoke clean; commit each step" — yes — two separate commits (`8944fdf3d`, `40cfe061c`)
-
+- 1 "One grid" — yes — not touched by this diff; STATE.md says ui/datagrid and ui/table re-export ext/DataGrid.
+- 2 "Sessions on it without regression" — yes — this diff fixes the 3440 scroll regression (scroll-3440-before/after.png); the rail view is excluded by `:not(:has(.datagrid-view-rail))`, and paging still loads more rows.
+- 3 "Architecture page first" — n/a
+- 4 "Two views as a setting" — yes — the rail is untouched; the table-only rules are scoped with `:not(.datagrid-rail)` / `:has(.datagrid-view-rail)`.
+- 5 "Coordinate" — n/a
+- 6 "Smoke clean; commit each step" — yes — one commit, 9746e95cc, with a probe script and before/after shots.
 ## Words
-- content — yes — the readme line is one plain sentence with a link (`ai/sessions/readme.md:11`)
-- content — no — doc/buckets.md links two files that are missing (finding 1)
-- content — yes — the bucket label "2,914 prompt-cleaning sessions · $123 · show" reads plainly; "routine, one row" is a little jargon-y
+- The new comments and the readme line each name the bug and its date in one line, in plain words — yes.
+- The readme bullet (ext/DataGrid/readme.md:34) says when a page must unclip its boxes and links Sessions as the example — yes.
+
+Widths given: none in review/shots; judged from the task's own `sessions-perf/scroll-3440-*.png` and `scroll-1920-after.png`.
