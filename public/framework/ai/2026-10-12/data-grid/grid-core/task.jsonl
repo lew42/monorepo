@@ -4,3 +4,4 @@
 {"log":{"at":"2026-10-12T15:00:26-05:00","heartbeat":"answered","msg":"grid-core is done and committed on `worktree/data-grid-2` (`534bab513`, `574429aaa`, `56afc5704`), and I'm idle waiting for the mastermind to review and merge. Two things remain:\n\n- **Real-server proo"}}
 {"log":{"at":"2026-10-12T15:06:42-05:00","heartbeat":"deliberate","msg":"minion-grid-core its agent is not running: it was stopped on purpose by mastermind-data-grid at 2026-10-12T15:01:11-05:00; not revived."}}
 {"log":{"at":"2026-10-12T15:10:43-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-12T15:30:45-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"data-grid\\\"\"\n}","chase":"escalated"}}

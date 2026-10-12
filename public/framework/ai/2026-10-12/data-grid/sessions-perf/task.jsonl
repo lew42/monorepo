@@ -5,3 +5,5 @@
 {"log":{"at":"2026-10-12T15:01:44-05:00","heartbeat":"escalated","msg":"minion-sessions-perf its agent is not running, and the revive failed: Agent minion-sessions-perf was not woken: it was stopped on purpose by mastermind-data-grid at 2026-10-12T15:01:11-05:00. Pass revive: true to wake it anyway."}}
 {"log":{"at":"2026-10-12T15:05:42-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
 {"log":{"at":"2026-10-12T15:20:43-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"action":{"at":"2026-10-12T15:33:57-05:00","did":"edit","files":["public/framework/ai/2026-10-12/data-grid/sessions-perf/probe-redraw.mjs"]}}
+{"log":{"at":"2026-10-12T15:35:45-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"data-grid\\\"\"\n}","chase":"escalated"}}

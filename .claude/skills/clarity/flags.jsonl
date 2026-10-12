@@ -606,3 +606,21 @@
 {"at":"2026-10-12T20:21:36.588Z","target":"public/framework/ai/2026-10-12/data-grid","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T20:21:36.740Z","target":"public/framework/ai/2026-10-12/data-grid","verdict":"spawned","to":"clarity-data-grid"}
 {"at":"2026-10-12T15:30:00-05:00","target":"public/framework/ai/2026-10-12/data-grid","verdict":"clear","what":"text-check clean; outcome ticks each ask with proof; DataGrid and Sessions pages show table/rail toggle and live instance","to":"clarity-data-grid"}
+{"at":"2026-10-12T20:32:14.994Z","target":"public/framework/ai/2026-10-12/task-folders","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T20:32:15.110Z","target":"public/framework/ai/2026-10-12/task-folders","verdict":"spawned","to":"clarity-task-folders"}
+{"at":"2026-10-12T16:00:00-05:00","target":"public/framework/ai/2026-10-12/task-folders","verdict":"clear","what":"Outcome is short with screenshot, asks ticked with proof; text-check flags only on agent-facing move-script.md brief","to":"clarity-task-folders"}
+{"at":"2026-10-12T20:35:32.811Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/ui-library/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T20:36:33.807Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/ui-library/requirements.md","verdict":"spawned","to":"clarity-ui-library"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/ui-library","verdict":"rewrote","what":"split the 90-word owner paragraph into why/what blocks; text-check clean","to":"requirements.md"}
+{"at":"2026-10-12T20:41:26.197Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T20:41:26.313Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates","verdict":"spawned","to":"clarity-page-templates-2"}
+{"at":"2026-10-12T15:50:00-05:00","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates","verdict":"clear","what":"Outcome and both pages read in ten seconds (status, ask, delivery visible); text-check flags only on agent-facing plan.md/past-work.md/owner-notes-3.md, not rewritten","to":"none"}
+{"at":"2026-10-12T20:55:42.703Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/figma-colors-fix/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T20:55:43.880Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T20:55:45.056Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/step-runner/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T20:56:43.719Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/figma-colors-fix/requirements.md","verdict":"spawned","to":"clarity-figma-colors-fix"}
+{"at":"2026-10-12T20:56:44.972Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/requirements.md","verdict":"spawned","to":"clarity-screenshot-system"}
+{"at":"2026-10-12T20:56:46.235Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/step-runner/requirements.md","verdict":"spawned","to":"clarity-step-runner"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/requirements.md","verdict":"clear","what":"text-check clean; brief is short, flat, linked, open question flagged for the agent","to":"clarity"}
+{"at":"2026-10-12T12:00:00Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/figma-colors-fix/requirements.md","verdict":"clear","what":"text-check clean; title, checklist and links fine","to":"none"}
+{"at":"2026-10-12T20:56:58.000Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/step-runner/requirements.md","verdict":"rewrote","what":"Title was 15+ words; now 'Step runner: node enforces approved steps' plus a one-line goal","to":"requirements.md"}
