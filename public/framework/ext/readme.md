@@ -16,6 +16,7 @@
 - [panel2](./panel2/) — header/main/footer chrome you ship: an optional sidebar that becomes a drawer, a resizable split, a dashboard grid
 - [Research](./Research/) — a question dug by several minions into append-only files, rendered live with credence per claim
 - [Saver](./Saver/) — `save` / `load` / `delete` over one write queue, for anything that persists JSON
+- [Shots](./Shots/) — screenshot a page at its widths, diff each round against the last, judge with a click — the dev bar's Screenshots tab and `/framework/ext/Shots/` share one view
 - [Timeline](./Timeline/) — horizontal or vertical timeline for dated items
 - [catalog](./catalog/) — `catalog()` rail and `browse()` wall of `previews()` — use it for an index page
 - [demo](./demo/) — show the code and run it from one source — the site's example mechanism

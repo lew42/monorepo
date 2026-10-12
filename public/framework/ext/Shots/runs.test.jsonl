@@ -1,0 +1,5 @@
+{"run":{"id":"2026-10-12-100000","url":"/framework/ext/Shots/","dir":"public/assets/img","widths":[400,1920],"parent":null,"note":"first shot","by":"test","at":"2026-10-12T10:00:00-05:00","shots":{"400":{"file":"favicon.png","height":900,"cut":false},"1920":{"file":"favicon.png","height":1200,"cut":false}}}}
+{"run":{"id":"2026-10-12-110000","url":"/framework/ext/Shots/","dir":"public/assets/img","widths":[400,1920],"parent":"2026-10-12-100000","note":"padding pass","by":"test","at":"2026-10-12T11:00:00-05:00","shots":{"400":{"file":"favicon.png","height":940,"cut":false},"1920":{"file":"favicon.png","height":1200,"cut":false}}}}
+{"diff":{"id":"2026-10-12-110000","vs":"2026-10-12-100000","width":400,"changed":0.12,"regions":[[0,0,400,40,0.8]],"overlay":"favicon.png","height":[900,940]}}
+{"diff":{"id":"2026-10-12-110000","vs":"2026-10-12-100000","width":1920,"changed":0.02,"regions":[],"overlay":"favicon.png","height":[1200,1200]}}
+{"judge":{"id":"2026-10-12-110000","vs":"2026-10-12-100000","verdict":"better","by":"test","why":"padding fixed at 400","at":"2026-10-12T11:05:00-05:00"}}

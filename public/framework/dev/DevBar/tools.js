@@ -7,6 +7,7 @@ import structure from "./structure.js";
 import says from "./says.js";
 
 import page_chat from "./chat.js";
+import shots from "./shots.js";
 
 /* What the rail shows, in order, one array per tab. Each section renders itself into
    the captor. ⚠ `layout` is alone on a tab on purpose — it is the one section that
@@ -19,6 +20,7 @@ export const tabs = [
 	["layout", [layout]],
 	["ai", [ask]],
 	["chat", [page_chat]],
+	["screenshots", [shots]],
 ];
 
 const LINKS = [
