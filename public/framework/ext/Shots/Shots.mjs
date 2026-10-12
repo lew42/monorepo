@@ -87,15 +87,18 @@ export class Shots {
 		const shots = {};
 		for (const w of widths){
 			const height = w <= 400 ? 860 : 1080;
+			// Review fix 1: keep the NORMAL viewport height — resizing it to the doc's full
+			// height before shooting stretches every `vh`-sized section, so the picture isn't
+			// what a user sees. Shoot full-page instead, then crop to MAX_HEIGHT afterwards.
 			await page.setViewportSize({ width: w, height });
 			await settle(page);
-			const docH = await page.evaluate(() => document.documentElement.scrollHeight);
-			const shotHeight = Math.min(Math.max(docH, height), MAX_HEIGHT);
-			const cut = docH > MAX_HEIGHT;
-			await page.setViewportSize({ width: w, height: shotHeight });
-			await settle(page);
 			const file = `${w}.png`;
-			await page.screenshot({ path: path.join(roundDir, file) });
+			const buf = await page.screenshot({ fullPage: true });
+			const img = PNG.decode(buf);
+			const cut = img.height > MAX_HEIGHT;
+			const shotHeight = cut ? MAX_HEIGHT : img.height;
+			if (cut) fs.writeFileSync(path.join(roundDir, file), PNG.encode({ width: img.width, height: MAX_HEIGHT, data: img.data.subarray(0, img.width * MAX_HEIGHT * 4) }));
+			else fs.writeFileSync(path.join(roundDir, file), buf);
 			shots[w] = { file, height: shotHeight, cut };
 		}
 		await context.close();
@@ -126,7 +129,12 @@ export class Shots {
 				const result = Diff.compare(before, after);
 				const overlay = `diff-${w}.png`;
 				fs.writeFileSync(path.join(roundDir, overlay), PNG.encode(result.overlay));
-				const diff = { id, vs: vsId, width: w, changed: result.changed, regions: result.regions, overlay, height: result.height };
+				const diff = {
+					id, vs: vsId, width: w, changed: result.changed,
+					regions: result.regions, regionsMore: result.regionsMore,
+					moved: result.moved, movedMore: result.movedMore,
+					overlay, height: result.height,
+				};
 				append_line({ diff });
 				diffs.push(diff);
 			}
@@ -151,7 +159,10 @@ export class Shots {
 	 * log order (oldest first) — a caller builds the parent/child tree from each run's `parent`. */
 	static rounds(url){
 		const want = as_url(url);
-		return read_lines().filter(l => (l.run && l.run.url === want) || (l.diff && is_diff_for(l.diff, want)) || (l.judge && is_judge_for(l.judge, want)));
+		const lines = read_lines();   // review fix 6: one read for the whole call, not one per line
+		const runsById = new Map();
+		for (const l of lines) if (l.run) runsById.set(l.run.id, l.run);
+		return lines.filter(l => (l.run && l.run.url === want) || (l.diff && runsById.get(l.diff.id)?.url === want) || (l.judge && runsById.get(l.judge.id)?.url === want));
 	}
 }
 
@@ -159,16 +170,25 @@ function settle(page){
 	return page.waitForLoadState("networkidle", { timeout: 4000 }).catch(() => {}).then(() => page.waitForTimeout(300));
 }
 
+// Review fix 6: ids have one-second resolution, so two rounds in the same second would share a
+// folder — a repeat gets a `-2`, `-3`, ... suffix instead of silently colliding.
 function round_id(){
 	const d = new Date();
 	const pad = n => String(n).padStart(2, "0");
-	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+	const base = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+	const existing = new Set(read_lines().filter(l => l.run).map(l => l.run.id));
+	if (!existing.has(base)) return base;
+	let n = 2;
+	while (existing.has(`${base}-${n}`)) n++;
+	return `${base}-${n}`;
 }
 
 function now_iso(){ return new Date().toISOString(); }
 
+// Review fix 6: drop `?query`/`#hash` so such urls join the SAME round history as the bare path.
 function as_url(url){
 	let u = String(url).replace(/^https?:\/\/[^/]+/, "");
+	u = u.split("?")[0].split("#")[0];
 	if (!u.startsWith("/")) u = "/" + u;
 	if (!u.endsWith("/")) u += "/";
 	return u;
@@ -201,13 +221,5 @@ function latest_round_id(url, excludeId){
 	return runs.length ? runs[runs.length - 1].id : null;
 }
 
-function is_diff_for(diff, want){
-	const run = find_run(diff.id);
-	return run?.url === want;
-}
-function is_judge_for(judge, want){
-	const run = find_run(judge.id);
-	return run?.url === want;
-}
 
 export default Shots;

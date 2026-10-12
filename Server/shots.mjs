@@ -70,8 +70,14 @@ async function main(){
 		const diff = diffs.find(d => d.width === w);
 		const line = [`  ${w}px: ${run.dir}/${shot.file}`, `h${shot.height}${shot.cut ? " (cut)" : ""}`];
 		if (diff){
-			const top = diff.regions.slice(0, 3).map(([x, y, rw, rh, amt]) => `[${x},${y},${rw}x${rh}]@${amt}`).join(" ");
-			line.push(`vs ${diff.vs}: ${diff.regions.length} region${diff.regions.length === 1 ? "" : "s"}${top ? " " + top : ""}`);
+			const movedTotal = diff.moved.length + (diff.movedMore || 0);
+			const changedTotal = diff.regions.length + (diff.regionsMore || 0);
+			const signed = n => (n >= 0 ? "+" : "") + n;
+			const largestMoved = diff.moved[0];
+			const movedPart = `moved ${movedTotal} region${movedTotal === 1 ? "" : "s"}` + (largestMoved ? ` (largest ${largestMoved[2]}×${largestMoved[3]} by ${signed(largestMoved[4])},${signed(largestMoved[5])})` : "");
+			const largestChanged = diff.regions[0];
+			const changedPart = `changed ${changedTotal}` + (largestChanged ? ` (largest ${largestChanged[2]}×${largestChanged[3]} at ${largestChanged[0]},${largestChanged[1]})` : "");
+			line.push(`vs ${diff.vs}: ${movedPart}, ${changedPart}`);
 			if (diff.height[0] !== diff.height[1]) line.push(`height ${diff.height[0]}→${diff.height[1]}`);
 			line.push(`overlay: ${run.dir}/${diff.overlay}`);
 		}

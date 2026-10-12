@@ -49,6 +49,52 @@ function check(name, ok){ results.push([name, ok]); console.log(`${ok ? "PASS" :
 	check("Diff: overlay is the same size as the compared area", result.overlay.width === width && result.overlay.height === height);
 	check("Diff: height report is [before, after]", result.height[0] === height && result.height[1] === height);
 	check("Diff: unchanged image reports zero regions", Diff.compare(before, base()).regions.length === 0);
+	check("Diff: changed_regions is the same array as regions", result.changed_regions === result.regions);
+}
+
+// ---- Diff: moved vs changed — one block shifts by (10, 20), another is recoloured ----------
+{
+	const width = 256, height = 192;
+	const base = () => {
+		const data = new Uint8Array(width * height * 4);
+		for (let i = 0; i < data.length; i += 4){ data[i] = 180; data[i + 1] = 180; data[i + 2] = 180; data[i + 3] = 255; }
+		return { width, height, data };
+	};
+	const before = base();
+	// A distinctive block in BEFORE, at (80, 64), 48x48 — a diagonal gradient, not a flat colour,
+	// so every 16px cell inside it is unique and a shift can't alias onto a neighbouring cell.
+	const MOVED = { x: 80, y: 64, w: 48, h: 48 };
+	for (let y = MOVED.y; y < MOVED.y + MOVED.h; y++){
+		for (let x = MOVED.x; x < MOVED.x + MOVED.w; x++){
+			const i = (y * width + x) * 4;
+			before.data[i] = 10; before.data[i + 1] = 40 + (x - MOVED.x) * 3; before.data[i + 2] = 40 + (y - MOVED.y) * 3;
+		}
+	}
+	const after = base();
+	const DX = 10, DY = 20;
+	for (let y = MOVED.y; y < MOVED.y + MOVED.h; y++){
+		for (let x = MOVED.x; x < MOVED.x + MOVED.w; x++){
+			const i = ((y + DY) * width + (x + DX)) * 4;
+			after.data[i] = 10; after.data[i + 1] = 40 + (x - MOVED.x) * 3; after.data[i + 2] = 40 + (y - MOVED.y) * 3;
+		}
+	}
+	// A second, unrelated block that is recoloured in place — must land as CHANGED, not moved.
+	const CHANGED = { x: 160, y: 16, w: 32, h: 32 };
+	for (let y = CHANGED.y; y < CHANGED.y + CHANGED.h; y++){
+		for (let x = CHANGED.x; x < CHANGED.x + CHANGED.w; x++){
+			const i = (y * width + x) * 4;
+			after.data[i] = 220; after.data[i + 1] = 10; after.data[i + 2] = 10;
+		}
+	}
+	const result = Diff.compare(before, after, { cell: 16 });
+	check("Diff: finds one moved region", result.moved.length === 1);
+	const [, , , , mdx, mdy] = result.moved[0] || [];
+	check("Diff: moved region reports the right offset", mdx === DX && mdy === DY);
+	// The recoloured block must show up as a changed region — plus, honestly, the strip the
+	// moved block uncovered (no longer overlapped by its new position) is a real "gone" area,
+	// so a second changed region there is correct, not a bug (doc/moved-vs-changed.md).
+	const foundChanged = result.regions.some(([x, y, w, h]) => x === CHANGED.x && y === CHANGED.y && w === CHANGED.w && h === CHANGED.h);
+	check("Diff: finds the recoloured block as a changed region", foundChanged);
 }
 
 const failed = results.filter(([, ok]) => !ok);
