@@ -23,3 +23,9 @@
 6. **Measure:** `Steps.report()` — followed fully = has estimated steps, every step reported, landed with an outcome. Each nudge also goes to the Servex `steps` log.
 
 **Alternative not taken:** a `steps` section in `plan.md` parsed by node. Rejected: `task.jsonl` already carries `steps`, and the board already reads it there.
+
+## After (2026-10-12, `node Server/Steps.mjs --report`)
+
+- Before, 7 days: 114 tasks, 16 with steps, 1 with estimates, **0 followed fully**.
+- After, two real tasks: [refine-parse-fix](../../session-44dca579/refine-parse-fix/task.jsonl) was planned with `Steps.mjs --plan`, prompted step by step by the hook, and landed: **followed fully**. This task bumped steps 3-6 one by one, but steps 1-3 were set at once before the system existed: **not followed fully** under the strict rule. Rate of estimated tasks: 0% → 50%.
+- The live 2× nudge is proven by `Servex/TaskLoop-steps.test.mjs` (one nudge across two ticks) and the private boot; no live task ran past 2× during the proof window.
