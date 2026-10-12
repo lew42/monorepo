@@ -1,4 +1,5 @@
 import RefineCall from "./RefineCall.js";
+import RefineStyle from "../../../public/framework/ext/Refine/RefineStyle.js";
 
 /**
  * class Annotator — the Haiku pass over a CLEAN prompt (the owner's design, `ext/Refine/doc/vision-2026-10-08.md`
@@ -21,7 +22,9 @@ export default class Annotator {
 - "alternates": 0 to 2 shorter or simpler wordings with the same meaning (an empty list if the sentence is already short and plain),
 - "names": 0 to 2 short names (one word best, two words great) for a core idea the sentence introduces, only if it deserves a name,
 - "tags": 0 to 3 repo paths or class names the sentence is about, in the form "core/Page" or "ext/Refine" (only ones actually mentioned or clearly meant).
-Never change the meaning. Never invent. Reply with ONLY compact JSON: {"notes":[{"i":0,"alternates":[],"names":[],"tags":[]}, ...]} with one entry per sentence.`;
+Never change the meaning. Never invent.
+${RefineStyle.for("notes")}
+Reply with ONLY compact JSON: {"notes":[{"i":0,"alternates":[],"names":[],"tags":[]}, ...]} with one entry per sentence.`;
 
 	/** Split sentences into batches no longer than BATCH_CHARS (keeps each call small and cheap). */
 	static batches(sentences){
