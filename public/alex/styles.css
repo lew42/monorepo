@@ -9,27 +9,27 @@
 .doc-header { display: flex; align-items: baseline; gap: 1em; margin-bottom: 1.5em; }
 .doc-header h1 { margin: 0; }
 
-.doc h1 { color: var(--prim); }
+.doc h1 { color: var(--prime); }
 .doc h2 { margin-top: 2em; border-bottom: 1px solid var(--subtle); padding-bottom: 0.3em; }
 
-.doc-back { color: var(--prim); text-decoration: none; font-size: 0.8em; white-space: nowrap; }
+.doc-back { color: var(--prime); text-decoration: none; font-size: 0.8em; white-space: nowrap; }
 .doc-back::before { content: "\2190\00a0"; }
 .doc-back:hover { text-decoration: underline; }
 
 /* code blocks */
-.doc pre { background: var(--bg); color: white; padding: 1em; border-radius: 0.4em; }
+.doc pre { background: var(--dark); color: white; padding: 1em; border-radius: 0.4em; }
 .doc pre code { background: none; padding: 0; color: inherit; }
 
 /* navigation cards */
 .doc-cards { display: grid; gap: 1em; grid-template-columns: repeat(auto-fit, minmax(min(14em, 100%), 1fr)); margin: 1em 0; }
 .doc-card { display: block; text-decoration: none; color: inherit; border: 1px solid var(--subtle); border-radius: 0.5em; padding: 1.2em; }
-.doc-card:hover { border-color: var(--prim); }
-.doc-card h3 { margin: 0 0 0.3em; color: var(--prim); }
+.doc-card:hover { border-color: var(--prime); }
+.doc-card h3 { margin: 0 0 0.3em; color: var(--prime); }
 .doc-card p { margin: 0; color: var(--subtle); font-size: 0.9em; }
 
 /* live style demos */
 .demo { border: 1px dashed var(--subtle); border-radius: 0.4em; padding: 1em; margin-bottom: 1em; }
-.demo.boxes > * { background: var(--prim); color: white; padding: 0.6em 1em; border-radius: 0.3em; text-align: center; }
+.demo.boxes > * { background: var(--prime); color: white; padding: 0.6em 1em; border-radius: 0.3em; text-align: center; }
 
 /* BEM card demo — mobile-first, fluid sizing, one breakpoint for the horizontal modifier */
 .card {
@@ -38,7 +38,7 @@
     padding: clamp(0.5rem, 2vw, 1rem);
 }
 .card--featured {
-    border-color: var(--prim);
+    border-color: var(--prime);
     box-shadow: 0 0.25rem 1rem var(--subtle);
 }
 .card--horizontal {
@@ -56,7 +56,7 @@
 }
 .card--horizontal > .card__body { flex: 1; }
 .card__image {
-    background: var(--bg);
+    background: var(--dark);
     padding: clamp(1rem, 4vw, 2rem);
     text-align: center;
     font-size: clamp(1.5rem, 4vw, 2rem);
@@ -64,7 +64,7 @@
 .card__body { padding: clamp(0.5rem, 2vw, 1rem); }
 .card__title {
     font-weight: 600;
-    color: var(--prim);
+    color: var(--prime);
     margin-bottom: 0.3rem;
     font-size: clamp(1rem, 2.5vw, 1.25rem);
 }
@@ -82,10 +82,10 @@
     background: transparent;
     font-size: clamp(0.8rem, 2vw, 1rem);
 }
-.card__btn--prim {
-    background: var(--prim);
+.card__btn--prime {
+    background: var(--prime);
     color: white;
-    border-color: var(--prim);
+    border-color: var(--prime);
 }
 
 /* BEM card list — responsive grid, no media queries */

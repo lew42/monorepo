@@ -5,6 +5,8 @@ control), its outline (a checklist of what was asked and delivered), and one "Li
 row, the same look whether the card opens at
 [`/framework/ai/<card>/`](/framework/ai/) or [`/framework/ai2/<card>/`](/framework/ai2/).
 
+Not the `.card` box: that is [ui/card](/framework/ui/card/), the one card page.
+
 ## Use
 
 This module is `Card.css` alone — every rule a card's own page needs that has nothing to

@@ -10,7 +10,7 @@ import { css } from "../parts.js";
  * "these are alternatives" — boxes can, and that is the whole component.
  *
  * ⚠ THE CHOSEN CARD IS MARKED THREE WAYS ON PURPOSE, and none of them is the
- *   accent carrying text. `--prim` is #FF6157, which is 2.96:1 on white — under
+ *   accent carrying text. `--prime` is #FF6157, which is 2.96:1 on white — under
  *   the 3:1 a UI shape needs and far under text's 4.5:1. So: a warm ground the
  *   others don't have (9.6:1 for `--ink`), a 2px accent border (a shape, not
  *   text), and the word "chosen" in ordinary ink (10.5:1). Any one of the three
@@ -62,8 +62,8 @@ css(`@layer theme {
 	.ui-decision-option > * { margin: 0; }
 
 	.ui-decision-option.chosen {
-		background: color-mix(in srgb, var(--prim) 8%, var(--surface));
-		border-color: var(--prim);
+		background: color-mix(in srgb, var(--prime) 8%, var(--surface));
+		border-color: var(--prime);
 	}
 
 	.ui-decision-say { font-weight: 600; }
@@ -73,11 +73,11 @@ css(`@layer theme {
 	   mode and to a reader who cannot tell #FF6157 from #1a1a1a. The ✓ is
 	   decoration in front of it. */
 	.ui-decision-mark { font-size: .8em; letter-spacing: .04em; text-transform: uppercase; font-weight: 700; }
-	.ui-decision-mark::before { content: "✓ "; color: var(--prim); }
+	.ui-decision-mark::before { content: "✓ "; color: var(--prime); }
 
 	/* One sentence, under the options it explains — so it reads as the reason
 	   for the set rather than as a fifth option. */
-	.ui-decision-because { border-inline-start: 2px solid var(--prim); padding-inline-start: .75em; }
+	.ui-decision-because { border-inline-start: 2px solid var(--prime); padding-inline-start: .75em; }
 
 	/* A nested set: an option that was itself a choice. Inside a white card the
 	   step is DOWNWARD — --tint (#f8f8f8) is the one rung between --surface and

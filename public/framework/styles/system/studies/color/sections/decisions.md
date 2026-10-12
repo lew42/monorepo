@@ -9,7 +9,7 @@ composited under the text, the WCAG contrast of the body ink on it, and **ΔL\**
 difference in CIE lightness between the two grounds in a cell, which is the honest "can you
 see the edge" number. The six grounds are the lighten/darken study's own five greys
 (imported from `../study.js`, so the two pages can never disagree about what "mid gray" is)
-plus the accent, painted with `--prim` so the hue slider drives it.
+plus the accent, painted with `--prime` so the hue slider drives it.
 
 Two of the ratios were recomputed by hand against the WCAG 2 formula and matched what the
 page printed: the theme's `--ink` (`#3f3f3f`) on white is **(1.0 + 0.05) / (0.0497 + 0.05) =

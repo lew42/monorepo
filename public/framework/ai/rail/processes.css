@@ -27,7 +27,7 @@
 		border-radius: 50%;
 		flex: none;
 	}
-	.ai2-proc-dot-ours { background: var(--prim); }
+	.ai2-proc-dot-ours { background: var(--prime); }
 	.ai2-proc-dot-other { background: var(--subtle); opacity: 0.6; }
 
 	/* RAM on top, CPU below, one shared hover crosshair — `position: relative`

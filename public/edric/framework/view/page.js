@@ -12,7 +12,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("View").ac("mb").style("color", "var(--prim)");
+            h1("View").ac("mb").style("color", "var(--prime)");
 
             p("Every tag function (`h1, p, div, a`...) returns a `View`, wrapping one DOM element. You mostly just call methods on it:").ac("mb");
             pre(`div.c("flex gap", () => {

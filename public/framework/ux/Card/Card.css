@@ -39,7 +39,7 @@
 	.ai2-word:hover,
 	.ai2-word.on {
 		opacity: 1;
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 	}
 
 	/* A card face's own ✕ (faces.js `full()`, the Live card's rows). */
@@ -122,7 +122,7 @@
 	}
 
 	.ai2-who-you {
-		background: var(--prim);
+		background: var(--prime);
 		color: white;
 		opacity: 1;
 	}
@@ -371,17 +371,17 @@
 	.ai2-reviewed {
 		flex: none;
 		padding: 0.15em 0.7em;
-		border: 1px solid var(--prim);
+		border: 1px solid var(--prime);
 		border-radius: 0.3em;
 		background: none;
-		color: var(--prim);
+		color: var(--prime);
 		font: inherit;
 		font-size: 0.85em;
 		cursor: pointer;
 	}
 
 	.ai2-reviewed:hover {
-		background: var(--prim);
+		background: var(--prime);
 		color: white;
 	}
 
@@ -602,7 +602,7 @@
 	.ai2-live-bar > span {
 		display: block;
 		height: 100%;
-		background: var(--prim);
+		background: var(--prime);
 	}
 
 	.ai2-live-bar.crit > span {
@@ -633,7 +633,7 @@
 
 	.ai2-live-working .ai2-live-state,
 	.ai2-live-state.ai2-live-working {
-		color: var(--prim);
+		color: var(--prime);
 		opacity: 1;
 	}
 
@@ -646,7 +646,7 @@
 
 	/* A free worktree slot: bold, so what is free reads at a glance. */
 	.ai2-live-state.ai2-live-ready {
-		color: var(--prim);
+		color: var(--prime);
 		font-weight: 700;
 		opacity: 1;
 	}
@@ -861,7 +861,7 @@
 	.ai2-live-back {
 		display: none;
 		position: relative;
-		color: var(--prim);
+		color: var(--prime);
 		cursor: pointer;
 	}
 
@@ -879,7 +879,7 @@
 
 	.ai2-live-talk-col .ai2-talk {
 		border: 1px solid var(--line);
-		border-inline-start: 2px solid var(--prim);
+		border-inline-start: 2px solid var(--prime);
 		border-radius: 0.4em;
 	}
 
@@ -901,7 +901,7 @@
 
 	.ai2-talk {
 		padding: 0.5em 0.75em 0.75em;
-		border-inline-start: 2px solid var(--prim);
+		border-inline-start: 2px solid var(--prime);
 		border-block-end: 1px solid var(--line);
 	}
 
@@ -1481,7 +1481,7 @@
 	.ai2-tiny-tab[aria-selected="true"] {
 		opacity: 1;
 		font-weight: 600;
-		border-block-end-color: var(--prim);
+		border-block-end-color: var(--prime);
 	}
 
 	/* The panel holds the tab PAGES (card.js `route()`): each is a routed child page
@@ -1520,7 +1520,7 @@
 		border-block-end: 1px solid var(--line);
 		border-inline-start: 3px solid transparent;
 	}
-	.ai2-act-row.ai2-act-new { border-inline-start-color: var(--prim); background: var(--fill-a04); }
+	.ai2-act-row.ai2-act-new { border-inline-start-color: var(--prime); background: var(--fill-a04); }
 	.ai2-act-who { font-weight: 600; flex: none; }
 	.ai2-act-where { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.ai2-act-mark { flex: none; }
@@ -1529,7 +1529,7 @@
 		font-size: 0.75em;
 		font-weight: 600;
 		text-transform: uppercase;
-		color: var(--prim);
+		color: var(--prime);
 	}
 	.ai2-act-what {
 		display: -webkit-box;

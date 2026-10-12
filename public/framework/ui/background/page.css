@@ -27,7 +27,7 @@
 		background: var(--surface);
 		cursor: pointer;
 	}
-	.background-wall-card:hover { border-color: var(--prim); }
+	.background-wall-card:hover { border-color: var(--prime); }
 	.background-wall-card .background-content {
 		height: 100%;
 		box-sizing: border-box;

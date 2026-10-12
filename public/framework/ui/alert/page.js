@@ -52,7 +52,7 @@ export default new Page({
 
 		md("## The tone is a class, and the class names a token");
 
-		md("```css\n.ui-alert { border-left: 3px solid var(--line); }\n.ui-alert > .icon { color: var(--subtle); }\n\n.ui-alert.accent { border-left-color: var(--prim); }\n.ui-alert.accent > .icon { color: var(--prim); }\n```");
+		md("```css\n.ui-alert { border-left: 3px solid var(--line); }\n.ui-alert > .icon { color: var(--subtle); }\n\n.ui-alert.accent { border-left-color: var(--prime); }\n.ui-alert.accent > .icon { color: var(--prime); }\n```");
 
 		md("The `> .icon` selector names a class this file does not emit — `icon()` from `View.js` does — so `alert.js` imports `View.js`. That is the rule: **if your CSS names a class you don't emit, import the module that emits it.**");
 

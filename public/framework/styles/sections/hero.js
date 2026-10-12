@@ -8,7 +8,7 @@ import { band } from "./tone.js";
 export default (tone = "dark") =>
 	div.c("section-band", () =>
 		div.c("measure flex v gap", () => {
-			p.c("h4", "NO BUILD STEP").style("color", "var(--eyebrow, var(--prim))");
+			p.c("h4", "NO BUILD STEP").style("color", "var(--eyebrow, var(--prime))");
 
 			p.c("h1", "A framework you can read");
 

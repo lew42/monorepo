@@ -174,7 +174,7 @@ export default new Page({
 				p(r.does);
 				p.c("muted", "writes → " + r.writes);
 			}).style({ flex: "2 1 20rem" });
-		}).style({ "--card-edge": r.lead ? "var(--prim)" : "var(--ink)" });
+		}).style({ "--card-edge": r.lead ? "var(--prime)" : "var(--ink)" });
 	},
 
 	/* Down and up on ONE wrapping row: what the tier above hands down, and the

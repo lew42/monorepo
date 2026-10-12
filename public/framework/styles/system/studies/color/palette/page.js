@@ -19,8 +19,8 @@ const here = new URL("../", import.meta.url).pathname;
 // alias rather than its own color. Grouped the way lew42.css itself groups them.
 const GROUPS = [
 	{ title: "Accent", tokens: [
-		["--prim", "The mark's orange. FILLS, outlines, active bars, accent-color — never text.", "#FF8F60", "#FF8F60"],
-		["--prim-ink", "--prim taken to text contrast. Links, active nav ink.", "#B84A24 (5.19:1)", "#FF8F60 (7.98:1)"],
+		["--prime", "The mark's orange. FILLS, outlines, active bars, accent-color — never text.", "#FF8F60", "#FF8F60"],
+		["--prime-ink", "--prime taken to text contrast. Links, active nav ink.", "#B84A24 (5.19:1)", "#FF8F60 (7.98:1)"],
 	]},
 	{ title: "Elevation ladder", tokens: [
 		["--wash", "Page floor.", "#f2f2f2", "#171717"],
@@ -49,15 +49,15 @@ const GROUPS = [
 	]},
 	{ title: "Syntax (code blocks — flat, not mode-aware)", tokens: [
 		["--syn-comment", "Comments.", "#b5b5b5", "#b5b5b5"],
-		["--syn-keyword", "Keywords (= --prim).", "#FF8F60", "#FF8F60"],
+		["--syn-keyword", "Keywords (= --prime).", "#FF8F60", "#FF8F60"],
 		["--syn-string", "Strings.", "#9ecbff", "#9ecbff"],
 		["--syn-number", "Numbers.", "#79c0ff", "#79c0ff"],
 		["--syn-fn", "Function names.", "#d2a8ff", "#d2a8ff"],
-		["--syn-builtin", "Builtins (= --prim).", "#FF8F60", "#FF8F60"],
+		["--syn-builtin", "Builtins (= --prime).", "#FF8F60", "#FF8F60"],
 		["--syn-tag", "Tags.", "#7ee787", "#7ee787"],
 		["--syn-attr", "Attributes.", "#fffbca", "#fffbca"],
 		["--syn-meta", "Meta.", "#9d9d9d", "#9d9d9d"],
-		["--syn-error", "Errors (= --prim).", "#FF8F60", "#FF8F60"],
+		["--syn-error", "Errors (= --prime).", "#FF8F60", "#FF8F60"],
 	]},
 ];
 
@@ -80,9 +80,9 @@ const shot = (file, alt) => img().attr("src", here + "shots/" + file).attr("alt"
 
 const FAILS = [
 	{ file: "fail-ai-card-title.jpg", ratio: "2.25:1", where: "/framework/ai/2026-09-01/ — .ai-card-title",
-		what: "`ext/AITask/ai.css:187` paints the card title `color: var(--prim)` — TEXT on the orange fill token, not `--prim-ink`. lew42.css names this exact mistake in its own comment: prim-ink is text, prim is fill-only." },
+		what: "`ext/AITask/ai.css:187` paints the card title `color: var(--prime)` — TEXT on the orange fill token, not `--prime-ink`. lew42.css names this exact mistake in its own comment: prim-ink is text, prim is fill-only." },
 	{ file: "fail-toc-current.jpg", ratio: "2.01:1", where: "/blog/framework/hello-lew42/ — .toc-link.current",
-		what: "`ext/toc/toc.css:67` — same shape, `color: var(--prim)` on the active TOC row against --wash. Worst measured pair in the crawl." },
+		what: "`ext/toc/toc.css:67` — same shape, `color: var(--prime)` on the active TOC row against --wash. Worst measured pair in the crawl." },
 	{ file: "fail-stray-blue-link.jpg", ratio: "8.4:1 (not a contrast defect — a palette defect)", where: "/layouts/doc/studies/ — bare <a> in body content",
 		what: "framework.css only colors an anchor inside `:where(p, li, td, th, dd, blockquote, .md)`. A plain <a> in a card or list that isn't wrapped and has no component class gets ZERO color rule and falls to the browser's UA default — classic blue, x85 instances across the 15-page sample (x85 again in dark, as the UA's dark-mode link blue). It reads fine; it just isn't lew42 orange, and it's the single largest non-token color found." },
 	{ file: "fail-accent-overload.jpg", ratio: "n/a — consistency, not contrast", where: "/framework/styles/layouts/ — layout-gallery mockup specimens",
@@ -90,7 +90,7 @@ const FAILS = [
 ];
 
 const OKS = [
-	{ file: "ok-dark-mode.jpg", where: "/blog/framework/hello-lew42/, dark", what: "--ink on --wash reads clean (12.6:1-class grey-on-near-black); --prim stays the only warm note — headings, active TOC line, breadcrumb." },
+	{ file: "ok-dark-mode.jpg", where: "/blog/framework/hello-lew42/, dark", what: "--ink on --wash reads clean (12.6:1-class grey-on-near-black); --prime stays the only warm note — headings, active TOC line, breadcrumb." },
 	{ file: "ok-padding-clean.jpg", where: "/framework/styles/system/studies/padding/, light", what: "One page, one job: cards on --wash, ink text, a single underlined link. Nothing competes with the accent because nothing else is trying to be one." },
 	{ file: "ok-theme-source-dark.jpg", where: "/framework/styles/layers/theme/lew42/", what: "The theme's own doc page, dark island nested in a dark shell — the one place the palette documents itself, live." },
 ];
@@ -117,7 +117,7 @@ export default new Page({
 		});
 
 		h2("Measured reality");
-		md("Walked computed `color` / `background-color` / `border-color` on every visible element across 15 representative pages, light and dark: **42 unique CSS color values in light mode, 36 in dark.** Against 29 tokens (many aliasing the same hex — the three `--syn-*` tokens that equal `--prim`, `--sidebar-ink` = `--ink`), that's roughly 34/42 (light) and 31/36 (dark) traceable straight to a token or to `.muted`'s `color-mix()` (which shows up as ten distinct `color(srgb …)` opacity steps — expected, not stray).");
+		md("Walked computed `color` / `background-color` / `border-color` on every visible element across 15 representative pages, light and dark: **42 unique CSS color values in light mode, 36 in dark.** Against 29 tokens (many aliasing the same hex — the three `--syn-*` tokens that equal `--prime`, `--sidebar-ink` = `--ink`), that's roughly 34/42 (light) and 31/36 (dark) traceable straight to a token or to `.muted`'s `color-mix()` (which shows up as ten distinct `color(srgb …)` opacity steps — expected, not stray).");
 		md("**8 light-mode / 5 dark-mode values are hardcoded strays** — but only one is a real, repeated defect: a bare `<a>` that isn't wrapped in `:where(p, li, td, th, dd, blockquote, .md)` and carries no component class gets **no color rule at all** and falls through to the browser's default link blue — `rgb(0, 0, 238)` in light, `rgb(158, 158, 255)` in dark's UA stylesheet — **85 instances each**, the single largest non-token color in the crawl (`/layouts/doc/studies/`, `/framework/styles/system/studies/padding/`, `/framework/styles/layouts/`). The rest of the strays (greys like `rgb(51,51,51)`, `rgb(74,74,74)`) are confined to two known non-representative pages — the theme's own doc page rendering a dark swatch inline, and the layout gallery's fake \"client\" mockups, which use arbitrary brand colors on purpose as layout specimens.");
 
 		h2("Contrast findings");
@@ -130,7 +130,7 @@ export default new Page({
 			});
 			p.c("muted", f.what).style({ fontSize: "0.88em" });
 		})));
-		md("Two near-misses just under AA, from `--subtle` on a slightly-lighter-than-`--wash` fill: `a.tab` at 4.23:1, `button.demo-btn` at 4.26:1 — both a rounding error, not `--subtle` itself (5.41:1 on white, 4.83:1 on `--wash`, both over AA). `button.prim` (white on `--prim`, 2.25:1) is excluded from the \"real failure\" count above — framework.css already documents the tradeoff and mitigates with bold caps + a text shadow; it repeats through `FAILS` above only as the *accent-overload* example, not a fresh contrast finding.");
+		md("Two near-misses just under AA, from `--subtle` on a slightly-lighter-than-`--wash` fill: `a.tab` at 4.23:1, `button.demo-btn` at 4.26:1 — both a rounding error, not `--subtle` itself (5.41:1 on white, 4.83:1 on `--wash`, both over AA). `button.prim` (white on `--prime`, 2.25:1) is excluded from the \"real failure\" count above — framework.css already documents the tradeoff and mitigates with bold caps + a text shadow; it repeats through `FAILS` above only as the *accent-overload* example, not a fresh contrast finding.");
 
 		h3("Where color works");
 		div.c("color-pairbox").style({ gridTemplateColumns: "repeat(auto-fill, minmax(min(22em, 100%), 1fr))" }).append(() => OKS.map(o => figure.c("flex v gap color-ok").style({ margin: 0, gap: "calc(var(--gap) * 0.4)" }).append(() => {
@@ -140,6 +140,6 @@ export default new Page({
 		})));
 
 		h2("Themable as-is?");
-		md("**Yes, with one seam** — `.theme-lew42` on the app root is the whole contract; a second theme is a second class with the same ~29 properties (the guide/paper+terminal pair proves the seam already works). What the theme browser needs to know going in: three tokens are **aliases, not decisions** (`--syn-keyword`/`--syn-builtin`/`--syn-error` all just read `--prim`, `--sidebar-ink` reads `--ink`) — a new theme can skip them; two tokens are **shape, not color** (`--card-shadow`/`--card-ring` swap MECHANISM by mode, shadow in light vs. ring in dark, so a theme author has to pick both, not one); and `--code-bg`/`--code-ink`/`--syn-*` are **deliberately flat** — a theme that makes them `light-dark()` will get a dark code box on a light one and vice-versa, which is the one trap this study found other themes are likely to walk into.");
+		md("**Yes, with one seam** — `.theme-lew42` on the app root is the whole contract; a second theme is a second class with the same ~29 properties (the guide/paper+terminal pair proves the seam already works). What the theme browser needs to know going in: three tokens are **aliases, not decisions** (`--syn-keyword`/`--syn-builtin`/`--syn-error` all just read `--prime`, `--sidebar-ink` reads `--ink`) — a new theme can skip them; two tokens are **shape, not color** (`--card-shadow`/`--card-ring` swap MECHANISM by mode, shadow in light vs. ring in dark, so a theme author has to pick both, not one); and `--code-bg`/`--code-ink`/`--syn-*` are **deliberately flat** — a theme that makes them `light-dark()` will get a dark code box on a light one and vice-versa, which is the one trap this study found other themes are likely to walk into.");
 	},
 });

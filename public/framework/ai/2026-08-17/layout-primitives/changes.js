@@ -67,15 +67,15 @@ code { background: var(--wash); }        /* was the same line as pre */`,
 		title: "The accent has a text twin — the orange stays a fill",
 		cls: "broken",
 		wave: 3,
-		line: "`--prim` is `#FF8F60`: **2.25:1** as ink. It is also the only mark an active link wears, so \"no visible active-state indicator\" and \"reads as an accidental colour leak\" were the same 10 findings. An accent is picked to be seen as a *fill*; this is the same hue taken down until it reads as ink. A token, not a rule — `--prim-ink` defaults to `--prim`, so a theme whose accent already reads changes nothing. ⚠ Applied to the three text sites inside this task's fence; ~27 more still say `--prim`, most of them marks, outlines and fills that should.",
+		line: "`--prime` is `#FF8F60`: **2.25:1** as ink. It is also the only mark an active link wears, so \"no visible active-state indicator\" and \"reads as an accidental colour leak\" were the same 10 findings. An accent is picked to be seen as a *fill*; this is the same hue taken down until it reads as ink. A token, not a rule — `--prime-ink` defaults to `--prime`, so a theme whose accent already reads changes nothing. ⚠ Applied to the three text sites inside this task's fence; ~27 more still say `--prime`, most of them marks, outlines and fills that should.",
 		before: "`#FF8F60` as text — **2.25:1** on white, **2.01:1** on `--wash`",
 		after: "`#B84A24` — **5.19:1** and **4.64:1**; dark mode keeps the orange (7.98:1)",
-		css: `--prim-ink: var(--prim);                              /* framework.css :root — the default IS the accent */
---prim-ink: light-dark(#B84A24, #FF8F60);             /* lew42.css */
+		css: `--prime-ink: var(--prime);                              /* framework.css :root — the default IS the accent */
+--prime-ink: light-dark(#B84A24, #FF8F60);             /* lew42.css */
 
-.page-link.active, .page-link.in-path { color: var(--prim-ink); }
-.page-preview:hover .page-preview-title { color: var(--prim-ink); }
-:where(p, li, td, th, dd, blockquote, .md) a:hover { color: var(--prim-ink); }`,
+.page-link.active, .page-link.in-path { color: var(--prime-ink); }
+.page-preview:hover .page-preview-title { color: var(--prime-ink); }
+:where(p, li, td, th, dd, blockquote, .md) a:hover { color: var(--prime-ink); }`,
 		deletes: "Nothing yet. Reverting is deleting one token and three `-ink` suffixes.",
 		files: ["framework.css", "styles/layers/theme/lew42/lew42.css", "core/Page/Page.css"],
 	},

@@ -64,7 +64,7 @@
 		letter-spacing: -0.05em;
 		color: var(--ink);
 	}
-	.panel-t-accent { color: var(--prim); }
+	.panel-t-accent { color: var(--prime); }
 
 	/* wall — four numbers that re-count their own columns */
 
@@ -82,7 +82,7 @@
 	.panel-t-n {
 		font-size: 2em;
 		font-weight: 900; line-height: 1;
-		color: var(--prim);
+		color: var(--prime);
 	}
 	.panel-t-l {
 		font-size: 0.6em;
@@ -113,7 +113,7 @@
 
 	.panel-t-haze {
 		background:
-			radial-gradient(62% 55% at 22% 18%, color-mix(in oklab, var(--prim) 45%, transparent), transparent 68%),
+			radial-gradient(62% 55% at 22% 18%, color-mix(in oklab, var(--prime) 45%, transparent), transparent 68%),
 			radial-gradient(58% 52% at 80% 82%, color-mix(in oklab, var(--surface) 55%, transparent), transparent 68%),
 			var(--haze, var(--surface));
 	}
@@ -125,7 +125,7 @@
 	   this one converts to `em` rather than to `%`, and rides the panel's text size. */
 	.panel-t-aurora .panel-t-layer { filter: blur(1.5em); mix-blend-mode: screen; }
 	.panel-t-aurora .panel-t-layer:nth-child(1) {
-		background: radial-gradient(26% 40% at 32% 34%, var(--prim), transparent 68%);
+		background: radial-gradient(26% 40% at 32% 34%, var(--prime), transparent 68%);
 		animation: panel-t-swim-a 19s ease-in-out infinite alternate;
 	}
 	.panel-t-aurora .panel-t-layer:nth-child(2) {
@@ -165,7 +165,7 @@
 		animation: panel-t-pan 26s ease-in-out infinite alternate;
 	}
 	.panel-t-depth .panel-t-layer:nth-child(1) {
-		background: radial-gradient(34% 22% at 50% 52%, color-mix(in oklab, var(--prim) 65%, transparent), transparent 72%);
+		background: radial-gradient(34% 22% at 50% 52%, color-mix(in oklab, var(--prime) 65%, transparent), transparent 72%);
 		animation: panel-t-pulse 11s ease-in-out infinite alternate;
 	}
 	.panel-t-depth .panel-t-layer:nth-child(2) {
@@ -173,8 +173,8 @@
 		transform-origin: 50% 0;
 		transform: rotateX(76deg);
 		background-image:
-			repeating-linear-gradient(to right,  color-mix(in oklab, var(--prim) 60%, transparent) 0 1px, transparent 1px 7%),
-			repeating-linear-gradient(to bottom, color-mix(in oklab, var(--prim) 60%, transparent) 0 1px, transparent 1px 7%);
+			repeating-linear-gradient(to right,  color-mix(in oklab, var(--prime) 60%, transparent) 0 1px, transparent 1px 7%),
+			repeating-linear-gradient(to bottom, color-mix(in oklab, var(--prime) 60%, transparent) 0 1px, transparent 1px 7%);
 		mask-image: linear-gradient(transparent, #000 38%);
 	}
 
@@ -251,7 +251,7 @@
 		background: none;
 		border-color: transparent;
 	}
-	.panel .panel-t-space .panel-t-dial button:hover { color: var(--prim); border-color: transparent; }
+	.panel .panel-t-space .panel-t-dial button:hover { color: var(--prime); border-color: transparent; }
 
 	/* ⚠ Material Icons is a LIGATURE font: a name the font does not carry renders as
 	   the whole WORD. The bar and the inspector both clamp; the dial was the one that
@@ -285,8 +285,8 @@
 		white-space: nowrap;
 	}
 	.panel-t-link .icon { font-size: 1em; color: var(--subtle); }
-	.panel-t-link.on { background: var(--wash); color: var(--prim); }
-	.panel-t-link.on .icon { color: var(--prim); }
+	.panel-t-link.on { background: var(--wash); color: var(--prime); }
+	.panel-t-link.on .icon { color: var(--prime); }
 
 	.panel-t-toc {
 		place-items: stretch;
@@ -301,7 +301,7 @@
 		letter-spacing: 0.18em;
 		margin-block-end: calc(var(--gap) * 0.4);   /* was margin-block-end 0.4em - 2026-09-05 ramps */
 	}
-	.panel-t-line.on { color: var(--prim); }
+	.panel-t-line.on { color: var(--prime); }
 
 	.panel-t-brand {
 		grid-auto-flow: column;
@@ -313,7 +313,7 @@
 		white-space: nowrap;
 		color: var(--ink);
 	}
-	.panel-t-brand .icon { font-size: 0.9em; color: var(--prim); }
+	.panel-t-brand .icon { font-size: 0.9em; color: var(--prime); }
 
 	/* properties - the inspector. Not a scene: it is a control surface, so it reads in
 	   `em` at the panel's own text size rather than scaling in `cq` units, and it fills

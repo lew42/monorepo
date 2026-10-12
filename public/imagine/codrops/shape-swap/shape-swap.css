@@ -63,7 +63,7 @@
 		cursor: pointer;
 	}
 
-	.codrops-swap-btn:hover { background: var(--prim, #ee8233); color: #fff; }
+	.codrops-swap-btn:hover { background: var(--prime, #ee8233); color: #fff; }
 
 	.codrops-swap-index {
 		font-variant-numeric: tabular-nums;

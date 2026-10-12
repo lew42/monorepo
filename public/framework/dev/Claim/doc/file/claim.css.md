@@ -29,7 +29,7 @@ unmissable with the animation disabled.
 
 1. **`#241206` is a hardcoded hex, not a token**, on both `.claim-tag`'s text
    colour and `.claim-dot`'s background. Likely deliberate — the ring has to
-   read against `--prim` regardless of which theme is active — but the file
+   read against `--prime` regardless of which theme is active — but the file
    doesn't say so, and a fixed hex is exactly the kind of thing a future
    retheme misses silently. One comment would close the question. *(simple,
    speculative)*

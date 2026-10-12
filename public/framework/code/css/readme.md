@@ -1,5 +1,7 @@
 # CSS — layers, where a declaration belongs, and how to name a class
 
+**What goes here:** how and where to write a CSS rule. **Next door:** the vocabulary itself (tokens, grounds, `.card`, utilities) → the [Style library](/framework/styles/); what it should look like → [Design](/framework/design/).
+
 This page is the "how" of CSS in this framework: which rung of the ladder to reach for, which of
 the four layers a rule sits in, and how to name and prefix a class. The vocabulary itself — the
 actual utility classes, tokens and layout words — lives at

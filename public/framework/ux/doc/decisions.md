@@ -8,7 +8,7 @@ was rejected.
 
 | | |
 |---|---|
-| **`ui-contrast`** | the same section, readable — remaps `--ink --subtle --line --wash --tint --prim-ink` |
+| **`ui-contrast`** | the same section, readable — remaps `--ink --subtle --line --wash --tint --prime-ink` |
 | **`ui-compact`** | less space at the same text size — remaps `--pad --gap --flow`, scaled by `--density` |
 
 **Two words, not four.** Every word has to earn a visibly different demo, and two do. A
@@ -44,7 +44,7 @@ self-references and CSS drops it. So a word may only touch a token **nothing els
 not — the theme owns it. Written, measured at 3.76px against `lew42`'s own 3.76px, removed.
 
 **`ui-contrast` names no hue.** Alpha bumps on the `light-dark()` pairs `framework.css`
-already declared, the ends of the ink axis, and `--prim-ink: color-mix(in oklab, var(--prim)
+already declared, the ends of the ink axis, and `--prime-ink: color-mix(in oklab, var(--prime)
 70%, var(--ink))` — which `framework.css` documents as the accent's text twin. So one word
 covers light and dark and any theme. Verified resolving: `oklab(0.533 0.076 0.071)`.
 

@@ -56,7 +56,7 @@
 		cursor: pointer;
 	}
 	.layout-btn:hover { color: var(--ink); border-color: var(--line); }
-	.layout-btn.on { color: var(--prim); border-color: var(--prim); }
+	.layout-btn.on { color: var(--prime); border-color: var(--prime); }
 
 	/* `select.auto` (controls.js) opts out of base's 100% width — full width in a
 	   flex bar eats the row. The 1.4em right padding restates the arrow's lane,
@@ -79,7 +79,7 @@
 
 	/* ⚠ Outlines, not borders: an outline takes no space, so nothing reflows. */
 	.layout-hot { outline: 1px dashed var(--line); outline-offset: 2px; }
-	.layout-selected { outline: 2px solid var(--prim); outline-offset: 2px; }
+	.layout-selected { outline: 2px solid var(--prime); outline-offset: 2px; }
 
 	/* ⚠ A touch screen has no hover to show what is tappable with. */
 	@media (hover: none) {

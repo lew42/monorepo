@@ -13,7 +13,7 @@ css(`@layer theme {
 		margin-top: 0.4em;
 		flex: 0 0 auto;
 		border-radius: 999px;
-		background: var(--eyebrow, var(--prim));
+		background: var(--eyebrow, var(--prime));
 	}
 
 	.ui-timeline-line { border-inline-start: 1px solid color-mix(in srgb, currentColor 25%, transparent); }

@@ -23,5 +23,5 @@
 		cursor: pointer;
 	}
 
-	.fs-menu-item:hover { background: var(--wash); color: var(--prim); }
+	.fs-menu-item:hover { background: var(--wash); color: var(--prime); }
 }

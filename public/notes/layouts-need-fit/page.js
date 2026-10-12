@@ -35,7 +35,7 @@ const SKETCHES = [
 		() => div.c("flex v gap").style("height", "7em").append(() => {
 			div.c("surface pad").style("fontSize", "0.7em").text("HEADER");
 			box("100%").style("flex", "1 1 auto");
-			div.c("surface pad").style({ fontSize: "0.7em", outline: "2px solid var(--prim)" }).text("HEADER");
+			div.c("surface pad").style({ fontSize: "0.7em", outline: "2px solid var(--prime)" }).text("HEADER");
 		})),
 
 	SKETCH("Prose beside media", "Words on the left, one picture on the right, an action bottom-right.",

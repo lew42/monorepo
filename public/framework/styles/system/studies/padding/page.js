@@ -42,7 +42,7 @@ const shot = s => figure.c("flex v gap").style({ margin: 0, gap: "0.4em" }).appe
 	a().href(s.url).append(() => img().attr("src", here + "shots/" + s.file).attr("alt", s.url)
 		.style({ width: "100%", border: "1px solid var(--line)", borderRadius: "0.3em" }));
 	figcaption(() => {
-		span(s.tag.toUpperCase() + " — ").style({ fontWeight: "700", color: s.tag === "comfortable" ? "var(--prim)" : "inherit" });
+		span(s.tag.toUpperCase() + " — ").style({ fontWeight: "700", color: s.tag === "comfortable" ? "var(--prime)" : "inherit" });
 		a(s.url).href(s.url);
 		span.c("muted", " — " + s.note);
 	});

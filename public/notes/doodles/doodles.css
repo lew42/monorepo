@@ -8,7 +8,7 @@
 @layer site {
 
 	/* THE ONE RULE. Every drawing is a stroke, in the colour of the text around
-	   it — so a doodle inside `.muted` is muted, inside a `--prim` heading it is
+	   it — so a doodle inside `.muted` is muted, inside a `--prime` heading it is
 	   the accent, and dark mode needs no second rule anywhere.
 
 	   Height, not width: three of the twenty are not square, and doodles.js

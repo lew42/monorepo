@@ -124,9 +124,9 @@
 
 /* THE CURRENT SECTION, marked with WEIGHT AND THE ICON — never with a box that
    only exists when it is on, because that box moves everything beside it, and
-   never with the accent as a word: `--prim` measures 2.25:1 as text on white. */
+   never with the accent as a word: `--prime` measures 2.25:1 as text on white. */
 .std-practice-rail-on { color: var(--ink); font-weight: 700; }
-.std-practice-rail-on .icon { color: var(--prim-ink); }
+.std-practice-rail-on .icon { color: var(--prime-ink); }
 
 .std-practice-brand {
 	display: flex;
@@ -138,10 +138,10 @@
 }
 
 /* ⚠ A LITERAL DARK INK, on purpose. `--ink` flips to near-white in dark mode and
-   white on `--prim` is 1.8:1; this pairing is 7.7:1 in BOTH modes because the
+   white on `--prime` is 1.8:1; this pairing is 7.7:1 in BOTH modes because the
    accent does not flip. framework.css does the same thing for `button.bg`. */
 .std-practice-brand-mark {
-	background: var(--prim);
+	background: var(--prime);
 	color: #1a1a1a;
 	font-weight: 900;
 	font-size: 0.8em;
@@ -416,7 +416,7 @@
    sideways is a border that only exists when it is on. */
 .std-practice-wall .std-practice-tile-on {
 	background: var(--fill-a08);
-	border-color: var(--prim);
+	border-color: var(--prime);
 }
 
 .std-practice-tile-icon { color: var(--std-practice-quiet); }
@@ -467,7 +467,7 @@
 }
 
 .std-practice-detail-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: calc(var(--gap) * 0.5); }
-.std-practice-detail-icon { color: var(--prim-ink); }
+.std-practice-detail-icon { color: var(--prime-ink); }
 .std-practice .std-practice-detail-name { font-size: 1.4em; margin: 0; }
 .std-practice-detail-path { font-family: var(--mono); font-size: 0.8em; color: var(--std-practice-quiet); }
 .std-practice-detail-say { margin: 0; }
@@ -736,8 +736,8 @@
 
 /* ⚠ A LITERAL DARK INK on the accent, for the reason the brand mark has one:
    `--ink` flips and the accent does not. 7.7:1 in both modes. */
-.std-practice-act-prim { background: var(--prim); color: #1a1a1a; }
-.std-practice-act-prim:hover { background: var(--prim); filter: brightness(0.94); }
+.std-practice-act-prim { background: var(--prime); color: #1a1a1a; }
+.std-practice-act-prim:hover { background: var(--prime); filter: brightness(0.94); }
 
 /* ── the content band ── no paint, so no block padding at all. Its rhythm is the
    framework's own `.flow`, which the band-inner wears. */

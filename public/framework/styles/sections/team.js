@@ -19,16 +19,16 @@ const person = (initials, name, role, note) =>
 	div.c("pad flex v surface", () => {
 		span.c("ui-avatar", initials).style("--avatar", "3em");
 		p.c("h3", name);
-		// `--prim` and not the band's `--eyebrow`: this text is inside a card that
+		// `--prime` and not the band's `--eyebrow`: this text is inside a card that
 		// repainted `--surface`, so the accent is readable again whatever the band is.
-		p.c("h4", role).style("color", "var(--prim)");
+		p.c("h4", role).style("color", "var(--prime)");
 		p.c("muted", note);
 	}).style("gap", "0.4em");
 
 export default (tone = "wash") =>
 	div.c("section-band", () =>
 		div.c("measure flex v gap", () => {
-			p.c("h4", "WHO").style("color", "var(--eyebrow, var(--prim))");
+			p.c("h4", "WHO").style("color", "var(--eyebrow, var(--prime))");
 
 			p.c("h2", "Small enough to fit in a room");
 

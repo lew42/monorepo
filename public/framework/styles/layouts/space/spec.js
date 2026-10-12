@@ -49,7 +49,7 @@ const WORDS = {
 	   rather than a rainbow: a section declares one, and its whole subtree deepens
 	   that one colour. It was a random `oklch` hue until 2026-08-16, which meant every
 	   roll invented colours the site does not own; the vocabulary is `model.js`'s
-	   TONES — `--ink`, `--subtle`, `--prim` — so a retheme moves every generated
+	   TONES — `--ink`, `--subtle`, `--prime` — so a retheme moves every generated
 	   layout with it.
 
 	   ⚠ It cannot be `wash`/`tint`/`surface`. That three-step ladder is OPAQUE by

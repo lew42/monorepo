@@ -37,7 +37,7 @@ only shows up on a deep reload.
 
 ## Two findings, both silent
 
-- **A ring on `body` paints nothing.** `--prim` is declared on `.theme-lew42`,
+- **A ring on `body` paints nothing.** `--prime` is declared on `.theme-lew42`,
   which is `.app`'s class, so one level out every token is unset — a 6px border
   of `currentColor` on white. `claim()` appends inside `.app`, and the Router
   only ever empties `.pages`, so it survives navigation anyway.

@@ -12,7 +12,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("All Together").ac("mb").style("color", "var(--prim)");
+            h1("All Together").ac("mb").style("color", "var(--prime)");
 
             p("A small card, using a bit of every category above: `Colors`, `Typography`, `Layout`, `Spacing`, `Forms`, `Buttons`, `Media`, and `Utilities`.").ac("mb");
 
@@ -20,7 +20,7 @@ export default {
                 img().attr("src", "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%25' height='100%25' fill='%235a57ff'/></svg>").style({ width: "4em", height: "4em", "border-radius": "50%" });
 
                 div.c("flex-1 flex v gap", () => {
-                    h2("Jane Doe").style("color", "var(--prim)");
+                    h2("Jane Doe").style("color", "var(--prime)");
                     p("web developer").ac("capitalize");
                     input().attr("placeholder", "Say hello...");
                     button("Follow").ac("btn prim");
@@ -33,7 +33,7 @@ export default {
     img().attr("src", avatarUrl).style({ width: "4em", height: "4em", "border-radius": "50%" });
 
     div.c("flex-1 flex v gap", () => {
-        h2("Jane Doe").style("color", "var(--prim)");
+        h2("Jane Doe").style("color", "var(--prime)");
         p("web developer").ac("capitalize");
         input().attr("placeholder", "Say hello...");
         button("Follow").ac("btn prim");

@@ -180,10 +180,10 @@ export class ColorStudy {
 	paint(){
 		if (!this.$lab) return;
 		RUNGS.forEach((k, i) => this.$lab.el.style.setProperty("--color-accent-" + i, this.hsl(k)));
-		// The accent everywhere else in the lab too: `--prim` is the one word this site's
+		// The accent everywhere else in the lab too: `--prime` is the one word this site's
 		// marks, fills, outlines and links already say.
-		this.$lab.el.style.setProperty("--prim", this.hsl(1));
-		this.$lab.el.style.setProperty("--prim-ink", this.hsl(1));
+		this.$lab.el.style.setProperty("--prime", this.hsl(1));
+		this.$lab.el.style.setProperty("--prime-ink", this.hsl(1));
 		this.$h?.text(this.accent.h + "°");
 		this.$s?.text(this.accent.s + "%");
 		this.measure();

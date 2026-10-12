@@ -84,7 +84,7 @@ rather than a finding.
 ## Selection is expansion, and neither is a control
 
 `aim()` already toggled `dt-aimed` on the clicked row and held the ring; the row
-just never *looked* any different, because the class was `--prim` at 14% alpha on
+just never *looked* any different, because the class was `--prime` at 14% alpha on
 a dark rail. Now `DesignTool.css` gives it a 2px border and `devbar.css` reveals
 the row's `.dev-more` — the declaration and the one action — off the same class.
 

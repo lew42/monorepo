@@ -44,7 +44,7 @@
 		cursor: pointer;
 	}
 	.demo-btn:hover { color: var(--ink); border-color: var(--line); }
-	.demo-btn.on { color: var(--prim); border-color: var(--prim); }
+	.demo-btn.on { color: var(--prime); border-color: var(--prime); }
 	.demo-btn .icon { font-size: 1.1em; }
 
 	/* `flex-wrap` and a basis, not a query: "room" is the BOX's width, which is the

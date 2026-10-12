@@ -610,7 +610,7 @@
 
 	/* The hint is drawn ON the hairline, because that is all of it you can see. */
 	.page-column-grab:hover,
-	.page-column-grab.page-column-grabbing { background: var(--prim); }
+	.page-column-grab.page-column-grabbing { background: var(--prime); }
 
 	/* `full` claims the host, so every column LEFT of it stands down — an ancestor's
 	   body is the sibling of the region the full page is somewhere inside, at any
@@ -669,7 +669,7 @@
 		color: var(--subtle); text-decoration: none;
 		transition: background-color 0.12s, color 0.12s;
 	}
-	.page-column-close:is(:hover, :focus-visible) { color: var(--prim-ink); background: var(--page-column-hover); }
+	.page-column-close:is(:hover, :focus-visible) { color: var(--prime-ink); background: var(--page-column-hover); }
 	.page-column-close:active { background: var(--page-column-press); }
 	.page-column-close .icon { font-size: 1.05em; }
 
@@ -771,7 +771,7 @@
 	.page-column-item.active,
 	.page-column-item:is(.in-path, [aria-current]) {
 		color: var(--ink);
-		border-inline-end-color: var(--prim);
+		border-inline-end-color: var(--prime);
 	}
 
 	.page-column-item .icon { font-size: 1.05em; }
@@ -898,7 +898,7 @@
 	     build, `surface: "card"` drew a card inside a card. */
 	.page-surface-plain, .page-bg-plain { background: transparent; }
 	.page-surface-tint,  .page-bg-tint  { background: var(--tint); }
-	.page-surface-prim,  .page-bg-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
+	.page-surface-prim,  .page-bg-prim  { background: color-mix(in srgb, var(--prime) 10%, var(--surface)); }
 
 	.page-surface-card, .page-bg-card {
 		background: var(--surface);
@@ -1233,11 +1233,11 @@
 	   /framework/, 335 / 330 on /imagine/paging/). The one strip the auditors named,
 	   /imagine/paging/examples/, no longer exists. */
 	.page-link { font-weight: 600; color: inherit; }
-	/* ⚠ `--prim-ink`, not `--prim` (framework.css): an accent is chosen to be seen as
+	/* ⚠ `--prime-ink`, not `--prime` (framework.css): an accent is chosen to be seen as
 	   a FILL, and lew42's is 2.25:1 as text. This is the one mark an active link
 	   wears, so the ratio is the whole state. */
 	.page-link.active,
-	.page-link.in-path { color: var(--prim-ink); }
+	.page-link.in-path { color: var(--prime-ink); }
 
 	/* `previews()` emits `.page-previews`, so the class IS a wall — one selector, and
 	   the six declarations it used to repeat are `.wall`'s above.
@@ -1324,7 +1324,7 @@
 
 	.page-preview:not(:has(> .page-preview-thumb)) { padding: 0.9em 1em; }
 
-	.page-preview:hover { outline-color: color-mix(in srgb, var(--prim) 45%, transparent); }
+	.page-preview:hover { outline-color: color-mix(in srgb, var(--prime) 45%, transparent); }
 
 	.page-preview:active { transform: translateY(1px); }
 
@@ -1426,7 +1426,7 @@
 		min-width: 1.4em; height: 1.4em; padding: 0 0.35em;
 		display: flex; align-items: center; justify-content: center;
 		border-radius: 999px;
-		background: var(--prim); color: var(--prim-ink);
+		background: var(--prime); color: var(--prime-ink);
 		font-size: 0.75em; font-weight: 700; line-height: 1;
 	}
 
@@ -1452,11 +1452,11 @@
 	/* ⚠ `mark_links()` only touches anchors, so `.active` / `.in-path` land on the
 	     LINK and the card has to ask.
 	   ⚠ `:has(> a…)`, never `:has(a…)`: a live thumb can hold marked links of its own. */
-	.page-preview:is(.active, .in-path, :has(> a:is(.active, .in-path))) { outline-color: var(--prim); }
+	.page-preview:is(.active, .in-path, :has(> a:is(.active, .in-path))) { outline-color: var(--prime); }
 
 	.page-preview:hover :is(.page-preview-title, .icon),
 	.page-preview:is(.active, .in-path, :has(> a:is(.active, .in-path))) :is(.page-preview-title, .icon) {
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 	}
 
 	/* The one claim a page makes on the wall it appears in, from `card:`. `tall`

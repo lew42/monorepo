@@ -146,8 +146,8 @@
 		align-self: flex-start;
 		padding: 0.15em 0.45em;
 		border-radius: var(--radius);
-		background: color-mix(in srgb, var(--prim) 12%, transparent);
-		color: var(--prim-ink);
+		background: color-mix(in srgb, var(--prime) 12%, transparent);
+		color: var(--prime-ink);
 		font-family: var(--mono); font-size: 0.72em; font-weight: 700;
 		white-space: nowrap;
 	}

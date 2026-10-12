@@ -334,7 +334,7 @@
 	.v3-sort { padding: var(--gap-50) var(--pad) 0.25em; }
 	.v3-sort-note { font-size: 0.875rem; }
 	.v3-sort-toggle {
-		font: inherit; font-size: 0.8125rem; color: var(--prim-ink, var(--prim));
+		font: inherit; font-size: 0.8125rem; color: var(--prime-ink, var(--prime));
 		background: none; border: 0; cursor: pointer; text-decoration: underline;
 	}
 
@@ -346,7 +346,7 @@
 	   `.v3-tile-head`/`-foot` are their OWN small flex ROWS (an icon beside
 	   nothing, an author beside a time), not the card's own stacking. */
 	.v3-tile { text-align: start; font: inherit; text-decoration: none; cursor: pointer; }
-	.v3-tile:hover { border-color: var(--prim); }
+	.v3-tile:hover { border-color: var(--prime); }
 	.v3-tile-head { gap: 0.5em; }
 	.v3-tile-head > .icon { color: var(--subtle); font-size: 1.3em; }
 	.v3-tile-title { font-weight: 700; line-height: 1.3; }
@@ -372,7 +372,7 @@
 	   `.v3-preview-dot` still carry the same three colours where a small
 	   mark IS wanted (the detail head, a child preview row). */
 	.v3-dot, .v3-preview-dot { display: inline-block; width: 0.55em; height: 0.55em; flex: 0 0 auto; border-radius: 50%; background: var(--subtle); }
-	.v3-dot-needs-you, .v3-preview-dot.v3-dot-needs-you { background: var(--prim); }
+	.v3-dot-needs-you, .v3-preview-dot.v3-dot-needs-you { background: var(--prime); }
 	.v3-dot-working, .v3-preview-dot.v3-dot-working { background: var(--warn); }
 	.v3-dot-done, .v3-preview-dot.v3-dot-done { background: var(--ok); }
 
@@ -478,7 +478,7 @@
 	   which is the importance wall and excludes them on purpose), styled as
 	   theirs: a tinted ground, no author-as-uppercase-label needed since the
 	   tint alone already reads as "not the mastermind". */
-	.v3-tile-owner { background: color-mix(in srgb, var(--prim) 8%, var(--surface)); }
+	.v3-tile-owner { background: color-mix(in srgb, var(--prime) 8%, var(--surface)); }
 
 	/* ── THE TIMELINE AXIS (2026-09-19, `ai/2026-09-19/v3-timeline/`) — time
 	   read spatially, in the left column. Both new pieces are PLAIN,
@@ -508,7 +508,7 @@
 		flex: 0 0 auto; position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 0.5em;
 		width: 100%; margin-inline: calc(var(--pad) * -1); margin-block-start: calc(var(--pad) * -1);
 		padding: 0.5em var(--pad); font: inherit; font-weight: 700; font-size: 0.8125rem; text-align: start; cursor: pointer;
-		color: var(--prim-ink, var(--prim)); background: var(--surface); border: 0; border-block-end: 1px solid var(--line);
+		color: var(--prime-ink, var(--prime)); background: var(--surface); border: 0; border-block-end: 1px solid var(--line);
 	}
 	.v3-back-top:hover { background: var(--wash); }
 	/* `[hidden]` alone loses to the `display: flex` right above it — any
@@ -522,7 +522,7 @@
 	   small count, only ever shown alongside the control it belongs to. */
 	.v3-back-top-count {
 		margin-inline-start: auto; padding: 0.05em 0.55em; font-size: 0.75rem; font-weight: 700;
-		color: var(--surface); background: var(--prim); border-radius: 1em;
+		color: var(--surface); background: var(--prime); border-radius: 1em;
 	}
 	.v3-axis-list { flex: 1 1 auto; }
 
@@ -541,7 +541,7 @@
 	.v3-tile-compact {
 		display: flex; align-items: center; gap: 0.4em; width: 100%;
 		padding: 0.3em 0.6em; font: inherit; font-size: 0.8125rem; text-align: start; cursor: pointer;
-		color: inherit; background: var(--v3-card); border: 0; border-inline-start: 3px solid var(--card-edge, var(--prim)); border-radius: 0.3em;
+		color: inherit; background: var(--v3-card); border: 0; border-inline-start: 3px solid var(--card-edge, var(--prime)); border-radius: 0.3em;
 	}
 	/* ⚠ `var(--wash)` until 2026-09-22, which is EXACTLY the page's own ground
 	   — so every row in the rail had, visibly, no background at all. That is
@@ -549,7 +549,7 @@
 	   like every other card here. */
 	.v3-tile-compact.selected { background: var(--surface); }
 	/* Hover moves the title, never the ground — see the card-ground note. */
-	.v3-tile-compact:hover .v3-tile-title, .v3-tile-compact:focus-visible .v3-tile-title { color: var(--prim); }
+	.v3-tile-compact:hover .v3-tile-title, .v3-tile-compact:focus-visible .v3-tile-title { color: var(--prime); }
 	.v3-tile-compact > .icon { font-size: 1.1em; color: var(--subtle); flex: 0 0 auto; }
 	.v3-tile-compact .v3-tile-title {
 		font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto;
@@ -604,14 +604,14 @@
 	   itself. `--card-edge`-tinted so it reads as "this card", not a generic
 	   yellow flash unrelated to the row it is happening to. */
 	.v3-axis-item { transition: background-color 1.4s ease-out; }
-	.v3-axis-resurfaced { background-color: color-mix(in srgb, var(--card-edge, var(--prim)) 18%, transparent); transition: none; }
+	.v3-axis-resurfaced { background-color: color-mix(in srgb, var(--card-edge, var(--prime)) 18%, transparent); transition: none; }
 
 	/* `see: "<card-id>"` (item 6) — a one-line preview of another card,
 	   embedded in this one's own detail. A plain link, not `.card`/`.v3-tile`
 	   — it points AWAY from this card, so it reads as a doorway, not a
 	   second face competing with the one already on screen. */
 	.v3-see { gap: 0.4em; padding: 0.4em 0.6em; margin-block-start: 0.5em; background: var(--wash); border-radius: 0.3em; font-size: 0.875rem; text-decoration: none; color: inherit; }
-	.v3-see:hover { color: var(--prim); }
+	.v3-see:hover { color: var(--prime); }
 	.v3-see-title { font-weight: 600; }
 
 	/* Only exists to be pressed below 40em — see the media query, and
@@ -664,7 +664,7 @@
 		padding: 0.3em 0.7em; font: inherit; cursor: pointer;
 		background: var(--wash); border: 0; border-radius: 0.4em;
 	}
-	.v3-back:hover { color: var(--prim); }
+	.v3-back:hover { color: var(--prime); }
 	.v3-detail-head { gap: 0.6em; }
 	.v3-detail-head > .icon { font-size: 1.5em; color: var(--subtle); }
 	.v3-detail-title { flex: 1 1 auto; font-weight: 700; font-size: 1.4em; line-height: 1.25; }
@@ -764,8 +764,8 @@
 	   overflowing the right edge at 400px before this. */
 	.v3-now { max-width: 54em; min-width: 0; }
 	.v3-now-card-body { white-space: pre-wrap; line-height: 1.5; }
-	.v3-now-chip { align-self: start; font: inherit; font-weight: 700; color: var(--prim-ink, var(--prim)); background: none; border: 0; cursor: pointer; }
-	.v3-now-caret { display: inline-block; margin-inline-start: 0.05em; color: var(--prim); animation: v3-now-caret 1s step-start infinite; }
+	.v3-now-chip { align-self: start; font: inherit; font-weight: 700; color: var(--prime-ink, var(--prime)); background: none; border: 0; cursor: pointer; }
+	.v3-now-caret { display: inline-block; margin-inline-start: 0.05em; color: var(--prime); animation: v3-now-caret 1s step-start infinite; }
 	@keyframes v3-now-caret { 50% { opacity: 0; } }
 
 	/* FRONT-DOOR-TODAY (2026-09-21) — the stale-thread notice above the heard
@@ -789,7 +789,7 @@
 	   around: a long line of the owner's own mono text pushed this box
 	   wider than its column and off the right edge at 400px, wrapping not
 	   at all, until this was added. */
-	.v3-heard { min-width: 0; border-inline-start: 3px solid var(--prim); padding-inline-start: 0.75em; }
+	.v3-heard { min-width: 0; border-inline-start: 3px solid var(--prime); padding-inline-start: 0.75em; }
 	.v3-heard-text { font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace); white-space: pre-wrap; }
 
 	/* ── INBOX ZERO (2026-09-19, `ai/2026-09-19/inbox-zero/`) — the head
@@ -802,7 +802,7 @@
 	.v3-count { gap: 0.6em; font-size: 0.875rem; color: var(--subtle); }
 	.v3-count-left { font-weight: 700; color: var(--ink); }
 	.v3-count-toggle {
-		font: inherit; font-size: 0.8125rem; color: var(--prim-ink, var(--prim));
+		font: inherit; font-size: 0.8125rem; color: var(--prime-ink, var(--prime));
 		background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 0;
 	}
 	/* SPACING (approve-loop, 2026-09-20) — the owner: "not enough vertical
@@ -867,5 +867,5 @@
 	.v3-toast:not([hidden]) { display: flex; align-items: center; gap: var(--gap-50, 0.5em); }
 	.v3-toast[hidden] { display: none; }
 	.v3-toast-msg { flex: 1 1 auto; font-size: 0.875rem; }
-	.v3-toast-undo { font: inherit; font-weight: 700; color: var(--prim-ink, var(--prim)); background: none; border: 0; cursor: pointer; text-decoration: underline; }
+	.v3-toast-undo { font: inherit; font-weight: 700; color: var(--prime-ink, var(--prime)); background: none; border: 0; cursor: pointer; text-decoration: underline; }
 }

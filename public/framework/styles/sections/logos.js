@@ -10,7 +10,7 @@ export default (tone = "wash") =>
 	div.c("section-band", () =>
 		div.c("measure flex v gap", () => {
 			p.c("h4", "RUNNING ON IT")
-				.style({ color: "var(--eyebrow, var(--prim))", textAlign: "center" });
+				.style({ color: "var(--eyebrow, var(--prime))", textAlign: "center" });
 
 			span.c("flex gap wrap v-center h-center", () => MARKS.forEach(mark =>
 				span.c("h3 muted", mark)))

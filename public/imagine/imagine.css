@@ -5,7 +5,7 @@
    Nothing here is a new idea. The arrangement is core's column row (`Page.css`), the
    stacks are framework words (`flex v gap`, `grid auto`), and every colour is a
    palette token over the row's one `--wash` floor: `--surface` for a thing you can
-   act on, `--tint` for a thing you read, `--line` for every seam, `--prim` for the
+   act on, `--tint` for a thing you read, `--line` for every seam, `--prime` for the
    one accent. Never `--well` — it is a translucent shadow, and stacking it bands.
 
    The two shapes that repeat, and are therefore written once: `.imagine-row`, a rail
@@ -80,10 +80,10 @@
 		cursor: pointer;
 	}
 
-	:is(.imagine-team, .imagine-game) .imagine-seg .imagine-seg-btn:hover { color: var(--prim-ink); }
+	:is(.imagine-team, .imagine-game) .imagine-seg .imagine-seg-btn:hover { color: var(--prime-ink); }
 
 	:is(.imagine-team, .imagine-game) .imagine-seg .imagine-seg-btn.imagine-on {
-		background: var(--prim);
+		background: var(--prime);
 		color: #fff;
 	}
 
@@ -108,8 +108,8 @@
 	.imagine-row.active,
 	.imagine-row.imagine-row-on,
 	.imagine-row:is(.in-path, [aria-current]) {
-		background: color-mix(in srgb, var(--prim) 10%, transparent);
-		border-inline-end-color: var(--prim);
+		background: color-mix(in srgb, var(--prime) 10%, transparent);
+		border-inline-end-color: var(--prime);
 	}
 
 	.imagine-row-name { font-size: 0.9em; font-weight: 600; }
@@ -137,7 +137,7 @@
 		overflow: hidden;
 	}
 
-	.imagine-bar-fill { display: block; height: 100%; background: var(--prim); }
+	.imagine-bar-fill { display: block; height: 100%; background: var(--prime); }
 
 	/* ════ TEAM — the board ════════════════════════════════════════════════════ */
 
@@ -150,7 +150,7 @@
 	.imagine-bar .imagine-count { margin-inline-start: 0; }
 
 	.imagine-clear { display: inline-flex; color: var(--subtle); text-decoration: none; }
-	.imagine-clear:hover { color: var(--prim-ink); }
+	.imagine-clear:hover { color: var(--prime-ink); }
 	.imagine-clear .icon { font-size: 1em; }
 
 	.imagine-lanes { padding: 0.9em; align-items: start; }
@@ -173,7 +173,7 @@
 		display: flex; flex-direction: column; gap: 0.15em;
 		padding: 0.4em 0.5em;
 		background: var(--tint);
-		border-inline-start: 2px solid var(--prim);
+		border-inline-start: 2px solid var(--prime);
 		border-radius: 0 var(--radius) var(--radius) 0;
 	}
 
@@ -193,15 +193,15 @@
 	   read the fuller the lane was. `outline` also takes no space, so nothing reflows
 	   mid-drag. */
 	.imagine-lane-over {
-		outline: 2px dashed var(--prim);
+		outline: 2px dashed var(--prime);
 		outline-offset: 2px;
-		background: color-mix(in srgb, var(--prim) 6%, transparent);
+		background: color-mix(in srgb, var(--prime) 6%, transparent);
 	}
 
 	/* A chip you can pick up says so before you touch it. `cursor: grab` comes from
 	   `.drag-handle`; this is the seam that makes it look liftable. */
 	.imagine-task { border-inline-start-width: 3px; }
-	.imagine-task:hover { border-inline-start-color: var(--prim-ink); }
+	.imagine-task:hover { border-inline-start-color: var(--prime-ink); }
 
 	/* ⚠ The dragged chip is moved with a transform, so it must sit ABOVE the lanes it
 	     is crossing or it slides underneath the next one along. */
@@ -260,10 +260,10 @@
 	}
 
 	.imagine-item.imagine-have {
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 		border-style: solid;
-		border-color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 10%, transparent);
+		border-color: var(--prime);
+		background: color-mix(in srgb, var(--prime) 10%, transparent);
 	}
 
 	/* A THIRD chip state, and the trade is the only thing that needs it: an item you
@@ -278,7 +278,7 @@
 
 	/* A room you have walked loses its dot; one you cannot open goes quiet and says
 	   why on its meta line. Same grammar as an inbox's read/unread. */
-	.imagine-place .imagine-row-name::before { content: "\2022"; color: var(--prim); margin-inline-end: 0.4em; }
+	.imagine-place .imagine-row-name::before { content: "\2022"; color: var(--prime); margin-inline-end: 0.4em; }
 	.imagine-seen .imagine-row-name::before { color: transparent; }
 	.imagine-seen .imagine-row-name { font-weight: 400; }
 
@@ -320,13 +320,13 @@
 
 	/* Only a walked room is an `<a>` at all — this is what that looks like. */
 	.imagine-map-cell.imagine-map-on {
-		color: var(--prim-ink);
-		background: color-mix(in srgb, var(--prim) 12%, transparent);
-		border-style: solid; border-color: var(--prim);
+		color: var(--prime-ink);
+		background: color-mix(in srgb, var(--prime) 12%, transparent);
+		border-style: solid; border-color: var(--prime);
 	}
 
-	.imagine-map-cell.imagine-map-on:hover { background: color-mix(in srgb, var(--prim) 22%, transparent); }
-	.imagine-map-cell.imagine-map-on:is(.in-path, [aria-current]) { background: var(--prim); color: #fff; }
+	.imagine-map-cell.imagine-map-on:hover { background: color-mix(in srgb, var(--prime) 22%, transparent); }
+	.imagine-map-cell.imagine-map-on:is(.in-path, [aria-current]) { background: var(--prime); color: #fff; }
 
 	/* A silhouette you cannot open yet. Not hidden — the shape of the place is the
 	   point; only the way in is withheld. */
@@ -350,7 +350,7 @@
 		display: block;
 		font-size: clamp(0.62rem, 1.9cqw, 0.85rem);
 		font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em;
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 	}
 
 	.imagine-display {
@@ -364,7 +364,7 @@
 		width: clamp(2.5rem, 16cqw, 7rem);
 		height: 0.3em;
 		margin-block: 0.7em;
-		background: var(--prim);
+		background: var(--prime);
 		border-radius: 999px;
 	}
 
@@ -445,7 +445,7 @@
 		border-radius: 999px;
 	}
 
-	.imagine-exit:hover { color: var(--prim-ink); border-color: var(--prim); }
+	.imagine-exit:hover { color: var(--prime-ink); border-color: var(--prime); }
 
 	/* KEYBOARD TRAVEL (round 4). The digit each exit answers to (`page.js`'s
 	   keydown listener) — a counter, not typed text, so the number can never drift
@@ -501,7 +501,7 @@
 
 	.imagine-card3-kicker {
 		font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em;
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 	}
 
 	.imagine-card3-title { font-size: clamp(1.3rem, 3cqw, 1.8rem); font-weight: 800; line-height: 1.1; }
@@ -527,7 +527,7 @@
 		text-decoration: none; color: inherit;
 	}
 
-	.imagine-card3-readout:hover { border-color: var(--prim); }
+	.imagine-card3-readout:hover { border-color: var(--prime); }
 
 	.imagine-card3-readout-head { font-weight: 600; font-size: 0.92em; }
 
@@ -548,7 +548,7 @@
 		content: "";
 		position: absolute; inset-block: 0; inset-inline-start: 0;
 		width: var(--pct, 0%);
-		background: var(--prim);
+		background: var(--prime);
 		border-radius: inherit;
 	}
 
@@ -584,7 +584,7 @@
 	   rule down its edge is the only thing that says this one was earned. */
 	.imagine-found {
 		padding-inline-start: 0.9em;
-		border-inline-start: 2px solid var(--prim);
+		border-inline-start: 2px solid var(--prime);
 	}
 
 	.imagine-journal { --gap: 0; max-width: 40em; }

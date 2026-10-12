@@ -24,8 +24,8 @@
 
 	/* Selection is state, not decoration - it has to read at a glance and it must not
 	   move anything, so it is an outline rather than a border. */
-	.editor-node.on { outline: 2px solid var(--prim); outline-offset: 1px; border-radius: var(--radius); }
-	.editor-node.on > .editor-bar { color: var(--prim); }
+	.editor-node.on { outline: 2px solid var(--prime); outline-offset: 1px; border-radius: var(--radius); }
+	.editor-node.on > .editor-bar { color: var(--prime); }
 
 	.editor-layer { justify-content: flex-start; inline-size: 100%; text-align: start; }
 	.editor-text { inline-size: 100%; }

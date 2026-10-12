@@ -6,7 +6,7 @@ export default (tone = "wash") =>
 		div.c("measure flex gap auto v-center", () => {
 
 			div.c("flex v gap", () => {
-				p.c("h4", "READ THE SOURCE").style("color", "var(--eyebrow, var(--prim))");
+				p.c("h4", "READ THE SOURCE").style("color", "var(--eyebrow, var(--prime))");
 				p.c("h2", "The code you ship is the code you wrote");
 				p("No transpile step means the stack trace points at your file, at the line you typed, in the browser you are debugging.");
 				button.c("prim", "See an example").style("align-self", "flex-start");

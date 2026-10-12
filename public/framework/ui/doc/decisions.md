@@ -125,7 +125,7 @@ specificity) and `.ui-dialog`'s `margin: auto` (which `.flex > * { margin: 0 }`
 erases from a later layer).
 
 **No component names a colour.** Every value is a framework token —
-`--surface --ink --line --radius --wash --prim --error`. The review found two
+`--surface --ink --line --radius --wash --prime --error`. The review found two
 hardcoded `white`s (tooltip's bubble, avatar's circle) and a third in badge; all
 three now read `var(--ink)` / `var(--surface)`, the pair the theme guarantees
 contrast between in both modes.

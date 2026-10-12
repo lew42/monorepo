@@ -21,7 +21,7 @@ div.c("ui-decision", () => {
 ## Watch out
 
 - Unchosen cards are `--surface`, not `--wash` — `--wash` is the app's own ground and a wash-on-wash box paints nothing — [decision.js](decision.js)
-- The chosen card never leans on `--prim` alone (2.96:1, below the 3:1 a UI shape needs) — it is marked by ground, border and the word "chosen" together — [decision.js](decision.js)
+- The chosen card never leans on `--prime` alone (2.96:1, below the 3:1 a UI shape needs) — it is marked by ground, border and the word "chosen" together — [decision.js](decision.js)
 
 ## More
 

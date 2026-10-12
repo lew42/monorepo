@@ -135,7 +135,7 @@ middle, so the shapes stay recognisable while the numbers stop being tasteful.
 
 `--tone` was a random `oklch` hue, which meant every roll invented colours the
 site does not own and a retheme moved none of them. It is a **token reference**
-now — `var(--ink)`, `var(--subtle)`, `var(--prim)` — mixed at 9% by `spec.js`'s
+now — `var(--ink)`, `var(--subtle)`, `var(--prime)` — mixed at 9% by `spec.js`'s
 `tone` word.
 
 The mix is what keeps the old property that made the dial work: two boxes deep

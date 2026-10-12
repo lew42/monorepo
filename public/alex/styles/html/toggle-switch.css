@@ -40,7 +40,7 @@ toggle-switch .slider::after {
 }
 
 toggle-switch input:checked + .slider {
-  background: var(--prim);
+  background: var(--prime);
 }
 
 toggle-switch input:checked + .slider::after {

@@ -127,21 +127,21 @@
 	   ⚠ Lives on <body>, outside `.app` — every token here is a :root one. */
 	.dt-spot {
 		position: fixed; z-index: 40; display: none; pointer-events: none;
-		outline: 2px solid var(--prim);
+		outline: 2px solid var(--prime);
 		outline-offset: 1px;
-		background: color-mix(in srgb, var(--prim) 12%, transparent);
+		background: color-mix(in srgb, var(--prime) 12%, transparent);
 	}
 	.dt-spot.on { display: block; }
 
 	/* A target above or below the fold, pinned to the edge it left by (highlight.js).
 	   Solid rather than washed — a 3px bar with a 12% fill reads as nothing at all. */
-	.dt-spot.dt-up, .dt-spot.dt-down { background: var(--prim); }
+	.dt-spot.dt-up, .dt-spot.dt-down { background: var(--prime); }
 
 	.dt-spot-tag {
 		position: absolute; inset-block-end: 100%; inset-inline-start: 0;
 		padding: 0.1em 0.4em;
 		font-family: var(--mono); font-size: 0.7rem; white-space: nowrap;
-		color: var(--surface); background: var(--prim);
+		color: var(--surface); background: var(--prime);
 	}
 	.dt-spot-tag:empty { display: none; }
 
@@ -150,15 +150,15 @@
 
 	/* A finding that points at something looks like it does. Written onto views this
 	   module does not build — the rail's rows, the live panel's, the report's.
-	   ⚠ A BORDER, NOT A WASH. `dt-aimed` was `--prim` at 14% alpha, which on a dark
+	   ⚠ A BORDER, NOT A WASH. `dt-aimed` was `--prime` at 14% alpha, which on a dark
 	     rail is no visible change of any kind — "not clear what is selected" was the
 	     complaint, and this was the whole answer to it. */
 	.dt-aim { cursor: pointer; border-radius: var(--radius); }
 	.dt-aim:hover { background: var(--tint); }
 	.dt-aimed, .dt-aimed:hover {
-		border-inline-start: 2px solid var(--prim);
+		border-inline-start: 2px solid var(--prime);
 		padding-inline-start: 0.5em;
-		background: color-mix(in srgb, var(--prim) 8%, transparent);
+		background: color-mix(in srgb, var(--prime) 8%, transparent);
 	}
 
 	.dt-vision { margin-block: calc(var(--gap) * 1); }   /* was margin-block 1em - 2026-09-05 ramps */

@@ -8,7 +8,7 @@
 
 	.vision-shot, .vision-gone { flex: 1 1 34em; max-width: 42em; min-width: 0; }
 	.vision-shot { display: block; outline: 2px solid transparent; }
-	.vision-shot:hover { outline-color: var(--prim); }
+	.vision-shot:hover { outline-color: var(--prime); }
 	.vision-img { width: 100%; height: auto; border-radius: var(--radius); }
 	.vision-gone { aspect-ratio: 1280 / 800; display: flex; align-items: center; justify-content: center; text-align: center; }
 }

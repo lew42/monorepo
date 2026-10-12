@@ -106,7 +106,7 @@ between the note and the palette shows up as a difference you can see rather tha
 
 		md(`Four of the five are real tokens in \`framework.css\`: \`--line\`, \`--ok\`,
 \`--error\` and \`--warn\`, each defined for light and dark. **Info is the gap.** The site
-has no blue: its one accent, \`--prim\`, is a coral red, so the "info" swatch above is
+has no blue: its one accent, \`--prime\`, is a coral red, so the "info" swatch above is
 falling back to the note's own word. That is a decision waiting to be made, not a bug —
 either info borrows the accent, or the palette gains a fifth colour.`);
 

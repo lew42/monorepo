@@ -40,7 +40,7 @@
 	}
 	.drawer-rail-ai:hover, .drawer-rail-menu:hover { background: var(--fill-a08); }
 	.drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; }
-	.drawer-rail-ai { color: var(--prim); }
+	.drawer-rail-ai { color: var(--prime); }
 	.drawer-rail-ai-label, .drawer-rail-menu-label { font-weight: 600; }
 
 	/* ICONS ONLY, ✦ ON THE THUMB (RIGHT) SIDE — the default rail's own two
@@ -275,11 +275,11 @@
 
 	/* NEW SESSION — a PRIMARY action (the owner, 2026-09-29: "it's a primary
 	   action"), so it wears the same accent colour the ✦ button itself uses
-	   (`--prim`) instead of the other links' plain grey. */
+	   (`--prime`) instead of the other links' plain grey. */
 	.drawer-rail-sheet-new {
-		color: var(--prim-ink, #fff);
-		background: var(--prim);
-		border-color: var(--prim);
+		color: var(--prime-ink, #fff);
+		background: var(--prime);
+		border-color: var(--prime);
 		font-weight: 600;
 	}
 	.drawer-rail-sheet-new:hover { filter: brightness(1.1); }

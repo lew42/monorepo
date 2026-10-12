@@ -25,10 +25,10 @@
 		background: var(--line);
 		overflow: hidden;
 	}
-	.dash-bar-fill { height: 100%; background: var(--prim); }
+	.dash-bar-fill { height: 100%; background: var(--prime); }
 	/* No budget set — a thin moving stripe says "working," not "0% done". */
 	.dash-bar-indeterminate {
-		background: repeating-linear-gradient(135deg, var(--prim) 0 0.5em, transparent 0.5em 1em);
+		background: repeating-linear-gradient(135deg, var(--prime) 0 0.5em, transparent 0.5em 1em);
 		background-size: 200% 100%;
 		opacity: 0.5;
 		animation: dash-stripe 1.2s linear infinite;

@@ -29,7 +29,7 @@ one flips.
 >    in their own files.
 > 4. **The remainder of the 49 fill-shaped rules**: flip those where the stacking doc's rules
 >    say alpha (interactive/badge); SKIP and list those that are deliberate opaque floors. The
->    named finding stays: `button.prim` on `--prim` is a placement error, not a token error —
+>    named finding stays: `button.prim` on `--prime` is a placement error, not a token error —
 >    do not "fix" the accent; add it to the doc as a placement rule.
 >
 > VERIFY — re-run the LAB'S OWN HUNT (its scan script; same 76 pages, same threshold): the

@@ -1,90 +1,62 @@
-import { Page, View, div, p, h1, h2, h4, md } from "/app.js";
+import { Page, View, div, p, h1, h2, h4 } from "/app.js";
 
 View.stylesheet(import.meta, "palette.css");
 
 const description = "Three solid bases with approved tints and their text layers.";
 
+/* Figma Sept-2026, Page 7, frame "The Palette" (115:2340) picked the alpha by hand at
+   every level (10/25/50% black or white). Our system has one step rule instead —
+   `.card` inside `.card` is one notch darker, `bg-lighten`/`darken-3` the two other
+   moves you reach for on purpose (styles/doc/architecture.md §1, §3) — so every inset
+   below is a class, never a literal rgba. */
 const columnSpecs = [
 	{
-		name: "white",
-		baseLabel: "WHITE BASE",
-		baseTitle: "White",
-		baseBodies: [
-			{ text: "Primary text on white.", color: "rgba(0,0,0,.8)" },
-			{ text: "Secondary text on white.", color: "rgba(0,0,0,.55)" },
-		],
-		finalLabel: "PRIME TEXT ON WHITE",
+		name: "white", ground: "bg-white",
+		label: "WHITE BASE", title: "White",
+		bodies: ["Primary text on white.", "Secondary text on white."],
 		insets: [
-			{
-				bg: "rgba(0,0,0,.1)",
-				label: "↳ 10% BLACK INSET",
-				bodies: [
-					{ text: "Primary text on 10% black inset.", color: "rgba(0,0,0,.8)" },
-					{ text: "Secondary text on inset.", color: "rgba(0,0,0,.55)" },
-				],
-			},
+			{ cls: "card", label: "↳ Nested card, one step darker",
+				bodies: ["Primary text on the inset.", "Secondary text on the inset."] },
 		],
 	},
 	{
-		name: "prime",
-		baseLabel: "PRIME BASE",
-		baseTitle: "Prime",
-		baseBodies: [
-			{ text: "Primary text on the approved prime tint.", color: "#fff" },
-		],
+		name: "prime", ground: "bg-prime",
+		label: "PRIME BASE", title: "Prime",
+		bodies: ["Primary text on the approved prime tint."],
 		insets: [
-			{
-				bg: "rgba(0,0,0,.25)",
-				label: "↳ 25% BLACK INSET",
-				bodies: [{ text: "Primary text on 25% black inset.", color: "#fff" }],
-			},
+			{ cls: "card", label: "↳ Nested card, one step darker",
+				bodies: ["Primary text on the inset."] },
 		],
 	},
 	{
-		name: "dark",
-		baseLabel: "DARK BASE",
-		baseTitle: "Dark",
-		baseBodies: [
-			{ text: "Primary text on dark brown.", color: "#fff" },
-			{ text: "Secondary text on dark brown.", color: "rgba(255,255,255,.7)" },
-		],
-		finalLabel: "PRIME TEXT ON DARK",
+		name: "dark", ground: "bg-dark",
+		label: "DARK BASE", title: "Dark",
+		bodies: ["Primary text on dark.", "Secondary text on dark."],
 		insets: [
-			{
-				bg: "rgba(0,0,0,.1)",
-				label: "↳ 10% BLACK INSET",
-				bodies: [
-					{ text: "Primary on 10% black inset.", color: "#fff" },
-					{ text: "Secondary on 10% black inset.", color: "rgba(255,255,255,.7)" },
-				],
-			},
-			{
-				bg: "rgba(255,255,255,.1)",
-				label: "↳ 10% WHITE INSET",
-				bodies: [
-					{ text: "Primary on 10% white inset.", color: "#fff" },
-					{ text: "Secondary on 10% white inset.", color: "rgba(255,255,255,.7)" },
-				],
-			},
-			{
-				bg: "rgba(0,0,0,.5)",
-				label: "↳ 50% BLACK PANEL",
-				bodies: [
-					{ text: "Primary text on 50% black panel.", color: "#fff" },
-					{ text: "Secondary text on 50% black panel.", color: "rgba(255,255,255,.7)" },
-				],
+			{ cls: "card", label: "↳ Nested card, one step darker",
+				bodies: ["Primary on the inset.", "Secondary on the inset."] },
+			{ cls: "card bg-lighten", label: "↳ Nested card, one step lighter",
+				bodies: ["Primary on the inset.", "Secondary on the inset."] },
+			{ cls: "card darken-3", label: "↳ A deeper step, taken on purpose",
+				bodies: ["Primary text on the panel.", "Secondary text on the panel."],
 				nested: {
-					bg: "rgba(255,255,255,.1)",
-					label: "↳↳ 10% WHITE NESTED",
-					bodies: [
-						{ text: "Primary in nested 10% white.", color: "#fff" },
-						{ text: "Secondary in nested 10% white.", color: "rgba(255,255,255,.7)" },
-					],
+					cls: "card bg-lighten", label: "↳↳ Lighter again, nested inside that",
+					bodies: ["Primary, nested lighter.", "Secondary, nested lighter."],
 				},
 			},
 		],
 	},
 ];
+
+const body = (text, i) => i ? p.c("muted", text) : p(text);
+
+function inset(spec){
+	div.c(spec.cls, () => {
+		h4.c("muted", spec.label);
+		spec.bodies.forEach(body);
+		if (spec.nested) inset(spec.nested);
+	});
+}
 
 export default new Page({
 	meta: import.meta,
@@ -94,46 +66,22 @@ export default new Page({
 	children: "typography controls features pricing tasks timeline collab hero",
 	description,
 	content() {
-		div.c("pal-card", () => {
-			div.c("pal-header", () => {
+		div.c("card wide", () => {
+			div.c("flex v gap v-center", () => {
 				div.c("pal-square");
 				h1("THE PALETTE");
-				p.c("pal-tagline", "Three solid bases. A fixed set of approved tints. Every stack is explicit.");
+				p("Three solid bases. A fixed set of approved tints. Every stack is explicit.");
 			});
-			div.c("pal-columns", () => {
+			div.c("grid gap auto", () => {
 				columnSpecs.forEach(spec => {
-					div.c(`pal-column pal-${spec.name}`, () => {
-						// Base block
-						div.c("pal-block", () => {
-							h4.c("pal-label", spec.baseLabel);
-							h2.c("pal-title", spec.baseTitle);
-							spec.baseBodies.forEach(({ text, color }) => {
-								p.c("pal-body", text).style("color", color);
-							});
-							if (spec.finalLabel) {
-								h4.c("pal-label", spec.finalLabel);
-							}
-						});
-						// Inset blocks
-						spec.insets.forEach(inset => {
-							div.c("pal-inset", () => {
-								h4.c("pal-label", inset.label);
-								inset.bodies.forEach(({ text, color }) => {
-									p.c("pal-body", text).style("color", color);
-								});
-								if (inset.nested) {
-									div.c("pal-nested", () => {
-										h4.c("pal-label", inset.nested.label);
-										inset.nested.bodies.forEach(({ text, color }) => {
-											p.c("pal-body", text).style("color", color);
-										});
-									}).style("background", inset.nested.bg);
-								}
-							}).style("background", inset.bg);
-						});
+					div.c(`card ${spec.ground}`, () => {
+						h4.c("muted", spec.label);
+						h2(spec.title);
+						spec.bodies.forEach(body);
+						spec.insets.forEach(inset);
 					});
 				});
-			});
+			}).style("--column", "16em");
 		});
 	},
 });

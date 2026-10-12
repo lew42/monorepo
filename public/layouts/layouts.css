@@ -137,7 +137,7 @@
 .std-hero-in { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.7em; height: 100%; width: 100%; }
 .std-claim { width: 52%; height: 2.4em; border-radius: 0.3em; background: var(--fill-a32); }
 .std-hero-in .std-bar { width: 40%; }
-.std-button { width: 8em; height: 2.2em; border-radius: var(--radius); background: var(--prim); margin-top: 0.5em; }
+.std-button { width: 8em; height: 2.2em; border-radius: var(--radius); background: var(--prime); margin-top: 0.5em; }
 
 .std-card-in { display: flex; flex-direction: column; gap: 0.5em; height: 100%; }
 .std-image {
@@ -170,7 +170,7 @@
 }
 
 .std-thumb { display: flex; flex-direction: column; gap: 0.5em; text-decoration: none; color: inherit; }
-.std-thumb:hover .std-frame { box-shadow: inset 0 0 0 2px var(--prim); }
+.std-thumb:hover .std-frame { box-shadow: inset 0 0 0 2px var(--prime); }
 .std-thumb-id { font-family: var(--mono); font-weight: 700; }
 /* ⚠ A CEILING ON THE CAPTION. It is `when` straight out of layouts.json, so anybody who
    adds a sentence there is editing this wall — one entry grew to eleven lines and made
@@ -225,9 +225,9 @@
 	background: var(--fill-a08); box-shadow: inset 0 0 0 1px var(--line);
 	font-size: 0.85em; text-decoration: none; color: inherit; white-space: nowrap;
 }
-.std-tag:hover { box-shadow: inset 0 0 0 1px var(--prim); color: var(--prim-ink); }
+.std-tag:hover { box-shadow: inset 0 0 0 1px var(--prime); color: var(--prime-ink); }
 .std-tag-n { color: var(--subtle); font-variant-numeric: tabular-nums; }
-.std-tag-on { background: var(--prim); color: #fff; box-shadow: none; }
+.std-tag-on { background: var(--prime); color: #fff; box-shadow: none; }
 .std-tag-on .std-tag-n { color: rgba(255,255,255,0.75); }
 
 /* A RECIPE — one technique, its rules, and what wrap does to it. */

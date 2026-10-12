@@ -872,7 +872,7 @@ side track the same panel, because an inspector is a panel —
   the panel under the pointer, which is then reached through the divider it
   alone owns.
 - **Every control is a transparent icon square, and one rule draws all of them**
-  (2026-08-16). No border, no background until hovered, a `--prim` tint for the value
+  (2026-08-16). No border, no background until hovered, a `--prime` tint for the value
   the panel wears — so an idle bar is icons on the content and nothing else. The box is
   `toolbar.css`'s `.panel-workspace .panel .panel-btn`; `grip.css` and `templates.css`
   each carried a near-identical copy before, which is three places for one look to

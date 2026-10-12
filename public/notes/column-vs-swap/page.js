@@ -32,7 +32,7 @@ function frame(mode){
 					span.c("muted").style("fontSize", "0.85em").text("Page A");
 					CHILDREN.forEach(name => span.c("surface pad")
 						.style({ cursor: "pointer", fontSize: "0.85em",
-							outline: open === name ? "2px solid var(--prim)" : "none" })
+							outline: open === name ? "2px solid var(--prime)" : "none" })
 						.text(name)
 						.on("click", () => { open = open === name ? null : name; draw(); }));
 				});

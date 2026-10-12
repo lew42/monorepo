@@ -153,7 +153,7 @@ const card = () => ({
 
 const flaw_card = f => div().style(card()).append(() => {
 	div.c("flex gap").style({ alignItems: "baseline" }).append(() => {
-		span(String(f.n)).style({ fontWeight: "900", fontSize: "1.6em", color: "var(--prim)", lineHeight: 1 });
+		span(String(f.n)).style({ fontWeight: "900", fontSize: "1.6em", color: "var(--prime)", lineHeight: 1 });
 		span(f.flaw).style({ fontWeight: "700" });
 	});
 	div.c("flow").append(() => md(f.ev));
@@ -162,12 +162,12 @@ const flaw_card = f => div().style(card()).append(() => {
 	   `cramped · high` — 6 × div.flow, "nearest text sits 0px from the frame" — off the three
 	   unpadded sides. Exactly the one-sided-rule false positive tonight's padding study named,
 	   met on this page's own draft. 0.5em over a 13.5px face is 0.5×, inside `frame-gap`'s band. */
-	div.c("flow").style({ borderInlineStart: "3px solid var(--prim)", padding: "calc(var(--pad) * 0.5) calc(var(--pad) * 0.8)" })
+	div.c("flow").style({ borderInlineStart: "3px solid var(--prime)", padding: "calc(var(--pad) * 0.5) calc(var(--pad) * 0.8)" })
 		.append(() => md("**→ " + f.fix + "**"));
 });
 
 const part_card = s => div().style({ ...card(), gap: "calc(var(--gap) * 0.6)" }).append(() => {
-	span(s.key).style({ fontSize: "0.8em", fontWeight: "700", letterSpacing: "0.08em", color: "var(--prim)" });
+	span(s.key).style({ fontSize: "0.8em", fontWeight: "700", letterSpacing: "0.08em", color: "var(--prime)" });
 	h3(s.title).style({ margin: 0 });
 	div.c("flow").append(() => md(s.body));
 	p.c("muted", s.note).style({ margin: 0, fontSize: "0.92em" });
@@ -176,7 +176,7 @@ const part_card = s => div().style({ ...card(), gap: "calc(var(--gap) * 0.6)" })
 const pilot_card = (s, i) => div().style(card()).append(() => {
 	div.c("flex gap").style({ alignItems: "baseline", justifyContent: "space-between" }).append(() => {
 		h3(`${i + 1} · ${s.title}`).style({ margin: 0 });
-		span(s.hrs).style({ fontWeight: "700", color: "var(--prim)", whiteSpace: "nowrap" });
+		span(s.hrs).style({ fontWeight: "700", color: "var(--prime)", whiteSpace: "nowrap" });
 	});
 	div.c("flow").append(() => md(s.body));
 	p.c("muted", s.why).style({ margin: 0, fontSize: "0.92em" });

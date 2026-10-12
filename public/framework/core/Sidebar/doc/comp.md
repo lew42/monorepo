@@ -9,7 +9,7 @@ Frame `110:436`, 307×1316, drawn at 1440 where 1em = 16px.
 | row padding | 16 / 16 / 16 / 42 | `1em 1em 1em var(--gutter)` |
 | label | 18px | `.sidebar-label { font-size: 1.125em }` |
 | active fill | `#f2f2f2` | 7% of the ink (`./tokens.md`) |
-| active icon | `#ff8f60` | `var(--prim)` |
+| active icon | `#ff8f60` | `var(--prime)` |
 
 Two deltas, both deliberate: **no left accent bar** (the comp doesn't draw one), and
 **icons stay at `1.25em` of the base** (20px, not the comp's 24) — asked for directly,

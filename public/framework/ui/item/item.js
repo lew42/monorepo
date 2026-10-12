@@ -112,12 +112,12 @@ css(`@layer theme {
 	   is the same boxed look this whole rule exists to turn off — only a KEYBOARD
 	   focus draws the ring now. */
 	.item:focus { outline: none; }
-	.item:focus-visible { outline: 2px solid var(--prim); outline-offset: -2px; }
+	.item:focus-visible { outline: 2px solid var(--prime); outline-offset: -2px; }
 
 	/* The boxed look, back as an opt-in — the exact rule .item resets above, so
 	   .item.boxed reads identically to a plain button on this site. */
 	.item.boxed { background-color: var(--fill-a08); border: 1px solid var(--fill-a32); }
-	.item.boxed:hover { border-color: var(--prim); box-shadow: inset 0 0 0 999px var(--fill-a08); }
+	.item.boxed:hover { border-color: var(--prime); box-shadow: inset 0 0 0 999px var(--fill-a08); }
 
 	/* The UA's own disclosure triangle is one bullet too many now that .item-caret
 	   draws the fold inside the row — Firefox and Chrome both drop it under

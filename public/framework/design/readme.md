@@ -1,5 +1,7 @@
 # Design — everything that goes into making anything new: layout, color, navigation, content and UI
 
+**What goes here:** what a page, card or view should look like and why. **Next door:** the classes and tokens that do it → the [Style library](/framework/styles/); how to write the CSS → [Code: CSS](/framework/code/css/).
+
 Design is what decides how a page, a card or a view looks and behaves, before any code is written. It is a browsable system, the same way [core](/framework/core/), [ext](/framework/ext/) and [ui](/framework/ui/) are: one readme per topic, live examples, detail one click down. A person and an agent read the same pages.
 
 ## Index

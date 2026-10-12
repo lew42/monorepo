@@ -4,7 +4,7 @@ Read first: the repo's `CLAUDE.md` (law 2), `../mastermind-night/requirements.md
 
 ## The owner's words
 
-> the tabs do this well... active tab, active tab content. however, the current underline tabs (with underline becoming orange (--prim) when active..) don't really illustrate their tab content area, it's transparent, and so the link below the tab area stays, but there's no visual boundary between them.
+> the tabs do this well... active tab, active tab content. however, the current underline tabs (with underline becoming orange (--prime) when active..) don't really illustrate their tab content area, it's transparent, and so the link below the tab area stays, but there's no visual boundary between them.
 
 ## Deliverables (numbered)
 

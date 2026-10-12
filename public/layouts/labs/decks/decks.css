@@ -7,7 +7,7 @@
    flex weight, and that weight is the ratio.
 
    Colour: `--surface` for a region, `--line` for every seam (a 1px gap over a line
-   floor, one declaration instead of a border rule per axis), `--prim` for the one
+   floor, one declaration instead of a border rule per axis), `--prime` for the one
    accent, `--subtle` for anything secondary. Never `--well`.
 
    Scrollbars: a slide does not scroll. Nothing here sets a height, and nothing here
@@ -132,7 +132,7 @@
 	}
 
 	.decks-eyebrow {
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 		font-size: clamp(0.65rem, 2cqw, 1rem);
 		font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
 	}
@@ -142,7 +142,7 @@
 		flex: 0 0 auto;
 		width: clamp(2rem, 16cqw, 8rem); height: 0.3em;
 		margin-block: calc(var(--gap) * 0.35);   /* was margin-block 0.35em - 2026-09-05 ramps */
-		background: var(--prim);
+		background: var(--prime);
 	}
 
 	.decks-note {
@@ -180,10 +180,10 @@
 		color: inherit; text-decoration: none;
 	}
 
-	a.decks-card:hover { border-color: var(--prim); }
+	a.decks-card:hover { border-color: var(--prime); }
 
-	.decks-card.decks-on { border-color: var(--prim); background: color-mix(in srgb, var(--prim) 10%, transparent); }
-	.decks-card-k { font-size: 0.7em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--prim-ink); }
+	.decks-card.decks-on { border-color: var(--prime); background: color-mix(in srgb, var(--prime) 10%, transparent); }
+	.decks-card-k { font-size: 0.7em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--prime-ink); }
 	.decks-card-name { font-weight: 700; font-size: 1.05em; line-height: 1.2; }
 	.decks-card-note { font-size: 0.82em; line-height: 1.4; color: var(--subtle); }
 
@@ -230,8 +230,8 @@
 	   later. `mark_links()` re-marks the anchors on every navigation instead. */
 	.decks-row.decks-on,
 	.decks-row:is(.active, .in-path, [aria-current]) {
-		border-inline-start-color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 9%, transparent);
+		border-inline-start-color: var(--prime);
+		background: color-mix(in srgb, var(--prime) 9%, transparent);
 	}
 
 	/* ⚠ ARRIVING AT THE DECK ROOT MARKS NOTHING. The slide you see at `/persist/` is the
@@ -240,8 +240,8 @@
 	     `.active-page` only while no child is open, and the moment one is, `.active` on the
 	     anchor takes over. One rule, and it can never go stale. */
 	.decks-rail.active-page > .page-column-body .decks-row:first-child {
-		border-inline-start-color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 9%, transparent);
+		border-inline-start-color: var(--prime);
+		background: color-mix(in srgb, var(--prime) 9%, transparent);
 	}
 
 	.decks-row-name { font-weight: 600; font-size: 0.98em; }
@@ -268,8 +268,8 @@
 	/* The drawn figure a stage holds when the site has no photograph to put there: bars
 	   of the accent, which is enough to say "a picture goes here" without pretending. */
 	.decks-bars { display: flex; align-items: flex-end; gap: 1.2cqw; width: 100%; height: 100%; }
-	.decks-bar { flex: 1; background: color-mix(in srgb, var(--prim) 55%, transparent); border-radius: 2px 2px 0 0; }
-	.decks-bar:nth-child(even) { background: color-mix(in srgb, var(--prim) 22%, transparent); }
+	.decks-bar { flex: 1; background: color-mix(in srgb, var(--prime) 55%, transparent); border-radius: 2px 2px 0 0; }
+	.decks-bar:nth-child(even) { background: color-mix(in srgb, var(--prime) 22%, transparent); }
 
 	/* ── the strip — a footer redrawn per screen that reads as persistent ── */
 	/* Paper, so the leftover after the last chip is paper and not a `--line` band. */
@@ -302,10 +302,10 @@
 		white-space: nowrap;
 	}
 
-	.decks-chip:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--prim-ink); }
+	.decks-chip:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--prime-ink); }
 
 	.decks-chip.decks-on,
-	.decks-chip:is(.active, .in-path, [aria-current]) { color: var(--prim-ink); box-shadow: inset 0 2px 0 var(--prim); }
+	.decks-chip:is(.active, .in-path, [aria-current]) { color: var(--prime-ink); box-shadow: inset 0 2px 0 var(--prime); }
 
 	/* THE NUMERAL — a label, never a chip: it links nowhere, so it must not compete
 	   with the ring for the flex-grow a chip earns by being one of `items`. */

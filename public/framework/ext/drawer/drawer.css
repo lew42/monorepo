@@ -178,7 +178,7 @@
 		background: var(--fill-a08);
 		border: 1px solid var(--line);
 	}
-	.drawer-ai-chip-working { color: var(--prim-ink); background: color-mix(in srgb, var(--prim) 20%, var(--fill-a08)); border-color: transparent; }
+	.drawer-ai-chip-working { color: var(--prime-ink); background: color-mix(in srgb, var(--prime) 20%, var(--fill-a08)); border-color: transparent; }
 	.drawer-ai-chip-asleep { opacity: 0.6; }
 
 	.drawer-ai-switcher { gap: 0.4em; position: relative; }

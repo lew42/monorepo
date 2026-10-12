@@ -1971,7 +1971,7 @@ const children_of = (id, log) => log.cards.filter(c => c.parent === id);
 // word already reserves the 3px and reads the colour straight off the
 // element, so a class that just names the same three tokens again is one
 // more thing to keep in sync with nothing to show for it.
-const EDGE = { "needs-you": "var(--prim)", working: "var(--warn)", done: "var(--ok)" };
+const EDGE = { "needs-you": "var(--prime)", working: "var(--warn)", done: "var(--ok)" };
 const edge_of = status => EDGE[status];
 
 /** The owner's OWN card that this one answers — `re` names it. Read back by

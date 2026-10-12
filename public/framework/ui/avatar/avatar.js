@@ -20,7 +20,7 @@ css(`@layer theme {
 		overflow: hidden;
 	}
 	.ui-avatar > img { width: 100%; height: 100%; object-fit: cover; }
-	.ui-avatar.accent { background: var(--prim); }
+	.ui-avatar.accent { background: var(--prime); }
 	.ui-avatar.wash { background: var(--wash); color: var(--ink); }
 
 	/* The ring is the surface colour, so an overlap reads as a hole onto whatever

@@ -24,7 +24,7 @@ const SECTIONS = {
 	signup: "mail",               callout: "bolt",         footer: "call_to_action",
 };
 
-const BASE = { dark: "--ink", prim: "--prim", wash: "--wash", surface: "--surface" };
+const BASE = { dark: "--ink", prim: "--prime", wash: "--wash", surface: "--surface" };
 
 const STATS = [["3", "npm deps"], ["0", "build steps"], ["100", "percent static"], ["3440", "pixels wide"]];
 

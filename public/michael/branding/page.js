@@ -66,9 +66,9 @@ export default new Page({
 
 	h3("Layout");
 	div.c("flex gap pad", () => {
-		div("flex item 1").style({ background: "var(--prim)", color: "white", padding: "1em" });
-		div("flex item 2").style({ background: "var(--prim)", color: "white", padding: "1em" });
-		div("flex item 3").style({ background: "var(--prim)", color: "white", padding: "1em" });
+		div("flex item 1").style({ background: "var(--prime)", color: "white", padding: "1em" });
+		div("flex item 2").style({ background: "var(--prime)", color: "white", padding: "1em" });
+		div("flex item 3").style({ background: "var(--prime)", color: "white", padding: "1em" });
 	});
 
 	h3("Components");

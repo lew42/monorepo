@@ -27,7 +27,7 @@ const EIGHT = [
 		() => div.c("flex gap").style("height", "6em").append(() => {
 			div.c("flex v gap").style("flex", "0 0 6em").append(() => {
 				bar("0.5em", "none");
-				div.c("surface pad").style({ outline: "2px solid var(--prim)", flex: "1 1 auto" });
+				div.c("surface pad").style({ outline: "2px solid var(--prime)", flex: "1 1 auto" });
 				bar("0.5em", "none");
 			});
 			bar("100%", "1 1 auto");
@@ -43,7 +43,7 @@ const EIGHT = [
 			div.c("flex v gap flex-1").append(() => {
 				bar("1em", "none");
 				div.c("surface").style({ flex: "1 1 auto", borderStyle: "dashed",
-					outline: "2px solid var(--prim)" });
+					outline: "2px solid var(--prime)" });
 			});
 		})],
 	["Media over a strip", "A picture, a caption strip beneath it, and a scribble above.",

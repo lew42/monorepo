@@ -88,7 +88,7 @@ either side.
 
 **The remaining 1px is correct.** An end-docked rail's line lands 1px inside its boundary
 because `position: absolute` insets resolve against the **padding** box and both rails
-carry a 1px `border-inline-start`. The 1px `--line` border and the 2px `--prim` line sit
+carry a 1px `border-inline-start`. The 1px `--line` border and the 2px `--prime` line sit
 adjacent and read as one lit edge; pulling the strip out to `-1px` would start straddling
 the edge that rule 1 above exists to forbid.
 

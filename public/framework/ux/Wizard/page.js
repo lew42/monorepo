@@ -15,10 +15,10 @@ function step_name(wizard){
 			.on("input", function(){ wizard.values.name = this.el.value; });
 
 		// The ui/field "invalid" pattern, verbatim - there is no ui.field() to
-		// import, so this IS the import: aria-invalid + var(--prim) on both ends.
+		// import, so this IS the import: aria-invalid + var(--prime) on both ends.
 		if (invalid){
-			$input.attr("aria-invalid", "true").style("borderColor", "var(--prim)");
-			span("A name is required.").style("color", "var(--prim)");
+			$input.attr("aria-invalid", "true").style("borderColor", "var(--prime)");
+			span("A name is required.").style("color", "var(--prime)");
 		} else {
 			span.c("muted", "Lowercase, no spaces - renameable later.");
 		}

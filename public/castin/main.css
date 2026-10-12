@@ -46,8 +46,8 @@
   h6 { color: var(--h6-text-color); }
 
   /* Aliases to the theme colors in framework styles */
-  .bg-primary { background-color: var(--prim); }
-  .bg-page { background-color: var(--bg); }
+  .bg-primary { background-color: var(--prime); }
+  .bg-page { background-color: var(--dark); }
   .bg-subtle { background-color: var(--subtle); }
 }
 

@@ -6,7 +6,7 @@ export default function() {
     div.c("pad", () => {
         a.c("page-back btn bg mb", "Back").href("../");
 
-        h1("Custom Components").ac("mb").style("color", "var(--prim)");
+        h1("Custom Components").ac("mb").style("color", "var(--prime)");
 
         h2("Button");
         h2("Forms");

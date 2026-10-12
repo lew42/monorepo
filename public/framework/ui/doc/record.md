@@ -220,7 +220,7 @@ eviction list.
 
 ### 2 of 12: the status axis is a third done
 
-`--prim --bg --ink --subtle --surface --line --wash`, plus `--error`, which landed
+`--prime --bg --ink --subtle --surface --line --wash`, plus `--error`, which landed
 while this section was being written — to replace `#c00` hardcoded in `md.css`,
 `demo.css` and `highlight.css`, i.e. for *error boxes*, not for components. Nothing
 means *good* or *warning*. So `badge` honestly offers neutral / accent / dark /
@@ -363,7 +363,7 @@ None is a bug; all three cost real minutes.
 - **`framework.css` has no rule for `a` at all.** Every styled link on the site is
   styled by the component that emits it — `.page-preview`, `.tab`, `.nav-link`,
   `.page-link` — so a link a component *doesn't* claim is UA blue and underlined.
-  `card`'s CTA therefore names its own colour (`var(--prim)`, a token) and a
+  `card`'s CTA therefore names its own colour (`var(--prime)`, a token) and a
   preview card's title link takes `color: inherit`. Not a complaint: an unstyled `a` is a
   visible reminder that a link's colour is a decision, and the alternative is a base
   rule every theme then has to fight. It is the other half of the `.btn` finding.
@@ -444,7 +444,7 @@ reaches for next. The finding is that **three of the four are the browser**:
   UA sets `color: CanvasText`, which blocks the theme's ink until restated.
   `el("dialog", …)` because `dialog` has no named factory.
 - **`progress`** — native `<progress>`/`<meter>`, themed for free because
-  `framework.css` already sets `accent-color: var(--prim)`. The vendor
+  `framework.css` already sets `accent-color: var(--prime)`. The vendor
   pseudo-element route (`::-webkit-progress-bar`) is deliberately not taken.
 - **`menu`** — a `<details>` dropdown. **The second component to earn a
   stylesheet**, and it passes tooltip's exact test: the panel is positioned

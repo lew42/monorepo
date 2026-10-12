@@ -1,6 +1,6 @@
 The component's whole look, in `@layer theme` plus two rules in `@layer util`. No
 literal colour anywhere — every value is a token (`--line`, `--subtle`, `--ink`,
-`--prim`) so a theme retunes the whole set without touching a selector.
+`--prime`) so a theme retunes the whole set without touching a selector.
 
 ## Three shapes, one set of classes
 

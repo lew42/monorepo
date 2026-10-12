@@ -27,7 +27,7 @@
 		display: block; overflow: hidden; border-radius: var(--radius);
 		outline: 2px solid transparent;
 	}
-	.dt-vb-thumb:hover { outline-color: var(--prim); }
+	.dt-vb-thumb:hover { outline-color: var(--prime); }
 	.dt-vb-img { display: block; width: 100%; height: 100%; object-fit: cover; background: var(--tint); }
 
 	/* Body — the prose column. Bounded, not full width: "prose is the measure". */

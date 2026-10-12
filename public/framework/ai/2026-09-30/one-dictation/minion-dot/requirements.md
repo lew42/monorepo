@@ -11,7 +11,7 @@ The owner dictates while looking away, so the mic has to be heard and seen witho
 - **The sounds:** `beep()` in `ext/Chat/Mic.js:84`, from task `ai/2026-10-01/dictate-stop-sound/`, which claimed a fix.
 
 ## Do
-1. **The dot becomes the ✦ shape**: the same glyph or SVG the rail's ✦ button uses (find it in `ext/drawer/`). It's in the primary orange (`--prim`), small, at the bottom right of the chat feed, and it scales with the voice level.
+1. **The dot becomes the ✦ shape**: the same glyph or SVG the rail's ✦ button uses (find it in `ext/drawer/`). It's in the primary orange (`--prime`), small, at the bottom right of the chat feed, and it scales with the voice level.
    - When the mic is off, it is dimmed (low opacity) but still visible.
    - Tapping the dot starts or stops the mic. Tapping anywhere in the empty feed starts it too.
 2. **It's on by default, on every surface.** Make `pulse` the default (`Widget.prototype.pulse = true`), so the demo, the ✦ sheet and the ☰ drawer all show it. Remove the `level` bars, and drop the option from the docs.

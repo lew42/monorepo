@@ -21,7 +21,7 @@ css(`@layer theme {
 	   The same section, readable. It names no hue: every value is an alpha bump
 	   on the pair framework.css already declared, the far end of the ink axis, or
 	   a mix of two existing tokens. So one word covers light AND dark, and a theme
-	   that retints --prim gets a matching contrast word for free. */
+	   that retints --prime gets a matching contrast word for free. */
 	.ui-contrast {
 		--ink:    light-dark(#000, #fff);
 		--subtle: light-dark(rgba(0,0,0,0.8), rgba(255,255,255,0.85));
@@ -29,11 +29,11 @@ css(`@layer theme {
 		--wash:   light-dark(rgba(0,0,0,0.14), rgba(255,255,255,0.16));
 		--tint:   light-dark(rgba(0,0,0,0.07), rgba(255,255,255,0.08));
 
-		/* framework.css declares --prim-ink for exactly this case: an accent picked
+		/* framework.css declares --prime-ink for exactly this case: an accent picked
 		   to be seen as a FILL measures 2.25:1 as text. Mixed toward the ink, which
 		   is itself a light-dark pair, so one line darkens it in light mode and
 		   lightens it in dark. */
-		--prim-ink: color-mix(in oklab, var(--prim) 70%, var(--ink));
+		--prime-ink: color-mix(in oklab, var(--prime) 70%, var(--ink));
 	}
 
 	/* ---- ui-compact ----------------------------------------------------

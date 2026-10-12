@@ -40,7 +40,7 @@ css(`@layer theme {
 	   that counts as "visible" is a UA heuristic. It is always visible here.
 	   The offset is negative on purpose: the framework's 3px positive offset is drawn
 	   OUTSIDE the row, which a 14em rail clips. */
-	.ui-tree-row:focus { outline: 2px solid var(--prim); outline-offset: -2px; }
+	.ui-tree-row:focus { outline: 2px solid var(--prime); outline-offset: -2px; }
 
 	/* ONE SQUARE FRAME, WORN BY BOTH, so the fold, the icon and the label sit on one
 	   centre line. The owner, 2026-09-19: "the icons should be properly framed so

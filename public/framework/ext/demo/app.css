@@ -24,7 +24,7 @@
 	.demo-app [data-demo-url] { cursor: pointer; }
 
 	.demo-app-crumb { color: var(--subtle); text-decoration: none; }
-	.demo-app-crumb:hover { color: var(--prim); }
+	.demo-app-crumb:hover { color: var(--prime); }
 
 	/* `aria-current`, never `.active`: Router.mark_links() runs over every anchor
 	   in the app on every navigation and would clear a borrowed class. `page` is
@@ -50,7 +50,7 @@
 		margin-inline-end: -1px;         /* sit ON the rail's rule, not beside it */
 	}
 	.demo-app-link:hover { color: var(--ink); }
-	.demo-app-link[aria-current] { color: var(--ink); border-inline-end-color: var(--prim); }
+	.demo-app-link[aria-current] { color: var(--ink); border-inline-end-color: var(--prime); }
 	.demo-app-link .icon { font-size: 1.1em; }
 
 	/* `.pages` in miniature. ⚠ The two tokens are re-declared for the same reason
@@ -122,7 +122,7 @@
    css: `.page-link` and `.page-preview` are Page.css's — app.js imports it. */
 @layer site {
 
-	.demo-app .page-link[aria-current] { color: var(--prim); }
+	.demo-app .page-link[aria-current] { color: var(--prime); }
 
-	.demo-app .page-preview:has(> .page-preview-link[aria-current]) { outline-color: var(--prim); }
+	.demo-app .page-preview:has(> .page-preview-link[aria-current]) { outline-color: var(--prime); }
 }

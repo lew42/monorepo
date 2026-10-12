@@ -1,105 +1,73 @@
-import { Page, View, div, a, img, p, h2, md } from "/app.js";
+import { Page, View, div, a, p, md } from "/app.js";
 import { Figma } from "./Figma.js";
+import { grid } from "./grid.js";
+import { FigmaFilePage } from "./FigmaFilePage.js";
 
 View.stylesheet(import.meta, "Figma.css");
 
-/* The browse page: tracked files, then a file's pages as a preview grid, then one page large with its frames,
-   then (?compare=<node>) the Figma original beside the live framework page built from it.
-   Each level is its own address: ?file=<key>&page=<node id>&compare=<node id>.
-   Cards show a small JPEG (thumbs.mjs), lazy-loaded; the full PNG loads only on a page's own view. */
+/* The browse page: tracked files, then (ROUTED pages from here down, never a ?query —
+   the owner, 2026-10-12) a file's pages as a preview grid, then one page large with its
+   frames, then its compare view:
+     /framework/ext/Figma/<file-slug>/
+     /framework/ext/Figma/<file-slug>/<page-slug>/
+     /framework/ext/Figma/<file-slug>/<page-slug>/compare/<frame-slug>/
+   Every slug is the node's name, lowercased and dashed (slug.js), deduped against its
+   own siblings — never a Figma node id, except as a last-resort fallback on a collision.
+   An old `?file=<key>&page=<id>&compare=<id>` link still opens: legacy_target() below
+   works out the same real url and the router loads it in place (history.replaceState),
+   so a bookmark or a chat link from before this change still lands somewhere real. */
+
+// Fired at module eval, same trade ai/2026-09-19/page.js's warm() makes, so a cold
+// deep link into a file/page/compare url has a head start before route() has to ask.
+Figma.files();
+
 export class FigmaBrowse extends Page {
 	content(){
-		const box = div.c("figma-browse");
+		const box = div.c("figma-browse", () => p.c("muted", "Loading…"));
 		Figma.files().then(files => {
-			const redraw = () => box.empty(() => this.draw(files, new URLSearchParams(location.search)));
-			redraw();
-			/* The Router ignores a link that changes only ?query, so the URL moved but nothing redrew (the "laggy" clicks).
-			   Own ?query links here: push the url, redraw from the files already in memory, scroll to the top. */
-			box.el.addEventListener("click", e => {
-				const link = e.target.closest?.("a[href^=\"?\"]");
-				if (!link || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey) return;
-				e.preventDefault(); e.stopPropagation();
-				history.pushState(history.state, "", location.pathname + link.getAttribute("href"));
-				redraw();
-				box.el.scrollIntoView();
-			});
-			addEventListener("popstate", () => box.el.isConnected && redraw());
+			const target = this.legacy_target(files);
+			if (target) return void this.app.router.load(target).then(ok => { if (ok) history.replaceState({}, "", target); });
+			box.empty(() => this.show_files(files));
 		});
 	}
 
-	draw(files, query){
-		const file = files.find(f => f.key === query.get("file")), node = file?.find(query.get("compare") || query.get("page"));
-		if (node && query.get("compare")) return this.show_compare(node, query.get("page"));
-		if (node) return this.show_page(node);
-		if (file) return this.show_file(file);
-		this.show_files(files);
+	/* `?file=<key>&page=<id>&compare=<id>` → the real path it means now, or null when
+	   this load carries no legacy query at all (the ordinary case). */
+	legacy_target(files){
+		const query = new URLSearchParams(location.search);
+		const key = query.get("file");
+		if (!key) return null;
+		const file = files.find(f => f.key === key);
+		if (!file) return this.url;   // an old key nobody tracks any more — the plain list, not a 404
+
+		let url = this.url + file.slug + "/";
+		const pageId = query.get("page") || query.get("compare");
+		const pageNode = pageId && (file.page(pageId) ?? file.pages.find(p => p.frames.some(fr => fr.id === pageId)));
+		if (!pageNode) return url;
+
+		url += pageNode.slug + "/";
+		const compareId = query.get("compare");
+		const compareNode = compareId && (pageNode.id === compareId ? pageNode : pageNode.frames.find(fr => fr.id === compareId));
+		if (compareNode) url += "compare/" + compareNode.slug + "/";
+		return url;
 	}
 
 	show_files(files){
 		md("Figma files the owner tracks, as previews of every page; click one to open it. Designs rebuilt as framework pages: [Color Schemes](/framework/ext/Figma/colors/) and [The Approved Schemes](/framework/ext/Figma/palette/).");
 		files.forEach(f => {
-			a(f.name).href(`?file=${f.key}`);
-			this.show_nodes(f, f.pages);
+			const base = this.url + f.slug + "/";
+			a(f.name).href(base);
+			grid(f.pages, n => ({ open: base + n.slug + "/", compare: base + n.slug + "/compare/" + n.slug + "/" }));
 		});
 	}
 
-	show_file(file){
-		a("All files").href("?");
-		h2(file.name);
-		this.show_nodes(file, file.pages);
-	}
-
-	/* One card per node: the preview, its size, and (when a framework page was built from it) the way to it. */
-	show_nodes(file, nodes, parent){
-		div.c("figma-grid", () => nodes.forEach(n => {
-			div.c("figma-card", () => {
-				const open = parent ? null : `?file=${file.key}&page=${n.id}`;
-				const shot = () => n.shot && img().attr("src", n.thumb_url).attr("alt", n.name).attr("loading", "lazy").attr("decoding", "async")
-					.attr("onerror", `this.onerror=null;this.src='${n.shot_url}'`).style("aspect-ratio", n.ratio);
-				open ? a(shot).href(open) : shot();
-				h2(n.name);
-				p(n.frames?.length ? `${n.frames.length} frames` : `${Math.round(n.w || 0)} × ${Math.round(n.h || 0)}`);
-				n.built && div.c("figma-links", () => {
-					a("Built page").href(n.built.path).ac("figma-built");
-					a("Compare").href(`?file=${file.key}&page=${parent?.id || n.id}&compare=${n.id}`);
-				});
-			});
-		}));
-	}
-
-	show_page(node){
-		a(`${node.file.name} pages`).href(`?file=${node.file.key}`);
-		h2(node.name);
-		node.built && a("Built page").href(node.built.path).ac("figma-built");
-		node.shot && img.c("figma-large").attr("src", node.shot_url).attr("alt", node.name).attr("decoding", "async");
-		node.frames?.length && this.show_nodes(node.file, node.frames, node);
-		a("Open in Figma").href(node.figma_url);
-	}
-
-	/* Original beside the built page at the same width: the iframe is as wide as the Figma frame and scaled to fit the column. */
-	show_compare(node, page_id){
-		a(`Back to ${node.file.find(page_id)?.name || node.file.name}`).href(`?file=${node.file.key}&page=${page_id}`);
-		h2(`${node.name}: Figma original, and the page built from it`);
-		const w = Math.round(node.w || 1920), h = Math.round(node.h || 1080);
-		div.c("figma-compare", () => {
-			div.c("figma-side", () => { p("Figma"); img().attr("src", node.shot_url).attr("alt", node.name).style("aspect-ratio", `${w} / ${h}`); });
-			div.c("figma-side", () => {
-				a("Built page").href(node.built?.path || "#").ac("figma-built");
-				const stage = div.c("figma-stage").style("aspect-ratio", `${w} / ${h}`);
-				this.fit(stage.el, node.built?.path, w, h);
-			});
-		});
-	}
-
-	fit(stage, path, w, h){
-		if (!path) return;
-		const f = document.createElement("iframe");
-		f.src = path; f.loading = "lazy"; f.title = "Built page";
-		Object.assign(f.style, { width: w + "px", height: h + "px", border: 0, transformOrigin: "0 0" });
-		stage.append(f);
-		const scale = () => { f.style.transform = `scale(${stage.clientWidth / w})`; };
-		new ResizeObserver(scale).observe(stage);
-		scale();
+	/* An undeclared name only (route.md: "it runs for undeclared names only") — this
+	   page's own declared children ("colors palette autolayout", page.js) never reach
+	   here, so those built framework pages keep working exactly as they did. */
+	route(name){
+		const files = Figma.resolved() ?? Figma.files_sync();
+		const file = files.find(f => f.slug === name);
+		return file && new FigmaFilePage({ title: file.name, file });
 	}
 }
 export default FigmaBrowse;

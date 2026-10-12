@@ -63,7 +63,7 @@
 	 * is what `Widget.Thread`'s own real bubbles now use directly. History: `doc/chat.md`. */
 	.ux-dictate-widget-bubble {
 		align-self: flex-start; max-width: 85%;
-		background: color-mix(in srgb, var(--prim) 22%, transparent);
+		background: color-mix(in srgb, var(--prime) 22%, transparent);
 		border-radius: 0.9em;
 		display: flow-root;   /* a one-line message still wraps the floated icon below */
 	}
@@ -92,7 +92,7 @@
 		font-size: 0.95em; font-weight: 400; line-height: 1;
 	}
 	.ux-dictate-widget-bubble .chatbox-avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; }
-	.ux-dictate-widget-bubble .chatbox-who-you       { color: var(--prim-ink); }
+	.ux-dictate-widget-bubble .chatbox-who-you       { color: var(--prime-ink); }
 	.ux-dictate-widget-bubble .chatbox-who-assistant { color: var(--ok); }
 	.ux-dictate-widget-failed { font-size: 0.85em; }
 	.ux-dictate-widget-mark { font-size: 0.85em; margin-inline-start: 0.3em; }
@@ -106,7 +106,7 @@
 	 * heading, a row of buttons; the picked one stays visible once answered. */
 	.ux-dictate-widget-ask-heading { font-weight: 600; display: block; }
 	.ux-dictate-widget-choices { margin-top: 0.4em; }
-	.ux-dictate-widget-choice.picked { box-shadow: inset 0 0 0 1px var(--prim); font-weight: 600; }
+	.ux-dictate-widget-choice.picked { box-shadow: inset 0 0 0 1px var(--prime); font-weight: 600; }
 	.ux-dictate-widget-ask.answered .ux-dictate-widget-choice:disabled { opacity: 0.6; }
 
 	/* The model picker (`models: true`) — above the thread, same look as the drawer's own
@@ -178,7 +178,7 @@
 	}
 	.ux-dictate-widget-meter-fill {
 		height: 100%; width: calc(var(--ux-dictate-widget-level, 0) * 100%);
-		background: var(--prim); transition: width 80ms linear;
+		background: var(--prime); transition: width 80ms linear;
 	}
 
 	/* The mic picker (`source: true`) — capped width and an ellipsis, never the browser's
@@ -225,7 +225,7 @@
 		border-radius: var(--radius);
 	}
 
-	/* THE DOT — mic on: small, `--prim` (the site's one accent, "orange" in the owner's own
+	/* THE DOT — mic on: small, `--prime` (the site's one accent, "orange" in the owner's own
 	 * words), bottom-right, and UNOBTRUSIVE at rest (0.85em) — the owner: "pretty small."
 	 * `transform: scale(...)` reads `--ux-dictate-widget-pulse-level` (0..1, `Widget.Pulse`'s
 	 * own `set_level()`, the SAME smoothed number `level`'s meter bar reads) so the dot
@@ -235,8 +235,8 @@
 	.ux-dictate-widget-pulse-dot {
 		position: absolute; right: 0.6em; bottom: 0.6em; pointer-events: auto; cursor: pointer;
 		inline-size: 0.85em; block-size: 0.85em; border-radius: 50%;
-		background: var(--prim);
-		box-shadow: 0 0 0.5em color-mix(in srgb, var(--prim) 55%, transparent);
+		background: var(--prime);
+		box-shadow: 0 0 0.5em color-mix(in srgb, var(--prime) 55%, transparent);
 		transform: scale(calc(1 + var(--ux-dictate-widget-pulse-level, 0) * 1.6));
 		transition: transform 90ms linear;
 	}

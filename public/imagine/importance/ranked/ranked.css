@@ -19,7 +19,7 @@
 		text-align: end;
 		font-weight: 700;
 		font-variant-numeric: tabular-nums;
-		color: var(--prim);
+		color: var(--prime);
 	}
 
 	/* Every cell placed by hand. Auto-placement put the chevron on row 2, beside the

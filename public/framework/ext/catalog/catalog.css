@@ -131,7 +131,7 @@
 	   ⚠ `[aria-current]` is the third mark: a rail inside a demo app has no Router to
 	   set the two classes, and without it the first card lit beside the real one. */
 	.page-catalog > .page-previews:not(:has(> .page-preview > a:is(.active, .in-path, [aria-current]))) > .page-preview:first-child {
-		outline-color: var(--prim);
+		outline-color: var(--prime);
 	}
 
 	/* The rail becomes a strip when the row cannot fit — the same cards, scrolling

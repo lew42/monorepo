@@ -12,7 +12,7 @@ original three surveys, plus two the 2026-09-29 audit caught as missed —
 | `.card` / `.surface` | 59 | `--surface` | no | no | no | none |
 | Chip / pill | 37 | `--wash` | sometimes | no | no | none |
 | Panel region | 37 files | none of its own — opts into `.surface`/`.wash` | no | no | **yes** (toolbar) | none |
-| Chat bubble | 13 | tint of `--prim` (the one kind NOT on a neutral ground) | no | no | no | none |
+| Chat bubble | 13 | tint of `--prime` (the one kind NOT on a neutral ground) | no | no | no | none |
 | Icon card (icard) | 8 | `--surface`, switches to `--wash` nested | yes | no | no | icon + title |
 | AI2 rail row | 6 | none at rest, `--fill-a04` hover | yes | no | no | header bar |
 | Switcher (active row) | 6 files | none at rest, current row `--fill-a08` or `--surface` | yes | no | no | none |

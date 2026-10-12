@@ -25,7 +25,7 @@ const FLOORS = [
 	{ key: "surface", cls: "stacks-f-surface", label: "--surface" },
 	{ key: "bg",      cls: "stacks-f-bg",      label: "--bg" },
 	{ key: "code",    cls: "stacks-f-code",    label: "--code-bg" },
-	{ key: "prim",    cls: "stacks-f-prim",    label: "--prim" },
+	{ key: "prim",    cls: "stacks-f-prim",    label: "--prime" },
 ];
 
 /* The six things that get stacked ON a floor. `now` renders the REAL element wearing the
@@ -155,9 +155,9 @@ export default new Page({
 
 		div.c("wide stacks-lab flex gap wrap", () => { matrix(false); matrix(true); });
 
-		md("**Nine cells are under the bar, in both modes, and none of them is a shipping component.** Before the flip it was 14 in light and 13 in dark. What is left is the two placement demos below and the one compression case, which is the page arguing its own last section.\n\nThe last three columns are *identical* between the two halves, and that is the mechanism working: `--bg`, `--code-bg` and `--prim` declare `color-scheme: dark`, so they render the same whichever mode the reader is in.");
+		md("**Nine cells are under the bar, in both modes, and none of them is a shipping component.** Before the flip it was 14 in light and 13 in dark. What is left is the two placement demos below and the one compression case, which is the page arguing its own last section.\n\nThe last three columns are *identical* between the two halves, and that is the mechanism working: `--bg`, `--code-bg` and `--prime` declare `color-scheme: dark`, so they render the same whichever mode the reader is in.");
 
-		md("Cells the ladder does **not** fix, and all three are findings rather than bugs:\n\n- `button.prim` on a `--prim` band, and `button.bg` on a `--bg` one, stay 0.0. **An accent is a hue, not a rung** — each can only be invisible on one floor, its own, so this is a *placement* error and the fix is to move the button, not to retune the token. Both kept their opaque fills in the flip on exactly that reasoning.\n- A card at `--fill-a04` on `--prim` measures 2.1. **Alpha compresses on a saturated floor**: the red channel of `#FF8F60` is already at 255, so a white rung can only move green and blue. On an accent, start one rung higher.");
+		md("Cells the ladder does **not** fix, and all three are findings rather than bugs:\n\n- `button.prim` on a `--prime` band, and `button.bg` on a `--bg` one, stay 0.0. **An accent is a hue, not a rung** — each can only be invisible on one floor, its own, so this is a *placement* error and the fix is to move the button, not to retune the token. Both kept their opaque fills in the flip on exactly that reasoning.\n- A card at `--fill-a04` on `--prime` measures 2.1. **Alpha compresses on a saturated floor**: the red channel of `#FF8F60` is already at 255, so a white rung can only move green and blue. On an accent, start one rung higher.");
 
 		md("The matrix is a `<table>`, so `framework.css` already gives it `overflow-x: auto` — a full grid at 1920 and a deliberate side-scroll at 400. A 36-cell matrix is wide; that is the one scrollbar on this page and it was asked for.");
 

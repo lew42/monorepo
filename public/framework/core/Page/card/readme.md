@@ -1,5 +1,7 @@
 # card — the site's card design system
 
+> Superseded 2026-10-12: the one card page is [/framework/ui/card/](/framework/ui/card/); the grounds here became `bg-white` `bg-light` `bg-prime` `bg-dark` in framework.css.
+
 ## What
 
 A card is a mini page: it has its own background, works on mobile, sometimes has a

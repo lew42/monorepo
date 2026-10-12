@@ -84,7 +84,7 @@ function element_browser(){
 				   edit (it is shared with the other note batches). */
 				$b.attr("aria-pressed", tab === open ? "true" : "false");
 				if (tab === open) $b.style({ fontWeight: "700",
-					borderBottom: "2px solid var(--prim)" });
+					borderBottom: "2px solid var(--prime)" });
 			}));
 
 			$body.empty(() => {

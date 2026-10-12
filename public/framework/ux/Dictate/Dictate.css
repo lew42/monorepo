@@ -9,7 +9,7 @@
 	/* "on" is a solid, still fact — the owner's own complaint was the button
 	 * flickering with every sound. Same look for both engines; only the level
 	 * bar beside the icon (below) moves. */
-	.ux-dictate-btn.listening { color: var(--prim); box-shadow: 0 0 0 3px var(--prim); }
+	.ux-dictate-btn.listening { color: var(--prime); box-shadow: 0 0 0 3px var(--prime); }
 
 	/* The level bar: real loudness for whisper (`--ux-dictate-level`, set every
 	 * audio frame in on_level()), a plain still pulse for the browser engine
@@ -18,7 +18,7 @@
 	 * engine is chosen (`--ux-dictate-level` defaults to 0). */
 	.ux-dictate-level {
 		display: inline-block; width: 3px; margin-inline-start: .35em; border-radius: 2px;
-		background: var(--prim); vertical-align: -.1em;
+		background: var(--prime); vertical-align: -.1em;
 		height: calc(4px + var(--ux-dictate-level, 0) * 16px);
 	}
 	.ux-dictate-btn.listening[data-engine="whisper"] .ux-dictate-level { transition: height 80ms linear; }

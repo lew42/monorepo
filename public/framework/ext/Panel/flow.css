@@ -35,5 +35,5 @@
 
 	/* Live means recording; scrubbed back means the dot is off. */
 	.panel-flow-rec { opacity: 0.35; }
-	.panel-flow-rec.on { color: var(--prim); opacity: 1; }
+	.panel-flow-rec.on { color: var(--prime); opacity: 1; }
 }

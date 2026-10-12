@@ -23,7 +23,7 @@
 		border-radius: var(--radius);
 		font: inherit; cursor: pointer;
 	}
-	.dev-chat-linkback:hover { color: var(--prim); border-color: var(--prim); }
+	.dev-chat-linkback:hover { color: var(--prime); border-color: var(--prime); }
 
 	/* The session picker — one solid-background dropdown, full width, so it
 	   reads as "which conversation" rather than one more small control. */
@@ -59,8 +59,8 @@
 		background: var(--wash);
 		border: 0; border-radius: 0.35em;
 	}
-	.dev-chat-card:hover { background: color-mix(in srgb, var(--prim) 14%, transparent); }
-	.dev-chat-you { background: color-mix(in srgb, var(--prim) 10%, var(--wash)); }
+	.dev-chat-card:hover { background: color-mix(in srgb, var(--prime) 14%, transparent); }
+	.dev-chat-you { background: color-mix(in srgb, var(--prime) 10%, var(--wash)); }
 	.dev-chat-sent { background: color-mix(in srgb, var(--warn) 16%, var(--wash)); }
 	.dev-chat-card-role { flex: 0 0 auto; font-weight: 600; text-transform: uppercase; font-size: 0.75em; letter-spacing: 0.06em; }
 	/* rem, not em — the rail's own text is 0.8rem, and chat is prose to READ,
@@ -80,7 +80,7 @@
 		border: 1px solid transparent; border-radius: var(--radius);
 		font: inherit; cursor: pointer;
 	}
-	.dev-chat-back:hover { color: var(--prim); border-color: var(--prim); }
+	.dev-chat-back:hover { color: var(--prime); border-color: var(--prime); }
 	.dev-chat-reader-body {
 		flex: 1 1 auto; min-height: 0;
 		overflow-y: auto;
@@ -101,7 +101,7 @@
 		background: var(--wash);
 		border: 0; border-radius: 0.35em;
 	}
-	.dev-chat-minion:hover { background: color-mix(in srgb, var(--prim) 14%, transparent); }
+	.dev-chat-minion:hover { background: color-mix(in srgb, var(--prime) 14%, transparent); }
 	.dev-chat-minion-brief { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.dev-chat-minion-report { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 

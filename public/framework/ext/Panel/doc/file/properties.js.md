@@ -144,7 +144,7 @@ nothing else would move the highlight there.
    one more clause would carry it. *(simple, cosmetic)*
 2. **`TONES` comes from `toolbar.js` and the tone chips are words.** The bar
    shows the same four as words too, but an inspector has room for swatches —
-   `--surface`/`--wash`/`--prim`/`--ink` are already the four tokens the
+   `--surface`/`--wash`/`--prime`/`--ink` are already the four tokens the
    templates read. *(simple, speculative)*
 3. **A leaf's `grow` is not offered**, so sizing is still the grip's alone. A
    number here would be a second sizing channel, which the module has so far

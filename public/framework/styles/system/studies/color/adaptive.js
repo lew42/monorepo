@@ -20,7 +20,7 @@ const verdict = r => r >= 4.5 ? "text ok" : r >= 3 ? "UI only" : "no";
 export const GROUNDS = [
 	["White",      { background: "var(--surface)" }],
 	["Light gray", { background: "var(--wash)" }],
-	["Primary",    { background: "var(--prim)", "--bg-lighten-amt": "var(--lighten-2)", "--bg-darken-amt": "var(--darken-1)" }],
+	["Primary",    { background: "var(--prime)", "--bg-lighten-amt": "var(--lighten-2)", "--bg-darken-amt": "var(--darken-1)" }],
 	["Dark gray",  { background: "var(--bg)" }],
 	["Black",      { background: "#000000", "--bg-lighten-amt": "var(--lighten-2)", "--bg-darken-amt": "var(--darken-1)" }],
 ];
@@ -43,7 +43,7 @@ export class AdaptiveStudy {
 
 	/** One ground tile: the ground itself as a `.bg-lighten`, a `.bg-darken`, and the
 	 *  two nesting orders, each showing a line of real `--ink` text and a small
-	 *  `--prim` accent chip so both the text token and the accent get measured. */
+	 *  `--prime` accent chip so both the text token and the accent get measured. */
 	ground([name, style]){
 		figure.c("adaptive-ground").style(style).append(() => {
 			figcaption(name);
@@ -59,7 +59,7 @@ export class AdaptiveStudy {
 	}
 
 	/** The thing every cell actually measures: a line of body text, plus a small
-	 *  accent swatch so `--prim` on the same fill gets a number too. */
+	 *  accent swatch so `--prime` on the same fill gets a number too. */
 	sample(cls, nested){
 		div.c([cls, "adaptive-sample"].filter(Boolean).join(" ")).append(() => {
 			span.c("adaptive-text", nested ? "Ink text, nested" : "Ink text");

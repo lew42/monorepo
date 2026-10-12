@@ -2,8 +2,6 @@ import { Page, View, div, p, h1, h4, button, input, textarea } from "/app.js";
 
 View.stylesheet(import.meta, "controls.css");
 
-const PRIME25 = "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25)), #72c4ff";
-
 export default new Page({
 	meta: import.meta,
 	title: "Controls",
@@ -11,134 +9,129 @@ export default new Page({
 	width: "full",
 	description: "Forms, buttons, toggles, chips, badges and progress bars on each base.",
 	content() {
-		div.c("ctl-card", () => {
+		div.c("ctl-page", () => {
 			div.c("ctl-header", () => {
 				h1("CONTROLS");
-				p.c("ctl-tagline", "Forms, buttons, toggles, chips, badges — each base demonstrated.");
+				p.c("muted", "Forms, buttons, toggles, chips, badges — each base demonstrated.");
 			});
 
 			// Row 1: Form White | Toggles/Chips/Badges (Prime bg) | Form Dark
-			div.c("ctl-row", () => {
+			div.c("grid gap auto", () => {
 				// Column 1: Form White
-				div.c("ctl-column ctl-white", () => {
-					p.c("ctl-title", "Form - White").style("color", "#72c4ff");
+				div.c("card", () => {
+					h4.c("ctl-column-title", "Form · White");
 
-					// Full Name field
+					[
+						{ label: "FULL NAME", value: "Jane Cooper" },
+						{ label: "EMAIL", placeholder: "you@example.com" },
+					].forEach(field => {
+						div.c("ctl-field", () => {
+							h4(field.label);
+							input.c("ctl-input").attr("value", field.value || "").attr("placeholder", field.placeholder || "");
+						});
+					});
+
 					div.c("ctl-field", () => {
-						p.c("ctl-label", "FULL NAME").style("color", "rgba(0,0,0,.8)");
-						input.c("ctl-input").style("background", "linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff").style("color", "rgba(0,0,0,.8)").style("border", "1px solid rgba(0,0,0,.1)").attr("value", "Jane Cooper");
+						h4("MESSAGE");
+						textarea.c("ctl-input").attr("placeholder", "Tell us about your project...");
 					});
 
-					// Email field
-					div.c("ctl-field", () => {
-						p.c("ctl-label", "EMAIL").style("color", "rgba(0,0,0,.8)");
-						input.c("ctl-input").style("background", "linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff").style("color", "rgba(0,0,0,.55)").style("border", "1px solid rgba(0,0,0,.1)").attr("placeholder", "you@example.com");
+					div.c("flex gap wrap", () => {
+						button.c("prim", "SUBMIT");
+						button("CANCEL");
 					});
-
-					// Message field
-					div.c("ctl-field", () => {
-						p.c("ctl-label", "MESSAGE").style("color", "rgba(0,0,0,.8)");
-						textarea.c("ctl-input").style("background", "linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff").style("color", "rgba(0,0,0,.55)").style("border", "1px solid rgba(0,0,0,.1)").style("min-height", "80px").attr("placeholder", "Tell us about your project...");
-					});
-
-					// Buttons
-					div.c("ctl-button-row", () => {
-						button.c("ctl-button ctl-submit", "SUBMIT").style("background", PRIME25).style("color", "#fff");
-						button.c("ctl-button ctl-cancel", "CANCEL").style("background", "linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff").style("color", "rgba(0,0,0,.8)").style("border", "1px solid rgba(0,0,0,.1)");
-					});
-				}).style("background", "#fff").style("border", "1px solid rgba(0,0,0,.1)");
+				});
 
 				// Column 2: Toggles/Chips/Badges on Prime
-				div.c("ctl-column ctl-prime", () => {
-					// Toggles
-					p.c("ctl-label", "TOGGLES · WHITE").style("color", "rgba(0,0,0,.8)");
-					[
-						{ label: "Dark mode", checked: false },
-						{ label: "Notifications", checked: true },
-						{ label: "Auto-save", checked: false },
-					].forEach(toggle => {
-						div.c("ctl-toggle-row", () => {
-							div.c("ctl-switch " + (toggle.checked ? "ctl-on" : "ctl-off")).style("width", "44px").style("height", "24px");
-							p.c("ctl-toggle-label", toggle.label).style("color", "rgba(0,0,0,.8)");
+				div.c("card bg-prime", () => {
+					h4.c("muted", "TOGGLES");
+					div.c("flex v gap", () => {
+						[
+							{ label: "Dark mode", checked: false },
+							{ label: "Notifications", checked: true },
+							{ label: "Auto-save", checked: false },
+						].forEach(toggle => {
+							div.c("flex gap v-center", () => {
+								div.c("ctl-switch" + (toggle.checked ? " ctl-on" : ""));
+								p(toggle.label);
+							});
 						});
 					});
 
-					// Chips
-					p.c("ctl-label", "TAGS & CHIPS").style("color", "rgba(0,0,0,.8)");
-					div.c("ctl-chips", () => {
+					h4.c("muted", "TAGS & CHIPS");
+					div.c("flex wrap gap", () => {
 						["Design", "Tokens", "Variables", "Themes", "Adaptive"].forEach((chip, idx) => {
-							const isPrime = [0, 2, 4].includes(idx);
-							p.c("ctl-chip", chip).style("background", isPrime ? PRIME25 : "linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff").style("color", isPrime ? "#fff" : "rgba(0,0,0,.8)").style("border", isPrime ? "none" : "1px solid rgba(0,0,0,.1)");
+							const accent = [0, 2, 4].includes(idx);
+							p.c("ctl-chip " + (accent ? "bg-darken" : "bg-lighten"), chip);
 						});
 					});
 
-					// Badges
-					p.c("ctl-label", "BADGES & COUNTERS").style("color", "#72c4ff");
-					div.c("ctl-badges", () => {
+					h4.c("muted", "BADGES & COUNTERS");
+					div.c("flex wrap gap", () => {
 						[
 							{ label: "Inbox", count: "12" },
 							{ label: "Updates", count: "3" },
 							{ label: "Tasks", count: "28" },
 						].forEach(badge => {
-							div.c("ctl-badge", () => {
-								p.c("ctl-badge-label", badge.label).style("color", "rgba(0,0,0,.8)");
-								div.c("ctl-counter", badge.count).style("background", PRIME25).style("color", "#fff");
-							}).style("background", "linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff").style("border", "1px solid rgba(0,0,0,.1)");
+							div.c("ctl-badge bg-lighten", () => {
+								p(badge.label);
+								div.c("ctl-counter bg-darken", badge.count);
+							});
 						});
 					});
-				}).style("background", "#72c4ff");
+				});
 
 				// Column 3: Form Dark
-				div.c("ctl-column ctl-dark", () => {
-					p.c("ctl-label", "FORM · DARK").style("color", "#72c4ff");
+				div.c("card bg-dark", () => {
+					h4.c("ctl-column-title", "Form · Dark");
 
-					div.c("ctl-field", () => {
-						p.c("ctl-label", "FULL NAME").style("color", "#fff");
-						input.c("ctl-input").style("background", "linear-gradient(rgba(255,255,255,.1),rgba(255,255,255,.1)), #675f56").style("color", "#fff").style("border", "1px solid rgba(255,255,255,.1)").attr("value", "Jane Cooper");
+					[
+						{ label: "FULL NAME", value: "Jane Cooper" },
+						{ label: "EMAIL", placeholder: "you@example.com" },
+					].forEach(field => {
+						div.c("ctl-field", () => {
+							h4(field.label);
+							input.c("ctl-input").attr("value", field.value || "").attr("placeholder", field.placeholder || "");
+						});
 					});
 
 					div.c("ctl-field", () => {
-						p.c("ctl-label", "EMAIL").style("color", "#fff");
-						input.c("ctl-input").style("background", "linear-gradient(rgba(255,255,255,.1),rgba(255,255,255,.1)), #675f56").style("color", "rgba(255,255,255,.7)").style("border", "1px solid rgba(255,255,255,.1)").attr("placeholder", "you@example.com");
+						h4("MESSAGE");
+						textarea.c("ctl-input").attr("placeholder", "Tell us about your project...");
 					});
 
-					div.c("ctl-field", () => {
-						p.c("ctl-label", "MESSAGE").style("color", "#fff");
-						textarea.c("ctl-input").style("background", "linear-gradient(rgba(255,255,255,.1),rgba(255,255,255,.1)), #675f56").style("color", "rgba(255,255,255,.7)").style("border", "1px solid rgba(255,255,255,.1)").style("min-height", "80px").attr("placeholder", "Tell us about your project...");
+					div.c("flex gap wrap", () => {
+						button.c("prim", "SUBMIT");
+						button("CANCEL");
 					});
-
-					div.c("ctl-button-row", () => {
-						button.c("ctl-button ctl-submit", "SUBMIT").style("background", PRIME25).style("color", "#fff");
-						button.c("ctl-button ctl-cancel", "CANCEL").style("background", "rgba(255,255,255,.1)").style("color", "#fff").style("border", "1px solid rgba(255,255,255,.1)");
-					});
-				}).style("background", "#675f56");
+				});
 			});
 
 			// Row 2: Progress bars on White | Dark | Prime
-			div.c("ctl-row", () => {
+			div.c("grid gap auto", () => {
 				[
-					{ bg: "#fff", bgBorder: "1px solid rgba(0,0,0,.1)", label: "PROGRESS · WHITE", labelColor: "#72c4ff", textColor: "rgba(0,0,0,.8)", trackBg: "linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff", fillBg: PRIME25 },
-					{ bg: "#675f56", bgBorder: "none", label: "PROGRESS · DARK", labelColor: "#72c4ff", textColor: "#fff", trackBg: "linear-gradient(rgba(255,255,255,.1),rgba(255,255,255,.1)), #675f56", fillBg: PRIME25 },
-					{ bg: PRIME25, bgBorder: "none", label: "PROGRESS · PRIME", labelColor: "#fff", textColor: "#fff", trackBg: "#72c4ff", fillBg: "#fff" },
-				].forEach(prog => {
-					div.c("ctl-column ctl-progress", () => {
-						p.c("ctl-label", prog.label).style("color", prog.labelColor);
+					{ ground: "", title: "Progress · White" },
+					{ ground: "bg-dark", title: "Progress · Dark" },
+					{ ground: "bg-prime", title: "Progress · Prime" },
+				].forEach(col => {
+					div.c(("card " + col.ground).trim(), () => {
+						h4.c("ctl-column-title", col.title);
 
 						[
 							{ name: "Upload", pct: 72 },
 							{ name: "Processing", pct: 45 },
 						].forEach(item => {
 							div.c("ctl-progress-item", () => {
-								div.c("ctl-progress-header", () => {
-									p.c("ctl-progress-name", item.name).style("color", prog.textColor);
-									p.c("ctl-progress-pct", `${item.pct}%`).style("color", prog.textColor);
+								div.c("flex split", () => {
+									h4(item.name);
+									h4(`${item.pct}%`);
 								});
-								div.c("ctl-progress-track", () => {
-									div.c("ctl-progress-fill").style("width", `${item.pct}%`).style("background", prog.fillBg);
-								}).style("background", prog.trackBg);
+								div.c("ctl-progress-track bg-darken", () => {
+									div.c("ctl-progress-fill").style("width", `${item.pct}%`);
+								});
 							});
 						});
-					}).style("background", prog.bg).style("border", prog.bgBorder);
+					});
 				});
 			});
 		});

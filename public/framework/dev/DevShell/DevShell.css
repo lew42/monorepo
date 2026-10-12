@@ -108,7 +108,7 @@
 		border-block-end: 2px solid transparent;
 	}
 
-	.dev-shell-tab.on { color: var(--ink); border-block-end-color: var(--prim); }
+	.dev-shell-tab.on { color: var(--ink); border-block-end-color: var(--prime); }
 
 	.dev-shell-foot { font-family: var(--mono); font-size: 0.75rem; }
 

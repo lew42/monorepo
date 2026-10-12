@@ -26,7 +26,7 @@ function targeting_grid(){
 				const picked = r === 2 && c === 2;
 				div.c(head ? "" : "surface pad").style({ fontWeight: head ? "700" : "400",
 					fontSize: "0.9em", padding: head ? "0.35em 0" : null,
-					outline: picked ? "2px solid var(--prim)" : null }).text(cell);
+					outline: picked ? "2px solid var(--prime)" : null }).text(cell);
 			})));
 
 		div.c("flex gap wrap").append(() => {

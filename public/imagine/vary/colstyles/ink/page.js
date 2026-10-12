@@ -13,7 +13,7 @@ export default new Page({
 	width: "fill",
 
 	content(){
-		md("Dark columns, display-weight heads, `--prim` accent seams — built from `--code-bg` / `--code-ink` (lew42.css), which are already dark **in both** colour schemes. Toggle the site's theme; this look does not move.");
+		md("Dark columns, display-weight heads, `--prime` accent seams — built from `--code-bg` / `--code-ink` (lew42.css), which are already dark **in both** colour schemes. Toggle the site's theme; this look does not move.");
 		demo.app(tree("ink")).style({ height: "26em", width: "min(100%, 52em)" });
 		md("**Interaction:** resize/reveal untouched. `border-inline-end` had to be re-declared at core's own specificity (`.page.columns.vary-colstyles-look-ink`) — one class short of that and the hairline colour survives every override (colstyles.css).");
 	},

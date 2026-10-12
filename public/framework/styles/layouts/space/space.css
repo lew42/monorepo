@@ -46,7 +46,7 @@
        The render inside is inert — the whole tile is the control. */
     .space-seed { height: 11em; overflow: hidden; cursor: pointer; position: relative; }
     .space-seed > * { pointer-events: none; }
-    .space-seed:hover { border-color: var(--prim); }
+    .space-seed:hover { border-color: var(--prime); }
 
     /* The tile's own grade, over its bottom-right corner — so the wall can be read by
        QUALITY and not only by seed. Absolute, because the tile is a fixed crop of a
@@ -55,7 +55,7 @@
         position: absolute; right: 0; bottom: 0;
         padding: 0.1em 0.45em 0.15em;
         border-radius: var(--radius) 0 0 0;
-        background: var(--bg); color: #fff;
+        background: var(--dark); color: #fff;
         font-size: 0.7rem; font-weight: 700;
         font-variant-numeric: tabular-nums;
     }

@@ -6,9 +6,9 @@ import { css } from "/framework/ui/parts.js";
    this page until a winner graduates. The site default lives in the lew42 theme. */
 css(`@layer site {
 	.range-soft::-webkit-slider-runnable-track { height: 0.6em; background: var(--wash); border: 1px solid var(--line); border-radius: 999px; }
-	.range-soft::-webkit-slider-thumb { width: 1.2em; height: 1.2em; margin-top: -0.35em; background: var(--prim); border: 2px solid var(--surface); border-radius: 50%; box-shadow: none; }
+	.range-soft::-webkit-slider-thumb { width: 1.2em; height: 1.2em; margin-top: -0.35em; background: var(--prime); border: 2px solid var(--surface); border-radius: 50%; box-shadow: none; }
 	.range-soft::-moz-range-track { height: 0.6em; background: var(--wash); border: 1px solid var(--line); border-radius: 999px; }
-	.range-soft::-moz-range-thumb { width: 1.2em; height: 1.2em; background: var(--prim); border: 2px solid var(--surface); border-radius: 50%; box-shadow: none; }
+	.range-soft::-moz-range-thumb { width: 1.2em; height: 1.2em; background: var(--prime); border: 2px solid var(--surface); border-radius: 50%; box-shadow: none; }
 }`);
 
 /* Each demo is a child page — a card in the rail, the visual table of contents.
@@ -136,7 +136,7 @@ export default new Page({
 			note: "`textarea { max-width: 100%; resize: vertical }` in the reset, and `.auto` in `@layer util` adds `field-sizing: content` so the box follows the text. Drag the corner of each: only one axis moves." }),
 
 		demo.page("buttons", buttons, { icon: "smart_button",
-			note: "`.btn, button { padding: 0.25em 1em; cursor: pointer }` — `.btn` gets everything `button` does, so a link can look like a button without being one. `.prim` paints `var(--prim)` and `.bg` paints `var(--bg)`, both with a hardcoded `color: white`: the one place the base theme names a colour instead of a token, and the reason `--bg` stays dark in both modes." }),
+			note: "`.btn, button { padding: 0.25em 1em; cursor: pointer }` — `.btn` gets everything `button` does, so a link can look like a button without being one. `.prim` paints `var(--prime)` and `.bg` paints `var(--bg)`, both with a hardcoded `color: white`: the one place the base theme names a colour instead of a token, and the reason `--bg` stays dark in both modes." }),
 
 		demo.page("fieldset", fieldsets, { icon: "fence",
 			note: "`form, fieldset, legend { border: none; margin: 0; padding: 0 }` — the UA's `groove` border and its odd asymmetric padding are a 1996 look you'd never choose. `fieldset > p:first-of-type { margin-top: 0 }` clears the leading gap that survived it. `legend` has no look of its own, so `h4` gives it one." }),
@@ -159,7 +159,7 @@ export default new Page({
 
 		md("`input, button, textarea, select { font: inherit }` is the one that matters most, and it's the least visible: form controls opt out of the document font **by default, in every browser**. `font` and not `font-family`, so size, weight and line-height come along too.\n\nThen `input:not([type=\"checkbox\"], [type=\"radio\"], [type=\"submit\"], [type=\"color\"], [type=\"button\"], [type=\"reset\"]), select, textarea { width: 100% }` — text-ish controls fill their container instead of defaulting to a mysterious 20-character `size`. The `:not()` list is every type where that would be absurd. Both are demoed against the browser default in [base](/framework/styles/layers/base/).");
 
-		md("`body { accent-color: var(--prim) }` is what colours the checkbox tick, the radio dot and a native range thumb — one declaration, every control, no per-control rule.");
+		md("`body { accent-color: var(--prime) }` is what colours the checkbox tick, the radio dot and a native range thumb — one declaration, every control, no per-control rule.");
 
 		md("Next: [Media](/framework/styles/elements/media/) — `img`, `video`, `figure`, `svg`, and the two replaced elements the reset misses.");
 	}

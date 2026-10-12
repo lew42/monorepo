@@ -25,7 +25,7 @@
 		display: inline-flex; align-items: center; gap: 0.2em;
 		color: var(--subtle); text-decoration: none;
 	}
-	.panel-playground-back:is(:hover, :focus-visible) { color: var(--prim-ink); }
+	.panel-playground-back:is(:hover, :focus-visible) { color: var(--prime-ink); }
 
 	.panel-playground-name { display: inline-flex; align-items: center; gap: 0.25em; font-weight: 600; }
 }

@@ -45,7 +45,7 @@
 	     colour. As grey <p> text it read as the task list and wasn't one. */
 	.ai-day-line { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 		min-width: 0; text-decoration: none; }
-	.ai-day-line:hover { color: var(--prim); }
+	.ai-day-line:hover { color: var(--prime); }
 
 	/* A disclosure marker, because "timeline — 111 log lines today" read as a
 	   caption: `card-ux-v1` could not tell whether it navigated, was a stat, or
@@ -93,7 +93,7 @@
 	   bar below is clicked. Full width, like the detail sheet it sits beside. */
 	.ai-asks-fold-toggle {
 		grid-column: 1 / -1; cursor: pointer;
-		padding: .25em .75em; color: var(--prim); font-weight: 600;
+		padding: .25em .75em; color: var(--prime); font-weight: 600;
 	}
 	.ai-asks:not(.show-folded) .ai-ask-folded { display: none; }
 
@@ -105,10 +105,10 @@
 		padding: var(--pad); border-radius: .4em; cursor: pointer; min-width: 0;
 		outline: 1px solid transparent;
 	}
-	.ai-ask:hover { outline-color: color-mix(in srgb, var(--prim) 45%, transparent); }
-	.ai-ask.active { outline: 2px solid var(--prim); }
+	.ai-ask:hover { outline-color: color-mix(in srgb, var(--prime) 45%, transparent); }
+	.ai-ask.active { outline: 2px solid var(--prime); }
 
-	.ai-ask-title { font-weight: 700; color: var(--prim-ink); }
+	.ai-ask-title { font-weight: 700; color: var(--prime-ink); }
 
 	/* A card opens. Nothing said so: the only cue was `cursor: pointer` and a hover
 	   outline, neither of which exists in a screenshot or under a thumb. The
@@ -139,7 +139,7 @@
 		padding: 0 .6em; border-radius: 999px;
 		outline: 1px solid color-mix(in srgb, currentColor 30%, transparent);
 	}
-	.ai-ask-status.building { color: var(--prim); outline-color: var(--prim); }
+	.ai-ask-status.building { color: var(--prime); outline-color: var(--prime); }
 	.ai-ask-status.landed { color: var(--ok); outline-color: var(--ok); }
 
 	/* ⚠ A row of CHIPS is spaced in the chips' own em, never `--gap`. The spacing
@@ -196,7 +196,7 @@
 	     tied to a LETTERFORM - the space between a quote rule and the text it marks -
 	     scales with the text, not with the container. A rung here is 10.5px at 1280
 	     and 32px at 3440 against 13.5px of text. */
-	.ai-ask-decision { border-inline-start: 2px solid var(--prim); padding-inline-start: .75em; }
+	.ai-ask-decision { border-inline-start: 2px solid var(--prime); padding-inline-start: .75em; }
 
 	/* ── NEEDS YOU — the few things only the owner can do ─────────────────────
 	   One box with its own ground, so it reads as a thing set apart from the
@@ -207,7 +207,7 @@
 	.ai-needs {
 		display: flex; flex-direction: column; gap: var(--gap-35);
 		padding: var(--pad); border-radius: .4em;
-		border-inline-start: 3px solid var(--prim);
+		border-inline-start: 3px solid var(--prime);
 	}
 	.ai-needs-head { margin-block-end: var(--gap-25); }
 
@@ -221,7 +221,7 @@
 	   A badge is a control, so its padding stays in em. */
 	.ai-need-mins {
 		flex: none; min-width: 4.5em; text-align: end;
-		font-weight: 700; font-variant-numeric: tabular-nums; color: var(--prim);
+		font-weight: 700; font-variant-numeric: tabular-nums; color: var(--prime);
 	}
 	.ai-need-what { flex: 1 1 14em; min-width: 0; }
 	.ai-need-where { flex: none; }
@@ -231,7 +231,7 @@
 		align-self: start; font-size: .8em; font-weight: 700;
 		letter-spacing: .04em; text-transform: uppercase;
 		padding: 0 .6em; border-radius: 999px;
-		color: var(--prim); outline: 1px solid color-mix(in srgb, var(--prim) 40%, transparent);
+		color: var(--prime); outline: 1px solid color-mix(in srgb, var(--prime) 40%, transparent);
 	}
 
 	/* ── RANKING — the grip that drags a card or a row into the owner's order ──
@@ -380,7 +380,7 @@
 	   told apart by their clock and by nothing else. */
 	.ai-prompt-text { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.ai-prompt-at { flex: none; font-size: .85em; font-variant-numeric: tabular-nums; }
-	.ai-prompt:hover { color: var(--prim); }
+	.ai-prompt:hover { color: var(--prime); }
 
 	/* Stacked, the rail is a short list above the stream, not half a phone screen.
 	   The viewport query is a proxy for "the flex row wrapped" — close enough here,
@@ -405,7 +405,7 @@
 		border-radius: .4em; min-width: 0; overflow-wrap: anywhere;
 		outline: 2px solid transparent;
 	}
-	.ai-you.lit { outline-color: var(--prim); }
+	.ai-you.lit { outline-color: var(--prime); }
 	.ai-say { min-width: 0; overflow-wrap: anywhere; }
 
 	/* A stamp at a change of minute, between turns — one per row made the whole
@@ -467,7 +467,7 @@
 	.ai-mark.hidden { display: none; }
 
 	.ai-track { height: .4em; border-radius: 999px; background: color-mix(in srgb, currentColor 12%, transparent); }
-	.ai-fill { height: 100%; width: var(--pct, 0%); border-radius: inherit; background: var(--prim);
+	.ai-fill { height: 100%; width: var(--pct, 0%); border-radius: inherit; background: var(--prime);
 		transition: width .3s ease, background-color .3s ease; }
 	.ai-fill.calm { background: var(--ok); }
 	.ai-fill.warm { background: var(--warn); }
@@ -481,10 +481,10 @@
 	.ai-seg { flex: 1; height: .3em; border-radius: 999px;
 		background: color-mix(in srgb, currentColor 12%, transparent); }
 	.ai-seg.done { background: var(--ok); }
-	/* ⚠ `--prim`, not `--ok`: the pulse says "now" while you watch it, and says
+	/* ⚠ `--prime`, not `--ok`: the pulse says "now" while you watch it, and says
 	     nothing at all in a screenshot — `ux-v1` read 0/7 with one green segment
 	     as one step done. Now the running colour is the running dot's colour. */
-	.ai-seg.now { background: var(--prim); animation: ai-pulse 1.6s ease-in-out infinite; }
+	.ai-seg.now { background: var(--prime); animation: ai-pulse 1.6s ease-in-out infinite; }
 
 	.ai-checklist { display: flex; flex-direction: column; gap: var(--gap-35); margin-block-start: var(--gap-70); }   /* was gap .3em; margin-block-start .6em - 2026-09-05 ramps */
 	/* ⚠ `.6em`: the gap between a row's own box and its own label - a control's
@@ -527,7 +527,7 @@
 	.ai-group { display: flex; flex-direction: column; gap: var(--gap-35); }   /* was gap .4em - 2026-09-05 ramps */
 	.ai-group-title { font-weight: 700; font-size: .9em; letter-spacing: .04em; text-transform: uppercase; }
 
-	.ai-dot { width: .55em; height: .55em; border-radius: 999px; background: var(--prim); flex: 0 0 auto; }
+	.ai-dot { width: .55em; height: .55em; border-radius: 999px; background: var(--prime); flex: 0 0 auto; }
 	.ai-dot.idea { background: color-mix(in srgb, currentColor 30%, transparent); }
 	.ai-dot.live { animation: ai-pulse 1.6s ease-in-out infinite; }
 	@keyframes ai-pulse { 50% { opacity: .35; } }
@@ -588,10 +588,10 @@
 	     actual primary entry point reads as inert label text". The title IS the
 	     card — its `::after` covers the whole row — so it is the one thing here
 	     that has to look like the link it is. */
-	/* `--prim-ink`, not `--prim`: prim is a fill, 2.2:1 as text (color study 2026-09-01). */
-	.ai-card-title { font-weight: 700; color: var(--prim-ink); text-decoration: none; }
+	/* `--prime-ink`, not `--prime`: prim is a fill, 2.2:1 as text (color study 2026-09-01). */
+	.ai-card-title { font-weight: 700; color: var(--prime-ink); text-decoration: none; }
 	.ai-card-title::after { content: ""; position: absolute; inset: 0; }
-	.ai-card:hover .ai-card-title { color: var(--prim-ink); }
+	.ai-card:hover .ai-card-title { color: var(--prime-ink); }
 
 	/* ⚠ start, not centre: the dot marks the title's FIRST LINE, and the block beside
 	   it runs to two or three. Half the line box less half the dot centres it there —
@@ -615,7 +615,7 @@
 	.ai-link, .ai-tag { padding: 0 .6em; border-radius: 999px; color: inherit; text-decoration: none;
 		outline: 1px solid color-mix(in srgb, currentColor 25%, transparent);
 		white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 14em; }
-	.ai-link:hover, .ai-tag:hover { color: var(--prim); outline-color: var(--prim); }
+	.ai-link:hover, .ai-tag:hover { color: var(--prime); outline-color: var(--prime); }
 
 	/* The category tag stands alone in the who region, so it lifts itself above the
 	   title's ::after the way the .ai-links row does. */
@@ -661,7 +661,7 @@
 		font-weight: 700; font-size: .9em; letter-spacing: .04em; text-transform: uppercase;
 	}
 	.ai-highlights > .ai-hl-day:first-of-type { margin-block-start: 0; }
-	.ai-hl-day:hover { color: var(--prim); }
+	.ai-hl-day:hover { color: var(--prime); }
 
 	/* A card is a row of facts, not prose — 1.4 leading against the theme's 1.8,
 	   the same argument `.ai-card` makes: reading leading adds ~11px to each of
@@ -675,19 +675,19 @@
 		min-width: 0;
 	}
 
-	/* `--prim-ink`, not `--prim`: prim is a fill, 2.2:1 as text (color study 2026-09-01). */
-	.ai-hl-icon { color: var(--prim-ink); }
+	/* `--prime-ink`, not `--prime`: prim is a fill, 2.2:1 as text (color study 2026-09-01). */
+	.ai-hl-icon { color: var(--prime-ink); }
 	.ai-hl-body { display: flex; flex-direction: column; min-width: 0; }
 
 	/* The title's ::after spreads the card's link over the whole card — so the
 	   `log` link, the one thing here that goes somewhere else, lifts above it. */
-	.ai-hl-title { font-weight: 700; color: var(--prim-ink); text-decoration: none; }
+	.ai-hl-title { font-weight: 700; color: var(--prime-ink); text-decoration: none; }
 	.ai-hl-title::after { content: ""; position: absolute; inset: 0; }
 
 	.ai-hl-line { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 	.ai-hl-foot { display: flex; gap: var(--gap-70); align-items: baseline; font-size: .85em; }
 	.ai-hl-task { position: relative; z-index: 1; color: inherit; text-decoration: none; }
-	.ai-hl-task:hover { color: var(--prim); }
+	.ai-hl-task:hover { color: var(--prime); }
 
 	/* The one "Show more" both walls use. `align-self: start` because it is a
 	   button in a flex column, and a stretched one is a 100%-wide grey bar. */

@@ -19,7 +19,7 @@
 	/* `surface` frames it — a 1280 shot of a light page has to read as an object
 	   rather than as more page. The outline is reserved so hover shifts nothing. */
 	.rank-shot { cursor: pointer; overflow: hidden; outline: 2px solid transparent; }
-	.rank-shot:hover { outline-color: var(--prim); }
+	.rank-shot:hover { outline-color: var(--prime); }
 	.rank-img { display: block; width: 100%; height: auto; }
 
 	.rank-standings { display: flex; flex-direction: column; gap: .35em; }

@@ -1,4 +1,4 @@
-import { Page, md, demo, div, p, code, button, toc } from "/app.js";
+import { Page, md, demo, div, p, h3, code, button, toc } from "/app.js";
 
 /* This page ships no stylesheet, and neither does any page under it — every box,
    column and label is built from framework.css utilities. A section arguing for
@@ -6,12 +6,26 @@ import { Page, md, demo, div, p, code, button, toc } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
-	title: "Styles",
-	description: "Four layers, six type levels, and as little else as possible.",
+	title: "Style library",
+	description: "Every token, ground, class and layout the CSS ships, shown live. How to write CSS is next door at Code: CSS; what a thing should look like is Design.",
 	icon: "palette",
 	children: "system rules layers elements stacks layouts sections widths",
 
 	content(){
+
+		md("**What goes here:** every token, ground, class and layout the CSS ships, shown live. **Next door:** how and where to write a rule → [Code: CSS](/framework/code/css/); what a thing should look like → [Design](/framework/design/).");
+
+		md("## The system on one screen");
+
+		demo(() => {
+			div.c("grid auto gap", () => {
+				for (const ground of ["bg-white", "bg-light", "bg-prime", "bg-dark"]) div.c(`card ${ground}`, () => {
+					h3(ground);
+					p.c("muted", "A card on this ground; the ink comes with it.");
+					div.c("card", () => p("A card inside steps one shade darker by itself."));
+				});
+			});
+		}, "Three colour tokens (`--prime` `--light` `--dark`), four grounds (`bg-white` `bg-light` `bg-prime` `bg-dark`), one `.card`. Lighten and darken are one rule: white or black at 8, 16 or 32 percent. The decisions and the alternatives: [doc/architecture.md](/framework/styles/doc/architecture.md); the card itself: [/framework/ui/card/](/framework/ui/card/).");
 
 		toc();
 

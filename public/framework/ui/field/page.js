@@ -11,8 +11,8 @@ const field = () => label.c("flex v gap", () => {
 const invalid = () => label.c("flex v gap", () => {
 	div.c("h4", "Email");
 	input().attr("type", "email").attr("value", "mike@lew42")
-		.attr("aria-invalid", "true").style("borderColor", "var(--prim)");
-	span("That address is missing a domain.").style("color", "var(--prim)");
+		.attr("aria-invalid", "true").style("borderColor", "var(--prime)");
+	span("That address is missing a domain.").style("color", "var(--prime)");
 }).style("--gap", "calc(var(--gap) * 0.4)");
 
 const chooser = () => label.c("flex v gap", () => {
@@ -30,7 +30,7 @@ export default new Page({
 
 	children: [
 		demo.page("invalid", invalid, {
-			note: "`aria-invalid` is the part a screen reader reads; the colour is for everyone else. There is no `.error` class because there is nothing for one to do — `var(--prim)` on the border and on the message is the whole state." }),
+			note: "`aria-invalid` is the part a screen reader reads; the colour is for everyone else. There is no `.error` class because there is nothing for one to do — `var(--prime)` on the border and on the message is the whole state." }),
 
 		demo.page("select", chooser, {
 			note: "The same three elements with a `select` in the middle. The base theme already fills, pads and borders every text control, so swapping the control changes one line." }),

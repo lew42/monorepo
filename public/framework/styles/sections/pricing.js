@@ -21,7 +21,7 @@ const price = (plan, cost, ...lines) =>
 export default (tone = "wash") =>
 	div.c("section-band", () =>
 		div.c("measure flex v gap", () => {
-			p.c("h4", "PRICING").style("color", "var(--eyebrow, var(--prim))");
+			p.c("h4", "PRICING").style("color", "var(--eyebrow, var(--prime))");
 
 			p.c("h2", "Two panes that stack themselves");
 

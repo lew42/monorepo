@@ -171,7 +171,7 @@
 	.dn-num { display: flex; align-items: baseline; gap: 0.4em; min-width: 10em; }
 	.dn-px { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 1.15em; }
 	.dn-what { font-size: 0.88em; color: var(--subtle); }
-	/* ⚠ `--ok` / `--warn` from framework.css, never `--prim-ink`: the lew42 accent IS
+	/* ⚠ `--ok` / `--warn` from framework.css, never `--prime-ink`: the lew42 accent IS
 	   an orange, so "0px" and "129px" painted in it read as the same state. The two
 	   numbers are the whole point of the page; they have to differ at a glance. */
 	.dn-zero .dn-px { color: var(--ok); }

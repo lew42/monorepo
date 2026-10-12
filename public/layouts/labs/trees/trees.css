@@ -31,8 +31,8 @@
 		white-space: nowrap;
 		cursor: pointer;
 	}
-	.std-trees-node:hover { border-color: var(--prim, currentColor); }
-	.std-trees-node:focus-visible { outline: 2px solid var(--prim); outline-offset: 2px; }
+	.std-trees-node:hover { border-color: var(--prime, currentColor); }
+	.std-trees-node:focus-visible { outline: 2px solid var(--prime); outline-offset: 2px; }
 
 	/* A branch prints its own fold state on itself — `−` open, `+` shut — so the state
 	   reads without comparing it to a sibling. */

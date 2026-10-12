@@ -4,7 +4,7 @@ free.
 
 ## `accent-color` is the browser's own theming API
 
-`framework.css` sets `body { accent-color: var(--prim) }` once, and every bar
+`framework.css` sets `body { accent-color: var(--prime) }` once, and every bar
 on this page arrives themed with zero CSS in this directory. The vendor
 pseudo-element route (`::-webkit-progress-bar`) is explicitly not taken: it's
 per-engine and opts out of the platform's own theming.

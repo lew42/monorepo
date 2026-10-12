@@ -156,7 +156,7 @@ below).
 ## The focus ring is guarded by the thing that reads focus
 
 ```css panel.css
-.panel-workspace:has(.panel-props) .panel.focus::after { … inset 0 0 0 2px var(--prim) … }
+.panel-workspace:has(.panel-props) .panel.focus::after { … inset 0 0 0 2px var(--prime) … }
 ```
 
 The second foreign class used as a *condition* rather than a target:

@@ -9,7 +9,7 @@ Every component here, and what you would use it for. Only `table`, `kbd` and `ti
 - [avatar](./avatar/) — a circle holding initials or a photo, and a stacked ring of them.
 - [background](./background/) — a div behind your content: colour, pattern, tiled icons or a glow.
 - [badge](./badge/) — a small pill label.
-- [card](./card/) — a padded surface with a heading and text (no readme yet).
+- [card](./card/) — the one card page: `.card`, its four grounds and nesting, live; links the other card pages ([card/readme.md](./card/readme.md)).
 - [controls](./controls/) — buttons, selects, fields and tabs drawn as one matching box.
 - [crumbs](./crumbs/) — the trail of links above a page.
 - [datagrid](./datagrid/) — the markup for a data-grid table: a CSS-grid box, a header and a body, no JavaScript needed to render; the resize/sort/filter/windowing behaviour is [`ext/DataGrid`](/framework/ext/DataGrid/).
@@ -89,10 +89,7 @@ retired the same day once its last caller moved to the class.
   exports `ui`, and that cycle breaks on deep reloads only — [doc/decisions.md](./doc/decisions.md)
 - In `page.js`'s `content()`, `this` is the module's Doc, not the Overview section;
   `this.parent` is the framework landing and nothing throws — [doc/decisions.md](./doc/decisions.md)
-- `framework.css` now has a `.card` word (padded `.surface`, by definition) — the one-line
-  spacing rule is region → `.pad`, framed box → `.card`, control or row → its own `em`. The
-  [card](/framework/ui/card/) page below still shows the older `surface pad flex v gap`
-  pattern; it has not been updated to `.card` yet (`/framework/ai/2026-09-19/card-word/`)
+- `.card` is the one framed box (padding, radius, shadow; a card inside a card steps darker) — the spacing rule is region → `.pad`, framed box → `.card`, control or row → its own `em`. The system: [styles/doc/architecture.md](/framework/styles/doc/architecture.md)
 
 ## More
 

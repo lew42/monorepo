@@ -9,7 +9,7 @@
 		gap: 0.4em;
 	}
 	.review-row.high { border-inline-start-color: var(--error); }
-	.review-row.med { border-inline-start-color: var(--prim); }
+	.review-row.med { border-inline-start-color: var(--prime); }
 
 	.review-title { font-weight: 600; }
 
@@ -19,7 +19,7 @@
 		color: var(--subtle);
 	}
 	.review-tag { text-transform: uppercase; letter-spacing: 0.06em; }
-	.review-kind { color: var(--prim); }
+	.review-kind { color: var(--prime); }
 
 	/* The two filter rows are one control each, so the label anchors a fixed column
 	   and the chips start at the same x whichever row you are reading. */

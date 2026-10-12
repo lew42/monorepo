@@ -106,7 +106,7 @@ about.link()                     // if you imported the page`);
 
 		h3("How do I mark the current nav item?");
 
-		code.css(`.my-link.active { color: var(--prim); }`);
+		code.css(`.my-link.active { color: var(--prime); }`);
 
 		md("**You don't.** `Router.mark_links()` puts `.active` (this exact url) and `.in-path` (a directory above it) on every in-app anchor after each navigation, including Back. CSS decides what each kind of link does with them, and **no view compares `window.location` itself** — one pass, one source of truth.");
 
@@ -164,7 +164,7 @@ new Sidebar({ brand: "Me", pages })  // a brand over links`);
 		h3("How do I change fonts and colours?");
 
 		code.css(`.app {
-    --prim: #0b7;
+    --prime: #0b7;
     --ink: #222;
     --font: "Inter", sans-serif;
 }`);

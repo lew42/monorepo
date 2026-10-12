@@ -63,7 +63,7 @@ export default new Page({
 		return div.c("flex v gap-50", () => {
 			this.band("The owner, or a VS Code tab", "through the fast assistant, which answers in seconds", "var(--ink)");
 			this.arrow("↓  next — a person is waiting, so it jumps the queue", "↑  a reply in about 30 seconds, not minutes");
-			this.band("Mastermind · depth 0", "coordination tools only: spawn, send, fork_self, start_job, read a log. No shell, so it is never busy.", "var(--prim)");
+			this.band("Mastermind · depth 0", "coordination tools only: spawn, send, fork_self, start_job, read a log. No shell, so it is never busy.", "var(--prime)");
 			this.arrow("↓  a question, a job, or a brief with a fence and a budget", "↑  one line back: done · blocked — and its cost adds up the tree");
 			div.c("flex auto gap", () => {
 				this.lane("Node job", "inside Servex", "Reads files, scans, loads a page, runs a test. No model, no tokens.", "↑  job-7 done: 200, 0 errors");

@@ -80,7 +80,7 @@
 		border-radius: 999px;
 		cursor: pointer;
 	}
-	.omnibox button.omnibox-btn:hover { color: var(--prim); border-color: var(--line); }
+	.omnibox button.omnibox-btn:hover { color: var(--prime); border-color: var(--line); }
 	.omnibox:not(.open) .omnibox-hint { pointer-events: none; }
 
 	/* ---- the chips, and the wall, only once it is open ------------------- */
@@ -122,11 +122,11 @@
 	}
 	.omnibox button.omnibox-chip:hover { border-color: var(--line); }
 	/* ⚠ The text-shadow is accessibility, not decoration — framework.css's own
-	   `button.prim` carries it and says why: white on `--prim` measures ~2.2:1, and
+	   `button.prim` carries it and says why: white on `--prime` measures ~2.2:1, and
 	   the shadow lifts the edges where a letterform is thinnest. Same fill, same
 	   fix, rather than a second answer to one question. */
 	.omnibox button.omnibox-chip.on {
-		background: var(--prim); color: white; border-color: var(--prim);
+		background: var(--prime); color: white; border-color: var(--prime);
 		text-shadow: 0 1px 2px rgba(0,0,0,0.45);
 	}
 	.omnibox-chip-count { font-size: 0.85em; }
@@ -164,8 +164,8 @@
 		text-decoration: none;
 		overflow: hidden;
 	}
-	.omnibox-card:hover { border-color: var(--prim); }
-	.omnibox-card.active { border-color: var(--prim); box-shadow: 0 0 0 2px var(--prim); }
+	.omnibox-card:hover { border-color: var(--prime); }
+	.omnibox-card.active { border-color: var(--prime); box-shadow: 0 0 0 2px var(--prime); }
 	.omnibox-card .icon { font-size: 1em; color: var(--subtle); }
 	.omnibox-card-title { font-weight: 600; }
 

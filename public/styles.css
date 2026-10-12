@@ -27,17 +27,17 @@
 	   `layouts/labs/blogx`, `layouts/labs/shells`) — harmless now, just inert,
 	   since nothing reads it any more. */
 	.nav-link { text-decoration: none; color: var(--subtle); }
-	.nav-link:hover { color: var(--prim); }
-	.nav-link.active, .nav-link.in-path { color: var(--prim); font-weight: 600; }
+	.nav-link:hover { color: var(--prime); }
+	.nav-link.active, .nav-link.in-path { color: var(--prime); font-weight: 600; }
 
 	/* ---- the mark ----
 	   mask, not <img>: an image can't take a fill from CSS, and inlining the markup
 	   would be a second copy of the artwork. The svg's own colour is ignored — the
-	   alpha channel is the shape and `--prim` is the paint, so the logo retints with
+	   alpha channel is the shape and `--prime` is the paint, so the logo retints with
 	   the theme and never drifts from the file. */
 	.logo {
 		width: 1.9em; height: 1.9em; flex: 0 0 auto;
-		background: var(--prim, #FF8F60);
+		background: var(--prime, #FF8F60);
 		-webkit-mask: url(/assets/img/m_svg.svg) center / contain no-repeat;
 		        mask: url(/assets/img/m_svg.svg) center / contain no-repeat;
 	}
@@ -51,7 +51,7 @@
 		font-weight: 800; font-size: 1.3em;
 		text-decoration: none; color: inherit;
 	}
-	.brand-text:hover { color: var(--prim); }
+	.brand-text:hover { color: var(--prime); }
 
 	/* On `.sidebar`, not `.sidebar-link` — it was the latter, which tuned the links
 	   and left the group titles reading the component's own gutter, so headings sat

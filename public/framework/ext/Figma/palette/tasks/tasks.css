@@ -1,381 +1,48 @@
 @layer base, theme, site, util;
 
 @layer theme {
-	.tsk-card {
-		background: #fff;
-		border-radius: 16px;
-		padding: 56px 48px;
-		display: flex;
-		flex-direction: column;
-		gap: 32px;
-		grid-column: 1 / -1;
-		max-width: none;
-		box-sizing: border-box;
-	}
+	.tsk-header { display: flex; flex-direction: column; align-items: center; gap: .5em; }
+	.tsk-tagline { text-align: center; }
 
-	.tsk-header {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 8px;
-	}
+	.tsk-row { display: flex; flex-wrap: wrap; gap: 1em; align-items: start; width: 100%; }
+	.tsk-col { min-width: 18em; display: flex; flex-direction: column; gap: .5em; }
 
-	.tsk-title {
-		font-family: Montserrat, sans-serif;
-		font-weight: 900;
-		font-size: 48px;
-		line-height: 1.4;
-		margin: 0;
-	}
+	.tsk-pill { padding: .25em .5em; border-radius: 999px; width: fit-content; align-self: flex-start; }
 
-	.tsk-tagline {
-		font-size: 16px;
-		font-weight: 500;
-		line-height: 1.8;
-		margin: 0;
-		text-align: center;
-	}
+	.tsk-task-card { display: flex; flex-direction: column; width: 100%; }
 
-	.tsk-row {
-		display: flex;
-		flex-direction: row;
-		gap: 16px;
-		width: 100%;
-		align-items: start;
-	}
+	.tsk-footer { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+	.tsk-avatar { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: .7em; }
+	.tsk-avatar-stack { display: flex; }
+	.tsk-avatar-item:not(:last-child) { margin-right: -6px; position: relative; z-index: 1; }
 
-	.tsk-col-left {
-		width: 380px;
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
+	.tsk-task-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+	.tsk-header-left { display: flex; gap: .5em; align-items: center; }
 
-	.tsk-col-right {
-		flex: 1 1 0;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
+	.tsk-subtasks { display: flex; flex-direction: column; gap: .4em; width: 100%; }
+	.tsk-subtask-row { display: flex; gap: .5em; align-items: center; width: 100%; }
+	.tsk-dot { width: 14px; height: 14px; border-radius: 7px; box-sizing: border-box; flex-shrink: 0; }
 
-	.tsk-label {
-		font-size: 14px;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.07em;
-		line-height: 1.4;
-		margin: 0;
-	}
+	/* Progress cards: a `grid auto` wall, no media query needed to wrap. */
+	.tsk-progress-row { --column: 16em; }
+	.tsk-progress-card { min-width: 0; }
+	.tsk-progress-header { display: flex; justify-content: space-between; align-items: center; }
 
-	.tsk-pill {
-		padding: 4px 8px;
-		border-radius: 999px;
-		font-size: 14px;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.07em;
-		line-height: 1.4;
-		margin: 0;
-	}
+	.tsk-bars { display: flex; gap: .3em; width: 100%; }
+	.tsk-bar { flex: 1 1 0; height: 7px; border-radius: 4px; }
 
-	.tsk-task-card {
-		background: #fff;
-		border: 1px solid rgba(0,0,0,.1);
-		border-radius: 10px;
-		overflow: hidden;
-		padding: 16px;
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-		width: 100%;
-	}
+	.tsk-track { width: 100%; height: 7px; border-radius: 4px; overflow: hidden; }
+	.tsk-fill { height: 7px; border-radius: 4px; }
 
-	.tsk-body {
-		font-size: 16px;
-		font-weight: 500;
-		line-height: 1.8;
-		margin: 0;
-	}
+	.tsk-milestone-row { display: flex; align-items: center; width: 100%; }
+	.tsk-milestone-item { display: flex; align-items: center; flex: 1; }
+	.tsk-milestone-circle { width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; line-height: 1; flex-shrink: 0; }
+	.tsk-milestone-line { flex: 1; height: 2px; }
+	.tsk-milestone-final { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+	.tsk-milestone-circle-hollow { width: 16px; height: 16px; border-radius: 8px; }
 
-	.tsk-footer {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-		width: 100%;
-	}
-
-	.tsk-footer-text {
-		font-size: 16px;
-		font-weight: 500;
-		line-height: 1.8;
-		margin: 0;
-	}
-
-	.tsk-avatar-stack {
-		display: flex;
-		flex-direction: row;
-		gap: 0;
-	}
-
-	.tsk-avatar-item {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.tsk-avatar-item:not(:last-child) {
-		margin-right: -6px;
-		position: relative;
-		z-index: 1;
-	}
-
-	.tsk-avatar {
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 14px;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.07em;
-		line-height: 1.4;
-		color: #fff;
-		flex-shrink: 0;
-	}
-
-	/* Complex Task: Header and Subtasks */
-	.tsk-task-header {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-		width: 100%;
-	}
-
-	.tsk-header-left {
-		display: flex;
-		flex-direction: row;
-		gap: 8px;
-		align-items: center;
-	}
-
-	.tsk-task-title {
-		font-family: Montserrat, sans-serif;
-		font-weight: 600;
-		font-size: 24px;
-		line-height: 1.4;
-		margin: 0;
-	}
-
-	.tsk-task-status {
-		font-size: 14px;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.07em;
-		line-height: 1.4;
-		margin: 0;
-	}
-
-	.tsk-subtasks {
-		display: flex;
-		flex-direction: column;
-		gap: 7px;
-		width: 100%;
-	}
-
-	.tsk-subtask-row {
-		display: flex;
-		flex-direction: row;
-		gap: 8px;
-		align-items: center;
-		width: 100%;
-	}
-
-	.tsk-dot {
-		width: 14px;
-		height: 14px;
-		border-radius: 7px;
-		box-sizing: border-box;
-		flex-shrink: 0;
-	}
-
-	.tsk-dot-done {
-		background: linear-gradient(rgba(0,0,0,.25), rgba(0,0,0,.25)), #72c4ff;
-	}
-
-	.tsk-dot-open {
-		background: #fff;
-		border: 1px solid rgba(0,0,0,.1);
-	}
-
-	.tsk-subtask-text {
-		font-size: 16px;
-		font-weight: 500;
-		line-height: 1.8;
-		margin: 0;
-		flex: 1;
-		min-width: 0;
-	}
-
-	/* Progress Cards */
-	.tsk-progress-card {
-		flex: 1 1 0;
-		min-width: 0;
-		background: #fff;
-		border: 1px solid rgba(0,0,0,.1);
-		border-radius: 10px;
-		padding: 14px;
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		overflow: hidden;
-	}
-
-	.tsk-progress-header {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.tsk-bars {
-		display: flex;
-		flex-direction: row;
-		gap: 5px;
-		width: 100%;
-	}
-
-	.tsk-bar {
-		flex: 1 1 0;
-		height: 7px;
-		border-radius: 4px;
-	}
-
-	.tsk-track {
-		width: 100%;
-		height: 7px;
-		border-radius: 4px;
-		background: linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)), #fff;
-		overflow: hidden;
-	}
-
-	.tsk-fill {
-		height: 7px;
-		border-radius: 4px;
-		background: #72c4ff;
-	}
-
-	.tsk-milestone-row {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		width: 100%;
-	}
-
-	.tsk-milestone-item {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		flex: 1;
-	}
-
-	.tsk-milestone-circle {
-		width: 16px;
-		height: 16px;
-		border-radius: 8px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 10px;
-		line-height: 1;
-		flex-shrink: 0;
-	}
-
-	.tsk-milestone-line {
-		flex: 1;
-		height: 2px;
-		background: #72c4ff;
-	}
-
-	.tsk-milestone-final {
-		width: 16px;
-		height: 16px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.tsk-milestone-circle-hollow {
-		width: 16px;
-		height: 16px;
-		border-radius: 8px;
-	}
-
-	/* Section Title */
-	.tsk-section-title {
-		font-family: Montserrat, sans-serif;
-		font-weight: 600;
-		font-size: 24px;
-		line-height: 1.4;
-		margin: 0;
-	}
-
-	/* Priority Cards */
-	.tsk-p0-card {
-		flex: 1;
-		height: 220px;
-		background: #fff;
-		border: 2px solid #72c4ff;
-		border-radius: 10px;
-		padding: 22px;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-	}
-
-	.tsk-priority-title {
-		font-family: Montserrat, sans-serif;
-		font-weight: 600;
-		font-size: 24px;
-		line-height: 1.4;
-		margin: 0;
-		width: 100%;
-	}
-
-	.tsk-col-p-right {
-		width: 300px;
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	}
-
-	.tsk-p1-card {
-		width: 100%;
-		height: 132px;
-		background: #fff;
-		border: 1px solid #72c4ff;
-		border-radius: 10px;
-		padding: 14px;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-	}
-
-	.tsk-p2-card {
-		width: 100%;
-		height: 92px;
-		background: #fff;
-		border: 1px solid rgba(0,0,0,.1);
-		border-radius: 10px;
-		padding: 14px;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-	}
+	/* Priority cards: a flex row that wraps, no media query. */
+	.tsk-p0-card { min-width: 16em; display: flex; flex-direction: column; justify-content: space-between; gap: .75em; }
+	.tsk-col-p-right { min-width: 14em; display: flex; flex-direction: column; gap: .5em; }
+	.tsk-p1-card, .tsk-p2-card { display: flex; flex-direction: column; justify-content: space-between; gap: .5em; width: 100%; }
 }

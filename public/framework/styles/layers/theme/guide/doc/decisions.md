@@ -26,7 +26,7 @@ theme.
 
 The honest limit of pure tokens. **Verdict: a four-rung ladder, and rung 4 is a bug.**
 
-1. **A global token** — `--prim`, `--font`, `--radius`. Almost always enough.
+1. **A global token** — `--prime`, `--font`, `--radius`. Almost always enough.
 2. **A component token** — `--tab-bar-bg`, declared *by the component* with a fallback to
    a global: `background: var(--tab-bar-bg, var(--surface))`. The component still owns its
    rules; the theme only supplies a value.

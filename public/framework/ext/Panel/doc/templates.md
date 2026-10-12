@@ -70,13 +70,13 @@ the whole file.
 ## Colour, on purpose
 
 `word`, `wall`, `clock` and `blank` are transparent and read only `--ink` /
-`--prim` / `--subtle`, so they inherit the panel's surface tone for free.
-`haze` is tone-aware, built from `--prim` / `--surface` mixes over the tone.
+`--prime` / `--subtle`, so they inherit the panel's surface tone for free.
+`haze` is tone-aware, built from `--prime` / `--surface` mixes over the tone.
 `aurora`, `drift` and `depth` paint **literal deep colours**
 (`#0b0a14`, `#05060d`, `#07060f → #1a1136`, plus a blue and a violet in
 `aurora`) and are **identical in light and dark on purpose** — a night sky
 that inverts with the OS theme is not a night sky. Their accents still come
-from `--prim`, so a theme swap retints them.
+from `--prime`, so a theme swap retints them.
 
 ## `wall` is two columns, full stop
 

@@ -51,7 +51,7 @@ const board = () => {
 		current = i;
 		const [label, key, note] = OPTIONS[i], lit = slots.get(key);
 
-		slots.forEach((el, k) => el.style.outline = k === key ? "2px solid var(--prim)" : "");
+		slots.forEach((el, k) => el.style.outline = k === key ? "2px solid var(--prime)" : "");
 		strips.forEach(el => el.style.opacity = lit.contains(el) ? "0.2" : "1");
 		$bar.el.querySelectorAll("button").forEach((b, n) => b.classList.toggle("prim", n === i));
 

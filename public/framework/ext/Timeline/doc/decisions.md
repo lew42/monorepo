@@ -59,7 +59,7 @@ magic" call.
 ```
 
 `kind` becomes a CSS class (`task`, `agent`, `log`, `action`, `window`,
-`day`) — skinning stays in `Timeline.css`, off the single `--prim` accent at
+`day`) — skinning stays in `Timeline.css`, off the single `--prime` accent at
 different mix percentages. `window` bypasses `lay()` entirely — drawn
 straight onto lane 0, never competing for a slot; `day` does **not** — it is
 packed like an ordinary item even though its CSS spans the full cross axis

@@ -30,7 +30,7 @@ export const sitemap = () => new Page({
 	children: {
 		Color: branch("palette", {
 			Tokens: branch("tag", {
-				Prim: leaf("`--prim` is the **one** accent. A theme retunes it; nothing downstream names a colour."),
+				Prim: leaf("`--prime` is the **one** accent. A theme retunes it; nothing downstream names a colour."),
 				Ink: leaf("Body text, paired light and dark by `light-dark()` — one token, two values."),
 				Surface: leaf("What a card paints. A box that paints its own fill owns its own ink."),
 			}),

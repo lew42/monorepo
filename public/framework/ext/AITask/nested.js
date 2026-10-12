@@ -14,7 +14,7 @@ View.stylesheet(import.meta, "nested.css");
 
    The reading is the same in all three:
      landed  — a check                       (--ok)
-     running — a pulsing dot and its %       (--prim)
+     running — a pulsing dot and its %       (--prime)
      waiting — a hollow clock, "waits for …" (--subtle)
      stopped — a grey stop sign: gone without landing, not in flight
    Parallel = side by side (or badged "together"); series = a "then" between. */

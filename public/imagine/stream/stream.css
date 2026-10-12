@@ -48,7 +48,7 @@
 		width: 100%; font: inherit; font-weight: 600;
 		border: none; border-bottom: 1px dashed var(--line); background: none; padding-block-end: 0.2em;
 	}
-	.stream-hero-window input:focus { outline: none; border-bottom-color: var(--prim); }
+	.stream-hero-window input:focus { outline: none; border-bottom-color: var(--prime); }
 	.stream-hero-window-name { font-size: 0.8em; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.06em; }
 	.stream-hero-window-lag { font-size: 0.8em; color: var(--subtle); margin-block-start: calc(var(--gap) * 0.4); }   /* was margin-block-start 0.4em - 2026-09-05 ramps */
 
@@ -95,10 +95,10 @@
 	.stream-card {
 		max-width: min(var(--stream-measure, 20em), 100%);
 		padding: 1em; border-radius: var(--radius);
-		border-left: 4px solid var(--stream-accent, var(--prim));
+		border-left: 4px solid var(--stream-accent, var(--prime));
 		background: var(--wash);
 	}
-	.stream-card-head { font-size: 1.3em; font-weight: 600; line-height: 1.2; color: var(--stream-accent, var(--prim)); overflow-wrap: anywhere; }
+	.stream-card-head { font-size: 1.3em; font-weight: 600; line-height: 1.2; color: var(--stream-accent, var(--prime)); overflow-wrap: anywhere; }
 	.stream-card-body { margin-block-start: calc(var(--gap) * 0.4); overflow-wrap: anywhere; }   /* was margin-block-start 0.4em - 2026-09-05 ramps */
 
 	.stream-from { margin-block-start: calc(var(--gap) * 0.75); display: flex; align-items: baseline; gap: calc(var(--gap) * 0.4); font-size: 0.85em; color: var(--subtle); }   /* was margin-block-start 0.75em; gap 0.4em - 2026-09-05 ramps */
@@ -118,19 +118,19 @@
 		display: inline-flex; align-items: center; justify-content: center;
 		border: 1px solid var(--line); font-size: 0.85em;
 	}
-	.stream-dot.stream-on { background: var(--prim); border-color: var(--prim); color: white; }
+	.stream-dot.stream-on { background: var(--prime); border-color: var(--prime); color: white; }
 	.stream-live-badge { margin-inline-start: auto; color: var(--subtle); }
 
 	/* ── the streamed blocks ────────────────────────────────────────────────────
 	   A block is a row: what it is, then the value, then its control. The region it
 	   renders into wears the tokens the blocks themselves set. */
-	.stream-blocks { --stream-accent: var(--prim); }
+	.stream-blocks { --stream-accent: var(--prime); }
 	.stream-block { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.75em 1em; }
 	.stream-block > .md > :first-child { margin-block-start: 0; }
 	.stream-block > .md > :last-child { margin-block-end: 0; }
 	.stream-region {
 		max-width: min(var(--stream-measure, 34em), 100%);
-		border-left: 4px solid var(--stream-accent, var(--prim));
+		border-left: 4px solid var(--stream-accent, var(--prime));
 		padding-inline-start: 1em;
 	}
 	.stream-swatch { width: 1.1em; height: 1.1em; border-radius: 0.2em; border: 1px solid var(--line); display: inline-block; }

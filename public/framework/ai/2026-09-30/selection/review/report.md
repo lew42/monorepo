@@ -83,12 +83,12 @@ verdict: fix
 
 ## Colour and contrast
 - colour 1 — not measured — `--subtle` ◎ on `--surface` looks above 3:1 in 1200.png
-- colour 2 — not measured — the pressed state uses `--prim`
+- colour 2 — not measured — the pressed state uses `--prime`
 - colour 3 — yes — tokens only
 - colour 4 — yes
 - colour 5 — yes — light-dark tokens, no literals
 - colour 6 — n/a
-- colour 7 — yes — the same `--prim` "on" state on desktop and the rail
+- colour 7 — yes — the same `--prime` "on" state on desktop and the rail
 - colour 8 — yes
 
 ## Flow

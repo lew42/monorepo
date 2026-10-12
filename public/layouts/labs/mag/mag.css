@@ -13,7 +13,7 @@
      5. the article      — the 40em measure, and the four bled blocks
      6. the data piece   — chips, a count, bars
 
-   Colour: `--prim` is the ONE accent and it appears four times — the cover rule, the
+   Colour: `--prime` is the ONE accent and it appears four times — the cover rule, the
    entry numbers, the bars, the line above the next-hop. Everything else is a veil of
    `--ink` over `--surface`. Never `--well`: it is a translucent shadow, not a palette
    colour, and stacking it bands the row (doc/findings.md). */
@@ -78,7 +78,7 @@
 		flex: 0 0 auto;
 		width: clamp(2.5rem, 18cqw, 9rem); height: 0.3em;
 		margin-block-end: calc(var(--gap) * 0.45);   /* was margin-block-end 0.45em - 2026-09-05 ramps */
-		background: var(--prim);
+		background: var(--prime);
 	}
 
 	.mag-cover-title {
@@ -94,7 +94,7 @@
 
 	.mag-cover-enter {
 		margin-block-start: calc(var(--gap) * 0.7);   /* was margin-block-start 0.7em - 2026-09-05 ramps */
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 		font-size: clamp(0.72rem, 2.1cqw, 1.05rem);
 		font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
 	}
@@ -129,7 +129,7 @@
 
 	.mag-cover-lines-no {
 		flex: 0 0 auto;
-		color: var(--prim);
+		color: var(--prime);
 		font-weight: 900; font-variant-numeric: tabular-nums;
 	}
 
@@ -234,7 +234,7 @@
 
 	.mag-entry-no {
 		flex: 0 0 auto;
-		color: var(--prim);
+		color: var(--prime);
 		font-size: 1.5em; font-weight: 900; line-height: 1; letter-spacing: -0.04em;
 	}
 
@@ -242,7 +242,7 @@
 	.mag-entry-title { font-size: 1.15em; font-weight: 800; line-height: 1.15; letter-spacing: -0.015em; }
 	.mag-entry-stand { font-size: 0.85em; color: var(--subtle); line-height: 1.4; }
 
-	/* The mark. `--subtle`, never `--prim` — the accent is spent four times on this
+	/* The mark. `--subtle`, never `--prime` — the accent is spent four times on this
 	   issue already (the cover rule, the entry numbers, the bars, the next-hop line)
 	   and a fifth use here would read as a badge, not a note to yourself. Empty for
 	   an unread entry: nothing is the whole of what "unread" looks like. */
@@ -258,7 +258,7 @@
 	.mag-read .page-column-prose { font-size: 1em; --flow: 1.05em; }
 
 	.mag-eyebrow {
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 		font-size: 0.72em; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
 	}
 
@@ -343,7 +343,7 @@
 	.mag-next {
 		display: block;
 		padding: 1.1em var(--page-column-pad-x);
-		border-block-start: 3px solid var(--prim);
+		border-block-start: 3px solid var(--prime);
 		background: color-mix(in srgb, var(--ink) 4%, var(--surface));
 		color: inherit; text-decoration: none;
 	}
@@ -370,7 +370,7 @@
 		border: 1px solid var(--line); border-radius: 999px;
 	}
 
-	.mag-data .mag-chips .mag-chip:hover { color: var(--ink); border-color: var(--prim); }
+	.mag-data .mag-chips .mag-chip:hover { color: var(--ink); border-color: var(--prime); }
 
 	/* Ink on paper, inverted — the fill has to read as SELECTED in both colour
 	   schemes, and the accent is already spent four times on this page. */
@@ -386,6 +386,6 @@
 	.mag-bar-word { font-size: 0.8em; font-weight: 700; }
 	.mag-bar-vp { margin-inline-start: 0.35em; color: var(--subtle); font-weight: 400; }
 	.mag-bar-track { min-width: 0; }
-	.mag-bar { height: 0.8em; min-width: 2px; background: var(--prim); border-radius: 2px; }
+	.mag-bar { height: 0.8em; min-width: 2px; background: var(--prime); border-radius: 2px; }
 	.mag-bar-px { color: var(--subtle); font-size: 0.75em; font-variant-numeric: tabular-nums; }
 }

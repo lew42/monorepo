@@ -24,7 +24,7 @@ function editor_wireframe(){
 		div.c("flex gap wrap v-center", () => {
 			VIEWPORTS.forEach(v => span.c("surface pad")
 				.style({ cursor: "pointer", fontSize: "0.8em",
-					outline: viewport === v.name ? "2px solid var(--prim)" : "none" })
+					outline: viewport === v.name ? "2px solid var(--prime)" : "none" })
 				.text(v.name)
 				.on("click", () => { viewport = v.name; draw(); }));
 
@@ -40,7 +40,7 @@ function editor_wireframe(){
 				span.c("muted").style("fontSize", "0.8em").text("layers / pages");
 				LAYERS.forEach(name => span.c("surface pad")
 					.style({ cursor: "pointer", fontSize: "0.8em",
-						outline: layer === name ? "2px solid var(--prim)" : "none" })
+						outline: layer === name ? "2px solid var(--prime)" : "none" })
 					.text(name)
 					.on("click", () => { layer = name; draw(); }));
 			});

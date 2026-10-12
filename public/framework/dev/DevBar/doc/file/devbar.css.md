@@ -88,7 +88,7 @@ scrolls a held target to `start` rather than `center`.
 scrolls is only the tab's own content. `.dev-tab` is `flex: 1 1 0` with
 `min-width: 0` — three tabs divide the rail rather than wrapping, and they hold
 at 80px each in a 200px rail (the `MIN`). `.on` is the same
-`--prim` border the size presets use, so "the tab you are on" and "the width you
+`--prime` border the size presets use, so "the tab you are on" and "the width you
 are at" read as one idiom.
 
 ## Improvements

@@ -23,7 +23,7 @@
 
 	.site-pat-legend { display: flex; flex-wrap: wrap; gap: 1em; font-size: 0.8em; }
 	.site-pat-key { display: inline-flex; align-items: center; gap: 0.4em; }
-	.site-pat-swatch { width: 1.4em; height: 0.55em; border-radius: 999px; background: var(--prim); }
+	.site-pat-swatch { width: 1.4em; height: 0.55em; border-radius: 999px; background: var(--prime); }
 
 	/* A ROW: the id on a fixed track so every bar in the panel starts on the same
 	   axis, and the bars take whatever is left. `minmax(0, …)` on both — a `1fr`
@@ -49,7 +49,7 @@
 
 	/* The only runtime value on the page: `--w` is written inline because the count
 	   is not known until the manifest lands. */
-	.site-pat-fill { width: var(--w, 0%); height: 100%; border-radius: 999px; background: var(--prim); }
+	.site-pat-fill { width: var(--w, 0%); height: 100%; border-radius: 999px; background: var(--prime); }
 
 	/* The phone reading, derived from the ink beside it so it reads as "the same bar,
 	   quieter" in light and dark alike. */
@@ -79,7 +79,7 @@
 	   to within a couple of values of it and the caption promising a shaded row would
 	   have been a lie. The accent at 14% reads against a neutral ground in both modes,
 	   and it is the same colour the "at 1920" bars use, so it says "look here". */
-	.site-pat-same :is(td) { background: color-mix(in srgb, var(--prim) 14%, transparent); }
+	.site-pat-same :is(td) { background: color-mix(in srgb, var(--prime) 14%, transparent); }
 
 	.site-pat-holds { font-size: 0.9em; }
 

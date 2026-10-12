@@ -31,5 +31,5 @@
 
 	/* The quiet marker: a flagged card keeps its flag visible, tinted, after the
 	   pointer leaves — proof the press landed, with no dialog and no reload. */
-	.ux-index-flagged .ux-index-flag { color: var(--prim); }
+	.ux-index-flagged .ux-index-flag { color: var(--prime); }
 }

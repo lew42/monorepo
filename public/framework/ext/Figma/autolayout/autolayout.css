@@ -1,24 +1,19 @@
 @layer base, theme, site, util;
 
 @layer theme {
-	/* Every slide: 16:9, clipped, soft shadow, em-scaled text */
-	.aut-slide-1, .aut-slide-2, .aut-slide-3, .aut-slide-4 {
+	/* Every slide: 16:9, clipped, soft shadow, container-scaled text */
+	.aut-slide {
 		grid-column: 1 / -1;
 		aspect-ratio: 16 / 9;
 		overflow: clip;
-		box-shadow: 0 8px 13px rgba(0, 0, 0, .2);
+		box-shadow: var(--shadow);
 		margin-bottom: 2em;
 		font-size: clamp(10px, .8vw, 22px);
-		font-family: Montserrat, sans-serif;
-		background: #fff;
 	}
 
 	.aut-caption {
 		grid-column: 1 / -1;
-		font-family: Montserrat, sans-serif;
 		font-size: 1em;
-		font-weight: 500;
-		line-height: 1.8;
 		white-space: nowrap;
 		margin: 0;
 	}
@@ -29,14 +24,7 @@
 		justify-content: center;
 		align-items: center;
 	}
-
-	.aut-whoa {
-		font-size: 6.25em;
-		font-weight: 900;
-		color: #000;
-		white-space: nowrap;
-		margin: 0;
-	}
+	.aut-slide-1 .h1 { font-size: 3.3em; white-space: nowrap; margin: 0; }
 
 	/* Slide 2: vertical stack */
 	.aut-slide-2 {
@@ -47,17 +35,17 @@
 		gap: .625em;
 		padding: 7.5em;
 	}
+	.aut-slide-2 .h1 { white-space: nowrap; margin: 0; }
 
 	/* Slides 3 and 4: horizontal row of panes */
-	.aut-slide-3, .aut-slide-4 {
+	.aut-slide-row {
 		display: flex;
-		flex-direction: row;
 		align-items: stretch;
 		gap: 0;
 		padding: 0;
 	}
 
-	.aut-pane, .aut-pane-grey {
+	.aut-pane {
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
@@ -66,28 +54,6 @@
 		padding: 7.5em;
 		flex: 1 1 0;
 		min-width: 0;
-		background: #fff;
 	}
-
-	.aut-pane-grey {
-		background: rgba(0, 0, 0, .03);
-	}
-
-	/* Text */
-	.aut-big {
-		font-size: 3em;
-		font-weight: 900;
-		color: #000;
-		white-space: nowrap;
-		margin: 0;
-	}
-
-	.aut-small {
-		font-size: 1em;
-		font-weight: 500;
-		line-height: 1.8;
-		color: #000;
-		white-space: nowrap;
-		margin: 0;
-	}
+	.aut-pane .h1 { white-space: nowrap; margin: 0; }
 }

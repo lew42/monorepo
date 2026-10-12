@@ -52,9 +52,9 @@ export default new Page({
 
 		md("## The colours are derived, not named");
 
-		md("```css\n.ui-timeline-dot { background: var(--eyebrow, var(--prim)); }\n.ui-timeline-line { border-inline-start: 1px solid color-mix(in srgb, currentColor 25%, transparent); }\n```");
+		md("```css\n.ui-timeline-dot { background: var(--eyebrow, var(--prime)); }\n.ui-timeline-line { border-inline-start: 1px solid color-mix(in srgb, currentColor 25%, transparent); }\n```");
 
-		md("This component lands on more than one surface — a changelog band can be any of four tones — and a fixed `--subtle` measured **1.06:1** on the accent one. `--eyebrow` is a band's own safe accent, handed down by whatever drew the band; off a band it falls back to `--prim`. The line and the muted text derive from `currentColor`, which has already been chosen to contrast with what is behind it.");
+		md("This component lands on more than one surface — a changelog band can be any of four tones — and a fixed `--subtle` measured **1.06:1** on the accent one. `--eyebrow` is a band's own safe accent, handed down by whatever drew the band; off a band it falls back to `--prime`. The line and the muted text derive from `currentColor`, which has already been chosen to contrast with what is behind it.");
 
 		md("Next: [Keys](/framework/ui/kbd/) — the one element the base theme half-styles.");
 	},

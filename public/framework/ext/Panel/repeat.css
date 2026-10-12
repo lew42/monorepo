@@ -37,8 +37,8 @@
 	}
 
 	.panel-repeat-add:hover {
-		color: var(--prim);
-		border-color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 10%, transparent);
+		color: var(--prime);
+		border-color: var(--prime);
+		background: color-mix(in srgb, var(--prime) 10%, transparent);
 	}
 }

@@ -25,6 +25,6 @@
 	   Not ext/layout's `.layout-selected`: that class is the right drawer's mark and
 	   `panel.js` owns when it goes on. */
 	.apps-node { outline: 2px solid transparent; outline-offset: -2px; }
-	.apps-node:hover { outline-color: color-mix(in srgb, var(--prim) 45%, transparent); }
-	.apps-node.on { outline-color: var(--prim); }
+	.apps-node:hover { outline-color: color-mix(in srgb, var(--prime) 45%, transparent); }
+	.apps-node.on { outline-color: var(--prime); }
 }

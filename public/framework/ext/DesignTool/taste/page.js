@@ -61,7 +61,7 @@ rate(document.querySelector(".page.active-page"));
 
 		return div.c("flex v gap").append(() => {
 			div.c("surface").style({ position: "relative", height: "0.6em", borderRadius: "999px", overflow: "hidden" })
-				.append(() => div().style({ position: "absolute", inset: "0", left: `${left}%`, width: `${width}%`, background: "var(--prim)" }));
+				.append(() => div().style({ position: "absolute", inset: "0", left: `${left}%`, width: `${width}%`, background: "var(--prime)" }));
 			span(`${fmt(o0)} … ${fmt(i0)}–${fmt(i1)} … ${fmt(o1)}`).ac("muted");
 		});
 	},

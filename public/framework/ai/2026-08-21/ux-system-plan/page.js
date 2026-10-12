@@ -26,7 +26,7 @@ export default new Page({
 		ui.table(
 			["word", "what it remaps", "why it earns a name"],
 			[
-				["ui-contrast", "--ink --subtle --line --wash --tint --prim-ink", "readable at a glance; names no hue, so it covers light, dark and any theme"],
+				["ui-contrast", "--ink --subtle --line --wash --tint --prime-ink", "readable at a glance; names no hue, so it covers light, dark and any theme"],
 				["ui-compact", "--pad --gap --flow, scaled by --density", "less space at the same text size; --density is the knob, so there is no micro/mini/small ladder"],
 			]);
 

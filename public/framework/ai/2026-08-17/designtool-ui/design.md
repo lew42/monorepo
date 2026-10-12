@@ -429,7 +429,7 @@ enumerating `button, input, select, a, label` inside `.dev-bar`.
 1. **Which screen you are on.** Nothing says. The only tell is that the content
    changed.
 2. **Which finding is selected.** `dt-aimed` is
-   `background: color-mix(in srgb, var(--prim) 14%, transparent)`
+   `background: color-mix(in srgb, var(--prime) 14%, transparent)`
    (DesignTool.css:155) — 14% alpha on a dark rail. There is no border, no chip, no
    change in the row's shape. Functionally invisible.
 3. **The target, on the page.** The target is named as text in the rail
@@ -479,7 +479,7 @@ four identically-weighted rows).
 
 Plus: **while the layout screen is open, the target wears a persistent 1px dashed
 outline** — a second `dt-spot`-style overlay with `dt-spot-target`, `outline: 1px
-dashed var(--prim)`, no fill. Not a wash (that is what makes the finding ring
+dashed var(--prime)`, no fill. Not a wash (that is what makes the finding ring
 illegible), not a control, and it answers "what is being measured" from the page
 side, which is where the question is actually asked. It also makes a `panel-focus`
 retarget self-announcing.
@@ -509,7 +509,7 @@ One state, three coherent signals, no new control:
 
 - it is the only row showing its **proposed declaration** and its
   **`not a problem`** button (the two things that moved from screen B);
-- `border-inline-start: 2px solid var(--prim)` replaces the 14% wash;
+- `border-inline-start: 2px solid var(--prime)` replaces the 14% wash;
 - the ring on the page is **held** (already true — `hold()`, highlight.js:26).
 
 `DesignTool.css:155` changes from a background to a border. Clicking a second row

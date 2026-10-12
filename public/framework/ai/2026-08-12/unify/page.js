@@ -12,8 +12,8 @@ const field = () => label.c("flex v gap", () => {
 const invalid = () => label.c("flex v gap", () => {
 	div.c("h4", "Email");
 	input().attr("type", "email").attr("value", "mike@lew42").attr("aria-invalid", "true")
-		.style("borderColor", "var(--prim)");
-	span("That address is missing a domain.").style("color", "var(--prim)");
+		.style("borderColor", "var(--prime)");
+	span("That address is missing a domain.").style("color", "var(--prime)");
 }).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 const chooser = () => label.c("flex v gap", () => {

@@ -30,7 +30,7 @@
 
 	.ai2-row:is(.active, .in-path) {
 		background: var(--surface);
-		border-inline-start-color: var(--prim);
+		border-inline-start-color: var(--prime);
 	}
 
 	.ai2-row-head {
@@ -81,7 +81,7 @@
 		color: var(--subtle);
 		box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
 	}
-	.ai2-updated:hover { color: var(--ink); border-color: var(--prim); }
+	.ai2-updated:hover { color: var(--ink); border-color: var(--prime); }
 	.ai2-updated:not([hidden]) { display: inline-flex; }
 
 }
@@ -158,7 +158,7 @@
 		color: inherit; text-decoration: none;
 	}
 	.ai2-ov-head h3 { margin: 0; }
-	.ai2-ov-icon { font-size: 2.6em; line-height: 1; color: var(--prim); }
+	.ai2-ov-icon { font-size: 2.6em; line-height: 1; color: var(--prime); }
 	.ai2-ov-first .ai2-ov-icon { font-size: 3.6em; }
 	.ai2-ov-first .ai2-ov-head h3 { font-size: 1.6em; }
 
@@ -173,7 +173,7 @@
 		font-size: 0.75em; padding: 0.05em 0.5em; border-radius: 1em;
 		background: var(--fill-a08, rgba(127, 127, 127, 0.15)); color: var(--subtle);
 	}
-	.ai2-ov-result { font-size: 0.85em; white-space: nowrap; color: var(--prim); }
+	.ai2-ov-result { font-size: 0.85em; white-space: nowrap; color: var(--prime); }
 	/* THE OWNER'S OWN RAW WORDS — one click away (brief D), never the headline: a quiet
 	   `<summary>` line, not the boxed `<details>` look `.ai2-ov-done` wears below, so it
 	   reads as "more detail" rather than a second collapsible section on the card. */
@@ -342,8 +342,8 @@
 	}
 
 	.ai2-need-opt:hover {
-		border-color: var(--prim);
-		color: var(--prim);
+		border-color: var(--prime);
+		color: var(--prime);
 	}
 
 	/* WRAPPED, not one tight row — a fixed-width control column (22em) left the field only

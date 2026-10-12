@@ -6,7 +6,7 @@ Less is more · clarity is the exception · prioritize. Read [`../paging/require
 
 ## Read first
 
-`public/framework/core/Page/readme.md`, `doc/columns.md` (the width words — `launch` is a child column, `takeover` is `full`; do not reimplement columns), `doc/roles.md`, `doc/method/store.md`, `doc/panels.md`; `public/framework/ext/layout/readme.md` (toolbar, push drawer), `ext/tabs/readme.md`; `public/imagine/page.js` (the host you sit in), `public/imagine/shells/` and `public/imagine/screens/` (the two paging patterns the owner names — read `screen.js`), `public/imagine/design/layout/approved/page.js` (the closed set), `public/imagine/design/color/` and the stacks lab for the colour tokens (`--shade/--paper/--fill-aNN`, `--surface`, `--prim`, colour-scheme islands); `public/framework/framework.css` (the `css` skill has you read it).
+`public/framework/core/Page/readme.md`, `doc/columns.md` (the width words — `launch` is a child column, `takeover` is `full`; do not reimplement columns), `doc/roles.md`, `doc/method/store.md`, `doc/panels.md`; `public/framework/ext/layout/readme.md` (toolbar, push drawer), `ext/tabs/readme.md`; `public/imagine/page.js` (the host you sit in), `public/imagine/shells/` and `public/imagine/screens/` (the two paging patterns the owner names — read `screen.js`), `public/imagine/design/layout/approved/page.js` (the closed set), `public/imagine/design/color/` and the stacks lab for the colour tokens (`--shade/--paper/--fill-aNN`, `--surface`, `--prime`, colour-scheme islands); `public/framework/framework.css` (the `css` skill has you read it).
 
 ## Deliverables (closed list; cut from the bottom)
 

@@ -7,7 +7,7 @@
    working exactly as they do three columns deep.
 
    Colour: `--surface` for the screen you are ON, one step down (`--wash`) for a screen
-   you came through, `--prim` for the single accent, `--subtle` for the note under a
+   you came through, `--prime` for the single accent, `--subtle` for the note under a
    title. Never `--well`. One device per seam: a `--line` hairline between peers, the
    tone step alone where the roles differ.
 
@@ -162,11 +162,11 @@
 	.screens-rule {
 		flex: 0 0 auto;
 		width: clamp(2.5rem, 18cqw, 9rem); height: 0.32em;
-		background: var(--prim);
+		background: var(--prime);
 	}
 
 	.screens-eyebrow {
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 		font-size: clamp(0.7rem, 2cqw, 1rem);
 		font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
 	}
@@ -199,7 +199,7 @@
 		letter-spacing: 0.24em; text-transform: uppercase; font-size: 0.75em; font-weight: 700;
 		transition: color 0.15s, background-color 0.15s;
 	}
-	.screens-peek:hover { color: var(--prim-ink); background: color-mix(in srgb, var(--ink) 4%, transparent); }
+	.screens-peek:hover { color: var(--prime-ink); background: color-mix(in srgb, var(--ink) 4%, transparent); }
 
 	/* Already open — the strip has nothing left to offer. */
 	.page:has(> .page-column-pages > .page:is(.active-page, .active-ancestor)) > .page-column-body > .screens-peek { display: none; }
@@ -272,7 +272,7 @@
 	   only behind the readme link. */
 	.screens-verdict {
 		margin: 0;
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 		font-size: 0.78em;
 		font-weight: 600;
 		line-height: 1.4;

@@ -18,10 +18,10 @@ property means which visual axis, so `flex v v-center` is what lines the dots
 and the line up on one axis — this reads as backwards until you remember
 `align-items` is always the cross axis.
 
-The dot color reads `var(--eyebrow, var(--prim))`: a timeline can land on any
+The dot color reads `var(--eyebrow, var(--prime))`: a timeline can land on any
 of a changelog band's four tones, and a fixed `--subtle` measured 1.06:1
 contrast on the accent one. `--eyebrow` is the band's own safe accent, handed
-down by whatever drew it; off a band it falls back to `--prim`.
+down by whatever drew it; off a band it falls back to `--prime`.
 
 ## Not `ext/Timeline`
 

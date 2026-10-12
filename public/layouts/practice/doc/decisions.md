@@ -91,9 +91,9 @@ on the dark floor in dark mode.
 | quiet ink on the page floor | 5.99:1 |
 | quiet ink on `--fill-a04` (tiles, cards, notes) | 5.02–5.49:1 |
 | `--ink` on `--fill-a04` (panel body, tile names) | 7.88–8.62:1 |
-| `--ink` on `--prim` (the brand mark, the hero button) | **7.75:1** |
-| `--prim-ink` on the page floor (the current contents link) | 4.64:1 |
-| `--prim` as a word on white | 2.25:1 — **never used as text** anywhere here |
+| `--ink` on `--prime` (the brand mark, the hero button) | **7.75:1** |
+| `--prime-ink` on the page floor (the current contents link) | 4.64:1 |
+| `--prime` as a word on white | 2.25:1 — **never used as text** anywhere here |
 
 **The instrument found its own defect first.** The contrast probe read Chromium's
 `color(srgb 0.36 0.36 0.36)` — the form a `color-mix()` result comes back in, channels 0–1 —

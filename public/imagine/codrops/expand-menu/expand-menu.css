@@ -17,7 +17,7 @@
 		position: relative;
 		z-index: 2;
 		border-radius: 2em;
-		background: var(--prim, #ee8233);
+		background: var(--prime, #ee8233);
 		color: #000;
 		overflow: hidden;
 		transition: border-radius 0.5s 0.3s;

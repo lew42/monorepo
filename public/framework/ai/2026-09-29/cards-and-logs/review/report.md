@@ -1,5 +1,5 @@
 verdict: fix
-1. [fix] White text on the "Strong hue" ground (`.card-prim`, `var(--prim)`, orange) is about 2.5:1, below the 4.5:1 body-text floor and the 3:1 large-text floor (css 11). The `color-scheme: dark` island makes the ink light, and light ink on a light orange fails. See shots/…card-grounds/1920.png, the "STRONG HUE / var(--prim)" card, and shots/…card/1920.png, the "Strong hue" title. Give the strong-hue island dark ink, or use a darker primary step as its ground.
+1. [fix] White text on the "Strong hue" ground (`.card-prim`, `var(--prime)`, orange) is about 2.5:1, below the 4.5:1 body-text floor and the 3:1 large-text floor (css 11). The `color-scheme: dark` island makes the ink light, and light ink on a light orange fails. See shots/…card-grounds/1920.png, the "STRONG HUE / var(--prime)" card, and shots/…card/1920.png, the "Strong hue" title. Give the strong-hue island dark ink, or use a darker primary step as its ground.
 2. [fix] The Whisper page prints literal asterisks: "**read the actual log file for the whisper process.**" (shots/…card-log-whisper/1920.png, band 2). `p()` reads backticks, not markdown bold. Remove the `**`, or use a real `strong`.
 3. [note] The "Light gray" ground is `--wash`, which is also the page ground, so a `.card-gray` placed straight on the page paints nothing (css 14). Two examples: shots/…card-mini-pages/400.png, "The decision" card, which shows only as a faint outline, and shots/…card/1920.png, where "Light gray" matches the page. It reads only inside a white demo frame. Either the doc/system.md table says "light gray only on a white ground", or the ground needs a darker step on the page.
 4. [note] The first demo on Log is empty until someone clicks a button (shots/…card-log/sheet.png, top band at every width). A nested log you can see first appears in the second demo, below the fold at 1920. Pre-running one `increment()` would put a live group on screen. The Whisper log is empty in the same way until you press Start, which is fine because that demo needs the server.
@@ -88,7 +88,7 @@ verdict: fix
 - css 10 — yes — reuses `.card`, the tokens and `.size-*`; the index sets --column inline, a one-off
 
 ## Colour and contrast
-- css 11 — no — white on `--prim` is about 2.5:1 (finding 1); the dark ground passes
+- css 11 — no — white on `--prime` is about 2.5:1 (finding 1); the dark ground passes
 - css 12 — no — the same pair
 - css 13 — yes — tokens only
 - css 14 — no — `--wash` card on a `--wash` page (finding 3)

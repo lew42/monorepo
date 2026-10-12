@@ -49,7 +49,7 @@ afterwards. An inset shadow paints on top of whatever fill is already there, so 
 rule darkens a plain button, a text field and an orange CTA by exactly one rung:
 
 ```css
-:is(…):hover  { --ctl-lift: var(--fill-a08); border-color: var(--prim); }
+:is(…):hover  { --ctl-lift: var(--fill-a08); border-color: var(--prime); }
 :is(…):active { --ctl-lift: var(--fill-a16); }
 ```
 

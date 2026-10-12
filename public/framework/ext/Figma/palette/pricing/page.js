@@ -1,8 +1,6 @@
-import { Page, View, div, p, button } from "/app.js";
+import { Page, View, div, p, h1, h4, hr, button } from "/app.js";
 
 View.stylesheet(import.meta, "pricing.css");
-
-const PRIME25 = "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25)), #72c4ff";
 
 export default new Page({
 	meta: import.meta,
@@ -11,120 +9,120 @@ export default new Page({
 	width: "full",
 	description: "Pricing cards and a dashboard on the approved solid bases.",
 	content() {
-		div.c("prc-card", () => {
+		div.c("prc-page", () => {
 			// Header
 			div.c("prc-header", () => {
-				p.c("prc-title", "PRICING & DASHBOARD").style("color", "rgba(0,0,0,.8)");
-				p.c("prc-tagline", "Multi-column compositions using the approved solid bases.").style("color", "rgba(0,0,0,.8)");
+				h1("PRICING & DASHBOARD");
+				p.c("muted", "Multi-column compositions using the approved solid bases.");
 			});
 
 			// Row 1: Pricing Cards
-			div.c("prc-row", () => {
+			div.c("grid auto gap", () => {
 				// STARTER Card
-				div.c("prc-pricing-card prc-starter", () => {
-					p.c("prc-plan-name", "STARTER").style("color", "#72c4ff");
-					p.c("prc-price", "$9").style("color", "rgba(0,0,0,.8)");
-					p.c("prc-period", "per month").style("color", "rgba(0,0,0,.55)");
-					div.c("prc-divider");
+				div.c("card prc-pricing-card", () => {
+					h4.c("prc-plan-name", "STARTER");
+					p.c("prc-price", "$9");
+					p.c("muted", "per month");
+					hr();
 
-					div.c("prc-checks", () => {
+					div.c("flex v gap", () => {
 						["5 projects", "10GB storage", "Email support"].forEach(text => {
-							div.c("prc-check-row", () => {
-								p.c("prc-checkmark", "✓").style("color", "#72c4ff");
-								p.c("prc-check-text", text).style("color", "rgba(0,0,0,.8)");
+							div.c("flex gap", () => {
+								p.c("prc-checkmark", "✓");
+								p(text);
 							});
 						});
 					});
 
-					button.c("prc-button", "CHOOSE PLAN").style("color", "#fff");
-				}).style("background", "#fff").style("border", "1px solid rgba(0,0,0,.1)");
+					button.c("prim", "CHOOSE PLAN");
+				});
 
 				// PRO Card
-				div.c("prc-pricing-card prc-pro", () => {
-					p.c("prc-plan-name", "PRO").style("color", "#72c4ff");
-					p.c("prc-price", "$29").style("color", "#fff");
-					p.c("prc-period", "per month").style("color", "rgba(255,255,255,.7)");
-					div.c("prc-divider");
+				div.c("card bg-dark prc-pricing-card", () => {
+					h4.c("prc-plan-name", "PRO");
+					p.c("prc-price", "$29");
+					p.c("muted", "per month");
+					hr();
 
-					div.c("prc-checks", () => {
+					div.c("flex v gap", () => {
 						["Unlimited projects", "100GB storage", "Priority support", "Custom domains", "API access"].forEach(text => {
-							div.c("prc-check-row", () => {
-								p.c("prc-checkmark", "✓").style("color", "#72c4ff");
-								p.c("prc-check-text", text).style("color", "#fff");
+							div.c("flex gap", () => {
+								p.c("prc-checkmark", "✓");
+								p(text);
 							});
 						});
 					});
 
-					button.c("prc-button", "CHOOSE PLAN").style("color", "#fff");
-				}).style("background", "#675f56");
+					button.c("prim", "CHOOSE PLAN");
+				});
 
 				// ENTERPRISE Card
-				div.c("prc-pricing-card prc-enterprise", () => {
-					p.c("prc-plan-name", "ENTERPRISE").style("color", "#fff");
-					p.c("prc-price", "$99").style("color", "#fff");
-					p.c("prc-period", "per month").style("color", "#fff");
-					div.c("prc-divider");
+				div.c("card bg-prime prc-pricing-card", () => {
+					h4("ENTERPRISE");
+					p.c("prc-price", "$99");
+					p.c("muted", "per month");
+					hr();
 
-					div.c("prc-checks", () => {
+					div.c("flex v gap", () => {
 						["Everything in Pro", "SSO & SAML", "Dedicated support"].forEach(text => {
-							div.c("prc-check-row", () => {
-								p.c("prc-checkmark", "✓").style("color", "#fff");
-								p.c("prc-check-text", text).style("color", "#fff");
+							div.c("flex gap", () => {
+								p("✓");
+								p(text);
 							});
 						});
 					});
 
-					button.c("prc-button", "CONTACT US").style("color", "#fff");
-				}).style("background", PRIME25);
+					button("CONTACT US");
+				});
 			});
 
 			// Row 2: Dashboard
-			div.c("prc-dashboard", () => {
+			div.c("flex gap prc-dashboard", () => {
 				// Sidebar
-				div.c("prc-sidebar", () => {
-					p.c("prc-sidebar-title", "Dashboard").style("color", "#fff");
+				div.c("card bg-dark prc-sidebar", () => {
+					h4("Dashboard");
 
-					div.c("prc-nav-items", () => {
+					div.c("flex v gap", () => {
 						["Overview", "Analytics", "Settings", "Team", "Billing"].forEach(item => {
-							div.c("prc-nav-item", item).style("color", item === "Overview" ? "#fff" : "rgba(255,255,255,.7)");
+							div.c("prc-nav-item" + (item === "Overview" ? " bg-lighten" : " muted"), item);
 						});
 					});
 
-					div.c("prc-user-box", () => {
+					div.c("card prc-user-box", () => {
 						div.c("prc-avatar");
-						div.c("prc-user-info", () => {
-							p.c("prc-user-name", "JANE COOPER").style("color", "#fff");
-							p.c("prc-user-role", "Admin").style("color", "rgba(255,255,255,.7)");
+						div.c("flex v", () => {
+							h4("JANE COOPER");
+							p.c("muted", "Admin");
 						});
 					});
 				});
 
 				// Main content
-				div.c("prc-main", () => {
-					p.c("prc-overview-title", "Overview").style("color", "rgba(0,0,0,.8)");
+				div.c("card flex-1 prc-main", () => {
+					h4("Overview");
 
 					// KPI Row
-					div.c("prc-kpi-row", () => {
+					div.c("flex gap", () => {
 						[
 							{ label: "REVENUE", value: "$12,450" },
 							{ label: "USERS", value: "1,247" },
 							{ label: "GROWTH", value: "+18.2%" }
 						].forEach(kpi => {
-							div.c("prc-kpi-tile", () => {
-								p.c("prc-kpi-label", kpi.label).style("color", "rgba(0,0,0,.8)");
-								p.c("prc-kpi-value", kpi.value).style("color", "rgba(0,0,0,.8)");
+							div.c("card flex-1", () => {
+								h4.c("muted", kpi.label);
+								p.c("prc-kpi-value", kpi.value);
 							});
 						});
 					});
 
 					// Activity panel
-					div.c("prc-activity", () => {
-						p.c("prc-activity-label", "RECENT ACTIVITY").style("color", "rgba(0,0,0,.8)");
-						div.c("prc-activity-items", () => {
+					div.c("card", () => {
+						h4("RECENT ACTIVITY");
+						div.c("flex v gap", () => {
 							["New signup: alex@demo.com", "Payment received: $299", "Team invite accepted"].forEach(text => {
-								div.c("prc-activity-row", () => {
+								div.c("flex gap prc-activity-row", () => {
 									div.c("prc-activity-bar");
-									p.c("prc-activity-text", text).style("color", "rgba(0,0,0,.8)");
+									p(text);
 								});
 							});
 						});

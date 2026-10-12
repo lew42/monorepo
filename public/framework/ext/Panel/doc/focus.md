@@ -173,10 +173,10 @@ in the middle of being dragged.
 ## Two rings: the one you have, and the one a click would take
 
 ```css panel.css
-.panel-workspace .panel.focus::after       { box-shadow: inset 0 0 0 2px var(--prim); }
+.panel-workspace .panel.focus::after       { box-shadow: inset 0 0 0 2px var(--prime); }
 ```
 ```css focus.css
-.panel-workspace .panel.panel-hover::before { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--prim) 55%, transparent); }
+.panel-workspace .panel.panel-hover::before { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--prime) 55%, transparent); }
 ```
 
 Both are pseudo-elements, `inset: 0`, `z-index: 2`, inert — so they cost the panel

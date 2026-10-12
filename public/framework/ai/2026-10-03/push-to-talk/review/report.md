@@ -81,11 +81,11 @@ Widths given: 400, 1200, 1920, 3440 for `/framework/ux/` and `/framework/ux/Hotk
 - spacing 41 — yes — `FloatingMic.css`, `row.css` both in `@layer theme`
 - spacing 42 — no — `dev-hotkeys-filter` is a class that does not exist (finding 7)
 ## Colour and contrast
-- colour 1 — yes — white icon on `--prim` circle (UI shape, 3:1)
+- colour 1 — yes — white icon on `--prime` circle (UI shape, 3:1)
 - colour 2 — n/a
 - colour 3 — no — `#fff` and an `rgba()` shadow in `FloatingMic.css`
 - colour 4 — yes
-- colour 5 — partly — `--prim` follows the mode; the literal `#fff` does not
+- colour 5 — partly — `--prime` follows the mode; the literal `#fff` does not
 - colour 6 — yes
 - colour 7 — n/a
 - colour 8 — yes — `span.c("muted")`

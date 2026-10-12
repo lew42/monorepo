@@ -30,7 +30,7 @@
 	.ux-content-catalog-break-chips { display: flex; flex-wrap: wrap; gap: .25em; }
 	.ux-content-catalog-jump { font: inherit; font-size: .85em; padding: 0 .5em; border: 1px solid var(--line);
 		border-radius: 99em; background: var(--surface); color: inherit; cursor: pointer; }
-	.ux-content-catalog-jump:hover { border-color: var(--prim); }
+	.ux-content-catalog-jump:hover { border-color: var(--prime); }
 
 	.ux-content-catalog-family { display: flex; flex-direction: column; gap: var(--gap-50); }
 	.ux-content-catalog-family > h2 { margin: 0; }
@@ -44,7 +44,7 @@
 		background: var(--surface); border: 1px solid var(--line); border-radius: .5em;
 	}
 	.ux-content-catalog-tile.open { grid-column: 1 / -1; }
-	.ux-content-catalog-tile.flash { outline: 3px solid var(--prim); }
+	.ux-content-catalog-tile.flash { outline: 3px solid var(--prime); }
 
 	.ux-content-catalog-stage {
 		position: relative; contain: paint; min-height: 5em; max-height: 14em; overflow: auto; padding: var(--gap-50);
@@ -63,7 +63,7 @@
 	.ux-content-catalog-dup { font-size: .78em; padding: .05em .5em; border-radius: 99em; color: var(--error); border: 1px solid var(--error); font-weight: 700; }
 
 	.ux-content-catalog-more { align-self: flex-start; font: inherit; font-size: .85em; background: none; border: 0;
-		padding: 0; color: var(--prim); cursor: pointer; text-decoration: underline; }
+		padding: 0; color: var(--prime); cursor: pointer; text-decoration: underline; }
 	.ux-content-catalog-detail { display: flex; flex-direction: column; gap: var(--gap-35); font-size: .9em; }
 	.ux-content-catalog-detail[hidden] { display: none; }
 	.ux-content-catalog-detail > * { margin: 0; }

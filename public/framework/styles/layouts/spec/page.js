@@ -43,14 +43,14 @@ const article_rail = () => div.c("section-band", () =>
 	div.c("measure flex gap wrap", () => {
 
 		div.c("flex v gap").style({ flex: "999 1 18em", minWidth: "0" }).append(() => {
-			p.c("h4", "GUIDE").style("color", "var(--eyebrow, var(--prim))");
+			p.c("h4", "GUIDE").style("color", "var(--eyebrow, var(--prime))");
 			p.c("h2", "Seventy thirty, without the seventy");
 			p.c("muted", "The rail is sized by a clamp, not a fraction, so the article keeps whatever is left. At 3440 that is far more than 70%, and the reading column is still a reading column.");
 			p.c("muted", "Nothing here is a breakpoint. The row wraps when the two no longer fit, and the rail's own container query flips it onto its own line.");
 		});
 
 		div.c("rail flex v gap", () => {
-			p.c("h4", "ON THIS PAGE").style("color", "var(--eyebrow, var(--prim))");
+			p.c("h4", "ON THIS PAGE").style("color", "var(--eyebrow, var(--prime))");
 			["The clamp", "Sticky, and its ceiling", "What wrapping costs"].forEach(t =>
 				a.c("page-link", t).href("#").style({ textDecoration: "none" }));
 		}).style("--gap", "calc(var(--gap) * 0.4)");
@@ -176,7 +176,7 @@ const TIERS = [
 				props: [
 					["grid-gap: 20px", "`--gap` (`1em` = 16px)", "20px is a fourth spacing value. The tablet tier below calls the same gap 24px — the Figma disagrees with itself."],
 					["card-radius: 8px", "`--radius` (`0.5em` = 8px)", "Same number, but as a token: it scales with the text and one edit retunes the site."],
-					["popular-accent: #4A7FBF", "`--prim`", "Standing rule 1 — a hex here is a colour the rest of the site does not have, and it would not follow a theme swap."],
+					["popular-accent: #4A7FBF", "`--prime`", "Standing rule 1 — a hex here is a colour the rest of the site does not have, and it would not follow a theme swap."],
 				],
 			},
 		],
@@ -406,7 +406,7 @@ export default new Page(demo.layout({
 					   24px out. `min-width: 0` lets it shrink, and the break-word that
 					   was there all along finally applies. Measured, both directions. */
 					div.c("flex v gap").style({ "--gap": "calc(var(--gap) * 0.3)", flex: "1 1 16em", minWidth: "0" }).append(() => {
-						p.c("h4", "GLOBAL SPECS").style("color", "var(--eyebrow, var(--prim))");
+						p.c("h4", "GLOBAL SPECS").style("color", "var(--eyebrow, var(--prime))");
 						p.c("h1", "Layout Documentation System");
 						p.c("muted", "Standardized responsive section containers, spacing, and structural behavior standards — checked against the tokens that already exist.");
 					});

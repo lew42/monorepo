@@ -41,7 +41,7 @@ const SURFACE_TOKEN = {
 	plain: "background: var(--wash)",
 	card:  ".page-surface-card: var(--surface) + --shade-a08",
 	tint:  "background: var(--surface)",
-	prim:  "color-mix(in srgb, var(--prim) 10%, var(--surface))",
+	prim:  "color-mix(in srgb, var(--prime) 10%, var(--surface))",
 	dark:  "color-scheme: dark — every light-dark() token flips",
 };
 

@@ -42,7 +42,7 @@
 		border: 1px solid color-mix(in srgb, var(--ink) 35%, var(--line));
 	}
 	.ux-dictate-pg-meter-fill {
-		block-size: 100%; background: var(--prim);
+		block-size: 100%; background: var(--prime);
 		inline-size: calc(var(--ux-dictate-pg-level, 0) * 100%);
 		transition: inline-size 80ms linear;
 	}
@@ -70,7 +70,7 @@
 	.ux-dictate-pg-tab {
 		padding-block: .5em; border-bottom: 2px solid transparent; text-decoration: none;
 	}
-	.ux-dictate-pg-tab.active { font-weight: 600; border-color: var(--prim); }
+	.ux-dictate-pg-tab.active { font-weight: 600; border-color: var(--prime); }
 
 	/* ---- the panels, and the full-bleed 2D layout (minion-part2) -------------- */
 

@@ -222,7 +222,7 @@ theme that wants different weights overrides four names; lew42 wants none.
 
 **Two things stayed opaque, and each is a rule rather than a leftover.** A fill that must
 *occlude* live content is a floor whatever it is shaped like (a floating pill, a label over
-a ruler, a chip over a canvas). And `button.prim` on `--prim` / `button.bg` on `--bg` are
+a ruler, a chip over a canvas). And `button.prim` on `--prime` / `button.bg` on `--bg` are
 **placement** errors: an accent can only be invisible on its own floor, so the fix is to
 move the button. Neither occurs outside the matrix cell built to demonstrate it.
 

@@ -1,43 +1,59 @@
-import { Page, View, div, p, h4, md } from "/app.js";
+import { Page, div, p, h4, md } from "/app.js";
+import { parse, over, ratio, floorOf } from "/framework/styles/stacks/stacks.js";
 
-View.stylesheet(import.meta, "colors.css");
+/* Figma Sept-2026, Page 7, frame "Color Schemes" (112:11362). Figma's nested cards
+   are a black-or-white overlay at an alpha, so one rule works on any parent — our
+   system already has that rule: `.card` inside `.card` steps one notch darker by
+   itself, no overlay per level (styles/doc/architecture.md §3). So this page draws
+   real `.card bg-*` boxes and reads the truth back off them instead of a guessed
+   RGB triple — which is why the Prime card below shows OUR `--prime` (an orange),
+   not Figma's blue.
 
-/* Figma Sept-2026, Page 7, frame "Color Schemes" (112:11362). Every nested shade is a black or white
-   overlay at an alpha, so one rule works on any parent. Contrast is computed from the same numbers. */
-const lum = c => { const [r, g, b] = c.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * r + .7152 * g + .0722 * b; };
-const ratio = (a, b) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + .05) / (lo + .05); };
-const over = (base, white, alpha) => base.map(v => Math.round(v + ((white ? 255 : 0) - v) * alpha));
+   ⚠ A page here is built DETACHED, so `getComputedStyle` has nothing to answer with
+   until the box is actually in the document. A `ResizeObserver` is the trigger that
+   fires once it is (styles/system/studies/color/study.js already found this). */
 
-class Scheme {
-	constructor({ name, base, text }){ Object.assign(this, { name, base, text }); }
+function live_contrast($box, $line){
+	new ResizeObserver(() => {
+		const own = parse(getComputedStyle($box.el).backgroundColor);
+		if (!own[3]) return;                                   // not laid out yet
+		// a nested card's own fill is often translucent (`--bg-darken-amt`) — composite
+		// it over the real floor behind it, the same move stacks.js's own study makes.
+		const bg = own[3] === 1 ? own : over(own, floorOf($box.el));
+		const fg = parse(getComputedStyle($line.el).color);
+		$line.text(`Text on this card: ${ratio(fg, bg).toFixed(1)} : 1 contrast`);
+	}).observe($box.el);
+}
 
-	// steps: [["darken"|"lighten", alpha], ...] - each nested inside the one before it.
-	draw(steps, bg = this.base, cls = this.name.toLowerCase(), label = this.name){
-		div.c(`fg-scheme ${cls}`, () => {
-			h4(label);
-			p(`Text on this card: ${ratio(bg, this.text).toFixed(1)} : 1 contrast`);
-			p.c("fg-muted", "Secondary text specimen");
-			const [[kind, alpha] = [], ...rest] = steps;
-			kind && this.draw(rest, over(bg, kind === "lighten", alpha), `fg-nested fg-${kind}-${Math.round(alpha * 100)}`, `${Math.round(alpha * 100)}% ${kind}`);
-		});
-	}
+// One ground card, `depth` more `.card`s nested straight inside it.
+function card(cls, label, depth){
+	div.c(cls, $box => {
+		h4(label);
+		const $line = p("Text on this card: — : 1 contrast");
+		p.c("muted", "Secondary text specimen");
+		live_contrast($box, $line);
+		if (depth > 0) card("card", "↳ Nested card", depth - 1);
+	});
 }
 
 export default new Page({
 	meta: import.meta,
 	title: "Color Schemes",
-	description: "Figma's nested cards rebuilt: each level is a black or white overlay, and contrast is computed, not eyeballed.",
+	description: "Figma's nested cards rebuilt in the real system: `.card` steps one notch darker inside itself, and the contrast number is read off the rendered pixels, not guessed.",
 	icon: "palette",
 	content(){
-		md("Each card sits on the one before it. A nested card is just the parent with a **black or white overlay** (`10%`, `50%`), so nothing is hard-coded per level. Under every title is the contrast of its text, calculated from those overlays.");
-		div.c("fg-row", () => {
-			new Scheme({ name: "White", base: [255, 255, 255], text: [0, 0, 0] }).draw([["darken", .1]]);
-			new Scheme({ name: "Prime", base: [114, 196, 255], text: [255, 255, 255] }).draw([["darken", .25]]);
-			new Scheme({ name: "Dark", base: [103, 95, 86], text: [255, 255, 255] }).draw([["darken", .1], ["darken", .5], ["lighten", .1]]);
-		});
-		md("## Can light mode nest as deep?\nSame idea, four levels of black overlay on white. Dark text stays readable until roughly half the card is black.");
-		div.c("fg-row", () => {
-			new Scheme({ name: "White", base: [255, 255, 255], text: [0, 0, 0] }).draw([["darken", .1], ["darken", .25], ["darken", .5]]);
-		});
+		md("Each card sits on the one before it. A nested card is just a `.card` inside a `.card` — the system's own one-step darken, never a hand-picked overlay per level. Under every title is the contrast of its own text, read straight off the rendered pixels.");
+
+		div.c("wide grid gap auto", () => {
+			card("card bg-white", "White", 1);
+			card("card bg-prime", "Prime", 1);
+			card("card bg-dark", "Dark", 1);
+		}).style("--column", "20em");
+
+		md("## Can a card nest four deep?\nSame `.card`, four levels down. The step does not compound — level two reads exactly like level one, because every nested `.card` on this ground reads the same `--bg-darken-amt`. One step is the whole claim; a page that wants to go darker on purpose reaches for `.darken-2` / `.darken-3`, not another layer of nesting.");
+
+		div.c("wide grid gap auto", () => {
+			card("card bg-white", "White", 4);
+		}).style("--column", "20em");
 	},
 });

@@ -97,7 +97,7 @@ Five plain properties, every one `false`/off by default:
 - **`level`** — a level meter beside the mic (the same smoothed number `Dictate`'s own
   tiny bar already reads, via `on_meter`).
 - **`pulse`** — a small dot, bottom-right of the feed, in the site's one accent color
-  (`--prim`), that grows and shrinks with the live audio — the SAME smoothed number
+  (`--prime`), that grows and shrinks with the live audio — the SAME smoothed number
   `level`'s own bar reads, just shown as a dot instead of a fixed-height bar (2026-10-01,
   the owner's own words: "a little orange dot... pretty small, but then kind of just
   grows, bounces... the size of it pulses with the audio"). While the mic is off, a

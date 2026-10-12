@@ -63,8 +63,8 @@
 	}
 
 	.panel-insert:hover {
-		color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 15%, transparent);
+		color: var(--prime);
+		background: color-mix(in srgb, var(--prime) 15%, transparent);
 	}
 
 	/* Innermost wins — but ⚠ NOT the leaf idiom the other overlays use. A split CONTAINS

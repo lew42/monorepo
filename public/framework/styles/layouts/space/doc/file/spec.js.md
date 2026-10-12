@@ -22,7 +22,7 @@ letter wide.
 Until 2026-08-16 it was `oklch(0.72 0.15 var(--tone, 250) / 0.12)` — a random
 hue every roll, so a retheme moved none of them. `WORDS.tone` now mixes
 whatever `--tone` custom property is inherited (`model.js`'s `TONES`:
-`--ink`, `--subtle`, `--prim`) at 9% with `color-mix(in oklab, …)`. The
+`--ink`, `--subtle`, `--prime`) at 9% with `color-mix(in oklab, …)`. The
 translucency still does its original job — two boxes deep composites
 visibly darker than one, so a random nesting reads at a glance — but every
 colour on the page is now one the theme already owns, and it needs no

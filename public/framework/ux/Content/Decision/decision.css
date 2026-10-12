@@ -19,7 +19,7 @@
 	   tinted ground with a rule on the left; the label names the option they follow. */
 	.ux-content-then {
 		display: flex; flex-direction: column; gap: var(--gap);
-		background: var(--tint, var(--wash)); border-inline-start: 3px solid var(--prim);
+		background: var(--tint, var(--wash)); border-inline-start: 3px solid var(--prime);
 		border-radius: .4em; padding: var(--pad-card, 1em); min-width: 0;
 	}
 	.ux-content-then-label { font-size: .85em; font-weight: 700; color: var(--subtle); }

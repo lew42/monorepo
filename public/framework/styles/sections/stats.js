@@ -12,7 +12,7 @@ const stat = (label, value) =>
 export default (tone = "prim") =>
 	div.c("section-band", () =>
 		div.c("measure flex v gap", () => {
-			p.c("h4", "BY THE NUMBERS").style("color", "var(--eyebrow, var(--prim))");
+			p.c("h4", "BY THE NUMBERS").style("color", "var(--eyebrow, var(--prime))");
 
 			div.c("grid gap auto", () => {
 				stat("npm dependencies", "3");

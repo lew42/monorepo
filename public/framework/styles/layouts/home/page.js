@@ -25,7 +25,7 @@ const media = ratio => div.c("flex v-center h-center", () => icon("image").style
 	.style({ aspectRatio: ratio, borderRadius: "var(--radius)", background: "color-mix(in srgb, currentColor 10%, transparent)" });
 
 const badge = text => span.c("h4 tint pad", text)
-	.style({ "--pad": "0.45em 0.9em", alignSelf: "start", borderRadius: "var(--radius)", color: "var(--eyebrow, var(--prim))" });
+	.style({ "--pad": "0.45em 0.9em", alignSelf: "start", borderRadius: "var(--radius)", color: "var(--eyebrow, var(--prime))" });
 
 const tags = str => div.c("flex gap wrap", () => list(str).forEach(t =>
 	span.c("h4 muted wash pad", t).style({ "--pad": "0.3em 0.7em", borderRadius: "var(--radius)" })))
@@ -91,7 +91,7 @@ export default new Page(demo.layout({
 
 					div.c("flex v gap", () => {
 						div.c("flex gap v-center", () => {
-							icon("circle").style({ color: "var(--prim)", fontSize: "0.55em" });
+							icon("circle").style({ color: "var(--prime)", fontSize: "0.55em" });
 							span.c("h4 muted", home.hero.eyebrow);
 						}).style("--gap", "calc(var(--gap) * 0.6)");
 
@@ -108,7 +108,7 @@ export default new Page(demo.layout({
 						media("4 / 3");
 
 						div.c("surface pad flex v gap", () => {
-							span.c("h1", home.hero.kpi[0]).style("color", "var(--prim-ink)");
+							span.c("h1", home.hero.kpi[0]).style("color", "var(--prime-ink)");
 							span.c("muted", home.hero.kpi[1]);
 						}).style({ "--pad": "calc(var(--pad) * 1.2)", "--gap": "calc(var(--gap) * 0.2)", alignSelf: "start", maxWidth: "18em", marginTop: "-3.5em", marginInlineStart: "calc(var(--flow) * 1.5)" });
 					}).style("--gap", "0");
@@ -143,7 +143,7 @@ export default new Page(demo.layout({
 
 					div.c("grid auto gap", () => home.services.cards.forEach(([glyph, title, blurb, tag]) =>
 						div.c("surface pad flex v gap", () => {
-							div.c("flex v-center h-center tint", () => icon(glyph).style("color", "var(--prim-ink)"))
+							div.c("flex v-center h-center tint", () => icon(glyph).style("color", "var(--prime-ink)"))
 								.style({ flex: "0 0 auto", width: "3em", height: "3em", borderRadius: "var(--radius)" });
 
 							h3(title);
@@ -187,7 +187,7 @@ export default new Page(demo.layout({
 							media("16 / 10");
 
 							div.c("flex gap wrap split", () => {
-								span.c("h4", client).style("color", "var(--eyebrow, var(--prim))");
+								span.c("h4", client).style("color", "var(--eyebrow, var(--prime))");
 								span.c("h4 muted", kind);
 							}).style("--gap", "calc(var(--gap) * 0.5)");
 
@@ -201,7 +201,7 @@ export default new Page(demo.layout({
 				if (this.shows("highlight")) band("", () => div.c("pad flex auto gap", () => {
 
 					div.c("flex v gap", () => {
-						span.c("h4", home.highlight.eyebrow).style("color", "var(--eyebrow, var(--prim))");
+						span.c("h4", home.highlight.eyebrow).style("color", "var(--eyebrow, var(--prime))");
 						h2(home.highlight.title);
 						p.c("muted", home.highlight.blurb);
 
@@ -224,7 +224,7 @@ export default new Page(demo.layout({
 
 					div.c("grid auto gap", () => home.testimonials.cards.forEach(([quote, name, role]) =>
 						div.c("surface pad flex v gap", () => {
-							icon("format_quote").style({ color: "var(--prim-ink)", fontSize: "2em" });
+							icon("format_quote").style({ color: "var(--prime-ink)", fontSize: "2em" });
 							p(quote);
 
 							div.c("flex gap v-center", () => {
@@ -245,7 +245,7 @@ export default new Page(demo.layout({
 
 						div.c("flex v gap", () => home.contact.meta.forEach(([glyph, line]) =>
 							div.c("flex gap v-center", () => {
-								icon(glyph).style("color", "var(--eyebrow, var(--prim))");
+								icon(glyph).style("color", "var(--eyebrow, var(--prime))");
 								span(line);
 							}).style("--gap", "calc(var(--gap) * 0.6)"))).style("--gap", "calc(var(--gap) * 0.5)");
 					}).style("--gap", "var(--gap)");

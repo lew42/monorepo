@@ -31,7 +31,7 @@ Program brief. Group `paging`. The owner's ask is verbatim at the end; this firs
 
 The columns vocabulary already says two of these: `launch` is a child column; `takeover` is `width: "full"`. Reuse them; do not reimplement columns.
 
-**Styles** — the page's own surface. `plain` (the site bg, no frame) · `card` (white, padded, no border, a drop shadow — and then a nav card on it takes a light grey bg so it reads) · `tint` (one subtle step of bg from the parent) · `prim` (a prim-tinted surface) · `dark` (a colour-scheme island). Tokens from `framework.css` (`--shade/--paper/--fill-aNN`, `--prim`, `--surface`); no hex.
+**Styles** — the page's own surface. `plain` (the site bg, no frame) · `card` (white, padded, no border, a drop shadow — and then a nav card on it takes a light grey bg so it reads) · `tint` (one subtle step of bg from the parent) · `prim` (a prim-tinted surface) · `dark` (a colour-scheme island). Tokens from `framework.css` (`--shade/--paper/--fill-aNN`, `--prime`, `--surface`); no hex.
 
 **Sizes** — two axes, five stops each. Content: `xs` a word · `s` a line · `m` a paragraph · `l` a section · `xl` a wall. Layout: `center` (floats centre-centre, the narrow column) · `column` · `wide` · `full`.
 

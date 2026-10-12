@@ -61,7 +61,7 @@ Answered against the one thing actually shown, the pre-existing drawer doc page 
 
 ## Colour and contrast
 1–2. n/a — not shot, so no ratio can be read.
-3. yes, by source — `--fill-a08`, `--line`, `--prim-ink`, `--prim` are all tokens, no literal colours.
+3. yes, by source — `--fill-a08`, `--line`, `--prime-ink`, `--prime` are all tokens, no literal colours.
 4. n/a — not shown.
 5. not measured — no dark-mode shot exists (note 3).
 6. n/a

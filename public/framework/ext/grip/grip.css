@@ -46,7 +46,7 @@
 	.grip::before {
 		content: ""; position: absolute; inset-block: 0; inset-inline-start: 0;
 		width: 2px;
-		background: var(--prim);
+		background: var(--prime);
 		opacity: 0;
 		transition: opacity 0.12s;
 	}
@@ -82,13 +82,13 @@
 		transform: translate(50%, -50%);
 	}
 
-	/* `--prim`, the one affordance colour — same hue as the lit line, the open tab
+	/* `--prime`, the one affordance colour — same hue as the lit line, the open tab
 	   and the lit preset. */
 	.grip-pill {
 		position: absolute; inset-inline-start: 0; top: var(--grip-y, 50%);
 		width: 0.375rem; height: 2rem;
 		transform: translate(-50%, -50%);
-		background: var(--prim);
+		background: var(--prime);
 		border-radius: 999px;
 		box-shadow: 0 1px 4px rgba(0,0,0,0.45);
 		opacity: 0;

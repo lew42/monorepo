@@ -120,7 +120,7 @@ export class Processes {
 
 		return `<svg class="ai2-proc-ram-svg" viewBox="0 0 ${VB_W} ${RAM_H}" preserveAspectRatio="none" aria-hidden="true">
 			<path d="${other_area}" fill="var(--subtle)" fill-opacity="0.35" />
-			<path d="${ours_area}" fill="var(--prim)" fill-opacity="0.75" />
+			<path d="${ours_area}" fill="var(--prime)" fill-opacity="0.75" />
 		</svg>`;
 	}
 
@@ -137,7 +137,7 @@ export class Processes {
 
 		return `<svg class="ai2-proc-cpu-svg" viewBox="0 0 ${VB_W} ${CPU_H}" preserveAspectRatio="none" aria-hidden="true">
 			<path d="M${line(h => h.cpu)}" fill="none" stroke="var(--subtle)" stroke-width="2" vector-effect="non-scaling-stroke" />
-			<path d="M${line(h => h.ours_cpu)}" fill="none" stroke="var(--prim)" stroke-width="2" vector-effect="non-scaling-stroke" />
+			<path d="M${line(h => h.ours_cpu)}" fill="none" stroke="var(--prime)" stroke-width="2" vector-effect="non-scaling-stroke" />
 		</svg>`;
 	}
 

@@ -5,7 +5,7 @@
 	}
 
 	.ux-objects-class {
-		color: var(--prim, #0066cc);
+		color: var(--prime, #0066cc);
 		text-decoration: none;
 		font-weight: 500;
 	}
@@ -45,7 +45,7 @@
 
 	.ux-objects-new:hover {
 		background: var(--bg-hover, #e0e0e0);
-		color: var(--prim, #0066cc);
+		color: var(--prime, #0066cc);
 	}
 
 	.ux-objects-demo {

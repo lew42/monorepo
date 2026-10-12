@@ -13,7 +13,7 @@ Nothing imports it: the callers load it into the tab through an `eval` — `Tab.
 
 - A claim survives the reloads your own edits cause: `sessionStorage` + `reclaim()` on boot in `DevBar.js` — [doc/decisions.md](./doc/decisions.md).
 - `claim.js` reads `View` from `core/View/View.js`, not `/app.js`: DevBar imports it, and the circle only fails on a deep reload — [doc/decisions.md](./doc/decisions.md).
-- A ring on `body` paints nothing (`--prim` lives on `.app`), so it appends inside `.app` — [doc/decisions.md](./doc/decisions.md).
+- A ring on `body` paints nothing (`--prime` lives on `.app`), so it appends inside `.app` — [doc/decisions.md](./doc/decisions.md).
 - Every route change rewrites `document.title`; a `MutationObserver` keeps the 🟠 — [doc/decisions.md](./doc/decisions.md).
 - Nothing releases on its own; a dead session leaves a ring on a tab nobody drives — [doc/decisions.md](./doc/decisions.md). The exception is the dev rail's AI turn, which claims and releases around itself — and so overwrites a claim you made by hand on that tab.
 

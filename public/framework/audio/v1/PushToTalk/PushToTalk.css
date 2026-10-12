@@ -2,5 +2,5 @@
 
 @layer theme {
 	.audio-ptt-btn { user-select: none; touch-action: none; }
-	.audio-ptt-btn.on { background: var(--prim); color: var(--prim-ink); }
+	.audio-ptt-btn.on { background: var(--prime); color: var(--prime-ink); }
 }

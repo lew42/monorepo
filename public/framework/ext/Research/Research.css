@@ -13,7 +13,7 @@
 	.research-head { --flow: 0.8em; }
 	.research-question { font-size: 1.15em; max-width: var(--measure); }
 	.research-status { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.1em 0.6em; font-size: 0.85em; }
-	.research-status.open { border-color: var(--prim); color: var(--prim-ink); }
+	.research-status.open { border-color: var(--prime); color: var(--prime-ink); }
 
 	/* ── the topic tree — deliverable 1, the shape of the dig, above the fold ──
 	   A grid of icon items, one per root, so the whole topic reads as shapes
@@ -27,7 +27,7 @@
 		border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
 		padding: 0.9em 1em; color: inherit; text-decoration: none;
 	}
-	.research-branch:hover { background: var(--tint); border-color: var(--prim); }
+	.research-branch:hover { background: var(--tint); border-color: var(--prime); }
 	.research-branch .research-icon { font-size: 1.8em; }
 	.research-branch-name { font-weight: 600; text-transform: capitalize; }
 	.research-branch-count, .research-tally-line { font-size: 0.85em; }
@@ -64,7 +64,7 @@
 	   a line of their own instead. */
 	.research-main { --flow: 0.4em; flex: 1 1 14em; min-width: 0; max-width: var(--measure); }
 
-	.research-icon { font-size: 2.4em; color: var(--prim); }
+	.research-icon { font-size: 2.4em; color: var(--prime); }
 	.research-text { font-size: 1.05em; }
 	.research-kind { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; color: var(--subtle); }
 	.research-tags { font-size: 0.85em; }
@@ -77,13 +77,13 @@
 	/* ── deliverable 5 — the topic's own confidence, read before the card opens ── */
 	.research-credence {
 		text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700;
-		color: var(--prim-ink); background: var(--tint); border-radius: var(--radius); padding: 0.05em 0.5em;
+		color: var(--prime-ink); background: var(--tint); border-radius: var(--radius); padding: 0.05em 0.5em;
 	}
 
 	/* A score as a shape, not a number to read. */
 	.research-dots { gap: calc(var(--gap) * 0.25); padding-top: 0.6em; margin-left: auto; }   /* was gap 0.25em - 2026-09-05 ramps */
 	.research-dot { flex: 0 0 auto; width: 0.5em; height: 0.5em; border-radius: 50%; border: 1px solid var(--line); }
-	.research-dot.on { background: var(--prim); border-color: var(--prim); }
+	.research-dot.on { background: var(--prime); border-color: var(--prime); }
 
 	/* The affordance the triangle used to be — `expand_more` is a ligature in the
 	   same Material Icons font the cards already load. */
@@ -107,7 +107,7 @@
 	.research-ref { font-family: var(--mono); font-size: 0.85em; background: var(--wash); border-radius: var(--radius); padding: 0.05em 0.4em; }
 	/* ⚠ A bare `<a>` outside prose keeps the UA blue — the framework's link look is
 	   scoped to `p, li, td…`. A ref is a chip, so it takes the accent, not the blue. */
-	a.research-ref { color: var(--prim-ink); text-decoration: none; align-self: start; }
+	a.research-ref { color: var(--prime-ink); text-decoration: none; align-self: start; }
 	a.research-ref:hover { text-decoration: underline; }
 	.research-img { border-radius: var(--radius); max-height: 24em; }
 
@@ -179,7 +179,7 @@
 	   is scoped to `p, li, td…` on purpose, so every card title on this site has
 	   to opt back in or out. A card title is navigation, so it opts OUT. */
 	.research-card-name { text-transform: capitalize; color: inherit; text-decoration: none; }
-	a.research-card-name:hover { color: var(--prim-ink); text-decoration: underline; text-decoration-color: var(--prim); }
+	a.research-card-name:hover { color: var(--prime-ink); text-decoration: underline; text-decoration-color: var(--prime); }
 	.research-card-kinds, .research-count { font-size: 0.8em; }
 	.research-count { font-weight: 700; }
 	.research-card-kinds { line-height: 1.35; }
@@ -187,7 +187,7 @@
 	/* A topic with no page.js of its own still has a way in: core serves any
 	   `.md` beside it as a page. Listed only until the minion writes one. */
 	.research-card-pages { font-size: 0.85em; gap: calc(var(--gap) * 0.1); padding-top: 0.2em; }   /* was gap 0.1em - 2026-09-05 ramps */
-	.research-card-page { color: var(--prim-ink); text-decoration: none; }
+	.research-card-page { color: var(--prime-ink); text-decoration: none; }
 	.research-card-page:hover { text-decoration: underline; }
 
 	/* The evidence mix as one bar — the only place credences are compared by
@@ -218,7 +218,7 @@
 	.research-stream > :is(h2, .research-more) { grid-column: 1 / -1; margin: 0; }
 	.research-entry { --flow: 0.3em; background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0; }
 	.research-entry-head { --gap: 0.5em; font-size: 0.8em; }
-	.research-entry-head .research-icon { font-size: 1.3em; color: var(--research-cred, var(--prim)); }
+	.research-entry-head .research-icon { font-size: 1.3em; color: var(--research-cred, var(--prime)); }
 	.research-entry-topic { font-weight: 700; text-transform: capitalize; }
 	.research-entry-kind, .research-entry-at { font-size: 0.95em; }
 	.research-entry-title { font-weight: 600; }
@@ -240,7 +240,7 @@
 
 	/* What the section is not showing, and where the rest is. */
 	.research-more { font-size: 0.85em; }
-	a.research-more { color: var(--prim-ink); text-decoration: none; }
+	a.research-more { color: var(--prime-ink); text-decoration: none; }
 	a.research-more:hover { text-decoration: underline; }
 
 	/* ── what the schema refuses, and what it doubts — shown, never hidden ── */

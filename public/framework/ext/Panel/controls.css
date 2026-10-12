@@ -115,8 +115,8 @@
 	   states read as unrelated and an idle button was never really transparent. */
 	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn:hover { color: var(--ink); background: var(--fill-a08); }
 	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn.on {
-		color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 15%, transparent);
+		color: var(--prime);
+		background: color-mix(in srgb, var(--prime) 15%, transparent);
 	}
 
 	/* A button holding a PICTURE is a square; one holding a WORD keeps the padding above.

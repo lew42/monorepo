@@ -30,7 +30,7 @@ function bar_chart(rows){
 			div.c("surface", () => {
 				div().style({
 					width: `${Math.max(2, Math.round((r.mb / max) * 100))}%`,
-					background: "var(--prim)",
+					background: "var(--prime)",
 					height: "1.4em",
 					borderRadius: "var(--radius, 4px)",
 				});

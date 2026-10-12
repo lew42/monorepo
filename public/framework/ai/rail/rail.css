@@ -79,7 +79,7 @@
 	.ai2-news {
 		margin-block-start: 0.35em;
 		padding: 0.15em 0.45em;
-		border-inline-start: 2px solid var(--prim);
+		border-inline-start: 2px solid var(--prime);
 		background: var(--fill-a04);
 		font-size: 0.85em;
 		white-space: nowrap;
