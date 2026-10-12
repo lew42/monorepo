@@ -636,12 +636,12 @@ function buildPagePrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shot
 const RAW_FILE_CALL = /async_rpc\(\s*["'](append|write)["']|method:\s*["'](append|write)["']/;
 export function rawFileCalls(dir) {
 	const pub = path.join(dir, "public"), hits = [];
-	const allowed = rel => rel === "framework/ext/filesystem/FsFile.js" || rel.startsWith("framework/dev/Socket/") || /^framework\/ai\/20/.test(rel);
+	const allowed = rel => rel === "framework/ext/filesystem/FsFile.js" || rel.startsWith("framework/dev/Socket/") || /^framework\/ai\/(sessions\/)?20/.test(rel);   // task archives: old ai/YYYY-MM-DD folders and the sessions store (ai/doc/task-folders.md)
 	(function walk(abs) {
 		for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
 			if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
 			const full = path.join(abs, entry.name), rel = path.relative(pub, full).replaceAll("\\", "/");
-			if (entry.isDirectory()) { if (!/^framework\/ai\/20/.test(rel)) walk(full); continue; }
+			if (entry.isDirectory()) { if (!/^framework\/ai\/(sessions\/)?20/.test(rel)) walk(full); continue; }
 			if (!/\.(m?js)$/.test(entry.name) || allowed(rel)) continue;
 			fs.readFileSync(full, "utf8").split("\n").forEach((line, i) => { if (RAW_FILE_CALL.test(line)) hits.push(`public/${rel}:${i + 1}: ${line.trim()}`); });
 		}
