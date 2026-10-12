@@ -365,6 +365,8 @@ function render_models(data){
 	// Review finding 3 (2026-10-04): the owner's own ask — one row per model, everything about IT —
 	// is the main thing this tab is FOR, so it comes first, above the fold. The value-per-task-kind
 	// analysis below it (which model to use for which JOB) is detail, one scroll down.
+	if (data.accounting) render_accounting(data.accounting);
+	if (data.quick?.rows?.length) render_quick(data.quick);
 	if (data.catalog?.length) render_catalog(data.catalog, data.catalog_note);
 
 	heading("Value per task kind", "Which model to pick for which kind of work — rule tests, probes, and the test library's rungs, not a per-model catalog (that's above).");
@@ -440,6 +442,31 @@ const fmt_tok = n => n == null ? "—" : n >= 1000 ? Math.round(n / 1000) + "K" 
 // Catalog prices can be a real, published $0 (a local model, self-hosted) — fmt_usd's own
 // "<$0.001" reads as "almost nothing" for those, so this one says "free" instead.
 const fmt_price = n => n === 0 ? "free" : fmt_usd(n);
+
+function render_accounting(a){
+	heading("Does our log match OpenRouter's bill?", "Two numbers: what OpenRouter says the key has spent, and what Servex logged per agent. The difference is the gap.");
+	md([
+		`- **OpenRouter account:** $${a.account_usd.toFixed(2)}`,
+		`- **Servex ledger (sum of agents):** $${a.ledger_usd.toFixed(2)}`,
+		`- **Difference:** ${a.difference_usd >= 0 ? "ledger is $" + a.difference_usd.toFixed(2) + " above the account" : "$" + (-a.difference_usd).toFixed(2) + " is on the account but in no agent row"} (as of ${a.at.slice(0, 10)})`,
+		`- Cause of the overcount: overlapping agents each booked the same key-total change ($${a.key_diff_repeat_usd.toFixed(2)} repeated). Fixed going forward in \`Agents.js\` (the change is now split). Detail: [openrouter-gap.md](/framework/ai/sessions/doc/cost/openrouter-gap.md)`,
+	].join("\n"));
+}
+
+function render_quick(q){
+	heading("Known-answer tests", `${q.tasks.length} small tasks (code edits, classification, a summary with required facts, extraction, reasoning) whose answers a script checks. Same prompt to each model at two thinking levels; cost is OpenRouter's own figure. Rerun: node Servex/ext/openrouter/evals/quick.mjs`);
+	new DataGrid({
+		columns: [
+			{ key: "model", label: "Model", min: 200, width: 240 },
+			{ key: "effort", label: "Thinking", min: 80 },
+			{ key: "passed", label: "Passed", type: "number", min: 70, filter: false },
+			{ key: "of", label: "Of", type: "number", min: 50, filter: false },
+			{ key: "seconds", label: "Seconds each", type: "number", min: 100, filter: false },
+			{ key: "cost_usd", label: "Total $", type: "number", min: 80, format: v => "$" + v.toFixed(4), filter: false },
+		],
+		rows: q.rows,
+	}).ac("wide").style("--datagrid-height", "none");
+}
 
 function render_catalog(rows, note){
 	heading("Every model, one row each", "Provider, context window, price (including a cached read), and our own test scores on the same prompt. Click a header to sort; the controls above the grid filter it.");

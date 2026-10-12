@@ -236,6 +236,7 @@ field yet; it's documented here for whoever builds that next, not built now.
   best value, for which kind of task" (the `kinds`/`ladder` keys); `catalog.mjs` is "one row per
   model we use or tested" (the `catalog` key: provider, context, price incl. a cached read, our own
   test scores) — each only ever touches its own keys. Re-run either after its own source changes.
+- [`evals/quick.mjs`](./evals/quick.mjs) — known-answer tests: 8 tiny tasks a script checks, per model x thinking level, with OpenRouter's own cost (about 3 cents a full run). Results in `quick-results.jsonl`; `--table` publishes them to the Models tab. `Server/openrouter-gap.mjs --publish` does the same for the account-vs-ledger numbers.
 - [`evals/websearch.mjs`](./evals/websearch.mjs) — does WebSearch/WebFetch on a proxied minion
   ever reach Anthropic, and who pays for WebFetch's own summary call. [`gaps.md`](./gaps.md)
   has the answer.
