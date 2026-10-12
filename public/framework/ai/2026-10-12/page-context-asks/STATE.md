@@ -18,7 +18,7 @@ Asks [#6 and #7](/framework/core/Page/doc/asks.md), both built. Requirements: [r
 - ⚠ A weight on an Item or card is only a property; there is no `weight.jsonl` for objects that are not pages.
 
 ## Review round 1 (fresh Opus reviewer, verdict fix): answered
-- Finding 1 (shots were the main tree, not this branch): re-shot from the worktree on a private port. [proof/](/framework/ai/2026-10-12/page-context-asks/proof/) holds `weighted-order.txt` (the ranked order and sizes) and `weighted-400/1200/1920/3440.png`, none with horizontal scroll and no page errors; layout-check sheets for the weight, ai and dev pages sit beside them.
+- Finding 1 (shots were the main tree, not this branch): re-shot from the worktree on a private port. [proof/](/framework/ai/2026-10-12/page-context-asks/proof/) holds `weighted-order.txt` (the ranked order and sizes) and `weighted-400/1200/1920/3440.png`, none with horizontal scroll and no page errors. layout-check sheets for the ai and dev pages sit beside them; the weight page's own layout-check came out blank on the static private server (it times out before the page finishes loading there), so its four shots are the probe's screenshots instead.
 - Finding 2 (smoke): `proof/smoke.txt` is a run against a static private server, which has no WebSocket, so its only failures are `Socket.js` handshakes. The real smoke is the one `merge.mjs` runs on the branch's own dev server.
 - Finding 3 (grouped lists lose their groups): fixed. `PageWeight.apply` now ranks inside each group and leaves the headings in place (`proof/grouped-order.txt`).
 - Finding 4 (#6 reads done): asks.md now says "partly".
