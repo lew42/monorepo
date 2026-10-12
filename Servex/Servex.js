@@ -444,7 +444,8 @@ export default class Servex extends Events {
             name: "whisper", log: this.log, model, port,
             command: path.join(home, "bin", "whisper-server.exe"),
             args: ["-m", model, "--host", "127.0.0.1", "--port", String(port),
-                "--vad", "--vad-model", path.join(home, "models", "ggml-silero-v5.1.2.bin")]
+                "--vad", "--vad-model", path.join(home, "models", "ggml-silero-v5.1.2.bin")],
+            detach: true   // outlives Servex like the dev servers: a restart no longer kills it and reloads the model (~14 s, every open Dictate fails) — Process.Whisper adopts it
         });
 
         this.processes.set("whisper", runner);

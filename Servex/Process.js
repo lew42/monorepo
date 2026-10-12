@@ -44,7 +44,8 @@ const alive = pid => { try { process.kill(pid, 0); return true; } catch { return
  * `<name>` log as before; and `procs/<name>.json` records its pid. The next
  * Servex ADOPTS it (`adopt()`): the pid is alive and the port answers, so it
  * is ours — its file says Servex started it — and stop() still kills it by
- * pid. A port held with no file is still a stranger. Whisper stays attached. */
+ * pid. A port held with no file is still a stranger. Whisper is detached too
+ * (since 2026-10-12): a Servex restart used to kill it and reload the model. */
 export default class Process extends Events {
 
     initialize(){
@@ -346,6 +347,9 @@ Process.Whisper = class Whisper extends Process {
 
         if (!fs.existsSync(this.command) || !fs.existsSync(this.model)) return this.settle("not-installed",
             `whisper-server is not installed (looked for ${this.command}) — ux/Dictate will fall back to the browser engine.`);
+
+        // DETACHED (Servex.whisper): a whisper-server the last Servex started is ours again, not a stranger. Without this a Servex restart killed it and the model took ~14 s to reload under every open Dictate (Server/doc/transcription-crash.md).
+        if (this.detach && await this.adopt()) return this.status;
 
         if (await this.stranger()) return this.settle("already-running",
             `whisper-server is already answering on 127.0.0.1:${this.port} — leaving it alone. Servex only ever stops a process it started.`);
