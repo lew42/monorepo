@@ -1,4 +1,4 @@
-# Page.class.js split plan (plan only, nothing moved)
+# Page.class.js split plan (steps 1-4 done 2026-10-12: 2270 → 1315 lines; see [STATE](/framework/ai/2026-10-12/page-split-1/STATE.md))
 
 **Answer to "is 2,000 lines a mistake?"** Half of it is comments. `Page.class.js` is 2,270 lines: **1,027 code, 926 comment (40%), 317 blank**, 150 methods. And ~270 lines are already four helper classes living in the same file. Re-measure any time: `node public/framework/core/Page/doc/split-measure.mjs --callers` (per method: code/comment lines and how many repo files mention the name; generic names like `set`/`get`/`add` over-count, so judge those by hand).
 
@@ -39,10 +39,10 @@ Held by reference, the way `prefs()` already does it: `columns(o){ return new th
 
 ## Order, lowest risk first
 
-1. ⬜ **Comments first** (owner, 2026-10-12: a comment is a pointer, not an essay). 97 blocks of 4+ lines, 772 lines: 37 history to `doc/decisions.md`, 26 traps (keep one warning line, story to `doc/watch-out.md`), 12 banners (title only), 21 explanations (one line, rest to the topic doc), 1 obsolete. About -660 lines, zero behaviour risk, and every later move gets cheaper. Per-block table: [comment-plan.md](./comment-plan.md); script `doc/comment-blocks.mjs`.
-2. ⬜ **Already-classes out** (`Reader`, `Listing`, `Prefs`, `PageChildren`): ~260 lines, pure move, one attach line each stays. Risk: none (`Page.Reader` etc. keep the same names; only `loaded_listing` has outside callers, 2).
-3. ⬜ **Related** (52 lines): no outside callers, only `related_aside` is reached via render. Risk: low.
-4. ⬜ **Previews/walls** (150): callers `previews` (212 files mention it, mostly page.js declarations of the word, so keep the `previews()` facade), `wall_rungs` 1. Risk: low-medium.
+1. ✅ **Comments first** (owner, 2026-10-12: a comment is a pointer, not an essay). 97 blocks of 4+ lines, 772 lines: 37 history to `doc/decisions.md`, 26 traps (keep one warning line, story to `doc/watch-out.md`), 12 banners (title only), 21 explanations (one line, rest to the topic doc), 1 obsolete. About -660 lines, zero behaviour risk, and every later move gets cheaper. Per-block table: [comment-plan.md](./comment-plan.md); script `doc/comment-blocks.mjs`.
+2. ✅ **Already-classes out** (`Reader`, `Listing`, `Prefs`, `PageChildren`): ~260 lines, pure move, one attach line each stays. Risk: none (`Page.Reader` etc. keep the same names; only `loaded_listing` has outside callers, 2).
+3. ✅ **Related** (52 lines): no outside callers, only `related_aside` is reached via render. Risk: low.
+4. ✅ **Previews/walls** (150): callers `previews` (212 files mention it, mostly page.js declarations of the word, so keep the `previews()` facade), `wall_rungs` 1. Risk: low-medium.
 5. ⬜ **Columns** (296): 74 mentions of `columns(` in page.js files; keep `columns()`, `column()`, `column_host` as facades. Biggest comment share (163) so shrinks the file most. Risk: medium, needs the `/imagine/paging` and Finder pages checked at the four widths.
 6. ⬜ **Links** (200): `open_link`/`swap_link` called from card.js, markdown open pages. Risk: medium (click routing, reload on deep link).
 7. ⬜ **Jsonl** (470): the core path of every page, replay order matters, `set()` calls it. Do last; risk: high; run `check_page` on a sample of pages and the page tool (`page-tool-2026-10-09.md`).
@@ -51,4 +51,4 @@ Held by reference, the way `prefs()` already does it: `columns(o){ return new th
 
 `set`/`get`/`add`/`child`/`render`/`activate`: hundreds of callers and they ARE the Page. Leave them.
 
-Plan only; executing is a later task, one step per commit.
+Steps 1-4 executed 2026-10-12, one commit each; 5-7 are a later task. Step 2 deviation: the 5 listing statics stay on Page (they use `Page.*` state). Step 4: `preview*` stay as facades because pages override them.

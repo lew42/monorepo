@@ -100,3 +100,16 @@ exactly two of the three shapes a page can be:
    (`ext/Doc/Doc.css`'s `.page.doc-page`). A `related_drawn` flag is how the three
    call sites agree on which one of them already drew it, so `activate()`'s fallback
    never double-draws shape 1 or 2. `../decisions.md` has the fuller record.
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### Is there already a heading with this word ON MY OWN VIEW? Unlike ext/t
+
+*was Page.class.js line 1478*
+
+Is there already a heading with this word ON MY OWN VIEW? Unlike ext/toc's
+headings (scanned before content() has drawn any), the aside is always
+appended AFTER whatever it sits beside, so the check can run synchronously
+against the real DOM — no microtask needed.

@@ -154,3 +154,36 @@ set(obj){   // a page.jsonl line
 **Recommended order, each step a small merge, all behind the same approval as the `children` migration:** (a) the `content` accessor and the kinds above; (b) delete `Page`'s second `assign` call and its duplicate `assign` method (`Item` has the same line); (c) `page.line()` for the log bookkeeping; (d) the words as accessors; (e) delete `Page.set`. The alternative, a single `set(value, { construct: true })` verb, is recorded and rejected: a flag that switches a method between "call" and "overwrite" is two verbs hiding in one name.
 
 The old slice that proved the idea: [parts/doc/architecture.md](parts/doc/architecture.md). Related: [data-children.md](data-children.md) (children that live in data), [architecture.md](architecture.md).
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### A CONTENT LIVELIST, DRAWN — the one reusable view (deliverable 6,
+
+*was Page.class.js line 1322*
+
+════ A CONTENT LIVELIST, DRAWN — the one reusable view (deliverable 6,
+page-item-design.md). One row per item, each item's own `.view`; drag to
+reorder with `ext/Draggable/Sortable` (dynamic import — core never imports
+ext); redrawn from the list's own events, never polled.
+⚠ `item: { items: list, … }` on the CONTAINER's own Sortable, and `item: item`
+  (the real content Item) on each ROW's — `Sortable.release()` (ext/Draggable)
+  commits a drop through `where.list.item.items.move(dragged, { from:
+  dragged.parent?.items })`, a name every OTHER caller of Sortable (Panel, the
+  editor's blocks) happens to have chosen for its own list too. `content`'s
+  real name everywhere else is `content`; `items` here is only that one seam,
+  confined to this method. A page has no `.items` of its own, so `from`
+  resolves to `undefined` and `move()` reorders within THIS list — exactly
+  right for a flat list with no nesting.
+
+### build_row deliberately builds its chip with View.captor nulled (it is
+
+*was Page.class.js line 1385*
+
+`build_row` deliberately builds its chip with `View.captor` nulled (it is
+also used inline, mid-sentence, where auto-appending would land it in the
+wrong place) and hands back the raw element — appended here by hand, not by
+an implicit arrow return, because this callback also needs to run
+`draw_body()` after it without that second call's return value (`undefined`,
+a block body) overwriting the chip as what gets appended.

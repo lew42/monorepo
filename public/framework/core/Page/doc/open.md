@@ -45,3 +45,23 @@ correctly in all three places.
 - **Hidden pages still load their iframes.** A page's ancestors stay in the DOM, hidden,
   so the demo sets an iframe's url only once it is on screen (it nested itself 160 deep
   otherwise).
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### A .md file's page when nothing nearer claims it: its module's md/. The
+
+*was Page.class.js line 1008*
+
+A .md file's page when nothing nearer claims it: its module's md/. The module is
+the folder above `doc/`, or else the file's own folder.
+
+    /framework/ext/Panel/readme.md    → /framework/ext/Panel/md/readme/
+    /framework/ext/Panel/doc/flow.md  → /framework/ext/Panel/md/doc/flow/
+
+⚠ THE TRAILING SLASH IS LOAD-BEARING. ext/Panel documents `flow.js` in
+  `doc/file/flow.js.md`, and a url ending in `.js` is answered as a FILE — a 404,
+  never the app. Ending in `/`, every route reaches the SPA fallback.
+⚠ A guess: 68 of 2,276 .md files (13 folders with no page.js, measured 2026-09-24)
+  sit where no page is, and a link to one 404s.

@@ -1,4 +1,4 @@
-# Page.class.js comment blocks: what to do with each (plan only)
+# Page.class.js comment blocks: what to do with each (DONE 2026-10-12 by [comment-move.mjs](./comment-move.mjs); line numbers below are the old ones)
 
 Rule (owner, 2026-10-12): a comment is a pointer, not an essay: one line where the code would surprise, ideally pointing at a doc; history and lessons go to `doc/`. Regenerate: `node public/framework/core/Page/doc/comment-blocks.mjs --md`. The class is a first guess by keyword (dates, "was", "renamed" = history; the warning sign = trap), so skim before moving. Whole-file census: `node public/framework/code/patterns/comment-census.mjs` (934 comment lines; 772 of them sit in the 97 blocks of 4+ lines below).
 

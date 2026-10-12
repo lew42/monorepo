@@ -94,3 +94,39 @@ export default new Page({
   and watch the box. Every value has a url.
 - [The layout catalogue](/framework/core/Layout/) — what `arrangement` points at.
 - [`Frame.js`](/framework/core/Page/Frame.js) — the box the words open, one method per piece.
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### THE SIX PAGE WORDS
+
+*was Page.class.js line 674*
+
+════ THE SIX PAGE WORDS ══════════════════════════════════════════════════
+`navigation` `width` `arrangement` `surface` `background` `type_size` — the
+six things a page can say about its own shape, resolved ONCE here so nothing
+downstream can disagree about what the page said. `Frame.js` is the box they
+open; the map from each word to what core already did is
+`ai/2026-09-06/graduate-plan/plan.md` until doc/ catches up.
+
+EVERY DEFAULT IS `undefined`: a word nobody says writes no class at all, which
+is what lets the whole feature land without moving a pixel on any page.
+
+⚠ IDEMPOTENT ON PURPOSE. `naming()` runs twice for an adopted page — once in the
+  constructor and again from `add()` — so every line here has to survive being
+  run on its own output. `??=` does; so does the ALIAS pass, because ALIAS has
+  no entry for its own answers (`card` and `tint` are not keys).
+⚠ THERE IS NO LINE FOR `type`. `type` is already a page METHOD
+  (`generator/page.js:261`); the page's key is `type_size` everywhere except
+  inside a `mode` object, where it is data and shadows nothing.
+
+### Quietly — declaring a child is not a live edit. A stub already holding
+
+*was Page.class.js line 777*
+
+Quietly — declaring a child is not a live edit. A stub already holding this
+name (an earlier `file`/`tab` line, or `declare()`'s own string form) is
+REPLACED in place (`List.replace`, never announces); otherwise this is
+a fresh insert. `page.pages` (above) is the real storage; `this.children`
+above is only the Map-shaped view over it.

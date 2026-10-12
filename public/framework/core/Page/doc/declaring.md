@@ -223,3 +223,40 @@ does not). Fetch it once at boot, in parallel with the root page.
 **The point of building it is not to stop typing `children`. It is to stop a nav
 having to *execute* the pages it lists** — which is still what a nav pays for,
 `depth` having only bounded it to the levels actually drawn. At ~160 pages, not yet.
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### Memory, then route(), then a filesystem probe. One of the two places a
+
+*was Page.class.js line 825*
+
+Memory, then route(), then a filesystem probe. One of the two places `app` is
+handed down — `render_column()` is the other, for the child nothing routes to.
+route() sees undeclared names only, so it cannot shadow a child.
+
+`levels` is how deep the child then loads: my remaining budget while I walk my
+own subtree, and NOTHING when the Router walked in here — which means the child
+loads as deep as its own `depth` reaches. doc/declaring.md.
+
+### My folder's own page.jsonl (listing() above), IF something already loa
+
+*was Page.class.js line 857*
+
+My folder's own page.jsonl (listing() above), IF something already loaded it,
+says which file makes `name`, so the probe that would 404 is skipped. Not
+fetched here: every folder the Router walks would pay a fetch, and a folder
+with no log a 404. A name it does not list keeps the probe order below: a
+stale list must never hide a real page.
+
+### How deep my declared subtree is FETCHED, and the one number that decid
+
+*was Page.class.js line 1938*
+
+How deep my declared subtree is FETCHED, and the one number that decides what a
+url costs. `1` — my children: a card wall, a rail, my own list in a sidebar.
+`2` — theirs too, which is what `walls()` and a two-level sidebar draw, and the
+default. A page that only previews its children says `depth: 1`; one that draws
+none of them says `0`. A field, so a declared `depth:` still wins (it
+initializes before `assign()`). doc/declaring.md.
