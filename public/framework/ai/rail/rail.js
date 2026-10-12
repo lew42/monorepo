@@ -3,7 +3,7 @@ import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
 import { Groups } from "./groups.js";
 import { Tasks } from "../cards/Tasks.js";
-import { Faces } from "../cards/faces.js";
+import { Faces } from "../cards/Faces.js";
 import { Activity } from "../cards/Activity.js";
 import { plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
 import { Compose } from "../cards/Compose.js";

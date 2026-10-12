@@ -1,7 +1,7 @@
 import { div, span, small, a, textarea, button } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
-import { Faces } from "../cards/faces.js";
+import { Faces } from "../cards/Faces.js";
 import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
 import { Fold } from "../cards/Fold.js";
 import { NeedsRule } from "./NeedsRule.js";

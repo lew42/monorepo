@@ -1,6 +1,6 @@
 import { div, span, small, p, a, h3, label, input, details, summary } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
-import { Faces } from "../cards/faces.js";
+import { Faces } from "../cards/Faces.js";
 import { money } from "/framework/ext/AITask/cost.js";
 
 /**

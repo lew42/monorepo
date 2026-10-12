@@ -1,6 +1,6 @@
 import { div, span, small, a, p, button } from "/app.js";
 import { plain } from "../rail/inbox.js";
-import { Faces } from "./faces.js";
+import { Faces } from "./Faces.js";
 import { money } from "/framework/ext/AITask/cost.js";
 import { Tasks } from "./Tasks.js";
 

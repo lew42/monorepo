@@ -1,2 +1,2 @@
-// Moved to ai/cards/faces.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
-export * from "../ai/cards/faces.js";
+// Moved to ai/cards/Faces.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+export * from "../ai/cards/Faces.js";

@@ -1,6 +1,6 @@
 import { div, p, pre, button, details, summary, section, span, small, a } from "/framework/core/View/View.js";
 import { icon } from "/framework/core/View/View.js";
-import { Faces } from "./faces.js";
+import { Faces } from "./Faces.js";
 import { plain, headline } from "../rail/inbox.js";
 import { money, cost_of } from "/framework/ext/AITask/cost.js";
 import { PageLog } from "/framework/core/Page/Log.js";

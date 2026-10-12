@@ -1,5 +1,5 @@
 import { div, a, span, small, button } from "/app.js";
-import { Faces } from "../cards/faces.js";
+import { Faces } from "../cards/Faces.js";
 import { task_words } from "./groups.js";
 
 const STATUS_LABEL = { progress: "in progress", done: "done", failed: "stalled — Servex could not fix it; take a look" };

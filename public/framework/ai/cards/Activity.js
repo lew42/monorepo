@@ -1,5 +1,5 @@
 import { div, span, small } from "/app.js";
-import { Faces } from "./faces.js";
+import { Faces } from "./Faces.js";
 import { plain, headline } from "../rail/inbox.js";
 import { Fold } from "./Fold.js";
 import { Outline } from "./Outline.js";

@@ -1,6 +1,6 @@
 import { Page, Doc, div, span, small, p, a, drawer } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
-import { Faces } from "./faces.js";
+import { Faces } from "./Faces.js";
 import { Activity } from "./Activity.js";
 import { plain } from "../rail/inbox.js";
 
