@@ -280,7 +280,7 @@ export default class AISessionRows {
 	/** sort = null (the default: cost weighted by recency, halving every 3 days since last activity) or { key, dir }. */
 	static sort_rows(rows, sort){
 		if (!sort){   // one list, newest activity first: a running session is the newest, so it sits at the top
-			const now = Date.now(), t = r => AISessionRows.is_in_flight(r) ? now : Date.parse(r.last_activity ?? 0) || 0;
+			const now = Date.now(), t = r => AISessionRows.is_in_flight(r) || AISessionRows.WORKING_STATES.has(r.state) ? now : Date.parse(r.last_activity ?? 0) || 0;
 			return rows.slice().sort((x, y) => t(y) - t(x));
 		}
 		const get = AISessionRows.SORT_VALUE[sort.key], sign = sort.dir === "asc" ? 1 : -1;
