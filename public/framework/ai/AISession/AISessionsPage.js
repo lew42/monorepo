@@ -9,6 +9,7 @@ import AISessionLive from "./AISessionLive.js";
 import AISession from "./AISession.js";
 import AISessionDetail from "./AISessionDetail.js";
 import AISessionFlags from "./AISessionFlags.js";
+import StoreFolder from "./StoreFolder.js";
 
 const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
 View.stylesheet(sessions_dir, "sessions.css");
@@ -431,6 +432,7 @@ export default class AISessionsPage extends Page {
 	route(id){
 		if (id.includes(".")) return;   // a stray asset request, not a session id
 		if (id === "doc" || id === "readme") return this.docs_page(id);
+		if (/^\d{4}$/.test(id)) return new StoreFolder({ home: this, segs: [id] });   // the store by path: YYYY/MM/DD/<session>/<task>/ (ai/doc/task-folders.md)
 		return new AISessionDetail({ home: this, id });
 	}
 

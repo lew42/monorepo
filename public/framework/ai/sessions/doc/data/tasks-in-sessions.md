@@ -1,5 +1,7 @@
 # Tasks live inside their session (2026-10-10)
 
+**Superseded 2026-10-12** by [`ai/doc/task-folders.md`](../../../doc/task-folders.md): every task (not only finished, joined ones) moves into the store, the folder keeps the task's name (`<session>/<slug>/`, not `task/`), and `Server/TaskMove.mjs` did the move. The record below is the first pass.
+
 **Ask (owner):** if a task belongs to a session, put it in the session's folder; lose nothing. Brief: `2026-10-10/tasks-into-sessions/requirements.md`.
 
 ## What happens

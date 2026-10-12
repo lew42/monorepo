@@ -1,23 +1,23 @@
 ---
 name: new-task
-description: Open a task — create its ai/<date>/<slug>/ dir, open its task.jsonl log, and give it presence on the owner's dashboard. Run this BEFORE THE FIRST EDIT in ANY Claude session in this repo — building, changing, fixing, adding, refactoring, restyling, a doc pass, a rename, a demo, a bug fix — and when an agent embarks on a distinct sub-project. Also on "new task" / "start a task". Not needed to answer a question, read, investigate, or prepare — but the moment that turns into an edit, run it. Unsure? Run it.
+description: Open a task — create its folder with node Server/TaskDirs.mjs --new <slug>, open its task.jsonl log, and give it presence on the owner's dashboard. Run this BEFORE THE FIRST EDIT in ANY Claude session in this repo — building, changing, fixing, adding, refactoring, restyling, a doc pass, a rename, a demo, a bug fix — and when an agent embarks on a distinct sub-project. Also on "new task" / "start a task". Not needed to answer a question, read, investigate, or prepare — but the moment that turns into an edit, run it. Unsure? Run it.
 ---
 
 # New task
 
-Anything that changes the repo is a **task**: a dir at
-`public/framework/ai/<YYYY-MM-DD>/<slug>/` whose append-only `task.jsonl` the day dashboard (`/framework/ai/<date>/`) renders live. Open it **before the first edit**. Format: `ext/JSONL/readme.md`; viewer: `ext/AITask/readme.md`.
+Anything that changes the repo is a **task**: a folder inside your session's folder in the sessions store,
+`public/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/`, whose append-only `task.jsonl` the board renders live. **Never type the path:** `node Server/TaskDirs.mjs --new <slug>` makes it and prints it (your session id comes from `$CLAUDE_CODE_SESSION_ID`; a child task: add `--parent <parent dir>`). Why: [`ai/doc/task-folders.md`](/framework/ai/doc/task-folders.md). The old flat `ai/<YYYY-MM-DD>/` day folders are retired; an old path still works for appends (`append.mjs` follows it). Open it **before the first edit**. Format: `ext/JSONL/readme.md`; viewer: `ext/AITask/readme.md`.
 
 If your brief names a task dir, Servex already opened it: log there and skip step 1.
 
 ## 1. Create the dir
 
 - Slug: kebab-case, matching the VS Code tab title — `Get-Process Code -ErrorAction SilentlyContinue | Where-Object MainWindowTitle | Select-Object -ExpandProperty MainWindowTitle` lists the windows; yours matches this conversation's topic.
-- ⚠ **Build it at an ABSOLUTE path**, or `cd` to the repo root in the same call. The Bash tool's
+- ⚠ **Run it from the repo root** (`cd` to it in the same call). The Bash tool's
   cwd persists between calls, so an earlier `cd` into a module silently puts the whole task dir
   under it — `mkdir -p` cannot warn you, and a minion dispatched to read the brief finds nothing.
 - `requirements.md` — the ask **verbatim**, plus scope and file-ownership fences if agents will run.
-- **A brief made from dictation is made with `refine.mjs`, not by hand-summarizing.** If the request started as a long spoken or typed dictation, run `node Server/refine.mjs <raw.txt | date:line> --out ai/<date>/<slug>/runs/<name>` first — it turns the raw talking into a checked `brief.md`, and its `coverage.md` proves nothing important was silently dropped or turned into a stricter rule on the way. Use `brief.md`'s numbered asks as `requirements.md`'s own content, and keep `coverage.md` sitting right beside `requirements.md` (`Server/doc/refine.md`).
+- **A brief made from dictation is made with `refine.mjs`, not by hand-summarizing.** If the request started as a long spoken or typed dictation, run `node Server/refine.mjs <raw.txt | date:line> --out <task dir>/runs/<name>` first — it turns the raw talking into a checked `brief.md`, and its `coverage.md` proves nothing important was silently dropped or turned into a stricter rule on the way. Use `brief.md`'s numbered asks as `requirements.md`'s own content, and keep `coverage.md` sitting right beside `requirements.md` (`Server/doc/refine.md`).
 - ⚠ Scratch (probes, transcripts, intermediate JSON) goes in the session scratchpad, not the repo — and that
   scratchpad is **shared by every agent in the session**: name scripts after your task (`md-routes-probe.mjs`),
   or a sibling minion overwrites your `probe.mjs` mid-run (2026-08-18, it happened).
@@ -42,7 +42,7 @@ on any other task's log.
 
 **Keep state current as you go, so losing this session loses nothing.** When a step starts, append `{"assign": {"step": N, "now": "<what is happening inside it>"}}`. A fresh agent must be able to continue from the log plus the readme alone. Land with `step` at the last index.
 
-- `../day.jsonl` — the DAY's log, `ai/<date>/day.jsonl`, beside your task dir (⚠ not the stale `ai/day.jsonl` one level up, which still looks current when tailed — a line went there 2026-08-29). Same route as your task log — `node .claude/hooks/append.mjs ai/<date>/day.jsonl <lines.json>` — which creates `day.jsonl` itself the first time a day opens; nothing to `mkdir` by hand (the day's own dir already exists, since your task dir sits inside it):
+- `day.jsonl` — the DAY's log, in the day's folder of the store (`node Server/TaskDirs.mjs --day` prints it, e.g. `public/framework/ai/sessions/2026/10/12`; ⚠ not the stale `ai/day.jsonl`). Same route as your task log — `node .claude/hooks/append.mjs <day dir>/day.jsonl <lines.json>`:
 
 ```json
 {"log": {"at": "<ISO>", "task": "<slug>", "msg": "task opened — <one line>"}}
@@ -50,7 +50,7 @@ on any other task's log.
 
 ## 2. Register + usage
 
-- Leave the task dir **undeclared** — do NOT add it to the day page's `children:` unless the dir has its own `page.js` (a declared child skips the dynamic `route()` and 404s). The dashboard enumerates task dirs from `directory.json` either way.
+- Leave the task dir **undeclared**: the sessions store routes every folder by its path (`/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/`), and the board lists tasks with `TaskDirs.list()`.
 - `window.before` is the 5-hour fraction from `node Server/usage-now.mjs` (it prints a percent; divide by 100). Never run the usage script or write `usage.json` yourself: Servex refreshes it every 15 minutes.
 
 ## 3. While working, log

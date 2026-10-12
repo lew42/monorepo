@@ -19,6 +19,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import TaskDirs from "../../../Server/TaskDirs.mjs";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../../../..");
 const AI = path.join(root, "public/framework/ai");
@@ -39,10 +40,9 @@ const append = (file, entry) => fs.appendFileSync(file, JSON.stringify(entry) + 
 
 /* The newest mastermind run that has not landed: ai/<date>/mastermind-<slug>/task.jsonl. */
 function run(){
-	const days = fs.readdirSync(AI).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().reverse();
-	for (const day of days) for (const slug of fs.readdirSync(path.join(AI, day)).filter(s => s.startsWith("mastermind-")).sort().reverse()) {
-		const file = path.join(AI, day, slug, "task.jsonl");
-		if (!fs.existsSync(file)) continue;
+	// Both shapes, newest day first (Server/TaskDirs.mjs; ai/doc/task-folders.md).
+	for (const t of TaskDirs.list(3).filter(t => t.slug.startsWith("mastermind-"))) {
+		const file = path.join(t.dir, "task.jsonl");
 		const state = Object.assign({}, ...read(file).filter(e => e.assign).map(e => e.assign));
 		if (!state.landed_at) return file;
 	}

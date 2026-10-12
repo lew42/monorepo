@@ -36,6 +36,10 @@ The script is safe to run again, and never overwrites a file. The one thing it d
 
 Some cards (a Servex agent's `page.jsonl`) live in the task date folders, `ai/2026/10/03/session-<id8>/` and `ai/2026-10-03/<task>/`. They are cards, not session records. The Sessions page lists them from `sessions.json` and opens them in the same detail view. The full table of patterns is in [`patterns.md`](patterns.md).
 
+### Tasks live here too (2026-10-12)
+
+A task folder sits inside the session that ran it, `YYYY/MM/DD/<session>/<task>/`, routed by its path (`AISession/StoreFolder.js`). Only `Server/TaskDirs.mjs` builds that path. [../../../doc/task-folders.md](../../../doc/task-folders.md).
+
 ### Decided and not yet built
 
 - **Children inside the parent's folder** (`parent/child/`): the owner's rule (2026-10-08 evening). A child can start on a later day than its parent, so the child's folder sits under the parent's day, not its own. This needs the index to carry the path rather than the day. Queued; the grid already nests children from `session-tree.json`.

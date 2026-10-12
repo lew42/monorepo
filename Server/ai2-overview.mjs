@@ -71,21 +71,13 @@ const CONCEPTS = [
 const FIELDS = ["request", "requested_at", "landed_at", "outcome", "cost_usd", "group", "links", "session_id"];
 
 function findTaskFiles() {
-	const out = [];
-	for (const dateDir of fs.readdirSync(AI_DIR, { withFileTypes: true })) {
-		if (!dateDir.isDirectory() || !/^\d{4}-\d{2}-\d{2}$/.test(dateDir.name)) continue;
-		const dateDirPath = path.join(AI_DIR, dateDir.name);
-		for (const slugDir of fs.readdirSync(dateDirPath, { withFileTypes: true })) {
-			if (!slugDir.isDirectory()) continue;
-			const file = path.join(TaskDirs.follow(path.join(dateDirPath, slugDir.name)), "task.jsonl");
-			if (fs.existsSync(file)) out.push({ date: dateDir.name, slug: slugDir.name, file });
-		}
-	}
-	return out;
+	// Every task folder, both shapes (the sessions store and old day folders): TaskDirs is the one place that knows them.
+	return TaskDirs.list(3650).map(t => ({ date: t.day, slug: t.slug, file: path.join(t.dir, "task.jsonl") }));
 }
 
 function readTask({ date, slug, file }) {
-	const task = { date, slug, id: `${date}/${slug}` };
+	// `url`: where the task's page is now (the sessions store or an old day folder) — readers link this, never date/slug.
+	const task = { date, slug, id: `${date}/${slug}`, url: "/" + path.relative(path.join(ROOT, "public"), path.dirname(file)).split(path.sep).join("/") + "/" };
 	let text;
 	try { text = fs.readFileSync(file, "utf8"); } catch { return task; }
 	for (const line of text.split("\n")) {

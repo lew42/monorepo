@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import TaskDirs from "../../Server/TaskDirs.mjs";
 
 /* prompt-relay.mjs — the UserPromptSubmit hook (2026-09-19).
  *
@@ -175,17 +176,11 @@ function echo_context_line(session_id){
 
 // The newest unlanded ai/<date>/mastermind-*/task.jsonl — copied from say.mjs's run().
 function mastermind_inbox() {
-	let days;
-	try { days = fs.readdirSync(AI).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().reverse(); } catch { return null; }
-	for (const day of days) {
-		let slugs;
-		try { slugs = fs.readdirSync(path.join(AI, day)).filter(s => s.startsWith("mastermind-")).sort().reverse(); } catch { continue; }
-		for (const slug of slugs) {
-			const file = path.join(AI, day, slug, "task.jsonl");
-			if (!fs.existsSync(file)) continue;
-			const state = Object.assign({}, ...read(file).filter(e => e.assign).map(e => e.assign));
-			if (!state.landed_at) return file;
-		}
+	// Both shapes, newest day first (Server/TaskDirs.mjs; ai/doc/task-folders.md).
+	for (const t of TaskDirs.list(3).filter(t => t.slug.startsWith("mastermind-"))) {
+		const file = path.join(t.dir, "task.jsonl");
+		const state = Object.assign({}, ...read(file).filter(e => e.assign).map(e => e.assign));
+		if (!state.landed_at) return file;
 	}
 	return null;
 }

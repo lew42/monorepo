@@ -44,7 +44,7 @@ opens as a side peek beside the grid instead of replacing it.
 ## More
 
 - Resume warm, cold or fresh, computed from the session's idle time and context: [doc/data/resumption.md](doc/data/resumption.md) (`Server/SessionResume.mjs`)
-- A finished task lives inside the session that ran it (`<session>/task/`), old addresses still work: [doc/data/tasks-in-sessions.md](doc/data/tasks-in-sessions.md)
+- **Every task lives in this store** (2026-10-12): `YYYY/MM/DD/<session>/<task>/`, made by `node Server/TaskDirs.mjs --new <slug>`; the flat `ai/YYYY-MM-DD/` day folders are retired and their old addresses redirect. Why and how: [../doc/task-folders.md](../doc/task-folders.md) · the 2026-10-10 first pass: [doc/data/tasks-in-sessions.md](doc/data/tasks-in-sessions.md)
 
 Every Sessions doc, by subsystem: [`doc/readme.md`](doc/readme.md).
 
