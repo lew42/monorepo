@@ -42,6 +42,10 @@ export default class AISessionLive {
 
 	/** Fetch every day file at once, then fold them in date order so a later day's snapshot wins (a revived session moves to its newer day). */
 	async load(urls){
+		const today = AISessionLive.ymd(new Date());
+		this.loaded ??= new Set();
+		urls = urls.filter(u => u.includes(today) || !this.loaded.has(u));   // closed days are read once; today's live file is always re-read
+		urls.forEach(u => this.loaded.add(u));
 		const files = await Promise.all(urls.map(u => fetch(u, { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null)));
 		files.forEach(f => this.read(f?.snapshots ?? []));
 		return this.count;

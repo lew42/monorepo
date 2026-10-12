@@ -61,7 +61,8 @@ export default class AISessionsPage extends Page {
 		this.trigger_filter = null; // same shape, for the spend tree's trigger tag
 		const today = new Date();
 		this.date_to = today.toISOString().slice(0, 10);
-		this.date_from = new Date(today.getTime() - 30 * 864e5).toISOString().slice(0, 10);
+		// Newest month first: the window opens at the 1st of this month (at least 7 days back); "show 30 more days" and the From box load older day files on demand.
+		this.date_from = new Date(Math.min(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1), today.getTime() - 6 * 864e5)).toISOString().slice(0, 10);
 		this.last_rows = [];        // the latest merged rows, UNFILTERED: filters and sort redraw from this
 		this.filtered_count = 0;    // the "sessions shown" count
 
@@ -133,8 +134,10 @@ export default class AISessionsPage extends Page {
 		if (!this.$stats) return;
 		this.$stats.empty(() => {
 			if (this.usage) usage_rail(this.usage);
-			small.c("muted sessions-counts", `${this.filtered_count} sessions shown · $${(this.shown_usd ?? 0).toFixed(2)} Claude cost · ${this.date_from} to ${this.date_to}`)
-				.attr("title", "Claude cost is the API-equivalent price of the tokens, summed from the session files. It is not a bill.");
+			small.c("muted sessions-counts", () => {
+				span(`${this.filtered_count} sessions shown · $${(this.shown_usd ?? 0).toFixed(2)} Claude cost · ${this.date_from} to ${this.date_to} · `);
+				button.c("sessions-older", "show 30 more days").attr("title", "Loads the older day files (one small file per day) on demand.").on("click", () => this.set_from(new Date(Date.parse(this.date_from) - 30 * 864e5).toISOString().slice(0, 10)));
+			}).attr("title", "Claude cost is the API-equivalent price of the tokens, summed from the session files. It is not a bill.");
 			const r = this.reconcile;
 			if (r?.account_total_usd != null) small.c("muted sessions-counts", `OpenRouter (real dollars, apart from the Claude cost above): $${r.recorded_verified_usd.toFixed(2)} recorded ($${(r.recorded_key_diff_usd ?? 0).toFixed(2)} of it key-diff, may overlap) · account says $${r.account_total_usd.toFixed(2)} · ${r.gap_total_usd > 0 ? "unattributed OpenRouter $" + r.gap_total_usd.toFixed(2) + " (billed, no session)" : "unattributed OpenRouter $0.00 (the log is $" + (-r.gap_total_usd).toFixed(2) + " above the account: overlapping key-diff estimates, doc/cost/openrouter-gap.md)"}`)
 				.attr("title", `${r.sessions.unverified} older sessions carry $${r.recorded_unverified_usd.toFixed(2)} of unverified numbers (not counted); ${r.sessions.unrecorded} have no recorded cost. This week: account $${r.account_week_usd?.toFixed(2)}, recorded $${r.week.verified_usd.toFixed(2)}.`);
@@ -201,7 +204,8 @@ export default class AISessionsPage extends Page {
 					small.c("muted", "from");
 					const $from = input().attr("type", "date");
 					$from.el.value = this.date_from;
-					$from.on("change", () => { this.date_from = $from.el.value; this.render_rows(); });
+					this.$from = $from;
+					$from.on("change", () => this.set_from($from.el.value));
 					small.c("muted", "to");
 					const $to = input().attr("type", "date");
 					$to.el.value = this.date_to;
@@ -414,6 +418,15 @@ export default class AISessionsPage extends Page {
 			this.draw();
 		} else if (!AISessionLive.socket()) await this.live.load([`${this.url}${today.replace(/-/g, "/")}/index.json`]);   // static host: re-read the file
 		this.live.follow(today);
+	}
+
+	/** Move the window's start; day files older than what is loaded are fetched now (AISessionLive keeps what it already has). */
+	async set_from(from){
+		if (!from) return;
+		this.date_from = from;
+		if (this.$from) this.$from.el.value = from;
+		this.render_rows(); this.render_stats();
+		if (this.live){ await this.live.load(await AISessionLive.days(this.url, from, this.date_to)); this.draw(); }
 	}
 
 	deactivated(){ this.polling = false; this.source?.close(); this.source = null; this.stream_open = false; clearInterval(this.tick); }
