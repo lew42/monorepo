@@ -22,6 +22,7 @@ export default class AISessionConversation {
 	 *  message's time, so pressing it twice refreshes the same stages instead of piling up copies. Never throws. */
 	async refine({ text, at, button }){
 		if (!this.session || !text?.trim()) return;
+		text = AISessionConversation.fit(text);
 		const was = button.textContent;
 		button.disabled = true; button.textContent = "Refining…";
 		try {
@@ -33,6 +34,13 @@ export default class AISessionConversation {
 		} catch (e){ button.textContent = "Refine failed: " + String(e?.message ?? e).slice(0, 60); }
 		button.disabled = false;
 		setTimeout(() => { button.textContent = was; }, 4000);
+	}
+
+	/** `/api/refine` refuses over 20000 characters: keep the most recent words, cut at a sentence start, so a long prompt still refines. */
+	static fit(text, max = 19000){
+		if (text.length <= max) return text;
+		const tail = text.slice(-max), at = tail.search(/[.!?]s+S/);
+		return at < 0 || at > 2000 ? tail : tail.slice(at + 1).trimStart();
 	}
 
 	/** Reduce one transcript line to { role, at, text } | { tools: n } | null. */

@@ -1,0 +1,15 @@
+{"id":348,"module":"voice","topic":"dictate-page-3440","ask":"Create 3440-friendly desktop version of dictate page with visual class hierarchy.","quote":"create a desktop widescreen 3440 friendly version of the dictate page"}
+{"id":359,"module":"voice","topic":"prompt-refinement-system","ask":"Build system to refine rambling prompts into coherent structured UI cards.","quote":"turning a massive rambling prompt into coherent summarized UI card"}
+{"id":360,"module":"voice","topic":"prompt-review-system","ask":"Design system to review and reprocess owner prompts.","quote":"I would like a prompt review process"}
+{"id":361,"module":"voice","topic":"prompt-log-durability","ask":"Make refined prompt logs durable for reprocessing.","quote":"owner wants the prompt record durable for reprocessing"}
+{"id":362,"module":"voice","topic":"efficient-prompt-refinement","ask":"Make prompt refinement system efficient without duplicate data.","quote":"prompt refinement system needs to be as efficient as possible"}
+{"id":364,"module":"voice","topic":"prompt-audit-hook","ask":"Audit prompts without extra effort using hook mechanism.","quote":"any kind of audit of these prompts without extra effort"}
+{"id":366,"module":"voice","topic":"prompt-summaries-card","ask":"Create inbox card showing prompt summaries with reverse chronological timeline.","quote":"a card in the inbox showing prompt summaries"}
+{"id":368,"module":"voice","topic":"real-time-prompt-refinement","ask":"Make prompt refinement happen in real time with mastermind notifications.","quote":"when you spawn an assistant to do prompt refinement it should happen in real time"}
+{"id":370,"module":"voice","topic":"real-time-page-docs","ask":"Document real-time page.jsonl system in CLAUDE.md and architecture.","quote":"make sure we write this down in Claude.md and architecture"}
+{"id":371,"module":"voice","topic":"voice-pair-verification","ask":"Verify voice pair delivers prompts by code not tool calls.","quote":"is each owner prompt delivered to BOTH by code"}
+{"id":375,"module":"voice","topic":"ask-placement-refinement","ask":"Refiner proposes location and form for each ask by weight.","quote":"for each ask, propose WHERE it should live"}
+{"id":386,"module":"voice","topic":"vs-code-prompt-refinement","ask":"Work on prompt refinement system for fast assistant in VS Code.","quote":"we were working on prompt refinement system and fast assistant's supposed to do it"}
+{"id":387,"module":"voice","topic":"prompt-refinement-data-retention","ask":"Implement prompt refinement to prevent data loss when moving sessions.","quote":"prompt refinement is the next step to not miss anything from transcripts to refined"}
+{"id":389,"module":"voice","topic":"transcription-cost-display","ask":"Show cost of clean transcription for each message in dictate UI.","quote":"I want to see the cost of the transcription"}
+{"id":390,"module":"voice","topic":"prompt-review-testing","ask":"Review yesterday's prompts using AI testing system.","quote":"go through each of yesterday's prompts"}

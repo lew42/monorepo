@@ -6,7 +6,7 @@ microphone. Built 2026-09-19 to replace `ext/Ask/mic.js`'s button, whose failure
 silent: the owner pressed 🎤, the browser's own recording light came on, and nothing
 ever appeared — no error, no clue why.
 
-**Try it on your phone** (talk, watch the five stages land on the session page): [`doc/try-it.md`](doc/try-it.md).
+**What the owner asked, merged and checked** (open first): [`doc/asks.md`](doc/asks.md). **Try it on your phone** (talk, watch the five stages land on the session page): [`doc/try-it.md`](doc/try-it.md).
 
 **Class architecture of the voice UI** (which class owns what, what is a copy of what): [`doc/voice-architecture.md`](doc/voice-architecture.md). **`VoiceStrip`** is the compact panel Refine and the demo below use; **mobile**: [`doc/mobile-socket-2026-10-09.md`](doc/mobile-socket-2026-10-09.md).
 

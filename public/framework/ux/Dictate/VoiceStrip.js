@@ -42,6 +42,8 @@ export default class VoiceStrip extends View {
 		});
 		this.$guess = div.c("voice-strip-guess muted");
 		this.conn.check_whisper().then(up => { this.said(); if (!up) this.recover(); });
+		// a phone that slept (or a tab left open) learns of a Whisper crash when it is looked at again, not only when the mic is pressed
+		document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && !this.recovering) this.conn.check_whisper().then(up => { this.said(); if (!up) this.recover(); }); });
 		this.said();
 	}
 
