@@ -19,19 +19,16 @@ const call = async (name, args, as) => (await (await fetch(`${base}/mcp${as ? `?
 let code = 1;
 try {
 	for (let i = 0; i < 60; i++) { try { if (Array.isArray(await (await fetch(base + "/api/agents")).json())) break; } catch {} await sleep(500); }
-	/* Stand-ins: a registered tab named master-assistant (the relay) and one named mastermind-proof. */
-	const reg = (id) => call("register_session", { id, session_id: "00000000-0000-4000-8000-" + String(rpc).padStart(12, "0") });
-	await reg("master-assistant"); await reg("mastermind-proof");
+	/* Stand-in: a registered tab named mastermind-proof. The root assistant is Servex's own, live in this private copy. */
+	await call("register_session", { id: "mastermind-proof", session_id: "00000000-0000-4000-8000-000000000001" });
+	const who = r => { try { return JSON.parse(JSON.parse(r).result.content[0].text).id; } catch { return "?"; } };
 	const inbox = id => { try { return fs.readFileSync(path.join(local, "lew42", "servex", "logs", "inbox", id + ".jsonl"), "utf8").trim().split("\n").filter(Boolean).map(JSON.parse); } catch { return []; } };
-	const says = ["fix the card layout", "what is the status of the tabs work", "add a note to the readme"];
-	for (const t of says) await call("send_to_agent", { id: "mastermind-proof", text: t });
-	await call("send_to_agent", { id: "mastermind-proof", text: "@mastermind-proof go direct" });
-	await call("send_to_agent", { id: "mastermind-proof", text: "flagged direct", direct: true });
-	const viaA = inbox("master-assistant"), viaM = inbox("mastermind-proof");
-	console.log("assistant inbox:", viaA.length, "| mastermind inbox (direct):", viaM.length);
-	viaA.forEach(l => console.log("  relay:", l.text.slice(0, 60).replace(/\n/g, " ") + "…"));
-	viaM.forEach(l => console.log("  direct:", l.text));
-	code = viaA.length === 3 && viaM.length === 2 && viaA.every(l => l.text.includes("RELAY for mastermind-proof")) ? 0 : 1;
+	const sent = [];
+	for (const t of ["fix the card layout", "what is the status of the tabs work", "add a note to the readme"]) sent.push(who(await call("send_to_agent", { id: "mastermind-proof", text: t })));
+	const direct = [who(await call("send_to_agent", { id: "mastermind-proof", text: "@mastermind-proof go direct" })), who(await call("send_to_agent", { id: "mastermind-proof", text: "flagged direct", direct: true }))];
+	console.log("3 owner prompts delivered to:", sent.join(", "));
+	console.log("2 explicit direct ones delivered to:", direct.join(", "), "| mastermind inbox:", inbox("mastermind-proof").map(l => l.text).join(" / "));
+	code = sent.every(x => x === "master-assistant") && direct.every(x => x === "mastermind-proof") ? 0 : 1;
 	console.log(code === 0 ? "PASS: 3 owner prompts via the assistant, 2 explicit direct ones straight" : "FAIL");
 } finally { child.kill(); await sleep(500); fs.rmSync(local, { recursive: true, force: true }); }
 process.exit(code);
