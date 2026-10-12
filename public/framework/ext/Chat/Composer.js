@@ -64,7 +64,7 @@ export function composer({
 			$box = $f;
 			// `.auto` = `field-sizing: content` (framework.css, util layer): the box grows with the
 			// text, full width, up to `Chat.css`'s own ceiling (`.chatbox-compose-input`'s `max-height`).
-			// ONE LINE TALL WHEN EMPTY, UP TO ~5 THEN SCROLLS (one-input, 2026-10-12 — decided over a
+			// ONE LINE TALL WHEN EMPTY, UP TO 3 THEN SCROLLS (one-input, 2026-10-12 — decided over a
 			// single-line `<input>` that scrolls sideways: it cannot show a paragraph of raw dictation,
 			// which is the whole point of the raw reference while speaking. `doc/one-input-2026-10-12.md`).
 			$input = textarea().attr("rows", "1").ac("auto chatbox-compose-input").attr("placeholder", placeholder);

@@ -2,7 +2,7 @@ import Socket from "/framework/dev/Socket/Socket.js";
 import Dictate from "/framework/ux/Dictate/Dictate.js";
 import Capture from "/framework/ux/Dictate/capture.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
-import { refine_live } from "/framework/ext/Refine/RefineSystem.js";
+import RefineSystem from "/framework/ext/Refine/RefineSystem.js";
 
 /**
  * THE MICROPHONE of a composer: `ux/Dictate` with a few methods redirected, and
@@ -42,8 +42,8 @@ export const SETTINGS = {
 	pause_send_ms: 1500,        // quiet time before everything left on screen is sent (was 2500: the owner asked for a shorter delay, 2026-09-30; before that 4000, words without a closing full stop waited 4 s, the owner's "four or five seconds", 2026-09-29)
 	break_pause_ms: 1500,       // quiet before a segment may start a new paragraph in the box
 	guess_ms: 900,              // how often the growing sentence is re-sent to Whisper
-	box_lines: 5,               // the box grows to this many lines, then scrolls (one-input, 2026-10-12 — the
-	                            // mastermind's decided shape: a textarea, one line empty, ~5 lines ceiling,
+	box_lines: 3,               // the box grows to this many lines, then scrolls (one-input, 2026-10-12 — the
+	                            // mastermind's decided shape: a textarea, one line empty, 3 lines ceiling (the owner's 2026-10-04 cap kept),
 	                            // `doc/one-input-2026-10-12.md`. Was 3, round 2, 2026-10-04 — the owner: "as I
 	                            // hit transcribe, the text area grows… gets so big I can't read anything else"
 	                            // — before that 7.)
@@ -327,7 +327,7 @@ export class ComposerMic extends Dictate {
 
 	/* EVERY MIC REFINES LIVE (one-input, 2026-10-12, CLAUDE.md law 2/6): whatever is in the
 	 * box right now — raw while speaking, already true above — is also posted to
-	 * `/api/refine/live` (`refine_live()`, `ext/Refine/RefineSystem.js`) so the outline keeps
+	 * `/api/refine/live` (`RefineSystem.post_live()`, `ext/Refine/RefineSystem.js`) so the outline keeps
 	 * up underneath, debounced so a run of Whisper updates sends one batch, not one per
 	 * keystroke. Gated on `this.revise`, the same switch `clean_active()` already reads: a
 	 * composer that never asked for the dictation pipeline is untouched either way.
@@ -339,7 +339,7 @@ export class ComposerMic extends Dictate {
 		if (!this.revise || !text?.trim()) return;
 		clearTimeout(this._live_timer);
 		this._live_timer = setTimeout(() => {
-			refine_live({ prompt: this.live_prompt_id(), text, final: false, session: this.refine_session_id?.() })
+			RefineSystem.post_live({ prompt: this.live_prompt_id(), text, final: false, session: this.refine_session_id?.() })
 				.then(out => { if (out) this.on_refine_live?.(out); });
 		}, 400);
 	}
@@ -352,7 +352,7 @@ export class ComposerMic extends Dictate {
 	async refine_final(text){
 		if (!this.revise || !text?.trim()) return null;
 		clearTimeout(this._live_timer);
-		return refine_live({ prompt: this.live_prompt_id(), text, final: true, session: this.refine_session_id?.() });
+		return RefineSystem.post_live({ prompt: this.live_prompt_id(), text, final: true, session: this.refine_session_id?.() });
 	}
 
 	/* CHAT BUBBLES SHOW THE CLEAN TEXT, PARAGRAPHED — NEVER A WALL OF RAW (CLAUDE.md law 2).

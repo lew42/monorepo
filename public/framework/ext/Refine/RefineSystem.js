@@ -3,27 +3,6 @@ import Prompt from "./Prompt.js";
 import Whisper from "../../audio/Whisper/Whisper.js";
 import { quick_clean } from "./engine.js";
 
-/** POST one live-refine batch (`doc/live-refine-2026-10-12.md`, wire shape at
- *  `ai/2026-10-12/refine-haiku-live/contract.md`). Standalone — not a `RefineSystem` method
- *  alone — so a plain `ComposerMic` (`ext/Chat/Mic.js`), with no full `RefineSystem` of its
- *  own, can call it too: CLAUDE.md law 2/6, "every mic refines live", not just the Refine
- *  demo's own page. Fails quietly (`null`) until Servex's own `/api/refine/live` route lands
- *  (`Servex/ext/refine/LiveRefine.js`) and the dev server restarts — a 404, any non-OK status,
- *  or a network error are all exactly "today's behaviour", never thrown, never blocking a send. */
-export async function refine_live({ prompt, text, final = false, session, source = "dictated" } = {}){
-	if (!prompt || (!text && !final)) return null;
-	try {
-		const { servex_url } = await import("/framework/dev/servex_url.js");
-		const res = await fetch(servex_url("/api/refine/live"), {
-			method: "POST", headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ prompt, session, text, final, source }),
-		});
-		if (!res.ok) return null;
-		const out = await res.json();
-		return out?.ok ? out : null;
-	} catch { return null; }
-}
-
 /**
  * class RefineSystem — the boss of the refine system (`doc/architecture.md`). It owns ONE live
  * `Prompt` and runs it through the steps: text in (typed, or from the dictation source) →
@@ -40,6 +19,26 @@ export async function refine_live({ prompt, text, final = false, session, source
  * Only plain data besides `on_change`, so the debug tree can show it (`ux/Content/Object/DefaultView`).
  */
 export default class RefineSystem {
+
+	/** POST one live-refine batch (`doc/live-refine-2026-10-12.md`, wire shape at
+	 *  `ai/2026-10-12/refine-haiku-live/contract.md`). Static, so a plain `ComposerMic` (`ext/Chat/Mic.js`), with no `RefineSystem` instance
+	 *  of its own, can call it too: CLAUDE.md law 2/6, "every mic refines live", not just the Refine
+	 *  demo's own page. Fails quietly (`null`) until Servex's own `/api/refine/live` route lands
+	 *  (`Servex/ext/refine/LiveRefine.js`) and the dev server restarts — a 404, any non-OK status,
+	 *  or a network error are all exactly "today's behaviour", never thrown, never blocking a send. */
+	static async post_live({ prompt, text, final = false, session, source = "dictated" } = {}){
+		if (!prompt || (!text && !final)) return null;
+		try {
+			const { servex_url } = await import("/framework/dev/servex_url.js");
+			const res = await fetch(servex_url("/api/refine/live"), {
+				method: "POST", headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ prompt, session, text, final, source }),
+			});
+			if (!res.ok) return null;
+			const out = await res.json();
+			return out?.ok ? out : null;
+		} catch { return null; }
+	}
 
 	static icon = "hub";
 
@@ -136,13 +135,13 @@ export default class RefineSystem {
 		return prompt;
 	}
 
-	/** Live refine for THIS prompt (`refine_live()` above): keeps only the newest `seq` (a reply
+	/** Live refine for THIS prompt (`RefineSystem.post_live()` above): keeps only the newest `seq` (a reply
 	 *  for an older batch, arrived late, is dropped), and writes the outline straight onto the
 	 *  live `Prompt` so any host watching it (its own `on_change`, `Prompt.View`'s "3 · Outline"
 	 *  section) sees it update as the words arrive — the same redraw path `go()` and `quick()`
 	 *  already use, never a second one. */
 	async live(text, { final = false } = {}){
-		const out = await refine_live({ prompt: this.prompt_id, text, final, session: this.session_id, source: this.source ?? "dictated" });
+		const out = await RefineSystem.post_live({ prompt: this.prompt_id, text, final, session: this.session_id, source: this.source ?? "dictated" });
 		if (!out) return null;
 		if ((out.seq ?? 0) < (this._live_seq ?? -1)) return null;
 		this._live_seq = out.seq ?? 0;

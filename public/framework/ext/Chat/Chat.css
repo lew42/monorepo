@@ -91,7 +91,7 @@
 	   filling the row, no matter how wide the row was. An explicit `width: 100%`
 	   gives the width axis a real value, so `field-sizing: content` is left to
 	   do only what the comment above says it is for — the HEIGHT. */
-	/* ONE LINE WHEN EMPTY, ~5 LINES THEN SCROLLS (one-input, 2026-10-12 — the mastermind's
+	/* ONE LINE WHEN EMPTY, 3 LINES THEN SCROLLS (one-input, 2026-10-12 — the mastermind's
 	   decided shape, `doc/one-input-2026-10-12.md`: a textarea, not a single-line `<input>`
 	   that scrolls sideways, because the raw-while-speaking reference needs a paragraph).
 	   Was capped at 2-3 lines (round 2, 2026-10-04 — the owner: "as I hit transcribe, the
@@ -103,7 +103,7 @@
 		width: 100%;
 		min-width: 0;
 		min-height: 1.7em;
-		max-height: 5lh;
+		max-height: 3lh;
 		resize: none;
 		overflow-y: auto;
 		font: inherit;
