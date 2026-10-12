@@ -10,3 +10,12 @@
 {"action":{"at":"2026-10-12T06:35:44-05:00","did":"edit","files":["public/framework/ai/2026-10-12/asks-transcription/gen.mjs"]}}
 {"log":{"at":"2026-10-12T06:37:07-05:00","msg":"skill: finish-task"}}
 {"assign":{"step":1,"landed_at":"2026-10-12T06:37:20-05:00","title":"Dictate: merged transcription asks, two small builds","outcome":"**Transcription asks merged:** [Dictate asks doc](/framework/ux/Dictate/doc/asks.md), 19 clusters (7 open, 4 partly, 8 done), linked from the [Dictate readme](/framework/ux/Dictate/). Built tonight: Refine keeps the latest 19,000 characters of a long prompt; the voice strip re-checks Whisper when the tab is visible again. Voice walk re-run: desktop and phone pass, structure/refined/cards 7 s and 10.7 s after Refine (baseline 6.6 s). Left: model policy, prompt-to-board cards, VS Code path, Whisper status stream (need a Servex restart or the owner's call). Detail: [STATE](/framework/ai/2026-10-12/asks-transcription/STATE.md).","links":[{"url":"/framework/ux/Dictate/doc/asks.md","label":"Transcription asks"}],"tokens":null}}
+{"log":{"at":"2026-10-12T06:37:24-05:00","msg":"text-check: outcome: a 81-word paragraph (\"**Transcription asks merged:** [Dictate asks doc](…\")"}}
+{"log":{"at":"2026-10-12T06:37:24-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-12T11:37:24.584Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-12T06:37:24-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-12T06:37:25-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-12T06:37:28-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-12T06:37:36-05:00","msg":"layout-check: 1 pages at 1280/1920/2560/3440 — /framework/ux/Dictate/: empty 0.718 at 2560, empty 0.811 at 3440, narrow_share 0.938 at 3440; sheets in layout-check/"}}
+{"assign":{"outcome":"- [x] Merged asks doc: [Transcription asks](/framework/ux/Dictate/doc/asks.md), 19 clusters (7 open, 4 partly, 8 done), linked from the [Dictate readme](/framework/ux/Dictate/).\n- [x] Two small builds: Refine keeps the latest 19,000 characters of a long prompt; the voice strip re-checks Whisper when the tab is visible again. Voice walk re-run passes on desktop and phone.\n- [ ] Left for a Servex restart or your call: model policy, prompt-to-board cards, VS Code path, Whisper status stream. [STATE](/framework/ai/2026-10-12/asks-transcription/STATE.md)"}}
+{"log":{"at":"2026-10-12T06:37:50-05:00","msg":"padding-check: 1 pages — clean"}}

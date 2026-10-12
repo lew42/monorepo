@@ -518,3 +518,6 @@
 {"at":"2026-10-12T11:05:08.628Z","target":"public/framework/ai/2026-10-12/refine-asks","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T11:05:08.746Z","target":"public/framework/ai/2026-10-12/refine-asks","verdict":"spawned","to":"clarity-refine-asks"}
 {"at":"2026-10-12T06:20:00-05:00","target":"public/framework/ai/2026-10-12/refine-asks","verdict":"rewrote","what":"outcome linked /framework/ext/Refine/stages/ which 404s (no page); relinked to STATE proofs. review.md 501 words left as is.","to":"task.jsonl"}
+{"at":"2026-10-12T11:37:24.585Z","target":"public/framework/ai/2026-10-12/asks-transcription","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T11:37:24.869Z","target":"public/framework/ai/2026-10-12/asks-transcription","verdict":"spawned","to":"clarity-asks-transcription"}
+{"at":"2026-10-12T07:00:00-05:00","target":"public/framework/ai/2026-10-12/asks-transcription","verdict":"rewrote","what":"outcome was one 81-word paragraph; rewrote as 3-item ticked checklist. Dictate page itself is clear.","to":"task.jsonl"}
