@@ -149,6 +149,18 @@ function quickEligible(nameStatus, numstat){
  * `{"review":…}` line (not an `answer`) naming this branch, then requires its `head` to be
  * this branch's head, or an ancestor of it with every `[fix]` finding answered (`review.mjs`'s
  * own `status()`, so the phrase and the gate can never disagree). */
+/* Shots reminder (screenshot-system, 2026-10-12): a branch that changes CSS or a page's JS should have
+ * a Shots round of each changed page since the branch began. A warning, not a refusal — yet.
+ * Changes only to page.jsonl content blocks are exempt. Detail: /framework/ext/Shots/ */
+function shotsReminder(changed, pages, branch){
+	if (!changed.some(f => f.startsWith("public/") && /\.(css|js|mjs|html)$/.test(f)) || !pages.length) return;
+	const since = git(MAIN, "log", "-1", "--format=%cI", git(MAIN, "merge-base", BASE, branch).stdout.trim()).stdout.trim();
+	let runs = [];
+	try { runs = fs.readFileSync(path.join(MAIN, "public/framework/ext/Shots/runs.jsonl"), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l).run).filter(Boolean); } catch {}
+	const missing = pages.filter(u => !runs.some(r => r.url === u && (!since || new Date(r.at) >= new Date(since))));
+	if (missing.length) console.warn(`!!! Shots: no screenshot round since this branch began for ${missing.join(", ")} — shoot, read, judge: node Server/shots.mjs <url> !!!`);
+}
+
 function reviewGate(branch, head){
 	if (mainArg) { console.warn(`!!! --main: merging against another repo WITHOUT a fresh-eyes review !!!`); return null; }
 	if (noReview) { console.warn(`!!! --no-review: ${noReview} — merging WITHOUT a fresh-eyes review !!!`); return null; }
@@ -420,6 +432,7 @@ try {
 		// every page.js/page.jsonl the branch touches that still exists on the branch, as its own url — de-duped against paths given by hand
 		const autoPages = [...new Set(changed.filter(f => !deleted.has(f) && fs.existsSync(path.join(dir, f))).map(pageUrlFor).filter(Boolean))].filter(u => !paths.includes(u));
 		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
+		shotsReminder(changed, autoPages, branch);
 		/* Visibility gate (the owner, 2026-10-12): a branch that touches ext/Figma may not leave a page.js no parent declares. */
 		if (changed.some(f => f.startsWith("public/framework/ext/Figma/")) && fs.existsSync(path.join(dir, "public/framework/ext/Figma/visibility.mjs"))) {
 			const vis = run("node", [path.join(dir, "public/framework/ext/Figma/visibility.mjs")], dir);
