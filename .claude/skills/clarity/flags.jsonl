@@ -512,3 +512,9 @@
 {"at":"2026-10-12T10:53:03.224Z","target":"public/framework/ai/2026-10-12/page-context-asks","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T10:53:03.340Z","target":"public/framework/ai/2026-10-12/page-context-asks","verdict":"spawned","to":"clarity-page-context-asks"}
 {"at":"2026-10-12T06:10:00-05:00","target":"public/framework/ai/2026-10-12/page-context-asks","verdict":"ui","what":"/framework/ai/2026-10-12/page-context-asks/proof/ 404s (folder of pngs/txt, no page.js or readme, so the owner cannot reach the proof): add a page.js showing weighted-1920.png + the order txts. Also STATE.md is 416 words with a 78-word bullet and no picture; shorten it and link the proof shot. /framework/core/Page/weight/ renders clean, but its two intro paragraphs run long (~70 words each).","to":"mastermind-servex"}
+{"at":"2026-10-12T11:02:00.800Z","target":"public/framework/ai/2026-10-12/docs-handover","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T11:02:00.998Z","target":"public/framework/ai/2026-10-12/docs-handover","verdict":"spawned","to":"clarity-docs-handover"}
+{"at":"2026-10-12T06:10:00-05:00","target":"public/framework/ai/2026-10-12/docs-handover","verdict":"ui","what":"Outcome is clear and ticked with proof. night.md is generated (513 words, limit 500, no picture): landings.mjs should cut each line to the first sentence, and show a checklist/tree.","to":"public/framework/ai/2026-10-12/docs-handover/landings.mjs"}
+{"at":"2026-10-12T11:05:08.628Z","target":"public/framework/ai/2026-10-12/refine-asks","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T11:05:08.746Z","target":"public/framework/ai/2026-10-12/refine-asks","verdict":"spawned","to":"clarity-refine-asks"}
+{"at":"2026-10-12T06:20:00-05:00","target":"public/framework/ai/2026-10-12/refine-asks","verdict":"rewrote","what":"outcome linked /framework/ext/Refine/stages/ which 404s (no page); relinked to STATE proofs. review.md 501 words left as is.","to":"task.jsonl"}
