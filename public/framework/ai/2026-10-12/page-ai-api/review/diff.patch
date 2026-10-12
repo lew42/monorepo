@@ -1,0 +1,730 @@
+diff --git a/Servex/agents/Subpages.js b/Servex/agents/Subpages.js
+new file mode 100644
+index 000000000..92e399012
+--- /dev/null
++++ b/Servex/agents/Subpages.js
+@@ -0,0 +1,145 @@
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const PUBLIC = path.resolve(HERE, "..", "..", "public");
++const NAME = /^[a-z0-9-]+$/;
++
++/* The subpages of ONE parent folder: add, rename, remove. The one implementation behind
++ * `page_set({pages:{add|rename|remove}})` and `create_page` (doc: core/Page/doc/ai-api.md,
++ * "How a subpage is stored"). A page.jsonl parent is linked by appended `file` lines, a
++ * page.js parent by editing its `children:` string. Nothing is deleted: remove moves the
++ * folder to `<parent>/_removed/<name>-<time>/`. `dry: true` returns the plan and touches nothing.
++ * CLI: node Servex/agents/Subpages.js <add|rename|remove> <parent-url> <name> [to] [--dry] [--root <tree>] */
++export default class Subpages {
++
++	constructor(dir, { dry = false } = {}){
++		this.dir = path.resolve(dir);
++		this.dry = dry;
++	}
++
++	/** The Subpages of a page url like "/framework/ai/x/" inside a tree (the main one by default). */
++	static at(url, { root, ...opts } = {}){
++		const pub = root ? path.join(path.resolve(root), "public") : PUBLIC;
++		return new Subpages(path.join(pub, ...String(url || "/").split("/").filter(Boolean)), opts);
++	}
++
++	get kind(){
++		return fs.existsSync(path.join(this.dir, "page.js")) ? "page.js"
++			: fs.existsSync(path.join(this.dir, "page.jsonl")) ? "page.jsonl" : null;
++	}
++
++	/** Make `<name>/page.jsonl` (line 1 = the labels) and link it from this parent. */
++	add({ name, title, icon, description, ...more }){
++		this.check_name(name);
++		const dir = path.join(this.dir, name), kind = this.need_kind();
++		if (fs.existsSync(dir)) throw new Error(`${name} already exists under ${this.dir}`);
++		const first = { title: title ?? name, ...(icon ? { icon } : {}), ...(description ? { description } : {}), ...more };
++		const plan = { action: "add", name, make: rel(dir + "/page.jsonl"), first, link: this.link_plan(kind, name) };
++		if (this.dry) return { ok: true, dry: true, ...plan };
++		const edit = kind === "page.js" ? this.js_edit(s => this.js_children(s, list => [...list, `${name}/page.jsonl`])) : null;   // fails before any write
++		fs.mkdirSync(dir, { recursive: true });
++		fs.writeFileSync(path.join(dir, "page.jsonl"), JSON.stringify(first) + "\n");
++		this.link(kind, edit, { file: `${name}/page.jsonl` });
++		return { ok: true, ...plan };
++	}
++
++	/** Move the folder `name` to `to` and relink: a `gone` line for the old name, a `file` line for the new. */
++	rename({ name, to }){
++		this.check_name(to);
++		const from = path.join(this.dir, name), dest = path.join(this.dir, to), kind = this.need_kind();
++		if (!fs.existsSync(from)) throw new Error(`${name} does not exist under ${this.dir}`);
++		if (fs.existsSync(dest)) throw new Error(`${to} already exists under ${this.dir}`);
++		const plan = { action: "rename", moves: [{ from: rel(from), to: rel(dest) }] };
++		if (this.dry) return { ok: true, dry: true, ...plan };
++		const edit = kind === "page.js" ? this.js_edit(s => this.js_children(s, list => list.map(t => t.split("/")[0] === name ? to + t.slice(name.length) : t))) : null;
++		fs.renameSync(from, dest);
++		if (kind === "page.jsonl"){
++			this.append({ file: `${name}/page.jsonl`, gone: true });
++			this.append({ file: `${to}/page.jsonl` });
++		} else this.link(kind, edit);
++		return { ok: true, ...plan };
++	}
++
++	/** Move the folder aside to `_removed/<name>-<time>/` and unlink it. Never deletes. */
++	remove(name){
++		const from = path.join(this.dir, name), kind = this.need_kind();
++		if (!fs.existsSync(from)) throw new Error(`${name} does not exist under ${this.dir}`);
++		const dest = path.join(this.dir, "_removed", `${name}-${stamp()}`);
++		const plan = { action: "remove", moves: [{ from: rel(from), to: rel(dest) }] };
++		if (this.dry) return { ok: true, dry: true, ...plan };
++		const edit = kind === "page.js" ? this.js_edit(s => this.js_children(s, list => list.filter(t => t.split("/")[0] !== name))) : null;
++		fs.mkdirSync(path.dirname(dest), { recursive: true });
++		fs.renameSync(from, dest);
++		if (kind === "page.jsonl") this.append({ file: `${name}/page.jsonl`, gone: true });
++		else this.link(kind, edit);
++		return { ok: true, ...plan };
++	}
++
++	/** The subpages a parent's page.jsonl lists right now (file lines minus gone), in order. */
++	static listed(file){
++		const out = new Map();
++		let text = ""; try { text = fs.readFileSync(file, "utf8"); } catch {}
++		for (const line of text.split("\n")){
++			let obj; try { obj = JSON.parse(line); } catch { continue; }
++			const m = /^([^/]+)\/page\.jsonl$/.exec(obj?.file ?? "");
++			if (m) obj.gone ? out.delete(m[1]) : out.set(m[1], obj);
++		}
++		return [...out.keys()];
++	}
++
++	// ---- the parent's link, one place ----
++
++	need_kind(){
++		const kind = this.kind;
++		if (!kind) throw new Error(`${this.dir} is not a page (no page.js or page.jsonl)`);
++		return kind;
++	}
++
++	check_name(name){ if (!NAME.test(name || "")) throw new Error("name must be a-z0-9- only"); }
++
++	link_plan(kind, name){ return kind === "page.js" ? { in: "page.js children", add: `${name}/page.jsonl` } : { in: "page.jsonl", line: { file: `${name}/page.jsonl` } }; }
++
++	link(kind, edit, line){
++		if (kind === "page.jsonl") this.append(line);
++		else fs.writeFileSync(edit.file, edit.next);
++	}
++
++	// A targeted append that makes sure the file ended with a newline first; never a rewrite.
++	append(obj){
++		const file = path.join(this.dir, "page.jsonl"), text = fs.readFileSync(file, "utf8");
++		fs.appendFileSync(file, (text.length && !text.endsWith("\n") ? "\n" : "") + JSON.stringify(obj) + "\n");
++	}
++
++	// Computes the new page.js text (children string edited); nothing is written here.
++	js_edit(fn){
++		const file = path.join(this.dir, "page.js"), src = fs.readFileSync(file, "utf8"), next = fn(src);
++		return { file, next };
++	}
++
++	js_children(src, change){
++		const m = /(children:\s*")([^"]*)(")/.exec(src);
++		if (!m) throw new Error("parent page.js has no `children: \"...\"` string to extend");
++		const list = change(m[2].split(/\s+/).filter(Boolean));
++		return src.slice(0, m.index + m[1].length) + list.join(" ") + src.slice(m.index + m[1].length + m[2].length);
++	}
++}
++
++const rel = p => p.replaceAll("\\", "/");   // absolute, so a dry run on another tree reads true
++const stamp = () => new Date().toISOString().replace(/[-:]/g, "").replace("T", "-").slice(0, 15);
++
++// ---- CLI: a move is scriptable ----
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const args = process.argv.slice(2), flag = (f) => { const i = args.indexOf(f); return i < 0 ? undefined : args.splice(i, i + 1 < args.length && f !== "--dry" ? 2 : 1)[1]; };
++	const dry = args.includes("--dry"); if (dry) args.splice(args.indexOf("--dry"), 1);
++	const root = flag("--root");
++	const [verb, url, name, to] = args;
++	try {
++		const sub = Subpages.at(url, { dry, root });
++		const out = verb === "add" ? sub.add({ name, title: to ?? name })
++			: verb === "rename" ? sub.rename({ name, to })
++			: verb === "remove" ? sub.remove(name) : (() => { throw new Error("usage: Subpages.js <add|rename|remove> <parent-url> <name> [to] [--dry] [--root <tree>]"); })();
++		console.log(JSON.stringify(out, null, 2));
++	} catch (e){ console.error(e.message); process.exit(1); }
++}
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index a97fac594..4054f7fef 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -1,6 +1,7 @@
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import Subpages from "./Subpages.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const ROOT = path.resolve(HERE, "..", "..");
+@@ -64,7 +65,12 @@ async function resolve(url, target = []){
+ 	const hit = SESSION_ROUTE.exec(String(url ?? ""));
+ 	if (hit && !/^\d{4}$/.test(hit[1])){
+ 		const file = await session_file(hit[1]);
+-		if (file) return { file, target: [...hit[2].split("/").filter(Boolean), ...(target ?? [])] };
++		if (file){
++			// A real subpage folder (made by pages.add) wins; a segment with no folder is still a tab target.
++			let dir = path.dirname(file), rest = hit[2].split("/").filter(Boolean), at = file;
++			while (rest.length && fs.existsSync(path.join(dir, rest[0], "page.jsonl"))){ dir = path.join(dir, rest[0]); at = path.join(dir, "page.jsonl"); rest = rest.slice(1); }
++			return { file: at, target: [...rest, ...(target ?? [])] };
++		}
+ 	}
+ 	const file = resolve_file(url);
+ 	return file ? { file, target: target ?? [] } : null;
+@@ -128,12 +134,17 @@ function size_of(file){
+ 
+ /* Every `add` in a delta, at any depth, gets an id if it brought none — the agent never
+  * invents ids (the owner, 2026-10-09: "the tool stamps those"). */
+-function stamp_ids(value){
+-	if (Array.isArray(value)) return value.map(stamp_ids);
++function stamp_ids(value, ids){
++	if (Array.isArray(value)) return value.map(v => stamp_ids(v, ids));
+ 	if (!is_plain(value)) return value;
+ 	const out = {};
+-	for (const [key, v] of Object.entries(value))
+-		out[key] = key === "add" && is_plain(v) ? { id: v.id ?? crypto.randomUUID(), ...stamp_ids(v) } : stamp_ids(v);
++	for (const [key, v] of Object.entries(value)){
++		if (key === "add" && is_plain(v)){
++			const id = v.id ?? crypto.randomUUID();
++			ids?.push(id);
++			out[key] = { id, ...stamp_ids(v, ids) };
++		} else out[key] = stamp_ids(v, ids);
++	}
+ 	return out;
+ }
+ 
+@@ -242,7 +253,7 @@ function render_item(item){
+ 	return Object.keys(data).length ? JSON.stringify(data) : "(empty)";
+ }
+ 
+-function render_markdown({ page, items }){
++function render_markdown({ page, items }, subpages){
+ 	const lines = [];
+ 	lines.push(`# ${page.title ?? "(untitled)"}`);
+ 	if (page.description) lines.push(page.description);
+@@ -254,7 +265,12 @@ function render_markdown({ page, items }){
+ 	lines.push("");
+ 	lines.push("## Content");
+ 	if (!items.length) lines.push("(empty)");
+-	else for (const item of items) lines.push(`- [${item.id}] ${render_item(item)}`);
++	else for (const item of items) lines.push(`- [${item.id}] (${item.type ?? "item"}) ${render_item(item)}`);
++
++	if (subpages?.length){
++		lines.push("", "## Subpages");
++		for (const { name, url } of subpages) lines.push(`- ${name} ${url}`);
++	}
+ 
+ 	return lines.join("\n");
+ }
+@@ -268,21 +284,37 @@ function render_item_html(item){
+ 	const body = (item.type === "Question" || ("text" in item && "answer" in item))
+ 		? `<dl><dt>Q</dt><dd>${esc(item.text)}</dd><dt>A</dt><dd>${esc(item.answer ?? "…")}</dd></dl>`
+ 		: `<p>${esc(render_item(item))}</p>`;
+-	return `<li data-id="${esc(item.id)}">${body}</li>`;
++	return `<li data-id="${esc(item.id)}" data-type="${esc(item.type ?? "item")}">${body}</li>`;
+ }
+ 
+ // The page's own CONTENT, as HTML — no nav, no tab strip, no sidebar: this never drew any
+ // chrome to begin with, so "without navigation chrome" costs nothing extra here. Structure
+ // an agent can parse (an id per `<li>`), not a styled page.
+-function render_html({ page, items }){
++function render_html({ page, items }, subpages){
+ 	const lines = [`<h1>${esc(page.title ?? "(untitled)")}</h1>`];
+ 	if (page.description) lines.push(`<p>${esc(page.description)}</p>`);
+ 	if (page.log?.text) lines.push(`<p class="muted">doing: ${esc(page.log.text)}</p>`);
+ 
+ 	lines.push(items.length ? `<ul>${items.map(render_item_html).join("")}</ul>` : "<p>(empty)</p>");
++	if (subpages?.length) lines.push(`<ul class="subpages">${subpages.map(s => `<li><a href="${esc(s.url)}">${esc(s.name)}</a></li>`).join("")}</ul>`);
+ 	return lines.join("\n");
+ }
+ 
++/* `{"pages":{"add":{name,title,icon,description}, "rename":{name,to}, "remove":"name"}}`:
++ * folders sit beside the page's own page.jsonl, so a session page's subpage goes in the
++ * session's own folder. Only on the page itself (no target): a subpage is a folder. */
++function apply_pages(at, pages, url){
++	if (at.target.length) return { why: "`pages` works on the page itself, not inside a target" };
++	if (!is_plain(pages)) return { why: "`pages` must be {add|rename|remove: …}" };
++	const subs = new Subpages(path.dirname(at.file)), base = String(url ?? "").replace(/\/?$/, "/"), done = [];
++	try {
++		for (const spec of [].concat(pages.add ?? [])){ subs.add(spec); done.push({ added: spec.name, url: base + spec.name + "/" }); }
++		for (const spec of [].concat(pages.rename ?? [])){ subs.rename(spec); done.push({ renamed: spec.name, to: spec.to, url: base + spec.to + "/" }); }
++		for (const name of [].concat(pages.remove ?? [])){ subs.remove(name); done.push({ removed: name }); }
++	} catch (e){ return { why: e.message, done }; }
++	return { done };
++}
++
+ /* ---------- the six tools ---------- */
+ 
+ export function page_tools(){
+@@ -290,13 +322,8 @@ export function page_tools(){
+ 
+ 	return [
+ 
+-		tool("page_call",
+-			"The general tool: ONE verb call at ONE target, written as the canonical nested line"
+-			+ " (2026-10-03, \"no at, no dots: the path is the nesting\") — `page_call(path, [\"k2\",\"answers\"],"
+-			+ " \"add\", {...})` writes `{\"k2\":{\"answers\":{\"add\":{...}}}}`, meaning \"k2 → its answers list →"
+-			+ " add\". `target` is an array of hops (property names or ids), never a slash- or dot-path. Reach"
+-			+ " for `page_add`/`page_set` for the two common cases; reach for this one for anything else — a"
+-			+ " deeper list, `remove`/`move`/`order`, or a method on a specific item.",
++				tool("page_call",
++			"Alias of page_set: one method call at one target, `page_call(path, [\"k2\",\"answers\"], \"add\", {…})` = `{\"k2\":{\"answers\":{\"add\":{…}}}}`. Prefer page_set (core/Page/doc/ai-api.md).",
+ 			{ path: PAGE_PATH, target: TARGET,
+ 				method: { type: "string", description: "The verb to call at the target — a method on whatever `target` resolves to: `add`, `remove`, `move`, `order`, or any method the item's own class defines." },
+ 				args: { description: "The method's one argument — an object for `add`, a string id for `remove`, etc. If it's a plain object, `by` and `ts` are stamped onto it." } },
+@@ -313,10 +340,8 @@ export function page_tools(){
+ 				return JSON.stringify({ ok: true, line, size });
+ 			}),
+ 
+-		tool("page_add",
+-			"Add ONE item to a live page's own content list — sugar for `page_call(path, [\"content\"], \"add\","
+-			+ " item)`. One line appended to page.jsonl, picked up by every open tab with no reload. Stamps a"
+-			+ " fresh id (unless `item.id` is given), the calling agent as `by`, and the time as `ts`.",
++				tool("page_add",
++			"Alias of page_set `{\"content\":{\"add\":item}}`: add one card (type part-heading | part-text | part-card). Prefer page_set (core/Page/doc/ai-api.md).",
+ 			{ path: PAGE_PATH,
+ 				item: { type: "object", description: "The item's own fields — whatever the content list draws: `title`, `text`, `type` (a registered class name, e.g. \"Question\", with its own `text`/`answer`), or any plain data. `id` is optional; one is made for you." },
+ 				after: { type: "string", description: "The id to land after. Omit to append at the end; `null` to land first." } },
+@@ -335,16 +360,18 @@ export function page_tools(){
+ 			}),
+ 
+ 		tool("page_set",
+-			"THE PAGE TOOL: a path and a raw JSON delta, appended as one line to that page's log; every open tab"
+-			+ " redraws with no reload. Send only the path and the delta: `by`, `ts` and every missing `id` are"
+-			+ " stamped for you. The delta goes to the target's own `set()`: a plain key is data, a key naming a"
+-			+ " method calls it. A page accepts (core/Page/doc/architecture.md): `{\"title\":\"New\"}`;"
+-			+ " a layout word `{\"navigation\":\"tabs\"}` (also width, arrangement, surface, background, type_size);"
+-			+ " a new TAB `{\"tab\":{\"name\":\"notes\",\"title\":\"Notes\",\"content\":\"text\"}}` (turns tabs on if the"
+-			+ " page had none); an item `{\"content\":{\"add\":{\"title\":\"…\",\"text\":\"…\"}}}`; an item inside a tab"
+-			+ " `{\"notes\":{\"content\":{\"add\":{…}}}}`. `target` (optional) nests the delta under a child or item"
+-			+ " id: `page_set(path, [\"k2\"], {\"answer\":\"42\"})`. Answers with the log's new size; `large: true`"
+-			+ " past 1 MB.",
++			"THE PAGE TOOL: append one JSON delta to a page's log; every open tab redraws within a second, no reload."
++			+ " `path` = the page's url (omit = your own session page). `by`, `ts` and every missing `id` are stamped"
++			+ " for you, and the answer lists them as `ids` (use one to change that card later). THREE KEY RULES:"
++			+ " a plain key is a property `{\"title\":\"Notes\",\"description\":\"…\"}` (also the layout words navigation,"
++			+ " width, arrangement, surface, background, type_size); a key naming a method calls it"
++			+ " `{\"content\":{\"add\":{…}}}` (also remove \"id\", move {id,after}, order [ids]); a key that is a card id"
++			+ " walks into that card `{\"<id>\":{\"text\":\"new\"}}`. CARD TYPES, added with content.add: heading"
++			+ " `{\"type\":\"part-heading\",\"text\":\"…\"}`, paragraph `{\"type\":\"part-text\",\"text\":\"markdown\"}`, card"
++			+ " `{\"type\":\"part-card\",\"title\":\"…\",\"text\":\"…\"}` (`after:\"<id>\"` places it). A SUBPAGE (own folder"
++			+ " and url, made on disk for you): `{\"pages\":{\"add\":{\"name\":\"notes\",\"title\":\"Notes\",\"icon\":\"📝\","
++			+ " \"description\":\"One line.\"}}}`, also `rename:{name,to}` and `remove:\"name\"` (moved aside, never deleted);"
++			+ " write on it with `path` = its url. Look first with page_read. Full model: /framework/core/Page/doc/ai-api.md.",
+ 			{ path: PAGE_PATH, target: TARGET,
+ 				delta: { type: "object", description: "The fields to change, e.g. {\"answer\": \"42\"} or {\"title\": \"Renamed\"}." } },
+ 			["delta"],
+@@ -353,18 +380,22 @@ export function page_tools(){
+ 				const at = await resolve(url, target);
+ 				if (!at) return not_a_page(url);
+ 
+-				const stamped = { ...stamp_ids(delta), by: ctx.caller ?? "agent", ts: now() };
+-				const line = nest(at.target, stamped);
+-
+-				const size = write_line(at.file, line);
+-				return JSON.stringify({ ok: true, line, size });
++				// `pages` is the one key the tool handles itself: a folder is made on disk (Subpages.js).
++				const { pages, ...rest } = is_plain(delta) ? delta : {};
++				const made = pages === undefined ? null : apply_pages(at, pages, url);
++				if (made?.why) return JSON.stringify({ ok: false, why: made.why, done: made.done });
++
++				const ids = [];
++				let line = null, size;
++				if (pages === undefined || Object.keys(rest).length){
++					line = nest(at.target, { ...stamp_ids(pages === undefined ? delta : rest, ids), by: ctx.caller ?? "agent", ts: now() });
++					size = write_line(at.file, line);
++				} else size = size_of(at.file);
++				return JSON.stringify({ ok: true, ids, line, size, ...(made ? { pages: made.done } : {}) });
+ 			}),
+ 
+-		tool("page_log",
+-			"A \"now doing X\" line — post BEFORE a long step so the owner can watch the page grow"
+-			+ " while you work, not just at the end (CLAUDE.md, \"Pages are live\"). Overwrites the"
+-			+ " page's own `log` field each time — this is a status line, not a running list; use"
+-			+ " `page_add` for anything that should stay on the page.",
++				tool("page_log",
++			"Alias of page_set `{\"log\":{\"text\":…}}`: the \"now doing X\" line, overwritten each time; post it BEFORE a long step (core/Page/doc/ai-api.md).",
+ 			{ path: PAGE_PATH,
+ 				text: { type: "string", description: "What you're doing right now, in a few words, e.g. \"researching X\"." } },
+ 			["text"],
+@@ -378,13 +409,8 @@ export function page_tools(){
+ 				return JSON.stringify({ ok: true, line, size });
+ 			}),
+ 
+-		tool("page_read",
+-			"The page's CURRENT state, computed fresh from page.jsonl every time — never a second,"
+-			+ " stored copy (CLAUDE.md law 7). Replays the log into title, the `doing:` line if one is"
+-			+ " set, and every content item with its id, a question card drawn as \"Q: … / A: …\"."
+-			+ " Default `format` is markdown — the fewest tokens, read this before deciding what to add"
+-			+ " or change next. `format: \"html\"` gives the same replay as the page's own content HTML,"
+-			+ " no navigation chrome, when you need the structure (each item's `<li data-id>`) instead.",
++				tool("page_read",
++			"The page's CURRENT state, replayed fresh from page.jsonl: title, the `doing:` line, every card as `[id] (type) text`, and its subpages with their urls. Read it before you change anything; `format:\"html\"` gives the cards' markup (core/Page/doc/ai-api.md).",
+ 			{ path: PAGE_PATH,
+ 				format: { type: "string", enum: ["markdown", "html"], description: "\"markdown\" (default, fewest tokens) or \"html\" (the content's own markup, no nav chrome)." } },
+ 			[],
+@@ -396,7 +422,9 @@ export function page_tools(){
+ 				if (!fs.existsSync(file)) return JSON.stringify({ ok: false, why: `no page.jsonl at "${url}" yet` });
+ 
+ 				const state = replay(parse_lines(file));
+-				return format === "html" ? render_html(state) : render_markdown(state);
++				const base = String(url ?? "").replace(/\/?$/, "/");
++				const subpages = Subpages.listed(file).map(name => ({ name, url: base + name + "/" }));
++				return format === "html" ? render_html(state, subpages) : render_markdown(state, subpages);
+ 			}),
+ 	];
+ }
+diff --git a/Servex/agents/page_tools.test.mjs b/Servex/agents/page_tools.test.mjs
+index ee664932c..94b836f82 100644
+--- a/Servex/agents/page_tools.test.mjs
++++ b/Servex/agents/page_tools.test.mjs
+@@ -11,6 +11,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { page_tools } from "./page_tools.js";
++import Subpages from "./Subpages.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const ROOT = path.resolve(HERE, "..", "..");
+@@ -78,6 +79,69 @@ try {
+ 		ok(line?.[add.id]?.by === "task-mastermind-inbox-cards-work", "page_set stamps the real caller, not \"agent\"");
+ 	}
+ 
++	// ids: every id the tool stamped comes back, and page_read lists each card's type + id.
++	{
++		const out = await call("page_set", { path: URL, delta: { content: { add: { type: "part-heading", text: "Findings" } } } }, "t");
++		ok(out.ok && out.ids.length === 1 && out.ids[0] === out.line.content.add.id, "page_set answers the ids it stamped");
++		const md = await read_page({ path: URL });
++		ok(md.includes(`[${out.ids[0]}] (part-heading) Findings`), "page_read shows each card's type and id");
++	}
++
++	// pages: add / rename / remove make real folders next to the page and link them.
++	{
++		const add = await call("page_set", { path: URL, delta: { pages: { add: { name: "notes", title: "Notes", icon: "N", description: "One line." } } } }, "t");
++		ok(add.ok && add.pages[0].url === URL + "notes/", "pages.add answers the subpage url");
++		ok(fs.existsSync(path.join(DIR, "notes", "page.jsonl")), "pages.add made the folder and its page.jsonl");
++		ok(lines().some(l => l.file === "notes/page.jsonl"), "pages.add linked it with a file line");
++		ok((await read_page({ path: URL })).includes(`- notes ${URL}notes/`), "page_read lists the subpage with its url");
++
++		await call("page_set", { path: URL + "notes/", delta: { content: { add: { type: "part-text", text: "on the subpage" } } } }, "t");
++		ok(fs.readFileSync(path.join(DIR, "notes", "page.jsonl"), "utf8").includes("on the subpage"), "a delta on the subpage url lands in the subpage's own page.jsonl");
++
++		const ren = await call("page_set", { path: URL, delta: { pages: { rename: { name: "notes", to: "ideas" } } } }, "t");
++		ok(ren.ok && fs.existsSync(path.join(DIR, "ideas", "page.jsonl")) && !fs.existsSync(path.join(DIR, "notes")), "pages.rename moved the folder");
++		const md = await read_page({ path: URL });
++		ok(md.includes("- ideas ") && !md.includes("- notes "), "page_read lists the new name only (gone line hides the old)");
++
++		const dry = Subpages.at(URL, { dry: true }).remove("ideas");
++		ok(dry.dry && fs.existsSync(path.join(DIR, "ideas")), "a dry remove touches nothing");
++		const rem = await call("page_set", { path: URL, delta: { pages: { remove: "ideas" } } }, "t");
++		ok(rem.ok && !fs.existsSync(path.join(DIR, "ideas")) && fs.readdirSync(path.join(DIR, "_removed")).some(n => n.startsWith("ideas-")), "pages.remove moves the folder to _removed/, never deletes");
++		ok(!(await read_page({ path: URL })).includes("## Subpages"), "a removed subpage is no longer listed");
++
++		const bad = await call("page_set", { path: URL, delta: { pages: { add: { name: "Bad Name", title: "x" } } } }, "t");
++		ok(!bad.ok, "a bad subpage name is refused");
++	}
++
++	// page.js parent: the children string is edited in place.
++	{
++		const js = path.join(DIR, "pj");
++		fs.mkdirSync(js);
++		fs.writeFileSync(path.join(js, "page.js"), 'export default { title: "P", children: "a/page.jsonl" };\n');
++		const sub = new Subpages(js);
++		sub.add({ name: "b", title: "B" });
++		ok(/children: "a\/page.jsonl b\/page.jsonl"/.test(fs.readFileSync(path.join(js, "page.js"), "utf8")), "page.js parent: children gets the new name");
++		sub.rename({ name: "b", to: "c" });
++		sub.remove("c");
++		ok(/children: "a\/page.jsonl"/.test(fs.readFileSync(path.join(js, "page.js"), "utf8")), "page.js parent: rename then remove leaves children clean");
++	}
++
++	// a session route deeper than the page resolves to the session's own subpage folder.
++	{
++		const uuid = crypto.randomUUID(), sess = `/framework/ai/sessions/${uuid}/`;
++		let folder;
++		try {
++			const out = await call("page_set", { path: sess, delta: { pages: { add: { name: "notes", title: "Notes", icon: "N", description: "d" } } } }, "t");
++			ok(out.ok, "pages.add on a session page");
++			folder = path.join(ROOT, path.dirname(out.size.file));
++			ok(fs.existsSync(path.join(folder, "notes", "page.jsonl")), "the subpage sits in the session's own folder");
++			const w = await call("page_set", { path: sess + "notes/", delta: { title: "Renamed" } }, "t");
++			ok(w.size.file.endsWith("/notes/page.jsonl"), "a session route deeper than the page resolves to the subpage folder");
++			const t = await call("page_set", { path: sess + "other/", delta: { title: "tab" } }, "t");
++			ok(t.line.other?.title === "tab", "with no folder, the segment stays a tab target");
++		} finally { if (folder) fs.rmSync(folder, { recursive: true, force: true }); }
++	}
++
+ } finally {
+ 	fs.rmSync(DIR, { recursive: true, force: true });
+ }
+diff --git a/Servex/pages.js b/Servex/pages.js
+index bc5981dd8..b1b1b5822 100644
+--- a/Servex/pages.js
++++ b/Servex/pages.js
+@@ -4,6 +4,7 @@
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import Subpages from "./agents/Subpages.js";
+ 
+ const MAIN = "C:\\Code\\lew42\\monorepo";
+ const json = v => JSON.stringify(v, null, 2);
+@@ -86,7 +87,7 @@ export const page_tools = () => {
+ 				return { ok: true, kind, title: pick("title"), icon: pick("icon"), children: pick("children"), layout: pick("layout"), cols: pick("cols"), room: pick("room") };
+ 			}),
+ 
+-		tool("create_page", "Make a new child page reliably: folder + page.jsonl line 1 (title, icon, description, optional layout) + a readme.md stub, then link it from the parent (one appended {file} line, or the name added to the parent page.js children string). The empty doc/ dir is NOT created — one appears only once there is a real doc. Returns the PARENT's context (title, layout words, sibling names, readme url) so the calling agent looks at where this page sits before filling it in.",
++		tool("create_page", "Alias of page_set({pages:{add:{name,title,icon,description}}}), see core/Page/doc/ai-api.md. Makes a new child page reliably: folder + page.jsonl line 1 (title, icon, description, optional layout) + a readme.md stub, then link it from the parent (one appended {file} line, or the name added to the parent page.js children string). The empty doc/ dir is NOT created — one appears only once there is a real doc. Returns the PARENT's context (title, layout words, sibling names, readme url) so the calling agent looks at where this page sits before filling it in.",
+ 			{ parent: P, name: { type: "string", description: "a-z0-9- only" }, title: { type: "string" }, icon: { type: "string" }, description: { type: "string", description: "One sentence — the card's subtitle everywhere this page is previewed." }, layout: { type: "string", description: "optional layout name" } },
+ 			["parent", "name", "title", "icon", "description"], a => {
+ 				if (!NAME.test(a.name || "")) throw new Error("name must be a-z0-9- only");
+@@ -96,26 +97,22 @@ export const page_tools = () => {
+ 				const dir = path.join(pdir, a.name);
+ 				if (fs.existsSync(dir)) throw new Error(`${a.name} already exists under ${a.parent}`);
+ 				if (a.layout && !layout_names(a).includes(a.layout)) throw new Error(`unknown layout; valid: ${layout_names(a).join(", ")}`);
+-				let parent_js = null;
+-				if (pkind === "page.js") {
+-					const file = path.join(pdir, "page.js"), src = fs.readFileSync(file, "utf8");
+-					const m = /(children:\s*")([^"]*)(")/.exec(src);
+-					if (!m) throw new Error("parent page.js has no `children: \"...\"` string to extend");
+-					parent_js = { file, src, m };
+-				}
+-				// Read the parent's own context BEFORE writing anything, so the new page's own
+-				// line (about to be appended below) never shows up as one of its own siblings.
++				// Read the parent's own context BEFORE writing anything, so the new page never lists itself as a sibling.
+ 				const parent_layout = layout_of(pdir, pkind);
+ 				const siblings = children_of(pdir).map(c => c.name);
+ 				const parent_readme = `${a.parent.replace(/\/?$/, "/")}md/readme/`;
+-				fs.mkdirSync(dir);
+-				const first = { title: a.title, icon: a.icon, description: a.description, ...(a.layout ? { layout: a.layout } : {}) };
+-				fs.writeFileSync(path.join(dir, "page.jsonl"), JSON.stringify(first) + "\n");
+-				fs.writeFileSync(path.join(dir, "readme.md"), `# ${a.title} — ${a.description}\n\n## Index\n\n## Use\n\n## Watch out\n\n## More\n`);
+-				if (parent_js) {
+-					const { file, src, m } = parent_js, i = m.index + m[1].length, sep = m[2].trim() ? " " : "";
+-					fs.writeFileSync(file, src.slice(0, i) + m[2].replace(/\s+$/, "") + sep + a.name + "/page.jsonl" + src.slice(i + m[2].length));
+-				} else append(path.join(pdir, "page.jsonl"), { file: `${a.name}/page.jsonl` });
++				// The folder, line 1 and the parent link are ONE implementation: Servex/agents/Subpages.js.
++				new Subpages(pdir).add({ name: a.name, title: a.title, icon: a.icon, description: a.description, ...(a.layout ? { layout: a.layout } : {}) });
++				fs.writeFileSync(path.join(dir, "readme.md"), `# ${a.title} — ${a.description}
++
++## Index
++
++## Use
++
++## Watch out
++
++## More
++`);
+ 				return {
+ 					ok: true, made: `${a.parent.replace(/\/?$/, "/")}${a.name}/`, linked_in: pkind,
+ 					parent: { title: parent_layout.title, layout: parent_layout.layout, cols: parent_layout.cols, room: parent_layout.room, siblings, readme: parent_readme }
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index a333b9d8c..f7e2ecab6 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -8,6 +8,10 @@ import AISessionTrace from "./AISessionTrace.js";
+ import AISession from "./AISession.js";
+ import AISessionConversation from "./AISessionConversation.js";
+ import JSONL from "/framework/ext/JSONL/JSONL.js";
++import Item from "/framework/core/Item/Item.js";
++import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
++import "/framework/core/Page/parts/PageText.js";
++import "/framework/core/Page/parts/PageCard.js";
+ 
+ // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
+ // view). Built with `new AISessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
+@@ -56,7 +60,17 @@ export default class AISessionDetail extends Page {
+ 
+ 	log_loaded(){ return this._log_loaded ??= this.log_urls().then(urls => Promise.all(urls.map(url => new AISessionDetail.Log({ url, page: this }).load()))); }
+ 
+-	async child(name, levels){ await this.log_loaded(); return super.child(name, levels); }
++	/* A subpage made by the page tool (`pages.add`) is a folder inside the session's own folder; the log's
++	   `file` lines say which (SessionPageLog.read → sub_dirs). It is read from there and shown at this route. */
++	async child(name, levels){
++		await this.log_loaded();
++		const dir = this.sub_dirs?.get(name);
++		if (dir && !(this.children.get(name) instanceof Page)){
++			const page = await Page.jsonl(dir);
++			if (page){ page.url = this.url + name + "/"; return this.add(name, page).load_all_children(levels); }
++		}
++		return super.child(name, levels);
++	}
+ 
+ 	content(){
+ 		const { home, id } = this, url = home.url;
+@@ -67,6 +81,8 @@ export default class AISessionDetail extends Page {
+ 			a.c("muted sessions-template", "AISessionDetail.js").href("/framework/ai/AISession/AISessionDetail.js");
+ 		});
+ 
++		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
++		this.parts = new AISessionDetail.Parts($parts);
+ 		let $box, $conv, $related, $costs, $spawn, $session, $trace;
+ 		div.c("cols main-aside sessions-detail-body", () => {
+ 			div.c("flow sessions-detail-main", () => {
+@@ -91,7 +107,7 @@ export default class AISessionDetail extends Page {
+ 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
+ 			this.log_urls().then(urls => {
+ 				if (this.logs) return;
+-				const open = url => new AISessionDetail.Log({ url, page: this, on_card: c => conv.add_card(c) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
++				const open = url => new AISessionDetail.Log({ url, page: this, parts: this.parts, on_card: c => conv.add_card(c) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
+ 				const logs = this.logs = urls.map(open);
+ 				this._old_url?.then(old => { if (old && this.logs === logs) logs.push(open(old)); });
+ 			});
+@@ -246,10 +262,76 @@ AISessionDetail.Log = class SessionPageLog extends JSONL {
+ 	read(entries){
+ 		for (const e of entries){
+ 			const item = e.content?.add;
+-			if (item?.title && item.id && this.on_card && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
++			this.parts?.apply(e);
++			this.link(e.file, e.gone);
++			if (item?.title && item.id && !String(item.type).startsWith("part-") && this.on_card && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
+ 			this.page?.overlay(e);
+ 		}
+ 		return this;
+ 	}
+ 	live(){ super.live(() => {}); return this; }
++
++	/** A `{"file":"notes/page.jsonl"}` line names a subpage folder beside this log; `gone` drops it. */
++	link(file, gone){
++		const name = /^([^/]+)\/page\.jsonl$/.exec(file ?? "")?.[1];
++		if (!name || !this.page) return;
++		const dirs = this.page.sub_dirs ??= new Map();
++		if (gone){ dirs.delete(name); this.page.unlink_child(name); this.page.children.delete(name); }
++		else { dirs.set(name, this.url.replace(/page\.jsonl$/, "") + name + "/"); this.page.link_child(name + "/page.jsonl"); }
++	}
++};
++
++/** The parts the page tool put on this page (`content.add` of a part-heading, part-text or part-card), drawn
++ *  live in one box: the same Items and Views a Page's own content list uses. Add, change by id, remove, move, order. */
++AISessionDetail.Parts = class SessionParts {
++	items = new Map();
++	order = [];
++	constructor($box){ this.$box = $box; }
++
++	apply(e){
++		if (!e || typeof e !== "object") return;
++		let dirty = false;
++		const verbs = e.content;
++		if (verbs && typeof verbs === "object"){
++			const add = verbs.add;
++			if (add?.id && String(add.type).startsWith("part-")){
++				const { after, type, id, ...data } = add;
++				this.items.set(id, Item.hydrate({ type, id, data }));
++				this.place(id, after);
++				dirty = true;
++			}
++			if (typeof verbs.remove === "string" && this.items.delete(verbs.remove)){ this.order = this.order.filter(x => x !== verbs.remove); dirty = true; }
++			if (verbs.move && this.items.has(verbs.move.id)){ this.place(verbs.move.id, verbs.move.after); dirty = true; }
++			if (Array.isArray(verbs.order)){
++				const listed = verbs.order.filter(id => this.items.has(id));
++				this.order = [...listed, ...this.order.filter(id => !listed.includes(id))];
++				dirty = true;
++			}
++		}
++		for (const [key, value] of Object.entries(e)){
++			const item = this.items.get(key);
++			if (item && value && typeof value === "object" && !Array.isArray(value)){
++				const { by, ts, ...delta } = value;
++				item.set(delta);
++				dirty = true;
++			}
++		}
++		if (dirty) this.draw();
++	}
++
++	place(id, after){
++		this.order = this.order.filter(x => x !== id);
++		const at = after === null ? -1 : after === undefined ? this.order.length - 1 : this.order.indexOf(after);
++		this.order.splice(at === -1 && after !== null ? this.order.length : at + 1, 0, id);
++	}
++
++	// One redraw per batch: the next microtask, so a replay of 50 lines paints once.
++	draw(){
++		if (this.pending) return;
++		this.pending = true;
++		queueMicrotask(() => {
++			this.pending = false;
++			this.$box.empty(() => this.order.forEach(id => { const item = this.items.get(id); if (item?.constructor.View) new item.constructor.View({ item }); }));
++		});
++	}
+ };
+diff --git a/public/framework/core/Page/doc/ai-api.md b/public/framework/core/Page/doc/ai-api.md
+new file mode 100644
+index 000000000..42c96809b
+--- /dev/null
++++ b/public/framework/core/Page/doc/ai-api.md
+@@ -0,0 +1,71 @@
++# The page API for AIs: two tools, one model
++
++An agent changes a page with **one tool, `page_set`**, and looks at it with **one tool, `page_read`**. Everything else is a delta: a small JSON object the agent picks itself.
++
++## The model: a page is a log of deltas
++
++```
++page.jsonl          one JSON line per change, appended, never rewritten
++  → page.set(line)  each line is applied to the page, in order (the browser tails the file live)
++  → the page        properties (title, icon, the six layout words), `content` (a list of cards), `pages` (its subpages)
++```
++
++A delta is applied key by key:
++
++- **A plain key is a property**: `{"title":"Notes"}` sets the title.
++- **A key naming a method calls it**: `{"content":{"add":{…}}}` calls `add` on the content list.
++- **A key that is an id walks into that item**: `{"c1":{"text":"new"}}` changes the card `c1`.
++
++The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`: `ids` lists every id it made. Every open tab redraws within about a second, with no reload.
++
++## To do X, call `page_set` with delta Z
++
++`path` is the page's url as the browser shows it. Omit it to mean your own session page.
++
++| To… | delta |
++|---|---|
++| set a page property | `{"title":"Notes","description":"One line."}` · layout words: `navigation` `width` `arrangement` `surface` `background` `type_size` |
++| add a heading | `{"content":{"add":{"type":"part-heading","text":"Findings"}}}` |
++| add a card | `{"content":{"add":{"type":"part-card","title":"Cache","text":"Hit rate 92%."}}}` |
++| add a paragraph | `{"content":{"add":{"type":"part-text","text":"Some **markdown**."}}}` |
++| add after a card | `{"content":{"add":{…,"after":"c1"}}}` (`"after":null` puts it first) |
++| update a card | `{"c1":{"text":"Hit rate 95%."}}` (the id `page_set` returned) |
++| move a card | `{"content":{"move":{"id":"c1","after":"h1"}}}` |
++| remove a card | `{"content":{"remove":"c1"}}` |
++| reorder all cards | `{"content":{"order":["h1","c2","c1"]}}` |
++| call any method | `{"<id or property>":{"<method>":<argument>}}`, e.g. a question card: `{"q1":{"answer":"42"}}` |
++| **create a subpage** | `{"pages":{"add":{"name":"notes","title":"Notes","icon":"📝","description":"One line."}}}` |
++| rename a subpage | `{"pages":{"rename":{"name":"notes","to":"ideas"}}}` |
++| remove a subpage | `{"pages":{"remove":"notes"}}` (moved aside, never deleted) |
++| write on a subpage | the same deltas, with `path` set to the subpage's url (`…/notes/`) |
++| read the current state | **`page_read(path)`**: title, every card with its id, the subpages |
++
++## Names, once
++
++- **page**: anything with a url. **subpage**: a page inside another, with its own folder and url.
++- **content**: the page's own list of cards. **card**: one item in it (`part-heading`, `part-text`, `part-card`; any registered type).
++- **delta**: the JSON object you send. **line**: that delta, stamped and appended to `page.jsonl`.
++
++## Old tool names still work
++
++`page_add(item)` = `page_set({"content":{"add":item}})`. `page_call(target, method, args)` = `page_set` with `{[method]: args}` nested under `target`. `page_log(text)` = `page_set({"log":{"text":…}})` (the "now doing" line). `create_page(parent, name, …)` = `page_set(parent, {"pages":{"add":{name, …}}})`. `target` on `page_set` is optional sugar: `page_set(path, ["c1"], {"text":"…"})` = `page_set(path, {"c1":{"text":"…"}})`.
++
++## How a subpage is stored
++
++`pages.add` makes `<page folder>/<name>/page.jsonl` (line 1: title, icon, description) and links it from the parent: one `{"file":"<name>/page.jsonl"}` line in a `page.jsonl` parent, or the name added to a `page.js` parent's `children:` string. `rename` moves the folder and writes a `gone` line for the old name and a `file` line for the new one. `remove` moves the folder to `<page folder>/_removed/<name>-<time>/` and writes a `gone` line. The code is `Servex/agents/Subpages.js`.
++
++## Decisions, and the alternatives
++
++- **One write tool, not one per card kind or per verb.** The owner (2026-10-12): "a few universal tools that take deltas". Alternative: keep `page_add`/`page_call`/`create_page` as first-class tools. Kept only as aliases, so no caller breaks.
++- **`pages` is handled by the tool, not written as a line.** The tool turns `pages.add` into a folder plus the existing `file` line the browser already understands. Alternative: teach `Page.set()` a `pages` verb so the line itself says `{"pages":{"add":…}}`. Rejected for now: a browser cannot make folders, and `Page.class.js` is frozen while its [split plan](split-plan.md) runs.
++- **A tab is a lighter subpage.** `{"tab":{"name":"notes","title":"Notes"}}` makes a subpage kept inside this page's own file (no folder). Use it for a view of this page; use `pages.add` for a page that should stand on its own.
++
++## The live proof
++
++Built 2026-10-12 (`Servex/agents/Subpages.js`, `page_tools.js`, `ai/AISession/AISessionDetail.js`). A headless Chromium on a private worktree server, writing through the real `page_tools`, saw on a session page (`/framework/ai/sessions/<id>/`): a `part-heading` after 39 ms, a `part-text` after 12 ms, a `part-card` and its in-place update after 14 ms, with no reload; a subpage made by `pages.add` opened at `…/<id>/notes/` and survived a reload (about 0.4 s). Probe and screenshots: `ai/2026-10-12/page-ai-api/build/` (`probe.mjs`, `session.png`, `notes.png`).
++
++How the session page draws it: `AISessionDetail.Parts` keeps the `part-*` items of the session's `page.jsonl` and draws them with the same Items and Views a `Page` content list uses; a `{"file":"notes/page.jsonl"}` line makes `AISessionDetail.child("notes")` load that folder from the session's own dated folder and show it at the session route. Not yet run: the fresh-Haiku test below.
++
++The "fresh Haiku builds a heading, three cards and a subpage from the descriptions alone" test is still to do.
++
++Related: [content.md](content.md) (what content is), [page-tool-2026-10-09.md](page-tool-2026-10-09.md) (the first version of the tool), [jsonl.md](jsonl.md) (the wire format).

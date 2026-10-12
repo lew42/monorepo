@@ -9,12 +9,12 @@ const rows = [];
 for (const line of lines){
 	if (!line.ts || line.ts < since) continue;
 	const add = line.content?.add, text = add ? (add.title ?? add.text) : line.title ?? null;
-	const hit = text && seen.find(s => s.text === String(text).trim().slice(0, 120));
+	const hit = text && seen.find(s => s.text.toLowerCase() === String(text).trim().slice(0, 120).toLowerCase());
 	rows.push({ ts: line.ts, wrote: JSON.stringify(line).replace(/,"by":.*$/, "").slice(0, 90), seen: hit?.at ?? null, ms: hit ? Date.parse(hit.at) - Date.parse(line.ts) : null });
 }
 // A card's line carries its ts inside `add`; lift it.
 for (const line of lines) if (line.content?.add?.ts && line.content.add.ts >= since){
-	const add = line.content.add, text = String(add.title ?? add.text ?? "").trim().slice(0, 120), hit = seen.find(s => s.text === text);
+	const add = line.content.add, text = String(add.title ?? add.text ?? "").trim().slice(0, 120), hit = seen.find(s => s.text.toLowerCase() === text.toLowerCase());
 	rows.push({ ts: add.ts, wrote: `${add.type ?? "item"}: ${text.slice(0, 60)}`, seen: hit?.at ?? null, ms: hit ? Date.parse(hit.at) - Date.parse(add.ts) : null });
 }
 rows.sort((a, b) => a.ts < b.ts ? -1 : 1);
