@@ -42,6 +42,14 @@ const results = await page.evaluate(async () => {
 	t((base._on?.render?.length ?? 0) === before && k._on.render.length === 1, "a clone's listener stays on the clone");
 	k.dispose();
 
+	// A hard copy draws the same layout and never hears the base again.
+	const h = base.copy(), hv = h.render();
+	base.set("x", "f");
+	t(text(hv) === "e" && !base.clones.includes(h), "a copy is unlinked and unlisted");
+	h.set("x", "own");
+	t(text(hv) === "own" && h.overrides().join() === "x", "a copy writes to itself");
+	h.dispose();
+
 	// dispose(): a clone that dies takes its views, listeners and record with it.
 	const c = base.clone(); c.render(); c.render();
 	t(base.listeners("x") === 3, "two more views, two more listeners");

@@ -58,6 +58,18 @@ export class Template extends Page {
 		return c;
 	}
 
+	// A hard copy: same layout, every value copied, no link back (binding.md §2).
+	copy(data){
+		const c = this.clone();
+		this.clones.pop();   // clone() listed it; a copy is not a linked clone
+		c.source = null;
+		c.map = this.map.copy(this.expand(data));
+		return c;
+	}
+
+	// What this clone overrides, all of it or one section: overrides("columns.0.").
+	overrides(prefix){ return this.map.overrides(prefix); }
+
 	// set({name: v}) or set(name, v); a bound value updates its spans, anything else redraws.
 	set(a, b){
 		const delta = typeof a === "string" ? { [a]: b } : a;

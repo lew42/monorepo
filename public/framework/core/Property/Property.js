@@ -104,6 +104,23 @@ Property.Map = class PropertyMap {
 
 	clone(data){ return new this.constructor(this).assign(data); }
 
+	// A hard copy: every value it can see, as plain values on one unlinked layer.
+	copy(data){ return new this.constructor().assign({ ...this.values(), ...data }); }
+
+	// Every name visible here, own or inherited.
+	keys(){
+		const names = new Set();
+		for (let m = this; m; m = m.parent) for (const k of [...Object.keys(m.data), ...Object.keys(m.props)]) names.add(k);
+		return [...names];
+	}
+
+	values(){ return Object.fromEntries(this.keys().map(k => [k, this.get(k)])); }
+
+	// The names this layer overrides; a prefix narrows it to one section ("columns.0.").
+	overrides(prefix = ""){
+		return [...Object.keys(this.data), ...Object.keys(this.props)].filter(k => k.startsWith(prefix));
+	}
+
 	// Count every listener on every Property this layer can see.
 	listeners(name){
 		let n = 0;
