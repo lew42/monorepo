@@ -22,6 +22,8 @@ class NotesLog extends JSONL {
 		const from = v.from ?? v.author, id = v.id ?? `${v.at}-${from}`;
 		this.items.set(id, { id, from, text: v.text, at: v.at });
 	}
+	// A page.jsonl is mostly other lines (title, place, tab…): not this reader's, so no warning.
+	skip(verb, entry){ this.skipped.push(entry); }
 	note_state(v){ if (v?.id) this.states.set(v.id, v); }
 	reset(){ super.reset(); this.items = new Map(); this.states = new Map(); return this; }
 }
