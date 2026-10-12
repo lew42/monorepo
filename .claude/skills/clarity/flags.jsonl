@@ -545,3 +545,27 @@
 {"at":"2026-10-12T18:07:04.778Z","target":"public/framework/ai/2026-10-12/transcription-crash","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T18:07:04.896Z","target":"public/framework/ai/2026-10-12/transcription-crash","verdict":"spawned","to":"clarity-transcription-crash"}
 {"at":"2026-10-12T18:07:24.217Z","target":"public/framework/ai/2026-10-12/transcription-crash","verdict":"rewrote","what":"outcome cut from 188 to ~100 words; review.md length left (not edited)","to":"task.jsonl"}
+{"at":"2026-10-12T19:15:50.142Z","target":"public/framework/ai/2026-10-12/sessions-grid","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T19:15:50.283Z","target":"public/framework/ai/2026-10-12/sessions-grid","verdict":"spawned","to":"clarity-sessions-grid"}
+{"at":"2026-10-12T19:16:07.403Z","target":"public/framework/ai/2026-10-12/sessions-grid","verdict":"rewrote","what":"outcome now ticks the asks-entry ask with proof and groups the other points","to":"task.jsonl"}
+{"at":"2026-10-12T19:20:18.050Z","target":"public/framework/ai/2026-10-12/sessions-detail/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T19:20:19.146Z","target":"public/framework/ai/2026-10-12/live-page-error/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T19:21:19.066Z","target":"public/framework/ai/2026-10-12/sessions-detail/requirements.md","verdict":"spawned","to":"clarity-sessions-detail"}
+{"at":"2026-10-12T19:21:20.171Z","target":"public/framework/ai/2026-10-12/live-page-error/requirements.md","verdict":"spawned","to":"clarity-live-page-error"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/sessions-detail/requirements.md","verdict":"clear","what":"text-check clean; asks are a checklist, agent-facing brief","to":"none"}
+{"at":"2026-10-12T19:30:00.000Z","target":"public/framework/ai/2026-10-12/live-page-error/requirements.md","verdict":"clear","what":"Title, four tickable asks with proof wording; text-check clean","to":"flags.jsonl"}
+{"at":"2026-10-12T19:22:09.536Z","target":"public/framework/ai/2026-10-12/relay-2","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T19:22:09.670Z","target":"public/framework/ai/2026-10-12/relay-2","verdict":"spawned","to":"clarity-relay-2"}
+{"at":"2026-10-12T19:22:18Z","target":"public/framework/ai/2026-10-12/relay-2","verdict":"clear","what":"text-check clean; outcome ticked with proof, linked, under 120 words","to":"flags.jsonl"}
+{"at":"2026-10-12T19:24:49.754Z","target":"public/framework/ai/2026-10-12/live-page-error","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T19:24:49.884Z","target":"public/framework/ai/2026-10-12/live-page-error","verdict":"spawned","to":"clarity-live-page-error-2"}
+{"at":"2026-10-12T14:30:00-05:00","target":"public/framework/ai/2026-10-12/live-page-error","verdict":"clear","what":"Outcome lists cause, fix, gate with proof; open gap named; text-check clean","to":"none"}
+{"at":"2026-10-12T19:25:18.098Z","target":"public/framework/ai/2026-10-12/refine-haiku-live/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T19:26:19.105Z","target":"public/framework/ai/2026-10-12/refine-haiku-live/requirements.md","verdict":"spawned","to":"clarity-refine-haiku-live"}
+{"at":"2026-10-12T19:26:28Z","target":"public/framework/ai/2026-10-12/refine-haiku-live","verdict":"clear","what":"text-check clean; brief is three numbered asks, process short","to":"clarity-refine-haiku-live"}
+{"at":"2026-10-12T19:28:30.184Z","target":"public/framework/ai/2026-10-12/task-folders/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T19:29:31.162Z","target":"public/framework/ai/2026-10-12/task-folders/requirements.md","verdict":"spawned","to":"clarity-task-folders"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/task-folders/requirements.md","verdict":"clear","what":"Title states the change, 5 checkable asks, text-check clean, short.","to":"clarity-task-folders"}
+{"at":"2026-10-12T19:30:38.860Z","target":"public/framework/ai/2026-10-12/sidebar-index","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T19:30:39.067Z","target":"public/framework/ai/2026-10-12/sidebar-index","verdict":"spawned","to":"clarity-sidebar-index-2"}
+{"at":"2026-10-12T19:35:00.000Z","target":"public/framework/ai/2026-10-12/sidebar-index","verdict":"clear","what":"outcome ticks each ask with proof, short, linked; text-check clean","to":"flags.jsonl"}
