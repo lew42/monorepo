@@ -12,4 +12,4 @@
 
 `--census` counts every session by tier (2026-10-12: 144 warm, 2088 cold, 5908 fresh).
 
-**Not built:** the UI button on a session row that applies the tier, and the "new session seeded with a summary" step for `fresh` (the summary script is `Server/session-summary.mjs`). Smallest next step: show the tier as a tag on the row in `AISessionFlags.js`.
+**Shown:** every Sessions row carries a warm / cold / fresh tag next to its role (`AISessionView.js`, rule in `AISession/AISessionResume.js`, which `Server/SessionResume.mjs` extends). Hover for the reason. Still not built: a button that applies the tier, and the new session seeded with a summary for `fresh` (`Server/session-summary.mjs` is the start).

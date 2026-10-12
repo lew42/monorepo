@@ -408,9 +408,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 		console.log(`${ix.snaps.size} snapshots; froze ${ix.freeze().length} day(s); ${AISessionIndex.roll()} total file(s) written`);
 	} else if (cmd === "--check"){
 		const bad = AISessionIndex.check(), ix = new AISessionIndex({ log: () => {} }), dirs = await ix.session_dirs();
-		let missing = 0; for (const { dir } of dirs) if (!fs.existsSync(path.join(dir, "index.json")) && fs.existsSync(path.join(dir, "cache.jsonl"))) missing++;
+		// A cache-only folder whose id already has an index.json in another folder is a leftover from the rename (the rest of the session moved), not a missing snapshot.
+		const has = new Set(); for (const { id, dir } of dirs) if (fs.existsSync(path.join(dir, "index.json"))) has.add(id);
+		let missing = 0, leftovers = 0; for (const { id, dir } of dirs) if (!fs.existsSync(path.join(dir, "index.json")) && fs.existsSync(path.join(dir, "cache.jsonl"))) has.has(id) ? leftovers++ : missing++;
 		console.log(bad.length ? "totals out of date:\n  " + bad.join("\n  ") : "month and year totals match the day files");
-		console.log(`${dirs.length} session folders, ${missing} cached without an index.json`);
+		console.log(`${dirs.length} session folders, ${missing} cached without an index.json (${leftovers} more are cache-only leftovers of a renamed session; left in place)`);
 		process.exit(bad.length || missing ? 3 : 0);
 	} else console.log("usage: node ai/AISession/AISessionIndex.mjs --build | --check");
 }
