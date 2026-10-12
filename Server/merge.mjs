@@ -407,6 +407,12 @@ try {
 		// every page.js/page.jsonl the branch touches that still exists on the branch, as its own url — de-duped against paths given by hand
 		const autoPages = [...new Set(changed.filter(f => !deleted.has(f) && fs.existsSync(path.join(dir, f))).map(pageUrlFor).filter(Boolean))].filter(u => !paths.includes(u));
 		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
+		/* Visibility gate (the owner, 2026-10-12): a branch that touches ext/Figma may not leave a page.js no parent declares. */
+		if (changed.some(f => f.startsWith("public/framework/ext/Figma/")) && fs.existsSync(path.join(dir, "public/framework/ext/Figma/visibility.mjs"))) {
+			const vis = run("node", [path.join(dir, "public/framework/ext/Figma/visibility.mjs")], dir);
+			console.log(vis.stdout + vis.stderr);
+			if (vis.status !== 0) { console.error("merge.mjs refused: ext/Figma has a page nothing links to (see HIDDEN above)."); process.exit(1); }
+		}
 		const smoke = skipSmoke ? { status: 0, stdout: "", stderr: "" }
 			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...autoPages, ...(mainArg ? ["--main", MAIN] : [])], MAIN);
 		console.log(smoke.stdout + smoke.stderr);

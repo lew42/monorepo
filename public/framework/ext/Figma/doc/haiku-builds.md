@@ -66,3 +66,11 @@ Method: I read the section with `get_design_context` (exact tokens), write a min
 **Right:** nav, the two-line hero title, both body lines, the three stat cards, the brown footer, the split hero with buttons and dot rows, the settings sidebar and the three theme swatches, the `hro-` prefix, no wrappers.
 **Wrong:** the sidebar list put Appearance first instead of after General (the spec named the active item out of order), and every block got all four corners rounded where Figma has a flat top on the footer block and a square split panel. Fixed by hand.
 **Lesson:** list sidebar items in their display order and mark the active one, and write corner radii as the CSS shorthand for each block (`0 0 12px 12px`), as in section 8.
+
+## Page 10 · Auto layout ([/framework/ext/Figma/autolayout/](/framework/ext/Figma/autolayout/)), Page 8 `119:15240`, 0.66 USD, ~30 s (phase 2)
+
+Four 16:9 slides: absolute text, a vertical stack, two FIXED 960 panes, three FILL panes. Spec by Sonnet from `get_design_context` (the mapping table in [figma-to-framework.md](./figma-to-framework.md): FILL = `flex: 1 1 0`, FIXED 960 of 1920 = half = `flex: 1`, vertical stack = column + gap + padding in em).
+
+**Hits:** first try, no fixes. Every size, tint (`rgba(0,0,0,.03)`), gap and padding as em; panes `flex: 1 1 0; min-width: 0`; slides scale with `clamp` font-size; no wrappers; the pitfall list from sections 4-9 (one class string, `.attr`, `grid-column: 1 / -1`) held.
+**Misses:** none in the build. The spec's "FIXED 960 panes" became fluid halves (a deliberate mapping choice: Figma frame width is one state). `layout-check` flags "empty 0.8-0.9" at every width: that is a false positive here, because the design IS mostly white slides with a few words; judge it by the sheet, not the number. The 404 in the check is the baseline noise every page shows.
+**Lesson:** naming the mapped word in the spec ("FILL = flex 1 1 0") removes the guessing that cost fixes in sections 1-9.
