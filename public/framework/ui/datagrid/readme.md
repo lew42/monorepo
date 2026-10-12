@@ -1,5 +1,7 @@
 # datagrid — the markup for a data-grid table, no JavaScript required
 
+> **Moved (2026-10-12):** this now lives in [`ext/DataGrid`](/framework/ext/DataGrid/) as `DataGrid.head / body / template / plain`. `ui/datagrid` re-exports it, so `import { datagrid } from "/app.js"` still works.
+
 A CSS-grid box, a header row and a body — the part of a data grid that is pure HTML and CSS, so it
 needs no class and no listener to exist. The owner's own rule: if it's markup a function renders,
 it's UI, even when that function lives in a `.js` file. Resize, sort, filter and windowing are all
