@@ -1,4 +1,4 @@
-# New-file sentences that are not verbatim from the old file (22)
+# New-file sentences that are not verbatim from the old file (23)
 
 This is the reviewer's worklist: each is new wording; check that it keeps the meaning and strength of the old rule it came from.
 
@@ -6,6 +6,7 @@ This is the reviewer's worklist: each is new wording; check that it keeps the me
 - L6.2 ((CLAUDE.md)): The sentence-by-sentence map is in `public/framework/ai/2026-10-12/claude-md-consolidate/`.
 - L14.10 (Keep working; never wait on the owner): If there is a safe, quick fix, attempt it; if not, **record the essence of the dictation immediately in the proper place** (notes, legitimate questions, tradeoffs or implications): a short `doc/*.md` file beside the relevant module, linked from that directory's `readme.md`.
 - L14.11 (Keep working; never wait on the owner): Files are what survive. (the owner, 2026-10-01, updated 2026-10-05)
+- L24.2 (How to respond): Each `###` heading names the thing (the class, module or page) so the context is always visible, with its path as inline code on the same line (`### 🧱 Parts `core/Page/parts/``), never a separate code block; add one short `#` only for a big reply.
 - L28.2 (Clarity is familiar structure): (the owner, 2026-09-29) Each heading names its topic and states its gist in one line, so a reader knows what it is before any detail.
 - L28.3 (Clarity is familiar structure): Items are as few as it takes, most important first; a familiar concept needs no explanation, only its name and a link to its own page.
 - L34.1 (Link every mention, and every page): **Link every mention, and every page** (the owner, 2026-10-08): the owner browses the website, not the file system, so a file that is not linked will never be found.

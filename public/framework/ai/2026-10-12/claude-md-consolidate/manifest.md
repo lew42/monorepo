@@ -4,9 +4,9 @@ Base: `87afbdd55:CLAUDE.md`. Every sentence of the old file has exactly one row 
 
 | action | count |
 |---|---|
-| keep | 162 |
+| keep | 161 |
 | move | 24 |
-| merge | 21 |
+| merge | 22 |
 
 ## Moved to a topic doc (verbatim)
 
@@ -31,6 +31,7 @@ Base: `87afbdd55:CLAUDE.md`. Every sentence of the old file has exactly one row 
 ## Folded into a shorter rule — original wording in the archive
 
 - **L12 Keep working; never wait on the owner** → `public/framework/ai/doc/claude-md-archive.md`: L12.10 “If there is a safe, quick fix, attempt it; if not, **record …”; L12.11 “Write notes, legitimate questions, tradeoffs or implications…”; L12.13 “Superceded docs can be deleted cleanly in the future, but un…”
+- **L22 How to respond** → `public/framework/ai/doc/claude-md-archive.md`: L22.2 “Each `###` heading names the thing (the class, module or pag…”
 - **L24 Link every mention** → `public/framework/ai/doc/claude-md-archive.md`: L24.1 “**Link every mention** (the owner, 2026-10-08): whenever tex…”; L24.2 “Use the mention system (`ext/Mention`, `#Page` `@agent` `/pa…”
 - **L28 Audits go to Haiku** → `public/framework/ai/doc/claude-md-archive.md`: L28.2 “Task audits, readme audits, searches and fan-outs use Haiku …”
 - **L32 Classes are the structure; show them** → `public/framework/ai/doc/claude-md-archive.md`: L32.1 “**Classes are the structure; show them** (the owner, 2026-10…”

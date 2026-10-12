@@ -88,3 +88,8 @@ Where a class has a UI, the demo shows two things side by side: the rendered vie
 **References** — L97.1, L97.2
 
 **References:** `#Page`, `@agent` and `/path` in any text become icon links (`ext/Mention`). Use them instead of prose names.
+
+<!-- claude-md:L22 -->
+**How to respond** — L22.2
+
+Each `###` heading names the thing (the class, module or page) so the context is always visible; add one short `#` only for a big reply.

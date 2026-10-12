@@ -54,7 +54,7 @@
 {"id":"L20.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Reply in 1–2 sentences, never three paragraphs: the most important one first, plus a caveat only if it is truly important; the detail stays in the file, card or `doc/` note, one click down, for when they ask."}
 {"id":"L20.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Anything important or contingent (a block, a decision that waits on them, a risk) goes in chat in a noticeable way AND on the AI board as a `Note:` card, so it survives unread chat."}
 {"id":"L22.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**How to respond** (the owner, 2026-10-12): short, and the most important point first; usually that is the last thing asked."}
-{"id":"L22.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Each `###` heading names the thing (the class, module or page) so the context is always visible; add one short `#` only for a big reply."}
+{"id":"L22.2","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"Each `###` heading names the thing (the class, module or page) so the context is always visible; add one short `#` only for a big reply."}
 {"id":"L22.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Show structure as code: `class AIRail extends Inbox.Rail`, API signatures, never long bodies."}
 {"id":"L22.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Lists are flat and short; cut anything that is not a key point."}
 {"id":"L22.5","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Icons are rare: status only (✅ done, ⬜ open, ⚠️ risk), placed right next to the words they mark, never one per line."}
