@@ -44,7 +44,7 @@ Page extends Item                     // ✅ page instanceof Item is true — no
   url, title, parent: Page
   pages: List                         // ✅ the real storage — sub-pages, keyed by id (= folder name)
   children                            // ✅ a Map-SHAPED VIEW over `pages` — ~215 existing callers unchanged (not List's old `children` field, now `items`)
-  content: List<PagePart>             // ✅ made lazily, the page's own blocks; render_content_list() draws each through its class's View (doc/content.md)
+  content: List<Item>                 // ✅ made lazily, the page's own blocks; render_content_list() draws each through its class's View (doc/content.md)
   store: Item.Store                   // ✅ attached by Page.jsonl() — one per page.jsonl, append + tail, written through FsFile.append
   prefs()                             // ✅ localStorage (was `store()` — renamed, `page.store` is the jsonl Store now)
   view: View
