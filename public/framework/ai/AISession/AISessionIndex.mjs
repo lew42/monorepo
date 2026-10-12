@@ -198,6 +198,7 @@ export default class AISessionIndex {
 			children: prev?.children ?? 0, wall_ms: Math.round(pv.wall_ms), flags: pv.flags.length, tokens, first_at: s.first_at ?? null, last_activity: s.last_at ?? null,
 			day: AISession.day(s.first_at) ?? prev?.day ?? null, folder: this.dirs.has(id) ? path.basename(this.dirs.get(id)) : (this.snaps.get(id)?.folder ?? null), tags: prev?.tags ?? [], alerts: prev?.alerts ?? 0,
 			parent: reg?.parent ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
+			title: s.title ?? prev?.title ?? null,   // the tab's own title (VS Code sidebar / phone), from the transcript's title lines
 		};
 		this.join(snap);
 		if (this.kids) snap.links = this.links(snap);   // keeps the links a rebuild would otherwise drop

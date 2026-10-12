@@ -57,6 +57,7 @@ export default class AISessionView extends View {
 				if (nest?.kids) span.c("sessions-fold").attr("role", "button").attr("tabindex", "0").attr("title", nest.open ? "Hide the sessions this one started" : "Show the sessions this one started")
 					.text((nest.open ? "▾ " : "▸ ") + nest.kids).on("click", e => { e.preventDefault(); e.stopPropagation(); nest.toggle(); });
 				span(name.text);
+				if (name.agent && name.agent !== name.text) small.c("sessions-row-agent muted").attr("title", "Registered name (register_session)").text(" · " + name.agent);
 				AISessionView.flag_tags(r);   // red tags, inline on the title line so a row never changes height
 			});
 			if (r.last_prompt_first_line && name.from !== "prompt") small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
@@ -90,7 +91,7 @@ export default class AISessionView extends View {
 		div.c("sessions-cell", () => { if (r.role) { const { label: text, title } = role_label(r.role); small.c("muted").attr("title", title).text(text); } { const f = AISessionFlags.of(r); if (f?.last){ const { tier, why } = AISessionResume.tier(f), t = AISessionResume.TIERS[tier]; span.c("sessions-tag sessions-tier sessions-tier-" + tier, t.label).attr("title", t.title + " (" + why + ")"); } } if (AISessionFlags.is_mastermind(r)) span.c("sessions-tag sessions-tag-mm", "mastermind").attr("title", "A mastermind: it registered as one in Servex, or its first prompt loads the mastermind skill."); });
 		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
 		// Plain `if`s, not `&&`: a cell callback's return value can end up rendered as a stray text node (a `false` once printed "false").
-		div.c("sessions-cell", () => { if (r.model) small.c("muted", r.model); });
+		div.c("sessions-cell", () => { const m = row_of(this.session_index, r.session_id || r.id)?.model || r.model; if (m) small.c("muted", m); });   // the latest turn's model, not the configured one
 	}
 
 	/** One small red tag per flag that applies to the row (AISessionFlags). */

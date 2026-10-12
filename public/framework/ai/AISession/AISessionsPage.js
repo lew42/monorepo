@@ -151,7 +151,7 @@ export default class AISessionsPage extends Page {
 			const start = r => Date.parse(r.started_at ?? 0) || 0;
 			const live = this.last_rows.filter(AISessionRows.is_in_flight).sort((x, y) => start(x) - start(y) || String(x.id).localeCompare(String(y.id)));
 		this.$flight.empty(() => {
-			h3.c("sessions-flight-head", `In flight now · ${live.length}`).attr("title", "Running or ready to run right now. Updates live from the Servex agent stream.");
+			h3.c("sessions-flight-head", `Now · ${live.length}`).attr("title", "Running or ready to run right now. Updates live from the Servex agent stream.");
 			if (!live.length) return void small.c("muted", "Nothing is in flight right now.");
 			div.c("sessions-grid sessions-flight-grid", () => div.c("sessions-rows", () => live.forEach(r => this.row_view(r, null))));
 		});
