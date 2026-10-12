@@ -1,5 +1,6 @@
 import { elapsed } from "/framework/ext/AITask/stats.js";
 import AISession from "./AISession.js";
+import AISessionBuckets from "./AISessionBuckets.js";
 
 // The data side of the Sessions tab: turns the raw feeds (sessions.json, Servex's agent list, the Session class
 // index, the session tree, the spend tree) into the rows the page shows. It draws nothing. Everything is a static,
@@ -302,10 +303,8 @@ export default class AISessionRows {
 
 	/** Children nest under their parent (the session tree says who started whom). A row whose parent is not in view stays top-level. */
 	static nest(rows){
-		const id_of = r => r.session_id || r.id, shown = new Set(rows.map(id_of)), kids_of = new Map();
-		const parent_in_view = r => { const par = AISessionRows.tree?.[id_of(r)]?.parent; return par && par !== id_of(r) && shown.has(par) ? par : null; };
-		for (const r of rows){ const par = parent_in_view(r); if (par) (kids_of.get(par) ?? kids_of.set(par, []).get(par)).push(r); }
-		return { top: rows.filter(r => !parent_in_view(r)), kids_of };
+		const id_of = r => r.session_id || r.id;
+		return AISessionBuckets.nest(rows, r => AISessionRows.tree?.[id_of(r)]?.parent, id_of);
 	}
 
 	/** Claude $ and OpenRouter $ per group, biggest first. `key_of` names a row's group, `field` names the group key. */

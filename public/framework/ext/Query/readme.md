@@ -7,7 +7,7 @@ A query is plain JSON (`where`, `sort`, `offset`, `limit`, `sum`); node runs it 
 - `QueryClient.js` (browser) — `new QueryClient("sessions", { row, stale }).ask(spec)`.
 - `check.mjs` — `node check.mjs`: the assertions.
 
-First user: the [Sessions page](/framework/ai/sessions/) (remote mode is opt-in at [`?source=node`](/framework/ai/sessions/?source=node) until it matches the files view: buckets, nesting, provider; gaps in doc/architecture.md). A node-side Page: [core/Page/doc/server.md](/framework/core/Page/doc/server.md). Numbers: [code/performance/doc/server-query.md](/framework/code/performance/doc/server-query.md).
+First user: the [Sessions page](/framework/ai/sessions/) (remote mode is the default on the dev socket; [`?source=files`](/framework/ai/sessions/?source=files) forces the old files path; what still differs is in doc/architecture.md). A node-side Page: [core/Page/doc/server.md](/framework/core/Page/doc/server.md). Numbers: [code/performance/doc/server-query.md](/framework/code/performance/doc/server-query.md).
 
 ## Watch out
 

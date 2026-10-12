@@ -1,5 +1,6 @@
 import fs from "fs";
 import AISessionIndex from "./AISessionIndex.mjs";
+import AISessionSource from "./AISessionSource.mjs";
 import QueryServer from "../../ext/Query/QueryServer.mjs";
 
 /* Starts the AISessionIndex inside the dev server (ai/AISession/AISessionIndex.mjs): transcripts in, per-session index.json and the
@@ -13,9 +14,11 @@ export const live = { index: null };
  * Unavailable on a server with no index (a worktree's): the query answers { error: "no source" } and the page reads the files. */
 QueryServer.source("sessions", {
     available: () => !!live.index,
-    load: () => live.index.ready,
+    load: async () => { await live.index.ready; AISessionSource.load(live.index.root); },
     items: () => live.index.snaps.values(),
     on: fn => live.index.on(fn),
+    shape: AISessionSource.shape,
+    arrange: AISessionSource.arrange,
 });
 
 export default class AISessionTailer {

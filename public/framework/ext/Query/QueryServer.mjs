@@ -6,6 +6,8 @@ import Query from "./Query.js";
  *     load()          async; run on the first query, never again while loaded
  *     items()         an iterable of plain objects (each with an `id`)
  *     on(fn)          subscribe to changes: fn(item, changed, before); returns the unsubscribe
+ *     shape(item)     the row as the browser sees it (a join over what the source holds); applied to items() and to every pushed change
+ *     arrange(hit, spec)  after filter and sort, before the page slice: groups or nests the matches, returns the list to page over (optional)
  *     unload()        drop what load() built (optional); runs after `unload_after` ms (default 5 min) with no query and no watcher
  *     available()     false = answer { error: "no source" } (optional) */
 export default class QueryServer {
@@ -36,7 +38,7 @@ export default class QueryServer {
 		if (!src || src.available?.() === false) return this.socket.send({ response: { error: "no source", source: spec.source }, index });
 		try {
 			await src.ensure();
-			const query = new Query(spec), res = query.run(src.items());
+			const query = new Query(spec), res = query.run(src.items(), src.arrange);
 			const same = this.last?.qid === spec.qid && this.last?.src === src;
 			const qid = spec.qid ?? ++QueryServer.counter;
 			const ids = same ? this.last.ids : new Set();
@@ -81,8 +83,12 @@ export default class QueryServer {
 /* One named source: loads on demand, unloads when idle. */
 QueryServer.Source = class Source {
 
-	constructor(name, { load, items, on, unload, unload_after = 5 * 60000, available }) {
-		Object.assign(this, { name, load, items, on, unload, unload_after, available });
+	constructor(name, { load, items, on, shape, arrange, unload, unload_after = 5 * 60000, available }) {
+		Object.assign(this, { name, load, items, on, shape, arrange, unload, unload_after, available });
+		if (shape) {
+			this.items = function* () { for (const item of items()) yield shape(item); };
+			if (on) this.on = fn => on((item, ...rest) => fn(shape(item), ...rest));
+		}
 		this.loaded = null; this.watchers = 0; this.timer = null;
 	}
 

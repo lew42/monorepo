@@ -13,6 +13,7 @@ import AISession from "./AISession.js";
 import AISessionDetail from "./AISessionDetail.js";
 import AISessionFlags from "./AISessionFlags.js";
 import StoreFolder from "./StoreFolder.js";
+AISessionFlags.usd_of = r => AISessionRows.claude_usd_of(r);   // flags_of reads the row's Claude $ from the session index here
 import QueryClient from "/framework/ext/Query/QueryClient.js";
 
 const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
@@ -126,35 +127,17 @@ export default class AISessionsPage extends Page {
 		// Only a day-snapshot record carries `agent` and `folder`, which the kind rules read; any other row is never hidden.
 		this.buckets ??= new AISessionBuckets([], { of: r => { const ix = AISession.all.get(id_of(r))?.ix; return ix && "folder" in ix ? ix : null; }, key: id_of });
 		this.open_kinds ??= new Set();
-		this.buckets.sync(rows);   // only new, changed or gone rows touch their buckets
-		const kept = [], held = new Map();   // kind -> its rows
-		for (const r of rows){
-			const ix = this.buckets.of(r), k = ix && AISessionBuckets.kind_of(ix);
-			if (k && this.buckets.routine.has(k)) (held.get(k) ?? held.set(k, []).get(k)).push(r); else kept.push(r);
-		}
-		const heads = [...held.keys()].map(k => ({ bucket: "kind", key: k, id: "bucket-" + k, ...this.buckets.index.kind[k] })).sort((x, y) => y.n - x.n);
-		const { top, kids_of } = AISessionRows.nest(AISessionRows.sort_rows(kept, sort));
 		this.open_ids ??= new Set();
-		this.nests = new Map();
-		const out = [];
-		for (const h of heads){
-			out.push(h);
-			if (this.open_kinds.has(h.key)) for (const r of AISessionRows.sort_rows(held.get(h.key), sort)){ this.nests.set(r, { depth: 1, kids: 0 }); out.push(r); }
-		}
-		const place = (r, depth, seen) => {
-			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = this.open_ids.has(id_of(r));
-			this.nests.set(r, { depth, kids: kids.length, open, toggle: () => { open ? this.open_ids.delete(id_of(r)) : this.open_ids.add(id_of(r)); this.grid.apply(false); } });
-			out.push(r);
-			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
-		};
-		top.forEach(r => place(r, 0, new Set([id_of(r)])));
+		const { out, nests } = AISessionBuckets.arrange(rows, { buckets: this.buckets, sort: rs => AISessionRows.sort_rows(rs, sort), open_kinds: this.open_kinds, open_ids: this.open_ids, parent_of: r => AISessionRows.tree?.[id_of(r)]?.parent, id_of });
+		for (const [r, n] of nests) if (n.kids || n.open) n.toggle = () => { n.open ? this.open_ids.delete(id_of(r)) : this.open_ids.add(id_of(r)); this.grid.apply(false); };
+		this.nests = nests;
 		return out;
 	}
 
 	/** A bucket row: a click shows or hides the routine sessions it holds. */
 	bucket_view(b, card = false){
 		const open = this.open_kinds.has(b.key);
-		return new AISessionBucketView({ row: b, open, card, toggle: () => { open ? this.open_kinds.delete(b.key) : this.open_kinds.add(b.key); this.grid.apply(false); } });
+		return new AISessionBucketView({ row: b, open, card, toggle: () => { open ? this.open_kinds.delete(b.key) : this.open_kinds.add(b.key); this.remote ? this.remote_ask() : this.grid.apply(false); } });
 	}
 
 	/** The plan's meters as progress bars with the pace marker (ext/AITask/usage.js), then one line of counts. */
@@ -429,14 +412,14 @@ export default class AISessionsPage extends Page {
 	static SORT_FIELD = { state: "state", name: "title", cost: "usd", updated: "last_activity", duration: "wall_ms", role: "agent", source: "provider", model: "model" };
 	static SEARCH_FIELDS = ["title", "agent", "id", "folder", "model"];
 
-	/** With `?source=node`: true when the dev server answers the first query; otherwise false and the page reads files (the default until remote mode reaches parity). */
+	/** True when the dev socket answers the first query (the default); `?source=files`, no socket or no source on this server: false, and the page reads files. */
 	async start_remote(){
-		if (new URLSearchParams(location.search).get("source") !== "node" || !AISessionLive.socket()) return false;   // opt-in until parity (buckets, nesting, provider): ext/Query/doc/architecture.md
+		if (new URLSearchParams(location.search).get("source") === "files" || !AISessionLive.socket()) return false;   // the default on the dev socket; `?source=files` forces the files path (ext/Query/doc/architecture.md)
 		this.remote = { rows: [], total: 0, totals: {}, ms: null, sort_key: "", search: "", busy: false };
 		this.client = new QueryClient("sessions", { row: snap => this.remote_row(snap), stale: () => this.polling && this.remote_ask({ refresh: true }) });
+		this.nests = new Map();
 		const ok = await this.remote_ask({ first: true });
 		if (!ok) { this.remote = null; this.client = null; return false; }
-		this.nests = new Map();
 		this.remote_controls();
 		const get_json = AISessionRows.get_json;
 		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });
@@ -447,14 +430,16 @@ export default class AISessionsPage extends Page {
 	/** The spec for the current filters and sort. */
 	remote_spec(){
 		const r = this.remote, where = [
-			{ field: "last_activity", op: "gte", value: this.date_from + "T00:00:00" },
-			{ field: "last_activity", op: "lte", value: this.date_to + "T23:59:59.999Z" },
+			{ field: "last_activity", op: "gte", value: new Date(this.date_from + "T00:00:00").toISOString() }, // local midnight, as the files path reads the dates
+			{ field: "last_activity", op: "lte", value: new Date(this.date_to + "T23:59:59.999").toISOString() },
 		];
 		if (this.inflight_only) where.push({ field: "state", op: "eq", value: "active" });
-		if (this.attention_only) where.push({ field: "flags", op: "gte", value: 1 });
+		if (!this.show_closed) where.push({ field: "closed", op: "eq", value: false });   // closed sessions hide unless ticked (never deleted)
+		if (this.attention_only) where.push({ field: "attention", op: "gte", value: 1 });
 		if (r.search) where.push({ fields: AISessionsPage.SEARCH_FIELDS, op: "contains", value: r.search });
 		const [key, dir] = r.sort_key ? r.sort_key.split(":") : ["updated", "desc"];
-		return { where, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["usd", "tokens"] };
+		this.open_kinds ??= new Set(); this.open_ids ??= new Set();
+		return { where, open: { kinds: [...this.open_kinds], ids: [...this.open_ids] }, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["claude_usd", "tokens", "attention"] };
 	}
 
 	/** Ask for a page. `first`/default = a fresh query; `more` = the next 50; `refresh` = the same query again, keeping the rows already loaded. */
@@ -469,7 +454,9 @@ export default class AISessionsPage extends Page {
 			if (res.error) return false;
 			const rows = res.rows.map(snap => this.remote_row_of(snap));
 			Object.assign(r, { rows: more ? [...r.rows, ...rows] : rows, total: res.total, totals: res.totals, ms: res.ms });
-			this.filtered_count = res.total; this.shown_usd = res.totals.usd ?? 0;
+			this.filtered_count = res.matched ?? res.total; this.shown_usd = res.totals.claude_usd ?? 0;
+			this.attention_only_text?.text(`needs attention · ${res.totals.attention ?? 0}`);
+			this.nests = new Map(r.rows.filter(x => !x.bucket).map(x => [x, { ...x.nest, toggle: () => { x.nest.open ? this.open_ids.delete(x.id) : this.open_ids.add(x.id); this.remote_ask(); } }]));
 			this.grid.set_rows(r.rows, first);
 			this.$empty.el.hidden = r.rows.length > 0;
 			this.render_stats();
@@ -478,10 +465,12 @@ export default class AISessionsPage extends Page {
 		} finally { r.busy = false; if (r.pending){ r.pending = false; this.remote_ask(); } }
 	}
 
-	/** One snapshot becomes the row AISessionView draws: the live Session holds its numbers, the row holds the identity. */
+	/** One snapshot becomes the row AISessionView draws: the live Session holds its numbers, the row holds the identity. A bucket head (rolled-up routine sessions) is drawn as sent. */
 	remote_row_of(snap){
-		const { ses } = AISession.apply_delta(snap), row = { ...ses.grid_row(), role: null };
+		if (snap.bucket) return snap;
+		const { ses } = AISession.apply_delta(snap), row = { ...ses.grid_row(), source: snap.source ?? "vscode", role: snap.role ?? null };
 		row.role = AISessionRows.role_of(row);
+		row.nest = snap.nest;
 		return row;
 	}
 
@@ -504,14 +493,15 @@ export default class AISessionsPage extends Page {
 			const $box = input().attr("type", "checkbox");
 			$box.el.checked = !!this[key];
 			$box.on("change", () => { this[key] = $box.el.checked; this.remote_ask(); });
-			span(text);
+			this[key + "_text"] = span(text);
 		}).attr("title", title);
 		this.$controls.empty(() => div.c("sessions-filters flex gap-100 v-center wrap", () => {
 			const $q = input().attr("type", "search").attr("placeholder", "search title, agent, id, model").attr("title", "Searched in node (ext/Query `contains`)");
 			let t = null;
 			$q.on("input", () => { clearTimeout(t); t = setTimeout(() => { this.remote.search = $q.el.value.trim(); this.remote_ask(); }, 250); });
+			check("show closed", "show_closed", "Sessions you marked done are hidden by default. They are never deleted.");
+			check("needs attention", "attention_only", "Sessions with a red flag (expensive, stalled, context bloat, Opus minion) or an alert in their session.jsonl record.");
 			check("in flight", "inflight_only", "Only sessions working right now.");
-			check("needs attention", "attention_only", "Sessions with a red flag.");
 			div.c("sessions-daterange flex gap-50 v-center", () => {
 				small.c("muted", "from");
 				const $from = input().attr("type", "date"); $from.el.value = this.date_from; this.$from = $from;

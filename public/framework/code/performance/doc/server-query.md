@@ -1,6 +1,6 @@
 # Server-side query: before and after (2026-10-12)
 
-The Sessions page can load from node, opt-in at [`?source=node`](/framework/ai/sessions/?source=node) until it matches the files view ([ext/Query](/framework/ext/Query/), [core/Page/doc/server.md](/framework/core/Page/doc/server.md)). Script and raw numbers: `measure/` in the [build folder](/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/results.jsonl).
+The Sessions page can load from node, the default on the dev socket ([`?source=files`](/framework/ai/sessions/?source=files) forces the files path) ([ext/Query](/framework/ext/Query/), [core/Page/doc/server.md](/framework/core/Page/doc/server.md)). Script and raw numbers: `measure/` in the [build folder](/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/results.jsonl).
 
 | Run | Width | First row ms | Transfer KB | Socket KB | JS heap MB | Long tasks ms |
 |---|---|---|---|---|---|---|
@@ -14,3 +14,8 @@ The Sessions page can load from node, opt-in at [`?source=node`](/framework/ai/s
 **Fair reading:** the private worktree server lacks generated files the main site has, so compare the last two groups (same server): remote saves about 310 KB of transfer and 350 KB over the socket, and halves the JS heap. Time to first row is the same (about 1.2 s): the page is dominated by loading its own modules. The large before numbers (84 MB heap, 636 ms of long tasks) came from the main site and are not a like-for-like baseline.
 
 **Node:** one query over 8,729 sessions (date window, text search, sort, two sums) takes a median of 1.4 ms (20 runs); loading the index takes the heap from 5 to 21 MB. Screenshots at 400 and 1920 are `proof-400.png` and `proof-1920.png` in the build folder; no console errors apart from 404s for generated files missing in the worktree.
+
+
+**Parity (2026-10-12):** with the source column, Claude-only cost, closed/attention, and buckets + nesting run in node, the Sessions page in remote mode (`label: parity`): first row 1.18 s at 400 and 1.24 s at 1920, 45 rows, 2,679 DOM nodes, 3.2 MB transferred (page modules), 22 MB heap, 0.8 MB over the socket, one 51 ms long task.
+
+**Node with the join (parity):** the same query through `shape` + `arrange` over 8,753 sessions takes a median of 8.8 ms (20 runs), up from 1.4 ms on raw snapshots, because every query re-shapes each snapshot. Still well under a frame budget for one query; caching the shaped rows is the next step if it grows. Raw: `node.jsonl` in the build folder.
