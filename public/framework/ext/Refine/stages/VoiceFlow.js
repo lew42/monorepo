@@ -44,7 +44,10 @@ VoiceFlow.View = class VoiceFlowView extends View {
 		this.el.hidden = false;
 		for (const [prompt, keys] of touched){
 			let v = this.pv.get(prompt);
-			if (!v){ v = new VoicePrompt.View({ prompt }); this.pv.set(prompt, v); this.el.prepend(v.el); }
+			if (!v){
+				this.append(() => { v = new VoicePrompt.View({ prompt }); });   // built inside this view, so the page it is read from can never capture it (View.captor)
+				this.pv.set(prompt, v); this.el.prepend(v.el);
+			}
 			else v.draw(keys.has("*") ? undefined : keys);
 		}
 	}

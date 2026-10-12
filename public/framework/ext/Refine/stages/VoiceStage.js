@@ -46,7 +46,7 @@ VoiceStage.View = class VoiceStageView extends View {
 		const stage = this.stage;
 		this.el.hidden = !stage.ready;
 		this.$tag.text(stage.live ? "live" : stage.ms != null ? (stage.ms / 1000).toFixed(1) + " s" : "");
-		this.$body.empty(() => this.body());
+		this.$body.empty(() => { if (stage.ready) this.body(); });   // a stage with nothing yet draws nothing (its body reads fields that are not there)
 	}
 
 	/** Subclasses draw their fields here (inside the body box). */
