@@ -1,0 +1,94 @@
+import { page_tools } from "../../agents/page_tools.js";
+import { quick_clean } from "../../../public/framework/ext/Refine/engine.js";
+import Outline from "../../../public/framework/ext/Refine/Outline.js";
+import Compose from "../../../public/framework/ext/Refine/stages/Compose.js";
+
+/**
+ * class VoicePage — writes ONE spoken prompt onto a session's page, stage by stage, through the page tools
+ * (`page_add` once, then `page_set` deltas on the item). Every open tab on `/framework/ai/sessions/<session>/`
+ * redraws within about 100 ms of each write (the JSONL tail), so nothing polls.
+ *
+ *   const v = VoicePage.get(session, prompt_id);
+ *   await v.raw("so the page should", { source: "dictated" });   // call as often as you like while talking
+ *   await v.raw(full_text, { final: true });
+ *   await v.clean(sentences, { ms });  await v.structured(md, { ms });  await v.notes(notes, { ms });
+ *
+ * Writes are queued per prompt so deltas land in the order they were made. The browser half is
+ * `public/framework/ext/Refine/stages/` (VoiceFlow); format and decisions: that folder's `doc/voice-to-page.md`.
+ */
+export default class VoicePage {
+
+	static open = new Map();   // "session/prompt" -> VoicePage, dropped when the prompt is done
+	static tools = null;
+
+	static get(session, prompt, by){
+		const key = session + "/" + prompt;
+		if (!VoicePage.open.has(key)) VoicePage.open.set(key, new VoicePage({ session, prompt, by }));
+		return VoicePage.open.get(key);
+	}
+
+	constructor({ session, prompt, by = "voice" }){
+		this.session = session; this.prompt = prompt; this.by = by;
+		this.id = "voice-" + prompt;
+		this.path = `/framework/ai/sessions/${session}/`;
+		this.created = false;
+		this.queue = Promise.resolve();
+		this.ms = {};
+		this.sentences = [];
+		this.parsed = null;
+	}
+
+	/** One tool call as a plain object; the tools answer a JSON string. */
+	async tool(name, args){
+		VoicePage.tools ??= Object.fromEntries(page_tools().map(t => [t.name, t]));
+		const raw = await VoicePage.tools[name].handler(args, { caller: this.by });
+		if (name === "page_read") return raw;   // plain markdown, not JSON
+		const out = JSON.parse(raw);
+		if (!out.ok) throw new Error(out.why ?? "page tool refused");
+		return out;
+	}
+
+	/** Queue one delta. The first ever delta for this prompt adds the item; the rest set fields on it. */
+	write(delta){
+		const run = async () => {
+			if (!this.created){
+				this.created = true;
+				const seen = await this.tool("page_read", { path: this.path }).catch(() => "");
+				if (!String(seen).includes(`[${this.id}]`)) return this.tool("page_add", { path: this.path, item: { id: this.id, type: "voice-prompt", ...delta } });
+			}
+			return this.tool("page_set", { path: this.path, target: [this.id], delta });
+		};
+		return this.queue = this.queue.then(run, run);
+	}
+
+	/** The words so far. Also writes the instant mechanical clean (no model) so stage 2 moves with the voice. */
+	raw(text, { final = false, source } = {}){
+		if (this.raw_closed) return this.queue;   // a late partial must not reopen words that were already finalised
+		if (final) this.raw_closed = true;
+		const sentences = this.clean_final ? null : quick_clean(text).map(s => s.text);
+		return this.write({ text: text.slice(0, 400), raw: text, raw_final: final, status: final ? "Cleaning" : "Hearing you", ...(source ? { source } : {}), ...(sentences ? { clean: sentences, clean_final: false } : {}) });
+	}
+
+	clean(sentences, { ms } = {}){
+		this.clean_final = true; this.sentences = sentences; this.ms.clean = ms;
+		return this.write({ clean: sentences, clean_final: true, ms: { ...this.ms }, status: "Structuring" });
+	}
+
+	structured(md, { ms } = {}){
+		this.parsed = Outline.parse(md); this.ms.structure = ms;
+		const refined = Compose.brief(this.parsed);
+		this.ms.refined = 0;
+		return this.write({ structure: md, subject: this.parsed.subject, refined, cards: Compose.cards(this.parsed), ms: { ...this.ms }, status: "Checking clarity" });
+	}
+
+	/** The Haiku pass landed: cards get their clarity flags and tags. */
+	notes(notes, { ms } = {}){
+		this.ms.cards = ms;
+		return this.write({ ...(this.parsed ? { cards: Compose.cards(this.parsed, notes) } : {}), ms: { ...this.ms }, status: "done" });
+	}
+
+	failed(why){ return this.write({ error: String(why).slice(0, 200) }); }
+
+	/** Forget this prompt a minute from now (the delay absorbs a straggling partial post). */
+	done(){ setTimeout(() => VoicePage.open.delete(this.session + "/" + this.prompt), 60000).unref(); }
+}

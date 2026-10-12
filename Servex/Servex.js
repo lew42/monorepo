@@ -46,6 +46,7 @@ import { directory_tools } from "./agents/directory.js";
 import tidy from "./agents/tidy.js";
 import { run_clean, model_choices, list_examples, save_example } from "./ext/clean-test/run.js";
 import { run_refine } from "./ext/refine/run.js";
+import VoicePage from "./ext/refine/VoicePage.js";
 import hitl from "./agents/hitl.js";
 import Inbox from "./agents/inbox.js";
 import { docs_list, docs_read_file } from "./pages.js";
@@ -671,6 +672,24 @@ export default class Servex extends Events {
 
         router.post("/api/refine", cors, express.json({ limit: "64kb" }), async (req, res) => {
             res.json(await run_refine({ ...(req.body ?? {}), inbox: this.inbox }));
+        });
+
+        /* VOICE TO THE SESSION PAGE (ai/2026-10-12/voice-to-session-page): while someone talks, the browser
+         * posts the words so far and each one lands on the session's page as a page-tool delta
+         * (Servex/ext/refine/VoicePage.js). `final: true` closes the raw stage; /api/refine writes the rest. */
+        router.options("/api/voice", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/voice", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const { session, prompt, text, final = false, source } = req.body ?? {};
+            if (!/^[0-9a-f-]{36}$/.test(session ?? "") || !/^[\w-]{4,60}$/.test(prompt ?? "") || typeof text !== "string" || !text.trim()) return res.status(400).json({ ok: false, why: "needs session (uuid), prompt (id) and text" });
+            try { await VoicePage.get(session, prompt).raw(text.slice(0, 20000), { final: !!final, source }); res.json({ ok: true }); }
+            catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
+        });
+
+        /* Whisper in one plain line for a page (ux/Dictate): is it up, and did Servex have to restart it? */
+        router.get("/api/whisper", cors, (req, res) => {
+            const w = this.processes.get("whisper")?.toJSON?.() ?? null;
+            res.json({ ok: true, status: w?.status ?? "unknown", port: w?.port ?? null, crashes: w?.crashes ?? 0, last_crash: w?.last_crash ?? null, said: w?.said ?? "" });
         });
 
         router.get("/api/logs", (req, res) => res.json(this.log.names()));
