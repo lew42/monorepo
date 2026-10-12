@@ -7,3 +7,7 @@
 {"log":{"at":"2026-10-12T16:36:08-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-12T16:41:12-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-12T16:47:57-05:00","msg":"Merged 0cfbc5613 (server-query slice, opt-in ?source=node); main server restarted; main-site shots committed; parity minion spawned (minion-server-query-parity, worktree server-query-parity)."}}
+{"log":{"at":"2026-10-12T16:51:38-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-12T16:51:41-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-12T16:58:26-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-12T17:00:17-05:00","msg":"Parity minion done (6 commits). Review: 2 fix (99-session/$169 gap vs files; in-flight-first sort) + notes (flags file in node, re-measure node ms). Sent back to the same minion; default flip kept only if both close."}}
