@@ -17,8 +17,8 @@ export default class LibraryItem {
 	get root(){ return this.parent ? this.parent.root : this; }
 	get optimalWidth(){ return this.page.optimalWidth ?? this.page.data?.optimalWidth ?? this.collection.optimalWidth; }
 	get needs_parent_padding(){ return this.page.needs_parent_padding ?? this.collection.needs_parent_padding; }
-	get no_parent_padding(){ return this.page.no_parent_padding ?? false; }
-	get specimen(){ return this.page.specimen ?? this.page.data?.specimen; }
+	get no_parent_padding(){ return this.page.no_parent_padding ?? this.collection.no_parent_padding; }
+	get specimen(){ return this.page.specimen ?? this.page.data?.specimen ?? this.collection.specimen?.(this); }
 
 	// The page's children as Items; lazy children resolve through page.child().
 	async variants(){

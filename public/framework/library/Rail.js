@@ -20,7 +20,7 @@ export default class LibraryRail {
 		}));
 	}
 
-	card(item, on){
+	card(item, on, cols = 0){
 		const { library } = this;
 		const $card = a.c("card library-card", () => {
 			div.c("library-thumb", $thumb => {
@@ -31,15 +31,24 @@ export default class LibraryRail {
 				if (item.icon) icon(item.icon);
 				span(item.title);
 			});
-		}).href(library.href_for(item.path)).attr("title", item.description || item.title);
+		}).href(library.href_for(item.path, "")).attr("title", item.description || item.title);
 
+		if (cols) $card.ac("span-" + cols);
 		if (on) $card.ac("on").attr("aria-current", "page");
 		$card.on("click", event => {
 			if (event.metaKey || event.ctrlKey || event.shiftKey) return;
 			event.preventDefault();
-			library.go(item.path);
+			library.go(item.path, "");
 		});
 		return $card;
+	}
+
+	// The wall: every item in one grid; a card spans columns by its optimalWidth (400→1, 1000→2, 1920→3, 3440→4).
+	static SPANS = { 400: 1, 1000: 2, 1920: 3, 3440: 4 };
+
+	wall($box, items){
+		$box.empty(() => div.c("library-wall", () => items.forEach(item =>
+			this.card(item, false, this.constructor.SPANS[item.optimalWidth] ?? 2))));
 	}
 
 	fit(thumb, $inner, width){
