@@ -480,7 +480,7 @@ export default class AISessionsPage extends Page {
 
 	/** One snapshot becomes the row AISessionView draws: the live Session holds its numbers, the row holds the identity. */
 	remote_row_of(snap){
-		const { ses } = AISession.apply_delta(snap), row = { ...ses.grid_row(), role: null };
+		const { ses } = AISession.apply_delta(snap), row = { ...ses.grid_row(), source: snap.source ?? "vscode", role: null };
 		row.role = AISessionRows.role_of(row);
 		return row;
 	}
