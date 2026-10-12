@@ -72,6 +72,15 @@ export default class Asks {
 		return { ok: true, id, status };
 	}
 
+	/* A NEW ask line (`{"ask":{id,at,title,words,owner,status,by}}`), once: an id the ledger already has is refused, so a second press adds nothing. */
+	async add({ id, title, words, owner = null, status = "queued", by, card = null } = {}){
+		if (!id || !title) return { ok: false, why: "an ask needs an id and a title" };
+		if (!STATUSES.includes(status)) return { ok: false, why: `unknown status "${status}"` };
+		if ((await this.read())[id]) return { ok: false, why: `ask "${id}" already exists` };
+		await this.append_line({ ask: { id, at: stamp(), title, words, ...(card ? { card } : {}), owner, status, by } });
+		return { ok: true, id };
+	}
+
 	/* One writer, queued behind whatever this instance already has in flight —
 	 * same shape as Cards.js's and TaskLoop.js's own per-file queues. Checks
 	 * the file's last byte itself (no dependency on `.claude/hooks/append.mjs`,
