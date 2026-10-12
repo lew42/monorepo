@@ -603,14 +603,14 @@
 	}
 
 	/* ── the detail: the picked row's own page ──
-	   The two grounds: the rail on `--tint`, the page on `--surface`.
+	   One ground: rail and detail are both `--tint`; rows, the rail head and cards are white `--surface`.
 	   ⚠ `hidden`, not `auto` — the page mounted here scrolls itself; `auto` showed a second,
 	     always-empty scrollbar the moment it was one pixel taller than estimated. */
 	.inbox-detail {
 		min-width: 0;
 		min-height: 0;
 		overflow: hidden;
-		background: var(--surface);
+		background: var(--tint);
 	}
 
 	.inbox-empty {
