@@ -13,7 +13,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fs from "node:fs/promises";
 import Cards from "../../../../../Servex/cards/Cards.js";
-import { fold_asks } from "../../asks/fold.js";
+import { AskFold } from "../../asks/AskFold.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../../../../");
@@ -42,7 +42,7 @@ function diagnose(fold){
 
 async function main(){
 	const asksText = await fs.readFile(path.join(AI_ROOT, "asks.jsonl"), "utf8").catch(() => "");
-	const asks = Object.values(fold_asks(asksText.split("\n").filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean)));
+	const asks = Object.values(AskFold.fold(asksText.split("\n").filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean)));
 	const asksByCard = new Map();
 	for (const a of asks) if (a.card) asksByCard.set(a.card, a);
 

@@ -1,7 +1,7 @@
 import { Page, View, div, p, span, small, a, details, summary } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { page_work_strip } from "/framework/core/Page/ai/work.js";
-import { fold_asks } from "./fold.js";
+import { AskFold } from "./AskFold.js";
 
 View.stylesheet(import.meta, "asks.css");
 
@@ -10,7 +10,7 @@ View.stylesheet(import.meta, "asks.css");
  * (the owner, 2026-09-30: "a lot of tasks are getting kind of left in limbo"). The ledger
  * itself, `public/framework/ai/asks.jsonl`, is written by the owner's own VS Code tab the
  * moment an ask is routed, and by Servex's `Asks` (`Servex/asks/Asks.js`) every time an ask's
- * status changes — this page only ever READS it, through `fold_asks` (`./fold.js`), the one
+ * status changes — this page only ever READS it, through `AskFold.fold` (`./AskFold.js`), the one
  * vocabulary every reader of the ledger already agrees on.
  *
  * One group per status, stalled first (the ones that need a look), newest first inside each. A click
@@ -119,7 +119,7 @@ export default new Page({
 		div.c("card pad", $box => page_work_strip($box, { match: ["ask", "stalled", "ledger"], page: this }));
 
 		const text = await read_text(ASKS_URL);
-		const asks = Object.values(fold_asks(parse_lines(text)));
+		const asks = Object.values(AskFold.fold(parse_lines(text)));
 
 		set_status = status => {
 			const url = new URL(location.href);

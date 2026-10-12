@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { stamp } from "../home.js";
-import { fold_asks } from "../../public/framework/ai/asks/fold.js";
+import { AskFold } from "../../public/framework/ai/asks/AskFold.js";
 import { stalled } from "./stalled.js";
 import { build_tasks, write_tasks_json } from "./tasks.js";
 
@@ -47,7 +47,7 @@ export default class Asks {
 
 	stop(){ if (this.timer) clearInterval(this.timer); }
 
-	/* ---------- reading: fold_asks is the one vocabulary, shared with the browser ---------- */
+	/* ---------- reading: AskFold.fold is the one vocabulary, shared with the browser ---------- */
 
 	async read(){
 		let text = "";
@@ -55,7 +55,7 @@ export default class Asks {
 		const lines = text.split(/\r?\n/).filter(l => l.trim()).map(l => {
 			try { return JSON.parse(l); } catch { return null; }
 		});
-		return fold_asks(lines);
+		return AskFold.fold(lines);
 	}
 
 	/* ---------- writing: append-only, never a rewrite ---------- */

@@ -5,7 +5,7 @@
  * module filter — the ledger's own page (`page.js`) imports `ask_row` from here now too, so
  * there is still only one way an ask row is drawn, never two copies of it. */
 import { div, span, small, a, details, summary } from "/app.js";
-import { fold_asks } from "./fold.js";
+import { AskFold } from "./AskFold.js";
 
 const ASKS_URL = "/framework/ai/asks.jsonl";
 const read_text = url => fetch(url, { cache: "no-store" }).then(r => (r.ok ? r.text() : "")).catch(() => "");
@@ -75,7 +75,7 @@ export function ask_row(ask){
 export function module_asks($into, prefix){
 	const low = prefix.toLowerCase();
 	read_text(ASKS_URL).then(text => {
-		const asks = Object.values(fold_asks(parse_lines(text)))
+		const asks = Object.values(AskFold.fold(parse_lines(text)))
 			.filter(a => (a.paths ?? []).some(p => { const pl = p.toLowerCase(); return pl === low || pl.startsWith(low + "/"); }))
 			.sort((x, y) => Date.parse(y.status_at ?? y.at ?? 0) - Date.parse(x.status_at ?? x.at ?? 0));
 		$into.empty(() => {

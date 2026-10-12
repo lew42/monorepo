@@ -2,7 +2,7 @@ import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 import { fold_card, parse_lines, summary } from "../cards/fold.js";
-import { fold_asks } from "../asks/fold.js";
+import { AskFold } from "../asks/AskFold.js";
 import { importance, silent_hours } from "./needs-rule.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 
@@ -294,7 +294,7 @@ export const day_log = (date = today_str()) =>
  * The owner: "the inbox and the needs you, that sounds like the same thing... let's forget
  * the needs you page for now and focus on the inbox." So a STALLED line in the asks ledger
  * (`/framework/ai/asks.jsonl`, `Servex/asks/Asks.js`'s own word) becomes one row in THIS
- * list, never a second view. `fold_asks()` is the one vocabulary Servex's own Asks.js folds
+ * list, never a second view. `AskFold.fold()` is the one vocabulary Servex's own Asks.js folds
  * the same way, so this page and the ledger can never disagree about what is stalled.
  *
  * ⚠ NO NEW POLLER. `items()` below runs synchronously, every time something already live —
@@ -329,7 +329,7 @@ function words_url(words){
 function fetch_asks(){
 	return fetch(ASKS_URL, { cache: "no-store" }).then(r => (r.ok ? r.text() : "")).catch(() => "")
 		.then(text => {
-			const folded = text ? fold_asks(parse_lines(text)) : {};
+			const folded = text ? AskFold.fold(parse_lines(text)) : {};
 			const rows = Object.values(folded).filter(a => a.status === "stalled");
 			asks_cache = { rows, at: Date.now(), loading: false };
 			return rows;
