@@ -21,13 +21,13 @@ export default class QueryClient {
 		QueryClient.current = this;
 	}
 
-	/** `more`: the next page of the same query (same qid); otherwise a fresh query. */
-	async ask(spec, { more = false } = {}) {
+	/** `more`: the next page of the same query (same qid); otherwise a fresh query. `timeout` (ms): how long to wait for the answer; a page's first ask on a cold server waits for the source to load. */
+	async ask(spec, { more = false, timeout = 5000 } = {}) {
 		const socket = QueryClient.socket();
 		if (!socket) return { error: "no socket" };
 		if (!more) this.qid = ++QueryClient.counter + Date.now() % 1e6 * 1e3;
 		await Promise.race([socket.ready, new Promise(r => setTimeout(r, 1500))]);
-		const answer = await Promise.race([socket.request({ method: "query", args: [{ ...spec, source: this.source, qid: this.qid }] }), new Promise(r => setTimeout(() => r({ response: { error: "timeout" } }), 5000))]);
+		const answer = await Promise.race([socket.request({ method: "query", args: [{ ...spec, source: this.source, qid: this.qid }] }), new Promise(r => setTimeout(() => r({ response: { error: "timeout" } }), timeout))]);
 		return answer?.response ?? { error: "no answer" };
 	}
 }
