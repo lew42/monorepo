@@ -26,7 +26,8 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 ## Watch out
 
 - No tool lists a user's files: every fetch needs a file key from a Figma URL. Tracked now: Sept-2026 `QYN0G2URSBHYH5I06MOjxU`.
-- Never modify the Sept-2026 or July-2026 Figma files (read only); scratch writes go to `T5PuB8EhKhfyh0xtpIT1L0` or the Sept-2026 "Claude test page" (`124:1062`). `use_figma` draws (auto-layout frames, text, fills); proven there 2026-10-12. Load the `figma-use` skill resource first.
+- Sept-2026 is now also our design file (owner, 2026-10-12): Claude may add pages to it (`Claude · Overview` is the index) and its `prime` variable is the site's `#FF6157`. Leave the owner's own pages (1–8, Vector, Paragraph) as they are. July-2026 stays read only. Load the `figma-use` skill resource before any `use_figma`.
+- **The process** (owner, 2026-10-12): design in Figma with the tokens and kit, click through it, approve it, then code it from the approved frame, so there is something tangible to revert to instead of a description.
 - Screenshots over 600 KB are refused by `track.mjs`; the Figma screenshot URL is short-lived.
 
 ## More

@@ -70,6 +70,18 @@ Components, each with text properties (Label, Sub, Meta, Icon) so an instance is
 
 Five phone screens use only those instances: Lists, Tree in a sheet (split screen: the artboard above, layers in a half sheet, the selected layer outlined in prime), Drill-in (Miller columns on a phone: one column at a time with a breadcrumb), Action sheet, and Grounds (rows and buttons on white, prime and dark). Present opens the "Mobile UI kit" flow; the Layers tab, the back arrow and the first row are linked.
 
+## Slots: containers that hold anything (verified 2026-10-12)
+
+`const k = comp.addComponentProperty('Content', 'SLOT', '')`, then bind a child auto-layout frame: `frame.componentPropertyReferences = {slotContentId: k}`. In every instance that frame is a `SLOT` node, and `slot.appendChild(node)` puts arbitrary content in it. So a card, panel, dialog or sheet is a component with a Content slot, not a frame we detach.
+
+## Links that work in design mode
+
+`text.setRangeHyperlink(0, len, {type: 'NODE', value: nodeId})` links to a frame or a page; `{type: 'URL', value}` to the site. The `Claude · Overview` page (`144:1062`) is an index built this way.
+
+## The site shell, measured
+
+`Claude · Site shell` (`142:1246`) holds the current site sidebar copied at its measured 1920 values (256 wide, rows 31.7 tall, 14.4 px labels, active row = 7% tint + prime icon; source `core/Sidebar/Sidebar.css`) beside the same sidebar from tokens in white (the main site), dark (the dev shell) and the home variant without icons. The kit's Tree row gained `State=Current` (10% inset + prime icon) to match the site's active row.
+
 ## Traps
 
 - **`code` style can't load**: Figma has no Consolas, so `loadFontAsync` throws and the whole script aborts. Code text uses Cousine Bold by hand. The real fix is to change the style's font in Figma (the owner's file; ask first).
