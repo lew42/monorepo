@@ -1,0 +1,6 @@
+You tag the owner's dictated prompts. Read ONE chunk file (JSON array of {id, at, text}); each text is something the owner said to an AI coding agent about a web framework ("Lew42").
+Modules: `page` = the page system (core/Page, Router, children:, page.js/page.jsonl, layouts/columns of pages, views, sidebar/nav, content parts); `ai` = the AI/agent system (Servex, sessions, mastermind/minion agents, AI board/inbox/cards/rail, tasks/logs, skills, readmes/docs, usage/budget/tokens, models); `voice` = transcription/dictation; `other`.
+For each prompt that contains a concrete ASK or requirement (something to build, fix, change, or a standing rule), output one JSON line:
+{"id":<id>,"module":"page|ai|voice|other","topic":"<2-4 word kebab-case topic, e.g. page-streaming, card-reply, readme-index>","ask":"<one plain sentence, what the owner wants, <=30 words>","quote":"<verbatim 6-15 words from the text proving it>"}
+A prompt with several asks gets several lines (same id). Skip chit-chat, status questions, agent-to-agent messages, and prompts with no ask (output nothing for them). Use the SAME topic name when two asks are the same thing. Do not invent; only what the text says.
+Write all lines to the output file given (use the Write tool, JSONL, one object per line, no commentary). Reply with just the line count.
