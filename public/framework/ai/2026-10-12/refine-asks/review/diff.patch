@@ -1,0 +1,1467 @@
+diff --git a/public/framework/ai/2026-10-02/page-extends-item/page.jsonl b/public/framework/ai/2026-10-02/page-extends-item/page.jsonl
+index 60393561e..684e27fd7 100644
+--- a/public/framework/ai/2026-10-02/page-extends-item/page.jsonl
++++ b/public/framework/ai/2026-10-02/page-extends-item/page.jsonl
+@@ -39,3 +39,4 @@
+ {"file":"layout-check/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-10-02/panel2-sessions/page.jsonl b/public/framework/ai/2026-10-02/panel2-sessions/page.jsonl
+index 666488d55..9ddd4e901 100644
+--- a/public/framework/ai/2026-10-02/panel2-sessions/page.jsonl
++++ b/public/framework/ai/2026-10-02/panel2-sessions/page.jsonl
+@@ -17,3 +17,4 @@
+ {"inbox":{"id":"n-sw4ue4mn","from":"servex-heartbeat","text":"task-mastermind-panel2-sessions it did not answer the status check, and was already revived 2 times this hour (2 today). Servex could not fix it; please look.","at":"2026-10-03T14:44:21.638-05:00"}}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-10-02/task-audit/page.jsonl b/public/framework/ai/2026-10-02/task-audit/page.jsonl
+index f69f93c70..3553559e7 100644
+--- a/public/framework/ai/2026-10-02/task-audit/page.jsonl
++++ b/public/framework/ai/2026-10-02/task-audit/page.jsonl
+@@ -28,3 +28,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-03/push-to-talk/page.jsonl b/public/framework/ai/2026-10-03/push-to-talk/page.jsonl
+index bd50c8e1e..0adb52357 100644
+--- a/public/framework/ai/2026-10-03/push-to-talk/page.jsonl
++++ b/public/framework/ai/2026-10-03/push-to-talk/page.jsonl
+@@ -28,3 +28,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-03/sessions-tab-polish/page.jsonl b/public/framework/ai/2026-10-03/sessions-tab-polish/page.jsonl
+index 2b320b928..97e016da6 100644
+--- a/public/framework/ai/2026-10-03/sessions-tab-polish/page.jsonl
++++ b/public/framework/ai/2026-10-03/sessions-tab-polish/page.jsonl
+@@ -31,3 +31,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-06/feedback-council/page.jsonl b/public/framework/ai/2026-10-06/feedback-council/page.jsonl
+index 5df695b15..bf0251b5c 100644
+--- a/public/framework/ai/2026-10-06/feedback-council/page.jsonl
++++ b/public/framework/ai/2026-10-06/feedback-council/page.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"words.jsonl"}
+ {"file":"votes/","gone":true}
+ {"file":"votes/"}
++{"file":"votes/","gone":true}
+diff --git a/public/framework/ai/2026-10-07/feedback-council/page.jsonl b/public/framework/ai/2026-10-07/feedback-council/page.jsonl
+index e43d7053c..7bddad7d4 100644
+--- a/public/framework/ai/2026-10-07/feedback-council/page.jsonl
++++ b/public/framework/ai/2026-10-07/feedback-council/page.jsonl
+@@ -14,3 +14,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-10-08/ai-system-docs/page.jsonl b/public/framework/ai/2026-10-08/ai-system-docs/page.jsonl
+index eeae75360..b85014170 100644
+--- a/public/framework/ai/2026-10-08/ai-system-docs/page.jsonl
++++ b/public/framework/ai/2026-10-08/ai-system-docs/page.jsonl
+@@ -25,3 +25,4 @@
+ {"inbox":{"id":"n-rhl1ck7k","from":"servex-heartbeat","text":"mastermind-ai-system-docs its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-09T04:27:12.576-05:00"}}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-10-09/ai-mastermind/page.jsonl b/public/framework/ai/2026-10-09/ai-mastermind/page.jsonl
+index 420b7aa46..666c001a9 100644
+--- a/public/framework/ai/2026-10-09/ai-mastermind/page.jsonl
++++ b/public/framework/ai/2026-10-09/ai-mastermind/page.jsonl
+@@ -11,3 +11,4 @@
+ {"note":{"id":"n-lmycgqa4","from":"mastermind-ai-system","text":"mastermind-ai-system: correction — no minion (no pool worktree free), I did the core Session extraction myself. core/Session/Session.js is committed; AISession extends it with its own days/slugs/scanned. Verified: node loads, scan finds 7960 sessions, a throwaway subclass leaves AISession.days alone, the sessions page renders. RefineSession can extend it now. Servex needs a restart to load it.","at":"2026-10-09T18:31:11.584-05:00"}}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-09/dup-chat-bubbles/page.jsonl b/public/framework/ai/2026-10-09/dup-chat-bubbles/page.jsonl
+index 19d5bb18e..812b80c91 100644
+--- a/public/framework/ai/2026-10-09/dup-chat-bubbles/page.jsonl
++++ b/public/framework/ai/2026-10-09/dup-chat-bubbles/page.jsonl
+@@ -14,3 +14,7 @@
+ {"file":"review/"}
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-09/page-mastermind/page.jsonl b/public/framework/ai/2026-10-09/page-mastermind/page.jsonl
+index a49108cce..4a71fe8ed 100644
+--- a/public/framework/ai/2026-10-09/page-mastermind/page.jsonl
++++ b/public/framework/ai/2026-10-09/page-mastermind/page.jsonl
+@@ -16,3 +16,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-09/refine-dictate-ui/page.jsonl b/public/framework/ai/2026-10-09/refine-dictate-ui/page.jsonl
+index 915f4c15f..9c0c79d80 100644
+--- a/public/framework/ai/2026-10-09/refine-dictate-ui/page.jsonl
++++ b/public/framework/ai/2026-10-09/refine-dictate-ui/page.jsonl
+@@ -24,3 +24,7 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"shots/"}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-09/refine-nothing-to-refine/page.jsonl b/public/framework/ai/2026-10-09/refine-nothing-to-refine/page.jsonl
+index abb8ab0be..e0138e98a 100644
+--- a/public/framework/ai/2026-10-09/refine-nothing-to-refine/page.jsonl
++++ b/public/framework/ai/2026-10-09/refine-nothing-to-refine/page.jsonl
+@@ -10,3 +10,6 @@
+ {"file":"layout-check/"}
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-09/session-detail-live/page.jsonl b/public/framework/ai/2026-10-09/session-detail-live/page.jsonl
+index 1c3a4131c..af36f1314 100644
+--- a/public/framework/ai/2026-10-09/session-detail-live/page.jsonl
++++ b/public/framework/ai/2026-10-09/session-detail-live/page.jsonl
+@@ -15,3 +15,7 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"shots/"}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-10-10/figma-system/page.jsonl b/public/framework/ai/2026-10-10/figma-system/page.jsonl
+index b40b4d1ed..057c7a6b3 100644
+--- a/public/framework/ai/2026-10-10/figma-system/page.jsonl
++++ b/public/framework/ai/2026-10-10/figma-system/page.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/ai-classes-asks/files.jsonl b/public/framework/ai/2026-10-12/ai-classes-asks/files.jsonl
+index 93e2604e9..159524308 100644
+--- a/public/framework/ai/2026-10-12/ai-classes-asks/files.jsonl
++++ b/public/framework/ai/2026-10-12/ai-classes-asks/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"layout-check/"}
+ {"file":"spend.json"}
+ {"file":"brief-bags.md"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/asks-by-module/files.jsonl b/public/framework/ai/2026-10-12/asks-by-module/files.jsonl
+index f02df5f02..9d3aa03d5 100644
+--- a/public/framework/ai/2026-10-12/asks-by-module/files.jsonl
++++ b/public/framework/ai/2026-10-12/asks-by-module/files.jsonl
+@@ -25,3 +25,4 @@
+ {"file":"gen.mjs"}
+ {"file":"STATE.md"}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/claude-md-consolidate/files.jsonl b/public/framework/ai/2026-10-12/claude-md-consolidate/files.jsonl
+index 708de9ae7..04cbfd9ae 100644
+--- a/public/framework/ai/2026-10-12/claude-md-consolidate/files.jsonl
++++ b/public/framework/ai/2026-10-12/claude-md-consolidate/files.jsonl
+@@ -16,3 +16,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"inbox.jsonl"}
+ {"file":"layout-check/"}
++{"file":"inbox.jsonl","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/feedback-council/page.jsonl b/public/framework/ai/2026-10-12/feedback-council/page.jsonl
+index 4ed7d2371..3247505de 100644
+--- a/public/framework/ai/2026-10-12/feedback-council/page.jsonl
++++ b/public/framework/ai/2026-10-12/feedback-council/page.jsonl
+@@ -7,3 +7,5 @@
+ {"file":"votes/","gone":true}
+ {"file":"requirements.md"}
+ {"file":"votes/"}
++{"file":"requirements.md","gone":true}
++{"file":"votes/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/figma-phase2/files.jsonl b/public/framework/ai/2026-10-12/figma-phase2/files.jsonl
+index ec3f7ae3a..e55205c6c 100644
+--- a/public/framework/ai/2026-10-12/figma-phase2/files.jsonl
++++ b/public/framework/ai/2026-10-12/figma-phase2/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"haiku-autolayout/page.jsonl"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/files.jsonl b/public/framework/ai/2026-10-12/files.jsonl
+index ee100e0ee..a11c652c2 100644
+--- a/public/framework/ai/2026-10-12/files.jsonl
++++ b/public/framework/ai/2026-10-12/files.jsonl
+@@ -46,3 +46,6 @@
+ {"file":"servex-health/page.jsonl"}
+ {"file":"page-split-1/"}
+ {"file":"voice-verify/"}
++{"file":"page-context-asks/"}
++{"file":"page-split-2/"}
++{"file":"refine-asks/"}
+diff --git a/public/framework/ai/2026-10-12/inbox-asks/files.jsonl b/public/framework/ai/2026-10-12/inbox-asks/files.jsonl
+index aa903642f..d6c43b7be 100644
+--- a/public/framework/ai/2026-10-12/inbox-asks/files.jsonl
++++ b/public/framework/ai/2026-10-12/inbox-asks/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"STATE.md"}
+ {"file":"layout-check/"}
+ {"file":"spend.json"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/page-ai-api/files.jsonl b/public/framework/ai/2026-10-12/page-ai-api/files.jsonl
+index a2f793051..a092e816d 100644
+--- a/public/framework/ai/2026-10-12/page-ai-api/files.jsonl
++++ b/public/framework/ai/2026-10-12/page-ai-api/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"review.jsonl"}
+ {"file":"layout-check/"}
+ {"file":"build/page.jsonl"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/page-columns-asks/files.jsonl b/public/framework/ai/2026-10-12/page-columns-asks/files.jsonl
+index d4f85eec9..3282e9fe4 100644
+--- a/public/framework/ai/2026-10-12/page-columns-asks/files.jsonl
++++ b/public/framework/ai/2026-10-12/page-columns-asks/files.jsonl
+@@ -5,3 +5,5 @@
+ {"file":"STATE.md"}
+ {"file":"layout-check/"}
+ {"file":"spend.json"}
++{"file":"check/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/page-split-1/files.jsonl b/public/framework/ai/2026-10-12/page-split-1/files.jsonl
+index a1221d4e8..e8050bc52 100644
+--- a/public/framework/ai/2026-10-12/page-split-1/files.jsonl
++++ b/public/framework/ai/2026-10-12/page-split-1/files.jsonl
+@@ -1,2 +1,3 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
++{"file":"STATE.md"}
+diff --git a/public/framework/ai/2026-10-12/refine-asks/STATE.md b/public/framework/ai/2026-10-12/refine-asks/STATE.md
+new file mode 100644
+index 000000000..e931d7100
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/refine-asks/STATE.md
+@@ -0,0 +1,27 @@
++# Refine asks: STATE
++
++Asks [#7 asks-prompts-refine and #10 realtime-dictation-tasks](/framework/ai/doc/asks.md). Everything built here is browser-side, so **no Servex restart is needed**. Proofs sit beside this file.
++
++## Built (each with a commit and a proof)
++- **Per-prompt Refine button** on the Sessions page: select one of your bubbles, press `Refine ✦`, the stages stream under it. `12d9e9fb5`. Proof: `button-proof.mjs` / `button-proof.png` (the real `/api/refine` answered; a failure shows on the button).
++- **Things you mentioned** (`ext/Refine/stages/ThingsStage.js`): say "where is Dictate" and a link card to `/framework/ux/Dictate/` is on screen as the words land, no model, no cost. This is the instant on-screen answer that replaces the scrapped fast assistant. `0fd19d684`. Proof: `things-proof.mjs` and `things-proof-{400,1200,1920,3440}.png` (5 names found, none from "the page should show a tree of cards", no overflow at four widths).
++- **Importance and confidence bars on every card** (`CardsStage`): importance is the share of the prompt's sentences the card cites, confidence is the Haiku clarity score; both computed, never typed. `b1a8f8092`. Proof: `cards-meters.png`.
++
++## Already built (checked, not rebuilt)
++- Raw words live in about 100 ms, a mechanical per-sentence clean with them, then structure, refined, cards (`Servex/ext/refine/VoicePage.js`, `run.js`).
++- **Tags:** the Haiku pass tags each sentence, cards show them, `TagRouter.js` leaves a note on the module page (`run.js`).
++- Every prompt is logged raw-first to the session's `prompts.jsonl` (`PromptLog`).
++- Approve/Improve decisions exist on board cards (`ai/2026-09-20/approve-loop/`).
++
++## Not built, with the reason and the smallest next step
++| Point | Why not | Smallest next step |
++| --- | --- | --- |
++| Per-sentence **model** clean | Each Haiku call is about $0.03 to 0.07 and 3 s, so a call per sentence costs more than the whole prompt. The mechanical per-sentence clean is already live. | A `clean_live` flag in `run.js` for one opt-in session, then one batched Servex restart. |
++| **Echo** on every prompt | Off by design for cost (`SERVEX_ECHO=on`). | Flip the env var for a day and read the cost line. |
++| **Opus voice overseer** | The owner's addendum: "Haiku cleans, never runs the show"; decisions stay with the mastermind. | Only if asked again: a `voice` role that reads `prompts.jsonl` and posts `Note:` cards. |
++| **Prompt cards to board cards / asks.jsonl** (approve-or-improve on a refined ask) | Routing an ask to an owner is judgment, not a mechanical step; it needs a Servex route. | A route that turns one refined card into an `asks.jsonl` line plus a board card, then the existing Approve/Improve buttons work on it. One Servex restart. |
++| **Board creates tasks while you dictate** | Same route as above. The board and session page themselves already update live (page tail). | Same. |
++
++## Notes
++- Sessions missing from the AISession index read a `page.jsonl` in today's `session-<id8>/` while Servex writes to the older dated folder, so stages do not show for them. Found, not mine; the fix is in the index.
++- The voice flow `ai/2026-10-12/voice-verify/walk.mjs` is re-run after the merge (result in `task.jsonl`).
+diff --git a/public/framework/ai/2026-10-12/refine-asks/button-proof.mjs b/public/framework/ai/2026-10-12/refine-asks/button-proof.mjs
+new file mode 100644
+index 000000000..9d3cd4d03
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/refine-asks/button-proof.mjs
+@@ -0,0 +1,26 @@
++/* node button-proof.mjs [origin] [session] — headless: open a session page, select an owner bubble, press Refine, wait for the stages. */
++import path from "node:path";
++import { fileURLToPath, pathToFileURL } from "node:url";
++const HERE = path.dirname(fileURLToPath(import.meta.url)), REPO = path.resolve(HERE, "../../../../..");
++const ORIGIN = process.argv[2] || "http://monorepo.localhost", SESSION = process.argv[3] || "d399581f-3749-4794-915f-2c42fbc4e03e";
++const { browser } = await import(pathToFileURL(REPO + "/Server/browser.mjs").href);
++const b = await browser({}), ctx = await b.newContext({ viewport: { width: 1200, height: 900 } }), page = await ctx.newPage(), errs = [];
++page.on("pageerror", e => errs.push(e.message));
++// OVERRIDE=1: serve this checkout's three edited files to the live site (a worktree has no session data to test against).
++if (process.env.OVERRIDE) for (const f of ["ext/Chat/Chat.js", "ai/AISession/AISessionConversation.js", "ai/AISession/AISessionDetail.js"])
++	await page.route("**/framework/" + f, route => route.fulfill({ path: path.join(REPO, "public/framework", f), contentType: "text/javascript" }));
++await page.goto(`${ORIGIN}/framework/ai/sessions/${SESSION}/`, { waitUntil: "load" });
++await page.waitForSelector(".chatbox-you", { timeout: 30000 });
++await page.locator(".chatbox-you").last().click();
++const btn = await page.waitForSelector(".chatbox-refine-btn", { timeout: 5000 });
++console.log("button text:", await btn.textContent());
++// TRUNC=1: this session's only prompt is over the 20k-character limit, so send its first 300 characters (the proof is the button, not the limit).
++if (process.env.TRUNC) await page.route("**/api/refine", route => { const b = JSON.parse(route.request().postData()); b.text = b.text.slice(0, 300); route.continue({ postData: JSON.stringify(b) }); });
++page.on("request", r => /refine|voice/.test(r.url()) && console.log("request", r.method(), r.url())); page.on("response", r => /refine|voice/.test(r.url()) && console.log("response", r.status(), r.url()));
++const t0 = Date.now(); await btn.click(); console.log("clicked; button:", await btn.textContent());
++await page.waitForSelector('.voice-stage[data-stage="cards"]:not([hidden])', { timeout: 90000 }).catch(() => console.log("cards never showed"));
++console.log("stages:", await page.$$eval(".voice-stage:not([hidden])", els => els.map(e => e.getAttribute("data-stage"))), "after", Date.now() - t0, "ms");
++console.log("button now:", await page.$eval(".chatbox-refine-btn", e => e.textContent).catch(() => "(gone)"));
++await page.screenshot({ path: path.join(HERE, "button-proof.png") });
++console.log("errors:", errs);
++await b.close();
+diff --git a/public/framework/ai/2026-10-12/refine-asks/button-proof.png b/public/framework/ai/2026-10-12/refine-asks/button-proof.png
+new file mode 100644
+index 000000000..1c7c6423f
+Binary files /dev/null and b/public/framework/ai/2026-10-12/refine-asks/button-proof.png differ
+diff --git a/public/framework/ai/2026-10-12/refine-asks/cards-meters.png b/public/framework/ai/2026-10-12/refine-asks/cards-meters.png
+new file mode 100644
+index 000000000..e58265d25
+Binary files /dev/null and b/public/framework/ai/2026-10-12/refine-asks/cards-meters.png differ
+diff --git a/public/framework/ai/2026-10-12/refine-asks/files.jsonl b/public/framework/ai/2026-10-12/refine-asks/files.jsonl
+index b0625d019..4c1fab4de 100644
+--- a/public/framework/ai/2026-10-12/refine-asks/files.jsonl
++++ b/public/framework/ai/2026-10-12/refine-asks/files.jsonl
+@@ -1 +1,10 @@
+ {"file":"requirements.md"}
++{"file":"button-proof.mjs"}
++{"file":"button-proof.png"}
++{"file":"things-proof.mjs"}
++{"file":"things-proof-400.png"}
++{"file":"things-proof-1200.png"}
++{"file":"things-proof-1920.png"}
++{"file":"things-proof-3440.png"}
++{"file":"cards-meters.png"}
++{"file":"STATE.md"}
+diff --git a/public/framework/ai/2026-10-12/refine-asks/things-proof-1200.png b/public/framework/ai/2026-10-12/refine-asks/things-proof-1200.png
+new file mode 100644
+index 000000000..877177bbf
+Binary files /dev/null and b/public/framework/ai/2026-10-12/refine-asks/things-proof-1200.png differ
+diff --git a/public/framework/ai/2026-10-12/refine-asks/things-proof-1920.png b/public/framework/ai/2026-10-12/refine-asks/things-proof-1920.png
+new file mode 100644
+index 000000000..1c633feda
+Binary files /dev/null and b/public/framework/ai/2026-10-12/refine-asks/things-proof-1920.png differ
+diff --git a/public/framework/ai/2026-10-12/refine-asks/things-proof-3440.png b/public/framework/ai/2026-10-12/refine-asks/things-proof-3440.png
+new file mode 100644
+index 000000000..3f93d1084
+Binary files /dev/null and b/public/framework/ai/2026-10-12/refine-asks/things-proof-3440.png differ
+diff --git a/public/framework/ai/2026-10-12/refine-asks/things-proof-400.png b/public/framework/ai/2026-10-12/refine-asks/things-proof-400.png
+new file mode 100644
+index 000000000..b91312fb5
+Binary files /dev/null and b/public/framework/ai/2026-10-12/refine-asks/things-proof-400.png differ
+diff --git a/public/framework/ai/2026-10-12/refine-asks/things-proof.mjs b/public/framework/ai/2026-10-12/refine-asks/things-proof.mjs
+new file mode 100644
+index 000000000..dcca015e7
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/refine-asks/things-proof.mjs
+@@ -0,0 +1,36 @@
++/* node things-proof.mjs [origin] — headless: render a VoicePrompt with spoken words, check ThingsStage turns names into links, shoot 4 widths. */
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath, pathToFileURL } from "node:url";
++const HERE = path.dirname(fileURLToPath(import.meta.url)), REPO = path.resolve(HERE, "../../../../..");
++const ORIGIN = process.argv[2] || "http://monorepo.localhost";
++const { browser } = await import(pathToFileURL(REPO + "/Server/browser.mjs").href);
++const b = await browser({}), ctx = await b.newContext({ viewport: { width: 1200, height: 900 } }), page = await ctx.newPage(), errs = [];
++page.on("pageerror", e => errs.push(e.message));
++// serve this checkout's stage files to the live site (a worktree has no session data)
++for (const f of fs.readdirSync(path.join(REPO, "public/framework/ext/Refine/stages")).filter(n => /\.(js|css|json)$/.test(n)))
++	await page.route("**/framework/ext/Refine/stages/" + f, route => route.fulfill({ path: path.join(REPO, "public/framework/ext/Refine/stages", f), contentType: f.endsWith(".js") ? "text/javascript" : f.endsWith(".css") ? "text/css" : "application/json" }));
++await page.goto(`${ORIGIN}/framework/ai/`, { waitUntil: "load" });
++const out = await page.evaluate(async () => {
++	const { default: VoicePrompt } = await import("/framework/ext/Refine/stages/VoicePrompt.js");
++	const { default: ThingsStage } = await import("/framework/ext/Refine/stages/ThingsStage.js");
++	await ThingsStage.loading;
++	const raw = "so where is Dictate. the page should show a flag when it is unclear and the Page class needs a Tree. I think the push-to-talk button, or design tool, matters.";
++	const p = new VoicePrompt("voice-proof", { raw }), v = new VoicePrompt.View({ prompt: p });
++	const box = document.createElement("div"); box.id = "things-proof"; box.style.cssText = "position:fixed;inset:0;overflow:auto;background:Canvas;color:CanvasText;z-index:99999;padding:1em";
++	box.append(v.el); document.body.append(box);
++	const p2 = new VoicePrompt("voice-proof2", { raw, clean: ["So where is Dictate.", "The page should show a flag.", "The Page class needs a Tree."], cards: [{ title: "Dictate", items: ["where it is"], cites: [1], clarity: 0.9, tags: ["dictate"] }, { title: "Page flag", items: ["show a flag"], cites: [2, 3], clarity: 0.4, tags: [] }] });
++	box.append(new VoicePrompt.View({ prompt: p2 }).el);
++	const bars = box.querySelectorAll(".voice-stage[data-stage=cards] .voice-bar").length;
++	return { bars, names: ThingsStage.find(raw).map(t => t.name), links: [...box.querySelectorAll(".voice-stage[data-stage=things] a")].map(a => a.getAttribute("href")), hidden: box.querySelector(".voice-stage[data-stage=things]").hidden, none: ThingsStage.find("the page should show a tree of cards").map(t => t.name) };
++});
++console.log(JSON.stringify(out));
++for (const w of [400, 1200, 1920, 3440]){
++	await page.setViewportSize({ width: w, height: 900 });
++	const over = await page.$eval("#things-proof", e => e.scrollWidth > e.clientWidth);
++	console.log("width", w, "overflow:", over);
++	await page.screenshot({ path: path.join(HERE, `things-proof-${w}.png`) });
++}
++await page.setViewportSize({ width: 1200, height: 900 }); await page.locator(".voice-stage[data-stage=cards]").last().screenshot({ path: path.join(HERE, "cards-meters.png") });
++console.log("errors:", errs);
++await b.close();
+diff --git a/public/framework/ai/2026-10-12/relay-asks/files.jsonl b/public/framework/ai/2026-10-12/relay-asks/files.jsonl
+index aa903642f..d6c43b7be 100644
+--- a/public/framework/ai/2026-10-12/relay-asks/files.jsonl
++++ b/public/framework/ai/2026-10-12/relay-asks/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"STATE.md"}
+ {"file":"layout-check/"}
+ {"file":"spend.json"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/servex-health/files.jsonl b/public/framework/ai/2026-10-12/servex-health/files.jsonl
+deleted file mode 100644
+index b60a59e20..000000000
+--- a/public/framework/ai/2026-10-12/servex-health/files.jsonl
++++ /dev/null
+@@ -1,4 +0,0 @@
+-{"file":"requirements.md"}
+-{"file":"task.jsonl"}
+-{"file":"STATE.md"}
+-{"file":"spend.json"}
+diff --git a/public/framework/ai/2026-10-12/sessions-asks/files.jsonl b/public/framework/ai/2026-10-12/sessions-asks/files.jsonl
+index 864c1fe4d..282e6bdf8 100644
+--- a/public/framework/ai/2026-10-12/sessions-asks/files.jsonl
++++ b/public/framework/ai/2026-10-12/sessions-asks/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"layout-check/"}
+ {"file":"landing2.json"}
+ {"file":"spend.json"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/sidebar-search/files.jsonl b/public/framework/ai/2026-10-12/sidebar-search/files.jsonl
+index 318d873e4..e332c1ffd 100644
+--- a/public/framework/ai/2026-10-12/sidebar-search/files.jsonl
++++ b/public/framework/ai/2026-10-12/sidebar-search/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"STATE.md"}
+ {"file":"spend.json"}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/skill-prune/files.jsonl b/public/framework/ai/2026-10-12/skill-prune/files.jsonl
+index 0fe0e2594..d2bf1d351 100644
+--- a/public/framework/ai/2026-10-12/skill-prune/files.jsonl
++++ b/public/framework/ai/2026-10-12/skill-prune/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"STATE.md"}
+ {"file":"spend.json"}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/skill-reliability/page.jsonl b/public/framework/ai/2026-10-12/skill-reliability/page.jsonl
+index 4fe054e3d..232966d5f 100644
+--- a/public/framework/ai/2026-10-12/skill-reliability/page.jsonl
++++ b/public/framework/ai/2026-10-12/skill-reliability/page.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"STATE.md"}
+ {"file":"task.jsonl"}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/systems/files.jsonl b/public/framework/ai/2026-10-12/systems/files.jsonl
+index 318d873e4..e332c1ffd 100644
+--- a/public/framework/ai/2026-10-12/systems/files.jsonl
++++ b/public/framework/ai/2026-10-12/systems/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"STATE.md"}
+ {"file":"spend.json"}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/voice-to-session-page/page.jsonl b/public/framework/ai/2026-10-12/voice-to-session-page/page.jsonl
+index 085359b66..f602bb3a1 100644
+--- a/public/framework/ai/2026-10-12/voice-to-session-page/page.jsonl
++++ b/public/framework/ai/2026-10-12/voice-to-session-page/page.jsonl
+@@ -13,3 +13,4 @@
+ {"file":"STATE.md"}
+ {"file":"whisper-proof.mjs"}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-10-12/voice-verify/files.jsonl b/public/framework/ai/2026-10-12/voice-verify/files.jsonl
+index d655a3341..aa0d3a03b 100644
+--- a/public/framework/ai/2026-10-12/voice-verify/files.jsonl
++++ b/public/framework/ai/2026-10-12/voice-verify/files.jsonl
+@@ -1,3 +1,6 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
+ {"file":"walk.mjs"}
++{"file":"down.mjs"}
++{"file":"kill.mjs"}
++{"file":"STATE.md"}
+diff --git a/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl b/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
+index e4b3e3e9d..3a8b9d1e7 100644
+--- a/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
++++ b/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
+@@ -33,3 +33,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl b/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
+index b13a4b220..ddf129fbd 100644
+--- a/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
++++ b/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
+@@ -16,3 +16,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026/10/02/page.jsonl b/public/framework/ai/2026/10/02/page.jsonl
+index 526fe6b02..a86b2a18e 100644
+--- a/public/framework/ai/2026/10/02/page.jsonl
++++ b/public/framework/ai/2026/10/02/page.jsonl
+@@ -9758,3 +9758,6 @@
+ {"file":"session-042b5fc9/page.jsonl"}
+ {"file":"session-74c3d080/page.jsonl"}
+ {"file":"session-a56900e3/page.jsonl"}
++{"file":"session-042b5fc9/page.jsonl","gone":true}
++{"file":"session-74c3d080/page.jsonl","gone":true}
++{"file":"session-a56900e3/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/10/07/page.jsonl b/public/framework/ai/2026/10/07/page.jsonl
+index 690e25644..42c5c065b 100644
+--- a/public/framework/ai/2026/10/07/page.jsonl
++++ b/public/framework/ai/2026/10/07/page.jsonl
+@@ -191,3 +191,4 @@
+ {"file":"session-87bec773/page.jsonl"}
+ {"file":"session-87bec773/page.jsonl","gone":true}
+ {"file":"session-87bec773/page.jsonl"}
++{"file":"session-87bec773/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/10/09/page.jsonl b/public/framework/ai/2026/10/09/page.jsonl
+index 8ea29cebb..96b607db1 100644
+--- a/public/framework/ai/2026/10/09/page.jsonl
++++ b/public/framework/ai/2026/10/09/page.jsonl
+@@ -155,3 +155,53 @@
+ {"file":"session-ee039f1c/page.jsonl"}
+ {"file":"session-f12b5f94/page.jsonl"}
+ {"file":"session-fc97c255/page.jsonl"}
++{"file":"session-1b18de6e/page.jsonl","gone":true}
++{"file":"session-24d3873b/page.jsonl","gone":true}
++{"file":"session-2cb18c1a/page.jsonl","gone":true}
++{"file":"session-322d5270/page.jsonl","gone":true}
++{"file":"session-348fceca/page.jsonl","gone":true}
++{"file":"session-451a3e6f/page.jsonl","gone":true}
++{"file":"session-5426fb6e/page.jsonl","gone":true}
++{"file":"session-58dad4d1/page.jsonl","gone":true}
++{"file":"session-5adbce37/page.jsonl","gone":true}
++{"file":"session-67eecfc0/page.jsonl","gone":true}
++{"file":"session-7efd07d5/page.jsonl","gone":true}
++{"file":"session-8a312084/page.jsonl","gone":true}
++{"file":"session-c33ad9eb/page.jsonl","gone":true}
++{"file":"session-ddcca6ba/page.jsonl","gone":true}
++{"file":"session-e51a9690/page.jsonl","gone":true}
++{"file":"session-fc97c255/page.jsonl","gone":true}
++{"file":"session-f12b5f94/page.jsonl","gone":true}
++{"file":"session-15159d23/page.jsonl","gone":true}
++{"file":"session-b48f1620/page.jsonl","gone":true}
++{"file":"session-46645ed4/page.jsonl","gone":true}
++{"file":"session-9e0d643b/page.jsonl","gone":true}
++{"file":"session-c320f6b2/page.jsonl","gone":true}
++{"file":"session-05d46e88/page.jsonl","gone":true}
++{"file":"session-1774173f/page.jsonl","gone":true}
++{"file":"session-40b254b9/page.jsonl","gone":true}
++{"file":"session-196d8953/page.jsonl","gone":true}
++{"file":"session-30922ee9/page.jsonl","gone":true}
++{"file":"session-8a100671/page.jsonl","gone":true}
++{"file":"session-dc7293be/page.jsonl","gone":true}
++{"file":"session-b53405f3/page.jsonl","gone":true}
++{"file":"session-b490f767/page.jsonl","gone":true}
++{"file":"session-35d7f59c/page.jsonl","gone":true}
++{"file":"session-0cacee39/page.jsonl","gone":true}
++{"file":"session-7356c8c8/page.jsonl","gone":true}
++{"file":"session-402f189d/page.jsonl","gone":true}
++{"file":"session-c90006cc/page.jsonl","gone":true}
++{"file":"session-d619ec02/page.jsonl","gone":true}
++{"file":"session-ee039f1c/page.jsonl","gone":true}
++{"file":"session-e8eafb48/page.jsonl","gone":true}
++{"file":"session-07a8a9ee/page.jsonl","gone":true}
++{"file":"session-b127eae4/page.jsonl","gone":true}
++{"file":"session-9f459d64/page.jsonl","gone":true}
++{"file":"session-4c841788/page.jsonl","gone":true}
++{"file":"session-0fa49ac0/page.jsonl","gone":true}
++{"file":"session-a4b8d74f/page.jsonl","gone":true}
++{"file":"session-ba60304c/page.jsonl","gone":true}
++{"file":"session-3c160880/page.jsonl","gone":true}
++{"file":"session-ad7ab1c0/page.jsonl","gone":true}
++{"file":"session-1ad9a2b7/page.jsonl","gone":true}
++{"file":"session-426400fa/page.jsonl","gone":true}
+diff --git a/public/framework/ai/AISession/AISessionConversation.js b/public/framework/ai/AISession/AISessionConversation.js
+index 894fa5e9d..01ac9c363 100644
+--- a/public/framework/ai/AISession/AISessionConversation.js
++++ b/public/framework/ai/AISession/AISessionConversation.js
+@@ -1,4 +1,5 @@
+ import { chat } from "/framework/ext/Chat/Chat.js";
++import { servex_url } from "/framework/dev/servex_url.js";
+ 
+ // The conversation on a session's page: the owner's prompts and the AI's text replies, drawn by `ext/Chat`
+ // (the one chat renderer: bubbles, smart scroll, one draw per line). This class only turns raw transcript lines into chat entries.
+@@ -11,10 +12,29 @@ export default class AISessionConversation {
+ 		this.seen = new Set();   // line uuids already read (a re-read must not draw twice)
+ 		this.entries = [];       // what the next sync() draws
+ 		this.count = 0;          // messages drawn so far
+-		this.talk = chat({ source: () => this.entries });
++		this.session = null;     // the session id, set once the page knows it: the Refine button needs it
++		this.talk = chat({ source: () => this.entries, on_refine: r => this.refine(r) });
+ 		this.view = this.talk.view;
+ 	}
+ 
++	/** The Refine button on one of the owner's prompts (asks #7): runs the pipeline on its words. The five stages then
++	 *  draw above the chat (`ext/Refine/stages`, written by `/api/refine` through `VoicePage`). The prompt id comes from the
++	 *  message's time, so pressing it twice refreshes the same stages instead of piling up copies. Never throws. */
++	async refine({ text, at, button }){
++		if (!this.session || !text?.trim()) return;
++		const was = button.textContent;
++		button.disabled = true; button.textContent = "Refining…";
++		try {
++			const prompt = "t" + (Date.parse(at) || Date.now()).toString(36);
++			const res = await fetch(servex_url("/api/refine"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, session: this.session, prompt, source: "vscode" }) });
++			const out = await res.json();
++			if (!out?.ok) throw new Error(out?.why ?? "Servex answered " + res.status);
++			button.textContent = "Refined ✓";
++		} catch (e){ button.textContent = "Refine failed: " + String(e?.message ?? e).slice(0, 60); }
++		button.disabled = false;
++		setTimeout(() => { button.textContent = was; }, 4000);
++	}
++
+ 	/** Reduce one transcript line to { role, at, text } | { tools: n } | null. */
+ 	static read(l){
+ 		if (l.isMeta || l.isSidechain) return null;
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 2c47ee4f8..1c610d688 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -108,6 +108,7 @@ export default class AISessionDetail extends Page {
+ 		// and the transcript and the date-path lookup both need the session_id.
+ 		AISessionDetail.load_row(url, id).then(async row => {
+ 			const session_id = row?.session_id ?? id;
++			conv.session = session_id;
+ 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
+ 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
+ 			this.log_urls().then(urls => {
+diff --git a/public/framework/ai/asks/files.jsonl b/public/framework/ai/asks/files.jsonl
+index 18976d4ac..5e506f556 100644
+--- a/public/framework/ai/asks/files.jsonl
++++ b/public/framework/ai/asks/files.jsonl
+@@ -3,3 +3,7 @@
+ {"file":"asks.css"}
+ {"file":"readme.md"}
+ {"file":"rows.js"}
++{"file":"AskFold.js"}
++{"file":"AskRows.js"}
++{"file":"fold.js","gone":true}
++{"file":"rows.js","gone":true}
+diff --git a/public/framework/ai/audits/paging/files.jsonl b/public/framework/ai/audits/paging/files.jsonl
+index 5fb436d57..f7799746a 100644
+--- a/public/framework/ai/audits/paging/files.jsonl
++++ b/public/framework/ai/audits/paging/files.jsonl
+@@ -17,3 +17,5 @@
+ {"file":"types.js"}
+ {"file":"types.md"}
+ {"file":"types.json"}
++{"file":"PageTypes.js"}
++{"file":"types.js","gone":true}
+diff --git a/public/framework/ai/audits/paging/types/files.jsonl b/public/framework/ai/audits/paging/types/files.jsonl
+index f66366a29..ada85f997 100644
+--- a/public/framework/ai/audits/paging/types/files.jsonl
++++ b/public/framework/ai/audits/paging/types/files.jsonl
+@@ -7,3 +7,5 @@
+ {"file":"program/page.js"}
+ {"file":"task/page.js"}
+ {"file":"types.js"}
++{"file":"PageTypePages.js"}
++{"file":"types.js","gone":true}
+diff --git a/public/framework/ai/cards/files.jsonl b/public/framework/ai/cards/files.jsonl
+index 050953993..beab95b4c 100644
+--- a/public/framework/ai/cards/files.jsonl
++++ b/public/framework/ai/cards/files.jsonl
+@@ -13,3 +13,4 @@
+ {"file":"Rules.js"}
+ {"file":"Tasks.js"}
+ {"file":"workspace.js"}
++{"file":"Faces.js"}
+diff --git a/public/framework/ai/doc/asks.md b/public/framework/ai/doc/asks.md
+index 078de757a..492a8403d 100644
+--- a/public/framework/ai/doc/asks.md
++++ b/public/framework/ai/doc/asks.md
+@@ -10,10 +10,10 @@ The owner's own prompts that touch the ai system, tagged by Haiku, folded into o
+ 4. **sessions-system** (16x, 2026-09-19 to 2026-10-09, partly): Sessions: one /ai/sessions/ hierarchy (year/month/day), JSONL index with snapshots, sessions tab grid with detail in the sidebar, MCP query tool, global namespace, tiered resumption, AISession class. *Status 2026-10-12:* month/year roll-ups are built and audited (`AISessionIndex.mjs --check` clean; commit 7f1263e6d); red flags (expensive, stalled, context, Opus minion) and the mastermind tag are built (0074f0578); tasks-into-sessions was applied (7fa3d978b, f551c5fa5); tiered resumption now has a computed rule ([resumption.md](/framework/ai/sessions/doc/data/resumption.md)). the resume tier now shows on every row; the 1,401 "missing index.json" were 1,400 rename leftovers, audit fixed. *Open:* a button applying the tier; the tree and closed list still read `session-index.json`. *Unblocks:* Fast long-range session browsing and cheap resumption of old sessions. [data/data-architecture.md](/framework/ai/sessions/doc/data/data-architecture.md), [data/tasks-in-sessions.md](/framework/ai/sessions/doc/data/tasks-in-sessions.md)
+ 5. **docs-readmes-handover** (13x, 2026-09-04 to 2026-10-09, partly): Readmes as the cheap index, CLAUDE.md clarity/naming rules, documented AI process prompt-to-execution, handover kept current, every mastermind can find the docs. *Open:* Readme audits (Haiku pass) not routinely run; process doc from prompt to execution scattered; stale sections accumulate in handover. *Unblocks:* Every agent loads less context and finds the right docs first time. [ai/handover.md](/framework/ai/handover.md), [doc/readmes.md](/framework/ai/doc/readmes.md)
+ 6. **never-wait-pace** (11x, 2026-09-18 to 2026-10-05, partly): Mastermind decides and documents the alternative instead of waiting; stays under usage pace; permission mode lets it edit without approval prompts. *Open:* Permission mode defaults to 'default' in Agents.js rather than bypass; mastermind still sometimes parks for approval; pace is advisory only. *Unblocks:* Agents run overnight without stalling on prompts or burning the week. [agents/autonomy.md](/framework/ai/doc/agents/autonomy.md)
+-7. **asks-prompts-refine** (10x, 2026-09-14 to 2026-10-09, partly): Never lose an ask: log every ask against its prompt, refine prompts into asks tagged by module with a confidence, importance/weight graph, approve-or-improve decision pages. *Open:* Per-prompt Refine button on Sessions page, per-sentence streaming, tags, confidence/importance graph and approve-or-improve pages not finished; echo off. *Unblocks:* No owner ask is lost; refined asks route to the right module owner. [asks/readme.md](/framework/ai/asks/readme.md), [doc/vision-2026-10-08.md](/framework/ext/Refine/doc/vision-2026-10-08.md)
++7. **asks-prompts-refine** (10x, 2026-09-14 to 2026-10-09, partly): Never lose an ask: log every ask against its prompt, refine prompts into asks tagged by module with a confidence, importance/weight graph, approve-or-improve decision pages. *Done 2026-10-12* ([STATE](/framework/ai/2026-10-12/refine-asks/STATE.md)): per-prompt Refine button (`12d9e9fb5`), tags (already live: Haiku tags, card chips, `TagRouter`), importance and confidence bars on cards (`b1a8f8092`). *Open:* per-sentence model clean (cost; mechanical per-sentence clean is live), prompt cards to board cards with approve-or-improve (needs a Servex route); echo off by design. *Unblocks:* No owner ask is lost; refined asks route to the right module owner. [asks/readme.md](/framework/ai/asks/readme.md), [doc/vision-2026-10-08.md](/framework/ext/Refine/doc/vision-2026-10-08.md)
+ 8. **servex-infra-health** (9x, 2026-09-19 to 2026-10-09, partly; 2026-10-12: worktree branches pruned, restart revives mid-turn agents; open: transcription crash cause, orphan reap owner — [STATE](/framework/ai/2026-10-12/servex-health/STATE.md)): Servex/dev-server health: restartable dev server and MCP, phantom processes, hidden terminal popups, worktrees cleaned up, site crashes during transcription/reload, process list with memory. *Open:* Phantom processes and 141 worktree branches not pruned; node-reap dry run unowned; restart drops running agents; transcription crash cause not named. *Unblocks:* Stable always-on dev machine; no fan noise or lag. [ai/handover.md](/framework/ai/handover.md)
+ 9. **oo-classes-ai-code** (6x, 2026-10-01 to 2026-10-09, partly): AI code as classes (Prompt, AISession, class cards with live properties, preview levels inline/card/detail). *Progress 2026-10-12:* every census bag under `ai/` is now a class: `Faces`, the cards/rail classes (d50fc40bb), `AskFold`/`AskRows`/`AIOverview` and friends (396f10190), file rename f704c9389; [STATE](/framework/ai/2026-10-12/ai-classes-asks/STATE.md). *Open:* helper functions in `rail/inbox.js`, `cards/card.js`, `rail/live.js` (dozens of callers each, listed in STATE); preview levels inline/card/detail and live-property class cards not generalised. *Unblocks:* Consistent class cards and one fix updates every surface. [doc/classes.md](/framework/ai/doc/classes.md)
+-10. **realtime-dictation-tasks** (5x, 2026-09-18 to 2026-10-05, partly): Tasks and the board update live while the owner dictates; fast assistant answers dictation; Opus overseer for voice sessions. *Open:* Board updating live while dictating, fast assistant answering dictation and Opus voice overseer not shown working; echo disabled for cost. *Unblocks:* Owner dictates and sees tasks and cards update with no refresh. Routed to @mastermind-voice-to-session-page. [doc/whisper-flow-2026-10-09.md](/framework/ext/Refine/doc/whisper-flow-2026-10-09.md), [ai/handover.md](/framework/ai/handover.md)
++10. **realtime-dictation-tasks** (5x, 2026-09-18 to 2026-10-05, partly): Tasks and the board update live while the owner dictates; fast assistant answers dictation; Opus overseer for voice sessions. *Done 2026-10-12* ([STATE](/framework/ai/2026-10-12/refine-asks/STATE.md)): the instant on-screen answer, as a no-model "Things you mentioned" stage that links every module you name while you speak (`0fd19d684`; it replaces the scrapped fast assistant). Session page and board stream live (page tail). *Open:* tasks created by dictation (needs the same Servex route as #7), Opus voice overseer (not built: the owner said Haiku never runs the show); echo disabled for cost. *Unblocks:* Owner dictates and sees tasks and cards update with no refresh. Routed to @mastermind-voice-to-session-page. [doc/whisper-flow-2026-10-09.md](/framework/ext/Refine/doc/whisper-flow-2026-10-09.md), [ai/handover.md](/framework/ai/handover.md)
+ 
+ ## Done
+ 
+diff --git a/public/framework/ai/files.jsonl b/public/framework/ai/files.jsonl
+index d9b1787ba..7b10d806b 100644
+--- a/public/framework/ai/files.jsonl
++++ b/public/framework/ai/files.jsonl
+@@ -333,3 +333,30 @@
+ {"file":"v-z2l35rm.jsonl"}
+ {"file":"v-z2l7kof.jsonl"}
+ {"file":"v-z32l2dk.jsonl"}
++{"file":"AIOverview.js"}
++{"file":"SystemClasses.js"}
++{"file":"systems/"}
++{"file":"recordings/","gone":true}
++{"file":"usage.json","gone":true}
++{"file":"openrouter-usage.json","gone":true}
++{"file":"overview.js","gone":true}
++{"file":"servex-queue.json","gone":true}
++{"file":"tasks.json","gone":true}
++{"file":"v-h999x0j.jsonl","gone":true}
++{"file":"v-h999x0j.summary.json","gone":true}
++{"file":"v-nfpj4z2.jsonl","gone":true}
++{"file":"v-05va2n7.jsonl","gone":true}
++{"file":"v-05vdrmk.jsonl","gone":true}
++{"file":"v-06cup4p.jsonl","gone":true}
++{"file":"v-09rornv.jsonl","gone":true}
++{"file":"v-09rrbo1.jsonl","gone":true}
++{"file":"v-0a0u4dv.jsonl","gone":true}
++{"file":"v-rzd5ehk.jsonl","gone":true}
++{"file":"v-s9g6vd1.jsonl","gone":true}
++{"file":"v-s9g6vd1.summary.json","gone":true}
++{"file":"v-z2l35rm.jsonl","gone":true}
++{"file":"v-z2l7kof.jsonl","gone":true}
++{"file":"v-z32l2dk.jsonl","gone":true}
++{"file":"v-omwdzl5.jsonl","gone":true}
++{"file":"v-omwdzl5.summary.json","gone":true}
++{"file":"system-classes.js","gone":true}
+diff --git a/public/framework/ai/sessions/files.jsonl b/public/framework/ai/sessions/files.jsonl
+index 236d7eadc..6902aa58b 100644
+--- a/public/framework/ai/sessions/files.jsonl
++++ b/public/framework/ai/sessions/files.jsonl
+@@ -30294,3 +30294,12 @@
+ {"file":"spend-tree.json"}
+ {"file":"task-manifest-undone-1791616550334.json"}
+ {"file":"week.json"}
++{"file":"sessions.json","gone":true}
++{"file":"spend-tree.json","gone":true}
++{"file":"week.json","gone":true}
++{"file":"session-index.json","gone":true}
++{"file":"session-tree.json","gone":true}
++{"file":"openrouter-reconcile.json","gone":true}
++{"file":"openrouter-costs.json","gone":true}
++{"file":"session-flags.json","gone":true}
++{"file":"task-manifest-undone-1791616550334.json","gone":true}
+diff --git a/public/framework/ai/v/3/files.jsonl b/public/framework/ai/v/3/files.jsonl
+index 655e9a5ff..49e3692f3 100644
+--- a/public/framework/ai/v/3/files.jsonl
++++ b/public/framework/ai/v/3/files.jsonl
+@@ -11,3 +11,11 @@
+ {"file":"v3.css"}
+ {"file":"prompt-card.js"}
+ {"file":"prompt-card.js","gone":true}
++{"file":"AgentsStrip.js"}
++{"file":"AskControls.js"}
++{"file":"Composer.js"}
++{"file":"Demos.js"}
++{"file":"Prompts.js"}
++{"file":"agents.js","gone":true}
++{"file":"ask.js","gone":true}
++{"file":"compose.js","gone":true}
+diff --git a/public/framework/ai/v/files.jsonl b/public/framework/ai/v/files.jsonl
+index 68e10a3dc..32dccdfa7 100644
+--- a/public/framework/ai/v/files.jsonl
++++ b/public/framework/ai/v/files.jsonl
+@@ -3,3 +3,6 @@
+ {"file":"new.js"}
+ {"file":"page.js"}
+ {"file":"versions.js"}
++{"file":"NewVersion.js"}
++{"file":"Versions.js"}
++{"file":"new.js","gone":true}
+diff --git a/public/framework/ai2/files.jsonl b/public/framework/ai2/files.jsonl
+index ddb300fd0..99678c33b 100644
+--- a/public/framework/ai2/files.jsonl
++++ b/public/framework/ai2/files.jsonl
+@@ -60,3 +60,8 @@
+ {"file":"groups.json","gone":true}
+ {"file":"processes.css","gone":true}
+ {"file":"rail.css","gone":true}
++{"file":"log.js","gone":true}
++{"file":"needs-rule.js","gone":true}
++{"file":"needs.js","gone":true}
++{"file":"overview.js","gone":true}
++{"file":"processes.js","gone":true}
+diff --git a/public/framework/core/List/doc/property/files.jsonl b/public/framework/core/List/doc/property/files.jsonl
+index f80ffecfc..5c7474625 100644
+--- a/public/framework/core/List/doc/property/files.jsonl
++++ b/public/framework/core/List/doc/property/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"children.md"}
+ {"file":"length.md"}
+ {"file":"owner.md"}
++{"file":"items.md"}
+diff --git a/public/framework/core/Page/doc/files.jsonl b/public/framework/core/Page/doc/files.jsonl
+index 165c4bca0..51d727c58 100644
+--- a/public/framework/core/Page/doc/files.jsonl
++++ b/public/framework/core/Page/doc/files.jsonl
+@@ -63,3 +63,5 @@
+ {"file":"readme-full-2026-10-12.md"}
+ {"file":"split-measure.mjs"}
+ {"file":"split-plan.md"}
++{"file":"comment-move.mjs"}
++{"file":"split-extract-2.mjs"}
+diff --git a/public/framework/core/Page/files.jsonl b/public/framework/core/Page/files.jsonl
+index cffc24712..8c23b22ca 100644
+--- a/public/framework/core/Page/files.jsonl
++++ b/public/framework/core/Page/files.jsonl
+@@ -59,3 +59,9 @@
+ {"file":"weight.jsonl"}
+ {"file":"tool/page.jsonl"}
+ {"file":"parts/page.jsonl"}
++{"file":"Children.js"}
++{"file":"Listing.js"}
++{"file":"Prefs.js"}
++{"file":"Previews.js"}
++{"file":"Reader.js"}
++{"file":"Related.js"}
+diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
+index 3bbdb83e4..da48a1bae 100644
+--- a/public/framework/ext/Chat/Chat.js
++++ b/public/framework/ext/Chat/Chat.js
+@@ -455,7 +455,7 @@ export function sticky_scroll(box){
+ 	return { pin, locked: () => locked };
+ }
+ 
+-export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open, on_react, on_reply, recent = 50 } = {}){
++export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open, on_react, on_reply, on_refine, recent = 50 } = {}){
+ 	let $script, drawn = false, earlier = [], $earlier = null;
+ 	const seen = new Set();
+ 
+@@ -495,7 +495,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 		$selected.querySelector(":scope > .chatbox-rename-select")?.remove();
+ 		$selected.querySelector(":scope > .chatbox-rename-fixtures")?.remove();
+ 		$selected.querySelector(":scope > .chatbox-open-btn")?.remove();
+-		$selected.querySelector(":scope > .chatbox-thread-btn")?.remove();
++		$selected.querySelectorAll(":scope > .chatbox-thread-btn").forEach(btn => btn.remove());
+ 		$selected = null;
+ 		on_select?.(null);
+ 	}
+@@ -509,6 +509,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 		if (rename) add_rename_button($b);
+ 		if (on_open && card_of($b)?.children.length) add_open_button($b);
+ 		if (on_reply) add_reply_button($b);
++		if (on_refine && $b.classList.contains("chatbox-you")) add_refine_button($b);
+ 	}
+ 
+ 	/* THREADS (the owner, 2026-09-30: "a reply is attached to its parent bubble,
+@@ -533,6 +534,19 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 		});
+ 		$b.appendChild($btn);
+ 	}
++	/* REFINE (asks #7, 2026-10-12): a selected bubble of YOURS grows a "Refine ✦" button. It hands `on_refine({ text, at, button })`
++	   the bubble's words (every piece, in order) and the time of its first piece; the caller runs the refine pipeline on them
++	   (`AISessionConversation.refine`: POST /api/refine, and the stages draw above the chat). No `on_refine` → no button. */
++	function add_refine_button($b){
++		const $btn = document.createElement("button");
++		$btn.type = "button"; $btn.className = "chatbox-thread-btn chatbox-refine-btn"; $btn.textContent = "Refine ✦";
++		$btn.addEventListener("click", e => {
++			e.stopPropagation();
++			const pieces = bubbles.get($b)?.pieces ?? [];
++			on_refine({ text: pieces.map(pc => pc.text).join("\n\n"), at: pieces[0]?.at, button: $btn });
++		});
++		$b.appendChild($btn);
++	}
+ 	const threads = new Map(), root_of = new Map();   // root key -> thread; a thread item's at -> its root key
+ 	function thread_for(root){
+ 		let t = threads.get(root);
+@@ -585,7 +599,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 		$b.classList.add("chatbox-selectable");
+ 		$b.tabIndex = 0;
+ 		$b.addEventListener("click", e => {
+-			if (e.target.closest("select, .chatbox-rename-btn, .chatbox-open-btn, .chatbox-thread-btn, .chatbox-thread-toggle, .chatbox-react-picker, .chatbox-react-btn")) return;
++			if (e.target.closest("select, .chatbox-rename-btn, .chatbox-open-btn, .chatbox-thread-btn, .chatbox-refine-btn, .chatbox-thread-toggle, .chatbox-react-picker, .chatbox-react-btn")) return;
+ 			// The click that ends a long-press opened the picker: it is not also a
+ 			// select, and it must not reach the document, which closes an open picker.
+ 			if (pressed){ pressed = false; e.stopPropagation(); return; }
+diff --git a/public/framework/ext/Refine/files.jsonl b/public/framework/ext/Refine/files.jsonl
+index 1badb8be1..62648ae38 100644
+--- a/public/framework/ext/Refine/files.jsonl
++++ b/public/framework/ext/Refine/files.jsonl
+@@ -42,3 +42,4 @@
+ {"file":"ai/"}
+ {"file":"system.js"}
+ {"file":"ai/","gone":true}
++{"file":"stages/"}
+diff --git a/public/framework/ext/Refine/stages/CardsStage.js b/public/framework/ext/Refine/stages/CardsStage.js
+index 15dea7799..ab018face 100644
+--- a/public/framework/ext/Refine/stages/CardsStage.js
++++ b/public/framework/ext/Refine/stages/CardsStage.js
+@@ -6,13 +6,23 @@ export default class CardsStage extends VoiceStage {
+ 	static key = "cards";
+ 	static label = "5 · Cards";
+ 	static fields = ["cards"];
++
++	/** How much of what you said this card covers (0-1): the share of the prompt's sentences it cites. Computed, never guessed. */
++	weight(card){ const n = this.data.clean?.length || 0; return n ? Math.min(1, (card.cites?.length ?? 0) / n) : null; }
+ }
+ 
+ CardsStage.View = class CardsStageView extends VoiceStage.View {
++	/** Two thin bars: how much of the prompt this card is (importance) and how clear it was (confidence, once the Haiku pass lands). */
++	meters(card){
++		const w = this.stage.weight(card), bar = (label, v) => v == null ? null : div.c("voice-meter", () => { span.c("muted", label); div.c("voice-bar", $b => $b.el.style.setProperty("--v", Math.round(v * 100) + "%")).attr("title", Math.round(v * 100) + "%"); });
++		bar("importance", w); bar("confidence", card.clarity);
++	}
++
+ 	body(){
+ 		div.c("voice-cards", () => this.stage.data.cards.forEach(c => div.c("voice-card", () => {
+ 			div.c("voice-card-t", () => { span(c.title); if (c.clarity != null && c.clarity < 0.6) span.c("voice-flag", "⚑").attr("title", "Some of this was unclear when spoken"); });
+ 			c.items?.forEach(t => div.c("voice-card-i", "• " + t));
++			this.meters(c);
+ 			div.c("voice-card-f muted", () => { span((c.cites ?? []).map(n => "S" + n).join(" ")); (c.tags ?? []).forEach(t => span.c("voice-tag", "#" + t)); });
+ 		})));
+ 	}
+diff --git a/public/framework/ext/Refine/stages/ThingsIndex.mjs b/public/framework/ext/Refine/stages/ThingsIndex.mjs
+new file mode 100644
+index 000000000..badd001eb
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/ThingsIndex.mjs
+@@ -0,0 +1,47 @@
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++/**
++ * class ThingsIndex — builds `things.json`, the list of named things ThingsStage listens for while you talk
++ * ("where is Dictate?" -> a link to /framework/ux/Dictate/). Computed from the folders, never typed by hand
++ * (CLAUDE.md law 7): every folder under core, ext, ui, ux, audio, dev and the ai systems that has a `page.js` is one thing.
++ *
++ *   node public/framework/ext/Refine/stages/ThingsIndex.mjs        // rewrites things.json; rerun when a module is added
++ *
++ * Single lowercase words (table, icon, toolbar) are skipped: spoken, they are just English. Hyphenated ones (push-to-talk) stay.
++ * `common: true` marks a name that is also an ordinary English word (Page, Tree, Filter): ThingsStage only
++ * matches those when they are spoken with a capital letter, so "the page should" does not light up #Page.
++ */
++export default class ThingsIndex {
++
++	static ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");   // public/framework
++	static TIERS = { core: "data_object", ext: "extension", ui: "widgets", ux: "touch_app", audio: "graphic_eq", dev: "terminal", ai: "smart_toy" };
++	static COMMON = new Set("page view list item app doc files tabs tags tree card content course auth menu filter rename layout research session task chat panel editor timeline drawer highlight markdown router sidebar wizard popover pagination understand inbox revise objects hotkeys log logs local process health errors council dashboard archive audits collab classes cards rail asks docs test tests try demo fixture start faq lab old audit search section shell ask claim socket system voice classify refine record recorder".split(" "));
++
++	static build(){
++		const things = {};
++		for (const [tier, icon] of Object.entries(ThingsIndex.TIERS)){
++			const dir = path.join(ThingsIndex.ROOT, tier);
++			if (!fs.existsSync(dir)) continue;
++			for (const e of fs.readdirSync(dir, { withFileTypes: true })){
++				if (!e.isDirectory() || /^\d{4}|^\.|^v\d*$|^new$/.test(e.name) || /^[a-z]+\d*$/.test(e.name) || !fs.existsSync(path.join(dir, e.name, "page.js"))) continue;
++				const key = e.name;
++				if (things[key] && tier === "ai") continue;   // a core/ext/ui/ux name wins over a same-named ai folder
++				things[key] = { url: `/framework/${tier}/${e.name}/`, icon, ...(ThingsIndex.COMMON.has(key.toLowerCase()) ? { common: true } : {}) };
++			}
++		}
++		return things;
++	}
++
++	static write(){
++		const things = ThingsIndex.build();
++		fs.writeFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "things.json"), JSON.stringify(things, null, "\t") + "\n");
++		return things;
++	}
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const things = ThingsIndex.write();
++	console.log(Object.keys(things).length + " things written to things.json");
++}
+diff --git a/public/framework/ext/Refine/stages/ThingsStage.js b/public/framework/ext/Refine/stages/ThingsStage.js
+new file mode 100644
+index 000000000..e0f312d49
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/ThingsStage.js
+@@ -0,0 +1,57 @@
++import { div, small } from "../../../core/View/View.js";
++import { maps, build_row } from "../../Mention/Mention.js";
++import VoiceStage from "./VoiceStage.js";
++
++/**
++ * Things spoken of: every named class, module or page you mention, shown as a linked card the moment the words arrive.
++ * No model, no cost: the names come from `things.json` (built from the folders by `ThingsIndex.mjs`) plus the Mention maps,
++ * and are matched in the browser against the raw words. Say "where is Dictate" and `ux/Dictate` is on screen as you finish the sentence.
++ *
++ *   ThingsStage.find("open the Dictate widget. then Page")   // [{ name: "Dictate", entry, sentence }, ...] first mention first
++ */
++export default class ThingsStage extends VoiceStage {
++	static key = "things";
++	static label = "Things you mentioned";
++	static fields = ["raw"];
++
++	static index = null;     // name -> { url, icon, common? }, filled once things.json has loaded
++	static views = new Set();
++	static loading = fetch(new URL("things.json", import.meta.url)).then(r => r.json()).then(j => {
++		ThingsStage.index = { ...j };
++		for (const [name, e] of Object.entries(maps["#"] ?? {})) if (e.url) ThingsStage.index[name] = { ...e, common: ThingsStage.index[name]?.common };
++		ThingsStage.views.forEach(v => v.draw());
++	}).catch(() => {});   // no index: the stage just stays empty
++
++	/** The words of a name as it would be spoken: "DesignTool" is also "design tool". */
++	static pattern(name){
++		const parts = name.replace(/\.md$/, "").split(/(?<=[a-z])(?=[A-Z])|[-_ ]/).filter(Boolean);
++		return parts.map(w => w.replace(/\W/g, c => "\\" + c)).join("[-_ ]?");
++	}
++
++	static find(text, index = ThingsStage.index){
++		if (!index || !text) return [];
++		const sentences = String(text).split(/(?<=[.!?])\s+/), found = [];
++		for (const [name, entry] of Object.entries(index)){
++			if (!entry.url || name.length < 3) continue;
++			const re = new RegExp("(?<![\\w/#@])" + ThingsStage.pattern(name) + "(?![\\w/])", entry.common ? "" : "i");   // a common word must be spoken with its capital
++			const at = sentences.findIndex(s => re.test(s));
++			if (at >= 0) found.push({ name, entry, sentence: sentences[at], at, pos: sentences[at].search(re) });
++		}
++		const seen = new Set();   // push-to-talk and PushToTalk are one spoken thing: the first mention wins
++		return found.sort((a, b) => a.at - b.at || a.pos - b.pos).filter(t => { const k = t.name.toLowerCase().replace(/\W|_/g, ""); return !seen.has(k) && seen.add(k); });
++	}
++
++	get things(){ return ThingsStage.find(this.data.raw); }
++	get ready(){ return this.things.length > 0; }
++}
++
++ThingsStage.View = class ThingsStageView extends VoiceStage.View {
++	render(){ super.render(); ThingsStage.views.add(this); }
++
++	body(){
++		div.c("voice-things", () => this.stage.things.forEach(t => div.c("voice-thing", $t => {
++			$t.el.append(build_row(t.name, { ...t.entry, class_card: t.entry.class_card ?? true }, "mention"));
++			small.c("muted voice-thing-said", "“" + t.sentence.slice(0, 140) + "”");
++		})));
++	}
++};
+diff --git a/public/framework/ext/Refine/stages/VoicePrompt.js b/public/framework/ext/Refine/stages/VoicePrompt.js
+index 92d987007..e18335493 100644
+--- a/public/framework/ext/Refine/stages/VoicePrompt.js
++++ b/public/framework/ext/Refine/stages/VoicePrompt.js
+@@ -1,5 +1,6 @@
+ import { View, div, span } from "../../../core/View/View.js";
+ import RawStage from "./RawStage.js";
++import ThingsStage from "./ThingsStage.js";
+ import CleanStage from "./CleanStage.js";
+ import StructureStage from "./StructureStage.js";
+ import RefinedStage from "./RefinedStage.js";
+@@ -7,18 +8,18 @@ import CardsStage from "./CardsStage.js";
+ 
+ /**
+  * class VoicePrompt — one spoken prompt on a session page: the folded state of a `voice-prompt` item
+- * and its five stages. A delta merges shallowly into `data` (the same rule the page replay uses), and
++ * and its six stages. A delta merges shallowly into `data` (the same rule the page replay uses), and
+  * `apply()` says which stages it touched so only those redraw.
+  *
+  *   const p = new VoicePrompt("voice-ab12", { raw: "so the page should" });
+  *   p.apply({ raw: "so the page should show", raw_final: true });   // -> ["raw"]
+- *   p.stages        // [RawStage, CleanStage, StructureStage, RefinedStage, CardsStage]
++ *   p.stages        // [RawStage, ThingsStage, CleanStage, StructureStage, RefinedStage, CardsStage]
+  *
+  * Wire format and who writes it: ../doc/voice-to-page.md (server half: Servex/ext/refine/VoicePage.js).
+  */
+ export default class VoicePrompt {
+ 
+-	static STAGES = [RawStage, CleanStage, StructureStage, RefinedStage, CardsStage];
++	static STAGES = [RawStage, ThingsStage, CleanStage, StructureStage, RefinedStage, CardsStage];
+ 
+ 	data = {};
+ 
+diff --git a/public/framework/ext/Refine/stages/VoiceStage.css b/public/framework/ext/Refine/stages/VoiceStage.css
+index 9c974d594..e7cc260f5 100644
+--- a/public/framework/ext/Refine/stages/VoiceStage.css
++++ b/public/framework/ext/Refine/stages/VoiceStage.css
+@@ -15,9 +15,16 @@
+ 	.voice-section-t, .voice-card-t, .voice-subject { font-weight: 600; }
+ 	.voice-leaf { padding-inline-start: .6em; }
+ 	.voice-sub { margin-inline-start: .6em; }
++	.voice-things { display: grid; gap: .3em; }
++	.voice-thing { display: flex; flex-wrap: wrap; align-items: center; gap: .2em .6em; }
++	.voice-thing > :first-child { flex: none; }
++	.voice-thing-said { flex: 1 1 14em; min-width: 0; overflow-wrap: anywhere; }
+ 	.voice-cards { display: grid; gap: .4em; }
+ 	.voice-card { padding: .3em .5em; border-radius: .3em; background: color-mix(in srgb, currentColor 6%, transparent); }
+ 	.voice-card-i { padding-inline-start: .4em; }
++	.voice-meter { display: flex; align-items: center; gap: .5em; font-size: .75em; }
++	.voice-bar { flex: 0 1 8em; height: .35em; border-radius: 1em; background: color-mix(in srgb, currentColor 12%, transparent); position: relative; overflow: hidden; }
++	.voice-bar::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--v); background: color-mix(in srgb, currentColor 55%, transparent); }
+ 	.voice-card-f { display: flex; gap: .5em; flex-wrap: wrap; font-size: .8em; }
+ 	.voice-flag { color: var(--warn); margin-inline-start: .4em; cursor: help; }
+ 	.voice-copy { margin-block-start: .4em; }
+diff --git a/public/framework/ext/Refine/stages/VoiceStage.js b/public/framework/ext/Refine/stages/VoiceStage.js
+index 5a1cb6400..80de7de17 100644
+--- a/public/framework/ext/Refine/stages/VoiceStage.js
++++ b/public/framework/ext/Refine/stages/VoiceStage.js
+@@ -5,7 +5,7 @@ View.stylesheet(import.meta, "VoiceStage.css");
+ /**
+  * class VoiceStage — ONE step of a spoken prompt as it passes through the pipeline, and how it looks.
+  * A subclass names its `key`, its `label`, and the `fields` of the voice-prompt item (VoicePrompt.js) it shows;
+- * its `View` draws them. The five: RawStage → CleanStage → StructureStage → RefinedStage → CardsStage.
++ * its `View` draws them. The six: RawStage → ThingsStage → CleanStage → StructureStage → RefinedStage → CardsStage.
+  *
+  *   new CleanStage(voice_prompt).ready      // true once any of its fields has a value
+  *   new CleanStage.View({ stage })           // redraws itself with `view.draw()` when its fields change
+diff --git a/public/framework/ext/Refine/stages/doc/voice-to-page.md b/public/framework/ext/Refine/stages/doc/voice-to-page.md
+index b161dd14c..de0151534 100644
+--- a/public/framework/ext/Refine/stages/doc/voice-to-page.md
++++ b/public/framework/ext/Refine/stages/doc/voice-to-page.md
+@@ -18,7 +18,7 @@ The dev socket (and so the page-file tail) is localhost-only because it also car
+ ## Classes
+ 
+ - Server: `VoicePage` (per-prompt write queue; `raw`, `clean`, `structured`, `notes`, `failed`, `done`).
+-- Browser: `VoiceFlow` > `VoicePrompt` > five `*Stage` (base `VoiceStage`).
++- Browser: `VoiceFlow` > `VoicePrompt` > six `*Stage` (base `VoiceStage`).
+ - Shared, DOM-free: `Compose` (brief, cards).
+ 
+ ## Decisions and the rejected alternative
+@@ -42,3 +42,6 @@ The dev socket (and so the page-file tail) is localhost-only because it also car
+ ## Proofs
+ 
+ `ai/2026-10-12/voice-to-session-page/`: `proof.mjs` (server stages), `whisper-proof.mjs` (kill and restart), `phone-proof.mjs` (400 px browser).
++
++## Things you mentioned (2026-10-12)
++`ThingsStage` sits under the raw words and turns every module name you say into a link card, with no model and no server (the fast assistant the owner scrapped did this job with a model; this does it in the browser in about a millisecond). It matches `things.json` (built from the folders by `ThingsIndex.mjs`) plus the `#` Mention map; ordinary-English names (Page, Tree) only match when spoken capitalised. Proof: `ai/2026-10-12/refine-asks/things-proof.mjs`.
+diff --git a/public/framework/ext/Refine/stages/files.jsonl b/public/framework/ext/Refine/stages/files.jsonl
+index cf18a1c33..82a8b39c1 100644
+--- a/public/framework/ext/Refine/stages/files.jsonl
++++ b/public/framework/ext/Refine/stages/files.jsonl
+@@ -14,3 +14,6 @@
+ {"file":"Stage.css","gone":true}
+ {"file":"doc/"}
+ {"file":"readme.md"}
++{"file":"things.json"}
++{"file":"ThingsIndex.mjs"}
++{"file":"ThingsStage.js"}
+diff --git a/public/framework/ext/Refine/stages/readme.md b/public/framework/ext/Refine/stages/readme.md
+index 9c8f12f27..8c28025c0 100644
+--- a/public/framework/ext/Refine/stages/readme.md
++++ b/public/framework/ext/Refine/stages/readme.md
+@@ -1,10 +1,10 @@
+-# Refine stages — the five live stages of a voice prompt
++# Refine stages — the live stages of a voice prompt
+ 
+-Each stage of a spoken prompt (raw, clean, structure, refined, cards) is drawn live on the session page by its own class. Servex writes them as page deltas; the browser tails them.
++Each stage of a spoken prompt (raw, things you mentioned, clean, structure, refined, cards) is drawn live on the session page by its own class. Servex writes them as page deltas; the browser tails them.
+ 
+ - `VoiceStage.js` — base class + `VoiceStage.View` (one stage's box and header).
+-- `RawStage.js`, `CleanStage.js`, `StructureStage.js`, `RefinedStage.js`, `CardsStage.js` — one per stage, each with its own `.View`.
+-- `VoicePrompt.js` — one prompt's data (`apply(delta)`) and its view with the five stages.
++- `RawStage.js`, `ThingsStage.js` (no model: links the named modules as you say them, from `things.json`; rebuild with `node ThingsIndex.mjs`), `CleanStage.js`, `StructureStage.js`, `RefinedStage.js`, `CardsStage.js` — one per stage, each with its own `.View`.
++- `VoicePrompt.js` — one prompt's data (`apply(delta)`) and its view with the six stages.
+ - `VoiceFlow.js` — folds the session page's lines into prompts; mounted above the chat on `ai/AISession`.
+ - `Compose.js` — DOM-free text builders shared with Servex (`Servex/ext/refine/VoicePage.js`).
+ 
+diff --git a/public/framework/ext/Refine/stages/things.json b/public/framework/ext/Refine/stages/things.json
+new file mode 100644
+index 000000000..873660a7c
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/things.json
+@@ -0,0 +1,318 @@
++{
++	"App": {
++		"url": "/framework/core/App/",
++		"icon": "data_object",
++		"common": true
++	},
++	"Item": {
++		"url": "/framework/core/Item/",
++		"icon": "data_object",
++		"common": true
++	},
++	"Layout": {
++		"url": "/framework/core/Layout/",
++		"icon": "data_object",
++		"common": true
++	},
++	"List": {
++		"url": "/framework/core/List/",
++		"icon": "data_object",
++		"common": true
++	},
++	"Page": {
++		"url": "/framework/core/Page/",
++		"icon": "data_object",
++		"common": true
++	},
++	"Router": {
++		"url": "/framework/core/Router/",
++		"icon": "data_object",
++		"common": true
++	},
++	"Search": {
++		"url": "/framework/core/Search/",
++		"icon": "data_object",
++		"common": true
++	},
++	"Section": {
++		"url": "/framework/core/Section/",
++		"icon": "data_object",
++		"common": true
++	},
++	"Session": {
++		"url": "/framework/ext/Session/",
++		"icon": "extension",
++		"common": true
++	},
++	"Shell": {
++		"url": "/framework/core/Shell/",
++		"icon": "data_object",
++		"common": true
++	},
++	"Sidebar": {
++		"url": "/framework/core/Sidebar/",
++		"icon": "data_object",
++		"common": true
++	},
++	"Task": {
++		"url": "/framework/core/Task/",
++		"icon": "data_object",
++		"common": true
++	},
++	"View": {
++		"url": "/framework/core/View/",
++		"icon": "data_object",
++		"common": true
++	},
++	"AITask": {
++		"url": "/framework/ext/AITask/",
++		"icon": "extension"
++	},
++	"Ask": {
++		"url": "/framework/ext/Ask/",
++		"icon": "extension",
++		"common": true
++	},
++	"Chat": {
++		"url": "/framework/ext/Chat/",
++		"icon": "extension",
++		"common": true
++	},
++	"Classify": {
++		"url": "/framework/ext/Classify/",
++		"icon": "extension",
++		"common": true
++	},
++	"Collab": {
++		"url": "/framework/ext/Collab/",
++		"icon": "extension",
++		"common": true
++	},
++	"DataGrid": {
++		"url": "/framework/ext/DataGrid/",
++		"icon": "extension"
++	},
++	"DesignTool": {
++		"url": "/framework/ext/DesignTool/",
++		"icon": "extension"
++	},
++	"Doc": {
++		"url": "/framework/ext/Doc/",
++		"icon": "extension",
++		"common": true
++	},
++	"Draggable": {
++		"url": "/framework/ext/Draggable/",
++		"icon": "extension"
++	},
++	"Dropdown": {
++		"url": "/framework/ext/Dropdown/",
++		"icon": "extension"
++	},
++	"ErrorLog": {
++		"url": "/framework/ext/ErrorLog/",
++		"icon": "extension"
++	},
++	"Figma": {
++		"url": "/framework/ext/Figma/",
++		"icon": "extension"
++	},
++	"JSONL": {
++		"url": "/framework/ext/JSONL/",
++		"icon": "extension"
++	},
++	"Mention": {
++		"url": "/framework/ext/Mention/",
++		"icon": "extension"
++	},
++	"Omnibox": {
++		"url": "/framework/ext/Omnibox/",
++		"icon": "extension"
++	},
++	"Panel": {
++		"url": "/framework/ext/Panel/",
++		"icon": "extension",
++		"common": true
++	},
++	"Refine": {
++		"url": "/framework/ext/Refine/",
++		"icon": "extension",
++		"common": true
++	},
++	"Research": {
++		"url": "/framework/ext/Research/",
++		"icon": "extension",
++		"common": true
++	},
++	"Saver": {
++		"url": "/framework/ext/Saver/",
++		"icon": "extension"
++	},
++	"System": {
++		"url": "/framework/ext/System/",
++		"icon": "extension",
++		"common": true
++	},
++	"Timeline": {
++		"url": "/framework/ext/Timeline/",
++		"icon": "extension",
++		"common": true
++	},
++	"Auth": {
++		"url": "/framework/ux/Auth/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Card": {
++		"url": "/framework/ux/Card/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Content": {
++		"url": "/framework/ux/Content/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Course": {
++		"url": "/framework/ux/Course/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Dictate": {
++		"url": "/framework/ux/Dictate/",
++		"icon": "touch_app"
++	},
++	"Filter": {
++		"url": "/framework/ux/Filter/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Hotkeys": {
++		"url": "/framework/ux/Hotkeys/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Inbox": {
++		"url": "/framework/ux/Inbox/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Menu": {
++		"url": "/framework/ux/Menu/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Objects": {
++		"url": "/framework/ux/Objects/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Pagination": {
++		"url": "/framework/ux/Pagination/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Popover": {
++		"url": "/framework/ux/Popover/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Rename": {
++		"url": "/framework/ux/Rename/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Revise": {
++		"url": "/framework/ux/Revise/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Tags": {
++		"url": "/framework/ux/Tags/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Tree": {
++		"url": "/framework/ux/Tree/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Understand": {
++		"url": "/framework/ux/Understand/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"Wizard": {
++		"url": "/framework/ux/Wizard/",
++		"icon": "touch_app",
++		"common": true
++	},
++	"LevelMeter": {
++		"url": "/framework/audio/LevelMeter/",
++		"icon": "graphic_eq"
++	},
++	"mic-to-text": {
++		"url": "/framework/audio/mic-to-text/",
++		"icon": "graphic_eq"
++	},
++	"MicPicker": {
++		"url": "/framework/audio/MicPicker/",
++		"icon": "graphic_eq"
++	},
++	"MicStream": {
++		"url": "/framework/audio/MicStream/",
++		"icon": "graphic_eq"
++	},
++	"push-to-talk": {
++		"url": "/framework/audio/push-to-talk/",
++		"icon": "graphic_eq"
++	},
++	"PushToTalk": {
++		"url": "/framework/audio/PushToTalk/",
++		"icon": "graphic_eq"
++	},
++	"Recorder": {
++		"url": "/framework/audio/Recorder/",
++		"icon": "graphic_eq",
++		"common": true
++	},
++	"sound-recorder": {
++		"url": "/framework/audio/sound-recorder/",
++		"icon": "graphic_eq"
++	},
++	"Transcriber": {
++		"url": "/framework/audio/Transcriber/",
++		"icon": "graphic_eq"
++	},
++	"Voice": {
++		"url": "/framework/audio/Voice/",
++		"icon": "graphic_eq",
++		"common": true
++	},
++	"Whisper": {
++		"url": "/framework/audio/Whisper/",
++		"icon": "graphic_eq"
++	},
++	"Claim": {
++		"url": "/framework/dev/Claim/",
++		"icon": "terminal",
++		"common": true
++	},
++	"DevBar": {
++		"url": "/framework/dev/DevBar/",
++		"icon": "terminal"
++	},
++	"DevShell": {
++		"url": "/framework/dev/DevShell/",
++		"icon": "terminal"
++	},
++	"Socket": {
++		"url": "/framework/dev/Socket/",
++		"icon": "terminal",
++		"common": true
++	},
++	"quick-fix": {
++		"url": "/framework/ai/quick-fix/",
++		"icon": "smart_toy"
++	}
++}
+diff --git a/public/framework/ux/Dictate/doc/files.jsonl b/public/framework/ux/Dictate/doc/files.jsonl
+index 2776d69e9..2704d25e2 100644
+--- a/public/framework/ux/Dictate/doc/files.jsonl
++++ b/public/framework/ux/Dictate/doc/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"mobile-socket-2026-10-09.md"}
+ {"file":"voice-architecture.md"}
+ {"file":"whisper-log.md"}
++{"file":"try-it.md"}
