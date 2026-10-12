@@ -1,2 +1,4 @@
 {"log":{"at":"2026-10-12T15:01:53-05:00","task":"style-system","msg":"landed — style system: 3 tokens, 4 grounds, one card; CSS 2,235 → 322 lines; merged c61c3c0a4"}}
 {"log":{"at":"2026-10-12T15:17:29-05:00","task":"refine-haiku-live","msg":"landed — Refine on Haiku by default, live refine (~9 s per sentence), one chat input everywhere; needs a Servex restart"}}
+{"log":{"at":"2026-10-12T15:21:21-05:00","task":"data-grid","msg":"landed — one DataGrid (ui/datagrid + ui/table re-export it); Sessions on it as table or rail; long tasks ~430-680 ms -> ~50-130 ms"}}
+{"log":{"at":"2026-10-12T15:32:00-05:00","task":"task-folders","msg":"landed — every ai/<date>/ task folder moved into ai/sessions/YYYY/MM/DD/<session>/<task>/; old URLs redirect"}}
