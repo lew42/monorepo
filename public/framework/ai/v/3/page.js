@@ -7,7 +7,7 @@ import Socket from "/framework/dev/Socket/Socket.js";
 import picker from "../versions.js";
 import * as DEMOS from "./demos.js";
 import { Timeline, BOARD, LOG_URL, VERDICTS_URL, clock, text_lines, author_of, author_label, author_kind, status_word } from "./timeline.js";
-import composer from "./compose.js";
+import { Composer } from "./Composer.js";
 import { ask_controls } from "./ask.js";
 import { agents_strip } from "./agents.js";
 import { prompts_view, prompt_board_cards } from "./prompts.js";
@@ -1883,7 +1883,7 @@ function now_view($wall, log, page, timeline_url) {
 		$chip = button.c("v3-now-chip", "new ↓").attr("type", "button").click(() => show(newest_owner()));
 		$chip.el.hidden = true;
 		$answers = div.c("v3-now-answers flex v gap");
-		composer();
+		Composer.box();
 	});
 
 	function on_scroll() {

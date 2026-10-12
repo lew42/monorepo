@@ -2,7 +2,7 @@ import { div, span, button, p, small, ol, li, input } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 import { clock } from "./timeline.js";
-import composer from "./compose.js";
+import { Composer } from "./Composer.js";
 import { prompt_modes } from "/framework/ext/Refine/prompt-card.js";
 
 /**
@@ -125,7 +125,7 @@ export function prompts_view(base = servex_base()) {
 	   `display: contents` and can pad nothing, so the view owns its own
 	   padded container. */
 	div.c("v3-prompts", () => {
-		composer();   // the box lives here too — top of the tab, above the thread it feeds
+		Composer.box();   // the box lives here too — top of the tab, above the thread it feeds
 		$list = div.c("v3-prompts-list flex v gap");
 		p.c("v3-prompts-note muted").text("Stage 1 and 2 of five are live here: your raw words, and the reading made of them. A ✓ on a card asks for stage 3, a pre-proposal. Stage 4 (a full proposal, naming classes) and stage 5 (the build) are phase 3.");
 	});
