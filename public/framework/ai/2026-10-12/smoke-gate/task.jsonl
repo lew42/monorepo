@@ -3,3 +3,4 @@
 {"assign":{"closed_by":"owner","closed_at":"2026-10-12T03:38:19-05:00","closed_why":null}}
 {"assign":{"cost_usd":0.9557,"cost":{"root":"mastermind-smoke-gate","agents":[{"id":"mastermind-smoke-gate","model":"claude-sonnet-5-5","role":"mastermind","usd":0.9557,"usd_breakdown":{"in":0.0001,"out":0.0915,"cache_read":0.3019,"cache_write":0.2317},"cache_read_pct":48.2885}],"own_usd":0.96,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-12T03:30:59-05:00","to":null},"at":"2026-10-12T03:38:29-05:00"}}}
 {"log":{"at":"2026-10-12T03:39:27-05:00","msg":"session ended (other) without landing"}}
+{"assign":{"title":"Smoke gate passes on core pages","landed_at":"2026-10-12T04:00:54-05:00","outcome":"**Smoke on core pages: 6 FAIL to 0 FAIL** (commit 1eacb8fd3, on michael/dev). Causes fixed, allow-list untouched. Landed by the night mastermind: the session merged but ended before writing this line."}}
