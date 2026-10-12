@@ -4,7 +4,7 @@ import { mentions } from "/framework/ext/Mention/Mention.js";
 import { Groups } from "./groups.js";
 import { Tasks } from "../cards/Tasks.js";
 import { Faces } from "../cards/faces.js";
-import { news_of, group_news, unseen } from "../cards/activity.js";
+import { Activity } from "../cards/Activity.js";
 import { plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
 import { Compose } from "../cards/Compose.js";
 import Card, { card_link } from "../cards/card.js";
@@ -267,7 +267,7 @@ export default class AIRail extends Inbox.Rail {
 	prepare(rows){
 		rows.forEach(it => { it.cost = this.row_cost(it); });
 		// What bumped each row, while it is new to you (activity.js).
-		this.list.forEach(it => { it.news = news_of(it, this.groups.folds); });
+		this.list.forEach(it => { it.news = Activity.news_of(it, this.groups.folds); });
 		// Every paint can change the Now card's data or the latest prompt, so the pinned
 		// row(s) above the list redraw here too, every time — not only the one time
 		// `resolve_card("now")` first settles (see that call site, below).
@@ -378,7 +378,7 @@ export default class AIRail extends Inbox.Rail {
 			// Money: the member tasks, else what the card's own agents spent (agents.js).
 			const agents = tasks_cost?.tracked ? null : Agents.agent_cost(g.card, () => this.paint_soon());
 			const spent = tasks_cost?.tracked ? tasks_cost : (agents ? { tracked: true, usd: agents, open: false } : tasks_cost);
-			const news = group_news(g, latest, this.groups.at(g));
+			const news = Activity.group_news(g, latest, this.groups.at(g));
 			const sig = JSON.stringify([g, name, latest, size.length, spent, news]);
 			if (rec.sig === sig) return;
 			rec.sig = sig;
@@ -416,14 +416,14 @@ export default class AIRail extends Inbox.Rail {
 			rec.$row.style({ display: (this.review_only || this.floored()) ? "none" : "" });
 			real_title(path, this.router, () => this.paint_soon());
 			this.at_of.set("page:" + path, evs[0].at);
-			const sig = JSON.stringify([evs[0], RealPage.known.get(path), unseen("page:" + path, evs[0].at)]);
+			const sig = JSON.stringify([evs[0], RealPage.known.get(path), Activity.unseen("page:" + path, evs[0].at)]);
 			if (rec.sig === sig) return;
 			rec.sig = sig;
 			rec.$row.empty(() => {
 				const known = RealPage.known.get(path), top = evs[0];
 				this.row_head({ icon: known?.icon || "description", title: known?.title || path.split("/").filter(Boolean).at(-1), at: top?.at, dot: false, plain: true }, {});
 				small.c("ai2-real-path muted").text(path);
-				if (top && unseen("page:" + path, top.at)) Faces.news_bar({ who: top.who, what: top.what });
+				if (top && Activity.unseen("page:" + path, top.at)) Faces.news_bar({ who: top.who, what: top.what });
 			});
 		});
 	}

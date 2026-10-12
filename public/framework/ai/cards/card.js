@@ -14,7 +14,7 @@ import { Outline } from "./Outline.js";
 import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "../rail/inbox.js";
 import { watch_needs, needs_for, needs_soon } from "../rail/needs.js";
 import "/framework/ext/tabs/tabs.js";   // for its stylesheet: a card's tab strip wears .tabs / .tab-bar / .tab
-import { seen, mark_seen, card_events, activity_list } from "./activity.js";
+import { Activity } from "./Activity.js";
 import { Rules } from "./Rules.js";
 import floating from "./floating.js";
 import workspace from "./workspace.js";
@@ -571,13 +571,13 @@ export default class Card extends Page {
 	   this visit (`seen_from`, reset in `activated()`), so they stay while you read;
 	   what is stored is the card's newest time, which takes the bar off its rail row. */
 	activity_tab(){
-		const since = this.seen_from ??= seen(this.id);
+		const since = this.seen_from ??= Activity.seen(this.id);
 		const g = this.group_info();
 		div.c("ai2-activity-box", $box => {
 			small.c("muted").text("Reading this card's log…");
-			card_events(this.id, this.drawn_sig).then(evs => {
+			Activity.card_events(this.id, this.drawn_sig).then(evs => {
 				const all = [...evs, ...(g ? this.member_events(g) : [])];
-				$box.empty(() => { activity_list(all, since); });
+				$box.empty(() => { Activity.activity_list(all, since); });
 				this.saw(...all.map(e => e.at), this.row_at, g && this.shell?.ai2?.groups?.at(g));
 			});
 		});
@@ -595,7 +595,7 @@ export default class Card extends Page {
 	/** Store the newest of these times as seen; the rail repaints when it moved. */
 	saw(...ats){
 		const t = Math.max(0, ...ats.map(a => Date.parse(a ?? 0) || 0));
-		if (t && mark_seen(this.id, new Date(t).toISOString())) this.shell?.ai2?.repaint?.();
+		if (t && Activity.mark_seen(this.id, new Date(t).toISOString())) this.shell?.ai2?.repaint?.();
 	}
 
 	/** The Tasks tab: the requests, then what each cost and who worked on it, then the task pages below. */

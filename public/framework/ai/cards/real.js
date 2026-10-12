@@ -1,7 +1,7 @@
 import { Page, Doc, div, span, small, p, a, drawer } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { Faces } from "./faces.js";
-import { who_word, unseen, mark_seen } from "./activity.js";
+import { Activity } from "./Activity.js";
 import { plain } from "../rail/inbox.js";
 
 /**
@@ -117,7 +117,7 @@ export class RealPage extends Page {
 		drawer.page?.(real.url);
 		// Opening it is seeing what bumped it: the row's bar clears, like a card's.
 		const newest = RealPage.events.get(real.url)?.[0]?.at;
-		if (newest && mark_seen("page:" + real.url, newest)) this.shell.ai2?.repaint?.();
+		if (newest && Activity.mark_seen("page:" + real.url, newest)) this.shell.ai2?.repaint?.();
 	}
 
 	/* The real page's own links, marked against the REAL url — the Router marks the
@@ -204,7 +204,7 @@ export function page_events(day, groups){
 		const path = page_path(e.path);
 		if (!path || !e.at) return;
 		if (!out.has(path)) out.set(path, []);
-		out.get(path).push({ ...e, path, who: who_word(e.by) ?? (e.task ? words(e.task) : null), what: plain(e.what ?? "") || "Something changed here." });
+		out.get(path).push({ ...e, path, who: Activity.who_word(e.by) ?? (e.task ? words(e.task) : null), what: plain(e.what ?? "") || "Something changed here." });
 	};
 	(day?.pages ?? []).forEach(add);
 	for (const m of groups?.tasks?.values() ?? []) (m.pages ?? []).forEach(add);
@@ -235,5 +235,5 @@ export function page_face(path, evs){
 		small.c("ai2-row-when muted").text(Faces.when(top?.at));
 	});
 	small.c("ai2-real-path muted").text(path);
-	if (top && unseen("page:" + path, top.at)) Faces.news_bar({ who: top.who, what: top.what });
+	if (top && Activity.unseen("page:" + path, top.at)) Faces.news_bar({ who: top.who, what: top.what });
 }

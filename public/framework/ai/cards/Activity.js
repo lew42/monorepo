@@ -1,0 +1,214 @@
+import { div, span, small } from "/app.js";
+import { Faces } from "./faces.js";
+import { plain, headline } from "../rail/inbox.js";
+import { Fold } from "./Fold.js";
+import { Outline } from "./Outline.js";
+
+/**
+ * WHAT HAPPENED, AND HAVE YOU SEEN IT (the owner, 2026-09-25: card
+ * `2026/09/25/inbox-show-what-changed-when-a-card-resu`). A card that jumps to
+ * the top of the rail shows one line under its preview — who, and what they
+ * did — taken from the newest line that bumped it. Clicking that line opens the
+ * card's Activity tab: every line, newest first, the ones you have not seen yet
+ * marked. Opening Activity stores the card's newest time, and the line goes.
+ *
+ * "Seen" is one number per card in this browser: `ai2-seen:<card id>`. A card
+ * with no number counts as seen up to a day ago, so a first visit shows only
+ * what moved today, not four hundred cards. Storage that throws means nothing
+ * is ever remembered — the page still works, the lines just stay.
+ */
+
+const AI_ROOT = new URL("../", import.meta.url).pathname;
+const DAY = 24 * 60 * 60 * 1000;
+export class Activity {
+
+	// ⚠ Never `Date.parse(at ?? 0)`: `Date.parse("0")` is the year 2000, so "never seen" read as a real time.
+	static ms = at => (at ? Date.parse(at) || 0 : 0);
+
+	/* ── seen, per card ─────────────────────────────────────────────────── */
+
+	static seen(id){
+		try { const t = Activity.ms(localStorage.getItem("ai2-seen:" + id)); if (t) return t; } catch {}
+		return Date.now() - DAY;
+	}
+
+	/** Store `at` as seen, if it is newer than what is stored. True when it moved. */
+	static mark_seen(id, at){
+		const t = Activity.ms(at);
+		if (!t) return false;
+		try {
+			if (t <= Activity.ms(localStorage.getItem("ai2-seen:" + id))) return false;
+			localStorage.setItem("ai2-seen:" + id, new Date(t).toISOString());
+			return true;
+		} catch { return false; }
+	}
+
+	static unseen = (id, at) => Activity.ms(at) > Activity.seen(id);
+
+	/* ── who said it, in plain words ────────────────────────────────────── */
+
+	static words = slug => slug.replace(/-\d+$/, "").replace(/\bai2\b/g, "AI 2").replace(/-/g, " ");
+
+	/** An agent id as a reader would say it: `task-mastermind-ai2-lead-2` → "the AI 2 lead". */
+	static who_word(by){
+		const b = String(by ?? "").replace(/\s*\(.*\)$/, "");
+		if (!b) return null;
+		if (b === "owner") return "you";
+		let m;
+		if ((m = b.match(/^task-mastermind-(.+)/))) return "the " + Activity.words(m[1]);
+		if (/^servex-mastermind|^mastermind-servex/.test(b)) return "the Servex mastermind";
+		if (b === "master-assistant") return "the master assistant";
+		if (/^manager-/.test(b)) return "the card's manager";
+		if (/assistant/.test(b)) return "the assistant";
+		if (/mastermind/.test(b)) return "the mastermind";
+		if ((m = b.match(/^minion-(.+)/))) return "minion " + Activity.words(m[1]);
+		return b;
+	}
+
+	/* ── one line of a card's log, as one event ─────────────────────────── */
+
+	/** `{ at, who, what }` for a line worth showing, else null. `at` may be missing
+	 *  (most lines carry none); `card_events()` gives it the time before it. */
+	static line_event(line){
+		if (!line || typeof line !== "object") return null;
+		const keys = Object.keys(line);
+		if (line.class) return { at: line.created, who: Activity.who_word(line.by), what: "Made this card: " + plain(line.title ?? ""), made: true };
+		if (line.message){
+			const m = line.message;
+			return { at: m.at, who: Activity.who_word(m.by), what: plain(m.text ?? m.raw ?? m.title ?? m.name ?? "") };
+		}
+		if (line.prompt){
+			const p = line.prompt;
+			return { at: p.at, who: Activity.who_word(p.by ?? "owner"), what: plain(p.raw ?? p.text ?? "") };
+		}
+		if (line.item){
+			const i = line.item;
+			return { at: i.done ? (i.at ?? null) : (i.asked_at ?? i.at), who: Activity.who_word(i.by), what: (i.done ? "Delivered: " : "Asked for: ") + plain(i.title ?? "") };
+		}
+		if (line.type === "refined") return { at: line.at, who: Activity.who_word(line.by ?? "assistant"), what: "Tidied your words: " + plain(line.text ?? "") };
+		if (typeof line.file === "string" && !line.gone && !/page\.jsonl$/.test(line.file)) return { at: line.at, who: null, what: "Added " + line.file };
+		if (line.place) return { at: line.at, who: null, what: "Placed " + String(typeof line.place === "string" ? line.place : line.place.module ?? "").split("/").at(-1) };
+		if (keys.length !== 1) return null;
+		if (line.status) return { at: line.at, who: null, what: "Marked " + line.status };
+		if (typeof line.type === "string") return { at: line.at, who: null, what: "Now a " + line.type };
+		if (typeof line.title === "string") return { at: line.at, who: null, what: "Renamed: " + plain(line.title) };
+		if (typeof line.group === "string") return { at: line.at, who: null, what: "Filed under " + line.group };
+		if (typeof line.text === "string") return { at: line.at, who: null, what: "Its text was rewritten" };
+		return null;
+	}
+
+	/* ── the bar in a rail row ──────────────────────────────────────────── */
+
+	/** The events a folded card (fold.js) still has times for: made, said, replied. */
+	static fold_events(fold, sub){
+		const out = [
+			...fold.messages.map(m => Activity.line_event({ message: m })),
+			...fold.prompts.map(p => Activity.line_event({ prompt: p })),
+		];
+		// `made: true` — a creation line, never shown as the preview's "what happened" bar on its
+		// own (`news_of()`, below): the owner, 2026-10-03, on seeing "the mastermind: Made this
+		// card: Now" as a card's ENTIRE preview — a row's bar should say what happened, not echo
+		// that the row exists.
+		if (fold.created) out.push({ at: fold.created, who: Activity.who_word(fold.by), what: (sub ? "New request: " : "Made this card: ") + plain(fold.title ?? ""), made: true });
+		return out.filter(e => e?.at && e.what);
+	}
+
+	/**
+	 * A rail row's bar — `{ who, what }` — or null when nothing on it is new.
+	 * `folds` is `Groups.folds` (id → { fold }), which already holds every card and
+	 * sub-card touched in the last two days: no fetch of its own.
+	 */
+	static news_of(it, folds){
+		if (!it?.id || it.kind === "live" || !Activity.unseen(it.id, it.at)) return null;
+		const evs = [];
+		for (const [id, rec] of folds ?? []){
+			if (id === it.id || id.startsWith(it.id + "/")) evs.push(...fold_events(rec.fold, id !== it.id));
+		}
+		// Never the creation line alone (`made`, above) — "Made this card: Now" is true of every
+		// card forever, so it is never news on its own; a card with nothing ELSE new falls
+		// through to its own summary below, same as a card with no log at all.
+		const top = evs.filter(e => !e.made).sort((a, b) => Activity.ms(b.at) - Activity.ms(a.at))[0];
+		// A task landing bumps a row too, and no card line says so.
+		if (it.landed && (!top || Activity.ms(it.at) - Activity.ms(top.at) > 60 * 1000)) return { who: "task landed", what: headline(it.landed) };
+		if (top) return { who: top.who, what: top.what };
+		if (it.kind === "prompt") return { who: "you", what: plain((it.said ?? []).join(" ")) || plain(it.title) };
+		// NO REAL ACTIVITY SINCE CREATION, and no row text of its own (`folder_item()`,
+		// inbox.js, always sets `text: ""` for a real card) — vscode-mastermind, live at
+		// 3440, 2026-10-03: "Something changed here" is no better than "Made this card".
+		// Try the card's own summary line (the SAME `about_line()` its Overview tab leads
+		// with), then its current "doing" status line, then its newest content item's
+		// title — never a made-up placeholder. Nothing meaningful means no bar at all.
+		const fold = folds?.get(it.id)?.fold;
+		const meaningful = (fold && Outline.about_line(fold, null)) || fold?.log?.text || fold?.content?.add?.title || null;
+		return meaningful ? { who: null, what: plain(meaningful) } : null;
+	}
+
+	/** A group row's bar, from its newest member (groups.js `latest()`), or null. */
+	static group_news(g, latest, at){
+		if (!latest || !Activity.unseen(g.card, at)) return null;
+		if (latest.kind === "task") return latest.landed ? { who: "task landed", what: latest.title } : { who: latest.title, what: latest.words || "started" };
+		if (latest.kind === "said") return { who: null, what: latest.words };
+		return { who: latest.title, what: latest.words || "updated" };
+	}
+
+	/* ── the Activity tab ───────────────────────────────────────────────── */
+
+	static read = url => fetch(url, { cache: "no-store" })
+		.then(r => (r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? r.text() : "")).catch(() => "");
+
+	/** Every event in a card's own log and its requests' logs (two levels down). A line
+	 *  with no time of its own was written after the line before it, so it takes that
+	 *  time. A request's events say which request: its own title. */
+	static async log_events(id, depth){
+		const lines = Fold.parse_lines(await Activity.read(AI_ROOT + id + "/page.jsonl"));
+		const where = depth ? plain(lines.find(l => l.class)?.title ?? "") || null : null;
+		let at = null;
+		const out = [], kids = [];
+		lines.forEach((line, n) => {
+			if (typeof line.file === "string" && /page\.jsonl$/.test(line.file) && !line.gone) kids.push(id + "/" + line.file.replace(/\/?page\.jsonl$/, ""));
+			const e = Activity.line_event(line);
+			if (e?.at) at = e.at;
+			if (!e?.what) return;
+			if (where && e.made) e.what = e.what.replace(/^Made this card: /, "New request: ");
+			out.push({ ...e, at: e.at ?? at, n, where });
+		});
+		if (depth < 2) (await Promise.all(kids.map(k => Activity.log_events(k, depth + 1)))).forEach(evs => out.push(...evs));
+		return out;
+	}
+
+	static cache = new Map();
+
+	/** A card's events. `key` changes when the card does; the same key reads nothing twice. */
+	static card_events(id, key){
+		const had = Activity.cache.get(id);
+		if (had && had.key === key) return had.p;
+		const p = Activity.log_events(id, 0);
+		Activity.cache.set(id, { key, p });
+		return p;
+	}
+
+	static newest_first = evs => [...evs].sort((a, b) => Activity.ms(b.at) - Activity.ms(a.at) || (b.n ?? 0) - (a.n ?? 0));
+
+	/** The list itself. `since` is the seen time from BEFORE this visit, so the marks stay while you read. */
+	static activity_list(evs, since){
+		div.c("ai2-activity", () => {
+			if (!evs.length) return void small.c("muted").text("Nothing has happened in this card yet.");
+			const fresh = evs.filter(e => Activity.ms(e.at) > since).length;
+			small.c("ai2-act-sum muted").text(fresh ? fresh + " new since you last looked" : "Nothing new since you last looked.");
+			Activity.newest_first(evs).slice(0, 300).forEach(e => {
+				const is_new = Activity.ms(e.at) > since;
+				div.c("ai2-act-row" + (is_new ? " ai2-act-new" : ""), () => {
+					div.c("ai2-act-head flex v-center gap-25", () => {
+						if (e.who) span.c("ai2-act-who").text(e.who);
+						if (e.where) small.c("ai2-act-where muted").text("in " + e.where);
+						if (is_new) span.c("ai2-act-mark").text("new");
+						small.c("ai2-act-when muted").text(Faces.when(e.at));
+					});
+					div.c("ai2-act-what").text(e.what);
+				});
+			});
+		});
+	}
+}
+
+export default Activity;
