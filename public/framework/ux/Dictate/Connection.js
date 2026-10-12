@@ -1,4 +1,5 @@
 import { View, div, span, button } from "../../core/View/View.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 import LevelMeter from "../../audio/v1/LevelMeter/LevelMeter.js";
 
 View.stylesheet(import.meta, "Connection.css");
@@ -89,11 +90,21 @@ export default class Connection extends View {
 			const r = await fetch(url + "/", { signal: ctrl.signal });
 			const ms = performance.now() - t;
 			if (!r.ok) return this.set("whisper", "bad", `error: HTTP ${r.status}`), false;
-			this.set("whisper", "ok", `connected, ${(ms / 1000).toFixed(1)} s`);
+			this.set("whisper", "ok", `connected, ${(ms / 1000).toFixed(1)} s` + await Connection.restart_note());
 			return true;
 		} catch (e){
-			this.set("whisper", "bad", `error: ${e?.name === "AbortError" ? "no answer in 2.5 s" : "not reachable"}`);
+			this.set("whisper", "bad", `error: ${e?.name === "AbortError" ? "no answer in 2.5 s" : "not reachable"}` + await Connection.restart_note());
 			return false;
 		} finally { clearTimeout(timer); }
+	}
+
+	/** One plain line when Servex has had to restart Whisper, from `GET /api/whisper` (Servex/Process.js counts crashes). Empty when all is well or Servex is not there. */
+	static async restart_note(){
+		try {
+			const w = await (await fetch(servex_url("/api/whisper"), { signal: AbortSignal.timeout(1500) })).json();
+			const t = w.last_crash && new Date(w.last_crash.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+			if (["launching", "restarting", "crashed", "starting"].includes(w.status)) return " · Whisper stopped and Servex is restarting it";
+			return w.crashes ? ` · Whisper stopped at ${t} and Servex restarted it` : "";
+		} catch { return ""; }
 	}
 }

@@ -8,6 +8,7 @@ import AISessionTrace from "./AISessionTrace.js";
 import AISession from "./AISession.js";
 import AISessionConversation from "./AISessionConversation.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
+import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
 import Item from "/framework/core/Item/Item.js";
 import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
 import "/framework/core/Page/parts/PageText.js";
@@ -83,10 +84,11 @@ export default class AISessionDetail extends Page {
 
 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
 		this.parts = new AISessionDetail.Parts($parts);
-		let $box, $conv, $related, $costs, $spawn, $session, $trace;
+		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace;
 		div.c("cols main-aside sessions-detail-body", () => {
 			div.c("flow sessions-detail-main", () => {
 				$box = div.c("flow");     // which session this is (source tag, tab title, model)
+				$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
 				$conv = div.c("flow sessions-conv");   // the live conversation
 			});
 			div.c("flow sessions-detail-aside", () => {
@@ -98,16 +100,19 @@ export default class AISessionDetail extends Page {
 			});
 		});
 		const conv = new AISessionConversation();
+		const voice = new VoiceFlow();
+		$voice.append(voice.view);
 		$conv.append(conv.view);
 
 		// `row` first: for a Servex row the url's id is the AGENT's id, a different string from its session_id,
 		// and the transcript and the date-path lookup both need the session_id.
 		AISessionDetail.load_row(url, id).then(async row => {
 			const session_id = row?.session_id ?? id;
+			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
 			this.log_urls().then(urls => {
 				if (this.logs) return;
-				const open = url => new AISessionDetail.Log({ url, page: this, parts: this.parts, on_card: c => conv.add_card(c) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
+				const open = url => new AISessionDetail.Log({ url, page: this, parts: this.parts, on_card: c => conv.add_card(c), on_lines: lines => voice.read(lines) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
 				const logs = this.logs = urls.map(open);
 				this._old_url?.then(old => { if (old && this.logs === logs) logs.push(open(old)); });
 			});
@@ -260,6 +265,7 @@ export default class AISessionDetail extends Page {
 AISessionDetail.Log = class SessionPageLog extends JSONL {
 	cards = new Set();
 	read(entries){
+		this.on_lines?.(entries);
 		for (const e of entries){
 			const item = e.content?.add;
 			this.parts?.apply(e);

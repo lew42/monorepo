@@ -1,4 +1,4 @@
-import { View, div, span, textarea, button, select, option, details, summary, label } from "../../core/View/View.js";
+import { View, div, span, a, textarea, button, select, option, details, summary, label } from "../../core/View/View.js";
 import ErrorLog from "../ErrorLog/ErrorLog.js";
 import VoiceStrip from "../../ux/Dictate/VoiceStrip.js";
 import Whisper from "../../audio/Whisper/Whisper.js";
@@ -57,6 +57,7 @@ export default class RefineDemo extends View {
 			div.c("refine-said", () => {
 				span.c("refine-said-label", "1 · Said: speak, or type or paste here");
 				this.$note = span.c("refine-input-note");
+				a("Watch it on the session page →").href(this.system.page_url).ac("refine-watch");
 			});
 			this.$box = textarea.c().attr("placeholder", "Speak with the mic, or type or paste a prompt here…");
 			this.$box.el.addEventListener("input", () => this.quick());

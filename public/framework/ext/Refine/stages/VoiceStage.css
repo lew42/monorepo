@@ -1,0 +1,24 @@
+/* The five stages of a spoken prompt on a session page (ext/Refine/stages). Tokens only. */
+@layer site {
+	.voice-flow { display: grid; gap: var(--gap); margin-block-end: var(--gap); }
+	.voice-prompt { display: grid; gap: .5em; padding: .6em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: .5em; min-width: 0; }
+	.voice-prompt-h { display: flex; gap: .5em; align-items: baseline; flex-wrap: wrap; font-weight: 600; }
+	.voice-stages { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18em), 1fr)); gap: .6em; align-items: start; }
+	.voice-stage { min-width: 0; padding: .4em .5em; border-inline-start: 2px solid color-mix(in srgb, currentColor 25%, transparent); }
+	.voice-stage[hidden] { display: none; }
+	.voice-stage-h { display: flex; justify-content: space-between; gap: .5em; font-weight: 600; margin-block-end: .25em; }
+	.voice-stage-tag { font-weight: 400; font-size: .85em; }
+	.voice-raw, .voice-refined { white-space: pre-wrap; overflow-wrap: anywhere; }
+	.voice-sentence { display: flex; gap: .4em; align-items: baseline; padding-block: .1em; }
+	.voice-s-num, .voice-cites { font-size: .75em; }
+	.voice-section { margin-block: .3em; }
+	.voice-section-t, .voice-card-t, .voice-subject { font-weight: 600; }
+	.voice-leaf { padding-inline-start: .6em; }
+	.voice-sub { margin-inline-start: .6em; }
+	.voice-cards { display: grid; gap: .4em; }
+	.voice-card { padding: .3em .5em; border-radius: .3em; background: color-mix(in srgb, currentColor 6%, transparent); }
+	.voice-card-i { padding-inline-start: .4em; }
+	.voice-card-f { display: flex; gap: .5em; flex-wrap: wrap; font-size: .8em; }
+	.voice-flag { color: var(--warn); margin-inline-start: .4em; cursor: help; }
+	.voice-copy { margin-block-start: .4em; }
+}

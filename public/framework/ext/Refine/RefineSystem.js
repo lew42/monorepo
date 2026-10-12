@@ -39,6 +39,7 @@ export default class RefineSystem {
 	session = this.whisper.session("Refine demo");   // Dictate's on_whisper feeds it: system.session.record(line)
 	model = "claude-sonnet-5-5";                    // measured fastest cheap model: doc/refine-v3-2026-10-09.md
 	session_id = RefineSystem.session_id();            // the session whose log keeps this page's prompts (ai/AISession/PromptLog.js)
+	prompt_id = RefineSystem.new_prompt_id();          // names this prompt on the session page (`voice-<id>`); a new one per prompt
 	history = [];                                   // finished prompts of this page visit (plain summaries), newest last
 
 	constructor(...args){
@@ -50,10 +51,34 @@ export default class RefineSystem {
 	 *  (`ai/sessions/…/prompts.jsonl`) the way a VS Code tab's do. A caller with a real session passes `session_id`. */
 	static session_id(){
 		try {
+			const asked = new URLSearchParams(location.search).get("session");   // ?session=<uuid>: talk to THAT session's page
+			if (/^[0-9a-f-]{36}$/.test(asked ?? "")) localStorage.setItem("refine.session", asked);
 			let id = localStorage.getItem("refine.session");
 			if (!/^[0-9a-f-]{36}$/.test(id ?? "")) localStorage.setItem("refine.session", id = crypto.randomUUID());
 			return id;
 		} catch { return crypto.randomUUID(); }
+	}
+
+	static new_prompt_id(){ return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+	/** Where the words are shown live: this session's page (every stage lands there as it happens). */
+	get page_url(){ return `/framework/ai/sessions/${this.session_id}/`; }
+
+	/** Send the words so far to the session page (stage 1, and the instant draft of stage 2). Trailing-throttled to ~150 ms;
+	 *  a failure never stops dictation, it is logged once. */
+	stream(text){
+		this._text = text;
+		if (this._timer) return;
+		this._timer = setTimeout(async () => {
+			this._timer = null;
+			try {
+				const { servex_url } = await import("/framework/dev/servex_url.js");
+				const res = await fetch(servex_url("/api/voice"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session: this.session_id, prompt: this.prompt_id, text: this._text, source: this.source ?? "dictated" }) });
+				const out = await res.json();
+				if (!out.ok) throw new Error(out.why ?? "voice route answered " + res.status);
+				this.streamed = true;
+			} catch (e){ if (!this.stream_failed){ this.stream_failed = true; ErrorLog.report(e, { where: "RefineSystem.stream" }); } }
+		}, 150);
 	}
 
 	/** Show the cleaned text NOW, with no model: the instant stage. Cheap enough to run on every chunk. */
@@ -63,6 +88,7 @@ export default class RefineSystem {
 		if (prompt.status === "done") return;   // a finished result is not overwritten by later chunks
 		prompt.raw = text;
 		prompt.load_quick(quick_clean(text), +(performance.now() - t0).toFixed(2));
+		this.stream(text);
 	}
 
 	/** Refine one prompt. Never throws: a failure becomes `prompt.status === "error"`. */
@@ -76,7 +102,7 @@ export default class RefineSystem {
 				const { servex_url } = await import("/framework/dev/servex_url.js");
 				url = servex_url("/api/refine");
 			}
-			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model, session: this.session_id, source: this.source ?? "typed" }) });
+			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model, session: this.session_id, prompt: this.prompt_id, source: this.source ?? "typed" }) });
 			const out = await res.json();
 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
 			prompt.load(out);
@@ -91,6 +117,7 @@ export default class RefineSystem {
 
 	/** Start over: the same Prompt object, emptied (so the debug tree keeps showing the live one). */
 	next(){
+		this.prompt_id = RefineSystem.new_prompt_id();
 		this.prompt.set({ status: "empty", raw: "", subject: "", clean: [], refined: [], error: "", ms: 0, runs: [], stages: {}, timings: {}, quick: false });
 	}
 }

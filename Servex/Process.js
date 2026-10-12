@@ -58,6 +58,8 @@ export default class Process extends Events {
         this.status = "stopped";
         this.child = null;
         this.restarts = 0;
+        this.crashes = 0;          // every unexpected exit since Servex started, never reset
+        this.last_crash = null;    // { at, code, signal } for the one plain line a page shows
         this.stopping = false;
         this.timer = null;
         this.said = "";
@@ -233,6 +235,8 @@ export default class Process extends Events {
         this.child = null;
 
         if (this.stopping) return this.settle("stopped", `stopped (code ${code}).`);
+        this.crashes++;
+        this.last_crash = { at: new Date().toISOString(), code, signal };
         if (alive_for >= this.settled_after) this.restarts = 0;   // it was healthy; this is a fresh crash, not a loop
         if (!this.autorestart) return this.settle("stopped", `exited (code ${code}, signal ${signal}) — autorestart is off.`);
 
@@ -311,7 +315,7 @@ export default class Process extends Events {
     toJSON(){
         return {
             name: this.name, status: this.status, pid: this.child?.pid ?? null,
-            port: this.port ?? null, restarts: this.restarts, said: this.said,
+            port: this.port ?? null, restarts: this.restarts, crashes: this.crashes, last_crash: this.last_crash, said: this.said,
             command: [this.command, ...this.args].join(" "), cwd: this.cwd ?? null
         };
     }
