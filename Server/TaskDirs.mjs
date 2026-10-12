@@ -1,56 +1,130 @@
 #!/usr/bin/env node
-// Server/TaskDirs.mjs — a finished task lives INSIDE the session that ran it: ai/sessions/YYYY/MM/DD/<session>/task/
-// (owner, 2026-10-10: "if tasks belong to sessions, put them within the session folder"). Brief: ai/2026-10-10/tasks-into-sessions/requirements.md
+// Server/TaskDirs.mjs — WHERE A TASK FOLDER LIVES. The one class every writer and reader asks; nobody types ai/<date>/ by hand.
+// Decision: public/framework/ai/doc/task-folders.md (2026-10-12). A task lives in the sessions store, inside the session that ran it:
+//   ai/sessions/YYYY/MM/DD/<session folder>/<slug>/   (no known session: ai/sessions/YYYY/MM/DD/<slug>/; a child task: <parent>/<slug>/)
+// The day is the UTC day, like the session store (core/Session/Session.js). The day's log is ai/sessions/YYYY/MM/DD/day.jsonl.
 //
-//   node Server/TaskDirs.mjs                dry run: what would move, what stays and why (the default; changes nothing)
-//   node Server/TaskDirs.mjs --apply        write the snapshot (every file, size, sha1), move the folders, leave a stub, write the manifest
-//   node Server/TaskDirs.mjs --verify       prove every snapshot file sits at its new path with the same sha1 (zero missing, zero changed)
-//   node Server/TaskDirs.mjs --undo         move every folder back using the manifest
-//
-// The old folder ai/<date>/<task>/ is never gone: a stub `moved.json` {to, session} stays there, so day listings still see the task,
-// and `TaskDirs.follow(dir)` / `TaskDirs.alias(url)` turn the old address into the new one (the dev server serves old URLs through `alias`).
-// Only a task that is landed, quiet for QUIET_MIN minutes, and joined to a session in the store moves; everything else stays where it is.
-// The manifest `ai/sessions/task-manifest.json` is the record: old -> new for every folder, plus each file's size and sha1.
+//   node Server/TaskDirs.mjs --new <slug> [--session <uuid>] [--parent <dir>]   make the folder, print its repo-relative path
+//   node Server/TaskDirs.mjs --day                print today's day folder (where day.jsonl goes)
+//   node Server/TaskDirs.mjs --find <slug>        print the newest task folder with that slug
+//   node Server/TaskDirs.mjs --list [days]        print every task folder of the last N days (default 7)
+//   node Server/TaskDirs.mjs --follow <old dir>   print where an old ai/YYYY-MM-DD/<slug>/ path lives now
+// Old paths keep working: every move is a line in ai/sessions/task-moves.jsonl (Server/TaskMove.mjs) or the 2026-10-10
+// ai/sessions/task-manifest.json; follow(), alias() and redirect() chain through both. The 2026-10-10 mover (plan/apply/verify/undo) is below.
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const REPO = path.resolve(here, ".."), AI = path.join(REPO, "public", "framework", "ai"), SESS = path.join(AI, "sessions");
-const MANIFEST = path.join(SESS, "task-manifest.json"), STUB = "moved.json", QUIET_MIN = 240;
+const REPO = path.resolve(process.env.LEDGER_ROOT || path.resolve(here, "..")), AI = path.join(REPO, "public", "framework", "ai"), SESS = path.join(AI, "sessions");
+const MANIFEST = path.join(SESS, "task-manifest.json"), MOVES = path.join(SESS, "task-moves.jsonl"), STUB = "moved.json", QUIET_MIN = 240;
 const slash = p => p.split(path.sep).join("/"), rel = p => slash(path.relative(REPO, p));
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const ls = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch { return []; } };
 
 export default class TaskDirs {
+	static REPO = REPO;
+	static AI = AI;
+	static SESS = SESS;
 	static MANIFEST = MANIFEST;
+	static MOVES = MOVES;
 	static STUB = STUB;
-	static #cache = { mtime: 0, map: new Map() };
+	static #cache = { key: "", map: new Map() };
 
-	/** old repo-relative dir -> {to, session}, read from the manifest (cached until its mtime changes). */
+	/** "YYYY/MM/DD" of a Date (UTC, like the session store) or of a "YYYY-MM-DD" string. */
+	static ymd(day = new Date()){ return (typeof day === "string" ? day : day.toISOString().slice(0, 10)).replace(/-/g, "/"); }
+	/** The day's folder in the store, where day.jsonl lives. Absolute. */
+	static day_dir(day){ return path.join(SESS, ...this.ymd(day).split("/")); }
+
+	/** A session's folder without the async full scan: `session-<id8>` or the uuid, on the given day or up to 3 days before;
+	 *  else the folder Session.locate() would make (`session-<id8>` under the day). Absolute. */
+	static session_dir(id, day = new Date()){
+		const t = typeof day === "string" ? new Date(day + "T12:00:00Z") : day;
+		for (let back = 0; back < 4; back++){
+			const d = this.day_dir(new Date(t.getTime() - back * 864e5));
+			for (const name of [id, "session-" + id.slice(0, 8)]) if (fs.existsSync(path.join(d, name))) return path.join(d, name);
+		}
+		return path.join(this.day_dir(t), "session-" + id.slice(0, 8));
+	}
+
+	/** WHERE A NEW TASK GOES. {slug, session_id?, parent?, day?} -> absolute dir (not created). */
+	static dir({ slug, session_id, parent, day } = {}){
+		if (!/^[a-z0-9][a-z0-9._-]*$/i.test(slug ?? "")) throw new Error("TaskDirs.dir: a slug is [a-z0-9-], got " + JSON.stringify(slug));
+		if (parent) return path.join(this.follow(path.resolve(REPO, parent)), slug);
+		if (session_id && UUID.test(session_id)) return path.join(this.session_dir(session_id, day ?? new Date()), slug);
+		return path.join(this.day_dir(day), slug);
+	}
+
+	/** Make it. Returns the absolute dir. */
+	static make(spec){ const d = this.dir(spec); fs.mkdirSync(d, { recursive: true }); return d; }
+
+	/** An old-shaped dir (ai/YYYY-MM-DD/<slug>[/rest]) that does not exist and never moved -> its new home, for writers
+	 *  (Servex open_task) handed an old-style path by a brief. Anything else comes back resolved but unchanged. */
+	static normalize(dir, session_id){
+		const abs = path.resolve(REPO, dir), f = this.follow(abs);
+		if (f !== abs || fs.existsSync(abs)) return f;
+		const m = /^public\/framework\/ai\/(\d{4}-\d{2}-\d{2})\/([^/]+)((?:\/[^/]+)*)$/.exec(rel(abs));
+		if (!m) return abs;
+		if (m[3] && fs.existsSync(path.join(AI, m[1], m[2]))) return abs;   // a child under a live old-shaped parent stays beside it
+		return path.join(this.dir({ slug: m[2], session_id }), ...m[3].split("/").filter(Boolean));
+	}
+
+	/** Every task folder (holds task.jsonl) of the last `days` days, both shapes: [{dir, day:"YYYY-MM-DD", slug, key}]. Newest day first. */
+	static list(days = 7, now = new Date()){
+		const out = [], cut = new Date(now.getTime() - days * 864e5).toISOString().slice(0, 10);
+		const push = (dir, day) => { if (fs.existsSync(path.join(dir, "task.jsonl"))) out.push({ dir, day, slug: path.basename(dir), key: slash(path.relative(AI, dir)) }); };
+		for (const y of ls(SESS).filter(n => /^\d{4}$/.test(n))) for (const m of ls(path.join(SESS, y))) for (const d of ls(path.join(SESS, y, m))){
+			const day = `${y}-${m}-${d}`; if (day < cut) continue;
+			const dd = path.join(SESS, y, m, d);
+			for (const a of ls(dd)){ push(path.join(dd, a), day); for (const b of ls(path.join(dd, a))) push(path.join(dd, a, b), day); }
+		}
+		for (const day of ls(AI).filter(n => /^\d{4}-\d{2}-\d{2}$/.test(n) && n >= cut)) for (const s of ls(path.join(AI, day))) push(path.join(AI, day, s), day);
+		return out.sort((a, b) => b.day.localeCompare(a.day));
+	}
+
+	/** The newest task folder named `slug` (either shape), or null. */
+	static find(slug, days = 60){ return this.list(days).find(t => t.slug === slug)?.dir ?? null; }
+
+	/** old repo-relative path -> {to}, from both manifests, chains resolved (old -> 10-10 task/ -> <slug>/). Cached by mtimes. */
 	static map(){
-		let m = 0; try { m = fs.statSync(MANIFEST).mtimeMs; } catch { return new Map(); }
-		if (m !== this.#cache.mtime){
+		const mt = f => { try { return fs.statSync(f).mtimeMs; } catch { return 0; } }, key = mt(MANIFEST) + ":" + mt(MOVES);
+		if (key !== this.#cache.key){
 			const map = new Map();
 			try { for (const e of JSON.parse(fs.readFileSync(MANIFEST, "utf8")).moves) map.set(e.from, e); } catch {}
-			this.#cache = { mtime: m, map };
+			try { for (const l of fs.readFileSync(MOVES, "utf8").split("\n")) if (l.trim()) try { const e = JSON.parse(l); if (e.from && e.to && !e.undone) map.set(e.from, e); } catch {} } catch {}
+			for (const [from, e] of map){ let to = e.to, n = 0; while (map.has(to) && n++ < 9) to = map.get(to).to; if (to !== e.to) map.set(from, { ...e, to }); }
+			this.#cache = { key, map };
 		}
 		return this.#cache.map;
 	}
 
-	/** An absolute task dir that may have moved -> where it lives now (itself when it never moved). */
-	static follow(dir){
-		const e = this.map().get(rel(path.resolve(dir)));
-		return e ? path.join(REPO, e.to) : dir;
+	/** Any absolute path (dir or file) under a moved folder -> where it is now (itself when nothing above it moved). */
+	static follow(p){
+		const map = this.map(); if (!map.size) return p;
+		const r = rel(path.resolve(p)).split("/");
+		for (let i = r.length; i > 0; i--){ const e = map.get(r.slice(0, i).join("/")); if (e) return path.join(REPO, e.to, ...r.slice(i)); }
+		return p;
 	}
 
 	/** A site URL under an old task dir (/framework/ai/<date>/<task>/<rest>) -> the absolute file it now is, or null. */
 	static alias(url){
-		const m = /^\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/[^/]+)\/(.+)$/.exec(url);
+		const m = /^\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+)$/.exec(url);
 		if (!m) return null;
-		const e = this.map().get("public/framework/ai/" + m[1]);
-		if (!e) return null;
-		const file = path.join(REPO, e.to, decodeURIComponent(m[2]));
-		return file.startsWith(path.join(REPO, e.to)) ? file : null;
+		const old = path.join(AI, ...decodeURIComponent(m[1]).split("/"));
+		if (!old.startsWith(AI)) return null;
+		const now = this.follow(old);
+		return now === old ? null : now;
+	}
+
+	/** The new URL for an old one (/framework/ai/2026-10-12/<slug>/... or the bare day), or null. Old URLs redirect through this. */
+	static redirect(url){
+		const day = /^\/framework\/ai\/(\d{4})-(\d{2})-(\d{2})\/?$/.exec(url);
+		if (day) return `/framework/ai/sessions/${day[1]}/${day[2]}/${day[3]}/`;
+		const m = /^\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/[^/]+)(\/.*)?$/.exec(url);
+		if (!m) return null;
+		const old = path.join(AI, ...m[1].split("/")), now = this.follow(old);
+		return now === old ? null : "/" + slash(path.relative(path.join(REPO, "public"), now)) + (m[2] ?? "/");
 	}
 
 	// ---- reading the tree ----
@@ -133,15 +207,15 @@ export default class TaskDirs {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
-	const flag = n => process.argv.includes(n);
-	if (flag("--undo")) console.log(`moved back ${TaskDirs.undo()} folders`);
+	const flag = n => process.argv.includes(n), arg = n => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
+	if (flag("--new")) console.log(rel(TaskDirs.make({ slug: arg("--new"), session_id: arg("--session") ?? process.env.CLAUDE_CODE_SESSION_ID, parent: arg("--parent") })));
+	else if (flag("--day")){ const d = TaskDirs.day_dir(); fs.mkdirSync(d, { recursive: true }); console.log(rel(d)); }
+	else if (flag("--find")){ const d = TaskDirs.find(arg("--find")); if (!d) process.exit(1); console.log(rel(d)); }
+	else if (flag("--list")) for (const t of TaskDirs.list(Number(arg("--list")) || 7)) console.log(t.day, rel(t.dir));
+	else if (flag("--follow")) console.log(rel(TaskDirs.follow(path.resolve(REPO, arg("--follow")))));
+	else if (flag("--undo")) console.log(`moved back ${TaskDirs.undo()} folders`);
 	else if (flag("--verify")){ const r = TaskDirs.verify(); console.log(`${r.folders} folders, ${r.files} files, ${r.bytes} bytes checked: ${r.bad.length} missing/changed`); if (r.bad.length){ console.log(r.bad.slice(0, 20)); process.exit(1); } }
 	else if (flag("--apply")) console.log(await TaskDirs.apply());
-	else {
-		const p = await TaskDirs.plan();
-		const why = {}; p.stay.forEach(s => why[s.why] = (why[s.why] || 0) + 1);
-		console.log(`move: ${p.moves.length}; stay (joined but held back): ${p.stay.length} ${JSON.stringify(why)}; no session in the store (stay): ${p.orphans}; name more than one session (move with the first): ${p.multi}`);
-		for (const s of p.stay) console.log("  stays:", s.dir, "-", s.why);
-		console.log("(dry run: nothing was changed)");
-	}
+	else if (flag("--plan")){ const p = await TaskDirs.plan(); console.log(`move: ${p.moves.length}; stay: ${p.stay.length}; no session: ${p.orphans}`); }
+	else console.log("usage: --new <slug> [--session id] [--parent dir] | --day | --find <slug> | --list [days] | --follow <dir> | 2026-10-10 mover: --plan --apply --verify --undo");
 }
