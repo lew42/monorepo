@@ -126,7 +126,7 @@ export default class Subpages {
 	}
 }
 
-const rel = p => path.relative(PUBLIC, p).replaceAll("\\", "/");
+const rel = p => p.replaceAll("\\", "/");   // absolute, so a dry run on another tree reads true
 const stamp = () => new Date().toISOString().replace(/[-:]/g, "").replace("T", "-").slice(0, 15);
 
 // ---- CLI: a move is scriptable ----
