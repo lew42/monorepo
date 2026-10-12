@@ -18,14 +18,14 @@ export default class SystemPage extends Page {
 
 	content(){
 		p("A System looks after one part of the project. It knows where its files live (root), what promises it keeps (rules), and can check whether they hold. Any part can be one: code, a layout, the readmes, an AI module. Built 2026-10-12.");
-		this.class_card(div("card"));
-		this.demo(div("card"));
+		this.class_card(div({ class: "card" }));
+		this.demo(div({ class: "card" }));
 		this.real(div());
 		a({ href: "/framework/ai/doc/md/organization/" }, "What goes where, and why");
 	}
 
 	class_card(card){
-		const rows = System.api.map(r => this.el("p", `${r.name} — ${r.means}`));
+		const rows = System.api.map(r => { const row = this.el("p"), name = this.el("strong", r.name); row.append(name, ` — ${r.means}`); return row; });
 		card.el.append(this.el("h3", "System  (icon: settings)"), this.el("small", "Every field and method of the base class; subclasses add their own check()."), ...rows);
 	}
 
@@ -57,7 +57,7 @@ export default class SystemPage extends Page {
 			for (const l of text.split("\n")) if (l.trim()) { const r = JSON.parse(l); latest[r.system] = r; }
 			box.el.append(this.el("h3", "Real systems, last check"));
 			for (const [name, r] of Object.entries(latest)){
-				const card = div("card");
+				const card = div({ class: "card" });
 				card.el.append(
 					this.el("h3", `${name}: ${r.count ? r.count + " finding(s)" : "healthy"}`),
 					this.el("small", `checked ${r.at}`),
