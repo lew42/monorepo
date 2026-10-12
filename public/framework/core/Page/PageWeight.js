@@ -25,18 +25,29 @@ export default class PageWeight {
 	}
 
 	// Rank the cards already drawn in `box` (a View) by the page url each links to: reorder, hide the light ones, stamp the size classes.
+	// A grouped list (Previews `group` headings) is ranked inside each group; the headings stay where they are.
 	static async apply(box, { min = 0 } = {}){
-		const cards = [...box.el.querySelectorAll(":scope > .page-preview")]
-			.map(el => ({ el, url: el.querySelector("a.page-preview-link")?.getAttribute("href") }));
-
-		const rows = await this.rank(cards, { min: 0, key: card => card.url });
-		for (const { target, weight } of rows){
-			const { el } = target;
-			el.classList.add(...this.classes(weight).split(" "));
-			el.title = `weight ${weight}`;
-			el.hidden = weight < min;
-			box.el.append(el);
+		const runs = [[]];
+		for (const el of box.el.children){
+			if (el.classList.contains("page-preview")) runs.at(-1).push({ el, url: el.querySelector("a.page-preview-link")?.getAttribute("href") });
+			else if (runs.at(-1).length) runs.push([]);
 		}
-		return rows;
+
+		const all = [];
+		for (const run of runs.filter(r => r.length)){
+			const anchor = run[0].el.previousElementSibling;   // the group heading, or null for the first run
+			const rows = await this.rank(run, { min: 0, key: card => card.url });
+			let cursor = anchor;
+			for (const { target, weight } of rows){
+				const { el } = target;
+				el.classList.add(...this.classes(weight).split(" "));
+				el.title = `weight ${weight}`;
+				el.hidden = weight < min;
+				cursor ? cursor.after(el) : box.el.prepend(el);
+				cursor = el;
+				all.push({ target, weight });
+			}
+		}
+		return all;
 	}
 }
