@@ -119,9 +119,19 @@ export class AITask extends Page {
 	route(sub){
 		if (sub.includes(".")) return;
 		const at = this.url?.match(/\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+?)\/?$/)?.[1];
-		const list = at && names(`${at}/${sub}`);
-		if (!list?.includes("task.jsonl") || list.includes("page.js")) return;
+		const list = at ? names(`${at}/${sub}`) : null;
+		if (list ? (!list.includes("task.jsonl") || list.includes("page.js"))
+			: (!AITask.has(this.url + sub + "/task.jsonl") || AITask.has(this.url + sub + "/page.js"))) return;   // the sessions store: no listing, so ask the server
 		return new AITask({ title: sub, icon: "receipt_long", url: this.url + sub + "/", src: this.url + sub + "/session.json" });
+	}
+
+	/** Does this file exist? One synchronous HEAD, because route() must answer now (Page.child() never awaits it).
+	    Used where no directory listing exists: task folders in the sessions store (ai/doc/task-folders.md). */
+	static has(url){
+		const x = new XMLHttpRequest();
+		x.open("HEAD", url, false);
+		try { x.send(); } catch { return false; }
+		return x.status >= 200 && x.status < 300 && !(x.getResponseHeader("content-type") ?? "").includes("html");
 	}
 
 	/* ⚠ `wide`, not the default `main` track. A task page is not prose: it is a

@@ -11,8 +11,10 @@
 // The trailing newline is sniffed (a file written by the Write tool has none), the lines are
 // appended, and every line of the target is re-parsed; a bad line exits non-zero and names itself.
 // usage: node .claude/hooks/append.mjs <target.jsonl> <lines.json>
-import { readFileSync, appendFileSync, existsSync, statSync, openSync, readSync, closeSync } from "node:fs";
+import { readFileSync, appendFileSync, existsSync, statSync, openSync, readSync, closeSync, mkdirSync } from "node:fs";
 import { check, shape } from "./jsonl-schema.mjs";
+import { resolve as resolve_path, dirname, basename, join } from "node:path";
+import TaskDirs from "../../Server/TaskDirs.mjs";
 
 const pad = n => String(n).padStart(2, "0");
 function nowLocal(){
@@ -26,8 +28,18 @@ function fill(v, t){
 	return v;
 }
 
-const [target, source] = process.argv.slice(2);
+let [target, source] = process.argv.slice(2);
 if (!target || !source) { console.error("usage: node append.mjs <target.jsonl> <lines.json>"); process.exit(2); }
+// A task log or day log named by its OLD path (ai/YYYY-MM-DD/...) goes to where it lives now (Server/TaskDirs.mjs,
+// ai/doc/task-folders.md): a moved folder is followed; a day or task never made in the old shape is made in the new one.
+{
+	const abs = resolve_path(target), moved = TaskDirs.follow(abs);
+	const m = /[\\/]public[\\/]framework[\\/]ai[\\/](\d{4}-\d{2}-\d{2})[\\/]/.exec(abs);
+	const now = moved !== abs ? moved
+		: m && !existsSync(dirname(abs)) ? (basename(abs) === "day.jsonl" && basename(dirname(abs)) === m[1] ? join(TaskDirs.day_dir(m[1]), "day.jsonl") : join(TaskDirs.normalize(dirname(abs), process.env.CLAUDE_CODE_SESSION_ID), basename(abs)))
+		: abs;
+	if (now !== abs){ mkdirSync(dirname(now), { recursive: true }); console.error(`(old path followed: ${target} -> ${now})`); target = now; }
+}
 const strip_bom = s => s.replace(/^﻿/, "");
 const items = JSON.parse(strip_bom(readFileSync(source, "utf8")));
 const list = Array.isArray(items) ? items : [items];

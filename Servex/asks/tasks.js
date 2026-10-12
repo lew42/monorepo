@@ -19,6 +19,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { stalled } from "./stalled.js";
+import TaskDirs from "../../Server/TaskDirs.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -39,6 +40,7 @@ function read_lines(file){
  * A date dir is just its own name (`YYYY-MM-DD`) — string comparison sorts the same as date
  * comparison, so no Date parsing is needed to pick the recent ones. */
 export function task_dirs(days = DAYS, now = new Date(), ai_dir = AI){
+	if (ai_dir === AI) return TaskDirs.list(days, now).map(t => t.dir);   // both shapes: the sessions store and old day folders (ai/doc/task-folders.md)
 	if (!fs.existsSync(ai_dir)) return [];
 	const cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - days);
 	const cutoff_str = `${cutoff.getFullYear()}-${String(cutoff.getMonth() + 1).padStart(2, "0")}-${String(cutoff.getDate()).padStart(2, "0")}`;

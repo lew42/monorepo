@@ -86,7 +86,7 @@ with the Write tool and append that file's bytes, whatever the extension.
 ```json
 {"log": {"at": "<ISO>", "task": "<slug>", "msg": "landed — <one line>"}}
 ```
-appended to `public/framework/ai/<date>/day.jsonl`.
+appended to the day's `day.jsonl` (`node Server/TaskDirs.mjs --day` prints its folder).
 
 ## What the hooks already do
 

@@ -9,6 +9,7 @@ import { stamp, place } from "../home.js";
 import Registry, { alive } from "./registry.js";
 import { defaults as role_defaults, opening, injected } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
+import TaskDirs from "../../Server/TaskDirs.mjs";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 
@@ -757,7 +758,11 @@ function directory_of(spec){
  * assign line with the same facts, exactly like every other `assign` a task
  * log collects over its life — never touching what came before it. */
 function open_task(task, { session_id, agent, model, worktree, parent_dir }){
-	const dir = path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir);
+	// An old-shaped dir (ai/YYYY-MM-DD/<slug>/) from a brief goes to the task store instead (Server/TaskDirs.mjs,
+	// ai/doc/task-folders.md); task.dir is rewritten so everything after this (directory_of, the inbox) sees the real place.
+	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
+	task.dir = path.relative(process.cwd(), dir).split(path.sep).join("/");
+	if (task.parent_task) task.parent_task = TaskDirs.follow(path.resolve(task.parent_task));
 	fs.mkdirSync(dir, { recursive: true });
 	/* NESTED TASKS: `parent_task` (the parent's task dir, repo-relative, forward
 	 * slashes) and `after` (sibling task dirs this one waits for) — the tree

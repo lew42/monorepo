@@ -14,6 +14,7 @@ import { Versions } from "/framework/ai/v/Versions.js";   // the versions, and t
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
 import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
 import { AIOverview } from "./AIOverview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
+import StoreFolder from "./AISession/StoreFolder.js";   // old ai/<date>/<task>/ addresses redirect into the sessions store
 
 // "tests" → "Tests" — the label a detected tab wears when nobody says otherwise.
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
@@ -33,7 +34,7 @@ export default new Page({
 	leaf: true,
 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
 	classes: v1() ? undefined : "full fill",
-	children: "classes quick-fix asks process review council audits tests 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08 local",
+	children: "classes quick-fix asks process review council audits tests local",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
 
 	/* LEVEL 1 IS THE AI SYSTEM, SHOWN (the owner, 2026-09-30: "just delete the
 	   current AI page"). The V3 board that stood here lives on at /framework/ai/v/3/,
@@ -143,6 +144,9 @@ export default new Page({
 		if (board_view) return board_view;
 
 		if (/^\d{4}-\d{2}-\d{2}$/.test(name)){
+			// Task folders moved into the sessions store (ai/doc/task-folders.md): an old day or task address redirects.
+			const day_to = StoreFolder.moved(this.url + name + "/");
+			if (day_to && !AITask.has(this.url + name + "/day.jsonl")) return StoreFolder.redirect(this.url + name + "/", day_to);
 			// Fired the instant this day is routed to, not when its dashboard()
 			// happens to render — a cold deep link straight to a task below has
 			// no earlier chance, and every other child() hop still ahead (this
@@ -174,6 +178,8 @@ export default new Page({
 							content(){ module_detail(name, mod); },
 						}); },
 					});
+					const moved = !task.includes(".") && StoreFolder.moved(this.url + task + "/");
+					if (moved) return StoreFolder.redirect(this.url + task + "/", moved);
 					if (task.includes(".") || has_page_js(name, task)) return;
 					return new AITask({
 						title: task, icon: "receipt_long",
