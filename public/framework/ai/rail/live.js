@@ -2,7 +2,7 @@ import { div, span, small, button, h3, p, a, form, input, details, summary } fro
 import { View, icon } from "/framework/core/View/View.js";
 import { usage_rail } from "/framework/ext/AITask/usage.js";
 import { servex_base, servex_fetch, card_stream, agent_frames } from "./inbox.js";
-import { clock } from "../cards/card.js";
+import { Faces } from "../cards/faces.js";
 import { md_into, who_label, speak } from "../cards/chat.js";
 import { create_processes, processes_section, running_index, process_badge } from "./processes.js";
 
@@ -268,7 +268,7 @@ export function live_row(it){
 		span.c("ai2-dot");
 		icon(it.icon);
 		span.c("ai2-row-title").text(it.title);
-		small.c("ai2-row-when muted").text(clock(it.at));
+		small.c("ai2-row-when muted").text(Faces.clock(it.at));
 	});
 	// No usage bars here (ai2-lead audit, 2026-09-25): the same three already sit,
 	// labelled, at the top of the rail, and three unlabelled thin bars read as nothing.
@@ -368,7 +368,7 @@ export function live_full(it, model){
 			h3("Just landed");
 			if (!it.landed.length) small.c("muted").text("nothing yet today");
 			it.landed.forEach(x => div.c("ai2-live-item", () => {
-				span.c("ai2-live-state").text(clock(x.at));
+				span.c("ai2-live-state").text(Faces.clock(x.at));
 				a.c("ai2-live-name").href(x.url).text(x.title);
 				if (x.line) small.c("ai2-live-line muted").text(x.line);
 			}));

@@ -1,7 +1,7 @@
 import { div, span, small, a, textarea, button } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
-import { when } from "../cards/faces.js";
+import { Faces } from "../cards/faces.js";
 import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
 import { parse_lines } from "../cards/fold.js";
 import { card_needs, is_blocker, importance, silent_hours } from "./needs-rule.js";
@@ -251,7 +251,7 @@ function need_row(n){
 				if (n.question && n.question !== n.title)
 					mentions(small.c("ai2-need-question muted").attr("title", n.question).text(n.question).el);
 				small.c("ai2-need-meta muted")
-					.text([KIND_LABEL[n.kind], n.owner ? "owner " + n.owner : null, when(n.at)].filter(Boolean).join(" · "));
+					.text([KIND_LABEL[n.kind], n.owner ? "owner " + n.owner : null, Faces.when(n.at)].filter(Boolean).join(" · "));
 				// A stalled ask's own two links (deliverable 2): its card (already the row's
 				// own head link, when it has one) and its words — a second line, since a
 				// card-having ask's head link is already spent on the card.

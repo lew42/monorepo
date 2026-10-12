@@ -1,6 +1,6 @@
 import { div, span, small, a, p, button } from "/app.js";
 import { plain } from "../rail/inbox.js";
-import { when } from "./faces.js";
+import { Faces } from "./faces.js";
 import { money } from "/framework/ext/AITask/cost.js";
 import { task_of } from "./tasks.js";
 
@@ -99,7 +99,7 @@ function line(it){
 	div.c("ai2-ol-row" + (it.done ? " done" : " open") + (it.live ? " live" : ""), () => {
 		span.c("ai2-ol-mark").text(it.done ? "✓" : "☐");
 		span.c("ai2-ol-title").text(it.title);
-		small.c("ai2-ol-time muted").text(when(it.asked_at));
+		small.c("ai2-ol-time muted").text(Faces.when(it.asked_at));
 		if (it.proof) a.c("ai2-ol-proof page-link").href(it.proof).text("→ open");
 	});
 }

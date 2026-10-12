@@ -1,6 +1,6 @@
 import { Page, Doc, div, span, small, p, a, drawer } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
-import { when, news_bar } from "./faces.js";
+import { Faces } from "./faces.js";
 import { who_word, unseen, mark_seen } from "./activity.js";
 import { plain } from "../rail/inbox.js";
 
@@ -232,8 +232,8 @@ export function page_face(path, evs){
 	div.c("ai2-row-head flex gap-25", () => {
 		icon(known?.icon || "description");
 		span.c("ai2-row-title").text(known?.title || path.split("/").filter(Boolean).at(-1));
-		small.c("ai2-row-when muted").text(when(top?.at));
+		small.c("ai2-row-when muted").text(Faces.when(top?.at));
 	});
 	small.c("ai2-real-path muted").text(path);
-	if (top && unseen("page:" + path, top.at)) news_bar({ who: top.who, what: top.what });
+	if (top && unseen("page:" + path, top.at)) Faces.news_bar({ who: top.who, what: top.what });
 }

@@ -1,6 +1,6 @@
 import { div, span, small, p, a, h3, label, input, details, summary } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
-import { when } from "../cards/faces.js";
+import { Faces } from "../cards/faces.js";
 import { money } from "/framework/ext/AITask/cost.js";
 
 /**
@@ -63,7 +63,7 @@ function ask(it){
 		});
 		// THE TIMELINE STRIP — one small line; ai2.css shows it on hover or when the toggle is on.
 		const parts = [
-			"asked " + when(it.asked_at) + (it.landed_at ? " → delivered " + when(it.landed_at) : " → not delivered yet"),
+			"asked " + Faces.when(it.asked_at) + (it.landed_at ? " → delivered " + Faces.when(it.landed_at) : " → not delivered yet"),
 			hours(it.hours), usd(it.cost_usd), it.outcome,
 		].filter(Boolean);
 		const $line = it.result_url ? a.c("ai2-ov-line").href(it.result_url) : small.c("ai2-ov-line");
@@ -135,7 +135,7 @@ export function overview(){
 	fetch(DATA, { cache: "no-store" })
 		.then(r => r.ok ? r.json() : Promise.reject(new Error(r.status + "")))
 		.then(data => {
-			$built.text("Built " + when(data.built_at) + " from the task logs" + (data.unfiled ? " · " + data.unfiled + " not filed" : ""));
+			$built.text("Built " + Faces.when(data.built_at) + " from the task logs" + (data.unfiled ? " · " + data.unfiled + " not filed" : ""));
 			$grid.empty(() => (data.concepts ?? []).forEach((c, i) => concept(c, i === 0)));
 		})
 		.catch(() => $built.text("The overview has not been built yet (Server/ai2-overview.mjs)."));
