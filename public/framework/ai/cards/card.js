@@ -10,7 +10,7 @@ import Menu from "/framework/ux/Menu/Menu.js";
 import { CardChat, md_into } from "./CardChat.js";
 import { Compose } from "./Compose.js";
 import { Agents } from "./Agents.js";
-import { items_of, about_line, outline, state_span, short } from "./outline.js";
+import { Outline } from "./Outline.js";
 import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "../rail/inbox.js";
 import { watch_needs, needs_for, needs_soon } from "../rail/needs.js";
 import "/framework/ext/tabs/tabs.js";   // for its stylesheet: a card's tab strip wears .tabs / .tab-bar / .tab
@@ -644,7 +644,7 @@ export default class Card extends Page {
 	tab_list(){
 		const list = [{ key: "outline", label: "Outline", draw: () => {
 			const g = this.group_info();
-			this.overview(this.facts(), g, items_of(this, g), false, false);
+			this.overview(this.facts(), g, Outline.items_of(this, g), false, false);
 		} }];
 		const keys = new Set(["outline", "tasks", "activity", "md", ...this.subs()]);
 		const free = key => { let k = key, n = 1; if (keys.has(k)) k = key + "-tab"; while (keys.has(k)) k = key + "-tab-" + ++n; keys.add(k); return k; };
@@ -789,7 +789,7 @@ export default class Card extends Page {
 			div.c("ai2-full-name", () => {
 				span.c("ai2-full-title").md(this.title ?? this.name);
 				const { usd, open } = this.cost_now(g);
-				state_span(items, usd, open);
+				Outline.state_span(items, usd, open);
 			});
 			this.reviewed_control();
 		});
@@ -865,7 +865,7 @@ export default class Card extends Page {
 
 		// THE CARD STANDARD (ai/doc/ai2/card-standard.md):
 		// 1. Name + one sentence: what it is
-		const line = about_line(this, g);
+		const line = Outline.about_line(this, g);
 		if (line) p.c("ai2-ol-about").text(line);
 
 		// 2. State: explicit one-line state if declared
@@ -912,7 +912,7 @@ export default class Card extends Page {
 		// 5. Checklist: explicit checklist items or outline requests
 		if (this.checklist_items?.length) this.render_checklist();
 		else if (this.by_request()) this.request_outline(items);
-		else outline(this, items);
+		else Outline.outline(this, items);
 
 		// A card nothing was asked in yet (a topic stub, a new sub-card) says so, instead of a blank page.
 		if (!line && !this._state && !this._objects && !items.length && !this.prompts?.length && !this.messages?.length && !this.chats?.length)
@@ -943,9 +943,9 @@ export default class Card extends Page {
 	   listed, never counted as "to do". The card's own task pages (a group's members) are
 	   counted beside its requests, as outline.js always did. */
 	overview_items(g){
-		if (!this.by_request()) return items_of(this, g);
+		if (!this.by_request()) return Outline.items_of(this, g);
 		const subs = new Set(this.subs().map(s => this.id + "/" + s));
-		const tasks = items_of(this, g).filter(i => !subs.has(i.id) && !/^p-/.test(i.id));
+		const tasks = Outline.items_of(this, g).filter(i => !subs.has(i.id) && !/^p-/.test(i.id));
 		return [...tasks.map(t => ({ ...t, proof: this.task_href(t.proof) })), ...this.request_items().filter(i => i.asked)];
 	}
 
@@ -963,7 +963,7 @@ export default class Card extends Page {
 		const cards = this.shell?.ai2?.cards;
 		return this.subs().map(slug => {
 			const id = this.id + "/" + slug, s = cards?.card(id), m = this.sub_meta?.get(slug) ?? {};
-			return { id, slug, title: short(this.sub_title(slug)), asked_at: m.created ?? s?.created, asked: !!m.asked,
+			return { id, slug, title: Outline.short(this.sub_title(slug)), asked_at: m.created ?? s?.created, asked: !!m.asked,
 				done: !!this.sub_done?.get(slug), proof: this.url + slug + "/" };
 		});
 	}
