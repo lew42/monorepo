@@ -521,3 +521,9 @@
 {"at":"2026-10-12T11:37:24.585Z","target":"public/framework/ai/2026-10-12/asks-transcription","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T11:37:24.869Z","target":"public/framework/ai/2026-10-12/asks-transcription","verdict":"spawned","to":"clarity-asks-transcription"}
 {"at":"2026-10-12T07:00:00-05:00","target":"public/framework/ai/2026-10-12/asks-transcription","verdict":"rewrote","what":"outcome was one 81-word paragraph; rewrote as 3-item ticked checklist. Dictate page itself is clear.","to":"task.jsonl"}
+{"at":"2026-10-12T12:05:00.214Z","target":"public/framework/ai/2026-10-12/page-split-2","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T12:05:00.397Z","target":"public/framework/ai/2026-10-12/page-split-2","verdict":"spawned","to":"clarity-page-split-2"}
+{"at":"2026-10-12T12:05:14.412Z","target":"public/framework/ai/2026-10-12/page-split-2","verdict":"rewrote","what":"outcome omitted the merge-to-michael/dev ask; added it ticked with proof","to":"task.jsonl"}
+{"at":"2026-10-12T12:36:06.450Z","target":"public/framework/ai/2026-10-12/voice-asks-2","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T12:36:06.565Z","target":"public/framework/ai/2026-10-12/voice-asks-2","verdict":"spawned","to":"clarity-voice-asks-2"}
+{"at":"2026-10-12T08:00:00-05:00","target":"public/framework/ai/2026-10-12/voice-asks-2","verdict":"rewrote","what":"outcome claimed layout-check clean but it was skipped; rewrote to say so, linked docs","to":"task.jsonl"}

@@ -4,3 +4,8 @@
 {"file":"task.jsonl"}
 {"inbox":{"id":"n-5t7hrlck","from":"servex-task-loop","text":"page-split-2 has been quiet since 2026-10-12T06:16:29-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-12T06:19:14.223-05:00"}}
 {"inbox":{"id":"n-6804253c","from":"servex-heartbeat","text":"mastermind-page-split-2 its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-12T06:30:44.498-05:00"}}
+{"file":"review/"}
+{"file":"review.md"}
+{"file":"review.jsonl"}
+{"file":"STATE.md"}
+{"file":"layout-check/"}
