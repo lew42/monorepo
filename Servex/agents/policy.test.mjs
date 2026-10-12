@@ -110,3 +110,16 @@ console.log(`policy: ${n} checks passed`);
   t(q.message(null, "task-mastermind-x").ok && q.message("tab-editor", "task-mastermind-x").ok, "bypass still allowed");
   q.message("owner", "assistant-a"); q.message("minion-a", "task-mastermind-x");
   t(got.length === 2 && got[0].kind === "relay-bypass" && got[1].via === "external", "relay-bypass logged for owner and tab only"); }
+
+// relay rule: owner/tab -> mastermind goes via master-assistant unless direct/@named/assistant down; others untouched
+{ const q = new Policy({ agents: { live, reg: () => ({ read: () => registry }) } }); let got = [];
+  q.onbypass = e => got.push(e);
+  t(q.route(null, "mastermind-x", "do it")?.to === "master-assistant", "owner -> mastermind relayed");
+  t(q.route("tab-editor", "task-mastermind-x", "do it")?.to === "master-assistant", "tab -> task-mastermind relayed");
+  t(q.route(null, "mastermind-x", "do it", { direct: true }) === null, "direct flag keeps direct path");
+  t(q.route(null, "mastermind-x", "@mastermind-x do it") === null, "@named keeps direct path");
+  t(q.route(null, "mastermind-x", "do it", { assistant_live: false }) === null, "no live assistant -> direct");
+  t(q.route(null, "mastermind-servex", "hi") === null && q.route(null, "assistant-a", "hi") === null && q.route("minion-a", "mastermind-x", "hi") === null, "servex, assistants and minions untouched");
+  t(q.message("master-assistant", "mastermind-x").ok, "master-assistant may relay on to a mastermind");
+  t(q.message(null, "mastermind-x").ok && got.length === 1, "plain mastermind id now counted as relay-bypass (was missed: kind() calls it a worker)"); }
+console.log("relay rule checks passed");
