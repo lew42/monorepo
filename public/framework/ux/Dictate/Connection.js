@@ -108,11 +108,26 @@ export default class Connection extends View {
 
 	/** The same fact as a sentence of its own (the one-line status on a phone shows it). It takes about 25 s: Whisper reloads its speech model. */
 	static async restart_line(){
+		try { return Connection.line(await (await fetch(servex_url("/api/whisper"), { signal: AbortSignal.timeout(1500) })).json()); }
+		catch { return ""; }
+	}
+
+	/** The sentence for one `/api/whisper` answer (the same shape the stream pushes). Empty when all is well. */
+	static line(w){
+		const t = w.last_crash && new Date(w.last_crash.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+		if (["launching", "restarting", "crashed", "starting"].includes(w.status)) return `Whisper stopped${t ? " at " + t : ""} and Servex is restarting it (2 to 30 s: it reloads its model)`;
+		return w.crashes ? `Whisper stopped at ${t} and Servex restarted it` : "";
+	}
+
+	/** Servex pushes Whisper's status the moment it changes (`GET /api/whisper/stream`, SSE): `on_status(w)` runs for the first answer and for every change, so a restart shows as it happens.
+	 *  Returns the EventSource (`.close()` to stop), or null where there is none (the caller keeps its old one-off checks). */
+	watch(on_status){
+		if (typeof EventSource === "undefined") return null;
 		try {
-			const w = await (await fetch(servex_url("/api/whisper"), { signal: AbortSignal.timeout(1500) })).json();
-			const t = w.last_crash && new Date(w.last_crash.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-			if (["launching", "restarting", "crashed", "starting"].includes(w.status)) return `Whisper stopped${t ? " at " + t : ""} and Servex is restarting it (2 to 30 s: it reloads its model)`;
-			return w.crashes ? `Whisper stopped at ${t} and Servex restarted it` : "";
-		} catch { return ""; }
+			const es = new EventSource(servex_url("/api/whisper/stream"));
+			es.onmessage = e => { try { const w = JSON.parse(e.data); this.note = Connection.line(w); this.streaming = true; on_status(w); } catch {} };
+			es.onerror = () => { this.streaming = false; };
+			return es;
+		} catch { return null; }
 	}
 }

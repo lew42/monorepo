@@ -47,6 +47,7 @@ import tidy from "./agents/tidy.js";
 import { run_clean, model_choices, list_examples, save_example } from "./ext/clean-test/run.js";
 import { run_refine } from "./ext/refine/run.js";
 import VoicePage from "./ext/refine/VoicePage.js";
+import CardAsk from "./ext/refine/CardAsk.js";
 import hitl from "./agents/hitl.js";
 import Inbox from "./agents/inbox.js";
 import { docs_list, docs_read_file } from "./pages.js";
@@ -686,6 +687,14 @@ export default class Servex extends Events {
             catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
         });
 
+        /* ONE CARD OF A REFINED PROMPT -> a board card + an asks.jsonl line (Servex/ext/refine/CardAsk.js). Same card twice: the first answer again. */
+        router.options("/api/voice/card", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/voice/card", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            try { res.json(await new CardAsk({ cards: this.cards, asks: this.asks }).make(req.body ?? {})); }
+            catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
+        });
+
         /* The same voice lines as a read-only stream (SSE), for a phone: the dev socket is localhost-only, so a LAN page cannot tail page.jsonl and follows this instead. */
         router.get("/api/voice/stream", cors, (req, res) => {
             const session = String(req.query.session ?? "");
@@ -701,9 +710,22 @@ export default class Servex extends Events {
         });
 
         /* Whisper in one plain line for a page (ux/Dictate): is it up, and did Servex have to restart it? */
-        router.get("/api/whisper", cors, (req, res) => {
+        const whisper_line = () => {
             const w = this.processes.get("whisper")?.toJSON?.() ?? null;
-            res.json({ ok: true, status: w?.status ?? "unknown", port: w?.port ?? null, crashes: w?.crashes ?? 0, last_crash: w?.last_crash ?? null, said: w?.said ?? "" });
+            return { ok: true, status: w?.status ?? "unknown", port: w?.port ?? null, crashes: w?.crashes ?? 0, last_crash: w?.last_crash ?? null, said: w?.said ?? "" };
+        };
+        router.get("/api/whisper", cors, (req, res) => res.json(whisper_line()));
+
+        /* The same answer pushed (SSE) the moment Whisper's status changes (stopped, restarting, online), so a page shows a restart as it happens and never polls (Process.js emits "status"). */
+        router.get("/api/whisper/stream", cors, (req, res) => {
+            res.set({ "content-type": "text/event-stream", "cache-control": "no-cache, no-transform", connection: "keep-alive", "x-accel-buffering": "no" });
+            res.flushHeaders?.();
+            const send = () => res.write("data: " + JSON.stringify(whisper_line()) + "\n\n");
+            const proc = this.processes.get("whisper");
+            send();
+            proc?.on?.("status", send);
+            const beat = setInterval(() => res.write(": ok\n\n"), 20000);
+            req.on("close", () => { clearInterval(beat); proc?.off?.("status", send); });
         });
 
         router.get("/api/logs", (req, res) => res.json(this.log.names()));

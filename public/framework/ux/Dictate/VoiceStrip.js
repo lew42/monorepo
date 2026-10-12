@@ -42,6 +42,7 @@ export default class VoiceStrip extends View {
 		});
 		this.$guess = div.c("voice-strip-guess muted");
 		this.conn.check_whisper().then(up => { this.said(); if (!up) this.recover(); });
+		this.watch_restarts();
 		// a phone that slept (or a tab left open) learns of a Whisper crash when it is looked at again, not only when the mic is pressed
 		document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && !this.recovering) this.conn.check_whisper().then(up => { this.said(); if (!up) this.recover(); }); });
 		this.said();
@@ -65,7 +66,7 @@ export default class VoiceStrip extends View {
 		const bad = /^(refused|timed out)|stopped answering|not reachable/.test(detail);
 		if (stage === "mic"){
 			if (detail === "on, level ok") this.conn.set("level", "ok", "");
-			else if (detail === "ok"){ this.conn.set("mic", "ok", "on").set("level", "wait", ""); this.watch_restarts(); }
+			else if (detail === "ok"){ this.conn.set("mic", "ok", "on").set("level", "wait", ""); }
 			else this.conn.set("mic", bad ? "bad" : "wait", bad ? "error: " + VoiceStrip.plain(detail.replace(/^refused: /, "")) : detail);
 		} else if (stage === "whisper" && /^(connected, last reply|stopped answering)/.test(detail)){
 			this.conn.set("whisper", bad ? "bad" : "ok", bad ? "error: " + detail : detail);
@@ -74,23 +75,28 @@ export default class VoiceStrip extends View {
 		this.said();
 	}
 
-	/** While the mic is on, look every 5 s whether Servex had to restart Whisper, so a restart in the middle of a sentence is said on the status line.
-	 *  The mic being open is the only time it asks; a stream from Servex would be the alternative (`doc/try-it.md`, "Whisper restart"). */
+	/** Servex pushes Whisper's status the moment it changes, so a restart in the middle of a sentence is said on the status line at once (no timer).
+	 *  Without a stream (no Servex, old browser) the page falls back to `check_whisper()` on load and `recover()`. */
 	watch_restarts(){
-		clearInterval(this.watching);
-		const look = async () => {
-			if (!["listening", "connecting"].includes(this.dictate?.state)) return clearInterval(this.watching);
-			const line = await Connection.restart_line();
-			if (line !== this.conn.note){ this.conn.note = line; this.said(); }
-		};
-		look();
-		this.watching = setInterval(look, 5000);
+		if (this.stream) return;
+		let last = null;
+		this.stream = this.conn.watch(w => {
+			const down = ["launching", "restarting", "crashed", "starting", "stopped", "errored"].includes(w.status);
+			if (down && this.conn.state.whisper.state !== "bad") this.conn.set("whisper", "bad", "error: stopped answering" + (this.conn.note ? " · " + this.conn.note : ""));
+			else if (!down && last && last !== w.status && this.conn.state.whisper.state === "bad"){
+				this.conn.set("whisper", "ok", "back" + (this.conn.note ? " · " + this.conn.note : ""));
+				if (this.conn.state.mic.state === "bad") this.conn.set("mic", "idle", "");
+			}
+			last = w.status;
+			this.stream_down = down;
+			this.said();
+		});
 	}
 
 	/** Whisper is down: ask again every 2 s until it answers (2 minutes at most), so the status line follows Servex's restart (about 25 s: the model reloads).
 	 *  A short wait only while it is broken; healthy Whisper is never polled (`doc/try-it.md`). */
 	recover(){
-		if (this.recovering) return;
+		if (this.recovering || (this.conn.streaming && this.stream_down)) return;   // Servex is already pushing the restart: wait for its message
 		this.recovering = true;
 		const t0 = Date.now();
 		const tick = async () => {
