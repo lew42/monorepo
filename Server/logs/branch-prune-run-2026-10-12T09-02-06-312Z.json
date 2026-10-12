@@ -1,0 +1,447 @@
+[
+ {
+  "branch": "worktree/agent-chat",
+  "tag": "salvage/worktree/agent-chat",
+  "sha": "5a827c780e192278762533e3afc2f37036438c75"
+ },
+ {
+  "branch": "worktree/ai-page",
+  "tag": "salvage/worktree/ai-page",
+  "sha": "2a745e7e2260f5105d8eb27a14bf4003dd03f1f4"
+ },
+ {
+  "branch": "worktree/ai-system-docs",
+  "tag": "salvage/worktree/ai-system-docs",
+  "sha": "ae16b9bd318f1e90152fab5ca02df77d517a4069"
+ },
+ {
+  "branch": "worktree/ai2-cost-fill",
+  "tag": "salvage/worktree/ai2-cost-fill",
+  "sha": "f752c6169b6a8e73a350e83a26b7580f907ea426"
+ },
+ {
+  "branch": "worktree/ai2-dashboard",
+  "tag": "salvage/worktree/ai2-dashboard",
+  "sha": "cf6f3030f4e485ae70d6352bebe9bfc1fcb5f17f"
+ },
+ {
+  "branch": "worktree/ai2-groups",
+  "tag": "salvage/worktree/ai2-groups",
+  "sha": "d2af18264def791a43c3f9557f1dc7f4df4163cd"
+ },
+ {
+  "branch": "worktree/aisysdocs",
+  "tag": "salvage/worktree/aisysdocs",
+  "sha": "88c32c6da022c41b9f2ce40e019bed363bd593ce"
+ },
+ {
+  "branch": "worktree/aisysdocs2",
+  "tag": "salvage/worktree/aisysdocs2",
+  "sha": "ea45ac0b308d95b44a69e94d3cdc72ae861aa58b"
+ },
+ {
+  "branch": "worktree/aisysdocs3",
+  "tag": "salvage/worktree/aisysdocs3",
+  "sha": "726721d1c3d4cc371cd483e65b52077a1f90f986"
+ },
+ {
+  "branch": "worktree/aisysdocs4",
+  "tag": "salvage/worktree/aisysdocs4",
+  "sha": "6b9ba2a6fdc7e09c0c5e7eae8403a99d1118e32d"
+ },
+ {
+  "branch": "worktree/asks-ledger",
+  "tag": "salvage/worktree/asks-ledger",
+  "sha": "2eeb21507aeae3ff01e5ed919a0cdfb550c8d7f5"
+ },
+ {
+  "branch": "worktree/assistant-layers",
+  "tag": "salvage/worktree/assistant-layers",
+  "sha": "92b95cfc33894a4f4be3d587eae57fb883f6264c"
+ },
+ {
+  "branch": "worktree/chip-fix",
+  "tag": "salvage/worktree/chip-fix",
+  "sha": "34013f9019cfa2b8e4e29e0a91f58bb99d579063"
+ },
+ {
+  "branch": "worktree/classcards",
+  "tag": "salvage/worktree/classcards",
+  "sha": "d0cf4fe697267a60139eb6a5fd15827436367dd1"
+ },
+ {
+  "branch": "worktree/concurrency",
+  "tag": "salvage/worktree/concurrency",
+  "sha": "71eda1ed14ae412e90b6e1c96c3cd8088a081714"
+ },
+ {
+  "branch": "worktree/core-columns",
+  "tag": "salvage/worktree/core-columns",
+  "sha": "23b07fa3f478656b0371d3e660af57a2c3661005"
+ },
+ {
+  "branch": "worktree/decide-tool",
+  "tag": "salvage/worktree/decide-tool",
+  "sha": "0820326dbed93a8f55a9335ad1240c0acc158592"
+ },
+ {
+  "branch": "worktree/design-bands",
+  "tag": "salvage/worktree/design-bands",
+  "sha": "f5e13e7880d6efacd199260a626177ea15362dff"
+ },
+ {
+  "branch": "worktree/dictate-dup-fix",
+  "tag": "salvage/worktree/dictate-dup-fix",
+  "sha": "88cf663749c475d71973d26bf095b40f9aeb393e"
+ },
+ {
+  "branch": "worktree/dictate-fixes",
+  "tag": "salvage/worktree/dictate-fixes",
+  "sha": "b4d31f83b3fd4f562ec6bd0e825d1360f7401248"
+ },
+ {
+  "branch": "worktree/dictate-fixes-2",
+  "tag": "salvage/worktree/dictate-fixes-2",
+  "sha": "4dba60bff4f1f1efa1d539611d2a8a6977be6015"
+ },
+ {
+  "branch": "worktree/dictate-status-tray",
+  "tag": "salvage/worktree/dictate-status-tray",
+  "sha": "f5a7029affeee8f27c193070a513db27bc4e6967"
+ },
+ {
+  "branch": "worktree/dictation-stream",
+  "tag": "salvage/worktree/dictation-stream",
+  "sha": "316cb45b2d9063f4fce707727198ed775a524528"
+ },
+ {
+  "branch": "worktree/dictmap",
+  "tag": "salvage/worktree/dictmap",
+  "sha": "c03adfbe83df1d2d81dc12851f96ec300859ecfa"
+ },
+ {
+  "branch": "worktree/drawer-chat",
+  "tag": "salvage/worktree/drawer-chat",
+  "sha": "2ef2f5a3cb4481e7a866261acf2b60eb74720a73"
+ },
+ {
+  "branch": "worktree/figma-palette",
+  "tag": "salvage/worktree/figma-palette",
+  "sha": "8daf0ded44055289a53cbc266cd7c41559d4ebf8"
+ },
+ {
+  "branch": "worktree/figma-palette-2",
+  "tag": "salvage/worktree/figma-palette-2",
+  "sha": "3c54e774c4a6865337700ad2750235dbb245cd42"
+ },
+ {
+  "branch": "worktree/figma-palette-3",
+  "tag": "salvage/worktree/figma-palette-3",
+  "sha": "a797478c6ade49cb2eafbfc1c66669a31a1b54f8"
+ },
+ {
+  "branch": "worktree/figma-palette-4",
+  "tag": "salvage/worktree/figma-palette-4",
+  "sha": "d71afe2a3c9ad371cdf9026112bc2b702ce04493"
+ },
+ {
+  "branch": "worktree/figma-system",
+  "tag": "salvage/worktree/figma-system",
+  "sha": "fbfc65dc518aa6d84e49d5bd670b0338ed7a407e"
+ },
+ {
+  "branch": "worktree/figma-system-2",
+  "tag": "salvage/worktree/figma-system-2",
+  "sha": "6ffccd2c09b76b2eea77639264d22a29476655fb"
+ },
+ {
+  "branch": "worktree/file-explorer",
+  "tag": "salvage/worktree/file-explorer",
+  "sha": "7e0653eebf6d73fbcbe991a3d3d6d079e1523a77"
+ },
+ {
+  "branch": "worktree/file-explorer-fs",
+  "tag": "salvage/worktree/file-explorer-fs",
+  "sha": "406a41abdca474f6afb9db13285800499a6e1c7a"
+ },
+ {
+  "branch": "worktree/follow",
+  "tag": "salvage/worktree/follow",
+  "sha": "bac50ef3ec21ddd68c3d7bd280d4cfc8008862fc"
+ },
+ {
+  "branch": "worktree/helper-fixes",
+  "tag": "salvage/worktree/helper-fixes",
+  "sha": "c598bbbbe22922a59af6609518145d2790417486"
+ },
+ {
+  "branch": "worktree/item-ui",
+  "tag": "salvage/worktree/item-ui",
+  "sha": "07206a83493f0e11d6666a4dcc8fc5a62b932630"
+ },
+ {
+  "branch": "worktree/layout-explorer",
+  "tag": "salvage/worktree/layout-explorer",
+  "sha": "77f8f6e53ce342e63d8726f253aee20dfdfb6ed8"
+ },
+ {
+  "branch": "worktree/layout-names",
+  "tag": "salvage/worktree/layout-names",
+  "sha": "600dcace8cf6c807b34cc570248c5ead5a22af81"
+ },
+ {
+  "branch": "worktree/layout-system",
+  "tag": "salvage/worktree/layout-system",
+  "sha": "d3146897b28983f66e6f870fa813c74acb445037"
+ },
+ {
+  "branch": "worktree/lifecycle",
+  "tag": "salvage/worktree/lifecycle",
+  "sha": "d9e46335dfd798edae130633b41ed76b3e801c64"
+ },
+ {
+  "branch": "worktree/live-card",
+  "tag": "salvage/worktree/live-card",
+  "sha": "adb67dd54cf14900654a3babc84ee25a25999795"
+ },
+ {
+  "branch": "worktree/live-card-wide",
+  "tag": "salvage/worktree/live-card-wide",
+  "sha": "85c310d5796f68d9939fa78bee11af6127afdd73"
+ },
+ {
+  "branch": "worktree/live-preview",
+  "tag": "salvage/worktree/live-preview",
+  "sha": "e8f85e7631666ae436206148a1f60178e78cddf5"
+ },
+ {
+  "branch": "worktree/live-reply",
+  "tag": "salvage/worktree/live-reply",
+  "sha": "be46c296c3bc5bd30f6feba749641ec0b7ebf667"
+ },
+ {
+  "branch": "worktree/loose-ends",
+  "tag": "salvage/worktree/loose-ends",
+  "sha": "ee30819a31864cb1d9d0dbe2d562b4a387fe700d"
+ },
+ {
+  "branch": "worktree/md-open",
+  "tag": "salvage/worktree/md-open",
+  "sha": "df95e131bd417349974769e42e3c002c5c371955"
+ },
+ {
+  "branch": "worktree/md-pages",
+  "tag": "salvage/worktree/md-pages",
+  "sha": "22cd1334110a54aa351c77a3e54bb34d6cf137d1"
+ },
+ {
+  "branch": "worktree/md-scroll",
+  "tag": "salvage/worktree/md-scroll",
+  "sha": "b56418640e9f95a885ec4ca19cea6684d8d426c4"
+ },
+ {
+  "branch": "worktree/mobile-doc-header",
+  "tag": "salvage/worktree/mobile-doc-header",
+  "sha": "1553b3a53c3835610c170a783fde14dcb1926969"
+ },
+ {
+  "branch": "worktree/mobile-voice-fix",
+  "tag": "salvage/worktree/mobile-voice-fix",
+  "sha": "369a59bc83e02314edd153c4477e88316853413d"
+ },
+ {
+  "branch": "worktree/module-experts",
+  "tag": "salvage/worktree/module-experts",
+  "sha": "d7dec7cf54b73fc3a7ea8b656370a13a4d0fe763"
+ },
+ {
+  "branch": "worktree/node-modules-guard",
+  "tag": "salvage/worktree/node-modules-guard",
+  "sha": "6a98920bb2f4442a20936329aa4fb05313f3883d"
+ },
+ {
+  "branch": "worktree/notifications-lab",
+  "tag": "salvage/worktree/notifications-lab",
+  "sha": "3280259b783499e3e2c14cb67af49b9d44694afe"
+ },
+ {
+  "branch": "worktree/openrouter-cost-blind",
+  "tag": "salvage/worktree/openrouter-cost-blind",
+  "sha": "9bfb18942283c64150d4a9341e3a600dcd8a6f1c"
+ },
+ {
+  "branch": "worktree/padding-system",
+  "tag": "salvage/worktree/padding-system",
+  "sha": "5c530ae8771d3088e4189360ebeb11dfdc4905ba"
+ },
+ {
+  "branch": "worktree/page-cards",
+  "tag": "salvage/worktree/page-cards",
+  "sha": "f6e3fdbf624ddaffd8d0dcc1434d0b45e06664d9"
+ },
+ {
+  "branch": "worktree/page-files-log",
+  "tag": "salvage/worktree/page-files-log",
+  "sha": "83914cded93bc35474e20e5a76e990a04f3fa7c1"
+ },
+ {
+  "branch": "worktree/page-inbox",
+  "tag": "salvage/worktree/page-inbox",
+  "sha": "9dff31d674b00602e25f3b5daca81b0846ae63a6"
+ },
+ {
+  "branch": "worktree/page-slice",
+  "tag": "salvage/worktree/page-slice",
+  "sha": "7d301932ca3766e1e5f86992b5c866767d5527bd"
+ },
+ {
+  "branch": "worktree/page-tool",
+  "tag": "salvage/worktree/page-tool",
+  "sha": "4ecd60a2dcaa3d8e19b0074f466efc4bac545423"
+ },
+ {
+  "branch": "worktree/pm-idle",
+  "tag": "salvage/worktree/pm-idle",
+  "sha": "a998007011790bf506bb2716d553b2f9dd96b518"
+ },
+ {
+  "branch": "worktree/pm-pool-fix",
+  "tag": "salvage/worktree/pm-pool-fix",
+  "sha": "416c1133617acd304d1f34dbb414346fd3feae55"
+ },
+ {
+  "branch": "worktree/pm-ram",
+  "tag": "salvage/worktree/pm-ram",
+  "sha": "7439e88c533e0310d0b78b104f817bd7c7388caa"
+ },
+ {
+  "branch": "worktree/probe-p48ei3",
+  "tag": "salvage/worktree/probe-p48ei3",
+  "sha": "7adf5c142760db9aa3c9f27905d99966ffb365d3"
+ },
+ {
+  "branch": "worktree/process-graph",
+  "tag": "salvage/worktree/process-graph",
+  "sha": "c61efbb172039e3b5ac384a103db37a7c0fb3e68"
+ },
+ {
+  "branch": "worktree/process-monitor",
+  "tag": "salvage/worktree/process-monitor",
+  "sha": "1665e320b04e98210b77f39cb15877065bb77a6e"
+ },
+ {
+  "branch": "worktree/promptcard",
+  "tag": "salvage/worktree/promptcard",
+  "sha": "7b37349748daae8af5d7891befdf5061720a1fa1"
+ },
+ {
+  "branch": "worktree/qf-2",
+  "tag": "salvage/worktree/qf-2",
+  "sha": "85d10ea5597ba079c41ce2b98862058b1f384103"
+ },
+ {
+  "branch": "worktree/recipe-a",
+  "tag": "salvage/worktree/recipe-a",
+  "sha": "6bbb23ad9b0d13423038731b9ba567e6e2788210"
+ },
+ {
+  "branch": "worktree/recursive-pairs",
+  "tag": "salvage/worktree/recursive-pairs",
+  "sha": "b29f5db96e4442a0f657052d5559cae236d1ae62"
+ },
+ {
+  "branch": "worktree/refine-dictate-ui",
+  "tag": "salvage/worktree/refine-dictate-ui",
+  "sha": "69ed6fc0053a71a9e33a53db6aedc1ecd547974a"
+ },
+ {
+  "branch": "worktree/refine-nothing",
+  "tag": "salvage/worktree/refine-nothing",
+  "sha": "406a4d1d88ab363a88a2d2669abb63c370d8d86c"
+ },
+ {
+  "branch": "worktree/refine-session-log",
+  "tag": "salvage/worktree/refine-session-log",
+  "sha": "cb6097c9ec3e323fb3e9eef9d7c2d148ae91f425"
+ },
+ {
+  "branch": "worktree/refine-style",
+  "tag": "salvage/worktree/refine-style",
+  "sha": "bafe045e27d06a0070b20ec11fe6f75f4e5e8616"
+ },
+ {
+  "branch": "worktree/refine-voice-ui",
+  "tag": "salvage/worktree/refine-voice-ui",
+  "sha": "f1f452d99f6c0be125ea3b705f5f17ca65865ff8"
+ },
+ {
+  "branch": "worktree/section-variants",
+  "tag": "salvage/worktree/section-variants",
+  "sha": "d2dc949605989f34187d14aabe652da48a336fca"
+ },
+ {
+  "branch": "worktree/server-guard",
+  "tag": "salvage/worktree/server-guard",
+  "sha": "3803f75933f0f1078619288a95483c6b1435f1db"
+ },
+ {
+  "branch": "worktree/servex-crash",
+  "tag": "salvage/worktree/servex-crash",
+  "sha": "7b9ee818365525ec2bd0c38e75955de1a2ce9002"
+ },
+ {
+  "branch": "worktree/servex-monitor",
+  "tag": "salvage/worktree/servex-monitor",
+  "sha": "592d5614d73ec498b24392970767035cc24a1f4f"
+ },
+ {
+  "branch": "worktree/session-gate",
+  "tag": "salvage/worktree/session-gate",
+  "sha": "75c4854993d916b6be7f26b009ec2645dac5fd0a"
+ },
+ {
+  "branch": "worktree/session-housekeeping",
+  "tag": "salvage/worktree/session-housekeeping",
+  "sha": "f2240d64b0f0b85516233695dcbe48f6d3c7a956"
+ },
+ {
+  "branch": "worktree/smoke-proof",
+  "tag": "salvage/worktree/smoke-proof",
+  "sha": "d154e9f3af3449d600620579915ee5e90e648bcb"
+ },
+ {
+  "branch": "worktree/tag-notes",
+  "tag": "salvage/worktree/tag-notes",
+  "sha": "fb944262bcbc0a49300c0e65fa2fbd86d6af20a4"
+ },
+ {
+  "branch": "worktree/task-loop",
+  "tag": "salvage/worktree/task-loop",
+  "sha": "fac7faf39d96148030db354ed0e33a2216e577a4"
+ },
+ {
+  "branch": "worktree/token-accounting",
+  "tag": "salvage/worktree/token-accounting",
+  "sha": "fb9852cc83b71b396bbcc68ca68e5006de04f336"
+ },
+ {
+  "branch": "worktree/ui-system-land4",
+  "tag": "salvage/worktree/ui-system-land4",
+  "sha": "e0ed00f4dcd8ed6dd90dafb99bda29bca32e51b8"
+ },
+ {
+  "branch": "worktree/weight-badges",
+  "tag": "salvage/worktree/weight-badges",
+  "sha": "e6aa037f58af4becc90897b9689d7abb62764f7a"
+ },
+ {
+  "branch": "worktree/whisper-log",
+  "tag": "salvage/worktree/whisper-log",
+  "sha": "730ef11a925767c725bb2d01b406d337af14be6c"
+ },
+ {
+  "branch": "worktree/worktree-watch",
+  "tag": "salvage/worktree/worktree-watch",
+  "sha": "f5c58ba85f40cadae2d7cb44405157d80ed9e861"
+ }
+]
