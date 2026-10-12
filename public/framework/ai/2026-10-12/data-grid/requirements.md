@@ -1,4 +1,6 @@
-# One DataGrid, and the preview → detail pattern as a Page mode (mastermind brief)
+# DataGrid: one grid, table or rail
+
+In short: three grids become one `ext/DataGrid`; Sessions runs on it with no regression; the same data shows as a table or a rail (preview → detail), chosen by a setting, not a new class.
 
 **Owner (2026-10-12, dictated):** "I'm feeling the need for a data grid extension… if it's not being used for the sessions thing, it should be, but we don't want to backtrack on the sessions data grid." Sessions are like pages; we want one consistent system for design, data, files, routing and navigation, especially the **preview → detail** transition. "We don't want to have to create a new class every time we want a little bit different layout."
 
