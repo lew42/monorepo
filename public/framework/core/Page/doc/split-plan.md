@@ -1,4 +1,4 @@
-# Page.class.js split plan (steps 1-6 done 2026-10-12: 2270 → 1086 lines; see [STATE 1-4](/framework/ai/2026-10-12/page-split-1/STATE.md), [STATE 5-6](/framework/ai/2026-10-12/page-split-2/STATE.md))
+# Page.class.js split plan (COMPLETE 2026-10-12: 2270 → 849 lines; see [STATE 1-4](/framework/ai/2026-10-12/page-split-1/STATE.md), [STATE 5-6](/framework/ai/2026-10-12/page-split-2/STATE.md), [STATE 7](/framework/ai/2026-10-12/page-split-3/STATE.md))
 
 **Answer to "is 2,000 lines a mistake?"** Half of it is comments. `Page.class.js` is 2,270 lines: **1,027 code, 926 comment (40%), 317 blank**, 150 methods. And ~270 lines are already four helper classes living in the same file. Re-measure any time: `node public/framework/core/Page/doc/split-measure.mjs --callers` (per method: code/comment lines and how many repo files mention the name; generic names like `set`/`get`/`add` over-count, so judge those by hand).
 
@@ -45,10 +45,11 @@ Held by reference, the way `prefs()` already does it: `columns(o){ return new th
 4. ✅ **Previews/walls** (150): callers `previews` (212 files mention it, mostly page.js declarations of the word, so keep the `previews()` facade), `wall_rungs` 1. Risk: low-medium.
 5. ✅ **Columns** (296): 74 mentions of `columns(` in page.js files; keep `columns()`, `column()`, `column_host` as facades. Biggest comment share (163) so shrinks the file most. Risk: medium, needs the `/imagine/paging` and Finder pages checked at the four widths.
 6. ✅ **Links** (200): `open_link`/`swap_link` called from card.js, markdown open pages. Risk: medium (click routing, reload on deep link).
-7. ⬜ **Jsonl** (470): the core path of every page, replay order matters, `set()` calls it. Do last; risk: high; run `check_page` on a sample of pages and the page tool (`page-tool-2026-10-09.md`).
+7. ✅ **Jsonl** (470): the core path of every page, replay order matters, `set()` calls it. Do last; risk: high; run `check_page` on a sample of pages and the page tool (`page-tool-2026-10-09.md`).
 
 ## Do not move
 
 `set`/`get`/`add`/`child`/`render`/`activate`: hundreds of callers and they ARE the Page. Leave them.
 
 Steps 1-6 executed 2026-10-12, one commit each; 7 (jsonl) is a later task. Step 5: `Columns.js` (`PageColumns`) holds the layout; `columns()`, `column()`, `column_host` stay as facades. Step 6: `Links.js` (`PageLinks`) holds `open_link`/`swap_link` and the md helpers; `child_md`, `md_folder`, `fs_folder`, `md_dir` stay on Page. Step 2 deviation: the 5 listing statics stay on Page (they use `Page.*` state). Step 4: `preview*` stay as facades because pages override them.
+Step 7: `Jsonl.js` (`PageJsonl`, held as `Page.Jsonl`) holds the loader (`Page.jsonl()` is a facade over `Jsonl.load`), the three file steps, tab state, the word delta, nav visibility and the placed-file drawing. The state (`listed`, `placed`, `child_kinds`, `tabs_state`) stays on the page and every call back goes through `this.page.*`, so a page that overrides `file`, `tab` or `place` still wins. The listing statics (`Page.listing`, `loaded_listing`, `log_pages`) stay on Page, as in step 2. `Page.Jsonl.Page` is set by `Page.class.js` because importing `Page` from `Jsonl.js` would be a cycle. Proof and measure: [page-split-3/STATE.md](/framework/ai/2026-10-12/page-split-3/STATE.md). The split is complete.
