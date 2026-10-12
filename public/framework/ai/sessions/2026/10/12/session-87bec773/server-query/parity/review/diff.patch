@@ -1,0 +1,449 @@
+diff --git a/public/framework/ai/AISession/AISessionBuckets.js b/public/framework/ai/AISession/AISessionBuckets.js
+index 93be0fe15..a7475e3ff 100644
+--- a/public/framework/ai/AISession/AISessionBuckets.js
++++ b/public/framework/ai/AISession/AISessionBuckets.js
+@@ -106,5 +106,40 @@ export default class AISessionBuckets {
+ 		return out;
+ 	}
+ 
++	/** Children nest under their parent; a row whose parent is not in `rows` stays top-level. `parent_of(row)` names the parent id or null. */
++	static nest(rows, parent_of, id_of){
++		const shown = new Set(rows.map(id_of)), kids_of = new Map();
++		const up = r => { const par = parent_of(r); return par && par !== id_of(r) && shown.has(par) ? par : null; };
++		for (const r of rows){ const par = up(r); if (par) (kids_of.get(par) ?? kids_of.set(par, []).get(par)).push(r); }
++		return { top: rows.filter(r => !up(r)), kids_of };
++	}
++
++	/** The grid's whole row order: routine kinds roll up into one head row each (on top; an open head's sessions sit right under it), then the rest in
++	 * `sort(rows)` order with children nested under their parent (collapsed until opened). Runs in the browser (files path) and in node (the query source).
++	 * Returns { out: the flat list, nests: Map(row -> { depth, kids, open }) }. Call it on rows already filtered; `buckets` is kept between calls so only changes are re-counted. */
++	static arrange(rows, { buckets, sort, open_kinds, open_ids, parent_of, id_of }){
++		buckets.sync(rows);
++		const kept = [], held = new Map();   // kind -> its rows
++		for (const r of rows){
++			const ix = buckets.of(r), k = ix && AISessionBuckets.kind_of(ix);
++			if (k && buckets.routine.has(k)) (held.get(k) ?? held.set(k, []).get(k)).push(r); else kept.push(r);
++		}
++		const heads = [...held.keys()].map(k => ({ bucket: "kind", key: k, id: "bucket-" + k, ...buckets.index.kind[k] })).sort((x, y) => y.n - x.n);
++		const { top, kids_of } = AISessionBuckets.nest(sort(kept), parent_of, id_of);
++		const nests = new Map(), out = [];
++		for (const h of heads){
++			out.push(h);
++			if (open_kinds.has(h.key)) for (const r of sort(held.get(h.key))){ nests.set(r, { depth: 1, kids: 0 }); out.push(r); }
++		}
++		const place = (r, depth, seen) => {
++			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = open_ids.has(id_of(r));
++			nests.set(r, { depth, kids: kids.length, open });
++			out.push(r);
++			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
++		};
++		top.forEach(r => place(r, 0, new Set([id_of(r)])));
++		return { out, nests };
++	}
++
+ 	toJSON(){ return { index: this.index }; }
+ }
+diff --git a/public/framework/ai/AISession/AISessionFlags.js b/public/framework/ai/AISession/AISessionFlags.js
+index c2eaf3906..accee2d4c 100644
+--- a/public/framework/ai/AISession/AISessionFlags.js
++++ b/public/framework/ai/AISession/AISessionFlags.js
+@@ -1,12 +1,15 @@
+-import AISessionRows from "./AISessionRows.js";
+-import AISession from "./AISession.js";
+ 
+ // Red flags: what looks wrong with a session, worked out from numbers, never guessed. `Server/session-flags.mjs` reads the
+ // transcripts and writes sessions/session-flags.json (role, mastermind, last-turn context, last line time, the hour's $);
+ // this class loads that file and turns it plus the live row and the session index into flags. It draws nothing.
++// Pure data, like AISessionBuckets: it also runs in node (the sessions query source, AISessionSource.mjs), so it imports nothing from the browser;
++// the page points `usd_of` at AISessionRows.claude_usd_of and `load` imports AISessionRows on demand.
+ // The thresholds are the owner's (2026-10-09): over $10 or $5 in the last hour; working but quiet 5 minutes; context over 300k; Opus minion.
+ export default class AISessionFlags {
+ 
++	static usd_of = r => r.claude_usd ?? 0;   // the page replaces it: a row's Claude $ lives in the session index there
++	static WORKING = new Set(["working", "active"]);
++
+ 	static rows = {};   // id -> { role, mm, ep, ctx, last, model, hour_usd }, set by load()
+ 
+ 	static LIMITS = { usd: 10, hour_usd: 5, quiet_ms: 5 * 60 * 1000, ctx: 300000, fresh_ms: 3 * 60 * 1000 };
+@@ -19,6 +22,7 @@ export default class AISessionFlags {
+ 	};
+ 
+ 	static async load(url){
++		const { default: AISessionRows } = await import("./AISessionRows.js");
+ 		const data = await AISessionRows.get_json(url + "session-flags.json");
+ 		AISessionFlags.generated_at = Date.parse(data?.generated_at ?? 0) || 0;
+ 		AISessionFlags.rows = AISessionRows.flag_rows = data?.rows ?? {};   // the same table gives AISessionRows its roles
+@@ -33,13 +37,13 @@ export default class AISessionFlags {
+ 	/** The flag keys that apply to one row right now. */
+ 	static flags_of(r, now = Date.now()){
+ 		const { LIMITS } = AISessionFlags, f = AISessionFlags.of(r), out = [];
+-		const usd = AISessionRows.claude_usd_of(r);
++		const usd = AISessionFlags.usd_of(r);
+ 		if (usd > LIMITS.usd || (f?.hour_usd ?? 0) > LIMITS.hour_usd) out.push("expensive");
+ 		// The newest sign of life: the live index (always current), or the transcript's last line from session-flags.json,
+ 		// which counts only while that file is fresh. With neither, a quiet session cannot be proven stalled, so it is not flagged.
+ 		const fresh = now - AISessionFlags.generated_at < AISessionFlags.LIMITS.fresh_ms;
+ 		const last = fresh ? Date.parse(f?.last ?? 0) || 0 : 0;
+-		if (AISessionRows.WORKING_STATES.has(r.state) && last && now - last >= LIMITS.quiet_ms) out.push("stalled");
++		if (AISessionFlags.WORKING.has(r.state) && last && now - last >= LIMITS.quiet_ms) out.push("stalled");
+ 		if ((r.context ?? f?.ctx ?? 0) > LIMITS.ctx) out.push("bloat");
+ 		const model = String(r.model ?? f?.model ?? ""), role = f?.role ?? r.role ?? "";
+ 		const spawned = r.source === "servex" || (f?.ep === "sdk-ts" && !["vscode tab", "terminal"].includes(role));
+diff --git a/public/framework/ai/AISession/AISessionRows.js b/public/framework/ai/AISession/AISessionRows.js
+index 163304d2c..e896ca65f 100644
+--- a/public/framework/ai/AISession/AISessionRows.js
++++ b/public/framework/ai/AISession/AISessionRows.js
+@@ -1,5 +1,6 @@
+ import { elapsed } from "/framework/ext/AITask/stats.js";
+ import AISession from "./AISession.js";
++import AISessionBuckets from "./AISessionBuckets.js";
+ 
+ // The data side of the Sessions tab: turns the raw feeds (sessions.json, Servex's agent list, the Session class
+ // index, the session tree, the spend tree) into the rows the page shows. It draws nothing. Everything is a static,
+@@ -302,10 +303,8 @@ export default class AISessionRows {
+ 
+ 	/** Children nest under their parent (the session tree says who started whom). A row whose parent is not in view stays top-level. */
+ 	static nest(rows){
+-		const id_of = r => r.session_id || r.id, shown = new Set(rows.map(id_of)), kids_of = new Map();
+-		const parent_in_view = r => { const par = AISessionRows.tree?.[id_of(r)]?.parent; return par && par !== id_of(r) && shown.has(par) ? par : null; };
+-		for (const r of rows){ const par = parent_in_view(r); if (par) (kids_of.get(par) ?? kids_of.set(par, []).get(par)).push(r); }
+-		return { top: rows.filter(r => !parent_in_view(r)), kids_of };
++		const id_of = r => r.session_id || r.id;
++		return AISessionBuckets.nest(rows, r => AISessionRows.tree?.[id_of(r)]?.parent, id_of);
+ 	}
+ 
+ 	/** Claude $ and OpenRouter $ per group, biggest first. `key_of` names a row's group, `field` names the group key. */
+diff --git a/public/framework/ai/AISession/AISessionSource.mjs b/public/framework/ai/AISession/AISessionSource.mjs
+new file mode 100644
+index 000000000..36bb5e09f
+--- /dev/null
++++ b/public/framework/ai/AISession/AISessionSource.mjs
+@@ -0,0 +1,46 @@
++import fs from "fs";
++import path from "path";
++import AISessionFlags from "./AISessionFlags.js";
++import AISessionBuckets from "./AISessionBuckets.js";
++
++/* The node side of the Sessions grid's rows: what the "sessions" query source (ext/Query) adds to each index snapshot so the browser draws
++ * the same row the files path does. `shape` is the join; the snapshot itself stays as the index wrote it (no second store).
++ * Doc: ext/Query/doc/architecture.md. */
++export default class AISessionSource {
++
++	/** id -> source tag ("sdk", "cli", "vscode") from sessions.json, the legacy snapshot the files path also reads. Filled by load(). */
++	static tags = new Map();
++
++	/** Read the join file once, when the source loads. A missing file is an empty join. */
++	static load(root) {
++		AISessionSource.tags = new Map();
++		try {
++			for (const r of JSON.parse(fs.readFileSync(path.join(root, "sessions.json"), "utf8")).rows ?? [])
++				if (r.source && r.source !== "servex") AISessionSource.tags.set(r.session_id ?? r.id, r.source);
++		} catch {}
++	}
++
++	/** A Servex-spawned session has a registry agent id; any other is the tag sessions.json gave it, else a VS Code tab (what the files path draws for a session only the index knows). */
++	static source_of(snap) { return snap.agent ? "servex" : AISessionSource.tags.get(snap.id) ?? "vscode"; }
++
++	/** The Claude spend the files path totals (AISessionRows.claude_usd_of): OpenRouter dollars are not Claude's. */
++	static claude_usd_of(snap) { return snap.provider === "openrouter" ? 0 : snap.usd ?? 0; }
++
++	/** The files path's "needs attention" test, run by the same AISessionFlags.flags_of: a session-record alert or any red flag. 1 or 0, so the query can `gte` and `sum` it. */
++	static attention_of(row) { return row.alerts || AISessionFlags.flags_of(row).length ? 1 : 0; }
++
++	/** The sorted matches become the grid's list, exactly as AISessionsPage.arrange does for the files path (the same AISessionBuckets.arrange): routine kinds roll up into head rows,
++	 * children nest under their parent. `spec.open` = { kinds, ids } is what the browser has expanded. Each session row carries its `nest` ({ depth, kids, open }). */
++	static arrange(hit, spec) {
++		const open = spec.open ?? {}, buckets = AISessionSource.buckets ??= new AISessionBuckets([], { of: r => r, key: r => r.id });
++		const { out, nests } = AISessionBuckets.arrange(hit, { buckets, sort: rs => rs, open_kinds: new Set(open.kinds), open_ids: new Set(open.ids), parent_of: r => r.parent, id_of: r => r.id });
++		return out.map(r => r.bucket ? r : { ...r, nest: nests.get(r) });
++	}
++
++	static shape(snap) {
++		const source = AISessionSource.source_of(snap);
++		const row = { ...snap, source, claude_usd: AISessionSource.claude_usd_of(snap), closed: !!snap.closed, role: source === "servex" ? AISessionBuckets.role_of(snap) : null };
++		row.attention = AISessionSource.attention_of(row);
++		return row;
++	}
++}
+diff --git a/public/framework/ai/AISession/AISessionTailer.mjs b/public/framework/ai/AISession/AISessionTailer.mjs
+index fcbd45cec..9c5014675 100644
+--- a/public/framework/ai/AISession/AISessionTailer.mjs
++++ b/public/framework/ai/AISession/AISessionTailer.mjs
+@@ -1,5 +1,6 @@
+ import fs from "fs";
+ import AISessionIndex from "./AISessionIndex.mjs";
++import AISessionSource from "./AISessionSource.mjs";
+ import QueryServer from "../../ext/Query/QueryServer.mjs";
+ 
+ /* Starts the AISessionIndex inside the dev server (ai/AISession/AISessionIndex.mjs): transcripts in, per-session index.json and the
+@@ -13,9 +14,11 @@ export const live = { index: null };
+  * Unavailable on a server with no index (a worktree's): the query answers { error: "no source" } and the page reads the files. */
+ QueryServer.source("sessions", {
+     available: () => !!live.index,
+-    load: () => live.index.ready,
++    load: async () => { await live.index.ready; AISessionSource.load(live.index.root); },
+     items: () => live.index.snaps.values(),
+     on: fn => live.index.on(fn),
++    shape: AISessionSource.shape,
++    arrange: AISessionSource.arrange,
+ });
+ 
+ export default class AISessionTailer {
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index e509ffb89..1b7d0acdb 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -13,6 +13,7 @@ import AISession from "./AISession.js";
+ import AISessionDetail from "./AISessionDetail.js";
+ import AISessionFlags from "./AISessionFlags.js";
+ import StoreFolder from "./StoreFolder.js";
++AISessionFlags.usd_of = r => AISessionRows.claude_usd_of(r);   // flags_of reads the row's Claude $ from the session index here
+ import QueryClient from "/framework/ext/Query/QueryClient.js";
+ 
+ const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
+@@ -126,35 +127,17 @@ export default class AISessionsPage extends Page {
+ 		// Only a day-snapshot record carries `agent` and `folder`, which the kind rules read; any other row is never hidden.
+ 		this.buckets ??= new AISessionBuckets([], { of: r => { const ix = AISession.all.get(id_of(r))?.ix; return ix && "folder" in ix ? ix : null; }, key: id_of });
+ 		this.open_kinds ??= new Set();
+-		this.buckets.sync(rows);   // only new, changed or gone rows touch their buckets
+-		const kept = [], held = new Map();   // kind -> its rows
+-		for (const r of rows){
+-			const ix = this.buckets.of(r), k = ix && AISessionBuckets.kind_of(ix);
+-			if (k && this.buckets.routine.has(k)) (held.get(k) ?? held.set(k, []).get(k)).push(r); else kept.push(r);
+-		}
+-		const heads = [...held.keys()].map(k => ({ bucket: "kind", key: k, id: "bucket-" + k, ...this.buckets.index.kind[k] })).sort((x, y) => y.n - x.n);
+-		const { top, kids_of } = AISessionRows.nest(AISessionRows.sort_rows(kept, sort));
+ 		this.open_ids ??= new Set();
+-		this.nests = new Map();
+-		const out = [];
+-		for (const h of heads){
+-			out.push(h);
+-			if (this.open_kinds.has(h.key)) for (const r of AISessionRows.sort_rows(held.get(h.key), sort)){ this.nests.set(r, { depth: 1, kids: 0 }); out.push(r); }
+-		}
+-		const place = (r, depth, seen) => {
+-			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = this.open_ids.has(id_of(r));
+-			this.nests.set(r, { depth, kids: kids.length, open, toggle: () => { open ? this.open_ids.delete(id_of(r)) : this.open_ids.add(id_of(r)); this.grid.apply(false); } });
+-			out.push(r);
+-			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
+-		};
+-		top.forEach(r => place(r, 0, new Set([id_of(r)])));
++		const { out, nests } = AISessionBuckets.arrange(rows, { buckets: this.buckets, sort: rs => AISessionRows.sort_rows(rs, sort), open_kinds: this.open_kinds, open_ids: this.open_ids, parent_of: r => AISessionRows.tree?.[id_of(r)]?.parent, id_of });
++		for (const [r, n] of nests) if (n.kids || n.open) n.toggle = () => { n.open ? this.open_ids.delete(id_of(r)) : this.open_ids.add(id_of(r)); this.grid.apply(false); };
++		this.nests = nests;
+ 		return out;
+ 	}
+ 
+ 	/** A bucket row: a click shows or hides the routine sessions it holds. */
+ 	bucket_view(b, card = false){
+ 		const open = this.open_kinds.has(b.key);
+-		return new AISessionBucketView({ row: b, open, card, toggle: () => { open ? this.open_kinds.delete(b.key) : this.open_kinds.add(b.key); this.grid.apply(false); } });
++		return new AISessionBucketView({ row: b, open, card, toggle: () => { open ? this.open_kinds.delete(b.key) : this.open_kinds.add(b.key); this.remote ? this.remote_ask() : this.grid.apply(false); } });
+ 	}
+ 
+ 	/** The plan's meters as progress bars with the pace marker (ext/AITask/usage.js), then one line of counts. */
+@@ -429,14 +412,14 @@ export default class AISessionsPage extends Page {
+ 	static SORT_FIELD = { state: "state", name: "title", cost: "usd", updated: "last_activity", duration: "wall_ms", role: "agent", source: "provider", model: "model" };
+ 	static SEARCH_FIELDS = ["title", "agent", "id", "folder", "model"];
+ 
+-	/** With `?source=node`: true when the dev server answers the first query; otherwise false and the page reads files (the default until remote mode reaches parity). */
++	/** True when the dev socket answers the first query (the default); `?source=files`, no socket or no source on this server: false, and the page reads files. */
+ 	async start_remote(){
+-		if (new URLSearchParams(location.search).get("source") !== "node" || !AISessionLive.socket()) return false;   // opt-in until parity (buckets, nesting, provider): ext/Query/doc/architecture.md
++		if (new URLSearchParams(location.search).get("source") === "files" || !AISessionLive.socket()) return false;   // the default on the dev socket; `?source=files` forces the files path (ext/Query/doc/architecture.md)
+ 		this.remote = { rows: [], total: 0, totals: {}, ms: null, sort_key: "", search: "", busy: false };
+ 		this.client = new QueryClient("sessions", { row: snap => this.remote_row(snap), stale: () => this.polling && this.remote_ask({ refresh: true }) });
++		this.nests = new Map();
+ 		const ok = await this.remote_ask({ first: true });
+ 		if (!ok) { this.remote = null; this.client = null; return false; }
+-		this.nests = new Map();
+ 		this.remote_controls();
+ 		const get_json = AISessionRows.get_json;
+ 		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });
+@@ -451,10 +434,12 @@ export default class AISessionsPage extends Page {
+ 			{ field: "last_activity", op: "lte", value: this.date_to + "T23:59:59.999Z" },
+ 		];
+ 		if (this.inflight_only) where.push({ field: "state", op: "eq", value: "active" });
+-		if (this.attention_only) where.push({ field: "flags", op: "gte", value: 1 });
++		if (!this.show_closed) where.push({ field: "closed", op: "eq", value: false });   // closed sessions hide unless ticked (never deleted)
++		if (this.attention_only) where.push({ field: "attention", op: "gte", value: 1 });
+ 		if (r.search) where.push({ fields: AISessionsPage.SEARCH_FIELDS, op: "contains", value: r.search });
+ 		const [key, dir] = r.sort_key ? r.sort_key.split(":") : ["updated", "desc"];
+-		return { where, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["usd", "tokens"] };
++		this.open_kinds ??= new Set(); this.open_ids ??= new Set();
++		return { where, open: { kinds: [...this.open_kinds], ids: [...this.open_ids] }, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["claude_usd", "tokens", "attention"] };
+ 	}
+ 
+ 	/** Ask for a page. `first`/default = a fresh query; `more` = the next 50; `refresh` = the same query again, keeping the rows already loaded. */
+@@ -469,7 +454,9 @@ export default class AISessionsPage extends Page {
+ 			if (res.error) return false;
+ 			const rows = res.rows.map(snap => this.remote_row_of(snap));
+ 			Object.assign(r, { rows: more ? [...r.rows, ...rows] : rows, total: res.total, totals: res.totals, ms: res.ms });
+-			this.filtered_count = res.total; this.shown_usd = res.totals.usd ?? 0;
++			this.filtered_count = res.matched ?? res.total; this.shown_usd = res.totals.claude_usd ?? 0;
++				this.attention_only_text?.text(`needs attention · ${res.totals.attention ?? 0}`);
++			this.nests = new Map(r.rows.filter(x => !x.bucket).map(x => [x, { ...x.nest, toggle: () => { x.nest.open ? this.open_ids.delete(x.id) : this.open_ids.add(x.id); this.remote_ask(); } }]));
+ 			this.grid.set_rows(r.rows, first);
+ 			this.$empty.el.hidden = r.rows.length > 0;
+ 			this.render_stats();
+@@ -478,10 +465,12 @@ export default class AISessionsPage extends Page {
+ 		} finally { r.busy = false; if (r.pending){ r.pending = false; this.remote_ask(); } }
+ 	}
+ 
+-	/** One snapshot becomes the row AISessionView draws: the live Session holds its numbers, the row holds the identity. */
++	/** One snapshot becomes the row AISessionView draws: the live Session holds its numbers, the row holds the identity. A bucket head (rolled-up routine sessions) is drawn as sent. */
+ 	remote_row_of(snap){
+-		const { ses } = AISession.apply_delta(snap), row = { ...ses.grid_row(), role: null };
++		if (snap.bucket) return snap;
++		const { ses } = AISession.apply_delta(snap), row = { ...ses.grid_row(), source: snap.source ?? "vscode", role: snap.role ?? null };
+ 		row.role = AISessionRows.role_of(row);
++		row.nest = snap.nest;
+ 		return row;
+ 	}
+ 
+@@ -504,14 +493,15 @@ export default class AISessionsPage extends Page {
+ 			const $box = input().attr("type", "checkbox");
+ 			$box.el.checked = !!this[key];
+ 			$box.on("change", () => { this[key] = $box.el.checked; this.remote_ask(); });
+-			span(text);
++			this[key + "_text"] = span(text);
+ 		}).attr("title", title);
+ 		this.$controls.empty(() => div.c("sessions-filters flex gap-100 v-center wrap", () => {
+ 			const $q = input().attr("type", "search").attr("placeholder", "search title, agent, id, model").attr("title", "Searched in node (ext/Query `contains`)");
+ 			let t = null;
+ 			$q.on("input", () => { clearTimeout(t); t = setTimeout(() => { this.remote.search = $q.el.value.trim(); this.remote_ask(); }, 250); });
++			check("show closed", "show_closed", "Sessions you marked done are hidden by default. They are never deleted.");
++			check("needs attention", "attention_only", "Sessions with a red flag (expensive, stalled, context bloat, Opus minion) or an alert in their session.jsonl record.");
+ 			check("in flight", "inflight_only", "Only sessions working right now.");
+-			check("needs attention", "attention_only", "Sessions with a red flag.");
+ 			div.c("sessions-daterange flex gap-50 v-center", () => {
+ 				small.c("muted", "from");
+ 				const $from = input().attr("type", "date"); $from.el.value = this.date_from; this.$from = $from;
+diff --git a/public/framework/code/performance/doc/server-query.md b/public/framework/code/performance/doc/server-query.md
+index a52ef8d09..43dcdeecf 100644
+--- a/public/framework/code/performance/doc/server-query.md
++++ b/public/framework/code/performance/doc/server-query.md
+@@ -1,6 +1,6 @@
+ # Server-side query: before and after (2026-10-12)
+ 
+-The Sessions page can load from node, opt-in at [`?source=node`](/framework/ai/sessions/?source=node) until it matches the files view ([ext/Query](/framework/ext/Query/), [core/Page/doc/server.md](/framework/core/Page/doc/server.md)). Script and raw numbers: `measure/` in the [build folder](/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/results.jsonl).
++The Sessions page can load from node, the default on the dev socket ([`?source=files`](/framework/ai/sessions/?source=files) forces the files path) ([ext/Query](/framework/ext/Query/), [core/Page/doc/server.md](/framework/core/Page/doc/server.md)). Script and raw numbers: `measure/` in the [build folder](/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/results.jsonl).
+ 
+ | Run | Width | First row ms | Transfer KB | Socket KB | JS heap MB | Long tasks ms |
+ |---|---|---|---|---|---|---|
+@@ -14,3 +14,6 @@ The Sessions page can load from node, opt-in at [`?source=node`](/framework/ai/s
+ **Fair reading:** the private worktree server lacks generated files the main site has, so compare the last two groups (same server): remote saves about 310 KB of transfer and 350 KB over the socket, and halves the JS heap. Time to first row is the same (about 1.2 s): the page is dominated by loading its own modules. The large before numbers (84 MB heap, 636 ms of long tasks) came from the main site and are not a like-for-like baseline.
+ 
+ **Node:** one query over 8,729 sessions (date window, text search, sort, two sums) takes a median of 1.4 ms (20 runs); loading the index takes the heap from 5 to 21 MB. Screenshots at 400 and 1920 are `proof-400.png` and `proof-1920.png` in the build folder; no console errors apart from 404s for generated files missing in the worktree.
++
++
++**Parity (2026-10-12):** with the source column, Claude-only cost, closed/attention, and buckets + nesting run in node, the Sessions page in remote mode (`label: parity`): first row 1.18 s at 400 and 1.24 s at 1920, 45 rows, 2,679 DOM nodes, 3.2 MB transferred (page modules), 22 MB heap, 0.8 MB over the socket, one 51 ms long task.
+diff --git a/public/framework/ext/DataGrid/doc/architecture.md b/public/framework/ext/DataGrid/doc/architecture.md
+index a53d81358..957de3206 100644
+--- a/public/framework/ext/DataGrid/doc/architecture.md
++++ b/public/framework/ext/DataGrid/doc/architecture.md
+@@ -75,3 +75,7 @@ Before this, the site had three: `ext/DataGrid` (behaviour), `ui/datagrid` (its
+ - [Sessions](/framework/ai/sessions/) draws its list with one DataGrid: its row is `AISessionView`, its card is `AISessionView.render_card()`, its order and nesting are `AISessionsPage.arrange()` (the `sort_rows` hook, now always called, so a page supplies its default order too).
+ - Measured with the same script before and after ([perf-sessions.mjs](/framework/ai/2026-10-12/data-grid/sessions-perf/perf-sessions.mjs), three runs each, four widths): long tasks ~430–680 ms → ~50–130 ms, DOM nodes ~5,900 → ~2,700 (50 rows drawn first instead of 200, the rest load as you scroll), first row about the same (0.9–1.8 s, noisy).
+ - One small change to Page: `page_settings()` now also reads a `view` key, so the default can sit in `settings.jsonl`.
++
++## Remote paging seam (2026-10-12)
++
++When the rows live in node, the grid asks the page for more instead of holding them all: `DataGridDrawer.more_remote` calls `grid.has_more()` and, if true, `grid.load_more()`; the page answers with the next query page and appends it with `set_rows`. The grid never knows about sockets. The producer is [ext/Query](/framework/ext/Query/) (`rpc:query`, offset and limit).
+diff --git a/public/framework/ext/Query/Query.js b/public/framework/ext/Query/Query.js
+index 6451182a5..2af66d56b 100644
+--- a/public/framework/ext/Query/Query.js
++++ b/public/framework/ext/Query/Query.js
+@@ -16,6 +16,7 @@ export default class Query {
+ 		this.offset = Math.max(0, spec.offset ?? 0);
+ 		this.limit = spec.limit ?? 50;
+ 		this.sum = spec.sum ?? [];
++		this.spec = spec;
+ 		this.tests = this.where.map(w => Query.test(w));
+ 	}
+ 
+@@ -32,8 +33,9 @@ export default class Query {
+ 
+ 	matches(item) { return this.tests.every(t => t(item)); }
+ 
+-	/** `items` is any iterable. Returns { rows (the page), total (all matches), totals ({field: sum over ALL matches}), offset }. */
+-	run(items) {
++	/** `items` is any iterable. Returns { rows (the page), total (rows to page over), matched (all matches), totals ({field: sum over ALL matches}), offset }.
++	 * `arrange(hit, spec)` (optional) turns the sorted matches into the list to page over (heads, nesting); sums and `matched` still count every match. */
++	run(items, arrange) {
+ 		const hit = [];
+ 		for (const item of items) if (this.matches(item)) hit.push(item);
+ 		const totals = {};
+@@ -46,6 +48,7 @@ export default class Query {
+ 				return (x < y ? -1 : x > y ? 1 : 0) * sign;
+ 			});
+ 		}
+-		return { rows: hit.slice(this.offset, this.offset + this.limit), total: hit.length, totals, offset: this.offset };
++		const list = arrange ? arrange(hit, this.spec) : hit;
++		return { rows: list.slice(this.offset, this.offset + this.limit), total: list.length, matched: hit.length, totals, offset: this.offset };
+ 	}
+ }
+diff --git a/public/framework/ext/Query/QueryServer.mjs b/public/framework/ext/Query/QueryServer.mjs
+index ab138358f..3d5a88497 100644
+--- a/public/framework/ext/Query/QueryServer.mjs
++++ b/public/framework/ext/Query/QueryServer.mjs
+@@ -6,6 +6,8 @@ import Query from "./Query.js";
+  *     load()          async; run on the first query, never again while loaded
+  *     items()         an iterable of plain objects (each with an `id`)
+  *     on(fn)          subscribe to changes: fn(item, changed, before); returns the unsubscribe
++ *     shape(item)     the row as the browser sees it (a join over what the source holds); applied to items() and to every pushed change
++ *     arrange(hit, spec)  after filter and sort, before the page slice: groups or nests the matches, returns the list to page over (optional)
+  *     unload()        drop what load() built (optional); runs after `unload_after` ms (default 5 min) with no query and no watcher
+  *     available()     false = answer { error: "no source" } (optional) */
+ export default class QueryServer {
+@@ -36,7 +38,7 @@ export default class QueryServer {
+ 		if (!src || src.available?.() === false) return this.socket.send({ response: { error: "no source", source: spec.source }, index });
+ 		try {
+ 			await src.ensure();
+-			const query = new Query(spec), res = query.run(src.items());
++			const query = new Query(spec), res = query.run(src.items(), src.arrange);
+ 			const same = this.last?.qid === spec.qid && this.last?.src === src;
+ 			const qid = spec.qid ?? ++QueryServer.counter;
+ 			const ids = same ? this.last.ids : new Set();
+@@ -81,8 +83,12 @@ export default class QueryServer {
+ /* One named source: loads on demand, unloads when idle. */
+ QueryServer.Source = class Source {
+ 
+-	constructor(name, { load, items, on, unload, unload_after = 5 * 60000, available }) {
+-		Object.assign(this, { name, load, items, on, unload, unload_after, available });
++	constructor(name, { load, items, on, shape, arrange, unload, unload_after = 5 * 60000, available }) {
++		Object.assign(this, { name, load, items, on, shape, arrange, unload, unload_after, available });
++		if (shape) {
++			this.items = function* () { for (const item of items()) yield shape(item); };
++			if (on) this.on = fn => on((item, ...rest) => fn(shape(item), ...rest));
++		}
+ 		this.loaded = null; this.watchers = 0; this.timer = null;
+ 	}
+ 
+diff --git a/public/framework/ext/Query/doc/architecture.md b/public/framework/ext/Query/doc/architecture.md
+index ec7f86532..c52cf2c63 100644
+--- a/public/framework/ext/Query/doc/architecture.md
++++ b/public/framework/ext/Query/doc/architecture.md
+@@ -16,6 +16,8 @@ Plan: [server-query plan](/framework/ai/sessions/2026/10/12/session-87bec773/ser
+ 3. **Live updates are scoped.** Each socket remembers its last query and the ids it showed. A shown id changing pushes `query_row(qid, row)`; a new match pushes `query_stale(qid)`, at most once a second, and the client asks again.
+ 4. **Stale answers.** A query keeps its `qid` for "next page" and "refresh"; a new filter or sort gets a new one. The Sessions page queues a new filter behind a page still in flight.
+ 
+-## Known gaps in the Sessions remote mode (why it is opt-in, `?source=node`)
++## Source options `shape` and `arrange`, and what still differs in the Sessions remote mode
+ 
+-Flat rows only: no buckets, no nesting under a parent, no role chips, no "show closed"; `needs attention` counts the flag count only (not session-record alerts). Source shows "VS Code" for every row (the snapshot has no source tag; the files path takes it from `sessions.json` and Servex's agent list). The cost total is every provider; the files path shows Claude only. Closing these means running `AISessionBuckets` and the nesting in node as a step after `Query.run`.
++`shape(item)` is the join: it runs on every item and every pushed change (the sessions source adds `source`, `claude_usd`, `closed`, `role`, `attention`; class `AISessionSource`). `arrange(hit, spec)` runs after filter and sort, before the page slice, and returns the list to page over (buckets and parent nesting via `AISessionBuckets.arrange`). `total` is the arranged list length (for paging); `matched` is every match.
++
++Remote mode is now the default; `?source=files` forces the files path. Still different: the default sort puts in-flight rows first in the files view (node sorts by last activity); the "needs attention" count covers current matches; stalled, bloat and hour-cost flags need `session-flags.json`; no role chips row or cache breakdown; the Servex `role` is approximate and live agent state is not joined; bucket grouping and totals differ slightly (the proof run showed 6,458 sessions and $5,189.57 against 6,359 and $5,020.66 in the files view).
+diff --git a/public/framework/ext/Query/readme.md b/public/framework/ext/Query/readme.md
+index f17865110..92a76a714 100644
+--- a/public/framework/ext/Query/readme.md
++++ b/public/framework/ext/Query/readme.md
+@@ -7,7 +7,7 @@ A query is plain JSON (`where`, `sort`, `offset`, `limit`, `sum`); node runs it
+ - `QueryClient.js` (browser) — `new QueryClient("sessions", { row, stale }).ask(spec)`.
+ - `check.mjs` — `node check.mjs`: the assertions.
+ 
+-First user: the [Sessions page](/framework/ai/sessions/) (remote mode is opt-in at [`?source=node`](/framework/ai/sessions/?source=node) until it matches the files view: buckets, nesting, provider; gaps in doc/architecture.md). A node-side Page: [core/Page/doc/server.md](/framework/core/Page/doc/server.md). Numbers: [code/performance/doc/server-query.md](/framework/code/performance/doc/server-query.md).
++First user: the [Sessions page](/framework/ai/sessions/) (remote mode is the default on the dev socket; [`?source=files`](/framework/ai/sessions/?source=files) forces the old files path; what still differs is in doc/architecture.md). A node-side Page: [core/Page/doc/server.md](/framework/core/Page/doc/server.md). Numbers: [code/performance/doc/server-query.md](/framework/code/performance/doc/server-query.md).
+ 
+ ## Watch out
+ 
