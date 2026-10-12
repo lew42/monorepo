@@ -43,7 +43,7 @@
 	/* The list is ext/DataGrid (columns and widths: AISessionsPage.WIDTHS). One scroller: the page column scrolls,
 	   the grid grows with its rows and its header row sticks to the column's top (3440 bug, 2026-10-12: a grid that
 	   scrolled inside the scrolling column showed a third of the screen). */
-	.sessions-page .datagrid:not(.datagrid-rail) { --datagrid-height: none; overflow: visible; max-width: 110rem; justify-content: start; }
+	.sessions-page .datagrid:not(.datagrid-rail) { --datagrid-height: none; overflow: visible; justify-content: start; }   /* no width cap: the name column (1fr) takes the spare room at 3440, 2026-10-12 */
 	.sessions-page:not(:has(.datagrid-view-rail)) :is(.panel2-body, .panel2-main) { overflow: visible; }   /* any box that clips becomes the sticky header's scroller */
 	.sessions-page .datagrid-count { display: none; }
 	.sessions-page .datagrid-head-cell .grip, .sessions-page .datagrid-grip { opacity: .35; }
