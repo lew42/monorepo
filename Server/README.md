@@ -7,6 +7,8 @@ Reuse the one already running. ⚠ It used to pin a core (~130%) every few days;
 **fixed 2026-09-06**, but a server started before that is still running the old
 code — restart it. What it was: [`doc/spin.md`](./doc/spin.md).
 
+Dictation failing while the page will not reload: Whisper died with a Servex restart, now fixed, with the loop that reproduces it: [`doc/transcription-crash-2026-10-12.md`](./doc/transcription-crash-2026-10-12.md).
+
 The owner-facing server also starts `whisper-server` for dictation on its own —
 [`plugins/Whisper.js`](./plugins/Whisper.js), `NO_WHISPER=1` to opt out; see
 [`ux/Dictate`](/framework/ux/Dictate/).

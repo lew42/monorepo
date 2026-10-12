@@ -69,8 +69,7 @@ export default class TranscribeLoop {
 		// The same arguments Servex gives the owner's whisper-server (Servex.js whisper()), on a private port.
 		this.spawn_child("whisper", exe, ["-m", model, "--host", "127.0.0.1", "--port", String(this.whisper_port), "--vad", "--vad-model", vad]);
 		await this.until(`http://127.0.0.1:${this.whisper_port}/`, 90000, "whisper-server");
-		// WHISPER_TEST makes the dev server's /whisper proxy point at PORT 8179; the harness instead edits nothing and
-		// points the proxy by WHISPER_PORT (Whisper.js reads it) when set, else 8179 -- so run whisper on 8179 unless free.
+		// The dev server's /whisper proxy reads WHISPER_PORT (Server/plugins/Whisper.js), so it talks to the private whisper-server.
 		this.spawn_child("server", process.execPath, [path.join(REPO, "Server", "run.js")], { PORT: String(this.port), NO_WHISPER: "1", NO_PAGEFILES: "1", WHISPER_PORT: String(this.whisper_port) });
 		await this.until(`http://127.0.0.1:${this.port}/`, 60000, "dev server");
 		this.origin = `http://127.0.0.1:${this.port}`;
@@ -122,8 +121,8 @@ export default class TranscribeLoop {
 		}
 	}
 
-	// A reload: the page document, then its modules in parallel. The list is read off the page once.
-	async reload_set() {
+	// A reload: the Dictate page and the modules it loads, fetched in parallel. A fixed list, like a browser's cold load.
+	reload_set() {
 		const urls = new Set(["/framework/ux/Dictate/", "/app.js", "/framework/framework.css"]);
 		for (const u of ["/framework/ux/Dictate/page.js", "/framework/ux/Dictate/Dictate.js", "/framework/ux/Dictate/VoiceStrip.js", "/framework/ux/Dictate/Connection.js", "/framework/ux/Dictate/capture.js", "/framework/core/Page/Page.js", "/framework/core/View/View.js", "/framework/core/App/App.js", "/framework/ai/readme.md", "/framework/ai/handover.md", "/framework/ux/Dictate/readme.md"]) urls.add(u);
 		return [...urls];
@@ -142,7 +141,7 @@ export default class TranscribeLoop {
 	}
 
 	async reloads() {
-		const urls = await this.reload_set();
+		const urls = this.reload_set();
 		while (!this.stop) { await this.reload(urls); await sleep(this.reload_every); }
 	}
 
