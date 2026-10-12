@@ -1,3 +1,5 @@
+> **Stale (2026-10-12):** this describes the old `data[key]` write. `set()` is now `apply()`: a key naming a method calls it, a nested thing gets the delta, anything else is data plus `change` and `delta`. See [core/Page/doc/content.md](/framework/core/Page/doc/content.md), "Three ways to write a value".
+
 Writes `data[key]`, and emits `"change"` with `(key, value, old)` — but **only
 when the value actually changed** (`old === value` returns early, silently).
 That guard is why a document with dirty-tracking cut entirely (see the readme's

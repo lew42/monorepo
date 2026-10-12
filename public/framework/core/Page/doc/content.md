@@ -58,4 +58,99 @@ The two meet in the middle without a new class: a block can *point at* a child p
 
 Not built: `part-link`, the promote script, and scrolling to a block by `#id`. The alternative (embedded sub-pages as full `Page`s inside one `page.jsonl`) is recorded, not rejected on principle: revisit it if `Page` ever gets a light core that is cheap to create in bulk.
 
+## Design (owner, 2026-10-12, not built): `content` is always a List, and each kind draws itself
+
+Today `page.content` has four shapes, and `render_content()` is the type-switch that handles them:
+
+```js
+// Page.class.js, render_content()
+if (this.content instanceof List) return this.render_content_list();   // parts
+if (is_address(this.content))     return this.content_at(this.content); // "/notes/x.md"
+if (is.str(this.content))         return p(this.content);               // a string
+return is.fn(this.content) ? this.content() : this.content;            // content(){ h1("Hi") }
+```
+
+### 1. `page.content` never changes type
+
+```js
+page.content                                  // always a List, the same object for the page's life
+new Page({ content(){ h1("Hi") } })           // a function  -> one PageCode item added to the list
+new Page({ content: "/notes/x.md" })          // an address  -> one PageAddress item
+new Page({ content: "Some text." })           // a string    -> one PageParagraph item (draws with p(), as today)
+new Page({ content: [{type:"part-text", text:"Hi"}] })   // array or POJO -> content.set(value), like a jsonl line
+```
+
+How: `content` becomes an accessor on `Page`. The getter is `ensure_content()` (so it is still made lazily, and a page with no content pays one empty List). The setter takes the value, and routes it by shape. An object or array goes to `content.set(value)`. A function, string or address makes one item and adds it to the list. `Object.assign` calls setters, so the constructor path (`assign`, below) needs no change.
+
+Gains: a page can have its code *and* parts. Today a `{"content":...}` jsonl line on a page whose `content` is a function *replaces* the function (`Page.set()` calls `ensure_content()`, which overwrites it); with a list the function stays as the first item. The `typeof`/`is.fn`/`instanceof List` checks on `page.content` all disappear.
+
+A `PageCode` item holds a function, and a function cannot be written to `page.jsonl`. It is added quietly (the way `declare()` adds a stub child) so `Item.Store` never writes it, and it is skipped when the list is saved.
+
+Costs, to be counted before anyone builds it (the same major-surgery fence as `children`):
+- The 1,096 `page.js` files that say `content(){...}` in a config object keep working (the setter takes it).
+- A class that defines `content(){...}` in its **class body** (at least 10 files: `ai/cards/card.js`, `ai/AISession/AISessionsPage.js`, `core/Layout/Layout.js`, ...) puts a method on the subclass prototype, which hides the base accessor. Each needs moving into the constructor config, or the base must read a named hook instead. That is the real work.
+- Callers that run the function directly (`this.content()` in `core/Page/Frame.js`, `core/Page/page.js`, `ext/Doc/Doc.js`) become `this.content.render()`.
+- `Page` runs `assign(...args)` twice (once inside `super(...args)`, once after it, line 59), so a function would be added as two items. Drop the second call in the same change.
+
+### 2. Each kind draws itself, so `Page` has no type-switch
+
+The kinds already exist or are named above. Every one is an `Item` with a `View` (the view pattern), and the list draws its items in order:
+
+```js
+page.content.render()                         // replaces this.render_content(); the page no longer knows the kinds
+PageCode.View.render()      // calls item.fn.call(page); a returned element or promise is drawn, as today
+PageAddress.View.render()   // content_at(address): the markdown or the "link to the third level" step
+PageParagraph.View.render() // p(item.text)
+PageHeading / PageText / PageCard                      // done
+```
+
+Where the loop lives: a small `PageContent extends List` with `PageContent.View`, created by the accessor above (`this.constructor.Content`, so a subclass can swap it, like `List.View`). It owns what `render_content_list()` does today: one bare row per item, the title/text fallback card for an item with no `View`, the `ref` row, and the opt-in drag to reorder. Moving that code is a move, not a rewrite. A new kind is then one class and one `register()` line; nothing in `Page.class.js` changes. (`Item` already has `item.view`, lazily `new this.constructor.View({ item })`; `render()` on the list is the same idea one level up. A name check is needed before building: `Page.render()` already means "draw the whole page".)
+
+### 3. Three ways to write a value: `assign`, `set`, and `Page.set`
+
+All three exist today, and they look alike, which is why they feel like they should be one.
+
+```js
+// core/Item/Item.js
+assign(...args){ return Object.assign(this, ...args); }       // CONSTRUCTION
+set(a, b){ return this.apply(Array.isArray(a) || is_plain(a) ? a : { [a]: b }); }   // a CHANGE
+apply(delta){ for (const key in delta) this.set_one(key, delta[key]); }   // the routing, per key
+set_one(key, value){
+	if (typeof this[key] === "function") return this[key](value);          // 1. a key naming a method CALLS it
+	const target = this.get(key);
+	if (target?.set && !(target instanceof Map)) return target.set(value); // 2. a nested thing gets the delta
+	this.put(key, value);  this.emit("change", ...);  this.emit("delta", ...); // 3. else data, an event, a Store write
+}
+
+// core/Page/Page.class.js
+set(obj){   // a page.jsonl line
+	(this.jsonl_lines ??= []).push(obj);  this.emit("line", obj);   // log bookkeeping
+	obj = this.take_words(obj);                                     // the six words, handled before routing
+	if ("content" in obj && !(this.content instanceof List)) ...    // make content a List first
+	return super.set(obj);
+}
+```
+
+| | `assign(...args)` | `set(delta)` / `apply()` | `Page.set(line)` |
+|---|---|---|---|
+| Job | build the object | change it, and tell everyone | `set` for a log line, plus the log's bookkeeping |
+| Who calls | the constructor (`new Page({...})`); `hydrate()`; any `Object.assign(this, ...)` | the Reader, the page tools, a field setter (`item.title = x`), code | `Page.Reader` (one call per line), `overlay()`, a field setter on a page |
+| A key naming a method | **overwrites** it (`content(){}` replaces the method) | **calls** it (`{"add": {...}}` runs `add`) | calls it |
+| Events and Store | none: `data` and `store` do not exist yet | `change` + `delta`, which `Item.Store` persists | the same, plus `line` |
+
+**Was a merge planned before? No plan to merge these was found** (grep of `ai/` and the `core/Item`, `core/Page` docs). What exists is a series of smaller folds, none of which touched `assign`:
+- `List.set()` was deleted: `List extends Item` and uses `apply()` (a comment in `core/List/List.js`, 2026-10-03).
+- `PageLog` was folded into `Page`, whose `set()` became a thin wrapper over `apply()` ([decisions.md, "Page extends Item"](decisions.md)).
+- The `at` key was dropped; nesting is the path now (`ai/2026-10-03/drop-at-key/requirements.md`; the compat branch in `apply()` is marked "fold-away").
+- The sentence you likely remember: "`page.set(obj)` is `assign()` that calls methods instead of overwriting them" ([jsonl.md](jsonl.md)). It describes the idea, not a plan.
+- [Item/doc/method/assign.md](../../Item/doc/method/assign.md) records that `assign` is deliberately a one-liner, written out per class rather than shared. (`Item/doc/method/set.md` is stale: it describes a `data[key]` write from before `apply()`.)
+
+**Can one absorb the others? `assign` into `set`: no. `Page.set` into `Item.set`: yes, in steps.**
+
+- **Not `assign` into `set`.** For a key naming a method they mean opposite things (overwrite versus call), and `assign` runs before `data`, `id` and the Store exist, so it cannot emit or persist; building an object is not a change. Merging them would make `new Page({ content(){...} })` *call* `content` at construction. They stay two verbs with one job each.
+- **But they can meet at the value.** If `content` and `children` are accessors (setters), then `assign({content: x})` and `set({content: x})` both end in the same code: `content.set(x)`. The two verbs stay; the special cases inside `Page.set` (and the string stage-then-`declare()` dance of `children:`) go away. This is the gain of section 1.
+- **`Page.set` shrinks to nothing.** With `content` always a List, the `ensure_content()` branch is gone. The `jsonl_lines` and the `line` event belong to the reader, not to every write: move them to `page.line(obj)`, which the `Page.Reader` calls and which calls `set(obj)`. (Observed by reading, not tested: because `Page.set` is also what a field setter calls, `page.title = x` today pushes a "log line" and emits `line` too.) The six words become accessors like `title`/`icon`, so `set_one` handles them. Then `Page` has no `set` of its own and `Item.set` is the only one.
+
+**Recommended order, each step a small merge, all behind the same approval as the `children` migration:** (a) the `content` accessor and the kinds above; (b) delete `Page`'s second `assign` call and its duplicate `assign` method (`Item` has the same line); (c) `page.line()` for the log bookkeeping; (d) the words as accessors; (e) delete `Page.set`. The alternative, a single `set(value, { construct: true })` verb, is recorded and rejected: a flag that switches a method between "call" and "overwrite" is two verbs hiding in one name.
+
 The old slice that proved the idea: [parts/doc/architecture.md](parts/doc/architecture.md). Related: [data-children.md](data-children.md) (children that live in data), [architecture.md](architecture.md).
