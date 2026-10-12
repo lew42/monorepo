@@ -136,7 +136,7 @@ export default new Doc({
 	// `settings` added 2026-09-29 (tabs-settings task), right after `jsonl` — the two
 	// storage/state tabs together.
 	bar(){
-		return ["overview", "make", "jsonl", "settings", "layout", "navigation", "ai", "dynamic", "weight", "generator", "api", "doc", "files", "old", "inbox"]
+		return ["overview", "make", "jsonl", "settings", "layout", "navigation", "ai", "dynamic", "weight", "generator", "api", "doc", "files", "old"]
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	},
 

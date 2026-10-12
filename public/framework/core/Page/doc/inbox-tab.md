@@ -8,3 +8,4 @@ Ask (the owner, 2026-10-12): "Every core thing, every module should have an inbo
 - **Read and archive are deltas:** Servex `POST /api/inbox/mark {path, ids, state}` appends `{"note_state":{id,state,by,at}}` (state `read` or `archived`; last line wins). Nothing is deleted. Opening the tab marks new notes read; this visit still shows them as new.
 - **Decision (what goes in):** agent notes and landings only. A reminder of every question the owner asked would flood it, so answered questions get no record. Alternative: log owner questions as notes; not done.
 - **Needs a Servex restart** to get the new route; until then marking shows "Not saved".
+- **Known gap:** `core/Page` overrides `bar()` and its strip already wraps to three rows at 1200, so an Inbox tab there trips the smoke "element above the title" check. Its inbox is at `core/Page/inbox/` and in the sidebar (`Inbox · N`), not in the strip, until the tab band is reworked.
