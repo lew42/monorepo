@@ -18,7 +18,7 @@ export class Policy {
 
 	constructor(...args){ this.assign(this.defaults(), ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
-	defaults(){ return { agents: null, told: new Map(), refused: [], onrefuse: null }; }
+	defaults(){ return { agents: null, told: new Map(), refused: [], onrefuse: null, bypasses: [], onbypass: null }; }
 
 	off(){ return process.env.SERVEX_POLICY === "off"; }
 
@@ -98,6 +98,9 @@ export class Policy {
 		/* And the reverse: a registered tab MESSAGES with the owner's own reach — the
 		 * owner is exactly who a tab is. It may not SPAWN (spawn() below): anything
 		 * that can call register_session would otherwise get "spawn anything". */
+		/* RELAY BYPASS (log-only, 2026-10-12, asks.md #2): the owner or a tab messaging a task
+		 * mastermind directly skips the card's assistant. Counted, never refused. */
+		if((f === "owner" || f === "external") && this.kind(to) === "task-mastermind") this.bypass({ at: new Date(now).toISOString(), kind: "relay-bypass", from: from ?? "owner", via: f, to });
 		if(f === "owner" || f === "external") return ok(f);
 		if(f === "system" || f === "servex") return ok("system");
 		if(this.tree(from, to)) return ok("tree");
@@ -126,6 +129,8 @@ export class Policy {
 		if(f === "worker") return ["minion", "helper"].includes(role) ? { ok: true } : deny(`spawn a ${role}: a worker may spawn only a minion or a helper.`);
 		return NO_SPAWN.includes(role) ? deny(`spawn a ${role}: only mastermind-servex may.`) : { ok: true };
 	}
+
+	bypass(entry){ this.bypasses.push(entry); if(this.bypasses.length > 50) this.bypasses.shift(); this.onbypass?.(entry); return entry; }
 
 	refuse(entry){ this.refused.push(entry); if(this.refused.length > 50) this.refused.shift(); this.onrefuse?.(entry); return entry; }
 

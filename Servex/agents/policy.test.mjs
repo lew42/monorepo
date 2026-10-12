@@ -103,3 +103,10 @@ process.env.SERVEX_POLICY = "off";
 t(m("assistant-a", "manager-b").rule === "off" && p.spawn("assistant-a", "manager").rule === "off", "policy off");
 delete process.env.SERVEX_POLICY;
 console.log(`policy: ${n} checks passed`);
+
+// relay-bypass: owner/tab -> task-mastermind is logged, never refused; other routes are not counted
+{ const q = new Policy({ agents: { live, reg: () => ({ read: () => registry }) } }); let got = [];
+  q.onbypass = e => got.push(e);
+  t(q.message(null, "task-mastermind-x").ok && q.message("tab-editor", "task-mastermind-x").ok, "bypass still allowed");
+  q.message("owner", "assistant-a"); q.message("minion-a", "task-mastermind-x");
+  t(got.length === 2 && got[0].kind === "relay-bypass" && got[1].via === "external", "relay-bypass logged for owner and tab only"); }
