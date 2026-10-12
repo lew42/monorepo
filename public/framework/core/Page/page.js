@@ -80,7 +80,7 @@ export default new Doc({
 	// through the page.js probe to the bare-.md fallback and 404'd. First on purpose:
 	// "how a url becomes a page" is the one doc a reader needs before any other note
 	// makes sense (loading-study.md; the owner called it "foundational").
-	notes: "loading navigation layout-overview watch-out more-features jsonl declaring labels css layout columns words roles panels previews findings markdown open decisions",
+	notes: "loading navigation layout-overview watch-out more-features jsonl declaring labels css layout columns words roles panels previews findings markdown open decisions inbox-tab",
 
 	// Doc.overview_section()'s default calls catalog() — a rail, wrong for a wall this
 	// size. This override keeps the section's real children (the `overview:` list above,

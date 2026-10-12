@@ -1,0 +1,12 @@
+/* The Inbox tab (core/Page/PageInbox.js): unread first, a dot on the new ones, archive to zero. */
+@layer theme {
+	.page-inbox { gap: 0.6em; max-width: 60em; padding-block: 1em; }
+	.page-inbox-head { gap: 1em; justify-content: space-between; font-weight: 600; }
+	.page-inbox-row { gap: 0.2em; padding: 0.7em 0.9em; border: 1px solid var(--line, color-mix(in srgb, currentColor 18%, transparent)); border-radius: 0.5em; }
+	.page-inbox-new { background: color-mix(in srgb, var(--accent, #3b82f6) 9%, transparent); }
+	.page-inbox-meta { gap: 0.7em; flex-wrap: wrap; }
+	.page-inbox-meta .page-inbox-archive { margin-inline-start: auto; }
+	.page-inbox-dot { inline-size: 0.6em; block-size: 0.6em; border-radius: 50%; background: var(--accent, #3b82f6); flex: none; }
+	.page-inbox-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+	.page-inbox-said { color: var(--danger, #b42318); }
+}

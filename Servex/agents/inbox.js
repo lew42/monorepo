@@ -194,6 +194,17 @@ ${text}`,
 		return { ok: true, file: `${at.name}page.jsonl`, id: String(id), ...line.inbox.cleared };
 	}
 
+	/* Mark notes read or archived (the Inbox tab, core/Page/PageInbox.js): one `note_state` line per
+	 * id, last line wins, nothing rewritten or deleted. Works for both note shapes. */
+	mark({ path: where, ids, state, by = "owner" } = {}){
+		if (!["new", "read", "archived"].includes(state)) throw bad("state must be new, read or archived");
+		const list = [].concat(ids ?? []).map(String).filter(Boolean);
+		if (!list.length) throw bad("ids is required: the note ids to mark");
+		const at = this.folder(where), file = this.file(at), when = now_ms();
+		for (const id of list) this.append(file, { note_state: { id, state, by: String(by || "owner"), at: when } });
+		return { ok: true, file: `${at.name}page.jsonl`, ids: list, state };
+	}
+
 	/* The open notes on one page, newest first. */
 	open(at){
 		let lines = [];
@@ -201,6 +212,7 @@ ${text}`,
 		const notes = new Map();
 		for (const l of lines){
 			let j; try { j = JSON.parse(l); } catch { continue; }
+			if (j?.note_state?.state === "archived"){ notes.delete(j.note_state.id); continue; }   // the Inbox tab archived it
 			const n = j?.inbox;
 			if (!n?.id) continue;                                   // a coordinator line, or not an inbox line at all
 			if (n.cleared) notes.delete(n.id);
@@ -244,9 +256,10 @@ ${text}`,
 	 * page's own form. A browser is the owner; `from` may name an agent that posts. */
 	routes(router, cors, json){
 		const send = (res, f) => { try { res.json(f()); } catch (e){ res.status(e.status || 500).json({ ok: false, why: e.message }); } };
-		for (const verb of ["drop", "clear"]) router.options(`/api/inbox/${verb}`, cors, (req, res) => res.status(204).end());
+		for (const verb of ["drop", "clear", "mark"]) router.options(`/api/inbox/${verb}`, cors, (req, res) => res.status(204).end());
 		router.post("/api/inbox/drop", cors, json, (req, res) => send(res, () => this.drop({ path: req.body?.path, text: req.body?.text, from: req.body?.from || "owner" })));
 		router.post("/api/inbox/clear", cors, json, (req, res) => send(res, () => this.clear({ path: req.body?.path, id: req.body?.id, by: req.body?.by || "owner" })));
+		router.post("/api/inbox/mark", cors, json, (req, res) => send(res, () => this.mark({ path: req.body?.path, ids: req.body?.ids, state: req.body?.state, by: req.body?.by || "owner" })));
 		/* A page with no folder of its own (a card, a query view) has an empty inbox, not a
 		 * 404: the drawer asks on every open, and a 404 is a console error on the page. */
 		router.options("/api/inbox", cors, (req, res) => res.status(204).end());
