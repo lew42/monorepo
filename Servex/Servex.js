@@ -670,7 +670,7 @@ export default class Servex extends Events {
         router.options("/api/refine", cors, (req, res) => res.status(204).end());
 
         router.post("/api/refine", cors, express.json({ limit: "64kb" }), async (req, res) => {
-            res.json(await run_refine(req.body ?? {}));
+            res.json(await run_refine({ ...(req.body ?? {}), inbox: this.inbox }));
         });
 
         router.get("/api/logs", (req, res) => res.json(this.log.names()));

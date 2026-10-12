@@ -1,0 +1,1 @@
+{"assign":{"session_id":"48083d9d-2275-4dcb-882a-a37e9fec4e76","tab":"task-mastermind-refine-dictate-ui","group":"refine","request":"Refine: a tagged prompt leaves a note on the module page its tag names, through the existing Inbox.","model":"claude-sonnet-5-5","now":"review","steps":["TagRouter","wire /api/refine","test","doc"]}}

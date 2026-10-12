@@ -12,6 +12,7 @@ import RefineCall from "./RefineCall.js";
 import ClarityScorer from "./ClarityScorer.js";
 import Annotator from "./Annotator.js";
 import Outline from "../../../public/framework/ext/Refine/Outline.js";
+import TagRouter from "./TagRouter.js";
 import PromptLog from "../../../public/framework/ai/AISession/PromptLog.js";
 
 const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models that do the job: doc/refine-v3-2026-10-09.md
@@ -20,7 +21,7 @@ const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models tha
  * (ai/AISession/PromptLog.js): raw first and untouched, then the clean sentences set as final, then
  * the refined cards citing sentence indexes, then the Haiku notes (clarity, alternates, names, tags).
  * Logging never fails the refine: a refusal comes back as `log_error`. */
-export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5", session = "", prompt = "", source = "typed" } = {}){
+export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5", session = "", prompt = "", source = "typed", inbox = null } = {}){
 	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
 	if (text.length > 20000) return { ok: false, why: "text is over 20000 characters" };
 	try {
@@ -28,6 +29,7 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
 		const stages = {};
 		const id = session ? (prompt || PromptLog.new_id()) : "";
 		const log_errors = [];
+		let tag_notes = null;
 		const log = async line => { if (id) try { await PromptLog.add(session, { prompt: id, ...line }, "refine"); } catch (e){ log_errors.push(String(e.message ?? e)); } };
 		await log({ stage: "raw", text, source });
 		const [result, runs] = await RefineCall.collect(async () => {
@@ -46,15 +48,17 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
 				const parsed = Outline.parse(s?.md ?? "");
 				await log({ stage: "refined", subject: parsed.subject, cards: Outline.indexes(parsed.sections) });
 				const by = new Map(notes.map(n => [n.i, n]));
-				await log({ stage: "notes", notes: c.sentences.map((x, i) => {
+				const rows = c.sentences.map((x, i) => {
 					const cl = clar.find(k => k.n === x.n);
 					return { i, clarity: cl?.clarity ?? null, why: cl?.why ?? "", alternates: by.get(i)?.alternates ?? [], names: by.get(i)?.names ?? [], tags: by.get(i)?.tags ?? [] };
-				}) });
+				});
+				await log({ stage: "notes", notes: rows });
+				if (inbox) try { tag_notes = new TagRouter({ inbox }).route({ session, prompt: id, notes: rows }); } catch (e){ log_errors.push("tag notes: " + String(e.message ?? e)); }
 			}
 			return { c, s, clar, notes };
 		});
 		return {
-			ok: true, ms: Date.now() - t0, stages, ...(id ? { prompt: id, session, log_errors } : {}), clean: result.c, structure: result.s, clarity: result.clar, ...(id ? { notes: result.notes } : {}),
+			ok: true, ms: Date.now() - t0, stages, ...(id ? { prompt: id, session, log_errors, tag_notes } : {}), clean: result.c, structure: result.s, clarity: result.clar, ...(id ? { notes: result.notes } : {}),
 			runs: runs.map(r => ({ stage: r.stage, model: r.model, session_id: r.session_id, cost_usd: r.cost_usd, duration_ms: r.duration_ms, tokens: r.tokens })),
 		};
 	} catch (e){

@@ -57,6 +57,7 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) 
 - [ErrorLog](/framework/ext/ErrorLog/) — UI errors become a log line a session can follow; design in `ErrorLog/doc/design.md`
 - [Prompt](/framework/ext/Refine/md/doc/prompt/) — the class: what it holds, how scores are computed, what is not built yet (`doc/prompt.md`)
 - [Session log](/framework/ext/Refine/md/doc/session-log-2026-10-10/) — each prompt kept as raw, clean, refined and notes in the session's `prompts.jsonl` (`doc/session-log-2026-10-10.md`)
+- [Tag notes](/framework/ext/Refine/md/doc/tag-notes-2026-10-12/) — a tagged prompt leaves a note on the module page its tag names, through the one Inbox (`Servex/ext/refine/TagRouter.js`, `doc/tag-notes-2026-10-12.md`)
 - [Echo](/framework/servex/doc/echo.md) — the running pipeline that uses this engine on every prompt you type in VS Code: triggers, output, cost, and the gaps against the vision (`Servex/doc/echo.md`)
 - [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
 - `doc/vision-2026-10-08.md` — the owner's intended pipeline (raw → clean → refined cards, every sentence accounted, context cards); check the built state against it
