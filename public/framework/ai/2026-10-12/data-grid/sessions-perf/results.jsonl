@@ -1,0 +1,13 @@
+{"label":"before","width":3440,"first_row_ms":45670,"long_tasks":8,"long_ms":1260,"dom_nodes":5783,"rows":200,"heap_mb":69.9,"scroll_long_ms":85,"at":"2026-10-12T19:43:59.599Z"}
+{"label":"before","width":400,"first_row_ms":15733,"long_tasks":7,"long_ms":787,"dom_nodes":5782,"rows":200,"heap_mb":121.7,"scroll_long_ms":200,"at":"2026-10-12T19:43:59.995Z"}
+{"label":"before","width":1200,"first_row_ms":1705,"long_tasks":5,"long_ms":344,"dom_nodes":5930,"rows":200,"heap_mb":195.8,"scroll_long_ms":59,"at":"2026-10-12T19:44:05.775Z"}
+{"label":"before","width":1920,"first_row_ms":2005,"long_tasks":6,"long_ms":507,"dom_nodes":5930,"rows":200,"heap_mb":60,"scroll_long_ms":51,"at":"2026-10-12T19:44:11.952Z"}
+{"label":"before","width":3440,"first_row_ms":1738,"long_tasks":6,"long_ms":523,"dom_nodes":5930,"rows":200,"heap_mb":56,"scroll_long_ms":0,"at":"2026-10-12T19:44:17.708Z"}
+{"label":"before","width":400,"first_row_ms":1738,"long_tasks":7,"long_ms":447,"dom_nodes":5930,"rows":200,"heap_mb":182.9,"scroll_long_ms":0,"at":"2026-10-12T19:44:25.715Z"}
+{"label":"before","width":1200,"first_row_ms":1591,"long_tasks":5,"long_ms":305,"dom_nodes":5930,"rows":200,"heap_mb":53.8,"scroll_long_ms":0,"at":"2026-10-12T19:44:31.209Z"}
+{"label":"before","width":1920,"first_row_ms":1701,"long_tasks":5,"long_ms":450,"dom_nodes":5930,"rows":200,"heap_mb":56.1,"scroll_long_ms":0,"at":"2026-10-12T19:44:36.955Z"}
+{"label":"before","width":3440,"first_row_ms":2064,"long_tasks":5,"long_ms":452,"dom_nodes":5930,"rows":200,"heap_mb":61.5,"scroll_long_ms":0,"at":"2026-10-12T19:44:42.954Z"}
+{"label":"before","width":400,"first_row_ms":1675,"long_tasks":5,"long_ms":301,"dom_nodes":5930,"rows":200,"heap_mb":54.1,"scroll_long_ms":0,"at":"2026-10-12T19:44:50.287Z"}
+{"label":"before","width":1200,"first_row_ms":1871,"long_tasks":7,"long_ms":411,"dom_nodes":5930,"rows":200,"heap_mb":59.2,"scroll_long_ms":0,"at":"2026-10-12T19:44:56.062Z"}
+{"label":"before","width":1920,"first_row_ms":2138,"long_tasks":5,"long_ms":465,"dom_nodes":5930,"rows":200,"heap_mb":64.7,"scroll_long_ms":0,"at":"2026-10-12T19:45:02.156Z"}
+{"label":"before","width":3440,"first_row_ms":2203,"long_tasks":5,"long_ms":455,"dom_nodes":5930,"rows":200,"heap_mb":67,"scroll_long_ms":0,"at":"2026-10-12T19:45:08.565Z"}
