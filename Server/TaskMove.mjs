@@ -214,7 +214,7 @@ export default class TaskMove {
 
 	// ---- relink: rewrite links and import specifiers from the ledger (or, pre-apply, from the plan) ----
 	static *walkFiles(repo){
-		const exts = new Set([".md", ".js", ".mjs", ".json", ".html"]);
+		const exts = new Set([".md", ".js", ".mjs", ".html"]);   // not .json: data records and the generated directory.json keep their history; old URLs redirect
 		const skipDirs = new Set(["node_modules", ".git"]);
 		function* walk(dir){
 			let entries; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
@@ -267,7 +267,7 @@ export default class TaskMove {
 		}
 		for (const day of days){
 			const [Y, M, D] = day.split("-");
-			subs.push({ re: new RegExp(esc(`/framework/ai/${day}/`), "g"), to: `/framework/ai/sessions/${Y}/${M}/${D}/` });
+			subs.push({ re: new RegExp(esc(`/framework/ai/${day}/`) + String.raw`(?=["'\)\s,]|$)`, "g"), to: `/framework/ai/sessions/${Y}/${M}/${D}/` });   // the day page only: a skipped (live) task under it keeps its old address
 		}
 		// folder moves only (not the virtual "redirect" line) — a moved file's own relative references resolve against these
 		const movesByFrom = moves.filter(m => m.kind === "task" || m.kind === "rename").map(m => ({ from: path.join(repo, m.from), to: path.join(repo, m.to) }));
