@@ -11,6 +11,7 @@ import PageListing from "./Listing.js";
 import PagePrefs from "./Prefs.js";
 import PageRelated from "./Related.js";
 import PagePreviews from "./Previews.js";
+import PageColumns from "./Columns.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -1074,7 +1075,7 @@ export class Page extends Item {
 	// ════ RELATED — a pinned aside of links to other pages (Related.js; `related: "/a/ /b/"`, doc/property/related.md) ═══
 	related_aside(){ return new this.constructor.Related({ page: this }).aside(); }
 
-	// ════ COLUMNS — the Finder shape ═══
+	// ════ COLUMNS — the Finder shape (Columns.js, doc/columns.md) ═══
 	// ⚠ `this.columns({ even: true })`, never a declared `columns:` field: it would shadow this method.
 	// `fit`: "floor" (default) never narrower than recommended; "round" fills tighter. (doc/columns.md)
 	columns({ even = false, fit = "floor" } = {}){ this.columnar = true; this.column_even = even; this.column_fit = fit; return this; }
@@ -1089,162 +1090,18 @@ export class Page extends Item {
 		return chain[at];
 	}
 
-	// My column, then the region my children mount in. ⚠ No `page-title` or `flow` here; `classes` is additive. (doc/watch-out.md)
-	render_column(host){
-		const stack = () => {
-			this.column_grab(this.column(host));
-			// ⚠ The host builds a `default` child (nothing routes to it) and hands down `app`. (doc/decisions.md)
-			this.$pages = div.c("page-column-pages", () => this.default_column()?.assign({ app: this.app }).render());
-		};
-
-		// The mode is the HOST's, so the class is the host's too — Page.css reads it as
-		// `.page.columns.page-columns-even`, one row, one answer for N.
-		this.view = div.c("page")
-			.ac(this === host ? "columns" : "column")
-			.ac(this === host && this.column_even && "page-columns-even");
-
-		this.view.append(this === host ? () => {
-			this.$crumbs = div.c("page-columns-bar");
-			this.$row = div.c("page-columns-row", stack);
-		} : stack);
-
-		// ⚠ No `page-w-*` here: a column's width is already stamped by `column()` below,
-		//   and under a columns host the page grid the width words move things in does
-		//   not exist. The other five words are plain classes and work in both hosts.
-		Page.views.set(this.view.el, this);
-		return this.view.ac(this.name && "page--" + this.name).ac(...this.word_classes()).ac(this.classes);
-	}
-
-	// The child that opens when nothing deeper is routed (the `default` word).
-	// ⚠ Not `opens()`: a core method named for a noun gets shadowed by page state. (doc/decisions.md)
-	default_column(){ return [...this.children.values()].find(child => child?.classes?.split(/\s+/).includes("default")); }
-
-	// ONE COLUMN: a sticky head, my own content, my children as rows. `width` is the
-	// page's own word — `small`, `large`, `full`; none is the default.
-	column(host){
-		return div.c("page-column-body", () => {
-			div.c("page-column-head", () => {
-				span.c("page-column-title", this.title);
-				if (this !== host) a.c("page-column-close", () => icon("close")).href(this.parent.url);
-			});
-
-			// ⚠ `render_content()`, not a hand-written two-branch copy: one reader decides what is in the box. (doc/decisions.md)
-			const tabbed = this.navigation === "tabs" && is.fn(this.tabs);
-			if (tabbed) this.tabs(undefined, { home: () => div.c("page-column-prose flow", () => this.render_content()) });
-			else if (this.content)
-				div.c("page-column-prose flow", () => this.render_content());
-
-			// ⚠ `index: true` — my content already shows my children, so no rail. A field, not a method. (doc/watch-out.md)
-			if (!this.index && !tabbed) this.children.forEach((child, name) => {
-				const nav = this.nav_for(name);
-
-				a.c("page-column-item").href(nav.url).append(() => {
-					if (nav.icon) icon(nav.icon);
-					span.c("page-column-label", nav.label);
-					if (child?.children.size) icon("chevron_right");
-				});
-			});
-
-			// A column is already a rail, so `related:` is a short list at its end. (doc/columns.md)
-			if (this.related) div.c("page-column-prose", () => this.related_aside());
-		}).ac(this.width && "page-column-" + this.width);
-	}
-
-	// ── the seam — drag it and this column keeps the width you left it at ──
-	// ⚠ `lostpointercapture` ends the drag however it ended; `preventDefault` on the DOWN. (doc/watch-out.md)
-	column_grab($body){
-		const $grab = div.c("page-column-grab");
-		let from, width;
-
-		$grab.on("pointerdown", e => {
-			from = e.clientX;
-			width = $body.el.getBoundingClientRect().width;
-			$grab.el.setPointerCapture(e.pointerId);
-			$grab.ac("page-column-grabbing");
-			e.preventDefault();
-		});
-
-		$grab.on("pointermove", e => is.num(from) && this.resize_column($body, width + e.clientX - from));
-		$grab.on("lostpointercapture", () => { from = undefined; $grab.rc("page-column-grabbing"); });
-		$grab.on("dblclick", () => this.resize_column($body));
-
-		return $grab;
-	}
-
-	// The width a drag leaves behind, as the same three tokens the width words set. ⚠ No `px` = back to the page's word. (doc/watch-out.md)
-	resize_column($body, px){
-		const row = this.column_host()?.$row?.el;
-		const width = px && Math.round(Math.max(this.column_floor, Math.min(px, row?.clientWidth ?? px)));
-
-		return $body.style({
-			"--page-column-flex": width ? `0 0 ${width}px` : "",
-			"--page-column-min":  width ? "0" : "",
-			"--page-column-max":  width ? "none" : "",
-		});
-	}
-
-	// ── `even` — N columns of equal width, N computed from the ROW's room ──
-	// ⚠ STATIC, so the lab sizes with the host's own arithmetic. The stamp comes off BEFORE the read. `max-width: none` = the phone regime. (doc/watch-out.md)
-	static even_columns(row, fit = "floor"){
-		if (!row) return null;
-
-		row.style.removeProperty("--page-column-even-w");
-
-		const body = row.querySelector(".page-column-body");
-		const recommended = parseFloat(body && getComputedStyle(body).maxWidth);
-		const available = row.clientWidth;
-		if (!(recommended > 0) || !available) return null;
-
-		// `floor` never lets a column fall under its recommendation; `round` fills the
-		// room tighter and lets it. Never below 1 either way: one column that is too
-		// narrow still beats none.
-		const slots = available / recommended;
-		const n = Math.max(1, fit === "round" ? Math.round(slots) : Math.floor(slots));
-		const width = available / n;
-
-		row.style.setProperty("--page-column-even-w", width + "px");
-		return { n, width, available, recommended, fit };
-	}
-
-	// My row's N and column width, or null when I am not in the mode. `column_fit`
-	// rides along so the host's own answer and the static one cannot differ.
-	even_columns(){ return this.column_even ? this.constructor.even_columns(this.$row?.el, this.column_fit) : null; }
-
-	// The room changed, or a column opened: size first, scroll second. `slide` is true only for a navigation. (doc/decisions.md)
-	settle_columns(slide){ this.even_columns(); this.scroll_column(slide); }
-
-	// Slide or jump? Native smooth scroll beat FLIP and View Transitions (measured).
-	// ⚠ Reduced motion is read HERE. Only `even` slides. (doc/watch-out.md)
-	column_slide(){ return !!this.column_even && !matchMedia("(prefers-reduced-motion: reduce)").matches; }
-
-	// Called on the HOST after every activation in its tree: the trail says where you
-	// are — and gets back whatever a `full` page collapsed — then the newest column
-	// scrolls itself in.
-	reveal_column(page){
-		this.$crumbs?.empty(() => page.crumbs(this));
-
-		const row = this.$row?.el;
-		if (!row) return;
-
-		// ⚠ The row has no box on a cold load: the observer fires when it gets one, and on every resize. (doc/watch-out.md)
-		if (!this.watching) (this.watching = new ResizeObserver(() => this.settle_columns())).observe(row);
-
-		// ⚠ One frame later: Router.mark() marks after activate(). This is the one settle that SLIDES. (doc/watch-out.md)
-		requestAnimationFrame(() => this.settle_columns(true));
-	}
-
-	// The deepest column on screen, by the smallest move. ⚠ `scrollBy` on the row, never `scrollIntoView`. (doc/watch-out.md)
-	scroll_column(slide){
-		const row = this.$row?.el;
-		const body = [...row?.querySelectorAll(".page-column-body") ?? []].filter(el => el.offsetWidth).at(-1);
-		if (!body) return;
-
-		const to = body.getBoundingClientRect(), from = row.getBoundingClientRect();
-		const dx = to.right > from.right ? to.right - from.right
-			: to.left < from.left ? to.left - from.left : 0;
-
-		if (dx) row.scrollBy({ left: dx, behavior: slide && this.column_slide() ? "smooth" : "auto" });
-	}
+	// Facades: a page overrides `column(host)` and the others call each other through `this`, so these stay Page methods.
+	render_column(host){ return new this.constructor.Columns({ page: this }).render(host); }
+	column(host){ return new this.constructor.Columns({ page: this }).body(host); }
+	default_column(){ return new this.constructor.Columns({ page: this }).default(); }
+	column_grab($body){ return new this.constructor.Columns({ page: this }).grab($body); }
+	resize_column($body, px){ return new this.constructor.Columns({ page: this }).resize($body, px); }
+	static even_columns(row, fit){ return this.Columns.even(row, fit); }
+	even_columns(){ return new this.constructor.Columns({ page: this }).even(); }
+	settle_columns(slide){ return new this.constructor.Columns({ page: this }).settle(slide); }
+	column_slide(){ return new this.constructor.Columns({ page: this }).slide(); }
+	reveal_column(page){ return new this.constructor.Columns({ page: this }).reveal(page); }
+	scroll_column(slide){ return new this.constructor.Columns({ page: this }).scroll(slide); }
 
 	// One menu entry: mine.
 	nav(){ return { url: this.url, label: this.label ?? this.title, icon: this.icon, card: this.card, description: this.description }; }
@@ -1307,6 +1164,7 @@ Page.Listing = PageListing;
 Page.Prefs = PagePrefs;
 Page.Related = PageRelated;
 Page.Previews = PagePreviews;
+Page.Columns = PageColumns;
 
 // Opt-in instance tracking, installed once so every Page shares one list (core/track/track.js). (doc/decisions.md)
 track(Page);
