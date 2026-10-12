@@ -60,7 +60,7 @@ export default new Page({
 		return div.c("page-column-body page-column-small", () => {
 			div.c("page-column-head", () => span.c("page-column-title", this.title));
 
-			if (this.content) div.c("page-column-prose flow", () => this.content());
+			if (this.has_content()) div.c("page-column-prose flow", () => this.content.render());
 
 			div.c("feeds-picks", () => this.children.forEach((talk, name) => {
 				a.c("feeds-pick").href(this.nav_for(name).url).append(() => {

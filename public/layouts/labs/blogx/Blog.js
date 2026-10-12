@@ -63,7 +63,7 @@ export class Blog extends Page {
 		}).ac(this.classes);
 	}
 
-	main(){ return div.c("blogx-main", () => this.content()); }
+	main(){ return div.c("blogx-main", () => this.content.render()); }
 
 	// ── every post is a page ────────────────────────────────────────────────
 	// route() is consulted for UNDECLARED names only, so a candidate that declares

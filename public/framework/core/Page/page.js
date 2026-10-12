@@ -63,7 +63,7 @@ export default new Doc({
 	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
 	// links to it, same as before. `settings` (same day, tabs-settings task): tabs
 	// that manage themselves via a `tab` line, and a page's own nav switch.
-	children: "make layout navigation tool/page.jsonl parts/page.jsonl ai dynamic weight card generator old jsonl/page.jsonl settings/page.jsonl ext/page.jsonl audit",
+	children: "make layout navigation tool/page.jsonl parts/page.jsonl content-shapes ai dynamic weight card generator old jsonl/page.jsonl settings/page.jsonl ext/page.jsonl audit",
 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
 
 	// Every member, in the order a reader meets them: the tree, then rendering,
@@ -163,7 +163,7 @@ export default new Doc({
 			title: this.title,
 			icon: this.icon,
 			children: Array.isArray(this.overview) ? this.overview : Doc.names(this.overview),
-			content: this.content,
+			content: this.content.value,
 
 			// ⚠ THE PALETTE IS DRAWN HERE, not by the 29 pages. `add()` is the one place
 			// a child becomes a Page, so stamping the card as it arrives is one seam
@@ -184,7 +184,7 @@ export default new Doc({
 				// paying its own 3em on 2026-09-29 (that 3em was for a bare tab strip with no
 				// `.doc-section` below it; here there always is one). Zeroing it here, like this
 				// section used to, left the tiles flush against the tab bar — fixed 2026-09-29.
-				return this.view ??= div.c("page doc-section flow", () => this.content())
+				return this.view ??= div.c("page doc-section flow", () => this.content.render())
 					.ac("page--" + this.name);
 			},
 		});

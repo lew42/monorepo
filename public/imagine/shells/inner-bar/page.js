@@ -22,7 +22,7 @@ export default new Shell({
 		return div.c("shell-main shell-stage", () => {
 			div.c("shell-pane", () => {
 				div.c("shell-doc flow", () => {
-					this.content();
+					this.content.render();
 					this.verdict();
 				});
 

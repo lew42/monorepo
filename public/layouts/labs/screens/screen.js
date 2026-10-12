@@ -27,7 +27,7 @@ export class Screen extends Page {
 	   on a full screen the REGIONS are the navigation and the crumb strip is the way
 	   back, so a second set of chrome would only say it again, smaller. */
 	column(host){
-		return div.c("page-column-body screens-screen", () => this.content())
+		return div.c("page-column-body screens-screen", () => this.content.render())
 			.ac("page-column-" + (this.width ?? "full"));
 	}
 

@@ -32,7 +32,7 @@ export default new Shell({
 
 				div.c("shell-inner-body", () => {
 					div.c("shell-doc flow", () => {
-						this.content();
+						this.content.render();
 						this.verdict();
 					});
 				});

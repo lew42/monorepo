@@ -24,7 +24,7 @@ import { lead, when } from "../posts.js";
 
 const Part = class BlogxSwapPart extends Page {
 	render(){
-		return this.view ??= div.c("page blogx-part", () => this.content());
+		return this.view ??= div.c("page blogx-part", () => this.content.render());
 	}
 };
 

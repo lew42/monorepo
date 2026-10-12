@@ -41,7 +41,7 @@ export default class PageJsonl {
 			const { class: _, ...line } = first;
 			const page = new Class(line, { url, jsonl_url: reader.url });
 
-			page.content ??= page.log_view;
+			if (!page.has_content()) page.content.fallback(page.log_view);
 			reader.attach(page);
 			(this.Page.log_pages ??= new Map()).set(page.log_folder(), page);   // listing() reads it for free
 			return page;
@@ -113,7 +113,7 @@ export default class PageJsonl {
 		if (had instanceof this.Page){
 			const { content: text, ...labels } = data;
 			if (Object.keys(labels).length) had.set(labels);
-			if (text !== undefined && !(had.content instanceof List)) had.content = text;
+			if (text !== undefined && !had.content.has_parts) had.content = text;
 			had.rerender();
 			if (page.view) queueMicrotask(() => page.nav_redraw?.());
 			return;

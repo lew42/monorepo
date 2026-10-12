@@ -35,7 +35,7 @@ Two things are still messier than the target. Fixing them is major surgery (CLAU
 | `content` as a string or an address (`content: "/notes/x.md"`) | 30 files | an address part (`{"type":"part-address"}`) |
 | `{"content": ...}` lines in `page.jsonl` | 5 files | already the target |
 
-Order, when it is approved: (1) make `content` always a `List` and have a function or string wrap itself into one code or text part on assignment; (2) point the 255 `.children` readers at `.pages` with a script (dry run, manifest, reversible); (3) retire the `children` Map wrapper and the string setter last, after one release as a shim.
+Order, when it is approved: (1) ✅ built 2026-10-12 ([content-list-step-1.md](content-list-step-1.md)): make `content` always a `List` and have a function or string wrap itself into one code or text part on assignment; (2) point the 255 `.children` readers at `.pages` with a script (dry run, manifest, reversible); (3) retire the `children` Map wrapper and the string setter last, after one release as a shim.
 
 ## Decision, and the alternative
 
@@ -71,6 +71,8 @@ return is.fn(this.content) ? this.content() : this.content;            // conten
 ```
 
 ### 1. `page.content` never changes type
+
+**Built 2026-10-12** (step 1 only; steps 2 and 3 are not): [content-list-step-1.md](content-list-step-1.md) has what was built and where it differs from the text below. Live: [/framework/core/Page/content-shapes/](/framework/core/Page/content-shapes/).
 
 ```js
 page.content                                  // always a List, the same object for the page's life

@@ -57,7 +57,7 @@ export default new Page({
 		// transforms (perspective applies to its children), so a page that was also
 		// the card left that card as the one flat thing on a page about depth.
 		// The card is now a layer inside it.
-		return this.view ??= div.c("page flow page-resume", () => this.content());
+		return this.view ??= div.c("page flow page-resume", () => this.content.render());
 	},
 
 	/* ⚠ `.depth()` BARE, never `.depth(n)` — passing the number writes an inline

@@ -51,7 +51,7 @@ export default class PageColumns {
 			// ⚠ `render_content()`, not a hand-written two-branch copy: one reader decides what is in the box. (doc/decisions.md)
 			const tabbed = page.navigation === "tabs" && is.fn(page.tabs);
 			if (tabbed) page.tabs(undefined, { home: () => div.c("page-column-prose flow", () => page.render_content()) });
-			else if (page.content)
+			else if (page.has_content?.())
 				div.c("page-column-prose flow", () => page.render_content());
 
 			// ⚠ `index: true` — my content already shows my children, so no rail. A field, not a method. (doc/watch-out.md)

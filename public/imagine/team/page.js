@@ -130,7 +130,7 @@ const quiet_column = function(){
 			a.c("page-column-close", () => icon("close")).href(this.parent.url);
 		});
 
-		div.c("page-column-prose flow", () => this.content());
+		div.c("page-column-prose flow", () => this.content.render());
 	});
 };
 

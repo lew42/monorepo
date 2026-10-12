@@ -14,6 +14,7 @@ import PagePreviews from "./Previews.js";
 import PageColumns from "./Columns.js";
 import PageLinks from "./Links.js";
 import PageJsonl from "./Jsonl.js";
+import PageContent from "./PageContent.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -26,9 +27,7 @@ const marked = el => el?.matches(".page.active-page, .page.active-ancestor, .pag
 // `tint` used to be `wash`. Read on the way in; never mentioned again.
 const ALIAS = { surface: "card", wash: "tint" };
 
-// A `content` string that starts with `/` is an ADDRESS, not text; a `.md` one is
-// prose, anything else is the `page.json` at that address.
-const is_address = value => is.str(value) && value.startsWith("/");
+// A `.md` address is prose, anything else is the `page.json` at that address.
 const is_md = url => /\.md(\?|#|$)/i.test(url);
 
 // Page extends Item directly (no PageLog middle class). (doc/decisions.md)
@@ -42,6 +41,7 @@ export class Page extends Item {
 	// ⚠ Nothing is FETCHED here: a module page constructs itself at import. The caller budgets (doc/declaring.md).
 	constructor(...args){
 		super(...args);
+		this.hoist_content();
 		this.assign(...args);
 		if (!this.data || typeof this.data !== "object" || Array.isArray(this.data)) this.data = Object.create(null);
 		Page.track(this);
@@ -81,22 +81,47 @@ export class Page extends Item {
 		this.emit("line", obj);
 		obj = this.take_words(obj);
 
-		if ("content" in obj && !(this.content instanceof List)){
+		if ("content" in obj){
 			const { content, ...rest } = obj;
-			this.ensure_content().set(content);
+			this.content.fill(content);
 			return super.set(rest);
 		}
-
-		// Compat, one release (2026-10-03): an old {"at": "content/…"} line needs page.content to exist first. (doc/decisions.md)
-		if (typeof obj.at === "string" && obj.at.split("/")[0] === "content") this.ensure_content();
 
 		return super.set(obj);
 	}
 
-	// Made on the first content delta, never up front. (doc/jsonl.md)
-	ensure_content(){
-		return this.content instanceof List ? this.content
-			: (this.content = new List({ owner: this, name: "content" }));
+	// ════ CONTENT — one PageContent List for the page's life; a function, string or address is one item in it (doc/content.md) ═══
+	get content(){ return this._content ??= new this.constructor.Content({ owner: this, name: "content" }); }
+	set content(value){ this.content.fill(value); }
+
+	// A class-body `content(){}` would hide the accessor: move it into the list and put the accessor on the instance.
+	hoist_content(){
+		const own = Object.getOwnPropertyDescriptor(this, "content");
+		let method;
+		for (let proto = Object.getPrototypeOf(this); proto && proto !== Page.prototype; proto = Object.getPrototypeOf(proto)){
+			const desc = Object.getOwnPropertyDescriptor(proto, "content");
+			if (desc) { method = desc.value; break; }
+		}
+		if (!own && !method) return;
+
+		Object.defineProperty(this, "content", Object.getOwnPropertyDescriptor(Page.prototype, "content"));
+		if (method) this.content.fill(method);
+		if (own && "value" in own) this.content.fill(own.value);
+	}
+
+	// Anything to draw? An empty list with no parts draws nothing.
+	has_content(){ return !!this._content?.drawn; }
+
+	// Hand the list away and start a new one (ext/catalog moves the old content into its intro).
+	take_content(){ const list = this._content; this._content = undefined; return list; }
+
+	get(key){ return key === "content" ? this.content : super.get(key); }
+
+	// The content list is a saved list only when it holds parts; code, addresses and text live in the page's code.
+	lists(){
+		const { _content, ...lists } = super.lists();
+		if (_content?.items.some(item => !item.transient)) lists.content = _content;
+		return lists;
 	}
 
 	// My sub-pages, the real storage. `of: null` keeps a stub plain. (doc/jsonl.md)
@@ -632,78 +657,11 @@ export class Page extends Item {
 		return this.view;
 	}
 
-	// What is in the box: a function, text, or a "/…" address to render (Frame draws it too).
-	// ⚠ A plain string becomes a paragraph, never a bare text node (the grid has no track for it). (doc/decisions.md)
-	render_content(){
-		if (this.content instanceof List) return this.render_content_list();
-		if (is_address(this.content)) return this.content_at(this.content);
-		if (is.str(this.content)) return p(this.content);
-		return is.fn(this.content) ? this.content() : this.content;
-	}
+	// What is in the box: the content list draws its items in order; the page does not know the kinds. (doc/content.md)
+	render_content(){ return this.content.render(); }
 
-	// ════ A CONTENT LIVELIST, DRAWN — one row per item, drag to reorder (ext/Draggable, dynamic import) ═══
-	// ⚠ `item: { items: list }` on the container's Sortable, `item` on each row's. (doc/content.md)
-	render_content_list(){
-		const list = this.content;
-		let $rows;
-		// Drag-to-reorder is OPT-IN (the owner, 2026-10-03): only a list that is a ranking
-		// the reader may override says `{"sortable": true}` on its page. A plain card body
-		// is read, not rearranged, so it gets no grab cursor and no drag.
-		const sortable = !!this.get?.("sortable");
-
-		// ⚠ `Item.View` does not exist yet (no default view) — so a plain, untyped
-		//   item (its class has no `View`) falls back to its own title or
-		//   text, read straight off its data bag, rather than drawing an empty row.
-		const draw_row = item => {
-			// A kind with its own `View` draws itself in a bare row; a plain item gets the card chrome.
-			const Draw = item.constructor.View;
-			const $row = div.c("page-content-row" + (Draw ? "" : " card"), () => {
-				// A ref row ({"ref": "/framework/core/Page/"}) is drawn as that page's dark class card. (doc/decisions.md)
-				const ref = item.get("ref");
-				const title = item.get("title"), text = item.get("text");
-				// The text under the title, as markdown (dynamic import; the box is captured now, filled in the callback). (doc/decisions.md)
-				const draw_body = () => {
-					if (title || !text) h4.c("page-content-title", title ?? String(item.id));
-					if (text){
-						const $text = div.c("page-content-text");
-						import("../../ext/markdown/md.js").then(({ default: md }) => $text.append(md(text)));
-					}
-				};
-				if (ref){
-					// A ref row is the inline "#Page" chip upgraded to a card; only its header links through. (doc/decisions.md)
-					const $card = div.c("page-content-ref card page-surface-dark");
-					import("../../ext/Mention/Mention.js").then(({ ref_entry, build_row }) => {
-						const entry = ref_entry(ref) ?? { name: ref, icon: "link", url: ref };
-						// build_row nulls View.captor and returns the raw element: appended by hand so draw_body() can follow. (doc/content.md)
-						$card.append(() => { $card.append(build_row(entry.name, entry, "mention")); draw_body(); });
-					});
-					return;
-				}
-				// The View is reached through `constructor` (the code skill's view pattern),
-				// so a subclass can swap it; it captures into this row on construction.
-				if (Draw) return void new Draw({ item });
-				draw_body();
-			});
-			if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
-				new Sortable({ view: $row, item });
-			});
-			return $row;
-		};
-
-		// ⚠ A block body, not `() => list.forEach(draw_row)`: forEach's return value would append "[object Object]". (doc/decisions.md)
-		const box = div.c("page-content-list flow", () => {
-			$rows = div.c("page-content-rows", () => { list.forEach(draw_row); }).ac(sortable && "drag-items sortable");
-		});
-
-		if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
-			new Sortable({ view: $rows, handle: false, $items: $rows, item: { items: list, root(){ return this; } } });
-		});
-
-		const redraw = () => $rows.empty(() => { list.forEach(draw_row); });
-		["add", "remove", "move", "order"].forEach(verb => list.on(verb, redraw));
-
-		return box;
-	}
+	// The row box for any List (the Now card's dashboard too): one row per item, redrawn from the list's events. (doc/content.md)
+	render_content_list(list = this.content){ return new this.constructor.Content.View({ list, page: this, box: true }).result; }
 
 	// A page or file at an address, drawn in this page's box (`content: "/notes/x.md"`).
 	// ⚠ A loop fuse: two levels draw, the third is a link. (doc/decisions.md)
@@ -836,6 +794,7 @@ Page.Reader = PageLogReader;
 Page.Listing = PageListing;
 Page.Prefs = PagePrefs;
 Page.Jsonl = PageJsonl;
+Page.Content = PageContent;
 PageJsonl.Page = Page;
 Page.Related = PageRelated;
 Page.Previews = PagePreviews;

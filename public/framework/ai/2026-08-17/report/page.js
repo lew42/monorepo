@@ -23,7 +23,7 @@ export default new Page({
 	     this page ran 2248px of prose at 3440, about 250 characters a line. The shell
 	     caps `main` and every band below claims `wide`. */
 	render(){
-		return this.view ??= div.c("page", () => this.content())
+		return this.view ??= div.c("page", () => this.content.render())
 			.ac(this.name && "page--" + this.name);
 	},
 

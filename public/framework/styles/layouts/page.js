@@ -35,7 +35,7 @@ export default new Page({
 	   ⚠ No `fill`/`solo`: that is a region height plus scrolling, which this page does
 	     not need — the region scrolls and the rail sticks. */
 	render(){
-		return this.view ??= div.c("page", () => this.content())
+		return this.view ??= div.c("page", () => this.content.render())
 			.ac(this.name && "page--" + this.name);
 	},
 

@@ -31,7 +31,7 @@ export default new Page({
 			});
 
 			this.$pages = div.c("pages", () => {
-				div.c("default flow", () => { h1.c("page-title", this.title); this.content(); });
+				div.c("default flow", () => { h1.c("page-title", this.title); this.content.render(); });
 			});
 		}).ac(this.classes);
 	},

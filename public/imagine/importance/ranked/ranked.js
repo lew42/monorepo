@@ -101,7 +101,7 @@ export function ranked_column(host){
 			if (this !== host) a.c("page-column-close", () => icon("close")).href(this.parent.url);
 		});
 
-		if (this.content)
+		if (this.has_content())
 			div.c("page-column-prose flow", () => this.render_content());
 
 		let place = 0;

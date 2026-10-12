@@ -20,7 +20,7 @@ export default {
   full() {
     a.c("page-back", "Back").href("../");
     this.preview();
-    this.content();
+    this.content.render();
   },
   render() {
     this.full();

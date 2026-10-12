@@ -31,7 +31,7 @@ export class Deck extends Page {
 	   on a full screen the REGIONS are the navigation. */
 	column(host){
 		return div.c("page-column-body decks-screen", () => {
-			const $slice = div.c("decks-slice", () => this.content());
+			const $slice = div.c("decks-slice", () => this.content.render());
 
 			/* A presentation advances when you click it. ⚠ A real link inside the slide
 			   has to win, or a click on the strip would step forwards instead of going
