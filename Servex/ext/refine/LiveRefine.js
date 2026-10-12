@@ -30,13 +30,16 @@ export default class LiveRefine {
 
 	static open = new Map();
 
-	static get(key){
-		if (!LiveRefine.open.has(key)) LiveRefine.open.set(key, new LiveRefine(key));
+	/** `opts.call` (test only): a fake `(prompt, {model, system, stage}) -> {answer, cost_usd, tokens, duration_ms}`,
+	 *  used instead of `RefineCall.run` so a test can run with no model (`test/LiveRefine.test.mjs`). */
+	static get(key, opts){
+		if (!LiveRefine.open.has(key)) LiveRefine.open.set(key, new LiveRefine(key, opts));
 		return LiveRefine.open.get(key);
 	}
 
-	constructor(key){
+	constructor(key, { call } = {}){
 		this.key = key;
+		this._call = call ?? null;
 		this.slots = [];           // [{ n, raw, clean, cleaned }]
 		this.sections = [];        // [{ title, cards: [{ id, text, cites: [n...] }] }]
 		this.subject = null;
@@ -228,9 +231,10 @@ export default class LiveRefine {
 	/** A plain `(prompt, {model, system}) -> {answer, cost_usd}` call, recorded for the measurement script and the running total. */
 	call(stage){
 		return async (prompt, opts) => {
-			const r = await RefineCall.run(prompt, { ...opts, stage });
-			this.calls.push({ stage, tokens: r.tokens, cost_usd: r.cost_usd, duration_ms: r.duration_ms, model: r.model });
-			this.cost_usd = +(this.cost_usd + r.cost_usd).toFixed(5);
+			const run = this._call ?? RefineCall.run;
+			const r = await run(prompt, { ...opts, stage });
+			this.calls.push({ stage, tokens: r.tokens ?? { in: 0, out: 0 }, cost_usd: r.cost_usd ?? 0, duration_ms: r.duration_ms ?? 0, model: r.model });
+			this.cost_usd = +(this.cost_usd + (r.cost_usd ?? 0)).toFixed(5);
 			return r;
 		};
 	}
