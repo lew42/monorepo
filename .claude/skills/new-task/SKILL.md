@@ -48,6 +48,10 @@ on any other task's log.
 {"log": {"at": "<ISO>", "task": "<slug>", "msg": "task opened — <one line>"}}
 ```
 
+### Past work and a plan, before you build (suggested)
+
+Run the `past-work` skill on your topic first (`node Server/PastWork.mjs <topic>`; the site-wide list is [`ai/past-work-index.md`](/framework/ai/past-work-index.md)), so you extend what exists instead of rebuilding it. Then investigate: how it works now, the relevant pieces, the decisions to make. Write that as `plan.md` beside `requirements.md`, and build from it. A tiny task needs three lines, not a document.
+
 ## 2. Register + usage
 
 - Leave the task dir **undeclared**: the sessions store routes every folder by its path (`/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/`), and the board lists tasks with `TaskDirs.list()`.

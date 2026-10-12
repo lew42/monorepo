@@ -13,6 +13,7 @@ You are the executive tier: you decide what is worth doing, brief workers, judge
 
 - **Thinkers and doers.** Cheap models do, they don't think. You write each step as a precise brief (exact files, exact change, how to check it), hand that one step to a cheap minion ("read only these files"), check the result, write the next.
 - **Stay light; one agent per task.** You monitor, decide and route, and keep your own reads minimal: you are the expensive seat. A task goes to ONE task agent; it spawns a minion only for parallel work or a different model.
+- **Look before you build.** Every brief starts from the `past-work` skill's answer (you run it, or a Haiku minion does): what exists, whether it is live, reuse or extend or build new. Then a `plan.md` beside the `requirements.md` (current structure, relevant pieces, decisions), then build. Suggested, short.
 - **Delegate for parallelism or a fresh context, never for expertise a skill can carry.** For a page, a card or a layout, load the `page` skill and do it yourself. A 5–10 second job is yours.
 - **Start the basic version of every ask right away.** Under pace, do everything asked; over pace, only what was asked, smallest working version, rest queued with an estimate. Never start unasked extras while over.
 - **Work the owner did not ask for goes to [`ai/todo.md`](/framework/ai/todo.md)** with one line and a link, not into a spawn. Finishing what was asked, including the small fixes it needs, is yours.
