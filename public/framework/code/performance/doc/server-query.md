@@ -17,3 +17,5 @@ The Sessions page can load from node, the default on the dev socket ([`?source=f
 
 
 **Parity (2026-10-12):** with the source column, Claude-only cost, closed/attention, and buckets + nesting run in node, the Sessions page in remote mode (`label: parity`): first row 1.18 s at 400 and 1.24 s at 1920, 45 rows, 2,679 DOM nodes, 3.2 MB transferred (page modules), 22 MB heap, 0.8 MB over the socket, one 51 ms long task.
+
+**Node with the join (parity):** the same query through `shape` + `arrange` over 8,753 sessions takes a median of 8.8 ms (20 runs), up from 1.4 ms on raw snapshots, because every query re-shapes each snapshot. Still well under a frame budget for one query; caching the shaped rows is the next step if it grows. Raw: `node.jsonl` in the build folder.
