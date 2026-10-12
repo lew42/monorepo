@@ -25,6 +25,12 @@ Whole split: 2270 to 849 lines (-63%). Methods stay 114: every moved method keep
 - `PageJsonl.Page` is assigned after `Page` is defined: importing `Page` into `Jsonl.js` would be a cycle that breaks on deep reload.
 - The listing statics (`listing`, `fetch_listing`, `page_listing`, `loaded_listing`, `UNLOGGED`) stay on Page, as in step 2: they own `Page.listings` / `Page.log_pages`, which outside code (`rail/groups.js`, `Page/Log.js`, `ext/Inbox`) reads by name.
 
+## Merge
+
+- Landed on `michael/dev` as `94b229c4e`. `merge.mjs` holds the live reloads itself (`hold on "merge — worktree/page-split-3"`, then `hold off "merge"`).
+- The first smoke failed only on the worktree's missing gitignored `directory.json` files and a task page with no `task.jsonl` in the branch; I copied the two data files in (ignored by git) and carried `task.jsonl` and `review/` into the branch. No code changed.
+- **The real tools, on the merged code** (`watch-proof.mjs`, a headless browser on `monorepo.localhost`): `page_add` heading shown 1 ms, `page_add` card 2 ms, `page_set` `content.add` 17 ms after the file grew (poll step 15 ms), 0 page errors. A `title` delta does not show in the page text on this demo page, the same as before the move. The proof items were removed again with `page_set` `content.remove`.
+
 ## Open
 
 Nothing for the split. `reshape()` / `rerender()` stay on Page (rendering, not jsonl).
