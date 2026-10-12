@@ -48,3 +48,9 @@
 {"log":{"at":"2026-10-12T13:07:22-05:00","heartbeat":"deliberate","msg":"mastermind-servex-health its agent is not running: its task servex-health has landed; not revived."}}
 {"log":{"at":"2026-10-12T14:43:28-05:00","heartbeat":"deliberate","msg":"mastermind-servex-health its agent is not running: its task servex-health has landed; not revived."}}
 {"log":{"at":"2026-10-12T15:00:53-05:00","heartbeat":"deliberate","msg":"mastermind-servex-health its agent is not running: its task servex-health has landed; not revived."}}
+{"log":{"at":"2026-10-12T16:27:26-05:00","heartbeat":"revive-queued","msg":"mastermind-servex-health its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-12T16:27:28-05:00","heartbeat":"revive","msg":"revived mastermind-servex-health from session 4e965597-a7f4-43e1-a4d8-1397f45fda8d"}}
+{"log":{"at":"2026-10-12T16:27:30-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-12T16:27:30-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-12T16:27:36-05:00","msg":"session ended (other) without landing"}}
+{"landed_at":"2026-10-12T21:27:53.150Z","outcome":"Servex health, backend only ([STATE](/framework/ai/2026-10-12/servex-health/STATE.md)):\n- [x] reviewer/checker/voter skill rows: already in roles.js\n- [x] merged worktree branches pruned by script: 89 tagged salvage/, manifest in Server/logs, `Server/branch-prune.mjs`\n- [x] one batched restart, proved on private port 18090 first; skills log after: 21/21 injected, 0 fallbacks\n- [ ] transcription crash cause and orphan-reap owner: open, next steps in STATE\nReview: none (script and docs only)."}
