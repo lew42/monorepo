@@ -16,8 +16,8 @@ PageLink.View = class PageLinkView extends View {
 		fetch(href + "page.jsonl").then(r => r.ok ? r.text() : "").then(src => {
 			try {
 				const first = JSON.parse(src.split("\n")[0]);
-				if (first.title) $title.textContent = first.title;
-				if (first.description) $text.textContent = first.description;
+				if (first.title) $title.el.textContent = first.title;
+				if (first.description) $text.el.textContent = first.description;
 			} catch {}
 		}).catch(() => {});
 		$card.attr("href", href);
