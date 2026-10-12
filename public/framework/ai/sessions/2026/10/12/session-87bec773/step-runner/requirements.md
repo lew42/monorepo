@@ -1,4 +1,6 @@
-# Step runner: approved procedures followed 100%, nudged by node, not remembered by AIs (mastermind brief)
+# Step runner: node enforces approved steps
+
+Goal: an approved procedure is followed 100% because node prompts and nudges each step, not because an AI remembered.
 
 **Owner (2026-10-12, dictated):** "We shouldn't have AIs forgetting to do things. When we have a process set up, we want it to be followed 100%."
 
