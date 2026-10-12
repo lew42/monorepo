@@ -2,7 +2,8 @@
 
 @layer theme {
 	/* One responsive grid for every level: files, pages, frames. */
-	.figma-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16em), 1fr)); gap: 1em; align-items: start; }
+	.figma-browse { grid-column: 1 / -1; max-width: none; }
+	.figma-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, max(14em, 18vw)), 1fr)); gap: 1em; align-items: start; }
 	.figma-card { display: grid; gap: .25em; padding: .75em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 4px; color: inherit; text-decoration: none; }
 	.figma-card img, .figma-large { width: 100%; height: auto; display: block; background: color-mix(in srgb, currentColor 8%, transparent); }
 	.figma-card :is(h2, p) { margin: 0; }

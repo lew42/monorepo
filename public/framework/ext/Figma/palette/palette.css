@@ -3,12 +3,12 @@
 @layer theme {
 	.pal-card {
 		background: #fff;
-		border-radius: 16px;
-		padding: 120px 48px;
+		border-radius: 1em;
+		padding: clamp(1.5em, 4vw, 7.5em) clamp(.75em, 3vw, 3em);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 40px;
+		gap: 2.5em;
 		margin-block: 1.5em;
 	}
 
@@ -16,26 +16,26 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 12px;
+		gap: 0.75em;
 	}
 
 	.pal-square {
-		width: 120px;
-		height: 120px;
+		width: 7.5em;
+		height: 7.5em;
 		background: #72c4ff;
-		border-radius: 12px;
+		border-radius: 0.75em;
 	}
 
 	.pal-card h1 {
 		font-family: Montserrat, sans-serif;
 		font-weight: 900;
-		font-size: 48px;
+		font-size: 3em;
 		color: rgba(0, 0, 0, 0.8);
 		margin: 0;
 	}
 
 	.pal-tagline {
-		font-size: 16px;
+		font-size: 1em;
 		font-weight: 500;
 		line-height: 1.8;
 		color: rgba(0, 0, 0, 0.8);
@@ -47,14 +47,15 @@
 	.pal-columns {
 		display: flex;
 		flex-direction: row;
-		gap: 16px;
+		flex-wrap: wrap;
+		gap: 1em;
 		width: 100%;
 	}
 
 	.pal-column {
-		flex: 1 0 0;
+		flex: 1 1 15em;
 		min-width: 0;
-		border-radius: 12px;
+		border-radius: 0.75em;
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
@@ -74,10 +75,10 @@
 	}
 
 	.pal-block {
-		padding: 28px;
+		padding: 1.75em;
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: 1em;
 	}
 
 	.pal-white .pal-block {
@@ -95,10 +96,10 @@
 	}
 
 	.pal-inset {
-		padding: 20px 28px;
+		padding: 1.25em 1.75em;
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: 1em;
 	}
 
 	.pal-white .pal-inset {
@@ -116,16 +117,16 @@
 	}
 
 	.pal-nested {
-		padding: 16px;
-		border-radius: 8px;
+		padding: 1em;
+		border-radius: 0.5em;
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: 1em;
 		color: #fff;
 	}
 
 	.pal-label {
-		font-size: 14px;
+		font-size: 0.875em;
 		font-weight: bold;
 		text-transform: uppercase;
 		letter-spacing: 0.07em;
@@ -146,14 +147,14 @@
 	}
 
 	.pal-title {
-		font-size: 36px;
+		font-size: 2.25em;
 		font-weight: bold;
 		line-height: 1.5;
 		margin: 0;
 	}
 
 	.pal-body {
-		font-size: 16px;
+		font-size: 1em;
 		font-weight: 500;
 		line-height: 1.8;
 		margin: 0;
@@ -161,7 +162,7 @@
 }
 
 @layer theme {
-	.pal-card { grid-column: 1 / -1; max-width: none; box-sizing: border-box; }
+	.pal-card { font-size: clamp(16px, .55vw + 10px, 30px); grid-column: 1 / -1; max-width: none; box-sizing: border-box; }
 }
 
 @layer theme {

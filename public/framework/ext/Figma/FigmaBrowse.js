@@ -20,25 +20,26 @@ export class FigmaBrowse extends Page {
 	}
 
 	show_files(files){
-		md("Figma files the owner tracks. Pick one to see its pages.");
-		div.c("figma-grid", () => files.forEach(f => {
-			a.c("figma-card", () => {
-				const first = f.pages.find(pg => pg.shot);
-				first && img().attr("src", first.shot_url).attr("alt", f.name);
-				h2(f.name); p(`${f.pages.length} pages`);
-			}).href(`?file=${f.key}`);
-		}));
+		md("Figma files the owner tracks, as previews of every page; click one to open it. Designs rebuilt as framework pages: [Color Schemes](/framework/ext/Figma/colors/) and [The Approved Schemes](/framework/ext/Figma/palette/).");
+		files.forEach(f => {
+			a(f.name).href(`?file=${f.key}`);
+			this.show_pages(f);
+		});
 	}
 
-	show_file(file){
-		a("All files").href("?");
-		h2(file.name);
+	show_pages(file){
 		div.c("figma-grid", () => file.pages.forEach(pg => {
 			a.c("figma-card", () => {
 				pg.shot && img().attr("src", pg.shot_url).attr("alt", pg.name).style("aspect-ratio", pg.ratio);
 				h2(pg.name); p(pg.frames.length ? `${pg.frames.length} frames` : "page preview");
 			}).href(`?file=${file.key}&page=${pg.id}`);
 		}));
+	}
+
+	show_file(file){
+		a("All files").href("?");
+		h2(file.name);
+		this.show_pages(file);
 	}
 
 	show_page(node){
