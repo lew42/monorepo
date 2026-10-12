@@ -450,7 +450,7 @@ export default class AISessionsPage extends Page {
 		r.busy = true;
 		try {
 			const spec = { ...this.remote_spec(), offset: more ? r.rows.length : 0, limit: refresh ? Math.max(AISessionsPage.PAGE_SIZE, r.rows.length) : AISessionsPage.PAGE_SIZE };
-			const res = await this.client.ask(spec, { more: more || refresh });
+			const res = await this.client.ask(spec, { more: more || refresh, timeout: first ? 60000 : undefined });   // the first ask on a cold server waits for the index to load
 			if (res.error) return false;
 			const rows = res.rows.map(snap => this.remote_row_of(snap));
 			Object.assign(r, { rows: more ? [...r.rows, ...rows] : rows, total: res.total, totals: res.totals, ms: res.ms });
