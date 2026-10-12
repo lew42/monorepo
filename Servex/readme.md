@@ -389,3 +389,4 @@ launches the gate at boot.
 - The repo this was ported from: `C:/Code/servex` — read, never edited. Its
   `servex-mvp.md` lists the gaps; the ones that are closed are closed here.
 - Decisions and the SDK: [`doc/architecture.md`](./doc/architecture.md) · [`doc/sdk.md`](./doc/sdk.md) (how an agent is started and kept alive)
+- Skills each role gets, injected by node, with measured rates: [`doc/skills.md`](./doc/skills.md)

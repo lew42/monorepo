@@ -1,0 +1,422 @@
+[
+ {
+  "file": "128163f8-fcb8-43ea-8518-2cc48c5283ca.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "2679adbc-b511-41f8-a1dd-511d76f91980.jsonl",
+  "skill": "sub-mastermind",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "2679adbc-b511-41f8-a1dd-511d76f91980.jsonl",
+  "skill": "page",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "2cd7e195-b9e1-4309-91ef-ec9615fdb2ac.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "35559f14-a6fb-40a3-ab52-0cd2d5b8939a.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "543e9621-0712-4087-b87b-5c56e0a938ce.jsonl",
+  "skill": "sub-mastermind",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "543e9621-0712-4087-b87b-5c56e0a938ce.jsonl",
+  "skill": "page",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "5978b47b-89ab-4337-9f68-46967e176fa3.jsonl",
+  "skill": "minion",
+  "cause": "loaded-other-skill-only",
+  "assistants": 8
+ },
+ {
+  "file": "5ee9227d-437f-4972-bc3a-9455d6b92488.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "5eea0cec-689a-4134-ba3a-490d969f54e4.jsonl",
+  "skill": "minion",
+  "cause": "loaded-other-skill-only",
+  "assistants": 8
+ },
+ {
+  "file": "69d50bad-242f-4a21-974c-444e34b40ad0.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "7b85bdf7-f449-4f16-bb02-9484f9c3ad23.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "7d66f7dd-2afa-4167-a39d-3f93e6dad58f.jsonl",
+  "skill": "minion",
+  "cause": "loaded-other-skill-only",
+  "assistants": 8
+ },
+ {
+  "file": "7fdd1230-ce71-47c5-8a2a-bc9ade159481.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "89570e67-5a57-4d3c-85af-e159a3e8f710.jsonl",
+  "skill": "page",
+  "cause": "loaded-other-skill-only",
+  "assistants": 226
+ },
+ {
+  "file": "8d81a741-58a1-4b68-9401-a8518b921842.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "911653b6-177f-4b81-b6eb-4608d6817256.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "946242b3-9078-4250-bd22-1834b4c6302d.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 3
+ },
+ {
+  "file": "9a4fdc70-b3f2-4597-bfbf-c61dc1a80d35.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "9c640849-5dc2-495e-852e-269eba3d9813.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "a067ceb6-56eb-43f3-978a-f258e69d6123.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "acb2cfe0-50f0-4bcb-851b-a12527a7b743.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "b0a0d2e2-216e-4f43-a9e1-1fa51564f272.jsonl",
+  "skill": "page",
+  "cause": "loaded-other-skill-only",
+  "assistants": 5720
+ },
+ {
+  "file": "b431af83-93cd-42f4-8a29-5df1c6f4690e.jsonl",
+  "skill": "page",
+  "cause": "loaded-other-skill-only",
+  "assistants": 124
+ },
+ {
+  "file": "c7ab3d0c-28ca-4cd1-b56d-56ac5be2d4d1.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "d127bad8-92a0-49bf-850c-9695421d2a20.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "dbb372f0-1e53-4ceb-977b-61f68a960ada.jsonl",
+  "skill": "page",
+  "cause": "loaded-other-skill-only",
+  "assistants": 50
+ },
+ {
+  "file": "dc6e3c15-4e59-4cb2-93a1-f5ab040d8461.jsonl",
+  "skill": "minion",
+  "cause": "loaded-other-skill-only",
+  "assistants": 10
+ },
+ {
+  "file": "e5763af0-767c-4830-a666-1cba16ee4478.jsonl",
+  "skill": "sub-mastermind",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "e5763af0-767c-4830-a666-1cba16ee4478.jsonl",
+  "skill": "page",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "ebc7f444-dffd-40aa-9dd2-de0b0f52f512.jsonl",
+  "skill": "sub-mastermind",
+  "cause": "model-skipped",
+  "assistants": 7
+ },
+ {
+  "file": "ebc7f444-dffd-40aa-9dd2-de0b0f52f512.jsonl",
+  "skill": "page",
+  "cause": "model-skipped",
+  "assistants": 7
+ },
+ {
+  "file": "f4357ccf-70c2-4e39-a95e-2a0d64f1c886.jsonl",
+  "skill": "page",
+  "cause": "loaded-other-skill-only",
+  "assistants": 241
+ },
+ {
+  "file": "f58cf585-e7a5-4425-b9ee-6ac5b6f687b4.jsonl",
+  "skill": "page",
+  "cause": "loaded-other-skill-only",
+  "assistants": 180
+ },
+ {
+  "file": "f717ccfd-94a6-4f0b-b358-dedfd07ea288.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "fc840f98-44a1-42f0-8bf8-3cbcbb9edeeb.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "4561b6e1-f655-464e-8559-c9cc326495c7.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 0
+ },
+ {
+  "file": "6f320636-7f44-4d0d-8a46-18564ab082dc.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 0
+ },
+ {
+  "file": "72323589-635d-4188-8acd-9dcd6f559a6c.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 0
+ },
+ {
+  "file": "8d5d14cb-313d-442f-bf45-25e10803a2e9.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 0
+ },
+ {
+  "file": "aa87d8f4-8134-4dcc-97fd-97af0bf3a9b6.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 0
+ },
+ {
+  "file": "b66a6db1-be06-47dc-a509-a6c383492a48.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 0
+ },
+ {
+  "file": "b99da38d-96f6-4860-8c51-e38b46f221c6.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 0
+ },
+ {
+  "file": "b9bc9503-66d4-4d97-96bb-3cc742302664.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 0
+ },
+ {
+  "file": "20051ce6-0728-405f-a36b-318009eface6.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 47
+ },
+ {
+  "file": "3dcb9d75-54ed-4f5c-8c3d-4da125416f9f.jsonl",
+  "skill": "minion",
+  "cause": "ended-before-first-turn",
+  "assistants": 1
+ },
+ {
+  "file": "3f580484-4e7d-4ed3-96c3-a339ef6f40c5.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "705c3185-6a6f-4d7a-8e11-90faab27ac7d.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "a447258e-55cd-4daf-aec5-b64ea2bdcdd5.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "f763e211-2e23-4f88-b8f7-d42b195530d8.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "0d279dd1-62b7-4bf9-a578-9093690f2a38.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "2883587b-6c78-4014-8294-cdc3912f08b3.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "2e4a02d5-8bf0-4b59-92be-26e7d41561a6.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "3d94b2fe-0e1b-4545-8887-cbaae2b4a8b9.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "502e76af-888b-4b88-85d9-8bd3e5cec411.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 4
+ },
+ {
+  "file": "726b0f44-9c53-41e0-873a-349505d20e8b.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "74e3099c-17c2-4190-b4f3-adfd6e7e91fa.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "9ad01e61-d9d6-44cb-a6b8-53fdd77f284b.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "c3b138dd-2717-4371-bc60-9df344cc517d.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "df8c07b8-2728-4559-90a5-3542145f789e.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "f089b1a3-a0fc-4a4e-b33b-e3b286894111.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "98ff1d86-02cc-42fc-9228-e25dd6a674f7.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 17
+ },
+ {
+  "file": "19ab97ba-3e28-478d-8c2e-b6924d152fb0.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 4
+ },
+ {
+  "file": "3bbb800f-667f-43fd-9f8d-f6aaedc0ee28.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 8
+ },
+ {
+  "file": "414b0c15-548b-49f0-a9d3-de0a4376ee34.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 4
+ },
+ {
+  "file": "7d72bcf7-b2f7-4aef-a1a5-3153bd944476.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 5
+ },
+ {
+  "file": "b768a4b5-ac09-4697-8b08-e46472631b98.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "ff45652d-84e9-415f-b3d9-e17cf6446a43.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 9
+ },
+ {
+  "file": "1a4fa923-103c-4cd5-a116-5ee64953e866.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ },
+ {
+  "file": "e1fa5a34-2538-43e1-9857-3939007a5728.jsonl",
+  "skill": "minion",
+  "cause": "model-skipped",
+  "assistants": 2
+ }
+]

@@ -7,7 +7,7 @@ import path from "node:path";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./registry.js";
-import { defaults as role_defaults, opening } from "./roles.js";
+import { defaults as role_defaults, opening, injected } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
@@ -172,6 +172,10 @@ export class Agents {
 		const fresh = !again && !spec.system;
 		const dir = fresh ? directory_of(spec) : null;
 		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + opening(spec.role, spec.prompt);
+		if (!again && !spec.system) {
+			const names = injected(spec.role);
+			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, fallback: names.length ? undefined : true }).catch(() => {});
+		}
 		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
 		const prompt = spec.task
 			? `${base}\n\nYour task is already open at ${spec.task.dir}/task.jsonl; don't run new-task, log there.`

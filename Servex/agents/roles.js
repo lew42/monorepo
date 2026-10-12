@@ -11,6 +11,9 @@
  * accepted as a role. Renaming the skill dirs would touch a dozen callers, so the
  * mismatches are listed in doc/names.md.
  * `prefix` is the id's first half (`<prefix>-<name>`, built by Agents.name()). */
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { model, provider } from "./tiers.js";
 
 /* `tier` is the row's size (tiers.js: fast, manager, architect, scan); its `model` is
@@ -125,6 +128,27 @@ function and_list(words){
 export function opening(role, prompt){
 	const skills = skills_of(role);
 	if (!skills.length) return prompt;
-	const named = and_list(skills.map(s => `\`${s}\``));
-	return `Load the ${named} skill${skills.length > 1 ? "s" : ""}, then: ${prompt}`;
+	/* 2026-10-12 (Servex/doc/skills.md): the skill text itself rides in the first message, so loading
+	 * is node's job, not the model's choice. A missing SKILL.md falls back to the old "Load the" request. */
+	const texts = skills.map(skill_text);
+	if (texts.some(t => t === null)) {
+		const named = and_list(skills.map(s => `\`${s}\``));
+		return `Load the ${named} skill${skills.length > 1 ? "s" : ""}, then: ${prompt}`;
+	}
+	const blocks = skills.map((s, i) => `<skill name="${s}">\n${texts[i]}\n</skill>`).join("\n\n");
+	return `[Servex loaded the ${and_list(skills.map(s => `\`${s}\``))} skill${skills.length > 1 ? "s" : ""} for you; the text is below, so don't call the Skill tool for ${skills.length > 1 ? "them" : "it"}.]\n\n${blocks}\n\nNow: ${prompt}`;
+}
+
+/* The skills a role gets inlined (empty when the fallback applies) — Agents logs this as `skills_injected`. */
+export function injected(role){
+	const skills = skills_of(role);
+	return skills.every(s => skill_text(s) !== null) ? skills : [];
+}
+
+const SKILLS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.claude/skills");
+
+/* SKILL.md without its frontmatter, or null when the skill has no file. */
+function skill_text(name){
+	try { return fs.readFileSync(path.join(SKILLS_DIR, name, "SKILL.md"), "utf8").replace(/^---[\s\S]*?\n---\r?\n/, "").trim(); }
+	catch { return null; }
 }
