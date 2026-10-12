@@ -29,7 +29,7 @@
 ---
 
 ### 💸 Cost finding
-- `feedback-council` logged 18 passes, each finding the same JFK test quote in `words.jsonl` and doing nothing. A stalled loop on empty input; it should stop after the second identical pass. Recorded in the Servex asks, not fixed here.
+- `feedback-council` logged 18 passes, each finding the same JFK test quote in `words.jsonl` and doing nothing. A stalled loop on empty input; it should stop after the second identical pass. Recorded in `ai/doc/asks.md`, not fixed here.
 
 ---
 

@@ -22,3 +22,7 @@ The owner's own prompts that touch the ai system, tagged by Haiku, folded into o
 ## Not covered
 
 About 58 one-off tags were left unclustered. The `.claude/prompts` log only runs 2026-09-25 to 10-02; later days come from the session logs only. Voice and transcription asks (38 tags) are handed to @mastermind-voice-to-session-page. Source per ask: [clusters.json](../2026-10-12/asks-by-module/clusters.json).
+
+## Open from the night audit (2026-10-12)
+
+- **A looping agent stops itself:** `feedback-council` ran 18 passes on the same empty input (one JFK test quote in `words.jsonl`). Stop after two identical passes. Source: [night-audit report](/framework/ai/2026-10-12/night-audit/report.md).
