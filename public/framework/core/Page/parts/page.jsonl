@@ -1,0 +1,9 @@
+{"title":"Parts","icon":"view_agenda","class":"./Parts.js","description":"A page whose body is a list of parts stored in its own page.jsonl."}
+{"content":{"add":{"id":"h1","type":"part-heading","text":"A page made of parts"}}}
+{"content":{"add":{"id":"t1","type":"part-text","text":"Every block on this page is one line in its own `page.jsonl`. Add, move or remove a line and every open tab redraws, with no reload."}}}
+{"content":{"add":{"id":"c1","type":"part-card","title":"Three kinds so far","text":"heading, text and card. A new kind is one small class."}}}
+{"file":"CardPart.js"}
+{"file":"HeadingPart.js"}
+{"file":"Part.js"}
+{"file":"Parts.js"}
+{"file":"TextPart.js"}
