@@ -30,5 +30,8 @@ const j = JSON.parse(fs.readFileSync(FILE, "utf8")), L = j.utilization?.limits ?
 const week = L.find(l => l.kind === "weekly_all"), session = L.find(l => l.kind === "session");
 const used = week?.percent, elapsed = 100 * (1 - (Date.parse(week?.resets_at) - Date.now()) / (7 * 24 * 3600 * 1000));
 const margin = +(elapsed - used).toFixed(1), over = used > elapsed;
-console.log(`week ${used}% used, ${elapsed.toFixed(1)}% of the week gone (${margin >= 0 ? "under" : "OVER"} pace by ${Math.abs(margin)} pts); 5h session ${session?.percent}%; data ${Math.round(age() / 60000)} min old. ${over ? "OVER PACE: no new spawns, finish up." : "OK to spawn within budget."}`);
+// pace % = used ÷ elapsed: under ~75 spend more, ~90 slow down, 100 is the line (the owner, 2026-10-12)
+const pace = Math.round(100 * used / Math.max(elapsed, 0.1));
+const advice = pace >= 100 ? "slow right down" : pace >= 90 ? "slow down" : pace >= 75 ? "steady" : "room to spend";
+console.log(`pace ${pace}% (${advice}): week ${used}% used, ${elapsed.toFixed(1)}% of the week gone (${margin >= 0 ? "under" : "OVER"} pace by ${Math.abs(margin)} pts); 5h session ${session?.percent}%; data ${Math.round(age() / 60000)} min old. ${over ? "OVER PACE: no new spawns, finish up." : "OK to spawn within budget."}`);
 process.exit(over ? 2 : 0);
