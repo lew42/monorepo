@@ -17,7 +17,7 @@
 	.voice-sub { margin-inline-start: .6em; }
 	.voice-things { display: grid; gap: .3em; }
 	.voice-thing { display: flex; flex-wrap: wrap; align-items: center; gap: .2em .6em; }
-	.voice-thing > :first-child { flex: none; }
+	.voice-thing > :first-child { flex: none; inline-size: fit-content; max-inline-size: 100%; }
 	.voice-thing-said { flex: 1 1 14em; min-width: 0; overflow-wrap: anywhere; }
 	.voice-cards { display: grid; gap: .4em; }
 	.voice-card { padding: .3em .5em; border-radius: .3em; background: color-mix(in srgb, currentColor 6%, transparent); }

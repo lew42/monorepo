@@ -18,7 +18,7 @@ Asks [#7 asks-prompts-refine and #10 realtime-dictation-tasks](/framework/ai/doc
 | --- | --- | --- |
 | Per-sentence **model** clean | Each Haiku call is about $0.03 to 0.07 and 3 s, so a call per sentence costs more than the whole prompt. The mechanical per-sentence clean is already live. | A `clean_live` flag in `run.js` for one opt-in session, then one batched Servex restart. |
 | **Echo** on every prompt | Off by design for cost (`SERVEX_ECHO=on`). | Flip the env var for a day and read the cost line. |
-| **Opus voice overseer** | The owner's addendum: "Haiku cleans, never runs the show"; decisions stay with the mastermind. | Only if asked again: a `voice` role that reads `prompts.jsonl` and posts `Note:` cards. |
+| **Opus voice overseer** | The owner's vision scrapped the fast assistant and said Haiku cleans but never runs the show, so no model is added as an overseer without a new decision; it would also cost a model call per prompt. | Only if asked again: a `voice` role that reads `prompts.jsonl` and posts `Note:` cards. |
 | **Prompt cards to board cards / asks.jsonl** (approve-or-improve on a refined ask) | Routing an ask to an owner is judgment, not a mechanical step; it needs a Servex route. | A route that turns one refined card into an `asks.jsonl` line plus a board card, then the existing Approve/Improve buttons work on it. One Servex restart. |
 | **Board creates tasks while you dictate** | Same route as above. The board and session page themselves already update live (page tail). | Same. |
 
