@@ -1,3 +1,5 @@
 {"assign":{"session_id":"fb77ab71-c6d5-4fdb-8daa-cdf328cfd090","agent":"mastermind-openrouter-gap","brief":"public/framework/ai/2026-10-12/openrouter-gap/requirements.md","model":"claude-sonnet-5-5","requested_at":"2026-10-12T03:30:59-05:00","now":"starting","steps":[],"step":1}}
 {"assign":{"landed_at":"2026-10-12T04:10:00-05:00","now":"landed"}}
 {"log":{"at":"2026-10-12T04:10:00-05:00","msg":"Landed: key_diff split fix (Agents.js, restart needed), quick.mjs known-answer tests ($0.03), Models tab shows both accounting numbers and results, ask ticked. Commits 5c4f2e660, 018ec46bd."}}
+{"log":{"at":"2026-10-12T03:35:20-05:00","msg":"landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}."}}
+{"assign":{"outcome":"**Accounting gap explained and fixed, known-answer tests running** — key_diff cost now split across overlapping agents (Agents.js, needs Servex restart); quick.mjs runs 8 checkable tasks x 3 models x 2 thinking levels for $0.03; both accounting numbers and the results table are on /framework/ai/models; ask ticked."}}
