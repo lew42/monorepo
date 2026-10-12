@@ -1,5 +1,8 @@
-import View, { div, span, small, label, input, table as table_el, thead, tbody, tr, th, td, is } from "../../core/View/View.js";
+import View, { div, span, small, label, input, button, strong, table as table_el, thead, tbody, tr, th, td, is } from "../../core/View/View.js";
 import { component } from "../../ui/parts.js";
+import PagePrefs from "../../core/Page/Prefs.js";
+import DataGridTable from "./DataGridTable.js";
+import DataGridRail from "./DataGridRail.js";
 
 View.stylesheet(import.meta, "DataGrid.css");
 
@@ -94,34 +97,27 @@ function datagrid_body(columns, rows, draw_row){
 	});
 }
 
-// Past this many rows, only the rows actually on screen (plus a small
-// overscan) exist in the DOM — the brief's own "a few hundred" floor.
-const WINDOW_AT = 300;
 
-// A fixed row height, in px, while windowing is on — `DataGrid.css` enforces
-// this exact number on `.datagrid-cell` so the scroll-position math below and
-// what's actually on screen never drift apart. Simplest approach that works
-// (the brief's own words): no measuring, no ResizeObserver, one constant.
-const ROW_H = 36;
-const OVERSCAN = 8;   // extra rows rendered above/below the visible band, so a fast scroll never shows a blank flash
-
-// A column counts as a "small set" (→ checkbox-chip filter) when the first
-// few hundred rows show at most this many distinct values. This file's own
-// threshold — tune it here if a real dataset needs a different one.
+// A column counts as a "small set" (checkbox-chip filter) when the first rows show at most this many distinct values.
 const SMALL_SET_MAX = 12;
 const SAMPLE_SIZE = 300;
 
+function num(v){ return typeof v === "number" ? v : -Infinity; }
+// A missing or unparseable date sorts first (Date.parse("0") is a real date in V8).
+function date_num(v){ const n = Date.parse(v); return Number.isNaN(n) ? -Infinity : n; }
 function comparator(col){
 	if (col.type === "number") return (a, b) => num(a[col.key]) - num(b[col.key]);
 	if (col.type === "date") return (a, b) => date_num(a[col.key]) - date_num(b[col.key]);
 	return (a, b) => String(a[col.key] ?? "").localeCompare(String(b[col.key] ?? ""));
 }
-function num(v){ return typeof v === "number" ? v : -Infinity; }
-// A missing or unparseable date sorts first, rather than landing wherever
-// `Date.parse(undefined)` or `NaN` happens to fall (review.mjs caught this —
-// `Date.parse("0")` is a real date in 2000 in V8, not "no date").
-function date_num(v){ const n = Date.parse(v); return Number.isNaN(n) ? -Infinity : n; }
 
+/* ext/DataGrid — ONE grid for every list of records: resize, sort, filter, fast at thousands of
+ * rows, drawn as a table or a rail of cards (the `view` setting). Architecture: doc/architecture.md.
+ *
+ *   new DataGrid({ columns: [{ key, label, type, width, min, format }], rows, view: "table" })
+ *
+ * Hooks a page passes instead of subclassing: href(row), cells(row), row(row), card(row),
+ * sort_rows(rows, sort), natural_dir(key), filters:false, row_height, page_size. */
 export default class DataGrid extends View {
 
 	static len = to_len;
@@ -144,73 +140,170 @@ export default class DataGrid extends View {
 		tbody(() => rows.forEach(row => tr(() => row.forEach(cell => td(cell)))));
 	}));
 
+
+	static Table = DataGridTable;
+	static Rail = DataGridRail;
+	static views = { table: DataGridTable, rail: DataGridRail };
+
 	render(){
 		this.ac("datagrid-ext");
 
 		this.sort_key = null;
-		this.sort_dir = null;     // "asc" | "desc" | null
-		this.filters = {};        // col.key -> { type, ...state } — built in build_filters()
-		this.all_rows = [];       // every row, unfiltered — set once `rows` resolves
-		this.view_rows = [];      // filtered + sorted, recomputed by apply()
+		this.sort_dir = null;      // "asc" | "desc" | null
+		this.filter_state = {};    // col.key -> { type, ...state }, built in build_filters()
+		this.all_rows = [];        // every row, unfiltered
+		this.view_rows = [];       // filtered + sorted, what the drawer draws
+		this.watchers = [];
+		if (this.row_height === undefined) this.row_height = 36;   // null = rows of any height, paged
+		this.page_size ??= 100;
+		this.prefs = new PagePrefs({ id: this.prefs_id ?? "datagrid:" + location.pathname });
+		this.view = this.pick_view();
 
-		this.$filters = div.c("datagrid-filters flex wrap gap-50");
-		this.$count = small.c("muted datagrid-count");
-
-		this.$grid = div.c("datagrid", $g => {
-			$g.style("gridTemplateColumns", grid_template(this.columns));
-			this.columns.forEach(c => $g.style("--col-" + c.key, to_len(c.width, 140)));
-			this.$head = datagrid_head(this.columns);
-			this.$body = div.c("datagrid-body");
+		this.$bar = div.c("datagrid-bar flex wrap gap-50 v-center", () => {
+			this.$count = small.c("muted datagrid-count");
+			this.$toggle = div.c("datagrid-toggle", () => {
+				this.$btns = {};
+				for (const name of Object.keys(DataGrid.views)){
+					this.$btns[name] = button.c("datagrid-toggle-btn", name === "table" ? "Table" : "Rail")
+						.on("click", () => this.choose_view(name));
+				}
+			});
 		});
+		this.$filters = div.c("datagrid-filters flex wrap gap-50");
+		this.$stage = div.c("datagrid-stage");
 
-		this.build_sort_arrows();
-		this.wire_resize();
-		this.wire_sort();
-		this.wire_scroll();
+		this.mount_drawer();
 		this.load();
 	}
 
-	// `rows` is read here, once — whatever the caller passed (`this.rows`,
-	// straight off the constructor options) is never touched again after this,
-	// so there is no Panel2-style "this.rows got overwritten" trap.
-	async load(){
-		const source = this.rows;
-		this.all_rows = typeof source === "function" ? ((await source()) ?? []) : (source ?? []);
-		this.build_filters();
-		this.apply();
+	// ---- the view setting: url > the reader's saved pref > the page's settings.view > "table" ----
+
+	pick_view(){
+		const ok = v => v && DataGrid.views[v] ? v : null;
+		return ok(new URLSearchParams(location.search).get("view"))
+			?? ok(this.prefs.get().view)
+			?? ok(this.settings?.view)
+			?? "table";
 	}
 
-	// Recomputes `view_rows` from `all_rows` + the current filters/sort, then
-	// redraws — the one function every filter checkbox, date input, number
-	// input and sort click all funnel through, same shape `ai/sessions`' own
-	// `render_rows()` already uses (law 6: one recompute path, not N).
-	apply(){
+	// Swap the drawer; the rows are already here, nothing is refetched.
+	set_view(name){
+		if (!DataGrid.views[name]) return this;
+		this.view = name;
+		this.tc("datagrid-view-rail", name === "rail");
+		for (const k in this.$btns) this.$btns[k].tc("on", k === name).attr("aria-pressed", String(k === name));
+		this.drawer?.destroy();
+		this.mount_drawer();
+		this.drawer.draw(this.view_rows, true);
+		this.changed();
+		return this;
+	}
+
+	// The reader's click: also writes the url and the pref.
+	choose_view(name){
+		this.set_view(name);
+		const url = new URL(location.href);
+		url.searchParams.set("view", name);
+		history.replaceState(history.state, "", url);
+		this.prefs.patch({ view: name });
+	}
+
+	mount_drawer(){
+		this.tc("datagrid-view-rail", this.view === "rail");
+		for (const k in this.$btns) this.$btns[k].tc("on", k === this.view).attr("aria-pressed", String(k === this.view));
+		this.drawer = new DataGrid.views[this.view](this);
+		this.$stage.empty(() => this.drawer.build());
+	}
+
+	// ---- column widths: the reader's own, saved when a drag ends ----
+
+	saved_widths(){ return this.prefs.get().widths ?? {}; }
+
+	save_width(key, px){
+		const widths = { ...this.saved_widths() };
+		if (px == null) delete widths[key]; else widths[key] = px + "px";
+		this.prefs.patch({ widths });
+		this.changed();
+	}
+
+	// ---- rows ----
+
+	// `rows` is read once here: an array, or an async function returning one.
+	async load(){
+		const source = this.rows;
+		this.set_rows(typeof source === "function" ? ((await source()) ?? []) : (source ?? []), true);
+	}
+
+	// Replace the rows (a live feed calls this); sort, filters, scroll position and view stay.
+	set_rows(rows, first){
+		this.all_rows = rows;
+		if (first) this.build_filters();
+		this.apply(!!first);
+		return this;
+	}
+
+	// The one recompute path: filter, sort, count, hand the result to the drawer.
+	apply(reset_scroll = true){
 		let rows = this.all_rows.filter(r => this.row_matches(r));
-		if (this.sort_key){
-			const col = this.columns.find(c => c.key === this.sort_key);
-			if (col){
-				rows = [...rows].sort(comparator(col));
-				if (this.sort_dir === "desc") rows.reverse();
-			}
-		}
+		if (this.sort_key) rows = this.sort_rows(rows, { key: this.sort_key, dir: this.sort_dir });
 		this.view_rows = rows;
-		this.windowed = rows.length > WINDOW_AT;
-		this.$grid.tc("datagrid-windowed", this.windowed);
-		this.render_sort_arrows();
 		this.$count.text(rows.length === this.all_rows.length
 			? `${rows.length} row${rows.length === 1 ? "" : "s"}`
 			: `${rows.length} of ${this.all_rows.length} rows`);
-		this.render_window(true);
+		this.drawer.draw(rows, reset_scroll);
+		this.changed();
 	}
+
+	// ---- hooks (a page passes its own instead of subclassing) ----
+
+	sort_rows(rows, { key, dir }){
+		const col = this.columns.find(c => c.key === key);
+		if (!col) return rows;
+		rows = [...rows].sort(comparator(col));
+		return dir === "desc" ? rows.reverse() : rows;
+	}
+
+	natural_dir(key){ return "asc"; }
+
+	// Header click: natural direction, then the reverse, then off.
+	cycle_sort(key){
+		const col = this.columns.find(c => c.key === key);
+		if (!col || col.sort === false) return;
+		const natural = this.natural_dir(key), reversed = natural === "asc" ? "desc" : "asc";
+		if (this.sort_key !== key){ this.sort_key = key; this.sort_dir = natural; }
+		else if (this.sort_dir === natural) this.sort_dir = reversed;
+		else { this.sort_key = null; this.sort_dir = null; }
+		this.apply();
+	}
+
+	// Default table row: one cell per column. Called with the row's element capturing.
+	cells(row){
+		this.columns.forEach(c => {
+			div.c("datagrid-cell").attr("data-key", c.key).append(() => DataGrid.cell_content(row[c.key], row, c));
+		});
+	}
+
+	// Default card: the first column is the title, the rest one muted line of "label value".
+	card(row){
+		const text = c => {
+			const out = c.format ? c.format(row[c.key], row) : row[c.key];
+			return is.fn(out) || out == null || out === "" ? "" : String(out);
+		};
+		const [first, ...rest] = this.columns;
+		strong.c("datagrid-card-title", text(first) || "–");
+		small.c("muted datagrid-card-line", rest.map(c => ({ c, t: text(c) })).filter(x => x.t).map(x => `${x.c.label} ${x.t}`).join(" · "));
+	}
+
+	// Anything that wants to follow the live instance (the demo's debug view).
+	watch(fn){ this.watchers.push(fn); fn(this); return this; }
+	changed(){ this.watchers.forEach(fn => fn(this)); }
 
 	row_matches(row){
 		for (const col of this.columns){
-			const f = this.filters[col.key];
+			const f = this.filter_state[col.key];
 			if (!f) continue;
 			const v = row[col.key];
-			// A null/undefined value was never one of the sampled chips (build_filters
-			// drops nulls before counting uniques), so it has no chip to be unchecked
-			// by — always let it through rather than hiding it from every filter state.
+			// A null value was never a sampled chip, so it has none to be unchecked by: let it through.
 			if (f.type === "chip" && v != null && !f.values.has(String(v))) return false;
 			if (f.type === "date"){
 				if (f.from && (!v || Date.parse(v) < Date.parse(f.from))) return false;
@@ -224,129 +317,11 @@ export default class DataGrid extends View {
 		return true;
 	}
 
-	// ---- windowing — only the visible slice (plus overscan) is ever in the
-	// DOM past WINDOW_AT rows; two spacer boxes (not `.datagrid-row`, so they
-	// keep a real height instead of flattening away) hold the scrollbar at the
-	// right length and position for the rows that AREN'T rendered. ----
-
-	render_window(reset_scroll){
-		if (reset_scroll) this.$grid.el.scrollTop = 0;
-
-		if (!this.windowed){
-			this.$body.empty(() => datagrid_body(this.columns, this.view_rows));
-			return;
-		}
-
-		const scroll_top = this.$grid.el.scrollTop;
-		const viewport_h = this.$grid.el.clientHeight || 400;
-		const start = Math.max(0, Math.floor(scroll_top / ROW_H) - OVERSCAN);
-		const count = Math.ceil(viewport_h / ROW_H) + OVERSCAN * 2;
-		const end = Math.min(this.view_rows.length, start + count);
-		const top_h = start * ROW_H;
-		const bottom_h = (this.view_rows.length - end) * ROW_H;
-
-		// ⚠ `div()` with no class, not `div.c(...)` or `div({...})` — a plain
-		// object argument to `div()` is read as named child PROPS
-		// (`append_pojo`), not a style map; `.style({...})` is the real setter.
-		// No "datagrid-row" class either: that class is `display: contents`
-		// (ui/datagrid/datagrid.js), which would flatten this box away and the
-		// spacer would hold no height at all.
-		this.$body.empty(() => {
-			if (top_h > 0) div().style({ gridColumn: "1 / -1", blockSize: top_h + "px" });
-			datagrid_body(this.columns, this.view_rows.slice(start, end));
-			if (bottom_h > 0) div().style({ gridColumn: "1 / -1", blockSize: bottom_h + "px" });
-		});
-	}
-
-	wire_scroll(){
-		this.$grid.el.addEventListener("scroll", () => {
-			if (this.windowed) this.render_window(false);
-		}, { passive: true });
-	}
-
-	// ---- resize — see the module header comment: ONE listener per event type,
-	// delegated, on the header row; a drag writes exactly one `--col-<key>`
-	// custom property per pointermove, nothing else. ----
-
-	wire_resize(){
-		let drag = null;   // { key, start_x, start_width } while a drag is live
-
-		this.$head.el.addEventListener("pointerdown", e => {
-			const grip = e.target.closest(".datagrid-grip");
-			if (!grip) return;
-			const cell = grip.closest(".datagrid-head-cell");
-			const key = cell?.dataset.key;
-			if (!key) return;
-			e.preventDefault();
-			drag = { key, start_x: e.clientX, start_width: cell.getBoundingClientRect().width };
-			grip.setPointerCapture(e.pointerId);
-		});
-
-		this.$head.el.addEventListener("pointermove", e => {
-			if (!drag) return;
-			const col = this.columns.find(c => c.key === drag.key);
-			const min = col?.min ?? 60;
-			const next = Math.max(min, Math.round(drag.start_width + (e.clientX - drag.start_x)));
-			this.$grid.style("--col-" + drag.key, next + "px");
-		});
-
-		const end_drag = () => { drag = null; };
-		this.$head.el.addEventListener("pointerup", end_drag);
-		this.$head.el.addEventListener("pointercancel", end_drag);
-	}
-
-	// ---- sort — a click anywhere on a header cell's label (not its grip)
-	// cycles asc → desc → off; re-renders the body only, never the header. ----
-
-	wire_sort(){
-		this.$head.el.addEventListener("click", e => {
-			if (e.target.closest(".datagrid-grip")) return;
-			const cell = e.target.closest(".datagrid-head-cell");
-			const key = cell?.dataset.key;
-			const col = this.columns.find(c => c.key === key);
-			if (!col || col.sort === false) return;
-
-			if (this.sort_key !== key) { this.sort_key = key; this.sort_dir = "asc"; }
-			else if (this.sort_dir === "asc") this.sort_dir = "desc";
-			else { this.sort_key = null; this.sort_dir = null; }
-
-			this.apply();
-		});
-	}
-
-	// ⚠ Raw DOM here, not the `span()` factory — this runs AFTER `$grid`'s own
-	// capture callback has already closed, so a captured view would append
-	// itself to whatever is capturing OUTSIDE this class (wherever the caller
-	// mounted the grid), not into the header cell found by `querySelector`
-	// (doc/capturing.md: capturing is synchronous, this call is not).
-	build_sort_arrows(){
-		this.$head.el.querySelectorAll(".datagrid-head-cell").forEach(cell => {
-			const col = this.columns.find(c => c.key === cell.dataset.key);
-			if (!col || col.sort === false) return;
-			cell.classList.add("datagrid-sortable");
-			const arrow = document.createElement("span");
-			arrow.className = "datagrid-sort-arrow";
-			cell.querySelector(".datagrid-label")?.appendChild(arrow);
-		});
-	}
-
-	render_sort_arrows(){
-		this.$head.el.querySelectorAll(".datagrid-head-cell").forEach(cell => {
-			const arrow = cell.querySelector(".datagrid-sort-arrow");
-			if (!arrow) return;
-			arrow.textContent = cell.dataset.key === this.sort_key ? (this.sort_dir === "desc" ? " ↓" : " ↑") : "";
-		});
-	}
-
-	// ---- filters — auto-generated from `column.type`, so a new data set gets
-	// useful filters with no extra code (the brief's own words). Skips a
-	// column entirely when `column.filter === false`, or when a text column's
-	// first SAMPLE_SIZE rows show more than SMALL_SET_MAX distinct values —
-	// free text (a name, a prompt) gets no filter, which is the honest answer
-	// for "what would the chips even be". ----
+	// ---- filters: auto-built from column.type; `filters: false` builds none ----
 
 	build_filters(){
-		this.filters = {};
+		this.filter_state = {};
+		if (this.filters === false) return;
 		this.$filters.empty(() => {
 			this.columns.forEach(col => {
 				if (col.filter === false) return;
@@ -361,7 +336,7 @@ export default class DataGrid extends View {
 	}
 
 	build_chip_filter(col, values){
-		this.filters[col.key] = { type: "chip", values: new Set(values) };
+		this.filter_state[col.key] = { type: "chip", values: new Set(values) };
 		div.c("datagrid-filter flex wrap gap-35 v-center", () => {
 			small.c("muted", col.label + ":");
 			values.forEach(v => {
@@ -369,7 +344,7 @@ export default class DataGrid extends View {
 					const $box = input().attr("type", "checkbox");
 					$box.el.checked = true;
 					$box.on("change", () => {
-						if ($box.el.checked) this.filters[col.key].values.add(v); else this.filters[col.key].values.delete(v);
+						if ($box.el.checked) this.filter_state[col.key].values.add(v); else this.filter_state[col.key].values.delete(v);
 						this.apply();
 					});
 					span(v);
@@ -379,28 +354,28 @@ export default class DataGrid extends View {
 	}
 
 	build_date_filter(col){
-		this.filters[col.key] = { type: "date", from: null, to: null };
+		this.filter_state[col.key] = { type: "date", from: null, to: null };
 		div.c("datagrid-filter flex gap-50 v-center", () => {
 			small.c("muted", col.label + ":");
 			small.c("muted", "from");
 			const $from = input().attr("type", "date");
-			$from.on("change", () => { this.filters[col.key].from = $from.el.value || null; this.apply(); });
+			$from.on("change", () => { this.filter_state[col.key].from = $from.el.value || null; this.apply(); });
 			small.c("muted", "to");
 			const $to = input().attr("type", "date");
-			$to.on("change", () => { this.filters[col.key].to = $to.el.value || null; this.apply(); });
+			$to.on("change", () => { this.filter_state[col.key].to = $to.el.value || null; this.apply(); });
 		});
 	}
 
 	build_number_filter(col){
-		this.filters[col.key] = { type: "number", min: null, max: null };
+		this.filter_state[col.key] = { type: "number", min: null, max: null };
 		div.c("datagrid-filter flex gap-50 v-center", () => {
 			small.c("muted", col.label + ":");
 			small.c("muted", "min");
 			const $min = input().attr("type", "number");
-			$min.on("change", () => { this.filters[col.key].min = $min.el.value === "" ? null : Number($min.el.value); this.apply(); });
+			$min.on("change", () => { this.filter_state[col.key].min = $min.el.value === "" ? null : Number($min.el.value); this.apply(); });
 			small.c("muted", "max");
 			const $max = input().attr("type", "number");
-			$max.on("change", () => { this.filters[col.key].max = $max.el.value === "" ? null : Number($max.el.value); this.apply(); });
+			$max.on("change", () => { this.filter_state[col.key].max = $max.el.value === "" ? null : Number($max.el.value); this.apply(); });
 		});
 	}
 }

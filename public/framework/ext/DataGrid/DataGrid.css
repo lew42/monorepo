@@ -50,7 +50,7 @@
 	   further down the grid you scroll. Only applied once windowing turns on
 	   (`.datagrid-windowed`, past 300 rows); a short, unwindowed grid keeps its
 	   natural, auto-height rows. */
-	.datagrid.datagrid-windowed .datagrid-cell { block-size: 36px; overflow: hidden; }
+	.datagrid.datagrid-windowed .datagrid-cell { block-size: var(--datagrid-row-h, 36px); overflow: hidden; }
 }
 
 @layer theme {
@@ -104,4 +104,31 @@
 @layer theme {
 	.ui-table { width: 100%; }
 	.ui-table.num th + th, .ui-table.num td + td { text-align: end; }
+}
+
+@layer theme {
+	/* The header bar: the row count, and the Table / Rail toggle at the end. */
+	.datagrid-bar { justify-content: space-between; }
+	.datagrid-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+	.datagrid-toggle-btn { border: 0; border-radius: 0; background: none; padding: 0.25em 0.8em; cursor: pointer; font: inherit; }
+	.datagrid-toggle-btn.on { background: var(--prim); color: var(--bg); }
+
+	/* The stage holds whichever drawer is current; the rail view fills its box. */
+	.datagrid-stage { display: flex; flex-direction: column; min-block-size: 0; flex: 1 1 auto; }
+	.datagrid-ext.datagrid-view-rail { block-size: 100%; }
+
+	/* A row that is a link: still display: contents, so its cells sit in the grid. */
+	a.datagrid-row { color: inherit; text-decoration: none; }
+	a.datagrid-row:hover > .datagrid-cell { background: var(--darken-1); }
+	.datagrid-row.active > .datagrid-cell { background: var(--darken-1); }
+
+	/* Show more: the sentinel after the last drawn row. */
+	.datagrid-more { grid-column: 1 / -1; padding: var(--gap-50); text-align: center; }
+	.datagrid-more-btn { border: 0; background: none; color: var(--prim); cursor: pointer; font: inherit; text-decoration: underline; }
+
+	/* The rail: flush to its box, full height, scrolls inside; one .card per row. */
+	.datagrid-rail { flex: 1 1 auto; min-block-size: 0; overflow: auto; max-block-size: var(--datagrid-height, none); }
+	.datagrid-card { display: flex; flex-direction: column; gap: var(--gap-35); border-block-end: 1px solid var(--line); }
+	.datagrid-card.active { box-shadow: inset 4px 0 0 var(--prim); background: var(--darken-1); }
+	.datagrid-card-title { overflow-wrap: anywhere; }
 }
