@@ -76,7 +76,7 @@ function spread_diagram(){
 
 				div().style({ position: "absolute", top: "50%", translate: "0 -50%",
 					left: pct(lo), width: pct(hi - lo), height: "0.5em",
-					background: "var(--prim)", opacity: "0.25", borderRadius: "999px" });
+					background: "var(--prime)", opacity: "0.25", borderRadius: "999px" });
 
 				state.at.forEach(at => div.c("notes-mark").style("left", pct(at)));
 

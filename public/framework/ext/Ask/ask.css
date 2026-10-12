@@ -6,7 +6,7 @@
 	.chat-list { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.75); min-width: 0; max-height: 30em; overflow-y: auto; }   /* was gap .75em - 2026-09-05 ramps */
 
 	.chat-turn { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.25); padding: .5em .75em; border-radius: var(--radius); background: var(--wash); min-width: 0; }   /* was gap .25em - 2026-09-05 ramps */
-	.chat-user { background: color-mix(in srgb, var(--prim) 10%, transparent); }
+	.chat-user { background: color-mix(in srgb, var(--prime) 10%, transparent); }
 
 	.chat-role { font-size: .8em; text-transform: uppercase; letter-spacing: .05em; }
 	.chat-body { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.5); min-width: 0; }   /* was gap .5em - 2026-09-05 ramps */
@@ -37,8 +37,8 @@
 	/* Sized by an inline style: this box IS the hovered element's measured rectangle. */
 	.ask-pick-box {
 		position: fixed; top: 0; left: 0; width: 0; height: 0; opacity: 0;
-		outline: 2px solid var(--prim); outline-offset: 1px; border-radius: 2px;
-		background: color-mix(in srgb, var(--prim) 12%, transparent);
+		outline: 2px solid var(--prime); outline-offset: 1px; border-radius: 2px;
+		background: color-mix(in srgb, var(--prime) 12%, transparent);
 		transition: top .06s, left .06s, width .06s, height .06s;
 	}
 
@@ -173,7 +173,7 @@
 	/* Listening has to be visible from across the room — you are talking at it, not
 	   looking at it, and a microphone left on is the failure that costs money. */
 	.ask-reply-acts > button.ask-mic.listening {
-		background-color: var(--prim); border-color: var(--prim);
+		background-color: var(--prime); border-color: var(--prime);
 		animation: ask-mic-pulse 1.4s ease-in-out infinite;
 	}
 	@keyframes ask-mic-pulse { 50% { opacity: .5; } }

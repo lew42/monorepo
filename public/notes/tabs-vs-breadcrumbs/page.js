@@ -35,7 +35,7 @@ function tabs_vs_breadcrumbs(){
 	const chip = (text, on, click) => {
 		const $b = button(text).on("click", click);
 		$b.attr("aria-pressed", on ? "true" : "false");
-		if (on) $b.style({ fontWeight: "700", borderBottom: "2px solid var(--prim)" });
+		if (on) $b.style({ fontWeight: "700", borderBottom: "2px solid var(--prime)" });
 		return $b;
 	};
 

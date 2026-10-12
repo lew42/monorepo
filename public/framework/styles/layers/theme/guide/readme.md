@@ -6,7 +6,7 @@
 @layer theme {
 	.theme-paper {
 		color-scheme: light dark;
-		--prim: light-dark(#9a5b28, #e0a35e);   --ink: light-dark(#2c2622, #ece4d8);
+		--prime: light-dark(#9a5b28, #e0a35e);   --ink: light-dark(#2c2622, #ece4d8);
 		--surface: light-dark(#fbf7f0, #1d1917);   --radius: 0.5em;   --font: Georgia, serif;
 		color: var(--ink); background: var(--surface); font-family: var(--font);
 	}

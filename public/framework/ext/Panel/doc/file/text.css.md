@@ -8,16 +8,16 @@ body underneath them, the same move `ext/layout/layout.css`'s
 
 ```css text.css
 .panel-text-hot { outline: 1px dashed var(--line); outline-offset: 2px; cursor: pointer; }
-.panel-text-on  { outline: 2px solid var(--prim); outline-offset: 2px; }
+.panel-text-on  { outline: 2px solid var(--prime); outline-offset: 2px; }
 ```
 
 ## Being typed into reads differently from being selected
 
 ```css text.css
 .panel-text-edit {
-	outline: 2px solid var(--prim);
+	outline: 2px solid var(--prime);
 	outline-offset: 2px;
-	background: color-mix(in srgb, var(--prim) 8%, transparent);
+	background: color-mix(in srgb, var(--prime) 8%, transparent);
 	cursor: text;
 }
 ```
@@ -55,7 +55,7 @@ make a deliberate choice look like a mistake to fix.
 
 ```css text.css
 .panel:hover:not(:has(.panel:hover)) .panel-text-box {
-	outline: 1px dashed color-mix(in srgb, var(--prim) 45%, transparent);
+	outline: 1px dashed color-mix(in srgb, var(--prime) 45%, transparent);
 	outline-offset: 3px;
 }
 ```

@@ -12,7 +12,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("Layout").ac("mb").style("color", "var(--prim)");
+            h1("Layout").ac("mb").style("color", "var(--prime)");
 
             p("These are the layout features built into this framework:");
             p("Full-height page: use it if you want your page to fill the whole screen.");

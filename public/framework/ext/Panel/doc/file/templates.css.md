@@ -42,7 +42,7 @@ here, and now it is true of the whole file.
 These three scenes hard-code deep, dark backgrounds (`#0b0a14`, `#05060d`,
 `#07060f → #1a1136`) rather than reading `--surface`/`--wash`, because a
 night sky that inverts under a light OS theme reads as a bug, not a feature.
-Their glow accents still come from `--prim`, so a brand theme swap retints
+Their glow accents still come from `--prime`, so a brand theme swap retints
 them without touching the ground colour.
 
 ## Furniture is sized by its widest line, not guessed

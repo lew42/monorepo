@@ -70,7 +70,7 @@
         text-decoration: none;
         user-select: none;
     }
-    .code-line-no:hover { color: var(--prim); }
+    .code-line-no:hover { color: var(--prime); }
     /* The line ends in a real "\n" from the source text, so nothing here needs one —
        `white-space` is already `pre` (inherited from the `<pre>` two elements up). */
     .code-line-code { padding-inline-end: 1em; }
@@ -80,7 +80,7 @@
        being re-highlighted from cache on the next click. */
     .code-line.line-hit .code-line-no,
     .code-line.line-hit .code-line-code { background: var(--wash); }
-    .code-line.line-hit .code-line-no { color: var(--prim); font-weight: 600; }
+    .code-line.line-hit .code-line-no { color: var(--prime); font-weight: 600; }
 
     /* Grouped by MEANING, not by grammar: one colour decision covers js + css +
        html + md + json at once. */

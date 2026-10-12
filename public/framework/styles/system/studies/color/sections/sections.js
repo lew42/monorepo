@@ -17,14 +17,14 @@ import { parse, ratio, lightness } from "/framework/styles/stacks/stacks.js";
 
 /** The six grounds. The five greys are the parent study's own list, so the two pages
  *  can never disagree about what "mid gray" is; the accent is the sixth, painted with
- *  `--prim` so the hue slider drives it.
+ *  `--prime` so the hue slider drives it.
  *  `dark` means the section sets `color-scheme: dark`, which is how this site makes a
  *  band pick the light half of `--ink` — the same `.color-island` trick the palette page
  *  uses. Mid gray keeps the dark ink on purpose: it measures 3.7:1 there against the
  *  light ink's 2.3:1, so dark is the better of two bad options and the page shows it. */
 export const BANDS = [
 	...GROUNDS.map(([name, paint]) => ({ name, paint, dark: name === "Dark gray" || name === "Black" })),
-	{ name: "Accent", paint: "var(--prim)", accent: true },
+	{ name: "Accent", paint: "var(--prime)", accent: true },
 ];
 
 const HEAD = "A heading";
@@ -41,7 +41,7 @@ export class SectionsStudy extends ColorStudy {
 		return this;
 	}
 
-	/** ⚠ The parent writes `--prim` onto its lab, because its lab CONTAINS the tiles it
+	/** ⚠ The parent writes `--prime` onto its lab, because its lab CONTAINS the tiles it
 	 *  drives. Here the walls are the lab's siblings — the page's own prose column owns
 	 *  the rhythm between them, and wrapping them in a div would take the reading cap
 	 *  off every heading in it — so each wall is registered as a root of its own and the
@@ -49,8 +49,8 @@ export class SectionsStudy extends ColorStudy {
 	paint(){
 		const value = this.hsl(1);
 		this.roots.forEach($r => {
-			$r.el.style.setProperty("--prim", value);
-			$r.el.style.setProperty("--prim-ink", value);
+			$r.el.style.setProperty("--prime", value);
+			$r.el.style.setProperty("--prime-ink", value);
 		});
 		super.paint();
 	}

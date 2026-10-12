@@ -13,7 +13,7 @@ rule set reads from a 200px sliver to a 3440 monitor.
 | name | icon | what it is |
 |---|---|---|
 | `blank` | `check_box_outline_blank` | the neutral: the `.checkered` utility, zero new CSS |
-| `word` | `title` | one wordmark, scaled to the panel — `lew` in `--ink`, `42` in `--prim` |
+| `word` | `title` | one wordmark, scaled to the panel — `lew` in `--ink`, `42` in `--prime` |
 | `wall` | `insights` | four numbers; the column count is chosen by `@container`, never `auto-fit` |
 | `clock` | `schedule` | live 24h time + long date, self-cancelling when detached |
 | `haze` | `water` | **tone-aware** calm gradient: the panel's tone is the ground, two glows over it |
@@ -67,13 +67,13 @@ the element mid-event) — that verdict is right; the flag stays as a truthful
 description of the entry, available if the bar ever wants it.
 
 **Which templates paint their own colour.** `word`, `wall`, `clock` and `blank`
-are transparent and use only `--ink` / `--prim` / `--subtle`, so they inherit the
+are transparent and use only `--ink` / `--prime` / `--subtle`, so they inherit the
 panel's surface and read in both schemes for free. `haze` is tone-aware and built
-from `--prim` / `--surface` mixes over the tone. **`aurora`, `drift` and `depth`
+from `--prime` / `--surface` mixes over the tone. **`aurora`, `drift` and `depth`
 paint literal deep colours** (`#0b0a14`, `#05060d`, `#07060f`→`#1a1136`, plus a
 blue and a violet in aurora) and are identical in light and dark **on purpose**:
 a night sky that inverts with the OS theme is not a night sky. Both schemes were
-screenshotted; the accents in all three still come from `--prim`, so a theme swap
+screenshotted; the accents in all three still come from `--prime`, so a theme swap
 retints them.
 
 **`wall` picks its column count instead of computing it.** Four tiles look

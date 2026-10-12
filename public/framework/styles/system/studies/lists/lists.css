@@ -49,14 +49,14 @@
 	/* ── A pressable row, shared by every shape but the accordion's own <summary> ── */
 	[role="button"] { cursor: pointer; }
 	[role="button"]:hover { background: var(--wash); }
-	[role="button"]:focus-visible { outline: 2px solid var(--prim); outline-offset: -2px; }
+	[role="button"]:focus-visible { outline: 2px solid var(--prime); outline-offset: -2px; }
 
 	.lists-member-line { display: flex; align-items: baseline; gap: var(--gap-35); }
 	.lists-member-name { font-weight: 600; }
 	.lists-member-detail { margin: 0; }
 
 	/* The one visual both drag shapes share: where a chip would land. */
-	.lists-drop-over { background: var(--prim); color: var(--prim-ink); }
+	.lists-drop-over { background: var(--prime); color: var(--prime-ink); }
 
 	/* ── 1 · Rows — indent per level, a hairline between members, no box ────── */
 	.lists-rows-group { padding-block: var(--gap-25) var(--gap-35); }
@@ -79,7 +79,7 @@
 		padding: 0.2em 0.6em; font-size: 0.8em; font-weight: 500; text-transform: none;
 		letter-spacing: normal; background: none; border: 1px solid var(--line); border-radius: var(--radius);
 	}
-	.lists-bar .lists-seg .lists-seg-btn.lists-on { background: var(--prim); color: var(--prim-ink); border-color: var(--prim); }
+	.lists-bar .lists-seg .lists-seg-btn.lists-on { background: var(--prime); color: var(--prime-ink); border-color: var(--prime); }
 
 	/* ── 3 · Accordion stack — the exact two rules `ui/accordion/accordion.js` documents,
 	   re-declared under this module's own prefix (ui/ is read-only). Flush: no gap of its
@@ -94,7 +94,7 @@
 	/* ── 4 · Drill-down — a crumb trail, a replaced body ─────────────────────── */
 	.lists-crumbs { padding-bottom: var(--gap-35); flex-wrap: wrap; }
 	.lists-crumb { font-size: 0.8em; }
-	.lists-crumb[role="button"] { color: var(--prim); }
+	.lists-crumb[role="button"] { color: var(--prime); }
 	.lists-crumb-current { font-weight: 700; color: var(--ink); }
 	.lists-drill-row { padding: var(--gap-35) 0; border-top: 1px solid var(--line); }
 	.lists-drill-row:first-child { border-top: none; }
@@ -103,8 +103,8 @@
 	.lists-inbox-rail { flex: 0 0 7rem; min-width: 0; border-right: 1px solid var(--line); padding-right: var(--gap-35); }
 	.lists-inbox-view { flex: 1 1 auto; min-width: 0; }
 	.lists-inbox-rail-row { padding: var(--gap-25) 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.lists-inbox-rail-on { color: var(--prim); }
-	.lists-inbox-rail-on .h4 { color: var(--prim); }
+	.lists-inbox-rail-on { color: var(--prime); }
+	.lists-inbox-rail-on .h4 { color: var(--prime); }
 
 	/* ── 6 · Launcher — a sheet that slides up over the list, which never moves ─────
 	   The host clips and anchors the sheet; the sheet is absolute so the list under it

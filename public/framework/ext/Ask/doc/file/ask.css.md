@@ -1,5 +1,5 @@
 Layout only for the chat panel — 25 lines, one `@layer theme` block, no
-colours of its own. Every look (`--wash`, `--prim`, `--line`, `--surface`,
+colours of its own. Every look (`--wash`, `--prime`, `--line`, `--surface`,
 `--ink`) comes from `framework.css`'s tokens, so the panel is themed for free
 in both light and dark.
 
@@ -14,7 +14,7 @@ else on the site, not just this file.
 
 Flex columns and gaps for `.chat`/`.chat-list`/`.chat-body`; one
 `background-color` distinction between `.chat-turn` (any role) and
-`.chat-user` (a tinted mix of `--prim`); a `max-height` + `overflow-y` on the
+`.chat-user` (a tinted mix of `--prime`); a `max-height` + `overflow-y` on the
 scrolling history; disabled-state opacity on `.chat-send`. That's the whole
 file — no animation, no media query, no dark-mode override, because nothing
 here needed one.

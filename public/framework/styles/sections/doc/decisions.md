@@ -119,7 +119,7 @@ both made this call already; this is the house answer rather than a new one.
 
 **Nothing in this folder names a colour.** That is the test — *would this rule
 still be right in a different site* — and a hex value fails it every time. The
-four tones are `--surface`, `--wash`, `--prim`, `--ink`, which the theme already
+four tones are `--surface`, `--wash`, `--prime`, `--ink`, which the theme already
 defines, so alternating them keeps a page in palette by construction and a theme
 swap retints all five bands with nothing edited here.
 
@@ -293,7 +293,7 @@ place against a band already in the catalogue:
   tones, so the component had to derive every colour from the band's own ink
   instead of naming `--subtle` beside it (§12c of the styles record, which
   measured that mistake at 1.06:1 on the `prim` band). The dot reads
-  `var(--eyebrow, var(--prim))` — `band()` already hands that variable down, so
+  `var(--eyebrow, var(--prime))` — `band()` already hands that variable down, so
   the accent that is safe on this band was API rather than a new token.
 - **`contact`** — the split layout: channels beside a real form. Kept apart from
   `signup`, which is one email field and one button, because they answer
@@ -345,7 +345,7 @@ Per part:
 | | outcome | |
 |---|---|---|
 | `section(tone, …)` | **eliminated** | fifteen bands write the two divs out. `.measure` in `framework.css` already *was* the inner one, so inlining removed the inline `max-width`/`margin-inline` pair rather than duplicating it |
-| `eyebrow(text)` | **eliminated** | `p.c("h4", "WHY").style("color", "var(--eyebrow, var(--prim))")`. One declaration, and it puts the `--eyebrow` handoff at the call site instead of leaving a band setting a variable a helper three files away reads. The invented tracking and opacity went with it — `h4` already tracks |
+| `eyebrow(text)` | **eliminated** | `p.c("h4", "WHY").style("color", "var(--eyebrow, var(--prime))")`. One declaration, and it puts the `--eyebrow` handoff at the call site instead of leaving a band setting a variable a helper three files away reads. The invented tracking and opacity went with it — `h4` already tracks |
 | `cta(text, kind)` | **eliminated** | `button.c("prim", "…")`. Its own comment said *"this IS a button"* |
 | `feature()` | **local const** in `features.js` | one caller |
 | `price()` | **local const** in `pricing.js` | one caller; `pill` was its only importer and became three declarations there, so `styles/parts.js` lost that export too |

@@ -66,7 +66,7 @@ the padding back. (`gutter` in DesignTool exists because this shipped.)
 | layer | holds | example |
 |---|---|---|
 | `base` | reset, box-sizing | `*, *::before { box-sizing: border-box }` |
-| `theme` | the vocabulary — tokens, elements, components | `.page-preview`, `h2`, `--prim` |
+| `theme` | the vocabulary — tokens, elements, components | `.page-preview`, `h2`, `--prime` |
 | `site` | this site's opinion, loaded last | `/styles.css` |
 | `util` | single-purpose classes that must win | `.flex`, `.gap`, `.hidden` |
 

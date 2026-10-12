@@ -40,7 +40,7 @@ export default new Page({
 
 		md("## The variants, which is all `badge.js` is now");
 
-		md("```css\n.ui-badge.accent  { background: var(--prim); color: var(--surface); }\n.ui-badge.dark    { background: var(--ink);  color: var(--surface); }\n.ui-badge.outline { background: none; border: 1px solid var(--line); }\n```");
+		md("```css\n.ui-badge.accent  { background: var(--prime); color: var(--surface); }\n.ui-badge.dark    { background: var(--ink);  color: var(--surface); }\n.ui-badge.outline { background: none; border: 1px solid var(--line); }\n```");
 
 		md("Both filled tones read `var(--surface)` for their ink rather than a literal `white`, which is what they said before — and *naming a colour is the thing a component may not do.* `--ink`/`--surface` is the pair the theme already guarantees contrast between, in both modes.");
 
@@ -52,7 +52,7 @@ export default new Page({
 
 		md("## Four tones, not six");
 
-		md("The token set has **one accent**. `--prim --bg --wash --subtle --surface --line`, plus `--error`, which arrived to replace `#c00` in three stylesheets rather than for components. Nothing means *good* or *warning*. So a badge honestly offers neutral, accent, dark and outline, and one that wants green-for-passing would have to name a colour.\n\nThat is a finding, not a workaround: **the status axis is a third done.** `--ok` and `--warn` beside `--error` would finish it for every badge, alert, meter and diff row after. On the [record](/framework/ui/).");
+		md("The token set has **one accent**. `--prime --bg --wash --subtle --surface --line`, plus `--error`, which arrived to replace `#c00` in three stylesheets rather than for components. Nothing means *good* or *warning*. So a badge honestly offers neutral, accent, dark and outline, and one that wants green-for-passing would have to name a colour.\n\nThat is a finding, not a workaround: **the status axis is a third done.** `--ok` and `--warn` beside `--error` would finish it for every badge, alert, meter and diff row after. On the [record](/framework/ui/).");
 
 		md("Next: [Alerts](/framework/ui/alert/) — the same idea at block scale.");
 	},

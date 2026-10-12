@@ -14,12 +14,12 @@
 	}
 
 	.asks-count-chip:hover {
-		border-color: var(--prim);
+		border-color: var(--prime);
 	}
 
 	.asks-count-chip.on {
-		background: var(--prim);
-		border-color: var(--prim);
+		background: var(--prime);
+		border-color: var(--prime);
 		color: var(--on-prim, white);
 	}
 

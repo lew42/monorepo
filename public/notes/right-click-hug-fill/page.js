@@ -63,7 +63,7 @@ function width_words(){
 			$left.append(() => {
 				span().text("this column");
 				div().style({ position: "absolute", insetBlock: "0", right: "0", width: "8px",
-					cursor: "col-resize", background: "var(--prim)", opacity: "0.4" })
+					cursor: "col-resize", background: "var(--prime)", opacity: "0.4" })
 					.on("pointerdown", start);
 			});
 

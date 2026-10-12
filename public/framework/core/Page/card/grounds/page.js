@@ -5,7 +5,7 @@ const GROUNDS = [
 	{ cls: "",          name: "Default",    token: "var(--surface)" },
 	{ cls: "card-gray", name: "Light gray", token: "var(--darken-1)" },
 	{ cls: "card-dark", name: "Dark",       token: "var(--bg)" },
-	{ cls: "card-prim", name: "Strong hue", token: "var(--prim)" },
+	{ cls: "card-prim", name: "Strong hue", token: "var(--prime)" },
 ];
 
 export default new Page({

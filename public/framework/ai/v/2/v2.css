@@ -39,7 +39,7 @@
 		background: var(--fill-a08); border: 1px solid transparent; color: var(--ink);
 		cursor: pointer;
 	}
-	.v2-density-btn.active { border-color: var(--prim); color: var(--prim-ink); font-weight: 600; }
+	.v2-density-btn.active { border-color: var(--prime); color: var(--prime-ink); font-weight: 600; }
 
 	.v2-row { display: grid; gap: calc(0.6rem * var(--size, 1)); grid-template-columns: repeat(auto-fit, minmax(min(20em, 100%), 1fr)); align-items: start; }
 
@@ -67,7 +67,7 @@
 	.v2-strong { font-weight: 600; }
 	.v2-time { flex: 0 0 auto; color: var(--subtle); font-size: max(12px, calc(0.8125rem * var(--size, 1))); white-space: nowrap; }
 	.v2-quiet { color: var(--subtle); }
-	.v2-min { flex: 0 0 4em; color: var(--prim-ink, var(--prim)); font-weight: 700; text-align: right; }
+	.v2-min { flex: 0 0 4em; color: var(--prime-ink, var(--prime)); font-weight: 700; text-align: right; }
 
 	.v2-dot { flex: 0 0 auto; width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--line); align-self: center; }
 	.v2-landed { background: var(--ok); }

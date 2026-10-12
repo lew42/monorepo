@@ -47,9 +47,9 @@ the paragraph; A's orange is the only colour on the whole post, so all three mar
 before a word is read. Contrast decides whether a thing can be read; difference decides
 whether it is found.
 
-C anchors too, more quietly, and it costs two things. Its rule is `--prim` at 2.2:1, which
-is below even the 3:1 bar for a UI shape — that is deliberate in this theme (`--prim` is the
-fill and bar colour, `--prim-ink` is the text one), but it means C's mark is decoration
+C anchors too, more quietly, and it costs two things. Its rule is `--prime` at 2.2:1, which
+is below even the 3:1 bar for a UI shape — that is deliberate in this theme (`--prime` is the
+fill and bar colour, `--prime-ink` is the text one), but it means C's mark is decoration
 rather than a signal that survives a bad screen. And an accent underline is already what
 this site draws under a link in prose (`framework.css`, `:where(p, li, …) a`), so C borrows
 a mark that is taken.

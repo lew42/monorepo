@@ -56,15 +56,19 @@
     :root {
         color-scheme: light;
 
-        --prim: #FF6157;                         /* the one accent */
+        --prime: #FF6157;                         /* the one accent */
         /* The accent's TEXT twin. An accent is picked to be seen as a fill — on
-           lew42 `--prim` is #FF8F60, which is 2.25:1 as ink on white and the only
+           lew42 `--prime` is #FF8F60, which is 2.25:1 as ink on white and the only
            mark an active link wears, so "no visible active state" and "an accidental
            colour leak" were the same 10 vision findings. A theme that needs a darker
            ink declares this one; the default IS the accent, so nothing changes for a
-           theme whose accent already reads. Marks, fills and outlines keep `--prim`. */
-        --prim-ink: var(--prim);
-	    --bg: #42404B;                           /* dark surface — the sidebar's */
+           theme whose accent already reads. Marks, fills and outlines keep `--prime`. */
+        --prime-ink: var(--prime);
+        /* The style system's three colour tokens, named as the Figma file names them
+           (prime, dark) plus the owner's light: styles/doc/architecture.md. */
+        --dark: #42404B;                          /* the dark neutral — the sidebar's (was --bg) */
+        --light: light-dark(color-mix(in srgb, var(--dark) 8%, #fff), color-mix(in srgb, #fff 6%, #17161a));
+        --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 0.25em 0.75em rgb(0 0 0 / 0.08);   /* a card's breathing room */
         /* Second text colour — captions, counts, tab labels, card descriptions.
            ⚠ 0.55, was 0.5 (2026-08-17). "Low contrast" was the most-repeated vision
              finding on this site: 6 of 6 pages, in both runs. 0.5 composites to #808080
@@ -259,6 +263,12 @@
         --pad:  calc(clamp(1em, 2.6% - 1.1em,   4em)   * var(--size));
         --gap:  calc(clamp(1em, 1.5cqi - 0.3em, 2.4em) * var(--size));
         --flow: calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * var(--size));
+        /* Old names, kept so nothing breaks (renamed 2026-10-12 by script; manifest at
+           ai/2026-10-12/style-system/rename-manifest.json). Declared here, not on :root,
+           so they follow a theme that sets --prime / --dark on any box. */
+        --prim: var(--prime);
+        --prim-ink: var(--prime-ink);
+        --bg: var(--dark);
     }
 
     /* `--pad-card` — same knob (`--size`), same layer, a DIFFERENT band from
@@ -360,7 +370,7 @@
        than a controllable width, so the width declaration stays as documentation of
        the trade rather than as a rule that does something. */
     :focus-visible {
-        outline-color: var(--prim);
+        outline-color: var(--prime);
         outline-offset: 3px;
     }
 
@@ -390,7 +400,7 @@
         font-size: clamp(0.875rem, max(0.82rem + 0.15vw, 0.58rem + 0.35vw), 1.125rem);
         font-family: var(--font);
         color: var(--ink);
-        accent-color: var(--prim);
+        accent-color: var(--prime);
     }
 
     /* Layout, not look, and it belongs here because App.render() emits both
@@ -501,9 +511,13 @@
        smaller. A child that wants MORE room from its neighbour still can:
        `.mb`, a rung class, or its own margin all still apply — this only
        sets what nothing else does. */
-    .card { padding: var(--pad-card); border-inline-start: 3px solid var(--card-edge, transparent); }
+    .card { padding: var(--pad-card); border-inline-start: 3px solid var(--card-edge, transparent); box-shadow: var(--shadow); }
     :where(.card) > * { margin-block: 0; }
     :where(.card) > * + * { margin-block-start: var(--gap); }
+    /* A card inside a card: its parent's ground one step darker, no shadow, no hairline,
+       so nesting reads at any depth and on any ground (styles/doc/architecture.md §3).
+       `:where` keeps it at one class of weight, so `.card.bg-dark` inside a card still wins. */
+    :where(.card) .card { background: var(--bg-darken-amt); color: inherit; border-color: transparent; box-shadow: none; }
 
     /* The SELECTED look. Not an accent-coloured border on an off-white
        ground — the owner tried that on V3 and it read as broken, not
@@ -568,6 +582,18 @@
     .bg-lighten { background: var(--bg-lighten-amt); }
     .bg-darken  { background: var(--bg-darken-amt); }
     .darken-1, .darken-2, .darken-3, .bg { --bg-lighten-amt: var(--lighten-2); }
+
+    /* ---- the four grounds: bg-white · bg-light · bg-prime · bg-dark ------------
+       A `bg-` class exists only when it sets a background, and each ground also sets
+       the ink that reads on it (a box that paints its own fill owns its ink) and how
+       far a nested card or a bg-lighten/bg-darken steps on it. Ink on prime is DARK:
+       white on an accent measures ~2:1. styles/doc/architecture.md §2. */
+    .bg-white, .bg-light { color: #1a1a1a; --subtle: rgb(0 0 0 / 0.55); color-scheme: light; }
+    .bg-white { background: #fff; }
+    .bg-light { background: var(--light); }
+    .bg-prime { background: var(--prime); color: #1a1a1a; --subtle: rgb(26 26 26 / 0.7); color-scheme: light; --bg-darken-amt: var(--darken-2); }
+    .bg-dark  { background: var(--dark); color: #fff; --subtle: rgb(255 255 255 / 0.7); color-scheme: dark;
+                --bg-darken-amt: var(--darken-2); --bg-lighten-amt: var(--lighten-2); --field-bg: var(--surface); }
 
     /* De-emphasis derived from the band's own ink, never from a fixed grey:
        `--subtle` on a `prim` band measures 1.06:1.
@@ -836,13 +862,13 @@
        variant with its own solid fill needs no hover of its own. `border-color`
        moves too — and it is stated here, AHEAD of `.prim` and `.bg`, so those two
        keep their own edge colour under the pointer, exactly as they did before.
-       ⚠ `color` deliberately does NOT move any more. Turning the label `--prim` on
+       ⚠ `color` deliberately does NOT move any more. Turning the label `--prime` on
          hover was what forced a third rule whose entire job was `color: white` on
          the two filled variants. */
     :is(.btn, button, summary, select, textarea,
         input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"])):hover {
         --ctl-lift: var(--fill-a08);
-        border-color: var(--prim);
+        border-color: var(--prime);
     }
     :is(.btn, button, summary, select, textarea,
         input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"])):active {
@@ -860,20 +886,20 @@
     }
 
     a * { cursor: pointer; }
-    /* ⚠ THESE TWO STAY OPAQUE, on purpose. `--prim` and `--bg` are the two SOLID
+    /* ⚠ THESE TWO STAY OPAQUE, on purpose. `--prime` and `--bg` are the two SOLID
        fills — a hue and a dark neutral, each with a hardcoded white label — and a
        rung cannot replace either without turning a filled CTA into a wash. Each is
        invisible on exactly one floor, its own, and that is a PLACEMENT error, not a
-       token error: don't put a `.prim` button on a `--prim` band or a `.bg` button on
+       token error: don't put a `.prim` button on a `--prime` band or a `.bg` button on
        a `--bg` one. The measurement agrees — the only place either was flagged in the
        2026-08-30 hunt is the matrix cell that exists to demonstrate it.
        `styles/doc/stacking.md` §placement.
 
-       The shadow is accessibility, not decoration: white on `--prim` is ~2.2:1, and
+       The shadow is accessibility, not decoration: white on `--prime` is ~2.2:1, and
        a shadow lifts the edges where a letterform is thinnest. */
-    button.bg, .btn.bg { background-color: var(--bg); color: white; border-color: var(--bg); }
+    button.bg, .btn.bg { background-color: var(--dark); color: white; border-color: var(--dark); }
     button.prim, .btn.prim {
-        background-color: var(--prim); color: white; border-color: var(--prim);
+        background-color: var(--prime); color: white; border-color: var(--prime);
         text-shadow: 0 1px 2px rgba(0,0,0,0.45);
     }
 
@@ -1210,7 +1236,7 @@
         color: inherit;
         font-weight: 600;
         text-decoration-line: underline;
-        text-decoration-color: var(--prim);
+        text-decoration-color: var(--prime);
         text-decoration-thickness: 0.2em;
         text-underline-offset: 0.2em;
     }
@@ -1222,10 +1248,10 @@
        declines it. */
     :where(a):visited {
         color: var(--subtle);
-        text-decoration-color: color-mix(in oklab, var(--prim) 80%, var(--subtle));
+        text-decoration-color: color-mix(in oklab, var(--prime) 80%, var(--subtle));
     }
 
     /* After `:visited`, not before — both are `(0,1,1)`, so hover only wins by
        being later, and a visited link has to be able to light up again. */
-    :where(a):hover { color: var(--prim-ink); }
+    :where(a):hover { color: var(--prime-ink); }
 }

@@ -16,7 +16,7 @@
 	.vary-colstyles-retuned .page-column-body { --page-column-max: 22em; }
 	.vary-colstyles-retuned .page-column-prose {
 		--page-column-pad-x: 2em; --page-column-pad-y: 1.4em;
-		background: color-mix(in srgb, var(--prim) 6%, transparent);
+		background: color-mix(in srgb, var(--prime) 6%, transparent);
 	}
 
 	/* Hook 3 — `column()` thrown away and redrawn as a chip wall; no head,
@@ -68,9 +68,9 @@
 	.vary-colstyles-look-ink .page-columns-row { background: var(--code-bg); }
 	.page.columns.vary-colstyles-look-ink .page-column-body {
 		background: var(--code-bg); color: var(--code-ink);
-		border-inline-end: 2px solid var(--prim);
+		border-inline-end: 2px solid var(--prime);
 	}
-	.vary-colstyles-look-ink .page-column-head { background: var(--code-bg); border-bottom-color: var(--prim); }
+	.vary-colstyles-look-ink .page-column-head { background: var(--code-bg); border-bottom-color: var(--prime); }
 	.vary-colstyles-look-ink .page-column-title { font-size: 1.05em; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
 	/* `:is(.page-column-item, .page-gen-item)` — a real column draws the first, a
 	   generated one draws the second (core/Page/generator/readme.md measured the gap).
@@ -80,8 +80,8 @@
 	.vary-colstyles-look-ink :is(.page-column-item, .page-gen-item):is(:hover, :focus-visible) { color: var(--code-ink); background: color-mix(in srgb, var(--code-ink) 12%, transparent); }
 	.vary-colstyles-look-ink :is(.page-column-item, .page-gen-item):is(.in-path, [aria-current]) { color: var(--code-ink); }
 	.vary-colstyles-look-ink .page-column-close { color: color-mix(in srgb, var(--code-ink) 55%, transparent); }
-	.vary-colstyles-look-ink .page-column-close:is(:hover, :focus-visible) { color: var(--prim); background: color-mix(in srgb, var(--code-ink) 12%, transparent); }
-	.vary-colstyles-look-ink .vary-colstyles-figure { background: color-mix(in srgb, var(--code-ink) 8%, transparent); border-color: var(--prim); color: color-mix(in srgb, var(--code-ink) 70%, transparent); }
+	.vary-colstyles-look-ink .page-column-close:is(:hover, :focus-visible) { color: var(--prime); background: color-mix(in srgb, var(--code-ink) 12%, transparent); }
+	.vary-colstyles-look-ink .vary-colstyles-figure { background: color-mix(in srgb, var(--code-ink) 8%, transparent); border-color: var(--prime); color: color-mix(in srgb, var(--code-ink) 70%, transparent); }
 
 	/* ── Glass — the alpha ladder read as DEPTH, not decoration ──
 	   `--fill-a04` / `--fill-a08` (framework.css) are the SAME tokens a chip or a
@@ -108,7 +108,7 @@
 	   show through instead of vanishing under a flat rectangle. Measured
 	   contrast, both colour schemes: doc/decisions.md. */
 	.vary-colstyles-look-glass .page-columns-row {
-		background: linear-gradient(160deg, color-mix(in srgb, var(--prim) 12%, var(--wash)), var(--wash) 55%);
+		background: linear-gradient(160deg, color-mix(in srgb, var(--prime) 12%, var(--wash)), var(--wash) 55%);
 	}
 	.page.columns.vary-colstyles-look-glass .page-column-body { border-inline-end: 1px solid var(--fill-a16); }
 	.vary-colstyles-look-glass .page-column-body:has(~ .page-column-pages .page-column-body) { background: var(--fill-a04); backdrop-filter: blur(6px); }

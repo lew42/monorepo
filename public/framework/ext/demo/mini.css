@@ -60,7 +60,7 @@
 		border-radius: 2px;
 	}
 	.demo-mini-slot.v { flex-direction: column; }
-	.demo-mini-slot.on { background: color-mix(in srgb, var(--prim) 12%, var(--surface)); box-shadow: inset 0 0 0 1px var(--prim); }
+	.demo-mini-slot.on { background: color-mix(in srgb, var(--prime) 12%, var(--surface)); box-shadow: inset 0 0 0 1px var(--prime); }
 	.demo-mini-slot.off { opacity: 0.4; }
 	.demo-mini-slot.dash { background: none; box-shadow: none; outline: 1px dashed var(--line); outline-offset: -1px; }
 
@@ -117,7 +117,7 @@
 	   prose at this size — same stack, same widths, and only the lit one told them
 	   apart (measured on the wall, 2026-08-26). */
 	.demo-mini-item { flex: 0 0 0.85em; border-radius: 2px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
-	.demo-mini-item.on { background: color-mix(in srgb, var(--prim) 14%, var(--surface)); box-shadow: inset 0 0 0 1px var(--prim); }
+	.demo-mini-item.on { background: color-mix(in srgb, var(--prime) 14%, var(--surface)); box-shadow: inset 0 0 0 1px var(--prime); }
 
 	/* ── an inbox: preview rows on the left, the detail beside them. A `list` row shows a
 	     line OF the page behind it, which is exactly what a `rail` row above does not. ── */
@@ -129,7 +129,7 @@
 		display: flex; flex-direction: column; flex: 0 0 auto; gap: calc(var(--gap) * 0.25); padding: 0.3em;   /* was gap 0.25em - 2026-09-05 ramps */
 		border-radius: 2px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line);
 	}
-	.demo-mini-preview.on { background: color-mix(in srgb, var(--prim) 14%, var(--surface)); box-shadow: inset 0 0 0 1px var(--prim); }
+	.demo-mini-preview.on { background: color-mix(in srgb, var(--prime) 14%, var(--surface)); box-shadow: inset 0 0 0 1px var(--prime); }
 
 	/* ⚠ (0,2,0): `.demo-mini-key` is a ROW part — `flex: 0 0 1.8em` is its WIDTH there and
 	     its HEIGHT here, and `align-self: center` would centre it in the card. */
@@ -156,7 +156,7 @@
 	/* ── a crumb trail: thin chips, a leaning separator, the last one lit ── */
 	.demo-mini-crumbs { display: flex; flex: none; align-items: center; gap: calc(var(--gap) * 0.5); padding: 0.45em 0.5em; border-bottom: 1px solid var(--line); }   /* was gap 0.5em - 2026-09-05 ramps */
 	.demo-mini-crumb { flex: 0 0 1.7em; height: 0.38em; border-radius: 2px; background: var(--line); }
-	.demo-mini-crumb.on { background: var(--prim); }
+	.demo-mini-crumb.on { background: var(--prime); }
 	.demo-mini-crumb + .demo-mini-crumb { position: relative; }
 	.demo-mini-crumb + .demo-mini-crumb::before {
 		content: ""; position: absolute; inset-inline-start: -0.35em; top: -0.2em;
@@ -185,10 +185,10 @@
 
 	/* ── two names for one entry: a short key beside its long title, both lit ── */
 	.demo-mini-key { flex: 0 0 1.8em; height: 0.45em; align-self: center; border-radius: 2px; background: var(--line); }
-	.demo-mini-key.on { background: var(--prim); }
+	.demo-mini-key.on { background: var(--prime); }
 	.demo-mini--labels .demo-mini-row { gap: calc(var(--gap) * 0.5); }   /* was gap 0.5em - 2026-09-05 ramps */
 	.demo-mini--labels .demo-mini-line { flex: 1 1 auto; height: 0.32em; align-self: center; }
-	.demo-mini--labels .demo-mini-line.on { background: var(--prim); }
+	.demo-mini--labels .demo-mini-line.on { background: var(--prime); }
 
 	/* A takeover has no chrome left to draw — only the way out, top right. */
 	.demo-mini--full::after {

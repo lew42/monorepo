@@ -2,7 +2,7 @@
 
 @layer theme {
 	.audio-voice-text { inline-size: 100%; max-inline-size: 32em; resize: vertical; }
-	.audio-voice-btn.on { background: var(--prim); color: var(--prim-ink); }
+	.audio-voice-btn.on { background: var(--prime); color: var(--prime-ink); }
 
 	.audio-voice-select { max-inline-size: 20em; }
 

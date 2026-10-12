@@ -7,7 +7,7 @@
  * getting to sRGB anyway.
  *
  * What generation guarantees: every ink token is SOLVED against the surface it
- * will actually sit on, so `--prim-ink` cannot ship at 2.2:1 — the defect the
+ * will actually sit on, so `--prime-ink` cannot ship at 2.2:1 — the defect the
  * colour study found live on this site in two places. What it cannot: taste.
  */
 
@@ -69,14 +69,14 @@ export function generate({ hue: H, chroma: C, curve, contrast }){
 	const surface = at(surfL);
 	const prim    = at(dark ? 0.76 : 0.66, C);       // a FILL — placed for punch, never solved
 
-	// Every one of these is SOLVED, not chosen. `--prim-ink` keeps the seed's full
+	// Every one of these is SOLVED, not chosen. `--prime-ink` keeps the seed's full
 	// chroma so it still reads as the accent; it just cannot come out too pale.
 	const ink     = at(solve(surface, surfL, contrast + 2.5, C * 0.2, H, dark), C * 0.2);
 	const subtle  = at(solve(wash,    washL, contrast,       C * 0.2, H, dark), C * 0.2);
 	const primInk = at(solve(wash,    washL, contrast,       C,       H, dark), C);
 
 	const tokens = {
-		"--prim": hex(prim), "--prim-ink": hex(primInk),
+		"--prime": hex(prim), "--prime-ink": hex(primInk),
 		"--ink": hex(ink), "--subtle": hex(subtle),
 		"--line": hex(at(dark ? 0.32 : 0.885)),
 		"--wash": hex(wash), "--tint": hex(tint), "--surface": hex(surface),

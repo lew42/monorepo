@@ -22,13 +22,13 @@ const COLOURED = { dark: 1, prim: 1 };
 /* band(tone) — the style object a band wears. The one thing a band module does NOT
  * spell out inline, because a four-way token map cannot be written fifteen times.
  *
- * ⚠ An accent needs somewhere to be an accent. `--prim` text on a `prim` band
+ * ⚠ An accent needs somewhere to be an accent. `--prime` text on a `prim` band
  * measures 1.06:1 — invisible — so a coloured band hands down `currentColor` and
  * every eyebrow on it stops trying.
  */
 export const band = tone => ({
 	background: tone === "dark"  ? "var(--bg)"
-	          : tone === "prim"  ? "var(--prim)"
+	          : tone === "prim"  ? "var(--prime)"
 	          : tone === "wash"  ? "var(--wash)"
 	          : "var(--surface)",
 
@@ -54,7 +54,7 @@ export const band = tone => ({
 	   `color-scheme` says here. */
 	color: COLOURED[tone] ? "var(--ink)" : "inherit",
 
-	"--eyebrow": COLOURED[tone] ? "currentColor" : "var(--prim)",
+	"--eyebrow": COLOURED[tone] ? "currentColor" : "var(--prime)",
 
 	padding: "3.5em 2em",
 });

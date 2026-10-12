@@ -106,7 +106,7 @@ export default new Page({
 		h2("Four tones, and no fifth");
 
 		code.js(`band("dark")      // --ink,     text --surface
-band("prim")      // --prim,    text --surface
+band("prim")      // --prime,    text --surface
 band("wash")      // --wash
 band("surface")   // --surface`);
 

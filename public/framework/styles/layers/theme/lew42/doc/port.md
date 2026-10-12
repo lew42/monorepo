@@ -29,7 +29,7 @@ The file defines `prim` `dark` `med` `light`. Only the first survived as-is.
 
 | Figma | here | why not the literal name |
 |---|---|---|
-| `prim #ff8f60` | `--prim` | already ours, already this colour (`m_svg.svg` is `#FF8F60`) |
+| `prim #ff8f60` | `--prime` | already ours, already this colour (`m_svg.svg` is `#FF8F60`) |
 | `dark #3f3f3f` | `--ink`, `--bg` | it is *body text* and *the dark surface* — two decisions wearing one hex |
 | `med #737373` | `--subtle` | same decision, existing name |
 | `light #e6e6e6` | `--line`, `--wash` | hairlines and fills are different jobs at the same value **today** |

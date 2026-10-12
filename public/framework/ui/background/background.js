@@ -146,7 +146,7 @@ css(`@layer theme {
 		opacity: 0.16;
 	}
 
-	/* 8. blobs — three plain divs, blurred. --prim needs its own opacity (it is
+	/* 8. blobs — three plain divs, blurred. --prime needs its own opacity (it is
 	   the one OPAQUE token here); --darken-3/--lighten-3 already carry theirs.
 	   ⚠ Found on the wall at 400px: the FIRST size tried (14/18/10em, a 2.2em
 	   blur) was sized for a hero and swallowed an 11em-tall demo card whole — one
@@ -157,7 +157,7 @@ css(`@layer theme {
 	.background-blob { position: absolute; border-radius: 999px; filter: blur(1.5em); }
 	.background-blob:nth-child(1) {
 		top: -3em; left: -3em; width: 8em; height: 8em;
-		background: var(--prim); opacity: 0.16;
+		background: var(--prime); opacity: 0.16;
 	}
 	.background-blob:nth-child(2) {
 		bottom: -3.5em; right: -2.5em; width: 10em; height: 10em;

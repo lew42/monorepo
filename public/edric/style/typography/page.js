@@ -12,7 +12,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("Typography").ac("mb").style("color", "var(--prim)");
+            h1("Typography").ac("mb").style("color", "var(--prime)");
 
             p("These are the typography features built into this framework:");
             p("Default text: use it if you just want normal, readable text, no class needed.");

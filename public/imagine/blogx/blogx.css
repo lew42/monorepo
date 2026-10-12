@@ -98,7 +98,7 @@
 		font-weight: 700; color: inherit; text-decoration: none;
 	}
 	.blogx-lab-home .icon { font-size: 1.1em; }
-	.blogx-lab-home:hover { color: var(--prim-ink); }
+	.blogx-lab-home:hover { color: var(--prime-ink); }
 
 	.blogx-lab-link {
 		padding: 0.15em 0.45em;
@@ -107,7 +107,7 @@
 		white-space: nowrap;
 	}
 	.blogx-lab-link:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, transparent); }
-	.blogx-lab-link:is(.active, .in-path) { color: var(--prim-ink); font-weight: 700; }
+	.blogx-lab-link:is(.active, .in-path) { color: var(--prime-ink); font-weight: 700; }
 
 	/* ⚠ After `.blogx-lab > *`, or `flex: none` would win by source order and the
 	     verdict would push the switcher off the strip instead of truncating. */
@@ -139,7 +139,7 @@
 		color: var(--subtle); text-decoration: none;
 	}
 	.blogx-group .icon { font-size: 1.15em; }
-	.blogx-group:is(:hover, .active, .in-path) { color: var(--prim-ink); }
+	.blogx-group:is(:hover, .active, .in-path) { color: var(--prime-ink); }
 
 	/* ⚠ A translucent darkener, never `--tint`: on this palette `--tint` is LIGHTER
 	     than the `--wash` a rail sits on, so a hover painted with it lights the row
@@ -158,8 +158,8 @@
 	.blogx-link.in-path { color: var(--ink); }
 	.blogx-link.active {
 		color: var(--ink); font-weight: 600;
-		border-inline-start-color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 10%, transparent);
+		border-inline-start-color: var(--prime);
+		background: color-mix(in srgb, var(--prime) 10%, transparent);
 	}
 
 	.blogx-back {
@@ -169,7 +169,7 @@
 		border-block-end: 1px solid var(--line);
 	}
 	.blogx-back .icon { font-size: 1.05em; }
-	.blogx-back:hover { color: var(--prim-ink); }
+	.blogx-back:hover { color: var(--prime-ink); }
 
 	.blogx-note { padding: 0.5em 1.1em 0.9em; font-size: 0.74em; color: var(--subtle); }
 
@@ -183,7 +183,7 @@
 	}
 	.blogx-dot { opacity: 0.45; }
 	.blogx-eyebrow a { color: inherit; text-decoration: none; border-block-end: 1px solid var(--line); }
-	.blogx-eyebrow a:hover { color: var(--prim-ink); border-block-end-color: var(--prim); }
+	.blogx-eyebrow a:hover { color: var(--prime-ink); border-block-end-color: var(--prime); }
 
 	.blogx-chips { display: flex; flex-wrap: wrap; gap: 0.35em; }
 	.blogx-nav > .blogx-chips { padding: 0.15em 1.1em 0.5em; }
@@ -195,14 +195,14 @@
 		background: var(--fill-a08);
 		border: 1px solid var(--line); border-radius: 999px;
 	}
-	.blogx-chip:hover { color: var(--prim-ink); border-color: var(--prim); }
+	.blogx-chip:hover { color: var(--prime-ink); border-color: var(--prime); }
 
 	.blogx-tag {
 		align-self: start;
 		padding: 0.1em 0.5em;
 		font-size: 0.68em; font-weight: 600;
-		color: var(--prim-ink);
-		border: 1px solid var(--prim); border-radius: 999px;
+		color: var(--prime-ink);
+		border: 1px solid var(--prime); border-radius: 999px;
 	}
 
 	/* The one link out of the mock — `.blogx-tag`'s pill, wearing a hover because this
@@ -213,10 +213,10 @@
 		margin-block-start: 0.2em;
 		padding: 0.3em 0.7em;
 		font-size: 0.78em; font-weight: 600;
-		color: var(--prim-ink); text-decoration: none;
-		border: 1px solid var(--prim); border-radius: 999px;
+		color: var(--prime-ink); text-decoration: none;
+		border: 1px solid var(--prime); border-radius: 999px;
 	}
-	.blogx-real:hover { background: color-mix(in srgb, var(--prim) 10%, transparent); }
+	.blogx-real:hover { background: color-mix(in srgb, var(--prime) 10%, transparent); }
 	.blogx-real .icon { font-size: 1.05em; }
 
 	/* THE LEAD, as the composition it deserves. Sized in `cqw` off its OWN box, so a
@@ -229,7 +229,7 @@
 		padding: clamp(1.2em, 3cqw, 3em);
 		color: inherit; text-decoration: none;
 	}
-	.blogx-hero:hover .blogx-hero-title { color: var(--prim-ink); }
+	.blogx-hero:hover .blogx-hero-title { color: var(--prime-ink); }
 
 	.blogx-hero-title {
 		font-size: clamp(1.9rem, 7.5cqw, 4.4rem);
@@ -269,7 +269,7 @@
 	}
 	.blogx-card:hover { background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }
 	.blogx-card-title { font-size: 1.05em; font-weight: 700; line-height: 1.25; }
-	.blogx-card:hover .blogx-card-title { color: var(--prim-ink); }
+	.blogx-card:hover .blogx-card-title { color: var(--prime-ink); }
 	.blogx-dek { margin: 0; font-size: 0.85em; line-height: 1.45; color: var(--subtle); }
 
 	/* The compact form — a rail, a region, a column of a row. */
@@ -284,8 +284,8 @@
 	}
 	.blogx-row:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
 	.blogx-row.active {
-		border-inline-start-color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 10%, transparent);
+		border-inline-start-color: var(--prime);
+		background: color-mix(in srgb, var(--prime) 10%, transparent);
 	}
 	.blogx-row-title { font-size: 0.9em; font-weight: 600; line-height: 1.3; }
 	.blogx-row-meta { display: flex; justify-content: space-between; gap: 0.5em; font-size: 0.72em; color: var(--subtle); }
@@ -313,7 +313,7 @@
 	}
 	.blogx-strip .icon { font-size: 1em; opacity: 0.5; }
 	.blogx-crumb { color: inherit; text-decoration: none; }
-	.blogx-crumb:hover { color: var(--prim-ink); }
+	.blogx-crumb:hover { color: var(--prime-ink); }
 	.blogx-crumb.active { color: var(--ink); font-weight: 600; }
 
 	.blogx-partnav {
@@ -340,7 +340,7 @@
 		border-block-end: 2px solid transparent;
 	}
 	.blogx-part-link:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 5%, transparent); }
-	.blogx-part-link.active { color: var(--ink); border-block-end-color: var(--prim); }
+	.blogx-part-link.active { color: var(--ink); border-block-end-color: var(--prime); }
 	.blogx-part-n { font-size: 0.62em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 	.blogx-part-title { font-size: 0.82em; font-weight: 600; line-height: 1.25; }
 
@@ -355,7 +355,7 @@
 	}
 	.blogx-deck-title { font-size: clamp(2.2rem, 9cqw, 6.5rem); font-weight: 800; line-height: 0.98; letter-spacing: -0.03em; }
 	.blogx-deck-dek { margin: 0; max-width: 26em; font-size: clamp(1rem, 2.2cqw, 1.6rem); line-height: 1.4; color: var(--subtle); }
-	.blogx-rule { width: clamp(2.5rem, 12cqw, 7rem); height: 0.28em; background: var(--prim); border-radius: 999px; }
+	.blogx-rule { width: clamp(2.5rem, 12cqw, 7rem); height: 0.28em; background: var(--prime); border-radius: 999px; }
 
 	/* The rail slides away by taking its own width to zero — a grid track sized
 	   `auto` follows it, so there is no second number to keep in step and nothing is
@@ -376,7 +376,7 @@
 		border: 1px solid var(--line); border-radius: var(--radius);
 		color: var(--subtle); cursor: pointer;
 	}
-	.blogx-toggle:hover { color: var(--prim-ink); border-color: var(--prim); }
+	.blogx-toggle:hover { color: var(--prime-ink); border-color: var(--prime); }
 
 	/* ── the dashboard front ──────────────────────────────────────────────── */
 
@@ -516,7 +516,7 @@
 			padding: 0.3em 0.55em; white-space: nowrap;
 			border-inline-start: none; border-block-end: 2px solid transparent;
 		}
-		.blogx-link.active { border-inline-start: none; border-block-end-color: var(--prim); }
+		.blogx-link.active { border-inline-start: none; border-block-end-color: var(--prime); }
 
 		.blogx-back { border-block-end: none; border-inline-end: 1px solid var(--line); white-space: nowrap; }
 		.blogx-note { display: none; }

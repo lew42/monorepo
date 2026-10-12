@@ -87,7 +87,7 @@
 	min-width: 0;
 }
 .std-browse-card:hover .std-browse-pic,
-.std-browse-card:hover .std-frame { box-shadow: inset 0 0 0 2px var(--prim); }
+.std-browse-card:hover .std-frame { box-shadow: inset 0 0 0 2px var(--prime); }
 
 /* THE PICTURE. A jpeg of the real page, or a wire drawn live from layouts.json —
    both land in a box of the same shape, so a wall can hold a mixture of the two and

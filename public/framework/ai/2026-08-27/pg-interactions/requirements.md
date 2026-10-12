@@ -20,7 +20,7 @@ Hovering any box in ext/Playground is jumpy; we want **zero** jumpy behavior. La
 2. Labels: abs-pos only, shown on hover (pick hover vs selected+hover for legibility — log why), raised so they sit clear above the box edge, never affecting any rect.
 3. `+` and resize handles: visible only on `.pg-selected` + `:hover`. Note the happy accident: clicking a box both selects it and leaves the pointer hovering — the affordances appear right under the cursor.
 4. Resize handles: prefer positions that derive from natural layout over `position_handles()` JS math if you can do it without introducing layout shift (a zero-size in-flow handle needs the doubled-gap problem solved; if that fights you, keep abs-pos but make positions self-correcting — reposition on the hover that reveals them). The "wrong place sometimes" bug likely dies with the jank (stale positions computed before a hover shifted the layout) — verify that first before building anything.
-5. Blocky `+`: solid subtle border (theme vars `--line`/`--subtle`/`--prim`), slight radius, subtle bg-shift hover effect. Button-like, minimal.
+5. Blocky `+`: solid subtle border (theme vars `--line`/`--subtle`/`--prime`), slight radius, subtle bg-shift hover effect. Button-like, minimal.
 6. Do NOT build the clickable-edge inserters ("click an edge → small + → add row/col/sibling") — a sibling researcher is designing that model; leave clean seams.
 7. `.pg-node-empty` (`playground.css:100`) may become redundant if reserved `+` space provides the floor — delete it if so, keep it if not; measured either way.
 

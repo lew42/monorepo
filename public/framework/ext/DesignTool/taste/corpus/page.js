@@ -79,7 +79,7 @@ export default new Page({
 					span.c("space-mark", () => {
 						span.c("space-tag muted", c.name);
 						span.c("space-grade", c.pass === null ? "n/a" : c.pass ? "agrees" : "DISAGREES")
-							.style("color", c.pass === false ? "var(--prim)" : "inherit");
+							.style("color", c.pass === false ? "var(--prime)" : "inherit");
 						c.band != null && span.c("space-tag muted", (c.band > 0 ? "−" : "+") + Math.abs(c.band));
 					}).attr("title", c.why ?? `band moved ${c.band}, total moved ${c.total}`)))
 					.style("--gap", "1.2em");

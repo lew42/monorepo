@@ -17,7 +17,7 @@ const with_icons = () => div.c("grid gap auto", () => [
 	["schedule", "p95", "84ms"],
 ].forEach(([glyph, label, value]) => div.c("card flex v", () => {
 	div.c("flex v-center gap", () => {
-		icon(glyph).style({ color: "var(--prim)", fontSize: "1em" });
+		icon(glyph).style({ color: "var(--prime)", fontSize: "1em" });
 		div.c("h4 muted", label);
 	}).style("--gap", "calc(var(--gap) * 0.4)");
 	div.c("h2", value);

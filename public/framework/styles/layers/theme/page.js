@@ -28,14 +28,14 @@ export default new Page({
 
 		demo(() => {
 			div.c("flex gap wrap", () => {
-				swatch("--prim");
+				swatch("--prime");
 				swatch("--bg");
 				swatch("--surface", "var(--ink)");
 				swatch("--wash", "var(--ink)");
 			});
 		}, "The vocabulary a theme retunes. Every one of these replaces a value that was hardcoded somewhere — usually in several places at once. **That's the bar for adding another:** a token names a decision that already exists, it doesn't invent one.");
 
-		md("| token | is | names the hardcode |\n| --- | --- | --- |\n| `--prim` | the one accent color | — |\n| `--bg` | dark surface (the sidebar's) | — |\n| `--subtle` | de-emphasized text | — |\n| `--ink` | body text | the UA's black |\n| `--surface` | content background | `#fff`, in four files |\n| `--line` | borders and rules | `rgba(0,0,0,0.1–0.2)`, ~8 places |\n| `--wash` | code / hover fill | `rgba(0,0,0,0.04–0.1)` |\n| `--tint` | one step down from a surface — a panel inside a card | `th`, the demo toolbar and caption, all painted with the floor colour |\n| `--error` | the one error colour, paired | `#c00` in `md.css`, `demo.css` and a near-copy in `highlight.css` |\n| `--radius` | corner radius | `0.5em`, twice |\n| `--flow` | the rhythm between stacked blocks — `2em`, declared per flow root | four tokens and six margin rules across two files |\n| `--code-bg` `--code-ink` | the code box — falls back to `--wash` / inherit | — |\n| `--sidebar-bg` `--sidebar-ink` | the sidebar panel — falls back to `--bg` / `#fff` | `color: #fff` + six `rgba(255,255,255,…)` in `Sidebar.css` |\n| `--column` | flex/grid wrap width | — |\n| `--sidebar` | any sidebar's width | — |\n| `--font` | body typeface | `system-ui, …` |\n| `--mono` | code typeface | `Consolas, …`, twice |\n\nTokens live on `:root` and **cascade** — a theme overrides them on `.app` or `body.theme-x`, never back at `:root`. That single rule is what lets two variants of a page sit side by side.\n\n**Dark mode is honest now**, and the switch is bottom-right of this page. The last thing blocking it was not a component hardcode but `--wash` itself: it was *translucent* in dark, and `.app` painted it over the browser's white canvas. A colour that backs a whole app cannot be translucent. `--tint` arrived in the same pass — `th`, a demo's toolbar and its caption were all painted with the floor colour because nothing named *one step down from a surface*. The base theme still pins `color-scheme: light`; a theme opts into both.");
+		md("| token | is | names the hardcode |\n| --- | --- | --- |\n| `--prime` | the one accent color | — |\n| `--bg` | dark surface (the sidebar's) | — |\n| `--subtle` | de-emphasized text | — |\n| `--ink` | body text | the UA's black |\n| `--surface` | content background | `#fff`, in four files |\n| `--line` | borders and rules | `rgba(0,0,0,0.1–0.2)`, ~8 places |\n| `--wash` | code / hover fill | `rgba(0,0,0,0.04–0.1)` |\n| `--tint` | one step down from a surface — a panel inside a card | `th`, the demo toolbar and caption, all painted with the floor colour |\n| `--error` | the one error colour, paired | `#c00` in `md.css`, `demo.css` and a near-copy in `highlight.css` |\n| `--radius` | corner radius | `0.5em`, twice |\n| `--flow` | the rhythm between stacked blocks — `2em`, declared per flow root | four tokens and six margin rules across two files |\n| `--code-bg` `--code-ink` | the code box — falls back to `--wash` / inherit | — |\n| `--sidebar-bg` `--sidebar-ink` | the sidebar panel — falls back to `--bg` / `#fff` | `color: #fff` + six `rgba(255,255,255,…)` in `Sidebar.css` |\n| `--column` | flex/grid wrap width | — |\n| `--sidebar` | any sidebar's width | — |\n| `--font` | body typeface | `system-ui, …` |\n| `--mono` | code typeface | `Consolas, …`, twice |\n\nTokens live on `:root` and **cascade** — a theme overrides them on `.app` or `body.theme-x`, never back at `:root`. That single rule is what lets two variants of a page sit side by side.\n\n**Dark mode is honest now**, and the switch is bottom-right of this page. The last thing blocking it was not a component hardcode but `--wash` itself: it was *translucent* in dark, and `.app` painted it over the browser's white canvas. A colour that backs a whole app cannot be translucent. `--tint` arrived in the same pass — `th`, a demo's toolbar and its caption were all painted with the floor colour because nothing named *one step down from a surface*. The base theme still pins `color-scheme: light`; a theme opts into both.");
 
 		md("## The type scale");
 
@@ -65,7 +65,7 @@ export default new Page({
 			table(() => {
 				thead(() => tr(() => { th("token"); th("is"); }));
 				tbody(() => {
-					tr(() => { td("--prim"); td("the accent"); });
+					tr(() => { td("--prime"); td("the accent"); });
 					tr(() => { td("--line"); td("borders"); });
 				});
 			});

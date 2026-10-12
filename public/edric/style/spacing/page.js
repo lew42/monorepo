@@ -12,7 +12,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("Spacing").ac("mb").style("color", "var(--prim)");
+            h1("Spacing").ac("mb").style("color", "var(--prime)");
 
             p("These are the spacing features built into this framework:");
             p("`.pad`: use it if you want padding inside an element.");

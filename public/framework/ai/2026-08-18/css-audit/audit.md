@@ -70,7 +70,7 @@ They already exist, as JS declaration-sets, because the vocabulary lacks them (`
 Retires **62 call sites outright** (24 · 32 · 6, counted not extrapolated) and touches 152 more. `.fluid` is the one `framework.css` most obviously lacks: `.flex-1` is the *zero-basis* fluid track and `.basis` is the *fixed* one — nothing named "fluid with a basis", which is what 35 inline `flex: 1 1 24em` are.
 
 **2 · Make the band tones classes, and give `--eyebrow` a home. Cost S.**
-`.section-band` is already on all 16 sections; only the paint is inline. Four rules in `styles/sections/` + one `--eyebrow: var(--prim)` default in `framework.css`. Retires **16 `.style(band(tone))` + 20 inline eyebrow colours**, deletes `band()` from `tone.js`, and lets CSS set a token that today only JS can.
+`.section-band` is already on all 16 sections; only the paint is inline. Four rules in `styles/sections/` + one `--eyebrow: var(--prime)` default in `framework.css`. Retires **16 `.style(band(tone))` + 20 inline eyebrow colours**, deletes `band()` from `tone.js`, and lets CSS set a token that today only JS can.
 
 **3 · One word for the app shell. Cost S.**
 `c("page full fill flex v")` is typed **40 times**, plus 9 near-variants. `.fill` and `.solo` are the same rule under two names (`Page.css:112`/`:241`) — **delete one**, then let it imply the shell: `.page.solo { --gutter-x: 0px; --pad-y: 0px; display: flex; flex-direction: column; align-self: stretch; overflow: auto; min-height: 100% }`. Five words become one, and the five-word system finally has a user.

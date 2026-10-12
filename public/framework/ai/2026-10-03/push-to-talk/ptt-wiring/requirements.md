@@ -86,7 +86,7 @@ into `Dictate.css`, your call) + the markup built by `push_to_talk.js`:
   CSS custom property (`--mic-level` or similar) the CSS `transform: scale()`
   reads, so there's no layout thrash, just a transform.
 - A simple two-colour mic, if you have time: a gray mic icon behind, a
-  primary-coloured (`--prim`) mic icon in front whose visible height follows
+  primary-coloured (`--prime`) mic icon in front whose visible height follows
   the level via `clip-path` or a height-clipped overlay (the owner's "another
   idea" above) — but a single mic that just scales with the level is a
   perfectly good MVP if the two-colour version costs much more code. Say which

@@ -12,7 +12,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("App").ac("mb").style("color", "var(--prim)");
+            h1("App").ac("mb").style("color", "var(--prime)");
 
             p("`window.app` is created once when the site boots. Here's how to use each piece of it.").ac("mb");
 

@@ -2,12 +2,12 @@ verdict: fix
 1. [fix] Tapping the dimmed ✦ dot while the mic is off does nothing (requirement 1, "tapping the dot starts or stops the mic"). The dot's click handler always calls `w.stop_mic()`, which does nothing while the mic is off. The dot is drawn above the invisible tap layer, so the tap never reaches the layer that starts the mic. See `Widget.js`, `Widget.Pulse.render()`, `$dot.click(() => w.stop_mic())`. `proof-results.json` never taps the dimmed dot.
 2. [fix] While the mic is off, the invisible tap layer covers the whole feed, not just empty space (requirement 1 says "anywhere in the *empty* feed"; layout 26). `.ux-dictate-widget-pulse-lock` sits over the whole thread (`inset: 0; pointer-events: auto`), so the wheel, text selection and any button inside a bubble (an `answer(choice)`) are captured, and every click starts the mic instead. The old layer did this too, but it was dark and only used by one opt-in demo. It is now invisible and on by default on every surface: the demo, the ✦ sheet and the ☰ drawer.
 3. [note] The dot shots the brief asked for are missing from the task folder. `proof.mjs` writes `shots/dot-off-*.png`, `dot-on-*.png` and `floating-after-close-400.png`, but `shots/` holds only the layout-check page shots. The floating state and the "on" state could only be checked from `proof-results.json`'s numbers ("floating: true", "idle: 0, live: 1"), not seen.
-4. [note] The dimmed dot is very faint at 0.4 opacity of `--prim` on white (colour 1). It is visible but marginal for a UI shape at 3:1 (`shots/…/1920.png`, top right of the demo card). The owner asked for "a subtle dimmed cue", so this is a judgement call, not a defect.
+4. [note] The dimmed dot is very faint at 0.4 opacity of `--prime` on white (colour 1). It is visible but marginal for a UI shape at 3:1 (`shots/…/1920.png`, top right of the demo card). The owner asked for "a subtle dimmed cue", so this is a judgement call, not a defect.
 5. [note] The sounds needed no code change. The proof counts 2 + 2 oscillators on the demo and 2 + 2 on the sheet. The stop chime from tapping the *floating* dot (a third way to stop) was not counted.
 
 ## Requirements
 Shot set: all four widths, because the dot sits inside the demo card on a page layout; the floating dot is a 400-only state, and its own shot is missing (finding 3).
-- 1 "The dot becomes the ✦ shape… `--prim`… bottom right of the feed… scales with the voice" — yes — `Widget.Pulse` draws the "✦" glyph in `--prim`, bottom right; the level scale reads idle 0, live 1 (`proof-results.json`); `shots/…/400.png`, demo card
+- 1 "The dot becomes the ✦ shape… `--prime`… bottom right of the feed… scales with the voice" — yes — `Widget.Pulse` draws the "✦" glyph in `--prime`, bottom right; the level scale reads idle 0, live 1 (`proof-results.json`); `shots/…/400.png`, demo card
 - 1a "When the mic is off, it is dimmed but still visible" — yes — `-pulse-dot-dim` sets opacity 0.4; proof: "dim: true, hidden: false" at 400 and 1920
 - 1b "Tapping the dot starts or stops the mic" — no — tapping only stops it; a tap on the dimmed dot does nothing (finding 1)
 - 1c "Tapping anywhere in the empty feed starts it too" — yes, but the layer covers the whole feed, not only empty space (finding 2)
@@ -80,11 +80,11 @@ Shot set: all four widths, because the dot sits inside the demo card on a page l
 - layout 41 — yes — the new rules are inside `@layer theme`
 - layout 42 — yes — the CSS shrank (the meter rules and the lock card's paint were removed)
 ## Colour and contrast
-- colour 1 — no (note) — the dimmed ✦ at 0.4 opacity is faint against the white card (finding 4); the live dot at full `--prim` is fine
+- colour 1 — no (note) — the dimmed ✦ at 0.4 opacity is faint against the white card (finding 4); the live dot at full `--prime` is fine
 - colour 2 — n/a
-- colour 3 — yes — `--prim`; the old literal `rgba(0,0,0,.55)` and `#fff` are gone
+- colour 3 — yes — `--prime`; the old literal `rgba(0,0,0,.55)` and `#fff` are gone
 - colour 4 — n/a
-- colour 5 — yes — `--prim` is a theme token
+- colour 5 — yes — `--prime` is a theme token
 - colour 6 — n/a
 - colour 7 — yes — the same ✦ glyph as the rail's AI button
 - colour 8 — n/a

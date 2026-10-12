@@ -403,7 +403,7 @@ so `worst = mean = 86`) rather than one width dragging the others down.
 
 ```
 full fill flex v --pad:1.16em --gap:1.13em
-  tone --tone:var(--prim) > topbar
+  tone --tone:var(--prime) > topbar
   flex wrap gap flex-1 scroll
     basis --basis:14.54em scroll pad --pad:2.62em tone --tone:var(--ink) > menu 5
     flex v gap fluid tone --tone:var(--subtle)
@@ -412,7 +412,7 @@ full fill flex v --pad:1.16em --gap:1.13em
         basis --basis:23.23em scroll pad --pad:1.34em tone > rows 12
         flow measure start --measure:32.65em fluid scroll pad --pad:0.97em tone > sections 4
         flow measure start --measure:32.78em fluid scroll pad --pad:1.3em tone > notes 4
-    basis --basis:14.59em stick scroll pad --pad:2.51em tone --tone:var(--prim) > toc 6
+    basis --basis:14.59em stick scroll pad --pad:2.51em tone --tone:var(--prime) > toc 6
   tone --tone:var(--subtle) > footer
 ```
 

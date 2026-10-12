@@ -29,7 +29,7 @@ const app = window.app = new App({
 	 *
 	 * An <img> can't inherit a colour and inlining the markup would make a second
 	 * copy of the artwork, so `.logo` masks the svg and paints the shape with
-	 * `--prim`. The file stays the only copy; its own fill is ignored. Alpha-only,
+	 * `--prime`. The file stays the only copy; its own fill is ignored. Alpha-only,
 	 * which is exactly right for a one-path monochrome mark.
 	 *
 	 * Decorative: the brand text beside it already says the name. */

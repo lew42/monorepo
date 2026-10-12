@@ -15,7 +15,7 @@ Clustered **272 + 8 residual singles = 280**; broken **86**. Read-only; nothing 
 | 6 | **`Page.css:81` `--pad-y: 3em`** — a fixed 48px above every `h1`, added 5h earlier by `day-page-ux` at Mike's request. Right at 1280, a quarter of the fold at 390. | 10 | 9 | maybe |
 | 7 | **`Page.css:189` `.wall` `auto-fill`** leaves N-mod-columns empty tracks. `/framework/styles/`@1280: 5 cards, 4 columns, 3 dead slots. This is what a grid does — see prompt feedback. | 15 | 10 | maybe |
 | 8 | **`lew42.css:42` `--code-bg: #3f3f3f`** makes every inline `` `code` `` a dark filled pill; `:96` adds `font-weight: 700`. Six-per-paragraph on `/framework/core/` and `/web/` — "the heaviest visual elements on the page", drawing the eye mid-sentence. | 22 | 13 | maybe |
-| 9 | **`lew42.css:13` `--prim: #FF8F60` used as TEXT** = **2.25:1**. It is the *only* active mark (`Page.css:241`, `Sidebar.css:101`, `catalog.css`), so "no visible active-state indicator" and "reads as an accidental colour leak" are the same 10 findings. | 10 | 8 | maybe |
+| 9 | **`lew42.css:13` `--prime: #FF8F60` used as TEXT** = **2.25:1**. It is the *only* active mark (`Page.css:241`, `Sidebar.css:101`, `catalog.css`), so "no visible active-state indicator" and "reads as an accidental colour leak" are the same 10 findings. | 10 | 8 | maybe |
 | 10 | Affordance/label — cards with no chevron, unlabelled progress bars and status dots with no legend. Component JS, not layout. | 28 | 13 | maybe |
 | 11 | Rhythm — `--flow: 2em` flat, so an `h2` gets the same air as a `<p>` (`framework.css:514`). | 13 | 7 | maybe |
 | 12 | Truncation artifacts — `-webkit-line-clamp` breaks mid-word; `card.js`'s `×…` marker reads as a close button. | 11 | 9 | maybe |
@@ -33,7 +33,7 @@ Clustered **272 + 8 residual singles = 280**; broken **86**. Read-only; nothing 
 | 4 | `tabs.css:36` fade both edges: `linear-gradient(90deg, transparent, #000 1em, #000 calc(100% - 2em), transparent)`. 1em lands on the tab's own 1.35rem padding, so a strip that fits loses nothing. | 19 | — | S |
 | 5 | `--pad-y: clamp(1.5em, 4%, 3em)` — the same idiom `--gutter-x` already uses. 24px at 390, unchanged at 1280+. | 10 | — | S |
 | 6 | Table fallback until #1 lands: `:where(.md) > table { display: block; width: max-content; max-width: 100%; overflow-x: auto }`. | 12 | — | S |
-| 7 | `--prim` gets a text-safe twin (`--prim-ink: #C4522A`, 4.6:1) for the active mark; the orange stays a *fill*. | 10 | the "orange = active" ambiguity | M |
+| 7 | `--prime` gets a text-safe twin (`--prime-ink: #C4522A`, 4.6:1) for the active mark; the orange stays a *fill*. | 10 | the "orange = active" ambiguity | M |
 | 8 | `lew42.css:42` inline `code` takes `--wash`, not `--code-bg`; the dark box stays on `pre` only. | 22 | — | S |
 | 9 | `.wall` `auto-fill` → `auto-fit` outside `browse` (browse.css:34 already made this call and measured it). | 15 | one divergence between two walls | S |
 | 10 | `framework.css:514` `--flow` gets a heading step (`* + :is(h2,.h2) { margin-block-start: 3em }`). | 13 | — | S |

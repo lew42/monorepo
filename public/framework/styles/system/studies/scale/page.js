@@ -22,7 +22,7 @@ const SPECTRUM = {
 
 const bar = ([px, pct]) => div.c("flex v-center gap", () => {
 	span(px + "px").style({ width: "3.5em", flex: "0 0 auto" });
-	div(() => div().style({ width: pct + "%", height: "0.85em", borderRadius: "0.2em", background: "var(--prim)" }))
+	div(() => div().style({ width: pct + "%", height: "0.85em", borderRadius: "0.2em", background: "var(--prime)" }))
 		.style({ flex: "1 1 auto", background: "var(--line)", borderRadius: "0.2em" });
 	span.c("muted", pct + "%").style({ width: "3.5em", flex: "0 0 auto" });
 }).style({ gap: "calc(var(--gap) * 0.6)" });
@@ -46,7 +46,7 @@ const shot = s => figure.c("flex v gap", () => {
 	a().href(s.url).append(() => img().attr("src", here + "shots/" + s.file).attr("alt", s.url)
 		.style({ width: "100%", border: "1px solid var(--line)", borderRadius: "0.3em" }));
 	figcaption(() => {
-		span(s.verdict + " — ").style({ fontWeight: "700", color: s.verdict === "GOOD" ? "var(--prim)" : "inherit" });
+		span(s.verdict + " — ").style({ fontWeight: "700", color: s.verdict === "GOOD" ? "var(--prime)" : "inherit" });
 		a(s.url).href(s.url);
 		span.c("muted", ` — ${s.used} of a 3440 screen used. ${s.note}`);
 	});

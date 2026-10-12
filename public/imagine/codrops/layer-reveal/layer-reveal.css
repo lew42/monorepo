@@ -29,7 +29,7 @@
 		font-weight: 700;
 		opacity: 1;
 		cursor: pointer;
-		color: var(--prim, #ee8233);
+		color: var(--prime, #ee8233);
 	}
 
 	.codrops-reveal2-current:hover { text-decoration: underline; }

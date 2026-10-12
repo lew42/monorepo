@@ -75,7 +75,7 @@ export default new Page({
 			div.c("flex auto gap", () => {
 				this.box("master-assistant", "hears every card, launches nothing", "var(--ink)").style({ "border-style": "dashed" });
 				div.c("flex v gap-25", () => {
-					this.box("mastermind-servex", "systems architect; audits, keeps the claims list, launches nothing", "var(--prim)");
+					this.box("mastermind-servex", "systems architect; audits, keeps the claims list, launches nothing", "var(--prime)");
 					this.box("claims list 🔒", "one manager per topic", "var(--ink)");
 				});
 			}).style({ "--column": "18rem" });
@@ -87,7 +87,7 @@ export default new Page({
 			span.c("h4", card);
 			this.box("assistant-" + id, "turns your words into UI", "var(--ink)");
 			this.arrow("↓  hands off work");
-			this.box("manager-" + id, "plans, starts minions; session kept for the card's life", "var(--prim)");
+			this.box("manager-" + id, "plans, starts minions; session kept for the card's life", "var(--prime)");
 			this.arrow("↓  starts");
 			div.c("flex gap", () => {
 				span.c("card size-small", "minion 1");

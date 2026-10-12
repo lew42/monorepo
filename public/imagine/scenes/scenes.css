@@ -94,11 +94,11 @@
 		   dimmed - light wants a cool haze at the top, dark wants the top to go out. */
 		background-color: var(--surface);
 		background-image:
-			radial-gradient(85% 55% at 50% 104%, color-mix(in srgb, var(--prim) 26%, transparent), transparent 64%),
+			radial-gradient(85% 55% at 50% 104%, color-mix(in srgb, var(--prime) 26%, transparent), transparent 64%),
 			linear-gradient(to bottom, light-dark(rgba(88, 110, 146, 0.30), rgba(0, 0, 0, 0.55)) 0%, light-dark(rgba(88, 110, 146, 0.07), rgba(0, 0, 0, 0.12)) 78%, transparent 100%);
 		color: var(--ink);
 		border: 1px solid var(--line);
-		outline-color: var(--prim);
+		outline-color: var(--prime);
 	}
 
 	/* The renderer sizes the BUFFER (setSize(w, h, false)); this sizes the box.
@@ -163,8 +163,8 @@
 	.scene-nav-link:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
 
 	.scene-nav-link.active {
-		border-color: var(--prim); color: var(--prim-ink);
-		background: color-mix(in srgb, var(--prim) 12%, transparent);
+		border-color: var(--prime); color: var(--prime-ink);
+		background: color-mix(in srgb, var(--prime) 12%, transparent);
 	}
 
 	/* THE TOUR. A button in the nav row wearing the link pill, and an itinerary of
@@ -205,7 +205,7 @@
 
 	.page.scene-note {
 		display: block; padding: 0;
-		border-inline-start: 2px solid var(--prim); padding-inline-start: 0.9em;
+		border-inline-start: 2px solid var(--prime); padding-inline-start: 0.9em;
 	}
 
 	.page.scene-note > .page-title {

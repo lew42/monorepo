@@ -58,7 +58,7 @@ function paint(who, note){
 	}));
 
 	// ⚠ Inside `.app`, not on `body`: the theme class rides `.app`, so a ring on the
-	//   body reads `var(--prim)` as unset and paints a 6px `currentColor` line. The
+	//   body reads `var(--prime)` as unset and paints a 6px `currentColor` line. The
 	//   Router empties `.pages`, never `.app`, so this outlives every navigation.
 	(document.querySelector(".app") ?? document.body).append($ring.el);
 	mark();

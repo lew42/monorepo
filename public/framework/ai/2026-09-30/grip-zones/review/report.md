@@ -38,7 +38,7 @@ verdict: pass
 - 35–42 — yes/n/a — the new CSS (`--grip-out`, `--grip-in`) is scoped inside the existing `@layer theme` block (question 41), uses `rem` not a spacing-clamp token (question 38: "every control keeps its own `em`/size, never a spacing clamp" — the grip is a control-sized hit target, not a clamped region, so a plain `rem` constant is correct here, not a violation); no new class beyond `.grip-near`, which is a state class, not a spacing word (question 42 — the smallest CSS that does the job, reusing `.grip`/`.grip-start`/`.grip-pill`).
 
 ## Colour and contrast
-- 1–2 contrast — n/a, the pill's colour token is untouched by this diff (still `--prim`, per the comment kept in `grip.css`).
+- 1–2 contrast — n/a, the pill's colour token is untouched by this diff (still `--prime`, per the comment kept in `grip.css`).
 - 3 tokens not literals — yes — no literal colour added; only geometry custom properties (`--grip-out`, `--grip-in`).
 - 4–8 — n/a, unaffected.
 

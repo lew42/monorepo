@@ -103,20 +103,20 @@
 	.timeline.h .timeline-item-children > .timeline-item.dot { left: calc(var(--t) * var(--em-per-hour) - 0.2em); width: 0.4em; height: 0.4em; border-radius: 999px; }
 	.timeline.v .timeline-item-children > .timeline-item.dot { top: calc(var(--t) * var(--em-per-hour) - 0.2em); width: 0.4em; height: 0.4em; border-radius: 999px; }
 
-	.timeline-now { position: absolute; background: var(--prim); z-index: 2; pointer-events: none; }
+	.timeline-now { position: absolute; background: var(--prime); z-index: 2; pointer-events: none; }
 	.timeline.h > .timeline-track > .timeline-now { top: 0; bottom: 0; width: 2px; left: calc(var(--t) * var(--em-per-hour)); }
 	.timeline.h.reverse > .timeline-track > .timeline-now { left: auto; right: calc(var(--t) * var(--em-per-hour)); }
 	.timeline.v > .timeline-track > .timeline-now { left: 0; right: 0; height: 2px; top: calc(var(--t) * var(--em-per-hour)); }
 	.timeline.v.reverse > .timeline-track > .timeline-now { top: auto; bottom: calc(var(--t) * var(--em-per-hour)); }
 
-	/* Kinds — one accent each, off the single --prim token. */
-	.timeline-item.bar { background: color-mix(in srgb, var(--prim) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--prim) 40%, var(--line)); overflow: hidden; }
-	.timeline-item.bar:hover { border-color: var(--prim); }
-	.timeline-item.bar:is(.active, .in-path) { outline: 2px solid var(--prim); outline-offset: 1px; }
-	.timeline-item.agent { background: color-mix(in srgb, var(--prim) 30%, var(--surface)); }
+	/* Kinds — one accent each, off the single --prime token. */
+	.timeline-item.bar { background: color-mix(in srgb, var(--prime) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--prime) 40%, var(--line)); overflow: hidden; }
+	.timeline-item.bar:hover { border-color: var(--prime); }
+	.timeline-item.bar:is(.active, .in-path) { outline: 2px solid var(--prime); outline-offset: 1px; }
+	.timeline-item.agent { background: color-mix(in srgb, var(--prime) 30%, var(--surface)); }
 	.timeline-item.dot { background: var(--subtle); }
-	.timeline-item.dot:is(.action, .log) { background: var(--prim); }
-	.timeline-item.window { background: color-mix(in srgb, var(--prim) 8%, transparent); border-inline: 1px solid color-mix(in srgb, var(--prim) 18%, transparent); }
+	.timeline-item.dot:is(.action, .log) { background: var(--prime); }
+	.timeline-item.window { background: color-mix(in srgb, var(--prime) 8%, transparent); border-inline: 1px solid color-mix(in srgb, var(--prime) 18%, transparent); }
 	.timeline-item.window > .timeline-item-label { color: var(--subtle); font-weight: 600; }
 	.timeline-item.day { background: color-mix(in srgb, currentColor 5%, transparent); border-inline-start: 2px dashed var(--line); }
 

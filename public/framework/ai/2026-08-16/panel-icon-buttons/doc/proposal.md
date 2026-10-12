@@ -7,7 +7,7 @@ places where guessing would cost real work. Written 2026-08-16, against
 ## Shipped (phase 1)
 
 Every button in the module is a transparent icon square: no border, no
-background until hovered, a `--prim` tint for the value the panel currently
+background until hovered, a `--prime` tint for the value the panel currently
 wears. One definition in `toolbar.css` replaced three near-identical copies
 (`grip.css`, `templates.css` each kept one). `glyphs.js` is the shared
 vocabulary — `close_fullscreen`/`open_in_full` for hug/fill, a compass of eight

@@ -9,7 +9,7 @@
 		--muted: #6a6a7a;
 		--line: #e6e6ee;
 		--wash: #f6f6fa;
-		--accent: var(--prim);
+		--accent: var(--prime);
 
 		/* without this, native inputs, selects and scrollbars ignore the theme entirely */
 		color-scheme: light;

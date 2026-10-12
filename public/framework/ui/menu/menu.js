@@ -28,5 +28,5 @@ css(`@layer theme {
 		text-decoration: none;
 		white-space: nowrap;
 	}
-	.ui-menu-item:hover { background: var(--wash); color: var(--prim); }
+	.ui-menu-item:hover { background: var(--wash); color: var(--prime); }
 }`);

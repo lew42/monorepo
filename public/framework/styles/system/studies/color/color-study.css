@@ -4,7 +4,7 @@
  *
  * The whole point of this sheet: force `light-dark()` to resolve BOTH ways on one
  * page regardless of the viewer's own mode, by setting `color-scheme` on a small
- * island rather than the root. `--prim` etc. still come from the ancestor
+ * island rather than the root. `--prime` etc. still come from the ancestor
  * `.theme-lew42` — only the resolution direction is pinned here. */
 @layer theme {
 	.color-swatch { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
@@ -44,7 +44,7 @@
 		max-width: calc(var(--measure) / var(--takeaway-scale));
 		line-height: 1.45;
 		min-height: calc(1.45em * 5);
-		border-inline-start: 3px solid var(--prim);
+		border-inline-start: 3px solid var(--prime);
 		padding-inline-start: 0.8em;
 	}
 
@@ -136,7 +136,7 @@
 	.adaptive-nest .adaptive-sample { padding: 0.4em; border-radius: calc(var(--radius) * 0.7); }
 	.adaptive-text { color: var(--ink); font-size: 0.85em; }
 	.adaptive-accent {
-		background: var(--prim); color: #fff; font-size: 0.72em;
+		background: var(--prime); color: #fff; font-size: 0.72em;
 		padding: 0.15em 0.5em; border-radius: 1em; white-space: nowrap;
 	}
 	.color-adaptive-num { font-family: var(--mono); font-size: 0.68em; color: var(--subtle); margin-block-start: 0.3em; }

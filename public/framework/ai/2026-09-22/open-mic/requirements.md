@@ -147,7 +147,7 @@ me?" card should show its answer).
 > when we create a new card — the default now, but make it an option and a reminder).
 
 9. **The mic looks on.** Every `Dictate` button: when listening, the icon and its ring are the
-   primary colour (`--prim`), solid, not flickering with sound — the level bar beside it is the
+   primary colour (`--prime`), solid, not flickering with sound — the level bar beside it is the
    thing that moves; off = the plain icon. Applies to every mount (AI 2 card page, talk, bench,
    the board's composer). Prove with two screenshots per mount, on and off.
 10. **AI 2's rail composer loses its mic.** The box at the top of the rail is typed-only (it

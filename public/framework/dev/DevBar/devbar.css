@@ -66,7 +66,7 @@
 	   `pathbar.js` took its place). Left defined, unused, rather than pulled:
 	   deleting a class a THEME could still reference from outside this file is
 	   a bigger question than this task's own fence covers. */
-	.dev-title { font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--prim); }
+	.dev-title { font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--prime); }
 	/* The path bar is the slack now (`.dev-pathbar`'s own `flex: 1 1 auto`,
 	   pathbar.js) — the hint beside it keeps its own natural width. */
 	.dev-hint { color: var(--subtle); flex: 0 0 auto; }
@@ -118,7 +118,7 @@
 	}
 	.dev-pathbar-home { display: inline-flex; align-items: center; color: var(--subtle); }
 	.dev-pathbar-home .icon { font-size: 1rem; }
-	.dev-pathbar-home:hover, .dev-pathbar-part:hover { color: var(--prim); background: color-mix(in srgb, var(--prim) 18%, transparent); }
+	.dev-pathbar-home:hover, .dev-pathbar-part:hover { color: var(--prime); background: color-mix(in srgb, var(--prime) 18%, transparent); }
 	.dev-pathbar-slash { flex: 0 0 auto; color: var(--subtle); }
 
 	.dev-x {
@@ -128,7 +128,7 @@
 		border: 1px solid transparent;
 		border-radius: var(--radius);
 	}
-	.dev-x:hover { color: var(--prim); border-color: var(--prim); }
+	.dev-x:hover { color: var(--prime); border-color: var(--prime); }
 
 	/* One row of tabs, pinned like the head. The rail is a 17rem column and its
 	   sections are long, so what is not on screen is not scrolled past — it is not
@@ -146,8 +146,8 @@
 		font: inherit;
 		cursor: pointer;
 	}
-	.dev-tab:hover { color: var(--prim); }
-	.dev-tab.on { color: var(--prim); border-color: var(--prim); }
+	.dev-tab:hover { color: var(--prime); }
+	.dev-tab.on { color: var(--prime); border-color: var(--prime); }
 
 	.dev-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; gap: 1.25em; padding: 0.9em; }
 
@@ -170,7 +170,7 @@
 		background: var(--wash);
 		border-radius: var(--radius);
 	}
-	.dev-crumb:hover, .dev-link:hover { color: var(--prim); }
+	.dev-crumb:hover, .dev-link:hover { color: var(--prime); }
 
 	.dev-knob { display: flex; align-items: center; gap: 0.5em; cursor: pointer; }
 
@@ -190,7 +190,7 @@
 	}
 	/* ⚠ `rem`, not `em`: the rail's text is 0.8rem, so an em icon lands at 12.8px. */
 	.dev-size .icon { font-size: 1.15rem; }
-	.dev-size:hover:not(:disabled), .dev-size.on { color: var(--prim); border-color: var(--prim); }
+	.dev-size:hover:not(:disabled), .dev-size.on { color: var(--prime); border-color: var(--prime); }
 	.dev-size:disabled { opacity: 0.3; cursor: not-allowed; }
 
 	.dev-ai { gap: 0.5em; min-width: 0; }
@@ -198,7 +198,7 @@
 
 	/* A `.dev-link` that is a button rather than an anchor. */
 	.dev-thread { font: inherit; border: 1px solid transparent; cursor: pointer; }
-	.dev-thread:hover, .dev-thread.on { color: var(--prim); border-color: var(--prim); }
+	.dev-thread:hover, .dev-thread.on { color: var(--prime); border-color: var(--prime); }
 	.dev-thread-new { display: flex; align-items: center; padding-inline: 0.35em; }
 	.dev-thread-new .icon { font-size: 1rem; }
 
@@ -226,7 +226,7 @@
 	   line stops reading as one more diagnostic. */
 	.dev-target > .dev-val { flex: 1 1 auto; min-width: 0; }
 	.dev-target > button { flex: 0 0 auto; padding: 0 0.5em; font: inherit; }
-	.dev-glyph { flex: 0 0 auto; color: var(--prim); }
+	.dev-glyph { flex: 0 0 auto; color: var(--prime); }
 
 	.dev-layout-acts { gap: 0.35em; }
 	.dev-val.bad { color: var(--error); }
@@ -254,7 +254,7 @@
 		display: flex; flex-direction: column; gap: 0.35em;
 		padding-block-start: 0.35em;
 	}
-	.dev-fix { color: var(--prim); overflow-wrap: anywhere; }
+	.dev-fix { color: var(--prime); overflow-wrap: anywhere; }
 
 	/* The rail is a column, not a page: ext/Ask's 30em transcript would bury every
 	   section under it, and the input is the half that has to stay on screen. */
@@ -267,7 +267,7 @@
 	   nothing reflows. The rail excepts itself: it has to stay readable while it is
 	   the thing drawing the boxes. */
 	html.dev-outline body :not(.dev-bar, .dev-bar *) {
-		outline: 1px solid color-mix(in srgb, var(--prim) 35%, transparent);
+		outline: 1px solid color-mix(in srgb, var(--prime) 35%, transparent);
 	}
 
 	/* ⚠ BELOW 34em THE RAIL IS A BOTTOM SHEET, because a side rail there does not
@@ -337,20 +337,20 @@
 		text-align: start; font: inherit; color: inherit; cursor: pointer;
 		background: var(--wash); border: 0; border-radius: 0.3em;
 	}
-	.dev-says-card:hover { background: color-mix(in srgb, var(--prim) 14%, transparent); }
+	.dev-says-card:hover { background: color-mix(in srgb, var(--prime) 14%, transparent); }
 	.dev-says-card-meta { flex: 0 0 auto; gap: 0.4em; }
 	.dev-says-card-meta > .dev-val { flex: 0 0 auto; margin-inline-start: auto; }
 	.dev-says-card-author { flex: 0 0 auto; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; }
 	.dev-says-card-title { min-width: 0; font-weight: 600; line-height: 1.3; }
 	.dev-says-card-body { min-width: 0; line-height: 1.4; overflow-wrap: anywhere; white-space: pre-wrap; }
-	.dev-says-new { align-self: start; cursor: pointer; font-weight: 700; color: var(--prim-ink, var(--prim)); }
+	.dev-says-new { align-self: start; cursor: pointer; font-weight: 700; color: var(--prime-ink, var(--prime)); }
 
 	/* The three fixed voices, and every minion's own slug sharing one look
 	   (`author_kind()` maps any slug to "minion" — devbar.css cannot enumerate
 	   every task that will ever post here). Backgrounds only — text stays
 	   readable at every size, no colour depends on it to be understood. */
-	.dev-says-card-owner { background: color-mix(in srgb, var(--prim) 14%, var(--wash)); }
-	.dev-says-card-owner:hover { background: color-mix(in srgb, var(--prim) 22%, var(--wash)); }
+	.dev-says-card-owner { background: color-mix(in srgb, var(--prime) 14%, var(--wash)); }
+	.dev-says-card-owner:hover { background: color-mix(in srgb, var(--prime) 22%, var(--wash)); }
 	.dev-says-card-minion { background: color-mix(in srgb, var(--subtle) 16%, var(--wash)); }
 
 	/* A dot, not a border — the owner's own words never get one (they cannot
@@ -359,8 +359,8 @@
 	.dev-says-dot { flex: 0 0 auto; width: 0.55em; height: 0.55em; margin-block: 0.35em; border-radius: 50%; background: var(--subtle); }
 	.dev-says-dot-working { background: var(--warn); }
 	.dev-says-dot-done { background: var(--ok); }
-	.dev-says-dot-needs-you { background: var(--prim); }
-	.dev-says-needs-you { border-inline-start: 3px solid var(--prim); }
+	.dev-says-dot-needs-you { background: var(--prime); }
+	.dev-says-needs-you { border-inline-start: 3px solid var(--prime); }
 
 	/* The pinned strip — a small, separate list above the main log, mirroring
 	   only what needs the owner's yes RIGHT NOW; gone the moment nothing does. */
@@ -372,19 +372,19 @@
 	   over the ROUTE section below instead of scrolling — measured live,
 	   2026-09-19. Bounded here, the strip stays a glance, never a second log. */
 	.dev-says-pinned { flex: 0 0 auto; gap: 0.3em; max-height: 9em; overflow-y: auto; padding-block-end: 0.4em; margin-block-end: 0.4em; border-block-end: 1px solid var(--line); }
-	.dev-says-pinned .dev-says-card { background: color-mix(in srgb, var(--prim) 10%, var(--wash)); }
+	.dev-says-pinned .dev-says-card { background: color-mix(in srgb, var(--prime) 10%, var(--wash)); }
 
 	/* A card that changed just now — the "evolve" pass's own cue, not a colour
 	   swap (a colour would fight the author backgrounds above). */
 	.dev-says-flash { animation: dev-says-flash 1s ease-out; }
-	@keyframes dev-says-flash { from { outline: 2px solid var(--prim); outline-offset: 1px; } to { outline-color: transparent; } }
+	@keyframes dev-says-flash { from { outline: 2px solid var(--prime); outline-offset: 1px; } to { outline-color: transparent; } }
 
 	/* A card mid-stream — the caret blinks at the growing edge; the card itself
 	   gets no special treatment beyond that (its body already shows full text). */
-	.dev-says-caret { display: inline-block; margin-inline-start: 0.05em; color: var(--prim); animation: dev-says-caret 1s step-start infinite; }
+	.dev-says-caret { display: inline-block; margin-inline-start: 0.05em; color: var(--prime); animation: dev-says-caret 1s step-start infinite; }
 	@keyframes dev-says-caret { 50% { opacity: 0; } }
 
-	.dev-says-new { align-self: start; cursor: pointer; font-weight: 700; color: var(--prim-ink, var(--prim)); }
+	.dev-says-new { align-self: start; cursor: pointer; font-weight: 700; color: var(--prime-ink, var(--prime)); }
 
 	/* Reading: every other section of the body steps aside, the log too. */
 	.dev-says-reader { gap: 0.6em; }
@@ -396,10 +396,10 @@
 	.dev-says-text-mine { white-space: pre-wrap; }
 	.dev-says-stale {
 		padding: 0.4em 0.6em;
-		background: color-mix(in srgb, var(--prim) 14%, var(--wash));
+		background: color-mix(in srgb, var(--prime) 14%, var(--wash));
 		border-radius: var(--radius);
 	}
-	.dev-says-show { flex: 0 0 auto; font-weight: 700; color: var(--prim-ink, var(--prim)); background: none; border: 0; cursor: pointer; font: inherit; }
+	.dev-says-show { flex: 0 0 auto; font-weight: 700; color: var(--prime-ink, var(--prime)); background: none; border: 0; cursor: pointer; font: inherit; }
 }
 
 /* THE CHAT TAB (chat.js, log.js, sessions.js) — the live conversation with
@@ -429,7 +429,7 @@
 		border-radius: var(--radius);
 		font: inherit; cursor: pointer;
 	}
-	.dev-chat-linkback:hover { color: var(--prim); border-color: var(--prim); }
+	.dev-chat-linkback:hover { color: var(--prime); border-color: var(--prime); }
 
 	/* The session picker — one solid-background dropdown, full width, so it
 	   reads as "which conversation" rather than one more small control. */
@@ -471,8 +471,8 @@
 		background: var(--wash);
 		border: 0; border-radius: 0.35em;
 	}
-	.dev-chat-card:hover { background: color-mix(in srgb, var(--prim) 14%, transparent); }
-	.dev-chat-you { background: color-mix(in srgb, var(--prim) 10%, var(--wash)); }
+	.dev-chat-card:hover { background: color-mix(in srgb, var(--prime) 14%, transparent); }
+	.dev-chat-you { background: color-mix(in srgb, var(--prime) 10%, var(--wash)); }
 	.dev-chat-sent { background: color-mix(in srgb, var(--warn) 16%, var(--wash)); }
 	.dev-chat-card-role { flex: 0 0 auto; font-weight: 600; text-transform: uppercase; font-size: 0.75em; letter-spacing: 0.06em; }
 	/* rem, not em — the rail's own text is 0.8rem, and chat is prose to READ,
@@ -492,7 +492,7 @@
 		border: 1px solid transparent; border-radius: var(--radius);
 		font: inherit; cursor: pointer;
 	}
-	.dev-chat-back:hover { color: var(--prim); border-color: var(--prim); }
+	.dev-chat-back:hover { color: var(--prime); border-color: var(--prime); }
 	.dev-chat-reader-body {
 		flex: 1 1 auto; min-height: 0;
 		overflow-y: auto;
@@ -513,7 +513,7 @@
 		background: var(--wash);
 		border: 0; border-radius: 0.35em;
 	}
-	.dev-chat-minion:hover { background: color-mix(in srgb, var(--prim) 14%, transparent); }
+	.dev-chat-minion:hover { background: color-mix(in srgb, var(--prime) 14%, transparent); }
 	.dev-chat-minion-brief { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.dev-chat-minion-report { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -546,13 +546,13 @@
 	/* ── page assistant chat ───────────────────────────────────────────── */
 	.dev-chat-root { padding: 0.5rem; gap: 0.5rem; width: 100%; }
 	.dev-chat-ctrl { gap: 0.4rem; font-size: 0.85rem; padding-block-end: 0.4rem; border-block-end: 1px solid var(--line); }
-	.dev-chat-page-badge { font-weight: bold; color: var(--prim); font-size: 0.85rem; }
+	.dev-chat-page-badge { font-weight: bold; color: var(--prime); font-size: 0.85rem; }
 	.dev-chat-asst-id { color: var(--ink-muted); font-size: 0.8rem; }
 	.dev-chat-select { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.2rem 0.4rem; font-size: 0.8rem; }
-	.dev-chat-new-btn { background: var(--surface-raised); color: var(--prim); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.8rem; }
+	.dev-chat-new-btn { background: var(--surface-raised); color: var(--prime); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.8rem; }
 	.dev-chat-new-btn:hover { background: var(--line); }
 	.dev-chat-btn { display: inline-flex; align-items: center; gap: 0.4em; padding: 0.3em 0.7em; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font-family: var(--mono); font-size: 0.85rem; }
-	.dev-chat-btn:hover { border-color: var(--prim); color: var(--prim); }
+	.dev-chat-btn:hover { border-color: var(--prime); color: var(--prime); }
 	.dev-chat-mount { flex: 1 1 auto; min-height: 0; }
 	.dev-chat-mount .ai2-talk { max-height: calc(100vh - 12rem); overflow-y: auto; width: 100%; }
 	.dev-chat-err { color: var(--warn); font-size: 0.85rem; }

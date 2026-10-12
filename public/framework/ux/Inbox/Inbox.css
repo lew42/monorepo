@@ -277,7 +277,7 @@
 	.inbox-word:hover,
 	.inbox-word.on {
 		opacity: 1;
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 	}
 
 	/* ⚠ `flex-grow`, NOT `margin-inline-start: auto` — framework.css's `.flex > * { margin: 0 }`
@@ -306,8 +306,8 @@
 		font-size: 0.85em;
 	}
 	.inbox-cat[aria-pressed="true"] {
-		background: var(--prim);
-		color: var(--prim-ink);
+		background: var(--prime);
+		color: var(--prime-ink);
 	}
 
 	/* SEARCH takes the row's leftover space instead of sizing to its placeholder. */
@@ -347,7 +347,7 @@
 		border-radius: var(--radius);
 		font-size: 0.75em;
 		font-weight: 700;
-		background: var(--prim);
+		background: var(--prime);
 		color: white;   /* framework.css's own `.prim` text: there is no on-colour token */
 	}
 
@@ -388,7 +388,7 @@
 		box-shadow: 0 1px 4px var(--shade-a16);
 	}
 
-	.inbox-updated:hover { color: var(--ink); border-color: var(--prim); }
+	.inbox-updated:hover { color: var(--ink); border-color: var(--prime); }
 	.inbox-updated:not([hidden]) { display: inline-flex; }
 
 	/* The box the pill floats over, so its `top` means the top of the ROWS. */
@@ -431,7 +431,7 @@
 	   is the same row with one of its own sub-pages open. */
 	.inbox-row:is(.active, .in-path) {
 		background: var(--surface);
-		border-inline-start-color: var(--prim);
+		border-inline-start-color: var(--prime);
 	}
 
 	.inbox-row.inbox-flagged {
@@ -508,7 +508,7 @@
 		width: 0.5em;
 		height: 0.5em;
 		border-radius: 50%;
-		background: var(--prim);
+		background: var(--prime);
 		flex: none;
 		visibility: hidden;
 		border: 0;

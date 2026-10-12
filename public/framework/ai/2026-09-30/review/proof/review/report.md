@@ -91,7 +91,7 @@ verdict: fix
 ## Colour and contrast
 - css 11 — yes — dark ink on a light ground; the white "Mark it" text on orange is borderline (the Understand shot at 400)
 - css 12 — yes
-- css 13 — yes — `--prim`, `--ok`, `--warn`, `--line`
+- css 13 — yes — `--prime`, `--ok`, `--warn`, `--line`
 - css 14 — no — `background: var(--wash)` on the selected title and the log box
 - css 15 — not measured — no dark shot
 - css 16 — yes

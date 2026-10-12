@@ -39,7 +39,7 @@ function mobile_tabs(){
 				.append(() => SECTIONS.forEach((name, i) => {
 					span.c(i === 0 ? "surface pad" : "pad").style({
 						flex: "0 0 auto", fontSize: "0.85em",
-						borderBottom: i === 0 ? "2px solid var(--prim)" : "2px solid transparent",
+						borderBottom: i === 0 ? "2px solid var(--prime)" : "2px solid transparent",
 					}).text(name);
 				}));
 		});

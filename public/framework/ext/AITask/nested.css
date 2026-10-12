@@ -1,11 +1,11 @@
 /* Nested tasks, drawn — nested.js. Three designs share the marks at the top;
    each design's own layout follows under its class. Colours are the site's
-   tokens: --ok landed, --prim running, --subtle waiting. */
+   tokens: --ok landed, --prime running, --subtle waiting. */
 @layer base, theme, site, util;
 @layer theme {
 
 	/* ---- shared: the mark, the status, the bar ---- */
-	.ai-tree { --ai-tree-run: var(--prim); display: flex; flex-direction: column; gap: var(--gap); }
+	.ai-tree { --ai-tree-run: var(--prime); display: flex; flex-direction: column; gap: var(--gap); }
 	.ai-tree-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em 0.5em; min-width: 0; }
 	/* "waits for …" takes its own line under the title, so neither is cut short. */
 	.ai-tree-head > .ai-tree-status.is-waiting { flex: 1 0 100%; padding-inline-start: 1.9em; font-size: 0.8em; }
@@ -42,7 +42,7 @@
 	.ai-tree-counts { display: flex; flex-wrap: wrap; gap: 0.5em 1.5em; }
 	.ai-tree-count { display: inline-flex; align-items: baseline; gap: 0.15em; color: var(--subtle); }
 	.ai-tree-n { font-size: 1.6em; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
-	.ai-tree-count.is-running .ai-tree-n { color: var(--prim); }
+	.ai-tree-count.is-running .ai-tree-n { color: var(--prime); }
 	.ai-tree-count.is-landed .ai-tree-n { color: var(--ok); }
 
 	/* ---- Lanes ---- */
@@ -51,7 +51,7 @@
 	.ai-tree-lanes > .ai-tree-root.has-kids { grid-column: 1 / -1; }
 	.ai-tree-card { display: flex; flex-direction: column; gap: 0.5em; padding: var(--pad-card); background: var(--surface);
 		border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
-	.ai-tree-card.is-running { border-color: color-mix(in srgb, var(--prim) 45%, var(--line)); }
+	.ai-tree-card.is-running { border-color: color-mix(in srgb, var(--prime) 45%, var(--line)); }
 	.ai-tree-card.is-waiting { background: transparent; border-style: dashed; }
 	/* The phase row: columns left to right, "then" between them; wraps on a phone. */
 	.ai-tree-card .ai-tree-phases { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--gap-50); margin-block-start: 0.25em; }
@@ -60,7 +60,7 @@
 		padding: var(--gap-50); background: var(--wash); border-radius: var(--radius); }
 	/* "then" is the one cue for series, so it is loud: bold, in the accent colour. */
 	.ai-tree-then { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
-		color: var(--prim); font-weight: 700; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.06em; padding-inline: 0.25em; }
+		color: var(--prime); font-weight: 700; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.06em; padding-inline: 0.25em; }
 	.ai-tree-then .icon { font-size: 2.4em; }
 	.ai-tree-lane > .ai-tree-label { grid-column: 1 / -1; }
 	/* With a "then" in the row, each phase is one stacked column: side by side = at once. */
@@ -76,7 +76,7 @@
 	.ai-tree-outline .ai-tree-mark { margin-inline-end: 0.35em; }
 	.ai-tree-outline .ai-tree-row.is-waiting .item-name { color: var(--subtle); }
 	.ai-tree-group { display: flex; flex-direction: column; margin-block: 0.35em; padding-inline-start: 0.6em;
-		border-inline-start: 2px solid color-mix(in srgb, var(--prim) 35%, transparent); }
+		border-inline-start: 2px solid color-mix(in srgb, var(--prime) 35%, transparent); }
 	.ai-tree-group:has(> .ai-tree-badge.is-then) { border-inline-start-style: dashed; border-inline-start-color: var(--line); }
 	.ai-tree-badge { align-self: flex-start; font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.06em;
 		padding: 0.1em 0.6em; border-radius: 1em; background: var(--fill-a08); color: var(--subtle); margin-block-end: 0.15em; }
@@ -86,12 +86,12 @@
 	.ai-tree-scroll { overflow-x: auto; padding-block: var(--gap-50); }
 	.ai-tree-graph { position: relative; width: 100%; }
 	.ai-tree-edges { position: absolute; inset: 0 auto auto 0; overflow: visible; }
-	.ai-tree-edges path { fill: none; stroke-width: 2; stroke: var(--prim); vector-effect: non-scaling-stroke; }
+	.ai-tree-edges path { fill: none; stroke-width: 2; stroke: var(--prime); vector-effect: non-scaling-stroke; }
 	.ai-tree-edges path.is-landed { stroke: var(--ok); }
 	.ai-tree-edges path.is-waiting { stroke: var(--subtle); stroke-dasharray: 5 4; }
 	.ai-tree-node { position: absolute; box-sizing: border-box; display: flex; flex-direction: column; gap: 0.35em; justify-content: center;
 		padding: 0.5em 0.75em; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); font-size: 0.9em; }
-	.ai-tree-node.is-running { border-color: color-mix(in srgb, var(--prim) 45%, var(--line)); }
+	.ai-tree-node.is-running { border-color: color-mix(in srgb, var(--prime) 45%, var(--line)); }
 	.ai-tree-node.is-waiting { border-style: dashed; }
 	/* The arrowhead: each box draws its own, so stretching the SVG never distorts it. */
 	.ai-tree-node.has-in::before { content: ""; position: absolute; inset-inline-start: -0.55em; top: calc(50% - 0.4em);

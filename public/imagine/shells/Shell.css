@@ -68,7 +68,7 @@
 		font-weight: 800; color: inherit; text-decoration: none;
 		white-space: nowrap;
 	}
-	.shell-home:hover { color: var(--prim); }
+	.shell-home:hover { color: var(--prime); }
 
 	/* ── a bar: a header or a footer ──
 	   ⚠ `nowrap` + `flex: none` on the items AND `overflow-x` on the row. A flex
@@ -101,7 +101,7 @@
 		transition: background-color 0.12s, color 0.12s;
 	}
 	.shell-link:is(:hover, :focus-visible) { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
-	.shell-link:is(.active, .in-path) { color: var(--ink); border-inline-end-color: var(--prim); }
+	.shell-link:is(.active, .in-path) { color: var(--ink); border-inline-end-color: var(--prime); }
 
 	/* In a BAR the mark turns 90 degrees — an inline-end stripe on a horizontal
 	   row is a mark on the gap between two links, pointing at neither. */
@@ -110,7 +110,7 @@
 		border-inline-end: none;
 		border-block-end: 2px solid transparent;
 	}
-	.shell-bar .shell-link:is(.active, .in-path) { border-block-end-color: var(--prim); }
+	.shell-bar .shell-link:is(.active, .in-path) { border-block-end-color: var(--prime); }
 
 	/* ── the paper ── */
 	.shell-main {
@@ -129,7 +129,7 @@
 
 	.shell-verdict {
 		padding: 0.8em 1em;
-		border-inline-start: 3px solid var(--prim);
+		border-inline-start: 3px solid var(--prime);
 		background: var(--tint);
 		border-radius: var(--radius);
 	}
@@ -200,7 +200,7 @@
 		border-inline-start: 2px solid transparent;
 	}
 	.shell-inner-link:hover { color: var(--ink); }
-	.shell-inner-link.on { color: var(--ink); border-inline-start-color: var(--prim); font-weight: 600; }
+	.shell-inner-link.on { color: var(--ink); border-inline-start-color: var(--prime); font-weight: 600; }
 
 	.shell-inner-body { flex: 1 1 auto; min-width: 0; overflow-y: auto; }
 
@@ -257,7 +257,7 @@
 			overflow-x: auto; overflow-y: hidden;
 		}
 		.shell-rail .shell-link { border-inline-end: none; border-block-end: 2px solid transparent; }
-		.shell-rail .shell-link:is(.active, .in-path) { border-block-end-color: var(--prim); }
+		.shell-rail .shell-link:is(.active, .in-path) { border-block-end-color: var(--prime); }
 
 		.shell-left  { border-inline-end: none; border-block-end: 1px solid var(--line); }
 		.shell-right { border-inline-start: none; border-block-start: 1px solid var(--line); }
@@ -273,6 +273,6 @@
 		}
 		.shell-inner-title { display: none; }
 		.shell-inner-link { border-inline-start: none; border-block-end: 2px solid transparent; }
-		.shell-inner-link.on { border-block-end-color: var(--prim); }
+		.shell-inner-link.on { border-block-end-color: var(--prime); }
 	}
 }

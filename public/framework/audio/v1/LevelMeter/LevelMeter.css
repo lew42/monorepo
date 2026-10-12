@@ -13,7 +13,7 @@
 	.audio-levelmeter-bar {
 		block-size: 100%;
 		border-radius: inherit;
-		background: var(--prim);
+		background: var(--prime);
 		transform-origin: left center;
 		transform: scaleX(var(--level));
 		transition: transform 60ms linear;

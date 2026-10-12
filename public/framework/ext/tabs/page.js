@@ -47,7 +47,7 @@ this.tabs().ac("vertical")         // …inside one section's own render()`);
 
 		h2("A quiet bar is the default, not a variant");
 
-		code.css(`.tab.active, .tab.in-path { color: var(--ink); border-bottom-color: var(--prim); }`);
+		code.css(`.tab.active, .tab.in-path { color: var(--ink); border-bottom-color: var(--prime); }`);
 
 		md("A flat text label, a hairline under the set, a 2px mark under the selected one — and **no literal colour anywhere**, every value a token. There is no `.minimal` class, because the quiet version *is* the component: a tab bar that shipped a box, a fill and a radius would have decided something that wasn't its call.");
 

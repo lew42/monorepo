@@ -146,7 +146,7 @@ control: it is the only row showing its declaration and its button, `dt-aimed`
 draws a 2px border down its inline start, and its ring on the page is held —
 all three set by the same click, because the class is ext/DesignTool's own
 (`highlight.js`) and so is the ring. Before this, "what is selected" was
-`--prim` at 14% alpha on a dark rail, which is no visible change at all.
+`--prime` at 14% alpha on a dark rail, which is no visible change at all.
 
 **The `layout` tab reports two verdicts, and they disagree on purpose.**
 `analyze()` says what is *broken* — a census, no grade, because that number was

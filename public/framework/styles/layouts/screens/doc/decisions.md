@@ -57,7 +57,7 @@ counts as of this task.
 
 ## Colour and spacing — converged, nothing new
 
-No new colour: `--prim` (accent), `--surface`, `--wash`, `--line`, `--ink`/`muted` — the same
+No new colour: `--prime` (accent), `--surface`, `--wash`, `--line`, `--ink`/`muted` — the same
 six tokens every other layout in this directory uses. No new spacing value beyond the
 default: every card is a plain `.pad` at 1em, `--gap` ranges `0.1em`–`1.4em` for nesting depth
 only, same as `wire/` and `anatomy/`'s own two-value budgets.

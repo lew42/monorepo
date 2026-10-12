@@ -25,10 +25,10 @@ did not.
    band's own background with it. The fix is to paint the island from a floor that stays
    dark — `--bg` — and *then* declare it. Same shape wherever an island is "the opposite
    of the page".
-6. **An accent stays opaque, and its one failure is PLACEMENT.** `--prim` and `--bg` are
+6. **An accent stays opaque, and its one failure is PLACEMENT.** `--prime` and `--bg` are
    the two solid fills — a hue and a dark neutral, each with a hardcoded white label.
    Each is invisible on exactly one floor, its own, so *don't put a `.prim` button on a
-   `--prim` band or a `.bg` button on a `--bg` one*. Move the button; a rung cannot
+   `--prime` band or a `.bg` button on a `--bg` one*. Move the button; a rung cannot
    replace either without turning a filled CTA into a wash. The measurement agrees: the
    only place either was ever flagged is the matrix cell that exists to show it.
 7. **Alpha compresses on a saturated floor** — `#FF8F60`'s red channel is already 255, so

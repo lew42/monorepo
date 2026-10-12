@@ -82,7 +82,7 @@ export const DISPLAY = { block: "view_agenda", flex: "view_column", grid: "grid_
 
 /* A tone is a colour, so its picture is the colour — the token being the one the
    templates already tint themselves with, so a swatch cannot show a shade nothing draws. */
-export const TONE = { surface: "--surface", wash: "--wash", prim: "--prim", dark: "--ink" };
+export const TONE = { surface: "--surface", wash: "--wash", prim: "--prime", dark: "--ink" };
 export const TONES = Object.keys(TONE);
 
 const swatch = tone => () => span.c("panel-swatch").style("--panel-swatch", `var(${TONE[tone]})`);

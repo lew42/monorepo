@@ -13,7 +13,7 @@ const field = (caption, control) => label.c("flex v", () => {
 }).style("gap", "0.3em");
 
 const channel = (glyph, title, line) => div.c("flex gap", () => {
-	icon(glyph).style("color", "var(--eyebrow, var(--prim))");
+	icon(glyph).style("color", "var(--eyebrow, var(--prime))");
 
 	div.c("flex v", () => {
 		p.c("h3", title);
@@ -26,7 +26,7 @@ export default (tone = "wash") =>
 		div.c("measure flex gap auto", () => {
 
 			div.c("flex v gap", () => {
-				p.c("h4", "GET IN TOUCH").style("color", "var(--eyebrow, var(--prim))");
+				p.c("h4", "GET IN TOUCH").style("color", "var(--eyebrow, var(--prime))");
 
 				p.c("h2", "Ask anything");
 

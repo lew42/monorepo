@@ -5,7 +5,7 @@ selectors rather than an option map.
 
 ## The status-axis gap
 
-Only one accent color exists in the token set (`--prim`), so a badge can offer
+Only one accent color exists in the token set (`--prime`), so a badge can offer
 neutral / accent / dark / outline but never a semantic "passing" green — the
 `--ok`/`--warn` proposal in `doc/record.md` §5 would unblock this and every
 other component wanting a status color, not just badges.

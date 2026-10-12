@@ -20,7 +20,7 @@
 	/* The landing slot. Its outline is its whole job, so the border stays here. */
 	.drag-placeholder {
 		box-sizing: border-box;
-		border: 2px dashed var(--prim);
+		border: 2px dashed var(--prime);
 		border-radius: var(--radius);
 	}
 

@@ -23,7 +23,7 @@ function edge_demo(){
 
 					div.c("surface pad flex gap wrap v-center").style({
 						cursor: editing ? "pointer" : "default",
-						outline: on ? "2px solid var(--prim)" : "none",
+						outline: on ? "2px solid var(--prime)" : "none",
 					}).append(() => {
 						span().style({ fontWeight: "700", flex: "1 1 6em" }).text(name);
 						if (on) div.c("flex gap").append(() => {

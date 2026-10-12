@@ -174,7 +174,7 @@ own fill and the page behind it, because the owner asked for exactly that. The c
 | `plain` | no fill — nothing to declare |
 | `card` | `.surface` — `framework.css:336`: `--surface`, a hairline, a radius. The lab adds a soft shadow. |
 | `tint` | `.tint` — `framework.css:346`, the token `--tint` at `framework.css:82` |
-| `prim` | `--prim` mixed into the surface. `framework.css:527` has `button.prim`; there is **no panel class** |
+| `prim` | `--prime` mixed into the surface. `framework.css:527` has `button.prim`; there is **no panel class** |
 | `dark` | `styles/sections/tone.js:22` `band("dark")` — `--bg` plus `color-scheme: dark`, which is the one line that flips every token inside the island |
 
 **The vocabularies disagree, and it is worth naming exactly how.** The theme's four tones are
@@ -417,7 +417,7 @@ new section after the columns block. Lifted, not re-derived, from
 	/* the five surface words, twice — the content's fill and the page behind it */
 	.page-surface-plain { background: transparent; }
 	.page-surface-tint  { background: var(--tint); }
-	.page-surface-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
+	.page-surface-prim  { background: color-mix(in srgb, var(--prime) 10%, var(--surface)); }
 	.page-surface-card  { background: var(--surface); border: 1px solid var(--line);
 	                      border-radius: var(--radius); box-shadow: 0 1px 3px var(--shade-a08, rgba(0,0,0,0.08)); }
 	.page-surface-dark  { color-scheme: dark; background: #17161a; color: #e8e8ea;

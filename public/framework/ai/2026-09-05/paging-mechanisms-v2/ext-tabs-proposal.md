@@ -8,7 +8,7 @@ exact diff. Nothing in `ext/tabs` was touched.
 
 The owner, 2026-09-05:
 
-> the current underline tabs (with underline becoming orange (--prim) when active..) don't
+> the current underline tabs (with underline becoming orange (--prime) when active..) don't
 > really illustrate their tab content area, it's transparent, and so the link below the tab area
 > stays, but there's no visual boundary between them.
 
@@ -79,7 +79,7 @@ deliberately.
 +	.tabs.panel > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
 +		color: var(--ink);
 +		border-color: var(--line);
-+		border-top-color: var(--prim);
++		border-top-color: var(--prime);
 +		background: var(--tab-fill, var(--surface));
 +		border-bottom-color: var(--tab-fill, var(--surface));
 +	}

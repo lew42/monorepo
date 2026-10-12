@@ -16,6 +16,6 @@
 		border-radius: 999px;
 		box-shadow: 0 2px 12px rgba(0,0,0,0.12);
 	}
-	.mode-btn:hover { color: var(--prim); border-color: var(--prim); }
+	.mode-btn:hover { color: var(--prime); border-color: var(--prime); }
 	.mode-btn .icon { font-size: 1.1em; }
 }

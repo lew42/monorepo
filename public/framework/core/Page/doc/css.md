@@ -460,7 +460,7 @@ has nothing else to show and still wants one. Two consequences worth knowing:
   that survived was a lit strip under the picture, reading as a highlighted label
   detached from the render above it. **Now every card carries `outline: 2px solid
   transparent` at `outline-offset: 3px`, and hover and the mark set only
-  `outline-color`** — 45% `--prim` for hover, solid for marked. The ring encloses thumb
+  `outline-color`** — 45% `--prime` for hover, solid for marked. The ring encloses thumb
   and label together, which is the one mark a card with no frame can wear, and it makes
   the restatement a single declaration wherever a card is lit without the Router
   (`ext/catalog`'s first-card fallback, `ext/demo`'s `aria-current`). The chrome card's

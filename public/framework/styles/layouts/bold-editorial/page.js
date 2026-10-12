@@ -81,7 +81,7 @@ export default new Page(demo.layout({
 								button.c("prim", "Explore Thesis");
 							}).style("--gap", "calc(var(--gap) * 0.9)");
 
-							recess(() => span.c("h1", "01").style("color", "var(--prim-ink)"), "3 / 2");
+							recess(() => span.c("h1", "01").style("color", "var(--prime-ink)"), "3 / 2");
 						}).style({ "--column": "24em", "--gap": "calc(var(--flow) * 1.25)" });
 					});
 				}
@@ -97,11 +97,11 @@ export default new Page(demo.layout({
 						].forEach(([n, title, blurb], i) =>
 							div.c("tint pad flex v gap", () => {
 								div.c("flex split v-center", () => {
-									span.c("h1", n).style("color", "var(--prim-ink)");
+									span.c("h1", n).style("color", "var(--prime-ink)");
 									icon("north_east");
 								});
 								div.c("flex v gap", () => { h3(title); p.c("muted", blurb); }).style("--gap", "calc(var(--gap) * 0.5)");
-							}).style({ "--pad": "calc(var(--pad) * 1.5)", "--gap": "calc(var(--gap) * 1.5)", border: "1px solid " + (i === 1 ? "var(--prim)" : "var(--line)") })))
+							}).style({ "--pad": "calc(var(--pad) * 1.5)", "--gap": "calc(var(--gap) * 1.5)", border: "1px solid " + (i === 1 ? "var(--prime)" : "var(--line)") })))
 							.style({ "--column": "18em", "--gap": "calc(var(--gap) * 1.5)" });
 					});
 				}
@@ -115,7 +115,7 @@ export default new Page(demo.layout({
 							["6", "TOKENS DEFINE THE THEME"],
 							["2", "COLOUR SCHEMES, ONE TOKEN SET"],
 						].forEach(([value, caption]) => div.c("flex v gap", () => {
-							span.c("h1", value).style("color", "var(--prim-ink)");
+							span.c("h1", value).style("color", "var(--prime-ink)");
 							span.c("h4 muted", caption);
 						}).style("--gap", "calc(var(--gap) * 0.2)")))
 							.style({ "--column": "12em", "--gap": "var(--flow)" });
@@ -138,7 +138,7 @@ export default new Page(demo.layout({
 
 							div.c("flex gap wrap", () => FOOTER_COLS.forEach(([head, links]) =>
 								div.c("flex v gap", () => {
-									span.c("h4", head).style("color", "var(--prim-ink)");
+									span.c("h4", head).style("color", "var(--prime-ink)");
 									div.c("flex v gap", () => links.forEach(l => span.c("muted", l))).style("--gap", "calc(var(--gap) * 0.4)");
 								}).style("--gap", "calc(var(--gap) * 0.6)")))
 								.style({ "--gap": "calc(var(--flow) * 1.25)", "--grow": "1.4" });

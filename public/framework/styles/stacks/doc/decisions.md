@@ -67,9 +67,9 @@ width — which is what lets the matrix side-scroll at 400 instead of being unre
 
 ## What the ladder does not fix
 
-- `button.prim` on a `--prim` band stays ΔL\* 0.0. An accent is a hue, not a rung. It can
+- `button.prim` on a `--prime` band stays ΔL\* 0.0. An accent is a hue, not a rung. It can
   only be invisible on one floor — its own — and the answer there is a rung with white ink.
-- A card at `--fill-a04` on `--prim` measures 2.1. Alpha **compresses on a saturated floor**:
+- A card at `--fill-a04` on `--prime` measures 2.1. Alpha **compresses on a saturated floor**:
   `#FF8F60`'s red channel is already 255, so a white rung moves only green and blue. On an
   accent, start one rung higher.
 

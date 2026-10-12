@@ -39,7 +39,7 @@
 		cursor: ew-resize;
 		touch-action: none;          /* or the browser pans instead of dragging */
 	}
-	.demo-handle:hover { background: var(--prim); }
+	.demo-handle:hover { background: var(--prime); }
 
 	/* The strip, above the render. Three tracks so the widths are centred on the
 	   STAGE rather than on whatever the dials happen to measure — the middle cell is
@@ -116,7 +116,7 @@
 		border-radius: var(--radius);
 		cursor: pointer;
 	}
-	.demo-zoom:hover { color: var(--ink); border-color: var(--prim); }
+	.demo-zoom:hover { color: var(--ink); border-color: var(--prime); }
 
 	/* ── bare: a framed render needs no field around it ──
 	   The frame IS the edge, so the handle rides it — bigger, since it sits on a
@@ -134,7 +134,7 @@
 		border: 1px solid var(--line);
 		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 	}
-	.demo-stage.bare .demo-handle:hover { background: var(--surface); border-color: var(--prim); }
+	.demo-stage.bare .demo-handle:hover { background: var(--surface); border-color: var(--prime); }
 
 	/* On a real border the pill reads as part of the frame, so it dresses like one. */
 	.demo-stage.bare .demo-size {

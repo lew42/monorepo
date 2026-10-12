@@ -39,7 +39,7 @@ export default new Page({
 
 		md("## The chosen one is marked three ways");
 
-		md("`--prim` is `#FF6157`, and that is **2.96:1 on white** — below the 3:1 a UI shape needs and well below the 4.5:1 text needs. So the accent never carries the message here. The winning card is marked by a **lighter ground** than its siblings (`--surface` at 17.4:1 against `--wash` at 15.4:1), a **2px accent outline**, and the **word `chosen`** in ordinary ink. Miss any one of the three and you can still tell which card won.");
+		md("`--prime` is `#FF6157`, and that is **2.96:1 on white** — below the 3:1 a UI shape needs and well below the 4.5:1 text needs. So the accent never carries the message here. The winning card is marked by a **lighter ground** than its siblings (`--surface` at 17.4:1 against `--wash` at 15.4:1), a **2px accent outline**, and the **word `chosen`** in ordinary ink. Miss any one of the three and you can still tell which card won.");
 
 		md("## The markup");
 

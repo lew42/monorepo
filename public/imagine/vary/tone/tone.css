@@ -33,5 +33,5 @@
 		display: flex; flex-wrap: wrap; gap: calc(var(--gap) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: 0.8em; border-bottom: 1px solid var(--line);
 	}
-	.vary-tone-controls button.active { outline: 2px solid var(--prim); outline-offset: 2px; }
+	.vary-tone-controls button.active { outline: 2px solid var(--prime); outline-offset: 2px; }
 }

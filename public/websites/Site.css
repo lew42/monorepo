@@ -180,7 +180,7 @@
 		outline: 2px solid transparent; outline-offset: 3px;
 		transition: outline-color 0.15s, transform 0.05s;
 	}
-	.site-card:hover { outline-color: color-mix(in srgb, var(--prim) 45%, transparent); }
+	.site-card:hover { outline-color: color-mix(in srgb, var(--prime) 45%, transparent); }
 	.site-card:active { transform: translateY(1px); }
 
 	/* An ASPECT, not a fixed height — right at 400 and at 3440 alike, and every card
@@ -211,7 +211,7 @@
 	/* ── THE FILTER ROW ─────────────────────────────────────────────────────*/
 	.site-filter { font-size: 0.85em; }
 	.site-filter-chip { flex: none; white-space: nowrap; }
-	.site-filter-chip.is-on { background: var(--prim); color: #fff; border-color: transparent; }
+	.site-filter-chip.is-on { background: var(--prime); color: #fff; border-color: transparent; }
 	.site-filter-count { opacity: 0.6; font-size: 0.85em; }
 	.site-filter-note { font-size: 0.9em; margin-block: 0.6em; }
 	.site-filter-more { flex: none; white-space: nowrap; font-size: 0.95em; }

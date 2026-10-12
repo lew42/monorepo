@@ -29,7 +29,7 @@
 	   with nothing between the line and its text is the whole complaint. */
 	.la-bar {
 		display: flex; align-items: stretch; min-height: 2.4em;
-		border-inline-start: 2px solid var(--prim);
+		border-inline-start: 2px solid var(--prime);
 	}
 
 	/* One box that pays. Its width IS the number of pixels it pays. Written inline,

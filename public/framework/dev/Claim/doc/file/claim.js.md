@@ -18,7 +18,7 @@ CLAUDE.md names for the framework generally.
 
 ## The ring goes on `.app`, not `body`
 
-`--prim` is declared on the theme class, which rides `.app`, not `body` — a
+`--prime` is declared on the theme class, which rides `.app`, not `body` — a
 ring appended one level out reads every custom property as unset and paints
 a flat 6px `currentColor` border instead of the intended colour. `paint()`
 appends inside `document.querySelector(".app") ?? document.body` for exactly

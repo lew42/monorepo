@@ -19,11 +19,11 @@
 		height: 2px;
 		border: none;
 		border-radius: 1px;
-		background: var(--prim);
+		background: var(--prime);
 	}
 
 	.ux-tree-drag-target {
-		outline: 2px solid var(--prim);
+		outline: 2px solid var(--prime);
 		outline-offset: -2px;
 		background: var(--wash);
 	}
@@ -46,8 +46,8 @@
 	     0.35-opacity parent composites at 0.35 whatever its own :hover then says. */
 	.ux-tree-mark, .ux-tree-act { opacity: 0.35; }
 	.ui-tree-row:hover .ux-tree-mark, .ui-tree-row:hover .ux-tree-act { opacity: 0.8; }
-	.ux-tree-mark.ux-tree-on { opacity: 1; color: var(--prim); }
-	.ux-tree-mark:hover, .ux-tree-act:hover { opacity: 1; color: var(--prim); }
+	.ux-tree-mark.ux-tree-on { opacity: 1; color: var(--prime); }
+	.ux-tree-mark:hover, .ux-tree-act:hover { opacity: 1; color: var(--prime); }
 
 	/* The demo pages' event readout. A `pre` does not wrap, and an event line is one
 	   long line; in a pane beside a rail that is a horizontal scrollbar nobody asked

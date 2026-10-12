@@ -113,7 +113,7 @@ same `watch()`/`bump()` pair `/imagine/game/` already uses for its own store: th
 line and each entry's mark are built once, inside a box captured synchronously and refilled by
 a callback the contents page's own `bump()` re-runs.
 
-**The mark is `--subtle`, never `--prim`.** The accent is spent four times on this issue
+**The mark is `--subtle`, never `--prime`.** The accent is spent four times on this issue
 already (the cover rule, the entry numbers, the bars, the next-hop line) — a fifth, coloured
 use for a read mark would read as a badge, not a quiet note to self. Nothing is drawn at all
 for an unread entry, which is the whole of what "unread" looks like — never a dimmed

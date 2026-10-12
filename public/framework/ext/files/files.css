@@ -59,9 +59,9 @@
 	.file-name { cursor: pointer; }
 
 	.file-name:hover,
-	.file-dir-name:hover { color: var(--prim); }
+	.file-dir-name:hover { color: var(--prime); }
 
-	.file-name.selected { color: var(--prim); font-weight: 600; background: var(--wash); }
+	.file-name.selected { color: var(--prime); font-weight: 600; background: var(--wash); }
 
 	/* Closed by default; only an OPEN folder's own body shows. `display: none` rather
 	   than removal — a folder built once (past `open`'s depth, or an ancestor of the
@@ -113,7 +113,7 @@
 	}
 	.fs-explorer-head-title { display: flex; align-items: center; gap: calc(var(--gap) * 0.4); color: var(--subtle); font-size: 0.85em; }
 	.fs-explorer-head-v1 { color: var(--subtle); font-size: 0.85em; }
-	.fs-explorer-head-v1:hover { color: var(--prim); }
+	.fs-explorer-head-v1:hover { color: var(--prime); }
 
 	/* A code column's ONE toolbar — path, copy, raw, close. Never a second bar
 	   stacked above it: that was the owner's exact complaint about the old

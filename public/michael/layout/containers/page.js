@@ -8,7 +8,7 @@ function inject(){
 	style(`
 		.cq-card { display: flex; flex-direction: column; gap: 1em;
 		           border: 1px solid rgba(0,0,0,0.15); border-radius: 0.5em; padding: 1em; }
-		.cq-card .cq-media { flex: 0 0 auto; background: var(--prim); color: #fff;
+		.cq-card .cq-media { flex: 0 0 auto; background: var(--prime); color: #fff;
 		                     padding: 2em; border-radius: 0.3em; text-align: center; }
 		.cq-card .cq-body { flex: 1; }
 		/* col is the container name set on .col-body in Page.css */

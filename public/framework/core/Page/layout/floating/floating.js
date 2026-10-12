@@ -158,7 +158,7 @@ Floating.css = `
 	.floating-link:hover { background: var(--tint, rgba(127, 127, 127, 0.1)); }
 	.floating-link[aria-current] {
 		background: var(--tint, rgba(127, 127, 127, 0.12));
-		box-shadow: inset 3px 0 0 var(--prim, currentColor);
+		box-shadow: inset 3px 0 0 var(--prime, currentColor);
 		font-weight: 600;
 	}
 	.floating-heading {
@@ -189,7 +189,7 @@ Floating.css = `
 			grid-column: 1 / -1;
 		}
 		.floating-heading { display: none; }
-		.floating-link[aria-current] { box-shadow: inset 0 -2px 0 var(--prim, currentColor); }
+		.floating-link[aria-current] { box-shadow: inset 0 -2px 0 var(--prime, currentColor); }
 		.floating-page { grid-column: 1 / -1; }
 	}
 }

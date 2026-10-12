@@ -45,7 +45,7 @@
 
 	.codrops-warp-circle {
 		fill: none;
-		stroke: var(--prim, #ee8233);
+		stroke: var(--prime, #ee8233);
 		stroke-width: 1px;
 		r: 60px;
 		transition: r 0.3s ease;

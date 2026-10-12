@@ -58,7 +58,7 @@ const crit_card = c => figure.c("flex v gap", () => {
 	img().attr("src", here + "shots/" + c.file).attr("alt", c.title)
 		.style({ width: "100%", border: "1px solid var(--line)", borderRadius: "0.3em" });
 	figcaption(() => {
-		span(c.verdict + " — ").style({ fontWeight: "700", color: c.verdict === "GOOD" ? "var(--prim)" : "inherit" });
+		span(c.verdict + " — ").style({ fontWeight: "700", color: c.verdict === "GOOD" ? "var(--prime)" : "inherit" });
 		span(c.title);
 		p.c("muted", c.note).style({ margin: "calc(var(--flow) * 0.3) 0 0" });
 	});

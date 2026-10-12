@@ -43,7 +43,7 @@ export default new Page(import.meta, {
 					div.c("pad", () => {
 						div("$ npm install").style("opacity", "0.5");
 						div("$ node server.js");
-						div("→ localhost").style({ color: "var(--prim)", "font-weight": "600" });
+						div("→ localhost").style({ color: "var(--prime)", "font-weight": "600" });
 					}).style({ ...DARK, "border-radius": "0.5em", "font-family": "Consolas, monospace", "font-size": "0.9em", "line-height": "2" });
 				});
 			}).style({ padding: "3em 1em" });
@@ -146,5 +146,5 @@ function plan(name, price, features, highlight) {
 		ul(() => features.forEach(f => li(f).style({ "font-size": "0.9em", "line-height": "1.8" })))
 			.style({ margin: "0 0 1.25em", "list-style": "none", "padding-left": 0 });
 		a("Choose").ac(highlight ? "btn prim" : "btn bg").href("#").style({ display: "block", "text-align": "center" });
-	}).style(highlight ? { ...PANEL, "border-color": "var(--prim)", "box-shadow": "0 0 0 1px var(--prim)" } : PANEL);
+	}).style(highlight ? { ...PANEL, "border-color": "var(--prime)", "box-shadow": "0 0 0 1px var(--prime)" } : PANEL);
 }

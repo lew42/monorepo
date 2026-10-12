@@ -167,7 +167,7 @@ utilities would make it noisy on every load.
 
 **This is the good kind of dependency and should not be mitigated away.** A
 `var()` is named, greppable, and declared — the opposite of a class-name
-dependency. Four sandbox directories already consume `--prim`/`--bg`/`--subtle`,
+dependency. Four sandbox directories already consume `--prime`/`--bg`/`--subtle`,
 so the token set is public API with real external users.
 
 The framing in the question — *what if ColumnPager leaves the framework?* — has

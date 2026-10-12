@@ -11,7 +11,7 @@ import { div, span, a, p, pre, button, figure } from "/app.js";
 
 // The six tokens the strip paints — the ones a person actually recognises a
 // theme by. `--line` is the border of every chip, so it draws itself.
-export const CORE = ["--wash", "--tint", "--surface", "--ink", "--subtle", "--prim"];
+export const CORE = ["--wash", "--tint", "--surface", "--ink", "--subtle", "--prime"];
 
 export function ui(name = "press"){
 	return div.c("themes-ui", () => {

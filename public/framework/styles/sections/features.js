@@ -16,7 +16,7 @@ const feature = (glyph, heading, body) =>
 export default (tone = "surface") =>
 	div.c("section-band", () =>
 		div.c("measure flex v gap", () => {
-			p.c("h4", "WHY").style("color", "var(--eyebrow, var(--prim))");
+			p.c("h4", "WHY").style("color", "var(--eyebrow, var(--prime))");
 
 			p.c("h2", "Three things, and no fourth");
 

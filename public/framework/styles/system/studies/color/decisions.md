@@ -19,11 +19,11 @@ you are painting onto a ground of your own — a light grey card, a dark band, a
 already know which direction you mean; there the mode-aware word would go the wrong way half
 the time.
 
-### The accent token is `--prim`, not `--accent`
+### The accent token is `--prime`, not `--accent`
 
-There is no `--accent` on this site. The accent is `--prim`, `#FF8F60`, which is
+There is no `--accent` on this site. The accent is `--prime`, `#FF8F60`, which is
 `hsl(18 100% 69%)` — so the two sliders start at hue 18 and saturation 100, and the lab writes
-its own `--prim` and `--prim-ink` **on the lab element only**, so nothing leaks into the
+its own `--prime` and `--prime-ink` **on the lab element only**, so nothing leaks into the
 sidebar or the rest of the app.
 
 ### What the study measured

@@ -56,7 +56,7 @@ export default new Page({
 
 		md("## Themed before any file says anything");
 
-		md("`framework.css` sets `body { accent-color: var(--prim) }` once, and **`accent-color` is the browser's own theming API** for `progress`, `meter`, checkboxes and radios. The bars above arrive themed with zero CSS anywhere in this directory.");
+		md("`framework.css` sets `body { accent-color: var(--prime) }` once, and **`accent-color` is the browser's own theming API** for `progress`, `meter`, checkboxes and radios. The bars above arrive themed with zero CSS anywhere in this directory.");
 
 		md("| markup | shows |\n| --- | --- |\n| `progress().attr(\"value\", 70).attr(\"max\", 100)` | a determinate bar |\n| `progress()` — no `value` | indeterminate; the browser animates it |\n| `meter()` with `low` / `high` / `optimum` | a gauge that turns amber or red on its own |");
 

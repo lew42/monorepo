@@ -12,7 +12,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("Utilities").ac("mb").style("color", "var(--prim)");
+            h1("Utilities").ac("mb").style("color", "var(--prime)");
 
             p("These are the utility features built into this framework:");
             p("`.zoom-*`: use it if you want to scale an element up or down.");
@@ -107,12 +107,12 @@ div(() => p("...")).style("box-shadow", "0 10px 20px rgba(0,0,0,0.3)"); // large
             div(() => p("Hover me"))
                 .style({ background: "var(--bg)", color: "white", padding: "0.5em 1em", "border-radius": "0.3em", display: "inline-block", cursor: "pointer" })
                 .ac("mb")
-                .on("mouseenter", function(){ this.style("background", "var(--prim)"); })
+                .on("mouseenter", function(){ this.style("background", "var(--prime)"); })
                 .on("mouseleave", function(){ this.style("background", "var(--bg)"); });
 
             pre(`div(() => p("Hover me"))
     .style({ background: "var(--bg)", color: "white" })
-    .on("mouseenter", function() { this.style("background", "var(--prim)"); })
+    .on("mouseenter", function() { this.style("background", "var(--prime)"); })
     .on("mouseleave", function() { this.style("background", "var(--bg)"); });`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
 
             p("If you'd rather write a real `:hover` rule instead of JS, that needs a loaded stylesheet, see ", a("Normal CSS").href("/edric/style/css/"), ".");

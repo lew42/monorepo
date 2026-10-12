@@ -22,7 +22,7 @@ else in the site had a word for yet.
 | Default | `.card` | `var(--surface)` | almost always — the ground every other card in the inventory already uses |
 | Light gray | `.card.card-gray` | `var(--darken-1)` | a quieter card beside a default one, or a default card nested inside a default card (done for you automatically — see Nesting grounds below) |
 | Dark | `.card.card-dark` | `var(--bg)` | a card that wants to read as "console" or "raw data", regardless of the page's own light/dark mode |
-| Strong hue | `.card.card-prim` | `var(--prim)` | one card that must be the loudest thing on the page — a call to action, a selected state's home card. Never more than one at a time; it stops meaning "important" the moment two exist |
+| Strong hue | `.card.card-prim` | `var(--prime)` | one card that must be the loudest thing on the page — a call to action, a selected state's home card. Never more than one at a time; it stops meaning "important" the moment two exist |
 
 `.card-gray` started as `var(--wash)`, but `--wash` is also this theme's own page
 background — a `.card-gray` sitting straight on the page, not nested inside another
@@ -40,17 +40,17 @@ rule `ux/Content/content.css:181-183` already stated for icon cards: "a section 
 background is the white ground, its child cards switch to wash so nesting still reads."
 
 **Contrast, both modes.** Nothing here is a fixed colour — `--surface`, `--darken-1`, `--bg` and
-`--prim` all resolve relative to the page's own mode already, and `.card-dark`/`.card-prim` each
+`--prime` all resolve relative to the page's own mode already, and `.card-dark`/`.card-prim` each
 force a `color-scheme` (the same one-line "always-dark/light island" mechanism
 `styles/sections/tone.js` uses), so `--ink` flips underneath them too, regardless of which mode
 the page itself is in. `--bg` (a dark surface) forces `color-scheme: dark` so `--ink` resolves
-light. `--prim` — `#FF6157` in framework.css, but this theme overrides it to `#FF8F60`, a
+light. `--prime` — `#FF6157` in framework.css, but this theme overrides it to `#FF8F60`, a
 mid-bright orange, and that rendered colour is the one that counts — is the one ground where the
-obvious answer is wrong: light ink on `--prim` measures about 2.5:1, below the 4.5:1 floor, so
+obvious answer is wrong: light ink on `--prime` measures about 2.5:1, below the 4.5:1 floor, so
 `.card-prim` forces `color-scheme: light` instead — `--ink` resolves to its dark value there,
-which measures 4.69:1 on `--prim` in both page modes (`getComputedStyle`, text rgb(63,63,63) on
+which measures 4.69:1 on `--prime` in both page modes (`getComputedStyle`, text rgb(63,63,63) on
 background rgb(255,143,96), 2026-09-30 review-fix). That passes but not by much — anyone darkening
-`--prim` later should re-measure this pair before shipping it.
+`--prime` later should re-measure this pair before shipping it.
 
 ## Nesting — how deep
 

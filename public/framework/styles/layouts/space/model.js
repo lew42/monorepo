@@ -116,6 +116,6 @@ export const DEPTHS = { 0: 2, 1: 5, 2: 5, 3: 3, 4: 1.5, 5: 0.8, 6: 0.5, 7: 0.3, 
  * ⚠ Deliberately NOT the `--wash`/`--tint`/`--surface` ladder: those three are OPAQUE
  *   by decision (`layers/theme/lew42/lew42.css`), so nesting them cannot composite
  *   and ten levels look like one. */
-export const TONES = { "var(--ink)": 5, "var(--subtle)": 3, "var(--prim)": 2 };
+export const TONES = { "var(--ink)": 5, "var(--subtle)": 3, "var(--prime)": 2 };
 
 export const PARTS_ALL = "topbar toolbar brand hero menu toc sections cards rows tiles notes footer".split(" ");

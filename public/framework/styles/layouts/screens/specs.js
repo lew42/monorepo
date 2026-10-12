@@ -31,10 +31,10 @@ const TABS = [["home", "Home"], ["person", "Profile"], ["settings", "Settings"]]
 
 /* The bottom tab bar, shared by all three phone screens below — `flex split`, the same
  * row word every other layout in this directory uses for a header. No new component:
- * the current tab is `var(--prim)` on the glyph and un-muted on the label. */
+ * the current tab is `var(--prime)` on the glyph and un-muted on the label. */
 const tabs = current => div.c("flex split pad wash", () => TABS.forEach(([glyph, label]) =>
 	div.c("flex v gap h-center", () => {
-		icon(glyph).style("color", label === current ? "var(--prim)" : "");
+		icon(glyph).style("color", label === current ? "var(--prime)" : "");
 		span.c("h4", label).ac(label !== current && "muted");
 	}).style("--gap", "0.2em"))).style("--pad", "0.7em 1em");
 
@@ -138,7 +138,7 @@ export const specs = [
 
 						div.c("grid gap auto", () => STATS.forEach(([glyph, value, label]) =>
 							div.c("surface pad flex v gap", () => {
-								icon(glyph).style({ color: "var(--prim)", fontSize: "1.1em" });
+								icon(glyph).style({ color: "var(--prime)", fontSize: "1.1em" });
 								span.c("h2", value);
 								span.c("h4 muted", label);
 							}).style("--gap", "0.15em")))

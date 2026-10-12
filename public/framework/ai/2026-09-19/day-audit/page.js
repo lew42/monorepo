@@ -276,7 +276,7 @@ function data_section() {
 			+ "days like today, in one file.");
 	});
 
-	div.c("card").style({ "--card-edge": "var(--prim)" }).append(() => {
+	div.c("card").style({ "--card-edge": "var(--prime)" }).append(() => {
 		h3("The recommendation");
 		p(() => {
 			strong("Split the board into one file per day, and have the page load today and yesterday. ");

@@ -38,7 +38,7 @@ function screen_frame({ name, rail, panel, line }){
 				border: "1px dashed var(--line)", borderRadius: "2px" }).append(() => {
 				div().style({
 					width: panel.width, height: panel.height,
-					border: "2px solid var(--prim)", borderRadius: "2px",
+					border: "2px solid var(--prime)", borderRadius: "2px",
 					background: "var(--surface)",
 					position: panel.float ? "absolute" : "static",
 					...(panel.float ? { top: "-0.6em", left: "-1.4em",

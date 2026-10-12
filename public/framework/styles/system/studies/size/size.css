@@ -98,7 +98,7 @@
 		border: 1px solid transparent; border-radius: 999px;
 		cursor: pointer;
 	}
-	.size-chips .size-chip[aria-pressed="true"] { border-color: var(--prim); color: var(--prim-ink); }
+	.size-chips .size-chip[aria-pressed="true"] { border-color: var(--prime); color: var(--prime-ink); }
 
 	.size-readout {
 		display: flex; flex-wrap: wrap;

@@ -11,7 +11,7 @@ const card = () => div.c("surface pad flex v gap", () => {
 const linked = () => div.c("surface pad flex v gap", () => {
 	h3("View");
 	p("A DOM element with a chainable API.");
-	a.c("page-link", "Read →").href("/framework/core/View/").style("color", "var(--prim)");
+	a.c("page-link", "Read →").href("/framework/core/View/").style("color", "var(--prime)");
 }).style("--gap", "calc(var(--gap) * 0.5)");
 
 const media = () => div.c("surface flex v", () => {

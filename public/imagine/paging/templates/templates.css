@@ -76,7 +76,7 @@
 	}
 
 	.templates-card-head { display: flex; align-items: center; gap: 0.4em; margin: 0; }
-	.templates-card-icon { color: var(--prim-ink); }
+	.templates-card-icon { color: var(--prime-ink); }
 	.templates-card-say  { color: var(--subtle); font-size: 0.9em; }
 	.templates-card-more { margin-block-start: auto; }
 

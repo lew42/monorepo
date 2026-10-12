@@ -15,13 +15,13 @@ Shown: [/framework/styles/](/framework/styles/) · the reasoning:
 
 ## Colour — tokens, and a contrast ratio you can read back
 
-`--prim` `--prim-ink` `--ink` `--subtle` `--surface` `--wash` `--tint` `--line`, plus the
+`--prime` `--prime-ink` `--ink` `--subtle` `--surface` `--wash` `--tint` `--line`, plus the
 state ramp `--ok` `--warn` `--hot` `--error`, and `--lighten-1/2/3` / `--darken-1/2/3` for a
 step off whatever ground you are on.
 
 The one rule: say the ratio out loud for every text-on-ground pair — 4.5:1 carries body text,
-3:1 carries large text and UI shapes, below that nothing. `--prim` is a **fill**, about 2.2:1
-as text; `--prim-ink` is the one you write words in.
+3:1 carries large text and UI shapes, below that nothing. `--prime` is a **fill**, about 2.2:1
+as text; `--prime-ink` is the one you write words in.
 
 Painted and measured live: [/imagine/design/color/](/imagine/design/color/)
 

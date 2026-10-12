@@ -23,12 +23,12 @@
 	/* `--pad` rather than a rule: `.pad` already reads it, and the first card runs
 	   the whole row, where 1em of inset on a 2248px box measures as 0.8%. */
 	.report-need { --gap: .6em; --pad: clamp(1em, 2.2%, 2.4em); border-left: 3px solid var(--line); }
-	.report-need:first-child { border-left-color: var(--prim); }
+	.report-need:first-child { border-left-color: var(--prime); }
 
 	/* ⚠ The rank is a counter, not a `span` in the heading: only `h1`–`h6` read
 	   backticks, and a title split across two factories loses them. */
 	.report-needs > * { counter-increment: need; }
-	.report-needs h3::before { content: counter(need) ". "; color: var(--prim); font-variant-numeric: tabular-nums; }
+	.report-needs h3::before { content: counter(need) ". "; color: var(--prime); font-variant-numeric: tabular-nums; }
 
 	/* One basis, no breakpoint: a before and an after are only worth anything side
 	   by side, so they split from ~44em of region and each take the full width below. */
@@ -37,7 +37,7 @@
 
 	/* A screenshot of a light page has to read as an object, not as more page. */
 	.report-frame { display: block; overflow: hidden; outline: 2px solid transparent; }
-	.report-frame:hover { outline-color: var(--prim); }
+	.report-frame:hover { outline-color: var(--prime); }
 	.report-img { width: 100%; height: auto; }
 
 	/* A caption is prose and takes prose's ceiling — under a 2248px frame it ran

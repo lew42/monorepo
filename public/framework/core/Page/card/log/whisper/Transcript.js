@@ -30,7 +30,7 @@ style(`@layer theme {
 		display: inline-block; width: 1.2em; text-align: center;
 		color: var(--fill-a32); text-decoration: none; cursor: pointer;
 	}
-	.log-whisper-seam:hover { color: var(--prim); }
+	.log-whisper-seam:hover { color: var(--prime); }
 }`);
 
 export default class Transcript extends View {

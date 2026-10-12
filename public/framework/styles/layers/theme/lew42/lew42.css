@@ -10,14 +10,14 @@
 	.theme-lew42 {
 		color-scheme: light dark;
 
-		--prim: #FF8F60;                          /* the mark's own orange */
+		--prime: #FF8F60;                          /* the mark's own orange */
 		/* The same orange, taken down until it reads as INK. #FF8F60 is 2.25:1 on
 		   white and 2.01:1 on `--wash`; #B84A24 is 5.19:1 and 4.64:1, over AA on
 		   both. Only the light half moves — on the dark surfaces the orange is
 		   already 7.98:1, and darkening it there would be the wrong direction.
-		   ⚠ TEXT only. Every fill, outline and 2px active bar still says `--prim`:
+		   ⚠ TEXT only. Every fill, outline and 2px active bar still says `--prime`:
 		     the accent is doing its job as a fill, and this is the same hue. */
-		--prim-ink: light-dark(#B84A24, #FF8F60);
+		--prime-ink: light-dark(#B84A24, #FF8F60);
 
 		--ink:     light-dark(#3f3f3f, #e6e6e6);
 		/* ⚠ Not the comp's #737373 — that measured 4.24:1 on `--wash`, under AA, in
@@ -47,7 +47,7 @@
 		/* Stays dark in both modes: `--bg` is what `button.bg` paints itself,
 		   and framework.css pairs it with a hardcoded white label. A light
 		   `--bg` in dark mode would be white-on-grey. */
-		--bg: light-dark(#3f3f3f, #4a4a4a);
+		--dark: light-dark(#3f3f3f, #4a4a4a);
 
 		/* The comp ships the sidebar white and near-black. One token, not two designs. */
 		--sidebar-bg:  light-dark(#ffffff, #141414);
@@ -63,15 +63,15 @@
 		/* ⚠ The --syn-* below are NOT light-dark(): `--code-bg` is dark in both modes,
 		   so a "light mode" value would be a dark grey on a dark box. */
 		--syn-comment: #b5b5b5;
-		--syn-keyword: var(--prim);
+		--syn-keyword: var(--prime);
 		--syn-string:  #9ecbff;
 		--syn-number:  #79c0ff;
 		--syn-fn:      #d2a8ff;
-		--syn-builtin: var(--prim);
+		--syn-builtin: var(--prime);
 		--syn-tag:     #7ee787;
 		--syn-attr:    #fffbca;
 		--syn-meta:    #9d9d9d;
-		--syn-error:   var(--prim);
+		--syn-error:   var(--prime);
 
 		/* ⚠ Paints itself rather than leaning on `body { color }`: `color` inherits as
 		   a RESOLVED value, so a nested box redefining only `--ink` would change
@@ -79,7 +79,7 @@
 		color: var(--ink);
 		background: var(--surface);
 		font-family: var(--font);
-		accent-color: var(--prim);
+		accent-color: var(--prime);
 
 		font-weight: 500;
 		line-height: 1.8;   /* the headings below reset it — 1.8 on a 3em face is a gap */
@@ -118,7 +118,7 @@
 	   padding, at (0,2,0) — beating `framework.css`'s one control grammar
 	   (`ui/controls/doc/grammar.md`) so a button on this site measured 36.9px against
 	   every other control's 36.09px. All six were one shouty-CTA ensemble, not a
-	   standalone brand mark like `--prim`'s orange (no comment anywhere singled one
+	   standalone brand mark like `--prime`'s orange (no comment anywhere singled one
 	   out); the owner's own ask was "match each other, and match the base font size."
 	   A button now takes the grammar like every other control. */
 
@@ -141,7 +141,7 @@
 		border-radius: 50%;
 		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 	}
-	.theme-lew42 input[type="range"]:hover::-webkit-slider-thumb { border-color: var(--prim); }
+	.theme-lew42 input[type="range"]:hover::-webkit-slider-thumb { border-color: var(--prime); }
 
 	.theme-lew42 input[type="range"]::-moz-range-track {
 		height: 4px; background: var(--line); border-radius: 999px;
@@ -153,5 +153,5 @@
 		border-radius: 50%;
 		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 	}
-	.theme-lew42 input[type="range"]:hover::-moz-range-thumb { border-color: var(--prim); }
+	.theme-lew42 input[type="range"]:hover::-moz-range-thumb { border-color: var(--prime); }
 }

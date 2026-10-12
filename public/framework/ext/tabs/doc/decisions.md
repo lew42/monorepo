@@ -48,7 +48,7 @@ in this file about depth.
 
 **The look is the default, not a variant.** A flat text label, a hairline under the set,
 a 2px mark under the selected one, every value a token — `--line`, `--subtle`, `--ink`,
-`--prim`. A `.minimal` class was rejected: the quiet version *is* the component, and a
+`--prime`. A `.minimal` class was rejected: the quiet version *is* the component, and a
 tab bar that ships a box, a fill and a radius has decided something that was not its
 call. `.vertical` stays a variant because it changes the **axis**, not the skin.
 
@@ -111,7 +111,7 @@ reads it the same way, for the same reason.
 
 ## 2026-09-05 — the floor: every tab set shows its panel
 
-> the current underline tabs (with underline becoming orange (--prim) when active..) don't
+> the current underline tabs (with underline becoming orange (--prime) when active..) don't
 > really illustrate their tab content area, it's transparent, and so the link below the tab
 > area stays, but there's no visual boundary between them. (the owner, 2026-09-05)
 

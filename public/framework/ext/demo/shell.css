@@ -84,7 +84,7 @@
 	     and a tie is decided by whichever stylesheet the browser linked last. */
 	.demo-shell .demo-stage.bleed .demo-screen {
 		padding: 0.75em;
-		background: var(--bg);
+		background: var(--dark);
 		border-radius: var(--radius);
 	}
 

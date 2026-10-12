@@ -8,8 +8,8 @@
 
      default     .card              var(--surface)
      light gray  .card.card-gray    var(--darken-1)
-     dark        .card.card-dark    var(--bg)   — an ALWAYS-DARK ISLAND
-     strong hue  .card.card-prim    var(--prim) — an ALWAYS-LIGHT ISLAND
+     dark        .card.card-dark    var(--dark)   — an ALWAYS-DARK ISLAND
+     strong hue  .card.card-prim    var(--prime) — an ALWAYS-LIGHT ISLAND
 
    "Always-dark/light island" is framework.css's own mechanism (line ~155
    there): forcing `color-scheme` flips --ink / --line / every --fill-aNN
@@ -18,14 +18,14 @@
    proved this exact four-name set for a full-width band; these two classes
    are the same idea at card scale. doc/system.md has the contrast table.
 
-   `--prim` is `#FF6157` in framework.css, but this theme (lew42.css) overrides
+   `--prime` is `#FF6157` in framework.css, but this theme (lew42.css) overrides
    it to `#FF8F60` (a mid-bright orange) — that live, rendered colour is the
    one that matters for contrast, not framework.css's fallback. It is dark
    enough that the usual "dark ground gets light ink" rule fails it: light
-   --ink on --prim measured about 2.5:1 (2026-09-30 review), below the 4.5:1
-   floor. Dark ink on --prim measures 4.69:1 (getComputedStyle, both page
+   --ink on --prime measured about 2.5:1 (2026-09-30 review), below the 4.5:1
+   floor. Dark ink on --prime measures 4.69:1 (getComputedStyle, both page
    modes — text rgb(63,63,63) on background rgb(255,143,96), 2026-09-30),
-   which passes but not by much — a darker step on `--prim` would fail it
+   which passes but not by much — a darker step on `--prime` would fail it
    again. `.card-prim` forces `color-scheme: light` instead of `dark` — the
    opposite flip from `.card-dark` — so `--ink` resolves to its dark,
    light-mode value even when the page itself is in dark mode.
@@ -52,8 +52,8 @@
    correct value. A `visited`/`hover` link inside is unaffected either way:
    framework.css already declares THEIR colors directly on the `a` (not
    inherited), so those were resolving right all along. */
-.card-dark { background: var(--bg); color-scheme: dark; }
-.card-prim { background: var(--prim); color-scheme: light; }
+.card-dark { background: var(--dark); color-scheme: dark; }
+.card-prim { background: var(--prime); color-scheme: light; }
 
 /* ⚠ `.card.card-dark`, not `.card-dark` alone: when the card itself IS the
    link (`a.card.card-dark` — exactly what mini-pages/MiniPages.js draws),

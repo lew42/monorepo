@@ -12,7 +12,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("Media").ac("mb").style("color", "var(--prim)");
+            h1("Media").ac("mb").style("color", "var(--prime)");
 
             p("These are the media features built into this framework:");
             p("`img, picture, video, canvas, svg`: use them for images/video, they're capped to fit their container automatically.").ac("mb");

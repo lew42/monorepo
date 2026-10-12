@@ -56,7 +56,7 @@ spacing comes from the `--flow` rules. **The theme page is stale, not the elemen
 **`:focus-visible`'s `outline-width: 2px` genuinely does nothing**, and the file has a
 comment wondering why. Answer: no `outline-style` is set, so the UA's `outline-style:
 auto` draws the ring, and `auto` ignores `outline-width` by design. That is also why the
-commented-out `outline: 2px solid var(--prim)` above it *"messes with the border
+commented-out `outline: 2px solid var(--prime)` above it *"messes with the border
 radius"* — a `solid` outline doesn't follow `border-radius`; an `auto` one does. Losing
 `outline-width` is the price of rounded rings, which is the right trade and now has a
 reason written next to it.

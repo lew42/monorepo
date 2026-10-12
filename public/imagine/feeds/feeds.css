@@ -29,8 +29,8 @@
 	.feeds-pick:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
 
 	.feeds-pick:is(.in-path, [aria-current]) {
-		background: color-mix(in srgb, var(--prim) 10%, transparent);
-		border-inline-end-color: var(--prim);
+		background: color-mix(in srgb, var(--prime) 10%, transparent);
+		border-inline-end-color: var(--prime);
 	}
 
 	.feeds-pick-title { font-size: 0.9em; font-weight: 600; }
@@ -84,8 +84,8 @@
 
 	.feeds-data .feeds-chips .feeds-chip.feeds-chip-on {
 		color: #fff;
-		background: var(--prim);
-		border-color: var(--prim);
+		background: var(--prime);
+		border-color: var(--prime);
 	}
 
 	.feeds-count { font-size: 0.8em; color: var(--subtle); }
@@ -101,7 +101,7 @@
 
 	.feeds-card-name { font-weight: 600; }
 	.feeds-card-meta { display: flex; justify-content: space-between; gap: calc(var(--gap) * 0.5); font-size: 0.8em; color: var(--subtle); }   /* was gap 0.5em - 2026-09-05 ramps */
-	.feeds-card-type { font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.04em; color: var(--prim); }
+	.feeds-card-type { font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.04em; color: var(--prime); }
 
 	/* ── columns tree: group -> item -> detail, one pane each ── */
 	.feeds-tree { align-items: stretch; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
@@ -128,7 +128,7 @@
 		border-bottom: 1px solid var(--line);
 	}
 	.feeds-tree-row:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
-	.feeds-tree-row.feeds-tree-on { background: color-mix(in srgb, var(--prim) 10%, transparent); font-weight: 600; }
+	.feeds-tree-row.feeds-tree-on { background: color-mix(in srgb, var(--prime) 10%, transparent); font-weight: 600; }
 
 	.feeds-tree-detail { padding: 0.7em 0.9em; font-size: 0.85em; }
 	.feeds-tree-detail p { margin: 0.2em 0; }
@@ -149,8 +149,8 @@
 
 	.feeds-live .feeds-live-bar .feeds-live-toggle.feeds-live-on {
 		color: #fff;
-		background: var(--prim);
-		border-color: var(--prim);
+		background: var(--prime);
+		border-color: var(--prime);
 	}
 
 	.feeds-live-status { font-size: 0.75em; color: var(--subtle); }

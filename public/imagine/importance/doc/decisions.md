@@ -111,7 +111,7 @@ print eight crumbs.
 **A name that navigates says so.** `.imp-name` wore no mark until hover, on the reasoning
 that a column of underlined lines reads as a menu rather than a ranking. The cold reader
 did not guess a single name was clickable, so it wears the site's own prose-link mark at
-rest — body ink, a `--prim` underline, thinner than a paragraph's. **Reversed.**
+rest — body ink, a `--prime` underline, thinner than a paragraph's. **Reversed.**
 
 **The paragraph describing the bar chart is deleted**, and the picture carries it: the count
 beside each bar reads `100% — won 3 of 3`, and the trace control is a labelled row toggle

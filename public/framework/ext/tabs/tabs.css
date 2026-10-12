@@ -99,7 +99,7 @@
 	   Router to set the two classes. Same exclusion for the same reason — and on the
 	   default's own url nothing matches, so the fallback below lights it instead. */
 	.tab.active,
-	.tab:is(.in-path, [aria-current]):not(.tab-default) { color: var(--ink); border-bottom-color: var(--prim); }
+	.tab:is(.in-path, [aria-current]):not(.tab-default) { color: var(--ink); border-bottom-color: var(--prime); }
 
 	/* A set with NOTHING of its own in the url highlights its first tab, so a panel is
 	   never showing content with nothing marked. Mirrors the panel's own default rule.
@@ -107,7 +107,7 @@
 	     so the outer bar has no `.active` at all and lit two tabs — the first and the
 	     one actually in the path. */
 	.tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
-		color: var(--ink); border-bottom-color: var(--prim);
+		color: var(--ink); border-bottom-color: var(--prime);
 	}
 
 	/* ⚠ Resets Page's measure tokens: they inherit, and a panel sits inside a page
@@ -158,7 +158,7 @@
 	.tabs.block > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
 	.tabs.block > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
 		border-color: var(--line);
-		border-top-color: var(--prim);
+		border-top-color: var(--prime);
 		border-bottom-color: transparent;
 		background: var(--tab-fill, transparent);
 	}
@@ -196,7 +196,7 @@
 	.tabs.bounded:not(.vertical) > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
 		color: var(--ink);
 		border-color: var(--line);
-		border-top-color: var(--prim);
+		border-top-color: var(--prime);
 		background: var(--tab-fill, var(--surface));
 		border-bottom-color: var(--tab-fill, var(--surface));
 	}
@@ -266,7 +266,7 @@
 	.tabs.vertical > .tab-bar > .tab.active,
 	.tabs.vertical > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
 	.tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
-		border-inline-end-color: var(--prim);
+		border-inline-end-color: var(--prime);
 	}
 
 	.tabs.vertical > .tab-panel { flex: 1 1 0; min-width: 0; padding-top: 0; }
@@ -302,7 +302,7 @@
 		.tabs.vertical > .tab-bar > .tab.active,
 		.tabs.vertical > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
 		.tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
-			border-bottom-color: var(--prim);
+			border-bottom-color: var(--prime);
 		}
 		.tabs.vertical > .tab-panel { padding-top: 1rem; }
 

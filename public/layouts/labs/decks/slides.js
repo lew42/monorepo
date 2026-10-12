@@ -32,7 +32,7 @@ export const KINDS = [
 				{ k: "three", name: "No dependencies", note: "npx and global tools, nothing installed into the site." },
 				{ k: "four", name: "Pages are urls", note: "A page exists once its parent names it in children." },
 				{ k: "five", name: "One row", note: "Every page under a columns host is a column in one row." },
-				{ k: "six", name: "One accent", note: "A palette of tokens, one --prim, and a tone step for depth." },
+				{ k: "six", name: "One accent", note: "A palette of tokens, one --prime, and a tone step for depth." },
 			]));
 		},
 	},

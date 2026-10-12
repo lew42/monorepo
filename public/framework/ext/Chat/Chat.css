@@ -132,7 +132,7 @@
 
 	/* The "raw" dig-back toggle (deliverable 3, ai/2026-09-29/audio/next-clean-transcription/
 	   a-clean-mode) stays lit while it is showing Whisper's raw words instead of the clean-up. */
-	.chatbox-compose-raw.active { opacity: 1; color: var(--prim); }
+	.chatbox-compose-raw.active { opacity: 1; color: var(--prime); }
 
 	/* THE STATUS NOTE — a plain small line under the row (chat-menu-merge, 2026-10-01).
 	   It used to be folded out of sight behind the `⋯` button — hidden with `visibility`
@@ -282,7 +282,7 @@
 	.chatbox-avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; }
 	/* One colour per role, all from theme tokens (each reads in light and dark);
 	   an unknown role stays the ink colour. */
-	.chatbox-who-you       { color: var(--prim-ink); }
+	.chatbox-who-you       { color: var(--prime-ink); }
 	.chatbox-who-assistant { color: var(--ok); }
 	.chatbox-who-manager   { color: var(--warn); }
 	.chatbox-who-master    { color: color-mix(in srgb, var(--syn-fn) 45%, var(--ink)); }   /* the theme purple, darkened toward ink so it reads on white */
@@ -312,7 +312,7 @@
 	}
 	.chatbox-you {
 		align-self: flex-end;
-		background: color-mix(in srgb, var(--prim) 22%, transparent);
+		background: color-mix(in srgb, var(--prime) 22%, transparent);
 	}
 	.chatbox-reply {
 		align-self: flex-start;
@@ -343,7 +343,7 @@
 	}
 
 	.chatbox-choice.picked {
-		background: var(--prim);
+		background: var(--prime);
 		color: var(--surface);
 	}
 
@@ -357,7 +357,7 @@
 	.chatbox-refined { cursor: pointer; }
 	.chatbox-sec + .chatbox-sec { margin-block-start: 0.5em; }
 	.chatbox-sec-open-able { cursor: pointer; border-inline-start: 2px solid transparent; padding-inline-start: 0.4em; margin-inline-start: -0.4em; }
-	.chatbox-sec-open-able:hover, .chatbox-sec-open-able.open { border-inline-start-color: var(--prim); }
+	.chatbox-sec-open-able:hover, .chatbox-sec-open-able.open { border-inline-start-color: var(--prime); }
 	.chatbox-from, .chatbox-pieces {
 		margin-block-start: 0.3em;
 		padding-inline-start: 0.6em;
@@ -392,7 +392,7 @@
 	/* SELECTED (Chat.js's `select_bubble()`) — one bubble at a time, a visible
 	   ring, a tap or Esc away from clearing it (requirements.md deliverable 2). */
 	.chatbox-selectable { cursor: pointer; }
-	.chatbox-selected { outline: 2px solid var(--prim); outline-offset: 2px; }
+	.chatbox-selected { outline: 2px solid var(--prime); outline-offset: 2px; }
 
 	/* RENAME (deliverable 3) — the button and dropdown a selected bubble grows,
 	   the same shape `ux/Rename`'s own dropdown uses. */
@@ -424,7 +424,7 @@
 		padding: 0.1em 0.4em;
 		border: 0;
 		background: none;
-		color: var(--prim-ink);
+		color: var(--prime-ink);
 		font: inherit;
 		font-size: 0.85em;
 		cursor: pointer;
@@ -433,7 +433,7 @@
 	.chatbox-thread-body[hidden] { display: none; }
 	.chatbox-thread-btn { display: inline-block; margin-block-start: 0.3em; margin-inline-start: 0.4em; font: inherit; font-size: 0.8em; padding: 0.15em 0.5em; }
 	/* "Replying to …" above the box, while a reply is pending. */
-	.chatbox-replying { display: flex; align-items: center; gap: 0.4em; padding: 0.2em 0.5em; font-size: 0.85em; color: var(--prim-ink); }
+	.chatbox-replying { display: flex; align-items: center; gap: 0.4em; padding: 0.2em 0.5em; font-size: 0.85em; color: var(--prime-ink); }
 	.chatbox-replying[hidden] { display: none; }
 	.chatbox-replying-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.chatbox-replying-x { border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
@@ -463,7 +463,7 @@
 	}
 	.chatbox-reply .chatbox-reacts { inset-inline-end: -0.4em; }
 	.chatbox-you .chatbox-reacts { inset-inline-start: -0.4em; }
-	.chatbox-react.mine { text-shadow: 0 0 0.5em color-mix(in srgb, var(--prim) 60%, transparent); }
+	.chatbox-react.mine { text-shadow: 0 0 0.5em color-mix(in srgb, var(--prime) 60%, transparent); }
 
 	/* The row of choices: above the bubble, or below it when the bubble sits at
 	   the top of the log (`.below`, decided when it opens) so the log never clips it. */
@@ -492,7 +492,7 @@
 		cursor: pointer;
 	}
 	.chatbox-react-pick:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
-	.chatbox-react-pick.mine { background: color-mix(in srgb, var(--prim) 28%, transparent); }
+	.chatbox-react-pick.mine { background: color-mix(in srgb, var(--prime) 28%, transparent); }
 
 	/* The desktop way in: a faint smiley beside the bubble, on hover only. A
 	   phone has no hover, so there it never shows; a long hold opens the row. */
@@ -573,7 +573,7 @@
 	}
 	.chatbox-drill-deep { cursor: pointer; }
 	.chatbox-drill-deep:hover { background: var(--wash); }
-	.chatbox-drill-more { display: block; margin-block-start: 0.4em; font-size: 0.85em; color: var(--prim-ink); }
+	.chatbox-drill-more { display: block; margin-block-start: 0.4em; font-size: 0.85em; color: var(--prime-ink); }
 	.chatbox-drill-text > :first-child { margin-block-start: 0; }
 	.chatbox-drill-text > :last-child { margin-block-end: 0; }
 }

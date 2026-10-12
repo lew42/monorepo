@@ -61,6 +61,6 @@ must agree about which row is chosen**, and they have now been wrong in both
 directions: first the chevron was missing from a lit row, then it would have been
 present on an unlit one.
 
-The `border-left: 3px var(--prim)` that used to sit on the active row is gone: the
+The `border-left: 3px var(--prime)` that used to sit on the active row is gone: the
 comp doesn't draw one, and it was the only thing in this file that moved the label by
 a pixel between states.

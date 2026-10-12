@@ -40,5 +40,5 @@
 		border: 1px solid var(--line);
 		border-radius: var(--radius);
 	}
-	.layout-close:hover { color: var(--prim); border-color: var(--prim); }
+	.layout-close:hover { color: var(--prime); border-color: var(--prime); }
 }

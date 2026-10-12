@@ -39,11 +39,11 @@ export default new Doc({
 
 		md("## What a theme is allowed to contain");
 
-		md("Tokens. Ideally nothing else.\n\n```css\n.theme-paper {\n    --prim:    #9a5b28;\n    --ink:     #2c2622;\n    --surface: #fbf7f0;\n    --radius:  0.5em;\n    --font:    Georgia, serif;\n\n    color: var(--ink);\n    background: var(--surface);\n    font-family: var(--font);\n}\n```\n\nThe theme paints **itself** rather than leaning on `body { color: … }`, so it works at any depth. `color` inherits as a *resolved value* — a nested box that only redefined `--ink` would change nothing.");
+		md("Tokens. Ideally nothing else.\n\n```css\n.theme-paper {\n    --prime:    #9a5b28;\n    --ink:     #2c2622;\n    --surface: #fbf7f0;\n    --radius:  0.5em;\n    --font:    Georgia, serif;\n\n    color: var(--ink);\n    background: var(--surface);\n    font-family: var(--font);\n}\n```\n\nThe theme paints **itself** rather than leaning on `body { color: … }`, so it works at any depth. `color` inherits as a *resolved value* — a nested box that only redefined `--ink` would change nothing.");
 
 		md("## The ladder");
 
-		md("Same shape as the CSS ladder. Stop at the first rung.\n\n| rung | you write | when |\n| --- | --- | --- |\n| 1 | **a global token** — `--prim`, `--font` | almost always |\n| 2 | **a component token** — `--tab-bar-bg` | one component must differ |\n| 3 | **a rule on generic HTML** — `h1::before` | no token can express it |\n| 4 | **a rule naming a component class** | ✗ — the component is missing a token |\n\nRung 4 is the failure the whole design exists to prevent. A theme that says `.tab-bar { … }` has to be edited every time a component is added, and a component can no longer be understood without reading every theme. **If you reach for it, add the token instead and push the change into the component.**");
+		md("Same shape as the CSS ladder. Stop at the first rung.\n\n| rung | you write | when |\n| --- | --- | --- |\n| 1 | **a global token** — `--prime`, `--font` | almost always |\n| 2 | **a component token** — `--tab-bar-bg` | one component must differ |\n| 3 | **a rule on generic HTML** — `h1::before` | no token can express it |\n| 4 | **a rule naming a component class** | ✗ — the component is missing a token |\n\nRung 4 is the failure the whole design exists to prevent. A theme that says `.tab-bar { … }` has to be edited every time a component is added, and a component can no longer be understood without reading every theme. **If you reach for it, add the token instead and push the change into the component.**");
 
 		demo(() => {
 			div.c("theme-terminal pad", () => {

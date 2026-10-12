@@ -196,7 +196,7 @@
 	.sections-skin-plain { background: transparent; }
 	.sections-skin-tint  { background: var(--tint); }
 	.sections-skin-card  { background: var(--surface); }
-	.sections-skin-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
+	.sections-skin-prim  { background: color-mix(in srgb, var(--prime) 10%, var(--surface)); }
 
 	/* ⚠ `color-scheme: dark` is what makes an always-dark island work: every
 	     `light-dark()` token inside it flips, including the alpha rungs. */
@@ -261,11 +261,11 @@
 		user-select: none;
 	}
 
-	.sections-chip:is(:hover, :focus-visible) { border-color: var(--prim); color: var(--prim-ink); }
-	.sections-chip.on { background: var(--prim); border-color: var(--prim); color: white; }
+	.sections-chip:is(:hover, :focus-visible) { border-color: var(--prime); color: var(--prime-ink); }
+	.sections-chip.on { background: var(--prime); border-color: var(--prime); color: white; }
 	.sections-chip .icon { font-size: 1em; }
 
-	.sections-mark { display: inline-flex; align-items: center; gap: 0.3em; font-size: 0.78em; color: var(--prim-ink); }
+	.sections-mark { display: inline-flex; align-items: center; gap: 0.3em; font-size: 0.78em; color: var(--prime-ink); }
 	.sections-mark .icon { font-size: 1em; }
 
 	.sections-reads { display: flex; flex-wrap: wrap; gap: calc(var(--gap) * 0.3); }
@@ -273,8 +273,8 @@
 	.sections-px {
 		padding: 0.15em 0.45em;
 		border-radius: var(--radius);
-		background: color-mix(in srgb, var(--prim) 12%, transparent);
-		color: var(--prim-ink);
+		background: color-mix(in srgb, var(--prime) 12%, transparent);
+		color: var(--prime-ink);
 		font-family: var(--mono); font-size: 0.72em; font-weight: 700;
 		white-space: nowrap;
 	}
@@ -290,7 +290,7 @@
 		border-radius: var(--radius);
 	}
 
-	.sections-link:is(:hover, :focus-visible) { border-color: var(--prim); color: var(--prim-ink); }
+	.sections-link:is(:hover, :focus-visible) { border-color: var(--prime); color: var(--prime-ink); }
 	.sections-link .icon { font-size: 1em; }
 
 	/* ── A NAV INSIDE A SECTION ────────────────────────────────────────────────
@@ -322,7 +322,7 @@
 	}
 
 	.sections-nav-item:is(:hover, :focus-visible) { background: var(--fill-a08); color: var(--ink); }
-	.sections-nav-item.on { border-inline-start-color: var(--prim); background: var(--fill-a08); color: var(--ink); font-weight: 600; }
+	.sections-nav-item.on { border-inline-start-color: var(--prime); background: var(--fill-a08); color: var(--ink); font-weight: 600; }
 
 	/* ── RESERVED HEIGHT — the whole of stable navigation, vertically ──────────
 	   Every panel stays in the DOM, all of them in ONE grid cell, and the ones you

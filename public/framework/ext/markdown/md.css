@@ -20,6 +20,6 @@
         color: var(--subtle);
         font-size: 0.9em;
     }
-    .md-details > summary:hover { color: var(--prim); }
+    .md-details > summary:hover { color: var(--prime); }
     .md-details-body { padding-bottom: 1em; font-size: 0.95em; }
 }

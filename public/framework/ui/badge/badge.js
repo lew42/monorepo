@@ -3,7 +3,7 @@ import { css } from "../parts.js";
 /* Four tones is all the token set honestly has: there is one accent and no
  * `--ok` or `--warn`, so nothing here means *good* or *warning*. */
 css(`@layer theme {
-	.ui-badge.accent { background: var(--prim); color: var(--surface); }
+	.ui-badge.accent { background: var(--prime); color: var(--surface); }
 	.ui-badge.dark { background: var(--ink); color: var(--surface); }
 	.ui-badge.outline { background: none; border: 1px solid var(--line); }
 

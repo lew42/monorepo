@@ -144,7 +144,7 @@ bug rather than a value bug, and it bit `styles/sections/` twice:
 
 | | was | measured |
 |---|---|---|
-| the eyebrow | `color: var(--prim)` | **1.06:1** on the `prim` band |
+| the eyebrow | `color: var(--prime)` | **1.06:1** on the `prim` band |
 | a stat label | `color: var(--subtle)` | **1.06:1** on the `prim` band |
 
 Both are the same mistake: **a colour picked against the band you were looking at.**
@@ -152,7 +152,7 @@ A band whose fill is a variable cannot have de-emphasis that is a constant. Two
 fixes, and the second generalises:
 
 ```js
-"--eyebrow": COLOURED[tone] ? "currentColor" : "var(--prim)",
+"--eyebrow": COLOURED[tone] ? "currentColor" : "var(--prime)",
 muted = { color: "color-mix(in srgb, currentColor 68%, transparent)" },
 ```
 
@@ -169,7 +169,7 @@ sidebar's icons at 1.13:1. They are about 7:1. **Thirty false positives, and the
 was nearly applied.** If a measurement disagrees with the screenshot, the
 measurement is on trial too.
 
-**`--prim` as *text* is 2.01–2.25:1** and is left alone deliberately — a call the
+**`--prime` as *text* is 2.01–2.25:1** and is left alone deliberately — a call the
 owner of the brand made, not an oversight. It affects `.toc-link.current`, `.prim`
 labels and `.page-link.active`. Recorded so the next person does not "discover" it
 and quietly repaint the accent.

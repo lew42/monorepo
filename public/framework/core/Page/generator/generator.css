@@ -116,8 +116,8 @@
 	.page--generator button.page-gen-export-btn {
 		flex: 0 0 auto;
 		padding: 0.3em 0.7em; font-size: 0.8em;
-		color: var(--prim-ink); background: var(--fill-a08);
-		border: 1px solid var(--prim); border-radius: 3px;
+		color: var(--prime-ink); background: var(--fill-a08);
+		border: 1px solid var(--prime); border-radius: 3px;
 	}
 	.page--generator button.page-gen-export-btn:hover { background: var(--tint); }
 
@@ -162,7 +162,7 @@
 		color: var(--subtle); background-color: transparent;
 		border-color: var(--line); border-radius: 3px;
 	}
-	.page--generator select.page-gen-menu:hover { color: var(--ink); border-color: var(--prim); }
+	.page--generator select.page-gen-menu:hover { color: var(--ink); border-color: var(--prime); }
 
 	/* ⚠ (0,2,0): core's `.page-column-close` claims `margin-inline-start: auto` too, and
 	     two auto margins SPLIT the free space — the chip floated to the middle. */
@@ -193,9 +193,9 @@
 		color: var(--subtle); background: transparent;
 		border: 1px solid var(--line); border-radius: 3px;
 	}
-	.page--generator button.page-gen-pick:hover { color: var(--ink); border-color: var(--prim); }
+	.page--generator button.page-gen-pick:hover { color: var(--ink); border-color: var(--prime); }
 	.page--generator button.page-gen-pick.on {
-		color: var(--prim-ink); border-color: var(--prim); background: var(--fill-a08);
+		color: var(--prime-ink); border-color: var(--prime); background: var(--fill-a08);
 	}
 
 
@@ -220,7 +220,7 @@
 
 	/* Router.mark_links()'s own two classes — so a generated tree lights up exactly the
 	   way every other nav on the site does, with nothing here to keep in step. */
-	.page-gen-item:is(.active, .in-path) { color: var(--ink); border-inline-end-color: var(--prim); }
+	.page-gen-item:is(.active, .in-path) { color: var(--ink); border-inline-end-color: var(--prime); }
 
 	.page-gen-label { flex: 1 1 auto; min-width: 0; }
 	.page-gen-item .icon { font-size: 1em; }
@@ -388,7 +388,7 @@
 		background: var(--tint);
 	}
 	.page-gen-wall > .page-gen-nav > .page-gen-item .page-gen-label { flex: 0 0 auto; color: var(--ink); }
-	.page-gen-wall > .page-gen-nav > .page-gen-item:is(.active, .in-path) { border-color: var(--prim); }
+	.page-gen-wall > .page-gen-nav > .page-gen-item:is(.active, .in-path) { border-color: var(--prime); }
 	.page-gen-wall > .page-gen-nav > .page-gen-item .icon { display: none; }
 
 	/* Prose: no children to present, so the content IS the page. */
@@ -419,7 +419,7 @@
 		background: var(--surface);
 		color: var(--subtle); text-decoration: none;
 	}
-	.page-gen-tile:hover { border-color: var(--prim); color: var(--ink); }
+	.page-gen-tile:hover { border-color: var(--prime); color: var(--ink); }
 	.page-gen-tile-seed { font-size: 0.72em; }
 
 	/* ── ONE PICTURE ──
@@ -454,13 +454,13 @@
 	.page-gen-sk-large { flex-grow: 2; }
 	.page-gen-sk-full  { flex-grow: 3; grid-column: 1 / -1; }
 
-	/* THE TWO IN-PLACE WORDS carry a `--prim` mark, because that is the thing a tile has
+	/* THE TWO IN-PLACE WORDS carry a `--prime` mark, because that is the thing a tile has
 	   to say: children beside each other in a strip, inside the parent's own box. */
 	.page-gen-sk-tabs > .page-gen-sk-nav { flex-direction: row; }
-	.page-gen-sk-tabs > .page-gen-sk-head { background: var(--prim); }
+	.page-gen-sk-tabs > .page-gen-sk-head { background: var(--prime); }
 
 	.page-gen-sk-vtabs > .page-gen-sk-nav { flex-direction: row; }
-	.page-gen-sk-vtabs { border-inline-start: 2px solid var(--prim); }
+	.page-gen-sk-vtabs { border-inline-start: 2px solid var(--prime); }
 
 	/* `wall` opens a column per card; `list` is the stack, which is the default and needs
 	   no rule at all — the same two shapes at 3px that the columns above have. */
@@ -491,7 +491,7 @@
 		white-space: nowrap;
 		box-shadow: inset 0 0 0 1px var(--line);
 	}
-	.page-gen-pair-good { color: var(--prim); box-shadow: inset 0 0 0 1px var(--prim); }
+	.page-gen-pair-good { color: var(--prime); box-shadow: inset 0 0 0 1px var(--prime); }
 	.page-gen-pair-bad  { color: var(--subtle); background: var(--tint); }
 
 
@@ -525,8 +525,8 @@
 	.page--generator button.page-gen-save-btn {
 		flex: 0 0 auto;
 		padding: 0.3em 0.7em; font-size: 0.8em;
-		color: var(--prim-ink); background: var(--fill-a08);
-		border: 1px solid var(--prim); border-radius: 3px;
+		color: var(--prime-ink); background: var(--fill-a08);
+		border: 1px solid var(--prime); border-radius: 3px;
 	}
 	.page--generator button.page-gen-save-btn:hover { background: var(--tint); }
 
@@ -549,7 +549,7 @@
 		border: 1px solid var(--line); border-radius: 999px;
 	}
 	.page-gen-card-remove .icon { font-size: 0.85em; }
-	.page-gen-card-remove:hover { color: var(--ink); border-color: var(--prim); }
+	.page-gen-card-remove:hover { color: var(--ink); border-color: var(--prime); }
 
 
 	/* ════ THE THREE LOOKS ════════════════════════════════════════════════════════
@@ -600,7 +600,7 @@
 
 	.page.columns.page-gen-look-ink .page-column-body:not(.page-gen-controls) {
 		background: var(--code-bg); color: var(--code-ink);
-		border-inline-end: 2px solid var(--prim);
+		border-inline-end: 2px solid var(--prime);
 
 		--ink: var(--code-ink);
 		--subtle: color-mix(in srgb, var(--code-ink) 62%, transparent);
@@ -612,7 +612,7 @@
 	/* The head is sticky and paints its own background, which is the one thing a token
 	   on the body cannot reach. The title is the look's voice. */
 	.page-gen-look-ink .page-column-body:not(.page-gen-controls) > .page-column-head {
-		background: var(--code-bg); border-bottom-color: var(--prim);
+		background: var(--code-bg); border-bottom-color: var(--prime);
 	}
 	.page-gen-look-ink .page-column-body:not(.page-gen-controls) .page-column-title {
 		font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;

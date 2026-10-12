@@ -82,7 +82,7 @@ verdict: pass
 - 1 — yes (dark card) — shots/.../1200.png, .../1920.png: Page/View architecture text reads as light `--dark-ink` text on a lifted dark box, clearly legible.
 - 1 — n/a (light card) — no "big" card on a light ground exists in today's data (every big module is also `.page-surface-dark`), so this pairing isn't exercised yet.
 - 2 — n/a — no accent-coloured text introduced by this diff.
-- 3 — yes — all new colour values are tokens (`var(--prim)`, `var(--prim-ink)`, `var(--dark-ink)`, `var(--subtle)`) except the two box tints, which are deliberately literal `rgba()` (documented reasoning: `--wash` reads against the PAGE ground, not the card's own, and the two happened to be visually identical hex values).
+- 3 — yes — all new colour values are tokens (`var(--prime)`, `var(--prime-ink)`, `var(--dark-ink)`, `var(--subtle)`) except the two box tints, which are deliberately literal `rgba()` (documented reasoning: `--wash` reads against the PAGE ground, not the card's own, and the two happened to be visually identical hex values).
 - 4 — yes — the architecture box's background is a lift off its own card ground (`rgba(0,0,0,0.06)` / `rgba(255,255,255,0.08)`), not `--wash` on the page.
 - 5 — yes — the dark-card override sits beside the existing `.page-surface-dark` rule (same file, same pattern), so it covers both themes the same way the ink override already does.
 - 6 — yes — the architecture box's edge is deliberate (documented in the CSS comment, citing the earlier hex-value near-miss finding).

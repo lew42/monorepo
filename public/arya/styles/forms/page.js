@@ -34,7 +34,7 @@ export default new Page(import.meta, {
 
 		h2("Checkboxes and radios");
 
-		p("These are deliberately left alone — no width, no border, just `accent-color: var(--prim)`, which recolours the native control without breaking it.");
+		p("These are deliberately left alone — no width, no border, just `accent-color: var(--prime)`, which recolours the native control without breaking it.");
 
 		demo(() => {
 			label(input().attr("type", "checkbox").attr("checked", ""), " checked");

@@ -42,14 +42,14 @@ css(`@layer theme {
 	}
 	.ui-icon-btn:hover { background: var(--wash); }
 	.ui-icon-btn:focus { outline: none; }
-	.ui-icon-btn:focus-visible { outline: 2px solid var(--prim); outline-offset: -2px; }
+	.ui-icon-btn:focus-visible { outline: 2px solid var(--prime); outline-offset: -2px; }
 
 	/* An opt-in background, for a button that should already read as its own
 	   surface — not only once the pointer arrives. */
 	.ui-icon-btn-bg { background: var(--fill-a08); }
 	.ui-icon-btn-bg:hover { background: var(--fill-a32); }
 
-	.ui-icon-btn[aria-pressed="true"] { background: var(--fill-a32); color: var(--prim); }
+	.ui-icon-btn[aria-pressed="true"] { background: var(--fill-a32); color: var(--prime); }
 	.ui-icon-btn[aria-pressed="true"]:hover { background: var(--fill-a32); }
 	.ui-icon-btn[aria-pressed="false"] { color: var(--subtle); }
 
@@ -61,6 +61,6 @@ css(`@layer theme {
 	.ui-icon-guide { position: relative; }
 	.ui-icon-guide::before {
 		content: ""; position: absolute; left: 0; right: 0; top: 50%;
-		border-top: 1px dashed var(--prim); opacity: 0.6; pointer-events: none;
+		border-top: 1px dashed var(--prime); opacity: 0.6; pointer-events: none;
 	}
 }`);

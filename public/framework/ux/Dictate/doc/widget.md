@@ -27,7 +27,7 @@ Four plain properties, every one `false`/off by default:
   into that debug session. Used on this Overview (ON); left off on the ✦ sheet.
 - **`revision`** — `"clean" | "edit" | "summary" | false`, forwarded to `Dictate`'s own
   `revise` option: a tidied version of each sentence becomes a second bubble, a moment later.
-- **`pulse`** (2026-10-01) — a small `--prim`-colored dot, bottom-right of the feed, that
+- **`pulse`** (2026-10-01) — a small `--prime`-colored dot, bottom-right of the feed, that
   grows with the live audio level instead of a fixed-height bar; a darkened "tap to talk"
   card covers the feed while the mic is off, and tapping it both unlocks and starts the mic
   in one tap. `readme.md`'s own "Widget" section and `Widget.Pulse`'s class doc (`Widget.js`)

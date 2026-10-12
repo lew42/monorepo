@@ -70,12 +70,12 @@
 	   ⚠ Each modifier carries the module's prefix. A bare `.muted` is a live framework
 	     utility and it faded the whole of post B — heading, body and all — which looked
 	     like a design rather than a bug (2026-09-17). */
-	.type-anchors-accent .type-anchor { color: var(--prim-ink); }
+	.type-anchors-accent .type-anchor { color: var(--prime-ink); }
 	.type-anchors-muted .type-anchor { color: var(--subtle); }
 	.type-anchors-rule .type-anchor {
 		color: var(--ink);
 		text-decoration-line: underline;
-		text-decoration-color: var(--prim);
+		text-decoration-color: var(--prime);
 		text-decoration-thickness: 0.15em;
 		text-underline-offset: 0.35em;
 	}
@@ -86,7 +86,7 @@
 	.type-anchors-rule .type-anchors-eyebrow {
 		color: var(--ink);
 		text-decoration-line: underline;
-		text-decoration-color: var(--prim);
+		text-decoration-color: var(--prime);
 		text-decoration-thickness: 0.15em;
 		text-underline-offset: 0.35em;
 	}
@@ -115,7 +115,7 @@
 	   reason as the caption, so `--measure` needs no scaling division either. */
 	.type-anchors-takeaway {
 		max-width: var(--measure);
-		border-inline-start: 3px solid var(--prim);
+		border-inline-start: 3px solid var(--prime);
 		padding-inline-start: 0.8em;
 		margin-block-end: var(--flow);
 	}

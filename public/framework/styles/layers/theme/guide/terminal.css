@@ -13,7 +13,7 @@
 	.theme-terminal {
 		color-scheme: dark;
 
-		--prim:    #3ddc84;
+		--prime:    #3ddc84;
 		--ink:     #c9d4c9;
 		--surface: #0d1117;
 		--subtle:  rgba(201,212,201,0.5);
@@ -47,6 +47,6 @@
 
 	.theme-terminal :is(h1, h2, h3, .h1, .h2, .h3)::before {
 		content: "# ";
-		color: var(--prim);
+		color: var(--prime);
 	}
 }

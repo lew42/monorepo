@@ -45,6 +45,6 @@
 	   every anchor in the box, and the real Router.mark_links() would clear a class.
 	   Both of its answers light — the exact page and every ancestor of it ARE the
 	   trail. */
-	.apps-row[aria-current] { background: var(--wash); color: var(--prim); }
-	.apps-row[aria-current] .icon { color: var(--prim); }
+	.apps-row[aria-current] { background: var(--wash); color: var(--prime); }
+	.apps-row[aria-current] .icon { color: var(--prime); }
 }

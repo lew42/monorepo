@@ -67,7 +67,7 @@ css(`@layer theme {
 	.datagrid-grip::after {
 		content: ""; position: absolute; inset-block: 0; inset-inline-start: 50%;
 		width: 2px; transform: translateX(-50%);
-		background: var(--prim); opacity: 0; transition: opacity 0.1s;
+		background: var(--prime); opacity: 0; transition: opacity 0.1s;
 	}
 	.datagrid-grip:hover::after, .datagrid-grip:focus-visible::after { opacity: 0.6; }
 

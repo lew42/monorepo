@@ -32,14 +32,14 @@
 	.page-uses-row.active,
 	.page-uses-row:is(.in-path, [aria-current]) {
 		background: var(--tint);
-		border-inline-end-color: var(--prim);
+		border-inline-end-color: var(--prime);
 	}
 
 	.page-uses-from { font-size: 0.9em; font-weight: 600; }
 
 	/* The unread dot rides the sender's line rather than taking a track of its own:
 	   14em is 224px and a column of dots would cost 8% of it. */
-	.page-uses-from::before { content: "\2022"; color: var(--prim); margin-inline-end: 0.4em; }
+	.page-uses-from::before { content: "\2022"; color: var(--prime); margin-inline-end: 0.4em; }
 
 	.page-uses-read .page-uses-from { font-weight: 400; color: var(--subtle); }
 	.page-uses-read .page-uses-from::before { color: transparent; }

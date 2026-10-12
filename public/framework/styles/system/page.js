@@ -174,7 +174,7 @@ export default new Page({
 						bars[rung.token] = div().style({
 							width: "var(" + rung.token + ")",
 							height: "1.1em",
-							background: "var(--prim)",
+							background: "var(--prime)",
 							borderRadius: "2px",
 						});
 					});

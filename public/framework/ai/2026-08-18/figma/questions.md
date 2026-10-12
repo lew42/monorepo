@@ -424,7 +424,7 @@ name matching the brief. No shift this time.
 **Built, not just tested.** No existing layout matched (a bordered-band document with a numbered
 services grid, a stat banner and a newsletter footer, all under one measured column) — new dir:
 [`/framework/styles/layouts/bold-editorial/`](/framework/styles/layouts/bold-editorial/full/).
-Zero hex values in the file: every "dark" pixel is `.tint`/`.wash`/`--prim-ink`, the same
+Zero hex values in the file: every "dark" pixel is `.tint`/`.wash`/`--prime-ink`, the same
 elevation ladder `sections/` and `home/` already use, so the page needs no media query to answer
 in both colour schemes.
 
@@ -501,7 +501,7 @@ real one.
 **Questions**
 
 1. **Three orange CTAs.** The Figma's Key-Concept cards each carry a dark filled button. The
-   closest thing that exists is `.btn.prim`, which is `--prim` orange — three of them in a row is
+   closest thing that exists is `.btn.prim`, which is `--prime` orange — three of them in a row is
    louder than the comp. Assumed `.btn.prim` (standing rule 1: pick what exists). Should a dark
    filled button exist, or should these be plain bordered buttons?
 2. **Traffic lights.** The source frame's window chrome is red / amber / green. The token set has
