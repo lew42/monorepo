@@ -29,6 +29,14 @@ export default class AISessionSource {
 	/** The files path's "needs attention" test, run by the same AISessionFlags.flags_of: a session-record alert or any red flag. 1 or 0, so the query can `gte` and `sum` it. */
 	static attention_of(row) { return row.alerts || AISessionFlags.flags_of(row).length ? 1 : 0; }
 
+	/** The sorted matches become the grid's list, exactly as AISessionsPage.arrange does for the files path (the same AISessionBuckets.arrange): routine kinds roll up into head rows,
+	 * children nest under their parent. `spec.open` = { kinds, ids } is what the browser has expanded. Each session row carries its `nest` ({ depth, kids, open }). */
+	static arrange(hit, spec) {
+		const open = spec.open ?? {}, buckets = AISessionSource.buckets ??= new AISessionBuckets([], { of: r => r, key: r => r.id });
+		const { out, nests } = AISessionBuckets.arrange(hit, { buckets, sort: rs => rs, open_kinds: new Set(open.kinds), open_ids: new Set(open.ids), parent_of: r => r.parent, id_of: r => r.id });
+		return out.map(r => r.bucket ? r : { ...r, nest: nests.get(r) });
+	}
+
 	static shape(snap) {
 		const source = AISessionSource.source_of(snap);
 		const row = { ...snap, source, claude_usd: AISessionSource.claude_usd_of(snap), closed: !!snap.closed, role: source === "servex" ? AISessionBuckets.role_of(snap) : null };

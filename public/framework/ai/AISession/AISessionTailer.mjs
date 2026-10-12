@@ -18,6 +18,7 @@ QueryServer.source("sessions", {
     items: () => live.index.snaps.values(),
     on: fn => live.index.on(fn),
     shape: AISessionSource.shape,
+    arrange: AISessionSource.arrange,
 });
 
 export default class AISessionTailer {

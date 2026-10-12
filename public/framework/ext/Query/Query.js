@@ -16,6 +16,7 @@ export default class Query {
 		this.offset = Math.max(0, spec.offset ?? 0);
 		this.limit = spec.limit ?? 50;
 		this.sum = spec.sum ?? [];
+		this.spec = spec;
 		this.tests = this.where.map(w => Query.test(w));
 	}
 
@@ -32,8 +33,9 @@ export default class Query {
 
 	matches(item) { return this.tests.every(t => t(item)); }
 
-	/** `items` is any iterable. Returns { rows (the page), total (all matches), totals ({field: sum over ALL matches}), offset }. */
-	run(items) {
+	/** `items` is any iterable. Returns { rows (the page), total (rows to page over), matched (all matches), totals ({field: sum over ALL matches}), offset }.
+	 * `arrange(hit, spec)` (optional) turns the sorted matches into the list to page over (heads, nesting); sums and `matched` still count every match. */
+	run(items, arrange) {
 		const hit = [];
 		for (const item of items) if (this.matches(item)) hit.push(item);
 		const totals = {};
@@ -46,6 +48,7 @@ export default class Query {
 				return (x < y ? -1 : x > y ? 1 : 0) * sign;
 			});
 		}
-		return { rows: hit.slice(this.offset, this.offset + this.limit), total: hit.length, totals, offset: this.offset };
+		const list = arrange ? arrange(hit, this.spec) : hit;
+		return { rows: list.slice(this.offset, this.offset + this.limit), total: list.length, matched: hit.length, totals, offset: this.offset };
 	}
 }
