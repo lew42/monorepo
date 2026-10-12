@@ -37,7 +37,7 @@ export default class RefineSystem {
 	prompt = new Prompt();
 	whisper = Whisper.shared;
 	session = this.whisper.session("Refine demo");   // Dictate's on_whisper feeds it: system.session.record(line)
-	model = "claude-sonnet-5-5";                    // measured fastest cheap model: doc/refine-v3-2026-10-09.md
+	model = "openai/gpt-6-luna";                    // non-Anthropic voice model, Claude Haiku fallback server-side: ai/doc/models.md
 	session_id = RefineSystem.session_id();            // the session whose log keeps this page's prompts (ai/AISession/PromptLog.js)
 	prompt_id = RefineSystem.new_prompt_id();          // names this prompt on the session page (`voice-<id>`); a new one per prompt
 	history = [];                                   // finished prompts of this page visit (plain summaries), newest last

@@ -1061,7 +1061,7 @@
   "catalog_generated_at": "2026-10-05T02:02:08.737Z",
   "catalog_note": "price_in/out/cache are OpenRouter's /api/v1/models catalog, $ per million tokens; Claude (direct) rows use Anthropic's own list prices (docs.claude.com, checked 2026-10-04) because OpenRouter's catalog serves a newer generation under the same short id. docs/reasoning/refine are pass-rates (0..1) from the new-brain eval (public/framework/ai/2026-10-03/new-brain/); a blank score means every call for that row failed, rather than scoring 0%. typical_minion_usd applies this week's median minion token mix (11.3M read, 99% cached, 43k written) to the model's own price. The Groq and Google AI Studio rows show OpenRouter's catalog price for that model id, not necessarily the exact price that pinned provider billed. A local model's context window is left blank — it needs a live query to the running llama-server, not done by this pass.",
   "quick": {
-    "generated_at": "2026-10-12T08:34:50.340Z",
+    "generated_at": "2026-10-12T14:45:14.184Z",
     "tasks": [
       {
         "id": "code-add",
@@ -1072,12 +1072,84 @@
         "kind": "code edit"
       },
       {
-        "id": "classify-1",
-        "kind": "classification"
+        "id": "code-slug",
+        "kind": "code edit"
       },
       {
-        "id": "classify-2",
-        "kind": "classification"
+        "id": "code-dedupe",
+        "kind": "code edit"
+      },
+      {
+        "id": "code-chunk",
+        "kind": "code edit"
+      },
+      {
+        "id": "code-class",
+        "kind": "code edit"
+      },
+      {
+        "id": "code-rename",
+        "kind": "code edit"
+      },
+      {
+        "id": "code-regex",
+        "kind": "code edit"
+      },
+      {
+        "id": "readme-stale",
+        "kind": "readme check"
+      },
+      {
+        "id": "readme-ok",
+        "kind": "readme check"
+      },
+      {
+        "id": "readme-lines",
+        "kind": "readme check"
+      },
+      {
+        "id": "readme-link",
+        "kind": "readme check"
+      },
+      {
+        "id": "card-blocking",
+        "kind": "card classification"
+      },
+      {
+        "id": "card-review",
+        "kind": "card classification"
+      },
+      {
+        "id": "card-fyi",
+        "kind": "card classification"
+      },
+      {
+        "id": "card-blocking-2",
+        "kind": "card classification"
+      },
+      {
+        "id": "clean-filler",
+        "kind": "transcript clean"
+      },
+      {
+        "id": "clean-facts",
+        "kind": "transcript clean"
+      },
+      {
+        "id": "clean-numbers",
+        "kind": "transcript clean"
+      },
+      {
+        "id": "refine-ask",
+        "kind": "refine step"
+      },
+      {
+        "id": "refine-tag",
+        "kind": "refine step"
+      },
+      {
+        "id": "refine-rank",
+        "kind": "refine step"
       },
       {
         "id": "summary-facts",
@@ -1085,6 +1157,10 @@
       },
       {
         "id": "extract-json",
+        "kind": "extraction"
+      },
+      {
+        "id": "extract-cost",
         "kind": "extraction"
       },
       {
@@ -1098,52 +1174,104 @@
     ],
     "rows": [
       {
+        "model": "anthropic/claude-haiku-5.5",
+        "effort": "low",
+        "passed": 27,
+        "of": 27,
+        "seconds": 1.5,
+        "cost_usd": 0.00076,
+        "cost_per_task": 0.000028,
+        "by_kind": "code edit 8/8 · readme check 4/4 · card classification 4/4 · transcript clean 3/3 · refine step 3/3 · summary 1/1 · extraction 2/2 · reasoning 2/2"
+      },
+      {
         "model": "openai/gpt-6-luna",
         "effort": "low",
-        "passed": 8,
-        "of": 8,
-        "seconds": 1.3,
-        "cost_usd": 0.00015
+        "passed": 27,
+        "of": 27,
+        "seconds": 1.9,
+        "cost_usd": 0.00084,
+        "cost_per_task": 0.000031,
+        "by_kind": "code edit 8/8 · summary 1/1 · extraction 2/2 · reasoning 2/2 · readme check 4/4 · card classification 4/4 · transcript clean 3/3 · refine step 3/3"
       },
       {
         "model": "openai/gpt-6-luna",
         "effort": "high",
-        "passed": 8,
-        "of": 8,
-        "seconds": 2.2,
-        "cost_usd": 0.00028
+        "passed": 27,
+        "of": 27,
+        "seconds": 2.4,
+        "cost_usd": 0.00147,
+        "cost_per_task": 0.000055,
+        "by_kind": "code edit 8/8 · summary 1/1 · extraction 2/2 · reasoning 2/2 · readme check 4/4 · card classification 4/4 · transcript clean 3/3 · refine step 3/3"
+      },
+      {
+        "model": "anthropic/claude-haiku-5.5",
+        "effort": "high",
+        "passed": 27,
+        "of": 27,
+        "seconds": 2.4,
+        "cost_usd": 0.0016,
+        "cost_per_task": 0.000059,
+        "by_kind": "code edit 8/8 · readme check 4/4 · card classification 4/4 · transcript clean 3/3 · refine step 3/3 · summary 1/1 · extraction 2/2 · reasoning 2/2"
       },
       {
         "model": "deepseek/deepseek-v4.1-flash",
         "effort": "high",
-        "passed": 8,
-        "of": 8,
-        "seconds": 1,
-        "cost_usd": 0.00066
+        "passed": 27,
+        "of": 27,
+        "seconds": 3.6,
+        "cost_usd": 0.00921,
+        "cost_per_task": 0.000341,
+        "by_kind": "code edit 8/8 · summary 1/1 · extraction 2/2 · reasoning 2/2 · readme check 4/4 · card classification 4/4 · transcript clean 3/3 · refine step 3/3"
       },
       {
         "model": "deepseek/deepseek-v4.1-flash",
         "effort": "low",
-        "passed": 8,
-        "of": 8,
-        "seconds": 1.8,
-        "cost_usd": 0.00091
+        "passed": 26,
+        "of": 27,
+        "seconds": 2.9,
+        "cost_usd": 0.00492,
+        "cost_per_task": 0.000182,
+        "by_kind": "code edit 8/8 · summary 1/1 · extraction 2/2 · reasoning 2/2 · readme check 4/4 · card classification 3/4 · transcript clean 3/3 · refine step 3/3"
       },
       {
         "model": "google/gemini-3.8-flash",
         "effort": "low",
-        "passed": 8,
-        "of": 8,
-        "seconds": 1.7,
-        "cost_usd": 0.00153
+        "passed": 26,
+        "of": 27,
+        "seconds": 1.5,
+        "cost_usd": 0.00507,
+        "cost_per_task": 0.000188,
+        "by_kind": "code edit 8/8 · summary 1/1 · extraction 2/2 · reasoning 2/2 · readme check 4/4 · card classification 3/4 · transcript clean 3/3 · refine step 3/3"
+      },
+      {
+        "model": "anthropic/claude-sonnet-5.5",
+        "effort": "low",
+        "passed": 26,
+        "of": 27,
+        "seconds": 1.6,
+        "cost_usd": 0.01148,
+        "cost_per_task": 0.000425,
+        "by_kind": "code edit 8/8 · readme check 3/4 · card classification 4/4 · transcript clean 3/3 · refine step 3/3 · summary 1/1 · extraction 2/2 · reasoning 2/2"
+      },
+      {
+        "model": "anthropic/claude-sonnet-5.5",
+        "effort": "high",
+        "passed": 25,
+        "of": 27,
+        "seconds": 1.4,
+        "cost_usd": 0.01167,
+        "cost_per_task": 0.000432,
+        "by_kind": "code edit 7/8 · readme check 3/4 · card classification 4/4 · transcript clean 3/3 · refine step 3/3 · summary 1/1 · extraction 2/2 · reasoning 2/2"
       },
       {
         "model": "google/gemini-3.8-flash",
         "effort": "high",
-        "passed": 7,
-        "of": 8,
-        "seconds": 6.9,
-        "cost_usd": 0.02436
+        "passed": 25,
+        "of": 27,
+        "seconds": 7.9,
+        "cost_usd": 0.09988,
+        "cost_per_task": 0.003699,
+        "by_kind": "code edit 8/8 · summary 1/1 · extraction 2/2 · reasoning 2/2 · readme check 4/4 · card classification 4/4 · transcript clean 1/3 · refine step 3/3"
       }
     ]
   },

@@ -11,12 +11,12 @@ Walk through it yourself: [try-it.md](try-it.md).
   - Next: The owner picks one https option; then one real-phone walk.
   - Sources: `.claude/` `87bec773`
 - **per-sentence-model-clean** (4x, 2026-09-30 to 2026-10-09): The live clean text should be model-cleaned per sentence, cheap in tokens, with a cost shown per message.
-  - Now: A mechanical per-sentence clean is live; the model clean runs once per Refine (about 3 s). Built 2026-10-12 ([6f0133c](https://github.com/lew42/monorepo/commit/6f0133cc1)): `run_refine({ clean_live: true })` cleans each sentence with its own small Haiku call and each lands on the page as it returns; the measured cost shows beside the stage's time. **Measured: about $0.07 per sentence** (about $0.21 for three), more than the whole-prompt clean, so it stays opt-in and off.
+  - Now: A mechanical per-sentence clean is live; the model clean runs once per Refine (about 3 s). Built 2026-10-12 ([6f0133c](https://github.com/lew42/monorepo/commit/6f0133cc1)): `run_refine({ clean_live: true })` cleans each sentence with its own small Haiku call and each lands on the page as it returns; the measured cost shows beside the stage's time. **Measured: about $0.07 per sentence** on Claude, more than the whole-prompt clean, so it stays opt-in and off. Refine's model is now luna (about $0.0003 per call), so a luna-backed `clean_live` should be cheap; not re-measured.
   - Next: Switch it on for one session if wanted; to make it cheaper the per-call cost (a fresh session per call) is the thing to cut, not the sentence count.
   - Sources: `.claude/` `60d9def6` `b7b63380` `0115b9e8`
 - **voice-model-policy** (3x, 2026-10-05 to 2026-10-08): Voice assistants (fast and smart) must not run on Anthropic models; use the best non-Anthropic model for the smart one.
-  - Now: `Servex/agents/roles.js` maps `session-fast`, `session-smart` and `assistant` to `model("fast")`, which is Sonnet (a comment says: saving credits); no OpenRouter route for voice roles.
-  - Next: Pick an OpenRouter model via `Servex/ext/openrouter/`, change the role rows; needs a Servex restart.
+  - Now: Done 2026-10-12 (models-asks): the session pair runs on `openai/gpt-6-luna` (best non-Anthropic model that passed the 27-task suite, [doc/models.md](/framework/ai/doc/models.md)) via `Sessions.session_model()`, falling back to Claude when OpenRouter has no key or errors. Proven on a private Servex.
+  - Next: Takes effect at the next Servex restart.
   - Sources: `e3ade6ce` `60d9def6` `87bec773`
 - **curated-bubbles** (3x, 2026-09-29 to 2026-10-02): Dictated text becomes structure (lists, headings, sections citing the raw pieces) replacing the raw bubble in place.
   - Now: Structure and refined stages exist on the session page; an agent-driven `amend_bubble` that swaps a raw bubble for cited sections is open ([handover](/framework/ux/Dictate/doc/handover.md)).

@@ -1,4 +1,5 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
+import { read_key, has_key, spend_guard } from "../openrouter/provider.js";
 
 /**
  * class RefineCall — ONE model call as its OWN NEW session (never resumed), with the lean
@@ -9,13 +10,23 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
  *   const r = await RefineCall.run(prompt, { model, system });
  *   r.answer; r.session_id; r.model; r.cost_usd; r.duration_ms; r.tokens   // plain data
  *
+ * A model with a `/` (an OpenRouter slug, e.g. `openai/gpt-6-luna`) is one plain chat-completion instead: no session,
+ * the cost is OpenRouter's own `usage.cost` (about $0.00003 a call against $0.01 to $0.07 on Claude), and when OpenRouter
+ * is down or refuses the spend guard it answers on `FALLBACK` (Claude Haiku) so Refine never stops (ai/doc/models.md).
+ *
  * `RefineCall.run` has the `(prompt, {model}) -> {answer, cost_usd}` shape `engine.js clean()` and
  * `structure.js` take as `call`, so they run unchanged. Every finished call is also kept on
  * `RefineCall.recorded` while a `RefineCall.collect()` is open, so a route can list its runs.
  */
 export default class RefineCall {
 
+	static FALLBACK = "claude-haiku-5-5";
+
 	static async run(prompt, { model = "claude-haiku-5-5", system, stage = "" } = {}){
+		if (String(model).includes("/")){
+			try { const out = await RefineCall.run_or(prompt, { model, system, stage }); RefineCall.sink?.push(out); return out; }
+			catch (e){ const out = await RefineCall.run(prompt, { model: RefineCall.FALLBACK, system, stage }); out.fallback_from = model; out.fallback_why = String(e.message ?? e).slice(0, 160); return out; }
+		}
 		const t0 = Date.now();
 		let answer = "", result = null, session_id = "";
 		const q = query({ prompt, options: {
@@ -40,6 +51,24 @@ export default class RefineCall {
 		};
 		RefineCall.sink?.push(out);
 		return out;
+	}
+
+	static async run_or(prompt, { model, system, stage = "" }){
+		if (!has_key()) throw new Error("no OpenRouter key");
+		const guard = spend_guard();
+		if (!guard.ok) throw new Error(guard.reason);
+		const t0 = Date.now();
+		const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+			method: "POST", headers: { Authorization: `Bearer ${read_key()}`, "Content-Type": "application/json" },
+			body: JSON.stringify({ model, max_tokens: 4000, reasoning: { effort: "low" }, usage: { include: true },
+				messages: [...(system ? [{ role: "system", content: system }] : []), { role: "user", content: prompt }] }),
+			signal: AbortSignal.timeout(60000),
+		});
+		const j = await res.json().catch(() => ({}));
+		const answer = j?.choices?.[0]?.message?.content;
+		if (!res.ok || typeof answer !== "string") throw new Error(j?.error?.message ?? `OpenRouter ${res.status}`);
+		return { stage, model, session_id: "", answer: answer.trim(), cost_usd: +(j.usage?.cost ?? 0).toFixed(5), duration_ms: Date.now() - t0,
+			tokens: { in: j.usage?.prompt_tokens ?? 0, out: j.usage?.completion_tokens ?? 0 } };
 	}
 
 	/** Run `fn` while collecting every call it makes (calls are awaited inside it, one route at a time is fine). */

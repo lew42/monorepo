@@ -483,7 +483,7 @@ export class AIOverview {
 	}
 
 	static render_quick(q){
-		AIOverview.heading("Known-answer tests", `${q.tasks.length} small tasks (code edits, classification, a summary with required facts, extraction, reasoning) whose answers a script checks. Same prompt to each model at two thinking levels; cost is OpenRouter's own figure. Rerun: node Servex/ext/openrouter/evals/quick.mjs`);
+		AIOverview.heading("Known-answer tests", `${q.tasks.length} small tasks in the shapes our agents do (code edits with a test, readme checks, card classification, transcript clean, refine steps, plus a summary, extraction and reasoning) whose answers a script checks. Same prompt to each model at two thinking levels; cost is OpenRouter's own figure. Rerun: node Servex/ext/openrouter/evals/quick.mjs`);
 		new DataGrid({
 			columns: [
 				{ key: "model", label: "Model", min: 200, width: 240 },
@@ -492,6 +492,8 @@ export class AIOverview {
 				{ key: "of", label: "Of", type: "number", min: 50, filter: false },
 				{ key: "seconds", label: "Seconds each", type: "number", min: 100, filter: false },
 				{ key: "cost_usd", label: "Total $", type: "number", min: 80, format: v => "$" + v.toFixed(4), filter: false },
+				{ key: "cost_per_task", label: "$ per task", type: "number", min: 90, format: v => "$" + v.toFixed(5), filter: false },
+				{ key: "by_kind", label: "Passed, by job shape", min: 320, filter: false },
 			],
 			rows: q.rows,
 		}).ac("wide").style("--datagrid-height", "none");

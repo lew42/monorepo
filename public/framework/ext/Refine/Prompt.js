@@ -199,7 +199,7 @@ Prompt.View = class extends View {
 			h4.c("refine-prompt-h", () => span("Model runs"));
 			p.c("refine-what", "Each run is its own session: click one to see exactly what was asked.");
 			prompt.runs.forEach(r => div.c("refine-run", () => {
-				a(r.stage).href(`/framework/ai/sessions/${r.session_id}/`);
+				r.session_id ? a(r.stage).href(`/framework/ai/sessions/${r.session_id}/`) : span(r.stage);
 				span.c("refine-s-scores", `${r.model} · ${secs(r.duration_ms)} · $${r.cost_usd}`);
 			}));
 		});

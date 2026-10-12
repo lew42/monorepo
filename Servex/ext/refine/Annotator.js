@@ -15,7 +15,7 @@ import RefineStyle from "../../../public/framework/ext/Refine/RefineStyle.js";
  */
 export default class Annotator {
 
-	static MODEL = "claude-haiku-5-5";
+	static MODEL = "openai/gpt-6-luna";
 	static BATCH_CHARS = 60000;
 
 	static SYSTEM = `You annotate a dictated message that was split into numbered sentences. For each sentence give:
