@@ -8,6 +8,7 @@ import AISessionTrace from "./AISessionTrace.js";
 import AISession from "./AISession.js";
 import AISessionConversation from "./AISessionConversation.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
+import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
 // view). Built with `new AISessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
@@ -67,10 +68,11 @@ export default class AISessionDetail extends Page {
 			a.c("muted sessions-template", "AISessionDetail.js").href("/framework/ai/AISession/AISessionDetail.js");
 		});
 
-		let $box, $conv, $related, $costs, $spawn, $session, $trace;
+		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace;
 		div.c("cols main-aside sessions-detail-body", () => {
 			div.c("flow sessions-detail-main", () => {
 				$box = div.c("flow");     // which session this is (source tag, tab title, model)
+				$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
 				$conv = div.c("flow sessions-conv");   // the live conversation
 			});
 			div.c("flow sessions-detail-aside", () => {
@@ -82,6 +84,8 @@ export default class AISessionDetail extends Page {
 			});
 		});
 		const conv = new AISessionConversation();
+		const voice = new VoiceFlow();
+		$voice.append(voice.view);
 		$conv.append(conv.view);
 
 		// `row` first: for a Servex row the url's id is the AGENT's id, a different string from its session_id,
@@ -91,7 +95,7 @@ export default class AISessionDetail extends Page {
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
 			this.log_urls().then(urls => {
 				if (this.logs) return;
-				const open = url => new AISessionDetail.Log({ url, page: this, on_card: c => conv.add_card(c) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
+				const open = url => new AISessionDetail.Log({ url, page: this, on_card: c => conv.add_card(c), on_lines: lines => voice.read(lines) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
 				const logs = this.logs = urls.map(open);
 				this._old_url?.then(old => { if (old && this.logs === logs) logs.push(open(old)); });
 			});
@@ -244,6 +248,7 @@ export default class AISessionDetail extends Page {
 AISessionDetail.Log = class SessionPageLog extends JSONL {
 	cards = new Set();
 	read(entries){
+		this.on_lines?.(entries);
 		for (const e of entries){
 			const item = e.content?.add;
 			if (item?.title && item.id && this.on_card && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
