@@ -2,3 +2,12 @@
 {"log":{"at":"2026-10-12T01:43:13-05:00","msg":"skill: servex-mastermind"}}
 {"action":{"at":"2026-10-12T01:44:18-05:00","did":"edit","files":["public/framework/ai/2026-10-12/skill-usage-audit/requirements.md"]}}
 {"assign":{"title":"Skill audit: skills load when told, almost never otherwise","now":"landed","landed_at":"2026-10-12T01:50:47-05:00","tokens":null,"outcome":"Skills are loaded 95%+ when Servex tells the role to, ~0% for roles it does not (reviewer, checker, voter). Recommendation: enforce by tool and role prefix, cut CLAUDE.md to the 1,172-word proposal. See recommendation.md and Servex/doc/tool-process.md."}}
+{"log":{"at":"2026-10-12T06:50:52.963Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-12T01:50:53-05:00","msg":"text-check: recommendation.md: 557 words of prose (500 at most); recommendation.md: 557 words and no picture"}}
+{"log":{"at":"2026-10-12T01:50:53-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-12T01:50:53-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-12T01:50:57-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-12T01:50:57-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"assign":{"cost_usd":1.3281,"cost":{"root":"mastermind-skill-usage-audit","agents":[{"id":"mastermind-skill-usage-audit","model":"claude-sonnet-5-5","role":"mastermind","usd":1.3281,"usd_breakdown":{"in":0.0001,"out":0.1622,"cache_read":0.388,"cache_write":0.3055},"cache_read_pct":45.3324}],"own_usd":1.33,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-12T01:43:09-05:00","to":"2026-10-12T01:50:47-05:00"},"at":"2026-10-12T01:50:58-05:00"}}}
+{"action":{"at":"2026-10-12T01:51:09-05:00","did":"edit","files":["public/framework/ai/2026-10-12/skill-usage-audit/recommendation.md"]}}
+{"assign":{"outcome":"- [x] Are skills used? Yes when Servex tells the role (95%+), ~0% otherwise: recommendation.md\n- [x] Rule bloat? CLAUDE.md 4,081 words vs a 1,172-word proposal: recommendation.md\n- [x] Rules in skills or readmes? Laws, Guides, Procedures split: recommendation.md\n- [x] Would tools fix it? Yes, enforce by tool and role prefix: Servex/doc/tool-process.md"}}

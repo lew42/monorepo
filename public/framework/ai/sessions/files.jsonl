@@ -30265,3 +30265,14 @@
 {"file":"sessions.json"}
 {"file":"spend-tree.json"}
 {"file":"week.json"}
+{"file":"openrouter-costs.json"}
+{"file":"openrouter-reconcile.json"}
+{"file":"session-flags.json","gone":true}
+{"file":"session-flags.json"}
+{"file":"060cdfff-535c-4102-889a-479b9b20f9a1/page.jsonl"}
+{"file":"060cdfff-535c-4102-889a-479b9b20f9a1/page.jsonl","gone":true}
+{"file":"task-manifest.json"}
+{"file":"task-manifest-undone-1791616550334.json"}
+{"file":"task-manifest.json","gone":true}
+{"file":"task-manifest.json"}
+{"file":"system.js"}

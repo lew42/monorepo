@@ -3,3 +3,5 @@
 {"log":{"at":"2026-10-09T06:48:03-05:00","msg":"task-loop chase 1 of 2: could not wake: no owning agent found","chase":1}}
 {"log":{"at":"2026-10-09T07:03:05-05:00","msg":"task-loop chase 2 of 2: could not wake: no owning agent found","chase":2}}
 {"log":{"at":"2026-10-09T07:18:06-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-09","msg":"Re-checked: words.jsonl still empty, so no new asks. Live re-verification of the 23 non-done asks needs a council run with checkers; not run here."}}
+{"log":{"at":"2026-10-09T23:25:40.616Z","msg":"words.jsonl had 2 lines (prompt-mechanics-2): turned into asks W1-W3 in council/asks.jsonl, all done by code/http check. The 23 older non-done asks were not re-verified live this run."}}

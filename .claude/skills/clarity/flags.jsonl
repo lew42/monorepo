@@ -426,3 +426,27 @@
 {"at":"2026-10-12T06:50:52.964Z","target":"public/framework/ai/2026-10-12/skill-usage-audit","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T06:50:53.109Z","target":"public/framework/ai/2026-10-12/skill-usage-audit","verdict":"spawned","to":"clarity-skill-usage-audit-2"}
 {"at":"2026-10-12T02:00:00-05:00","target":"public/framework/ai/2026-10-12/skill-usage-audit","verdict":"rewrote","what":"recommendation.md cut under 500 words with a table; outcome now ticks each owner ask with proof","to":"recommendation.md"}
+{"at":"2026-10-12T07:12:37.588Z","target":"public/framework/ai/2026-10-12/claude-md-consolidate/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T07:12:38.662Z","target":"public/framework/ai/2026-10-12/owner-inbox/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T07:13:39.931Z","target":"public/framework/ai/2026-10-12/claude-md-consolidate/requirements.md","verdict":"spawned","to":"clarity-claude-md-consolidate"}
+{"at":"2026-10-12T07:13:40.006Z","target":"public/framework/ai/2026-10-12/owner-inbox/requirements.md","verdict":"spawned","to":"clarity-owner-inbox"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/claude-md-consolidate/requirements.md","verdict":"clear","what":"Agent-facing brief; text-check clean, every owner ask has a step and a review page. Minor: steps 1 and 4 run over 60 words.","to":"none"}
+{"at":"2026-10-12T07:13:53Z","target":"public/framework/ai/2026-10-12/owner-inbox/requirements.md","verdict":"rewrote","what":"shorter title, Do steps as checklist, inbox linked","to":"requirements.md"}
+{"at":"2026-10-12T07:21:14.518Z","target":"public/framework/ai/2026-10-12/owner-inbox","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T07:21:14.702Z","target":"public/framework/ai/2026-10-12/owner-inbox","verdict":"spawned","to":"clarity-owner-inbox"}
+{"at":"2026-10-12T02:30:00-05:00","target":"public/framework/ai/2026-10-12/owner-inbox","verdict":"clear","what":"text-check clean; outcome lists proofed asks, short, linked","to":"flags.jsonl"}
+{"at":"2026-10-12T07:23:36.968Z","target":"public/framework/ai/2026-10-12/claude-md-consolidate","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T07:23:37.115Z","target":"public/framework/ai/2026-10-12/claude-md-consolidate","verdict":"spawned","to":"clarity-claude-md-consolidate"}
+{"at":"2026-10-12T02:40:00-05:00","target":"public/framework/ai/2026-10-12/claude-md-consolidate","verdict":"ui","what":"manifest.md (766 words) and reworded.md (724) exceed 500 words of prose; review.md has no picture. Fix: put the 161/24/22 counts and the moved-to docs in a tree or table at the top, and keep the sentence rows one click down. Pages load, all 200. Status, ask and delivery are readable from the screenshot.","to":"mastermind-servex"}
+{"at":"2026-10-12T07:28:52.921Z","target":"public/framework/ai/2026-10-12/page-content-unify/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T07:29:53.855Z","target":"public/framework/ai/2026-10-12/page-content-unify/requirements.md","verdict":"spawned","to":"clarity-page-content-unify"}
+{"at":"2026-10-12T12:00:00Z","target":"public/framework/ai/2026-10-12/page-content-unify/requirements.md","verdict":"rewrote","what":"added owner-ask checklist and tickable steps; no alternative recorded yet for the naming","to":"requirements.md"}
+{"at":"2026-10-12T07:33:22.156Z","target":"public/framework/ai/2026-10-12/page-content-unify","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T07:33:22.367Z","target":"public/framework/ai/2026-10-12/page-content-unify","verdict":"spawned","to":"clarity-page-content-unify-2"}
+{"at":"2026-10-12T02:40:00-05:00","target":"public/framework/ai/2026-10-12/page-content-unify","verdict":"rewrote","what":"split 86-word Checks paragraph in STATE.md into ticked bullets","to":"STATE.md"}
+{"at":"2026-10-12T07:39:24.006Z","target":"public/framework/ai/2026-10-12/page-split-plan/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-12T07:40:25.007Z","target":"public/framework/ai/2026-10-12/page-split-plan/requirements.md","verdict":"spawned","to":"clarity-page-split-plan"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/2026-10-12/page-split-plan/requirements.md","verdict":"rewrote","what":"added a tickable Done-when checklist and a target size; the plan lacked proof criteria","to":"requirements.md"}
+{"at":"2026-10-12T07:42:52.181Z","target":"public/framework/ai/2026-10-12/page-split-plan","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T07:42:52.289Z","target":"public/framework/ai/2026-10-12/page-split-plan","verdict":"spawned","to":"clarity-page-split-plan-2"}
+{"at":"2026-10-12T03:00:00-05:00","target":"public/framework/ai/2026-10-12/page-split-plan","verdict":"clear","what":"Outcome short, asks ticked with proof, text-check clean; Page overview renders fine. Nit: split-plan.md Roles row says 20 lines but 46 code + 40 comment","to":"flags.jsonl"}

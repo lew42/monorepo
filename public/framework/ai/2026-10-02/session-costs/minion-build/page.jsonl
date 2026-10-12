@@ -1,3 +1,4 @@
 {"inbox":{"id":"n-z5xviyvq","from":"servex-task-loop","text":"session-costs/minion-build has been quiet since 2026-10-03T00:23:15-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-03T00:52:10.686-05:00"}}
 {"file":"task.jsonl"}
 {"inbox":{"id":"n-0uhjqjvd","from":"servex-heartbeat","text":"task-mastermind-session-costs its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-03T18:27:01.718-05:00"}}
+{"file":"requirements.md"}

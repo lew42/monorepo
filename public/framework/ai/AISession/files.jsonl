@@ -12,3 +12,4 @@
 {"file":"rename-manifest.json"}
 {"file":"AISessionFlags.js"}
 {"file":"AISessionConversation.js"}
+{"file":"PromptLog.js"}

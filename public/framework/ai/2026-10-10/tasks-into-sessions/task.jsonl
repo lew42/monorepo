@@ -5,3 +5,5 @@
 {"assign":{"now":"landed","landed_at":"2026-10-10T02:50:00-05:00"}}
 {"log":{"at":"2026-10-10T02:17:34-05:00","msg":"landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}."}}
 {"assign":{"outcome":"**78 finished tasks now live inside their session folders** — Server/TaskDirs.mjs moved them (2,320 files, 0 missing or changed, undo round-trip tested); old URLs keep working through a stub plus a dev-server alias; 12 unlanded and 994 session-less tasks stay. Not done: board/day-list readers and a worktree smoke test (see doc/data/tasks-in-sessions.md)."}}
+{"assign":{"cost_usd":2.0865,"cost":{"root":"mastermind-tasks-into-sessions","agents":[{"id":"mastermind-tasks-into-sessions","model":"claude-sonnet-5-5","role":"mastermind","usd":2.0865,"usd_breakdown":{"in":0.0002,"out":0.2801,"cache_read":0.7693,"cache_write":0.3762},"cache_read_pct":53.9557}],"own_usd":2.09,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-10T02:12:31-05:00","to":"2026-10-10T02:50:00-05:00"},"at":"2026-10-10T02:17:44-05:00"}}}
+{"log":{"at":"2026-10-10T02:18:07-05:00","msg":"session resumed"}}
