@@ -23,7 +23,8 @@ ai/2026/09/24/fix-the-sidebar/wider/…      a sub-card — 2026/09/24/fix-the-s
 - `ask({card, question, options?, title?, from?})` places a Decision (with `options`) or a Question (without) — the widget the owner already answers on a card. `waiting()` reads every card's open asks back, ranked and newest first (`needs-rule.js`'s `card_needs`, the same rule the AI 2 "Needs you" tab uses); the MCP tools are `card_ask` and `list_waiting`, the HTTP route is `GET /waiting`.
 - The moment a `chose`, `answer` or legacy `answer.ask` line lands in `append()`, it wakes whoever asked (`from` on the placed line, or every attached, live, non-minion agent when there's no `from`) with the answer.
 - `routes(router, cors)` — `GET /cards?view=`, `GET /card?id=`, `POST /card/create`, `POST /card/append?id=`, `GET /waiting`
-- `tools()` — `create_card`, `read_card`, `attach_card`, `list_cards`, `card_ask`, `list_waiting`, in `agents/tools.js`'s shape
+- `owner_note({title, text, kind, links, by})` — THE one way to tell the owner something: a `note` card tagged `owner-note` with an `owner_note` line; the AI Inbox scores it 100 and sorts it first until the owner opens it (a `reviewed` line) or archives it. MCP tool `owner_note`, route `POST /owner_note`; `Server/on-landing.mjs` posts one digest of a landed task's `decision` lines.
+- `tools()` — `create_card`, `owner_note`, `read_card`, `attach_card`, `list_cards`, `card_ask`, `list_waiting`, in `agents/tools.js`'s shape
 - `node Servex/cards/test.mjs` runs every method against a scratch folder.
 
 ## The lines — this is the one place they are defined

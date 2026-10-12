@@ -36,4 +36,4 @@ export function fold_card(id, lines){
 }
 
 /** The short row the rail lists. */
-export const summary = s => ({ id: s.id, title: s.title, type: s.type, status: s.status, tags: s.tags, created: s.created, last: s.last, preview: s.preview, state: s.state });
+export const summary = s => ({ id: s.id, title: s.title, type: s.type, status: s.status, tags: s.tags, created: s.created, last: s.last, preview: s.preview, state: s.state, owner_note: s.owner_note ?? null, reviewed: s.reviewed?.at ?? null });
