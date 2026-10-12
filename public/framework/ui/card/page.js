@@ -82,6 +82,7 @@ export default new Page({
 	title: "Card",
 	description: "The one card page — a template, not a function. `div.c(\"card\", …)` and framework.css does the rest: padding, child spacing, radius, shadow.",
 	icon: "web_asset",
+	specimen: card,
 
 	children: [
 		demo.page("linked", linked, {

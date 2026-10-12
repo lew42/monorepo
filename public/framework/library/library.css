@@ -1,0 +1,56 @@
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* Three columns: siblings · the stage · variants. One column under 60em. */
+	.library {
+		display: grid; gap: var(--gap);
+		grid-template-columns: minmax(12em, 18em) minmax(0, 1fr) minmax(12em, 18em);
+		padding: var(--pad-card);
+		align-items: start;
+	}
+
+	.library-col { min-width: 0; display: flex; flex-direction: column; gap: var(--gap); }
+
+	.library-left, .library-right { position: sticky; top: 0; max-height: 100dvh; overflow: auto; scrollbar-width: thin; }
+
+	.library-collections { display: flex; gap: 0.4em; flex-wrap: wrap; }
+	.library-list, .library-rail-section { display: flex; flex-direction: column; gap: var(--gap); }
+
+	.library-chip {
+		padding: 0.2em 0.8em; border-radius: 99em; cursor: pointer; text-decoration: none;
+		border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit;
+	}
+	.library-chip.on { background: var(--prime); color: var(--prime-ink, #fff); border-color: var(--prime); }
+
+	.library-card { display: flex; flex-direction: column; gap: 0.5em; padding: 0.6em; text-decoration: none; color: inherit; }
+	.library-card.on { outline: 2px solid var(--prime); }
+	.library-card:hover { outline: 2px solid color-mix(in srgb, var(--prime) 45%, transparent); }
+	.library-thumb { overflow: hidden; border-radius: var(--radius); pointer-events: none; user-select: none; scrollbar-width: none; }
+	.library-thumb-inner { transform-origin: top left; }
+	.library-card-title { display: flex; align-items: center; gap: 0.4em; font-weight: 600; }
+
+	.library-stage-head { display: flex; flex-direction: column; gap: 0.4em; }
+	.library-chips { display: flex; gap: 0.4em; flex-wrap: wrap; }
+
+	/* The viewport scrolls; the render inside is as wide as the chip, shrunk with `zoom` when the column is narrower. */
+	.library-screen { display: flex; justify-content: safe center; overflow: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+	.library-render { padding: 1.5rem; box-sizing: border-box; }
+	.library-render.bleed { padding: 0; }
+
+	@media (max-width: 60em) {
+		.library { grid-template-columns: minmax(0, 1fr); }
+		/* Mobile first: the filter, then the stage, then the rails as two-up grids. */
+		.library-left { display: contents; }
+		.library-collections { order: -2; }
+		.library-mid { order: -1; }
+		.library-right { position: static; max-height: none; }
+		.library-rail-section { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		.library-rail-title { grid-column: 1 / -1; }
+	}
+}
+
+@layer util {
+	/* PaddingContract.check(): the item touches an unpadded parent edge. */
+	.padding-misuse { background-image: linear-gradient(rgb(255 0 0 / 0.22), rgb(255 0 0 / 0.22)); outline: 2px dashed red; }
+}

@@ -4,6 +4,7 @@
 
 Every component here, and what you would use it for. Only `table`, `kbd` and `timeline` are functions; the rest are markup you copy.
 
+- [library](/framework/library/) — browse every component here at full size, with its variants beside it.
 - [accordion](./accordion/) — panels where one is open at a time, no JavaScript.
 - [alert](./alert/) — a callout box with a coloured left edge.
 - [avatar](./avatar/) — a circle holding initials or a photo, and a stacked ring of them.

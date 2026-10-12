@@ -15,6 +15,7 @@ const releases = () => timeline(
 const single = () => timeline(RELEASES[0]);
 
 export default new Page({
+	specimen: releases,
 	meta: import.meta,
 	title: "Timeline",
 	description: "Releases down a rail — one of three components that kept its function.",

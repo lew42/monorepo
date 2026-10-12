@@ -31,6 +31,7 @@ const accent = () => progress().attr("max", "100").attr("value", "40")
 	.style({ width: "100%", accentColor: "var(--error)" });
 
 export default new Page({
+	specimen: bars,
 	meta: import.meta,
 	title: "Progress",
 	description: "A template, not a function — the component is <progress>, and the browser wrote it.",
