@@ -3,7 +3,7 @@ import { icon } from "/framework/core/View/View.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
 import { Faces } from "../cards/faces.js";
 import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
-import { parse_lines } from "../cards/fold.js";
+import { Fold } from "../cards/Fold.js";
 import { card_needs, is_blocker, importance, silent_hours } from "./needs-rule.js";
 import { fold_asks } from "../asks/fold.js";
 
@@ -53,7 +53,7 @@ function words_url(words){
 async function stalled_rows(){
 	const text = await read_text(ASKS_URL);
 	if (!text) return [];
-	const folded = fold_asks(parse_lines(text));
+	const folded = fold_asks(Fold.parse_lines(text));
 	return Object.values(folded).filter(a => a.status === "stalled").map(ask => {
 		const hours = silent_hours(ask);
 		return {
@@ -100,7 +100,7 @@ async function file_scan(limit){
 	const rows = await Promise.all(live.map(async c => {
 		const text = await read_text(AI_ROOT + c.id + "/page.jsonl");
 		if (!text) return [];
-		return card_needs(c.id, parse_lines(text), c).map(n => ({ ...n, url: "/framework/ai2/" + c.id + "/" }));
+		return card_needs(c.id, Fold.parse_lines(text), c).map(n => ({ ...n, url: "/framework/ai2/" + c.id + "/" }));
 	}));
 	return rows.flat();
 }

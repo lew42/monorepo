@@ -3,7 +3,7 @@ import path from "path";
 import express from "express";
 import { fileURLToPath } from "url";
 import { stamp } from "../home.js";
-import { parse_lines, fold_card, summary } from "../../public/framework/ai/cards/fold.js";
+import { Fold } from "../../public/framework/ai/cards/Fold.js";
 import { card_needs } from "../../public/framework/ai/rail/needs-rule.js";
 
 /* CARDS — one folder per card, one append-only `page.jsonl` per folder.
@@ -365,12 +365,12 @@ export default class Cards {
 		return this.parse(await fs.promises.readFile(this.file(card), "utf8"));
 	}
 
-	parse(text){ return parse_lines(text); }
+	parse(text){ return Fold.parse_lines(text); }
 
 	/* Latest wins, line by line — `ai2/fold.js` is the vocabulary, shared with the browser. */
 	async fold(id){
 		const lines = await this.read(id);
-		return lines ? fold_card(this.canonical(id), lines) : null;
+		return lines ? Fold.fold_card(this.canonical(id), lines) : null;
 	}
 
 	async attached(id){ return (await this.fold(id))?.attached ?? []; }
@@ -425,7 +425,7 @@ export default class Cards {
 		const out = [];
 		for (const id of await this.walk()){
 			const s = await this.fold(id);
-			const row = summary(s);
+			const row = Fold.summary(s);
 			const want = tag ?? (["today", "open", "all"].includes(view) ? null : view);
 			if (want ? s.tags.includes(want)
 				: view === "open" ? s.status !== "done"
