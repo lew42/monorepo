@@ -119,4 +119,6 @@ Nothing crawls: a page exists once its parent's `children:` (or a `file` line, o
 
 **Content inside a page** — icon items, sections, outlines: [ux/Content/structure](/framework/ux/Content/structure/)
 
+**Split plan** — [`doc/split-plan.md`](./doc/split-plan.md) (why the file is 2,270 lines, half of it comments, and how to break it up; plan only)
+
 **Reference** — [doc](./doc/) (every method, property and topic in full, on its own tab) — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/data-children.md`](./doc/data-children.md) (children from data) · [`doc/property/related.md`](./doc/property/related.md) (related pages) · [`doc/indexing-2026-10-08.md`](./doc/indexing-2026-10-08.md) (open: directory deltas, session index, querying) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/architecture.md`](./doc/architecture.md) (the classes and decisions), [`doc/decisions.md`](./doc/decisions.md) (older history) · Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette), `tools/links.mjs` (a link-checking script, not a page)
