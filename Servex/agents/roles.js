@@ -73,6 +73,11 @@ export const ROLES = {
 	 * code with `system` set, so this row's skills are inlined by directory.js, not by `opening()`
 	 * below. Replaces the retired per-page "manager" for technical questions. doc/directory.md. */
 	"directory-mastermind": { skills: ["sub-mastermind", "page"], prefix: "directory-mastermind", tier: "manager", model: model("manager"), effort: "medium", permission_mode: "plan" },
+	/* Skill-usage audit 2026-10-12: these three were never told to load a skill (2 of 518 loaded one on their own);
+	 * a role row is what makes Servex prefix "Load the X skill". Callers' own model/effort/permissions still win. */
+	reviewer:           { skill: "review",           prefix: "reviewer",         tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
+	checker:            { skill: "review",           prefix: "checker",          tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
+	voter:              { skill: "research",         prefix: "voter",            tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
 	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }
 };
 
