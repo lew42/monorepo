@@ -12,6 +12,8 @@ One screen. A rule an agent must remember is a weak rule; prefer the script. Liv
 | Naming | Class file = class name, capitalised; one class per file | A name is a name plus its scope | `code/patterns` census script | census output |
 
 ## The System class
+In plain terms (owner, 2026-10-12): a system is a README system, an on-demand skill for a directory. The class bridges the readmes an AI loads and the code that checks them. Not every system is AI-only: layout and content can be done by a human too. It is composition, not a `Page` subclass; extend `Page` only for a plain documentation-page template. Notes about a system go on its page with `page_add`, not new files.
+
 A `System` is anything we keep in order. It documents itself (`root`, `readme`, `rules` with `enforced_by`), `check()` returns findings computed from real files, `heal(finding)` may fix one, `report()` packages the result. Subclass it: `ReadmeSystem`, `NavigationSystem`. A manager, `Systems`, runs them all and appends to `results.jsonl`, which the page streams.
 
 ```
