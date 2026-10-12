@@ -3,3 +3,5 @@
 {"assign":{"now":"landed","landed_at":"2026-10-12T09:00:00-05:00"}}
 {"log":{"at":"2026-10-12T08:33:51-05:00","msg":"landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}."}}
 {"assign":{"outcome":"**Phone mic over https landed** — self-signed cert via Server/https-cert.mjs, HttpsLan plugin listens on PORT+10000 (https://10.0.0.135:13104); proven headless at 400px (secure context, mediaDevices); docs and owner note updated."}}
+{"assign":{"cost_usd":1.2088,"cost":{"root":"mastermind-phone-https","agents":[{"id":"mastermind-phone-https","model":"claude-sonnet-5-5","role":"mastermind","usd":1.2088,"usd_breakdown":{"in":0.0001,"out":0.1074,"cache_read":0.4741,"cache_write":0.2562},"cache_read_pct":56.5887}],"own_usd":1.21,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-12T08:30:46-05:00","to":"2026-10-12T09:00:00-05:00"},"at":"2026-10-12T08:34:01-05:00"}}}
+{"log":{"at":"2026-10-12T08:34:24-05:00","msg":"session resumed"}}
