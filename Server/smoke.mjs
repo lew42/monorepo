@@ -380,7 +380,7 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 		//     fix for the rot itself belongs to whoever next touches those pages, not every
 		//     future merge that happens to link to one).
 		//   - /directory.json (transcription-crash, 2026-10-12): the frozen, gitignored one-file listing (Server/doc/directory-off.md); a worktree never has it, so /framework/ 404ed it on every merge.
-		if (/^\/directory\.json$/.test(new URL(u).pathname) || /\/(files|page|weight|settings)\.jsonl$/.test(u) || /\/ai-logs\//.test(u) || /\/framework\/ai\/(tasks|usage|page-work)\.json$/.test(u)
+		if (/^\/(framework\/)?directory\.json$/.test(new URL(u).pathname) || /\/(files|page|weight|settings)\.jsonl$/.test(u) || /\/ai-logs\//.test(u) || /\/framework\/ai\/(tasks|usage|page-work)\.json$/.test(u)
 			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/spend\.json$/.test(u)
 			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/.*\/shots\/[^/]+\.(png|jpg|jpeg|webp)$/.test(u)){ warns.push(`HTTP ${r.status()}: ${u}`); return; }
 		// Same-origin (this worktree's own server) is always an error, any other request kind —
