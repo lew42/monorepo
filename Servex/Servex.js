@@ -48,6 +48,7 @@ import { run_clean, model_choices, list_examples, save_example } from "./ext/cle
 import { run_refine } from "./ext/refine/run.js";
 import VoicePage from "./ext/refine/VoicePage.js";
 import CardAsk from "./ext/refine/CardAsk.js";
+import LiveRefine from "./ext/refine/LiveRefine.js";
 import hitl from "./agents/hitl.js";
 import Inbox from "./agents/inbox.js";
 import { docs_list, docs_read_file } from "./pages.js";
@@ -674,6 +675,22 @@ export default class Servex extends Events {
 
         router.post("/api/refine", cors, express.json({ limit: "64kb" }), async (req, res) => {
             res.json(await run_refine({ ...(req.body ?? {}), inbox: this.inbox }));
+        });
+
+        /* LIVE REFINE (ai/2026-10-12/refine-haiku-live/live-server): the outline grows while you talk — each
+         * finished sentence placed within a few seconds, instead of one big refine on demand. One LiveRefine
+         * per prompt (Servex/ext/refine/LiveRefine.js); design: public/framework/ext/Refine/doc/live-refine-2026-10-12.md. */
+        router.options("/api/refine/live", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/refine/live", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const { prompt, session = "", text, final = false, source = "dictated" } = req.body ?? {};
+            if (!/^[\w-]{4,60}$/.test(prompt ?? "") || typeof text !== "string" || !text.trim()) return res.json({ ok: false, why: "needs prompt (id) and text" });
+            if (session && !/^[0-9a-f-]{36}$/.test(session)) return res.json({ ok: false, why: "session must be a uuid" });
+            try {
+                const key = session ? `${session}/${prompt}` : prompt;
+                const out = await LiveRefine.get(key).step({ text: text.slice(0, 20000), final: !!final, source, session, prompt });
+                res.json({ ok: true, prompt, ...out });
+            } catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
         });
 
         /* VOICE TO THE SESSION PAGE (ai/2026-10-12/voice-to-session-page): while someone talks, the browser
