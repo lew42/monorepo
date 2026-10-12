@@ -15,7 +15,7 @@ Read [plan.md](plan.md) and `public/framework/ext/Shots/Diff.mjs` (it is merged 
 6. Test: synthetic image where one block shifts by (10, 20) and another is recoloured → one moved region with that offset, one changed region.
 7. Re-run the real two-round case and report the new CLI line per width; open `diff-1920.png` and check it reads as "content moved by the padding" with few red boxes.
 
-Commit in your worktree (`node Server/worktree-up.mjs screenshot-build-a2` if `take_worktree` has no slot; base it on local `michael/dev`). Do not merge. Reply under 200 words: branch, commits, the CLI lines before and after.
+Commit in the existing worktree named below (not a new one). Do not merge. Reply under 200 words: branch, commits, the CLI lines before and after.
 
 ## Also: answer the review (`review.md` beside this brief)
 Work in the EXISTING worktree `C:\Code\lew42\worktrees\screenshot-build-a` (branch `worktree/screenshot-build-a`) — it is not merged yet; one merge lands both. Its unrelated dirty `files.jsonl`/`page.jsonl` changes are a background indexer's: never commit them; `git checkout -- <those files>` in that worktree before you finish so the tree is clean.
