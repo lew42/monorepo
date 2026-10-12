@@ -41,7 +41,7 @@ export default class VoiceStrip extends View {
 			this.toolbar?.();
 		});
 		this.$guess = div.c("voice-strip-guess muted");
-		this.conn.check_whisper().then(() => this.said());
+		this.conn.check_whisper().then(up => { this.said(); if (!up) this.recover(); });
 		this.said();
 	}
 
@@ -63,21 +63,53 @@ export default class VoiceStrip extends View {
 		const bad = /^(refused|timed out)|stopped answering|not reachable/.test(detail);
 		if (stage === "mic"){
 			if (detail === "on, level ok") this.conn.set("level", "ok", "");
-			else if (detail === "ok") this.conn.set("mic", "ok", "on").set("level", "wait", "");
+			else if (detail === "ok"){ this.conn.set("mic", "ok", "on").set("level", "wait", ""); this.watch_restarts(); }
 			else this.conn.set("mic", bad ? "bad" : "wait", bad ? "error: " + VoiceStrip.plain(detail.replace(/^refused: /, "")) : detail);
 		} else if (stage === "whisper" && /^(connected, last reply|stopped answering)/.test(detail)){
 			this.conn.set("whisper", bad ? "bad" : "ok", bad ? "error: " + detail : detail);
 		}
+		if (bad && /whisper|answering/i.test(stage + " " + detail)) this.recover();
 		this.said();
+	}
+
+	/** While the mic is on, look every 5 s whether Servex had to restart Whisper, so a restart in the middle of a sentence is said on the status line.
+	 *  The mic being open is the only time it asks; a stream from Servex would be the alternative (`doc/try-it.md`, "Whisper restart"). */
+	watch_restarts(){
+		clearInterval(this.watching);
+		const look = async () => {
+			if (!["listening", "connecting"].includes(this.dictate?.state)) return clearInterval(this.watching);
+			const line = await Connection.restart_line();
+			if (line !== this.conn.note){ this.conn.note = line; this.said(); }
+		};
+		look();
+		this.watching = setInterval(look, 5000);
+	}
+
+	/** Whisper is down: ask again every 2 s until it answers (2 minutes at most), so the status line follows Servex's restart (about 25 s: the model reloads).
+	 *  A short wait only while it is broken; healthy Whisper is never polled (`doc/try-it.md`). */
+	recover(){
+		if (this.recovering) return;
+		this.recovering = true;
+		const t0 = Date.now();
+		const tick = async () => {
+			const up = await this.conn.check_whisper();
+			if (up && this.conn.state.mic.state === "bad") this.conn.set("mic", "idle", "");
+			this.said();
+			if (up || Date.now() - t0 > 120000){ this.recovering = false; return; }
+			setTimeout(tick, 2000);
+		};
+		setTimeout(tick, 2000);
 	}
 
 	/** The one-sentence status, the same facts the row shows: the first red step wins. */
 	said(){
 		const s = this.conn.state;
 		const bad = ["mic", "whisper", "refine"].find(id => s[id]?.state === "bad");
-		const text = bad === "mic" ? "The microphone could not start: " + s.mic.why.replace(/^error: /, "")
+		const note = this.conn.note, whisper = bad === "whisper" || (bad === "mic" && /whisper|answering/i.test(s.mic.why));
+		const text = whisper && note ? note + "."
+			: bad === "mic" ? "The microphone could not start: " + s.mic.why.replace(/^error: /, "")
 			: bad ? `${bad[0].toUpperCase() + bad.slice(1)} has a problem: ${s[bad].why.replace(/^error: /, "")}`
-			: s.mic.state === "ok" ? "Listening." : s.whisper.state === "ok" ? "Ready. Press the mic." : "Checking Whisper…";
+			: s.mic.state === "ok" ? "Listening." + (note ? " " + note + "." : "") : s.whisper.state === "ok" ? "Ready. Press the mic." + (note ? " " + note + "." : "") : "Checking Whisper…";
 		this.$say.text(text);
 	}
 }

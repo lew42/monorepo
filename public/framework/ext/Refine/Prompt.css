@@ -71,4 +71,6 @@
 	/* The Whisper log grows with every chunk; uncapped it covered the Refine button on a phone (voice-verify walk, 2026-10-12). */
 	.refine-foot { max-block-size: 30vh; overflow: auto; }
 	@media (max-width: 700px) { .refine-foot { position: static; } }
+	/* The five-step row is hidden on a phone, so its one-line twin shows instead: mic, Whisper and restart problems are said in a sentence. */
+	@media (max-width: 700px) { .refine-toolbar .voice-strip[data-template="full"] .voice-strip-say { display: block; } }
 }
