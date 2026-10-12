@@ -11,7 +11,7 @@ const { browser, close } = await import(pathToFileURL(REPO + "/Server/browser.mj
 const b = await browser();
 const results = [], check = (name, ok, detail = "") => { results.push(ok); console.log((ok ? "PASS " : "FAIL ") + name + (detail ? " - " + detail : "")); };
 try {
-	const ctx = await b.newContext({ viewport: { width: 1000, height: 800 } });
+	const ctx = await b.newContext({ viewport: { width: +(process.env.W || 1000), height: 800 } });   // W=400 checks the narrow card
 	const errs = [];
 
 	{ // 1 — cards stage

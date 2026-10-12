@@ -116,6 +116,7 @@ export default class Connection extends View {
 	static line(w){
 		const t = w.last_crash && new Date(w.last_crash.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 		if (["launching", "restarting", "crashed", "starting"].includes(w.status)) return `Whisper stopped${t ? " at " + t : ""} and Servex is restarting it (2 to 30 s: it reloads its model)`;
+		if (["stopped", "errored"].includes(w.status)) return `Whisper is ${w.status === "errored" ? "not running: Servex gave up restarting it" : "stopped"}${t ? " (last crash " + t + ")" : ""}`;
 		return w.crashes ? `Whisper stopped at ${t} and Servex restarted it` : "";
 	}
 
