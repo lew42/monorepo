@@ -28,7 +28,8 @@ export default class DataGridTable extends DataGridDrawer {
 		this.build_sort_arrows();
 		this.wire_resize();
 		this.wire_sort();
-		if (g.row_height == null) this.start_paging(this.$body, this.$more, this.$grid.el, r => this.draw_row(r));
+		// Paging watches the viewport (root null): it still sees every clipping scroller, whether the grid or its page scrolls.
+		if (g.row_height == null) this.start_paging(this.$body, this.$more, null, r => this.draw_row(r));
 		else this.$grid.el.addEventListener("scroll", () => { if (this.windowed) this.draw_window(false); }, { passive: true });
 	}
 

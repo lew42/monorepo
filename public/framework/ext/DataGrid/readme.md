@@ -31,6 +31,7 @@ new DataGrid({ columns: [{ key: "name", label: "Name" }, { key: "age", label: "A
 
 - `href` is also a `View` method: the grid only treats it as a hook when the page passed its own (`grid.link(row)`).
 - Past 300 rows pass a real `--datagrid-height`, never `none`: windowing needs the box's height ([doc/perf.md](./doc/perf.md)).
+- The header is one sticky row (`.datagrid-head`, a subgrid), opaque across the gaps; it sticks to the nearest box that clips, so a page that scrolls the grid itself must unclip the boxes between ([Sessions](/framework/ai/sessions/) does: `sessions.css`).
 - The demo's column resize is one delegated listener set, not one per column ([doc/perf.md](./doc/perf.md)).
 
 ## More
