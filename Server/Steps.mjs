@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import TaskDirs from "./TaskDirs.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const SHOTS = "public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/requirements.md";
+const SHOTS = "/framework/ext/Shots/";
 const MIN = /\s*(?:\((\d+(?:\.\d+)?)\s*(?:min|m)\)|~\s*(\d+(?:\.\d+)?)\s*m(?:in)?)\s*$/i;
 
 export default class Steps {
@@ -23,10 +23,10 @@ export default class Steps {
 	};
 	// the note a template step carries into its prompt, keyed by the step text without its estimate
 	static NOTES = {
-		"Shoot the page at its widths": `Use the mcp__site__shot tool at the widths the brief picks for this change (${SHOTS}; Server/doc/review.md).`,
-		"Read the shots and judge": `Look at every shot for wasted space and breakage (${SHOTS}).`,
-		"Fix and re-shoot": "Fix what the shots showed, then shoot again with mcp__site__shot.",
-		"Compare before/after": "Put the first and last shots side by side and say what changed.",
+		"Shoot the page at its widths": `Run node Server/shots.mjs <page url> --task <this task dir> --by <you>: it shoots the template's widths into the page's screenshots/ folder and diffs against the last round (${SHOTS}).`,
+		"Read the shots and judge": `Read every png and the diff-<width>.png overlay (red = changed, blue = moved) for wasted space and breakage, then record it: node Server/shots.mjs --judge <round> better|worse|same "why" (${SHOTS}).`,
+		"Fix and re-shoot": "Fix what the shots showed, then run the same node Server/shots.mjs command again; it diffs against the round before.",
+		"Compare before/after": "Read the last round's overlay and diff line against the first round (--vs <first round id>) and say what changed; the owner gives the last word in the Screenshots tab.",
 		"Smoke test": "Run node Server/smoke.mjs on your worktree and your tests.",
 		"Commit and merge": "Commit by exact path, then node Server/merge.mjs.",
 		"Land with finish-task": "Run finish-task; the last line carries landed_at and an outcome.",

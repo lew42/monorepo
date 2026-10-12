@@ -4,7 +4,7 @@
 
 ## The file's tokens (Sept-2026, `QYN0G2URSBHYH5I06MOjxU`)
 
-- **Colors** (one mode): `prime` #72C4FF, `light` #DDDDDD, `dark` #675F56.
+- **Colors** (one mode): `prime` #FF6157 (the site's; was #72C4FF until 2026-10-12), `light` #DDDDDD, `dark` #675F56 (the site's is #42404B: open), and `error` #CC0000, `ok` #15803D, `warn` #A16207, added 2026-10-12 to mirror the site's `--error`/`--ok`/`--warn`.
 - **Text** (modes `Light BG`, `Dark BG`): `text` black 80% / white; `muted` black 55% / white 70%. A frame set to `Dark BG` turns every bound `text`/`muted` fill inside it white.
 - **Resolution** (modes `Default`, `Mobile`, `Mega`): `pad-x` 32/16/56, `pad-y` 36/24/64, `gap` 16/14/32, `radius` 4/4/6, `section-pad-x` 48/16/80, `section-pad-y` 120/48/64, `h1-size` 48/32/64, `btn-pad-*`, `small-pad-*`. **Mega is the 3440 mode.**
 - **Text styles**: `h1` Montserrat Black (size bound to `h1-size`), `h2` Bold 36, `h3` SemiBold 24, `h4` Bold 14 +7% tracking, `body` Medium 16 / 180%, `code` Consolas Bold 14.
@@ -81,6 +81,14 @@ Five phone screens use only those instances: Lists, Tree in a sheet (split scree
 ## The site shell, measured
 
 `Claude · Site shell` (`142:1246`) holds the current site sidebar copied at its measured 1920 values (256 wide, rows 31.7 tall, 14.4 px labels, active row = 7% tint + prime icon; source `core/Sidebar/Sidebar.css`) beside the same sidebar from tokens in white (the main site), dark (the dev shell) and the home variant without icons. The kit's Tree row gained `State=Current` (10% inset + prime icon) to match the site's active row.
+
+## The kit pages (2026-10-12, three Sonnet agents from [the brief](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/brief.md))
+
+- `Kit · Controls` (`145:13667`): Input, Select, Tab, Field, Badge, Tag, Kbd, Toolbar, Crumb, Page, Progress, Avatar, Alert, Tooltip, Segment; 2 phone screens. [report](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/controls.md)
+- `Kit · Containers` (`143:1235`): Card (4 grounds, Content slot), Panel, Accordion, Decision, Stat, Timeline, Dialog/Sheet, DataGrid (Table/Rail, one opaque header row, counts as chips, no group rows); 2 phone screens. [report](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/containers.md)
+- `Kit · Workflows` (`144:1140`): App bar, Tab bar, Chat bubble, Mic button, Field, Sheet, Popover, Step bar; 13 clickable phone screens for Inbox, Tree, Course/Wizard, Auth, Dictate, Menu, Card. [report](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/workflows.md)
+
+**Values no token gives yet** (all three agents hit them; the candidates for the small rock-solid set): text under 14 px, a hairline border (black 10%), the 50% scrim, a large radius (16) for sheets and round buttons, a stat-number style. Everything else they built came from the existing tokens.
 
 ## Traps
 

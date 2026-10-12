@@ -106,5 +106,38 @@ export default class AISessionBuckets {
 		return out;
 	}
 
+	/** Children nest under their parent; a row whose parent is not in `rows` stays top-level. `parent_of(row)` names the parent id or null. */
+	static nest(rows, parent_of, id_of){
+		const shown = new Set(rows.map(id_of)), kids_of = new Map();
+		const up = r => { const par = parent_of(r); return par && par !== id_of(r) && shown.has(par) ? par : null; };
+		for (const r of rows){ const par = up(r); if (par) (kids_of.get(par) ?? kids_of.set(par, []).get(par)).push(r); }
+		return { top: rows.filter(r => !up(r)), kids_of };
+	}
+
+	/** The grid's whole row order: routine kinds stay out unless open (`open_kinds`) or `all` (a search), the rest in `sort(rows)` order with children
+	 * nested under their parent (collapsed until opened; all open when `all`). Runs in the browser (files path) and in node (the query source).
+	 * Returns { out: the flat list, nests: Map(row -> { depth, kids, open }), kinds: [{ key, n, usd }] (one chip per routine kind present), listed: rows in the list }.
+	 * Call it on rows already filtered; `buckets` is kept between calls so only changes are re-counted. Doc: ai/sessions/doc/buckets.md */
+	static arrange(rows, { buckets, sort, open_kinds, open_ids, all = false, parent_of, id_of }){
+		buckets.sync(rows);
+		const present = new Set(), kept = [];
+		for (const r of rows){
+			const ix = buckets.of(r), k = ix && AISessionBuckets.kind_of(ix), routine = k && buckets.routine.has(k);
+			if (routine) present.add(k);
+			if (all || !routine || open_kinds.has(k)) kept.push(r);
+		}
+		const kinds = [...present].map(k => ({ key: k, n: buckets.index.kind[k].n, usd: buckets.index.kind[k].usd })).sort((x, y) => y.n - x.n);
+		const { top, kids_of } = AISessionBuckets.nest(sort(kept), parent_of, id_of);
+		const nests = new Map(), out = [];
+		const place = (r, depth, seen) => {
+			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = all || open_ids.has(id_of(r));
+			nests.set(r, { depth, kids: kids.length, open });
+			out.push(r);
+			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
+		};
+		top.forEach(r => place(r, 0, new Set([id_of(r)])));
+		return { out, nests, kinds, listed: kept.length };
+	}
+
 	toJSON(){ return { index: this.index }; }
 }

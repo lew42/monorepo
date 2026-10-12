@@ -1,0 +1,44 @@
+/* ext/Shots — the screenshot tree: a round's width thumbnails (top-cropped so
+   a 4,000px page reads as one row), then before/after/overlay for the
+   selected width, side by side when wide and stacked when narrow (one
+   flex-wrap rule, no JS breakpoint). doc/architecture.md has the log shape. */
+
+@layer theme {
+
+	.shots-view { --flow: 0.8em; }
+	.shots-empty { padding: 1em 0; }
+
+	.shots-tree { --flow: 0.4em; }
+	.shots-round { --flow: 0.4em; }
+	/* One indent per generation — a variant branch reads as a child, not a
+	   sibling. 1.4em is the glyph-plus-gap a round's own head already uses. */
+	.shots-nested { margin-left: 1.4em; border-left: 1px solid var(--line); padding-left: 1em; }
+
+	.shots-round-head { color: inherit; text-decoration: none; padding: 0.2em 0; }
+	.shots-round-head.selected .shots-round-id { font-weight: 600; }
+	.shots-round-id { font-family: var(--mono, monospace); font-size: 0.9em; }
+	.shots-judge-badge { font-size: 0.85em; }
+	.shots-judge-badge.worse { color: var(--warn); }
+
+	/* ── thumbnails: top of the picture only ── */
+	.shots-thumbs { --gap: 0.5em; }
+	.shots-thumb { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 0; cursor: pointer; overflow: hidden; }
+	.shots-thumb-img { display: block; width: 8em; height: 6em; object-fit: cover; object-position: top; }
+	.shots-thumb-w, .shots-thumb-cut { display: block; font-size: 0.75em; padding: 0.15em 0.4em; }
+
+	/* ── the open round's detail ── */
+	.shots-detail { --flow: 0.6em; padding: 0.6em 0 1em; }
+	.shots-width-picker { --gap: 0.4em; }
+	.shots-width-btn.selected { border-color: var(--prime); color: var(--prime-ink); }
+
+	.shots-compare { --gap: 1em; align-items: flex-start; }
+	.shots-pane { flex: 1 1 18em; min-width: 14em; }
+	.shots-pane-img { display: block; width: 100%; border: 1px solid var(--line); border-radius: var(--radius); }
+
+	.shots-diff-pct { font-weight: 600; }
+	.shots-judges { --flow: 0.2em; }
+	.shots-judge-line { font-size: 0.9em; }
+
+	.shots-verdict-btns { --gap: 0.5em; }
+	.shots-btn-worse { color: var(--subtle); }
+}
