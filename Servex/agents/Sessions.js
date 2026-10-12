@@ -6,6 +6,7 @@ import { place } from "../home.js";
 import Usage from "../Usage.js";
 import { page_path } from "./Layers.js";
 import { session_facts } from "./Agents.js";
+import { has_key, spend_guard } from "../ext/openrouter/provider.js";
 import { clean } from "../../public/framework/ext/Refine/engine.js";
 import { structure } from "../../public/framework/ext/Refine/structure.js";
 
@@ -149,7 +150,11 @@ export const now_ms = () => {
  * FALLBACK (`woken()` below) flips one session's one role to FALLBACK_MODEL the moment
  * Claude itself refuses it for usage limits, no setting change needed. That refusal is the
  * whole point of this switch: Dictate keeps answering even once Claude is cut off. */
-export const SESSION_BACKENDS = ["claude", "openrouter", "local"];
+export const SESSION_BACKENDS = ["auto", "claude", "openrouter", "local"];
+/* VOICE MODEL POLICY (the owner, 2026-10-05..08; ai/2026-10-12/models-asks): the voice assistants run on a NON-Anthropic
+ * model by default ("auto"). If OpenRouter is down (no key, spend guard refusing, or a spawn error) the session
+ * falls back to Claude for that turn and says so; `claude` in session-backend.txt forces Claude. Why these two: ai/doc/models.md. */
+export const VOICE_MODELS = { fast: "openai/gpt-6-luna", smart: "openai/gpt-6-luna" };
 export const FALLBACK_MODEL = "openai/gpt-6-luna";
 /* Overridable (review finding 6) so a test can point this at a throwaway file instead of the
  * real one every live Servex reads — `prove-fallback.mjs` sets this before importing. */
@@ -162,8 +167,8 @@ export function session_backend(){
 		const file = fs.readFileSync(SESSION_BACKEND_PATH, "utf8").trim().toLowerCase();
 		if (SESSION_BACKENDS.includes(file)) return file;
 	} catch {}   // no file yet, or an unreadable one: fall through to the env var
-	const b = String(process.env.SERVEX_SESSION_BACKEND ?? "claude").trim().toLowerCase();
-	return SESSION_BACKENDS.includes(b) ? b : "claude";
+	const b = String(process.env.SERVEX_SESSION_BACKEND ?? "auto").trim().toLowerCase();
+	return SESSION_BACKENDS.includes(b) ? b : "auto";
 }
 /* The one usage-limit refusal text Claude's own CLI/SDK gives ("Claude AI usage limit
  * reached…", a 429, a rate- or quota-refusal) — matched loosely on purpose: a false POSITIVE
@@ -992,8 +997,14 @@ export default class Sessions {
 		const backend = s.fallback?.[role] ? "openrouter" : session_backend();
 		if (backend === "openrouter") return FALLBACK_MODEL;
 		if (backend === "local") return role === "fast" ? "local/qwen2.5-coder" : FALLBACK_MODEL;
-		return role === "fast" ? "claude-sonnet-5-5" : Usage.pick("smart", this.repo);
+		if (backend === "auto" && this.or_ready()) return VOICE_MODELS[role];
+		return this.claude_model(role);
 	}
+
+	claude_model(role){ return role === "fast" ? "claude-sonnet-5-5" : Usage.pick("smart", this.repo); }
+
+	/* OpenRouter usable right now? A key, and the spend guard (cached, never a network call here) says yes. */
+	or_ready(){ try { return has_key() && spend_guard().ok; } catch { return false; } }
 
 	/* Held open with no prompt: each one's first turn is the owner's first line. */
 	spawn(s, role, { resume = null, context = "" } = {}){
@@ -1020,7 +1031,17 @@ export default class Sessions {
 			system: { type: "preset", preset: "claude_code", append: this.brief("smart") + where },
 			parent: "sessions"
 		};
-		return this.servex.agents.spawn({ ...spec, ...(s[role] ? { id: s[role] } : {}), ...(resume ? { resume } : {}) });
+		const go = (sp, r) => this.servex.agents.spawn({ ...sp, ...(s[role] ? { id: s[role] } : {}), ...(r ? { resume: r } : {}) });
+		try { return go(spec, resume); }
+		catch (e){
+			/* OpenRouter refused or is down: answer on Claude instead of going silent, and say so in the session. */
+			if (!String(spec.model).includes("/") || !/openrouter/i.test(e.message) || session_backend() !== "auto") throw e;
+			const model = this.claude_model(role);
+			(s.backing_model ??= {})[role] = model;
+			this.write(s, { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "system", id: "servex" }, via: "text",
+				text: `OpenRouter is unavailable (${e.message.slice(0, 120)}); the ${role} assistant answers on ${model} for now.` } });
+			return go({ ...spec, model }, null);
+		}
 	}
 
 	// ── sleep and wake ───────────────────────────────────────────────────────
@@ -1065,7 +1086,7 @@ export default class Sessions {
 		s[role] = agent.id;
 		this.by_agent.set(agent.id, { id: s.id, role });
 		(s.backing ??= {})[role] = agent.session_id ?? null;
-		(s.backing_model ??= {})[role] = target_model;
+		(s.backing_model ??= {})[role] = agent.model ?? target_model;
 		delete s.asleep_at;
 		if (s.ended){ delete s.ended; this.presence(s, s.home, "started"); }
 		this.write(s, { backing: { at: now_ms(), fast: s.backing.fast ?? null, smart: s.backing.smart ?? null, how: { [role]: how } } });
