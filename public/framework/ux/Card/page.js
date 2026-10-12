@@ -14,7 +14,7 @@ export default new Page({
 	icon: "dashboard",
 
 	content(){
-		md("A card's own page, opened at [/framework/ai2/](/framework/ai2/) or [/framework/ai/](/framework/ai/), is always this shape: a head, then an outline of what was asked, then its chat column. This page shows the look alone — no log, no agent, nothing to click.");
+		md("A card's own page, opened at [/framework/ai2/](/framework/ai2/) or [/framework/ai/](/framework/ai/), is always this shape: a head, then an outline of what was asked, then its chat column. This page shows the look alone — no log, no agent, nothing to click. Not the `.card` box: that is [ui/card](/framework/ui/card/), the one card page.");
 
 		// Not the real `.page.ai2-card-page` grid — that expects the AI 2 shell's own
 		// height, which this plain doc page does not give it (it would just collapse to
