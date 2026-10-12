@@ -504,6 +504,7 @@ export default class AISession extends Session {
 			let off = s.cursor[part]?.off ?? 0;
 			if (size < off){ return this.reset_and_update(files); }          // file shrank: start over, never guess
 			if (size === off) continue;
+			if (s.current === undefined && part === "main" && s.messages && !s.rebuilt){ s.rebuilt = true; return this.reset_and_update(files); }   // a state saved before title/current existed: read it again once, when it has new lines
 			const fh = await fs.open(path, "r");
 			try {
 				const buf = Buffer.alloc(size - off); await fh.read(buf, 0, size - off, off);
@@ -517,7 +518,7 @@ export default class AISession extends Session {
 	}
 
 	async reset_and_update(files){
-		const keep = this.s.configured; this.s = AISession.blank(this.id); this.s.configured = keep;
+		const keep = this.s.configured; this.s = AISession.blank(this.id); this.s.configured = keep; this.s.rebuilt = true;
 		return this.update(files);
 	}
 
