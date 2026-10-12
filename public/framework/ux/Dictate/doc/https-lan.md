@@ -1,5 +1,7 @@
 # Getting https on the LAN, so a phone's microphone works
 
+**Decided and built (2026-10-12):** a self-signed certificate made by `node Server/https-cert.mjs` (uses the `openssl` in Git Bash; files in `%LOCALAPPDATA%/lew42/https/`, never the repo). The dev server (`Server/plugins/HttpsLan.js`) also listens on https at **PORT + 10000** (site on 3104 → `https://10.0.0.135:13104`), same routes and Whisper proxy. The phone taps **Advanced → Proceed** once. Proven headless at 400 px: `isSecureContext` true, `navigator.mediaDevices` present. **The upgrade is `mkcert` below** (no warning screen, but it needs an install on the PC and a profile on the phone). The text below is the original proposal; step 3 is now done.
+
 **Nothing on this machine was installed to write this page.** This is a proposal — three
 ways to do it, the recommended one first, with the exact commands for when the owner
 decides to run one. All three need the owner's own choice before anything changes.

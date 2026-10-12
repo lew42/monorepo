@@ -4,9 +4,9 @@ You talk (or type); five stages appear live on a page, one under another. That p
 
 ## Steps
 
-1. On the phone, open `http://10.0.0.135:3104/framework/ext/Refine/`.
+1. On the phone, open `https://10.0.0.135:13104/framework/ext/Refine/`. The browser warns the certificate is not trusted (we made it ourselves): tap **Advanced → Proceed** once. The mic then works.
 2. Press the mic and speak, or just type in the box.
-   - Plain `http` on a LAN hides the browser mic (the browser needs https; see [`https-lan.md`](https-lan.md)). Typing, or the phone keyboard's own dictation button, fills the same box and works the same.
+   - On plain `http://10.0.0.135:3104` the browser hides the mic (see [`https-lan.md`](https-lan.md)); use the https address above. Typing, or the phone keyboard's own dictation button, fills the same box and works the same.
 3. Tap **Refine**.
 4. Tap **Watch it on the session page →** (under the box). That page, `/framework/ai/sessions/<id>/`, shows the stages as they land:
    - **Raw** words: while you speak or type, until you tap Refine (about every 150 ms).
