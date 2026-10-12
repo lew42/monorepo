@@ -122,7 +122,7 @@ export class Activity {
 		if (!it?.id || it.kind === "live" || !Activity.unseen(it.id, it.at)) return null;
 		const evs = [];
 		for (const [id, rec] of folds ?? []){
-			if (id === it.id || id.startsWith(it.id + "/")) evs.push(...fold_events(rec.fold, id !== it.id));
+			if (id === it.id || id.startsWith(it.id + "/")) evs.push(...Activity.fold_events(rec.fold, id !== it.id));
 		}
 		// Never the creation line alone (`made`, above) — "Made this card: Now" is true of every
 		// card forever, so it is never news on its own; a card with nothing ELSE new falls
