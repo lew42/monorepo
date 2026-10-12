@@ -9,7 +9,7 @@ for (const width of [400, 1920]) {
 	await page.goto(base + "/framework/ai/sessions/" + (process.argv[3] || ""), { waitUntil: "commit" });
 	await page.waitForSelector("a.sessions-row, .datagrid-card", { timeout: 60000, state: "attached" });
 	await page.waitForTimeout(2500);
-	const info = await page.evaluate(() => ({ rows: document.querySelectorAll("a.sessions-row, .datagrid-card").length, counts: document.querySelector(".sessions-counts")?.textContent, asof: document.querySelector(".muted")?.textContent }));
+	const info = await page.evaluate(() => ({ rows: document.querySelectorAll("a.sessions-row, .datagrid-card").length, counts: document.querySelector(".sessions-counts")?.textContent, asof: [...document.querySelectorAll("*")].find(e => e.children.length === 0 && /ms in node/.test(e.textContent))?.textContent ?? "files" }));
 	await page.screenshot({ path: path.join(here, `${process.argv[4] || "proof"}-${width}.png`) });
 	console.log(width, JSON.stringify(info), "errors:", JSON.stringify(errs));
 	await ctx.close();
