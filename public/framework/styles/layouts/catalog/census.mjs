@@ -17,7 +17,7 @@ const PATTERNS = {
 	"standard":   null, // computed: a page with none of the others
 	"left-nav":   /new Sidebar\(|extends Sidebar|\bSidebar\(|sidebar\s*:/,
 	"rail-wall":  /\bbrowse\(/,
-	"inbox":      /bInboxb|InboxRail/,
+	"inbox":      /\bInbox\b|InboxRail/,
 	"data-grid":  /DataGrid|ui\/datagrid/,
 	"columns":    /\.columns\(|new Columns|extends Columns|columns\s*:\s*["']\w+ \w+|\bcols-\w+/,
 	"steps":      /new Wizard|extends Wizard|\bWizard\(/,
