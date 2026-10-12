@@ -1,5 +1,6 @@
-# Parts: class architecture and decisions (task `ai/2026-10-12/page-slice/`, brief [requirements.md](../../../../ai/2026-10-12/page-slice/requirements.md))
+# Parts: class architecture and decisions
 
+The task and its brief: `ai/2026-10-12/page-slice/` ([requirements](/framework/ai/2026-10-12/page-slice/requirements.md)).
 The owner's idea: a page's body is a list of views loaded from the page's own JSONL and drawn in a loop, not only a markdown string. This slice proves it with nothing new in `core/Page`.
 
 ## The classes
