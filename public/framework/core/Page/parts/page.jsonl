@@ -17,3 +17,4 @@
 {"file":"example/page.jsonl"}
 {"file":"doc/"}
 {"file":"readme.md"}
+{"content":{"add":{"id":"docs","type":"part-text","text":"How it works: [doc/architecture.md](doc/architecture.md) · [readme.md](readme.md) · a real page drawn this way: [example/](example/)."}}}
