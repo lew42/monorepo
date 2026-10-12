@@ -41,6 +41,8 @@ automatic on every Doc page) — `doc/work.md` has the shape, the two views, and
 Live on this page itself ("Its own work", above) and on
 [`ux/Dictate/`](/framework/ux/Dictate/).
 
+**Every page, one line.** `PageWork.js` draws "N open tasks on this page · M below" under every page (Doc pages too) from the computed `ai/page-work.json`; `doc/page-work-line.md` has the source and the one open step.
+
 **More.** `doc/where.md` (the file-by-file map), `doc/sessions.md` (session ids and the
 SDK's own classes), `doc/dictation.md`, `doc/assistant.md`, `doc/manager.md`, `doc/work.md`
 (`page_work()` — a page's own open tasks and agents, hierarchical).

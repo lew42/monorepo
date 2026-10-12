@@ -5,6 +5,7 @@ import List from "../List/List.js";
 import { page_settings } from "./settings/settings.js";
 import { track } from "../track/track.js";
 import ai_cost from "./weight/ai-cost.js";
+import PageWork from "./ai/PageWork.js";
 import PageChildren from "./Children.js";
 import PageLogReader from "./Reader.js";
 import PageListing from "./Listing.js";
@@ -952,6 +953,9 @@ export class Page extends Item {
 					.href(`/framework/ai/log/?page=${encodeURIComponent(this.url)}`);
 			}));
 		});
+
+		// "N open tasks touch this page", computed into ai/page-work.json; nothing drawn when there is none. (ai/doc/page-work-line.md)
+		if (this.title && this.url) this.view.append(() => { span.c("page-open").append(PageWork.line(this.url)); });
 
 		Page.views.set(this.view.el, this);
 		this.emit("render", this.view);   // once, here — the early return above skips a second draw

@@ -215,6 +215,12 @@
 	/* An app-shaped page (a Doc with tabs, a full-height board) has no reading end to sit at. */
 	.page:has(.doc-title) > .page-ai-cost { display: none; }
 
+	/* "N open tasks touch this page" — PageWork.js, from ai/page-work.json. Same place and size as the cost line; empty = no box. */
+	.page .page-open { display: block; font-size: small; padding: 0 var(--gutter-x, 1rem); }
+	.page .page-open:empty { display: none; }
+	.page-open-line summary { cursor: pointer; color: var(--muted, inherit); }
+	.page-open-rows { display: flex; flex-direction: column; gap: 0.25em; padding: 0.5em 0 var(--gap, 1rem); }
+
 	/* ════ RELATED — a pinned third region: links to other pages ═════════════
 	   `related: "/a/ /b/"` (Page.class.js's `related_aside()`,
 	   `doc/property/related.md`) draws one row per url — the target's own icon

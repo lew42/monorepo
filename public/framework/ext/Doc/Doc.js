@@ -1,5 +1,6 @@
 import { View, div, h1, code, span, a, icon } from "../../core/View/View.js";
 import { Page } from "../../core/Page/Page.class.js";
+import PageWork from "../../core/Page/ai/PageWork.js";
 import { member, patched, dedent } from "../../util/source/source.js";
 import md from "../markdown/md.js";
 import files, { nest } from "../files/files.js";
@@ -405,12 +406,17 @@ export class Doc extends Page {
 	render(){
 		const nested = this.nested_in_doc();
 
-		return this.view ??= div.c(`page ${nested ? "doc-section" : "doc-page"}`, () => {
+		const fresh = !this.view;
+		const view = this.view ??= div.c(`page ${nested ? "doc-section" : "doc-page"}`, () => {
 			if (!nested) this.well();
 			this.tabs(this.bar().join(" ")).ac(nested ? "vertical" : "block");
 		})
 			.ac(this.name && "page--" + this.name)
 			.ac(this.classes);
+
+		// "N open tasks touch this page" (core/Page/ai/PageWork.js); a Doc draws its own view, so Page.render()'s line never reaches it.
+		if (fresh && this.url) view.append(() => { span.c("page-open").append(PageWork.line(this.url)); });
+		return view;
 	}
 }
 
