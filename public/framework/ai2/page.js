@@ -1,8 +1,8 @@
 import { Page, View, div, span, small, a, h1 } from "/app.js";
 import AIRail, { card_page } from "../ai/rail/rail.js";
-import overview from "../ai/rail/overview.js";
-import needs_view from "../ai/rail/needs.js";
-import log_view from "../ai/rail/log.js";
+import { Overview } from "../ai/rail/Overview.js";
+import { Needs } from "../ai/rail/Needs.js";
+import { Log } from "../ai/rail/Log.js";
 import { LIVE } from "../ai/rail/live.js";
 
 // ai2.css is only the v1 screens this file routes to (needs/, log/, overview/);
@@ -120,7 +120,7 @@ function overview_page(root){
 		title: "Overview",
 		url: root.url + "overview/",
 		classes: "ai2-overview-page inbox-takeover",
-		content(){ overview(); },
+		content(){ Overview.view(); },
 	});
 }
 
@@ -132,7 +132,7 @@ function needs_page(root){
 		title: "Needs you",
 		url: root.url + "needs/",
 		classes: "ai2-needs-page inbox-takeover",
-		content(){ needs_view(); },
+		content(){ Needs.view(); },
 	});
 }
 
@@ -145,7 +145,7 @@ function log_page(root){
 		title: "Log",
 		url: root.url + "log/",
 		classes: "ai2-log-page inbox-takeover",
-		content(){ log_view(fn => root.ai2.on_tasks(fn)); },
+		content(){ Log.view(fn => root.ai2.on_tasks(fn)); },
 	});
 }
 

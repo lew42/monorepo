@@ -1,5 +1,5 @@
 import { archive_card, append_card, is_folder_id } from "../rail/inbox.js";
-import { needs_for } from "../rail/needs.js";
+import { Needs } from "../rail/Needs.js";
 
 /**
  * RULES — read/unread, archiving a row, and automatic resolution, all three
@@ -79,5 +79,5 @@ export function is_resolved(it){
 	if (it.status === "done") return true;
 	if (it.kind === "landed") return true;
 	if (it.kind !== "card" || !["question", "task"].includes(it.type)) return false;
-	return needs_for(it.id).length === 0;
+	return Needs.for_card(it.id).length === 0;
 }

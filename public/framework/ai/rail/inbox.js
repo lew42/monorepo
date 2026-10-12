@@ -3,7 +3,7 @@ import Socket from "/framework/dev/Socket/Socket.js";
 import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 import { fold_card, parse_lines, summary } from "../cards/fold.js";
 import { fold_asks } from "../asks/fold.js";
-import { importance, silent_hours } from "./needs-rule.js";
+import { NeedsRule } from "./NeedsRule.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 export { fold };
@@ -814,7 +814,7 @@ export function items({ board, folders, prompts, landed, says, groups }){
 	   opened (page.js's own `activated()`, right after `resolve_card()` resolves), so the
 	   browser may never sit on this row's own url long enough for any `paint()` to see it. */
 	stalled_asks().forEach(ask => {
-		const hours = silent_hours(ask);
+		const hours = NeedsRule.silent_hours(ask);
 		add({
 			id: "ask:" + ask.id, kind: "stalled", at: ask.status_at ?? ask.at, icon: "hourglass_disabled",
 			title: ask.title || "Untitled ask",
@@ -848,7 +848,7 @@ export function items({ board, folders, prompts, landed, says, groups }){
 		// `importance()` (needs-rule.js) — every kind it does not recognise (every kind here
 		// except `stalled`, today) falls back to its own low DEFAULT, so this is free to run
 		// on the whole list rather than singling out one kind.
-		it.score = importance(it, Date.now());
+		it.score = NeedsRule.importance(it, Date.now());
 	});
 	// A STALLED ROW IS THE ONE EXCEPTION TO "ALWAYS UNREAD" (deliverable 4) — `Says`'s own
 	// comment above says why nothing else here has a read state any more; this one does,

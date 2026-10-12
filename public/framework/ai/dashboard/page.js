@@ -1,6 +1,6 @@
 import { Page, div, a, p, span, small, View } from "/app.js";
 import Panel2 from "/framework/ext/panel2/Panel2.js";
-import { watch_needs } from "/framework/ai/rail/needs.js";
+import { Needs } from "/framework/ai/rail/Needs.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { CardList } from "/framework/ai/rail/inbox.js";
 import AISessionRows from "../AISession/AISessionRows.js";
@@ -106,7 +106,7 @@ function inbox_tile(on_ids){
 	// not `this.url + "inbox/"`, which would read `/framework/ai/dashboard/
 	// inbox/` and 404 (merge.mjs's own smoke test caught this live, 2026-10-02).
 	panel.header.append(() => a.c("page-link", "See all").href(INBOX_URL));
-	const stop = watch_needs(state => {
+	const stop = Needs.watch(state => {
 		const top = state.rows.slice(0, 5);
 		on_ids(new Set(top.map(r => r.card).filter(Boolean)));
 		panel.main.empty(() => {

@@ -12,7 +12,7 @@ import composer from "./compose.js";
 import agents_panel, { agent_cost } from "./agents.js";
 import { items_of, about_line, outline, state_span, short } from "./outline.js";
 import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "../rail/inbox.js";
-import { watch_needs, needs_for, needs_soon } from "../rail/needs.js";
+import { Needs } from "../rail/Needs.js";
 import "/framework/ext/tabs/tabs.js";   // for its stylesheet: a card's tab strip wears .tabs / .tab-bar / .tab
 import { seen, mark_seen, card_events, activity_list } from "./activity.js";
 import { mark_read, is_read } from "./rules.js";
@@ -481,7 +481,7 @@ export default class Card extends Page {
 			// `needs_for(this.id)`'s asks, so the "Reviewed ✓" button (`reviewed_control()`) appears
 			// or disappears the moment the shared scan says so, not only when something else on the
 			// card changes.
-			needs_for(this.id).map(n => n.ask).join(","),
+			Needs.for_card(this.id).map(n => n.ask).join(","),
 			this.description, this.links, this.flag_note, this.attached?.length, this.md_names(), this.placed, [...this.listed?.values() ?? []], cards_ready.known,
 			this.group_info(), this.subs().map(s => cards?.card(this.id + "/" + s) ?? s), this.cost_model(this.group_info()),
 			agent_cost(this.id, () => this.redraw()), this.shell?.ai2?.groups?.task_member(task_of(this))?.landed_at,
@@ -804,13 +804,13 @@ export default class Card extends Page {
 	 *  scan so the row leaves the rail's "Needs review" filter and the Needs you tab at once,
 	 *  instead of waiting for the next poll. */
 	reviewed_control(){
-		if (!needs_for(this.id).some(n => n.ask === "card" || n.ask === "last")) return;
+		if (!Needs.for_card(this.id).some(n => n.ask === "card" || n.ask === "last")) return;
 		button.c("ai2-reviewed").attr("type", "button")
 			.attr("title", "clear this — it no longer needs your review")
 			.text("Reviewed ✓")
 			.click(async () => {
 				await append_card(this.id, { reviewed: { at: stamp(), by: "owner" } });
-				await needs_soon();
+				await Needs.soon();
 				this.redraw();
 			});
 	}
@@ -1320,7 +1320,7 @@ export default class Card extends Page {
 		// The "Reviewed ✓" button's own visibility (`reviewed_control()`) reads the SAME shared
 		// scan the Needs you tab and the rail's filter do; when it refreshes, redraw so the
 		// button appears or disappears in step with them, not on this card's own clock.
-		this.stop_needs = watch_needs(() => this.redraw());
+		this.stop_needs = Needs.watch(() => this.redraw());
 		// A member landing, or a task's `now` moving, reorders a group's sections.
 		this.stop_groups = this.shell?.ai2?.groups?.on(() => this.redraw());
 		if (this.tabbed()) this.load_groups(this.subs(), true);

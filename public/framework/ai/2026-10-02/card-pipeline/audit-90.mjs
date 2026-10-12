@@ -14,7 +14,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Cards from "../../../../../Servex/cards/Cards.js";
-import { card_needs, importance, reason_of } from "../../../ai2/needs-rule.js";
+import { NeedsRule } from "../../rail/NeedsRule.js";
 import { fold_asks } from "../../asks/fold.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -39,15 +39,15 @@ async function main(){
 		const lines = await cards.read(id);
 		const folded = await cards.fold(id);
 		if (!folded || folded.status === "done" || folded.status === "archived") continue;
-		const needs = card_needs(id, lines, { title: folded.title, type: folded.type, status: folded.status, last: folded.last, created: folded.created });
+		const needs = NeedsRule.card_needs(id, lines, { title: folded.title, type: folded.type, status: folded.status, last: folded.last, created: folded.created });
 		if (!needs.length) continue;
-		const scored = needs.map(n => ({ ...n, score: importance(n, now) })).sort((a, b) => b.score - a.score);
+		const scored = needs.map(n => ({ ...n, score: NeedsRule.importance(n, now) })).sort((a, b) => b.score - a.score);
 		const top = scored[0];
 		if (top.score < 90) continue;
 		const ask = asksByCard.get(id);
 		const heuristic_only = scored.every(n => n.ask === "card" || n.ask === "last");
 		const stale = heuristic_only && ask?.status === "landed";
-		found.push({ id, title: folded.title, score: top.score, reason: reason_of(top, top, now), stale, ask_status: ask?.status ?? null });
+		found.push({ id, title: folded.title, score: top.score, reason: NeedsRule.reason_of(top, top, now), stale, ask_status: ask?.status ?? null });
 	}
 
 	found.sort((a, b) => b.score - a.score);

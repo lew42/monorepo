@@ -8,8 +8,8 @@ import { news_of, group_news, unseen } from "../cards/activity.js";
 import { plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
 import composer from "../cards/compose.js";
 import Card, { card_link } from "../cards/card.js";
-import { watch_needs, score_for, needs_for } from "./needs.js";
-import { importance, reason_of } from "./needs-rule.js";
+import { Needs } from "./Needs.js";
+import { NeedsRule } from "./NeedsRule.js";
 import chat from "../cards/chat.js";
 import mount_chat from "/framework/ux/Dictate/chat.js";
 import { LIVE, live_model, live_full, usage_head } from "./live.js";
@@ -34,9 +34,9 @@ servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.cr
  * `score_for()` already looked at, never a second idea of the score) and hands it over. The full
  * band legend, in prose: this module's own readme. */
 function reason_for(it, now = Date.now()){
-	const open = it.kind === "stalled" ? null : needs_for(it.id);
-	const top = open?.length ? open.reduce((a, b) => (importance(b, now) > importance(a, now) ? b : a)) : null;
-	return reason_of(top, it, now);
+	const open = it.kind === "stalled" ? null : Needs.for_card(it.id);
+	const top = open?.length ? open.reduce((a, b) => (NeedsRule.importance(b, now) > NeedsRule.importance(a, now) ? b : a)) : null;
+	return NeedsRule.reason_of(top, it, now);
 }
 
 const AUTO_KEY = "ai2-auto-transcribe";
@@ -234,7 +234,7 @@ export default class AIRail extends Inbox.Rail {
 		list.forEach(it => {
 			it.unread = it.kind === "live" ? true : (it.id === "now" || it.id === this.now_real_id || it.id === "your-prompts") ? false : !is_read(it.id);
 			// ⚠ `?? it.score`: `score_for()` only answers "needs you" and is null for most rows.
-			if (it.kind !== "stalled") it.score = score_for(it.id) ?? it.score;
+			if (it.kind !== "stalled") it.score = Needs.score_for(it.id) ?? it.score;
 			// THE REASON NEXT TO THE NUMBER (item 3) — the rule that set this row's score,
 			// in five words, shown right beside it in `face_extra()` below.
 			it.reason = reason_for(it);
@@ -502,7 +502,7 @@ export default class AIRail extends Inbox.Rail {
 		this.groups.start({ folders: this.cards, socket: this.page.app?.socket });
 		resolve_card("now").then(fold => { if (fold){ this.build_now_item(fold); this.render_pinned(); this.paint_soon(); } });
 		// The Needs you chip reads the SAME shared scan as the needs page (needs.js).
-		watch_needs(s => this.needs_changed(s.ids, s.rows.length));
+		Needs.watch(s => this.needs_changed(s.ids, s.rows.length));
 		this.follow_focus();
 	}
 

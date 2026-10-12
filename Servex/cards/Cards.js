@@ -4,7 +4,7 @@ import express from "express";
 import { fileURLToPath } from "url";
 import { stamp } from "../home.js";
 import { parse_lines, fold_card, summary } from "../../public/framework/ai/cards/fold.js";
-import { card_needs } from "../../public/framework/ai/rail/needs-rule.js";
+import { NeedsRule } from "../../public/framework/ai/rail/NeedsRule.js";
 
 /* CARDS — one folder per card, one append-only `page.jsonl` per folder.
  *
@@ -345,7 +345,7 @@ export default class Cards {
 	async waiting(){
 		const RANK = { blocker: 0, decision: 1, question: 1, fyi: 2 };
 		const cards = (await this.list({ view: "all" })).filter(c => c.status !== "done" && c.status !== "archived");
-		const rows = await Promise.all(cards.map(async c => card_needs(c.id, await this.read(c.id), c)));
+		const rows = await Promise.all(cards.map(async c => NeedsRule.card_needs(c.id, await this.read(c.id), c)));
 		return rows.flat().sort((x, y) => (RANK[x.kind] ?? 3) - (RANK[y.kind] ?? 3) || Date.parse(y.at ?? 0) - Date.parse(x.at ?? 0));
 	}
 
