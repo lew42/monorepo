@@ -47,7 +47,11 @@ export default class AISessionSource {
 	static arrange(hit, spec) {
 		const now = Date.now(), by = spec.sort?.by ?? "last_activity";
 		if (by === "last_activity") { const sign = spec.sort?.dir === "asc" ? 1 : -1, t = r => Date.parse(r.last_activity ?? 0) || 0; hit = hit.slice().sort((a, b) => (t(a) - t(b)) * sign || (b.claude_usd ?? 0) - (a.claude_usd ?? 0)); }   // same tie-break as the files path: the costlier first
-		if (by === "last_activity" && spec.sort?.dir !== "asc") { const up = hit.filter(r => AISessionSource.in_flight(r, now)); if (up.length) { up.sort((a, b) => (b.claude_usd ?? 0) - (a.claude_usd ?? 0)); const set = new Set(up); hit = [...up, ...hit.filter(r => !set.has(r))]; } }   // the default sort: a running session is the newest; the costlier first among them
+		// The default sort: a session that is running AND moved in the last hour is the newest (an idle agent from last week is not "now"); the costlier first among them.
+		if (by === "last_activity" && spec.sort?.dir !== "asc") {
+			const up = hit.filter(r => AISessionSource.in_flight(r, now) && now - (Date.parse(r.last_activity ?? 0) || 0) < 3600e3);
+			if (up.length) { up.sort((a, b) => (b.claude_usd ?? 0) - (a.claude_usd ?? 0)); const set = new Set(up); hit = [...up, ...hit.filter(r => !set.has(r))]; }
+		}
 		const open = spec.open ?? {}, buckets = AISessionSource.buckets ??= new AISessionBuckets([], { of: r => r, key: r => r.id });
 		const { out, nests, kinds, listed } = AISessionBuckets.arrange(hit, { buckets, sort: rs => rs, open_kinds: new Set(open.kinds), open_ids: new Set(open.ids), all: !!open.all, parent_of: r => r.parent, id_of: r => r.id });
 		return Object.assign(out.map(r => ({ ...r, nest: nests.get(r) })), { meta: { kinds, listed } });
