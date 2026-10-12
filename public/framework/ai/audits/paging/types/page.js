@@ -1,5 +1,5 @@
 import { Page, p } from "/app.js";
-import { typesWall } from "./types.js";
+import { PageTypePages } from "./PageTypePages.js";
 
 /* Seven page types, each a page; open one to see its variants, each its own page. */
 export default new Page({
@@ -10,6 +10,6 @@ export default new Page({
 	children: "module doc index demo board task program",
 	content(){
 		p("Pick a type. Each one opens a wall of its variants.");
-		typesWall(import.meta);
+		PageTypePages.wall(import.meta);
 	},
 });
