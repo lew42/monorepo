@@ -1,0 +1,26 @@
+﻿{"id":740,"module":"ai","topic":"code-review-process","ask":"Clarify mastermind code review workflow when spawning minions to build.","quote":"code review process should be like the mastermind reading everything"}
+{"id":741,"module":"ai","topic":"code-review-process","ask":"Update mastermind skill to read diffs first and spawn reviewers only when needed.","quote":"mastermind reads every minion\u0027s diff itself first"}
+{"id":743,"module":"ai","topic":"process-cleanup","ask":"Fix phantom processes that remain alive after being stopped in Servex.","quote":"Stopping an agent must kill its process"}
+{"id":743,"module":"ai","topic":"model-defaults","ask":"Ensure reviewers use Sonnet by default when under token pace, not Opus.","quote":"Reviewers default to Sonnet under the new usage rule"}
+{"id":745,"module":"ai","topic":"system-documentation","ask":"Document configurable saving patterns and clarify AI session logging and data storage.","quote":"I\u0027m not still not sure how all this is logged"}
+{"id":746,"module":"ai","topic":"task-approval","ask":"Add Approve and Unclear buttons to each task card for auditing.","quote":"every task card gets Approve and Unclear"}
+{"id":746,"module":"ai","topic":"module-cards","ask":"Show module cards in Inbox when work lands on a module.","quote":"when work lands on a module the MODULE appears as a card"}
+{"id":746,"module":"ai","topic":"inbox-categories","ask":"Replace score hack with plain categories: blocking, review, fyi.","quote":"Use plain categories instead blocking review fyi"}
+{"id":746,"module":"ai","topic":"task-naming","ask":"Name all task cards and titles as module-colon-outcome format.","quote":"card and task titles read module outcome"}
+{"id":747,"module":"ai","topic":"sessions-grid","ask":"Build Sessions tab as a data grid of every session with session detail pages routed.","quote":"Sessions tab is a data grid of EVERY session"}
+{"id":747,"module":"ai","topic":"preview-levels","ask":"Document three preview levels for class views: inline, card, detail.","quote":"Three preview levels for any class view"}
+{"id":748,"module":"voice","topic":"prompt-refinement","ask":"Build a system to summarize and structure the owner\u0027s dictated prompts into cards.","quote":"summarize all of my prompts into like create prompt instances"}
+{"id":749,"module":"ai","topic":"session-architecture","ask":"Propose class architecture for logging AI sessions and clarify if sessions are committed.","quote":"propose the structure the class architecture for how AI tasks"}
+{"id":750,"module":"page","topic":"card-weight-sizing","ask":"Make card size follow module weight; show core API for big modules.","quote":"Card size follows weight big modules get bigger cards"}
+{"id":750,"module":"ai","topic":"module-unread-badges","ask":"Show unread badge counts rolled up from Inbox items by module.","quote":"each card shows how many unread Inbox items belong"}
+{"id":751,"module":"voice","topic":"prompt-sentence-ids","ask":"Give every prompt sentence an id; asks cite sentence ids; requirements cite ask ids.","quote":"Give every prompt sentence an id Asks cite sentence ids"}
+{"id":751,"module":"ai","topic":"prompt-confidence","ask":"Each ask should carry a confidence level; low becomes a clarification question.","quote":"Each ask carries a confidence low confidence becomes"}
+{"id":754,"module":"ai","topic":"every-prompt-skill","ask":"Fix every-prompt skill: load once as system prompt, remove per-message re-invoke.","quote":"re-invoke on EVERY prompt load it ONCE as"}
+{"id":755,"module":"ai","topic":"prompt-refinement-hook","ask":"Create a hook system to audit prompts without requiring agent tool calls.","quote":"a hook is the only way to do this"}
+{"id":757,"module":"ai","topic":"prompt-inbox-card","ask":"Create a pinned Inbox card showing latest prompt topics with newest-first timeline.","quote":"a card in the inbox with high priority that shows"}
+{"id":761,"module":"page","topic":"live-page-updates","ask":"Pages must update themselves in real-time via page.jsonl when agents modify them.","quote":"page to be able to update itself Either it itself"}
+{"id":762,"module":"ai","topic":"prompt-delivery","ask":"Verify that owner prompts are delivered programmatically to both assistant pair members.","quote":"is each owner prompt delivered to BOTH by code"}
+{"id":762,"module":"ai","topic":"log-auditing","ask":"Audit AI logs for any place where AI writes raw JSON or copies files via tool call.","quote":"Audit our most-used AI logs for any place where"}
+{"id":763,"module":"ai","topic":"cloud-execution","ask":"Document what tasks are acceptable to run on cloud VMs and what limitations apply.","quote":"list of like things that would be acceptable and"}
+{"id":770,"module":"ai","topic":"known-issues-page","ask":"Create a live known issues page where masterminds report problems without duplication.","quote":"A Known issues page as a live page"}
+{"id":771,"module":"ai","topic":"ask-placement","ask":"Refiner should propose where each ask should live and in what form by weight.","quote":"for each ask propose WHERE it should live"}

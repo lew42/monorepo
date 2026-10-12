@@ -1,0 +1,25 @@
+﻿{"module":"ai","quote":"spawn a mastermind to build out or work on","ask":"Spawn a mastermind to work on the file explorer system.","id":339,"topic":"file-explorer-work"}
+{"module":"ai","quote":"add it to claude.md clarity and simplicity naming","ask":"Add clarity, simplicity, and naming rules to claude.md.","id":343,"topic":"claude-md-clarity-rules"}
+{"module":"voice","quote":"cannot list microphones does have to do with HTTPS","ask":"Fix microphone listing issue, possibly HTTPS-related.","id":344,"topic":"microphone-access-issue"}
+{"module":"voice","quote":"URLs or paths for API need to be generalized","ask":"Generalize API URLs and paths for drawer use.","id":345,"topic":"api-path-generalization"}
+{"module":"page","quote":"spacing is absolutely terrible way too much space","ask":"Fix spacing issues on dictate page, especially mobile.","id":349,"topic":"dictate-page-spacing"}
+{"module":"page","quote":"take a screenshot of dictate page on mobile","ask":"Have minions analyze layout screenshot of dictate page.","id":349,"topic":"layout-analysis-screenshot"}
+{"module":"page","quote":"default pad token that clamps itself and is","ask":"Implement flexible padding using clamp and container queries.","id":349,"topic":"flexible-padding-system"}
+{"module":"page","quote":"link using the IP address mode so that itll","ask":"Use IP address for links instead of localhost.","id":351,"topic":"ip-address-linking"}
+{"module":"voice","quote":"really big table that appears like three seconds","ask":"Investigate and fix slow table rendering on page.","id":352,"topic":"page-load-performance"}
+{"module":"page","quote":"need to clean up the layout on these AI","ask":"Clean up AI dashboard card layouts on mobile.","id":353,"topic":"dashboard-card-layout"}
+{"module":"page","quote":"each page.jsonl could just have all directory data","ask":"Make each page.jsonl contain directory data.","id":354,"topic":"page-jsonl-directory-data"}
+{"module":"page","quote":"generalize that in the page layout system","ask":"Generalize responsive two-column layout as vertical tabs.","id":358,"topic":"responsive-column-layout"}
+{"module":"page","quote":"each page should probably have that full AI","ask":"Show open tasks and AI activity on each page.","id":364,"topic":"page-task-integration"}
+{"module":"voice","quote":"mobile sheet needs to sort of resemble the same","ask":"Make mobile dictation sheet feature parity with desktop.","id":371,"topic":"mobile-dictation-ui"}
+{"module":"page","quote":"AI button is on left side instead of right","ask":"Move AI button to right side of mobile rail.","id":371,"topic":"mobile-button-placement"}
+{"module":"page","quote":"previews should generally just be auto height","ask":"Use auto height for preview cards instead.","id":372,"topic":"preview-card-height"}
+{"module":"page","quote":"vertical spacing on a lot of these preview","ask":"Fix spacing to show card association with labels.","id":372,"topic":"spacing-association"}
+{"module":"voice","quote":"create framework directory framework slash audio","ask":"Create framework/audio directory for audio components.","id":373,"topic":"framework-audio-module"}
+{"module":"voice","quote":"separate trans the transcription part from dictation","ask":"Separate transcription module from dictation module.","id":373,"topic":"transcription-dictation-split"}
+{"module":"ai","quote":"each page essentially could have a mastermind","ask":"Make mastermind context-aware of page navigation.","id":374,"topic":"context-aware-mastermind"}
+{"module":"ai","quote":"spawning a mastermind in same directory should use","ask":"Cache mastermind spawning for same directory and prompt.","id":376,"topic":"mastermind-caching-strategy"}
+{"module":"page","quote":"creating templates that accurately represent the state","ask":"Create visual templates showing class state simply.","id":379,"topic":"class-template-visualization"}
+{"module":"voice","quote":"shouldnt we have a class thats just for","ask":"Create Whisper class with streaming audio and chunking.","id":380,"topic":"whisper-streaming-class"}
+{"module":"voice","quote":"in-memory process seems like were running Whisper","ask":"Log finalized transcriptions to persistent storage.","id":382,"topic":"transcription-logging-strategy"}
+{"module":"voice","quote":"wonder if whisper.cpp has a better API than","ask":"Evaluate Whisper.cpp API vs server for streaming.","id":384,"topic":"whisper-api-evaluation"}

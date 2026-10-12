@@ -1,6 +1,8 @@
-# Owner asks by module: page and AI systems first (mastermind brief)
+# Owner asks, grouped by module (page and AI first)
 
-**Owner (2026-10-12):** the task audit read past tasks for what is undone, but it is unclear how accurately, and whether the list was consolidated. The owner has asked for many of the same things a dozen times: group each ask by the module it applies to, merge the repeats, and organise and prioritise within each module. Not every module: the page system and the AI system now (transcription next).
+**The ask (owner, 2026-10-12):** the owner has asked for many of the same things a dozen times. Group every ask by the module it belongs to, merge the repeats, and put each module's list in priority order. Do the page system and the AI system now; transcription is next.
+
+**Why:** the task audit listed what past tasks left undone, but nobody knows how accurate it was or whether it merged repeats.
 
 **What exists (start here, do not redo):** the task audit at `ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task/` (`by-system.md`, `work-items.md`: 186 loose ends in 22 items, Haiku labels about 58% reliable; `verified.jsonl`: 77 checked), `ai/asks.jsonl` (routed asks), the 2026-10-08 `ai-system-docs` review (`ai/2026-10-08/ai-system-docs/review.md`, `findings.md`).
 
