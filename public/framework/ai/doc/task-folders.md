@@ -37,3 +37,11 @@ Also not taken: putting a task's files straight into the session folder (no `<sl
 | 2026-10-12 | The owner: no day folders in `ai/`, everything in sessions | this doc |
 
 The conflict that needed settling: the 10-10 pass named every task `task/` (and `task-2/`), which loses the task's name in its URL. CLAUDE.md asks that tasks "get proper names", so the folder keeps its slug.
+
+## How it was done (2026-10-12)
+
+- **Code first** (merge `f616586a2`): `TaskDirs` builds every new task path (`node Server/TaskDirs.mjs --new <slug>`, `--day`); `append.mjs` and Servex `open_task` follow an old path to its new home; readers list both shapes; `ai/AISession/StoreFolder.js` routes the store by folder (`/framework/ai/sessions/2026/10/12/<session>/<task>/`).
+- **The move** (`Server/TaskMove.mjs`, built by a Sonnet worker): dry-run plan committed (`aa29bbb54`), then `--apply` (`c15216adc`): 1,059 task folders, the 77 `task/` folders from 10-10 renamed to their slug, 77 `moved.json` stubs archived to `ai/archive/task-stubs/`, 138 loose day files. Every move is a line in `ai/sessions/task-moves.jsonl` with per-file sha1s in `task-moves-files.jsonl`; `--verify` re-hashes them and `--undo` moves them back.
+- **The relink** (`02b42fe87`): 4,195 links in 1,612 md/js/html files, plus 67 relative imports fixed for the deeper folders. `.json` records, the generated `directory.json` and CLAUDE.md keep their old addresses, which redirect.
+- **Old URLs:** the router reads `task-moves.jsonl` and sends `/framework/ai/YYYY-MM-DD/<task>/…` to the new folder. Production needs nothing more, because the site falls back to the app for unknown paths (`not_found_handling: single-page-application`). A Cloudflare `_redirects` file would need 1,269 wildcard rules against a limit of 100, so `ai/sessions/task-redirects.txt` is kept as the reference list instead.
+- **Left for a sweep:** tasks still running at move time (`data-grid`, `style-system`, `refine-haiku-live`, this one) stay in `ai/2026-10-12/` until they land. Re-run `node Server/TaskMove.mjs --apply` then, and it moves only what is left. The dev server re-creates a `files.jsonl` with "gone" lines in an emptied day folder; the same sweep moves it. `ai/2026/MM/DD/a-*/` is the older card tree (09-19 to 09-24) and is not part of this move.
