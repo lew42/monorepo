@@ -372,17 +372,20 @@ return [
 			from: { type: "string", description: "Who is asking — your own agent id or name. The agent sees this." },
 			reply_to: { type: "string", description: "Where the answer should go, in plain words: `log agent-host`, `message mastermind-servex`." },
 			priority: { type: "string", description: "`now` to cut in mid-answer. Omit to queue behind the current turn." },
+			direct: { type: "boolean", description: "Owner or tab only: deliver straight to a mastermind instead of through the root assistant (also: start the text with @<id>)." },
 			revive: { type: "boolean", description: "Wake it even though it was stopped on purpose or its task has landed (refused otherwise, with the reason). Never wakes one whose directory is gone." },
 			dormant_after: DORMANT_AFTER
 		},
 		["id", "text"],
-		({ id, text, dormant_after, ...note }, ctx = {}) => {
+		({ id, text, dormant_after, direct, ...note }, ctx = {}) => {
 			// a call with `message` instead of `text` delivered the word "undefined" to six masterminds (09-29)
 			if (typeof text !== "string" || !text.trim()) return JSON.stringify({ ok: false, why: "send_to_agent needs `text` (what to say); it was missing or empty." });
 			id = agents.holder?.(id) ?? id;
 			const ruling = policy.message(ctx.caller ?? null, id);
 			if(!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
 			const from = ctx.caller ?? note.from;
+			const via = policy.route(ctx.caller ?? null, id, text, { direct, assistant_live: (a => !!a && a.state !== "stopped")(agents.live.get("master-assistant")) || !!agents.external?.has?.("master-assistant") });
+			if(via){ policy.onbypass?.({ at: new Date().toISOString(), kind: "relay-routed", from: from ?? "owner", to: id }); id = via.to; text = via.text; }
 			policy.heard(from ?? "owner", id);
 			const agent = agents.send(id, text, { ...note, from });
 			// Agent.send() only reads {from, reply_to, priority} off its note and drops everything

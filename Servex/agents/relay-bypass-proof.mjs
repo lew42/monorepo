@@ -1,5 +1,5 @@
-/* Proof: a private Servex (ports 8290/8289/8288, throwaway LOCALAPPDATA) logs a relay-bypass line
- * when the owner messages a task mastermind, and still delivers. Run: node Servex/agents/relay-bypass-proof.mjs */
+/* Proof: a private Servex (ports 8290/8289/8288, throwaway LOCALAPPDATA) routes owner prompts to a mastermind
+ * through the root assistant, and lets @named / direct:true go straight. Run: node Servex/agents/relay-bypass-proof.mjs */
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -19,14 +19,19 @@ const call = async (name, args, as) => (await (await fetch(`${base}/mcp${as ? `?
 let code = 1;
 try {
 	for (let i = 0; i < 60; i++) { try { if (Array.isArray(await (await fetch(base + "/api/agents")).json())) break; } catch {} await sleep(500); }
-	console.log("owner  ->", (await call("send_to_agent", { id: "task-mastermind-proof", text: "hi" })).slice(0, 160));
-	console.log("minion ->", (await call("send_to_agent", { id: "task-mastermind-proof", text: "hi" }, "minion-q")).slice(0, 160));
-	await sleep(1500);
-	const dir = path.join(local, "lew42", "servex"); const hits = [];
-	const walk = d => { for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) walk(p); else if (/policy.*\.jsonl$/.test(f.name)) for (const l of fs.readFileSync(p, "utf8").split("\n")) if (l.includes("relay-bypass")) hits.push(l); } };
-	walk(local);
-	console.log("policy log relay-bypass lines:", hits.length); hits.forEach(h => console.log("  " + h));
-	code = hits.length === 1 && JSON.parse(hits[0]).via === "owner" || hits.length === 1 ? 0 : 1;
-	console.log(code === 0 ? "PASS: exactly one bypass line (owner), none for the minion" : "FAIL");
+	/* Stand-ins: a registered tab named master-assistant (the relay) and one named mastermind-proof. */
+	const reg = (id) => call("register_session", { id, session_id: "00000000-0000-4000-8000-" + String(rpc).padStart(12, "0") });
+	await reg("master-assistant"); await reg("mastermind-proof");
+	const inbox = id => { try { return fs.readFileSync(path.join(local, "lew42", "servex", "logs", "inbox", id + ".jsonl"), "utf8").trim().split("\n").filter(Boolean).map(JSON.parse); } catch { return []; } };
+	const says = ["fix the card layout", "what is the status of the tabs work", "add a note to the readme"];
+	for (const t of says) await call("send_to_agent", { id: "mastermind-proof", text: t });
+	await call("send_to_agent", { id: "mastermind-proof", text: "@mastermind-proof go direct" });
+	await call("send_to_agent", { id: "mastermind-proof", text: "flagged direct", direct: true });
+	const viaA = inbox("master-assistant"), viaM = inbox("mastermind-proof");
+	console.log("assistant inbox:", viaA.length, "| mastermind inbox (direct):", viaM.length);
+	viaA.forEach(l => console.log("  relay:", l.text.slice(0, 60).replace(/\n/g, " ") + "…"));
+	viaM.forEach(l => console.log("  direct:", l.text));
+	code = viaA.length === 3 && viaM.length === 2 && viaA.every(l => l.text.includes("RELAY for mastermind-proof")) ? 0 : 1;
+	console.log(code === 0 ? "PASS: 3 owner prompts via the assistant, 2 explicit direct ones straight" : "FAIL");
 } finally { child.kill(); await sleep(500); fs.rmSync(local, { recursive: true, force: true }); }
 process.exit(code);

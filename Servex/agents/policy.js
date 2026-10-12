@@ -43,6 +43,23 @@ export class Policy {
 		return "worker";
 	}
 
+	/* A task mastermind by either spelling: the old `task-mastermind-X` and the ids spawn_agent
+	 * mints today (`mastermind-X`, which `kind()` calls a plain worker). Excludes mastermind-servex. */
+	is_mastermind(id){ return typeof id === "string" && !SERVEX_ID.test(id) && (id.startsWith("task-mastermind-") || id.startsWith("mastermind-")); }
+
+	/* RELAY RULE (2026-10-12, asks.md mastermind-assistant-relay): the owner or a tab messaging a
+	 * mastermind goes through the root assistant, which answers fast, files the card and relays the
+	 * ask. Direct stays open when the sender says so (`direct: true`) or names the mastermind with
+	 * `@<id>` at the start of the text. Alternative kept: refuse outright (rejected: lockout risk). */
+	route(from, to, text = "", { direct = false, assistant_live = true } = {}){
+		const f = this.kind(from);
+		if(this.off() || process.env.SERVEX_RELAY === "off" || !(f === "owner" || f === "external") || !this.is_mastermind(to)) return null;
+		if(direct || !assistant_live || String(text).trimStart().startsWith(`@${to}`)) return null;
+		return { to: "master-assistant", text: `RELAY for ${to} (from ${from ?? "owner"}). File or find the card, give a one-line answer, then pass the ask on with send_to_agent({id: "${to}", text, from: "master-assistant"}), keeping the owner's words verbatim:
+
+${text}` };
+	}
+
 	/* `assistant-X` and `manager-X` are a pair sharing the card X. */
 	card(id){ const k = this.kind(id); return k === "assistant" || k === "manager" ? id.slice(id.indexOf("-") + 1) : null; }
 
@@ -79,7 +96,7 @@ export class Policy {
 		if(t === "servex") return ["assistant", "manager", "master", "task-mastermind"].includes(f);
 		if(f === "assistant") return (t === "manager" && this.card(from) === this.card(to)) || t === "master";
 		if(f === "manager") return t === "assistant" && this.card(from) === this.card(to);
-		if(f === "master") return t === "assistant";
+		if(f === "master") return t === "assistant" || this.is_mastermind(to);
 		/* PEERS (brief 19:25 (3), 2026-09-30): two task masterminds talk directly instead of
 		 * relaying through mastermind-servex; send_to_agent copies the sender's parent. */
 		if(f === "task-mastermind" && t === "task-mastermind") return "peer";
@@ -100,7 +117,7 @@ export class Policy {
 		 * that can call register_session would otherwise get "spawn anything". */
 		/* RELAY BYPASS (log-only, 2026-10-12, asks.md #2): the owner or a tab messaging a task
 		 * mastermind directly skips the card's assistant. Counted, never refused. */
-		if((f === "owner" || f === "external") && this.kind(to) === "task-mastermind") this.bypass({ at: new Date(now).toISOString(), kind: "relay-bypass", from: from ?? "owner", via: f, to });
+		if((f === "owner" || f === "external") && this.is_mastermind(to)) this.bypass({ at: new Date(now).toISOString(), kind: "relay-bypass", from: from ?? "owner", via: f, to });
 		if(f === "owner" || f === "external") return ok(f);
 		if(f === "system" || f === "servex") return ok("system");
 		if(this.tree(from, to)) return ok("tree");
