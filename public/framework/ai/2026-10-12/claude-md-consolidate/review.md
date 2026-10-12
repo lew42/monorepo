@@ -33,7 +33,10 @@ Law 5 said "Superceded docs can be deleted cleanly" (2026-10-05). **Never destru
 
 ## The fresh reviewer
 
-A separate Sonnet read the 24 rewordings against the old file ([report](review/report.md)). It found eight small drifts and no conflicts. Seven were fixed by restoring the lost clause: the helper-class exception, the "questions and tradeoffs" list, "treat this file as the root readme", "many AI-system pieces should be classes", the debug-view detail, the chunking detail, and "text link first". The eighth, the deliberate Law 5 cut, is the conflict above.
+A separate Sonnet read the 24 rewordings ([report](review/report.md)): eight small drifts, no conflicts.
+
+- Fixed by restoring the lost clause: the helper-class exception, "questions and tradeoffs", "root readme", "many AI-system pieces should be classes", the debug-view detail, the chunking detail, "text link first".
+- Not a fix: the deliberate Law 5 cut, the conflict above.
 
 ## Still long, if you want it shorter later
 
