@@ -1,0 +1,185 @@
+[
+ {
+  "w": 3440,
+  "rest": {
+   "chips": [
+    "short headless · 2,976 · $174",
+    "prompt cleaning · 2,027 · $163",
+    "clarity check · 266 · $95.75",
+    "helper · 220 · $85.10",
+    "review · 151 · $123"
+   ],
+   "shown": "449 sessions listed (5,640 routine hidden)",
+   "first": [
+    "Data grid · mastermind-data-grid$$$",
+    "Screenshot system · mastermind-screenshot-system$$",
+    "Figma MCP skill design systems$$$"
+   ],
+   "first_row_top": 0
+  },
+  "chip_on": {
+   "chips": [
+    "short headless · 2,976 · $174",
+    "prompt cleaning · 2,027 · $163",
+    "clarity check · 266 · $95.75",
+    "helper · 220 · $85.10",
+    "review · 151 · $123"
+   ],
+   "shown": "3,425 sessions listed (2,664 routine hidden)",
+   "first": [
+    "Data grid · mastermind-data-grid$$$",
+    "Screenshot system · mastermind-screenshot-system$$",
+    "Figma MCP skill design systems$$$"
+   ],
+   "first_row_top": 0
+  },
+  "search": {
+   "chips": [
+    "clarity check · 1 · $0.14",
+    "review · 1 · $1.01"
+   ],
+   "shown": "4 sessions listed",
+   "first": [
+    "Server query · mastermind-server-query",
+    "minion-server-query-parity",
+    "Server-query review · reviewer-server-query"
+   ],
+   "first_row_top": 0
+  },
+  "routine": {
+   "chips": [
+    "clarity check · 281 · $105"
+   ],
+   "shown": "282 sessions listed",
+   "first": [
+    "clarity-peer-messages",
+    "Clarity check session 87bec773 · clarity-step-runn",
+    "Clarity skill peer messages · clarity-peer-message"
+   ],
+   "first_row_top": 0
+  },
+  "errors": []
+ },
+ {
+  "w": 1920,
+  "rest": {
+   "chips": [
+    "short headless · 2,976 · $174",
+    "prompt cleaning · 2,027 · $163",
+    "clarity check · 266 · $95.75",
+    "helper · 220 · $85.10",
+    "review · 151 · $123"
+   ],
+   "shown": "449 sessions listed (5,640 routine hidden)",
+   "first": [
+    "Data grid · mastermind-data-grid$$$",
+    "Screenshot system · mastermind-screenshot-system$$",
+    "Figma MCP skill design systems$$$"
+   ],
+   "first_row_top": 0
+  },
+  "chip_on": {
+   "chips": [
+    "short headless · 2,976 · $174",
+    "prompt cleaning · 2,027 · $163",
+    "clarity check · 266 · $95.75",
+    "helper · 220 · $85.10",
+    "review · 151 · $123"
+   ],
+   "shown": "3,425 sessions listed (2,664 routine hidden)",
+   "first": [
+    "Data grid · mastermind-data-grid$$$",
+    "Screenshot system · mastermind-screenshot-system$$",
+    "Figma MCP skill design systems$$$"
+   ],
+   "first_row_top": 0
+  },
+  "search": {
+   "chips": [
+    "clarity check · 1 · $0.14",
+    "review · 1 · $1.01"
+   ],
+   "shown": "4 sessions listed",
+   "first": [
+    "Server query · mastermind-server-query",
+    "minion-server-query-parity",
+    "Server-query review · reviewer-server-query"
+   ],
+   "first_row_top": 0
+  },
+  "routine": {
+   "chips": [
+    "clarity check · 281 · $105"
+   ],
+   "shown": "282 sessions listed",
+   "first": [
+    "clarity-peer-messages",
+    "Clarity check session 87bec773 · clarity-step-runn",
+    "Clarity skill peer messages · clarity-peer-message"
+   ],
+   "first_row_top": 0
+  },
+  "errors": []
+ },
+ {
+  "w": 400,
+  "rest": {
+   "chips": [
+    "short headless · 2,976 · $174",
+    "prompt cleaning · 2,027 · $163",
+    "clarity check · 266 · $95.75",
+    "helper · 220 · $85.10",
+    "review · 151 · $123"
+   ],
+   "shown": "449 sessions listed (5,640 routine hidden)",
+   "first": [
+    "Data grid · mastermind-data-grid$$$",
+    "Screenshot system · mastermind-screenshot-system$$",
+    "Figma MCP skill design systems$$$"
+   ],
+   "first_row_top": 894
+  },
+  "chip_on": {
+   "chips": [
+    "short headless · 2,976 · $174",
+    "prompt cleaning · 2,027 · $163",
+    "clarity check · 266 · $95.75",
+    "helper · 220 · $85.10",
+    "review · 151 · $123"
+   ],
+   "shown": "3,425 sessions listed (2,664 routine hidden)",
+   "first": [
+    "Data grid · mastermind-data-grid$$$",
+    "Screenshot system · mastermind-screenshot-system$$",
+    "Figma MCP skill design systems$$$"
+   ],
+   "first_row_top": 894
+  },
+  "search": {
+   "chips": [
+    "clarity check · 1 · $0.14",
+    "review · 1 · $1.01"
+   ],
+   "shown": "4 sessions listed",
+   "first": [
+    "Server query · mastermind-server-query",
+    "minion-server-query-parity",
+    "Server-query review · reviewer-server-query"
+   ],
+   "first_row_top": 748
+  },
+  "routine": {
+   "chips": [
+    "clarity check · 281 · $105"
+   ],
+   "shown": "282 sessions listed",
+   "first": [
+    "clarity-peer-messages",
+    "Clarity check session 87bec773 · clarity-step-runn",
+    "Clarity skill peer messages · clarity-peer-message"
+   ],
+   "first_row_top": 773
+  },
+  "errors": []
+ }
+]
