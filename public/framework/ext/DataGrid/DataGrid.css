@@ -52,3 +52,56 @@
 	   natural, auto-height rows. */
 	.datagrid.datagrid-windowed .datagrid-cell { block-size: 36px; overflow: hidden; }
 }
+
+@layer theme {
+	/* `--datagrid-height`: the default cap on a plain markup-only grid, so a
+	   long one (ext/DataGrid's real use) scrolls INSIDE its own box instead of
+	   stretching the page — override with `.style("--datagrid-height", "...")`
+	   or `"none"` to let it grow with its content instead. */
+	.datagrid { display: grid; column-gap: var(--gap-50); overflow: auto; position: relative; max-height: var(--datagrid-height, 28rem); }
+	.datagrid-head, .datagrid-body, .datagrid-row { display: contents; }
+
+	.datagrid-cell {
+		display: flex; align-items: center; min-width: 0;
+		/* Inline padding too, not just block -- without it the text sits flush
+		   against the column's left edge (caught by merge.mjs's smoke test:
+		   "text touching its box", 0px from left). column-gap on .datagrid
+		   already spaces cells from EACH OTHER; this is each cell's own edge. */
+		padding: var(--gap-50);
+		border-block-end: 1px solid var(--line);
+	}
+
+	/* Sticky so a tall, internally-scrolling grid (ext/DataGrid's windowing)
+	   keeps its header in view — the box that scrolls is `.datagrid` itself. */
+	.datagrid-head-cell {
+		position: sticky; inset-block-start: 0; z-index: 1;
+		background: var(--surface);
+		font-weight: 600; border-block-end-width: 2px;
+	}
+
+	/* The resize handle — the owner's measured bug was ext/grip's "near zone":
+	   a document-wide pointermove listener computing distance-to-edge every
+	   frame just to decide whether to light up. This is one plain :hover rule
+	   instead — the browser does that work for free, instantly, with no JS at
+	   all needed for the handle to appear. */
+	.datagrid-grip {
+		position: absolute; inset-block: 0;
+		inset-inline-end: calc(var(--gap-50) / -2 - 3px);
+		width: calc(var(--gap-50) + 6px);
+		cursor: col-resize; touch-action: none; z-index: 2;
+	}
+	.datagrid-grip::after {
+		content: ""; position: absolute; inset-block: 0; inset-inline-start: 50%;
+		width: 2px; transform: translateX(-50%);
+		background: var(--prim); opacity: 0; transition: opacity 0.1s;
+	}
+	.datagrid-grip:hover::after, .datagrid-grip:focus-visible::after { opacity: 0.6; }
+
+	.datagrid-label { display: inline-flex; align-items: center; gap: var(--gap-35); }
+	.datagrid-sortable .datagrid-label { cursor: pointer; }
+	.datagrid-sortable .datagrid-label:hover { text-decoration: underline; }
+}
+@layer theme {
+	.ui-table { width: 100%; }
+	.ui-table.num th + th, .ui-table.num td + td { text-align: end; }
+}

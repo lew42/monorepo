@@ -1,5 +1,5 @@
-import View, { div, span, small, label, input } from "../../core/View/View.js";
-import { grid_template, datagrid_head, datagrid_body, to_len } from "../../ui/datagrid/datagrid.js";
+import View, { div, span, small, label, input, table as table_el, thead, tbody, tr, th, td, is } from "../../core/View/View.js";
+import { component } from "../../ui/parts.js";
 
 View.stylesheet(import.meta, "DataGrid.css");
 
@@ -52,6 +52,48 @@ View.stylesheet(import.meta, "DataGrid.css");
  * remember.
  */
 
+// The plain markup (was ui/datagrid and ui/table; those files now re-export it).
+function to_len(v, fallback){
+	v = v ?? fallback;
+	return typeof v === "number" ? v + "px" : v;
+}
+
+function grid_template(columns){
+	return columns.map(c => `minmax(${to_len(c.min, 60)}, var(--col-${c.key}, ${to_len(c.width, 140)}))`).join(" ");
+}
+
+function cell_content(value, row, column){
+	const out = column.format ? column.format(value, row) : value;
+	if (out == null || out === "") return;
+	if (is.fn(out)) out();
+	else span(String(out));
+}
+
+function datagrid_head(columns){
+	return div.c("datagrid-head datagrid-row", () => {
+		columns.forEach((c, i) => {
+			div.c("datagrid-cell datagrid-head-cell").attr("data-key", c.key).append(() => {
+				span.c("datagrid-label", c.label);
+				if (i < columns.length - 1) div.c("datagrid-grip");
+			});
+		});
+	});
+}
+
+// `draw_row(row)`, when given, draws one row instead of the default cells.
+function datagrid_body(columns, rows, draw_row){
+	return div.c("datagrid-body", () => {
+		rows.forEach(row => {
+			if (draw_row) return draw_row(row);
+			div.c("datagrid-row", () => {
+				columns.forEach(c => {
+					div.c("datagrid-cell").attr("data-key", c.key).append(() => cell_content(row[c.key], row, c));
+				});
+			});
+		});
+	});
+}
+
 // Past this many rows, only the rows actually on screen (plus a small
 // overscan) exist in the DOM — the brief's own "a few hundred" floor.
 const WINDOW_AT = 300;
@@ -81,6 +123,26 @@ function num(v){ return typeof v === "number" ? v : -Infinity; }
 function date_num(v){ const n = Date.parse(v); return Number.isNaN(n) ? -Infinity : n; }
 
 export default class DataGrid extends View {
+
+	static len = to_len;
+	static cell_content = cell_content;
+	static template = grid_template;
+	static head = datagrid_head;
+	static body = datagrid_body;
+
+	// A static grid, markup only, no sort or listeners (what `ui.datagrid` was).
+	static plain = component((columns, rows) => div.c("datagrid", $grid => {
+		$grid.style("gridTemplateColumns", grid_template(columns));
+		columns.forEach(c => $grid.style("--col-" + c.key, to_len(c.width, 140)));
+		datagrid_head(columns);
+		datagrid_body(columns, rows);
+	}));
+
+	// A small native <table> for prose (what `ui.table` was).
+	static table = component((head, rows) => table_el.c("ui-table", () => {
+		thead(() => tr(() => head.forEach(cell => th(cell))));
+		tbody(() => rows.forEach(row => tr(() => row.forEach(cell => td(cell)))));
+	}));
 
 	render(){
 		this.ac("datagrid-ext");
