@@ -1,7 +1,7 @@
 import Socket from "/framework/dev/Socket/Socket.js";
 
 /* The browser half of ext/Query: asks the dev server (QueryServer.mjs) one query over the socket and hands back the page of rows.
- *   const q = new QueryClient("sessions", { row: (qid, item) => …, stale: qid => … });
+ *   const q = new QueryClient("sessions", { row: item => …, stale: () => … });
  *   const res = await q.ask({ where, sort, offset, limit, sum });   // { rows, total, totals, offset, qid, ms } or { error }
  * The server then pushes `query_row` (a shown row changed) and `query_stale` (the page may have new matches) for the last qid. Doc: doc/architecture.md. */
 export default class QueryClient {
