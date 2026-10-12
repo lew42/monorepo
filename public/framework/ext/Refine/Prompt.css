@@ -43,7 +43,7 @@
 	/* One workspace: sticky bar on top, stages side by side, sticky footer (the owner, 2026-10-09). */
 	.refine-toolbar { position: sticky; top: 0; z-index: 5; display: grid; gap: .4em; padding-block: .5em; background: var(--paper, #fff); border-block-end: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
 	.refine-toolbar textarea { min-height: 3.2em; max-height: 6em; }
-	.refine-said { display: flex; gap: 1em; align-items: baseline; }
+	.refine-said { display: flex; flex-wrap: wrap; gap: .3em 1em; align-items: baseline; }
 	.refine-said-label { font-weight: 600; }
 	.refine-go { font-weight: 700; }
 	.refine-model { display: inline-flex; gap: .4em; align-items: center; }
