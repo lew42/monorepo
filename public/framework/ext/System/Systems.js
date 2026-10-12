@@ -20,6 +20,7 @@ export default class Systems {
 		"public/framework/ai/sessions/system.js",
 		"public/framework/servex/system.js",
 		"public/framework/audio/Transcriber/system.js",
+		"public/framework/ext/Refine/system.js",
 	];
 
 	static async all(){

@@ -15,3 +15,9 @@
 {"system":"Sessions","at":"2026-10-12T07:23:28.973Z","count":1,"findings":[{"rule":"short","path":"public/framework/ai/sessions/readme.md","text":"206 lines (max 100)"}]}
 {"system":"Servex","at":"2026-10-12T07:23:28.974Z","count":0,"findings":[]}
 {"system":"Transcription","at":"2026-10-12T07:23:28.974Z","count":0,"findings":[]}
+{"system":"Readmes","at":"2026-10-12T07:54:44.082Z","count":12,"findings":[{"rule":"short","path":"public/framework/ai/readme.md","text":"104 lines (max 100)"},{"rule":"links","path":"public/framework/ai/review/readme.md","text":"broken link ../page/questions.md"},{"rule":"short","path":"public/framework/ai/sessions/readme.md","text":"206 lines (max 100)"},{"rule":"short","path":"public/framework/ai/v/3/readme.md","text":"219 lines (max 100)"},{"rule":"short","path":"public/framework/core/new/1/readme.md","text":"591 lines (max 100)"},{"rule":"short","path":"public/framework/core/Page/generator/readme.md","text":"283 lines (max 100)"},{"rule":"short","path":"public/framework/core/Page/readme.md","text":"125 lines (max 100)"},{"rule":"short","path":"public/framework/ext/DesignTool/diff/readme.md","text":"114 lines (max 100)"},{"rule":"short","path":"public/framework/ext/files/readme.md","text":"112 lines (max 100)"},{"rule":"short","path":"public/framework/ui/readme.md","text":"108 lines (max 100)"}]}
+{"system":"Navigation","at":"2026-10-12T07:54:44.749Z","count":0,"findings":[]}
+{"system":"Sessions","at":"2026-10-12T07:54:44.751Z","count":1,"findings":[{"rule":"short","path":"public/framework/ai/sessions/readme.md","text":"206 lines (max 100)"}]}
+{"system":"Servex","at":"2026-10-12T07:54:44.752Z","count":0,"findings":[]}
+{"system":"Transcription","at":"2026-10-12T07:54:44.752Z","count":0,"findings":[]}
+{"system":"Prompt refinement","at":"2026-10-12T07:54:44.753Z","count":0,"findings":[]}
