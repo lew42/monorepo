@@ -8,6 +8,10 @@ import AISessionTrace from "./AISessionTrace.js";
 import AISession from "./AISession.js";
 import AISessionConversation from "./AISessionConversation.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
+import Item from "/framework/core/Item/Item.js";
+import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
+import "/framework/core/Page/parts/PageText.js";
+import "/framework/core/Page/parts/PageCard.js";
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
 // view). Built with `new AISessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
@@ -56,7 +60,17 @@ export default class AISessionDetail extends Page {
 
 	log_loaded(){ return this._log_loaded ??= this.log_urls().then(urls => Promise.all(urls.map(url => new AISessionDetail.Log({ url, page: this }).load()))); }
 
-	async child(name, levels){ await this.log_loaded(); return super.child(name, levels); }
+	/* A subpage made by the page tool (`pages.add`) is a folder inside the session's own folder; the log's
+	   `file` lines say which (SessionPageLog.read → sub_dirs). It is read from there and shown at this route. */
+	async child(name, levels){
+		await this.log_loaded();
+		const dir = this.sub_dirs?.get(name);
+		if (dir && !(this.children.get(name) instanceof Page)){
+			const page = await Page.jsonl(dir);
+			if (page){ page.url = this.url + name + "/"; return this.add(name, page).load_all_children(levels); }
+		}
+		return super.child(name, levels);
+	}
 
 	content(){
 		const { home, id } = this, url = home.url;
@@ -67,6 +81,8 @@ export default class AISessionDetail extends Page {
 			a.c("muted sessions-template", "AISessionDetail.js").href("/framework/ai/AISession/AISessionDetail.js");
 		});
 
+		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
+		this.parts = new AISessionDetail.Parts($parts);
 		let $box, $conv, $related, $costs, $spawn, $session, $trace;
 		div.c("cols main-aside sessions-detail-body", () => {
 			div.c("flow sessions-detail-main", () => {
@@ -91,7 +107,7 @@ export default class AISessionDetail extends Page {
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
 			this.log_urls().then(urls => {
 				if (this.logs) return;
-				const open = url => new AISessionDetail.Log({ url, page: this, on_card: c => conv.add_card(c) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
+				const open = url => new AISessionDetail.Log({ url, page: this, parts: this.parts, on_card: c => conv.add_card(c) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
 				const logs = this.logs = urls.map(open);
 				this._old_url?.then(old => { if (old && this.logs === logs) logs.push(open(old)); });
 			});
@@ -246,10 +262,76 @@ AISessionDetail.Log = class SessionPageLog extends JSONL {
 	read(entries){
 		for (const e of entries){
 			const item = e.content?.add;
-			if (item?.title && item.id && this.on_card && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
+			this.parts?.apply(e);
+			this.link(e.file, e.gone);
+			if (item?.title && item.id && !String(item.type).startsWith("part-") && this.on_card && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
 			this.page?.overlay(e);
 		}
 		return this;
 	}
 	live(){ super.live(() => {}); return this; }
+
+	/** A `{"file":"notes/page.jsonl"}` line names a subpage folder beside this log; `gone` drops it. */
+	link(file, gone){
+		const name = /^([^/]+)\/page\.jsonl$/.exec(file ?? "")?.[1];
+		if (!name || !this.page) return;
+		const dirs = this.page.sub_dirs ??= new Map();
+		if (gone){ dirs.delete(name); this.page.unlink_child(name); this.page.children.delete(name); }
+		else { dirs.set(name, this.url.replace(/page\.jsonl$/, "") + name + "/"); this.page.link_child(name + "/page.jsonl"); }
+	}
+};
+
+/** The parts the page tool put on this page (`content.add` of a part-heading, part-text or part-card), drawn
+ *  live in one box: the same Items and Views a Page's own content list uses. Add, change by id, remove, move, order. */
+AISessionDetail.Parts = class SessionParts {
+	items = new Map();
+	order = [];
+	constructor($box){ this.$box = $box; }
+
+	apply(e){
+		if (!e || typeof e !== "object") return;
+		let dirty = false;
+		const verbs = e.content;
+		if (verbs && typeof verbs === "object"){
+			const add = verbs.add;
+			if (add?.id && String(add.type).startsWith("part-")){
+				const { after, type, id, ...data } = add;
+				this.items.set(id, Item.hydrate({ type, id, data }));
+				this.place(id, after);
+				dirty = true;
+			}
+			if (typeof verbs.remove === "string" && this.items.delete(verbs.remove)){ this.order = this.order.filter(x => x !== verbs.remove); dirty = true; }
+			if (verbs.move && this.items.has(verbs.move.id)){ this.place(verbs.move.id, verbs.move.after); dirty = true; }
+			if (Array.isArray(verbs.order)){
+				const listed = verbs.order.filter(id => this.items.has(id));
+				this.order = [...listed, ...this.order.filter(id => !listed.includes(id))];
+				dirty = true;
+			}
+		}
+		for (const [key, value] of Object.entries(e)){
+			const item = this.items.get(key);
+			if (item && value && typeof value === "object" && !Array.isArray(value)){
+				const { by, ts, ...delta } = value;
+				item.set(delta);
+				dirty = true;
+			}
+		}
+		if (dirty) this.draw();
+	}
+
+	place(id, after){
+		this.order = this.order.filter(x => x !== id);
+		const at = after === null ? -1 : after === undefined ? this.order.length - 1 : this.order.indexOf(after);
+		this.order.splice(at === -1 && after !== null ? this.order.length : at + 1, 0, id);
+	}
+
+	// One redraw per batch: the next microtask, so a replay of 50 lines paints once.
+	draw(){
+		if (this.pending) return;
+		this.pending = true;
+		queueMicrotask(() => {
+			this.pending = false;
+			this.$box.empty(() => this.order.forEach(id => { const item = this.items.get(id); if (item?.constructor.View) new item.constructor.View({ item }); }));
+		});
+	}
 };
