@@ -276,6 +276,9 @@ export default class DataGrid extends View {
 		this.apply();
 	}
 
+	// The row's url when the page passed an `href(row)` option (View already has an href() of its own, so look for the page's).
+	link(row){ return Object.hasOwn(this, "href") ? this.href(row) : undefined; }
+
 	// Default table row: one cell per column. Called with the row's element capturing.
 	cells(row){
 		this.columns.forEach(c => {
@@ -290,8 +293,8 @@ export default class DataGrid extends View {
 			return is.fn(out) || out == null || out === "" ? "" : String(out);
 		};
 		const [first, ...rest] = this.columns;
-		strong.c("datagrid-card-title", text(first) || "–");
-		small.c("muted datagrid-card-line", rest.map(c => ({ c, t: text(c) })).filter(x => x.t).map(x => `${x.c.label} ${x.t}`).join(" · "));
+		span.c("datagrid-card-title", text(first) || "–");
+		span.c("muted datagrid-card-line", rest.map(c => ({ c, t: text(c) })).filter(x => x.t).map(x => `${x.c.label} ${x.t}`).join(" · "));
 	}
 
 	// Anything that wants to follow the live instance (the demo's debug view).

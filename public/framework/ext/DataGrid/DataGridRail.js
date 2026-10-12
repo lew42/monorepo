@@ -35,7 +35,7 @@ export default class DataGridRail extends DataGridDrawer {
 
 	draw_card(row){
 		const g = this.grid;
-		const href = g.href?.(row);
+		const href = g.link(row);
 		(href ? a : div).c("card datagrid-card", $c => {
 			if (href) $c.attr("href", href);
 			g.card(row);

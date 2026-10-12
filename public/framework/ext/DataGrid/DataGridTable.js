@@ -49,7 +49,7 @@ export default class DataGridTable extends DataGridDrawer {
 	draw_row(row){
 		const g = this.grid;
 		if (g.row) return g.row(row);
-		const href = g.href?.(row);
+		const href = g.link(row);
 		(href ? a : div).c("datagrid-row", $r => {
 			if (href) $r.attr("href", href);
 			g.cells(row);

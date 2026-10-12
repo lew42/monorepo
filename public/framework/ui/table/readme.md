@@ -1,5 +1,7 @@
 # table
 
+> **Moved (2026-10-12):** this now lives in [`ext/DataGrid`](/framework/ext/DataGrid/) as `DataGrid.table`. `ui/table` re-exports it, so `import { table } from "/app.js"` still works.
+
 A head row and a body — `framework.css` already draws the borders, padding and header fill; `table()` just loops your arrays into `<tr>`s.
 
 ## Use
