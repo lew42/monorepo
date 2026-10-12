@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import AISessionFlags from "./AISessionFlags.js";
+import AISessionBuckets from "./AISessionBuckets.js";
 
 /* The node side of the Sessions grid's rows: what the "sessions" query source (ext/Query) adds to each index snapshot so the browser draws
  * the same row the files path does. `shape` is the join; the snapshot itself stays as the index wrote it (no second store).
@@ -24,5 +26,13 @@ export default class AISessionSource {
 	/** The Claude spend the files path totals (AISessionRows.claude_usd_of): OpenRouter dollars are not Claude's. */
 	static claude_usd_of(snap) { return snap.provider === "openrouter" ? 0 : snap.usd ?? 0; }
 
-	static shape(snap) { return { ...snap, source: AISessionSource.source_of(snap), claude_usd: AISessionSource.claude_usd_of(snap) }; }
+	/** The files path's "needs attention" test, run by the same AISessionFlags.flags_of: a session-record alert or any red flag. 1 or 0, so the query can `gte` and `sum` it. */
+	static attention_of(row) { return row.alerts || AISessionFlags.flags_of(row).length ? 1 : 0; }
+
+	static shape(snap) {
+		const source = AISessionSource.source_of(snap);
+		const row = { ...snap, source, claude_usd: AISessionSource.claude_usd_of(snap), closed: !!snap.closed, role: source === "servex" ? AISessionBuckets.role_of(snap) : null };
+		row.attention = AISessionSource.attention_of(row);
+		return row;
+	}
 }

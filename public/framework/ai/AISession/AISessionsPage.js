@@ -13,6 +13,7 @@ import AISession from "./AISession.js";
 import AISessionDetail from "./AISessionDetail.js";
 import AISessionFlags from "./AISessionFlags.js";
 import StoreFolder from "./StoreFolder.js";
+AISessionFlags.usd_of = r => AISessionRows.claude_usd_of(r);   // flags_of reads the row's Claude $ from the session index here
 import QueryClient from "/framework/ext/Query/QueryClient.js";
 
 const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
@@ -451,10 +452,11 @@ export default class AISessionsPage extends Page {
 			{ field: "last_activity", op: "lte", value: this.date_to + "T23:59:59.999Z" },
 		];
 		if (this.inflight_only) where.push({ field: "state", op: "eq", value: "active" });
-		if (this.attention_only) where.push({ field: "flags", op: "gte", value: 1 });
+		if (!this.show_closed) where.push({ field: "closed", op: "eq", value: false });   // closed sessions hide unless ticked (never deleted)
+		if (this.attention_only) where.push({ field: "attention", op: "gte", value: 1 });
 		if (r.search) where.push({ fields: AISessionsPage.SEARCH_FIELDS, op: "contains", value: r.search });
 		const [key, dir] = r.sort_key ? r.sort_key.split(":") : ["updated", "desc"];
-		return { where, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["claude_usd", "tokens"] };
+		return { where, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["claude_usd", "tokens", "attention"] };
 	}
 
 	/** Ask for a page. `first`/default = a fresh query; `more` = the next 50; `refresh` = the same query again, keeping the rows already loaded. */
@@ -470,6 +472,7 @@ export default class AISessionsPage extends Page {
 			const rows = res.rows.map(snap => this.remote_row_of(snap));
 			Object.assign(r, { rows: more ? [...r.rows, ...rows] : rows, total: res.total, totals: res.totals, ms: res.ms });
 			this.filtered_count = res.total; this.shown_usd = res.totals.claude_usd ?? 0;
+				this.attention_only_text?.text(`needs attention · ${res.totals.attention ?? 0}`);
 			this.grid.set_rows(r.rows, first);
 			this.$empty.el.hidden = r.rows.length > 0;
 			this.render_stats();
@@ -480,7 +483,7 @@ export default class AISessionsPage extends Page {
 
 	/** One snapshot becomes the row AISessionView draws: the live Session holds its numbers, the row holds the identity. */
 	remote_row_of(snap){
-		const { ses } = AISession.apply_delta(snap), row = { ...ses.grid_row(), source: snap.source ?? "vscode", role: null };
+		const { ses } = AISession.apply_delta(snap), row = { ...ses.grid_row(), source: snap.source ?? "vscode", role: snap.role ?? null };
 		row.role = AISessionRows.role_of(row);
 		return row;
 	}
@@ -504,14 +507,15 @@ export default class AISessionsPage extends Page {
 			const $box = input().attr("type", "checkbox");
 			$box.el.checked = !!this[key];
 			$box.on("change", () => { this[key] = $box.el.checked; this.remote_ask(); });
-			span(text);
+			this[key + "_text"] = span(text);
 		}).attr("title", title);
 		this.$controls.empty(() => div.c("sessions-filters flex gap-100 v-center wrap", () => {
 			const $q = input().attr("type", "search").attr("placeholder", "search title, agent, id, model").attr("title", "Searched in node (ext/Query `contains`)");
 			let t = null;
 			$q.on("input", () => { clearTimeout(t); t = setTimeout(() => { this.remote.search = $q.el.value.trim(); this.remote_ask(); }, 250); });
+			check("show closed", "show_closed", "Sessions you marked done are hidden by default. They are never deleted.");
+			check("needs attention", "attention_only", "Sessions with a red flag (expensive, stalled, context bloat, Opus minion) or an alert in their session.jsonl record.");
 			check("in flight", "inflight_only", "Only sessions working right now.");
-			check("needs attention", "attention_only", "Sessions with a red flag.");
 			div.c("sessions-daterange flex gap-50 v-center", () => {
 				small.c("muted", "from");
 				const $from = input().attr("type", "date"); $from.el.value = this.date_from; this.$from = $from;

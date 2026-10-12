@@ -1,11 +1,14 @@
-import AISessionRows from "./AISessionRows.js";
-import AISession from "./AISession.js";
 
 // Red flags: what looks wrong with a session, worked out from numbers, never guessed. `Server/session-flags.mjs` reads the
 // transcripts and writes sessions/session-flags.json (role, mastermind, last-turn context, last line time, the hour's $);
 // this class loads that file and turns it plus the live row and the session index into flags. It draws nothing.
+// Pure data, like AISessionBuckets: it also runs in node (the sessions query source, AISessionSource.mjs), so it imports nothing from the browser;
+// the page points `usd_of` at AISessionRows.claude_usd_of and `load` imports AISessionRows on demand.
 // The thresholds are the owner's (2026-10-09): over $10 or $5 in the last hour; working but quiet 5 minutes; context over 300k; Opus minion.
 export default class AISessionFlags {
+
+	static usd_of = r => r.claude_usd ?? 0;   // the page replaces it: a row's Claude $ lives in the session index there
+	static WORKING = new Set(["working", "active"]);
 
 	static rows = {};   // id -> { role, mm, ep, ctx, last, model, hour_usd }, set by load()
 
@@ -19,6 +22,7 @@ export default class AISessionFlags {
 	};
 
 	static async load(url){
+		const { default: AISessionRows } = await import("./AISessionRows.js");
 		const data = await AISessionRows.get_json(url + "session-flags.json");
 		AISessionFlags.generated_at = Date.parse(data?.generated_at ?? 0) || 0;
 		AISessionFlags.rows = AISessionRows.flag_rows = data?.rows ?? {};   // the same table gives AISessionRows its roles
@@ -33,13 +37,13 @@ export default class AISessionFlags {
 	/** The flag keys that apply to one row right now. */
 	static flags_of(r, now = Date.now()){
 		const { LIMITS } = AISessionFlags, f = AISessionFlags.of(r), out = [];
-		const usd = AISessionRows.claude_usd_of(r);
+		const usd = AISessionFlags.usd_of(r);
 		if (usd > LIMITS.usd || (f?.hour_usd ?? 0) > LIMITS.hour_usd) out.push("expensive");
 		// The newest sign of life: the live index (always current), or the transcript's last line from session-flags.json,
 		// which counts only while that file is fresh. With neither, a quiet session cannot be proven stalled, so it is not flagged.
 		const fresh = now - AISessionFlags.generated_at < AISessionFlags.LIMITS.fresh_ms;
 		const last = fresh ? Date.parse(f?.last ?? 0) || 0 : 0;
-		if (AISessionRows.WORKING_STATES.has(r.state) && last && now - last >= LIMITS.quiet_ms) out.push("stalled");
+		if (AISessionFlags.WORKING.has(r.state) && last && now - last >= LIMITS.quiet_ms) out.push("stalled");
 		if ((r.context ?? f?.ctx ?? 0) > LIMITS.ctx) out.push("bloat");
 		const model = String(r.model ?? f?.model ?? ""), role = f?.role ?? r.role ?? "";
 		const spawned = r.source === "servex" || (f?.ep === "sdk-ts" && !["vscode tab", "terminal"].includes(role));
