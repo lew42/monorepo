@@ -37,7 +37,7 @@ Every `calc(var(--pad|gap|flow) * N)` in the site, counted by its N. **28 distin
 
 | file | raw rows |
 |---|---|
-| `public/imagine/paging/paging.css` | ~~100~~ 5 (converted 2026-09-18, [`paging-ladder`](/framework/ai/2026-09-18/paging-ladder/), 20 to a rung/token and 75 kept as a control's own `em`; proven with a 0.000% stylesheet-swap pixel diff) |
+| `public/imagine/paging/paging.css` | ~~100~~ 5 (converted 2026-09-18, [`paging-ladder`](/framework/ai/sessions/2026/09/18/paging-ladder/), 20 to a rung/token and 75 kept as a control's own `em`; proven with a 0.000% stylesheet-swap pixel diff) |
 | `public/framework/core/Page/generator/generator.css` | 47 |
 | `public/imagine/blogx/blogx.css` | 34 |
 | `public/blog/blog.css` | 32 |

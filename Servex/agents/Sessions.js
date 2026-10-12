@@ -50,7 +50,7 @@ export function check_dir_line(line){
 	return { [kind]: { ...body, at: body.at ?? now_ms() } };
 }
 
-/* A REACTION (ai/2026-09-30/chat-reactions): an SMS tap-back on one line of the
+/* A REACTION (ai/sessions/2026/09/30/chat-reactions): an SMS tap-back on one line of the
  * session, its own line in the file, never an edit of the line it marks:
  *   {"react": {at, session, re, emoji, from: {kind, id?}}}
  * `re` is the marked line's `at`; the newest reaction from a sender for a line wins,
@@ -87,7 +87,7 @@ export const now_ms = () => {
 	return new Date(d.getTime() + off * 60000).toISOString().slice(0, 23) + (off < 0 ? "-" : "+") + pad(Math.trunc(off / 60)) + ":" + pad(off % 60);
 };
 
-/* VOICE SESSIONS (ai/2026-09-29/voice-sessions/design.md).
+/* VOICE SESSIONS (ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md).
  *
  * One ✦ press is one SESSION: it remembers the page it started on (its home),
  * follows the owner from page to page, and is answered by its own pair of
@@ -127,7 +127,7 @@ export const now_ms = () => {
  * system works"). ONE setting decides what BOTH session agents spawn on:
  *   - "claude" (default, unchanged): fast on Sonnet, smart on Usage.pick("smart", repo).
  *   - "openrouter": both on FALLBACK_MODEL. Picked from the new-brain eval
- *     (ai/2026-10-03/new-brain/eval-results.json): openai/gpt-6-luna tied the BEST score on
+ *     (ai/sessions/2026/10/04/new-brain/new-brain/eval-results.json): openai/gpt-6-luna tied the BEST score on
  *     level c (the real job — refine a raw owner prompt into numbered sentences, 10/10, same
  *     as deepseek-v4.1-flash) while being the FASTEST paid model tested (45s/18 questions,
  *     3x faster than deepseek) and 20x cheaper than Claude Haiku ($0.0022 vs $0.044 for the

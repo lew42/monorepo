@@ -12,7 +12,7 @@ const ok = (cond, what) => { assert.ok(cond, what); pass++; };
 
 const GIT = "C:\\Program Files\\Git\\usr\\bin\\";
 const me = process.pid;
-const task = { dir: "C:/Code/lew42/monorepo/public/framework/ai/2026-09-30/process-monitor" };
+const task = { dir: "C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/process-monitor" };
 const agents = new Map([
 	["task-mastermind-x", { id: "task-mastermind-x", state: "working", claude_pid: 100, task }],
 	["minion-x", { id: "minion-x", state: "idle", parent: "task-mastermind-x", session_id: "11111111-2222-3333-4444-555555555555" }],

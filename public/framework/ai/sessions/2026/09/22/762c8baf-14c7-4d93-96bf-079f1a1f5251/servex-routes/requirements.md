@@ -2,7 +2,7 @@
 
 Minion: Sonnet, effort high. Session id `762c8baf-14c7-4d93-96bf-079f1a1f5251`. Read
 [`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then
-[`../worktree-proof/`](../worktree-proof/)'s task log (deliverable 2, the proxy gap) and
+[`../worktree-proof/`](../worktree-proof)'s task log (deliverable 2, the proxy gap) and
 `Servex/readme.md`. Load the `code` skill. Worktrees you make go to
 `C:/Code/lew42/worktrees/` and are removed before you land.
 

@@ -121,7 +121,7 @@ export default class ClaudeMd {
 			const archive = dest === ClaudeMd.ARCHIVE;
 			if (!cur) cur = archive ? ClaudeMd.archive_head(this.base) : `# ${path.basename(dest, ".md")}\n\n`;
 			if (!archive && !cur.includes("## Moved from CLAUDE.md (2026-10-12)")) {
-				cur = cur.replace(/\s*$/, "\n\n") + `## Moved from CLAUDE.md (2026-10-12)\n\nThese sentences were cut from the root \`CLAUDE.md\` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in \`CLAUDE.md\` at \`${this.base}\`. The map is \`public/framework/ai/2026-10-12/claude-md-consolidate/manifest.md\`.\n\n`;
+				cur = cur.replace(/\s*$/, "\n\n") + `## Moved from CLAUDE.md (2026-10-12)\n\nThese sentences were cut from the root \`CLAUDE.md\` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in \`CLAUDE.md\` at \`${this.base}\`. The map is \`public/framework/ai/sessions/2026/10/12/session-3b391f22/claude-md-consolidate/manifest.md\`.\n\n`;
 			}
 			for (const g of ClaudeMd.group(list)) {
 				if (cur.includes(marker(g.line))) continue;
@@ -140,7 +140,7 @@ export default class ClaudeMd {
 	static archive_head(base) {
 		return `# CLAUDE.md archive — original wording
 
-On 2026-10-12 the root \`CLAUDE.md\` was consolidated. Where a rule was **reworded or shortened**, the sentences it no longer contains verbatim are kept here, unchanged, so nothing is lost. Sentences that moved to a topic doc are in that doc, not here; the full map is \`public/framework/ai/2026-10-12/claude-md-consolidate/manifest.md\`. The old file is also in git: \`git show ${base}:CLAUDE.md\`.
+On 2026-10-12 the root \`CLAUDE.md\` was consolidated. Where a rule was **reworded or shortened**, the sentences it no longer contains verbatim are kept here, unchanged, so nothing is lost. Sentences that moved to a topic doc are in that doc, not here; the full map is \`public/framework/ai/sessions/2026/10/12/session-3b391f22/claude-md-consolidate/manifest.md\`. The old file is also in git: \`git show ${base}:CLAUDE.md\`.
 
 Each entry is the old line (\`L<n>\`), its title, and the old sentences that were dropped or folded into a shorter rule.
 

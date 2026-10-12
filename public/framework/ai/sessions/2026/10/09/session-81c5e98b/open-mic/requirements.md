@@ -2,7 +2,7 @@
 
 Minion: Sonnet, effort high (budget mode — no Opus). Session id
 `81c5e98b-ce60-493e-8db8-24d17caef851`. You are IN A WORKTREE (the launcher says where; your
-server's port). Read [`../mastermind-servex/common.md`](../mastermind-servex/common.md)
+server's port). Read [`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md)
 first. Load `code`, `ui-test`. Dispatch: after 19:39 (the session window resets).
 
 ## The owner's words (2026-09-22 18:50, verbatim excerpts)
@@ -122,7 +122,7 @@ uses. One line; prove the next prompt's `at` matches the typed one's format.
    grey guess in place (whisper streams a guess then updates it). Prove with the 33 s JFK clip:
    the transcript shows one line per sentence, none broken mid-sentence; log where the old
    breaks came from (whisper segment boundary vs the UI's segment close). The recordings
-   workspace (`/framework/ai/2026-09-22/record/`) gets a "raw whisper segments" pane showing
+   workspace (`/framework/ai/sessions/2026/09/22/session-36e558ed/record/`) gets a "raw whisper segments" pane showing
    each segment with its times, so the owner can see exactly what whisper output.
 
 **Item 7, the exact cause (19:48):** the assistant's tool handler writes the event as a STRING

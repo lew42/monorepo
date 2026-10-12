@@ -16,7 +16,7 @@ costs model tokens for work that has no decision in it — reading files, counti
 a page, running a test, watching a log for a line.
 
 Servex is already one long-lived node process that holds every agent and runs tool handlers as
-plain node functions ([tools.md](/framework/ai/2026-09-22/tiers-design/doc/tools.md)). So the work
+plain node functions ([tools.md](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/tools.md)). So the work
 can move there, and the agent's turn can end the moment the job is handed off.
 
 ## The design
@@ -50,7 +50,7 @@ A job sits in the `live` map the way the Dispatcher does (a `.send()` and a `par
 
 `decide` is the "little decision". It runs `query()` with no tools, no setting sources, a one-line
 system prompt and the gathered text inlined — the 823-token prefix measured on
-[model-latency](/framework/ai/2026-09-19/model-latency/) (Sonnet: median about 2 s, $0.002 to say
+[model-latency](/framework/ai/sessions/2026/09/19/model-latency/) (Sonnet: median about 2 s, $0.002 to say
 "ok"). It cannot call tools, so it cannot wander or recurse.
 
 ### Where it shows

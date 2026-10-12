@@ -127,7 +127,7 @@ export default new Page({
 
 		md("**A template graduates when something has to be remembered between renders.** A click handler you write at the *call site* does not make a component behavioral — the caller owns that, and every `ui/` page shows it inline for exactly that reason. State, a listener the component installs, a lifecycle: those are a class.");
 
-		md("The [2026-08-21 audit](/framework/ai/2026-08-21/ui-behaviors-audit/) scored **1 behavioral / 20**. `ui/tree` holds row state and selection in a closure — a class written in a shape nothing can subclass — and its own readme already names the next two asks (keyboard roving, drag-reorder) as extensions. That is the case for graduating it, and the case against graduating anything else.");
+		md("The [2026-08-21 audit](/framework/ai/sessions/2026/08/21/ui-behaviors-audit/) scored **1 behavioral / 20**. `ui/tree` holds row state and selection in a closure — a class written in a shape nothing can subclass — and its own readme already names the next two asks (keyboard roving, drag-reorder) as extensions. That is the case for graduating it, and the case against graduating anything else.");
 
 		md("**Splitting is the usual answer, not moving:** `tree`'s `.ui-tree-*` CSS stays in `ui/`; only the stateful half becomes a class.");
 

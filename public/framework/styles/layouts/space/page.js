@@ -62,7 +62,7 @@ export default new Doc({
 
 		md.details(import.meta, "readme.md", "Readme");
 
-		md("How this page happened — the ask verbatim, the finding, the night's log: [layout-space](/framework/ai/2026-08-14/layout-space/), [improve-space-page](/framework/ai/2026-08-16/improve-space-page/).");
+		md("How this page happened — the ask verbatim, the finding, the night's log: [layout-space](/framework/ai/sessions/2026/08/14/layout-space/), [improve-space-page](/framework/ai/sessions/2026/08/16/improve-space-page/).");
 	},
 
 	/* The instrument: the controls ABOVE, the ruler underneath at full bleed, and the

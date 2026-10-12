@@ -41,11 +41,11 @@ just because its own log says it landed.
 
 ## Where to look
 
-- **The earlier audit, your starting point:** `public/framework/ai/2026-09-19/day-audit/audit.jsonl`
+- **The earlier audit, your starting point:** `public/framework/ai/sessions/2026/09/19/day-audit/audit.jsonl`
   - one JSON object per line, with `id`, `title`, `quote` (the owner's words), `verdict`, `why`,
   `done`, `tasks`, `links`. Read only the rows whose `id` is in your list below.
 - **The owner's verbatim words from 15:36 onward:** the `chat` lines in
-  `public/framework/ai/2026-09-17/mastermind-layout-browser/task.jsonl` - 53 of them, all today.
+  `public/framework/ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl` - 53 of them, all today.
   **Before 15:36 there is no verbatim record** except the `quote` fields in the audit. That gap is
   itself worth reporting if it stops you deciding a row.
 - **What each task claims it did:** `public/framework/ai/2026-09-19/<task-slug>/task.jsonl`. The
@@ -97,7 +97,7 @@ links. Everything longer lives in `verify.jsonl` and your log lines.
 
 ## Fences - the files you own, which nobody else touches
 
-You own, exclusively: `public/framework/ai/2026-09-19/verify-dashboard/**`
+You own, exclusively: `public/framework/ai/sessions/2026/09/19/verify-dashboard/**`
 
 You may also add exactly one line to `public/framework/ai/2026-09-19/page.js` `children:` (your own
 page), and append to `public/framework/ai/2026-09-19/day.jsonl`. Nothing else, anywhere.
@@ -147,7 +147,7 @@ version.
 
 **The owner's words:** New idea for the log: a graphical timeline. Events are placed spatially so distance shows time apart, on an adaptive scale: an hour mark always (4:00, 5:00), minute marks only above and below where events land, seconds placing an event within its minute. It auto-scrolls as time passes. Long empty gaps collapse to a '4:00 ... 6:00' break and the timeline restarts.
 
-**The earlier audit's reasoning:** You asked for the graphical timeline at 15:56, and again at 16:39, 16:49 and 17:08 ('we still don't have grid lines on the timeline'). It is specified in full, down to the hour lines and the collapsing gaps, in ai/2026-09-19/v3-timeline/requirements.md - and that brief was never dispatched.
+**The earlier audit's reasoning:** You asked for the graphical timeline at 15:56, and again at 16:39, 16:49 and 17:08 ('we still don't have grid lines on the timeline'). It is specified in full, down to the hour lines and the collapsing gaps, in ai/sessions/2026/09/19/v3-timeline/requirements.md - and that brief was never dispatched.
 
 **Tasks that claim to cover it:** spatial-timeline
 
@@ -227,6 +227,6 @@ version.
 
 **The owner's words:** if you need a yes from me, that should be in the log card [...] we have all these cards on the left, and I have this log in the sidebar on the right. And I'm not sure where to look. It's kind of distracting [...] we might actually want a timeline, a joint timeline. [...] the timestamps just broke. The timestamps are on the wrong side of the log items.
 
-**The earlier audit's reasoning:** This is recorded as landed, and it is not built. Its own conclusion says 'one joint timeline is being built' - a promise, written down as an outcome. The task that would build it, ai/2026-09-19/v3-timeline/, has a finished brief and no task log at all, which means no agent was ever sent to do it.
+**The earlier audit's reasoning:** This is recorded as landed, and it is not built. Its own conclusion says 'one joint timeline is being built' - a promise, written down as an outcome. The task that would build it, ai/sessions/2026/09/19/v3-timeline/, has a finished brief and no task log at all, which means no agent was ever sent to do it.
 
 **Tasks that claim to cover it:** devbar-chat

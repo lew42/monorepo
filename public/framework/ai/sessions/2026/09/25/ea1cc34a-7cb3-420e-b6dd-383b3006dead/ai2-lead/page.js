@@ -21,7 +21,7 @@ const STEPS = [
 		say: "Who is running, what they're working on, and what just landed. The assistant is one row; click it to talk." },
 	{ title: "Make a card", pic: "5-make.png", open: "/framework/ai2/",
 		say: "Type or say anything in the box at the top of the rail and it becomes a card. Ask for a new card and it opens on your screen by itself." },
-	{ title: "What changed today", pic: "before-group-1920.png", after: "1-whole.png", open: "/framework/ai/2026-09-25/ai2-lead/audit.md",
+	{ title: "What changed today", pic: "before-group-1920.png", after: "1-whole.png", open: "/framework/ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/audit.md",
 		say: "Before (top): full-width bars, a “group” dropdown, two lists. After (bottom): short labelled bars, one menu, one filtered list. Every element and why: the audit." },
 ];
 

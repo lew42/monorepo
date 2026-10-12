@@ -173,7 +173,7 @@ forced the row to auto-scroll 421px to reveal `contents/`, decapitating the mast
 mid-word ("T" and "Co" sliced off at the viewport edge); at 3440 the same scroll ate 504px of
 the poster's own left inset. **Reverted** — the golden share is a necessary override, not an
 invented shortcut, confirmed by measurement rather than by trusting this file's own comment.
-Screens: `ai/2026-09-05/ux-mag/shots/alt-takeover-test-{1280,3440}.jpg`.
+Screens: `ai/sessions/2026/09/05/ux-mag/shots/alt-takeover-test-{1280,3440}.jpg`.
 
 **Added: coverlines.** The cover named its own topic but stayed silent on what was actually
 inside it — a real magazine cover previews its contents before you commit to opening one.

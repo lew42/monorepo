@@ -8,7 +8,7 @@ task's own `task.jsonl`, and the AI board shows it on the task card. We count do
 because each model charges a different price per token.
 
 ```
-node Server/task-cost.mjs public/framework/ai/2026-09-24/loose-ends   one task
+node Server/task-cost.mjs public/framework/ai/sessions/2026/09/24/loose-ends/loose-ends   one task
 node Server/task-cost.mjs --date 2026-09-24                          every task of that day
 node Server/task-cost.mjs --agent minion-card-view                   every task this agent counts toward
   --dry          print the table, write nothing

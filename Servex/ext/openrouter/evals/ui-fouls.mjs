@@ -31,7 +31,7 @@ const OUT_JSONL = path.join(FOULS_DIR, "ui-fouls-results.jsonl");
 // module system), so they're written into the test-library task's own runs/ dir,
 // which the filesystem probe already resolves (test-library/page.js, committed
 // earlier this task) — not under evals/, which the site never serves.
-const SHOTS_ROOT = path.join(HERE, "../../../../public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/ui-fouls");
+const SHOTS_ROOT = path.join(HERE, "../../../../public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/runs/ui-fouls");
 const SITE_BASE = process.env.LIBRARY_SITE_BASE || "http://monorepo.localhost";
 
 function loadFouls(only){
@@ -55,7 +55,7 @@ async function shootFixture(foul){
 
 	const { browser } = await import("../../../../Server/browser.mjs");
 	const b = await browser();
-	const url = `${SITE_BASE}/framework/ai/2026-09-30/openrouter-harness/test-library/runs/ui-fouls/${foul.id}/`;
+	const url = `${SITE_BASE}/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/runs/ui-fouls/${foul.id}/`;
 	const ctx = await b.newContext({ viewport: foul.viewport });
 	const page = await ctx.newPage();
 	await page.goto(url, { waitUntil: "load" });

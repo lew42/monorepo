@@ -16,6 +16,6 @@ Each request sends the **whole growing segment**, not just the new part. So ever
 The site's live connection, used for chat and page updates. **Not** part of the audio path.
 
 ## What's logged today
-The final text of each sent line, in the voice session's file. The individual 1.5 s answers and their timing are **not** logged yet: planned in [voice-pipeline](/framework/ai/2026-10-04/voice-pipeline/), along with a live view of each request.
+The final text of each sent line, in the voice session's file. The individual 1.5 s answers and their timing are **not** logged yet: planned in [voice-pipeline](/framework/ai/sessions/2026/10/05/voice-pipeline/voice-pipeline/), along with a live view of each request.
 
 Numbers and history: [decisions.md](decisions.md) ("The numbers").

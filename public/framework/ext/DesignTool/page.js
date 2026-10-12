@@ -36,8 +36,8 @@ analyze(document.querySelector(".page.active-page"));   // → a report`);
 			+ "counted findings, and findings scale with content, so it rewarded emptiness. Every rule "
 			+ "survived; the average was deleted. What it reports now is the finding **census**, "
 			+ "severest first. The evidence: "
-			+ "[vision-baseline](/framework/ai/2026-08-17/vision-baseline/) rated eighteen frozen "
-			+ "screenshots by hand; [tier-calibration](/framework/ai/2026-08-17/tier-calibration/) fixed "
+			+ "[vision-baseline](/framework/ai/sessions/2026/08/17/vision-baseline/) rated eighteen frozen "
+			+ "screenshots by hand; [tier-calibration](/framework/ai/sessions/2026/08/17/tier-calibration/) fixed "
 			+ "the four measurement mechanisms it convicted — `width-used` was reading a nav rail, "
 			+ "`repetition` was counting bare tags, and `heading-offset` was firing on a list's indent "
 			+ "while missing a 194px step. Not one threshold moved.");
@@ -47,7 +47,7 @@ analyze(document.querySelector(".page.active-page"));   // → a report`);
 			+ "both fire nothing and nothing that has "
 			+ "[the layout space](/framework/styles/layouts/space/hunt/) search instead of sample.");
 
-		md("One card below is not a tool: **[Journey](journey/)** is the raw material every score here reads — one overnight crawl, a screenshot of every page on the site. Moved here 2026-09-18 from `/imagine/design/journey/` (`ai/2026-09-18/imagine-move-2/`); the old address still answers.");
+		md("One card below is not a tool: **[Journey](journey/)** is the raw material every score here reads — one overnight crawl, a screenshot of every page on the site. Moved here 2026-09-18 from `/imagine/design/journey/` (`ai/sessions/2026/09/18/imagine-move-2/`); the old address still answers.");
 
 		/* ⚠ The wall goes HERE, not at the foot. It used to sit below the live
 		 * report and two screens of prose, which is the same as not existing —

@@ -16,7 +16,7 @@ The owner's words are verbatim in [owner-words.md](owner-words.md). Re-read them
 
    Each tile opens a child page. The first line of each child page is its gist. Then a few items. Then links to the code that owns it.
 3. **Servex is linked, not repeated.** The AI docs live here. Where a concept is implemented in Servex (spawning, the pool, the heartbeat, dev servers and the proxy), link to the Servex page, or to the Servex sub-page that owns it. Servex's own page shrinks to "the process that runs it", and its useless "It's parts" header goes.
-4. **The old servex-docs task is ON HOLD** (flowcharts). Don't build diagrams. Reuse its notes in `ai/2026-09-30/servex-docs/` only if they help.
+4. **The old servex-docs task is ON HOLD** (flowcharts). Don't build diagrams. Reuse its notes in `ai/sessions/2026/09/30/servex-docs/` only if they help.
 5. **Reference paths:** the owner wants mentions with paths, like `@Servex/Heartbeat` (parent/child). `task-mastermind-mentions` owns that syntax. Write the links as ordinary links for now.
 
 ## Additions (the owner, 2026-09-30, second message: see owner-words.md)

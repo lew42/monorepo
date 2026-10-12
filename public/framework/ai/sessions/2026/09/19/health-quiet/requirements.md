@@ -12,8 +12,8 @@ You are a minion. **Load the `minion` skill first, before touching anything.** M
 
 A sibling minion triaged tonight's page-health log: **1,040 lines, which collapse to 11 distinct
 things, and zero pages are actually broken right now.** Its ranked findings, with file and line for
-each, are in `public/framework/ai/2026-09-19/health-triage/triage.jsonl` — **read that first, it is
-your work order.** Its one-screen summary is at `/framework/ai/2026-09-19/health-triage/`.
+each, are in `public/framework/ai/sessions/2026/09/19/health-triage/triage.jsonl` — **read that first, it is
+your work order.** Its one-screen summary is at `/framework/ai/sessions/2026/09/19/health-triage/`.
 
 The point of this task: a warning log that cries wolf 861 times gets ignored, and then the one real
 breakage is invisible in the noise. Almost all of tonight's noise comes from **nine malformed lines
@@ -24,9 +24,9 @@ cheap silence.
 
 **1. Nine malformed JSONL lines in four task ledgers (740 of the 861 warnings).**
 
-- `public/framework/ai/2026-09-19/page-health/task.jsonl` — lines 3, 4, 5, 10, 11, 12 are missing a
+- `public/framework/ai/sessions/2026/09/19/page-health/task.jsonl` — lines 3, 4, 5, 10, 11, 12 are missing a
   closing brace. 185 warnings.
-- `public/framework/ai/2026-08-21/pg-tree/task.jsonl` — line 2 is plain text, not JSON. 185 warnings.
+- `public/framework/ai/sessions/2026/08/21/pg-tree/task.jsonl` — line 2 is plain text, not JSON. 185 warnings.
 - `panel-pad-gap` and `imagine-mag` task.jsonl files — a legacy top-level `step` key. 370 warnings.
 
 These are historical ledgers, so two cautions:
@@ -89,7 +89,7 @@ end (check every line of each file you touched with a parser, not by eye).
 ## Fences
 
 You own: the four task.jsonl files named above, `Server/health.mjs` (those two rules only), and
-`public/framework/ai/2026-09-19/health-quiet/**`. One line in the day page's `children:`, one append
+`public/framework/ai/sessions/2026/09/19/health-quiet/**`. One line in the day page's `children:`, one append
 to its `day.jsonl`.
 
 If a skill misleads you or is silent about a trap that then bites you, append ONE evidence line to

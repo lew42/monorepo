@@ -72,7 +72,7 @@ have separated out**:
    different times side by side.
 
 The strip is `.v3-axis-sticky` (`v3.css:214`), built at `page.js:519`, and it wraps the hour/clock
-row plus `$pinned`. A sibling capped its height on 2026-09-20 (`ai/2026-09-20/v3-axis-fix/`) —
+row plus `$pinned`. A sibling capped its height on 2026-09-20 (`ai/sessions/2026/09/20/v3-axis-fix/`) —
 read that task's log before you touch it, because the cap is why it is not eating the column any
 more, and you are about to remove the thing it was capping.
 
@@ -235,7 +235,7 @@ Then headless, 200 and no console errors: `/framework/ai/`, `/framework/ai/v/3/`
 ## Fences
 
 You own `public/framework/ai/v/3/**` (not its data files) and
-`public/framework/ai/2026-09-21/live-select/**`, plus one line in the day page's `children:` and
+`public/framework/ai/sessions/2026/09/21/live-select/**`, plus one line in the day page's `children:` and
 one append to its `day.jsonl`.
 
 ## Length budget

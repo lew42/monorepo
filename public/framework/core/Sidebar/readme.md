@@ -40,7 +40,7 @@ this file's.
 ## More
 
 - [`doc/decisions.md`](./doc/decisions.md) — the record: who uses it, why one component, header-replaces, `›`, the 2026-09-18 tree + resize pass, the same-day filter + shared-`ext/grip` pass, the 2026-09-19 look pass (the row, the square frame, the filter bar, the pinned footer, the avatar), the workspace-note verdict, the proposals and open items
-- [The 2026-09-19 rebuild, before and after](/framework/ai/2026-09-19/sidebar-repair/) — the rail at 1280 / 1920 / 3440 and the 400 menu, with the numbers
+- [The 2026-09-19 rebuild, before and after](/framework/ai/sessions/2026/09/19/sidebar-repair/) — the rail at 1280 / 1920 / 3440 and the 400 menu, with the numbers
 - [`doc/entries.md`](./doc/entries.md) — what an entry is, where labels and icons come from · [`doc/placement.md`](./doc/placement.md) — why this file has no width
 - [`doc/views.md`](./doc/views.md) — the `$` handles · [`doc/tokens.md`](./doc/tokens.md) — `--sidebar-bg` / `--sidebar-ink` and the derivations
 - [`doc/narrow.md`](./doc/narrow.md) — below 52em: sticky bar and burger, CSS decides · [`doc/comp.md`](./doc/comp.md) — porting the July 2026 comp, the two em traps

@@ -1,7 +1,7 @@
 # Dictation playground — decisions
 
 Landed 2026-09-28. Task log:
-[`ai/2026-09-28/dictation-playground/playground/`](/framework/ai/2026-09-28/dictation-playground/playground/).
+[`ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/playground/`](/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/playground/).
 Owner's words opened the parent task: "for the dictation... playground, this should be
 right at the... default dictation page... you just click the microphone button and it
 starts transcribing just so we can test it quickly with one click."

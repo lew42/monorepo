@@ -11,7 +11,7 @@
  *   that finds real defects is not at fault for a broken average built on top of it.
  *   `taste/` is the tier that ranks QUALITY. This one ranks what is BROKEN, and it
  *   ranks by the census — `worst_first` below. Evidence:
- *   `ai/2026-08-17/vision-baseline/`. */
+ *   `ai/sessions/2026/08/17/vision-baseline/`. */
 
 import { region, text_chars, inside, width_used } from "./ratios.js";
 

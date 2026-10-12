@@ -9,7 +9,7 @@
  *
  * Printed: how fast fork_self returned, when each answer landed, and the
  * fork's token usage — `cache_read_input_tokens` is the whole point. Saved to
- * public/framework/ai/2026-09-24/concurrency/proof.txt. Its own registry dir
+ * public/framework/ai/sessions/2026/09/24/concurrency/concurrency/proof.txt. Its own registry dir
  * (in the OS temp dir), so the real registry is never touched. */
 
 import fs from "node:fs";
@@ -20,7 +20,7 @@ import { Agents } from "./Agents.js";
 import { server } from "./tools.js";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const OUT = process.env.PROOF_OUT ?? path.join(REPO, "public/framework/ai/2026-09-24/concurrency/proof.txt");
+const OUT = process.env.PROOF_OUT ?? path.join(REPO, "public/framework/ai/sessions/2026/09/24/concurrency/concurrency/proof.txt");
 const HAIKU = "claude-haiku-4-5-20251001";
 
 const lines = [];

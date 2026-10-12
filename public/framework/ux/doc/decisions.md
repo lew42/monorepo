@@ -63,7 +63,7 @@ covers light and dark and any theme. Verified resolving: `oklab(0.533 0.076 0.07
 | a `ui-dark` / `ui-light` colour word | `color-scheme` already does it in one line, sectionally, and every token is a `light-dark()` pair. A word would be a second name for a thing CSS has |
 | `--column` inside `ui-compact` | `--column` is content *width*, not space. Riding the same multiplier put a card at 7em; a second multiplier in one word is two ideas |
 | `.ui-compact .ui-table td { … }` to reach the cells | per-component CSS wearing a section word's name — the one thing this mechanism exists to delete. Filed as a `framework.css` proposal instead |
-| editing `framework.css` to add `--pad-cell` / `--pad-control` / `--muted` | out of fence, and an owner-level call: three new tokens is the token set's own bar ("it must replace a value already hardcoded somewhere, ideally several"). [Proposal](/framework/ai/2026-08-21/ux-system-plan/) |
+| editing `framework.css` to add `--pad-cell` / `--pad-control` / `--muted` | out of fence, and an owner-level call: three new tokens is the token set's own bar ("it must replace a value already hardcoded somewhere, ideally several"). [Proposal](/framework/ai/sessions/2026/08/21/ux-system-plan/) |
 | a second density word for the second step | it is a number. The slider on [`ui/words/`](/framework/ui/words/) is the argument |
 
 ## Two traps that cost time here
@@ -128,7 +128,7 @@ extension impossible — [`Tree/doc/decisions.md`](../Tree/doc/decisions.md) ·
 
 ## 2026-08-21, program 3 - the sanctioned proposals, consolidated
 
-- **framework.css tokenization landed** - exactly 4 one-line fallback edits (`--pad-cell`, `--pad-control` x2, `var(--muted, 75%)`); byte-identical on fallbacks alone across 4,436 elements on three pages; `ui-compact` now tightens table cells (3.76 to 1.88px) and inputs. Proof: [ai/2026-08-21/ux-tokenize/](/framework/ai/2026-08-21/ux-tokenize/).
+- **framework.css tokenization landed** - exactly 4 one-line fallback edits (`--pad-cell`, `--pad-control` x2, `var(--muted, 75%)`); byte-identical on fallbacks alone across 4,436 elements on three pages; `ui-compact` now tightens table cells (3.76 to 1.88px) and inputs. Proof: [ai/sessions/2026/08/21/ux-tokenize/](/framework/ai/sessions/2026/08/21/ux-tokenize/).
 - **Themed buttons stay loose** - the lew42 theme restates button padding in `@layer site`, beating the token. Filed for the owner: one line in the theme (`var(--pad-control, 0.7em 1.4em)`), not an autonomous edit.
 - **--density ships at 0.5** - a config word must be visibly different or it is not a word (7.52 vs 15.04px is the demonstrated case); 0.7 is the documented half-step via `.style("--density", "0.7")`. Revisable.
-- **All eight modules are Docs** - Tree's recorded objection (Doc re-columns a bleed exhibit) did not reproduce; 25 literal .md cross-links moved to pretty routes. [ai/2026-08-21/ux-doc-convert/](/framework/ai/2026-08-21/ux-doc-convert/).
+- **All eight modules are Docs** - Tree's recorded objection (Doc re-columns a bleed exhibit) did not reproduce; 25 literal .md cross-links moved to pretty routes. [ai/sessions/2026/08/21/ux-doc-convert/](/framework/ai/sessions/2026/08/21/ux-doc-convert/).

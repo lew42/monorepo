@@ -48,7 +48,7 @@ class Wizard extends View { … }
 class SignupWizard extends Wizard { … }   // never Wizard2, never { variant: 2 }
 ```
 
-The [2026-08-21 audit](/framework/ai/2026-08-21/ui-behaviors-audit/) scored **1 behavioral /
+The [2026-08-21 audit](/framework/ai/sessions/2026/08/21/ui-behaviors-audit/) scored **1 behavioral /
 20** — `ui/tree` held row state and selection in a closure, which is a class written in a
 shape nothing can subclass. It graduated, as [`ux/Tree`](/framework/ux/Tree/); the other
 nineteen stay.
@@ -70,7 +70,7 @@ nineteen stay.
   resolve at their old urls through one `route("doc")` — visiting either logs one harmless
   browser-level 404 first (`Page.load()` probing for a `page.js` that isn't there before its own
   `.md` fallback succeeds; `documentation` skill names this as the fallback's documented cost,
-  not a bug) — [`ai/2026-09-22/ux-subpages/`](/framework/ai/2026-09-22/ux-subpages/).
+  not a bug) — [`ai/sessions/2026/09/22/ux-subpages/ux-subpages/`](/framework/ai/sessions/2026/09/22/ux-subpages/ux-subpages/).
 - **Hover a card, press the flag, name what's wrong.** The approve-or-reject process the owner
   asked for, with no approve button: one line goes through the same `card_say` rpc the AI
   board's cards use, lands on `ai/verdicts.jsonl` as an `improve`, and a quiet marker stays on

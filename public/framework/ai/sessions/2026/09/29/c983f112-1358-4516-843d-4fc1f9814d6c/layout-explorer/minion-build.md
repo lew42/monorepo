@@ -4,14 +4,14 @@ Load the `minion` skill first, then `page`, `code` and `css`.
 
 **Read first, in this order:**
 1. The owner's words: `public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/owner-words.md` (the first half is yours; the aside about the selected element is another task's).
-2. The task brief: `public/framework/ai/2026-09-29/layout-explorer/requirements.md`.
+2. The task brief: `public/framework/ai/sessions/2026/09/29/c983f112-1358-4516-843d-4fc1f9814d6c/layout-explorer/requirements.md`.
 3. The HTML study, and follow its recommendation: `public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study.md`.
 
 ## Where you work
 
 - **Worktree:** `C:\Code\lew42\worktrees\layout-explorer`, branch `worktree/layout-explorer`. Its server is `http://localhost:61596/`. Edit and commit only there, never in `C:\Code\lew42\monorepo`.
 - **Your fence (write only here):** `public/layouts/explorer/` (new), one line in `public/layouts/page.js` (`children:` plus one link line in its content), and `public/layouts/readme.md` (one Use bullet). If you truly need to touch anything else (a shared module, `framework.css`), stop and say so in your final message instead.
-- **Your log:** append to `public/framework/ai/2026-09-29/layout-explorer/task.jsonl` in the MAIN tree with `node .claude/hooks/append.mjs` (write the lines file with the Write tool, in the scratchpad). A `log` line when each deliverable works.
+- **Your log:** append to `public/framework/ai/sessions/2026/09/29/c983f112-1358-4516-843d-4fc1f9814d6c/layout-explorer/task.jsonl` in the MAIN tree with `node .claude/hooks/append.mjs` (write the lines file with the Write tool, in the scratchpad). A `log` line when each deliverable works.
 - Every process you start: `windowsHide: true`. No pop-up windows. Never drive the owner's browser tabs; use headless Playwright from the scratchpad.
 
 ## What to build: `/layouts/explorer/`, one page with three regions

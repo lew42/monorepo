@@ -1,6 +1,6 @@
 import { Page, md, div, img, a, span } from "/app.js";
 
-const HERE = "/framework/ai/2026-08-19/page-simplify-preview/";
+const HERE = "/framework/ai/sessions/2026/08/19/page-simplify-preview/";
 
 // url, caption. Screenshot order = shoot order in page-simplify-preview.mjs.
 const PAIRS = [

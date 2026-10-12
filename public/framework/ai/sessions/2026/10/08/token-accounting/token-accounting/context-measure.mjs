@@ -6,8 +6,8 @@
 // expected). Owner's ask, 2026-10-07: "verify from the session files... 12 tool calls
 // over a 100k window is ~1.2M cache-read tokens."
 //
-// Run: node public/framework/ai/2026-10-07/token-accounting/context-measure.mjs <session-id>
-import { find_transcript, cost_of_transcript } from "../../../../../Server/session-cost.mjs";
+// Run: node public/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/context-measure.mjs <session-id>
+import { find_transcript, cost_of_transcript } from "../../../../../../../../../Server/session-cost.mjs";
 
 const id = process.argv[2];
 if (!id) { console.error("usage: node context-measure.mjs <session-id>"); process.exit(2); }

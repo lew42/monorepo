@@ -1,6 +1,6 @@
 # Re-derive the three bands that still don't measure what they claim
 
-`ai/2026-08-17/tier-calibration/` fixed five mechanisms and deliberately stopped
+`ai/sessions/2026/08/17/tier-calibration/` fixed five mechanisms and deliberately stopped
 short of three more, because fixing them requires **re-deriving a band** and that
 was forbidden in its brief. **It is permitted now** — because it did the expensive
 part first and *measured the real causes*. Read its `task.jsonl` before anything
@@ -70,7 +70,7 @@ baselines.
   land in `thresholds.md` with its provenance**, and any false-positive class you
   discover goes in `false-positives.md`. A threshold whose derivation isn't written
   down gets "fixed" again by the next person.
-- `public/framework/ai/2026-08-17/band-rederive/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/band-rederive/**` — your task dir.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 

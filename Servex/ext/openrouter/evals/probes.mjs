@@ -1,7 +1,7 @@
 /* probes.mjs — runs one probe (a tiny, rough, open-ended job) on one model in a throwaway
  * worktree, scores the result on six fixed checks, and appends one line to results.jsonl.
  *
- * Design: public/framework/ai/2026-09-30/probe-tasks/probes.md (read that first — it owns the
+ * Design: public/framework/ai/sessions/2026/09/30/probe-tasks/probes.md (read that first — it owns the
  * six checks and the a/b/c labels; this file only implements them). probes.json is the same
  * design, machine-readable (topics, the probe set, the control model).
  *
@@ -45,7 +45,7 @@ import { mcp, appendJSON as append, nowLocal as now, readJsonl, slug } from "./r
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..", "..", "..");   // evals -> openrouter -> ext -> Servex -> repo root
-const SPEC_PATH = path.join(ROOT, "public/framework/ai/2026-09-30/probe-tasks/probes.json");
+const SPEC_PATH = path.join(ROOT, "public/framework/ai/sessions/2026/09/30/probe-tasks/probes.json");
 const RESULTS_PATH = path.join(HERE, "results.jsonl");
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 

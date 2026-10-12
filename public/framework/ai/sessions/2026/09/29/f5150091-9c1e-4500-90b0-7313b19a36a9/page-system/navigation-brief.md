@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `page`, `new-page`, `content`, `code`. Card dir (the owner's raw words): `public/framework/ai/2026/09/29/the-page-system-layout-navigation-new-pa/`.
 
-## The owner's words (acceptance test — read all of `public/framework/ai/2026-09-29/page-system/owner-words.md`)
+## The owner's words (acceptance test — read all of `public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/owner-words.md`)
 
 > "let's create a core page slash navigation page and system. It's like a README with, uh, you know, let's identify the core concepts of navigation. One of the things is persistent navigation. ... It's either is it persistent or not. You don't want janky navigation. You don't want things jumping around, things disappearing or shifting when they shouldn't be. ... the navigation I've decided should stay fixed uh, so it doesn't move. And, you know, having multiple levels of navigation gets tricky. You know, a header, a left sidebar, uh, you know, top tabs, and then an inner left sidebar. And, you know, it gets, it gets pretty ridiculous pretty quick. ... It's like the class doc system with the top tabs. You know, it works pretty well ... that probably should be documented as the go-to until we get a better one. And so, and then creating alternatives. ... The imagine paging system ... with all the column Miller column type things ... creating more workspace type areas where a left and right sidebar are very contextual and just kind of swap out based on what you're looking at"
 
@@ -19,7 +19,7 @@ Never touch `core/Page/readme.md`, `core/Page/layout/`, or `core/Page/make/` (ot
 
 ## Read first (the inventory already found everything)
 
-`public/framework/ai/2026-09-29/page-system/inventory/A-imagine-layouts.md`, `B-framework.md`, `C-task-logs.md` — rows marked **nav**. Then the sources they point at, especially: `/imagine/paging/navigation/` readme + `doc/measurements.md` (the measured 0px study), `/web/nav/doc/study/`, `ext/Doc/Doc.js` (~line 81, the top-tab = a page whose children are a left rail), `core/Sidebar/`, `ext/drawer/`, `ext/tabs/readme.md`, `/imagine/paging/rightnav/`, `core/Page/overview/columns/`, `/layouts/explorer/`, `/layouts/labs/screens/`, `/imagine/decks/persist/` vs `/imagine/decks/swap/`.
+`public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/inventory/A-imagine-layouts.md`, `B-framework.md`, `C-task-logs.md` — rows marked **nav**. Then the sources they point at, especially: `/imagine/paging/navigation/` readme + `doc/measurements.md` (the measured 0px study), `/web/nav/doc/study/`, `ext/Doc/Doc.js` (~line 81, the top-tab = a page whose children are a left rail), `core/Sidebar/`, `ext/drawer/`, `ext/tabs/readme.md`, `/imagine/paging/rightnav/`, `core/Page/overview/columns/`, `/layouts/explorer/`, `/layouts/labs/screens/`, `/imagine/decks/persist/` vs `/imagine/decks/swap/`.
 
 ## Deliverables (numbered; each ticked against the owner's sentence)
 
@@ -33,7 +33,7 @@ Never touch `core/Page/readme.md`, `core/Page/layout/`, or `core/Page/make/` (ot
 
 ## Proof before you report
 
-- Load `http://localhost:51061/framework/core/Page/navigation/` headless (Playwright; see `browser-testing` notes: never the owner's tabs) at 1920 and 3440: zero console errors, zero failed requests. Save `shots/nav-1920.png`, `shots/nav-3440.png` into `public/framework/ai/2026-09-29/page-system/shots/` in the MAIN tree (that dir is mine; you may write shots there).
+- Load `http://localhost:51061/framework/core/Page/navigation/` headless (Playwright; see `browser-testing` notes: never the owner's tabs) at 1920 and 3440: zero console errors, zero failed requests. Save `shots/nav-1920.png`, `shots/nav-3440.png` into `public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/shots/` in the MAIN tree (that dir is mine; you may write shots there).
 - From `http://localhost:51061/framework/core/Page/`, count `a[href="/framework/core/Page/navigation/"]` ≥ 1.
 - Every Node spawn sets `windowsHide: true`. No servers started by you (the worktree server is already up).
 - Budget: about $3. Keep the page's words few: show, then words.

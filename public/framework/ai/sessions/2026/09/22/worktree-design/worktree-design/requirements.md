@@ -1,8 +1,8 @@
 # worktree-design — parallel work on this repo without bloating the SSD
 
 Minion: Opus, effort high. Session id `74705646-2f09-477e-8925-4c6f88941ce4`. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then section **C** of
-[`../mastermind-servex/requirements.md`](../mastermind-servex/requirements.md). This is a
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first, then section **C** of
+[`../mastermind-servex/requirements.md`](../../../../../../2026-09-22/mastermind-servex/requirements.md). This is a
 **paper** task: research, measure, design, recommend. Build nothing under `Server/` or
 `Servex/`. Private port if you need one: **8093**.
 
@@ -19,10 +19,10 @@ Minion: Opus, effort high. Session id `74705646-2f09-477e-8925-4c6f88941ce4`. Re
 
 ## What exists — read first
 
-- `ai/2026-09-19/worktree-study/` — a prior study: nine masterminds on one target was found
+- `ai/sessions/2026/09/19/worktree-study/` — a prior study: nine masterminds on one target was found
   feasible but oversized (≈7.25 GB at nine); start with three. Its numbers are your baseline.
 - `Server/worktree-up.mjs` and `worktree-down.mjs` — scripts that already exist; read what they
-  do and whether they were ever proven on this repo (`ai/2026-09-21/safe-rollout/` says
+  do and whether they were ever proven on this repo (`ai/sessions/2026/09/21/safe-rollout/` says
   "worktrees work, but not on this repo yet" — find out why).
 - Claude Code's built-in isolation: the `EnterWorktree`/`ExitWorktree` tools and the Agent
   tool's `isolation: "worktree"`, and `claude --worktree` if the installed CLI (2.1.260) has it
@@ -32,7 +32,7 @@ Minion: Opus, effort high. Session id `74705646-2f09-477e-8925-4c6f88941ce4`. Re
   is not duplicated, the **working files are**. `git sparse-checkout` can make a worktree that
   materialises only the directories a task touches.
 
-## Deliverables — all on one page, `ai/2026-09-22/worktree-design/page.js`, plus the log
+## Deliverables — all on one page, `ai/sessions/2026/09/22/worktree-design/worktree-design/page.js`, plus the log
 
 1. **The numbers.** Measure this repo today, without another agent editing it at the moment you
    measure (say in the log when you measured): tracked files, working-tree size on disk, size of

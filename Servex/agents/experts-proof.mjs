@@ -36,7 +36,7 @@ const { server } = await import("./tools.js");
 const X = await import("./experts.js");
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const TASK = process.env.PROOF_DIR ?? path.join(REPO, "public/framework/ai/2026-09-29/module-experts");
+const TASK = process.env.PROOF_DIR ?? path.join(REPO, "public/framework/ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts");
 const RLOG = path.join(REPO, "public/framework/core/Page/doc/readme-log.jsonl");
 const MODULE = "core/Page";
 const SONNET = "claude-sonnet-5", OPUS = "claude-opus-5-5";

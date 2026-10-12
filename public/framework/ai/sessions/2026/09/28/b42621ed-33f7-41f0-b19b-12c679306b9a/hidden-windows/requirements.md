@@ -51,4 +51,4 @@ Card log (the owner's words) is at `public/framework/ai/2026/09/24/system-design
 - Never restart Servex. `Servex/` changes wait for the owner's own batched restart.
 - Budget: about $5.
 - Report to `mastermind-servex`'s day task on landing: append a log line to
-  `public/framework/ai/2026-09-28/servex-mastermind/task.jsonl`, and post on the card, live.
+  `public/framework/ai/sessions/2026/09/24/1c09793f-74b6-4218-82e5-53e5cd88b659/servex-mastermind-2/task.jsonl`, and post on the card, live.

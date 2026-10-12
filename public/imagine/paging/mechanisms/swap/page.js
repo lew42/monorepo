@@ -61,6 +61,6 @@ export default new Paging({
 
 		this.paging();
 
-		md("Measured: the stage's top-left is identical before and after the click, at 1280 and 3440 ([the proof](/framework/ai/2026-09-04/paging-core/)); the four visuals above were measured the same way ([2026-09-05](/framework/ai/2026-09-05/paging-mechanisms-v2/)).");
+		md("Measured: the stage's top-left is identical before and after the click, at 1280 and 3440 ([the proof](/framework/ai/sessions/2026/09/04/paging-core/)); the four visuals above were measured the same way ([2026-09-05](/framework/ai/sessions/2026/09/05/paging-mechanisms-v2/)).");
 	},
 });

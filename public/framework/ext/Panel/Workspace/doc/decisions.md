@@ -7,7 +7,7 @@ inherit `divide`/`split`/`close`/`mirror` — verbs about a PANEL's place in a t
 workspace has none of — and `toJSON()` (`Item.js`) walks `data` and `items` with no override
 point, so a subclass's own instance state (`mode`, `zoom`, `viewports`) would either leak
 into the saved document or need its own `toJSON()` to hide it, every time. The accepted
-proposal (`ai/2026-08-18/panel-complexity/proposal.md`) already said *"never a fourth Panel
+proposal (`ai/sessions/2026/08/18/panel-complexity/proposal.md`) already said *"never a fourth Panel
 subclass"* for exactly this shape of problem; holding a root and delegating costs one field
 and reads as what it is.
 

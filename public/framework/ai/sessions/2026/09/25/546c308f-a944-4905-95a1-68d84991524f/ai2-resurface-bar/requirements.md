@@ -57,6 +57,6 @@ named `ai2r-*.mjs`), at 1920x1080, against http://localhost:57505:
 - Shot 1: the rail with a bar showing (clear storage first). Shot 2: after clicking the bar —
   the Activity tab, URL printed, new events marked. Shot 3: back on the rail, that bar gone.
 - Reload on the Activity URL lands on Activity.
-Save the shots in `public/framework/ai/2026-09-25/ai2-resurface-bar/` in the WORKTREE.
+Save the shots in `public/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-resurface-bar/` in the WORKTREE.
 
 Report back: the commit hash, the three shot paths, the URLs, and anything you could not do.

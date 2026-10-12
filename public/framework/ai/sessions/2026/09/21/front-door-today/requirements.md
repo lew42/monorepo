@@ -96,7 +96,7 @@ checked. Do not describe a shot you could not take. The mastermind runs the proo
 ## Fences
 
 `public/framework/ai/v/3/**` (not its data files) and
-`public/framework/ai/2026-09-21/front-door-today/**`, plus one line in the day page's `children:`
+`public/framework/ai/sessions/2026/09/21/front-door-today/**`, plus one line in the day page's `children:`
 and one append to its `day.jsonl`.
 
 ## Length budget

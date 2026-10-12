@@ -5,7 +5,7 @@ You are checker **checker-3**, one of 5 checkers verifying open owner asks again
 ## Read first
 - Card dir (raw words): `public/framework/ai/council/`
 - Full ask history: `public/framework/ai/council/asks.jsonl` (latest line per id wins)
-- This run: `public/framework/ai/2026-10-07/feedback-council/`
+- This run: `public/framework/ai/sessions/2026/10/07/feedback-council/`
 - No new words landed today (`words.jsonl` is empty) — check only the asks below, nothing to extract.
 
 ## Your asks (verify each; prior verdict/evidence shown is NOT truth, just a pointer)
@@ -29,10 +29,10 @@ The live site: http://monorepo.localhost (never http://localhost/). Visual asks:
 (Playwright, never the owner's tabs — no `mcp__site__eval` on tabs the owner has open). Time the Live card load.
 Check scroll on named URLs with real overflow measures. No window may pop up: `windowsHide: true`, `-WindowStyle Hidden`.
 Do NOT edit any repo file. Scratch goes in your scratchpad; screenshots to
-`public/framework/ai/2026-10-07/feedback-council/shots/checker-3-<ask>.png` only for evidence shots (keep <=12 total).
+`public/framework/ai/sessions/2026/10/07/feedback-council/shots/checker-3-<ask>.png` only for evidence shots (keep <=12 total).
 
 ## Return
-Write ONE json file `public/framework/ai/2026-10-07/feedback-council/votes/checker-3.json`:
+Write ONE json file `public/framework/ai/sessions/2026/10/07/feedback-council/votes/checker-3.json`:
 `{"name":"checker-3","votes":{"<id>":{"v":"done|partly|not done|done-but-wrong","e":"evidence","f":"smallest fix or empty"},...}}`
 Cover every id listed above. Then reply "done" in one line. Budget about $2: be quick, do not over-explore.
 Never write the owner's name anywhere.

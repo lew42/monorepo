@@ -4,7 +4,7 @@ import List from "./List.js";
 /* List, taught by six examples that are also its tests.
    Each `run()` is a few plain lines that throw if the behaviour breaks. The List page
    (/framework/core/List/) shows each one's source with a live pass or fail, and
-   ai/2026-10-02/page-extends-item/item-core/test.mjs runs the same array in node.
+   ai/sessions/2026/10/02/page-extends-item/page-extends-item/item-core/test.mjs runs the same array in node.
    One set of examples is both the docs and the test. Every example builds its list
    the way Item uses one: a named List owned by a root Item. */
 

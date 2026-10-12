@@ -98,4 +98,4 @@ one that survived it (2026-08-19).
   four-tone vocabulary instead of exceptions; not built.
 
 Worked notes from the session that wrote this file, including the
-verification passes: `framework/ai/2026-08-13/panel/templates.md`.
+verification passes: `framework/ai/sessions/2026/08/13/panel/templates.md`.

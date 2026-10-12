@@ -60,7 +60,7 @@ export default class Whisper {
     }
 
     /* A dev-only, same-origin PROXY onto whisper-server — added for
-     * `ai/2026-09-29/mobile-nav/`. `ux/Dictate` hard-codes `http://127.0.0.1:8178` as
+     * `ai/sessions/2026/09/29/mobile-nav/mobile-nav/`. `ux/Dictate` hard-codes `http://127.0.0.1:8178` as
      * its DEFAULT, and that is exactly right on THIS machine — but "127.0.0.1" means a
      * different machine on every device, so a phone on the LAN can never reach it that
      * way, no matter how the phone got its microphone permission. `Dictate.js`'s

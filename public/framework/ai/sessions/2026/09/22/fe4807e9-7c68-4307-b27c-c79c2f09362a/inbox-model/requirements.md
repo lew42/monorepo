@@ -29,14 +29,14 @@ page the mastermind made at 17:46 (`public/framework/ai2/page.js`, `classes: "fu
   `ai/<date>/day.jsonl` — `landed - …` lines per task. `ai/prompts.jsonl` and, live, Servex's
   `prompts` log (`GET http://127.0.0.1:8090/log/prompts?n=200`, CORS on) — the owner's
   sentences (`prompt`), and the fast assistant's `name` / `card` / `refined` / `proposal` lines
-  citing them (`ai/2026-09-22/prompt-lifecycle/`, `log-model/events.md`).
+  citing them (`ai/sessions/2026/09/22/c5dd9287-4fc2-427c-b865-f318152bade4/prompt-lifecycle/`, `log-model/events.md`).
 - Live: `GET http://127.0.0.1:8090/api/stream` (SSE, every Servex event; `v/3/agents.js` and
   `v/3/prompts.js` are working clients — copy the fetch/stream code, not the UI); the dev
   server's socket streams `.jsonl` appends (`dev/Socket`).
 - The composer: `v/3/compose.js` (type or speak → `POST /log/prompts`; `talk-to-assistant`).
   Import it or copy it; it is 70 lines.
 - The design system: `framework.css` utilities (`surface pad flex v gap`), the card word
-  `ai/2026-09-19/card-word/`, `lighten`/`darken`. The old board's CSS is not reused.
+  `ai/sessions/2026/09/19/card-word/`, `lighten`/`darken`. The old board's CSS is not reused.
 
 ## Deliverables — one screen, the fewest parts that do the job
 

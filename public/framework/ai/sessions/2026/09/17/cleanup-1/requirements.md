@@ -29,7 +29,7 @@ its real Windows PID — `$!` is not one; read netstat):
    SKILL.md): the shell-lab builder found that the skill says "walls take `grid auto-fill`"
    two lines after warning that wrapping layouts misalign at awkward counts, and the site has
    measured which is right twice (the catalog wall over 2800–3360 and the shell wall at
-   1920): read its log at `ai/2026-09-17/shell-lab/task.jsonl` for the exact finding and its
+   1920): read its log at `ai/sessions/2026/09/17/shell-lab/task.jsonl` for the exact finding and its
    numbers and write the line with them. The mastermind judges it.
 
 5. **A core doc note.** Append to `public/framework/core/Page/doc/css.md` (doc only, no CSS
@@ -42,7 +42,7 @@ its real Windows PID — `$!` is not one; read netstat):
 
 ## Fence
 
-Exactly the files named above, plus your task dir (`public/framework/ai/2026-09-17/cleanup-1/`).
+Exactly the files named above, plus your task dir (`public/framework/ai/sessions/2026/09/17/cleanup-1/`).
 Never kill or restart the dev server on port 80, never drive the owner's tabs, never
 `git stash`, never `find /`; an `rg` pattern starting with `/` returns nothing here — drop
 the slash. Another minion is editing `ext/AITask/*.js` and `ext/JSONL` right now: you touch

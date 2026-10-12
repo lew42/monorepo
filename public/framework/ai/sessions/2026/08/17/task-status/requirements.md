@@ -16,7 +16,7 @@ current-status line at all.**
 - `ext/AITask/card.js:24` — `const current = m => m.now ?? …`. **The card already
   shows `assign.now`. The page does not.**
 - The manifest is the fold of every `assign` line, so `now` is always the latest.
-  The run task `ai/2026-08-16/mastermind-layout/task.jsonl` has **22 `now` lines
+  The run task `ai/sessions/2026/08/16/mastermind-layout/task.jsonl` has **22 `now` lines
   across 298 entries** — a live worked example to test against.
 
 ## The job
@@ -40,7 +40,7 @@ change only.
 
 ## Verify
 
-- Against the real run task (`/framework/ai/2026-08-16/mastermind-layout/`) — it
+- Against the real run task (`/framework/ai/sessions/2026/08/16/mastermind-layout/`) — it
   has 22 `now` lines and is **live right now**, so its status should read as the
   current one.
 - Against a **landed** task (any under `ai/2026-08-17/`) and a task with **no
@@ -50,11 +50,11 @@ change only.
 ## Files you own
 
 - `public/framework/ext/AITask/**`
-- `public/framework/ai/2026-08-17/task-status/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/task-status/**` — your task dir.
 - `usage.json`, `2026-08-17/day.jsonl` — the `new-task` skill's own writes.
 
 **Fenced:** everything else. ⚠ Another agent is writing a report page under
-`ai/2026-08-17/report/`; don't edit it. ⚠ Do not regenerate the audit baselines.
+`ai/sessions/2026/08/17/report/`; don't edit it. ⚠ Do not regenerate the audit baselines.
 
 ## Deliverables
 

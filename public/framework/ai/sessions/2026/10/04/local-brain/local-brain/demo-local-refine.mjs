@@ -4,8 +4,8 @@
 // same (prompt, {model, cwd}) -> {answer, cost_usd} shape engine.js/structure.js expect from
 // Echo.js's own `this.call()` — just pointed straight at the local proxy by fetch instead of
 // going through a whole spawned Claude Code session, so this demo runs in seconds, not minutes.
-import { clean } from "../../../ext/Refine/engine.js";
-import { structure } from "../../../ext/Refine/structure.js";
+import { clean } from "../../../../../../../ext/Refine/engine.js";
+import { structure } from "../../../../../../../ext/Refine/structure.js";
 
 const PROXY = "http://127.0.0.1:8998/v1/chat/completions";
 

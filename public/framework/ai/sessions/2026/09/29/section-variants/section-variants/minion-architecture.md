@@ -27,7 +27,7 @@ Read `page.js` and `b/page.js` first.
 
 Worktree `C:\Code\lew42\worktrees\section-variants` ONLY (server `http://localhost:58245/`).
 **Fence:** `public/framework/core/Sidebar/variants/**`, and new shots in
-`public/framework/ai/2026-09-28/section-variants/walkthrough/shots/`. Nothing else; never
+`public/framework/ai/sessions/2026/09/29/section-variants/section-variants/walkthrough/shots/`. Nothing else; never
 `task.jsonl`, never `Sidebar.js`, `framework/page.js`, `app.js` or the Router.
 
 ## Deliverables

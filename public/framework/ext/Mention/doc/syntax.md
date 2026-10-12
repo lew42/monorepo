@@ -92,7 +92,7 @@ call it too. That plugin sits on the SAME one shared `fs.watch` handle `Director
 uses for `directory.json` (`Server/watch.js` — one handle, not a second watcher): every real
 change to a watched `page.js` or `page.jsonl`, debounced the same way `Directory.js` debounces a
 rebuild, recomputes every curated entry's icon and rewrites `refs.js` only if something actually
-changed. Proved live (`ai/2026-10-03/mention-auto-sync/`): flipping Sidebar's `icon:` in its
+changed. Proved live (`ai/sessions/2026/10/03/list-events/mention-auto-sync/`): flipping Sidebar's `icon:` in its
 `page.js` updated `refs.js` within about two seconds, with no `sync.mjs` run; reverting it synced
 back the same way.
 

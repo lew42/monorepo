@@ -290,7 +290,7 @@ Here is the split, said plainly.
 | the worry | what already handles it | where |
 |---|---|---|
 | "a 400 layout should look fine at 1000" | the measure: `min(var(--measure), 100% - gutters)` **holds and centres** rather than stretching. A one-column layout at 1000 keeps its 40em track. | `styles/doc/layout-system.md` §1 |
-| padding and gap on a big screen vs a small one | the three ramps — `--pad-ramp` `--gap-ramp` `--flow-ramp`, clamped, following the box. 427 hand-typed constants were replaced by them this morning. | `framework.css`, `ai/2026-09-06/spacing-constants/` |
+| padding and gap on a big screen vs a small one | the three ramps — `--pad-ramp` `--gap-ramp` `--flow-ramp`, clamped, following the box. 427 hand-typed constants were replaced by them this morning. | `framework.css`, `ai/sessions/2026/09/06/spacing-constants/` |
 | "small columns shouldn't get large content" | column-relative units: `small` is `clamp(14em, 16cqi, 24em)`, the columns pads scale with the row. The box tells the content how big it is. | `Page.css:322`, `styles/layouts/cols/cols.css` |
 | a wall of tiles on a 3440 | `auto-fill` against a real `--column`: as many tracks as fit, never a stretched pair. | `styles/doc/layout-system.md` §3 |
 | type on a 3440 | one body clamp against the **viewport**, not the box — deliberately: text does not grow because its column did. | `framework.css:278` |

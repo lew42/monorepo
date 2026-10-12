@@ -4,7 +4,7 @@ One mastermind owns this whole cluster (34 open rows, 3 marked now). Work the `n
 
 | Row | Task | Status | Smallest next step |
 |---|---|---|---|
-| 14 | Servex: free the RAM held by idle dev servers, now | now, checked: partial | Run node public/framework/ai/2026-10-02/node-reap/node-reap.mjs as a dry run, then with --apply, and append the before/after figures from result.json to this ta |
+| 14 | Servex: free the RAM held by idle dev servers, now | now, checked: partial | Run node public/framework/ai/sessions/2026/10/02/node-reap/node-reap.mjs as a dry run, then with --apply, and append the before/after figures from result.json to this ta |
 | 100 | local-ctx-fix | now, checked: partial | Wire deepseek/deepseek-v4.1-flash as the fallback ahead of Sonnet in Echo's refine, then run one long prompt through it and log the proof. |
 | 215 | auditor-deepseek | now, checked: done | Write the landed_at line in auditor-deepseek/task.jsonl, since the five audits already sit in consensus.json and the pilot merged at 769b74d5f. |
 | 13 | Merge: a landing is committed, or it doesn't say landed | later | Make merge.mjs commit a three-way landing before it says landed; queued, untouched. |

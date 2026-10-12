@@ -11,7 +11,7 @@ const here = new URL(".", import.meta.url).pathname;
  *
  * Layout (the five questions, 2026-09-17). Container: a plain page under
  * `styles/system/studies/` (moved from the /imagine/ columns host 2026-09-18,
- * `ai/2026-09-18/imagine-move-2/`). Size: `full`, the word every sibling study
+ * `ai/sessions/2026/09/18/imagine-move-2/`). Size: `full`, the word every sibling study
  * wears. Own layout: `.grid.auto` with `--column: 17em`, the site's word for a
  * wall — one tile at 400, four or more at 3440. Regions: three, in importance order — the live
  * takeaway, the grounds wall, the accent lab. Preview: a screenshot of the wall.

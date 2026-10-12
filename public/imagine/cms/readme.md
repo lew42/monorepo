@@ -14,7 +14,7 @@ argues against adding a backend yet. Four pages, one stylesheet-free prototype, 
   control prints its `npx wrangler` line instead of running it.
 - **[`d1/`](/imagine/cms/d1/)** — the same idea against a real database instead of a file:
   three rows in Cloudflare D1, read over `GET /api/pages?under=`, local-only until the
-  owner deploys it (`ai/2026-09-17/pages-in-d1/`).
+  owner deploys it (`ai/sessions/2026/09/17/pages-in-d1/`).
 
 ## The two seams it is built from
 

@@ -22,7 +22,7 @@ express is a **finding**, not a failure, and the most valuable thing you could b
 
 ## Read first — this workflow has been run before
 
-`public/framework/ai/2026-08-18/figma/requirements.md` — the full list and the standing rules. **All
+`public/framework/ai/sessions/2026/08/18/figma/requirements.md` — the full list and the standing rules. **All
 eight apply to you.**
 
 `public/framework/styles/layouts/` already has 28 layouts and was built partly from this same Figma
@@ -59,7 +59,7 @@ This is the part the mastermind needs. In your final message, give:
 
 - YOU OWN: `public/framework/styles/layouts/<your-new-layout-dirs>/`, and the ONE `BANDS` line in
   `styles/layouts/page.js` that makes each new layout exist.
-- YOU OWN: `public/framework/ai/2026-08-18/figma/` — your `task.jsonl`, `questions.md`, `pilot-report.md`, screenshots.
+- YOU OWN: `public/framework/ai/sessions/2026/08/18/figma/` — your `task.jsonl`, `questions.md`, `pilot-report.md`, screenshots.
 - ⚠ **DO NOT TOUCH**: `public/framework/styles/css-scopes.txt`, `public/framework/framework.css`,
   `public/framework/ext/CSSDoc/`, `public/framework/styles/elements/code/`. Another agent holds
   those right now and a collision costs us both.
@@ -75,7 +75,7 @@ write any CSS at all, `new-page` for each `page.js`, `documentation` at the end,
 ## Ask, do not guess
 
 Anything unclear — which existing text style, which colour, whether a card maps to a component we
-already have — goes in `public/framework/ai/2026-08-18/figma/questions.md` **and** your final
+already have — goes in `public/framework/ai/sessions/2026/08/18/figma/questions.md` **and** your final
 report. The owner is asleep; questions are collected, not blocking. Where you must proceed, state
 the assumption in the file and keep going. A card you cannot mock up gets a visible placeholder.
 

@@ -14,7 +14,7 @@
    Every page in the realm is one of these six, or a PRESET — a set of five words
    that earned a url. Nothing else gets a directory. (2026-09-05: the realm was 16
    trees and 50 directories saying these six things; the audit that found that is
-   `/framework/ai/2026-09-05/paging-audit-1b/`.)
+   `/framework/ai/sessions/2026/09/05/paging-audit-1b/`.)
 
    ⚠ THE FIVE WORD LISTS ARE CORE'S NOW, AND THIS FILE RE-EXPORTS THEM.
      `core/Page/words.js` holds navigation, width (which this realm calls ROOM),
@@ -24,7 +24,7 @@
      `templates/theming/` and `/layouts/labs/sections/sections.js`
      all read the same objects they always did. (`/imagine/layouts/system.js` did
      too, until that realm was deleted 2026-09-18.) (2026-09-06, slice 3 of
-     `ai/2026-09-06/graduate-plan/`.)
+     `ai/sessions/2026/09/06/graduate-plan/`.)
 
    ⚠ WHAT STAYS HERE IS THE LAB'S OWN CONTROL SURFACE: `CONTENT` (eight canned
      samples, demo fixtures), `BLOCKS` (the six building blocks as pages), `CONTROLS`

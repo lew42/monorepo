@@ -3,7 +3,7 @@
 Six places claim to know what the owner asked and what happened to it. They disagree sometimes.
 This page says which one is ground truth for what, so the next audit (or the next person) does
 not re-derive it from scratch. Written 2026-10-08 (mastermind-cheap-models), extending
-[2026-10-07/prompt-audit](/framework/ai/2026-10-07/prompt-audit/) — that task only ever read
+[2026-10-07/prompt-audit](/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit/) — that task only ever read
 `asks.jsonl`; this map adds the one source it never touched: the raw Claude Code session files.
 
 ## The sources, ranked by how trustworthy they are for "what did the owner actually type"
@@ -38,7 +38,7 @@ not re-derive it from scratch. Written 2026-10-08 (mastermind-cheap-models), ext
    agent, card, and status (`building`/`landed`/`stalled`/`dropped`/`parked`/`queued`). This is
    ground truth for **status**, not for the original words — `title` is already a paraphrase, and
    `words` points back at source 2 or a task's `owner-words.md`, not the raw quote. This is what
-   [2026-10-07/prompt-audit](/framework/ai/2026-10-07/prompt-audit/report.md) already audited end
+   [2026-10-07/prompt-audit](/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit/report.md) already audited end
    to end (259 asks, 83% landed) — don't redo that pass, extend it with sources 1 and 4-6.
 
 4. **`public/framework/ai/<date>/<task>/`** — `task.jsonl` (the task's own log; `landed_at` present
@@ -67,5 +67,5 @@ not re-derive it from scratch. Written 2026-10-08 (mastermind-cheap-models), ext
 - Only what the script genuinely cannot match goes to a model at all (Haiku first, per
   `Servex/ext/openrouter/evals/known-answer.mjs`'s pattern: inline the shortlist, no tool calls,
   score against a script-computed baseline wherever one exists).
-- See `public/framework/ai/2026-10-08/mastermind-cheap-models/ask-ledger/` for the running script
+- See `public/framework/ai/sessions/2026/10/08/mastermind-cheap-models/mastermind-cheap-models/ask-ledger/` for the running script
   and its output.

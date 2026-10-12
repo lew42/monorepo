@@ -20,7 +20,7 @@
 
 ## What the message carries
 
-Each chip is `{kind, label, text, selector}`, the shape agreed in the page-pair interface (`framework/ai/2026-09-25/recursive-pairs/interface.md`):
+Each chip is `{kind, label, text, selector}`, the shape agreed in the page-pair interface (`framework/ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/interface.md`):
 
 ```json
 { "page": "/framework/ext/drawer/", "text": "Is this sentence right?", "from": "owner",

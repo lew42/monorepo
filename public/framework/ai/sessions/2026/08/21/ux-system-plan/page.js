@@ -1,6 +1,6 @@
 import { Page, md, div, img, a, ui } from "/app.js";
 
-const HERE = "/framework/ai/2026-08-21/ux-system-plan/";
+const HERE = "/framework/ai/sessions/2026/08/21/ux-system-plan/";
 
 export default new Page({
 	meta: import.meta,
@@ -40,7 +40,7 @@ export default new Page({
 
 		md("## The four tokens — approved and shipped");
 
-		md("Because a word can only reach tokens, **a value the framework never tokenized is a value no word can touch** — and toggling one makes the gaps visible. Four showed up immediately. The owner approved all four; [`ux-tokenize`](/framework/ai/2026-08-21/ux-tokenize/) landed them on 2026-08-21 as **exactly four one-line changes in `framework.css`**, each keeping the old literal as the `var()` fallback so nothing moves until a word declares the token.");
+		md("Because a word can only reach tokens, **a value the framework never tokenized is a value no word can touch** — and toggling one makes the gaps visible. Four showed up immediately. The owner approved all four; [`ux-tokenize`](/framework/ai/sessions/2026/08/21/ux-tokenize/) landed them on 2026-08-21 as **exactly four one-line changes in `framework.css`**, each keeping the old literal as the `var()` fallback so nothing moves until a word declares the token.");
 
 		ui.table(
 			["was, literal", "now", "measured at 1280 under ui-compact"],
@@ -59,7 +59,7 @@ export default new Page({
 
 		md("## What landed");
 
-		md("- [`ux/`](/framework/ux/) — [readme](/framework/ux/) · [`doc/system.md`](/framework/ux/doc/system/) (the tier boundary argued, the config-word contract) · [`doc/decisions.md`](/framework/ux/doc/decisions/)\n- [`ui/words/`](/framework/ui/words/) — `words.js` (the two rules) and the live demo\n- [`ui/readme.md`](/framework/ui/) — refreshed: the template tier, the words, the graduation rule\n- The graduation rule itself: **a template graduates when something has to be remembered between renders.** `ui/tree` is the only candidate — the sibling [behaviors audit](/framework/ai/2026-08-21/ui-behaviors-audit/) scored 1 behavioral / 20");
+		md("- [`ux/`](/framework/ux/) — [readme](/framework/ux/) · [`doc/system.md`](/framework/ux/doc/system/) (the tier boundary argued, the config-word contract) · [`doc/decisions.md`](/framework/ux/doc/decisions/)\n- [`ui/words/`](/framework/ui/words/) — `words.js` (the two rules) and the live demo\n- [`ui/readme.md`](/framework/ui/) — refreshed: the template tier, the words, the graduation rule\n- The graduation rule itself: **a template graduates when something has to be remembered between renders.** `ui/tree` is the only candidate — the sibling [behaviors audit](/framework/ai/sessions/2026/08/21/ui-behaviors-audit/) scored 1 behavioral / 20");
 
 		md("## Three traps, for whoever is next");
 

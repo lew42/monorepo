@@ -128,7 +128,7 @@ argues you should take them late, and only for the features that actually need a
 			}));
 	},
 
-	// Answers "is there an MCP for this" — researched 2026-08-30, see ai/2026-08-30/cloudflare-mcp/.
+	// Answers "is there an MCP for this" — researched 2026-08-30, see ai/sessions/2026/08/30/cloudflare-mcp/.
 	mcpNote(){
 		md(`## Claude can do this — the setup
 

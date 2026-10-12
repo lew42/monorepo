@@ -1,7 +1,7 @@
 # AI Sessions tab: cost cards up top, no empty bands, numbers that are always current
 
 Load the `minion` skill first. Your task dir (log here; it already has line 1):
-`public/framework/ai/2026-10-03/sessions-tab-polish/build/`
+`public/framework/ai/sessions/2026/10/03/sessions-tab-polish/sessions-tab-polish/build/`
 
 Work in the worktree: `C:\Code\lew42\worktrees\sessions-tab-polish` (branch
 `worktree/sessions-tab-polish`, its own dev server at `http://sessions-tab-polish.localhost/`
@@ -24,7 +24,7 @@ and `http://localhost:60008/`). Commit there as you go. Do NOT touch the main ch
 ## Read first
 - `public/framework/ai/sessions/page.js`, `sessions.css`, `readme.md`, `doc/decisions.md` — the
   whole system: live Servex rows (`GET /api/agents`, polled every 20s), a `sessions.json` snapshot
-  (`ai/2026-10-02/panel2-sessions/sessions.mjs`), `week.json` (`Server/week-cost.mjs`, a manual
+  (`ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/sessions.mjs`), `week.json` (`Server/week-cost.mjs`, a manual
   snapshot), and per-session cost lines in each session's own `page.jsonl`
   (`Server/session-cost.mjs`, appended by the Stop hook).
 - `public/framework/ui/stats/page.js` — the stat-tile TEMPLATE already on this site (not a
@@ -34,8 +34,8 @@ and `http://localhost:60008/`). Commit there as you go. Do NOT touch the main ch
   the owner's own brief line "use or extend an existing stat/pill component... rather than new
   CSS." Also skim `public/framework/ui/badge/` (tones available) in case a pill fits a smaller
   figure better than a full tile.
-- Prior sessions tasks' logs, for what NOT to redo or break: `public/framework/ai/2026-10-02/session-costs/task.jsonl` and
-  `public/framework/ai/2026-10-03/sessions-date-homes/task.jsonl` (its `review/report.md` already
+- Prior sessions tasks' logs, for what NOT to redo or break: `public/framework/ai/sessions/2026/10/02/session-costs/task.jsonl` and
+  `public/framework/ai/sessions/2026/10/02/panel2-sessions/sessions-date-homes/task.jsonl` (its `review/report.md` already
   found and fixed several of these exact rough edges once — Stop/Duration honesty, the 1200px
   column clip, etc. Don't regress those fixes).
 - `public/framework/ext/panel2/panel2.css` — `.panel2-header`/`.panel2-main` chrome. The "empty
@@ -131,11 +131,11 @@ OpenRouter $ — only the week.json snapshot sums the real OR ledger).
      and see if a better heuristic than `role_of()`'s current one (echo- prefix only) can derive a
      real role for more of them. If genuinely nothing in the data can tell "(unknown)" apart from
      "mastermind" vs "minion", say so in doc/decisions.md rather than guessing.
-   - Start/Stop/Duration: `sessions.mjs` (a DIFFERENT task's file, `ai/2026-10-02/panel2-sessions/`
+   - Start/Stop/Duration: `sessions.mjs` (a DIFFERENT task's file, `ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/`
      — you may read it but coordinate before editing it; if it needs a change, note it in
      doc/decisions.md and make the smallest page.js-side fix instead) should already derive
      `started_at` from a transcript's first timestamp. Check WHY so many rows still show "—": is
-     `sessions.json` stale (re-run `node public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs`
+     `sessions.json` stale (re-run `node public/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/sessions.mjs`
      in the worktree and see if the count of "—" rows drops), or is the derivation itself missing
      cases? Fix what's in your fence; name what isn't.
 
@@ -157,7 +157,7 @@ rule: a fix made after review gets its own screenshot).
 
 ## Fence
 `public/framework/ai/sessions/` (page.js, sessions.css, readme.md, doc/), `Server/session-cost.mjs`,
-`Server/week-cost.mjs`, this task dir (`public/framework/ai/2026-10-03/sessions-tab-polish/build/`).
+`Server/week-cost.mjs`, this task dir (`public/framework/ai/sessions/2026/10/03/sessions-tab-polish/sessions-tab-polish/build/`).
 Read-only elsewhere (`sessions.mjs`, `Server/run.js`, `Server/watch.js`, `ux/Content/Spend.js`,
 `ui/stats/`, `ui/badge/`) — note anything that needs a change outside this fence in
 doc/decisions.md rather than editing it.

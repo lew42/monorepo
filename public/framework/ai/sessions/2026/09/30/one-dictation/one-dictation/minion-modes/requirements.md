@@ -1,6 +1,6 @@
 # Minion brief: chat modes (merge 10)
 
-Load the `minion` skill first, then `code`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/2026-09-30/one-dictation/`. Read the owner's words first: the last section of `owner-words.md` there, the part that starts "it needs to be configurable".
+Load the `minion` skill first, then `code`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/`. Read the owner's words first: the last section of `owner-words.md` there, the part that starts "it needs to be configurable".
 
 ## What the owner asked
 The chat must be configurable: "different modes or different styles". A dictation mode is the Dictate box: entry, Whisper, correction and submission "all in one picture". A chat mode is "more of the chat widget… the full chat experience". The chat on any page can serve users and agents.

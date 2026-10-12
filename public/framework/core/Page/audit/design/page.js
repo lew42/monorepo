@@ -6,7 +6,7 @@ import pages from "./data.js";
    horizontal rows… is it the right size? Is it too big or too small? Does it have the right
    amount of padding?", from mobile up to 3440. The numbers come from
    `node Server/layout-check.mjs --bands`; data.js and shots/ are written by
-   ai/2026-09-30/page-audit/design-emit.mjs (re-run it, never edit them by hand). */
+   ai/sessions/2026/09/30/page-audit/page-audit/design-emit.mjs (re-run it, never edit them by hand). */
 
 const here = new URL(".", import.meta.url).pathname;
 const W = ["400", "1200", "1920", "3440"];
@@ -29,7 +29,7 @@ export default new Page({
 					() => img().attr("src", here + pg.shots["400"]).attr("alt", `${pg.url} at 400px`).style({ width: "100%", display: "block" }));
 		});
 
-		// the Opus reader's ranked findings, with the CSS cause of each (ai/2026-09-30/page-audit/design/)
+		// the Opus reader's ranked findings, with the CSS cause of each (ai/sessions/2026/09/30/page-audit/page-audit/design/)
 		h2("Ranked: what to fix, and what was fixed");
 		div.c("wide").append(md.file(import.meta, "findings.md", { h1: false }));
 

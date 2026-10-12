@@ -51,7 +51,7 @@ Private server `PORT=8132 node server.js` (background; kill by its real Windows 
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/sidebar-repair/`); `css`, `layout`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you — and if a skill's guidance is what produced the 46 px row, say which line.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/sidebar-repair/`); `css`, `layout`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you — and if a skill's guidance is what produced the 46 px row, say which line.
 - Core is live on the owner's dev server (port 80): **never kill or restart it, never drive the owner's tabs**; every edit in one write, loaded headless within a minute; if broken, fix forward at once. Never `git stash`, never `find /`; an `rg` pattern starting with `/` returns nothing here — drop the slash. A bash heredoc containing an apostrophe fails in this harness — write files with the Write tool.
 - Playwright: `import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs"`; block the socket with `page.routeWebSocket(/.*/, () => {})`. Scratch in the session scratchpad.
 - Landing `outcome`: one screen — the headline, the before → after numbers, the pairs page link, decisions, what was left and why.

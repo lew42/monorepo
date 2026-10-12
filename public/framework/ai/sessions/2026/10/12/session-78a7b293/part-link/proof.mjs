@@ -2,8 +2,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import Subpages from "../../../../../Servex/agents/Subpages.js";
-import Promote from "../../../../../Servex/agents/Promote.js";
+import Subpages from "../../../../../../../../../Servex/agents/Subpages.js";
+import Promote from "../../../../../../../../../Servex/agents/Promote.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const [mode, port = "51900"] = process.argv.slice(2);
@@ -19,7 +19,7 @@ if (mode === "setup"){
 }
 
 if (mode === "shoot"){
-	const { browser } = await import("../../../../../Server/browser.mjs");
+	const { browser } = await import("../../../../../../../../../Server/browser.mjs");
 	const b = await browser();
 	for (const w of [400, 1200, 1920, 3440]){
 		const page = await (await b.newContext({ viewport: { width: w, height: 900 } })).newPage();

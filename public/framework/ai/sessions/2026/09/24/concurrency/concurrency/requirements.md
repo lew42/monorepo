@@ -18,4 +18,4 @@ Task mastermind: `task-mastermind-concurrency`. Worktree: `C:/Code/lew42/worktre
 
 - Code (deliverables 1–4): `Servex/agents/Agents.js`, `Servex/agents/tools.js`, `Servex/agents/registry.js`, `Servex/MCP.js`, new files under `Servex/agents/` (e.g. a proof script). In the worktree only.
 - NOT ours: `Servex/Process.js`, `Servex/sustain.mjs`, proxy/keeper (task-mastermind-servex-crash); `Servex/Servex.js` message route (task-mastermind-live-card); `Servex/agents/Assistant.js`, `Servex/agents/Dispatcher.js` (task-mastermind-card-folders). If Servex.js needs a line (e.g. boot-time registry sweep), keep it to one call and log it.
-- Design page: `public/framework/ai/2026-09-24/concurrency/` (page.js, doc/, proposals), plus one `children:` line in `public/framework/ai/2026-09-24/page.js`.
+- Design page: `public/framework/ai/sessions/2026/09/24/concurrency/concurrency/` (page.js, doc/, proposals), plus one `children:` line in `public/framework/ai/2026-09-24/page.js`.

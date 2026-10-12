@@ -1,6 +1,6 @@
 # Generator word semantics — wave A of the column-pages round 2 run
 
-The owner's ask, verbatim, is [`../column-pages-2/requirements.md`](/framework/ai/2026-08-27/column-pages-2/requirements.md).
+The owner's ask, verbatim, is [`../column-pages-2/requirements.md`](/framework/ai/sessions/2026/08/27/column-pages-2/requirements.md).
 The first six paragraphs are this task's spec. Itemized:
 
 1. **Words need children to visualize, and all children look identical.** Generated placeholder

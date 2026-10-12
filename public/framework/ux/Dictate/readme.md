@@ -157,7 +157,7 @@ why a reopened chat never loses old messages, and every older version still kept
 side by side, each with a screenshot and the one line of code that built it. The full
 site-wide audit — every `new Widget(`/`new Dictate(`/`dictate(`/`chat(` call found, which
 ones are live, and why the rest are old versions kept reachable on purpose — is
-[`ai/2026-09-30/one-dictation/minion-workbench/audit.md`](/framework/ai/2026-09-30/one-dictation/minion-workbench/audit.md).
+[`ai/sessions/2026/09/30/one-dictation/one-dictation/minion-workbench/audit.md`](/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-workbench/audit.md).
 
 ## Revise — clean up the words after they're heard
 
@@ -267,7 +267,7 @@ goes quiet for 2.5 s: a voice session's assistants answer on it. The contract fo
   redrawn in two steps" when it wasn't — the owner, 2026-09-29). `close_segment()` now
   only clears the guess in the SAME `draw_caption()` call that shows the real text, or
   gives up on the segment — never a visible gap. Measured with a `ResizeObserver`:
-  `ai/2026-09-29/audio/b-refine/task.jsonl`.
+  `ai/sessions/2026/09/29/audio/audio/b-refine/task.jsonl`.
 - **Silence is never sent.** Whisper answers a recording with no speech in it by inventing
   a sentence — "Thank you." — so a segment carrying less than `min_speech_ms` (120ms) of
   actual speech is not transcribed at all, and whisper's non-speech labels (`*shriek*`,
@@ -276,7 +276,7 @@ goes quiet for 2.5 s: a voice session's assistants answer on it. The contract fo
   [`doc/silence.md`](/framework/ux/Dictate/doc/silence/).
 - **Which microphone.** `new Dictate({ device_id })` opens a specific one; with no
   `device_id` it uses whatever the owner picked on the
-  [test bench](/framework/ai/2026-09-22/dictate-silence/), remembered in this browser under
+  [test bench](/framework/ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/), remembered in this browser under
   `DEVICE_KEY` (exported here, written by `remember_device()`). A remembered device that has
   been unplugged falls back to the system default rather than failing.
 - **Whisper is not streaming.** A segment is re-sent to `whisper-server` about every
@@ -346,7 +346,7 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
   segment/resend mechanics, the RMS numbers, who starts `whisper-server`
 - [`doc/silence.md`](/framework/ux/Dictate/doc/silence/) — why whisper said "Thank you", the
   20ms-frame measurement that stopped it, and the `$DICTATE_DUMP` seam
-- [Test bench](/framework/ai/2026-09-22/dictate-silence/) — record 3 seconds and see the real
+- [Test bench](/framework/ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/) — record 3 seconds and see the real
   numbers, whisper's raw answer, and the WAV itself
 - [`ext/Ask/reply.js`](/framework/ext/Ask/) — the reply mic and the dictate box, now built on this
 - Files: `Dictate.js` (the class), `capture.js` (mic → 16kHz WAV, no library), `pcm-worklet.js`

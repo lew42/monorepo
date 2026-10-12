@@ -57,7 +57,7 @@ comment) and deciding which is which is not this task.
 ## Files you own
 
 - `public/framework/audit/pages.js` — the one authorised edit.
-- `public/framework/ai/2026-08-17/orphan-sweep/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/orphan-sweep/**` — your task dir.
 - `public/framework/ai/usage.json` and `public/framework/ai/2026-08-17/day.jsonl`
   — the `new-task` skill's own writes, permitted.
 

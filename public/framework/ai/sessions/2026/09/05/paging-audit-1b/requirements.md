@@ -1,6 +1,6 @@
 # paging-audit-1b — Critic B, the systems designer
 
-The brief this task serves is [`../paging-audit-1/requirements.md`](/framework/ai/2026-09-05/paging-audit-1/requirements.md).
+The brief this task serves is [`../paging-audit-1/requirements.md`](/framework/ai/sessions/2026/09/05/paging-audit-1/requirements.md).
 Critic A is the overwhelmed newcomer; this is the other half.
 
 ## The ask, verbatim

@@ -42,5 +42,5 @@ for (const d of fs.readdirSync(SRC)){
 	pages.push({ url, widths, shots });
 }
 await close();
-fs.writeFileSync(path.join(OUT, "data.js"), "// Written by ai/2026-09-30/page-audit/design-emit.mjs from layout-check --bands. Re-run it; don't edit by hand.\nexport default " + JSON.stringify(pages, null, "\t") + ";\n");
+fs.writeFileSync(path.join(OUT, "data.js"), "// Written by ai/sessions/2026/09/30/page-audit/page-audit/design-emit.mjs from layout-check --bands. Re-run it; don't edit by hand.\nexport default " + JSON.stringify(pages, null, "\t") + ";\n");
 console.log(pages.length, "pages →", OUT);

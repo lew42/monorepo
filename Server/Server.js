@@ -34,7 +34,7 @@ export default class Server extends Events {
         this.app.use(compress);
 
         // serve static files before fallback
-        // Reload speed (2026-10-05, ai/2026-10-05/mobile-reload-speed/): express.static's
+        // Reload speed (2026-10-05, ai/sessions/2026/10/05/mobile-reload-speed/mobile-reload-speed/): express.static's
         // own `send` package already answers a matching If-None-Match with 304 — the gap
         // was compress.js (above), which used to skip that for every file it handles.
         // `cacheControl`/`etag` stay at their defaults (true): this only overrides the

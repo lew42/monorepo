@@ -28,6 +28,6 @@ export default new Page({
 | 1 | **One list.** The \`page\` skill says: pick the layout from [this audit](../), most-used first, with its opt-in call. A child starts from its parent's layout. A new layout, or a hand-built tab strip, sidebar or shell, is a proposal first. | the architect (skills) | sent |
 | 2 | **\`create_page\` picks from the list.** \`layout\` becomes one of the audited ids (doc, columns, wall, catalog, browse, switcher, floating, standard), defaults to the parent's, and writes the opt-in call. | Servex (tool) | sent |
 | 3 | **The check that catches drift.** \`layout-check --bands\` measures tab rows, stacked padding and wraps at 400 to 3440. It also names the layout a page renders as, so a landing that renders "custom" is flagged. | page mastermind | see the [design pass](../design/) |
-| 4 | **The audit stays true.** The crawl and the classifier re-run, and this page's data is rewritten, never edited by hand. | page mastermind | built: \`ai/2026-09-30/page-audit/classify.mjs\` |`);
+| 4 | **The audit stays true.** The crawl and the classifier re-run, and this page's data is rewritten, never edited by hand. | page mastermind | built: \`ai/sessions/2026/09/30/page-audit/page-audit/classify.mjs\` |`);
 	},
 });

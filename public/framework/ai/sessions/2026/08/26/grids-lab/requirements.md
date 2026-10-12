@@ -5,7 +5,7 @@
 > TASK S6b — the GRIDS lab: grid-column pairings for column pages, at
 > core/Page/overview/columns/examples/grids/.
 >
-> Read: the owner's ask public/framework/ai/2026-08-26/column-pages/requirements.md (the "large
+> Read: the owner's ask public/framework/ai/sessions/2026/08/26/column-pages/requirements.md (the "large
 > column with a grid of small items... small grid column that opens a large column... --measure at
 > 3440" paragraph is YOUR spec), core/Page/doc/columns.md (the shipped system), and
 > core/Page/overview/columns/finder/page.js (the model consumer).

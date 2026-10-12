@@ -1,6 +1,6 @@
 # Minion C — object views: DefaultView, `Thing.View`, `track`, the live Page and App
 
-Load the `minion` skill first, then `code`, `page`, `new-page`. The owner's words: `public/framework/ai/2026-09-29/item-ui/owner-words.md` (read in full, especially from "in terms of the object oriented structures"). Task brief: `../requirements.md`, Phase 2 (deliverables 6–9). Card: `2026/09/29/item-ui-and-object-views-icon-items-tree`.
+Load the `minion` skill first, then `code`, `page`, `new-page`. The owner's words: `public/framework/ai/sessions/2026/09/29/ca56812f-482f-482c-a2fb-e86ba479353a/item-ui/owner-words.md` (read in full, especially from "in terms of the object oriented structures"). Task brief: `../requirements.md`, Phase 2 (deliverables 6–9). Card: `2026/09/29/item-ui-and-object-views-icon-items-tree`.
 
 **Built on what landed before you** (read both first):
 - `ui/item/` — the icon item (`item()`, class `.item`, nests into a tree). Your view renders WITH it.

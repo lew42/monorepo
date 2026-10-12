@@ -17,7 +17,7 @@ Merged into michael/dev as ced6b950, 53b297cc and d9dcbc9c. **The last two go li
 - [x] **Phone and PC share sessions** (keyed by project, not host).
 - [x] **Directory mastermind (`ask_directory`):** fresh each time, with the same opening every time, reused for follow-ups (71,577 cached tokens read on the follow-up). See [d-directory](d-directory/task.jsonl) and [/Servex/agents/doc/directory.md](/Servex/agents/doc/directory.md).
 - [x] **`Usage.pick(role)`**: in ced6b950.
-- [x] **One name per role:** [roles page](/framework/ai/2026-09-22/tiers-design/doc/roles.md).
+- [x] **One name per role:** [roles page](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md).
 - [x] **One live log per task: `task.jsonl`** ([c-roles](c-roles/task.jsonl), [AITask readme](/framework/ext/AITask/)).
 - [x] **Card pages reach the same pair** (the Servex side): [g-card](g-card/task.jsonl).
 - [x] **The echo pattern:** a mastermind `follow`s the session file (decision `d-hear`).

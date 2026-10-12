@@ -45,4 +45,4 @@ Yours: `public/framework/ext/Research/{Research.js,Research.css,page.js,doc/rend
 
 ## Log as you go
 
-Your task log is `public/framework/ai/2026-08-18/research-ui/task.jsonl` — append `{"log": {"at": "<clock>", "msg": "…"}}` at milestones; `{"shot": {"at", "path", "note"}}` for a screenshot (path outside the repo — the scratchpad); never `assign`. Final message: what landed (paths + the url), the screenshot path, what you left out. ≤ 15 lines.
+Your task log is `public/framework/ai/sessions/2026/08/18/research-ui/task.jsonl` — append `{"log": {"at": "<clock>", "msg": "…"}}` at milestones; `{"shot": {"at", "path", "note"}}` for a screenshot (path outside the repo — the scratchpad); never `assign`. Final message: what landed (paths + the url), the screenshot path, what you left out. ≤ 15 lines.

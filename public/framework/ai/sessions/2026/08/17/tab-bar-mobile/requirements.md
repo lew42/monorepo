@@ -1,7 +1,7 @@
 # Tab bar mobile fix
 
 Dispatched by `mastermind-layout`, following the 2026-08-17 mobile sweep
-(`framework/ai/2026-08-17/mobile-sweep/`).
+(`framework/ai/sessions/2026/08/17/mobile-sweep/`).
 
 ## The ask, verbatim
 

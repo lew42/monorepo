@@ -7,7 +7,7 @@ The page opens on a **live demo**: a mic/text box, the result, and beside it the
 ## Use
 ```js
 import refine from "/framework/ext/Refine/Refine.js";
-refine(import.meta, { run: "/framework/ai/2026-09-29/prompt-refine/runs/b/" });
+refine(import.meta, { run: "/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/runs/b/" });
 ```
 A `runs` list — `[{ id, label, dir }, …]` — draws a picker (`<select>`) above the ladder and makes this view **own** `?run=` in the url, the same one-owner rule [`ext/files`](/framework/ext/files/) uses for `?file=`: a reload lands back on the same run. The card at `2026/09/29/from-dictation-to-a-brief-with-nothing-l` (on the AI 2 dashboard) uses this for its sample/a/b/c picker.
 
@@ -66,4 +66,4 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) 
 - `doc/raw-match.md` — the word-overlap heuristic that lights up Raw, worked example
 - `Server/doc/refine.md` — what `refine.mjs` writes, and why each file looks the way it does
 - `doc/refine-engine.md` — `engine.js`'s `clean()` and `structure.js`'s `structure()`: the shared, two-speed clean step Dictate and the prompt-log processor both call, its mechanical glossary/strike/diff-check rules, and the 3-model litmus test that picked the cheap model to run it on
-- Open work: [loose ends by system](/framework/ai/2026-10-08/task-audit/by-system.md) — unbuilt Refine stages (context cards, interactive request cards, handoff, request filing) with the smallest fix per row; source rows in `/framework/ai/2026-10-08/task-audit/loose-ends.jsonl`; the ten `now` transcription rows, checked: [loose-ends.md](/framework/ai/2026-10-12/voice-to-session-page/loose-ends.md)
+- Open work: [loose ends by system](/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/by-system.md) — unbuilt Refine stages (context cards, interactive request cards, handoff, request filing) with the smallest fix per row; source rows in `/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/loose-ends.jsonl`; the ten `now` transcription rows, checked: [loose-ends.md](/framework/ai/sessions/2026/10/12/session-0e99727c/voice-to-session-page/loose-ends.md)

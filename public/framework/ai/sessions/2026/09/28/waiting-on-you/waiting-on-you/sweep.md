@@ -31,7 +31,7 @@ of the six cards are brand new with no agent attached yet).
   crash"** (checkpoint.md) — bug reports and dispatch work, not questions for the owner.
 - Everything else in `todo.md` §1 and §3, and `handover.md`'s numbered list, is either project
   work (not an owner decision) or already marked resolved in
-  [loose-ends/report.md](/framework/ai/2026-09-24/loose-ends/report.md) (hooks armed, restarts
+  [loose-ends/report.md](/framework/ai/sessions/2026/09/24/loose-ends/loose-ends/report.md) (hooks armed, restarts
   done, the six skill changes overtaken, the pm2 daemon gone, etc.).
 
 ## Already asks — listed, nothing written (9)

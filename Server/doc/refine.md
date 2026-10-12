@@ -1,6 +1,6 @@
 # Refine — a dictation, turned into a brief, with nothing lost on the way
 
-The owner's worry, in one line (`public/framework/ai/2026-09-29/prompt-refine/owner-words.md`,
+The owner's worry, in one line (`public/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/owner-words.md`,
 2026-09-29 about 1:25 PM): a long, rambling, informal dictation may lower a model's quality, and
 whatever summary gets made from it — by a human-in-the-loop VS Code tab, or by a mastermind — may
 leave out details or quietly turn "maybe" into "must". **Refine is the audit trail that proves
@@ -125,7 +125,7 @@ exactly once, so nothing is lost.
 
 The first version kept one bullet per sentence, nested up to six deep (review finding 8). Proof,
 same clean sentences and same model (Sonnet), only the prompt changed:
-[`b-structure/out/`](/framework/ai/2026-09-29/audio/next-clean-transcription/b-structure/out/),
+[`b-structure/out/`](/framework/ai/sessions/2026/09/29/audio/audio/next-clean-transcription/b-structure/out/),
 one folder per dictation, `structured-before.md` beside `structured-after.md`, with
 `check.txt` counting bullets, depth, and sentences cited twice or never.
 
@@ -204,12 +204,12 @@ direct SDK or MCP call of its own.
 
 ## The required sample run
 
-`public/framework/ai/2026-09-29/prompt-refine/runs/sample/` — the owner's own 522-word dictation
+`public/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/runs/sample/` — the owner's own 522-word dictation
 about this exact worry (`owner-words.md`'s "The owner, verbatim" section), run without `--collab`
 (budget), default models (Haiku then Sonnet):
 
 ```
-node Server/refine.mjs <path to the dictation's raw text> --out public/framework/ai/2026-09-29/prompt-refine/runs/sample
+node Server/refine.mjs <path to the dictation's raw text> --out public/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/runs/sample
 ```
 
 **Cost:** $0.4158 total (clean $0.1343, structured $0.0407 + $0.1039, pick $0.0342, brief $0.1028,

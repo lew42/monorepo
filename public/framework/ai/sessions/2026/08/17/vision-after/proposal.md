@@ -2,7 +2,7 @@
 
 18 page-level shots, 6 pages × 390/1280/3440, sonnet `critique-full-v1`, **$1.42** (est $1.30, ceiling $2).
 Before: [`../vision-pilot/vision.jsonl`](../vision-pilot/vision.jsonl) · after: [`vision.jsonl`](./vision.jsonl) ·
-browse: [/framework/ext/DesignTool/vision/?run=/framework/ai/2026-08-17/vision-after/](/framework/ext/DesignTool/vision/?run=/framework/ai/2026-08-17/vision-after/)
+browse: [/framework/ext/DesignTool/vision/?run=/framework/ai/sessions/2026/08/17/vision-after/](/framework/ext/DesignTool/vision/?run=/framework/ai/sessions/2026/08/17/vision-after/)
 
 ## Broken: 34 → 29
 

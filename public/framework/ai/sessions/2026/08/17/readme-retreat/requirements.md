@@ -34,7 +34,7 @@ Invoke the `documentation` skill first (Skill tool). Then, for `<DIR>`:
 5. Verify (prefix `MSYS_NO_PATHCONV=1` under Git Bash or the `/framework/…` args get mangled): `MSYS_NO_PATHCONV=1 node "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/f4bc3a9e-dcfa-429b-97ee-931bb9e17fbf/scratchpad/probe-page.mjs" <URL> <URL>/doc/decisions/`
    must print `ok` and `mderr: 0` (the second url only if step 4 applied). Never touch
    Mike's live tabs.
-6. Append ONE line to `public/framework/ai/2026-08-17/readme-retreat/task.jsonl` (bash
+6. Append ONE line to `public/framework/ai/sessions/2026/08/17/readme-retreat/task.jsonl` (bash
    `printf '%s\n' '…' >>`, no BOM): `{"log": {"at": "<ISO local>", "msg": "<DIR>: <old lines> → <new lines>; moved <n> paragraphs to doc/decisions.md; probe ok"}}`
 7. Return a 3-line report: old → new line count, what moved, anything you left.
 

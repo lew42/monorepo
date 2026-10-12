@@ -5,7 +5,7 @@
 
 ## The grant — and its exact edges
 
-The owner approved the framework.css tokenization proposal from `public/framework/ai/2026-08-21/ux-system-plan/` (the four values no config word could reach). You are Opus because framework.css is the one file every page wears. The sanction is for **exactly four one-line changes, with fallbacks, and NOTHING else in that file**:
+The owner approved the framework.css tokenization proposal from `public/framework/ai/sessions/2026/08/21/ux-system-plan/` (the four values no config word could reach). You are Opus because framework.css is the one file every page wears. The sanction is for **exactly four one-line changes, with fallbacks, and NOTHING else in that file**:
 
 1. `th, td` padding → `var(--pad-cell, <current literal>)`
 2. `button` / `.btn` padding → `var(--pad-control, <current literal>)`
@@ -21,7 +21,7 @@ The owner approved the framework.css tokenization proposal from `public/framewor
 3. **After, fallbacks only**: same probes — every number byte-identical. If ANY moved, fix or revert that line before proceeding.
 4. **Remap**: extend `public/framework/ui/words/words.js` so `.ui-compact` now also sets `--pad-cell` and `--pad-control` (scaled by `--density` via calc is fine — the never-scale rule bans only SELF-reference like `--radius: calc(var(--radius) * x)`; a new token computed off `--density` is legal; confirm against the contract in `ux/doc/system.md`). `.ui-contrast` + `--muted`: a contrast section may bump `--muted` (e.g. 85-90%) if it visibly improves the demo — your call, measured, logged.
 5. **Re-measure the words demo**: the documented loose spots inside `.ui-compact` (table cell padding, button padding, the search field) must now tighten. Record before/after numbers in your task log and update the demo page prose where it states the old numbers.
-6. **Refresh the artifacts**: re-shoot `words.png` on `public/framework/ai/2026-08-21/ux-system-plan/` (same filename, the board links it) and update that task's `page.js` where it documents the four unreachable values — they are now reachable; say so with the new numbers. Update `ui/words/` doc/readme lines that named the limitation.
+6. **Refresh the artifacts**: re-shoot `words.png` on `public/framework/ai/sessions/2026/08/21/ux-system-plan/` (same filename, the board links it) and update that task's `page.js` where it documents the four unreachable values — they are now reachable; say so with the new numbers. Update `ui/words/` doc/readme lines that named the limitation.
 
 ## Also yours: the --density verdict (the mastermind's call, you document it)
 
@@ -29,12 +29,12 @@ Verdict, decided: **the shipped default stays `--density: 0.5`, and 0.7 stays th
 
 ## Fence
 
-Yours alone: the named framework.css lines · `ui/words/**` · `public/framework/ai/2026-08-21/ux-system-plan/` (page.js + words.png refresh only) · your task dir `ai/2026-08-21/ux-tokenize/**`. READ-ONLY: everything else. ⚠ A sibling agent is editing the eight `ux/*/page.js` files RIGHT NOW — do not touch any ux module dir; the words demo page you own is `ui/words/page.js`.
+Yours alone: the named framework.css lines · `ui/words/**` · `public/framework/ai/sessions/2026/08/21/ux-system-plan/` (page.js + words.png refresh only) · your task dir `ai/sessions/2026/08/21/ux-tokenize/**`. READ-ONLY: everything else. ⚠ A sibling agent is editing the eight `ux/*/page.js` files RIGHT NOW — do not touch any ux module dir; the words demo page you own is `ui/words/page.js`.
 
 ## Process
 
 - Load skills: `code`, `css` (it makes you read framework.css — good, do it first) before writing; `documentation` for the doc touches; `finish-task` to land; `skill-improvement` if a skill misleads.
-- Log to `public/framework/ai/2026-08-21/ux-tokenize/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends via Add-Content, **pure ASCII** (an em dash under default Add-Content encoding becomes an invalid byte and the board drops the line).
+- Log to `public/framework/ai/sessions/2026/08/21/ux-tokenize/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends via Add-Content, **pure ASCII** (an em dash under default Add-Content encoding becomes an invalid byte and the board drops the line).
 - **Timestamps are READ FROM THE CLOCK in the same command that writes the line, never typed** — `Get-Date -Format "yyyy-MM-ddTHH:mm:sszzz"` (or `date +%Y-%m-%dT%H:%M:%S%z`) inline in the SAME append command. An agent hand-typed stamps 90 minutes into the future today.
 
 ## Safety (non-negotiable)

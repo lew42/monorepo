@@ -28,4 +28,4 @@ The two live dangers are already recorded in code, not in the readme:
 - `public/framework/ext/drawer/doc/decisions.md` — only if the readme needs somewhere to point.
 
 Out of scope: changing `drawer.js`, fixing the `ext/layout` ownership bug (its proposal
-already lives at `ai/2026-08-19/panel-bar-sweep/`).
+already lives at `ai/sessions/2026/08/19/panel-bar-sweep/`).

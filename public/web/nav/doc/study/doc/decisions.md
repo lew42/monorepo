@@ -39,7 +39,7 @@ The third is the only one that both stays still and keeps a 3440 screen full, an
 I would pick — but it costs a number (`34cqi`, "about a third of the row") that the other two
 do not, and adding a number to core's vocabulary is the owner's decision, not a minion's.
 The full argument, with the six width words under each, is in
-[`ai/2026-09-17/nav-stability/proposal.md`](/framework/ai/2026-09-17/nav-stability/).
+[`ai/sessions/2026/09/17/nav-stability/proposal.md`](/framework/ai/sessions/2026/09/17/nav-stability/).
 
 ## Settled — the demo is built from core's classes, not from miniature boxes
 

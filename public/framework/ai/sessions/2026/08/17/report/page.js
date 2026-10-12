@@ -7,7 +7,7 @@ View.stylesheet(import.meta, "report.css");
 // The frozen shots live outside the repo (RULE#12); `tmp()` routes them through
 // the loopback-only /screenshot route, and says so off localhost.
 const SHOTS = "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/";
-const DT = "/framework/ai/2026-08-17/";
+const DT = "/framework/ai/sessions/2026/08/17/";
 
 export default new Page({
 	meta: import.meta,
@@ -31,7 +31,7 @@ export default new Page({
 		h1(this.title);
 
 		md("**30 tasks landed today, 19 of them started after you left at 11:00.** "
-			+ "The [day dashboard](/framework/ai/2026-08-17/) has them in the order they happened, and shows what is still running. This page has them in the order they matter.");
+			+ "The [day dashboard](/framework/ai/sessions/2026/08/17/) has them in the order they happened, and shows what is still running. This page has them in the order they matter.");
 
 		this.needs();
 		this.rebuilt();
@@ -109,6 +109,6 @@ export default new Page({
 		h2("Everything else");
 		div.c("report-wide wide grid auto gap").style("--column", "22em").append(() => REST.forEach(([title, body]) =>
 			div.c("report-need surface pad flex v gap", () => { h3(title); md(body); })));
-		md("Every task keeps its own log on the [day dashboard](/framework/ai/2026-08-17/); the run that scheduled them is [mastermind-layout](/framework/ai/2026-08-16/mastermind-layout/).");
+		md("Every task keeps its own log on the [day dashboard](/framework/ai/sessions/2026/08/17/); the run that scheduled them is [mastermind-layout](/framework/ai/sessions/2026/08/16/mastermind-layout/).");
 	},
 });

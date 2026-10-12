@@ -2,7 +2,7 @@
 
 Mike, 2026-08-17: *"we need the feedback from the layout tool to be accurate."*
 
-`ai/2026-08-17/vision-baseline/` scored 18 frozen screenshots against an anchored
+`ai/sessions/2026/08/17/vision-baseline/` scored 18 frozen screenshots against an anchored
 rubric and used them to convict both numerical tiers. **Read that task's
 `task.jsonl` and `baseline.json` first** — every claim below has its evidence
 there, including the raw prose naming what in each image drove each score.
@@ -104,7 +104,7 @@ explaining which fix moved it.
 
 ## Not yours, but note it
 
-`ai/2026-08-17/loss-budget/` measured `width-used` as **28.1% of the layout
+`ai/sessions/2026/08/17/loss-budget/` measured `width-used` as **28.1% of the layout
 generator's quality gap** — its single largest band. That magnitude was computed
 with the broken band, so **it must be re-measured once you've fixed it.** The
 mechanism that task found is independent and stands. Log a line saying the number
@@ -113,13 +113,13 @@ is now re-measurable; don't re-measure it.
 ## Files you own
 
 - `public/framework/ext/DesignTool/**` — all of it.
-- `public/framework/ai/2026-08-17/tier-calibration/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/tier-calibration/**` — your task dir.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 
 **Fenced off:** `styles/layouts/**` (another agent is in it now — so do not *edit*
 there, though measuring it in the regeneration sweep is expected and fine),
-`ext/Panel/**` (another session), `ai/2026-08-17/rubric-v2/**` and
+`ext/Panel/**` (another session), `ai/sessions/2026/08/17/rubric-v2/**` and
 `vision-baseline/**` (read-only; `baseline.json` is the source of truth and must
 not change).
 

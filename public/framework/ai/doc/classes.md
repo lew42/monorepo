@@ -6,7 +6,7 @@ Related: [writing.md](writing.md) · [readmes.md](readmes.md) · [claude-md-arch
 
 ## Moved from CLAUDE.md (2026-10-12)
 
-These sentences were cut from the root `CLAUDE.md` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in `CLAUDE.md` at `87afbdd55`. The map is `public/framework/ai/2026-10-12/claude-md-consolidate/manifest.md`.
+These sentences were cut from the root `CLAUDE.md` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in `CLAUDE.md` at `87afbdd55`. The map is `public/framework/ai/sessions/2026/10/12/session-3b391f22/claude-md-consolidate/manifest.md`.
 
 <!-- claude-md:L32 -->
 **Classes are the structure; show them** — L32.3, L32.4

@@ -1,10 +1,10 @@
 // Node test for the Events / List / List / Item / Store chain — no DOM, no
 // server. Run: `node test.mjs`. Prints one pass/fail line per claim and exits 1 if
 // anything failed.
-import Events from "../../../../core/Events/Events.js";
-import List from "../../../../core/List/List.js";
-import Item from "../../../../core/Item/Item.js";
-import Store from "../../../../core/Item/Store.js";
+import Events from "../../../../../../../../core/Events/Events.js";
+import List from "../../../../../../../../core/List/List.js";
+import Item from "../../../../../../../../core/Item/Item.js";
+import Store from "../../../../../../../../core/Item/Store.js";
 
 const results = [];
 function check(label, fn){
@@ -387,7 +387,7 @@ check("a cross-list move replays into a fresh host", () => {
 
 // The List teaching examples (core/List/List.examples.js): the same array
 // the List page shows, run here as tests.
-const { default: examples } = await import("../../../../core/List/List.examples.js");
+const { default: examples } = await import("../../../../../../../../core/List/List.examples.js");
 for (const example of examples) check("example: " + example.title, () => { example.run(); return true; });
 
 // ════ Report ════════════════════════════════════════════════════════════════

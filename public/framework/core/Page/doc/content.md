@@ -143,7 +143,7 @@ set(obj){   // a page.jsonl line
 **Was a merge planned before? No plan to merge these was found** (grep of `ai/` and the `core/Item`, `core/Page` docs). What exists is a series of smaller folds, none of which touched `assign`:
 - `List.set()` was deleted: `List extends Item` and uses `apply()` (a comment in `core/List/List.js`, 2026-10-03).
 - `PageLog` was folded into `Page`, whose `set()` became a thin wrapper over `apply()` ([decisions.md, "Page extends Item"](decisions.md)).
-- The `at` key was dropped; nesting is the path now (`ai/2026-10-03/drop-at-key/requirements.md`; the compat branch in `apply()` is marked "fold-away").
+- The `at` key was dropped; nesting is the path now (`ai/sessions/2026/10/03/list-events/drop-at-key/requirements.md`; the compat branch in `apply()` is marked "fold-away").
 - The sentence you likely remember: "`page.set(obj)` is `assign()` that calls methods instead of overwriting them" ([jsonl.md](jsonl.md)). It describes the idea, not a plan.
 - [Item/doc/method/assign.md](../../Item/doc/method/assign.md) records that `assign` is deliberately a one-liner, written out per class rather than shared. (`Item/doc/method/set.md` is stale: it describes a `data[key]` write from before `apply()`.)
 

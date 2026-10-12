@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { read_key } from "../../../../../Servex/ext/openrouter/provider.js";
-import { is_local_model } from "../../../../../Servex/ext/local/provider.js";
+import { read_key } from "../../../../../../../../../Servex/ext/openrouter/provider.js";
+import { is_local_model } from "../../../../../../../../../Servex/ext/local/provider.js";
 import { level_a, level_b, level_c } from "./eval-suite.mjs";
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";

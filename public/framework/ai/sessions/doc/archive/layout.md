@@ -40,6 +40,6 @@ Some cards (a Servex agent's `page.jsonl`) live in the task date folders, `ai/20
 
 ## Why ids, not task names
 
-A task folder (`ai/2026-10-08/session-class/`) is a unit of work with a human name. A Claude session is one transcript. They are not one to one: a task can take several sessions (a mastermind, its minions, a resumed run), and most sessions (every VS Code tab, every SDK run, every reviewer) have no task at all. The session id is the only key all of them share.
+A task folder (`ai/sessions/2026/10/08/3f5a5fec-dbf0-4a4b-8573-560f281a0be3/session-class/`) is a unit of work with a human name. A Claude session is one transcript. They are not one to one: a task can take several sessions (a mastermind, its minions, a resumed run), and most sessions (every VS Code tab, every SDK run, every reviewer) have no task at all. The session id is the only key all of them share.
 
 The task folder holds the work (`task.jsonl`, the brief, the findings). The session folder holds the money and the record. They join by id: a task's launch line in `task.jsonl` names its `session_id`, and the Servex registry maps an agent's name and parent to its `session_id`.

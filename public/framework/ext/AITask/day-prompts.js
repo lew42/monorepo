@@ -3,7 +3,7 @@ import { GLOSSARY } from "../Refine/engine.js";
 import { mentions } from "../Mention/Mention.js";
 
 /* day-prompts.js — the owner's own words for one day, refined (deliverable 2/3,
-   public/framework/ai/2026-10-04/day-cards/requirements.md).
+   public/framework/ai/sessions/2026/10/04/day-cards/day-cards/requirements.md).
  *
  * WHERE THE WORDS LIVE: every owner prompt is one `Prompt` item on its own session
  * page — `/framework/ai/<Y>/<M>/<D>/session-<id>/page.jsonl` ("a session is a page",

@@ -9,9 +9,9 @@ you write (`node Server/hold.mjs on "grid-fill — Page.css/page.js"`) is not ne
 work in a separate worktree with its own server — just write normally there.
 
 Parent task dir (read the full ask and its screenshots there first):
-`public/framework/ai/2026-10-03/framework-home-grids/` — `requirements.md` has the owner's
+`public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids/` — `requirements.md` has the owner's
 verbatim words. Log your own steps in
-`public/framework/ai/2026-10-03/framework-home-grids/grid-fill/task.jsonl` (create it; see
+`public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids/grid-fill/task.jsonl` (create it; see
 `new-task`/minion skill for the line shape) in BOTH the worktree copy and nowhere else —
 your parent reads the worktree's copy before merge.
 
@@ -47,7 +47,7 @@ your parent reads the worktree's copy before merge.
   `div.c("page-previews bleed", …)` holding `module_card()` calls — THIS inner div is what
   needs to stop being a plain equal-row grid.
 - Screenshots of the CURRENT (before) state, at 1920 and 3440, are the task's own first two
-  lines — read `public/framework/ai/2026-10-03/framework-home-grids/task.jsonl` for their
+  lines — read `public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids/task.jsonl` for their
   paths, or re-shoot `http://monorepo.localhost/framework/` yourself with a headless tool
   (never drive the owner's live tabs — use Playwright headless or the worktree's own server
   at its port, never `mcp__site__eval`/`claim`/`pages` on a connected tab).

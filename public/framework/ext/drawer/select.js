@@ -114,7 +114,7 @@ export class DrawerSelect {
 }
 
 /** What the chat is told about one element — the interface's shape,
- *  `{kind, label, text, selector}` (ai/2026-09-25/recursive-pairs/interface.md). */
+ *  `{kind, label, text, selector}` (ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/interface.md). */
 export function item(el){
 	const kind = el.tagName.toLowerCase();
 	return { kind, label: "this " + word(el), text: text_of(el).slice(0, 300), selector: path(el) };

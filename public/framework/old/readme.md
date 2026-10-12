@@ -18,4 +18,4 @@ it's a kept copy, not a module.
 ## More
 
 - The new [`/framework/`](/framework/) home page, and the task that moved this here:
-  [`ai/2026-10-02/framework-home/`](/framework/ai/2026-10-02/framework-home/).
+  [`ai/sessions/2026/10/02/framework-home/`](/framework/ai/sessions/2026/10/02/framework-home/).

@@ -1,6 +1,6 @@
 # Minion brief: an object-oriented logger, rendered as nested cards
 
-Load the `minion` skill and the `code` skill first. Parent: task-mastermind-cards-and-logs. Parent task dir: `public/framework/ai/2026-09-29/cards-and-logs/` (read `owner-words.md`, first section, in full).
+Load the `minion` skill and the `code` skill first. Parent: task-mastermind-cards-and-logs. Parent task dir: `public/framework/ai/sessions/2026/09/30/cards-and-logs/cards-and-logs/` (read `owner-words.md`, first section, in full).
 
 ## The owner's words
 "it was actually an object-oriented logger. You could just say like this dot log ... I used the console dot log. I rendered my own logs ... It was essentially like a nested content widgets. Like you know, each log you could create log groups, and each method was a log group, and would kind of contain any logs within that method ... Potentially any object on any page could have its own log and render it ... they can't go too deep ... after the third level, you're kind of maxing out your padding space ... a H2 section, for example, doesn't really need an extra indentation for its content."

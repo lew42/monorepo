@@ -5,7 +5,7 @@ You are checker **checker-2**, one of 5 checkers verifying open owner asks again
 ## Read first
 - Card dir (raw words): `public/framework/ai/council/`
 - Full ask history: `public/framework/ai/council/asks.jsonl` (latest line per id wins)
-- This run: `public/framework/ai/2026-10-07/feedback-council/`
+- This run: `public/framework/ai/sessions/2026/10/07/feedback-council/`
 - No new words landed today (`words.jsonl` is empty) — check only the asks below, nothing to extract.
 
 ## Your asks (verify each; prior verdict/evidence shown is NOT truth, just a pointer)
@@ -18,7 +18,7 @@ You are checker **checker-2**, one of 5 checkers verifying open owner asks again
 - **C3**: Page MCP: change layouts, add content, create pages and sub-pages; in the dev-server MCP or Servex MCP. (last verdict: partly; last evidence: mcp__servex__create_page, list_pages, read_page, set_layout, place tools exist in this session, so a page MCP exists. Not tried.)
 - **C4**: Page system upgrade: simpler, live JSONL pages documented, core pages page less wordy. (last verdict: partly; last evidence: Commit 15291daa shortened core/Page docs; live JSONL pages appear used (ai/2026/09/24/ai-dashboard/page.jsonl))
 - **C5**: Ready agent per module (short readme as the way in, no old bloated agents). (last verdict: partly; last evidence: mcp__servex__readme_modules tool exists (spawn a mastermind across named modules' readmes) and sub-mastermind SKILL.md references it, but there is still no single short per-module 'ready agent' skill replacing old bloated agents.)
-- **C6**: CSS audit by directory with a tree view of CSS amounts, proposals to reduce; tokens + container queries on columns. (last verdict: partly; last evidence: ai/2026-09-25/css-audit exists, 'landed: explorer, ranked plan and padding curves; up to 8,599 of 35,769 lines can go' per Live note)
+- **C6**: CSS audit by directory with a tree view of CSS amounts, proposals to reduce; tokens + container queries on columns. (last verdict: partly; last evidence: ai/sessions/2026/09/25/css-audit/css-audit exists, 'landed: explorer, ranked plan and padding curves; up to 8,599 of 35,769 lines can go' per Live note)
 
 ## Job
 For EVERY ask above, LOOK at the real result and give one verdict:
@@ -29,10 +29,10 @@ The live site: http://monorepo.localhost (never http://localhost/). Visual asks:
 (Playwright, never the owner's tabs — no `mcp__site__eval` on tabs the owner has open). Time the Live card load.
 Check scroll on named URLs with real overflow measures. No window may pop up: `windowsHide: true`, `-WindowStyle Hidden`.
 Do NOT edit any repo file. Scratch goes in your scratchpad; screenshots to
-`public/framework/ai/2026-10-07/feedback-council/shots/checker-2-<ask>.png` only for evidence shots (keep <=12 total).
+`public/framework/ai/sessions/2026/10/07/feedback-council/shots/checker-2-<ask>.png` only for evidence shots (keep <=12 total).
 
 ## Return
-Write ONE json file `public/framework/ai/2026-10-07/feedback-council/votes/checker-2.json`:
+Write ONE json file `public/framework/ai/sessions/2026/10/07/feedback-council/votes/checker-2.json`:
 `{"name":"checker-2","votes":{"<id>":{"v":"done|partly|not done|done-but-wrong","e":"evidence","f":"smallest fix or empty"},...}}`
 Cover every id listed above. Then reply "done" in one line. Budget about $2: be quick, do not over-explore.
 Never write the owner's name anywhere.

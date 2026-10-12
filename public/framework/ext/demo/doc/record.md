@@ -982,7 +982,7 @@ only `justify-items` took, which reads exactly like "container queries are broke
 
 The 08-12 strategy read counted **ten entry points** in this module and named the
 disease: *"the 08-09 census regrown inside the block that was supposed to cure
-it."* (`ai/2026-08-12/strategy/layout-simplicity.md`, Move 2.) Four changes, all
+it."* (`ai/sessions/2026/08/12/strategy/layout-simplicity.md`, Move 2.) Four changes, all
 of them deletions.
 
 ### `demo.responsive` → `demo.stage.two()`

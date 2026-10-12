@@ -83,7 +83,7 @@ To see or test what a file was before your edit, use `git show HEAD:<path>` into
 
 ## Relaying the owner's dictation
 
-For any dictation over about 300 words, run `node Server/refine.mjs` on it and put its `coverage.md` beside the brief's requirements.md, so every sentence is traced to a deliverable. Never write a model name, a budget, or a never/always the owner didn't say (2026-09-29 audit, `ai/2026-09-29/prompt-refine/audit.md`: hand relays dropped 3–7 asks per dictation and turned doubts into rules). Pass the raw words along too.
+For any dictation over about 300 words, run `node Server/refine.mjs` on it and put its `coverage.md` beside the brief's requirements.md, so every sentence is traced to a deliverable. Never write a model name, a budget, or a never/always the owner didn't say (2026-09-29 audit, `ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/audit.md`: hand relays dropped 3–7 asks per dictation and turned doubts into rules). Pass the raw words along too.
 
 ## Research is an asset, and each topic gets a brain
 

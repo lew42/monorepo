@@ -94,7 +94,7 @@ if (emit > 0){
 		l.shot = "shots/" + l.id + ".jpg";
 	} else delete l.shot;
 	const data = { at: new Date().toISOString().slice(0, 10), crawled: out.length, errors: counts.error || 0, skipped, layouts, priority };
-	fs.writeFileSync(path.join(dir, "data.js"), "// Written by ai/2026-09-30/page-audit/classify.mjs --emit. Re-run it; don't edit by hand.\nexport default " + JSON.stringify(data, null, "\t") + ";\n");
+	fs.writeFileSync(path.join(dir, "data.js"), "// Written by ai/sessions/2026/09/30/page-audit/page-audit/classify.mjs --emit. Re-run it; don't edit by hand.\nexport default " + JSON.stringify(data, null, "\t") + ";\n");
 	console.log("emitted", dir);
 }
 if (process.argv.includes("--priority")) for (const r of priority) console.log(String(r.links_in).padStart(4), r.layout.padEnd(9), r.url);

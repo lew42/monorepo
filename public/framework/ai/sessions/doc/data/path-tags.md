@@ -10,7 +10,7 @@ Dictated in VS Code tab 7efd07d5. The owner's design, condensed; nothing here is
 
 ## Topic scans beat task-by-task audits
 - To find everything on one topic (Cloudflare, payments, users, auth), **scan all sessions' prompts for keywords by script**, then read only the hits. Cheaper and more complete than auditing every task day by day.
-- The day-by-day task audit (`ai/2026-10-08/task-audit/`) stays possible, but its output must be **tags first** (path tags + topic keywords), loose ends second. The owner's critique: it read a lot, did not categorise well, and its agents argued about who was right; that does not matter as much as everything being findable.
+- The day-by-day task audit (`ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/`) stays possible, but its output must be **tags first** (path tags + topic keywords), loose ends second. The owner's critique: it read a lot, did not categorise well, and its agents argued about who was right; that does not matter as much as everything being findable.
 
 ## Re-refine a whole session (an audit button)
 - On a past session's page, one button re-runs the current Refine system over every prompt: refined prompts, every request and suggestion listed, each checked against what was done.

@@ -35,7 +35,7 @@ Yours alone: `ux/Menu/**`, `ux/Pagination/**`, `ux/Tags/**` (+ `ux/Field/**` onl
 ## Process
 
 - Load skills: `code`, `css`, `layout` before writing; `new-page` per page.js; `new-css-class` per new class name; `documentation`; `finish-task`; `skill-improvement` when a skill misleads.
-- Log to `public/framework/ai/2026-08-21/ux-graduations/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends via Add-Content. **Appends must be real UTF-8 or pure ASCII — PowerShell Add-Content defaults to ANSI; an em dash becomes an invalid byte and the board drops the line. Use ASCII.**
+- Log to `public/framework/ai/sessions/2026/08/21/ux-graduations/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends via Add-Content. **Appends must be real UTF-8 or pure ASCII — PowerShell Add-Content defaults to ANSI; an em dash becomes an invalid byte and the board drops the line. Use ASCII.**
 - **Timestamps are READ FROM THE CLOCK in the same command that writes the line, never typed** — e.g. build the line with `Get-Date -Format "yyyy-MM-ddTHH:mm:sszzz"` inline (or bash `date +%Y-%m-%dT%H:%M:%S%z`) in the SAME command that appends it. A sibling agent hand-typed stamps 90 minutes in the future today and the record had to be corrected from file order.
 
 ## Verification (before landing)

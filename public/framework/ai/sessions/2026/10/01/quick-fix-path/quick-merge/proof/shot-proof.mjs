@@ -4,7 +4,7 @@
  * GATE and JSON line on scratch repos; this proof is the other half — the actual pixels, taken
  * read-only against THIS worktree's own live dev server (no file in the repo is touched).
  * `node shot-proof.mjs [base url]` — base defaults to this worktree's own server. */
-import { widthsFor } from "../../../../../../../Server/review.mjs";
+import { widthsFor } from "../../../../../../../../../../Server/review.mjs";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";

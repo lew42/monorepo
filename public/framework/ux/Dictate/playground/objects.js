@@ -1,6 +1,6 @@
 /**
  * The playground's data, as real classes instead of plain object literals — minion-part2
- * of [public/framework/ai/2026-10-01/inspect/](/framework/ai/2026-10-01/inspect/), built
+ * of [public/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/](/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/), built
  * on Part 1's [`inspect()`](/framework/ux/Content/Object/Inspect.js). The owner's own
  * words: "all of the things that the dictate is creating, all the data structures, we
  * want those to be object oriented so that we can give them an icon."

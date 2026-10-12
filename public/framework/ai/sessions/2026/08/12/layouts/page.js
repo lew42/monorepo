@@ -78,6 +78,6 @@ export default new Page({
 
 		md("Verified in a real browser: all ten detail pages plus the tab index at **390, 900, 1440, 1600 and 3440** — no console errors, no failed requests, no horizontal overflow, both panes level at every width, and the part chips toggling a rail in and out of a live render and back. The load sequence was sampled frame by frame at 120–3100ms: **one card state throughout**, where it used to be three.");
 
-		md("Record: [readme.md beside the pages](/framework/styles/layouts/) · sibling sessions [stage](/framework/ai/2026-08-12/stage/), [apps](/framework/ai/2026-08-12/apps/), [unify](/framework/ai/2026-08-12/unify/).");
+		md("Record: [readme.md beside the pages](/framework/styles/layouts/) · sibling sessions [stage](/framework/ai/sessions/2026/08/12/stage/), [apps](/framework/ai/sessions/2026/08/12/apps/), [unify](/framework/ai/sessions/2026/08/12/unify/).");
 	},
 });

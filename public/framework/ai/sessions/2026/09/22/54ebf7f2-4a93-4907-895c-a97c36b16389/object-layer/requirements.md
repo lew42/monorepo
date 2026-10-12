@@ -23,7 +23,7 @@ prototype in your task dir; nothing under `Servex/` or `Server/` changes.
 
 ## Deliverables — one page and one prototype
 
-1. **`ai/2026-09-22/object-layer/page.js`** — level 1: the envelope in one code block, one
+1. **`ai/sessions/2026/09/22/54ebf7f2-4a93-4907-895c-a97c36b16389/object-layer/page.js`** — level 1: the envelope in one code block, one
    diagram of the three wires with the same envelope on each, and the three tools with one
    example call each (`list_objects` → `["servex", "servex.agents", "app", "app.router"]`;
    `describe("servex.agents")` → methods with their JSDoc one-liners and parameter names;

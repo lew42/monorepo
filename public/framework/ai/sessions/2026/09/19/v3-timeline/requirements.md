@@ -1,6 +1,6 @@
 # v3-timeline — V3's left column becomes a real timeline: full bleed, hour lines, time read spatially; plus the jump key, prompt cards and the usage footer
 
-Load the `minion` skill first. Then this brief. Model: Sonnet. **You are the ONE minion on the AI dashboard (`public/framework/ai/v/3/`) until you land** — the task before you (`ai/2026-09-19/dashboard-next/`) has landed; read its landing and its "for the next V3 task" list first, and `public/framework/dev/DevBar/doc/chat/` for the page's history.
+Load the `minion` skill first. Then this brief. Model: Sonnet. **You are the ONE minion on the AI dashboard (`public/framework/ai/v/3/`) until you land** — the task before you (`ai/sessions/2026/09/19/dashboard-next/`) has landed; read its landing and its "for the next V3 task" list first, and `public/framework/dev/DevBar/doc/chat/` for the page's history.
 
 **Three laws.** Less is more — the owner, today: "write no CSS unless needed." Clear beats brief by far. Prioritize (1 → 2 → 3, then land; 4–6 only if those are proven).
 
@@ -35,7 +35,7 @@ Private supervised server `PORT=8147 node server.js` (kill supervisor and child 
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/v3-timeline/`); `code`, `css`, `layout` (suggestions; the shot is the verdict), `ui-test`, `documentation`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/v3-timeline/`); `code`, `css`, `layout` (suggestions; the shot is the verdict), `ui-test`, `documentation`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `public/framework/ai/v/3/**` (not `board.jsonl`), `.claude/skills/every-prompt/say.mjs` (the `--ask` flag only), `public/framework/styles/css-scopes.txt` (re-read before the edit), your task dir. Read `ext/AITask/**` and `ui/background/**`; edit neither. Not `dev/DevBar/**`, not `framework.css`, not `core/**`.
 - In a scrolling flex column every child needs `flex: 0 0 auto` (it has bitten this page three times). No CSS rule unless the shot needs it. The hooks check every `.js` write parses and tell you if you broke a page — fix at once.
 - **Never kill or restart the owner's dev server (port 80), the mastermind's (8123) or the running health watcher, never stop whisper-server, never drive the owner's tabs.** Never `git stash`, never `find /`, never commit. Write files with the Write or Edit tool, never a bash heredoc. Do not write the owner's name anywhere.

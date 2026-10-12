@@ -12,7 +12,7 @@ Verbatim brief from the mastermind (Servex agent `minion-refine-today`):
 >
 > For each: run `node Server/refine.mjs` on it, as cheaply as the tool allows (one cheap
 > drafting model, e.g. `--models haiku`; skip the repair rounds unless coverage drops more than 3
-> sentences), writing to `public/framework/ai/2026-09-29/refine-today/<nn>-<slug>/`. Run them in
+> sentences), writing to `public/framework/ai/sessions/2026/09/30/refine-today/refine-today/<nn>-<slug>/`. Run them in
 > series, not in parallel, because memory is tight.
 >
 > Then build ONE card: `POST http://127.0.0.1:8090/card/create {"title":"Today's dictations,

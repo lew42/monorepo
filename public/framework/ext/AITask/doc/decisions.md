@@ -108,18 +108,18 @@ Report; `chat` + `log` build Session; `head` builds Requirements.
   for its catalog region, `AITask` as the fallback for an undeclared task dir,
   and an `effort/<slug>` route onto `effort_board()` — the other half of the
   card's category tag.
-- **[`/framework/ai/2026-08-13/`](/framework/ai/2026-08-13/)**,
-  **[`2026-08-14/`](/framework/ai/2026-08-14/)** — day pages: `dashboard()` +
+- **[`/framework/ai/2026-08-13/`](/framework/ai/sessions/2026/08/13/)**,
+  **[`2026-08-14/`](/framework/ai/sessions/2026/08/14/)** — day pages: `dashboard()` +
   `glance()` (the `/framework/ai/` tile), `AITask` as the same fallback. Every
   other day (`2026-08-08`…`2026-08-12`, `2026-08-15`) has no `page.js` of its
   own and is served entirely through these two mechanisms one tier up.
-- **[`manifest-vs-log`](/framework/ai/2026-08-13/manifest-vs-log/)** — a live
+- **[`manifest-vs-log`](/framework/ai/sessions/2026/08/13/manifest-vs-log/)** — a live
   demo/verification page for `stats.js`'s `usage_of`/`tail_activity`/`timeline_of`.
-- **[`panel`](/framework/ai/2026-08-13/panel/)**,
-  **[`sessions`](/framework/ai/2026-08-13/sessions/)**,
-  **[`editor-panel-review`](/framework/ai/2026-08-14/editor-panel-review/)** —
+- **[`panel`](/framework/ai/sessions/2026/08/13/panel/)**,
+  **[`sessions`](/framework/ai/sessions/2026/08/13/sessions/)**,
+  **[`editor-panel-review`](/framework/ai/sessions/2026/08/14/editor-panel-review/)** —
   task pages, each `new AITask({ …, extra(){ … } })`.
-- **[`task-previews`](/framework/ai/2026-08-13/task-previews/)** — a design
+- **[`task-previews`](/framework/ai/sessions/2026/08/13/task-previews/)** — a design
   note that cites `dashboard.js`'s `card()` bridge; not an importer.
 - **`/framework/ext/page.js`** declares `AITask` in `children:`, which is what
   makes this page routable at all.
@@ -176,7 +176,7 @@ No file in this module goes uncalled.
   ~550px trips DesignTool's `pad-share` band from full credit to a letter-grade
   drop (40%→80/B, 38%→78/C, swept in 2% steps). `41%` clears that floor with a
   1-point margin (81/B) and is otherwise the site's own `code`/`td` padding to
-  fix, out of this file's fence. `ai/2026-08-17/ai-rail/` has the full sweep.
+  fix, out of this file's fence. `ai/sessions/2026/08/17/ai-rail/` has the full sweep.
 - **⚠ `.ai-card`'s mobile single-column rule (`ai.css`, `@container (width < 44em)`) needed a floor, not just a collapse** (2026-08-17, `ai-card-mobile` — the mobile sweep's worst finding site-wide: `/framework/ai/` 82/B at 1280 → 58/F at 390, `.ai-who` spilling up to 119px/36% past 15 of ~105 cards). `grid-template-columns: 1fr` still carries `1fr`'s content-based automatic minimum, so the title+tag row (`.ai-who`) refused to shrink below its own min-content and spilled past the card instead of wrapping. Fixed with `minmax(0, 1fr)` — the same "track needs a floor" fix as `bounds.md`, one declaration, no new breakpoint. Verified with `analyze()` at 390/720/1280/3440: all three high-severity findings (`escape`, `doc-overflow`, `cramped`) gone at 390 (48/F → 84/B), 720/1280/3440 byte-for-byte unchanged from baseline (the rule only fires under 44em), and the single worst-overflowing card (`element-pages`, 118px) confirmed fixed by name.
 - **`previews()` is doing two jobs.** It is both "my children, on someone
   else's index" (`walls()`) and "my catalog rail". Overriding it for the rail
@@ -256,7 +256,7 @@ No file in this module goes uncalled.
   "no page.js" — safe, not wrong, just not yet the fix; a click from the day
   page itself (the normal path) always has a warm cache. Measured:
   `mastermind-run` @1440 went from 249,069px (answer at y≈12,900) to 5,091px
-  (answer at y≈150). `ai/2026-08-17/ai-board-fix/` has the before/after shots.
+  (answer at y≈150). `ai/sessions/2026/08/17/ai-board-fix/` has the before/after shots.
 - **A day page had two scrollbars, and the first screen held no cards**
   (2026-08-17, `day-page-ux` — the owner: *"that first page has 2 scrollbars. the
   long list of non-clickable things is rather useless"*). Both halves, measured:
@@ -324,7 +324,7 @@ hosting the route falls to `index.html`; the viewer sniffs the content-type
 and says "unavailable." Production never depends on it.
 
 Field-by-field authoritative-vs-derivable verdicts and the schema-v2 proposal:
-[`manifest-vs-log/analysis.md`](/framework/ai/2026-08-13/manifest-vs-log/).
+[`manifest-vs-log/analysis.md`](/framework/ai/sessions/2026/08/13/manifest-vs-log/).
 How the module got here, wave by wave: [`doc/waves.md`](waves.md).
 
 ## The option cards are `ux/Content/Decision` (2026-09-24)

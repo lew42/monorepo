@@ -1,6 +1,6 @@
 # page-cms — one CMS screen for making pages
 
-Run: `ai/2026-09-13/mastermind-page-cms/` (the mastermind). This brief is yours alone. Group: `paging`.
+Run: `ai/sessions/2026/09/13/mastermind-page-cms/` (the mastermind). This brief is yours alone. Group: `paging`.
 
 ## The three laws, and your length budget
 
@@ -49,7 +49,7 @@ Headless look, 2026-09-13 (mastermind): at 1600 the list works and writes files 
 
 ## Rules every brief carries
 
-- Open your task: `ai/2026-09-13/page-cms/task.jsonl` with the `new-task` skill (your own `session_id`, group `paging`, this brief's five deliverables as `steps`). Log findings as `log` lines there, never a findings.md. Land with `finish-task`.
+- Open your task: `ai/sessions/2026/09/13/page-cms/task.jsonl` with the `new-task` skill (your own `session_id`, group `paging`, this brief's five deliverables as `steps`). Log findings as `log` lines there, never a findings.md. Land with `finish-task`.
 - **Never kill or restart the dev server on port 80. Never drive the owner's tabs. Never `git stash`. Never commit.**
 - Headless tests: the `ui-test` skill; start a PRIVATE server `PORT=809x node server.js` from the repo root (`netstat -ano | grep LISTENING | grep -E ":80(8|9)[0-9]\s"` shows taken ports), kill it by pid at landing. Plans and pngs in the session scratchpad under `page-cms-*`, keepers copied into your task dir.
 - **The owner's made pages are data.** `made/notes`, `made/ideas`, `made/archive` and the owner's `new-tab` / `new-page` rows stay untouched. Test create / drag / delete with pages you name `probe-*` and delete them before landing. `git status public/imagine/paging/made/` before and after must show the same files.

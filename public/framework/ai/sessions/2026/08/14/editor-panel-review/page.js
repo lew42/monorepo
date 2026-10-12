@@ -77,6 +77,6 @@ export default new AITask({
 		// as a behaviour that is not there.
 		workspace({ saver: new MemorySaver() }).style("--panel-height", "24em");
 
-		md("Design records, both long-form: [`ext/Panel/readme.md`](/framework/ext/Panel/) · [`ext/editor/readme.md`](/framework/ext/editor/). Prior tasks: [Panel](/framework/ai/2026-08-13/panel/) · [Editor × panel](/framework/ai/2026-08-13/editor-panels/) · [Ext renames](/framework/ai/2026-08-13/renames/).");
+		md("Design records, both long-form: [`ext/Panel/readme.md`](/framework/ext/Panel/) · [`ext/editor/readme.md`](/framework/ext/editor/). Prior tasks: [Panel](/framework/ai/sessions/2026/08/13/panel/) · [Editor × panel](/framework/ai/sessions/2026/08/13/editor-panels/) · [Ext renames](/framework/ai/sessions/2026/08/13/renames/).");
 	},
 });

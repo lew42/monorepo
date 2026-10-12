@@ -14,7 +14,7 @@ View.stylesheet(import.meta, "v2.css");
 
 // The last-resort fallback, if nothing newer can be found (no directory.json,
 // a fetch failure, or the site has no "mastermind-" task at all yet).
-const RUN = "/framework/ai/2026-09-17/mastermind-layout-browser/";
+const RUN = "/framework/ai/sessions/2026/09/17/mastermind-layout-browser/";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 

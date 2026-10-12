@@ -1,6 +1,6 @@
 # Naming mastermind: research naming practice and strengthen the `naming` skill
 
-**The owner's words:** `ai/2026-09-29/item-ui/owner-words.md`. The current skill is `.claude/skills/naming/SKILL.md`, made today and short.
+**The owner's words:** `ai/sessions/2026/09/29/ca56812f-482f-482c-a2fb-e86ba479353a/item-ui/owner-words.md`. The current skill is `.claude/skills/naming/SKILL.md`, made today and short.
 **The owner's asks, each a deliverable:**
 1. **Their rule of thumb** leads the skill: simple, clear, and can't be misread as something else.
 2. **Renaming can be a big improvement.** Say when to rename, and how to do it safely (a grep for callers; the "ask first" rule for a dozen-caller rename in CLAUDE.md).

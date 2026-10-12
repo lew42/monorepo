@@ -29,6 +29,6 @@
 ## layout.md: move
 
 - why: The file opens with "Open question — not settled guidance" and frames nested vs full as a known, unsolved design problem (owner's words: "We need a strong, simple strategy for robust page layouts and we do not have one yet", 2026-08-17). This is a decision/proposal document, not a reference guide. It lives better in the ai/ task log for 2026-08-17 or 2026-10-09, beside the columns and layout research.
-- folder: `public/framework/ai/2026-10-09/page-mastermind/doc/` (or the task folder where the owner's brief lives); update links in columns.md and layout-overview.md to point there.
+- folder: `public/framework/ai/sessions/2026/10/09/session-060cdfff/page-mastermind/doc/` (or the task folder where the owner's brief lives); update links in columns.md and layout-overview.md to point there.
 - linked from: columns.md line 660; layout-overview.md line 10
 - stale: none found; the open issue is still open

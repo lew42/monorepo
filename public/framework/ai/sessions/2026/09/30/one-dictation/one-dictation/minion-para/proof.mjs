@@ -1,4 +1,4 @@
-// node public/framework/ai/2026-09-30/one-dictation/minion-para/proof.mjs
+// node public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-para/proof.mjs
 //
 // Proves item 3 (the `para` marker splits a merged bubble) against the real `ux/Dictate`
 // Overview demo, headless, on the worktree's own private server (started separately,
@@ -10,7 +10,7 @@
 // owner lines and the para line are fed straight into the widget's own `say()` — the exact
 // shape `ux/Dictate/chat.js`'s `draw(line)` already uses for `{chat: line.chat}` (and will,
 // once it is wired, for `{para: line.para}` too — `doc/chat.md`'s own note on that gap).
-import { browser, close } from "../../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../../Server/browser.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 

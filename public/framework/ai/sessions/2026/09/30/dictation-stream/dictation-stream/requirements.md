@@ -1,6 +1,6 @@
 # Dictation streams into the chat
 
-The brief given to `minion-dictation-stream`: items 1 to 6 of [the owner's words](../voice-session-v-2joydc7/owner-words.md), said by voice in session v-2joydc7. The owner calls this "fundamental to the whole experience."
+The brief given to `minion-dictation-stream`: items 1 to 6 of [the owner's words](../../voice-session-v-2joydc7/owner-words.md), said by voice in session v-2joydc7. The owner calls this "fundamental to the whole experience."
 
 1. Dictation flows freely into the chat.
 2. Live Whisper transcription creates the owner's message right in the chat window, as a bubble that grows while they speak, instead of going into the text box first. Keep the text box as an option.

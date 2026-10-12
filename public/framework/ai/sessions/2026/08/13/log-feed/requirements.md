@@ -45,5 +45,5 @@ Read `.claude/skills/code-architecture/SKILL.md` first — binding (captor trap;
 layer; no backticks inside css template literals). Files ≤ ~120 lines. Comments
 near zero. No commits, no npm, no server restarts (dev server runs on :80).
 Verify: `node --check` via `.mjs` copies in the scratchpad (never the repo);
-global-playwright browser pass on `/framework/ai/2026-08-13/sessions/` — zero
+global-playwright browser pass on `/framework/ai/sessions/2026/08/13/sessions/` — zero
 script errors, both color schemes. Kill any processes you start.

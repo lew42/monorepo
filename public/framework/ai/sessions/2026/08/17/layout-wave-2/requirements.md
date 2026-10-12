@@ -15,5 +15,5 @@ The tool's verdict on wave 1: broken 34 → 29; 21 gone, 13 still, 16 new (3 reg
 
 ## Rules
 
-- Files: `core/Page/Page.css`, `public/framework/framework.css` (the one token only), `ext/tabs/tabs.css`, `public/styles.css`, `public/framework/page.js`, `ai/2026-08-17/layout-primitives/changes.js` (+ its page if a row needs it), this dir. **Not** `ext/AITask/**`, not `ext/DesignTool/**` except running `run.mjs`.
+- Files: `core/Page/Page.css`, `public/framework/framework.css` (the one token only), `ext/tabs/tabs.css`, `public/styles.css`, `public/framework/page.js`, `ai/sessions/2026/08/17/layout-primitives/changes.js` (+ its page if a row needs it), this dir. **Not** `ext/AITask/**`, not `ext/DesignTool/**` except running `run.mjs`.
 - `css` skill before CSS; `documentation` if `styles/doc/layout-system.md` changes; `finish-task`. Log in `task.jsonl` here (bash `printf`; timestamps from `date -Iseconds`); bump step. Every append reloads Mike's tab — batch.

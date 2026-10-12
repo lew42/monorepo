@@ -25,7 +25,7 @@ The full prompt: `../mastermind-layout-browser/requirements.md`.
 
 ## Rules
 
-- Load `code`, `css`, `layout`; `new-task` before the first edit (your dir exists: `ai/2026-09-17/ask-element/`; write its `task.jsonl` launch line); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
+- Load `code`, `css`, `layout`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/ask-element/`; write its `task.jsonl` launch line); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
 - **Fence:** `public/framework/ext/Ask/**`, `Server/plugins/Ask.js` (only if the context must be handled server-side — say so), the dev bar's Ask tab file, your task dir. Nothing else.
 - **Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`.** The owner's server (port 80) is NOT running; start your own: `PORT=8094 node server.js` from the repo root, in the background; kill it when you land. A Server/ change is live only on YOUR private server until the owner restarts theirs — say that in your landing. `ui-test` has the headless recipe; one screenshot of the picker mid-hover and one of the chat with the chip, into your task dir as jpeg.
 - A turn drives one tab; a headless Playwright page is a tab — claim nothing the owner has open.

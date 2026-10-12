@@ -23,7 +23,7 @@ rg -n "available\(\)|disabled" public/framework/ext public/layouts/browse public
 
 The platform decided six roles (owner / admin / founder / moderator / member / anonymous)
 and GitHub + Google sign-in, none wired (`/imagine/platform/decisions/identity.md`; the
-scout report `ai/2026-09-18/memery-scout/report.md`). The dev rail
+scout report `ai/sessions/2026/09/18/memery-scout/report.md`). The dev rail
 (`public/framework/dev/`) is where a dev-only toggle lives.
 
 ## Deliverables

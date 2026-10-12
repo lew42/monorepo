@@ -47,5 +47,5 @@ whole thought. The fast one mostly stays silent. Replies stream in token by toke
 ## More
 
 - Page: [/framework/ext/Session/](/framework/ext/Session/) · the file format, routes, levels and sleep/wake: [doc/sessions.md](./doc/sessions.md)
-- The design: [ai/2026-09-29/voice-sessions/design.md](/framework/ai/2026-09-29/voice-sessions/design.md)
+- The design: [ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md](/framework/ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md)
 - Open items: [doc/decisions.md](./doc/decisions.md)

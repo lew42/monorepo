@@ -84,4 +84,4 @@ Measured headless at 1280×900 (2026-08-29) and again at 400 / 1920 / 3440 after
 pass: twelve urls, zero console errors; clicked three hops deep and cold-loaded the same url —
 url, path bar, slot map, camera target, note and nav row identical; the loop stops dead when
 you navigate out of the subtree (frame counter frozen, `running: false`) and restarts on
-re-entry. Look: [`ai/2026-08-29/scenes-atmosphere/`](/framework/ai/2026-08-29/scenes-atmosphere/).
+re-entry. Look: [`ai/sessions/2026/08/29/scenes-atmosphere/`](/framework/ai/sessions/2026/08/29/scenes-atmosphere/).

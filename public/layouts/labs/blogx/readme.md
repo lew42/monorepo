@@ -71,7 +71,7 @@ export default new Blog({
   [`/imagine/paging/`](/imagine/paging/)'s four words too: it is none of them —
   `container()` mounts straight into `app.$pages`, skipping the columns row entirely,
   which is more drastic than `takeover` and is left for the owner to fold into the
-  vocabulary or not. `public/framework/ai/2026-09-05/ux-blogx/` has the numbers.
+  vocabulary or not. `public/framework/ai/sessions/2026/09/05/ux-blogx/` has the numbers.
 
 ## Watch out
 

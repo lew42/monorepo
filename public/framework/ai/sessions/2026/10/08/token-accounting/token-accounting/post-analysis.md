@@ -84,13 +84,13 @@ Over 70% of their own $ was cache-read (re-reading old context) AND over $15 rea
 
 ## Stopped-in-flight waste: $1675.37 subtree $ across 14 roots whose task never landed
 A task-mastermind/mastermind that spent real money (own $ > $5) whose own task.jsonl never got a `landed_at` line — checked against the real file, not guessed (a task genuinely still open today will show here too; read the task dir before assuming it was abandoned):
-- task-mastermind-openrouter: own $500.85, subtree $619.34 — public/framework/ai/2026-09-30/openrouter-harness
-- task-mastermind-one-dictation: own $385.66, subtree $609.03 — public/framework/ai/2026-10-02/drawer-close
-- mastermind-servex-10: own $113.62, subtree $200.18 — public/framework/ai/2026-10-02/servex-mastermind
-- task-mastermind-waiting-on-you: own $21.48, subtree $47.98 — public/framework/ai/2026-09-28/waiting-on-you
-- task-mastermind-asks-ledger: own $22.8, subtree $43.29 — public/framework/ai/2026-09-30/asks-ledger
-- task-mastermind-push-to-talk: own $16.18, subtree $38.21 — public/framework/ai/2026-10-03/push-to-talk
-- task-mastermind-page-tools: own $27.86, subtree $28.66 — public/framework/ai/2026-10-02/page-tools
-- task-mastermind-framework-home-grids: own $25.24, subtree $25.7 — public/framework/ai/2026-10-03/framework-home-grids
-- minion-clean-dictate-mode: own $13.56, subtree $13.56 — public/framework/ai/2026-10-01/clean-dictate-mode
-- minion-chat-autoscroll: own $11.89, subtree $11.89 — public/framework/ai/2026-10-01/chat-autoscroll
+- task-mastermind-openrouter: own $500.85, subtree $619.34 — public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness
+- task-mastermind-one-dictation: own $385.66, subtree $609.03 — public/framework/ai/sessions/2026/10/02/drawer-close
+- mastermind-servex-10: own $113.62, subtree $200.18 — public/framework/ai/sessions/2026/10/02/servex-mastermind
+- task-mastermind-waiting-on-you: own $21.48, subtree $47.98 — public/framework/ai/sessions/2026/09/28/waiting-on-you/waiting-on-you
+- task-mastermind-asks-ledger: own $22.8, subtree $43.29 — public/framework/ai/sessions/2026/09/30/asks-ledger/asks-ledger
+- task-mastermind-push-to-talk: own $16.18, subtree $38.21 — public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk
+- task-mastermind-page-tools: own $27.86, subtree $28.66 — public/framework/ai/sessions/2026/10/02/page-tools
+- task-mastermind-framework-home-grids: own $25.24, subtree $25.7 — public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids
+- minion-clean-dictate-mode: own $13.56, subtree $13.56 — public/framework/ai/sessions/2026/10/01/clean-dictate-mode/clean-dictate-mode
+- minion-chat-autoscroll: own $11.89, subtree $11.89 — public/framework/ai/sessions/2026/10/01/chat-autoscroll/chat-autoscroll

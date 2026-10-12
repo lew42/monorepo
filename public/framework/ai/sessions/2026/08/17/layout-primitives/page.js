@@ -3,13 +3,13 @@ import Socket from "/framework/dev/Socket/Socket.js";
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import { CHANGES, OPEN } from "./changes.js";
 
-const HERE = "/framework/ai/2026-08-17/layout-primitives/";
+const HERE = "/framework/ai/sessions/2026/08/17/layout-primitives/";
 const VERDICTS = HERE + "verdicts.jsonl";
-const BEFORE = "/framework/ai/2026-08-17/layout-system/";
-const AFTER = "/framework/ai/2026-08-17/vision-after/";
-const WAVE2 = "/framework/ai/2026-08-17/layout-wave-2/";
-const WAVE3 = "/framework/ai/2026-08-17/layout-wave-3/";
-const SWEEP = "/framework/ai/2026-08-17/sweep-harvest/";
+const BEFORE = "/framework/ai/sessions/2026/08/17/layout-system/";
+const AFTER = "/framework/ai/sessions/2026/08/17/vision-after/";
+const WAVE2 = "/framework/ai/sessions/2026/08/17/layout-wave-2/";
+const WAVE3 = "/framework/ai/sessions/2026/08/17/layout-wave-3/";
+const SWEEP = "/framework/ai/sessions/2026/08/17/sweep-harvest/";
 const WIDTHS = [900, 1440, 3440];
 
 /* No stylesheet, on purpose — this page is the proposal's own smoke test. Every box
@@ -17,7 +17,7 @@ const WIDTHS = [900, 1440, 3440];
    `wide` for the sheets and the wall, `wall` for the change cards, `surface pad flex
    v gap` for a card. If this page needed a sixth word, that was the finding.
 
-   Accept/Reject (ai/2026-08-17/accept-buttons/): reuses the site's plain `button()` —
+   Accept/Reject (ai/sessions/2026/08/17/accept-buttons/): reuses the site's plain `button()` —
    no new component, no new CSS. A click calls `write_verdict()`, which follows
    `ext/DesignTool/audit/twin.js:85-91` exactly: the "write" RPC WRITES, it does not
    append, so every click fetches `verdicts.jsonl` back as text, adds one

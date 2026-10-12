@@ -1,7 +1,7 @@
 // Law 7: does each core-API member on a class card still exist in its source file?
-// Run: node public/framework/ai/2026-10-08/ai-system-docs/check-classes.mjs
+// Run: node public/framework/ai/sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs/check-classes.mjs
 import fs from "fs";
-const root = new URL("../../../../../", import.meta.url);
+const root = new URL("../../../../../../../../..", import.meta.url);
 const src = fs.readFileSync(new URL("public/framework/ai/SystemClasses.js", root), "utf8");
 const list = src.slice(src.indexOf("const CLASSES = ["), src.indexOf("\n];"));
 let bad = 0;

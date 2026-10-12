@@ -5,7 +5,7 @@ current guidance.*
 
 ## This page moved out from under you (2026-09-18)
 
-While this task was in progress, a sibling minion (`ai/2026-09-18/imagine-move-2/`)
+While this task was in progress, a sibling minion (`ai/sessions/2026/09/18/imagine-move-2/`)
 moved the whole `/imagine/design/layout/` realm to `/layouts/doc/studies/` —
 `git status` showed the rename as `R` (staged, not yet committed) partway
 through this task, with this file's own path changed from
@@ -66,7 +66,7 @@ control on, since only three of them were already catalogued) gets a plain
 title link — still a real link to the real page, just without a picture until
 `/layouts/browse/`'s own inventory grows to include it.
 
-**Fixed 2026-09-18 (`ai/2026-09-18/cleanup-2/`): the jpeg is `entry.shot`
+**Fixed 2026-09-18 (`ai/sessions/2026/09/18/cleanup-2/`): the jpeg is `entry.shot`
 first, the `<id>-1920.jpg` guess second.** The line above used to assume
 every matched entry's picture lives at `/layouts/browse/shots/<id>-1920.jpg`
 — true for the 97 entries `browse/`'s own screenshot pass took, but the five

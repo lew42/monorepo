@@ -81,7 +81,7 @@ watcher-written `file` lines. A `page.js`-backed page that wants log-style state
 folders keep weight lines in weight.jsonl, never a new page.jsonl"). So: no page pays the cost
 of loading both formats right now; the cost the owner's words point at is different-shaped
 duplication — `directory.json` (`Server/plugins/Directory.js`, still generated, 3.3 MB
-uncompressed, `ai/2026-09-29/slow-card-fix/`) does file-listing work a side-by-side
+uncompressed, `ai/sessions/2026/09/29/slow-card-fix/slow-card-fix/`) does file-listing work a side-by-side
 `page.jsonl` already does per-folder, unified.
 
 **Proposal (≤8 lines):** Keep `page.js` for anything with real layout or logic; page.jsonl

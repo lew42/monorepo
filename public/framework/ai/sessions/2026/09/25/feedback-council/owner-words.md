@@ -48,7 +48,7 @@ Anything that changes the repo is a **task**: a dir at
 
 **`group` is the effort** — the thread this belongs to, which outlives the day; reuse an existing slug (`ai-log`, `layout`, `panels`, `vision`, `apps`, `web-ui`), or omit it and the task files under *loose*. ⚠ **`session_id` is not optional** — without it the detail page has no transcript and renders no log at all.
 
-**Append with the helper — it is what makes the encoding traps stop mattering.** `node .claude/hooks/append.mjs <target.jsonl> <lines.json>` appends the objects in a JSON array as one line each, turns every string value that is exactly `"NOW"` into the local clock at the moment of the append, sniffs the trailing newline, then re-parses the whole file and exits non-zero naming any bad line. Write `<lines.json>` with the **Write tool** — never a heredoc, never a shell string. That one route closes the BOM, the ANSI byte, the double-encoded em dash, the hand-typed clock and the un-re-parsed file: fifteen dated incidents over five weeks, ranked in [the 2026-09-19 skill audit](/framework/ai/2026-09-19/system-eval/). Verified 2026-09-21 against an em dash, a quote, a backslash, a `*/` glob and a Windows path.
+**Append with the helper — it is what makes the encoding traps stop mattering.** `node .claude/hooks/append.mjs <target.jsonl> <lines.json>` appends the objects in a JSON array as one line each, turns every string value that is exactly `"NOW"` into the local clock at the moment of the append, sniffs the trailing newline, then re-parses the whole file and exits non-zero naming any bad line. Write `<lines.json>` with the **Write tool** — never a heredoc, never a shell string. That one route closes the BOM, the ANSI byte, the double-encoded em dash, the hand-typed clock and the un-re-parsed file: fifteen dated incidents over five weeks, ranked in [the 2026-09-19 skill audit](/framework/ai/sessions/2026/09/19/system-eval/). Verified 2026-09-21 against an em dash, a quote, a backslash, a `*/` glob and a Windows path.
 
 **What a line IS: one JSON object, one verb.** The verbs are `assign` `log` `action` `agent`
 `chat` `shot` `ask` `decision` `verdict` `rank`; `log` is `{at, msg}`; an invented verb or key
@@ -70,7 +70,7 @@ Land with `step` at the last index; `landed_at` reads as all-checked whatever `s
 ## 2. Register + usage
 
 - Leave the task dir **undeclared** — do NOT add it to the day page's `children:` unless the dir has its own `page.js` (a declared child skips the dynamic `route()` and 404s). The dashboard enumerates task dirs from `directory.json` either way.
-- ⚠ **Check your brief's write fence before the next step.** If it does not name `ai/usage.json` and `ai/usage.jsonl`, SKIP the usage refresh entirely and log that you skipped it — the mastermind keeps the snapshot current. Two agents ran it past this caveat on 2026-09-19 and one then destroyed five days of samples trying to undo its own write ([`reset-recovery`](/framework/ai/2026-09-19/reset-recovery/)).
+- ⚠ **Check your brief's write fence before the next step.** If it does not name `ai/usage.json` and `ai/usage.jsonl`, SKIP the usage refresh entirely and log that you skipped it — the mastermind keeps the snapshot current. Two agents ran it past this caveat on 2026-09-19 and one then destroyed five days of samples trying to undo its own write ([`reset-recovery`](/framework/ai/sessions/2026/09/19/reset-recovery/)).
 - Refresh the usage snapshot — **run this FIRST, before the launch line** (`window.before` is its `five_hour` percent DIVIDED BY 100 — the file says `2.0`, the line wants `0.02`; the divide happens here), then about every 15 minutes while working, never tighter (the endpoint 429s):
 
 ```bash
@@ -111,7 +111,7 @@ ARGUMENTS: servex-mastermind-opus — task masterminds on Opus 5.5 medium, no tw
 ## 5. 2026-09-24T22:03
 
 Stop hook feedback:
-Your task ledger says step 1 of 4 with no landed_at. Finish the remaining steps and bump step, or land it by appending ONE line to public/framework/ai/2026-09-24/servex-mastermind-opus/task.jsonl: {"assign": {"step": 4, "landed_at": "<ISO with local offset>", "outcome": "**what landed** — …"}} — landed_at and outcome go INSIDE assign, never as their own verb.
+Your task ledger says step 1 of 4 with no landed_at. Finish the remaining steps and bump step, or land it by appending ONE line to public/framework/ai/sessions/2026/09/24/servex-mastermind-opus/servex-mastermind-opus/task.jsonl: {"assign": {"step": 4, "landed_at": "<ISO with local offset>", "outcome": "**what landed** — …"}} — landed_at and outcome go INSIDE assign, never as their own verb.
 
 ## 6. 2026-09-24T22:04
 

@@ -112,7 +112,7 @@ linking to it:
   as the live demos its own doc page points at.
 
 One stale link, found while tracing these: `core/Page/old/overview/landing/`
-(via `framework/ai/2026-08-12/unify/page.js`) links
+(via `framework/ai/sessions/2026/08/12/unify/page.js`) links
 `/framework/styles/layouts/cards/`, a directory this module's own readme
 records as deleted in the 2026-08-12 merge. Outside this directory's fence to
 fix; noted in the audit report.
@@ -245,7 +245,7 @@ call site rather than used, so the system existed on paper and not in the CSS.
 
 **The census.** Every `padding` / `margin` / `gap` declaration under `public/` was read and
 classified: **1,894 rows** across 125 stylesheets and 918 JavaScript files
-(`ai/2026-09-17/spacing-census/`). 1,064 (56%) were a bespoke number. 451 (24%) were a token
+(`ai/sessions/2026/09/17/spacing-census/`). 1,064 (56%) were a bespoke number. 451 (24%) were a token
 times a multiplier, and those 451 held **28 different multipliers** — `0.5` 76 times, `0.4`
 61, `0.6` 55, `0.3` 45, `0.35` 33, down a tail to `0.05`. Only 125 rows (7%) used a token as
 it stands.
@@ -319,7 +319,7 @@ The owner, after finding two spacing questions logged as "the owner's call" and 
 unimplemented: *"just make a decision and document the alternative, or make a toggle that
 switches between each one. I don't want you to wait and not implement something because
 you're the mastermind. Make the call."* Both calls below were made the same day
-(`ai/2026-09-17/calls-styles/`), each with its alternative kept on record rather than deleted.
+(`ai/sessions/2026/09/17/calls-styles/`), each with its alternative kept on record rather than deleted.
 
 **Call 1 — `--gap`'s ceiling: 2.6em → 2.4em.** The census above already named the defect:
 `--flow` (the step between sections) is supposed to be the bigger of the two tokens, but its

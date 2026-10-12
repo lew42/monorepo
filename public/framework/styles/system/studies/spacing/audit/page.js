@@ -4,7 +4,7 @@ import DATA from "./data.js";
 const here = new URL(".", import.meta.url).pathname;
 
 /* Container: a plain page under its own study (moved from `/imagine/design/`'s columns
-   row 2026-09-18, `ai/2026-09-18/imagine-move-2/` — the ordinary page grid applies here
+   row 2026-09-18, `ai/sessions/2026/09/18/imagine-move-2/` — the ordinary page grid applies here
    now, not a columns host's bare column; this page never asked for `wide` either way, so
    nothing about its own rendering changed). Size: `full`, like the study above it and `ceilings` beside it: forty screenshots
    need the whole column. Own layout: `md()` prose in the column's own `.flow`, two tables
@@ -69,7 +69,7 @@ export default new Page({
 	},
 
 	content(){
-		md(`**Four auditors, ${DATA.totals.pages} pages, five widths (400 · 1280 · 1920 · 2560 · 3440), shot twice** — once before the [decision](../decision.md), once after. Every number below is measured headless at \`deviceScaleFactor: 1\`; the raw tables are in each auditor's task dir ([A](/framework/ai/2026-09-05/spacing-audit-a/) · [B](/framework/ai/2026-09-05/spacing-audit-b/) · [C](/framework/ai/2026-09-05/spacing-audit-c/) · [D](/framework/ai/2026-09-05/spacing-audit-d/)), and the ranked list they were read from is [here](/framework/ai/2026-09-05/spacing-audit/ranked.md).`);
+		md(`**Four auditors, ${DATA.totals.pages} pages, five widths (400 · 1280 · 1920 · 2560 · 3440), shot twice** — once before the [decision](../decision.md), once after. Every number below is measured headless at \`deviceScaleFactor: 1\`; the raw tables are in each auditor's task dir ([A](/framework/ai/sessions/2026/09/05/spacing-audit-a/) · [B](/framework/ai/sessions/2026/09/05/spacing-audit-b/) · [C](/framework/ai/sessions/2026/09/05/spacing-audit-c/) · [D](/framework/ai/sessions/2026/09/05/spacing-audit-d/)), and the ranked list they were read from is [here](/framework/ai/sessions/2026/09/05/spacing-audit/ranked.md).`);
 
 		h2("The three levels");
 		// ⚠ `figure.c(…)` first: `style()` lives on the View, not on the bare factory —

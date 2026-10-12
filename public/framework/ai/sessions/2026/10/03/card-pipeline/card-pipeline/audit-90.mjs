@@ -7,15 +7,15 @@
 // never deleted), per the brief: "a landed task is not 'needs the owner today'".
 //
 // Run from the MAIN tree so the card writes (the archive lines) land on the live board:
-//   node public/framework/ai/2026-10-02/card-pipeline/audit-90.mjs [--apply]
+//   node public/framework/ai/sessions/2026/10/03/card-pipeline/card-pipeline/audit-90.mjs [--apply]
 // Without --apply it only PRINTS the findings — the before/after counts on the card come from
 // one --apply run.
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import Cards from "../../../../../Servex/cards/Cards.js";
-import { NeedsRule } from "../../rail/NeedsRule.js";
-import { AskFold } from "../../asks/AskFold.js";
+import Cards from "../../../../../../../../../Servex/cards/Cards.js";
+import { NeedsRule } from "../../../../../../rail/NeedsRule.js";
+import { AskFold } from "../../../../../../asks/AskFold.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../../../../");

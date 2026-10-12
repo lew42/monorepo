@@ -1,7 +1,7 @@
 import { Page, md, div, p, span, b, a } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-22/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/22/'s board — the ordinary
                 page grid. Prose sits in main at --measure; the ladder and the
                 five doc cards claim wide.
    2 SIZE       the ladder is a diagram, so it has a natural size: capped at

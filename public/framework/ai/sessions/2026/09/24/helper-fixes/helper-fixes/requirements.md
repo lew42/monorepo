@@ -3,7 +3,7 @@
 The first test of a task mastermind started from a VS Code tab through Servex. Prove three
 things: a worktree, a commit on its own branch, and a report on the board.
 
-From [handoff2.md](../../handoff2.md), items 2 and 3:
+From [handoff2.md](../../../../../../handoff2.md), items 2 and 3:
 
 1. **The fast assistant stops contradicting itself.** On card `topic-mufuomsy` it said "a helper
    is looking", then one second later "helpers are paused". Find the real cause and fix it so it

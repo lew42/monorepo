@@ -6,9 +6,9 @@ Fourteen census minions read every task since 2026-08-08 (about 900), the memory
 
 These stay with you by rule: anything destructive, credentials, or a change to CLAUDE.md.
 
-1. **Say "prune"** — delete 739 dead files (14,354 lines) left behind when /imagine/ pages moved. Recommendation: yes. The list is in [reuse-audit](/framework/ai/2026-09-22/reuse-audit/). About 1 minute.
-2. **Keep `stash@{0}` for now.** It holds the full working tree from the 2026-09-19 reset, and it already rescued nine study pages once. Recommendation: drop it after the prune lands. [stash-restore](/framework/ai/2026-09-20/stash-restore/).
-3. **Cloudflare login** — `npx wrangler login` (or an API token) before any real D1 database can exist; the same for the Cloudflare MCP connector. About 5 minutes. [sqlite-scout](/framework/ai/2026-09-17/sqlite-scout/).
+1. **Say "prune"** — delete 739 dead files (14,354 lines) left behind when /imagine/ pages moved. Recommendation: yes. The list is in [reuse-audit](/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/). About 1 minute.
+2. **Keep `stash@{0}` for now.** It holds the full working tree from the 2026-09-19 reset, and it already rescued nine study pages once. Recommendation: drop it after the prune lands. [stash-restore](/framework/ai/sessions/2026/09/20/stash-restore/).
+3. **Cloudflare login** — `npx wrangler login` (or an API token) before any real D1 database can exist; the same for the Cloudflare MCP connector. About 5 minutes. [sqlite-scout](/framework/ai/sessions/2026/09/17/sqlite-scout/).
 4. **The tab rule for CLAUDE.md** — "multi-file work goes to a task mastermind; small edits stay in the tab." The concurrency mastermind is writing it today; it needs your yes to go into CLAUDE.md.
 5. **Gmail connector** needs authorising in your claude.ai connector settings; a non-interactive session can't do it.
 
@@ -57,11 +57,11 @@ Each line: what was waiting, the decision, and the viable alternative.
 
 Sent to the mastermind in your tab to dispatch.
 
-1. ~~**Navigation that doesn't jump.**~~ **Done the same evening** by [core-columns](/framework/ai/2026-09-24/core-columns/) (commit 23b07fa3): columns freeze at a third of the row (34cqi).
+1. ~~**Navigation that doesn't jump.**~~ **Done the same evening** by [core-columns](/framework/ai/sessions/2026/09/24/core-columns/core-columns/) (commit 23b07fa3): columns freeze at a third of the row (34cqi).
 2. ~~**Columns: fill yields, column-head padding.**~~ **Done** by core-columns: a fill parent gives the space back to an open child; the head padding was checked and was already right.
-3. ~~**Layouts get names, not numbers.**~~ **Done** by layout-names (commit 24d1df92).  The shape labs already moved into /layouts/labs/ on 09-18 ([imagine-move-3](/framework/ai/2026-09-18/imagine-move-3/)). What's left is to retire `/imagine/layouts/`'s numbered eighteen (`number.js`, `LayoutsCard`) in favour of `core/Layout`'s names, following your 09-08 naming rule, and to put the verdict above the picture on item pages.
-4. **Servex small items.** A `restart_servex` tool (exit, the keeper respawns it), re-attaching agents after a restart, pause/resume dispatch tools, and clearing stopped agents out of the list. From [servex-port-80](/framework/ai/2026-09-23/servex-port-80/) and handoff2's backburner.
-5. **Names align.** Skill name = role = agent id, one table in `Servex/agents/roles.js`. The brief was never written; it came out of [mastermind-servex](/framework/ai/2026-09-22/mastermind-servex/).
+3. ~~**Layouts get names, not numbers.**~~ **Done** by layout-names (commit 24d1df92).  The shape labs already moved into /layouts/labs/ on 09-18 ([imagine-move-3](/framework/ai/sessions/2026/09/18/imagine-move-3/)). What's left is to retire `/imagine/layouts/`'s numbered eighteen (`number.js`, `LayoutsCard`) in favour of `core/Layout`'s names, following your 09-08 naming rule, and to put the verdict above the picture on item pages.
+4. **Servex small items.** A `restart_servex` tool (exit, the keeper respawns it), re-attaching agents after a restart, pause/resume dispatch tools, and clearing stopped agents out of the list. From [servex-port-80](/framework/ai/sessions/2026/10/09/session-bdcef106/servex-port-80/) and handoff2's backburner.
+5. **Names align.** Skill name = role = agent id, one table in `Servex/agents/roles.js`. The brief was never written; it came out of [mastermind-servex](/framework/ai/sessions/2026/09/22/e2b82220-72fd-4fec-b8a6-5f985c9cbefa/mastermind-servex/).
 6. ~~**Nested Doc renders as a section.**~~ **Checked by core-columns and already right.**
 7. ~~**Make's leftovers.**~~ **Done** by layout-names (commit 24d1df92).  The Description field shows nowhere on screen, and drag has no keyboard path. Give the description a place under the title, and add arrow-key reordering to the tree.
 

@@ -26,7 +26,7 @@ And the surrounding asks, verbatim:
 - `Panel.js` (verbs), `workspace.js` (the two doors, the redraw), `size.js`, `split.js`, `grip.js`, `display.js`, `templates.js`, `generate.js` (the seam to `styles/layouts/space/` — `generate()` draws a seed as a picture; `structure(seed)` translates it into panels), `persist.js`, `text.js`, `repeat.js`, `insert.js`, `tools.js`, `toolbar.js`, `properties.js`, `PanelDrag.js`.
 - `public/framework/ext/demo/readme.md` + `demo.js`, `stage.js`, `exhibit.js`, `app.js` — the demo family the owner likes (`demo()`, `demo.stage()`, `demo.app()`).
 - `public/framework/styles/layouts/space/readme.md` — the generator; `styles/layouts/` — the wall of layouts, incl. yesterday's Figma-derived ones (`wire/`, `home/`, `anatomy/`, `screens/`, `apidoc/`, `spec/`).
-- The prior simplify pass: `public/framework/ai/2026-08-17/panel-simplify/` (task.jsonl outcome + any md) — know what was already tried so you don't re-propose it.
+- The prior simplify pass: `public/framework/ai/sessions/2026/08/17/panel-simplify/` (task.jsonl outcome + any md) — know what was already tried so you don't re-propose it.
 - Memory notes the owner has accepted: composition over subclassing; a theme is CSS; parts as static subclasses; ~100 lines is a try not a rule.
 
 ## Deliver — `proposal.md`

@@ -1,5 +1,5 @@
 import { Page, md, code } from "/app.js";
-import day from "/framework/ai/2026-08-13/page.js";
+import day from "/framework/ai/sessions/2026/08/13/page.js";
 
 export default new Page({
 	meta: import.meta,
@@ -8,7 +8,7 @@ export default new Page({
 	icon: "dashboard",
 
 	content(){
-		md("**Three tiers, one mechanism.** A task's `page.js` may override `preview(nav)`, and the [day dashboard](/framework/ai/2026-08-13/)'s `card()` bridge draws THAT instead of the manifest row. This task's first cut demoed the bridge on itself with a checklist card — retired the same day: an unexplained checklist sitting in a list of uniform manifest rows read as noise, not status. The mechanism stays for a task that made something genuinely **viewable** — a live thumb, not a restyled status line:");
+		md("**Three tiers, one mechanism.** A task's `page.js` may override `preview(nav)`, and the [day dashboard](/framework/ai/sessions/2026/08/13/)'s `card()` bridge draws THAT instead of the manifest row. This task's first cut demoed the bridge on itself with a checklist card — retired the same day: an unexplained checklist sitting in a list of uniform manifest rows read as noise, not status. The mechanism stays for a task that made something genuinely **viewable** — a live thumb, not a restyled status line:");
 
 		code.js(`preview(nav){
     return this.preview_card(nav, () => div.c("zoom-25", () => this.layout()));

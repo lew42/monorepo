@@ -12,7 +12,7 @@ import { QUESTIONS } from "./questions.js";
    WHAT THIS PAGE IS FOR. The owner (2026-09-28, 11:15 PM): "we need to develop the
    process of choosing which layout to use." Five questions, asked in order, each with
    its usual answers. The demos under it show the column principles the fourth
-   question leans on. Words: ai/2026-09-28/organization/owner-words.md. */
+   question leans on. Words: ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/owner-words.md. */
 export default new Page({
 	meta: import.meta,
 	title: "Choosing a layout",

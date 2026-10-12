@@ -37,6 +37,6 @@ Then land with the `finish-task` skill: the outcome is the top screen, linked to
 
 ## Fence
 
-Write ONLY inside `public/framework/ai/2026-09-23/editor-deps/` (plus the task.jsonl / day.jsonl
+Write ONLY inside `public/framework/ai/sessions/2026/09/23/83ed7d49-27d6-4584-8a0c-0af1d234f338/editor-deps/` (plus the task.jsonl / day.jsonl
 lines the skills tell you to append). Read anything. Do not edit framework code, skills, or
 Servex. Do not refresh `ai/usage.json`. Launch nothing that opens a window. Budget: aim under $6.

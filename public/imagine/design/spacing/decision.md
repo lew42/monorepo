@@ -18,7 +18,7 @@
 | column prose `--flow` · `clamp(0.8em, 0.8cqi, 1.6em)` | 10.8px | 25px | 13px | 1.9 |
 | the section gap · 1.5 × `--flow` before h3/h4, the heading's own em before h2 | a ratio, so it rides the ramp | | | |
 
-A card in a track stays at the floor (`--pad-ramp` is a % of its container); a band, a stage, a wall and every paragraph grow. The flow caps because a paragraph gap past two lines reads as a section break — **the cap was 3em here and is 2.5em today** (lowered 2026-09-13: at 3em the gap reached 1.80× its 1280 value at 3440, where the verdict was 1.5×; [the measurements](/framework/ai/2026-09-13/paging-spacing-3440/spacing.md)). The live number is in `public/framework/framework.css`, never in a copy.
+A card in a track stays at the floor (`--pad-ramp` is a % of its container); a band, a stage, a wall and every paragraph grow. The flow caps because a paragraph gap past two lines reads as a section break — **the cap was 3em here and is 2.5em today** (lowered 2026-09-13: at 3em the gap reached 1.80× its 1280 value at 3440, where the verdict was 1.5×; [the measurements](/framework/ai/sessions/2026/09/13/paging-spacing-3440/spacing.md)). The live number is in `public/framework/framework.css`, never in a copy.
 
 ## The levels
 
@@ -28,7 +28,7 @@ A card in a track stays at the floor (`--pad-ramp` is a % of its container); a b
 | (regular) | 1 | a page — the default, no class |
 | `spacing-airy` | 1.6 | a cover, a hero, a landing band |
 
-One class, one number: every element re-derives `--pad-default` / `--gap-default` / `--flow-default` as ramp × level. They sit **beside** the paging realm's type ramp (`compact / regular / display`, 0.88 : 1 : 1.06) — that one moves type and stays type-only; these move space. [The three, side by side](/framework/ai/2026-09-05/spacing-judge/levels-3440.jpg).
+One class, one number: every element re-derives `--pad-default` / `--gap-default` / `--flow-default` as ramp × level. They sit **beside** the paging realm's type ramp (`compact / regular / display`, 0.88 : 1 : 1.06) — that one moves type and stays type-only; these move space. [The three, side by side](/framework/ai/sessions/2026/09/05/spacing-judge/levels-3440.jpg).
 
 ## The control rule
 

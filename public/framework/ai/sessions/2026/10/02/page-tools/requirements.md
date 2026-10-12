@@ -4,7 +4,7 @@ Budget: $8.
 
 The owner, 2026-10-02 (now in CLAUDE.md, "Pages are live"): "if an agent creates a page, we want the agent to be able to update that page via the page.jsonl in real time… writes little changes as they're asked for… a toolset… we don't want to bloat our toolset with thousands of cross-domain tools… page aware… reading the whole JSONL and interpreting a big delta storm could be tricky… a page could generate a readme-like view from its structured content, programmatically."
 
-Builds on what landed today (e44930ad, ai/2026-10-02/page-extends-item): Page extends Item, `static Store` with append and tail, list verbs as lines, and FsFile as the only writer. Read that task's outcome and follow-ups first.
+Builds on what landed today (e44930ad, ai/sessions/2026/10/02/page-extends-item/page-extends-item): Page extends Item, `static Store` with append and tail, list verbs as lines, and FsFile as the only writer. Read that task's outcome and follow-ups first.
 
 ## Build
 1. **Four Servex in-process tools over Store** (Servex/doc in-process tools; not HTTP to itself):

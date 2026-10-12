@@ -7,7 +7,7 @@ Three findings from today's studies, each verified headless on your private serv
 
 ## 1. `ext/toc` is invisible on all 23 of its call sites
 
-Source: `ai/2026-09-18/overlap-study/overlap.md`, navigation section.
+Source: `ai/sessions/2026/09/18/overlap-study/overlap.md`, navigation section.
 
 Its own CSS excludes `.standard`, which every page is now. Read
 `public/framework/ext/toc/` and the approved "docs three-region" shape
@@ -34,7 +34,7 @@ still references it; if something does show it, say where and leave it.
 
 ## 3. Three files still gate editor controls with their own socket check instead of `edit()`
 
-`ext/Ask/edit.js`, landed today — `ai/2026-09-18/edit-mode/task.jsonl`.
+`ext/Ask/edit.js`, landed today — `ai/sessions/2026/09/18/edit-mode/task.jsonl`.
 
 Convert each the way edit-mode did (the gate line only):
 - `public/imagine/cms/json/**`

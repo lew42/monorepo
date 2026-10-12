@@ -6,7 +6,7 @@ import Dictate from "./Dictate.js";
  * version one so I could click back to the first version." `./Dictate.js` here is its
  * OWN module, a byte-for-byte copy of `ux/Dictate/Dictate.js` from before the
  * 2026-09-29 mobile-nav task — NOT the live one that new work keeps changing
- * (`ai/2026-09-29/mobile-nav/review.md`, finding 6: importing the live file meant this
+ * (`ai/sessions/2026/09/29/mobile-nav/mobile-nav/review.md`, finding 6: importing the live file meant this
  * page silently changed every time `Dictate.js` did, which defeats the whole point of
  * a snapshot). See that file's own header comment for exactly what "frozen" means. */
 const SAMPLES = [

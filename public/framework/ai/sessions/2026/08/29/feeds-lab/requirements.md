@@ -1,6 +1,6 @@
 # feeds-lab — verbatim ask
 
-From `public/framework/ai/2026-08-29/imagine-program/requirements.md` (owner, 2026-08-29):
+From `public/framework/ai/sessions/2026/08/29/imagine-program/requirements.md` (owner, 2026-08-29):
 
 > explore utilization of advanced web embeds (youtube, etc), apis (json -> renderings), etc.
 > don't stop, keep building cool experiences, focusing on clean, clear, simple navigation,

@@ -10,7 +10,7 @@ Load the `minion` skill first, then the `code` skill.
 
 "a persistent mastermind, like the Servex mastermind: a higher-level systems architect auditing all the processes."
 
-The design: `C:/Code/lew42/monorepo/public/framework/ai/2026-09-24/assistant-layers/doc/design.md`. Read it start to finish first.
+The design: `C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/doc/design.md`. Read it start to finish first.
 
 ## Where you work
 

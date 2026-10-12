@@ -1,4 +1,4 @@
-/* node public/framework/ai/2026-10-04/dictate-without-claude/prove.mjs — item 2 of this task's
+/* node public/framework/ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude/prove.mjs — item 2 of this task's
  * requirements.md: "with the switch on, talk to Dictate ... for 3 sentences; show the replies
  * and their real $ per reply."
  *
@@ -154,7 +154,7 @@ say(`[${T()}] key-level diff after 20s: $${real_total.toFixed(4)}, against $${su
 		: `read $0 this time, which gaps.md #8 already says can happen for a call this cheap within 20s — not a contradiction of the computed total`));
 say(`session file: ${sessions.disk(created.home)}... (kept in ${DIR}, not the repo — a throwaway proof session)`);
 
-const OUT = path.join(REPO, "public/framework/ai/2026-10-04/dictate-without-claude/prove-results.txt");
+const OUT = path.join(REPO, "public/framework/ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude/prove-results.txt");
 fs.writeFileSync(OUT, lines.join("\n") + "\n");
 say(`\nsaved -> ${OUT}`);
 for (const role of ["fast", "smart"]){ const id = sessions.map[created.session][role]; if (id) try { agents.stop(id); } catch {} }

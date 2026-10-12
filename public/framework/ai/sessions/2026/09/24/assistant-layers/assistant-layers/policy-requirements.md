@@ -8,7 +8,7 @@ Load the `minion` skill first, then the `code` skill.
 
 And earlier (handoff2.md item 4): "a mastermind must reach its own children, and the assistants must reach the mastermind. Beyond that, restrict it."
 
-The design: `public/framework/ai/2026-09-24/assistant-layers/doc/design.md`, section "Who may message whom". Read it.
+The design: `public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/doc/design.md`, section "Who may message whom". Read it.
 
 ## Where you work
 

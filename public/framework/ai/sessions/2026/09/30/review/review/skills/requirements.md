@@ -1,6 +1,6 @@
 # Minion A — the review skill and four questions.md files
 
-Load the `minion` skill first. Your parent is task-mastermind-review. The whole task: `public/framework/ai/2026-09-30/review/requirements.md` (read it in full). The owner's words, verbatim: `public/framework/ai/2026-09-30/page-audit/owner-words.md`, sections "Continued (about 12:35 PM)" and "Continued (about 12:45 PM)" — read both; they are the acceptance test.
+Load the `minion` skill first. Your parent is task-mastermind-review. The whole task: `public/framework/ai/sessions/2026/09/30/review/review/requirements.md` (read it in full). The owner's words, verbatim: `public/framework/ai/sessions/2026/09/30/page-audit/page-audit/owner-words.md`, sections "Continued (about 12:35 PM)" and "Continued (about 12:45 PM)" — read both; they are the acceptance test.
 
 **Work ONLY in the worktree `C:/Code/lew42/worktrees/review`** (branch `worktree/review`). Never edit the main tree at C:/Code/lew42/monorepo. Commit there by exact path when done.
 

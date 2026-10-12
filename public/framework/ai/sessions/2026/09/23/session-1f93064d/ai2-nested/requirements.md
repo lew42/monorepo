@@ -2,9 +2,9 @@
 
 Minion: Sonnet, effort high (budget mode). Session id: minted at dispatch (tomorrow, 2026-09-23,
 first thing — NOT tonight). You will be IN A WORKTREE. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then
-`public/framework/ai2/readme.md` + `doc/`, `ai/2026-09-22/ai2-master-detail/task.jsonl` (both
-landings), decision `card-storage` in `ai/2026-09-22/mastermind-servex/task.jsonl`, and
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first, then
+`public/framework/ai2/readme.md` + `doc/`, `ai/sessions/2026/09/22/session-a578212b/ai2-master-detail/task.jsonl` (both
+landings), decision `card-storage` in `ai/sessions/2026/09/22/e2b82220-72fd-4fec-b8a6-5f985c9cbefa/mastermind-servex/task.jsonl`, and
 `core/Page`'s columns (`ai/2026-08-26/` column pages, `/imagine/paging/` — the owner remembers
 those experiments and wants their lessons, not a new mechanism). Load `layout`, `css`, `code`,
 `ui-test`, `new-page`.
@@ -88,7 +88,7 @@ sentences with the two migration counts and the URL path of one dig-down.
    (`Saver.js`, `FileSaver.js`, `LocalStorageSaver.js`, `MemorySaver.js`, its doc/), `core/Page`'s
    `page.json` children (`core/Page/readme.md:17`), `Page.Store`, `ext/files`, the fs-backed
    `Make` persistence (`ai/2026-09-13/`, "never persist silently"), the Item/List stack
-   (`ai/2026-08-13/persistence/`), and `Server/plugins/SocketServer/Append.js`. Write one
+   (`ai/sessions/2026/08/13/persistence/`), and `Server/plugins/SocketServer/Append.js`. Write one
    screen, `doc/persistence.md`: what each saves, where, how it loads on demand, and which one
    a nested card page should use. Then AMEND deliverable 1 accordingly — the owner's lean is:
    **a nested thing is a directory** (`ai/cards/<slug>/`, and `<slug>/<sub>/` a level deeper)

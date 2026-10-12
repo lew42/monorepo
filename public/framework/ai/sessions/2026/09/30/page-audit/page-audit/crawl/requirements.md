@@ -6,7 +6,7 @@ Parent: mastermind-page. Read-only on the site; you write only inside this folde
 Write one node script, `crawl.mjs` (in THIS folder), that loads every page reachable on the running site and records what its layout looks like. Run it. Return a 10-line summary.
 
 - Site: `http://monorepo.localhost/` (Servex serves it; never `http://localhost/`).
-- Browser: `import { browser } from "../../../../../../Server/browser.mjs"` (resolve it from the repo root: `Server/browser.mjs`). Headless, never the owner's tabs. Viewport 1440x900.
+- Browser: `import { browser } from "../../../../../../../../../../Server/browser.mjs"` (resolve it from the repo root: `Server/browser.mjs`). Headless, never the owner's tabs. Viewport 1440x900.
 - Start from `/`, `/framework/`, `/layouts/`, `/imagine/`, `/web/`, `/notes/`, `/framework/ai/`, `/framework/ai2/`. Follow same-origin `<a href>` found in the rendered DOM (after the page settles: wait for network idle, then 600 ms). Strip hash and query. Only paths that end in `/` or have no extension (skip `.md`, `.js`, `.png`...).
 - Cap: `/framework/ai/<date>/<task>/...` task pages are hundreds alike. Crawl at most 15 task pages per day folder, and count the rest as `skipped_similar` under their day. Hard stop at 1500 pages. Concurrency 3 (the machine is shared).
 - Per page, record one JSON line in `pages.jsonl`:

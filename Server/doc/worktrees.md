@@ -16,7 +16,7 @@ junction or symlink into the main checkout's `node_modules` (or into anything el
 - **2026-09-29, 13:46:** an agent made the junctions by hand (`mklink /J`), then ran
   `git worktree remove --force` by hand. The main `node_modules` was emptied, and Servex
   crash-looped for an hour on `Cannot find package 'express'`
-  ([the cause](/framework/ai/2026-09-29/node-modules-guard/cause/)).
+  ([the cause](/framework/ai/sessions/2026/09/29/8e50318b-7bf9-4e51-bedd-b91580b96caa/node-modules-guard/cause/)).
 
 Deleting a worktree, running `rm -r` on it, or running `npm ci` / `npm install` inside it all go
 through a link as if it were a plain folder.
@@ -38,7 +38,7 @@ In PowerShell, run `(Get-Item <link>).Delete()`. In cmd, run `rmdir <link>` with
 (`--json` for JSON, `--deep` to also look inside real `node_modules`). worktree-up runs it and
 prints a warning.
 
-The proof of each guard, run on scratch copies: [guards/proof.md](/framework/ai/2026-09-29/node-modules-guard/guards/proof.md).
+The proof of each guard, run on scratch copies: [guards/proof.md](/framework/ai/sessions/2026/09/29/8e50318b-7bf9-4e51-bedd-b91580b96caa/node-modules-guard/guards/proof.md).
 
 ## Tell the worktree which task it is for
 

@@ -149,7 +149,7 @@ system, not a second page). Read these first:
 - Headless-check the session detail route at 1920 with the chart + table showing, zero console
   errors, before releasing any `hold.mjs`.
 - Commit every file by its exact path (never `-A`). Append a landing line to THIS task's
-  `public/framework/ai/2026-10-03/session-trace/task.jsonl`, then stop.
+  `public/framework/ai/sessions/2026/10/03/session-trace/task.jsonl`, then stop.
 
 ## If the worktree pool is exhausted (it was, earlier today)
 

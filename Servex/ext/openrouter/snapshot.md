@@ -2,8 +2,8 @@
 
 The condensed, cited state a fresh mastermind starts from. Built from the closed research round
 at [`research.jsonl`](/framework/research/harness/) (203 lines), the build order in
-[`plan.md`](/framework/ai/2026-09-28/harness-research/plan.md), and the architect's corrections
-in [`architect-review.md`](/framework/ai/2026-09-28/harness-research/architect-review.md).
+[`plan.md`](/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/plan.md), and the architect's corrections
+in [`architect-review.md`](/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/architect-review.md).
 
 **Full answer, one line:** don't build a harness first — proxy the Claude Agent SDK through
 OpenRouter for non-Claude models, keep Claude on the subscription, and build our own loop only

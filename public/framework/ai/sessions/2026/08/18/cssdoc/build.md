@@ -6,7 +6,7 @@ and cut.** Read `CLAUDE.md`; it outranks this brief.
 
 ## Your spec is already written and ACCEPTED
 
-`public/framework/ai/2026-08-18/cssdoc/proposal.md` — read it in full first. The mastermind has
+`public/framework/ai/sessions/2026/08/18/cssdoc/proposal.md` — read it in full first. The mastermind has
 accepted all five verdicts. **Do not redesign.** If a measurement contradicts it while you build,
 log the contradiction and follow the measurement — the proposal was measured, so this should be rare.
 
@@ -86,7 +86,7 @@ live demos — the prose is good; only the facts were wrong.
   the declarations belong in a sheet), `doc/` if you have a topic worth a url.
 - EDIT `public/framework/styles/elements/code/page.js` (the call site + the deletions above).
 - APPEND one line to `public/framework/styles/css-scopes.txt`.
-- APPEND to `public/framework/ai/2026-08-18/cssdoc/task.jsonl`, and write `shot.png` there.
+- APPEND to `public/framework/ai/sessions/2026/08/18/cssdoc/task.jsonl`, and write `shot.png` there.
 - If `ext/CSSDoc` needs a parent `children:` entry to exist as a url, add that ONE word.
 
 **Do not** edit `framework.css`, any skill except an `improvements.md`, or any other module.

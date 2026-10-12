@@ -26,4 +26,4 @@ at the moment it's called. Calling it before the chain finishes loading misses a
 stylesheet a child only registers once its own import lands (a day page's task
 cards, an `ai2` `RealPage`'s embedded page), and `activate()` then paints that
 child's preview before its CSS has arrived — a flash of unstyled content, found
-2026-10-03 (`ai/2026-10-03/flash-fix/`).
+2026-10-03 (`ai/sessions/2026/10/03/list-events/flash-fix/`).

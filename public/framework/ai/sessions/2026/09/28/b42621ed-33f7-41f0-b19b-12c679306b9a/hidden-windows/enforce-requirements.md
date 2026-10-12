@@ -1,7 +1,7 @@
 # Hidden windows — enforce + the proven fix for the actual popup (minion brief)
 
 Load the `minion` skill first. Task directory (read it all, raw words, before touching
-anything): `public/framework/ai/2026-09-28/hidden-windows/`. This is a SEPARATE piece of work
+anything): `public/framework/ai/sessions/2026/09/28/b42621ed-33f7-41f0-b19b-12c679306b9a/hidden-windows/`. This is a SEPARATE piece of work
 from the sibling minion doing the mechanical windowsHide sweep (`sweep-requirements.md`) — don't
 touch the files that brief owns; you own different files.
 
@@ -38,7 +38,7 @@ the first frame. This is the standard fix for exactly this Task-Scheduler-flash 
 
 1. **Add the wrapper to the repo**, `Servex/hidden-launch.vbs`:
    ```vbs
-   ' Proven no-flash launcher for the Servex logon task (public/framework/ai/2026-09-28/hidden-windows/).
+   ' Proven no-flash launcher for the Servex logon task (public/framework/ai/sessions/2026/09/28/b42621ed-33f7-41f0-b19b-12c679306b9a/hidden-windows/).
    ' wscript.exe is a GUI-subsystem exe (no console of its own); WScript.Shell.Run with
    ' windowStyle=0 starts the target via ShellExecute/SW_HIDE, which suppresses a console app's
    ' window from creation, unlike "powershell -WindowStyle Hidden" (which flashes: PowerShell

@@ -14,5 +14,5 @@
 4. Agents can post an inbox item to a module's page (the page inbox exists: /framework/ai/CLAUDE.md "The page inbox").
 No rail refactor. Worktree → check_page → merge.mjs.
 
-QUEUED (2026-10-04): start after /framework/ai/2026-10-04/day-cards lands, or after the Claude reset.
+QUEUED (2026-10-04): start after /framework/ai/sessions/2026/10/04/day-cards/day-cards lands, or after the Claude reset.
 Budget: $5

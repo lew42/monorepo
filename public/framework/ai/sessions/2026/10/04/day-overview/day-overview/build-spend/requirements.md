@@ -1,6 +1,6 @@
 # day-overview: build the per-day spend + module breakdown
 
-Load the `minion` skill first. Your parent task is `public/framework/ai/2026-10-03/day-overview/`
+Load the `minion` skill first. Your parent task is `public/framework/ai/sessions/2026/10/04/day-overview/day-overview/`
 (read `../requirements.md` for the owner's full ask). You build the whole thing in one pass.
 
 ## The ask, in short
@@ -171,7 +171,7 @@ export function module_detail(date, mod_slug)  // one module's tasks for that da
 - `node Server/day-spend.mjs 2026-10-03` then `node Server/day-spend.mjs 2026-10-02` both run
   clean and their `spend.json` files look right (open them).
 - Load `/framework/ai/2026-10-03/` in a headless check (`node Server/layout-check.mjs
-  http://monorepo.localhost/framework/ai/2026-10-03/ --widths 400,1920`) — zero console errors,
+  http://monorepo.localhost/framework/ai/sessions/2026/10/03/ --widths 400,1920`) — zero console errors,
   the two totals visible, the module list visible.
 - Click (or navigate straight to) one module's url, e.g.
   `http://monorepo.localhost/framework/ai/2026-10-03/module/core-page/` (whatever module
@@ -185,7 +185,7 @@ Only: `Server/day-spend.mjs` (new), `public/framework/ext/AITask/module-spend.js
 `public/framework/ext/AITask/dashboard.js` (one import + two calls), `public/framework/ai/page.js`
 (one import + one route branch), `public/framework/ai/<date>/spend.json` for both dates you test,
 and your own task dir
-(`public/framework/ai/2026-10-03/day-overview/build-spend/`). Nothing else. Never
+(`public/framework/ai/sessions/2026/10/04/day-overview/day-overview/build-spend/`). Nothing else. Never
 `public/framework/ext/AITask/cost.js` — read it, don't edit it.
 
 The quick-fix worktree pool is drained right now (`take_worktree` just failed for your parent;

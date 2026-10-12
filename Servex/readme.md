@@ -87,9 +87,9 @@ Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:
 ## More
 
 - The audit, every decision and every measurement:
-  [`/framework/ai/2026-09-22/servex-port/`](/framework/ai/2026-09-22/servex-port/)
+  [`/framework/ai/sessions/2026/09/22/session-7e28aa8d/servex-port/`](/framework/ai/sessions/2026/09/22/session-7e28aa8d/servex-port/)
   (the port) and
-  [`/framework/ai/2026-09-22/servex-integrate/`](/framework/ai/2026-09-22/servex-integrate/)
+  [`/framework/ai/sessions/2026/09/22/session-61d99357/servex-integrate/`](/framework/ai/sessions/2026/09/22/session-61d99357/servex-integrate/)
   (the agents, the live dashboard and the keeper — start here, it is a page, not a readme)
 - The repo this was ported from: `C:/Code/servex` — read, never edited. Its
   `servex-mvp.md` lists the gaps; the ones that are closed are closed here.

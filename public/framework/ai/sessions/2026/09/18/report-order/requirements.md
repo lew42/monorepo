@@ -16,7 +16,7 @@ The Asks tab (`public/framework/ext/AITask/asks.js`, `rank.js`, `needs.js`,
 first-seen order and orders cards inside a band by the last `rank` line with
 `list: "asks"` (the mastermind has just written one ordering all 43 asks by
 outcome, band by band — read
-`ai/2026-09-17/mastermind-layout-browser/task.jsonl`, read-only). A drag
+`ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl`, read-only). A drag
 writes a new rank line through `rpc:append`.
 
 ## Deliverables
@@ -45,7 +45,7 @@ writes a new rank line through `rpc:append`.
 
 `public/framework/ext/AITask/**`, `public/framework/ext/JSONL/**`, your task
 dir, and that one `rank` line into
-`ai/2026-09-17/mastermind-layout-browser/task.jsonl`. The owner's dev server
+`ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl`. The owner's dev server
 on port 80 is running: never touch it. Never `git stash`, never `find /`,
 never drive the owner's tabs; an `rg` pattern starting with `/` returns
 nothing here — drop the slash.

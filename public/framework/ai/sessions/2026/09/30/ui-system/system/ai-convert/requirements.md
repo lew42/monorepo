@@ -5,7 +5,7 @@ Load the `minion` skill first, then `code` and `page`.
 **Work only in the worktree:** `C:\Code\lew42\worktrees\ui-system` (branch
 `worktree/ui-system`). Server: http://ui-system.localhost/. Never edit the main tree,
 except your own log under
-`public/framework/ai/2026-09-30/ui-system/system/ai-convert/` in the MAIN tree
+`public/framework/ai/sessions/2026/09/30/ui-system/system/ai-convert/` in the MAIN tree
 (`C:\Code\lew42\monorepo`). **This is the riskiest file in the whole task — go slowly,
 screenshot before AND after, and don't guess: read the real code before changing it.**
 
@@ -85,8 +85,8 @@ as today.
 - `/framework/ai/skills/`, `/framework/ai/claude-md/`, `/framework/ai/objects/`,
   `/framework/ai/authoring/` — all still resolve (`SYSTEM_PARTS`, untouched).
 - `/framework/ai/?v1` still shows the old board, unchanged.
-- `/framework/ai/2026-09-30/design-code/` (a task page) and
-  `/framework/ai/2026-09-30/ui-system/system/` (THIS task) still resolve with zero
+- `/framework/ai/sessions/2026/09/30/design-code/design-code/` (a task page) and
+  `/framework/ai/sessions/2026/09/30/ui-system/system/` (THIS task) still resolve with zero
   console errors — these go through the date/task routing in `route()`, which you did
   not touch, but prove it anyway since the root class changed.
 - The tab strip itself: two tabs, "Inbox" and "System", in that order, at all four
@@ -97,7 +97,7 @@ as today.
 Before your edit, shoot the current page:
 `node Server/layout-check.mjs http://ui-system.localhost/framework/ai/
 http://ui-system.localhost/framework/ai/system/ --widths 400,1200,1920,3440 --bands
---out public/framework/ai/2026-09-30/ui-system/system/ai-convert/shots/before` (from
+--out public/framework/ai/sessions/2026/09/30/ui-system/system/ai-convert/shots/before` (from
 the MAIN tree; `MSYS_NO_PATHCONV=1` prefix in Git Bash).
 
 After, the same command into `.../shots/after`, plus every url in the checklist above

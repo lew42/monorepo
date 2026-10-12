@@ -3,7 +3,7 @@
 //
 // Uses the Servex local proxy that is ALREADY live on :8998 (the running Servex owns
 // llama-server; this script never starts its own copy) — same trick as
-// public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs, just pointed at a plain
+// public/framework/ai/sessions/2026/09/24/servex-mastermind-opus/local-ai/build/h1-eval.mjs, just pointed at a plain
 // read-only directory instead of a page fixture, and simpler because it doesn't need its
 // own llama-server/proxy pair.
 //
@@ -17,7 +17,7 @@ const { query } = await import(u("node_modules/@anthropic-ai/claude-agent-sdk/sd
 const { env_for } = await import(u("ext/local/provider.js"));
 
 const MODEL = process.argv[2] || "local/qwen3-8b";
-const DIR = path.resolve("public/framework/ai/2026-10-04/local-model-hunt/fixture");
+const DIR = path.resolve("public/framework/ai/sessions/2026/10/05/local-ctx-fix/local-model-hunt/fixture");
 
 const prompt = `Read the 3 files in this directory (a.txt, b.txt, c.txt) and answer: which animal appears in all three files, and what single number is common to all three?`;
 

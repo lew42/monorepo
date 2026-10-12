@@ -37,7 +37,7 @@ Yours alone: `ui/tree/**`, the tree lines of `ui/ui.js`, `ui/readme.md`, factual
 ## Process
 
 - Load skills: `code` before editing; `documentation` before landing; `finish-task` to land; `skill-improvement` if a skill misleads.
-- Log to `public/framework/ai/2026-08-21/ux-tree-retire/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends via Add-Content, **pure ASCII** (an em dash becomes an invalid byte and the board drops the line).
+- Log to `public/framework/ai/sessions/2026/08/21/ux-tree-retire/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends via Add-Content, **pure ASCII** (an em dash becomes an invalid byte and the board drops the line).
 - **Timestamps are READ FROM THE CLOCK in the same command that writes the line, never typed** — `Get-Date -Format "yyyy-MM-ddTHH:mm:sszzz"` inline in the SAME append command.
 
 ## Safety (non-negotiable)

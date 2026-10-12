@@ -2,7 +2,7 @@
 
 Verbatim ask: delete `public/framework/core/new/0/` and `public/framework/core/new/starter/`
 per the simplify audit's #1 item (445 files, 2.8MB, 308 page.js, zero importers by rule —
-`ai/2026-08-30/simplify-audit/proposal.md`). `core/new/1/` is on the DO-NOT-TOUCH list — leave it.
+`ai/sessions/2026/08/30/simplify-audit/proposal.md`). `core/new/1/` is on the DO-NOT-TOUCH list — leave it.
 
 ## Order
 

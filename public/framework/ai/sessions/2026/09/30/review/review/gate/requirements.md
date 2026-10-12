@@ -1,6 +1,6 @@
 # Minion D — questions.json stays in its own tree; merge.mjs refuses a page change with no report
 
-Load the `minion` skill, then `code`. Parent: task-mastermind-review. Task: `public/framework/ai/2026-09-30/review/requirements.md`.
+Load the `minion` skill, then `code`. Parent: task-mastermind-review. Task: `public/framework/ai/sessions/2026/09/30/review/review/requirements.md`.
 
 **Work ONLY in the worktree `C:/Code/lew42/worktrees/review`.** Commit by exact path (the worktree has ~230 unrelated dirty files.jsonl files: never `git add .` or `commit -a`). Every spawn sets `windowsHide: true`.
 

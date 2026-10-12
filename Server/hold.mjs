@@ -49,7 +49,7 @@
  * once went out unheld because of it. `.claude/hooks/hold-guard.mjs` is the
  * fix: it notices, on an agent's own next write, that a hold IT took has
  * since lapsed, and renews it — never touching this file's own expiry logic.
- * `public/framework/ai/2026-09-19/hold-guard/` has the story and the proof. */
+ * `public/framework/ai/sessions/2026/09/19/hold-guard/` has the story and the proof. */
 
 import fs from "fs";
 import path from "path";

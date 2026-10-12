@@ -16,7 +16,7 @@ A task's page is up to five tabs — **Asks · Requirements · Decisions · Repo
 To show a task's page inside another page — AI 2's card column does — draw it into whatever box you are building, with the same class and no copy of its view:
 
 ```js
-div.c("my-box", () => { AITask.into("/framework/ai/2026-09-24/ai2-groups/", { listing: ["task.jsonl"] }); });
+div.c("my-box", () => { AITask.into("/framework/ai/sessions/2026/09/24/ai2-cost-fill/ai2-groups/", { listing: ["task.jsonl"] }); });
 ```
 
 `listing` is optional: the task dir's file names, when you have them, so a missing `requirements.md` is never fetched.
@@ -78,7 +78,7 @@ Anything only the owner can do says so, and says how long it will take — those
 - A `.md` deliverable beside the task dir is a page: a link to `audit.md` in `outcome` or `requirements.md` opens at `audit/`, rendered. The `links:` pills are plain anchors, not markdown — write those urls as the route (`…/audit/`) yourself. [`/framework/core/Page/doc/declaring.md`](/framework/core/Page/doc/declaring.md)
 - Pace, not percentage: the usage bar is spend and the ▼ is the clock — on pace while used% ≤ elapsed%, over once the fill passes the marker — [doc/pace.md](./doc/pace.md).
 - `session_id` is the one `task.jsonl` field that matters; without it there is no session log — [doc/manifest.md](./doc/manifest.md).
-- **A task's live log — the one an agent should `follow()` — is its `task.jsonl`, never a `page.jsonl` in the same folder.** `task.jsonl` is what a minion actually writes to while it works (`assign`, `log`, `decision`, `step`) and what a fresh agent resumes from; `page.jsonl`, where one exists, is the ai2 dashboard card's own log for the owner and mostly just points back at `task.jsonl` with a `{"file":"task.jsonl"}` line. Decided 2026-09-29: the `decision` line in `ai/2026-09-29/voice-sessions/c-roles/task.jsonl`.
+- **A task's live log — the one an agent should `follow()` — is its `task.jsonl`, never a `page.jsonl` in the same folder.** `task.jsonl` is what a minion actually writes to while it works (`assign`, `log`, `decision`, `step`) and what a fresh agent resumes from; `page.jsonl`, where one exists, is the ai2 dashboard card's own log for the owner and mostly just points back at `task.jsonl` with a `{"file":"task.jsonl"}` line. Decided 2026-09-29: the `decision` line in `ai/sessions/2026/09/30/voice-sessions/voice-sessions/c-roles/task.jsonl`.
 - A task runs only once it carries `requested_at`, and `landed_at` wins — a landing line lost to a bad escape leaves it rendering as running, and "N unparsed lines" is the only symptom — [doc/decisions.md](./doc/decisions.md).
 - Log timestamps mix `Z` and `-05:00`: order by `Date.parse`, never as text, and build a day from its parts (`new Date("2026-08-15")` is UTC midnight) — [doc/decisions.md](./doc/decisions.md).
 - The card is a container query, and `ai.css`'s mobile rules needed floors (`minmax(0, 1fr)`, a scoped rail height) before phones could scroll — [doc/decisions.md](./doc/decisions.md).

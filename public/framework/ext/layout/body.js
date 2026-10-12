@@ -42,7 +42,7 @@ export function body($el, extras, redraw){
    CSSOM (`ext/CSSDoc`). `part` is the FILE that owns the rule, which is the one thing that
    says whether you are about to edit the framework, the theme, the site skin or one
    component. Read-only for now; the lock and the core-component page are the design at
-   `ai/2026-08-18/element-provenance/proposal.md`.
+   `ai/sessions/2026/08/18/element-provenance/proposal.md`.
    ⚠ The selection's own chrome is dropped: `.layout-selected` is this widget, not the page. */
 const CHROME_RULE = /layout-(selected|hot|region)/;
 

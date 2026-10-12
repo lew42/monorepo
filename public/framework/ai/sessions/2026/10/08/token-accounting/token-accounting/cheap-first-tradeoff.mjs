@@ -6,7 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { find_transcript, trace_of_transcript, cost_of_transcript } from "../../../../../Server/session-cost.mjs";
+import { find_transcript, trace_of_transcript, cost_of_transcript } from "../../../../../../../../../Server/session-cost.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../../../../");

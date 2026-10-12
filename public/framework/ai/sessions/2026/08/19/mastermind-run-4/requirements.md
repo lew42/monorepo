@@ -1,6 +1,6 @@
 # mastermind-run-4 — the Workspace build (2026-08-19)
 
-Laws: less is more · clarity · prioritize. Run task for the `ai-ops` group; continues [mastermind-run-3](/framework/ai/2026-08-18/mastermind-run-3/) (the evening of 08-18, landed).
+Laws: less is more · clarity · prioritize. Run task for the `ai-ops` group; continues [mastermind-run-3](/framework/ai/sessions/2026/08/18/mastermind-run-3/) (the evening of 08-18, landed).
 
 ## The ask (the owner, 2026-08-19, condensed — each quote is verbatim in the task briefs)
 

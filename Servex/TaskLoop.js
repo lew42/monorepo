@@ -8,7 +8,7 @@ import { CHECK } from "./Heartbeat.js";
  *
  * Design: public/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md
  * Interfaces shared with waiting-on-you and recursive-pairs:
- *   public/framework/ai/2026-09-28/task-loop/interfaces.md
+ *   public/framework/ai/sessions/2026/09/28/task-loop/task-loop/interfaces.md
  *
  * Every `every` minutes: walk today's and yesterday's task dirs; for every OPEN
  * task (no `landed_at` with a non-empty `outcome`, and no `closed_by`) — quiet

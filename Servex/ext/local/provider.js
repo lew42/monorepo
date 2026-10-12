@@ -74,7 +74,7 @@ export const MODELS = {
 	"qwen2.5-coder": path.join(LLAMA_HOME, "models", "qwen2.5-coder.gguf"),
 	"gemma-3-4b": find_gguf(path.join(home, ".lmstudio", "models"), /^gemma-3-4b.*\.gguf$/i),
 	"gemma-4-e4b": find_gguf(path.join(home, ".cache", "huggingface", "hub"), /^gemma-4-e4b.*\.gguf$/i),
-	// Added 2026-10-04 (ai/2026-10-04/local-model-hunt): Qwen3-8B, Q4_K_M, 5.0 GB — newer
+	// Added 2026-10-04 (ai/sessions/2026/10/05/local-ctx-fix/local-model-hunt): Qwen3-8B, Q4_K_M, 5.0 GB — newer
 	// generation than qwen2.5-coder, built with agentic tool-use in mind. Downloaded straight
 	// into this folder (unsloth/Qwen3-8B-GGUF on Hugging Face) rather than found in another
 	// app's cache, since nothing else on this PC had it yet.

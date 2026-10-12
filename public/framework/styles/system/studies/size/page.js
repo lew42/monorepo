@@ -7,7 +7,7 @@ const here = new URL(".", import.meta.url).pathname;
 
 /* THE FIVE QUESTIONS (layout skill)
    1. Container — a plain page under `styles/system/studies/`, like every sibling study
-      (moved from `/imagine/design/` 2026-09-18, `ai/2026-09-18/imagine-move-2/`). The
+      (moved from `/imagine/design/` 2026-09-18, `ai/sessions/2026/09/18/imagine-move-2/`). The
       ordinary page grid applies here now, not a columns host's bare column.
    2. Size — 400 to 3440, one column. The demo band is a bare `div`, which
       `.page-column-prose`'s measure cap does not touch (it caps p/headings/lists/.md

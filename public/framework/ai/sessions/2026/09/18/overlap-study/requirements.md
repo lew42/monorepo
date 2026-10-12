@@ -36,7 +36,7 @@ Concepts to start from (find more while reading):
 - **toolbars and control rows** — `/imagine/paging/toolbar.js`, `ui/toolbar`, the paging bar
 - **trees and lists** — `ux/Tree`, `ui/tree`, `core/Sidebar`'s list, `/imagine/design/lists/` if landed
 - **CSS** — count of module `.css` files; raw spacing numbers per file from
-  `ai/2026-09-17/spacing-census/census.json`; per-realm prefixes in `styles/css-scopes.txt`
+  `ai/sessions/2026/09/17/spacing-census/census.json`; per-realm prefixes in `styles/css-scopes.txt`
 - **navigation** — crumb strips, column paging, tabs, the omnibox, `ext/toc`
 
 Two numbers that must agree in the report: implementations listed per concept, and files
@@ -54,7 +54,7 @@ under it, and what `/imagine/` becomes.
 ## Scope / fences
 
 - Read-only over the whole repo. The only dir this task may write to is
-  `public/framework/ai/2026-09-18/overlap-study/` (this dir) — `task.jsonl`, `requirements.md`,
+  `public/framework/ai/sessions/2026/09/18/overlap-study/` (this dir) — `task.jsonl`, `requirements.md`,
   `overlap.md`, and any scratch counts kept here.
 - Per the minion fence: skip the usage.json refresh and the `../day.jsonl` append that `new-task`
   normally asks for (both live outside this task dir) — log the skip instead.

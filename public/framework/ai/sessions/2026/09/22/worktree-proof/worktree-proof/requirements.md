@@ -1,9 +1,9 @@
 # worktree-proof — one real task, in one worktree, reachable through the proxy, then removed
 
 Minion: Sonnet, effort high. Session id `9a6277ea-2fc0-4e78-ba3d-34df662d8e70`. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then phase-2 item
-**7** in [`../tiers-design/doc/phases.md`](../tiers-design/doc/phases.md) and the rule on
-[`../worktree-design/`](../worktree-design/)'s page. Load the `code` skill.
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first, then phase-2 item
+**7** in [`../tiers-design/doc/phases.md`](../../tiers-design/tiers-design/doc/phases.md) and the rule on
+[`../worktree-design/`](../../worktree-design/worktree-design)'s page. Load the `code` skill.
 
 ## What exists
 
@@ -43,7 +43,7 @@ projects, so a worktree under `C:/Code/lew42/worktrees/` is not a project it kno
 5. **`node Server/worktree-down.mjs proof-1`** — prove `git worktree list` is one entry, the
    branch is gone (or say why it should stay), the directory is gone, the registry entry is
    gone. Log the total elapsed for the whole cycle.
-6. **The page — `ai/2026-09-22/worktree-proof/page.js`:** one screen — the six numbers (up
+6. **The page — `ai/sessions/2026/09/22/worktree-proof/worktree-proof/page.js`:** one screen — the six numbers (up
    time, size, proxy reachable yes/no, task proven, cherry-pick proven, down time), the two
    shots, and one paragraph on what a task mastermind will do by hand vs what should be one
    command. Link it from `ai/2026-09-22/page.js` `children:`.

@@ -1,6 +1,6 @@
 # Wave 2 — the responsive-variant designs. Read `minion.md` first.
 
-`public/framework/ai/2026-08-18/figma/minion.md` is most of your brief: the priced Figma sequence,
+`public/framework/ai/sessions/2026/08/18/figma/minion.md` is most of your brief: the priced Figma sequence,
 the class vocabulary **and its negative list**, the fences, the skills, the verification probe.
 Read it and `requirements.md`. Do not re-derive what three earlier minions already priced.
 

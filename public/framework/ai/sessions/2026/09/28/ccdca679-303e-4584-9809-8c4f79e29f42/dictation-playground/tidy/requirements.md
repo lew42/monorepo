@@ -1,6 +1,6 @@
 # Minion A — the fast cleanup call (`POST /api/tidy` on Servex)
 
-Load the `minion` skill first, then the `code` skill. Parent task: `public/framework/ai/2026-09-28/dictation-playground/` (read its `requirements.md`). The owner's raw words: `public/framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md`.
+Load the `minion` skill first, then the `code` skill. Parent task: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/` (read its `requirements.md`). The owner's raw words: `public/framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md`.
 
 ## The owner's words (the part this serves)
 
@@ -28,4 +28,4 @@ Every spawn/exec sets `windowsHide: true` (the SDK spawns claude itself; add no 
 
 ## Log
 
-`public/framework/ai/2026-09-28/dictation-playground/tidy/task.jsonl` in the MAIN tree (new-task shape, `group: "dictate"`, append with `node .claude/hooks/append.mjs`). Land with a `log` line giving the three samples' outputs and ms, and the commit hash. Budget: under 120 lines of code in total. Report back in one short message when done.
+`public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/tidy/task.jsonl` in the MAIN tree (new-task shape, `group: "dictate"`, append with `node .claude/hooks/append.mjs`). Land with a `log` line giving the three samples' outputs and ms, and the commit hash. Budget: under 120 lines of code in total. Report back in one short message when done.

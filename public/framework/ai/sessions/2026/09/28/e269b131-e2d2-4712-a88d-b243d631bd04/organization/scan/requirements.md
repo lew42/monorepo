@@ -10,8 +10,8 @@ Make ONE list of every audit, review, sweep and open ask from the last week (202
 
 1. These, first (the owner named them):
    - `/framework/ai2/2026/09/25/open-tasks-where-each-one-is-and-what-ne/`
-   - `/framework/ai/2026-09-24/loose-ends/`
-   - `/framework/ai/2026-09-25/feedback-council/`
+   - `/framework/ai/sessions/2026/09/24/loose-ends/loose-ends/`
+   - `/framework/ai/sessions/2026/09/25/feedback-council/`
    - `/framework/ai/audits/paging/`
    - the css-audit, page-audit and layout-check tasks under `public/framework/ai/2026-09-25/`
    - `public/framework/ai/todo.md`
@@ -20,7 +20,7 @@ Make ONE list of every audit, review, sweep and open ask from the last week (202
 
 ## Output — write exactly one file
 
-`public/framework/ai/2026-09-28/organization/scan/list.md`, grouped under three headings:
+`public/framework/ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/scan/list.md`, grouped under three headings:
 
 - `## Audits` — one line each: `- [title](/framework/ai/...) — date — one clause: what it found / status`
 - `## Open asks` — one line each, same shape, with `(paging)` appended when it concerns Page, paging, columns, the page skill or /framework/core/Page/.

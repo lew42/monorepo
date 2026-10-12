@@ -1,8 +1,8 @@
 # Toc studio — Minion D, Figma wave 2
 
-Verbatim brief: `public/framework/ai/2026-08-18/figma/minion.md` +
-`public/framework/ai/2026-08-18/figma/wave-2.md` (Minion D section) +
-`public/framework/ai/2026-08-18/figma/requirements.md` (owner's standing rules).
+Verbatim brief: `public/framework/ai/sessions/2026/08/18/figma/minion.md` +
+`public/framework/ai/sessions/2026/08/18/figma/wave-2.md` (Minion D section) +
+`public/framework/ai/sessions/2026/08/18/figma/requirements.md` (owner's standing rules).
 
 Design given: https://www.figma.com/design/0rZv3Z6Hnqkxa2UQJ5xOOG/July-2026?node-id=163-615,
 children named `tabbed-toc-3440` / `-1920` / `-400` — one responsive screen, three widths as

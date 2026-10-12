@@ -3,7 +3,7 @@
 A house rule, not a component: nothing in `Panel2.js` enforces this today, and nothing has to —
 it is the three answers worth knowing before you draw a list, a card wall, or a detail page for
 any kind of thing (a session, a task, a file, an agent). Added 2026-10-02, the owner's own words
-([`requirements.md`](/framework/ai/2026-10-02/sessions-grid-v2/)):
+([`requirements.md`](/framework/ai/sessions/2026/10/02/panel2-sessions/sessions-grid-v2/)):
 
 > Three preview levels for any class view:
 > - inline: an icon and the name;

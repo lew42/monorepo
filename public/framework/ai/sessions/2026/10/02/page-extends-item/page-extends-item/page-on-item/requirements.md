@@ -3,7 +3,7 @@
 Load the `minion` skill first, then the `code` and `page` skills.
 
 **The owner's words (2026-10-02):** "Page extends item? I thought we already agreed on that." Approved; build it.
-Design: [page-item-design.md](../../../2026-09-30/proposal-flow/page-item-design.md) — **the TOP section ("LATEST … fourth pass") rules**: a list is a PROPERTY, not a parent. `Item = Events(Object)` has no list methods. A Page IS an Item and HAS two lists: `page.pages: LiveList` (its sub-pages) and `page.content: LiveList` (its visible blocks). There's no `get pages()` alias: `pages` IS the LiveList.
+Design: [page-item-design.md](../../../../../09/30/proposal-flow/page-item-design.md) — **the TOP section ("LATEST … fourth pass") rules**: a list is a PROPERTY, not a parent. `Item = Events(Object)` has no list methods. A Page IS an Item and HAS two lists: `page.pages: LiveList` (its sub-pages) and `page.content: LiveList` (its visible blocks). There's no `get pages()` alias: `pages` IS the LiveList.
 Parent brief: [../requirements.md](../requirements.md). Decisions: [../task.jsonl](../task.jsonl) (the fourth pass wins over any older decision).
 Minion A built `core/Events/Events.js`, `core/List/List.js` + `LiveList.js`, `core/Item/Item.js` + `Store.js` and `item-core/test.mjs` in the worktree. Read them all first, plus A's `item-core/task.jsonl` for its caveats. Where A's real names differ from this brief, use A's.
 
@@ -14,7 +14,7 @@ Minion A built `core/Events/Events.js`, `core/List/List.js` + `LiveList.js`, `co
 - `Page.children` callers, but ONLY where the shim (3) cannot carry them; the `Page.Store`/`store()` rename callers (5); `ai2/card.js` + `ai2/outline.js` (the `items` rename only)
 - `ext/filesystem/*` (FsFile, the FsDir → Dir rename, readme, doc/decisions.md) and the FsDir callers `ext/files/explorer.js`, `ext/files/files.js` (11)
 - The demo `core/Item/live/` (new), and `core/Item/page.js`'s `children:` to declare it
-- Tests and shots in `ai/2026-10-02/page-extends-item/page-on-item/`
+- Tests and shots in `ai/sessions/2026/10/02/page-extends-item/page-extends-item/page-on-item/`
 
 **When to reach for which** (use this sentence in any doc you touch): a **List** for plain ordered data; a **LiveList** when something must watch it change; an **Item** when it is a thing (an icon, a title, saved); a **Page** when it has a URL.
 

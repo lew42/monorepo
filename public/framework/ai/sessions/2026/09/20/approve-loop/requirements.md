@@ -23,7 +23,7 @@ You are a minion. **Load the `minion` skill first, before touching anything.** M
 
 ## Fix 1 — make the feedback loop legible. This is the real deliverable
 
-**The controls already exist.** Approve and Improve were built yesterday (`ai/2026-09-19/inbox-zero/`
+**The controls already exist.** Approve and Improve were built yesterday (`ai/sessions/2026/09/19/inbox-zero/`
 — read its task log first). Verdicts append to `public/framework/ai/verdicts.jsonl` through
 `VERDICTS_URL` in `v/3/timeline.js`; a verdict never edits the card, and pressing again undoes it.
 So **nothing here needs inventing — it needs to say what it does.**
@@ -93,7 +93,7 @@ Drive it (`ui-test`), do not describe it:
 - **Never `git stash`, `checkout --`, `reset`, `restore`, `add`, commit or push**; do not touch
   `stash@{0}`.
 - **Stay out of** `public/framework/framework.css`, `public/framework/ext/AITask/**`,
-  `public/framework/dev/DevBar/**` and `public/framework/ai/2026-09-20/start-here/**` — siblings
+  `public/framework/dev/DevBar/**` and `public/framework/ai/sessions/2026/09/20/start-here/**` — siblings
   are in all four.
 - Hold reloads around each batch, re-take the hold before each one, load the page before releasing.
 
@@ -109,7 +109,7 @@ Drive it (`ui-test`), do not describe it:
 ## Fences
 
 You own `public/framework/ai/v/3/**` (not its data files) and
-`public/framework/ai/2026-09-20/approve-loop/**`.
+`public/framework/ai/sessions/2026/09/20/approve-loop/**`.
 
 ## Length budget
 

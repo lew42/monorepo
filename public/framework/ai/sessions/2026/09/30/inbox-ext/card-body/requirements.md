@@ -1,7 +1,7 @@
 # Minion brief: the card body shows the refined dictation; no ai2.css
 
 Load the `minion` skill first, then `code` and `css`. Parent: task-mastermind-inbox-ext.
-Task dir: `public/framework/ai/2026-09-30/inbox-ext/` — read its `requirements.md` (asks 7
+Task dir: `public/framework/ai/sessions/2026/09/30/inbox-ext/` — read its `requirements.md` (asks 7
 and 9 are yours), `owner-words.md` and `plan.md` (items 5 and 7) before anything.
 
 **This file did not exist when minion-card-body started** (task.jsonl line 69 says it was
@@ -86,7 +86,7 @@ that isn't already generic).
 `ai2/card.js`, `ai2/chat.js` (read-only unless a helper must move), `ai2/ai2.css`,
 `ux/Inbox/**` (existing, from merge 1 — extend, don't fork), a new `ux/` block only if piece 2
 needs one. A throwaway fixture card folder under the WORKTREE's own
-`public/framework/ai/2026-09-30/inbox-ext/card-body/fixture/` (removed before you report).
+`public/framework/ai/sessions/2026/09/30/inbox-ext/card-body/fixture/` (removed before you report).
 Nothing in Servex, `core/Page/*.js`, or other `ai2/*.js` files unless one import line must
 change — say so in your log.
 
@@ -94,7 +94,7 @@ change — say so in your log.
 
 `windowsHide: true` on every process; stop every server you start except the worktree's own
 (:51490, already running — don't start a second one). Log each step and decision in your
-task.jsonl (`public/framework/ai/2026-09-30/inbox-ext/card-body/task.jsonl`, in the MAIN tree,
+task.jsonl (`public/framework/ai/sessions/2026/09/30/inbox-ext/card-body/task.jsonl`, in the MAIN tree,
 same as every other sibling task dir here — not the worktree's copy). When done, message
 task-mastermind-inbox-ext: commits, the shots, what's left. No cap: do it right, not fast.
 

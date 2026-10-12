@@ -1,7 +1,7 @@
 # sweep-400
 
 The 400px sweep the program hasn't had. Yesterday's tidy pass proved 138 /imagine/ urls
-clean at 1920 (`ai/2026-08-29/imagine-tidy/sweep-urls.json` — reused verbatim). Nobody has
+clean at 1920 (`ai/sessions/2026/08/29/imagine-tidy/sweep-urls.json` — reused verbatim). Nobody has
 swept them at 400.
 
 ## Ask, verbatim

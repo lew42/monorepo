@@ -2,7 +2,7 @@
 
 Minion: Opus, effort high, acting as a **sub-mastermind** — you spawn your own Sonnet minions.
 Session id `a96166b5-d28c-4bbb-b6b4-b4b75ff668c2`. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first. Private port: **8094**.
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first. Private port: **8094**.
 
 ## The owner's words (2026-09-22 14:55)
 
@@ -18,7 +18,7 @@ Session id `a96166b5-d28c-4bbb-b6b4-b4b75ff668c2`. Read
 
 ## First: find the past request
 
-The owner asked this before. Search `ai/board.jsonl`, `ai/2026-09-17/mastermind-layout-browser/asks.md`,
+The owner asked this before. Search `ai/board.jsonl`, `ai/sessions/2026/09/17/mastermind-layout-browser/asks.md`,
 and `rg -l "similar|duplicate|reuse|rewritten" public/framework/ai/2026-09-1*/*/requirements.md`
 for it; if a task already started on it, continue from its log instead of starting cold. Log
 what you found in your first `log` line.
@@ -34,7 +34,7 @@ what you found in your first `log` line.
    and dirs matched by your glob.
 2. **Sonnet minions, one per cluster of 4–8 sibling modules**, at most **five at once**, at most
    **twenty in all** (say the expected cost in your log before the first wave: a Sonnet minion
-   here costs about $0.30–0.80). Each minion's brief (write it into `ai/2026-09-22/reuse-audit/briefs/<n>.md`)
+   here costs about $0.30–0.80). Each minion's brief (write it into `ai/sessions/2026/09/22/session-a96166b5/reuse-audit/briefs/<n>.md`)
    names its modules and asks for: one paragraph per module — what it is, what it does, the
    features it implements from this list (drag and drop · resize handles · cards · panels ·
    tabs · popovers · editors · persistence/save · JSONL readers · layout/grid helpers · CSS
@@ -59,7 +59,7 @@ what you found in your first `log` line.
    page at a time, proven headless before and after (the `ui-test` skill), behind the hold.
    Everything bigger is a **proposal** row with the exact plan (files, callers, the diff in
    words), because a change with a dozen callers is the owner's call (CLAUDE.md "Ask before").
-4. **The page — `ai/2026-09-22/reuse-audit/page.js`.** Level 1: the headline number (lines of
+4. **The page — `ai/sessions/2026/09/22/session-a96166b5/reuse-audit/page.js`.** Level 1: the headline number (lines of
    duplicated functionality found, lines removed today, lines proposed), the ranked table with
    links, and the readme refresh count (before/after: readmes missing, stale, fresh). One click
    down: the per-module paragraphs. Screenshot it at 1280 into `shots/`.

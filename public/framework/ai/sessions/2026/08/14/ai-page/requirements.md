@@ -75,9 +75,9 @@ children.
 `git mv .../AISession.js .../AITask.js`. Class `AISession` → `AITask`; its
 emitted class `ai-session` → `ai-task`. Update every LIVE reference:
 `app.js` (export block + comment), `ext/page.js` children, `framework/ai/page.js`,
-`ai/2026-08-13/page.js`, `ai/2026-08-13/sessions/page.js`,
-`ai/2026-08-13/manifest-vs-log/page.js` (the `stats.js` import path + prose),
-`ai/2026-08-13/task-previews/page.js` (link text/url), `ext/JSONL/readme.md` +
+`ai/2026-08-13/page.js`, `ai/sessions/2026/08/13/sessions/page.js`,
+`ai/sessions/2026/08/13/manifest-vs-log/page.js` (the `stats.js` import path + prose),
+`ai/sessions/2026/08/13/task-previews/page.js` (link text/url), `ext/JSONL/readme.md` +
 `ext/JSONL/page.js`, and the moved module's own `readme.md`/`page.js`.
 Do NOT touch historical records (`requirements.md` files, the `renames` task
 text, `analysis.md`, `notes.md`).

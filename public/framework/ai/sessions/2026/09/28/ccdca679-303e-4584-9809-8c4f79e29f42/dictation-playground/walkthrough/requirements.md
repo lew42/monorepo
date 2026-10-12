@@ -1,6 +1,6 @@
 # Minion E — the playground walkthrough (Next / Next)
 
-Load the `minion` skill first, then `page`, `new-page`, `code`. Parent task: `public/framework/ai/2026-09-28/dictation-playground/` (read `requirements.md`; owner's words at `public/framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md`).
+Load the `minion` skill first, then `page`, `new-page`, `code`. Parent task: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/` (read `requirements.md`; owner's words at `public/framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md`).
 
 The owner, 2026-09-25: "demos so simple and self-evident that I literally just click Next." One small screen per step: a real screenshot, one sentence, a link to open it live.
 
@@ -15,7 +15,7 @@ The playground is MERGED into the main tree's working copy: `C:/Code/lew42/monor
 
 ## Build
 
-Copy the shape of `public/framework/ai/2026-09-25/ai2-lead/page.js` exactly (the `Wizard` from `/framework/ux/Wizard/Wizard.js`, the step in the `#N` hash, big picture + one sentence + "Open it live →"). Title "Dictation playground, step by step". Steps, each a 1920×1080 headless shot of the real page:
+Copy the shape of `public/framework/ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/page.js` exactly (the `Wizard` from `/framework/ux/Wizard/Wizard.js`, the step in the `#N` hash, big picture + one sentence + "Open it live →"). Title "Dictation playground, step by step". Steps, each a 1920×1080 headless shot of the real page:
 
 1. **Where it is** — `/framework/ux/Dictate/` reached from the rail (click UX → Dictate), the playground at the top.
 2. **Audio source** — the mic picker and the level meter. The meter must be MOVING in the shot: drive it via the playground instance (`globalThis.$dictate_pg`, its `meter()`/`on_meter` path) with a value like 0.6.
@@ -30,4 +30,4 @@ Every Playwright launch `headless: true`; scripts in the session scratchpad name
 
 ## Prove it
 
-`node Server/smoke.mjs . /framework/ux/Dictate/playground/walkthrough/ /framework/ux/Dictate/playground/ --base http://monorepo.localhost` shows no FAIL. Open each shot and check it shows what its sentence says. Log to `public/framework/ai/2026-09-28/dictation-playground/walkthrough/task.jsonl` (`group: "dictate"`, `node .claude/hooks/append.mjs`). Reply in one short message: the url, and the fast assistant's actual outputs for the sample chunks.
+`node Server/smoke.mjs . /framework/ux/Dictate/playground/walkthrough/ /framework/ux/Dictate/playground/ --base http://monorepo.localhost` shows no FAIL. Open each shot and check it shows what its sentence says. Log to `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/walkthrough/task.jsonl` (`group: "dictate"`, `node .claude/hooks/append.mjs`). Reply in one short message: the url, and the fast assistant's actual outputs for the sample chunks.

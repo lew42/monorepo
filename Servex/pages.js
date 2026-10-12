@@ -144,7 +144,7 @@ export const page_tools = () => {
  * and read one file out of a module (its readme, its demo.js, or a
  * doc/*.md). No import ever touches page rendering — this only reads text
  * off disk, the same way `read_page` above does. Detail: the owner's ask
- * lives at ai/2026-09-29/servex-docs-tab/requirements.md. */
+ * lives at ai/sessions/2026/09/29/6ba7761f-91ad-4c62-a59e-9f66a03a6138/servex-docs-tab/requirements.md. */
 
 // Repo root = two levels up from this file (Servex/pages.js -> Servex/ -> repo root),
 // so this works whether Servex is running from the main tree or a worktree checkout.

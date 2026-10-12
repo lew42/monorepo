@@ -3,7 +3,7 @@
 Ran a real headless Chromium against `http://push-to-talk.localhost/framework/ux/Hotkeys/`
 (the live worktree server, not a mock) and drove it exactly the way a person would: real
 `mousedown`/`keydown` events, a fake microphone so Chrome never needs a permission prompt.
-Script: [`proof.mjs`](proof.mjs) — run it again with `node public/framework/ai/2026-10-03/push-to-talk/ptt-proof/proof.mjs`.
+Script: [`proof.mjs`](proof.mjs) — run it again with `node public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/ptt-proof/proof.mjs`.
 Check 7's own script is [`check7.mjs`](check7.mjs).
 
 ## The headline: the root-cause bug got fixed mid-task, and now 6 of 7 checks pass live

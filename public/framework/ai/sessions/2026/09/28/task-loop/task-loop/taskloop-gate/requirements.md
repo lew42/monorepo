@@ -1,6 +1,6 @@
 # Minion brief: TaskLoop must not wake the past (task-loop, part 7): small fix before the merge
 
-Load the `minion` skill first. Task: `public/framework/ai/2026-09-28/task-loop/`. Read `heartbeat/requirements.md` item 4c (the architect's review) and `Servex/Heartbeat.js`.
+Load the `minion` skill first. Task: `public/framework/ai/sessions/2026/09/28/task-loop/task-loop/`. Read `heartbeat/requirements.md` item 4c (the architect's review) and `Servex/Heartbeat.js`.
 
 **The bug:** `Servex/TaskLoop.js` walks today's and yesterday's task dirs and `chase()` calls `this.servex.agents.send(id, …)`, the host send, which REVIVES a stopped agent. On the first live boot it would revive every unlanded task's agent from 09-28 and 09-29, with no opt-in, no ration, and no respect for a deliberate stop. The Heartbeat already does revival properly (opt-in by `SERVEX_HEARTBEAT_SINCE` or line-1 `heartbeat:true`, a ration of 2 per hour and 5 per day, `stopped_by`, the gated queue).
 

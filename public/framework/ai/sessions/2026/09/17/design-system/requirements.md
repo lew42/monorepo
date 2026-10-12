@@ -12,7 +12,7 @@ Load the `minion` skill first. Then this brief.
 
 And from the morning (the same voice): "in my Figma token system I was using like a standard padding and then a section padding, so maybe we have two different, kind of like a large and small, but then that can get carried away really quickly."
 
-## What the census found (`ai/2026-09-17/spacing-census/census.md`, read it first)
+## What the census found (`ai/sessions/2026/09/17/spacing-census/census.md`, read it first)
 
 1,894 spacing declarations in scope: **raw 1,064 (56%)**, **token × N 451 (24%) with 28 distinct N** (0.5 ×76, 0.4 ×61, 0.6 ×55 lead), token alone 125 (7%), zero 209, control-em 45. `ext/AITask/ai.css`: 55 declarations, 31 on-token (24 scaled), 12 raw, 6 control-em. The tokens live at `framework.css` 225–247 (`--pad --gap --flow` from one `--size` knob on `:where(*)`) and 635–641 (`.pad .gap .mb`). Twenty-five docs and seven pages explain them; no single page says "this is the design system".
 
@@ -25,7 +25,7 @@ And from the morning (the same voice): "in my Figma token system I was using lik
 
 ## Rules
 
-- Load `code`, `layout`, `css` (read framework.css 220–250 and 630–645 yourself), `new-css-class`, `new-page`; `new-task` before the first edit (your dir exists: `ai/2026-09-17/design-system/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
+- Load `code`, `layout`, `css` (read framework.css 220–250 and 630–645 yourself), `new-css-class`, `new-page`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/design-system/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
 - **Fence:** `public/framework/styles/system/**` (new), `public/framework/styles/readme.md` and `page.js` (the link and the children word), `public/framework/styles/doc/decisions.md`, `public/framework/framework.css` (ADDITIVE lines in the standard block and the utility block only — never change an existing value or selector), `public/framework/ext/AITask/ai.css`, one additive line in `.claude/skills/layout/SKILL.md`, your task dir. Nothing else.
 - ⚠ framework.css is loaded by every page and every other agent's server: make its edit in ONE write, then load a page headless and read the console before anything else. A backtick inside `css(\`…\`)` kills every page; every rule inside a layer.
 - Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`. The owner's server (port 80) is NOT running; start your own: `PORT=8103 node server.js` from the repo root, in the background; kill it by PID when you land. `ui-test` has the headless recipe. A hidden tab does not lay out.

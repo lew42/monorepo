@@ -107,7 +107,7 @@ verdict: pass
 - 5 — yes — "paper: true — a real nine-grid" says exactly what the section is.
 - 6 — yes — the demo's caption is one block of plain sentences, not split across multiple captions per picture.
 - 7 — yes — "paper", "well" and "nine-grid" are each named once and used consistently across `page.js`, `readme.md` and `doc/decisions.md`.
-- 8 — yes — `readme.md` and `doc/decisions.md` cross-link each other and the brief (`ai/2026-09-30/dev-shell/shell-paper-demo/requirements.md`, `shell-paper/requirements.md`).
+- 8 — yes — `readme.md` and `doc/decisions.md` cross-link each other and the brief (`ai/sessions/2026/09/30/950de3ca-bb94-45bc-81c1-32992048b804/dev-shell/shell-paper-demo/requirements.md`, `shell-paper/requirements.md`).
 - 9 — yes — the `readme.md`/`doc/decisions.md` prose sits beside the live page and demo, not alone.
 - 10 — yes — the page leads with "Five regions, all optional…" before any detail.
 - 11 — yes — the new copy (page.js comments, readme.md, doc/decisions.md) is written in full plain sentences, consistent with the rest of the module.

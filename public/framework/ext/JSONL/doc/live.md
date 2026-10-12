@@ -11,7 +11,7 @@ which during a parallel fan-out meant the board reloading every few seconds whil
 you were reading it.
 
 ```js
-const task = new TaskJSONL({ url: "/framework/ai/2026-08-15/live-streaming/task.jsonl" });
+const task = new TaskJSONL({ url: "/framework/ai/sessions/2026/08/15/live-streaming/task.jsonl" });
 await task.live(() => $box.empty(() => render(task)));
 ```
 
@@ -109,7 +109,7 @@ proved delivery has nothing to do with Block at all.
 Fixed with one function, `key(url) = new URL(url, location.href).pathname`, used everywhere
 `streams` is touched (`stream()`, `drop()`) and everywhere a subscribe/unsubscribe goes out
 over the wire — so every existing caller, either shape, now matches what comes back. Full
-account and the load-event proof: `ai/2026-09-19/reload-hold/requirements.md`.
+account and the load-event proof: `ai/sessions/2026/09/19/reload-hold/requirements.md`.
 
 ## Why `JSONL.js` imports `live.js`, and not the other way round
 

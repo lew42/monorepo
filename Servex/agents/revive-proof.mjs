@@ -8,7 +8,7 @@
  * told "Servex restarted mid-turn", and finishes the job.
  *
  * Its own registry dir in the OS temp dir: the real registry is never touched.
- * Saves its output to public/framework/ai/2026-09-24/concurrency/revive-proof.txt. */
+ * Saves its output to public/framework/ai/sessions/2026/09/24/concurrency/concurrency/revive-proof.txt. */
 
 import fs from "node:fs";
 import os from "node:os";
@@ -19,7 +19,7 @@ import { Agents } from "./Agents.js";
 
 const HERE = fileURLToPath(import.meta.url);
 const REPO = path.resolve(path.dirname(HERE), "..", "..");
-const OUT = process.env.PROOF_OUT ?? path.join(REPO, "public/framework/ai/2026-09-24/concurrency/revive-proof.txt");
+const OUT = process.env.PROOF_OUT ?? path.join(REPO, "public/framework/ai/sessions/2026/09/24/concurrency/concurrency/revive-proof.txt");
 const DIR = path.join(os.tmpdir(), "servex-revive-proof");
 const HAIKU = "claude-haiku-4-5-20251001";
 const wait = ms => new Promise(r => setTimeout(r, ms));

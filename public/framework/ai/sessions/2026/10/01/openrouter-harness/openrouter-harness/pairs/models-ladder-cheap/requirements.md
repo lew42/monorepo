@@ -12,7 +12,7 @@ A new section on the existing Models page, [/framework/ai/system/models/](http:/
 - One plain sentence above the table, computed from the data: the cheapest model that passed all four rungs, or, if none did, the cheapest that passed the most.
 
 ## How (the page never computes; a node script does)
-- The numbers come from `Servex/ext/openrouter/evals/models.mjs`, which writes `public/framework/ai/system/models/models.json`. Extend it to add a `ladder` block. Prices come from `public/framework/ai/2026-09-30/openrouter-harness/test-library/ladder-models.json` where they are listed. Otherwise use OpenRouter's public `https://openrouter.ai/api/v1/models` (no key needed). Use Anthropic's list price for Claude models. Sonnet is $2 in and $10 out per 1M tokens.
+- The numbers come from `Servex/ext/openrouter/evals/models.mjs`, which writes `public/framework/ai/system/models/models.json`. Extend it to add a `ladder` block. Prices come from `public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/ladder-models.json` where they are listed. Otherwise use OpenRouter's public `https://openrouter.ai/api/v1/models` (no key needed). Use Anthropic's list price for Claude models. Sonnet is $2 in and $10 out per 1M tokens.
 - Draw it in `public/framework/ai/overview.js`, in `render_models()`, using the same widgets the page already uses.
 - Run the script, then check the page.
 
@@ -24,5 +24,5 @@ Edit only these files there: `Servex/ext/openrouter/evals/models.mjs`, `public/f
 - **Do NOT merge, and do NOT run merge.mjs.** Commit in your worktree. Do NOT spawn minions.
 - Read the readme chain first: the root `readme.md`, then `public/framework/readme.md`, then the readme in each folder you work in.
 - Log as you go in your task log (its path is in your first message), with `node .claude/hooks/append.mjs <task.jsonl> <lines.json>`.
-- **Check it works:** `node Server/smoke.mjs <your worktree> /framework/ai/system/models/` (run from your worktree) must exit 0. Save `shot-1200.png` and `shot-400.png` of the page in YOUR task folder (`public/framework/ai/2026-09-30/openrouter-harness/pairs/models-ladder-cheap/` in the main repo, `C:/Code/lew42/monorepo`).
+- **Check it works:** `node Server/smoke.mjs <your worktree> /framework/ai/system/models/` (run from your worktree) must exit 0. Save `shot-1200.png` and `shot-400.png` of the page in YOUR task folder (`public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/pairs/models-ladder-cheap/` in the main repo, `C:/Code/lew42/monorepo`).
 - When done, write `result.md` in your task folder in five to ten plain lines: what you built, the files, what works, what doesn't. Then stop.

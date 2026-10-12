@@ -1,6 +1,6 @@
 // readme-weight.mjs — every readme an agent auto-loads, and every local file it links to, measured.
 // Law 7: computed, never recalled. Run from the repo root:
-//   node public/framework/ai/2026-10-03/readme-weight/readme-weight.mjs
+//   node public/framework/ai/sessions/2026/10/03/readme-weight/readme-weight.mjs
 // Writes readme-weight.json beside itself and prints the heaviest offenders.
 import fs from "node:fs";
 import path from "node:path";

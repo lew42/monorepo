@@ -1,6 +1,6 @@
 # Minion C — answer the fresh-eyes review of this task
 
-Load the `minion` skill first. Task dir: `public/framework/ai/2026-09-28/fresh-eyes-review/` (main tree, C:\Code\lew42\monorepo). Read `requirements.md`, then `review.md` there — a fresh Opus reviewed this task's own branch and found what follows. Work ONLY in the worktree `C:\Code\lew42\worktrees\fresh-eyes-review` (branch `worktree/fresh-eyes-review`); commit there with `git add <file>` by name (`Server/smoke.mjs` sits there untracked on purpose — never add it). Do not merge.
+Load the `minion` skill first. Task dir: `public/framework/ai/sessions/2026/09/28/b6fa1bc1-fad0-4bdd-9b20-8cd1cd20afb4/fresh-eyes-review/` (main tree, C:\Code\lew42\monorepo). Read `requirements.md`, then `review.md` there — a fresh Opus reviewed this task's own branch and found what follows. Work ONLY in the worktree `C:\Code\lew42\worktrees\fresh-eyes-review` (branch `worktree/fresh-eyes-review`); commit there with `git add <file>` by name (`Server/smoke.mjs` sits there untracked on purpose — never add it). Do not merge.
 
 **Fence:** `Server/review.mjs`, `Server/merge.mjs` (the review lines only, and keep every line of the main tree's `C:\Code\lew42\monorepo\Server\merge.mjs` verbatim in yours — additions only, never rewording, or the landing conflicts), `Server/doc/review.md`. Every spawn keeps `windowsHide: true`.
 

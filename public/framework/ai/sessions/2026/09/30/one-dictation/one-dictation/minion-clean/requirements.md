@@ -1,12 +1,12 @@
 # Minion brief: merge 13, clean transcribe
 
-Load the `minion` skill first. Your parent is **task-mastermind-one-dictation**. Read `public/framework/ai/2026-09-30/one-dictation/checklist-2026-10-01.md`: you own item **6**. Merges 11 (one widget) and 12 (the dot) have landed.
+Load the `minion` skill first. Your parent is **task-mastermind-one-dictation**. Read `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/checklist-2026-10-01.md`: you own item **6**. Merges 11 (one widget) and 12 (the dot) have landed.
 
 ## Why
 The owner's words: a "clean UI" checkbox, a toggle in settings. While it's on, speech is transcribed straight into the outgoing chat bubble, with no text area and no Send button. Today's text-area mode works and stays as the other choice. The owner said it is "maybe the default".
 
 ## What exists (finish it, don't start a second one: law 6)
-`ai/2026-10-01/clean-dictate-mode/` ended without landing because it had no shell. It left this behind:
+`ai/sessions/2026/10/01/clean-dictate-mode/clean-dictate-mode/` ended without landing because it had no shell. It left this behind:
 - `MODES.live = { into: "chat", bubble: true }` in `ux/Dictate/Widget.js`;
 - `Widget.Thread.live()`, which draws the words being spoken as a growing bubble;
 - the `on_live` hook passed to the composer.

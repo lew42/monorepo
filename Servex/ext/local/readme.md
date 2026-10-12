@@ -32,7 +32,7 @@ VRAM) can't hold two — so picking a different model stops the one running and
 starts the new one, a few seconds' wait.
 
 **`qwen3-8b` is the one to actually use for tool-calling tasks** (the
-2026-10-04 local-model-hunt, [report](/framework/ai/2026-10-04/local-model-hunt/report.md)):
+2026-10-04 local-model-hunt, [report](/framework/ai/sessions/2026/10/05/local-ctx-fix/local-model-hunt/report.md)):
 it's the only local model tested so far that reliably calls a tool through
 this proxy — `qwen2.5-coder` and `hermes-3-llama-3.1-8b` (despite being
 marketed as a function-calling fine-tune) both either skip the tool or never
@@ -70,7 +70,7 @@ easiest way to try this without writing any code.
   comment for the measurement that found this.
 - **`allowedTools` does not restrict what a model is OFFERED** — it only
   auto-approves. The SDK's `tools` option is the real restriction (see
-  `h1-eval.mjs`, `public/framework/ai/2026-10-01/local-ai/build/`, for the
+  `h1-eval.mjs`, `public/framework/ai/sessions/2026/09/24/servex-mastermind-opus/local-ai/build/`, for the
   measurement: a small model's whole context window can be blown by the
   grammar for tools it was never going to call — a 50-tool repo `.mcp.json`
   first, then the calling session's own ~30 built-in tools, both before the
@@ -93,7 +93,7 @@ fast (2.7–6.7s). So the realistic lane for these models today is a no-tool tas
 
 ## More
 
-- Task that built this: `public/framework/ai/2026-10-01/local-ai/build/`
+- Task that built this: `public/framework/ai/sessions/2026/09/24/servex-mastermind-opus/local-ai/build/`
 - The OpenRouter provider this one's shape is copied from: [`../openrouter/`](../openrouter/)
 - Every model Servex has tried, local and cloud, side by side:
   [`/framework/ai/system/models/`](/framework/ai/system/models/)

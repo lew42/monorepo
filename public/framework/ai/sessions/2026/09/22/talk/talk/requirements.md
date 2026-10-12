@@ -2,7 +2,7 @@
 
 Minion: Opus, effort high. Session id `1b8ccd50-fe41-427c-b12d-a4bbdd76aabd`. You are IN A
 WORKTREE (the launcher says where; your server's port). Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first. Load `code`,
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first. Load `code`,
 `layout`, `css`, `new-page`, `ui-test`. **This is the owner's number-one ask right now; the
 fastest version that truly works wins, and it lands within the hour.**
 
@@ -19,7 +19,7 @@ fastest version that truly works wins, and it lands within the hour.**
   while a segment streams from whisper, `commit(text)` on a finished sentence which also
   posts `{type: "prompt", by: "owner", text, via: "whisper"}` to Servex `POST
   http://127.0.0.1:8090/log/prompts`), `capture.js` (16 kHz worklet; `loudness()` and a
-  level now exist — `dictate-silence`), the bench at `ai/2026-09-22/dictate-silence/`.
+  level now exist — `dictate-silence`), the bench at `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`.
   `dictate-silence` is being edited by another minion RIGHT NOW (mic picker, record-until-stop,
   a level on the mic button) — **you import Dictate, you do not edit it**; if the copy in your
   worktree is mid-edit and broken, `node --check` it, log it, and pull the latest from the main

@@ -14,7 +14,7 @@ Worktree `C:/Code/lew42/worktrees/assistant-layers`, branch `worktree/assistant-
 
 ## Read first
 
-`C:/Code/lew42/monorepo/public/framework/ai/2026-09-24/assistant-layers/doc/design.md` (the design), then in the worktree: `Servex/agents/readme.md`, `Layers.js`, `Global.js`, `policy.js`, `claims.js`, `brief.js`, `tiers.js`, `card-assistant.md`, `master-assistant.md`, `mastermind-servex.md`.
+`C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/doc/design.md` (the design), then in the worktree: `Servex/agents/readme.md`, `Layers.js`, `Global.js`, `policy.js`, `claims.js`, `brief.js`, `tiers.js`, `card-assistant.md`, `master-assistant.md`, `mastermind-servex.md`.
 
 ## Deliverables
 

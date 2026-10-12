@@ -8,7 +8,7 @@ The brief asked for the pass-through, with a stop condition. **I stopped.** Here
 
 ## Measured: the pass-through moves zero pixels
 
-Injected on `/framework/core/Page/doc/declaring` and `/framework/ai/2026-08-17/mastermind-shots/`
+Injected on `/framework/core/Page/doc/declaring` and `/framework/ai/sessions/2026/08/17/mastermind-shots/`
 at 390 / 1280 / 3440:
 
 ```css
@@ -43,7 +43,7 @@ never reaches.
 div.c("ai-task flow wide", …)     // AITask.js:76 — one word
 ```
 
-| `/framework/ai/2026-08-17/mastermind-shots/` | before | after |
+| `/framework/ai/sessions/2026/08/17/mastermind-shots/` | before | after |
 |---|---|---|
 | tables @1280 | 602px | **890px** |
 | tables @3440 | 720px | **2,806px** |

@@ -16,7 +16,7 @@ For EACH task below:
 2. Check the ask against reality: do the files it should have created exist and contain the thing? Run git log -- <dir> and git log --all --oneline --grep=<slug> to find commits. NOTE: a child folder shares its parent's commits, so only count commits whose subject names this task or whose diff touches this task's files.
 3. Write a receipt file with the Write tool at the path given below (JSON, one object). Fields:
    row (number, as given), searched (list: the exact patterns/commands you ran), found (list: real file paths relative to the repo root, and commit hashes), missing (list: what you looked for and could NOT find), verdict (one of done, partial, not-started, superseded, unclear), confidence (high, medium or low), next_step (the smallest step that would land it, one sentence), agrees (true if your verdict matches the old label, else false), why (required when agrees is false).
-4. Record it by running: node public/framework/ai/2026-10-08/task-audit/receipts.mjs add <receipt file>
+4. Record it by running: node public/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/receipts.mjs add <receipt file>
    If it says REJECTED, fix the receipt and run it again. If it prints WARNING about a cited path, you cited something that does not exist: correct the receipt and add it again.
 Never hand-write verified.jsonl. Say "unclear" with low confidence rather than guess. Stay under about 40k tokens of reading: read headers and the first 80 lines of big files.
 When done, reply with exactly 3 lines: what you found (verdicts), how many receipts recorded, your confidence.

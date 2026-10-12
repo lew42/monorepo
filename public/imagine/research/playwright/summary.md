@@ -14,7 +14,7 @@
 
 1. **The official Playwright MCP server** hands an agent a structured accessibility-tree snapshot of the page (roles, names, text) instead of a picture — click a named element, not a pixel. [github.com/microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)
 2. **Anthropic's computer use** is the opposite approach: a screenshot plus mouse/keyboard tools, reasoning over an image and coordinates instead of the DOM. [platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/computer-use-tool)
-3. **This repo already does both** — the `ui-test` skill drives real drag/resize gestures headless and measures the result ([proof run](https://lew42.com/framework/ai/2026-08-19/ui-test-skill/)); the vision runner shoots a page and asks a model to critique it ([vision runner](https://lew42.com/framework/ext/DesignTool/vision/)).
+3. **This repo already does both** — the `ui-test` skill drives real drag/resize gestures headless and measures the result ([proof run](https://lew42.com/framework/ai/sessions/2026/08/19/ui-test-skill/)); the vision runner shoots a page and asks a model to critique it ([vision runner](https://lew42.com/framework/ext/DesignTool/vision/)).
 
 ## Three honest limits
 

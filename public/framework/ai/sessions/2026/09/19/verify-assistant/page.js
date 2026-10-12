@@ -1,7 +1,7 @@
 import { Page, md, div, p, span, b } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board — the ordinary
                 page grid: main for prose, wide for the card wall and the table.
    2 SIZE       four disagreement cards at 1 1 20em wrap to 4 / 2 / 1 columns;
                 the rest is one compact table. Prose stays at --measure.
@@ -34,7 +34,7 @@ const DISAGREE = [
 		found: "I loaded the importance view myself: the two top-ranked cards really do span two columns with a bigger title, above a column of normal-sized ones.",
 	},
 	{
-		id: "asks-log", was: "differs", now: "done", url: "/framework/ai/2026-09-17/mastermind-layout-browser/asks.md",
+		id: "asks-log", was: "differs", now: "done", url: "/framework/ai/sessions/2026/09/17/mastermind-layout-browser/asks.md",
 		what: "The audit downgraded this from done to differs over one caveat: some of the ledger's own 'quote' fields are the mastermind's paraphrase, not the owner's exact words.",
 		found: "That caveat is true but belongs to the ledger, not to asks.md — the file the owner actually asked for. It exists, is auto-generated so it can't drift, and is the second line of the handover, exactly as asked.",
 	},
@@ -69,7 +69,7 @@ export default new Page({
 		this.wall();
 
 		md("## The other ten — checked, verdict unchanged\n\n| topic | verdict | why | task |\n| --- | --- | --- | --- |\n" +
-			AGREE.map(r => "| **" + r[0] + "** | " + r[1] + " | " + r[2] + " | [" + r[3] + "](/framework/ai/2026-09-19/" + r[3] + "/) |").join("\n")
+			AGREE.map(r => "| **" + r[0] + "** | " + r[1] + " | " + r[2] + " | [" + r[3] + "](/framework/ai/sessions/2026/09/19/" + r[3] + "/) |").join("\n")
 		).ac("wide");
 
 		p.c("muted", "Full evidence for all 14 rows — file and line, quotes, the exact live shot — is in ", span.c("code", "verify.jsonl"), " beside this page, and the reasoning is logged as it happened in this task's own log.");
@@ -82,7 +82,7 @@ export default new Page({
 	},
 
 	card(d){
-		const url = d.url ?? "/framework/ai/2026-09-19/" + d.task + "/";
+		const url = d.url ?? "/framework/ai/sessions/2026/09/19/" + d.task + "/";
 		const label = d.url ? "the evidence" : d.task;
 		return div.c("surface pad flex v gap-25", () => {
 			p.c("h4", d.id);

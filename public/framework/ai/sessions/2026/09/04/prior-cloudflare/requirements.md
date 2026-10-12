@@ -18,7 +18,7 @@ In this repo:
 - `wrangler.jsonc`, `readme.md` (Cloudflare Previews section), `public/fly/readme.md` (the trailing-slash hybrid), `public/blog/doc/meta-tags.md`.
 - `public/imagine/cms/services/page.js`, `public/imagine/cms/readme.md`, `public/imagine/cms/doc/`, `public/imagine/cms/thinking.md`.
 - `public/imagine/stream/readme.md`, `public/imagine/stream/doc/durable-objects.md`, `public/imagine/stream/doc/decisions.md`.
-- `public/framework/ai/2026-08-30/cloudflare-mcp/requirements.md` + the last line of its `task.jsonl`; `public/framework/ai/2026-08-30/streaming-pages/requirements.md`; `public/framework/ai/2026-08-30/cms-thinking/requirements.md`.
+- `public/framework/ai/sessions/2026/08/30/cloudflare-mcp/requirements.md` + the last line of its `task.jsonl`; `public/framework/ai/sessions/2026/08/30/streaming-pages/requirements.md`; `public/framework/ai/sessions/2026/08/30/cms-thinking/requirements.md`.
 - `Server/plugins/Auth.js`, `Server/plugins/MCP.js` (one line each: what they are).
 - `public/framework/dev/Socket/doc/localhost.md`, `public/framework/faq/page.js` (grep for cloudflare).
 

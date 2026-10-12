@@ -20,8 +20,8 @@ against eighteen hand-rated screenshots the old aggregate came out
 count Spearman **−0.519** — because it counted findings and findings scale with
 content, so it rewarded emptiness: grade A / 96 to the worst-looking page in the
 corpus, its lowest score to the best, and never a reading below 70 across a
-36-point reality. Evidence: `ai/2026-08-17/vision-baseline/`. The removal and the
-rebasing: `ai/2026-08-17/tier-calibration/`.
+36-point reality. Evidence: `ai/sessions/2026/08/17/vision-baseline/`. The removal and the
+rebasing: `ai/sessions/2026/08/17/tier-calibration/`.
 
 **Every rule survived. Only the average did not** — the same rules found the
 catalog scroll boundary that was hiding content on 18 pages. Rows sort by
@@ -47,7 +47,7 @@ possible because there is no truncation.
 
 A headless Playwright pass driving `analyze()` per page × width — see
 `DesignTool/readme.md`'s baseline section for the `page.evaluate()` shape.
-Method and scripts: `ai/2026-08-16/audit-baseline/`.
+Method and scripts: `ai/sessions/2026/08/16/audit-baseline/`.
 
 ## Traps
 

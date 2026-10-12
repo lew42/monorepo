@@ -1,6 +1,6 @@
 # Minion brief: the Inbox shows only what matters (priority 50 and up)
 
-Load the `minion` skill first, then `code`. Parent: task-mastermind-inbox-ext. Task dir: `public/framework/ai/2026-09-30/inbox-ext/`. Read its `owner-words.md`, last section ("Inbox = priority 50+, Log = everything"), before anything.
+Load the `minion` skill first, then `code`. Parent: task-mastermind-inbox-ext. Task dir: `public/framework/ai/sessions/2026/09/30/inbox-ext/`. Read its `owner-words.md`, last section ("Inbox = priority 50+, Log = everything"), before anything.
 
 ## The owner's words (verbatim, the part that is yours)
 

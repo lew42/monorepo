@@ -38,7 +38,7 @@ load → reload → load where relevant. Touches the same fence as `dictate-fixe
 `ux/Dictate/`, `ext/Chat/`, `ai2/` (rail.js, card.js).
 
 Read `public/framework/ux/Dictate/doc/decisions.md`'s new "Four owner-visible fixes" section and
-`public/framework/ai/2026-10-04/dictate-fixes/task.jsonl` first — this is continuation work on
+`public/framework/ai/sessions/2026/10/05/dictate-fixes/dictate-fixes/task.jsonl` first — this is continuation work on
 code that task just changed (whisper_seen/detect_engine retry, the mic/socket/whisper status
 line, the instant-send cleaning…/sent-waiting states), not a clean slate.
 

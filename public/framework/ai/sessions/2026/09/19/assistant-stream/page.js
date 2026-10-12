@@ -5,7 +5,7 @@ import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 
 View.stylesheet(import.meta, "demo.css");
 
-/* THE STREAM, shown rather than told — ai/2026-09-19/assistant-stream/requirements.md.
+/* THE STREAM, shown rather than told — ai/sessions/2026/09/19/assistant-stream/requirements.md.
  * Two live boxes for one reply: the LEFT one fills from `ask_chunk`, the rpc straight to
  * this tab (`ext/Ask/stream.js`); the RIGHT one fills from tailing `scratch-board.jsonl`,
  * the shared log any tab, the mastermind or a minion can write to (the coordinator's

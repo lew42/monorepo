@@ -25,9 +25,9 @@ titled `Web` gives its children `/web/html/`, `/web/css/` … and those *look* l
 links: left-click works, because the box intercepts it. Middle-click,
 open-in-new-tab, copy-link and every crawler get the app's own "nothing matches"
 404 instead — which is how the site's homepage came to advertise four dead urls
-from its highest-authority page ([the critique](/framework/ai/2026-08-30/critique-blog/)).
+from its highest-authority page ([the critique](/framework/ai/sessions/2026/08/30/critique-blog/)).
 An audit of all 91 call sites on the site found none that wanted a real href
-([ai/2026-08-30/demo-urls-audit/](/framework/ai/2026-08-30/demo-urls-audit/)), so
+([ai/sessions/2026/08/30/demo-urls-audit/](/framework/ai/sessions/2026/08/30/demo-urls-audit/)), so
 this is the default now, not an opt-in.
 
 By default the address stays off `href` and on `data-demo-url`. `followed()`

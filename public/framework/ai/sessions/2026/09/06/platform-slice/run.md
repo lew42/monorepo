@@ -139,8 +139,8 @@ Two Playwright scripts do the whole walk above and assert the DOM, rather than t
 screenshot. With the harness running:
 
 ```
-node public/framework/ai/2026-09-06/platform-slice/slice-test.mjs      # 12 assertions, sections 2-5
-node public/framework/ai/2026-09-06/platform-slice/offline-test.mjs    # 6 assertions, section 6
+node public/framework/ai/sessions/2026/09/06/platform-slice/slice-test.mjs      # 12 assertions, sections 2-5
+node public/framework/ai/sessions/2026/09/06/platform-slice/offline-test.mjs    # 6 assertions, section 6
 ```
 
 Both were green on 2026-09-06, and the timed cold run — fresh terminal to twelve green assertions

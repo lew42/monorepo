@@ -122,7 +122,7 @@ for.
 them mapped onto this standard, and **eighteen arrangements are eight layouts** — the other ten
 were the same division wearing a different proportion, technique, or composition. The mapping
 below is why the lab itself was deleted outright on 2026-09-18
-(`ai/2026-09-18/imagine-move-3/`), rather than moved here as a seventh entry under
+(`ai/sessions/2026/09/18/imagine-move-3/`), rather than moved here as a seventh entry under
 [`/layouts/labs/`](/layouts/labs/): there was nothing left in it this table doesn't already say.
 The old address is a one-line stub pointing at `/layouts/`.
 

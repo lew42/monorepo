@@ -4,7 +4,7 @@ Minion: Opus, effort high. Session id `913629f4-bebf-4ca2-95b0-d43d2cbdd3d6`. Re
 [`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then phase-2 item
 **10** in [`../tiers-design/doc/phases.md`](../tiers-design/doc/phases.md), the table and lean
 sets in [`../tiers-design/doc/skills.md`](../tiers-design/doc/skills.md), and the seven changes
-in `ai/2026-09-19/system-eval/changes.md`. The `skill-creator` skill is available if it helps;
+in `ai/sessions/2026/09/19/system-eval/changes.md`. The `skill-creator` skill is available if it helps;
 the house rule is the `mastermind` skill's "Skills improve themselves" section — read it before
 you cut anything.
 
@@ -52,7 +52,7 @@ anything; tiers-design's lean set is **128**. Nobody has applied anything.
    claude-haiku-4-5-20251001 --effort low` with the CLI recipe from the run ledger — the names
    appear); one Haiku minion launched with the CLI recipe on a two-line brief in your task dir
    ("load the minion skill, write hello.txt in this dir, land") still lands correctly.
-5. **One page — `ai/2026-09-22/skills-shrink-2/page.js`:** the before/after table per skill,
+5. **One page — `ai/sessions/2026/09/22/913629f4-bebf-4ca2-95b0-d43d2cbdd3d6/skills-shrink-2/page.js`:** the before/after table per skill,
    the two load-line numbers, what was left as a decision. Link it from `ai/2026-09-22/page.js`
    `children:`.
 

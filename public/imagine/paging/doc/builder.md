@@ -24,7 +24,7 @@ have not; this file assumes its "pages as pure JSON" table.
 
 **Every `page.js` under `public/` was read and classified: 890 files found, 890 rows
 classified.** The two numbers agree, and the sorter is
-`ai/2026-09-05/page-builder-ux/census.mjs` — re-runnable, so the number is checkable rather
+`ai/sessions/2026/09/05/page-builder-ux/census.mjs` — re-runnable, so the number is checkable rather
 than remembered. Every row is in `census.tsv` beside it.
 
 A row records: what navigation the page offers · its surface · its layout number (the old

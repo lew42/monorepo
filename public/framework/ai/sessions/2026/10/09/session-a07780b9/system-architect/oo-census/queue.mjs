@@ -1,4 +1,4 @@
-// node public/framework/ai/2026-10-09/system-architect/oo-census/queue.mjs [--write]
+// node public/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/queue.mjs [--write]
 // Turns each pick in top10.json into a queued task beside this script: <slug>/requirements.md and
 // <slug>/task.jsonl line 1 {"assign":{"now":"queued",…}}. Importer counts come from census.json.
 // Dry run by default (prints what it would write); never overwrites an existing brief or log.
@@ -20,7 +20,7 @@ picks.forEach((p, i) => {
 	const n = p.files.reduce((s, f) => s + imp(f), 0);
 	const brief = `# Code: turn ${p.files.map(f => "`" + path.basename(f) + "`").join(", ")} into the class \`${p.class}\`
 
-Queued by the [OO census](/framework/ai/2026-10-09/system-architect/oo-census/) (pick ${i + 1} of 10). The owner, 2026-10-09: classes and class hierarchies over lowercase files exporting loose functions; the class hierarchy should explain how a module works.
+Queued by the [OO census](/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/) (pick ${i + 1} of 10). The owner, 2026-10-09: classes and class hierarchies over lowercase files exporting loose functions; the class hierarchy should explain how a module works.
 
 ## Files
 

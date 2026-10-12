@@ -30,7 +30,7 @@ And the standing rule (2026-09-05): don't tell the reader what you are about to 
 
 ## Rules
 
-- Load `code`, `layout`, `css`; `new-task` before the first edit (your dir exists: `ai/2026-09-17/polish-critic/`); `finish-task` at the end; `skill-improvement` for any skill that misled you — you MAY append to `.claude/skills/*/improvements.md` (one line each); nothing else under `.claude/`.
+- Load `code`, `layout`, `css`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/polish-critic/`); `finish-task` at the end; `skill-improvement` for any skill that misled you — you MAY append to `.claude/skills/*/improvements.md` (one line each); nothing else under `.claude/`.
 - **Fence:** `public/imagine/design/color/**`, `public/framework/ext/Ask/**`, `public/imagine/design/navigation/**`, your task dir. Nothing else — not `/imagine/design/page.js`, not the dev bar, not core, not framework.css. Under `/imagine/` there is no page grid (a columns host): `wide` is meaningless, only `bleed` reaches the edge, column prose has a measure.
 - Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`. `ui-test` has the headless recipe; before/after shots of anything you fixed into your task dir as jpeg. A hidden tab does not lay out.
 - Landing: `outcome` = a headline (found N, fixed N, left N per page), the list by number, one before/after pair per page you changed, the three links. One screen.

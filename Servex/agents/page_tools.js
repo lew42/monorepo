@@ -40,7 +40,7 @@ const PUBLIC = path.join(ROOT, "public");
 let check = () => null;
 try { ({ check } = await import("../../.claude/hooks/jsonl-schema.mjs")); } catch {}
 
-/* `url` is a page's address ("/framework/ai/2026-10-02/page-tools/demo/"); its page.jsonl
+/* `url` is a page's address ("/framework/ai/sessions/2026/10/02/page-tools/demo/"); its page.jsonl
  * sits one join away. Refuses anything that resolves outside public/ — the same gate
  * Append.js and Tail.js keep on the browser's own writes. */
 function resolve_file(url){

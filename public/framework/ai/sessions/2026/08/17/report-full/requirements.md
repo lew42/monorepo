@@ -9,7 +9,7 @@ different bug — say so instead of writing more code.**
 > the report page is split 50/50 with the rail (the rail is full width, on top,
 > rather than a vertical rail...) can the report page "takeover" and go "full"?
 
-On `/framework/ai/2026-08-17/report/` at his width, the rail is eating half the
+On `/framework/ai/sessions/2026/08/17/report/` at his width, the rail is eating half the
 screen and stacking above the content instead of standing beside it.
 
 ## The answer is yes, and the pattern exists
@@ -45,7 +45,7 @@ still reads well as the only route back.
 
 ## The fence, and it matters
 
-- **You own `public/framework/ai/2026-08-17/report/**` only.**
+- **You own `public/framework/ai/sessions/2026/08/17/report/**` only.**
 - ⚠ **`ext/AITask/**` is being edited by another agent right now — do not touch it,
   including `ai.css`.** ⚠ `ext/catalog/**` is shared by every catalog page on the
   site.

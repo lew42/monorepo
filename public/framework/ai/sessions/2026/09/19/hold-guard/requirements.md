@@ -90,7 +90,7 @@ Those three outcomes are the whole test. Put the actual output of each in your l
 ## Fences
 
 You own: `.claude/hooks/**` (your new hook, plus reading the others), `Server/hold.mjs`,
-`Server/doc/watch.md`, and `public/framework/ai/2026-09-19/hold-guard/**`. One line in the day
+`Server/doc/watch.md`, and `public/framework/ai/sessions/2026/09/19/hold-guard/**`. One line in the day
 page's `children:`, one append to its `day.jsonl`.
 
 `Server/health.mjs` and `Server/health-supervisor.mjs` were edited tonight by another task and are

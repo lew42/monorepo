@@ -4,7 +4,7 @@
 
 > TASK W3c — the homepage, rebuilt for job prospecting.
 >
-> THE AUDIT VERDICT (`ai/2026-08-30/site-audit/`): `/` grades 2/2/2 — hero text + link cards,
+> THE AUDIT VERDICT (`ai/sessions/2026/08/30/site-audit/`): `/` grades 2/2/2 — hero text + link cards,
 > NO live demo above the fold, and the audit's whole-site headline is that entry pages tell
 > instead of show. THE OWNER'S ASKS this week, all landing here: blog posts listed on the
 > homepage; strong overview + navigation above the fold; a compact demo that shows something

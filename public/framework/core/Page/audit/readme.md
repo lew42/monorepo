@@ -8,7 +8,7 @@ crawled headless and given one layout by its DOM marker. Pick a new page's layou
 - [reuse](./reuse/) — why pages drift, and the four changes that make reuse the default
 
 ## Use
-- Re-run it: the crawl (`ai/2026-09-30/page-audit/crawl/crawl.mjs`, resumable), then
+- Re-run it: the crawl (`ai/sessions/2026/09/30/page-audit/page-audit/crawl/crawl.mjs`, resumable), then
   `node classify.mjs --emit <this folder>`; the design numbers come from
   `node Server/layout-check.mjs --bands <urls>` then `node design-emit.mjs <this folder>/design`.
 - `data.js` and `design/data.js` are written by those scripts. Never edit them by hand.

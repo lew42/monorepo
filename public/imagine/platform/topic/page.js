@@ -110,7 +110,7 @@ export default new Page({
 		   `prefs()` — your run, nobody else's, gone if you clear the browser. This button is
 		   a row in a real database, written by a signed-in user through a real Worker: the
 		   whole slice, on one url. It is a dash until the harness is running, on purpose —
-		   `npm run dev`, then [the recipe](/framework/ai/2026-09-06/platform-slice/run.md). */
+		   `npm run dev`, then [the recipe](/framework/ai/sessions/2026/09/06/platform-slice/run.md). */
 		div.c("flex v gap", () => {
 			like(this.url);
 			who();

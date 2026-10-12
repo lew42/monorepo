@@ -96,7 +96,7 @@ drawer grip as a responsive handle — and a redirect would delete a working too
 file. What folded is the rail, not the page.
 
 The full report, with the control counts before and after and the three shots:
-[`/framework/ai/2026-09-17/editor-select/`](/framework/ai/2026-09-17/editor-select/).
+[`/framework/ai/sessions/2026/09/17/editor-select/`](/framework/ai/sessions/2026/09/17/editor-select/).
 
 ## The bar sweep — the rail is the UI (2026-08-19)
 
@@ -234,7 +234,7 @@ picker does not auto-open — reaching `focus.js`'s imperative setter or
 takes the default template and the rail lights it the instant it is clicked.
 
 **`insert.js`'s seam `+` was eating a nested seam drag**
-(`ai/2026-08-18/panel-flow/`'s finding) — not at its OWN split's interior
+(`ai/sessions/2026/08/18/panel-flow/`'s finding) — not at its OWN split's interior
 gaps (the stub's whole box sits inside that grip's ±0.625rem strip there, an
 accepted tradeoff since 2026-08-16: "the grip keeps all but `--insert-run`
 of every seam"), but at a NESTED split's own edge, which coincides with a
@@ -259,7 +259,7 @@ beside the root's own word, for any split (root or not, matching
 the same pattern `size_pop` uses, because a plain `set()` raises `change`,
 which never redraws a bar.
 
-Proven headless (`ai/2026-08-19/workspace-d-verbs/`): edge-click on a
+Proven headless (`ai/sessions/2026/08/19/workspace-d-verbs/`): edge-click on a
 toned/grid leaf → the twin shares `tone`/`display`/`cols`, an empty
 template, `grow` 1/1; the bar's `+` beside a leaf and on a document root
 both add one (2→3), the root's last child fresh and blank; the nested seam
@@ -272,7 +272,7 @@ drags 100px with the insert `+` present; the bar's group toggle flips
 **Question.** `workspace()` mounted a root directly into one box, and a second
 whole-window view of the same document (`/full/`) was a second, independent
 `workspace()` call — its own `Item.open()`, its own root, racing the first on
-every save. Design (`ai/2026-08-19/workspace-design/design.md`) asked for a
+every save. Design (`ai/sessions/2026/08/19/workspace-design/design.md`) asked for a
 class that HOLDS a root instead, so N viewports could be N views of ONE root.
 
 **Verdict.** `ext/Panel/Workspace/` — a `Workspace` class, never `extends
@@ -527,7 +527,7 @@ nothing from `ext/layout` — not even `btn()`; `toolbar.js` has its own one-lin
 `btn`. The drawer remains one-per-document and remains `ext/layout`'s
 business. What a panel needs is a *properties* surface, not a selected-element
 inspector: see [sidebar
-strategy](/framework/ai/2026-08-15/panel-ui-overhaul/doc/sidebar-strategy.md).
+strategy](/framework/ai/sessions/2026/08/15/panel-ui-overhaul/doc/sidebar-strategy.md).
 
 ## The gap between panels, and what grabs it
 
@@ -614,7 +614,7 @@ because dropping the cell slides the next row's mark up into the hole.
 ## Open
 
 - **Three live mounts on one document, not the two the readme once recorded.**
-  `/framework/ext/Panel/`, its `/full/` route, and `ai/2026-08-13/panel/page.js`
+  `/framework/ext/Panel/`, its `/full/` route, and `ai/sessions/2026/08/13/panel/page.js`
   each `Item.open()` the same `/data/panels.json` — three, not two. `Page` caches
   views, so after visiting any two, the last writer wins. A shared-document
   registry is the fix if it ever bites; the cheap version already used elsewhere
@@ -660,7 +660,7 @@ because dropping the cell slides the next row's mark up into the hole.
   may return once a panel has a height to align inside; the shape is not decided.
 
 Fuller review, with severities and file:line for every item above:
-[Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/), 2026-08-14.
+[Editor × Panel review](/framework/ai/sessions/2026/08/14/editor-panel-review/), 2026-08-14.
 
 ---
 
@@ -961,7 +961,7 @@ side track the same panel, because an inspector is a panel —
   fit a phone is scaled by `ext/demo`'s stage; per-width fidelity, if ever
   wanted, is `structure(seed, width)` chosen at roll time. Reasoning and the
   rejected candidates:
-  [reflow proposal](/framework/ai/2026-08-15/reflow-proposal/doc/reflow.md).
+  [reflow proposal](/framework/ai/sessions/2026/08/15/reflow-proposal/doc/reflow.md).
 - **A declared extent is capped by the slot, never by the panel.** `--panel-hug` is
   a promise a 200px workspace cannot keep, so both uses read
   `min(var(--panel-hug), 100cq…)` where the `cq` is `.panel-workspace` or
@@ -1011,7 +1011,7 @@ side track the same panel, because an inspector is a panel —
   persistence, which are the four things a rail would have to grow API for. The
   `ext/layout` drawer stays exactly what it is — the *selected element's* words
   on an ordinary page. Candidates A–D:
-  [sidebar strategy](/framework/ai/2026-08-15/panel-ui-overhaul/doc/sidebar-strategy.md).
+  [sidebar strategy](/framework/ai/sessions/2026/08/15/panel-ui-overhaul/doc/sidebar-strategy.md).
 - **Focus is a selection, so it is an id on the root and never saved.** It rides
   the root panel beside `templates`, clears when its panel leaves the tree, and
   is taken by a click on a panel's own bar or body — never by a grip, because
@@ -1234,13 +1234,13 @@ Full reasoning, alternatives considered, and what's still open:
   so writing one on a filling axis **is** the collapse. `grip.css` hides a seam beside a
   floating panel, which separates nothing. Record: `file/size.js.md`.
 - The flex-vs-grid decision underneath a symmetric 3×3:
-  [panel chrome phase 2](/framework/ai/2026-08-16/panel-icon-buttons/).
+  [panel chrome phase 2](/framework/ai/sessions/2026/08/16/panel-icon-buttons/).
 
 **How this module got here.** The 2026-08-16 wave that turned it from chrome into a
 direct-manipulation tool — twelve gestures, text persistence, per-axis sizing,
 self-alignment, `position`, live duplicates — is recorded with its measurements, its five
 adversarially-found bugs and every decision that was weighed and rejected:
-[panel swiss army](/framework/ai/2026-08-16/panel-swiss-army/).
+[panel swiss army](/framework/ai/sessions/2026/08/16/panel-swiss-army/).
 - **Three live mounts share one document, not the two originally recorded**
   (`/framework/ext/Panel/`, its `/full/` route, and the 2026-08-13 task
   page) — `Page` caches views, so visiting any two leaves the last writer
@@ -1274,7 +1274,7 @@ adversarially-found bugs and every decision that was weighed and rejected:
   before you start, never mid-gesture, and Alt-drop's freshly-read coordinate can no
   longer land on the previous element.
 
-Full ledger with severities and file:line: [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/).
+Full ledger with severities and file:line: [Editor × Panel review](/framework/ai/sessions/2026/08/14/editor-panel-review/).
 
 
 ## The flex and grid words — one table, or two hosts? (2026-08-18)
@@ -1334,7 +1334,7 @@ it before the pointer leaves. Nothing else on the bar gained a rebuild.
 
 ## Every template draws into one wrapper — so what do the words arrange? (2026-08-18)
 
-**The finding** (`ai/2026-08-18/panel-grid/`): all 28 `T` entries wrap their
+**The finding** (`ai/sessions/2026/08/18/panel-grid/`): all 28 `T` entries wrap their
 drawing in a single `div`, so a leaf's `display: flex|grid` never sees more than
 one child on any shipped template. The words were about to be inert on the very
 content they arrange.
@@ -1429,7 +1429,7 @@ SPA keeps the page you came from mounted.
 seam; a **nested column split's** bar covers 2.2rem of its own left edge, which is
 the middle of the outer seam. Pressing there resizes nothing and opens nothing —
 one more measurement under the standing proposal that `insert.js` should go
-(`ai/2026-08-18/panel-complexity/`). Not changed here: that file was another
+(`ai/sessions/2026/08/18/panel-complexity/`). Not changed here: that file was another
 task's.
 
 **The stage stays a composition.** `demo.stage(() => panel(seed))` is the whole
@@ -1553,7 +1553,7 @@ Proved headless, both branches: an empty target ends up with exactly one
 child (the dragged panel) and `--panel-pad: 1em`; a target with content ends
 up with two (its own content, relocated, beside the dragged panel) — same as
 `split()` always produced. Screenshots: `drop-1-hover.png` (indicator showing,
-mid-drag), `drop-2-mid.png`, `drop-3-after.png`, in `ai/2026-08-19/panel-groups/`.
+mid-drag), `drop-2-mid.png`, `drop-3-after.png`, in `ai/sessions/2026/08/19/panel-groups/`.
 
 **Storage, for the record.** Every panel is a plain `Item` — `items` a `List`,
 events, a `Saver` reachable through `save()`/`delete()`'s delegation up. A flow
@@ -1619,7 +1619,7 @@ update. Not a `properties.js` change — a note for the next direct caller.
 Proved headless: `pad` preset → computed padding; knob to a free value →
 computed follows, no preset lit; `gap`'s knob under `flex` → computed `gap`
 follows; a reload (`Item.open()` on the same `MemorySaver`) restores both.
-`ai/2026-08-19/panel-pad-gap/`, `pad-gap-rail.png`.
+`ai/sessions/2026/08/19/panel-pad-gap/`, `pad-gap-rail.png`.
 
 ## 2026-08-19 — a panel is a `div` in flow; the edge strip grew two more gestures
 
@@ -1765,7 +1765,7 @@ selected item's (`auto · start · center · end · stretch`), drawn last.
 Different pictures and values, same tag text; not fixed here since renaming
 either is a word-table decision, not a selection one.
 
-**Proven headless** (`ai/2026-08-19/panel-items/`, `item-selected.png`):
+**Proven headless** (`ai/sessions/2026/08/19/panel-items/`, `item-selected.png`):
 click cell 3 twice → item rows appear; `grow 2` → `flexGrow` `"2"` on cell 3
 only, cell 1 stays `"0"`; `self center` → `alignSelf` `"center"`; grid
 `span 2` → `gridColumnStart` `"span 2"`; a forced `repaint()` (paint.js,
@@ -1840,7 +1840,7 @@ until its panel is the hovered target or the selection, so it inherits the group
 gate for free. ⚠ Opacity, never `display`/`visibility` on a grid item: it has to
 keep its slot. Measured — twelve tile rects, zero moved.
 
-**Proven headless** (`ai/2026-08-19/panel-selection/`): two panes / two roots →
+**Proven headless** (`ai/sessions/2026/08/19/panel-selection/`): two panes / two roots →
 one ring, rail agrees, Escape → zero, click the page background → zero; the
 document workspace → 7 rings, all one panel, one shown, through group → leaf →
 Escape; a click on an inspector leaves the selection untouched and marks nothing;

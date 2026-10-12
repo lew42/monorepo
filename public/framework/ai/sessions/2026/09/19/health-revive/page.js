@@ -4,7 +4,7 @@ import { HealthLog, today_url } from "/framework/ai/health/log.js";
 View.stylesheet(import.meta, "/framework/ai/health/health.css");   // reused, not duplicated — same three status colors
 
 const HEARTBEAT_URL = "/framework/ai/health/heartbeat.json";
-const PROOF_URL = "/framework/ai/2026-09-19/health-revive/scratch-break/";
+const PROOF_URL = "/framework/ai/sessions/2026/09/19/health-revive/scratch-break/";
 
 /* One screen: what the watcher is, proof it is alive right now, and proof it
    actually caught a real break tonight. Everything below content() reads

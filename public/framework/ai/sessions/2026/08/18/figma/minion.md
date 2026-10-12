@@ -3,7 +3,7 @@
 **The three laws govern** (CLAUDE.md — read it; it outranks this and your tier brief).
 Less is more (ASAP). Clarity is the exception. Prioritize.
 
-Also read `public/framework/ai/2026-08-18/figma/requirements.md` — the owner's list and the **eight
+Also read `public/framework/ai/sessions/2026/08/18/figma/requirements.md` — the owner's list and the **eight
 standing rules**, all of which apply to you.
 
 ## Pulling the Figma — the cheapest sufficient sequence, MEASURED
@@ -92,7 +92,7 @@ re-decide.** Need a different one? That is a dilemma — log it, do not quietly 
 
 - **A card you cannot mock up:** leave a visible placeholder and move on. The owner said so directly.
 - **Anything unclear** (which text style, which colour, whether a card is an existing component):
-  append to `public/framework/ai/2026-08-18/figma/questions.md` **and** put it in your final report.
+  append to `public/framework/ai/sessions/2026/08/18/figma/questions.md` **and** put it in your final report.
   State the assumption you proceeded on. The owner is asleep — questions are collected, not blocking.
 - **A design dilemma** — two defensible readings, a layout our words cannot express, a Figma value
   with no framework equivalent: **log it**. The owner: *"Make note of any design dilemmas. We want

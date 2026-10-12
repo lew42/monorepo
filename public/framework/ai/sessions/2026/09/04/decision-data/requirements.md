@@ -6,7 +6,7 @@ Less is more · clarity is the exception · prioritize. Read [`../mastermind-pla
 
 ## Read — all of it, cold
 
-- The owner's brief: `public/framework/ai/2026-09-04/mastermind-platform/requirements.md` §10, §12, §13, §20, §30.
+- The owner's brief: `public/framework/ai/sessions/2026/09/04/mastermind-platform/requirements.md` §10, §12, §13, §20, §30.
 - `public/imagine/platform/research/cloudflare/verdict.md` (one DO per topic; the 500–1,000 req/s per-object ceiling; the cost table; `run_worker_first`), `research/data/verdict.md` (static+git alone first; D1 mutable rows for personal data; event log scoped to real-time; git is not a write path), `research/realtime/verdict.md` (one DO per CHANNEL; hibernation; the one-line client change), `research/users/verdict.md` §33 (sessions and the KV ban check), and `research/security/verdict.md` if it has landed. Open each `log.jsonl` where a number decides something.
 - The house's existing thinking, which the verdicts extend: `public/imagine/cms/thinking.md`, `public/imagine/stream/doc/durable-objects.md`, `public/notes/auth/readme.md` §1, §4, §7.
 - `public/imagine/platform/existing/page.js` (the write paths that exist today are loopback-only) and `public/imagine/platform/prior/page.js` (no Worker `main` has ever shipped).

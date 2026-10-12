@@ -57,7 +57,7 @@ However, the rule has **multiple documented escape routes**:
 - `.claude/skills/every-prompt/cards.md` (fast assistant card format specifying "two short sentences")
 - `.claude/skills/every-prompt/SKILL.md` (voice mode guidance)
 - `.claude/skills/sub-mastermind/SKILL.md` (the depth-two rule)
-- `public/framework/ai/2026-09-24/assistant-layers/` (card_reply requirements across three roles)
+- `public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/` (card_reply requirements across three roles)
 - `Server/merge.mjs` (merge.mjs implementation, lock, review gate, `--no-review` flag)
 - `Server/doc/review.md` (review gate, size table, merge.mjs refusal rules)
 - `Server/collab.mjs` (phase-specific sentence guidance in prompts)

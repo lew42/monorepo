@@ -1,8 +1,8 @@
 # Generator — the record
 
 Built 2026-08-26 as S3 of the column-pages run
-([design.md §5](/framework/ai/2026-08-26/column-pages/design.md),
-[task](/framework/ai/2026-08-26/page-generator/)).
+([design.md §5](/framework/ai/sessions/2026/08/26/column-pages/design.md),
+[task](/framework/ai/sessions/2026/08/26/page-generator/)).
 
 ## The mechanism: nested POJOs, not a mini app
 
@@ -83,7 +83,7 @@ a **chaos dial** like space's. Also unbuilt: any rule about which block words wo
 
 # Wave 2 — the wall, the typed spec, the rules
 
-Built the same day ([task](/framework/ai/2026-08-26/generator-wall/)), on top of everything
+Built the same day ([task](/framework/ai/sessions/2026/08/26/generator-wall/)), on top of everything
 above. All three of v1's cuts, and the question underneath them.
 
 ## The rules are DATA, and they moved every seed
@@ -167,8 +167,8 @@ wall rolls seeds, and a typed spec has no neighbours to roll).
 # Wave 3 — the words become behaviours (MODEL v2, 2026-08-27)
 
 Built from the owner's critique of wave 2
-([the ask](/framework/ai/2026-08-27/column-pages-2/requirements.md),
-[task](/framework/ai/2026-08-27/gen-semantics/)). Five notes, and every one of them said the
+([the ask](/framework/ai/sessions/2026/08/27/column-pages-2/requirements.md),
+[task](/framework/ai/sessions/2026/08/27/gen-semantics/)). Five notes, and every one of them said the
 same thing from a different side: **the vocabulary was describing pictures, not behaviour.**
 
 ## The test a word has to pass
@@ -316,8 +316,8 @@ for the inbox by name, so it is a word — but that is the next thing to argue a
 # Wave 4 — the controls (2026-08-27)
 
 Built the same day as wave 3, on top of it
-([the ask](/framework/ai/2026-08-27/column-pages-2/requirements.md),
-[task](/framework/ai/2026-08-27/gen-controls/)). Three lines of the owner's note: *"let's add
+([the ask](/framework/ai/sessions/2026/08/27/column-pages-2/requirements.md),
+[task](/framework/ai/sessions/2026/08/27/gen-controls/)). Three lines of the owner's note: *"let's add
 ui controls to switch any page to any other page"*, *"create ui controls for grid and flex
 control: size, number of columns, whatever — study the flex/grid css utilities"*, and *"add
 some controls to the generator's page's header, to control size, or whatever"*.
@@ -401,7 +401,7 @@ your columns is not the tree — the same reason `chaos` is not on the page.
 
 ## Four things the ux recon found, and what each one was
 
-The sweep ([task](/framework/ai/2026-08-27/ux-recon/)) ran against a mid-edit snapshot, so every
+The sweep ([task](/framework/ai/sessions/2026/08/27/ux-recon/)) ran against a mid-edit snapshot, so every
 finding was re-measured before it was believed.
 
 **#1, the blank panel — real, and it is core's rule reading this shape wrong.** Page.css's
@@ -498,7 +498,7 @@ both places.
 # Wave 6 — a library, a costume, and a memory (2026-08-31)
 
 Three additions, and the rule they all obey: **an addition is a control or it is data, never a
-new `page.js` per state.** [task](/framework/ai/2026-08-31/improve-generator/)
+new `page.js` per state.** [task](/framework/ai/sessions/2026/08/31/improve-generator/)
 
 `MODEL` is untouched at **3**. `gen.js` and `rules.js` were not edited, and the six proof seeds
 hash identically before and after the wave (sha1 of `gen(seed)`, run in node):
@@ -611,7 +611,7 @@ run synchronously, and the costume is on before the first paint rather than a fr
 
 # Wave 7 — a copy button, a quiet teacher, and a shelf for your own trees (2026-08-31)
 
-The top three items wave 6 left. [task](/framework/ai/2026-08-31/generator-round-2/)
+The top three items wave 6 left. [task](/framework/ai/sessions/2026/08/31/generator-round-2/)
 `MODEL` untouched at **3** — `gen.js` and `rules.js` were not opened for writing, only read.
 sha1 of `gen(seed)`, in node, before AND after every edit in this wave, identical both times:
 
@@ -701,7 +701,7 @@ The last thing on wave 6's list, and the reason the whole module exists: a gener
 could be looked at, linked, switched and saved as text — but never *kept*. Now an Export
 control writes it to disk as ordinary modules under `/imagine/generated/<name>/`, one
 directory per page, and the result is browsable exactly like something typed by hand.
-[task](/framework/ai/2026-08-31/generator-export/)
+[task](/framework/ai/sessions/2026/08/31/generator-export/)
 
 `MODEL` untouched at **3**. `gen.js`, `rules.js`, `spec.js` and `tree.js` were read and not
 opened for writing. sha256 of `gen(seed)`, in node, before and after every edit in this wave —

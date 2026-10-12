@@ -113,7 +113,7 @@ export default class Capture {
 	 *  MILLISECONDS of it are actually loud, counted in 20ms frames above `floor`.
 	 *
 	 *  Whole-segment RMS cannot do this job. A quiet room with one click in it
-	 *  measured 0.043 RMS (2026-09-22, `ai/2026-09-22/dictate-silence/`), higher
+	 *  measured 0.043 RMS (2026-09-22, `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`), higher
 	 *  than plenty of real speech, because a single pop carries the whole file's
 	 *  energy. Frame counting separated the two cases with no overlap at all:
 	 *  every silent segment scored 0ms, the weakest real sentence scored 220ms. */

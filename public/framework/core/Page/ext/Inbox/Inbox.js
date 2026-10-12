@@ -4,7 +4,7 @@ import Rail from "./Rail.js";
 import { PageLog } from "../../Log.js";
 
 /* THE PAGE'S INBOX — ONE CLASS, TWO VIEWS (restructured 2026-10-02, the owner's own ask —
- * see public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md
+ * see public/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/part1b-inbox-restructure/requirements.md
  * for the exact wording). Before this change, two unrelated classes lived in this folder
  * with no connection to each other, even though they're both "a message, on a page," just
  * read from two different places: `InboxRail` (`Rail.js`, a page's persistent navigation

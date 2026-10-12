@@ -20,31 +20,31 @@ import { Page, p, b, md, div, details, summary } from "/app.js";
 
 const DAYS = [
 	["Monday", "2026-09-21", "The AI page became the front door — and then had to be made worth opening.",
-		"- `/framework/ai/` opens on V3, which now has four [ways out of it](/framework/ai/2026-09-21/v3-ways-out/).\n" +
-		"- The timeline is one plain list — an ordinary update is a 16px line, not a four-block card. [What changed](/framework/ai/2026-09-21/live-select/)\n" +
-		"- Three groups of controls [fold behind one **More** button](/framework/ai/2026-09-21/head-mobile/) on a phone.\n" +
-		"- It [says so](/framework/ai/2026-09-21/front-door-today/) when it is showing Friday, not today.\n" +
-		"- The page watcher had stopped checking anything while a batch of edits was held. [Fixed](/framework/ai/2026-09-21/safe-rollout/).\n" +
-		"- 21 coding traps moved into the rulebook agents actually read. [The traps](/framework/ai/2026-09-21/traps-consolidate/)\n\n" +
+		"- `/framework/ai/` opens on V3, which now has four [ways out of it](/framework/ai/sessions/2026/09/21/v3-ways-out/).\n" +
+		"- The timeline is one plain list — an ordinary update is a 16px line, not a four-block card. [What changed](/framework/ai/sessions/2026/09/21/live-select/)\n" +
+		"- Three groups of controls [fold behind one **More** button](/framework/ai/sessions/2026/09/21/head-mobile/) on a phone.\n" +
+		"- It [says so](/framework/ai/sessions/2026/09/21/front-door-today/) when it is showing Friday, not today.\n" +
+		"- The page watcher had stopped checking anything while a batch of edits was held. [Fixed](/framework/ai/sessions/2026/09/21/safe-rollout/).\n" +
+		"- 21 coding traps moved into the rulebook agents actually read. [The traps](/framework/ai/sessions/2026/09/21/traps-consolidate/)\n\n" +
 		"**Left.** The watcher runs Saturday's rules until its supervisor is restarted once — item 1 below. Monday's workers could write files but could not run a single command, so several fixes went unproven."],
 
 	["Sunday", "2026-09-20", "Friday night's destroyed work turned out to be a git stash, and all of it came back.",
-		"- 1,008 files [restored](/framework/ai/2026-09-20/stash-restore/) by *reading* the stash, never applying it — which is why the stash survived.\n" +
-		"- All nine design studies are back; three earlier passes had written them off as gone forever. [The near miss](/framework/ai/2026-09-20/studies-honest/)\n" +
-		"- Padding returned to every card on the site — one missing block of spacing values had zeroed them all. [The cause](/framework/ai/2026-09-20/ai-padding/)\n" +
-		"- Approve and Improve became findable: a card's own link had been redrawing the same wall. [The fix](/framework/ai/2026-09-20/approve-loop/)\n" +
-		"- V3's pinned strip went from 80% of the left column to 17%. [Before and after](/framework/ai/2026-09-20/v3-axis-fix/)\n" +
-		"- Dictation was never broken — [proven](/framework/ai/2026-09-20/dictate-fix/) through a real microphone.\n\n" +
-		"**Left.** 22 files where the stash and the revert disagree still need your call; no agent deletes a file on its own say-so. [The list](/framework/ai/2026-09-20/stash-restore/)"],
+		"- 1,008 files [restored](/framework/ai/sessions/2026/09/20/stash-restore/) by *reading* the stash, never applying it — which is why the stash survived.\n" +
+		"- All nine design studies are back; three earlier passes had written them off as gone forever. [The near miss](/framework/ai/sessions/2026/09/20/studies-honest/)\n" +
+		"- Padding returned to every card on the site — one missing block of spacing values had zeroed them all. [The cause](/framework/ai/sessions/2026/09/20/ai-padding/)\n" +
+		"- Approve and Improve became findable: a card's own link had been redrawing the same wall. [The fix](/framework/ai/sessions/2026/09/20/approve-loop/)\n" +
+		"- V3's pinned strip went from 80% of the left column to 17%. [Before and after](/framework/ai/sessions/2026/09/20/v3-axis-fix/)\n" +
+		"- Dictation was never broken — [proven](/framework/ai/sessions/2026/09/20/dictate-fix/) through a real microphone.\n\n" +
+		"**Left.** 22 files where the stash and the revert disagree still need your call; no agent deletes a file on its own say-so. [The list](/framework/ai/sessions/2026/09/20/stash-restore/)"],
 
 	["Saturday", "2026-09-19", "Forty-seven tasks — the most in one day here — and it ended with the whole tree reverting.",
-		"- [Whisper runs locally](/framework/ai/2026-09-19/whisper-local/) now, with grey partial text while you are still talking.\n" +
-		"- A server change is [booted on a spare port](/framework/ai/2026-09-19/server-boot-test/) before the live one is swapped.\n" +
-		"- A [reload hold](/framework/ai/2026-09-19/reload-hold/): one reload for a whole batch of edits instead of twenty.\n" +
-		"- A [watcher](/framework/ai/2026-09-19/page-health/) opens the pages an edit could break and tells whoever broke them.\n" +
-		"- Replies [type themselves out](/framework/ai/2026-09-19/assistant-stream/), word by word, in the dev bar's log.\n" +
-		"- The [sidebar](/framework/ai/2026-09-19/sidebar-repair/) reads like a file tree again, and a [`card` word](/framework/ai/2026-09-19/card-word/) entered the design system.\n" +
-		"- Of 53 things you asked for, 27 were done the way you said them. [The audit](/framework/ai/2026-09-19/day-audit/)\n\n" +
+		"- [Whisper runs locally](/framework/ai/sessions/2026/09/19/whisper-local/) now, with grey partial text while you are still talking.\n" +
+		"- A server change is [booted on a spare port](/framework/ai/sessions/2026/09/19/server-boot-test/) before the live one is swapped.\n" +
+		"- A [reload hold](/framework/ai/sessions/2026/09/19/reload-hold/): one reload for a whole batch of edits instead of twenty.\n" +
+		"- A [watcher](/framework/ai/sessions/2026/09/19/page-health/) opens the pages an edit could break and tells whoever broke them.\n" +
+		"- Replies [type themselves out](/framework/ai/sessions/2026/09/19/assistant-stream/), word by word, in the dev bar's log.\n" +
+		"- The [sidebar](/framework/ai/sessions/2026/09/19/sidebar-repair/) reads like a file tree again, and a [`card` word](/framework/ai/sessions/2026/09/19/card-word/) entered the design system.\n" +
+		"- Of 53 things you asked for, 27 were done the way you said them. [The audit](/framework/ai/sessions/2026/09/19/day-audit/)\n\n" +
 		"**What went wrong.** The site went down three times — the last a broken front-end import, which the new boot test does not cover. Then at 23:16 an accidental `git stash` reverted everything uncommitted, and nobody has identified what ran it."],
 ];
 
@@ -76,13 +76,13 @@ export default new Page({
 					"watcher is still using Saturday's rules.\n" +
 					"2. **Paste one block into `.claude/settings.json` — 2 minutes.** It arms a safety net " +
 					"that is written but switched off, and tells the assistant the moment you speak. " +
-					"[The block](/framework/ai/2026-09-21/arm-the-hooks/settings-block.md)\n" +
+					"[The block](/framework/ai/sessions/2026/09/21/arm-the-hooks/settings-block.md)\n" +
 					"3. **Decide what happens to the shelf.** The commit is done; `stash@{0}` is still " +
 					"sitting there, and 22 files inside it disagree with what is on disk. " +
-					"[The list](/framework/ai/2026-09-20/stash-restore/)\n" +
+					"[The list](/framework/ai/sessions/2026/09/20/stash-restore/)\n" +
 					"4. **Six of seven proposed changes to how agents work are unapplied** — including the " +
 					"one script that would start, name and track every worker session. " +
-					"[The seven](/framework/ai/2026-09-19/system-eval/)\n" +
+					"[The seven](/framework/ai/sessions/2026/09/19/system-eval/)\n" +
 					"5. **Three server-side fixes need one restart window.** Two plugins and a hook still " +
 					"name the old location of the board file, which moved on Saturday.");
 			});

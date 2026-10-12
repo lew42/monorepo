@@ -75,7 +75,7 @@ instance, for a script or a console to drive directly (`$dictate_pg.run_sample()
   — they are the pipeline's own bookkeeping for the NEXT chunk, not something a reader
   asked to inspect. `Session` owns exactly what deliverable 1 named: `chunks`, `resends`,
   `source`, `analysis`, `partial`. Decision logged in
-  [this task's log](/framework/ai/2026-10-01/inspect/minion-part2/).
+  [this task's log](/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/minion-part2/).
 - **None of `core/Layout`'s 30 approved layouts is an unequal-width row of named panels**
   (four narrow — Raw/Clean/Analysis/Chat — beside one wide Structure) — the grid here is
   explicit tracks instead (`repeat(4, minmax(12em,1fr)) minmax(20em,2fr)`), chosen over

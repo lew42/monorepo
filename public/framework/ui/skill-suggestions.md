@@ -11,7 +11,7 @@ for the owner, minimal and not overly restrictive — not a checklist to enforce
   four shipped with none. If the class would be styled by nothing, it's a second name for
   the utilities: `ui.card()` and `.ui-card` were both cut for exactly that reason —
   [`ui/card/page.js`](/framework/ui/card/) ·
-  [`ai/2026-08-21/ux-cards/`](/framework/ai/2026-08-21/ux-cards/).
+  [`ai/sessions/2026/08/21/ux-cards/`](/framework/ai/sessions/2026/08/21/ux-cards/).
 - **A variant is a different THING, not a different value.** A value belongs on a token —
   `avatar/sizes` became `--avatar`, `stats/summary` became `--column`, and `ui-compact`'s
   step is a `--density` number, not a `micro`/`mini` ladder — `ux/doc/decisions.md`.
@@ -41,4 +41,4 @@ for the owner, minimal and not overly restrictive — not a checklist to enforce
   cards; `ui/`'s bands are sized 5 · 6 · 5 · 5 so none of them do that — the words demo
   moved Marks from four to five components for this reason alone —
   [`ui/readme.md`](/framework/ui/) ·
-  [`ai/2026-08-21/ux-system-plan/`](/framework/ai/2026-08-21/ux-system-plan/).
+  [`ai/sessions/2026/08/21/ux-system-plan/`](/framework/ai/sessions/2026/08/21/ux-system-plan/).

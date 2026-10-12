@@ -93,7 +93,7 @@ doc is the pointer).
 
 ## Land
 Commit in this worktree. Write `task.jsonl` as you go (`.claude/hooks/append.mjs`), this dir is
-your task (`public/framework/ai/2026-10-03/layout-gate/link-and-gate/`), parent task
+your task (`public/framework/ai/sessions/2026/10/03/588af12b-12cf-4166-a7a4-a6cfa504194b/layout-gate/link-and-gate/`), parent task
 `public/framework/ai/2026-10-03/layout-gate`. When done, tell your parent
 (`task-mastermind-layout-gate`) you're ready for merge — don't run `merge.mjs` yourself, the
 mastermind runs it (shared files, needs to watch for console-clean's concurrent edit).

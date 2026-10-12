@@ -1,6 +1,6 @@
 # In this repo's sub-mastermind process, is it a hard rule or just a strong convention that: (a) card_reply must always be two or three plain sentences, (b) a task mastermind may never spawn a second task mastermind, and (c) every merge must go through Server/merge.mjs rather than a plain git merge? Where do real edge cases make one of these bend?
 
-**Winner:** sonnet-z — `public/framework/ai/2026-09-28/collab-facts/real-run-2/collab/sonnet-z/4-revise.md`
+**Winner:** sonnet-z — `public/framework/ai/sessions/2026/09/28/80944531-c842-4476-9a30-52088a8bc595/collab-facts/real-run-2/collab/sonnet-z/4-revise.md`
 **Rule:** most votes
 **Run cost:** $1.6258
 

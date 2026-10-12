@@ -3,7 +3,7 @@
 Minion: Opus, effort high. Session id `dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a`. Read
 [`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then
 `public/framework/ux/Dictate/readme.md`, `doc/`, `Dictate.js`, `capture.js`, `pcm-worklet.js`,
-and `ai/2026-09-19/whisper-local/`, `ai/2026-09-20/dictate-fix/`, `ai/2026-09-22/whisper-servex/`.
+and `ai/sessions/2026/09/19/whisper-local/`, `ai/sessions/2026/09/20/dictate-fix/`, `ai/sessions/2026/09/22/whisper-servex/whisper-servex/`.
 Load `code`. Private port **8095**. The owner's real whisper-server on **8178** may be READ
 (POST /inference) but never restarted; a private one for experiments goes on **8179**.
 
@@ -28,7 +28,7 @@ the microphone and that POST, the sound is lost — or the segment closes before
 
 1. **Capture the real bytes.** Add a debug seam to `Dictate` (an option or `window.$DICTATE_DUMP`)
    that, for every segment posted, also POSTs the same WAV to the dev server's existing
-   generic append/upload route or writes it via `rpc` into `ai/2026-09-22/dictate-silence/dumps/`
+   generic append/upload route or writes it via `rpc` into `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/dumps/`
    with a timestamped name — then measure each dump: duration, sample rate from the header,
    peak and RMS amplitude (a tiny node script, `measure.mjs`, in your task dir). Two numbers
    that must agree: the sample count in the header and the byte length / 2.
@@ -50,7 +50,7 @@ the microphone and that POST, the sound is lost — or the segment closes before
    plainly whether the owner's own mic is likely to differ (device sample rate, permission
    state, default device) and give them one check to run in their tab's console
    (`navigator.mediaDevices.enumerateDevices()` + the context's real `sampleRate`).
-4. **The test page for the owner — `ai/2026-09-22/dictate-silence/page.js`:** one screen.
+4. **The test page for the owner — `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/page.js`:** one screen.
    Top: a big mic button that records 3 seconds, shows a live level meter (peak/RMS from the
    same capture path), then shows the WAV's numbers (duration, rate, RMS), the raw JSON
    whisper-server returned, and a "download this WAV" link. Below it: the curl line for the raw

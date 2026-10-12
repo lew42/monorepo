@@ -2,7 +2,7 @@
 
 Load the `minion` skill first. The owner's words: `../owner-words.md` (read in full). The parent brief: `../requirements.md`, asks 1 and 2.
 
-**Fence:** you WRITE only inside `public/framework/ai/2026-09-30/icon-system/audit/` (main tree). You change no site code. Read anything.
+**Fence:** you WRITE only inside `public/framework/ai/sessions/2026/09/30/icon-system/icon-system/audit/` (main tree). You change no site code. Read anything.
 **Budget:** about $3. Sonnet. Use grep, not whole-file reads. Stop when the deliverables exist.
 
 ## Deliverables

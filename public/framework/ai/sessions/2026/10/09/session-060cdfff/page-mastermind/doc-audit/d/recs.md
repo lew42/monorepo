@@ -7,7 +7,7 @@
 - stale: none found (page.jsonl_url, PageLog, Log.js compat re-export all current)
 
 ## data-children.md: keep
-- why: Design record (task ai/2026-09-17/core-data-children/) documenting the function-based children feature. Serves as both proposal history and implementation guide; no other doc covers this seam. It reads as proposal but correctly labels lines applied vs refuted. Three data-backed pages on the site depend on this pattern and method docs reference it.
+- why: Design record (task ai/sessions/2026/09/17/core-data-children/) documenting the function-based children feature. Serves as both proposal history and implementation guide; no other doc covers this seam. It reads as proposal but correctly labels lines applied vs refuted. Three data-backed pages on the site depend on this pattern and method docs reference it.
 - into: —
 - linked from: data.md (at end, "More" section), more-features.md, navigation.md, decisions.md, method/child.md, method/load_all_children.md, method/source_children.md
 - stale: none found (all referenced methods and classes current; seam 1 is implemented; seam 2 was correctly refuted)

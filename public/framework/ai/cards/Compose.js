@@ -44,7 +44,7 @@ export class Compose {
 	};
 
 	// `revise: "clean" | "edit" | "summary" | false` — DEFAULT "clean" now (deliverable 1,
-	// ai/2026-09-29/audio/next-clean-transcription/a-clean-mode: "the clean transcription
+	// ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode: "the clean transcription
 	// mode ... we just put the clean transcription into the UI"). `ext/Chat/Composer.js`
 	// forwards this straight to the `ComposerMic` it builds: each finished utterance now
 	// swaps its raw words for the fast assistant's clean-up right in the box, the raw words

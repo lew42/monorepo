@@ -274,7 +274,7 @@ export default class Servex extends Events {
         /* The usage bars: claude-usage.py every 15 min, hidden (Usage.js). */
         if (!process.env.SERVEX_NO_USAGE) this.usage = new Usage({ repo: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..") }).start();
 
-        /* THE ASSISTANT LAYERS (ai/2026-09-24/assistant-layers): an assistant and a
+        /* THE ASSISTANT LAYERS (ai/sessions/2026/09/24/assistant-layers/assistant-layers): an assistant and a
          * manager on every card, and the master assistant + mastermind-servex across
          * them all. `SERVEX_NO_LAYERS=1` boots without them. */
         this.inbox = new Inbox({ servex: this });   // every page's inbox: agents/inbox.js, doc/inbox.md
@@ -669,7 +669,7 @@ export default class Servex extends Events {
             res.json(save_example(req.body ?? {}));
         });
 
-        /* THE LIVE DEMO ON ext/Refine (ai/2026-10-08/refine-demo) — one prompt in, the same
+        /* THE LIVE DEMO ON ext/Refine (ai/sessions/2026/10/09/refine-demo/refine-demo) — one prompt in, the same
          * clean() + structure() Echo runs out (Servex/ext/refine/run.js). */
         router.options("/api/refine", cors, (req, res) => res.status(204).end());
 
@@ -693,7 +693,7 @@ export default class Servex extends Events {
             } catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
         });
 
-        /* VOICE TO THE SESSION PAGE (ai/2026-10-12/voice-to-session-page): while someone talks, the browser
+        /* VOICE TO THE SESSION PAGE (ai/sessions/2026/10/12/session-0e99727c/voice-to-session-page): while someone talks, the browser
          * posts the words so far and each one lands on the session's page as a page-tool delta
          * (Servex/ext/refine/VoicePage.js). `final: true` closes the raw stage; /api/refine writes the rest. */
         router.options("/api/voice", cors, (req, res) => res.status(204).end());

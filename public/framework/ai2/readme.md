@@ -8,4 +8,4 @@ What stays here, on purpose:
 - One-line shims (`card.js`, `rail.js`, `inbox.js` …): each re-exports the moved file, so an old `import` keeps working.
 - `ai2.css`, `page.jsonl`, `weight.jsonl`: the route page's own look and logs.
 
-Nothing was deleted: [the old-path to new-path list](/framework/ai/2026-10-09/ai2-merge/manifest.json) and [the inventory](/framework/ai/2026-10-09/ai2-merge/inventory.md) show every move. Old page logs are in [ai/archive/ai2](/framework/ai/archive/ai2/readme.md).
+Nothing was deleted: [the old-path to new-path list](/framework/ai/sessions/2026/10/09/session-6784f3f5/ai2-merge/manifest.json) and [the inventory](/framework/ai/sessions/2026/10/09/session-6784f3f5/ai2-merge/inventory.md) show every move. Old page logs are in [ai/archive/ai2](/framework/ai/archive/ai2/readme.md).

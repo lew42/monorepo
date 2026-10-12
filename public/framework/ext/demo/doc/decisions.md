@@ -40,7 +40,7 @@ sample.js     the shared sample tree
 ## The merge — 14 render variants to 6 (2026-08-30)
 
 The audit, the numbers and the five-step order are in
-[ai/2026-08-30/demo-merge/proposal.md](/framework/ai/2026-08-30/demo-merge/).
+[ai/sessions/2026/08/30/demo-merge/proposal.md](/framework/ai/sessions/2026/08/30/demo-merge/).
 Step 1 moved 17 clipping `height:` call sites to `min:`. Steps 2–5 landed the
 same day:
 

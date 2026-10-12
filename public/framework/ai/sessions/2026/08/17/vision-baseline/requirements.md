@@ -104,7 +104,7 @@ as a finding; don't build a pipeline.
 
 ## Files you own
 
-- `public/framework/ai/2026-08-17/vision-baseline/**` — your task dir, including
+- `public/framework/ai/sessions/2026/08/17/vision-baseline/**` — your task dir, including
   **`baseline.json`**: the per-image scores and raw feedback. That file is a
   *conclusion*, so it belongs in the repo even though the images do not.
   ⚠ It will move into the DesignTool module once the rename lands — keep it

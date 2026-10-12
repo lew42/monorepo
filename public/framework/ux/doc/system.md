@@ -31,7 +31,7 @@ Three things count, and nothing else does:
 | a listener the component installs on its own elements | `:hover`, `:focus-visible`, `<details>`, `<dialog>` — the platform's behavior |
 | a lifecycle — `update()`, `select()`, anything that runs twice | a loop that builds markup once and returns it |
 
-The right column is why the [2026-08-21 audit](/framework/ai/2026-08-21/ui-behaviors-audit/)
+The right column is why the [2026-08-21 audit](/framework/ai/sessions/2026/08/21/ui-behaviors-audit/)
 came back **1 behavioral / 20**. Nine components look interactive and are native HTML; three
 (`table`, `timeline`, `keys`) are exported functions and every one is a *loop*, which is
 markup a `for` can say and a `<template>` cannot. Only `ui/tree` keeps a `rows` Map and a
@@ -123,7 +123,7 @@ word can touch** — and it becomes visible the moment you toggle one. Three are
 
 Those began as a proposal and landed as **sanctioned one-line fallback edits** on
 2026-08-21 — the 4-line diff, the 4,436-element equality proof and the re-measured compact
-numbers are at [`ai/2026-08-21/ux-tokenize/`](/framework/ai/2026-08-21/ux-tokenize/);
+numbers are at [`ai/sessions/2026/08/21/ux-tokenize/`](/framework/ai/sessions/2026/08/21/ux-tokenize/);
 `ui-compact` now remaps `--pad-cell` and `--pad-control` too. The rule stands: a word that
 patched a gap with its own selectors would be the first crack in the only rule that keeps
 this mechanism cheap. One gap remains, filed not fixed: the lew42 theme restates `button`

@@ -1,6 +1,6 @@
 # Harden the rubric before we bet the site on it
 
-`ai/2026-08-17/vision-baseline/` established the baseline and answered the
+`ai/sessions/2026/08/17/vision-baseline/` established the baseline and answered the
 tiebreaker: **taste correlates with how pages look, the math tier is
 anti-correlated** (Pearson −0.393; it rewards emptiness and never emits below 70).
 Sonnet is good enough to be the production scorer (Spearman +0.625, ~5,620
@@ -77,7 +77,7 @@ than a premature yes.
 
 ## Files you own
 
-- `public/framework/ai/2026-08-17/rubric-v2/**` — your task dir, including
+- `public/framework/ai/sessions/2026/08/17/rubric-v2/**` — your task dir, including
   `rubric.md` (the axes and their anchors) and `agreement.json` (the numbers).
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.

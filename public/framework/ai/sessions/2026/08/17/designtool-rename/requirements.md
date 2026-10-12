@@ -10,7 +10,7 @@ as separate tasks and are **not yours**.
 
 ## Derive your own file list — the existing manifest's counts are wrong
 
-`ai/2026-08-17/rename-manifest/manifest.md` has a **sound sequence, a sound
+`ai/sessions/2026/08/17/rename-manifest/manifest.md` has a **sound sequence, a sound
 do-not-rewrite principle, and a sound risk ranking** — read those and use them.
 **Its counts are unreliable and must not be trusted:** it reported 3 JS imports
 where a grep finds 15, attributed two of them to markdown skill files that cannot
@@ -94,12 +94,12 @@ prove each one:
 - Every file outside it that references the old name, **except** the do-not-rewrite
   list above.
 - `.claude/skills/**` references, `CLAUDE.md` if it names the tool.
-- `public/framework/ai/2026-08-17/designtool-rename/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/designtool-rename/**` — your task dir.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 
-**Fenced off:** `ext/Panel/**` (another session). `ai/2026-08-17/rubric-v2/**` and
-`ai/2026-08-17/vision-baseline/**` (another agent is working there right now —
+**Fenced off:** `ext/Panel/**` (another session). `ai/sessions/2026/08/17/rubric-v2/**` and
+`ai/sessions/2026/08/17/vision-baseline/**` (another agent is working there right now —
 read-only, and `baseline.json` especially must not change).
 
 ## Deliverables, in this order

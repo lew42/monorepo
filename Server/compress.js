@@ -11,7 +11,7 @@ import zlib from "node:zlib";
  * Why this exists: `public/framework/directory.json` is a 3.3MB JSON census of
  * every file in the framework, uncompressed. On localhost that's instant; on
  * the owner's phone Wi-Fi it cost seconds. gzip/brotli takes ~3.3MB of JSON
- * down to under 150KB — see `ai/2026-09-29/slow-card-fix/` for the measurement.
+ * down to under 150KB — see `ai/sessions/2026/09/29/slow-card-fix/slow-card-fix/` for the measurement.
  *
  * ⚠ VERSION 2 (2026-09-29, same day): the first version streamed every request
  * through `zlib.createBrotliCompress()` at brotli's DEFAULT quality — 11, the
@@ -41,7 +41,7 @@ import zlib from "node:zlib";
  * ETag keyed on mtime+size (cheap — no hashing the file), `Cache-Control:
  * no-cache` so the browser always asks instead of trusting a stale local copy,
  * and a 304 with no body when the client's `If-None-Match` already matches.
- * See public/framework/ai/2026-10-05/mobile-reload-speed/ for the measurement. */
+ * See public/framework/ai/sessions/2026/10/05/mobile-reload-speed/mobile-reload-speed/ for the measurement. */
 const PUBLIC = path.resolve("public");
 const COMPRESSIBLE = /\.(json|js|mjs|css|html?|md)$/i;
 const THRESHOLD = 1024;   // below this, skip compressing — let express.static send it plain

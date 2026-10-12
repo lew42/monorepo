@@ -72,7 +72,7 @@ a socket that works.
 The `console.warn` above is invisible to anyone not watching devtools — which is everyone. A real
 restart (`Server/doc/watch.md`'s boot-tested swap) is usually back in well under a second, but
 with no sign on screen at all it read as "the page died," not "it's coming back"
-([`/framework/ai/2026-10-01/page-holds/`](/framework/ai/2026-10-01/page-holds/)). `reconnect()`
+([`/framework/ai/sessions/2026/10/01/page-holds/page-holds/`](/framework/ai/sessions/2026/10/01/page-holds/page-holds/)). `reconnect()`
 now calls `show_reconnecting()` the moment it schedules its first retry — a small fixed strip,
 "server restarting… reconnecting" — and `open()` calls `hide_reconnecting()` the instant the
 socket is back. It never reloads anything itself; it is purely a notice over whatever is already

@@ -1,7 +1,7 @@
 import { Page, div, h2, h3, p, a, span, img, figure, figcaption, md } from "/app.js";
 
 /* Container: a plain page under its own study (moved from `/imagine/design/`'s columns
-   row 2026-09-18, `ai/2026-09-18/imagine-move-2/`). Size:
+   row 2026-09-18, `ai/sessions/2026/09/18/imagine-move-2/`). Size:
    `full` — this study is pictures first, and a picture wants the whole row.
    Own layout: sections of h2, each a shot grid. Regions: none, plain content().
    Preview: the default card. */

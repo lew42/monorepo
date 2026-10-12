@@ -17,11 +17,11 @@ The owner retired "manager" and "master assistant" as words — say the role's r
 The rows themselves are unchanged today (no behaviour change; this is names only):
 
 - `page-mastermind` (alias `manager`) is what "manager" named — the per-directory mastermind
-  the new [directory mastermind](/framework/ai/2026-09-22/tiers-design/doc/roles.md) tool will
+  the new [directory mastermind](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md) tool will
   replace, once it exists.
 - `master-assistant` is what "master assistant" named. Its "decide, then spawn the right
   mastermind" job now belongs to the voice session's **smart assistant** (`session-smart`).
 
 `session-fast` and `session-smart` are two more rows that don't carry a skill at all (their own
 fixed briefs, `session-fast.md` / `session-smart.md`, do that job instead) — the full table is
-[the roles page](/framework/ai/2026-09-22/tiers-design/doc/roles.md).
+[the roles page](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md).

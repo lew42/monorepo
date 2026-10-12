@@ -135,4 +135,4 @@ const ANSWERS = [
 	["Purpose and outcome", "A reader leaves knowing every addon in `framework/ext/` by name and what one of them is for, and having watched a three-region layout change its content without moving its navigation."],
 ];
 
-const POLISH = "Eight checks at four widths said 8 of 8 — and a critic then swept every 80px from 400 to 3440 and measured six widths in full, including the two a four-width sweep skips. What it found and what was done is in [the critic's log](/framework/ai/2026-09-17/practice-critic/).";
+const POLISH = "Eight checks at four widths said 8 of 8 — and a critic then swept every 80px from 400 to 3440 and measured six widths in full, including the two a four-width sweep skips. What it found and what was done is in [the critic's log](/framework/ai/sessions/2026/09/17/practice-critic/).";

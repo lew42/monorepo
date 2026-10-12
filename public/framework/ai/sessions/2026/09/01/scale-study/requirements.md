@@ -10,7 +10,7 @@ layout is scale, visual hierarchy."
   390/1280/3440, find missed-opportunity pages (sparse + small type + huge unused width
   at 3440), build a live scale-ladder demo, land as `public/imagine/design/scale/page.js`.
 - Fences: do not edit the `/imagine/` hub or `/imagine/page.js` (already declared child).
-  Do not edit outside `public/framework/ai/2026-09-01/scale-study/` and
+  Do not edit outside `public/framework/ai/sessions/2026/09/01/scale-study/` and
   `public/imagine/design/scale/` and `public/imagine/design/shots/scale/` (shots dir per
   process brief: `public/imagine/design/scale/shots/`).
 - No commit/push (mastermind commits). No npm deps. No editing the dev server.

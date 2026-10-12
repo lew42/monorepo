@@ -5,7 +5,7 @@
  * auto-starts any registered project (main or a worktree) on its first HTTP request, so an
  * agent never needs to run a dev server by hand to see a page: hitting the worktree's URL, or
  * calling the `start_server` MCP tool, is enough. This is prevention piece 3 of 3 for that leak
- * (public/framework/ai/2026-10-02/node-reap/).
+ * (public/framework/ai/sessions/2026/10/02/node-reap/).
  *
  * BLOCKS (exit 2, the reason on stderr), regardless of cwd (main or a worktree — Servex owns
  * the server everywhere, not just in main):

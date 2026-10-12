@@ -55,7 +55,7 @@ if (globalThis.document){
 }
 
 /** **Which microphone**, remembered in this browser. The test bench at
- *  `ai/2026-09-22/dictate-silence/` writes the owner's pick here, and every
+ *  `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/` writes the owner's pick here, and every
  *  `Dictate` on the site reads it — so choosing a microphone once, in one place,
  *  moves the board's own mic too, with nothing to wire. A caller that needs a
  *  specific device passes `device_id` and that wins over the remembered one. */
@@ -80,7 +80,7 @@ function mark_whisper_seen(){ try { localStorage.setItem(WHISPER_SEEN_KEY, "1");
  *  ⚠ The NAME is stored beside the id on purpose. A `deviceId` is salted per
  *  origin and is not forever: it changes when the browser clears site data, and
  *  in a fresh automation profile it changes on every page load (measured —
- *  `ai/2026-09-22/dictate-silence/`, where the remembered pick silently reverted
+ *  `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`, where the remembered pick silently reverted
  *  to the default). The id is tried first and is exact; the name is how the pick
  *  is recovered when that id no longer names anything. */
 export function remember_device(id, label = ""){
@@ -394,7 +394,7 @@ export default class Dictate extends View {
 	 * `(pointer: coarse)` is true on a phone or tablet (the primary pointer is a finger),
 	 * false on a desktop or laptop with a mouse/trackpad — the standard, no-dependency
 	 * way to ask "is this mainly a touch device" (found from a mobile screenshot showing
-	 * the hint on a phone's own bottom sheet: `ai/2026-09-29/mobile-nav/`). */
+	 * the hint on a phone's own bottom sheet: `ai/sessions/2026/09/29/mobile-nav/mobile-nav/`). */
 	keyboard_hint(){
 		try { if (globalThis.matchMedia?.("(pointer: coarse)").matches) return ""; } catch {}
 		return " · Ctrl+Shift+M stops";
@@ -414,7 +414,7 @@ export default class Dictate extends View {
 	 *  loaded over this machine's own LAN address: `isSecureContext` was `false`,
 	 *  `navigator.mediaDevices` was `undefined`, and the state stayed `"listening"` for
 	 *  1.5s with no error — while the START SOUND had already played
-	 *  (`ai/2026-09-29/mobile-nav/`, `doc/https-lan.md`). */
+	 *  (`ai/sessions/2026/09/29/mobile-nav/mobile-nav/`, `doc/https-lan.md`). */
 	insecure_context_message(){
 		if (globalThis.isSecureContext) return null;
 		const port = globalThis.location?.port ? ":" + globalThis.location.port : "";
@@ -742,7 +742,7 @@ export default class Dictate extends View {
 	 *  between (the grey guess gone, the settled text not landed yet) for however
 	 *  long Whisper took to answer. That is the flicker the owner saw: "smooth"
 	 *  when Whisper was fast enough nobody noticed the gap, "erased and redrawn in
-	 *  two steps" when it wasn't (`ai/2026-09-29/audio/b-refine/`, measured with a
+	 *  two steps" when it wasn't (`ai/sessions/2026/09/29/audio/audio/b-refine/`, measured with a
 	 *  `ResizeObserver` — `doc/decisions.md`). Now the guess is only ever cleared
 	 *  in the SAME `draw_caption()` call that either shows the real text (`commit()`)
 	 *  or gives up on this segment (nothing worth sending, or Whisper errored) —
@@ -817,7 +817,7 @@ export default class Dictate extends View {
 	 *  sentence is almost always "Thank you." So the recording of the quiet gap
 	 *  between the owner's last word and their press of the button used to be
 	 *  transcribed, committed, typed into the box and logged as a prompt. That
-	 *  was the whole "it just says Thank you" bug (`ai/2026-09-22/dictate-silence/`).
+	 *  was the whole "it just says Thank you" bug (`ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`).
 	 *
 	 *  The test is `Capture.loudness()`'s `loud_ms` — how many milliseconds of the
 	 *  segment are above a speaking floor, not how loud the segment is on average.
@@ -870,7 +870,7 @@ export default class Dictate extends View {
 	 *
 	 *  Every WAV this posts to whisper is then ALSO written, base64, one line per
 	 *  send, into `dump_file` — so the exact bytes the browser sent can be pulled
-	 *  apart on disk afterwards: `node public/framework/ai/2026-09-22/dictate-silence/measure.mjs <that file>`
+	 *  apart on disk afterwards: `node public/framework/ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/measure.mjs <that file>`
 	 *  prints each one's sample rate, duration, peak, RMS and whether the header's
 	 *  byte count agrees with the file's real length. Never awaited and never
 	 *  throws into the caller — a debug write failing must not disturb a real
@@ -1058,7 +1058,7 @@ export default class Dictate extends View {
 	}
 
 	/** The REVISED text becomes its OWN log line — the universal chat line every
-	 *  surface (voice, typed, an agent's own reply) shares (`ai/2026-09-29/voice-sessions/design.md`,
+	 *  surface (voice, typed, an agent's own reply) shares (`ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md`,
 	 *  "The universal chat line"), not the old `{type:"revision"}` shape nothing ever
 	 *  drew. `re` is the raw chunk's own `at` (`commit()`'s `chunk_at`, made at the
 	 *  same moment as the raw line itself) — how a reader (or `ext/Chat`) finds the
@@ -1117,8 +1117,8 @@ export default class Dictate extends View {
 	 *  `ext/drawer/rail.js`'s `on_revised: text => this.card(text)`) can never be
 	 *  handed `null` to draw a card for. Only the FINISHED revision is ever logged —
 	 *  no guess, no in-between chunk, no per-tick timing (those stay in memory only,
-	 *  e.g. the playground's Chunks view — `ai/2026-09-29/audio/b-refine/`). */
-	/* `before` (ai/2026-09-29/audio/next-clean-transcription/a-clean-mode, deliverable 1)
+	 *  e.g. the playground's Chunks view — `ai/sessions/2026/09/29/audio/audio/b-refine/`). */
+	/* `before` (ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode, deliverable 1)
 	 * is the tail of everything already revised in THIS dictation — a little context so
 	 * the fast assistant can see the sentence it is joining, same idea as the playground's
 	 * own `BEFORE_CHARS`. `revised_so_far` only grows here; nothing else touches it. */
@@ -1174,7 +1174,7 @@ export default class Dictate extends View {
 	 *  it different the instant it loads, without anyone talking into a real
 	 *  microphone first. Skips `log_prompt()` on purpose — sample text is not
 	 *  something the owner said, and must never land in the real prompt log. The
-	 *  owner's own rule this exists for: "I want to see" (`ai/2026-09-29/mobile-nav/review.md`). */
+	 *  owner's own rule this exists for: "I want to see" (`ai/sessions/2026/09/29/mobile-nav/mobile-nav/review.md`). */
 	async sample(lines){
 		this.sampling = true;   // revise_chunk()'s own guard — sample text must never reach a real log or a real model call
 		try {

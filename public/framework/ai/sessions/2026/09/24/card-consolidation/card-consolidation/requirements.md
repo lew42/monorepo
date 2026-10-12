@@ -1,6 +1,6 @@
 # Card consolidation — the plan (step 1)
 
-Task mastermind: `task-mastermind-content-modules`. Follows [content-modules](../content-modules/), whose
+Task mastermind: `task-mastermind-content-modules`. Follows [content-modules](../content-modules), whose
 census found 75 card kinds, 57 of them duplicates, 19 padding rules, a plain card drawn 7 ways.
 
 ## The owner's words (the acceptance test)

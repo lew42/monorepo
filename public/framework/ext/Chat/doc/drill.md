@@ -2,7 +2,7 @@
 
 Tap a card in the chat, then its **Open ⤢** button. The chat becomes a small shell: a **← Back** button, the path above you, the card's title, and what is inside the card, each as its own card. A card inside it that holds more opens one level deeper. Try it: [/framework/ext/Chat/drill/](/framework/ext/Chat/drill/).
 
-![A refined card opened at 1920](/framework/ai/2026-09-29/audio/next-drill-in/shots/1920-2-level1.png)
+![A refined card opened at 1920](/framework/ai/sessions/2026/09/29/audio/audio/next-drill-in/shots/1920-2-level1.png)
 
 ## What a card holds
 

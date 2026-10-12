@@ -38,7 +38,7 @@ export default new Doc({
 
 		md("### The panel");
 
-		md("`chat()` is the same call as a view: history, an input, streaming bubbles. Pass `task` — a thread's path under `public/`, like `framework/styles/layouts/ai/rhythm` — and the exchange is appended to that thread's `task.jsonl` as `chat` lines. That is what [a task's detail page](/framework/ai/2026-08-14/browser-cli-bridge/) mounts, and what the [dev rail](/framework/dev/DevBar/) mounts on every page. This one records nothing.");
+		md("`chat()` is the same call as a view: history, an input, streaming bubbles. Pass `task` — a thread's path under `public/`, like `framework/styles/layouts/ai/rhythm` — and the exchange is appended to that thread's `task.jsonl` as `chat` lines. That is what [a task's detail page](/framework/ai/sessions/2026/08/14/browser-cli-bridge/) mounts, and what the [dev rail](/framework/dev/DevBar/) mounts on every page. This one records nothing.");
 
 		chat({ model: "haiku", placeholder: "Ask haiku something (no tools, no record)…", tools: "" });
 
@@ -53,7 +53,7 @@ dictate({ m, about: { kind: "dictation", id: "asks" } });`);
 
 		md("The turn is a minion, not a chat partner: it answers in four sentences, and where the reply asked for something it also writes `ask` / `decision` / `log` lines into that task's log — which stream straight back onto the tab as new cards and rows. `dictate()` is the same machine set to split a dictation into one ask per thing you named. Both: [reply](/framework/ext/Ask/doc/reply/).");
 
-		md("Not demoed here, for the same reason `thread()` and `start()` are not: every press writes real lines into a real log. It is live on [this module's own task](/framework/ai/2026-09-18/reply-in-place/) — open the **Asks** tab and press **reply** under any card — and on every task page under [the board](/framework/ai/).");
+		md("Not demoed here, for the same reason `thread()` and `start()` are not: every press writes real lines into a real log. It is live on [this module's own task](/framework/ai/sessions/2026/09/18/reply-in-place/) — open the **Asks** tab and press **reply** under any card — and on every task page under [the board](/framework/ai/).");
 
 		md("### Let it look at the element");
 

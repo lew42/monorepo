@@ -15,7 +15,7 @@
  * ⚠ GENERATED, not hand-typed — this is the second generation. The first
  * (2026-08-15, 205 urls) hand-mixed a page.js walk with ai/ and core/new/
  * entry points; this one is a plain filesystem walk with three excludes, per
- * `ai/2026-08-16/taste-audit/`. Regenerate: walk `public/` for every
+ * `ai/sessions/2026/08/16/taste-audit/`. Regenerate: walk `public/` for every
  * `page.js`, convert each path to a url by dropping the trailing `page.js`,
  * apply the three excludes above, sort.
  *

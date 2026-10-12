@@ -16,7 +16,7 @@ View.stylesheet(import.meta, "generated.css");
  * Backlog — read straight off `page.children`, so a second export draws its
  * OWN shape with no new code), right = its numbers. A dashed "nothing else
  * yet" slot sits under it so the emptiness reads as a place, not a bug.
- * Measured (task ai/2026-09-05/ux-generated): width used at 3440 went from the
+ * Measured (task ai/sessions/2026/09/05/ux-generated): width used at 3440 went from the
  * card's own ~230px (7%) to the row's full ~1152px column width (33.5% of
  * 3440 — the column's OWN ceiling, `page-column-large`'s 64em max; see below).
  *

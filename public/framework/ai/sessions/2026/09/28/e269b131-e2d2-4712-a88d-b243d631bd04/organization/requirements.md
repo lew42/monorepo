@@ -12,8 +12,8 @@ The brief is the owner's own words, in `owner-words.md` beside this file. Read t
    Each item is a link that NAVIGATES to its real page (a doc page, a task, a card), not a sub-card, so the owner gets the full screen.
 3. **Link every earlier audit** from this card. Start with:
    - the open-tasks sweep (/framework/ai2/2026/09/25/open-tasks-where-each-one-is-and-what-ne/);
-   - loose ends (/framework/ai/2026-09-24/loose-ends/);
-   - the feedback council (/framework/ai/2026-09-25/feedback-council/);
+   - loose ends (/framework/ai/sessions/2026/09/24/loose-ends/loose-ends/);
+   - the feedback council (/framework/ai/sessions/2026/09/25/feedback-council/);
    - the paging audit (/framework/ai/audits/paging/);
    - the css-audit, page-audit and layout-check tasks from 09-25;
    - public/framework/ai/todo.md.

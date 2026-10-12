@@ -66,7 +66,7 @@ research and reasoning behind it, not the thing itself.
 
 **Where this stands:** the smallest end-to-end slice now runs on one machine in about fifteen
 seconds — a topic, a page inside it, a signed-in user and a like that is a real database row
-([see it](./mvp/), [run it](/framework/ai/2026-09-06/platform-slice/run/)).
+([see it](./mvp/), [run it](/framework/ai/sessions/2026/09/06/platform-slice/run/)).
 
 **How would sign-up actually look?** [Workflows](./workflows/) is a wall of every sign-up and
 sign-in flow as a demo app you click through, landing page to logged in, with a live click count
@@ -79,7 +79,7 @@ verdict with how sure anyone is, records the decisions that would be expensive t
 prototypes only what a demo explains better than a paragraph.
 
 ## Behind the scenes: the research log
-*As of 16:32, 2026-09-04 — from [the run log](/framework/ai/2026-09-04/mastermind-platform/). This
+*As of 16:32, 2026-09-04 — from [the run log](/framework/ai/sessions/2026/09/04/mastermind-platform/). This
 is the paper trail the demo above was built from — a project log, not a feature of the platform
 itself.*
 
@@ -93,7 +93,7 @@ above.
 
 ### Since — the slice runs
 2026-09-06: a like is a real D1 row, and all four nouns of the smallest slice run locally in ~15
-seconds ([Running](./mvp/), [the recipe](/framework/ai/2026-09-06/platform-slice/run/)).
+seconds ([Running](./mvp/), [the recipe](/framework/ai/sessions/2026/09/06/platform-slice/run/)).
 
 ### Still open — only the project's owner can decide these
 ${PARKED.map(([q, url]) => `- [${q}](./${url})`).join("\n")}

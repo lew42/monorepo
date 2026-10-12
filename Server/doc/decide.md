@@ -32,7 +32,7 @@ node Server/decide.mjs show d-host --file $F        # status <id> = just what's 
 - **One truth for nesting: `depends_on`.** Creating a child with `--depends-on parent:option` adds it to that option's `then` while the parent is still a draft. A parent that is already logged is never rewritten, so a new child for it is **refused** ("create children while the parent is a draft, or drop and redo"). A `then` that names a child whose `depends_on` points somewhere else is refused too. So `then` can only repeat `depends_on`, never disagree with it. (The alternative was re-appending the parent with an updated `then`. It was rejected because it puts two versions of one decision in the log.)
 - **Several parts at once.** `--json` takes an object with the same fields as the flags, or an array: for `options` the options, for `caveats` and `then` a list of `{"option":"a","caveats":[…]}` / `{"option":"a","then":[…]}`. `--options`, `--caveats` and `--then` parse JSON too; caveats and then also take an object keyed by option id. Each option can carry its own `caveats` and `then`.
 - **Refused, not guessed.** An unknown flag is refused with the flags that verb knows. Text that starts like JSON (`[` or `{`) in `--option`, `--caveat` or `--why` is refused instead of being slugged into an id (that once made `[{"id":"a",…}]` one option called `idatextaidbtextb`). A refused call changes nothing.
-- **Self-test:** `node public/framework/ai/2026-09-29/decide-tool/decide-selftest.mjs` drives the CLI against a throwaway log (17 checks).
+- **Self-test:** `node public/framework/ai/sessions/2026/09/29/c6354c23-7d9e-484d-886f-06b14540473b/decide-tool/decide-selftest.mjs` drives the CLI against a throwaway log (17 checks).
 
 ## The record
 
@@ -51,7 +51,7 @@ import * as decide from "../../Server/decide.mjs";
 decide.verbs.create(file, { question, rank });   // every verb is (file, args) → {ok, …}; refusal throws DecideError
 ```
 
-The `then` verb is the function `follow`. A module that exports a function called `then` counts as a promise, and `import()` would call it. `public/framework/ai/2026-09-29/decide-tool/seed-openrouter.mjs` is a complete example.
+The `then` verb is the function `follow`. A module that exports a function called `then` counts as a promise, and `import()` would call it. `public/framework/ai/sessions/2026/09/29/c6354c23-7d9e-484d-886f-06b14540473b/decide-tool/seed-openrouter.mjs` is a complete example.
 
 ## Showing it
 

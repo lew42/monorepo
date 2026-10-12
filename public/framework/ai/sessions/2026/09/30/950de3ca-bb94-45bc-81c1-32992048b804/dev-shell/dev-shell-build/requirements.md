@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `code`, `css`, `page`.
 
-**The owner's words:** `public/framework/ai/2026-09-30/dev-shell/owner-words.md` (read in full; re-read, more may be appended). Card dir: `public/framework/ai/2026/09/30/shell-header-sidebars-footer-the-dark-de/`. Agreed design: `public/framework/ai/2026-09-30/dev-shell/design.md`. The general Shell was just built by minion A at `public/framework/core/Shell/` (read its readme and Shell.js first; use its `frame: true` + `dark` options, don't build a second shell).
+**The owner's words:** `public/framework/ai/sessions/2026/09/30/950de3ca-bb94-45bc-81c1-32992048b804/dev-shell/owner-words.md` (read in full; re-read, more may be appended). Card dir: `public/framework/ai/2026/09/30/shell-header-sidebars-footer-the-dark-de/`. Agreed design: `public/framework/ai/sessions/2026/09/30/950de3ca-bb94-45bc-81c1-32992048b804/dev-shell/design.md`. The general Shell was just built by minion A at `public/framework/core/Shell/` (read its readme and Shell.js first; use its `frame: true` + `dark` options, don't build a second shell).
 
 **Work ONLY in the worktree** `C:\Code\lew42\worktrees\dev-shell` (branch `worktree/dev-shell`, server http://localhost:54678/). Commit after each finished piece, by exact path.
 

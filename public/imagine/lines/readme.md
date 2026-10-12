@@ -17,4 +17,4 @@ Run the checks with `node public/imagine/lines/test.mjs`. The browser tool scale
 
 - [How the filter works](/imagine/lines/doc/filter/) — channel gradients, direction, continuity and limits.
 - [The original idea](/blog/ai/lines-to-3d/) — the later corner, vector and 3D rungs.
-- [Task log](/framework/ai/2026-10-01/line-filter/) — tests, review and ongoing work.
+- [Task log](/framework/ai/sessions/2026/10/02/29eacca5-0c7f-45a2-878c-c9c08722a004/line-filter/) — tests, review and ongoing work.

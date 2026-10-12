@@ -1,6 +1,6 @@
 # alpha-flip — make the invisible buttons and pills visible, site-wide
 
-The follow-on wave to [color-stacks](../color-stacks/). That task measured and proposed; this
+The follow-on wave to [color-stacks](../color-stacks). That task measured and proposed; this
 one flips.
 
 ## The ask, verbatim
@@ -11,7 +11,7 @@ one flips.
 > THE EVIDENCE IS THE SPEC — read first: `/framework/styles/stacks/` (the lab: the
 > `--shade-aNN`/`--paper-aNN`/`--fill-aNN` scale, the 72-cell matrix, the in-cell now-vs-alpha
 > pairs), `styles/doc/stacking.md` (the rules: interactive + badge fills go alpha; opaque
-> floors stay; the accent is a hue not a rung), `ai/2026-08-30/color-stacks/` + its `hunt.json`
+> floors stay; the accent is a hue not a rung), `ai/sessions/2026/08/30/color-stacks/` + its `hunt.json`
 > (101 invisible pairs / 504 elements / 29 pages; `.demo-btn` + `.layout-btn` carry most; 49
 > fill-shaped rules in 29 files; TWO framework.css lines are the bulk). Run `code`, `css`
 > skills.

@@ -45,4 +45,4 @@ michael/dev` before assuming it has landed. This task is only the smoke/merge to
 
 `Server/merge.mjs`, `Server/smoke.mjs`, `Server/README.md`,
 `.claude/skills/sub-mastermind/SKILL.md` (merge section, one sentence), plus a throwaway
-scratch page under `public/framework/ai/2026-09-28/smoke-links/` for proof (a).
+scratch page under `public/framework/ai/sessions/2026/09/28/b784a919-ce8c-4785-90d5-92b615b91d7c/smoke-links/` for proof (a).

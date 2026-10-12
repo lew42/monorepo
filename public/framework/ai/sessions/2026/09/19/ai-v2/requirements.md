@@ -36,7 +36,7 @@ Private server `PORT=8135 node server.js` (background; kill by its real Windows 
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/ai-v2/`); `code`, `css`, `layout` (its rules are suggestions; the shot is the verdict), `ui-test`, `documentation`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/ai-v2/`); `code`, `css`, `layout` (its rules are suggestions; the shot is the verdict), `ui-test`, `documentation`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `public/framework/ai/v/**`, `.claude/skills/new-task/SKILL.md` (one line), `.claude/skills/mastermind/improvements.md` (one entry), your task dir. The run's `task.jsonl` only by APPENDING `note` lines for your delay test (say "test" in them and keep them to three). Not `ext/AITask/**`, not `ext/JSONL/**`, not `core/**`, not `framework.css`, not `public/framework/ai/page.js`.
 - The board is open in the owner's browser right now, and the mastermind appends to the run's log every few minutes: every edit in one write, loaded headless within a minute; if broken, fix forward at once. **Never kill or restart the owner's dev server (port 80) or the mastermind's (8123), never drive the owner's tabs.** Never `git stash`, never `find /`; an `rg` pattern starting with `/` returns nothing here. A bash heredoc containing an apostrophe fails in this harness — write files with the Write tool. Do not write the owner's name anywhere.
 - Playwright: `import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs"`. Scratch in the session scratchpad.

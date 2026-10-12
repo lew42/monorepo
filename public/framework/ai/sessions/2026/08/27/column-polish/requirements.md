@@ -4,9 +4,9 @@
 
 > TASK W3 — core polish of the column system, driven by today's recon findings.
 >
-> Read: the ranked UX recon at `public/framework/ai/2026-08-27/ux-recon/task.jsonl` with its
+> Read: the ranked UX recon at `public/framework/ai/sessions/2026/08/27/ux-recon/task.jsonl` with its
 > screenshots beside it (41 shots, 13 ranked items); `core/Page/doc/columns.md` (including its Open
-> section); `public/framework/ai/2026-08-27/column-pages-2/requirements.md` for the owner's intent
+> section); `public/framework/ai/sessions/2026/08/27/column-pages-2/requirements.md` for the owner's intent
 > ("just try to make the column system better. take screenshots, try to improve the ux").
 >
 > THE WORK, ranked:

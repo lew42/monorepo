@@ -29,7 +29,7 @@ const SESSION_KEY = "lew42-voice-session";
 // `ext/drawer`.
 export { model, MODELS };
 
-/* THE AI TAB — v2 (`ai/2026-09-29/audio/c-chat/`, `Widget` as of round 3) is
+/* THE AI TAB — v2 (`ai/sessions/2026/09/29/audio/audio/c-chat/`, `Widget` as of round 3) is
    `ux/Dictate/Widget`: the log, the composer and the mic as ONE widget, the exact
    one the mobile ✦ sheet (`rail.js`) now also builds — "we need a consistent chat
    widget… whether it's in a desktop sidebar or a mobile sheet" (the owner,
@@ -44,7 +44,7 @@ export { model, MODELS };
    · on a CARD: where the card's composer already sends (Servex's prompt log, `re`
      the card), and the reply arrives in the card's own chat on the page;
    · on a plain PAGE: the agreed page-pair route, `POST /api/page-ai`
-     (ai/2026-09-25/recursive-pairs/interface.md); until Servex answers it, the dev
+     (ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/interface.md); until Servex answers it, the dev
      bar's Ask route (ext/Ask), so a message still gets an answer today. */
 
 // Context for the Ask route is text: a list of picked elements becomes one line each.

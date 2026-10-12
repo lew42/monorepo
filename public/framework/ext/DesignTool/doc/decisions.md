@@ -11,8 +11,8 @@ number came out *anti*-correlated with how pages actually look — it counted
 findings, findings scale with content, so it rewarded emptiness. Every rule
 survived; the average was deleted, and ranking is now the census, severest first
 (`score.js`'s `worst_first`). **`taste/` is the only tier here that scores.**
-Evidence: `ai/2026-08-17/vision-baseline/`; the removal:
-`ai/2026-08-17/tier-calibration/`.
+Evidence: `ai/sessions/2026/08/17/vision-baseline/`; the removal:
+`ai/sessions/2026/08/17/tier-calibration/`.
 
 ```js
 import { analyze } from "/framework/ext/DesignTool/DesignTool.js";
@@ -32,7 +32,7 @@ one `ask()` on that path is a bill wired to a gesture. `vision.js` is the only
 caller in this module, behind one button, on two pages. Vision belongs *beside*
 the tool — a separate pass whose committed results the tool displays — and the
 reasoning, including why no vision number may sit next to a measured one yet,
-is in `ai/2026-08-17/designtool-ui/design.md`, Job 4. (the owner, 2026-08-17.)
+is in `ai/sessions/2026/08/17/designtool-ui/design.md`, Job 4. (the owner, 2026-08-17.)
 
 ## The files
 
@@ -217,7 +217,7 @@ edge. The cull now records itself (`n.cut`) and `read_text()` skips it;
 on a nested page — `ext/Panel/` goes 65/D → 0/F with 16 high findings, on nodes
 nothing has ever audited — for +40% probe time on that one page and nothing
 measurable elsewhere. Numbers and the proposal:
-`ai/2026-08-16/mastermind-layout/gutter.md`.
+`ai/sessions/2026/08/16/mastermind-layout/gutter.md`.
 
 ## Content nobody can reach outranks everything
 
@@ -259,7 +259,7 @@ below every article; the divisor moves and `covered` reports how much of the boo
 was readable.
 
 **Six of the eleven bands were refit on measurement** the day they were written —
-36 pages at two widths, `ai/2026-08-16/layout-generator-rules/calibration.md`.
+36 pages at two widths, `ai/sessions/2026/08/16/layout-generator-rules/calibration.md`.
 `repetition` was written at 0.30–0.75 from intuition and this site measures 0.23.
 `pad-share` is the tightest quantity on the site (median 0.037, unchanged from
 1280 to 3440) and gained weight; `frame-gap` turned out **bimodal** — chrome near
@@ -425,7 +425,7 @@ navigations in one reused context — a trivial `for` loop, `page.screenshot()` 
 then never resolves and `analyze()` is never reached. It reads as a page bug
 because each width pass starts a fresh context, so the wedge lands on the **same
 url in both passes**. Recorded once as three hung page-widths, since disproved:
-`ai/2026-08-16/mastermind-layout/hang.md`.
+`ai/sessions/2026/08/16/mastermind-layout/hang.md`.
 
 ## Open
 
@@ -434,7 +434,7 @@ url in both passes**. Recorded once as three hung page-widths, since disproved:
   comparing two settle states."* It was measured: 21 pages (every one carrying a
   `high`, both named worst cases, and **10 clean controls**) × 350 / 1000 /
   3000ms × 3 runs, 306 navigations, zero stalls. Full working:
-  `ai/2026-08-16/mastermind-layout/settle.md`.
+  `ai/sessions/2026/08/16/mastermind-layout/settle.md`.
 
   **17 of 17 `high` findings survive at 3000ms.** None vanish, none downgrade,
   and the controls never move. Ten rules — `empty`, `gutter`, `measure`,
@@ -447,8 +447,8 @@ url in both passes**. Recorded once as three hung page-widths, since disproved:
   row **under-reports itself by a `high`** (65/D → 46/F at 1280). Two of 336 rows
   are wrong, both toward a false negative.
 
-  ⚠ **And `ai/2026-08-13/sessions/` is now stable, while
-  `ai/2026-08-14/editor-panel-review/` genuinely jitters at *every* delay**
+  ⚠ **And `ai/sessions/2026/08/13/sessions/` is now stable, while
+  `ai/sessions/2026/08/14/editor-panel-review/` genuinely jitters at *every* delay**
   (3610–3754 nodes, score swinging 0–41) — so **no fixed delay, however long,
   makes that one deterministic.** A blanket longer wait taxes all 336 rows
   (+218s at 1000ms, +890s at 3000ms) to fix one. The narrow fix is a longer
@@ -507,6 +507,6 @@ url in both passes**. Recorded once as three hung page-widths, since disproved:
 - ~~`audit/pages.js` is a hand-typed, ungenerated list of urls.~~ **Retired
   2026-08-16.** It is now a plain filesystem walk (168 pages, minus the
   sandboxes, `ai/` task dirs and `core/new/**`), regenerated and committed —
-  see the header comment on the file itself, or `ai/2026-08-16/taste-audit/`.
+  see the header comment on the file itself, or `ai/sessions/2026/08/16/taste-audit/`.
   Still no automation re-derives it on a rename; someone has to re-run the
   walk and re-commit.

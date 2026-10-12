@@ -21,4 +21,4 @@ Each request starts with the same text as the one before. Providers bill that re
 - 93–99% of what our agents read is cached. Only the newest part (the last tool result and the reply) is billed in full.
 
 ## Where the numbers come from
-Every request's token counts (input, cache write, cache read, output) come back from the API itself, and its cost from those counts × the model's prices. One source of truth, everything else computed from it: being settled by [token-accounting](/framework/ai/2026-10-04/token-accounting/). Prices and context windows per model: the Models tab.
+Every request's token counts (input, cache write, cache read, output) come back from the API itself, and its cost from those counts × the model's prices. One source of truth, everything else computed from it: being settled by [token-accounting](/framework/ai/sessions/2026/10/04/token-accounting/token-accounting/). Prices and context windows per model: the Models tab.

@@ -12,5 +12,5 @@ Reuse what exists: the decision shape in `Server/collab.mjs` (a decision line li
 A skill `.claude/skills/decide/SKILL.md` is the contract, backed by this one tool.
 
 ## Land
-Seed it with the OpenRouter decisions from `ai/2026-09-28/harness-research/plan.md` (proxy vs own loop, then provider field, cost source, fence) on the brain card, nested. A screenshot of the card showing them ranked and nested. Report on the card; run finish-task.
+Seed it with the OpenRouter decisions from `ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/plan.md` (proxy vs own loop, then provider field, cost source, fence) on the brain card, nested. A screenshot of the card showing them ranked and nested. Report on the card; run finish-task.
 Model: Opus, medium. Fence: Server/decide.mjs, .claude/skills/decide/**, public/framework/ux/Content/Decision* (extend only).

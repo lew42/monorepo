@@ -1,6 +1,6 @@
 # Archived skills (never deleted; move a folder back into `.claude/skills/` to bring it back)
 
-Source: `public/framework/ai/2026-10-12/skill-usage-audit/recommendation.md` (zero calls in 8,067 sessions).
+Source: `public/framework/ai/sessions/2026/10/12/session-b5cae4be/skill-usage-audit/recommendation.md` (zero calls in 8,067 sessions).
 
 | Skill | Old path | Why archived |
 |---|---|---|

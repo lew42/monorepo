@@ -26,7 +26,7 @@ same things as tiles ([why both](/framework/core/Page/make/readme-page/)).
 
 **3. Inside the page — sections, cards, padding, spacing, gap**
 - [Sections](/framework/styles/sections/) — content bands inside one page: hero, stats, pricing, faq.
-- [Cards and padding](/framework/ai/2026-09-19/card-word/) — a region gets `.pad`, a framed box gets `.card`.
+- [Cards and padding](/framework/ai/sessions/2026/09/19/card-word/) — a region gets `.pad`, a framed box gets `.card`.
 - [Spacing and gap](/framework/styles/system/) — one clamp knob, four gap rungs, `--flow` between blocks.
 - [Named arrangements](/framework/core/Layout/) — 30 ways to arrange things in a box, proven at seven widths.
 
@@ -53,16 +53,16 @@ The detail, and how the two lists fit together: [doc/decide.md](/framework/core/
 
 ## Research worth keeping — the rule each one decided
 
-- Spacing is a clamp, never a constant — [spacing-clamp](/framework/ai/2026-09-01/spacing-clamp/)
-- Bleed is for paint; cards and text never bleed — [spacing-clamp](/framework/ai/2026-09-01/spacing-clamp/)
-- The page gutter is padding, so no grid template can delete it — [padding-law](/framework/ai/2026-09-22/padding-law/)
-- A region takes `.pad`, a framed box takes `.card` — [card-word](/framework/ai/2026-09-19/card-word/)
-- A spacing ramp is space between things, never the size of a control — [nav-fat](/framework/ai/2026-09-06/nav-fat/)
-- An open column freezes its width when a sibling opens — [core-columns](/framework/ai/2026-09-24/core-columns/)
+- Spacing is a clamp, never a constant — [spacing-clamp](/framework/ai/sessions/2026/09/01/spacing-clamp/)
+- Bleed is for paint; cards and text never bleed — [spacing-clamp](/framework/ai/sessions/2026/09/01/spacing-clamp/)
+- The page gutter is padding, so no grid template can delete it — [padding-law](/framework/ai/sessions/2026/09/22/session-2e26b182/padding-law/)
+- A region takes `.pad`, a framed box takes `.card` — [card-word](/framework/ai/sessions/2026/09/19/card-word/)
+- A spacing ramp is space between things, never the size of a control — [nav-fat](/framework/ai/sessions/2026/09/06/nav-fat/)
+- An open column freezes its width when a sibling opens — [core-columns](/framework/ai/sessions/2026/09/24/core-columns/core-columns/)
 - Navigation never moves: persistent, or a whole-screen switch — [Navigation](/framework/core/Page/navigation/)
 - Layouts have names, not numbers; variations are tags — [naming](/layouts/doc/naming.md)
 - The approved set is closed; a sixth is a proposal — [approved](/layouts/doc/studies/approved/)
-- One panel open at a time; multi-panel was rejected with measurements — [column-pages-2](/framework/ai/2026-08-27/column-pages-2/)
+- One panel open at a time; multi-panel was rejected with measurements — [column-pages-2](/framework/ai/sessions/2026/08/27/column-pages-2/)
 - The five questions are judgements, never rules — [/layouts/decide/](/layouts/decide/)
 
 Every row the three inventories found, de-duplicated: [doc/prior-work.md](/framework/core/Page/layout/doc/prior-work.md).

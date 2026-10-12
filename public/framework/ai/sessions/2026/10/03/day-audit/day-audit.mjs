@@ -1,6 +1,6 @@
 // day-audit.mjs — every owner ask routed today: is it written down (brief), is it tracked (task log),
 // did it land, and what's left. Computed from ai/asks.jsonl and the task dirs (law 7).
-//   node public/framework/ai/2026-10-03/day-audit/day-audit.mjs [YYYY-MM-DD]
+//   node public/framework/ai/sessions/2026/10/03/day-audit/day-audit.mjs [YYYY-MM-DD]
 import fs from "node:fs";
 import path from "node:path";
 

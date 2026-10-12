@@ -24,4 +24,4 @@ No. `page_read` re-reads `page.jsonl` from disk on every call and replays it wit
 
 ## Why this matters for skills
 
-Because tools live in the Servex process, a rule can be **enforced** there (a tool refuses, or does the step itself) instead of **requested** in prose. See `public/framework/ai/2026-10-12/skill-usage-audit/recommendation.md`.
+Because tools live in the Servex process, a rule can be **enforced** there (a tool refuses, or does the step itself) instead of **requested** in prose. See `public/framework/ai/sessions/2026/10/12/session-b5cae4be/skill-usage-audit/recommendation.md`.

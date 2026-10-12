@@ -7,7 +7,7 @@ Four small items left by today's landings, each verified headless on a private s
 
 1. **`ux/Tree` leaf awareness** — a page with `leaf: true` (read `core/Page/readme.md` for the
    field) has children that are not navigation; a `root:` tree must not expand into them. Read
-   `ai/2026-09-18/site-sidebar-tree/task.jsonl`'s landing and `core/Sidebar/doc/decisions.md` for
+   `ai/sessions/2026/09/18/site-sidebar-tree/task.jsonl`'s landing and `core/Sidebar/doc/decisions.md` for
    the exact case; fix in `public/framework/ux/Tree/Tree.js`.
 
 2. **Two `ux/Tree` defects** that `real-page-move` guarded around inside Make (read

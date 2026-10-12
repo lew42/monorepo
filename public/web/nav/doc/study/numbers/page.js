@@ -9,7 +9,7 @@ import { Page, md, p, table, thead, tbody, tr, th, td, div } from "/app.js";
 /* Measured 2026-09-17, headless Chromium, one fresh context per page and width.
    Every number is the LARGEST shift of a column that was ALREADY OPEN when the
    click landed: its x on screen, its width, and the top of one of its first five
-   nav links. Raw json: /framework/ai/2026-09-17/nav-stability/measurements.json */
+   nav links. Raw json: /framework/ai/sessions/2026/09/17/nav-stability/measurements.json */
 const ROWS = [
 	["/imagine/", "0 / 0 / 0", "0 / 0 / 0", "0 / 0 / 0", "400 / 0 / 0"],
 	[".../columns/finder/", "0 / 0 / 0", "0 / 0 / 0", "0 / 0 / 0", "400 / 0 / 0"],
@@ -51,6 +51,6 @@ export default new Page({
 
 		md("**At 400 the row pages one column at a time**, so the previous column slides out by exactly the viewport width: 400 / 0 / 0, on every page, on every click. Nothing resizes and no nav link moves. The crumb strip above the row does not move either — 37.7px tall and its first link at the same pixel, through four levels of depth on all four pages.");
 
-		md("Raw numbers, every column and every click: [measurements.json](/framework/ai/2026-09-17/nav-stability/measurements.json). The method and the probe live with [the task](/framework/ai/2026-09-17/nav-stability/).");
+		md("Raw numbers, every column and every click: [measurements.json](/framework/ai/sessions/2026/09/17/nav-stability/measurements.json). The method and the probe live with [the task](/framework/ai/sessions/2026/09/17/nav-stability/).");
 	},
 });

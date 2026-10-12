@@ -98,7 +98,7 @@ code { background: var(--wash); }        /* was the same line as pre */`,
 		title: "NOT LANDED — the reach-through reaches nothing",
 		cls: "maybe",
 		wave: 3,
-		line: "The sweep's biggest cluster (45 findings, 17 pages): `.page > .wide` is a **child** combinator and `md()`, `AITask` and `.tab-panel` all wrap, so nothing inside them can claim the track. Built it as a subgrid pass-through on `.flow` — the word core already owns — and measured it at three widths on both named pages: **not one pixel moved.** `display: contents` matched the widths and came out 40–54px shorter, which is the wrapper's box being lost. The word was already reachable; **nothing claims it** — `md()` emits raw marked output with no classes at all. Injecting the *claim* instead is one word in `AITask.js:76`, needs no Page.css rule, and is outside this task's fence. [The full write-up.](/framework/ai/2026-08-17/layout-wave-3/proposal.md)",
+		line: "The sweep's biggest cluster (45 findings, 17 pages): `.page > .wide` is a **child** combinator and `md()`, `AITask` and `.tab-panel` all wrap, so nothing inside them can claim the track. Built it as a subgrid pass-through on `.flow` — the word core already owns — and measured it at three widths on both named pages: **not one pixel moved.** `display: contents` matched the widths and came out 40–54px shorter, which is the wrapper's box being lost. The word was already reachable; **nothing claims it** — `md()` emits raw marked output with no classes at all. Injecting the *claim* instead is one word in `AITask.js:76`, needs no Page.css rule, and is outside this task's fence. [The full write-up.](/framework/ai/sessions/2026/08/17/layout-wave-3/proposal.md)",
 		before: "`mastermind-shots` @3440 — tables 720px inside a 2,986px page, 5,538px tall",
 		after: "`\"ai-task flow wide\"` — tables **2,806px**, page **2,425px** tall. Four CSS rules: **no change at all**",
 		imgs: [
@@ -114,7 +114,7 @@ code { background: var(--wash); }        /* was the same line as pre */`,
 /* what actually pays, one word, ext/AITask.js:76 */
 div.c("ai-task flow wide", …)`,
 		deletes: "Nothing — nothing landed. Accepting is one word in `ext/AITask/AITask.js`.",
-		files: ["ai/2026-08-17/layout-wave-3/proposal.md"],
+		files: ["ai/sessions/2026/08/17/layout-wave-3/proposal.md"],
 	},
 
 	{
@@ -235,7 +235,7 @@ div.c("ai-task flow wide", …)`,
 - .page.standard > .browse                        { padding-inline: var(--gutter-x) }
 - .report-wide                                    { padding-inline: var(--gutter-x) }`,
 		deletes: "`--breakout`; the payback rules in `catalog.css`, `browse.css` and `report.css`. `ai.css:196` is the fourth copy and is still embargoed.",
-		files: ["core/Page/Page.css", "ext/catalog/browse.css", "ai/2026-08-17/report/report.css"],
+		files: ["core/Page/Page.css", "ext/catalog/browse.css", "ai/sessions/2026/08/17/report/report.css"],
 	},
 
 	{
@@ -350,12 +350,12 @@ export const OPEN = [
 
 	["**The table rule the sweep asked for already exists**", "Cluster #5 says \"no table rule anywhere\". `framework.css:278` has carried `display: block; width: max-content; max-width: 100%; overflow-x: auto` on `table` since before the sweep ran, with its own measurement in the comment. What is left at 390 — a three-column table wrapping one word a line in a 278px column — is a *wrappable* table doing the right thing in the room it has. The room is the `wide` question above, not a missing rule."],
 
-	["Rhythm, truncation, the type scale at 3440, touch targets", "Clusters #10–#14 of the [sweep](/framework/ai/2026-08-17/sweep-harvest/proposal.md), 66 findings — affordance and component JS, not layout, and the brief fenced them out. #11 (`--flow` flat, so an `h2` gets a `<p>`'s air) is the one that is one token and would be the natural next wave."],
+	["Rhythm, truncation, the type scale at 3440, touch targets", "Clusters #10–#14 of the [sweep](/framework/ai/sessions/2026/08/17/sweep-harvest/proposal.md), 66 findings — affordance and component JS, not layout, and the brief fenced them out. #11 (`--flow` flat, so an `h2` gets a `<p>`'s air) is the one that is one token and would be the natural next wave."],
 
 	["`ai.css`'s rail is annotated, not adopted", "`ai-board-fix` had already deleted the `34dvh` band before the embargo lifted. What remains there is five declarations that ARE `.rail`, plus two `:has()` rules that are **not** — they say *hidden when a day is routed* and *the whole page when nothing is*, which is an arrangement question the primitive has no opinion about. Folding them in would have been the sixth word (failure mode 3), so I stopped and wrote it up. Adoption is one word in `dashboard.js:130`, which is outside this fence."],
 	["`/framework/` is still 104 ch", "The topic shell lives in `/public/styles.css`, which is the site skin and outside this task's fence. It is one `--measure` away."],
 	["A doc page still spends 58% of 3440", "Rail + article genuinely does not fill an ultrawide. The layout caveats say the answer is a **third region**, which is authoring, not CSS. Classed `maybe` and left alone."],
-	["Accept/Reject buttons — done", "Landed in `ai/2026-08-17/accept-buttons/`: every card above writes `verdicts.jsonl` over the dev socket, `twin.js`'s write-whole-file pattern. The header count and each card's tag read it back on load."],
+	["Accept/Reject buttons — done", "Landed in `ai/sessions/2026/08/17/accept-buttons/`: every card above writes `verdicts.jsonl` over the dev socket, `twin.js`'s write-whole-file pattern. The header count and each card's tag read it back on load."],
 	["The catalog claims `wide` now", "`catalog.js` said `bleed`, which spends the page's gutter tracks — so `catalog.css`, `ai.css` and `report.css` each restated the same `var(--gutter-x)` payback. One word deleted all four copies. Measured at 3440: the catalog moved from x=274 (flush against the app sidebar) to x=364, inside the page's own axis."],
 	["Three cards still draw a white void — authoring, not CSS", "`Page.css:195` reserves a `.stage` whether the live call inside it draws anything or not, and **Panel, Accordion and Breadcrumbs** draw nothing: three empty 16/10 boxes on `/framework/ui/`, reported at every width in both vision runs. Deleting the stage is the wrong fix (the twelve cards that DO render need it) and so is hiding it per-component. Each of those three needs one line — a `preview()` override that renders the component small, the way the other twelve already do. Three `page.js` edits, no CSS. Wave 2 deleted the CSS half (`span 2`, above) and stopped there on purpose."],
 

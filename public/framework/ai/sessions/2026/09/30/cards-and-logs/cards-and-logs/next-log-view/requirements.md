@@ -1,6 +1,6 @@
 # Next task: AI 2's Inbox and Log views, built on the card log
 
-Written by task-mastermind-cards-and-logs when its $25 budget ran out. The owner's words are the acceptance test: the end of `public/framework/ai/2026-09-30/page-audit/owner-words.md` (09-30, about 12:20 PM). Read them in full.
+Written by task-mastermind-cards-and-logs when its $25 budget ran out. The owner's words are the acceptance test: the end of `public/framework/ai/sessions/2026/09/30/page-audit/page-audit/owner-words.md` (09-30, about 12:20 PM). Read them in full.
 
 ## The asks, one line each (owner's words in quotes)
 1. The default tab becomes the **Inbox**: "only a high level kind of the important things".

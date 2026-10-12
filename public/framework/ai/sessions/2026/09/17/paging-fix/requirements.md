@@ -24,7 +24,7 @@ Standing rules: "self-evident demos that are impossible to misunderstand. every 
 
 ## Rules
 
-- Load `code`, `layout`, `css`; `new-task` before the first edit (your dir exists: `ai/2026-09-17/paging-fix/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
+- Load `code`, `layout`, `css`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/paging-fix/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
 - **Fence:** `public/imagine/paging/**` EXCEPT `make/**` and `made/**` (read-only), your task dir. Nothing else — not `ext/Panel`, not core, not `/imagine/page.js`.
 - Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`. `ui-test` has the headless recipe. Under `/imagine/` there is no page grid (a columns host); a demo host wearing `.page` needs `default` or it is `display: none` (css skill).
 - Two numbers that must agree: demos found under the hub (dirs with a page.js) and demos you pressed.

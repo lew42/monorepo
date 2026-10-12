@@ -27,5 +27,5 @@
 
 ## More
 
-- [The old dashboard](/framework/ai/) · [the run this board is showing, by default](/framework/ai/2026-09-17/mastermind-layout-browser/) · [ext/JSONL](/framework/ext/JSONL/) the log format · [ext/AITask](/framework/ext/AITask/) the Decisions tab this panel reuses
+- [The old dashboard](/framework/ai/) · [the run this board is showing, by default](/framework/ai/sessions/2026/09/17/mastermind-layout-browser/) · [ext/JSONL](/framework/ext/JSONL/) the log format · [ext/AITask](/framework/ext/AITask/) the Decisions tab this panel reuses
 - Files: `page.js` (the board), `v2.css` (its own small ramp + the reused-panel dress)

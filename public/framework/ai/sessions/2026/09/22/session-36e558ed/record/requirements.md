@@ -2,7 +2,7 @@
 
 Minion: Sonnet, effort high. Session id `36e558ed-30a4-4725-8868-9243d91efca2`. You are IN A
 WORKTREE (the launcher says where; your server's port). Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first. Load `code`, `layout`,
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first. Load `code`, `layout`,
 `new-page`. Private whisper test port **8179** if you need one; the owner's 8178 may be POSTed
 to, never restarted.
 
@@ -16,7 +16,7 @@ to, never restarted.
 
 ## What exists
 
-- `ai/2026-09-22/dictate-silence/page.js` — the bench: records through `ux/Dictate`'s
+- `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/page.js` — the bench: records through `ux/Dictate`'s
   `capture.js` (16 kHz Int16 WAV, `wav(samples)`), shows the numbers, posts to whisper, and
   offers a browser-side download (`URL.createObjectURL`). No server write yet.
 - The dev server: `Server/plugins/` — `Screenshots.js` writes PNGs the site sends (read it

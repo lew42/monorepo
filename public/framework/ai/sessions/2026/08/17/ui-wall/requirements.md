@@ -83,7 +83,7 @@ reads a real union-of-intervals (full-corpus median **0.92 at 1280, 0.58 at 3440
 tags as components, the rules tier's bogus aggregate score is gone, and the
 `gutter` finding the devbar itself used to manufacture is fixed. **Baselines
 regenerated: 338 rows, `generated_at 2026-08-17T17:14Z`.** Read
-`ai/2026-08-17/tier-calibration/task.jsonl` for what is and isn't fixed.
+`ai/sessions/2026/08/17/tier-calibration/task.jsonl` for what is and isn't fixed.
 
 So: **measure your wall, and screenshot it.**
 
@@ -101,7 +101,7 @@ So: **measure your wall, and screenshot it.**
 ## Files you own
 
 - `public/framework/ui/**` — all of it.
-- `public/framework/ai/2026-08-17/ui-wall/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/ui-wall/**` — your task dir.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 

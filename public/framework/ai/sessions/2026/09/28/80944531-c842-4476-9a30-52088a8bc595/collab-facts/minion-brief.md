@@ -10,8 +10,8 @@ files **only inside that worktree**, never in `C:\Code\lew42\monorepo`.
 (the FIRST HALF only — facts, disputes, abstaining; the second half, about a per-element
 suggestion sidebar, is a different task, not yours).
 
-The task's own requirements: `public/framework/ai/2026-09-28/collab-facts/requirements.md`.
-Background you need before editing: `public/framework/ai/2026-09-28/collab-rounds/collab-format.md`
+The task's own requirements: `public/framework/ai/sessions/2026/09/28/80944531-c842-4476-9a30-52088a8bc595/collab-facts/requirements.md`.
+Background you need before editing: `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md`
 (the contract), `Server/collab.mjs` (the runner), `public/framework/ext/Collab/Collab.js` (the
 replay model), `public/framework/ext/Collab/view.js` (the live page).
 
@@ -66,7 +66,7 @@ replay model), `public/framework/ext/Collab/view.js` (the live page).
    dropped as "invalid pick".
 
 5. **Docs, all three, small:**
-   - `public/framework/ai/2026-09-28/collab-rounds/collab-format.md`: one new section (don't
+   - `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md`: one new section (don't
      rename anything) documenting `Fact`, the `facts` phase, `dispute`, and abstain — the same
      terse style as the file's existing "Added 14:15" / "Added 14:25" sections.
    - `public/framework/ext/Collab/view.js`: draw facts (a small list, each with a certainty
@@ -88,9 +88,9 @@ Run a **mock** collab (free) that exercises all three: facts, one dispute, one a
 extend the mock path (`mockContent`/the `mock` branch in `runPhase`) so a mock run also writes
 plausible facts, and so ONE mock member's vote is `{"abstain": true}` and the run demonstrably
 disputes a fact. Write the mock spec to
-`public/framework/ai/2026-09-28/collab-facts/mock-run/collab.json` (3 members, `kind: research`,
+`public/framework/ai/sessions/2026/09/28/80944531-c842-4476-9a30-52088a8bc595/collab-facts/mock-run/collab.json` (3 members, `kind: research`,
 any short question) inside your worktree, run
-`node Server/collab.mjs public/framework/ai/2026-09-28/collab-facts/mock-run --mock`, and check
+`node Server/collab.mjs public/framework/ai/sessions/2026/09/28/80944531-c842-4476-9a30-52088a8bc595/collab-facts/mock-run --mock`, and check
 `mock-run/collab.jsonl` has `fact`, `dispute`, and a vote with `abstain: true`, and that
 `mock-run/collab/tally.md` shows the abstention count.
 

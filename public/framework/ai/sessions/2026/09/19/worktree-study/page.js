@@ -1,7 +1,7 @@
 import { Page, md, div, p, span, b, details, summary } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board — the ordinary
                 page grid, same shape as this dir's sibling reports today
                 (mistake-audit, incident-site-down).
    2 SIZE       prose at --measure; the six-card wall, the measurements table

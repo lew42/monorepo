@@ -22,47 +22,47 @@ const MOST_IMPORTANT = [
 	{ name: "Paging audit (the live reference)", icon: "route", weight: 3, href: "/framework/ai/audits/paging/" },
 	{ name: "Rethink the top tabs + left nav", icon: "tab", weight: 2, href: "/framework/core/Page/" },
 	{ name: "Mine /imagine/ for past layout work", icon: "travel_explore", weight: 2, href: "/framework/ai/audits/paging/" },
-	{ name: "Page audit", icon: "fact_check", weight: 2, href: "/framework/ai/2026-09-25/page-audit/" },
-	{ name: "Layout-check tool", icon: "photo_size_select_large", weight: 2, href: "/framework/ai/2026-09-25/layout-check/" },
-	{ name: "Page system tools", icon: "build", weight: 1, href: "/framework/ai/2026-09-25/page-system/" },
-	{ name: "Loose-ends: paging tuning", icon: "tune", weight: 1, href: "/framework/ai/2026-09-24/loose-ends/report.md" },
+	{ name: "Page audit", icon: "fact_check", weight: 2, href: "/framework/ai/sessions/2026/09/25/d091217f-6d0b-44d9-b0dc-fe441f9454f8/page-audit/" },
+	{ name: "Layout-check tool", icon: "photo_size_select_large", weight: 2, href: "/framework/ai/sessions/2026/09/25/54c0290c-57e1-4a9d-8eeb-6736c575bcdd/layout-check/" },
+	{ name: "Page system tools", icon: "build", weight: 1, href: "/framework/ai/sessions/2026/09/25/page-system/" },
+	{ name: "Loose-ends: paging tuning", icon: "tune", weight: 1, href: "/framework/ai/sessions/2026/09/24/loose-ends/loose-ends/report.md" },
 ];
 
 /* ── Tier 2: secondary — groups of related open work (ask 2) ───────────────── */
 const SECONDARY = [
 	{ name: "Feedback council fixes", icon: "bolt", weight: 3, href: "/framework/ai/todo.md" },
 	{ name: "Hide every process window", icon: "bolt", weight: 3, href: "/framework/ai/todo.md" },
-	{ name: "Feedback council", icon: "groups", weight: 2, href: "/framework/ai/2026-09-25/feedback-council/" },
-	{ name: "CSS audit", icon: "css", weight: 2, href: "/framework/ai/2026-09-25/css-audit/" },
+	{ name: "Feedback council", icon: "groups", weight: 2, href: "/framework/ai/sessions/2026/09/25/feedback-council/" },
+	{ name: "CSS audit", icon: "css", weight: 2, href: "/framework/ai/sessions/2026/09/25/css-audit/css-audit/" },
 	{ name: "Layout system check", icon: "space_dashboard", weight: 2, href: "/framework/ai/todo.md" },
-	{ name: "Reuse audit", icon: "recycling", weight: 2, href: "/framework/ai/2026-09-22/reuse-audit/" },
-	{ name: "Fresh-eyes review", icon: "visibility", weight: 2, href: "/framework/ai/2026-09-28/fresh-eyes-review/" },
+	{ name: "Reuse audit", icon: "recycling", weight: 2, href: "/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/" },
+	{ name: "Fresh-eyes review", icon: "visibility", weight: 2, href: "/framework/ai/sessions/2026/09/28/b6fa1bc1-fad0-4bdd-9b20-8cd1cd20afb4/fresh-eyes-review/" },
 	{ name: "Task-mastermind messaging (Servex)", icon: "forum", weight: 1, href: "/framework/ai/todo.md" },
 ];
 
 /* ── Tier 3: one-offs — don't group well ────────────────────────────────────── */
 const ONE_OFFS = [
 	{ name: "Nightly crawl", icon: "nights_stay", weight: 3, href: "/framework/ai/todo.md" },
-	{ name: "AI 2 row vanish", icon: "bug_report", weight: 2, href: "/framework/ai/2026-09-28/ai2-row-vanish/requirements.md" },
+	{ name: "AI 2 row vanish", icon: "bug_report", weight: 2, href: "/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-row-vanish/requirements.md" },
 	{ name: "To do list", icon: "checklist", weight: 2, href: "/framework/ai/todo.md" },
-	{ name: "Fresh-eyes review proofs", icon: "science", weight: 1, href: "/framework/ai/2026-09-28/fresh-eyes-review/proof/" },
-	{ name: "Naming checks", icon: "badge", weight: 1, href: "/framework/ai/2026-09-22/naming-checks/" },
+	{ name: "Fresh-eyes review proofs", icon: "science", weight: 1, href: "/framework/ai/sessions/2026/09/28/b6fa1bc1-fad0-4bdd-9b20-8cd1cd20afb4/fresh-eyes-review/proof/" },
+	{ name: "Naming checks", icon: "badge", weight: 1, href: "/framework/ai/sessions/2026/09/22/e97bf427-035d-492c-a01c-600441c57a69/naming-checks/" },
 ];
 
 /* ── Earlier audits — every one from the scan, one icon item each (ask 3) ──── */
 const AUDITS = [
-	{ name: "Loose-ends sweep", href: "/framework/ai/2026-09-24/loose-ends/" },
-	{ name: "Task audit (09-17 to 09-24)", href: "/framework/ai/2026-09-24/task-audit/" },
-	{ name: "Review of three days", href: "/framework/ai/2026-09-22/review-3-days/" },
-	{ name: "CSS audit", href: "/framework/ai/2026-09-25/css-audit/" },
-	{ name: "Feedback council", href: "/framework/ai/2026-09-25/feedback-council/" },
-	{ name: "Naming checks", href: "/framework/ai/2026-09-22/naming-checks/" },
-	{ name: "Reuse audit", href: "/framework/ai/2026-09-22/reuse-audit/" },
-	{ name: "Fresh-eyes review", href: "/framework/ai/2026-09-28/fresh-eyes-review/" },
+	{ name: "Loose-ends sweep", href: "/framework/ai/sessions/2026/09/24/loose-ends/loose-ends/" },
+	{ name: "Task audit (09-17 to 09-24)", href: "/framework/ai/sessions/2026/09/24/loose-ends/task-audit/" },
+	{ name: "Review of three days", href: "/framework/ai/sessions/2026/09/22/session-f808e806/review-3-days/" },
+	{ name: "CSS audit", href: "/framework/ai/sessions/2026/09/25/css-audit/css-audit/" },
+	{ name: "Feedback council", href: "/framework/ai/sessions/2026/09/25/feedback-council/" },
+	{ name: "Naming checks", href: "/framework/ai/sessions/2026/09/22/e97bf427-035d-492c-a01c-600441c57a69/naming-checks/" },
+	{ name: "Reuse audit", href: "/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/" },
+	{ name: "Fresh-eyes review", href: "/framework/ai/sessions/2026/09/28/b6fa1bc1-fad0-4bdd-9b20-8cd1cd20afb4/fresh-eyes-review/" },
 	{ name: "Paging audit", href: "/framework/ai/audits/paging/" },
-	{ name: "Page audit", href: "/framework/ai/2026-09-25/page-audit/" },
-	{ name: "Layout-check tool", href: "/framework/ai/2026-09-25/layout-check/" },
-	{ name: "Page system tools", href: "/framework/ai/2026-09-25/page-system/" },
+	{ name: "Page audit", href: "/framework/ai/sessions/2026/09/25/d091217f-6d0b-44d9-b0dc-fe441f9454f8/page-audit/" },
+	{ name: "Layout-check tool", href: "/framework/ai/sessions/2026/09/25/54c0290c-57e1-4a9d-8eeb-6736c575bcdd/layout-check/" },
+	{ name: "Page system tools", href: "/framework/ai/sessions/2026/09/25/page-system/" },
 	{ name: "To do list", href: "/framework/ai/todo.md" },
 	{ name: "Open tasks card", href: "/framework/ai2/2026/09/25/open-tasks-where-each-one-is-and-what-ne/" },
 ].map(a => ({ ...a, icon: "fact_check", weight: 2 }));

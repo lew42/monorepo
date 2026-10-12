@@ -6,7 +6,7 @@ import data from "./data.js";
    layouts on the site, sorted by the number of uses of that layout… once we have a system, we
    don't want to deviate from our system." Every page the site links to was crawled headless and
    given one layout by its DOM marker; data.js is written by
-   ai/2026-09-30/page-audit/classify.mjs --emit (re-run it, never edit data.js by hand).
+   ai/sessions/2026/09/30/page-audit/page-audit/classify.mjs --emit (re-run it, never edit data.js by hand).
 
    1 CONTAINER  standard page; the wall and the table go `wide`.
    2 OWN LAYOUT one line, the wall of layouts (a picture each, most-used first), the table,

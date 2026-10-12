@@ -15,7 +15,7 @@ and "an afternoon" are different decisions.
 
 An `ask` or a `decision` says so by carrying `needs`:
 
-```json ai/2026-09-17/sqlite-scout/task.jsonl
+```json ai/sessions/2026/09/17/sqlite-scout/task.jsonl
 {"ask": {"id": "sqlite-status", "at": "…", "topic": "Pages", "status": "landed",
   "needs": {"owner": "Cloudflare login and wrangler d1 create", "minutes": 5}}}
 ```
@@ -42,7 +42,7 @@ and its fields: [`ext/JSONL`](/framework/ext/JSONL/doc/task-jsonl/).
 Grab the grip in the corner of an ask card or a decision row, drop it where it
 belongs, and the whole list's order becomes one line in that task's own log:
 
-```json ai/2026-09-17/ranked-lists/task.jsonl
+```json ai/sessions/2026/09/17/ranked-lists/task.jsonl
 {"rank": {"list": "asks", "at": "2026-09-18T00:14:55-05:00",
   "order": ["owner-items-first", "threaded-lists", "rank-the-asks",
             "rank-the-decisions", "column-paging-ranked"]}}
@@ -162,7 +162,7 @@ point to revisit it. The two are not exclusive: `rank` is one line in the log, a
 pairwise screen could write exactly the same line.
 
 The choice is an open `decision` on
-[this module's own task](/framework/ai/2026-09-17/ranked-lists/), with Approve and
+[this module's own task](/framework/ai/sessions/2026/09/17/ranked-lists/), with Approve and
 Improve on it.
 
 ## What is deliberately small

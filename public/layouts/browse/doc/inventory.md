@@ -25,7 +25,7 @@ exist here.
 | `tier` | `global`, `sections` or `components`. Decides which wall it lands on. |
 | `name` | what the card says. Taken from the realm's own `title:`, not invented here. |
 | `say` | one line, from the realm's own `description:`. |
-| `url` | the real page. The card's "Open the real page" button — **and, for every item except the twelve `wire` ones, the key a verdict is written against** (mastermind decision `verdict-keyspace`, 2026-09-18, `ai/2026-09-18/browse-on-browse/`): the same key `ext/Ask`'s corner control writes when the owner approves a page from the page itself, so the two never disagree about one url. |
+| `url` | the real page. The card's "Open the real page" button — **and, for every item except the twelve `wire` ones, the key a verdict is written against** (mastermind decision `verdict-keyspace`, 2026-09-18, `ai/sessions/2026/09/18/browse-on-browse/`): the same key `ext/Ask`'s corner control writes when the owner approves a page from the page itself, so the two never disagree about one url. |
 | `source` | the module directory it belongs to, no leading slash. |
 | `why` | the markdown files quoted on the item's page, in order. Only files that exist. |
 | `wire` | an id in `/layouts/layouts.json`. The picture is drawn live from that wire. |

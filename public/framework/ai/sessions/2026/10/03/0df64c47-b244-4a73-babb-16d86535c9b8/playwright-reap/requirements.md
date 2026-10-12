@@ -1,8 +1,8 @@
 # Minion brief — browser launcher tagging, chrome.exe reaper, warm-browser `check_page` tool
 
-Task dir: `public/framework/ai/2026-10-03/playwright-reap/` — read `requirements.md` there (this file,
+Task dir: `public/framework/ai/sessions/2026/10/03/0df64c47-b244-4a73-babb-16d86535c9b8/playwright-reap/` — read `requirements.md` there (this file,
 one level up — the owner's original ask is at the top of it) and log your steps into
-`task.jsonl` beside it as you go (`node .claude/hooks/append.mjs public/framework/ai/2026-10-03/playwright-reap/task.jsonl '{"log":{"msg":"..."}}'`).
+`task.jsonl` beside it as you go (`node .claude/hooks/append.mjs public/framework/ai/sessions/2026/10/03/0df64c47-b244-4a73-babb-16d86535c9b8/playwright-reap/task.jsonl '{"log":{"msg":"..."}}'`).
 
 **No worktree was available** (all 3 quick-fix slots were taken by other agents). Work in the
 **main tree** (`C:\Code\lew42\monorepo`), and **commit each numbered piece below as soon as it
@@ -24,7 +24,7 @@ Load the `code` skill first. Load the `minion` skill too (triggers on "your brie
   closing it is **already** caught by the heartbeat sweep. The actual gap (see step 2) is a
   chrome.exe that was **never** written to the lifecycle log at all — one launched by
   `@playwright/mcp`'s own internal Playwright install, which does not go through `browser.mjs`.
-- **`public/framework/ai/2026-10-02/node-reap/node-reap.mjs`** is a one-off dated script for
+- **`public/framework/ai/sessions/2026/10/02/node-reap/node-reap.mjs`** is a one-off dated script for
   **node.exe server trees only** — its own header says "It never touches claude.exe, chrome, or a
   tree it can't place." Don't extend that file; it's not the always-on reaper. `Servex/Lifecycle.js`'s
   `sweep()` (run every heartbeat tick) is the always-on reaper, and `processes()` in it (line ~128)
@@ -156,7 +156,7 @@ the browser's RSS at that point.
 - `Server/browser.mjs`, `Server/doc/browser.md`, `Server/browser-check.mjs` (new)
 - `Servex/Lifecycle.js`, `Servex/Servex.js` (only the `tools()` method, add the one `.tool(...)`)
 - `~/.claude.json` (only the one `playwright` entry, under the monorepo project — never the global block)
-- this task dir (`public/framework/ai/2026-10-03/playwright-reap/`)
+- this task dir (`public/framework/ai/sessions/2026/10/03/0df64c47-b244-4a73-babb-16d86535c9b8/playwright-reap/`)
 - `.claude/skills/ui-test/SKILL.md` or wherever the browser-testing pointer lives — ONE sentence
   saying probe scripts import `Server/browser.mjs`'s tagged launch (it already does for the
   scripts that matter; just confirm and note it, don't restructure the skill)

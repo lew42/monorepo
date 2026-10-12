@@ -10,7 +10,7 @@ measured 2026-09-22. `CLAUDE.md` is another 43, and every agent gets those.
 
 "Loaded by" is the role, under the six-role design. "When" is always-loaded (on spawn, before the
 agent does anything) or on-demand. Verdicts continue the
-[2026-09-19 audit](/framework/ai/2026-09-19/system-eval/), which ranked seven changes and applied
+[2026-09-19 audit](/framework/ai/sessions/2026/09/19/system-eval/), which ranked seven changes and applied
 none of them.
 
 | skill | lines | loaded by | when | verdict | one reason |

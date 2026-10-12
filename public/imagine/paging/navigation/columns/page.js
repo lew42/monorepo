@@ -69,7 +69,7 @@ export default new Paging({
 
 		h2("The rule");
 
-		md("One selector, in `navigation.css`. Put the class on a columns host and every column under it stops negotiating.\n\n```css\n.paging-nav-fixed .page.columns .page-column-body:not(.page-column-fill, .page-column-full) {\n\t--page-column-flex: 0 0 var(--page-column-max, clamp(40em, 42cqi, 46em));\n\t--page-column-min: 0;\n}\n```\n\n`fill` and `full` are left out because their ceiling is the word `none`, and `flex: 0 0 none` is an invalid declaration — it would drop the whole rule with no error. The proposal to move this into `core/Page/Page.css` as a real word, with the diff, is in [the task log](/framework/ai/2026-09-05/nav-stability/).");
+		md("One selector, in `navigation.css`. Put the class on a columns host and every column under it stops negotiating.\n\n```css\n.paging-nav-fixed .page.columns .page-column-body:not(.page-column-fill, .page-column-full) {\n\t--page-column-flex: 0 0 var(--page-column-max, clamp(40em, 42cqi, 46em));\n\t--page-column-min: 0;\n}\n```\n\n`fill` and `full` are left out because their ceiling is the word `none`, and `flex: 0 0 none` is an invalid declaration — it would drop the whole rule with no error. The proposal to move this into `core/Page/Page.css` as a real word, with the diff, is in [the task log](/framework/ai/sessions/2026/09/05/nav-stability/).");
 
 		md("Measured, clicking `Detail` in each box: the `Setup` column moved **134px at 1280 and 161px at 3440** in the top box, and **0px at both** in the bottom one. On the real site the same gesture moves a column **126px at 1280**, and a link that opens two columns at once moves it **194px**. [How every number was taken](/imagine/paging/navigation/doc/measurements/).");
 	},

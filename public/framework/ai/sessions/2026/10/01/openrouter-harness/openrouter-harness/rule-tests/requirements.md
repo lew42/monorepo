@@ -1,6 +1,6 @@
 # Minion brief: known-answer rule-following tests for non-Claude models
 
-Load the `minion` skill first. Parent: `task-mastermind-openrouter`. Parent task dir: `public/framework/ai/2026-09-30/openrouter-harness/`. Read its `requirements.md` "Phase 2" section (items 2 and 3) and the last section of `owner-words.md`.
+Load the `minion` skill first. Parent: `task-mastermind-openrouter`. Parent task dir: `public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/`. Read its `requirements.md` "Phase 2" section (items 2 and 3) and the last section of `owner-words.md`.
 
 ## Why
 The owner wants to know which cheap model can follow our system's rules. Our instructions are meant to be simple enough for a cheap model, and these tests check that claim. Each test has ONE right answer that a script checks: no judging by eye.
@@ -11,7 +11,7 @@ The owner wants to know which cheap model can follow our system's rules. Our ins
 - Spend: a daily cap is being added in Servex now. **Do not run the tests against OpenRouter until your parent says the guard is merged.** Until then, dry-run the harness on `claude-haiku-4-5-20251001` only (it's on the subscription).
 
 ## Deliverables
-1. **`Servex/ext/openrouter/evals/rules.mjs`**: `node Servex/ext/openrouter/evals/rules.mjs --models a,b,c [--effort low,high] [--only <test>]`. For each model × effort × test, it spawns ONE real Servex agent (role `minion`, `permission_mode: bypassPermissions`, a fresh temp task dir under `public/framework/ai/2026-09-30/openrouter-harness/rule-tests/runs/`), waits for it to end its turn, checks the answer by script, stops the agent, and appends one line to `rule-tests/results.jsonl`: `{model, effort, test, pass, why, cost_usd, turns, ms}`. Use the agent's real `cost` from Servex (OpenRouter's number, not the SDK guess). Print a pass/fail table plus $/test per model and effort at the end. Run the agents one at a time, never in parallel, because the cost read is shared per key.
+1. **`Servex/ext/openrouter/evals/rules.mjs`**: `node Servex/ext/openrouter/evals/rules.mjs --models a,b,c [--effort low,high] [--only <test>]`. For each model × effort × test, it spawns ONE real Servex agent (role `minion`, `permission_mode: bypassPermissions`, a fresh temp task dir under `public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/rule-tests/runs/`), waits for it to end its turn, checks the answer by script, stops the agent, and appends one line to `rule-tests/results.jsonl`: `{model, effort, test, pass, why, cost_usd, turns, ms}`. Use the agent's real `cost` from Servex (OpenRouter's number, not the SDK guess). Print a pass/fail table plus $/test per model and effort at the end. Run the agents one at a time, never in parallel, because the cost read is shared per key.
 2. **Five tests, each with one checkable answer:**
    - `claude-md`: answer a fact that is only in the repo's CLAUDE.md (e.g. the exact title of law 6), without being told the file exists.
    - `readme-chain`: answer a fact from a deep readme that it can reach only through `load_module` or the readme chain. Pick one, and check that the answer is unique to that readme.

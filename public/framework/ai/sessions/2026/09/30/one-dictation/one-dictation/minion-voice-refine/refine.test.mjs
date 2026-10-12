@@ -2,13 +2,13 @@
 // scratchpad). Calls the real `Sessions.refine()` with a STUBBED `echo.call` -- no real model,
 // no network, no real session file touched, and never a real `say()` into a live session.
 //
-// Run from the repo root: node public/framework/ai/2026-09-30/one-dictation/minion-voice-refine/refine.test.mjs
+// Run from the repo root: node public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-voice-refine/refine.test.mjs
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import Sessions, { now_ms, worth_refining } from "../../../../../../Servex/agents/Sessions.js";
-import Echo from "../../../../../../Servex/agents/Echo.js";
+import Sessions, { now_ms, worth_refining } from "../../../../../../../../../../Servex/agents/Sessions.js";
+import Echo from "../../../../../../../../../../Servex/agents/Echo.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 

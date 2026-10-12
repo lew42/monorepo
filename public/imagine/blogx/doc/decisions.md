@@ -2,7 +2,7 @@
 
 Every candidate was judged at **3440 first**, then 1920, then 400, with an above-the-fold
 crop at each (a viewport screenshot IS the fold). Shots and the measurement sweep:
-`/framework/ai/2026-08-30/blog-layouts/`.
+`/framework/ai/sessions/2026/08/30/blog-layouts/`.
 
 ## Measured at 3440 (headless, 3440 × 1440, dev rail closed)
 

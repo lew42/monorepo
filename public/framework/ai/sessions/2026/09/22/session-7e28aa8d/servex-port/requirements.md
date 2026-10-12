@@ -1,8 +1,8 @@
 # servex-port — audit the old Servex, port it into `Servex/`, add the log writer and /mcp
 
 Minion: Opus, effort high. Session id `7e28aa8d-bd2b-4ae6-b952-784b30e48277`. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then section **A** of
-[`../mastermind-servex/requirements.md`](../mastermind-servex/requirements.md) — the owner's own
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first, then section **A** of
+[`../mastermind-servex/requirements.md`](../../../../../../2026-09-22/mastermind-servex/requirements.md) — the owner's own
 words for this task. Private ports: **8090** (Servex dashboard) and **8080** (its proxy); check
 `netstat -ano | grep LISTENING` first and pick the next free one if either is taken.
 
@@ -18,7 +18,7 @@ words for this task. Private ports: **8090** (Servex dashboard) and **8080** (it
   hand-rolled Streamable-HTTP MCP endpoint at `/mcp`, express, no SDK — copy this pattern),
   `plugins/Whisper.js` (starts `whisper-server` on boot; four boot cases), `hold.mjs`,
   `health-supervisor.mjs`, `worktree-up.mjs`.
-- `ai/2026-09-19/servex-study/` decided "rewrite small, not Servex, not pm2" on 09-19; the
+- `ai/sessions/2026/09/19/servex-study/` decided "rewrite small, not Servex, not pm2" on 09-19; the
   owner's brief today overrides it: port Servex. Keep that study's reason against pm2 in mind.
 
 ## Deliverables
@@ -111,5 +111,5 @@ across all files; if it is heading past 900, stop and say what is eating them.
 
 So: the monorepo's `Server/` and its plugin system, never the old submodule; Servex's own
 dashboard is a `Server` on its own port, reached as `servex.localhost:<proxy port>`; and your
-report is a page at `ai/2026-09-22/servex-port/page.js` — iceberg content: the primary things
+report is a page at `ai/sessions/2026/09/22/session-7e28aa8d/servex-port/page.js` — iceberg content: the primary things
 first, named, then links into the detail — with `Servex/readme.md` staying a coder's index.

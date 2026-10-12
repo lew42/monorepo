@@ -1,6 +1,6 @@
 // compaction proof: a PRIVATE Servex (port 8192), one real Haiku agent that reads a few big files,
 // SERVEX_COMPACT_MB lowered to 200 so the memory path fires: /compact, then a restart from the compacted session.
-//   node public/framework/ai/2026-09-30/dormant-idle/compact-proof.mjs <worktree>
+//   node public/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/dormant-idle/compact-proof.mjs <worktree>
 import { spawn, execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";

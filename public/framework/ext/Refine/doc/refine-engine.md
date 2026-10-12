@@ -1,7 +1,7 @@
 # The refine engine — `clean()` and `structure()`
 
 This is the shared engine behind the owner's "one refine process, two speeds" plan
-([`public/framework/ai/2026-10-02/prompt-refine/requirements.md`](/framework/ai/2026-10-02/prompt-refine/)):
+([`public/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/requirements.md`](/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/)):
 the SAME code cleans a whole logged prompt in one pass, or cleans live dictation segments one
 at a time as they finish. Two files:
 
@@ -69,7 +69,7 @@ self-correction, both happen AFTER the model answers, in plain JS:
 **The mechanical diff-check (deliverable 2) — the actual safety net.** After the model answers,
 `engine.js` checks every content word in its cleaned sentences against everything actually said
 (this call's `prev` + `text`, the same whole-vocabulary comparison
-[`Server/refine.mjs`](/framework/ai/2026-09-29/prompt-refine/)'s own coverage table "new words"
+[`Server/refine.mjs`](/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/)'s own coverage table "new words"
 flag already uses, and for the same reason: a legitimate paraphrase from elsewhere in the same
 dictation must never be flagged, only a word that was never said at all). A word that's
 genuinely new, with no glossary match and not inside a detected self-correction, means the
@@ -86,7 +86,7 @@ const result = await structure(sentences); // the SAME [{n, text}] clean() retur
 ```
 
 Sends the numbered sentences to a model with the EXACT prompt
-[`Server/refine.mjs`](/framework/ai/2026-09-29/prompt-refine/)'s own `structuredPromptDefault()`
+[`Server/refine.mjs`](/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/)'s own `structuredPromptDefault()`
 already uses for its structured rung (imported, not rewritten — reused word for word). Then,
 in plain JS: every sentence number `S1..Sn` must appear in the result exactly once. Missing a
 sentence fails the run loudly (`ok:false, missing:[...]`) rather than silently dropping it —

@@ -1,6 +1,6 @@
 # Minion B — census: which classes are objects worth a view?
 
-Load the `minion` skill first. The owner's words: `public/framework/ai/2026-09-29/item-ui/owner-words.md` (the part from "Study all of the modules across the whole framework"). Task brief: `../requirements.md`, deliverable 5. Read-only work, except the one file you write.
+Load the `minion` skill first. The owner's words: `public/framework/ai/sessions/2026/09/29/ca56812f-482f-482c-a2fb-e86ba479353a/item-ui/owner-words.md` (the part from "Study all of the modules across the whole framework"). Task brief: `../requirements.md`, deliverable 5. Read-only work, except the one file you write.
 
 The owner: "Study all of the modules across the whole framework and figure out, if it's an object oriented thing, do we have a debug view … every instance basically can be a card … some classes like a view class don't need a list of all its methods … for pages, for the app itself, we might want a little structured UI for it."
 

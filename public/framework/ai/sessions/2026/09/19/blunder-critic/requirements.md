@@ -10,7 +10,7 @@ The owner, 2026-09-19: "it's just making blunders all over the place." The site 
 
 ## What to do
 
-1. The pages: every `links[].url` on a **landed** ask in `public/framework/ai/2026-09-17/mastermind-layout-browser/task.jsonl` (merge `ask` lines by `id`; a later line's fields win) — about forty urls — plus `/`, `/framework/`, `/imagine/`, `/layouts/`. Skip `/framework/ai/**` task pages except the run task's own page and `/framework/ai/v/2/`.
+1. The pages: every `links[].url` on a **landed** ask in `public/framework/ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl` (merge `ask` lines by `id`; a later line's fields win) — about forty urls — plus `/`, `/framework/`, `/imagine/`, `/layouts/`. Skip `/framework/ai/**` task pages except the run task's own page and `/framework/ai/v/2/`.
 2. Private server `PORT=8133 node server.js` (background; kill by its real Windows PID at landing). Headless Playwright, socket blocked, at **1280×900 and 400×800**; add 3440×1300 for the ten most-visited: the four roots, `/layouts/browse/`, `/framework/styles/system/`, `/imagine/paging/make/`, the run task's page, `/layouts/shell/`, `/layouts/practice/`. Full-page JPEG shots into your task dir under `shots/`.
 3. **Look at every shot** (Read the image), and measure what looks off. The classes to hunt, each a number and not an opinion:
    - a control or a row wearing page-scale spacing (a row pitch over ~40 px in a list of more than eight; a gap over 1em between an icon and its label; a control whose padding comes from `--pad` or `--gap`);
@@ -25,7 +25,7 @@ The owner, 2026-09-19: "it's just making blunders all over the place." The site 
 
 ## Rules
 
-- `new-task` first (your dir: `ai/2026-09-19/blunder-critic/`); `ui-test`, `layout` (as a lens — its rules are suggestions, the shot is the verdict); `finish-task`.
+- `new-task` first (your dir: `ai/sessions/2026/09/19/blunder-critic/`); `ui-test`, `layout` (as a lens — its rules are suggestions, the shot is the verdict); `finish-task`.
 - **Never kill or restart the owner's dev server (port 80) or the mastermind's (8123), never drive the owner's tabs.** Never `git stash`, never `find /`; an `rg` pattern starting with `/` returns nothing here. A bash heredoc containing an apostrophe fails in this harness — write files with the Write tool. Do not write the owner's name anywhere.
 - Playwright: `import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs"`; `page.routeWebSocket(/.*/, () => {})`. Scratch scripts in the session scratchpad.
 - Landing `outcome`: one screen — how many pages, how many findings, the five worst in a sentence each, the link.

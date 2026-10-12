@@ -22,7 +22,7 @@ Three sentences cost $0.21 (about $0.07 each): each call starts a fresh session.
 
 ## Servex restart
 
-Four Servex changes (Echo mirror, `/api/voice/card`, `/api/whisper/stream`, `clean_live`) are proven together on a private Servex: `node public/framework/ai/2026-10-12/voice-asks-2/proof.mjs` (ports 8190/8189/8188, no Whisper; `SKIP_D=1` leaves out the $0.20 step). One batched restart makes them live (`node Servex/sustain.mjs --restart`). Until then an old Servex answers 404 on `/api/whisper/stream`, which the page treats as "no stream" and falls back.
+Four Servex changes (Echo mirror, `/api/voice/card`, `/api/whisper/stream`, `clean_live`) are proven together on a private Servex: `node public/framework/ai/sessions/2026/10/12/session-fb723164/voice-asks-2/proof.mjs` (ports 8190/8189/8188, no Whisper; `SKIP_D=1` leaves out the $0.20 step). One batched restart makes them live (`node Servex/sustain.mjs --restart`). Until then an old Servex answers 404 on `/api/whisper/stream`, which the page treats as "no stream" and falls back.
 
 ## Left
 

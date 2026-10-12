@@ -5,7 +5,7 @@
 
 ## Facts
 - The clean step is `clean()` in `public/framework/ext/Refine/engine.js` (Echo calls it; local-first `local/qwen2.5-coder`, falls back to Sonnet; context overflow being fixed in task local-model-hunt).
-- Scores on refining 10 real owner prompts (`ai/2026-10-03/new-brain/eval-results*.json`): DeepSeek v4.1 flash 10/10, Ling 3.0 flash 10/10, local qwen2.5-coder 8/10, Sonnet 7/10, local Gemma 4 e4b 5/10, local Hermes 3 5/10, local Qwen3 8B 4/10.
+- Scores on refining 10 real owner prompts (`ai/sessions/2026/10/04/new-brain/new-brain/eval-results*.json`): DeepSeek v4.1 flash 10/10, Ling 3.0 flash 10/10, local qwen2.5-coder 8/10, Sonnet 7/10, local Gemma 4 e4b 5/10, local Hermes 3 5/10, local Qwen3 8B 4/10.
 
 ## Want
 1. **A "Try it" tab on /framework/ext/Refine/:** a text box (paste, or the Dictate mic if it mounts in one line), a model picker (the local models + 3–4 cheap OpenRouter ones + Haiku), a Clean button. Shows the cleaned text, seconds, and real $ per call. "Run all" runs the same text through every model side by side.

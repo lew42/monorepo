@@ -41,7 +41,7 @@ everything drawn â€” text blocks *and* leaves, so a wall of image tiles counts â
 as the union of the intervals they occupy, clipped to the frame. Read it as
 *how much of the width has something in it*. `dead-space` above is unchanged and
 still reads only where the prose is. `knowledge/ideal-ranges.md` has the
-mechanism; the corpus numbers are in `ai/2026-08-17/tier-calibration/`.
+mechanism; the corpus numbers are in `ai/sessions/2026/08/17/tier-calibration/`.
 
 ## `pad-scale` stops at 85% of the viewport
 

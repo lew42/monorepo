@@ -3,8 +3,8 @@
 Load the `minion` skill first, then `code`, `page`, `new-page`, `css` as they apply.
 
 **Owner's words** (read all of it): `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-2.md`. The line that matters most: *"almost everything should just be an object with properties and methods … instances and arrays of those instances, like the more of the internal structure we can see via UI."*
-Task: `public/framework/ai/2026-09-28/collab-rounds/` (requirements.md, and the card dir `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/` — design.md, the "Added" section).
-**The contract:** `public/framework/ai/2026-09-28/collab-rounds/collab-format.md`. Another minion is writing the runner (`Server/collab.mjs`) against the same contract at the same time. Do not change the contract; if it is wrong, say so in your final message.
+Task: `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/` (requirements.md, and the card dir `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/` — design.md, the "Added" section).
+**The contract:** `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md`. Another minion is writing the runner (`Server/collab.mjs`) against the same contract at the same time. Do not change the contract; if it is wrong, say so in your final message.
 
 **Work in the worktree `C:\Code\lew42\worktrees\collab-rounds`** (branch `worktree/collab-rounds`, its server at http://localhost:64519/). Commit there. Do not merge.
 
@@ -17,6 +17,6 @@ Task: `public/framework/ai/2026-09-28/collab-rounds/` (requirements.md, and the 
 
 **Fence (the only files you may write):** `public/framework/ext/Collab/**` and the one `children:` line in `public/framework/ext/page.js`. Every new CSS class goes through the `new-css-class` skill (prefix `collab-`).
 
-**Proof before you stop:** load `http://localhost:64519/framework/ext/Collab/` headless (Playwright, headless — never the owner's tabs), zero console errors, one screenshot at 1920 saved to `public/framework/ai/2026-09-28/collab-rounds/shots/objects-1920.png`. Open it and judge it: can someone who never saw this see the members, the phases, the votes and the winner in five seconds?
+**Proof before you stop:** load `http://localhost:64519/framework/ext/Collab/` headless (Playwright, headless — never the owner's tabs), zero console errors, one screenshot at 1920 saved to `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/shots/objects-1920.png`. Open it and judge it: can someone who never saw this see the members, the phases, the votes and the winner in five seconds?
 
-Any process you start sets `windowsHide: true`. Length budget: Collab.js about 150 lines, the view about 150. Log to `public/framework/ai/2026-09-28/collab-rounds/task.jsonl` with `node .claude/hooks/append.mjs` (a JSON array file written with the Write tool). Final message: what you built, the screenshot path, anything in the contract you disagree with.
+Any process you start sets `windowsHide: true`. Length budget: Collab.js about 150 lines, the view about 150. Log to `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/task.jsonl` with `node .claude/hooks/append.mjs` (a JSON array file written with the Write tool). Final message: what you built, the screenshot path, anything in the contract you disagree with.

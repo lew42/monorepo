@@ -25,7 +25,7 @@ render(){
 }
 ```
 
-`styles/layouts/page.js` and `ai/2026-08-17/report/page.js` both do this.
+`styles/layouts/page.js` and `ai/sessions/2026/08/17/report/page.js` both do this.
 
 ## Why alternating is tricky
 

@@ -58,9 +58,9 @@ export default new Page({
 
 		p.c("h3", "The detail, one click down");
 		p("Every measurement, the two script bugs (", code("npm ci"), "'s EINVAL and the worktree's blindness to today's uncommitted files), the Servex proxy gap and exactly what would close it, and the cherry-pick-versus-patch decision are all in ",
-			a("this task's own log").href("/framework/ai/2026-09-22/worktree-proof/"), ". The design and its own measurements: ",
-			a("worktree-design").href("/framework/ai/2026-09-22/worktree-design/"), ". The days-view feature this proof patched: ",
-			a("days-view").href("/framework/ai/2026-09-22/days-view/"), ". ",
+			a("this task's own log").href("/framework/ai/sessions/2026/09/22/worktree-proof/worktree-proof/"), ". The design and its own measurements: ",
+			a("worktree-design").href("/framework/ai/sessions/2026/09/22/worktree-design/worktree-design/"), ". The days-view feature this proof patched: ",
+			a("days-view").href("/framework/ai/sessions/2026/09/22/session-14ca2320/days-view/"), ". ",
 			code("Servex/readme.md"), " is the coder's index for the proxy gap — it sits beside ", code("public/"), ", not inside it, so the site cannot link to it directly.");
 	},
 });

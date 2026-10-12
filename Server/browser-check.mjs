@@ -6,7 +6,7 @@
  *   import { check_page, browser_rss } from "./browser-check.mjs";
  *   const report = await check_page("http://monorepo.localhost/framework/");
  *
- * Doc: doc/browser.md. Owner's ask: public/framework/ai/2026-10-03/playwright-reap/requirements.md. */
+ * Doc: doc/browser.md. Owner's ask: public/framework/ai/sessions/2026/10/03/0df64c47-b244-4a73-babb-16d86535c9b8/playwright-reap/requirements.md. */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";

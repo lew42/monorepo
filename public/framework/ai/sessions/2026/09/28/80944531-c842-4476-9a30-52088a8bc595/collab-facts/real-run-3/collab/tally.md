@@ -1,6 +1,6 @@
 # In this repo, when a merge into michael/dev needs a before-and-after screenshot (shared CSS changed) versus when it doesn't, and whether an agent may ever skip node Server/merge.mjs's review gate for a light-sized change if it is confident the change is safe — where is this a hard rule versus the mastermind's own judgment call?
 
-**Winner:** sonnet-r — `public/framework/ai/2026-09-28/collab-facts/real-run-3/collab/sonnet-r/4-revise.md`
+**Winner:** sonnet-r — `public/framework/ai/sessions/2026/09/28/80944531-c842-4476-9a30-52088a8bc595/collab-facts/real-run-3/collab/sonnet-r/4-revise.md`
 **Rule:** most votes
 **Run cost:** $1.4402
 

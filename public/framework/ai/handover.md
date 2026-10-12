@@ -10,11 +10,11 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 - **Not landed:** feedback-council (idle, 23 open asks voted), servex-health (landed, agent gone), the two running above.
 
 ## EARLIER, 2026-10-09 16:40: mastermind = VS Code tab 7efd07d5 (Opus)
-- **In flight:** `minion-sessions-red-flags` (Sonnet; brief `ai/2026-10-09/sessions-red-flags/requirements.md`: negative durations, $12.7k under "(unknown)" role, duplicate chips, red-flag filters for expensive/stalled/bloated/Opus-minion, a mastermind tag, stable In-flight order). `mastermind-system-architect` (Opus, owner asked for it; brief `ai/2026-10-09/system-architect/requirements.md`: measure the rule load, propose cuts, apply the safe half; CLAUDE.md changes only as a proposal file). Also from the voice session: `task-mastermind-dup-chat-bubbles` + an Opus reviewer.
+- **In flight:** `minion-sessions-red-flags` (Sonnet; brief `ai/sessions/2026/10/09/session-1c89ffc4/sessions-red-flags/requirements.md`: negative durations, $12.7k under "(unknown)" role, duplicate chips, red-flag filters for expensive/stalled/bloated/Opus-minion, a mastermind tag, stable In-flight order). `mastermind-system-architect` (Opus, owner asked for it; brief `ai/sessions/2026/10/09/session-a07780b9/system-architect/requirements.md`: measure the rule load, propose cuts, apply the safe half; CLAUDE.md changes only as a proposal file). Also from the voice session: `task-mastermind-dup-chat-bubbles` + an Opus reviewer.
 - **Landed:** Refine "Nothing to refine" fixed (merge 8c1c7f7b3). `list_agents` now returns live rows only (was 3 MB; `all: true` for everything; takes effect at the next Servex restart, not done because it drops running agents). CLAUDE.md "Where to look" now says: read this file and `git log -20` first.
 - **Next, owner asked "see what it would take":** refine a VS Code tab's prompt from its row on the Sessions page. Pieces exist (`Prompt`, `RefineSystem` in `ext/Refine`, the session's prompts on its detail page); missing is a Refine button per prompt that runs one Haiku pass and appends the refined card to that session's record (priority 2 below, the "prompts stored in the session log" step). Start after sessions-red-flags lands, Sonnet, one agent.
 - **Later (recorded, not now):** Sessions page redesign: visual hierarchy, most text can go.
-- **16:58 spawned `minion-session-detail-live`** (Sonnet; brief `ai/2026-10-09/session-detail-live/requirements.md`): the session page tails live, shows the AI's replies too, compact header, fills the width, smallest slice of AI-posted cards. Fenced apart from sessions-red-flags (grid vs detail files).
+- **16:58 spawned `minion-session-detail-live`** (Sonnet; brief `ai/sessions/2026/10/09/session-ca11999b/session-detail-live/requirements.md`): the session page tails live, shows the AI's replies too, compact header, fills the width, smallest slice of AI-posted cards. Fenced apart from sessions-red-flags (grid vs detail files).
 - **17:35:** fixed the site lag: `directory.json` was 16 MB (58% `ai/sessions/2026/`) and rebuilt about once a second; now 5.8 MB (commit 9b7f9b686). Derived nav-index recommendation in `core/Page/doc/indexing-2026-10-08.md`. Spawned `task-mastermind-production-stack` (Sonnet; inventory of past Cloudflare/auth/user/payment work, what breaks in production, first slice). `task-mastermind-refine-dictate-ui` continues into `phase-2.md` (voice UI class architecture, one dictation panel for Dictate/Refine/drawer, mobile socket, errors to the page log).
 - **Owner on the task audit (2026-10-08):** it read a lot but did not categorise or find loose ends well, and its agents disagreed on what was correct. What matters is tagging everything so tags find it later, not who is right. Before extending it to older days: fix the rubric (tags first, then loose ends), Haiku per day, under 60k each. Not started.
 - **Sessions index, current state:** per-session snapshot + per-day `index.json` (about 100 KB for 200 sessions) built; month/year roll-ups designed (`ai/sessions/doc/data/data-architecture.md` section 8-9) but the grid still loads one `session-index.json`; roll-ups-first for long ranges not built. Next for sessions after the red-flags task.
@@ -37,7 +37,7 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **Open, in priority order (full ranking: `ai/doc/tasks/priorities.md`)**
 1. **Sessions + accounting** (owner: `minion-session-class`, session 3f5a5fec, dormant, ~$54). Landed: `AISession` class family in `ai/AISession/` (shims at old paths), per-session `index.json`, day composites, live tailer 50-200 ms, In-flight strip, pace bars, compact cards, unknown model = UNPRICED, OpenRouter real dollars attributed from Servex's `openrouter.jsonl`, scripted migration of session folders and cards into `ai/sessions/YYYY/MM/DD/<slug>/`, query CLI. Left: the `--tasks` migration (dry run counts, then apply), account-vs-log OpenRouter gap, a commit rule for `ai/sessions/2026/`, the owner's review of the page (tag filters from the task audit, nesting, names).
 2. **Prompt refinement + dictation** (owner: `mastermind-refine-demo`, dormant). Landed: `Prompt`, `RefineSystem`, `Scorer`, demo page `/framework/ext/Refine/` with a live debug tree. Next (design in `ext/Refine/doc/vision-2026-10-08.md`, three addenda): prompts stored in the session log (raw immutable, clean final with numbered sentences, refined cards citing indexes), per-sentence streaming, alternates and names through a Haiku pass, tags, phone mic over HTTPS (`framework/dev/mobile`), hand-off to agents. Echo stays off until its output is visible and cheap.
-3. **Page system + task system** (designed, not built): composition pattern (`thing.page`), CRUD/move with backlinks, directory deltas and indexing (`core/Page/doc/indexing-2026-10-08.md`), one streaming mechanism, the recursive task system (`ai/2026-10-08/task-system-design/`). Build the smallest slice with the session folder first.
+3. **Page system + task system** (designed, not built): composition pattern (`thing.page`), CRUD/move with backlinks, directory deltas and indexing (`core/Page/doc/indexing-2026-10-08.md`), one streaming mechanism, the recursive task system (`ai/sessions/2026/10/08/task-system-design/task-system-design/`). Build the smallest slice with the session folder first.
 4. **Task audit** (`mastermind-task-audit`, dormant): 354 loose ends, 73 re-verified with tool-using Haiku receipts (`verified.jsonl`; the first Haiku pass was only about 58% right), `work-items.md` has 22 clusters. Unowned: the Sessions list on DataGrid (probably skip: duplicate grid), node-reap dry run, card-kind merge 4. The raw-prompt audit (`chunk-sessions.mjs`) is the cheap way to canvass past prompts, one day at a time.
 5. **AI system docs** (`mastermind-ai-system-docs`, dormant): the Inbox/Log/streaming study, the readme/documentation-system status check, the code-skill review (classes, `Thing.View = ...` attached after the class), `ai/doc/meta/history.md`, AI-focused class cards. See its `plan.md`.
 6. **Tidy**: AI 2 merged into AI at 06:42 (53 files moved, 23 shims; class files still lowercase, a later rename); 141 `worktree/*` branches (8 `worktree/ai2-*` unmerged) listed, none deleted; hyphen date dirs `ai/YYYY-MM-DD/` vs the year tree: pick one with a resolver; card slug truncation bug.
@@ -132,11 +132,11 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 ## 2026-10-04 1:30 am (vscode-mastermind, session 60d9def6): the owner is on a break
 - **Mission until Claude's 100% (reset Wed Oct 7, 9:59 pm):** be independent of Claude Code. Claude week at 77%.
 - **In flight:** @task-mastermind-local-brain (generated question ladder for local models; then Echo cleans on local Qwen; one-shot vs step-loop test). @mastermind-servex-10 finishes two fixes (spend gate sees OpenRouter cost; spawns record parent) and stops: **the Servex mastermind role is retired**, architecture lives with the VS Code mastermind.
-- **Model results** (/framework/ai/2026-10-03/new-brain/, raw API, no SDK): local qwen2.5-coder (4.7 GB) passes at $0/22 s; gpt-oss-120b $0.001 (66 s) or on Groq $0.003 (11 s); DeepSeek v4.1 flash 10/10 refine. Haiku is no longer the bar.
+- **Model results** (/framework/ai/sessions/2026/10/04/new-brain/new-brain/, raw API, no SDK): local qwen2.5-coder (4.7 GB) passes at $0/22 s; gpt-oss-120b $0.001 (66 s) or on Groq $0.003 (11 s); DeepSeek v4.1 flash 10/10 refine. Haiku is no longer the bar.
 - **Rules saved tonight:** main site is production (worktree → check_page → merge); do a 5–10 s edit yourself, spawn for 30 s+; small task = one Sonnet agent, no Opus without a reason; replies short and anchored on names the owner knows; cheap jobs = one raw API call with only the files needed.
 - **Fixed tonight:** phone reaches the main server at http://10.0.0.135:3104/ (Servex binds the main site to the LAN); Now card opens in place; Your prompts shows the words said; prompt hook ignores subagent hand-backs.
 - **Open for the owner:** worktree/sessions-tab-polish and worktree/data-grid are unmerged (merge refused by the permission check); the worktree pool is broken (pool-unstick).
-- **Owner's next themes:** cheap OpenRouter models that work; system design for token use (readme chain cost, mastermind-does-it vs minions, fold layers to one agent per task, every spawn logged with cost and output). Spend study: /framework/ai/2026-10-03/spend-tree/ (reviews catch a real fix 87% of the time — keep them).
+- **Owner's next themes:** cheap OpenRouter models that work; system design for token use (readme chain cost, mastermind-does-it vs minions, fold layers to one agent per task, every spawn logged with cost and output). Spend study: /framework/ai/sessions/2026/10/04/spend-tree/spend-tree/ (reviews catch a real fix 87% of the time — keep them).
 
 ## 2026-10-03 11:45 pm (vscode-mastermind, session 60d9def6)
 - **Running:** @task-mastermind-day-overview (spend by day, Claude $ vs real $, by module), @task-mastermind-message-cost (raw → clean → $ per message; voice refine has never written a `refined` line).
@@ -146,7 +146,7 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 - **Tonight's review of all 44 tasks:** /framework/ai/2026/10/03/now/review-of-today-s-44-tasks-what-s-really/.
 
 ## 2026-10-03 10:50 pm: a fresh VS Code mastermind tab starts here (vscode-mastermind)
-- **Start from the day audit:** [ai/2026-10-03/day-audit/](/framework/ai/2026-10-03/day-audit/) lists every task from today: landed, open with its next step, queued, and done directly.
+- **Start from the day audit:** [ai/sessions/2026/10/03/day-audit/](/framework/ai/sessions/2026/10/03/day-audit/) lists every task from today: landed, open with its next step, queued, and done directly.
 - **How to answer the owner:** substance on the day's Now card as a topic sub-card (`create_card` with `parent: "2026/10/03/now"`, then `page_add`); the sidebar gets 1–3 lines + a link. Replies: at most 3 headings, bold-titled bullets, plain words.
 - **Finishing (capped, nothing new tonight):** @task-mastermind-sessions-tab-polish (mid-merge, $3 cap), @task-mastermind-data-grid (land only the windowed Sessions rows, $4 cap), @task-mastermind-push-to-talk (code landed c25c5a39, writing its landing line). Then revive @task-mastermind-system-class (nothing landed under core/System; land the class + module page first).
 - **Queued, briefs written (start when usage allows; week 74% at ~45% elapsed):** dev-shell-polish, point-at-it (Ctrl+Shift+click selection), launch-icons, machine-page, ai-git-context-cost, readme trim (readme-weight.json), sessions blank fields (low). All in `ai/2026-10-03/<slug>/requirements.md` and `ai/asks.jsonl`.
@@ -156,17 +156,17 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 - **The hourly check-in** is a session cron: re-create it in the new tab (CronList first).
 
 ## After a PC restart: check this (2026-10-03, observed)
-- Servex, the port-80 gate, the dev server and whisper start by themselves. Working agents do NOT resume: revive each one with an unlanded task (send_to_agent revive:true). Run CronList before re-creating a session cron: the VS Code session reattaches and its crons can survive. What came back and what didn't: [restart-observe](/framework/ai/2026-10-03/restart-observe/).
+- Servex, the port-80 gate, the dev server and whisper start by themselves. Working agents do NOT resume: revive each one with an unlanded task (send_to_agent revive:true). Run CronList before re-creating a session cron: the VS Code session reattaches and its crons can survive. What came back and what didn't: [restart-observe](/framework/ai/sessions/2026/10/03/restart-observe/).
 
 ## 2026-10-03 2:45 pm: before the owner's PC restart (vscode-mastermind)
 - **Answer on the Now card** (/framework/ai/2026/10/03/now/, `talking` item, newest first; write nested lines `{"talking": {...}}` with .claude/hooks/append.mjs); the sidebar gets a line + link.
-- **Cut off by the restart, revive after:** @task-mastermind-topic-cards (Now topics as sub-cards), @task-mastermind-system-class (nothing committed under core/System yet), @mastermind-servex-10 (the restart-kills-agents fix). Held: @task-mastermind-framework-home-grids, the git/context/cost pages (ai/2026-10-03/ai-git-context-cost/).
+- **Cut off by the restart, revive after:** @task-mastermind-topic-cards (Now topics as sub-cards), @task-mastermind-system-class (nothing committed under core/System yet), @mastermind-servex-10 (the restart-kills-agents fix). Held: @task-mastermind-framework-home-grids, the git/context/cost pages (ai/sessions/2026/10/03/ai-git-context-cost/).
 - **Re-create the hourly check-in cron** (session-only, lost on restart). Usage far over pace (67% week at 38% elapsed): two agents at a time, Sonnet.
 - **Never** the mcp__playwright tools (denied in .claude/settings.json; they pop windows).
 
 ## 2026-10-02 night: for a fresh VS Code mastermind tab (vscode-mastermind)
 - **Who owns what:** @mastermind-page-2 (Gemini 3.8 Flash: core/Page, Item, List, Task, content, and the UI queue), @mastermind-ai-2 (Gemini 3.8 Flash: /framework/ai/, sessions, cards, models), @task-mastermind-one-dictation (Dictate, chat, drawer), @mastermind-servex-10 (Opus: Servex, RAM, token reduction, known issues). Route new asks to the owner with send_to_agent; don't spawn new task masterminds.
-- **The queue:** `ai/2026-10-02/roadmap/requirements.md`, section "Owners". **The design:** `ai/2026-09-30/proposal-flow/page-item-design.md` (top sections are newest: List has events, no LiveList; sessions are pages in `ai/YYYY/MM/DD/`).
+- **The queue:** `ai/sessions/2026/10/02/roadmap/requirements.md`, section "Owners". **The design:** `ai/sessions/2026/09/30/proposal-flow/page-item-design.md` (top sections are newest: List has events, no LiveList; sessions are pages in `ai/YYYY/MM/DD/`).
 - **Budget:** the Claude week was 56% used at ~30% elapsed. OpenRouter has a +$40 burst until Monday (`%LOCALAPPDATA%/lew42/servex/openrouter-burst.json`); push hands-on work there. RAM: leftover dev servers are the leak (node-reap with servex-10).
 - **The owner's standing rules this session:** replies get at most 3 headings, bold-titled bullets, short; decide and don't park; one source of truth; class folder = file = class name; pages are live (page tools); refine only the owner's prompts.
 - **Why a fresh tab:** the old one (361c4d18) cost about $168 at API prices since the weekly reset, 83% of it re-reading its own huge context on every step.
@@ -181,7 +181,7 @@ for servers, five for agents (`spawn_agent`, `send_to_agent`, `interrupt_agent`,
 `stop_agent`). The owner's dev server on :80 is still theirs and still separate. The board at
 `/framework/ai/` opens on a **Days** view — one line per finished task — and
 [the last three days](2026-09-22/review-3-days/) is the clean report of 09-19..21. The run
-that built all this is [`ai/2026-09-22/mastermind-servex/`](2026-09-22/mastermind-servex/); its
+that built all this is [`ai/sessions/2026/09/22/e2b82220-72fd-4fec-b8a6-5f985c9cbefa/mastermind-servex/`](2026-09-22/mastermind-servex/); its
 `requirements.md` carries the owner's whole architecture brief. **Phases 1 and 2 are done** (17:14), and the loop the owner named as top priority closed at 19:28 (`card-to-task`): every item of
 [`tiers-design/doc/phases.md`](2026-09-22/tiers-design/doc/phases.md) landed; a fast assistant
 lives inside Servex and names each dictated sentence in ~2 s (the Prompts tab on the board).
@@ -230,7 +230,7 @@ stays on, one line per sentence, a card evolves as you talk, mention links, a ma
 speaks only to disagree; the silent-reply bug was a tool writing its event as a string) ·
 `padding-law` (68 of 107 pages had text at an edge at some width, 4 do now; `node
 Server/padding-check.mjs <url>` before landing a page; the health watcher measures at 3440 too) ·
-`system-retro` — **the end-of-day report**: [`ai/2026-09-22/system-retro/`](2026-09-22/system-retro/)
+`system-retro` — **the end-of-day report**: [`ai/sessions/2026/10/09/session-9d1f0c2e/system-retro/`](2026-09-22/system-retro/)
 (34 tasks, ~$552, the cost table and timeline, the fifteen laws the owner said more than once with
 where each is written, the state of every tier, what goes where with five ranked suggestions).
 
@@ -286,7 +286,7 @@ commits.
 
 ## What the owner is waiting on - in order
 
-**Re-checked against the repo on 2026-09-22 by `ai/2026-09-22/review-3-days/`** — every item below
+**Re-checked against the repo on 2026-09-22 by `ai/sessions/2026/09/22/session-f808e806/review-3-days/`** — every item below
 was verified, not carried forward. Two of the old seven turned out to be resolved and are struck
 through at the bottom; the corrected list, with what proved it, is also on
 [that task's page](2026-09-22/review-3-days/).
@@ -297,21 +297,21 @@ through at the bottom; the corrected list, with what proved it, is also on
    again. **Still true, 2026-09-22 15:00** — the heartbeat is live and `supervisor_pid` still reads
    **34636**, the same process id as yesterday, started 2026-09-19 19:30 and never restarted since.
    Until it is, the watcher runs Saturday's rules, and the reason it never picked up new ones is
-   itself one of the fixes waiting (`ai/2026-09-21/safe-rollout/`).
+   itself one of the fixes waiting (`ai/sessions/2026/09/21/safe-rollout/`).
 2. **One block for `.claude/settings.json`** — the hold-guard's recording half (a `Bash` matcher on
    the existing `PostToolUse` array) and the prompt-relay hook that fixes the one measurably
    fixable stage of the 29-minute delay. **Still true, 2026-09-22** — read the file: `PostToolUse`
    carries only `Edit|Write|NotebookEdit` and `Skill`, and there is no `UserPromptSubmit` key at
    all. The exact block, already driven with real test payloads, is
-   `ai/2026-09-21/arm-the-hooks/settings-block.md` (one paste, superseding the two in
-   `ai/2026-09-19/hold-guard/`).
+   `ai/sessions/2026/09/21/arm-the-hooks/settings-block.md` (one paste, superseding the two in
+   `ai/sessions/2026/09/19/hold-guard/`).
 3. **Decide what happens to the shelf.** The commit itself is done (`3e9536d4`, tree clean).
    ⚠ `stash@{0}` (1,389 files, Friday night) is still there. Its files differ from HEAD, but that
    is expected: later work moved them on, and Sunday's restore is what put them on disk in the
    first place. It is very likely fully subsumed and it costs nothing to keep. **Only the owner
    should drop it**, and only after they are satisfied — along with the 22 files inside it whose
-   honest intent was a deletion (`ai/2026-09-20/stash-restore/`).
-4. **Seven skill changes written; six still unapplied** — `ai/2026-09-19/system-eval/`. Checked
+   honest intent was a deletion (`ai/sessions/2026/09/20/stash-restore/`).
+4. **Seven skill changes written; six still unapplied** — `ai/sessions/2026/09/19/system-eval/`. Checked
    2026-09-22: change 4 landed (`.claude/hooks/append.mjs` exists and `new-task/SKILL.md` names
    it). The other six have not: `.claude/sessions.mjs` and `ai/sessions.jsonl` do not exist,
    `auditor/SKILL.md` is still its own skill, and `mastermind/SKILL.md` is 386 lines — it grew.
@@ -330,8 +330,8 @@ through at the bottom; the corrected list, with what proved it, is also on
 - ~~A Bash permission rule for CLI minions.~~ **DONE.** `--permission-mode bypassPermissions` is
   refused by the auto-mode classifier, but `acceptEdits` plus `--allowedTools
   Bash,Read,Write,Edit,Glob,Grep` both writes files **and runs them** — smoke-tested on Haiku in
-  9s. The recipe is in `ai/2026-09-22/mastermind-servex/task.jsonl`.
-- ~~The V3 head row measuring 255px at 400px wide.~~ **DONE, and now proven.** `ai/2026-09-21/head-mobile/`
+  9s. The recipe is in `ai/sessions/2026/09/22/e2b82220-72fd-4fec-b8a6-5f985c9cbefa/mastermind-servex/task.jsonl`.
+- ~~The V3 head row measuring 255px at 400px wide.~~ **DONE, and now proven.** `ai/sessions/2026/09/21/head-mobile/`
   shipped the `More ▾` fold but could not run a single command to check it. Measured 2026-09-22 on
   a private `:8091` server: `.v3-head` is **133px at 400**, 105px at 1280, 76px at 1920, with zero
   console errors at all three widths.
@@ -342,10 +342,10 @@ through at the bottom; the corrected list, with what proved it, is also on
   [`/framework/ai/v/3/`](v/3/). `node .claude/skills/every-prompt/say.mjs state` prints the
   state, the inbox and the cards in one go, and posts cards.
 - Recent work: `ai/2026-09-21/*/` then `ai/2026-09-20/*/` — each has a brief, a log, and usually
-  a one-screen page. The newest run ledger is `ai/2026-09-19/mastermind-sonnet-run/task.jsonl`.
+  a one-screen page. The newest run ledger is `ai/sessions/2026/09/19/mastermind-sonnet-run/task.jsonl`.
 - The previous handover, longer and still mostly true:
-  `ai/2026-09-17/mastermind-layout-browser/handover.md`, with `asks.md` beside it.
+  `ai/sessions/2026/09/17/mastermind-layout-browser/handover.md`, with `asks.md` beside it.
 - The roles: `.claude/skills/every-prompt/tiers.md`. How the process is going:
   [`/framework/ai/process/`](process/).
 
-- Owner items and every decided loose end since 2026-08-08: [/framework/ai/2026-09-24/loose-ends/](/framework/ai/2026-09-24/loose-ends/) (2026-09-24).
+- Owner items and every decided loose end since 2026-08-08: [/framework/ai/sessions/2026/09/24/loose-ends/loose-ends/](/framework/ai/sessions/2026/09/24/loose-ends/loose-ends/) (2026-09-24).

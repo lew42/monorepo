@@ -61,7 +61,7 @@ Today a message to a busy mastermind waits for the whole turn to end, one to fiv
 turn reads files or runs a build (a guess, not measured). A turn made only of coordination tools is
 one model call, about 10–30 seconds for Opus (also a guess). So a relayed question is answered in
 about 30 seconds instead of several minutes. The fast assistant still answers first, in about 2
-seconds (measured, [prompt-lifecycle](/framework/ai/2026-09-22/prompt-lifecycle/)).
+seconds (measured, [prompt-lifecycle](/framework/ai/sessions/2026/09/22/c5dd9287-4fc2-427c-b865-f318152bade4/prompt-lifecycle/)).
 
 Every message is already an `agent_msg` line (`from`, `reply_to`, `priority`) in the receiver's
 log, so none of this adds a new log.

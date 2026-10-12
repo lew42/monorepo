@@ -18,7 +18,7 @@ DOM on `:80`; where the picture and the numbers disagree, it says so.
 2. **Panels have no floor.** `ext/Panel` splits its workspace evenly with
    `min-width: 0`, so five or six panes in a 400px window are ~50px wide and text
    ladders one letter per line. Three pages bottom out on it (`ext/Panel`,
-   `ext/editor`, `ai/2026-08-13/panel/`), and it is visible, not statistical.
+   `ext/editor`, `ai/sessions/2026/08/13/panel/`), and it is visible, not statistical.
 3. **Nothing else in the top 20 is a layout failure.** Ranks 17–19 are prose
    pages the tool dislikes; their screenshots are clean and well set. Their rank
    is `rhythm` and a `cramped` false positive on `blockquote`, not a defect.
@@ -39,18 +39,18 @@ omitted: it is a deliberate don't, scoring 0 on purpose.
 
 | # | min | page | 400/1920/3440 | what a person sees | measured cause |
 |---|---|---|---|---|---|
-| 1 | 0 | `ai/2026-08-13/panel/` | 0/0/0 | the live Panel demo divides an 832px workspace into six panes of 120–213px; a stat pane reads "OF THEM IN THE BROWSE R", one word per line, and breaks *mid-word* | `measure` — `div.ui-timeline-entry` is **0px wide × 2403px tall** inside a 134px pane. Verified in the DOM at 400 and 1920 |
+| 1 | 0 | `ai/sessions/2026/08/13/panel/` | 0/0/0 | the live Panel demo divides an 832px workspace into six panes of 120–213px; a stat pane reads "OF THEM IN THE BROWSE R", one word per line, and breaks *mid-word* | `measure` — `div.ui-timeline-entry` is **0px wide × 2403px tall** inside a 134px pane. Verified in the DOM at 400 and 1920 |
 | 3 | 0 | `ext/Panel/` | 0/61/75 | at 400 the panes are 39–56px: letters stack vertically ("H E B R O W S E R", "G O N I T") and the clock paints over the tiles beside it | same — `.panel-body` min width 39px, 11 of 18 panes under 120px |
 | 4–16 | 4–19 | the 13 `/web/` leaves | 4–19 at two or three widths | you land **already scrolled past the page title**, with the bottom half to five-sixths of the guide unreachable — the wheel does nothing | `unreachable` — `div.pages` clientHeight 900, scrollHeight 2126–4999, `overflow-y: hidden`, no scroller anywhere below it |
-| 17 | 20 | `ai/2026-08-14/editor-panel-review/` | 33/28/20 | **nothing.** A clean dashboard rail, a well-set reading column, a legible ledger. Its only real flaw is spending a third of a 3440 screen | `measure` + `cramped:blockquote`. The tool itself calls this page non-deterministic; rank 17 is a coin flip |
+| 17 | 20 | `ai/sessions/2026/08/14/editor-panel-review/` | 33/28/20 | **nothing.** A clean dashboard rail, a well-set reading column, a legible ledger. Its only real flaw is spending a third of a 3440 screen | `measure` + `cramped:blockquote`. The tool itself calls this page non-deterministic; rank 17 is a coin flip |
 | 18 | 25 | `ai/2026-08-11/` | 25/39/37 | a readable task board. One real defect: the compose row clips at 400 — the model select ("Sonnet") and the count dots are sliced by the card's right edge | `rhythm` (5 × `div.md.flow`) + `cramped:blockquote` — neither is visible |
 | 19 | 31 | `ai/2026-08-09/` | 31/62/64 | identical to 18 — the same dashboard rail, the same compose clip | same finding list as 18 |
 | 20 | 37 | `ext/editor/` | 37/46/48 | **real.** At 400 the editor demo is a wall of 52–90px panes; the palette ladders "SECT / GRID / CARD / TEXT" one word per line and a code sample renders as `div.c("f lex v gap` | `measure` — 10.1 ch/line over 23 lines in `div.panel-body`. Same disease as ranks 1 and 3 |
 
-Ranks 21–25, for completeness: `ai/2026-08-13/persistence/` (43, `rhythm` at 400
+Ranks 21–25, for completeness: `ai/sessions/2026/08/13/persistence/` (43, `rhythm` at 400
 only), three `library/bad/*` entries (deliberate), `core/new/1/` and
 `core/new/starter/` (50, `rhythm` + `cramped:blockquote` — the prose family
-again), `ai/2026-08-13/sessions/` (53, same).
+again), `ai/sessions/2026/08/13/sessions/` (53, same).
 
 **Read that table as: two real diseases (an unreachable region, a floorless
 pane), one real page-level bug at 400 (`ext/editor`), and six pages the tool put
@@ -112,7 +112,7 @@ is worse: the cap starts below the region's top so content is still lost, it add
 
 **Mechanism.** `ext/Panel/panel.css:17` sizes every level with
 `flex: 1 1 0; min-width: 0`, so N panes divide the width by N with no minimum.
-Measured: `ai/2026-08-13/panel/` panes are 50–56px at 400 and 120–213px at 1920
+Measured: `ai/sessions/2026/08/13/panel/` panes are 50–56px at 400 and 120–213px at 1920
 (the workspace sits in the page's 832px main track); `ext/Panel/` is 39–56px at
 400. The timeline inside one of them is the visible casualty because
 `.ui-timeline-when` is `flex: 0 0 6.5em` and `.ui-timeline-entry` is
@@ -128,7 +128,7 @@ entry collapses to zero.
 ```
 
 **Measured effect:** `ext/Panel/` 0→52 at 400 and 58→59 at 1920; `ext/editor/`
-37→**63** at 400; `ai/2026-08-13/panel/` 0→20 at 1920; smallest pane rises from
+37→**63** at 400; `ai/sessions/2026/08/13/panel/` 0→20 at 1920; smallest pane rises from
 39px to 131–342px everywhere; `Panel/full/` and `ui/panel/` unchanged.
 **Confidence: medium** — it removes every sub-120px pane and none of the controls
 move, but it does not rescue the pages (a 226px pane still ladders its contents),

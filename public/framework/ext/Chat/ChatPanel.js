@@ -85,7 +85,7 @@ export class ChatPanel extends View {
 			// DRILL IN (doc/drill.md): "Open" on a selected card takes it full
 			// screen, routed. `drill: false` = no button, exactly v1.
 			on_open: this.drill === false ? undefined : card => this.drilled.open(card),
-			// REACTIONS (ai/2026-09-30/chat-reactions): hold, right-click or hover a
+			// REACTIONS (ai/sessions/2026/09/30/chat-reactions): hold, right-click or hover a
 			// bubble to pin a 👍 ✅ ❤️ 😂 ❓ 👎 on it. Saved by the host's own
 			// `react({re, emoji, at})` (a voice session writes a line to its log);
 			// a panel that keeps its own list keeps the reaction there. A panel fed

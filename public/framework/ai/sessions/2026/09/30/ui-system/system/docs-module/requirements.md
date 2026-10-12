@@ -7,7 +7,7 @@ for the page.js. Also load `new-page` before writing `core/System/page.js`.
 `worktree/ui-system`). Its server: http://ui-system.localhost/ (or
 http://localhost:50941/ — check `Server/worktree-up.mjs`'s record if that port is
 stale). Never edit the main tree, except your own log under
-`public/framework/ai/2026-09-30/ui-system/system/docs-module/` in the MAIN tree
+`public/framework/ai/sessions/2026/09/30/ui-system/system/docs-module/` in the MAIN tree
 (`C:\Code\lew42\monorepo`).
 
 ## Background
@@ -46,7 +46,7 @@ Right now it's just a `.js` file with no page and no docs. That's your whole job
    what's actually a method on the class. `files: "System.js readme.md"`.
 
 3. **`core/System/doc/system.md`** — one doc page: what a System IS (more than a page —
-   "a whole system of rules," the owner's words, in `public/framework/ai/2026-09-30/
+   "a whole system of rules," the owner's words, in `public/framework/ai/sessions/2026/09/30/
    ui-system/requirements.md` ask 1) and how to add one (the two ways: `page.js` or
    `page.jsonl` line 1 — `System.js`'s own doc comment has both). Keep it short; this is
    the ONE doc page `page.js`'s Docs tab needs (`notes: "system"` on the page.js config —
@@ -69,7 +69,7 @@ Don't edit `System.js` itself (not your fence — if you find a real bug in it, 
 - `/framework/core/System/` loads with zero console errors, at 400, 1200, 1920, 3440
   (`node Server/layout-check.mjs http://ui-system.localhost/framework/core/System/
   --widths 400,1200,1920,3440 --bands --out
-  public/framework/ai/2026-09-30/ui-system/system/docs-module/shots` — run from the
+  public/framework/ai/sessions/2026/09/30/ui-system/system/docs-module/shots` — run from the
   MAIN tree, `MSYS_NO_PATHCONV=1` prefix if you're in Git Bash). Read every shot
   yourself, top to bottom, and fix what you see.
 - `/framework/core/` (the parent) still loads with zero console errors and shows System

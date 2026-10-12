@@ -74,5 +74,5 @@ Repo files (mine, confirmed directly):
 - `.claude/skills/minion/SKILL.md` (the never-touch-git-on-main framing)
 
 From peers (not independently re-verified beyond the merge.mjs flag above):
-- `.claude/skills/every-prompt/cards.md`, `public/framework/ai/2026-09-24/assistant-layers/card-requirements.md` (the "one or two sentences" pattern across roles)
+- `.claude/skills/every-prompt/cards.md`, `public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/card-requirements.md` (the "one or two sentences" pattern across roles)
 - the "Note: card for substance" convention

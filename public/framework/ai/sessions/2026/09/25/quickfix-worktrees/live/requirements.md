@@ -1,6 +1,6 @@
 # Minion: show the worktree pool on the Live card
 
-Load the `minion` skill, then `page` and `content`. Card with the owner's raw words: `public/framework/ai/2026/09/25/quick-fix-worktrees-smoke-test-then-merg/`. Parent brief: `public/framework/ai/2026-09-25/quickfix-worktrees/requirements.md` (deliverable 5, second half).
+Load the `minion` skill, then `page` and `content`. Card with the owner's raw words: `public/framework/ai/2026/09/25/quick-fix-worktrees-smoke-test-then-merg/`. Parent brief: `public/framework/ai/sessions/2026/09/25/quickfix-worktrees/requirements.md` (deliverable 5, second half).
 
 **Work only in the worktree** `C:/Code/lew42/worktrees/quickfix-worktrees` (its site: http://127.0.0.1:65447). Commit there. Do not merge.
 

@@ -1,6 +1,6 @@
 // run-eval.mjs — runs questions.json (generate-questions.mjs's output) against the three local
 // models through Servex's local proxy (http://127.0.0.1:8998, OpenAI-shaped — same endpoint
-// public/framework/ai/2026-10-03/new-brain/harness.mjs calls). $0 real cost: this never touches
+// public/framework/ai/sessions/2026/10/04/new-brain/new-brain/harness.mjs calls). $0 real cost: this never touches
 // an Anthropic or OpenRouter key. Writes results.jsonl as it goes (one line per answer) so
 // progress can be read while it's still running, and a final report.json summary at the end.
 //

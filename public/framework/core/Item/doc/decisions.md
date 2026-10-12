@@ -5,7 +5,7 @@
 One node of a persistent document tree: a `data` bag, an ordered `items`
 [List](/framework/core/List/), an id, and a saver somewhere up the chain. No view, no
 transport, no DOM — it runs in node. Built to the council ruling of 2026-08-13
-(`framework/ai/2026-08-13/persistence/requirements.md`), which was decided by
+(`framework/ai/sessions/2026/08/13/persistence/requirements.md`), which was decided by
 *executing* frozen-helix's `Item0-9` rather than reading it.
 
 The wire format is four keys — `{ type, id, data, items }`, `items` omitted when

@@ -185,7 +185,7 @@ Fixed by naming the boolean for what it means (`was_open`) and dispatching off t
   "before" column), not two different viewport widths standing in for each other.
 
 Screenshots and the raw JSON are in the session scratchpad (`trees-shots/`,
-`trees-verify-results.json`) — this task's own [`task.jsonl`](/framework/ai/2026-09-18/spatial-trees/)
+`trees-verify-results.json`) — this task's own [`task.jsonl`](/framework/ai/sessions/2026/09/18/spatial-trees/)
 log has the paths at landing time.
 
 ## What this lab deliberately does not do

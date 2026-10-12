@@ -24,11 +24,11 @@ higher scores, and see if i agree."* This is that, inverted: he goes first.
 ## What exists already — reuse it, don't rebuild it
 
 - **The 18 frozen PNGs**, keyed by content hash, listed in
-  `ai/2026-08-17/vision-baseline/baseline.json` with their absolute scratchpad
+  `ai/sessions/2026/08/17/vision-baseline/baseline.json` with their absolute scratchpad
   paths. ⚠ **Read-only. Do not re-shoot and do not modify `baseline.json`.**
 - **The screenshot route**: `GET /screenshot?path=<abs>` from
   `Server/plugins/Screenshots.js`, loopback-guarded, images only. Built today by
-  `ai/2026-08-17/shots-in-log/` — read its `task.jsonl`. ⚠ **It needs a
+  `ai/sessions/2026/08/17/shots-in-log/` — read its `task.jsonl`. ⚠ **It needs a
   `node server.js` restart to be live, and that restart has not happened yet**, so
   build against the expectation that it works and make the missing-route state
   honest (see below).
@@ -91,7 +91,7 @@ behaviour.
 
 ## Files you own
 
-- `public/framework/ai/2026-08-17/human-ranking/**` — your task dir, including
+- `public/framework/ai/sessions/2026/08/17/human-ranking/**` — your task dir, including
   `page.js` and the ranking JSON.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.

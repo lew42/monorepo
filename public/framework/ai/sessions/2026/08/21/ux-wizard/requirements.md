@@ -30,7 +30,7 @@
 - **Scope fence — yours alone:** `ux/Wizard/**` only. READ-ONLY: everything else — `ux/page.js`, `ux/readme.md`, `ux/doc/**`, `ui/**`, `core/**`, `styles/**` (framework.css change = written proposal in your task dir). Auth flows belong to a sibling (`ux/Auth`) — your demo content must NOT be a signup form.
 - **CSS: as little as possible.** Utilities + ui classes + tokens; if a class is truly needed: `new-css-class` skill first (its `styles/css-scopes.txt` append is a permitted write), classes `ux-wizard-*`, one `css()` call in `Wizard.js`, inside a layer.
 - Load skills: `code`, `css`, `layout` before writing; `new-page` per page.js; `documentation`; `finish-task`; `skill-improvement` when a skill misleads.
-- Log to `public/framework/ai/2026-08-21/ux-wizard/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); never a findings.md.
+- Log to `public/framework/ai/sessions/2026/08/21/ux-wizard/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); never a findings.md.
 
 ## Verification (before landing)
 

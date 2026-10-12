@@ -7,7 +7,7 @@ Less is more · clarity is the exception · prioritize. Read [`../mastermind-pla
 ## Read first
 
 - `public/imagine/platform/page.js` (the hub), every child's `page.js` for its `description:` (existing, prior, research, decisions, mvp, topic, omnibox, local if it exists).
-- The run task's log for what landed, in flight, parked and spend: `public/framework/ai/2026-09-04/mastermind-platform/task.jsonl` — every `agent` line with an `outcome`, every `log` line. Numbers come from there, never from memory.
+- The run task's log for what landed, in flight, parked and spend: `public/framework/ai/sessions/2026/09/04/mastermind-platform/task.jsonl` — every `agent` line with an `outcome`, every `log` line. Numbers come from there, never from memory.
 - `public/imagine/platform/mvp/page.js` — the "Where the verdicts disagree" table.
 - `public/imagine/page.js` (the columns host; the hub is a `large` column in it; `mvp/` is its `default` child, so the row is rail + hub + MVP on arrival).
 

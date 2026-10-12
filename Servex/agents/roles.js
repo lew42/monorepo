@@ -2,7 +2,7 @@
  * the right skill before the agent's first turn, and to pick sane defaults for a
  * caller who doesn't name them — a caller's own fields always win (Agents.spawn()).
  *
- * The six roles are ../../public/framework/ai/2026-09-22/tiers-design/doc/roles.md.
+ * The six roles are ../../public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md.
  * `role` here is the short word a caller passes (`minion`, `task-mastermind`); the
  * full id (`<role>-<name>`) is still built by Agents.name(). */
 /* THE table: one row per role — the skill it loads, its id prefix, and its posture.
@@ -53,7 +53,7 @@ export const ROLES = {
 	 * is what it named. Say "page-mastermind", or the row it is meant to become,
 	 * "directory mastermind" (not a roles.js row yet — no tool spawns one fresh from a
 	 * directory's readme chain today). Names only, no behaviour change here:
-	 * doc/names.md, /framework/ai/2026-09-22/tiers-design/doc/roles.md. */
+	 * doc/names.md, /framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md. */
 	"page-mastermind":  { skills: ["sub-mastermind", "page"], prefix: "manager", alias: "manager",                              tier: "manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions" },
 	/* The root page's own assistant (Servex/agents/Global.js `master()`, master-assistant.md).
 	 * Its own row, not folded into page-assistant: architect tier and `plan`, unchanged from
@@ -64,7 +64,7 @@ export const ROLES = {
 	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "architect", model: model("architect"), effort: "high", permission_mode: "plan" },
 	/* Woken per landing and per proposal by Server/clarity.mjs; fresh each time, one pass (.claude/skills/clarity/). */
 	clarity:            { skill: "clarity",          prefix: "clarity",          tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
-	/* ONE PAIR PER VOICE SESSION (Sessions.js, ai/2026-09-29/voice-sessions): spawned by code with
+	/* ONE PAIR PER VOICE SESSION (Sessions.js, ai/sessions/2026/09/30/voice-sessions/voice-sessions): spawned by code with
 	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill.
 	 * `session-smart` shares the "files for the next agent, cards for the owner" write discipline
 	 * with `task-mastermind` (both `every-prompt` and `sub-mastermind` carry it), but never its

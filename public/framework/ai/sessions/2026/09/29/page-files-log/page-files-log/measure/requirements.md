@@ -1,7 +1,7 @@
 # Measure: the phone load of a card page, before and after (minion-pf-measure)
 
 Load the `minion` skill first. Context: `../requirements.md` and `../owner-words.md`; the earlier
-measurement of the same page is in `public/framework/ai/2026-09-29/slow-card-fix/` (read its
+measurement of the same page is in `public/framework/ai/sessions/2026/09/29/slow-card-fix/slow-card-fix/` (read its
 task.jsonl and requirements.md; reuse its method so the numbers compare).
 
 ## Deliverables
@@ -15,10 +15,10 @@ task.jsonl and requirements.md; reuse its method so the numbers compare).
 3. **Then wait.** End your turn with the BEFORE numbers in two lines. You will be sent a message
    to run AFTER against the worktree server (http://localhost:53780) once the readers land.
 4. **AFTER:** same probe, same page, on the worktree. Write both into
-   `public/framework/ai/2026-09-29/page-files-log/measure/result.md` as one small table
+   `public/framework/ai/sessions/2026/09/29/page-files-log/page-files-log/measure/result.md` as one small table
    (throttle × before/after × ms to table / bytes / directory.json requested).
 
 ## Fence
-The scratchpad, and `ai/2026-09-29/page-files-log/measure/`. Nothing else.
+The scratchpad, and `ai/sessions/2026/09/29/page-files-log/page-files-log/measure/`. Nothing else.
 Budget: about $1.
 

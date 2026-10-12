@@ -60,8 +60,8 @@ mid-turn, it waits behind that turn, exactly like any other message. It never
 interrupts. Following one file:
 
 ```
-follow: 2 changes under public/framework/ai/2026-09-29/follow/build/task.jsonl
-public/framework/ai/2026-09-29/follow/build/task.jsonl:
+follow: 2 changes under public/framework/ai/sessions/2026/09/29/follow/build/task.jsonl
+public/framework/ai/sessions/2026/09/29/follow/build/task.jsonl:
 {"assign":{...}}
 {"log":{...}}
 ```
@@ -69,11 +69,11 @@ public/framework/ai/2026-09-29/follow/build/task.jsonl:
 Following a directory, where more than one file under it changed:
 
 ```
-follow: 4 changes under public/framework/ai/2026-09-29/follow/build
-public/framework/ai/2026-09-29/follow/build/task.jsonl:
+follow: 4 changes under public/framework/ai/sessions/2026/09/29/follow/build
+public/framework/ai/sessions/2026/09/29/follow/build/task.jsonl:
 {"log":{...}}
 {"log":{...}}
-changed: public/framework/ai/2026-09-29/follow/build/inbox.jsonl, public/framework/ux/Dictate/page.js
+changed: public/framework/ai/sessions/2026/09/29/follow/build/inbox.jsonl, public/framework/ux/Dictate/page.js
 ```
 
 A `.jsonl` file's new lines arrive **verbatim, in full** — Servex remembers
@@ -90,11 +90,11 @@ Past that, the rest is a note instead of a wall of text, naming exactly where
 to read the remainder yourself:
 
 ```
-public/framework/ai/2026-09-29/follow/build/task.jsonl:
+public/framework/ai/sessions/2026/09/29/follow/build/task.jsonl:
 {"i":0}
 … (198 more shown lines) …
 {"i":199}
-… 50 more line(s) — read public/framework/ai/2026-09-29/follow/build/task.jsonl from byte 1890
+… 50 more line(s) — read public/framework/ai/sessions/2026/09/29/follow/build/task.jsonl from byte 1890
 ```
 
 ## Traps this works around

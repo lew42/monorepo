@@ -5,7 +5,7 @@
 
 ## Facts
 - [Dictate](/framework/ux/Dictate/)'s voice sessions run a fast and a smart assistant (`Servex/agents/roles.js` `session-fast`/`session-smart`, `Servex/agents/Sessions.js`), today on Claude models. Whisper is local and free.
-- Cheap models that passed our test (`/framework/ai/2026-10-03/new-brain/`, Models tab): local qwen2.5-coder ($0, weak at tool calls), gpt-oss-20b/120b (fast on Groq), DeepSeek v4.1 flash, GPT-6 luna. OpenRouter spawns are live again with real cost tracking.
+- Cheap models that passed our test (`/framework/ai/sessions/2026/10/04/new-brain/new-brain/`, Models tab): local qwen2.5-coder ($0, weak at tool calls), gpt-oss-20b/120b (fast on Groq), DeepSeek v4.1 flash, GPT-6 luna. OpenRouter spawns are live again with real cost tracking.
 
 ## Want
 1. **A switch:** session-fast and session-smart can run on an OpenRouter model (and the fast one on local Qwen if it can do its job without tools), chosen by one setting, plus an automatic fallback when a Claude call is refused for usage limits.

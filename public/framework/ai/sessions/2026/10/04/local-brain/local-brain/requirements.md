@@ -7,7 +7,7 @@
 
 ## Facts (vscode-mastermind, measured)
 - On disk: qwen2.5-coder 7B (4.7 GB), gemma-4-e4b, gemma-3-4b; served by Servex on :8998 (`local/<name>`), unloaded after 10 idle min.
-- new-brain run 2 (`ai/2026-10-03/new-brain/`): local qwen2.5-coder 4/5 docs, 3/3 reasoning, 8/10 prompt refine, 22 s, $0.
+- new-brain run 2 (`ai/sessions/2026/10/04/new-brain/new-brain/`): local qwen2.5-coder 4/5 docs, 3/3 reasoning, 8/10 prompt refine, 22 s, $0.
 - Echo (`Servex/agents/Echo.js`, `clean()`/`structure()` in `ext/Refine/engine.js`) refines every owner prompt on Claude Sonnet at ~$0.21–0.34 each (38 prompts in one tab so far).
 
 ## Do

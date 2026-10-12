@@ -42,7 +42,7 @@ working tree away from never having existed.
 - Wrote all 16 `doc/*.md` files listed above. `doc/decisions.md` is the old
   readme's design record, condensed and updated where the 2026-08-14 review
   found the ground had moved. `doc/templates.md` folds in the useful parts
-  of `framework/ai/2026-08-13/panel/templates.md` (an `ai/` task file, not
+  of `framework/ai/sessions/2026/08/13/panel/templates.md` (an `ai/` task file, not
   itself part of the module's documentation) so that content has a real,
   permanent home instead of living only in a dated task log.
 - Fixed nine internal cross-links that pointed at raw `doc/*.md` relative
@@ -83,7 +83,7 @@ working tree away from never having existed.
 5. **A shared-document registry, or the cheap `MemorySaver` version.**
    *(medium, useful)* Three live mounts share `/data/panels.json` today
    (`Panel/page.js`'s default route, its `/full/` route, and
-   `ai/2026-08-13/panel/page.js`), not the two the old readme recorded —
+   `ai/sessions/2026/08/13/panel/page.js`), not the two the old readme recorded —
    `Page` caches views, so visiting any two leaves the last writer winning.
    The archive-page pattern (`MemorySaver`) is already used elsewhere in the
    house for exactly this.

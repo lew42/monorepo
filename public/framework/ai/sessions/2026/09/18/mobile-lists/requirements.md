@@ -20,7 +20,7 @@ The layout skill now says it ("On a phone, nesting is padding"); this page is th
 
 ## Rules
 
-- Load `code`, `layout` (all of it — the box rule, the ladder rungs, "under a COLUMNS host there is no page grid": `/imagine/` is one), `css`, `new-css-class` (the design realm's prefix — read `css-scopes.txt`); `new-task` before the first edit (your dir exists: `ai/2026-09-18/mobile-lists/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
+- Load `code`, `layout` (all of it — the box rule, the ladder rungs, "under a COLUMNS host there is no page grid": `/imagine/` is one), `css`, `new-css-class` (the design realm's prefix — read `css-scopes.txt`); `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/18/mobile-lists/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
 - **Fence:** `public/imagine/design/spacing/nesting/**` (new), one `children:` word + one line in `public/imagine/design/spacing/page.js`, your task dir. Nothing else.
 - The owner's dev server (port 80) is running: never touch it. Your own: `PORT=8119 node server.js` from the repo root, background, killed by its real Windows PID when you land. Never `git stash`, never `find /`, never drive the owner's tabs. `ui-test` has the headless recipe; shots at 400 and 1280 into your task dir.
 - Two numbers that must agree: the readout on the page and your own headless measurement of the deepest content width for variant (a) at 400.

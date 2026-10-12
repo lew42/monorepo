@@ -13,7 +13,7 @@ export default new Page({
 	children: "study",
 
 	content(){
-		md("One study lives here: does navigation stay still when a column opens. Moved from `/imagine/design/navigation/` 2026-09-18 (`ai/2026-09-18/imagine-move-2/`) — the old address still answers.");
+		md("One study lives here: does navigation stay still when a column opens. Moved from `/imagine/design/navigation/` 2026-09-18 (`ai/sessions/2026/09/18/imagine-move-2/`) — the old address still answers.");
 		this.previews();
 	},
 });

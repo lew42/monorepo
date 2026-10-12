@@ -69,7 +69,7 @@ pages look — Pearson **−0.393**, and against DOM node count Spearman **−0.
 emptiness: grade A / 96 to the worst-looking page in the corpus, and its single
 lowest score to the best. It also never emitted below 70 across a 36-point
 reality, so it structurally could not call a page bad. Evidence:
-`ai/2026-08-17/vision-baseline/`; the removal: `ai/2026-08-17/tier-calibration/`.
+`ai/sessions/2026/08/17/vision-baseline/`; the removal: `ai/sessions/2026/08/17/tier-calibration/`.
 
 **Every rule survived; only the average did not.** The same rules found the
 catalog scroll boundary that was hiding content on 18 pages. The weights below
@@ -162,7 +162,7 @@ in the prompt**.
 | correct verdicts | 6 / 8 | 7 / 8 | **8 / 8** | **8 / 8** |
 | cost / time, 8 images | $0.27 · 57s | $1.45 · 41s | $0.95 · 49s | **$0 · 0.3s** |
 
-Full write-up: `ai/2026-08-14/layout-tool/models.md`.
+Full write-up: `ai/sessions/2026/08/14/layout-tool/models.md`.
 
 **The case that separates them is the one this tool was built for.**
 `cramped-card` — three bordered cards with `padding: 0`, text flush against a

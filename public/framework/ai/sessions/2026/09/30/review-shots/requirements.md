@@ -1,6 +1,6 @@
 # Review by screenshot: requirements
 
-The owner's words, verbatim: `ai/2026-09-30/page-audit/owner-words.md`, the section "Continued (about 12:35 PM)". Read them in full first; each ask below traces to a sentence there.
+The owner's words, verbatim: `ai/sessions/2026/09/30/page-audit/page-audit/owner-words.md`, the section "Continued (about 12:35 PM)". Read them in full first; each ask below traces to a sentence there.
 
 ## What the owner asked
 1. Every build that changes a page is **screenshotted at 400, 1200, 1920 and 3440** as part of its review ("from mobile up to mega", "twelve hundred and nineteen twenty is a very common resolution").

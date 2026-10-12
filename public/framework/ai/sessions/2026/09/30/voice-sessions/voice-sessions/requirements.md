@@ -1,6 +1,6 @@
 # Voice sessions: requirements
 
-Part of row 34 (`assistant-front`). The design, with a picture and a table, is [design.md](design.md). The owner's own words are the second half of [../audio/owner-words.md](../audio/owner-words.md). Every sentence is traced to an ask in refine/, refine-640/ and refine-655/ `coverage.md` (0 dropped); items 9, 12 and 15 came from those traces.
+Part of row 34 (`assistant-front`). The design, with a picture and a table, is [design.md](design.md). The owner's own words are the second half of [../audio/owner-words.md](../../../29/audio/audio/owner-words.md). Every sentence is traced to an ask in refine/, refine-640/ and refine-655/ `coverage.md` (0 dropped); items 9, 12 and 15 came from those traces.
 
 Report to the current Servex mastermind (mastermind-servex-6 until its successor tells you its id). The design card is `2026/09/29/audio-a-library-of-audio-parts-transcrip`.
 

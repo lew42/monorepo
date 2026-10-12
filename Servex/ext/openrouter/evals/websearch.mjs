@@ -2,7 +2,7 @@
 /* websearch.mjs — does WebSearch/WebFetch on a proxied OpenRouter minion ever reach Anthropic, and
  * who pays for WebFetch's own summary call?
  *
- * WHY (public/framework/ai/2026-09-30/openrouter-harness/web-search/requirements.md): WebFetch
+ * WHY (public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/web-search/requirements.md): WebFetch
  * doesn't just download a page — the Claude CLI summarizes what it fetched with a SEPARATE small
  * model call, picked from `ANTHROPIC_SMALL_FAST_MODEL` / `ANTHROPIC_DEFAULT_HAIKU_MODEL`, which
  * default to a `claude-haiku` id. `env_for("openrouter")` (provider.js) already blanks
@@ -47,7 +47,7 @@ import { env_for, has_key, read_key, KEY_PATH, disallowed_tools_for, key_usage }
 const DEFAULT_MODELS = ["deepseek/deepseek-v4.1-flash", "openai/gpt-6-luna"];
 const KNOWN_URL = "https://openrouter.ai/"; // stable, small, has an obvious <title>
 const OUT_JSONL = path.join(fileURLToPath(new URL(".", import.meta.url)),
-	"../../../../public/framework/ai/2026-09-30/openrouter-harness/web-search/websearch.jsonl");
+	"../../../../public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/web-search/websearch.jsonl");
 
 const TURN_TIMEOUT_MS = 90_000;
 const MAX_TURNS = 4;

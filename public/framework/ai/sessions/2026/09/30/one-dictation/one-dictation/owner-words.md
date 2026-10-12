@@ -1,6 +1,6 @@
 # The owner's words for this task
 
-The earlier words are in [../audio-consolidate/owner-words.md](../audio-consolidate/owner-words.md), from "hamburger menu" on.
+The earlier words are in [../audio-consolidate/owner-words.md](../../../../../../2026-09-30/audio-consolidate/owner-words.md), from "hamburger menu" on.
 
 ## 2026-09-30 16:39: the card chat doesn't match what was asked
 

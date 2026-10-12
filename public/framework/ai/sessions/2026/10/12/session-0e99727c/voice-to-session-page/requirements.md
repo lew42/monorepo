@@ -13,7 +13,7 @@
 
 > "That's the kind of feedback loop that I'd like." (the owner, 2026-10-12)
 
-**What exists (read STATE/reports first, do not rebuild):** `ai/2026-10-09/refine-dictate-ui/` (VoiceStrip, phase-2 report, mobile-socket answer), `ux/Dictate/doc/voice-architecture.md`, `ext/Refine`, Whisper server under Servex, the task-audit's transcription loose ends (`ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task/by-system.md`, "Transcription and refinement": 10 `now` rows, Haiku-labelled, about 58% reliable). Page tools: `Servex/agents/page_tools.js`; the AI-facing page model is being written by @mastermind-page-ai-api (`core/Page/doc/ai-api.md`); use its tools, ask it, don't fork them.
+**What exists (read STATE/reports first, do not rebuild):** `ai/sessions/2026/10/09/session-48083d9d/refine-dictate-ui/` (VoiceStrip, phase-2 report, mobile-socket answer), `ux/Dictate/doc/voice-architecture.md`, `ext/Refine`, Whisper server under Servex, the task-audit's transcription loose ends (`ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task/by-system.md`, "Transcription and refinement": 10 `now` rows, Haiku-labelled, about 58% reliable). Page tools: `Servex/agents/page_tools.js`; the AI-facing page model is being written by @mastermind-page-ai-api (`core/Page/doc/ai-api.md`); use its tools, ask it, don't fork them.
 
 ## Done when (tick each with proof)
 - [ ] **Reproduce first** on current `michael/dev`: dictate (a recorded audio file fed headless is fine) and record which stage breaks or lags, with timings, in `STATE.md`.

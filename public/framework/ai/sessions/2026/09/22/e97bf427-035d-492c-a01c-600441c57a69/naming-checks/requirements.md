@@ -5,7 +5,7 @@ Minion: Sonnet, effort high. Session id `e97bf427-035d-492c-a01c-600441c57a69`. 
 naming paragraph in [`../mastermind-servex/requirements.md`](../mastermind-servex/requirements.md)
 ("Naming rules are hard requirements…"), then [`../log-model/events.md`](../log-model/events.md)
 — especially "The naming rules, as checks the appender runs" and the `name / rename / approve /
-dispute` types — and [`../log-model/fold/`](../log-model/fold/) (the fold that runs in the
+dispute` types — and [`../log-model/fold/`](../log-model/fold) (the fold that runs in the
 browser). Load the `code` skill.
 
 ## What exists

@@ -1,6 +1,6 @@
 # Smoke gate fails on every page: fix the cause
 
-**Found by** [asks-by-module](../asks-by-module/STATE.md), page ask 5 ("never ship an untested page", asked 5x): `Server/smoke.mjs` fails on every page because `Server/console-allow.jsonl` entries for the weight/settings 404s expired, so the merge gate means nothing.
+**Found by** [asks-by-module](../../session-d4cd44ab/asks-by-module/STATE.md), page ask 5 ("never ship an untested page", asked 5x): `Server/smoke.mjs` fails on every page because `Server/console-allow.jsonl` entries for the weight/settings 404s expired, so the merge gate means nothing.
 
 ## Done when
 - [ ] Reproduce on current `michael/dev`; list each failing pattern with the page that triggers it.

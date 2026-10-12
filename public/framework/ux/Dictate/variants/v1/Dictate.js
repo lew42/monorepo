@@ -1,7 +1,7 @@
 /* FROZEN — the exact `ux/Dictate/Dictate.js` from before the 2026-09-29 mobile-nav
  * task (commit 21eee692), copied here as its own module so "v1" stays reachable
  * forever, unaffected by anything a later task does to the live `Dictate.js`
- * (`ai/2026-09-29/mobile-nav/review.md`, finding 6 — the owner's own rule: "even
+ * (`ai/sessions/2026/09/29/mobile-nav/mobile-nav/review.md`, finding 6 — the owner's own rule: "even
  * if the AI deems it not useful... we want at least to save the snapshot of
  * version one so I could click back to the first version"). Only two lines
  * changed from the original: the two relative imports below now point at the
@@ -29,7 +29,7 @@ View.stylesheet(import.meta, "Dictate.css");
 const Recognition = globalThis.SpeechRecognition ?? globalThis.webkitSpeechRecognition;
 
 /** **Which microphone**, remembered in this browser. The test bench at
- *  `ai/2026-09-22/dictate-silence/` writes the owner's pick here, and every
+ *  `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/` writes the owner's pick here, and every
  *  `Dictate` on the site reads it — so choosing a microphone once, in one place,
  *  moves the board's own mic too, with nothing to wire. A caller that needs a
  *  specific device passes `device_id` and that wins over the remembered one. */
@@ -42,7 +42,7 @@ export const DEVICE_KEY = "lew42.dictate.device";
  *  ⚠ The NAME is stored beside the id on purpose. A `deviceId` is salted per
  *  origin and is not forever: it changes when the browser clears site data, and
  *  in a fresh automation profile it changes on every page load (measured —
- *  `ai/2026-09-22/dictate-silence/`, where the remembered pick silently reverted
+ *  `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`, where the remembered pick silently reverted
  *  to the default). The id is tried first and is exact; the name is how the pick
  *  is recovered when that id no longer names anything. */
 export function remember_device(id, label = ""){
@@ -426,7 +426,7 @@ export default class Dictate extends View {
 	 *  sentence is almost always "Thank you." So the recording of the quiet gap
 	 *  between the owner's last word and their press of the button used to be
 	 *  transcribed, committed, typed into the box and logged as a prompt. That
-	 *  was the whole "it just says Thank you" bug (`ai/2026-09-22/dictate-silence/`).
+	 *  was the whole "it just says Thank you" bug (`ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`).
 	 *
 	 *  The test is `Capture.loudness()`'s `loud_ms` — how many milliseconds of the
 	 *  segment are above a speaking floor, not how loud the segment is on average.
@@ -464,7 +464,7 @@ export default class Dictate extends View {
 	 *
 	 *  Every WAV this posts to whisper is then ALSO written, base64, one line per
 	 *  send, into `dump_file` — so the exact bytes the browser sent can be pulled
-	 *  apart on disk afterwards: `node public/framework/ai/2026-09-22/dictate-silence/measure.mjs <that file>`
+	 *  apart on disk afterwards: `node public/framework/ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/measure.mjs <that file>`
 	 *  prints each one's sample rate, duration, peak, RMS and whether the header's
 	 *  byte count agrees with the file's real length. Never awaited and never
 	 *  throws into the caller — a debug write failing must not disturb a real
@@ -627,7 +627,7 @@ export default class Dictate extends View {
 	 *  skips `log_prompt()` — sample text is not something the owner said, and
 	 *  must never land in the real prompt log. Lets this page show its box full
 	 *  of text the instant it loads, with no microphone (the owner's own rule:
-	 *  "I want to see" — `ai/2026-09-29/mobile-nav/review.md`, finding 1). */
+	 *  "I want to see" — `ai/sessions/2026/09/29/mobile-nav/mobile-nav/review.md`, finding 1). */
 	async sample(lines){
 		for (const text of lines){
 			this.settled = this.settled ? this.settled + " " + text : text;

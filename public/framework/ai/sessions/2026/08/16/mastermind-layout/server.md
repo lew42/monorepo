@@ -82,7 +82,7 @@ alone):
 - A real headless tab on `http://localhost:8081/framework/`: socket connected,
   `pages` listed it, `eval` returned `"Framework | links=118"`, `shot` wrote a png.
 - Live reload: re-saving a watched file delivered
-  `changed(["/framework/ai/2026-08-16/mastermind-layout/server.md"])` to that tab.
+  `changed(["/framework/ai/sessions/2026/08/16/mastermind-layout/server.md"])` to that tab.
   `rpc:subscribe` streamed the task log back — 153 lines, offset 96542.
 
 **It takes effect on the next `node server.js`** — the process on `:80` is still

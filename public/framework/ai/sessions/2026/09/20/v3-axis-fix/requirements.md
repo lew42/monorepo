@@ -100,7 +100,7 @@ Then load `/framework/ai/v/3/` and `/framework/ai/` headless: 200, no new consol
 ## Fences
 
 You own `public/framework/ai/v/3/**` (not its data files) and
-`public/framework/ai/2026-09-20/v3-axis-fix/**`. One line in that day page's `children:`, one append
+`public/framework/ai/sessions/2026/09/20/v3-axis-fix/**`. One line in that day page's `children:`, one append
 to its `day.jsonl`.
 
 ## Length budget

@@ -135,7 +135,7 @@ of RAM given back this way.
 
 ## Proof
 
-[`/framework/ai/2026-09-30/dormant-idle/proof.txt`](/framework/ai/2026-09-30/dormant-idle/proof.txt),
+[`/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/dormant-idle/proof.txt`](/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/dormant-idle/proof.txt),
 run by `proof.mjs` beside it on a private Servex (port 8190, a scratch `SERVEX_HOME`).
 
 **Watch out — waking a dormant agent could lose the message that woke it** (2026-10-01): `awaken()`

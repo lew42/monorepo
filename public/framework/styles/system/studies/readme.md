@@ -24,11 +24,11 @@ click any card — each study stands alone, leads with pictures, and ends with a
 **Watch out.** A 2026-09-19 hard reset wiped this whole module (it was never committed); two
 transcript searches gave up and marked all nine studies gone for good. They were wrong — an
 overlooked `git stash` from the moment of the reset held every file, byte-identical to what
-survived. Restored 2026-09-20, `ai/2026-09-20/studies-honest/`.
+survived. Restored 2026-09-20, `ai/sessions/2026/09/20/studies-honest/`.
 
 Moved here from `/imagine/design/` 2026-09-18
-(`ai/2026-09-18/imagine-move-2/`, following
-[the imagine-integration proposal](/framework/ai/2026-09-17/imagine-integration/proposal.md)).
+(`ai/sessions/2026/09/18/imagine-move-2/`, following
+[the imagine-integration proposal](/framework/ai/sessions/2026/09/17/imagine-integration/proposal.md)).
 Every old `/imagine/design/<name>/` address still answers — a one-line stub points back here
 — down to every sub-study (`color/palette/`, `color/sections/`, `padding/one-rule/`,
 `spacing/audit/`, `spacing/ceilings/`, `spacing/nesting/`, `type/anchors/`). Four sibling

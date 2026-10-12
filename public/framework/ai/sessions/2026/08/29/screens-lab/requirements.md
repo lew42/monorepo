@@ -4,7 +4,7 @@
 
 > try making some full screen experiences, and experiment with full screen layouts, as they pertain to navigation. for example, full screen -> split screen -> 3 equal columns. full screen title slide -> launches a document in a column on the right. large, clean, simple... iterate through all the permutations
 
-Program context: `public/framework/ai/2026-08-29/imagine-program/requirements.md`.
+Program context: `public/framework/ai/sessions/2026/08/29/imagine-program/requirements.md`.
 
 ## What gets built
 

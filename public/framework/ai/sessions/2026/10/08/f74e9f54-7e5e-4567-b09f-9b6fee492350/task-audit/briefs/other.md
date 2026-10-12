@@ -4,7 +4,7 @@ One mastermind owns this whole cluster (31 open rows, 2 marked now). Work the `n
 
 | Row | Task | Status | Smallest next step |
 |---|---|---|---|
-| 89 | Merge card kinds | now, checked: partial | Start card-kind merge 4 under public/framework/ai/2026-09-24/card-consolidation/merges-requirements.md, beginning with the next group of card kinds. |
+| 89 | Merge card kinds | now, checked: partial | Start card-kind merge 4 under public/framework/ai/sessions/2026/09/24/card-consolidation/card-consolidation/merges-requirements.md, beginning with the next group of card kinds. |
 | 121 | Drawer: tight header, one scroll area, composer footer flush with defa | now, checked: done | Open the after-3440 screenshot against requirements.md to confirm the footer padding, then close the drawer-cleanup card. |
 | 12 | Markdown Explorer, Command Characters & Class Card Views | later | Build the Markdown Explorer, command characters and class card views; listed in todo only. |
 | 38 | Shell: header, sidebars, footer; the dark dev shell on Ctrl+\ | later | Build the shell header, sidebars, footer and dark dev shell; card exists. |

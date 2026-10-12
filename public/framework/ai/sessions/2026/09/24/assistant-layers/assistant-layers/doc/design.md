@@ -72,7 +72,7 @@ Servex (a VS Code tab, the dashboard) is from you, the owner.
 | anyone | whoever messaged them in the last 30 minutes, so a reply always goes back |
 
 Nothing goes sideways: two managers never message each other; they go through the Servex
-mastermind. This matches [the concurrency design](/framework/ai/2026-09-24/concurrency/).
+mastermind. This matches [the concurrency design](/framework/ai/sessions/2026/09/24/concurrency/concurrency/).
 `send_to_agent` checks the table. A refused message is not delivered, the sender is told why in
 one sentence, and the refusal is logged. The live table and the last refusals are at `/api/policy`.
 

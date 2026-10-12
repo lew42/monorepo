@@ -1,6 +1,6 @@
 # Vision sweep — note
 
-**Corpus** (19 pages, 0 dropped — all returned real content, verified headless via `.page.active-page h1`): `/framework/`, `/core/`, `/core/Page/`, `/styles/`, `/styles/layouts/`, `/styles/elements/` (no `materials/` — used this live sibling), `/ext/`, `/ext/Panel/`, `/ext/Doc/`, `/ext/DesignTool/`, `/ext/DesignTool/vision/?run=…vision-pilot/`, `/ui/`, `/ai/`, `/ai/2026-08-17/`, `/ai/2026-08-17/layout-primitives/`, `/ai/2026-08-17/mastermind-shots/`, `/web/`, `/core/Page/doc/`, `/notes/`.
+**Corpus** (19 pages, 0 dropped — all returned real content, verified headless via `.page.active-page h1`): `/framework/`, `/core/`, `/core/Page/`, `/styles/`, `/styles/layouts/`, `/styles/elements/` (no `materials/` — used this live sibling), `/ext/`, `/ext/Panel/`, `/ext/Doc/`, `/ext/DesignTool/`, `/ext/DesignTool/vision/?run=…vision-pilot/`, `/ui/`, `/ai/`, `/ai/2026-08-17/`, `/ai/sessions/2026/08/17/layout-primitives/`, `/ai/sessions/2026/08/17/mastermind-shots/`, `/web/`, `/core/Page/doc/`, `/notes/`.
 
 **Totals**: 66 shots (57 sweep page-level × 3 widths + 9 card-level), **$5.35** of $6, 280 findings, 86 broken.
 

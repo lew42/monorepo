@@ -7,9 +7,9 @@ The owner's words, 2026-09-28: "for things that you're waiting on me for, this i
 ## Part 1: the sweep (it writes REAL card data, through the live Servex at http://127.0.0.1:8090)
 1. Gather every question now waiting on the owner:
    - the "owner's call" items in `public/framework/ai/todo.md`;
-   - the "waiting on the owner" list in `public/framework/ai/2026-09-28/servex-mastermind/checkpoint.md`, and in `public/framework/ai/handover.md`;
+   - the "waiting on the owner" list in `public/framework/ai/sessions/2026/09/24/1c09793f-74b6-4218-82e5-53e5cd88b659/servex-mastermind-2/checkpoint.md`, and in `public/framework/ai/handover.md`;
    - open cards of `type: "question"` (`curl -s "http://127.0.0.1:8090/cards?view=open"`, then keep the questions). These already count as asks, so write NOTHING for them. Just list them.
-2. Remove duplicates: the same question in two files becomes one ask. Leave out anything already decided (read `ai/2026-09-24/loose-ends/report.md` and today's logs). Write your list to `sweep.md` beside this file as a table: title (about five words), question (one plain sentence the owner can answer), options, the card it goes on, source, and `from` (the agent that should hear the answer, when one clearly owns it; otherwise leave it blank).
+2. Remove duplicates: the same question in two files becomes one ask. Leave out anything already decided (read `ai/sessions/2026/09/24/loose-ends/loose-ends/report.md` and today's logs). Write your list to `sweep.md` beside this file as a table: title (about five words), question (one plain sentence the owner can answer), options, the card it goes on, source, and `from` (the agent that should hear the answer, when one clearly owns it; otherwise leave it blank).
 3. For each row: find the card it belongs to (`GET /cards?view=all`, and match by subject). When there is none, create one with `POST /card/create` `{"title": …, "type": "question", "by": "minion-waiting-sweep"}`. Then `POST /card/append?id=<card>` with `{"ask": {"id": "a-<base36 now><2 random>", "title", "question", "options"?, "from"?, "at": <ISO local offset>}}`. The live Servex does not fill in the ask id or `at` yet, so you set them. A new card of type question with an ask on it would count twice, so create new cards with `type: "card"`.
 4. Check that each card's `page.jsonl` ends with your ask line, and log the count.
 

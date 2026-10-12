@@ -1,4 +1,4 @@
-/* node public/framework/ai/2026-10-12/voice-asks-2/proof.mjs [scratch]
+/* node public/framework/ai/sessions/2026/10/12/session-fb723164/voice-asks-2/proof.mjs [scratch]
  * One batched proof of the four Servex changes, on a PRIVATE Servex (ports 8190/8189/8188, no whisper):
  *   A  Echo mirror    — Echo.process() writes raw/clean/structure onto the voice page (stub model, in-process)
  *   B  whisper stream — GET /api/whisper/stream sends the status at once, as SSE

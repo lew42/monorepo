@@ -5,9 +5,9 @@
 | # | Cluster | Owner | Rows (now) | Verified | Est. cost | Smallest next step |
 |---|---|---|---|---|---|---|
 | 1 | ui-ux-ext | **unowned** | 22 (7) | 7 | $2.1 | Move the Sessions tab list onto ext/DataGrid for sort and filter, then the Day log table. |
-| 2 | ai-servex | **unowned** | 34 (3) | 3 | $0.9 | Run node public/framework/ai/2026-10-02/node-reap/node-reap.mjs as a dry run, then with --apply, and append th |
+| 2 | ai-servex | **unowned** | 34 (3) | 3 | $0.9 | Run node public/framework/ai/sessions/2026/10/02/node-reap/node-reap.mjs as a dry run, then with --apply, and append th |
 | 3 | page | **unowned** | 14 (3) | 9 | $0.9 | Run merge 2: move the live ai2 files to ai/cards/, update importers and catalog.json, then delete the dead fil |
-| 4 | other | **unowned** | 31 (2) | 2 | $0.6 | Start card-kind merge 4 under public/framework/ai/2026-09-24/card-consolidation/merges-requirements.md, beginn |
+| 4 | other | **unowned** | 31 (2) | 2 | $0.6 | Start card-kind merge 4 under public/framework/ai/sessions/2026/09/24/card-consolidation/card-consolidation/merges-requirements.md, beginn |
 | 5 | transcription-refinement | @mastermind-refine-demo | 28 (7) | 14 | $2.1 | Build a card component for request/task/question/suggestion items in ext/Refine that reads the refined prompt' |
 | 6 | ai-servex | @minion-session-class | 12 (6) | 6 | $1.8 | Write the final loose-ends list file from loose-ends.jsonl and verified.jsonl, linked from the task-audit read |
 | 7 | ui-ux-ext | @mastermind-refine-demo | 6 (2) | 2 | $0.6 | Load /framework/ai/ once in a browser at 1920 and confirm the cost link is not blue, then close the card. |
@@ -18,7 +18,7 @@
 | 12 | other | @mastermind-refine-demo | 3 (1) | 1 | $0.3 | Commit the remaining task.jsonl and spend.json edits and close the task with finish-task. |
 | 13 | streaming-jsonl | @minion-session-class | 1 (1) | 1 | $0.3 | Land the JSONL-tail change: add sessions/AgentsJSONL.js, switch AISessionsPage.js off POLL_MS, then review and |
 | 14 | ui-ux-ext | @minion-session-class | 1 (1) | 1 | $0.3 | Run one review pass over f5103369f against requirements Part 2 to confirm the Sessions view and Overview grid, |
-| 15 | ai-servex | @mastermind-task-system-design | 1 (1) | 1 | $0.3 | Dry-run then run node public/framework/ai/2026-10-02/servex-mastermind/apply-server-guard-skills.mjs --dry, th |
+| 15 | ai-servex | @mastermind-task-system-design | 1 (1) | 1 | $0.3 | Dry-run then run node public/framework/ai/sessions/2026/10/02/servex-mastermind/apply-server-guard-skills.mjs --dry, th |
 | 16 | other | @mastermind-ai-system-docs | 5 (0) | 0 | $0.0 | Make every agent read the readme chain top-down; wire it into the start step. |
 | 17 | ai-servex | @mastermind-refine-demo | 4 (0) | 0 | $0.0 | Make Servex stamp logs in code; queued, no activity. |
 | 18 | other | @minion-session-class | 4 (0) | 0 | $0.0 | Show cost on AI 2 previews and fill the page; status unclear, listed in todo only. |

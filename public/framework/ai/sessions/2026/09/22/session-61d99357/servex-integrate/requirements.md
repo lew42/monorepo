@@ -1,8 +1,8 @@
 # servex-integrate — the agent host plugs into Servex, and Servex gets its report page
 
 Minion: Opus, effort high. Session id `61d99357-3657-4532-bb21-e24bffd11a7d`. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then the "Shape" and
-sections **A**, **B**, **G** of [`../mastermind-servex/requirements.md`](../mastermind-servex/requirements.md).
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first, then the "Shape" and
+sections **A**, **B**, **G** of [`../mastermind-servex/requirements.md`](../../../../../../2026-09-22/mastermind-servex/requirements.md).
 Private ports: Servex's own **8090/8080** (nothing else runs it while you do — check `netstat`
 first), a private dev server on **8097** if you need one.
 
@@ -12,14 +12,14 @@ first), a private dev server on **8097** if you need one.
   8080, `Process.js` supervisor, `Log.js` single-writer (`POST/GET /log/<name>`), `MCP.js` with
   the seam `servex.mcp.tool(definition, handler)`. `Servex/readme.md` is accurate; `node
   Servex/proof.mjs` runs its six proofs. Its landing report and every decision are in
-  `ai/2026-09-22/servex-port/task.jsonl`.
+  `ai/sessions/2026/09/22/session-7e28aa8d/servex-port/task.jsonl`.
 - `Servex/agents/` (task `agent-host`): `Agents.js` (spawn/send/interrupt/list/stop over the
   Agent SDK, readable ids, typed events through a `this.log(entry)` seam that today appends
   with `fs.appendFile`), `tools.js` (exports the four MCP tool definitions), `demo.mjs` (the
   proof with measured numbers), `readme.md`. Read its `task.jsonl` for the traps it hit
   (`result.result` is not the last thing said; `query.close()` leaks the child — `stop()` must
   abort).
-- `ai/2026-09-22/log-model/events.md` — the event schema the log should converge on; do not
+- `ai/sessions/2026/09/22/session-66db742f/log-model/events.md` — the event schema the log should converge on; do not
   rewrite the agent events wholesale, but name in a `log` line where they differ.
 
 ## Deliverables
@@ -39,7 +39,7 @@ first), a private dev server on **8097** if you need one.
    (the dashboard's `DevSocket` already exists; `Log.append` can emit to it), not polled. Keep
    it to the smallest thing that works: a list and a stream, in the house `View`. Screenshot it
    with an agent mid-run.
-3. **The report page — `ai/2026-09-22/servex-integrate/page.js`, iceberg content** (the owner,
+3. **The report page — `ai/sessions/2026/09/22/session-61d99357/servex-integrate/page.js`, iceberg content** (the owner,
    15:10: "make a report, not just a readme… a lot of the reporting has been linked readme's
    that load raw in the browser, very hard to read, way too long"). Level 1: what Servex is in
    two sentences, the four parts named with one line each, the three URLs, a screenshot of the

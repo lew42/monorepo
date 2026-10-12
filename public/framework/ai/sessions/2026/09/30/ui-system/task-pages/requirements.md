@@ -10,7 +10,7 @@ Where it lives (from the survey): `ext/AITask/AITask.js` builds the tabs (Asks Â
 1. **Task-list items read as what they are, site-wide:** in markdown, `- [x]` draws a green check and `- [ ]` an empty ring, never a disabled grey box. Fix it once in `ext/markdown` (a renderer override or a CSS rule in its stylesheet), so every page gets it. Keep the input in the DOM if a screen reader needs it.
 2. **The Report tab is free content:** the outcome renders as written (headings, links, pictures), with no template forced around it. Anything the old template added that the outcome doesn't say goes below a fold, or is dropped if no one would miss it. The first screen answers: what was asked, what was delivered, where it is.
 3. **The steps bar keeps a sane width:** the segmented bar is capped to the text measure (or to about 40em), never 3440 wide. Each step row links to its log line or its deliverable when it has one.
-4. Before and after shots of `/framework/ai/2026-09-30/design-code/` and two older task pages at 400, 1200, 1920 and 3440.
+4. Before and after shots of `/framework/ai/sessions/2026/09/30/design-code/design-code/` and two older task pages at 400, 1200, 1920 and 3440.
 
 ## Fence
 `ext/AITask/` and `ext/markdown/` (the task-list rendering only). Keep v1 reachable (`?v1`).

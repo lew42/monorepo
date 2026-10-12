@@ -2,14 +2,14 @@
 
 Load the `minion` skill first. Then this brief.
 
-Full context: [`ai/2026-09-17/imagine-integration/proposal.md`](../../2026-09-17/imagine-integration/proposal.md)
+Full context: [`ai/sessions/2026/09/17/imagine-integration/proposal.md`](../../17/imagine-integration/proposal.md)
 (section "3 · The shape labs join `/layouts/`") and
-[`inventory.md`](../../2026-09-17/imagine-integration/inventory.md) (the per-url rename table
+[`inventory.md`](../../17/imagine-integration/inventory.md) (the per-url rename table
 with a break count) — read both before editing.
 
 ## The brief, as given by the coordinator
 
-**The move:** Move 3 of `public/framework/ai/2026-09-17/imagine-integration/proposal.md` (read it
+**The move:** Move 3 of `public/framework/ai/sessions/2026/09/17/imagine-integration/proposal.md` (read it
 and `inventory.md` first — the rename table with a break count per url is there): the seven shape
 labs under `/imagine/` (the proposal names them, `/imagine/layouts/` first) join `/layouts/`, and
 every old address keeps a six-line stub `page.js` that renders one line and a link to the new home

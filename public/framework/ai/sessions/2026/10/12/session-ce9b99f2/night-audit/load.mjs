@@ -1,5 +1,5 @@
 // Headless load of every page a landing cites, at 1200 and 400: errors + horizontal overflow.
-import {browser as sharedBrowser} from "../../../../../Server/browser.mjs"; import fs from "fs";
+import {browser as sharedBrowser} from "../../../../../../../../../Server/browser.mjs"; import fs from "fs";
 const claims = JSON.parse(fs.readFileSync(new URL("./claims.json", import.meta.url)));
 const urls = new Set();
 for (const c of claims.filter(c=>c.landed)) for (const m of c.outcome.matchAll(/\]\((\/framework\/[^)#\s]+?\/?)\)|`(\/framework\/[\w\/\-]+\/)`/g)) { const u=m[1]||m[2]; if(!/\.\w+$/.test(u)||/\.md$/.test(u)&&0) if(!/\.\w{1,4}$/.test(u)) urls.add(u); }

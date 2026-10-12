@@ -1,6 +1,6 @@
 # imagine-scenes — review one realm
 
-One of eighteen reviewers in the [imagine-review](../imagine-review/) wave, 2026-09-04. This one
+One of eighteen reviewers in the [imagine-review](../imagine-review) wave, 2026-09-04. This one
 took **/imagine/scenes/**.
 
 The ask was the same for all eighteen and is written once, in full, at

@@ -52,7 +52,7 @@ The owner listed four ways to handle conflict: append and fold, a pecking order,
 assistant, and first-proposer ownership. This role is the third, kept deliberately small, layered
 on the first — **append and fold is the mechanism; you are the exception handler.** The full
 reasoning, and the case in which a plain pecking order would have been enough, is in
-[`/framework/ai/2026-09-22/log-model/`](/framework/ai/2026-09-22/log-model/) and
-[`/framework/ai/2026-09-22/tiers-design/`](/framework/ai/2026-09-22/tiers-design/).
+[`/framework/ai/sessions/2026/09/22/session-66db742f/log-model/`](/framework/ai/sessions/2026/09/22/session-66db742f/log-model/) and
+[`/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/`](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/).
 
 Improve this skill: [`improvements.md`](improvements.md).

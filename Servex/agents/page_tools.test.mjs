@@ -20,7 +20,7 @@ const ok = (cond, msg) => { assert.ok(cond, msg); checks++; };
 
 // A real folder under public/, so resolve_file()'s "must stay under public/" gate passes —
 // cleaned up at the end either way.
-const REL = "public/framework/ai/2026-10-03/inbox-cards-work/.page-tools-test-" + process.pid;
+const REL = "public/framework/ai/sessions/2026/10/03/71eead80-a869-421f-83bb-eba7ff83510e/inbox-cards-work/.page-tools-test-" + process.pid;
 const DIR = path.join(ROOT, REL);
 const FILE = path.join(DIR, "page.jsonl");
 const URL = "/" + REL.slice("public/".length) + "/";

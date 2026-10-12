@@ -1,8 +1,8 @@
 # Controls — the design record
 
-One night's crawl (2026-09-01, `ai/2026-09-01/controls-study/`) answering one question: does
+One night's crawl (2026-09-01, `ai/sessions/2026/09/01/controls-study/`) answering one question: does
 the site have ONE button, or five accidental ones? Full log and raw JSON:
-[task dir](/framework/ai/2026-09-01/controls-study/).
+[task dir](/framework/ai/sessions/2026/09/01/controls-study/).
 
 ## Method
 

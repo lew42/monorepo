@@ -36,4 +36,4 @@ lock's real state lives server-side in the file (`Server/hold.mjs`'s own doc has
 and this is a one-way readout of it, exactly like `changed()`'s relationship to the file
 watcher that feeds it.
 
-Full design and the "prove" numbers: `ai/2026-09-19/reload-hold/requirements.md`.
+Full design and the "prove" numbers: `ai/sessions/2026/09/19/reload-hold/requirements.md`.

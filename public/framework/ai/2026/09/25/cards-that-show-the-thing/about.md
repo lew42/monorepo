@@ -1,4 +1,4 @@
-**[AI 2, step by step →](/framework/ai/2026-09-25/ai2-lead/)** — press Next to see the rail, a card, Live, and how to make a card.
+**[AI 2, step by step →](/framework/ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/)** — press Next to see the rail, a card, Live, and how to make a card.
 
 ## Next
 

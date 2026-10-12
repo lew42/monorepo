@@ -33,7 +33,7 @@ Verify headless: with the bar closed, drive the window across the breakpoint (Pl
 
 ## Your fence
 
-`public/framework/ext/grip/` (grip.js, grip.css, readme/doc), `public/framework/dev/DevBar/devbar.css` (+ its readme/doc if a line is owed), `public/framework/ext/Playground/playground.css` (+ `properties.js`/`Playground.js` only if the rail fix demands), the modules' `doc/decisions.md`, and your task dir `public/framework/ai/2026-08-29/pg-chrome-polish/`. Nothing else.
+`public/framework/ext/grip/` (grip.js, grip.css, readme/doc), `public/framework/dev/DevBar/devbar.css` (+ its readme/doc if a line is owed), `public/framework/ext/Playground/playground.css` (+ `properties.js`/`Playground.js` only if the rail fix demands), the modules' `doc/decisions.md`, and your task dir `public/framework/ai/sessions/2026/08/29/pg-chrome-polish/`. Nothing else.
 
 ## Rules
 

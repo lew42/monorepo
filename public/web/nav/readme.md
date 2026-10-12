@@ -6,7 +6,7 @@ The reader-facing verdicts live on the pages; this is what it cost to build them
 
 One more card, off the rail: [`doc/study/`](/web/nav/doc/study/) is a real study — does the
 navigation stay still when a column opens — moved here from `/imagine/design/navigation/`
-2026-09-18 (`ai/2026-09-18/imagine-move-2/`); the old address still answers.
+2026-09-18 (`ai/sessions/2026/09/18/imagine-move-2/`); the old address still answers.
 
 ## Decisions
 

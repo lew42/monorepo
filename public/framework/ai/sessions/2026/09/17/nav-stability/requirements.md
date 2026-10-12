@@ -21,7 +21,7 @@ The full prompt: `../mastermind-layout-browser/requirements.md`.
 
 ## Rules
 
-- Load `code`, `layout` (read "Q1 under a COLUMNS host" and the `fill`/`large` traps; `/imagine/` is a columns host), `css`, `new-css-class`; `new-task` before the first edit (your dir exists: `ai/2026-09-17/nav-stability/`; write its `task.jsonl` launch line); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
+- Load `code`, `layout` (read "Q1 under a COLUMNS host" and the `fill`/`large` traps; `/imagine/` is a columns host), `css`, `new-css-class`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/nav-stability/`; write its `task.jsonl` launch line); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
 - **Fence:** `public/imagine/design/navigation/**` and your own task dir. Nothing else — not core, not `/imagine/page.js`, not framework.css. Other minions are editing `ext/AITask`, `ext/Ask`, `/layouts/browse/`, `/imagine/design/color/` and the layout skill right now; none of those is on your measurement list, and you do not touch them.
 - **Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`.** The owner's server (port 80) is NOT running; start your own: `PORT=8096 node server.js` from the repo root, in the background; kill it when you land. `ui-test` has the headless recipe (Playwright import `file:///C:/…`; `page.routeWebSocket(/.*/)`); `.page.active-page` is `display: contents` and measures 0×0 — measure `.page-column-body` children (layout skill caveats). A hidden tab does not lay out.
 - Two numbers that must agree: the readout on the page and your headless table for the same click.

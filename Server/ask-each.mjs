@@ -2,7 +2,7 @@
 /* Ask-each — ask a model one question at a time, in one continuous session,
  * instead of dumping the whole list into a single prompt.
  *
- * The owner's idea (public/framework/ai/2026-09-28/harness-research/owner-words.md,
+ * The owner's idea (public/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/owner-words.md,
  * "Added 2026-09-28 about 11:15 PM"): a prompt with 12 questions in it gets
  * processed once, in one pass — the model's attention is split across all of
  * them and the answers come out shallow. Ask them one at a time in the SAME

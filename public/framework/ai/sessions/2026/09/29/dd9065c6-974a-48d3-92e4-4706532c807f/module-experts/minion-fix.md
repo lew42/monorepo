@@ -1,6 +1,6 @@
 # Minion brief: review fixes for module-experts
 
-Load the `minion` skill first. Task dir: `public/framework/ai/2026-09-29/module-experts/` (the review findings are in `review.md` there). Work ONLY in `C:\Code\lew42\worktrees\module-experts` (its site: http://localhost:62087/). Commit by exact path and don't merge. Every node spawn sets `windowsHide: true`.
+Load the `minion` skill first. Task dir: `public/framework/ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/` (the review findings are in `review.md` there). Work ONLY in `C:\Code\lew42\worktrees\module-experts` (its site: http://localhost:62087/). Commit by exact path and don't merge. Every node spawn sets `windowsHide: true`.
 
 ## Fix these (the numbers are the review's)
 1. **Double title on `core/Page/make/readme-page/`.** The page title, then the readme's own `# …` line. Fix it in `make/readme-page/page.js`, not by deleting the readme's H1, because every readme has one and other pages will copy this pattern: when a page's content is its readme, the readme's first H1 must not repeat the page title. Pick the smallest way, for example removing the rendered first `h1` when its text equals the page title, or not printing the page's own heading. Do the same on `core/Page/layout/`. Screenshot both at 1920 afterwards and look at them.

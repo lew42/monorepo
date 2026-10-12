@@ -50,7 +50,7 @@ export default new Page(demo.layout({
 	twin: true,
 	parts: "header hero services stats footer",
 
-	note: "**Every 'dark' pixel here is a token, never a hex.** `.tint` steps the band down off the page, `.wash` steps the inset numeral down again — the same ladder `sections/` and `home/` already use, so this page needs zero media queries to answer the owner's actual question: does the theme's dark mode hold up under an asymmetric, high-contrast design? Verified both ways at 400/1280/1920/3440 — [figma/](/framework/ai/2026-08-18/figma/).",
+	note: "**Every 'dark' pixel here is a token, never a hex.** `.tint` steps the band down off the page, `.wash` steps the inset numeral down again — the same ladder `sections/` and `home/` already use, so this page needs zero media queries to answer the owner's actual question: does the theme's dark mode hold up under an asymmetric, high-contrast design? Verified both ways at 400/1280/1920/3440 — [figma/](/framework/ai/sessions/2026/08/18/figma/).",
 
 	/* A document, not an app shell — bands stack past one screen, so `page full` alone
 	   (no `fill`) hands scroll to the document. `fill` here claimed one screen and

@@ -1,6 +1,6 @@
 # Which structured draft best captures the owner's dictation, keeping their own words and the sentence citations intact?
 
-**Winner:** haiku — `public/framework/ai/2026-09-29/prompt-refine/runs/b/collab-structured/collab/haiku/1-structured.md`
+**Winner:** haiku — `public/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/runs/b/collab-structured/collab/haiku/1-structured.md`
 **Rule:** tie: cheaper member
 **Run cost:** $0.3113
 

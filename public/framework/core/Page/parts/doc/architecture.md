@@ -2,7 +2,7 @@
 
 **Update 2026-10-12:** the kinds are `PageHeading`, `PageText`, `PageCard`, plain `Item` subclasses with a `View` each (the `Part` base is gone: it held two lines the `View` made redundant), and `Page.render_content_list()` draws each through its class's `View`, so `PartsPage` is an empty shim. The table below is the original slice; read its class names through that rename. Plan: [../../doc/content.md](../../doc/content.md).
 
-The task and its brief: `ai/2026-10-12/page-slice/` ([requirements](/framework/ai/2026-10-12/page-slice/requirements.md)).
+The task and its brief: `ai/sessions/2026/10/12/session-471f8c3b/page-slice/` ([requirements](/framework/ai/sessions/2026/10/12/session-471f8c3b/page-slice/requirements.md)).
 The owner's idea: a page's body is a list of views loaded from the page's own JSONL and drawn in a loop, not only a markdown string. This slice proves it with nothing new in `core/Page`.
 
 ## The classes

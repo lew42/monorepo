@@ -9,7 +9,7 @@
  * assistant, one manager per card and a claim collision, then breaks four
  * things on purpose (a lost session, a claim race, the admission check, the
  * reaper). One screen of pass/fail comes out, the same as JSON in
- * public/framework/ai/2026-09-24/assistant-layers/proof.json. It then stops
+ * public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/proof.json. It then stops
  * every agent it started, kills the child, and deletes the cards it made.
  *
  * ⚠ It spends real money: two Sonnet assistants, the Sonnet master assistant,
@@ -26,7 +26,7 @@ const SCRATCH = path.resolve(process.argv[2] || fs.mkdtempSync(path.join(os.tmpd
 const STAMP = Date.now().toString(36);
 const LOCALS = [];   // one fresh LOCALAPPDATA per boot: the main run, then the two gate boots
 const PORT = 8190, BASE = `http://127.0.0.1:${PORT}`;
-const OUT = path.join(REPO, "public/framework/ai/2026-09-24/assistant-layers/proof.json");
+const OUT = path.join(REPO, "public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/proof.json");
 const AI = path.join(REPO, "public/framework/ai");
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));

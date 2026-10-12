@@ -20,4 +20,4 @@ Recorded per recipe: dollar cost (agent + descendants), wall-clock time, the res
 2. `doc/findings.md`: cost, time and guess per recipe, and which kinds of task each probably suits.
 3. A "live" card reply when the judging page is up.
 
-Fence: `public/framework/ai/2026-09-24/recipe-lab/`, the day page's `children:` line, and the three `recipe-*` worktrees.
+Fence: `public/framework/ai/sessions/2026/09/24/recipe-lab/recipe-lab/`, the day page's `children:` line, and the three `recipe-*` worktrees.

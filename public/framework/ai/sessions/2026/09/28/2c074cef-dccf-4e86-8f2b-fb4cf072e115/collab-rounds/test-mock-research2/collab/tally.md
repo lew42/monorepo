@@ -1,6 +1,6 @@
 # Trivial research question for a mock run.
 
-**Winner:** haiku-c — `public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md`
+**Winner:** haiku-c — `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md`
 **Rule:** tie: cheaper member
 **Run cost:** $0.0000
 

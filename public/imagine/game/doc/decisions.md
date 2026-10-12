@@ -115,7 +115,7 @@ realm is walked.
 A full run at 1920 — nine rooms walked, the lamp traded for the lens, the sigil taken, the gate
 shut — then reloaded, then erased. Zero console errors and no overflow at 400 / 1280 / 1920 /
 3440. Reload mid-run: the store byte-identical before and after, the finale still drawn, nine
-map links. Shots in `/framework/ai/2026-08-29/game-round-2/`.
+map links. Shots in `/framework/ai/sessions/2026/08/29/game-round-2/`.
 
 ## Round 3: a reason to go back (2026-08-31)
 

@@ -1,5 +1,5 @@
 /* facts.mjs — small, deterministic "ground truth" tools for the known-answer analysis
- * (public/framework/ai/2026-10-02/model-weights/requirements.md, owner addition 2026-10-02):
+ * (public/framework/ai/sessions/2026/10/03/model-weights/model-weights/requirements.md, owner addition 2026-10-02):
  * "Build small fact tools in node ... Have cheap models analyse the same facts. Code checks
  * their factual claims against the tool output." Every function here answers one fact
  * question about a directory of the codebase, with NO judgment involved — a model is later

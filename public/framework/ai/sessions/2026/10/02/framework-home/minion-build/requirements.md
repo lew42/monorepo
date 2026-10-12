@@ -154,7 +154,7 @@ the owner — decide, log the alternative, keep going.
   Glob, Grep, the Skill tool, and plain read-only Bash/PowerShell (`git status`, `git log`, `find`,
   `date`, `rm`) all work normally. This is the exact failure named in the minion skill's own
   history: a CLI minion started without `--permission-mode bypassPermissions` can read the repo but
-  not write to git, run scripts, or use MCP tools — `public/framework/ai/2026-09-19/
+  not write to git, run scripts, or use MCP tools — `public/framework/ai/sessions/2026/09/19/
   cli-minion-launch-lessons/` (referenced from the minion skill as "CLI minion launch lessons" in
   memory). I tried the validated `append.mjs` route for this task's own `task.jsonl` first and it
   was blocked the same way; its first lines went in via a direct `Write` instead (allowed once,

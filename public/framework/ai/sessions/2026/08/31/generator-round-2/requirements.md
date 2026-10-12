@@ -1,7 +1,7 @@
 # Generator round 2 — the ask, verbatim
 
 TASK — build the three top roadmap items the 08-31 generator improver left
-(`ai/2026-08-31/improve-generator/task.jsonl` has context; the module is
+(`ai/sessions/2026/08/31/improve-generator/task.jsonl` has context; the module is
 `/framework/core/Page/generator/` — read its readme + doc/decisions.md first):
 
 1. **Copy-address button** (XS) — one control that copies the current `#s=`/`#seed` url to

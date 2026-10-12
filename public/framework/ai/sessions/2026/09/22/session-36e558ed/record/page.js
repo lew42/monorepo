@@ -3,7 +3,7 @@ import Capture from "/framework/ux/Dictate/capture.js";
 import { remember_device, remembered_device } from "/framework/ux/Dictate/Dictate.js";
 import Tree from "/framework/ux/Tree/Tree.js";
 
-/* ⚠ An `AITask`, not a plain `Page` — see `ai/2026-09-22/dictate-silence/page.js`'s
+/* ⚠ An `AITask`, not a plain `Page` — see `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/page.js`'s
    own comment for why a task dir with a page.js has to be named in the day's
    `children:`. `extra()` below is this task's one unique thing.
 

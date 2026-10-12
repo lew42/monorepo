@@ -37,9 +37,9 @@ The path a single sentence from the owner travels, stage by stage:
 dataset and you should mine it rather than staging a synthetic run:
 
 - `public/framework/ai/board.jsonl` — every card, with `at`, `id` and `author`.
-- `public/framework/ai/2026-09-17/mastermind-layout-browser/task.jsonl` — 53 `chat` lines, the
+- `public/framework/ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl` — 53 `chat` lines, the
   owner's verbatim words from 15:36 to 17:21.
-- `public/framework/ai/2026-09-19/mastermind-sonnet-run/task.jsonl` — this evening's run: dispatches,
+- `public/framework/ai/sessions/2026/09/19/mastermind-sonnet-run/task.jsonl` — this evening's run: dispatches,
   landings, `agent` lines with outcomes.
 - `public/framework/ai/2026-09-19/*/task.jsonl` — every task's own launch and landing times.
 - Claude's own session transcripts at
@@ -96,7 +96,7 @@ explain why before you report anything else.
 
 ## Fences
 
-You own `public/framework/ai/2026-09-19/timing-audit-2/**`, may add one line to the day page's
+You own `public/framework/ai/sessions/2026/09/19/timing-audit-2/**`, may add one line to the day page's
 `children:`, and may append to its `day.jsonl`. Nothing else, anywhere. Scratch files go in the
 session scratchpad, named after this task so a sibling cannot overwrite them.
 

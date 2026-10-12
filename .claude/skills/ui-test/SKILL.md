@@ -191,7 +191,7 @@ ENOENT before step 1. Three occurrences across two scripts and the runner (2026-
 Cheapest guard: write to a bare filename in the scratchpad cwd and `cp` it afterward in bash,
 where `/c/…` is native and safe.
 
-## Proven (2026-08-19, `ai/2026-08-19/ui-test-skill/`)
+## Proven (2026-08-19, `ai/sessions/2026/08/19/ui-test-skill/`)
 
 | case | result |
 | --- | --- |
@@ -278,7 +278,7 @@ component rule** — check `display`, not just the class list.
   so a png written under `public/` fires LiveReload and the NEXT step lands mid-reload:
   intermittent empty results, zero console errors, reads exactly like a page bug (2026-08-27).
   Copy the keeper pngs into the task dir at the END of the run.
-- **A speculative selector in a plan is a REAL gesture on real data, and some writes have no Save button in the way.** Three ways this bit: a throwaway `click "button:nth-of-type(1)"` appended a box to the owner's document reporting only `missing` (2026-08-27); `[title=…]`/`[aria-label=…]` proved no more unique than `text=` and deleted the OWNER's page instead of the agent's own probe, reporting success; a nest chip in Paging's drawer wrote straight to the owner's `made/notes/page.json` on click, no save step in the way ([self-evident-minors](/framework/ai/2026-09-13/self-evident-minors/), both 2026-09-13).
+- **A speculative selector in a plan is a REAL gesture on real data, and some writes have no Save button in the way.** Three ways this bit: a throwaway `click "button:nth-of-type(1)"` appended a box to the owner's document reporting only `missing` (2026-08-27); `[title=…]`/`[aria-label=…]` proved no more unique than `text=` and deleted the OWNER's page instead of the agent's own probe, reporting success; a nest chip in Paging's drawer wrote straight to the owner's `made/notes/page.json` on click, no save step in the way ([self-evident-minors](/framework/ai/sessions/2026/09/13/self-evident-minors/), both 2026-09-13).
   Resolve every selector in an `eval` first and read back what it matched; name probe pages something the app never generates (`zzz-probe`); and before the first gesture in a tool that writes, copy its data dir into the scratchpad and `diff -r` against that copy at the end — `git diff HEAD` hides the one new line among older uncommitted changes.
 - **A hand-rolled probe that collects everything into one object and writes it at the end loses the whole run when one `page.evaluate` throws.** Wrap each section in a `safe(name, fn)` that catches, records `<name>_ERROR`, and writes the report file after every section — a re-run can then redo only what failed (asks-critic, 2026-09-17).
 - **A multi-hundred-url crawl needs a watchdog, and must never be piped into `tail`.** Two identical 630-url runs hung with every page already measured — workers stuck inside `page.goto` past its own timeout, and `await context.close()` never returned either, so the results file was never written. End on a clock (write whatever rows exist, mark the rest NOT RUN) and call `context.close()`/`browser.close()` WITHOUT awaiting, then `process.exit(0)`. Separately, `node crawl.mjs ... | tail -70` swallows all progress output if the Bash tool later backgrounds it — redirect to a log file and `tail` the file (core-data-children, 2026-09-17).

@@ -4,7 +4,7 @@ Load the `minion` skill first, then `code`. The review's findings:
 `C:\Code\lew42\monorepo\public\framework\ai\2026-09-28\section-variants\review.jsonl` (the `finding` lines).
 Worktree `C:\Code\lew42\worktrees\section-variants` ONLY (server `http://localhost:58245/`).
 **Fence:** `public/framework/core/Sidebar/variants/**`, `public/framework/core/Page/layout/floating/**`,
-`public/framework/ui/section/**`, and new shots in `public/framework/ai/2026-09-28/section-variants/walkthrough/shots/`.
+`public/framework/ui/section/**`, and new shots in `public/framework/ai/sessions/2026/09/29/section-variants/section-variants/walkthrough/shots/`.
 Never `task.jsonl` or `review.jsonl`.
 
 Fix these, and nothing else:

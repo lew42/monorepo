@@ -1,4 +1,4 @@
-import { browser, close } from "../../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../Server/browser.mjs";
 const b = await browser();
 const page = await (await b.newContext({ viewport: { width: 1920, height: 1080 } })).newPage();
 await page.goto(process.argv[2], { waitUntil: "load", timeout: 30000 }).catch(() => {});

@@ -41,5 +41,5 @@ export default new Page(demo.layout({
 
 	layout: splits,
 
-	note: "**→ splits a pane beside itself, ↓ splits it below, ✕ closes it.** Nothing here knows about the DOM: a click rewrites a plain object and `redraw()` builds the whole thing again, which is affordable because the whole thing is four lines of `flex`. Compare with the fixed nesting on [Panes](/framework/ai/2026-08-12/apps/panes/) — the render is the same function.",
+	note: "**→ splits a pane beside itself, ↓ splits it below, ✕ closes it.** Nothing here knows about the DOM: a click rewrites a plain object and `redraw()` builds the whole thing again, which is affordable because the whole thing is four lines of `flex`. Compare with the fixed nesting on [Panes](/framework/ai/sessions/2026/08/12/apps/panes/) — the render is the same function.",
 }));

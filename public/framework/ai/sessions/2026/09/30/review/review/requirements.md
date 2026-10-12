@@ -1,6 +1,6 @@
 # The review skill: requirements
 
-The owner's words, verbatim: `ai/2026-09-30/page-audit/owner-words.md`, sections "Continued (about 12:35 PM)" and "Continued (about 12:45 PM)". Read both in full first. This task folds in `ai/2026-09-30/review-shots/requirements.md` (row 44); do not run that one separately.
+The owner's words, verbatim: `ai/sessions/2026/09/30/page-audit/page-audit/owner-words.md`, sections "Continued (about 12:35 PM)" and "Continued (about 12:45 PM)". Read both in full first. This task folds in `ai/sessions/2026/09/30/review-shots/requirements.md` (row 44); do not run that one separately.
 
 ## What the owner asked (each traces to a sentence)
 1. **Screenshots belong to the task.** The task mastermind takes them at 400, 1200, 1920 and 3440, saves them in the task folder, and links them from task.jsonl, so anyone can open them in the browser later and ask "was this screenshotted, and why was it approved when it's clearly bad?"
@@ -18,7 +18,7 @@ The owner's words, verbatim: `ai/2026-09-30/page-audit/owner-words.md`, sections
 - **`review.mjs`:** every `full` review, and every `light` one that touched a page, uses the review skill (the reviewer's prompt says "load the review skill"), the four widths, and `--bands`; `merge.mjs` refuses a merge whose task has no report when one is due.
 
 ## Fence
-`.claude/skills/review/` (new), `questions.md` in page, layout, css, content (new files), `Server/review.mjs`, `Server/merge.mjs` (the call site only; node-reliability-2 is editing smoke.mjs and merge.mjs's smoke path, ask the architect before touching merge.mjs), `Server/doc/review.md`, `Server/layout-check.mjs` only after mastermind-page's `--bands` has merged (ask the architect for its state). Worktree required. Budget $30, minions included. Proof: run the whole path on one landed task (e.g. ai/2026-09-29/audio/next-chat-hitl) and attach its report and sheet. Land with finish-task; report one screen on the card.
+`.claude/skills/review/` (new), `questions.md` in page, layout, css, content (new files), `Server/review.mjs`, `Server/merge.mjs` (the call site only; node-reliability-2 is editing smoke.mjs and merge.mjs's smoke path, ask the architect before touching merge.mjs), `Server/doc/review.md`, `Server/layout-check.mjs` only after mastermind-page's `--bands` has merged (ask the architect for its state). Worktree required. Budget $30, minions included. Proof: run the whole path on one landed task (e.g. ai/sessions/2026/09/29/audio/audio/next-chat-hitl) and attach its report and sheet. Land with finish-task; report one screen on the card.
 
 Owner's words: `2026-09-30/page-audit/owner-words.md` (sections "Continued (about 12:35 PM)" and "Continued (about 12:45 PM)")
 Card: `2026/09/30/one-review-skill-system-questions-screen`

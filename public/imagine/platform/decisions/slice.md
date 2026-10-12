@@ -6,7 +6,7 @@ whole path and still be a real write. It lives in the platform program
 ([`/imagine/platform/like.js`](/imagine/platform/like.js)), not in the framework, until a second
 program wants it. The room proved the Durable Object write path on 2026-09-04; this proves the
 **D1** one, which is a different store with different rules. Run it:
-[the recipe](/framework/ai/2026-09-06/platform-slice/run/); see it: [MVP](/imagine/platform/mvp/).
+[the recipe](/framework/ai/sessions/2026/09/06/platform-slice/run/); see it: [MVP](/imagine/platform/mvp/).
 
 ---
 
@@ -96,4 +96,4 @@ is the only time such a rule is ever actually tested.
 - **Real sign-in.** GitHub OAuth, `state` and PKCE, [identity.md](./identity/) ruling 1 — none of
   it is built. Everything above sits on five seeded rows and a dev-only url.
 
-Written 2026-09-06 ([the run](/framework/ai/2026-09-06/platform-slice/)).
+Written 2026-09-06 ([the run](/framework/ai/sessions/2026/09/06/platform-slice/)).

@@ -16,7 +16,7 @@ The owner tests this ON THE PHONE (the ✦ sheet) and on desktop (the drawer's A
 
 - Your worktree `C:/Code/lew42/worktrees/chat-hitl` already holds (from a sibling minion) `ux/Understand/` (the ✓/? marks, a `marks(sentences, context)` client call, the clarification card) and `ux/Rename/` (select, then a dropdown of 5 names). Read both readmes and REUSE them; don't rebuild them inside ext/Chat.
 - Your parent has merged `michael/dev` (with 71933e2a: the ✦ sheet drives ChatPanel through `ext/Session`) into the worktree and cherry-picked a6f58363: the audio task's half-built revision pairs (a chat line with `re` + `level` is drawn under its raw line) plus a `watch` option. It is UNTESTED: test it first, fix it, and keep it.
-- The universal chat line: `{chat:{at, session, path, from, via, text, re?, level?, place?, fix?}}` ([design](/framework/ai/2026-09-29/voice-sessions/design.md)). A later line with the same `at` and `fix: true` wins. `place: {module, id, ...}` draws a content card in the flow.
+- The universal chat line: `{chat:{at, session, path, from, via, text, re?, level?, place?, fix?}}` ([design](/framework/ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md)). A later line with the same `at` and `fix: true` wins. `place: {module, id, ...}` draws a content card in the flow.
 
 ## Deliverables, in this order (land each one working before starting the next)
 

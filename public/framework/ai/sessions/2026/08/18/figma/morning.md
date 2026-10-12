@@ -20,14 +20,14 @@ live from the CSSOM. Built because a `box-shadow` leaked into every `pre > code`
 
 ## Decisions waiting on you — each is one minute
 
-1. [**`.inset`**](/framework/ai/2026-08-18/figma/surface-proposal.md) — a band-relative surface.
+1. [**`.inset`**](/framework/ai/sessions/2026/08/18/figma/surface-proposal.md) — a band-relative surface.
    `.wash`/`.tint` follow the *page's* colour-scheme, so on a dark band they paint a highlight where
    a recess belongs. Measured twice. **Proposed, not shipped** — the name is API surface forever.
 2. **`--grow`'s name.** I shipped `--grow`; the pilot proposed `--weight`. Cheapest to change now.
 3. **`fill` on four existing layouts.** `landing`, `document`, `docs`, `stack` are each one longer
    demo from the collapse that broke the homepage. Change them, or annotate them?
 4. **Promote `400/entry.js`** → `layouts/entry.js`. Three minions independently rewrote it.
-5. [16 more questions](/framework/ai/2026-08-18/figma/questions.md) from the minions, each with the
+5. [16 more questions](/framework/ai/sessions/2026/08/18/figma/questions.md) from the minions, each with the
    assumption it shipped under.
 
 ## What I changed in `framework.css` without asking, and why

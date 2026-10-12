@@ -21,7 +21,7 @@
 
 ## 2. Ask → delivered audit (owner add-on)
 
-Extended [2026-10-07/prompt-audit](/framework/ai/2026-10-07/prompt-audit/) to the raw session
+Extended [2026-10-07/prompt-audit](/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit/) to the raw session
 history. Map: [doc/logs/log-sources.md](/framework/ai/doc/logs/log-sources.md). Pipeline + numbers:
 [ask-ledger/readme.md](ask-ledger/readme.md).
 
@@ -38,7 +38,7 @@ data to trust (two others were discarded, not averaged in blind). Script: [pace.
 
 - The owner's own $85/point ballpark used a plain date range; mine uses the actual reset-detected
   window. Same data, different boundary — not a disagreement.
-- [token-accounting/findings.md](/framework/ai/2026-10-07/token-accounting/findings.md) found a
+- [token-accounting/findings.md](/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/findings.md) found a
   real undercount bug in the $ totals this rate rests on — may still be revised.
 - Built: the rate + `admit(expected_cost_usd)`. **Not built:** wiring into Servex's Dispatcher
   queue or the AI board line — live shared scheduling code, named as the next owner, not edited

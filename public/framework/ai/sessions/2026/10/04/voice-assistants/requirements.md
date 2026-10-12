@@ -42,7 +42,7 @@ A new session can be started from a template chosen in a dropdown, e.g. **"OpenR
 4. **One mastermind across all voice sessions** (Opus, not Fable) receives what the assistants hand off.
 5. Worktree → check_page → merge.mjs.
 
-QUEUED: start after /framework/ai/2026-10-04/dictate-without-claude lands (same files).
+QUEUED: start after /framework/ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude lands (same files).
 Budget: $6
 
 ## Cards, not chat (owner, 2026-10-04, third prompt)

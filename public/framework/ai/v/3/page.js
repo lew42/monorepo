@@ -34,12 +34,12 @@ View.stylesheet(import.meta, "v3.css");
 const VERDICTS_PATH = new URL(new URLSearchParams(location.search).get("verdicts") || VERDICTS_URL, location.origin).pathname;
 
 /**
- * INBOX ZERO (2026-09-19, `ai/2026-09-19/inbox-zero/`) — the owner's own words:
+ * INBOX ZERO (2026-09-19, `ai/sessions/2026/09/19/inbox-zero/`) — the owner's own words:
  * "so that as I click through things, I can study things one at a time and try
  * and get to zero inbox." Every card the mastermind or a minion posts can now
  * get a VERDICT — Approve, or Improve with a sentence saying what is wrong —
  * the same Approve/Improve mechanism the day-audit page already proved
- * (`ai/2026-09-19/day-audit/page.js`), copied here rather than shared, for the
+ * (`ai/sessions/2026/09/19/day-audit/page.js`), copied here rather than shared, for the
  * same reason that page copied its own six lines from `ext/Ask/reply.js`: a
  * page that has to keep working while the site is being edited carries its
  * own small write path instead of importing a chain that might blank it.
@@ -525,7 +525,7 @@ export function top_level(page, initial_id, url_view, root) {
 	// a larger change than one filter control justifies tonight.
 	let author_filter = prefs.get({ author_filter: "all" }).author_filter ?? "all";
 
-	// HEAD-MOBILE (2026-09-21, `ai/2026-09-21/head-mobile/`) — 255px of head row
+	// HEAD-MOBILE (2026-09-21, `ai/sessions/2026/09/21/head-mobile/`) — 255px of head row
 	// at 400px wide, before a single card. Nothing here is DELETED — the four
 	// "ways out" links and the card-width slider are DESK FURNITURE: four text
 	// links are the least useful the moment they're not the thing you're
@@ -697,7 +697,7 @@ export function top_level(page, initial_id, url_view, root) {
 				view_btns.set(val, a.c("v3-view-btn" + (val === view ? " on" : "")).text(val)
 					.href(view_url(val)).attr("title", VIEW_TITLES[val]));
 			});
-			/* TALK (2026-09-22, `ai/2026-09-22/talk/`) — the sixth word on this
+			/* TALK (2026-09-22, `ai/sessions/2026/09/22/talk/talk/`) — the sixth word on this
 			   line, and the only one that is not a view of this board: it is a
 			   PAGE of its own at `/framework/ai/talk/`, where pressing the mic
 			   fills one card with your words as you say them. So it is NOT in
@@ -734,7 +734,7 @@ export function top_level(page, initial_id, url_view, root) {
 				span.c("v3-ways-out-sep muted", "·");
 				a.c("v3-ways-out-link").href("/framework/ai/process/").text("Process");
 				span.c("v3-ways-out-sep muted", "·");
-				a.c("v3-ways-out-link").href("/framework/ai/2026-09-20/start-here/").text("Start here");
+				a.c("v3-ways-out-link").href("/framework/ai/sessions/2026/09/20/start-here/").text("Start here");
 			});
 
 			Versions.picker(root);
@@ -776,7 +776,7 @@ export function top_level(page, initial_id, url_view, root) {
 	}
 
 	div.c("v3 bleed", () => {
-		// FULL BLEED (2026-09-19, `ai/2026-09-19/v3-timeline/`) — the owner's own
+		// FULL BLEED (2026-09-19, `ai/sessions/2026/09/19/v3-timeline/`) — the owner's own
 		// words: "the V3 page fills everything right of the site sidebar: zero
 		// page padding". `.v3-board` drops the `pad` utility class it used to
 		// carry (the outer `--pad` ring around the WHOLE board, head and wall
@@ -869,7 +869,7 @@ export function top_level(page, initial_id, url_view, root) {
 }
 
 /**
- * DAYS (2026-09-22, `ai/2026-09-22/days-view/`) — the owner's own words: "our
+ * DAYS (2026-09-22, `ai/sessions/2026/09/22/session-14ca2320/days-view/`) — the owner's own words: "our
  * new ai dashboard system still sucks... i never have a nice clean report of
  * what happened." Every other view here reads `board.jsonl` — activity, not
  * outcome. This one reads only the line a task writes when it actually LANDS:
@@ -1022,7 +1022,7 @@ function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_a
 	   `heard_of()` as the "you said: …" block one click down from the
 	   answer that replaced it. An owner card with no answer YET still gets
 	   its own row — the transcription card the owner's brief asks for.
-	   INBOX ZERO (`ai/2026-09-19/inbox-zero/`): an APPROVED card also drops
+	   INBOX ZERO (`ai/sessions/2026/09/19/inbox-zero/`): an APPROVED card also drops
 	   out of this list, unless the head row's "N approved" toggle is on —
 	   the owner's own card is never hidden this way, since a verdict judges
 	   what the mastermind said, not what the owner said.
@@ -1121,7 +1121,7 @@ function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_a
 	// A click anywhere in the open card's own detail — Approve, Improve,
 	// typing a note — is a real SELECTION of the card already open, so it
 	// turns Live off the same way clicking a row does. Found live
-	// (`ai/2026-09-19/inbox-zero/`): with Live still on, a card elsewhere on
+	// (`ai/sessions/2026/09/19/inbox-zero/`): with Live still on, a card elsewhere on
 	// the board getting touched by the mastermind mid-read yanked the panel
 	// over to it, wiping out an Improve note the owner had half typed —
 	// capture phase, so this fires before a button's own click handler ever
@@ -1164,7 +1164,7 @@ function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_a
 	// task's own `decision` log for the alternative considered and rejected.
 	const is_big_card = (c, focus_id) => c.status === "needs-you" || c.id === focus_id;
 
-	// TIMELINE (2026-09-19, `ai/2026-09-19/v3-timeline/`) — the card's own time
+	// TIMELINE (2026-09-19, `ai/sessions/2026/09/19/v3-timeline/`) — the card's own time
 	// used to live in this footer; it now lives OUTSIDE the card, on the
 	// axis's own time line above it (`axis_item()`, below) — "the card face
 	// loses its time" is the owner's own words for this.
@@ -1218,7 +1218,7 @@ function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_a
 	}
 
 	/**
-	 * TIMELINE (2026-09-19, `ai/2026-09-19/v3-timeline/`) — one card's own
+	 * TIMELINE (2026-09-19, `ai/sessions/2026/09/19/v3-timeline/`) — one card's own
 	 * DECORATION: the divider drawn above it (an hour line, a collapsed-gap
 	 * break, or nothing) and its own time label, now living OUTSIDE the card
 	 * (`row_of()`'s own note). `idx` is this card's position in `cards`
@@ -1711,7 +1711,7 @@ function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_a
  * a NEW owner card when one lands AND the owner is not mid-read
  * (`following`); otherwise a "new ↓" chip offers it.
  *
- * FRONT-DOOR-TODAY (2026-09-21, `ai/2026-09-21/front-door-today/`) — measured
+ * FRONT-DOOR-TODAY (2026-09-21, `ai/sessions/2026/09/21/front-door-today/`) — measured
  * live: the newest OWNER card on the whole board was from 2026-09-19, while
  * 26 of today's cards were all `mastermind` (the fast assistant that turns
  * the owner's own words into a card was not running, so nothing the owner
@@ -2032,7 +2032,7 @@ function wall($wall, log, page, sort, verdicts, get_show_approved) {
 	// own — they already fed every card's `weight` above. Nested cards show
 	// only on their PARENT's own face/page, never loose on the wall too.
 	// INBOX ZERO: an approved card leaves this list too, unless the head
-	// row's "N approved" toggle is on (`ai/2026-09-19/inbox-zero/`).
+	// row's "N approved" toggle is on (`ai/sessions/2026/09/19/inbox-zero/`).
 	const every_card = log.cards.filter(c => author_of(c) !== "owner" && !c.parent);
 	const top_level = get_show_approved() ? every_card : every_card.filter(c => !is_approved(c.id, verdicts));
 	if (!every_card.length) return p.c("muted", "Nothing yet — the board is empty.");
@@ -2198,7 +2198,7 @@ function detail(c, log, page, verdicts, { skip_back = false, on_verdict } = {}) 
 			past.forEach(h => div.c("v3-history-row muted", `${clock(h.at)} — ${h.title ?? h.say ?? h.text ?? ""}`));
 		});
 
-		// INBOX ZERO (`ai/2026-09-19/inbox-zero/`) — never on the owner's own
+		// INBOX ZERO (`ai/sessions/2026/09/19/inbox-zero/`) — never on the owner's own
 		// card: a verdict judges what the mastermind SAID, not what the owner
 		// asked for. Off entirely when there is no dev socket to write through
 		// (`edit()`), the same rule every editor control on the site follows.

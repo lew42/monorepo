@@ -160,7 +160,7 @@ function view(item){
 	     selecting a panel opens the rail (`tools.js`). The reason is the one this realm has
 	     measured twice: a control that floats over the thing it controls is not a control —
 	     it covers what you are trying to read, and it appears and disappears under the
-	     pointer. `doc/decisions.md`, and the report at `ai/2026-09-17/editor-select/`.
+	     pointer. `doc/decisions.md`, and the report at `ai/sessions/2026/09/17/editor-select/`.
 
 	   ⚠ WHAT THE BAR'S `T` OBJECT CARRIED IS NOT LOST: `offer()`, `vocab()`, `roll()`,
 	     `sow()` and `copy()` are all still reachable — the rail draws every one of those

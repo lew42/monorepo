@@ -2,7 +2,7 @@
 
 Minion: Opus, effort high. Session id `380d3a56-336a-4811-9fb8-971b2c8fd164`. You are IN A
 WORKTREE (the launcher says where; your server's port). Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first. Load `layout`, `css`.
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first. Load `layout`, `css`.
 This is an ANALYSIS with a proposal; the only code you write is the probe, and the fix goes in
 only if it is one rule (see 4). `padding-law` (running beside you) is fixing the 3440 gutter
 loss and writing a `padding-check`; read its task log and reuse its probe if it has landed.
@@ -26,12 +26,12 @@ shell: `--gutter-x`, `--pad-y`, `.page.full`, `.flow` rhythm, `.bleed`, the cata
 "old shell words" aliases at ~1055), `styles/system/` (the seven lengths), `ext/catalog/catalog.css`
 (cards), `ai/v/3/v3.css` (zeroes the gutter for the board: `.page:has(> .v3)`), `ext/Doc`'s
 `.doc-page`, `toc.css`. Past studies: `ai/2026-09-01/` (spacing clamp), `ai/2026-09-05/`
-(spacing at 3440), `ai/2026-09-19/padding-audit/`, `ai/2026-09-20/ai-padding/` (four missing
+(spacing at 3440), `ai/sessions/2026/09/19/padding-audit/`, `ai/sessions/2026/09/20/ai-padding/` (four missing
 tokens zeroed padding across eleven files), `ai/2026-09-17/` layout browser, memory
 "silent render traps" (framework.css's `max-width:100%` and util-layer `:first-child` beat
 component CSS).
 
-## Deliverables — one page, `ai/2026-09-22/layout-analysis/page.js`
+## Deliverables — one page, `ai/sessions/2026/09/22/session-380d3a56/layout-analysis/page.js`
 
 1. **Where padding comes from, on one diagram.** For one ordinary page (`/framework/styles/`),
    the board (`/framework/ai/days/`), a doc page, and the UX index: every box between the rail

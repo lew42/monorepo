@@ -11,7 +11,7 @@
 
 ## Facts
 - Whisper is up (127.0.0.1:8178) and starts with Servex. The Chrome insecure-origin flag for :3104 is set and the mic worked before: the "abort" has another cause (two mic grabs at once? auto-start firing twice? floating mic and rail both? a stale stream?).
-- The cheap-model switch already landed: /framework/ai/2026-10-04/dictate-without-claude (bd521d1a).
+- The cheap-model switch already landed: /framework/ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude (bd521d1a).
 
 ## Do, in order; prove each headless (Server/browser.mjs / check_page, text fed through the same path)
 1. **One bubble per line:** find why one line draws 4×; prove 1×.

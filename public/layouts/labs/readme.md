@@ -9,8 +9,8 @@ at [`/layouts/`](/layouts/): an app shell (`shells/`), what a click does to your
 with its own readme and doc.
 
 **Watch out.** These six moved here from `/imagine/` on 2026-09-18
-(`ai/2026-09-18/imagine-move-3/`, following
-[the imagine-integration proposal](/framework/ai/2026-09-17/imagine-integration/proposal.md)).
+(`ai/sessions/2026/09/18/imagine-move-3/`, following
+[the imagine-integration proposal](/framework/ai/sessions/2026/09/17/imagine-integration/proposal.md)).
 Every old `/imagine/<name>/` address still answers — a one-line stub page points back here —
 because production is static and there is no server-side redirect. A seventh realm,
 `/imagine/layouts/` (the numbered `N.name` lab that gave `/layouts/` its ids), was deleted

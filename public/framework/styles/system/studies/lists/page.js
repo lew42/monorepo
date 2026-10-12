@@ -4,7 +4,7 @@ import Draggable from "/framework/ext/Draggable/Draggable.js";
 View.stylesheet(import.meta, "lists.css");
 
 /* Container: a plain page under `styles/system/studies/` (moved from `/imagine/design/`'s
-   columns row 2026-09-18, `ai/2026-09-18/imagine-move-2/` — the ordinary page grid applies
+   columns row 2026-09-18, `ai/sessions/2026/09/18/imagine-move-2/` — the ordinary page grid applies
    here now, so `wide` and `bleed` both mean something real; this page still asks for
    neither). Every box below
    is a framed thing (a row, a bar, a card), never paint, so it stays inside the column's own

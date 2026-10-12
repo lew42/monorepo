@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { browser, close } from "../../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../../Server/browser.mjs";
 /* minion-core's proof, four parts, each run at two widths (400 and 1920 — re-review
  * finding 7, 2026-10-02), one browser page per part per width (headless, fake mic,
  * stubbed Whisper + Servex — never the owner's own tabs, never a real session).

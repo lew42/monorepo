@@ -1,8 +1,8 @@
 # Minion A — spawn opens the task, roles carry a skill list
 
-Load the `minion` skill first. Parent task: `public/framework/ai/2026-09-28/task-loop/` (read its requirements.md and interfaces.md). The design and the owner's words: `public/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md`. The owner's own sentence: "consider the skills system kind of a workflow process" in `.claude/prompts/2026-09-28.jsonl`.
+Load the `minion` skill first. Parent task: `public/framework/ai/sessions/2026/09/28/task-loop/task-loop/` (read its requirements.md and interfaces.md). The design and the owner's words: `public/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md`. The owner's own sentence: "consider the skills system kind of a workflow process" in `.claude/prompts/2026-09-28.jsonl`.
 
-**Work only in the worktree `C:/Code/lew42/worktrees/task-loop`** (branch `worktree/task-loop`). Commit there. Never touch `C:/Code/lew42/monorepo` except to append to your own log `C:/Code/lew42/monorepo/public/framework/ai/2026-09-28/task-loop/spawn-line1/task.jsonl` (open it with a line-1 assign per the new-task skill; append with `node .claude/hooks/append.mjs`).
+**Work only in the worktree `C:/Code/lew42/worktrees/task-loop`** (branch `worktree/task-loop`). Commit there. Never touch `C:/Code/lew42/monorepo` except to append to your own log `C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/28/task-loop/task-loop/spawn-line1/task.jsonl` (open it with a line-1 assign per the new-task skill; append with `node .claude/hooks/append.mjs`).
 
 ## Deliverables
 

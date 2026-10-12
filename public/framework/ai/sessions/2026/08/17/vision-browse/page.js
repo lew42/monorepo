@@ -3,7 +3,7 @@ import { row } from "./row.js";
 
 View.stylesheet(import.meta, "vision-browse.css");
 
-const SRC = "/framework/ai/2026-08-17/vision-baseline/baseline.json";
+const SRC = "/framework/ai/sessions/2026/08/17/vision-baseline/baseline.json";
 
 export default new Page({
 	meta: import.meta,
@@ -12,7 +12,7 @@ export default new Page({
 	icon: "visibility",
 
 	/* Escapes the day's catalog rail (min(34em, 45%), ai.css) the same way
-	   ai/2026-08-17/report/page.js does — 18 screenshots beside their scores
+	   ai/sessions/2026/08/17/report/page.js does — 18 screenshots beside their scores
 	   need width a task page's region never gives. Own title, per core/Page/doc/layout.md. */
 	render(){
 		return this.view ??= div.c("page full", () => this.content.render()).ac(this.name && "page--" + this.name);

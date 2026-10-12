@@ -1,6 +1,6 @@
 # Design a small Stopwatch class: start, stop, reset, elapsed time.
 
-**Winner:** sonnet-b — `public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/4-cross-review.md`
+**Winner:** sonnet-b — `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/test-mock-design/collab/sonnet-b/4-cross-review.md`
 **Rule:** tie: cheaper member
 **Run cost:** $0.0000
 

@@ -130,7 +130,7 @@ broke the page today was the mastermind.
 
 You own `Server/health.mjs`, `Server/health-supervisor.mjs`, any new script you add under
 `Server/` or `.claude/`, the two `SKILL.md` sections named above, and
-`public/framework/ai/2026-09-21/safe-rollout/**`, plus one line in the day page's `children:` and
+`public/framework/ai/sessions/2026/09/21/safe-rollout/**`, plus one line in the day page's `children:` and
 one append to its `day.jsonl`.
 
 ⚠ You also need `public/framework/ai/2026-09-21/page.js` and `2026-09-21` in `ai/page.js`'s

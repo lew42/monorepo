@@ -7,7 +7,7 @@ const STATUS_LABEL = { progress: "in progress", done: "done", failed: "stalled â
 export class Log {
 	/**
 	 * THE LOG TAB â€” everything in flight, one row per TASK (the owner, 2026-09-30, verbatim in
-	 * `ai/2026-09-30/page-audit/owner-words.md`): "anything that's being worked on should show up
+	 * `ai/sessions/2026/09/30/page-audit/page-audit/owner-words.md`): "anything that's being worked on should show up
 	 * in there... each card in on the log should have a status like dot green if it's like done...
 	 * and the yellow flashing is sort of like in progress... we definitely don't want heartbeats or
 	 * just kind of like, even minions that are part of a bigger task probably shouldn't appear as

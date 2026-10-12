@@ -12,7 +12,7 @@ and identical at 1280, 1920 and 3440.** Across 322 real paragraphs the median is
 **1.90 characters per em** (p10–p90 1.62–2.02). This file was the closest of the
 three and its viewport-invariance claim below is exactly right; only the ceiling
 moved, 103 → 108. Full working:
-`ai/2026-08-16/mastermind-layout/measure-verdict.md`.
+`ai/sessions/2026/08/16/mastermind-layout/measure-verdict.md`.
 
 ⚠ **The trap that makes a hand count wrong by 13%:** a specimen appended to
 `document.body` renders in `system-ui`, not Montserrat — `--font` is scoped to

@@ -1,6 +1,6 @@
 # An assistant in front of every mastermind, step 2
 
-**The ask:** [ai/doc/asks.md](/framework/ai/doc/asks.md) **mastermind-assistant-relay** (asked 21x). Step 1 ([relay-asks](../relay-asks/STATE.md)) added a log-only `relay-bypass` line, live since the 11:30Z Servex restart.
+**The ask:** [ai/doc/asks.md](/framework/ai/doc/asks.md) **mastermind-assistant-relay** (asked 21x). Step 1 ([relay-asks](../../session-e272f2d6/relay-asks/STATE.md)) added a log-only `relay-bypass` line, live since the 11:30Z Servex restart.
 
 ## Done when
 - [ ] Read the `relay-bypass` log by script: how often the owner's tabs reach a mastermind directly, from where.

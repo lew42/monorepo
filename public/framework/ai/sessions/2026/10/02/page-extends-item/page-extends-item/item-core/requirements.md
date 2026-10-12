@@ -3,7 +3,7 @@
 Load the `minion` skill first, then the `code` skill.
 
 **The owner's words (2026-10-02):** "Page extends item? I thought we already agreed on that." Approved; build it.
-Design: [page-item-design.md](../../../2026-09-30/proposal-flow/page-item-design.md) — **the TOP section ("LATEST … fourth pass") rules.** Every older section is superseded where it disagrees.
+Design: [page-item-design.md](../../../../../09/30/proposal-flow/page-item-design.md) — **the TOP section ("LATEST … fourth pass") rules.** Every older section is superseded where it disagrees.
 Parent brief: [../requirements.md](../requirements.md). Decisions: [../task.jsonl](../task.jsonl).
 
 ⚠ **Fourth version of this brief.** The owner reversed "Item extends LiveList": a list is now a PROPERTY, not a parent. If you wrote code for the old shape, adapt it; don't restart.
@@ -25,7 +25,7 @@ Item = Events(Object)        a thing: id, icon, title, data, get / set(delta), s
 - `core/List/List.js` (rename its array `children` → `items`), `core/List/LiveList.js` (new)
 - `core/Item/Item.js` (rewrite), `core/Item/Store.js` (new)
 - Callers: `ext/Draggable/Sortable.js`, `ext/Panel/Panel.js`, `ext/Panel/flow.js`, `ext/Panel/Workspace/Workspace.js`, `ext/editor/page.js`, `ext/editor/blocks.js`, `ext/Draggable/page.js`, `core/Item/page.js`, `core/List/page.js`
-- `ai/2026-10-02/page-extends-item/item-core/test.mjs` (node; pass/fail per claim; non-zero exit on failure)
+- `ai/sessions/2026/10/02/page-extends-item/page-extends-item/item-core/test.mjs` (node; pass/fail per claim; non-zero exit on failure)
 - NOT core/Page/*.
 
 ## Deliverables
@@ -48,7 +48,7 @@ Item = Events(Object)        a thing: id, icon, title, data, get / set(delta), s
    - Fields `url`, `host`, `entries = []`, `count = 0`, `offset`, `replaying`; constructor `(...args) → Object.assign`.
    - `load()` fetch + parse (torn line skipped with a warning; HTML at 200 = missing); `parse(text)`; `read(entries)`: host attached → each `host.set(entry)` with `replaying = true`; else held. **Echo skip**: an entry equal (JSON string) to a sent-not-yet-seen line is skipped (multiset).
    - `attach(host)` → `host.store = this`, `this.host = host`, the delta listener, replay held entries.
-   - `open()` → on localhost (`localhost`, `127.0.0.1`, `*.localhost`) dynamic `import("../../ext/JSONL/live.js")` and `stream(this, () => this.changed())` (read live.js: it drives `url`, `offset`, `parse`, `read`, `load`, `reset`); elsewhere `load()`.
+   - `open()` → on localhost (`localhost`, `127.0.0.1`, `*.localhost`) dynamic `import("../../../../../../../2026-10-02/ext/JSONL/live.js")` and `stream(this, () => this.changed())` (read live.js: it drives `url`, `offset`, `parse`, `read`, `load`, `reset`); elsewhere `load()`.
    - `append(line)` → queue; one `queueMicrotask` flush per tick, ONE call: `(await import("/framework/dev/Socket/Socket.js")).default.singleton().async_rpc("append", <url pathname>, [json strings])`. Off localhost: memory only, warn once. `writable` getter. `changed()` / `reset()` hooks. Keep method names `PageLog.Reader` (bottom of `core/Page/Log.js`) uses, since B makes it `extends Item.Store`.
    - `static async Item.open(src)`: a .jsonl url → `Store.for(url)`, open, host from line 1, attach, return. A Saver object keeps the whole-JSON path.
 7. **`test.mjs`** in node (stub store): Events on/off/emit/bubble and `bubbles()` false; List helpers; LiveList add after/null/absent, idempotent add, remove, move within and across lists, order with an unlisted id, each line-shaped event; quiet insert/replace emit nothing; Item has no `add`/`move`/`order`; set sugar, change events, method keys, nested delta into a LiveList property, `at` paths; one line per live change at any depth; nothing during replay; replay into a fresh host gives the same `toJSON()`.

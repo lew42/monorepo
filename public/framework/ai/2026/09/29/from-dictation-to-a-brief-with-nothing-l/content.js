@@ -16,10 +16,10 @@ import refine from "/framework/ext/Refine/Refine.js";
  * to come back and add it once it exists.
  */
 const RUNS = [
-	{ id: "sample", label: "Sample (first proof run)", dir: "/framework/ai/2026-09-29/prompt-refine/runs/sample/" },
-	{ id: "a", label: "A — organization mastermind", dir: "/framework/ai/2026-09-29/prompt-refine/runs/a/" },
-	{ id: "b", label: "B — consensus (collab)", dir: "/framework/ai/2026-09-29/prompt-refine/runs/b/" },
-	{ id: "c", label: "C — harness & research", dir: "/framework/ai/2026-09-29/prompt-refine/runs/c/" },
+	{ id: "sample", label: "Sample (first proof run)", dir: "/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/runs/sample/" },
+	{ id: "a", label: "A — organization mastermind", dir: "/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/runs/a/" },
+	{ id: "b", label: "B — consensus (collab)", dir: "/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/runs/b/" },
+	{ id: "c", label: "C — harness & research", dir: "/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/runs/c/" },
 ];
 
 export default function content(page, box, data){
@@ -38,7 +38,7 @@ export default function content(page, box, data){
  * per-sentence detail, not the whole file — as real HTML, dropped rows
  * warm-highlighted the same way ext/Refine's own coverage table is. */
 async function load_audit($slot){
-	const url = "/framework/ai/2026-09-29/prompt-refine/audit.md";
+	const url = "/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/audit.md";
 	let text;
 	try {
 		const resp = await fetch(url);
@@ -60,7 +60,7 @@ async function load_audit($slot){
 				});
 			});
 		});
-		md("Every dropped or changed ask, quoted, is in [audit.md](/framework/ai/2026-09-29/prompt-refine/audit.md).");
+		md("Every dropped or changed ask, quoted, is in [audit.md](/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/audit.md).");
 	});
 }
 

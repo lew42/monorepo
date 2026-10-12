@@ -28,7 +28,7 @@ worktree/<slug>` into a sibling dir, a free port found by binding to port 0, tha
 
 ## What it actually costs — measured today
 
-The sibling [`worktree-design`](../../worktree-design/) task measured this repo on this machine on
+The sibling [`worktree-design`](../../../worktree-design/worktree-design) task measured this repo on this machine on
 2026-09-22, and the numbers are much better than the previous estimate:
 
 | | time | disk | files |

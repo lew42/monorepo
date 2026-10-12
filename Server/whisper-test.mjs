@@ -1,8 +1,8 @@
 /* `node Server/whisper-test.mjs` — runs every recording the owner has saved
- * through `ai/2026-09-22/record/` (`public/framework/ai/recordings/*.wav`)
+ * through `ai/sessions/2026/09/22/session-36e558ed/record/` (`public/framework/ai/recordings/*.wav`)
  * through whisper-server and checks the answer against what the owner actually
  * said. This is how a minion checks the whisper stack still works while the
- * owner is away — see public/framework/ai/2026-09-22/record/requirements.md.
+ * owner is away — see public/framework/ai/sessions/2026/09/22/session-36e558ed/record/requirements.md.
  *
  * `public/framework/ai/recordings/expected.json` is `{"<name>": "<what was
  * said>"}` — the owner fills it in by hand, one entry per recording, in

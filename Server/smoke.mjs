@@ -19,7 +19,7 @@
  * fill the whole cap before ever reaching the pages you actually meant to check. The
  * whole run is capped at CAP pages so one page full of links cannot turn a merge into
  * a crawl. Why this exists: 7 concept-tile links shipped 404ing and nothing here
- * caught it, because nothing had ever clicked them. `public/framework/ai/2026-09-28/smoke-links/`.
+ * caught it, because nothing had ever clicked them. `public/framework/ai/sessions/2026/09/28/b784a919-ce8c-4785-90d5-92b615b91d7c/smoke-links/`.
  *
  * Ignored: /favicon.ico, live-reload streams cut at page close, anything served by
  * another origin (e.g. Servex on :8090, which a worktree does not have) is printed as
@@ -374,7 +374,7 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 		//   - a dated ai/<date>/spend.json (same shape as tasks.json/usage.json — per-day,
 		//     Servex-regenerated) and a dated task's own shots/*.png (dictate-live-state,
 		//     2026-10-04, found landing it: `/framework/ux/Dictate/`'s own readme links two old
-		//     dated task pages — `ai/2026-09-22/dictate-silence/`, `ai/2026-09-30/one-dictation/
+		//     dated task pages — `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`, `ai/sessions/2026/09/30/one-dictation/one-dictation/
 		//     minion-workbench/` — whose spend.json and one shot each 404 unchanged on
 		//     `michael/dev` too; neither is about the branch being tested, and a reader-facing
 		//     fix for the rot itself belongs to whoever next touches those pages, not every

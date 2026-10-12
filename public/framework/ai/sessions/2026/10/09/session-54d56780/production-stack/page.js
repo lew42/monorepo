@@ -12,7 +12,7 @@ export default new AITask({
 			"|---|---|",
 			"| Live | static site at monorepo.lew42.workers.dev (assets only, no server code) |",
 			"| Decided | [identity, data, security](/imagine/platform/decisions/identity.md): cookie login, GitHub/Google, D1, one Durable Object per room |",
-			"| Built, local only | `worker/` (about 520 lines) and the [slice recipe](/framework/ai/2026-09-06/platform-slice/run.md): a like stored in real SQLite |",
+			"| Built, local only | `worker/` (about 520 lines) and the [slice recipe](/framework/ai/sessions/2026/09/06/platform-slice/run.md): a like stored in real SQLite |",
 			"| Never wired | deploy, OAuth apps, secrets, payments (nothing built), the tunnel for remote use |",
 		].join("\n"));
 

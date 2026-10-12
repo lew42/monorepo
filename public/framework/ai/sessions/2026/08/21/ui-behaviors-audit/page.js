@@ -48,6 +48,6 @@ export default new Page({
 
 		md("3. **The framework has already tried and un-shipped stateful `ui/` components at least three times** — `doc/decisions.md`'s own refrain is \"there is no `ui.pagination()`/`ui.dialog()`/`ui.menu()`/`ui.tags()`/`ui.field()`.\" Each one's one line of real logic (menu's close-on-pick, pagination's current-page state, tags' `×` handler) was deliberately left out of the component and shown only inline, in the copy-paste demo, because a caller's case was always half a step off. That's the `ui`/`ux` boundary the owner is naming now, arrived at independently three separate times.");
 
-		md("Method and log: [`task.jsonl`](/framework/ai/2026-08-21/ui-behaviors-audit/) · [`requirements.md`](/framework/ai/2026-08-21/ui-behaviors-audit/requirements.md). Source: [`ui/doc/decisions.md`](/framework/ui/doc/decisions.md) — the 2026-08-17 per-component ladder this audit re-verified against the current `.js` files and re-scored after `tree` was added.");
+		md("Method and log: [`task.jsonl`](/framework/ai/sessions/2026/08/21/ui-behaviors-audit/) · [`requirements.md`](/framework/ai/sessions/2026/08/21/ui-behaviors-audit/requirements.md). Source: [`ui/doc/decisions.md`](/framework/ui/doc/decisions.md) — the 2026-08-17 per-component ladder this audit re-verified against the current `.js` files and re-scored after `tree` was added.");
 	},
 });

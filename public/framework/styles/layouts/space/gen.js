@@ -45,7 +45,7 @@ export function roll(seed, opts = {}){
 	// draw below is ALSO logged into an array on `choices`, one entry per draw
 	// (a roll makes several of most of these) — `credit()` skips them (it only
 	// groups scalars), so this is raw material for a future credit pass, not a
-	// change to today's one. ai/2026-08-17/loss-budget/.
+	// change to today's one. ai/sessions/2026/08/17/loss-budget/.
 	const author = (key, range) => { const v = d.em(range); (choices.author ??= []).push({ key, em: v }); return v; };
 	const drawRole = role => { const v = d.role(role); (choices.roles ??= []).push({ role, part: v }); return v; };
 	const drawDepth = cap => { const v = d.level(DEPTHS, cap); (choices.depths ??= []).push(v); return v; };
@@ -119,7 +119,7 @@ export function roll(seed, opts = {}){
 		   lands, and a `main` track holding it is a reading column whether the model
 		   called it one — measured at 1920 without this: 117 characters a line, from a
 		   generator whose own rulebook says 68.
-		   ⚠ TESTED AND REVERTED (`ai/2026-08-17/loss-budget/`): gating the incidental
+		   ⚠ TESTED AND REVERTED (`ai/sessions/2026/08/17/loss-budget/`): gating the incidental
 		     `PROSE.test(drawn)` match to `dir === "v"` only — so a `main`/`wall` leaf
 		     inside a ROW shape would go fluid instead of capping — was worth +28% of
 		     the width-used gap on paper. Measured: FIT mean −0.13 (−0.30 SE), HELD mean

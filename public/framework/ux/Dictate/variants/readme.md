@@ -9,7 +9,7 @@ sentence becomes its own card — the mobile "prompt cards" flow),
 this module's own `capture.js` + cut-and-append segments — same caption, same log, same
 `revise:`). The first three are plain subclasses overriding one or two DRAWING methods; none of
 them touch the mic pipeline itself — the engines, every error message, and the start sound's
-real timing (fixed in `ai/2026-09-29/mobile-nav/`) are inherited for free. **Parts is different
+real timing (fixed in `ai/sessions/2026/09/29/mobile-nav/mobile-nav/`) are inherited for free. **Parts is different
 on purpose**: it overrides the PIPELINE (`start_whisper()`, `heartbeat()`, `stop()`,
 `on_level()`), not the drawing — see its own doc comment for why that's a different rule than
 "never override `start()`/`stop()`" below.

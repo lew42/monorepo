@@ -1,7 +1,7 @@
 # Requirements — verbatim
 
 Reviewer minion for realm **design** (`public/imagine/design/`, url `/imagine/design/`), private
-port **8061**. Brief: `public/framework/ai/2026-09-04/imagine-review/reviewer-brief.md`.
+port **8061**. Brief: `public/framework/ai/sessions/2026/09/04/imagine-review/reviewer-brief.md`.
 
 Full brief text is at that path (read first, in full). Summary of the job:
 

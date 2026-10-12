@@ -26,7 +26,7 @@ Load the `minion` skill first. Then this brief. Model: Sonnet. Small: one hook s
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/prompt-relay/`); `code`, `documentation`; `finish-task`.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/prompt-relay/`); `code`, `documentation`; `finish-task`.
 - **Fence:** `.claude/hooks/prompt-relay.mjs` (new), ONE try-wrapped line in `.claude/hooks/ledger.mjs`'s Skill branch (a sibling, `page-health`, is adding one line beside the syntax guard in the SAME file today — re-read it immediately before your edit and keep both), `.claude/hooks/readme.md`, `.claude/skills/assistant/SKILL.md` (the relay paragraph only), `.gitignore` (one line), your task dir. **Never `.claude/settings.json`, never `CLAUDE.md`.**
 - `ledger.mjs` runs on every tool call of every agent: `node --check` it after your one-line edit and run the pipe test before anything else. A broken hook stops every agent in the repo.
 - Never kill or restart the dev servers (ports 80 and 8123), never `git stash`, never `find /`, never commit. Write files with the Write or Edit tool, never a bash heredoc. Do not write the owner's name anywhere.

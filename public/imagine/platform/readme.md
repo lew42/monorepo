@@ -18,7 +18,7 @@ Then open <http://localhost:8201/imagine/platform/topic/>, sign in at
 `/api/dev/login?as=carol`, and click the like button. That is the whole first vertical
 slice — a topic world, a page inside it, a signed-in user, and a like that is a row in a
 real database. Step by step, with what you should see at each:
-[the recipe](/framework/ai/2026-09-06/platform-slice/run.md).
+[the recipe](/framework/ai/sessions/2026/09/06/platform-slice/run.md).
 
 ## Where to start
 
@@ -39,7 +39,7 @@ real database. Step by step, with what you should see at each:
 - The picture under [MVP](./mvp/)'s "Running" heading was the whole 1800px screenshot of a
   four-column row, shrunk to a third inside a column — it read as a live column pager with its
   first column chopped off and nothing scrolling (2026-09-08). It is now two columns cut from
-  that shot, captioned as a picture; the recipe is `ai/2026-09-08/platform-mvp-picture/crop.html`.
+  that shot, captioned as a picture; the recipe is `ai/sessions/2026/09/08/platform-mvp-picture/crop.html`.
 - A verdict-cards tile wall was tried for the nine research entries and reverted — this
   page is a fixed-width Miller-columns pane, and a card grid measured taller at every width
   than the list it replaced. The reasoning and the numbers are in `page.js`'s own comment.

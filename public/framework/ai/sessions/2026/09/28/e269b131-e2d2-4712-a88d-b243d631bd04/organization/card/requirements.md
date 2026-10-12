@@ -34,7 +34,7 @@ Screenshot the card at 1920, reached from the AI 2 dashboard rail (headless Play
 
 ## Fence
 
-- Write only inside `public/framework/ai/2026-09-28/organization/card/`, plus appends to the card through the endpoint.
+- Write only inside `public/framework/ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/card/`, plus appends to the card through the endpoint.
 - Edit no framework code. If the vocabulary lacks something the card needs, say so in your reply instead of building it.
 - Every process you start sets `windowsHide: true`. Never restart any server.
 - Log in your own `card/task.jsonl` as the minion skill says.

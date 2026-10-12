@@ -12,7 +12,7 @@ alone, leads with pictures, and ends with a rule stated in one sentence.
 ~40em column (no `width:`, no card wall) — the exact "can't tell what to click" failure the
 studies below diagnose in *other* realms. Fixed 2026-09-04: `width: "full"` (every child
 already wore it) + `index: true` + `previews()`, so the front door now uses the same tile
-wall its own `layout/` study recommends. `public/framework/ai/2026-09-04/imagine-design/`
+wall its own `layout/` study recommends. `public/framework/ai/sessions/2026/09/04/imagine-design/`
 has the before/after screenshots.
 
 **Watch out, round two (2026-09-05).** The tile wall's twelve cards used to be a generic
@@ -26,4 +26,4 @@ are in [`doc/layout-alternative.md`](./doc/layout-alternative.md).
 **More.** Raw crawl data and task logs: `/framework/ai/2026-09-01/*-study/` (one dir per
 study, named in each page's own doc). The sitewide layout critique that caught this page's
 own failure: [`/imagine/paging/critique/`](/imagine/paging/critique/). Round two's task
-log: [`/framework/ai/2026-09-05/ux-design/`](/framework/ai/2026-09-05/ux-design/).
+log: [`/framework/ai/sessions/2026/09/05/ux-design/`](/framework/ai/sessions/2026/09/05/ux-design/).

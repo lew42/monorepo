@@ -4,7 +4,7 @@ import { lan, safe_host } from "./MCP.js";
 const SERVEX = "http://127.0.0.1:8090";
 
 /* A dev-only, same-origin PROXY onto Servex — `/servex/*` → `http://127.0.0.1:8090/*`,
- * built for `ai/2026-09-29/mobile-nav/` the same way `Server/plugins/Whisper.js`
+ * built for `ai/sessions/2026/09/29/mobile-nav/mobile-nav/` the same way `Server/plugins/Whisper.js`
  * proxies `/whisper/*` onto whisper-server. Servex answers the AI drawer's page-ai
  * route and the prompt log at `127.0.0.1:8090`, and that address means a different
  * machine on every device — a phone on the LAN can never reach "127.0.0.1" that way.

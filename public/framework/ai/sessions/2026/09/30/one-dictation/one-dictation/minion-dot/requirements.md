@@ -1,14 +1,14 @@
 # Minion brief: merge 12, the pulsing ✦ dot and the mic sounds
 
-Load the `minion` skill first. Your parent is **task-mastermind-one-dictation**. Read `public/framework/ai/2026-09-30/one-dictation/checklist-2026-10-01.md`: you own items **7** and **8**. Merge 11 (minion-onewidget) has already landed, so the demo and the ✦ sheet make the same `chat()` call.
+Load the `minion` skill first. Your parent is **task-mastermind-one-dictation**. Read `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/checklist-2026-10-01.md`: you own items **7** and **8**. Merge 11 (minion-onewidget) has already landed, so the demo and the ✦ sheet make the same `chat()` call.
 
 ## Why
 The owner dictates while looking away, so the mic has to be heard and seen without any effort. In their own words: "a little orange dot... the size of it pulses with the audio... bottom right corner maybe". Then: "maybe it should be the AI icon shape", and, after closing the sheet with the mic on, "all I should see on my screen is the little orange dot". The start and stop sounds "are important", and this afternoon they didn't play.
 
 ## What exists
-- **The dot itself:** `Widget.Pulse` in `ux/Dictate/Widget.js` (around line 897, with `Widget.css` around line 155) is a `pulse: true` opt-in. It's built and documented in `doc/widget.md`, but it was never loaded live, and no surface uses it. Its task, `ai/2026-10-01/dictate-pulse-dot/`, ended without landing. Read its task.jsonl, then finish that work here instead of starting another dot (law 6).
+- **The dot itself:** `Widget.Pulse` in `ux/Dictate/Widget.js` (around line 897, with `Widget.css` around line 155) is a `pulse: true` opt-in. It's built and documented in `doc/widget.md`, but it was never loaded live, and no surface uses it. Its task, `ai/sessions/2026/10/01/dictate-pulse-dot/dictate-pulse-dot/`, ended without landing. Read its task.jsonl, then finish that work here instead of starting another dot (law 6).
 - **The level bars:** `level: true`, which merge 11 has dropped from every caller.
-- **The sounds:** `beep()` in `ext/Chat/Mic.js:84`, from task `ai/2026-10-01/dictate-stop-sound/`, which claimed a fix.
+- **The sounds:** `beep()` in `ext/Chat/Mic.js:84`, from task `ai/sessions/2026/10/01/dictate-stop-sound/dictate-stop-sound/`, which claimed a fix.
 
 ## Do
 1. **The dot becomes the ✦ shape**: the same glyph or SVG the rail's ✦ button uses (find it in `ext/drawer/`). It's in the primary orange (`--prime`), small, at the bottom right of the chat feed, and it scales with the voice level.

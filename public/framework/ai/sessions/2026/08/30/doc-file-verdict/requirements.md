@@ -3,7 +3,7 @@
 Verbatim ask:
 
 The `doc/file/*.md` question: 371 files, 734KB, 19% of all framework markdown, and per the
-simplify audit "the only mass nobody has ever questioned" (ai/2026-08-30/simplify-audit/proposal.md).
+simplify audit "the only mass nobody has ever questioned" (ai/sessions/2026/08/30/simplify-audit/proposal.md).
 
 Answer with numbers:
 

@@ -1,7 +1,7 @@
 # Generator, wave 2 — the permutation wall, a typed spec, pairing rules
 
 Wave 2 of [`core/Page/generator/`](/framework/core/Page/generator/), built as S5 of the
-column-pages run. v1 ([task](/framework/ai/2026-08-26/page-generator/)) cut three things on
+column-pages run. v1 ([task](/framework/ai/sessions/2026/08/26/page-generator/)) cut three things on
 purpose; the owner wants them now.
 
 ## The ask (verbatim, from the run's own brief)

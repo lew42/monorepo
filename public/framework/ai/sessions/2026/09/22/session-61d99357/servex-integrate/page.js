@@ -108,9 +108,9 @@ export default new Page({
 		p(code("Servex/readme.md"), " is the coder's index — the parts, where state lives, the log rule, and how to put your own tool on the MCP door. ",
 			code("Servex/agents/readme.md"), " is the agent host, and ", code("Servex/agents/doc/traps.md"), " is what the Agent SDK does not tell you.");
 		p("Every decision and every measurement behind this: ",
-			a("this task's log").href("/framework/ai/2026-09-22/servex-integrate/"), " (the integration), ",
-			a("servex-port").href("/framework/ai/2026-09-22/servex-port/"), " (the port and the audit), ",
-			a("agent-host").href("/framework/ai/2026-09-22/agent-host/"), " (the sessions). The proofs run themselves: ",
+			a("this task's log").href("/framework/ai/sessions/2026/09/22/session-61d99357/servex-integrate/"), " (the integration), ",
+			a("servex-port").href("/framework/ai/sessions/2026/09/22/session-7e28aa8d/servex-port/"), " (the port and the audit), ",
+			a("agent-host").href("/framework/ai/sessions/2026/09/22/session-e69d8104/agent-host/"), " (the sessions). The proofs run themselves: ",
 			code("node Servex/proof.mjs"), " is six checks in fifteen seconds, and ",
 			code("node Servex/agents/demo.mjs"), " is a real agent being spawned, cut into and interrupted in your terminal.");
 	},

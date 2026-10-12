@@ -18,7 +18,7 @@ Spec: [`../ai-board-review/proposal.md`](../ai-board-review/proposal.md) §3–�
 
 ## Prove it — before/after, measured
 
-Headless Playwright (never Mike's tabs; wait networkidle + 2 rAF), on `/framework/ai/2026-08-16/mastermind-run/` @1440 and `/framework/ai/2026-08-17/` @900: save `before-task-1440.png`, `after-task-1440.png`, `before-day-900.png`, `after-day-900.png` (viewport-only, not full page) in this dir, and log **page height** and **y of `.ai-outcome`** (or whatever the outcome node's class is) before and after. Baseline from the review: 249,069 px tall, answer at y=12,923. Target: answer above the fold; page under ~5,000 px with the feed folded.
+Headless Playwright (never Mike's tabs; wait networkidle + 2 rAF), on `/framework/ai/sessions/2026/08/16/mastermind-run/` @1440 and `/framework/ai/2026-08-17/` @900: save `before-task-1440.png`, `after-task-1440.png`, `before-day-900.png`, `after-day-900.png` (viewport-only, not full page) in this dir, and log **page height** and **y of `.ai-outcome`** (or whatever the outcome node's class is) before and after. Baseline from the review: 249,069 px tall, answer at y=12,923. Target: answer above the fold; page under ~5,000 px with the feed folded.
 
 ## Rules
 

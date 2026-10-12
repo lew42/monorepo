@@ -1,6 +1,6 @@
 # Minion B — the review's doc and its one-line skill edits
 
-Load the `minion` skill first, then the `content` skill (everything you write, the owner reads). The task: `public/framework/ai/2026-09-28/fresh-eyes-review/` — read `requirements.md` there first, then `minion-a.md` beside it: minion A is building `Server/review.mjs` and the `merge.mjs` gate to exactly that interface, at the same time as you. Describe that interface; do not wait for A's code. The card with the raw conversation: `public/framework/ai/2026/09/28/fresh-eyes-review-built-into-every-task/`.
+Load the `minion` skill first, then the `content` skill (everything you write, the owner reads). The task: `public/framework/ai/sessions/2026/09/28/b6fa1bc1-fad0-4bdd-9b20-8cd1cd20afb4/fresh-eyes-review/` — read `requirements.md` there first, then `minion-a.md` beside it: minion A is building `Server/review.mjs` and the `merge.mjs` gate to exactly that interface, at the same time as you. Describe that interface; do not wait for A's code. The card with the raw conversation: `public/framework/ai/2026/09/28/fresh-eyes-review-built-into-every-task/`.
 
 **Work only in the worktree** `C:\Code\lew42\worktrees\fresh-eyes-review` (branch `worktree/fresh-eyes-review`). Commit there, only your own files (`git add <your files>`, never `-A`: minion A commits in the same tree). Do not merge. Log to the MAIN tree's `C:\Code\lew42\monorepo\public\framework\ai\2026-09-28\fresh-eyes-review\task.jsonl` with `node .claude/hooks/append.mjs`.
 

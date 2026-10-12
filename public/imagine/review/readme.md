@@ -15,9 +15,9 @@ they were given: **can a stranger say what this is for in ten seconds?**
 - **The pictures are after the fixes; the "stranger said" line is before them.** They deliberately
   do not match — the gap between them is the whole point of the page.
 - The raw material is eighteen task logs under
-  [`/framework/ai/2026-09-04/`](/framework/ai/2026-09-04/), named `imagine-<realm>`, plus the one
+  [`/framework/ai/2026-09-04/`](/framework/ai/sessions/2026/09/04/), named `imagine-<realm>`, plus the one
   brief they all worked from, kept beside
-  [this task's own log](/framework/ai/2026-09-04/imagine-review/) as `reviewer-brief.md`.
+  [this task's own log](/framework/ai/sessions/2026/09/04/imagine-review/) as `reviewer-brief.md`.
 
 ## Watch out
 

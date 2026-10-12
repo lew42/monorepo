@@ -3,7 +3,7 @@
 Verbatim ask: A merge job, budget about $2. The reviewed AI 2 fix (four commits ending at
 278b043c: Inbox default again, the heartbeat flood filtered from Needs you, a Log tab, the rail
 no longer jumping, the tab strip on the left; reviewed in 3 rounds in
-`public/framework/ai/2026-09-30/ai2-inbox-log-fix/review.md`) lost its pool worktree. It now sits
+`public/framework/ai/sessions/2026/09/30/ai2-inbox-log-fix/ai2-inbox-log-fix/review.md`) lost its pool worktree. It now sits
 on branch `rescue/ai2-calm` (worktree `C:/Code/lew42/worktrees/ai2-calm-rescue`, which has no dev
 server, so merge.mjs's smoke test can't run there).
 

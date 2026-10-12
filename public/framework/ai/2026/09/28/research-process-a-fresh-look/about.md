@@ -2,25 +2,25 @@
 
 **The run did what was asked, for $10.61 of $15. The fresh-eyes round was worth it, the page is a good start, and the missing piece is "research from any card".**
 
-A cold review of the [harness research run](/framework/ai/2026-09-28/harness-research/) (2026-09-28). Reviewer: `minion-research-process-review`, who took no part in the run.
+A cold review of the [harness research run](/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/) (2026-09-28). Reviewer: `minion-research-process-review`, who took no part in the run.
 
 ## 1. Asked vs done
 
 | The owner asked for | Done? | Evidence |
 |---|---|---|
-| A task, run by a mastermind | yes | [task.jsonl](/framework/ai/2026-09-28/harness-research/task.jsonl) |
+| A task, run by a mastermind | yes | [task.jsonl](/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/task.jsonl) |
 | Use the Research system | yes | [/framework/research/harness/](/framework/research/harness/): 7 sub-areas, 111 nodes |
 | Use a worktree | partly | Only the page work ran in a worktree (`qf-2`). The research itself wrote no code, so it needed none. |
 | OpenRouter or direct: feature parity, cost | yes | [sub-area `qnjkd`](/framework/research/harness/#qnjkd) |
 | OpenRouter's agent package or our own harness | yes | [`qgyhm`](/framework/research/harness/#qgyhm) |
 | Harness parts: files, skills, MCP, loop, compaction, sessions, cost | yes | [`q2iwg`](/framework/research/harness/#q2iwg) |
 | Permissions and sandboxing; node rather than bash | yes | [`q267z`](/framework/research/harness/#q267z) |
-| A model switcher for chat and dictation | researched, not built | [`qg9ju`](/framework/research/harness/#qg9ju); step 5 of the [plan](/framework/ai/2026-09-28/harness-research/plan.md) |
+| A model switcher for chat and dictation | researched, not built | [`qg9ju`](/framework/research/harness/#qg9ju); step 5 of the [plan](/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/plan.md) |
 | Fleets of models that cross-check each other | researched, not built | [`q6h59`](/framework/research/harness/#q6h59); step 3 of the plan |
 | Round 1: one Opus and one Sonnet | yes | two scouts, $2.79 |
 | Round 2: fresh eyes judge the plan | yes | one fresh Opus, $1.13 |
 | Judge each claim: true? logical? disputable? | yes | every support or dissent has `true:` `logic:` `useful:` |
-| The Servex mastermind reviews it | yes | [architect-review.md](/framework/ai/2026-09-28/harness-research/architect-review.md), folded into the plan |
+| The Servex mastermind reviews it | yes | [architect-review.md](/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/architect-review.md), folded into the plan |
 | Build a review process into tasks | yes, by another task | [Server/doc/review.md](/Server/doc/review.md): sizes none, light, full; full has screenshots and the navigation questions |
 | A minion designs structured content | running elsewhere | `minion-structured-content-design`, under the Servex mastermind |
 | The research page shows structure, not paragraphs | partly | tree first, but see section 3 |
@@ -62,7 +62,7 @@ task-mastermind-harness-research   Opus    $2.89   wrote 3 briefs, the verdicts,
 - All seven icons are the same question mark, so the icons carry no meaning.
 - The tallies are bare symbols (`√ 3 · ⏸ 1`) with no labels.
 - The summary lines do not link to the sub-area they come from.
-- The real outcome, the [build plan](/framework/ai/2026-09-28/harness-research/plan.md), is not on the page at all.
+- The real outcome, the [build plan](/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/plan.md), is not on the page at all.
 - At 3440 wide, 75% of the page is empty (the layout check).
 
 **Cost: good.** $10.61 for 111 nodes and a build plan. Research cost $5; the page cost $3.81, more than both scouts together.

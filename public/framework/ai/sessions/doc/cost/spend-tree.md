@@ -1,6 +1,6 @@
 # The spend tree — how `Server/spend-tree.mjs` works, and where it's a guess
 
-The owner's ask (`public/framework/ai/2026-10-03/spend-tree/requirements.md`): see how and
+The owner's ask (`public/framework/ai/sessions/2026/10/04/spend-tree/spend-tree/requirements.md`): see how and
 why every Servex agent was spawned, nested, with its own $ and its whole subtree's $,
 Claude $ split from real (OpenRouter) $. This page's own `readme.md` points here for the
 detail; `study.md` beside the task's requirements is the one-screen reading of the numbers.

@@ -12,9 +12,9 @@ const STEPS = [
 		say: "The review questions for pages, navigation, layout, sizing, wrapping, spacing, colour, flow and words, on one page. Each comes from its skill's own questions.md, so a new rule brings its question with it." },
 	{ title: "The same page on a phone", pic: "review-400.png", open: "/framework/ai/review/",
 		say: "At 400 the systems stack into one column." },
-	{ title: "Screenshots belong to the task", pic: "proof-sheet.png", open: "/framework/ai/2026-09-30/review/proof/",
+	{ title: "Screenshots belong to the task", pic: "proof-sheet.png", open: "/framework/ai/sessions/2026/09/30/review/review/proof/",
 		say: "Every review shoots the changed pages at 400, 1200, 1920 and 3440 into the task's own shots/ folder, with the measured numbers (tab rows, stacked padding, bands, wraps) beside them." },
-	{ title: "One report answers every question", pic: "report.png", open: "/framework/ai/2026-09-30/review/proof/review/report.md",
+	{ title: "One report answers every question", pic: "report.png", open: "/framework/ai/sessions/2026/09/30/review/review/proof/review/report.md",
 		say: "A fresh reviewer loads the review skill and answers each question yes, no or n/a, with a shot or a number as proof. This proof run found 8 things on a task that had already landed." },
 ];
 

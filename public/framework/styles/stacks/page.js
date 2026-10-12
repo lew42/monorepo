@@ -128,7 +128,7 @@ export default new Page({
 
 	content(){
 
-		md("**Shipped.** The ladder below lives in `framework.css` `:root` and the site is on it — [the flip](/framework/ai/2026-08-30/alpha-flip/), 2026-08-30. This page is now the regression test: the left chip in every cell is still whatever the site actually renders, so if a fill goes back to guessing, a number here turns red.");
+		md("**Shipped.** The ladder below lives in `framework.css` `:root` and the site is on it — [the flip](/framework/ai/sessions/2026/08/30/alpha-flip/), 2026-08-30. This page is now the regression test: the left chip in every cell is still whatever the site actually renders, so if a fill goes back to guessing, a number here turns red.");
 
 		md("What it was. Two rules in `framework.css` named the same token:\n\n```css\n.btn, button { background: var(--surface); }\n.surface     { background: var(--surface); }\n```\n\nSo **a default button on a card was a zero-delta fill** — and lew42's `border: none` had already taken away the hairline that was the only other thing saying a button was there. `code` on a `.wash` block and a `--tint` badge in a `.tint` panel were the same sentence with different nouns, and three modules had patched it one at a time: [`blog.css`](/blog/) gave up on filled chips and went outlined, [`imagine.css`](/imagine/) hovers with `color-mix(in srgb, var(--ink) 6%, transparent)`, and `framework.css` bolted an inset ring onto inline `code`.");
 
@@ -145,7 +145,7 @@ export default new Page({
 			div.c("stacks-mode stacks-dark flex-1", () => { div.c("h4", "dark"); ladder(["--paper-a04", "--paper-a08", "--paper-a16", "--paper-a32", "--fill-a04", "--fill-a08", "--fill-a16", "--fill-a32"]); });
 		}).ac("stacks-lab");
 
-		md("```css\n--shade-a08: rgba(0, 0, 0, 0.08);\n--paper-a08: rgba(255, 255, 255, 0.08);\n--fill-a08:  light-dark(var(--shade-a08), var(--paper-a08));\n```\n\n`--fill-aNN` is **the one word a call site types**, and the reason it works everywhere is that `light-dark()` reads `color-scheme` at the element it is *used* on, not where it was declared. So an island that is dark in both modes — a code block, a dark CTA, the sidebar — declares `color-scheme: dark` and every rung inside it flips, along with `--ink` and `--line`. That one line is the always-dark primitive the [col-styles lab](/framework/ai/2026-08-30/col-styles/) recorded as missing.");
+		md("```css\n--shade-a08: rgba(0, 0, 0, 0.08);\n--paper-a08: rgba(255, 255, 255, 0.08);\n--fill-a08:  light-dark(var(--shade-a08), var(--paper-a08));\n```\n\n`--fill-aNN` is **the one word a call site types**, and the reason it works everywhere is that `light-dark()` reads `color-scheme` at the element it is *used* on, not where it was declared. So an island that is dark in both modes — a code block, a dark CTA, the sidebar — declares `color-scheme: dark` and every rung inside it flips, along with `--ink` and `--line`. That one line is the always-dark primitive the [col-styles lab](/framework/ai/sessions/2026/08/30/col-styles/) recorded as missing.");
 
 		md("Literal `rgba()`, so **no interpolation space is involved at all** — source-over compositing in sRGB is arithmetic, not a mix. Where a rung must be derived *from* a theme colour, use `in srgb`: mixing toward `transparent` in `oklab` travels through premultiplied oklab and the hue drifts on the way.");
 
@@ -175,7 +175,7 @@ export default new Page({
 
 		md("## The hunt");
 
-		md("A headless pass over the site reads every button, chip and badge, composites its fill against the floor actually beneath it, and flags the pairs under ΔL\\* 3. The scan and its threshold calibration are in [the task dir](/framework/ai/2026-08-30/color-stacks/); the raw output is [`hunt.json`](hunt.json).\n\n**76 pages, 3,623 fills: 101 pairs / 504 elements before the flip, 19 / 50 after.** The table below is what is left, and every row is one of four things — a text label the scan's class-name test caught (`.layout-tag` has no fill and never wanted one), an icon button that is transparent on purpose and carries its glyph as the affordance, one of the two placement demos above, or a mocked control on the [UI gallery](/framework/ui/). None of them is a control you cannot see.");
+		md("A headless pass over the site reads every button, chip and badge, composites its fill against the floor actually beneath it, and flags the pairs under ΔL\\* 3. The scan and its threshold calibration are in [the task dir](/framework/ai/sessions/2026/08/30/color-stacks/); the raw output is [`hunt.json`](hunt.json).\n\n**76 pages, 3,623 fills: 101 pairs / 504 elements before the flip, 19 / 50 after.** The table below is what is left, and every row is one of four things — a text label the scan's class-name test caught (`.layout-tag` has no fill and never wanted one), an icon button that is transparent on purpose and carries its glyph as the affordance, one of the two placement demos above, or a mocked control on the [UI gallery](/framework/ui/). None of them is a control you cannot see.");
 
 		/* ⚠ The box is claimed synchronously and the promise handed to `append()`, which
 		   awaits it and appends what it resolves to — a FUNCTION, so the captor is set and

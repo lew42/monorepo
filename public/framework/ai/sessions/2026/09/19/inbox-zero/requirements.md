@@ -26,7 +26,7 @@ The owner says "I don't think we have that yet", and for V3 that is right. But t
 one page over, and you should build on it rather than inventing a second one:
 
 - **The day-audit page already has Approve / Needs work buttons.** They write
-  `public/framework/ai/2026-09-19/day-audit/approvals.jsonl` straight from the browser through the
+  `public/framework/ai/sessions/2026/09/19/day-audit/approvals.jsonl` straight from the browser through the
   dev server socket's `rpc:append` — one card line per press, merged by `id`, newest wins. Read
   that page's `page.js` and copy the pattern. Note the wording differs: it says "Needs work", the
   owner is now saying "Improve". Use the owner's word.
@@ -66,7 +66,7 @@ going down is the whole experience.
 
 A sibling minion (`v3-data`) is moving `board.jsonl` out of `public/framework/ai/v/3/` into one
 shared store right now, and is changing every reader and writer of it. **Do not start editing until
-it has landed** — check for `landed_at` in `public/framework/ai/2026-09-19/v3-data/task.jsonl`.
+it has landed** — check for `landed_at` in `public/framework/ai/sessions/2026/09/19/v3-data/task.jsonl`.
 Read its brief and its log first; the path you must read and append to is whatever it decided, not
 `v/3/board.jsonl`.
 
@@ -109,7 +109,7 @@ working, it is untested** — say so plainly if you run out of time on one of th
 ## Fences
 
 You own: `public/framework/ai/v/3/**`, the board store wherever `v3-data` put it, and
-`public/framework/ai/2026-09-19/inbox-zero/**`. You may add one line to the day page's `children:`
+`public/framework/ai/sessions/2026/09/19/inbox-zero/**`. You may add one line to the day page's `children:`
 and append to that day's `day.jsonl`.
 
 **You may not touch `say.mjs`** — read it, match its conventions, but `v3-data` owns it tonight.

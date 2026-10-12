@@ -10,4 +10,4 @@ Budget **$3**, Sonnet 5.5, medium effort. Batch reads; grep for lists. One-sente
 3. **Census of pollers.** A script lists every `setInterval`/`setTimeout`-loop `fetch`/poll under `public/framework/` that reads data a stream could carry; for each: file, interval, what it reads, whether a JSONL stream already exists for it, and a ranked conversion list in `findings.md`. Convert the clearly-easy ones (same pattern, existing stream); list the rest.
 4. Work in a worktree through the merge gate (`check_page`, the four widths for the Sessions page); commit with attribution; land with `finish-task`. Anything that needs the owner → a `Note:` card on the AI board plus one line in findings.md.
 
-Related, don't duplicate: `public/framework/ai/2026-10-07/token-accounting/plan.md` items 6–7 (realtime Sessions tab + `session.jsonl`) — read them first and build on that design; this task is the transport and the pollers.
+Related, don't duplicate: `public/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/plan.md` items 6–7 (realtime Sessions tab + `session.jsonl`) — read them first and build on that design; this task is the transport and the pollers.

@@ -3,11 +3,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import { browser, close } from "../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../Server/browser.mjs";
 
 const OUT = process.env.OUT ?? path.join(process.env.TEMP, "page-split-3");
 const WIDTHS = [400, 1200, 1920, 3440];
-const FULL = new Set(["/framework/core/Page/", "/framework/ai/", "/imagine/paging/", "/framework/core/Page/overview/columns/", "/framework/ext/markdown/open/", "/framework/core/Page/parts/example/", "/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/sessions/"]);
+const FULL = new Set(["/framework/core/Page/", "/framework/ai/", "/imagine/paging/", "/framework/core/Page/overview/columns/", "/framework/ext/markdown/open/", "/framework/core/Page/parts/example/", "/framework/ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/build/", "/framework/ai/sessions/"]);
 
 const URLS = [
 	"/framework/", "/framework/core/", "/framework/core/Page/", "/framework/core/View/", "/framework/core/Router/", "/framework/core/App/",
@@ -15,7 +15,7 @@ const URLS = [
 	"/framework/core/Page/overview/grid/", "/framework/core/Page/overview/prose/", "/framework/core/Page/overview/width/", "/framework/core/Page/overview/site/",
 	"/framework/core/Page/parts/", "/framework/core/Page/parts/example/", "/framework/core/Page/jsonl/", "/framework/core/Page/jsonl/live/",
 	"/framework/ai/", "/framework/ai/sessions/", "/framework/ai/sessions/2026/10/", "/framework/ai/cards/", "/framework/ai/rail/", "/framework/ai/classes/",
-	"/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/2026-10-12/page-split-2/", "/framework/ai/2026-10-12/page-split-3/", "/framework/ai/2026-10-12/",
+	"/framework/ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/build/", "/framework/ai/sessions/2026/10/12/session-e55f5a4b/page-split-2/", "/framework/ai/sessions/2026/10/12/session-1c7d9e04/page-split-3/", "/framework/ai/sessions/2026/10/12/",
 	"/framework/ext/markdown/open/", "/framework/ext/markdown/open/columns/", "/framework/ext/JSONL/", "/framework/ext/Refine/",
 	"/imagine/paging/", "/imagine/paging/arrangement/", "/imagine/", "/framework/ux/Dictate/", "/framework/ux/Inbox/", "/framework/ui/", "/framework/styles/", "/web/",
 ];

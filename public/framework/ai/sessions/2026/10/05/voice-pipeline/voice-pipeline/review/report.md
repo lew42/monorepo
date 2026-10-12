@@ -86,7 +86,7 @@ verdict: fix
 5. every title says exactly what its thing is — yes — "How it works", "Dictate"
 6. pictures carry ≤1-line captions — n/a — no pictures on this tab
 7. each concept named once, same way — yes — "Whisper", "Revise" used consistently in the tile row and prose
-8. every mention of a concept/file links to its page — not fully measured — `doc/decisions.md`'s new text names `ux/Dictate/ai/v-g2roikw.jsonl` and `ai/2026-10-04/voice-pipeline/` as plain paths, not as links (CLAUDE.md: a named file is a clickable link)
+8. every mention of a concept/file links to its page — not fully measured — `doc/decisions.md`'s new text names `ux/Dictate/ai/v-g2roikw.jsonl` and `ai/sessions/2026/10/05/voice-pipeline/voice-pipeline/` as plain paths, not as links (CLAUDE.md: a named file is a clickable link)
 9. a doc's words sit beside a picture/widget — n/a — `decisions.md` is a decision log, not a how-it-works doc; existing convention in this module is prose-only here
 10. most important thing leads — yes — Page structure #3
 11. full plain sentences, no undefined jargon — yes, mostly — the new `decisions.md` text is in full sentences; it does lean on code symbols (`req_seq`, `epoch`, `applied_seq`) without defining them inline, acceptable for a decisions log aimed at the next engineer, not a newcomer-facing page

@@ -7,8 +7,8 @@
   - line 62, the spawn prompt for task-mastermind-harness-research;
   - line 63, the review process, the architect review and structured content, sent to mastermind-servex-3;
   - line 64, the structured-content design, sent to minion-structured-content-design.
-- **The brief named a file that does not exist.** My brief pointed at `ai/2026-09-28/harness-research/requirements.md`. There is no such file. Line 62 *is* the brief. The `requirements-round1.md` and `requirements-round2.md` in that folder were written later by the harness mastermind, not by the tab.
-- **Were the raw words passed along? Yes, and well.** [`harness-research/owner-words.md`](/framework/ai/2026-09-28/harness-research/) holds line 61 word for word (checked by exact string match). All three relays point to it, and line 64 even names the exact passage to read.
+- **The brief named a file that does not exist.** My brief pointed at `ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/requirements.md`. There is no such file. Line 62 *is* the brief. The `requirements-round1.md` and `requirements-round2.md` in that folder were written later by the harness mastermind, not by the tab.
+- **Were the raw words passed along? Yes, and well.** [`harness-research/owner-words.md`](/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/) holds line 61 word for word (checked by exact string match). All three relays point to it, and line 64 even names the exact passage to read.
 
 **Status words:**
 

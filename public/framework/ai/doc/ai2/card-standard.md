@@ -1,6 +1,6 @@
 # The card standard: show it, then say it
 
-![The Servex card, drawn to this standard](/framework/ai/2026-09-25/servex-mastermind/card-quality.svg)
+![The Servex card, drawn to this standard](/framework/ai/sessions/2026/09/24/1c09793f-74b6-4218-82e5-53e5cd88b659/servex-mastermind/card-quality.svg)
 
 ```
 Card ─────────────────────────────── one screen

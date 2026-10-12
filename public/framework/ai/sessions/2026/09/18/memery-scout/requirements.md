@@ -15,8 +15,8 @@ Start here, then `rg` (drop the leading `/` — a pattern starting with `/` retu
 - `public/imagine/platform/` (`decisions/topic-model.md`, `identity.md`, `data.md`, `slice.md`, `mvp/`, `research/`, `existing/`, `prior/`)
 - `worker/room.js` + `worker/index.js` (a Durable Object per live page — the room)
 - `Server/plugins/Research.js`
-- `public/framework/ai/2026-09-04/mastermind-platform/` and `existing-framework/`
-- `ai/2026-09-06/platform-slice/` and `notes-pages*`
+- `public/framework/ai/sessions/2026/09/04/mastermind-platform/` and `existing-framework/`
+- `ai/sessions/2026/09/06/platform-slice/` and `notes-pages*`
 - `/imagine/team/` (join/assign) — as `imagine/team/`
 
 Also: `rg -il "memery|meme|topic|community|discord|voice|chat|room" public/notes public/imagine/platform --glob "*.md" --glob "*.js"`

@@ -52,7 +52,7 @@ and live rail that surround the specimen there.
 The five width-tier rows and the four library rows match `styles/layouts/400/readme.md`
 and the library's own numbers. **Sections was the one surprise, and it is settled: F/D
 is real, A100 never was.** `direction.md` recorded "400 → A 100, zero findings … 3440 →
-A 99, one low" the night this tier was first measured. `ai/2026-08-15/layout-overnight/forensics.md`
+A 99, one low" the night this tier was first measured. `ai/sessions/2026/08/15/layout-overnight/forensics.md`
 ruled out the analyzer — `rules.js`'s uncommitted diff predates both measurements by 4+
 hours and the rule that fires here (`cramped`) scans `blockquote`/`div.section-band`
 identically under the committed and working-tree versions. The cause is `frame()`'s own

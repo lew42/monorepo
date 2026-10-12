@@ -5,8 +5,8 @@ You are a minion. Load the `minion` skill first. Work in the worktree at
 own dev server already running — ask your parent for the port if you need it).
 
 Parent task dir (read the full ask first):
-`public/framework/ai/2026-10-03/framework-home-grids/requirements.md`. Log your steps in
-`public/framework/ai/2026-10-03/framework-home-grids/layout-labels/task.jsonl` (create it).
+`public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids/requirements.md`. Log your steps in
+`public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids/layout-labels/task.jsonl` (create it).
 
 ## The owner's words
 

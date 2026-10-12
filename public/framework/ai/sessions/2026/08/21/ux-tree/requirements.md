@@ -9,7 +9,7 @@ The graduation flagship: `ui/tree` is the ONE behavioral component in the templa
 
 ## Ground truth and one discrepancy to settle FIRST
 
-- A shallow inventory claimed "no event listeners in ui/"; the deeper audit (`public/framework/ai/2026-08-21/ui-behaviors-audit/` — read its page.js) found click listeners in `ui/tree/tree.js` — closure state (rows Map, selected_row), expand/select toggling, update()/select() lifecycle, likely bound via View helpers rather than addEventListener. **Read `ui/tree/tree.js` line by line before any design call**, and log what the listeners actually are.
+- A shallow inventory claimed "no event listeners in ui/"; the deeper audit (`public/framework/ai/sessions/2026/08/21/ui-behaviors-audit/` — read its page.js) found click listeners in `ui/tree/tree.js` — closure state (rows Map, selected_row), expand/select toggling, update()/select() lifecycle, likely bound via View helpers rather than addEventListener. **Read `ui/tree/tree.js` line by line before any design call**, and log what the listeners actually are.
 - Census the callers: grep the repo for `ui.tree` / `from "./tree/tree.js"` / `tree(` under public/ (skip ai/). Existing callers must keep working or be updated within your fence — list every caller in your task log with file:line BEFORE deciding the seam.
 
 ## Read next (they ARE the contract)
@@ -33,7 +33,7 @@ The graduation flagship: `ui/tree` is the ONE behavioral component in the templa
 - **Fence — yours alone:** `ux/Tree/**`, `ui/tree/**`, the tree lines of `ui/ui.js`. READ-ONLY: everything else — `ux/page.js`, `ux/readme.md`, `ux/doc/**`, other `ui/*`, `core/**`, `styles/**` (framework.css change = written proposal in your task dir).
 - **CSS:** behavior CSS that is about state/relationship may be needed (focus ring, drag ghost): `new-css-class` first (its `styles/css-scopes.txt` append is permitted), `ux-tree-*` for class names the CLASS owns, keep `ui-tree-*` for the template CSS in ui/. As little as possible; words give density/contrast free.
 - Load skills: `code`, `css`, `layout`; `new-page` per page.js; `documentation`; `finish-task`; `skill-improvement` when a skill misleads.
-- Log to `public/framework/ai/2026-08-21/ux-tree/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); never a findings.md.
+- Log to `public/framework/ai/sessions/2026/08/21/ux-tree/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); never a findings.md.
 
 ## Verification (before landing)
 

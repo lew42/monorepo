@@ -13,9 +13,9 @@ You are a minion. **Load the `minion` skill first, before touching anything.** M
 A hard reset at 23:16 on 2026-09-19 destroyed uncommitted work across this repo. Three tasks have
 already run — read their dirs first, they are your foundation and you must not redo them:
 
-- `public/framework/ai/2026-09-19/reset-recovery/` — the manifest, `lost.jsonl`, **1,470 entries**.
-- `public/framework/ai/2026-09-19/reset-scope/` — how the total was proven.
-- `public/framework/ai/2026-09-19/reset-restore/` — **171 files already restored**, byte-for-byte.
+- `public/framework/ai/sessions/2026/09/19/reset-recovery/` — the manifest, `lost.jsonl`, **1,470 entries**.
+- `public/framework/ai/sessions/2026/09/19/reset-scope/` — how the total was proven.
+- `public/framework/ai/sessions/2026/09/19/reset-restore/` — **171 files already restored**, byte-for-byte.
 
 **The gap:** the restore task's own report says it replayed "all 5 session transcripts on this
 machine." There are **56**, totalling 203 MB, and the single largest (53 MB) is bigger than
@@ -95,8 +95,8 @@ restore you have not diffed is a claim.
 ## Fences
 
 You own the files you restore (name each in your log before writing it),
-`public/framework/ai/2026-09-19/reset-recovery/lost.jsonl`, and
-`public/framework/ai/2026-09-19/reset-deep/**`. One line in the day page's `children:`, one append
+`public/framework/ai/sessions/2026/09/19/reset-recovery/lost.jsonl`, and
+`public/framework/ai/sessions/2026/09/19/reset-deep/**`. One line in the day page's `children:`, one append
 to its `day.jsonl`.
 
 Nothing else is running in the repo. The owner is asleep; the site must be working when they wake.

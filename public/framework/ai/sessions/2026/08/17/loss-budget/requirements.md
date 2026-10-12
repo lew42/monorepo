@@ -1,6 +1,6 @@
 # Where are the missing 33 points?
 
-A second turn of the crank **plateaued** (`ai/2026-08-17/generator-compound/`):
+A second turn of the crank **plateaued** (`ai/sessions/2026/08/17/generator-compound/`):
 mean 66.60 → 67.00, ceiling 78 → 78, p10 58 → 58, and the held-out delta was
 *smaller* than the fit-range delta, so it isn't overfitting either. Refitting
 `SHAPES` has run out of road.
@@ -84,7 +84,7 @@ report honestly.
 ## Files you own
 
 - `public/framework/styles/layouts/space/**` — yours alone.
-- `public/framework/ai/2026-08-17/loss-budget/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/loss-budget/**` — your task dir.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 

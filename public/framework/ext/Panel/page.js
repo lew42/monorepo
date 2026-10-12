@@ -126,7 +126,7 @@ mirror(of)    // become a live duplicate of another panel — same content, own 
 
 		md("Next: [Editor](/framework/ext/editor/) — the same `Item` tree, edited instead of arranged.");
 
-		md("Where this module stands, as a filterable ledger: [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/).");
+		md("Where this module stands, as a filterable ledger: [Editor × Panel review](/framework/ai/sessions/2026/08/14/editor-panel-review/).");
 
 		md.details(import.meta, "readme.md", "Readme");
 	},

@@ -6,8 +6,8 @@
 // EVERY Servex call is stubbed (page.route on 127.0.0.1:8090) — nothing here ever reaches
 // the real Servex, so nothing is ever posted as the owner (`minion` skill, rule 8).
 //
-//   node public/framework/ai/2026-09-30/one-dictation/minion-modes/proof.mjs
-import { browser as shared_browser, close as close_browser } from "../../../../../../Server/browser.mjs";
+//   node public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-modes/proof.mjs
+import { browser as shared_browser, close as close_browser } from "../../../../../../../../../../Server/browser.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,7 +21,7 @@ const results = [];
 const log = (name, ok, detail = "") => { results.push({ name, ok: !!ok, detail }); console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? "  — " + detail : ""}`); };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-const FILE = "/framework/ai/2026-09-30/one-dictation/minion-modes/proof.jsonl";
+const FILE = "/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-modes/proof.jsonl";
 
 // Same stub as minion-chatjoin's own proof.mjs (reused, not rebuilt — CLAUDE.md law 6):
 // every Servex call is answered here, a fake session, a fake "ok" on every say/log post, an
@@ -37,9 +37,9 @@ async function stub_servex(page){
 		if (req.method() === "OPTIONS")
 			return route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" } });
 		if (/\/api\/sessions\?/.test(url)) return json({ ok: true, sessions: [] });
-		if (/\/api\/session\/new/.test(url)) return json({ ok: true, session: "proof-session", home: "/framework/ai/2026-09-30/one-dictation/minion-modes/",
+		if (/\/api\/session\/new/.test(url)) return json({ ok: true, session: "proof-session", home: "/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-modes/",
 			file: FILE, resumed: false, previous: null });
-		if (/\/api\/session\/resume/.test(url)) return json({ ok: true, session: "proof-session", home: "/framework/ai/2026-09-30/one-dictation/minion-modes/",
+		if (/\/api\/session\/resume/.test(url)) return json({ ok: true, session: "proof-session", home: "/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-modes/",
 			file: FILE, resumed: true, title: "proof" });
 		if (/\/api\/session\/say/.test(url)){
 			const body = req.postDataJSON?.() ?? {};

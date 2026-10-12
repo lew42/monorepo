@@ -1,7 +1,7 @@
 # Minion A — the icon item (`ui/item`)
 
 Load the `minion` skill first, then `code`, `css`, `new-css-class`, `new-page`, `page`.
-The owner's words: `public/framework/ai/2026-09-29/item-ui/owner-words.md` (read the "icon items" part in full). The task brief: `../requirements.md` (Phase 1 is yours). Card: `2026/09/29/item-ui-and-object-views-icon-items-tree`.
+The owner's words: `public/framework/ai/sessions/2026/09/29/ca56812f-482f-482c-a2fb-e86ba479353a/item-ui/owner-words.md` (read the "icon items" part in full). The task brief: `../requirements.md` (Phase 1 is yours). Card: `2026/09/29/item-ui-and-object-views-icon-items-tree`.
 
 **Work only in the worktree:** `C:\Code\lew42\worktrees\item-ui` (branch `worktree/item-ui`, its own server at http://localhost:49318/). Commit there, by exact path. Never edit the main tree's copy of these files. Log in your own `task.jsonl` beside this file (main tree path, append with `node .claude/hooks/append.mjs`).
 

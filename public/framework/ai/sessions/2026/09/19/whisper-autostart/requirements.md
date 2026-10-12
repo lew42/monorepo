@@ -6,7 +6,7 @@ Load the `minion` skill first. Then this brief. Model: Sonnet. Small: one plugin
 
 ## Why
 
-`ai/2026-09-19/whisper-local/` landed today: whisper.cpp (CUDA build) and `ggml-large-v3-turbo.bin` live at `%LOCALAPPDATA%\lew42\whisper\`, and `ux/Dictate` talks to `http://127.0.0.1:8178` directly (10 s of speech in under 100 ms). Today someone has to start `whisper-server` by hand (the command is in `public/framework/ux/Dictate/readme.md`; a copy is running now as Windows PID 35172 — **leave that one alone**). Its `doc/decisions.md` lists three ways to start it; the mastermind chose (a): the dev server starts it. `Server/**` is free now (`ai/2026-09-19/server-self/` landed: `node server.js` is a supervisor over `Server/run.js`, and restarts its child when `Server/` really changes — read `Server/doc/watch.md` first).
+`ai/sessions/2026/09/19/whisper-local/` landed today: whisper.cpp (CUDA build) and `ggml-large-v3-turbo.bin` live at `%LOCALAPPDATA%\lew42\whisper\`, and `ux/Dictate` talks to `http://127.0.0.1:8178` directly (10 s of speech in under 100 ms). Today someone has to start `whisper-server` by hand (the command is in `public/framework/ux/Dictate/readme.md`; a copy is running now as Windows PID 35172 — **leave that one alone**). Its `doc/decisions.md` lists three ways to start it; the mastermind chose (a): the dev server starts it. `Server/**` is free now (`ai/sessions/2026/09/19/server-self/` landed: `node server.js` is a supervisor over `Server/run.js`, and restarts its child when `Server/` really changes — read `Server/doc/watch.md` first).
 
 ## Build
 
@@ -21,7 +21,7 @@ On a private server you start as `PORT=8138 WHISPER_TEST=1 node server.js` (add 
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/whisper-autostart/`); `code`, `documentation`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/whisper-autostart/`); `code`, `documentation`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `Server/plugins/Whisper.js` (new), `Server/run.js` (the one registration line), `Server/README.md` (one line), `public/framework/ux/Dictate/readme.md` and `doc/decisions.md`, your task dir.
 - A hook checks every `.js` write parses and stops you if it does not — fix at once. ⚠ The owner's live server on port 80 is still the OLD unsupervised code until they restart it, so your `Server/` edits cannot reach it; the mastermind's server on 8123 IS supervised and WILL restart when you save a `Server/` file — that is expected; make every save a parseable, bootable file.
 - **Never kill or restart the owner's dev server (port 80, PID 31028) or the mastermind's (8123), never stop the running whisper-server (PID 35172), never drive the owner's tabs.** Never `git stash`, never `find /`. Write files with the Write or Edit tool, never a bash heredoc. Do not write the owner's name anywhere.

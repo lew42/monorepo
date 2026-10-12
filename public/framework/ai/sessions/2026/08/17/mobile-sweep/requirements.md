@@ -32,7 +32,7 @@ Dispatched by the `mastermind-layout` run.
 > Measuring, not fixing — no CSS/page.js/anything under `public/` changes
 > except this deliverable.
 >
-> Deliver `public/framework/ai/2026-08-17/mobile-sweep/findings.md`: table
+> Deliver `public/framework/ai/sessions/2026/08/17/mobile-sweep/findings.md`: table
 > first, ranked worst-first by mobile-only severity, confirmed screenshots,
 > then a one-line verdict on whether the site meets its own mobile objective.
 > If the answer is "fine on a phone", say that plainly and first.

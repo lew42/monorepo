@@ -81,7 +81,7 @@ playwright → `pages` lists it → `eval` returns `document.title` from it →
 `shot` returns a png path that exists → a spoofed non-loopback request shape
 is refused (unit-test the fence predicate if you cannot spoof remoteAddress).
 Leave the server RUNNING. Log milestones + actions to
-`public/framework/ai/2026-08-15/mcp-site-tools/task.jsonl`; stamp the landing
+`public/framework/ai/sessions/2026/08/15/mcp-site-tools/task.jsonl`; stamp the landing
 assign (steps are in the launch line) and append the day.jsonl landed line.
 
 ## Out of scope (note in Server/README.md, don't build)

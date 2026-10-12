@@ -87,7 +87,7 @@ say exactly that and what remains untested — an honest partial is better than 
 
 You own `public/framework/ux/Dictate/**`, `public/framework/dev/DevBar/**`, `Server/plugins/Whisper.js`
 (read freely; edit only if the break is genuinely there, and say so — a `Server/` save can bounce
-the live site, so batch it and warn me), and `public/framework/ai/2026-09-20/dictate-fix/**`.
+the live site, so batch it and warn me), and `public/framework/ai/sessions/2026/09/20/dictate-fix/**`.
 
 ## Length budget
 

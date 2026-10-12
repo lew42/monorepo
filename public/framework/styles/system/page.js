@@ -94,7 +94,7 @@ export default new Page({
 
 		this.three_boxes();
 
-		p.c("muted", "Why the numbers differ: ", code("--pad"), " is a percentage of the containing block, so it sits pinned at its 1em floor inside anything narrower than about 1292px — true of nearly every card on the site, which is why a card that reached for ", code(".pad"), " directly measured 14–18px at every width while a full-page region on the same token ramped to 69.6px. ", code(".card"), "'s own token reads the same percentage against the CARD's width instead, so it tracks the card rather than the page. The full measurements: ", a("the padding audit").href("/framework/ai/2026-09-19/padding-audit/"), " and ", a("the card word").href("/framework/ai/2026-09-19/card-word/"), ".");
+		p.c("muted", "Why the numbers differ: ", code("--pad"), " is a percentage of the containing block, so it sits pinned at its 1em floor inside anything narrower than about 1292px — true of nearly every card on the site, which is why a card that reached for ", code(".pad"), " directly measured 14–18px at every width while a full-page region on the same token ramped to 69.6px. ", code(".card"), "'s own token reads the same percentage against the CARD's width instead, so it tracks the card rather than the page. The full measurements: ", a("the padding audit").href("/framework/ai/sessions/2026/09/19/padding-audit/"), " and ", a("the card word").href("/framework/ai/sessions/2026/09/19/card-word/"), ".");
 
 		md("## Card states — zero extra CSS, then two more words");
 

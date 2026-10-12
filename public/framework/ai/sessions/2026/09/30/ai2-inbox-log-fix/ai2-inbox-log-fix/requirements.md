@@ -32,7 +32,7 @@ Dispatched to `minion-ai2-calm` as a quick fix via the worktree pool. Three mess
 
 ## 3. Second mid-turn addition (scope + budget raised to ~$8)
 
-> The owner clarified what AI 2 should be (verbatim: `ai/2026-09-30/page-audit/owner-words.md`,
+> The owner clarified what AI 2 should be (verbatim: `ai/sessions/2026/09/30/page-audit/page-audit/owner-words.md`,
 > the first third). This changes your fix:
 > 1. INBOX is the default tab and shows only HIGH-LEVEL important items: one row per task or
 >    topic, never heartbeats, never individual minions (a minion belongs inside its task). "Needs
@@ -47,6 +47,6 @@ Dispatched to `minion-ai2-calm` as a quick fix via the worktree pool. Three mess
 > Budget up to about $8 now for this scope.
 
 ## What this task actually built — see `task.jsonl` for the log, and the landing report for
-the one-screen summary. `ai/2026-09-30/page-audit/` is a SEPARATE task (a page-priority mastermind)
+the one-screen summary. `ai/sessions/2026/09/30/page-audit/page-audit/` is a SEPARATE task (a page-priority mastermind)
 and is not this one's to do.
 

@@ -12,7 +12,7 @@
 Every new file now also changes a tracked list. They are tracked because the live site is static: a list made by the dev server would never reach it, which is why `directory.json` never worked there. `merge.mjs` now merges `.jsonl` files by keeping both sides' lines.
 
 ## Smoke test, by hand (merge.mjs listed 2,420 pages and crashed)
-/framework/, /framework/ai2/, /framework/core/Page/, /framework/core/Page/md/, /framework/core/Page/jsonl/, /framework/ext/files/, /framework/ext/files/fs/, /framework/ext/drawer/, /framework/dev/DevBar/, /imagine/cms/json/, /framework/ai/2026-09-29/, and one card. Links were followed one level deep: 59 passed.
+/framework/, /framework/ai2/, /framework/core/Page/, /framework/core/Page/md/, /framework/core/Page/jsonl/, /framework/ext/files/, /framework/ext/files/fs/, /framework/ext/drawer/, /framework/dev/DevBar/, /imagine/cms/json/, /framework/ai/sessions/2026/09/29/, and one card. Links were followed one level deep: 59 passed.
 
 ## Left, on purpose
 - The Router uses a list only when something has already loaded it: fetching one for every folder on every route would cost too much.

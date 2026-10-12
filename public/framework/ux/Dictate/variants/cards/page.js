@@ -7,7 +7,7 @@ import CardsDictate from "./Cards.js";
  * instead of one growing line of text. `ext/drawer/rail.js`'s bottom sheet draws the
  * same idea on mobile; this page is the reusable class it could be built from. */
 // Shown on load, with no mic, so the card wall is visible without talking first
-// (the owner's own rule: "I want to see" — `ai/2026-09-29/mobile-nav/review.md`,
+// (the owner's own rule: "I want to see" — `ai/sessions/2026/09/29/mobile-nav/mobile-nav/review.md`,
 // finding 1). Fed through `sample()`, the same settle path a real dictation uses.
 const SAMPLES = [
 	"remember to pick up milk on the way home",

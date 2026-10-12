@@ -36,7 +36,7 @@ Two things are gone:
   That `1rem` floor was the fix. The token was originally created earlier today by the
   `padding-audit` task with a `0.5em` floor, which was wrong — the floor was relative to each
   card's own font-size, so a component running smaller local type got a smaller floor. Read
-  `public/framework/ai/2026-09-19/card-adopt/` (its page and its `task.jsonl` both survived, being
+  `public/framework/ai/sessions/2026/09/19/card-adopt/` (its page and its `task.jsonl` both survived, being
   untracked) for the full reasoning and the measurements.
 - Three uses of `var(--pad-card)` in `public/framework/dev/DevBar/devbar.css`, on `.dev-says-card`,
   `.dev-chat-card` and `.dev-chat-minion`, which before the reset were at roughly lines 309, 442 and
@@ -55,7 +55,7 @@ The owner needs a list they can judge, not a vague loss. Compare the working tre
 `8b4ced8e` and work out which tracked files had uncommitted edits before 23:16 and now do not.
 
 The best evidence available: **the git status captured at the start of the mastermind's session**,
-which is in `public/framework/ai/2026-09-19/mastermind-sonnet-run/task.jsonl` in the `request`
+which is in `public/framework/ai/sessions/2026/09/19/mastermind-sonnet-run/task.jsonl` in the `request`
 field's surrounding context, and more completely in the agent transcripts under
 `C:/Users/mike/.claude/projects/c--Code-lew42-monorepo/`. Several transcripts from today contain a
 `git status` output listing the modified files. Find one and use it as the manifest.
@@ -103,7 +103,7 @@ you restored and how many you left.
 
 You own `public/framework/framework.css` (the `--pad-card` line only), 
 `public/framework/dev/DevBar/devbar.css`, and
-`public/framework/ai/2026-09-19/reset-recovery/**`. One line in the day page's `children:`, one
+`public/framework/ai/sessions/2026/09/19/reset-recovery/**`. One line in the day page's `children:`, one
 append to its `day.jsonl`. Job 3 extends your fence to exactly the files you restore, named in your
 log before you touch them.
 

@@ -1,6 +1,6 @@
 # self-evident-minors — the seven minor findings round three left
 
-Run: `ai/2026-09-13/mastermind-page-cms/` (the mastermind). Group: `ux`. One builder. Round three ruled "nothing above minor remains"; this pass closes the minors so the two screens ship clean.
+Run: `ai/sessions/2026/09/13/mastermind-page-cms/` (the mastermind). Group: `ux`. One builder. Round three ruled "nothing above minor remains"; this pass closes the minors so the two screens ship clean.
 
 ## The three laws, and your length budget
 
@@ -12,7 +12,7 @@ Budget: a landing report of one screen — a line per number, fixed how, after-p
 
 ## The spec is round three's log
 
-`public/framework/ai/2026-09-13/self-evident-critique-3/task.jsonl` — the numbered finding lines and the landing `outcome` (the table of seven), pngs `01-…png` … `05-…png` beside it. Read them all first. Round two's fix brief (`self-evident-fixes-2/requirements.md`) has the method and the data rules; read it once.
+`public/framework/ai/sessions/2026/09/13/self-evident-critique-3/task.jsonl` — the numbered finding lines and the landing `outcome` (the table of seven), pngs `01-…png` … `05-…png` beside it. Read them all first. Round two's fix brief (`self-evident-fixes-2/requirements.md`) has the method and the data rules; read it once.
 
 ## The seven
 
@@ -26,12 +26,12 @@ Budget: a landing report of one screen — a line per number, fixed how, after-p
 
 ## Fences
 
-- Own: `public/imagine/paging/make/**`, `public/imagine/paging/config.js`, `public/imagine/paging/toolbar.js`, `public/imagine/paging/baseline.js`, `public/imagine/paging/paging.css`, `public/imagine/importance/**`, `public/imagine/page.js`, `public/imagine/imagine.css`, `public/framework/ai/2026-09-13/self-evident-minors/**`. Nothing under `public/framework/`.
+- Own: `public/imagine/paging/make/**`, `public/imagine/paging/config.js`, `public/imagine/paging/toolbar.js`, `public/imagine/paging/baseline.js`, `public/imagine/paging/paging.css`, `public/imagine/importance/**`, `public/imagine/page.js`, `public/imagine/imagine.css`, `public/framework/ai/sessions/2026/09/13/self-evident-minors/**`. Nothing under `public/framework/`.
 - Data rules, exactly as before: full copy of `public/imagine/paging/made/` before the first gesture, probe pages `zzz-probe-*` deleted before landing, `diff -r` and `git status` on `made/` unchanged; `md5sum` the three importance data files before and after, every test row removed by id, both hashes logged.
 
 ## Rules every brief carries
 
-- `new-task` first (`ai/2026-09-13/self-evident-minors/task.jsonl`, group `ux`, the seven numbers as `steps`; append one line to `ai/2026-09-13/day.jsonl`). Skills: `code`, `css` / `new-css-class` for any style or class, `ui-test` before headless runs, `documentation` if a readme changes, `skill-improvement` for anything that misled you, `finish-task` to land.
+- `new-task` first (`ai/sessions/2026/09/13/self-evident-minors/task.jsonl`, group `ux`, the seven numbers as `steps`; append one line to `ai/2026-09-13/day.jsonl`). Skills: `code`, `css` / `new-css-class` for any style or class, `ui-test` before headless runs, `documentation` if a readme changes, `skill-improvement` for anything that misled you, `finish-task` to land.
 - **Never kill or restart the dev server on port 80. Never drive the owner's tabs. Never `git stash`. Never commit.** Private server `PORT=8093 node server.js` from the repo root (another 809x if taken), killed by pid at landing. Pngs into your task dir as `NN-after-1280.png`.
 - Resolve, don't park; findings as `log` lines.
 

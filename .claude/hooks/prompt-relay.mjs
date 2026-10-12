@@ -15,7 +15,7 @@ import TaskDirs from "../../Server/TaskDirs.mjs";
  *
  * 1. THE OWNER'S OWN interactive session only — never a minion or mastermind's (minion-echo,
  *    2026-10-02, storage redirect: "a session is a page",
- *    public/framework/ai/2026-09-30/proposal-flow/page-item-design.md). The prompt becomes one
+ *    public/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md). The prompt becomes one
  *    `page_add` item on that session's own public/framework/ai/sessions/<session_id>/page.jsonl
  *    — never a second, shared daily file (the old .claude/prompts/<date>.jsonl is retired: text
  *    is never stored twice). This is the owner's "my words should be transcribed in real time."
@@ -39,7 +39,7 @@ import TaskDirs from "../../Server/TaskDirs.mjs";
  *
  * `run()`/`now()` below are a hand copy of the same-named pieces of
  * .claude/skills/every-prompt/say.mjs, not an import — see task.jsonl decision
- * "reuse-say-copy-not-import" at ai/2026-09-19/prompt-relay/: say.mjs is a CLI entry point
+ * "reuse-say-copy-not-import" at ai/sessions/2026/09/19/prompt-relay/: say.mjs is a CLI entry point
  * whose module body dispatches on process.argv and ends in a bare file read, so importing it
  * into this hook's process risks running that dispatch against the HOOK's own argv. Ten lines,
  * kept in sync by hand if say.mjs's shape ever changes.
@@ -85,7 +85,7 @@ const started_by_servex = () => Boolean(process.env.SERVEX_MCP);
 const SERVEX = () => `http://127.0.0.1:${process.env.SERVEX_PORT || 8090}`;
 
 /* STORAGE REDIRECT (the owner via vscode-mastermind, 2026-10-02, "a session is a page" —
- * public/framework/ai/2026-09-30/proposal-flow/page-item-design.md — THREE corrections landed
+ * public/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md — THREE corrections landed
  * on the exact path while this was being built; this is the final one, logged in full in this
  * task's task.jsonl): every owner session gets ONE page, a sibling of that day's task dirs and
  * cards, inside the EXISTING year/month/day tree (the same tree `public/framework/ai/2026/09/

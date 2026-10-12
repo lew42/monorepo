@@ -10,7 +10,7 @@ import { Page, md } from "/app.js";
    the book at /layouts/ — an app shell, what a click does to your screen, a horizontal band,
    a blog shell at 3440, a magazine page, a deck cut into regions. They used to live under
    /imagine/ as separate shape experiments; moved here 2026-09-18
-   (ai/2026-09-18/imagine-move-3/) so /layouts/ owns both the names AND the labs that found
+   (ai/sessions/2026/09/18/imagine-move-3/) so /layouts/ owns both the names AND the labs that found
    them. Every old /imagine/<name>/ address still answers — a one-line stub page points back
    here — because production is static and there is no server-side redirect. */
 export default new Page({

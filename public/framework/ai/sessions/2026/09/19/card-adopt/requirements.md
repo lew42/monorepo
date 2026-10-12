@@ -80,7 +80,7 @@ value and the measured padding.
 
 You own: `public/framework/dev/DevBar/**`, `public/framework/styles/framework.css` (the `.card`
 rule and `--pad-card` only — it is loaded by every page on the site, so touch nothing else in it),
-and `public/framework/ai/2026-09-19/card-adopt/**`. One line in the day page's `children:`, one
+and `public/framework/ai/sessions/2026/09/19/card-adopt/**`. One line in the day page's `children:`, one
 append to its `day.jsonl`.
 
 **Out of bounds:** `public/framework/ai/v/3/**` and `Server/**`, both owned by others tonight.

@@ -26,4 +26,4 @@ Systems           (manager) all[], run() -> results.jsonl
 ## Heartbeat and pace
 `node Server/systems-beat.mjs` is one cycle: skip when `usage-now.mjs` exits 2, otherwise run every check and append the result. The system-architect wakes hourly (`ScheduleWakeup`/loop), runs it, files a short card, and may make at most `heal_limit` (3) safe fixes. Too fast changes nothing; hourly fits because a readme or link rarely changes faster. See [decisions](organization-decisions.md).
 
-Earlier asks: `2026/10/03/now/system-class-build-interrupted-by-a-serv`; system-architect skill and `ai/2026-10-09/system-architect/`.
+Earlier asks: `2026/10/03/now/system-class-build-interrupted-by-a-serv`; system-architect skill and `ai/sessions/2026/10/09/session-a07780b9/system-architect/`.

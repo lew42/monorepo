@@ -30,7 +30,7 @@
 - **Fence — yours alone:** `ux/Filter/**` only (plus the `new-css-class` skill's `styles/css-scopes.txt` append if you mint a class — `ux-filter-*`). READ-ONLY: everything else including `ux/page.js`, `ux/readme.md`, `ux/doc/**`, `ui/**`, other ux modules (a needed change elsewhere = written proposal in your task dir).
 - **CSS: as little as possible** — utilities, ui classes, tokens. New class only for relationship/state, inside a layer, `new-css-class` first.
 - Load skills: `code`, `css`, `layout` before writing; `new-page` per page.js; `documentation`; `finish-task`; `skill-improvement` when a skill misleads.
-- Log to `public/framework/ai/2026-08-21/ux-filter/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); never a findings.md.
+- Log to `public/framework/ai/sessions/2026/08/21/ux-filter/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); never a findings.md.
 
 ## Verification (before landing)
 

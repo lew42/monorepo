@@ -74,7 +74,7 @@ properties, those are toggles in a right sidebar, not hard-coded extra examples.
 - A `readme.md` beside the new tab's pages: question → options → weighing →
   verdict for the big calls (where the tab lives, the two-pane card, toggles vs
   variants). One screen.
-- `public/framework/ai/2026-08-12/layouts/page.js` — interactive executive
+- `public/framework/ai/sessions/2026/08/12/layouts/page.js` — interactive executive
   summary Page (`meta: import.meta`, title "Layouts"): what you built, live
   links to the tab and two or three best detail pages, a live embedded card or
   two, open questions. Model: `framework/ai/2026-08-08/page.js`.

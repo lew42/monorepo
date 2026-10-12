@@ -1,8 +1,8 @@
 # Layout anatomy — Minion B, Figma wave 1
 
-Verbatim brief: `public/framework/ai/2026-08-18/figma/minion.md` +
-`public/framework/ai/2026-08-18/figma/wave-1.md` (Minion B section) +
-`public/framework/ai/2026-08-18/figma/requirements.md` (owner's standing rules).
+Verbatim brief: `public/framework/ai/sessions/2026/08/18/figma/minion.md` +
+`public/framework/ai/sessions/2026/08/18/figma/wave-1.md` (Minion B section) +
+`public/framework/ai/sessions/2026/08/18/figma/requirements.md` (owner's standing rules).
 
 Design: https://www.figma.com/design/0rZv3Z6Hnqkxa2UQJ5xOOG/July-2026?node-id=181-1457
 

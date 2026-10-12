@@ -1,6 +1,6 @@
 # Dictate — decisions
 
-Landed 2026-09-19. Task log: [`ai/2026-09-19/whisper-local/`](/framework/ai/2026-09-19/whisper-local/).
+Landed 2026-09-19. Task log: [`ai/sessions/2026/09/19/whisper-local/`](/framework/ai/sessions/2026/09/19/whisper-local/).
 Owner's words opened this task: "the whole dictation thing is not working properly …
 click the microphone and it appears to start recording … but nothing's transcribed on
 my screen." Then, mid-task: "the thing they miss most is seeing words WHILE they
@@ -127,7 +127,7 @@ that anything visibly changes.
 ## Who starts whisper-server?
 
 Three shapes were on the table. Task log:
-[`ai/2026-09-19/whisper-autostart/`](/framework/ai/2026-09-19/whisper-autostart/).
+[`ai/sessions/2026/09/19/whisper-autostart/`](/framework/ai/sessions/2026/09/19/whisper-autostart/).
 
 - **(a) The dev server starts it on demand**, from a small `Server/plugins/Whisper.js`
   that checks the install exists and launches it lazily on first use. **Chosen and
@@ -234,7 +234,7 @@ state), that is the moment to make the split real rather than doing it speculati
 
 ## Voice → log, added 2026-09-22
 
-Task log: [`ai/2026-09-22/whisper-servex/`](/framework/ai/2026-09-22/whisper-servex/). Owner's
+Task log: [`ai/sessions/2026/09/22/whisper-servex/whisper-servex/`](/framework/ai/sessions/2026/09/22/whisper-servex/whisper-servex/). Owner's
 words that opened it: "spawn a minion to look into our Whisper system, and see if we can get
 that working with Servex." Everything above still stood — `whisper-server` was already up and
 transcribing correctly — but the transcript only ever reached the screen. `commit()` now also
@@ -299,7 +299,7 @@ of implicit: `push_to_target()` never touches `$input` at all (the box is for ty
 stop), and `draw_caption()` keeps every settled sentence as its own line, appended, instead of
 one string capped at 240 characters. Proven against a private Servex + a concatenated 3x `jfk.wav`
 clip on both `talk` and AI 2's composer: three real whisper segments, the box's `value` stayed
-`""` throughout, "stop after a pause" was absent, zero console errors — `ai/2026-09-22/open-mic/`.
+`""` throughout, "stop after a pause" was absent, zero console errors — `ai/sessions/2026/10/09/session-81c5e98b/open-mic/`.
 
 ## The dictation box: growth, jumping, breaks and delay (2026-09-24)
 
@@ -328,7 +328,7 @@ fires on the REAL transition, once whisper's own `capture.start()` resolves or t
 engine's own `rec.onstart` fires. An instant, first-line `insecure_context_message()` check
 in `start()` also means the insecure-LAN case now errors immediately with a plain fix,
 before any engine is even asked for. Proof and every case's exact wording:
-`ai/2026-09-29/mobile-nav/`.
+`ai/sessions/2026/09/29/mobile-nav/mobile-nav/`.
 
 **A real, previously-silent bug this surfaced:** `Dictate`'s own audio-capture object was
 held in `this.capture` — the same name `View.prototype.capture` already uses for an
@@ -350,7 +350,7 @@ needs `chromium.launch({ args: ["--use-fake-device-for-media-stream",
 wav>"] })` plus `context.grantPermissions?.(["microphone"])`-equivalent
 (`newContext({ permissions: ["microphone"] })`); without the file-capture flag the fake
 device's default tone may or may not cross the speech-loudness floor, so a real recorded
-clip (`ai/2026-09-22/whisper-servex/clip.wav` was used here) is the reliable choice.
+clip (`ai/sessions/2026/09/22/whisper-servex/whisper-servex/clip.wav` was used here) is the reliable choice.
 
 ## The stop chime dropped or doubled, fixed 2026-10-01
 
@@ -384,7 +384,7 @@ START one; plain `Dictate` has no sound at all, only `ComposerMic` does):
 
 Neither case needed a live microphone to find — both are deterministic once you trace
 exactly when each `beep()` call happens relative to the async chain around it. Full
-reasoning: `ai/2026-10-01/dictate-stop-sound/task.jsonl`.
+reasoning: `ai/sessions/2026/10/01/dictate-stop-sound/dictate-stop-sound/task.jsonl`.
 
 ## Why the "chat" mode (typed first, manual send) went, 2026-10-01
 
@@ -400,7 +400,7 @@ everywhere, and typing still sends on Enter or the Send button exactly as before
 `send_mode: "manual"` from the old gear choice is migrated back to `"pause"` the moment
 settings load, the same way a stale `pause_send_ms` default already was — otherwise a reader
 who had once picked "manual" would have autosend silently off for good, with no UI left that
-could turn it back on. Full task: `ai/2026-09-30/one-dictation/minion-onewidget/task.jsonl`.
+could turn it back on. Full task: `ai/sessions/2026/09/30/one-dictation/one-dictation/minion-onewidget/task.jsonl`.
 
 ## Why the phone repeated every sentence and beeped after every pause (2026-10-01)
 
@@ -416,7 +416,7 @@ line into the layout. Three fixes in `Dictate.js`:
 
 Android's own restart beep can't be silenced from a page. With whisper found, the
 recognizer isn't used, so the beeps go too.
-Proof: `ai/2026-09-30/one-dictation/fix-android/`.
+Proof: `ai/sessions/2026/09/30/one-dictation/one-dictation/fix-android/`.
 
 ## Four owner-visible fixes, nothing else (2026-10-04)
 
@@ -424,7 +424,7 @@ The owner, on the phone (the mobile AI rail button) and on this page: the same b
 repeated four times, "a microphone abort error, and then it went into the browser's
 default transcribe mode" with beeping, a dictated line taking "a minute" to show instead
 of instantly, and a landed task mastermind still pinned, huge, in the rail. All four,
-proven headless: `ai/2026-10-04/dictate-fixes/task.jsonl`.
+proven headless: `ai/sessions/2026/10/05/dictate-fixes/dictate-fixes/task.jsonl`.
 
 - **Never the browser's recognizer automatically, once whisper has worked.**
   `detect_engine()` used to pick Chrome's recognizer the instant whisper's health check
@@ -461,7 +461,7 @@ The owner, on the phone again, right after round 1 landed: still beeping ("turni
 and then turning back on after every pause"), the box growing to five or six lines while
 dictating, an old error never clearing, and — on a reload — "connecting" for 4-5 seconds
 then a fresh abort. All four, proven headless (a real Playwright browser against the
-worktree's own server, never the `mcp__playwright` tool): `ai/2026-10-04/dictate-fixes-2/task.jsonl`.
+worktree's own server, never the `mcp__playwright` tool): `ai/sessions/2026/10/05/dictate-fixes-2/dictate-fixes-2/task.jsonl`.
 
 - **The reload race is a MICROPHONE race, not a whisper-reachability race.** Round 1's
   retry lived in `detect_engine()` — it answers "is whisper-server reachable", and never
@@ -568,7 +568,7 @@ whole dictation over an answer nobody needed anymore.
 Proved against the REAL recorded sentence (same two texts, same race shape) with a headless
 harness that calls the real `Dictate.prototype.close_segment` twice back-to-back, exactly as the
 pause/stop race does: the unfixed code commits twice (`"...for your country."` then the stale
-`"...can"`); the fixed code commits once. `ai/2026-10-04/voice-pipeline/` keeps the harness.
+`"...can"`); the fixed code commits once. `ai/sessions/2026/10/05/voice-pipeline/voice-pipeline/` keeps the harness.
 
 **"Connecting…" now shows its own timing** (2026-10-05). The owner: `'connecting…' stays too
 long when the AI button opens the mic, even if it actually connected`. The word itself never
@@ -584,4 +584,4 @@ and by the time Whisper answers the mic is already `"listening"`. So the owner s
 still lands on the small diagnostic strip and `this.stage_log`, for the status tray below.
 
 The last 12 stamped steps are kept on `this.stage_log` for that tray (queued, not built here —
-see this task's own log at `ai/2026-10-04/voice-pipeline/`).
+see this task's own log at `ai/sessions/2026/10/05/voice-pipeline/voice-pipeline/`).

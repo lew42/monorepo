@@ -214,8 +214,8 @@ Note: In Lew42, Item extends Events(Object). Why did this error occur and how do
 		recoveryResults
 	};
 
-	fs.writeFileSync(process.env.OUT || "public/framework/ai/2026-10-03/new-brain/eval-results.json", JSON.stringify(finalReport, null, 2));
-	console.log("\nWrote results to public/framework/ai/2026-10-03/new-brain/eval-results.json");
+	fs.writeFileSync(process.env.OUT || "public/framework/ai/sessions/2026/10/04/new-brain/new-brain/eval-results.json", JSON.stringify(finalReport, null, 2));
+	console.log("\nWrote results to public/framework/ai/sessions/2026/10/04/new-brain/new-brain/eval-results.json");
 }
 
 runEvaluation().catch(e => console.error("FATAL in runner:", e));

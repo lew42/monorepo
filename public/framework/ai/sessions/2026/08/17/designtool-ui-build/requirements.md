@@ -1,14 +1,14 @@
 # designtool-ui-build — the brief, verbatim
 
 **The requirements are the sibling task's design**:
-[`ai/2026-08-17/designtool-ui/design.md`](/framework/ai/2026-08-17/designtool-ui/)
+[`ai/sessions/2026/08/17/designtool-ui/design.md`](/framework/ai/sessions/2026/08/17/designtool-ui/)
 (13 annotated screenshots in its `shots/`). This is the *execution* of that
 design, opened as its own task because the design landed as a deliverable.
 
-> Your requirements are `public/framework/ai/2026-08-17/designtool-ui/design.md` — a
+> Your requirements are `public/framework/ai/sessions/2026/08/17/designtool-ui/design.md` — a
 > design written this morning specifically for you to execute, with 13 annotated
 > screenshots in that task dir's `shots/`. Read it in full, plus
-> `ai/2026-08-17/tier-calibration/task.jsonl`, which landed an hour ago and changed
+> `ai/sessions/2026/08/17/tier-calibration/task.jsonl`, which landed an hour ago and changed
 > the module underneath that design.
 >
 > The task in one line: **build the single-screen DesignTool interface that design.md

@@ -7,7 +7,7 @@ floor is `speaking`**, and answer once it is `done`.
 The fast assistant (`Servex/agents/Assistant.js`, `heard()`) does exactly this. It holds each
 `speaking` entry, then answers them all as one prompt on the next `done`, typed or floor-less
 entry, or after 8 s with nothing new. Its prompt also gets the rhythm as one line, such as
-`(paused 1.2 s, 0.4 s; spoke 6.1 s)`. Proof: [heard-test.txt](/framework/ai/2026-09-29/audio/next-clean-transcription/c-cues/heard-test.txt).
+`(paused 1.2 s, 0.4 s; spoke 6.1 s)`. Proof: [heard-test.txt](/framework/ai/sessions/2026/09/29/audio/audio/next-clean-transcription/c-cues/heard-test.txt).
 
 ## On every entry
 
@@ -59,4 +59,4 @@ it to Servex (`ext/Session`'s `report_quiet()`), which is what lets its assistan
 [`ux/Dictate/floor.js`](/framework/ux/Dictate/floor.js): Dictate's own level meter feeds it (one
 reading every 8 ms), and `post_prompt()` stamps both fields. So every composer gets them
 without any code of its own, `ComposerMic` included. How the signals were chosen:
-[`c-cues/research.md`](/framework/ai/2026-09-29/audio/next-clean-transcription/c-cues/research.md).
+[`c-cues/research.md`](/framework/ai/sessions/2026/09/29/audio/audio/next-clean-transcription/c-cues/research.md).

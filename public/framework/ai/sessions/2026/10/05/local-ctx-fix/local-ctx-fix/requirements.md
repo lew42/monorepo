@@ -9,4 +9,4 @@
 3. If local still can't do it, wire deepseek/deepseek-v4.1-flash as the fallback ahead of Sonnet in Echo's refine.
 4. Commit by exact path.
 
-Picked up as a follow-on to `ai/2026-10-04/local-model-hunt/` (already landed) since the ask named files that task was already in.
+Picked up as a follow-on to `ai/sessions/2026/10/05/local-ctx-fix/local-model-hunt/` (already landed) since the ask named files that task was already in.

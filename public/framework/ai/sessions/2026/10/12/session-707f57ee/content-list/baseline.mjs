@@ -3,13 +3,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import { browser, close } from "../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../Server/browser.mjs";
 
 const OUT = process.env.OUT ?? path.join(process.env.TEMP, "content-list");
 // New ability by design: these differ between old and new code; diff skips them.
 const NEW = new Set(["/framework/core/Page/content-shapes/both/"]);
 const WIDTHS = [400, 1200, 1920, 3440];
-const FULL = new Set(["/framework/core/Page/content-shapes/", "/framework/core/Page/content-shapes/string-1/", "/framework/core/Page/content-shapes/address-1/", "/framework/core/Page/content-shapes/class-body/", "/framework/core/Page/content-shapes/code/", "/framework/core/Page/", "/framework/ai/", "/imagine/paging/", "/framework/core/Page/overview/columns/", "/framework/ext/markdown/open/", "/framework/core/Page/parts/example/", "/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/sessions/"]);
+const FULL = new Set(["/framework/core/Page/content-shapes/", "/framework/core/Page/content-shapes/string-1/", "/framework/core/Page/content-shapes/address-1/", "/framework/core/Page/content-shapes/class-body/", "/framework/core/Page/content-shapes/code/", "/framework/core/Page/", "/framework/ai/", "/imagine/paging/", "/framework/core/Page/overview/columns/", "/framework/ext/markdown/open/", "/framework/core/Page/parts/example/", "/framework/ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/build/", "/framework/ai/sessions/"]);
 
 const URLS = (process.env.ONLY ? process.env.ONLY.split(",") : null) ?? [
 	"/framework/", "/framework/core/", "/framework/core/Page/", "/framework/core/View/", "/framework/core/Router/", "/framework/core/App/",
@@ -17,7 +17,7 @@ const URLS = (process.env.ONLY ? process.env.ONLY.split(",") : null) ?? [
 	"/framework/core/Page/overview/grid/", "/framework/core/Page/overview/prose/", "/framework/core/Page/overview/width/", "/framework/core/Page/overview/site/",
 	"/framework/core/Page/parts/", "/framework/core/Page/parts/example/", "/framework/core/Page/jsonl/", "/framework/core/Page/jsonl/live/",
 	"/framework/ai/", "/framework/ai/sessions/", "/framework/ai/sessions/2026/10/", "/framework/ai/cards/", "/framework/ai/rail/", "/framework/ai/classes/",
-	"/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/2026-10-12/page-split-2/", "/framework/ai/2026-10-12/page-split-3/", "/framework/ai/2026-10-12/",
+	"/framework/ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/build/", "/framework/ai/sessions/2026/10/12/session-e55f5a4b/page-split-2/", "/framework/ai/sessions/2026/10/12/session-1c7d9e04/page-split-3/", "/framework/ai/sessions/2026/10/12/",
 	"/framework/ext/markdown/open/", "/framework/ext/markdown/open/columns/", "/framework/ext/JSONL/", "/framework/ext/Refine/",
 	"/framework/core/Page/content-shapes/", "/framework/core/Page/content-shapes/code/", "/framework/core/Page/content-shapes/class-body/",
 	"/framework/core/Page/content-shapes/string-1/", "/framework/core/Page/content-shapes/string-2/", "/framework/core/Page/content-shapes/string-3/", "/framework/core/Page/content-shapes/string-4/", "/framework/core/Page/content-shapes/string-5/",

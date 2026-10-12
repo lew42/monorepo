@@ -91,7 +91,7 @@ I need run" is worth far more than a confident claim.
 ## Fences
 
 `public/framework/ai/v/3/**` (not its data files) and
-`public/framework/ai/2026-09-21/head-mobile/**`, plus one line in the day page's `children:` and
+`public/framework/ai/sessions/2026/09/21/head-mobile/**`, plus one line in the day page's `children:` and
 one append to its `day.jsonl`.
 
 ## Length budget

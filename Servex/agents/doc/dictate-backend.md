@@ -25,7 +25,7 @@ echo openrouter > "%LOCALAPPDATA%\lew42\servex\session-backend.txt"
 ## Automatic fallback, no setting needed
 
 A Claude usage-limit refusal **or an auth failure** (an expired login, an invalid key, a 401 —
-[auth-fallback, 2026-10-05](/framework/ai/2026-10-05/auth-fallback/): the owner, "the smart
+[auth-fallback, 2026-10-05](/framework/ai/sessions/2026/10/05/auth-fallback/auth-fallback/): the owner, "the smart
 mastermind kept saying failure to log in... we don't want roadblocks") on either agent flips
 just that one role, for just that one session, to `FALLBACK_MODEL`:
 
@@ -59,7 +59,7 @@ deleting that same file; a visible board toggle is a fair follow-up, not built h
 ## The default pair, by cost and quality
 
 requirements.md item 3, from the new-brain eval
-([`ai/2026-10-03/new-brain/eval-results.json`](/framework/ai/2026-10-03/new-brain/eval-results.json)):
+([`ai/sessions/2026/10/04/new-brain/new-brain/eval-results.json`](/framework/ai/sessions/2026/10/04/new-brain/new-brain/eval-results.json)):
 `openai/gpt-6-luna` for BOTH roles.
 
 On the same 18-question set (5 doc facts, 3 reasoning traces, 10 real prompt-refine jobs), it
@@ -74,7 +74,7 @@ gpt-6-luna's 10/10 at a cost so small ($0.0001/call) it isn't worth trading repl
 
 ## Proof
 
-[`ai/2026-10-04/dictate-without-claude/prove.mjs`](/framework/ai/2026-10-04/dictate-without-claude/)
+[`ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude/prove.mjs`](/framework/ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude/)
 spawns a real session (fast + smart) on `openai/gpt-6-luna` and sends it 3 real sentences,
 showing each real reply with its real $ — read from the turn's own `result.modelUsage` (the
 streamed message's `usage` is a `0`/`0` artifact, not the real count;
@@ -82,10 +82,10 @@ streamed message's `usage` is a `0`/`0` artifact, not the real count;
 OpenRouter's published rate. Cross-checked in the same run against a live key-level balance
 diff — see `prove-results.txt` for the committed run's exact numbers (the key-level reading
 can legitimately land anywhere from $0 up, per gaps.md #8).
-[`prove-fallback.mjs`](/framework/ai/2026-10-04/dictate-without-claude/) proves the automatic
+[`prove-fallback.mjs`](/framework/ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude/) proves the automatic
 fallback: a normal reply that mentions "usage limit" does not flip the switch, a real refusal
 does, and the freshly respawned agent answers the owner's re-sent line.
-[`prove-auth-fallback.mjs`](/framework/ai/2026-10-05/auth-fallback/) proves the same for a
+[`prove-auth-fallback.mjs`](/framework/ai/sessions/2026/10/05/auth-fallback/auth-fallback/) proves the same for a
 stubbed auth failure, plus that only ONE card gets posted across a run with two failures.
 
 ## Open, not fixed here

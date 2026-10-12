@@ -11,7 +11,7 @@
 ## What exists
 
 `rpc:move` landed this morning (`Server/plugins/SocketServer/Runtime.js`; the orchestration
-is `public/imagine/paging/make/real.js` — read `ai/2026-09-18/real-page-move/task.jsonl`'s
+is `public/imagine/paging/make/real.js` — read `ai/sessions/2026/09/18/real-page-move/task.jsonl`'s
 landing and `public/imagine/paging/make/doc/decisions.md`): a drag of a real page in Make
 (`?real=`) renames the directory and rewrites both parents' plain-string `children:` lines,
 with a one-minute undo. Nothing rewrites the LINKS and IMPORTS that point at the moved page.

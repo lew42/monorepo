@@ -38,7 +38,7 @@ reports (`ai/2026-08-19/workspace-*/task.jsonl` last line each) say what just ch
 
 ## Deliverable
 
-`public/framework/ai/2026-08-19/panel-insight/insight.md` + your `task.jsonl`. Pngs of anything
+`public/framework/ai/sessions/2026/08/19/panel-insight/insight.md` + your `task.jsonl`. Pngs of anything
 broken in this dir. Nothing else is written anywhere.
 
 ## Fence

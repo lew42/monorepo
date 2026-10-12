@@ -127,7 +127,7 @@ the token's nominal alpha) at 1920:**
 Both schemes, both rungs, comfortably over the 4.5 : 1 floor — `--ink` (`#3f3f3f` on lew42) is
 dark enough, and `--fill-a08`'s heaviest tint is still a long way from moving the floor to grey.
 Zero console/page errors; folds correctly at 400, holds at 1920 and 3440 (screenshots, both
-schemes, `ai/2026-08-31/drafts-and-glass/`).
+schemes, `ai/sessions/2026/08/31/drafts-and-glass/`).
 
 **Verdict: shipped, not skipped.** It reads as depth, not decoration — the row's own soft
 gradient plus the two rungs are the only new colour, and the frosted head is the one place

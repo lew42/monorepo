@@ -27,7 +27,7 @@ Load the `minion` skill first. Then this brief.
 
 ## Rules
 
-- Load `code` (every method a seam; parts as static subclasses), `layout` (all of it — the shell is two regions; the viewport's designs answer the five questions each), `css`, `new-css-class` (`std-` is `/layouts/`'s prefix: `std-shell-*`), `new-page`; `new-task` before the first edit (your dir exists: `ai/2026-09-17/shell-lab/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
+- Load `code` (every method a seam; parts as static subclasses), `layout` (all of it — the shell is two regions; the viewport's designs answer the five questions each), `css`, `new-css-class` (`std-` is `/layouts/`'s prefix: `std-shell-*`), `new-page`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/shell-lab/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
 - **Fence:** `public/layouts/shell/**` (new), one `children:` word + one `md()` line in `public/layouts/page.js`, one line in `public/layouts/readme.md`, your task dir. Nothing else — not `ux/Tree` (consume it; log what it lacks with lines), not core, not `/layouts/practice/`, not `/layouts/browse/`.
 - Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`. The owner's server (port 80) is NOT running; start your own: `PORT=8108 node server.js` from the repo root, in the background; kill it by PID when you land. `ui-test` has the headless recipe; `fullPage` captures the viewport only — give the viewport the height.
 - Demos never persist except the sidebar's width (an editor-like preference, the owner's rule: visible, a dot not an alert — a width is fine silently).

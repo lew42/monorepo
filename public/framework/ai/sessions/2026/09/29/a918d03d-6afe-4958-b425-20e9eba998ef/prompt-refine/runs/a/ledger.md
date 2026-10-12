@@ -3,7 +3,7 @@
 **What this is.** Every distinct thing the owner asked for, or said matters, in two dictations, each checked against what the VS Code tab passed on. This was read by hand, before any tool was run.
 
 - **Source:** `.claude/prompts/2026-09-28.jsonl`, line 151 (about 1:20 PM, 7,364 characters) and line 170 (about 1:29 PM, 7,062 characters). Both line numbers were checked and are right.
-- **What the tab passed on:** [`ai/2026-09-28/organization/requirements.md`](/framework/ai/2026-09-28/organization/) (asks 1–13), plus two short messages (line 171 to the mastermind and line 172 from it).
+- **What the tab passed on:** [`ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/requirements.md`](/framework/ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/) (asks 1–13), plus two short messages (line 171 to the mastermind and line 172 from it).
 - **Were the raw words passed along? Yes.** `owner-words.md` beside the brief holds both dictations word for word (checked by exact string match), and the brief says "read them in full".
 - **Caveat:** the brief was edited after it was written: its step table says "spent $0.41". Git holds only one version of it, from 22:48 that night. So this ledger scores the brief as it stands now.
 

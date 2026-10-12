@@ -11,7 +11,7 @@ turn, not after minutes of tool calls.**
 
 ### Who may message whom
 
-A message is a doorbell; the state lives in the logs ([coordination.md](/framework/ai/2026-09-22/tiers-design/doc/coordination.md)).
+A message is a doorbell; the state lives in the logs ([coordination.md](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/coordination.md)).
 Each agent talks up to its parent and down to its own children, never sideways.
 
 | sender | may message | how |
@@ -77,7 +77,7 @@ Today a message to a mastermind waits for its whole turn to end — one to five 
 reads a sweep of files, runs a build or sleeps on a child *(guess, not measured)*. A turn of only
 coordination tools is one model call, about 10–30 s for Opus *(guess)*. So a relayed question is
 answered in **about 30 seconds instead of several minutes**, and `next` skips any queued `done` wakes.
-The fast assistant still answers first, in 2 s (measured, [prompt-lifecycle](/framework/ai/2026-09-22/prompt-lifecycle/)).
+The fast assistant still answers first, in 2 s (measured, [prompt-lifecycle](/framework/ai/sessions/2026/09/22/c5dd9287-4fc2-427c-b865-f318152bade4/prompt-lifecycle/)).
 
 A fork reads its prompt from the cache at about a tenth of the input price: forking a 100k-token session
 costs roughly 10k fresh tokens plus its answer *(estimate — use the sibling's measured `cache_read`)*.

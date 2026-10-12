@@ -1,6 +1,6 @@
 # Decisions — what these three layouts settled, and what they measured it against
 
-Built 2026-09-17, in one task: [`ai/2026-09-17/practice-layouts/`](/framework/ai/2026-09-17/practice-layouts/),
+Built 2026-09-17, in one task: [`ai/sessions/2026/09/17/practice-layouts/`](/framework/ai/sessions/2026/09/17/practice-layouts/),
 which holds every number on this page in its log.
 
 ## The brief, in one line

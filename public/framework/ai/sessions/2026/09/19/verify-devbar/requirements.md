@@ -41,11 +41,11 @@ just because its own log says it landed.
 
 ## Where to look
 
-- **The earlier audit, your starting point:** `public/framework/ai/2026-09-19/day-audit/audit.jsonl`
+- **The earlier audit, your starting point:** `public/framework/ai/sessions/2026/09/19/day-audit/audit.jsonl`
   - one JSON object per line, with `id`, `title`, `quote` (the owner's words), `verdict`, `why`,
   `done`, `tasks`, `links`. Read only the rows whose `id` is in your list below.
 - **The owner's verbatim words from 15:36 onward:** the `chat` lines in
-  `public/framework/ai/2026-09-17/mastermind-layout-browser/task.jsonl` - 53 of them, all today.
+  `public/framework/ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl` - 53 of them, all today.
   **Before 15:36 there is no verbatim record** except the `quote` fields in the audit. That gap is
   itself worth reporting if it stops you deciding a row.
 - **What each task claims it did:** `public/framework/ai/2026-09-19/<task-slug>/task.jsonl`. The
@@ -97,7 +97,7 @@ links. Everything longer lives in `verify.jsonl` and your log lines.
 
 ## Fences - the files you own, which nobody else touches
 
-You own, exclusively: `public/framework/ai/2026-09-19/verify-devbar/**`
+You own, exclusively: `public/framework/ai/sessions/2026/09/19/verify-devbar/**`
 
 You may also add exactly one line to `public/framework/ai/2026-09-19/page.js` `children:` (your own
 page), and append to `public/framework/ai/2026-09-19/day.jsonl`. Nothing else, anywhere.

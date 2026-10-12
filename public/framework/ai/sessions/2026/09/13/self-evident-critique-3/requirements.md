@@ -1,6 +1,6 @@
 # self-evident-critique-3 — round three: does anything above minor remain?
 
-Run: `ai/2026-09-13/mastermind-page-cms/` (the mastermind). Group: `ux`. You are a CRITIC: you edit nothing under `public/` except your own task dir. **"Nothing above minor remains" is the success this round is looking for** — say it with the evidence, and the loop stops.
+Run: `ai/sessions/2026/09/13/mastermind-page-cms/` (the mastermind). Group: `ux`. You are a CRITIC: you edit nothing under `public/` except your own task dir. **"Nothing above minor remains" is the success this round is looking for** — say it with the evidence, and the loop stops.
 
 ## The three laws, and your length budget
 
@@ -16,7 +16,7 @@ Budget: findings as numbered `log` lines; the landing `outcome` is one screen. N
 
 ## Read first
 
-1. `public/framework/ai/2026-09-13/self-evident-critique-2/requirements.md` — round two's brief: the two screens, the method, the data rules, the way in. The same method applies.
+1. `public/framework/ai/sessions/2026/09/13/self-evident-critique-2/requirements.md` — round two's brief: the two screens, the method, the data rules, the way in. The same method applies.
 2. Round two's findings: the `FINDING 1.` … `FINDING 11.` and `THE WAY IN` lines in `self-evident-critique-2/task.jsonl`.
 3. The two round-two fixers' landing lines (last `assign` in `self-evident-fixes-2/make/task.jsonl` and `self-evident-fixes-2/importance/task.jsonl`) and their after-pngs beside them. Both fixers named what you should look at first:
    - **Make:** the drawer `More` opens — its twelve **nest** chips ("Put it inside") still wear the orange `.on` the seven word rows just lost: the "one fill, two meanings" defect one section lower.
@@ -32,7 +32,7 @@ Budget: findings as numbered `log` lines; the landing `outcome` is one screen. N
 
 ## Method and fences — round two's, exactly
 
-`ui-test`; a PRIVATE server `PORT=8098 node server.js` from the repo root (another 809x if taken), killed by pid at landing. Never the port-80 server, never the owner's tabs, never `git stash`, never commit. Take a full copy of `public/imagine/paging/made/` before the first gesture; probe pages `zzz-probe-*`, deleted before landing; `git status public/imagine/paging/made/` and a `diff -r` against your copy both unchanged. Every judgment / node / edge you write removed by id; `md5sum` the three importance data files before and after, both logged. Own only `public/framework/ai/2026-09-13/self-evident-critique-3/**`; pngs into it as `NN-<control>-<width>.png`.
+`ui-test`; a PRIVATE server `PORT=8098 node server.js` from the repo root (another 809x if taken), killed by pid at landing. Never the port-80 server, never the owner's tabs, never `git stash`, never commit. Take a full copy of `public/imagine/paging/made/` before the first gesture; probe pages `zzz-probe-*`, deleted before landing; `git status public/imagine/paging/made/` and a `diff -r` against your copy both unchanged. Every judgment / node / edge you write removed by id; `md5sum` the three importance data files before and after, both logged. Own only `public/framework/ai/sessions/2026/09/13/self-evident-critique-3/**`; pngs into it as `NN-<control>-<width>.png`.
 
 Open your task with `new-task` (group `ux`); `skill-improvement` for anything that misled you; land with `finish-task`.
 

@@ -46,7 +46,7 @@ A row may carry `when: () => …`; it shows only while that answers true (how El
 `tabs/ai.js` also still exports `send({ page, text, context })`, the OLDER route the kept-reachable `aiV1`/`aiV2` versions use (swap one of them in by pointing `tabs.js`'s "ai" row at `{ default: aiV2 }`):
 
 - **On a card:** the message goes where the card's own composer sends it (Servex's prompt log, pinned to the card), and the reply arrives in the card's chat.
-- **On a plain page:** it goes to the page's assistant, `POST http://servex.localhost/api/page-ai` (the agreed interface, `framework/ai/2026-09-25/recursive-pairs/interface.md`). Until that answers, it falls back to the dev bar's Ask route, so a message still gets a reply.
+- **On a plain page:** it goes to the page's assistant, `POST http://servex.localhost/api/page-ai` (the agreed interface, `framework/ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/interface.md`). Until that answers, it falls back to the dev bar's Ask route, so a message still gets a reply.
 - **On a thread picked from `aiV2`'s own thread list:** it goes straight to Ask and resumes that thread's session. If the old session is gone (Claude Code prunes old transcripts, and a session started in another tree is not found), a fresh session is filed in the same thread and given the thread's last turns.
 
 `context` is a list of picked elements, `[{kind, label, text, selector}]`.

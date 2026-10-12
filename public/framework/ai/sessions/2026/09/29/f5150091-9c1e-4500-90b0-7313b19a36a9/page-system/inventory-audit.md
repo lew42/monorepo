@@ -23,11 +23,11 @@ guesses. The sizing rules are not what's broken.
 
 | item | url | symptom |
 |---|---|---|
-| mastermind-layout-browser (task log) | [/framework/ai/2026-09-17/mastermind-layout-browser/](/framework/ai/2026-09-17/mastermind-layout-browser/) | 1920 timed out, 400 fine |
-| paging-audit-8b (task log) | [/framework/ai/2026-09-05/paging-audit-8b/](/framework/ai/2026-09-05/paging-audit-8b/) | 400 timed out, 1920 fine |
-| dead-nav (task log) | [/framework/ai/2026-09-18/dead-nav/](/framework/ai/2026-09-18/dead-nav/) | 400 timed out, 1920 fine |
-| site-sidebar-tree (task log) | [/framework/ai/2026-09-18/site-sidebar-tree/](/framework/ai/2026-09-18/site-sidebar-tree/) | 400: the page's own request reported "failed" then loaded blank-titled; 1920 fine |
-| paging-core (task log) | [/framework/ai/2026-09-04/paging-core/](/framework/ai/2026-09-04/paging-core/) | 1920: a Google-fonts icon failed with `ERR_NO_BUFFER_SPACE` — looks like this crawl's own network exhaustion, not the page |
+| mastermind-layout-browser (task log) | [/framework/ai/sessions/2026/09/17/mastermind-layout-browser/](/framework/ai/sessions/2026/09/17/mastermind-layout-browser/) | 1920 timed out, 400 fine |
+| paging-audit-8b (task log) | [/framework/ai/sessions/2026/09/05/paging-audit-8b/](/framework/ai/sessions/2026/09/05/paging-audit-8b/) | 400 timed out, 1920 fine |
+| dead-nav (task log) | [/framework/ai/sessions/2026/09/18/dead-nav/](/framework/ai/sessions/2026/09/18/dead-nav/) | 400 timed out, 1920 fine |
+| site-sidebar-tree (task log) | [/framework/ai/sessions/2026/09/18/site-sidebar-tree/](/framework/ai/sessions/2026/09/18/site-sidebar-tree/) | 400: the page's own request reported "failed" then loaded blank-titled; 1920 fine |
+| paging-core (task log) | [/framework/ai/sessions/2026/09/04/paging-core/](/framework/ai/sessions/2026/09/04/paging-core/) | 1920: a Google-fonts icon failed with `ERR_NO_BUFFER_SPACE` — looks like this crawl's own network exhaustion, not the page |
 
 All five are `framework/ai/**` task-log pages, single-width only, not reproduced twice — most likely
 this crawl's own resource pressure (several Chromium runs today after two Servex restarts), not a

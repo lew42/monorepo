@@ -27,7 +27,7 @@ scale want swap; kinds that cap (a fixed small set) want the rail.**
 The 2026-09-04 inventory this brief was built from lists `/imagine/paging/rightnav/` — a
 persistent right tree with a swapping centre pane, in the same family as the contextual workspace
 above. It was real and it worked (task log:
-[`paging-rightnav`](/framework/ai/2026-09-04/paging-rightnav/)), but it was never wired into
+[`paging-rightnav`](/framework/ai/sessions/2026/09/04/paging-rightnav/)), but it was never wired into
 `/imagine/paging/`'s own `children:`, and a later rewrite of the whole `/imagine/paging/` realm
 ("Paging v3") removed the directory before it ever became reachable. `git log --all` confirms it:
 the directory exists in one historical commit and is gone by the next rewrite. This page does not

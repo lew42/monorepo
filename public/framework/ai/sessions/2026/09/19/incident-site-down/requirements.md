@@ -8,7 +8,7 @@ Run by the **auditor** (`.claude/skills/auditor/`). Time box 40 minutes, one scr
 
 ## The incident, with the evidence handed over
 
-1. `ai/2026-09-19/reload-hold/` (Sonnet) saved a `Server/plugins/SocketServer/LiveReload.js` whose
+1. `ai/sessions/2026/09/19/reload-hold/` (Sonnet) saved a `Server/plugins/SocketServer/LiveReload.js` whose
    `initialize()` called `poll_hold()`, which iterated `this.socket_server.sockets` before the
    socket server had built that list — `TypeError: … is not iterable` at every boot. **It parses**,
    so the syntax-guard hook and the supervisor's own `node --check` both passed it.
@@ -19,7 +19,7 @@ Run by the **auditor** (`.claude/skills/auditor/`). Time box 40 minutes, one scr
 3. The minion saved its fix at 15:52:40. Both supervisors logged `[supervisor] restarting —
    changed: LiveReload.js` and then nothing: `server.js`'s `restart()` did
    `old.once("exit", respawn); old.kill()` on a child that had already exited, so `restarting`
-   stayed true for ever. That supervisor was written the same day by `ai/2026-09-19/server-self/`,
+   stayed true for ever. That supervisor was written the same day by `ai/sessions/2026/09/19/server-self/`,
    whose proofs covered a healthy restart, a syntax error and a read — never "the child is already
    dead when the fix arrives", the exact case a supervisor exists for.
 4. Seven minions in flight, three of them saving under `Server/` the same afternoon, into the one

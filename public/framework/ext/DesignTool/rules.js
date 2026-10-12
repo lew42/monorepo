@@ -136,7 +136,7 @@ export const rules = [
 		 * by 270px, and a `high · gutter` appears on the page region: 18 of 24
 		 * page×width pairs with the rail as the only variable, the TOP finding on
 		 * 12, ringing 79% of the viewport. Opening the tool must not change what the
-		 * tool reports. `ai/2026-08-17/tier-calibration/`. */
+		 * tool reports. `ai/sessions/2026/08/17/tier-calibration/`. */
 		const shell = content_width(m) - 2;
 		const regions = m.nodes.filter(n =>
 			(scrolls(n.ovx) || scrolls(n.ovy)) && n.w < shell);

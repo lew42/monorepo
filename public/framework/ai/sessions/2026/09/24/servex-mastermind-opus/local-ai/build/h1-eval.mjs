@@ -7,12 +7,12 @@
 // ("local") instead of going through the live Servex.
 //
 // Everything this script WRITES stays inside this task's own dir
-// (public/framework/ai/2026-10-01/local-ai/build/h1-eval/), which is inside
+// (public/framework/ai/sessions/2026/09/24/servex-mastermind-opus/local-ai/build/h1-eval/), which is inside
 // this minion's fence.
 //
 // Usage (from anywhere, needs Servex's own node_modules — `npm install` in
 // Servex/ first if this worktree doesn't have them):
-//   node public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs local/qwen2.5-coder
+//   node public/framework/ai/sessions/2026/09/24/servex-mastermind-opus/local-ai/build/h1-eval.mjs local/qwen2.5-coder
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -31,14 +31,14 @@ const { LLAMA_EXE, LLAMA_PORT, LOCAL_PROXY_PORT, env_for } = await import(u("ext
 const { browser } = await import(pathToFileURL(ROOT + "/Server/browser.mjs").href);
 
 const TEST_DIR = path.join(ROOT, "public/framework/ai/tests/h1-page");
-const RUN_ROOT = path.join(ROOT, "public/framework/ai/2026-10-01/local-ai/build/h1-eval");
+const RUN_ROOT = path.join(ROOT, "public/framework/ai/sessions/2026/09/24/servex-mastermind-opus/local-ai/build/h1-eval");
 const SITE_BASE = "http://local-ai.localhost";
 
 const MODEL = process.argv[2] || "local/qwen2.5-coder";
 const slug = MODEL.replace(/^local\//, "");
 const runName = `h1-page-${slug.replace(/[^a-z0-9]+/gi, "-")}-${Date.now()}`;
 const runDir = path.join(RUN_ROOT, runName);
-const runUrlPath = `/framework/ai/2026-10-01/local-ai/build/h1-eval/${runName}/`;
+const runUrlPath = `/framework/ai/sessions/2026/09/24/servex-mastermind-opus/local-ai/build/h1-eval/${runName}/`;
 
 // ---- copy the fixture, page.fixture.js -> page.js, same rule library.mjs uses ----
 const as_run = name => name === "page.fixture.js" ? "page.js" : name;

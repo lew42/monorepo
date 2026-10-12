@@ -15,7 +15,7 @@ that" —
 ## Why this is safe to do directly (not a worktree + minions)
 
 The big move — `Page extends PageLog extends Item` — already landed 2026-10-02
-(`ai/2026-10-02/page-extends-item/`, commit e44930ad). What's left is smaller: PageLog
+(`ai/sessions/2026/10/02/page-extends-item/page-extends-item/`, commit e44930ad). What's left is smaller: PageLog
 itself (`core/Page/Log.js`, ~690 lines) is the one remaining middle class. This task
 deletes it by moving its body onto `Page` (`core/Page/Page.class.js`), so the chain
 becomes `Page extends Item` with no stop in between.

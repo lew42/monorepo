@@ -1,6 +1,6 @@
 # page-split-2: STATE (steps 5-6 done)
 
-Columns and Links are out of `Page.class.js`, one commit each on `worktree/page-split-2`. Step 7 (jsonl) is out of scope here and stays open in [split-plan.md](/framework/core/Page/doc/split-plan.md). Follows [page-split-1](/framework/ai/2026-10-12/page-split-1/STATE.md).
+Columns and Links are out of `Page.class.js`, one commit each on `worktree/page-split-2`. Step 7 (jsonl) is out of scope here and stays open in [split-plan.md](/framework/core/Page/doc/split-plan.md). Follows [page-split-1](/framework/ai/sessions/2026/10/12/session-75fc1375/page-split-1/STATE.md).
 
 ## Measure (`node public/framework/core/Page/doc/split-measure.mjs`)
 

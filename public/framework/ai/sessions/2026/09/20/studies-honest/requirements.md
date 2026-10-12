@@ -18,8 +18,8 @@ module: `public/framework/styles/system/studies/`.** Its own index page,
 `padding`, `scale`, `type`, `color`, `themes`, `system`, `vocabulary` — and **every one of those
 directories is now empty of its `page.js`.** So the index offers nine links and all nine 404.
 
-The recovery record is `public/framework/ai/2026-09-19/reset-recovery/lost.jsonl`; the one-screen
-account is `/framework/ai/2026-09-19/reset-deep/`. Read both before you write anything.
+The recovery record is `public/framework/ai/sessions/2026/09/19/reset-recovery/lost.jsonl`; the one-screen
+account is `/framework/ai/sessions/2026/09/19/reset-deep/`. Read both before you write anything.
 
 ## What to do
 
@@ -73,7 +73,7 @@ and **no link on it 404s.** Say the before and after link counts. Shot on your p
 ## Fences
 
 You own `public/framework/styles/system/studies/**` and
-`public/framework/ai/2026-09-20/studies-honest/**`, plus the one line in the day page's `children:`
+`public/framework/ai/sessions/2026/09/20/studies-honest/**`, plus the one line in the day page's `children:`
 and one append to that day's `day.jsonl`. Nothing else.
 
 There are about 184 other dangling child declarations elsewhere in the repo — **they are not yours

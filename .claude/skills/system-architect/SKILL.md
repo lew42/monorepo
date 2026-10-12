@@ -44,4 +44,4 @@ Agents append to each skill's `improvements.md` (`skill-improvement`). When a fe
 up, read them, apply the fail-safe ones (the `mastermind` skill defines fail-safe), and delete
 the applied lines. For one mistake that reached the owner, use the `auditor` skill's method.
 
-A worked run, with its findings and proposals: [`ai/2026-10-09/system-architect/`](/framework/ai/2026-10-09/system-architect/).
+A worked run, with its findings and proposals: [`ai/sessions/2026/10/09/session-a07780b9/system-architect/`](/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/).

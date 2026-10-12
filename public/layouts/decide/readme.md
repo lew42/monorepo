@@ -12,4 +12,4 @@ Five questions, asked in order, that pick a page's layout: how much room, how mu
 - A little content keeps a ceiling: `.std-decide-previews` (decide.css) caps preview cards at 20rem, because `grid auto` stretched them to 1000px at 3440.
 
 ## More
-The task: [ai/2026-09-28/layout-system](/framework/ai/2026-09-28/layout-system/). The owner's words: `ai/2026-09-28/organization/owner-words.md`, "Continued (about 11:15 PM)".
+The task: [ai/2026-09-28/layout-system](/framework/ai/sessions/2026/09/29/0c6006c6-49c4-4579-842e-d7f4b6f34689/layout-system/). The owner's words: `ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/owner-words.md`, "Continued (about 11:15 PM)".

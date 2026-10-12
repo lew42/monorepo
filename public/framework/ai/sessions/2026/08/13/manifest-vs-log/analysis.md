@@ -88,7 +88,7 @@ For a proposal + logging + tracking UI, in order of what moves the needle:
    tag (unlike caveats/commands/task-notifications, which `prompt.js`'s `TAG`
    regex already strips) but *with* `isMeta: true`. `replay.js`'s `is_prompt()`
    and `trivial()` don't check `isMeta`, so it renders as a genuine thread.
-   Confirmed against the live site: `/framework/ai/2026-08-13/sessions/`,
+   Confirmed against the live site: `/framework/ai/sessions/2026/08/13/sessions/`,
    opened replay, thread #6 is titled "Base directory for this skill:
    c:\Code\lew42\monorepo\.claude\skills\code-architecture…", 49,480 chars -
    a skill load, not anything the human typed. `timeline_of()` in this file
@@ -126,11 +126,11 @@ numbers rendered from the browser, fetched at request time, not pasted here:
   and confirm `usage_of(fork_lines, new Set(parent_lines.map(l =>
   l.message?.id)))` actually removes the parent's line count.
 - **`node --check`** — passed on scratchpad copies of `stats.js` and `page.js`.
-- **Browser pass** — this task's page (`/framework/ai/2026-08-13/manifest-vs-log/`)
+- **Browser pass** — this task's page (`/framework/ai/sessions/2026/08/13/manifest-vs-log/`)
   loads with zero script errors from its own code; the three functions'
   outputs render live from the fetched transcript, matching the numbers
   above exactly. (One unrelated console 404 was observed —
-  `ai/2026-08-13/log-feed/page.js` — that's a sibling task's file, not touched
+  `ai/sessions/2026/08/13/log-feed/page.js` — that's a sibling task's file, not touched
   here.)
 
 ## Open questions

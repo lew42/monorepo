@@ -10,7 +10,7 @@ Verbatim ask:
 > `research-repairs`, group `pages`).
 >
 > TASK -- execute the repairs the self-audit demanded
-> (`ai/2026-08-31/research-audit/audit.json` + the synthesis's "The audit"
+> (`ai/sessions/2026/08/31/research-audit/audit.json` + the synthesis's "The audit"
 > section): (1) the 2 genuinely-suspect entries -- the Saqqara Bird
 > wind-tunnel claim (named engineer, 2006, balsa copy -- find the REAL
 > provenance of that claim or mark the entry's credence down with a

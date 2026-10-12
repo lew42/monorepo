@@ -9,7 +9,7 @@ really considered, the one that won, one sentence of reason, and the skill rule
 that produced it. The owner presses **Approve** or **Improve** on each. An
 Improve is then a defect in that rule, and a CLI carries it back there.
 
-```json ai/2026-09-17/decisions-system/task.jsonl
+```json ai/sessions/2026/09/17/decisions-system/task.jsonl
 {"decision": {"id": "option-cards", "at": "2026-09-17T23:25:55-05:00",
   "about": "How does a set of options read as a choice rather than as a paragraph?",
   "options": [

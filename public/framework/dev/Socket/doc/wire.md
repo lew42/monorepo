@@ -123,7 +123,7 @@ safety model: any method on the socket is reachable by the other end, acceptable
 |---|---|---|
 | `changed` | these files changed — deduped and debounced ~300ms server-side. A missing array, or a `null` inside one, means *"unknown — reload everything"* | `{"method":"changed","args":[["/framework/dev/Socket/doc/wire.md"]]}` |
 | `jsonl` | appended complete lines of a subscribed `.jsonl` (raw strings, no trailing `\n`); the trailing number is the server byte `offset` **after** these lines | see below |
-| `jsonl_reset` | the file shrank or was rewritten — drop replayed state and re-subscribe from `0` | `{"method":"jsonl_reset","args":["/framework/ai/2026-08-15/wire-reference/task.jsonl"]}` |
+| `jsonl_reset` | the file shrank or was rewritten — drop replayed state and re-subscribe from `0` | `{"method":"jsonl_reset","args":["/framework/ai/sessions/2026/08/15/wire-reference/task.jsonl"]}` |
 | `eval` | run `code` in this tab and answer with `eval_result` carrying the same `token`. MCP's `eval` tool | `{"method":"eval","args":["1 + 1","617a136a-b620-4a1d-959c-6ea8f9df0c42"]}` |
 | `reload` | reload unconditionally | *no current sender* — see below |
 
@@ -139,10 +139,10 @@ lines later. The offset walks forward (`737` → `1807`); the client never compu
 it, only echoes back one the server sent:
 
 ```json
-← {"method":"jsonl","args":["/framework/ai/2026-08-15/wire-reference/task.jsonl",
+← {"method":"jsonl","args":["/framework/ai/sessions/2026/08/15/wire-reference/task.jsonl",
      ["{\"assign\": {\"session_id\": \"2778…\", \"step\": 1}}"], 737]}
 
-← {"method":"jsonl","args":["/framework/ai/2026-08-15/wire-reference/task.jsonl",
+← {"method":"jsonl","args":["/framework/ai/sessions/2026/08/15/wire-reference/task.jsonl",
      ["{\"assign\": {\"now\": \"read the whole relay …\", \"step\": 2}}",
       "{\"log\": {\"at\": \"2026-08-15T20:12:40-05:00\", …}}",
       "{\"log\": {\"at\": \"2026-08-15T20:13:10-05:00\", …}}",
@@ -159,8 +159,8 @@ else reloads.
 |---|---|---|
 | `hello` | *this tab is `<id>`, and it is on this page.* Sent on connect, on every SPA route, and before each `eval` | `{"method":"hello","args":["/framework/ai/","3e83f2c0"]}` |
 | `eval_result` | the answer to an `eval` — `{ value }` (a JSON string, or `String(value)` when that throws) or `{ error }` | `{"method":"eval_result","args":["617a136a-…",{"value":"2"}]}` |
-| `subscribe` | stream a `.jsonl` from byte offset `from` (`0` = the whole file). Answered immediately with one `jsonl`, then kept streaming | `{"method":"subscribe","args":["/framework/ai/2026-08-15/wire-reference/task.jsonl",0]}` |
-| `unsubscribe` | stop streaming that file. Optional — closing the socket cleans up | `{"method":"unsubscribe","args":["/framework/ai/2026-08-15/wire-reference/task.jsonl"]}` |
+| `subscribe` | stream a `.jsonl` from byte offset `from` (`0` = the whole file). Answered immediately with one `jsonl`, then kept streaming | `{"method":"subscribe","args":["/framework/ai/sessions/2026/08/15/wire-reference/task.jsonl",0]}` |
+| `unsubscribe` | stop streaming that file. Optional — closing the socket cleans up | `{"method":"unsubscribe","args":["/framework/ai/sessions/2026/08/15/wire-reference/task.jsonl"]}` |
 | `ls` · `write` · `rm` | the `Runtime` plugin's file commands, sent via `rpc` / `async_rpc` | see reply shape below |
 
 Those last three are the only frames that use the **`{ index, response }` reply

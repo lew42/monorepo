@@ -11,12 +11,12 @@
 // main tree's asks.jsonl... mark asks from the main tree"). Run this from the MAIN checkout —
 // C:\Code\lew42\monorepo — not a worktree, or it will read/write a stale copy nobody sees.
 //
-// Usage: node public/framework/ai/2026-10-02/card-pipeline/run-pipeline.mjs [--dry]
+// Usage: node public/framework/ai/sessions/2026/10/03/card-pipeline/card-pipeline/run-pipeline.mjs [--dry]
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import Asks from "../../../../../Servex/asks/Asks.js";
-import Cards from "../../../../../Servex/cards/Cards.js";
+import Asks from "../../../../../../../../../Servex/asks/Asks.js";
+import Cards from "../../../../../../../../../Servex/cards/Cards.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../../../../");       // repo root
@@ -40,13 +40,13 @@ async function ensure_routed(){
 	if (!folded["ai-system-docs"]) missing.push({
 		ask: { at: "2026-10-02T18:12:43-05:00", id: "ai-system-docs",
 			title: "AI system docs: the System tab now explains the whole thing",
-			words: "ai/2026-10-02/ai-system-docs/requirements.md",
+			words: "ai/sessions/2026/10/02/4245afbf-7cda-45b9-9883-e6a7942c9874/ai-system-docs/requirements.md",
 			owner: "task-mastermind-ai-system-docs", card: "", status: "landed",
 			note: "owner (mobile): 'link me to our system documentation'; landed same day" } });
 	if (!folded["framework-home"]) missing.push({
 		ask: { at: "2026-10-02T00:00:00-05:00", id: "framework-home",
 			title: "framework: new home page, dark class cards, sprawl layout",
-			words: "ai/2026-10-02/framework-home/requirements.md",
+			words: "ai/sessions/2026/10/02/framework-home/requirements.md",
 			owner: "task-mastermind-framework-home",
 			card: "2026/10/02/framework-home-sections-dark-class-cards", status: "building",
 			note: "card already existed, made by hand before this pipeline; this line gives it a real ask route" } });

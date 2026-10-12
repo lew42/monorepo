@@ -40,7 +40,7 @@ Yours alone: `ux/Tree/**`. READ-ONLY: everything else — `Tree.js`/`TreeKeys.js
 ## Process
 
 - Load skills: `code`, `css` before writing; `new-page` for the child page.js; `documentation`; `finish-task`; `skill-improvement` when a skill misleads; the `ui-test` skill for the gesture proofs.
-- Log to `public/framework/ai/2026-08-21/ux-treedrag/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends via Add-Content. **Appends must be real UTF-8 or pure ASCII — PowerShell Add-Content defaults to ANSI; an em dash becomes an invalid byte and the board drops the line. Use ASCII.**
+- Log to `public/framework/ai/sessions/2026/08/21/ux-treedrag/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends via Add-Content. **Appends must be real UTF-8 or pure ASCII — PowerShell Add-Content defaults to ANSI; an em dash becomes an invalid byte and the board drops the line. Use ASCII.**
 - **Timestamps are READ FROM THE CLOCK in the same command that writes the line, never typed** — build the line with `Get-Date -Format "yyyy-MM-ddTHH:mm:sszzz"` (or bash `date +%Y-%m-%dT%H:%M:%S%z`) in the SAME command that appends it. A sibling agent hand-typed stamps 90 minutes in the future today and the record had to be corrected from file order.
 
 ## Verification infrastructure

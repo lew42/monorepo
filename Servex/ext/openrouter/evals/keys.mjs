@@ -35,7 +35,7 @@ import { mcp, nowLocal, appendJSON, readJsonl, waitForRealTurn, resolveCost } fr
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../../.."); // Servex/ext/openrouter/evals -> repo root
-const TASK_DIR = path.join(ROOT, "public/framework/ai/2026-09-30/openrouter-harness/test-library");
+const TASK_DIR = path.join(ROOT, "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library");
 const PROMPTS_PATH = path.join(TASK_DIR, "keys-prompts.jsonl");
 const PAGES_DIR = path.join(ROOT, "public/framework/ai/tests/keys-to-success");
 

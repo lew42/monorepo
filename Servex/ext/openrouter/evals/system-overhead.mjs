@@ -50,7 +50,7 @@ function readApiTurns(agentId){
 			cache_read: u.cache_read_input_tokens ?? null, cache_creation: u.cache_creation_input_tokens ?? null } };
 	} catch { return { api_turns: null, usage: null }; }
 }
-const TASK_DIR = path.join(ROOT, "public/framework/ai/2026-10-02/model-weights");
+const TASK_DIR = path.join(ROOT, "public/framework/ai/sessions/2026/10/03/model-weights/model-weights");
 const RUNS_DIR = path.join(TASK_DIR, "overhead-runs");
 const RESULTS_PATH = path.join(TASK_DIR, "system-overhead-results.jsonl");
 const SITE_BASE = process.env.LIBRARY_SITE_BASE || "http://monorepo.localhost";
@@ -98,7 +98,7 @@ const RUNGS = {
 async function runOne(rungId, rung, setup, effort){
 	const runName = `overhead-${rungId}-${setup}-${Date.now()}`;
 	const runDir = path.join(RUNS_DIR, runName);
-	const runUrlPath = `/framework/ai/2026-10-02/model-weights/overhead-runs/${runName}/`;
+	const runUrlPath = `/framework/ai/sessions/2026/10/03/model-weights/model-weights/overhead-runs/${runName}/`;
 	copyDir(rung.fixtureDir, runDir);
 
 	const promptFile = setup === "full" ? rung.plainPrompt : rung.primerPrompt;

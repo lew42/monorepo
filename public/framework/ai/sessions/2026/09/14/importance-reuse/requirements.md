@@ -1,6 +1,6 @@
 # importance-reuse — the overlay the owner's brief listed fourth, with something to show
 
-Run: `ai/2026-09-13/mastermind-page-cms/` (the mastermind). Group: `importance`. One Opus builder.
+Run: `ai/sessions/2026/09/13/mastermind-page-cms/` (the mastermind). Group: `importance`. One Opus builder.
 
 ## The three laws, and your length budget
 
@@ -36,12 +36,12 @@ The second half (click a rank → the judgments) landed on 2026-09-13. The first
 
 ## Fences
 
-- Own: `public/imagine/importance/**` and `public/framework/ai/2026-09-14/importance-reuse/**`. Nothing under `public/framework/` or the other realms.
+- Own: `public/imagine/importance/**` and `public/framework/ai/sessions/2026/09/14/importance-reuse/**`. Nothing under `public/framework/` or the other realms.
 - Data: hash the three files before you start; at landing the ONLY differences are your appended seed rows (list them by id in the log) — `git diff` is vacuous (the dir is untracked), so prove it with `importance.mjs check` (0 refused) and a line count: 4 + your nodes, 3 + your edges, 3 + your seed judgments, no test pick left.
 
 ## Rules every brief carries
 
-- `new-task` first: `ai/2026-09-14/importance-reuse/task.jsonl` (group `importance`, the five deliverables as `steps`); `ai/2026-09-14/day.jsonl` exists — append one line. Skills: `code`, `css` / `new-css-class` for any style or class, `ui-test` before headless runs, `documentation`, `finish-task`; `skill-improvement` for anything that misled you.
+- `new-task` first: `ai/sessions/2026/09/14/importance-reuse/task.jsonl` (group `importance`, the five deliverables as `steps`); `ai/2026-09-14/day.jsonl` exists — append one line. Skills: `code`, `css` / `new-css-class` for any style or class, `ui-test` before headless runs, `documentation`, `finish-task`; `skill-improvement` for anything that misled you.
 - **Never kill or restart the dev server on port 80. Never drive the owner's tabs. Never `git stash`. Never commit.** Private server `PORT=8097 node server.js` from the repo root (another 809x if taken), killed by pid at landing. Pngs into your task dir: the car topic with the overlay open, the new topic, both at 1280.
 - Resolve, don't park; findings as `log` lines.
 

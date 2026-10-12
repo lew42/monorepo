@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Does OpenRouter cache Gemini prompts on the route Servex uses? About $0.10, about 1 minute.
  *
- *   node public/framework/ai/2026-10-02/servex-mastermind/or-cache-probe.mjs [model]
+ *   node public/framework/ai/sessions/2026/10/02/servex-mastermind/or-cache-probe.mjs [model]
  *
  * Why (vscode-mastermind, 2026-10-03): two google/gemini-3.8-flash masterminds sent ~10.6M input
  * tokens each and were charged ~$17 together, about full input price, though the SDK reported

@@ -36,7 +36,7 @@ whether text is *comfortable*, not merely readable.
 
 ⚠ **The band used to be justified as the site's measured interquartile range
 (52–68 at both widths, n=26), and that justification is withdrawn** (2026-08-17,
-`ai/2026-08-17/band-rederive/`). That IQR was measured over a population that
+`ai/sessions/2026/08/17/band-rederive/`). That IQR was measured over a population that
 admitted card captions and table cells, and it landed inside the ideal band only
 because **two errors cancelled**: prose running 75–103 characters, averaged
 against captions running 19–26. Read over prose alone, the site's interquartile
@@ -224,7 +224,7 @@ Distribution over the eighteen-page vision corpus at 1280, before → after:
 credit) — expected, and the reason the band exists is 3440, where the nine
 hand-written presets fail it hard. `taste/corpus/`'s `pinned the body narrow`
 case, judged at 3440, agrees on all seven subjects at a full −1 swing where it
-previously read n/a on one. `ai/2026-08-17/tier-calibration/`.
+previously read n/a on one. `ai/sessions/2026/08/17/tier-calibration/`.
 
 ⚠ **ONE IMPLEMENTATION NOW, shared with `score.metrics()`.** Two hand-written
 answers to the same named question disagreed by two hundred points, and nothing
@@ -269,7 +269,7 @@ it still discriminates on this site is the floor: a page whose largest heading i
 that pays zero to every page.** Both directions are the same failure, and the only
 way to see either is a band's value distribution against **its own declared
 range**. This is the whole corpus — 169 urls at 1280 and 3440, after the
-2026-08-17 re-derivations (`ai/2026-08-17/band-rederive/`). `null` is a page the
+2026-08-17 re-derivations (`ai/sessions/2026/08/17/band-rederive/`). `null` is a page the
 band declined to read; `full` and `zero` are pages at the two ends of `credit()`;
 `out` is pages outside the band's own `ok`.
 
@@ -337,4 +337,4 @@ rest are either genuinely diffuse across this corpus (`frame-gap`,
 `gap-share`, `repetition`, `depth` — real quantities, just not ones with a
 single right answer yet) or were never separately calibrated at all (`scale`,
 `slivers`, `width-used`, `contrast` — derived from argument, not
-measurement). Full run: `ai/2026-08-16/layout-generator-rules/calibration.md`.
+measurement). Full run: `ai/sessions/2026/08/16/layout-generator-rules/calibration.md`.

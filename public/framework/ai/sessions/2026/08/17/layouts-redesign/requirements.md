@@ -121,7 +121,7 @@ metric.
   `flex/`, `grid/`, `model/` and any category pages you restructure.
 - `public/framework/core/Page/Page.css` **only** for the preview-overflow fix, and
   only if that's genuinely where it belongs.
-- `public/framework/ai/2026-08-17/layouts-redesign/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/layouts-redesign/**` — your task dir.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 

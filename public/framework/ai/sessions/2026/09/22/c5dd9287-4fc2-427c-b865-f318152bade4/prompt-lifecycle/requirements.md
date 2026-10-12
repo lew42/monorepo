@@ -5,7 +5,7 @@ Minion: Opus, effort high. Session id `c5dd9287-4fc2-427c-b865-f318152bade4`. Re
 (the prompt lifecycle and naming paragraphs) and **F** of
 [`../mastermind-servex/requirements.md`](../mastermind-servex/requirements.md), then
 [`../log-model/events.md`](../log-model/events.md) (`prompt refined proposal name card ask
-answer approve dispute`) and [`../log-model/lifecycle/`](../log-model/lifecycle/) — the worked
+answer approve dispute`) and [`../log-model/lifecycle/`](../log-model/lifecycle) — the worked
 thread. Load `code`, `layout`, `css`. Private port **8098**. You own `/framework/ai/v/3/`
 (board-from-events landed 16:47 — read its `agents.js` and task log first) and
 `Servex/agents/` (free).
@@ -61,7 +61,7 @@ read it for the voice and the card rules; do not edit it).
    and refined text present (`shots/`); click ✓ on one name and show the `approve` line landed
    and the chip locked; click ✗ with a why and show the `dispute` beside it; measure the five
    latencies. Then the Servex-down path: the board loads with zero console errors.
-6. **The page — `ai/2026-09-22/prompt-lifecycle/page.js`** (iceberg: the screenshot, the
+6. **The page — `ai/sessions/2026/09/22/c5dd9287-4fc2-427c-b865-f318152bade4/prompt-lifecycle/page.js`** (iceberg: the screenshot, the
    five stages named with which are live today, the median latency, then links) and a line in
    `ai/2026-09-22/page.js` `children:`.
 

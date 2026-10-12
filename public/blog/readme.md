@@ -87,6 +87,6 @@ plain `node public/blog/meta.mjs` lists what has drifted and exits non-zero.
 - Files: `page.js` (the shell **and** the front), `posts.js` (the manifest), `Post.js`
   (the reading page + the card and hero every index draws), `Section.js`, `blog.css`,
   and generated: `feed.xml`, `words.js`, every `index.html`
-- Where it came from: `framework/ai/2026-08-30/blog-arch/` (the architecture),
+- Where it came from: `framework/ai/sessions/2026/08/30/blog-arch/` (the architecture),
   [`/layouts/labs/blogx/`](/layouts/labs/blogx/) (eight shells, judged at 3440),
-  `framework/ai/2026-08-30/blog-build/` (this build)
+  `framework/ai/sessions/2026/08/30/blog-build/` (this build)

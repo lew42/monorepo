@@ -2,7 +2,7 @@
 // (2) the no-filler guard the voice pair already has (task-mastermind-prompt-refine's finding, 2026-10-02);
 // (3) a pointer to the prompt-refine skill, loaded once (vscode-mastermind, 2026-10-02).
 // Written by mastermind-servex-10, which could not write under .claude/.
-// Run from the repo root: node public/framework/ai/2026-10-02/servex-mastermind/apply-every-prompt-once.mjs
+// Run from the repo root: node public/framework/ai/sessions/2026/10/02/servex-mastermind/apply-every-prompt-once.mjs
 // All or nothing: aborts, changing nothing, if any old text is missing or not unique.
 import fs from "node:fs";
 const f = ".claude/skills/every-prompt/SKILL.md";

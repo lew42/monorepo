@@ -12,7 +12,7 @@ step, and a folder of skills that write down what they got wrong.
 
 <figure class="blog-exhibit">
 
-![The live task board at /framework/ai/2026-08-30/ — seven tasks running at once, each with a step counter, a model, and a one-line status](board.png)
+![The live task board at /framework/ai/sessions/2026/08/30/ — seven tasks running at once, each with a step counter, a model, and a one-line status](board.png)
 
 <figcaption>Seven agents on this repo at once, each logging to its own <code>task.jsonl</code>. The board is a live read of those files — nothing here is typed by hand.</figcaption>
 </figure>
@@ -70,7 +70,7 @@ rather than eyeballed off a screenshot.
 
 ![The same panel now showing the payload: node package.json, into docs, at 1](drag-after.png)
 
-<figcaption>A real acceptance gate from <a href="/framework/ai/2026-08-21/ux-treedrag/">a
+<figcaption>A real acceptance gate from <a href="/framework/ai/sessions/2026/08/21/ux-treedrag/">a
 task building drag-reorder for a tree view</a>. Dropping a row onto a folder has to produce
 this exact payload — checked against the DOM, not assumed from the drop looking right.</figcaption>
 </figure>

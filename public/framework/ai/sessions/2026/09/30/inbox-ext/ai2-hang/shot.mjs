@@ -1,6 +1,6 @@
 // shot.mjs — screenshot /framework/ai2/ at a given width, after settling a moment.
 // Usage: node shot.mjs <url> <width> <out.png>
-import { browser, close } from "../../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../Server/browser.mjs";
 
 const [url, widthArg, out] = process.argv.slice(2);
 const width = Number(widthArg) || 1920;

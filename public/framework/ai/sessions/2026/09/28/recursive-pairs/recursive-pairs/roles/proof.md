@@ -3,7 +3,7 @@
 Code lives in the worktree (`C:\Code\lew42\worktrees\recursive-pairs`), never committed to this
 monorepo checkout. This file is the log. Unit tests: `node Servex/agents/policy.test.mjs` and
 `node Servex/agents/global.test.mjs`, from the worktree root. Live proof: `node
-public/framework/ai/2026-09-25/recursive-pairs/roles/proof.mjs`, output at `proof.txt` beside it
+public/framework/ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/roles/proof.mjs`, output at `proof.txt` beside it
 — **17.5 seconds, about $0.29** (three tiny Sonnet-low agents), on a private Servex, port 8390,
 `SERVEX_LAYERS_FILE` pointed at a scratch file (never the live `layers.json`).
 

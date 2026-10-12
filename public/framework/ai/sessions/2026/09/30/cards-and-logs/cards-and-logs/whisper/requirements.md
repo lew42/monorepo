@@ -9,7 +9,7 @@ c. Register `log-` in `public/framework/styles/css-scopes.txt` (one line, `log- 
 
 ## The debug view: `card/log/whisper/` (new page, a child of card/log)
 Fence: `public/framework/core/Page/card/log/` (incl. `whisper/`) + that one css-scopes line. READ-ONLY for `public/framework/audio/**` and `ux/Dictate/**` (another task owns them): wrap from outside, never edit them.
-1. Run a real `Transcriber.Whisper` (`/framework/audio/Transcriber/index.js`) against a CLIP, no mic needed: a small `ClipMic` in your folder that plays `/framework/ai/recordings/jfk.wav` (and a picker for `just_a_test.wav`, `ai/2026-09-22/whisper-servex/clip.wav`) in real time into the same interface Whisper reads (`snapshot() cut() cut_at(n) loudness(samples, floor) wav(samples) rate()` — read `audio/MicStream` for the exact shape and reuse its code by import where you can). Plus a "Use the mic" button with a real MicStream.
+1. Run a real `Transcriber.Whisper` (`/framework/audio/Transcriber/index.js`) against a CLIP, no mic needed: a small `ClipMic` in your folder that plays `/framework/ai/recordings/jfk.wav` (and a picker for `just_a_test.wav`, `ai/sessions/2026/09/22/whisper-servex/whisper-servex/clip.wav`) in real time into the same interface Whisper reads (`snapshot() cut() cut_at(n) loudness(samples, floor) wav(samples) rate()` — read `audio/MicStream` for the exact shape and reuse its code by import where you can). Plus a "Use the mic" button with a real MicStream.
 2. `Logger.wrap` the instance's `tick`, `transcribe`, `commit_all`, and hook `note_final`/`note_partial`, so each TICK is one group showing: seconds of audio sent, the raw Whisper text, the previous tail, how many words agreed, what COMMITTED (highlighted), the new tail, the ms the request took, and a forced commit (`window_s`) marked as a seam. Skipped ticks (in flight / not loud enough) are one muted line, not a group.
 3. Above the log: the running committed transcript, with each commit's seam visible (a thin marker between commits); clicking a seam scrolls to the tick that made it.
 4. "Download JSONL" (the `Logger.JSONL` output) and "Load JSONL" (read a saved run back into the same view) — so a run can be kept and compared.
@@ -17,4 +17,4 @@ Fence: `public/framework/core/Page/card/log/` (incl. `whisper/`) + that one css-
 6. Route it: `card/log/page.js` children gains `whisper`; the page's title "Whisper debug log", icon, one-line description. Readme + one doc (`card/log/whisper/readme.md`).
 7. Prove it: run jfk.wav through headless (Playwright with `--use-fake-ui-for-media-stream` if the mic path needs it; windowsHide; stop what you start), screenshot at 1920 and 400 with at least 5 ticks visible, zero console errors. Commit by exact path.
 
-Log in `ai/2026-09-29/cards-and-logs/whisper/task.jsonl` (this folder). Budget ~$4.
+Log in `ai/sessions/2026/09/30/cards-and-logs/cards-and-logs/whisper/task.jsonl` (this folder). Budget ~$4.

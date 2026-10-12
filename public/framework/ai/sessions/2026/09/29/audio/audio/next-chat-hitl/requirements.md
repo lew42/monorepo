@@ -4,7 +4,7 @@ The owner's words, verbatim: [`owner-words.md`](owner-words.md) (19:35). They ar
 
 ## What already exists (from the audio task, merged with it)
 
-- [`ext/Chat/ChatPanel.js`](/framework/ext/Chat/): one component (log + composer + mic) used by the desktop drawer's AI tab and the mobile ✦ sheet ([`ext/drawer/rail.js`](/framework/ext/drawer/)); starts small, grows to a cap, then scrolls. Reads the universal chat line `{chat:{at, session, path, from, via, text, re?, level?, place?, fix?}}` ([`voice-sessions/design.md`](/framework/ai/2026-09-29/voice-sessions/design.md)); a line with `re` + `level` is a revision drawn under its raw line; `place: {module, id}` draws a content card in the flow; a later line with the same `at` and `fix: true` wins.
+- [`ext/Chat/ChatPanel.js`](/framework/ext/Chat/): one component (log + composer + mic) used by the desktop drawer's AI tab and the mobile ✦ sheet ([`ext/drawer/rail.js`](/framework/ext/drawer/)); starts small, grows to a cap, then scrolls. Reads the universal chat line `{chat:{at, session, path, from, via, text, re?, level?, place?, fix?}}` ([`voice-sessions/design.md`](/framework/ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md)); a line with `re` + `level` is a revision drawn under its raw line; `place: {module, id}` draws a content card in the flow; a later line with the same `at` and `fix: true` wins.
 - [`ux/Dictate/variants/`](/framework/ux/Dictate/): the real sheet embedded live (last round of the audio task).
 - The `naming` skill: cheap parallel brainstorm, then a pick.
 

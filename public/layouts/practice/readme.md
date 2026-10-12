@@ -98,8 +98,8 @@ content. [`doc/naming.md`](/layouts/doc/naming/) is why.
 - [`doc/critique.md`](/layouts/practice/doc/critique/) — the critic's pass: eleven things a
   four-width sweep could not see, at six widths and an 80px wall sweep
 - The measurements: the eight checks × four widths × three layouts are in
-  [the build log](/framework/ai/2026-09-17/practice-layouts/); the six-width re-measure and the
-  80px wall sweep are in [the critic's log](/framework/ai/2026-09-17/practice-critic/)
+  [the build log](/framework/ai/sessions/2026/09/17/practice-layouts/); the six-width re-measure and the
+  80px wall sweep are in [the critic's log](/framework/ai/sessions/2026/09/17/practice-critic/)
 - All three are on the layout wall: [`/layouts/browse/`](/layouts/browse/), Global tier
 - Beside it: [`/layouts/`](/layouts/) the encyclopedia these three cite ·
   [`/layouts/browse/`](/layouts/browse/) every layout on the site, with a verdict button ·

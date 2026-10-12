@@ -2,7 +2,7 @@
 
 You are a Sonnet minion. Load the `minion` skill first. Your parent is task-mastermind-inspect;
 its task dir (full transcript, the owner's raw words) is
-[public/framework/ai/2026-10-01/inspect/](../). Read `../owner-words.md` and `../requirements.md`
+[public/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/](../). Read `../owner-words.md` and `../requirements.md`
 before you start — they're short. This brief is just Part 1 of that; Part 2 (the Dictate
 playground) is a separate minion, after you land.
 
@@ -120,7 +120,7 @@ editing it — tell your parent (task-mastermind-inspect) before touching anythi
 
 ## Land
 
-Own task dir: `public/framework/ai/2026-10-01/inspect/minion-part1/` — open it with `new-task`
+Own task dir: `public/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/minion-part1/` — open it with `new-task`
 before your first edit (parent_task: `public/framework/ai/2026-10-01/inspect`). Log milestones
 and the one decision above as you go. When done, tell task-mastermind-inspect directly
 (`send_to_agent`) with your task dir path — don't wait to be asked.

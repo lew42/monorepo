@@ -1,6 +1,6 @@
 # Minion B — a Reviews view on the Collab scoreboard page
 
-Load the `minion` skill first. Your brief's directory: `public/framework/ai/2026-09-28/review-turns/`
+Load the `minion` skill first. Your brief's directory: `public/framework/ai/sessions/2026/09/28/review-turns/`
 (`requirements.md` there — point 3 is yours: "Is a review useful?"). Worktree:
 `C:\Code\lew42\worktrees\review-turns` (already has `worktree/collab-rounds` merged in, so
 `public/framework/ext/Collab/` exists here — read `Collab.js`, `view.js`, `page.js`, `readme.md`,
@@ -55,5 +55,5 @@ which is true right now).
    and correct (do the arithmetic by hand against the raw JSONL line and check it matches).
 3. Zero console errors, zero failed requests on both loads.
 
-Log your steps in `public/framework/ai/2026-09-28/review-turns/task.jsonl` as you go. Report back to
+Log your steps in `public/framework/ai/sessions/2026/09/28/review-turns/task.jsonl` as you go. Report back to
 the task mastermind when done — don't merge, don't touch files outside `ext/Collab/`.

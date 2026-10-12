@@ -131,7 +131,7 @@ with no shared edge to cut into.
 **Composes with `.block` on purpose.** `:not(.underline):not(.vertical)` is three classes
 against `.tabs.block`'s two, so on a set wearing both, the floor's colours win on every
 overlapping property while `.block`'s type (the `h4` labels) stays untouched — the same
-"whichever is heavier" shape the [proposal](/framework/ai/2026-09-05/paging-mechanisms-v2/ext-tabs-proposal.md)
+"whichever is heavier" shape the [proposal](/framework/ai/sessions/2026/09/05/paging-mechanisms-v2/ext-tabs-proposal.md)
 worked out for its opt-in `.panel`, reused here for a default instead.
 
 **Padding is asymmetric on purpose.** The pre-floor `.tab-panel` was `padding-top: 3em` only —
@@ -166,7 +166,7 @@ with content), and the selected tab's `border-bottom-color` equalled the panel's
 `background-color` every time (`match: true`, all four reads) — `scratchpad/tabs-panel/ui-test-out/steps.json`.
 
 **The reference (`/imagine/paging/paging.css`'s `.paging-tab-panel` etc.) should drop its own
-four classes now that `ext/tabs` matches it** — the [proposal](/framework/ai/2026-09-05/paging-mechanisms-v2/ext-tabs-proposal.md)
+four classes now that `ext/tabs` matches it** — the [proposal](/framework/ai/sessions/2026/09/05/paging-mechanisms-v2/ext-tabs-proposal.md)
 said so and this task agrees. Left undone: two of its three call sites (`demos.js`'s
 `swap_demo()`, `make/tabs.js`'s `tabs_items()`) sit outside this task's fence (only
 `mechanisms/swap/` and `paging.css` itself were open to it), and removing the shared rules

@@ -21,7 +21,7 @@ for:
   whose whole job is "show me the tree and the file I clicked."
 
 The owner's own words: "the panel system... is really cluttered and kind of
-broken... let's strip the panels out." [audit.md](/framework/ai/2026-09-28/file-explorer-fs/minion-a/audit.md)
+broken... let's strip the panels out." [audit.md](/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/minion-a/audit.md)
 has the screenshots.
 
 ## What replaced it

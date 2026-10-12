@@ -1,6 +1,6 @@
 import { Page, div, h2, h3, p, a, img, figure, figcaption, span, md } from "/app.js";
 
-const shots = "/framework/ai/2026-09-04/imagine-review/shots/";
+const shots = "/framework/ai/sessions/2026/09/04/imagine-review/shots/";
 const task = r => "/framework/ai/2026-09-04/imagine-" + r + "/";
 
 /* Container: a column in /imagine/'s columns row. Size: `fill` — eighteen picture cards are a
@@ -196,6 +196,6 @@ export default new Page({
 
 		md(`**Where the rest went.** The 14 proposals are in the reviewers' logs, each with the diff it would apply — the largest are a route for \`doc/*.md\` files so links stop leaving the app, an \`activate()\` lifecycle for default columns, and a card description that stops truncating to one line. They were written up rather than applied because they change \`core/\` or \`ext/\`, which is shared by every page on the site.
 
-The measurements each reviewer worked from are the [layout critique](/imagine/paging/critique/), taken before any of this. The full run — every screenshot, every caveat, every rejected fix — is at [the day's log](/framework/ai/2026-09-04/), and [how this page itself was built](/imagine/review/readme/) is beside it.`);
+The measurements each reviewer worked from are the [layout critique](/imagine/paging/critique/), taken before any of this. The full run — every screenshot, every caveat, every rejected fix — is at [the day's log](/framework/ai/sessions/2026/09/04/), and [how this page itself was built](/imagine/review/readme/) is beside it.`);
 	},
 });

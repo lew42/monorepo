@@ -22,5 +22,5 @@ speak on two cards → two separate assistants answer; the master notes somethin
 
 ## Fence (to be agreed with the siblings; see task.jsonl decisions)
 
-- Design page: `public/framework/ai/2026-09-24/assistant-layers/`, plus one `children:` line in the day's `page.js`.
+- Design page: `public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/`, plus one `children:` line in the day's `page.js`.
 - Code: to be settled with concurrency and card-folders before anything is built.

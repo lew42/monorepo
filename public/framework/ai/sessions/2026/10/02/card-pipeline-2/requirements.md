@@ -12,20 +12,20 @@ The owner's Inbox asks, relayed by vscode-mastermind on 2026-10-02 (verbatim):
 "Don't wait on the owner."
 
 Owner: `mastermind-servex` (the current `mastermind-servex-N`). Card: the card-pipeline card, `2026/10/02/the-card-pipeline-every-major-ask-gets-a` (this is its second half).
-**Starts after** `ai/2026-10-02/card-pipeline/` is committed on michael/dev and Servex has restarted with it: this builds on its `ensure_card()`, `Cards.create_for_ask()`, `paths` and `reason_of()`.
+**Starts after** `ai/sessions/2026/10/03/card-pipeline/card-pipeline/` is committed on michael/dev and Servex has restarted with it: this builds on its `ensure_card()`, `Cards.create_for_ask()`, `paths` and `reason_of()`.
 
 ## Read first
 - The readme chain down to `public/framework/ai2/`; its readme's "The priority score, band by band" is what item 3 replaces.
-- `ai/2026-10-02/card-pipeline/` (the task log and its review findings): what exists now.
+- `ai/sessions/2026/10/03/card-pipeline/card-pipeline/` (the task log and its review findings): what exists now.
 - `Servex/asks/readme.md`: the asks ledger, `paths`, and "Tasks, not just asks" (the `tasks.json` shape).
-- `Server/audit.mjs` + `ai/2026-10-02/task-audit/requirements.md`: the audit that item 1's lines feed.
+- `Server/audit.mjs` + `ai/sessions/2026/10/03/task-audit/task-audit/requirements.md`: the audit that item 1's lines feed.
 
 ## Deliverables (each is ticked against the owner's own sentence above)
 1. **Approve / Unclear on every task card.** Two buttons on the card itself (the `ui` skill for the controls). A press appends one line to the card's own log: `{"verdict":{"by":"owner","is":"approve"|"unclear","note"?}}`. Choose the exact verb with the `naming` skill if this one reads badly. `Server/audit.mjs` reads these lines as ground truth: an `approve` counts as done and good, and an `unclear` sends the task back to its mastermind (one inbox message) to rewrite its description or link the owner's original prompt. Law 6: `ai2/inbox.js` already reads `verdicts.jsonl` for the old Approve/Improve flag. Decide whether that file becomes this record, or a reader of the card lines; log the decision with `Server/decide.mjs`, and keep one record, not two.
 2. **Module cards at the top of the Inbox.** Use `paths` on asks.jsonl landing lines, never a second list. When a task lands, its module (the deepest module dir with a `readme.md`) gets one card: the module's icon, a one-line reason ("Page extends Item landed: 3 commits, $18": counts and dollars computed from git and `spend`/`cost_usd`, law 7), a short list of what was done with the cost of each, and a link to the module page's exact sub-view (a routed URL). One card per module, updated as more lands, not one per landing.
 3. **Plain categories replace the 90+ floor.** Each row gets `category`: `blocking` (needs a decision), `review` (a landed task waiting for Approve), or `fyi`. The Inbox orders by category, then recency. `importance()` in `needs-rule.js` stays internal, used only within a category; no number shows to the owner. The 24-hour "lift into the low 90s" goes. Rewrite the readme's band section to the three categories.
 4. **Titles read "<module>: <outcome>".** Done in `Cards.create_for_ask()` and wherever a task title is minted (task.jsonl line 1 `title`, `spawn_agent`'s task option), by code. Backfill today's open cards by computing each module from `paths`.
-5. **No dictation walls.** A card's first section is the structured summary (asked, status, next step, links); the raw words sit one click down (a `<details>` or a routed "Owner's words" sub-view). Find every card that leads with raw dictation (`ai/2026-10-02/card-pipeline/audit-cards.mjs` is a starting point) and fix the writer, not just the cards.
+5. **No dictation walls.** A card's first section is the structured summary (asked, status, next step, links); the raw words sit one click down (a `<details>` or a routed "Owner's words" sub-view). Find every card that leads with raw dictation (`ai/sessions/2026/10/03/card-pipeline/card-pipeline/audit-cards.mjs` is a starting point) and fix the writer, not just the cards.
 
 6. **`public/framework/ai/modules.json`: the per-module count, one file** (decided by mastermind-servex-10, 2026-10-02, for @task-mastermind-framework-home, whose /framework/ module cards and sidebar "Framework (3)" badge read it). It's written by the same Asks tick that writes `tasks.json`, and only when something changed. It's gitignored like `tasks.json`. The shape is a contract, so don't change it without telling that task:
    ```json

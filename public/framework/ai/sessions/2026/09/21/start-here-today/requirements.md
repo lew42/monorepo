@@ -11,7 +11,7 @@ You are a minion. **Load the `minion` skill first, before touching anything.** M
 
 ## Why this exists
 
-[`ai/2026-09-20/start-here/`](/framework/ai/2026-09-20/start-here/) is the owner's own "what do I
+[`ai/sessions/2026/09/20/start-here/`](/framework/ai/sessions/2026/09/20/start-here/) is the owner's own "what do I
 do first" page, written yesterday. **It is now linked from the V3 head row as "Start here"** — so
 the front door points at it, and it is a day out of date.
 
@@ -21,7 +21,7 @@ do what the page promises.
 ## The corrections — these are measured, use them
 
 **Item 2 is wrong as written.** It says `Stop-Process -Id 34924 -Force`, "then let it come back on
-its own." Today's [`safe-rollout`](/framework/ai/2026-09-21/safe-rollout/) found two things that
+its own." Today's [`safe-rollout`](/framework/ai/sessions/2026/09/21/safe-rollout/) found two things that
 change this:
 - The process that needs restarting is the **supervisor**, whose pid is `supervisor_pid` in
   `public/framework/ai/health/heartbeat.json` (34636 at 18:15 today, but **read it, never
@@ -34,7 +34,7 @@ change this:
 
 **Item 3 is superseded, not wrong.** It points at two separate sets of instructions. There is now
 one consolidated, verified block covering both entries:
-[`ai/2026-09-21/arm-the-hooks/settings-block.md`](/framework/ai/2026-09-21/arm-the-hooks/settings-block.md).
+[`ai/sessions/2026/09/21/arm-the-hooks/settings-block.md`](/framework/ai/sessions/2026/09/21/arm-the-hooks/settings-block.md).
 Point at that instead. Both were driven with real hook payloads today, so "written and ready to
 paste" is now "written, armed on our side, and tested".
 
@@ -45,13 +45,13 @@ untracked paths a fresh one has no V3 in it at all. Proven by running it today.
 **Item 4 is unchanged.** The 22 files still need their decision.
 
 **"What got done since yesterday" is a day behind.** Today landed seven tasks — all in
-[`ai/2026-09-21/`](/framework/ai/2026-09-21/). Read that day's `task.jsonl` files for what each
+[`ai/2026-09-21/`](/framework/ai/sessions/2026/09/21/). Read that day's `task.jsonl` files for what each
 one actually did rather than trusting this list: `ai-front`, `safe-rollout`, `live-select`,
 `v3-ways-out`, `traps-consolidate`, `head-mobile`, `front-door-today`.
 
 ## What to build
 
-**Update the existing page at `public/framework/ai/2026-09-20/start-here/page.js`** — do not make
+**Update the existing page at `public/framework/ai/sessions/2026/09/20/start-here/page.js`** — do not make
 a new one. Its url is linked from the V3 head row and from the handover; a second page would
 split the owner's attention, which is the opposite of what it is for.
 
@@ -100,8 +100,8 @@ wall this repo keeps trying to stop writing.
 
 ## Fences
 
-`public/framework/ai/2026-09-20/start-here/**` and
-`public/framework/ai/2026-09-21/start-here-today/task.jsonl`, plus one append to
+`public/framework/ai/sessions/2026/09/20/start-here/**` and
+`public/framework/ai/sessions/2026/09/21/start-here-today/task.jsonl`, plus one append to
 `public/framework/ai/2026-09-21/day.jsonl`.
 
 ## Length budget

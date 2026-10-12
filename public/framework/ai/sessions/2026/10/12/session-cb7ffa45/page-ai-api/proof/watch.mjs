@@ -1,7 +1,7 @@
 // Watch a page headless and log, with a timestamp, every new line of text it shows.
 // node watch.mjs <url> <seconds> <out.json>   — the proof that a tool call appears live (ai-api.md, "The live proof").
 import fs from "node:fs";
-import { browser, close } from "../../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../../Server/browser.mjs";
 
 const [url, seconds = "180", out = "seen.json"] = process.argv.slice(2);
 const b = await browser();

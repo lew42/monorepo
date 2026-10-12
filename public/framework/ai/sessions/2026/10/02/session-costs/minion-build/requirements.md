@@ -1,7 +1,7 @@
 # Real per-session Claude costs: reader, hook, grid, week view
 
 Budget: $7 (raised from $6 once the owner's role/filter/summary addition folded in — see item 7).
-Load the `minion` skill first. Task dir: `public/framework/ai/2026-10-02/session-costs/`
+Load the `minion` skill first. Task dir: `public/framework/ai/sessions/2026/10/02/session-costs/`
 (read `../requirements.md` there for the owner's full dictated words — this brief is the
 build plan already cut down from it).
 
@@ -159,5 +159,5 @@ mastermind so it can `node Server/merge.mjs <your worktree path> [pages]` into `
 - Headless-check `/framework/ai/sessions/` and one detail route at 1920 (zero console errors)
   before releasing the hold.
 - Commit every file by its exact path (never `-A`). Log a line in THIS task's `task.jsonl`
-  (`public/framework/ai/2026-10-02/session-costs/task.jsonl`) when done, then stop — the task
+  (`public/framework/ai/sessions/2026/10/02/session-costs/task.jsonl`) when done, then stop — the task
   mastermind reviews and lands.

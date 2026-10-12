@@ -17,7 +17,7 @@ Existing pieces to reuse, not duplicate: `icon()` in `core/View/View.js` (span.m
 5. **Every demo at 3 font sizes** (e.g. 14px, 18px, 28px containers) side by side, aligned vertically and horizontally. Add a thin baseline/centre guide toggle if cheap.
 6. Keep new CSS minimal: a few classes in the `ui` scope (check `css-scopes.txt`), inside a CSS layer. Don't break existing `.icon` users: extend, don't rename. Keep v1 reachable (current `.icon` unchanged in behaviour for inline use).
 7. `readme.md` + `doc/icons.md` (the rules: when to frame, which class for what) + `page.js` shown, not told.
-8. Screenshots: `node Server/layout-check.mjs http://127.0.0.1:63467/framework/ui/icon/ --widths 400,1920`, run from the worktree; save into `public/framework/ai/2026-09-30/icon-system/build/` in the MAIN tree (that dir only). Look at them and fix any misalignment.
+8. Screenshots: `node Server/layout-check.mjs http://127.0.0.1:63467/framework/ui/icon/ --widths 400,1920`, run from the worktree; save into `public/framework/ai/sessions/2026/09/30/icon-system/icon-system/build/` in the MAIN tree (that dir only). Look at them and fix any misalignment.
 9. Commit in the worktree. Append a summary `log` line to your task.jsonl, then end your turn and wait: the mastermind will send you the audit's worst offenders to migrate.
 Every process you start uses `windowsHide: true`. Stop any server you start.
 

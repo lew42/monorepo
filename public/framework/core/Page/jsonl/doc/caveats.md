@@ -10,7 +10,7 @@ One line each. Every one of these was either measured or found while building th
    rule:** only ever append a line to a `page.jsonl`. Never read the whole file, change
    something, and write it back — that includes "just fixing one line by hand" in an
    editor. Full numbers:
-   [`ai/2026-09-19/model-latency/task.jsonl`](/framework/ai/2026-09-19/model-latency/).
+   [`ai/sessions/2026/09/19/model-latency/task.jsonl`](/framework/ai/sessions/2026/09/19/model-latency/).
 
 2. **Latest line wins, one key at a time — except the keys that accumulate.** Two lines that
    name the same `file`, or set the same `layout`, or call the same method — the second one

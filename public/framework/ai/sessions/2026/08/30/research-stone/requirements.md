@@ -31,7 +31,7 @@ Verbatim ask (research round 1, PRECISELY CARVED STONE of ancient origin):
 
 ## Scope / ownership
 - Files owned: `public/imagine/research/stone/**` only.
-- `public/framework/ai/2026-08-30/research-stone/**` (this task's own log).
+- `public/framework/ai/sessions/2026/08/30/research-stone/**` (this task's own log).
 - Read-only elsewhere.
 
 ## Steps

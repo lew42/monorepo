@@ -1,6 +1,6 @@
 # Decisions — the record
 
-Rebuilt 2026-09-05 (`/framework/ai/2026-09-05/paging-v3/`), then fixed the same day after
+Rebuilt 2026-09-05 (`/framework/ai/sessions/2026/09/05/paging-v3/`), then fixed the same day after
 two more critics read it (`.../paging-fix-2/`). The record below is from 2026-09-04 and
 earlier, kept because most of its traps are still live. Every verdict here is revisable;
 the ⚠ ones were found by measuring rather than by thinking.
@@ -9,7 +9,7 @@ the ⚠ ones were found by measuring rather than by thinking.
 
 # 2026-09-05, the fifth fix pass — the three closed things opened
 
-Two critics went round for a fifth time (`/framework/ai/2026-09-05/paging-audit-5/` and
+Two critics went round for a fifth time (`/framework/ai/sessions/2026/09/05/paging-audit-5/` and
 `.../paging-audit-5b/`). Both closed on the same shape of defect, and it is worth naming because
 the realm produced it four rounds running: **a control that writes a key something reads only
 sometimes, with nothing on screen saying which.**
@@ -87,7 +87,7 @@ have made that two exceptions. Two questions, two flags, no exceptions.
 # 2026-09-05, later — the fix pass
 
 Two critics went back over the rebuild: a newcomer at 1280 and 3440
-(`/framework/ai/2026-09-05/paging-audit-2/`) and a designer reading the code
+(`/framework/ai/sessions/2026/09/05/paging-audit-2/`) and a designer reading the code
 (`.../paging-audit-2b/`). They found four things broken, and this is what was done.
 
 ## A control may not cover the thing it controls
@@ -198,7 +198,7 @@ arrangement pair is **Panel left / Panel right**.
 # 2026-09-05 — the rebuild
 
 Two critics walked the realm first: an overwhelmed newcomer at 3440
-(`/framework/ai/2026-09-05/paging-audit-1/`) and a systems designer reading the code
+(`/framework/ai/sessions/2026/09/05/paging-audit-1/`) and a systems designer reading the code
 (`.../paging-audit-1b/`). Their two verdicts are the input to everything below.
 
 ## The handful — six building blocks, and nothing else
@@ -363,7 +363,7 @@ card (the layout skill's "every track needs a floor and a ceiling").
 
 # The record before 2026-09-05
 
-Built 2026-09-04 (`/framework/ai/2026-09-04/paging-core/`). Most of the traps below are
+Built 2026-09-04 (`/framework/ai/sessions/2026/09/04/paging-core/`). Most of the traps below are
 still live; the pages some of them name were merged or deleted in the rebuild above.
 
 ## ⚠ The layout axis derives its default from the page's own `width`
@@ -478,7 +478,7 @@ background on the OUTER column body, not on `.paging-box`, so `inside` vs `outsi
 still a real, measurable difference (`.paging-box`'s rect either contains the toolbar's or it
 doesn't), just a quiet one. Confirmed by reading both rects back with Playwright, not by
 looking: all four `-inside` values reported `contained: true` against `.paging-box`, all four
-`-outside` values `false`, at 1280 and 3440 (`/framework/ai/2026-09-04/paging-toolbars/shots/`).
+`-outside` values `false`, at 1280 and 3440 (`/framework/ai/sessions/2026/09/04/paging-toolbars/shots/`).
 
 **Left/right toolbars restack rather than wrap.** `.paging-side-left/right .paging-toolbar`
 switches the toolbar itself to `flex-direction: column` — each axis GROUP still wraps its own
@@ -795,7 +795,7 @@ declares `border-top: none`.
 `@layer theme`, and `paging.css` is in the same layer — joining a panel to it would mean
 out-specifying another module's sheet from ours, and every future edit there would silently
 land here. The site-wide version is written as a proposal, with the diff, in
-[the task log](/framework/ai/2026-09-05/paging-mechanisms-v2/); nothing in `ext/` was touched.
+[the task log](/framework/ai/sessions/2026/09/05/paging-mechanisms-v2/); nothing in `ext/` was touched.
 
 Used in three places, so the shape is one thing: the hub's swap miniature, the `tabs` visual on
 `mechanisms/swap/`, and a made page whose children are tabs.
@@ -902,7 +902,7 @@ Headless, 2026-09-05, against a private server:
   `["Today", "Later", "New tab"]` → `["Later", "Today", "New tab"]` in the file's `children`.
 - Zero console errors on the hub and all four mechanism pages at 400 / 1280 / 1920 / 3440.
 
-## Navigation is categorized: stable or dynamic (2026-09-05, `ai/2026-09-05/nav-stability/`)
+## Navigation is categorized: stable or dynamic (2026-09-05, `ai/sessions/2026/09/05/nav-stability/`)
 
 **Stable navigation is navigation where the thing you were reading does not move.** Dynamic
 navigation is navigation where something moves — a column appears and the row reflows, a
@@ -1181,7 +1181,7 @@ duplicates a line of `ext/grip`'s or `ext/drawer`'s own code. A sibling rule wid
 outranks a stylesheet rule regardless of the query.
 
 Checked: `ui-test` on both the stale-drawer fix and the default-tab star (proof in
-`ai/2026-09-05/paging-fix-8/`); the drawer shot at 1280 and 3440; 109 pages × 400 / 1280 / 1920
+`ai/sessions/2026/09/05/paging-fix-8/`); the drawer shot at 1280 and 3440; 109 pages × 400 / 1280 / 1920
 / 3440 = 436 cold loads with one console error per width, the known `readme/page.js` probe
 404; `made/` byte-identical to baseline by git diff after every test.
 
@@ -1295,7 +1295,7 @@ address, and the words describe THAT page.**
   changed; with a child open the dropdown edits that child, and the root keeps its word and its
   address. A child INHERITS the root's content word until you set one on it, which is why
   clicking Overview no longer changes what kind of thing is in the box. Nine steps of `ui-test`
-  in `ai/2026-09-06/graduate-3/`.
+  in `ai/sessions/2026/09/06/graduate-3/`.
 - ⚠ **Not in a nested stage.** An `inner` stage is a picture of a page — 49 of them on
   `/cross/` — and five content samples in each of 49 cells buys nothing a reader can see at
   208px.
@@ -1407,7 +1407,7 @@ The owner, that evening: *"neither the panel nor playground system did a great j
 manipulating the elements in a simple intuitive way. The number of controls in the toolbar
 became way too many. Maybe we put everything in the right sidebar, and only have a selection
 scheme?"* Every page under `/imagine/paging/` was pressed headless at 400, 1280, 1920 and
-3440 (`/framework/ai/2026-09-17/paging-fix/`). Nothing was broken — no console errors, no
+3440 (`/framework/ai/sessions/2026/09/17/paging-fix/`). Nothing was broken — no console errors, no
 404s, no horizontal overflow, nothing persisted — so what follows is about what a stranger
 sees, not about what runs.
 
@@ -1515,7 +1515,7 @@ columns*, with a link to the study that measured the alternative
 # 2026-09-18, the spacing ladder — 20 of paging.css's 100 raw numbers became a token
 
 `paging.css` carried 131 of the site's 1,894 hand-typed spacing numbers, 1.7× the next-worst
-file (the census: [`ai/2026-09-17/spacing-census/`](/framework/ai/2026-09-17/spacing-census/)).
+file (the census: [`ai/sessions/2026/09/17/spacing-census/`](/framework/ai/sessions/2026/09/17/spacing-census/)).
 The design system's ladder ([`/framework/styles/system/`](/framework/styles/system/)) says a
 spacing value is a token or a rung, never a raw number, except a control's own padding, which
 stays `em`. Every one of the 131 rows was reclassified by hand; **20 raw numbers became a rung
@@ -1549,4 +1549,4 @@ reverting to the control's own `em` rather than by inventing a new rule:
 paging hub, `templates/blog/`, `mechanisms/swap/` and `make/`, each at 1280 and 3440 — **0.000%
 of pixels differ, on every one of the eight shots**, zero console errors. The census's own
 before/after table for this file, and the reasoning behind each of the 131 rows, is logged in
-[`ai/2026-09-18/paging-ladder/task.jsonl`](/framework/ai/2026-09-18/paging-ladder/).
+[`ai/sessions/2026/09/18/paging-ladder/task.jsonl`](/framework/ai/sessions/2026/09/18/paging-ladder/).

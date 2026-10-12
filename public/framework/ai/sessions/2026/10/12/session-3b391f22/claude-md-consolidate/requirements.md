@@ -2,7 +2,7 @@
 
 **Owner (2026-10-12):** CLAUDE.md is too long (~4,100 words, ~5,700 tokens paid by every session), and rules added one correction at a time may conflict or be worded too strongly. Consolidate for clarity, **but nothing useful may be lost**: a tip that does not belong in CLAUDE.md moves to where it belongs (a module readme, a `doc/`, a skill), it is never just deleted. The owner cannot judge each line, so the process must be safe by construction. Do not wait on the owner: they may not read chat.
 
-Inputs: `ai/2026-10-09/system-architect/claude-md-proposal.md` (a 1,172-word draft, never applied), `ai/2026-10-12/skill-usage-audit/recommendation.md`.
+Inputs: `ai/sessions/2026/10/09/session-a07780b9/system-architect/claude-md-proposal.md` (a 1,172-word draft, never applied), `ai/sessions/2026/10/12/session-b5cae4be/skill-usage-audit/recommendation.md`.
 
 ## Do
 1. **Sentence manifest, by script:** split current CLAUDE.md into sentences/rules with ids; for each, a row: keep (in CLAUDE.md) / move (to a named file, with the anchor) / merge (into which kept rule) / retire (only for a rule about a system that no longer exists, and it still goes to an archive file). Every sentence appears in exactly one row. A check script proves zero sentences are dropped: every one is in the new CLAUDE.md, in its destination file, or in `ai/doc/claude-md-archive.md`.

@@ -8,7 +8,7 @@ Three pages under /framework/ai/ (as Systems once @task-mastermind-system-class 
 - **git:** gather what's already decided (merge.mjs and review gate, worktrees and the pool, commit by exact path, integrations as their own commits, never delete in main, the git-guard hook).
 - **context:** gather what we've learned (whole-file vs chunked reads cost, compaction behaviour, fresh agent vs reuse, big text by hook or path, transcripts kept 10 years).
 - **cost:** gather the spend rules (usage pace, spend follows results, $2 to first result, the OpenRouter guard and prices, thinkers vs doers), and link to the Sessions cost charts and the Models page for model prices.
-Sources: CLAUDE.md, .claude/skills/mastermind, Servex/readme.md, the memory notes the mastermind can point you to, ai/2026-10-02/token-reduction and model-weights briefs.
+Sources: CLAUDE.md, .claude/skills/mastermind, Servex/readme.md, the memory notes the mastermind can point you to, ai/sessions/2026/10/02/token-reduction and model-weights briefs.
 
 ## Fence
 Three new page folders under public/framework/ai/ and the children line that links them (coordinate with system-class, which is editing ai/page.js). Model: Sonnet doer. Budget $6.

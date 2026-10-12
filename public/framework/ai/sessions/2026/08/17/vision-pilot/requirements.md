@@ -12,4 +12,4 @@ can compare the same image across models.
 - `prompts.json` — every prompt used, verbatim, so the run reads on its own.
 - `shots/` — the pngs. Gitignored (`public/framework/ai/**/shots/`); the dev server serves them.
 
-Browse it at [/framework/ext/DesignTool/vision/?run=/framework/ai/2026-08-17/vision-pilot/](/framework/ext/DesignTool/vision/?run=/framework/ai/2026-08-17/vision-pilot/).
+Browse it at [/framework/ext/DesignTool/vision/?run=/framework/ai/sessions/2026/08/17/vision-pilot/](/framework/ext/DesignTool/vision/?run=/framework/ai/sessions/2026/08/17/vision-pilot/).

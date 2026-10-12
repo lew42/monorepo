@@ -86,7 +86,7 @@ change it; `Server/health.mjs` belongs to someone else tonight.
 
 ## Fences
 
-You own `public/framework/ai/2026-09-19/health-triage/**`, may add one line to the day page's
+You own `public/framework/ai/sessions/2026/09/19/health-triage/**`, may add one line to the day page's
 `children:`, and may append to its `day.jsonl`. Nothing else, anywhere.
 
 Two sibling minions are editing `public/framework/ai/v/3/**` and

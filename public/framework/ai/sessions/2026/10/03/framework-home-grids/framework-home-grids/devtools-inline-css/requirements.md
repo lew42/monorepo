@@ -4,9 +4,9 @@ You are a minion. Load the `minion` skill first. Work in the worktree at
 `C:\Code\lew42\worktrees\framework-home-grids` (branch `worktree/framework-home-grids`, its
 own dev server already running — ask your parent for the port if you need it).
 
-Parent task dir: `public/framework/ai/2026-10-03/framework-home-grids/requirements.md`. Log
+Parent task dir: `public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids/requirements.md`. Log
 your steps in
-`public/framework/ai/2026-10-03/framework-home-grids/devtools-inline-css/task.jsonl` (create
+`public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids/devtools-inline-css/task.jsonl` (create
 it).
 
 ## The owner's words

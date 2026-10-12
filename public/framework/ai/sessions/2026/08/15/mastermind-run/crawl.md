@@ -13,9 +13,9 @@ BFS from `/framework/` and `/notes/`, deduped, capped at 150. Sandbox dirs
 | url | symptom | first-seen guess |
 |---|---|---|
 | `/framework/ai/` | pageerror: `m.agents?.filter is not a function` | **TONIGHT** |
-| `/framework/ai/2026-08-15/mastermind-run/` | same pageerror ×2 | **TONIGHT** |
-| `/framework/ai/2026-08-15/mastermind-skill/` | same pageerror ×2 | **TONIGHT** |
-| `/framework/ai/2026-08-15/layout-overnight/` | same pageerror ×2 | **TONIGHT** |
+| `/framework/ai/sessions/2026/08/15/mastermind-run/` | same pageerror ×2 | **TONIGHT** |
+| `/framework/ai/sessions/2026/08/15/mastermind-skill/` | same pageerror ×2 | **TONIGHT** |
+| `/framework/ai/sessions/2026/08/15/layout-overnight/` | same pageerror ×2 | **TONIGHT** |
 | `/framework/ext/markdown/` | console 404 on `does-not-exist.md` | pre-existing, by design — page.js:44 demos the missing-file 404 branch; module untouched tonight (last edit 13:52) |
 
 ## Regression traceable to tonight — loud flag

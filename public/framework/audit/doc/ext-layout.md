@@ -17,7 +17,7 @@ questions, is now three linked breakouts plus a one-screen summary.
 |---|---|
 | files | 8 (`layout.js`, `panel.js`, `body.js`, `words.js`, `controls.js`, `layout.css`, `page.js`, `readme.md`) |
 | lines of JS / CSS | 367 implementation + 103 doc page (page.js) / 141 |
-| callers | 7 framework-proper: `web/layout/flex,grid,flow` (guide pages), `styles/layouts/word.js`, `styles/sections/tone.js`, `ext/Panel/workspace.js`, `ext/editor/page.js` — plus 6 historical prototypes under `ai/2026-08-08`, `ai/2026-08-12/apps/*`, `ai/2026-08-14/editor-panel-review` that predate the current shape |
+| callers | 7 framework-proper: `web/layout/flex,grid,flow` (guide pages), `styles/layouts/word.js`, `styles/sections/tone.js`, `ext/Panel/workspace.js`, `ext/editor/page.js` — plus 6 historical prototypes under `ai/2026-08-08`, `ai/sessions/2026/08/12/apps/*`, `ai/2026-08-14/editor-panel-review` that predate the current shape |
 | docs before | `readme.md` existed, thorough but one unbroken ~170-line Decisions section; `page.js` was a plain `Page`, no `subject`/`methods`/`properties`/`notes`/`files`; **0** `doc/*.md` files |
 | docs after | `page.js` rebuilt as `new Doc({ subject: layout, methods: "bar context", properties: "words", notes: "vocabulary drawer selection controls", files: … })`; `readme.md` cut to one screen with three linked breakouts + a new "Who uses this" table; **16** new `doc/*.md` (4 notes, 2 method, 1 property, 8 file) |
 

@@ -82,7 +82,7 @@ The question above ("what I'd check") was run for real, with a live tool call, n
   background service) so its stderr is actually visible, send the same plain-chat request to
   `qwen2.5-fixed`, and read the real error instead of guessing. The template's own closing tag
   sequence (`{{ end }}</tool_call>{{ end }}`) is a plausible suspect, untested.
-- Full detail: `public/framework/ai/2026-10-01/local-ai/build/task.jsonl`, entries around
+- Full detail: `public/framework/ai/sessions/2026/09/24/servex-mastermind-opus/local-ai/build/task.jsonl`, entries around
   2026-10-01 21:05–21:35.
 
 ## 5. Unknowns — looked for and didn't find

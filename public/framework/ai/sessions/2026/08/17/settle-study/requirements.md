@@ -1,6 +1,6 @@
 # settle-study
 
-Dispatched by the `mastermind-layout` run (`ai/2026-08-16/mastermind-layout/`)
+Dispatched by the `mastermind-layout` run (`ai/sessions/2026/08/16/mastermind-layout/`)
 as a minion task. Verbatim ask:
 
 > How many of this site's audit findings are facts about the delay?
@@ -11,7 +11,7 @@ as a minion task. Verbatim ask:
 > least two `ai/` pages. Measure each at 350ms/1000ms/3000ms, 3 runs each, at
 > 1280. Record score, grade, counts.high, metrics.nodes, and which rules
 > fire per page per delay. Write the report to
-> `ai/2026-08-16/mastermind-layout/settle.md`.
+> `ai/sessions/2026/08/16/mastermind-layout/settle.md`.
 
 Fence: write only `settle.md`, this task dir, and the scratchpad. No source
 file, `page.js`, JSON baseline (`audit/findings.json`) or readme may change —
@@ -34,4 +34,4 @@ measuring only.
    dispatch brief itself.
 6. Analyze: per-row survival at 3000ms, rule-level settle-sensitivity,
    node-count trend, cost/benefit of a wait-for-quiet fix.
-7. Write `ai/2026-08-16/mastermind-layout/settle.md`.
+7. Write `ai/sessions/2026/08/16/mastermind-layout/settle.md`.

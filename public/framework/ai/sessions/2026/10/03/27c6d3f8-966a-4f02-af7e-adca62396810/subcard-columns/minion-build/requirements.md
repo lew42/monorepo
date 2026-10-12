@@ -4,7 +4,7 @@ Load the `minion` skill first. Worktree: `C:\Code\lew42\worktrees\subcard-column
 (branch `worktree/subcard-columns`, dev server already running at
 `http://subcard-columns.localhost/`, port 52660 — do not start another server).
 Task dir (read-only context, your own log goes in this folder):
-`public/framework/ai/2026-10-03/subcard-columns/` — read `requirements.md` there for the
+`public/framework/ai/sessions/2026/10/03/27c6d3f8-966a-4f02-af7e-adca62396810/subcard-columns/` — read `requirements.md` there for the
 owner's own words (verbatim) before you start. This file is your fence and build plan.
 
 ## The owner's ask, verbatim (also at the task dir's requirements.md)
@@ -58,7 +58,7 @@ Follow-up, same day, which decides the exact shape:
   would entangle two systems that don't need to know about each other (CLAUDE.md law 6 cuts
   both ways: reuse what fits, don't force-fit what doesn't). The decision to use 2 fixed
   equal columns + a breadcrumb, built directly in `ux/Card`, is this task's own — logged in
-  `public/framework/ai/2026-10-03/subcard-columns/task.jsonl` as a `decision` line.
+  `public/framework/ai/sessions/2026/10/03/27c6d3f8-966a-4f02-af7e-adca62396810/subcard-columns/task.jsonl` as a `decision` line.
 
 ## The architecture to build (this is the plan — implement it, don't redesign it)
 
@@ -123,8 +123,8 @@ flex row that accumulates one box per open level, in order, oldest first). Concr
   rely on.
 - `public/framework/ai2/rail.js` — only if something there truly must change for this to
   route; read it first, most likely you won't need to touch it.
-- `public/framework/ai/2026-10-03/subcard-columns/minion-build/` — your own log
-  (`task.jsonl`, same shape as any task log — see `public/framework/ai/2026-10-03/subcard-columns/task.jsonl`
+- `public/framework/ai/sessions/2026/10/03/27c6d3f8-966a-4f02-af7e-adca62396810/subcard-columns/minion-build/` — your own log
+  (`task.jsonl`, same shape as any task log — see `public/framework/ai/sessions/2026/10/03/27c6d3f8-966a-4f02-af7e-adca62396810/subcard-columns/task.jsonl`
   for the parent's log as a model) and this requirements file.
 - **Never** `core/Page/`, `ai2/inbox.js`, `ai2/faces.js`, or anything under
   `imagine/paging/` — out of scope, and `core/Page` columns is a separate system (see above).

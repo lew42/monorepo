@@ -16,7 +16,7 @@ its "no callers" problem all in one move.
 |---|---|
 | files | 4 source (`History.js`, `blocks.js`, `editor.css`, `page.js`) + `readme.md` |
 | lines of JS / CSS | ~445 / 42 (`page.js` 318, `History.js` 47, `blocks.js` 38) |
-| callers | **0.** Nothing outside the directory imports `History`, `Block`/`Section`/`Grid`/`Card`/`Text`, or `BLOCKS`; `editor()` in `page.js` isn't exported. The only integration is `framework/ext/page.js`'s `children: "… editor …"`, which makes it a route. (One grep near-miss: `ai/2026-08-12/apps/page.js` imports an unrelated same-named `editor` from its own sandbox — not this module.) |
+| callers | **0.** Nothing outside the directory imports `History`, `Block`/`Section`/`Grid`/`Card`/`Text`, or `BLOCKS`; `editor()` in `page.js` isn't exported. The only integration is `framework/ext/page.js`'s `children: "… editor …"`, which makes it a route. (One grep near-miss: `ai/sessions/2026/08/12/apps/page.js` imports an unrelated same-named `editor` from its own sandbox — not this module.) |
 | docs before | `readme.md` present and unusually good (design record, traps, verdicts, open items) but 3 screens, not 1 — see below. `page.js` was a plain `Page`, not a `Doc`: zero `doc/*.md` files, no Files/API/Docs tabs, no browsable member list. `classdoc` not referenced anywhere (nothing to fix there). |
 | docs after | `page.js` → `Doc` (`subject: History`, 8 methods, 2 properties, `notes: "shell"`, `files:` all 4 source files). 8 `doc/method/*.md`, 2 `doc/property/*.md`, 4 `doc/file/*.md`, 1 `doc/shell.md` (breakout), `readme.md` trimmed to one screen with a new "Who uses it" section and the shell deep-dive moved out. |
 
@@ -58,7 +58,7 @@ its "no callers" problem all in one move.
    outside this directory (`ext/page.js`, `ext/Panel/page.js`'s one link label,
    `ext/DesignTool/audit/pages.js`, `core/Item/readme.md`) plus the Windows
    two-step directory rename trap already documented. **medium, important — already
-   proposed and scoped in [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/),
+   proposed and scoped in [Editor × Panel review](/framework/ai/sessions/2026/08/14/editor-panel-review/),
    waiting on "propose, wait"**
 3. **Fix "opening the page writes the document."** *Claim:* `editor()` ends
    with `changed()`, called only so the status badge has something to read;

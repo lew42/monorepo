@@ -13,7 +13,7 @@ import { progress } from "/framework/ext/AITask/stats.js";
  * progress bar makes no sense." So the bar is a few characters wide and always carries its
  * count in words, and the money says "spent", because there is no budget for it to fill.
  * A card with nothing counted and nothing spent draws nothing at all: no empty bar, no
- * "no cost yet" (ai2-lead audit, ai/2026-09-25/ai2-lead/audit.md).
+ * "no cost yet" (ai2-lead audit, ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/audit.md).
  *
  * `Meter.progress_of()` answers `{ pct, live, done, total }`; `Meter.meter()` draws it.
  */

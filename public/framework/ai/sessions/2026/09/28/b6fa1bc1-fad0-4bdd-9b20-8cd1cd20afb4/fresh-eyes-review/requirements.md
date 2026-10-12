@@ -1,6 +1,6 @@
 # Fresh-eyes review, built into every task
 
-Card: `2026/09/28/fresh-eyes-review-built-into-every-task`. Owner's words: `ai/2026-09-28/harness-research/owner-words.md` (the paragraph that starts "by the way, you can tell the Servex mastermind to build into the system, the task system, a review process").
+Card: `2026/09/28/fresh-eyes-review-built-into-every-task`. Owner's words: `ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/owner-words.md` (the paragraph that starts "by the way, you can tell the Servex mastermind to build into the system, the task system, a review process").
 
 ## The idea, in one sentence
 

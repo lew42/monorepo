@@ -20,10 +20,10 @@ export default new Page({
 
 		md(`| | the shape | the claim it tests |
 |---|---|---|
-| [Editor](/framework/ai/2026-08-12/apps/editor/) | layers · canvas · properties | a properties panel can be **\`ext/layout\`'s own controls in a box** — one vocabulary, not a second one |
-| [Panes](/framework/ai/2026-08-12/apps/panes/) | recursive splits, drag to resize | a Blender pane system is four lines, because \`flex\` already nests |
-| [Columns](/framework/ai/2026-08-12/apps/columns/) | Miller columns | \`children\` **is** the data, \`$pages\` is the next column, and \`container()\` walks to it |
-| [Navigation](/framework/ai/2026-08-12/apps/navigation/) | rail vs wall vs columns | one tree, three arrangements, switchable — so the trade is felt rather than argued |`).ac("wide");
+| [Editor](/framework/ai/sessions/2026/08/12/apps/editor/) | layers · canvas · properties | a properties panel can be **\`ext/layout\`'s own controls in a box** — one vocabulary, not a second one |
+| [Panes](/framework/ai/sessions/2026/08/12/apps/panes/) | recursive splits, drag to resize | a Blender pane system is four lines, because \`flex\` already nests |
+| [Columns](/framework/ai/sessions/2026/08/12/apps/columns/) | Miller columns | \`children\` **is** the data, \`$pages\` is the next column, and \`container()\` walks to it |
+| [Navigation](/framework/ai/sessions/2026/08/12/apps/navigation/) | rail vs wall vs columns | one tree, three arrangements, switchable — so the trade is felt rather than argued |`).ac("wide");
 
 		h2("A properties panel, in a box");
 
@@ -35,7 +35,7 @@ export default new Page({
 
 		demo.stage(panes).ac("bleed");
 
-		md("`[\"row\", \"Outline\", [\"col\", \"Canvas\", \"Timeline\"], \"Properties\"]` — a spec, and a four-line builder that reads it. A split is a `flex` row (or a `flex v` column) whose children each take `1 1 0`; a divider is a child that takes none, and drags pixels between its two neighbours. [Split](/framework/ai/2026-08-12/apps/panes/split/) is the same builder over a tree the reader edits: → cuts a pane beside itself, ↓ below it, ✕ closes it.");
+		md("`[\"row\", \"Outline\", [\"col\", \"Canvas\", \"Timeline\"], \"Properties\"]` — a spec, and a four-line builder that reads it. A split is a `flex` row (or a `flex v` column) whose children each take `1 1 0`; a divider is a child that takes none, and drags pixels between its two neighbours. [Split](/framework/ai/sessions/2026/08/12/apps/panes/split/) is the same builder over a tree the reader edits: → cuts a pane beside itself, ↓ below it, ✕ closes it.");
 
 		h2("What the framework was missing");
 
@@ -66,7 +66,7 @@ export default new Page({
 
 		md("**Untested: touch.** The pane dividers use pointer capture, which works, but a 0.4em grip is under the 44px target every touch guideline asks for. The stage's own handle has the same problem, so this is the framework's question rather than these pages'.");
 
-		md("**Nothing here declares a new block, and one landed anyway:** [Panes](/framework/ai/2026-08-12/apps/panes/) got its **Variants** wall for free the moment the sibling session taught `demo.exhibit()` to read `page.children` — `children: \"split\"` was already declared. Four families, one card system, and the simple-to-complex tree the brief asked for is the tree.");
+		md("**Nothing here declares a new block, and one landed anyway:** [Panes](/framework/ai/sessions/2026/08/12/apps/panes/) got its **Variants** wall for free the moment the sibling session taught `demo.exhibit()` to read `page.children` — `children: \"split\"` was already declared. Four families, one card system, and the simple-to-complex tree the brief asked for is the tree.");
 
 		md.details(import.meta, "readme.md", "Design record — the calls behind these four");
 	},

@@ -31,7 +31,7 @@ Private server `PORT=8139 node server.js` (background; it is supervised now — 
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/devbar-chat/`); `code`, `css`, `ui-test`, `documentation`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/devbar-chat/`); `code`, `css`, `ui-test`, `documentation`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `public/framework/dev/DevBar/**`, `Server/plugins/AILogs.js`, `public/framework/ext/AITask/conversation.js` (only if reuse needs a seam — a sibling, `ai-v2`, reads but does not edit it), `public/framework/styles/css-scopes.txt` (if you add a prefix; re-read right before the edit), `Server/README.md` (one line), your task dir. Not `Server/run.js` (a sibling is adding a line to it right now), not `ext/Ask/**`, not `core/**`.
 - The dev bar is on EVERY page of the owner's live site: a hook checks every `.js` write parses and stops you if it does not — fix at once; never put a backtick inside a comment inside a `css()` template; load a page headless after every edit to `DevBar.js` or `tools.js`.
 - **Never kill or restart the owner's dev server (port 80, PID 31028) or the mastermind's (8123), never stop whisper-server (PID 35172), never drive the owner's tabs, never write under `~/.claude/`.** Never `git stash`, never `find /`. Write files with the Write or Edit tool, never a bash heredoc. Do not write the owner's name anywhere — and transcripts contain it and their email: nothing from a transcript is ever written into the repo (no fixtures, no shots with real prompt text beyond this run's own).

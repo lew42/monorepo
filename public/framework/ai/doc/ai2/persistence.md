@@ -14,7 +14,7 @@ nobody has to decide how to break a JSONL into files."* This is the one-screen a
 | `ext/Saver` (`FileSaver`) | one JSON document | any path, over the dev socket's `rpc:write` | `fetch(path)` — dev only, warns and no-ops off localhost |
 | `core/Page` `data:`/`page.json` | a page's title, icon, children, and anything else | `<dir>/page.json`, one file | fetched once, lazily, the first time a child is asked for — **a directory with only a `page.json` is already a real page, no `page.js` required** |
 | `ai/2026-09-13` **Make** (fs-backed pages) | a tree of pages, each a directory | one `page.json` per directory, nested however deep the tree goes | the same `data:`/`children()`-as-function seam above; "never persist silently" — a save is a real click, not a timer |
-| Item/List/Saver stack (`ai/2026-08-13/persistence/`) | one item's fields | `Saver` (`FileSaver` in dev) | on demand, per item |
+| Item/List/Saver stack (`ai/sessions/2026/08/13/persistence/`) | one item's fields | `Saver` (`FileSaver` in dev) | on demand, per item |
 | `Server/plugins/SocketServer/Append.js` | **append-only lines**, never a whole document | any `.jsonl` under `public/`, one `fs.appendFileSync` per call | `Tail`'s own streaming reader, line by line |
 | Servex's `Log` (`Servex/Log.js`) | **append-only lines**, one writer, one process | `%LOCALAPPDATA%/lew42/servex/logs/<name>.jsonl` — outside the repo, outside git, growing forever | `GET /log/<name>` (backlog) + `EventSource /api/stream` (live) |
 
@@ -56,5 +56,5 @@ sit beside it, loaded the same way every other data page on the site already loa
 ## More
 
 - [`FileSaver`](/framework/ext/Saver/) · [`data:`/`page.json`](/framework/core/Page/doc/data.md) · [`Append.js`](/framework/Server/plugins/SocketServer/Append.js)
-- [decision `card-storage`](/framework/ai/2026-09-22/mastermind-servex/) and its amendment `card-storage-2`
+- [decision `card-storage`](/framework/ai/sessions/2026/09/22/e2b82220-72fd-4fec-b8a6-5f985c9cbefa/mastermind-servex/) and its amendment `card-storage-2`
 - [`doc/decisions.md`](./decisions.md) — this task's own decisions, with the alternative named

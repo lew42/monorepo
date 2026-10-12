@@ -57,7 +57,7 @@ const ai_dir = dir => dir?.files?.find(f => f.name === "ai")?.children ?? [];
 const kids_of = day => (day.children ?? []).filter(kid => kid.type === "dir");
 
 /* Per-day file listing, from directory.json. Two tiers: warm() (async, fired
-   at module-eval time by ai/page.js and ai/2026-08-17/page.js, plus again by
+   at module-eval time by ai/page.js and ai/sessions/2026/08/17/page.js, plus again by
    dashboard()) usually wins the race for an in-app click. A COLD deep link —
    The owner opening a task url straight in VS Code's Simple Browser — has no head
    start at all, so route() cannot just guess: has_page_js() below blocks with

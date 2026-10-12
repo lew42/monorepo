@@ -42,7 +42,7 @@ export default function devbar(a){
 
 				// The WRITER's hold, read-only: "held by <who>, <n>s" whenever an agent has
 				// taken Server/hold.mjs, and an empty hidden span the rest of the time.
-				// ⚠ hold.js was written for ai/2026-09-19/reload-hold/ and this call was
+				// ⚠ hold.js was written for ai/sessions/2026/09/19/reload-hold/ and this call was
 				// never added, so the readout had never once appeared on screen. Found and
 				// wired 2026-09-22 (reload-rethink).
 				hold();

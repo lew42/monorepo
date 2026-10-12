@@ -1,6 +1,6 @@
 # Taste corpus — does the rulebook agree with an obvious right answer?
 
-Follow-up to [`layout-generator-rules`](../layout-generator-rules/), same effort
+Follow-up to [`layout-generator-rules`](../layout-generator-rules), same effort
 (`group: layout`). Mike's standing instruction for that run: *don't stop, keep
 working through this and the next usage window.*
 

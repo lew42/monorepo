@@ -20,7 +20,7 @@ Read first: [../common.md](../common.md), [../requirements.md](../requirements.m
 `core/System/` (new), `core/page.js` (the children line only), `design/page.js`, `code/page.js`, `ux/page.js`, `ui/page.js`, `ai/page.js`, `ai/overview.js`, and `/app.js` (one export line, if needed). Don't touch `ext/Doc/` itself. If Doc needs a hook, add it as an override in System and log a `need` line.
 
 ## Proof
-Shots of /framework/design/, /framework/code/, /framework/ui/, /framework/ux/ and /framework/ai/ at the four widths, before and after. Zero console errors on each page and on `/framework/ai/system/`, `/framework/ai/skills/` and one task page, `/framework/ai/2026-09-30/design-code/`.
+Shots of /framework/design/, /framework/code/, /framework/ui/, /framework/ux/ and /framework/ai/ at the four widths, before and after. Zero console errors on each page and on `/framework/ai/system/`, `/framework/ai/skills/` and one task page, `/framework/ai/sessions/2026/09/30/design-code/design-code/`.
 
 Model: Opus. Budget: as long as it takes, in small commits.
 

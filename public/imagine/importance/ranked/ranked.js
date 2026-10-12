@@ -15,7 +15,7 @@ import { ask_title } from "/framework/ext/AITask/asks.js";
 
 /* ⚠ Against `import.meta`, never the document: the SPA fallback makes the document url
      whatever route you are on, so a relative read would follow the reader around. */
-const RUN = new URL("../../../framework/ai/2026-09-17/mastermind-layout-browser/", import.meta.url).pathname;
+const RUN = new URL("../../../framework/ai/sessions/2026/09/17/mastermind-layout-browser/", import.meta.url).pathname;
 
 const log = new TaskJSONL({ url: RUN + "task.jsonl" });
 let reading;

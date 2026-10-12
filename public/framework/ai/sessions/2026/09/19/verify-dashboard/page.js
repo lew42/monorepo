@@ -1,7 +1,7 @@
 import { Page, div, p, span, b, a } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board — the ordinary
                 page grid: main for prose, wide for the flip cards.
    2 SIZE       three flip cards at 1 1 22em wrap to 2-3 / 1 columns; a compact
                 list for the rest, no wrapping needed.
@@ -37,11 +37,11 @@ const AGREES = [
 	["ai-v2", "done", "Full width beside the sidebar, and the code streams its run live, no reload — checked the class names and the streaming call.", "/framework/ai/v/2/"],
 	["version-picker", "done", "V1 / V2 / V3 sit beside the AI title in one flex row, and New version scaffolds the next one — seen on screen on both v1 and v3.", "/framework/ai/"],
 	["ai-v3", "done", "V3 is live, the mastermind answers right on the page, and its padding is genuinely container-query based. Could not re-check the very first blank screen — the page has moved on and nothing was committed to git to look back at.", "/framework/ai/v/3/"],
-	["spatial-timeline", "not", "Confirmed nothing exists to look at: no spatial-timeline task directory anywhere, and its real (undispatched) brief sits at v3-timeline with zero lines of task log.", "/framework/ai/2026-09-19/v3-timeline/"],
+	["spatial-timeline", "not", "Confirmed nothing exists to look at: no spatial-timeline task directory anywhere, and its real (undispatched) brief sits at v3-timeline with zero lines of task log.", "/framework/ai/sessions/2026/09/19/v3-timeline/"],
 	["current-view", "differs", "The Now tab is real and does exactly what was asked. The other half — measure the real prompt-to-card delay — was never finished; the closest task measured the AI model's own speed, not the whole pipeline, and was stood down early.", "/framework/ai/v/3/"],
-	["v3-prompts", "not", "Checked the source directly: no Spacebar handling, no New item button, no toolbar per column, nothing that raises a referenced card. The yes/no card buttons exist but are never wired into this page at all.", "/framework/ai/2026-09-19/v3-timeline/"],
+	["v3-prompts", "not", "Checked the source directly: no Spacebar handling, no New item button, no toolbar per column, nothing that raises a referenced card. The yes/no card buttons exist but are never wired into this page at all.", "/framework/ai/sessions/2026/09/19/v3-timeline/"],
 	["v3-cards-css", "differs", "Every V3 card still carries two classes, card AND v3-tile, in the markup itself — the owner asked for just card. The framework class does now supply the radius and base padding, which is real progress.", "/framework/ai/v/3/"],
-	["joint-timeline", "not", "Same evidence as spatial-timeline: the task that would build one joint timeline has a finished brief and zero lines of task log. Nobody was ever sent to build it.", "/framework/ai/2026-09-19/v3-timeline/"],
+	["joint-timeline", "not", "Same evidence as spatial-timeline: the task that would build one joint timeline has a finished brief and zero lines of task log. Nobody was ever sent to build it.", "/framework/ai/sessions/2026/09/19/v3-timeline/"],
 ];
 
 export default new Page({
@@ -59,7 +59,7 @@ export default new Page({
 		p.c("h4", "The rest, checked and agreeing with the earlier audit's verdict — one line each:");
 		this.list();
 
-		p.c("muted", "Every verdict, its evidence and the exact file lines and shots checked: ", a("verify.jsonl").href("/framework/ai/2026-09-19/verify-dashboard/verify.jsonl"), ". The owner's own 53 verbatim messages this task read from: ", a("the chat log").href("/framework/ai/2026-09-17/mastermind-layout-browser/"), ".");
+		p.c("muted", "Every verdict, its evidence and the exact file lines and shots checked: ", a("verify.jsonl").href("/framework/ai/sessions/2026/09/19/verify-dashboard/verify.jsonl"), ". The owner's own 53 verbatim messages this task read from: ", a("the chat log").href("/framework/ai/sessions/2026/09/17/mastermind-layout-browser/"), ".");
 	},
 
 	flips() {
@@ -71,7 +71,7 @@ export default new Page({
 			this.flip("realtime-v3", "\"the error monitor is relaying\" — it is not, right now",
 				"The console-error watcher was built and proven, then switched itself off the moment its own task landed.",
 				"Its own task log ends: nothing left running, port 8141 free, no health.mjs process anywhere. A live check of every node process on this machine right now confirms it: no health.mjs anywhere. A sibling minion verifying the server topic found the exact same thing independently.",
-				"/framework/ai/2026-09-19/page-health/");
+				"/framework/ai/sessions/2026/09/19/page-health/");
 			this.flip("v3-layout + v3-card-look", "\"two equal columns\" is not missing",
 				"The earlier audit lists 'two EQUAL columns' as one of the things still missing from V3's layout. Reading the CSS and a live screenshot both show the opposite.",
 				"The left and right columns are set to flex 0 0 50% and flex 1 1 auto — an exact 50/50 split at load — with a working drag handle between them. What really is still missing: the page is not full-bleed (it still carries page padding), and the left column has no hour-lined timeline, just a plain list of cards.",

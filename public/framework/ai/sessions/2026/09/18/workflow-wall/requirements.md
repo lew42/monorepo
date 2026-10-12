@@ -12,7 +12,7 @@ Load the `minion` skill first. Then this brief.
 ## What exists — reuse
 
 - `ux/Auth` (`/framework/ux/Auth/`): the sign-up / sign-in workflow class (read its readme and demo). `ux/Wizard`. `ext/demo`'s `demo.app(tree)` — a Page tree playing App and Router in a box, the url changing as you click (`ext/demo/readme.md`, `doc/method/app.md`).
-- The platform: `/imagine/platform/decisions/identity.md` (GitHub + Google OAuth, six roles), `/imagine/platform/local/` (me, likes, room on the local harness), `worker/session.js` + `worker/me.js` (the session the worker keeps), the memery scout's report `ai/2026-09-18/memery-scout/report.md`.
+- The platform: `/imagine/platform/decisions/identity.md` (GitHub + Google OAuth, six roles), `/imagine/platform/local/` (me, likes, room on the local harness), `worker/session.js` + `worker/me.js` (the session the worker keeps), the memery scout's report `ai/sessions/2026/09/18/memery-scout/report.md`.
 - The tree component and the list shapes landing today (`ux/Tree`, `/imagine/design/lists/`) — not needed here.
 
 ## Deliverables
@@ -24,7 +24,7 @@ Load the `minion` skill first. Then this brief.
 
 ## Rules
 
-- Load `code`, `layout` (under a COLUMNS host there is no page grid: `/imagine/` is one — the wall is `.grid.auto` with a `rem` column), `css`, `new-css-class`; `new-task` before the first edit (your dir exists: `ai/2026-09-18/workflow-wall/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
+- Load `code`, `layout` (under a COLUMNS host there is no page grid: `/imagine/` is one — the wall is `.grid.auto` with a `rem` column), `css`, `new-css-class`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/18/workflow-wall/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
 - **Fence:** `public/imagine/platform/workflows/**` (new), one `children:` word + one line in `public/imagine/platform/page.js`, one line in `public/imagine/platform/readme.md`, your task dir. Nothing else — not `ux/Auth` (consume; log what it lacks), not the worker, not `/imagine/platform/local/`.
 - The owner's dev server (port 80) is running: never touch it; your own is `PORT=8125 node server.js` from the repo root, background, killed by its real Windows PID when you land. Never `git stash`, never `find /`, never drive the owner's tabs; no real network calls to any provider. `ui-test` has the headless recipe: click through flow (b) headless and shoot the logged-in state; the counter must read the number of clicks you made.
 - Demos never persist. Two numbers that must agree: the counter on card (b) and your headless click count.

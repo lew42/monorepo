@@ -1,4 +1,4 @@
-import { browser, close } from "../../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../Server/browser.mjs";
 const b = await browser();
 const page = await (await b.newContext({ viewport: { width: 1920, height: 1080 } })).newPage();
 page.on("console", m => console.log("[console]", m.type(), m.text()));

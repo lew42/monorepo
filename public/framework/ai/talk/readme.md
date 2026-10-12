@@ -21,7 +21,7 @@ I see my words on the screen… Without shit jumping around."*
    `queued`, then a pulsing dot while a task mastermind actually works on it (with its own
    live one-line progress), then green `landed` with a link to the finished page, or amber
    `blocked` with the reason. A remark or a question never grows a strip at all — see
-   [`card-to-task`](/framework/ai/2026-09-22/card-to-task/) for the whole loop.
+   [`card-to-task`](/framework/ai/sessions/2026/09/22/session-df2f3e2e/card-to-task/) for the whole loop.
 5. **"New card"** finishes the one you are on and starts a fresh one below it. Nothing you have
    already said is ever removed.
 
@@ -56,4 +56,4 @@ Nothing imports this — it is a page, not a component. What it is built from:
 ## More
 
 - [`doc/no-jump.md`](doc/no-jump.md) — why the card's top edge holds still, and the numbers.
-- [the task](/framework/ai/2026-09-22/talk/) — the brief, the decisions, the proof run.
+- [the task](/framework/ai/sessions/2026/09/22/talk/talk/) — the brief, the decisions, the proof run.

@@ -108,7 +108,7 @@ Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-p
 six things a page can say about its own shape, resolved ONCE here so nothing
 downstream can disagree about what the page said. `Frame.js` is the box they
 open; the map from each word to what core already did is
-`ai/2026-09-06/graduate-plan/plan.md` until doc/ catches up.
+`ai/sessions/2026/09/06/graduate-plan/plan.md` until doc/ catches up.
 
 EVERY DEFAULT IS `undefined`: a word nobody says writes no class at all, which
 is what lets the whole feature land without moving a pixel on any page.

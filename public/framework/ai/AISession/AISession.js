@@ -20,7 +20,7 @@
 const r6 = n => Math.round(n * 1e6) / 1e6;
 
 // $ per million tokens. `verified` = checked against the SDK's own billed total on real sessions
-// (public/framework/ai/2026-10-08/session-class/fit-rates.mjs). One price table for the whole repo:
+// (public/framework/ai/sessions/2026/10/08/3f5a5fec-dbf0-4a4b-8573-560f281a0be3/session-class/fit-rates.mjs). One price table for the whole repo:
 // public/framework/ai/AISession/AISessionAudit.mjs re-exports these.
 const DEFAULT_MODEL = "claude-sonnet-5";
 const PRICES = {

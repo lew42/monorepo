@@ -33,7 +33,7 @@ Any folder may have an `ai/log.jsonl`: a minimal index of the AI work in that fo
 
 ```json
 {"session": {"id": "v-1xrmuro", "event": "started", "title": "Voice session plumbing", "file": "/framework/ai/v-1xrmuro.jsonl", "at": "…"}}
-{"task": {"dir": "public/framework/ai/2026-09-29/voice-sessions", "event": "opened", "title": "Voice sessions", "at": "…"}}
+{"task": {"dir": "public/framework/ai/sessions/2026/09/30/voice-sessions/voice-sessions", "event": "opened", "title": "Voice sessions", "at": "…"}}
 {"decision": {"text": "One file per session", "file": "/framework/ai/v-1xrmuro.jsonl", "at": "…"}}
 ```
 
@@ -105,7 +105,7 @@ lines and assistants at once, when the owner has been quiet `SERVEX_SESSION_ANSW
 (`ux/Dictate/floor.js` fires it; `report_quiet()` posts it), or the mic went off. With no such
 event it goes after `SERVEX_SESSION_HOLD_MAX_MS` (8 s). The released message ends with
 `(the owner has stopped: quiet for 2.6 s)`. A typed line, or one from a page too old to send
-`floor`, goes out at once as before. Proof: [sessions-test.txt](/framework/ai/2026-09-30/dictation-stream/proof/sessions-test.txt).
+`floor`, goes out at once as before. Proof: [sessions-test.txt](/framework/ai/sessions/2026/09/30/dictation-stream/dictation-stream/proof/sessions-test.txt).
 
 ## The two assistants
 

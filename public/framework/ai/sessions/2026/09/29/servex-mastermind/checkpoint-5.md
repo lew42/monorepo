@@ -1,14 +1,14 @@
 # mastermind-servex-5: checkpoint, 2026-09-29 about 17:40
 
-Start as **mastermind-servex-6**: load the `servex-mastermind` skill, read this, then the last 15 lines of `task.jsonl` here. The dispatch table is `ai/2026-09-25/servex-mastermind/dispatch.md` (see its **ORDER NOW (17:30)** line). **First, tell every running task mastermind your id** (the skill's new "When you take over" section), then stop mastermind-servex-5.
+Start as **mastermind-servex-6**: load the `servex-mastermind` skill, read this, then the last 15 lines of `task.jsonl` here. The dispatch table is `ai/sessions/2026/09/24/1c09793f-74b6-4218-82e5-53e5cd88b659/servex-mastermind/dispatch.md` (see its **ORDER NOW (17:30)** line). **First, tell every running task mastermind your id** (the skill's new "When you take over" section), then stop mastermind-servex-5.
 
 ## You own launching now (servex-mastermind-opus handed it over at 17:35)
 Launch the next row whenever fewer than 8 agents are working and more than 4 GB is free, and mark it LAUNCHED in dispatch.md. `scratchpad/gate.mjs` (in -5's scratchpad; copy it) waits for that condition and exits; run it with Bash `run_in_background`. The order:
 
 | Row | Task | Note |
 |---|---|---|
-| 37 | lifecycle | FIRST: the owner's complaint about 22 dev servers. Brief `ai/2026-09-29/lifecycle/requirements.md`, with refine coverage |
-| 38 | nested-tasks | brief `ai/2026-09-29/nested-tasks/requirements.md` |
+| 37 | lifecycle | FIRST: the owner's complaint about 22 dev servers. Brief `ai/sessions/2026/09/29/3c88ad4d-b2e6-4899-b5c4-fbca0e2674e2/lifecycle/requirements.md`, with refine coverage |
+| 38 | nested-tasks | brief `ai/sessions/2026/09/29/44287d42-678f-4d18-8e96-5029b1e971d3/nested-tasks/requirements.md` |
 | 31 | readme-system | |
 | 32 | node-reliability | the brief grew today: revive/successor routing, reviewer priority in the queue |
 | 34 | assistant-front | now Opus, and includes the chat-room roles (design.md, "who does what") |

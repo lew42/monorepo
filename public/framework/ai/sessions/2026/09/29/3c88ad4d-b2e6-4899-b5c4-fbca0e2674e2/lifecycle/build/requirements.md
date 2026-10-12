@@ -1,7 +1,7 @@
 # Lifecycle build: log every resource, reap what a finished task owns
 
 Load the `minion` skill first, then `code`. Parent: task-mastermind-lifecycle. Card dir: `public/framework/ai/2026/09/29/lifecycle-nothing-left-running-nested-ta/`.
-**The owner's words and full brief:** `public/framework/ai/2026-09-29/lifecycle/requirements.md` (read it all; you own deliverables 1, 3 and 4 there, plus the monitor fix and the clarity fix under "Evidence"). Owner: "we don't want to rely on the AIs to remember". **Node code, not a skill line.**
+**The owner's words and full brief:** `public/framework/ai/sessions/2026/09/29/3c88ad4d-b2e6-4899-b5c4-fbca0e2674e2/lifecycle/requirements.md` (read it all; you own deliverables 1, 3 and 4 there, plus the monitor fix and the clarity fix under "Evidence"). Owner: "we don't want to rely on the AIs to remember". **Node code, not a skill line.**
 
 ## Where you work
 Worktree **C:\Code\lew42\worktrees\lifecycle** (branch `worktree/lifecycle`, its server is on :54967). Commit there. Never edit the main tree. Don't merge: the parent merges.
@@ -19,7 +19,7 @@ Servex/Lifecycle.js (new: the log writer + the reaper), Servex/Pool.js, Servex/S
 6. **The monitor nags only on news:** Monitor.js messages "stop the finished ones" only when the set of stoppable agents changed since its last message, and names them.
 
 ## Proof you hand back (in your own log, then a message to your parent)
-- `node Servex/Lifecycle.js --dry` output on the live machine (it reads the live process list), saved to `public/framework/ai/2026-09-29/lifecycle/build/dry-run.txt`. Don't run it for real; the parent does after merging.
+- `node Servex/Lifecycle.js --dry` output on the live machine (it reads the live process list), saved to `public/framework/ai/sessions/2026/09/29/3c88ad4d-b2e6-4899-b5c4-fbca0e2674e2/lifecycle/build/dry-run.txt`. Don't run it for real; the parent does after merging.
 - Start a throwaway `PORT=5xxxx node server.js` in the worktree, show its start line in the log, kill it, and show the end line.
 - `node --check` on every file you touched, and Servex booted on a private port (or its tests) with no error.
 Length budget: Lifecycle.js stays under about 250 lines. Land your log with a `landed_at` line; outcome 80 words at most.

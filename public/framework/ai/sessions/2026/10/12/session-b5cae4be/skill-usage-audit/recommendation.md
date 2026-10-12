@@ -9,7 +9,7 @@
 - **Self-chosen skills at the real moment** (counted from real tool calls, not prompt text): sessions that opened a task loaded `new-task` 175 of 263 times (67%), closed a task and loaded `finish-task` 264 of 333 (79%), created a page and loaded `new-page` 12 of 15 (80%). Better than feared; the misses are the ones with no reminder.
 
 ### 🧱 Bloat an agent pays
-- `CLAUDE.md`: **4,081 words (~5,700 tokens)** every session. The 2026-10-09 proposal ([claude-md-proposal.md](../2026-10-09/system-architect/claude-md-proposal.md)) is 1,172 words; it was never applied.
+- `CLAUDE.md`: **4,081 words (~5,700 tokens)** every session. The 2026-10-09 proposal ([claude-md-proposal.md](../../../../../../2026-10-12/2026-10-09/system-architect/claude-md-proposal.md)) is 1,172 words; it was never applied.
 - 34 skills, 39,609 words in all; their descriptions alone (~1,970 words) ride in every session. Biggest bodies: `mastermind` 7,982, `sub-mastermind` 4,240, `ui-test` 4,115, `minion` 3,114.
 - Sentence-level duplicates with CLAUDE.md: only 5 (e.g. "write classes, not function bags" in `code`). Duplication is not the main bloat; **length is**.
 - Retired systems still named in skills: `mastermind-servex` (8 mentions), "AI 2" (5), `council` (3), `ai2/` (4), `ai/v/3` (2).

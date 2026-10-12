@@ -71,6 +71,6 @@ hidden overflow the horizontal check alone would have missed. Zero console error
 `.checked` state and `<progress>` value/max confirmed live via `getComputedStyle`/DOM read
 scoped to `.layout-full`, not a bare `document.querySelector` (the Router's hidden-sibling
 trap prior minions hit). Screenshots:
-[`figma/shots/screens-today-1920.png`](/framework/ai/2026-08-18/figma/shots/screens-today-1920.png),
+[`figma/shots/screens-today-1920.png`](/framework/ai/sessions/2026/08/18/figma/shots/screens-today-1920.png),
 `screens-today-400.png`, `screens-profile-1920.png`, `screens-prefs-1920.png`,
 `screens-index-1920.png`.

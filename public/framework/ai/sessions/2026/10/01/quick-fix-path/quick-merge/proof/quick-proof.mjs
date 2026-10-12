@@ -1,4 +1,4 @@
-/* Proof for merge.mjs --quick (public/framework/ai/2026-10-01/quick-fix-path/quick-merge/requirements.md,
+/* Proof for merge.mjs --quick (public/framework/ai/sessions/2026/10/01/quick-fix-path/quick-merge/requirements.md,
  * deliverable 2). `node quick-proof.mjs <merge.mjs> <scratch dir>` — builds a fresh throwaway repo for
  * each case (branch michael/dev, one file under a fake module), runs merge.mjs --quick against it
  * with --main and --skip-smoke (same safe pattern as 2026-09-25/quickfix-worktrees/landing/proof.mjs),

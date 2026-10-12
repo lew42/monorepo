@@ -28,7 +28,7 @@ children live in a fetch needs no code of its own
 `page.json` into a real page tree. That would win for anything a person edits at runtime, and
 lose the thing the file system gives you for free: a diff, a history, and a place to put notes.
 **Still open:** whether pages should live in a database at all — a scout is reporting on it
-([`sqlite-scout`](/framework/ai/2026-09-17/sqlite-scout/), [`pages-in-d1`](/framework/ai/2026-09-17/pages-in-d1/)).
+([`sqlite-scout`](/framework/ai/sessions/2026/09/17/sqlite-scout/), [`pages-in-d1`](/framework/ai/sessions/2026/09/17/pages-in-d1/)).
 
 ## Is a button a page?
 
@@ -68,7 +68,7 @@ that reason.
 ## How does one page derive from another?
 
 Three mechanisms were tested against the real core `Page` in a real browser before one was
-picked. The probe is in the task log: [`shell-lab`](/framework/ai/2026-09-17/shell-lab/).
+picked. The probe is in the task log: [`shell-lab`](/framework/ai/sessions/2026/09/17/shell-lab/).
 
 **What we build with: derive the CONFIG.** A design file exports a plain object and the child
 imports that object, changes one key, and constructs a new page from the result:

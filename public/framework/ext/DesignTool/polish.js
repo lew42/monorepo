@@ -103,7 +103,7 @@ export const polish = [
 	 *   sitting 194px left of the content it heads fired nothing, because the offset
 	 *   cleared a 96px "deliberate indent" escape that only ever existed to survive the
 	 *   wrong pairing. Sibling pairing plus `starts()` makes the wide window genuinely
-	 *   safe, so the escape is gone. Evidence: `ai/2026-08-17/tier-calibration/`. */
+	 *   safe, so the escape is gone. Evidence: `ai/sessions/2026/08/17/tier-calibration/`. */
 	rule("heading-offset", "alignment", "A heading doesn't line up with its own text", m => {
 		const kids = children(m);
 		const found = [];

@@ -4,7 +4,7 @@ Round 2 of the game at `/imagine/game/`: **make the loop complete.**
 
 Read the game as built: `public/imagine/game/**` (3 realms / 9 rooms, lamp -> cistern -> key ->
 vault chain, `store(page)` persistence keyed by url, exits as sibling links — its builder's
-report is in `ai/2026-08-29/imagine-root/task.jsonl`) and `/imagine/store.js`. Run `code`,
+report is in `ai/sessions/2026/08/29/imagine-root/task.jsonl`) and `/imagine/store.js`. Run `code`,
 `layout`, `css` skills; `documentation` + `finish-task`.
 
 ## What round 2 adds (the navigation stays the game — extend, don't rebuild)

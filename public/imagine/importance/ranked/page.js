@@ -18,7 +18,7 @@
      making core support a NESTED host is a core change and the owner's call. The even
      mode itself is live at /framework/core/Page/overview/columns/finder/.
 
-   ⚠ READ ONLY. The log is `ai/2026-09-17/mastermind-layout-browser/task.jsonl` — the
+   ⚠ READ ONLY. The log is `ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl` — the
      mastermind's own, being written right now. The drag that writes an order lives on
      a task's own Asks tab, where the log belongs to the page showing it. */
 
@@ -44,7 +44,7 @@ export default new Page({
 	     below already show what this is, so the prose only has to say what a click does
 	     and where the ordering gesture lives. */
 	content(){
-		md("Each column is a ranked list; a row opens its thread beside it. Setting an order is a drag, on [a task's own Asks tab](/framework/ai/2026-09-17/ranked-lists/).");
+		md("Each column is a ranked list; a row opens its thread beside it. Setting an order is a drag, on [a task's own Asks tab](/framework/ai/sessions/2026/09/17/ranked-lists/).");
 	},
 
 	/* `ranked_column`'s one hook, drawn UNDER this column's list. The readme is the

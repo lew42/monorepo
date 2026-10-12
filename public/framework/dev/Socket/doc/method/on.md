@@ -23,7 +23,7 @@ There are two events today:
 reload the tab. A file the page had **read** could be neither — nothing in the
 DOM points at it, so there is nothing to swap — so it reloaded, and that was 203
 of the 215 reloads an AI-board tab took on 2026-09-22
-([reload-rethink](/framework/ai/2026-09-22/reload-rethink/)).
+([reload-rethink](/framework/ai/sessions/2026/09/22/f875ec48-d91a-4890-b15f-db197b55aa13/reload-rethink/)).
 
 Re-reading the file is the whole fix, but only the page knows how to re-read its
 own data. So the socket needs a way to *tell* rather than *act*, and a page needs

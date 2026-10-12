@@ -69,7 +69,7 @@ function load_proof($box){
 	log.live(draw).then(draw);
 }
 
-const PROOF_URL = "/framework/ai/2026-09-21/safe-rollout/scratch-break/";
+const PROOF_URL = "/framework/ai/sessions/2026/09/21/safe-rollout/scratch-break/";
 
 function board(log){
 	div.c("health-head", "The proof: a scratch page, broken on purpose, caught, then fixed");

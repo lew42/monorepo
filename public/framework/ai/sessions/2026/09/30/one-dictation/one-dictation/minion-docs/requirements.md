@@ -1,6 +1,6 @@
 # Minion brief: one-dictation docs pass
 
-Load the `minion` skill first, then `documentation` and `content`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/2026-09-30/one-dictation/`. Skim its `task.jsonl` for what was built.
+Load the `minion` skill first, then `documentation` and `content`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/`. Skim its `task.jsonl` for what was built.
 
 ## What landed (all in michael/dev)
 - `ux/Dictate/chat.js`, `chat(el, {path, card, placeholder})` → `{remove(), panel, session(), nav(path, card)}`, is the one chat on every surface (the ✦ sheet, the ☰ AI tab, the AI 2 card sidebar and Live card, the dev bar), on one global session per tab.

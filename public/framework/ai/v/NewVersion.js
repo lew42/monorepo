@@ -114,7 +114,7 @@ export class NewVersion {
 		// copy that skipped them left the new version's own import 404ing the
 		// instant anyone routed to it.
 		//
-		// ⚠ `board.jsonl` is skipped ON PURPOSE (2026-09-19, `ai/2026-09-19/v3-data/`):
+		// ⚠ `board.jsonl` is skipped ON PURPOSE (2026-09-19, `ai/sessions/2026/09/19/v3-data/`):
 		// it LOOKS like one of v3's own extra files (`rpc:ls` still lists it — a
 		// filesystem hard link at this path keeps two older Server plugins working
 		// against the real, shared `ai/board.jsonl`), but copying it would fetch
@@ -126,7 +126,7 @@ export class NewVersion {
 		// scaffold copies.
 		//
 		// `verdicts.jsonl` gets the SAME exclusion, for the SAME reason (2026-09-19,
-		// `ai/2026-09-19/inbox-zero/`): a verdict judges a board card, not this
+		// `ai/sessions/2026/09/19/inbox-zero/`): a verdict judges a board card, not this
 		// version's own UI, so it moved beside `board.jsonl` to `ai/verdicts.jsonl`
 		// — `timeline.js`'s `VERDICTS_URL` is how a version finds it. No hard link
 		// keeps a copy inside `v/3/` any more (nothing there still reads that old

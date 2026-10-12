@@ -1,6 +1,6 @@
 verdict: fix
 
-![Element tab open, showing what a selected paragraph is and where it lives](/framework/ai/2026-09-28/page-drawer/proof/review-element-tab-1920.png)
+![Element tab open, showing what a selected paragraph is and where it lives](/framework/ai/sessions/2026/09/28/884d4241-bddb-4047-976a-43b49c72e973/page-drawer/proof/review-element-tab-1920.png)
 
 ## Fixed
 

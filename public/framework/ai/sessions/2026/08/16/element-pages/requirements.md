@@ -1,7 +1,7 @@
 # element-pages
 
 Dispatched by the mastermind (group: layout), acting on
-`public/framework/ai/2026-08-16/mastermind-layout/browsable.md`, top-ranked
+`public/framework/ai/sessions/2026/08/16/mastermind-layout/browsable.md`, top-ranked
 change: "Turn the orphan `demo()` blocks into `demo.page()` children."
 
 ## The ask, verbatim (relevant excerpt)

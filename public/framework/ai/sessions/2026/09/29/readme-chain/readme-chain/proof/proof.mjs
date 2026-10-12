@@ -1,4 +1,4 @@
-/* node public/framework/ai/2026-09-29/readme-chain/proof/proof.mjs
+/* node public/framework/ai/sessions/2026/09/29/readme-chain/readme-chain/proof/proof.mjs
  *
  * THE README CHAIN, PROVED against a PRIVATE Servex booted from this checkout
  * in a child process: its own LOCALAPPDATA (a fresh scratch folder), its own

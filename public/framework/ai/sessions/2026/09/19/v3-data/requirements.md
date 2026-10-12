@@ -110,7 +110,7 @@ one is not.
 
 You own: `public/framework/ai/v/**`, `public/framework/ai/board.jsonl` (or wherever you decide it
 goes), `.claude/skills/every-prompt/say.mjs`, `public/framework/dev/DevBar/says.js`, and
-`public/framework/ai/2026-09-19/v3-data/**`. You may add one line to
+`public/framework/ai/sessions/2026/09/19/v3-data/**`. You may add one line to
 `public/framework/ai/2026-09-19/page.js` `children:` and append to that day's `day.jsonl`.
 
 Five sibling minions are verifying today's requests at the same time; they are read-only and own

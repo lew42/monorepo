@@ -1,8 +1,8 @@
 # Hotkeys — decisions
 
 Built 2026-10-03, task log:
-[`ai/2026-10-03/push-to-talk/hotkeys-module/`](/framework/ai/2026-10-03/push-to-talk/hotkeys-module/).
-Parent task: [`ai/2026-10-03/push-to-talk/`](/framework/ai/2026-10-03/push-to-talk/).
+[`ai/sessions/2026/10/03/push-to-talk/push-to-talk/hotkeys-module/`](/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/hotkeys-module/).
+Parent task: [`ai/sessions/2026/10/03/push-to-talk/push-to-talk/`](/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/).
 
 ## Why no nested scopes — the owner's own words
 

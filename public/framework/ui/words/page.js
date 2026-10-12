@@ -127,7 +127,7 @@ export default new Page({
 
 		md("## What a word reaches — read this before adding one");
 
-		md("A word sets tokens and **nothing else**: no element selectors, no component classes. So **a value the framework never tokenized is a value no word can touch** — and toggling one is what makes those values visible. This page found four. On 2026-08-21 `framework.css` [took three of them](/framework/ai/2026-08-21/ux-tokenize/), each a one-line change keeping the old literal as the fallback, proven byte-identical across 4436 elements before any word was pointed at them.");
+		md("A word sets tokens and **nothing else**: no element selectors, no component classes. So **a value the framework never tokenized is a value no word can touch** — and toggling one is what makes those values visible. This page found four. On 2026-08-21 `framework.css` [took three of them](/framework/ai/sessions/2026/08/21/ux-tokenize/), each a one-line change keeping the old literal as the fallback, proven byte-identical across 4436 elements before any word was pointed at them.");
 
 		// ⚠ Plain text only: ui.table() puts a cell straight into a td — no markdown pass
 		// — so a `backtick` or a **star** renders as itself.

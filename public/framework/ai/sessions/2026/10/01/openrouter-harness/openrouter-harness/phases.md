@@ -57,7 +57,7 @@ summarized at the top of [requirements.md](requirements.md) — read that first.
 - **The benchmark by consensus.** If 3–5 strong models (Claude Opus/Sonnet, the best OpenRouter ones) solve a test the same way about 80–90% of the time, that solution is the reference. A run that misses its key elements failed to follow the directions.
 - **A judge mastermind** reads each result against the reference and gives a rough score: terrible, OK or great.
 - **Record, don't over-architect.** One line per run: test, model, effort, score, cost, time. The model + task matrix and the "cheapest good-enough model per kind" fall out of it. A model at a tenth of the cost can be used much more liberally, even if it's a bit worse.
-- **Planning versus decisions:** a planning test's output (shape, options, pros and cons) is what the decision system (ai/2026-09-30/decision-system) documents. Keep the formats the same.
+- **Planning versus decisions:** a planning test's output (shape, options, pros and cons) is what the decision system (ai/sessions/2026/09/30/decision-system) documents. Keep the formats the same.
 
 ## Phase 4 (the owner, 2026-10-01 00:25): choosing a model is an ongoing decision. See owner-words.md, last section
 - **Cost is the easy axis.** The price per token is fixed, and a given prompt has about the same input and output tokens on any model. So compare price MULTIPLIERS (e.g. "a tenth of Sonnet"), not per-run dollars. **Value = good AND cheap.**

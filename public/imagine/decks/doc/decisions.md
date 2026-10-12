@@ -121,7 +121,7 @@ cuts stay mounted (the framework's column-persistence pattern), so a query for
 ## Cut: quarters, 25 × 4
 
 Built, shot at both widths, and deleted — the evidence is in the task dir
-(`ai/2026-08-30/decks-lab/shots/cut-quarters-1920.png` beside `kept-four-1920.png`).
+(`ai/sessions/2026/08/30/decks-lab/shots/cut-quarters-1920.png` beside `kept-four-1920.png`).
 
 At 3440 four equal columns look plausible: 859px each, an 80px word in every one. **At 1920
 they are 479px and the title lands at 48px** — where the 2 × 2, from *the same four cells*,

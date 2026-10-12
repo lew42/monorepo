@@ -12,7 +12,7 @@ Load the `minion` skill first. Then this brief. Model: Sonnet. Small: one flag, 
 
 - **Browser → file:** the dev socket has an append RPC (`Server/plugins/SocketServer/Append.js`; the dev bar's composer uses it — `public/framework/dev/DevBar/` and `public/framework/ai/v/3/compose.js`) that appends one JSON line to a `.jsonl` under `public/`. The dashboard's file is `public/framework/ai/v/3/board.jsonl` (`card` lines merged by `id`); the mastermind's inbox is `chat` lines (`from: "owner"`) in the newest unlanded `ai/<date>/mastermind-*/task.jsonl` (`.claude/skills/every-prompt/say.mjs` has `run()` to find it; `state` prints `MASTERMIND SESSION <name>`, the name other sessions `SendMessage`).
 - **A file line wakes nobody.** A Claude session only sees the inbox when something else wakes it.
-- **Server → session is proven possible:** `ai/2026-09-19/assistant-stream/` proved that a headless `claude -p` turn spawned by the server and given only the `SendMessage` tool can message the real mastermind session by name (read its `task.jsonl` for the exact flags; `Server/plugins/Assistant.js` and `Ask.js` show how turns are spawned, `--strict-mcp-config` and all).
+- **Server → session is proven possible:** `ai/sessions/2026/09/19/assistant-stream/` proved that a headless `claude -p` turn spawned by the server and given only the `SendMessage` tool can message the real mastermind session by name (read its `task.jsonl` for the exact flags; `Server/plugins/Assistant.js` and `Ask.js` show how turns are spawned, `--strict-mcp-config` and all).
 
 ## Build
 
@@ -24,7 +24,7 @@ Load the `minion` skill first. Then this brief. Model: Sonnet. Small: one flag, 
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/card-replies/`); `code`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/card-replies/`); `code`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `.claude/skills/every-prompt/say.mjs` (the two flags) + one line in `.claude/skills/every-prompt/cards.md`, `Server/plugins/Assistant.js` (or one new sibling plugin + its one registration line in `Server/run.js`), `Server/README.md` (one line), your task dir. Not `public/framework/ai/v/3/**`, not `dev/DevBar/**`, not `.claude/hooks/**`, not `.claude/settings.json`.
 - Every `Server/` save hot-swaps every supervised server after a boot test on a spare port (`Server/doc/watch.md`) — still, boot your change on your private port and curl it BEFORE saving into the shared tree: develop in a scratch copy, copy over in one write. The hooks check every `.js` write.
 - **Never kill or restart the owner's dev server (port 80), the mastermind's (8123) or the running health watcher, never stop whisper-server, never drive the owner's tabs.** Kill only what you started, by real Windows PID (a supervised server has TWO: the supervisor and its child). Never `git stash`, never `find /`, never commit. Write files with the Write or Edit tool, never a bash heredoc. Do not write the owner's name anywhere.

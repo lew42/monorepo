@@ -26,7 +26,7 @@ Load the `minion` skill first, then `code`, `page` and `new-css-class`. The owne
 
 ## Proof
 
-- Screenshot `http://127.0.0.1:58131/framework/ux/Content/Object/` and the core/Page tab you touched at 1920, in headless Playwright (the `ui-test` skill). Save both to `public/framework/ai/2026-09-28/organization/object/` in the MAIN tree, and look at them.
+- Screenshot `http://127.0.0.1:58131/framework/ux/Content/Object/` and the core/Page tab you touched at 1920, in headless Playwright (the `ui-test` skill). Save both to `public/framework/ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/object/` in the MAIN tree, and look at them.
 - Zero console errors: run `node Server/smoke.mjs C:/Code/lew42/worktrees/qf-1` from the main repo.
 
 ## Never

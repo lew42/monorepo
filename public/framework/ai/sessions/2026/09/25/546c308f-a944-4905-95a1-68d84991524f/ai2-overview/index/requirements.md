@@ -1,6 +1,6 @@
 # Minion brief: the Overview's data — `overview.json`
 
-Load the `minion` skill first. Your parent is `task-mastermind-ai2-overview`; the whole task is `public/framework/ai/2026-09-28/ai2-overview/requirements.md`. The owner's raw words: `public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`, section "Continued (about 11:00 PM)". Read it.
+Load the `minion` skill first. Your parent is `task-mastermind-ai2-overview`; the whole task is `public/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-overview/requirements.md`. The owner's raw words: `public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`, section "Continued (about 11:00 PM)". Read it.
 
 > "on the AI2 dashboard, when I check back in, I want to see ... a summary of everything's been done ... see all these familiar things ... if you have 100% on 20 items it just gets kind of like visually exhausting, you probably just have a completed section ... Here's when this thing was requested, and here's when it was delivered, and here's how long it took, and here's how many tokens it took ... and here's the outcome, and ... link to it."
 
@@ -8,7 +8,7 @@ Load the `minion` skill first. Your parent is `task-mastermind-ai2-overview`; th
 
 `C:\Code\lew42\worktrees\ai2-overview` (branch `worktree/ai2-overview`, server `http://localhost:53155/`). Never edit the main tree `C:\Code\lew42\monorepo`. Commit by exact path when done.
 
-**Fence (the only files you write):** `Server/ai2-overview.mjs`, `public/framework/ai2/overview/overview.json`, `public/framework/ai2/doc/overview.md`. Your task log: `public/framework/ai/2026-09-28/ai2-overview/index/task.jsonl` in the MAIN tree (append with `node .claude/hooks/append.mjs`).
+**Fence (the only files you write):** `Server/ai2-overview.mjs`, `public/framework/ai2/overview/overview.json`, `public/framework/ai2/doc/overview.md`. Your task log: `public/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-overview/index/task.jsonl` in the MAIN tree (append with `node .claude/hooks/append.mjs`).
 
 ## Deliverables
 

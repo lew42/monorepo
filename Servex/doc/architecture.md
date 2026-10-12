@@ -13,7 +13,7 @@ Servex is one always-on node process. It owns port 80, every log file (it is the
 
 ## The prompts behind them
 
-Linked, not copied (CLAUDE.md, "Link, don't regenerate"): the owner's asks and their owners are in `public/framework/ai/asks.jsonl`; the brief for this documentation pass is `public/framework/ai/2026-10-08/ai-system-docs/requirements.md`.
+Linked, not copied (CLAUDE.md, "Link, don't regenerate"): the owner's asks and their owners are in `public/framework/ai/asks.jsonl`; the brief for this documentation pass is `public/framework/ai/sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs/requirements.md`.
 
 ## See also
 

@@ -80,7 +80,7 @@ against that API; anything more you need from it (inline rename, drag-reorder in
 
 ## Deliverable
 
-`public/framework/ai/2026-08-19/playground-design/design.md` + your `task.jsonl`. One ASCII
+`public/framework/ai/sessions/2026/08/19/playground-design/design.md` + your `task.jsonl`. One ASCII
 sketch of the shell is worth fifty lines. Nothing under `public/framework/` outside this dir is
 written.
 

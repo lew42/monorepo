@@ -63,7 +63,7 @@ export default function says() {
 		$new.el.hidden = true;
 		$reader.$box.el.hidden = true;
 
-		// `ai/2026-09-19/assistant-stream/`'s own composer — talk to the
+		// `ai/sessions/2026/09/19/assistant-stream/`'s own composer — talk to the
 		// assistant right here, and the reply types itself out above, in this
 		// same log (and in the V3 Now view, which mounts the identical box).
 		// ⚠ LAZY, deliberately: `says.js` loads on EVERY page through the dev

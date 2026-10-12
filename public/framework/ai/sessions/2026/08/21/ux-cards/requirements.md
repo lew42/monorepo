@@ -28,7 +28,7 @@ Card systems and toolbars for the ui/ template tier: the types of cards and tool
 - ⚠ If you create `card.js`/`toolbar.js`: it must be imported in `ui/ui.js` or your page renders unstyled SILENTLY. As your LAST act before landing, add the import line(s) with the Edit tool anchored immediately after the line `import "./accordion/accordion.js";` — touch nothing else in ui.js (another agent edits its tree lines today).
 - **Fence — yours alone:** `ui/card/**`, `ui/toolbar/**`, plus that anchored ui.js append. READ-ONLY: everything else, including `ui/page.js` (log any files:-list additions as a task.jsonl line for the mastermind), `ux/**`, `ui/words/**`, `framework.css` (change = written proposal in your task dir).
 - Load skills before writing: `code`, `css`, `layout`; `new-page` per page.js; `documentation` before landing; `finish-task` to land; `skill-improvement` the moment a skill misleads (one line in its improvements.md).
-- Log to `public/framework/ai/2026-08-21/ux-cards/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"), appends via Add-Content, ASCII ONLY (no em dashes — cp1252 mangles them). Findings and lessons as `log` lines (prefix lessons `lesson:`) — never a findings.md.
+- Log to `public/framework/ai/sessions/2026/08/21/ux-cards/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"), appends via Add-Content, ASCII ONLY (no em dashes — cp1252 mangles them). Findings and lessons as `log` lines (prefix lessons `lesson:`) — never a findings.md.
 
 ## Verification (before landing)
 

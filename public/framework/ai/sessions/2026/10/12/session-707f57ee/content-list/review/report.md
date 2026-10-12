@@ -4,7 +4,7 @@ verdict: pass
 3. [note] On /framework/core/Page/content-shapes/both/, the jsonl line draws as a white card at 1200 and as plain text at 1920 (shots/…-content-shapes-both/sheet.png). STATE.md records that this behaviour was already there before (`part-text` has no View of its own). It is still the demo of the new ability, so it should look the same at every width.
 4. [note] The content-shapes index is a list of 12 links in one narrow column, 83% empty at 3440 (layout.json `empty` 0.834). It tells you what each shape is but doesn't show it (content 1). A live render of each shape beside its link would make the point at a glance.
 5. [note] /alex/examples/subpage/nested/ shows "Page Load Error / 404" at every width. This already happened before the change: no parent's `children:` names the page, so nothing routes to it. The changed line `this.content.render()` is never reached there.
-6. [note] Problems that were already there and are not caused by this diff: the /framework/core/Page/ tab bar wraps to 3 rows at 1200 (layout.json tab_rows 3), and the /framework/ai/2026-08-17/report/ prose runs to 1107px at 1920 and 1245px at 3440 (widest_text), past the reading measure.
+6. [note] Problems that were already there and are not caused by this diff: the /framework/core/Page/ tab bar wraps to 3 rows at 1200 (layout.json tab_rows 3), and the /framework/ai/sessions/2026/08/17/report/ prose runs to 1107px at 1920 and 1245px at 3440 (widest_text), past the reading measure.
 
 Widths given: 400, 1200, 1920 and 3440 for all 25 pages. The shots of `/framework/core/Page/content/…` are left over from before the folder was renamed to `content-shapes/`. I judged the renamed pages.
 

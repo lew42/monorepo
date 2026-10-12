@@ -1,6 +1,6 @@
 import { Page, div } from "/app.js";
 
-/* Rung 0 of the framework-literacy ladder (public/framework/ai/2026-10-02/model-weights/
+/* Rung 0 of the framework-literacy ladder (public/framework/ai/sessions/2026/10/03/model-weights/model-weights/
  * requirements.md, "The framework-literacy ladder"): can a model turn plain HTML into THIS site's
  * View helpers, with no page, no children, no class to get right — just one tree of tags?
  * The model's job: read fixture/source.html (or prompt.md, which has the same text) and rebuild

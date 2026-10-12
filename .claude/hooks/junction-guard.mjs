@@ -4,7 +4,7 @@
  * BY HAND (`mklink /J`), then ran `git worktree remove --force` BY HAND. The remove deleted
  * through the junctions and emptied the main tree's node_modules; Servex crash-looped for an
  * hour. No script was involved, so the guards inside the worktree scripts could not see it.
- * (The cause: public/framework/ai/2026-09-29/node-modules-guard/cause/cause.md.)
+ * (The cause: public/framework/ai/sessions/2026/09/29/8e50318b-7bf9-4e51-bedd-b91580b96caa/node-modules-guard/cause/cause.md.)
  *
  * TWO BLOCKS (exit 2, the reason on stderr):
  *   1. A command that deletes or reinstalls (`worktree remove`, `rm -r`, `rmdir /s`,

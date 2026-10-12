@@ -3,7 +3,7 @@
 **Owner (2026-10-12, dictated while using `/framework/ai/sessions/` at 3440):** the layouts are bad and nobody has looked at them.
 > "We need to take screenshots and try and figure out if things are getting truncated improperly, if things are wrapping improperly, if things are crammed in."
 
-The list page (perf, columns, the two grids) belongs to @mastermind-sessions-grid; this brief is the **detail view**, the **footer**, and **stale fields**. Share one worktree with it only if you touch its files; otherwise coordinate by `send_to_agent`. Use the [style-system](../style-system/requirements.md) card/section words where they exist; don't invent new CSS.
+The list page (perf, columns, the two grids) belongs to @mastermind-sessions-grid; this brief is the **detail view**, the **footer**, and **stale fields**. Share one worktree with it only if you touch its files; otherwise coordinate by `send_to_agent`. Use the [style-system](../../../../../../2026-10-12/style-system/requirements.md) card/section words where they exist; don't invent new CSS.
 
 ## Done when (screenshots at 400/1200/1920/3440, before and after, in this folder)
 - [ ] **Detail view header:** drop the "All sessions" back button (the close button does it) and the line repeating the id + `session-detail.js` link (the id is already the title).

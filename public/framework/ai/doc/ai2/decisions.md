@@ -1,8 +1,8 @@
 # Decisions — AI 2
 
 Every fork in the road, with the alternative named. Written 2026-09-22 when the page was first
-built (`ai/2026-09-22/inbox-model/`), and again the same evening when it became a rail and a
-page (`ai/2026-09-22/ai2-master-detail/`).
+built (`ai/sessions/2026/09/22/fe4807e9-7c68-4307-b27c-c79c2f09362a/inbox-model/`), and again the same evening when it became a rail and a
+page (`ai/sessions/2026/09/22/session-a578212b/ai2-master-detail/`).
 
 # The rebuild — a list on the left, one page on the right
 
@@ -328,7 +328,7 @@ deferred with 7, 13, 16 and 20.
 The owner: *"split the remaining area in two: the preview column resizable, the detail page
 taking the rest, with a measure; the sub-items within that card open to the right of it... dig
 down and moving back up is important."* Full survey: [`doc/persistence.md`](./persistence.md).
-Full brief: [`requirements.md`](/framework/ai/2026-09-22/ai2-nested/requirements.md).
+Full brief: [`requirements.md`](/framework/ai/sessions/2026/09/23/session-1f93064d/ai2-nested/requirements.md).
 
 ## The stream stays Servex's; the state (once a card has one) is a directory
 
@@ -521,7 +521,7 @@ default and the rail is not showing; all four columns exist (one collapsed when 
 empty); needs-you shows flagged items with a working clear control; reports shows `Note:` cards;
 live shows the registry and three usage bars; "open the full inbox" and "← overview" flip the
 view without a navigation; clicking a report opens the card and the second view takes over, the
-overview hidden. Two screenshots, 1280 and 400 (`ai/2026-09-22/ai2-nested/overview-*.png`). One
+overview hidden. Two screenshots, 1280 and 400 (`ai/sessions/2026/09/23/session-1f93064d/ai2-nested/overview-*.png`). One
 assertion (a report → card navigation, specifically at 400px, in a long test run) was flaky under
 heavy load from dozens of sequential headless browser launches earlier in the same session — the
 identical assertion at 1280px, and a final clean single-pass smoke test on a fresh scratch server
@@ -551,11 +551,11 @@ The owner, 2026-09-24: "What took so many tokens? I want to see token cost on th
 The owner: "Every pixel on every column of every page needs to be as simple and useful as
 possible." Every element on the rail, a card and Live was weighed (keep, move to a menu, fold, or
 remove). The table, with a reason for each:
-[`ai/2026-09-25/ai2-lead/audit.md`](/framework/ai/2026-09-25/ai2-lead/audit.md). The short
+[`ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/audit.md`](/framework/ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/audit.md). The short
 version: the bars are short and say what they count, the header's controls are one Actions
 menu, the tabs show only when Tasks has something, a card is a three-number grid over one
 filtered list with to-do first, and Live opens no chat until you click. Walkthrough:
-[`/framework/ai/2026-09-25/ai2-lead/`](/framework/ai/2026-09-25/ai2-lead/).
+[`/framework/ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/`](/framework/ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/).
 
 # The rail is one timeline; a card made for you opens on your screen (2026-09-25)
 
@@ -566,7 +566,7 @@ filtered list with to-do first, and Live opens no chat until you click. Walkthro
 # The workspace view: an experiment behind a url switch (2026-09-28)
 
 - **The switch is the url, `?view=workspace`, flipped by a full navigation.** The rail's `workspace` word reloads the same page with the switch flipped, so a card never redraws from one layout into the other. Alternative rejected: a pushState and a re-render of the open card, which can leave a half-switched card on screen. While on, every AI 2 link you click keeps the switch (`workspace.js` `keep()`), and so does every navigation AI 2 makes itself (`workspace.url()`).
-- **Off changes nothing.** Proven against the committed files, served in place of the edited ones: the card, its head, its tab strip, its panel, its chat and the rail measured the same box at 1920 and 3440 on System design, the example card, a group, the Now card and the root. Task log: [`ai2-workspace`](/framework/ai/2026-09-28/ai2-workspace/).
+- **Off changes nothing.** Proven against the committed files, served in place of the edited ones: the card, its head, its tab strip, its panel, its chat and the rail measured the same box at 1920 and 3440 on System design, the example card, a group, the Now card and the root. Task log: [`ai2-workspace`](/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-workspace/).
 - **The nav and the page centre together, as one unit.** The owner asked for a page "horizontally centered with a left sidebar of its own". Alternative rejected: the nav flush left and the page centred in the rest, which leaves a wide gap between them at 3440.
 - **`floating.js` is one file with its stylesheet inside it** (added once to the document, in `@layer site`), so it moves into core/Page's Layout tab in one step. Alternative rejected: `floating.css` beside it.
 
@@ -574,7 +574,7 @@ filtered list with to-do first, and Live opens no chat until you click. Walkthro
 
 - **Every rail row is padded by `--pad-card`,** the word `.card` wears: 16px in a 351px rail, more if the grip widens it. It was `0.55em 0.7em` by hand, on the theory that a row is a control, and the rows ran together. The default padding system was not broken; AI 2 never used it. Alternative rejected: the `.card` class itself, which adds a border and radius on four sides where the rail's rows sit flush, one hairline apart.
 - **`.ai2-rows` is a size container,** so `--gap` inside the rail follows the rail, not the window (it was 24px at 1920 and 43px at 3440 in a 351px rail). Every part of a row sits one `--gap-35` below the one before, frozen on the row as `--ai2-step` so a smaller-type part does not shrink its own step.
-- **Title leading 1.35, and the dot, icon and time sit at the top,** not centred on a tall wrapped title. Measurements: [`ai2-rail-rhythm/why.md`](/framework/ai/2026-09-28/ai2-rail-rhythm/why.md).
+- **Title leading 1.35, and the dot, icon and time sit at the top,** not centred on a tall wrapped title. Measurements: [`ai2-rail-rhythm/why.md`](/framework/ai/sessions/2026/09/29/ai2-rail-rhythm/ai2-rail-rhythm/why.md).
 
 ## Open
 
@@ -606,7 +606,7 @@ filtered list with to-do first, and Live opens no chat until you click. Walkthro
   reload"), (2) a row is genuinely NEW or removed (nothing on screen to jump: `flush()`'s own
   `had_new`/`removed` check), or (3) the owner taps the new "N updated ↑" pill. Everything else —
   an existing row's `at` simply moving — is counted into `pending_ids` and shown as a count,
-  DOM untouched, until one of those three. Proven headless: `ai/2026-09-30/ai2-inbox-log-fix/`.
+  DOM untouched, until one of those three. Proven headless: `ai/sessions/2026/09/30/ai2-inbox-log-fix/ai2-inbox-log-fix/`.
   Alternative rejected: reordering on every data change but animating the move — still a moving
   target under a reader's eyes, just a slower one.
 - **The tab strip's right-alignment was an `order` bug, not a layout one.** Giving each real tab
@@ -621,7 +621,7 @@ filtered list with to-do first, and Live opens no chat until you click. Walkthro
 # The load hang — cache, don't recompute, on every redraw (2026-09-30)
 
 The owner: *"I think the page just crashed… it's having a hard time loading."* A CPU profile
-(`ai/2026-09-30/inbox-ext/ai2-hang/profile.md`) found two functions redoing the same work on
+(`ai/sessions/2026/09/30/inbox-ext/ai2-hang/profile.md`) found two functions redoing the same work on
 every single `paint()` instead of once:
 
 - **`Groups.members(gid)` now caches its answer**, invalidated by a `_rev` counter `changed()`
@@ -662,7 +662,7 @@ layout entirely) keeps its own sizing untouched.
 The owner, on a top-level card's Overview: *"there's no border at the right side of this
 measure and so it just looks like it's stopped randomly… when I resize the right drawer to
 make it bigger there's like a five hundred pixel void in between the right sidebar and this
-card's actions dropdown."* Full task: [`ai/2026-09-30/card-measure-gap/`](/framework/ai/2026-09-30/card-measure-gap/).
+card's actions dropdown."* Full task: [`ai/sessions/2026/09/30/card-measure-gap/`](/framework/ai/sessions/2026/09/30/card-measure-gap/).
 
 - **The measure (`ai2.css`'s `:is(.ai2-full-card, …) > :is(.ai2-text, …)` rule) now draws its own
   edge**: `border-inline-end: 1px solid var(--line)` plus a little `padding-inline-end`, the same

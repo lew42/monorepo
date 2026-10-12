@@ -135,7 +135,7 @@ It also never sits on a queue: every 15 minutes (`Global.queue_check()`), if [`a
 
 ## The voice pair: one standing pair, recycled (the owner, 2026-10-02)
 
-The fast and smart assistants answer the owner on every page. Being built: [`ai/2026-10-02/standing-voice-pair`](../public/framework/ai/2026-10-02/standing-voice-pair/requirements.md). Today each ✦ press still starts its own pair.
+The fast and smart assistants answer the owner on every page. Being built: [`ai/2026-10-02/standing-voice-pair`](../public/framework/ai/sessions/2026/10/02/standing-voice-pair/requirements.md). Today each ✦ press still starts its own pair.
 - **When it starts:** once, when Servex boots, like `fixer-1`. It's held open with no prompt, so it costs nothing until the first line. A ✦ press makes a session record (its chat file), not a new pair. A crashed pair comes back within a minute.
 - **When it recycles:** when one assistant's context passes its threshold (fast 40k tokens, smart 120k, to start). At the next quiet moment, the old session writes a short handover, and a fresh session with the same id starts from it. Never mid-turn, and never while the owner is speaking.
 - **What it costs:**
@@ -149,7 +149,7 @@ The fast and smart assistants answer the owner on every page. Being built: [`ai/
 
 **RAM is the limit right now.** 31.7 GB total, and about 4.7 GB is free with ~12 claude.exe processes (~0.25–0.8 GB each) plus Chrome. Servex holds new spawns until 4 GB is free (`SERVEX_MIN_FREE_MB`), so work queues behind memory, not tokens. What helps: close old VS Code conversations (each keeps a process), stop finished agents at once, and move self-contained code work to cloud sessions. Every limit like this is a known issue on the Known issues page, so nobody re-reports it.
 
-**The biggest leak was node, not claude** (vscode-mastermind, 2026-10-02): 59 node.exe processes held 3.9 GB. 22 were worktree dev servers (2.1 GB), most for worktrees nobody was using, plus three copies in main. Each dev server is a pair, `node server.js` supervising `node Server/run.js`, and most of the 26 `server.js` processes were those supervisors, started from agents' shells and never stopped. One-off cleanup: [`node-reap.mjs`](../public/framework/ai/2026-10-02/node-reap/node-reap.mjs). The rule below keeps it from coming back.
+**The biggest leak was node, not claude** (vscode-mastermind, 2026-10-02): 59 node.exe processes held 3.9 GB. 22 were worktree dev servers (2.1 GB), most for worktrees nobody was using, plus three copies in main. Each dev server is a pair, `node server.js` supervising `node Server/run.js`, and most of the 26 `server.js` processes were those supervisors, started from agents' shells and never stopped. One-off cleanup: [`node-reap.mjs`](../public/framework/ai/sessions/2026/10/02/node-reap/node-reap.mjs). The rule below keeps it from coming back.
 
 ## Dev servers: Servex starts them, a lease keeps them (the owner, 2026-10-02)
 
@@ -159,7 +159,7 @@ The fast and smart assistants answer the owner on every page. Being built: [`ai/
 4. **No zombies.** The reconcile pass kills any node server whose worktree has no lease, and any process tree whose launching shell is gone, and logs each kill.
 5. **Main keeps exactly one dev server, always on.**
 
-Build: [`ai/2026-10-02/node-reap`](../public/framework/ai/2026-10-02/node-reap/requirements.md).
+Build: [`ai/2026-10-02/node-reap`](../public/framework/ai/sessions/2026/10/02/node-reap/requirements.md).
 
 ## Big text moves by hook or by path, never through a tool call
 

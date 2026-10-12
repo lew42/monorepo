@@ -1,5 +1,5 @@
 verdict: fix
-1. [fix] review/diff.patch is the wrong diff. It holds the prompt-audit task (ai/2026-10-07/prompt-audit/*, commits e102d04d and 9a110445 on worktree/qf-6), not the mobile work, so nothing this task built went through the review or merge gate.
+1. [fix] review/diff.patch is the wrong diff. It holds the prompt-audit task (ai/sessions/2026/10/08/prompt-audit/prompt-audit/*, commits e102d04d and 9a110445 on worktree/qf-6), not the mobile work, so nothing this task built went through the review or merge gate.
 2. [fix] The mobile page is uncommitted. public/framework/dev/mobile/ (page.jsonl, readme.md, mobile.md) and the dev/page.js:10 `children:` edit exist only as loose changes in worktree qf-6, which belongs to another task's branch. Commit them on this task's own branch and merge them through the gate.
 3. [fix] findings.md, task.jsonl and files.jsonl in this task dir are untracked in the main tree. This breaks the "commit your own work, no loose files" rule. task.jsonl also has no landing line, so finish-task never ran.
 4. [note] The port isn't consistent. findings.md §1 says the main site is listening on 0.0.0.0:3104, but mobile.md step 2 and the brief use 10.0.0.135:8137. The page should state the one real port, or tell the reader how to find it (for example, Servex's list_servers), so the phone link actually works.

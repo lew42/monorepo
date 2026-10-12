@@ -19,14 +19,14 @@ scrolling past three demos in a column.
 
 ## The `Live` card reads a real file outside this module
 
-`/framework/ai/2026-08-14/jsonl/task.jsonl` — the task that built `JSONL`
+`/framework/ai/sessions/2026/08/14/jsonl/task.jsonl` — the task that built `JSONL`
 itself. It is the one place in this module where the fences matter: this
 `page.js` reads that file at runtime (a `fetch`, not an edit), and nothing
 under `framework/ai/` was written or touched to produce this page.
 
 ## Improvements
 
-1. **The `Live` card's url is a hardcoded date.** `/framework/ai/2026-08-14/jsonl/task.jsonl`
+1. **The `Live` card's url is a hardcoded date.** `/framework/ai/sessions/2026/08/14/jsonl/task.jsonl`
    will eventually be an old task, no less true for being static, but a
    reader skimming the Overview months from now has no way to tell "this is
    an example on purpose" from "this rotted." A one-line caption saying so

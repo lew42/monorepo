@@ -14,8 +14,8 @@ full, including why `FileSaver` only works on localhost: [`backends.md`](./backe
 | [`ext/editor/page.js`](/framework/ext/editor/) | `/framework/ext/editor/` | the document being edited **and** its panel arrangement — two savers, `dev ? FileSaver : LocalStorageSaver` |
 | [`ext/Panel/workspace.js`](/framework/ext/Panel/) | `/framework/ext/Panel/` | the panel tree's own persisted layout, same environment idiom |
 | [`dev/DevBar/settings.js`](/framework/dev/) | every page (the dev rail) | one `LocalStorageSaver`, so a knob flipped twice in a frame still writes once |
-| [`ai/2026-08-14/editor-panel-review/page.js`](/framework/ai/2026-08-14/editor-panel-review/) | task page | `MemorySaver`, seeding a review demo with no real persistence |
-| [`ai/2026-08-13/editor-panels/page.js`](/framework/ai/2026-08-13/editor-panels/) | task page | `MemorySaver`, a minimal panel-workspace demo |
+| [`ai/sessions/2026/08/14/editor-panel-review/page.js`](/framework/ai/sessions/2026/08/14/editor-panel-review/) | task page | `MemorySaver`, seeding a review demo with no real persistence |
+| [`ai/sessions/2026/08/13/editor-panels/page.js`](/framework/ai/sessions/2026/08/13/editor-panels/) | task page | `MemorySaver`, a minimal panel-workspace demo |
 
 `core/Item/readme.md` documents `Item.open(new FileSaver(...))` as the intended
 pairing, but `Item.js` itself imports no saver — the duck type above means
@@ -94,7 +94,7 @@ never even reaches `drain()`'s catch.
 guarded `setItem` `core/Sidebar`'s own store now shares. The behaviour this
 verdict describes — a handled failure warns once and resolves `false`, never
 throws — did not change; only which file owns the `try` did.
-`ai/2026-09-18/cleanup-2/`, `core/Page/doc/decisions.md`'s own entry has the
+`ai/sessions/2026/09/18/cleanup-2/`, `core/Page/doc/decisions.md`'s own entry has the
 full merge.)*
 
 **A failed `load()`: fold into `null`, or distinguish from absent?** A caller

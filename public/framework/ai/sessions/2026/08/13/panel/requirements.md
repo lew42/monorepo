@@ -42,8 +42,8 @@ House style: `.claude/skills/code-architecture/SKILL.md` — read it first.
 - `ext/layout` — `layout.bar(target)`, `layout.context(el, fn)`, and
   `controls.js` (`pick, menu, toggle, chips, knob, btn`). The drawer is one per
   document; reuse is at the **control level** (verdict:
-  `framework/ai/2026-08-12/apps/readme.md`).
-- `framework/ai/2026-08-12/apps/panes/` — the closest sketch: recursive
+  `framework/ai/sessions/2026/08/12/apps/readme.md`).
+- `framework/ai/sessions/2026/08/12/apps/panes/` — the closest sketch: recursive
   `build(tree)`, the grip resize math, and `panes.css`'s
   `flex: 1 1 0; min-width: 0; min-height: 0` at every level. **Mine it, never
   import it** (a log directory is not a module). Its grip is not rAF-coalesced
@@ -125,10 +125,10 @@ House style: `.claude/skills/code-architecture/SKILL.md` — read it first.
 
 - **Worker 1 (panel core):** `ext/panel/Panel.js`, `panel.js`, `panel.css`,
   `page.js`, `readme.md`; the one-line `ext/page.js` children edit; the
-  exec-summary `framework/ai/2026-08-13/panel/page.js`. **May not touch**
+  exec-summary `framework/ai/sessions/2026/08/13/panel/page.js`. **May not touch**
   `templates.js` / `templates.css` (a stub exists — code against it).
 - **Worker 2 (templates):** `ext/panel/templates.js` + `templates.css` only,
-  plus notes at `framework/ai/2026-08-13/panel/templates.md`. If the readme
+  plus notes at `framework/ai/sessions/2026/08/13/panel/templates.md`. If the readme
   exists when you finish, append one numbered section at the END; merge, never
   overwrite.
 - **Neither** touches `core/`, `styles/`, `ext/layout`, `ext/draggable`,

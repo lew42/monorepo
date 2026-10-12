@@ -11,11 +11,11 @@ Built by grepping the repo (task dirs, `/imagine/platform/`, `worker/`, `wrangle
 - [Local dev](/imagine/platform/decisions/local-dev.md), [slice](/imagine/platform/decisions/slice.md), [topic model](/imagine/platform/decisions/topic-model.md); nine research verdicts incl. [users](/imagine/platform/research/users/verdict/) and [security](/imagine/platform/research/security/verdict/); [prior Cloudflare work](/imagine/platform/prior/).
 - [Auth design record](/notes/auth/): "the site is static, the API is not; every page must render with the API returning 500".
 - [Cloudflare services mock + MCP/wrangler steps](/imagine/cms/services/) (2026-08-30) and [D1 notes](/imagine/cms/d1/).
-- [Remote access](/framework/ai/2026-10-01/remote-access/requirements.md): Cloudflare Tunnel + Access (lew42.com DNS is already on Cloudflare) to reach the PC dev server and Servex from outside.
+- [Remote access](/framework/ai/sessions/2026/10/01/remote-access/requirements.md): Cloudflare Tunnel + Access (lew42.com DNS is already on Cloudflare) to reach the PC dev server and Servex from outside.
 
 ## What was built (runs locally only)
 - `worker/` (about 520 lines): `index.js` router, `session.js`, `can.js`, `me.js`, `likes.js`, `pages.js`, `room.js` (Durable Object), `schema.sql`, `seed.sql`, `dev.js` (dev login, absent from the production entry).
-- `wrangler.dev.jsonc` (D1 `DB`, DO `ROOM`, `DEV_LOGIN`) and `dev.mjs`. Run recipe: [platform-slice/run.md](/framework/ai/2026-09-06/platform-slice/run.md): a like that is a row in real SQLite, in 14 seconds, offline.
+- `wrangler.dev.jsonc` (D1 `DB`, DO `ROOM`, `DEV_LOGIN`) and `dev.mjs`. Run recipe: [platform-slice/run.md](/framework/ai/sessions/2026/09/06/platform-slice/run.md): a like that is a row in real SQLite, in 14 seconds, offline.
 - [Topic demo](/imagine/platform/topic/), `like.js` beside it.
 
 ## Never wired in
@@ -58,11 +58,11 @@ The slice demo needs one `npx wrangler` download, so I did not run it (the 15-mi
 
 | Owner ask (date, session) | Built? |
 |---|---|
-| Cloudflare auth, database, storage, payments as local simulated services (09-08, 080bcce3) | Auth + D1 + Durable Object: yes, locally via wrangler dev ([slice](/framework/ai/2026-09-06/platform-slice/run.md)). Storage (R2) and payments: no |
+| Cloudflare auth, database, storage, payments as local simulated services (09-08, 080bcce3) | Auth + D1 + Durable Object: yes, locally via wrangler dev ([slice](/framework/ai/sessions/2026/09/06/platform-slice/run.md)). Storage (R2) and payments: no |
 | Password reset, social-login avatars/Gravatar, study the sign-up UX (09-18, 0d555c50) | Partly: `ux/Auth` and `ux/MagicAuth` classes exist as UI; no avatar/Gravatar, no real reset, no backend wired |
 | "Cloudflare API setup, 5 min" as the owner item (09-18) | Never done; it is blocker 1 above |
 | Payments: "did we build any modules?" (09-05) | No code; only the research answer |
-| Cloudflare Tunnel so the PC serves the site remotely (10-01, 10-05) | Decided ([remote-access](/framework/ai/2026-10-01/remote-access/requirements.md)), not installed |
+| Cloudflare Tunnel so the PC serves the site remotely (10-01, 10-05) | Decided ([remote-access](/framework/ai/sessions/2026/10/01/remote-access/requirements.md)), not installed |
 | Cloudflare page-to-markdown API for agent web search (10-01) | Not built, not researched beyond the ask |
 | Keep auth from shutting everything down; refresh on a timer (10-05) | Not built |
 | Find past Cloudflare/auth/payment/user work, scan prompts by keyword (10-09) | This task |

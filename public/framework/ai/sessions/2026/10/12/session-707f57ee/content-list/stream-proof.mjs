@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { browser, close } from "../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../Server/browser.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const file = path.join(here, "../../../core/Page/jsonl/live/page.jsonl");   // the page-tools demo page: a routed page.jsonl

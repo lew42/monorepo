@@ -29,7 +29,7 @@ Hovering any box in ext/Playground is jumpy; we want **zero** jumpy behavior. La
 - `public/framework/ext/Playground/canvas.js`
 - `public/framework/ext/Playground/playground.css`
 - `public/framework/ext/Playground/Playground.js` — selection semantics in `add_to`/`add` ONLY
-- your task dir `public/framework/ai/2026-08-27/pg-interactions/`
+- your task dir `public/framework/ai/sessions/2026/08/27/pg-interactions/`
 - NOT: `items.js`, `toolbar.js`, `documents.js`, `properties.js`, `readme.md`, `doc/` (wave 2 owns those; log wishes as `log` lines)
 
 ## Proof — the deliverable is measurements, not claims

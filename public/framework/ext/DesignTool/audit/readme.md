@@ -24,5 +24,5 @@ rank_shape(await frame(url, 1280));                      // one page, live — p
 ## More
 
 - [doc/decisions.md](./doc/decisions.md) — the score removal (evidence, numbers), the no-cap format, regenerating, the traps in full.
-- Page: [/framework/ext/DesignTool/audit/](/framework/ext/DesignTool/audit/) · quality tier: [taste/](./taste/) · method: `ai/2026-08-16/audit-baseline/`
+- Page: [/framework/ext/DesignTool/audit/](/framework/ext/DesignTool/audit/) · quality tier: [taste/](./taste/) · method: `ai/sessions/2026/08/16/audit-baseline/`
 - Files: `page.js` (load, run, rank), `findings.json` (saved baseline), `pages.js` (generated url list), `twin.js` (before/after pane)

@@ -19,7 +19,7 @@ That is the whole brief. **They come back to a screen that tells them what to do
 
 ## What to build
 
-**A page at `public/framework/ai/2026-09-20/start-here/page.js` that answers three questions, in
+**A page at `public/framework/ai/sessions/2026/09/20/start-here/page.js` that answers three questions, in
 this order, on one screen:**
 
 1. **What should I do first?** A short numbered list — three to five items, no more — of things
@@ -34,7 +34,7 @@ this order, on one screen:**
 
 - `public/framework/ai/handover.md` — the state of the world, already written and current. Your
   page is the **shorter, friendlier front** to this, not a replacement. Link to it.
-- `public/framework/ai/2026-09-19/mastermind-sonnet-run/task.jsonl` — the run ledger. Its `agent`
+- `public/framework/ai/sessions/2026/09/19/mastermind-sonnet-run/task.jsonl` — the run ledger. Its `agent`
   lines carry an `outcome` for every task that landed, and its `decision` lines say what was chosen
   and why. This is your richest source.
 - `public/framework/ai/2026-09-19/*/` and `public/framework/ai/2026-09-20/*/` — the task dirs, each
@@ -103,7 +103,7 @@ shots look cramped because of it, say so rather than patching around it.
 
 ## Fences
 
-You own `public/framework/ai/2026-09-20/start-here/**`, one line in that day page's `children:`,
+You own `public/framework/ai/sessions/2026/09/20/start-here/**`, one line in that day page's `children:`,
 and one append to its `day.jsonl`. Nothing else.
 
 ## Length budget

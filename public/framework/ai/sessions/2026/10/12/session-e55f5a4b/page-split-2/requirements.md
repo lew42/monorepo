@@ -1,6 +1,6 @@
 # Page.class.js split, steps 5-6: columns and links
 
-**Plan:** [core/Page/doc/split-plan.md](/framework/core/Page/doc/split-plan.md) steps 5 and 6. Steps 1-4 landed tonight ([page-split-1](../page-split-1/STATE.md): 2,270 to 1,314 lines, nothing broke). Step 7 (jsonl) stays for a later task: it is the core path of every page.
+**Plan:** [core/Page/doc/split-plan.md](/framework/core/Page/doc/split-plan.md) steps 5 and 6. Steps 1-4 landed tonight ([page-split-1](../../session-75fc1375/page-split-1/STATE.md): 2,270 to 1,314 lines, nothing broke). Step 7 (jsonl) stays for a later task: it is the core path of every page.
 
 ## Do, one commit per step
 5. **Columns** to its own class file (`Page.Columns` or the name the plan settles), `columns()`, `column()`, `column_host` stay as facades on Page with the same signatures.

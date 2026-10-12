@@ -32,7 +32,7 @@ export class Composer {
 		const NOTE = "the fast assistant inside Servex · names in ~2 s · ✓ ✗ optional";
 		// `?servex=` — the same test-flag device `Prompts.js`'s own `Prompts.base()`
 		// uses, so a proof run can point this box at a dead port without touching
-		// the real assistant (`ai/2026-09-22/talk-to-assistant/`).
+		// the real assistant (`ai/sessions/2026/09/22/ca954b97-02cc-44ee-b472-c0b18c16e9c1/talk-to-assistant/`).
 		const servex_url = () => (new URLSearchParams(location.search).get("servex") || "http://127.0.0.1:8090") + "/log/prompts";
 
 		const $view = div.c("v3-compose flex v", () => {

@@ -31,6 +31,6 @@ across 76 pages, now 19, and none of those is a control you cannot see.
 - Page: [/framework/styles/stacks/](/framework/styles/stacks/) — the matrix, live, both modes
 - [`/framework/styles/doc/stacking.md`](/framework/styles/doc/stacking.md) — the rules, the bill, the fix list
 - [`doc/decisions.md`](./doc/decisions.md) — why four rungs, why literal `rgba()`, what the ladder does not fix
-- [the lab task](/framework/ai/2026-08-30/color-stacks/) — `hunt.mjs` and its threshold calibration
-- [the flip task](/framework/ai/2026-08-30/alpha-flip/) — what moved, what deliberately did not
+- [the lab task](/framework/ai/sessions/2026/08/30/color-stacks/) — `hunt.mjs` and its threshold calibration
+- [the flip task](/framework/ai/sessions/2026/08/30/alpha-flip/) — what moved, what deliberately did not
 - Files that matter: `stacks.js` (the colour maths the page AND the scan share), `hunt.json` (the scan), `stacks.css` (the grid only — the tokens are in `framework.css`)

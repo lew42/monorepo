@@ -32,7 +32,7 @@ And this morning's layout rule: on a phone, nesting is padding — two levels is
 
 ## Rules
 
-- Load `code`, `layout` (all — the box rule, nesting is padding, under a COLUMNS host there is no page grid: `/imagine/` is one; a 24rem column is a rail, `em`/`rem` widths belong to it), `css`, `new-css-class` (the design realm's prefix — read `css-scopes.txt`); `new-task` before the first edit (your dir exists: `ai/2026-09-18/list-shapes/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you. Write your choices as `decision` lines.
+- Load `code`, `layout` (all — the box rule, nesting is padding, under a COLUMNS host there is no page grid: `/imagine/` is one; a 24rem column is a rail, `em`/`rem` widths belong to it), `css`, `new-css-class` (the design realm's prefix — read `css-scopes.txt`); `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/18/list-shapes/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you. Write your choices as `decision` lines.
 - **Fence:** `public/imagine/design/lists/**` (new), one `children:` word + one line in `public/imagine/design/page.js`, your task dir. Nothing else — not `/imagine/team/`, not `ux/Tree`, not `ui/`.
 - The owner's dev server (port 80) is running: never touch it; your own is `PORT=8120 node server.js` from the repo root, background, killed by its real Windows PID when you land. Never `git stash`, never `find /`, never drive the owner's tabs. `ui-test` has the headless recipe: press one control per shape and shoot it (six shots), plus the page at 1920 and at 400.
 - Demos never persist. Two numbers that must agree: members in the data and rows drawn in shape 1.

@@ -7,7 +7,7 @@ View.stylesheet(import.meta, "Refine.css");
  * structured → brief, side by side, with a coverage table underneath.
  *
  *     import refine from "/framework/ext/Refine/Refine.js";
- *     refine(import.meta, { run: "/framework/ai/2026-09-29/prompt-refine/runs/b/" });
+ *     refine(import.meta, { run: "/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/runs/b/" });
  *
  * Click an ask in Brief, or a bullet in Structured, and its cited sentences
  * `[S3, S7]` light up in Clean, and the matching stretch of Raw beside it —

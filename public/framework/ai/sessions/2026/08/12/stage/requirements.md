@@ -67,7 +67,7 @@ second of drag is fine); numbers go in the readme.
 - `ext/demo/readme.md`: append a new numbered section at the END recording the
   design (question → options → weighing → verdict). Update the stage doc-comment.
 - Update the demo section's `page.js` docs only if they claim something now false.
-- `public/framework/ai/2026-08-12/stage/page.js` — an interactive executive
+- `public/framework/ai/sessions/2026/08/12/stage/page.js` — an interactive executive
   summary Page (model: `framework/ai/2026-08-08/page.js`): what changed, with
   LIVE demos of the presets and the two-up (they're just `demo.stage()` /
   `demo.responsive()` calls), links to the files, and open questions. Keep it

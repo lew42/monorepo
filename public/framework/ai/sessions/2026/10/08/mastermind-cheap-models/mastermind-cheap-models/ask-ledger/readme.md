@@ -1,6 +1,6 @@
 # Ask → delivered audit (extends 2026-10-07/prompt-audit)
 
-**What this is:** [2026-10-07/prompt-audit](/framework/ai/2026-10-07/prompt-audit/) only ever
+**What this is:** [2026-10-07/prompt-audit](/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit/) only ever
 read `asks.jsonl` (259 rows, curated). This folder extends that pass to the full Claude Code
 session history — the raw transcripts, which are ground truth for what the owner actually said
 (see [doc/logs/log-sources.md](/framework/ai/doc/logs/log-sources.md) for why, and the limits).

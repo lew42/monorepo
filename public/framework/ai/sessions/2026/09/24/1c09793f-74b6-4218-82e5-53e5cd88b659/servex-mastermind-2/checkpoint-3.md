@@ -1,6 +1,6 @@
 # mastermind-servex-3: checkpoint, 2026-09-28 evening
 
-Start fresh as **mastermind-servex-4**: load the `servex-mastermind` skill, read this, then the last 20 lines of `task.jsonl` here. Launch lines live in `ai/2026-09-25/servex-mastermind/dispatch.md` (rows 3 to 13).
+Start fresh as **mastermind-servex-4**: load the `servex-mastermind` skill, read this, then the last 20 lines of `task.jsonl` here. Launch lines live in `ai/sessions/2026/09/24/1c09793f-74b6-4218-82e5-53e5cd88b659/servex-mastermind/dispatch.md` (rows 3 to 13).
 
 ## First: the Servex restart (queued, proved, not yet run)
 

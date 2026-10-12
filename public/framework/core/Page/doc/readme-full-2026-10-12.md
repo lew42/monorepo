@@ -21,8 +21,8 @@ Page extends Item                     // ✅ page instanceof Item is true — no
 class Card extends Page { }           // ✅ a smaller page (card/, ai2/card.js) — its own data stays a separate task
 // NOT BUILT YET: class System extends Page — design, code, ui, ux, ai sharing top tabs, readmes, an inbox
 // sub-modules: card/ (the card rules), weight/ (weight = 1 by default), ext/ (Inbox), audit/, layout/
-// design: ai/2026-09-30/proposal-flow/page-item-design.md (the "fourth pass" section rules)
-// build log: ai/2026-10-02/page-extends-item/
+// design: ai/sessions/2026/09/30/proposal-flow/page-item-design.md (the "fourth pass" section rules)
+// build log: ai/sessions/2026/10/02/page-extends-item/page-extends-item/
 ```
 
 ## The sub-systems

@@ -87,7 +87,7 @@ a safe way to stage a break, say so plainly rather than claiming it works; an ho
 ## Fences
 
 You own: `Server/health.mjs`, any new supervisor file you add beside it, and
-`public/framework/ai/2026-09-19/health-revive/**`. You may add one line to the day page's
+`public/framework/ai/sessions/2026/09/19/health-revive/**`. You may add one line to the day page's
 `children:` and append to that day's `day.jsonl`.
 
 **You may not touch `Server/server.js`** — read it and copy its supervision pattern, but if it

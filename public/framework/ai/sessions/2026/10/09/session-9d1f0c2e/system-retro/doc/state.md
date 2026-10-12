@@ -5,7 +5,7 @@ wired together yet, and the one change that would help the most.
 
 ## Fast assistant (`assistant-fast`)
 
-**Proven.** Lives inside Servex ([`prompt-lifecycle`](../../prompt-lifecycle/)); every spoken or
+**Proven.** Lives inside Servex ([`prompt-lifecycle`](../../../../../../../2026-09-22/prompt-lifecycle)); every spoken or
 typed sentence gets a name, a card, and a refined reading citing the sentence it came from, at a
 measured median of 2.05 seconds over five real sentences.
 **Half-built.** Its replies sometimes arrive with no `type` — a whole answer written to the log
@@ -16,7 +16,7 @@ is sometimes true and sometimes just a card the page can't draw.
 
 ## Master assistant (`assistant-master`)
 
-**Proven.** The role is designed in [`tiers-design`](../../tiers-design/doc/roles.md): supervise
+**Proven.** The role is designed in [`tiers-design`](../../../../../09/22/tiers-design/tiers-design/doc/roles.md): supervise
 the three tiers below it, say the one thing about to be forgotten, audit a mistake once it reaches
 the owner.
 **Half-built.** It has never run. Nothing feeds it — that is planned for tomorrow's `open-mic`
@@ -38,21 +38,21 @@ board) can read live instead of a human-shaped log a browser has to poll.
 
 ## Task masterminds (Dispatcher)
 
-**Proven.** [`card-to-task`](../../card-to-task/) closed the loop for real: a spoken request
+**Proven.** [`card-to-task`](../../../../../09/22/session-df2f3e2e/card-to-task) closed the loop for real: a spoken request
 became a landed page in 5 minutes 41 seconds for $2.04, through `Servex/agents/Dispatcher.js`
 spawning one Sonnet task mastermind per queued task, two at a time.
 **Half-built.** Depth stops at two — a task mastermind cannot spawn another task mastermind yet,
-because [`sub-mastermind-live`](../../sub-mastermind-live/) only proved that a child's landing
+because [`sub-mastermind-live`](../../../../../../../2026-09-22/sub-mastermind-live) only proved that a child's landing
 wakes its *parent*, not a grandparent. Parallel teams with a judge (phase 3) do not exist.
 **Would help most.** A second real run of the Dispatcher on a task that actually needs two or three
 minions in sequence, not just one — today's proof was a single-minion task.
 
 ## Minions (CLI sessions in worktrees)
 
-**Proven.** [`worktree-design`](../../worktree-design/) measured a full worktree at 274 MB and 771
-GB free; [`worktree-proof`](../../worktree-proof/) built and landed a real fix from inside one in
+**Proven.** [`worktree-design`](../../../../../09/22/worktree-design/worktree-design) measured a full worktree at 274 MB and 771
+GB free; [`worktree-proof`](../../../../../09/22/worktree-proof/worktree-proof) built and landed a real fix from inside one in
 5.3 seconds; from 17:55 the rule is every editing minion gets its own worktree
-([`minions-in-worktrees` decision](../../mastermind-servex/)), and most of tonight's minions
+([`minions-in-worktrees` decision](../../../../../../../2026-09-22/mastermind-servex)), and most of tonight's minions
 followed it.
 **Half-built.** Two teardown bugs bit tonight: a worktree's server was removed without being
 stopped first (a runaway `node` at 120% of a core, twice), and the worktree-registry lookup can
@@ -65,7 +65,7 @@ came from skipping it.
 ## The log — four stores, one decision made tonight
 
 **Proven.** Four stores exist and each has a clear job: Servex's single writer (`Servex/Log.js`,
-per-agent JSONL, naming-checked since [`naming-checks`](../../naming-checks/)), `board.jsonl` (the
+per-agent JSONL, naming-checked since [`naming-checks`](../../../../../../../2026-09-22/naming-checks)), `board.jsonl` (the
 board's cards), `ai/prompts.jsonl` (what was said), and each task's own `task.jsonl` (the spine
 this whole report was built from).
 **Half-built.** `board.jsonl` cannot hold a conversation — a card that grows past one event has
@@ -80,10 +80,10 @@ built on top of the shape that is already known to be wrong.
 
 **Proven.** The old board (`/framework/ai/`, "V3") now opens on Days — one line per finished task,
 newest first — with Now/Grid/Timeline/Prompts one click away and a URL for each
-([`days-view`](../../days-view/), [`board-declutter`](../../board-declutter/)). AI 2
+([`days-view`](../../../../../09/22/session-14ca2320/days-view), [`board-declutter`](../../../../../../../2026-09-22/board-declutter)). AI 2
 (`/framework/ai2/`) went from a blank page to a working rail-plus-detail inbox today: previews on
 the left, a real routed page per card on the right, nothing jumps
-([`inbox-model`](../../inbox-model/), [`ai2-master-detail`](../../ai2-master-detail/)). Talk and
+([`inbox-model`](../../../../../../../2026-09-22/inbox-model), [`ai2-master-detail`](../../../../../09/22/session-a578212b/ai2-master-detail)). Talk and
 Record are small, focused, working pages.
 **Half-built.** Two boards for the same job. The owner is dictating into AI 2 while V3 still
 exists; five AI 2 items (pinned topics, the dark session card, sub-cards in a third column, the
@@ -94,7 +94,7 @@ stray click could still land a fix on the board being replaced.
 
 ## Live reload
 
-**Proven.** [`reload-rethink`](../../reload-rethink/) measured the actual problem: 215 reloads on
+**Proven.** [`reload-rethink`](../../../../../../../2026-09-22/reload-rethink) measured the actual problem: 215 reloads on
 the owner's tab today, 203 of them (94%) triggered by `directory.json`, which is rebuilt every time
 any agent creates a task directory. Fixed: a file the page only *reads* now updates in place over
 the socket instead of reloading; a reload that is still needed restores the scroll position; a

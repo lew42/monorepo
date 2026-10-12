@@ -47,7 +47,7 @@ class Cards extends JSONL {
 	reset() { this.cards = []; return super.reset(); }
 }
 
-const APPROVALS = "/framework/ai/2026-09-19/day-audit/approvals.jsonl";
+const APPROVALS = "/framework/ai/sessions/2026/09/19/day-audit/approvals.jsonl";
 
 /** An ISO stamp carrying THIS machine's offset — `toISOString()` would move it to UTC. */
 function stamp() {
@@ -314,7 +314,7 @@ function live_section() {
 		h3("The Live toggle does not exist yet, and nobody was sent to build it");
 		p("You asked for it at 17:10 — a toggle near the top that makes the view follow new items "
 			+ "automatically. It is written down in full: item 7 of "
-			+ "ai/2026-09-19/v3-timeline/requirements.md, which also holds the timeline grid, the "
+			+ "ai/sessions/2026/09/19/v3-timeline/requirements.md, which also holds the timeline grid, the "
 			+ "pinned strip for things needing you, and the head row becoming the toolbar you asked for twice.");
 		p(() => {
 			strong("That brief has no task log at all. ");
@@ -322,7 +322,7 @@ function live_section() {
 				+ "This one has requirements.md and nothing else, which means the brief was written and "
 				+ "never handed to anybody.");
 		});
-		a("the brief that was never dispatched").href("/framework/ai/2026-09-19/v3-timeline/");
+		a("the brief that was never dispatched").href("/framework/ai/sessions/2026/09/19/v3-timeline/");
 	});
 
 	div.c("card").style({ "--card-edge": "var(--ok, #2e7d32)" }).append(() => {
@@ -366,6 +366,6 @@ function live_section() {
 				+ "half: a card carrying ask: [\"yes\",\"no\"] draws real buttons and a press reaches a live "
 				+ "Claude session in about ten seconds.");
 		});
-		a("card-replies — try the buttons").href("/framework/ai/2026-09-19/card-replies/");
+		a("card-replies — try the buttons").href("/framework/ai/sessions/2026/09/19/card-replies/");
 	});
 }

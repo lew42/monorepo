@@ -1,4 +1,4 @@
-// Written by ai/2026-09-30/page-audit/classify.mjs --emit. Re-run it; don't edit by hand.
+// Written by ai/sessions/2026/09/30/page-audit/page-audit/classify.mjs --emit. Re-run it; don't edit by hand.
 export default {
 	"at": "2026-09-30",
 	"crawled": 1500,

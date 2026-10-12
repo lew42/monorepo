@@ -1,6 +1,6 @@
 # Minion brief: merge 11, one widget, autosend by default
 
-Load the `minion` skill first. Your parent is **task-mastermind-one-dictation**. Read `public/framework/ai/2026-09-30/one-dictation/checklist-2026-10-01.md`: you own items **2** and **3**.
+Load the `minion` skill first. Your parent is **task-mastermind-one-dictation**. Read `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/checklist-2026-10-01.md`: you own items **2** and **3**.
 
 ## Why
 The owner used the Dictate page and the ✦ sheet this afternoon. They "look alike but behave differently": the page showed replies twice, and autosend didn't happen. The owner, in their own words: "maybe that was a mistake to separate those into two different [modes]", and "auto send after a pause of a reasonable amount". Law 6: every surface that shows the same chat uses the same component in the same way, so a fix on the Dictate page reaches the sheet too.

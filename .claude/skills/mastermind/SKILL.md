@@ -35,7 +35,7 @@ You are the executive tier: you decide what is worth doing, brief workers, judge
 
 Nobody else can reach or reopen an in-process agent. Servex agents are MCP-addressable, and a child's completion arrives as an event to its parent.
 
-- **Spawn:** `spawn_agent {role, name, prompt}`; `model`, `effort`, `cwd` override the role's defaults, and `role` loads that role's skill. Then `send_to_agent`, `interrupt_agent`, `stop_agent`, `list_agents`. Seam: [`Servex/agents/readme.md`](../../../Servex/agents/readme.md); roles: [`tiers-design/doc/roles.md`](/framework/ai/2026-09-22/tiers-design/doc/roles.md).
+- **Spawn:** `spawn_agent {role, name, prompt}`; `model`, `effort`, `cwd` override the role's defaults, and `role` loads that role's skill. Then `send_to_agent`, `interrupt_agent`, `stop_agent`, `list_agents`. Seam: [`Servex/agents/readme.md`](../../../Servex/agents/readme.md); roles: [`tiers-design/doc/roles.md`](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md).
 - **Warm time:** `dormant_after` (seconds). Minions, reviewers and task masterminds default to 0 (a cold resume loads in 0.15 s). Use `60` only when you will read the reply and may ask a follow-up.
 - **Fallback when Servex is down:** `claude --session-id <uuid> -p "<prompt naming the brief>" --model <full id> --effort <level> --permission-mode acceptEdits --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill,WebFetch,WebSearch" --output-format json` from the repo root; `claude --resume <id> -p` to follow up; forks are the `fork-claude-session` skill. ⚠ Those permission flags are the whole difference between a minion that works and one that writes nothing.
 - **Ask, don't read:** a question about one module goes to its expert (`list_experts`, `ask_expert`); several modules, a mastermind with `readme_modules`.
@@ -130,13 +130,13 @@ The owner dictates by phone and mostly does not read replies. Do the things aske
 - **Cards, not paragraphs:** an `icon`, a title of about five words, the time; two or three short sentences of text, the rest one click down.
 - **Do not edit the screen the owner is reading.** Appending a log line is your only write to the live site; everything else is a minion's, behind the reload hold.
 
-⚠ **A reverted working tree is a STASH until `git stash list` says otherwise**: check it before `git fsck` or commissioning any reconstruction ([`reset-recovery`](/framework/ai/2026-09-19/reset-recovery/); reading a stash safely is in [`minion/SKILL.md`](../minion/SKILL.md)).
+⚠ **A reverted working tree is a STASH until `git stash list` says otherwise**: check it before `git fsck` or commissioning any reconstruction ([`reset-recovery`](/framework/ai/sessions/2026/09/19/reset-recovery/); reading a stash safely is in [`minion/SKILL.md`](../minion/SKILL.md)).
 
 ## Never break the page; audit a mistake when it happens
 
 A module that does not parse blanks every page that imports it. `.claude/hooks/syntax-guard.mjs` exists but is not wired in `settings.json` (2026-10-09), so today the only check is each agent's own `node --check`. Prefer a check to a sentence wherever a mistake can be detected mechanically.
 
-When a mistake reaches the owner (a broken page, a visibly wrong layout, a rule that did not fire), fix it first, then spawn ONE audit minion (pattern: `ai/2026-09-19/mistake-audit/`): what happened, with evidence; what the agent had in front of it and why that was not enough; at most five changes ranked by mistakes prevented per line of text. Reshape a rule, merge two, delete a bad one, turn a sentence into a check; a new rule comes last and pays for itself with one removed. Time-box to an hour, one screen back; fail-safe edits applied, the rest as decisions.
+When a mistake reaches the owner (a broken page, a visibly wrong layout, a rule that did not fire), fix it first, then spawn ONE audit minion (pattern: `ai/sessions/2026/09/19/mistake-audit/`): what happened, with evidence; what the agent had in front of it and why that was not enough; at most five changes ranked by mistakes prevented per line of text. Reshape a rule, merge two, delete a bad one, turn a sentence into a check; a new rule comes last and pays for itself with one removed. Time-box to an hour, one screen back; fail-safe edits applied, the rest as decisions.
 
 ## Reporting
 

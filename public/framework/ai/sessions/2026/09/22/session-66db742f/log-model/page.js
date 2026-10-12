@@ -1,7 +1,7 @@
 import { Page, p, h2, h3, a, div, ui } from "/app.js";
 
 /* THE LOG MODEL — the design half of the Servex Mastermind's memory.
- * Brief: ai/2026-09-22/log-model/requirements.md (sections D, E and F of the owner's
+ * Brief: ai/sessions/2026/09/22/session-66db742f/log-model/requirements.md (sections D, E and F of the owner's
  * architecture brief). Full schema: events.md beside this file. The fold itself is
  * fold.js, run live on the Fold child page over sample.jsonl. No server code here —
  * this is the shape the appender and the dashboard both build against. */

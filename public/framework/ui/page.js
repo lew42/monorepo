@@ -31,7 +31,7 @@ export default new Doc({
 	// ⚠ `background` is appended here, NOT added to BANDS above: it would make
 	// Surfaces seven and break the "six, six, six, five" the browse() wall's own
 	// grid math depends on. It still routes and still shows up in this page's own
-	// nav — background-layer task, 2026-09-19, ai/2026-09-19/background-layer/.
+	// nav — background-layer task, 2026-09-19, ai/sessions/2026/09/19/background-layer/.
 	// `section` is appended the same way, for the same reason — section-variants task,
 	// 2026-09-28. `scale` too: a config word, not a component that belongs in a
 	// band's own grid — 2026-09-28. `item` too, for a different reason: it is a real

@@ -20,3 +20,4 @@
 {"inbox":{"id":"n-lpu189ci","from":"servex-heartbeat","text":"minion-subcard-columns-build its agent is not running: its working directory C:\\Code\\lew42\\worktrees\\subcard-columns no longer exists; not revived.","at":"2026-10-04T20:59:02.732-05:00"}}
 {"inbox":{"id":"n-ndq8bnrh","from":"servex-heartbeat","text":"minion-subcard-columns-build its agent is not running: its working directory C:\\Code\\lew42\\worktrees\\subcard-columns no longer exists; not revived.","at":"2026-10-04T21:45:37.163-05:00"}}
 {"inbox":{"id":"n-qyej132i","from":"servex-heartbeat","text":"minion-subcard-columns-build its agent is not running: its working directory C:\\Code\\lew42\\worktrees\\subcard-columns no longer exists; not revived.","at":"2026-10-04T23:25:40.621-05:00"}}
+{"file":"requirements.md"}

@@ -8,7 +8,7 @@ DEFAULT? First: run `new-task` (slug `demo-urls-audit`, group `pages`).
 `ext/demo/app.js` gained `urls: false` today (moves an in-memory tree's link urls from `href` to
 `data-demo-url` so crawlers/middle-click don't hit 404s; left-click still works). The homepage +
 ext/demo's own pages use it; ~65 other `demo.app()` call sites were not audited. The open question
-(from `ai/2026-08-30/critique-fixes/`): flipping the default fixes every dead-href demo at once
+(from `ai/sessions/2026/08/30/critique-fixes/`): flipping the default fixes every dead-href demo at once
 but would strip REAL hrefs from demos whose trees mirror actual site pages (where middle-click
 SHOULD work).
 

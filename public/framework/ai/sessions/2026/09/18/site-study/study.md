@@ -171,5 +171,5 @@ Measured headless on a private server (`PORT=8126`), viewport 3440×1200, ten of
 4. The one real, currently-uncapped risk is exactly what `browse.css` already names: a short band (2-3 cards) inside a `browse()` wall stretches those cards to fill the row instead of staying compact, and — unlike `wall()`'s already-fixed `auto-fill` behavior — nothing caps it today.
 5. Proposed default: give `.browse-band > .page-previews` a real maximum card width (e.g. `minmax(min(var(--column, 14em), 100%), min(28em, 1fr))` in place of the bare `1fr` ceiling) so a short band stops stretching past a sensible card size and leaves gutter instead, the same way `wall()` already does; the one alternative — capping the band's own outer width instead of each card — should stay opt-in per band rather than becoming the default, because it only wins when a band is guaranteed a near-full row of cards, where per-card capping would waste width rather than save it.
 
-Full measurement script and raw JSON: `ai/2026-09-18/site-study/` scratch (session-only, not in the repo — rerun with Playwright against the private server to reproduce).
+Full measurement script and raw JSON: `ai/sessions/2026/09/18/site-study/` scratch (session-only, not in the repo — rerun with Playwright against the private server to reproduce).
 

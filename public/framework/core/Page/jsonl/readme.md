@@ -18,7 +18,7 @@ Five things, each one click away:
 - **Who writes** — the dev server's file watcher, the page tools, cards, the reference
   tracker, a weight adjustment, an agent by hand, or a person editing on disk. Each page.jsonl
   lists its own files: the file watcher appends `{"file": name}` and
-  `{"file": name, "gone": true}`; [`task-mastermind-page-files-log`](/framework/ai/2026-09-29/page-files-log/)
+  `{"file": name, "gone": true}`; [`task-mastermind-page-files-log`](/framework/ai/sessions/2026/09/29/page-files-log/page-files-log/)
   owns that system. Full doc: [`doc/writers.md`](/framework/core/Page/jsonl/md/doc/writers/).
 - **Timing** — when a line is written vs. when a reader's browser actually shows it (streamed
   live on localhost; fetched once everywhere else).
@@ -45,4 +45,4 @@ bookkeeping, not something anyone typed. Never `git add -A`/`commit -a` a shared
 ## More
 
 The code: `Page.class.js` (`Page extends Item` directly, PageLog folded in; `Log.js` is a compat re-export). The measured concurrency numbers behind the caveats:
-[`ai/2026-09-19/model-latency/`](/framework/ai/2026-09-19/model-latency/).
+[`ai/sessions/2026/09/19/model-latency/`](/framework/ai/sessions/2026/09/19/model-latency/).

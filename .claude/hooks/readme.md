@@ -32,11 +32,11 @@ checked before anything is written (the owner, 2026-09-30).
   `Start-Process ... server.js` form. Servex owns every dev server now (its proxy auto-starts a
   project on first request); an agent that wants to see a page hits the worktree's URL or calls
   `start_server`, never starts one by hand. Grew out of
-  [node-reap](/framework/ai/2026-10-02/node-reap/) finding 26 of these left running, ~1.2 GB.
+  [node-reap](/framework/ai/sessions/2026/10/02/node-reap/) finding 26 of these left running, ~1.2 GB.
   Fails open. Test: `node .claude/hooks/server-guard.test.mjs`.
 
 Old lines are never judged; the logs are append-only. Design and proof:
-[validated-writes](/framework/ai/2026-09-30/proposal-flow/validated-writes/).
+[validated-writes](/framework/ai/sessions/2026/09/30/proposal-flow/validated-writes/).
 
 ## ledger.mjs
 
@@ -138,7 +138,7 @@ scratchpad, not the repo. Rebuild from this readme's table if you need them
 again, and `node --check .claude/hooks/ledger.mjs` after any edit.
 
 Design record and the phase-2b deferrals:
-`public/framework/ai/2026-08-15/ledger-hooks/requirements.md`.
+`public/framework/ai/sessions/2026/08/15/ledger-hooks/requirements.md`.
 
 ## prompt-relay.mjs — the `UserPromptSubmit` hook
 
@@ -197,7 +197,7 @@ the relay, and the card; a whitespace-only prompt writes nothing at all; a diffe
 command is logged but not relayed or carded; one full invocation timed at ~65 ms end to end
 (node's own process startup dominates that, same as `syntax-guard.mjs`'s ~60 ms note above).
 
-Design record: `public/framework/ai/2026-09-19/prompt-relay/requirements.md`.
+Design record: `public/framework/ai/sessions/2026/09/19/prompt-relay/requirements.md`.
 
 ## hold-guard.mjs — the lapsed-reload-hold check
 
@@ -205,7 +205,7 @@ The full story and the design comment are in the file's own header; this is the 
 `Server/hold.mjs`'s reload hold self-expires after 5 minutes on purpose (so it can never stick
 forever), but that expiry used to be silent — an agent could believe it was still held when it
 was not, and a real write once went out unheld because of it
-(`public/framework/ai/2026-09-19/hold-guard/`).
+(`public/framework/ai/sessions/2026/09/19/hold-guard/`).
 
 Two halves:
 
@@ -233,4 +233,4 @@ Two halves:
 Proof (three real runs against the live `Server/hold.mjs` lock file, `RELOAD_HOLD_TTL_MS=5000` per
 that file's own header): a lapsed hold gets renewed and says so; a write with no hold on record is
 silent; a write while the hold is genuinely still live is silent and the lock file is untouched.
-Full transcript: `public/framework/ai/2026-09-19/hold-guard/`.
+Full transcript: `public/framework/ai/sessions/2026/09/19/hold-guard/`.

@@ -1,6 +1,6 @@
 # Looks lab — appearance recipes for column pages (S6a)
 
-Sub-task of `ai/2026-08-26/column-pages/`. Full ask there; the piece this task owns —
+Sub-task of `ai/sessions/2026/08/26/column-pages/`. Full ask there; the piece this task owns —
 verbatim from the owner, `column-pages/requirements.md` lines 21-23:
 
 > focus on iterating different background + padding variations. grids should always

@@ -19,7 +19,7 @@ have?"* — and the owner has told you what to do when the answer is no: **use t
 
 ## Read first (in this order, and no further)
 
-1. `public/framework/ai/2026-09-04/mastermind-platform/minion-rules.md` — the laws for every
+1. `public/framework/ai/sessions/2026/09/04/mastermind-platform/minion-rules.md` — the laws for every
    minion. Two of them decide most of your judgement calls: **clear beats brief, by far**, and
    **resolve, don't park**.
 2. The repo's `CLAUDE.md`.

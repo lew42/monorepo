@@ -46,7 +46,7 @@ this module into the site is [`framework/ext/page.js`](../)'s `children:` string
 which is what makes `/framework/ext/editor/` a route. [`ext/DesignTool`](/framework/ext/DesignTool/)'s
 audit crawl lists that url, and a handful of `ai/` task pages and
 [`ext/Panel/page.js`](/framework/ext/Panel/)'s "Next:" line link to it in prose — none of that
-is code calling in. (One near-miss: `ai/2026-08-12/apps/page.js` imports a
+is code calling in. (One near-miss: `ai/sessions/2026/08/12/apps/page.js` imports a
 same-named `editor` — that's an unrelated sandbox file, `apps/editor/page.js`, a
 grep false positive, not a caller of this module.)
 
@@ -144,4 +144,4 @@ solved — see Open.
   an Item document) are deferred by the council spec, not by this file.
 
 Fuller, ranked ledger across this module and `ext/Panel` together, with severity
-and status per item: [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/).
+and status per item: [Editor × Panel review](/framework/ai/sessions/2026/08/14/editor-panel-review/).

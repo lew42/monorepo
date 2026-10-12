@@ -65,7 +65,7 @@ rename anything, do not touch `Layout.js` unless step 2 genuinely needs it.
    - `http://localhost:8095/framework/core/Section/`
    - `http://localhost:8095/framework/core/Layout/`
    The `ui-test` skill has the headless recipe. A screenshot of each into
-   `public/framework/ai/2026-09-22/reuse-audit/shots/` is the proof; name them `fits-section.png`
+   `public/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/shots/` is the proof; name them `fits-section.png`
    and `fits-layout.png`.
 5. **Kill your server by its real PID** — read it from `netstat -ano | grep 8095`, never by name
    and never by matching `node server.js` (that has killed a sibling's server before).
@@ -85,7 +85,7 @@ Nothing else, anywhere.
 
 ## What you write back
 
-One `log` line appended to `public/framework/ai/2026-09-22/reuse-audit/task.jsonl` with
+One `log` line appended to `public/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/task.jsonl` with
 `node .claude/hooks/append.mjs <that file> <your-lines.json>` (write the JSON array with the
 **Write tool**, into your scratchpad, never a heredoc; `"NOW"` becomes the clock). Start the `msg`
 with `[R1] `. Say: what moved, the exact line count removed, the two urls you loaded and what the

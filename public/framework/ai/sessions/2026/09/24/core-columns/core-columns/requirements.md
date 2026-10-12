@@ -2,8 +2,8 @@
 
 **The ask, verbatim (from the master mastermind, 2026-09-24):**
 
-> You own three related core-layout loose ends. They are briefs 1, 2 and 6 in public/framework/ai/2026-09-24/loose-ends/report.md (read the page and its links first). All three are in core Page/columns/Doc CSS, so one worktree:
-> 1. Navigation that doesn't jump: apply the 34cqi tuning from public/framework/ai/2026-09-17/nav-stability/proposal.md in core Page.css. The Reader centres at 3440.
+> You own three related core-layout loose ends. They are briefs 1, 2 and 6 in public/framework/ai/sessions/2026/09/24/loose-ends/loose-ends/report.md (read the page and its links first). All three are in core Page/columns/Doc CSS, so one worktree:
+> 1. Navigation that doesn't jump: apply the 34cqi tuning from public/framework/ai/sessions/2026/09/17/nav-stability/proposal.md in core Page.css. The Reader centres at 3440.
 > 2. Columns: a fill column gives back the space of columns opened under it, and a column head takes its own --pad. Test in the /imagine/paging/ lab.
 > 6. A nested Doc draws as a plain section, with no doubled band (core/new 0, 1, starter; DesignTool/taste).
 > These were decided by the loose-ends sweep; the owner said "make your best decision, don't wait on me." Where a viable alternative exists, write it in a decision line.

@@ -1,6 +1,6 @@
 # content is always a List: step 1, as built (2026-10-12)
 
-Step 1 of [content.md](content.md), "Design: `content` is always a List". Steps 2 and 3 (`children`) are not built. Live: [/framework/core/Page/content-shapes/](/framework/core/Page/content-shapes/), proof in [STATE.md](../../ai/2026-10-12/content-list/STATE.md).
+Step 1 of [content.md](content.md), "Design: `content` is always a List". Steps 2 and 3 (`children`) are not built. Live: [/framework/core/Page/content-shapes/](/framework/core/Page/content-shapes/), proof in [STATE.md](../../ai/sessions/2026/10/12/session-707f57ee/content-list/STATE.md).
 
 ## The classes
 

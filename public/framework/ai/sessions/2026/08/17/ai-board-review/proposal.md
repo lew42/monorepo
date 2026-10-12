@@ -17,7 +17,7 @@ Non-defects, checked and cleared: `usage.json` does carry the `limits` array `us
 
 ## 2. What Mike actually sees (headless, networkidle + 2 rAF)
 
-Measured on `/framework/ai/2026-08-16/mastermind-run/` @1440 — a busy task:
+Measured on `/framework/ai/sessions/2026/08/16/mastermind-run/` @1440 — a busy task:
 
 | region | y | height |
 | --- | --- | --- |

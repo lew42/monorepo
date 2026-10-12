@@ -1,7 +1,7 @@
 # Page health — decisions, numbers, and what was deliberately left
 
-Built 2026-09-19, `public/framework/ai/2026-09-19/page-health/`. The brief:
-[`requirements.md`](/framework/ai/2026-09-19/page-health/requirements.md).
+Built 2026-09-19, `public/framework/ai/sessions/2026/09/19/page-health/`. The brief:
+[`requirements.md`](/framework/ai/sessions/2026/09/19/page-health/requirements.md).
 
 ## The mapping rules (`pages_for()` in `Server/health.mjs`)
 
@@ -141,7 +141,7 @@ above).
   `core/Page`'s own `.ui-tree`/`.ui-tree-children` at 49–69px row pitch. One `.ai-highlights`
   wall on `/framework/ai/` measured 142.9px pitch across 41 items — likely a card wall rather
   than a tight list, flagged mechanically either way; worth a look, not necessarily a bug.
-  Full numbers: `/framework/ai/2026-09-19/card-word/`.
+  Full numbers: `/framework/ai/sessions/2026/09/19/card-word/`.
 - **A running watcher must be restarted to pick this up** — editing `Server/health.mjs` restarts
   nothing by itself (this module's own process, not a dev-server dependency, per the section
   above). Not restarted here: the never-kill/restart-the-running-watcher rule.

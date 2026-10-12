@@ -43,7 +43,7 @@ What landed — one class each, no numbered progressions:
 
 The council **executed** the prior art rather than trusting it, and five
 confirmed defects drove the rulings — the full record, question by question, is
-in [persistence](/framework/ai/2026-08-13/persistence/).
+in [persistence](/framework/ai/sessions/2026/08/13/persistence/).
 
 Also: \`server.js\` now wires the socket RPC runtime (\`write\`/\`ls\`/\`rm\`) and the
 \`directory.json\` builder; generated artifacts are gitignored.
@@ -53,6 +53,6 @@ Also: \`server.js\` now wires the socket RPC runtime (\`write\`/\`ls\`/\`rm\`) a
 **The afternoon wave: [ext/Panel](/framework/ext/Panel/)** — Blender-style
 split/drag/drop panels, persisted through the morning's Item + saver stack,
 with a T vocabulary of fifteen live sections and eight 3440-ready experiences.
-Brief and exec summary in [panel](/framework/ai/2026-08-13/panel/).`);
+Brief and exec summary in [panel](/framework/ai/sessions/2026/08/13/panel/).`);
 	},
 });

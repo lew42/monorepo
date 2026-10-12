@@ -34,7 +34,7 @@ predates the six `styles/elements/*` conversions and doesn't count every
 | 5 | every `task.jsonl` under `ai/2026-08-16/` + `ai/2026-08-17/`, both `day.jsonl` — parses, no BOM | 40 files | **39/40 pass** — 1 file has one malformed line (detail below); 0 BOMs |
 | 6 | dashboards render a card per task dir | `/framework/ai/`, `/framework/ai/2026-08-16/`, `/framework/ai/2026-08-17/` | **3/3 pass**, card counts match the filesystem exactly |
 | — | `LayoutTool/probe.js`'s new `cut` guard, spot-checked on the deepest page on the site | `/framework/ext/Panel/` @ 390/720/1280/3440 | **pass** — `analyze()` completes, 0 crashes, 0 `unreachable`/`zero-size`/`gutter` |
-| — | previously-documented mobile bug (`ai.css`, task nobody had fixed yet) | `/framework/ai/2026-08-16/mastermind-layout/` @ 390, routed | **now fixed** — see Notable, below |
+| — | previously-documented mobile bug (`ai.css`, task nobody had fixed yet) | `/framework/ai/sessions/2026/08/16/mastermind-layout/` @ 390, routed | **now fixed** — see Notable, below |
 
 **No page rendered blank without a console error** — the dangerous case the
 brief called out. Shortest `.app` text site-wide is `/notes/` at 378
@@ -49,7 +49,7 @@ clipped, nothing collapsed to 0×0.
 
 `ext/AITask/ai.css`'s Open item ("`/framework/ai/<day>/` is unreachable at
 `<64em` while routed," pre-dating tonight, out of catalog's fence) is
-**closed**. Direct check, `/framework/ai/2026-08-16/mastermind-layout/` @
+**closed**. Direct check, `/framework/ai/sessions/2026/08/16/mastermind-layout/` @
 390px: `.page-catalog-pages` now reads `scrollHeight 7956 / clientHeight
 362 / overflow-y: auto` — reachable by scroll, where it used to clip to
 `clientHeight: 0` with nothing routed. Tonight's routed/unrouted scope on
@@ -69,7 +69,7 @@ Four items surfaced, all low-visibility or out of fence:
 
 2. **Eight low-severity `gutter` findings, all the same shape: table text 3–4px from a `<table>` edge**, on `/framework/core/Page/`, `/framework/ext/Ask/`, `/framework/ext/LayoutTool/`, `/framework/ext/demo/`, `/framework/ext/highlight/`, `/framework/ext/layout/`, plus two low table-gutter hits on `/framework/faq/`, `/framework/ui/dialog/`, `/framework/versus/` at 1280. Barely visible (3–4px), all `low` severity, and spread across pages that aren't catalog callers at all (`faq/`, `versus/`, `ui/dialog/`) — a shared `ui.table()` characteristic, not a catalog regression.
 
-3. **`public/framework/ai/2026-08-16/mastermind-layout/task.jsonl` line 154 — malformed JSON, one line.**
+3. **`public/framework/ai/sessions/2026/08/16/mastermind-layout/task.jsonl` line 154 — malformed JSON, one line.**
    `"outcome": "...compliance\mike..."` — a literal `\m` is not a valid JSON
    escape. Invisible on the rendered site: `JSONL.js` already catches a bad
    line per-entry (`bad.push(line)`) rather than failing the whole parse,

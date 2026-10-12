@@ -1,6 +1,6 @@
 # When a Claude agent is picking a name for a new CSS class in this framework, what are the simple, foundational rules it should never break — and where are those rules genuinely just guidelines instead of hard rules?
 
-**Winner:** sonnet-b — `public/framework/ai/2026-09-28/collab-facts/real-run/collab/sonnet-b/4-revise.md`
+**Winner:** sonnet-b — `public/framework/ai/sessions/2026/09/28/80944531-c842-4476-9a30-52088a8bc595/collab-facts/real-run/collab/sonnet-b/4-revise.md`
 **Rule:** most votes
 **Run cost:** $1.2761
 

@@ -12,7 +12,7 @@ Today's honest answer was "by voice only": `v/3/compose.js` is the one box (type
 on the **Now** tab; `ux/Dictate` posts each spoken sentence to Servex's `POST /log/prompts`
 (the fast assistant answers on the **Prompts** tab in ~2 s — `prompt-lifecycle`), but the
 box's own **Send** still streams typed text to the dev server's old one-shot `assistant`
-preset (`stream({preset: "assistant"})`, `ai/2026-09-19/assistant-stream/`).
+preset (`stream({preset: "assistant"})`, `ai/sessions/2026/09/19/assistant-stream/`).
 
 ## Deliverables
 

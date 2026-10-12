@@ -1,6 +1,6 @@
 # List gets events; remove LiveList
 
-Owner's design (`public/framework/ai/2026-09-30/proposal-flow/page-item-design.md`, "LATEST
+Owner's design (`public/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md`, "LATEST
 … fifth pass"): **scrap `LiveList` everywhere.** `List` itself gets events built in — no
 separate class. "A list" now means "an evented list."
 
@@ -31,7 +31,7 @@ still import the old path after step 2).
 // Composed onto an Item as a named property (`item.content`, `page.pages`) — never
 // inherited. Every verb is by ID, never an index, so a line survives the list changing
 // shape around it.
-import { Events } from "../Events/Events.js";
+import { Events } from "../../../../../../2026-10-02/Events/Events.js";
 
 const is_plain = value => !!value && typeof value === "object" && value.constructor === Object;
 const skipped = key => key === "constructor" || key === "__proto__" || key.startsWith("_");
@@ -305,8 +305,8 @@ In EACH of these 5 files, do a plain find-and-replace:
   code to the next reader.
 
 One exception: `core/Item/Item.js` already has no import named `List` (plain), so there
-is no name collision — `import LiveList from "../List/LiveList.js";` simply becomes
-`import List from "../List/List.js";` and the file reads on from there.
+is no name collision — `import LiveList from "../../../../../../2026-10-02/List/LiveList.js";` simply becomes
+`import List from "../../../../../../2026-10-02/List/List.js";` and the file reads on from there.
 
 **Check:** `grep -rn "LiveList" core/Item/Item.js core/Item/Store.js core/Page/Page.class.js core/Page/Log.js core/List/page.js` (from `public/framework/`) returns nothing.
 

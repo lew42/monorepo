@@ -58,5 +58,5 @@ seventeen whole-page layouts: [/framework/styles/layouts/](/framework/styles/lay
 - [/imagine/design/scale/](/imagine/design/scale/) — how a scale is built and why an even one
   reads as even.
 - [/imagine/design/color/](/imagine/design/color/) — the grounds, the inks, the ratios.
-- [the spacing census](/framework/ai/2026-09-17/spacing-census/) — every spacing value the
+- [the spacing census](/framework/ai/sessions/2026/09/17/spacing-census/) — every spacing value the
   site declares, counted and classified. The rungs were fitted to it.

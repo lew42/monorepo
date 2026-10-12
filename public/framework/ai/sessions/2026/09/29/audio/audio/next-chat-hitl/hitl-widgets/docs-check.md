@@ -8,7 +8,7 @@ tool instead — same content, slower way in. Worth fixing so the next reviewer 
 hit the same wall.
 
 **Note on where this file landed:** the brief asked for this to be written at
-`C:/Code/lew42/monorepo/public/framework/ai/2026-09-29/audio/next-chat-hitl/hitl-widgets/docs-check.md`,
+`C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/29/audio/audio/next-chat-hitl/hitl-widgets/docs-check.md`,
 calling that "the main tree, not a worktree." This session is sandboxed to
 `C:\Code\lew42\worktrees\chat-hitl` only — every attempt to write or even `mkdir` outside
 it was refused by the sandbox, with no way to grant permission non-interactively. So this

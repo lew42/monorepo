@@ -2,7 +2,7 @@
 
 **Laws first** (CLAUDE.md): less is more — ASAP; clarity is the one exception; prioritize. **Length budget:** `inventory.md` ≤ 2 screens (tables, not prose) · `proposal.md` ≤ 1.5 screens · `page.js` = a one-screen exec summary that links both. A claim without a `file:line` is not a finding.
 
-**Read-only.** You edit nothing outside `public/framework/ai/2026-08-19/page-layout-audit/`. Two other agents are editing right now: `core/Page/{overview,nav,children,previews,shell,flow}/` is moving to `core/Page/old/…`, and the per-page class stamp `page-<name>` is becoming `page--<name>` — cite the NEW paths and the new stamp. `ext/Panel/**` is being edited by another session: read it, never touch it.
+**Read-only.** You edit nothing outside `public/framework/ai/sessions/2026/08/19/page-layout-audit/`. Two other agents are editing right now: `core/Page/{overview,nav,children,previews,shell,flow}/` is moving to `core/Page/old/…`, and the per-page class stamp `page-<name>` is becoming `page--<name>` — cite the NEW paths and the new stamp. `ext/Panel/**` is being edited by another session: read it, never touch it.
 
 ## The owner's words (2026-08-19)
 

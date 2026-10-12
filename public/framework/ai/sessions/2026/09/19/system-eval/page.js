@@ -1,7 +1,7 @@
 import { Page, md, div, p, b, details, summary } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the ordinary page
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board — the ordinary page
                 grid: main for the opening sentences, wide for the roles table, the
                 three-card wall and every fold.
    2 SIZE       three cards on --column 18rem: three across from about 1000px, one at

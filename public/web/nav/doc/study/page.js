@@ -6,7 +6,7 @@ View.stylesheet(import.meta, "navigation.css");
 const here = new URL(".", import.meta.url).pathname;
 
 /* Container: a plain page under `web/nav/doc/` (moved from `/imagine/design/`'s columns
-   row 2026-09-18, `ai/2026-09-18/imagine-move-2/`).
+   row 2026-09-18, `ai/sessions/2026/09/18/imagine-move-2/`).
    Size: `full`, the word every study in this realm wears; the lab needs the whole
    host or the two demo rows cannot sit side by side.
    Own layout: the page's own prose flow, plus ONE full-width band (the lab) —
@@ -41,7 +41,7 @@ export default new Page({
 
 		new DnStudy();
 
-		md("**The rule, in one sentence.** A column that is already open never changes width when a column opens to its right; the new column takes what is left over, and when there is no leftover the row scrolls sideways — the Finder way — instead of squeezing what is open. That is now what core does. The declaration is one line of `core/Page/Page.css` (`flex: 0 0 <the width the column recommends>`), the before and after are in [core/Page — Columns](/framework/core/Page/doc/columns/), and the study that proposed it and measured the defect is [here](/framework/ai/2026-09-17/nav-stability/). **The first row is no longer a before-and-after — it is core now, so it reads 0 like the other two.**");
+		md("**The rule, in one sentence.** A column that is already open never changes width when a column opens to its right; the new column takes what is left over, and when there is no leftover the row scrolls sideways — the Finder way — instead of squeezing what is open. That is now what core does. The declaration is one line of `core/Page/Page.css` (`flex: 0 0 <the width the column recommends>`), the before and after are in [core/Page — Columns](/framework/core/Page/doc/columns/), and the study that proposed it and measured the defect is [here](/framework/ai/sessions/2026/09/17/nav-stability/). **The first row is no longer a before-and-after — it is core now, so it reads 0 like the other two.**");
 
 		md("**The third row is the one that shipped.** `this.columns({ even: true })` gives a row N columns of ONE width, where N is the room divided by the width a column recommends — so a column opens into a slot that was already there and nothing on screen changes size. Past N the row slides sideways by exactly one column, over 600ms, and the crumb strip above it is how you get back to the ones behind you. The mode, N at every screen width, and the three ways of animating that slide with their measured frame counts: [core/Page — Columns](/framework/core/Page/doc/columns/).");
 

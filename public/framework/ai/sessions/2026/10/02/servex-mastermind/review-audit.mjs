@@ -1,6 +1,6 @@
 // Review findings vs answers, joined per finding number, since 2026-09-28.
 // Answers are read from task.jsonl (where authors write them) AND review.jsonl (the --turns copy).
-// Run from anywhere: node public/framework/ai/2026-10-02/servex-mastermind/review-audit.mjs
+// Run from anywhere: node public/framework/ai/sessions/2026/10/02/servex-mastermind/review-audit.mjs
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

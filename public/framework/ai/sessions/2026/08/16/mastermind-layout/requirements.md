@@ -4,8 +4,8 @@
 > pace. begin!  — Mike, 2026-08-16 20:25
 
 Invocation is the grant of autonomy. This is the executive log for the run that
-follows [`layout-generator-rules`](../layout-generator-rules/) and
-[`taste-corpus`](../taste-corpus/); state lives here, not in the chat.
+follows [`layout-generator-rules`](../layout-generator-rules) and
+[`taste-corpus`](../taste-corpus); state lives here, not in the chat.
 
 ## Standing calls made without Mike
 

@@ -28,7 +28,7 @@ Owner's brief, 2026-09-18, verbatim:
    are; a page url and a browser id never collide — say why). Shown live on the control (a
    check or a pen) and on `/layouts/browse/` where that url is an item. Hidden when the edit
    switch is off — a sibling minion is building `app.edit` / `edit()` right now in
-   `ai/2026-09-18/edit-mode/` — consume `available()` today and leave one line saying where the
+   `ai/sessions/2026/09/18/edit-mode/` — consume `available()` today and leave one line saying where the
    switch plugs in.
 2. **The approved library** — `/imagine/design/layout/approved/` gains a live list under its
    five: every url with an `approve` as its latest verdict, drawn as a picture card where the

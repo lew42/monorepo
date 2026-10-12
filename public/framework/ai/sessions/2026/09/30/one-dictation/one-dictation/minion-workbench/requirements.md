@@ -1,6 +1,6 @@
 # Minion brief: the main Dictate demo becomes the workbench (merge 7)
 
-Load the `minion` skill first, then `code`, `ui` and `layout`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/2026-09-30/one-dictation/`. The owner's words are the last section of `owner-words.md` there ("the Dictate page is the workbench"). Read them first.
+Load the `minion` skill first, then `code`, `ui` and `layout`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/`. The owner's words are the last section of `owner-words.md` there ("the Dictate page is the workbench"). Read them first.
 
 ## The rule
 The main demo on `/framework/ux/Dictate/` is THE workbench. It is where the one chat widget is shown and tested, and a change there must reach every sidebar and sheet. Today it is a bare `new Widget({level, source, debug})` in `ux/Dictate/page.js` with no session, so nobody answers. Every other surface calls `chat(el, opts)` in `ux/Dictate/chat.js`, which draws the same `Widget` and wires it to the session. Read `ux/Dictate/doc/chat.md` first.

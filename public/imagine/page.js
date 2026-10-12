@@ -21,10 +21,10 @@ View.stylesheet(import.meta, "imagine.css");
    THREE GROUPS NOW, FOUR AT FIRST — the owner's own words were "I'm sort of lost…
    it's not clear at all." (2026-09-04) and "recommend renaming or restructuring to
    simplify architecture, UI." (2026-09-17). The study at
-   ai/2026-09-17/imagine-integration/proposal.md found the cause and the cure: six
+   ai/sessions/2026/09/17/imagine-integration/proposal.md found the cause and the cure: six
    tools, seven worlds, seven shapes, four studies, sharing one rail with no way to
    tell them apart. Move 1 (2026-09-17) sorted the rail into four groups and moved
-   nothing. Move 3 (2026-09-18, ai/2026-09-18/imagine-move-3/) then moved the whole
+   nothing. Move 3 (2026-09-18, ai/sessions/2026/09/18/imagine-move-3/) then moved the whole
    Shapes group to /layouts/ — that group and its seven names are gone from here now;
    see the comment on `GROUPS` below for where they went and why the old urls still
    answer. The remaining three groups keep their urls untouched; only the ORDER
@@ -44,9 +44,9 @@ const GROUPS = [
 ];
 
 // The seven Shapes realms (layouts, sections, shells, screens, decks, blogx, mag) moved to
-// /layouts/ — imagine-integration proposal, move 3, 2026-09-18 (ai/2026-09-18/imagine-move-3/).
+// /layouts/ — imagine-integration proposal, move 3, 2026-09-18 (ai/sessions/2026/09/18/imagine-move-3/).
 // `design` (fourteen studies — the proposal's nine plus four that grew since, plus `lists/`,
-// brand new) split across five places 2026-09-18 too (move 2, `ai/2026-09-18/imagine-move-2/`):
+// brand new) split across five places 2026-09-18 too (move 2, `ai/sessions/2026/09/18/imagine-move-2/`):
 // nine plus `lists/` joined /framework/styles/system/studies/, and controls/layout/navigation/
 // journey joined the module each one proved a rule for. Each old /imagine/<name>/ address
 // (`design` included, down to its own sub-studies) still works: a one-line stub page.js is

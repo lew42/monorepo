@@ -1,6 +1,6 @@
 # Minion A — clean transcription mode, first slice (the phone)
 
-Load the `minion` skill first, then `code`. The owner's words, verbatim: `public/framework/ai/2026-09-29/audio/owner-words.md`, section "Continued (about 8:20 PM)" — read it; it is the acceptance test. Parent brief: `../requirements.md`. Task dir: `public/framework/ai/2026-09-29/audio/next-clean-transcription/`.
+Load the `minion` skill first, then `code`. The owner's words, verbatim: `public/framework/ai/sessions/2026/09/29/audio/audio/owner-words.md`, section "Continued (about 8:20 PM)" — read it; it is the acceptance test. Parent brief: `../requirements.md`. Task dir: `public/framework/ai/sessions/2026/09/29/audio/audio/next-clean-transcription/`.
 
 The owner, in short: "the clean transcription mode pairs the raw whisper with the fast assistant's refinement… we just put the clean transcription into the UI… the strike throughs… we can still do that in the debug mode… I also want to be able to dig backwards into the actual text to see what was actually transcribed."
 

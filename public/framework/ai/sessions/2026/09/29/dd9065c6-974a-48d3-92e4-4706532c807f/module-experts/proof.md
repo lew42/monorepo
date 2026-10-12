@@ -193,7 +193,7 @@ Method: `page.columns()`, called in `initialize()` on the host page. Effect (`co
 
 Consequence noted at `Page.css:311-315`: since a `display: contents` element has zero box, it can't carry padding/background/border or host a pointer event — that's why `.page-column-pages { display: contents; }` (`Page.css:395`) exists as a bare structural rule, and why the column seam has to live beside the flattened element rather than on it (also called out in `Page.class.js:859` and `ux/Content/structure/doc/weight.md:18-20`, and `core/Page/doc/decisions.md:313`).
 
-This mechanism is a rediscovery of a proof done earlier in `core/new/1/starter` (`core/new/1/site/versus/lineage/page.js:90`), and was shipped for real as the Miller-columns demo on 2026-08-18 (`ai/2026-08-18/page-columns/task.jsonl`, `ai/2026-08-18/day.jsonl:78`), now live at `core/Page/overview/columns/`.
+This mechanism is a rediscovery of a proof done earlier in `core/new/1/starter` (`core/new/1/site/versus/lineage/page.js:90`), and was shipped for real as the Miller-columns demo on 2026-08-18 (`ai/sessions/2026/08/18/page-columns/task.jsonl`, `ai/2026-08-18/day.jsonl:78`), now live at `core/Page/overview/columns/`.
 
 ### 3. How does a url nobody declared get resolved (route() and child())?
 

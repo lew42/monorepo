@@ -1,6 +1,6 @@
 # Minion C — don't reply while the owner talks, and pause cues
 
-Load the `minion` skill, then `code`. The owner's words, verbatim: `public/framework/ai/2026-09-29/audio/owner-words.md`, "Continued (about 8:20 PM)" — the last third ("very important in this transcription phase…" to the end). Parent brief: `../requirements.md` items 4 and 5. Task dir: `public/framework/ai/2026-09-29/audio/next-clean-transcription/`. Slice 1 (clean mode in the composer) is already built — read `a-clean-mode/task.jsonl` and the commits on worktree/qf-6 first.
+Load the `minion` skill, then `code`. The owner's words, verbatim: `public/framework/ai/sessions/2026/09/29/audio/audio/owner-words.md`, "Continued (about 8:20 PM)" — the last third ("very important in this transcription phase…" to the end). Parent brief: `../requirements.md` items 4 and 5. Task dir: `public/framework/ai/sessions/2026/09/29/audio/audio/next-clean-transcription/`. Slice 1 (clean mode in the composer) is already built — read `a-clean-mode/task.jsonl` and the commits on worktree/qf-6 first.
 
 The owner: "we don't want to respond while the user is transcribing… sending kind of these audio cues to the LLM, the fast assistant… a pause, how long the pause is… a pause start and then a pause end… so it can get a real time sense for when audio cues are happening."
 

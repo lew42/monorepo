@@ -1,6 +1,6 @@
 # Figma phase 2: site into Figma, and the Figma-to-framework mapping (task mastermind brief)
 
-Phase 1 landed (read `public/framework/ext/Figma/readme.md`, its `doc/observations.md` and `ai/2026-10-10/figma-system/STATE.md` and `owner-notes-1.md`): the tracked-file browser exists and Sept-2026 Page 7's nine Palette sections were rebuilt as framework pages by Haiku minions. The layout-check on the Figma pages reported problems (empty space at 2560/3440, narrow_share 1 at 3440, padding at 400): fix those first.
+Phase 1 landed (read `public/framework/ext/Figma/readme.md`, its `doc/observations.md` and `ai/sessions/2026/10/10/session-62419663/figma-system/STATE.md` and `owner-notes-1.md`): the tracked-file browser exists and Sept-2026 Page 7's nine Palette sections were rebuilt as framework pages by Haiku minions. The layout-check on the Figma pages reported problems (empty space at 2560/3440, narrow_share 1 at 3440, padding at 400): fix those first.
 
 ## Do
 1. **Fix the layout-check findings** on `/framework/ext/Figma/` and `/framework/ext/Figma/palette/` at 400/1200/1920/3440.

@@ -24,7 +24,7 @@ node .claude/skills/every-prompt/say.mjs say "<about five words: the idea>" "<tw
   row. **`--focus`** — pulls the card to the top as the thing being worked on now.
 - **`--ask "yes,no"`** — the card becomes a question with buttons; `--ask "Label|a note;Label two|a note"`
   draws option cards instead. **`--ask-to <session>`** says which Claude session the owner's choice
-  rings (default: the running mastermind) — see `ai/2026-09-19/card-replies/` for the whole loop, from
+  rings (default: the running mastermind) — see `ai/sessions/2026/09/19/card-replies/` for the whole loop, from
   button press to the session hearing about it.
 
 **The face is icon, title, time.** The title is an idea ("Frame rate meter"), never a sentence

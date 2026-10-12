@@ -1,7 +1,7 @@
 import { Page, div, p, span, b, a, img } from "/app.js";
 
 /* -- layout, answered before the first factory call ---------------------------
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board -- the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board -- the ordinary
                 page grid: main for prose, wide for the one screenshot pair.
    2 SIZE       two screenshots side by side wrap to one column narrow; a
                 compact list for the rest, no wrapping needed.
@@ -34,11 +34,11 @@ const shot = name => new URL("shots/" + name + ".png", import.meta.url).pathname
 /* The other five, already agreeing with the earlier audit's verdict -- compact,
    one line each; the task's own outcome text is where the detail lives. */
 const AGREES = [
-	["sidebar-messed-up", "done", "The rail's rows, filter and footer are genuinely fixed -- read the CSS myself, saw it live at every width.", "/framework/ai/2026-09-19/sidebar-repair/"],
-	["whisper-local", "done", "whisper-server answers live right now, and the dictation UI really shows growing partial text while you talk.", "/framework/ai/2026-09-19/whisper-local/"],
-	["popover-system", "done", "Both placements were built and compared on camera, side by side, in a hostile box -- the winner runs the AI page's own version picker.", "/framework/ai/2026-09-19/popover-system/"],
-	["background-layer", "done", "Ten real, no-image backgrounds exist and render on a live page -- only gap is that /framework/ui/'s own overview page does not link to it yet.", "/framework/ai/2026-09-19/background-layer/"],
-	["sidebar-designs", "not", "Nothing exists anywhere in the repo under this name. Still not started, same as the audit said.", "/framework/ai/2026-09-17/mastermind-layout-browser/"],
+	["sidebar-messed-up", "done", "The rail's rows, filter and footer are genuinely fixed -- read the CSS myself, saw it live at every width.", "/framework/ai/sessions/2026/09/19/sidebar-repair/"],
+	["whisper-local", "done", "whisper-server answers live right now, and the dictation UI really shows growing partial text while you talk.", "/framework/ai/sessions/2026/09/19/whisper-local/"],
+	["popover-system", "done", "Both placements were built and compared on camera, side by side, in a hostile box -- the winner runs the AI page's own version picker.", "/framework/ai/sessions/2026/09/19/popover-system/"],
+	["background-layer", "done", "Ten real, no-image backgrounds exist and render on a live page -- only gap is that /framework/ui/'s own overview page does not link to it yet.", "/framework/ai/sessions/2026/09/19/background-layer/"],
+	["sidebar-designs", "not", "Nothing exists anywhere in the repo under this name. Still not started, same as the audit said.", "/framework/ai/sessions/2026/09/17/mastermind-layout-browser/"],
 ];
 
 export default new Page({
@@ -56,7 +56,7 @@ export default new Page({
 		p.c("h4", "The rest, checked myself and agreeing with the earlier audit -- one line each:");
 		this.list();
 
-		p.c("muted", "Every verdict, its evidence and the files read: ", a("verify.jsonl").href("/framework/ai/2026-09-19/verify-design/verify.jsonl"), ". The full trail is this task's own log.");
+		p.c("muted", "Every verdict, its evidence and the files read: ", a("verify.jsonl").href("/framework/ai/sessions/2026/09/19/verify-design/verify.jsonl"), ". The full trail is this task's own log.");
 	},
 
 	disagreement() {

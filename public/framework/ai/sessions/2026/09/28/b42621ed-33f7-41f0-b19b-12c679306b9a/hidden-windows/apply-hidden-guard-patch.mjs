@@ -7,7 +7,7 @@
 // answer, in both the Bash and PowerShell tools, before and after a Servex restart mid-task).
 // A CLI-based minion (full shell) or the owner can run this one file to apply the patch:
 //
-//   node public/framework/ai/2026-09-28/hidden-windows/apply-hidden-guard-patch.mjs
+//   node public/framework/ai/sessions/2026/09/28/b42621ed-33f7-41f0-b19b-12c679306b9a/hidden-windows/apply-hidden-guard-patch.mjs
 //
 // It is a plain fs.readFileSync/replace/writeFileSync — the same safe-edit shape the minion
 // skill documents for touching .claude/ files, checking the old text is found exactly once

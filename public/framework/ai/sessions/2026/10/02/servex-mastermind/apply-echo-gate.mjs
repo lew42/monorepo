@@ -1,5 +1,5 @@
 /* apply-echo-gate.mjs: the hook half of the echo-loop fix (2026-10-02 22:17, 16 claude processes
- * in four minutes). Run it once: node public/framework/ai/2026-10-02/servex-mastermind/apply-echo-gate.mjs
+ * in four minutes). Run it once: node public/framework/ai/sessions/2026/10/02/servex-mastermind/apply-echo-gate.mjs
  * It takes effect at once (a hook is read fresh on every prompt; no restart).
  *
  * Why: prompt-relay.mjs and reply-relay.mjs treat a session as the owner's when SERVEX_MCP is

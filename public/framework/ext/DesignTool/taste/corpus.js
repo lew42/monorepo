@@ -22,7 +22,7 @@ const declass = (text, word) => each(text, l => l.replace(new RegExp(`(^|\\s)${w
 export const BREAKS = [{
 	/* ⚠ `base` first, and this case is why it exists. Unbounding `--measure: 52em`
 	   changed NOTHING at any width, because 52em is already ~100 characters a line
-	   here (hand-counted: `ai/2026-08-16/mastermind-layout/measure-verdict.md`) —
+	   here (hand-counted: `ai/sessions/2026/08/16/mastermind-layout/measure-verdict.md`) —
 	   the subject was broken before the break. A pair only means something if the
 	   left-hand side is actually good, so the baseline binds it properly. */
 	id: "unbound the prose",

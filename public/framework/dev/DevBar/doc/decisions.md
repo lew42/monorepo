@@ -66,7 +66,7 @@ feature. It lives in the *head* rather than a tab because you reach for it
 mid-edit, with whatever tab you were on still open.
 
 **`block` is remembered per tab now, and shows what it refused** (2026-09-22,
-`blocked.js`; [reload-rethink](/framework/ai/2026-09-22/reload-rethink/)). The
+`blocked.js`; [reload-rethink](/framework/ai/sessions/2026/09/22/f875ec48-d91a-4890-b15f-db197b55aa13/reload-rethink/)). The
 argument above had it exactly the wrong way round. Not persisting it meant the
 very *first* reload it failed to stop also erased it — so a block that "wasn't
 working" was usually a block that had already been wiped, which is the bug
@@ -159,7 +159,7 @@ over the same probe.
 
 ⚠ **Two of those eleven bands are knowingly uncalibrated and the rail says so.**
 `measure` reads card captions rather than prose and `contrast` is set by a single
-outlier; both need a band *re-derived*, which `ai/2026-08-17/tier-calibration/`
+outlier; both need a band *re-derived*, which `ai/sessions/2026/08/17/tier-calibration/`
 was forbidden to do. Their readings wear a dotted underline and carry the reason
 as a title. The sentence lives on the band (`taste/ranges.js`'s `caveat`), never
 in the rail — a hard-coded list of band names in the UI is a second truth that

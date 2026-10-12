@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// seed-openrouter.mjs — walks the OpenRouter decisions from ai/2026-09-28/harness-research/plan.md
+// seed-openrouter.mjs — walks the OpenRouter decisions from ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/plan.md
 // through Server/decide.mjs onto a card's page.jsonl, then places the Decisions view as a tab.
 //
-//   node public/framework/ai/2026-09-29/decide-tool/seed-openrouter.mjs --file <card>/page.jsonl
+//   node public/framework/ai/sessions/2026/09/29/c6354c23-7d9e-484d-886f-06b14540473b/decide-tool/seed-openrouter.mjs --file <card>/page.jsonl
 //
 // Replayable: a decision already in the log is skipped, a leftover draft is dropped and redone,
 // and the `place` line is written once. Sources are research ids from /framework/research/harness/.

@@ -1,7 +1,7 @@
 # Build: @mentions, known names become icon links
 
 Load the `minion` skill first, then `code`. The owner's words, verbatim, are in
-`public/framework/ai/2026-09-30/mentions/owner-words.md` — read them fully; they are the acceptance test.
+`public/framework/ai/sessions/2026/09/30/mentions/mentions/owner-words.md` — read them fully; they are the acceptance test.
 The card's directory: `public/framework/ai/2026/09/30/mentions-page-becomes-an-icon-link-every/`.
 
 The gist: anywhere the site renders written content, `@Page` becomes a small icon item (a

@@ -16,7 +16,7 @@ The owner's words are verbatim in [owner-words.md](owner-words.md). Re-read them
 chrome 40 procs / 2.97 GB · node 30 / 2.55 GB · claude 9 / 2.40 GB · Code 17 / 1.79 GB · 11.6 GB free of 31.7. Five stale background waiters from the VS Code tab (sleep, tail, grep, bash) were stopped just now.
 
 ## Rules
-Foundational, so no hard cap: plan first and post it on the card. Build through the pool, then `merge.mjs` (smoke test), then review. Build on [dormant-idle](/framework/ai/2026-09-30/dormant-idle/)'s memory checks and the working cap.
+Foundational, so no hard cap: plan first and post it on the card. Build through the pool, then `merge.mjs` (smoke test), then review. Build on [dormant-idle](/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/dormant-idle/)'s memory checks and the working cap.
 
 ## Added 2026-09-30 (16:25): worktree and subdomain clean-up
 The owner saw `cards-and-logs.localhost` (a task worktree) in the console and asked whether these pollute the namespace. They do today:

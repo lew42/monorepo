@@ -1,4 +1,4 @@
-/* node public/framework/ai/2026-10-05/auth-fallback/prove-auth-fallback.mjs — requirements.md
+/* node public/framework/ai/sessions/2026/10/05/auth-fallback/auth-fallback/prove-auth-fallback.mjs — requirements.md
  * item 3: "Prove with a stubbed auth error."
  *
  * Nobody can make the real Claude login actually expire on demand, so this stubs the shape a
@@ -97,7 +97,7 @@ say(`   fallback flag: ${JSON.stringify(s3.fallback)} (must be {fast:true} — i
 const list2 = await cards.list({ view: "all" });
 say(`   cards after case 3: ${list2.length} (must still be 1 — no second card)`);
 
-const OUT = path.join(REPO, "public/framework/ai/2026-10-05/auth-fallback/prove-auth-fallback-results.txt");
+const OUT = path.join(REPO, "public/framework/ai/sessions/2026/10/05/auth-fallback/auth-fallback/prove-auth-fallback-results.txt");
 fs.writeFileSync(OUT, lines.join("\n") + "\n");
 say(`\nsaved -> ${OUT}`);
 for (const s of [s2, s3]) try { agents.stop(s.fast); } catch {}

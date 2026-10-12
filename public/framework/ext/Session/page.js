@@ -88,6 +88,6 @@ export default new Page({
 
 		demo(() => live_session(), "`start()` continues this page's session from the last hour or makes a new one, `resume()` continues any session, `recent()` lists this page's sessions, and `watch(file)` hands back every line, drawn by ext/Chat.");
 
-		md(`**Where it is saved:** \`<home page>/ai/<session>.jsonl\`, one file per session, and its title in \`<session>.summary.json\` beside it. Each folder it reaches gets one line in its own \`ai/log.jsonl\`. The two assistants start on your first line, stop after 5 quiet minutes, and wake on the next line. The design: [voice-sessions](/framework/ai/2026-09-29/voice-sessions/design.md). The details: [doc/sessions.md](./doc/sessions.md).`);
+		md(`**Where it is saved:** \`<home page>/ai/<session>.jsonl\`, one file per session, and its title in \`<session>.summary.json\` beside it. Each folder it reaches gets one line in its own \`ai/log.jsonl\`. The two assistants start on your first line, stop after 5 quiet minutes, and wake on the next line. The design: [voice-sessions](/framework/ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md). The details: [doc/sessions.md](./doc/sessions.md).`);
 	},
 });

@@ -11,7 +11,7 @@ import instrument_whisper from "./Instrument.js";
 const CLIPS = [
 	{ label: "JFK — inaugural line", url: "/framework/ai/recordings/jfk.wav" },
 	{ label: "just_a_test", url: "/framework/ai/recordings/just_a_test.wav" },
-	{ label: "whisper-servex clip", url: "/framework/ai/2026-09-22/whisper-servex/clip.wav" },
+	{ label: "whisper-servex clip", url: "/framework/ai/sessions/2026/09/22/whisper-servex/whisper-servex/clip.wav" },
 ];
 
 // `fetch`, but it gives up instead of hanging — copied from Whisper.js's own

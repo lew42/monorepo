@@ -1,6 +1,6 @@
 # Popover — decisions
 
-Opened 2026-09-19: [`ai/2026-09-19/popover-system/`](/framework/ai/2026-09-19/popover-system/).
+Opened 2026-09-19: [`ai/sessions/2026/09/19/popover-system/`](/framework/ai/sessions/2026/09/19/popover-system/).
 The owner's own words are in that task's `requirements.md`. Short version: *"if you
 were to put the popovers nearby the content it's for, it would automatically
 position itself properly in flow without much effort... explore both those

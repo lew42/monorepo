@@ -1,10 +1,10 @@
 # Design brief — how agents should collaborate (one angle each)
 
-Load the `minion` skill first. Read `requirements.md` beside this file: the owner's words are the acceptance test. Then skim `Servex/agents/readme.md` (the host, spawn/send/wake, the Dispatcher), `public/framework/ai/2026-09-22/tiers-design/page.js` + its `doc/` (the roles ladder today), and `.claude/skills/sub-mastermind/SKILL.md`.
+Load the `minion` skill first. Read `requirements.md` beside this file: the owner's words are the acceptance test. Then skim `Servex/agents/readme.md` (the host, spawn/send/wake, the Dispatcher), `public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/page.js` + its `doc/` (the roles ladder today), and `.claude/skills/sub-mastermind/SKILL.md`.
 
 Facts you can rely on (being built right now by a sibling minion): `fork_self(question)` runs a fork of the caller's own session in the background (resume + forkSession, so it hits the prompt cache); the answer comes back as a message to the caller. `wait_for_agent(id)` returns when an agent ends its turn. `spawn_agent` can resume or fork an existing session. Servex is one long-lived node process that holds every agent, owns every log, and exposes tools over MCP; a tool handler is plain node code running inside it.
 
-**Write ONE file only:** `C:/Code/lew42/monorepo/public/framework/ai/2026-09-24/concurrency/proposal-<angle>.md` (your angle's slug is in your prompt). Read-only everywhere else. Do not edit code. Under 120 lines.
+**Write ONE file only:** `C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/24/concurrency/concurrency/proposal-<angle>.md` (your angle's slug is in your prompt). Read-only everywhere else. Do not edit code. Under 120 lines.
 
 ## Your proposal must have
 

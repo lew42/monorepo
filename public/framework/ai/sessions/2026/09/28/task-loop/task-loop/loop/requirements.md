@@ -1,10 +1,10 @@
 # Minion B — the task loop in Servex
 
-Load the `minion` skill first. Parent task: `public/framework/ai/2026-09-28/task-loop/` (read its requirements.md and **interfaces.md** — the agreed calls). The design: `public/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md`.
+Load the `minion` skill first. Parent task: `public/framework/ai/sessions/2026/09/28/task-loop/task-loop/` (read its requirements.md and **interfaces.md** — the agreed calls). The design: `public/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md`.
 
 The owner's ask, as briefed: "every 5 minutes, find open tasks (no `landed_at`) that have been quiet for 20 minutes, or whose agent ended without landing. Wake the owning agent with 'land, or say why', at most twice, 30 minutes apart; then put the task on the Waiting-on-you list (a `card_ask` if that task has landed, else a card message). Log each chase in the task's own task.jsonl. Only a landing or the owner closes a task."
 
-**Work only in the worktree `C:/Code/lew42/worktrees/task-loop`** (branch `worktree/task-loop`). Commit there. Your own log: `C:/Code/lew42/monorepo/public/framework/ai/2026-09-28/task-loop/loop/task.jsonl` (open it per the new-task skill; append with `node .claude/hooks/append.mjs`).
+**Work only in the worktree `C:/Code/lew42/worktrees/task-loop`** (branch `worktree/task-loop`). Commit there. Your own log: `C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/28/task-loop/task-loop/loop/task.jsonl` (open it per the new-task skill; append with `node .claude/hooks/append.mjs`).
 
 ## Deliverables
 

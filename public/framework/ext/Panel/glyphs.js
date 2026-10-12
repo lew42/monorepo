@@ -122,7 +122,7 @@ export const glyph = (entry, name) => {
    (a 3×3 whose buttons go live per axis). Record: doc/words.md. */
 
 // ⚠ `minmax(0, 1fr)`, never `1fr`: a `1fr` track's minimum is `auto`, so one long word
-// pushes the whole grid past its panel — the grid guide's own trap (ai/2026-08-18/panel-grid/).
+// pushes the whole grid past its panel — the grid guide's own trap (ai/sessions/2026/08/18/panel-grid/).
 const TRACKS = {
 	auto: "repeat(auto-fit, minmax(8em, 1fr))",
 	1: "repeat(1, minmax(0, 1fr))", 2: "repeat(2, minmax(0, 1fr))",

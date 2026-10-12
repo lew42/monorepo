@@ -1,10 +1,10 @@
 # Minion A — review turns + scoreboard scoring
 
-Load the `minion` skill first. Your brief's directory: `public/framework/ai/2026-09-28/review-turns/`
+Load the `minion` skill first. Your brief's directory: `public/framework/ai/sessions/2026/09/28/review-turns/`
 (read `requirements.md` there — the owner's numbered asks are the acceptance test). You are working
 in the shared worktree `C:\Code\lew42\worktrees\review-turns` (already has `worktree/collab-rounds`
 merged in, so `public/framework/ext/Collab/Collab.js` and `Server/collab.mjs` exist here — read
-`Collab.js` and `Server/doc/collab.md` and `public/framework/ai/2026-09-28/collab-rounds/collab-format.md`
+`Collab.js` and `Server/doc/collab.md` and `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md`
 before you start, so your turn log follows the same one-verb-per-line JSONL style theirs does).
 
 **Your files, and only these:** `Server/review.mjs`, `Server/doc/review.md`. Do not touch
@@ -124,6 +124,6 @@ Leave `<taskdir>/review.jsonl` and the scoreboard line in place — the task mas
 for the landing proof. Every Node spawn: `windowsHide: true`, never throws (Servex failures become
 findings/log lines, not crashes — match review.mjs's existing style).
 
-Log your steps and any decision in `public/framework/ai/2026-09-28/review-turns/task.jsonl`
+Log your steps and any decision in `public/framework/ai/sessions/2026/09/28/review-turns/task.jsonl`
 (`node .claude/hooks/append.mjs`) as you go, not just at the end. Report back to the task mastermind
 when you're done — don't merge, don't touch files outside your two.

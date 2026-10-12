@@ -18,7 +18,7 @@ drawer (`properties.js`'s document block), so the shell standing on the deleted 
 to leave or it sits on a file that is gone. The rail used to do that; it is one line in
 `head()` now. Everything below describes the rail that was here, and is kept as the record.
 
-Report: [`/framework/ai/2026-09-17/editor-select/`](/framework/ai/2026-09-17/editor-select/).
+Report: [`/framework/ai/sessions/2026/09/17/editor-select/`](/framework/ai/sessions/2026/09/17/editor-select/).
 
 ---
 

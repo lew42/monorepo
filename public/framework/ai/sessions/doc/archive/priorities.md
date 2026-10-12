@@ -15,7 +15,7 @@ This is the list to follow. Higher means do it first and never break it for some
 ## 3. The page tells the truth
 - **Asked:** state must be real; names must be useful, never "monorepo"; counts must come from the index, not from loading everything.
 - **Decided:** state is worked out on every draw from the live agent list and the transcript clock (`true_state`). A name is the agent's name, else the last real prompt, else the source and id. Counts come from the rows and `session-index.json`.
-- **Lives in:** `page.js` (`true_state`, `display_name`), [findings 14](/framework/ai/2026-10-08/session-class/).
+- **Lives in:** `page.js` (`true_state`, `display_name`), [findings 14](/framework/ai/sessions/2026/10/08/3f5a5fec-dbf0-4a4b-8573-560f281a0be3/session-class/).
 - **Still to do:** Servex names every session when it spawns it; the dev server stops writing stale state into `sessions.json`.
 
 ## 4. A compact grid you can scan
@@ -26,7 +26,7 @@ This is the list to follow. Higher means do it first and never break it for some
 ## 5. Children nest under their parent
 - **Asked:** a child session is a sub-folder of its parent (`parent/child`), and the grid shows nested rows, collapsed, with the rolled-up cost. Opening a session shows it in the right-hand column, a 50/50 split.
 - **Decided and built:** the grid nests rows from `session-tree.json`, collapsed, with the whole tree's cost on the parent row.
-- **Not built:** the folder rule. A child can start a day later than its parent, so its date folder and its parent's disagree. Proposal and reason: [findings 14](/framework/ai/2026-10-08/session-class/).
+- **Not built:** the folder rule. A child can start a day later than its parent, so its date folder and its parent's disagree. Proposal and reason: [findings 14](/framework/ai/sessions/2026/10/08/3f5a5fec-dbf0-4a4b-8573-560f281a0be3/session-class/).
 
 ## 6. Everything is linked
 - **Asked:** a file that exists but is not linked from the site will never be found.

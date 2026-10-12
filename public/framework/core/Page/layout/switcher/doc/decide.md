@@ -148,9 +148,9 @@ new address — this page (the pattern, its three skins, `switcher.css`) stayed 
 
 ## Converging with task-mastermind-file-system
 
-Its brief (`public/framework/ai/2026-09-29/file-system/minion-b/requirements.md`, deliverable 4)
+Its brief (`public/framework/ai/sessions/2026/09/29/file-system/file-system/minion-b/requirements.md`, deliverable 4)
 says only "at 400 the tree folds away behind a button" — no class named yet. This page names one:
 once `ext/filesystem`/`ext/files` is on `michael/dev`, its mobile explorer should call
 `this.switcher(names, { skin: "tree" })` (or add a fourth skin here if the file tree needs
 something `.switcher-skin-tree` doesn't give it) instead of building a second collapse mechanism.
-Its task dir: `public/framework/ai/2026-09-29/file-system/`.
+Its task dir: `public/framework/ai/sessions/2026/09/29/file-system/file-system/`.

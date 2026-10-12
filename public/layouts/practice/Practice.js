@@ -160,7 +160,7 @@ export default class Practice {
 						span.c("std-practice-chip", String.fromCharCode(97 + i) + " · " + name);
 					});
 				});
-				md("The whole table — eight checks × four widths × three layouts, read back by headless Chromium — is in [this task's log](/framework/ai/2026-09-17/practice-layouts/).");
+				md("The whole table — eight checks × four widths × three layouts, read back by headless Chromium — is in [this task's log](/framework/ai/sessions/2026/09/17/practice-layouts/).");
 			});
 		});
 	}

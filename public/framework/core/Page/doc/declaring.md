@@ -44,8 +44,8 @@ them drew nothing. The caller budgets instead:
   skip a leaf — so its subtree waits until you open it. That alone is 50 modules on
   `/framework/`.
 
-The result, cold, same screens (2026-08-30 · [the cost](/framework/ai/2026-08-30/eager-load-cost/) ·
-[the fix](/framework/ai/2026-08-30/lazy-children/)):
+The result, cold, same screens (2026-08-30 · [the cost](/framework/ai/sessions/2026/08/30/eager-load-cost/) ·
+[the fix](/framework/ai/sessions/2026/08/30/lazy-children/)):
 
 | url | before | after |
 |---|---:|---:|

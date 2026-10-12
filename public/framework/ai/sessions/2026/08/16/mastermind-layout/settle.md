@@ -4,7 +4,7 @@
 336-row baseline, **17 of 17 survive at 3000ms** — none vanish, none downgrade.
 The one page that *is* settle-sensitive gets **worse** with more time, not
 better: it gains a `high` finding the published 350ms baseline never saw. The
-genuinely non-deterministic page in this sample (`ai/2026-08-14/editor-panel-review/`)
+genuinely non-deterministic page in this sample (`ai/sessions/2026/08/14/editor-panel-review/`)
 isn't in the 336-row corpus at all — `ai/` task dirs are excluded from
 `pages.js` — so it can't be costing the audit any rows today, though it does
 prove a fixed delay, however long, cannot be trusted for that page shape.
@@ -77,7 +77,7 @@ widths. A longer *fixed* delay would in fact fix this one.
 every delay, no trend, and the score swings 0→41 within that band. This is
 the stronger finding: **no fixed delay, however long, would make this page
 deterministic** — it needs an actual quiet-signal, not a bigger number. (The
-readme's *other* named worst case, `ai/2026-08-13/sessions/`, is now fully
+readme's *other* named worst case, `ai/sessions/2026/08/13/sessions/`, is now fully
 stable — 3287 nodes, score 59, identical across all 9 runs. That example has
 gone stale; whatever made it non-deterministic no longer does.)
 

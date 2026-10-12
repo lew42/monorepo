@@ -7,7 +7,7 @@ Dispatched by the mastermind run `mastermind-layout` (2026-08-16). Verbatim brie
 > An Opus judge established those pages are fine: `analyze()` never hung, headless
 > Chrome's renderer main thread wedges permanently after ~85-110 navigations in one
 > reused browser context, so the `await import()` in front of `analyze()` never
-> resolved. Full record: `ai/2026-08-16/mastermind-layout/hang.md`. The fix is
+> resolved. Full record: `ai/sessions/2026/08/16/mastermind-layout/hang.md`. The fix is
 > documented in `LayoutTool/readme.md`: hoist the `import()` into its own
 > `page.evaluate()`, and recycle the browser context every ~40 navigations — proven
 > 336/336 measured, 0 stalls, 145s.

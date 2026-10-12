@@ -1,7 +1,7 @@
 # summary-styles — full-width variants of the Disclosure module
 
 Servex agent `minion-summary-styles`, 2026-09-29. The ask, verbatim (from the owner's dictation,
-`public/framework/ai/2026-09-29/module-experts/owner-words.md`, "Continued (about 3:45 PM)"):
+`public/framework/ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/owner-words.md`, "Continued (about 3:45 PM)"):
 
 > By the way, I'd like a minion spawn a mastermind to explore different summary element styles.
 > Those little expandable, collapsible summaries. Uh, most of them seem to be inline until

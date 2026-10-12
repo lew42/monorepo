@@ -6,7 +6,7 @@ Less is more · clarity is the exception · prioritize. Read [`../mastermind-pla
 
 ## Read — all of it, cold
 
-- The owner's brief: `public/framework/ai/2026-09-04/mastermind-platform/requirements.md` (§2–§7, §14–§19, §30–§35 especially).
+- The owner's brief: `public/framework/ai/sessions/2026/09/04/mastermind-platform/requirements.md` (§2–§7, §14–§19, §30–§35 especially).
 - `public/imagine/platform/existing/page.js` (what exists; the `is: "topic"` recommendation and its evidence) and `public/imagine/platform/prior/page.js`.
 - Every verdict: `public/imagine/platform/research/<topic>/verdict.md` for cloudflare, data, users, payments, realtime, video, ai, community (and security if it has landed). Open a `log.jsonl` only where a verdict cites an entry you doubt.
 - `public/framework/core/Page/readme.md`, `doc/roles.md`, `doc/columns.md`, `doc/declaring.md`, `doc/method/store.md`; `public/imagine/page.js` (a columns world); `public/imagine/game/` and `public/imagine/team/` (progress from `is: "topic"` + `store()`).

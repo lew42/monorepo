@@ -29,7 +29,7 @@ Budget: $5. One agent does this itself; no minions (rule 3 below).
 
 ## 4. Every spawned task writes its own line in the asks ledger (folded in from spawn-logs-ask)
 
-[day-audit](/framework/ai/2026-10-03/day-audit/) found about half of today's asks missing from `asks.jsonl`. When `spawn_agent` gets a `task`, Servex appends one ask line itself, right after `open_task()` (`Servex/agents/Agents.js` about lines 158 and 711): the card's title (or the brief's `# ` heading), owner = the new agent, words = the brief's path, status `building`. Use the writer in `Servex/asks/` (`Asks.js`). Skip it if that task dir or card already has an open line. **Tests:** one line per spawned task; none on a re-spawn; none without a task.
+[day-audit](/framework/ai/sessions/2026/10/03/day-audit/) found about half of today's asks missing from `asks.jsonl`. When `spawn_agent` gets a `task`, Servex appends one ask line itself, right after `open_task()` (`Servex/agents/Agents.js` about lines 158 and 711): the card's title (or the brief's `# ` heading), owner = the new agent, words = the brief's path, status `building`. Use the writer in `Servex/asks/` (`Asks.js`). Skip it if that task dir or card already has an open line. **Tests:** one line per spawned task; none on a re-spawn; none without a task.
 
 ## Land
 

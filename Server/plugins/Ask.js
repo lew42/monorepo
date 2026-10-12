@@ -296,7 +296,7 @@ export default class Ask {
     /* One raw event from `--include-partial-messages` — the Anthropic API's own
      * streaming shape, one level down inside `{type: "stream_event", event}`
      * (confirmed against the installed CLI with a ten-second scratch run, not the
-     * docs — `ai/2026-09-19/assistant-stream/task.jsonl` has the capture). A
+     * docs — `ai/sessions/2026/09/19/assistant-stream/task.jsonl` has the capture). A
      * `text_delta` is a word or two of the reply and goes out at once, append-only,
      * as `ask_chunk`; `ext/Ask/stream.js` is the one reader. A tool starting is never
      * forwarded as the raw `tool_use` JSON a browser has no business seeing — one

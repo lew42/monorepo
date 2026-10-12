@@ -13,7 +13,7 @@ verdict: fix
 - Q4 "Whisper" — yes — findings.md §4: tested live with a real clip, 0.77s direct / 0.48s via the site's own `/whisper` proxy, both correct, no failure mode found; mic block in §3 is the real cause, not Whisper.
 - Deliverable 1 "a Mobile setup page, one screen" — yes, with the note above (#1) that the one screen breaks at 400 — shots/…-mobile/sheet.png; table-first, how-to-open, fix options, in priority order.
 - Deliverable 2 "findings.md, answers 1-4 + ranked fix list" — yes — findings.md has all four answers and a ranked fix list (mkcert the one real gap).
-- Deliverable 3 "fix what's small and safe" — yes — findings.md documents the grep found nothing live to fix (everything was already fixed by `ai/2026-09-29/mobile-nav/`); a documented "nothing to do" is a valid answer, not a skip.
+- Deliverable 3 "fix what's small and safe" — yes — findings.md documents the grep found nothing live to fix (everything was already fixed by `ai/sessions/2026/09/29/mobile-nav/mobile-nav/`); a documented "nothing to do" is a valid answer, not a skip.
 - Deliverable 4 "owner-contingent items → a Note card + a line in findings.md" — yes — findings.md names the card `2026/10/08/mobile-mic-needs-an-https-choice-mkcert` for the HTTPS decision.
 - Rule "commit your own work, no loose files" — no — see finding #4: the task's log files and the page itself are not yet in the main tree.
 

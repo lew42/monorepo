@@ -3,10 +3,10 @@
 Minion: Sonnet, effort high (budget mode — no Opus anywhere in this task; the task-mastermind
 it spawns is Sonnet too). Session id `df2f3e2e-a6e1-4d51-9318-a4b15d376e31`. You are IN A
 WORKTREE (the launcher says where; your server's port). Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first, then
 `Servex/agents/readme.md`, `roles.js`, `Agents.js` (`wake_parent`, the registry),
-`Assistant.js` + `assistant.md` (the fast assistant), `ai/2026-09-22/sub-mastermind-live/`
-(a task mastermind spawning minions, proven), `ai/2026-09-22/log-model/events.md` (`task`,
+`Assistant.js` + `assistant.md` (the fast assistant), `ai/sessions/2026/09/22/5e24b511-b6bd-4c40-96d6-0666f656ce6d/sub-mastermind-live/`
+(a task mastermind spawning minions, proven), `ai/sessions/2026/09/22/session-66db742f/log-model/events.md` (`task`,
 `proposal`, `decision` types). Load `code`, `ui-test`. `Servex/node_modules` is not carried
 into a worktree: run `npm install` in your worktree's `Servex/` first, and test against YOUR
 Servex on private ports (`SERVEX_HOME` + `PORT`/proxy env — read `Servex/readme.md`; never the
@@ -49,7 +49,7 @@ missing: **nothing takes the card and runs with it**, and nothing on the card sa
    (amber, the reason). The dark session card, if `ai2-master-detail` has landed it, is the
    detail for the mastermind; otherwise the strip links to the task page.
 4. **Proof, end to end, headless on your ports:** POST one owner sentence that asks for a
-   tiny build ("make a page at /framework/ai/2026-09-22/card-to-task/proof/ that says hello
+   tiny build ("make a page at /framework/ai/sessions/2026/09/22/session-df2f3e2e/card-to-task/proof/ that says hello
    and the time") to your Servex's `/log/prompts`; within ~3 s the card and a `task` line
    exist; the Dispatcher spawns a Sonnet task mastermind (registry shows it with parent
    `dispatcher`); the card's strip turns `working` with a `now` line; the mastermind lands the

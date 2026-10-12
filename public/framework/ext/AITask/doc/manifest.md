@@ -123,4 +123,4 @@ bug in the reader. Exact token usage *is* recoverable from the raw transcript
 (`stats.js`'s `usage_of()`, deduped by `message.id`), which is the standing
 argument for a manifest that stops hand-typing `tokens` wherever the
 transcript is still reachable — full verdict in
-[`manifest-vs-log/analysis.md`](/framework/ai/2026-08-13/manifest-vs-log/).
+[`manifest-vs-log/analysis.md`](/framework/ai/sessions/2026/08/13/manifest-vs-log/).

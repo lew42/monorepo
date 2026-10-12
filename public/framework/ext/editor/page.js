@@ -315,7 +315,7 @@ workspace({ saver: panels, templates: REGIONS, seed });`);
 
 		md("Next: [Item](/framework/core/Item/) — the tree this page is editing.");
 
-		md("Where this module stands — and the ruling on the capital E: [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/).");
+		md("Where this module stands — and the ruling on the capital E: [Editor × Panel review](/framework/ai/sessions/2026/08/14/editor-panel-review/).");
 
 		md.details(import.meta, "readme.md", "Readme");
 

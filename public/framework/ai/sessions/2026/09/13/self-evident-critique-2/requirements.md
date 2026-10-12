@@ -1,6 +1,6 @@
 # self-evident-critique-2 — round two: what still misleads a newcomer, after the fixes
 
-Run: `ai/2026-09-13/mastermind-page-cms/` (the mastermind). Group: `ux`. You are a CRITIC: you edit nothing under `public/` except your own task dir. **"Nothing left" is a success, not a failure** — report it as such with the evidence.
+Run: `ai/sessions/2026/09/13/mastermind-page-cms/` (the mastermind). Group: `ux`. You are a CRITIC: you edit nothing under `public/` except your own task dir. **"Nothing left" is a success, not a failure** — report it as such with the evidence.
 
 ## The three laws, and your length budget
 
@@ -18,9 +18,9 @@ Budget: findings as numbered `log` lines in your task.jsonl; the landing `outcom
 
 ## Read first
 
-1. `public/framework/ai/2026-09-13/self-evident-critique/requirements.md` — round one's brief (the two screens, the method, the data rules). The same method applies here.
-2. `public/framework/ai/2026-09-13/self-evident-critique/task.jsonl` — the ten `DEFECT n.` lines round one found.
-3. `public/framework/ai/2026-09-13/self-evident-fixes/requirements.md`, then the two fixers' `task.jsonl` under `self-evident-fixes/make/` and `self-evident-fixes/importance/` — what was changed and how, with after-pngs beside them. Round one's defect 1–3, 5, 7, 8 (Make) and 4, 6, 9, 10 (Importance) were fixed; Make's Description field was left on purpose.
+1. `public/framework/ai/sessions/2026/09/13/self-evident-critique/requirements.md` — round one's brief (the two screens, the method, the data rules). The same method applies here.
+2. `public/framework/ai/sessions/2026/09/13/self-evident-critique/task.jsonl` — the ten `DEFECT n.` lines round one found.
+3. `public/framework/ai/sessions/2026/09/13/self-evident-fixes/requirements.md`, then the two fixers' `task.jsonl` under `self-evident-fixes/make/` and `self-evident-fixes/importance/` — what was changed and how, with after-pngs beside them. Round one's defect 1–3, 5, 7, 8 (Make) and 4, 6, 9, 10 (Importance) were fixed; Make's Description field was left on purpose.
 
 ## What round two asks
 
@@ -32,7 +32,7 @@ Budget: findings as numbered `log` lines in your task.jsonl; the landing `outcom
 
 ## Method and fences — round one's, exactly
 
-`ui-test`; a PRIVATE server `PORT=8098 node server.js` from the repo root (another 809x if taken), killed by pid at landing. Never the port-80 server, never the owner's tabs, never `git stash`, never commit. Probe pages named `zzz-probe-*` (a name the app never generates — round one's `probe-*` cleanup selector matched an owner row); delete them before landing; `git status public/imagine/paging/made/` unchanged before/after. Every judgment / node / edge you write to `public/imagine/importance/data/` removed by id; `md5sum` the three files before and after and log both. Own only `public/framework/ai/2026-09-13/self-evident-critique-2/**`; pngs into it as `NN-<control>-<width>.png`.
+`ui-test`; a PRIVATE server `PORT=8098 node server.js` from the repo root (another 809x if taken), killed by pid at landing. Never the port-80 server, never the owner's tabs, never `git stash`, never commit. Probe pages named `zzz-probe-*` (a name the app never generates — round one's `probe-*` cleanup selector matched an owner row); delete them before landing; `git status public/imagine/paging/made/` unchanged before/after. Every judgment / node / edge you write to `public/imagine/importance/data/` removed by id; `md5sum` the three files before and after and log both. Own only `public/framework/ai/sessions/2026/09/13/self-evident-critique-2/**`; pngs into it as `NN-<control>-<width>.png`.
 
 Open your task with `new-task` (group `ux`, steps: read round one · re-run the ten · cold read + the way in · press what is new · rank · land); `skill-improvement` for anything that misled you; land with `finish-task`.
 

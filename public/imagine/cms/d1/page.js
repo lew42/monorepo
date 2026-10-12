@@ -17,7 +17,7 @@ import { Page, p } from "/app.js";
      instead of throwing, the same rule /imagine/platform/like.js already follows for the
      like button: every fetch gets a `.catch`, never a bare await.
 
-   Proof + numbers: ai/2026-09-17/pages-in-d1/, doc/decisions.md beside this file. */
+   Proof + numbers: ai/sessions/2026/09/17/pages-in-d1/, doc/decisions.md beside this file. */
 
 const API = "/api/pages?under=/imagine/cms/d1/";
 

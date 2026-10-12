@@ -9,11 +9,11 @@
  * `echo.md` as its system prompt, restricted to `mcp__servex__refine_step`, then call
  * `Echo.heard()`/`heard_reply()` (or, from outside the Servex process entirely, the exact same
  * shape over `POST /log/echo`) for each pair in order, waiting for one prompt's `done` step
- * before sending the next. `public/framework/ai/2026-10-02/prompt-refine/minion-echo/task.jsonl`
+ * before sending the next. `public/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/minion-echo/task.jsonl`
  * has the worked example for session 361c4d18-e878-4c04-9537-444e847e13d5 (deliverable 6's
  * first test).
  *
- * THE TRANSCRIPT PATH, same convention `public/framework/ai/2026-10-02/panel2-sessions/
+ * THE TRANSCRIPT PATH, same convention `public/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/
  * sessions.mjs` already uses and proved against this exact machine: Claude Code keeps one
  * `<session_id>.jsonl` per session under `~/.claude/projects/<project-slug>/`. The slug for
  * this repo's own MAIN checkout (where the owner's own interactive sessions run — a worktree

@@ -51,7 +51,7 @@ it to all of them.
 
 Eight generic lines that turn one spec into a twin card with a bare `/full/` url. `wire/` is
 now its second caller, which is this tier's own stated bar for promoting a helper. **Assumed:
-imported across the seam** (`import entry from "../400/entry.js"`) — promoting it is a rename
+imported across the seam** (`import entry from "../../../../../2026-08-18/400/entry.js"`) — promoting it is a rename
 in a directory this task did not own, and CLAUDE.md says ask first.
 
 ## 4. Is `Reference` the right band for these?

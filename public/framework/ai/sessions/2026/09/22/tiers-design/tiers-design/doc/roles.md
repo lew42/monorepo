@@ -5,7 +5,7 @@ job below — the point of keeping them separate is that a role that must answer
 never has to think, and a role that thinks never has to be fast.
 
 Renamed 2026-09-29 (the owner, 6:40 PM voice session, "Continued" in
-[`owner-words.md`](/framework/ai/2026-09-29/audio/owner-words.md)): "manager" and "master
+[`owner-words.md`](/framework/ai/sessions/2026/09/29/audio/audio/owner-words.md)): "manager" and "master
 assistant" are retired **words**. Say the row's name below instead — old words are kept once,
 in the **was called** column, and used nowhere else.
 
@@ -40,7 +40,7 @@ built, so they share the **quality discipline**, never the **finishing** discipl
 The smart assistant and a directory mastermind can both be following the same voice session's log
 at once — never just one of them holding the only copy of what was said. That "both tail it, one
 just decides more" arrangement is `follow(path)`, a Servex tool: see
-[`../follow/requirements.md`](/framework/ai/2026-09-29/follow/requirements.md).
+[`../follow/requirements.md`](/framework/ai/sessions/2026/09/29/follow/requirements.md).
 
 ## Not the per-voice-session pair: the older, text-only front desk
 

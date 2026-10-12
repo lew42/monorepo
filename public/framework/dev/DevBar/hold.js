@@ -14,7 +14,7 @@ import Socket from "../Socket/Socket.js";
  * and it WAS the reason. A hold is a fence now (Server/hold.mjs), so the
  * honest readout names the fence: "board-declutter holds ai/v/3/**, 220s"
  * reads as "and nothing else is affected", which is the fact that was
- * missing. Reason: ai/2026-09-22/reload-rethink/.
+ * missing. Reason: ai/sessions/2026/09/22/f875ec48-d91a-4890-b15f-db197b55aa13/reload-rethink/.
  *
  * There is no BUTTON here — a hold is taken from a terminal
  * (`node Server/hold.mjs on|off`), never clicked, so this file only ever
@@ -24,7 +24,7 @@ import Socket from "../Socket/Socket.js";
  * fires a "dev-hold" window event — read that file before this one if the
  * wiring here is unclear.
  *
- * Built for ai/2026-09-19/reload-hold/requirements.md — the full design
+ * Built for ai/sessions/2026/09/19/reload-hold/requirements.md — the full design
  * (the lock file, the queue, the one flush) is Server/hold.mjs and
  * Server/plugins/SocketServer/LiveReload.js; this is only the readout. */
 /* `public/framework/ai/v/3/**` → `ai/v/3/**`. The same shortening

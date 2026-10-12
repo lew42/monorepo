@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `page`, `new-page`, `content`, `code`. Program card dir: `public/framework/ai/2026/09/29/the-page-system-layout-navigation-new-pa/`.
 
-## The owner's words (read "Continued (about 4:20 PM)" in `public/framework/ai/2026-09-29/page-system/owner-words.md`)
+## The owner's words (read "Continued (about 4:20 PM)" in `public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/owner-words.md`)
 
 > "Each path in and of itself is sort of like a page and we can have these kind of like arbitrary page, dynamic pages essentially is the name for um, pages that don't really exist. ... maybe it's just, core slash page slash dynamic. Let's maybe separate the idea of a dynamic page from the actual method. We want to mention on that page the route method, the page.route method, because that's what handles all of the dynamic paging. ... with creating dynamic pages, there's a lot of powerful things we can do, and we can lean on the file system. So even though there's no page.js or page.json in that directory, we can still put data that gets fetched when a dynamic route loads and then looks at an index and realizes there's data there to be loaded. ... it sort of kind of falls back to a templating thing where you could have a core class or a EX extension or, or whatever doing the logic on a bunch of different pages without having to actually create the files themselves to configure it all."
 

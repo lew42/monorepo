@@ -2,9 +2,9 @@
 
 You are finishing a job a sibling started and deliberately left incomplete. Read its brief and its
 output first:
-- `public/framework/ai/2026-09-19/reset-recovery/requirements.md` — the situation and the rules,
+- `public/framework/ai/sessions/2026/09/19/reset-recovery/requirements.md` — the situation and the rules,
   all of which still bind you.
-- `public/framework/ai/2026-09-19/reset-recovery/lost.jsonl` — 39 entries, 6 marked recoverable in
+- `public/framework/ai/sessions/2026/09/19/reset-recovery/lost.jsonl` — 39 entries, 6 marked recoverable in
   full (5 already restored), 2 partial, 31 never searched.
 - Its `task.jsonl` in the same directory.
 
@@ -40,7 +40,7 @@ what your lower bound is and what would be needed to close it.
 
 ## Deliverables
 
-The completed `lost.jsonl`; an updated `page.js` at `public/framework/ai/2026-09-19/reset-recovery/`
+The completed `lost.jsonl`; an updated `page.js` at `public/framework/ai/sessions/2026/09/19/reset-recovery/`
 whose top line is the total and the unrecoverable count in plain words — one screen, and it
 replaces the sibling's top line rather than appending to it; and your own `task.jsonl` in this dir,
 opened with `new-task` before your first write, `"group": "ai-ops"`,
@@ -49,5 +49,5 @@ Land with `finish-task`.
 
 ## Fence
 
-`public/framework/ai/2026-09-19/reset-scope/**` and the two files named above inside
+`public/framework/ai/sessions/2026/09/19/reset-scope/**` and the two files named above inside
 `reset-recovery/`.

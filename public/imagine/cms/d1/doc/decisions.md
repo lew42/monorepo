@@ -1,8 +1,8 @@
 # D1 pages — the record
 
-Task: [`ai/2026-09-17/pages-in-d1/`](/framework/ai/2026-09-17/pages-in-d1/). The owner asked
+Task: [`ai/sessions/2026/09/17/pages-in-d1/`](/framework/ai/sessions/2026/09/17/pages-in-d1/). The owner asked
 whether pages can live in SQLite / Cloudflare D1; the scout's report
-([`ai/2026-09-17/sqlite-scout/report.md`](/framework/ai/2026-09-17/sqlite-scout/report.md))
+([`ai/sessions/2026/09/17/sqlite-scout/report.md`](/framework/ai/sessions/2026/09/17/sqlite-scout/report.md))
 found most of the plumbing already built and working locally. This task built the last piece
 — a table, a route, a page — and proved the whole chain end to end on this machine.
 

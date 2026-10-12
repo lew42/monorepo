@@ -9,7 +9,7 @@ NOTHING; the deliverable is a written design the owner can accept or reject in t
 CONTEXT — the page-data system (read first): `/imagine/cms/thinking/` (the json+jsonl argument),
 `/imagine/cms/json/` + `/imagine/stream/` (live deltas: `{"at","op":"set|del|append","path":[...],"value"}`
 over rpc:append, `Stream.compact()` folds the log into the snapshot then truncates — landed 08-31, see
-`ai/2026-08-31/improve-cms-stream/task.jsonl`). The improver's roadmap left: "undo (needs the prior
+`ai/sessions/2026/08/31/improve-cms-stream/task.jsonl`). The improver's roadmap left: "undo (needs the prior
 value in the line — a contract change)".
 
 TASK — design undo for the delta stream. Weigh at least these three shapes, with MEASUREMENTS not

@@ -1,6 +1,6 @@
 /* rules.mjs — known-answer rule-following tests, per model and per effort.
  *
- * WHY (public/framework/ai/2026-09-30/openrouter-harness/rule-tests/requirements.md): the owner
+ * WHY (public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/rule-tests/requirements.md): the owner
  * wants to know which cheap model can follow this system's own rules — CLAUDE.md, the readme
  * chain, calling our tools, appending the house way, staying inside a fence. Our instructions are
  * meant to be simple enough for a cheap model to follow; these five tests check that claim with a
@@ -21,7 +21,7 @@
  *
  * Results: one `{"probe":{...}}` line per (model × effort × test) in
  * `Servex/ext/openrouter/evals/results.jsonl` — the SAME file and shape mastermind-servex-9's
- * probe runner uses (public/framework/ai/2026-09-30/probe-tasks/probes.md), so a rule test and an
+ * probe runner uses (public/framework/ai/sessions/2026/09/30/probe-tasks/probes.md), so a rule test and an
  * open-ended probe sit in one table instead of two parallel systems (CLAUDE.md law 6: one of
  * everything). Each rule test checks exactly one thing, so its `pass` is a single 0/1, never the
  * six-check array a probe row carries; `label` stays `{}` — the a/b/c system-vs-model diagnosis in
@@ -39,7 +39,7 @@ import { fileURLToPath } from "node:url";
 const MCP = "http://127.0.0.1:8090/mcp";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../../.."); // Servex/ext/openrouter/evals -> repo root
-const TASK_DIR = path.join(ROOT, "public/framework/ai/2026-09-30/openrouter-harness/rule-tests");
+const TASK_DIR = path.join(ROOT, "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/rule-tests");
 const RUNS_DIR = path.join(TASK_DIR, "runs");
 const RESULTS_PATH = path.join(ROOT, "Servex/ext/openrouter/evals/results.jsonl");
 const APPEND_HOOK = path.join(ROOT, ".claude/hooks/append.mjs");

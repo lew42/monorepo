@@ -32,7 +32,7 @@ and at `depth: 200` they are not clean (16 high findings). Only 5 of 168 pages
 are affected at all (791 of 70 121 nodes, 1.1%), but `depth: 20` is demonstrably
 below this site's real DOM depth of 28. Raising or dropping it is a RULE#1 call —
 it moves every score on a nested page — and the numbers are in
-`ai/2026-08-16/mastermind-layout/gutter.md`.
+`ai/sessions/2026/08/16/mastermind-layout/gutter.md`.
 
 **The general shape, and it is new to this file:** every other entry here is the
 tool *measuring the wrong box*. This one is the tool **measuring a box it never
@@ -473,7 +473,7 @@ make the wide window genuinely safe:
   is its own convention.
 
 Across the eighteen-page vision corpus: **7 findings on 6 pages → 1 finding on
-1 page**, and the one is the 194px step. `ai/2026-08-17/tier-calibration/`.
+1 page**, and the one is the 194px step. `ai/sessions/2026/08/17/tier-calibration/`.
 
 ## A centered toolbar is not the heading's next line — FIXED 2026-08-17, and the fix is not the one below
 
@@ -497,7 +497,7 @@ it — reproducing the identical `button.demo-btn` finding on six pages at
 drew that itself or the walk was told not to look; that is why the descent stops
 at a leaf. The historical diagnosis follows.
 
-### The original diagnosis (2026-08-17, `ai/2026-08-17/shared-heading/`)
+### The original diagnosis (2026-08-17, `ai/sessions/2026/08/17/shared-heading/`)
 
 `heading-offset` compares a heading only to the flow node **directly beneath
 it** ("The window that is safe depends on the relationship", above) — a
@@ -516,7 +516,7 @@ and only at 390 wide. At 720 and 1280 the identical centering math puts the
 same button 181px and 325px from the heading — past the rule's own 96px
 "deliberate indent" ceiling — so the rule stays silent there by coincidence of
 arithmetic, not because the relationship changed. Screenshots (390 and 1280,
-three pages): `ai/2026-08-17/shared-heading/screenshots/`.
+three pages): `ai/sessions/2026/08/17/shared-heading/screenshots/`.
 
 A reader sees a left-aligned title and, under it, a centered row of pills —
 an ordinary toolbar, identically centered at every width, never once read as
@@ -595,7 +595,7 @@ Not every mass finding is a false positive. `measure` fired **1333 times across
 95 pages** and every sample checked was real — the site genuinely runs prose at
 95–130 characters. Two independent vision models said the same thing about the
 same pages before this tool existed
-(`ai/2026-08-14/vision-report/report.md`), and a third confirmed it afterwards
+(`ai/sessions/2026/08/14/vision-report/report.md`), and a third confirmed it afterwards
 from a screenshot.
 
 The test is not "how many", it is **"does a sample survive being looked at"**.

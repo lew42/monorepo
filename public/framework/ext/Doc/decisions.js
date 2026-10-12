@@ -7,7 +7,7 @@ import Collab from "../Collab/Collab.js";
  * nothing. Opening the popover is the SECOND fetch — that one run's own
  * `collab.jsonl`, for the ask, the winner and the vote count — and it only
  * happens once, the first time someone actually opens it. Contract:
- * public/framework/ai/2026-09-28/collab-rounds/collab-format.md. */
+ * public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md. */
 export function decision_menu(module, name){
 	return Collab.Decisions.for(module, name).then(href => {
 		if (!href) return;

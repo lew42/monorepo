@@ -1,10 +1,10 @@
 # The phases, re-cut against what exists after today
 
 The owner's original three phases were written before any of this was built. Today four tasks are
-building the substrate at once — [`servex-port`](../../servex-port/) (the proxy, the process
-supervisor, the single-writer log, the `/mcp` seam), [`agent-host`](../../agent-host/) (spawn,
-send, interrupt, list, and one typed event per SDK message), [`log-model`](../../log-model/) (the
-event schema and the fold) and [`worktree-design`](../../worktree-design/) (where a worktree goes
+building the substrate at once — [`servex-port`](../../../session-7e28aa8d/servex-port) (the proxy, the process
+supervisor, the single-writer log, the `/mcp` seam), [`agent-host`](../../../session-e69d8104/agent-host) (spawn,
+send, interrupt, list, and one typed event per SDK message), [`log-model`](../../../session-66db742f/log-model) (the
+event schema and the fold) and [`worktree-design`](../../../worktree-design/worktree-design) (where a worktree goes
 and what it costs). This file says what is still missing when those four land, and what phase 2
 actually is.
 

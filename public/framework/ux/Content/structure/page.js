@@ -1,7 +1,7 @@
 import { Page, md, div, h3, p } from "/app.js";
 import { iconCard, section, outline, cards, flow } from "./Structure.js";
 
-// Real words: the owner's harness brief (ai/2026-09-28/harness-research/owner-words.md), drawn.
+// Real words: the owner's harness brief (ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/owner-words.md), drawn.
 const harness = [
 	{ title: "Models", items: [{ name: "OpenRouter", icon: "hub", weight: 3 }, { name: "Direct providers", icon: "cloud", weight: 2 }, { name: "Cost per call", icon: "payments", weight: 2 }] },
 	{ title: "Context", items: [{ name: "CLAUDE.md", icon: "description", weight: 2 }, { name: "Skills on demand", icon: "school", weight: 3 }, { name: "MCP tools", icon: "extension", weight: 2 }, { name: "Auto-compact", icon: "compress", weight: 1 }] },

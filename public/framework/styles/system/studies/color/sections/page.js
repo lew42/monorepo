@@ -12,7 +12,7 @@ View.stylesheet(import.meta, "sections.css");
  * nested inside the other creates a whole visual effect."
  *
  * Layout (the five questions). Container: a plain page under its own study
- * (moved from the /imagine/ columns host 2026-09-18, `ai/2026-09-18/imagine-move-2/`).
+ * (moved from the /imagine/ columns host 2026-09-18, `ai/sessions/2026/09/18/imagine-move-2/`).
  * Size: `full`, the word every sibling study wears. Own layout: `.grid.auto` with `--column: 19rem` —
  * the site's word for a wall; one cell at 400, three at 1280, seven or eight at 3440.
  * Regions: three, in importance order — the sliders with the live sentence under them,

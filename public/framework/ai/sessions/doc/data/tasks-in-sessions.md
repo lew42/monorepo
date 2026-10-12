@@ -20,7 +20,7 @@ First run: 78 folders, 2,320 files, 170 MB, zero missing or changed. 12 tasks st
 ## Old addresses keep working
 
 - The old folder stays, holding `moved.json` (`{moved_to, session}`), so a day listing still shows the task.
-- Browser: `Server/Server.js` serves `/framework/ai/<date>/<task>/<file>` from the new place (`TaskDirs.alias`); the page route at the old URL still renders (checked headless on `/framework/ai/2026-10-08/task-audit/`). Restart the dev server to load it.
+- Browser: `Server/Server.js` serves `/framework/ai/<date>/<task>/<file>` from the new place (`TaskDirs.alias`); the page route at the old URL still renders (checked headless on `/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/`). Restart the dev server to load it.
 - Node readers: `task-cost`, `spend-tree`, `page-ai-cost`, `ai2-overview` call `TaskDirs.follow(dir)` and read the moved folder. Other readers that scan old dated folders for a `task.jsonl` skip a moved task; they look at recent days, and only landed tasks move.
 
 ## Decisions and the alternative

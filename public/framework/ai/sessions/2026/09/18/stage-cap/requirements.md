@@ -1,6 +1,6 @@
 # Brief — cap the browse-band card max
 
-One small fix from the site study's stage verdict (`public/framework/ai/2026-09-18/site-study/study.md`,
+One small fix from the site study's stage verdict (`public/framework/ai/sessions/2026/09/18/site-study/study.md`,
 the stage section, and its `decision` line in `site-study/task.jsonl`).
 
 **The owner's words (2026-09-18):** "a lot of times we go full bleed and on 3440 a thing that

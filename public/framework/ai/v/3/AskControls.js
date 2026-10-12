@@ -7,7 +7,7 @@ import { edit } from "/framework/ext/Ask/edit.js";
  * to the server and back.
  *
  * COPIED HERE, not imported from a task dir (2026-09-19, `v3-timeline`, item 4):
- * this is `ai/2026-09-19/card-replies/ask.js`, byte-for-byte, moved into `v/3/`
+ * this is `ai/sessions/2026/09/19/card-replies/ask.js`, byte-for-byte, moved into `v/3/`
  * — its own task log says "the smallest render ... which the V3 minion can lift
  * straight into the real dashboard cards." A dated task folder is a throwaway
  * demo dir (this whole realm's own convention — scratch boards, one-off shots,

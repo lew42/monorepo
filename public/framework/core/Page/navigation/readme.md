@@ -45,4 +45,4 @@ thing to get right. [Live page](/framework/core/Page/navigation/).
 - [`doc/alternatives.md`](doc/alternatives.md) — the alternatives table, with more detail than
   the page shows.
 - [`doc/prior-work.md`](doc/prior-work.md) — every navigation row the inventory found, linked.
-- Built by `minion-nav-page` for the [page-system](/framework/ai/2026-09-29/page-system/) task.
+- Built by `minion-nav-page` for the [page-system](/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/) task.

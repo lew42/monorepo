@@ -76,7 +76,7 @@ that output would corrupt them.
 
 ## Files you own
 
-- `public/framework/ai/2026-08-17/rename-manifest/**` — your task dir only,
+- `public/framework/ai/sessions/2026/08/17/rename-manifest/**` — your task dir only,
   including `manifest.md` (the deliverable).
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.

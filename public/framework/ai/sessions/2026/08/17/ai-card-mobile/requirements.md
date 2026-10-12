@@ -3,7 +3,7 @@
 ## Ask, verbatim (from mastermind-layout dispatch)
 
 The site's first ever mobile sweep (169 pages at 390 and 720; record in
-`public/framework/ai/2026-08-17/mobile-sweep/task.jsonl`) found this as the
+`public/framework/ai/sessions/2026/08/17/mobile-sweep/task.jsonl`) found this as the
 worst mobile-only regression:
 
 > `/framework/ai/` scores 82/B at 1280 and 58/F at 390. A task card's

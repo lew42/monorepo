@@ -80,7 +80,7 @@ export default new Page({
 			span("task-mastermind-file-system is building the first real instance of this shape — the mobile file explorer at ");
 			code("/fs");
 			span(". Its work (task dir: ");
-			code("public/framework/ai/2026-09-29/file-system/");
+			code("public/framework/ai/sessions/2026/09/29/file-system/file-system/");
 			span(") is not on michael/dev yet, so this page names the class instead of wiring to it: once its branch merges, reuse ");
 			code('this.switcher(names, { skin: "tree" })');
 			span(" there instead of a second collapse mechanism — see doc/decide.md's last section.");

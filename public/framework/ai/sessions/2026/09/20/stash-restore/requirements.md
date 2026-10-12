@@ -57,7 +57,7 @@ Work out the counts for all three cases and report them.
 
 - `public/framework/ai/2026-09-19/**` and `public/framework/ai/2026-09-20/**` — last night's task
   dirs. Much of this is **newer** than the stash. Be careful here.
-- `public/framework/ai/2026-09-19/reset-recovery/lost.jsonl` — written and updated after the stash.
+- `public/framework/ai/sessions/2026/09/19/reset-recovery/lost.jsonl` — written and updated after the stash.
   **Do not overwrite it**; it is the record of the whole incident.
 - `CLAUDE.md` — had a section restored by hand after the stash. Out of bounds entirely.
 - `.claude/settings.json` — out of bounds entirely.
@@ -90,7 +90,7 @@ And hand-diff **three** restored files against `git show 'stash@{0}:<path>'` out
 ## Fences
 
 You own every path listed in `git stash show --name-only 'stash@{0}'` **except** the four exclusions
-named above, plus `public/framework/ai/2026-09-20/stash-restore/**`. One line in that day page's
+named above, plus `public/framework/ai/sessions/2026/09/20/stash-restore/**`. One line in that day page's
 `children:`, one append to its `day.jsonl`.
 
 **Never kill or restart the dev server** — port 80 is the owner's and they are awake and using it;

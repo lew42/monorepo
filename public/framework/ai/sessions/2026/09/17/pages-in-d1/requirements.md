@@ -9,11 +9,11 @@ Load the `minion` skill first. Then this brief.
 
 > Can we store pages in SQLite? On cloudflares D1? What is required to get that working? Look for past work.
 
-The scout's answer (`ai/2026-09-17/sqlite-scout/report.md` — read it first): SQLite half working — works locally (Miniflare, the local D1 is a `.sqlite` file), never deployed; the deploy needs the owner's Cloudflare login (their 5-minute item). The mastermind's decision: build and prove the local slice now; the deploy waits for the owner.
+The scout's answer (`ai/sessions/2026/09/17/sqlite-scout/report.md` — read it first): SQLite half working — works locally (Miniflare, the local D1 is a `.sqlite` file), never deployed; the deploy needs the owner's Cloudflare login (their 5-minute item). The mastermind's decision: build and prove the local slice now; the deploy waits for the owner.
 
 ## What exists — copy it, do not reinvent
 
-- `worker/index.js` (routes and who may call them), `worker/likes.js` (the proven D1 read/write pattern: prepared statements, `env.DB`), `worker/schema.sql` + `worker/seed.sql` (idempotent), `wrangler.dev.jsonc` (the D1 binding, local), `dev.mjs` (`PORT=<site> API_PORT=<api> npm run dev` runs both servers and applies schema + seed; read its header and `ai/2026-09-06/platform-slice/run.md` for how the browser reaches `/api/*` locally).
+- `worker/index.js` (routes and who may call them), `worker/likes.js` (the proven D1 read/write pattern: prepared statements, `env.DB`), `worker/schema.sql` + `worker/seed.sql` (idempotent), `wrangler.dev.jsonc` (the D1 binding, local), `dev.mjs` (`PORT=<site> API_PORT=<api> npm run dev` runs both servers and applies schema + seed; read its header and `ai/sessions/2026/09/06/platform-slice/run.md` for how the browser reaches `/api/*` locally).
 - Core: `children` may be a function returning a promise (`/framework/core/Page/doc/data-children/`), applied today. `/imagine/cms/` already has JSON pages built on data children (`/imagine/cms/json/`) — read its `page.js` for the shape a fetched child list takes.
 - ⚠ `schema.sql` records a prior decision: likes key on `url`, "there is no page table and there should not be one" — that was about likes never referencing a page id. A `pages` table that STORES pages is a different thing; say so in one comment beside the table and do not touch `likes`.
 
@@ -27,7 +27,7 @@ The scout's answer (`ai/2026-09-17/sqlite-scout/report.md` — read it first): S
 
 ## Rules
 
-- Load `code`; `new-task` before the first edit (your dir exists: `ai/2026-09-17/pages-in-d1/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
+- Load `code`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/pages-in-d1/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
 - **Fence:** `worker/schema.sql`, `worker/seed.sql`, `worker/index.js`, `worker/pages.js` (new), `public/imagine/cms/d1/**` (new), one `children:` word + one line in `public/imagine/cms/page.js`, one line in `public/imagine/cms/readme.md`, your task dir. Nothing else — never `wrangler.jsonc` (production), never `worker/likes.js`, never a deploy, never `wrangler login`.
 - Never kill or restart the dev server on port 80, never drive the owner's tabs, never `git stash`, never `find /`. Timestamps from the clock; never Out-File for jsonl.
 - Landing: `outcome` = the headline ("three pages read from D1, locally"), the link, the route's response as a short code block, the two counts, the owner's checklist with minutes, what was left and why. One screen.

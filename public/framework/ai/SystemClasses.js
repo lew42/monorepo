@@ -8,7 +8,7 @@ import { file_link } from "/framework/ext/filesystem/file_link.js";
    cannot be imported here, and this list is the card's data. Source of truth: the file named on
    each card. When a class changes shape, edit its entry.
    Not-yet-classes (loose functions that should become one) are listed in
-   ai/2026-10-08/ai-system-docs/findings.md. */
+   ai/sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs/findings.md. */
 const CLASSES = [
 	{ name: "Servex", icon: "hub", file: "Servex/Servex.js", doc: "/framework/servex/",
 		gist: "The always-on process. It owns port 80, the logs, the dev servers, and holds every agent.",

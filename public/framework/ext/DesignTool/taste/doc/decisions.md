@@ -79,7 +79,7 @@ page says the tool was blindfolded, not that the layout is bad.
 
 The bands were first written from intuition and then measured against 26 good
 pages and 10 known-bad traps on this site, at 1280 and 3440
-(`ai/2026-08-16/layout-generator-rules/calibration.md`). Six of the
+(`ai/sessions/2026/08/16/layout-generator-rules/calibration.md`). Six of the
 eleven moved:
 
 - **`repetition`** was written at 0.3–0.75 from a guess about "enough
@@ -209,7 +209,7 @@ Three design points it forced, each after getting them wrong first:
 - **A pair only means something if the left side is actually good.** Unbounding
   `--measure: 52em` changed nothing at any width, because 52em already runs ~100
   characters a line here (hand-counted, two independent methods, four viewports:
-  `ai/2026-08-16/mastermind-layout/measure-verdict.md`) — the case was comparing
+  `ai/sessions/2026/08/16/mastermind-layout/measure-verdict.md`) — the case was comparing
   two broken layouts. Cases carry a `base` that fixes the subject before the
   break breaks it.
 - **A band with nothing to measure is n/a, not a failure.** `slivers` reads null
@@ -330,7 +330,7 @@ own for another.**
 A vision baseline — eighteen frozen 1280 screenshots, hand-rated against written
 anchors — convicted this tier of a defect no amount of calibrating could reach,
 and then the internal numbers convicted two more of the same shape.
-`ai/2026-08-17/vision-baseline/` has the images; `ai/2026-08-17/tier-calibration/`
+`ai/sessions/2026/08/17/vision-baseline/` has the images; `ai/sessions/2026/08/17/tier-calibration/`
 has the fixes and every distribution below. **Not one threshold in `ranges.js`
 moved.**
 
@@ -363,7 +363,7 @@ region it now separates some (full credit 18/18→15/17).
 
 ## Three bands re-derived, and the sample was the bug twice (2026-08-17)
 
-`ai/2026-08-17/band-rederive/` — every distribution below is 169 urls at 1280 and
+`ai/sessions/2026/08/17/band-rederive/` — every distribution below is 169 urls at 1280 and
 3440, before and after. **No band was tuned toward a baseline**: the 18-image
 vision baseline does not reproduce itself (ICC 0.510) and `taste`'s correlation
 with it flips sign between passes, so it was weighted at zero and the evidence is
@@ -460,7 +460,7 @@ re-derivation should have: not flatter, more separated.
 - ~~**`lanes` wants scoping away from page chrome.**~~ **Done, 2026-08-17** — it
   and five other content bands read `ratios.region()` now. Original note:
   measured on a content root
-  rather than `.app`, the artefact `ai/2026-08-16/layout-generator-rules/calibration.md`
+  rather than `.app`, the artefact `ai/sessions/2026/08/16/layout-generator-rules/calibration.md`
   describes might resolve into a real signal at a higher weight.
 - **The weights are hand-set, never fit.** Six bands were retuned against
   measured data; none of the eleven weights themselves came from anything more

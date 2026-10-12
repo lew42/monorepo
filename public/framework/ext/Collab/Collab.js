@@ -5,7 +5,7 @@ import { JSONL } from "../JSONL/JSONL.js";
  * vote (and, since 2026-09-28, a decision tree the owner can overrule) —
  * replayed from a `collab.jsonl` log. One line, one verb; `live()` streams it
  * exactly like any other JSONL. Contract:
- * `public/framework/ai/2026-09-28/collab-rounds/collab-format.md`.
+ * `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md`.
  *
  *     const collab = await new Collab({ url: "…/collab.jsonl" }).live(redraw);
  *     collab.members             // Collab.Member[], each with its phase files, cost, status

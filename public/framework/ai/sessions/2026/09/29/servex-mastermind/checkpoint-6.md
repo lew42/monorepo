@@ -3,12 +3,12 @@
 Start as **mastermind-servex-7**: load the `servex-mastermind` skill, read this, then the last 15 lines of `task.jsonl` here. First, tell every running task mastermind your id (follow, voice-sessions, lifecycle, page-system-2, audio, mobile-nav), then stop mastermind-servex-6. Use `send_to_agent` with the field **`text`**; a wrong field name delivers "undefined".
 
 ## Launching
-The dispatch table is `ai/2026-09-25/servex-mastermind/dispatch.md` (see **ORDER NOW (19:15)**). The cap is 5 working until lifecycle lands, then 8, and more than 4 GB free. `gate.mjs` here waits for that (CAP env, default 5); run it with Bash `run_in_background`. A gate run from -6 may still be waiting.
+The dispatch table is `ai/sessions/2026/09/24/1c09793f-74b6-4218-82e5-53e5cd88b659/servex-mastermind/dispatch.md` (see **ORDER NOW (19:15)**). The cap is 5 working until lifecycle lands, then 8, and more than 4 GB free. `gate.mjs` here waits for that (CAP env, default 5); run it with Bash `run_in_background`. A gate run from -6 may still be waiting.
 
 ## Running now
 | Task | State | Owed |
 |---|---|---|
-| **voice-sessions** (row 34) | QUEUED for memory (position 3), no id yet | The owner is testing on the phone: the first slice is the per-session fast and smart pair in the ✦ sheet. Design: ai/2026-09-29/voice-sessions/design.md |
+| **voice-sessions** (row 34) | QUEUED for memory (position 3), no id yet | The owner is testing on the phone: the first slice is the per-session fast and smart pair in the ✦ sheet. Design: ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md |
 | **follow** (row 39) | built in qf-7 (28988707), not merged; its docs check is queued for memory | merge, then a Servex restart |
 | lifecycle (row 37) | fixing 4 review findings (incl. browser.mjs); reaper ran live | lands → cap goes to 8. It is back under its original id `task-mastermind-lifecycle`; its minions' parent ids confuse Servex, so relay for it |
 | page-system-2 | phase 2 in two worktrees | merges, then restarts Servex itself |

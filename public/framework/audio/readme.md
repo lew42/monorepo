@@ -10,7 +10,7 @@ The [live demo at the top of this page](./) shows all three working together —
 watch the transcript settle, optionally record.
 
 None of this is AI. Sending text to an LLM to clean it up (the "refinement" step) is a separate,
-later job — see [the audio task](/framework/ai/2026-09-29/audio/), ask 2. `ux/Dictate` is the
+later job — see [the audio task](/framework/ai/sessions/2026/09/29/audio/audio/), ask 2. `ux/Dictate` is the
 whole assembled system (mic → transcription → refinement → a text box); these three are what it
 — and anything else with a microphone — is built from.
 
@@ -32,7 +32,7 @@ whole assembled system (mic → transcription → refinement → a text box); th
 
 One `MicStream` is opened once; `Recorder` and `Transcriber` both just read from it — nothing
 opens a second microphone. `ux/Dictate` is not rebuilt on these yet (that is ask 2 of
-[the audio-consolidate task](/framework/ai/2026-09-30/audio-consolidate/), handed to a sibling
+[the audio-consolidate task](/framework/ai/sessions/2026/09/30/108a1b36-ed02-4728-bf82-20d7d7053d85/audio-consolidate/), handed to a sibling
 minion working on `ux/Dictate/` at the same time as this one) — today `MicStream`'s buffer code is
 still a COPY of `ux/Dictate/capture.js`, not an import of it (`doc/decisions.md`, "Extracted vs.
 rebuilt"). Once Dictate is rebuilt on `MicStream` + `Transcriber`, that copy retires.

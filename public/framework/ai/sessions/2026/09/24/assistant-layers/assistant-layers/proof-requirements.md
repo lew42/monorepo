@@ -8,7 +8,7 @@ Load the `minion` skill first, then the `code` skill.
 
 The acceptance test, from the task's brief: **speak on two cards → two separate assistants answer; the master assistant notes something across both; a request for work reaches a manager, exactly one starts, and a collision between two cards reaches mastermind-servex.**
 
-Design: `C:/Code/lew42/monorepo/public/framework/ai/2026-09-24/assistant-layers/doc/design.md`.
+Design: `C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/doc/design.md`.
 
 ## Where you work
 
@@ -28,7 +28,7 @@ Worktree `C:/Code/lew42/worktrees/assistant-layers`, branch `worktree/assistant-
    5. On card A: `{"prompt": {"text": "Please look into how many lines Servex/agents/policy.js has, and tell me on this card. Nothing else."}}`. Wait until `manager-<A>` exists, and check that exactly ONE manager was spawned for card A (the registry has no `manager-<A>-2`).
    6. On card B, the same words. Its manager's `claim_topic` must collide with A's. Wait until mastermind-servex receives a message about it (its agent log's `agent_msg` lines), or the claim refusal appears in the `policy`/`servex` log. If the managers name the topic differently so nothing collides, record that as a finding. Do not force it.
    7. **Broken cases.** (a) Stop card B's assistant, delete its session file (the Claude session store under `%USERPROFILE%/.claude/projects/<the cwd's dashed name>/<session_id>.jsonl`; locate it, never guess), then speak on card B again: a fresh assistant must answer on the card, same id, and the failure must be logged, not thrown. (b) Two claims on one topic at the same moment: `Promise.all` of two `claim_topic` calls from two different managers (call `servex.claims.claim` through a tiny test route or the tool with two callers): exactly one wins. (c) Set `SERVEX_AGENT_CAP=3` in a second short boot (or call the check directly): show a spawn with no live parent queued with its reason, then started when a slot frees; and show that a child of a live, idle parent is admitted even at the ceiling. Set `SERVEX_MIN_FREE_MB` above the machine's free memory and show a spawn refused with the memory reason. (d) With `SERVEX_REAP_MS=20000`, a finished minion is stopped by the reaper.
-   8. Print a one-screen summary: each check, pass or fail, and the evidence (ids, session ids, the line that proves it). Save the same as JSON in `public/framework/ai/2026-09-24/assistant-layers/proof.json`.
+   8. Print a one-screen summary: each check, pass or fail, and the evidence (ids, session ids, the line that proves it). Save the same as JSON in `public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/proof.json`.
    9. Stop the private Servex and every agent it started (`POST`/tool `stop_agent` on each, then kill the child). Delete the two proof card folders it created in the worktree's `public/framework/ai/2026/…`. Nothing it made may be committed.
 4. Run the proof. If a check fails because of a bug in `Layers.js`, `Global.js`, `policy.js` or the wiring, fix the smallest thing, say what in your report, and rerun, at most three runs. Spending is real (Opus managers): keep the work requests as small as written.
 

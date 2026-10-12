@@ -1,7 +1,7 @@
 ## controls.css
 
 **Renamed from `toolbar.css` on 2026-09-18, when the floating bar it was named
-after was deleted** (`ai/2026-09-17/editor-select/`). Two things live here now,
+after was deleted** (`ai/sessions/2026/09/17/editor-select/`). Two things live here now,
 and neither of them was ever a bar control:
 
 - **`.panel-btn`** — one button box for every surface that draws this module's

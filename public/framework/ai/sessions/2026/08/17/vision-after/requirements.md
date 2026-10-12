@@ -15,4 +15,4 @@ Context: the pilot (`../vision-pilot/`, 76 rows, Sonnet `critique-full-v1`) shot
 ## Rules
 
 - Files: this dir (`vision.jsonl`, `shots/`, `prompts.json` written by the runner; `proposal.md`, `task.jsonl`). Read-only elsewhere — **fix nothing**; the proposal is the deliverable.
-- Log in `task.jsonl` here (bash `printf`, never Out-File; timestamps from `date -Iseconds`); bump step; land per `finish-task` with the browse URL `/framework/ext/DesignTool/vision/?run=/framework/ai/2026-08-17/vision-after/` in `links`.
+- Log in `task.jsonl` here (bash `printf`, never Out-File; timestamps from `date -Iseconds`); bump step; land per `finish-task` with the browse URL `/framework/ext/DesignTool/vision/?run=/framework/ai/sessions/2026/08/17/vision-after/` in `links`.

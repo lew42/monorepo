@@ -128,7 +128,7 @@ into its own parent's NAMED REGION first (`Page.container()`) — for a page who
 is an `ext/Doc` module (every `<module>/fs/` is exactly that), the region is the Doc's
 own tab panel, so a plain `render()` override alone left v2 nested one level inside the
 Doc's own title-and-tab band, squeezed to the panel's width, "FS" sitting as a stray
-extra tab beside Overview (found live, screenshots in `ai/2026-09-29/file-system/
+extra tab beside Overview (found live, screenshots in `ai/sessions/2026/09/29/file-system/file-system/
 minion-b/shots/`). `container()` now walks to the nearest ANCESTOR that owns a `$pages`
 of its own — `Page.prototype.container()`'s own second branch, copied rather than
 `app.$pages` (tried first: it skipped past the framework section's own sidebar+content

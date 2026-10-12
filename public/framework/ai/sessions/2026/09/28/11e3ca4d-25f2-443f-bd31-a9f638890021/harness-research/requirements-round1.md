@@ -1,7 +1,7 @@
 # Round 1 — harness research scouts
 
 Load the `minion` skill, then the `research` skill, first. The owner's words, verbatim, are in
-`public/framework/ai/2026-09-28/harness-research/owner-words.md` — read them; they are the brief.
+`public/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/owner-words.md` — read them; they are the brief.
 
 **The topic:** `harness` (`public/framework/research/harness/research.jsonl`). Read it ONLY with
 `node public/framework/ext/Research/research.mjs outline harness`. Write ONLY with `research.mjs say`

@@ -1,4 +1,4 @@
-import { browser, close } from "../../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../Server/browser.mjs";
 const b = await browser();
 const page = await (await b.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
 const errs = [];

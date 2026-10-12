@@ -4,7 +4,7 @@ Dispatched by `mastermind-layout`, verbatim:
 
 > `ext/catalog`'s content region had no scroll boundary, so the bottom half of
 > every `catalog()` page was unreachable. That was fixed an hour ago
-> (`public/framework/ai/2026-08-16/catalog-scroll/`) — `unreachable` went from
+> (`public/framework/ai/sessions/2026/08/16/catalog-scroll/`) — `unreachable` went from
 > 21 findings across 11 urls to zero site-wide, and those pages gained 70–75
 > points each.
 >

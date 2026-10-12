@@ -65,7 +65,7 @@ of forcing it. A clean "no, because" is a fully successful outcome.
 
 Yours: `ext/editor/*` (mainly `page.js`; append to its `readme.md`), a
 minimal seam in `ext/panel/panel.js` (+ `panel.css` per ruling 7) only if
-needed, the exec summary `framework/ai/2026-08-13/editor-panels/page.js`,
+needed, the exec summary `framework/ai/sessions/2026/08/13/editor-panels/page.js`,
 and the one-line child declaration in `framework/ai/2026-08-13/page.js`.
 Not yours: everything else in `ext/panel/`, `core/`, `styles/`,
 `ext/layout/`, `ext/draggable/`, `ext/saver/`, `server.js`, `Server/`,

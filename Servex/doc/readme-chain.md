@@ -64,7 +64,7 @@ A private Servex, a test agent spawned with `page: "/framework/ux/Dictate/"`
 with the root readme, then `public/framework/readme.md`,
 `public/framework/ux/readme.md`, `public/framework/ux/Dictate/readme.md`, in
 that order (`public/` itself has no readme, so it's skipped).
-`public/framework/ai/2026-09-29/readme-chain/proof/`.
+`public/framework/ai/sessions/2026/09/29/readme-chain/readme-chain/proof/`.
 
 ## Tests
 

@@ -5,7 +5,7 @@ Load the `minion` skill first. Your parent is task-mastermind-voice-sessions. Th
 ## Where you work
 
 Worktree `C:/Code/lew42/worktrees/qf-9`. A sibling minion is editing `Servex/agents/Sessions.js`, the `session-*.md` briefs, `tools.js`, `ServexProxy.js` and `ext/Session/` there right now, so **don't touch any of those**. Commit by exact path.
-**Fence: docs only**: `public/framework/ai/2026-09-22/tiers-design/doc/roles.md`, `.claude/skills/every-prompt/tiers.md`, `Servex/agents/readme.md` and `Servex/agents/doc/` (a names doc if one exists), `public/framework/ext/AITask/readme.md` (item 15), and comments only in `Servex/agents/roles.js` (no behaviour change: aliases stay).
+**Fence: docs only**: `public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md`, `.claude/skills/every-prompt/tiers.md`, `Servex/agents/readme.md` and `Servex/agents/doc/` (a names doc if one exists), `public/framework/ext/AITask/readme.md` (item 15), and comments only in `Servex/agents/roles.js` (no behaviour change: aliases stay).
 
 ## Deliverables
 

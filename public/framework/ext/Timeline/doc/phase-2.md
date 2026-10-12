@@ -1,7 +1,7 @@
 # Phase 2 — deferred, not built
 
 Everything here was named and consciously deferred during the 2026-08-14
-design pass ([`framework/ai/2026-08-14/timeline/design.md`](/framework/ai/2026-08-14/timeline/design.md)),
+design pass ([`framework/ai/sessions/2026/08/14/timeline/design.md`](/framework/ai/sessions/2026/08/14/timeline/design.md)),
 not discovered later. None of it blocks the class working today.
 
 - **A live control surface.** `page.js`'s "two zooms" demo shows two fixed

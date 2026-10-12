@@ -1,6 +1,6 @@
 # page-split-3: STATE (step 7, jsonl, done)
 
-The jsonl replay, file steps, tab state, word delta, nav visibility and placed-file drawing are out of `Page.class.js` into [`Jsonl.js`](/framework/core/Page/Jsonl.js) (`PageJsonl`, attached as `Page.Jsonl`). That finishes the split: [split-plan.md](/framework/core/Page/doc/split-plan.md) now says complete. Follows [page-split-2](/framework/ai/2026-10-12/page-split-2/STATE.md).
+The jsonl replay, file steps, tab state, word delta, nav visibility and placed-file drawing are out of `Page.class.js` into [`Jsonl.js`](/framework/core/Page/Jsonl.js) (`PageJsonl`, attached as `Page.Jsonl`). That finishes the split: [split-plan.md](/framework/core/Page/doc/split-plan.md) now says complete. Follows [page-split-2](/framework/ai/sessions/2026/10/12/session-e55f5a4b/page-split-2/STATE.md).
 
 ## Measure (`node public/framework/core/Page/doc/split-measure.mjs`)
 

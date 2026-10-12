@@ -45,7 +45,7 @@ is handed — so a rail cannot remember a width it refused to take.
 3. **`--dev-grip: 2rem` and `translateX(calc(100% + var(--dev-grip)))` are NOT carried
    — they no longer exist.** That was the *morning* of 2026-08-16, a stopgap that slid
    the rail far enough to clear the half-grip that hung outside it. The same afternoon
-   (`ai/2026-08-16/devbar-grip-scrollbar/`) the grip moved wholly inside the box and
+   (`ai/sessions/2026/08/16/devbar-grip-scrollbar/`) the grip moved wholly inside the box and
    both the token and the `calc()` were deleted: a plain `translateX(100%)` clears a
    grip that is inside the box, and the two files could no longer disagree about a
    number they no longer shared. Re-introducing the token would restore dead weight and
@@ -99,7 +99,7 @@ this exact gesture (pointer capture, a drag, a double-click reset) — `Sidebar`
 comment named where it copied it FROM, the same day it was written
 (`core/Sidebar/doc/decisions.md`, "the resize mechanism is `/layouts/shell/`'s
 `Shell.grab()`, copied, not imported"). The overlap study
-(`ai/2026-09-18/overlap-study/overlap.md`, `overlap-shared-resize-grab`) flagged exactly
+(`ai/sessions/2026/09/18/overlap-study/overlap.md`, `overlap-shared-resize-grab`) flagged exactly
 that: a gesture copied from one file's own comment is the cheapest possible thing to
 un-copy, the same day.
 
@@ -139,7 +139,7 @@ pointer by ~200px vertically, and it sat 4–5px right of the actual drag line. 
 adjacent: the dev bar's hidden position left its grip strip exactly 0px off the
 viewport's right edge — findable by a hover right at the screen's edge — which is what
 an earlier session's fix for the 4–5px offset was reaching for and never actually
-solved. `task.jsonl` (`ai/2026-09-22/grip-fix/`) has the measurements.
+solved. `task.jsonl` (`ai/sessions/2026/09/22/session-5ae94a7c/grip-fix/`) has the measurements.
 
 **Direction.** `ai/v/3` mounts grip as a full-bleed sibling of both columns and moves
 it with an inline `left: px`, so its own box's LOCAL LEFT is always the true boundary —
@@ -282,7 +282,7 @@ drags the handle once, on that device.
 proof drives those events directly (`el.dispatchEvent(new PointerEvent(...,
 { pointerType: "touch" }))`) — the same sequence a real phone's WebKit/Chrome
 delivers. Full run, screenshots and numbers:
-`ai/2026-09-29/grip-everywhere/build/shots/`.
+`ai/sessions/2026/09/30/grip-everywhere/grip-everywhere/build/shots/`.
 
 ## Two zones, not one — and why only `.grip-start` gets the asymmetric box (grip-zones, 2026-09-30)
 

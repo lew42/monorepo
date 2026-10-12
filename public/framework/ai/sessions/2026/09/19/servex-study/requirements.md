@@ -23,6 +23,6 @@ Load the `minion` skill first. Then this brief. Model: Sonnet. **READ-ONLY study
 
 ## Rules
 
-- `new-task` first (your dir: `ai/2026-09-19/servex-study/`); `finish-task`.
+- `new-task` first (your dir: `ai/sessions/2026/09/19/servex-study/`); `finish-task`.
 - **Read-only outside your task dir.** No `npm install`, no `git` command that writes, in either repo. Never start Servex, PM2 or anything that binds a port. Never kill or restart the dev servers (ports 80 and 8123). Never `find /`; search inside `C:\Code\servex` and this repo only. Write files with the Write or Edit tool. Do not write the owner's name anywhere (the Servex repo's own files may contain it — do not copy it).
 - Landing `outcome`: one screen.

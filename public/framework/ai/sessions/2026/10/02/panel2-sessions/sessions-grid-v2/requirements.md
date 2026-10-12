@@ -1,7 +1,7 @@
 # Sessions grid v2 — the owner's ask
 
 From @vscode-mastermind, "More for Sessions and Panel 2," arriving right after
-the /framework/ai/2026-10-02/panel2-sessions task landed:
+the /framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions task landed:
 
 1. **The Sessions tab is a data grid of EVERY session:** the start time, the
    source tag, the agent or tab name, the model, the state and the cost. A

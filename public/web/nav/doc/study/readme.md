@@ -28,7 +28,7 @@ under each. Today's row moves 129px and 225px; the stable row and the **even** r
 
 The rule is one declaration and it is written out, with the core lines it replaces and what
 each of the six width words becomes, in
-[`ai/2026-09-17/nav-stability/proposal.md`](/framework/ai/2026-09-17/nav-stability/). The
+[`ai/sessions/2026/09/17/nav-stability/proposal.md`](/framework/ai/sessions/2026/09/17/nav-stability/). The
 raw measurements are `measurements.json` beside it.
 
 ## Watch out

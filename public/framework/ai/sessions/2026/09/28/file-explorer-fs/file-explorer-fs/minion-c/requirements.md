@@ -1,7 +1,7 @@
 # Minion C — clear the two review findings, then re-shoot
 
 Load the `minion` skill first. Task dir (read it for full context — owner's words, requirements,
-minion-a's audit, minion-b's notes): `public/framework/ai/2026-09-28/file-explorer-fs/`.
+minion-a's audit, minion-b's notes): `public/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/`.
 
 Work in the existing worktree at `C:/Code/lew42/worktrees/file-explorer-fs` (branch
 `worktree/file-explorer-fs`, already has both minions' commits: `f250ef84` strips ext/Panel out
@@ -47,13 +47,13 @@ Playwright script, `windowsHide: true`, never the owner's tabs):
 - one `ext/Doc` Files tab (e.g. `/framework/ext/files/files/`) at 1920, showing the "Open full
   screen" link
 
-Save them into `public/framework/ai/2026-09-28/file-explorer-fs/minion-c/shots/`.
+Save them into `public/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/minion-c/shots/`.
 
 ## Commit
 
 Commit your two fenced files, in the worktree, on the existing branch. One short commit message.
 Zero new console errors on the pages above and on `/framework/ai2/`. Log your steps in
-`public/framework/ai/2026-09-28/file-explorer-fs/minion-c/task.jsonl` the way minion-a and
+`public/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/minion-c/task.jsonl` the way minion-a and
 minion-b did (see their files for the shape). Write a short `notes.md` (what you changed, links
 to the shots). Report back when done — the task mastermind runs the review turns, smoke test,
 and merge.

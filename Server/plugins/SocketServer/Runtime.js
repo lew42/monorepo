@@ -105,7 +105,7 @@ export default class Runtime {
            and the correction rides along a moment later when `fs.renameSync` relocates the
            whole directory — there is no separate "the file I just fixed also moved" step.
            `rewrite_links()` regenerates the census first if it is stale (older than the
-           newest `page.js` on the site — public/framework/ai/2026-09-18/link-tracking/
+           newest `page.js` on the site — public/framework/ai/sessions/2026/09/18/link-tracking/
            doc/decisions.md has the measured cost), so this is always working off the
            CURRENT tree, not a snapshot some earlier move already outdated. */
         const links = rewrite_links(from, to);

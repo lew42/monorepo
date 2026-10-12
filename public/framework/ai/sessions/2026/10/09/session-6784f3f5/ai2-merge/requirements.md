@@ -3,7 +3,7 @@
 **Goal (owner, 2026-10-08):** fold the AI 2 dashboard (`public/framework/ai2/`) into the AI module (`public/framework/ai/`) so no zombie is left.
 
 - **Rules:** nothing is deleted; data is moved by script, never rewritten; no duplicates.
-- **Same ask elsewhere:** work item 3 in `public/framework/ai/2026-10-08/task-audit/work-items.md`.
+- **Same ask elsewhere:** work item 3 in `public/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/work-items.md`.
 - **Key fact:** ai2 has no data tree of its own. `/framework/ai2/<date>/<card>/` is just another URL for cards stored under `ai/YYYY/MM/DD/` (`ai/doc/ai2/ai2-vs-ai.md`).
 
 You are a **Sonnet 5.5 mastermind** owning this task end to end; build it yourself (Haiku 5.5 minion via `spawn_agent`, parent = you, only for cheap reading, under 60k tokens). Work in a **worktree**; scripted moves only (see CLAUDE.md "Moves and renames are scripted"); smoke-test, commit after each working step, review the diff, merge. Run `node Server/usage-now.mjs` before spawning. No OpenRouter. Keep `STATE.md` in this dir current so a fresh session can resume. Everything you create is linked from the site. One-sentence chat replies.

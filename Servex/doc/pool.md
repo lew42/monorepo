@@ -37,7 +37,7 @@ When the main tree had uncommitted edits to the same files, `Server/merge.mjs` d
 not merge: it applies the branch's diff to the working tree and records the branch
 head in `.merge-landed.json`. A worktree whose head is listed there counts as merged;
 it is removed instead of fast-forwarded, and a fresh one is prepared
-(proof: `ai/2026-09-25/quickfix-worktrees/landing/`).
+(proof: `ai/sessions/2026/09/25/quickfix-worktrees/landing/`).
 
 ## The numbers
 
@@ -77,7 +77,7 @@ answers `{ K, N_hours, slots: [...] }`. The AI 2 Live card reads it.
   console.
 - Switches: `SERVEX_NO_POOL=1` (off), `SERVEX_POOL_PREFIX` (default `qf`; a
   private Servex uses `qfp`), `SERVEX_POOL_FILE` (another state file).
-- The proof, on a private Servex: `ai/2026-09-25/quickfix-worktrees/pool/`
+- The proof, on a private Servex: `ai/sessions/2026/09/25/quickfix-worktrees/pool/`
   (`proof.mjs`, `proof.txt`).
 
 
@@ -96,9 +96,9 @@ Every 5 minutes (and when the pool is full) `reclaim()` hands a taken slot back 
 Otherwise the slot is kept, and the Servex log says why in one line (once, and again only if the reason changes): `pool: qf-9 is held by stopped X but kept — minion-Y (working) works in it`. A kept slot has no timeout. It is seen when the pool is full: `take_worktree`'s error names every kept slot and its reason, and whoever needs the slot decides whether to salvage it. A holder the registry doesn't know (a person, a CLI session) is never reclaimed; that slot waits for `return_worktree`.
 `Server/worktree-prune.mjs` follows the same rule for worktrees outside the pool: a changed file or an unmerged branch is skipped and named. `--only <name>` checks one worktree.
 
-Why: on 2026-09-30 the sweep salvaged qf-9 twice (12:53 and 13:23), because its holder, a task mastermind, showed `stopped` while its minion was still writing there. Proof: [ai/2026-09-30/pool-taken/proof.txt](/framework/ai/2026-09-30/pool-taken/proof.txt).
+Why: on 2026-09-30 the sweep salvaged qf-9 twice (12:53 and 13:23), because its holder, a task mastermind, showed `stopped` while its minion was still writing there. Proof: [ai/sessions/2026/09/30/pool-taken/pool-taken/proof.txt](/framework/ai/sessions/2026/09/30/pool-taken/pool-taken/proof.txt).
 
-**Salvage is by hand only.** `node Servex/Lifecycle.js --salvage qf-2` stops the slot's server and watcher, commits its work to `salvage/<slot>-<date>` (never merged, never deleted), moves the slot back to `michael/dev` and removes it. A dev server's own logs (`page.jsonl`, `files.jsonl`, `.claude/skills/clarity/flags.jsonl`) are its noise: a return treats them as clean, and salvage leaves them out. So does every other tracked `*.jsonl` a live log writes to (`ai/board.jsonl`, a task's log): its diff is saved as a patch in `.worktree-logs/` and the file goes back to `michael/dev`, so another agent's churn never rides into a salvage branch (it did in `salvage/qf-6-2026-09-30-2`). A new `*.jsonl` the task created is its own work and is committed. Proof: [proof-salvage.txt](/framework/ai/2026-09-30/pool-taken/proof-salvage.txt). More: [lifecycle.md](lifecycle.md).
+**Salvage is by hand only.** `node Servex/Lifecycle.js --salvage qf-2` stops the slot's server and watcher, commits its work to `salvage/<slot>-<date>` (never merged, never deleted), moves the slot back to `michael/dev` and removes it. A dev server's own logs (`page.jsonl`, `files.jsonl`, `.claude/skills/clarity/flags.jsonl`) are its noise: a return treats them as clean, and salvage leaves them out. So does every other tracked `*.jsonl` a live log writes to (`ai/board.jsonl`, a task's log): its diff is saved as a patch in `.worktree-logs/` and the file goes back to `michael/dev`, so another agent's churn never rides into a salvage branch (it did in `salvage/qf-6-2026-09-30-2`). A new `*.jsonl` the task created is its own work and is committed. Proof: [proof-salvage.txt](/framework/ai/sessions/2026/09/30/pool-taken/pool-taken/proof-salvage.txt). More: [lifecycle.md](lifecycle.md).
 
 **A recorded pid is checked before it is killed.** Windows reuses pids; on 2026-09-29 qf-4's old watcher pid belonged to `whisper-server.exe`. `kill()` now reads the process's command line first and skips it unless it is the slot's own server (`.worktree-logs/<slot>.log`) or a health watcher.
 

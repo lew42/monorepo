@@ -29,7 +29,7 @@ A reply generated inside a VS Code tab cannot stream to the page — the tab kee
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/assistant-stream/`); `code`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/assistant-stream/`); `code`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `Server/plugins/Ask.js` (or one new sibling plugin + its one registration line in `Server/run.js` — re-read `run.js` first, a sibling added a line today), `public/framework/ext/Ask/stream.js` (new), `public/framework/ext/Ask/doc/**`, `.claude/skills/assistant/SKILL.md` (one new section), `Server/README.md` (one line), your task dir. Not `dev/DevBar/**`, not `public/framework/ai/v/**`, not `dev/Socket/**` (a sibling holds it — if you need a client-side rpc handler registered, find how `ext/Ask/Ask.js` registers its own without editing Socket.js), not `.claude/hooks/**`, not `.claude/settings.json`.
 - A hook checks every `.js` write parses and stops you if it does not. **Never kill or restart the owner's dev server (port 80, PID 31028) or the mastermind's (8123), never stop whisper-server (PID 35172), never drive the owner's tabs.** Never `git stash`, never `find /`, never commit. Write files with the Write or Edit tool, never a bash heredoc. Do not write the owner's name anywhere.
 - Landing `outcome`: one screen — the first-chunk numbers, the recommended default, whether the headless assistant can ring the mastermind, the three wiring lines for the dev bar, what needs the owner's one restart, what was left and why.

@@ -61,4 +61,4 @@ The owner was not sure how this should look, so three were built on the same tre
 | Outline | an indented tree, each group badged "together" or "then" | [outline](/framework/ext/AITask/tree/outline/) |
 | Flow | a graph: an arrow for every "waits for" | [flow](/framework/ext/AITask/tree/flow/) |
 
-Lanes won because parallel and series are where a card sits, not a word you read, and it shows every level. The decision, with the alternatives, is the `tree-design` line in `ai/2026-09-29/nested-tasks/minion-view/task.jsonl`. To try a fourth, add a subclass and a page beside the others; `Winner` in `nested.js` picks the default.
+Lanes won because parallel and series are where a card sits, not a word you read, and it shows every level. The decision, with the alternatives, is the `tree-design` line in `ai/sessions/2026/09/29/44287d42-678f-4d18-8e96-5029b1e971d3/nested-tasks/minion-view/task.jsonl`. To try a fourth, add a subclass and a page beside the others; `Winner` in `nested.js` picks the default.

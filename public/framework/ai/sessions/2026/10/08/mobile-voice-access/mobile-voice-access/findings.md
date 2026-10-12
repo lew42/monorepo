@@ -9,7 +9,7 @@ New page: [`/framework/dev/mobile/`](/framework/dev/mobile/) — the one-screen 
 - Verdict: the phone reaching the site by `IP:port` isn't a workaround, it's the only path that was ever going to work, given the loopback-only proxy. No code change needed here.
 
 ## 2. Hard-coded hosts — grepped `public/`, `Server/`, `Servex/` for `localhost`, `127.0.0.1`, absolute `http://`/`ws://`
-Already fixed, on a prior task (`ai/2026-09-29/mobile-nav/`):
+Already fixed, on a prior task (`ai/sessions/2026/09/29/mobile-nav/mobile-nav/`):
 - `ux/Dictate/Dictate.js` `whisper_base()` and `audio/Transcriber/Whisper.js` / `WhisperSegments.js`: resolve to `127.0.0.1:8178` directly only when already on `localhost`; otherwise use `location.origin + "/whisper"` so the *phone's own address* proxies through (`Server/plugins/Whisper.js` routes `/whisper/*`).
 - `core/Page/ext/Inbox/servex.js` `servex_base()`: same pattern, via `dev/servex_url.js` (`<origin>/servex`, proxied by `Server/plugins/ServexProxy.js`), not a bare `127.0.0.1:8090`.
 - The only *literal* hard-coded `http://127.0.0.1:8178` / `:8090` left in `public/framework/ux/Dictate/variants/v1/Dictate.js` is an explicitly **frozen snapshot** (its own header comment says so) that nothing imports — not live code, not a bug.
@@ -32,12 +32,12 @@ page tells the reader to find the live number rather than naming one.
 ## 4. Whisper — wired, and separate from the mic problem
 - `whisper-server` (whisper.cpp) is spawned by `Server/plugins/Whisper.js` only on the owner-facing server (no `PORT`, or `PORT=80`), restarted up to 3 times on crash, never managed if something else is already answering the port.
 - `/whisper/inference` is a plain HTTP POST (no secure-context requirement) and is reachable from the phone today over LAN, per `Server/doc/mobile-lan.md`'s `lan()` guard — this already works, and is why audio UPLOAD-based transcription (not live mic capture) works on the phone right now.
-- Tested live this run with a real 7-second clip (`ai/2026-09-22/whisper-servex/clip.wav`), no phone needed: a direct POST to `whisper-server` (`http://127.0.0.1:8178/inference`) transcribed it correctly in **0.77s**; the same clip through the same-origin proxy a phone would actually use (`http://127.0.0.1:3104/whisper/inference`) came back correct in **0.48s**. Both succeeded with no failure mode observed — the server side is working and fast; every reported "microphone error" traces to the browser-side secure-context block in §3, not to Whisper.
+- Tested live this run with a real 7-second clip (`ai/sessions/2026/09/22/whisper-servex/whisper-servex/clip.wav`), no phone needed: a direct POST to `whisper-server` (`http://127.0.0.1:8178/inference`) transcribed it correctly in **0.77s**; the same clip through the same-origin proxy a phone would actually use (`http://127.0.0.1:3104/whisper/inference`) came back correct in **0.48s**. Both succeeded with no failure mode observed — the server side is working and fast; every reported "microphone error" traces to the browser-side secure-context block in §3, not to Whisper.
 - `Server/doc/mobile-lan.md` and `ux/Dictate/doc/https-lan.md` already document the one real caveat: `/whisper/inference` has no login check, so anyone on the same Wi-Fi can use this machine's GPU through it — fine for a home network, worth knowing.
 
 ## Ranked fix list
 1. **Wire `Server/` to serve HTTPS** when `HTTPS_CERT`/`HTTPS_KEY` are set (unblocks the mic on the phone for good, once the owner runs `mkcert`) — a `Server/` change, deliberately left for a task that owns `Server/` (this task's fence is docs + the small safe fixes only).
-2. Nothing else needed — the hard-coded-host hunt (deliverable 3) found zero *live* bugs to fix; everything flagged in the brief was already fixed by `ai/2026-09-29/mobile-nav/` and verified true today.
+2. Nothing else needed — the hard-coded-host hunt (deliverable 3) found zero *live* bugs to fix; everything flagged in the brief was already fixed by `ai/sessions/2026/09/29/mobile-nav/mobile-nav/` and verified true today.
 
 ## Deliverable 3 — "fix what is small and safe"
 No small, safe, unfixed hard-coded-host bug was found (see §2). Nothing to merge through the gate for this deliverable; it is a clean verdict, not a skipped step.

@@ -2,8 +2,8 @@
 
 Load the `minion` skill first, then `code` and `css`.
 
-**The owner's words** (read the first half): `public/framework/ai/2026-09-28/file-explorer-fs/owner-words.md`. The core: *"for each method name … we go to the method page and we see the method name right after that … there could be a little menu button … then we could see the decision tree … we either need the AI to remember to wire up every decision that was made … I'm not sure if it could happen in more of a systematic way."* Also `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-3.md`.
-Task: `public/framework/ai/2026-09-28/collab-rounds/`. The contract: `collab-format.md` there, the section "Added 14:25".
+**The owner's words** (read the first half): `public/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/owner-words.md`. The core: *"for each method name … we go to the method page and we see the method name right after that … there could be a little menu button … then we could see the decision tree … we either need the AI to remember to wire up every decision that was made … I'm not sure if it could happen in more of a systematic way."* Also `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-3.md`.
+Task: `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/`. The contract: `collab-format.md` there, the section "Added 14:25".
 
 **Work in the worktree `C:\Code\lew42\worktrees\collab-rounds`** (branch `worktree/collab-rounds`, server http://localhost:64519/). Commit there. Do not merge. `ext/Collab/` (Collab.js, view.js, page.js) and `Server/collab.mjs` are already built and committed there: read them first.
 
@@ -23,8 +23,8 @@ Task: `public/framework/ai/2026-09-28/collab-rounds/`. The contract: `collab-for
 
 **Proof before you stop:**
 - `--mock` design run with a target: the shared files unchanged (show `wc -l` before and after).
-- Headless Playwright shots at 1920, saved in the MAIN tree's `public/framework/ai/2026-09-28/collab-rounds/shots/`: `doc-no-record.png` (an ext/Doc API tab of a class with no record, say ext/Saver: no ⋯), and the view with vote counts on the cards, `objects-1920-v2.png`. The shot WITH a record comes after your mastermind's real run writes one; leave a script `C:\Users\mike\AppData\Local\Temp\claude\C--Code-lew42-monorepo\2c074cef-dccf-4e86-8f2b-fb4cf072e115\scratchpad\collab-doc-shot.mjs <url> <out.png>` (headless, windowsHide) that your mastermind can rerun.
+- Headless Playwright shots at 1920, saved in the MAIN tree's `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/shots/`: `doc-no-record.png` (an ext/Doc API tab of a class with no record, say ext/Saver: no ⋯), and the view with vote counts on the cards, `objects-1920-v2.png`. The shot WITH a record comes after your mastermind's real run writes one; leave a script `C:\Users\mike\AppData\Local\Temp\claude\C--Code-lew42-monorepo\2c074cef-dccf-4e86-8f2b-fb4cf072e115\scratchpad\collab-doc-shot.mjs <url> <out.png>` (headless, windowsHide) that your mastermind can rerun.
 - Zero console errors on /framework/ext/Doc/, /framework/ext/Saver/, /framework/ext/Collab/.
 - Test the nag by writing a throwaway class file in the scratchpad path above? No: the nag only watches `public/`. Write a temp file `public/framework/ext/Collab/_nagtest.js` with a class, check the log line appeared, delete the file, and don't commit it.
 
-Every Node spawn sets `windowsHide: true`. Log to the main tree's `public/framework/ai/2026-09-28/collab-rounds/task.jsonl` with `node .claude/hooks/append.mjs`. Final message: what you built, the shot paths, the before/after line counts.
+Every Node spawn sets `windowsHide: true`. Log to the main tree's `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/task.jsonl` with `node .claude/hooks/append.mjs`. Final message: what you built, the shot paths, the before/after line counts.

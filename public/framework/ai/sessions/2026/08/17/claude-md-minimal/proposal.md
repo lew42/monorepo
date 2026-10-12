@@ -1,6 +1,6 @@
 # Proposal — a minimal CLAUDE.md
 
-**Status 2026-08-17 15:40 — done.** CLAUDE.md is 36 lines. Skills: `code`, `css`, `layout`, `documentation`, `finish-task`, `new-page`, `new-css-class`, `new-task` (68 lines), `mastermind` — every one with `improvements.md`; retired css-strategy, layout-design, claim-tab, code-architecture (renamed). Skill calls are hook-logged. Pace rule fixed everywhere. **Readme retreat done: 54 readmes 8,637 → 1,441 lines, records verbatim in `doc/decisions.md`** (`../readme-retreat/`). First lifecycle test (DevBar structure section) passed and its five frictions are already applied. Left for Mike: rank the 18 shots (`/framework/ai/2026-08-17/human-ranking/rank/`); the `--measure` 52→40em and depth-cap decisions in `ext/DesignTool/doc/learned.md`.
+**Status 2026-08-17 15:40 — done.** CLAUDE.md is 36 lines. Skills: `code`, `css`, `layout`, `documentation`, `finish-task`, `new-page`, `new-css-class`, `new-task` (68 lines), `mastermind` — every one with `improvements.md`; retired css-strategy, layout-design, claim-tab, code-architecture (renamed). Skill calls are hook-logged. Pace rule fixed everywhere. **Readme retreat done: 54 readmes 8,637 → 1,441 lines, records verbatim in `doc/decisions.md`** (`../readme-retreat/`). First lifecycle test (DevBar structure section) passed and its five frictions are already applied. Left for Mike: rank the 18 shots (`/framework/ai/sessions/2026/08/17/human-ranking/rank/`); the `--measure` 52→40em and depth-cap decisions in `ext/DesignTool/doc/learned.md`.
 
 ## 1. The draft (183 lines → 36)
 

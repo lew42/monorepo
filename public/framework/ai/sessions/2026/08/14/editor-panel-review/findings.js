@@ -36,9 +36,9 @@ export const FINDINGS = [
 
 	{ mod: "Panel", kind: "defect", sev: "med",
 		title: "Three live mounts on one document, not the two the readme records",
-		where: "ext/Panel/page.js:13 · ext/Panel/page.js:46 (/full/) · ai/2026-08-13/panel/page.js:16",
+		where: "ext/Panel/page.js:13 · ext/Panel/page.js:46 (/full/) · ai/sessions/2026/08/13/panel/page.js:16",
 		what: "The readme names two workspaces over `/data/panels.json`. There is a third — the 2026-08-13 task page embeds `workspace()` on the same default saver. `Page` caches views, so after visiting any two of them, two documents are mounted and the last writer wins.",
-		fix: "Either the shared-document registry the readme names, or the cheap version, which is already the house pattern: an archive page takes a `MemorySaver`, the way `ai/2026-08-13/editor-panels/` does — and the way the live workspace lower down *this* page does." },
+		fix: "Either the shared-document registry the readme names, or the cheap version, which is already the house pattern: an archive page takes a `MemorySaver`, the way `ai/sessions/2026/08/13/editor-panels/` does — and the way the live workspace lower down *this* page does." },
 
 	{ mod: "both", kind: "debt", sev: "med",
 		title: "The saver chooser is copy-pasted between the two modules",

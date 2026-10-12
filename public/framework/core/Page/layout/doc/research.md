@@ -10,36 +10,36 @@ open the task only if you are about to break it. Every other row the inventories
 `framework.css`, times one `--size` knob, so they grow with the screen. Columns scale their own
 padding by `cqi` (the column's width). Under `--gap` there are four rungs (`--gap-70`,
 `--gap-50`, `--gap-35`, `--gap-25`), and a multiplier like `calc(var(--gap) * 0.4)` is no longer
-allowed. [spacing-clamp](/framework/ai/2026-09-01/spacing-clamp/) · painted live at
+allowed. [spacing-clamp](/framework/ai/sessions/2026/09/01/spacing-clamp/) · painted live at
 [/framework/styles/system/](/framework/styles/system/)
 
 **A spacing ramp is space between and around things, never the size of a control.** A nav row
 reached 67.6px tall because its own padding rode `--gap`, which is pinned at 2.6em above about
 1400px. 26 of 380 size declarations misused the ramp. A control's padding, height and icon gap
-stay in its own `em`. [nav-fat](/framework/ai/2026-09-06/nav-fat/)
+stay in its own `em`. [nav-fat](/framework/ai/sessions/2026/09/06/nav-fat/)
 
 ## Padding and bleed
 
 **The page gutter is padding, so no grid template can delete it.** It used to be two empty grid
 columns; any host that redefined `grid-template-columns` silently deleted both, and text sat at
 0px from the edge. 133 pages measured at four widths; violations went from 6 to 1. Check with
-`node Server/padding-check.mjs <url>`. [padding-law](/framework/ai/2026-09-22/padding-law/)
+`node Server/padding-check.mjs <url>`. [padding-law](/framework/ai/sessions/2026/09/22/session-2e26b182/padding-law/)
 
 **A region takes `.pad`, a framed box takes `.card`, a control keeps its own `em`.** A box with
 a background of its own needs padding; `.card` carries it, scaled to the card itself. `.pad` on
 a card sat pinned at its 1em floor inside anything narrower than about 1292px.
-[card-word](/framework/ai/2026-09-19/card-word/)
+[card-word](/framework/ai/sessions/2026/09/19/card-word/)
 
 **Bleed is for paint.** A background image or wash may touch its container's edge. A card, a
 figure, a table or bare text never does: "CLOSEST REAL MISS" sat 0px from the viewport on a bled
-card wall, on the padding study itself. [spacing-clamp](/framework/ai/2026-09-01/spacing-clamp/)
+card wall, on the padding study itself. [spacing-clamp](/framework/ai/sessions/2026/09/01/spacing-clamp/)
 
 ## Columns and navigation
 
 **An open column freezes its width when a sibling opens.** The worst case was 242px of sideways
 jump. An open column now holds a `34cqi` basis: 435px at 1280, 828px at 3440, and 0px of shift on
-a click. [core-columns](/framework/ai/2026-09-24/core-columns/) · earlier:
-[nav-stability](/framework/ai/2026-09-17/nav-stability/)
+a click. [core-columns](/framework/ai/sessions/2026/09/24/core-columns/core-columns/) · earlier:
+[nav-stability](/framework/ai/sessions/2026/09/17/nav-stability/)
 
 **Navigation never moves.** Either it is persistent (a rail that holds still to the pixel) or
 the whole screen switches. Four mechanisms were measured at 0px of drift at 1280 and 3440.
@@ -48,7 +48,7 @@ the whole screen switches. Four mechanisms were measured at 0px of drift at 1280
 
 **One panel open at a time.** Several panels open at once was rejected with measurements,
 because the Router follows one chain of pages. `.bleed` inside a column is the flush mechanism.
-[column-pages-2](/framework/ai/2026-08-27/column-pages-2/)
+[column-pages-2](/framework/ai/sessions/2026/08/27/column-pages-2/)
 
 ## Names and the approved set
 

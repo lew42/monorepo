@@ -1,6 +1,6 @@
 # Minion brief: the Switcher, a named layout pattern
 
-Load the `minion` skill first, then `code`, `page`, `layout`, `css`, `new-css-class`. Task dir (the whole conversation, the owner's raw words): `public/framework/ai/2026-09-29/page-system/`. Read the section "Continued (about 5:25 PM): the switcher" in `owner-words.md` there, every line, before anything else.
+Load the `minion` skill first, then `code`, `page`, `layout`, `css`, `new-css-class`. Task dir (the whole conversation, the owner's raw words): `public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/`. Read the section "Continued (about 5:25 PM): the switcher" in `owner-words.md` there, every line, before anything else.
 
 What the owner described:
 - **The Switcher:** a list on the left switches the content on the right. Vertical tabs, a file tree beside its code, and a left nav are all the same thing. Tabs are one styling of it (the tab flows into its content); a file tree is another. It is really paging: every choice is routed (its own url).

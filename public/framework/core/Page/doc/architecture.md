@@ -49,7 +49,7 @@ Live demo: [/framework/core/Page/tool/](/framework/core/Page/tool/) (every line 
 
 `page_set(path, delta)` writes any of these; `path` is the url you see, omitted = your own session page.
 
-## Decisions (2026-10-09, task `ai/2026-10-09/page-mastermind/`)
+## Decisions (2026-10-09, task `ai/sessions/2026/10/09/session-060cdfff/page-mastermind/`)
 
 - **The tool appends; the page interprets.** The owner offered two options: a blind "append any delta" tool, or routing through a Page method. Both, split by side: the write is a blind, schema-checked append (stamped with `by`, `ts` and missing ids), and the browser's `Page.set()` is the one place a delta means something. No page parsing on the server; `page_read` only summarises.
 - **Tabs are child pages.** A tab has its own url (`…/now/`), its own live content list, and the one tab strip (`ext/tabs`). No second tab system.
@@ -100,7 +100,7 @@ page system, "there's no better spot for layout and navigation". Decision:
   lands the same way (CLAUDE.md "Route everything").
 - **The dictation panel is content placed in the drawer, never the drawer itself.** It is one view from `ux/Dictate`,
   used the same in the drawer, on Dictate's own page and on Refine
-  ([phase-2.md](../../../ai/2026-10-09/refine-dictate-ui/phase-2.md), owned by `task-mastermind-refine-v3`).
+  ([phase-2.md](../../../ai/sessions/2026/10/09/session-48083d9d/refine-dictate-ui/phase-2.md), owned by `task-mastermind-refine-v3`).
 
 Alternative weighed: a drawer as a separate app-level system that pages cannot touch (today's shape). Rejected,
 because then every page that wants a side panel invents its own.
@@ -136,4 +136,4 @@ of `AISession` (locate, scan, day, dir_url, slugs) moves up unchanged; `AISessio
 - Page-log compaction (above) is designed, not built; it waits on a node-side replay of `Page.set()`.
 - The drawer (above) is decided, not built: `ext/drawer` is still a function, and `?sheet=` is still separate.
 - Doc pages built from optional files 404 when the file is missing (List's `api` → `items.md`, Dictate's Files → `Dictate.js.md`, View's `doc/file`); the page should skip a file that is not there.
-- Doc audit 2026-10-09 ([ai/2026-10-09/page-mastermind/doc-audit/](../../../ai/2026-10-09/page-mastermind/doc-audit/requirements.md)): 4 docs archived ([archive/moved.md](archive/moved.md)). Left as they are: `layout.md` stays here as the open layout question; `layout/readme.md` now links `method/previews.md` and `method/preview_card.md` for previews (`previews.md` covers borrowing a page).
+- Doc audit 2026-10-09 ([ai/sessions/2026/10/09/session-060cdfff/page-mastermind/doc-audit/](../../../ai/sessions/2026/10/09/session-060cdfff/page-mastermind/doc-audit/requirements.md)): 4 docs archived ([archive/moved.md](archive/moved.md)). Left as they are: `layout.md` stays here as the open layout question; `layout/readme.md` now links `method/previews.md` and `method/preview_card.md` for previews (`previews.md` covers borrowing a page).

@@ -7,7 +7,7 @@ wherever it imports `DrawerInbox`/`Inbox` from here — grep first). Do not touc
 `public/framework/ext/panel2/` (a sibling minion's work) or `public/framework/ai/page.js`/
 `overview.js` (a later minion's work, once this lands).
 
-Task directory: `public/framework/ai/2026-10-02/panel2-sessions/` (parent task — read its
+Task directory: `public/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/` (parent task — read its
 `task.jsonl` and `requirements.md` first).
 
 ## The ask, verbatim (the owner, via the VS Code mastermind, mid-task 2026-10-02)

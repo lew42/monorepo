@@ -7,13 +7,13 @@
 // nothing real to compute a tip FROM, and inventing one would be exactly the "an AI wrote it from
 // memory" law 7 rules out.
 //
-// Run from the MAIN tree:  node public/framework/ai/2026-10-02/card-pipeline/audit-cards.mjs [--apply]
+// Run from the MAIN tree:  node public/framework/ai/sessions/2026/10/03/card-pipeline/card-pipeline/audit-cards.mjs [--apply]
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fs from "node:fs/promises";
-import Cards from "../../../../../Servex/cards/Cards.js";
-import { AskFold } from "../../asks/AskFold.js";
+import Cards from "../../../../../../../../../Servex/cards/Cards.js";
+import { AskFold } from "../../../../../../asks/AskFold.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../../../../");

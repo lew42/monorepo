@@ -175,7 +175,7 @@ the same standard the rulebook itself is held to.
 
 ### What the first run said (8 sweeps × 120 seeds × 3 widths)
 
-Data: `ai/2026-08-16/layout-generator-rules/hunt.md`.
+Data: `ai/sessions/2026/08/16/layout-generator-rules/hunt.md`.
 
 - **Chaos hurts, monotonically, and the damage accelerates.** Mean worst at
   depth 2: **60.5** at chaos 0, 59.0 at 0.25, 56.2 at 0.5, **51.0** at 1.0 — a
@@ -280,7 +280,7 @@ Same harness, same 120 seeds, after the four edits above:
 
 **Does the loop compound? No — it plateaus, and the held-out check says it is a
 real plateau, not overfitting.** Full method and raw numbers:
-`ai/2026-08-17/generator-compound/`.
+`ai/sessions/2026/08/17/generator-compound/`.
 
 Round 3 (baseline, the `SHAPES` this file already carried) vs round 4 (those
 weights refit off round 3's own data, `credit()` → `proposal()`, applied),
@@ -318,7 +318,7 @@ never the quality of any one roll.** Before turning it a third time, the same
 FIT population (depth 1/2/3, chaos 0, seeds 0–119, n=360) was re-swept keeping
 `rate()`'s per-band breakdown for the worst-of-3-widths mark of every row (not
 just the aggregate score) — the mark fitness is actually judged on. Method and
-the full ranked table: `ai/2026-08-17/loss-budget/`.
+the full ranked table: `ai/sessions/2026/08/17/loss-budget/`.
 
 Four of the eleven `taste/ranges.js` bands account for **84% of the 33-point
 gap**; the other seven — including `slivers` and `depth`, both at exactly
@@ -397,7 +397,7 @@ be the tightest quantity there is — median 0.037, unchanged from 1280 to 3440 
 and gained weight. `frame-gap` turned out **bimodal** and lost it. The lesson is
 the transferable part: **a weight is evidence, not opinion, and a diffuse
 quantity earns less influence than a tight one.** Data:
-`ai/2026-08-16/layout-generator-rules/calibration.md`.
+`ai/sessions/2026/08/16/layout-generator-rules/calibration.md`.
 
 ## What the rulebook says about the nine hand-written presets (2026-08-16)
 
@@ -424,7 +424,7 @@ Three readings, and none of them is about the generator:
   F 49 at 390**, which is exactly why fitness is the worst width and not the mean.
 - **A long line is the most common complaint at 3440**, at zero credit on five of
   the nine — but ⚠ **it is not the token's fault, and this readme said it was.**
-  A hand count settled it (`ai/2026-08-16/mastermind-layout/measure-verdict.md`):
+  A hand count settled it (`ai/sessions/2026/08/16/mastermind-layout/measure-verdict.md`):
   `--measure: 52em` is **~100 characters** (106 on a full line of plain prose,
   84–108 across real copy, ~2.0 characters per em). The 113–117 readings came
   from `docs`, `shell`, `split` and `mail` — four presets that **declare no
@@ -456,7 +456,7 @@ because most of their text is unique prose in a `.flow`. Moving it would mean
 changing *which elements share a class*, which is a change to the parts rather
 than to their words. **The copy got rewritten anyway** — the demo site now has
 real topic-matched prose and a `notes` wall that finally reaches its designed 5×
-ragged ratio (`ai/2026-08-16/web-prose-variety/`) — with the band, `measure`, and
+ragged ratio (`ai/sessions/2026/08/16/web-prose-variety/`) — with the band, `measure`, and
 every `analyze()` score bit-for-bit unchanged across 46 runs. Worth having; not
 what it was sent to do.
 

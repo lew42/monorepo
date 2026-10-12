@@ -30,7 +30,7 @@ Yours alone: `ux/readme.md`, `ux/page.js`, `ux/doc/decisions.md` (append a dated
 ## Process
 
 - Load `code` and `css` skills before editing page.js; `documentation` before landing; `finish-task` to land; `skill-improvement` if a skill misleads.
-- Log to `public/framework/ai/2026-08-21/ux-consolidate/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); never a findings.md.
+- Log to `public/framework/ai/sessions/2026/08/21/ux-consolidate/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); never a findings.md.
 - Verification recipe (proven): `node C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/0375cdd4-082c-41fa-9ebe-fa4bbb0f2a23/scratchpad/ux-shoot.mjs http://localhost:8918/framework/ux/ <out.png> <width>` — prints overflow_x + console errors; ignore only the repeated ws://localhost:8918 LiveReload error. Money shot (the refreshed /framework/ux/ at 1280) into this task dir.
 
 ## Safety (non-negotiable)

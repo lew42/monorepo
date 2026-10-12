@@ -6,7 +6,7 @@ Read first: `../mastermind-playwright/minion-rules.md`. Skills: `new-task` (this
 
 ## The bug, found tonight by the demo minion
 
-`public/framework/core/App/Font.js` says (its comment, line ~22): "offline these silently fall back". They do not: when the two Google font requests fail, every page of this site renders WHITE — the `playwright-demos` minion hit it by blocking `**/*.woff2` with `page.route` (`public/framework/ai/2026-09-08/playwright-demos/task.jsonl`, the `06-network` lines). `Font.load()` (Font.js:9–12) awaits `FontFace.load()`, which rejects on a failed fetch; `App.js:75` (`const loading = Font.load(name)`) is where the app waits on it — read `public/framework/core/App/App.js` lines 60–95 to see what that rejection takes down.
+`public/framework/core/App/Font.js` says (its comment, line ~22): "offline these silently fall back". They do not: when the two Google font requests fail, every page of this site renders WHITE — the `playwright-demos` minion hit it by blocking `**/*.woff2` with `page.route` (`public/framework/ai/sessions/2026/09/08/playwright-demos/task.jsonl`, the `06-network` lines). `Font.load()` (Font.js:9–12) awaits `FontFace.load()`, which rejects on a failed fetch; `App.js:75` (`const loading = Font.load(name)`) is where the app waits on it — read `public/framework/core/App/App.js` lines 60–95 to see what that rejection takes down.
 
 ## Do
 

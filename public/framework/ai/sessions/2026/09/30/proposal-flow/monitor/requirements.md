@@ -29,4 +29,4 @@ Update `Server/doc/health.md` so the next reader can run it from the doc alone.
 - Every look is headless (`mcp__site__shot` or Playwright). Never touch the owner's tabs.
 - Log with the validated route only: `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` or Servex `append_log`. Never `echo >>`.
 - Report on the card `2026/09/30/proposal-flow-main-is-production-then-pr` (card_reply): two sentences at start, at "ready to merge" with the proof links, and if blocked. Nothing else goes to the mastermind.
-- The owner's words are verbatim in `public/framework/ai/2026-09-30/proposal-flow/owner-words.md` (last section). Re-read them before you start; build what they say.
+- The owner's words are verbatim in `public/framework/ai/sessions/2026/09/30/proposal-flow/owner-words.md` (last section). Re-read them before you start; build what they say.

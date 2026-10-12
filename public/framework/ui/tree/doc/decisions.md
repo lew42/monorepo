@@ -46,9 +46,9 @@ stylesheet along would have forked the look the first day this one changed.
 
 **`tree()` retired 2026-08-21.** It stayed byte-compatible while `ext/Playground`
 imported it straight from here and used both the factory and `.select()`; once that
-caller moved to `ux/Tree` (`ai/2026-08-21/pg-tree/`), nothing outside this page's own
+caller moved to `ux/Tree` (`ai/sessions/2026/08/21/pg-tree/`), nothing outside this page's own
 demos called it, and the closure came out — see
-[`ai/2026-08-21/ux-tree-retire/`](/framework/ai/2026-08-21/ux-tree-retire/). The full
+[`ai/sessions/2026/08/21/ux-tree-retire/`](/framework/ai/sessions/2026/08/21/ux-tree-retire/). The full
 graduation argument, the name collisions the class had to dodge, and what the split
 cost are in [`ux/Tree/doc/decisions.md`](/framework/ux/Tree/doc/decisions.md).
 

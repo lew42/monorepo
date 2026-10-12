@@ -74,10 +74,10 @@ hand-copied snippet that goes stale (the `files:` tab already proves hand-lists 
 
 ## Deliverable and fences
 
-- **Write exactly one file: `public/framework/ai/2026-08-18/cssdoc/proposal.md`.** Nothing else.
+- **Write exactly one file: `public/framework/ai/sessions/2026/08/18/cssdoc/proposal.md`.** Nothing else.
 - **Do not implement.** No edits to `ext/`, `styles/`, `framework.css`, or any skill. This round
   is design only; the mastermind judges, then commissions the build.
-- Log findings as `log` lines in `public/framework/ai/2026-08-18/cssdoc/task.jsonl` (append-only,
+- Log findings as `log` lines in `public/framework/ai/sessions/2026/08/18/cssdoc/task.jsonl` (append-only,
   `Add-Content` or bash `printf` — never `Out-File`/`Set-Content`, the BOM breaks the viewer).
   No `findings.md`.
 - You MAY read anything, and you MAY run a headless browser against `http://localhost` to verify

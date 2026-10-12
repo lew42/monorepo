@@ -1,6 +1,6 @@
 # Cheaper models, round 2: the rest of the most-asked AI cluster
 
-**The asks:** [ai/doc/asks.md](/framework/ai/doc/asks.md) **models-openrouter-cost** (#1, asked 34x; [openrouter-gap](../openrouter-gap/STATE.md) closed the accounting gap and ran a first $0.03 test) and [ux/Dictate/doc/asks.md](/framework/ux/Dictate/doc/asks.md) **voice-model-policy** (3x: the voice assistants must not run on Anthropic models; best non-Anthropic model for the smart one).
+**The asks:** [ai/doc/asks.md](/framework/ai/doc/asks.md) **models-openrouter-cost** (#1, asked 34x; [openrouter-gap](../../session-fb77ab71/openrouter-gap/STATE.md) closed the accounting gap and ran a first $0.03 test) and [ux/Dictate/doc/asks.md](/framework/ux/Dictate/doc/asks.md) **voice-model-policy** (3x: the voice assistants must not run on Anthropic models; best non-Anthropic model for the smart one).
 
 ## Done when
 - [ ] Extend `quick.mjs` into a real known-answer suite: 20+ tasks in the shapes our minions actually do (a code edit with a test, readme check, card classification, transcript clean, a refine step), each with a checkable answer; 5 models incl. 2 Claude for reference, two thinking levels. Under $5 total. Results table on `/framework/ai/models` with pass rate, time and real cost per task.

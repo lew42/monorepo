@@ -42,4 +42,4 @@ Yours: `public/framework/ext/Research/{verbs.js,research.mjs,store.mjs?,doc/verb
 
 ## Log as you go
 
-Your task log is `public/framework/ai/2026-08-18/research-system/task.jsonl` — append `{"log": {"at": "<clock>", "msg": "…"}}` at milestones (a decision, the seam done, verification result); never `assign`. Timestamps from `date -Iseconds`. Findings go there, not in a findings.md. When done, your final message: what landed (paths), the one command that proves it, what you left out and why. ≤ 15 lines.
+Your task log is `public/framework/ai/sessions/2026/08/18/research-system/task.jsonl` — append `{"log": {"at": "<clock>", "msg": "…"}}` at milestones (a decision, the seam done, verification result); never `assign`. Timestamps from `date -Iseconds`. Findings go there, not in a findings.md. When done, your final message: what landed (paths), the one command that proves it, what you left out and why. ≤ 15 lines.

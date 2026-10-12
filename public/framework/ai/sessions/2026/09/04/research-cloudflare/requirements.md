@@ -10,7 +10,7 @@ Read [`../mastermind-platform/research-brief.md`](../mastermind-platform/researc
 - `public/imagine/cms/services/page.js` — free tiers of D1 / DO / KV / R2 as of 2026-08-30, and where local state lives.
 - `public/imagine/cms/thinking.md` — the data matrix and "D1 only when a visitor must write".
 - `wrangler.jsonc` (repo root) — today's deploy is an assets-only Worker with SPA fallback; no `main`.
-- `public/framework/ai/2026-08-30/cloudflare-mcp/requirements.md` and that task's landing line — what the Cloudflare MCP can and cannot do.
+- `public/framework/ai/sessions/2026/08/30/cloudflare-mcp/requirements.md` and that task's landing line — what the Cloudflare MCP can and cannot do.
 
 ## Questions — a closed list
 

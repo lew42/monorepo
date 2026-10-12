@@ -13,8 +13,8 @@ In production, no. `wrangler.jsonc` (the file that actually deploys) has no `mai
 Three tasks built and proved this, in order, none of it touched since:
 
 1. [`/imagine/platform/decisions/data.md`](/imagine/platform/decisions/data.md) (2026-09-04) — ruled D1 for real rows, a Durable Object per live page.
-2. `local-dev-harness` (2026-09-04, task log at `/framework/ai/2026-09-04/local-dev-harness/`) — built `worker/`, `wrangler.dev.jsonc`, `dev.mjs`; tested with real browser tabs that identity, D1, and a chat room all work locally.
-3. `platform-slice` (2026-09-06, recipe at [`/framework/ai/2026-09-06/platform-slice/run/`](/framework/ai/2026-09-06/platform-slice/run/)) — proved the D1 *write* path: a "like" button writes a real row that survives a page reload and a full restart. Found and fixed a real bug on the way: D1 enforces foreign keys, so the seed script's old `DELETE FROM users` would have broken the second time anyone ran it.
+2. `local-dev-harness` (2026-09-04, task log at `/framework/ai/sessions/2026/09/04/local-dev-harness/`) — built `worker/`, `wrangler.dev.jsonc`, `dev.mjs`; tested with real browser tabs that identity, D1, and a chat room all work locally.
+3. `platform-slice` (2026-09-06, recipe at [`/framework/ai/sessions/2026/09/06/platform-slice/run/`](/framework/ai/sessions/2026/09/06/platform-slice/run/)) — proved the D1 *write* path: a "like" button writes a real row that survives a page reload and a full restart. Found and fixed a real bug on the way: D1 enforces foreign keys, so the seed script's old `DELETE FROM users` would have broken the second time anyone ran it.
 
 Today the worker has three tables/routes: `users` and `likes` in D1 (`worker/schema.sql`), plus a `Room` Durable Object with its own private SQLite for chat. The site itself calls none of this yet outside the one demo page at [`/imagine/platform/topic/`](/imagine/platform/topic/).
 
@@ -31,4 +31,4 @@ Yes, and half the plumbing already exists. As of today (2026-09-17), a page's `c
 
 **Does that break "no server at runtime"?** It lives beside the law, the way the worker is already built: `run_worker_first` is scoped to `/api/*` only, so every real page still ships as a plain static file with zero server involvement — the worker only answers the data fetch a page's `children()` makes, the same way `/api/likes` works today. But deploying *any* worker `main` to production would be the first time ever (item 6) — that's a real step outside today's static-only deploy, worth asking about before doing it, not a silent given.
 
-Numbers, screenshots and the raw findings are in the task log: [`/framework/ai/2026-09-17/sqlite-scout/`](/framework/ai/2026-09-17/sqlite-scout/).
+Numbers, screenshots and the raw findings are in the task log: [`/framework/ai/sessions/2026/09/17/sqlite-scout/`](/framework/ai/sessions/2026/09/17/sqlite-scout/).

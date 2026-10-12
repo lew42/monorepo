@@ -98,6 +98,6 @@ width. Each case is `{ name, url, scroll, click, anchor, also }`; the output is 
 per case carrying the before and after rectangles, the visible column widths, the row's
 scroll position, and the console errors since the goto. It lives in the session scratchpad
 (`navstab-measure.mjs`) with the case files beside it, and the raw rows are in the task dir:
-[`/framework/ai/2026-09-05/nav-stability/`](/framework/ai/2026-09-05/nav-stability/).
+[`/framework/ai/sessions/2026/09/05/nav-stability/`](/framework/ai/sessions/2026/09/05/nav-stability/).
 
 **Zero console errors on every case, at both widths.**

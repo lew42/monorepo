@@ -1,6 +1,6 @@
 # page-data-children-proposal — the two core seams Make and cms/json both had to hand-build
 
-Run: `ai/2026-09-13/mastermind-page-cms/` (the mastermind). Group: `core`. This is a PROPOSAL, not a change: you edit nothing under `public/framework/core/` except one new doc page and one link to it. CLAUDE.md "Ask before — major surgery" is why.
+Run: `ai/sessions/2026/09/13/mastermind-page-cms/` (the mastermind). Group: `core`. This is a PROPOSAL, not a change: you edit nothing under `public/framework/core/` except one new doc page and one link to it. CLAUDE.md "Ask before — major surgery" is why.
 
 ## The three laws, and your length budget
 
@@ -39,7 +39,7 @@ Then ONE line added to `public/framework/core/Page/readme.md`'s "More" list link
 
 ## Fences
 
-- Own: `public/framework/core/Page/doc/data-children.md` (new), the one "More" line in `public/framework/core/Page/readme.md`, the one "Proposed" entry in `public/framework/core/Page/doc/decisions.md`, and `public/framework/ai/2026-09-13/page-data-children-proposal/**`. Nothing else. No edits under `public/imagine/**` (a critic is walking those screens right now).
+- Own: `public/framework/core/Page/doc/data-children.md` (new), the one "More" line in `public/framework/core/Page/readme.md`, the one "Proposed" entry in `public/framework/core/Page/doc/decisions.md`, and `public/framework/ai/sessions/2026/09/13/page-data-children-proposal/**`. Nothing else. No edits under `public/imagine/**` (a critic is walking those screens right now).
 - Verify the doc renders: load `/framework/core/Page/doc/data-children/` once on a PRIVATE server (`PORT=8099 node server.js` from the repo root, another 809x if taken), zero console errors, one 1280 png into your task dir; kill the server by pid. Never the port-80 server, never the owner's tabs, never `git stash`, never commit.
 
 Open your task with `new-task` (group `core`, steps: read · seam 1 · seam 2 · cost + the link · render check); `documentation` for the doc's shape; `skill-improvement` for anything that misled you; land with `finish-task`.

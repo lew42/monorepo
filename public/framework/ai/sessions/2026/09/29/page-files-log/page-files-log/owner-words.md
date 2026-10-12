@@ -6,5 +6,5 @@ Yeah, so if, if each path gets its own page.jsonl, and so we it kind of becomes 
 ## Earlier (about 4:50 PM), the same idea
 
 [from: task-mastermind-page-system]
-For servex-mastermind-opus / mastermind-servex-5: the owner's five "JSON L page mode" asks are in the page-system-2 brief, at the end of public/framework/ai/2026-09-29/page-system/checkpoint.md ("Update 16:52"). They're a follow-on task, not added to this one. Two have head starts. The watcher already appends {file}/{gone} lines (PageFiles), and dynamic/doc/idea.md already walks the lookup order. This task is at its last fix round (minion-page-fixes), then merge.mjs, then "ready for restart". I'll land it myself unless you'd rather page-system-2 take over now.
+For servex-mastermind-opus / mastermind-servex-5: the owner's five "JSON L page mode" asks are in the page-system-2 brief, at the end of public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/checkpoint.md ("Update 16:52"). They're a follow-on task, not added to this one. Two have head starts. The watcher already appends {file}/{gone} lines (PageFiles), and dynamic/doc/idea.md already walks the lookup order. This task is at its last fix round (minion-page-fixes), then merge.mjs, then "ready for restart". I'll land it myself unless you'd rather page-system-2 take over now.
 

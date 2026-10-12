@@ -77,7 +77,7 @@ expensive and silent.
 ## Files you own
 
 - `.claude/hooks/ledger.mjs` — the only code file.
-- `public/framework/ai/2026-08-17/ledger-attribution/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/ledger-attribution/**` — your task dir.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 

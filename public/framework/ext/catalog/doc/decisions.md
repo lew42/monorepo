@@ -488,7 +488,7 @@ Full reasoning for each: [`decisions.md`](./decisions.md).
 
 ## A short band's cards now cap at `28em` (2026-09-18, `stage-cap`)
 
-The site study (`ai/2026-09-18/site-study/`) measured the whole site at 3440
+The site study (`ai/sessions/2026/09/18/site-study/`) measured the whole site at 3440
 looking for the owner's "a thing that should be 1000px spreads to 3000"
 complaint, and found one real, live instance of it: `browse()`'s own band
 grid. The "Band sizes are load-bearing" section above already named the risk
@@ -515,7 +515,7 @@ font-size (`framework.css`'s clamp on `body`, not `html` — `document.body`'s
 computed `font-size`, confirmed live): **~421px at 1280**, **504px at 3440**
 (the clamp's own ceiling, `1.125rem` = 18px, is reached before 3440 and holds
 flat from there). `28em` was the number named in the finding at hand-off
-(`ai/2026-09-18/site-study/task.jsonl`'s `decision` line); nothing here found
+(`ai/sessions/2026/09/18/site-study/task.jsonl`'s `decision` line); nothing here found
 a reason to move it — the fix's shape mattered far more than the exact number,
 and 500-ish px is in the range the owner's own complaint named ("maximum
 1000 pixels" as the thing that should NOT be exceeded, for what is usually a
@@ -534,4 +534,4 @@ Nothing on the site opts into it today.
 (filtered to `landing`) at 1280 and 3440 — every 1280 measurement is
 byte-identical before and after (no band, filtered or not, got narrower);
 the one band that actually exceeded 28em at 3440 dropped from 1347px to
-504px per card. Full numbers: `ai/2026-09-18/stage-cap/task.jsonl`.
+504px per card. Full numbers: `ai/sessions/2026/09/18/stage-cap/task.jsonl`.

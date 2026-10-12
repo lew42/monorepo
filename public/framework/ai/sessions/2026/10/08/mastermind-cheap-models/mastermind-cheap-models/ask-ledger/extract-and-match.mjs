@@ -23,7 +23,7 @@ import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(HERE, "../../../../../.."); // .../ai/2026-10-08/mastermind-cheap-models/ask-ledger -> repo root
+const ROOT = path.resolve(HERE, "../../../../../.."); // .../ai/sessions/2026/10/08/mastermind-cheap-models/mastermind-cheap-models/ask-ledger -> repo root
 const PROJECTS_DIR = path.join(os.homedir(), ".claude", "projects");
 const CANDIDATES_PATH = path.join(HERE, "candidates.jsonl");
 const LEDGER_PATH = path.join(HERE, "ask-ledger.jsonl");

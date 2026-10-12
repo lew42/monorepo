@@ -1,5 +1,5 @@
 // dormant-idle proof: a PRIVATE Servex (port 8190, scratch SERVEX_HOME) from the worktree, real Haiku agents.
-//   node public/framework/ai/2026-09-30/dormant-idle/proof.mjs <worktree>
+//   node public/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/dormant-idle/proof.mjs <worktree>
 // 1. four agents; three go idle, the fourth works for ~4 min
 // 2. after 3 idle minutes: count the claude.exe processes holding their sessions (expect 1)
 // 3. message a dormant one; it answers with a word only its first turn knew

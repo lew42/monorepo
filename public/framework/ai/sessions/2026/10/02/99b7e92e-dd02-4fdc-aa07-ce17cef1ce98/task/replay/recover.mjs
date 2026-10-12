@@ -299,7 +299,7 @@ function apply(dry){
 function order(a, b){ return rank(a) - rank(b) || a.localeCompare(b); }
 function rank(p){
 	if (p.startsWith("public/framework/ai/2026/10/")) return 0;
-	if (p.startsWith("public/framework/ai/2026-10-01/")) return 1;
+	if (p.startsWith("public/framework/ai/sessions/2026/10/01/")) return 1;
 	if (p.startsWith(".claude/") || p.startsWith("Servex/")) return 2;
 	if (p.startsWith("public/framework/ai/")) return 3;
 	return 4;

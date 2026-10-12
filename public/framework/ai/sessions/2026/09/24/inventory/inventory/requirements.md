@@ -26,9 +26,9 @@ organize it: if we need to move things, rename things or refactor things, that's
 
 ## Reused, not redone
 
-- [reuse-audit, 2026-09-22](/framework/ai/2026-09-22/reuse-audit/) — the earlier fan-out: 112 module
+- [reuse-audit, 2026-09-22](/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/) — the earlier fan-out: 112 module
   paragraphs (feature-by-feature), the 739 dead moved-stub files, the 27 card rules.
-- [overlap-study, 2026-09-18](/framework/ai/2026-09-18/overlap-study/) — its predecessor.
+- [overlap-study, 2026-09-18](/framework/ai/sessions/2026/09/18/overlap-study/) — its predecessor.
 - The card catalog (75 kinds) — `ux/Content/catalog/`, on branch `worktree/page-cards`, not yet merged.
 
 ## Fence

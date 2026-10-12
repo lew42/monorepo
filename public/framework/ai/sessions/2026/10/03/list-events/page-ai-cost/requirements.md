@@ -1,7 +1,7 @@
 # AI cost per page (roadmap item 10b)
 
 Third item in @mastermind-page-3's queue ("1. List gets events. 2. The Task class. 3. AI cost
-per page (10b). 4. Then layout approval."). Full spec: [`ai/2026-10-02/task-class/requirements.md`](/framework/ai/2026-10-02/task-class/requirements.md),
+per page (10b). 4. Then layout approval."). Full spec: [`ai/sessions/2026/10/03/list-events/task-class/requirements.md`](/framework/ai/sessions/2026/10/03/list-events/task-class/requirements.md),
 "## Item 10b". Landed as its own small merge, per that brief's instruction ("three separate
 small merges... three PRs, three landings, three outcomes") — split into its own task dir
 (dated today, since items 16 and this were built in separate sessions) rather than piling a

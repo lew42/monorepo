@@ -1,6 +1,6 @@
 # Minion brief: AI 2 → tabs Inbox · Overview, and the Overview itself
 
-Load the `minion` skill, then the `page` skill. Your parent is `task-mastermind-ai2-overview`; the whole task is `public/framework/ai/2026-09-28/ai2-overview/requirements.md`. Read the owner's raw words first: `public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`, the "about 10:50 PM" ask for tabs and "Continued (about 11:00 PM)" in full.
+Load the `minion` skill, then the `page` skill. Your parent is `task-mastermind-ai2-overview`; the whole task is `public/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-overview/requirements.md`. Read the owner's raw words first: `public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`, the "about 10:50 PM" ask for tabs and "Continued (about 11:00 PM)" in full.
 
 > "using the top tabs at the root level, just kind of like a class doc page ... the title, and then some tabs for like inbox, but over then maybe an overview"
 > "I need to see simple, big simple interfaces with big simple icons and like the important things are big and then the sub things go inside the big ones"
@@ -12,7 +12,7 @@ The owner is exhausted by complexity. **If a choice makes it more complicated, d
 
 `C:\Code\lew42\worktrees\ai2-overview` (branch `worktree/ai2-overview`, server `http://localhost:53155/`, so `http://localhost:53155/framework/ai2/`). Never edit the main tree. Read `public/framework/ai2/readme.md` there first (the Watch-out list has burned agents). Commit by exact path.
 
-**Fence:** `public/framework/ai2/page.js`, `public/framework/ai2/overview.js` (rewrite it; the old four-column overview is retired, decided), `public/framework/ai2/ai2.css`, `public/framework/ai2/readme.md`, `public/framework/ai2/doc/overview.md` (append a "The page" section; a sibling writes its top). Not the json, not the script. Task log: `public/framework/ai/2026-09-28/ai2-overview/ui/task.jsonl` in the MAIN tree.
+**Fence:** `public/framework/ai2/page.js`, `public/framework/ai2/overview.js` (rewrite it; the old four-column overview is retired, decided), `public/framework/ai2/ai2.css`, `public/framework/ai2/readme.md`, `public/framework/ai2/doc/overview.md` (append a "The page" section; a sibling writes its top). Not the json, not the script. Task log: `public/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-overview/ui/task.jsonl` in the MAIN tree.
 
 ## The data
 
@@ -31,7 +31,7 @@ Concepts arrive in importance order. Fetch it with a URL resolved against `impor
 3. **Inside each card, its open asks, one row each:** the owner's quote (links to `words_url`), a small state word, a link to the result. Done asks fold into ONE line: "Completed (n)", a native `<details>` that opens to the done rows. No progress bars.
 4. **A timeline strip per ask**, shown on hover and on a "timeline" toggle at the top of the Overview: asked (time) → delivered (time), how long, $ cost, the outcome, linked. One line, small.
 5. **A line at the top**: "Built <time> from the task logs" and nothing else. No explanatory paragraph.
-6. Prove it: headless Playwright shots of `http://localhost:53155/framework/ai2/overview/` at 1920×1080 and 3440×1440, and of the Inbox tab at 1920, reached by clicking the tab, saved in `public/framework/ai/2026-09-28/ai2-overview/ui/` in the MAIN tree. Zero console errors. Look at each shot and write one line per deliverable: done or not, with the shot's name.
+6. Prove it: headless Playwright shots of `http://localhost:53155/framework/ai2/overview/` at 1920×1080 and 3440×1440, and of the Inbox tab at 1920, reached by clicking the tab, saved in `public/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-overview/ui/` in the MAIN tree. Zero console errors. Look at each shot and write one line per deliverable: done or not, with the shot's name.
 
 No DOM after an `await` (capture the box synchronously). Any process you start: `windowsHide: true`, headless, never the owner's tabs. Budget about $4. When done, end your turn; your parent is woken.
 

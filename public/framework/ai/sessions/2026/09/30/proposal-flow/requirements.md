@@ -17,7 +17,7 @@ The owner's words are verbatim in [owner-words.md](owner-words.md). Re-read them
 3. **The Inbox shows it live.** When a proposal is under review, the owner's Inbox gets an item. Clicking it shows the proposal and the review as it happens (a review agent spawning, questions, the verdict).
 4. **Node-led, not memory-led.** Node, not the AI's memory, tracks the start and completion of every task and every step, and re-prompts the agent. It's a programmatic loop in Servex, rather than a skill the AI must remember to call.
 5. **Decisions are weighted by impact.** A decision that steers the future of the system, and is hard to make, gets a high importance score and surfaces near the top of the Inbox. The work still never waits on it.
-6. **Build the architect's accepted proposal** ([card](/framework/ai2/2026/09/30/proposal-budgets-merge-approval-template/); `ai/2026-09-30/servex-mastermind/merge-approval-proposal.md`), all four recommendations plus §7–§9:
+6. **Build the architect's accepted proposal** ([card](/framework/ai2/2026/09/30/proposal-budgets-merge-approval-template/); `ai/sessions/2026/09/30/servex-mastermind/merge-approval-proposal.md`), all four recommendations plus §7–§9:
    - `foundational: true` budgets report, never stop; reuse an agent before spawning;
    - merge rows on the task card with the diff, the review and shots. Foundational merges wait as an Inbox approval, but the WORK continues. Revert is a Servex tool;
    - template weights: imports plus a `use_template` node function;

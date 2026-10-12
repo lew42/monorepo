@@ -7,7 +7,7 @@
 	import { append, stamp } from "/framework/ext/Ask/reply.js";
 
 	const $out = document.getElementById("out");
-	const url = "framework/ai/2026-09-19/devbar-chat/test/scratch-task.jsonl";
+	const url = "framework/ai/sessions/2026/09/19/devbar-chat/test/scratch-task.jsonl";
 	const msg = "test message from the compose-test harness — never a real owner prompt";
 
 	const ok = await append(url, [{ chat: { at: stamp(), from: "owner", via: "devbar", msg } }]);

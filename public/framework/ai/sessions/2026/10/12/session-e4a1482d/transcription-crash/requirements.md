@@ -1,6 +1,6 @@
 # Why the site crashes during transcription and reload
 
-**The owner (2026-10-12, first message of the day):** transcription worked, but the Whisper error appeared, the page would not reload, and "the site crashes a lot". [servex-health](../servex-health/STATE.md) left "transcription crash cause" open. The 2026-10-09 perf note ([Server/doc/perf-2026-10-09.md](/Server/doc/perf-2026-10-09.md)) found 41 dev servers, directory rebuilds on 36% of requests, a 36 MB `monorepo.out`, and Whisper reloading.
+**The owner (2026-10-12, first message of the day):** transcription worked, but the Whisper error appeared, the page would not reload, and "the site crashes a lot". [servex-health](../../session-4e965597/servex-health/STATE.md) left "transcription crash cause" open. The 2026-10-09 perf note ([Server/doc/perf-2026-10-09.md](/Server/doc/perf-2026-10-09.md)) found 41 dev servers, directory rebuilds on 36% of requests, a 36 MB `monorepo.out`, and Whisper reloading.
 
 ## Done when
 - [ ] Reproduce on current `michael/dev`: a script that dictates (recorded clip) and reloads the page in a loop for 10 minutes while watching the dev server and Whisper (CPU, RAM, open handles, restarts, response times); record when and how it fails.

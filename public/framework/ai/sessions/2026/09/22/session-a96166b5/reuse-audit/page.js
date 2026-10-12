@@ -36,8 +36,8 @@ export default new Page({
 		md("## The one thing reduced today\n\n`core/Section/Section.js` exported a `fits()` whose own comment admitted it was `core/Layout/rules.js`'s first rule with the reporting taken off, left behind because `core/Layout` was outside that task's write fence. One caller, one directory apart. `core/Layout/rules.js` now owns the single answer and its own width rule calls it, so the two can no longer disagree; Section imports it; eleven lines gone. Proven behind the reload hold, both pages loaded clean on a private port before it was released.").ac("wide");
 
 		div.c("flex wrap gap", () => {
-			a("the Section page, after").href("/framework/ai/2026-09-22/reuse-audit/shots/fits-section.png");
-			a("the Layout page, after").href("/framework/ai/2026-09-22/reuse-audit/shots/fits-layout.png");
+			a("the Section page, after").href("/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/shots/fits-section.png");
+			a("the Layout page, after").href("/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/shots/fits-layout.png");
 		});
 
 		md("## Left deliberately alone\n\nSo you do not mistake these for oversights — each is a real duplicate with a real reason:\n\n- **Three ways to open a list near a trigger.** `ux/Menu` (a native `<details>`), `ext/Dropdown` (native `[popover]`, shows a current value) and `ux/Popover`'s `menu()` (arrow-key nav). Different cases; none of the three readmes names the other two, which is the only thing actually wrong here.\n- **Four append-log persistence contracts** — `imagine/importance`, `imagine/stream`, `imagine/cms/json` and `paging/make`. All four build on `ext/JSONL`'s transport and share no class; three of the four readmes say they know about each other.\n- **`mulberry32`, the five-line random-number function, copied into four files.** Every copy is commented and deliberate: sharing it would cross a tree boundary the framework does not want crossed.").ac("wide");

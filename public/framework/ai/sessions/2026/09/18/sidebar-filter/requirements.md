@@ -1,7 +1,7 @@
 # Sidebar filter + one resize helper — the brief
 
 Saved verbatim from the spawning message, 2026-09-18. Source: two merges from the
-overlap study (`ai/2026-09-18/overlap-study/overlap.md`, merges 2 and 3, and their
+overlap study (`ai/sessions/2026/09/18/overlap-study/overlap.md`, merges 2 and 3, and their
 `decision` lines in that task's `task.jsonl`: `overlap-filter-into-sidebar`,
 `overlap-shared-resize-grab`).
 

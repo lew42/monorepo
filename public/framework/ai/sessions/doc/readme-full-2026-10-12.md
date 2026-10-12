@@ -56,7 +56,7 @@ older `cost` figure:**
   `spend-tree.json` — [`doc/cost/spend-tree.md`](doc/cost/spend-tree.md) says exactly how a parent and
   a trigger get worked out, and where that guessing is honestly weakest. The one-screen
   reading of what it's for — does a review pay for itself, where the dollars go — is
-  [`ai/2026-10-03/spend-tree/study.md`](/framework/ai/2026-10-03/spend-tree/).
+  [`ai/sessions/2026/10/04/spend-tree/spend-tree/study.md`](/framework/ai/sessions/2026/10/04/spend-tree/spend-tree/).
 
 - **Cache $ breakdown, per agent and by role/trigger (token-accounting, 2026-10-04):** a
   session's own detail page now shows input/cache-write/cache-read/output $ under "Logged
@@ -109,10 +109,10 @@ merge.
   (paused while the tab is hidden — the same shape [`ai2/needs.js`](/framework/ai2/)'s
   `watch_needs()` already uses), so a card and a mastermind's state here is always current.
 - **VS Code and CLI rows come from a snapshot**, `sessions.json`, written by
-  [`sessions.mjs`](/framework/ai/2026-10-02/panel2-sessions/sessions.mjs) — a plain node script,
+  [`sessions.mjs`](/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/sessions.mjs) — a plain node script,
   not a live route. Re-run it to refresh those rows:
   ```
-  node public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs
+  node public/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/sessions.mjs
   ```
   Why a script instead of Servex answering live: this task asked `mastermind-servex-9` for a real
   `GET /api/sessions` route (Servex/agents inbox, 2026-10-02) and none had landed when this was

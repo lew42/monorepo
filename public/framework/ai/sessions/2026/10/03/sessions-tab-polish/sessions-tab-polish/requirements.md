@@ -20,5 +20,5 @@
 6. Screenshots before/after at 1200, 1920, 3440.
 
 ## Fence
-The sessions tab files (find them from ai/page.js / ai/sessions), Server/session-cost.mjs or the index it reads, this task dir. Coordinate with the earlier sessions tasks' logs (ai/2026-10-02/session-costs, ai/2026-10-03/sessions-date-homes). NEVER the mcp__playwright tools.
+The sessions tab files (find them from ai/page.js / ai/sessions), Server/session-cost.mjs or the index it reads, this task dir. Coordinate with the earlier sessions tasks' logs (ai/sessions/2026/10/02/session-costs, ai/sessions/2026/10/02/panel2-sessions/sessions-date-homes). NEVER the mcp__playwright tools.
 Model: Sonnet. Budget $10.

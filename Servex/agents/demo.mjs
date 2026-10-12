@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 import agents from "./Agents.js";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const PROOF = path.join(REPO, "public/framework/ai/2026-09-22/agent-host/proof-node-version.txt").replace(/\\/g, "/");
+const PROOF = path.join(REPO, "public/framework/ai/sessions/2026/09/22/session-e69d8104/agent-host/proof-node-version.txt").replace(/\\/g, "/");
 const HAIKU = "claude-haiku-4-5-20251001";
 const COUNT = "Count slowly from 1 to 300. One number per line, and after each number"
 	+ " write one short sentence about that number. Keep going until you reach 300, unless"

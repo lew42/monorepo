@@ -90,7 +90,7 @@ after this task lands, covering everything at once.
 - `public/framework/ext/catalog/browse.*` — the shared wall mechanism both use.
 - `public/framework/core/Page/Page.css` — **only** for the thumb-height rule, and
   only if that is genuinely where it belongs.
-- `public/framework/ai/2026-08-17/wall-polish/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/wall-polish/**` — your task dir.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 

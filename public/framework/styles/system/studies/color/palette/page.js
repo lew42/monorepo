@@ -79,7 +79,7 @@ const shot = (file, alt) => img().attr("src", here + "shots/" + file).attr("alt"
 	.style({ width: "100%", border: "1px solid var(--line)", borderRadius: "0.3em" });
 
 const FAILS = [
-	{ file: "fail-ai-card-title.jpg", ratio: "2.25:1", where: "/framework/ai/2026-09-01/ — .ai-card-title",
+	{ file: "fail-ai-card-title.jpg", ratio: "2.25:1", where: "/framework/ai/sessions/2026/09/01/ — .ai-card-title",
 		what: "`ext/AITask/ai.css:187` paints the card title `color: var(--prime)` — TEXT on the orange fill token, not `--prime-ink`. lew42.css names this exact mistake in its own comment: prim-ink is text, prim is fill-only." },
 	{ file: "fail-toc-current.jpg", ratio: "2.01:1", where: "/blog/framework/hello-lew42/ — .toc-link.current",
 		what: "`ext/toc/toc.css:67` — same shape, `color: var(--prime)` on the active TOC row against --wash. Worst measured pair in the crawl." },

@@ -1,6 +1,6 @@
 # Requirements — verbatim
 
-> Make a page at /framework/ai/2026-09-22/card-to-task/proof/ that says hello and the time.
+> Make a page at /framework/ai/sessions/2026/09/22/session-df2f3e2e/card-to-task/proof/ that says hello and the time.
 > Nothing more than that for now.
 
 This is the proof-page deliverable named in `../card-to-task/requirements.md` (deliverable 4),
@@ -9,15 +9,15 @@ bigger task owns `Servex/agents/**`, `ai2/inbox.js`, `talk/**` — this task tou
 
 ## Deliverable
 
-1. A page at the exact URL `/framework/ai/2026-09-22/card-to-task/proof/` that says "hello"
+1. A page at the exact URL `/framework/ai/sessions/2026/09/22/session-df2f3e2e/card-to-task/proof/` that says "hello"
    and shows the current time. Nothing else — no extra chrome, no demo blocks.
 
 ## Scope / fence
 
-- `public/framework/ai/2026-09-22/card-to-task/page.js` (new — the dir currently has only a
+- `public/framework/ai/sessions/2026/09/22/session-df2f3e2e/card-to-task/page.js` (new — the dir currently has only a
   `requirements.md` for the separate, bigger task; give it just enough of a page.js to declare
   `proof` as a child. Do not touch that `requirements.md`.)
-- `public/framework/ai/2026-09-22/card-to-task/proof/page.js` (new)
+- `public/framework/ai/sessions/2026/09/22/session-df2f3e2e/card-to-task/proof/page.js` (new)
 - `public/framework/ai/2026-09-22/page.js` — one-line addition to `children:` so `card-to-task`
   resolves as a declared page instead of the day's dynamic task-dir route().
 - One minion, one file set. No worktree needed — we're already inside one

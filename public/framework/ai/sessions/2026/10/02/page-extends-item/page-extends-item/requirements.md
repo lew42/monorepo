@@ -1,7 +1,7 @@
 # Page extends Item: persistence as JSONL lines
 
 The owner, 2026-10-02: "Page extends item? I thought we already agreed on that." **Approved; build it.**
-The whole design is in [page-item-design.md](../../2026-09-30/proposal-flow/page-item-design.md). Read it first (all sections; the top ones supersede the lower ones where they differ).
+The whole design is in [page-item-design.md](../../../../09/30/proposal-flow/page-item-design.md). Read it first (all sections; the top ones supersede the lower ones where they differ).
 
 ## Build, in order (small merges, each one working on its own)
 1. **One `set(delta)`** on Item, with the rules in the design: a method key calls the method, a settable value gets the nested delta, anything else is data and emits `change`. A replay flag means lines that are being replayed are never written back.

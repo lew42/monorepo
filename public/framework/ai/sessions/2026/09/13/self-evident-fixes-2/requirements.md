@@ -1,6 +1,6 @@
 # self-evident-fixes-2 — round two's eleven findings, fixed
 
-Run: `ai/2026-09-13/mastermind-page-cms/` (the mastermind). Two fixers, one per realm, same brief, different fences. Group: `ux`. Round one's fix brief, `ai/2026-09-13/self-evident-fixes/requirements.md`, is the shape; read it once for the method and the data rules.
+Run: `ai/sessions/2026/09/13/mastermind-page-cms/` (the mastermind). Two fixers, one per realm, same brief, different fences. Group: `ux`. Round one's fix brief, `ai/sessions/2026/09/13/self-evident-fixes/requirements.md`, is the shape; read it once for the method and the data rules.
 
 ## The three laws, and your length budget
 
@@ -12,7 +12,7 @@ Budget: no new prose on either screen unless a sentence IS the fix. Landing repo
 
 ## The spec is the critic's log
 
-`public/framework/ai/2026-09-13/self-evident-critique-2/task.jsonl` — the lines beginning `FINDING 1.` … `FINDING 11.` and `THE WAY IN`, with pngs `01-…png` … `09-…png` beside it. Read all of them before touching anything. The owner's rule, verbatim, is at the top of `self-evident-critique/requirements.md`.
+`public/framework/ai/sessions/2026/09/13/self-evident-critique-2/task.jsonl` — the lines beginning `FINDING 1.` … `FINDING 11.` and `THE WAY IN`, with pngs `01-…png` … `09-…png` beside it. Read all of them before touching anything. The owner's rule, verbatim, is at the top of `self-evident-critique/requirements.md`.
 
 ## Split
 
@@ -37,7 +37,7 @@ Budget: no new prose on either screen unless a sentence IS the fix. Landing repo
 
 ## Rules every brief carries
 
-- Open your task with `new-task`: Fixer A at `ai/2026-09-13/self-evident-fixes-2/make/task.jsonl`, Fixer B at `ai/2026-09-13/self-evident-fixes-2/importance/task.jsonl`; own `session_id`, group `ux`, the finding numbers as `steps`. The day dir and `day.jsonl` exist — append one line. Land with `finish-task`; `documentation` first if a readme changes.
+- Open your task with `new-task`: Fixer A at `ai/sessions/2026/09/13/self-evident-fixes-2/make/task.jsonl`, Fixer B at `ai/sessions/2026/09/13/self-evident-fixes-2/importance/task.jsonl`; own `session_id`, group `ux`, the finding numbers as `steps`. The day dir and `day.jsonl` exist — append one line. Land with `finish-task`; `documentation` first if a readme changes.
 - Skills: `code` first; `ui-test` before any headless run; `css` / `new-css-class` for any style or class; `skill-improvement` for anything that misled you.
 - **Never kill or restart the dev server on port 80. Never drive the owner's tabs. Never `git stash`. Never commit.**
 - Headless on a PRIVATE server, killed by pid at landing: Fixer A `PORT=8093`, Fixer B `PORT=8097` (another 809x if taken). Plans and pngs in the session scratchpad under `fixes2-make-*` / `fixes2-imp-*`; after-pngs into your task dir as `NN-after-1280.png`.

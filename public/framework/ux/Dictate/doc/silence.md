@@ -40,7 +40,7 @@ pop carries the whole file's energy.
 What does work is counting how much of the recording is loud, rather than how loud it is:
 `Capture.loudness()` walks the samples in **20ms frames** and returns `loud_ms`, the number
 of milliseconds whose frame RMS is above `speech_floor` (0.02). Measured on the real WAVs
-the browser actually posted (2026-09-22, [`ai/2026-09-22/dictate-silence/`](/framework/ai/2026-09-22/dictate-silence/)):
+the browser actually posted (2026-09-22, [`ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`](/framework/ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/)):
 
 | recording | `loud_ms` |
 | --- | --- |
@@ -85,7 +85,7 @@ Every WAV `Dictate` posts is then also written, base64, one line per send, into 
 (`framework/ai/dictate-dumps.jsonl` by default). Pull them apart on disk with:
 
 ```
-cd public/framework/ai/2026-09-22/dictate-silence
+cd public/framework/ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence
 node measure.mjs ../../dictate-dumps.jsonl
 ```
 
@@ -96,7 +96,7 @@ a 44-byte header — `jfk.wav`'s own `fmt ` chunk is 18 bytes, which puts its sa
 an hour chasing a bug that was in the test.
 
 Press-and-see version of all of this, with a download link for the exact WAV your browser
-sent: [`ai/2026-09-22/dictate-silence/`](/framework/ai/2026-09-22/dictate-silence/).
+sent: [`ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`](/framework/ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/).
 
 ## Which microphone, and the live test
 

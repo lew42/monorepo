@@ -6,7 +6,7 @@ The ordered collection behind `item.items`. About fifty lines, **zero imports**,
 headless. Every [Item](/framework/core/Item/) owns one with itself as the `owner`; userland
 mutates through Item verbs (`add`, `remove`, `move`) and never calls this class
 directly. Built to the council ruling of 2026-08-13
-(`framework/ai/2026-08-13/persistence/requirements.md`).
+(`framework/ai/sessions/2026/08/13/persistence/requirements.md`).
 
 ## Traps
 

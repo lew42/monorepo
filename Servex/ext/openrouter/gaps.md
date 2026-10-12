@@ -48,7 +48,7 @@ they always had.
   previous one.
 - **Fixed here:** `Agents.js`'s `result()` now keeps the latest `modelUsage` as
   `agent.model_usage`. `dictate-without-claude`'s own proof
-  ([`ai/2026-10-04/dictate-without-claude/prove.mjs`](/framework/ai/2026-10-04/dictate-without-claude/))
+  ([`ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude/prove.mjs`](/framework/ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude/))
   diffs it per turn and prices the real delta against OpenRouter's own published per-token
   rate — cross-checked in the same run against a live key-level `/key` balance diff; see
   `prove-results.txt` for the committed run's exact numbers (the key-level reading varies run
@@ -70,7 +70,7 @@ they always had.
   `["ArtifactData"]` for `google/*` models. `Agents.js` `options()` adds it only when
   `this.provider === "openrouter"`. Gemini agents lose ArtifactData, which our minions don't use.
 - **Evidence:** the spike: 0 tools before the fix, 3 tools plus edit plus resume after
-  ([`spike.jsonl`](../../../public/framework/ai/2026-09-30/openrouter-harness/spike.jsonl)).
+  ([`spike.jsonl`](../../../public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/spike.jsonl)).
 
 ## 2 and 3. The SDK's `total_cost_usd` is wrong, and the old fallback could go blind forever
 
@@ -93,7 +93,7 @@ they always had.
 - **Evidence:** `Servex/agents/openrouter-cost-blind-proof.mjs` (no network, proves the code);
   the live cross-check (3 real calls, `usage.cost` present and correct every time; one `/generation`
   404; one key-diff stuck at $0 after 28s) is logged in
-  [`2026-10-04/openrouter-cost-blind/task.jsonl`](../../../public/framework/ai/2026-10-04/openrouter-cost-blind/task.jsonl).
+  [`2026-10-04/openrouter-cost-blind/task.jsonl`](../../../public/framework/ai/sessions/2026/10/04/openrouter-cost-blind/openrouter-cost-blind/task.jsonl).
 
 ## 4. Not a gap: the Gemini 3.8 Flash stall
 
@@ -123,4 +123,4 @@ they always had.
   (gpt-6-luna). But the search and the summary are separate requests that a turn's message list
   may not include. The check compares the key's total spend before and after, against those
   listed generations.
-- **Evidence:** [`web-search/websearch.jsonl`](../../../public/framework/ai/2026-09-30/openrouter-harness/web-search/websearch.jsonl).
+- **Evidence:** [`web-search/websearch.jsonl`](../../../public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/web-search/websearch.jsonl).

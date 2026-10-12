@@ -58,7 +58,7 @@ export const templates = {
 
 	/* The one entry whose pieces are DIRECT children of the body. Every other template here
 	   draws into a single `.panel-t` wrapper — a body with one child, which a leaf's `flex`
-	   or `grid` words have nothing to arrange (measured: ai/2026-08-18/panel-grid/). Twelve
+	   or `grid` words have nothing to arrange (measured: ai/sessions/2026/08/18/panel-grid/). Twelve
 	   numbered boxes is the smallest content those words can be SEEN on, and the smallest
 	   change that gives them one: no shipped template loses its wrapper. */
 	cells: { icon: "apps", draw(){

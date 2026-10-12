@@ -1,6 +1,6 @@
 # Minion brief: core/Page/ext — page extensions, Inbox first
 
-Load the `minion` skill first, then `code`. Parent: task-mastermind-inbox-ext. Task dir: `public/framework/ai/2026-09-30/inbox-ext/` — the owner's words are in its `owner-words.md` (read the first section) and `requirements.md` (asks 1 and 2 are yours). The plan with its picture: `plan.md` there.
+Load the `minion` skill first, then `code`. Parent: task-mastermind-inbox-ext. Task dir: `public/framework/ai/sessions/2026/09/30/inbox-ext/` — the owner's words are in its `owner-words.md` (read the first section) and `requirements.md` (asks 1 and 2 are yours). The plan with its picture: `plan.md` there.
 
 ## The owner's words (verbatim, the part that is yours)
 
@@ -18,9 +18,9 @@ Worktree `C:\Code\lew42\worktrees\inbox-ext` (branch `worktree/inbox-ext`, its o
    - `Page.use(Ext)` registers an extension for every page (code); a page.jsonl line `{"ext": "Inbox"}` (data) turns one on for one page: `PageLog.set()` already calls a method named by a line's key, so add an `ext(name)` method that imports `core/Page/ext/<Name>/<Name>.js` (resolved against `import.meta`) and calls its `setup(page)`.
    - Event hooks on the page: `on(event, fn)` / `emit(event, …)`; emit at least `line` (each page.jsonl line after line 1) and `render` (after the page's content is drawn). Keep it tiny; read `core/Page/Log.js` and `Page.class.js` before touching them, and add the fewest lines.
    - ⚠ core never statically imports ext code (see Log.js `open()`), and nothing here may slow a page with no extensions.
-2. **`core/Page/ext/Inbox/`: the first extension.** Move, don't rebuild: `ext/drawer/inbox.js` (the page inbox that landed in task `ai/2026-09-30/page-inbox/`) moves here as `Inbox.js`; `ext/drawer/inbox.js` becomes a one-line re-export so the drawer keeps working unchanged. Add a static `setup(page)` that collects the page's `inbox` lines (`{"inbox": {type: "message"|"question", author, text, at}}`; an older `from` reads as `author`, a missing `type` as `message`) into `page.inbox`. The drawer's reads through Servex stay as they are.
+2. **`core/Page/ext/Inbox/`: the first extension.** Move, don't rebuild: `ext/drawer/inbox.js` (the page inbox that landed in task `ai/sessions/2026/09/30/page-inbox/page-inbox/`) moves here as `Inbox.js`; `ext/drawer/inbox.js` becomes a one-line re-export so the drawer keeps working unchanged. Add a static `setup(page)` that collects the page's `inbox` lines (`{"inbox": {type: "message"|"question", author, text, at}}`; an older `from` reads as `author`, a missing `type` as `message`) into `page.inbox`. The drawer's reads through Servex stay as they are.
 3. **Docs:** `core/Page/ext/readme.md` (what an extension is, how to turn one on, the hooks — a few lines) and `core/Page/ext/Inbox/readme.md`; one line in `core/Page/readme.md` pointing at ext/. A tiny demo: `core/Page/ext/page.js` or a page.jsonl that turns Inbox on and shows its messages (add `ext` to core/Page's `children`). Use `create_page` / the `new-page` skill.
-4. **Proof:** headless (Playwright, `windowsHide: true`), on the worktree server: the drawer's AI tab still shows its inbox on one page (screenshot before and after your change, 1920 and 400); the demo page shows two messages from a `{"ext":"Inbox"}` page.jsonl; zero console errors on `/framework/core/Page/`, `/framework/ai2/`, `/framework/`. Shots in `public/framework/ai/2026-09-30/inbox-ext/page-ext/shots/`.
+4. **Proof:** headless (Playwright, `windowsHide: true`), on the worktree server: the drawer's AI tab still shows its inbox on one page (screenshot before and after your change, 1920 and 400); the demo page shows two messages from a `{"ext":"Inbox"}` page.jsonl; zero console errors on `/framework/core/Page/`, `/framework/ai2/`, `/framework/`. Shots in `public/framework/ai/sessions/2026/09/30/inbox-ext/page-ext/shots/`.
 
 ## Fence
 

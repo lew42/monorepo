@@ -12,7 +12,7 @@ You are a minion. **Load the `minion` skill first, before touching anything.** M
 
 At 23:16 on 2026-09-19 a hard reset destroyed the uncommitted work in this repo. The damage is now
 measured: **1,470 files**, listed in
-`public/framework/ai/2026-09-19/reset-recovery/lost.jsonl`. Read that file first — it is your work
+`public/framework/ai/sessions/2026/09/19/reset-recovery/lost.jsonl`. Read that file first — it is your work
 order, and it carries a `recoverable` field and a `source` naming where each file's content lives.
 
 **216 of them are marked `recoverable: yes`**, meaning a session transcript under
@@ -20,7 +20,7 @@ order, and it carries a `recoverable` field and a `source` naming where each fil
 result or a `Write` of the whole content, cited by name. Your job is to put those 216 back.
 
 Two earlier tasks established all this and restored five files by hand;
-`public/framework/ai/2026-09-19/reset-recovery/` and `.../reset-scope/` hold their reasoning.
+`public/framework/ai/sessions/2026/09/19/reset-recovery/` and `.../reset-scope/` hold their reasoning.
 
 ## The three rules that make this safe
 
@@ -83,8 +83,8 @@ identical. Name the three in your log. A restore you have not diffed is a claim,
 ## Fences
 
 You own the 216 files named `recoverable: yes` in `lost.jsonl`,
-`public/framework/ai/2026-09-19/reset-recovery/lost.jsonl`, and
-`public/framework/ai/2026-09-19/reset-restore/**`. One line in the day page's `children:`, one
+`public/framework/ai/sessions/2026/09/19/reset-recovery/lost.jsonl`, and
+`public/framework/ai/sessions/2026/09/19/reset-restore/**`. One line in the day page's `children:`, one
 append to its `day.jsonl`. Nothing else.
 
 Nothing else is running in the repo right now, so you have it to yourself.

@@ -28,6 +28,6 @@ void. And **spans do not clamp themselves**: `auto-fill` must generate at least 
 tracks as the widest span demands, so one `two` card forced a second track even at one
 column, which took a second `@media (max-width: 28em)` rule to undo. Two rules, one
 undoing the other, for one empty box —
-[`ai/2026-08-17/vision-after/proposal.md`](/framework/ai/2026-08-17/vision-after/proposal.md) #6.
+[`ai/sessions/2026/08/17/vision-after/proposal.md`](/framework/ai/sessions/2026/08/17/vision-after/proposal.md) #6.
 A card that wants the room is a wider `--column` on the wall, which is the container
 deciding rather than one item opting out.

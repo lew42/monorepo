@@ -13,7 +13,7 @@ export default new Page({
 	width: "large",
 
 	content(){
-		md(`Scouted against [the platform brief](/framework/ai/2026-09-04/mastermind-platform/) —
+		md(`Scouted against [the platform brief](/framework/ai/sessions/2026/09/04/mastermind-platform/) —
 one row per concern, what already exists (linked), and whether it is a straight reuse, worth
 extending, or not built at all.`).ac("wide");
 

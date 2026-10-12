@@ -35,7 +35,7 @@ Private server `PORT=8136 node server.js` (background; kill by its real Windows 
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/popover-system/`); `code`, `css`, `new-page`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/popover-system/`); `code`, `css`, `new-page`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `public/framework/ux/Popover/**` (new), `public/framework/ux/page.js` (the children line only — a sibling is adding `Dictate` to the same line today: re-read the file right before your one-line edit), `public/framework/ai/page.js` (the picker only), `public/framework/styles/css-scopes.txt` (register your prefix), your task dir. Not `ext/Dropdown/**`, not `ux/Menu/**`, not `ux/Tree/**`, not `core/**`, not `framework.css`.
 - **Never kill or restart the owner's dev server (port 80) or the mastermind's (8123), never drive the owner's tabs.** Never `git stash`, never `find /`; an `rg` pattern starting with `/` returns nothing here. A bash heredoc containing an apostrophe fails in this harness — write files with the Write tool. Do not write the owner's name anywhere.
 - Playwright: `import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs"`; block the socket with `page.routeWebSocket(/.*/, () => {})`. Scratch in the session scratchpad.

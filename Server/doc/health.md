@@ -71,14 +71,14 @@ A layout scan is not part of it yet.
 ## Proof (2026-09-30)
 
 Run in the `proposal-flow` worktree against its own server. The files are in
-[`proposal-flow/monitor/proof/`](/framework/ai/2026-09-30/proposal-flow/monitor/proof/).
+[`proposal-flow/monitor/proof/`](/framework/ai/sessions/2026/09/30/proposal-flow/monitor/proof/).
 
 - A 3 s busy loop on a test page was flagged as a 3.0 s stall, with a shot, and the line landed in the test task.
 - A `throw` in `ai/health/page.js` gave "3 console errors". The editor's next write was blocked
   by health-guard. Restoring the file gave "0 console errors" and an `ok` line.
 - An append to a task.jsonl caused no check. The console said `data only, no check — 1 file`.
-- Two supervisors were started 4 s apart. The second exited with code 0, and one supervisor with one `health.mjs` child kept running ([console](/framework/ai/2026-09-30/proposal-flow/monitor/proof/supervisor-twice.log)).
-- A file edited by a task opened five days earlier found that task, not a newer landed one ([output](/framework/ai/2026-09-30/proposal-flow/monitor/proof/task-lookup.log)).
+- Two supervisors were started 4 s apart. The second exited with code 0, and one supervisor with one `health.mjs` child kept running ([console](/framework/ai/sessions/2026/09/30/proposal-flow/monitor/proof/supervisor-twice.log)).
+- A file edited by a task opened five days earlier found that task, not a newer landed one ([output](/framework/ai/sessions/2026/09/30/proposal-flow/monitor/proof/task-lookup.log)).
 
 ## Watch out
 

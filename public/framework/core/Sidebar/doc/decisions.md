@@ -107,7 +107,7 @@ so a raw multi-byte character decodes as Windows-1252 and renders `â€º`.
 
 ## 2026-09-18 — the tree, the resize, the workspace note
 
-`site-sidebar-tree` (`ai/2026-09-18/site-sidebar-tree/`). Three things changed, in
+`site-sidebar-tree` (`ai/sessions/2026/09/18/site-sidebar-tree/`). Three things changed, in
 priority order: rows are now `ux/Tree`, the panel resizes and remembers, and the
 owner's "predefined workspaces" question got an answer without a build.
 
@@ -214,7 +214,7 @@ framework's own rail should not forget itself the moment you visit `/michael/`.
 (`get`/`patch`, a private-mode/quota catch) without needing a `Page` at all, is
 what that took at the time.
 
-**Merged into `Page.Store` itself, 2026-09-18** (`ai/2026-09-18/cleanup-2/`,
+**Merged into `Page.Store` itself, 2026-09-18** (`ai/sessions/2026/09/18/cleanup-2/`,
 `core/Page/doc/decisions.md`'s own entry has the full record): `Page.Store` gained
 an `id` field for exactly this — a caller with no page, one fixed key. `store()`
 is `new Page.Store({ id: "sidebar" })` now; `Sidebar.Store` is deleted, not kept
@@ -263,9 +263,9 @@ a browse-several-things-at-once one.
 
 ## 2026-09-18 (later the same day) — the filter, and the grab becomes `ext/grip`
 
-Two merges from the overlap study (`ai/2026-09-18/overlap-study/overlap.md`, its
+Two merges from the overlap study (`ai/sessions/2026/09/18/overlap-study/overlap.md`, its
 `decision` lines `overlap-filter-into-sidebar` and `overlap-shared-resize-grab`),
-picked up in `ai/2026-09-18/sidebar-filter/`.
+picked up in `ai/sessions/2026/09/18/sidebar-filter/`.
 
 **`ux/Filter` is now the search box above the tree.** It was 151 lines with zero
 production callers before this — the owner's own sentence named "filters or toggles
@@ -284,7 +284,7 @@ the match, kept visible on purpose) and "Syntax" (the match); "HTML", which has
 neither a title match nor a loaded matching descendant, confirmed hidden. Pressing
 Escape put all 12 back and left "JS" open, exactly as it was before the first
 keystroke. Zero console or page errors, same demo, at 400 / 1280 / 3440. Script:
-`ai/2026-09-18/sidebar-filter/` (this task's own scratch directory kept nothing —
+`ai/sessions/2026/09/18/sidebar-filter/` (this task's own scratch directory kept nothing —
 per the minion rule, scratch never lands in the repo).
 
 **The one seam `ux/Filter` was missing: Escape clears the query.** Added to the

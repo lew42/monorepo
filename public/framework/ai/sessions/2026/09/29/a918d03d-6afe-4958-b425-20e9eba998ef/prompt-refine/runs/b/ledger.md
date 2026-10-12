@@ -6,7 +6,7 @@
 - **What the tab passed on:**
   - line 220, a seven-point summary sent to mastermind-servex-3 about card [`agent-work-on-every-page-sanity-checks-c`](/framework/ai2/2026/09/28/agent-work-on-every-page-sanity-checks-c/);
   - line 221, an added question about other consensus systems and web search.
-- **The later hops:** from line 220, mastermind-servex-3 wrote the "Added" section of the card's `design.md`, then two briefs, [`collab-rounds/requirements.md`](/framework/ai/2026-09-28/collab-rounds/) and [`source-library/requirements.md`](/framework/ai/2026-09-28/source-library/). Those hops are not the tab's work, so they are noted but not scored.
+- **The later hops:** from line 220, mastermind-servex-3 wrote the "Added" section of the card's `design.md`, then two briefs, [`collab-rounds/requirements.md`](/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/) and [`source-library/requirements.md`](/framework/ai/sessions/2026/09/28/ce1cbe96-a28c-43d3-897e-4629ae753aeb/source-library/). Those hops are not the tab's work, so they are noted but not scored.
 - **Were the raw words passed along? Yes.** The card holds `owner-words-2.md`, which contains line 219 word for word (checked by exact string match). Line 220 tells the reader to "read them". Both later briefs link that file, and collab-rounds says "read it all".
 
 **Status words:**

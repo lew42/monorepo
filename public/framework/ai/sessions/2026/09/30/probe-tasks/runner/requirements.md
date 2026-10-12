@@ -2,7 +2,7 @@ Budget: $6
 
 # probe runner — `probes.mjs` runs one probe on one model and scores it
 
-The design is `../probes.md` and `../probes.json` (read both first; they are the spec, don't redesign them). The owner's words: `public/framework/ai/2026-09-30/openrouter-harness/owner-words.md`, last section.
+The design is `../probes.md` and `../probes.json` (read both first; they are the spec, don't redesign them). The owner's words: `public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/owner-words.md`, last section.
 
 ## Fence
 `Servex/ext/openrouter/evals/probes.mjs` (new), `Servex/ext/openrouter/evals/results.jsonl` (the log it appends), a short "Probe tasks" section in `Servex/ext/openrouter/readme.md`, and your own task dir. Nothing else. A sibling minion is writing `evals/rules.mjs` in the same folder — don't touch it; if it exists when you start, share its spawn helper instead of writing a second one.

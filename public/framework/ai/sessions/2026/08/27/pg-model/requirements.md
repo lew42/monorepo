@@ -28,7 +28,7 @@ The owner's existing documents must not change appearance. Load `untitled` READ-
 
 ## Your fence
 
-`public/framework/ext/Playground/`: `items.js`, `documents.js`, `toolbar.js`, `Playground.js`, `playground.css`, `properties.js` (only if the audit demands), `doc/decisions.md`, `readme.md` (minimal lines) — NOT `canvas.js` (wave 3 owns it; log wishes). Plus your task dir `public/framework/ai/2026-08-27/pg-model/`.
+`public/framework/ext/Playground/`: `items.js`, `documents.js`, `toolbar.js`, `Playground.js`, `playground.css`, `properties.js` (only if the audit demands), `doc/decisions.md`, `readme.md` (minimal lines) — NOT `canvas.js` (wave 3 owns it; log wishes). Plus your task dir `public/framework/ai/sessions/2026/08/27/pg-model/`.
 
 ## Proof discipline (ui-test skill — read its Traps, two bit agents TODAY)
 

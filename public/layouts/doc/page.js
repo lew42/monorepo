@@ -28,7 +28,7 @@ export default new Page({
 	],
 
 	content(){
-		md("Three notes, one topic each, and the study that closed the set below them: real screenshots of every failure this book's approved five actually fixed. Moved here 2026-09-18 from `/imagine/design/layout/` — the old address still answers (`ai/2026-09-18/imagine-move-2/`).");
+		md("Three notes, one topic each, and the study that closed the set below them: real screenshots of every failure this book's approved five actually fixed. Moved here 2026-09-18 from `/imagine/design/layout/` — the old address still answers (`ai/sessions/2026/09/18/imagine-move-2/`).");
 		this.previews();
 	},
 });

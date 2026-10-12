@@ -1,17 +1,17 @@
 # whisper-servex — does dictation work today, and does the owner's voice reach the log?
 
 Minion: Sonnet, effort high. Session id `aae87ca0-102f-45b2-b923-326d5329caf8`. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first. Private dev-server
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first. Private dev-server
 port **8095**; private whisper test port **8179** (the owner's real whisper-server is 8178 —
 never touch it). Owner's words today: "spawn a minion to look into our Whisper system, and see
 if we can get that working with Servex."
 
 ## What exists
 
-- `ai/2026-09-19/whisper-local/` — whisper.cpp (cuBLAS) + `large-v3-turbo` installed at
+- `ai/sessions/2026/09/19/whisper-local/` — whisper.cpp (cuBLAS) + `large-v3-turbo` installed at
   `%LOCALAPPDATA%\lew42\whisper\`, `whisper-server` on `127.0.0.1:8178`, 76–98 ms per 10 s clip
   on the RTX 4070 SUPER. `ux/Dictate` in the browser talks to it directly.
-- `ai/2026-09-19/whisper-autostart/` — `Server/plugins/Whisper.js`: the dev server starts
+- `ai/sessions/2026/09/19/whisper-autostart/` — `Server/plugins/Whisper.js`: the dev server starts
   `whisper-server` itself; four boot cases (not installed · already running · spawned · skipped
   with `NO_WHISPER=1` or a private port).
 - The sibling task `servex-port` is porting that plugin's four cases into Servex as a supervised
@@ -37,7 +37,7 @@ if we can get that working with Servex."
    answering (find it — `Server/plugins/AILogs.js` or `Ask.js`; log which). Prove it with a
    headless run that posts one utterance and the line appears in the file; if Servex is not up
    when you test, prove the fallback path and say so.
-3. **One page, `ai/2026-09-22/whisper-servex/page.js`:** the stack as a four-box diagram
+3. **One page, `ai/sessions/2026/09/22/whisper-servex/whisper-servex/page.js`:** the stack as a four-box diagram
    (mic → Dictate → whisper-server → log), each box green/red from your measurements, the
    numbers under it, and a "try it" button that runs the synthesized-clip test against 8178 and
    shows the text. Screenshot at 1280 into `shots/`.

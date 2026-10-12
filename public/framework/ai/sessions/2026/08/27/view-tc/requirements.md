@@ -13,7 +13,7 @@ You may edit ONLY:
 - `public/framework/core/View/View.js` (the method, `View.js:153`)
 - `public/framework/core/View/doc/method/tc.md` and `doc/method/toggle_class.md` (make them current)
 - `public/framework/core/new/starter/Router.js:140` — ONE stale comment ("View.tc(cls) takes no force argument") may be corrected; change nothing else there
-- your task dir: `public/framework/ai/2026-08-27/view-tc/`
+- your task dir: `public/framework/ai/sessions/2026/08/27/view-tc/`
 
 ## The work
 

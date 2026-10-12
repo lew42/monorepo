@@ -32,7 +32,7 @@
 ## Fences
 
 - `styles/layouts/space` — READ ONLY ("very impressive, don't break it")
-- Census minion writes ONLY `ai/2026-08-15/layout-overnight/census.md`
+- Census minion writes ONLY `ai/sessions/2026/08/15/layout-overnight/census.md`
 - Build minions: additive files only; edits to shipped core/ext modules
   become proposals, not commits of fact
 - No commits, no pushes, no npm installs (LAW#4, LAW#5)

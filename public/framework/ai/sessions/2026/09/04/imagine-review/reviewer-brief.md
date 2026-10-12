@@ -92,7 +92,7 @@ proposed list, and the screenshot paths.
 1. `public/imagine/<your realm>/` and everything under it.
 2. Your own task dir, `public/framework/ai/2026-09-04/imagine-<your realm>/`.
 3. **One file outside them, deliberately:**
-   `public/framework/ai/2026-09-04/imagine-review/shots/<your realm>.jpg` — your **final**
+   `public/framework/ai/sessions/2026/09/04/imagine-review/shots/<your realm>.jpg` — your **final**
    1280 screenshot (after your fixes), as **JPEG, 150KB or smaller**. The manager's review page
    renders it. Create the `shots/` dir if it is not there. Touch nothing else in that dir.
 4. Append your day line to `public/framework/ai/2026-09-04/day.jsonl` (that file is shared and
@@ -148,7 +148,7 @@ MEANT: <one full sentence — what the page means to be>
 VERDICT: clear | unclear
 FIXED: <n> — <one short clause per fix, semicolon separated>
 PROPOSED: <n> — <one short clause per proposal, semicolon separated>
-SHOT: /framework/ai/2026-09-04/imagine-review/shots/<realm>.jpg
+SHOT: /framework/ai/sessions/2026/09/04/imagine-review/shots/<realm>.jpg
 TASK: /framework/ai/2026-09-04/imagine-<realm>/
 PATTERN: <the one clarity failure this realm shows best, in a full sentence>
 ```

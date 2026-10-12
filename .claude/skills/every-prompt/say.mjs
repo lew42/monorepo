@@ -23,7 +23,7 @@ import TaskDirs from "../../../Server/TaskDirs.mjs";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../../../..");
 const AI = path.join(root, "public/framework/ai");
-// 2026-09-19 (ai/2026-09-19/v3-data/): moved OUT of the v/3 template dir — the
+// 2026-09-19 (ai/sessions/2026/09/19/v3-data/): moved OUT of the v/3 template dir — the
 // board is real, version-agnostic data, not something that belongs inside one
 // dashboard version's own folder. The old path still works (a filesystem hard
 // link points it at this same file, for two Server plugins this task's fence

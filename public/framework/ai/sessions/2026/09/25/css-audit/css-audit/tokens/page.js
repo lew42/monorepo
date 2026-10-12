@@ -4,7 +4,7 @@ import { Page, md, p } from "/app.js";
    3 OWN LAYOUT the sentence, the chart, the grid. 4 REGIONS none. 5 PREVIEW core default card.
    ⚠ No template literals in this file — plain strings only (one backtick kills the page). */
 
-const BASE = "/framework/ai/2026-09-25/css-audit/tokens/";
+const BASE = "/framework/ai/sessions/2026/09/25/css-audit/css-audit/tokens/";
 const NAMES = ["now", "A", "B", "C"];
 const ROWS = [
 	["AI 2", "ai2", 1280], ["AI 2", "ai2", 1920], ["AI 2", "ai2", 3440],

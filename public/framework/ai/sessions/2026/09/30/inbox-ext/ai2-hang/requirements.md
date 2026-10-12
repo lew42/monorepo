@@ -1,6 +1,6 @@
 # Minion brief: AI 2 freezes for about 13 seconds on load
 
-Load the `minion` skill first, then `code`. Parent: task-mastermind-inbox-ext. Task dir: `public/framework/ai/2026-09-30/inbox-ext/`. The owner's words are in its `owner-words.md`, in the last section.
+Load the `minion` skill first, then `code`. Parent: task-mastermind-inbox-ext. Task dir: `public/framework/ai/sessions/2026/09/30/inbox-ext/`. The owner's words are in its `owner-words.md`, in the last section.
 
 ## The owner's words (verbatim)
 

@@ -3,7 +3,7 @@
 `Server/collab.mjs` runs one **collaboration**: several Servex agents (the **members**) go through
 the same numbered steps (the **phases**), one phase at a time — everyone finishes phase 1 before
 anyone starts phase 2 — and end by voting on the best draft. It is the runner for the shape both
-this doc and the live page agree on: `public/framework/ai/2026-09-28/collab-rounds/collab-format.md`.
+this doc and the live page agree on: `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md`.
 
 ## Write a `collab.json`
 
@@ -17,7 +17,7 @@ Put this next to where you want the run's files (`<taskdir>/collab.json`):
     {"id": "haiku-a", "model": "claude-haiku-4-5-20251001"},
     {"id": "sonnet-b", "model": "claude-sonnet-5"}
   ],
-  "context": ["public/framework/ai/2026-09-28/collab-rounds/some-background.md"]
+  "context": ["public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/some-background.md"]
 }
 ```
 

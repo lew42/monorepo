@@ -50,7 +50,7 @@ Never write the owner's name.
 
 Screenshots BEFORE (live site, now) and AFTER (worktree) at **1280, 1920 and 3440** of:
 `/framework/ai2/`, a group card (`/framework/ai2/2026/09/24/system-design/` or whatever url the
-rail opens it at), a task card, and one standalone task page (`/framework/ai/2026-09-24/live-card/`).
+rail opens it at), a task card, and one standalone task page (`/framework/ai/sessions/2026/09/24/agent-chat/live-card/`).
 Plus the padding/gap guard: `node <scratchpad>\ai2d-guard.mjs <label> --base <url>` then
 `node ai2d-guard.mjs diff <a> <b>` (scratchpad = C:\Users\mike\AppData\Local\Temp\claude\C--Code-lew42-monorepo\d9998734-afb3-4d6e-91dd-751915708bd4\scratchpad),
 and `MSYS_NO_PATHCONV=1 node Server/padding-check.mjs /framework/ai2/ --base <url>`.

@@ -1,6 +1,6 @@
 # Design the `Source` class for the site's source library: one web page an agent found (documentation, source code on GitHub, an article), already converted to markdown and saved once under public/framework/sources/<topic>/, listed in an index.jsonl there, so any other agent can read it quickly and cite it. It needs at least: the url, what kind of page it is, how authoritative it is, and the path of its markdown file. House style: plain ES classes, assign-based constructors (`constructor(o){ Object.assign(this, o) }`), small methods, parts as static subclasses. Read public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md (the 'Added' section) for where it fits.
 
-**Winner:** haiku-c — `public/framework/ai/2026-09-28/collab-rounds/design/collab/haiku-c/4-cross-review.md`
+**Winner:** haiku-c — `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/design/collab/haiku-c/4-cross-review.md`
 **Rule:** most votes
 **Run cost:** $1.5648
 

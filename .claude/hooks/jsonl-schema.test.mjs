@@ -83,8 +83,8 @@ ok(check(T, { kill: { at: "t", why: "duplicate", by: "owner" } }) === null, "tas
 ok(/missing "why"/.test(check(T, { kill: { at: "t", by: "owner" } }) ?? ""), "task.jsonl: a kill with no why is refused");
 ok(check(T, { priority: { at: "t", score: 95, why: "owner asked", by: "owner" } }) === null, "task.jsonl: priority is accepted");
 ok(/missing "score"/.test(check(T, { priority: { at: "t", why: "owner asked", by: "owner" } }) ?? ""), "task.jsonl: a priority with no score is refused");
-ok(/flat line/.test(check("ai/2026-09-30/day.jsonl", { at: "t", task: "x", msg: "m" }) ?? ""), "day.jsonl: a flat line is refused");
-ok(/missing "task"/.test(check("ai/2026-09-30/day.jsonl", { log: { at: "t", msg: "m" } }) ?? ""), "day.jsonl: a log with no task is refused");
+ok(/flat line/.test(check("ai/sessions/2026/09/30/day.jsonl", { at: "t", task: "x", msg: "m" }) ?? ""), "day.jsonl: a flat line is refused");
+ok(/missing "task"/.test(check("ai/sessions/2026/09/30/day.jsonl", { log: { at: "t", msg: "m" } }) ?? ""), "day.jsonl: a log with no task is refused");
 ok(check("a/b/page.jsonl", { status: "done", anything: 1 }) === null, "page.jsonl: open — any key is plain data");
 ok(/takes an object/.test(check("a/b/page.jsonl", { message: "hi" }) ?? ""), "page.jsonl: a message must be an object");
 ok(check("x/usage.jsonl", { whatever: 1 }) === null, "an unknown file is only checked for being an object");

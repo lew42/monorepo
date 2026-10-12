@@ -13,7 +13,7 @@ const image_src = (path, dir) => path.startsWith("/") ? path : new URL(path, loc
 
 // The build-time fixture — written until vision-pilot/vision.jsonl lands.
 // Named "fixture", not "vision.jsonl", so known_runs() never lists it.
-const FIXTURE = "/framework/ai/2026-08-17/vision-browse-page/fixture.jsonl";
+const FIXTURE = "/framework/ai/sessions/2026/08/17/vision-browse-page/fixture.jsonl";
 
 /** Every `ai/*\/*\/vision.jsonl` the directory manifest knows about — same source
  * `ext/AITask/dashboard.js` reads, one level of walking. */

@@ -190,7 +190,7 @@ initialize(){ this.columns({ even: true }); }
 **Live:** the [Finder](/framework/core/Page/overview/columns/finder/) runs it; the four
 [uses](/framework/core/Page/overview/columns/uses/) next door and the demo box still run the
 elastic mode, so the two are one click apart. Side by side against today's behaviour and
-against the [proposal](/framework/ai/2026-09-17/nav-stability/) that came before it, with the
+against the [proposal](/framework/ai/sessions/2026/09/17/nav-stability/) that came before it, with the
 numbers measured live: [/web/nav/doc/study/](/web/nav/doc/study/).
 
 Two lines of arithmetic, run on the row's own `ResizeObserver`:
@@ -605,7 +605,7 @@ Colours: transparent bodies over one `--wash` floor, every seam a 1px `--line` h
   inherit — so a `demo.app()` row built inside a `full` column took `1 0 100%` / `none` for every
   wordless column of its own, rendering one 1202px wide in a 1202px row. Fixed 2026-09-05: `.page.columns`
   resets all three to `initial`, so a nested host starts from its own defaults regardless of what
-  wraps it (`ai/2026-09-05/core-fixes/`).
+  wraps it (`ai/sessions/2026/09/05/core-fixes/`).
 
 ## The empty room — absorb was tried, and the answer is empty SLOTS
 

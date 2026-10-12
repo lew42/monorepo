@@ -1,7 +1,7 @@
 import { Page, md, div, p, h2, span, b, a, img } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-22/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/22/'s board — the ordinary
                 page grid. Prose rides `main` at --measure; the wire diagram, the
                 tool cards and the doc wall claim `wide`.
    2 SIZE       the three-wire diagram and the three-tool wall are both

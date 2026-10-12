@@ -11,7 +11,7 @@
 ## To finish (in order)
 1. `node Servex/ext/openrouter/evals/quick.mjs --models google/gemini-3.8-flash,anthropic/claude-haiku-5.5,anthropic/claude-sonnet-5.5 --budget 3` then `--table` (publishes to the models page).
 2. In the worktree: `node Servex/agents/voice-models-proof.mjs` (expect PASS), commit, review diff, `merge.mjs`, then `node Servex/sustain.mjs --restart`.
-3. Re-run the voice walk: `node public/framework/ai/2026-10-12/voice-verify/walk.mjs desktop` and `phone`. Baseline: Structure/Refined/Cards 6.6 s after Refine, one prompt, no overflow. Luna should be faster; if the walk breaks, put `claude` in `session-backend.txt` and set `RefineSystem.model` back.
+3. Re-run the voice walk: `node public/framework/ai/sessions/2026/10/12/session-b0c9ab63/voice-verify/walk.mjs desktop` and `phone`. Baseline: Structure/Refined/Cards 6.6 s after Refine, one prompt, no overflow. Luna should be faster; if the walk breaks, put `claude` in `session-backend.txt` and set `RefineSystem.model` back.
 4. Write the one-line-per-job-shape recommendation in `ai/doc/models.md` from the table, and update the two asks entries (`ai/doc/asks.md` #1 and `ux/Dictate/doc/asks.md` voice-model-policy, per-sentence-model-clean: per-sentence clean on luna should cost about $0.00003, not $0.07, so it can be switched on).
 
 ## Not done

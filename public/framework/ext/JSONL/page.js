@@ -86,7 +86,7 @@ await task.live(show);   // resolves like load(), then calls show() per appended
 
 			demo(() => {
 				div(async $live => {
-					const task = new TaskJSONL({ url: "/framework/ai/2026-08-14/jsonl/task.jsonl" });
+					const task = new TaskJSONL({ url: "/framework/ai/sessions/2026/08/14/jsonl/task.jsonl" });
 					const show = () => $live.empty(() => p(task.loaded
 						? `now: ${task.now} — ${task.logs.length} log lines`
 						: "task.jsonl unavailable"));

@@ -3,7 +3,7 @@
 The owner's words are verbatim in [owner-words.md](owner-words.md). This is research plus small prototypes. Do NOT change the framework's real files.
 
 ## Read first (only these)
-- `public/framework/ai/2026-09-30/proposal-flow/page-item-design.md`: the design so far (one `set(delta)`, page.jsonl lines, Item + List, the `saver`).
+- `public/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md`: the design so far (one `set(delta)`, page.jsonl lines, Item + List, the `saver`).
 - `public/framework/core/List/List.js` and `core/Item/Item.js`: what exists.
 - `public/framework/core/Page/Log.js`: how page.jsonl lines are replayed today.
 - `public/framework/ext/Draggable/Sortable.js` and `public/framework/ux/Tree/` (the drag tree, `TreeDrag`): the drag-and-drop that will produce moves.

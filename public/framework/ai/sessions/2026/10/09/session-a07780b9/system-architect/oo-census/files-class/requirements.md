@@ -1,6 +1,6 @@
 # Code: turn `files.js` into the class `Files`
 
-Queued by the [OO census](/framework/ai/2026-10-09/system-architect/oo-census/) (pick 10 of 10). The owner, 2026-10-09: classes and class hierarchies over lowercase files exporting loose functions; the class hierarchy should explain how a module works.
+Queued by the [OO census](/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/) (pick 10 of 10). The owner, 2026-10-09: classes and class hierarchies over lowercase files exporting loose functions; the class hierarchy should explain how a module works.
 
 ## Files
 

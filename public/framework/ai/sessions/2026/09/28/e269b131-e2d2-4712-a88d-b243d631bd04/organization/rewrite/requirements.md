@@ -33,7 +33,7 @@ Load the `minion` skill first, then `page`, `content`, `new-page` and `documenta
 ## Proof
 
 - Screenshot each new or changed tab at 1920, reached by clicking from `/framework/core/Page/` (headless, following the `ui-test` skill). Also shoot Overview at 1280 and 3440.
-- Save the shots to `public/framework/ai/2026-09-28/organization/rewrite/` in the MAIN tree, and look at each one.
+- Save the shots to `public/framework/ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/rewrite/` in the MAIN tree, and look at each one.
 - Run `node Server/smoke.mjs C:/Code/lew42/worktrees/qf-1` from the main repo. It must be clean.
 - Log in `rewrite/task.jsonl`.
 

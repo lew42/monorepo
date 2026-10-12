@@ -346,7 +346,7 @@ directory read that exact field.
 N boxes sharing `div.flex.v.gap` are "repeated" whatever their paragraphs say.
 Measured before/after across all 23 layouts × 2 widths: `repetition` is
 bit-for-bit identical on every single run (median 0.894, both times) —
-`ai/2026-08-16/web-prose-variety/measured.md`. `cards()` and `tiles()` were
+`ai/sessions/2026/08/16/web-prose-variety/measured.md`. `cards()` and `tiles()` were
 left alone: neither ever drew `blurb` (`cards()` shows a number, `tiles()` has
 no text at all), so there was nothing there to vary.
 
@@ -399,7 +399,7 @@ no text at all), so there was nothing there to vary.
 ## 2026-08-18 — the Figma wave: nine designs, and what they taught the tier
 
 Eleven minions worked one Figma file (`July-2026`) against this directory in one night. The record
-is [`/framework/ai/2026-08-18/figma/`](/framework/ai/2026-08-18/figma/); the verdicts that belong to
+is [`/framework/ai/sessions/2026/08/18/figma/`](/framework/ai/sessions/2026/08/18/figma/); the verdicts that belong to
 *this tier* are folded in here, as the minion that found the last of them asked.
 
 **Reuse won, repeatedly and by a wide margin.** Of nine designs resolved, **three needed no new code
@@ -421,7 +421,7 @@ must be expressed near 1 rather than as smallest integer pairs.
 
 - `.wash` / `.tint` follow the **page's** colour-scheme, never the band they sit on — a highlight
   where a recess belongs. A band-relative surface is proposed and deliberately not shipped:
-  [`figma/surface-proposal.md`](/framework/ai/2026-08-18/figma/surface-proposal.md).
+  [`figma/surface-proposal.md`](/framework/ai/sessions/2026/08/18/figma/surface-proposal.md).
 - `--code-bg` and `--code-ink` are a **pair**; taking one renders dark-on-dark.
 - `icon:` names are Material **Icons**, not Material **Symbols** — a Symbols-only name renders as
   literal ligature *text* (291px of it, inside a 219px label). Probe `offsetWidth`; a glyph is ~19px.

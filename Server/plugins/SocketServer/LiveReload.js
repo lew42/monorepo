@@ -35,7 +35,7 @@ export default class LiveReload extends Events {
          * in Directory.js, which is what pinned a core (Server/doc/spin.md). */
         watch(file => { if (!is_dir(file)) this.changed(file); });
 
-        /* THE HOLD — Server/hold.mjs, ai/2026-09-19/reload-hold/requirements.md.
+        /* THE HOLD — Server/hold.mjs, ai/sessions/2026/09/19/reload-hold/requirements.md.
          * `.reload-hold.json` lives OUTSIDE public/ (the repo root), so nothing in
          * watch.js's own handle ever sees it — it needs its own way to notice a
          * change, and a poll is that way, not a second fs.watch handle. Why a poll
@@ -188,7 +188,7 @@ export default class LiveReload extends Events {
         /* ⚠ ONE LINE PER BROADCAST, and it is the only census there is — nothing
          * captures this server's stdout, so a question like "why does my tab keep
          * reloading?" can otherwise only be answered by reconstructing it from file
-         * mtimes after the fact (which is how ai/2026-09-22/reload-rethink/ had to
+         * mtimes after the fact (which is how ai/sessions/2026/09/22/f875ec48-d91a-4890-b15f-db197b55aa13/reload-rethink/ had to
          * answer it: 215 reloads that day, 203 of them directory.json). First three
          * paths only — a `git checkout` batch is hundreds and would bury the line.
          * `told` is sockets actually SENT to, not sockets connected: a socket that

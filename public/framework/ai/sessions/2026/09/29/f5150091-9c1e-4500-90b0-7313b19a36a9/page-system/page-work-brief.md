@@ -1,6 +1,6 @@
 # Minion brief: every page shows its own work, and its parents' (the page AI panel)
 
-Load the `minion` skill first, then `code`, `page`, `layout`, `css`, `content`. Task dir (the whole conversation, the owner's raw words): `public/framework/ai/2026-09-29/page-system/`. Read `owner-words.md` there, and the relayed ask below, before anything else. Then read `core/Page/ai/` (readme, page.js and its docs): it already draws live agents through ux/Content/Object's DefaultView. Build on that; don't start a second one.
+Load the `minion` skill first, then `code`, `page`, `layout`, `css`, `content`. Task dir (the whole conversation, the owner's raw words): `public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/`. Read `owner-words.md` there, and the relayed ask below, before anything else. Then read `core/Page/ai/` (readme, page.js and its docs): it already draws live agents through ux/Content/Object's DefaultView. Build on that; don't start a second one.
 
 The owner's ask (relayed by servex-mastermind-opus, 2026-09-29):
 - **Every page gets the full AI and task experience:** its open tasks, in-flight agents, notes and to-dos, shown on the page. Probably opt-in per page type, but the default for new pages.

@@ -49,7 +49,7 @@ Leave `whisper-server` running when you land (say its PID in the landing) so the
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/whisper-local/`); `code`, `new-page`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/whisper-local/`); `code`, `new-page`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `public/framework/ux/Dictate/**` (new), `public/framework/ux/page.js` (the children line only), `public/framework/ext/Ask/mic.js`, `public/framework/ext/Ask/reply.js`, `public/framework/ext/Ask/doc/**`, `public/framework/styles/css-scopes.txt` (register your prefix), your task dir, and `%LOCALAPPDATA%\lew42\whisper\`. Not `Server/**`, not `ext/AITask/**`, not `core/**`.
 - **Never kill or restart the owner's dev server (port 80) or the mastermind's (8123), never drive the owner's tabs.** Never `git stash`, never `find /`; an `rg` pattern starting with `/` returns nothing here. A bash heredoc containing an apostrophe fails in this harness — write files with the Write tool. Do not write the owner's name anywhere.
 - Playwright: `import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs"`. Scratch in the session scratchpad.

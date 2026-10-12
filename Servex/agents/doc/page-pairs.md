@@ -6,7 +6,7 @@ is the page `/`. Nothing runs until you speak on a page, and an assistant that h
 stopped so it costs no memory.
 
 Code: [`Layers.js`](../Layers.js). Tests: [`layers.test.mjs`](../layers.test.mjs). Proof on a
-private Servex: [`pairs/proof.txt`](/framework/ai/2026-09-25/recursive-pairs/pairs/proof.txt).
+private Servex: [`pairs/proof.txt`](/framework/ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/pairs/proof.txt).
 
 ## Which agents a page gets
 
@@ -37,7 +37,7 @@ up; minting a page mints its parents first, so the tree always reaches `/`.
 | chat log | `public<page>ai/chat.jsonl`: `{"prompt":…}` from you, `{"message":…}` from the agents |
 
 On a card's own page (`/framework/ai/<card>/`) the send goes into the card instead. The assistant
-answers with `page_reply`. The agreed interface: [`interface.md`](/framework/ai/2026-09-25/recursive-pairs/interface.md).
+answers with `page_reply`. The agreed interface: [`interface.md`](/framework/ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/interface.md).
 
 ## The lifecycle, in the owner's numbers
 
@@ -60,7 +60,7 @@ file, so a private Servex never touches the live one.
 ## What a start costs (measured 2026-09-28)
 
 Each time is from the send to the assistant's reply landing in the page's chat, for a one-word
-answer, on a private Servex ([`proof.txt`](/framework/ai/2026-09-25/recursive-pairs/pairs/proof.txt)).
+answer, on a private Servex ([`proof.txt`](/framework/ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/pairs/proof.txt)).
 
 | the assistant was | reply after |
 |---|---|

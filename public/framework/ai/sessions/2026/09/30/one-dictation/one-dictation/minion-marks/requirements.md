@@ -1,6 +1,6 @@
 # Minion brief: merge 14, the ✓/? marks and the filler check
 
-Load the `minion` skill first. Your parent is **task-mastermind-one-dictation**. Read `public/framework/ai/2026-09-30/one-dictation/checklist-2026-10-01.md`: you own items **12** (only the marks; threaded replies are another task's), **13** (only the `is_filler()` extension) and **16** (an assistant's text shows only when it's final).
+Load the `minion` skill first. Your parent is **task-mastermind-one-dictation**. Read `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/checklist-2026-10-01.md`: you own items **12** (only the marks; threaded replies are another task's), **13** (only the `is_filler()` extension) and **16** (an assistant's text shows only when it's final).
 
 ## 1. The ✓ and ? on the owner's own bubbles (item 12)
 **Today:** `Widget.Thread.mark()` in `ux/Dictate/Widget.js` (around line 322) adds a muted " ✓" (`ok`) or " ?" (`unclear`) after each of the owner's lines. It comes from `ux/Understand`'s `marks()`, and its only explanation is a `title` that is often empty. The owner: "unexplained… make them self-evident (a tooltip or a label) or remove them". The owner reads on a phone, so a tooltip alone won't help.

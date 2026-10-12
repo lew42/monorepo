@@ -6,7 +6,7 @@
 > being done via deltas, using deltas to update, you know, a raw transcription to make it a
 > clean transcription.
 
-Parent brief (read in full first): `public/framework/ai/2026-10-03/message-cost/requirements.md`.
+Parent brief (read in full first): `public/framework/ai/sessions/2026/10/04/message-cost/message-cost/requirements.md`.
 Parent's "Want" list, items 1 and 3, are what this piece builds. Item 2 (voice refinement
 actually running) and item 4 (cheaper) are a SIBLING minion's job (`../minion-cost-model/`) —
 don't touch `Servex/agents/Sessions.js` or `Echo.js`, they're its fence, not yours.

@@ -44,7 +44,7 @@ working correctly, not a violation of it.
    importable door — nothing outside the directory can construct an editor,
    embed one, or name one in an import — and the split is what creates one.
    *(large, important — see the audit's Recommendations and
-   [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/))*
+   [Editor × Panel review](/framework/ai/sessions/2026/08/14/editor-panel-review/))*
 2. **Two redraws per drag.** `item.move()` emits `remove` then `add`, both bound
    to `draw()`. Correct, one frame wasteful. *(simple, useful)*
 3. **One `keydown` listener added at module load, never removed** — guarded by

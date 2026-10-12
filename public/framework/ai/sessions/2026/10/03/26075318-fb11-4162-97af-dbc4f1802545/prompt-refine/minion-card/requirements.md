@@ -1,6 +1,6 @@
 # minion-card: the prompt card + logging the reply
 
-Load the `minion` skill first. Parent task: `/framework/ai/2026-10-02/prompt-refine/` (read its
+Load the `minion` skill first. Parent task: `/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/` (read its
 `requirements.md` — the owner's verbatim words are at the top). This brief covers deliverables 5
 and 6 only. Worktree: `C:\Code\lew42\worktrees\prompt-refine` (branch `worktree/prompt-refine`).
 
@@ -18,7 +18,7 @@ need to call `refine()` yourself to get this landed — read-only on `minion-cor
   it, side by side, newest on top"** via `prompt_stream()`/`threads()`: each prompt's thread
   gathers `refined` (a cleaned reading citing sentence numbers), `names`, `cards`, `proposals` —
   all children of the prompt event, via `fold()`. Read this file and `fold.js`
-  (`ai/2026-09-22/log-model/fold.js`) whole before writing a new card component — the
+  (`ai/sessions/2026/09/22/session-66db742f/log-model/fold.js`) whole before writing a new card component — the
   "prompt + my reply as one exchange" (deliverable 5's last sentence) may be mostly this
   already; your job is the MODES (Condensed → Structured → Clean → Raw), not a new thread view.
 - `Servex/agents/Assistant.js` — writes the `refined` event type today (a cleaned reading with
@@ -93,7 +93,7 @@ nothing that would block the stop).
 
 ## Land
 Commit as you finish each deliverable (two commits). Log decisions/caveats to
-`/framework/ai/2026-10-02/prompt-refine/minion-card/task.jsonl` (create it with the launch
+`/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/minion-card/task.jsonl` (create it with the launch
 `assign` line first, per `new-task`). A screenshot of the prompt card showing at least 2 modes,
 at 1920 — `node Server/layout-check.mjs` or a headless shot — before you say done. Stop and tell
 your parent what you built and where the screenshot is.

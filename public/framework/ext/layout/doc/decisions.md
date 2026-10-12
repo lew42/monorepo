@@ -58,8 +58,8 @@ notably. What each one guarantees, and the two option/knob timing traps:
 | [`ext/editor`](/framework/ext/editor/) (`page.js`) | its properties region is built directly from `layout.words` + `controls.js` — not the floating bar |
 | `ext/layout/page.js` | documents itself, live |
 
-Six historical prototypes under `framework/ai/2026-08-08/`, `ai/2026-08-12/apps/*`
-and `ai/2026-08-14/editor-panel-review/` also import this module — pre-`ext/Panel`,
+Six historical prototypes under `framework/ai/2026-08-08/`, `ai/sessions/2026/08/12/apps/*`
+and `ai/sessions/2026/08/14/editor-panel-review/` also import this module — pre-`ext/Panel`,
 pre-`ext/editor` sketches that predate the current shape (one still assumes the
 now-deleted `layout.page()`). They still run, but nothing links to them from a live
 page; the framework-proper callers above are the ones this module is designed for.

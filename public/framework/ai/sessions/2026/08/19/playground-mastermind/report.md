@@ -20,17 +20,17 @@ literally the node's `style` attribute.
 
 | Task | What | Proof |
 |---|---|---|
-| [ui-tree](../ui-tree/) | `ui.tree()` — icon+text rows, nested `<ul>`s, update/select | indents 0/18.8/37.6/56.4px = exact ×depth |
-| [ui-test-skill](../ui-test-skill/) | `.claude/skills/ui-test` — drive headless, png + rects per step | grip +150px exact; sort reorder committed |
-| [panel-insight](../panel-insight/) | read-only Panel autopsy: 10 carry / 10 avoid | the shared-rail blanking, caught with a string |
-| [playground-design](../playground-design/) | [design.md](../playground-design/design.md), 150 lines, written blind to Panel | build order held 5-for-5 |
-| [playground-1-mvp](../playground-1-mvp/) | shell + grips + tree + document + Flex/Box + save | cols 241/540/271; leaf selected on FIRST click |
-| [playground-2-properties](../playground-2-properties/) | controls from `static fields`; change = one live style write | DOM identity held `===` across a change |
-| [playground-3-grid-toolbar](../playground-3-grid-toolbar/) | Grid + toolbar verbs | `repeat(3,1fr)` → 138.578px ×3; span 2 |
-| [playground-4-documents-layouts](../playground-4-documents-layouts/) | documents ▾, layout library, presets | 51 ids unique after double insert; wrap at 400 |
-| [playground-5-docs](../playground-5-docs/) | toolbar spans the shell; `canvas.js` split; readme + doc/ + 4-width pass | 0 errors, 0 page scroll at 400/1280/1920/3440 |
+| [ui-tree](../ui-tree) | `ui.tree()` — icon+text rows, nested `<ul>`s, update/select | indents 0/18.8/37.6/56.4px = exact ×depth |
+| [ui-test-skill](../ui-test-skill) | `.claude/skills/ui-test` — drive headless, png + rects per step | grip +150px exact; sort reorder committed |
+| [panel-insight](../panel-insight) | read-only Panel autopsy: 10 carry / 10 avoid | the shared-rail blanking, caught with a string |
+| [playground-design](../playground-design) | [design.md](../playground-design/design.md), 150 lines, written blind to Panel | build order held 5-for-5 |
+| [playground-1-mvp](../playground-1-mvp) | shell + grips + tree + document + Flex/Box + save | cols 241/540/271; leaf selected on FIRST click |
+| [playground-2-properties](../playground-2-properties) | controls from `static fields`; change = one live style write | DOM identity held `===` across a change |
+| [playground-3-grid-toolbar](../playground-3-grid-toolbar) | Grid + toolbar verbs | `repeat(3,1fr)` → 138.578px ×3; span 2 |
+| [playground-4-documents-layouts](../playground-4-documents-layouts) | documents ▾, layout library, presets | 51 ids unique after double insert; wrap at 400 |
+| [playground-5-docs](../playground-5-docs) | toolbar spans the shell; `canvas.js` split; readme + doc/ + 4-width pass | 0 errors, 0 page scroll at 400/1280/1920/3440 |
 
-Plus, found by the new skill and fixed: [draggable-layer-fix](../draggable-layer-fix/) — the dragged
+Plus, found by the new skill and fixed: [draggable-layer-fix](../draggable-layer-fix) — the dragged
 card never hid (`@layer theme` loses to util `.flex`); inline style now, column 217→217px (was +71).
 Mastermind inline: select-after-add (add-then-remove deleted the OLD selection — two lines, proven),
 `ui/readme.md` counts de-staled.

@@ -2,7 +2,7 @@
 
 The owner's ask (2026-10-07): this page and its cost data must update live, low latency,
 using **core/Page's existing jsonl stream** — never a second streaming system. Full
-investigation: [`/framework/ai/2026-10-07/token-accounting/findings.md`](/framework/ai/2026-10-07/token-accounting/findings.md).
+investigation: [`/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/findings.md`](/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/findings.md).
 
 ## What the stream already is (checked, not assumed)
 

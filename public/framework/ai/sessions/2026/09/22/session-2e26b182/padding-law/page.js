@@ -106,7 +106,7 @@ export default new Page({
 		p.c("h3", "The detail");
 
 		p("Every measurement, the four wrong versions of the measuring tool that came before the honest one, and the reason each fix is where it is: ",
-			a("this task's log").href("/framework/ai/2026-09-22/padding-law/"),
+			a("this task's log").href("/framework/ai/sessions/2026/09/22/session-2e26b182/padding-law/"),
 			". The law itself is now a line in the ", code("css"), " and ", code("layout"), " skills, and the measurement has exactly one definition, in ", code("Server/padding-check.mjs"), ", which the probe and the health watcher both import.");
 	},
 });

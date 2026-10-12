@@ -50,7 +50,7 @@ finding*, and it means the loop needs a different signal, not more turns.
 ## Files you own
 
 - `public/framework/styles/layouts/space/**` — yours alone, no other agent is in it.
-- `public/framework/ai/2026-08-17/generator-compound/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/generator-compound/**` — your task dir.
 - `public/framework/ai/usage.json` and `public/framework/ai/2026-08-17/day.jsonl`
   — the `new-task` skill's own writes, permitted.
 

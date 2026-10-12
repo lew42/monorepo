@@ -6,12 +6,12 @@ and 20:49. This page sorts them into eleven distinct things — three real bugs 
 the log, two rules that are mostly crying wolf, and six incidents that were real for a minute or
 two while an agent was mid-save, and have already fixed themselves. The machine-readable version,
 with a file and line number for each one, is
-[triage.jsonl](/framework/ai/2026-09-19/health-triage/triage.jsonl).
+[triage.jsonl](/framework/ai/sessions/2026/09/19/health-triage/triage.jsonl).
 
 ## Real, and still there (worth someone's five minutes)
 
 **1. Six lines this evening's own page-health task wrote are missing a closing brace.**
-`public/framework/ai/2026-09-19/page-health/task.jsonl`, lines 3, 4, 5, 10, 11, 12 all end in a
+`public/framework/ai/sessions/2026/09/19/page-health/task.jsonl`, lines 3, 4, 5, 10, 11, 12 all end in a
 single `"}` where the shape `{"log": {...}}` needs two, `"}}`. Line 13 logs the exact same message
 correctly, so whatever wrote lines 3-12 was fixed partway through the evening — the six broken
 lines were just never cleaned up. Every page on the site that shows the activity feed re-reads
@@ -19,15 +19,15 @@ every task's log on every load, so these six lines alone produced 185 of tonight
 Fix: append one `}` to each of the six lines.
 
 **2. One line from three weeks ago is plain text, not JSON at all.**
-`public/framework/ai/2026-08-21/pg-tree/task.jsonl`, line 2, reads simply
+`public/framework/ai/sessions/2026/08/21/pg-tree/task.jsonl`, line 2, reads simply
 `TREE MIGRATION LANDED - ui.tree retirement unblocked` — no braces, no quotes, nothing a JSON
 parser can read. It is old and will never fix itself. Same mechanism as above: one bad line,
 re-read on every page load sitewide, produced 185 warnings tonight. Fix: wrap it as
 `{"log": {"at": "...", "msg": "TREE MIGRATION LANDED - ui.tree retirement unblocked"}}`.
 
 **3. Two old tasks used a `step` field the log format has never recognized.**
-`public/framework/ai/2026-08-19/panel-pad-gap/task.jsonl` (lines 6, 8) and
-`public/framework/ai/2026-08-29/imagine-mag/task.jsonl` (lines 14, 25) each wrote `step` as a
+`public/framework/ai/sessions/2026/08/19/panel-pad-gap/task.jsonl` (lines 6, 8) and
+`public/framework/ai/sessions/2026/08/29/imagine-mag/task.jsonl` (lines 14, 25) each wrote `step` as a
 sibling of `assign` — `{"assign": {...}, "step": 2}` — instead of nesting it inside `assign`,
 which is the only place the schema looks for it. This is not a new discovery: the page-health
 task's own log tonight already found it and decided, in words, to leave it alone ("the step
@@ -51,7 +51,7 @@ text (a paragraph, not just a label), or raise the threshold well past 220px.
 **5. `padding-under-8px`** fired 64 times, and 56 of those are the same two sitewide styles
 repeating on independent pages: an inline `<code>` chip (2.0px top/bottom, 5.3px left/right) and a
 `<th>`/`<td>` table cell (3.8px). Both are a deliberate, compact, intentional look used across the
-whole site, not a mistake on any one page — I loaded `/framework/ai/2026-09-19/skill-roles/`,
+whole site, not a mistake on any one page — I loaded `/framework/ai/sessions/2026/09/19/skill-roles/`,
 which has both a table and several `code` chips, and it reads cleanly. The rule already excuses
 buttons and form fields from this same check for the same reason ("a control keeps its own em")
 but never added `code`, `th` or `td` to that exception list, so it re-flags the same two global

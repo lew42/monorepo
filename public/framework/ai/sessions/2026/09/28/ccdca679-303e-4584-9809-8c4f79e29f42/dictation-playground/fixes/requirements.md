@@ -1,6 +1,6 @@
 # Minion C — review fixes for the dictation playground
 
-Load the `minion` skill first, then `code` and `css`. Parent task: `public/framework/ai/2026-09-28/dictation-playground/` — read its `requirements.md` and the owner's raw words at `public/framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md`. A fresh reviewer found the findings below: `public/framework/ai/2026-09-28/dictation-playground/review.md`. Read it; its line numbers point into the code.
+Load the `minion` skill first, then `code` and `css`. Parent task: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/` — read its `requirements.md` and the owner's raw words at `public/framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md`. A fresh reviewer found the findings below: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/review.md`. Read it; its line numbers point into the code.
 
 ## Work in the worktree
 
@@ -27,8 +27,8 @@ Load the `minion` skill first, then `code` and `css`. Parent task: `public/frame
 
 ## Prove it
 
-Headless Playwright only (`headless: true`; scripts in the session scratchpad named `dp-c-*.mjs`). At 1920×1080 on `http://127.0.0.1:62967/framework/ux/Dictate/`: shoot idle (meter visible, empty-state line), then press ▶ Sample and shoot Raw mid-run, Corrections after the run, Live 6 s after the run. Zero console errors except the known CORS line for `127.0.0.1:8090/api/tidy` (that route goes live when Servex restarts after merge). Save the pngs as `c-idle.png`, `c-raw.png`, `c-corrections.png`, `c-live.png` into `public/framework/ai/2026-09-28/dictation-playground/fixes/` in the MAIN tree.
+Headless Playwright only (`headless: true`; scripts in the session scratchpad named `dp-c-*.mjs`). At 1920×1080 on `http://127.0.0.1:62967/framework/ux/Dictate/`: shoot idle (meter visible, empty-state line), then press ▶ Sample and shoot Raw mid-run, Corrections after the run, Live 6 s after the run. Zero console errors except the known CORS line for `127.0.0.1:8090/api/tidy` (that route goes live when Servex restarts after merge). Save the pngs as `c-idle.png`, `c-raw.png`, `c-corrections.png`, `c-live.png` into `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/fixes/` in the MAIN tree.
 
 ## Log
 
-`public/framework/ai/2026-09-28/dictation-playground/fixes/task.jsonl` in the MAIN tree (new-task shape, `group: "dictate"`, `node .claude/hooks/append.mjs`). Commit in the worktree. Report in one short message: commit hash, the four shot paths, anything unticked.
+`public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/fixes/task.jsonl` in the MAIN tree (new-task shape, `group: "dictate"`, `node .claude/hooks/append.mjs`). Commit in the worktree. Report in one short message: commit hash, the four shot paths, anything unticked.

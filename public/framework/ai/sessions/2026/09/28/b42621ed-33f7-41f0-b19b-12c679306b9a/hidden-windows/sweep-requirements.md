@@ -1,7 +1,7 @@
 # Hidden windows — the windowsHide sweep (minion brief)
 
 Load the `minion` skill first. Your task's directory (read the whole thing, raw words included,
-before touching anything): `public/framework/ai/2026-09-28/hidden-windows/`.
+before touching anything): `public/framework/ai/sessions/2026/09/28/b42621ed-33f7-41f0-b19b-12c679306b9a/hidden-windows/`.
 
 ## The rule
 
@@ -18,7 +18,7 @@ that call's options object; do not touch anything else in the file, and do not r
 surrounding code):
 
 - `dev.mjs` — 3 hits (lines ~43, 54, 60)
-- `public/framework/ai/2026-09-25/quickfix-worktrees/pool/proof.mjs` — 4 hits
+- `public/framework/ai/sessions/2026/09/25/quickfix-worktrees/pool/proof.mjs` — 4 hits
 - `Server/health-supervisor.mjs` — 1 hit (~145, a `fork`)
 - `Server/plugins/Ask.js` — 1 hit (~173)
 - `Server/plugins/Assistant.js` — 2 hits (~50 fork, ~125 spawn)

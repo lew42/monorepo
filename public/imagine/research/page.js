@@ -23,7 +23,7 @@ View.stylesheet(import.meta, "research-front.css");
    ⚠ RANK 1 in the 2026-09-04 paging critique: 368 entries flattened this front
      into one column 14,517px deep (10.4 screens at 3440) while `width: "fill"`
      was tried and REVERTED the same day (squeezed an open topic column to its
-     288px floor — public/framework/ai/2026-09-04/realm-alternates/task.jsonl).
+     288px floor — public/framework/ai/sessions/2026/09/04/realm-alternates/task.jsonl).
      The depth fix (below) stands regardless: `head()` is one sentence, and the
      flat "Latest" feed stays behind a closed-by-default `<details>`. `fill` is
      back 2026-09-05 now that Page.css makes it yield to an open child instead

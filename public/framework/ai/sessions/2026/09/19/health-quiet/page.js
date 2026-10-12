@@ -1,7 +1,7 @@
 import { Page, md, p, b } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board — the ordinary
                 page grid, everything at --measure prose width.
    2 SIZE       one screen: the before/after count, then a short list of what
                 was actually wrong. The numbers and reasoning live in this
@@ -26,6 +26,6 @@ export default new Page({
 			"3. **The old `step`-key bug in the original two files was a known, deliberate choice, respected here.** An earlier task tonight decided not to change the *watcher's* parser for it, to avoid teaching the schema a one-off legacy key. That was a decision about the parser, not about the data — so the affected lines were still repaired (the field moved to where the schema already expects it), without touching the parser the earlier task chose to leave alone.\n" +
 			"4. **The real defect wasn't the two rules — it was that a correct fix to `Server/health.mjs` had no way to reach the running watcher short of killing it.** `Server/health-supervisor.mjs` now watches `health.mjs` itself and cycles it automatically when the file changes (parses first — a broken save is never allowed to touch the working process). Proved in an isolated copy, not on the live process. This still needs the live supervisor restarted once by hand to pick up today's version of itself — that one restart is the owner's, not this task's.");
 
-		md("Full numbers, every line fixed, the isolated proof of the new self-watch code, and the `.ai-fold-bar` decision in full: this task's own log, reachable from [today's board](/framework/ai/2026-09-19/).");
+		md("Full numbers, every line fixed, the isolated proof of the new self-watch code, and the `.ai-fold-bar` decision in full: this task's own log, reachable from [today's board](/framework/ai/sessions/2026/09/19/).");
 	},
 });

@@ -57,7 +57,7 @@ export class Needs {
 		return Math.round(hours / 24) + " d";
 	}
 
-	/** A ledger path (e.g. "ai/2026-09-30/page-audit/owner-words.md") as a served url under
+	/** A ledger path (e.g. "ai/sessions/2026/09/30/page-audit/page-audit/owner-words.md") as a served url under
 	 *  `/framework/` — or `null` when it isn't served at all (`.claude/prompts/...`, the brief's
 	 *  own example of a words file to show as plain text instead of a dead link). */
 	static words_url(words){

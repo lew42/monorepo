@@ -1,7 +1,7 @@
 # Servex Docs tab — backend routes (minion A)
 
 Load the `minion` skill first. Your card/task directory (read the whole thread there, not
-just this file): `public/framework/ai/2026-09-29/servex-docs-tab/` — parent card
+just this file): `public/framework/ai/sessions/2026/09/29/6ba7761f-91ad-4c62-a59e-9f66a03a6138/servex-docs-tab/` — parent card
 `2026/09/29/openrouter-brain-a-knowledge-base-that-o`.
 
 **Owner's ask (verbatim, from requirements.md one level up):** "the Servex dashboard gets a
@@ -99,7 +99,7 @@ down later — it's not the live one).
 
 Commit your two files' changes on the worktree's existing branch (`worktree/servex-docs-tab`)
 with a plain message. Append a `log` line to
-`public/framework/ai/2026-09-29/servex-docs-tab/minion-a-routes/task.jsonl` (create it,
+`public/framework/ai/sessions/2026/09/29/6ba7761f-91ad-4c62-a59e-9f66a03a6138/servex-docs-tab/minion-a-routes/task.jsonl` (create it,
 `new-task` shape, one line is enough for a task this small) saying what you built and the
 exact curl output that proved it. Then send me (your parent) one short message: done, the two
 file paths, and the curl proof. Do not restart or touch the live Servex. Do not merge —

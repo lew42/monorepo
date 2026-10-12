@@ -1,6 +1,6 @@
 # minion-core: the shared refine() engine
 
-Load the `minion` skill first. Your brief's parent task: `/framework/ai/2026-10-02/prompt-refine/`
+Load the `minion` skill first. Your brief's parent task: `/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/`
 (read `requirements.md` there — the owner's verbatim words are at the top). This brief covers
 deliverables 1, 2, 3 and 7 only. You work in this worktree:
 `C:\Code\lew42\worktrees\prompt-refine` (branch `worktree/prompt-refine`, server already running —
@@ -119,6 +119,6 @@ one). Write a short `public/framework/ext/Refine/doc/refine-engine.md` (link it 
 `ext/Refine/readme.md`'s "More" list — one line) saying what `clean()`/`structure()` return and
 the glossary/diff-check rule, so the Dictate mastermind and the prompt-card minion can wire
 against it without reading your source. Log each step (`decision`, `log`) to
-`/framework/ai/2026-10-02/prompt-refine/minion-core/task.jsonl` as you go (same append.mjs route,
+`/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/minion-core/task.jsonl` as you go (same append.mjs route,
 your own task dir — create it with the launch `assign` line first, per the `new-task` skill).
 Stop when done; tell your parent what you built, the doc path, and the litmus verdict.

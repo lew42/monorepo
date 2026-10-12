@@ -11,13 +11,13 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
 
 /* LOCAL FIRST (local-brain, 2026-10-04): a node-generated question ladder (five levels, built
- * from this repo's OWN class files, never hand-written — public/framework/ai/2026-10-04/
+ * from this repo's OWN class files, never hand-written — public/framework/ai/sessions/2026/10/04/
  * local-brain/generate-questions.mjs) found qwen2.5-coder solid on single-file facts but
  * breaking down fast on anything combining two or more files — see that task's report.md for
  * the per-level numbers. The one job this file actually needs, though, is prompt refinement —
  * one real file (the owner's own raw words) in, cleaned sentences out — and new-brain's own
  * run already measured qwen2.5-coder at 8/10 on that exact job (eval-results.json,
- * ai/2026-10-03/new-brain), the same bar Haiku cleared. So clean()/structure() below try the
+ * ai/sessions/2026/10/04/new-brain/new-brain), the same bar Haiku cleared. So clean()/structure() below try the
  * local model FIRST, at $0, and fall back to the normal (Anthropic) call the instant the local
  * server errors — a GPU that only holds one model, not yet warmed up, or simply not running.
  * SERVEX_ECHO_LOCAL=0 turns this off and puts every echo back on its old model, same escape
@@ -27,7 +27,7 @@ const local_refine_enabled = () => process.env.SERVEX_ECHO_LOCAL !== "0";
 
 /* THE ECHO ASSISTANT, one per owner session (minion-echo, 2026-10-02 — see that task's
  * requirements.md, which REPLACES the original plan for this piece; the owner's own words are
- * at public/framework/ai/2026-10-02/prompt-refine/requirements.md).
+ * at public/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/requirements.md).
  *
  * A SIBLING of `Assistant.js`, not a rewrite: same shape (one door, one system prompt, writes
  * one log), reusing its own "fast assistant living inside Servex" idea — but where ONE

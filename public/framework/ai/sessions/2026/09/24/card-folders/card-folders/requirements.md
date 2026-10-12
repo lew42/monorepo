@@ -1,6 +1,6 @@
 # Card folders — module B of the page-cards pair
 
-The owner's words (from [handoff2-owner-words.md](../../handoff2-owner-words.md)):
+The owner's words (from [handoff2-owner-words.md](../../../../../../handoff2-owner-words.md)):
 
 > "what we absolutely need: the ability to add sub cards, anywhere on the card. to convert any
 > card into any other content type (Question, Request, ask a sub question, etc)"
@@ -10,7 +10,7 @@ The owner's words (from [handoff2-owner-words.md](../../handoff2-owner-words.md)
 > "i was thinking a ai/2026/MM/DD.jsonl could be the day's index, and then MM/DD/* could be used
 > for sub cards, pages, whatever?"
 
-The brief: [handoff2.md](../../handoff2.md) items 6 and 7, and the back-burner note "Card logs
+The brief: [handoff2.md](../../../../../../handoff2.md) items 6 and 7, and the back-burner note "Card logs
 live outside git".
 
 ## Deliverables

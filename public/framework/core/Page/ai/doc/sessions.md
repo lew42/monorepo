@@ -40,5 +40,5 @@ could either mint a brand-new session every time, or — the way a checkpoint "m
 expert" already works — keep one session loaded once and answer each question as a
 **fork** of it (`Agents.fork()`, above), which reuses the prompt cache and answers
 faster. `task-mastermind-module-experts` is measuring exactly this trade-off right now:
-[`ai/2026-09-29/module-experts/`](/framework/ai/2026-09-29/module-experts/). This page
+[`ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/`](/framework/ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/). This page
 does not pick a side — read that task's own log for where it lands.

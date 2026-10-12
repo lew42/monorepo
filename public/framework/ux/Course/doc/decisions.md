@@ -94,7 +94,7 @@ Every region reuses an existing utility or framework word:
    `--column` floor was the wrong tool (it would also override `.rail`'s and `.basis`'s own
    fixed widths — `@layer util` beats `@layer theme` at any specificity, `css` skill). The
    fix is a floor stated once, inline, on the one asymmetric row: `.style("flex", "1 1 16em")`.
-   Screenshot evidence: `ai/2026-08-21/ux-course/ux-course-360-tall.png` before/after.
+   Screenshot evidence: `ai/sessions/2026/08/21/ux-course/ux-course-360-tall.png` before/after.
 
 ## What "centred" meant, and one more fix past that
 
@@ -106,7 +106,7 @@ failure `core/Page/Page.css` warns about for unbounded tracks. Dropping `.start`
 `.measure`'s own `margin-inline: auto` centre the column inside its `flex: 1 1 16em` wrapper,
 which puts even space on both sides instead of one lump on the right — no CSS of Course's own,
 just not opting out of the utility's default. Screenshot:
-`ai/2026-08-21/ux-course/ux-course-3440-money.png`.
+`ai/sessions/2026/08/21/ux-course/ux-course-3440-money.png`.
 
 ## Cut
 

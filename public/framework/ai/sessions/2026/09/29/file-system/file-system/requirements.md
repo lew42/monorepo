@@ -3,7 +3,7 @@
 The owner's words are in `owner-words.md`; the first two-thirds are about files.
 
 Start from what exists:
-- `ext/files` (`files.js`, `fs.js`) — the file explorer, landed 09-28 with Panels removed, a real tree and `<path>/fs`. Walkthrough: /framework/ai/2026-09-28/file-explorer-fs/walkthrough/
+- `ext/files` (`files.js`, `fs.js`) — the file explorer, landed 09-28 with Panels removed, a real tree and `<path>/fs`. Walkthrough: /framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/walkthrough/
 - the class-doc Files tab (`ext/Doc`)
 - the AI 2 card folders (`Log.js` `draw_folder()`)
 - the item-ui task building icon items and trees — coordinate with `task-mastermind-item-ui`

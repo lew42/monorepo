@@ -1,4 +1,4 @@
-import {browser} from "../../../../../Server/browser.mjs";
+import {browser} from "../../../../../../../../../Server/browser.mjs";
 const b = await browser(); const ctx = await b.newContext({viewport:{width:1200,height:900}});
 const chk = async (u, fn, w=1200) => { const p = await ctx.newPage(); await p.setViewportSize({width:w,height:900}); await p.goto("http://monorepo.localhost"+u,{waitUntil:"load"}); await p.waitForTimeout(3000); console.log(u, w, JSON.stringify(await p.evaluate(fn))); await p.close(); };
 await chk("/framework/ai/", () => ({chips:[...document.querySelectorAll("*")].filter(e=>/^(blocking|review|fyi)$/i.test(e.textContent.trim())&&e.children.length==0).length}));

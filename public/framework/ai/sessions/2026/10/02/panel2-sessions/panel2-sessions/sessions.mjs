@@ -2,7 +2,7 @@
 // sessions.mjs — one snapshot of every Claude session that has an id, for the
 // Sessions tab (public/framework/ai/sessions/). Run by hand to refresh:
 //
-//     node public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs
+//     node public/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/sessions.mjs
 //
 // WHY A SNAPSHOT, NOT A LIVE ROUTE: the Sessions tab asked mastermind-servex-9
 // for a real `GET /api/sessions` route (Servex/agents inbox note, 2026-10-02);
@@ -56,7 +56,7 @@ const PROJECT_DIR = join(homedir(), ".claude", "projects", "c--Code-lew42-monore
 const HOURS = Number(process.argv.find(a => a.startsWith("--hours="))?.split("=")[1]) || 24;
 const MAX_PROMPTS = 50;   // per session, newest kept — a transcript file, not the whole file
 
-// This file lives at public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs —
+// This file lives at public/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/sessions.mjs —
 // two levels up is public/framework/ai/, where the real tab folder sits.
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SESSIONS_DIR = join(HERE, "..", "..", "sessions");     // public/framework/ai/sessions/

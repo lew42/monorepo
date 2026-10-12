@@ -63,7 +63,7 @@ export default new Page({
 		this.reading();
 
 		p.c("muted", "Written 2026-09-22 as the system retrospective the owner asked for while away for the " +
-			"hour. Source: the run ledger at ai/2026-09-22/mastermind-servex/task.jsonl, read start to " +
+			"hour. Source: the run ledger at ai/sessions/2026/09/22/e2b82220-72fd-4fec-b8a6-5f985c9cbefa/mastermind-servex/task.jsonl, read start to " +
 			"finish, plus the tiers-design, worktree-design and reload-rethink reports it names.");
 	},
 

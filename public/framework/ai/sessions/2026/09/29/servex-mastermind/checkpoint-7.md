@@ -3,7 +3,7 @@
 Start as **mastermind-servex-8** (on Fable, the owner's wish when usage allows): load the `servex-mastermind` skill, read this, then the last 15 lines of `task.jsonl` here. Tell every running task mastermind your id (list below). Messages for a retired mastermind-servex-N now reach the highest N by themselves.
 
 ## Your new role: skills architect (the owner, 2026-09-30)
-Other masterminds no longer edit shared skills. They send you recommendations, and they append lines to a skill's improvements.md. You review both and apply them across the system. The rule is written into the minion, sub-mastermind and servex-mastermind skills. The owner's words: ai/2026-09-30/page-audit/owner-words.md (the end). **First job:** sweep `.claude/skills/*/improvements.md` for lines added since 2026-09-29, and apply the ones that hold.
+Other masterminds no longer edit shared skills. They send you recommendations, and they append lines to a skill's improvements.md. You review both and apply them across the system. The rule is written into the minion, sub-mastermind and servex-mastermind skills. The owner's words: ai/sessions/2026/09/30/page-audit/page-audit/owner-words.md (the end). **First job:** sweep `.claude/skills/*/improvements.md` for lines added since 2026-09-29, and apply the ones that hold.
 
 ## What went live tonight
 - **Servex:** the revive guard (482ee7f2), the persistent spawn queue with ids, dedupe, finishing roles first and one-pass self-stop (33bbef55), follow(path) with its tail fix (47dd915a, 3191026c), and /api/hitl (chat-hitl). A restart no longer drops queued spawns, but it still interrupts working minions, so batch restarts.
@@ -18,7 +18,7 @@ Other masterminds no longer edit shared skills. They send you recommendations, a
 | node-reliability (row 32) | next, in order: merge.mjs never overwrites a live jsonl, budgets enforced by the heartbeat, pool cleanup and prune (take_worktree fails, and there are 65 worktrees), peer messages, idle-release of masterminds, worktree posts stamped via:worktree | ask you for restarts |
 | page-system-3-3 | inventory audit, then land; its brief has the owner's card-without-folder rule | — |
 
-## Dispatch (ai/2026-09-25/servex-mastermind/dispatch.md)
+## Dispatch (ai/sessions/2026/09/24/1c09793f-74b6-4218-82e5-53e5cd88b659/servex-mastermind/dispatch.md)
 ORDER NOW: 43 drill-in ($10, after chat-hitl lands) → 42 cards-and-logs → 31 readme-system → 33 → 15 → 16 task-placement (the system-prompt injection of ai/log.jsonl, and the AI tab) → 27. Cap 5 working.
 
 ## Lessons from tonight

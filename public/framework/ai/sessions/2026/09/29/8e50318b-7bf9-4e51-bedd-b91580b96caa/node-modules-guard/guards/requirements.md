@@ -1,10 +1,10 @@
 # Minion: three guards so node_modules can never be emptied again
 
-Load the `minion` skill first (then `code`). Parent task: `public/framework/ai/2026-09-29/node-modules-guard/` — read its `requirements.md` (the owner's brief, verbatim) start to finish.
+Load the `minion` skill first (then `code`). Parent task: `public/framework/ai/sessions/2026/09/29/8e50318b-7bf9-4e51-bedd-b91580b96caa/node-modules-guard/` — read its `requirements.md` (the owner's brief, verbatim) start to finish.
 
 **Work only in the worktree `C:\Code\lew42\worktrees\node-modules-guard` (branch `worktree/node-modules-guard`); commit there by exact path. Never touch the main tree `C:\Code\lew42\monorepo` except to read.** Never run a guard's destructive path against a real tree: prove every guard on a scratch copy in your session scratchpad (make a fake "main" dir with node_modules, a fake worktree with a junction into it via `mklink /J`, then run the guarded code and show the fake main survived).
 
-Fence (the only files you write): `Server/junction-check.mjs` (new), `Server/worktree-up.mjs`, `Server/worktree-down.mjs`, `Server/worktree-sweep.mjs`, `Server/merge.mjs`, `Servex/Pool.js`, `Servex/sustain.mjs` (respawn path only), `Server/doc/worktrees.md`, a shared helper if you need one (e.g. `Server/junction-guard.mjs`), and your notes under `public/framework/ai/2026-09-29/node-modules-guard/guards/`.
+Fence (the only files you write): `Server/junction-check.mjs` (new), `Server/worktree-up.mjs`, `Server/worktree-down.mjs`, `Server/worktree-sweep.mjs`, `Server/merge.mjs`, `Servex/Pool.js`, `Servex/sustain.mjs` (respawn path only), `Server/doc/worktrees.md`, a shared helper if you need one (e.g. `Server/junction-guard.mjs`), and your notes under `public/framework/ai/sessions/2026/09/29/8e50318b-7bf9-4e51-bedd-b91580b96caa/node-modules-guard/guards/`.
 
 ## Deliver
 1. **Guard 1.** Before any recursive `rm`/`rmSync`, `git worktree remove`, or `npm ci`/`npm install` in worktree-up, worktree-down, worktree-sweep, Pool.js and merge.mjs: refuse (throw/exit with a clear message naming the path) if any path inside the target is a reparse point (junction or symlink) that resolves into the main checkout. One small shared function, called at each site. Walk cheaply: a junction is found with `lstat().isSymbolicLink()` on Windows; don't descend into links; `fs.realpathSync` to see where it lands. Skip `.git`.

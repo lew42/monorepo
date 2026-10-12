@@ -3,7 +3,7 @@
 ## Ask (verbatim)
 
 > Urgent micro-fix in the lew42 monorepo. The AI dashboard is down: in
-> public/framework/ai/2026-08-15/layout-overnight/task.jsonl, the landing
+> public/framework/ai/sessions/2026/08/15/layout-overnight/task.jsonl, the landing
 > assign line contains the field `"agents": 10, ` — but the JSONL assembler
 > builds `agents` as an ARRAY from agent-verb lines, and this scalar clobbers
 > it; AITask card.js then throws `m.agents?.filter is not a function`,
@@ -23,15 +23,15 @@
 >
 > Verify in fresh headless Playwright (chromium.launch(); dev server on :80),
 > zero console errors required on ALL of: /framework/ai/ ,
-> /framework/ai/2026-08-15/ , /framework/ai/2026-08-15/layout-overnight/
+> /framework/ai/sessions/2026/08/15/ , /framework/ai/sessions/2026/08/15/layout-overnight/
 > (curated page, and its card should again show its agent/minion lines),
-> /framework/ai/2026-08-15/mastermind-run/ , /framework/ai/2026-08-15/mastermind-skill/ .
+> /framework/ai/sessions/2026/08/15/mastermind-run/ , /framework/ai/sessions/2026/08/15/mastermind-skill/ .
 > Any failure → restore the exact original bytes, re-verify, report.
 
 ## Scope fence
 
 Exactly two files touched: the one substring in
-`ai/2026-08-15/layout-overnight/task.jsonl` and one added trap line in
+`ai/sessions/2026/08/15/layout-overnight/task.jsonl` and one added trap line in
 `ext/JSONL/readme.md`. No other bytes.
 
 ## Steps

@@ -55,4 +55,4 @@ directly, bypassing Servex.
   request through to whisper. This one was already correct — no fix needed.
 - No other `http://localhost` or `127.0.0.1` string was found hard-coded into a page the browser
   loads; everything else resolves against `import.meta` or the page's own origin, as the house
-  rule requires. Full grep results and tested Whisper latency: `ai/2026-10-08/mobile-voice-access/findings.md` (this task's own folder — not a routed page).
+  rule requires. Full grep results and tested Whisper latency: `ai/sessions/2026/10/08/mobile-voice-access/mobile-voice-access/findings.md` (this task's own folder — not a routed page).

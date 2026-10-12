@@ -6,7 +6,7 @@
 ## Facts
 - GPU: RTX 4070 SUPER, 12 GB. Whisper runs beside it. Servex serves local models on :8998 as `local/<name>` (`Servex/ext/local/provider.js` MODELS map), unloads after 10 idle min.
 - On disk: qwen2.5-coder 7B (4.7 GB, 2026-04-27), gemma-4-e4b, gemma-3-4b.
-- The standard test: `node public/framework/ai/2026-10-03/new-brain/runner.mjs` with `MODELS=local/<name>` (docs · reasoning · refine, scored by code, $0 locally). Local qwen2.5-coder: 4/5 · 3/3 · 8/10. A broader OpenRouter sweep is in `eval-results-sweep.json` there.
+- The standard test: `node public/framework/ai/sessions/2026/10/04/new-brain/new-brain/runner.mjs` with `MODELS=local/<name>` (docs · reasoning · refine, scored by code, $0 locally). Local qwen2.5-coder: 4/5 · 3/3 · 8/10. A broader OpenRouter sweep is in `eval-results-sweep.json` there.
 
 ## Do
 1. **Web research (one batch, short):** the best open models that run in ≤ 8 GB VRAM at Q4/Q5 with good tool calling, from Hugging Face model cards and current benchmark tables. For each: params, quant, file size, expected VRAM with 8k context, benchmark scores with links, and what quantization costs in accuracy. Pick the top 2.

@@ -22,7 +22,7 @@ One number has moved since: `--flow`'s ceiling shipped at `3em` and became **`2.
 1.5× verdict — because body prose sits on the clamp's floor at 1280 and on its ceiling at 3440,
 so the two ends multiply the body font's own ramp. `2.5em` makes it 45px, 1.50×, and 1280 is
 byte-identical. The live number always lives in one place, `public/framework/framework.css`;
-[the measurements](/framework/ai/2026-09-13/paging-spacing-3440/spacing.md).
+[the measurements](/framework/ai/sessions/2026/09/13/paging-spacing-3440/spacing.md).
 
 `:where(*)` and not `:root`, for the reason framework.css already gives: a custom property
 holding a `var()` is substituted where it is declared, so a value computed once on the root

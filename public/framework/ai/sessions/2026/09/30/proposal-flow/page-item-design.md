@@ -1,6 +1,6 @@
 # Page and Item, one system: the proposal
 
-The owner's ask (2026-10-01): "show me a simple example, top down, of how the system should work… could Page extend Item… harmonize page.set and item.set". Proposed by vscode-mastermind. **Approved by the owner (2026-10-02). The build is at [2026-10-02/page-extends-item](../../2026-10-02/page-extends-item/requirements.md).**
+The owner's ask (2026-10-01): "show me a simple example, top down, of how the system should work… could Page extend Item… harmonize page.set and item.set". Proposed by vscode-mastermind. **Approved by the owner (2026-10-02). The build is at [2026-10-02/page-extends-item](../../../10/02/page-extends-item/page-extends-item/requirements.md).**
 
 ## LATEST (the owner asked; vscode-mastermind decided, 2026-10-03, fifth pass): fields are code-only; a collision throws
 - **`static fields` is declared in CODE ONLY** — nothing at runtime (a UI, a jsonl line, an agent) may add an accessor. Any other key, any name, lives only in `data`, reached through `get`/`set`, and never becomes an instance property.

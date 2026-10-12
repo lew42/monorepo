@@ -19,6 +19,6 @@ Mike (2026-08-17), verbatim:
 
 ## Rules
 
-- Read-only outside this dir. Write `proposal.md` here; log findings as `{"log": {"at","msg"}}` lines in `task.jsonl` (bash `printf`, never `Out-File`). Land with `{"assign": {"step": 5, "landed_at": "<ISO>", "outcome": "**…** — …", "links": [{"url": "/framework/ai/2026-08-17/ai-board-review/proposal.md", "label": "proposal"}], "tokens": null}}` and a `landed —` line in `../day.jsonl`.
+- Read-only outside this dir. Write `proposal.md` here; log findings as `{"log": {"at","msg"}}` lines in `task.jsonl` (bash `printf`, never `Out-File`). Land with `{"assign": {"step": 5, "landed_at": "<ISO>", "outcome": "**…** — …", "links": [{"url": "/framework/ai/sessions/2026/08/17/ai-board-review/proposal.md", "label": "proposal"}], "tokens": null}}` and a `landed —` line in `../day.jsonl`.
 - Dev server: `http://localhost/` is up. Headless only — never drive Mike's tabs. Hidden tabs do not lay out; use a real headless page.
 - Read `ext/AITask/readme.md`, `ext/JSONL/readme.md`, `.claude/hooks/readme.md`, `.claude/skills/new-task/SKILL.md`, `.claude/skills/finish-task/SKILL.md` first — they are the spec; judge the implementation against them.

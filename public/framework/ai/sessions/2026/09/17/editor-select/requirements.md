@@ -1,6 +1,6 @@
 # editor-select — one selection scheme over Make's middle, one right sidebar that shows only the selected thing, Panel's floating bar gone, Make's tree on ux/Tree
 
-Load the `minion` skill first. Then this brief, then `ai/2026-09-17/paging-fix/editor-notes.md` (one screen — the shape to build, from a minion who read all three editors tonight).
+Load the `minion` skill first. Then this brief, then `ai/sessions/2026/09/17/paging-fix/editor-notes.md` (one screen — the shape to build, from a minion who read all three editors tonight).
 
 **Three laws.** Less is more (delete the bar; fewer controls on screen, never more). Clear beats brief by far (a control on screen is about the selected thing, or it is not on screen). Prioritize (selection first, the filtered sidebar second, the tree third, the deletion last).
 **Length budget:** Make stays three panes; the sidebar shows a page's, a block's or an element's few rows and nothing else. Your landing report is one screen with the control counts before and after.
@@ -30,7 +30,7 @@ And 2026-09-13, of Make: "self-evident demos that are impossible to misunderstan
 
 ## Rules
 
-- Load `code`, `layout`, `css`, `new-css-class`; `new-task` before the first edit (your dir exists: `ai/2026-09-17/editor-select/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you. Write each choice between alternatives as a `decision` line (the verb exists; `ext/JSONL/doc/task-jsonl.md`).
+- Load `code`, `layout`, `css`, `new-css-class`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/editor-select/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you. Write each choice between alternatives as a `decision` line (the verb exists; `ext/JSONL/doc/task-jsonl.md`).
 - **Fence:** `public/imagine/paging/make/**`, `public/framework/ext/Panel/**`, your task dir. Nothing else — not `ux/Tree`, not core, not the rest of `/imagine/paging/` (a critic finished it tonight), and NEVER `public/imagine/paging/made/**` except through Make's own seam in a test you restore.
 - Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`. The owner's server (port 80) is NOT running; start your own: `PORT=8114 node server.js` from the repo root, in the background; kill it by its real Windows PID when you land. `ui-test` has the headless recipe: prove select → sidebar → change → middle updates, for a page, a block and an element (three shots), and a tree drag through `ux/Tree` reaching `apply()`.
 - Demos never persist except through Make's seam (it is an editor; a write shows a dot, not an alert).

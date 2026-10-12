@@ -16,9 +16,9 @@ const STAGES = [
 
 const LINKS = [
 	["/framework/ai/v/3/?view=prompts", "The Prompts view", "the fifth tab on the AI board; empty until you say something"],
-	["/framework/ai/2026-09-22/prompt-lifecycle/", "This task's log", "every decision and every measurement"],
-	["/framework/ai/2026-09-22/log-model/", "The event schema", "what a prompt, a name and a card actually are"],
-	["/framework/ai/2026-09-22/log-model/lifecycle/", "The five stages, walked", "the same story on a worked sample log"],
+	["/framework/ai/sessions/2026/09/22/c5dd9287-4fc2-427c-b865-f318152bade4/prompt-lifecycle/", "This task's log", "every decision and every measurement"],
+	["/framework/ai/sessions/2026/09/22/session-66db742f/log-model/", "The event schema", "what a prompt, a name and a card actually are"],
+	["/framework/ai/sessions/2026/09/22/session-66db742f/log-model/lifecycle/", "The five stages, walked", "the same story on a worked sample log"],
 ];
 
 export default new Page({
@@ -62,6 +62,6 @@ export default new Page({
 		h2("What was left, and why");
 		p("Stages 4 and 5 are phase 3 of the owner's own brief, not a shortfall here. Two smaller things are written up in the log: the AI board builds its whole view twice on every load (an old fault, not from this task, but it doubles every count you take off the page), and a browser logs its own network notice when Servex is not running — the page itself says nothing and renders correctly, but the browser's console cannot be talked out of mentioning a refused connection.");
 
-		p.c("flow", () => { a("Every measurement, every decision, in the log.").href("/framework/ai/2026-09-22/prompt-lifecycle/"); });
+		p.c("flow", () => { a("Every measurement, every decision, in the log.").href("/framework/ai/sessions/2026/09/22/c5dd9287-4fc2-427c-b865-f318152bade4/prompt-lifecycle/"); });
 	},
 });

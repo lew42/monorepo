@@ -12,4 +12,4 @@ Sections, drawn as columns: `"sections": [{"title": "Run", "items": […]}]`.
 - A tile links to the page's own ADDRESS (`this.page.url`), never to where its files live
   (`folder_url()`) — a card can be shown at a different address than its files' folder (AI 2),
   and a tile built from `folder_url()` 404s there (fixed 2026-09-28,
-  [concept-links-fix](/framework/ai/2026-09-28/concept-links-fix/)).
+  [concept-links-fix](/framework/ai/sessions/2026/09/28/concept-links-fix/)).

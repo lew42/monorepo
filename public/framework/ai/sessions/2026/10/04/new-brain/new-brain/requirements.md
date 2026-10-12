@@ -10,8 +10,8 @@
 > we're at like 76% ... I don't know if we're ready to rely entirely on open router ... it apparently has a free option. We also potentially have a local host, but we're definitely going to want a little bit smarter model. Like we need to find a new brain.
 
 ## Extend what exists (law 6)
-- The test ladder: `public/framework/ai/tests/` (AITest.js, rung0-html-to-view, …) and its findings: `ai/2026-10-02/model-weights/` (harness-findings.md).
-- The local model: llama-server under Servex (`Servex/ext/local/`, task ai/2026-10-01/local-ai).
+- The test ladder: `public/framework/ai/tests/` (AITest.js, rung0-html-to-view, …) and its findings: `ai/sessions/2026/10/03/model-weights/model-weights/` (harness-findings.md).
+- The local model: llama-server under Servex (`Servex/ext/local/`, task ai/sessions/2026/09/24/servex-mastermind-opus/local-ai).
 - OpenRouter: `Servex/ext/openrouter/`, prices in `ai/system/models/models.json`.
 
 ## Want

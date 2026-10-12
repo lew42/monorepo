@@ -2,7 +2,7 @@
 
 Load the `minion` skill first. Parent: `task-mastermind-openrouter`. Read the parent's
 `requirements.md` "Phase 3" section and the last section of `owner-words.md`
-(`public/framework/ai/2026-09-30/openrouter-harness/`).
+(`public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/`).
 
 ## Current scope (read this first — everything below is the history that got here)
 - Each test is a page: `public/framework/ai/tests/<slug>/page.jsonl` (class `AITest.js`), not a

@@ -40,15 +40,15 @@ export default new Page({
 
 			md("The table ranks; it does not explain. The written audit does — the whole site crawled at "
 				+ "400/1920/3440, the worst twenty checked against their screenshots, and a proposed "
-				+ "declaration per family: [layout-hunt](/framework/ai/2026-08-15/layout-hunt/).");
+				+ "declaration per family: [layout-hunt](/framework/ai/sessions/2026/08/15/layout-hunt/).");
 
-			md.details(import.meta, "/framework/ai/2026-08-15/layout-hunt/audit.md",
+			md.details(import.meta, "/framework/ai/sessions/2026/08/15/layout-hunt/audit.md",
 				"The 2026-08-15 site audit — ranked worst-first, screenshot-verified");
 
 			md("This table is a **worklist**, not a ranking of quality: it counts findings, severest first, and "
 				+ "it makes no claim that a page with fewer of them looks better. It once carried a score out of "
 				+ "100 and that number came out *anti*-correlated with how pages look — it counted findings, and "
-				+ "findings scale with content, so it rewarded emptiness ([the evidence](/framework/ai/2026-08-17/vision-baseline/)). "
+				+ "findings scale with content, so it rewarded emptiness ([the evidence](/framework/ai/sessions/2026/08/17/vision-baseline/)). "
 				+ "Every rule survived; the average did not. [**Taste →**](taste/) is the tier that ranks what is **good**.");
 
 			this.$run = div.c("dt-run flex gap v-center wrap");

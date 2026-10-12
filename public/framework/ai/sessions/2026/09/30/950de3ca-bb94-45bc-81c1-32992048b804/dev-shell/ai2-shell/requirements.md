@@ -3,8 +3,8 @@
 Load the `minion` skill first, then `code`, `css`, `page`, `layout`.
 
 **Read first:**
-- the owner's words, last section of `public/framework/ai/2026-09-30/dev-shell/owner-words.md`;
-- the design (picture + table), `public/framework/ai/2026-09-30/dev-shell/design-2.md`;
+- the owner's words, last section of `public/framework/ai/sessions/2026/09/30/950de3ca-bb94-45bc-81c1-32992048b804/dev-shell/owner-words.md`;
+- the design (picture + table), `public/framework/ai/sessions/2026/09/30/950de3ca-bb94-45bc-81c1-32992048b804/dev-shell/design-2.md`;
 - `public/framework/core/Shell/readme.md`. The shell with `paper: true` is the nine-grid: a white paper in the middle and a gray well around it.
 
 **Work ONLY in the worktree** `C:\Code\lew42\worktrees\dev-shell` (branch `worktree/dev-shell`). First merge `michael/dev` into it. Server: http://localhost:54678/. If it's down, start it by hand from the worktree with `PORT=54678 node Server/index.js` and `windowsHide: true`. Commit by exact path. Use headless Playwright only (global: `file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs`), never the owner's browser.

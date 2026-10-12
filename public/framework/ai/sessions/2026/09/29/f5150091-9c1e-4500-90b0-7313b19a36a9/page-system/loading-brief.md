@@ -1,6 +1,6 @@
 # Minion brief: the loading algorithm, documented on core/Page
 
-Load the `minion` skill first, then `documentation`, `page`, `content`. Task dir (the whole conversation, the owner's raw words): `public/framework/ai/2026-09-29/page-system/`. Your source is `loading-study.md` there, sections 1 and 2. It quotes the owner verbatim; re-check any file:line it gives before you copy it.
+Load the `minion` skill first, then `documentation`, `page`, `content`. Task dir (the whole conversation, the owner's raw words): `public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/`. Your source is `loading-study.md` there, sections 1 and 2. It quotes the owner verbatim; re-check any file:line it gives before you copy it.
 
 The owner: "make sure we, in the documentation for the page, are making it clear how that loading algorithm works because that's foundational to understanding what goes where." And: "let's kind of compare the two [page.js and page.jsonl]. Anything that could be ported over to the JSON L system might be better … we might need the page.js system, so we don't want to get rid of it just yet."
 

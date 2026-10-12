@@ -15,7 +15,7 @@ import { JSONL } from "../../../ext/JSONL/JSONL.js";
  * (2026-09-19, the owner, on seeing the same cards twice in two shapes: "I
  * think we might actually want a timeline, a joint timeline.")
  *
- * The DATA moved on 2026-09-19 (`ai/2026-09-19/v3-data/`): it used to live
+ * The DATA moved on 2026-09-19 (`ai/sessions/2026/09/19/v3-data/`): it used to live
  * inside this template dir (`./board.jsonl`), which is exactly the "data
  * saved inside a version dir" the owner objected to. It now lives at
  * `ai/board.jsonl`, next to `handover.md` and `usage.jsonl` — version-
@@ -26,7 +26,7 @@ import { JSONL } from "../../../ext/JSONL/JSONL.js";
  * name that actually answers "where is the file": resolved once, here, so a
  * reader (`page.js`, `dev/DevBar/says.js`) never hard-codes the path itself.
  *
- * `VERDICTS_URL` (`ai/2026-09-19/inbox-zero/`) follows the exact same rule,
+ * `VERDICTS_URL` (`ai/sessions/2026/09/19/inbox-zero/`) follows the exact same rule,
  * for the exact same reason — the owner, verbatim: "the data should not be
  * saved in the ai/v/3/ dir... the actual ai tasks and whatnot is template
  * (v3) agnostic, and should be stored like the rest." A verdict judges a

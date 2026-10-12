@@ -26,7 +26,7 @@ in `GET /agents`; log the PIDs). Never `cmd /c start`.
 4. **The v/3 deep link double-mounts** (`board-from-events` log line 18: `/framework/ai/v/3/`
    renders `.v3` twice — the ai catalog draws v3 as its default-child preview AND as the
    explicit leaf; `/framework/ai/` draws it once). Find the smallest fix in
-   `public/framework/ai/page.js` or `v/3/page.js` (read `ai/2026-09-21/ai-front/` for how V3
+   `public/framework/ai/page.js` or `v/3/page.js` (read `ai/sessions/2026/09/21/ai-front/` for how V3
    became the front door) so both URLs mount once; prove `document.querySelectorAll('.v3').length`
    is 1 on both, headless on 8097, and that the Days default, the Agents strip and the Prompts
    view still work (three screenshots into `shots/`). Behind the reload hold.

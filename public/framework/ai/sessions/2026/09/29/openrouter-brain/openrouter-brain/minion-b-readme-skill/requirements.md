@@ -1,7 +1,7 @@
 # Minion B — readme.md (the iceberg), the skill, decisions/ stub
 
 Task dir (read the whole conversation there, not just this file):
-`public/framework/ai/2026-09-29/openrouter-brain/`
+`public/framework/ai/sessions/2026/09/29/openrouter-brain/openrouter-brain/`
 
 Load the `minion` skill first, and the `content` skill before writing any of the prose below —
 this readme is read by both a fresh AI mastermind and the owner, and it must fit one screen.
@@ -13,8 +13,8 @@ become the expert on our OpenRouter/harness system. You own its front door (`rea
 skill that points to it, and a stub for the not-yet-built decisions log.
 
 Read first, for the content:
-- `public/framework/ai/2026-09-28/harness-research/plan.md` (the build order, six steps)
-- `public/framework/ai/2026-09-28/harness-research/architect-review.md` (the corrections)
+- `public/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/plan.md` (the build order, six steps)
+- `public/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/architect-review.md` (the corrections)
 - `public/framework/research/harness/research.jsonl` lines 1–8 (the eight original questions) and
   the last three `{"verdict"...}`/`{"assign":{"status":"closed",...}}` lines (the closing summary
   — read the end of the file, not just the start)

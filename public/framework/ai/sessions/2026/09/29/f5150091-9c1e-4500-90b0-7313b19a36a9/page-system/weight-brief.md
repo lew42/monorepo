@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `code`, `page`, `new-page`, `content`. Program card dir: `public/framework/ai/2026/09/29/the-page-system-layout-navigation-new-pa/`.
 
-## The owner's words (the last third of `public/framework/ai/2026-09-29/file-system/owner-words.md`, read it all)
+## The owner's words (the last third of `public/framework/ai/sessions/2026/09/29/file-system/file-system/owner-words.md`, read it all)
 
 > "maybe we need a familiarity score for different ... pages ... Or maybe it's just a weight. ... the familiarity slash confidence slash stability slash all the things ... let's create a weight system for pages ... create a minion to design a uh, weight per page. Let's just call it weight. ... it might be a multi-use thing ... depending on what type of page it is ... one is the default ... it's a multiplier or it could be a multiplier. I mean, they could be added up ... increase that if it becomes heavier and decrease it if you want it to diminish its effect ... The weight could be computed dynamically from the number of ... references. So the way that would work is that whenever you reference a page, you add a log item to that page that says, you know, referenced by, and then a link to the other page. And so each page knows where it's being referenced from. And then you can just total up the number of references and boom, you have a ... first rough dynamic. Now we might want to like manually adjust weights where we add 10 to, you know, important things. And ... if something becomes ultra important, it becomes 20 or 50 ... let's get that going."
 

@@ -15,7 +15,7 @@ name ending in `.localhost`. A phone opening this site by its LAN address — so
 like `http://10.0.0.135:3104` — is on NONE of those, so the browser makes
 `navigator.mediaDevices` simply not exist, silently. That is exactly what caused the
 owner's bug: the "listening" sound played, but nothing was really listening, and no
-error explained why (traced and fixed in `ai/2026-09-29/mobile-nav/` — see this
+error explained why (traced and fixed in `ai/sessions/2026/09/29/mobile-nav/mobile-nav/` — see this
 module's own `Dictate.js`, `insecure_context_message()`). Getting an address the phone's
 browser will call secure is the only real fix; nothing in the app's own code can work
 around a rule the browser enforces before any of this app's code even runs.

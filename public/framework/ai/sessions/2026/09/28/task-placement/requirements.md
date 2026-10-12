@@ -1,6 +1,6 @@
 # Tasks live in the folder of the page they're about
 
-**Decision (mastermind-servex-3, 2026-09-28):** ai2-lead-2's [proposal](/framework/ai/2026-09-28/ai2-real-pages/proposal-tasks.md) is accepted with one change. The folder is `ai/`, not `tasks/`: `<page folder>/ai/<date>-<slug>/task.jsonl`. The dev bar's Ask threads and the drawer's Sessions tab already live in `<page>/ai/`, and a task is a session with a brief, so one folder per page holds both. That keeps the folders as clean as the owner asked (the owner's words: card `2026/09/28/inbox-rows-are-the-real-pages-page-class`, "Continued (about 3:10 PM)").
+**Decision (mastermind-servex-3, 2026-09-28):** ai2-lead-2's [proposal](/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-real-pages/proposal-tasks.md) is accepted with one change. The folder is `ai/`, not `tasks/`: `<page folder>/ai/<date>-<slug>/task.jsonl`. The dev bar's Ask threads and the drawer's Sessions tab already live in `<page>/ai/`, and a task is a session with a brief, so one folder per page holds both. That keeps the folders as clean as the owner asked (the owner's words: card `2026/09/28/inbox-rows-are-the-real-pages-page-class`, "Continued (about 3:10 PM)").
 
 ```
 core/Page/

@@ -1,7 +1,7 @@
 # AI 2 Inbox: six fixes — minion brief
 
-Load the `minion` skill first. Your task dir: `public/framework/ai/2026-09-30/ai2-inbox-read/minion-ai2-inbox/`.
-Parent task: `public/framework/ai/2026-09-30/ai2-inbox-read/`. Read its `requirements.md` and
+Load the `minion` skill first. Your task dir: `public/framework/ai/sessions/2026/09/30/7a3b3d84-aba3-48dc-9497-28c268a6646b/ai2-inbox-read/minion-ai2-inbox/`.
+Parent task: `public/framework/ai/sessions/2026/09/30/7a3b3d84-aba3-48dc-9497-28c268a6646b/ai2-inbox-read/`. Read its `requirements.md` and
 `owner-words.md` (the owner's raw dictation) before you start — this brief is the breakdown, not
 a replacement for the owner's own words.
 

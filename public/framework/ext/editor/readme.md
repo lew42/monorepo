@@ -25,4 +25,4 @@ workspace({ saver: panels, templates: REGIONS, seed });              // five reg
 - [`doc/shell.md`](./doc/shell.md) — why the shell is a panel workspace with a workspace-local `T` vocabulary
 - `doc/method/`, `doc/property/`, `doc/file/` — History's API and per-file notes the overview renders
 - Files that matter: `page.js` (widget and page), `blocks.js` (the palette), `History.js` (undo snapshots), `editor.css` (regions, nodes)
-- Ranked ledger with ext/Panel: [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/)
+- Ranked ledger with ext/Panel: [Editor × Panel review](/framework/ai/sessions/2026/08/14/editor-panel-review/)

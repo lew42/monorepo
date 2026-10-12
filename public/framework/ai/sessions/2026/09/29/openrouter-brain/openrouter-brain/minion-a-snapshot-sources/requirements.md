@@ -1,7 +1,7 @@
 # Minion A — snapshot.md + sources/readme.md + the missing source
 
 Task dir (read the whole conversation there, not just this file):
-`public/framework/ai/2026-09-29/openrouter-brain/`
+`public/framework/ai/sessions/2026/09/29/openrouter-brain/openrouter-brain/`
 
 Load the `minion` skill first.
 
@@ -16,8 +16,8 @@ with citations and a confidence. You own two of its files plus one missing sourc
 The condensed state a fresh mastermind starts from. Build it from:
 - `public/framework/research/harness/research.jsonl` (203 lines — the full research log: questions,
   claims, support/dissent, votes, verdicts, closing summary at the last two `assign` lines)
-- `public/framework/ai/2026-09-28/harness-research/plan.md` (the build order, already reviewed)
-- `public/framework/ai/2026-09-28/harness-research/architect-review.md` (corrections folded into the plan)
+- `public/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/plan.md` (the build order, already reviewed)
+- `public/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/architect-review.md` (corrections folded into the plan)
 
 **Shape:** one line per conclusion. Every conclusion carries:
 - the claim, in plain words

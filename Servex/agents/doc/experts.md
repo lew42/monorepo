@@ -53,7 +53,7 @@ the CALLER's own context in one call — heavier than the owner's "iceberg" rule
 front, the rest on demand) — so it is worth that cost only when the caller is about to become
 the expert itself, not for a single question.
 
-[Cited: proof.md's four-way table](/framework/ai/2026-09-29/module-experts/proof.md) — fork
+[Cited: proof.md's four-way table](/framework/ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/proof.md) — fork
 $0.032/question vs `load_module` $0.196/question vs a preloaded prompt $0.381/question vs a
 cold agent $0.156/question, all scored blind by the same judge.
 
@@ -70,7 +70,7 @@ changes, or the recipe grows a file, the row reads **stale** and the next `ask` 
 - **The root readme does not land in a checkpoint twice.** `build()`'s spawn names no `task` or
   `page`, so `Agents.js`'s own chain-prepend (`directory_of(spec)`) never fires for it — the
   readme chain reaches the checkpoint exactly once, from `format()`'s own "Where it sits"
-  section. Proof, no model call: [`item8-no-double-chain.mjs`](/framework/ai/2026-09-29/module-experts/).
+  section. Proof, no model call: [`item8-no-double-chain.mjs`](/framework/ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/).
 
 - **The cache needs the same posture.** A fork copies the row's model, effort, cwd, permission mode and
   `setting_sources: []` exactly; a different model is a different checkpoint (so `deep` has its own).
@@ -93,6 +93,6 @@ changes, or the recipe grows a file, the row reads **stale** and the next `ask` 
 The checkpoint costs about $0.32–0.45 once. A preload cannot cache across sessions (the question shares
 its message with the bundle), so it pays the whole bundle every time; a fork does not.
 
-[The four-way proof](/framework/ai/2026-09-29/module-experts/proof.md) — fork vs `load_module` vs a
+[The four-way proof](/framework/ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/proof.md) — fork vs `load_module` vs a
 preloaded prompt vs a cold agent, five page questions, a blind Opus judge. Run it:
 `node Servex/agents/experts-proof.mjs` (private host, own index in the temp dir).

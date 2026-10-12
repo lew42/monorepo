@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `code`, `css`, `page`.
 
-**Read first:** the owner's words, last section of `public/framework/ai/2026-09-30/dev-shell/owner-words.md`. The agreed design (picture + table) is `public/framework/ai/2026-09-30/dev-shell/design-2.md`; follow it. The "before" screenshots of AI 2 are in this folder: `1920.png`, `1920-drawer.png`, `400.png`, `400-drawer.png`.
+**Read first:** the owner's words, last section of `public/framework/ai/sessions/2026/09/30/950de3ca-bb94-45bc-81c1-32992048b804/dev-shell/owner-words.md`. The agreed design (picture + table) is `public/framework/ai/sessions/2026/09/30/950de3ca-bb94-45bc-81c1-32992048b804/dev-shell/design-2.md`; follow it. The "before" screenshots of AI 2 are in this folder: `1920.png`, `1920-drawer.png`, `400.png`, `400-drawer.png`.
 
 **Work ONLY in the worktree** `C:\Code\lew42\worktrees\dev-shell` (branch `worktree/dev-shell`). Start its server with `node Server/worktree-up.mjs dev-shell` from the main tree if http://localhost:54678/ does not answer. Commit there by exact path after each merge-sized piece. Never touch the main tree. Set `windowsHide: true` on anything you spawn. Headless Playwright only (global install: `file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs`); never drive the owner's browser.
 

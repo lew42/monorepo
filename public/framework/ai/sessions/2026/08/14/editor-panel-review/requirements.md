@@ -30,7 +30,7 @@
 
 ## Files owned by this task
 
-- `public/framework/ai/2026-08-14/editor-panel-review/**` (page, log, brief)
+- `public/framework/ai/sessions/2026/08/14/editor-panel-review/**` (page, log, brief)
 - `public/framework/ai/2026-08-14/page.js` (declare the slug)
 - `.claude/skills/new-task/SKILL.md` (the linking rule)
 - Link lines only in `ext/editor/page.js`, `ext/Panel/page.js`.

@@ -1,7 +1,7 @@
 # Hidden windows — build the catcher (minion brief)
 
 Load the `minion` skill first. Task directory (read it all — the reproductions already tried,
-what worked, what didn't): `public/framework/ai/2026-09-28/hidden-windows/`.
+what worked, what didn't): `public/framework/ai/sessions/2026/09/28/b42621ed-33f7-41f0-b19b-12c679306b9a/hidden-windows/`.
 
 ## Why
 

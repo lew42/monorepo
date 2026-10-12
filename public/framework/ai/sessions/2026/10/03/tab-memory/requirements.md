@@ -3,7 +3,7 @@
 ## The ask (owner's words, 2026-10-03, dictated, follow-on to the console-clean task)
 > Follow-on to the soak test (owner wants long-running tabs never to reach GB size, for our
 > site and any future client app). Whatever the soak finds, write the next task's brief at
-> ai/2026-10-03/tab-memory/requirements.md, in this order: (1) bounded memory: every live
+> ai/sessions/2026/10/03/tab-memory/requirements.md, in this order: (1) bounded memory: every live
 > list/tail keeps at most N items in memory and DOM (older ones reload from the file on
 > scroll); (2) a hidden tab pauses its tails (close the socket subscription on
 > visibilitychange→hidden, catch up from the last line on visible); (3) a safety net in one
@@ -18,7 +18,7 @@ just JS heap; something OS-level, likely GPU/compositor layers from an ever-grow
 also piling up).
 
 ## What the console-clean task's soak test found (read this first)
-`public/framework/ai/2026-10-03/console-clean/task.jsonl` has the full log. The headless soak
+`public/framework/ai/sessions/2026/10/03/8261071d-a510-4b6b-a3b2-07c3ceca36ac/console-clean/task.jsonl` has the full log. The headless soak
 (`/framework/ai/live/`, Playwright, `performance.memory` + DOM node count, sampled every 5
 minutes) found **steady, unbounded growth while nothing else was happening** — no owner
 interaction, just the page's own streams (sockets, tails) running:
@@ -95,7 +95,7 @@ interaction, just the page's own streams (sockets, tails) running:
      open through a smoke run).
 
 ## Read first
-- `public/framework/ai/2026-10-03/console-clean/task.jsonl` — the soak test's exact numbers and method (reuse the same headless-soak script rather than re-deriving one; it's referenced there, scratchpad-only, so recreate it from the log's description if the original is gone).
+- `public/framework/ai/sessions/2026/10/03/8261071d-a510-4b6b-a3b2-07c3ceca36ac/console-clean/task.jsonl` — the soak test's exact numbers and method (reuse the same headless-soak script rather than re-deriving one; it's referenced there, scratchpad-only, so recreate it from the log's description if the original is gone).
 - `core/Item/Store.js`, `core/List/List.js` — the tail/list machinery this task extends, not replaces.
 - `core/Page/Markdown.js`'s `budget`/two-step-paint pattern, `ext/files` — existing "don't load everything at once" prior art.
 

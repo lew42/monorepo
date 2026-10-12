@@ -11,7 +11,7 @@ What landed, in numbers: **33 lines into `Page.class.js`, 8 of them code** (820 
 636 → 615, [JSON pages](/imagine/cms/json/) 93 → 62). The 18 urls named below answered
 identically before and after — same titles, same link sets, same page counts — and a cold
 deep url into each tree, cache disabled, drew with no *"Chaining cycle detected for promise"*.
-The change is additive, so it is one revert away. Task: `ai/2026-09-17/core-data-children/`.
+The change is additive, so it is one revert away. Task: `ai/sessions/2026/09/17/core-data-children/`.
 
 Everything below is the proposal as it was written, kept as the reasoning.
 

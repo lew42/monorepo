@@ -1,8 +1,8 @@
 # Minion: name what emptied node_modules at 13:46 on 2026-09-29
 
-Load the `minion` skill first. Parent task: `public/framework/ai/2026-09-29/node-modules-guard/` — read its `requirements.md` (the owner's brief, verbatim) start to finish; the "Already found" paragraph lists every suspect and every evidence source.
+Load the `minion` skill first. Parent task: `public/framework/ai/sessions/2026/09/29/8e50318b-7bf9-4e51-bedd-b91580b96caa/node-modules-guard/` — read its `requirements.md` (the owner's brief, verbatim) start to finish; the "Already found" paragraph lists every suspect and every evidence source.
 
-**Read-only investigation. You edit nothing in the repo except files inside `public/framework/ai/2026-09-29/node-modules-guard/cause/`.** Never run npm, git worktree remove, rm, or anything that writes, in any tree. Scratch goes in your session scratchpad.
+**Read-only investigation. You edit nothing in the repo except files inside `public/framework/ai/sessions/2026/09/29/8e50318b-7bf9-4e51-bedd-b91580b96caa/node-modules-guard/cause/`.** Never run npm, git worktree remove, rm, or anything that writes, in any tree. Scratch goes in your session scratchpad.
 
 ## Deliver
 1. `cause/cause.md`: the cause named at file:line plus the exact command that ran, with the evidence quoted (log line, reflog entry, mtime, task.jsonl line, each with its path). If not provable, rank every suspect from the brief with a credence (0–1) and the one fact that raised or lowered it. Top: one screen, plain sentences. A timeline table 13:30–15:30 (time · what · source).

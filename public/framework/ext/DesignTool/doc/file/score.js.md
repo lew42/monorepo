@@ -10,8 +10,8 @@ out ***anti*-correlated with how pages look** — Pearson −0.393, and against 
 count Spearman −0.519 — because it counted findings and findings scale with content,
 so it **rewarded emptiness**: grade A / 96 to the worst-looking page in the corpus,
 its single lowest score to the best, and never a reading below 70 across a 36-point
-reality. Evidence: [vision-baseline](/framework/ai/2026-08-17/vision-baseline/); the
-removal: [tier-calibration](/framework/ai/2026-08-17/tier-calibration/).
+reality. Evidence: [vision-baseline](/framework/ai/sessions/2026/08/17/vision-baseline/); the
+removal: [tier-calibration](/framework/ai/sessions/2026/08/17/tier-calibration/).
 
 **Every rule survived. Only the average did not** — the same rules found the catalog
 scroll boundary that was hiding content on 18 pages, and a rule that finds real

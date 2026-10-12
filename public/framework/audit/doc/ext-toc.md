@@ -16,7 +16,7 @@ paragraph in a readme.
 |---|---|
 | files | 4 (`toc.js`, `toc.css`, `page.js`, `readme.md`) |
 | lines of JS / CSS | 121 / 71 |
-| callers | 20 call `toc()` (listed in `readme.md`'s new "Who calls it"); 2 more use only the `.toc-skip` opt-out (`framework/stats.js`, `framework/ai/2026-08-12/stage/page.js`) |
+| callers | 20 call `toc()` (listed in `readme.md`'s new "Who calls it"); 2 more use only the `.toc-skip` opt-out (`framework/stats.js`, `framework/ai/sessions/2026/08/12/stage/page.js`) |
 | docs before | `readme.md` already a full, accurate design record (Decisions/Traps/Open) but zero conceptual-overview line, zero `doc/*.md`; `page.js` a plain `Page`, not a `Doc` (no Files tab); one stale link, "Next: Classdoc" |
 | docs after | `page.js` rewritten as `new Doc({ notes: "skip-list", files: "toc.js toc.css page.js readme.md" })`; `doc/skip-list.md` (breakout of the readme's two-galleries story); 4 `doc/file/*.md`; `readme.md` gains a "Who calls it" section and a fourth Trap; stale link fixed |
 

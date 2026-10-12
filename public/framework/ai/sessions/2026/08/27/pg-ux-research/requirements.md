@@ -27,7 +27,7 @@ You are the researcher. A sibling agent (`pg-interactions`) is EDITING `canvas.j
   `eval import('/framework/ext/Playground/page.js').then(m => (window.pg = m.default.tool).swap('pgmm-ux').then(() => window.pg.slug))`
   (verified recipe; one console 404 on first swap is by-design). Build fixtures via `eval` on `window.pg` (`add_to`/`convert`/`selected_item().set(...)`). NEVER gesture on `untitled` or any owner doc; end plans with `eval window.pg.delete_current()`.
 - Known traps (skill's own list): ancestor-`:hover`-revealed elements refuse `click` — hover ancestor then coordinate `move/down/up`, aim leaf-shallow; quote selectors containing spaces; hidden tabs don't lay out (irrelevant headless — drive.mjs tabs are visible to themselves).
-- Fence: READ-ONLY on `public/framework/ext/Playground/` and everything else under `public/` except your own task dir `public/framework/ai/2026-08-27/pg-ux-research/`. Writable: that dir, `.claude/skills/ui-test/improvements.md`, scratchpad (prefix `pgux-`).
+- Fence: READ-ONLY on `public/framework/ext/Playground/` and everything else under `public/` except your own task dir `public/framework/ai/sessions/2026/08/27/pg-ux-research/`. Writable: that dir, `.claude/skills/ui-test/improvements.md`, scratchpad (prefix `pgux-`).
 - Never kill or restart the dev server; never drive the owner's live tabs; never `git stash`; never commit.
 - Task dir exists with this brief — open `task.jsonl` per the `new-task` skill (skip dir creation; `group: "web-ui"`).
 - Ask for two numbers that must agree: your click table's "current" column re-counted by actually DRIVING one of the five layouts end-to-end (screenshot the finished layout) — the driven count must equal the counted count, or the table is wrong.

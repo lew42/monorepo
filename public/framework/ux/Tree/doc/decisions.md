@@ -1,7 +1,7 @@
 # Tree — decisions
 
 Landed 2026-08-21, the first `ux/`. Task log:
-[`ai/2026-08-21/ux-tree/`](/framework/ai/2026-08-21/ux-tree/).
+[`ai/sessions/2026/08/21/ux-tree/`](/framework/ai/sessions/2026/08/21/ux-tree/).
 
 ## What the listeners actually were
 
@@ -109,7 +109,7 @@ tiers read the same tokens, so a config word re-skins either one.
 
 The design above held: `class TreeDrag extends Tree`, one static replaced
 (`TreeDrag.Row`), zero changes to `Tree.js` or `TreeKeys.js`. Task log:
-[`ai/2026-08-21/ux-treedrag/`](/framework/ai/2026-08-21/ux-treedrag/).
+[`ai/sessions/2026/08/21/ux-treedrag/`](/framework/ai/sessions/2026/08/21/ux-treedrag/).
 
 **Reuse call — `ext/Draggable`'s `Sortable`, extended, not hand-rolled.** Kept whole:
 pointer capture, the ghost, the placeholder, Escape-cancels, and the `.drag-source`
@@ -149,7 +149,7 @@ rows-in-DOM-order for free. That is the one piece of `Tree`'s "state on the inst
 never on the node" design (above) that a mutating extension pays for and a read-only
 one (`TreeKeys`) does not.
 
-Proved headless (`ai/2026-08-21/ux-treedrag/`, screenshots in the same dir): drop onto a
+Proved headless (`ai/sessions/2026/08/21/ux-treedrag/`, screenshots in the same dir): drop onto a
 folder appends inside (`drag-into-*.png`), drop between two siblings reorders with the
 insertion line visible mid-drag (`drag-between-*.png`), Escape mid-drag leaves the tree
 byte-identical (`drag-escape-*.png`), and the printed `moved()` payload matched every
@@ -160,7 +160,7 @@ zero non-LiveReload console errors, one Enter-selects proof on `/keys/` still pa
 
 # The merge — one tree (2026-09-17)
 
-Task log: [`ai/2026-09-17/tree-component/`](/framework/ai/2026-09-17/tree-component/).
+Task log: [`ai/sessions/2026/09/17/tree-component/`](/framework/ai/sessions/2026/09/17/tree-component/).
 **Everything above this line is the record as it was written, and three of its claims are
 now superseded — each one is named below.**
 
@@ -310,7 +310,7 @@ errors, every href row an anchor, every href-less branch still a `<div>`).
 
 ## Three fixes left by yesterday's landings (2026-09-18)
 
-`tree-fixes` (`ai/2026-09-18/tree-fixes/`). All three were found and worked around by
+`tree-fixes` (`ai/sessions/2026/09/18/tree-fixes/`). All three were found and worked around by
 other tasks that could not edit this module — fixed here, at the source, so nothing has
 to work around them any more.
 

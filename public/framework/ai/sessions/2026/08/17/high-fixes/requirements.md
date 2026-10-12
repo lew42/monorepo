@@ -87,7 +87,7 @@ and a fix aimed at 3440 that cramps 1280 is not a fix.
 ## Files you own
 
 - The `page.js` / `.css` of the six urls above and the modules they belong to.
-- `public/framework/ai/2026-08-17/high-fixes/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/high-fixes/**` — your task dir.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 

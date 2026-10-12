@@ -34,7 +34,7 @@ The site is native ESM, no bundler. Say plainly, with a demo page in your task d
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/reload-hold/`); `code`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/reload-hold/`); `code`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `Server/hold.mjs` (new), `Server/plugins/SocketServer/LiveReload.js`, `Server/doc/watch.md` + `Server/README.md` (a paragraph), `.gitignore` (one line), the LiveReload CLIENT file (find it; CSS hot swap + the `hold` rpc), `public/framework/dev/DevBar/hold.js` (new) and ONE line in `DevBar.js` per step 4, `.claude/skills/minion/SKILL.md` (one paragraph), your task dir. Not `Server/run.js`, not `Server/plugins/AILogs.js`, not `Server/plugins/Whisper.js` (siblings hold them), not `CLAUDE.md`, not `.claude/hooks/**`.
 - **Never kill or restart the owner's dev server (port 80, PID 31028) or the mastermind's (8123 — it is supervised and WILL restart its child when you save a `Server/` file; make every save parseable and bootable), never stop whisper-server (PID 35172), never drive the owner's tabs.** Never `git stash`, never `find /`. Write files with the Write or Edit tool, never a bash heredoc. Do not write the owner's name anywhere.
 - Landing `outcome`: one screen — the three commands, the proofs as counts of `load` events, the CLAUDE.md lines you propose, what hot reloading can and cannot do here in three sentences, what was left and why.

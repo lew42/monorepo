@@ -1,7 +1,7 @@
 import { Doc, md, h2, div, span, ui } from "/app.js";
 
 /* Read only. The four numbers and the raw evidence come from
-   public/framework/ai/2026-09-29/lifecycle/study/count.mjs, which walks the live
+   public/framework/ai/sessions/2026/09/29/3c88ad4d-b2e6-4899-b5c4-fbca0e2674e2/lifecycle/study/count.mjs, which walks the live
    process list, the worktree registry and the Servex agent registry — nothing here
    re-counts anything. `data.json` is a copy of that script's `counts.json`, taken at
    the moment this page's data was last refreshed; how each number is counted is in
@@ -64,7 +64,7 @@ export default new Doc({
 		// sit side by side at 1920/3440 (core/Page/doc/css.md: say `.c("wide")` on
 		// that one call and the cap stands down).
 		return load().then(data => div.c("flow wide", () => {
-			if (!data) { md("*data.json did not load — run `node public/framework/ai/2026-09-29/lifecycle/study/count.mjs` from the repo root and copy counts.json here as data.json.*"); return; }
+			if (!data) { md("*data.json did not load — run `node public/framework/ai/sessions/2026/09/29/3c88ad4d-b2e6-4899-b5c4-fbca0e2674e2/lifecycle/study/count.mjs` from the repo root and copy counts.json here as data.json.*"); return; }
 
 			const c = data.counts;
 
@@ -103,7 +103,7 @@ export default new Doc({
 				md(`The \`page.jsonl\` dirt-check fix (excluding it from \`Pool.js\`'s \`dirt()\` walk) is the owner's decision to make (\`Servex/doc/lifecycle.md\`).`);
 			}
 
-			md("Raw data and the counting script: [`ai/2026-09-29/lifecycle/study/`](/framework/ai/2026-09-29/lifecycle/study/count.mjs).");
+			md("Raw data and the counting script: [`ai/sessions/2026/09/29/3c88ad4d-b2e6-4899-b5c4-fbca0e2674e2/lifecycle/study/`](/framework/ai/sessions/2026/09/29/3c88ad4d-b2e6-4899-b5c4-fbca0e2674e2/lifecycle/study/count.mjs).");
 		}));
 	},
 });

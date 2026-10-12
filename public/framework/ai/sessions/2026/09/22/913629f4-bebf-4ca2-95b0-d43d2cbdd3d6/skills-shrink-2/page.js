@@ -1,7 +1,7 @@
 import { Page, md, div, p, span, b, a } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-22/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/22/'s board — the ordinary
                 page grid. Prose sits in main at --measure; the three numbers,
                 the table and the decision cards claim wide.
    2 SIZE       everything wide is capped at 54em and left-aligned on the prose
@@ -98,7 +98,7 @@ export default new Page({
 
 		this.proof();
 
-		p.c("muted", "Written 2026-09-22 as phase-2 item 10 of ", a("the agent system design").href("../tiers-design/"), ", applying changes 1, 2, 4 and 5 of ", a("the 2026-09-19 skill audit").href("/framework/ai/2026-09-19/system-eval/"), ". The measurement script is ", a("load-count.mjs").href("load-count.mjs"), "; every measurement is in this task's log.");
+		p.c("muted", "Written 2026-09-22 as phase-2 item 10 of ", a("the agent system design").href("../tiers-design/"), ", applying changes 1, 2, 4 and 5 of ", a("the 2026-09-19 skill audit").href("/framework/ai/sessions/2026/09/19/system-eval/"), ". The measurement script is ", a("load-count.mjs").href("load-count.mjs"), "; every measurement is in this task's log.");
 	},
 
 	/* The page's one picture: three numbers, biggest first. */

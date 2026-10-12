@@ -36,7 +36,7 @@ one of its own.
   other.
 - **`export { A, B } from "./x.js"` is a pass-through, not a binding** — it publishes the names
   without putting them in the module's OWN scope, so code in the same file reading `A` throws `A
-  is not defined` at import time ([graduate-3](/framework/ai/2026-09-06/graduate-3/)).
+  is not defined` at import time ([graduate-3](/framework/ai/sessions/2026/09/06/graduate-3/)).
 
 ## The ambient captor
 
@@ -50,15 +50,15 @@ throws. This family has cost more retries than any other here.
   never an expression, unless you mean to append what it returns.
 - **A factory called as a BARE STATEMENT outside any capture callback** appends into whatever
   captor is left over from wherever the code last ran; one specimen rendered the literal text
-  `"() => $grip"` ([devbar-chat](/framework/ai/2026-09-19/devbar-chat/)).
+  `"() => $grip"` ([devbar-chat](/framework/ai/sessions/2026/09/19/devbar-chat/)).
 - **Passing the captor view you are already inside as an ARGUMENT to a sibling factory**
   (`h2($c, card.title)`) throws `The new child element contains the parent`. Call factories bare
   inside a capture callback and only READ the callback parameter
-  ([card-replies](/framework/ai/2026-09-19/card-replies/)).
+  ([card-replies](/framework/ai/sessions/2026/09/19/card-replies/)).
 - **`$row = div.c("x").append(() => acts($row))` runs the callback SYNCHRONOUSLY** inside the
   statement being assigned, so the closure reads `undefined`. Take the view from the callback
   (`.append($r => …)`), never from the variable that same statement is assigning
-  ([page-cms](/framework/ai/2026-09-13/page-cms/)).
+  ([page-cms](/framework/ai/sessions/2026/09/13/page-cms/)).
 - **`.append(fn)` calls `fn.call(this, this)`** — a bare reference gets the View as its FIRST
   argument. Pass `() => fn(args)` to anything that takes parameters.
 - **`View.style(obj, callback)` silently DROPS the callback** — the second argument is not a
@@ -67,16 +67,16 @@ throws. This family has cost more retries than any other here.
   the capture form.
 - **The bare factory chains `.c()` and nothing else** — `input().attr(…)` or `input.c("x").attr(…)`,
   never `input.attr(…)`; a bare element function is not a View at all until `.c()` or a direct call
-  returns one ([imagine-research](/framework/ai/2026-09-04/imagine-research/)).
+  returns one ([imagine-research](/framework/ai/sessions/2026/09/04/imagine-research/)).
 
 ## Config fields that mean something narrower than they look
 
 Only a screenshot or a read of the rendered text catches any of them. `icon:` naming a glyph the
-icon font lacks paints an empty box ([notes-pages](/framework/ai/2026-09-06/notes-pages/)); `index:
+icon font lacks paints an empty box ([notes-pages](/framework/ai/sessions/2026/09/06/notes-pages/)); `index:
 true` means "my own `content()` already draws my children" and SUPPRESSES core's child-link list
-([pages-in-d1](/framework/ai/2026-09-17/pages-in-d1/)); `a({ href: url }, text)` does NOT set an
+([pages-in-d1](/framework/ai/sessions/2026/09/17/pages-in-d1/)); `a({ href: url }, text)` does NOT set an
 href — the object is read as a named child-view slot — use `a(text).href(url)`
-([verify-design](/framework/ai/2026-09-19/verify-design/)).
+([verify-design](/framework/ai/sessions/2026/09/19/verify-design/)).
 
 ## Timing and lifecycle
 
@@ -85,7 +85,7 @@ href — the object is read as a named child-view slot — use `a(text).href(url
   construction can fire before the framework attaches the subtree, leaving `$el.isConnected` false
   forever. Do NOT guard that first draw with `isConnected`: that guard belongs only on a later
   callback, and on the first draw it permanently blanks the honest, no-interaction case. Retry the
-  measurement across a few frames instead ([approve-any-page](/framework/ai/2026-09-18/approve-any-page/)).
+  measurement across a few frames instead ([approve-any-page](/framework/ai/sessions/2026/09/18/approve-any-page/)).
 - **An async `load_all_children()` override must keep core's own guard** — carry `if (levels <=
   this.loaded) return this;` across, or a second call reads back the promise being assigned and
   throws **"Chaining cycle detected for promise"** from the microtask queue, with no file, no line
@@ -97,7 +97,7 @@ href — the object is read as a named child-view slot — use `a(text).href(url
 - **A link carrying `#hash`/`?query` state is read wrong on a real in-app click** — `Router.go()`
   calls `pushState()` only AFTER the target module has read the OLD `location.hash`. Right on a
   direct `page.goto()`, silently wrong in the app; `target="_blank"` forces a real navigation
-  ([paging-explorer](/framework/ai/2026-09-04/paging-explorer/)).
+  ([paging-explorer](/framework/ai/sessions/2026/09/04/paging-explorer/)).
 - Mutual parent/child imports break only on deep reload — imports down, adoption for the backref.
   Resolve urls against `import.meta`; the SPA fallback makes the document url the route.
 
@@ -108,33 +108,33 @@ href — the object is read as a named child-view slot — use `a(text).href(url
   imports). If it does, load it with a dynamic `import()` inside the function that needs it. The
   cycle is invisible from the file you are editing, passes `node --check`, and throws `Cannot
   access 'Page' before initialization` on every page, so load a real page after the edit
-  ([page-system](/framework/ai/2026-09-29/page-system/)).
+  ([page-system](/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/)).
 - **A module reused across trees imports its cross-tree dependencies by ROOT-ABSOLUTE path**
   (`/framework/ext/Ask/stream.js`), never relative depth, and code built for one page is `await
   import()`ed lazily inside a `try`. `node --check` proves a file PARSES, never that its imports
   RESOLVE, and one `../` too few blanked the whole site for about 80 seconds. The reload hold does
   not cover this — it suppresses LiveReload to open tabs, not the health crawler loading a page
   fresh — so the check before a hold comes off is a real page load with zero failed requests
-  ([dashboard-next](/framework/ai/2026-09-19/dashboard-next/)).
+  ([dashboard-next](/framework/ai/sessions/2026/09/19/dashboard-next/)).
 - **Only `p()`/`h1`–`h6` read backticks, and backticks are all they read** — so `**bold**` inside a
   `p()` prints the asterisks. A backtick inside `` css(`…`) `` kills every page, usually one in a
   `/* */` comment quoting a class name, and a literal `*/` typed as PROSE closes a block comment
   the same way. `.claude/hooks/syntax-guard.mjs` blocks the write that does it
-  ([card-replies](/framework/ai/2026-09-19/card-replies/)).
+  ([card-replies](/framework/ai/sessions/2026/09/19/card-replies/)).
 - **An Edit that OPENS a capture callback must close it in the SAME Edit** — a two-step "open at
   the top, close at the bottom" leaves the file unparseable between the two calls, which on this
   no-build site is a live outage window. Build the whole span as one `old_string`/`new_string`
   pair, and import what it needs before the first of them
-  ([review-3-days](/framework/ai/2026-09-22/review-3-days/)).
+  ([review-3-days](/framework/ai/sessions/2026/09/22/session-f808e806/review-3-days/)).
 - **`View.html()` runs the browser's sanitizer and silently strips a bare `class` off an injected
   SVG child** — the rule targeting it then matches nothing and an unfilled `<path>` renders solid
   black. Raw markup the module itself wrote goes through `html_unsafe()`
-  ([background-layer](/framework/ai/2026-09-19/background-layer/)).
+  ([background-layer](/framework/ai/sessions/2026/09/19/background-layer/)).
 - **A `Server/` plugin fired from a static "new" event must never assume its own host or a sibling
   has reached `initialize()` yet** — one that read a sibling's not-yet-set state passed `node
   --check` clean and crashed the child at every boot. Boot a `Server/` edit yourself (`PORT=<yours>
   node server.js`, then curl it) before it can reach anyone else's restart
-  ([reload-hold](/framework/ai/2026-09-19/reload-hold/)).
+  ([reload-hold](/framework/ai/sessions/2026/09/19/reload-hold/)).
 - A stylesheet that 404s resolves and warns — check the console. Windows: `pkill` matches nothing.
 
 ## Layout and CSS that never throw
@@ -142,7 +142,7 @@ href — the object is read as a named child-view slot — use `a(text).href(url
 - **`flex-shrink` defaults to 1**, so a COLUMN of card-shaped flex items inside a height-capped
   ancestor squishes every card to a sliver instead of letting the ancestor's own `overflow-y: auto`
   scroll. `flex-shrink: 0` on the card by default for any flex-column card list
-  ([devbar-chat](/framework/ai/2026-09-19/devbar-chat/)).
+  ([devbar-chat](/framework/ai/sessions/2026/09/19/devbar-chat/)).
 - **`@layer util` beats `@layer theme` regardless of selector specificity** — the layer order
   decides, not the selector, so a component's `.thing[hidden] { display: none }` can never beat a
   `flex` utility class in the same markup. Stop wearing the utility class and let the component own
@@ -165,7 +165,7 @@ href — the object is read as a named child-view slot — use `a(text).href(url
   nothing, and bash eats one backslash layer, so a `"\t"` arrives as a real TAB and a `\"` lands
   raw — an edit script's own match then fails silently. Appends to a `.jsonl` go through
   `node .claude/hooks/append.mjs`, which does the same job mechanically
-  ([self-evident-critique-2](/framework/ai/2026-09-13/self-evident-critique-2/)).
+  ([self-evident-critique-2](/framework/ai/sessions/2026/09/13/self-evident-critique-2/)).
 - **`Edit`'s `old_string` must match real TAB characters, and past ~5 levels of nesting the Read
   tool cannot show you that** — its line-numbered output aligns tabs and spaces the same way, so a
   block retyped by eye silently produces a non-matching string and Edit fails with "not found" and
@@ -182,7 +182,7 @@ href — the object is read as a named child-view slot — use `a(text).href(url
   `--flag=/x` through Bash needs `MSYS_NO_PATHCONV=1` or a leading `//`. Its sibling: `rg`'s
   double-dash flags get mangled the same way and `rg` still PRINTS RESULTS from a silently
   unfiltered search rather than erroring — use the Grep tool instead
-  ([spacing-census](/framework/ai/2026-09-17/spacing-census/)).
+  ([spacing-census](/framework/ai/sessions/2026/09/17/spacing-census/)).
 - **A python one-liner that opens a file for write and reads it in the same expression empties it
   first** — `io.open(p,"w").write(io.open(p).read())` truncates on the open, so the read returns
   `""` and the file lands at zero bytes: no error, no traceback, a shell that reports success.

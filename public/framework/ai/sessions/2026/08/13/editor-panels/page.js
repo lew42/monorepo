@@ -76,6 +76,6 @@ workspace({ saver: new MemorySaver(), templates: REGIONS, seed });`);
 - **A first-ever load logs one 404** for \`/data/editor-panels.json\` before the seed is written. \`FileSaver.load()\` is a plain \`fetch\`, and \`/framework/ext/Panel/\` has had the same property since it shipped.
 - **Chrome is thick.** Every \`Panel\` draws a bar, splits included, so three bars stack above the palette. A split's bar carries only its two divide icons and a close — worth asking whether a container needs one at all.`);
 
-		md("Design record, question → options → verdict: [`ext/editor/readme.md`](/framework/ext/editor/). Brief: `framework/ai/2026-08-13/editor-panels/requirements.md`.");
+		md("Design record, question → options → verdict: [`ext/editor/readme.md`](/framework/ext/editor/). Brief: `framework/ai/sessions/2026/08/13/editor-panels/requirements.md`.");
 	},
 });

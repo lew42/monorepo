@@ -6,18 +6,18 @@
 // This is a SECOND generator writing into the SAME file as models.mjs (law 6: one models list,
 // one file) — it reads whatever models.mjs already wrote, adds/replaces only the "catalog" key,
 // and leaves "kinds"/"ladder" (the value-per-task-kind analysis) untouched. Run it again any time
-// public/framework/ai/2026-10-03/new-brain/eval-results*.json changes:
+// public/framework/ai/sessions/2026/10/04/new-brain/new-brain/eval-results*.json changes:
 //
 //   node Servex/ext/openrouter/evals/catalog.mjs
 //
-// Brief: public/framework/ai/2026-10-04/models-page/requirements.md
+// Brief: public/framework/ai/sessions/2026/10/04/models-page/models-page/requirements.md
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../../../"); // Servex/ext/openrouter/evals -> repo root
-const NEW_BRAIN = path.join(ROOT, "public/framework/ai/2026-10-03/new-brain");
+const NEW_BRAIN = path.join(ROOT, "public/framework/ai/sessions/2026/10/04/new-brain/new-brain");
 const OUT = path.join(ROOT, "public/framework/ai/system/models/models.json");
 
 function readJson(file, fallback = null){
@@ -173,6 +173,6 @@ fs.writeFileSync(OUT, JSON.stringify({
 	...prior,
 	catalog: rows,
 	catalog_generated_at: new Date().toISOString(),
-	catalog_note: "price_in/out/cache are OpenRouter's /api/v1/models catalog, $ per million tokens; Claude (direct) rows use Anthropic's own list prices (docs.claude.com, checked 2026-10-04) because OpenRouter's catalog serves a newer generation under the same short id. docs/reasoning/refine are pass-rates (0..1) from the new-brain eval (public/framework/ai/2026-10-03/new-brain/); a blank score means every call for that row failed, rather than scoring 0%. typical_minion_usd applies this week's median minion token mix (11.3M read, 99% cached, 43k written) to the model's own price. The Groq and Google AI Studio rows show OpenRouter's catalog price for that model id, not necessarily the exact price that pinned provider billed. A local model's context window is left blank — it needs a live query to the running llama-server, not done by this pass.",
+	catalog_note: "price_in/out/cache are OpenRouter's /api/v1/models catalog, $ per million tokens; Claude (direct) rows use Anthropic's own list prices (docs.claude.com, checked 2026-10-04) because OpenRouter's catalog serves a newer generation under the same short id. docs/reasoning/refine are pass-rates (0..1) from the new-brain eval (public/framework/ai/sessions/2026/10/04/new-brain/new-brain/); a blank score means every call for that row failed, rather than scoring 0%. typical_minion_usd applies this week's median minion token mix (11.3M read, 99% cached, 43k written) to the model's own price. The Groq and Google AI Studio rows show OpenRouter's catalog price for that model id, not necessarily the exact price that pinned provider billed. A local model's context window is left blank — it needs a live query to the running llama-server, not done by this pass.",
 }, null, "\t"));
 console.log("wrote", OUT, "— catalog:", rows.length, "rows");

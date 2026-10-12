@@ -88,7 +88,7 @@ on the page. Either way: say what you did and why, in one paragraph, visible on 
 - `public/framework/styles/page.js` — ONE line, the `children:` string, last, right before commit
 - `core/Page/Page.css` — ONLY the content-list row-width rules, only if your finding says to
   change them (above)
-- This brief's own directory for your log: `public/framework/ai/2026-10-03/card-measure-colors/minion-widths/task.jsonl` — open it with `new-task` style logging before your first edit if it doesn't exist (check first; it may already be a live child of the parent task).
+- This brief's own directory for your log: `public/framework/ai/sessions/2026/10/03/359a1799-85ab-4eb1-99a8-22dd16ab651a/card-measure-colors/minion-widths/task.jsonl` — open it with `new-task` style logging before your first edit if it doesn't exist (check first; it may already be a live child of the parent task).
 
 Don't touch `framework.css`, `.claude/skills/`, or anything under `minion-grounds/` — a sibling
 minion is building the colour lab in parallel and may be editing `framework.css` at the same

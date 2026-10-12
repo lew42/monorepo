@@ -1,6 +1,6 @@
 # Minion B — the dictation playground
 
-Load the `minion` skill first, then `code`, `page`, `new-page`, `css`, `new-css-class` as they apply. Parent task: `public/framework/ai/2026-09-28/dictation-playground/` (read its `requirements.md` — the numbered asks there are your acceptance test). **Read the owner's raw words in full:** `public/framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md`. Use the owner's own names: playground, audio source, raw Whisper, corrections, live, fast assistant, strike / add.
+Load the `minion` skill first, then `code`, `page`, `new-page`, `css`, `new-css-class` as they apply. Parent task: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/` (read its `requirements.md` — the numbered asks there are your acceptance test). **Read the owner's raw words in full:** `public/framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md`. Use the owner's own names: playground, audio source, raw Whisper, corrections, live, fast assistant, strike / add.
 
 ## Work in the worktree
 
@@ -28,8 +28,8 @@ Show, don't tell: the page is the widget, with at most one sentence above it.
 
 ## Prove it
 
-Headless Playwright only (`headless: true`, never a visible window, never the owner's tabs; scripts in the session scratchpad named `dp-*.mjs`). Load `http://127.0.0.1:62967/framework/ux/Dictate/` and `/framework/ux/Dictate/playground/` at 1920×1080, press ▶ Sample, and screenshot each of the three tabs mid-run and after the live fade (5 s+). Zero console errors and zero failed requests on both pages and on `/framework/ux/Dictate/demo/` (a failed request to `127.0.0.1:8090/api/tidy` is expected until Servex restarts — the fallback must handle it without a console error). Save the shots as png into `public/framework/ai/2026-09-28/dictation-playground/playground/` in the MAIN tree.
+Headless Playwright only (`headless: true`, never a visible window, never the owner's tabs; scripts in the session scratchpad named `dp-*.mjs`). Load `http://127.0.0.1:62967/framework/ux/Dictate/` and `/framework/ux/Dictate/playground/` at 1920×1080, press ▶ Sample, and screenshot each of the three tabs mid-run and after the live fade (5 s+). Zero console errors and zero failed requests on both pages and on `/framework/ux/Dictate/demo/` (a failed request to `127.0.0.1:8090/api/tidy` is expected until Servex restarts — the fallback must handle it without a console error). Save the shots as png into `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/playground/` in the MAIN tree.
 
 ## Log
 
-`public/framework/ai/2026-09-28/dictation-playground/playground/task.jsonl` in the MAIN tree (new-task shape, `group: "dictate"`, append with `node .claude/hooks/append.mjs`), steps up front, decisions as they happen. Commit in the worktree. Report back in one short message: commit hash, shot paths, anything unticked.
+`public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/playground/task.jsonl` in the MAIN tree (new-task shape, `group: "dictate"`, append with `node .claude/hooks/append.mjs`), steps up front, decisions as they happen. Commit in the worktree. Report back in one short message: commit hash, shot paths, anything unticked.

@@ -27,7 +27,7 @@ Load the `minion` skill first. Your parent is task-mastermind-inbox-ext. The car
 
 - Work in the worktree `C:/Code/lew42/worktrees/inbox-ext` (branch worktree/inbox-ext, server :51490), and commit there after each piece.
 - You may edit `public/framework/ai/overview.js`, `ai/page.js`, `ai/readme.md`, and new `ai/<tab>/page.jsonl` files. You may also edit `core/Page/settings/` only if a reader for `tab`/`weight` must live there (say why in your log).
-- Never write task-dir files on the branch: your log and shots go in the MAIN tree at `C:/Code/lew42/monorepo/public/framework/ai/2026-09-30/inbox-ext/tabs/`.
+- Never write task-dir files on the branch: your log and shots go in the MAIN tree at `C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/30/inbox-ext/tabs/`.
 - Use headless Playwright only. Give every process windowsHide. Don't link node_modules. Stop any server you start other than :51490.
 
 ## Report

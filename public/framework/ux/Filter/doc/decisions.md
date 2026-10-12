@@ -101,9 +101,9 @@ three, and a lighter page loads faster for every reader after this one).
 
 ## 2026-09-18 — the first real consumer, `segments: []`, and Escape
 
-`core/Sidebar` (`ai/2026-09-18/sidebar-filter/`) is this class's first production caller —
+`core/Sidebar` (`ai/sessions/2026/09/18/sidebar-filter/`) is this class's first production caller —
 151 lines and zero callers before today, exactly the flag the overlap study named it as
-(`ai/2026-09-18/overlap-study/overlap.md`, `overlap-filter-into-sidebar`). Composed, not
+(`ai/sessions/2026/09/18/overlap-study/overlap.md`, `overlap-filter-into-sidebar`). Composed, not
 rewritten, per that task's brief: `segments: []` with the default `all`/`active` left alone
 is enough to make it search-only (`active === all` never stops being true when nothing ever
 calls `set()`), so no change was needed here to support a caller with one fact instead of

@@ -1,6 +1,6 @@
 # Minion brief: the session knows where the owner is (merge 3), then one page shows every surface (merge 4)
 
-Load the `minion` skill first, then `code`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/2026-09-30/one-dictation/`. Read `owner-words.md` and `requirements.md` there first.
+Load the `minion` skill first, then `code`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/`. Read `owner-words.md` and `requirements.md` there first.
 
 ## Where it stands
 All four surfaces (the ✦ phone sheet, the ☰ drawer's AI tab, the AI 2 card sidebar and the Live card, and the dev bar) mount [`ux/Dictate/chat.js`](/framework/ux/Dictate/)'s `chat(el, {path, card})` on one global fast/smart session (merges 5ccef5eb and a77bb94e).

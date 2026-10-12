@@ -6,8 +6,8 @@
 // EVERY Servex call is stubbed (page.route on 127.0.0.1:8090) — nothing here ever reaches
 // the real Servex, so nothing is ever posted as the owner (`minion` skill, rule 8).
 //
-//   node public/framework/ai/2026-09-30/one-dictation/minion-chatjoin/proof.mjs
-import { browser as shared_browser, close as close_browser } from "../../../../../../Server/browser.mjs";
+//   node public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-chatjoin/proof.mjs
+import { browser as shared_browser, close as close_browser } from "../../../../../../../../../../Server/browser.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,7 +22,7 @@ const results = [];
 const log = (name, ok, detail = "") => { results.push({ name, ok: !!ok, detail }); console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? "  — " + detail : ""}`); };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-const FILE = "/framework/ai/2026-09-30/one-dictation/minion-chatjoin/proof.jsonl";
+const FILE = "/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-chatjoin/proof.jsonl";
 
 /** Every request to the real Servex (127.0.0.1:8090) is answered here instead — a fake
  *  session, a fake "ok" on every `say`/log post, an empty event stream. Nothing a real
@@ -42,9 +42,9 @@ async function stub_servex(page, into){
 		if (req.method() === "OPTIONS")
 			return route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" } });
 		if (/\/api\/sessions\?/.test(url)) return json({ ok: true, sessions: [] });
-		if (/\/api\/session\/new/.test(url)) return json({ ok: true, session: "proof-session", home: "/framework/ai/2026-09-30/one-dictation/minion-chatjoin/",
+		if (/\/api\/session\/new/.test(url)) return json({ ok: true, session: "proof-session", home: "/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-chatjoin/",
 			file: FILE, resumed: false, previous: null });
-		if (/\/api\/session\/resume/.test(url)) return json({ ok: true, session: "proof-session", home: "/framework/ai/2026-09-30/one-dictation/minion-chatjoin/",
+		if (/\/api\/session\/resume/.test(url)) return json({ ok: true, session: "proof-session", home: "/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-chatjoin/",
 			file: FILE, resumed: true, title: "proof" });
 		if (/\/api\/session\/say/.test(url)){
 			const body = req.postDataJSON?.() ?? {};
@@ -75,7 +75,7 @@ async function stub_servex(page, into){
 // `Chat.css` — never `core/Page/ai/work.js`).
 // Headless Chromium has no real microphone to grant — opening the ✦ sheet starts listening
 // by default and logs this, in every task's proof, regardless of anything under test (the
-// same filter `ai/2026-09-29/voice-sessions/f-dupe-line/proof.mjs` already uses). The two
+// same filter `ai/sessions/2026/09/30/voice-sessions/voice-sessions/f-dupe-line/proof.mjs` already uses). The two
 // 404s are AI 2's own usage meter and today's not-yet-created day log (`ai/2026-10-01/`
 // doesn't exist in this worktree yet) — unrelated to the composer/thread this task touched,
 // and present on that page with or without this task's changes.

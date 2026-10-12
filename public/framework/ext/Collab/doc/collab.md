@@ -14,7 +14,7 @@ Collab.Scoreboard    the shared public/framework/ai/collab/scoreboard.jsonl — 
 ```
 
 Every field above comes straight off a `collab.jsonl` line — see the contract
-(`/framework/ai/2026-09-28/collab-rounds/collab-format.md`) for the wire shape. `Collab`
+(`/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md`) for the wire shape. `Collab`
 replays it exactly the way `JSONL`/`TaskJSONL` always have: one line, one verb, later lines for
 the same id merge onto the earlier one instead of replacing the object.
 

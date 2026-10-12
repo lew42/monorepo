@@ -1,6 +1,6 @@
 # Minion E — answer the fresh review's findings
 
-Load the `minion` skill, then `code` and `page`. Parent: task-mastermind-review. Task: `public/framework/ai/2026-09-30/review/requirements.md`. The review to answer: `public/framework/ai/2026-09-30/review/review/report.md` (read its top 10 lines; shots in `../shots/127-0-0-1-64869-*`).
+Load the `minion` skill, then `code` and `page`. Parent: task-mastermind-review. Task: `public/framework/ai/sessions/2026/09/30/review/review/requirements.md`. The review to answer: `public/framework/ai/sessions/2026/09/30/review/review/review/report.md` (read its top 10 lines; shots in `../shots/127-0-0-1-64869-*`).
 
 **Work ONLY in the worktree `C:/Code/lew42/worktrees/review`** (server http://localhost:64869/). Commit by exact path (never `git add .` / `commit -a`: ~230 unrelated dirty files.jsonl). Every spawn sets `windowsHide: true`.
 
@@ -12,4 +12,4 @@ Load the `minion` skill, then `code` and `page`. Parent: task-mastermind-review.
 5. **Readme count (finding 6):** fix `public/framework/ai/review/readme.md` so it names the systems the page actually shows (Requirements live in the review skill, not a questions file); remove the unused `Requirements` entry from `SYSTEM_ICON` only if it is really unused.
 6. **Gate wording (finding 7):** in `Server/merge.mjs`'s refusal text, say "no review report (review/report.md)" and drop "with shots at 400/1200/1920/3440" — don't add a png check.
 
-Check: `node --check` both .mjs files; `node C:/Code/lew42/monorepo/Server/layout-check.mjs http://localhost:64869/framework/ai/review/ --bands --out C:/Code/lew42/monorepo/public/framework/ai/2026-09-30/review/fixes/shots` and look at the sheet (tiles ≤2 rows at 1920, wall in order, zero errors). Commit, reply one line per fix, stop.
+Check: `node --check` both .mjs files; `node C:/Code/lew42/monorepo/Server/layout-check.mjs http://localhost:64869/framework/ai/review/ --bands --out C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/30/review/review/fixes/shots` and look at the sheet (tiles ≤2 rows at 1920, wall in order, zero errors). Commit, reply one line per fix, stop.

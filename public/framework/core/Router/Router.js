@@ -84,7 +84,7 @@ export class Router {
 			// finishes loading missed every stylesheet a child registered only once ITS
 			// import landed, and `activate()` then painted that child's preview before
 			// its CSS link had loaded (flash of unstyled content, found 2026-10-03 —
-			// ai/2026-10-03/flash-fix/).
+			// ai/sessions/2026/10/03/list-events/flash-fix/).
 			await Promise.allSettled(page.chain().map(p => p.loading));
 			await this.app.styles_loaded();
 

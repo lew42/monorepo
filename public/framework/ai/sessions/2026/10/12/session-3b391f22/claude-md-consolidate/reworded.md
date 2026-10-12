@@ -3,7 +3,7 @@
 This is the reviewer's worklist: each is new wording; check that it keeps the meaning and strength of the old rule it came from.
 
 - L6.1 ((CLAUDE.md)): Consolidated 2026-10-12: text moved out of this file lives in a linked doc, and `public/framework/ai/doc/claude-md-archive.md` keeps the original wording of every rule that was reworded.
-- L6.2 ((CLAUDE.md)): The sentence-by-sentence map is in `public/framework/ai/2026-10-12/claude-md-consolidate/`.
+- L6.2 ((CLAUDE.md)): The sentence-by-sentence map is in `public/framework/ai/sessions/2026/10/12/session-3b391f22/claude-md-consolidate/`.
 - L14.10 (Keep working; never wait on the owner): If there is a safe, quick fix, attempt it; if not, **record the essence of the dictation immediately in the proper place** (notes, legitimate questions, tradeoffs or implications): a short `doc/*.md` file beside the relevant module, linked from that directory's `readme.md`.
 - L14.11 (Keep working; never wait on the owner): Files are what survive. (the owner, 2026-10-01, updated 2026-10-05)
 - L24.2 (How to respond): Each `###` heading names the thing (the class, module or page) so the context is always visible, with its path as inline code on the same line (`### 🧱 Parts `core/Page/parts/``), never a separate code block; add one short `#` only for a big reply.

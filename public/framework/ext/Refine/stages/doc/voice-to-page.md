@@ -1,6 +1,6 @@
 # Voice to session page
 
-Task: `ai/2026-10-12/voice-to-session-page/` (requirements.md, STATE.md).
+Task: `ai/sessions/2026/10/12/session-0e99727c/voice-to-session-page/` (requirements.md, STATE.md).
 
 ## Flow
 
@@ -41,7 +41,7 @@ The dev socket (and so the page-file tail) is localhost-only because it also car
 
 ## Proofs
 
-`ai/2026-10-12/voice-to-session-page/`: `proof.mjs` (server stages), `whisper-proof.mjs` (kill and restart), `phone-proof.mjs` (400 px browser).
+`ai/sessions/2026/10/12/session-0e99727c/voice-to-session-page/`: `proof.mjs` (server stages), `whisper-proof.mjs` (kill and restart), `phone-proof.mjs` (400 px browser).
 
 ## Things you mentioned (2026-10-12)
-`ThingsStage` sits under the raw words and turns every module name you say into a link card, with no model and no server (the fast assistant the owner scrapped did this job with a model; this does it in the browser in about a millisecond). It matches `things.json` (built from the folders by `ThingsIndex.mjs`) plus the `#` Mention map; ordinary-English names (Page, Tree) only match when spoken capitalised. Proof: `ai/2026-10-12/refine-asks/things-proof.mjs`.
+`ThingsStage` sits under the raw words and turns every module name you say into a link card, with no model and no server (the fast assistant the owner scrapped did this job with a model; this does it in the browser in about a millisecond). It matches `things.json` (built from the folders by `ThingsIndex.mjs`) plus the `#` Mention map; ordinary-English names (Page, Tree) only match when spoken capitalised. Proof: `ai/sessions/2026/10/12/session-d399581f/refine-asks/things-proof.mjs`.

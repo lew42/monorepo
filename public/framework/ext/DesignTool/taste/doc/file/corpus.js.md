@@ -8,7 +8,7 @@ band stopped working rather than only that something did.
 
 `base` fixes the subject *before* `apply` breaks it. Unbounding
 `--measure: 52em` changed nothing at any width, because 52em already runs
-~100 characters a line here (hand count, `ai/2026-08-16/mastermind-layout/measure-verdict.md`)
+~100 characters a line here (hand count, `ai/sessions/2026/08/16/mastermind-layout/measure-verdict.md`)
 — the first version of "unbound the prose" was comparing two already-broken
 layouts. Every case's `base` exists to keep the comparison honest.
 

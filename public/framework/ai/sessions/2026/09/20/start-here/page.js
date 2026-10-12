@@ -30,35 +30,35 @@ export default new Page({
 
 		md("## What got done today\n\n" +
 			"**V3 is now where the front door actually points, and it looks it.** It opens on V3 by " +
-			"default (V1 still lives at `?v1`), grew [four quiet links out](/framework/ai/2026-09-21/v3-ways-out/) " +
+			"default (V1 still lives at `?v1`), grew [four quiet links out](/framework/ai/sessions/2026/09/21/v3-ways-out/) " +
 			"to today's board, everything, process and this page, folds its less-used controls behind one " +
-			"`More` button on a [phone-width screen](/framework/ai/2026-09-21/head-mobile/), and now " +
-			"[says so](/framework/ai/2026-09-21/front-door-today/) when the conversation it's showing is " +
+			"`More` button on a [phone-width screen](/framework/ai/sessions/2026/09/21/head-mobile/), and now " +
+			"[says so](/framework/ai/sessions/2026/09/21/front-door-today/) when the conversation it's showing is " +
 			"from Friday, not today.\n\n" +
 			"**The live timeline reads as one list now, not a list with a box sitting on top of it.** The " +
 			"pinned strip, and an empty box under it nobody had explained, are both gone; ordinary updates " +
 			"are one compact line, a card that needs you is bigger, not pinned, and \"Live\" now means " +
-			"exactly one thing — nothing is selected. [What changed](/framework/ai/2026-09-21/live-select/).\n\n" +
+			"exactly one thing — nothing is selected. [What changed](/framework/ai/sessions/2026/09/21/live-select/).\n\n" +
 			"**Fixed.** The page-health watcher's real blind spot — it stopped checking anything for as " +
 			"long as a batch of edits was being held — is found and fixed, along with the broken file-watch " +
 			"that is why it kept running yesterday's rules all day (item 2, right above). " +
-			"[What was wrong](/framework/ai/2026-09-21/safe-rollout/). A one-command private worktree and " +
+			"[What was wrong](/framework/ai/sessions/2026/09/21/safe-rollout/). A one-command private worktree and " +
 			"server, for trying a change without touching the live site, is built — not yet run start to " +
 			"finish.\n\n" +
 			"**Written, not yet switched on.** 21 hard-learned traps (a backtick in a comment breaking a " +
 			"whole page, that kind of thing) are consolidated into one patch for the coding rulebook, ready " +
-			"to paste in. [The patch](/framework/ai/2026-09-21/traps-consolidate/skill-patch.md).");
+			"to paste in. [The patch](/framework/ai/sessions/2026/09/21/traps-consolidate/skill-patch.md).");
 
 		md("## Still broken or unfinished\n\n" +
 			"- **Nobody has confirmed what causes the accidental stash** that caused Friday night's scare — " +
 			"still just a leading guess. [The full handover](/framework/ai/handover.md) has what's known.\n" +
 			"- **Six of the seven proposed changes to how agents work are still unapplied** — including the " +
 			"one script that would start, name and track every worker session. " +
-			"[The seven](/framework/ai/2026-09-19/system-eval/)\n" +
+			"[The seven](/framework/ai/sessions/2026/09/19/system-eval/)\n" +
 			"- **Three server-side fixes are waiting on one restart window.** Two plugins and a hook still " +
 			"name the old location of the board file, which moved on 2026-09-19.");
 
-		/* ⚠ Corrected 2026-09-22 by `ai/2026-09-22/review-3-days/`: two items that
+		/* ⚠ Corrected 2026-09-22 by `ai/sessions/2026/09/22/session-f808e806/review-3-days/`: two items that
 		   sat under "Still broken" had since become untrue. The trap patch IS
 		   applied (the code skill carries all 21 traps; its backlog file is down
 		   to seven lines), and a CLI worker CAN now run commands — `acceptEdits`
@@ -70,7 +70,7 @@ export default new Page({
 			"system: `acceptEdits` with an explicit tool list both writes files and runs them. That is " +
 			"why several of Monday's fixes went unproven, and why they can be proven now.\n" +
 			"- **The phone-width header is fixed and measured** — 133px at 400px wide, down from 255px.\n\n" +
-			"The whole three days, in one page: [the last three days](/framework/ai/2026-09-22/review-3-days/).");
+			"The whole three days, in one page: [the last three days](/framework/ai/sessions/2026/09/22/session-f808e806/review-3-days/).");
 
 		md("*This is the short version. The [full handover](/framework/ai/handover.md) has the detail this page leaves out on purpose.*").ac("muted");
 	},
@@ -105,16 +105,16 @@ async function render_first_steps($box){
 			"it). " + stop_cmd + ", then start it again: `node Server/health-supervisor.mjs`. The " +
 			"supervisor's own way of noticing its rules had changed was broken, which is why it has been " +
 			"running yesterday's rules all day — this restart is the only thing that turns the fix on. " +
-			"[What today found](/framework/ai/2026-09-21/safe-rollout/).\n\n" +
+			"[What today found](/framework/ai/sessions/2026/09/21/safe-rollout/).\n\n" +
 			"3. **Paste one block into `.claude/settings.json` — about 2 minutes.** Two separate pastes " +
 			"from yesterday are now one verified block covering both: one arms a safety net that already " +
 			"exists but is switched off, and would have caught the exact kind of mistake that took the site " +
 			"down once already; the other tells the assistant the moment you speak, instead of it finding " +
 			"out up to 34 minutes later. Both were driven with real test payloads today, not just written. " +
-			"[The one block to paste](/framework/ai/2026-09-21/arm-the-hooks/settings-block.md).\n\n" +
+			"[The one block to paste](/framework/ai/sessions/2026/09/21/arm-the-hooks/settings-block.md).\n\n" +
 			"4. **Decide what happens to 22 files — about 5 minutes.** Unchanged since yesterday: the " +
 			"honest intent was to delete them, but an accidental revert quietly brought the old versions " +
 			"back, and no agent will delete a file on its own say-so. They're named plainly, with the " +
-			"reasoning for each, on [the restore report](/framework/ai/2026-09-20/stash-restore/).");
+			"reasoning for each, on [the restore report](/framework/ai/sessions/2026/09/20/stash-restore/).");
 	});
 }

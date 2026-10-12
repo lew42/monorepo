@@ -282,12 +282,12 @@ export function analyze(target = ..., opts = {})
 
 ### Task directories named `layout-tool` or `layout-tool-live`:
 
-1. `public/framework/ai/2026-08-14/layout-tool/` (completed task)
+1. `public/framework/ai/sessions/2026/08/14/layout-tool/` (completed task)
    - `requirements.md` - the original ask
    - `task.jsonl` - the work log
    - `models.md` - analysis document
 
-2. `public/framework/ai/2026-08-16/layout-tool-live/` (completed task)
+2. `public/framework/ai/sessions/2026/08/16/layout-tool-live/` (completed task)
    - `requirements.md` - the ask
    - `task.jsonl` - the work log
 
@@ -297,11 +297,11 @@ export function analyze(target = ..., opts = {})
 - Lines 11, 14, 15 reference the `layout-tool` task
 - Log entries: "task opened", "landed", "fortify LayoutTool + layout-design into a system"
 
-`public/framework/ai/2026-08-14/efforts/requirements.md`:
+`public/framework/ai/sessions/2026/08/14/efforts/requirements.md`:
 - Line 20: documents `"group": "layout-tool"` convention
 - Line 26: lists `layout-tool` as an effort grouping
 
-`public/framework/ai/2026-08-14/efforts/task.jsonl`:
+`public/framework/ai/sessions/2026/08/14/efforts/task.jsonl`:
 - Line 3: redefinition of `group` field references `layout-tool`
 
 `public/framework/ai/2026-08-16/day.jsonl`:
@@ -383,25 +383,25 @@ Step 10: VERIFY BUILD/CRAWL
 **DO NOT REWRITE:**
 
 1. **Historical task directory names:**
-   - `public/framework/ai/2026-08-14/layout-tool/` (directory name and all internal references)
-   - `public/framework/ai/2026-08-16/layout-tool-live/` (directory name and all internal references)
+   - `public/framework/ai/sessions/2026/08/14/layout-tool/` (directory name and all internal references)
+   - `public/framework/ai/sessions/2026/08/16/layout-tool-live/` (directory name and all internal references)
    - **Reason:** These are dated work records. The task was named `layout-tool` on that day because the module was called LayoutTool. The log is the historical fact.
 
 2. **Task log entries in `*.jsonl` files:**
    - `public/framework/ai/2026-08-14/day.jsonl` (lines 11, 14, 15)
-   - `public/framework/ai/2026-08-14/efforts/task.jsonl` (line 3)
-   - `public/framework/ai/2026-08-14/layout-tool/task.jsonl` (all lines)
+   - `public/framework/ai/sessions/2026/08/14/efforts/task.jsonl` (line 3)
+   - `public/framework/ai/sessions/2026/08/14/layout-tool/task.jsonl` (all lines)
    - `public/framework/ai/2026-08-16/day.jsonl` (lines 5, 7)
-   - `public/framework/ai/2026-08-16/layout-tool-live/task.jsonl` (all lines)
+   - `public/framework/ai/sessions/2026/08/16/layout-tool-live/task.jsonl` (all lines)
    - **Reason:** JSONL is append-only log format. Rewriting any line falsifies the record. Once written, it's immutable history.
 
 3. **Task requirement files:**
-   - `public/framework/ai/2026-08-14/layout-tool/requirements.md`
-   - `public/framework/ai/2026-08-16/layout-tool-live/requirements.md`
+   - `public/framework/ai/sessions/2026/08/14/layout-tool/requirements.md`
+   - `public/framework/ai/sessions/2026/08/16/layout-tool-live/requirements.md`
    - **Reason:** These are dated specifications of what was asked. Rewriting them erases what was actually requested.
 
 4. **Effort/grouping documentation:**
-   - `public/framework/ai/2026-08-14/efforts/requirements.md` (the entry that lists `layout-tool` as a group)
+   - `public/framework/ai/sessions/2026/08/14/efforts/requirements.md` (the entry that lists `layout-tool` as a group)
    - **Reason:** This is the dated definition of effort groupings at that moment in time.
 
 5. **Git log and history:**
@@ -478,7 +478,7 @@ Step 10: VERIFY BUILD/CRAWL
 **Examples:**
 ```javascript
 // In audit/page.js:
-import { analyze } from "../LayoutTool.js"  // ← still correct after rename (relative)
+import { analyze } from "../../../../../2026-08-17/LayoutTool.js"  // ← still correct after rename (relative)
 // vs
 import { analyze } from "/framework/ext/LayoutTool/LayoutTool.js"  // ← must update
 ```
@@ -520,8 +520,8 @@ import { analyze } from "/framework/ext/LayoutTool/LayoutTool.js"  // ← must u
 These patterns would be corrupted if blindly replaced:
 
 1. **Historical task directory names** (8 refs)
-   - `public/framework/ai/2026-08-14/layout-tool/` → must stay `layout-tool`
-   - `public/framework/ai/2026-08-16/layout-tool-live/` → must stay `layout-tool-live`
+   - `public/framework/ai/sessions/2026/08/14/layout-tool/` → must stay `layout-tool`
+   - `public/framework/ai/sessions/2026/08/16/layout-tool-live/` → must stay `layout-tool-live`
    - These are kebab-case task slugs, not class names
 
 2. **JSONL log lines** (3 refs)

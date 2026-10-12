@@ -16,6 +16,6 @@ Load the `minion` skill first. Read `requirements.md` beside this file (the owne
    - `decide`: node gathers the text of `args.files`, then makes ONE SDK `query()` with no tools, `settingSources: []`, a one-line system prompt, Sonnet (`claude-sonnet-5`), and `args.question` plus the gathered text. It returns the answer and its usage.
    - `check`: `node --check` on the files named. Page loads are optional; skip them if Playwright wiring is heavy, and say so.
    The job also logs `{type:"job", state:"started"|"done", job, kind, ms, ok}` to the CALLER's agent log (`agent-<from>`) when `from` is given.
-2. `jobs-proof.mjs`: standalone, with its own `Agents` host and a fake agent (an object with `.send()`, like the Dispatcher). Run read, grep, watch, check and decide, and print each one's return ms (should be about 0) and done ms. Put `decide`'s tokens and cost in `C:/Code/lew42/monorepo/public/framework/ai/2026-09-24/concurrency/jobs-proof.txt`.
+2. `jobs-proof.mjs`: standalone, with its own `Agents` host and a fake agent (an object with `.send()`, like the Dispatcher). Run read, grep, watch, check and decide, and print each one's return ms (should be about 0) and done ms. Put `decide`'s tokens and cost in `C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/24/concurrency/concurrency/jobs-proof.txt`.
 3. `doc/jobs.md`: what it is, the kinds, when to use a job, `decide`, a fork or a minion, one line each. Under 50 lines.
 4. Commit. Reply with each kind's measured times, decide's cost, and anything left open.

@@ -64,7 +64,7 @@ export default class Socket {
 		// ⚠ LOCALHOST ONLY, kept on purpose — this socket also carries `rpc:cmd`
 		// and `rpc:write`, so widening it to the LAN would be RCE, not a UX fix.
 		// `POST /ask/turn` (Server/plugins/Ask.js) is the narrow door for a phone
-		// instead; see `ai/2026-09-29/mobile-nav/` (task log) for why.
+		// instead; see `ai/sessions/2026/09/29/mobile-nav/mobile-nav/` (task log) for why.
 		if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname.endsWith(".localhost")) {
 			this.connect();
 		} else {
@@ -326,7 +326,7 @@ export default class Socket {
 	 *
 	 * ⚠ `window.scrollY` IS ALWAYS 0 ON THIS SITE, so stashing it would restore
 	 * nothing while looking like it worked. The document does not scroll: `.pages`
-	 * inside the app shell does (measured headless on /framework/ai/2026-09-22/ at
+	 * inside the app shell does (measured headless on /framework/ai/sessions/2026/09/22/ at
 	 * 1440×900 — document 900px tall in a 900px window, `.pages` 5,028px in 900).
 	 * So this walks for the elements that really carry a scrollTop.
 	 *

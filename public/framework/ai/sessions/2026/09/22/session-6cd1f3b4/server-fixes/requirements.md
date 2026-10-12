@@ -1,7 +1,7 @@
 # server-fixes — three small, proven fixes under `Server/`
 
 Minion: Sonnet, effort high. Session id `6cd1f3b4-02e8-459c-afba-893362dcca3d`. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first. Private port **8096**
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first. Private port **8096**
 for boot tests; worktrees you make go to `C:/Code/lew42/worktrees/` and are removed before you land.
 
 ⚠ A save under `Server/` restarts every supervised dev server watching this tree, the owner's

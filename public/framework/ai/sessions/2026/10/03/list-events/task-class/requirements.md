@@ -21,7 +21,7 @@ the next one starts.
 
 ## Item 16: a real `Task` class (core/Task)
 
-Owner's ask (roadmap, `ai/2026-10-02/roadmap/requirements.md` item 16): a DOM-free `Task` class
+Owner's ask (roadmap, `ai/sessions/2026/10/02/roadmap/requirements.md` item 16): a DOM-free `Task` class
 that runs in node too — id, title, state (idle / running / paused / stopped / finished),
 `start() pause() resume() stop(why) finish({complete})`, timestamps and a computed duration,
 `tasks: List` of subtasks; progress computed from the subtasks; `finish()` refuses while a

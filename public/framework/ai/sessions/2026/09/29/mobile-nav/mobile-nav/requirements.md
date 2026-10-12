@@ -1,6 +1,6 @@
 # Mobile: nav back, an AI rail at the bottom, the mic, versions kept
 
-The owner's words, verbatim, two parts: [`../../2026/09/29/mobile-nav-back-an-ai-rail-at-the-bottom/owner-words.md`](../../2026/09/29/mobile-nav-back-an-ai-rail-at-the-bottom/owner-words.md). Read them in full; they are the acceptance test.
+The owner's words, verbatim, two parts: [`../../2026/09/29/mobile-nav-back-an-ai-rail-at-the-bottom/owner-words.md`](../../../../../../2026/09/29/mobile-nav-back-an-ai-rail-at-the-bottom/owner-words.md). Read them in full; they are the acceptance test.
 
 Worktree: `C:\Code\lew42\worktrees\mobile-nav` (branch `worktree/mobile-nav`, server `http://mobile-nav.localhost/` = `http://localhost:52447/`). Every minion writes there only, never the main tree.
 

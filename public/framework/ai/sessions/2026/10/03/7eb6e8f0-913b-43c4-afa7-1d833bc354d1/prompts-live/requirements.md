@@ -9,7 +9,7 @@ The card already exists: [/framework/ai/2026/10/03/now/your-prompts-refined-live
 ## What exists (read first, law 6)
 - `.claude/skills/prompt-refine/SKILL.md` (owner prompts only, sentence ids, near-verbatim clean, garbled → yellow ? with hover, structure by ids, raw rebuilt from ids, live writes).
 - `public/framework/ext/Refine/engine.js` + `structure.js`, `Servex/agents/Echo.js`, the `refine_step` Servex tool.
-- The prompt hook that logs owner prompts (find it in `.claude/hooks/` / `.claude/settings.json` UserPromptSubmit) and yesterday's prompt-review card (ai/2026-10-02/prompt-review/).
+- The prompt hook that logs owner prompts (find it in `.claude/hooks/` / `.claude/settings.json` UserPromptSubmit) and yesterday's prompt-review card (ai/sessions/2026/10/03/47b1084e-76ae-4f2a-90aa-9bc57f03953a/prompt-review/).
 
 ## Do
 1. **Hook → card:** each owner prompt in the VS Code mastermind session (session `361c4d18-e878-4c04-9537-444e847e13d5`) is appended to the card as a Prompt item the moment it's sent (raw text, sentence ids), through the hook, never retyped by an AI.

@@ -1,7 +1,7 @@
 import { Page, md, div, p, span, b, details, summary } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-22/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/22/'s board — the ordinary
                 page grid, same shape as this dir's siblings. Prose rides `main`
                 at --measure; every table and the card wall claim `wide`.
    2 SIZE       one column of prose; the three-option wall is --column: 18rem so

@@ -6,7 +6,7 @@
 //
 //   node Servex/ext/openrouter/evals/models.mjs
 //
-// Brief: public/framework/ai/2026-09-30/openrouter-harness/models-page/requirements.md
+// Brief: public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/models-page/requirements.md
 // (Phase 8 the page, Phase 9/10 the "how thinking works" note, Phase 11 test weighting.)
 import fs from "node:fs";
 import path from "node:path";
@@ -271,7 +271,7 @@ const kinds = [
 	/* local-ai, 2026-10-01: a local-provider model can't run through the real test-library harness
 	 * yet (library.mjs spawns through the LIVE Servex's spawn_agent, which only learns the "local"
 	 * provider once this branch merges and restarts) — so a local model's h1-page attempt is run
-	 * standalone (public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs) and lands here, in
+	 * standalone (public/framework/ai/sessions/2026/09/24/servex-mastermind-opus/local-ai/build/h1-eval.mjs) and lands here, in
 	 * results.jsonl, the same `{"probe":{...}}` shape every row above already uses, rather than on
 	 * tests/h1-page/page.jsonl (the test-library's own file, outside this task's fence). A separate
 	 * kind, not merged into a future "new-page" library kind, because the harness differs (no
@@ -292,7 +292,7 @@ for (const kindId of libraryKinds){
 
 // --- Ladder: the cheap ladder — which models pass the four simple rungs, cheapest first? ---
 const LADDER_RUNGS = ["h1-page", "fix-label", "broken-import", "broken-overflow"];
-const LADDER_PRICES_FILE = path.join(ROOT, "public/framework/ai/2026-09-30/openrouter-harness/test-library/ladder-models.json");
+const LADDER_PRICES_FILE = path.join(ROOT, "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/ladder-models.json");
 
 // Short readable name for a model id, used in the ladder summary and in the data.
 const CLAUDE_LADDER_NAME = {

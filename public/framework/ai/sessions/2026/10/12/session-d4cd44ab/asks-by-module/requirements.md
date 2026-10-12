@@ -4,7 +4,7 @@
 
 **Why:** the task audit listed what past tasks left undone, but nobody knows how accurate it was or whether it merged repeats.
 
-**What exists (start here, do not redo):** the task audit at `ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task/` (`by-system.md`, `work-items.md`: 186 loose ends in 22 items, Haiku labels about 58% reliable; `verified.jsonl`: 77 checked), `ai/asks.jsonl` (routed asks), the 2026-10-08 `ai-system-docs` review (`ai/2026-10-08/ai-system-docs/review.md`, `findings.md`).
+**What exists (start here, do not redo):** the task audit at `ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task/` (`by-system.md`, `work-items.md`: 186 loose ends in 22 items, Haiku labels about 58% reliable; `verified.jsonl`: 77 checked), `ai/asks.jsonl` (routed asks), the 2026-10-08 `ai-system-docs` review (`ai/sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs/review.md`, `findings.md`).
 
 ## Done when (tick each with proof)
 - [ ] **Owner asks, not just task loose ends:** a node script collects the owner's own prompts that mention the page or AI systems (session logs, `asks.jsonl`, requirements quotes), chunked under 60k tokens per Haiku call; Haiku tags each with a module and a one-line ask, citing the source line. Scripts in this dir, rerunnable.

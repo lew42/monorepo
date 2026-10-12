@@ -1,6 +1,6 @@
 /* WINDOW WATCH — a hidden, always-on catcher for the next real popup window.
  *
- * Why (public/framework/ai/2026-09-28/hidden-windows/): three faithful reproductions of the
+ * Why (public/framework/ai/sessions/2026/09/28/b42621ed-33f7-41f0-b19b-12c679306b9a/hidden-windows/): three faithful reproductions of the
  * named popup chains — the real Stop-hook chain fired live, a health-supervisor.mjs mimic, and a
  * Bash-tool -> Playwright chain — all showed ZERO visible windows under an EnumWindows probe. The
  * decision was to stop guessing blind and build this instead: run forever, and when a real popup

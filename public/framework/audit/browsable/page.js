@@ -59,7 +59,7 @@ export default new Page({
 
 		h2("Already fixed today");
 
-		md("The ~30 orphan `demo()` blocks under `styles/elements/{text,lists,code,media,misc,table}/` now have real urls via `demo.page()` — **closed**, not outstanding (`ai/2026-08-16/element-pages/`). `styles/layers/util/` (~33 utility classes) is the other half of the same finding and is still open — deliberately out of that task's scope.");
+		md("The ~30 orphan `demo()` blocks under `styles/elements/{text,lists,code,media,misc,table}/` now have real urls via `demo.page()` — **closed**, not outstanding (`ai/sessions/2026/08/16/element-pages/`). `styles/layers/util/` (~33 utility classes) is the other half of the same finding and is still open — deliberately out of that task's scope.");
 
 		h2("Three ranked changes");
 

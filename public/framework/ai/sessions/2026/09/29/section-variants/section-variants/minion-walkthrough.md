@@ -11,15 +11,15 @@ Worktree `C:\Code\lew42\worktrees\section-variants` ONLY (server `http://localho
 **Fence:** `public/framework/core/Sidebar/variants/walkthrough/page.js` (new), the one word
 `walkthrough` added to `children:` in `public/framework/core/Sidebar/variants/page.js` (plus a
 link to it at the top of that page's content), and new shots in
-`public/framework/ai/2026-09-28/section-variants/walkthrough/shots/`. Never commit `task.jsonl`.
+`public/framework/ai/sessions/2026/09/29/section-variants/section-variants/walkthrough/shots/`. Never commit `task.jsonl`.
 The pictures stay where they are; load them by absolute url
-(`/framework/ai/2026-09-28/section-variants/walkthrough/shots/<name>`).
+(`/framework/ai/sessions/2026/09/29/section-variants/section-variants/walkthrough/shots/<name>`).
 Why not in the task dir: a declared task dir replaces its live log on the day page.
 
 ## Deliverable
 
 `core/Sidebar/variants/walkthrough/page.js`: a Next/Next walkthrough, a copy of the shape of
-`public/framework/ai/2026-09-25/ai2-lead/page.js` (ux/Wizard, the step in `#N`, one picture and
+`public/framework/ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/page.js` (ux/Wizard, the step in `#N`, one picture and
 one plain sentence per step, "Open it live →"). The shots already exist in `walkthrough/shots/`
 (list them). Steps, in this order:
 

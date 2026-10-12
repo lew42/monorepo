@@ -386,6 +386,6 @@ export default new Page({
 		h2("What this leaves");
 		md(`The seven-for-seven and zero-for-ten split is strong enough to be a rule, and it is written into [the layout system](/layouts/) as one: reach for the three-column card when the centre is alive, reach for the [approved tile wall](/imagine/design/layout/approved/) when the page is a menu. The five proposals the reviewers could not apply themselves are in their logs, each with its diff — the largest is making core's grouped card wall render one grid per group, which would hand every grouped wall on the site the 2,667px fix Decks made locally.
 
-Every reviewer's full log, with the measurements, the reverted code and the caveats, is under [the day's tasks](/framework/ai/2026-09-05/), and the run that dispatched them is [ux-rethink](/framework/ai/2026-09-05/ux-rethink/). [Yesterday's cold read](/imagine/review/) is the pass this one builds on, and [how this page was built](/imagine/review/rethink/readme/) — including why it does not use the shape it recommends — is beside it.`);
+Every reviewer's full log, with the measurements, the reverted code and the caveats, is under [the day's tasks](/framework/ai/sessions/2026/09/05/), and the run that dispatched them is [ux-rethink](/framework/ai/sessions/2026/09/05/ux-rethink/). [Yesterday's cold read](/imagine/review/) is the pass this one builds on, and [how this page was built](/imagine/review/rethink/readme/) — including why it does not use the shape it recommends — is beside it.`);
 	},
 });

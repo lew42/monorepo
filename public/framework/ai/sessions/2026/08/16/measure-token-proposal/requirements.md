@@ -1,7 +1,7 @@
 # `--measure` token — proposal, measured
 
 Dispatched by the mastermind run `mastermind-layout`
-(`public/framework/ai/2026-08-16/mastermind-layout/requirements.md`, queue
+(`public/framework/ai/sessions/2026/08/16/mastermind-layout/requirements.md`, queue
 item 1): `--measure: 52em` runs ~117 characters a line at 3440. A site-wide
 token change is RULE#1 surgery — this task produces a written proposal with
 measurements, never an autonomous edit to the token.

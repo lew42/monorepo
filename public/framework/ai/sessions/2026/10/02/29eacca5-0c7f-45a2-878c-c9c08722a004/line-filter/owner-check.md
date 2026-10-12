@@ -1,6 +1,6 @@
 # Owner-check — line-confidence image filter, item by item
 
-Checked against the repo, not just [requirements.md](requirements.md). [Outcome](../../../ai/2026-10-01/line-filter/) under review: [Try Line art](/imagine/lines/).
+Checked against the repo, not just [requirements.md](requirements.md). [Outcome](../../../ai/sessions/2026/10/02/29eacca5-0c7f-45a2-878c-c9c08722a004/line-filter) under review: [Try Line art](/imagine/lines/).
 
 | # | item | verdict | evidence |
 |---|---|---|---|

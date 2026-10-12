@@ -51,4 +51,4 @@ container in the corpus is a `code.hljs` with 169 children — 14 624 `overlap()
 pairs — and `collision` still costs 0.2ms. Three page-widths were recorded as
 hanging in `analyze()`; measured, they run in 10–14ms and the stall was in the
 `await import()` in front of the call. Read `../readme.md`'s ⚠ before believing
-the next one: `ai/2026-08-16/mastermind-layout/hang.md`.
+the next one: `ai/sessions/2026/08/16/mastermind-layout/hang.md`.

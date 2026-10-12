@@ -37,7 +37,7 @@ Today a change under `Server/` needs the owner to restart `node server.js` by ha
 
 ## Rules
 
-- `new-task` before the first edit (your dir exists: `ai/2026-09-19/server-self/`); `code`, `documentation`; `finish-task` at the end; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/19/server-self/`); `code`, `documentation`; `finish-task` at the end; `skill-improvement` if a skill misled you.
 - **Fence:** `Server/**`, `server.js`, the client socket file only if §2 proves it must change, your task dir. Nothing else. Never `git stash`, never `find /`; an `rg` pattern starting with `/` returns nothing in this shell — drop the slash. A bash heredoc containing an apostrophe fails in this harness — write files with the Write tool.
 - Playwright: `import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs"`. Scratch scripts go in the session scratchpad, not the repo.
 - Landing `outcome`: one screen — the headline, the proofs as numbers, the decision, what was left and why.

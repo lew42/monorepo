@@ -1,6 +1,6 @@
 # Minion brief: the rail becomes a class; the AI page's Inbox tab uses it
 
-Load the `minion` skill first, then `code`, `layout` and `navigation`. Parent: task-mastermind-inbox-ext. Task dir: `public/framework/ai/2026-09-30/inbox-ext/` — read its `requirements.md` (asks 3 to 6 are yours), `owner-words.md` and `plan.md` (the picture is the target) before anything.
+Load the `minion` skill first, then `code`, `layout` and `navigation`. Parent: task-mastermind-inbox-ext. Task dir: `public/framework/ai/sessions/2026/09/30/inbox-ext/` — read its `requirements.md` (asks 3 to 6 are yours), `owner-words.md` and `plan.md` (the picture is the target) before anything.
 
 ## The owner's words (verbatim, the part that is yours)
 

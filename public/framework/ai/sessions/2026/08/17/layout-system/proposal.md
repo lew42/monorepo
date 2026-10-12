@@ -55,7 +55,7 @@ Below its threshold a rail is a **disclosure, never a short scroll band**. Delet
 
 ## Migration — three templates, then derivations follow
 
-1. **`/framework/ai/2026-08-17/report/`** — the page that broke. Exercises `.page` + `.rail` + `.solo`; deletes `ai.css:188-241`. One page, visible tomorrow morning.
+1. **`/framework/ai/sessions/2026/08/17/report/`** — the page that broke. Exercises `.page` + `.rail` + `.solo`; deletes `ai.css:188-241`. One page, visible tomorrow morning.
 2. **`ext/Doc/Doc.css`** — one file, **42 `page.js` derive from it**, currently the site's *worst* measure (105 chars via `--measure: none`). Exercises `.page` alone.
 3. **`ext/catalog/browse()`** — shared by `/framework/ui/`, `/framework/styles/layouts/`, `/framework/ai/`. Exercises `.rail` + `.wall` + `.stage` together.
 

@@ -78,4 +78,4 @@ closes the tab you had open; the sections are rebuilt only when the SET of membe
 ## More
 
 - The decisions and their alternatives: [`decisions.md`](./decisions.md#groups)
-- The task that built it: [`ai/2026-09-24/ai2-groups/`](/framework/ai/2026-09-24/ai2-groups/)
+- The task that built it: [`ai/sessions/2026/09/24/ai2-cost-fill/ai2-groups/`](/framework/ai/sessions/2026/09/24/ai2-cost-fill/ai2-groups/)

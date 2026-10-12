@@ -11,7 +11,7 @@ The owner's direction (2026-10-05, dictated; the session page of VS Code tab 60d
 - **Batching writes:** append many lines in one write, not one write per line. `Item.Store` already batches per tick (all of one tick's lines go in one `FsFile.append` call); a setting for "how often we write" (e.g. every 250 ms) would extend that to logs and busy pages.
 
 ## First user
-Dictate: the mic, the connection to Whisper and each Whisper answer, with timings (task [voice-pipeline](/framework/ai/2026-10-04/voice-pipeline/)).
+Dictate: the mic, the connection to Whisper and each Whisper answer, with timings (task [voice-pipeline](/framework/ai/sessions/2026/10/05/voice-pipeline/voice-pipeline/)).
 
 ## To-do
 - A `Log` class (folder = file = class name) and a decision on its line shape, after voice-pipeline shows what it actually needs.

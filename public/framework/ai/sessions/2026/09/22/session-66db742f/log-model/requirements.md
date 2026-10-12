@@ -1,8 +1,8 @@
 # log-model — the event log, the projections, naming, and the simplest conflict rule
 
 Minion: Opus, effort high. Session id `66db742f-72f8-49a0-ba61-2a55c7dfabcb`. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then sections **D**,
-**E** and **F** of [`../mastermind-servex/requirements.md`](../mastermind-servex/requirements.md).
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first, then sections **D**,
+**E** and **F** of [`../mastermind-servex/requirements.md`](../../../../../../2026-09-22/mastermind-servex/requirements.md).
 This is a **design** task: one page, one schema file, a worked example. Build no server code.
 
 ## What exists — read first, so the design continues it instead of replacing it
@@ -11,8 +11,8 @@ This is a **design** task: one page, one schema file, a worked example. Build no
   `log` `action` `agent` `chat` `shot` `ask` `decision` `verdict` `rank`; `assign` merges,
   `agent` merges by `task`, `ask` by `id`). `ai/board.jsonl` — the owner's board: `card` lines
   merged by `id`. `.claude/skills/every-prompt/say.mjs` writes both.
-- `ai/2026-09-19/card-replies/` (a button on a card → a line in the mastermind's inbox) and
-  `ai/2026-09-19/assistant-stream/` (`claude -p --include-partial-messages` deltas streamed as
+- `ai/sessions/2026/09/19/card-replies/` (a button on a card → a line in the mastermind's inbox) and
+  `ai/sessions/2026/09/19/assistant-stream/` (`claude -p --include-partial-messages` deltas streamed as
   `ask_chunk` events) — the two loops that already run.
 - The sibling task `agent-host` is writing one JSONL per agent session with event types
   `transcript delta tool result agent_msg subagent error`; `servex-port` is writing the
@@ -21,7 +21,7 @@ This is a **design** task: one page, one schema file, a worked example. Build no
 
 ## Deliverables
 
-1. **The event schema — `ai/2026-09-22/log-model/events.md`.** One append-only JSONL per
+1. **The event schema — `ai/sessions/2026/09/22/session-66db742f/log-model/events.md`.** One append-only JSONL per
    session. Every entry is `{at, id, type, by, …}` — typed, immutable. Define each type the
    owner named and the ones the existing verbs need: `transcript`, `delta`, `intent`, `name`,
    `decision`, `task`, `agent_msg`, `file_touch`, `prompt` (raw), `refined`, `proposal`,
@@ -53,7 +53,7 @@ This is a **design** task: one page, one schema file, a worked example. Build no
    downward, never overwrite) → the owner (optional ✓/✗ per item). Say what each tier may
    append and what it may not.
 
-All of it on one page, `ai/2026-09-22/log-model/page.js`, level 1 first: the schema table and
+All of it on one page, `ai/sessions/2026/09/22/session-66db742f/log-model/page.js`, level 1 first: the schema table and
 the recommendation above the fold, the fold function and the sample one click down.
 
 ## Fence

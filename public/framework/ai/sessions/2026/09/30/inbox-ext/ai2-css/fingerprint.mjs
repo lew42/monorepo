@@ -4,7 +4,7 @@
 // this task's own plan.md names: "a changed @layer order can be invisible in one state and
 // wrong in another... only the screenshot showed it"). Run once before the move, once after,
 // and diff the two JSON files — anything other than a timestamp/number should read identical.
-import { browser as launch } from "../../../../../../Server/browser.mjs";
+import { browser as launch } from "../../../../../../../../../Server/browser.mjs";
 import fs from "node:fs";
 
 const BASE = "http://127.0.0.1:51490";

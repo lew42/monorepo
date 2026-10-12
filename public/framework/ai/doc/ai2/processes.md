@@ -64,4 +64,4 @@ is wrong, and detail nests one click down.
 
 All four were caught by the headless proof's own screenshots and measurements
 before landing, not by eye. Full account, before/after shots for the second
-round too: [`ai/2026-09-30/process-monitor/graph/graph-report.md`](/framework/ai/2026-09-30/process-monitor/graph/graph-report.md).
+round too: [`ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/process-monitor/graph/graph-report.md`](/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/process-monitor/graph/graph-report.md).

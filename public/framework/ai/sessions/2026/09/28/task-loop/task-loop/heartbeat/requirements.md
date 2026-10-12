@@ -1,6 +1,6 @@
 # Minion brief: the heartbeat (task-loop, part 4)
 
-Load the `minion` skill first. The whole task: `public/framework/ai/2026-09-28/task-loop/` (read its requirements.md, the owner's words at the end: "if it has been silent for 5 minutes, the harness prompts it for an update. If it's still silent, escalate").
+Load the `minion` skill first. The whole task: `public/framework/ai/sessions/2026/09/28/task-loop/task-loop/` (read its requirements.md, the owner's words at the end: "if it has been silent for 5 minutes, the harness prompts it for an update. If it's still silent, escalate").
 
 **Why:** this task's first mastermind was lost because its minions sat in Servex's memory queue (the spawn gate, `Servex/agents/Global.js` `admit()`, min_free_mb 4096) and nobody noticed for a day.
 

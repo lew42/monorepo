@@ -48,7 +48,7 @@ export const SETTINGS = {
 	                            // hit transcribe, the text area grows… gets so big I can't read anything else"
 	                            // — before that 7.)
 	fillers: "ah uh um er erm hmm mm",   // words that never reach the box
-	clean: true,                // KILL SWITCH (ai/2026-09-29/audio/next-clean-transcription/a-clean-mode, deliverable 4):
+	clean: true,                // KILL SWITCH (ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode, deliverable 4):
 	                            // on, a composer built with `revise:` set (`ai2/compose.js` turns it on by default)
 	                            // actually runs the fast assistant's clean-up; off, every utterance stays raw, same
 	                            // as before this task, with no model call at all. A composer that never asked for
@@ -254,7 +254,7 @@ export class ComposerMic extends Dictate {
 	   the owner's text by asking whether the box still `endsWith` the dictated
 	   tail; when that failed the whole box, dictation included, counted as the
 	   owner's text and every update wrote the transcript on top of itself. */
-	/* CLEAN MODE (ai/2026-09-29/audio/next-clean-transcription/a-clean-mode): each
+	/* CLEAN MODE (ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode): each
 	 * `held` item is a finished Whisper utterance, `{text, raw, chunk_id, ready}`.
 	 * `text` starts out equal to `raw` and is swapped in place, by `on_revised()`
 	 * below, for the fast assistant's cleaned-up wording once it answers — so the
@@ -533,7 +533,7 @@ export class ComposerMic extends Dictate {
 	 * browser engine `start()` returns before Chrome has done anything at all, and on an
 	 * insecure LAN page Chrome can go on "trying" for a long time with no error, so the
 	 * chime played while nothing was actually listening (the owner's own phone report,
-	 * `ai/2026-09-29/mobile-nav/`, `doc/https-lan.md`). `Dictate.set_state()` also never
+	 * `ai/sessions/2026/09/29/mobile-nav/mobile-nav/`, `doc/https-lan.md`). `Dictate.set_state()` also never
 	 * fires this twice for one press — Chrome's own silent mid-session restarts (still
 	 * "listening" throughout) do not replay the chime. */
 	on_listening(){

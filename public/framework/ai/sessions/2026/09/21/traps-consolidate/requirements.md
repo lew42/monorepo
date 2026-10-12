@@ -83,7 +83,7 @@ Measured today: a CLI minion under `--permission-mode acceptEdits` had its `.cla
 refused, along with every `node` and `git` command.
 
 **So: try it, and if the write is refused, put your finished text in
-`public/framework/ai/2026-09-21/traps-consolidate/skill-patch.md` instead** — as the exact
+`public/framework/ai/sessions/2026/09/21/traps-consolidate/skill-patch.md` instead** — as the exact
 replacement text, with a one-line note saying which section of `code/SKILL.md` it replaces and
 which `improvements.md` entries to delete. The mastermind applies it. Say clearly in your landing
 line which of the two happened, so nobody thinks it landed when it did not.
@@ -125,7 +125,7 @@ Two numbers that must agree, and you can get both by reading:
 ## Fences
 
 `.claude/skills/code/SKILL.md`, `.claude/skills/code/improvements.md`, and
-`public/framework/ai/2026-09-21/traps-consolidate/**`, plus one line in the day page's
+`public/framework/ai/sessions/2026/09/21/traps-consolidate/**`, plus one line in the day page's
 `children:` and one append to its `day.jsonl`.
 
 ## Length budget

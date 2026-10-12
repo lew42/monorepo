@@ -59,7 +59,7 @@ const LEVELS = [
 	] },
 	{ title: "3. Inside the page", items: [
 		{ name: "Sections", icon: "view_day", href: "/framework/styles/sections/", line: "Content bands inside one page: hero, pricing, faq." },
-		{ name: "Cards and padding", icon: "padding", href: "/framework/ai/2026-09-19/card-word/", line: "A region gets .pad, a framed box gets .card." },
+		{ name: "Cards and padding", icon: "padding", href: "/framework/ai/sessions/2026/09/19/card-word/", line: "A region gets .pad, a framed box gets .card." },
 		{ name: "Spacing and gap", icon: "space_bar", href: "/framework/styles/system/", line: "One clamp knob, four gap rungs, --flow between blocks." },
 		{ name: "Named arrangements", icon: "view_quilt", href: "/framework/core/Layout/", line: "30 ways to arrange things in a box." },
 	] },

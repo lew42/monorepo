@@ -9,7 +9,7 @@
  * sits at 0 from an edge: the nav rail, the viewport, a neighbouring column,
  * or the border of any box that paints a ground of its own. This file is the
  * machine that can see that, and it is the ONLY definition of it: the task probe
- * (public/framework/ai/2026-09-22/padding-law/probe.mjs), the page-health
+ * (public/framework/ai/sessions/2026/09/22/session-2e26b182/padding-law/probe.mjs), the page-health
  * watcher (Server/health.mjs) and the landing / smoke checks (through `edges()`)
  * all import it, so the law cannot drift into two versions.
  *

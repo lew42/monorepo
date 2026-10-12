@@ -1,6 +1,6 @@
 # Minion brief: the core/Page readme, the Layout hub, and a readme-as-page example
 
-Load the `minion` skill first, then the `page`, `documentation` and `content` skills. Task dir (read `owner-words.md` in full, especially "Continued (about 3:45 PM)"): `public/framework/ai/2026-09-29/module-experts/`. Log in its `task.jsonl`.
+Load the `minion` skill first, then the `page`, `documentation` and `content` skills. Task dir (read `owner-words.md` in full, especially "Continued (about 3:45 PM)"): `public/framework/ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/`. Log in its `task.jsonl`.
 
 **Work ONLY in the worktree `C:\Code\lew42\worktrees\module-experts`** (its site: http://localhost:62087/). Commit there by exact path and don't merge. Another minion (`minion-experts-build`) works in the same worktree on `Servex/`, `core/Page/expert.json` and `core/Page/doc/readme-log.jsonl`. Don't touch those files.
 
@@ -24,7 +24,7 @@ The Page expert (an agent that reads core/Page once and answers questions about 
    - the sidebar variants (grep for them);
    - the floating page (`layout/floating`);
    - `core/Layout` (the catalogue of arrangements);
-   - the layout explorer, which is being built now: `public/framework/ai/2026-09-29/layout-explorer/` (find its target url in its requirements.md; link it, labelled "being built" if it doesn't exist yet);
+   - the layout explorer, which is being built now: `public/framework/ai/sessions/2026/09/29/c983f112-1358-4516-843d-4fc1f9814d6c/layout-explorer/` (find its target url in its requirements.md; link it, labelled "being built" if it doesn't exist yet);
    - the `layout` skill's core questions, as a pointer.
    Use icon-item sections (`ux/Content/structure/Structure.js` `section`), with the most important on top. Give it its own `readme.md` (the index) and make the page render that readme where it can (see 3).
 3. **README as page content: one example.** Add a fifth way to `make/` ("a readme as the page"): a small example page whose content is its own `readme.md`, rendered with `md.file(import.meta, "readme.md")`, followed by one JS-built block (for example an icon section) to show the mix. Show the readme source and the rendered page side by side (`demo()` or two columns), so what the AI reads is what the owner sees. Under it, write in 3 short lines where markdown falls short (custom modules, classes on a span, live widgets), and so when to write the page in JS instead. Link it from `make/` and from the readme's index.

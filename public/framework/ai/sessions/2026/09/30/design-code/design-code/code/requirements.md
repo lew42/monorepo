@@ -1,6 +1,6 @@
 # Minion B — /framework/code/: requirements
 
-Load the `minion` skill first, then `page`, `code`, `new-page`. Parent task: `public/framework/ai/2026-09-30/design-code/` — read its `owner-words.md` and `requirements.md` (the owner's words are the acceptance test). The shape you build to is the top section, "The shape", of `/framework/ai/2026-09-30/servex-mastermind/ui-skills-proposal.md`, plus its thin-skill template and its "Where each existing skill goes" table. Read all three before you write.
+Load the `minion` skill first, then `page`, `code`, `new-page`. Parent task: `public/framework/ai/sessions/2026/09/30/design-code/design-code/` — read its `owner-words.md` and `requirements.md` (the owner's words are the acceptance test). The shape you build to is the top section, "The shape", of `/framework/ai/sessions/2026/09/30/servex-mastermind/ui-skills-proposal.md`, plus its thin-skill template and its "Where each existing skill goes" table. Read all three before you write.
 
 **Work only in the worktree `C:\Code\lew42\worktrees\design-code`** (branch `worktree/design-code`, server http://localhost:52103/). Never write in the main tree `C:\Code\lew42\monorepo`. Minion A builds `/framework/design/` in the same worktree at the same time: never touch `public/framework/design/`.
 

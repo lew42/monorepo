@@ -1,7 +1,7 @@
 /* library.mjs — the test library: five small tasks, each with a known good outcome, run across
  * models to find which one is cheapest and good enough for each kind of work.
  *
- * WHY (public/framework/ai/2026-09-30/openrouter-harness/test-library/requirements.md): a test
+ * WHY (public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/requirements.md): a test
  * with ONE right answer (rules.mjs) proves a model can follow our rules; this library goes one
  * step further and asks whether a model does REAL work well — fixing a broken page, writing a new
  * one, planning before coding. There is no single right answer here, so a script alone can't grade
@@ -69,7 +69,7 @@ const MCP = "http://127.0.0.1:8090/mcp";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../../.."); // Servex/ext/openrouter/evals -> repo root
 const PAGES_DIR = path.join(ROOT, "public/framework/ai/tests"); // Amendment 5: an AITest is a page
-const TASK_DIR = path.join(ROOT, "public/framework/ai/2026-09-30/openrouter-harness/test-library");
+const TASK_DIR = path.join(ROOT, "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library");
 const RUNS_DIR = path.join(TASK_DIR, "runs");
 const RESULTS_PATH = path.join(ROOT, "Servex/ext/openrouter/evals/results.jsonl");
 const ROUTING_PATH = path.join(HERE, "routing.json");
@@ -450,7 +450,7 @@ async function freeRequestsUsed(){
 async function runOne(test, model, effort){
 	const runName = `${test.id}-${slug(model)}-${effort}-${Date.now()}`;
 	const runDir = path.join(RUNS_DIR, runName);
-	const runUrlPath = `/framework/ai/2026-09-30/openrouter-harness/test-library/runs/${runName}/`;
+	const runUrlPath = `/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/runs/${runName}/`;
 	copyDir(test.fixtureDir, runDir);
 
 	const isPage = fs.existsSync(path.join(runDir, "page.js"));

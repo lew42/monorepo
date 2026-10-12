@@ -56,7 +56,7 @@ Line numbers that **exceed** the file's current line count:
 | `core/View/View.js:417` | 396 | `audit/modules/ext-highlight.md` (and 3 others: `audit/doc/ext-highlight.md`, `ext/highlight/readme.md`, `ext/highlight/doc/method/lang.md`) |
 | `styles/layers/page.js:22` | 21 | `ai/2026-08-11/proposal.md` — cites line 22 of a 21-line file |
 | `styles/elements/forms/page.js:155` | 136 | `ai/2026-08-11/proposal.md` — cites line 155 of a 136-line file |
-| `ext/editor/page.js:327` | 267 | `ai/2026-08-15/layout-hunt/audit.md` — cites line 327 of a 267-line file |
-| `dev/Socket/page.js:42` | 32 | `ai/2026-08-12/strategy/employer-audit.md` — cites line 42 of a 32-line file |
+| `ext/editor/page.js:327` | 267 | `ai/sessions/2026/08/15/layout-hunt/audit.md` — cites line 327 of a 267-line file |
+| `dev/Socket/page.js:42` | 32 | `ai/sessions/2026/08/12/strategy/employer-audit.md` — cites line 42 of a 32-line file |
 
 All four are in `ai/` proposal and audit files (not in shipped documentation), so impact is low. One (`core/View/View.js:417`) appears in live docs (`ext/highlight/`) and is the most urgent fix. No citations to sandbox directories (`alex/`, `arya/`, `castin/`, `edric/`, `michael/`) or `core/new/`.

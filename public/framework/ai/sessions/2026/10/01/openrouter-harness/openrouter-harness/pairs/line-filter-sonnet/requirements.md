@@ -4,7 +4,7 @@ You are one of two minions building the SAME thing in separate worktrees. Your m
 
 ## The job
 Build exactly what this brief says, the LINE MAP ONLY (skip its "Next" section):
-[/framework/ai/2026-10-01/line-filter/requirements.md](../../../2026-10-01/line-filter/requirements.md) (the file is `public/framework/ai/2026-10-01/line-filter/requirements.md` in the repo).
+[/framework/ai/sessions/2026/10/02/29eacca5-0c7f-45a2-878c-c9c08722a004/line-filter/requirements.md](../../../../../../../../2026-09-30/2026-10-01/line-filter/requirements.md) (the file is `public/framework/ai/sessions/2026/10/02/29eacca5-0c7f-45a2-878c-c9c08722a004/line-filter/requirements.md` in the repo).
 
 ## Your worktree (work ONLY here)
 `C:/Code/lew42/worktrees/lt-sonnet` on branch `worktree/lt-sonnet`. Its own site is at `http://127.0.0.1:56184/`; the page goes at `http://127.0.0.1:56184/imagine/lines/`.

@@ -9,7 +9,7 @@
 
 Every agent in a review seeks agreement and the simplest fix that works (the MVP), as fast as possible. Raising a concern is good; arguing is not. A review must never turn into analysis paralysis.
 
-**When the mastermind's own read is enough** (no doubt, no page), it records that read so the merge gate sees one: `node Server/review.mjs <taskdir> <worktree> --size none --why "mastermind read: <what it checked, one line>"`. The `--why` is logged as a `decision` line. Token reduction item 5 (`ai/2026-10-02/token-reduction/`) will give this read its own record. Until then, `--size none` is the route.
+**When the mastermind's own read is enough** (no doubt, no page), it records that read so the merge gate sees one: `node Server/review.mjs <taskdir> <worktree> --size none --why "mastermind read: <what it checked, one line>"`. The `--why` is logged as a `decision` line. Token reduction item 5 (`ai/sessions/2026/10/02/token-reduction/`) will give this read its own record. Until then, `--size none` is the route.
 
 ## Why a fresh agent
 

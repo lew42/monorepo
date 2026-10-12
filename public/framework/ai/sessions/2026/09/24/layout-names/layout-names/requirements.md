@@ -2,7 +2,7 @@
 
 **The ask, verbatim (from the master mastermind, 2026-09-24):**
 
-> You own two loose ends from public/framework/ai/2026-09-24/loose-ends/report.md (read the page and its links first). The loose-ends sweep already decided both; build them.
+> You own two loose ends from public/framework/ai/sessions/2026/09/24/loose-ends/loose-ends/report.md (read the page and its links first). The loose-ends sweep already decided both; build them.
 > - Brief 3, layouts get names, not numbers: retire /imagine/layouts/'s numbered eighteen in favour of core/Layout's names, move the shape labs into /layouts/, and put the verdict above the picture on item pages. The owner's standing rule (feedback 2026-09-08): names not numbers; one word describes many layouts; variations are tags; clicking a tag is the feature; no new CSS classes unless one helps.
 > - Brief 7, Make's leftovers: give the Description field a place on screen, and add keyboard reordering to the tree.
 > Separate modules, same worktree; a minion each is fine (Servex spawn_agent, parent = task-mastermind-layout-names).
@@ -17,7 +17,7 @@
 ## Deliverables
 
 1. The numbered eighteen are retired: `/imagine/layouts/1/`–`4/` and their full-screen children each redirect to the matching `core/Layout` name page; `number.js`, `LayoutsCard.js`, `system.js` stop being live code; every link to them in the site is updated.
-2. The shape labs live in /layouts/ — already moved 2026-09-18 (`ai/2026-09-18/imagine-move-3/`); verified: every old /imagine/<lab>/ address answers with a moved page, and nothing links to the old addresses.
+2. The shape labs live in /layouts/ — already moved 2026-09-18 (`ai/sessions/2026/09/18/imagine-move-3/`); verified: every old /imagine/<lab>/ address answers with a moved page, and nothing links to the old addresses.
 3. On a /layouts/browse/ item page, the verdict sits above the picture.
 4. Make: the Description field has a place on screen, under the title.
 5. Make: the tree reorders from the keyboard with arrow keys.

@@ -3,7 +3,7 @@ import CompactDictate from "./Compact.js";
 
 // One sample sentence: the whole point of this variant is a single line, so
 // feeding more than one would just show the truncation, not the shape (the
-// owner's own rule: "I want to see" — `ai/2026-09-29/mobile-nav/review.md`,
+// owner's own rule: "I want to see" — `ai/sessions/2026/09/29/mobile-nav/mobile-nav/review.md`,
 // finding 1).
 const SAMPLES = ["let's also add the audio source panel and the live level meter"];
 

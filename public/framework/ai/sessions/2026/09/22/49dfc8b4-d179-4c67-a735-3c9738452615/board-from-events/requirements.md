@@ -3,7 +3,7 @@
 Minion: Sonnet, effort high. Session id `49dfc8b4-d179-4c67-a735-3c9738452615`. Read
 [`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then phase-2 item
 **5** in [`../tiers-design/doc/phases.md`](../tiers-design/doc/phases.md) and the fold on
-[`../log-model/`](../log-model/) (its `fold.js` runs in the browser). Load `code`, `layout`,
+[`../log-model/`](../log-model) (its `fold.js` runs in the browser). Load `code`, `layout`,
 `css`. Private port **8099**. The page you own is `/framework/ai/v/3/` — nobody else is on it
 (days-view and worktree-proof both landed; read `days-view`'s task log for what the Days view
 does and `v/3/readme.md` for the view switch).

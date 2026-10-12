@@ -1,6 +1,6 @@
 # The design and code skill system: the proposal
 
-**Reshaped to the owner’s words (2026-09-30, ai/2026-09-30/design-code/owner-words.md).** The umbrella is called **design**, not ui; the knowledge lives on pages, not in `.claude/skills/`; a skill is a thin pointer. The older ui-umbrella draft is kept below for the overlap table and the CLAUDE.md split, which still hold. task-mastermind-design-code builds this; every skill diff comes to mastermind-servex-9 for approval.
+**Reshaped to the owner’s words (2026-09-30, ai/sessions/2026/09/30/design-code/design-code/owner-words.md).** The umbrella is called **design**, not ui; the knowledge lives on pages, not in `.claude/skills/`; a skill is a thin pointer. The older ui-umbrella draft is kept below for the overlap table and the CLAUDE.md split, which still hold. task-mastermind-design-code builds this; every skill diff comes to mastermind-servex-9 for approval.
 
 ## The shape
 

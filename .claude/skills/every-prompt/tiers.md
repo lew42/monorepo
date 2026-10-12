@@ -5,7 +5,7 @@ This skill (`every-prompt`) is the older, text-only front desk — no voice, no 
 session has its own, separate pair (**fast assistant** and **smart assistant**, one per voice
 session) plus a **directory mastermind** it can route a technical question to; "manager" and
 "master assistant" are retired words for those. The full table, with what's built today and what
-isn't: [the roles page](/framework/ai/2026-09-22/tiers-design/doc/roles.md).
+isn't: [the roles page](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md).
 
 | role | does | never does | who runs it |
 | --- | --- | --- | --- |

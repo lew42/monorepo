@@ -1,6 +1,6 @@
 # Minion brief: the fast assistant splits a bubble into paragraphs (merge 9)
 
-Load the `minion` skill first, then `code`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/2026-09-30/one-dictation/`. Read the owner's words first: the last section of `owner-words.md` there, the part about paragraphs.
+Load the `minion` skill first, then `code`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/`. Read the owner's words first: the last section of `owner-words.md` there, the part about paragraphs.
 
 ## What the owner asked
 A new sentence joins the last bubble when it continues the thought. There is no bubble per sentence; merge 8 already does this, through `ext/Chat/Chat.js`'s `mergeable()`. Later, the fast assistant may decide that the newest thought is a new paragraph. Then that last chunk moves out of the bubble into a new bubble of its own.

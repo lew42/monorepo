@@ -20,13 +20,13 @@ The full prompt: `../mastermind-layout-browser/requirements.md`.
    - **How to wait** (foreground, in chunks under the tool timeout, or better: don't gate on a wait).
    - **Resolve, don't park.**
    - **Landing:** `documentation` if you touched a module, then `finish-task`; `skill-improvement` for any skill that misled you; the report is one screen of plain sentences with links, the numbers in the log.
-   Sources to distil (read all three, keep the rules, cut the history): `public/framework/ai/2026-09-04/mastermind-platform/minion-rules.md`, `public/framework/ai/2026-09-08/mastermind-playwright/minion-rules.md`, and the "Briefs" section of `.claude/skills/mastermind/SKILL.md`. Where the two minion-rules files disagree, the newer wins; say so in your log.
+   Sources to distil (read all three, keep the rules, cut the history): `public/framework/ai/sessions/2026/09/04/mastermind-platform/minion-rules.md`, `public/framework/ai/sessions/2026/09/08/mastermind-playwright/minion-rules.md`, and the "Briefs" section of `.claude/skills/mastermind/SKILL.md`. Where the two minion-rules files disagree, the newer wins; say so in your log.
 2. **`.claude/skills/minion/improvements.md`** — the two-line header every skill has (any agent may append; one line each).
 3. **One line** in `.claude/skills/mastermind/SKILL.md`, at the top of the "Briefs" section: every brief tells the minion to load the `minion` skill first, and the brief then carries only what is specific to the task. Change nothing else in that file.
 
 ## Rules
 
-- `new-task` before the first edit (your dir exists: `ai/2026-09-17/minion-skill/`); `finish-task` at the end. No server needed.
+- `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/minion-skill/`); `finish-task` at the end. No server needed.
 - **Fence:** `.claude/skills/minion/**` (new) and that one line in `.claude/skills/mastermind/SKILL.md`; your task dir. Nothing else.
 - Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`. Search with rg/Glob scoped to the repo.
 - Don't write the owner's name anywhere; say "the owner".

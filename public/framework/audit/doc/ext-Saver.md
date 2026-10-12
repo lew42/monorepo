@@ -18,7 +18,7 @@ with no symptom a caller would notice.
 |---|---|
 | files | 5 (`Saver.js`, `FileSaver.js`, `LocalStorageSaver.js`, `MemorySaver.js`, `page.js`) |
 | lines of JS / CSS | 249 / 0 |
-| callers | 5 — `ext/editor/page.js`, `ext/Panel/workspace.js`, `dev/DevBar/settings.js` (real, non-demo); `ai/2026-08-14/editor-panel-review/page.js`, `ai/2026-08-13/editor-panels/page.js` (task-log demos) |
+| callers | 5 — `ext/editor/page.js`, `ext/Panel/workspace.js`, `dev/DevBar/settings.js` (real, non-demo); `ai/sessions/2026/08/14/editor-panel-review/page.js`, `ai/sessions/2026/08/13/editor-panels/page.js` (task-log demos) |
 | docs before | `readme.md` present and already good (Traps/Decisions/Open, written same day as the persistence stack); `page.js` a plain `Page` with a live demo but no `Doc`, no method/property/file docs at all |
 | docs after | `page.js` → `Doc` (`subject: Saver`); 7 `doc/method/*.md`, 2 `doc/property/*.md`, 1 `doc/backends.md` note, 5 `doc/file/*.md`; readme gained a "Used by" section, a link to `doc/backends.md`, and one new Open entry for the bug found this pass |
 

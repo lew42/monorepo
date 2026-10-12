@@ -1,7 +1,7 @@
 import { Page, div, p, b, a, img, code } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — plain prose
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board — plain prose
                 for main, four screenshots as the walkthrough.
    2 SIZE       one screen: headline, four shots in a row, a short "how to
                 undo" note under them. Nothing scrolls past that except detail.

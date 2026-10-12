@@ -301,9 +301,9 @@ await check("Heartbeat.post(): no card at all falls back to the Inbox, logged on
 	const dropped = [];
 	const said = [];
 	const fake = { to_inbox: Heartbeat.prototype.to_inbox, servex: { mcp: { handlers: new Map() }, inbox: { drop: a => { dropped.push(a); return { ok: true, file: "framework/ai/page.jsonl" }; } }, say: (msg) => said.push(msg) } };
-	const out = await Heartbeat.prototype.post.call(fake, null, "the task is stuck", false, "public/framework/ai/2026-10-01/never-lose-a-wake");
+	const out = await Heartbeat.prototype.post.call(fake, null, "the task is stuck", false, "public/framework/ai/sessions/2026/10/01/never-lose-a-wake");
 	assert.equal(dropped.length, 1, "with no card named at all, the note goes straight to the Inbox");
-	assert.equal(dropped[0].path, "public/framework/ai/2026-10-01/never-lose-a-wake");
+	assert.equal(dropped[0].path, "public/framework/ai/sessions/2026/10/01/never-lose-a-wake");
 	assert.equal(dropped[0].text, "the task is stuck");
 	assert.equal(said.length, 1, "one log line says so");
 	assert.ok(out?.ok, "post() itself still answers ok — the caller never sees a throw");
@@ -316,7 +316,7 @@ await check("Heartbeat.post(): a named card that answers 'no card' also falls ba
 		inbox: { drop: a => { dropped.push(a); return { ok: true, file: "framework/ai/page.jsonl" }; } },
 		say(){}
 	} };
-	await Heartbeat.prototype.post.call(fake, "gone-card", "still stuck", false, "public/framework/ai/2026-10-01/never-lose-a-wake");
+	await Heartbeat.prototype.post.call(fake, "gone-card", "still stuck", false, "public/framework/ai/sessions/2026/10/01/never-lose-a-wake");
 	assert.equal(dropped.length, 1, "card_reply's own {ok:false} answer — never a throw — still reaches the Inbox");
 });
 
@@ -333,9 +333,9 @@ await check("TaskLoop.escalate(): the same {ok:false} card answer falls back to 
 		write_line: async () => {},
 		totals: { escalated: 0 }
 	};
-	await TaskLoop.prototype.escalate.call(fake, "public/framework/ai/2026-10-01/never-lose-a-wake/task.jsonl", { state: {} }, Date.now());
+	await TaskLoop.prototype.escalate.call(fake, "public/framework/ai/sessions/2026/10/01/never-lose-a-wake/task.jsonl", { state: {} }, Date.now());
 	assert.equal(dropped.length, 1, "no live card, card_ask answers {ok:false}: the note still reaches the Inbox");
-	assert.equal(dropped[0].path, "public/framework/ai/2026-10-01/never-lose-a-wake", "dropped on the task's own folder");
+	assert.equal(dropped[0].path, "public/framework/ai/sessions/2026/10/01/never-lose-a-wake", "dropped on the task's own folder");
 });
 
 /* Every check above is synchronous, but several of them (mark_phantom, register(), the real

@@ -42,7 +42,7 @@ The links worth having, which you may edit down but not up:
   useful one: it is where the in-flight tasks and their progress bars live.
 - **Everything** — `/framework/ai/log/` — every task of every day.
 - **Process** — `/framework/ai/process/` — how the work itself is going.
-- **Start here** — `/framework/ai/2026-09-20/start-here/` — the owner's own four-things page.
+- **Start here** — `/framework/ai/sessions/2026/09/20/start-here/` — the owner's own four-things page.
 - The version picker is already in the head; do not duplicate it.
 
 ⚠ **Today's date must be computed.** A hardcoded `2026-09-21` is wrong tomorrow, and a day dir
@@ -95,7 +95,7 @@ What needs proving, for whoever runs it:
 ## Fences
 
 `public/framework/ai/v/3/**` (not its data files) and
-`public/framework/ai/2026-09-21/v3-ways-out/**`, plus one line in the day page's `children:` and
+`public/framework/ai/sessions/2026/09/21/v3-ways-out/**`, plus one line in the day page's `children:` and
 one append to its `day.jsonl`.
 
 ## Length budget

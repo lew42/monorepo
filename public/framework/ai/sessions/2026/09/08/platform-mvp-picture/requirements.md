@@ -11,7 +11,7 @@
 
 ## What it turned out to be
 
-The "column pager" under **Running** is a PNG — `ai/2026-09-06/platform-slice/slice.png`, an
+The "column pager" under **Running** is a PNG — `ai/sessions/2026/09/06/platform-slice/slice.png`, an
 1800px screenshot of a four-column row, shrunk to about a third inside a ~560px column. The
 chopped first column is in the picture itself (the row was scrolled when it was shot). Nothing
 is live, so nothing could scroll.
@@ -29,5 +29,5 @@ is live, so nothing could scroll.
 ## Files
 
 - `public/imagine/platform/mvp/page.js` — `running()` only
-- `public/framework/ai/2026-09-06/platform-slice/slice-columns.png` — new
+- `public/framework/ai/sessions/2026/09/06/platform-slice/slice-columns.png` — new
 - `crop.html` here — the recipe: open it through the dev server and `shot` selector `#fig`

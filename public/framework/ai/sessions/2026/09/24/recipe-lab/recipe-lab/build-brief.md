@@ -13,9 +13,9 @@ brief — a real mastermind with a worktree and ~100 minions, trimmed). The owne
 and know: what this session is working on, how far along it is, what it has spawned (worktree,
 minions), what it costs, what it is doing right now, and whether it is waiting on them.
 
-- The page: `public/framework/ai/2026-09-24/recipe-lab/build/page.js` (+ one `.css` beside it if needed).
+- The page: `public/framework/ai/sessions/2026/09/24/recipe-lab/recipe-lab/build/page.js` (+ one `.css` beside it if needed).
   It is already declared by its parent (`recipe-lab/page.js` names `build` in `children:`). Use the
-  `new-page` skill's shape. Import the fixture with `fetch(new URL("../fixture.json", import.meta.url))`
+  `new-page` skill's shape. Import the fixture with `fetch(new URL("../../../../../../2026-09-24/fixture.json", import.meta.url))`
   — and remember: **no DOM after an `await`**; capture the box synchronously, fill it in a callback.
 - The card is the page's one takeaway. Dark ground, light text, readable at 1920 without zooming.
   A short heading line above it is fine; no long prose.
@@ -25,7 +25,7 @@ minions), what it costs, what it is doing right now, and whether it is waiting o
 
 ## Fence
 
-You may write ONLY inside `public/framework/ai/2026-09-24/recipe-lab/build/`. Nothing else in
+You may write ONLY inside `public/framework/ai/sessions/2026/09/24/recipe-lab/recipe-lab/build/`. Nothing else in
 the repo — not the parent page, not `fixture.json`, not framework CSS.
 
 ## Done means

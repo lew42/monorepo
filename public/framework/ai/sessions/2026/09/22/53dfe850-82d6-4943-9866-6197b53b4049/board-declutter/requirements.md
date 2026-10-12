@@ -42,7 +42,7 @@ page and watching.
    things that must stay reachable folded behind one `More` (Everything, Process, Start here,
    the version picker, Live, everyone, card width, the "N left" count). Decide what is deleted
    outright vs folded; write the `decision` with the alternative. The previous fold work is
-   `ai/2026-09-21/head-mobile/` — read it, do not undo it.
+   `ai/sessions/2026/09/21/head-mobile/` — read it, do not undo it.
 3. **Idle agents are not a list.** The strip (`v/3/agents.js`) shows a chip per agent; the owner
    saw five idle proof agents by name. After: only agents that are `working` show as chips;
    idle/stopped ones collapse into one count ("3 idle") at the end of the same chrome line,
@@ -66,7 +66,7 @@ Before/after screenshots at 1280 (full page), 400, 1920 into `shots/`; the five 
 in a table in the log (dead space px, chrome rows, chips shown, rail top padding px + rail
 height vs viewport, card bg colour + selected bg). Zero console errors. Days still the default,
 the Prompts tab's box still on top (`talk-to-assistant`), Approve/Improve still on cards. Then
-`ai/2026-09-22/board-declutter/page.js`: the before and after side by side and the five numbers.
+`ai/sessions/2026/09/22/53dfe850-82d6-4943-9866-6197b53b4049/board-declutter/page.js`: the before and after side by side and the five numbers.
 
 ## Fence
 

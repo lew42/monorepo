@@ -25,7 +25,7 @@ Building it would put the same three cards on the page twice, which is the one t
 alternate is the header and the wall as the two tracks of a `flex auto gap` row, with the wall
 switched to `--column: 100%`. Demonstrating the string beats adding a duplicate band — the same
 call the pilot made about the six wireframes that were already layouts.
-[questions.md](/framework/ai/2026-08-18/figma/questions.md) #8 asks whether the owner wants it
+[questions.md](/framework/ai/sessions/2026/08/18/figma/questions.md) #8 asks whether the owner wants it
 as a toggleable `parts:` chip instead.
 
 ## Home is `styles/layouts/`, not `styles/sections/`
@@ -70,7 +70,7 @@ Set them on the box that uses them, never on an ancestor for convenience.
 `demo.layout()` does not wire a `/full/` url; `400/entry.js` and `wire/` each add
 `route(name){ return name === "full" && full(this, …) }`. This is the **third** copy of that
 line, which is this tier's own stated bar for promoting a helper — see
-[questions.md](/framework/ai/2026-08-18/figma/questions.md) #3, still open.
+[questions.md](/framework/ai/sessions/2026/08/18/figma/questions.md) #3, still open.
 
 It is not optional here: the card is `zoom-25` and the stage simulates its widths, and **media
 queries do not follow `zoom`**. A claim about viewport behaviour has to be read in a viewport.

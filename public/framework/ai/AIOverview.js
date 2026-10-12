@@ -35,7 +35,7 @@ const BUILT_IN_CANDIDATES = ["log", "system"];
 // The groups the Skills tab draws, in order; a skill's `kind` (skills.json) picks its
 // group, and a group with no skills is skipped. Regrouping is data: give a SKILL.md a
 // `kind:` line (skills.mjs reads it first), add its group here. `aspect` and `companion`
-// wait for the ui-skills proposal (ai/2026-09-30/servex-mastermind/ui-skills-proposal.md).
+// wait for the ui-skills proposal (ai/sessions/2026/09/30/servex-mastermind/ui-skills-proposal.md).
 const KINDS = [
 	["role", "Roles", "Become one of these agents. A role skill is the agent's whole job description."],
 	["aspect", "Aspects", "One side of building UI: content, layout, controls, navigation, style."],

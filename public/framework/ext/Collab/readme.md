@@ -36,7 +36,7 @@ or `undefined` when nothing named it yet.
 ## Watch out
 - The wire verbs (`collab phase member vote tally winner decision chose fact dispute`) are a
   contract shared with the runner minion — don't change the shape without saying so in both
-  tasks' logs. The contract itself: `/framework/ai/2026-09-28/collab-rounds/collab-format.md`.
+  tasks' logs. The contract itself: `/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md`.
 - `Collab.Fact.disputes[]` only ever grows — a dispute is never removed, even once the fact it
   named has dropped from `settled` to `likely`; the disputes stay as the reason why.
 - `on_fact` upserts by `id` (later line wins), the same rule `decision` already uses — a dispute
@@ -76,5 +76,5 @@ or `undefined` when nothing named it yet.
 ## More
 - [The live page](/framework/ext/Collab/) · [doc/collab.md](./doc/collab.md) — the objects, the phase lists, the decision tree
 - Files: `Collab.js` (the objects), `view.js` (draws one run), `collab.css`, `page.js`, `demo/` (a sample research run, a sample scoreboard)
-- The contract: `/framework/ai/2026-09-28/collab-rounds/collab-format.md` · the design: `/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md`
+- The contract: `/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md` · the design: `/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md`
 - Consumers: the runner writes what this reads; a task page can embed `view(collab)` for its own run

@@ -1,4 +1,4 @@
-# Skill prune, 2026-10-12: the safe half of the [skill-usage audit](../skill-usage-audit/recommendation.md)
+# Skill prune, 2026-10-12: the safe half of the [skill-usage audit](../../session-b5cae4be/skill-usage-audit/recommendation.md)
 
 **Result:** skills went from 34 to 32 and from 39,609 to 33,082 words (about 55.5k to 46.3k tokens). `mastermind` fell 7,982 to 3,672 words and `sub-mastermind` 4,240 to 2,478. Raw numbers: [before](bloat-before.json), [after](bloat-after.json), from `SkillBloat.mjs`.
 

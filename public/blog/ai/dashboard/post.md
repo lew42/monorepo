@@ -79,5 +79,5 @@ checkable after the fact — what it was asked to do, what it actually touched, 
 decided not to fix. Running AI agents at this scale only works if you can audit them
 as cheaply as you dispatch them. The board is the standup nobody has to attend.
 
-More: [the AI board](/framework/ai/) · [a real day](/framework/ai/2026-08-29/) ·
+More: [the AI board](/framework/ai/) · [a real day](/framework/ai/sessions/2026/08/29/) ·
 [`ext/JSONL`](/framework/ext/JSONL/) · [`ext/AITask`](/framework/ext/AITask/)

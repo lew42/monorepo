@@ -30,7 +30,7 @@ export default new Page({
 	// Mike" — which `ux-v1` then hunted for in the rows below and could not find, at
 	// all three widths. The promise belongs on the page that keeps it.
 	content(){
-		md("**[Today, ranked →](/framework/ai/2026-08-17/report/)** the five that need Mike, with the screenshots.");
+		md("**[Today, ranked →](/framework/ai/sessions/2026/08/17/report/)** the five that need Mike, with the screenshots.");
 
 		dashboard(this);
 	},

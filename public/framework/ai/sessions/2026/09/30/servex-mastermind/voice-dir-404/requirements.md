@@ -2,7 +2,7 @@
 
 Budget: $3
 
-`/framework/ai2/` fetches `ai/2026-09-30/voice-session-v-2joydc7/task.jsonl` and gets a 404. Voice-session dirs are created with only `files.jsonl` and `owner-words.md` (find the creator: grep `owner-words` across `public/framework/ext/Session`, `Servex/`, `Server/`).
+`/framework/ai2/` fetches `ai/sessions/2026/09/30/voice-session-v-2joydc7/task.jsonl` and gets a 404. Voice-session dirs are created with only `files.jsonl` and `owner-words.md` (find the creator: grep `owner-words` across `public/framework/ext/Session`, `Servex/`, `Server/`).
 
 Two fixes, both:
 1. The creator writes `task.jsonl` line 1 when it makes the dir: `{"assign":{"now":"session","agent":"<session agent id>","at":"<iso>","brief":"owner-words.md"}}`, the shape every other task dir has. Add the same line to the existing dirs that lack it (today's voice-session-* dirs).

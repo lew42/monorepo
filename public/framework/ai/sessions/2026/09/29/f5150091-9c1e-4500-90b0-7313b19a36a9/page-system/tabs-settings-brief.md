@@ -1,6 +1,6 @@
 # Minion brief: tabs that manage themselves, and per-page settings
 
-Load the `minion` skill first, then `code`, `page`, `css`, `content`. Task dir (the whole conversation, the owner's raw words): `public/framework/ai/2026-09-29/page-system/`. Read `loading-study.md` sections 3 and 4 there (with the verbatim owner quote at its top) before anything else. Re-check every file:line it gives.
+Load the `minion` skill first, then `code`, `page`, `css`, `content`. Task dir (the whole conversation, the owner's raw words): `public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/`. Read `loading-study.md` sections 3 and 4 there (with the verbatim owner quote at its top) before anything else. Re-check every file:line it gives.
 
 The owner: "it might be better to just add tabs to the page.jsonl … the presence of a new tab might be sufficient … then we don't need the kind of explicit call to the tabs. The tabs could basically manage themselves … the tab itself could maybe save its state, like whether it's active or disabled … maybe there's like an appears in navigation flag … I think we need a page settings system that we don't have yet … maybe it's in the right sidebar."
 

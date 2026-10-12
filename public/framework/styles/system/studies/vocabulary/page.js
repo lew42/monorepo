@@ -2,7 +2,7 @@ import { Page, div, h2, h3, p, a, span, md } from "/app.js";
 import { axes, sites } from "./tags.js";
 
 /* Container: a plain page under `styles/system/studies/` (moved from `/imagine/design/`'s
-   columns row 2026-09-18, `ai/2026-09-18/imagine-move-2/`). Size:
+   columns row 2026-09-18, `ai/sessions/2026/09/18/imagine-move-2/`). Size:
    `full` — a glossary plus a tagged table wants the whole row, same call as its
    sibling studies. Own layout: two sections, each a plain list — no grid needed at
    this row count. Regions: none, plain content(). Preview: the default card. */

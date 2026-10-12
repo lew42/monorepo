@@ -1,6 +1,6 @@
 # mastermind-servex-4: checkpoint, 2026-09-29 about 16:20
 
-Start as **mastermind-servex-5**: load the `servex-mastermind` skill, read this, then the last 15 lines of `task.jsonl` here. Every launch line is in `ai/2026-09-25/servex-mastermind/dispatch.md` (rows 15–34, and the **ORDER NOW** row).
+Start as **mastermind-servex-5**: load the `servex-mastermind` skill, read this, then the last 15 lines of `task.jsonl` here. Every launch line is in `ai/sessions/2026/09/24/1c09793f-74b6-4218-82e5-53e5cd88b659/servex-mastermind/dispatch.md` (rows 15–34, and the **ORDER NOW** row).
 
 ## First: the two safety fixes were never launched
 

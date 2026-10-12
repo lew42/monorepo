@@ -12,13 +12,13 @@ Old hand-typed list: 2 dead urls (`ext/classdoc` renamed to `ext/Doc`, still lin
 
 | # | min | url | 400/1920/3440 | cause |
 |---|---|---|---|---|
-| 1 | 0 | /framework/ai/2026-08-09/ | 0/52/53 | measure — 10.7 ch/line, 98px column |
-| 2 | 0 | /framework/ai/2026-08-11/ | 0/26/24 | rhythm — gaps 6–126px around 7px median (18×) |
-| 3 | 0 | /framework/ai/2026-08-13/panel/ | 0/0/6 | measure — 9.5 ch/line, 117px column |
-| 4 | 0 | /framework/ai/2026-08-14/editor-panel-review/ | 0/22/28 | measure — 10.2 ch/line, 90px column |
+| 1 | 0 | /framework/ai/sessions/2026/08/09/ | 0/52/53 | measure — 10.7 ch/line, 98px column |
+| 2 | 0 | /framework/ai/sessions/2026/08/11/ | 0/26/24 | rhythm — gaps 6–126px around 7px median (18×) |
+| 3 | 0 | /framework/ai/sessions/2026/08/13/panel/ | 0/0/6 | measure — 9.5 ch/line, 117px column |
+| 4 | 0 | /framework/ai/sessions/2026/08/14/editor-panel-review/ | 0/22/28 | measure — 10.2 ch/line, 90px column |
 | 5 | 0 | /framework/core/new/starter/ | 0/17/19 | measure — 10.7 ch/line, 91px column |
 | 6 | 0 | /framework/ext/Panel/ | 0/41/61 | measure — 1.8 ch/line, 0px column (real: demo rail collapses at 400) |
-| 7 | 14 | /framework/ai/2026-08-08/ | 14/62/72 | measure — 10.6 ch/line, 126px column |
+| 7 | 14 | /framework/ai/sessions/2026/08/08/ | 14/62/72 | measure — 10.6 ch/line, 126px column |
 | 8 | 16 | /framework/core/new/0/ | 16/38/43 | measure — 11 ch/line over 25 lines |
 | 9 | 19 | /framework/ext/catalog/ | 19/49/53 | measure — 10.9 ch/line, 117px column |
 | 10 | 19 | /framework/ext/catalog/overview/intro/ | 19/49/53 | same page, doc-member url |
@@ -26,9 +26,9 @@ Old hand-typed list: 2 dead urls (`ext/classdoc` renamed to `ext/Doc`, still lin
 | 12 | 23 | /framework/ext/editor/ | 23/30/28 | measure — 9.8 ch/line over 23 lines |
 | 13 | 24 | /framework/ext/LayoutTool/audit/ | 44/24/29 | cramped — text 0px from its frame |
 | 14 | 24 | /framework/ext/layout/ | 24/37/54 | zero-size — 0×0 box holding text |
-| 15 | 25 | /framework/ai/2026-08-13/sessions/ | 25/57/59 | measure — td 10.4 ch/line |
-| 16 | 26 | /framework/ai/2026-08-12/apps/ | 26/37/38 | rhythm — gaps 8–259px around 8px (32×) |
-| 17 | 26 | /framework/ai/2026-08-13/manifest-vs-log/ | 26/67/67 | rhythm — 13× |
+| 15 | 25 | /framework/ai/sessions/2026/08/13/sessions/ | 25/57/59 | measure — td 10.4 ch/line |
+| 16 | 26 | /framework/ai/sessions/2026/08/12/apps/ | 26/37/38 | rhythm — gaps 8–259px around 8px (32×) |
+| 17 | 26 | /framework/ai/sessions/2026/08/13/manifest-vs-log/ | 26/67/67 | rhythm — 13× |
 | 18 | 26 | /framework/core/Page/ | 26/46/46 | rhythm — 12.8× |
 | 19 | 27 | /framework/ext/LayoutTool/ | 46/27/27 | zero-size — 0×0 box holding text |
 | 20 | 28 | /framework/ext/Doc/ | 28/57/57 | rhythm — 10.4× |
@@ -62,8 +62,8 @@ All four score-affecting guards together: **median 66 → 79, F grades 269/854 �
 - Recurring chosen edges (+8px bisect grain, 15px scrollbar): 840→52em, 896→56em, 976→60em, 1032→64em, 648→40em.
 - Edges nobody chose, recurring: **368px** (5 pages), **624px** (4), **1080px** (3), **1272px** (5).
 - Method caveat: most edges are a single borderline rule crossing its threshold (at 1272px five pages "changed" only because `line-height` dropped out). Signature treats rule presence as discrete; real rearrangements would move `cut` count or scroll flag, which barely move. `frame()` is deterministic (6/6 repeats identical); this is a signature-design issue.
-- Three sweeps hung (`ext/LayoutTool`, `ext/Doc`, `ai/2026-08-12/apps/navigation`) — in-page `sweep()` via `page.evaluate` has no timeout; wire a timeout before the audit page ever calls sweep.
+- Three sweeps hung (`ext/LayoutTool`, `ext/Doc`, `ai/sessions/2026/08/12/apps/navigation`) — in-page `sweep()` via `page.evaluate` has no timeout; wire a timeout before the audit page ever calls sweep.
 
 ## Anomalies
 
-`/framework/ai/2026-08-14/editor-panel-review/` is not deterministic at a fixed width (22 then 7 at 1920; 36 sweep edges, 2× any other page). All its numbers unreliable until understood.
+`/framework/ai/sessions/2026/08/14/editor-panel-review/` is not deterministic at a fixed width (22 then 7 at 1920; 36 sweep edges, 2× any other page). All its numbers unreliable until understood.

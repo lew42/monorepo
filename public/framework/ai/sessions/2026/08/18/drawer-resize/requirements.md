@@ -2,7 +2,7 @@
 
 Laws: less is more · clarity · prioritize. **Deliverable: `ext/grip/` (one small module) used by BOTH `dev/DevBar` and `ext/drawer`; the drawer resizes, remembers its width, and never lingers when closed; proven headless with numbers and three pngs in this dir; docs current; final message ≤ 15 lines.** Opus — the DevBar grip carries a subtle 2026-08-16 fix that must survive the extraction.
 
-The owner (2026-08-18): *"The ext/drawer needs resizing, use devbar's setup (it has to be offset to the right, so it doesn't linger when closed."* Design already decided: [`../element-provenance/proposal.md`](../element-provenance/proposal.md) §4 — read it, then `dev/DevBar/grip.js` (25 lines), `grip.css`, `settings.js` (`rail()`, `set()`), `ext/drawer/drawer.js`, `drawer.css`, `ext/drawer/readme.md`, and the record of the offscreen fix: [`/framework/ai/2026-08-16/devbar-grip-offscreen/`](../2026-08-16/devbar-grip-offscreen/task.jsonl) (its outcome).
+The owner (2026-08-18): *"The ext/drawer needs resizing, use devbar's setup (it has to be offset to the right, so it doesn't linger when closed."* Design already decided: [`../element-provenance/proposal.md`](../element-provenance/proposal.md) §4 — read it, then `dev/DevBar/grip.js` (25 lines), `grip.css`, `settings.js` (`rail()`, `set()`), `ext/drawer/drawer.js`, `drawer.css`, `ext/drawer/readme.md`, and the record of the offscreen fix: [`/framework/ai/sessions/2026/08/16/devbar-grip-offscreen/`](../../../../../2026-08-18/2026-08-16/devbar-grip-offscreen/task.jsonl) (its outcome).
 
 ## Build
 

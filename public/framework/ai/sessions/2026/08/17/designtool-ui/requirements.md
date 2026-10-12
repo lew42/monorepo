@@ -76,13 +76,13 @@ Mike wants vision integrated *"until the layouttool becomes mathematically
 accurate."* The groundwork exists and you should read it before designing
 anything:
 
-- `ai/2026-08-17/vision-baseline/` — the 18-image scored baseline, and the finding
+- `ai/sessions/2026/08/17/vision-baseline/` — the 18-image scored baseline, and the finding
   that the **rules tier's aggregate score is anti-correlated** with how pages look
   (Pearson −0.393) while taste correlates. The aggregate is being removed right
   now by the other agent.
-- `ai/2026-08-17/rubric-v2/` — the rubric being hardened, with a
+- `ai/sessions/2026/08/17/rubric-v2/` — the rubric being hardened, with a
   ready/not-ready verdict and a per-page cost.
-- `ai/2026-08-17/shots-in-log/` — the `shot` log line and the loopback-guarded
+- `ai/sessions/2026/08/17/shots-in-log/` — the `shot` log line and the loopback-guarded
   route that already serves screenshots to the dashboard. **Reuse it; do not
   design a second mechanism** (RULE#7).
 
@@ -120,7 +120,7 @@ decide, and pick a default meanwhile.
 
 ## Files you own
 
-- `public/framework/ai/2026-08-17/designtool-ui/**` — your task dir only.
+- `public/framework/ai/sessions/2026/08/17/designtool-ui/**` — your task dir only.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 

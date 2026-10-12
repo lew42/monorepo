@@ -27,7 +27,7 @@ And (2026-09-18): make the call, build it, document the alternative.
 
 ## Rules
 
-- Load `code`; `new-task` before the first edit (your dir exists: `ai/2026-09-18/real-page-move/`); `documentation` then `finish-task`; write your choices as `decision` lines.
+- Load `code`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/18/real-page-move/`); `documentation` then `finish-task`; write your choices as `decision` lines.
 - **Fence:** `Server/plugins/SocketServer/Runtime.js` (or a new `Move.js` + its one registration line), that readme, `public/imagine/paging/make/**`, the scratch `public/imagine/paging/made-real/**` (yours, deleted at landing), your task dir. Nothing else — never `made/` (the owner's pages), never core, never another realm's `page.js`.
 - The owner's dev server on port 80 IS running: never touch it, never restart it. Never `git stash`, never `find /`, never drive the owner's tabs; an `rg` pattern starting with `/` returns nothing here — drop the slash.
 - Landing: `outcome` = a headline, the `ls` before/after, the links, the restart line, what was left and why. One screen.

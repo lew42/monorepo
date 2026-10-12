@@ -1,6 +1,6 @@
 # Decisions
 
-## Drill in (2026-09-30, `ai/2026-09-29/audio/next-drill-in/`)
+## Drill in (2026-09-30, `ai/sessions/2026/09/29/audio/audio/next-drill-in/`)
 
 - **Decided:** the shell lives in ext/Chat (`Drill.js`), opened from `ChatPanel`, so no host changed: the ✦ sheet and the drawer's AI tab got it by default. **Alternative:** a shell built into `ext/drawer/rail.js`. Not taken: rail.js belongs to two other tasks, and the desktop drawer would have needed its own copy.
 - **Decided:** on desktop the shell covers the drawer at its full height. **Alternative:** the page's main area. Not taken: the chat you drilled from would disappear from beside the page.
@@ -8,7 +8,7 @@
 - **Decided:** a reload waits for the whole path before opening (up to 1.5 s, then the deepest level that exists). A refined line can arrive after its card, and opening at once landed one level short.
 - **Left open:** see [drill.md](./drill.md).
 
-## Select, Rename, ✓/? marks (2026-09-29, `ai/2026-09-29/audio/next-chat-hitl/chat-wire/`)
+## Select, Rename, ✓/? marks (2026-09-29, `ai/sessions/2026/09/29/audio/audio/next-chat-hitl/chat-wire/`)
 
 **What it is:** `readme.md`'s "Select, Rename, ✓/? marks" section is the summary; this
 is the how and the trade-offs.
@@ -47,7 +47,7 @@ is the how and the trade-offs.
   the same way `readme.md`'s "revision line" section already flags for a real
   session file — this is the same shape, applied to a title instead of a sentence.
 
-## ChatPanel (2026-09-29, `ai/2026-09-29/audio/c-chat/`)
+## ChatPanel (2026-09-29, `ai/sessions/2026/09/29/audio/audio/c-chat/`)
 
 **What it is:** `ChatPanel.js`, a `View` subclass wrapping `chat()` (the log) and
 `composer()` (the box, the mic, Send) into one class with one view, so any host

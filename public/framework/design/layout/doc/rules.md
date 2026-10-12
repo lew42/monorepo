@@ -254,7 +254,7 @@ padding by definition — **the one-line rule: a page region takes `.pad`, a fra
 `.card`, a control or row keeps its own `em`.** A region's pad scales with the page, a card's
 scales with itself, a control's scales with its own text — three different reasons, three
 different words, never `.pad` on a card (it sits pinned at a 1em floor inside anything
-narrower than ~1292px, the padding audit measured, `/framework/ai/2026-09-19/card-word/`).
+narrower than ~1292px, the padding audit measured, `/framework/ai/sessions/2026/09/19/card-word/`).
 `.card` in framework.css carries its pad automatically, so a fill with text jammed against
 its edge — a box with no padding, which is a stain, not a box — can no longer happen by
 forgetting a second class. If the answer is no, it probably needs no padding at all. Padding
@@ -268,7 +268,7 @@ sidebar: a page's left and right padding is the first and last TRACK of the page
 any rule that redefines `grid-template-columns` on a `.page` deletes the gutters unless it
 restates them. Run `node Server/padding-check.mjs <url>` before landing a page — four widths,
 non-zero exit, the offending text and its gap. The whole measurement and what counts as an edge:
-[`/framework/ai/2026-09-22/padding-law/`](/framework/ai/2026-09-22/padding-law/).
+[`/framework/ai/sessions/2026/09/22/session-2e26b182/padding-law/`](/framework/ai/sessions/2026/09/22/session-2e26b182/padding-law/).
 
 ## Color meets color
 

@@ -3,7 +3,7 @@
 The owner's ask (2026-10-07): as a session grows, old context stops being relevant,
 and it's usually CHEAPER to start fresh (batched readme reads, a short summary) than
 to keep paying to re-send a huge window every turn. Full investigation:
-[`/framework/ai/2026-10-07/token-accounting/findings.md`](/framework/ai/2026-10-07/token-accounting/findings.md).
+[`/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/findings.md`](/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/findings.md).
 
 ## Measured, not assumed: most of a long session's $ is repeated context
 
@@ -65,5 +65,5 @@ itself doesn't also act on. The handoff shape is already built
 
 Full build plan, effort estimates, and why this is "careful, not small" (it changes
 when a live, possibly mid-task agent gets torn down and respawned):
-[`/framework/ai/2026-10-07/token-accounting/plan.md`](/framework/ai/2026-10-07/token-accounting/plan.md),
+[`/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/plan.md`](/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/plan.md),
 items 8-9.

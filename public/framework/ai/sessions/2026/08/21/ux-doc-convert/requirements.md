@@ -32,7 +32,7 @@ Yours alone: the eight `ux/<Name>/page.js`, cross-link lines in `ux/<Name>/readm
 ## Process
 
 - Load skills: `code` before editing page.js; `documentation` (mandated — this task IS its subject); `finish-task`; `skill-improvement` if a skill misleads.
-- Log to `public/framework/ai/2026-08-21/ux-doc-convert/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends via Add-Content, **pure ASCII**.
+- Log to `public/framework/ai/sessions/2026/08/21/ux-doc-convert/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends via Add-Content, **pure ASCII**.
 - **Timestamps are READ FROM THE CLOCK in the same command that writes the line, never typed** — `Get-Date -Format "yyyy-MM-ddTHH:mm:sszzz"` inline in the SAME append command.
 
 ## Safety (non-negotiable)

@@ -2,7 +2,7 @@
 /* refine.mjs — a raw dictation, turned into a brief a mastermind can act on, with nothing lost
  * on the way and a paper trail proving it.
  *
- * The owner's worry (public/framework/ai/2026-09-29/prompt-refine/owner-words.md, 2026-09-29
+ * The owner's worry (public/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/owner-words.md, 2026-09-29
  * about 1:25 PM): a long, rambling, informal dictation — full of "uh", "um", "like" — may lower
  * the model's quality, and whatever summary gets made from it (by a human-in-the-loop VS Code
  * tab, or by a mastermind) may leave out details or quietly turn a suggestion into a rule. What

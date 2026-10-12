@@ -4,7 +4,7 @@
 
 Continuation of Mike's 2026-08-15 autonomy grant ("keep working through the next 5h window … keep improving!") and his original question: *"the ext/layout sidebar [may not be] the best place to put Panel properties … any web apps might need any number of contextual right sidebars … layered, so you could have 2 at a time?"*
 
-The sidebar-strategy doc (`ai/2026-08-15/panel-ui-overhaul/doc/sidebar-strategy.md`) recommended: **Panel properties belong in a `properties` region in Panel's own T vocabulary** — an inspector that IS a panel, generalizing what ext/editor built by hand (`editor/page.js` REGIONS). The workspace then provides two-at-once, resizing, dragging and persistence for free. Its top open question: how does the inspector know which panel is focused? This task answers with working code.
+The sidebar-strategy doc (`ai/sessions/2026/08/15/panel-ui-overhaul/doc/sidebar-strategy.md`) recommended: **Panel properties belong in a `properties` region in Panel's own T vocabulary** — an inspector that IS a panel, generalizing what ext/editor built by hand (`editor/page.js` REGIONS). The workspace then provides two-at-once, resizing, dragging and persistence for free. Its top open question: how does the inspector know which panel is focused? This task answers with working code.
 
 ## Scope
 

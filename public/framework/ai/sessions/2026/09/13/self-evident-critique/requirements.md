@@ -1,6 +1,6 @@
 # self-evident-critique — can a newcomer misunderstand Make or Importance?
 
-Run: `ai/2026-09-13/mastermind-page-cms/` (the mastermind). Group: `ux`. You are a CRITIC: you edit nothing under `public/` except your own task dir. A fix pass follows you and reads your list cold.
+Run: `ai/sessions/2026/09/13/mastermind-page-cms/` (the mastermind). Group: `ux`. You are a CRITIC: you edit nothing under `public/` except your own task dir. A fix pass follows you and reads your list cold.
 
 ## The three laws, and your length budget
 
@@ -35,12 +35,12 @@ A reviewer who cannot say what a control does has found a defect. A click whose 
 
 ## Fences
 
-- Own: `public/framework/ai/2026-09-13/self-evident-critique/**` only. Read anything. Write nothing else under `public/` — your probe pages and judgments are removed before landing.
+- Own: `public/framework/ai/sessions/2026/09/13/self-evident-critique/**` only. Read anything. Write nothing else under `public/` — your probe pages and judgments are removed before landing.
 - Plans and pngs in the session scratchpad under `critique-*`; a png per defect copied into your task dir, named `NN-<control>-<width>.png`.
 
 ## Rules every brief carries
 
-- Open your task: `ai/2026-09-13/self-evident-critique/task.jsonl` with the `new-task` skill (own `session_id`, group `ux`, steps: read cold · press everything on Make · press everything on Importance · rank · land). Land with `finish-task`.
+- Open your task: `ai/sessions/2026/09/13/self-evident-critique/task.jsonl` with the `new-task` skill (own `session_id`, group `ux`, steps: read cold · press everything on Make · press everything on Importance · rank · land). Land with `finish-task`.
 - A skill that misled you gets ONE evidence line in its `improvements.md` (`skill-improvement`).
 - Every recipe here was checked on 2026-09-13 against the files.
 

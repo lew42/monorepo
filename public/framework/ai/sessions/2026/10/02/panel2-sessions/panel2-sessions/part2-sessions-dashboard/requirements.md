@@ -6,7 +6,7 @@ if you resumed from an older state. Load the `minion` skill first, then `page` (
 view) and `code`.
 
 Task directory (read the parent's task.jsonl and the full brief before you start):
-`public/framework/ai/2026-10-02/panel2-sessions/` — `requirements.md` there is the owner's
+`public/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/` — `requirements.md` there is the owner's
 original words for the whole task.
 
 Fence: `public/framework/ai/` only — a new `public/framework/ai/sessions/` folder and a new
@@ -71,7 +71,7 @@ hierarchy + icons is in scope, but don't turn it into live tiles — that's Dash
    built the `GET /api/sessions` route this mastermind asked for (Servex/agents inbox note,
    2026-10-02). If yes, fetch it (model `ai2/agents.js`'s pattern: `servex_base()` +
    `servex_fetch()`, cached, polled). If no route exists yet, write a small standalone script
-   instead (`public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs`):
+   instead (`public/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/sessions.mjs`):
    - Servex rows from the existing `GET /api/agents` (session_id, role, model, state, cost — tag
      `source: "servex"`);
    - scan `%USERPROFILE%\.claude\projects\c--Code-lew42-monorepo\*.jsonl` for session ids not

@@ -57,7 +57,7 @@ least two places (a ui component with variants, or a layouts/sections page).
 - `ext/demo/readme.md`: append a numbered section at the END (a sibling agent
   is also appending — if you collide, merge, don't overwrite). `ui/readme.md`:
   the unification record.
-- `public/framework/ai/2026-08-12/unify/page.js` — interactive executive
+- `public/framework/ai/sessions/2026/08/12/unify/page.js` — interactive executive
   summary Page (`meta: import.meta`, title "Unify"): before/after, live links,
   a live variants section demo, per-page judgment calls, open questions.
   Model: `framework/ai/2026-08-08/page.js`.

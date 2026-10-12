@@ -1,6 +1,6 @@
 # Ops brief — restart_servex, pause/resume dispatch, names align
 
-Load the `minion` skill first. Read `requirements.md` beside this file, then `public/framework/ai/2026-09-24/loose-ends/report.md` (briefs 4 and 5 under "Bigger work"), then `Servex/agents/readme.md`, `Servex/agents/roles.js`, `Servex/sustain.mjs` (read only), and the `dispatch.off` lines in `Servex/agents/Dispatcher.js` and `Assistant.js` (read only).
+Load the `minion` skill first. Read `requirements.md` beside this file, then `public/framework/ai/sessions/2026/09/24/loose-ends/loose-ends/report.md` (briefs 4 and 5 under "Bigger work"), then `Servex/agents/readme.md`, `Servex/agents/roles.js`, `Servex/sustain.mjs` (read only), and the `dispatch.off` lines in `Servex/agents/Dispatcher.js` and `Assistant.js` (read only).
 
 **Work ONLY in the worktree `C:/Code/lew42/worktrees/concurrency`** (branch `worktree/concurrency`). A sibling minion, `minion-concurrency-build`, is editing `Agents.js`, `tools.js`, `registry.js` and `MCP.js` there right now, so do not touch those four files. Commit only your own files: `git add <your files>`, never `git add -A`.
 

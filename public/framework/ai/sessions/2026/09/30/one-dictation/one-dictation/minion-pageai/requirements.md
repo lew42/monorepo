@@ -1,6 +1,6 @@
 # Minion brief: /api/page-ai and card prompts feed the fast/smart pair; the old per-card assistant retires
 
-Load the `minion` skill first, then `code`. Your parent is **task-mastermind-one-dictation**; its task dir is `public/framework/ai/2026-09-30/one-dictation/` (read its `requirements.md`, and the owner's words in `../audio-consolidate/owner-words.md` from "hamburger menu" on).
+Load the `minion` skill first, then `code`. Your parent is **task-mastermind-one-dictation**; its task dir is `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/` (read its `requirements.md`, and the owner's words in `../audio-consolidate/owner-words.md` from "hamburger menu" on).
 
 ## The owner's words (2026-09-30)
 "I don't want two user interfaces. I don't want two systems. And I believe this sidebar is actually using the old one, the single assistant… 'Yes I can hear you, what would you like to work on for this card'… I don't think that's a fast or smart assistant, and there's this model chooser at the top."

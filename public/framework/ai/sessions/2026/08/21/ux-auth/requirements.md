@@ -27,7 +27,7 @@
 - **Scope fence — yours alone:** `ux/Auth/**` only. READ-ONLY: everything else — `ux/page.js`, `ux/readme.md`, `ux/doc/**`, all of `ui/**`, `core/**`, `styles/**` (framework.css change = written proposal in your task dir). Do NOT build a multi-step/wizard engine — a sibling owns `ux/Wizard` today; your flows switch views, they do not step.
 - **CSS: as little as possible.** Compose utilities + ui classes; words give you density/contrast free. If a class is truly needed: `new-css-class` skill first (its `styles/css-scopes.txt` append is a permitted write; register the `ux-` prefix per its process — first ux ever named), classes `ux-auth-*`, one `css()` call inside `Auth.js`, inside a layer.
 - Load skills: `code`, `css`, `layout` before writing; `new-page` per page.js; `documentation`; `finish-task`; `skill-improvement` when a skill misleads.
-- Log to `public/framework/ai/2026-08-21/ux-auth/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); lessons as `log` lines prefixed `lesson:`; never a findings.md.
+- Log to `public/framework/ai/sessions/2026/08/21/ux-auth/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); lessons as `log` lines prefixed `lesson:`; never a findings.md.
 
 ## Verification (before landing)
 

@@ -10,7 +10,7 @@ The owner (2026-08-18), verbatim: *"how do we get a full-screen Panel? How do I 
 - [`panel.css:11`](/framework/ext/Panel/panel.css) `.panel-workspace { height: var(--panel-height, 34em); --panel-hug: 16em; }` and `:21` `.panel-workspace, .panel-items { container-type: size; }`; `.panel { flex-grow: var(--panel-grow, 1); overflow: hidden }` (`:24`). Every panel is `w: fill, h: fill` by default (`Panel.defaults`, `Panel.js:141`), so a bottom-edge split divides the height the workspace already has.
 - `size.js` / `size.css`: per-axis `fill | hug | fixed`; **`hug` declares `--panel-hug` (16em), it never measures** — `container-type: size` measures a box as if it were empty (readme trap; `doc/templates.md`). `.panel-items.v > .panel.panel-h-hug { flex: 0 0 auto }` + `min-block-size: min(var(--panel-hug), 100cqb)` (`size.css:35-38`); `panel-h-fixed` is `flex: 0 1 min(var(--panel-h-at, …), 100%)` (`:46`).
 - `split.js` `commit` → `item.divide(dir, new Panel(), at)` — the new panel gets the defaults (fills).
-- Yesterday's lesson, `ai/2026-08-18/figma-home/`: *"`fill` claims one screen and is wrong for any content-heavy page; a homepage is a document."* Same distinction here.
+- Yesterday's lesson, `ai/sessions/2026/08/18/figma-home/`: *"`fill` claims one screen and is wrong for any content-heavy page; a homepage is a document."* Same distinction here.
 - Landed today, don't collide: `flow.js` (recorder — note the name clash: **do not call your word `flow`** if it confuses `flow.js`/`.panel-flow-*`; `document`, `scroll`, or `page` are free — pick one and say why), the WORDS table in `glyphs.js` read by bar + rail (add your word THERE, root-only), `structure(text)` presets.
 
 ## Build

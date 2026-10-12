@@ -11,7 +11,7 @@ Asks [#7 asks-prompts-refine and #10 realtime-dictation-tasks](/framework/ai/doc
 - Raw words live in about 100 ms, a mechanical per-sentence clean with them, then structure, refined, cards (`Servex/ext/refine/VoicePage.js`, `run.js`).
 - **Tags:** the Haiku pass tags each sentence, cards show them, `TagRouter.js` leaves a note on the module page (`run.js`).
 - Every prompt is logged raw-first to the session's `prompts.jsonl` (`PromptLog`).
-- Approve/Improve decisions exist on board cards (`ai/2026-09-20/approve-loop/`).
+- Approve/Improve decisions exist on board cards (`ai/sessions/2026/09/20/approve-loop/`).
 
 ## Not built, with the reason and the smallest next step
 | Point | Why not | Smallest next step |
@@ -24,6 +24,6 @@ Asks [#7 asks-prompts-refine and #10 realtime-dictation-tasks](/framework/ai/doc
 
 ## Notes
 - Sessions missing from the AISession index read a `page.jsonl` in today's `session-<id8>/` while Servex writes to the older dated folder, so stages do not show for them. Found, not mine; the fix is in the index.
-- The voice flow `ai/2026-10-12/voice-verify/walk.mjs` is re-run after the merge (result in `task.jsonl`).
+- The voice flow `ai/sessions/2026/10/12/session-b0c9ab63/voice-verify/walk.mjs` is re-run after the merge (result in `task.jsonl`).
 - **Landed** as merge `a66e3b2dd` (smoke clean, review answered). Voice walk re-run after the merge: raw and clean at the first words, structure/refined/cards 6.4 s after Refine (baseline 6.6 s), no overflow, no errors. The walk's words name no module, so it does not draw the Things stage; `things-proof.mjs` covers that.
 - The Refine button sends the whole bubble; a very long prompt (over 20k characters) is refused by `/api/refine` and the error shows on the button. Smallest next step: trim the text before sending.

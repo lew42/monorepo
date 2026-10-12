@@ -1,6 +1,6 @@
 # content-list: state (2026-10-12)
 
-Step 1 of [content.md](../../core/Page/doc/content.md) is built and ready to merge: [what was built](../../core/Page/doc/content-list-step-1.md), live at [/framework/core/Page/content-shapes/](/framework/core/Page/content-shapes/). Branch `worktree/content-list`.
+Step 1 of [content.md](../../../../../../core/Page/doc/content.md) is built and ready to merge: [what was built](../../../../../../core/Page/doc/content-list-step-1.md), live at [/framework/core/Page/content-shapes/](/framework/core/Page/content-shapes/). Branch `worktree/content-list`.
 
 ## Proof
 

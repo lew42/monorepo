@@ -3,7 +3,7 @@ import { stats } from "../stats.js";
 import panel from "../ext/Panel/workspace.js";
 
 /* /framework/old/ — the framework homepage as it stood before the 2026-10-02 sprawl
- * rebuild (public/framework/ai/2026-10-02/framework-home/). Nothing was deleted: the
+ * rebuild (public/framework/ai/sessions/2026/10/02/framework-home/). Nothing was deleted: the
  * same hero, clock and stats the live /framework/ page used to show, kept reachable at
  * its own address so a reader (or a link from an old bookmark or chat log) can still
  * see it.

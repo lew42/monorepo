@@ -1,7 +1,7 @@
 import { Page, md, p, b } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board — the ordinary
                 page grid, everything at --measure prose width.
    2 SIZE       one screen: what changed, then the three proof outcomes, then
                 one line on what was left alone and why. Full command output
@@ -27,6 +27,6 @@ export default new Page({
 			"Renewing, not just warning, was the choice: an agent still writing plainly still wants the hold, and a warning alone would leave the very next write unheld again unless the agent stopped to fix it by hand. The named risk is the opposite case — an agent that truly finished and forgot to release could have some later, unrelated write quietly re-arm the old hold — but that risk is smaller and more local than the live 404 this closes: renewal only ever fires for a write carrying that *same* agent's own hold, and the five-minute self-expiry still applies afterward either way.");
 
 		md("**Why the expiry itself was left alone:** a hold that could never lapse on its own would be worse than this — it could block every reload forever if an agent crashed mid-batch. Nothing about how or when the lock expires changed; the only new thing is that the agent doing the writing now hears about it.\n\n" +
-			"Full transcript of all three proof runs, and the decision line, in this task's own log — reachable from [today's board](/framework/ai/2026-09-19/).");
+			"Full transcript of all three proof runs, and the decision line, in this task's own log — reachable from [today's board](/framework/ai/sessions/2026/09/19/).");
 	},
 });

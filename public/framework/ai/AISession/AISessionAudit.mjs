@@ -31,7 +31,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(here, "..", "..", "..", "..");
 
 // $ per 1,000,000 tokens, in/out. From the owner's own brief (2026-10-02,
-// public/framework/ai/2026-10-02/session-costs/minion-build/requirements.md) — no
+// public/framework/ai/sessions/2026/10/02/session-costs/minion-build/requirements.md) — no
 // pricing table existed in this repo before this file.
 //
 // ⚠ FIXED 2026-10-04 (token-accounting): cache_write was `in * 1.25` (the 5-minute-cache
@@ -179,7 +179,7 @@ function target_of(name, input){
 
 // The per-tool-call trace behind ai/sessions' "cost-over-time chart" +
 // "what was it doing" table (2026-10-03 brief,
-// public/framework/ai/2026-10-03/session-trace/requirements.md). A DIFFERENT
+// public/framework/ai/sessions/2026/10/03/session-trace/requirements.md). A DIFFERENT
 // shape from `cost_of_transcript()` above, read ALONGSIDE it, not instead of
 // it: that function already groups every assistant turn's $ under its nearest
 // earlier real `user` line — this one needs that SAME grouping (the $ only

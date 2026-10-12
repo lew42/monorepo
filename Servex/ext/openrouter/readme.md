@@ -60,7 +60,7 @@ model is capped at about $0.25 by `maxTurns` plus a check between turns: there's
 figure to abort a turn mid-stream on (real cost only settles after a turn ends), so if turn 1 alone
 already blew the cap, the resume turn is skipped rather than spending more. Results land one JSON
 line per model in
-[`spike.jsonl`](/framework/ai/2026-09-30/openrouter-harness/spike.jsonl), with a short pass/fail
+[`spike.jsonl`](/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/spike.jsonl), with a short pass/fail
 table on stdout. Pass your own model ids as arguments to try others than the three defaults.
 
 ### Spawn on OpenRouter
@@ -155,7 +155,7 @@ Default (no flags): one model, `claude-haiku-4-5-20251001`, at `low` effort — 
 before an OpenRouter model is allowed to spend anything. All five pass on it today. Results land
 as one `{"probe":{...}}` line per run in
 [`evals/results.jsonl`](./evals/results.jsonl) — the same file and shape
-mastermind-servex-9's probe runner uses (`public/framework/ai/2026-09-30/probe-tasks/probes.md`),
+mastermind-servex-9's probe runner uses (`public/framework/ai/sessions/2026/09/30/probe-tasks/probes.md`),
 so a rule test and an open-ended probe sit in one shared table instead of two parallel ones.
 
 ### Test library — real work, not one right answer
@@ -264,8 +264,8 @@ a new page here: a short blog post about owls") in a throwaway worktree, scores 
 fixed checks (parses, loads with no console errors, followed the prompt, used the right skills,
 opened/logged/landed a task, linked from its parent), and labels every failing cell **(a)** the
 system, **(b)** that model, or **(c)** config/parity. The design is
-[`probes.md`](/framework/ai/2026-09-30/probe-tasks/probes.md) and
-[`probes.json`](/framework/ai/2026-09-30/probe-tasks/probes.json); each run appends one line to
+[`probes.md`](/framework/ai/sessions/2026/09/30/probe-tasks/probes.md) and
+[`probes.json`](/framework/ai/sessions/2026/09/30/probe-tasks/probes.json); each run appends one line to
 [`evals/results.jsonl`](./evals/results.jsonl), which is the model × task matrix (requirements.md
 Phase 2, item 4) filling itself in.
 

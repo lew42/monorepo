@@ -1,11 +1,11 @@
 # Minion 1 — readme_chain(dir) + wiring + docs + proof
 
 Load the `minion` skill first. Your brief's folder (raw owner words, task log):
-`public/framework/ai/2026-09-29/readme-chain/` (also see `requirements.md` there).
+`public/framework/ai/sessions/2026/09/29/readme-chain/readme-chain/` (also see `requirements.md` there).
 
 You are working in worktree `C:\Code\lew42\worktrees\readme-chain` (branch `worktree/readme-chain`,
 already checked out, dev server already running — don't start or restart anything).
-Its own task log for YOUR steps: append to `public/framework/ai/2026-09-29/readme-chain/task.jsonl`
+Its own task log for YOUR steps: append to `public/framework/ai/sessions/2026/09/29/readme-chain/readme-chain/task.jsonl`
 with `node .claude/hooks/append.mjs` (write the JSON array with the Write tool first, per the
 new-task skill), same session id conventions as any minion.
 
@@ -101,7 +101,7 @@ off a directory). Capture its actual first prompt (from the agent's own session 
 by having it echo back what it received) and confirm it contains, IN ORDER: the root readme,
 `public/`, `framework/`, `ux/`, `Dictate/` readmes (whichever of those exist — check with `ls`
 first, some levels may have none). Save the transcript/proof under
-`public/framework/ai/2026-09-29/readme-chain/proof/` (a short .md or .txt is fine) and note the
+`public/framework/ai/sessions/2026/09/29/readme-chain/readme-chain/proof/` (a short .md or .txt is fine) and note the
 private Servex's port so it can be checked. Stop the private Servex when done (don't leave it
 running as a hidden process — no popup windows, `windowsHide: true` on anything you spawn).
 
@@ -118,4 +118,4 @@ running as a hidden process — no popup windows, `windowsHide: true` on anythin
 
 No pop-up windows from any spawned process. Don't edit files outside
 `Servex/agents/`, `Servex/doc/`, `.claude/skills/sub-mastermind/`, `.claude/skills/minion/`, and
-your own task dir under `public/framework/ai/2026-09-29/readme-chain/`.
+your own task dir under `public/framework/ai/sessions/2026/09/29/readme-chain/readme-chain/`.

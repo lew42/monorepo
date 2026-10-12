@@ -58,7 +58,7 @@ export default new Page({
 
 		md([
 			"- **375 things**: 198 live, 79 demos, 53 labs, and 45 that are dead, moved-stubs or orphaned.",
-			"- **The first move is not safe yet.** The 739-file “prune” waiting on you (from the [22 Sept reuse audit](/framework/ai/2026-09-22/reuse-audit/)) would break [paging templates](/imagine/paging/templates/): `families.js` still imports the *old* copies of four moved realms. Repoint those five imports first, then prune.",
+			"- **The first move is not safe yet.** The 739-file “prune” waiting on you (from the [22 Sept reuse audit](/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/)) would break [paging templates](/imagine/paging/templates/): `families.js` still imports the *old* copies of four moved realms. Repoint those five imports first, then prune.",
 			"- **Readmes:** 183 current, 29 stale, 46 missing, and 115 don’t need one.",
 		].join("\n"));
 
@@ -123,6 +123,6 @@ export default new Page({
 			}
 		}).ac("wide");
 
-		md("*29 Sonnet minions (medium effort) wrote the rows in about four minutes, for $8.56. Five of their claims were checked against the code; that check is in the task log beside this page. Earlier passes: [reuse audit, 22 Sept](/framework/ai/2026-09-22/reuse-audit/) and [overlap study, 18 Sept](/framework/ai/2026-09-18/overlap-study/).*").ac("muted");
+		md("*29 Sonnet minions (medium effort) wrote the rows in about four minutes, for $8.56. Five of their claims were checked against the code; that check is in the task log beside this page. Earlier passes: [reuse audit, 22 Sept](/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/) and [overlap study, 18 Sept](/framework/ai/sessions/2026/09/18/overlap-study/).*").ac("muted");
 	},
 });

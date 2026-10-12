@@ -1,6 +1,6 @@
 # Session data housekeeping: commit rule, machine-log sweeper, OpenRouter gap (task mastermind brief)
 
-Read `public/framework/ai/handover.md`, `ai/sessions/readme.md`, `ai/sessions/doc/` and `ai/2026-10-10/tasks-into-sessions/STATE.md` (tasks were moved into session folders; check what landed and what is left: 994 tasks had no session and stay, 12 not landed).
+Read `public/framework/ai/handover.md`, `ai/sessions/readme.md`, `ai/sessions/doc/` and `ai/sessions/2026/10/10/session-41240bd9/tasks-into-sessions/STATE.md` (tasks were moved into session folders; check what landed and what is left: 994 tasks had no session and stay, 12 not landed).
 
 ## Do
 1. **Working-tree hygiene:** `git status` shows dozens of machine-written files (`ai/sessions/2026/**/index.json`, `*/files.jsonl`, `public/ai/*.jsonl`, task `page.jsonl`/`task.jsonl`). Decide for each class of file: commit (versioned log), gitignore (cache), or regenerate. Write the rule in `ai/sessions/doc/` and the readme; apply it (`.gitignore` edits are fine; committing is fine; never delete data).

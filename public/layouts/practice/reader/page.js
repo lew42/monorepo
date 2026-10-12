@@ -174,4 +174,4 @@ const ANSWERS = [
 	["Purpose and outcome", "A reader leaves knowing what a layout id is and how to tell two layouts apart — and having seen a wide screen's leftover spent on something rather than left grey."],
 ];
 
-const POLISH = "Eight checks at four widths said 8 of 8 — and a critic then swept every 80px from 400 to 3440 and measured six widths in full, including the two a four-width sweep skips. What it found and what was done is in [the critic's log](/framework/ai/2026-09-17/practice-critic/).";
+const POLISH = "Eight checks at four widths said 8 of 8 — and a critic then swept every 80px from 400 to 3440 and measured six widths in full, including the two a four-width sweep skips. What it found and what was done is in [the critic's log](/framework/ai/sessions/2026/09/17/practice-critic/).";

@@ -99,7 +99,7 @@ One signature either a call site or a future `Workspace` class can reach for.
 ⚠ **`insert.js`'s `+` eats a seam drag.** It is `z-index: 5` over `grip.js`'s `2`: a row
 split's bar covers the top 2.2rem of its seam, and a **nested column split's** bar covers
 2.2rem of its own left edge — which is the middle of the outer seam. A press there moves
-nothing. `ai/2026-08-18/panel-flow/`.
+nothing. `ai/sessions/2026/08/18/panel-flow/`.
 
 ⚠ **A synthetic drag needs a frame between moves.** `grip.js`'s `coalesce()` commits on
 `requestAnimationFrame`; sixteen `mouse.move`s with no wait give it none, `dragged` stays

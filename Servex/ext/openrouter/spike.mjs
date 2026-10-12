@@ -38,7 +38,7 @@ const DEFAULT_MODELS = [
 ];
 
 const SPIKE_JSONL = path.join(fileURLToPath(new URL(".", import.meta.url)),
-	"../../../public/framework/ai/2026-09-30/openrouter-harness/spike.jsonl");
+	"../../../public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/spike.jsonl");
 
 const TURN_TIMEOUT_MS = 90_000;   // a stuck model can't hang forever
 const MAX_TURNS = 6;              // a looping model can't burn money forever

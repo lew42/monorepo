@@ -5,7 +5,7 @@ don't look cool, inspiring, useful. they look unfinished, broken, etc."*
 
 `/framework/styles/layouts/` was rebuilt today and now reads well as a wall — but
 its own author left a list of cards that are still weak, and named the causes.
-**Fix those.** Read `ai/2026-08-17/layouts-redesign/task.jsonl` and
+**Fix those.** Read `ai/sessions/2026/08/17/layouts-redesign/task.jsonl` and
 `styles/layouts/readme.md`'s `Open` section first; the diagnosis is already done.
 
 ## The four items
@@ -75,14 +75,14 @@ of the deliverable.
 ## Files you own
 
 - `public/framework/styles/layouts/**` — all of it, including `space/`.
-- `public/framework/ai/2026-08-17/weak-cards/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/weak-cards/**` — your task dir.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 
 **Fenced off:** `ext/DesignTool/**` (another agent owns it — read-only, and don't
 run it), `ext/Panel/**` (another session), `core/**` (the redesign already made the
 one core change it needed; don't make another without proposing it),
-`ai/2026-08-17/rubric-v2/**` and `vision-baseline/**`.
+`ai/sessions/2026/08/17/rubric-v2/**` and `vision-baseline/**`.
 
 ⚠ **Urls must not change.** The word cards are *borrowed* from `flex/` and `grid/`
 rather than moved, precisely so the seven inbound links from `styles/sections/`

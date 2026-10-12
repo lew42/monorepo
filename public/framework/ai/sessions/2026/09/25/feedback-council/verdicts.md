@@ -79,7 +79,7 @@
 - 🟡 **C4 Page system upgrade: simpler, live JSONL pages documented, core pages page less wordy.** — partly **4/5** (4 partly)  
   Commit 15291daa shortened core/Page docs; live JSONL pages appear used (ai/2026/09/24/ai-dashboard/page.jsonl)
 - 🟡 **C6 CSS audit by directory with a tree view of CSS amounts, proposals to reduce; tokens + container queries on columns.** — partly **4/5** (4 partly, 1 done)  
-  ai/2026-09-25/css-audit exists, 'landed: explorer, ranked plan and padding curves; up to 8,599 of 35,769 lines can go' per Live note  
+  ai/sessions/2026/09/25/css-audit/css-audit exists, 'landed: explorer, ranked plan and padding curves; up to 8,599 of 35,769 lines can go' per Live note  
   **Fix:** Open css-audit and confirm the tree view page exists
 - 🟡 **D1 Never pop up a Node process: hidden flag, told to everyone.** — partly **5/5** (5 partly)  
   Rule is in the minion and code skills; windowsHide is set in Server/health, on-landing, Shot, Start, Whisper, worktree-up. Other Server files (AILogs, Ask, Assistant, Ca…  

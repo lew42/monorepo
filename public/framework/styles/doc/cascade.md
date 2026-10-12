@@ -10,7 +10,7 @@ never actually cancelled — measured on `/layouts/labs/sections/`, a 15px strip
 above and below a full-bleed block regardless of the selector written against it. Fixed 2026-09-05
 by moving `Page.css`'s two declarations into `@layer util` beside the rule they were losing to —
 same layer, so the more specific selector wins the ordinary way (`core/Page/doc/columns.md`,
-`ai/2026-09-05/core-fixes/`).
+`ai/sessions/2026/09/05/core-fixes/`).
 
 ## 13. Escalation is a ratchet — the `site` layer
 

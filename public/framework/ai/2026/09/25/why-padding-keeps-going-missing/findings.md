@@ -32,4 +32,4 @@ Now card, text flush against the inbox column
 
 Run it by hand: `node Server/padding-check.mjs /some/page/ --base http://monorepo.localhost`
 
-Task log: [/framework/ai/2026-09-25/padding-system/](/framework/ai/2026-09-25/padding-system/)
+Task log: [/framework/ai/sessions/2026/09/25/padding-system/padding-system/](/framework/ai/sessions/2026/09/25/padding-system/padding-system/)

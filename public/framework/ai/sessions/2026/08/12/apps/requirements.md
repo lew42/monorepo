@@ -1,7 +1,7 @@
 # Task: application-pattern examples — Figma-like, Blender-like, columns, rail-vs-detail
 
 Session: 2026-08-12 (second session, orchestrated). Your pages live UNDER
-`public/framework/ai/2026-08-12/apps/` (this exploration ships as session pages
+`public/framework/ai/sessions/2026/08/12/apps/` (this exploration ships as session pages
 first; propose promotion targets in your summary). You create new files only —
 do NOT edit `ext/demo/*`, `ext/classdoc/*`, `ext/catalog/*`, `styles/*` (sibling
 agents own them this session). `ext/layout` additions need a strong case; prefer

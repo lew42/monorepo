@@ -32,4 +32,4 @@ Budget: $15
 A question worth asking and paying to answer is filed once, as a Q&A on the page it belongs to (its FAQ), and logs and replies link to it instead of re-answering. The refiner marks each question in a prompt; the answer links back to the prompt sentence.
 
 ## Measured 2026-10-04: refining 10 real prompts
-DeepSeek v4.1 flash 10/10 (~$0.001/prompt), local Qwen 8/10 ($0), Sonnet 7/10 (~$0.003/prompt as a raw call; ~$0.21 inside an agent session). eval-results-refine-sonnet.json in ai/2026-10-03/new-brain/.
+DeepSeek v4.1 flash 10/10 (~$0.001/prompt), local Qwen 8/10 ($0), Sonnet 7/10 (~$0.003/prompt as a raw call; ~$0.21 inside an agent session). eval-results-refine-sonnet.json in ai/sessions/2026/10/04/new-brain/new-brain/.

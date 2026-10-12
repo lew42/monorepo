@@ -27,7 +27,7 @@ Load the `minion` skill first. Then this brief.
 
 ## Rules
 
-- Load `code` (parts as static subclasses; every method a seam), `layout`, `css`, `new-css-class` (`ui-tree-` is the template's prefix; the class's own prefix is what `css-scopes.txt` says — read it); `new-task` before the first edit (your dir exists: `ai/2026-09-17/tree-component/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
+- Load `code` (parts as static subclasses; every method a seam), `layout`, `css`, `new-css-class` (`ui-tree-` is the template's prefix; the class's own prefix is what `css-scopes.txt` says — read it); `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/tree-component/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
 - **Fence:** `public/framework/ux/Tree/**`, `public/framework/ui/tree/**` (docs and the markup only if the merged class needs one more hook), your task dir. Nothing else — not Make, not core/Sidebar, not ext/Draggable (consume it; if it lacks something, say so in the log with the lines).
 - Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`. The owner's server (port 80) is NOT running; start your own: `PORT=8107 node server.js` from the repo root, in the background; kill it by PID when you land. `ui-test` has the headless recipe: prove the drag (above / inside / below, three shots), the fold, and `adapt` at depth 4.
 - Two numbers that must agree: rows rendered from a page subtree and pages in that subtree.

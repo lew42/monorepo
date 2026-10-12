@@ -1,6 +1,6 @@
 # Dictate fixes, round 2 (freeze: these only)
 
-Round 1 landed (/framework/ai/2026-10-04/dictate-fixes/: one bubble per line, no Chrome recognizer fallback, instant send, no stale pins). Its review left the mic-abort race untraced.
+Round 1 landed (/framework/ai/sessions/2026/10/05/dictate-fixes/dictate-fixes/: one bubble per line, no Chrome recognizer fallback, instant send, no stale pins). Its review left the mic-abort race untraced.
 
 ## The owner, 2026-10-04, on the phone (http://10.0.0.135:3104, mobile AI rail button)
 > There's these little beeps when the microphone's supposed to go on and off. It's bleeping twice ... it seems like it's maybe turning off and then turning back on after every pause

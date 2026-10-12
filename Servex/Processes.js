@@ -346,7 +346,7 @@ export default class Processes extends Events {
 
 const round = (n, places = 1) => Math.round(n * 10 ** places) / 10 ** places;
 
-/** "…/public/framework/ai/2026-09-30/process-monitor" -> "2026-09-30/process-monitor" */
+/** "…/public/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/process-monitor" -> "2026-09-30/process-monitor" */
 export function task_key(dir){
 	const parts = String(dir).split(/[\\/]+/), i = parts.lastIndexOf("ai");
 	return i >= 0 ? parts.slice(i + 1).join("/") : parts.slice(-2).join("/");

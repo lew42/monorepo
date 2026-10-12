@@ -43,11 +43,11 @@ Clustered **272 + 8 residual singles = 280**; broken **86**. Read-only; nothing 
 **Page: [`/framework/core/Page/doc/`](/framework/core/Page/doc/), the `declaring` tab.** Exactly one wrapper, so it isolates one variable.
 **Nodes that claim `wide`:** the single table at `core/Page/doc/declaring.md:7-11`. Nothing else — the two `h2`s, the prose and the code block stay in `main`.
 **Before/After:** 390 (the table stops wrapping one word per line) and 3440 (750px → the table takes the leftover, prose does not).
-Second choice if a busier page reads better: `/framework/ai/2026-08-17/mastermind-shots/`, whose three tables are all `AITask.js:200,209,215` — but it sits under three wrappers, so it only works if #1 is recursive.
+Second choice if a busier page reads better: `/framework/ai/sessions/2026/08/17/mastermind-shots/`, whose three tables are all `AITask.js:200,209,215` — but it sits under three wrappers, so it only works if #1 is recursive.
 
 ## Re-shoot these 6 to prove the wave
 
-`/framework/core/Page/doc/` (1,4,5) · `/framework/ui/` (2) · `/framework/ai/` (3) · `/web/` (1) · `/framework/ai/2026-08-17/mastermind-shots/` (1,4,5) · `/framework/styles/layouts/` (2,7)
+`/framework/core/Page/doc/` (1,4,5) · `/framework/ui/` (2) · `/framework/ai/` (3) · `/web/` (1) · `/framework/ai/sessions/2026/08/17/mastermind-shots/` (1,4,5) · `/framework/styles/layouts/` (2,7)
 
 ## Prompt feedback → `vision-fixes`
 

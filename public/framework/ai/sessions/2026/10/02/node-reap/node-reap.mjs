@@ -1,8 +1,8 @@
 /* node-reap: stop the node dev servers nobody is using (the owner, 2026-10-02, TOP PRIORITY:
  * 59 node.exe using 3.9 GB, measured by vscode-mastermind).
  *
- *   node public/framework/ai/2026-10-02/node-reap/node-reap.mjs           a dry run: prints the plan
- *   node public/framework/ai/2026-10-02/node-reap/node-reap.mjs --apply   does it, then writes result.json
+ *   node public/framework/ai/sessions/2026/10/02/node-reap/node-reap.mjs           a dry run: prints the plan
+ *   node public/framework/ai/sessions/2026/10/02/node-reap/node-reap.mjs --apply   does it, then writes result.json
  *
  * Written by mastermind-servex-10, which could not run node or kill processes (its session refused both).
  *

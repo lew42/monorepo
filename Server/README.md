@@ -23,7 +23,7 @@ pages against (default `http://localhost:8123`, the mastermind's). Full story:
 
 **`node Server/layout-check.mjs <url...>`** shoots pages at four widths by default (`--widths` picks others) and flags wasted space; **`Server/on-landing.mjs`** runs it by itself on every task landing (the ledger hook spawns it) and logs the result to the task, and flagged pages to `servex-mastermind`.
 
-**`node Server/merge.mjs <worktree>`** now finds the pages a branch changed by itself (every `page.js`/`page.jsonl` in its diff, mapped to its site url) and hands them to `Server/smoke.mjs`, which follows every same-origin link it finds one level deep instead of only loading the pages it was told about — the gap that let 7 broken concept-tile links land unnoticed; a NEW page in the diff also gets a 1920 screenshot into `.merge-shots/`. [`public/framework/ai/2026-09-28/smoke-links/`](/framework/ai2/2026-09-28/smoke-links/).
+**`node Server/merge.mjs <worktree>`** now finds the pages a branch changed by itself (every `page.js`/`page.jsonl` in its diff, mapped to its site url) and hands them to `Server/smoke.mjs`, which follows every same-origin link it finds one level deep instead of only loading the pages it was told about — the gap that let 7 broken concept-tile links land unnoticed; a NEW page in the diff also gets a 1920 screenshot into `.merge-shots/`. [`public/framework/ai/sessions/2026/09/28/b784a919-ce8c-4785-90d5-92b615b91d7c/smoke-links/`](/framework/ai2/2026-09-28/smoke-links/).
 
 **`--quick`** is `merge.mjs`'s fast path for a one-line voice fix: no reviewer agent, allowed only for ≤20 changed lines in one module. It takes the one screenshot `review.mjs`'s `widthsFor` says the change needs (not always four), then merges exactly as above. Its last line of stdout is one JSON object: `merged`, `shot`, `width`, `ms`. Detail and the exit codes: the file's own header comment, and [`doc/review.md`](./doc/review.md#which-widths).
 
@@ -34,7 +34,7 @@ the owner. The same per-call check runs on every Edit/Write, live, in
 `.claude/hooks/syntax-guard.mjs`'s `hidden_guard`; this is the repo-wide sweep version. It's
 advisory (never throws, always exits 0) and can flag a same-named method definition or a
 prose mention as a false positive — read the hit before editing anything.
-[`public/framework/ai/2026-09-28/hidden-windows/`](/framework/ai2/2026-09-28/hidden-windows/).
+[`public/framework/ai/sessions/2026/09/28/b42621ed-33f7-41f0-b19b-12c679306b9a/hidden-windows/`](/framework/ai2/2026-09-28/hidden-windows/).
 Same idea, one launcher: every script starts Chromium through
 [`Server/browser.mjs`](./browser.mjs), never `chromium.launch(` on its own — window-lint and
 syntax-guard's `browser_guard` both flag a stray one too. `node Server/window-watch.mjs` is the live catcher —
@@ -49,7 +49,7 @@ Four widths by default (`--width 3440` for one; `--base` picks the server), beca
 the bug that prompted it only appears above 1312px and `health.mjs` was looking at
 1280 alone. `health.mjs` now imports the same measurement, so the watcher checks it
 too — one definition, three callers. The before/after over 107 pages:
-[`/framework/ai/2026-09-22/padding-law/`](/framework/ai/2026-09-22/padding-law/).
+[`/framework/ai/sessions/2026/09/22/session-2e26b182/padding-law/`](/framework/ai/sessions/2026/09/22/session-2e26b182/padding-law/).
 
 **`Server/on-landing.mjs`** runs automatically the first time the ledger hook sees a task with
 `landed_at`: text-check (walls of text), layout-check and padding-check on the pages the landing
@@ -62,7 +62,7 @@ sees it without opening the log. ⚠ It is a plain file/dir existence check, so 
 `page.js` routes some of its readme's links to *virtual* children (declared in code, no matching
 directory on disk) can flag those as dead when the site actually serves them fine — it does not
 understand the router, on purpose, to stay this simple.
-[`public/framework/ai/2026-09-28/task-loop/landing-checks/`](/framework/ai2/2026-09-28/task-loop/landing-checks/).
+[`public/framework/ai/sessions/2026/09/28/task-loop/task-loop/landing-checks/`](/framework/ai2/2026-09-28/task-loop/landing-checks/).
 
 **`Server/owner-check.mjs`** (2026-10-01) is the last check on-landing.mjs runs: does the landed
 task do what the OWNER actually asked, item by item — not just match its own requirements.md? It
@@ -88,7 +88,7 @@ the median and agreement of every score, the union of `missing` items 2+ auditor
 complete/obedience median hits -2 or worse, and each model's distance from the median (the
 model-ladder ranking). Writes one `consensus.json` per task. Dedupes a model to one vote per
 task — a dequeued minion can still land its turn moments later, producing a duplicate. Built
-for, and proven on, the first pilot: [`public/framework/ai/2026-10-02/task-audit/report.md`](/framework/ai/2026-10-02/task-audit/).
+for, and proven on, the first pilot: [`public/framework/ai/sessions/2026/10/03/task-audit/task-audit/report.md`](/framework/ai/sessions/2026/10/03/task-audit/task-audit/).
 
 **`Server/ask-each.mjs`'s `askOnce()`** now takes an optional `env` (and `disallowedTools`) —
 the same OpenRouter env swap `Agents.js` uses (`ext/openrouter/provider.js`'s `env_for`) — so a
@@ -178,7 +178,7 @@ owner's own save did not reload the owner's own tab — their dev bar said "held
 board-declutter, 220s" and gave them no way to know that was why. The readout names the fence
 now ("board-declutter holds ai/v/3/\*\*, 220s"), and `Server/hold.mjs`'s `matches()` is the one
 place the glob rules live. Why, and the proof:
-[`reload-rethink`](/framework/ai/2026-09-22/reload-rethink/).
+[`reload-rethink`](/framework/ai/sessions/2026/09/22/f875ec48-d91a-4890-b15f-db197b55aa13/reload-rethink/).
 
 `.jsonl` streams (`Tail`, above) are a separate channel and are never held. The lock is
 one small JSON file at the repo **root** (`.reload-hold.json`, git-ignored, outside
@@ -188,7 +188,7 @@ polls that one file every 500ms rather than opening a second watch handle — a 
 expire on a timer with no file write at all, so one mechanism does both jobs. Full design, the
 "prove" numbers and why the first poll has to wait for the server's own `"listening"` event
 (touching `socket_server.sockets` any earlier crashed the child at boot — Server.js hadn't
-finished constructing it yet): `public/framework/ai/2026-09-19/reload-hold/requirements.md`.
+finished constructing it yet): `public/framework/ai/sessions/2026/09/19/reload-hold/requirements.md`.
 
 The watcher used to lock every directory under `public/` against renaming (*Permission
 denied* from `git mv` and `Rename-Item` alike). Fixed with the same change — only
@@ -208,7 +208,7 @@ upgrade below.
 | `append(file, lines)` | `Append.js` | appends whole lines to a `.jsonl` |
 | `cmd(command)` | `Runtime.js` | ⚠ `child_process.exec`, no allowlist — see below |
 | `ask({..., stream: true, preset})` | `Ask.js`, `Assistant.js` | a `claude -p` turn; `stream` adds `--include-partial-messages` and streams `ask_chunk`/`ask_done` as it generates — `ext/Ask/doc/decisions.md` |
-| `card_answer({id, answer})` | `CardAnswer.js` | the doorbell for a card that asked the owner a question (`say.mjs --ask`): appends the answer onto the same card on the board, tells the mastermind's inbox, and RINGS the session named on the card (`ask_to`) with one tiny headless turn given only the `SendMessage` tool — pushes `card_rung` when that finishes. `ai/2026-09-19/card-replies/` |
+| `card_answer({id, answer})` | `CardAnswer.js` | the doorbell for a card that asked the owner a question (`say.mjs --ask`): appends the answer onto the same card on the board, tells the mastermind's inbox, and RINGS the session named on the card (`ask_to`) with one tiny headless turn given only the `SendMessage` tool — pushes `card_rung` when that finishes. `ai/sessions/2026/09/19/card-replies/` |
 
 ## The socket wire is loopback-only
 
@@ -294,7 +294,7 @@ evaluates fine and stops *rendering*, so no rAF and no ResizeObserver. CSS-drive
 layout still measures true (a geometry read forces a reflow); anything the page sizes
 in a frame callback is frozen, and that reads as a plausible number, never an error.
 `shot` is the escape hatch — its own browser, always rendering.
-`ai/2026-08-18/mcp-tab-awareness/`.
+`ai/sessions/2026/08/18/mcp-tab-awareness/`.
 
 `eval` needs a reply channel the socket wire lacks, so
 `plugins/SocketServer/Tab.js` — a `Socket` plugin, `DevSocket.Socket.use(Tab)` —

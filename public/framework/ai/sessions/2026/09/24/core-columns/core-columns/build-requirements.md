@@ -4,7 +4,7 @@ Load the `minion` skill first, then the `css` skill (and `code` if you touch Doc
 
 ## The words this is judged against (verbatim)
 
-> 1. Navigation that doesn't jump: apply the 34cqi tuning from public/framework/ai/2026-09-17/nav-stability/proposal.md in core Page.css. The Reader centres at 3440.
+> 1. Navigation that doesn't jump: apply the 34cqi tuning from public/framework/ai/sessions/2026/09/17/nav-stability/proposal.md in core Page.css. The Reader centres at 3440.
 > 2. Columns: a fill column gives back the space of columns opened under it, and a column head takes its own --pad. Test in the /imagine/paging/ lab.
 > 6. A nested Doc draws as a plain section, with no doubled band (core/new 0, 1, starter; DesignTool/taste).
 
@@ -14,7 +14,7 @@ And the owner, on shared CSS: "we don't want to clobber things; an overnight ses
 
 - Worktree `C:\Code\lew42\worktrees\core-columns` — its server is **http://127.0.0.1:53207** (never start/stop/restart any server). Edit ONLY in the worktree, never in `C:\Code\lew42\monorepo`.
 - Headless Playwright (global; tested): `import { createRequire } from "node:module"; const require = createRequire("C:/Users/mike/AppData/Roaming/npm/node_modules/"); const { chromium } = require("playwright");` — scripts go in the session scratchpad, named `cc-build-*.mjs`: `C:\Users\mike\AppData\Local\Temp\claude\C--Code-lew42-monorepo\df827164-9c31-42cf-a111-af266f471402\scratchpad\`
-- Before-shots already exist at `public/framework/ai/2026-09-24/core-columns/shots/before/` (with `geometry.json`). Don't touch them.
+- Before-shots already exist at `public/framework/ai/sessions/2026/09/24/core-columns/core-columns/shots/before/` (with `geometry.json`). Don't touch them.
 
 ## Deliverables
 

@@ -26,7 +26,7 @@ View.stylesheet(import.meta, "browse.css");
 
    THE WALL IS `this.browse()` — core's own filterable-wall method (ext/catalog),
    the same one `/framework/core/Layout/` and `/framework/ui/` already stand on —
-   not a hand-rolled grid (2026-09-18, `ai/2026-09-18/browse-on-browse/`, merge 5 of
+   not a hand-rolled grid (2026-09-18, `ai/sessions/2026/09/18/browse-on-browse/`, merge 5 of
    the overlap study: this page used to keep an independent 644-line copy of exactly
    what `browse()` already does). It draws real bands out of real children, so every
    catalogued layout below is a REAL declared child of this page — see `BrowseItem`.

@@ -12,7 +12,7 @@ Full raw prompt: /framework/ai/2026/10/03/session-60d9def6/ (the Prompt starting
 4. Lives on the day page at `/framework/ai/<date>/` (extend what renders it; do not build a second dashboard). Today, 2026-10-03, is the proof day; yesterday must work too.
 
 ## Existing, read first (law 6)
-`Server/task-cost.mjs` + `Server/doc/task-cost.md`; the day page (`public/framework/ai/2026-10-03/page.js` and what it imports); `ai/2026-10-03/day-audit/day-audit.mjs`; page-ai-cost (landed today: the per-page AI cost line); ext/Mention icon links.
+`Server/task-cost.mjs` + `Server/doc/task-cost.md`; the day page (`public/framework/ai/2026-10-03/page.js` and what it imports); `ai/sessions/2026/10/03/day-audit/day-audit.mjs`; page-ai-cost (landed today: the per-page AI cost line); ext/Mention icon links.
 
 ## Done when
 The 2026-10-03 day page shows the two totals, a per-module list, and a click into one module, screenshotted at 400 and 1920. The numbers match the script's output.

@@ -28,7 +28,7 @@ export default new Page({
 				"(`/framework/ai/<today>/`, the date computed from the browser's own clock — never " +
 				"hardcoded, so it stays correct tomorrow), **Everything** (`/framework/ai/log/`), " +
 				"**Process** (`/framework/ai/process/`), and **Start here** " +
-				"(`/framework/ai/2026-09-20/start-here/`, the owner's own four-things page). Quiet " +
+				"(`/framework/ai/sessions/2026/09/20/start-here/`, the owner's own four-things page). Quiet " +
 				"text, not buttons — `color: var(--subtle)`, no underline until hover — so they read" +
 				"as a way out beside the title, not a fifth group crowding the toolbar.");
 

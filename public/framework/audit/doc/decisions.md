@@ -27,7 +27,7 @@ consults.
 ## What the audit was asked
 
 Every agent answered the same eight questions (the brief is at
-`framework/ai/2026-08-15/doc-system/brief.md`, kept because the audit's inputs
+`framework/ai/sessions/2026/08/15/doc-system/brief.md`, kept because the audit's inputs
 should be as browsable as its outputs):
 
 1. What is this module for, and does it earn its place?

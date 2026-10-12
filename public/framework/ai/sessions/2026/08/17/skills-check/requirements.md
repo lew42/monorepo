@@ -14,4 +14,4 @@ Mike (2026-08-17), verbatim: *"We just created a revamped skill system. Hopefull
 
 ## Rules
 
-- Read-only outside this dir. Write `proposal.md` here; log findings as `{"log": {"at","msg"}}` lines in `task.jsonl` (bash `printf`, never `Out-File`). Land with `{"assign": {"step": 5, "landed_at": "<ISO>", "outcome": "**…** — …", "links": [{"url": "/framework/ai/2026-08-17/skills-check/proposal.md", "label": "proposal"}], "tokens": null}}` and a `landed —` line in `../day.jsonl`.
+- Read-only outside this dir. Write `proposal.md` here; log findings as `{"log": {"at","msg"}}` lines in `task.jsonl` (bash `printf`, never `Out-File`). Land with `{"assign": {"step": 5, "landed_at": "<ISO>", "outcome": "**…** — …", "links": [{"url": "/framework/ai/sessions/2026/08/17/skills-check/proposal.md", "label": "proposal"}], "tokens": null}}` and a `landed —` line in `../day.jsonl`.

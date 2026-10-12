@@ -68,7 +68,7 @@ lines removed, never rules added.
    suggestions written as laws (the owner has objected to that twice), and anything that a
    mechanical check would do better than a sentence. Read each skill's `improvements.md` — a
    recurring unapplied line is evidence. Today's related work, to build on rather than redo:
-   `ai/2026-09-19/skill-roles/`, `ai/2026-09-19/mistake-audit/`, `ai/2026-09-19/blunder-critic/`,
+   `ai/sessions/2026/09/19/skill-roles/`, `ai/sessions/2026/09/19/mistake-audit/`, `ai/sessions/2026/09/19/blunder-critic/`,
    and the four `process-redesign` cards on the board (`ai/v/3/board.jsonl`) that still wait on
    the owner.
 3. **The ranked list: at most seven changes**, most valuable first, each with the evidence, the
@@ -94,7 +94,7 @@ lines removed, never rules added.
    scanning every task. Say which is right and why, what the spawn script's interface should be
    (one command to spawn, one to send a follow-up, one to list), and what in the skills changes
    as a result — the mastermind skill's spawn, harvest and follow-up sections are written around
-   the in-process spawn tool and `SendMessage`. A sibling task, `ai/2026-09-19/model-latency/`,
+   the in-process spawn tool and `SendMessage`. A sibling task, `ai/sessions/2026/09/19/model-latency/`,
    is measuring what resuming costs and what happens when two processes resume one id; read its
    `task.jsonl` for whatever it has logged by then, and do not repeat its measurements.
    **The owner's fuller statement of it, a minute later** — design to this:
@@ -146,7 +146,7 @@ lines removed, never rules added.
 ## The fence — other minions are in flight; the tree is shared
 
 You may write ONLY:
-- `public/framework/ai/2026-09-19/system-eval/**` — `task.jsonl`, `page.js`, any data it reads
+- `public/framework/ai/sessions/2026/09/19/system-eval/**` — `task.jsonl`, `page.js`, any data it reads
 - one appended line per event in `public/framework/ai/2026-09-19/day.jsonl`
 - the scratchpad dir `C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/1736b987-7cf0-4a02-9c6f-94a36cebb660/scratchpad/system-eval/`
 
@@ -174,7 +174,7 @@ fan-outs; no re-reading a file you have read.
 
 ## The page
 
-`public/framework/ai/2026-09-19/system-eval/page.js` — load `new-page` and `layout` first.
+`public/framework/ai/sessions/2026/09/19/system-eval/page.js` — load `new-page` and `layout` first.
 Level 1: where we are in two sentences, the picture of the system, the top three changes. One
 click down: the skill-by-skill table, the full ranked list, the subtractions, session ids
 explained, the registry design. Leave the dir undeclared in the day page's `children:`; link the

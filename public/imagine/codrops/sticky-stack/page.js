@@ -97,7 +97,7 @@ export default new Page({
 		// before the stage's own `height: clamp(...)` has applied, so the very first read
 		// sees an unstyled, auto-height stage and bakes a wrong progress into every panel's
 		// inline style (measured: every panel but the last froze at 1.000 instead of 0,
-		// `ai/2026-09-05/codrops-2/`). A `ResizeObserver` re-runs the same `update` the
+		// `ai/sessions/2026/09/05/codrops-2/`). A `ResizeObserver` re-runs the same `update` the
 		// moment the real layout lands, so the bogus first value never survives a frame.
 		this.stack_observer = new ResizeObserver(this.stack_handler);
 		this.stack_observer.observe(stage);

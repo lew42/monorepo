@@ -2,7 +2,7 @@ import { Page, p } from "/app.js";
 
 /* A disposable page, linked from nowhere but this task's own page.js, used to
    prove Server/health.mjs actually catches a broken page. Safe to ignore —
-   see /framework/ai/2026-09-21/safe-rollout/ for the story. */
+   see /framework/ai/sessions/2026/09/21/safe-rollout/ for the story. */
 export default new Page({
 	meta: import.meta,
 	title: "scratch: watcher proof",

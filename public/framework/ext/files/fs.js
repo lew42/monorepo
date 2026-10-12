@@ -70,7 +70,7 @@ export default class PageFiles extends Page {
 	// (2026-09-29, minion-fs-data) instead appended to `this.fs_prefix` on the SAME
 	// cached page every subfolder segment reused — so a second deep link into a
 	// DIFFERENT subfolder inherited the first one's leftover prefix (review finding
-	// 6, `ai/2026-09-29/file-system/review.md`). Every subfolder segment here gets
+	// 6, `ai/sessions/2026/09/29/file-system/file-system/review.md`). Every subfolder segment here gets
 	// its OWN fresh page instead; `Page.child()`'s generic path already adopts it as
 	// a real child (`this.add(name, claimed)`), so the SAME subfolder visited twice
 	// reuses that SAME child object next time, same as any other page on the site —

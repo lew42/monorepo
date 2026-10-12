@@ -1,7 +1,7 @@
 # browsable-page
 
 Dispatched by the mastermind (`group: layout`), acting on
-`public/framework/ai/2026-08-16/mastermind-layout/browsable.md` — the Opus
+`public/framework/ai/sessions/2026/08/16/mastermind-layout/browsable.md` — the Opus
 judge's verdict on the prime objective (organized/visual/browsable).
 
 ## The ask, verbatim (relevant excerpt)

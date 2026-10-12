@@ -7,7 +7,7 @@ fence forbids them) — use plain headless Playwright you drive yourself via
 `node`, or the `ui-test` skill's own method, from the Bash tool, writing a
 throwaway script into your own scratch, not the repo.
 
-Parent task: `public/framework/ai/2026-10-03/push-to-talk/requirements.md`.
+Parent task: `public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/requirements.md`.
 Two sibling minions already landed:
 - `ux/Hotkeys/` (readme first) — the hotkey manager, two actions registered:
   `"dictate.push"` (hold, default mouse button 4) and `"dictate.toggle"`
@@ -58,18 +58,18 @@ and the exact Hotkeys event names, not guessed ones.
 ## Write the result
 
 Put your script in your own task dir (not the repo — this is scratch,
-`public/framework/ai/2026-10-03/push-to-talk/ptt-proof/` IS the task dir, so
+`public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/ptt-proof/` IS the task dir, so
 screenshots and the script can live right there; they are not committed to
 git — add `*.png` and your script to `.gitignore` only if the worktree doesn't
 already ignore `ai/**` scratch, check first). Write
-`public/framework/ai/2026-10-03/push-to-talk/ptt-proof/proof.md`: one short
+`public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/ptt-proof/proof.md`: one short
 screen — each of the 6 checks above as a checklist line, pass/fail, screenshot
 linked, one sentence each. This is the "short real test note for the owner"
 the parent brief's item 4 asked for.
 
 ## When done
 
-Log in `public/framework/ai/2026-10-03/push-to-talk/ptt-proof/task.jsonl`
+Log in `public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/ptt-proof/task.jsonl`
 (load `new-task` first). Do NOT merge — that's the mastermind's own last step.
 End your turn once `proof.md` is written and committed (commit the md + any
 screenshots you want kept; the test script itself can stay uncommitted scratch

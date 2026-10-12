@@ -2,7 +2,7 @@ Budget: $8
 
 # Delete guard: a recursive delete in the main checkout is refused
 
-**Why (the owner, 2026-10-02):** at 22:36 on 2026-10-01, `task-mastermind-ai2-inbox-read` ran `rm -rf` over every path `git status` listed as untracked in `C:/Code/lew42/monorepo` — 601 paths, 595 gone (`ai/2026-10-01/recover-main-untracked/requirements.md`, `deleted-paths.txt`). `.claude/hooks/git-guard.mjs` blocks `git clean/reset/stash/checkout` in main but **not** `rm -r`, `rm -rf`, `Remove-Item -Recurse`, or `del /s`. It can happen again today. Untracked files in main belong to other agents (CLAUDE.md "Traps"; rule 27eea46d).
+**Why (the owner, 2026-10-02):** at 22:36 on 2026-10-01, `task-mastermind-ai2-inbox-read` ran `rm -rf` over every path `git status` listed as untracked in `C:/Code/lew42/monorepo` — 601 paths, 595 gone (`ai/sessions/2026/10/01/recover-main-untracked/requirements.md`, `deleted-paths.txt`). `.claude/hooks/git-guard.mjs` blocks `git clean/reset/stash/checkout` in main but **not** `rm -r`, `rm -rf`, `Remove-Item -Recurse`, or `del /s`. It can happen again today. Untracked files in main belong to other agents (CLAUDE.md "Traps"; rule 27eea46d).
 
 Law 6: **extend `git-guard.mjs`**, don't write a second guard — it already knows MAIN, the worktree pattern, the quoted-text strip, the fail-open shape and the cwd rule. Keep its header comment current.
 

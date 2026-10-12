@@ -31,7 +31,7 @@ current-row highlight, not a box.
 Reused directly: `.card`, `.surface`, `.wash`, `--pad-card`, `--radius`, `--card-edge` — every
 kind above already leaned on at least one of these, just inconsistently (five different
 spellings of "padding", border widths split 1px/2px with no rule — the full list is in the
-inventory task's own [`findings.md`](/framework/ai/2026-09-29/cards-and-logs/inventory/)).
+inventory task's own [`findings.md`](/framework/ai/sessions/2026/09/30/cards-and-logs/cards-and-logs/inventory/)).
 
 Added, in `card/card.css`: two more grounds (dark, strong hue — nothing in the inventory had
 either), the nesting-level classes (nothing in the inventory nested past one level except

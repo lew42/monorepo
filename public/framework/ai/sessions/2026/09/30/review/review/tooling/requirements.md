@@ -1,6 +1,6 @@
 # Minion B — review.mjs uses the review skill; the question list page
 
-Load the `minion` skill first, then `code` and `page`. Your parent is task-mastermind-review. The whole task: `public/framework/ai/2026-09-30/review/requirements.md` (read it in full). The owner's words, verbatim: `public/framework/ai/2026-09-30/page-audit/owner-words.md`, sections "Continued (about 12:35 PM)" and "Continued (about 12:45 PM)".
+Load the `minion` skill first, then `code` and `page`. Your parent is task-mastermind-review. The whole task: `public/framework/ai/sessions/2026/09/30/review/review/requirements.md` (read it in full). The owner's words, verbatim: `public/framework/ai/sessions/2026/09/30/page-audit/page-audit/owner-words.md`, sections "Continued (about 12:35 PM)" and "Continued (about 12:45 PM)".
 
 **Work ONLY in the worktree `C:/Code/lew42/worktrees/review`** (branch `worktree/review`, its server http://localhost:64869/). Never edit the main tree at C:/Code/lew42/monorepo. Commit there by exact path. Every Node spawn sets `windowsHide: true`. Stop any server you start.
 

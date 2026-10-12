@@ -72,7 +72,7 @@ same floor inline — **a second copy of a rule is one edit away from disagreein
 first**, so now there is one copy and both callers read it.
 
 It was a second copy here until 2026-09-22, because `core/Layout/` was outside the write
-fence of the task that built this module. The [reuse audit](/framework/ai/2026-09-22/reuse-audit/)
+fence of the task that built this module. The [reuse audit](/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/)
 merged it.
 
 The `!room ||` guard is load-bearing: a box that has not been laid out yet measures zero,

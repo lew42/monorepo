@@ -2,7 +2,7 @@
 
 You are a Sonnet minion. Load the `minion` skill, then the `layout` skill (you're building a
 whole-page layout) before you touch CSS. Your parent is task-mastermind-inspect; its task dir is
-[public/framework/ai/2026-10-01/inspect/](../) — read `owner-words.md` and `requirements.md`
+[public/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/](../) — read `owner-words.md` and `requirements.md`
 there first. **Do not start until Part 1 has landed** (`minion-part1/`, in the same worktree) —
 you need its `inspect()` + `static icon` to do this job; check with your parent if unsure.
 
@@ -37,7 +37,7 @@ so that we have as much space... some sort of 2D layout system."
 
 Also skim `/framework/ux/Dictate/readme.md`'s "Widget" section (just to know the mic/chat widget
 this diagram sits NEXT TO — you are not changing it) and
-`/framework/ai/2026-09-30/one-dictation/checklist-2026-10-01.md` (the sibling task owning that
+`/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/checklist-2026-10-01.md` (the sibling task owning that
 widget's own bugs — not your fence, don't touch `Widget.js` or `ext/Chat/`).
 
 ## Deliverables
@@ -137,6 +137,6 @@ need one of them, stop and message your parent (task-mastermind-inspect) first.
 
 ## Land
 
-Own task dir: `public/framework/ai/2026-10-01/inspect/minion-part2/` — open with `new-task`
+Own task dir: `public/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/minion-part2/` — open with `new-task`
 before your first edit (parent_task: `public/framework/ai/2026-10-01/inspect`). When done, message
 task-mastermind-inspect directly with your task dir path.

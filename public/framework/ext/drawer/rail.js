@@ -540,7 +540,7 @@ export class DrawerRailSheetV1 extends View {
 			// card it always did; `on_revised` (a second or two later, only if Servex
 			// answers) adds ONE MORE card with the tightened version. Two cards, not a
 			// rewrite of `card()` itself — `ux/Revise/readme.md`'s "Wired into the real
-			// dictate path" has the full picture; deliverable 3, ai/2026-09-29/audio/.
+			// dictate path" has the full picture; deliverable 3, ai/sessions/2026/09/29/audio/audio/.
 			this.dictate = new Dictate({
 				mode: "open", revise: "edit",
 				on_text: text => this.card(text),
@@ -716,7 +716,7 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
 }
 
 /** THE PANEL SHEET — the new default (`Widget`, `ux/Dictate/Widget.js`, round 3 of
- *  `ai/2026-09-30/audio-consolidate/`): the exact same bubbles-plus-composer-plus-mic
+ *  `ai/sessions/2026/09/30/108a1b36-ed02-4728-bf82-20d7d7053d85/audio-consolidate/`): the exact same bubbles-plus-composer-plus-mic
  *  widget the desktop drawer's AI tab now builds too (`ext/drawer/tabs/ai.js`), instead
  *  of a second hand-wired mic-only build — "we need a consistent chat widget… whether
  *  it's in a desktop sidebar or a mobile sheet" (the owner, 2026-09-29; `ChatPanel`
@@ -741,7 +741,7 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
  *  beat, never a silence.
  *
  *  `Widget` now has the same `answer`/`marks` seam `ChatPanel` did (restored round 4,
- *  `ai/2026-09-30/audio-consolidate/minion-wire/`): the resume offer below
+ *  `ai/sessions/2026/09/30/108a1b36-ed02-4728-bf82-20d7d7053d85/audio-consolidate/minion-wire/`): the resume offer below
  *  (`offer_resume()`) calls `panel?.say({type: "ask", ...})`, `Widget` draws it as a
  *  choice-button card, and a tap calls `on_resume_choice()` below, same as before the
  *  widget swap. `Session.resume` still has to be live for the offer to ever show

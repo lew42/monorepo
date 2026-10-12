@@ -25,7 +25,7 @@ Load the `minion` skill first. Then this brief.
 
 ## Rules
 
-- Load `code`, `layout` (the shell is two regions; the sidebar is a rail — `em` widths belong to a rail; the box rule), `css`, `new-css-class`; `new-task` before the first edit (your dir exists: `ai/2026-09-18/site-sidebar-tree/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you. Write your choices as `decision` lines.
+- Load `code`, `layout` (the shell is two regions; the sidebar is a rail — `em` widths belong to a rail; the box rule), `css`, `new-css-class`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/18/site-sidebar-tree/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you. Write your choices as `decision` lines.
 - **Fence:** `public/framework/core/Sidebar/**`, your task dir. Nothing else — not `ux/Tree` (log what it lacks), not `core/Page` (another minion is in it right now), not `/layouts/shell/`.
 - ⚠ The sidebar is on every page of the owner's live site (port 80 is running; never touch it; LiveReload pushes your edits to the owner's tabs): make each edit in ONE write and load a page headless within a minute on your own server (`PORT=8118 node server.js` from the repo root, background, killed by its real Windows PID when you land). Never `git stash`, never `find /`, never drive the owner's tabs; an `rg` pattern starting with `/` returns nothing here — drop the slash.
 - Crawl 20 pages across the site at 400 / 1280 / 1920 / 3440 after: zero console errors, the current page marked, every first-level group present. Two numbers that must agree: first-level rows before and after.

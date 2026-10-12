@@ -17,7 +17,7 @@ View.stylesheet(import.meta, "Figma.css");
    works out the same real url and the router loads it in place (history.replaceState),
    so a bookmark or a chat link from before this change still lands somewhere real. */
 
-// Fired at module eval, same trade ai/2026-09-19/page.js's warm() makes, so a cold
+// Fired at module eval, same trade ai/sessions/2026/09/19/page.js's warm() makes, so a cold
 // deep link into a file/page/compare url has a head start before route() has to ask.
 Figma.files();
 

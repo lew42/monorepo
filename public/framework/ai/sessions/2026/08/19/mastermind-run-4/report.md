@@ -6,18 +6,18 @@ One screen. Every line is clickable from the day board; detail lives in each tas
 
 | Task | What | Proof |
 |---|---|---|
-| [workspace-design](../workspace-design/) | the approved plan: Workspace holds a root, no container queries, hug = auto, documents = files, split vs add | — |
-| [workspace-a-sizing](../workspace-a-sizing/) | containment gone; `--panel-section` floor; `doc/sizing.md` | measured heights |
-| [workspace-b-module](../workspace-b-module/) | `ext/Panel/Workspace/` class + `documents.js` (`/data/panels/<name>.json` + index) | N views of one root |
-| [panel-demos](../panel-demos/) | Panel › Demo: 12 UX demos, recorded flow beside a follow-along | flows replay |
-| [panel-groups](../panel-groups/) | drill-down selection; centre-drop nests into with padding | pointer drags |
-| [workspace-c-playground](../workspace-c-playground/) | `/playground/`: document rail, viewports fill/one/all/twin, Fit/100%/zoom, drawer grip as the handle | ![](../workspace-c-playground/playground.png) |
-| [workspace-d-verbs](../workspace-d-verbs/) | edge = split (twin via `restyle`), bar `+` = add; insert stub off the grip; group toggle on the bar | twin words equal |
-| [panel-pad-gap](../panel-pad-gap/) | `pad` word + knobs on `pad`/`gap` | computed px |
-| [panel-bar-sweep](../panel-bar-sweep/) | bar 15 → 6 buttons; clipped popovers 365 → 0; `ext/Dropdown` (top layer); toggles; tone 1×4 | before/after pngs |
-| [panel-flow-sizing](../panel-flow-sizing/) | a panel is a div: `h: hug`, `--panel-min` 5em; right/bottom edge click-split · drag-resize · right-click-reset; a split halves the struck share (25/25/50) | 150/150/300 |
-| [panel-items](../panel-items/) | flex/grid cells selectable; per-item words `--item-*`; `data.items` | flexGrow 2 on one cell |
-| [panel-selection](../panel-selection/) | one selection per page; rings cleared document-wide; clicking off deselects; hover = what a click selects; `+` on hover | 7 boxes, 1 panel |
+| [workspace-design](../workspace-design) | the approved plan: Workspace holds a root, no container queries, hug = auto, documents = files, split vs add | — |
+| [workspace-a-sizing](../workspace-a-sizing) | containment gone; `--panel-section` floor; `doc/sizing.md` | measured heights |
+| [workspace-b-module](../workspace-b-module) | `ext/Panel/Workspace/` class + `documents.js` (`/data/panels/<name>.json` + index) | N views of one root |
+| [panel-demos](../panel-demos) | Panel › Demo: 12 UX demos, recorded flow beside a follow-along | flows replay |
+| [panel-groups](../panel-groups) | drill-down selection; centre-drop nests into with padding | pointer drags |
+| [workspace-c-playground](../workspace-c-playground) | `/playground/`: document rail, viewports fill/one/all/twin, Fit/100%/zoom, drawer grip as the handle | ![](../workspace-c-playground/playground.png) |
+| [workspace-d-verbs](../workspace-d-verbs) | edge = split (twin via `restyle`), bar `+` = add; insert stub off the grip; group toggle on the bar | twin words equal |
+| [panel-pad-gap](../panel-pad-gap) | `pad` word + knobs on `pad`/`gap` | computed px |
+| [panel-bar-sweep](../panel-bar-sweep) | bar 15 → 6 buttons; clipped popovers 365 → 0; `ext/Dropdown` (top layer); toggles; tone 1×4 | before/after pngs |
+| [panel-flow-sizing](../panel-flow-sizing) | a panel is a div: `h: hug`, `--panel-min` 5em; right/bottom edge click-split · drag-resize · right-click-reset; a split halves the struck share (25/25/50) | 150/150/300 |
+| [panel-items](../panel-items) | flex/grid cells selectable; per-item words `--item-*`; `data.items` | flexGrow 2 on one cell |
+| [panel-selection](../panel-selection) | one selection per page; rings cleared document-wide; clicking off deselects; hover = what a click selects; `+` on hover | 7 boxes, 1 panel |
 | mastermind inline | Workspace left rail; `.tabs.vertical` = `wide` (bleed rule); playground padding + `PlaygroundRail`; text-click drill; insert stub past the bar; document select + red Delete; `views` holds every rendering; `LEW42`; 17 JSONL lines repaired | ![](document-selected.png) |
 
 ## Waiting on the owner

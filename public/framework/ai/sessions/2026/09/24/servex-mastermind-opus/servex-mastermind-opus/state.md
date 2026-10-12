@@ -14,7 +14,7 @@ Session `361c4d18-e878-4c04-9537-444e847e13d5`. I route the owner's words to mas
 | Item UI and object views | task-mastermind-item-ui | 2026/09/29/item-ui-and-object-views-icon-items-tree |
 | Lifecycle reaper, nested tasks | task-mastermind-lifecycle, task-mastermind-nested-tasks | 2026/09/29/lifecycle-nothing-left-running-nested-ta |
 | Resize grip, both axes and touch | task-mastermind-grip-everywhere (queued) | 2026/09/29/mobile-nav-back-an-ai-rail-at-the-bottom |
-| System: the dispatch rows, the audit, naming, readme system, project-awareness | mastermind-servex-7 (launches rows itself; dispatch.md in ai/2026-09-25/servex-mastermind/) | many |
+| System: the dispatch rows, the audit, naming, readme system, project-awareness | mastermind-servex-7 (launches rows itself; dispatch.md in ai/sessions/2026/09/24/1c09793f-74b6-4218-82e5-53e5cd88b659/servex-mastermind/) | many |
 
 ## Waiting on the owner
 - The OpenRouter key: `%LOCALAPPDATA%\lew42\servex\openrouter.key` (card 2026/09/29/openrouter-key-for-the-harness-spike). A watcher launches the spike when it appears.

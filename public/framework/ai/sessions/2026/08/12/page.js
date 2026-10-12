@@ -44,7 +44,7 @@ export default new Page({
 			["15:41 → 16:24", "unify — landed", "Nineteen of nineteen ui/ pages took the exhibit — the last un-unified section is gone, and 29 variant child pages arrived with it. demo.exhibit() is one full-bleed band now (render beside definition, wrapping under 36em so a phone gets every pixel), and any page with children grows a Variants section — sub-demos, simple → complex, one card system. Plus a found bug: every exhibit caption was an unpadded tinted strip. 446-route crawl clean. Opus, 43 min."],
 		);
 
-		md("- [stage](/framework/ai/2026-08-12/stage/) — `ext/demo` presets + performance\n- [layouts](/framework/ai/2026-08-12/layouts/) — the Layout tab and the page-layout library\n- [apps](/framework/ai/2026-08-12/apps/) — Figma-like, Blender-like, columns, rail vs detail\n- [unify](/framework/ai/2026-08-12/unify/) — one preview/detail system everywhere, sub-demos");
+		md("- [stage](/framework/ai/sessions/2026/08/12/stage/) — `ext/demo` presets + performance\n- [layouts](/framework/ai/sessions/2026/08/12/layouts/) — the Layout tab and the page-layout library\n- [apps](/framework/ai/sessions/2026/08/12/apps/) — Figma-like, Blender-like, columns, rail vs detail\n- [unify](/framework/ai/sessions/2026/08/12/unify/) — one preview/detail system everywhere, sub-demos");
 
 		md("**Round two — Mike's review, same workers resumed with their context intact.**");
 
@@ -55,6 +55,6 @@ export default new Page({
 
 		h2("Session three — three lenses and a plan");
 
-		md("Three independent reads of `/framework/` — layout simplicity, browsability, an employer's first five minutes — and the phased plan they agree on: **the machinery is done and good; the mess is links, duplication, and stale text.** [strategy](/framework/ai/2026-08-12/strategy/)");
+		md("Three independent reads of `/framework/` — layout simplicity, browsability, an employer's first five minutes — and the phased plan they agree on: **the machinery is done and good; the mess is links, duplication, and stale text.** [strategy](/framework/ai/sessions/2026/08/12/strategy/)");
 	},
 });

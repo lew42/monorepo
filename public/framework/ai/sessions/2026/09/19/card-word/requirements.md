@@ -6,7 +6,7 @@ Load the `minion` skill first. Then this brief. Model: Sonnet. Small: one word i
 
 ## Why — read the audit first
 
-`/framework/ai/2026-09-19/padding-audit/` (its `task.jsonl` has four `decision` lines; the mastermind has decided all four — build them). The owner, 2026-09-19: "It should be ultra simple: a `card` class that carries the default pad, so a card is by definition padded." The audit's measurements: `--pad` is a percentage of the containing block and suits page REGIONS (14 → 70 px across 400 → 3440) but leaves any nested card on its 1em floor at every width (15–18 px); `framework.css` has NO card word (`.surface` = ground + hairline + radius, no padding); 180 hand-rolled card/tile classes exist; no skill says what a card's padding is.
+`/framework/ai/sessions/2026/09/19/padding-audit/` (its `task.jsonl` has four `decision` lines; the mastermind has decided all four — build them). The owner, 2026-09-19: "It should be ultra simple: a `card` class that carries the default pad, so a card is by definition padded." The audit's measurements: `--pad` is a percentage of the containing block and suits page REGIONS (14 → 70 px across 400 → 3440) but leaves any nested card on its 1em floor at every width (15–18 px); `framework.css` has NO card word (`.surface` = ground + hairline + radius, no padding); 180 hand-rolled card/tile classes exist; no skill says what a card's padding is.
 
 ## Build
 
@@ -18,7 +18,7 @@ Load the `minion` skill first. Then this brief. Model: Sonnet. Small: one word i
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/card-word/`); `css`, `new-css-class`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/card-word/`); `css`, `new-css-class`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `public/framework/framework.css` (the `.card` block and its token ONLY), `public/framework/styles/system/**` (the example), `public/framework/styles/css-scopes.txt` if needed, `.claude/skills/css/**`, `.claude/skills/layout/**`, `.claude/skills/new-css-class/**`, `public/framework/ui/readme.md` (one line), `Server/health.mjs` + `public/framework/ai/health/**`, your task dir. Not `public/framework/ai/v/**`, not `dev/DevBar/**` (a sibling is there), not `core/**`.
 - `framework.css` is loaded by every page of the owner's live site: take the reload hold (`node Server/hold.mjs on "card-word — framework.css"`), make the ONE write, load three pages headless with zero errors, then `off`. `Server/health.mjs` is a standalone script — editing it restarts nothing, but the mastermind has a copy running; say in your landing that it must be restarted to pick up the lint.
 - **Never kill or restart the owner's dev server (port 80) or the mastermind's (8123) or the running health watcher, never stop whisper-server, never drive the owner's tabs.** Private server: `PORT=8145 node server.js`, killed by real Windows PIDs at landing. Never `git stash`, never `find /`, never commit. Write files with the Write or Edit tool, never a bash heredoc. Do not write the owner's name anywhere.

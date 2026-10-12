@@ -16,12 +16,12 @@ That is the whole finding. The machinery is built and works; nothing keeps the r
 | `ext/DesignTool/audit/twin.js` | **Before/After iframes + "Accept into the review queue"** | yes — verified live |
 | `ext/DesignTool/mirror.js` | element-level twin, fix applied inline to a clone | yes, via `report.js` |
 | `ext/JSONL` `shot` verb + `ext/AITask/shots.js` | `{"shot":{at,path,url,width,label}}` → thumbnail wall | yes, but **8 lines exist site-wide** |
-| `ai/2026-08-14/vision-sonnet/layout-analysis.json` | **the record schema Mike wants**: per image tokens, cost, ms, regions, issues[sev,what,where], prose | frozen, never given a browse page |
-| `ai/2026-08-14/vision-haiku-opus/`, `vision-report/` | the same corpus across three models | frozen |
-| `ai/2026-08-17/vision-baseline/baseline.json` | 18 pages × 5 axes, score + **one sentence each**, opus-5 | **this is the analysis Mike loved** |
-| `ai/2026-08-17/vision-browse/` | those 18, ranked, shot beside its sentences | yes — no model, no prompt, no tokens |
-| `ai/2026-08-17/human-ranking/rank/` | duel UI: two shots, click the better, 59× | yes — the round Mike disliked |
-| `ai/2026-08-17/rubric-v2/`, `tier-calibration/` | reliability study; the rules tier's aggregate score deleted | yes |
+| `ai/sessions/2026/08/14/vision-sonnet/layout-analysis.json` | **the record schema Mike wants**: per image tokens, cost, ms, regions, issues[sev,what,where], prose | frozen, never given a browse page |
+| `ai/sessions/2026/08/14/vision-haiku-opus/`, `vision-report/` | the same corpus across three models | frozen |
+| `ai/sessions/2026/08/17/vision-baseline/baseline.json` | 18 pages × 5 axes, score + **one sentence each**, opus-5 | **this is the analysis Mike loved** |
+| `ai/sessions/2026/08/17/vision-browse/` | those 18, ranked, shot beside its sentences | yes — no model, no prompt, no tokens |
+| `ai/sessions/2026/08/17/human-ranking/rank/` | duel UI: two shots, click the better, 59× | yes — the round Mike disliked |
+| `ai/sessions/2026/08/17/rubric-v2/`, `tier-calibration/` | reliability study; the rules tier's aggregate score deleted | yes |
 | `ai/2026-08-17/designtool-ui{,-build}/shots/` | 29 evidence pngs **in the repo, untracked, not gitignored** | works, shouldn't be there |
 
 ## 2. The analysis Mike loved — and the exact prompts

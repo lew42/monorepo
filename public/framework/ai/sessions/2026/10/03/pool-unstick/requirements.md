@@ -63,6 +63,6 @@ Afterwards, check `.worktree-pool.json` and `git worktree list` agree, with at l
 - Commit by exact path and merge.
 - Restart Servex with `restart_servex` (after restart-keeps-agents, it waits until no agent is mid-turn).
 - Append an `experiment` line: the pool's slot states before and after, copied from `.worktree-pool.json`.
-- Known issue `pool-slot-held-by-stopped` (in `ai/2026-10-02/known-issues/seed.json`): mark it fixed and link this task.
+- Known issue `pool-slot-held-by-stopped` (in `ai/sessions/2026/10/02/known-issues/seed.json`): mark it fixed and link this task.
 
 Sonnet, medium effort. Never `stash`, `checkout --` or `reset` in the main tree. Never delete a branch. Don't wait on the owner.

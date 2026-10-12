@@ -20,7 +20,7 @@ export function record(rows, state){
 	return {
 		note: NOTE,
 		who: "mike",
-		corpus: "framework/ai/2026-08-17/vision-baseline/baseline.json",
+		corpus: "framework/ai/sessions/2026/08/17/vision-baseline/baseline.json",
 		started_at: state.started_at ?? null,
 		updated_at: state.updated_at ?? null,
 		complete: built.done,

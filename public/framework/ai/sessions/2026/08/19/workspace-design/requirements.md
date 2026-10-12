@@ -41,7 +41,7 @@ Also landed minutes ago, after the owner saw a one-section document read as a 16
 
 ## Read (the map is the point; don't read every line)
 
-`ext/Panel/readme.md`, `doc/decisions.md` (skim headings + Open), `doc/words.md` (landed yesterday), `doc/flow.md`, `doc/templates.md`, `workspace.js`, `vocab.js`, `size.js`, `size.css`, `panel.css`, `split.js`, `Panel.js`, `generate.js` (presets), `page.js` (the `/full/` route); `ext/demo/stage.js`, `twin.js`, `readme.md`; `styles/layouts/full.js`; `ext/Saver/readme.md`; `core/Sidebar/readme.md`; `ext/grip/readme.md`; `ext/drawer/readme.md`; `Server/plugins/Directory.js`; yesterday's `ai/2026-08-18/panel-complexity/proposal.md` (the accepted strategy — your design must say where it agrees and where the owner's new ask changes it) and `ai/2026-08-18/panel-document/task.jsonl` (the landing: the size-container trap it hit).
+`ext/Panel/readme.md`, `doc/decisions.md` (skim headings + Open), `doc/words.md` (landed yesterday), `doc/flow.md`, `doc/templates.md`, `workspace.js`, `vocab.js`, `size.js`, `size.css`, `panel.css`, `split.js`, `Panel.js`, `generate.js` (presets), `page.js` (the `/full/` route); `ext/demo/stage.js`, `twin.js`, `readme.md`; `styles/layouts/full.js`; `ext/Saver/readme.md`; `core/Sidebar/readme.md`; `ext/grip/readme.md`; `ext/drawer/readme.md`; `Server/plugins/Directory.js`; yesterday's `ai/sessions/2026/08/18/panel-complexity/proposal.md` (the accepted strategy — your design must say where it agrees and where the owner's new ask changes it) and `ai/sessions/2026/08/18/panel-document/task.jsonl` (the landing: the size-container trap it hit).
 
 ## Rules
 

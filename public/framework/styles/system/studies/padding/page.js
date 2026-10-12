@@ -74,7 +74,7 @@ export default new Page({
 	},
 
 	content(){
-		md("**The owner's hypothesis:** padding as a % of a box's own width — 1% is almost always too little, 30% is almost always too much, unless the box is a large section (at which point it's not really padding any more). Measured here: 27 urls × 390/1280/3440, 4891 boxes that actually draw a border/shadow/background around text (raw data: [padding-study task dir](/framework/ai/2026-09-01/padding-study/)).");
+		md("**The owner's hypothesis:** padding as a % of a box's own width — 1% is almost always too little, 30% is almost always too much, unless the box is a large section (at which point it's not really padding any more). Measured here: 27 urls × 390/1280/3440, 4891 boxes that actually draw a border/shadow/background around text (raw data: [padding-study task dir](/framework/ai/sessions/2026/09/01/padding-study/)).");
 
 		h2("The ladder");
 		p.c("muted", `A ${CARD_W}px card, six padding steps as a % of its own width. Same content at every rung.`);

@@ -37,7 +37,7 @@ An agent Servex spawns should never reach itself over HTTP.
 `log`, `card`, `decision`, `open_task`, `land` (the logging skills' contracts) · `now`
 (the clock) · `state` (the registry + usage windows) · `run` (a supervised child process in
 place of bash) · `node_eval` (the object layer's first tool: `list_objects`, `describe`, `call`
-follow — [`../../object-layer/`](/framework/ai/2026-09-22/object-layer/)). Skills stay the
+follow — [`../../object-layer/`](/framework/ai/sessions/2026/09/22/54ebf7f2-4a93-4907-895c-a97c36b16389/object-layer/)). Skills stay the
 plain-English contract; each is backed by one tool.
 
 ## The alternative, and when it wins

@@ -36,7 +36,7 @@ in the parent report. No other live surface needed a call swap.
 | `ext/Ask/reply.js`, `ext/AITask/asks.js`, `ai/v/3/compose.js` | the plain `dictate()` / `new Dictate(...)` mic-to-textbox utility | These dictate INTO an existing text field (no bubbles, no conversation) — a different category from a chat box, and exactly what `Dictate`'s own doc calls out as "the plain mic button... what other pages embed." Nothing to swap. |
 | `ext/Chat/panel/page.js`, `ext/Chat/drill/page.js` | `new ChatPanel(...)` | Demo/reference pages for the OLD chat component, already named in `doc/chat.md`'s "older versions, still kept reachable" table — not a production surface. |
 | `ux/Dictate/variants/*`, `ux/Dictate/v1/`, `ux/Dictate/playground/` | `new Dictate(...)` in their own looks | Intentionally preserved alternate UIs — the entire point of "variants" and "v1" is to stay different and stay reachable, never to become the one `Widget`. |
-| `ai/2026-09-19/assistant-stream/page.js` and other dated `ai/<date>/...` task folders | `new Dictate(...)` | Historical task scratch, not a page a visitor reaches. |
+| `ai/sessions/2026/09/19/assistant-stream/page.js` and other dated `ai/<date>/...` task folders | `new Dictate(...)` | Historical task scratch, not a page a visitor reaches. |
 
 ## One small, unrelated thing noticed, not fixed (out of this fence)
 

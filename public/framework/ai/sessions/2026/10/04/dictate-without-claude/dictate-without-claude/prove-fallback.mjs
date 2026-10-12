@@ -1,4 +1,4 @@
-/* node public/framework/ai/2026-10-04/dictate-without-claude/prove-fallback.mjs — requirements.md
+/* node public/framework/ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude/prove-fallback.mjs — requirements.md
  * item 1's other half: "an automatic fallback when a Claude call is refused for usage limits."
  *
  * Nobody can make the real Claude account actually hit its usage limit on demand, so this
@@ -103,7 +103,7 @@ agents.live.set("fake-case3", { id: "fake-case3", last_error: "Claude AI usage l
 sessions.woken("done: here is an unrelated answer the agent gave just before being refused", { from: "fake-case3" });
 say(`   fallback flag: ${JSON.stringify(s3.fallback)} (must be {fast:true} — this is the fix for review round 7, finding 1)`);
 
-const OUT = path.join(REPO, "public/framework/ai/2026-10-04/dictate-without-claude/prove-fallback-results.txt");
+const OUT = path.join(REPO, "public/framework/ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude/prove-fallback-results.txt");
 fs.writeFileSync(OUT, lines.join("\n") + "\n");
 say(`\nsaved -> ${OUT}`);
 await new Promise(r => setTimeout(r, 1500));   // case 3's own woken() respawn is also in flight (setImmediate) — let it finish before stopping it

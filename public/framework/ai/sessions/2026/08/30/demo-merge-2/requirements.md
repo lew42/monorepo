@@ -5,7 +5,7 @@
 ## The ask, verbatim
 
 > TASK — execute steps 2-5 of the demo-merge proposal (step 1, the height clips, landed already).
-> THE PROPOSAL IS THE SPEC: `public/framework/ai/2026-08-30/demo-merge/proposal.md` (14 variants
+> THE PROPOSAL IS THE SPEC: `public/framework/ai/sessions/2026/08/30/demo-merge/proposal.md` (14 variants
 > to 6, five ordered steps, call-site counts per step, the open questions at the end — including
 > the `page.demo()` vs `demo.page()` name clash: RESOLVE it as the proposal's own analysis leans,
 > and say which you chose and why in two lines). Read it + `ext/demo/shell.js` (the proven

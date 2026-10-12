@@ -28,12 +28,12 @@ from `ext/`, `ux/`, `core/` or `ui/`. Only implementations matter. Say the `file
 **Nothing to a file of your own. No `findings.md`.** You append your paragraphs as `log` lines to
 the parent's log:
 
-`public/framework/ai/2026-09-22/reuse-audit/task.jsonl`
+`public/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/task.jsonl`
 
 Append with the helper, never by hand:
 
 ```
-node .claude/hooks/append.mjs public/framework/ai/2026-09-22/reuse-audit/task.jsonl <your-lines.json>
+node .claude/hooks/append.mjs public/framework/ai/sessions/2026/09/22/session-a96166b5/reuse-audit/task.jsonl <your-lines.json>
 ```
 
 Write `<your-lines.json>` into your **session scratchpad** with the Write tool (never a heredoc —

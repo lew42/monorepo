@@ -7,7 +7,7 @@ inspector is a panel: layering, resizing, dragging and persistence all come from
 the workspace it is already in.
 
 The recommendation this implements, with the four candidates it was chosen over:
-[sidebar strategy](/framework/ai/2026-08-15/panel-ui-overhaul/doc/sidebar-strategy.md).
+[sidebar strategy](/framework/ai/sessions/2026/08/15/panel-ui-overhaul/doc/sidebar-strategy.md).
 
 ## The invariant: one selection per PAGE (2026-08-19)
 
@@ -503,7 +503,7 @@ connected, so a stale read shows the leaf's own rows again rather than a
 ghost selection. The WORDS survive regardless — `items_apply()` replays them
 from `data.items` onto whichever child now carries the same key.
 
-**Proven headless:** `ai/2026-08-19/panel-items/` — click, select, set `grow`
+**Proven headless:** `ai/sessions/2026/08/19/panel-items/` — click, select, set `grow`
 on one cell only, `self → align-self: center`, grid `span → grid-column:
 span 2`, a forced `repaint()` keeps both, `toJSON → hydrate` round-trips
 `data.items` exactly, two Escapes (item then leaf), zero console errors.

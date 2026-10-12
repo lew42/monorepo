@@ -1,6 +1,6 @@
 # Voice: walk try-it.md exactly as the owner will in the morning
 
-**The owner tests dictation on the phone tomorrow** using [try-it.md](/framework/ux/Dictate/doc/try-it.md), built by [voice-to-session-page](../voice-to-session-page/STATE.md). A fresh pair of eyes follows it to the letter before they do.
+**The owner tests dictation on the phone tomorrow** using [try-it.md](/framework/ux/Dictate/doc/try-it.md), built by [voice-to-session-page](../../session-0e99727c/voice-to-session-page/STATE.md). A fresh pair of eyes follows it to the letter before they do.
 
 ## Done when
 - [ ] Follow every step headless at 400 px via the phone address (`http://10.0.0.135:8137/...`) and at 1400 via `monorepo.localhost`, feeding a recorded audio file for the mic. Each of the five stages (raw, clean, structure, refined, cards) appears live on the session page; record the time from audio end to each stage.

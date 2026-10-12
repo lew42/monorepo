@@ -37,7 +37,7 @@ export default function syntax_guard(file){
 }
 
 /* THE HIDDEN-WINDOW GUARD (the owner, 2026-09-25: "never pop up a Node.js process without the
- * hidden flag"; re-broken and re-enforced 2026-09-28, ai/2026-09-28/hidden-windows/). A file
+ * hidden flag"; re-broken and re-enforced 2026-09-28, ai/sessions/2026/09/28/b42621ed-33f7-41f0-b19b-12c679306b9a/hidden-windows/). A file
  * that starts processes must set windowsHide on EVERY call, not just somewhere in the file — a
  * file-wide count can pass a call that lacks the flag as long as some OTHER call in the same
  * file has it written twice. So this finds each call's own balanced argument list (most calls

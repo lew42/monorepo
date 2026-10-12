@@ -3,7 +3,7 @@
 // (one plain, one with sub-agents, one OpenRouter) and sum their REAL cost straight from
 // the session-file transcripts (or, for OpenRouter, the real metered log), then compare
 // that to what the existing ledger (an agent's own agent-<id>.jsonl "result" lines) says.
-// Run: node public/framework/ai/2026-10-07/token-accounting/reconcile.mjs
+// Run: node public/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/reconcile.mjs
 //
 // Compute, don't recall (CLAUDE.md law 7): every number below is read live off real files
 // on this machine, nothing typed from memory.
@@ -11,7 +11,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { find_transcript, cost_of_transcript } from "../../../../../Server/session-cost.mjs";
+import { find_transcript, cost_of_transcript } from "../../../../../../../../../Server/session-cost.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../../../../");

@@ -1,6 +1,6 @@
 # Socket — one WebSocket to the dev server; the transport every dev-only feature rides (reload, CSS hot-swap, RPC, MCP eval, JSONL streams)
 
-> **⚠ Converge (the owner, 2026-10-02):** file and saving code is scattered across [ext/Saver](/framework/ext/Saver/) (whole-JSON rewrites), [ext/filesystem](/framework/ext/filesystem/) (`FsFile`, `FsDir` → `Dir`), [ext/files](/framework/ext/files/) (the tree UI), [ext/JSONL](/framework/ext/JSONL/), and about 15 direct `Socket` `"append"`/`"write"` calls. Before adding to any of them, consider consolidating: ONE file object (`FsFile`: `read`, `write`, `append`, and a `store` for .jsonl) as the only caller of the dev socket. Logs are appended one line at a time, never rewritten. A `LiveList`'s change events are both the view update and the line that gets appended. Design: [page-item-design.md](/framework/ai/2026-09-30/proposal-flow/page-item-design.md).
+> **⚠ Converge (the owner, 2026-10-02):** file and saving code is scattered across [ext/Saver](/framework/ext/Saver/) (whole-JSON rewrites), [ext/filesystem](/framework/ext/filesystem/) (`FsFile`, `FsDir` → `Dir`), [ext/files](/framework/ext/files/) (the tree UI), [ext/JSONL](/framework/ext/JSONL/), and about 15 direct `Socket` `"append"`/`"write"` calls. Before adding to any of them, consider consolidating: ONE file object (`FsFile`: `read`, `write`, `append`, and a `store` for .jsonl) as the only caller of the dev socket. Logs are appended one line at a time, never rewritten. A `LiveList`'s change events are both the view update and the line that gets appended. Design: [page-item-design.md](/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md).
 
 ## Use
 
@@ -31,7 +31,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 
 ## More
 
-- [/framework/ai/2026-09-22/reload-rethink/](/framework/ai/2026-09-22/reload-rethink/) — why `changed()` grew a `data` branch: the day it reloaded 215 times, what still needs a reload and why
+- [/framework/ai/sessions/2026/09/22/f875ec48-d91a-4890-b15f-db197b55aa13/reload-rethink/](/framework/ai/sessions/2026/09/22/f875ec48-d91a-4890-b15f-db197b55aa13/reload-rethink/) — why `changed()` grew a `data` branch: the day it reloaded 215 times, what still needs a reload and why
 - [/framework/dev/Socket/](/framework/dev/Socket/) — the page: guard, server-calls-you, what a save does
 - [doc/decisions.md](./doc/decisions.md) — the record: who uses this, the singleton, the reconnect storm, three proposed cuts (none applied)
 - [doc/localhost.md](./doc/localhost.md) — the gate is inside the socket, and why

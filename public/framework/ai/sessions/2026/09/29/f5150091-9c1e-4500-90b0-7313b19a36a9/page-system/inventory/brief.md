@@ -4,7 +4,7 @@ Load the `minion` skill first. You READ ONLY. The one file you write is your own
 
 ## The owner's words (the acceptance test)
 
-Full text: `public/framework/ai/2026-09-29/page-system/owner-words.md` — read it. The part that is yours:
+Full text: `public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/owner-words.md` — read it. The part that is yours:
 
 > "have a cheap minion, do one or more minions, like, you know, first find all the locations of layout work, because there's a lot ... anything that, especially if it kind of crosses page and layout, like the column pages, like the navigation sidebars, the swapping versus switching ... dig through the whole site, all the imagine pages, all the framework stuff, all the tasks over the last few months ... find specifically anything that has to do with pages and layout ... any templates, any previews, any routing ... any substantial work that could help influence the outcome of this page system from the README through the layouts, the navigation."
 

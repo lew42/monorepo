@@ -25,7 +25,7 @@ Parked for the owner (do NOT build): axis chips on edges (proposal §Learnabilit
 
 ## Your fence
 
-`public/framework/ext/Playground/`: `canvas.js`, `playground.css`, `Playground.js`, `toolbar.js`, `properties.js`, `items.js` (only if the word-copy/convert seam demands), `doc/decisions.md`, `readme.md`. Waves 1–2 have landed; you are the only writer. Plus your task dir `public/framework/ai/2026-08-27/pg-edges/`.
+`public/framework/ext/Playground/`: `canvas.js`, `playground.css`, `Playground.js`, `toolbar.js`, `properties.js`, `items.js` (only if the word-copy/convert seam demands), `doc/decisions.md`, `readme.md`. Waves 1–2 have landed; you are the only writer. Plus your task dir `public/framework/ai/sessions/2026/08/27/pg-edges/`.
 
 ## Proof (ui-test skill — read its Traps; three agents were bitten TODAY, the traps are current)
 

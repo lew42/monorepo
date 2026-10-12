@@ -12,7 +12,7 @@ export default new Page({
 	content(){
 		p("`Server/refine.mjs` turns a long, rambling dictation into a numbered brief a mastermind can act on, and keeps every step. Click an ask below, or a bullet in Structured, and its source sentences light up in Clean and Raw.");
 		p(() => a("Back to the live Refine workspace").href("/framework/ext/Refine/"));
-		const DEFAULT_RUN = "/framework/ai/2026-09-29/prompt-refine/runs/c/";
+		const DEFAULT_RUN = "/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/runs/c/";
 		refine(import.meta, { run: new URLSearchParams(location.search).get("run") || DEFAULT_RUN }).ac("wide");
 		md(`Run C, the harness and research dictation. \`?run=\` picks another run directory. A small hand-built [fixture](?run=${new URL("../fixture/", import.meta.url).pathname}) has the same file shape.`);
 	},

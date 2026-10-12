@@ -207,7 +207,7 @@ const apply = target => {
 
    ⚠ On the ROW, bubbling — not a capture guard on the drawer, which would eat the button's
    own handler before it ran. The real fix is an ownership test in `ext/layout` (that module
-   is not this task's to edit): proposal in `ai/2026-08-19/panel-bar-sweep/`. doc/focus.md. */
+   is not this task's to edit): proposal in `ai/sessions/2026/08/19/panel-bar-sweep/`. doc/focus.md. */
 const row = fn => div.c("panel-props-row", fn).on("click", e => e.stopPropagation());
 
 /* The root's own words on a SPLIT — the one thing a split's rail carries beyond its axis,

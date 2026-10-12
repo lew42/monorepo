@@ -1,6 +1,6 @@
 # Minion C — fix the fresh review's findings
 
-Load the `minion` skill first. Directory: `public/framework/ai/2026-09-28/review-turns/`. A fresh
+Load the `minion` skill first. Directory: `public/framework/ai/sessions/2026/09/28/review-turns/`. A fresh
 reviewer just reviewed this whole task (verdict `fix`, 9 findings) — read `review.md` there in
 full before touching anything. The task mastermind has judged each finding; do exactly this:
 
@@ -44,7 +44,7 @@ For finding 6's decline, add the one line it promises to `Server/doc/review.md` 
 in scope of the decline).
 
 Once each fix actually lands, append its own `{"review":{"answer":{"n":N,"reply":"fixed"}}}` line
-to `public/framework/ai/2026-09-28/review-turns/task.jsonl` for findings 1, 2, 3, 4 and 8 (4 shares
+to `public/framework/ai/sessions/2026/09/28/review-turns/task.jsonl` for findings 1, 2, 3, 4 and 8 (4 shares
 finding 1's fix — same "fixed" answer), alongside the three decline lines above for 5, 6, 7.
 
 ## Where you're working
@@ -59,5 +59,5 @@ Re-run `node Server/review.mjs --status public/framework/ai/2026-09-28/review-tu
 read something like "reviewed: N fixed, 3 declined" with the fix findings counted correctly. Take a
 fresh 1920 screenshot of `/framework/ext/Collab/` (no `?src=`) showing the real Reviews section
 above the fold with real numbers. `node --check Server/review.mjs`. Log each step in
-`public/framework/ai/2026-09-28/review-turns/task.jsonl`. Commit when done, report back to the task
+`public/framework/ai/sessions/2026/09/28/review-turns/task.jsonl`. Commit when done, report back to the task
 mastermind — don't merge.

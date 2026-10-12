@@ -18,13 +18,13 @@ const BIG_GAP_MS = 2500;
 // the CSS transition and a headless proof's wait share the same number.
 export const FADE_MS = 5000;
 
-// **Chunks** and **Side** are new (ai/2026-09-29/audio/, deliverable 4 — "see more detail
+// **Chunks** and **Side** are new (ai/sessions/2026/09/29/audio/audio/, deliverable 4 — "see more detail
 // into the workings of the Whisper transcription process"): Chunks shows every RESEND as
 // its own row, not just the final settled text, so the guess visibly improves; Side shows
 // raw and revised next to each other, in two plain columns, with the level picker above
 // the tabs choosing what "revised" means.
 //
-// **Clean** is new (ai/2026-09-29/audio/next-clean-transcription/a-clean-mode, deliverable
+// **Clean** is new (ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode, deliverable
 // 5): the clean text alone, no strike-through marks — what the real composer now shows by
 // default (`ext/Chat/Mic.js`'s own clean mode). It is the DEFAULT tab here too, because
 // that is what a first-time reader of this page should see first: the finished result, not

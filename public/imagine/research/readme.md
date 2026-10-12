@@ -31,7 +31,7 @@ front links straight to it:
   visible container's own rect. [`doc/decisions.md`](./doc/decisions.md)
 - **`width: "fill"` was tried and reverted** (2026-09-04) — it squeezes an open topic column
   to its 288px floor. The column stays `"large"`; the fix for 3440's dead space is not this
-  page's to make (`framework/ai/2026-09-04/realm-alternates/task.jsonl`).
+  page's to make (`framework/ai/sessions/2026/09/04/realm-alternates/task.jsonl`).
 - **This realm persists nothing** — no `store()`, no `localStorage`. No baseline mark needed.
 
 ## More

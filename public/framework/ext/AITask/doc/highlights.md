@@ -45,7 +45,7 @@ deleted; one page became two, each answering one question.
 
 `url` is the field people get wrong. The reader is looking for the work, not
 for the log line about the work — so `/layouts/`, not
-`/framework/ai/2026-09-08/layouts-standard/`. The small `log` link in the
+`/framework/ai/sessions/2026/09/08/layouts-standard/`. The small `log` link in the
 card's corner is the way back to the record.
 
 A card carries no date of its own: the **day heading** above its group is the

@@ -7,7 +7,7 @@ const NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,120}\.(wav|json)$/;
 const MAX = "25mb";
 
 /* The owner's voice, saved to a file whisper-test.mjs can run while they are away —
- * see public/framework/ai/2026-09-22/record/requirements.md. Loopback only, same
+ * see public/framework/ai/sessions/2026/09/22/session-36e558ed/record/requirements.md. Loopback only, same
  * guard as Screenshots.js. One route does two jobs, by extension:
  *   .wav  — raw bytes, trusted no further than its own RIFF header (the exact
  *           44-byte shape `ux/Dictate/capture.js`'s `wav()` writes).

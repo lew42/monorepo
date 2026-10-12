@@ -6,7 +6,7 @@ import c from "./c.js";
 
 View.stylesheet(import.meta, "demo.css");
 
-/* THE RELOAD HOLD, shown rather than told — ai/2026-09-19/reload-hold/requirements.md.
+/* THE RELOAD HOLD, shown rather than told — ai/sessions/2026/09/19/reload-hold/requirements.md.
  * Three live proofs on one page, each doing the thing the prose beside it claims:
  *
  *  1. a CSS swatch, styled by demo.css — an edit to that file swaps colour with

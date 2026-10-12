@@ -1,6 +1,6 @@
 # Requirements — verbatim
 
-From `public/framework/ai/2026-09-05/ux-rethink/reviewer-brief.md`, realm = **screens**.
+From `public/framework/ai/sessions/2026/09/05/ux-rethink/reviewer-brief.md`, realm = **screens**.
 
 > i want you to spawn ux minions to explore the imagine pages, and think again about what is
 > this page? how do i use it? what is the goal of the page? how hard is it to understand? how
@@ -18,7 +18,7 @@ Realm card from yesterday (`/imagine/review/`, slug "screens"):
   with plain words and real numbers.
 
 ## Scope
-- Write only in `public/imagine/screens/` and `public/framework/ai/2026-09-05/ux-screens/`,
+- Write only in `public/imagine/screens/` and `public/framework/ai/sessions/2026/09/04/ux-screens/ux-screens/`,
   plus one line in `public/framework/ai/2026-09-05/day.jsonl`.
 - Five sentences (before/after) about `/imagine/screens/`.
 - Build and measure ONE real alternative layout on the landing page; keep it if it wins on

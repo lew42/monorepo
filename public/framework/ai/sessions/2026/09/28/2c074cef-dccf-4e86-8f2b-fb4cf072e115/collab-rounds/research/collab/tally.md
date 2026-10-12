@@ -1,6 +1,6 @@
 # Several cheap AI agents research the same question in parallel, then must agree on one answer. Which way of reaching agreement gives the best answer for the least cost: a plain majority vote, a debate (agents argue over rounds), a Delphi process (anonymous rounds with feedback), or peer review (each reads one or two others, revises, then votes with a caveat)? Look for published results (papers such as 'Improving Factuality and Reasoning through Multiagent Debate', 'More Agents Is All You Need', work on LLM self-consistency and on debate vs voting), name what each finds, and recommend the method and the number of rounds our runner should use by default.
 
-**Winner:** haiku-c — `public/framework/ai/2026-09-28/collab-rounds/research/collab/haiku-c/3-revise.md`
+**Winner:** haiku-c — `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/research/collab/haiku-c/3-revise.md`
 **Rule:** tie: cheaper member
 **Run cost:** $1.9195
 

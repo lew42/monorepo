@@ -6,7 +6,7 @@ Less is more · clarity is the exception · prioritize. Read [`../mastermind-pla
 
 ## Read — all of it, cold
 
-- The owner's brief: `public/framework/ai/2026-09-04/mastermind-platform/requirements.md` §8, §9, §10, §27, §28.
+- The owner's brief: `public/framework/ai/sessions/2026/09/04/mastermind-platform/requirements.md` §8, §9, §10, §27, §28.
 - `public/imagine/platform/research/users/verdict.md` and its `log.jsonl`; `research/security/verdict.md` and its `log.jsonl` (the breaks table and the threat model); `research/community/verdict.md` (reputation-gated privileges — the hook authorization must leave); `research/payments/verdict.md` (what a creator account needs from identity).
 - `public/imagine/platform/decisions/data.md` (where identity rows live; the one KV ban key) and `decisions/local-dev.md` (the dev-only login and its gate).
 - `public/notes/auth/readme.md` — the design record all of this extends; `public/imagine/platform/existing/page.js` (the dev-only Express session on a hardcoded secret that exists today).

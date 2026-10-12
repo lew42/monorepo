@@ -13,7 +13,7 @@ export const RANGES = [{
 	id: "measure",
 	what: "characters per line, across the page's prose — code, cells and framed text excluded",
 	ideal: [52, 68], ok: [34, 92], weight: 10,
-	why: "45–85 is the typographic consensus and `--measure: 52em` is this site's own answer; the band is tighter than the rule's, because the rule asks whether text is readable and this asks whether it is comfortable. ⚠ THE THRESHOLDS DID NOT MOVE WHEN THE POPULATION WAS FIXED, and that is the finding rather than a coincidence. The band used to be justified as the site's own interquartile range (52–68, n=26) — but that IQR was measured over a population that admitted card captions and table cells, and it sat inside the ideal band only because two errors cancelled: prose running 75–103 characters averaged against 19–26 character captions. Read over prose alone the site's IQR is **59–78 at 1280 and 60–77 at 3440**, which is above the band, and `knowledge/characters-per-line.md`'s independent hand count (52em = 83–108 characters, two methods, four viewports) says the same thing. So the band now rests on the typographic consensus and on the site's own stated intent, NOT on where the site happens to sit — and it charges the site for the gap, which is the open `--measure` decision. `ai/2026-08-17/band-rederive/`.",
+	why: "45–85 is the typographic consensus and `--measure: 52em` is this site's own answer; the band is tighter than the rule's, because the rule asks whether text is readable and this asks whether it is comfortable. ⚠ THE THRESHOLDS DID NOT MOVE WHEN THE POPULATION WAS FIXED, and that is the finding rather than a coincidence. The band used to be justified as the site's own interquartile range (52–68, n=26) — but that IQR was measured over a population that admitted card captions and table cells, and it sat inside the ideal band only because two errors cancelled: prose running 75–103 characters averaged against 19–26 character captions. Read over prose alone the site's IQR is **59–78 at 1280 and 60–77 at 3440**, which is above the band, and `knowledge/characters-per-line.md`'s independent hand count (52em = 83–108 characters, two methods, four viewports) says the same thing. So the band now rests on the typographic consensus and on the site's own stated intent, NOT on where the site happens to sit — and it charges the site for the gap, which is the open `--measure` decision. `ai/sessions/2026/08/17/band-rederive/`.",
 }, {
 	id: "frame-gap",
 	what: "the TIGHTEST frame gap on the page — padding ÷ font-size, at the 10th percentile",
@@ -76,7 +76,7 @@ export const RANGES = [{
  *   an argument for dropping any of them: the nine HAND-WRITTEN layouts in
  *   `styles/layouts/space/presets.js` fail `width-used` hard at 3440, and a range
  *   can be saturated for one population and the sharpest thing you own for another.
- *   `ai/2026-08-16/layout-generator-rules/hunt.md` holds both runs. */
+ *   `ai/sessions/2026/08/16/layout-generator-rules/hunt.md` holds both runs. */
 export const BY_ID = Object.fromEntries(RANGES.map(r => [r.id, r]));
 
 export const TOTAL = RANGES.reduce((sum, r) => sum + r.weight, 0);

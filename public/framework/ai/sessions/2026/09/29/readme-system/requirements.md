@@ -1,6 +1,6 @@
 # Readmes kept true by node, checked by every review, tracked per module
 
-**The owner's words:** `ai/2026-09-29/module-experts/owner-words.md`, the section "Continued (about 3:35 PM)". Read it first.
+**The owner's words:** `ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/owner-words.md`, the section "Continued (about 3:35 PM)". Read it first.
 **Already done (mastermind-servex-4):** the readme standard, "the curated context: the top 20% that serves 80% of tasks, say exactly what is, no timestamps or history", is at the top of `.claude/skills/documentation/SKILL.md` §1.
 
 ## Deliverables (each is a node function; the AI never has to remember it)

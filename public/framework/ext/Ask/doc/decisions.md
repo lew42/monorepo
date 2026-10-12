@@ -83,7 +83,7 @@ machinery:
 
 The model is never asked to work out where it is, and never asked to claim anything.
 Proof, both halves and how to run them: `proof.mjs` in
-[ask-tab-binding](/framework/ai/2026-08-18/ask-tab-binding/).
+[ask-tab-binding](/framework/ai/sessions/2026/08/18/ask-tab-binding/).
 
 ⚠ **The turn's claim overwrites one made by hand** on that tab, and releases at the
 end — a turn is short, and a ring that lies about who is driving is worse.
@@ -453,7 +453,7 @@ reach.
 | `ext/Ask/edit.js` exporting `edit()` / `set_edit(on)` / `on_edit(fn)` | **Chosen.** `ext/Ask/Ask.js` and `ext/Saver/FileSaver.js` already import `dev/Socket` directly — ext depending on dev/Socket is the established direction, not a new one — and `dev/DevBar` already imports `ext/Ask` (`ask.js`), so the toggle's UI (in `dev/DevBar`) can reach the switch (in `ext/Ask`) the same way it already reaches `ext/Ask`'s chat panel. Zero new import-direction violations either way. |
 
 The formal `decision` line, with the full reasoning, is in this task's own log:
-[`/framework/ai/2026-09-18/edit-mode/`](/framework/ai/2026-09-18/edit-mode/) (Decisions tab).
+[`/framework/ai/sessions/2026/09/18/edit-mode/`](/framework/ai/sessions/2026/09/18/edit-mode/) (Decisions tab).
 
 **The toggle.** A second checkbox in the dev rail's head line, next to "block" — labelled
 "edit" — calls `set_edit(on)` then `location.reload()`. It reloads because every one of the
@@ -486,7 +486,7 @@ decision record, not code, and it assumes a server (Workers) this repo's product
 not have — `public/` still ships as static files with no server at all. For `edit()` to read a
 signed-in role instead of the dev socket, three things have to exist first, in order: (1) the
 owner registers an OAuth app with GitHub and with Google — **the owner's own item, ~15
-minutes**, named as the first blocker in `ai/2026-09-18/memery-scout/report.md`; (2) the
+minutes**, named as the first blocker in `ai/sessions/2026/09/18/memery-scout/report.md`; (2) the
 Workers-side identity stack from `identity.md` gets built (the `users` table, the HMAC cookie,
 `can()`) — "a few hours of code" per that same report, and it targets a Workers deployment
 this static site does not currently have; (3) `edit()` changes from `!Socket.singleton()
@@ -614,4 +614,4 @@ preset — it is outside this task's write fence (only `doc/**` was open), so it
 still reads as it did before this landed; whoever next has `readme.md` open should add one
 line pointing here. The dev bar's own composer — the real place an owner would use this — is
 a sibling's build (`dev/DevBar/**`, `public/framework/ai/v/**`); this task shipped a demo page
-instead: [`/framework/ai/2026-09-19/assistant-stream/`](/framework/ai/2026-09-19/assistant-stream/).
+instead: [`/framework/ai/sessions/2026/09/19/assistant-stream/`](/framework/ai/sessions/2026/09/19/assistant-stream/).

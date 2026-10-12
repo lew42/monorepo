@@ -1,7 +1,7 @@
 import { Page, md, div, p, span, b } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board, same shape as
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board, same shape as
                 this dir's sibling study reports today (worktree-study).
    2 SIZE       prose at --measure; the five-card wall and the small table need
                 the room, so both claim wide.

@@ -1,7 +1,7 @@
 import { Page, md, div, p, span, b, details, summary } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board — the ordinary
                 page grid: main for prose, wide for the two tables and the
                 four-card wall.
    2 SIZE       four cards at 1 1 18em wrap to 4 / 2 / 1 columns; the tables need
@@ -118,7 +118,7 @@ export default new Page({
 
 	auditor(){
 		return md("## The decision auditor (the owner, mid-task)\n\n" +
-			"Written as [.claude/skills/auditor/](/framework/ai/2026-09-19/mistake-audit/) — 81 lines, a role, not a rule: a **system architect** that reads CLAUDE.md and every skill once, then audits **judgment calls** as well as breakages. Its raw material is the `decision` lines agents already write (the question, the options, the one chosen, why, and the rule that produced it): a call that turned out wrong names the rule that steered it.\n\n" +
+			"Written as [.claude/skills/auditor/](/framework/ai/sessions/2026/09/19/mistake-audit/) — 81 lines, a role, not a rule: a **system architect** that reads CLAUDE.md and every skill once, then audits **judgment calls** as well as breakages. Its raw material is the `decision` lines agents already write (the question, the options, the one chosen, why, and the rule that produced it): a call that turned out wrong names the rule that steered it.\n\n" +
 			"- **The misuse report is one dated, signed line in that skill's existing improvements.md** — not a new file. The evidence is already in three places (the ledger's skill lines, improvements.md, the decision lines); a second log per skill would split it and leave fifteen near-empty files. The format widens to allow a plain opinion: `date (who · task) · what happened · the opinion or the change · the evidence`.\n" +
 			"- **Who files one:** the agent that was misled (skill-improvement), the mastermind at harvest when a deliverable came back wrong, or the auditor.\n" +
 			"- **Cadence:** when a mistake reaches the owner, or when a judgment call turns out wrong. No standing job — the mastermind already reads every improvements.md each cycle.\n" +

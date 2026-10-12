@@ -46,6 +46,6 @@ something and stops again after it's been idle a while.
   to fix here.
 
 ## More
-- The task that built this: `public/framework/ai/2026-10-01/local-ai/build/`
+- The task that built this: `public/framework/ai/sessions/2026/09/24/servex-mastermind-opus/local-ai/build/`
 - Every model Servex has tried, local and cloud, side by side:
   [`/framework/ai/system/models/`](/framework/ai/system/models/)

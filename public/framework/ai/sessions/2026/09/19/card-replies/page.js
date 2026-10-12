@@ -2,7 +2,7 @@ import { Page, div, h2, p, small, pre } from "/app.js";
 import { ask_controls } from "./ask.js";
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 
-/* CARDS THAT ASK YOU — shown, not told: ai/2026-09-19/card-replies/requirements.md.
+/* CARDS THAT ASK YOU — shown, not told: ai/sessions/2026/09/19/card-replies/requirements.md.
  * The owner asked: if a card shows two buttons, or two option cards, and they pick
  * one, does the choice reach the right Claude session? This page is the answer, live —
  * press a button below and read what actually happened underneath it.

@@ -5,7 +5,7 @@ verdict: fix
 4. [note] The requirement asked for screenshots matching at 400/1200/1920/3440. All 40 pages were checked at 1200, but only 8 of them at all four widths. The 5 live pages that differ match the A1/A2 noise floor, so that part is met in spirit.
 5. [note] The only page this diff changes is the task page itself (a page.jsonl file list). Its shot problems come from the shared ai2 layout, not from this diff: the h1 wraps to 4 lines at 400, the rail buttons wrap 3.2 lines, and the `mode-btn` "brightness_auto" wraps 1.7 lines at 1200 and wider.
 
-Widths given: 400, 1200, 1920, 3440 (one page: `/framework/ai/2026-10-12/page-split-3/`).
+Widths given: 400, 1200, 1920, 3440 (one page: `/framework/ai/sessions/2026/10/12/session-1c7d9e04/page-split-3/`).
 
 ## Requirements
 - 1 "Move the jsonl replay and file steps into their own class file … every public name keep their exact behaviour" — yes — `core/Page/Jsonl.js` (`PageJsonl`, 297 lines) is attached as `Page.Jsonl` and created through `this.constructor.Jsonl`, so a subclass can swap it. Every moved method keeps a one-line facade on Page; `static jsonl`/`log_class` pass the host class; the import cycle is avoided by setting `PageJsonl.Page = Page`.

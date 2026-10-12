@@ -1,6 +1,6 @@
 # importance — questions, options and caveats, ranked by pairwise judgment
 
-Run: `ai/2026-09-13/mastermind-page-cms/` (the mastermind). Group: `importance`. The owner's prompt is below, verbatim, and it is the specification. This page above it says where the thing lives in THIS repo and what you may touch.
+Run: `ai/sessions/2026/09/13/mastermind-page-cms/` (the mastermind). Group: `importance`. The owner's prompt is below, verbatim, and it is the specification. This page above it says where the thing lives in THIS repo and what you may touch.
 
 ## The three laws, and your length budget
 
@@ -32,13 +32,13 @@ Budget: each page is one screen at 1280, mostly above the fold. The readme is th
 
 ## Fences
 
-- Own: `public/imagine/importance/**`, `public/framework/ai/2026-09-13/importance/**`. One line in `public/imagine/page.js` (the realm name). Nothing else — no `core/`, `ext/`, `styles/`, `Server/`, no skills, no npm dependency.
+- Own: `public/imagine/importance/**`, `public/framework/ai/sessions/2026/09/13/importance/**`. One line in `public/imagine/page.js` (the realm name). Nothing else — no `core/`, `ext/`, `styles/`, `Server/`, no skills, no npm dependency.
 - Class names: run `new-css-class`; prefix `imp-` (check `public/framework/styles/css-scopes.txt` first and pick another if taken).
 - A sibling is rebuilding `public/imagine/paging/make/` and another is measuring spacing in `framework.css`; you touch neither.
 
 ## Rules every brief carries
 
-- Open your task: `ai/2026-09-13/importance/task.jsonl` with the `new-task` skill (own `session_id`, group `importance`, the seven deliverables as `steps`). The day dir and `day.jsonl` exist — append one line. Findings as `log` lines. Land with `finish-task`; run `documentation` before it.
+- Open your task: `ai/sessions/2026/09/13/importance/task.jsonl` with the `new-task` skill (own `session_id`, group `importance`, the seven deliverables as `steps`). The day dir and `day.jsonl` exist — append one line. Findings as `log` lines. Land with `finish-task`; run `documentation` before it.
 - **Never kill or restart the dev server on port 80. Never drive the owner's tabs. Never `git stash`. Never commit.**
 - Headless: a PRIVATE server `PORT=809x node server.js` from the repo root (`netstat -ano | grep LISTENING | grep -E ":80(8|9)[0-9]\s"` shows taken ports — 8093 and 8095 are siblings'), killed by pid at landing. Plans and pngs in the session scratchpad under `importance-*`; keepers copied into your task dir.
 - Every recipe above was checked against the files on 2026-09-13; if one is wrong, fix your course and add ONE evidence line to that skill's `improvements.md` (`skill-improvement`).

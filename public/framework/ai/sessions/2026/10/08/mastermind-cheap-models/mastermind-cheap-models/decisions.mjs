@@ -1,7 +1,7 @@
 /* decisions.mjs — reads this task's own spawns.jsonl (one line per spawn decision, written through
  * .claude/hooks/append.mjs — never by hand, per the task's requirements.md) and prints, per model,
  * the pass rate and the cost per PASSING task. This is deliverable 1 of mastermind-cheap-models
- * (public/framework/ai/2026-10-08/mastermind-cheap-models/requirements.md): "a script (not you
+ * (public/framework/ai/sessions/2026/10/08/mastermind-cheap-models/mastermind-cheap-models/requirements.md): "a script (not you
  * from memory) adds {actual_cost_usd, outcome, verified_how}" after the agent ends — this script
  * is the READ side of that; `record-outcome.mjs` (sibling) is the WRITE side.
  *

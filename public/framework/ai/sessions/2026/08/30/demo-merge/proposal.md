@@ -35,7 +35,7 @@ Plus 6 modifier classes that behave as variants: `stack` (2), `quoted` (18), `ba
 
 ### Fixed heights — 17 call sites, 0 in the CSS
 
-`grep '^\s*height: "'` over `framework/ web/ notes/ imagine/` → **16 config `height:` keys** on `demo.tree()` / `demo.layout()`, plus **1 inline** `demo.app(…).style({ height: "24em" })` (`ai/2026-08-12/apps/navigation`).
+`grep '^\s*height: "'` over `framework/ web/ notes/ imagine/` → **16 config `height:` keys** on `demo.tree()` / `demo.layout()`, plus **1 inline** `demo.app(…).style({ height: "24em" })` (`ai/sessions/2026/08/12/apps/navigation`).
 
 No demo stylesheet declares a fixed height on a render. Every clip is a call site meeting one CSS rule:
 

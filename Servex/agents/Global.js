@@ -42,7 +42,7 @@ const ONE_SHOT_ROLE = /^(minion|reviewer|task-mastermind)$/;
 const env = (name, dflt) => Number(process.env[name]) || dflt;
 const today = () => new Date().toLocaleDateString("en-CA");
 
-/* THE TWO ROOT AGENTS (design: ai/2026-09-24/assistant-layers/doc/design.md;
+/* THE TWO ROOT AGENTS (design: ai/sessions/2026/09/24/assistant-layers/assistant-layers/doc/design.md;
  * narrowed 2026-09-25/28 by the recursive-pairs work, doc/page-roles.md).
  *
  * - `master-assistant` (architect tier, medium effort) is the root page's own

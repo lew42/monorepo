@@ -23,7 +23,7 @@
 - **Wrappers respawn children:** killing `run.js` alone isn't enough, because its `server.js` wrapper starts it again. Close the wrapper first.
 - **One-pass agents** (reviewer, clarity, checker) have parent null and stay idle holding about 300 MB each. Stop them when their result is written.
 - **A clarity agent is spawned per minion landing**, not per task, which multiplies agents under memory pressure. Make it once per task, and queued while the monitor flag is up.
-- The mastermind's hand reaps on 09-29 are logged in `ai/2026-09-29/servex-mastermind/task.jsonl` (16:50, 17:15).
+- The mastermind's hand reaps on 09-29 are logged in `ai/sessions/2026/09/29/servex-mastermind/task.jsonl` (16:50, 17:15).
 - **The monitor nags without news:** the servex-monitor sent "stop the finished ones" about every 3 minutes from 16:40 to 17:45 (about 15 times), usually when nothing was left to stop. Once the reaper stops finished agents itself, have the monitor message only when the set of stoppable agents changes, and name them.
 
 ## Fence

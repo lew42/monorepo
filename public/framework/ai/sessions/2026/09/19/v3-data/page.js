@@ -1,7 +1,7 @@
 import { Page, div, p, span, b, a, img, code } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board — the ordinary
                 page grid: main for prose.
    2 SIZE       plain prose list, one screenshot. No wrapping needed.
    3 OWN LAYOUT prose, one short list, one image. Nothing else.

@@ -3,7 +3,7 @@
 ## The ask (verbatim)
 
 > TASK W3b — three targeted fixes from the site audit
-> (`public/framework/ai/2026-08-30/site-audit/task.jsonl` has the details + shots). First:
+> (`public/framework/ai/sessions/2026/08/30/site-audit/task.jsonl` has the details + shots). First:
 > run `new-task` (slug `audit-fixes`, group `pages`).
 >
 > 1. **The crash**: `/framework/ai/2026-08-08/` blanks with "Page Load Error" — a

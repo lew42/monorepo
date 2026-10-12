@@ -37,7 +37,7 @@ import { mount } from "/framework/ext/Ask/chat.js";
      draws the WHOLE design tree — four levels of designs under this page. Without
      this the deepest two rows would simply not be there, and nothing would say so.
 
-   ⚠ demo.steps() was tried here (2026-09-18, ai/2026-09-18/steps-demo) and reverted:
+   ⚠ demo.steps() was tried here (2026-09-18, ai/sessions/2026/09/18/steps-demo) and reverted:
      wrapping this row as demo.steps()'s own `stage:` gives the numbered list an
      ancestor box (`.demo-steps-stage`) with no height of its own, and this page's
      entire "never scrolls, exactly the region" contract depends on `.std-shell`

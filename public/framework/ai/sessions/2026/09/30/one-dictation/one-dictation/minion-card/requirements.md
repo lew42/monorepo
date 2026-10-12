@@ -1,6 +1,6 @@
 # Minion brief: the AI 2 card's own chat becomes the one chat
 
-Load the `minion` skill first, then `code` and `css`. Your parent is **task-mastermind-one-dictation**; its task dir is `public/framework/ai/2026-09-30/one-dictation/`. Read its `owner-words.md` and `requirements.md` first.
+Load the `minion` skill first, then `code` and `css`. Your parent is **task-mastermind-one-dictation**; its task dir is `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/`. Read its `owner-words.md` and `requirements.md` first.
 
 ## The owner's words (2026-09-30)
 "this UI is so much different than what it was before, and it's not really what I asked for... I think the framework... UX dictate is the spot it currently lives. Maybe this is the same UI the Dictates overview tab."

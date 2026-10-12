@@ -16,7 +16,7 @@ The mastermind's decision, per the owner's rule that architectural questions get
 
 ## What exists
 
-- `core/Page/doc/columns.md` — the row, the six width words (`small hug default large fill full`), the phone regime under 32em, the crumb strip. `Page.css` line ~300 is the elastic `flex: 1 1 0`; today's nav-jump numbers and the stable-row lab: `/imagine/design/navigation/` and `ai/2026-09-17/nav-stability/proposal.md` (read both first; the lab already has "today" and "stable" rows and a button that presses both).
+- `core/Page/doc/columns.md` — the row, the six width words (`small hug default large fill full`), the phone regime under 32em, the crumb strip. `Page.css` line ~300 is the elastic `flex: 1 1 0`; today's nav-jump numbers and the stable-row lab: `/imagine/design/navigation/` and `ai/sessions/2026/09/17/nav-stability/proposal.md` (read both first; the lab already has "today" and "stable" rows and a button that presses both).
 - Demos: `/framework/core/Page/overview/columns/finder/` and `…/columns/uses/{docs,inbox,workbench,split}/`.
 
 ## Deliverables (each ticked against the sentences above at harvest)
@@ -29,7 +29,7 @@ The mastermind's decision, per the owner's rule that architectural questions get
 
 ## Rules
 
-- Load `code` (parts as static subclasses; every method a seam), `layout` (Q1 under a columns host; `fill`/`large` traps), `css`, `new-css-class`; `new-task` before the first edit (your dir exists: `ai/2026-09-17/even-columns/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
+- Load `code` (parts as static subclasses; every method a seam), `layout` (Q1 under a columns host; `fill`/`large` traps), `css`, `new-css-class`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/even-columns/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
 - **Fence:** `public/framework/core/Page/**` (Page.css, Page.class.js or the columns part, doc/), `public/framework/core/Page/overview/columns/finder/**`, `public/imagine/design/navigation/**`, your task dir. Nothing else — not `/imagine/page.js`, not framework.css.
 - ⚠ Core is shared by every page and by other minions' private servers: make each core edit in ONE write, load a page headless within a minute and read the console; if broken, `git checkout -- <that one file>` at once (you are its only editor tonight) and try again. Never leave Page.css or Page.class.js broken between two edits. Every CSS rule inside a layer; only `p()`/`h1`–`h6` read backticks.
 - Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`. The owner's server (port 80) is NOT running; start your own: `PORT=8104 node server.js` from the repo root, in the background; kill it by PID when you land. `ui-test` has the headless recipe; `.page.active-page` is `display: contents` — measure `.page-column-body`.

@@ -10,5 +10,5 @@ A doc weighing the candidate mechanisms for responsive splits (container-query d
 
 ## Fences
 
-- **Minion F** (doc-only): writes EXACTLY `public/framework/ai/2026-08-15/reflow-proposal/doc/reflow.md`. No code, no Panel edits, no readme.
+- **Minion F** (doc-only): writes EXACTLY `public/framework/ai/sessions/2026/08/15/reflow-proposal/doc/reflow.md`. No code, no Panel edits, no readme.
 - **Orchestrator**: links the doc from the Panel readme's no-reflow Open bullet; landing.

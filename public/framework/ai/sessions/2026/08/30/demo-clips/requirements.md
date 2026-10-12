@@ -1,11 +1,11 @@
 # demo-clips — kill the 17 fixed-height demo clips
 
-Step 1 of the demo-merge proposal (`ai/2026-08-30/demo-merge/proposal.md`). Two independent
+Step 1 of the demo-merge proposal (`ai/sessions/2026/08/30/demo-merge/proposal.md`). Two independent
 audits ranked this the highest-value single fix on the site.
 
 ## The ask, verbatim
 
-> Read `public/framework/ai/2026-08-30/demo-merge/proposal.md` — its step 1 lists the 17
+> Read `public/framework/ai/sessions/2026/08/30/demo-merge/proposal.md` — its step 1 lists the 17
 > `height:` call sites (16 config keys + 1 inline) and the mechanism (`ext/demo/app.css`
 > `.demo-app-pages { overflow: auto }` turns any short height into a clip). The prototype's
 > answer: `min` is a floor, never a ceiling. Read `ext/demo/shell.js` for how `min` is meant
@@ -26,7 +26,7 @@ audits ranked this the highest-value single fix on the site.
 ## The 17 call sites
 
 16 `demo.tree()` config keys:
-1. `framework/ai/2026-08-12/apps/columns/page.js`
+1. `framework/ai/sessions/2026/08/12/apps/columns/page.js`
 2. `framework/core/Page/old/overview/landing/page.js`
 3. `framework/core/Page/old/overview/shapes/page.js`
 4. `framework/core/Page/old/overview/site/page.js`
@@ -43,7 +43,7 @@ audits ranked this the highest-value single fix on the site.
 15. `web/nav/sidebar/page.js`
 16. `web/nav/wall/page.js`
 
-Plus 1 inline: `framework/ai/2026-08-12/apps/navigation/page.js` (`demo.app(...).style({ height })`).
+Plus 1 inline: `framework/ai/sessions/2026/08/12/apps/navigation/page.js` (`demo.app(...).style({ height })`).
 
 ## Found, out of fence
 

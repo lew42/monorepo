@@ -75,7 +75,7 @@ The owner's; the content is written and waiting. See Recommendation 1.
    to a blank Docs/Files tab with no error. *(simple once known, important — a
    real trap, not a style choice.)*
 3. **The stale link found while tracing callers**: `core/Page/old/overview/landing/`
-   (via `framework/ai/2026-08-12/unify/page.js`) links
+   (via `framework/ai/sessions/2026/08/12/unify/page.js`) links
    `/framework/styles/layouts/cards/`, which this module's own `layouts/readme.md`
    records as deleted in the 2026-08-12 merge. Outside this audit's fence (the
    link lives in `core/Page/` and `framework/ai/`) — a two-minute fix for whoever

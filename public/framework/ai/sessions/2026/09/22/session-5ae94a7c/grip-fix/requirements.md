@@ -2,7 +2,7 @@
 
 Minion: Sonnet, effort high. Session id `5ae94a7c-5722-489c-8584-15f4afd363d2`. You are IN A
 WORKTREE (the launcher says where, and your server's port). Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first. Load `code`, `css`,
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first. Load `code`, `css`,
 `ui-test` (this task is proven by driving gestures headless and screenshotting after each).
 
 ## The owner's words (2026-09-22 18:07, verbatim)

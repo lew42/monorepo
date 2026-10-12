@@ -3,7 +3,7 @@
 Start as **mastermind-servex-9** (Fable if the budget allows): load the `servex-mastermind` skill, read this, then the last 15 lines of `task.jsonl` here. Tell every running task mastermind your id (list below); messages to a retired mastermind-servex-N reach the highest N by themselves.
 
 ## Your standing roles (the owner, 2026-09-30)
-Skills architect: others send recommendations and append to a skill's improvements.md; you review and apply. Launch dispatch rows yourself (ai/2026-09-25/servex-mastermind/dispatch.md), about 5 working. Budgets in code. No leaks (agents, worktrees, dev servers, memory). The owner's new asks come through the VS Code tab servex-mastermind-opus (not a registered agent: answer on the board, not by message).
+Skills architect: others send recommendations and append to a skill's improvements.md; you review and apply. Launch dispatch rows yourself (ai/sessions/2026/09/24/1c09793f-74b6-4218-82e5-53e5cd88b659/servex-mastermind/dispatch.md), about 5 working. Budgets in code. No leaks (agents, worktrees, dev servers, memory). The owner's new asks come through the VS Code tab servex-mastermind-opus (not a registered agent: answer on the board, not by message).
 
 ## Done today
 - 13 improvements.md lines applied to code, css, documentation, finish-task, minion, sub-mastermind (c4302795); the screenshot review rule (400/1200/1920/3440, read in horizontal bands) is law in sub-mastermind (734a3b4b); MSYS_NO_PATHCONV=1 for merge.mjs from Git Bash (8368ce6d).
@@ -39,6 +39,6 @@ Restart done (pid 52908); everything above is live. mastermind-servex-8 survived
 Landed today after 15:20: drill-in (0ee6eec5), page-system (inventory 088573ed), voice-sessions 53b297cc (Servex side needs restart), review skill + questions.md (merging), the owner's-tabs guard (501c2d5a, dev server restarted; skills minion #9, sub-mastermind, clarity, review), ledger hook no longer forces turns, skills: page Cards section, css Icons, content title rule, sub-mastermind coordinator/claim_topic + small-edit + commit-early rules, decide why-line.
 Running: **dormant-idle (row 49, $15, TOP PRIORITY: idle processes exit, resume by session id; working cap 5 in code)**, pool-taken (row 47, in review), page-inbox (row 48, coordination-routed drop), cards-and-logs (landing, $27), review (merge queued on the lock), voice-sessions-2 (card sessions, cap $15), mentions + audio-consolidate + icon-system + mastermind-page (owner tab).
 Pending: **Servex restart batch** = Servex/pages.js 2dc26a02, Sessions.js side of 53b297cc, pool-taken, page-inbox, voice card sessions, dormant-idle when merged; restart when the owner's voice session is idle (no session-* working for 60 s) and GPU under 20%.
-Pending skill line: content @mention rule when ext/Mention merges (task ai/2026-09-30/mentions sends the commit id).
+Pending skill line: content @mention rule when ext/Mention merges (task ai/sessions/2026/09/30/mentions/mentions sends the commit id).
 Next dispatch: 46 log-view after minion-ai2-calm merges → 31 → 33 → 15 → 16 → 27. Two broken /imagine pages in todo.md §1 ($3).
 Lessons: agents' "done" messages are truncated at 300 chars until the restart landed (now 4000); an audit of stopped tasks must check salvage/ branches and `git status` inside the worktree; a mastermind at 200k+ context should checkpoint and hand over, as -8 does now at 262k.

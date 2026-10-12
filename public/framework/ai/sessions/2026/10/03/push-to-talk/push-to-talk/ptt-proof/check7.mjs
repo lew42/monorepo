@@ -5,7 +5,7 @@
 // widget both use) into hidden divs on one real page, feeds the SAME text
 // through both via the real entry point (Widget.submit -> deliver ->
 // Session.say), and counts actual POST /api/session/say requests.
-import { browser, close } from "../../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../../Server/browser.mjs";
 
 const BASE = "http://push-to-talk.localhost";
 const PAGE_URL = BASE + "/framework/ux/Hotkeys/";

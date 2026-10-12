@@ -14,7 +14,7 @@
  *
  * DELETES (2026-10-02). On 2026-10-01 at 22:36 an agent ran `rm -rf` over every path `git status`
  * listed as untracked in the main checkout: 601 paths, 595 gone — other agents' cards, task logs,
- * skills and module files (ai/2026-10-01/recover-main-untracked/). Untracked files in main belong
+ * skills and module files (ai/sessions/2026/10/01/recover-main-untracked/). Untracked files in main belong
  * to other agents, so this hook now also refuses:
  *   a RECURSIVE delete (rm -r/-rf/-fr/-R/--recursive, Remove-Item/ri/rm/del/erase/rmdir/rd with
  *   -Recurse or /s or /q) whose target resolves INSIDE the main checkout — from any cwd. A target

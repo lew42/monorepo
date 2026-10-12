@@ -3,7 +3,7 @@
 The owner's idea, in one line: **a prompt that dumps 12 questions on a model gets answered
 shallowly, in one pass — ask the same questions one at a time, in the same session, and each
 answer gets the model's full attention.**
-(Verbatim, `public/framework/ai/2026-09-28/harness-research/owner-words.md`, "Added 2026-09-28
+(Verbatim, `public/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/owner-words.md`, "Added 2026-09-28
 about 11:15 PM".)
 
 ## What it is
@@ -37,7 +37,7 @@ questions about it (columns? which piece gets centered? where does a table go?).
 - **One at a time (`ask-each.mjs`):** $1.98, one session, 3 turns.
 - **One combined prompt (all 3 questions in a single turn):** $0.27, one turn.
 
-Full transcripts: `public/framework/ai/2026-09-28/ask-each/answers-one-at-a-time.md` and
+Full transcripts: `public/framework/ai/sessions/2026/09/29/6ceb521e-fbb9-4e19-bff6-24009fe1cade/ask-each/answers-one-at-a-time.md` and
 `answers-one-prompt.md`.
 
 **Depth — both answered well; the difference is what each answer stayed accountable to.**
@@ -71,6 +71,6 @@ of simple or dependent questions is cheaper and nearly as good in one prompt.
 ## For the next agent
 
 Both scratch inputs (context + questions) and both outputs live at
-`public/framework/ai/2026-09-28/ask-each/` for anyone who wants to re-run the comparison or reuse
+`public/framework/ai/sessions/2026/09/29/6ceb521e-fbb9-4e19-bff6-24009fe1cade/ask-each/` for anyone who wants to re-run the comparison or reuse
 the 3-question layout test. The comparison script that produced the single-prompt run was a
 one-off scratch file, not committed — `askOnce()` in `ask-each.mjs` is the reusable half.

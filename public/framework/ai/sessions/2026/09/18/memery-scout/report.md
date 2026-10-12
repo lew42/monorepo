@@ -6,7 +6,7 @@
 
 - [/notes/each-meme-is-a-community/](/notes/each-meme-is-a-community/) — the note that started it: each meme is a community, voice chat, join teams, $10/mo unlimited. Its price card is real; its **Join** button does nothing on purpose.
 - Five decision records in [/imagine/platform/decisions/](/imagine/platform/decisions/): topic-model (a topic is a page that says `is: "topic"`), identity (GitHub/Google OAuth + roles), data (where each kind of state lives), slice (the first real write, a like), local-dev (the offline multi-user harness).
-- What the worker proves **live**, measured, never deployed: `/api/me` (a signed-in session), `/api/likes` (a D1 row per user per page), and `/api/room` — **a real live chat**: one Durable Object per page url, a WebSocket per open tab, a SQLite table of messages, every message broadcast to everyone connected; two browser tabs saw each other's message within 2 seconds ([the harness task](/framework/ai/2026-09-04/local-dev-harness/)). The one place to click it: [/imagine/platform/local/room/](/imagine/platform/local/room/), after `npm run dev`.
+- What the worker proves **live**, measured, never deployed: `/api/me` (a signed-in session), `/api/likes` (a D1 row per user per page), and `/api/room` — **a real live chat**: one Durable Object per page url, a WebSocket per open tab, a SQLite table of messages, every message broadcast to everyone connected; two browser tabs saw each other's message within 2 seconds ([the harness task](/framework/ai/sessions/2026/09/04/local-dev-harness/)). The one place to click it: [/imagine/platform/local/room/](/imagine/platform/local/room/), after `npm run dev`.
 
 ## Decided, never built
 

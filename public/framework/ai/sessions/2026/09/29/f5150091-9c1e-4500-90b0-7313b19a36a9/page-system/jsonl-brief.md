@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `page`, `content`, `documentation`, `code`. Program card dir: `public/framework/ai/2026/09/29/the-page-system-layout-navigation-new-pa/`.
 
-## The owner's words (read "Continued (about 4:30 PM)" in `public/framework/ai/2026-09-29/page-system/owner-words.md`)
+## The owner's words (read "Continued (about 4:30 PM)" in `public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/owner-words.md`)
 
 > "the core slash page slash, maybe the page should be called JSON L and it's just, it's a system. It's a, it's a page. It has a README and it's more just a code pattern essentially. So it's sort of like a skill, but ... could just document the page JSON, you know, JSON L format, adding logs to it, who adds logs to it, you know, the timing, maybe any kind of like caveats or conflicts to be aware of."
 

@@ -1,6 +1,6 @@
 # The `chat` tab, the path bar, and the mastermind log — 2026-09-19
 
-⚠ **STATUS after the 23:16 reset (`ai/2026-09-19/reset-recovery/`): the path bar and the
+⚠ **STATUS after the 23:16 reset (`ai/sessions/2026/09/19/reset-recovery/`): the path bar and the
 mastermind log below are live again; the `chat` tab is not.** `chat.js` itself — a new,
 untracked file that should have survived a reset which only touches tracked files — is
 missing from disk with no git history, cause unknown. `tools.js` was restored WITHOUT the
@@ -11,7 +11,7 @@ and sitting unused. Recovering `chat.js` is the single highest-value follow-up n
 
 Three pieces landed together, from one brief that grew a great deal along the way (the
 owner watched most of it build, live, and redirected it several times — the requirements.md
-at `ai/2026-09-19/devbar-chat/` has the whole trail, verbatim).
+at `ai/sessions/2026/09/19/devbar-chat/` has the whole trail, verbatim).
 
 ## The `chat` tab
 
@@ -109,7 +109,7 @@ moment a real `card` line with a `status` lands for that id.
   0px tall. Fix needs the other four sections capped or collapsed behind a
   `details`/`summary` on narrow widths so the log keeps a real floor too — not built here,
   named for whoever touches the bottom-sheet layout next
-  (`ai/2026-09-19/card-adopt/task.jsonl`).
+  (`ai/sessions/2026/09/19/card-adopt/task.jsonl`).
 
 ## V3 became a two-column inbox, replacing the wall as the default (same day, later)
 

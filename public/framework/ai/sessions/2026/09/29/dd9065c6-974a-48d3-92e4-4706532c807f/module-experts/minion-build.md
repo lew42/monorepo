@@ -1,7 +1,7 @@
 # Minion brief: module experts, built and proven on the Page module
 
 Load the `minion` skill first. Task dir (read `owner-words.md` and `requirements.md` there, in full, first):
-`public/framework/ai/2026-09-29/module-experts/`. Log in that dir's `task.jsonl` as you go (`node .claude/hooks/append.mjs`).
+`public/framework/ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/`. Log in that dir's `task.jsonl` as you go (`node .claude/hooks/append.mjs`).
 
 **Work ONLY in the worktree `C:\Code\lew42\worktrees\module-experts`** (branch `worktree/module-experts`, its own site at http://localhost:62087/). Commit there by exact path. Do not merge; your mastermind does that.
 
@@ -35,7 +35,7 @@ An expert is a Claude session that has already read one module. We start it once
    3. How does a url nobody declared get resolved (route() and child())?
    4. What makes a folder with a page.js exist as a page, and why does a declared child with no page.js 404?
    5. How does `swap_link` keep a doc routed?
-   Write `public/framework/ai/2026-09-29/module-experts/proof.json` (rows: q, who, model, ms, cost, cache_read, answer) and `proof.md`: a table of question × {expert s, $, cold s, $}, then each answer pair. Judge correctness yourself against the source, one word per answer (right / partly / wrong) with a one-line reason. Include the checkpoint's one-time build cost. Also run one freshness test: touch a recorded file's content in a temp copy (or change the index's hash), confirm `fresh()` says stale, and show that `ask` rebuilds.
+   Write `public/framework/ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/proof.json` (rows: q, who, model, ms, cost, cache_read, answer) and `proof.md`: a table of question × {expert s, $, cold s, $}, then each answer pair. Judge correctness yourself against the source, one word per answer (right / partly / wrong) with a one-line reason. Include the checkpoint's one-time build cost. Also run one freshness test: touch a recorded file's content in a temp copy (or change the index's hash), confirm `fresh()` says stale, and show that `ask` rebuilds.
 5. **Docs.** `Servex/agents/doc/experts.md` (one screen: what an expert is, the recipe, the verbs, freshness, and the proof table linked). One line in `Servex/agents/readme.md`'s Files list and a short section. `core/Page/readme.md`: one line under Read next saying "This module has an expert: `ask_expert core/Page …`". Also add one line to each of `.claude/skills/mastermind/SKILL.md`, `.claude/skills/sub-mastermind/SKILL.md` and `.claude/skills/every-prompt/SKILL.md` (in the worktree): "A question about one module goes to its expert if `list_experts` has one (`ask_expert`). For several modules, spawn a mastermind with `readme_modules`."
 
 ## Rules

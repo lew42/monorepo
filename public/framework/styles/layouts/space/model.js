@@ -20,7 +20,7 @@
  *
  * ⚠ THE WEIGHTS ARE MEASURED, NOT CHOSEN — 360 rolls rated at three widths and
  *   grouped by shape, each old weight scaled by its lift cubed
- *   (`ai/2026-08-16/layout-generator-rules/hunt.md`, "Shapes, redone"). `shell` won
+ *   (`ai/sessions/2026/08/16/layout-generator-rules/hunt.md`, "Shapes, redone"). `shell` won
  *   at lift 1.14 and `deck` lost at 0.90. Cubed rather than raw, so one run of
  *   evidence moves a weight without replacing it: a 14% lift is worth about half
  *   again, not fourteen per cent.
@@ -29,7 +29,7 @@
  *   between the two runs, and two of them hit the text-poorest shapes hardest. The
  *   first thing a search finds is the scorer's bugs. Never retune off one run.
  * ⚠ A SECOND TURN OF THE CRANK PLATEAUS. These are that fit's weights, refit once
- *   more (`ai/2026-08-17/generator-compound/`): 360-row pool, same method, `bands`
+ *   more (`ai/sessions/2026/08/17/generator-compound/`): 360-row pool, same method, `bands`
  *   6→7 and `split` 4→5 rose, `column` and `rail` fell 5→4, the rest held — but the
  *   population barely moved (mean +0.4 of 0.6 SE, ceiling and p10 both +0, on a
  *   held-out seed range never used to fit: +0.08, same noise floor). Kept because

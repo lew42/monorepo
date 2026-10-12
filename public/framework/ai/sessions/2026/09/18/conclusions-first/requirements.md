@@ -15,11 +15,11 @@ demand."
 The Asks tab (`public/framework/ext/AITask/asks.js`, `rank.js`, `needs.js`,
 `ai.css`, `doc/asks.md`; the `ask` verb in `ext/JSONL/doc/task-jsonl.md`,
 merged by id). The mastermind has just stamped a `conclusion` string on 34
-landed asks in `ai/2026-09-17/mastermind-layout-browser/task.jsonl`
+landed asks in `ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl`
 (read it, read-only). Two minions landed there in the last hour (report-order:
 topic bands, folds, counts; reply-in-place: reply/mic buttons and a dictate
-box) — read their landings in `ai/2026-09-18/report-order/task.jsonl` and
-`ai/2026-09-18/reply-in-place/task.jsonl` and keep all of it working.
+box) — read their landings in `ai/sessions/2026/09/18/report-order/task.jsonl` and
+`ai/sessions/2026/09/18/reply-in-place/task.jsonl` and keep all of it working.
 
 ## Deliverables
 

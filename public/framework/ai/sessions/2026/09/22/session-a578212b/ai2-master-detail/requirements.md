@@ -2,8 +2,8 @@
 
 Minion: Opus, effort high. Session id `a578212b-b9ee-4b41-aee9-6073bdbe5cc4`. You are IN A
 WORKTREE (the launcher says where; your server's port). Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then
-`public/framework/ai2/readme.md`, `doc/`, and `ai/2026-09-22/inbox-model/task.jsonl` (the
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first, then
+`public/framework/ai2/readme.md`, `doc/`, and `ai/sessions/2026/09/22/fe4807e9-7c68-4307-b27c-c79c2f09362a/inbox-model/task.jsonl` (the
 build you are reshaping — landed 18:22, 903 lines: `page.js`, `inbox.js`, `compose.js`,
 `ai2.css`). Load `layout`, `css`, `code`, `ui-test`. You own `/framework/ai2/`.
 
@@ -107,7 +107,7 @@ Fewer lines than 903 is the goal. Landing report: five sentences and the measure
 11. **The mic shows it hears you.** Beside the composer's mic (and any card's mic): a small
     level bar that is visibly EMPTY when nothing reaches the browser, and a `⋯` beside it that
     opens the microphone picker (reuse the bench's picker/meter code from
-    `ai/2026-09-22/dictate-silence/page.js`; `ux/Dictate` already takes `deviceId`). Each
+    `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/page.js`; `ux/Dictate` already takes `deviceId`). Each
     detail page gets a mic button of its own that posts to `/log/prompts` with `re: <card id>`.
 12. **The dot means status or it goes.** The orange dot is shown only as a status: working
     (pulsing), needs-you (solid), otherwise nothing. A row shows a one-line preview of the

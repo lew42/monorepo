@@ -1,5 +1,5 @@
 // process-monitor proof: a PRIVATE Servex (port 8290, scratch SERVEX_HOME) from the worktree, real Haiku agents.
-//   node public/framework/ai/2026-09-30/process-monitor/proof.mjs <worktree>
+//   node public/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/process-monitor/proof.mjs <worktree>
 // 1. two agents, one with a task: Servex records each claude.exe's PID at spawn; Task Manager (CIM) agrees
 // 2. /api/processes puts each claude.exe under its task, and adds up ours vs. everything else
 // 3. plant a dead pipeline (tail -f | grep, its shell gone) and a live one (sleep under a live shell):

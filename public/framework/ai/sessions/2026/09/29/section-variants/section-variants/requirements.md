@@ -1,6 +1,6 @@
 # Section element + sidebar variants
 
-The owner's words, verbatim and in full: [`../../2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`](../../2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md)
+The owner's words, verbatim and in full: [`../../2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`](../../../../../../2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md)
 (card `2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va`). This task owns the parts below —
 two at first, two more added as the owner kept talking; the AI 2 rhythm and tabs parts belong to other tasks.
 

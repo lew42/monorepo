@@ -4,9 +4,9 @@
 
 The permanent home for the prime objective's other half: not just "how deep"
 but "how much of the way in is a picture." Replaces the one-off
-`ai/2026-08-16/mastermind-layout/browsable.md` — that file's numbers were
+`ai/sessions/2026/08/16/mastermind-layout/browsable.md` — that file's numbers were
 already stale the day it was written (the styled-elements gap it flagged was
-closed hours later by `ai/2026-08-16/element-pages/`), which is exactly why
+closed hours later by `ai/sessions/2026/08/16/element-pages/`), which is exactly why
 this page's numbers are **computed, not typed**.
 
 ## The shape

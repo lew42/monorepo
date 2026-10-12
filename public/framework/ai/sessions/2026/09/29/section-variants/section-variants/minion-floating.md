@@ -29,7 +29,7 @@ Worktree `C:\Code\lew42\worktrees\section-variants` ONLY (server `http://localho
   it with no other change. Nothing else under ai2/.
 - `public/framework/core/Page/layout/page.js`: only the table row that says "not built yet".
 - `public/framework/core/Sidebar/variants/walkthrough/page.js` and new shots in
-  `public/framework/ai/2026-09-28/section-variants/walkthrough/shots/`.
+  `public/framework/ai/sessions/2026/09/29/section-variants/section-variants/walkthrough/shots/`.
 Never `task.jsonl`, never framework.css or any shared stylesheet.
 
 ## Deliverables

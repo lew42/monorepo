@@ -2,7 +2,7 @@
 // this FOLLOWS the load instructions — it starts at the minion skill, reads what that skill
 // tells a minion to load before its first edit, and sums only those files.
 //
-//   node public/framework/ai/2026-09-22/skills-shrink-2/load-count.mjs
+//   node public/framework/ai/sessions/2026/09/22/913629f4-bebf-4ca2-95b0-d43d2cbdd3d6/skills-shrink-2/load-count.mjs
 //
 // It also parses every frontmatter block it touches, so a skill that stopped being a skill
 // (no `name:`, no `description:`) fails here rather than silently at spawn time.

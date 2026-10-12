@@ -56,10 +56,10 @@ Two Playwright contexts, one Durable Object: alice sends, bob's DOM shows it ins
 — asserted, not eyeballed. Eve (seeded banned) never gets past connect. An anonymous context
 reads the same transcript with no way to post.
 
-![alice's tab, after sending](/framework/ai/2026-09-04/local-dev-harness/room-test-alice.png)
-![bob's tab, a moment later — the same message, arrived](/framework/ai/2026-09-04/local-dev-harness/room-test-bob.png)
+![alice's tab, after sending](/framework/ai/sessions/2026/09/04/local-dev-harness/room-test-alice.png)
+![bob's tab, a moment later — the same message, arrived](/framework/ai/sessions/2026/09/04/local-dev-harness/room-test-bob.png)
 
-Full script, output and both screenshots: [the task log](/framework/ai/2026-09-04/local-dev-harness/).
+Full script, output and both screenshots: [the task log](/framework/ai/sessions/2026/09/04/local-dev-harness/).
 
 ## The three assumptions — tested before anything was built on them
 

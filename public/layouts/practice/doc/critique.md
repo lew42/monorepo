@@ -7,7 +7,7 @@ swept the walls **every 80px from 400 to 3440**, and looked at every screenshot.
 
 It found eleven things. Ten are fixed; one was judged and kept. Every number below was read
 back off the live pages by headless Chromium, and the full log is
-[`ai/2026-09-17/practice-critic/`](/framework/ai/2026-09-17/practice-critic/).
+[`ai/sessions/2026/09/17/practice-critic/`](/framework/ai/sessions/2026/09/17/practice-critic/).
 
 **The eight checks were not wrong.** They still pass, before and after — re-derived
 independently on the Workbench at 1280, the two numbers agree. They are simply eight checks a

@@ -1,11 +1,11 @@
 import { Page, p, h2, h3, div, small, ol, li, ui } from "/app.js";
-import { fold, parse } from "/framework/ai/2026-09-22/log-model/fold.js";
+import { fold, parse } from "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js";
 
 /* FROM WHAT YOU SAID TO WHAT GOT BUILT — the five stages of a prompt, drawn from the
  * real sample log so the citations resolve live rather than being described.
  * Parent: ../page.js. */
 
-const SAMPLE = "/framework/ai/2026-09-22/log-model/sample.jsonl";
+const SAMPLE = "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/sample.jsonl";
 
 const STAGES = [
 	["1. raw", "prompt", "Your words, verbatim, timestamped, never tidied. Split into sentences once when the line is written, and frozen there."],

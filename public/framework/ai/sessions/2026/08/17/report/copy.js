@@ -3,7 +3,7 @@
 
 export const NEEDS = [
 	["Rank the 18 shots — five minutes",
-		"[**Open the duel**](/framework/ai/2026-08-17/human-ranking/rank/) — two screenshots, click the better one, 59 times. "
+		"[**Open the duel**](/framework/ai/sessions/2026/08/17/human-ranking/rank/) — two screenshots, click the better one, 59 times. "
 		+ "**No tier is ground truth.** The Opus baseline does not reproduce itself (ρ **+0.507** against its own blind second pass, ICC **0.510**), "
 		+ "and Sonnet reproduces better (**0.711**) than the reference does. Your order is the only thing that can anchor any of them."],
 	["`frame-gap` is measuring your sidebar on 87 pages",
@@ -16,10 +16,10 @@ export const NEEDS = [
 		+ "Yours to overrule."],
 	["`session_id` is in 87 published log files",
 		"In plain text, in `task.jsonl`, served by `express.static` and deployed as static assets. The `/ai-logs/` route that read them is now loopback-guarded "
-		+ "([ai-logs-guard](/framework/ai/2026-08-17/ai-logs-guard/)); the files themselves are still readable by anyone with the url."],
+		+ "([ai-logs-guard](/framework/ai/sessions/2026/08/17/ai-logs-guard/)); the files themselves are still readable by anyone with the url."],
 	["`SubagentStop` is not registered",
 		"So worker agents have **never** had the unfinished-ledger gate — a cost that was reported to you as real and was not. "
-		+ "The machinery supports it correctly now ([ledger-attribution](/framework/ai/2026-08-17/ledger-attribution/)); turning it on changes every session, so it is yours."],
+		+ "The machinery supports it correctly now ([ledger-attribution](/framework/ai/sessions/2026/08/17/ledger-attribution/)); turning it on changes every session, so it is yours."],
 ];
 
 export const WEAK = [
@@ -34,7 +34,7 @@ export const WEAK = [
 ];
 
 export const REST = [
-	["The vision record", "[Every screenshot and how the AI responded](/framework/ai/2026-08-17/vision-browse/) — all 18 scored shots, each beside its five axis scores and the full sentence behind every one. Two caveats sit above the list rather than buried: only **contrast** and **density** beat a best-constant control, and **18 of ~169** of today's screenshots were scored at all."],
+	["The vision record", "[Every screenshot and how the AI responded](/framework/ai/sessions/2026/08/17/vision-browse/) — all 18 scored shots, each beside its five axis scores and the full sentence behind every one. Two caveats sit above the list rather than buried: only **contrast** and **density** beat a best-constant control, and **18 of ~169** of today's screenshots were scored at all."],
 	["Renames, both atomic", "`ext/LayoutTool` → [`ext/DesignTool`](/framework/ext/DesignTool/) (98 files, 7 real external imports, 61 emitted classes identical before and after) and `ext/doc` → [`ext/Doc`](/framework/ext/Doc/) (144 references). 938 files re-scanned for case: **zero miscased**, so LAW#2 holds on case-sensitive hosting."],
 	["Mobile", "[`/framework/ai/`](/framework/ai/) at 390 went **48/F → 84/B** — a `1fr` track that should have been `minmax(0, 1fr)` overflowed 15 of 107 cards by 36% of their own width. The 336px tab-bar band was a class-name collision, not a tabs flaw."],
 	["Portfolio", "[`/fly/`](/fly/) — the three.js flight sim ported standalone, linked from the home page's sidebar and card wall."],

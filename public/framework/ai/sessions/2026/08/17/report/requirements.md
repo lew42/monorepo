@@ -14,7 +14,7 @@ visible is not a result.
 ## Where the material is
 
 Every task under `public/framework/ai/2026-08-17/` has a `task.jsonl` with its own
-findings, plus `ai/2026-08-16/mastermind-layout/task.jsonl` which is the run log
+findings, plus `ai/sessions/2026/08/16/mastermind-layout/task.jsonl` which is the run log
 tying them together. **Read the logs; do not re-derive anything.**
 
 ⚠ **Screenshots are already logged and the route is live.** Tasks recorded shot
@@ -49,7 +49,7 @@ Use your own judgement on the order — that list is evidence, not a script.
 
 Put it **near the top, unmissable**, and keep it to what genuinely needs him:
 
-1. **[Rank the 18 shots](/framework/ai/2026-08-17/human-ranking/rank/)** — five
+1. **[Rank the 18 shots](/framework/ai/sessions/2026/08/17/human-ranking/rank/)** — five
    minutes, and it is the only thing that can anchor any scoring tier.
 2. **`frame-gap` measures the sidebar on 87 pages** — 94 of 141 pages take their
    10th percentile from outside the content region, 87 from `div.sidebar` at
@@ -86,7 +86,7 @@ clickable url** and confirm you reached it by navigation.
 
 ## Files you own
 
-- `public/framework/ai/2026-08-17/report/**` — your page.
+- `public/framework/ai/sessions/2026/08/17/report/**` — your page.
 - The **one** parent file needed to declare it (`ai/2026-08-17/page.js` or
   `ai/page.js`) — minimal edit, and say what you changed.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —

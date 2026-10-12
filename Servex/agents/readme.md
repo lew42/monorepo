@@ -201,13 +201,13 @@ child's last words, first 300 chars>`, `blocked: …` (its last words started wi
 `error: …`, wrapped `{from: <child id>, reply_to: "log agent-<parent>"}` and queued behind
 whatever the parent is doing — never lost, never left for anyone to poll. Off with
 `SERVEX_DISABLE_WAKE=1` or `{ no_wake: true }` on the host, which is how
-[`sub-mastermind-live`](/framework/ai/2026-09-22/sub-mastermind-live/) reproduced the old parking
+[`sub-mastermind-live`](/framework/ai/sessions/2026/09/22/5e24b511-b6bd-4c40-96d6-0666f656ce6d/sub-mastermind-live/) reproduced the old parking
 bug before proving the fix.
 
 ## Roles and the registry
 
 `spawn_agent({role})` looks `role` up in [`roles.js`](./roles.js) — every row is on
-[the roles page](/framework/ai/2026-09-22/tiers-design/doc/roles.md), reconciled 2026-09-29 with
+[the roles page](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md), reconciled 2026-09-29 with
 the per-voice-session pair (`session-fast`, `session-smart`) and the directory mastermind
 (`directory-mastermind`, built: [`doc/directory.md`](./doc/directory.md)); "manager" and "master assistant" are retired words there now — for the skill it loads
 before the agent's first turn (`minion` → the `minion` skill, and so on) and the
@@ -283,9 +283,9 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 `doc/traps.md` (what the SDK does not tell you) · `doc/jobs.md` · `doc/names.md`
 
 How agents should work together (the design, with a picture):
-[/framework/ai/2026-09-24/concurrency/](/framework/ai/2026-09-24/concurrency/).
+[/framework/ai/sessions/2026/09/24/concurrency/concurrency/](/framework/ai/sessions/2026/09/24/concurrency/concurrency/).
 
 ## Tools are node functions, not HTTP
 
 An agent Servex spawns gets its tools over HTTP: `Agents.door()` points it at the loopback `/mcp` (`?as=<id>`, served by `Servex/MCP.js`); in-process `tool()` servers are only for hosts with no HTTP door (tests). How it learns its own page: [`doc/own-page.md`](./doc/own-page.md).
-Why, and what moves to tools first: [`tiers-design/doc/tools.md`](/framework/ai/2026-09-22/tiers-design/doc/tools.md).
+Why, and what moves to tools first: [`tiers-design/doc/tools.md`](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/tools.md).

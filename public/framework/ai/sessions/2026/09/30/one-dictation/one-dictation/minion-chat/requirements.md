@@ -1,6 +1,6 @@
 # Minion brief: one chat module, and the vanishing-messages bug
 
-Load the `minion` skill first, then `code`. Your parent is **task-mastermind-one-dictation**; its task dir is `public/framework/ai/2026-09-30/one-dictation/` (read its `requirements.md`, and the owner's words in `../audio-consolidate/owner-words.md` from "hamburger menu" on).
+Load the `minion` skill first, then `code`. Your parent is **task-mastermind-one-dictation**; its task dir is `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/` (read its `requirements.md`, and the owner's words in `../audio-consolidate/owner-words.md` from "hamburger menu" on).
 
 ## The owner's words (2026-09-30)
 "I don't want two user interfaces. I don't want two systems… we want to have one set of code… one system that works the same everywhere, whether it's the mobile rail or the right sidebar here."

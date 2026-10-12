@@ -1,6 +1,6 @@
 # Minion: the asks ledger's Servex side
 
-Load the `minion` skill first, then `code`. Parent: task-mastermind-asks-ledger. Parent brief (read it whole, it has the owner's words): `public/framework/ai/2026-09-30/asks-ledger/requirements.md`, deliverables 1 and 2. Decisions already made are in `public/framework/ai/2026-09-30/asks-ledger/task.jsonl`.
+Load the `minion` skill first, then `code`. Parent: task-mastermind-asks-ledger. Parent brief (read it whole, it has the owner's words): `public/framework/ai/sessions/2026/09/30/asks-ledger/asks-ledger/requirements.md`, deliverables 1 and 2. Decisions already made are in `public/framework/ai/sessions/2026/09/30/asks-ledger/asks-ledger/task.jsonl`.
 
 The owner (2026-09-30): "a lot of tasks are getting kind of left in limbo." Every owner ask is routed to an agent and written as one line in `public/framework/ai/asks.jsonl`. When that agent stops or goes quiet, nobody notices. You build the part of Servex that notices.
 

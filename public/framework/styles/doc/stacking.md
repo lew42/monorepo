@@ -3,7 +3,7 @@
 Live, measured, both modes: [`/framework/styles/stacks/`](/framework/styles/stacks/).
 
 **Adopted 2026-08-30.** The ladder is in `framework.css` `:root`; the site is on it. See
-[the flip](/framework/ai/2026-08-30/alpha-flip/) for what moved and what deliberately
+[the flip](/framework/ai/sessions/2026/08/30/alpha-flip/) for what moved and what deliberately
 did not.
 
 ## The rules

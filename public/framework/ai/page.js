@@ -253,7 +253,7 @@ function concept_page(parent, c){
 					"| One task: ask, plan, log, landing | `ai/<date>/<slug>/task.jsonl` |",
 					"| Site-wide feeds and indexes | `ai/log.jsonl`, `day.jsonl`, `board.jsonl`, `cards.jsonl`, `chat.jsonl`, `asks.jsonl` … |",
 				].join("\n"));
-				md("**Proposed, not built:** `promote(parent, id)` turns a virtual page into a real one. The thread moves into its own folder, and a `moved` line keeps the old url working. The whole case: [the proposal, §7](/framework/ai/2026-09-30/servex-mastermind/merge-approval-proposal.md).");
+				md("**Proposed, not built:** `promote(parent, id)` turns a virtual page into a real one. The thread moves into its own folder, and a `moved` line keeps the old url working. The whole case: [the proposal, §7](/framework/ai/sessions/2026/09/30/servex-mastermind/merge-approval-proposal.md).");
 			}
 			if (c.slug === "readmes"){
 				AIOverview.heading("The chain, live", "What a fresh agent in `public/framework/ai/` is handed, root first.");

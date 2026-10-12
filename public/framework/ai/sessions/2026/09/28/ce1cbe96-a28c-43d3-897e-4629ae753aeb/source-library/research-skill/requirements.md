@@ -1,7 +1,7 @@
 # The research skill: one rule for where a lesson lives
 
 Load the `minion` skill first. Your parent task (read it, and its links, before touching
-anything): `public/framework/ai/2026-09-28/source-library/requirements.md` — piece 3 of that
+anything): `public/framework/ai/sessions/2026/09/28/ce1cbe96-a28c-43d3-897e-4629ae753aeb/source-library/requirements.md` — piece 3 of that
 brief is yours. Background: `.../agent-work-on-every-page-sanity-checks-c/design.md` — the
 `Lesson` row of the "Added" table: *"filed in the `doc/` of the module it is about, citing
 its sources."*

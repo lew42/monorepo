@@ -5,7 +5,7 @@ Load the `minion` skill first, then `code`.
 **Work only in the worktree:** `C:\Code\lew42\worktrees\ui-system` (branch
 `worktree/ui-system`). Server: http://ui-system.localhost/. Never edit the main tree,
 except your own log under
-`public/framework/ai/2026-09-30/ui-system/system/ui-ux-land/` in the MAIN tree.
+`public/framework/ai/sessions/2026/09/30/ui-system/system/ui-ux-land/` in the MAIN tree.
 
 ## Background
 
@@ -54,7 +54,7 @@ own fence.
 
 `node Server/layout-check.mjs http://ui-system.localhost/framework/ui/
 http://ui-system.localhost/framework/ux/ --widths 400,1200,1920,3440 --bands --out
-public/framework/ai/2026-09-30/ui-system/system/ui-ux-land/shots` (from the MAIN tree;
+public/framework/ai/sessions/2026/09/30/ui-system/system/ui-ux-land/shots` (from the MAIN tree;
 `MSYS_NO_PATHCONV=1` prefix in Git Bash). Read every shot, top to bottom. Also check
 zero console errors on `/framework/ui/card/`, `/framework/ux/Tree/`,
 `/framework/ux/doc/system/`, `/framework/ux/doc/decisions/`.

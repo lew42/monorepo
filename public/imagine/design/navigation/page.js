@@ -39,7 +39,7 @@ export default new Page({
 
 		new DnStudy();
 
-		md("**The rule, in one sentence.** A column that is already open never changes width when a column opens to its right; the new column takes what is left over, and when there is no leftover the row scrolls sideways — the Finder way — instead of squeezing what is open. The exact CSS, and what it would replace in `core/Page/Page.css`, is in [the proposal](/framework/ai/2026-09-17/nav-stability/).");
+		md("**The rule, in one sentence.** A column that is already open never changes width when a column opens to its right; the new column takes what is left over, and when there is no leftover the row scrolls sideways — the Finder way — instead of squeezing what is open. The exact CSS, and what it would replace in `core/Page/Page.css`, is in [the proposal](/framework/ai/sessions/2026/09/17/nav-stability/).");
 
 		md("On four real pages the worst click moved an open column **242px** sideways, changed its width by **181px** and dropped a nav link **170px** down the page — all at 1280. At 400 nothing moves at all: core already pages the row one column at a time and the crumb strip above it holds its place to the pixel. Every number is in **Numbers**, below.");
 

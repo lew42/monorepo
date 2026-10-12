@@ -26,7 +26,7 @@ try {
 	const up = await until(async () => (await get("/api/whisper"))?.status === "online" && await get("/api/whisper"), 90000);
 	say("first: " + JSON.stringify(up));
 	// Whisper -> raw: time a recorded clip through whisper, then the words through /api/voice onto a session page.
-	const clip = path.join(REPO, "public/framework/ai/2026-09-22/whisper-servex/clip.wav");
+	const clip = path.join(REPO, "public/framework/ai/sessions/2026/09/22/whisper-servex/whisper-servex/clip.wav");
 	for (let i = 1; i <= 2; i++){
 		const form = new FormData(); form.append("file", new Blob([fs.readFileSync(clip)]), "clip.wav"); form.append("response_format", "json");
 		const tw = Date.now(); const heard = (await (await fetch("http://127.0.0.1:8187/inference", { method: "POST", body: form })).json()).text ?? "";

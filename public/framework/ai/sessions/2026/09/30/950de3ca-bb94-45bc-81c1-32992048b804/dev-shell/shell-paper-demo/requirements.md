@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `page`, `css`.
 
-**Context:** `core/Shell` now has `paper: true` (commit `5f437959` in the worktree): a nine-grid with the white paper in the middle and a gray well around it. The design is `public/framework/ai/2026-09-30/dev-shell/design-2.md`. The demo built for it does not show the idea. See `public/framework/ai/2026-09-30/dev-shell/shell-paper/after-shell-1920.png`.
+**Context:** `core/Shell` now has `paper: true` (commit `5f437959` in the worktree): a nine-grid with the white paper in the middle and a gray well around it. The design is `public/framework/ai/sessions/2026/09/30/950de3ca-bb94-45bc-81c1-32992048b804/dev-shell/design-2.md`. The demo built for it does not show the idea. See `public/framework/ai/sessions/2026/09/30/950de3ca-bb94-45bc-81c1-32992048b804/dev-shell/shell-paper/after-shell-1920.png`.
 
 **Work ONLY in the worktree** `C:\Code\lew42\worktrees\dev-shell` (branch `worktree/dev-shell`). Its server: http://localhost:54678/. If it doesn't answer, start it by hand with `node Server/index.js` and `PORT=54678` from the worktree, with `windowsHide: true`. Commit by exact path. Headless Playwright only (global: `file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs`).
 

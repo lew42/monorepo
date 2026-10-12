@@ -23,7 +23,7 @@ The full prompt: `../mastermind-layout-browser/requirements.md`.
 
 ## Rules
 
-- Load `code`, `layout`, `css` (framework.css's layers: theme tokens live in `theme`); `new-task` before the first edit (your dir exists: `ai/2026-09-17/color-lighten-darken/`; write its `task.jsonl` launch line); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
+- Load `code`, `layout`, `css` (framework.css's layers: theme tokens live in `theme`); `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/color-lighten-darken/`; write its `task.jsonl` launch line); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you.
 - **Fence:** `public/imagine/design/color/**`, the ONE theme token file you name, one new section in `.claude/skills/layout/SKILL.md`, your task dir. Nothing else.
 - **Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`.** The owner's server (port 80) is NOT running; start your own: `PORT=8093 node server.js` from the repo root, in the background; kill it when you land. `ui-test` has the headless recipe; shots at 400 / 1280 / 3440 into your task dir as jpeg. A hidden tab does not lay out.
 - Under the `/imagine/` columns host there is no page grid: `wide` is meaningless, only `bleed` reaches the edge, and column prose has a measure (layout skill Q1). The grid is a wall: `.grid.auto` with a real `--column`.

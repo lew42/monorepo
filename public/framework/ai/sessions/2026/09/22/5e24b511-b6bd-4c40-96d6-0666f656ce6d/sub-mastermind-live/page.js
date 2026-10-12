@@ -72,6 +72,6 @@ export default new Page({
 		p("The first attempt at run 1 failed before it proved anything: a task mastermind's whole job is calling ", code("spawn_agent"), "/", code("send_to_agent"), "/", code("list_agents"), ", and its role defaulted to ", code("acceptEdits"), " — which pre-approves file edits, not tool calls, and nobody was there to click “allow” on a non-interactive session. Fixed in ", code("roles.js"), ": the ", code("task-mastermind"), " role now defaults to ", code("bypassPermissions"), ".");
 
 		p.c("h3", "The detail, one click down");
-		p(code("Servex/agents/Agents.js"), " has ", code("wake_parent()"), " and the call site in ", code("Agent.emit()"), ". ", code("Servex/agents/readme.md"), " has the five-line version. ", code("Servex/agents/roles.js"), " has the permission fix. The full run, second by second, with every cost and every log line: ", a("this task's log").href("/framework/ai/2026-09-22/sub-mastermind-live/"), ".");
+		p(code("Servex/agents/Agents.js"), " has ", code("wake_parent()"), " and the call site in ", code("Agent.emit()"), ". ", code("Servex/agents/readme.md"), " has the five-line version. ", code("Servex/agents/roles.js"), " has the permission fix. The full run, second by second, with every cost and every log line: ", a("this task's log").href("/framework/ai/sessions/2026/09/22/5e24b511-b6bd-4c40-96d6-0666f656ce6d/sub-mastermind-live/"), ".");
 	},
 });

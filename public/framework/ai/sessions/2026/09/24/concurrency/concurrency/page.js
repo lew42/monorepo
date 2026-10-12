@@ -1,7 +1,7 @@
 import { Page, md, div, p, span, b, a } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-24/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/24/'s board — the ordinary
                 page grid. The rule sits in main at --measure; the picture, the
                 topic wall and the folds claim wide.
    2 SIZE       the picture is capped at 60em and left-aligned on the prose axis

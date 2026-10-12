@@ -158,7 +158,7 @@ export default class PageMarkdown extends Page {
 	// ════ THE FALLBACK — the dev server's directory.json, the whole site in one file ══
 	// `priority: "low"` — this file is big (public/directory.json is ~4MB); a page's own
 	// small requests should win the browser's limited connections when both are in
-	// flight (ai/2026-09-29/slow-card-fix/ has the reasoning and the measurement).
+	// flight (ai/sessions/2026/09/29/slow-card-fix/slow-card-fix/ has the reasoning and the measurement).
 	static tree(){ return PageMarkdown.reading ??= Page.read_json("/directory.json", { priority: "low" }); }
 
 	static async node(dir){

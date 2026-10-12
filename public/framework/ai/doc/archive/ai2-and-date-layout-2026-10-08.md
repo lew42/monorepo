@@ -2,7 +2,7 @@
 
 Recorded from dictation. **Facts found by looking:**
 - `framework/ai2/` is a separate module (the "AI 2" dashboard: `card.js`, `rail.js`, chat, compose, agents…). **Correction (checked after writing the first version):** it has **no card data tree of its own**: `ai2/2026/10/08/` does not exist on disk; the card at `/framework/ai2/2026/10/08/task-audit-what-was-asked-and-never-fini/` lives in `ai/2026/10/08/` and the `ai2` URL is another way to view it (find the route/alias that makes `/framework/ai2/<date-path>/` resolve). So the question is not two data stores but **two URL spaces and two UIs (AI 1 and AI 2) over the same data**, plus the unfinished merge.
-- The plan itself is under `ai/2026-10-08/task-audit/` (hyphen layout); the card folder name was cut by the slug length (`…never-fini`).
+- The plan itself is under `ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/` (hyphen layout); the card folder name was cut by the slug length (`…never-fini`).
 - `ai/` has **46 hyphen-dated directories** (`2026-10-08/`) plus the year tree (`ai/2026/10/08/`, 393 entries). Git has **141 `worktree/*` branches**, 11 of them `worktree/ai2-*` (zombie candidates).
 
 **Owner's decisions / directives**
@@ -16,4 +16,4 @@ Owner of the investigation: `2026-10-08/ai-system-docs` (AI system overview must
 
 ## Update 2026-10-09: the merge happened
 
-One script ([migrate.mjs](/framework/ai/2026-10-09/ai2-merge/migrate.mjs)) moved the live AI 2 code to [ai/cards](/framework/ai/cards/) and [ai/rail](/framework/ai/rail/), the docs to [doc/ai2/](doc/ai2/history.md), and old page logs to [archive/ai2](archive/ai2/readme.md). The old `ai2/*.js` paths are one-line re-export shims, and `/framework/ai2/...` still routes through `ai2/page.js`. Every move is in [manifest.json](/framework/ai/2026-10-09/ai2-merge/manifest.json) (`node migrate.mjs --revert` undoes it); the file-by-file facts are in [inventory.md](/framework/ai/2026-10-09/ai2-merge/inventory.md). Not done: the date-layout and zombie-branch parts of the decisions above.
+One script ([migrate.mjs](/framework/ai/sessions/2026/10/09/session-6784f3f5/ai2-merge/migrate.mjs)) moved the live AI 2 code to [ai/cards](/framework/ai/cards/) and [ai/rail](/framework/ai/rail/), the docs to [doc/ai2/](doc/ai2/history.md), and old page logs to [archive/ai2](archive/ai2/readme.md). The old `ai2/*.js` paths are one-line re-export shims, and `/framework/ai2/...` still routes through `ai2/page.js`. Every move is in [manifest.json](/framework/ai/sessions/2026/10/09/session-6784f3f5/ai2-merge/manifest.json) (`node migrate.mjs --revert` undoes it); the file-by-file facts are in [inventory.md](/framework/ai/sessions/2026/10/09/session-6784f3f5/ai2-merge/inventory.md). Not done: the date-layout and zombie-branch parts of the decisions above.

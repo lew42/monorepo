@@ -26,7 +26,7 @@ Cap the depth. Explore caveats one level deep, not every permutation. Past that 
 - the `decide` skill and `Server/decide.mjs` (which writes decisions step by step);
 - `ux/Content/Decision` (the Decision card UI);
 - `core/Page/weight` and `rank()` (proposal-flow);
-- the multi-model rating from [openrouter-harness](/framework/ai/2026-09-30/openrouter-harness/) phase 2, item 5.
+- the multi-model rating from [openrouter-harness](/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/) phase 2, item 5.
 
 ## Deliverables
 - The documented path above, as content cards the owner can read, simply named, with structure and drill-down.

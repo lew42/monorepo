@@ -1,6 +1,6 @@
 # Wave 1 — two minions. Read `minion.md` first; it is most of your brief.
 
-Everything in `public/framework/ai/2026-08-18/figma/minion.md` applies to you: the cheapest Figma
+Everything in `public/framework/ai/sessions/2026/08/18/figma/minion.md` applies to you: the cheapest Figma
 sequence, the vocabulary **and its negative list**, the check-the-28-existing-layouts rule, the
 fences, the skills, the `scrollWidth === clientWidth` probe. Read it, and `requirements.md`, before
 anything else. Do not re-derive what the pilot already priced.
@@ -56,5 +56,5 @@ Home: `public/framework/styles/layouts/anatomy/` (new dir + one word in `BANDS`)
   if you find the other's line already there, leave it alone and add yours.
 - Questions → `figma/questions.md` (append; do not rewrite it, another agent's answers are in there)
   **and** your final report. Assume, state the assumption, keep going. The owner is asleep.
-- Log to your own task dir under `ai/2026-08-18/figma/`, `date -Iseconds` timestamps, absolute paths.
+- Log to your own task dir under `ai/sessions/2026/08/18/figma/`, `date -Iseconds` timestamps, absolute paths.
 - **Report your token spend.** The mastermind sizes wave 2 from it.

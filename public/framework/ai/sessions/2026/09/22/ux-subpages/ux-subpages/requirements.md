@@ -2,7 +2,7 @@
 
 Minion: Sonnet, effort high. Session id `947b9616-1246-49ce-bdbd-3406e643845a`. You are IN A
 WORKTREE (the launcher says where; your server's port). Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first. Load `layout`, `css`,
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first. Load `layout`, `css`,
 `code`, `new-page`. `padding-law` is fixing the sitewide zero-gutter cause at the same time —
 do not fix that here; do fix the card spacing.
 
@@ -23,9 +23,9 @@ do not fix that here; do fix the card spacing.
 Dictate Popover"` (ten modules, each a dir with its own `page.js`), but the page draws them as
 tabs on one screen. The rail already expands `Styles` into sub-pages (`/framework/styles/`,
 `core/Page` routing, `ext/catalog`) — copy that shape. Cards: `ext/catalog/catalog.css`, the
-card word (`ai/2026-09-19/card-word/`), the size standard (`styles/system`: `--size`, pad/gap
+card word (`ai/sessions/2026/09/19/card-word/`), the size standard (`styles/system`: `--size`, pad/gap
 rungs). The flag/verdict route: `Server/plugins/CardAnswer.js` writes `ai/verdicts.jsonl`
-(`improve` with a sentence; `ai/2026-09-19/card-replies/`).
+(`improve` with a sentence; `ai/sessions/2026/09/19/card-replies/`).
 
 ## Deliverables
 

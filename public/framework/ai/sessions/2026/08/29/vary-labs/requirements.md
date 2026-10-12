@@ -27,7 +27,7 @@ ending in a one-line verdict:
 FENCE — `public/imagine/vary/**` only.
 
 Prior art (read, don't modify): `core/Page/overview/columns/examples/` (looks/, grids/).
-Spec docs read before the first edit: `public/framework/ai/2026-08-29/imagine-program/requirements.md`
+Spec docs read before the first edit: `public/framework/ai/sessions/2026/08/29/imagine-program/requirements.md`
 (the owner's full mastermind-run ask, S-vary is this task's slice) and `core/Page/doc/columns.md`.
 
 VERIFY headless at 400/1920/3440: every variation renders, the carousel cycles (screenshot

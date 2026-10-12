@@ -87,7 +87,7 @@ passed it (that only proves a file parses), the supervisor killed the healthy
 child and started the broken one, and when the fix arrived `restart()` waited
 forever for an `exit` event from a child that was already dead — it never
 came back on its own. Full incident:
-[`public/framework/ai/2026-09-19/incident-site-down/`](/framework/ai/2026-09-19/incident-site-down/).
+[`public/framework/ai/sessions/2026/09/19/incident-site-down/`](/framework/ai/sessions/2026/09/19/incident-site-down/).
 
 **The fix, in `server.js`.** On a real change, before the live child is ever
 touched, the supervisor forks a CANDIDATE on a spare port it asks the OS for,
@@ -155,7 +155,7 @@ and never dipped:
 | (g) cold start into a broken scratch module | stays up, the "did not boot" line logs exactly once (not spamming); boots ~1-1.1s after the fix lands |
 | (h) Ctrl+C mid-boot-test | zero node processes left — proved with a *real* Windows console Ctrl+C event (`GenerateConsoleCtrlEvent`), because `child.kill("SIGINT")` sent from a separate Node process does **not** invoke a target's `process.on("SIGINT")` handler on Windows — it just force-terminates it, confirmed on a bare test child before trusting any result from it |
 
-`public/framework/ai/2026-09-19/server-boot-test/` has the task log and the
+`public/framework/ai/sessions/2026/09/19/server-boot-test/` has the task log and the
 scratch harness. ⚠ **Saving `server.js` does not change a supervisor already
 running** — the owner's and the mastermind's each keep their own in-memory
 copy of this file until restarted by hand (a `Server/` save still restarts
@@ -173,7 +173,7 @@ its queue on every pass: a path inside some live holder's fence stays queued, ev
 goes out immediately. It used to be `if (held) return;`, one switch for the whole checkout —
 so a minion's batch stopped the OWNER's own save from reloading the owner's own tab. The glob
 rules live once, in `hold.mjs`'s `matches()`;
-[`reload-rethink`](/framework/ai/2026-09-22/reload-rethink/) has the proof.
+[`reload-rethink`](/framework/ai/sessions/2026/09/22/f875ec48-d91a-4890-b15f-db197b55aa13/reload-rethink/) has the proof.
 
 Its lock is one file OUTSIDE `public/`, so this supervisor's own
 watcher never sees it; `LiveReload` polls it every 500ms instead (a hold also expires on a timer
@@ -188,14 +188,14 @@ sockets` throws `TypeError: … is not iterable` and crashes the child — on 20
 the mastermind's own supervised `:8123` down while a hold happened to be on disk at boot.
 `node --check` never catches this class of bug (it only proves the file parses); the fix and the
 proof (three fresh private-port boots — no hold, a live hold, an expired hold — each reaching
-exactly one "Server listening" line) are in `ai/2026-09-19/reload-hold/`.
+exactly one "Server listening" line) are in `ai/sessions/2026/09/19/reload-hold/`.
 
 **The expiry above is deliberate, but it used to be silent.** An agent that took a hold, stepped
 away, and came back believed it was still protected — the hold had lapsed with nothing to say so,
 and a real write once went out unheld. `../../.claude/hooks/hold-guard.mjs` fixes the silence, not
 the expiry: on an agent's own next write, it notices a hold that agent took has since lapsed and
 renews it, printing one line so the agent knows. Story and proof:
-[`/framework/ai/2026-09-19/hold-guard/`](/framework/ai/2026-09-19/hold-guard/).
+[`/framework/ai/sessions/2026/09/19/hold-guard/`](/framework/ai/sessions/2026/09/19/hold-guard/).
 
 ## A restart only fires for a file the live child actually loads (2026-10-01)
 
@@ -214,7 +214,7 @@ not a real parser, so it can over-include (a prose code sample that happens to l
 `import` line) but never under-include a real one — the safe direction for "should this restart."
 Recomputed fresh on every change, so teaching `run.js` to import a new plugin takes effect on the
 very next edit to that plugin. Proof and the owner's words behind it:
-[`/framework/ai/2026-10-01/page-holds/`](/framework/ai/2026-10-01/page-holds/).
+[`/framework/ai/sessions/2026/10/01/page-holds/page-holds/`](/framework/ai/sessions/2026/10/01/page-holds/page-holds/).
 
 ## The page holds through the gap — it never goes white (2026-10-01)
 
@@ -228,11 +228,11 @@ instant the socket reopens. It is purely a notice: it never reloads or blocks an
 never shows on a tab's very first connect attempt (only after the tab has connected at least
 once). Proved headless: editing `Server/run.js` on a live tab shows the strip, the page's own
 content (even a running clock widget) never resets, and the strip clears on reconnect —
-screenshots at [`/framework/ai/2026-10-01/page-holds/`](/framework/ai/2026-10-01/page-holds/).
+screenshots at [`/framework/ai/sessions/2026/10/01/page-holds/page-holds/`](/framework/ai/sessions/2026/10/01/page-holds/page-holds/).
 
 ## Moved from CLAUDE.md (2026-10-12)
 
-These sentences were cut from the root `CLAUDE.md` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in `CLAUDE.md` at `87afbdd55`. The map is `public/framework/ai/2026-10-12/claude-md-consolidate/manifest.md`.
+These sentences were cut from the root `CLAUDE.md` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in `CLAUDE.md` at `87afbdd55`. The map is `public/framework/ai/sessions/2026/10/12/session-3b391f22/claude-md-consolidate/manifest.md`.
 
 <!-- claude-md:L104 -->
 **(The site is live while you edit it (the owner, 2026-09-19))** — L104.3

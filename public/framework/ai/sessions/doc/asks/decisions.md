@@ -4,7 +4,7 @@
 
 The owner's own words (dictated): "Is it possible to add the VS Code sidebar sessions... if
 we're not logging them to the same system... we should be... use hooks." Full brief:
-[`/framework/ai/2026-10-04/vscode-session-cost/requirements.md`](/framework/ai/2026-10-04/vscode-session-cost/requirements.md).
+[`/framework/ai/sessions/2026/10/04/vscode-session-cost/vscode-session-cost/requirements.md`](/framework/ai/sessions/2026/10/04/vscode-session-cost/vscode-session-cost/requirements.md).
 
 **Item 1 (hooks, no timer) was already landed** by the same-day `token-accounting` task below —
 `.claude/settings.json`'s `Stop` hook already runs `node public/framework/ai/AISession/AISessionAudit.mjs --append-stdin`
@@ -59,7 +59,7 @@ The owner's own words (dictated): "make sure we're not making an accounting mist
 real time to wherever the source of truth is... everything else reads one source of truth... keep
 track of these tokens very precisely in terms of their cache costs... a breakdown on a session or
 an agent... grouped by role, maybe even per prompt type." Full brief:
-[`/framework/ai/2026-10-04/token-accounting/requirements.md`](/framework/ai/2026-10-04/token-accounting/requirements.md).
+[`/framework/ai/sessions/2026/10/04/token-accounting/token-accounting/requirements.md`](/framework/ai/sessions/2026/10/04/token-accounting/token-accounting/requirements.md).
 
 **The map (item 1).** Every place a cost or token count is written or read, in one table:
 
@@ -150,7 +150,7 @@ already-complete total from `spend-tree.json`'s own by-role/by-trigger figures �
 ## 2026-10-03 (sessions-tab-polish) — empty bands, stat cards, and why OpenRouter read $0.00 in range
 
 The owner, looking at this page at 3440 (full brief:
-[`/framework/ai/2026-10-03/sessions-tab-polish/build/requirements.md`](/framework/ai/2026-10-03/sessions-tab-polish/build/requirements.md)):
+[`/framework/ai/sessions/2026/10/03/sessions-tab-polish/sessions-tab-polish/build/requirements.md`](/framework/ai/sessions/2026/10/03/sessions-tab-polish/sessions-tab-polish/build/requirements.md)):
 two empty gray bands above the white card, the week line as plain text instead of dashboard cards,
 wide date pickers, "lopsided" padding, and stale-looking numbers — "shouldn't this be computed in
 real time by node?" A follow-up narrowed the scope mid-build: skip filling in role/Start/Stop/
@@ -264,7 +264,7 @@ over. Not touched.
 The owner (via vscode-mastermind) sent three follow-up corrections against the landed grid:
 no duplicate transcript data, a session's home is its date path (not this tab's own route), and
 Start/Stop/Duration alongside Cost on every row. Full brief:
-[`/framework/ai/2026-10-03/sessions-date-homes/requirements.md`](/framework/ai/2026-10-03/sessions-date-homes/requirements.md).
+[`/framework/ai/sessions/2026/10/02/panel2-sessions/sessions-date-homes/requirements.md`](/framework/ai/sessions/2026/10/02/panel2-sessions/sessions-date-homes/requirements.md).
 
 **No duplicate data — reused, not rebuilt.** `ai/sessions/transcripts/<id>.json` (110 files,
 2.5 MB) is gone; `sessions.mjs` no longer writes it, and `ext/AITask/replay.js`'s own `load()`
@@ -324,7 +324,7 @@ would otherwise block every future edit to that file.
 The owner's follow-up ask added three requirements on top of the shipped preview-card list:
 a data grid with Start/Source/Name/Model/State/Cost, no HTML `<table>`, one `--col-<name>` token
 per column with a resize that touches only that token, and a Notion-style side peek on a wide
-screen. Full brief: [`/framework/ai/2026-10-02/sessions-grid-v2/requirements.md`](/framework/ai/2026-10-02/sessions-grid-v2/requirements.md).
+screen. Full brief: [`/framework/ai/sessions/2026/10/02/panel2-sessions/sessions-grid-v2/requirements.md`](/framework/ai/sessions/2026/10/02/panel2-sessions/sessions-grid-v2/requirements.md).
 
 **The grid, without a `<table>`.** `.sessions-grid` is one real CSS grid; the header and every
 data row are `display: contents`, so their cells become the grid's own flat items and line up in
@@ -430,7 +430,7 @@ sessions-    ai/sessions
 
 ## 2026-10-02 (session-costs minion-build) — real per-prompt $, sort, filters, RAM, role
 
-Full brief: [`/framework/ai/2026-10-02/session-costs/minion-build/requirements.md`](/framework/ai/2026-10-02/session-costs/minion-build/requirements.md).
+Full brief: [`/framework/ai/sessions/2026/10/02/session-costs/minion-build/requirements.md`](/framework/ai/sessions/2026/10/02/session-costs/minion-build/requirements.md).
 
 **Why two more scripts, not one bigger one.** `public/framework/ai/AISession/AISessionAudit.mjs` (per-session, per-prompt,
 from a raw transcript) and `Server/week-cost.mjs` (the week's totals, from every session's own
@@ -533,7 +533,7 @@ when read against the main checkout directly).
 The owner's own words, said while looking at the vscode-mastermind session: "The data is already
 there: every transcript line has a timestamp and the usage of each call." "This is the tool that
 tells us whether an agent did anything unnecessary." Full brief:
-[`/framework/ai/2026-10-03/session-trace/requirements.md`](/framework/ai/2026-10-03/session-trace/requirements.md).
+[`/framework/ai/sessions/2026/10/03/session-trace/requirements.md`](/framework/ai/sessions/2026/10/03/session-trace/requirements.md).
 
 **`trace.json` is a manual, on-demand file today, same honesty `week.json`'s own note already
 uses.** `public/framework/ai/AISession/AISessionAudit.mjs`'s new `trace_of_transcript(path)` walks a session's raw

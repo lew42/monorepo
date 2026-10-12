@@ -53,4 +53,4 @@ Read the requirements' last section, "REVISED 16:20". This replaces the earlier 
 - `node Servex/processes.test.mjs` passes.
 - The live effect is measured after the merge and restart, not by you.
 
-When done, commit and write `pm-ram-report.md` in this folder (`public/framework/ai/2026-09-30/process-monitor/ram/`, in the MAIN checkout: report only). Say what was built, with the test output, and what was left. Reply to your parent in one line. Never write the owner's name anywhere. Every spawned process uses `windowsHide: true`.
+When done, commit and write `pm-ram-report.md` in this folder (`public/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/process-monitor/ram/`, in the MAIN checkout: report only). Say what was built, with the test output, and what was left. Reply to your parent in one line. Never write the owner's name anywhere. Every spawned process uses `windowsHide: true`.

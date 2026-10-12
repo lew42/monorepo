@@ -21,11 +21,11 @@ every heartbeat tick, for every open task.
 Append an assign line with a new `budget_usd` and a reason in a `log` line. The refusal lifts on
 the next tick, and the 100% and 150% steps start over for the new figure.
 
-`SERVEX_NO_BUDGET=1` turns it off. Proof: `public/framework/ai/2026-09-29/node-reliability/budget-proof.txt`.
+`SERVEX_NO_BUDGET=1` turns it off. Proof: `public/framework/ai/sessions/2026/09/30/node-reliability/node-reliability/budget-proof.txt`.
 
 ## Moved from CLAUDE.md (2026-10-12)
 
-These sentences were cut from the root `CLAUDE.md` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in `CLAUDE.md` at `87afbdd55`. The map is `public/framework/ai/2026-10-12/claude-md-consolidate/manifest.md`.
+These sentences were cut from the root `CLAUDE.md` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in `CLAUDE.md` at `87afbdd55`. The map is `public/framework/ai/sessions/2026/10/12/session-3b391f22/claude-md-consolidate/manifest.md`.
 
 <!-- claude-md:L28 -->
 **Audits go to Haiku** — L28.1

@@ -29,7 +29,7 @@
 - **Fence — yours alone:** `ux/Course/**` only (plus the `new-css-class` skill's `styles/css-scopes.txt` append if you mint a class — `ux-course-*`). READ-ONLY: everything else, including `ux/page.js`, `ux/readme.md`, `ux/doc/**`, `ux/Wizard/**` (if extending Wizard needs a Wizard change, that is a written proposal in your task dir, not an edit — work around it meanwhile).
 - **CSS: as little as possible** — utilities, ui classes, tokens, the five layout words. New class only for a relationship/state rule, inside a layer, `new-css-class` first.
 - Load skills: `code`, `css`, `layout` before writing; `new-page` per page.js; `documentation`; `finish-task`; `skill-improvement` when a skill misleads.
-- Log to `public/framework/ai/2026-08-21/ux-course/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); never a findings.md.
+- Log to `public/framework/ai/sessions/2026/08/21/ux-course/task.jsonl`: line 1 `assign` (Write tool, group "web-ui"); appends Add-Content ASCII ONLY (no em dashes); never a findings.md.
 
 ## Verification (before landing)
 

@@ -1,6 +1,6 @@
 # Page.class.js split, step 7: jsonl (the last move)
 
-**Plan:** [core/Page/doc/split-plan.md](/framework/core/Page/doc/split-plan.md) step 7. Steps 1-6 landed tonight ([page-split-1](../page-split-1/STATE.md), [page-split-2](../page-split-2/STATE.md)): 2,270 to 1,089 lines, nothing broke. Jsonl (~470 lines: replay, the file steps, `set()`'s jsonl handling) is the core path of every page, so this is the careful one.
+**Plan:** [core/Page/doc/split-plan.md](/framework/core/Page/doc/split-plan.md) step 7. Steps 1-6 landed tonight ([page-split-1](../../session-75fc1375/page-split-1/STATE.md), [page-split-2](../../session-e55f5a4b/page-split-2/STATE.md)): 2,270 to 1,089 lines, nothing broke. Jsonl (~470 lines: replay, the file steps, `set()`'s jsonl handling) is the core path of every page, so this is the careful one.
 
 ## Do
 - Move the jsonl replay and file steps into their own class file (`Page.Jsonl`, or the name the plan settles), held by the page or attached as a static so a subclass can swap it. `page.set()`, `Page.Reader` and every public name keep their exact behaviour; replay order is unchanged.

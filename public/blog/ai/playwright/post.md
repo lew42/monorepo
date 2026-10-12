@@ -127,7 +127,7 @@ you are already logged into.
 least discussed of the three. Claude Code writes an ordinary twenty-line Playwright script, runs
 it with `node`, and reads the output — which can be a screenshot it then looks at, or a number
 it measured, or a JSON dump of the DOM. Two standing examples here: the
-[`ui-test` habit](/framework/ai/2026-08-19/ui-test-skill/), which drives a real drag or resize
+[`ui-test` habit](/framework/ai/sessions/2026/08/19/ui-test-skill/), which drives a real drag or resize
 headless and screenshots after every gesture rather than claiming the feature works, and the
 [vision runner](/framework/ext/DesignTool/vision/), which shoots a page and asks a model to
 critique the design it sees. Slower to start than either of the other two, and unlimited in what
@@ -182,7 +182,7 @@ await page.route("**/*", route => {
 <figcaption>That comment is the scar. Blocking fonts as well as images turned this entire site
 into a blank white page — a font loader here fetches its file from JavaScript with no error
 handling, so a refused request threw and took the render with it. The demo ships blocking images
-only, and <a href="/framework/ai/2026-09-08/font-fallback/">a fix for the loader</a> was opened
+only, and <a href="/framework/ai/sessions/2026/09/08/font-fallback/">a fix for the loader</a> was opened
 the same night.</figcaption>
 </figure>
 

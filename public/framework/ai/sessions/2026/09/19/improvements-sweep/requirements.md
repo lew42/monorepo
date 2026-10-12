@@ -103,7 +103,7 @@ problem. Say that you re-read each one.
 ## Fences
 
 You own `.claude/skills/**` (every `SKILL.md` and every `improvements.md`) and
-`public/framework/ai/2026-09-19/improvements-sweep/**`. One line in the day page's `children:`, one
+`public/framework/ai/sessions/2026/09/19/improvements-sweep/**`. One line in the day page's `children:`, one
 append to its `day.jsonl`. **Not `CLAUDE.md`, not `.claude/settings.json`, not `.claude/hooks/**`.**
 
 Nothing else is running in the skills directory right now, so you have it to yourself.

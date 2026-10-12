@@ -56,7 +56,7 @@ as the bug, not the fix.
 
 ## Fixed 2026-09-18 — `:not(.standard)` excluded almost every caller, so the rail never painted anywhere
 
-`ai/2026-09-18/dead-nav/`. Two studies the same day (`overlap-study`, `web/nav/doc/study/mechanisms`)
+`ai/sessions/2026/09/18/dead-nav/`. Two studies the same day (`overlap-study`, `web/nav/doc/study/mechanisms`)
 independently found the same thing: **23 `toc()` call sites in source, 0 visible in production.**
 The cause was `toc.css`'s own grid rule, `.pages > .page:not(.standard):has(> .toc)` — written to
 avoid a `grid-template-columns` clash with a "breakout" page that owns its own template. The
@@ -97,7 +97,7 @@ plain `.page`, (0,1,0), on specificity alone, regardless of which `<link>` loade
   correctly does not match a grandchild. This is the SAME structural gap this file's own "Open"
   section already named for the narrower `overview:` case — today's count shows it is not a
   one-off: every `Doc`-shaped caller hits it. Left open here on purpose: the fix belongs in
-  `ext/Doc`, a different module, outside this task's fence (`ai/2026-09-18/dead-nav/requirements.md`).
+  `ext/Doc`, a different module, outside this task's fence (`ai/sessions/2026/09/18/dead-nav/requirements.md`).
 - `/framework/styles/layouts/toc-studio/` and `/layouts/practice/reader/` were already visible
   before this fix and still are after — neither goes through this grid rule at all (toc-studio
   inline-styles its own `display: block; position: sticky`; reader wraps the call in its own
@@ -127,7 +127,7 @@ teaches one of the two grids about the other — `core/Page/Page.css` is outside
 
 ## Fixed 2026-09-18 (later the same day) — the `.pages >` prefix, not the shell, was the gap
 
-`ai/2026-09-18/cleanup-2/`. The section above left the 7 `Doc`-based callers broken and
+`ai/sessions/2026/09/18/cleanup-2/`. The section above left the 7 `Doc`-based callers broken and
 recommended a change inside `ext/Doc`'s own render. Reading `ext/Doc/Doc.js` first (`code`
 skill: read before guessing) found something simpler: `toc()` does not render directly
 inside `.doc-section` at all — a Doc module's "Overview" tab is built by `catalog()`, which
@@ -197,7 +197,7 @@ reason, everywhere — there is no variant usage to distinguish.
 
 `.toc-skip` (the opt-out, not `toc()` itself) has two more consumers that never call
 `toc()` in their own file: `framework/stats.js` (a stat tile's value) and a prototype
-at `framework/ai/2026-08-12/stage/page.js`. No file imports `toc` without calling it —
+at `framework/ai/sessions/2026/08/12/stage/page.js`. No file imports `toc` without calling it —
 this module has no dead importers.
 
 ## Traps
@@ -234,7 +234,7 @@ this module has no dead importers.
   navigations. Measured as nothing; written down in case a future `Page` starts
   discarding views.
 - ~~**`ext/Doc`'s own tabbed shell nests `toc()`'s output one level too deep.**~~
-  **Fixed 2026-09-18** (`ai/2026-09-18/cleanup-2/`) — see the dated section below. Left
+  **Fixed 2026-09-18** (`ai/sessions/2026/09/18/cleanup-2/`) — see the dated section below. Left
   here, struck through rather than deleted, so the "was this ever considered" question
   a later reader has is answered without them going to git log for it.
 
@@ -277,4 +277,4 @@ already had — it cost a full re-measure to notice. After writing any
 live page and count the tracks against what you typed.
 
 The measurement, the before/after over 107 pages, and the check that now guards it:
-[`/framework/ai/2026-09-22/padding-law/`](/framework/ai/2026-09-22/padding-law/).
+[`/framework/ai/sessions/2026/09/22/session-2e26b182/padding-law/`](/framework/ai/sessions/2026/09/22/session-2e26b182/padding-law/).

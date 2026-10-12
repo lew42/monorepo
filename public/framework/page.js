@@ -45,7 +45,7 @@ async function architecture_excerpt(url){
 // down (Framework (3) → the modules with items → that module's inbox, newest first). The
 // owner's own words: that per-module count comes from @mastermind-servex-10's card-pipeline
 // MODULE cards — a different, not-yet-built thing from Servex's own ASK-card pipeline
-// (ai/2026-10-02/card-pipeline/, which cards ASKS, not modules). Coordinated with them
+// (ai/sessions/2026/10/03/card-pipeline/card-pipeline/, which cards ASKS, not modules). Coordinated with them
 // 2026-10-02 (task.jsonl) and no answer yet on the data's shape, so — the owner's own words
 // again — "leave a 0 or hidden badge until then": this is the one function that changes once
 // that data exists; nothing else in `module_card()` or the sidebar needs to.
@@ -203,7 +203,7 @@ export default new Page({
 					stats();
 
 					// THE SPRAWL — the whole point of this page (2026-10-02 rebuild, see
-					// public/framework/ai/2026-10-02/framework-home/). `home_sections()`
+					// public/framework/ai/sessions/2026/10/02/framework-home/). `home_sections()`
 					// (above) is this page's own one-rung-per-sidebar-section pass — a
 					// childless child (Start here, FAQ, Versus…) still lives in the nav
 					// beside this, not here; a `leaf: true` one (UI, Audit, Sandbox…) gets

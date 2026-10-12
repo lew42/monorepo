@@ -5,7 +5,7 @@ The ask, verbatim from the mastermind:
 > TASK B10 — build the REAL `/blog/` from the two landed verdicts. First: run `new-task`
 > (slug `blog-build`, group `pages`).
 >
-> READ FIRST, both are law: `public/framework/ai/2026-08-30/blog-arch/task.jsonl` + the
+> READ FIRST, both are law: `public/framework/ai/sessions/2026/08/30/blog-arch/task.jsonl` + the
 > working prototype at `public/blog/` (R1's architecture: posts.js manifest, `Post extends
 > Page` self-lookup, per-post index.html + `meta.mjs --write` stamper, reading layout = left
 > 40em measure + floating exhibits + 15em right rail, trailing-slash urls); and

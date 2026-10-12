@@ -88,4 +88,4 @@ own readme, so a reader who lands there first still finds the census.
 
 The full working notes — every url checked, before/after screenshots, what was
 considered and ruled out — are the task log:
-[`ai/2026-09-30/inbox-ext/path-ext/modules.md`](/framework/ai/2026-09-30/inbox-ext/path-ext/modules.md).
+[`ai/sessions/2026/09/30/inbox-ext/path-ext/modules.md`](/framework/ai/sessions/2026/09/30/inbox-ext/path-ext/modules.md).

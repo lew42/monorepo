@@ -75,7 +75,7 @@ export default new Page({
 	title: "Local Models",
 	description: "Talk to a model running on this machine's own GPU — no cloud, no cost, pick which gguf file answers.",
 	icon: "chat",
-	/* Once inbox-ext's auto-tab-detection lands (public/framework/ai/2026-09-30/
+	/* Once inbox-ext's auto-tab-detection lands (public/framework/ai/sessions/2026/09/30/
 	 * inbox-ext/), a page.jsonl line {"settings":{"tab":true}} is what makes a
 	 * page show up as its own top tab with no further edit. This page has no
 	 * page.jsonl (it needs real interactivity, so it's a hand-written page.js

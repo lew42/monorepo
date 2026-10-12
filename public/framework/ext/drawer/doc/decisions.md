@@ -204,7 +204,7 @@ gone. That is deliberate: two rails at one edge would fight over the same push.
   caller's controls — for a while that redrew `ext/Panel`'s properties as ext/layout's
   "nothing selected" on the first click. Panel's rows claim their own with
   `stopPropagation` (`properties.js`'s `row()`); a third caller has to do the same
-  until the ownership test lands (proposal: `ai/2026-08-19/panel-bar-sweep/`).
+  until the ownership test lands (proposal: `ai/sessions/2026/08/19/panel-bar-sweep/`).
 - **Fill, don't open.** Forcing the rail open on selection reads as jumpy (the owner,
   2026-08-18). Callers `dock()` once at load — `drawer.showing() || empty()` — and
   after that only fill a rail that is already up.
@@ -218,7 +218,7 @@ gone. That is deliberate: two rails at one edge would fight over the same push.
 The owner: *"when I click the actions dropdown it highlights the element… I think we want to
 maybe use an inspect mode to toggle that on, we don't want to automatically select things just
 by clicking on them… it kind of destroys all the UX."* Full task:
-[`ai/2026-09-30/card-measure-gap/`](/framework/ai/2026-09-30/card-measure-gap/), `doc/select.md`.
+[`ai/sessions/2026/09/30/card-measure-gap/`](/framework/ai/sessions/2026/09/30/card-measure-gap/), `doc/select.md`.
 
 `DrawerSelect.active()` used to be `tabs.mine()` alone — true any time the drawer happened to be
 open on its own tabs, so a plain click anywhere not on `OWN_CLICK`'s short list (links, buttons,
@@ -241,7 +241,7 @@ name.
 The owner, dictated at 3440 with the drawer open: *"My drawer is broken... that scroll area must
 have a broken height, because it's offset and there's a bunch of weird overlap... the composer is
 cut off at the bottom and overlaps the list above it."* Before/after:
-[`ai/2026-10-03/drawer-cleanup/`](/framework/ai/2026-10-03/drawer-cleanup/).
+[`ai/sessions/2026/10/03/f5df03b9-e98c-45a5-9fb2-5b593b8bdefd/drawer-cleanup/`](/framework/ai/sessions/2026/10/03/f5df03b9-e98c-45a5-9fb2-5b593b8bdefd/drawer-cleanup/).
 
 **The real bug: a closed dropdown that never actually closed.** `tabs/ai.js`'s session-header
 switcher (`$list.el.hidden = true`) sits next to a `drawer-ai-switch-list flex v` class — and

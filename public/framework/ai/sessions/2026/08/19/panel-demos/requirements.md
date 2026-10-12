@@ -1,6 +1,6 @@
 # panel-demos — a Demo tab on the Panel page: a walk-through of the UX, each demo a flow beside a follow-along
 
-Laws: less is more · clarity · prioritize. **Deliverable: `ext/Panel/demo/` — a `demo` tab on `/framework/ext/Panel/` with an inner left nav (one entry per demo), each demo = a prebuilt replayable panel-flow on the left (the guide) beside a fresh starting workspace on the right (follow along), with one short description of what to do; the flows recorded as JSON in the repo; a readme note to demo every feature; proven headless; final message ≤ 15 lines.** Sonnet. Runs after task A (`../workspace-a-sizing/`) has `landed_at` — wait for it: `while (-not (Select-String -Path public/framework/ai/2026-08-19/workspace-a-sizing/task.jsonl -Pattern landed_at -Quiet)) { Start-Sleep 20 }`.
+Laws: less is more · clarity · prioritize. **Deliverable: `ext/Panel/demo/` — a `demo` tab on `/framework/ext/Panel/` with an inner left nav (one entry per demo), each demo = a prebuilt replayable panel-flow on the left (the guide) beside a fresh starting workspace on the right (follow along), with one short description of what to do; the flows recorded as JSON in the repo; a readme note to demo every feature; proven headless; final message ≤ 15 lines.** Sonnet. Runs after task A (`../workspace-a-sizing/`) has `landed_at` — wait for it: `while (-not (Select-String -Path public/framework/ai/sessions/2026/08/19/workspace-a-sizing/task.jsonl -Pattern landed_at -Quiet)) { Start-Sleep 20 }`.
 
 The owner (2026-08-19), verbatim:
 

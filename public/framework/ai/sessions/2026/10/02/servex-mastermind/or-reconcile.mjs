@@ -3,7 +3,7 @@
  * (2026-10-02: Servex showed mastermind-ai-2 at $13.36, and the usage it reported had
  * cache_creation equal to cache_read, which looks double-counted.)
  *
- *   node public/framework/ai/2026-10-02/servex-mastermind/or-reconcile.mjs [agent-id ...]
+ *   node public/framework/ai/sessions/2026/10/02/servex-mastermind/or-reconcile.mjs [agent-id ...]
  *
  * For each agent (default: mastermind-ai-2, mastermind-page-2):
  *   1. Servex's registry row: its session id and the cost Servex shows.

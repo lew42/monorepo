@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `code`, `layout`, `css` before CSS.
 
-**Read first, in full:** the owner's words, `public/framework/ai/2026-09-29/audio/owner-words.md` (the part starting "we need a, a consistent chat widget"), and the task brief `../requirements.md`, ask 6. The owner: "whether it's in a desktop sidebar or a mobile sheet … the height should be variable so that it could start small and grow to a maximum height and then be scrollable."
+**Read first, in full:** the owner's words, `public/framework/ai/sessions/2026/09/29/audio/audio/owner-words.md` (the part starting "we need a, a consistent chat widget"), and the task brief `../requirements.md`, ask 6. The owner: "whether it's in a desktop sidebar or a mobile sheet … the height should be variable so that it could start small and grow to a maximum height and then be scrollable."
 
 ## Where you work
 
@@ -19,7 +19,7 @@ Minion B will change ONE line in `tabs/ai.js` and `rail.js` (the line that build
 ## What exists
 
 - `ext/Chat/` has `chat()` (the scrolling log, smart scroll) and `Composer.js` (the input).
-- The drawer's AI tab (`ext/drawer/tabs/ai.js`) builds its own chat from those. The mobile sheet (`ext/drawer/rail.js`, from task-mastermind-mobile-nav, landed today, see `public/framework/ai/2026-09-29/mobile-nav/`) builds its own: a live transcript plus "prompt item" cards.
+- The drawer's AI tab (`ext/drawer/tabs/ai.js`) builds its own chat from those. The mobile sheet (`ext/drawer/rail.js`, from task-mastermind-mobile-nav, landed today, see `public/framework/ai/sessions/2026/09/29/mobile-nav/mobile-nav/`) builds its own: a live transcript plus "prompt item" cards.
 
 ## Deliverables
 

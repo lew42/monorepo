@@ -8,7 +8,7 @@ Load the `minion` skill first, then the `code` skill.
 
 "When a prompt comes in, the fast assistant literally turns it into UI: quick judgments, scaffolding things up as quickly as possible. [...] The second something needs doing, the assistant uses its tool call to create a request, question or task, putting the right part of the prompt into it, and spawns a MANAGER: relatively fast, not a huge deep thinker. One manager per card can probably handle most tasks. [...] The card's manager session id should be RECYCLED: any question asked there before, any work done, any context, is reused for the new question. We'll want UI per card showing what context each agent has, how many tokens, and what percentage of its full window, with the ability to compact or recycle. [...] we might want our own compaction system, so we can log the important details in the proper place."
 
-The design: `C:/Code/lew42/monorepo/public/framework/ai/2026-09-24/assistant-layers/doc/design.md`. Read it start to finish first.
+The design: `C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/doc/design.md`. Read it start to finish first.
 
 ## Where you work
 

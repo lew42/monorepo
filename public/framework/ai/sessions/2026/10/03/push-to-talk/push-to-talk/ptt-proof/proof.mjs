@@ -2,11 +2,11 @@
 // the readable results. Chromium is launched through `Server/browser.mjs`'s own
 // `browser()` function, the one shared launcher every script in this repo uses —
 // it picks the Chromium channel that opens no window, see that file's own doc.
-import { browser, close } from "../../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../../Server/browser.mjs";
 import fs from "node:fs";
 
 const BASE = "http://push-to-talk.localhost";
-const OUT = "public/framework/ai/2026-10-03/push-to-talk/ptt-proof";
+const OUT = "public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/ptt-proof";
 const PAGE_URL = BASE + "/framework/ux/Hotkeys/"; // "load a page (not just /)", per the brief
 
 const results = [];

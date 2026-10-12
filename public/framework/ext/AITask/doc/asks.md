@@ -4,7 +4,7 @@ An **ask** is one thing the owner asked for, written down in their own words.
 It is a line in the running session's `task.jsonl`, using
 [`ext/JSONL`](/framework/ext/JSONL/)'s `ask` verb:
 
-```json ai/2026-09-17/mastermind-layout-browser/task.jsonl
+```json ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl
 {"ask": {"id": "session-as-chat", "at": "2026-09-17T16:50:40-05:00",
   "summary": "The session log reads like a chat conversation with flow and rhythm.",
   "quote": "the session logs can even be clicked through, although that navigation …",

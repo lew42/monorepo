@@ -61,7 +61,7 @@ widths both are **0px**.
 +       them at their widest overflows the row as soon as a second one opens — and
 +       `reveal_column()` then scrolls the row to show it, which moves what you were
 +       reading after all. Measured both ways: ceiling 9px at 1280, floor 0px at 1280
-+       and 3440 (ai/2026-09-05/nav-stability/).
++       and 3440 (ai/sessions/2026/09/05/nav-stability/).
 +     ⚠ `fill`, `full` and `hug` are exempt: the first two exist to take the leftover,
 +       and `hug` is `0 0 auto` already — fixing it at its 6em floor would stop it
 +       hugging. */

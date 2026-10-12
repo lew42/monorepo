@@ -70,5 +70,5 @@ tap. All probes reverted; scratch only in the scratchpad.
 ## House rules
 
 CLAUDE.md rules. code-architecture skill before JS. Comments = traps only.
-Log milestones to public/framework/ai/2026-08-15/stream-polish/task.jsonl;
+Log milestones to public/framework/ai/sessions/2026/08/15/stream-polish/task.jsonl;
 land with the full assign + day.jsonl line.

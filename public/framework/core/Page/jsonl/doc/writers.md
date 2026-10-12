@@ -25,7 +25,7 @@ that found this, 2026-09-29).
 
 Each page.jsonl lists its own files: the file watcher appends `{"file": name}` and
 `{"file": name, "gone": true}`;
-[`task-mastermind-page-files-log`](/framework/ai/2026-09-29/page-files-log/) owns that system.
+[`task-mastermind-page-files-log`](/framework/ai/sessions/2026/09/29/page-files-log/page-files-log/) owns that system.
 
 ## A look-alike that is NOT a writer
 

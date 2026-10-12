@@ -1,8 +1,8 @@
 # Minion brief: build follow(path) in Servex
 
-Load the `minion` skill first. The parent brief is [../requirements.md](../requirements.md): read it start to finish, it is the acceptance test. The design it serves: [../../voice-sessions/design.md](../../voice-sessions/design.md) (row "follow(path)"). The owner's words: [../../audio/owner-words.md](../../audio/owner-words.md), sections "Continued (about 6:40 PM)" and "(about 6:55 PM)".
+Load the `minion` skill first. The parent brief is [../requirements.md](../requirements.md): read it start to finish, it is the acceptance test. The design it serves: [../../voice-sessions/design.md](../../../30/voice-sessions/voice-sessions/design.md) (row "follow(path)"). The owner's words: [../../audio/owner-words.md](../../audio/audio/owner-words.md), sections "Continued (about 6:40 PM)" and "(about 6:55 PM)".
 
-Report to **task-mastermind-follow** (your parent). Your log is `public/framework/ai/2026-09-29/follow/build/task.jsonl` **in the worktree**.
+Report to **task-mastermind-follow** (your parent). Your log is `public/framework/ai/sessions/2026/09/29/follow/build/task.jsonl` **in the worktree**.
 
 ## Where you work
 

@@ -1,7 +1,7 @@
 import { Page, md, div, p, span, b, details, summary } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the page grid.
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board — the page grid.
    2 SIZE       prose at --measure; the timeline, the four findings and the
                 ranked table claim wide.
    3 OWN LAYOUT prose, one timeline table, a four-card wall, one ranked table.

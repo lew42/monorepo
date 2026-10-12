@@ -64,4 +64,4 @@ Open [/framework/core/Layout/](/framework/core/Layout/) and click around. One co
 - [The rules](/framework/core/Layout/doc/rules/) — three deny rules, and the line-by-line argument for what CSS already answers.
 - [Fixtures and approval](/framework/core/Layout/doc/fixtures/) — the eight runs, what the checker reads, and what "approved" means.
 - [The port](/framework/core/Layout/doc/porting/) — where the thirty came from and the five things that changed on the way.
-- The plan this is slice A of: `ai/2026-09-06/layout-study/plan.md`.
+- The plan this is slice A of: `ai/sessions/2026/09/06/layout-study/plan.md`.

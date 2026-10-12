@@ -1,7 +1,7 @@
 # Make — the record: one selection, one filtered sidebar, and the tree handed to `ux/Tree`
 
 Everything below was decided on **2026-09-18**, in the task at
-[`/framework/ai/2026-09-17/editor-select/`](/framework/ai/2026-09-17/editor-select/). The
+[`/framework/ai/sessions/2026/09/17/editor-select/`](/framework/ai/sessions/2026/09/17/editor-select/). The
 owner's sentence that started it, 2026-09-17:
 
 > Look at the playground and panel exts. They were an attempt to make an editor… The problem
@@ -169,7 +169,7 @@ Nothing about the three panes changed in this pass; what changed is what is *in*
 # Real pages — dragging one moves its directory on disk
 
 Decided on **2026-09-18**, in the task at
-[`/framework/ai/2026-09-18/real-page-move/`](/framework/ai/2026-09-18/real-page-move/). The
+[`/framework/ai/sessions/2026/09/18/real-page-move/`](/framework/ai/sessions/2026/09/18/real-page-move/). The
 owner's sentence that started it, 2026-09-17:
 
 > Pages could be actual sub dir with sub page.js files, or could by dynamic, stored anywhere.
@@ -257,7 +257,7 @@ the source-rewriting answer, and this is it.
 ## 5 · Two `ux/Tree` defects — fixed at the source, 2026-09-18
 
 Both found by driving the real gesture, both first worked around in `real.js` because `ux/Tree`
-was outside this task's own fence. `tree-fixes` (`ai/2026-09-18/tree-fixes/`) fixed both inside
+was outside this task's own fence. `tree-fixes` (`ai/sessions/2026/09/18/tree-fixes/`) fixed both inside
 `ux/Tree` itself and removed both guards here — **no longer open.**
 
 - **A drop was followed by a click.** The pointer goes down on the grip and up on the row, so
@@ -285,7 +285,7 @@ for an editor: a click would leave the screen. The subclass drops it; the url ri
 # Real pages — a move rewrites the links and imports too
 
 Decided on **2026-09-18**, in the task at
-[`/framework/ai/2026-09-18/link-tracking/`](/framework/ai/2026-09-18/link-tracking/). The
+[`/framework/ai/sessions/2026/09/18/link-tracking/`](/framework/ai/sessions/2026/09/18/link-tracking/). The
 owner's words that started it, 2026-09-18:
 
 > the path would break if we drag and drop a page from one place to another. Maybe we need an
@@ -441,7 +441,7 @@ part of the standing 18-url proof. The same file opened at its FILE url IS an or
 page today — [/imagine/paging/made/notes/](/imagine/paging/made/notes/) — so there are two
 readers and one file, which is the merge that was actually available.
 
-Task: `ai/2026-09-18/page-json-core/`. The core half:
+Task: `ai/sessions/2026/09/18/page-json-core/`. The core half:
 [`core/Page/doc/data.md`](/framework/core/Page/doc/data.md).
 
 

@@ -40,7 +40,7 @@ const GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c
 export function composer({
 	deliver, re = () => null, on_text, mic: with_mic = true, autostart, max = MAX_PROMPT,
 	placeholder = "say something", hint = "", sent = "sent", failed = "nothing was sent",
-	revise = false,   // "clean" | "edit" | "summary" | false (default) — forwarded to `ux/Dictate`'s own option, ai/2026-09-29/audio/
+	revise = false,   // "clean" | "edit" | "summary" | false (default) — forwarded to `ux/Dictate`'s own option, ai/sessions/2026/09/29/audio/audio/
 	on_revised,        // (text, {raw, level}) => … — forwarded the same way, straight from `ux/Dictate`; does nothing unset
 	try_command,       // (text) => boolean — an HITL command ("rename this") the box swallows instead of sending; true = handled
 	on_live,           // ({text, settled, guess, sent}) => … — dictation goes into a growing chat bubble, not the box (Mic.js SETTINGS.into)

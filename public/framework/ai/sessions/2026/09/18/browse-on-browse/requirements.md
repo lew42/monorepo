@@ -4,7 +4,7 @@ Two things on the owner's key page, `/layouts/browse/`.
 
 ## 1. Merge 5 of the overlap study
 
-(`public/framework/ai/2026-09-18/overlap-study/overlap.md` and its `decision` line)
+(`public/framework/ai/sessions/2026/09/18/overlap-study/overlap.md` and its `decision` line)
 
 `public/layouts/browse/page.js` hand-rolls a 644-line card wall; `core`'s `this.browse()`
 (`ext/catalog` — read `browse.md` and how `core/Layout/page.js` adopted it on 2026-09-06)
@@ -22,7 +22,7 @@ which) rather than keeping the hand-rolled path.
 ## 2. One verdict trail by url
 
 (the mastermind's decision `verdict-keyspace` in
-`ai/2026-09-17/mastermind-layout-browser/task.jsonl`)
+`ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl`)
 
 A page's own corner control (`ext/Ask`, landed today) writes verdicts keyed by the
 page's url; the browser writes by item id. Make the browser's card and item view read
@@ -35,7 +35,7 @@ check it still lists the right pages.
 
 On your private server (`PORT=8141 node server.js`, background, killed by its real
 Windows PID): re-run the browser critic's checks by number — they are `log` lines in
-`public/framework/ai/2026-09-17/browser-critic/task.jsonl` (15 findings, each with a
+`public/framework/ai/sessions/2026/09/17/browser-critic/task.jsonl` (15 findings, each with a
 measurement; read them all) — at 400 / 1280 / 1920 / 3440: 102 items in the file = 102
 cards; the tier strip jumps and counts; level 2 opens and closes; the three pictures;
 the why fold; Approve and Improve pressed once for real on one item (then truncate

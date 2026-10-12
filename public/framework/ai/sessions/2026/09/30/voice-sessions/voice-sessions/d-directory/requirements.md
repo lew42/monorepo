@@ -1,6 +1,6 @@
 # The directory mastermind: a fresh mastermind for one folder, started from its readmes
 
-Load the `minion` and `code` skills first. Your parent is task-mastermind-voice-sessions. The whole task is [../requirements.md](../requirements.md), items 8, 10 and 12. The roles table is [/framework/ai/2026-09-22/tiers-design/doc/roles.md](/framework/ai/2026-09-22/tiers-design/doc/roles.md) (the "Directory mastermind" row, marked "Not yet": that's you).
+Load the `minion` and `code` skills first. Your parent is task-mastermind-voice-sessions. The whole task is [../requirements.md](../requirements.md), items 8, 10 and 12. The roles table is [/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md) (the "Directory mastermind" row, marked "Not yet": that's you).
 
 ## The owner's words (6:40 to 6:55 PM, `../audio/owner-words.md`)
 

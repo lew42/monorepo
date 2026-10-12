@@ -399,7 +399,7 @@ function place(model, $col, rows, { remeasure = false } = {}){
 	// every redraw, every click, every "← Live". The Live card is the page's own default
 	// view, and a CPU profile of `/framework/ai2/` found this one line costing more
 	// self-time than any other function on the page (ai2-hang, 2026-09-30,
-	// ai/2026-09-30/inbox-ext/ai2-hang/profile.md). The card's own ResizeObserver already
+	// ai/sessions/2026/09/30/inbox-ext/ai2-hang/profile.md). The card's own ResizeObserver already
 	// says exactly when the width category CAN have changed, so only that path (and the
 	// first-ever call) remeasures; an ordinary redraw reuses the last known answer.
 	if (remeasure || model.is_wide === undefined) model.is_wide = wide($col);

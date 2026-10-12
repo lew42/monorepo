@@ -11,7 +11,7 @@ node public/framework/ext/Research/research.mjs outline harness --under <id>
 ```
 
 The owner's words (the question behind this) are in
-`public/framework/ai/2026-09-28/harness-research/owner-words.md`; read them once.
+`public/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/owner-words.md`; read them once.
 
 ## For every claim and alternative node
 

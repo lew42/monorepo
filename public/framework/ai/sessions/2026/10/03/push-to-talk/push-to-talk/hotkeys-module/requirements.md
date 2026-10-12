@@ -5,7 +5,7 @@ Load the `minion` skill first. Worktree: `C:\Code\lew42\worktrees\push-to-talk`
 Work ONLY inside that worktree, not the main tree.
 
 Parent task (read it for the whole picture, don't re-ask the owner anything —
-decide and move): `public/framework/ai/2026-10-03/push-to-talk/requirements.md`.
+decide and move): `public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/requirements.md`.
 
 ## The owner's words this serves (verbatim, from the parent brief)
 
@@ -93,6 +93,6 @@ message once it loads clean.
 ## When done
 
 Log your result in THIS task's own log
-(`public/framework/ai/2026-10-03/push-to-talk/hotkeys-module/task.jsonl` — load
+(`public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/hotkeys-module/task.jsonl` — load
 `new-task` if it's not open yet) including the exact page url, then end your turn.
 Budget: $2.

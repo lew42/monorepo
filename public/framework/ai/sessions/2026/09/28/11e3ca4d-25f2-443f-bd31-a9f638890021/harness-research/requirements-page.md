@@ -1,7 +1,7 @@
 # Research page: structure first, paragraphs never
 
 Load the `minion` skill, then `page`, `code` and `css`, first. The owner's words are in
-`public/framework/ai/2026-09-28/harness-research/owner-words.md`; the part that matters here:
+`public/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/owner-words.md`; the part that matters here:
 
 > "we want to see the structure of the research. So like whatever page you're making for this research operation, I want to see like, you know, I want to see structured content … icon items where we can have like three to five named things per section … it's sort of like outlines … an outline creates like this picture using words … the parent items and then the number of child items … we don't want to use … three paragraphs … instead of just using a quick little outline"
 
@@ -30,7 +30,7 @@ The live topic to design against is `/framework/research/harness/` — roots are
 4. **Route it:** a clicked sub-area has its own URL (a hash like `#qnjkd` that opens and scrolls to it on load is acceptable), so reload and back land in the same place.
 5. **Credence and the three judgements readable:** if a `why` starts with `credence: X`, show X as a small tag on the claim row; if a dissent/support's `why` has `true:` `logic:` `useful:` parts, show them as three labelled lines in the body.
 6. The livereload topic still renders (it has no question roots — its roots are claims; the tree then shows the top roots by score, capped at 9).
-7. Proof: screenshots at 1920 of both topics in `public/framework/ai/2026-09-28/harness-research/shots/` (main tree path, ok to write), zero console errors (`node Server/smoke.mjs C:/Code/lew42/worktrees/qf-2 /framework/research/harness/ /framework/research/livereload/`).
+7. Proof: screenshots at 1920 of both topics in `public/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/shots/` (main tree path, ok to write), zero console errors (`node Server/smoke.mjs C:/Code/lew42/worktrees/qf-2 /framework/research/harness/ /framework/research/livereload/`).
 
 ## Rules
 

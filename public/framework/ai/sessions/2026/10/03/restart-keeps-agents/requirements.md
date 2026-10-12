@@ -2,7 +2,7 @@ Budget: $8 ($6, plus $2 for bug 4, resume on boot).
 
 # Servex: a restart keeps working agents, and a mastermind stays wakeable
 
-Servex bugs from today (vscode-mastermind, 2026-10-03), in this order. Start only after [worktree-servers-revive](/framework/ai/2026-10-03/worktree-servers-revive/) has landed (it was bug 5 here, split out to land first). The git-guard (once bug 3 here) moved to [main-branch-guard](/framework/ai/2026-10-03/main-branch-guard/).
+Servex bugs from today (vscode-mastermind, 2026-10-03), in this order. Start only after [worktree-servers-revive](/framework/ai/sessions/2026/10/03/worktree-servers-revive/) has landed (it was bug 5 here, split out to land first). The git-guard (once bug 3 here) moved to [main-branch-guard](/framework/ai/sessions/2026/10/03/main-branch-guard/).
 
 ## Bug 1: a restart ends the agents that were working
 
@@ -30,7 +30,7 @@ Servex bugs from today (vscode-mastermind, 2026-10-03), in this order. Start onl
 
 ## Bug 4: after a PC reboot, working agents stay "gone"
 
-**What happened:** the owner's PC rebooted at 3:43 pm ([restart-observe](/framework/ai/2026-10-03/restart-observe/)). Servex, the gate, the dev server and whisper all came back on their own. But task-mastermind-system-class and clarity-restart-keeps-agents had been working, and after the boot they read `gone`. Their sessions are on disk; nothing resumed them.
+**What happened:** the owner's PC rebooted at 3:43 pm ([restart-observe](/framework/ai/sessions/2026/10/03/restart-observe/)). Servex, the gate, the dev server and whisper all came back on their own. But task-mastermind-system-class and clarity-restart-keeps-agents had been working, and after the boot they read `gone`. Their sessions are on disk; nothing resumed them.
 
 **What it must do:** this is the same fix as bug 1 (one mechanism, not two), plus:
 1. **Resume on boot.** On boot, Servex resumes every agent that was `working` and has an unlanded task, from its session id, with one line: "you were interrupted by a restart; read your task log". The same rules as bug 1 apply: never one stopped on purpose, never one whose directory is gone, never a landed one (except a mastermind with open asks, as in bug 2).

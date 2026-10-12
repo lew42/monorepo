@@ -20,7 +20,7 @@ headless that receives a `changed` broadcast, before you release.
 
 - `Server/plugins/SocketServer/LiveReload.js` — watches `public/`, debounces, broadcasts
   `changed(paths)` (or `null` = unknown → reload everything); honours the reload hold
-  (`Server/hold.mjs`, `ai/2026-09-19/reload-hold/`).
+  (`Server/hold.mjs`, `ai/sessions/2026/09/19/reload-hold/`).
 - `public/framework/dev/Socket/Socket.js` `changed(paths)` — **already scoped**: a tab reloads
   only if it loaded one of the paths (`performance.getEntriesByType("resource")`), and a CSS
   file hot-swaps instead. BUT a path the tab fetched as DATA (`initiatorType === "fetch"`,
@@ -28,9 +28,9 @@ headless that receives a `changed` broadcast, before you release.
   to it reloads the tab. `directory.json` is rebuilt whenever a task dir appears (every
   minion's `new-task`) — the likely cause of "always reloading while minions work".
 - Streams: `.jsonl` appends reach open tabs over the socket without a reload (`Append.js`,
-  `Tail.js`; the AI board, the chat log, `ai/2026-09-19/assistant-stream/`); `hold` state is
-  pushed; the MCP `eval` rides the same socket. `ai/2026-09-19/reload-hold/` and
-  `ai/2026-09-19/page-health/` measured reload storms before.
+  `Tail.js`; the AI board, the chat log, `ai/sessions/2026/09/19/assistant-stream/`); `hold` state is
+  pushed; the MCP `eval` rides the same socket. `ai/sessions/2026/09/19/reload-hold/` and
+  `ai/sessions/2026/09/19/page-health/` measured reload storms before.
 - Worktree servers (`Server/worktree-up.mjs`) watch their own checkout — verify that the
   owner's `:80` server never broadcasts for a change made inside `C:/Code/lew42/worktrees/`.
 
@@ -63,7 +63,7 @@ headless that receives a `changed` broadcast, before you release.
    (`node Server/worktree-up.mjs reload-proof`, edit a file inside it, count broadcasts on the
    main server's socket = 0; `worktree-down.mjs reload-proof` after).
 6. **The answer to "do we even need live reload?"** — one paragraph on a page,
-   `ai/2026-09-22/reload-rethink/page.js`: what reloads now vs before (the census numbers),
+   `ai/sessions/2026/09/22/f875ec48-d91a-4890-b15f-db197b55aa13/reload-rethink/page.js`: what reloads now vs before (the census numbers),
    what streams, what hot-swaps, what still needs a reload and why (a changed ES module cannot
    be re-imported in place without a build step — say it plainly), and the alternative you
    did not pick.

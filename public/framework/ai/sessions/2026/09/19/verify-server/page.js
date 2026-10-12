@@ -1,7 +1,7 @@
 import { Page, div, p, span, b, a, md } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
-   1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the ordinary
+   1 CONTAINER  a task page on /framework/ai/sessions/2026/09/19/'s board — the ordinary
                 page grid: main for prose, wide for the two flip cards.
    2 SIZE       two flip cards at 1 1 22em wrap to 2 / 1 columns; a compact list
                 for the rest, no wrapping needed.
@@ -31,14 +31,14 @@ function badge(v) {
 /* The rest of the ten, already agreeing with the earlier audit's verdict —
    compact, one line each, task-owner's own outcome text is where the detail is. */
 const AGREES = [
-	["reload-on-load", "done", "Pages reload after loading — fixed. The mtime-check code is real and the live port-80 server is already running it.", "/framework/ai/2026-09-19/server-self/"],
-	["reload-hold", "differs", "The hold command shipped, in CLAUDE.md, exactly as asked. Hot reload for JS was not looked into — only confirmed CSS already hot-swaps.", "/framework/ai/2026-09-19/reload-hold/"],
-	["site-down-audit", "partly", "The fix (boot-test before swap) is real and proven, but it only guards backend code — a THIRD same-day outage, from a bad frontend import, happened after this fix landed.", "/framework/ai/2026-09-19/incident-site-down/"],
-	["fps-meter", "partly", "The meter was never built (checked the dev bar's own code) — and the audit's own citation names a task dir, fps-meter, that does not exist; the real work is under padding-audit.", "/framework/ai/2026-09-19/padding-audit/"],
-	["worktrees-and-cache", "done", "Loaded the live page myself: it renders fully now, matching its own numbers.", "/framework/ai/2026-09-19/worktree-study/"],
+	["reload-on-load", "done", "Pages reload after loading — fixed. The mtime-check code is real and the live port-80 server is already running it.", "/framework/ai/sessions/2026/09/19/server-self/"],
+	["reload-hold", "differs", "The hold command shipped, in CLAUDE.md, exactly as asked. Hot reload for JS was not looked into — only confirmed CSS already hot-swaps.", "/framework/ai/sessions/2026/09/19/reload-hold/"],
+	["site-down-audit", "partly", "The fix (boot-test before swap) is real and proven, but it only guards backend code — a THIRD same-day outage, from a bad frontend import, happened after this fix landed.", "/framework/ai/sessions/2026/09/19/incident-site-down/"],
+	["fps-meter", "partly", "The meter was never built (checked the dev bar's own code) — and the audit's own citation names a task dir, fps-meter, that does not exist; the real work is under padding-audit.", "/framework/ai/sessions/2026/09/19/padding-audit/"],
+	["worktrees-and-cache", "done", "Loaded the live page myself: it renders fully now, matching its own numbers.", "/framework/ai/sessions/2026/09/19/worktree-study/"],
 	["change-shots", "done", "A real proposal card sits on the v3 board, four parts, waiting on one word. Its first part leans on the page-health watcher, which is currently dead — see below.", "/framework/ai/v/3/"],
-	["servex", "done", "A real decision, with the submodule commit hashes checked. One loose end from the study — an idle pm2 daemon — is still running.", "/framework/ai/2026-09-19/servex-study/"],
-	["never-break-the-page", "partly", "The alarm and the auditor skill are both real. The site still blanked a third time after both landed, so the system catches breakage fast — it still does not prevent it.", "/framework/ai/2026-09-19/mistake-audit/"],
+	["servex", "done", "A real decision, with the submodule commit hashes checked. One loose end from the study — an idle pm2 daemon — is still running.", "/framework/ai/sessions/2026/09/19/servex-study/"],
+	["never-break-the-page", "partly", "The alarm and the auditor skill are both real. The site still blanked a third time after both landed, so the system catches breakage fast — it still does not prevent it.", "/framework/ai/sessions/2026/09/19/mistake-audit/"],
 ];
 
 export default new Page({
@@ -56,7 +56,7 @@ export default new Page({
 		p.c("h4", "The rest, checked and agreeing with the earlier audit's verdict — one line each:");
 		this.list();
 
-		p.c("muted", "Every verdict, its evidence and the exact commands run: ", a("verify.jsonl").href("/framework/ai/2026-09-19/verify-server/verify.jsonl"), ". Findings and the full trail: this task's own log.");
+		p.c("muted", "Every verdict, its evidence and the exact commands run: ", a("verify.jsonl").href("/framework/ai/sessions/2026/09/19/verify-server/verify.jsonl"), ". Findings and the full trail: this task's own log.");
 	},
 
 	flips() {
@@ -64,11 +64,11 @@ export default new Page({
 			this.flip("server-self", "done → partly",
 				"\"The mastermind runs its own dev server on port 8123\" is written in the present tense. It is not true right now.",
 				"Checked live: curl to 127.0.0.1:8123 refuses the connection, and netstat shows no listener on port 8123 at all. The self-restarting supervisor code is real and well proven — but five separate node server.js processes are currently sitting idle with no live child and no port, and the one that mattered is down.",
-				"/framework/ai/2026-09-19/server-self/");
+				"/framework/ai/sessions/2026/09/19/server-self/");
 			this.flip("page-health", "done → partly",
 				"The console-flood fix is real. The \"hidden browser watches every page\" half is not currently running.",
 				"Server/health.mjs's own lock file names a process (PID 32096) that no longer exists — the watcher died and, unlike the server's own supervisor, nothing brings it back. Its default check target is the same port 8123 that is also down. Its findings page has no link from anywhere else in the site. A real ~80-second whole-site outage happened after this watcher's last log line, consistent with it already being dead when that hit.",
-				"/framework/ai/2026-09-19/page-health/");
+				"/framework/ai/sessions/2026/09/19/page-health/");
 		}).style({ "--column": "22rem" }).ac("wide");
 	},
 

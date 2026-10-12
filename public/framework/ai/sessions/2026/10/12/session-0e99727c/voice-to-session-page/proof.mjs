@@ -1,4 +1,4 @@
-/* node public/framework/ai/2026-10-12/voice-to-session-page/proof.mjs [scratch]
+/* node public/framework/ai/sessions/2026/10/12/session-0e99727c/voice-to-session-page/proof.mjs [scratch]
  * Boots a PRIVATE Servex from this checkout (ports 8190/8189/8188, no whisper),
  * plays a dictation into it the way the browser does (/api/voice partials, then
  * /api/refine), and prints when each stage landed on the session's page.jsonl.

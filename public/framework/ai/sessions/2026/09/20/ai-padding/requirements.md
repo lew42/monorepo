@@ -81,7 +81,7 @@ is the only test that matches what the owner actually said.
 
 You own `public/framework/ai/**` except `v/3/**` and except the 2026-09-19 and 2026-09-20 task dirs
 that are not yours, `public/framework/ext/AITask/**`, `public/framework/framework.css`, and
-`public/framework/ai/2026-09-20/ai-padding/**`.
+`public/framework/ai/sessions/2026/09/20/ai-padding/**`.
 
 ## Length budget
 

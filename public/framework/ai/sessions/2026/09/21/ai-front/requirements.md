@@ -72,7 +72,7 @@ log and the process page. Once V3 is the front door, those have to be reachable 
 
 Add **one small region** — your judgement where, but it should not push the cards down the page —
 linking the handful of things worth reaching: `/framework/ai/process/`, the newest day board,
-`start-here` (`/framework/ai/2026-09-20/start-here/`), `/framework/ai/log/`, and the version
+`start-here` (`/framework/ai/sessions/2026/09/20/start-here/`), `/framework/ai/log/`, and the version
 picker if it is not already on V3. **A handful, not a directory.** If you find yourself listing
 more than six, you are building V1 again — stop and pick the six.
 
@@ -96,7 +96,7 @@ Drive it (`ui-test`), do not describe it:
 - Click through the links-out region and confirm each one resolves.
 - Then headless, all 200 with no console errors: `/framework/ai/`, `/framework/ai/v/3/`,
   `/framework/ai/v/2/`, `/framework/ai/process/`, `/framework/ai/log/`,
-  `/framework/ai/2026-09-20/start-here/`, and one task dir under a date.
+  `/framework/ai/sessions/2026/09/20/start-here/`, and one task dir under a date.
 
 ## What you must not do
 

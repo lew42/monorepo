@@ -50,7 +50,7 @@ const ALLOW = [
 	[`node Server/smoke.mjs qf-6`, MAIN],
 	[`node --test .claude/hooks/git-guard.test.mjs`, MAIN],
 	[`node --check .claude/hooks/server-guard.mjs`, MAIN],
-	[`node public/framework/ai/2026-10-02/node-reap/node-reap.mjs --apply`, MAIN],
+	[`node public/framework/ai/sessions/2026/10/02/node-reap/node-reap.mjs --apply`, MAIN],
 	// "server.js" only as an argument/flag value to something else, never as the script node runs
 	[`node merge.mjs --log server.js.log`, MAIN],
 	[`grep -rn "server.js" Server/`, MAIN],

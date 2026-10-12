@@ -6,7 +6,7 @@ Two would have been nicer. The site's own CSS says four.
 
 On 2026-09-17 every `padding` / `margin` / `gap` declaration under `public/` was read and
 classified — 1,894 of them, across 125 stylesheets and 918 JavaScript files. The full count
-is [the spacing census](/framework/ai/2026-09-17/spacing-census/); the rows are in its
+is [the spacing census](/framework/ai/sessions/2026/09/17/spacing-census/); the rows are in its
 `census.json`.
 
 | what the declaration was | how many | share |

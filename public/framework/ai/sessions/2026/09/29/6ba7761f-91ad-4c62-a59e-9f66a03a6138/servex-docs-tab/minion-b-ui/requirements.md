@@ -1,7 +1,7 @@
 # Servex Docs tab — the UI (minion B)
 
 Load the `minion` skill first. Your card/task directory (read the whole thread there, not
-just this file): `public/framework/ai/2026-09-29/servex-docs-tab/` — parent card
+just this file): `public/framework/ai/sessions/2026/09/29/6ba7761f-91ad-4c62-a59e-9f66a03a6138/servex-docs-tab/` — parent card
 `2026/09/29/openrouter-brain-a-knowledge-base-that-o`.
 
 **Owner's ask (verbatim, from requirements.md one level up):** "the Servex dashboard
@@ -127,7 +127,7 @@ and must never be committed.
 
 Commit only `Servex/public/**` changes, plain message, on the worktree's existing branch
 (`worktree/servex-docs-tab`). Put your screenshot(s) under
-`public/framework/ai/2026-09-29/servex-docs-tab/minion-b-ui/` (a `.png`, committed in the MAIN
+`public/framework/ai/sessions/2026/09/29/6ba7761f-91ad-4c62-a59e-9f66a03a6138/servex-docs-tab/minion-b-ui/` (a `.png`, committed in the MAIN
 tree via your own task dir is fine — that's docs, not the fenced code). Append a `log` line to
 `.../minion-b-ui/task.jsonl` with what you built and a link to the screenshot. Then send me
 (your parent) one short message: done, the file paths, the screenshot path. Do not restart or

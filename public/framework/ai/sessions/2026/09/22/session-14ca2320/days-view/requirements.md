@@ -1,14 +1,14 @@
 # days-view — "what happened" as a dozen finished sentences, not four hundred moments
 
 Minion: Sonnet, effort high. Session id `14ca2320-7e50-4b1b-b71d-4a2ee1df3b81`. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first. Load `code`, `layout`
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first. Load `code`, `layout`
 and `css` before writing. Private port **8098**. The page you own is
 `/framework/ai/v/3/` — nobody else touches it while you do.
 
 ## Why
 
 The owner, today: "our new ai dashboard system still sucks... i never have a nice clean report
-of what happened." The three-day review (`ai/2026-09-22/review-3-days/`, section "The dashboard
+of what happened." The three-day review (`ai/sessions/2026/09/22/session-f808e806/review-3-days/`, section "The dashboard
 itself") diagnosed it: V3 shows 458 cards, 227 from one narrator — activity, not outcome — while
 what each piece of work produced lives in that task's landing line. Its proposal, which the
 mastermind has decided to build: **a Days view that reads only the finishing line each task

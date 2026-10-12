@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `code`, `css`, `page`.
 
-**The owner's words:** `public/framework/ai/2026-09-30/dev-shell/owner-words.md` (read in full). Card dir: `public/framework/ai/2026/09/30/shell-header-sidebars-footer-the-dark-de/`. The agreed design (picture + table): `public/framework/ai/2026-09-30/dev-shell/design.md`. Follow it.
+**The owner's words:** `public/framework/ai/sessions/2026/09/30/950de3ca-bb94-45bc-81c1-32992048b804/dev-shell/owner-words.md` (read in full). Card dir: `public/framework/ai/2026/09/30/shell-header-sidebars-footer-the-dark-de/`. The agreed design (picture + table): `public/framework/ai/sessions/2026/09/30/950de3ca-bb94-45bc-81c1-32992048b804/dev-shell/design.md`. Follow it.
 
 **Work ONLY in the worktree** `C:\Code\lew42\worktrees\dev-shell` (branch `worktree/dev-shell`, server http://localhost:54678/). Commit there after each finished piece, by exact path. Never touch the main tree.
 

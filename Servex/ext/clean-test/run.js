@@ -1,5 +1,5 @@
 /* run.js — the model call behind the "Try it" tab on /framework/ext/Refine/
- * (public/framework/ai/2026-10-04/clean-test-page/requirements.md).
+ * (public/framework/ai/sessions/2026/10/05/clean-test-page/clean-test-page/requirements.md).
  *
  * THE JOB: run the SAME `clean()` Echo runs (`public/framework/ext/Refine/engine.js`)
  * against whichever model the owner picks in the dropdown — a local gguf file, a cheap
@@ -16,7 +16,7 @@
  *     eval that produced the brief's 7-10/10 numbers already priced Haiku this way, as
  *     "anthropic/claude-haiku-4.5": one provider, one real cost field, for every model
  *     that isn't local) — the same `/v1/chat/completions` call this repo's own eval
- *     harness makes (`public/framework/ai/2026-10-03/new-brain/harness.mjs`'s
+ *     harness makes (`public/framework/ai/sessions/2026/10/04/new-brain/new-brain/harness.mjs`'s
  *     `callModel()`), reused here rather than re-derived, including its one real cost
  *     source: OpenRouter's own `usage.cost` on the response (never the SDK's
  *     `total_cost_usd`, which `ext/openrouter/provider.js`'s readme explains is wrong for

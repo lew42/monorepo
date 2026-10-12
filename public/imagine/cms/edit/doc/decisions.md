@@ -42,14 +42,14 @@ reusing it, not reimplementing it.
 
 ## Verified
 
-Headless (`ai/2026-08-31/drafts-and-glass/`): typed a marker string, reloaded — text and the
+Headless (`ai/sessions/2026/08/31/drafts-and-glass/`): typed a marker string, reloaded — text and the
 "draft · restored" note came back, `localStorage["lew42:/imagine/cms/edit/"]` held it. Clicked
 Discard — note gone, textarea back to the fetched file. Reloaded again — still gone,
 `localStorage.getItem(...)` `null`. Zero new console errors (a pre-existing, unrelated 404 for
 `/imagine/cms/welcome/page.js` — `Page.file()`'s own markdown-has-no-`page.js` case — fires on
 this page and its parent alike, before and after this change).
 
-Re-verified headless after the `baseline()` swap (`ai/2026-09-05/ux-cms/`): typed a marker,
+Re-verified headless after the `baseline()` swap (`ai/sessions/2026/09/05/ux-cms/`): typed a marker,
 saw the amber mark + Reset, Saved — `welcome.md` on disk gained the marker. Typed a second,
 unsaved change — mark came back. Pressed Reset (armed), pressed "Press again to forget…" —
 textarea returned to the last-saved text in place, no reload, mark gone. Restored the file to

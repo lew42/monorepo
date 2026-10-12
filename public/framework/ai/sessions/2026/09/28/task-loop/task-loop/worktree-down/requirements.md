@@ -1,6 +1,6 @@
 # Minion brief: a landed task's dev server goes down (task-loop, part 5)
 
-Load the `minion` skill first. The whole task: `public/framework/ai/2026-09-28/task-loop/`; read the section "Added: a landed task's dev server goes down" at the end of its requirements.md (items 7, 8, 9). Those three items, verbatim, are your acceptance test.
+Load the `minion` skill first. The whole task: `public/framework/ai/sessions/2026/09/28/task-loop/task-loop/`; read the section "Added: a landed task's dev server goes down" at the end of its requirements.md (items 7, 8, 9). Those three items, verbatim, are your acceptance test.
 
 **Why:** on 09-28, 24 dev-server pairs (about 2.1 GB) were still running for worktrees whose tasks had landed days before. And on the same day, collab-rounds' server was stopped while its minion was still fixing a bug, because "landed" alone was the test.
 

@@ -108,7 +108,7 @@ export class Groups {
 		// of self-time functions. `_rev` is bumped every time `changed()` fires — the one
 		// place that always means "tasks, folds or task_files really changed" — so the
 		// cache can never serve a stale answer, only skip re-doing work nothing asked to
-		// change. Detail: ai/2026-09-30/inbox-ext/ai2-hang/profile.md.
+		// change. Detail: ai/sessions/2026/09/30/inbox-ext/ai2-hang/profile.md.
 		this._rev = 0;
 		this._members_cache = new Map();   // group id → { rev, out }
 	}
@@ -211,7 +211,7 @@ export class Groups {
 		// `priority: "low"` — this file is ~3.3MB. A browser only opens ~6 connections per
 		// origin, and a slow, uncompressed 3.3MB download can occupy one of them long enough
 		// to queue a page's own small requests behind it; this lets those go first when both
-		// are in flight. See ai/2026-09-29/slow-card-fix/ for the measurement.
+		// are in flight. See ai/sessions/2026/09/29/slow-card-fix/slow-card-fix/ for the measurement.
 		return this.reading ??= fetch("/framework/directory.json", { priority: "low" })
 			.then(res => res?.ok && !(res.headers.get("content-type") ?? "").includes("html") ? res.json() : null)
 			.catch(() => null)

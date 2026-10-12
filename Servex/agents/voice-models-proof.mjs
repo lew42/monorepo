@@ -1,4 +1,4 @@
-/* Proof (ai/2026-10-12/models-asks): on a private Servex the voice pieces run on a NON-Anthropic model, and fall back to Claude when
+/* Proof (ai/sessions/2026/10/12/session-728df7fd/models-asks): on a private Servex the voice pieces run on a NON-Anthropic model, and fall back to Claude when
  * OpenRouter has no key. Ports 8390/8389/8388, throwaway LOCALAPPDATA (the real OpenRouter key is copied in for run A only).
  *   A  with a key:    /api/refine runs on openai/*, and a voice session's fast + smart agents are openai/*
  *   B  without a key: /api/refine falls back to claude-haiku-5-5, and the session agents are claude-*

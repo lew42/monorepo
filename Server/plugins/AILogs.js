@@ -143,7 +143,7 @@ export default class AILogs {
 
     /* Every session on disk, newest-modified first. Cached by mtime+size (see
        CACHE_FILE) so a warm request is a stat() per file plus a JSON encode —
-       nothing under public/framework/ai/2026-09-19/devbar-chat/ (this task's own
+       nothing under public/framework/ai/sessions/2026/09/19/devbar-chat/ (this task's own
        proof) re-reads unchanged content. The one file that IS live right now
        (whichever session is talking) always misses the cache — its mtime moves
        every turn — so it is the only one actually rescanned on a normal request,

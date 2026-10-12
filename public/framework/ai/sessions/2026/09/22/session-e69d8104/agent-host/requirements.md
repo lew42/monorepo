@@ -1,9 +1,9 @@
 # agent-host — Claude sessions held in memory, spawned, messaged and interrupted through Servex
 
 Minion: Opus, effort high. Session id `e69d8104-747e-4a3c-a7f6-d04d37985fc6`. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then section **B**
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first, then section **B**
 (and the "Shape" paragraph) of
-[`../mastermind-servex/requirements.md`](../mastermind-servex/requirements.md) — the owner's
+[`../mastermind-servex/requirements.md`](../../../../../../2026-09-22/mastermind-servex/requirements.md) — the owner's
 own words. Load the `claude-api` skill before you touch the SDK. Private port if you need one:
 **8092**.
 

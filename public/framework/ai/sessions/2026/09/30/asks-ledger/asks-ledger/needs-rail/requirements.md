@@ -1,6 +1,6 @@
 # Minion: Needs you looks like the Inbox
 
-Load the `minion` skill first, then `code`, `page`, `layout` and `css`. Parent: task-mastermind-asks-ledger. Parent brief (read it whole): `public/framework/ai/2026-09-30/asks-ledger/requirements.md`, deliverable 3(a). What the last minion built: `public/framework/ai/2026-09-30/asks-ledger/view/task.jsonl` and `public/framework/ai2/doc/needs-you.md`.
+Load the `minion` skill first, then `code`, `page`, `layout` and `css`. Parent: task-mastermind-asks-ledger. Parent brief (read it whole): `public/framework/ai/sessions/2026/09/30/asks-ledger/asks-ledger/requirements.md`, deliverable 3(a). What the last minion built: `public/framework/ai/sessions/2026/09/30/asks-ledger/asks-ledger/view/task.jsonl` and `public/framework/ai2/doc/needs-you.md`.
 
 The owner (2026-09-30): **"Needs you should look like the Inbox."**
 
@@ -25,7 +25,7 @@ Fence: `public/framework/ai2/needs.js`, `faces.js` (only if a shared row needs a
 
 ## COURSE CORRECTION (2026-09-30 ~14:50, from mastermind-servex-9, relaying the owner)
 
-The owner's newer words (`public/framework/ai/2026-09-30/design-code/owner-words.md`, first paragraph): "the inbox and the needs you, that to me, that sounds like the same thing … I kind of like the inbox better. So let's maybe just forget the needs you page for now. And let's focus on the inbox."
+The owner's newer words (`public/framework/ai/sessions/2026/09/30/design-code/design-code/owner-words.md`, first paragraph): "the inbox and the needs you, that to me, that sounds like the same thing … I kind of like the inbox better. So let's maybe just forget the needs you page for now. And let's focus on the inbox."
 
 **Everything above this line is cancelled.** Do not redraw Needs you. Instead:
 

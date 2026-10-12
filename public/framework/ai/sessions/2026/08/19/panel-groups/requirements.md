@@ -1,6 +1,6 @@
 # panel-groups — groups: the first click selects the outer panel, the next goes one level in; sub-panels wake only inside a selected group
 
-Laws: less is more · clarity · prioritize. **Deliverable: group selection in `ext/Panel` — Figma-style drill-down — as a rule in `focus.js` + CSS gating, one optional word, whole-section drag verified; proven headless; `doc/focus.md` current; final message ≤ 15 lines.** Sonnet. Runs after task A (`../workspace-a-sizing/`) has `landed_at` — it owns `panel.css` until then: `while (-not (Select-String -Path public/framework/ai/2026-08-19/workspace-a-sizing/task.jsonl -Pattern landed_at -Quiet)) { Start-Sleep 20 }`.
+Laws: less is more · clarity · prioritize. **Deliverable: group selection in `ext/Panel` — Figma-style drill-down — as a rule in `focus.js` + CSS gating, one optional word, whole-section drag verified; proven headless; `doc/focus.md` current; final message ≤ 15 lines.** Sonnet. Runs after task A (`../workspace-a-sizing/`) has `landed_at` — it owns `panel.css` until then: `while (-not (Select-String -Path public/framework/ai/sessions/2026/08/19/workspace-a-sizing/task.jsonl -Pattern landed_at -Quiet)) { Start-Sleep 20 }`.
 
 The owner (2026-08-19), verbatim:
 

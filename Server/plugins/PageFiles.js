@@ -38,8 +38,8 @@ const key_of = file => file.split("/")[0];   // "kid/page.js" and "kid/" are the
  * or anything INSIDE a flat dated ai/ TASK folder — the day folder and the task folder
  * itself are covered; only what nests inside the task is not (a minion's scratch).
  *
- *   public/framework/ai/2026-09-29/page-files-log/          <- day + task: COVERED
- *   public/framework/ai/2026-09-29/page-files-log/writer/   <- inside the task: SKIPPED
+ *   public/framework/ai/sessions/2026/09/29/page-files-log/page-files-log/          <- day + task: COVERED
+ *   public/framework/ai/sessions/2026/09/29/page-files-log/page-files-log/writer/   <- inside the task: SKIPPED
  *
  * Only the flat `ai/YYYY-MM-DD/<task>/` shape has a "task interior". The card tree
  * `ai/YYYY/MM/DD/...` nests real cards inside cards, each a page, so it is all covered. */

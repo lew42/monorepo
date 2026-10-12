@@ -1,6 +1,6 @@
 # What ext/Editor is built from, and how it relates to Panel and the playground
 
-![The Editor page: block palette on the left, the canvas in the middle, the layers tree and the inspector on the right, all inside a Panel workspace](/framework/ai/2026-09-23/editor-deps/editor.png)
+![The Editor page: block palette on the left, the canvas in the middle, the layers tree and the inspector on the right, all inside a Panel workspace](/framework/ai/sessions/2026/09/23/83ed7d49-27d6-4584-8a0c-0af1d234f338/editor-deps/editor.png)
 
 **Editor is a small page (about 400 lines) that builds almost nothing itself.** It borrows its frame
 from Panel, its drag from Draggable, its saving from Saver, and its inspector controls from
@@ -21,7 +21,7 @@ five painters that fill the regions.
 1. **Clicking a block in Editor does not update the tree or the inspector.** Panel's viewport set
    mounts the editor seven times, and six of those copies are hidden. Editor keeps one variable per
    region, so a hidden copy ends up owning the tree and the inspector.
-   ([proof](/framework/ai/2026-09-23/editor-deps/editor-click.png))
+   ([proof](/framework/ai/sessions/2026/09/23/83ed7d49-27d6-4584-8a0c-0af1d234f338/editor-deps/editor-click.png))
 2. **[Make](/imagine/paging/make/) shows "Page Load Error".** On line 355 of
    `imagine/paging/toolbar.js`, `$dot` is undefined. Line 192 stores a bare element in the map,
    but line 351 reads each entry as `{ $dot, label }`.
@@ -82,8 +82,8 @@ twin). The inspector is `properties.js`, the right-hand rail, which reads the `W
 one `Workspace`. It shows the document named in the url and docks the rail. Its old list of
 documents moved into Make's tree on 2026-09-18.
 
-![The Panel overview page: a workspace in document mode, with the rail docked on the right](/framework/ai/2026-09-23/editor-deps/panel.png)
-![The playground: one workspace filling the window, with the rail on the right](/framework/ai/2026-09-23/editor-deps/playground.png)
+![The Panel overview page: a workspace in document mode, with the rail docked on the right](/framework/ai/sessions/2026/09/23/83ed7d49-27d6-4584-8a0c-0af1d234f338/editor-deps/panel.png)
+![The playground: one workspace filling the window, with the rail on the right](/framework/ai/sessions/2026/09/23/83ed7d49-27d6-4584-8a0c-0af1d234f338/editor-deps/playground.png)
 
 **What Editor uses from Panel:** `workspace()` and so `Workspace` and its viewport set; `Panel`;
 `PanelDrag`, which lets you rearrange the regions by their grips; `grip.js`, the dividers;

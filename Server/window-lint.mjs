@@ -21,7 +21,7 @@
  * params. Same for `Start-Process` appearing in a comment or an error-message string (e.g.
  * Servex/orphan.mjs's `"no pid from Start-Process"`). Confirm the hit is a real call before
  * editing anything; the 2026-09-28 sweep found every remaining hit after that sweep was one of
- * these two shapes — see ai/2026-09-28/hidden-windows/. */
+ * these two shapes — see ai/sessions/2026/09/28/b42621ed-33f7-41f0-b19b-12c679306b9a/hidden-windows/. */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

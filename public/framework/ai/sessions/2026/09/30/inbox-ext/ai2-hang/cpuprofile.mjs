@@ -1,6 +1,6 @@
 // cpuprofile.mjs — CPU-profile the first 20s of loading a url, print the top 15
 // self-time functions. Usage: node cpuprofile.mjs <url> [out.cpuprofile]
-import { browser, close } from "../../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../Server/browser.mjs";
 import fs from "node:fs";
 
 const url = process.argv[2];

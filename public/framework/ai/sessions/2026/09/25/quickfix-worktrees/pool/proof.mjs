@@ -1,6 +1,6 @@
 /* The worktree pool, proven on a PRIVATE Servex — never the live one on 8090.
  *
- *   node public/framework/ai/2026-09-25/quickfix-worktrees/pool/proof.mjs <scratch dir>
+ *   node public/framework/ai/sessions/2026/09/25/quickfix-worktrees/pool/proof.mjs <scratch dir>
  *
  * Run from the root of the checkout whose Servex you are testing. It boots
  * `node Servex/index.js` there on 8190 (hidden, its own SERVEX_HOME, no gate,

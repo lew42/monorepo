@@ -27,4 +27,4 @@ You are a minion of @mastermind-page-ai-api. Work ONLY in the worktree `C:/Code/
 - Do not touch files outside: `Servex/agents/page_tools.js`, `Servex/agents/page_tools.test.mjs`, `Servex/agents/Subpages.js`, `Servex/pages.js`, `public/framework/ai/AISession/AISessionDetail.js`, `public/framework/core/Page/parts/*`, `public/framework/core/Page/doc/ai-api.md`, and your own scratchpad. Need another file? Say so in your report.
 
 ## Report
-Append to `public/framework/ai/2026-10-12/page-ai-api/build/task.jsonl` as you go (a line at least every ~5 minutes). End with `report.md` beside this brief: one screen, each deliverable ✅/⬜ with its proof (commit hash, test output line, screenshot path), and anything you changed in `ai-api.md`.
+Append to `public/framework/ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/build/task.jsonl` as you go (a line at least every ~5 minutes). End with `report.md` beside this brief: one screen, each deliverable ✅/⬜ with its proof (commit hash, test output line, screenshot path), and anything you changed in `ai-api.md`.

@@ -31,7 +31,7 @@ eye — and every item opens to its evidence one click down. Your report back to
    links the evidence — the page, the task, the log line. A reduced version that was reported as
    done is the finding the owner most wants; look for those. Sources, all read-only: the board
    (`public/framework/ai/v/3/board.jsonl` — the owner's words are in it verbatim), the running
-   mastermind's ledger and its owner inbox (`ai/2026-09-17/mastermind-layout-browser/task.jsonl`,
+   mastermind's ledger and its owner inbox (`ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl`,
    `chat` lines with `from: "owner"`), its `asks.md` (118 requests, all days — today's slice is
    yours to CHECK, not to trust) and `handover.md`, and today's task dirs
    (`ai/2026-09-19/*/task.jsonl` + `requirements.md`). Extract with a script into the scratchpad
@@ -43,7 +43,7 @@ eye — and every item opens to its evidence one click down. Your report back to
    verify and then build on: **card state is more append-only lines, merged by `id`** — the board
    already updates a card when a later line carries the same `id`, so an approval is one more
    line (`approval`, `approved_at`, `note`), and nothing new is invented. The write path from the
-   browser is what the `card-replies` minion is building right now (`ai/2026-09-19/card-replies/`
+   browser is what the `card-replies` minion is building right now (`ai/sessions/2026/09/19/card-replies/`
    — buttons on a card whose answer lands in seconds). If it has landed when you get there, use
    it. If it has not, find the browser-to-file write path that already exists on the dev server
    (the persistence stack — `ext/Saver`, `ext/Item` — and `Server/plugins/`) and write your
@@ -63,7 +63,7 @@ eye — and every item opens to its evidence one click down. Your report back to
    probably per-day files for the board — with the threshold. A recommendation with its number,
    not a survey.
 4. **The Live toggle: where it stands, and how new items really arrive.** It was asked for
-   (17:10) and is specified as item 7 of `ai/2026-09-19/v3-timeline/requirements.md`, which is
+   (17:10) and is specified as item 7 of `ai/sessions/2026/09/19/v3-timeline/requirements.md`, which is
    written and **not yet dispatched** — confirm that, and say so plainly on the page. Then settle
    the owner's doubt with evidence: do new cards appear through the socket stream (a `.jsonl`
    append pushed to the open page, no reload) or through a live reload? Read the code path
@@ -76,7 +76,7 @@ eye — and every item opens to its evidence one click down. Your report back to
 ## The fence — other minions are in flight; the tree is shared
 
 You may write ONLY:
-- `public/framework/ai/2026-09-19/day-audit/**` — `task.jsonl`, `page.js`, the audit data the
+- `public/framework/ai/sessions/2026/09/19/day-audit/**` — `task.jsonl`, `page.js`, the audit data the
   page reads (`audit.jsonl` or `.json`), and the approvals file if deliverable 2 lands there
 - one appended line per event in `public/framework/ai/2026-09-19/day.jsonl`
 - the session scratchpad, under `day-audit/`:
@@ -101,7 +101,7 @@ judgment for the verdicts.
 
 ## The page
 
-`public/framework/ai/2026-09-19/day-audit/page.js` — load `new-page` and `layout` first. Level 1:
+`public/framework/ai/sessions/2026/09/19/day-audit/page.js` — load `new-page` and `layout` first. Level 1:
 how many requests, how many done as asked, and the short list that needs the owner's eye, each
 with its two buttons. One click down: every item with its evidence; the data table; the Live
 toggle answer. Leave the dir undeclared in the day page's `children:` (the `new-task` rule); link

@@ -11,7 +11,7 @@ reading column. Three parties disagreed that afternoon — this file said 53,
 independent hand-count methods, four viewports, two token values, the real
 Montserrat font, agreeing to within 2 characters and perfectly flat across
 viewport width. Full method and receipts:
-[`mastermind-layout/measure-verdict.md`](/framework/ai/2026-08-16/mastermind-layout/measure-verdict.md).
+[`mastermind-layout/measure-verdict.md`](/framework/ai/sessions/2026/08/16/mastermind-layout/measure-verdict.md).
 
 > **`--measure: 52em` produces about 100 characters per line on this site —
 > 106 on a full line of plain prose, 84 to 108 across real copy, ~2.0

@@ -40,8 +40,8 @@ const now_iso = () => {
 };
 
 /* THE PAGE PAIRS — two agents on every page, and a card is a page (designs:
- * public/framework/ai/2026-09-24/assistant-layers/doc/design.md, then
- * public/framework/ai/2026-09-25/recursive-pairs/).
+ * public/framework/ai/sessions/2026/09/24/assistant-layers/assistant-layers/doc/design.md, then
+ * public/framework/ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/).
  *
  * A CONTEXT is a root card id (`2026/09/24/fix-the-sidebar`) or a page path
  * (`/framework/ux/Dictate/`); `/` is the root pair. Its ASSISTANT is fast and
@@ -587,7 +587,7 @@ export default class Layers {
 		return sessions.create({ path, card, host });
 	}
 
-	/* THE DRAWER'S SEND (interface: ai/2026-09-25/recursive-pairs/interface.md;
+	/* THE DRAWER'S SEND (interface: ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/interface.md;
 	 * one-dictation, 2026-09-30: this used to write into the page's own chat and
 	 * wake that page's own assistant — the per-directory assistant the owner
 	 * asked to retire. It now feeds the one global session/project pair instead,

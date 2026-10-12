@@ -9,7 +9,7 @@ The owner's words are verbatim in [owner-words.md](owner-words.md). The example 
 2. **`core/Page/ext/Inbox`:** the first extension. Any page can have an inbox.
    - Messaging a page = appending one line to its page.jsonl: `{inbox: {type: "message"|"question", author, text, at}}`.
    - The author is the agent that sent it. It's like emailing a directory.
-   - Build on the page inbox that already landed ([page-inbox](../page-inbox/): notes live under the `inbox` key), and on the drawer inbox steps. Move it; don't rebuild it.
+   - Build on the page inbox that already landed ([page-inbox](../page-inbox/page-inbox): notes live under the `inbox` key), and on the drawer inbox steps. Move it; don't rebuild it.
 3. **Move the AI 2 Inbox to the new /framework/ai/** as its **default tab** (the dashboard; the owner, 2026-09-30); the docs live on its System tab. Keep every useful feature of today's Inbox: the sidebar on click, and read/unread, archive, auto-resolve and search from task ai2-inbox-read. The Inbox IS the default tab, so its top-priority items are what the page opens on.
 4. **Needs you is a filter in the Inbox list,** not its own tab with its own UI.
 5. **Inbox and Log share one UI:** the rail with previews, and each preview opens its card. Today the three tabs use three different templates. Lean into the Inbox's version.

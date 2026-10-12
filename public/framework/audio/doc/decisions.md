@@ -4,7 +4,7 @@
 
 `MicStream` is `ux/Dictate/capture.js` (+ `pcm-worklet.js`) copied, not imported — `ux/Dictate/`
 (`Dictate.js`, `capture.js`, `pcm-worklet.js`, and the playground) was another minion's fence
-while this task ran (2026-09-29, both spawned from `ai/2026-09-29/audio/`). The processor name
+while this task ran (2026-09-29, both spawned from `ai/sessions/2026/09/29/audio/audio/`). The processor name
 was changed (`lew42-pcm` vs `dictate-pcm`) so the copy never collides with the original even if
 both ever load on the same page — each opens its own `AudioContext`, so it would not have
 mattered either way, but a distinct name costs nothing and rules it out.
@@ -100,7 +100,7 @@ test only (`Whisper.max_segment_ms = 5000`) to force several mid-sentence cuts r
 methodological choice, not a shipped default. Two runs against the SAME file, same real
 whisper-server: `seam_fix: false` (plain `cut()`, no `prompt` — today's old behaviour) and
 `seam_fix: true` (a)+(b) together. Full transcripts and the run script are in this task's log
-(`ai/2026-09-29/audio/a-parts/task.jsonl`, `experiment` entries).
+(`ai/sessions/2026/09/29/audio/audio/a-parts/task.jsonl`, `experiment` entries).
 
 **Result — genuinely mixed, not a clean win:**
 - Two forced-cut seams that dropped whole words under the old code kept them under the fix: "the
@@ -181,7 +181,7 @@ script used and was not re-timed to hit the number exactly — budget). `Whisper
   this run — the monologue's phrasing agreed within a tick or two throughout.
 
 Full transcripts and the run script are in this task's log
-(`ai/2026-09-29/audio/a-parts/task.jsonl`, `experiment` entries) and in
+(`ai/sessions/2026/09/29/audio/audio/a-parts/task.jsonl`, `experiment` entries) and in
 [`Transcriber/doc/streaming.md`](/framework/audio/Transcriber/doc/streaming.md), which now folds
 this decision in rather than only recommending it.
 

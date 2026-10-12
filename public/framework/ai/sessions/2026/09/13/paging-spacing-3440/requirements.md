@@ -1,6 +1,6 @@
 # paging-spacing-3440 — why prose spacing balloons at 3440, and the one knob
 
-Run: `ai/2026-09-13/mastermind-page-cms/` (the mastermind). Group: `layout`.
+Run: `ai/sessions/2026/09/13/mastermind-page-cms/` (the mastermind). Group: `layout`.
 
 ## The three laws, and your length budget
 
@@ -28,12 +28,12 @@ Where the numbers live: `public/framework/framework.css` lines 191–201 (the si
 
 ## Fences
 
-- Own: `public/framework/ai/2026-09-13/paging-spacing-3440/**`. May edit exactly one file for the fix if deliverable 3 is a one-knob change: `public/framework/framework.css` OR the theme file that sets the viewport font step — name it in the log before you edit. Nothing under `public/imagine/**` (a sibling owns `paging/make/**` and `paging/build/**` right now and is rebuilding Make; do not measure Make while its files are changing — if `git status public/imagine/paging/make` shows edits under way, measure `/imagine/paging/` and `/imagine/paging/doc/` instead and say so).
+- Own: `public/framework/ai/sessions/2026/09/13/paging-spacing-3440/**`. May edit exactly one file for the fix if deliverable 3 is a one-knob change: `public/framework/framework.css` OR the theme file that sets the viewport font step — name it in the log before you edit. Nothing under `public/imagine/**` (a sibling owns `paging/make/**` and `paging/build/**` right now and is rebuilding Make; do not measure Make while its files are changing — if `git status public/imagine/paging/make` shows edits under way, measure `/imagine/paging/` and `/imagine/paging/doc/` instead and say so).
 - Do not edit any skill, readme or doc outside your task dir; a proposal for `/framework/styles/` docs goes in `spacing.md`.
 
 ## Rules every brief carries
 
-- Open your task: `ai/2026-09-13/paging-spacing-3440/task.jsonl` with the `new-task` skill (own `session_id`, group `layout`, the three deliverables as `steps`). Findings as `log` lines. Land with `finish-task`.
+- Open your task: `ai/sessions/2026/09/13/paging-spacing-3440/task.jsonl` with the `new-task` skill (own `session_id`, group `layout`, the three deliverables as `steps`). Findings as `log` lines. Land with `finish-task`.
 - **Never kill or restart the dev server on port 80. Never drive the owner's tabs. Never `git stash`. Never commit.**
 - Headless: a PRIVATE server `PORT=809x node server.js` from the repo root (`netstat -ano | grep LISTENING | grep -E ":80(8|9)[0-9]\s"` shows taken ports; a sibling may hold one), killed by pid at landing. Scripts and pngs in the session scratchpad under `spacing-3440-*`.
 - Never measure while a sibling is editing the page you measure; re-run on a quiet tree.

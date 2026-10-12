@@ -14,7 +14,7 @@ Load the `minion` skill first. Then this brief.
 
 - `ext/Ask` (`Ask.js`, `chat.js`, `pick.js`, `readme.md`, `doc/`): `ask(prompt, { model, tools, context, shot })` and `chat({ task })` — a turn is a fresh `claude -p --resume` process on the dev server, bound to the tab that asked; **the first message on a `task` forks that task's `session_id` and later ones resume the fork** (`doc/fork.md`); `task` is a path under `public/` and is the fence; the exchange is appended to that task's `task.jsonl` as `chat` lines (`doc/record.md`); `context` already travels; tool scoping is per call and opt-in (`tools`). `Server/plugins/Ask.js` runs the turn.
 - The hierarchy on a task page (`ext/AITask`): the Asks tab (`asks.js`: cards with `ask.id`), the Decisions tab (`decisions.js`: rows with `decision.id`), the run's task cards on the day dashboard (`card.js`), `chat` lines rendered by `conversation.js`. Every verb merges by id; appends stream to open tabs over the socket without a reload (`ext/JSONL` `live()`); `rpc:append` is the browser's writer.
-- The run task: `/framework/ai/2026-09-17/mastermind-layout-browser/` (session `cfca18c9-a470-4295-a088-a13479fdd040`) — the mastermind's session; a reply on one of its asks forks THAT session, which already knows every ask.
+- The run task: `/framework/ai/sessions/2026/09/17/mastermind-layout-browser/` (session `cfca18c9-a470-4295-a088-a13479fdd040`) — the mastermind's session; a reply on one of its asks forks THAT session, which already knows every ask.
 
 ## Deliverables
 
@@ -26,7 +26,7 @@ Load the `minion` skill first. Then this brief.
 
 ## Rules
 
-- Load `code`, `css`, `layout`; `new-task` before the first edit (your dir exists: `ai/2026-09-18/reply-in-place/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you. Write your choices as `decision` lines.
+- Load `code`, `css`, `layout`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/18/reply-in-place/`); `documentation` then `finish-task`; `skill-improvement` for any skill that misled you. Write your choices as `decision` lines.
 - **Fence:** `public/framework/ext/Ask/**`, `public/framework/ext/AITask/**` (a report-order minion lands there first — start with `ext/Ask`, and check `git status` on `ext/AITask` before touching it), `public/framework/ext/JSONL/doc/task-jsonl.md` (the one field), `Server/plugins/Ask.js` only if the prompt or tool scoping cannot be done client-side (say so; a Server/ change is live only after the owner restarts their dev server — note it in the landing as an owner item, 1 min), your task dir. Nothing else — never write into the run task's `task.jsonl` except through a real reply turn in your proof (one ask, one line, and say which).
 - The owner's dev server (port 80) is running: never touch it; your own is `PORT=8122 node server.js` from the repo root, background, killed by its real Windows PID when you land. Never `git stash`, never `find /`, never drive the owner's tabs; a headless page is a tab of its own — claim nothing the owner has open. `ui-test` has the headless recipe.
 - Two numbers that must agree: chat lines appended by your proof and threads drawn under items.

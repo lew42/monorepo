@@ -1,7 +1,7 @@
 # The fixer — the fast path from "fix this" to a live edit
 
 **The owner, in the dictation this task was briefed from** (quoted in this task's own
-`ai/2026-10-01/quick-fix-path/fixer/requirements.md`): *"if we have a quick fix branch that's
+`ai/sessions/2026/10/01/quick-fix-path/fixer/requirements.md`): *"if we have a quick fix branch that's
 always ready to go we should be able to reduce the time to first fix... grab an existing quick-fix
 worktree, write the change, smoke test it all at once, and then merge its own worktree."* This is
 that: one standing agent that is always warm, always holding a worktree, so a
@@ -94,5 +94,5 @@ own `readme.md` for the file shape.
 - [`/framework/ai/quick-fix/`](/framework/ai/quick-fix/) — the live log
 - [`doc/pool.md`](pool.md) — the worktree pool the fixer holds one slot of
 - `Servex/agents/Fixer.js`, `Servex/agents/fixer.md` — the code and the brief
-- `ai/2026-10-01/quick-fix-path/` — the task this shipped under: the plan, the owner's own words,
+- `ai/sessions/2026/10/01/quick-fix-path/` — the task this shipped under: the plan, the owner's own words,
   and the sibling `quick-merge` task (`merge.mjs --quick`, still landing)

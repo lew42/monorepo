@@ -79,8 +79,8 @@ preview card.
 - **Nothing renders a live `Timeline` anywhere else on the site.**
   `framework/ai/page.js` used `ai_timeline()` as its `previews()` for several
   hours on 2026-08-14 (built in
-  [`ai-page`](/framework/ai/2026-08-14/ai-page/), replaced the same day by
-  [`ai-dashboard`](/framework/ai/2026-08-14/ai-dashboard/) — Mike wanted
+  [`ai-page`](/framework/ai/sessions/2026/08/14/ai-page/), replaced the same day by
+  [`ai-dashboard`](/framework/ai/sessions/2026/08/14/ai-dashboard/) — Mike wanted
   step/cost cards over a time axis for that page). `framework/ai/page.js`
   now calls `ext/AITask`'s `rail()` instead. `ai.js` was left in place,
   correct and importable, wired to nothing — a module with no callers is

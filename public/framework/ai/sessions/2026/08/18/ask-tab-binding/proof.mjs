@@ -1,6 +1,6 @@
 /* The tab binding, proven in two halves.
  *
- *   node public/framework/ai/2026-08-18/ask-tab-binding/proof.mjs           both halves, free
+ *   node public/framework/ai/sessions/2026/08/18/ask-tab-binding/proof.mjs           both halves, free
  *   node …/proof.mjs --spawn    + one real haiku turn, no browser (~$0.01)
  *   node …/proof.mjs --turn     + the full two-tab turn through the dev server (~$0.03)
  *
@@ -11,13 +11,13 @@
  * so rather than guessing when it is not.
  */
 
-import Tab from "../../../../../Server/plugins/SocketServer/Tab.js";
-import MCP from "../../../../../Server/plugins/MCP.js";
-import Ask from "../../../../../Server/plugins/Ask.js";
+import Tab from "../../../../../../../../Server/plugins/SocketServer/Tab.js";
+import MCP from "../../../../../../../../Server/plugins/MCP.js";
+import Ask from "../../../../../../../../Server/plugins/Ask.js";
 
 const HOST = "http://localhost";
 const PAGE = "/framework/ext/Panel/";
-const THREAD = "framework/ai/2026-08-18/ask-tab-binding/ai/proof";
+const THREAD = "framework/ai/sessions/2026/08/18/ask-tab-binding/ai/proof";
 const PLAYWRIGHT = "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
 
 let failed = 0;

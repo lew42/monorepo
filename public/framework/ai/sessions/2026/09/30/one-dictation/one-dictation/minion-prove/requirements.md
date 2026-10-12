@@ -1,6 +1,6 @@
 # Minion brief: prove this afternoon's chat fixes live (step 0)
 
-Load the `minion` skill first, then `ui-test`. Your parent is **task-mastermind-one-dictation**. Read `public/framework/ai/2026-09-30/one-dictation/checklist-2026-10-01.md` first: the owner's 14 fixes.
+Load the `minion` skill first, then `ui-test`. Your parent is **task-mastermind-one-dictation**. Read `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/checklist-2026-10-01.md` first: the owner's 14 fixes.
 
 ## Why
 The voice session's minions edited main directly. Several had no shell, so none of these fixes has been seen working. They are live on `http://monorepo.localhost` now, uncommitted. Your job is to PROVE or DISPROVE each one with headless Playwright and a screenshot. **You change no code:** report only. Your parent fixes and commits.
@@ -13,10 +13,10 @@ Use `/framework/ux/Dictate/` (the demo) and the ✦ sheet (tap ✦ on any page a
 4. **Mic sounds** (7): launch Chromium with `--use-fake-ui-for-media-stream --use-fake-device-for-media-stream`. Wrap `AudioContext.prototype.createOscillator` to count calls. Start and stop the mic on both surfaces: does each give one start chime and one stop chime?
 5. **The dot** (8): mount `new Widget({pulse: true})` (or whatever `ux/Dictate/doc/widget.md` documents) on a blank page. Shoot it on and off. Then say whether ANY real surface uses it yet.
 6. **Do the two surfaces match?** (2): list every option and setting the demo's `chat()` mount and the sheet's mount pass (page.js vs ext/drawer/rail.js), side by side, and every behaviour that differs (autosend, send mode, keep, mode). This is the input to the next merge.
-7. **Menu merge and threaded replies:** if `public/framework/ai/2026-10-01/chat-menu-merge/` or `card-threaded-replies/` has landed by the time you get here, check its claim the same way. If not, skip it.
+7. **Menu merge and threaded replies:** if `public/framework/ai/sessions/2026/10/01/chat-menu-merge/chat-menu-merge/` or `card-threaded-replies/` has landed by the time you get here, check its claim the same way. If not, skip it.
 
 ## Rules
-Never `say()` into a live session (stub every Servex call), never drive the owner's tabs, never restart Servex, and never edit code. Scripts and shots go in `public/framework/ai/2026-09-30/one-dictation/minion-prove/`.
+Never `say()` into a live session (stub every Servex call), never drive the owner's tabs, never restart Servex, and never edit code. Scripts and shots go in `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/minion-prove/`.
 
 ## Land
 Write `minion-prove/report.md`: one line per check (pass or fail, shot, cause), then the surfaces table for 6. End your turn with the same lines.

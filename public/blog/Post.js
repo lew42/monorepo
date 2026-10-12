@@ -9,7 +9,7 @@ View.stylesheet(import.meta, "blog.css");
  * A post's own `page.js` is two lines. What a post SAYS ABOUT ITSELF lives in
  * `posts.js`; what it SAYS lives in `.md` files beside it. This class is the seam
  * between them, plus the one shape the three questions in
- * `framework/ai/2026-08-30/blog-arch/` were asked about:
+ * `framework/ai/sessions/2026/08/30/blog-arch/` were asked about:
  *
  *   head    crumbs, title, byline — short, because the fold is the ask
  *   read    the measure, hard LEFT (doc/reading-page.md)

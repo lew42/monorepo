@@ -37,7 +37,7 @@ export default new Page({
 - **Vision comparison** — haiku/sonnet/opus analysing the same 15 screenshots
   at ~$0.02/$0.10/$0.14 per shot; consensus on nav-rail clipping and 3440 dead
   space, haiku unreliable at 1920.
-- **[ai-dashboard](/framework/ai/2026-08-14/ai-dashboard/)** — usage windows as
+- **[ai-dashboard](/framework/ai/sessions/2026/08/14/ai-dashboard/)** — usage windows as
   *pace* (a ▼ marks the clock, the bar is spend), tasks as step outlines, and a
   detail template a task's own \`page.js\` can extend.
 - **[ext/Ask](/framework/ext/Ask/)** — the log became two-way. A text input on a

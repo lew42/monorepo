@@ -395,7 +395,7 @@ cannot shadow a method. Do that grep before the next noun goes on this prototype
 
 ### `Page.Store` absorbs `Sidebar.Store` and `LocalStorageSaver`'s own guard — 2026-09-18
 
-The overlap study (`ai/2026-09-18/overlap-study/`) found three classes each hand-rolling
+The overlap study (`ai/sessions/2026/09/18/overlap-study/`) found three classes each hand-rolling
 "read/write one JSON blob in `localStorage`, guarded, with a private-mode fallback":
 this one, `core/Sidebar`'s own `Sidebar.Store` (a fixed key, `lew42:sidebar` — a Sidebar
 is one piece of persistent chrome, not a per-page setting, so it could never key on
@@ -448,7 +448,7 @@ Both research fronts are back on `width: "fill"`. Measured (headless, 3440):
 Alone, the front still fills the row. With a child open, every column reads well over
 600px — the four unconstrained columns on the cloudflare path split the leftover evenly
 (none hit its own ceiling), which reads *better* than the rough pre-measurement estimate
-in `ai/2026-09-05/mastermind-day/requirements.md` ("rail 432 / hub 500 / front ~1150 /
+in `ai/sessions/2026/09/05/mastermind-day/requirements.md` ("rail 432 / hub 500 / front ~1150 /
 topic ~700 / verdict ~700"). Direct child only, same shape as the `full` collapse above —
 `.active-page` is excluded on purpose, so a `fill` leaf with nothing open beside it still
 fills. `./columns.md` has the rule and the doc-level explanation.
@@ -494,7 +494,7 @@ all three to `initial`, so a nested host starts from its own defaults — one ru
 realm's finding, which restated the two lines in `util` locally as a workaround). Fix: the same two
 lines moved into `@layer util` here, beside the rule they were losing to — `styles/doc/cascade.md`.
 Both measured before/after at 1280 and 3440 on the reporting pages, with three unrelated columns
-pages checked unchanged: `ai/2026-09-05/core-fixes/`.
+pages checked unchanged: `ai/sessions/2026/09/05/core-fixes/`.
 
 ### `children` may be a function — children that live in data — 2026-09-17
 
@@ -521,7 +521,7 @@ the element, and a rebuilt view orphans every child.
 Proof: the 18 urls the proposal names answered identically before and after — same titles,
 same link sets, same page counts — and a cold deep url into each tree with the cache disabled
 drew with no *"Chaining cycle detected for promise"*.
-[`./data-children.md`](/framework/core/Page/doc/data-children/) · `ai/2026-09-17/core-data-children/`.
+[`./data-children.md`](/framework/core/Page/doc/data-children/) · `ai/sessions/2026/09/17/core-data-children/`.
 
 ## Traps
 
@@ -711,7 +711,7 @@ entries and 404ing a real page; the `children` setter only handled a config arra
 (staged for `declare()`) and silently swallowed a live `this.children = new Map()` reset
 (`core/Page/generator/`'s own `grow()`), so old children never actually cleared.
 
-Build log: `ai/2026-10-02/page-extends-item/page-on-item/`.
+Build log: `ai/sessions/2026/10/02/page-extends-item/page-extends-item/page-on-item/`.
 
 ## Comments moved out of Page.class.js (2026-10-12)
 
@@ -859,7 +859,7 @@ it. doc/open.md.
   Page.file() above, in imagine/paging/stage.js and in make/made.js.
 `opts` passes straight to `fetch` — e.g. `{ priority: "low" }`, so a big census
 file (directory.json) never queues ahead of the page's own small requests on
-a slow connection (ai/2026-09-29/slow-card-fix/).
+a slow connection (ai/sessions/2026/09/29/slow-card-fix/slow-card-fix/).
 
 ### A page.json — an object, or the url of a directory holding one — AS A 
 

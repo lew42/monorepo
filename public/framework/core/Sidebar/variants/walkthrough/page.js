@@ -4,7 +4,7 @@ import { Wizard } from "/framework/ux/Wizard/Wizard.js";
 /* Sidebar variants, in nine steps — press Next when you are ready. One picture of the
    real thing per step, one plain sentence under it, and a link to the live page. The
    step is in the address (`#3`), so a reload or Back lands on the same step. */
-const shot = name => new URL("../../../../ai/2026-09-28/section-variants/walkthrough/shots/" + name, import.meta.url).href;
+const shot = name => new URL("../../../../ai/sessions/2026/09/29/section-variants/section-variants/walkthrough/shots/" + name, import.meta.url).href;
 
 const STEPS = [
 	{ title: "The section element", pic: "section-1920.png", after: "section-hover-1920.png", open: "/framework/ui/section/",

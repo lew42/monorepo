@@ -40,7 +40,7 @@ class Router {
 	 * @public
 	 * @returns {string}
 	 */
-	current(){ return "/framework/ai/2026-09-22/object-layer/"; }
+	current(){ return "/framework/ai/sessions/2026/09/22/54ebf7f2-4a93-4907-895c-a97c36b16389/object-layer/"; }
 }
 
 class App {

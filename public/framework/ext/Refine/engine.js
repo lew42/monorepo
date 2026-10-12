@@ -19,7 +19,7 @@
  * exports (`clean`, `GLOSSARY`) are unchanged.
  *
  * TWO SPEEDS, ONE FUNCTION (the owner's own framing, 2026-10-02 — see
- * `public/framework/ai/2026-10-02/prompt-refine/requirements.md`): there is no separate
+ * `public/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/requirements.md`): there is no separate
  * "stream mode" flag here. `clean(text, {prev})` is the same call either way —
  *   - once, on a whole logged prompt (`prev` omitted): one clean pass over everything.
  *   - many times, on live segments as they finish (`prev` = the last ~2 sentences already

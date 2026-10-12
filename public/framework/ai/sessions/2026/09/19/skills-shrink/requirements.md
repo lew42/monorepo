@@ -101,7 +101,7 @@ any of them, put the teeth back. Say in your log which three you tested.
 ## Fences
 
 You own every `.claude/skills/*/SKILL.md` and
-`public/framework/ai/2026-09-19/skills-shrink/**`. One line in the day page's `children:`, one
+`public/framework/ai/sessions/2026/09/19/skills-shrink/**`. One line in the day page's `children:`, one
 append to its `day.jsonl`. **Not** `improvements.md`, **not** `caveats.md`, **not** `CLAUDE.md`,
 **not** `.claude/settings.json`, **not** `.claude/hooks/**`.
 

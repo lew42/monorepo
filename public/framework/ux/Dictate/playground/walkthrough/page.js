@@ -4,7 +4,7 @@ import { Wizard } from "/framework/ux/Wizard/Wizard.js";
 /* THE DICTATION PLAYGROUND, SIX CLICKS — press Next when ready. One real screenshot
  * per step, one sentence under it, a link to open the live page. The step lives in the
  * address (`#3`), so a reload or Back lands on the same step. Shape copied from
- * `ai/2026-09-25/ai2-lead/page.js` — see that file's own comment for why. */
+ * `ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/page.js` — see that file's own comment for why. */
 const shot = name => new URL("shots/" + name, import.meta.url).href;
 
 const STEPS = [

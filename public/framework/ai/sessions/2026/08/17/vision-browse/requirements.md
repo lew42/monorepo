@@ -5,7 +5,7 @@
 
 Mike asked: *"did we record each vision analysis, so i can browse them?"*
 
-**Recorded, yes. Browsable, no.** `ai/2026-08-17/vision-baseline/baseline.json` holds
+**Recorded, yes. Browsable, no.** `ai/sessions/2026/08/17/vision-baseline/baseline.json` holds
 18 rows — each with the image path, a content hash, an `overall`, five axis scores
 (`layout typography contrast density hierarchy`) and **one sentence of prose per
 axis naming what in the image drove that number**. The only thing reading it is
@@ -59,13 +59,13 @@ An undeclared name falls through to `route()` and renders as an AITask log.
 
 ## Files you own
 
-- `public/framework/ai/2026-08-17/vision-browse/**` — your page.
+- `public/framework/ai/sessions/2026/08/17/vision-browse/**` — your page.
 - One line in `ai/2026-08-17/page.js`'s `children:` to declare it.
 
 **Fenced:** `vision-baseline/**` and `rubric-v2/**` are **read-only sources of
 truth** — `baseline.json` must not change. `human-ranking/**` is read-only (read
 its `shots.js`, copy the approach, don't edit it). `ext/AITask/**`,
-`ext/DesignTool/**`, `ext/Panel/**`, and `ai/2026-08-17/report/**` (another agent).
+`ext/DesignTool/**`, `ext/Panel/**`, and `ai/sessions/2026/08/17/report/**` (another agent).
 
 ## Deliverables
 

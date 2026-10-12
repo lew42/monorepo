@@ -57,7 +57,7 @@ export default new Page({
 		div.c("flex v gap").style({ gap: "0.7em" }).append(() => VARIANTS.forEach(variant_row));
 
 		h2("What shipped");
-		md("Today's system change (task: [spacing-clamp](/framework/ai/2026-09-01/spacing-clamp/)):\n\n" +
+		md("Today's system change (task: [spacing-clamp](/framework/ai/sessions/2026/09/01/spacing-clamp/)):\n\n" +
 			"- `--pad-default: clamp(1em, 1.3%, 2em)` — every `.pad` with no override now scales; 1.3% of 1280 IS 1em, so nothing moved below 1280.\n" +
 			"- `--gap-default: clamp(1em, 0.4em + 0.5vw, 1.6em)` — every default gap likewise (vw, never %: percentage row-gap is undefined against an auto height).\n" +
 			"- Columns: pad tokens are `cqi` clamps on the host, so the crumb bar, heads, items and prose share one indent at every width.\n\n" +

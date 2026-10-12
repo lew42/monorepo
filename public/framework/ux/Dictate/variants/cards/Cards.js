@@ -12,7 +12,7 @@ import Dictate from "../../Dictate.js";
  *
  * Overrides exactly two methods, per the owner's own rule ("extending the classes...
  * cherry pick a specific method") — everything else (engines, errors, the start sound's
- * real timing fixed in `ai/2026-09-29/mobile-nav/`) is inherited from `Dictate` untouched:
+ * real timing fixed in `ai/sessions/2026/09/29/mobile-nav/mobile-nav/`) is inherited from `Dictate` untouched:
  *
  * - `build_output()` — a vertical card list instead of one caption line.
  * - `draw_caption()` — repaints the WHOLE list from `this.settled_lines` (every commit()

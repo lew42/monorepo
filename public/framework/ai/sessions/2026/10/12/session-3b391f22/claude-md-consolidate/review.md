@@ -6,19 +6,19 @@ Nothing was lost, and nothing waits on you. `CLAUDE.md` went from **3,870 to 3,4
 
 - ✅ **161 kept** word for word in `CLAUDE.md`.
 - ✅ **24 moved** word for word to the doc where they belong (listed below).
-- ✅ **22 archived**: folded into a shorter rule, original wording kept in [claude-md-archive.md](../../doc/claude-md-archive.md).
+- ✅ **22 archived**: folded into a shorter rule, original wording kept in [claude-md-archive.md](../../../../../../doc/claude-md-archive.md).
 - Strength words ("never", "always", "must"): 62 before, 60 after. None got stronger.
 - Re-check any time: `node run.mjs check` in this folder. The full map, one row per sentence: [manifest.md](manifest.md). The 23 sentences that were reworded: [reworded.md](reworded.md).
 
 ## Where the moved text went
 
-- [writing.md](../../doc/writing.md): 7 finer points on clarity and index pages.
-- [classes.md](../../doc/classes.md): 7 finer points on class cards and naming.
-- [readmes.md](../../doc/readmes.md): 5 finer points on readmes.
-- [Mention ideas.md](../../../ext/Mention/doc/ideas.md): the "run all text through one processor" idea.
-- [Servex budget.md](../../../../../Servex/doc/budget.md): Haiku pricing detail.
-- [Page markdown.md](../../../core/Page/doc/markdown.md): how `.md` links render.
-- [Server watch.md](../../../../../Server/doc/watch.md): streams keep flowing during a hold.
+- [writing.md](../../../../../../doc/writing.md): 7 finer points on clarity and index pages.
+- [classes.md](../../../../../../doc/classes.md): 7 finer points on class cards and naming.
+- [readmes.md](../../../../../../doc/readmes.md): 5 finer points on readmes.
+- [Mention ideas.md](../../../../../../../ext/Mention/doc/ideas.md): the "run all text through one processor" idea.
+- [Servex budget.md](../../../../../../../../../Servex/doc/budget.md): Haiku pricing detail.
+- [Page markdown.md](../../../../../../../core/Page/doc/markdown.md): how `.md` links render.
+- [Server watch.md](../../../../../../../../../Server/doc/watch.md): streams keep flowing during a hold.
 
 ## One conflict found
 

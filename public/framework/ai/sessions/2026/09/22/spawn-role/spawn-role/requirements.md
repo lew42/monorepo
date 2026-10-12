@@ -1,9 +1,9 @@
 # spawn-role — an agent's posture comes from its role, and a registry says who is alive
 
 Minion: Sonnet, effort high. Session id `d9bde1af-3e17-4405-ac65-1a59c4f10a43`. Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first, then phase-2 items
-**3** and **4** in [`../tiers-design/doc/phases.md`](../tiers-design/doc/phases.md) and the
-roles in [`../tiers-design/doc/roles.md`](../tiers-design/doc/roles.md). Load the `code` skill.
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first, then phase-2 items
+**3** and **4** in [`../tiers-design/doc/phases.md`](../../tiers-design/tiers-design/doc/phases.md) and the
+roles in [`../tiers-design/doc/roles.md`](../../tiers-design/tiers-design/doc/roles.md). Load the `code` skill.
 
 ## What exists
 

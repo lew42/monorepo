@@ -29,7 +29,7 @@ Your private supervised server `PORT=8141 node server.js`, and `HEALTH_BASE=http
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/page-health/`); `code`, `new-page`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/page-health/`); `code`, `new-page`, `documentation`, `ui-test`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `public/framework/ext/JSONL/**` (the verb fix), `public/framework/ai/v/2/page.js` (remove the duplicate verb only), `Server/health.mjs` (new), `public/framework/ai/health/**` (new), `.claude/hooks/health-guard.mjs` (new) + the one line in `.claude/hooks/ledger.mjs`, `.gitignore` if the day files should be ignored (say which you chose and why), `Server/README.md` (one line), your task dir. Not `dev/DevBar/**`, not `dev/Socket/**`, not `Server/plugins/**`, not `Server/run.js`, not `server.js`.
 - A hook checks every `.js` write parses and stops you if it does not. `ext/JSONL/JSONL.js` is loaded by the owner's live dashboard and chat log: one write, proven parseable, a page loaded headless within the minute.
 - **Never kill or restart the owner's dev server (port 80, PID 31028) or the mastermind's (8123), never stop whisper-server (PID 35172), never drive the owner's tabs.** Never `git stash`, never `find /`. Write files with the Write or Edit tool, never a bash heredoc. Do not write the owner's name anywhere.

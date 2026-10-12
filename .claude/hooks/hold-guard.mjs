@@ -12,7 +12,7 @@ const root = path.resolve(fileURLToPath(import.meta.url), "../../..");
  * else, and the hold's own deliberate self-expiry (5 minutes by default — see hold.mjs's own
  * header) lapses it with nothing telling anyone. The agent's next write then goes out UNHELD
  * and the owner's live site can 404 for real, which is exactly what happened tonight
- * (public/framework/ai/2026-09-19/hold-guard/requirements.md tells the story).
+ * (public/framework/ai/sessions/2026/09/19/hold-guard/requirements.md tells the story).
  *
  * The self-expiry itself is correct and stays untouched — a hold that could never lapse would
  * be worse (it could stick forever and block every reload). The fix is only to notice, at the

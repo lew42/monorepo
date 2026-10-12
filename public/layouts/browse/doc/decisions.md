@@ -1,6 +1,6 @@
 # Decisions — what was settled here, what was measured, and what is still the owner's call
 
-Built 2026-09-17 in one task, `ai/2026-09-17/layout-browser/`, from the owner's sentence:
+Built 2026-09-17 in one task, `ai/sessions/2026/09/17/layout-browser/`, from the owner's sentence:
 *"we need a layout browser… I kind of think we need an approve or improve for the layout
 system."*
 
@@ -75,7 +75,7 @@ without `.std-browse-say`'s `max-width: var(--measure)` one sentence ran 3,260px
 A second agent pressed every control at 400 / 1280 / 1920 / 3440 against the owner's own
 sentences and found fifteen things. Thirteen were fixed; the two that were not are at the
 bottom of this section, with their measurements. The whole run is in
-`framework/ai/2026-09-17/browser-critic/task.jsonl`.
+`framework/ai/sessions/2026/09/17/browser-critic/task.jsonl`.
 
 **A card now pictures the thing, not the page the thing is documented on.** All thirty
 Components cards were screenshots of a documentation page — the same left nav, the same
@@ -159,9 +159,9 @@ and raising it is a change to the layout standard, not to this browser.
 
 ## The wall moved onto `this.browse()`, and the verdict keyspace merged (2026-09-18, `browse-on-browse`)
 
-Two things, one task: `ai/2026-09-18/browse-on-browse/`, item 5 of the overlap study
-(`ai/2026-09-18/overlap-study/overlap.md`) plus the mastermind's `verdict-keyspace` decision
-(`ai/2026-09-17/mastermind-layout-browser/task.jsonl`).
+Two things, one task: `ai/sessions/2026/09/18/browse-on-browse/`, item 5 of the overlap study
+(`ai/sessions/2026/09/18/overlap-study/overlap.md`) plus the mastermind's `verdict-keyspace` decision
+(`ai/sessions/2026/09/17/mastermind-layout-browser/task.jsonl`).
 
 **The wall now draws with `this.browse()`** (`ext/catalog`), the same method `core/Layout/`
 and `framework/ui/` stand on, instead of an independent 644-line hand-rolled grid — the study

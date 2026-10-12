@@ -1,6 +1,6 @@
 # Minion brief: the step loop (task-loop, part 6)
 
-Load the `minion` skill first. The whole task: `public/framework/ai/2026-09-28/task-loop/`. The owner's words are at the end of its requirements.md: "when you have a plan of action with a certain number of steps having a programmatic loop kind of just re-prompt the minion or the mastermind ... with the next step ... Then when they're done, then they ideally would need to use like a finish step skill." Summary item 2 there: "Code, not the AI, keeps the place."
+Load the `minion` skill first. The whole task: `public/framework/ai/sessions/2026/09/28/task-loop/task-loop/`. The owner's words are at the end of its requirements.md: "when you have a plan of action with a certain number of steps having a programmatic loop kind of just re-prompt the minion or the mastermind ... with the next step ... Then when they're done, then they ideally would need to use like a finish step skill." Summary item 2 there: "Code, not the AI, keeps the place."
 
 **Worktree:** `C:/Code/lew42/worktrees/task-loop`. Work only there. Read `Servex/Heartbeat.js` and `Servex/TaskLoop.js` first; build in the same style.
 

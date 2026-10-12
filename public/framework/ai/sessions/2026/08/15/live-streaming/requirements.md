@@ -102,7 +102,7 @@ smoke test, and the verification agent.
 
 Every agent: `node --check` on a `.mjs` copy of every edited JS file (the
 backtick-in-css trap); log `action`/`log` milestone lines (batched, not
-per-keystroke) to `public/framework/ai/2026-08-15/live-streaming/task.jsonl`.
+per-keystroke) to `public/framework/ai/sessions/2026/08/15/live-streaming/task.jsonl`.
 End-to-end (after all three land, one server restart, verification pass):
 
 1. Append a line to this task's own `task.jsonl` → a subscribed board updates

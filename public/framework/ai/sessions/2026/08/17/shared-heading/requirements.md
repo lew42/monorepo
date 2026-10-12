@@ -1,7 +1,7 @@
 # shared-heading
 
 Dispatched by the `mastermind-layout` run, off the first-ever mobile sweep
-(`ai/2026-08-17/mobile-sweep/`).
+(`ai/sessions/2026/08/17/mobile-sweep/`).
 
 ## The ask, verbatim
 

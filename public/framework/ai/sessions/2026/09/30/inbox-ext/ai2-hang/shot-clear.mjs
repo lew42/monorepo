@@ -1,6 +1,6 @@
 // shot-clear.mjs — crop-screenshot the first preview row's × (archive) button, hovered,
 // to prove its alignment. Usage: node shot-clear.mjs <url> <width> <out.png>
-import { browser, close } from "../../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../../../../../Server/browser.mjs";
 
 const [url, widthArg, out, mode] = process.argv.slice(2);
 const width = Number(widthArg) || 1920;

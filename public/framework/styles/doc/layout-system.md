@@ -1,6 +1,6 @@
 # The layout system — five words
 
-Landed 2026-08-17. Measured cause and evidence: [`ai/2026-08-17/layout-system/proposal.md`](/framework/ai/2026-08-17/layout-system/proposal.md); the before/after screen is [Five layout words](/framework/ai/2026-08-17/layout-primitives/).
+Landed 2026-08-17. Measured cause and evidence: [`ai/sessions/2026/08/17/layout-system/proposal.md`](/framework/ai/sessions/2026/08/17/layout-system/proposal.md); the before/after screen is [Five layout words](/framework/ai/sessions/2026/08/17/layout-primitives/).
 
 All five live in `core/Page/Page.css`. **A page is the first one with no class at all.**
 
@@ -64,7 +64,7 @@ A stage needs **both** bounds: the aspect is right while a card is narrow, the c
 ## Watch out
 
 - **`auto-fill`, never `auto-fit`, on `.wall`.** Measured 2026-08-17: `auto-fit` made `/web/`'s two cards 583px each at 1280 and **1,623px each at 3440**. It is right only where a wall is guaranteed a full row — `browse.css` scopes it to `.browse-band`. An empty track is what a `--column`-sized wall is.
-- **`wide` is one level deep.** `.page > .wide` is a child combinator, so a grouping wrapper (`md()`, `AITask`, `.tab-panel`) hides it — the wrapper claims the track, not its contents. A subgrid pass-through was built and measured and moved zero pixels, because nothing inside those wrappers claims `wide` in the first place: [the write-up](/framework/ai/2026-08-17/layout-wave-3/proposal.md).
+- **`wide` is one level deep.** `.page > .wide` is a child combinator, so a grouping wrapper (`md()`, `AITask`, `.tab-panel`) hides it — the wrapper claims the track, not its contents. A subgrid pass-through was built and measured and moved zero pixels, because nothing inside those wrappers claims `wide` in the first place: [the write-up](/framework/ai/sessions/2026/08/17/layout-wave-3/proposal.md).
 - **`.stage` goes on a box, never on an `<img>`** — it declares `container-type`, and size containment on a replaced element collapses it to nothing, silently.
 - Never `--measure: none`. It removes the ceiling, not the width — the shells that did measured 104, 105 and 250 characters a line, and the topic shell (`/`, `/framework/`, `/michael/`) was the last one, fixed 2026-08-17. Claim `.wide` instead.
 - **A shell that is not a `.page` has ONE max-width for everything in it.** `/framework/`'s landing is a `.default` block: it took `--measure: none` so the clock band could breathe, then hand-typed `max-width: 52em` back onto every prose block. The shape that works is the grid's, spelled in two rules — the block takes the region, its prose takes the token (`/styles.css`, `.page-framework > .pages > .default`).

@@ -33,7 +33,7 @@ depend on the same fallback.
 
 The other shape we weighed was `/ext/Panel/md-decisions`: one segment, and nothing
 reserved, but it gives no index and no subfolders. The choice and its reasons are in the
-[task log](/framework/ai/2026-09-24/md-pages/).
+[task log](/framework/ai/sessions/2026/09/24/md-open/md-pages/).
 
 ## Watch out
 
@@ -59,7 +59,7 @@ Files: `Markdown.js` (the `PageMarkdown` class), `Page.md_url()` (where a link g
 
 ## Moved from CLAUDE.md (2026-10-12)
 
-These sentences were cut from the root `CLAUDE.md` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in `CLAUDE.md` at `87afbdd55`. The map is `public/framework/ai/2026-10-12/claude-md-consolidate/manifest.md`.
+These sentences were cut from the root `CLAUDE.md` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in `CLAUDE.md` at `87afbdd55`. The map is `public/framework/ai/sessions/2026/10/12/session-3b391f22/claude-md-consolidate/manifest.md`.
 
 <!-- claude-md:L40 -->
 **Name things, and write `.md` links as files** — L40.2

@@ -1,6 +1,6 @@
 # In one or two sentences, what does the word 'idempotent' mean in software?
 
-**Winner:** haiku-a — `public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/3-revise.md`
+**Winner:** haiku-a — `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/test-real/collab/haiku-a/3-revise.md`
 **Rule:** tie: more caveat-free votes
 **Run cost:** $0.3162
 

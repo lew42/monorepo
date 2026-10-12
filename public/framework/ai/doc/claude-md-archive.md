@@ -1,6 +1,6 @@
 # CLAUDE.md archive — original wording
 
-On 2026-10-12 the root `CLAUDE.md` was consolidated. Where a rule was **reworded or shortened**, the sentences it no longer contains verbatim are kept here, unchanged, so nothing is lost. Sentences that moved to a topic doc are in that doc, not here; the full map is `public/framework/ai/2026-10-12/claude-md-consolidate/manifest.md`. The old file is also in git: `git show 87afbdd55:CLAUDE.md`.
+On 2026-10-12 the root `CLAUDE.md` was consolidated. Where a rule was **reworded or shortened**, the sentences it no longer contains verbatim are kept here, unchanged, so nothing is lost. Sentences that moved to a topic doc are in that doc, not here; the full map is `public/framework/ai/sessions/2026/10/12/session-3b391f22/claude-md-consolidate/manifest.md`. The old file is also in git: `git show 87afbdd55:CLAUDE.md`.
 
 Each entry is the old line (`L<n>`), its title, and the old sentences that were dropped or folded into a shorter rule.
 

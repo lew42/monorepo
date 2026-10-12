@@ -82,7 +82,7 @@ pipeline.
 - `Server/plugins/**` — a new plugin, plus `Server/README.md` for the guard record.
 - `public/framework/ext/JSONL/**` — the log-line type and its readme.
 - `public/framework/ext/AITask/**` — the dashboard rendering.
-- `public/framework/ai/2026-08-17/shots-in-log/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/shots-in-log/**` — your task dir.
 - `public/framework/ai/usage.json`, `public/framework/ai/2026-08-17/day.jsonl` —
   the `new-task` skill's own writes, permitted.
 

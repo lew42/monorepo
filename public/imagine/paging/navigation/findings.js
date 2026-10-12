@@ -10,7 +10,7 @@
    that changed, which is where a reader's eye is actually resting.
 
    The runner, the plans and the raw json are the task's:
-   /framework/ai/2026-09-05/nav-stability/ — and doc/measurements.md beside this file
+   /framework/ai/sessions/2026/09/05/nav-stability/ — and doc/measurements.md beside this file
    has the before/after numbers each pair came from.                              */
 
 /* stable — nothing you were reading moves. dynamic — something moves. The two

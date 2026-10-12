@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // decide-selftest.mjs — drives Server/decide.mjs's command line against a throwaway log and
-// checks every answer. Exit 0 = all pass.   node public/framework/ai/2026-09-29/decide-tool/decide-selftest.mjs
+// checks every answer. Exit 0 = all pass.   node public/framework/ai/sessions/2026/09/29/c6354c23-7d9e-484d-886f-06b14540473b/decide-tool/decide-selftest.mjs
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

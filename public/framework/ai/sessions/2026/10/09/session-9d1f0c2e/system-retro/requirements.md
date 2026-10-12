@@ -1,7 +1,7 @@
 # system-retro — where the whole AI system stands after today, the laws the owner keeps saying, the day's report with its costs, and what goes where
 
 Minion: Sonnet, effort high (budget mode). Session id `9d1f0c2e-6b3a-4f7e-8c21-5a0e7d4b1c90`. You
-are IN A WORKTREE. Read [`../mastermind-servex/common.md`](../mastermind-servex/common.md)
+are IN A WORKTREE. Read [`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md)
 first. This is a PAPER task: read, think, write pages. No code under `public/` beyond your task
 dir; no `Servex/`.
 
@@ -20,18 +20,18 @@ dir; no `Servex/`.
 
 ## What to read (in this order; the run ledger is the spine)
 
-1. `ai/2026-09-22/mastermind-servex/task.jsonl` — every `agent` line has `task`, `model`,
+1. `ai/sessions/2026/09/22/e2b82220-72fd-4fec-b8a6-5f985c9cbefa/mastermind-servex/task.jsonl` — every `agent` line has `task`, `model`,
    `tokens` (a $ string), `duration_ms`, `at`, `landed_at`, `outcome`; every `chat` line is the
    owner verbatim; every `decision` names options. `requirements.md` beside it is the owner's
    architecture brief. `ai/handover.md` is the state page.
-2. `ai/2026-09-22/tiers-design/` (the six roles, five docs), `log-model/`, `worktree-design/`,
+2. `ai/sessions/2026/09/22/tiers-design/tiers-design/` (the six roles, five docs), `log-model/`, `worktree-design/`,
    `review-3-days/` (the shape of a day report the owner liked), `card-to-task/`,
    `ai2-master-detail/`, `talk/`, `open-mic/requirements.md` (in flight), `ai2-nested/requirements.md`
    (tomorrow).
 3. The skills that carry rules: `.claude/skills/{mastermind,minion,layout,css,every-prompt}/SKILL.md`,
    and `.claude/skills/every-prompt/tiers.md`.
 
-## Deliverables — one page, `ai/2026-09-22/system-retro/page.js`, iceberg: four headlines, each one click down
+## Deliverables — one page, `ai/sessions/2026/10/09/session-9d1f0c2e/system-retro/page.js`, iceberg: four headlines, each one click down
 
 1. **The day, as the owner wants to read it.** A `doc/day.md` rendered on the page: what
    landed today (every task with one plain sentence and its link — from the `agent` lines'

@@ -26,7 +26,7 @@
 | `marker` / `markerSide` | `chevron` / `twirl`, `left` | the expand icon and which side it sits on |
 
 Screenshots at 1920 and 400 are in the build's task directory:
-`public/framework/ai/2026-09-29/summary-styles/shots/`.
+`public/framework/ai/sessions/2026/09/29/2e1853ce-2f97-4a41-b783-1b0f7c7eec8f/summary-styles/shots/`.
 
 ## Two bugs the build caught by measuring, not by looking
 
@@ -45,4 +45,4 @@ main tree instead (additive only; v1's own code path is untouched) and verified 
 `Server/smoke.mjs` runs. Nothing here still needs the owner's attention; it's a note for whoever
 next audits how minions land work when the worktree pool is exhausted.
 
-Full task log: `public/framework/ai/2026-09-29/summary-styles/task.jsonl`.
+Full task log: `public/framework/ai/sessions/2026/09/29/2e1853ce-2f97-4a41-b783-1b0f7c7eec8f/summary-styles/task.jsonl`.

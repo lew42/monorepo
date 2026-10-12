@@ -7,7 +7,7 @@ You are a minion. Load the `minion` skill first, then `code`, `css`, `new-css-cl
 different minion, later).
 
 Task directory (read the parent task's log and the full brief before you start):
-`public/framework/ai/2026-10-02/panel2-sessions/` — `requirements.md` there is the owner's
+`public/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/` — `requirements.md` there is the owner's
 original words for the whole task. This file covers only Part 1.
 
 ## The owner's own words (verbatim, the relevant slice)

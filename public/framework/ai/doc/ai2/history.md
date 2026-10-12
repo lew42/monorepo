@@ -14,10 +14,10 @@ loading." A CPU profile found the cause: `Groups.members()` (`groups.js`) and `p
 instead of once. Both now cache their answer and only redo it when the underlying data (or the
 card's own size) actually changes. Nothing on screen changed — same rows, same Live card, same
 order, just far less repeated work to draw them. [`doc/decisions.md`](./decisions.md#the-load-hang--cache-dont-recompute-on-every-redraw-2026-09-30),
-[`ai/2026-09-30/inbox-ext/ai2-hang/profile.md`](/framework/ai/2026-09-30/inbox-ext/ai2-hang/profile.md).
+[`ai/sessions/2026/09/30/inbox-ext/ai2-hang/profile.md`](/framework/ai/sessions/2026/09/30/inbox-ext/ai2-hang/profile.md).
 
 **2026-09-30, latest.** The owner, verbatim, in
-[`ai/2026-09-30/page-audit/owner-words.md`](/framework/ai/2026-09-30/page-audit/owner-words.md):
+[`ai/sessions/2026/09/30/page-audit/page-audit/owner-words.md`](/framework/ai/sessions/2026/09/30/page-audit/page-audit/owner-words.md):
 Inbox is the default tab again (Needs you as the bare-url default, from 2026-09-29, lasted one
 day); a new Log tab shows everything in flight, one row per task, each with a green/red/yellow
 status dot; Needs you no longer lists a heartbeat or task-loop "close it, or keep chasing?" — the
@@ -25,7 +25,7 @@ system's own question, not the owner's; the rail no longer resorts itself while 
 (a "N updated ↑" pill instead); and the tab strip, which had drifted to the right edge of the
 page (a stray `order` on the tabs out-ordered the `::after` spacer that is meant to soak up the
 leftover space — `ai2.css`), sits beside the title again, the same placement Doc pages use.
-Task: [`ai/2026-09-30/ai2-inbox-log-fix/`](/framework/ai/2026-09-30/ai2-inbox-log-fix/).
+Task: [`ai/sessions/2026/09/30/ai2-inbox-log-fix/ai2-inbox-log-fix/`](/framework/ai/sessions/2026/09/30/ai2-inbox-log-fix/ai2-inbox-log-fix/).
 
 **2026-10-01, `ai2.css` retired down to AI 2's own v1 screens (merge 7, inbox-ext).** The owner:
 "we probably shouldn't even have an ai2.css… maybe we need it for specific overrides, but kept
@@ -37,12 +37,12 @@ loaded by `processes.js`. `ai2.css` went from 1,993 lines to under 500: only the
 rows, the Overview tab, the old Needs-you screen and the old Log screen are left — AI-2-v1-only,
 staying "until AI 2 is retired" (that file's own words, since before this move). Before/after
 screenshots at four widths and a computed-style fingerprint of the moved rules' elements:
-[`ai/2026-09-30/inbox-ext/ai2-css/`](/framework/ai/2026-09-30/inbox-ext/ai2-css/).
+[`ai/sessions/2026/09/30/inbox-ext/ai2-css/`](/framework/ai/sessions/2026/09/30/inbox-ext/ai2-css/).
 
 **Handover, 2026-09-25 (the AI 2 lead).** Start here if you are the next agent on AI 2.
 
-- **What it is now**, one step per screen: [AI 2, step by step](/framework/ai/2026-09-25/ai2-lead/).
-  Why each element is there: [audit.md](/framework/ai/2026-09-25/ai2-lead/audit.md). Decisions:
+- **What it is now**, one step per screen: [AI 2, step by step](/framework/ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/).
+  Why each element is there: [audit.md](/framework/ai/sessions/2026/09/25/ea1cc34a-7cb3-420e-b6dd-383b3006dead/ai2-lead/audit.md). Decisions:
   the last two sections of [`doc/decisions.md`](./decisions.md).
 - **Done:**
   - The rail is one timeline, sorted by last-updated. Each row shows its time top-right and has
@@ -56,13 +56,13 @@ screenshots at four widths and a computed-style fingerprint of the moved rules' 
   opens the card's Activity tab (`…/<card>/activity/`: every card tab is a routed child page now), and the bar
   clears once seen. [`doc/cards.md`](./cards.md), `activity.js`.
 - **Done, 2026-09-28** (lead-2): a group row keeps its place after a reload
-  ([ai2-row-vanish](/framework/ai/2026-09-28/ai2-row-vanish/)); an inbox row can be a real site page,
+  ([ai2-row-vanish](/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-row-vanish/)); an inbox row can be a real site page,
   Page and Servex so far: any log line with `"page": "<path>"` bumps it, and it opens at
-  `/framework/ai2/framework/core/Page/` (`real.js`, [ai2-real-pages](/framework/ai/2026-09-28/ai2-real-pages/));
+  `/framework/ai2/framework/core/Page/` (`real.js`, [ai2-real-pages](/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-real-pages/));
   the Floating page view is behind the "Floating page view (try it)" word, shown only on cards it
   changes (`floating.js`, `workspace.js`); a card's own `content.js` ([doc/cards.md](./cards.md));
-  rail rows use the default card padding and one cadence ([ai2-rail-rhythm](/framework/ai/2026-09-28/ai2-rail-rhythm/)).
-- **Done, 2026-09-29** ([ai2-overview](/framework/ai/2026-09-28/ai2-overview/)): the Inbox · Overview
+  rail rows use the default card padding and one cadence ([ai2-rail-rhythm](/framework/ai/sessions/2026/09/29/ai2-rail-rhythm/ai2-rail-rhythm/)).
+- **Done, 2026-09-29** ([ai2-overview](/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-overview/)): the Inbox · Overview
   tabs, and the [Overview](/framework/ai2/overview/), with one big card per concept.
 - **Open, first — the Overview's next steps.** (1) `overview.json` is a snapshot. Rebuild it with
   `node Server/ai2-overview.mjs` from the main tree, since `.claude/prompts` exists only there. Nothing
@@ -75,7 +75,7 @@ screenshots at four widths and a computed-style fingerprint of the moved rules' 
 - **Open, later:** remove the composer at the bottom of a card once page-drawer's `into_card` is merged
   (the drawer's AI tab holds it). The drawer following a real page is called but not yet seen in a
   picture. The list filter is not in the url. The chat's `···` and `⚙` have no labels. Tasks in class
-  folders: [proposal](/framework/ai/2026-09-28/ai2-real-pages/proposal-tasks.md), mastermind-servex-3's call.
+  folders: [proposal](/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-real-pages/proposal-tasks.md), mastermind-servex-3's call.
 - **Landing, a caveat:** `Server/merge.mjs`'s link-following smoke fails on pages the Live panel links
   (task pages throw `this[verb] is not a function`; page-drawer's m1/m2 404). Not AI 2's; when only those
   fail, check that AI 2's files match the merge base and land by hand.
@@ -120,7 +120,7 @@ after it last changed — "may show briefly," as the owner put it — fading bac
 band by about 24 hours old. This is why a 92 doesn't always mean "blocked": the number alone
 can't say which rule fired, which is exactly why every row also shows its own written-out
 **reason** right beside it (`rail.js`'s `reason_for()`), never just the number. An audit of every card sitting at 90+ right now, with its reason, and which ones had gone
-stale (a landed task still reading "needs the owner today"): [`ai/2026-10-02/card-pipeline/`](/framework/ai/2026-10-02/card-pipeline/).
+stale (a landed task still reading "needs the owner today"): [`ai/sessions/2026/10/03/card-pipeline/card-pipeline/`](/framework/ai/sessions/2026/10/03/card-pipeline/card-pipeline/).
 
 **2026-09-30, latest: "Needs you" moved off the tab strip, onto the rail itself.** It is now the
 rail's own filter checkbox — relabelled "Needs you" (was "Needs review"), right beside "+ New
@@ -198,14 +198,14 @@ with `parent` set to the Now card's id), not a second one. A topic you haven't o
 last changed carries a small "NEW" word, no animation, cleared the moment you open it — the same
 per-browser read flag every other row's bold title already uses (`rules.js`'s `is_read`). Still
 open: the owner's own statements aren't linked in with sentence ids yet — that needs
-[`prompts-live`](/framework/ai/2026-10-03/prompts-live/)'s remaining per-prompt wiring. Also fixed
+[`prompts-live`](/framework/ai/sessions/2026/10/03/7eb6e8f0-913b-43c4-afa7-1d833bc354d1/prompts-live/)'s remaining per-prompt wiring. Also fixed
 the same day: the Now card used to vanish from the rail entirely, because it is rewritten under a
 NEW dated folder every day (`ai/2026/10/03/now/`, never a fixed `ai/now/`) and the pinned row's
 old lookup only knew the literal id "now" — `resolve_card()` (`inbox.js`) now finds the latest
 real one first; **its own preview line** falls back to the newest dashboard section's text (then
 the card's one-line `chat` summary) when there are no chat messages or prompts to read, so the
-Now card's rail row never reads as empty while it has sections ([`now-card-blank`](/framework/ai/2026-10-03/now-card-blank/)).
-[Task](/framework/ai/2026-10-03/topic-cards/).
+Now card's rail row never reads as empty while it has sections ([`now-card-blank`](/framework/ai/sessions/2026/10/03/now-card-blank/now-card-blank/)).
+[Task](/framework/ai/sessions/2026/10/03/topic-cards/topic-cards/).
 
 **The Live card** ([`live/`](/framework/ai2/live/)) is the one card that is not on the board: the
 usage limits (5-hour, weekly Fable, weekly all, each with the first dashboard's on-pace ▼), every
@@ -221,7 +221,7 @@ when it is not — what it said, live — with a box that sends it a message
 
 **"Your prompts"** ([`your-prompts/`](/framework/ai2/your-prompts/), 2026-10-02) is the second
 pinned row, above the rail's own sortable list, beside the Now card — one line showing your
-latest prompt's time (and, once [`minion-echo`](/framework/ai/2026-10-02/prompt-refine/)'s
+latest prompt's time (and, once [`minion-echo`](/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/)'s
 `refined` log line carries it, its topic). Click it for every prompt newest-first, each a
 Condensed-by-default mode-switch card (`ext/Refine/prompt-card.js`'s `prompt_modes()` — the same
 piece `ai/v/3/prompts.js`'s own thread uses) with the assistant's reading folded under "my reply".
@@ -276,7 +276,7 @@ renders them, and place it with `{"place": {"module": "content.js"}}` —
 `/framework/core/Page/` page (the same page and view, with its own tabs) in the detail column. A
 line with `"page": "/framework/core/Page/"` in today's `day.jsonl` or a recent `task.jsonl` puts
 that page in the rail, sorted by its newest event, with a "what happened" bar. No card is made.
-`real.js`; how and why: [`ai/2026-09-28/ai2-real-pages/answers.md`](/framework/ai/2026-09-28/ai2-real-pages/answers.md).
+`real.js`; how and why: [`ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-real-pages/answers.md`](/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-real-pages/answers.md).
 
 **Try the workspace view** (an experiment, 2026-09-28): `?view=workspace`, or the `workspace`
 word at the top of the rail. An opened card becomes a centred page with its own left nav
@@ -301,7 +301,7 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   case-sensitive host. The older board-card faces are `faces.js`. [`doc/cards.md`](./cards.md).
 - **A card is a folder, and only Servex writes into it.** Each card lives at `ai/2026/MM/DD/<slug>/page.jsonl`, dated by the day it was created. Agents make and read cards with the `create_card`, `read_card`, `attach_card` and `list_cards` tools, and speak into one with `card_reply`; never append to the file yourself. [`Servex/cards/readme.md`](/Servex/cards/readme.md), [`doc/persistence.md`](./persistence.md).
 - **An older Servex has no card routes, and AI 2 must not ask it.** Its `/cards` answer has no CORS header, so the browser logs an error nothing can hide. A Servex running the card code writes `{"cards": 1}` to its `features` log at boot; `cards_ready()` in `inbox.js` reads that once, and until it is true every card call returns null without a request — the rail reads `board.jsonl`, and the type picker, `clear` and `+ request` are hidden.
-- **A group's time must be known on the first paint, or a reload hides it.** Any saved module the page imports reloads it, and a group whose time waited on its members' logs sorted to the bottom of ~350 rows for seconds, then jumped back — "it was there and then it wasn't". `Groups.at()` reads the card index (`cards.jsonl`) too, which arrives with the rail's first rows. Task log: [`ai2-row-vanish`](/framework/ai/2026-09-28/ai2-row-vanish/).
+- **A group's time must be known on the first paint, or a reload hides it.** Any saved module the page imports reloads it, and a group whose time waited on its members' logs sorted to the bottom of ~350 rows for seconds, then jumped back — "it was there and then it wasn't". `Groups.at()` reads the card index (`cards.jsonl`) too, which arrives with the rail's first rows. Task log: [`ai2-row-vanish`](/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-row-vanish/).
 
 - **Content never needs a reload; the page's own modules do.** All four logs stream — three over
   the dev socket, the owner's sentences over Servex's `EventSource`. The only thing that still
@@ -331,7 +331,7 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   `group()` on a card or a task reader gets overwritten by that data — [`doc/groups.md`](./groups.md).
 - **A card's task page lives outside the box the card redraws** — rebuilt, it refetches and
   closes the tab you had open. `tasks.js`.
-- **Every redraw compares before it draws** — a live batch that changed nothing here must mutate nothing (a flicker that "returns to the way it was"). `Card.draw_sig()`, `agents.js`, the index rows and the rail's `flush()`/`count()` each skip on an equal signature; [`task card-page-flicker`](/framework/ai/2026-09-24/card-page-flicker/) has the MutationObserver probe.
+- **Every redraw compares before it draws** — a live batch that changed nothing here must mutate nothing (a flicker that "returns to the way it was"). `Card.draw_sig()`, `agents.js`, the index rows and the rail's `flush()`/`count()` each skip on an equal signature; [`task card-page-flicker`](/framework/ai/sessions/2026/09/25/card-page-flicker/card-page-flicker/) has the MutationObserver probe.
 - **`refill()` compares the card's WHOLE record**, not a hand-written list of the fields the face
   draws — the first build listed them, forgot one, and the feature silently never rendered.
 - **Servex may be down.** Then the prompt backlog comes from the static `prompts.jsonl`, and the
@@ -365,8 +365,8 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   screen, and how many levels of navigation fit at each width
 - [`doc/persistence.md`](./persistence.md) — the survey: what each persistence system on this
   site saves and where, and which one a nested card page uses
-- The rebuild and its measurements: [`ai/2026-09-22/ai2-master-detail/`](/framework/ai/2026-09-22/ai2-master-detail/)
-- Per-card storage, sub-cards, the footer: [`ai/2026-09-22/ai2-nested/`](/framework/ai/2026-09-22/ai2-nested/)
+- The rebuild and its measurements: [`ai/sessions/2026/09/22/session-a578212b/ai2-master-detail/`](/framework/ai/sessions/2026/09/22/session-a578212b/ai2-master-detail/)
+- Per-card storage, sub-cards, the footer: [`ai/sessions/2026/09/23/session-1f93064d/ai2-nested/`](/framework/ai/sessions/2026/09/23/session-1f93064d/ai2-nested/)
 - [`doc/cards.md`](./cards.md) — card folders: the addresses, `card.js`'s vocabulary, every write
 - Files that matter: `rail.js` (`AIRail`, the rail: the base class `InboxRail` in
   [core/Page/ext/Inbox](/framework/core/Page/ext/Inbox/) plus the usage meters, "+ New card", Live, Now,

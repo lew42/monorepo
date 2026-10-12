@@ -6,7 +6,7 @@ Verbatim brief:
 > The baseline predates a fix that removed false findings from eight rows. A
 > three-line guard landed in `ext/LayoutTool/probe.js` an hour ago (the
 > `depth = 20` cull now records `nodes[parent].cut = true`, `read_text()` skips
-> a cut node — see `ai/2026-08-16/mastermind-layout/gutter.md` and
+> a cut node — see `ai/sessions/2026/08/16/mastermind-layout/gutter.md` and
 > `ext/LayoutTool/knowledge/false-positives.md`'s first entry). Regenerate
 > `audit/findings.json` and `audit/taste.json` with the recipe in
 > `LayoutTool/readme.md`: hoist the `import()` into its own `page.evaluate()`,

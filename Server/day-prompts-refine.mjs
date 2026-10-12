@@ -3,7 +3,7 @@
 // writing through the exact same page_set wire line `Servex/agents/page_tools.js` writes, so
 // a prompt refined by this script and one refined live by Echo read identically afterward.
 //
-// Deliverable 3, public/framework/ai/2026-10-04/day-cards/requirements.md: "run the Refine
+// Deliverable 3, public/framework/ai/sessions/2026/10/04/day-cards/day-cards/requirements.md: "run the Refine
 // engine over 2026-10-03 and 2026-10-04's owner prompts that have no sentences yet." Also the
 // owner's follow-up (vscode-mastermind, same day): "the owner's prompts are long; refine each
 // in paragraph-sized chunks so the local model doesn't drop sentences" — unlike Echo.js, which
@@ -114,7 +114,7 @@ function ownerPromptsNeeding(date){
 // pasted into a test session); otherwise group plain sentences up to ~700 characters, the
 // same "a few sentences, not the whole transcript" size a human paragraph reads as — small
 // enough that qwen2.5-coder reliably numbers every sentence back (new-brain's own litmus,
-// ai/2026-10-03/new-brain, found it degrading on much bigger single calls).
+// ai/sessions/2026/10/04/new-brain/new-brain, found it degrading on much bigger single calls).
 const MAX_CHUNK = 700;
 export function chunkText(text){
 	const paras = text.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);

@@ -1,6 +1,6 @@
 # follow(path): Servex tells subscribed agents what changed
 
-An agent can't watch a file. It only sees what arrives as a message. So Servex watches, and sends each change to the agents that asked for that path. This is the first piece of the voice-session design ([../voice-sessions/design.md](../voice-sessions/design.md)); the owner's words are in [../audio/owner-words.md](../audio/owner-words.md), sections "Continued (about 6:40 PM)" and "(about 6:55 PM)".
+An agent can't watch a file. It only sees what arrives as a message. So Servex watches, and sends each change to the agents that asked for that path. This is the first piece of the voice-session design ([../voice-sessions/design.md](../../30/voice-sessions/voice-sessions/design.md)); the owner's words are in [../audio/owner-words.md](../audio/audio/owner-words.md), sections "Continued (about 6:40 PM)" and "(about 6:55 PM)".
 
 Report to **mastermind-servex-6**.
 

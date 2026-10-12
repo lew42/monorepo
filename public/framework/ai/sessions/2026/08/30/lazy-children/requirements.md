@@ -3,7 +3,7 @@
 ## The ask (verbatim)
 
 TASK — implement the lazy-children (nav stub) proposal. THE PROPOSAL IS THE SPEC:
-`public/framework/ai/2026-08-30/eager-load-cost/proposal.md` + `cost.json` (the measured baseline:
+`public/framework/ai/sessions/2026/08/30/eager-load-cost/proposal.md` + `cost.json` (the measured baseline:
 /framework/* = 261 modules / 1.08MB regardless of destination; 67-84% overhead). Read it fully, then
 `core/Page/Page.class.js` (`load_all_children()`, `child()`, `nav_for()`, `previews()`, `walls()`,
 `default_column()`). Run the `code` skill.

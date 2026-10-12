@@ -1,9 +1,9 @@
 # Close the review findings on the source-library task
 
 Load the `minion` skill first. A fresh reviewer just read the whole diff with no context
-from the building of it and wrote `public/framework/ai/2026-09-28/source-library/review.md`
+from the building of it and wrote `public/framework/ai/sessions/2026/09/28/ce1cbe96-a28c-43d3-897e-4629ae753aeb/source-library/review.md`
 (verdict: fix, 11 findings). Read that file in full before touching anything — it's your
-brief. Also skim the parent task's `public/framework/ai/2026-09-28/source-library/requirements.md`
+brief. Also skim the parent task's `public/framework/ai/sessions/2026/09/28/ce1cbe96-a28c-43d3-897e-4629ae753aeb/source-library/requirements.md`
 for the original asks these findings are checking against.
 
 **Work in the shared worktree:** `C:\Code\lew42\worktrees\source-library` (branch
@@ -96,7 +96,7 @@ and `sources/doc/decisions.md` already recorded the exact line to add.
 
 ## When you're done
 
-Answer every finding in `public/framework/ai/2026-09-28/source-library/task.jsonl`
+Answer every finding in `public/framework/ai/sessions/2026/09/28/ce1cbe96-a28c-43d3-897e-4629ae753aeb/source-library/task.jsonl`
 (`{"review":{"answer":{"n":1,"reply":"fixed"}}}` etc. — one line per finding, 1 through
 10; skip 5 and 8, they're not yours). Take one fresh screenshot at 1920 of
 `/framework/sources/` (the library front page) and one of a topic page in its new

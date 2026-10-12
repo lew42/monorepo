@@ -3,7 +3,7 @@ import { Wizard } from "/framework/ux/Wizard/Wizard.js";
 
 /* THE FILE SYSTEM, 2026-09-29 — press Next. One picture of the real thing per step, one
    sentence under it, a link to the live page. The step is in the address (#3), so a
-   reload or Back lands on the same step. Same shape as ai/2026-09-28/file-explorer-fs/walkthrough/. */
+   reload or Back lands on the same step. Same shape as ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/walkthrough/. */
 const shot = name => new URL("shots/" + name, import.meta.url).href;
 
 const STEPS = [

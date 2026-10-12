@@ -8,7 +8,7 @@ import { table, places } from "./compare.js";
 
 View.stylesheet(import.meta, "rank.css");
 
-const HERE = "/framework/ai/2026-08-17/human-ranking/";
+const HERE = "/framework/ai/sessions/2026/08/17/human-ranking/";
 const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || location.hostname.endsWith(".localhost");
 const clock = iso => iso ? new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" }) : "—";
 

@@ -1,4 +1,4 @@
-// Written by ai/2026-09-30/page-audit/design-emit.mjs from layout-check --bands. Re-run it; don't edit by hand.
+// Written by ai/sessions/2026/09/30/page-audit/page-audit/design-emit.mjs from layout-check --bands. Re-run it; don't edit by hand.
 export default [
 	{
 		"url": "/",

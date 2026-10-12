@@ -1,12 +1,12 @@
 // Lifecycle study: count 1-4 for the owner's question.
 // Read only. Writes counts.json + raw json next to this script.
-// Run from repo root: node public/framework/ai/2026-09-29/lifecycle/study/count.mjs
+// Run from repo root: node public/framework/ai/sessions/2026/09/29/3c88ad4d-b2e6-4899-b5c4-fbca0e2674e2/lifecycle/study/count.mjs
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
 
 const ROOT = process.cwd(); // expect repo root
-const OUT = path.join(ROOT, "public/framework/ai/2026-09-29/lifecycle/study");
+const OUT = path.join(ROOT, "public/framework/ai/sessions/2026/09/29/3c88ad4d-b2e6-4899-b5c4-fbca0e2674e2/lifecycle/study");
 const NODE_PROCS = JSON.parse(fs.readFileSync(path.join(OUT, "node_processes.json"), "utf8"));
 const AGENTS = JSON.parse(fs.readFileSync(path.join(OUT, "agents.json"), "utf8"));
 

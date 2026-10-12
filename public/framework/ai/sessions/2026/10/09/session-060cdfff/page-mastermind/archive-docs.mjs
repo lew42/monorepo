@@ -35,7 +35,7 @@ for (const [file, pair] of linkers) {
 	if (n) manifest.push(`links ${file}: ${n}`);
 	if (run && n) fs.writeFileSync(file, text);
 }
-const note = Object.entries(moves).map(([n, why]) => `- \`${n}\` (2026-10-09, doc audit \`ai/2026-10-09/page-mastermind/doc-audit/\`): ${why}.`).join("\n");
+const note = Object.entries(moves).map(([n, why]) => `- \`${n}\` (2026-10-09, doc audit \`ai/sessions/2026/10/09/session-060cdfff/page-mastermind/doc-audit/\`): ${why}.`).join("\n");
 if (run) {
 	const m = `${D}/archive/moved.md`;
 	const head = fs.existsSync(m) ? fs.readFileSync(m, "utf8") : "# Archived page docs\n\nSuperseded docs, kept unchanged. Each line says what replaced it.\n\n";

@@ -13,7 +13,7 @@
  *      registry row, sends it a message. It answers again.
  *
  * Its own registry dir in the OS temp dir. Saves its output to
- * public/framework/ai/2026-09-24/concurrency/wake-proof.txt. */
+ * public/framework/ai/sessions/2026/09/24/concurrency/concurrency/wake-proof.txt. */
 
 import fs from "node:fs";
 import os from "node:os";
@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 import { Agents } from "./Agents.js";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const OUT = process.env.PROOF_OUT ?? path.join(REPO, "public/framework/ai/2026-09-24/concurrency/wake-proof.txt");
+const OUT = process.env.PROOF_OUT ?? path.join(REPO, "public/framework/ai/sessions/2026/09/24/concurrency/concurrency/wake-proof.txt");
 const DIR = path.join(os.tmpdir(), "servex-wake-proof");
 const HAIKU = "claude-haiku-4-5-20251001";
 

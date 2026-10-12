@@ -27,7 +27,7 @@ deliberately no \`height\`, which is what used to cut 17 demos off.
 \`demo.exhibit()\`, \`demo.page()\`, \`demo.tree()\` and \`demo.layout()\` are
 \`children:\` factories over it — page shapes, not four more ways to draw a demo —
 so 231 call sites moved onto this by changing four files. The audit and the
-five-step order: [ai/2026-08-30/demo-merge/](/framework/ai/2026-08-30/demo-merge/).`);
+five-step order: [ai/sessions/2026/08/30/demo-merge/](/framework/ai/sessions/2026/08/30/demo-merge/).`);
 
 		h2("A block page");
 		md("`styles/layouts/feed` — a leaf, so no app mode. `page.js` is the source column.");

@@ -14,7 +14,7 @@ You are the design keystone of the ui/ + ux/ program. You DECIDE the system and 
 - The DevBar (public/framework/dev/DevBar/devbar.css) is the owner's reference for a section-wide system: ONE root/state class sets custom properties (`html.dev-open { --devbar: var(--dev-rail) }`), everything inside reads tokens, light-dark() pairs, all in @layer theme, one `dev-` prefix. That token-remap mechanism is the direction for config words.
 - `.ac("word")` / `.rc("word")` on View (core/View/View.js:28) — chainable classList add/remove; every ui module builds on View.
 - `styles/css-scopes.txt` reserves `ui-` for ui/. Every new class name goes through the `new-css-class` skill.
-- A sibling Sonnet audit of ui/ behavior is landing at `public/framework/ai/2026-08-21/ui-behaviors-audit/` (page.js + task.jsonl). Read it if present when you start and fold it in; if absent, proceed — do NOT wait.
+- A sibling Sonnet audit of ui/ behavior is landing at `public/framework/ai/sessions/2026/08/21/ui-behaviors-audit/` (page.js + task.jsonl). Read it if present when you start and fold it in; if absent, proceed — do NOT wait.
 
 ## The owner's ask (condensed, authoritative)
 
@@ -39,7 +39,7 @@ We are building a library. ui/ = reusable html+css templates. ux/ = behavioral s
 ## Process
 
 - Load skills before writing: `code`, `css`, `layout`; `new-css-class` per new class name; `new-page` per page.js; `documentation` before landing; `skill-improvement` (one line in that skill's improvements.md) the moment a skill misleads you.
-- Log to `public/framework/ai/2026-08-21/ux-system-plan/task.jsonl`: line 1 `assign` (Write tool; group "web-ui"), then append `log` lines (Add-Content, ASCII only — no em dashes), findings as log lines never a findings.md, close with the finish-task skill (landing line with outcome headline + links + a screenshot).
+- Log to `public/framework/ai/sessions/2026/08/21/ux-system-plan/task.jsonl`: line 1 `assign` (Write tool; group "web-ui"), then append `log` lines (Add-Content, ASCII only — no em dashes), findings as log lines never a findings.md, close with the finish-task skill (landing line with outcome headline + links + a screenshot).
 - **Verify before landing:** load /framework/ux/ and /framework/ui/words/ through their parents (nothing crawls), screenshot the words demo at 360, 768, 1280, 3440 wide via the mcp `site` `shot` tool (fresh headless chromium; ⚠ mcp `eval` runs in a hidden tab — hidden tabs do not lay out, use `shot` for rendering truth). Save the money shot (words toggled, side by side if you can) into this task dir and link it in the landing line. A claim without a clickable or screenshot is not a result.
 - **Safety:** never kill or restart the dev server (localhost:80, the owner's terminal); never drive the owner's live browser tabs; never `git stash` (shared tree — diff, don't stash); never commit or push; scratch goes in the session scratchpad, never the repo.
 - Traps that never throw: no DOM after an `await`; every CSS rule inside a layer; only `p()`/`h1`–`h6` read backticks — ⚠ one backtick inside `` css(`…`) `` kills every page; `**/` in a JS comment closes the block; framework.css `max-width:100%` and util-layer `:first-child` beat component CSS; resolve URLs against `import.meta`.

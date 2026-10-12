@@ -2,7 +2,7 @@ import { Page, p, div, h2, h3, span, a, textarea, select, option, button, label,
 import { servex_url } from "/framework/dev/servex_url.js";
 import { word_overlap_score } from "../engine.js";
 
-/* THE "TRY IT" TAB (public/framework/ai/2026-10-04/clean-test-page/requirements.md) —
+/* THE "TRY IT" TAB (public/framework/ai/sessions/2026/10/05/clean-test-page/clean-test-page/requirements.md) —
  * the owner's own question: "which models are being used or considered for the clean
  * transcription step … can we test that somewhere". This page runs the SAME `clean()`
  * Echo runs (`ext/Refine/engine.js`, via Servex's own `/api/clean-test` —

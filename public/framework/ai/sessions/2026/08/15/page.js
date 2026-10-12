@@ -28,7 +28,7 @@ export default new Page({
 		md(`**Thirteen minions ran an overnight layout campaign — census, direction, two
 builds, forensics, docs, and a site crawl — while the day's wider work kept going in parallel.**
 
-- **[layout-overnight](/framework/ai/2026-08-15/layout-overnight/)** — a
+- **[layout-overnight](/framework/ai/sessions/2026/08/15/layout-overnight/)** — a
   width-based layout library, 400px-first: two shipped previews, three
   findings, seven items parked for Mike. ~1.45M subagent tokens, session
   window held green all night.

@@ -25,7 +25,7 @@ Private server `PORT=8137 node server.js` (background; kill by its real Windows 
 
 ## Rules
 
-- `new-task` before the first edit (your dir: `ai/2026-09-19/background-layer/`); `code`, `css`, `new-css-class`, `new-page`, `layout` (its rules are suggestions; the shot is the verdict), `ui-test`, `documentation`; `finish-task`; `skill-improvement` if a skill misled you.
+- `new-task` before the first edit (your dir: `ai/sessions/2026/09/19/background-layer/`); `code`, `css`, `new-css-class`, `new-page`, `layout` (its rules are suggestions; the shot is the verdict), `ui-test`, `documentation`; `finish-task`; `skill-improvement` if a skill misled you.
 - **Fence:** `public/framework/ui/background/**` (new), `public/framework/ui/page.js` (the children line only), `public/framework/styles/css-scopes.txt` (register your prefix; siblings are appending to it today — re-read right before your edit), your task dir. Not `framework.css`, not `core/**`.
 - After every `.js` write the hook checks the file parses and will stop you if it does not — fix it at once; a module that does not parse blanks every page that imports it, live, for the owner. **Never put a backtick inside a comment inside a `css()` template.**
 - **Never kill or restart the owner's dev server (port 80) or the mastermind's (8123), never drive the owner's tabs.** Never `git stash`, never `find /`; an `rg` pattern starting with `/` returns nothing in this shell. Write files with the Write or Edit tool — a bash heredoc eats backslashes and fails on apostrophes in this harness. Do not write the owner's name anywhere.

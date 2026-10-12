@@ -1,12 +1,12 @@
 # Minion C — the doc check on landing, and no landing without an outcome
 
-Load the `minion` skill first. Parent task: `public/framework/ai/2026-09-28/task-loop/` (read its requirements.md). The design: `public/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md`.
+Load the `minion` skill first. Parent task: `public/framework/ai/sessions/2026/09/28/task-loop/task-loop/` (read its requirements.md). The design: `public/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md`.
 
 The owner's asks, as briefed:
 - "`Server/on-landing.mjs` also checks that every module the task touched has a readme.md, a doc/ and resolving links, and posts one nag line on the card when not."
 - "the ledger refuses a `landed_at` with no outcome and says so in the task log."
 
-**Work only in the worktree `C:/Code/lew42/worktrees/task-loop`** (branch `worktree/task-loop`). Commit there. Your own log: `C:/Code/lew42/monorepo/public/framework/ai/2026-09-28/task-loop/landing-checks/task.jsonl` (open per the new-task skill; append with `node .claude/hooks/append.mjs`).
+**Work only in the worktree `C:/Code/lew42/worktrees/task-loop`** (branch `worktree/task-loop`). Commit there. Your own log: `C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/28/task-loop/task-loop/landing-checks/task.jsonl` (open per the new-task skill; append with `node .claude/hooks/append.mjs`).
 
 ## Deliverables
 

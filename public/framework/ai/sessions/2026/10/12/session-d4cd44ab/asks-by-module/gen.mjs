@@ -7,7 +7,7 @@ const ROUTE = { "page-content-unify": "@mastermind-page-content-unify", "page-ai
 const skip = new Set(["inbox-dashboard-cards", "oo-classes-ai-code", "asks-prompts-refine"]); // verifier route not a fit; stays in the doc
 const tw = { page: "public/framework/core/Page/doc/asks.md", ai: "public/framework/ai/doc/asks.md" };
 const title = { page: "Page system", ai: "AI system" };
-const rel = { page: "../../../ai/2026-10-12/asks-by-module/", ai: "../2026-10-12/asks-by-module/" };
+const rel = { page: "../../../ai/sessions/2026/10/12/session-d4cd44ab/asks-by-module/", ai: "../2026-10-12/asks-by-module/" };
 const ev = p => p.startsWith("public/") ? p.replace(/^public\/framework\//, "") : null;
 for (const m of ["page", "ai"]) {
   const rows = cl.filter(c => c.module === m).map(c => ({ ...c, v: V[m].find(v => v.name === c.name) || {} }));

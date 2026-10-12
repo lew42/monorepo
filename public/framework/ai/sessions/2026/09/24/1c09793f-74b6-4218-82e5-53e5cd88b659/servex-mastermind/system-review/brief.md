@@ -6,7 +6,7 @@ The owner wants a full review of the system: independent minions study it and de
 
 Spawn 4 **cold** minions with `spawn_agent`: role `minion`, model `claude-sonnet-5`, effort `medium`, parent = you, `allowed_tools: ["Read","Glob","Write"]`. Each one's prompt:
 
-> Read CLAUDE.md and the SKILL.md files under .claude/skills/, and nothing else. Then (1) describe how this system works: the agents, their roles, how work flows from the owner's words to a merged change, and how pages are made; (2) list what's unclear, contradictory, duplicated or missing; (3) name the three changes that would simplify it most. Your angle: <ANGLE>. Write your answer to public/framework/ai/2026-09-25/servex-mastermind/system-review/<angle>.md, one screen, then stop.
+> Read CLAUDE.md and the SKILL.md files under .claude/skills/, and nothing else. Then (1) describe how this system works: the agents, their roles, how work flows from the owner's words to a merged change, and how pages are made; (2) list what's unclear, contradictory, duplicated or missing; (3) name the three changes that would simplify it most. Your angle: <ANGLE>. Write your answer to public/framework/ai/sessions/2026/09/24/1c09793f-74b6-4218-82e5-53e5cd88b659/servex-mastermind/system-review/<angle>.md, one screen, then stop.
 
 Angles:
 - `onboarding`: could I start work now?

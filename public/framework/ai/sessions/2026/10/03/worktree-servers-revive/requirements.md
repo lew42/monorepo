@@ -2,7 +2,7 @@ Budget: $3.
 
 # Servex: worktree servers survive a restart, so 4 finished landings can merge
 
-Split out of [restart-keeps-agents](/framework/ai/2026-10-03/restart-keeps-agents/) to land first and alone (vscode-mastermind's review of 2026-10-03).
+Split out of [restart-keeps-agents](/framework/ai/sessions/2026/10/03/restart-keeps-agents/) to land first and alone (vscode-mastermind's review of 2026-10-03).
 
 ## The bug: a Servex restart forgets every worktree's dev server
 

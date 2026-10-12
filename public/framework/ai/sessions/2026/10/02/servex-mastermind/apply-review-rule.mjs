@@ -1,6 +1,6 @@
 // Applies the owner's 2026-10-02 review rule to the minion and sub-mastermind skills.
 // Written by mastermind-servex-10, which could not write under .claude/ (acceptEdits).
-// Run from the repo root: node public/framework/ai/2026-10-02/servex-mastermind/apply-review-rule.mjs
+// Run from the repo root: node public/framework/ai/sessions/2026/10/02/servex-mastermind/apply-review-rule.mjs
 // Aborts, changing nothing, if any old text is missing or not unique.
 import fs from "node:fs";
 

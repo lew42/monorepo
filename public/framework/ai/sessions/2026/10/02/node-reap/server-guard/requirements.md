@@ -7,7 +7,7 @@ The owner's words (via the node-reap task, 2026-10-02): a PreToolUse guard that 
 running `node server.js`/`run.js` and points them to the worktree URL. This is prevention piece 3
 of 3 for the RAM leak node-reap.mjs just cleaned up (26 `node server.js` processes started from
 agents' shells, never stopped — about 1.2 GB). Read that task's log first for the full picture:
-`public/framework/ai/2026-10-02/node-reap/task.jsonl` and `requirements.md` (one directory up).
+`public/framework/ai/sessions/2026/10/02/node-reap/task.jsonl` and `requirements.md` (one directory up).
 
 **Why this is safe to block outright, not just discourage:** Servex's reverse proxy already
 auto-starts any registered project (main or a worktree) on its first HTTP request — "waking needs

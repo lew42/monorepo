@@ -38,7 +38,7 @@ export default new Paging({
 
 		h2("Why the real tabs cannot just wear it yet");
 
-		md("[`ext/tabs`](/framework/ext/tabs/) mounts **one page at a time** into its panel: the tab you have not opened does not exist, so there is nothing to measure and nothing to reserve. Making it reservable means mounting every tab's page up front, which is the right trade for four small panels and the wrong one for a forty-member rail. The proposal — an opt-in word on the set rather than a change to every tab set on the site — is in [the task log](/framework/ai/2026-09-05/nav-stability/), with the diff.");
+		md("[`ext/tabs`](/framework/ext/tabs/) mounts **one page at a time** into its panel: the tab you have not opened does not exist, so there is nothing to measure and nothing to reserve. Making it reservable means mounting every tab's page up front, which is the right trade for four small panels and the wrong one for a forty-member rail. The proposal — an opt-in word on the set rather than a change to every tab set on the site — is in [the task log](/framework/ai/sessions/2026/09/05/nav-stability/), with the diff.");
 
 		md("Until then the cheap fix that needs no new machinery is a floor: `min-height` on `.tab-panel` sized to the set's usual panel. It does not remove the jump, it caps it.");
 

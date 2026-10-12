@@ -2,7 +2,7 @@
 
 Minion: Opus, effort high. Session id `2e26b182-3c4c-4cd0-8e17-50a3431795fa`. You are IN A
 WORKTREE (the launcher says where; your server's port). Read
-[`../mastermind-servex/common.md`](../mastermind-servex/common.md) first. Load `layout`, `css`,
+[`../mastermind-servex/common.md`](../../../../../../2026-09-22/mastermind-servex/common.md) first. Load `layout`, `css`,
 `code`. This is a cause-level task: a finding across many pages means the RULE is wrong.
 
 ## The owner's words (2026-09-22 18:12, verbatim)
@@ -48,7 +48,7 @@ and every rule using them computed to 0 — check the tokens the ToC layout uses
    (fail-safe, via a node script — Write refuses `.claude/`): "Text never sits at 0 from an
    edge: rail, viewport, ToC, card border. Run `node Server/padding-check.mjs <url>` before
    landing a page." With the 2026-09-22 evidence in one clause.
-5. **The page — `ai/2026-09-22/padding-law/page.js`:** the before/after table (violations
+5. **The page — `ai/sessions/2026/09/22/session-2e26b182/padding-law/page.js`:** the before/after table (violations
    per width), the rule that was wrong in one sentence, the check command, three shots
    (styles at 3440 before/after, the board at 1280 after).
 

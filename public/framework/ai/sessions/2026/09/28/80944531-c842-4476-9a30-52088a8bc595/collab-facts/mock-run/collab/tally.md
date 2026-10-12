@@ -1,6 +1,6 @@
 # What is one good rule of thumb for naming a CSS class in this repo?
 
-**Winner:** haiku-a — `public/framework/ai/2026-09-28/collab-facts/mock-run/collab/haiku-a/4-revise.md`
+**Winner:** haiku-a — `public/framework/ai/sessions/2026/09/28/80944531-c842-4476-9a30-52088a8bc595/collab-facts/mock-run/collab/haiku-a/4-revise.md`
 **Rule:** tie: cheaper member
 **Run cost:** $0.0000
 

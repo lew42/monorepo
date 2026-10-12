@@ -4,14 +4,14 @@
 **Budget: this is a CSS sizing fix. A handful of declarations. If it grows past
 that, you have found a different bug — say so instead of writing more.**
 
-Mike, looking at `/framework/ai/2026-08-17/report/`:
+Mike, looking at `/framework/ai/sessions/2026/08/17/report/`:
 
 > the report page is split 50/50 with the rail (the rail is full width, on top,
 > rather than a vertical rail...)
 
 ## The cause is measured — don't re-derive it
 
-`ai/2026-08-17/report-full/task.jsonl` has the numbers. In short:
+`ai/sessions/2026/08/17/report-full/task.jsonl` has the numbers. In short:
 
 - **`ext/AITask/ai.css:181`** — `.page-catalog > .ai-index-rail { flex: 0 0 min(34em, 45%) }`.
   That is the sitewide catalog rail (`--rail: 19em`, `catalog.css`) deliberately
@@ -48,7 +48,7 @@ The goal is proportion, not removal.
 
 This rule fires on the day boards, every generated task page, and the hand-written
 pages. Check at least: a **day board** (`/framework/ai/2026-08-17/`), a **generated
-task page** (any task dir), and the **report** (`/framework/ai/2026-08-17/report/`,
+task page** (any task dir), and the **report** (`/framework/ai/sessions/2026/08/17/report/`,
 which now takes over with `full` — confirm you didn't break it).
 
 - Widths **390, 999, 1280, 1920, 3440**. ⚠ **999 is not optional** — it is where Mike
@@ -62,13 +62,13 @@ which now takes over with `full` — confirm you didn't break it).
 
 - `public/framework/ext/AITask/**` — `ai.css` above all. (`ext/AITask` is now
   unfenced; the agent that held it has landed.)
-- `public/framework/ai/2026-08-17/ai-rail/**` — your task dir.
+- `public/framework/ai/sessions/2026/08/17/ai-rail/**` — your task dir.
 
 **Fenced:** `ext/catalog/**` — it is shared by every catalog page on the site.
 ⚠ If the real fix belongs in `catalog.css`'s column collapse rather than `ai.css`,
 **say so with the numbers and fix what you can from `ai.css`** — a sitewide catalog
 change needs its own coordinated task.
-Also fenced: `ai/2026-08-17/report/**` and `ai/2026-08-17/vision-browse/**` (another
+Also fenced: `ai/sessions/2026/08/17/report/**` and `ai/sessions/2026/08/17/vision-browse/**` (another
 agent is in the latter right now).
 
 ## Deliverables

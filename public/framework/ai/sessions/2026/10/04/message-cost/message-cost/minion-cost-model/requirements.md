@@ -5,7 +5,7 @@
 > transcription part... ~$0.21 per clean is too much; measure what model/context the clean
 > uses and get it to cents (e.g. Haiku or an OpenRouter flash model for clean, no big context).
 
-Full context: `public/framework/ai/2026-10-03/message-cost/requirements.md` (read it first) and
+Full context: `public/framework/ai/sessions/2026/10/04/message-cost/message-cost/requirements.md` (read it first) and
 its parent `task.jsonl` (the task mastermind's log — read the last ~10 lines for what's already
 been proven live).
 
@@ -54,7 +54,7 @@ Two real paths call this the same expensive way:
 
 ## What "done" means — prove it, don't guess it
 
-Use the EXACT same method already proven tonight: `curl -s -X POST http://127.0.0.1:8090/api/session/new -H "Content-Type: application/json" -d '{"path":"/framework/ai/2026-10-03/message-cost/","host":"monorepo.localhost","fresh":true}'`
+Use the EXACT same method already proven tonight: `curl -s -X POST http://127.0.0.1:8090/api/session/new -H "Content-Type: application/json" -d '{"path":"/framework/ai/sessions/2026/10/04/message-cost/message-cost/","host":"monorepo.localhost","fresh":true}'`
 then `POST /api/session/say` with a real multi-sentence line, via the live Servex (not a
 synthetic unit test) — but do it **against your worktree's own server** (`message-cost.localhost`,
 the port `worktree-up` printed), never the main site, until you're ready to prove the final

@@ -1,6 +1,6 @@
 # ext/filesystem — decisions
 
-Brief: `public/framework/ai/2026-09-29/file-system/minion-a/requirements.md`. Owner's own
+Brief: `public/framework/ai/sessions/2026/09/29/file-system/file-system/minion-a/requirements.md`. Owner's own
 words: `../owner-words.md` in that task's folder.
 
 ## Names: `FsFile` / `FsDir`, not `File` / `Directory`
@@ -73,7 +73,7 @@ same swap then.
 
 ## `FsDir` → `Dir`, 2026-10-02
 
-Brief: `public/framework/ai/2026-10-02/page-extends-item/page-on-item/requirements.md`
+Brief: `public/framework/ai/sessions/2026/10/02/page-extends-item/page-extends-item/page-on-item/requirements.md`
 (deliverable 11, "the file classes in ext/filesystem become the file half of the design").
 
 `FsDir` became `Dir` — the owner's own plain word, same as the original naming pass

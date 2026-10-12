@@ -9,7 +9,7 @@ guard of its own (the socket that reaches it already has one, LAW#6).
 It was a `claim-tab` skill until 2026-08-18, and the verb moved into the tools on the
 argument that a skill is a file a session must already know to read, while the MCP
 `instructions` reach every session that has the tools — which is exactly the set of
-sessions that can claim anything. `ai/2026-08-18/mcp-tab-awareness/`.
+sessions that can claim anything. `ai/sessions/2026/08/18/mcp-tab-awareness/`.
 
 ## Why a module and not a paste
 

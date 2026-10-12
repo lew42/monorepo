@@ -1,6 +1,6 @@
 # web-resume-fixes
 
-Four S-sized fixes from the web/resume critique (`ai/2026-08-30/critique-web-resume/task.jsonl`).
+Four S-sized fixes from the web/resume critique (`ai/sessions/2026/08/30/critique-web-resume/task.jsonl`).
 
 1. **/resume/ og card** — give the résumé its own meta (its index.html or shell — investigate
    how /resume/ is served first; the blog's meta.mjs pattern is the model). Title/description

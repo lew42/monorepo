@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `code`, `new-page`, `page`, `documentation`, `content`. Card dir (the owner's raw words): `public/framework/ai/2026/09/29/the-page-system-layout-navigation-new-pa/`.
 
-## The owner's words (acceptance test — read all of `public/framework/ai/2026-09-29/page-system/owner-words.md`)
+## The owner's words (acceptance test — read all of `public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/owner-words.md`)
 
 > "When we create a new page, what needs to happen? ... I don't know if that should be a skill or a MCP uh, tool. Or just like a local tool definition. ... How do we structure our system so that we can lean into programmatic, reliable, like uh, data structures ... creating a new page is definitely a process that we need to master. and uh, thinking through, well, if it's a child page, thinking through the parent page's layout and visual hierarchy is super important."
 

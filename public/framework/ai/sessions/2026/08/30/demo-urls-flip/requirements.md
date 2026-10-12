@@ -1,7 +1,7 @@
 # demo-urls-flip
 
 Flip `demo.app()`'s `urls` option default to `false`, per the unanimous audit at
-`ai/2026-08-30/demo-urls-audit/` (91/91 call sites want it).
+`ai/sessions/2026/08/30/demo-urls-audit/` (91/91 call sites want it).
 
 ## The change
 1. `ext/demo/app.js` — `urls` defaults to `false` (in-memory demo trees emit `data-demo-url`, not `href`).

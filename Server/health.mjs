@@ -187,13 +187,13 @@ const KNOWN_REQUESTS = [
 // would show (a real tab keeps the socket open). Without this filter, every
 // single JSONL-consuming page in a batch carried 3-20+ of these as false
 // "warning" findings, burying the real ones (2026-09-19 prove step, measured
-// on /framework/ai/2026-09-19/page-health/scratch-throw/).
+// on /framework/ai/sessions/2026/09/19/page-health/scratch-throw/).
 const KNOWN_CONSOLE = [
 	{ test: text => /^Socket (closed, reconnecting|error\.)/.test(text), reason: "this watcher's own deliberate socket close, not a page bug" },
 	{ test: text => /^JSONL\.live\(\): no answer from the dev server, fetching/.test(text), reason: "live() falls back to fetch() because the socket is deliberately closed — expected, not a bug" },
 ];
 
-/* ── the reload hold (a sibling task, ai/2026-09-19/reload-hold/) ───────── */
+/* ── the reload hold (a sibling task, ai/sessions/2026/09/19/reload-hold/) ───────── */
 
 // Read-only: `Hold.peek()` compares `until` against now without writing
 // anything back — pruning the file is the dev server's job, not this
@@ -321,7 +321,7 @@ async function ensure_browser(){
 /* ── two spacing lint checks, WARNINGS only, never errors ───────────────────
  *
  * Both come from the card-word task (2026-09-19,
- * public/framework/ai/2026-09-19/card-word/) and the padding audit before it
+ * public/framework/ai/sessions/2026/09/19/card-word/) and the padding audit before it
  * — the two concrete spacing mistakes that were actually caught by hand that
  * week: the dev bar's cards measured 5.12px of padding with a border and a
  * ground on them, and a sidebar list measured 46.5px between rows. A machine

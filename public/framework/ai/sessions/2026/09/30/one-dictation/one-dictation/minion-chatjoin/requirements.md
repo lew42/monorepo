@@ -1,6 +1,6 @@
 # Minion brief: the Dictate widget inside the Chat (merge 8)
 
-Load the `minion` skill first, then `code`, `ui` and `layout`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/2026-09-30/one-dictation/`. Read the owner's words first: the last section of `owner-words.md` there ("the Dictate page is the workbench").
+Load the `minion` skill first, then `code`, `ui` and `layout`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/`. Read the owner's words first: the last section of `owner-words.md` there ("the Dictate page is the workbench").
 
 ## Why
 There are two of everything today (CLAUDE.md law 6, "one of everything"):

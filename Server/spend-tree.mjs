@@ -1,5 +1,5 @@
 // Server/spend-tree.mjs — who spawned whom, why, and what it cost, nested.
-// The owner's ask (public/framework/ai/2026-10-03/spend-tree/requirements.md):
+// The owner's ask (public/framework/ai/sessions/2026/10/04/spend-tree/spend-tree/requirements.md):
 // "we should be able to see how and why all the minions are spawned... nest the costs...
 // the agent that spawns a bunch of sub agents probably has a bunch of token consumption
 // of its own... broken down by Claude dollars and OpenRouter dollars."

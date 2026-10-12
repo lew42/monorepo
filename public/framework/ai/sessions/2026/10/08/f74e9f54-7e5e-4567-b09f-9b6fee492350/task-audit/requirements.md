@@ -11,9 +11,9 @@ You are a **Sonnet 5.5 mastermind** orchestrating **Haiku minions**. Budget **$6
 
 ## Step 1 — find the sources of truth (Haiku or script; start from what exists)
 Start from work already done (reuse it, don't redo it):
-- `public/framework/ai/2026-10-08/mastermind-cheap-models/ask-ledger/` — 1,650 owner prompts pulled from the raw Claude session files; 1,483 have no match in `asks.jsonl` or the git log.
+- `public/framework/ai/sessions/2026/10/08/mastermind-cheap-models/mastermind-cheap-models/ask-ledger/` — 1,650 owner prompts pulled from the raw Claude session files; 1,483 have no match in `asks.jsonl` or the git log.
 - `public/framework/ai/doc/logs/log-sources.md` — the map of where each log lives.
-- `public/framework/ai/2026-10-07/prompt-audit/` — an earlier audit (`audit.mjs`, `report.md`).
+- `public/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit/` — an earlier audit (`audit.mjs`, `report.md`).
 
 Add these sources to the map:
 - `~/.claude/projects/` session files (sidebar, voice and OpenRouter prompts)

@@ -35,7 +35,7 @@ tile on `/framework/ai/` stops being a bare title. Neither change touches
 exactly this.
 
 Demoed live end-to-end in
-[`ai/2026-08-13/task-previews/page.js`](/framework/ai/2026-08-13/task-previews/):
+[`ai/sessions/2026/08/13/task-previews/page.js`](/framework/ai/sessions/2026/08/13/task-previews/):
 its own `preview()` override (a checklist, not a status line) is what the day
 dashboard shows for that task, and the page calls `glance()` on the real day
 Page to render the same tile that `/framework/ai/` shows for 2026-08-13. A
@@ -132,13 +132,13 @@ lines) — no DOM, adoptable by the dashboard.
   block with no wrapping tag but `isMeta: true`** — `replay.js`'s
   `is_prompt()`/`trivial()` don't check it, so a skill load renders as a
   genuine 49,480-char thread in the real rail today (confirmed live on
-  `/framework/ai/2026-08-13/sessions/`, thread #6). `timeline_of()` filters
+  `/framework/ai/sessions/2026/08/13/sessions/`, thread #6). `timeline_of()` filters
   `isMeta`. **Fixed 2026-08-13 (improve-daily-task-dashboard):** both viewers
   now drop `isMeta` lines from the talk stream (`is_talk()` in feed.js, the
   `talk` filter in replay.js), so a skill load renders nowhere, like caveats.
 
 Full field-by-field authoritative-vs-derivable verdicts, the schema-v2
 proposal, and prioritized log-rendering improvements are in
-[`manifest-vs-log/analysis.md`](/framework/ai/2026-08-13/manifest-vs-log/)
+[`manifest-vs-log/analysis.md`](/framework/ai/sessions/2026/08/13/manifest-vs-log/)
 (verdict up front: `tokens` should stop being hand-typed, everywhere the
 transcript is still reachable).

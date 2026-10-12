@@ -1,6 +1,6 @@
 # accept-buttons — Mike rubber-stamps each layout change from the accept screen
 
-Laws: less is more · clarity · prioritize. **Deliverable: Accept / Reject on every row of `/framework/ai/2026-08-17/layout-primitives/`, the verdict recorded, the row showing it. Final message ≤ 15 lines.**
+Laws: less is more · clarity · prioritize. **Deliverable: Accept / Reject on every row of `/framework/ai/sessions/2026/08/17/layout-primitives/`, the verdict recorded, the row showing it. Final message ≤ 15 lines.**
 
 Mike: *"a Before + After UX that shows the change, with an accept button would be pretty sweet. That's how I'd like to run this framework/site. You find me improvements, I rubberstamp them."* The screen exists (`layout-primitives/page.js` + `changes.js`, 22 rows across three waves, each with a one-line revert). Only the buttons and the record are missing.
 
@@ -13,5 +13,5 @@ Mike: *"a Before + After UX that shows the change, with an accept button would b
 
 ## Rules
 
-- Files: `ai/2026-08-17/layout-primitives/{page.js,changes.js,requirements.md,verdicts.jsonl}`, this dir. Not the Server, not `ext/**` (if the RPC you need doesn't exist, log it and stop — a proposal is fine).
+- Files: `ai/sessions/2026/08/17/layout-primitives/{page.js,changes.js,requirements.md,verdicts.jsonl}`, this dir. Not the Server, not `ext/**` (if the RPC you need doesn't exist, log it and stop — a proposal is fine).
 - `code` skill once; `finish-task`. Log in `task.jsonl` (bash `printf`; timestamps from `date -Iseconds`); bump step. Never Mike's live tabs; headless only.

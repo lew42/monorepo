@@ -1,7 +1,7 @@
 # The source library + the web fan-out script + seeding it for real
 
 Load the `minion` skill first. Your parent task (read it, and its links, before touching
-anything): `public/framework/ai/2026-09-28/source-library/requirements.md` — pieces 1, 2
+anything): `public/framework/ai/sessions/2026/09/28/ce1cbe96-a28c-43d3-897e-4629ae753aeb/source-library/requirements.md` — pieces 1, 2
 and 5 of that brief are yours. Background: `.../agent-work-on-every-page-sanity-checks-c/design.md`
 ("Added" section, rows "Source" and "Web fan-out") and `owner-words-2.md` (the raw
 dictation — search for "collection of references" and "sources").

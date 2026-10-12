@@ -3,7 +3,7 @@
  *
  * WHAT: joins public/framework/ai/usage.jsonl (session snapshots of `weekly_all`, the % of the
  * weekly usage window used, taken every few minutes) with the per-day Claude $ totals in
- * public/framework/ai/2026-10-07/token-accounting/post-analysis.json (spend-tree based,
+ * public/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/post-analysis.json (spend-tree based,
  * API-equivalent dollars) to answer: how many real dollars does one point of the weekly window
  * cost, and — given that rate, today's `weekly_all`% and the time left before the next reset —
  * is there $ room to start a new task right now, or should it queue?
@@ -32,9 +32,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(HERE, "../../../../.."); // .../ai/2026-10-08/mastermind-cheap-models -> repo root
+const ROOT = path.resolve(HERE, "../../../../.."); // .../ai/sessions/2026/10/08/mastermind-cheap-models/mastermind-cheap-models -> repo root
 const USAGE_PATH = path.join(ROOT, "public/framework/ai/usage.jsonl");
-const SPEND_PATH = path.join(ROOT, "public/framework/ai/2026-10-07/token-accounting/post-analysis.json");
+const SPEND_PATH = path.join(ROOT, "public/framework/ai/sessions/2026/10/08/token-accounting/token-accounting/post-analysis.json");
 
 function readJsonl(file){
 	try { return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }

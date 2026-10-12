@@ -56,7 +56,7 @@ for (const edges of [true, false]){
 
 // titles: the request's first sentence beats the folder slug
 {
-	const [root] = build([{ dir: "ai/2026-09-29/readme-chain", request: "Build readme-chain.js. Then wire it in.", requested_at: T(9) }]);
+	const [root] = build([{ dir: "ai/sessions/2026/09/29/readme-chain/readme-chain", request: "Build readme-chain.js. Then wire it in.", requested_at: T(9) }]);
 	assert.equal(root.title, "Build readme-chain.js.");
 }
 console.log("tree.test: all assertions pass (plan by edges, plan by time, inbox children and leaves, stopped leaves, exact after, titles)");

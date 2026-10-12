@@ -20,10 +20,10 @@ Importers = files outside the module that import it (grep, 2026-09-25; `/app.js`
 | Accordion | [ui/accordion](/framework/ui/accordion/) | one-click-down detail | ux/Content/plan/page.js | 1 |
 | Tabs | [ext/tabs](/framework/ext/tabs/) | sibling views of one thing | ai2/card.js | 4 (+ every Doc) |
 | Table of contents | [ext/toc](/framework/ext/toc/) (`toc`) | long page, jump links | audit/overview/priorities | 16 |
-| Tree | [ux/Tree](/framework/ux/Tree/) | nested items, drag, keys | ai/2026-09-22/record | 6 |
+| Tree | [ux/Tree](/framework/ux/Tree/) | nested items, drag, keys | ai/sessions/2026/09/22/session-36e558ed/record | 6 |
 | List filter / chips | [ux/Filter](/framework/ux/Filter/) | one list, open/done | core/Sidebar | 1 |
 | Tags | [ux/Tags](/framework/ux/Tags/) | labels on items | none | 0 |
-| Live JSONL feed | [ext/JSONL](/framework/ext/JSONL/) | a log that streams in | ai/2026-09-19/assistant-stream | 13 |
+| Live JSONL feed | [ext/JSONL](/framework/ext/JSONL/) | a log that streams in | ai/sessions/2026/09/19/assistant-stream | 13 |
 | Screenshots / images | plain `img()`; ext/DesignTool/vision for shots | showing a layout | this page (cols-*.png) | n/a |
 | Flow chart / diagram | **none exists**. ext/Panel/flow.js records panel steps, it does not draw charts | a process | none | none |
 

@@ -6,7 +6,7 @@ Work ONLY inside that worktree.
 
 Parent task (read it first, the owner's verbatim words are there — don't
 re-ask, decide and build):
-`public/framework/ai/2026-10-03/push-to-talk/requirements.md`.
+`public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/requirements.md`.
 
 A sibling minion just built `public/framework/ux/Hotkeys/` — read its
 `readme.md` before you start. It gives you:
@@ -138,7 +138,7 @@ headless proof + screenshots next, in this same worktree.
 
 ## When done
 
-Log your result in `public/framework/ai/2026-10-03/push-to-talk/ptt-wiring/task.jsonl`
+Log your result in `public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/ptt-wiring/task.jsonl`
 (load `new-task` if not open yet): what you built, the exact mic/mouse-button
 design you picked and why, any gap left open with its reason. Commit. End your
 turn.

@@ -18,7 +18,7 @@ The full prompt: `../mastermind-layout-browser/requirements.md`. The proposal th
 
 ## Rules
 
-- Load `code` (parts as static subclasses, every method a seam), `documentation`; `new-task` before the first edit (your dir exists: `ai/2026-09-17/core-data-children/`; write its `task.jsonl` launch line); `finish-task` at the end; `skill-improvement` for any skill that misled you.
+- Load `code` (parts as static subclasses, every method a seam), `documentation`; `new-task` before the first edit (your dir exists: `ai/sessions/2026/09/17/core-data-children/`; write its `task.jsonl` launch line); `finish-task` at the end; `skill-improvement` for any skill that misled you.
 - **Fence:** `public/framework/core/Page/**`, `public/imagine/paging/make/**` and `public/imagine/cms/json/**` (only the override removal and the new `children()`), your task dir. Nothing else.
 - **Never kill or restart the dev server, never drive the owner's tabs, never `git stash`, never `find /`.** The owner's server (port 80) is NOT running; start your own: `PORT=8095 node server.js` from the repo root, in the background; kill it when you land. `ui-test` has the headless recipe. A hidden tab does not lay out.
 - ⚠ Core is shared by every page and every other minion's private server: make the core edit in ONE write, syntax-checked first (`node --check` will not parse an ES module with `/app.js` imports — instead load the file in the headless browser and read the console), and never leave `Page.class.js` broken between two edits.

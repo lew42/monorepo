@@ -1,7 +1,7 @@
 # Menu — decisions
 
 Landed 2026-08-21, wave 2 of the graduation (`ux/Tree` is wave 1 and the exemplar). Task
-log: [`ai/2026-08-21/ux-graduations/`](/framework/ai/2026-08-21/ux-graduations/).
+log: [`ai/sessions/2026/08/21/ux-graduations/`](/framework/ai/sessions/2026/08/21/ux-graduations/).
 
 ## The caller census, and why the split was simpler than Tree's
 

@@ -83,7 +83,7 @@ reading incomparable with every recorded one. The census here and a row in the
 audit table mean the same thing. ⚠ **`analyze()` reports no score or grade** — the
 aggregate was deleted for being anti-correlated with how pages look; see
 [`score.js`](/framework/ext/DesignTool/) and
-[tier-calibration](/framework/ai/2026-08-17/tier-calibration/). The `taste` row
+[tier-calibration](/framework/ai/sessions/2026/08/17/tier-calibration/). The `taste` row
 below it is the one that scores.
 
 ⚠ **THE RAIL WAS IN ITS OWN READING, AND MARKING THE BAR DID NOT PREVENT IT**

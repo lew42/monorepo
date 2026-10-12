@@ -1,6 +1,6 @@
 # Minion D — two smoke-test failures blocking the merge
 
-Load the `minion` skill first, then `code`. Parent task: `public/framework/ai/2026-09-28/dictation-playground/`. Work in the worktree `C:/Code/lew42/worktrees/qf-3` and commit there. Never `git stash` / `reset` / `checkout --`; never restart a server.
+Load the `minion` skill first, then `code`. Parent task: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/`. Work in the worktree `C:/Code/lew42/worktrees/qf-3` and commit there. Never `git stash` / `reset` / `checkout --`; never restart a server.
 
 `node Server/merge.mjs C:/Code/lew42/worktrees/qf-3 /framework/ux/Dictate/playground/` (run from `C:/Code/lew42/monorepo`) refuses on two pages:
 
@@ -11,4 +11,4 @@ Fence: `public/framework/ux/Dictate/page.js`, `public/framework/ux/Dictate/playg
 
 Prove it: `node Server/smoke.mjs C:/Code/lew42/worktrees/qf-3 /framework/ux/Dictate/ /framework/ux/Dictate/words/ /framework/ux/Dictate/playground/ <two other demo.page pages>` (run from `C:/Code/lew42/monorepo`) shows no FAIL. Do NOT run merge.mjs — the mastermind merges.
 
-Log to `public/framework/ai/2026-09-28/dictation-playground/smoke-fix/task.jsonl` in the MAIN tree (`node .claude/hooks/append.mjs`, `group: "dictate"`). Reply in one line: commit hash and the smoke result.
+Log to `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/smoke-fix/task.jsonl` in the MAIN tree (`node .claude/hooks/append.mjs`, `group: "dictate"`). Reply in one line: commit hash and the smoke result.

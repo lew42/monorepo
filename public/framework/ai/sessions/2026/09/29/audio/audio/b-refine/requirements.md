@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `code`, `page`, `new-page`, `css` before CSS.
 
-**Read first, in full:** the owner's words, `public/framework/ai/2026-09-29/audio/owner-words.md`, and the task brief beside it, `../requirements.md` (asks 2 (refinement), 4 and 5). Those words are the acceptance test.
+**Read first, in full:** the owner's words, `public/framework/ai/sessions/2026/09/29/audio/audio/owner-words.md`, and the task brief beside it, `../requirements.md` (asks 2 (refinement), 4 and 5). Those words are the acceptance test.
 
 ## Where you work
 

@@ -35,7 +35,7 @@ Dispatched by the mastermind run `mastermind-layout` (2026-08-16). Verbatim brie
 > this in cost; should it be folded in (column / page / replace) — recommend
 > one, weigh alternatives, verdict is Mike's.
 >
-> Write findings to `public/framework/ai/2026-08-16/demo-coverage/stages.md`,
+> Write findings to `public/framework/ai/sessions/2026/08/16/demo-coverage/stages.md`,
 > one to two screens, table first, prose after.
 
 **Fence** — write only this task dir and the session scratchpad. Change no

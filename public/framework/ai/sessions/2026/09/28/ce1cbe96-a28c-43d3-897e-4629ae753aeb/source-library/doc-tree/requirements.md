@@ -1,7 +1,7 @@
 # Doc module: a nested tree of notes, and /docs/ resolving to /doc/
 
 Load the `minion` skill first. Your parent task (read it, and its links, before
-touching anything): `public/framework/ai/2026-09-28/source-library/requirements.md`
+touching anything): `public/framework/ai/sessions/2026/09/28/ce1cbe96-a28c-43d3-897e-4629ae753aeb/source-library/requirements.md`
 — piece 4 of that brief is yours. Background: `.../agent-work-on-every-page-sanity-checks-c/design.md`
 ("Added" section, row "Docs") and `owner-words-2.md` (the raw dictation — search
 for "docs system" and "multi-level documentation").

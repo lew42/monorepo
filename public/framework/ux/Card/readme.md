@@ -68,7 +68,7 @@ Log tab's rows) and this file's own `@keyframes ai2-pulse`, which two of its rul
 ## More
 
 - [`Card.css`](./Card.css) — the whole file, moved verbatim from `ai2.css`
-  ([`ai/2026-09-30/inbox-ext/`](/framework/ai/2026-09-30/inbox-ext/), merge 7)
+  ([`ai/sessions/2026/09/30/inbox-ext/`](/framework/ai/sessions/2026/09/30/inbox-ext/), merge 7)
 - [`ai2/readme.md`](/framework/ai2/) — the module that still draws a card, and what is left
   in `ai2.css` now that this file carries everything reusable
 - [`ai2/doc/cards.md`](/framework/ai/doc/ai2/cards.md) — a card folder's full vocabulary

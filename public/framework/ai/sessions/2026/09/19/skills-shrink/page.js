@@ -30,9 +30,9 @@ export default new Page({
 			"**`ui-test/SKILL.md`: 293 → 284 lines.**\n" +
 			"- Two bullets both explained \"quote `click`, never quote `type`\" almost word for word — merged into one, both failure symptoms kept.\n" +
 			"- A hover-timing trap was told four separate times (same fix, four dates) — now one telling of the technique with all four dates in one clause.\n" +
-			"- Three different \"a stray click wrote to the owner's real file\" incidents were each getting their own paragraph saying the same \"resolve the selector first\" fix — combined into one paragraph, all three still named, with a link to the task log that has them ([`self-evident-minors`](/framework/ai/2026-09-13/self-evident-minors/)).\n\n" +
+			"- Three different \"a stray click wrote to the owner's real file\" incidents were each getting their own paragraph saying the same \"resolve the selector first\" fix — combined into one paragraph, all three still named, with a link to the task log that has them ([`self-evident-minors`](/framework/ai/sessions/2026/09/13/self-evident-minors/)).\n\n" +
 			"**`mastermind/SKILL.md`: 376 → 374 lines.**\n" +
-			"- The \"never kill the dev server, never drive the owner's tabs, never `git stash`\" story was told in full here a second time — it already lives in full in `minion/SKILL.md`'s never-list, which every minion reads first. Shrunk to a clause plus a link to [the actual incident](/framework/ai/2026-08-19/mastermind-run-4/).\n" +
+			"- The \"never kill the dev server, never drive the owner's tabs, never `git stash`\" story was told in full here a second time — it already lives in full in `minion/SKILL.md`'s never-list, which every minion reads first. Shrunk to a clause plus a link to [the actual incident](/framework/ai/sessions/2026/08/19/mastermind-run-4/).\n" +
 			"- The `server-self` recovery-testing story got a real link to its task log in place of a paragraph explaining the same thing.");
 
 		/* ⚠ Presentation pass, 2026-09-22: 3,120px at 1280, four screens of prose.

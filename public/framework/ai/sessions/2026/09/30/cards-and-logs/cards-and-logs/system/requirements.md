@@ -1,6 +1,6 @@
 # Minion brief: the card system at core/Page/card/
 
-Load the `minion`, `page`, `css` and `new-css-class` skills first. Parent: task-mastermind-cards-and-logs. Parent task dir `public/framework/ai/2026-09-29/cards-and-logs/`: read `owner-words.md` IN FULL (both sections; the 8:40 PM one ends with the card-storage decision) and `requirements.md` (Phase 1 + the "Decision from the owner").
+Load the `minion`, `page`, `css` and `new-css-class` skills first. Parent: task-mastermind-cards-and-logs. Parent task dir `public/framework/ai/sessions/2026/09/30/cards-and-logs/cards-and-logs/`: read `owner-words.md` IN FULL (both sections; the 8:40 PM one ends with the card-storage decision) and `requirements.md` (Phase 1 + the "Decision from the owner").
 
 ## The owner's words (the acceptance test)
 "Let's create a core page card system ... A card is sort of just like a mini page. It's like a page that's responsive and so it works on mobile ... Sometimes they have a title on them. Usually they're clickable you, or expandable or have menus ... most cards by default would have their own background color ... if a background is like white, for example, you could have a different colored background card, like a light gray or a dark themed card, or even maybe a strong hue, like a primary color ... you could kind of nest these and stack them in different ways ... what scale and what kind of content gets crammed into the cards ... different ways to use headers and menus ... If you're going to have a whole list of cards, especially if they have previews that are clickable ... they need to be routed. They should be pages of their own."
@@ -8,7 +8,7 @@ Load the `minion`, `page`, `css` and `new-css-class` skills first. Parent: task-
 Decision (owner, 8:40 PM): "a card is kind of a tiny page and doesn't need a directory of its own" — its data is a line in the nearest existing parent page.jsonl, with a virtual routed URL through the parent's route(); a folder only on demand.
 
 ## Input
-`public/framework/core/Page/card/inventory.json` + `inventory/*.png` (in the worktree) and `ai/2026-09-29/cards-and-logs/inventory/findings.md` — what exists today. Build FROM it: reuse `.card`, `.surface`, `.wash`, `.darken-1..3`, `--pad-card`, `--radius`, `--card-edge` in framework.css. Do NOT edit framework.css. New CSS lives in `card/card.css` inside a layer, with a prefix cleared by new-css-class (`card` itself is reserved by the framework block).
+`public/framework/core/Page/card/inventory.json` + `inventory/*.png` (in the worktree) and `ai/sessions/2026/09/30/cards-and-logs/cards-and-logs/inventory/findings.md` — what exists today. Build FROM it: reuse `.card`, `.surface`, `.wash`, `.darken-1..3`, `--pad-card`, `--radius`, `--card-edge` in framework.css. Do NOT edit framework.css. New CSS lives in `card/card.css` inside a layer, with a prefix cleared by new-css-class (`card` itself is reserved by the framework block).
 
 ## Work in
 Worktree `C:\Code\lew42\worktrees\cards-and-logs` (server http://localhost:52442/). Fence: `public/framework/core/Page/card/` except `card/log/` (another minion's; read it, don't edit). Commit by exact path. If `card/page.js` is a stub the logger minion left, replace it, keeping its `log` child.

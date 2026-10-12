@@ -2,7 +2,7 @@
 
 Load the `minion`, `code` and `ui-test` skills. Your parent is task-mastermind-voice-sessions-2. Worktree `C:/Code/lew42/worktrees/voice-fixes` (site http://localhost:50881/). Commit by exact path. Never stash, never restart Servex. **Every proof POST is stubbed** (see `../e-fixes/proof/ui.mjs`, which already does it). Budget: $3.
 
-**Fence:** `public/framework/ext/drawer/rail.js`, `Servex/agents/Sessions.js`, `Servex/agents/directory.js`, `Servex/agents/roles.js` (the directory-mastermind row only), `public/framework/ai/2026-09-22/tiers-design/doc/roles.md`, `public/framework/ext/Session/**`. Not `Assistant.js`, not `ext/Chat`.
+**Fence:** `public/framework/ext/drawer/rail.js`, `Servex/agents/Sessions.js`, `Servex/agents/directory.js`, `Servex/agents/roles.js` (the directory-mastermind row only), `public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md`, `public/framework/ext/Session/**`. Not `Assistant.js`, not `ext/Chat`.
 
 ## A. The double line (first)
 

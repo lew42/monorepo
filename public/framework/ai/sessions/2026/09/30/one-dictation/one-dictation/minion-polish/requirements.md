@@ -1,6 +1,6 @@
 # Minion brief: the one chat, merge 2 (every surface looks right)
 
-Load the `minion` skill first, then `code`, `css` and `ui-test`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/2026-09-30/one-dictation/`. Read `owner-words.md` and `requirements.md` there first.
+Load the `minion` skill first, then `code`, `css` and `ui-test`. Your parent is **task-mastermind-one-dictation**, and its task dir is `public/framework/ai/sessions/2026/09/30/one-dictation/one-dictation/`. Read `owner-words.md` and `requirements.md` there first.
 
 ## Where it stands
 Merge 1 is in michael/dev (5ccef5eb). [`ux/Dictate/chat.js`](/framework/ux/Dictate/)'s `chat(el, {path, card, placeholder})` is now the one chat on the ✦ phone sheet (`ext/drawer/rail.js`), the ☰ drawer's AI tab (`ext/drawer/tabs/ai.js`) and the AI 2 card's own sidebar (`ai2/card.js`). Don't change its API. If it needs a change, extend it and say so.

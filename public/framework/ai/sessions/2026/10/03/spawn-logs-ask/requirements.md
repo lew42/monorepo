@@ -2,7 +2,7 @@ Budget: $3.
 
 # Servex: every spawned task writes its own line in the asks ledger
 
-**Why:** [day-audit](/framework/ai/2026-10-03/day-audit/) found that about half of today's asks are missing from `public/framework/ai/asks.jsonl`, including spawned tasks (prompts-live, subcard-columns, topic-cards, now-card-blank, system-class). The task folders are complete; the ledger relies on someone remembering to write it. Make it code (law 7).
+**Why:** [day-audit](/framework/ai/sessions/2026/10/03/day-audit/) found that about half of today's asks are missing from `public/framework/ai/asks.jsonl`, including spawned tasks (prompts-live, subcard-columns, topic-cards, now-card-blank, system-class). The task folders are complete; the ledger relies on someone remembering to write it. Make it code (law 7).
 
 ## What to build
 

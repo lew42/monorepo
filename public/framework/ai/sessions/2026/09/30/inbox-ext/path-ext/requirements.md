@@ -1,6 +1,6 @@
 # Minion brief: path modules are page extensions (merge 1b)
 
-Load the `minion` skill first, then `code` and `documentation`. Parent: task-mastermind-inbox-ext. Task dir: `public/framework/ai/2026-09-30/inbox-ext/` — read `owner-words.md` (the last section is yours), `plan.md` (merge 1b), and `core/Page/ext/readme.md` in the worktree (merge 1, the extension system you build on).
+Load the `minion` skill first, then `code` and `documentation`. Parent: task-mastermind-inbox-ext. Task dir: `public/framework/ai/sessions/2026/09/30/inbox-ext/` — read `owner-words.md` (the last section is yours), `plan.md` (merge 1b), and `core/Page/ext/readme.md` in the worktree (merge 1, the extension system you build on).
 
 ## The owner's words (verbatim)
 

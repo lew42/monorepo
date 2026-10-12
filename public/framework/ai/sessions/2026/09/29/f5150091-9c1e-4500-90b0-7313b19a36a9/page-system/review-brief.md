@@ -5,8 +5,8 @@ You are a FRESH reviewer. You never saw the builders' conversation. Read the own
 ## The owner's words (the acceptance test)
 
 - `C:\Code\lew42\monorepo\public\framework\ai\2026-09-29\page-system\owner-words.md` — all of it (4:00, 4:20, 4:30 PM parts).
-- The later additions: `public/framework/ai/2026-09-29/item-ui/owner-words.md` (first part: core/Page/ai), `public/framework/ai/2026-09-29/file-system/owner-words.md` (last third: page weight), and the "Continued (about 4:55 PM)" part on weight (grep `public/framework/ai/2026/09/29/` for "4:55").
-- The numbered asks: `public/framework/ai/2026-09-29/page-system/requirements.md`.
+- The later additions: `public/framework/ai/sessions/2026/09/29/ca56812f-482f-482c-a2fb-e86ba479353a/item-ui/owner-words.md` (first part: core/Page/ai), `public/framework/ai/sessions/2026/09/29/file-system/file-system/owner-words.md` (last third: page weight), and the "Continued (about 4:55 PM)" part on weight (grep `public/framework/ai/2026/09/29/` for "4:55").
+- The numbered asks: `public/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/requirements.md`.
 - CLAUDE.md's "Clarity is familiar structure" and "Presentation — always the overwhelmed newcomer".
 
 ## What to review

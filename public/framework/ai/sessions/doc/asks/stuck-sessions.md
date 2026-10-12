@@ -1,6 +1,6 @@
 # Why some sessions read as running (checked 2026-10-09, by script)
 
-Script: `ai/2026-10-09/ai-mastermind/scripts/stuck.mjs` (reads Servex `/api/agents` and the real transcripts; run it again for fresh numbers).
+Script: `ai/sessions/2026/10/09/session-a27774cd/ai-mastermind/scripts/stuck.mjs` (reads Servex `/api/agents` and the real transcripts; run it again for fresh numbers).
 
 **Result at 17:30:** no Servex-launched agent was stuck. Of 36 registered, 3 were `working` (two masterminds and a refine UI task, all with fresh transcripts), 4 `idle`, the rest dormant or stopped.
 

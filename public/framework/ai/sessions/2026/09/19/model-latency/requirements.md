@@ -108,7 +108,7 @@ each wave in your `task.jsonl` before it launches.
 ## The fence — other minions are in flight; the tree is shared
 
 You may write ONLY:
-- `public/framework/ai/2026-09-19/model-latency/**` (this dir: `task.jsonl`, `page.js`, a small
+- `public/framework/ai/sessions/2026/09/19/model-latency/**` (this dir: `task.jsonl`, `page.js`, a small
   `results.json` the page reads)
 - one appended line per event in `public/framework/ai/2026-09-19/day.jsonl` (what `new-task` and
   `finish-task` write)
@@ -129,7 +129,7 @@ Every `claude -p` you launch must be reaped: no orphaned processes when you land
 
 ## The result page
 
-`public/framework/ai/2026-09-19/model-latency/page.js` — load `new-page` and `layout` first.
+`public/framework/ai/sessions/2026/09/19/model-latency/page.js` — load `new-page` and `layout` first.
 Level 1, one screen: the answer in a sentence, then one picture — seconds to a finished card, by
 model and effort, for the fast-assistant task. Below or one click down: the parts-of-latency
 breakdown, the quality table, the concurrency findings, the effort-routes table, the method
