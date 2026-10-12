@@ -23,7 +23,7 @@
 	.col-send-btn { width: 2.4em; height: 2.4em; padding: 0; flex-shrink: 0; }
 
 	.col-avatar {
-		width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+		font-size: 0.8em; width: 2.75em; height: 2.75em; border-radius: 50%; flex-shrink: 0;
 		display: flex; align-items: center; justify-content: center;
 	}
 
