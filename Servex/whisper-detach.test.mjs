@@ -1,7 +1,7 @@
 /* node Servex/whisper-detach.test.mjs — proves a Servex restart no longer kills whisper-server (2026-10-12).
  * Runner A starts a real whisper-server on a private port; A "dies" (release(), what shutdown() does for a
  * detached runner); runner B (the next Servex) must ADOPT the same pid with no second model load.
- * Needs the installed whisper-server + model, like Dictate. Doc: Server/doc/transcription-crash.md */
+ * Needs the installed whisper-server + model, like Dictate. Doc: Server/doc/transcription-crash-2026-10-12.md */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import net from "node:net";

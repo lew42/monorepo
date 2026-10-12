@@ -348,7 +348,7 @@ Process.Whisper = class Whisper extends Process {
         if (!fs.existsSync(this.command) || !fs.existsSync(this.model)) return this.settle("not-installed",
             `whisper-server is not installed (looked for ${this.command}) — ux/Dictate will fall back to the browser engine.`);
 
-        // DETACHED (Servex.whisper): a whisper-server the last Servex started is ours again, not a stranger. Without this a Servex restart killed it and the model took ~14 s to reload under every open Dictate (Server/doc/transcription-crash.md).
+        // DETACHED (Servex.whisper): a whisper-server the last Servex started is ours again, not a stranger. Without this a Servex restart killed it and the model took ~14 s to reload under every open Dictate (Server/doc/transcription-crash-2026-10-12.md).
         if (this.detach && await this.adopt()) return this.status;
 
         if (await this.stranger()) return this.settle("already-running",

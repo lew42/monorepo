@@ -1,4 +1,4 @@
-/* `node Server/TranscribeLoop.mjs [--minutes 10] [--out dir] [--reload-every 3] [--churn]`
+/* `node Server/TranscribeLoop.mjs [--minutes 10] [--out dir] [--reload-every 3] [--churn] [--against <origin>]`
  * Dictate a recorded clip and reload the page in a loop against a PRIVATE dev server + a
  * PRIVATE whisper-server (never the owner's), and record when and how anything fails.
  * What it does and what it found: Server/doc/transcription-crash-2026-10-12.md.
@@ -9,7 +9,8 @@
  *   churn      (--churn) append a line to a scratch file under public/ every 700 ms, the way agents
  *              write logs all day: each write makes the dev server tell every open page to reload.
  *   watch      every 2 s the dev server's and whisper's CPU, RAM, handles (one PowerShell loop).
- * A "failure" is a non-200, a timeout, a reload slower than 2 s, or either child process exiting. */
+ * --against <origin> skips the private processes and runs the two loops against a site that is already up
+ *            (how the Servex restart was measured). A "failure" is a non-200, a timeout, a reload slower than 2 s, or either child process exiting. */
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import net from "node:net";
@@ -36,6 +37,7 @@ export default class TranscribeLoop {
 		this.minutes = Number(o.minutes ?? 10);
 		this.reload_every = Number(o.reload_every ?? 3) * 1000;
 		this.churn = !!o.churn;
+		this.against = o.against || "";   // --against http://monorepo.localhost : no private processes, just the loops
 		this.out = o.out || path.join(REPO, "Server", "logs");
 		this.wav = o.wav || path.join(MAIN, "public/framework/ai/recordings/jfk.wav");
 		this.events = [];        // every request and every process event, in order
@@ -60,6 +62,7 @@ export default class TranscribeLoop {
 	}
 
 	async up() {
+		if (this.against) { this.origin = this.against; this.log("up", { origin: this.origin, against: true }); return; }   // measure an existing site (e.g. across a Servex restart)
 		this.whisper_port = await TranscribeLoop.free_port();
 		this.port = await TranscribeLoop.free_port();
 		const exe = path.join(WHISPER_HOME, "bin", "whisper-server.exe"), model = path.join(WHISPER_HOME, "models", "ggml-large-v3-turbo.bin"), vad = path.join(WHISPER_HOME, "models", "ggml-silero-v5.1.2.bin");
@@ -152,6 +155,7 @@ export default class TranscribeLoop {
 
 	// One PowerShell loop prints a JSON line per process every 2 s: CPU seconds, RAM, handles.
 	watch() {
+		if (!Object.keys(this.children).length) return;
 		const pids = Object.entries(this.children).map(([n, c]) => `${c.pid}`).join(",");
 		const names = Object.fromEntries(Object.entries(this.children).map(([n, c]) => [c.pid, n]));
 		const ps = spawn("powershell", ["-NoProfile", "-Command", `$prev=@{}; while($true){ foreach($p in Get-Process -Id ${pids} -ErrorAction SilentlyContinue){ [pscustomobject]@{id=$p.Id;cpu=$p.CPU;mb=[int]($p.WorkingSet64/1MB);h=$p.HandleCount;t=(Get-Date).Ticks} | ConvertTo-Json -Compress }; Start-Sleep 2 }`], { windowsHide: true, stdio: ["ignore", "pipe", "ignore"] });
@@ -205,7 +209,7 @@ export default class TranscribeLoop {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
 	const a = process.argv.slice(2), arg = (n, d) => { const i = a.indexOf("--" + n); return i < 0 ? d : a[i + 1]; };
-	const loop = new TranscribeLoop({ minutes: arg("minutes", 10), out: arg("out"), reload_every: arg("reload-every", 3), churn: a.includes("--churn") });
+	const loop = new TranscribeLoop({ minutes: arg("minutes", 10), out: arg("out"), reload_every: arg("reload-every", 3), churn: a.includes("--churn"), against: arg("against", "") });
 	process.on("SIGINT", () => { loop.stop = true; loop.down(); process.exit(1); });
 	try { console.log(JSON.stringify(await loop.run(), null, 1)); process.exit(0); }
 	catch (e) { console.error("transcribe-loop:", e.message); loop.down(); process.exit(1); }
