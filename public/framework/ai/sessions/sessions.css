@@ -34,6 +34,9 @@
 	.sessions-sort-label:hover { text-decoration: underline; }
 	.sessions-controls { display: flex; flex-direction: column; gap: .5rem; margin-block-end: 1rem; }
 	.sessions-controls > * { margin: 0; }
+	.sessions-kinds { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5rem; }
+	.sessions-kinds:empty { display: none; }
+	.sessions-filters .sessions-search { inline-size: 18em; max-inline-size: 100%; }
 	.sessions-chiprow { display: flex; flex-wrap: wrap; gap: .4rem .5rem; }
 	.sessions-chips { display: contents; }
 	.sessions-summary { flex-wrap: wrap; }
@@ -49,15 +52,11 @@
 	.sessions-page .datagrid-view-rail { block-size: calc(100dvh - 12rem); }
 	.sessions-page .datagrid-view-rail .datagrid-rail { max-block-size: none; }
 	.sessions-page:has(.datagrid-view-rail) .sessions-stats, .sessions-page:has(.datagrid-view-rail) .sessions-chiprow, .sessions-page:has(.datagrid-view-rail) .sessions-summary { display: none; }
+	.sessions-page:has(.datagrid-view-rail) .sessions-kinds .sessions-chip { font-size: .8em; padding: .05em .55em; }    /* the rail keeps the routine chips, small */
 	.sessions-card { display: flex; flex-direction: column; gap: var(--gap-35); padding: var(--gap-50); min-width: 0; }
 	.sessions-card-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-35); min-width: 0; }
 	.sessions-card .sessions-row-title { flex: 1 1 8em; white-space: normal; overflow-wrap: anywhere; }   /* a card has the room to wrap a long name; the table row keeps its one line */
 
-	/* A rolled-up bucket (AISessionBucketView): one full-width row in the table, a card's inside in the rail. */
-	.sessions-bucket { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gap-50); padding: var(--gap-35) var(--gap-50); cursor: pointer; background: var(--darken-1); border-block-end: 1px solid var(--line); }
-	.sessions-bucket:hover, .sessions-bucket:focus-visible { background: var(--darken-2, var(--tint)); }
-	.sessions-bucket-card { grid-column: auto; padding: 0; background: none; border: 0; }
-	.sessions-bucket-card .sessions-row-title { flex: 1 1 0; min-width: 0; }   /* the arrow stays beside a wrapping name */
 
 	.sessions-row { display: contents; }
 
@@ -229,7 +228,12 @@
 	   size/weight/colour step down from the `h2` it sits inside, not a new
 	   type-scale step (the type scale itself is untouched). */
 	.sessions-stats { margin-block-end: var(--gap); display: flex; flex-wrap: wrap; gap: .5em 2em; align-items: center; }
-	.sessions-stats .ai-usage { flex: 1 1 24em; }
+	/* Compact header (Figma "Sessions · data grid"): the stats lines on the left, the three meters in one row on the right. */
+	.sessions-stats-text { flex: 1 1 30em; order: 1; display: flex; flex-direction: column; gap: .25em; min-width: 0; }
+	.sessions-page .sessions-stats, .sessions-page .sessions-controls { margin-block-end: var(--gap-50); }
+	.sessions-page .datagrid-ext { gap: var(--gap-50); }
+	.sessions-by-role:empty { display: none; }
+	.sessions-stats .ai-usage { flex: 0 1 48em; order: 2; margin-inline-start: auto; grid-template-columns: repeat(auto-fit, minmax(min(12em, 100%), 1fr)); gap: var(--gap-50) var(--gap); }
 	.sessions-stat-cents { font-size: 0.55em; font-weight: 400; color: var(--subtle); }
 
 	/* Filters, the summary line and "cost by role" (session-costs

@@ -1,0 +1,5 @@
+items 758 matched 758 total(listed) 119 meta {"kinds":[{"key":"short-run","n":487,"usd":12.91760000000001},{"key":"clarity","n":92,"usd":15.747400000000003},{"key":"reviewer","n":40,"usd":29.5555},{"key":"helper","n":20,"usd":1.9425999999999999}],"listed":119}
+first Style system $67.83 | Data grid $25.97 | Task folders restructure $25.86 | Screenshot system $21.17 bucket rows: 0
+clarity open: total 211 listed 211
+search clarity: matched 92 total 92
+search server-query: mastermind-server-query, minion-server-query-parity, reviewer-server-query, clarity-server-query

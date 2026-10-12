@@ -41,14 +41,16 @@ export default class AISessionSource {
 	/** The files path's "needs attention" test, run by the same AISessionFlags.flags_of: a session-record alert or any red flag. 1 or 0, so the query can `gte` and `sum` it. */
 	static attention_of(row) { return row.alerts || AISessionFlags.flags_of(row).length ? 1 : 0; }
 
-	/** The sorted matches become the grid's list, exactly as AISessionsPage.arrange does for the files path (the same AISessionBuckets.arrange): routine kinds roll up into head rows,
-	 * children nest under their parent. `spec.open` = { kinds, ids } is what the browser has expanded. Each session row carries its `nest` ({ depth, kids, open }). */
+	/** The sorted matches become the grid's list, exactly as AISessionsPage.arrange does for the files path (the same AISessionBuckets.arrange): routine kinds stay out
+	 * unless open, children nest under their parent. `spec.open` = { kinds, ids, all } is what the browser has expanded (`all`: a search). Each row carries its `nest`;
+	 * the list's `meta` ({ kinds, listed }) rides back with the page (ext/Query `run`). */
 	static arrange(hit, spec) {
 		const now = Date.now(), by = spec.sort?.by ?? "last_activity";
-		if (by === "last_activity" && spec.sort?.dir !== "asc") { const up = hit.filter(r => AISessionSource.in_flight(r, now)); if (up.length) { const set = new Set(up); hit = [...up, ...hit.filter(r => !set.has(r))]; } }   // the default sort: a running session is the newest
+		if (by === "last_activity") { const sign = spec.sort?.dir === "asc" ? 1 : -1, t = r => Date.parse(r.last_activity ?? 0) || 0; hit = hit.slice().sort((a, b) => (t(a) - t(b)) * sign || (b.claude_usd ?? 0) - (a.claude_usd ?? 0)); }   // same tie-break as the files path: the costlier first
+		if (by === "last_activity" && spec.sort?.dir !== "asc") { const up = hit.filter(r => AISessionSource.in_flight(r, now)); if (up.length) { up.sort((a, b) => (b.claude_usd ?? 0) - (a.claude_usd ?? 0)); const set = new Set(up); hit = [...up, ...hit.filter(r => !set.has(r))]; } }   // the default sort: a running session is the newest; the costlier first among them
 		const open = spec.open ?? {}, buckets = AISessionSource.buckets ??= new AISessionBuckets([], { of: r => r, key: r => r.id });
-		const { out, nests } = AISessionBuckets.arrange(hit, { buckets, sort: rs => rs, open_kinds: new Set(open.kinds), open_ids: new Set(open.ids), parent_of: r => r.parent, id_of: r => r.id });
-		return out.map(r => r.bucket ? r : { ...r, nest: nests.get(r) });
+		const { out, nests, kinds, listed } = AISessionBuckets.arrange(hit, { buckets, sort: rs => rs, open_kinds: new Set(open.kinds), open_ids: new Set(open.ids), all: !!open.all, parent_of: r => r.parent, id_of: r => r.id });
+		return Object.assign(out.map(r => ({ ...r, nest: nests.get(r) })), { meta: { kinds, listed } });
 	}
 
 	static shape(snap) {

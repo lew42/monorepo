@@ -114,31 +114,29 @@ export default class AISessionBuckets {
 		return { top: rows.filter(r => !up(r)), kids_of };
 	}
 
-	/** The grid's whole row order: routine kinds roll up into one head row each (on top; an open head's sessions sit right under it), then the rest in
-	 * `sort(rows)` order with children nested under their parent (collapsed until opened). Runs in the browser (files path) and in node (the query source).
-	 * Returns { out: the flat list, nests: Map(row -> { depth, kids, open }) }. Call it on rows already filtered; `buckets` is kept between calls so only changes are re-counted. */
-	static arrange(rows, { buckets, sort, open_kinds, open_ids, parent_of, id_of }){
+	/** The grid's whole row order: routine kinds stay out unless open (`open_kinds`) or `all` (a search), the rest in `sort(rows)` order with children
+	 * nested under their parent (collapsed until opened; all open when `all`). Runs in the browser (files path) and in node (the query source).
+	 * Returns { out: the flat list, nests: Map(row -> { depth, kids, open }), kinds: [{ key, n, usd }] (one chip per routine kind present), listed: rows in the list }.
+	 * Call it on rows already filtered; `buckets` is kept between calls so only changes are re-counted. Doc: ai/sessions/doc/buckets.md */
+	static arrange(rows, { buckets, sort, open_kinds, open_ids, all = false, parent_of, id_of }){
 		buckets.sync(rows);
-		const kept = [], held = new Map();   // kind -> its rows
+		const present = new Set(), kept = [];
 		for (const r of rows){
-			const ix = buckets.of(r), k = ix && AISessionBuckets.kind_of(ix);
-			if (k && buckets.routine.has(k)) (held.get(k) ?? held.set(k, []).get(k)).push(r); else kept.push(r);
+			const ix = buckets.of(r), k = ix && AISessionBuckets.kind_of(ix), routine = k && buckets.routine.has(k);
+			if (routine) present.add(k);
+			if (all || !routine || open_kinds.has(k)) kept.push(r);
 		}
-		const heads = [...held.keys()].map(k => ({ bucket: "kind", key: k, id: "bucket-" + k, ...buckets.index.kind[k] })).sort((x, y) => y.n - x.n);
+		const kinds = [...present].map(k => ({ key: k, n: buckets.index.kind[k].n, usd: buckets.index.kind[k].usd })).sort((x, y) => y.n - x.n);
 		const { top, kids_of } = AISessionBuckets.nest(sort(kept), parent_of, id_of);
 		const nests = new Map(), out = [];
-		for (const h of heads){
-			out.push(h);
-			if (open_kinds.has(h.key)) for (const r of sort(held.get(h.key))){ nests.set(r, { depth: 1, kids: 0 }); out.push(r); }
-		}
 		const place = (r, depth, seen) => {
-			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = open_ids.has(id_of(r));
+			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = all || open_ids.has(id_of(r));
 			nests.set(r, { depth, kids: kids.length, open });
 			out.push(r);
 			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
 		};
 		top.forEach(r => place(r, 0, new Set([id_of(r)])));
-		return { out, nests };
+		return { out, nests, kinds, listed: kept.length };
 	}
 
 	toJSON(){ return { index: this.index }; }

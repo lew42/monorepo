@@ -280,9 +280,9 @@ export default class AISessionRows {
 
 	/** sort = null (the default: cost weighted by recency, halving every 3 days since last activity) or { key, dir }. */
 	static sort_rows(rows, sort){
-		if (!sort){   // one list, newest activity first: a running session is the newest, so it sits at the top
+		if (!sort){   // one list, newest activity first, then most costly: a running session is the newest, so it sits at the top
 			const now = Date.now(), t = r => AISessionRows.is_in_flight(r) || AISessionRows.WORKING_STATES.has(r.state) ? now : Date.parse(r.last_activity ?? 0) || 0;
-			return rows.slice().sort((x, y) => t(y) - t(x));
+			return rows.slice().sort((x, y) => t(y) - t(x) || AISessionRows.claude_usd_of(y) - AISessionRows.claude_usd_of(x));   // the costlier one first on a tie
 		}
 		const get = AISessionRows.SORT_VALUE[sort.key], sign = sort.dir === "asc" ? 1 : -1;
 		const keyed = rows.map(r => [get(r), r]);

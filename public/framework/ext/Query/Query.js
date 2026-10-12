@@ -34,7 +34,7 @@ export default class Query {
 	matches(item) { return this.tests.every(t => t(item)); }
 
 	/** `items` is any iterable. Returns { rows (the page), total (rows to page over), matched (all matches), totals ({field: sum over ALL matches}), offset }.
-	 * `arrange(hit, spec)` (optional) turns the sorted matches into the list to page over (heads, nesting); sums and `matched` still count every match. */
+	 * `arrange(hit, spec)` (optional) turns the sorted matches into the list to page over (heads, nesting; a `meta` on the list is returned as is); sums and `matched` still count every match. */
 	run(items, arrange) {
 		const hit = [];
 		for (const item of items) if (this.matches(item)) hit.push(item);
@@ -49,6 +49,6 @@ export default class Query {
 			});
 		}
 		const list = arrange ? arrange(hit, this.spec) : hit;
-		return { rows: list.slice(this.offset, this.offset + this.limit), total: list.length, matched: hit.length, totals, offset: this.offset };
+		return { rows: list.slice(this.offset, this.offset + this.limit), total: list.length, matched: hit.length, totals, offset: this.offset, ...(list.meta && { meta: list.meta }) };   // `meta`: what arrange says about the whole list
 	}
 }
