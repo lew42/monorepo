@@ -19,6 +19,9 @@ import { env_for as local_env_for, is_local_model } from "../ext/local/provider.
 /* The host. One process holds every live Claude session in a Map, so a normal
  * Claude session — which cannot hold a child's stdin — can still spawn one,
  * talk to it mid-run, and stop it, by calling in here over MCP. */
+/* when each OpenRouter agent last settled a turn: lets refresh_or_cost() see who shared a key_diff window */
+const OR_SETTLED = new Map();
+
 export class Agents {
 
 	/* `boot` names THIS host process — every registry row it writes carries it,
@@ -1581,6 +1584,18 @@ Agents.Agent = class Agent {
 			const message_ids = [...(this.turn_message_ids ?? [])];
 			this.turn_message_ids = new Set();
 			const r = await real_turn_cost({ key, message_ids, usage_before: this.or_usage_before });
+			/* A key_diff delta is the WHOLE key's spend, so another OpenRouter agent that
+			 * settled a turn since our last reading shares it (found 2026-10-12: 54 groups
+			 * of identical lines, $18.54 booked twice; ai/sessions/doc/cost/openrouter-gap.md).
+			 * Split it evenly across the agents that overlapped; never charge it whole. */
+			const now_ms = Date.now();
+			if (r && r.source === "key_diff" && typeof r.cost === "number"){
+				const since = this.or_last_settle ?? 0;
+				const others = [...OR_SETTLED].filter(([id, t]) => id !== this.id && t > since).length;
+				if (others){ r.cost = r.cost / (others + 1); r.source = "key_diff_split"; }
+			}
+			OR_SETTLED.set(this.id, now_ms);
+			this.or_last_settle = now_ms;
 			if (!r || typeof r.cost !== "number")
 				this.host?.store?.().append("servex", { type: "openrouter-cost-unknown", agent: this.id, calls: message_ids.length, source: r?.source ?? null }).catch(() => {});
 			if (!r) return;
