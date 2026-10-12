@@ -658,3 +658,57 @@ with, it silently erased all four backgrounds the `looks/backgrounds` lab exists
 
 Related: [`css.md`](/framework/core/Page/doc/css/) — the visibility contract this leaves alone;
 [`layout.md`](/framework/core/Page/doc/layout/) — nested vs `full`.
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### COLUMNS — the Finder shape
+
+*was Page.class.js line 1526*
+
+════ COLUMNS — the Finder shape ══════════════════════════════════════════
+One call on a host page and its whole subtree lays out as full-height columns,
+each child opening to the right. The arrangement is CSS (Page.css); this is the
+box each page needs. doc/columns.md.
+⚠ `this.columns({ even: true })`, never a declared `columns: "even"` field. A
+  page's config is Object.assign'd OVER the prototype, so `columns:` as data
+  would shadow this very method and the next page to write
+  `initialize(){ this.columns(); }` would die on "this.columns is not a
+  function" — the `opens()` collision below, one line higher up. The option is
+  translated into a PREFIXED field for the same reason: a bare `even` is a word
+  a page may well want for itself. (The owner asked for the mode by name on
+  2026-09-17, which is what stands in for the propose-a-name step.)
+`fit` is how the even mode turns a room into a COUNT, and it only means
+  something when `even` is on:
+    floor  (the default) N = floor(room / recommended). A column is never
+           narrower than the width it recommends, so prose never falls under its
+           measure; the cost is room left over, spent as padding inside the
+           columns - about 227px a column at 3440.
+    round  N = round(room / recommended). Fills the room tighter, and a column
+           CAN go under its recommendation to do it.
+  `floor` is the default because a reading column under its measure is the
+  failure this site has been fighting; `round` is one word away for a host that
+  would rather fill the room. doc/columns.md has the N at three widths for both.
+  ⚠ `column_fit`, prefixed, for the same reason `column_even` is: a page's config
+    is assigned OVER the prototype, so a bare `fit` is a word a page may want.
+
+### The narrowest a DRAG may leave a column: past this the head's title an
+
+*was Page.class.js line 1553*
+
+The narrowest a DRAG may leave a column: past this the head's title and its `×`
+have nowhere to sit, and a column you cannot read is a column you cannot widen
+again. A field, not a constant, so a page with bigger rows can raise it — it
+initializes before `assign()`, so `new Page({ column_floor: 140 })` wins.
+
+### A COLUMN IS ALREADY A RAIL, so related: here is a short list at
+
+*was Page.class.js line 1661*
+
+A COLUMN IS ALREADY A RAIL, so `related:` here is a short list at
+the end of it, never a second pinned region — there is no page
+grid under a columns host for a third region to open in (Q1 of
+the layout skill). `page-column-prose`, unclassed `flow`, so it
+gets the column's own pad-x/pad-y without the prose rhythm's
+bigger vertical gaps between the rows.

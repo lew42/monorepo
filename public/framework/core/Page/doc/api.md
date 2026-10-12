@@ -58,3 +58,26 @@ One page per member. The list is the same one `page.js` declares in `methods:` a
 - [`regions`](/framework/core/Page/api/regions/)
 - [`depth`](/framework/core/Page/api/depth/)
 - [`related`](/framework/core/Page/api/related/)
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### WHAT A page.json BECOMES — the six page words plus the three labels, r
+
+*was Page.class.js line 1122*
+
+WHAT A `page.json` BECOMES — the six page words plus the three labels, read off
+the file's own shape. Its own method so a subclass overrides ONE thing:
+
+    static props(data, mode){ return { ...super.props(data, mode),
+        layout: data.layout ?? mode.layout }; }
+
+### Dev only: an unmarked .page is display: none by the arrangement contra
+
+*was Page.class.js line 1189*
+
+Dev only: an unmarked `.page` is `display: none` by the arrangement contract and
+nothing throws. Deferred, so whatever marks it — the Router or a demo box — has
+run; quiet when a sibling in the same box is marked, which is an ancestor
+standing aside rather than a mistake.

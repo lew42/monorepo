@@ -190,3 +190,186 @@ the row draw as THAT page's own dark class card (the same look `#Page` gets inli
 the whole card linking to `ref`'s url. The card is only dark when `ext/Mention/maps/refs.js` marks
 that page `class_card: true` (same rule an inline `#Mention` follows); a `ref` not yet in `refs.js`
 still renders — a plain icon + the raw url — rather than a blank gap.
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### EXTENSIONS, CODE-REGISTERED — Page.use(Ext) turns Ext.setup(page) on f
+
+*was Page.class.js line 43*
+
+════ EXTENSIONS, CODE-REGISTERED — Page.use(Ext) turns Ext.setup(page) on for
+EVERY page, the moment this runs. `ext(name)` below is the DATA path — one
+page.jsonl line turns one extension on for one page. Both call the same
+`Ext.setup(page)`. Model: `Server/Events.js`'s `static use(plugin)` /
+`setup(instance)`; `core/Page/ext/readme.md` has the rest.
+⚠ Nobody calls this by default, so the forEach below is empty for every page —
+  the "must not slow a page with no extensions" rule this exists to keep.
+
+### A page's own preferences. Today there is exactly one: nav — "does this
+
+*was Page.class.js line 74*
+
+A page's own preferences. Today there is exactly one: `nav` — "does this page
+show up in its parent's navigation?" (core/Page/settings/, loading-study.md
+section 4). `this.settings` is never a PLAIN object: it starts life as this tiny
+object with its own `set()`, so Item's `set_one()` routes a `settings` line into
+its "has its own `.set()`" branch and MERGES — a plain object here would get
+SHADOWED (fully replaced) by the second settings line instead of merged with it.
+
+### apply() that calls methods instead of overwriting them — Item's apply(
+
+*was Page.class.js line 102*
+
+`apply()` that calls methods instead of overwriting them — Item's `apply()`
+does the real routing (a method key calls it, a value with its own `set()`
+gets the nested delta, anything else is data via `get`/`put` above, emitting
+`change` + `delta`). This override's own job is four things on top: handle
+an ARRAY of lines (Item.set() does this itself, but this override replaces
+that whole method, so it has to again), keep every line for a late
+`on("line", …)` listener to catch up on, emit `line` exactly ONCE per line
+the reader hands this page (never once per recursive nested `set()` call
+`apply()` makes along the way — those land on a DIFFERENT object, never
+back through this override), and make `page.content` lazily the moment a
+content delta arrives.
+
+### Made the first time a content DELTA arrives (a {"content": {...}} line
+
+*was Page.class.js line 136*
+
+Made the first time a content DELTA arrives (a `{"content": {...}}` line) or a
+code caller reaches for it directly — never up front, so a page with no visible
+blocks of its own pays nothing. Once it exists, Item's own `set_one()` routes
+straight to its `.set()` without this method running again.
+
+### My sub-pages — the real storage page.pages. of: null keeps a plain stu
+
+*was Page.class.js line 145*
+
+My sub-pages — the real storage `page.pages`. `of: null` keeps a plain stub
+object (`{id, name, stub: true}`) plain: List.make() hydrates a plain value
+through `of` only when `of` is truthy, so a stub is never turned into an Item.
+A REAL loaded page is a `Page` instance already (never plain), so it is
+inserted/replaced UNCHANGED either way — see `add()` above.
+
+### A Map-SHAPED VIEW over pages, so the ~215 existing .children callers a
+
+*was Page.class.js line 152*
+
+A Map-SHAPED VIEW over `pages`, so the ~215 existing `.children` callers across
+~94 files keep working unchanged while the real storage is the List above.
+New code and docs say `page.pages`. `PageChildren extends Map` so
+`instanceof Map` stays true and a page.jsonl line can never REPLACE it (see the
+setter below) — only `declare()` above ever builds the real tree.
+
+### EXTENSIONS — a page.jsonl line names one on: {"ext": "Inbox"}
+
+*was Page.class.js line 180*
+
+════ EXTENSIONS — a page.jsonl line names one on: `{"ext": "Inbox"}` ══════════
+The DATA path — one page at a time. `Page.use(Ext)` above is the CODE
+path — every page, the moment the module that calls it is loaded. Both end up
+calling the same `Ext.setup(page)`.
+⚠ core never statically imports ext code — resolved against THIS file's OWN url
+  (not the page's), so it always finds `core/Page/ext/<Name>/<Name>.js`.
+⚠ This import is ASYNC; the replay of an already-fetched page.jsonl is NOT —
+  see `jsonl_lines` above, which is what lets a late setup() catch up.
+`ext_ready` — every extension's own import+setup promise, so anything that
+reads what an extension set up (a `place`-d module, say) can
+`await Promise.all(page.ext_ready ?? [])` first rather than race it.
+
+### STEP 1 — the file EXISTS
+
+*was Page.class.js line 198*
+
+════ STEP 1 — the file EXISTS ════════════════════════════════════════════
+Recorded, never rendered. A repeat changes nothing: the latest line per name wins.
+TWO CALLERS, split: a REPLAYED `{"file": …}` line (this.store is mid-`read()`,
+`this.store.replaying` is true) registers the listing, same as always. A CODE
+call — `page.file("demo.jsonl")`, not a line — never touches the listing (that
+would double-count a file the code already knows about) and instead hands back
+the real file: ext/filesystem's `FsFile`, the one file class, dynamically
+imported because core never statically imports ext. Its own lazy `.store`
+getter is `Item.Store.for(url)` — one Store per file, the same one `page.store`
+is for page.jsonl itself.
+
+### STEP 2 — a child page is LINKED, automatically
+
+*was Page.class.js line 226*
+
+════ STEP 2 — a child page is LINKED, automatically ══════════════════════
+"kid/page.jsonl" → the child "kid", remembered as a jsonl child so child()
+loads it from the right file without probing. Also what `declare()` calls for a
+page.js parent's `children: "kid/page.jsonl"`.
+
+### TAB STATE — {"tab": {"name": "x", "disabled": true, "nav": false, "ord
+
+*was Page.class.js line 248*
+
+════ TAB STATE — `{"tab": {"name": "x", "disabled": true, "nav": false, "order": 3}}` ═══
+A child that already exists — a declared child, a `file` line, a `children:`
+entry on a page.js parent — is already a tab the moment Doc.bar() or tabs()
+(ext/tabs/tabs.js) sees it: this only adds STATE to it. `disabled` draws it
+greyed and unclickable; `nav: false` drops it from the tab STRIP entirely (it
+is still a real page at its own url); `order` breaks a tie when more than one
+tab wants a position. A name with none of the three still gets DECLARED as a
+child here (the same thing declare()'s own string form does), so a `tab` line
+can be how a tab comes to exist at all, with nothing yet to draw there.
+⚠ Repeat lines for the same name MERGE (the new keys land on top of the old),
+  never replace — set() calling this again is just one more spread.
+(2026-10-09, the page tool) A `tab` line that also brings PAGE DATA (`title`,
+`icon`, `description`, `content`) builds that tab's page right here, in memory,
+so an agent's "add a tab" draws at once: `{"tab": {"name": "notes", "title":
+"Notes", "content": "…"}}`. Its own items arrive later as `{"notes": {"content":
+{"add": {…}}}}` (`get("notes")` finds the child in `pages`). A page with no tab
+strip yet turns `navigation: "tabs"` on, because a tab nobody can see is not
+what was asked. doc/architecture.md.
+
+### THE SIX WORDS AS A DELTA (2026-10-09, the page tool)
+
+*was Page.class.js line 292*
+
+════ THE SIX WORDS AS A DELTA (2026-10-09, the page tool) ═══════════════
+`{"navigation": "tabs"}` or `{"width": "fill"}` on a live page.jsonl reshapes the
+page: the word lands on the PAGE ITSELF, where render() reads it (never in
+`data`, where Item's routing would have put it), and a page already on screen
+redraws. A word that did not change redraws nothing, so a log replayed twice
+is quiet.
+
+### A LOG ON TOP OF A TEMPLATE. A page drawn by code (a template, like a s
+
+*was Page.class.js line 314*
+
+A LOG ON TOP OF A TEMPLATE. A page drawn by code (a template, like a session
+page) can still be reshaped by a page.jsonl beside its data: only the SHAPE of
+a line applies here — the six words, `tab` lines, `title`, and lines addressed
+to a tab that a `tab` line built. Everything else in such a log (a card's own
+fields, cost lines, `add`/`at` lines older code wrote) stays that log's data,
+because an unknown key can name a Page METHOD (`add`, `move`) and must never
+call it. Returns the part it applied, or null.
+
+### NAV VISIBILITY — one rule, read in one place, for the rail, the tab st
+
+*was Page.class.js line 368*
+
+════ NAV VISIBILITY — one rule, read in one place, for the rail, the tab strip
+and the drawer's own checkbox ═══════════════════════════════════════════════
+Shown unless: MY OWN `tab` line says `nav: false` for this child (explicit,
+always wins, and an explicit `nav: true` always wins the other way — see
+`section()` in ext/Doc/Doc.js, which pins its own OVERVIEW/API/DOCS/FILES
+chrome this way so those never depend on a real page's settings). Otherwise
+this asks the exact question the drawer's own checkbox asks —
+`page_settings()`, core/Page/settings/settings.js — which already unifies an
+explicit `{"settings": {"nav": false}}` line on the CHILD's own log with the
+weight fallback (below 1 is out of nav too).
+
+That real answer needs a fetch, so this stays SYNCHRONOUS the way every
+caller (Doc.bar(), tabs(), Sidebar's rail) needs at render time: the first
+ever ask answers optimistically `true` — a tab is never hidden before it's
+actually been checked — then checks for real in the background, and if the
+answer disagrees, corrects the cache and calls `nav_redraw()`
+(ext/tabs/tabs.js) so the strip (and the rail, which bubbles up to it) fixes
+itself with no reload. `nav_ready()` below is the same answer, awaited, with
+no flash — used the one place that can afford to await before its first
+paint (Sidebar.visible_nodes()).

@@ -64,3 +64,53 @@ report a real boolean (success or failure — `ext/Saver/doc/method/write.md`), 
 
 The record, the three decisions and what was rejected:
 [`doc/decisions.md`](/framework/core/Page/doc/decisions/).
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### PREFERENCES — the page's own url IS the id
+
+*was Page.class.js line 1973*
+
+════ PREFERENCES — the page's own url IS the id ═══════════════════════════
+A handle over localStorage: `get` / `set` / `patch` / `clear`. Production is
+static, so there is no server to hand out ids — and a page already has one
+thing that is unique, stable and human-readable: its address, derived by
+naming(), so it cannot drift out of step with the tree the way a hand-typed
+`id: "team-board"` would. doc/method/prefs.md.
+⚠ Storage, not STATE — nothing here notifies. A page that wants a redraw
+  calls its own watcher after the write; a subscription API in core would
+  make ~160 pages pay for a pattern four of them want (doc/roles.md).
+⚠ Renamed from `store()` (was `Page.Store`) — `page.store` is now the LIVE
+  jsonl Store (Item.Store, core/Item/Store.js, attached by `Page.jsonl()`),
+  and the two must never share a name again.
+
+### Item.Store, specialised for a page.jsonl file — one per URL (Reader.fo
+
+*was Page.class.js line 2072*
+
+`Item.Store`, specialised for a page.jsonl file — one per URL (`Reader.for`), so
+`page.store` IS this once a jsonl page has loaded. Keeps every name this had
+before the fold-in: `open`, `close`, `parse`, `read`, `attach`, `changed`, `reset`
+— `page` is now an ALIAS for Item.Store's own `host`.
+
+### Where a save goes when localStorage will not take it — private mode, a
+
+*was Page.class.js line 2188*
+
+Where a save goes when localStorage will not take it — private mode, a full
+quota, a blocked third-party frame. It throws WHOLE, and a UI that loses its
+buttons because a save failed is worse than one that forgets: the page keeps
+working for the session and only the persistence is lost.
+
+### THE GUARDED PAIR (plus clear_raw) — one JSON-able value under one
+
+*was Page.class.js line 2221*
+
+THE GUARDED PAIR (plus `clear_raw`) — one JSON-able value under one
+literal key, never throwing, even when `localStorage` itself throws on
+touch (private mode) or is not there at all (Node). The one place this
+guard lives now: `ext/Saver`'s `LocalStorageSaver` calls these three
+directly instead of its own copy (doc/decisions.md says why it still
+needs a separate class).

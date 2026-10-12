@@ -148,3 +148,32 @@ identity, so a page cannot belong to two trees at once. Panels and playgrounds a
 
 The short version: **a page is already a universal renderable; it is not yet a
 universal instance.** Making one page appear twice is the next real problem.
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### A card per child, drawn BY the child. A declared-but-unresolved one ha
+
+*was Page.class.js line 1833*
+
+A card per child, drawn BY the child. A declared-but-unresolved one has no
+page to ask, so its entry gets the default card. A child may claim a `group`
+the way it claims a `card`, and each run of one gets a heading — categories
+before specifics, on a wall or in a rail.
+`pages` defaults to all of mine; a caller hands in a subset when some children are
+chrome rather than content — a Doc's derived Overview/API/Docs/Files sections are
+the case that asked for it (ext/Doc's `wall()`).
+
+### THE THUMB, plus the one measurement Page.css can't make on its own: wh
+
+*was Page.class.js line 1912*
+
+THE THUMB, plus the one measurement Page.css can't make on its own: whether a
+live render (a `zoom-*` board, Page.css's own `:has([class*="zoom-"])` rule)
+actually came in taller than its `--stage-max` cap. `.capped` is what turns the
+hard `overflow: hidden` into a fade — set only when there is something to fade,
+never on a thumb that already fits. `requestAnimationFrame`, not a plain read:
+the thumb has to be in the document and laid out first, which is true by the
+time this callback runs everywhere except a HIDDEN tab (doc/method/preview.md) —
+there the frame never fires and the thumb just keeps the plain hard crop.

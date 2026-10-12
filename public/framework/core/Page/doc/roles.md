@@ -76,3 +76,17 @@ will.
 - [`panels.md`](/framework/core/Page/doc/panels/) · the same answer for two panels
   instead of two columns
 - [`columns.md`](/framework/core/Page/doc/columns/) · the arrangement the demo runs in
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### ROLES — the nearest ancestor that claims one
+
+*was Page.class.js line 805*
+
+════ ROLES — the nearest ancestor that claims one ═══════════════════════
+A page says `is: "topic"` about itself and its whole subtree can find it,
+however deep. `findLast`, so the CLOSEST claim wins — an inner document
+inside an outer one is still your document. Me included: a topic is its own.
+doc/method/nearest.md.
