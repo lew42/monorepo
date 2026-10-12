@@ -15,7 +15,7 @@ import mount_chat from "/framework/ux/Dictate/chat.js";
 import { LIVE, live_model, live_full, usage_head } from "./live.js";
 import { cost_of } from "/framework/ext/AITask/cost.js";
 import { Meter } from "../cards/Meter.js";
-import { agent_cost } from "../cards/agents.js";
+import { Agents } from "../cards/Agents.js";
 import workspace from "../cards/workspace.js";
 import { RealPage, page_events, real_title } from "../cards/real.js";
 import { Rules } from "../cards/Rules.js";
@@ -280,7 +280,7 @@ export default class AIRail extends Inbox.Rail {
 		if (it.kind === "live") return null;
 		const t = this.groups.task_member(task_of(it) ?? task_of(this.groups.folds.get(it.id)?.fold));
 		const c = cost_of(t);
-		it.usd = c ? c.usd : (it.folder ? agent_cost(it.id, () => this.paint_soon()) : null);
+		it.usd = c ? c.usd : (it.folder ? Agents.agent_cost(it.id, () => this.paint_soon()) : null);
 		it.usd_open = !!c?.open;
 		it.progress = Meter.progress_of(t, it.status);
 		return null;
@@ -376,7 +376,7 @@ export default class AIRail extends Inbox.Rail {
 			// The name is the card's LATEST title; groups.json only names it first.
 			const name = this.cards.card(g.card)?.title || g.name;
 			// Money: the member tasks, else what the card's own agents spent (agents.js).
-			const agents = tasks_cost?.tracked ? null : agent_cost(g.card, () => this.paint_soon());
+			const agents = tasks_cost?.tracked ? null : Agents.agent_cost(g.card, () => this.paint_soon());
 			const spent = tasks_cost?.tracked ? tasks_cost : (agents ? { tracked: true, usd: agents, open: false } : tasks_cost);
 			const news = group_news(g, latest, this.groups.at(g));
 			const sig = JSON.stringify([g, name, latest, size.length, spent, news]);

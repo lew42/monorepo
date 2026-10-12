@@ -9,7 +9,7 @@ import grip from "/framework/ext/grip/grip.js";
 import Menu from "/framework/ux/Menu/Menu.js";
 import chat, { md_into } from "./chat.js";
 import composer from "./compose.js";
-import agents_panel, { agent_cost } from "./agents.js";
+import { Agents } from "./Agents.js";
 import { items_of, about_line, outline, state_span, short } from "./outline.js";
 import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "../rail/inbox.js";
 import { watch_needs, needs_for, needs_soon } from "../rail/needs.js";
@@ -408,7 +408,7 @@ export default class Card extends Page {
 	/** THE CARD'S OWN PROPERTIES — small and quiet (one-card-props, 2026-10-03 follow-up).
 	 *  Replaces the per-card chat column: nothing here is talked into, it is read. Type,
 	 *  status, tags, who worked on it, its files, then Actions — the same `type_picker()`,
-	 *  `agents_panel()`, `draw_folder()` and `actions()` the card already had, moved out
+	 *  `Agents.panel()`, `draw_folder()` and `actions()` the card already had, moved out
 	 *  of the header and the "More…" fold into their own column. */
 	properties_sidebar(sub){
 		const f = this.facts();
@@ -426,7 +426,7 @@ export default class Card extends Page {
 			});
 			div.c("ai2-props-section", () => {
 				div.c("ai2-props-head muted").text("Who worked on it");
-				agents_panel(this.id);
+				Agents.panel(this.id);
 			});
 			div.c("ai2-props-section", () => {
 				div.c("ai2-props-head muted").text("Files in this " + (sub ? "request's" : "card's") + " folder");
@@ -484,7 +484,7 @@ export default class Card extends Page {
 			needs_for(this.id).map(n => n.ask).join(","),
 			this.description, this.links, this.flag_note, this.attached?.length, this.md_names(), this.placed, [...this.listed?.values() ?? []], cards_ready.known,
 			this.group_info(), this.subs().map(s => cards?.card(this.id + "/" + s) ?? s), this.cost_model(this.group_info()),
-			agent_cost(this.id, () => this.redraw()), this.shell?.ai2?.groups?.task_member(task_of(this))?.landed_at,
+			Agents.agent_cost(this.id, () => this.redraw()), this.shell?.ai2?.groups?.task_member(task_of(this))?.landed_at,
 			!this.tiny() && this.shows_tabs() && this.open_tab(), [...(this.sub_group ?? [])], [...(this.sub_done ?? [])], [...(this.sub_meta ?? [])], this.refined?.text, this.prompts?.[0]?.text, [...(this.outline_items?.values() ?? [])], this.chats]);
 	}
 
@@ -602,7 +602,7 @@ export default class Card extends Page {
 	tasks_tab(g){
 		this.contents();
 		this.cost_block(g);
-		agents_panel(this.id);
+		Agents.panel(this.id);
 	}
 
 	/** The card's dollars: a group's from its tasks, else its task's, else its own agents'. */
@@ -610,7 +610,7 @@ export default class Card extends Page {
 		const groups = this.shell?.ai2?.groups;
 		if (g){ const s = groups?.cost(g.id); return s?.tracked ? { usd: s.usd, open: !!s.open } : {}; }
 		const c = cost_of(groups?.task_member(task_of(this)));
-		return c ? { usd: c.usd, open: !!c.open } : { usd: agent_cost(this.id, () => this.redraw()) };
+		return c ? { usd: c.usd, open: !!c.open } : { usd: Agents.agent_cost(this.id, () => this.redraw()) };
 	}
 
 	tabbed(){ return !(this.parent instanceof Card); }
