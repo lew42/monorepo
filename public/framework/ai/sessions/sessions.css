@@ -50,6 +50,12 @@
 	.sessions-card-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-35); min-width: 0; }
 	.sessions-card .sessions-row-title { flex: 1 1 8em; white-space: normal; overflow-wrap: anywhere; }   /* a card has the room to wrap a long name; the table row keeps its one line */
 
+	/* A rolled-up bucket (AISessionBucketView): one full-width row in the table, a card's inside in the rail. */
+	.sessions-bucket { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gap-50); padding: var(--gap-35) var(--gap-50); cursor: pointer; background: var(--darken-1); border-block-end: 1px solid var(--line); }
+	.sessions-bucket:hover, .sessions-bucket:focus-visible { background: var(--darken-2, var(--tint)); }
+	.sessions-bucket-card { grid-column: auto; padding: 0; background: none; border: 0; }
+	.sessions-bucket-card .sessions-row-title { flex: 1 1 0; min-width: 0; }   /* the arrow stays beside a wrapping name */
+
 	.sessions-row { display: contents; }
 
 	.sessions-cell {

@@ -29,7 +29,10 @@ export default class AISessionBuckets {
 	where = new Map(); // row id -> { keys: {index: key}, c: contribution } so an update can subtract the old one
 	routine = new Set(AISessionBuckets.KINDS.filter(k => k.routine).map(k => k.key));
 
-	constructor(rows = []){
+	// `of(row)` maps a caller's row to the index-shaped record the rules read (the Sessions grid passes its session's `ix`);
+	// a row it maps to null is never bucketed and always shown (a live row not yet indexed). `key(row)` is the row's id.
+	constructor(rows = [], { of = r => r, key = r => r.id } = {}){
+		this.of = of; this.key = key;
 		for (const name of Object.keys(AISessionBuckets.INDEXES)) this.index[name] = {};
 		rows.forEach(r => this.put(r));
 	}
@@ -37,8 +40,11 @@ export default class AISessionBuckets {
 	static contribution(r){ return { n: 1, usd: r.usd ?? 0, tokens: r.tokens ?? 0, wall_ms: r.wall_ms ?? 0, last: r.last_activity ?? "" }; }
 
 	/** Add a new row, or replace an existing one: only the buckets it was in and goes to change. */
-	put(r){
-		this.drop(r.id);
+	put(row){
+		const r = this.of(row);
+		if (!r) return;
+		const id = this.key(row);
+		this.drop(id);
 		const c = AISessionBuckets.contribution(r), keys = {};
 		for (const [name, fn] of Object.entries(AISessionBuckets.INDEXES)){
 			const key = keys[name] = fn(r);
@@ -46,7 +52,25 @@ export default class AISessionBuckets {
 			b.n += c.n; b.usd += c.usd; b.tokens += c.tokens; b.wall_ms += c.wall_ms;
 			if (c.last > b.last) b.last = c.last;
 		}
-		this.where.set(r.id, { keys, c });
+		this.where.set(id, { keys, c, sig: AISessionBuckets.sig(r) });
+	}
+
+	static sig(r){ return `${r.usd}|${r.tokens}|${r.wall_ms}|${r.last_activity}|${r.agent}|${r.parent}|${r.folder}`; }
+
+	/** Make the buckets match `rows`: only a new, changed or gone row touches its buckets (a live redraw recomputes a few, never all). Returns how many rows changed. */
+	sync(rows){
+		const seen = new Set();
+		let touched = 0;
+		for (const row of rows){
+			const r = this.of(row);
+			if (!r) continue;
+			const id = this.key(row);
+			seen.add(id);
+			if (this.where.get(id)?.sig === AISessionBuckets.sig(r)) continue;
+			this.put(row); touched++;
+		}
+		for (const id of [...this.where.keys()]) if (!seen.has(id)){ this.drop(id); touched++; }
+		return touched;
 	}
 
 	drop(id){
@@ -72,9 +96,9 @@ export default class AISessionBuckets {
 	/** The grid's rows: routine kinds collapse to one bucket row each, everything else stays a row. Nothing is deleted. */
 	rollup(rows, { expand = new Set() } = {}){
 		const out = [], seen = new Set();
-		for (const r of rows){
-			const k = AISessionBuckets.kind_of(r);
-			if (!this.routine.has(k) || expand.has(k)){ out.push(r); continue; }
+		for (const row of rows){
+			const r = this.of(row), k = r && AISessionBuckets.kind_of(r);
+			if (!r || !this.routine.has(k) || expand.has(k)){ out.push(row); continue; }
 			if (seen.has(k)) continue;
 			seen.add(k);
 			out.push({ bucket: "kind", key: k, ...this.index.kind[k] });
