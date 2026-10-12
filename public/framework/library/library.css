@@ -10,6 +10,26 @@
 		align-items: start;
 	}
 
+	.library-top { display: flex; flex-wrap: wrap; gap: var(--gap); justify-content: space-between; padding: var(--pad-card) var(--pad-card) 0; }
+
+	.library.is-wall { grid-template-columns: minmax(0, 1fr); }
+	.library.is-wall .library-left, .library.is-wall .library-right { display: none; }
+
+	/* The wall: four columns; a card spans 1–4 by its optimalWidth, dense flow fills the holes. */
+	.library-wall { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: dense; gap: var(--gap); }
+	.library-wall .span-1 { grid-column: span 1; }
+	.library-wall .span-2 { grid-column: span 2; }
+	.library-wall .span-3 { grid-column: span 3; }
+	.library-wall .span-4 { grid-column: span 4; }
+	@media (max-width: 90em) {
+		.library-wall { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		.library-wall .span-3, .library-wall .span-4 { grid-column: span 2; }
+	}
+	@media (max-width: 40em) {
+		.library-wall { grid-template-columns: minmax(0, 1fr); }
+		.library-wall .library-card { grid-column: span 1; }
+	}
+
 	.library-col { min-width: 0; display: flex; flex-direction: column; gap: var(--gap); }
 
 	.library-left, .library-right { position: sticky; top: 0; max-height: 100dvh; overflow: auto; scrollbar-width: thin; }

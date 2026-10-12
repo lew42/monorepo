@@ -95,6 +95,8 @@ export default new Page({
 
 	content(){
 
+		md("Browse these side by side in the [library](/framework/library/?at=ux).");
+
 		md("**`ui/` is markup. `ux/` is behavior.** A ux is a *workflow* — signup, login, a wizard, a course, a game lobby — assembled from `ui/` templates and responsive from a phone to 3440. It is a **class**, so the next case is a subclass rather than a fork.");
 
 		// The page's one live thing, and it opens the page: the SAME template twice,
