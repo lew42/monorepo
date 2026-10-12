@@ -545,6 +545,7 @@ export default class Global {
 		 * then keeps this same object. */
 		const p = this.agents && (this.agents.policy ??= new Policy({ agents: this.agents }));
 		if (p) p.onrefuse = e => this.servex.log.append("policy", e)?.catch?.(() => {});
+		if (p) p.onbypass = e => this.servex.log.append("policy", e)?.catch?.(() => {});
 	}
 
 	route(){
