@@ -38,6 +38,7 @@ export default class VoicePage {
 		this.created = false;
 		this.queue = Promise.resolve();
 		this.ms = {};
+		this.cost = {};
 		this.sentences = [];
 		this.lines = [];
 		this.parsed = null;
@@ -91,16 +92,19 @@ export default class VoicePage {
 		return this.write({ text: text.slice(0, 400), raw: text, raw_final: final, status: final ? "Cleaning" : "Hearing you", ...(source ? { source } : {}), ...(sentences ? { clean: sentences, clean_final: false } : {}) });
 	}
 
-	clean(sentences, { ms } = {}){
-		this.clean_final = true; this.sentences = sentences; this.ms.clean = ms;
-		return this.write({ clean: sentences, clean_final: true, ms: { ...this.ms }, status: "Structuring" });
+	/** `final: false` is a live update (some sentences cleaned, the rest still the draft); `cost` is dollars the model spent on this stage, shown beside its time. */
+	clean(sentences, { ms, cost, final = true } = {}){
+		this.sentences = sentences;
+		if (!final) return this.write({ clean: sentences, clean_final: false, ...(cost != null ? { cost: { ...this.cost, clean: cost } } : {}) });
+		this.clean_final = true; this.ms.clean = ms; if (cost != null) this.cost.clean = cost;
+		return this.write({ clean: sentences, clean_final: true, ms: { ...this.ms }, cost: { ...this.cost }, status: "Structuring" });
 	}
 
-	structured(md, { ms } = {}){
-		this.parsed = Outline.parse(md); this.ms.structure = ms;
+	structured(md, { ms, cost } = {}){
+		this.parsed = Outline.parse(md); this.ms.structure = ms; if (cost != null) this.cost.structure = cost;
 		const refined = Compose.brief(this.parsed);
 		this.ms.refined = 0;
-		return this.write({ structure: md, subject: this.parsed.subject, refined, cards: Compose.cards(this.parsed), ms: { ...this.ms }, status: "Checking clarity" });
+		return this.write({ structure: md, subject: this.parsed.subject, refined, cards: Compose.cards(this.parsed), ms: { ...this.ms }, cost: { ...this.cost }, status: "Checking clarity" });
 	}
 
 	/** The Haiku pass landed: cards get their clarity flags and tags. */
