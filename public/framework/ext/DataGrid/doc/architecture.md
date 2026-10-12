@@ -75,3 +75,7 @@ Before this, the site had three: `ext/DataGrid` (behaviour), `ui/datagrid` (its 
 - [Sessions](/framework/ai/sessions/) draws its list with one DataGrid: its row is `AISessionView`, its card is `AISessionView.render_card()`, its order and nesting are `AISessionsPage.arrange()` (the `sort_rows` hook, now always called, so a page supplies its default order too).
 - Measured with the same script before and after ([perf-sessions.mjs](/framework/ai/2026-10-12/data-grid/sessions-perf/perf-sessions.mjs), three runs each, four widths): long tasks ~430–680 ms → ~50–130 ms, DOM nodes ~5,900 → ~2,700 (50 rows drawn first instead of 200, the rest load as you scroll), first row about the same (0.9–1.8 s, noisy).
 - One small change to Page: `page_settings()` now also reads a `view` key, so the default can sit in `settings.jsonl`.
+
+## Remote paging seam (2026-10-12)
+
+When the rows live in node, the grid asks the page for more instead of holding them all: `DataGridDrawer.more_remote` calls `grid.has_more()` and, if true, `grid.load_more()`; the page answers with the next query page and appends it with `set_rows`. The grid never knows about sockets. The producer is [ext/Query](/framework/ext/Query/) (`rpc:query`, offset and limit).

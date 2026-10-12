@@ -16,6 +16,8 @@ Plan: [server-query plan](/framework/ai/sessions/2026/10/12/session-87bec773/ser
 3. **Live updates are scoped.** Each socket remembers its last query and the ids it showed. A shown id changing pushes `query_row(qid, row)`; a new match pushes `query_stale(qid)`, at most once a second, and the client asks again.
 4. **Stale answers.** A query keeps its `qid` for "next page" and "refresh"; a new filter or sort gets a new one. The Sessions page queues a new filter behind a page still in flight.
 
-## Known gaps in the Sessions remote mode (why it is opt-in, `?source=node`)
+## Source options `shape` and `arrange`, and what still differs in the Sessions remote mode
 
-Flat rows only: no buckets, no nesting under a parent, no role chips, no "show closed"; `needs attention` counts the flag count only (not session-record alerts). Source shows "VS Code" for every row (the snapshot has no source tag; the files path takes it from `sessions.json` and Servex's agent list). The cost total is every provider; the files path shows Claude only. Closing these means running `AISessionBuckets` and the nesting in node as a step after `Query.run`.
+`shape(item)` is the join: it runs on every item and every pushed change (the sessions source adds `source`, `claude_usd`, `closed`, `role`, `attention`; class `AISessionSource`). `arrange(hit, spec)` runs after filter and sort, before the page slice, and returns the list to page over (buckets and parent nesting via `AISessionBuckets.arrange`). `total` is the arranged list length (for paging); `matched` is every match.
+
+Remote mode is now the default; `?source=files` forces the files path. Still different: the default sort puts in-flight rows first in the files view (node sorts by last activity); the "needs attention" count covers current matches; stalled, bloat and hour-cost flags need `session-flags.json`; no role chips row or cache breakdown; the Servex `role` is approximate and live agent state is not joined; bucket grouping and totals differ slightly (the proof run showed 6,458 sessions and $5,189.57 against 6,359 and $5,020.66 in the files view).
