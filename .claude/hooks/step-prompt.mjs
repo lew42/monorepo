@@ -11,7 +11,10 @@ try {
 	const cmd = String(input.tool_input?.command ?? "");
 	if (cmd.includes("append.mjs")){
 		const m = cmd.match(/(?:"([^"]*task\.jsonl)"|'([^']*task\.jsonl)'|(\S*task\.jsonl))/);
-		const raw = m && (m[1] || m[2] || m[3]);
+		// append.mjs prints "<target>: appended …" with the real path, so a $VAR or a moved path still resolves
+		const r = input.tool_response, out = typeof r === "string" ? r : String(r?.stdout ?? r?.output ?? "");
+		const said = out.match(/^(.*task\.jsonl): appended/m);
+		const raw = said?.[1] || (m && (m[1] || m[2] || m[3]));
 		if (raw){
 			const file = path.resolve(input.cwd || process.cwd(), raw);
 			if (fs.existsSync(file)){
