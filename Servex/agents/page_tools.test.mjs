@@ -11,6 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { page_tools } from "./page_tools.js";
+import Subpages from "./Subpages.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -76,6 +77,69 @@ try {
 		await call("page_set", { path: URL, target: [add.id], delta: { flag: true } }, "task-mastermind-inbox-cards-work");
 		const line = lines().find(l => l[add.id]?.flag === true);
 		ok(line?.[add.id]?.by === "task-mastermind-inbox-cards-work", "page_set stamps the real caller, not \"agent\"");
+	}
+
+	// ids: every id the tool stamped comes back, and page_read lists each card's type + id.
+	{
+		const out = await call("page_set", { path: URL, delta: { content: { add: { type: "part-heading", text: "Findings" } } } }, "t");
+		ok(out.ok && out.ids.length === 1 && out.ids[0] === out.line.content.add.id, "page_set answers the ids it stamped");
+		const md = await read_page({ path: URL });
+		ok(md.includes(`[${out.ids[0]}] (part-heading) Findings`), "page_read shows each card's type and id");
+	}
+
+	// pages: add / rename / remove make real folders next to the page and link them.
+	{
+		const add = await call("page_set", { path: URL, delta: { pages: { add: { name: "notes", title: "Notes", icon: "N", description: "One line." } } } }, "t");
+		ok(add.ok && add.pages[0].url === URL + "notes/", "pages.add answers the subpage url");
+		ok(fs.existsSync(path.join(DIR, "notes", "page.jsonl")), "pages.add made the folder and its page.jsonl");
+		ok(lines().some(l => l.file === "notes/page.jsonl"), "pages.add linked it with a file line");
+		ok((await read_page({ path: URL })).includes(`- notes ${URL}notes/`), "page_read lists the subpage with its url");
+
+		await call("page_set", { path: URL + "notes/", delta: { content: { add: { type: "part-text", text: "on the subpage" } } } }, "t");
+		ok(fs.readFileSync(path.join(DIR, "notes", "page.jsonl"), "utf8").includes("on the subpage"), "a delta on the subpage url lands in the subpage's own page.jsonl");
+
+		const ren = await call("page_set", { path: URL, delta: { pages: { rename: { name: "notes", to: "ideas" } } } }, "t");
+		ok(ren.ok && fs.existsSync(path.join(DIR, "ideas", "page.jsonl")) && !fs.existsSync(path.join(DIR, "notes")), "pages.rename moved the folder");
+		const md = await read_page({ path: URL });
+		ok(md.includes("- ideas ") && !md.includes("- notes "), "page_read lists the new name only (gone line hides the old)");
+
+		const dry = Subpages.at(URL, { dry: true }).remove("ideas");
+		ok(dry.dry && fs.existsSync(path.join(DIR, "ideas")), "a dry remove touches nothing");
+		const rem = await call("page_set", { path: URL, delta: { pages: { remove: "ideas" } } }, "t");
+		ok(rem.ok && !fs.existsSync(path.join(DIR, "ideas")) && fs.readdirSync(path.join(DIR, "_removed")).some(n => n.startsWith("ideas-")), "pages.remove moves the folder to _removed/, never deletes");
+		ok(!(await read_page({ path: URL })).includes("## Subpages"), "a removed subpage is no longer listed");
+
+		const bad = await call("page_set", { path: URL, delta: { pages: { add: { name: "Bad Name", title: "x" } } } }, "t");
+		ok(!bad.ok, "a bad subpage name is refused");
+	}
+
+	// page.js parent: the children string is edited in place.
+	{
+		const js = path.join(DIR, "pj");
+		fs.mkdirSync(js);
+		fs.writeFileSync(path.join(js, "page.js"), 'export default { title: "P", children: "a/page.jsonl" };\n');
+		const sub = new Subpages(js);
+		sub.add({ name: "b", title: "B" });
+		ok(/children: "a\/page.jsonl b\/page.jsonl"/.test(fs.readFileSync(path.join(js, "page.js"), "utf8")), "page.js parent: children gets the new name");
+		sub.rename({ name: "b", to: "c" });
+		sub.remove("c");
+		ok(/children: "a\/page.jsonl"/.test(fs.readFileSync(path.join(js, "page.js"), "utf8")), "page.js parent: rename then remove leaves children clean");
+	}
+
+	// a session route deeper than the page resolves to the session's own subpage folder.
+	{
+		const uuid = crypto.randomUUID(), sess = `/framework/ai/sessions/${uuid}/`;
+		let folder;
+		try {
+			const out = await call("page_set", { path: sess, delta: { pages: { add: { name: "notes", title: "Notes", icon: "N", description: "d" } } } }, "t");
+			ok(out.ok, "pages.add on a session page");
+			folder = path.join(ROOT, path.dirname(out.size.file));
+			ok(fs.existsSync(path.join(folder, "notes", "page.jsonl")), "the subpage sits in the session's own folder");
+			const w = await call("page_set", { path: sess + "notes/", delta: { title: "Renamed" } }, "t");
+			ok(w.size.file.endsWith("/notes/page.jsonl"), "a session route deeper than the page resolves to the subpage folder");
+			const t = await call("page_set", { path: sess + "other/", delta: { title: "tab" } }, "t");
+			ok(t.line.other?.title === "tab", "with no folder, the segment stays a tab target");
+		} finally { if (folder) fs.rmSync(folder, { recursive: true, force: true }); }
 	}
 
 } finally {
