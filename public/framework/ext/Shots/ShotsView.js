@@ -1,6 +1,6 @@
 import { View, div, p, span, img, button, a } from "../../core/View/View.js";
 import { JSONL } from "../JSONL/JSONL.js";
-import Socket from "../../dev/Socket/Socket.js";
+import FsFile from "../filesystem/FsFile.js";
 
 View.stylesheet(import.meta, "ShotsView.css");
 
@@ -229,7 +229,7 @@ export class ShotsView extends View {
 
 	judge(id, vs, verdict){
 		const line = { judge: { id, vs, verdict, by: "owner", at: new Date().toISOString() } };
-		Socket.singleton().async_rpc("append", "/framework/ext/Shots/runs.jsonl", [JSON.stringify(line)]);
+		new FsFile({ path: "framework/ext/Shots/runs.jsonl" }).append(line);
 	}
 }
 
