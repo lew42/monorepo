@@ -1,4 +1,6 @@
-# Styles — the CSS strategy under every page: four layers, six type levels, as little else as possible
+# Style library — every token, ground, class and layout the CSS ships, shown live
+
+**What goes here:** the vocabulary (tokens, the four grounds, `.card`, utilities, layouts, sections). **Next door:** how and where to write a rule → [Code: CSS](/framework/code/css/); what a thing should look like → [Design](/framework/design/). The system on one screen: [doc/architecture.md](./doc/architecture.md) (three colour tokens, four `bg-` grounds, one card); what earlier audits concluded: [doc/past-work.md](./doc/past-work.md).
 
 ## Index
 
