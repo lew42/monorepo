@@ -13,13 +13,15 @@ export default class SystemPage extends Page {
 		}, ...args);
 	}
 
+	card(){ const d = div(); d.el.classList.add("card"); return d; }
+
 	// el("h3", "text") — plain DOM, built synchronously
 	el(tag, text, cls){ const e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
 
 	content(){
 		p("A System looks after one part of the project. It knows where its files live (root), what promises it keeps (rules), and can check whether they hold. Any part can be one: code, a layout, the readmes, an AI module. Built 2026-10-12.");
-		this.class_card(div({ class: "card" }));
-		this.demo(div({ class: "card" }));
+		this.class_card(this.card());
+		this.demo(this.card());
 		this.real(div());
 		a({ href: "/framework/ai/doc/md/organization/" }, "What goes where, and why");
 	}
@@ -57,7 +59,7 @@ export default class SystemPage extends Page {
 			for (const l of text.split("\n")) if (l.trim()) { const r = JSON.parse(l); latest[r.system] = r; }
 			box.el.append(this.el("h3", "Real systems, last check"));
 			for (const [name, r] of Object.entries(latest)){
-				const card = div({ class: "card" });
+				const card = this.card();
 				card.el.append(
 					this.el("h3", `${name}: ${r.count ? r.count + " finding(s)" : "healthy"}`),
 					this.el("small", `checked ${r.at}`),
