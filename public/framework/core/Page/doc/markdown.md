@@ -56,3 +56,12 @@ Where a clicked doc opens (navigate, next column, or in place) is the page's own
 
 Files: `Markdown.js` (the `PageMarkdown` class), `Page.md_url()` (where a link goes), `Page.child()`
 (the one line that makes the first `md/`), `core/Router/Router.js` `link_clicked()`.
+
+## Moved from CLAUDE.md (2026-10-12)
+
+These sentences were cut from the root `CLAUDE.md` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in `CLAUDE.md` at `87afbdd55`. The map is `public/framework/ai/2026-10-12/claude-md-consolidate/manifest.md`.
+
+<!-- claude-md:L40 -->
+**Name things, and write `.md` links as files** — L40.2
+
+Markdown renders at `<dir>/md/<file>/` (see `core/Page/doc/markdown.md`), and `Page.class.js` rewrites a link to `readme.md` or `doc/x.md` into that route when the page renders.

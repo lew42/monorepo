@@ -22,3 +22,17 @@ Append an assign line with a new `budget_usd` and a reason in a `log` line. The 
 the next tick, and the 100% and 150% steps start over for the new figure.
 
 `SERVEX_NO_BUDGET=1` turns it off. Proof: `public/framework/ai/2026-09-29/node-reliability/budget-proof.txt`.
+
+## Moved from CLAUDE.md (2026-10-12)
+
+These sentences were cut from the root `CLAUDE.md` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in `CLAUDE.md` at `87afbdd55`. The map is `public/framework/ai/2026-10-12/claude-md-consolidate/manifest.md`.
+
+<!-- claude-md:L28 -->
+**Audits go to Haiku** — L28.1
+
+**Audits go to Haiku** (the owner, 2026-10-08): under ~100k tokens a Haiku 5.5 task costs about 1/20th of Sonnet 5.5 (the owner's figure; verify when pricing is confirmed).
+
+<!-- claude-md:L42 -->
+**Haiku stays under 100k tokens** — L42.1
+
+**Haiku stays under 100k tokens** (the owner, 2026-10-08): Claude Haiku 5.5 is by far the cheapest model, but a request over 100,000 tokens costs about 5x per token, so every Haiku job stays well under it (aim for 30–60k; never drift over by accident).

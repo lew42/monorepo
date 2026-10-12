@@ -229,3 +229,12 @@ never shows on a tab's very first connect attempt (only after the tab has connec
 once). Proved headless: editing `Server/run.js` on a live tab shows the strip, the page's own
 content (even a running clock widget) never resets, and the strip clears on reconnect —
 screenshots at [`/framework/ai/2026-10-01/page-holds/`](/framework/ai/2026-10-01/page-holds/).
+
+## Moved from CLAUDE.md (2026-10-12)
+
+These sentences were cut from the root `CLAUDE.md` because they belong here. The wording is the owner's, unchanged; the id is the sentence's place in `CLAUDE.md` at `87afbdd55`. The map is `public/framework/ai/2026-10-12/claude-md-consolidate/manifest.md`.
+
+<!-- claude-md:L104 -->
+**(The site is live while you edit it (the owner, 2026-09-19))** — L104.3
+
+Streams (the chat log, the AI board) keep flowing during a hold; it expires by itself after five minutes.

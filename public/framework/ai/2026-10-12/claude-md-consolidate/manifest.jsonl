@@ -1,0 +1,207 @@
+{"id":"L1.1","kind":"heading","action":"keep","to":"CLAUDE.md","text":"# CLAUDE.md"}
+{"id":"L3.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Lew42 — a no-build, native-ESM web framework; the site is static, `Server/` is dev only."}
+{"id":"L4.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"This file rules; skills and readmes elaborate it."}
+{"id":"L4.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Do not edit it without asking.**"}
+{"id":"L6.1","kind":"heading","action":"keep","to":"CLAUDE.md","text":"## Laws"}
+{"id":"L8.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Less is more — ASAP, As Simple As Possible.**"}
+{"id":"L8.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Fastest working version first, then improve."}
+{"id":"L8.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Show, don't tell — a demo you can open beats a description."}
+{"id":"L8.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Question every word, line, section."}
+{"id":"L8.5","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Deep docs may breathe."}
+{"id":"L9.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Clear beats brief — by far.**"}
+{"id":"L9.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Simple, but clear: explain it like I'm five."}
+{"id":"L9.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Start with the basics, in full, plain sentences, so the reader knows exactly what is being said before any detail arrives."}
+{"id":"L9.4","kind":"sentence","action":"move","to":"public/framework/ai/doc/writing.md","text":"Give me something I can chew quickly, without effort."}
+{"id":"L9.5","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Every page, demo and snippet makes its one takeaway obvious — a reader should be able to say what they are supposed to learn from it."}
+{"id":"L9.6","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Detail that can move somewhere better moves there and gets a link; don't restate every caveat everywhere."}
+{"id":"L9.7","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"An extra sentence that clarifies a necessary point belongs."}
+{"id":"L9.8","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"\"Minimal speak\" — clipped fragments, undefined words, jargon standing in for an explanation — is a failure, not economy."}
+{"id":"L9.9","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"New coders are the audience. (the owner, 2026-09-04)"}
+{"id":"L10.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Prioritize.**"}
+{"id":"L10.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Time, quantity, quality, outcome: the most important things come first, for the most benefit to the user."}
+{"id":"L10.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Everything reads as a quick scan — a few short sections, then a link to the long form."}
+{"id":"L11.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Follow the owner's words.**"}
+{"id":"L11.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Build what was asked, the way it was described, and lean into the owner's own names and preferences."}
+{"id":"L11.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Don't go in a different direction without a very good reason; if you do, say why. (the owner, 2026-09-30)"}
+{"id":"L12.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Keep working; never wait on the owner.**"}
+{"id":"L12.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Make the best decision, say what the alternative was, and keep going."}
+{"id":"L12.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Never create a request that blocks on the owner: they may never see it."}
+{"id":"L12.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"If a limit stops you, queue the work and pick it up after."}
+{"id":"L12.5","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Only a real block you can't sidestep goes on the dashboard, and everything else keeps moving."}
+{"id":"L12.6","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Don't do anything dangerous."}
+{"id":"L12.7","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"(the owner, 2026-09-30) The owner often dictates long-winded rants, ideas, tasks or lectures while looking away and may never read your reply: **assume ephemeral chat logs will never be read again.**"}
+{"id":"L12.8","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"If it is not committed to the file system, nobody will ever know about it: **the committed repo state backed up to GitHub is the sole source of truth.**"}
+{"id":"L12.9","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Never leave loose ends hanging on the assumption of a follow-up."}
+{"id":"L12.10","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"If there is a safe, quick fix, attempt it; if not, **record the essence of the dictation immediately in the proper place.**"}
+{"id":"L12.11","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"Write notes, legitimate questions, tradeoffs or implications into a short `doc/*.md` file beside the relevant module, and link it from that directory's `readme.md`."}
+{"id":"L12.12","kind":"sentence","action":"move","to":"public/framework/ai/doc/readmes.md","text":"Keep the `readme.md` minimal (the reader's lightweight index to avoid context bloat) and let the `doc/` file hold the detail."}
+{"id":"L12.13","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","note":"contradicts 'Never destructive' (2026-10-08) — kept 'Files are what survive' only","text":"Superceded docs can be deleted cleanly in the future, but until then, files are what survive. (the owner, 2026-10-01, updated 2026-10-05)"}
+{"id":"L13.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**One of everything; don't repeat yourself.**"}
+{"id":"L13.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Before you build, find what already exists and use it, or extend it."}
+{"id":"L13.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Never build a second version of a system."}
+{"id":"L13.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Every surface that shows the same thing (a chat, a sidebar, a card, a rail) uses the same component, so one fix updates all of them. (the owner, 2026-09-30)"}
+{"id":"L14.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Compute, don't recall.**"}
+{"id":"L14.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Anything a computer can work out (state, counts, costs, which tasks landed, log lines, records) is done by a node script or tool that reads the real state, never written by an AI from memory."}
+{"id":"L14.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"AI handles judgment; record-keeping is code. (the owner, 2026-10-01)"}
+{"id":"L16.1","kind":"heading","action":"keep","to":"CLAUDE.md","text":"## Presentation — always the overwhelmed newcomer (the owner, 2026-09-05)"}
+{"id":"L18.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Level 1 is one page, mostly above the fold: what the thing is, **shown**; its major parts; the way in; room to breathe."}
+{"id":"L18.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Detail is never removed — it nests one click down, where it belongs, and never sits on the first page."}
+{"id":"L18.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Don't tell the reader what you are about to show them; show it."}
+{"id":"L18.4","kind":"sentence","action":"move","to":"public/framework/ai/doc/writing.md","text":"An index page is a wall of previews, kept small enough to digest."}
+{"id":"L18.5","kind":"sentence","action":"move","to":"public/framework/ai/doc/writing.md","text":"Demonstration and report pages are held to this harder than documentation."}
+{"id":"L18.6","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"A report to the owner is one screen of plain sentences with links, never the nitty gritty — \"getting reports with details I can't follow doesn't help me at all.\" A file or module named in a message is a clickable link to its page on the site (`/framework/ux/Dictate/`); the source file (`Dictate.js`) is only a second link. (the owner, 2026-09-24)"}
+{"id":"L20.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Chat is the headline, not the report** (the owner, 2026-10-07): the owner mostly does not read chat, and long replies make that worse."}
+{"id":"L20.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Reply in 1–2 sentences, never three paragraphs: the most important one first, plus a caveat only if it is truly important; the detail stays in the file, card or `doc/` note, one click down, for when they ask."}
+{"id":"L20.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Anything important or contingent (a block, a decision that waits on them, a risk) goes in chat in a noticeable way AND on the AI board as a `Note:` card, so it survives unread chat."}
+{"id":"L22.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**How to respond** (the owner, 2026-10-12): short, and the most important point first; usually that is the last thing asked."}
+{"id":"L22.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Each `###` heading names the thing (the class, module or page) so the context is always visible; add one short `#` only for a big reply."}
+{"id":"L22.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Show structure as code: `class AIRail extends Inbox.Rail`, API signatures, never long bodies."}
+{"id":"L22.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Lists are flat and short; cut anything that is not a key point."}
+{"id":"L22.5","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Icons are rare: status only (✅ done, ⬜ open, ⚠️ risk), placed right next to the words they mark, never one per line."}
+{"id":"L22.6","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Quote the owner only in a `>` blockquote, and rarely; their topics show through the headings instead."}
+{"id":"L24.1","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"**Link every mention** (the owner, 2026-10-08): whenever text names something that exists and has a URL (a page, class, module, session, task, card, model such as `/framework/ai/models`, a file), it is a link, on UI cards and content alike, so it can be clicked through."}
+{"id":"L24.2","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"Use the mention system (`ext/Mention`, `#Page` `@agent` `/path`) instead of plain names."}
+{"id":"L24.3","kind":"sentence","action":"move","to":"public/framework/ext/Mention/doc/ideas.md","text":"Idea to evaluate: run all content text through one processor (a `say()`-style method beside the markdown one) that does mentions, and perhaps records backlinks."}
+{"id":"L26.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Readmes are the cheap index** (the owner, 2026-10-08): every agent reads this file, then the readmes top-down to the directory it works in, so readmes decide how much context each agent pays for."}
+{"id":"L26.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Each readme is a short index (under about 100 lines): what exists, one line each, when you would load it, and links to deeper `doc/*.md` or sibling readmes."}
+{"id":"L26.3","kind":"sentence","action":"move","to":"public/framework/ai/doc/readmes.md","text":"A searching or indexing agent reads one readme and decides \"relevant or not\" without the rest; a builder follows the links."}
+{"id":"L26.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Keep them fresh and short; audit them in a cheap Haiku pass when pace allows."}
+{"id":"L26.5","kind":"sentence","action":"move","to":"public/framework/ai/doc/readmes.md","text":"A session worth tracking gets a short readme of its own (an overview/inbox the Haiku auditors create or update), while the data itself moves to JSONL for the UI."}
+{"id":"L28.1","kind":"sentence","action":"move","to":"Servex/doc/budget.md","text":"**Audits go to Haiku** (the owner, 2026-10-08): under ~100k tokens a Haiku 5.5 task costs about 1/20th of Sonnet 5.5 (the owner's figure; verify when pricing is confirmed)."}
+{"id":"L28.2","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"Task audits, readme audits, searches and fan-outs use Haiku in small inlined batches; Sonnet is for UI and object-oriented code."}
+{"id":"L30.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Link, don't regenerate** (the owner, 2026-10-08): never spend tokens repeating what is already written."}
+{"id":"L30.2","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"Reference the original prompt, session, task or doc by link (a text link first; embedded previews later, since they load a lot of data)."}
+{"id":"L30.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"The owner's suggestions are logged on the page they concern so later agents find them there, as a reference to the source prompt, not a retyped copy."}
+{"id":"L32.1","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"**Classes are the structure; show them** (the owner, 2026-10-08): the framework is object-oriented, so lean on classes and instances in code and in documentation."}
+{"id":"L32.2","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"Prefer a class over loose functions or one-off scripts wherever a thing has state and behaviour (many AI-system pieces are not yet classes and should be)."}
+{"id":"L32.3","kind":"sentence","action":"move","to":"public/framework/ai/doc/classes.md","text":"Document a thing as its class: an icon + class name card with its core API (the properties and methods that matter most, judged by an agent, not a weighting system), and show live instances where they exist (a running Servex, its agents)."}
+{"id":"L32.4","kind":"sentence","action":"move","to":"public/framework/ai/doc/classes.md","text":"A reader should see the structure, not paragraphs about it."}
+{"id":"L34.1","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"**A readme is a module's memory** (the owner, 2026-10-08): each page or module's readme holds its essence and guiding principles, and an `architecture.md`-style doc beside it holds decisions, linking the original refined prompts and summarising the ideas."}
+{"id":"L34.2","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"Keep both fresh, so a new agent that reads them is fully up to date and the owner's suggestions accumulate in the right place instead of dying with a session."}
+{"id":"L34.3","kind":"sentence","action":"move","to":"public/framework/ai/doc/readmes.md","text":"Sub-readmes load on demand."}
+{"id":"L36.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**No hard fences between roles** (the owner, 2026-10-08): a minion that can do a mastermind's job should just do it."}
+{"id":"L36.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Do not add rules or tool fences that stop a capable agent; the mastermind is simply the one that decides and splits work."}
+{"id":"L38.1","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"**The iceberg readme** (the owner, 2026-10-08): a parent readme is the tip of the iceberg: a solid index of what is inside (each subsystem, one line on what it is and when you would load it, a link)."}
+{"id":"L38.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"The base, the details, lives in the child's own readme, and the child does the same for its own children, recursively."}
+{"id":"L38.3","kind":"sentence","action":"move","to":"public/framework/ai/doc/readmes.md","text":"So readmes are read on demand, each giving the lay of the land and the important things in a glance."}
+{"id":"L38.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"The root and `framework/ai` readmes must index every major system (Servex, the dev server, MCP servers, models, VS Code sidebar tabs, browser voice agents, sessions, accounting, transcription, the page system) without explaining them."}
+{"id":"L40.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Name things, and write `.md` links as files** (the owner, 2026-10-08): when a thing has a good name, give it a page and document it there (what it is, what it means); its readme links to that page and the page can load the readme by default."}
+{"id":"L40.2","kind":"sentence","action":"move","to":"public/framework/core/Page/doc/markdown.md","text":"Markdown renders at `<dir>/md/<file>/` (see `core/Page/doc/markdown.md`), and `Page.class.js` rewrites a link to `readme.md` or `doc/x.md` into that route when the page renders."}
+{"id":"L40.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"So always write the plain file path (`doc/flow.md`) in readmes and docs: agents then read the real file and the browser gets the working route."}
+{"id":"L42.1","kind":"sentence","action":"move","to":"Servex/doc/budget.md","text":"**Haiku stays under 100k tokens** (the owner, 2026-10-08): Claude Haiku 5.5 is by far the cheapest model, but a request over 100,000 tokens costs about 5x per token, so every Haiku job stays well under it (aim for 30–60k; never drift over by accident)."}
+{"id":"L42.2","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"A node script chunks big inputs (a raw session file, a log) into pieces sized to fit with room for the reply."}
+{"id":"L42.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"No Batch API / API key for now."}
+{"id":"L44.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Context must not die in sessions** (the owner, 2026-10-08): the useful decisions and insight from a session go to the page or module they concern, linked back to the source prompt, not left in chat."}
+{"id":"L44.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Before major surgery on a system, gather every past ask about it into one place, weed out the conflicts, decide, then build."}
+{"id":"L44.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Agents post an update or log line at least every ~5 minutes of work; a quiet agent is presumed stalled (Servex's `TaskLoop` chases it)."}
+{"id":"L46.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Stream, don't poll** (the owner, 2026-10-08): anything that happens in real time (a transcription, a session doing work, cost, logs) is architected as a stream (JSONL append + the `live()` tail) with updates in about 100 ms, never a timed refresh that shows stale data."}
+{"id":"L46.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"When you find yourself writing `setInterval` + `fetch`, look for the stream first."}
+{"id":"L46.3","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"Treat this file as the root readme; the core docs index every system and how they stream."}
+{"id":"L48.1","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"**Everything is linked** (the owner, 2026-10-08): the owner browses the website, not the file system, so a file that exists but is not linked will never be found."}
+{"id":"L48.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Every page, doc, readme, report or file you create must be reachable by a visible link from the site (its parent's `children:`/readme index, a card, or an index page)."}
+{"id":"L48.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Sessions and tasks get proper names; a child session or task lives inside its parent's directory (`parent/child`), not in a flat pile."}
+{"id":"L50.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Moves and renames are scripted, never retyped** (the owner, 2026-10-08): to port, move or rename files (sessions, tasks, logs), write a node script that does it procedurally (`git mv`, a dry-run first, a manifest of every old to new path, reversible), preserving everything."}
+{"id":"L50.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"An AI never copies data by reading and rewriting it."}
+{"id":"L50.3","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"Also run a **visibility check** on anything we work on: if it exists in the repo but is not linked from the site, it will not be found, so link it."}
+{"id":"L52.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Commit after every working step** (the owner, 2026-10-08): small, frequent commits are the versioned log; uncommitted progress is lost progress and invites regressions."}
+{"id":"L52.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Commit each step that works before starting the next (smoke-test first: never commit something broken; once it works, commit, since git can always roll it back), in a worktree, and merge after reviewing the diff."}
+{"id":"L52.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"When a page is rendered by a template or layout, make it findable which one and where it lives."}
+{"id":"L54.1","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"**Write classes, not function bags** (the owner, 2026-10-08): code is object-oriented."}
+{"id":"L54.2","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"One class per file, the file named for the class (`SessionsPage.js` holds `class SessionsPage`), subclasses where they fit (a page template is a class that extends `Page`, a view extends `View`), and a small helper class may live in its parent's file."}
+{"id":"L54.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Attach helpers to the class (static members) and export the class, not a dozen named exports; no lowercase `*.js` files that export piles of loose functions to be cobbled together."}
+{"id":"L54.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"A `page.js` stays tiny: import the class and instantiate it."}
+{"id":"L54.5","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Keep comments to what is not obvious."}
+{"id":"L54.6","kind":"sentence","action":"move","to":"public/framework/ai/doc/classes.md","text":"When extending `Page`, mind its large API (it extends `Item`) so method names do not clash."}
+{"id":"L54.7","kind":"sentence","action":"move","to":"public/framework/ai/doc/classes.md","text":"A reader should see how the pieces fit from the class hierarchy alone."}
+{"id":"L56.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Show the class** (the owner, 2026-10-08): a page about a class must show its structure first: the class name and icon, the core API, the most important properties (instances of other classes are clickable to their own class card), and who calls it."}
+{"id":"L56.2","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"Where a class has a UI, the demo shows two things side by side: the rendered view the user sees, and a debug view of the live instance (a tree/card that renders every property by type, string, boolean, nested array/object, functions optional) so you watch the data structure change as you use the demo."}
+{"id":"L56.3","kind":"sentence","action":"move","to":"public/framework/ai/doc/classes.md","text":"A default renderer that walks a class's properties is acceptable; a class needing a better view gets its own."}
+{"id":"L56.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Do this for the classes you work on; not a mass operation."}
+{"id":"L56.5","kind":"sentence","action":"move","to":"public/framework/ai/doc/classes.md","text":"Tags that point at code use the familiar repo path plus class (`ext/Refine`, `core/Page`, `Server/refine.mjs`) so a reader knows where it is."}
+{"id":"L58.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Design the class architecture before you build** (the owner, 2026-10-08): wrong names and a wrong hierarchy are why built things \"don't feel right\"."}
+{"id":"L58.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Before building anything of more than one class, write the class architecture (a short page: each class's name and one-line job, what extends what, what composes what, which one is the system/manager that orchestrates the others) and show it where the owner can see it."}
+{"id":"L58.3","kind":"sentence","action":"move","to":"public/framework/ai/doc/classes.md","text":"Choose names with care: short, specific, never reusing a native or framework name, a word that sounds like a system or manager for the orchestrator."}
+{"id":"L58.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Then build the smallest working slice and let the page show the real structure, so a naming or hierarchy mistake is caught early."}
+{"id":"L60.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Never destructive** (the owner, 2026-10-08): data integrity first."}
+{"id":"L60.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Do not delete logs, merge sessions or records, overwrite history, or eliminate anything; add, link and reference instead, and commit as often as you can so git is the undo."}
+{"id":"L60.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"If something truly must go, move it aside (a `salvage/` branch, an archive path) and say so."}
+{"id":"L60.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"The AI can find a non-destructive way."}
+{"id":"L62.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Mind the token burn** (the owner, 2026-10-08): every agent weighs the token cost of a task before starting it, and above all a mastermind."}
+{"id":"L62.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Every turn re-processes the whole context, even on a cache hit, so iterative, long-winded work that keeps going back to the model burns tokens."}
+{"id":"L62.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Rules: (1) **let a script read and calculate** (a node script that reads the data and prints a summary is cheap and good); the model reads only the summary."}
+{"id":"L62.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"(2) **Batch tool calls**: request all the files you need in one turn, never one file per turn."}
+{"id":"L62.5","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"(3) **No session replays or long audits unless asked.**"}
+{"id":"L62.6","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"(4) When a long iterative pass is truly needed, give it to Haiku, not Sonnet or Opus."}
+{"id":"L62.7","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"(5) Keep sessions short and start fresh when the topic changes."}
+{"id":"L64.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Show it with the widget, then use words.**"}
+{"id":"L64.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"(the owner, 2026-09-25: \"I don't want to read things."}
+{"id":"L64.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"I want to see.\") Files → `ext/files` (the tree, and highlighted source on click)."}
+{"id":"L64.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"An object → its live instances."}
+{"id":"L64.5","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"A layout → a screenshot."}
+{"id":"L64.6","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"A task → its checklist."}
+{"id":"L64.7","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Words come after the picture, and only as many as it takes."}
+{"id":"L66.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**A name is a name plus its scope** (the owner, 2026-10-03)."}
+{"id":"L66.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Where confusion is likely (the Design, Code, AI and Servex systems; UI vs UX vs ext), settle the name AND what belongs under it, and say it once at the top of that system's page: what goes here, what goes next door."}
+{"id":"L66.3","kind":"sentence","action":"move","to":"public/framework/ai/doc/writing.md","text":"Put what everyone must see at the top; keep the detail one click down."}
+{"id":"L68.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Route everything.**"}
+{"id":"L68.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Any view a click reaches has its own URL, so a reload or a back button lands in the same place."}
+{"id":"L70.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Clarity is familiar structure.**"}
+{"id":"L70.2","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"(the owner, 2026-09-29) Build a hierarchy of understanding: each heading names its topic and states its gist in one line, so a reader knows what it is before any detail."}
+{"id":"L70.3","kind":"sentence","action":"move","to":"public/framework/ai/doc/writing.md","text":"Under it, only as many items as it takes, most important first."}
+{"id":"L70.4","kind":"sentence","action":"move","to":"public/framework/ai/doc/writing.md","text":"Each item sits beneath the right parent, with the right children."}
+{"id":"L70.5","kind":"sentence","action":"move","to":"public/framework/ai/doc/writing.md","text":"A familiar concept needs no explanation, only its name and a link to its own page."}
+{"id":"L70.6","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Detail is added only when it changes what the reader does."}
+{"id":"L70.7","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Pick names that can't be misread, and use the same name every time."}
+{"id":"L72.1","kind":"heading","action":"keep","to":"CLAUDE.md","text":"## Ask before"}
+{"id":"L74.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Breaking a constraint: no build step (`public/` runs as-is; imports are real `.js` URLs), no server at runtime (production is static), no new npm dependency (`npx` and global tools are fine)."}
+{"id":"L75.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Major surgery: renaming a core API, moving a responsibility, anything with a dozen callers."}
+{"id":"L77.1","kind":"heading","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"## Docs point, they don't explain"}
+{"id":"L79.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"This file and every `readme.md` bring a topic to your attention; the detail is in `doc/*.md` beside the module (its Docs tab, at `/<module>/doc/`)."}
+{"id":"L79.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"A readme is the reader's index: mostly suggestions, minimal direction, past problems named in a line with the doc linked, nothing extra."}
+{"id":"L79.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Every module: `readme.md`, `page.js` (show, don't tell), `doc/`."}
+{"id":"L79.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Nothing crawls — a page exists once its parent's `children:` names it."}
+{"id":"L81.1","kind":"heading","action":"keep","to":"CLAUDE.md","text":"## Where to look"}
+{"id":"L83.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**First, every new session:** `public/framework/ai/handover.md` (state of the world, what is open) and `git log --oneline -20` (what landed recently)."}
+{"id":"L83.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Query the logs only when you need a detail; never read them whole. (the owner, 2026-10-09)"}
+{"id":"L84.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"`readme.md` (root) — setup, branches, deploy"}
+{"id":"L85.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"`public/framework/readme.md` → `core/` `ext/` `styles/` `ui/` `web/` — each dir's readme is its entry"}
+{"id":"L86.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"`public/framework/ai/` — the task log: open a task before the first edit (`new-task`), log as you go, land it (`finish-task`)"}
+{"id":"L87.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"`Server/` — dev server only"}
+{"id":"L88.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"`Servex/` — the agent system: roles, sessions, spawning, the quick-fix pool, the heartbeat, merge and review."}
+{"id":"L88.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Its docs are `/framework/servex/`; the owner's routed asks and their owners are in `public/framework/ai/asks.jsonl`"}
+{"id":"L89.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Scratch — scripts, transcripts, intermediate JSON — goes in the session scratchpad, not the repo"}
+{"id":"L91.1","kind":"heading","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"## Systems that shape every turn (the owner, 2026-09-30)"}
+{"id":"L93.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Pages are live (the owner, 2026-10-02):** almost everything we build is a page that updates itself while you watch."}
+{"id":"L93.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"An agent that creates or works on a page writes its `page.jsonl` in small steps through the page tools (never hand-written JSON, never a whole-file rewrite), and its first line is posted BEFORE any long step (\"researching X\"), so the owner can follow the work as it happens."}
+{"id":"L93.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"An agent reads a page through the tool that returns its computed current state, not by interpreting the raw lines."}
+{"id":"L94.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Usage pace (the owner, 2026-10-02):** every mastermind reads the usage snapshot when it starts and before each spawn (`ai/usage.json`; Servex injects it)."}
+{"id":"L94.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Pace = the share of the week used ÷ the share of the week gone."}
+{"id":"L94.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Over pace: Sonnet by default, no Opus without a stated reason, fewer agents, no redundant checks, and review the work yourself when the files are already in your context instead of spawning a reviewer."}
+{"id":"L94.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Minions just do their task."}
+{"id":"L95.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**The readme chain:** read the readmes root to leaf before working in a directory, and again when you move to another one, or start a fresh session there (`/framework/ai/readmes/`)."}
+{"id":"L96.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Documentation sanity check & git grounding (the owner, 2026-10-06):** Whenever studying documentation, read the readmes, do a sanity check on whether they make sense or are stale, and do a quick verification."}
+{"id":"L96.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"If there's an obvious easy fix, make that fix."}
+{"id":"L96.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Whenever editing code, every agent must properly commit its work with clear attribution so the repo history is the verified truth—never leave loose uncommitted files in the working tree."}
+{"id":"L97.1","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"**References:** `#Page`, `@agent` and `/path` in any text become icon links (`ext/Mention`)."}
+{"id":"L97.2","kind":"sentence","action":"merge","to":"public/framework/ai/doc/claude-md-archive.md","text":"Use them instead of prose names."}
+{"id":"L98.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**Cards:** every task reports on its card on the AI board."}
+{"id":"L98.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"The card is what the owner reads; chat replies are not."}
+{"id":"L99.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**The page inbox:** a note left on a page reaches the agent that owns it."}
+{"id":"L99.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Use it for coordination, never for content."}
+{"id":"L100.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"**The review gate and the four widths:** `merge.mjs` refuses a page change with no review report."}
+{"id":"L100.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Pages are checked at 400, 1200, 1920 and 3440 before they land."}
+{"id":"L102.1","kind":"heading","action":"keep","to":"CLAUDE.md","text":"## The site is live while you edit it (the owner, 2026-09-19)"}
+{"id":"L104.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"The owner works on the running site while agents write to it."}
+{"id":"L104.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Before a batch of writes to files the live site loads, hold every live reload, on every page and every server watching this repo: `node Server/hold.mjs on \"<you> — <what>\"`, write the whole batch, check it works, then `node Server/hold.mjs off \"<you>\"` — one reload instead of one per file."}
+{"id":"L104.3","kind":"sentence","action":"move","to":"Server/doc/watch.md","text":"Streams (the chat log, the AI board) keep flowing during a hold; it expires by itself after five minutes."}
+{"id":"L104.4","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"A file that parses can still break a page or stop the server from starting: load the page, or boot the server on a private port, before you release."}
+{"id":"L104.5","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Detail: `Server/doc/watch.md`."}
+{"id":"L106.1","kind":"heading","action":"keep","to":"CLAUDE.md","text":"## Traps that never throw"}
+{"id":"L108.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"A class's folder, file and name match, capitalised: `ext/JSONL/JSONL.js` exports `class JSONL`."}
+{"id":"L108.2","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"A lowercase file never holds a class someone will look for."}
+{"id":"L108.3","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"`code/patterns` has the rule and a census script."}
+{"id":"L109.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"No DOM after an `await`: capture the box synchronously, fill it in a callback."}
+{"id":"L110.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Every CSS rule inside a layer — `base theme site util`; the order lives once, in `framework.css`, which `app.js` loads first."}
+{"id":"L111.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Resolve URLs against `import.meta`, never the document."}
+{"id":"L112.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Only `p()`/`h1`–`h6` read backticks; one backtick inside `` css(`…`) `` kills every page."}
+{"id":"L113.1","kind":"sentence","action":"keep","to":"CLAUDE.md","text":"Imports flow down; a parent↔child import cycle breaks only on deep reload."}

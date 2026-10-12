@@ -69,4 +69,5 @@ same ones `ui.item` takes.
   session has actually seen.
 - [`doc/syntax.md`](doc/syntax.md) — the exact pattern, the markdown-heading and email/colour
   edge cases, and the derive-the-map note.
+- [`doc/ideas.md`](doc/ideas.md) — open ideas to evaluate (not decisions).
 - Back to [Ext](/framework/ext/).
