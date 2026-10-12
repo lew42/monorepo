@@ -5,7 +5,7 @@ View.stylesheet(import.meta, "VoiceStage.css");
 /**
  * class VoiceStage — ONE step of a spoken prompt as it passes through the pipeline, and how it looks.
  * A subclass names its `key`, its `label`, and the `fields` of the voice-prompt item (VoicePrompt.js) it shows;
- * its `View` draws them. The five: RawStage → CleanStage → StructureStage → RefinedStage → CardsStage.
+ * its `View` draws them. The six: RawStage → ThingsStage → CleanStage → StructureStage → RefinedStage → CardsStage.
  *
  *   new CleanStage(voice_prompt).ready      // true once any of its fields has a value
  *   new CleanStage.View({ stage })           // redraws itself with `view.draw()` when its fields change

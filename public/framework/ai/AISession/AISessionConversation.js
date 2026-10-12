@@ -1,4 +1,5 @@
 import { chat } from "/framework/ext/Chat/Chat.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 
 // The conversation on a session's page: the owner's prompts and the AI's text replies, drawn by `ext/Chat`
 // (the one chat renderer: bubbles, smart scroll, one draw per line). This class only turns raw transcript lines into chat entries.
@@ -11,8 +12,27 @@ export default class AISessionConversation {
 		this.seen = new Set();   // line uuids already read (a re-read must not draw twice)
 		this.entries = [];       // what the next sync() draws
 		this.count = 0;          // messages drawn so far
-		this.talk = chat({ source: () => this.entries });
+		this.session = null;     // the session id, set once the page knows it: the Refine button needs it
+		this.talk = chat({ source: () => this.entries, on_refine: r => this.refine(r) });
 		this.view = this.talk.view;
+	}
+
+	/** The Refine button on one of the owner's prompts (asks #7): runs the pipeline on its words. The five stages then
+	 *  draw above the chat (`ext/Refine/stages`, written by `/api/refine` through `VoicePage`). The prompt id comes from the
+	 *  message's time, so pressing it twice refreshes the same stages instead of piling up copies. Never throws. */
+	async refine({ text, at, button }){
+		if (!this.session || !text?.trim()) return;
+		const was = button.textContent;
+		button.disabled = true; button.textContent = "Refining…";
+		try {
+			const prompt = "t" + (Date.parse(at) || Date.now()).toString(36);
+			const res = await fetch(servex_url("/api/refine"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, session: this.session, prompt, source: "vscode" }) });
+			const out = await res.json();
+			if (!out?.ok) throw new Error(out?.why ?? "Servex answered " + res.status);
+			button.textContent = "Refined ✓";
+		} catch (e){ button.textContent = "Refine failed: " + String(e?.message ?? e).slice(0, 60); }
+		button.disabled = false;
+		setTimeout(() => { button.textContent = was; }, 4000);
 	}
 
 	/** Reduce one transcript line to { role, at, text } | { tools: n } | null. */

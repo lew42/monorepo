@@ -455,7 +455,7 @@ export function sticky_scroll(box){
 	return { pin, locked: () => locked };
 }
 
-export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open, on_react, on_reply, recent = 50 } = {}){
+export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open, on_react, on_reply, on_refine, recent = 50 } = {}){
 	let $script, drawn = false, earlier = [], $earlier = null;
 	const seen = new Set();
 
@@ -495,7 +495,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		$selected.querySelector(":scope > .chatbox-rename-select")?.remove();
 		$selected.querySelector(":scope > .chatbox-rename-fixtures")?.remove();
 		$selected.querySelector(":scope > .chatbox-open-btn")?.remove();
-		$selected.querySelector(":scope > .chatbox-thread-btn")?.remove();
+		$selected.querySelectorAll(":scope > .chatbox-thread-btn").forEach(btn => btn.remove());
 		$selected = null;
 		on_select?.(null);
 	}
@@ -509,6 +509,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		if (rename) add_rename_button($b);
 		if (on_open && card_of($b)?.children.length) add_open_button($b);
 		if (on_reply) add_reply_button($b);
+		if (on_refine && $b.classList.contains("chatbox-you")) add_refine_button($b);
 	}
 
 	/* THREADS (the owner, 2026-09-30: "a reply is attached to its parent bubble,
@@ -530,6 +531,19 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 			const k = key_of($b), re = root_of.get(k) ?? k;
 			on_reply({ re, title: (title_node($b)?.textContent ?? "").replace(/[\s✓?🎤⌨]+$/u, "").trim().slice(0, 80) });
 			deselect();
+		});
+		$b.appendChild($btn);
+	}
+	/* REFINE (asks #7, 2026-10-12): a selected bubble of YOURS grows a "Refine ✦" button. It hands `on_refine({ text, at, button })`
+	   the bubble's words (every piece, in order) and the time of its first piece; the caller runs the refine pipeline on them
+	   (`AISessionConversation.refine`: POST /api/refine, and the stages draw above the chat). No `on_refine` → no button. */
+	function add_refine_button($b){
+		const $btn = document.createElement("button");
+		$btn.type = "button"; $btn.className = "chatbox-thread-btn chatbox-refine-btn"; $btn.textContent = "Refine ✦";
+		$btn.addEventListener("click", e => {
+			e.stopPropagation();
+			const pieces = bubbles.get($b)?.pieces ?? [];
+			on_refine({ text: pieces.map(pc => pc.text).join("\n\n"), at: pieces[0]?.at, button: $btn });
 		});
 		$b.appendChild($btn);
 	}
@@ -585,7 +599,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		$b.classList.add("chatbox-selectable");
 		$b.tabIndex = 0;
 		$b.addEventListener("click", e => {
-			if (e.target.closest("select, .chatbox-rename-btn, .chatbox-open-btn, .chatbox-thread-btn, .chatbox-thread-toggle, .chatbox-react-picker, .chatbox-react-btn")) return;
+			if (e.target.closest("select, .chatbox-rename-btn, .chatbox-open-btn, .chatbox-thread-btn, .chatbox-refine-btn, .chatbox-thread-toggle, .chatbox-react-picker, .chatbox-react-btn")) return;
 			// The click that ends a long-press opened the picker: it is not also a
 			// select, and it must not reach the document, which closes an open picker.
 			if (pressed){ pressed = false; e.stopPropagation(); return; }
