@@ -64,8 +64,20 @@ The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`
 
 Built 2026-10-12 (`Servex/agents/Subpages.js`, `page_tools.js`, `ai/AISession/AISessionDetail.js`). A headless Chromium on a private worktree server, writing through the real `page_tools`, saw on a session page (`/framework/ai/sessions/<id>/`): a `part-heading` after 39 ms, a `part-text` after 12 ms, a `part-card` and its in-place update after 14 ms, with no reload; a subpage made by `pages.add` opened at `…/<id>/notes/` and survived a reload (about 0.4 s). Probe and screenshots: `ai/2026-10-12/page-ai-api/build/` (`probe.mjs`, `session.png`, `notes.png`).
 
-How the session page draws it: `AISessionDetail.Parts` keeps the `part-*` items of the session's `page.jsonl` and draws them with the same Items and Views a `Page` content list uses; a `{"file":"notes/page.jsonl"}` line makes `AISessionDetail.child("notes")` load that folder from the session's own dated folder and show it at the session route. Not yet run: the fresh-Haiku test below.
+How the session page draws it: `AISessionDetail.Parts` keeps the `part-*` items of the session's `page.jsonl` and draws them with the same Items and Views a `Page` content list uses, with a "Subpages:" row of links under them; a `{"file":"notes/page.jsonl"}` line adds the link and makes `AISessionDetail.child("notes")` load that folder at the session route.
 
-The "fresh Haiku builds a heading, three cards and a subpage from the descriptions alone" test is still to do.
+### A fresh Haiku, from the tool descriptions alone (2026-10-12)
+
+A new `claude-haiku-5-5` agent (effort low, only `page_set` and `page_read` allowed, never shown this doc) was asked for a heading, three cards and a subpage with its own heading on its session page. It made 6 calls in 13 s, **0 wrong deltas**, $0.19 for the turn. A headless browser on the live site saw each step:
+
+| step (Haiku's call) | written | seen | ms |
+|---|---|---|---|
+| heading "Fruit facts" | 08:15:27.239 | 08:15:27.350 | 111 |
+| card Apple | 08:15:28.050 | 08:15:28.116 | 66 |
+| card Banana | 08:15:29.079 | 08:15:29.190 | 111 |
+| card Cherry | 08:15:29.292 | 08:15:29.313 | 21 |
+| subpage "seeds" (🌱, its own title line) + heading "Seed notes" | 08:15:31.268 | page_read lists both; the parent link is the row below | – |
+
+The subpage link row was added after this run (the first run built the subpage on disk, but the parent showed no link to it); a second `pages.add` with the row in place appeared 41 ms after the write. Files: `ai/2026-10-12/page-ai-api/proof/` (`haiku-seen.json`, `sub-seen.png`, `layout/` at 400/1200/1920/3440: no overflow).
 
 Related: [content.md](content.md) (what content is), [page-tool-2026-10-09.md](page-tool-2026-10-09.md) (the first version of the tool), [jsonl.md](jsonl.md) (the wire format).

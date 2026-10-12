@@ -278,6 +278,7 @@ AISessionDetail.Log = class SessionPageLog extends JSONL {
 		const dirs = this.page.sub_dirs ??= new Map();
 		if (gone){ dirs.delete(name); this.page.unlink_child(name); this.page.children.delete(name); }
 		else { dirs.set(name, this.url.replace(/page\.jsonl$/, "") + name + "/"); this.page.link_child(name + "/page.jsonl"); }
+		this.parts?.link(name, gone ? null : this.page.url + name + "/");
 	}
 };
 
@@ -286,6 +287,7 @@ AISessionDetail.Log = class SessionPageLog extends JSONL {
 AISessionDetail.Parts = class SessionParts {
 	items = new Map();
 	order = [];
+	pages = new Map();   // subpage name → url, drawn as links under the parts
 	constructor($box){ this.$box = $box; }
 
 	apply(e){
@@ -319,6 +321,8 @@ AISessionDetail.Parts = class SessionParts {
 		if (dirty) this.draw();
 	}
 
+	link(name, url){ url ? this.pages.set(name, url) : this.pages.delete(name); this.draw(); }
+
 	place(id, after){
 		this.order = this.order.filter(x => x !== id);
 		const at = after === null ? -1 : after === undefined ? this.order.length - 1 : this.order.indexOf(after);
@@ -331,7 +335,10 @@ AISessionDetail.Parts = class SessionParts {
 		this.pending = true;
 		queueMicrotask(() => {
 			this.pending = false;
-			this.$box.empty(() => this.order.forEach(id => { const item = this.items.get(id); if (item?.constructor.View) new item.constructor.View({ item }); }));
+			this.$box.empty(() => {
+				this.order.forEach(id => { const item = this.items.get(id); if (item?.constructor.View) new item.constructor.View({ item }); });
+				if (this.pages.size) div.c("session-subpages flex gap-50 wrap", () => { small("Subpages:"); for (const [name, url] of this.pages) a.c("page-link", name).href(url); });
+			});
 		});
 	}
 };
