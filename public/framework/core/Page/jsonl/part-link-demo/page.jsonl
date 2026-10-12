@@ -1,0 +1,7 @@
+{"title":"part-link demo","icon":"link","description":"Three cards built through the page tools; one promoted to its own child page.","class":"../../parts/Parts.js"}
+{"content":{"add":{"type":"part-card","id":"c1","title":"Cache","text":"Hit rate 92%."}}}
+{"content":{"add":{"type":"part-card","id":"c2","title":"Notes worth a page","text":"This card grew into its own page, with its own url."}}}
+{"content":{"add":{"type":"part-card","id":"c3","title":"Queue","text":"Depth 4."}}}
+{"file":"notes/page.jsonl"}
+{"content":{"remove":"c2"}}
+{"content":{"add":{"type":"part-link","id":"c2","path":"./notes/","title":"Notes worth a page","after":"c1"}}}

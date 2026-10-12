@@ -56,7 +56,9 @@ export default class Promote {
 		const title = block.title ?? String(block.text ?? name).split("\n")[0].slice(0, 60);
 		const plan = { action: "promote", id, child: name, after, title };
 		if (this.dry) return { ok: true, dry: true, ...plan };
-		this.subs.add({ name, title });
+		// The child is drawn by the parent's own class (a relative path gets one more "../").
+		const first = this.lines()[0] ?? {}, cls = first.class && (first.class.startsWith(".") ? "../" + first.class : first.class);
+		this.subs.add({ name, title, ...(cls ? { class: cls } : {}) });
 		const child = path.join(this.dir, name, "page.jsonl");
 		const add = obj => fs.appendFileSync(child, JSON.stringify(obj) + "\n");
 		add({ content: { add: { ...item, after: null } } });
