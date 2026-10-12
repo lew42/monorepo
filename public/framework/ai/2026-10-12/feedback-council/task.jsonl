@@ -9,3 +9,7 @@
 {"log":{"at":"2026-10-12T02:00:00-05:00","msg":"fifth pass: words.jsonl still 0 lines, no new asks; 23 open asks unchanged, not re-verified. Recommend closing the task until words arrive."}}
 {"log":{"at":"2026-10-12T02:10:00-05:00","msg":"sixth pass: words.jsonl still 0 lines, no new asks; 23 open asks unchanged, not re-verified."}}
 {"log":{"at":"2026-10-12T02:45:00-05:00","msg":"seventh pass: words.jsonl still 0 lines, no new asks; 23 open asks unchanged, not re-verified."}}
+{"log":{"at":"2026-10-12T03:00:00-05:00","msg":"eighth pass: words.jsonl still empty, no new asks; open asks not re-verified. Close the task until words arrive."}}
+{"log":{"at":"2026-10-12T03:30:00-05:00","msg":"ninth pass: words.jsonl still 0 lines, no new asks; open asks not re-verified (nothing changed). Idle until words arrive."}}
+{"log":{"at":"2026-10-12T04:00:00-05:00","msg":"tenth pass: words.jsonl still 0 lines, no new asks; open asks not re-verified (nothing changed)."}}
+{"log":{"at":"2026-10-12T04:30:00-05:00","msg":"eleventh pass: words.jsonl still 0 lines, no new asks; open asks not re-verified (nothing changed)."}}
