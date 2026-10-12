@@ -1,4 +1,7 @@
 # relay-2 state
 
-- Rule merged 08f48afcf (13:35). Live Servex pid 38160 started 13:04, so it ran the OLD code.
-- 14:0x: restarting Servex to activate. After restart: send one tab message (via assistant) and one @named direct; read the relay log; record the result here; then append the result line to task.jsonl (.claude/hooks/append.mjs) and run finish-task.
+- Rule merged 08f48afcf (13:35). The Servex running then (pid 38160, started 13:04) had the old code.
+- Restarted 19:01Z (pid 36500, new code). Live check against it (stand-in tab `mastermind-livecheck`, registered via `register_session`):
+  - ✅ plain tab message -> delivered to `master-assistant`
+  - ✅ `@mastermind-livecheck ...` -> delivered straight to the mastermind
+- Rule and code: `Servex/agents/doc/relay.md`. Proof script: `Servex/agents/relay-bypass-proof.mjs`.
