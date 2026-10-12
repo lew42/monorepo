@@ -181,6 +181,8 @@ export function strip_words(text, sent){
 }
 
 export class ComposerMic extends Dictate {
+
+	static REFINE_WAIT_MS = 1500;   // the longest a send waits for the live refine's paragraphed text
 	/* PARAGRAPHS ON PAUSES. Whisper closes a segment after 0.7 s of quiet, so
 	   segments are already the natural units; what is missing is HOW LONG the
 	   quiet before each one was. `on_level` measures it (silence between the last
@@ -352,7 +354,11 @@ export class ComposerMic extends Dictate {
 	async refine_final(text){
 		if (!this.revise || !text?.trim()) return null;
 		clearTimeout(this._live_timer);
-		return RefineSystem.post_live({ prompt: this.live_prompt_id(), text, final: true, session: this.refine_session_id?.() });
+		const prompt = this.live_prompt_id();
+		this._live_prompt_id = null;   // the next dictation is a new prompt, not more of this one
+		// A send never waits on the model: past REFINE_WAIT_MS it goes with the text it has (the outline still finishes server-side).
+		const late = new Promise(r => setTimeout(() => r(null), ComposerMic.REFINE_WAIT_MS));
+		return Promise.race([RefineSystem.post_live({ prompt, text, final: true, session: this.refine_session_id?.() }), late]);
 	}
 
 	/* CHAT BUBBLES SHOW THE CLEAN TEXT, PARAGRAPHED — NEVER A WALL OF RAW (CLAUDE.md law 2).
