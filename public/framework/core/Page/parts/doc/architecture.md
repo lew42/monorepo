@@ -1,5 +1,7 @@
 # Parts: class architecture and decisions
 
+**Update 2026-10-12:** `Part` became `PagePart` (kinds `PageHeading`, `PageText`, `PageCard`) and `Page.render_content_list()` now draws each part through `PagePart.View`, so `PartsPage` is an empty shim. The table below is the original slice; read its class names through that rename. Plan: [../../doc/content.md](../../doc/content.md).
+
 The task and its brief: `ai/2026-10-12/page-slice/` ([requirements](/framework/ai/2026-10-12/page-slice/requirements.md)).
 The owner's idea: a page's body is a list of views loaded from the page's own JSONL and drawn in a loop, not only a markdown string. This slice proves it with nothing new in `core/Page`.
 
@@ -25,4 +27,4 @@ The owner's idea: a page's body is a list of views loaded from the page's own JS
 
 ## Need from core (not done)
 - Templates (toolbar, header, sidebar) as parts: needs a `part-slot` kind that draws another page's parts; not built.
-- `Page.render_content_list()` could call `item.draw()` when present, making `PartsPage` unnecessary; left alone per the brief's fence.
+- ✅ Done 2026-10-12: `render_content_list()` draws through `constructor.View`; `PartsPage` is a shim.

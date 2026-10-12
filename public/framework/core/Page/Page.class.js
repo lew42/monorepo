@@ -1340,12 +1340,13 @@ export class Page extends Item {
 		// is read, not rearranged, so it gets no grab cursor and no drag.
 		const sortable = !!this.get?.("sortable");
 
-		// ⚠ `item.view` is undefined until core/Item grows a real default view (the
-		//   `static View` wiring Item.js's own comment names, not yet built) — so a
-		//   plain, untyped item (no view of its own) falls back to its own title or
+		// ⚠ `Item.View` does not exist yet (no default view) — so a plain, untyped
+		//   item (its class has no `View`) falls back to its own title or
 		//   text, read straight off its data bag, rather than drawing an empty row.
 		const draw_row = item => {
-			const $row = div.c("page-content-row card", () => {
+			// A kind with its own `View` draws itself in a bare row; a plain item gets the card chrome.
+			const Draw = item.constructor.View;
+			const $row = div.c("page-content-row" + (Draw ? "" : " card"), () => {
 				// A REFERENCE ROW (the owner, 2026-10-03): `{"ref": "/framework/core/Page/"}` on
 				// a content item makes the row BE that page — drawn as its own dark class card
 				// (ext/Mention's "#Page"-in-text look, reused rather than invented a second time,
@@ -1391,7 +1392,9 @@ export class Page extends Item {
 					});
 					return;
 				}
-				if (item.view) return void $rows.append(() => item.view);
+				// The View is reached through `constructor` (the code skill's view pattern),
+				// so a subclass can swap it; it captures into this row on construction.
+				if (Draw) return void new Draw({ item });
 				draw_body();
 			});
 			if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
