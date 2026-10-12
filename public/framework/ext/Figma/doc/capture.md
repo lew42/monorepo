@@ -1,6 +1,24 @@
 # Site page into Figma: `generate_figma_design` test (2026-10-10)
 
-**Verdict: it works, and the picture is close, but the Figma copy is a frozen snapshot, not a responsive design.** Good for showing Figma's own agent what a page looks like; not a round trip.
+**Verdict (updated 2026-10-12, phase 2): it works, the picture is close, and flex layout survives as real Figma auto layout, but each capture is ONE responsive state, frozen at the viewport width you captured.** Phase 1 below said "no auto layout at all"; that was measured on a page of grids and inline text and is too strong. Structure round-trips; responsiveness does not.
+
+## Phase 2: the same page at 400, 1200 and 1920 (scratch file, `selector: ".pal-card"`)
+
+Page: [/framework/ext/Figma/palette/](/framework/ext/Figma/palette/) (the Approved Schemes). Scratch-file nodes: `3:11` (400), `5:11` (1200), `4:11` (1920).
+
+- **`selector` fixes the shell problem.** Capturing `.pal-card` gives the content only, not the sidebar and menu.
+- **Auto layout survives for flex.** `get_design_context` on the 1920 capture (`5:20`, the three-column row) returns `flex gap-[16.6px] items-start`, each column `flex-col`, children `flex-[259.7_0_0] min-w-px`, padding `p-[29.05px]` and `px/py`. Direction, gap, padding, align-items and flex-grow all come through. `get_metadata` still shows geometry only, so read structure with `get_design_context`.
+- **Em becomes fractional px.** `1.75em` padding is `29.05px` at a 16.6px base: divide by the body size to get the em back.
+- **Text is fixed width.** Paragraphs arrive as `w-[202px]` (the wrapped width at capture time), headings as `whitespace-nowrap`. Resizing the Figma frame resizes boxes, but text does not reflow.
+- **The viewport sets the responsive state.** At 400 the columns had stacked; at 1200 and 1920 they sat in a row. One capture is one breakpoint: capture each width and name frames by width.
+- **Playwright detail:** `captureForDesign(...)` never resolves in headless Chromium, yet the capture lands. Wrap it in a timeout and poll the tool until completed. A capture id is single-use.
+- **Still lost:** inline `<strong>`/`<code>` runs, SVG logos, font weight fidelity.
+
+What each Figma signal means for our layout words: [figma-to-framework.md](./figma-to-framework.md).
+
+## Phase 1 (2026-10-10), kept for the record
+
+**Verdict then: a frozen snapshot, no auto layout.**
 
 Test: [/framework/ext/Figma/colors/](/framework/ext/Figma/colors/) from the local dev server, viewport **1200 x 900**, into the scratch file (`T5PuB8EhKhfyh0xtpIT1L0`, node `2:11`).
 
