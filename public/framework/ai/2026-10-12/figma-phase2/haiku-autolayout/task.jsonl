@@ -10,3 +10,7 @@
 {"log":{"at":"2026-10-12T03:14:28-05:00","heartbeat":"revive","msg":"revived minion-figma-autolayout from session 98ff1d86-02cc-42fc-9228-e25dd6a674f7"}}
 {"log":{"at":"2026-10-12T03:14:36-05:00","heartbeat":"answered","msg":"The build is done and I'm not doing anything else. `page.js` and `autolayout.css` are written in `public/framework/ext/Figma/autolayout/`, uncommitted, and I haven't checked the page in a browser. The"}}
 {"log":{"at":"2026-10-12T03:31:20-05:00","heartbeat":"deliberate","msg":"minion-figma-autolayout its agent is not running: it was stopped on purpose by in-process at 2026-10-12T03:20:25-05:00; not revived."}}
+{"log":{"at":"2026-10-12T03:53:27-05:00","heartbeat":"revive-queued","msg":"minion-figma-autolayout its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-12T03:53:28-05:00","heartbeat":"revive","msg":"revived minion-figma-autolayout from session 98ff1d86-02cc-42fc-9228-e25dd6a674f7"}}
+{"log":{"at":"2026-10-12T03:53:35-05:00","heartbeat":"answered","msg":"I'm idle, and the build is finished: `page.js` and `autolayout.css` are in `public/framework/ext/Figma/autolayout/`, uncommitted and not yet checked in a browser. This heartbeat has now repeated the s"}}
+{"log":{"at":"2026-10-12T04:02:28-05:00","heartbeat":"escalated","msg":"minion-figma-autolayout its agent is not running, and was already revived 2 times this hour (2 today)"}}

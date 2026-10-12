@@ -3,3 +3,11 @@
 {"action":{"at":"2026-10-12T04:02:47-05:00","did":"edit","files":["public/framework/ai/2026-10-12/sessions-asks/landing.json"]}}
 {"action":{"at":"2026-10-12T04:02:48-05:00","did":"edit","files":["public/framework/ai/2026-10-12/sessions-asks/day-line.json"]}}
 {"assign":{"step":1,"landed_at":"2026-10-12T04:02:50-05:00","title":"Sessions: close the open asks","outcome":"**Three of four open points were already built; tiered resumption now has a computed rule.**\n\n- [x] month/year roll-ups: `AISessionIndex.mjs --check` prints totals match\n- [x] red flags and mastermind tag: commit 0074f0578\n- [x] tasks migration: 7fa3d978b\n- [x] tiered resumption: `Server/SessionResume.mjs --census` gives 144 warm, 2088 cold, 5908 fresh\n- [ ] resume tier shown on a row; 1,401 sessions lack index.json\n\n[STATE.md](/framework/ai/2026-10-12/sessions-asks/STATE.md) · [resumption.md](/framework/ai/sessions/doc/data/resumption.md)","links":[{"url":"/framework/ai/sessions/doc/data/resumption.md","label":"Tiered resumption"}],"tokens":null}}
+{"log":{"at":"2026-10-12T04:02:55-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-12T04:02:55-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-12T09:02:55.896Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-12T04:02:55-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-12T04:02:59-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-12T04:02:59-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-12T04:31:26-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-12T04:31:26-05:00","msg":"session resumed"}}

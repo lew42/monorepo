@@ -9,3 +9,7 @@
 {"log":{"at":"2026-10-12T03:19:20-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
 {"log":{"at":"2026-10-12T03:27:21-05:00","heartbeat":"deliberate","msg":"minion-page-ai-api-build its agent is not running: it was stopped on purpose by mastermind-page-ai-api at 2026-10-12T03:16:38-05:00; not revived."}}
 {"log":{"at":"2026-10-12T03:34:20-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-12T03:49:22-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"page-ai-api\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-12T03:54:22-05:00","heartbeat":"deliberate","msg":"minion-page-ai-api-build its agent is not running: it was stopped on purpose by mastermind-page-ai-api at 2026-10-12T03:16:38-05:00; not revived."}}
+{"log":{"at":"2026-10-12T04:02:28-05:00","heartbeat":"revive-queued","msg":"minion-page-ai-api-build its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-12T04:07:59-05:00","heartbeat":"deliberate","msg":"minion-page-ai-api-build its agent is not running: it was stopped on purpose by mastermind-page-ai-api at 2026-10-12T03:16:38-05:00; not revived."}}

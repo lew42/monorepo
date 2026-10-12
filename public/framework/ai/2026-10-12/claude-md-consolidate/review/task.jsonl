@@ -4,3 +4,8 @@
 {"log":{"at":"2026-10-12T02:40:40-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"log":{"at":"2026-10-12T02:55:42-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
 {"log":{"at":"2026-10-12T03:14:26-05:00","heartbeat":"deliberate","msg":"minion-claude-md-review its agent is not running: it was stopped on purpose by lifecycle at 2026-10-12T02:23:41-05:00; not revived."}}
+{"log":{"at":"2026-10-12T03:53:27-05:00","heartbeat":"deliberate","msg":"minion-claude-md-review its agent is not running: it was stopped on purpose by lifecycle at 2026-10-12T02:23:41-05:00; not revived."}}
+{"log":{"at":"2026-10-12T04:02:28-05:00","heartbeat":"revive-queued","msg":"minion-claude-md-review its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-12T04:02:28-05:00","heartbeat":"revive","msg":"revived minion-claude-md-review from session fa94d9b8-1e1c-4c5c-9e0d-479d4a33da34"}}
+{"log":{"at":"2026-10-12T04:02:45-05:00","heartbeat":"answered","msg":"The review is finished and I'm not working on anything now. I couldn't land the task: `review/task.jsonl` doesn't exist in this worktree. It lives in the main tree, so please land it from there.\n\nThe "}}
+{"log":{"at":"2026-10-12T04:07:59-05:00","heartbeat":"deliberate","msg":"minion-claude-md-review its agent is not running: it was stopped on purpose by lifecycle at 2026-10-12T02:23:41-05:00; not revived."}}

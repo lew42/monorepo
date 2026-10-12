@@ -480,3 +480,17 @@
 {"at":"2026-10-12T08:19:53.105Z","target":"public/framework/ai/2026-10-12/page-ai-api","verdict":"queued","kind":"landing"}
 {"at":"2026-10-12T08:19:53.209Z","target":"public/framework/ai/2026-10-12/page-ai-api","verdict":"spawned","to":"clarity-page-ai-api"}
 {"at":"2026-10-12T04:00:00-05:00","target":"public/framework/ai/2026-10-12/page-ai-api","verdict":"clear","what":"Outcome is short, every ask ticked with proof; text-check flags only review.md/STATE.md length (agent-facing)","to":"flags.jsonl"}
+{"at":"2026-10-12T08:50:45.240Z","target":"public/framework/ai/2026-10-12/sidebar-search","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T08:50:45.458Z","target":"public/framework/ai/2026-10-12/sidebar-search","verdict":"spawned","to":"clarity-sidebar-search"}
+{"at":"2026-10-12T04:00:00-05:00","target":"public/framework/ai/2026-10-12/sidebar-search","verdict":"rewrote","what":"split 65-word STATE.md paragraph into bullets; outcome already clear","to":"STATE.md"}
+{"at":"2026-10-12T08:53:53.204Z","target":"public/framework/ai/2026-10-12/voice-to-session-page","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T08:53:53.321Z","target":"public/framework/ai/2026-10-12/voice-to-session-page","verdict":"spawned","to":"clarity-voice-to-session-page"}
+{"at":"2026-10-12T08:54:04.799Z","target":"public/framework/ai/2026-10-12/voice-to-session-page","verdict":"rewrote","what":"outcome trimmed 125 to under 120 words; review.md/STATE.md length flags left (detail docs)","to":"task.jsonl"}
+{"at":"2026-10-12T09:02:09.509Z","target":"public/framework/ai/2026-10-12/inbox-asks","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T09:02:09.708Z","target":"public/framework/ai/2026-10-12/inbox-asks","verdict":"spawned","to":"clarity-inbox-asks"}
+{"at":"2026-10-12T04:10:00-05:00","target":"public/framework/ai/2026-10-12/inbox-asks","verdict":"clear","what":"Outcome lists all 6 asks ticked/unticked with proof; STATE.md and asks.md updated; text-check clean","to":"clarity-inbox-asks"}
+{"at":"2026-10-12T09:02:55.896Z","target":"public/framework/ai/2026-10-12/sessions-asks","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T09:02:56.012Z","target":"public/framework/ai/2026-10-12/sessions-asks","verdict":"spawned","to":"clarity-sessions-asks"}
+{"at":"2026-10-12T09:32:22.403Z","target":"public/framework/ai/2026-10-12/relay-asks","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T09:32:22.606Z","target":"public/framework/ai/2026-10-12/relay-asks","verdict":"spawned","to":"clarity-relay-asks"}
+{"at":"2026-10-12T04:40:00-05:00","target":"public/framework/ai/2026-10-12/relay-asks","verdict":"clear","what":"asks ticked with proof, short, text-check clean","to":"none"}
