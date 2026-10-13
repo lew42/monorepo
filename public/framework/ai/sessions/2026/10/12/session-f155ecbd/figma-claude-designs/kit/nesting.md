@@ -31,3 +31,8 @@ Checked at 1920 (full-page screenshot, three rounds): header, notes, all six sec
 - The font-vs-vector comparison stays as an explainer; copy now says the glyphs are font-glyph components picked from a dropdown.
 - The glyph set has no home/mail/inbox/favorite, so the specimens use folder, search, settings, send, draft, delete, bolt, star. The master-edit demo is now folder → star.
 - Checked: full-page screenshot at 1920, all six sections read.
+
+## 7 · Slot, property, swap or variant (added 2026-10-13)
+- `Page template` master `232:1347` (top level): nav with Icon instance, Title TEXT, Show breadcrumb BOOLEAN, footer, Content SLOT. Placed twice (`232:1371` Sessions, `232:1415` Files), slots hold Card and List instances.
+- Edited the template nav once (pale bar to prime, "Lew42" to "Lew42 Kit"): both pages updated; slot contents stayed; cards still follow `Card · schemes demo`. Before snapshot is on the page.
+- Decision table and the "a variant per page" anti-pattern are in section 7 (`232:1365`); source is `ext/Figma/doc/use-figma.md`.

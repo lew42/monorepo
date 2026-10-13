@@ -21,3 +21,4 @@
 {"log":{"at":"2026-10-13T15:46:16-05:00","heartbeat":"answered","msg":"Idle: nothing is running. The `Kit · Nesting` page is finished: masters at top level, atom swapped to the shared `Icon`, report in `kit/nesting.md` (commit `5ccc4d4c3`)."}}
 {"log":{"at":"2026-10-13T15:47:26-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-13T15:55:11-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T15:57:09-05:00","msg":"section 7 (Page template slot demo, decision table, anti-pattern) landed on Kit · Nesting"}}
