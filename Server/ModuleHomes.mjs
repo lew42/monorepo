@@ -110,7 +110,7 @@ class ModuleHomes {
 		const ai = mods.filter(r => r.ai === "strict" || r.ai === "uses");
 		return `# Module homes — census (computed by \`Server/ModuleHomes.mjs\`)\n\n` +
 			`${mods.length} modules, ${rows.length - mods.length} record/data dirs. ` +
-			`Strictly AI: ${mods.filter(r => r.ai === "strict").length} · uses AI: ${mods.filter(r => r.ai === "uses").length} · not AI: ${mods.filter(r => r.ai === "no").length} · unjudged: ${mods.filter(r => !r.ai).length}.\n\n` +
+			`Strictly AI: ${mods.filter(r => r.ai === "strict").length} · uses AI: ${mods.filter(r => r.ai === "uses").length} · not AI: ${mods.filter(r => r.ai === "no").length} · not a candidate (not in judgments.json, so not AI): ${mods.filter(r => !r.ai).length}.\n\n` +
 			`## The AI candidates\n\n${head}\n${ai.map(line).join("\n")}\n\n## Every module\n\n${head}\n${mods.map(line).join("\n")}\n`;
 	}
 

@@ -6,7 +6,7 @@
 
 ## The census
 
-Computed by `node Server/ModuleHomes.mjs --judgments <file> --out <dir>` (read-only). 125 modules, 18 record/data dirs. Strictly AI: 15 · uses AI: 6 · not AI: 4 · unjudged: 100. The AI column is a judgment, written in [judgments.json](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/ai-modules-home/judgments.json); everything else is counted. Every module: [module-homes.md](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/ai-modules-home/module-homes.md).
+Computed by `node Server/ModuleHomes.mjs --judgments <file> --out <dir>` (read-only). 125 modules, 18 record/data dirs. Strictly AI: 15 · uses AI: 6 · not AI: 4 · not a candidate: 100. The AI column is a judgment, made only for the 25 candidates (a module whose name, job or importers touch AI); a module not in the file is not AI, written in [judgments.json](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/ai-modules-home/judgments.json); everything else is counted. Every module: [module-homes.md](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/ai-modules-home/module-homes.md).
 
 | module | AI? | importers | mentions | size | scope line | readme says |
 |---|---|---|---|---|---|---|
