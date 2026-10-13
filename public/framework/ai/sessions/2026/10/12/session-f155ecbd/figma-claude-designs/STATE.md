@@ -34,7 +34,7 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ Adopt ([report](kit/adopt.md)): 25 uses on 4.1, every DS 6 screen and the DS 5 dashboard are now `Kit · Layouts` instances; prototype reactions 21 before, 21 after; replaced frames kept as `was · …` backups off to the right. Review fix: 4.1 §7 gray app screen's tab bar centred and padded with tokens.
 
 ## In flight
-- ⬜ `Video · Kit` + `Video · Storyboard · The Twelve` — task-mastermind-figma-video, brief [kit/brief-video.md](kit/brief-video.md); idea and open questions in [ext/Figma/doc/video-kit.md](/framework/ext/Figma/doc/video-kit.md)
+- ✅ `Video · Kit` + `Video · Storyboard · The Twelve` ([report](kit/video.md)). Review fixes: Location tag's map box hidden by default (`Show map` boolean), end-card thumbnails show a scene image, flat 72% scrims → gradients (15→90%) so images stay bright.
 - ⬜ `Video · Channel ideas` (supercars, yachts, dream homes, jets; ladders, thumbnails, Shorts, sourcing) — task-mastermind-figma-channels, brief [kit/brief-channels.md](kit/brief-channels.md)
 - ✅ Images verified: `generate_image` → `upload_assets`, and Wikimedia Commons → `upload_assets` (see [video-kit.md](/framework/ext/Figma/doc/video-kit.md)).
 

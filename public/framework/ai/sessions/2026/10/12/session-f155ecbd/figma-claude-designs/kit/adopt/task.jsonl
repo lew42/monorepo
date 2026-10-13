@@ -4,3 +4,7 @@
 {"log":{"at":"2026-10-12T21:29:58-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-12T21:30:01-05:00","heartbeat":"answered","msg":"The adopt task is finished: DS · 4.1, DS · 5 and DS · 6 now use the Kit layout and chart instances, and prototype reactions on DS · 6 are 21 before and 21 after. `kit/adopt.md` is committed by path, a"}}
 {"log":{"at":"2026-10-12T21:31:03-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-12T21:41:57-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-figma-adopt"}}
+{"log":{"at":"2026-10-12T21:41:59-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-12T21:42:01-05:00","heartbeat":"answered","msg":"I'm idle: the adopt task is done and committed (`kit/adopt.md`). DS · 4.1, DS · 5 and DS · 6 now use the Kit instances, and reactions on DS · 6 are 21 before and 21 after. The one gap is that the `ado"}}
+{"log":{"at":"2026-10-12T21:43:03-05:00","msg":"session ended (other) without landing"}}
