@@ -1,0 +1,16 @@
+# Landing nag and agent hygiene: node asks for the landing line; long-running agents compact
+
+Budget: $10. Load the `sub-mastermind` skill first. The owner's words: `../requirements-5.md` ask 5 ("we don't want AI trying to remember to do things like closing out worktrees or moving to the next task; after each task the node system responds with the next step… automated reprompting") and `../requirements-6.md` ask 6 (auto-compaction for long-running agents such as masterminds; short-lived ones, 10–30 min, do not need it). Your log is this dir's `task.jsonl`. CLAUDE.md: compute don't recall; never destructive; Servex changes are tested on a private port.
+
+## The defect, measured today
+
+Seven of fourteen task masterminds in this run ended their turn with their work merged but no landing line (`assign.landed_at`); Servex logged "session ended (other) without landing" and the mastermind wrote the lines by hand from their answers (`../task.jsonl`, harvest 4). The Stop hook nags CLI sessions (`finish-task`), but an SDK task mastermind has no such nudge.
+
+## Deliverable
+
+1. **The nag, in node**: where Servex writes "session ended (other) without landing" (find it: `Servex/agents/*.js`, `TaskLoop.js` or `Lifecycle.js`), add one step: if the agent's task has no `landed_at` and its last answer says it is done (a heuristic is fine: no running minions, a merge commit or "merged" in the answer), send it ONE message: "Your work is merged but your task has no landing line. Append it now: `{"assign": {"landed_at": "NOW", "title": …, "outcome": …, "links": […]}}` via `node .claude/hooks/append.mjs <your task.jsonl> <lines.json>`, then `card_reply` one screen." Once per agent (a flag in the registry row). If the agent is gone, write a `log` line in its task saying so, and leave the landing to the parent (the mastermind's harvest). Prove it on a private Servex with a stub agent that ends without landing: the message is sent exactly once; a second end does not resend.
+2. **The next step, in node**: when a task mastermind lands (landed_at appears) and its parent task has a queued sibling (`after` edges or a `todo.md` line naming it), the parent is woken with the next brief's path, not a bare "child done". Check `Servex/doc/steps.md` and `Server/Steps.mjs`: if the step runner already does this, wire it, do not duplicate.
+3. **Compaction policy**: a `compact_after` (tokens or minutes) on the role table (`Servex/agents/roles.js`): masterminds and the master-assistant compact (the SDK's compaction option, or a resume-with-summary if the SDK lacks one; find what `@anthropic-ai/claude-agent-sdk` offers and log the option's name) when context passes ~150k tokens or 45 minutes; minions never. A `decision` line with the numbers and the alternative (no compaction; restart fresh). Document in `Servex/agents/doc/lifecycle.md` or the nearest doc.
+4. Report on your card: the proof output, the roles changed, the doc link; note that the live Servex needs the mastermind's restart.
+
+Fence: `Servex/agents/*.js` (the landing nag, the next-step wake, roles compaction field), `Servex/doc/*.md` + `Servex/agents/doc/*.md` (one section), this task dir. Tested on a private Servex port from a worktree; never restart the live Servex. Sonnet.

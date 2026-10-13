@@ -19,3 +19,6 @@
 {"review":{"answer":{"n":7,"reply":"fixed: the module page renders the readme with h1:false and a plain link"}}}
 {"review":{"answer":{"n":8,"reply":"fixed: count line is now '1087 built · 63 for you'"}}}
 {"review":{"answer":{"n":9,"reply":"noted: 428 KB (about 100 KB in git, compressed) goes in the landing report to the parent"}}}
+{"log":{"at":"2026-10-13T17:17:17-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T17:17:19-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T17:17:27-05:00","msg":"session ended (other) without landing"}}
