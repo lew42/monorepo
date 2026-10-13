@@ -9,15 +9,7 @@ import { control, run, report, content_line, width_line } from "./export.js";
 
 View.stylesheet(import.meta, "generator.css");
 
-/**
- * Pages without the filesystem. A seed draws a spec string, the spec builds a REAL page
- * tree under this url, and everything a real tree gets comes for free — the Router's
- * walk, the `active-page` / `active-ancestor` contract, `page.columns()`, the crumb
- * strip, the width words.
- *
- * The mechanism is one line of `grow()`: `children:` already takes nested plain
- * objects, and `add()` turns each into a `Page`. Nothing here plays app.
- */
+// History and design: doc/notes.md
 export default new Page({
 	meta: import.meta,
 	title: "Generator",
@@ -62,6 +54,7 @@ export default new Page({
 	grow(){
 		this.children.forEach(child => child?.view?.el.remove());
 		this.children = new Map();
+		// Spec → children: the one place the tree is replaced; see doc/notes.md
 
 		this.add("rolls", wall(this));
 		this.add("specs", gallery(this));
@@ -179,31 +172,22 @@ export default new Page({
 			});
 		});
 
-		/* The three globals, as this reader left them last visit (`land()` read them).
-		   ⚠ HERE and not in `initialize()`: every one of them writes to `this.view`, which
-		     `render_column()` creates one line before it calls this — and synchronously, so
-		     the costume is on before the first paint rather than a frame into it. */
+		// ⚠ HERE not initialize(): each writes to this.view, created one line before this call
 		this.size(this.sized);
 		this.gap(GAPS[this.gapped] ?? "", this.gapped);
 		this.look(this.looked);
 
 		this.draw();
 
-		// ⚠ A frame, not now: `router.active` is written after this render returns.
+		// ⚠ Frame not now: router.active written after this render returns
 		requestAnimationFrame(() => this.first());
 
 		return $body;
 	},
 
-	/* SHOW SOMETHING. A columns host with nothing open is one 22em column and a screen of
-	   grey — most of the viewport at 3440 (ux recon 2026-08-27, #3). The first root opens
-	   itself.
-	   ⚠ ONCE per load, and the flag is the whole point: a page that re-opened every time
-	     it became active would make Back unusable — Back to `/generator/` would move you
-	     forward again on the same frame.
-	   ⚠ Only when the generator itself is what landed. A deep url has its own column open
-	     already, and nothing here may steal it. */
 	first(){
+		// ⚠ ONCE per load (flag); re-opening every time would break Back
+		// ⚠ Only when generator itself landed, not on deep url with open column
 		const root = [...this.children.values()].find(kid => kid?.at);
 		const router = this.app?.router;
 
@@ -213,11 +197,8 @@ export default new Page({
 		return router.go(root.url + this.hash());
 	},
 
-	/* THE LAW, on the page rather than in a test: a seeded generator has to prove
-	   bit-identical output on unchanged inputs, so the spec is drawn a SECOND time and
-	   the two strings compared, every time this repaints. A TYPED spec has no seed to
-	   redraw from — its own text is the proof, and the line says so rather than lying. */
 	draw(){
+		// THE LAW: seeded must prove bit-identical on rerun; typed proves itself: see doc/notes.md
 		const same = gen(this.seed) === this.spec;
 		const size = `${this.spec.split("\n").length} pages, ${this.spec.length} chars`;
 
@@ -229,21 +210,14 @@ export default new Page({
 		this.$proof
 			.rc("page-gen-ok page-gen-bad")
 			.ac(this.typed || same ? "page-gen-ok" : "page-gen-bad")
-			// ⚠ The MODEL number rides along, because a seed is only an address against one:
-			//   `#7` under v1 and `#7` under v2 are different trees, and the line has to say
-			//   which one you are looking at (doc/decisions.md).
+			// ⚠ MODEL number rides along (seed only valid against one version)
 			.text(this.typed
 				? `typed spec — ${size}, addressed by its own text`
 				: `seed ${this.seed}, model v${MODEL} — ${size}, ` + (same ? "identical on a second run" : "NOT REPRODUCIBLE"));
 	},
 
-	/* THE SPEC BOX OWN FEEDBACK. read() (spec.js) already turns an unrecognised
-	   word into prose rather than throwing -- the right call for the draw path, and
-	   the wrong one for a reader with no way to see why a typo drew a blank leaf.
-	   unknown() (controls.js) re-parses the SAME text and changes nothing in it.
-	   Quiet, inline, never an alert -- a line that appears and disappears with what
-	   you are typing, not a dialog that stops you typing it. */
 	hint(text){
+		// The spec box own feedback: inline hint, never alert; see doc/notes.md
 		const words = unknown(text);
 		this.$hint.text(words.length ? `not recognised, becomes prose: ${words.join(", ")}` : "");
 	},
@@ -265,35 +239,23 @@ export default new Page({
 		return this.show();
 	},
 
-	/* A spec picked from the GALLERY — a whole tree arriving at once, so it opens its own
-	   first root the way a fresh load does. `type()` alone leaves you on the host looking
-	   at a nav and no column, which reads as nothing having happened. */
 	pick(text){
+		// GALLERY spec: arrives whole, opens its first root (type() alone leaves you on host)
 		this.type(text);
 
 		const root = [...this.children.values()].find(kid => kid?.at);
 		return root && this.app?.router?.go(root.url + this.hash());
 	},
 
-	/* THE THIRD DOOR, and the one every control uses: change ONE line of the spec.
-	   A switch is a typed spec from then on — it is no longer what `gen(seed)` draws, and
-	   the proof line says so rather than claiming a seed it does not have. The seed is
-	   never touched, so `#7` still means one tree and the reproducibility law holds.
-	   ⚠ Logged AFTER `type()` (which regrows), so `log_call()` reads the FRESH page at
-	     `at` — the one whose `.block`/`.opt`/`.width`/`.children` already reflect this
-	     very change — not the one `edit()` just replaced. */
 	swap(at, change){
+		// ⚠ Logged AFTER type() so log_call() reads FRESH page with the change reflected
 		const result = this.type(edit(this.spec, at, change));
 		this.log_call(at, change);
 		return result;
 	},
 
-	/* THE CODE TAB'S TRANSCRIPT — one line, appended to `this.calls` at this position,
-	   every time a control fires. `width` is a field (`export.js`'s `width_line()`);
-	   a `block` or `opt` change is a `content()` body (`content_line()`) — the same two
-	   functions `export.js`'s own `module()` writes a whole page.js out of, so the code
-	   tab can never say something export would not. */
 	log_call(at, change){
+		// Code tab transcript: one line per control fire (same functions export.js uses)
 		const page = this.page_at(at);
 		if (!page) return;
 
@@ -304,11 +266,8 @@ export default new Page({
 		this.calls.set(key, [...(this.calls.get(key) ?? []), line]);
 	},
 
-	/* Rebuild, repaint, and move the url to the new address — landing back on the column
-	   you were reading, which is the difference between a control and a reset button.
-	   ⚠ `place()` runs BEFORE `grow()`: the regrow throws every generated page away, so
-	     the Router is left pointing at one that no longer exists. */
 	show(){
+		// ⚠ place() runs BEFORE grow() (regrow throws pages away before Router updates)
 		const at = this.place();
 
 		this.grow();
@@ -323,13 +282,8 @@ export default new Page({
 		return this.remember();
 	},
 
-	/* WHERE THE READER IS, as indices into the tree. Indices and not the url, because a
-	   generated page is named after its block word: switching a `list` to `tabs` renames
-	   it and everything under it, so the url you were on 404s while the column you were
-	   reading is still there, one word different. A position never moves.
-	   ⚠ `kid?.at` is the filter: the permutation wall is a stable child with no place in
-	     the spec, so it is not in the count — and standing on it gives `[]`, the host. */
 	place(){
+		// ⚠ kid?.at filter: wall is stable child with no place in spec, stands on [] = host
 		const at = [];
 
 		for (let page = this.app?.router?.active; page && page !== this; page = page.parent){
@@ -343,10 +297,8 @@ export default new Page({
 		return at;
 	},
 
-	// The same indices, resolved to the PAGE they name in the tree that just replaced
-	// the old one — `resolve()` (a url) and `log_call()` (a live page to read) both
-	// want this, so it is one walk rather than two ways to get lost in the tree.
 	page_at(at){
+		// Same indices resolved to PAGE (resolve + log_call both use this)
 		let page = this;
 
 		for (const i of at){
@@ -359,16 +311,9 @@ export default new Page({
 
 	resolve(at){ return this.page_at(at)?.url ?? this.url; },
 
-	/* THE HEADER'S GLOBALS — tokens on the columns host, inherited by every column that
-	   names no width of its own. A token needs no specificity to win, which is the same
-	   move `.page-column-small` makes one level up (controls.js).
-	   ⚠ Deliberately NOT in the address: `#7` has to keep meaning one TREE, and how wide
-	     you like your columns is not the tree. doc/decisions.md. */
-	/* ⚠ `fill` needs a CLASS as well as its tokens. A width word declares its ceiling on
-	     its OWN element (`.page-column-large { --page-column-max: 64em }`), and no token
-	     inherited from the host can reach past that — measured at 3440: a `large` column
-	     stayed 1152px with 1256px of the row empty beside it. */
 	size(word){
+		// ⚠ NOT in address: #7 stays one TREE; column width is preference, see doc/notes.md
+		// ⚠ fill needs CLASS too; token inherited from host can't reach past ceiling
 		this.sized = word;
 		this.view.tc("page-gen-uncapped", word === "fill");
 		this.view.style(SIZES[word]);
@@ -377,13 +322,8 @@ export default new Page({
 	},
 	gap(value, word){ this.gapped = word; this.view.style("--gen-gap", value); return this.remember(); },
 
-	/* THE COSTUME — `/imagine/vary/colstyles/`'s three looks, reached for from the page
-	   that can put any tree under them. A class on the columns HOST and nothing else: the
-	   generated tree is not touched, not regrown, and not renamed, so switching looks
-	   cannot move the reader or the spec.
-	   ⚠ `finder` is the absence of a class, not a class — colstyles' own call. A default
-	     that writes rules is a default you have to keep in step with the base. */
 	look(word){
+		// ⚠ finder is absence of class not class; default that writes rules stays in step
 		this.looked = word;
 		this.view.rc("page-gen-look-cards page-gen-look-ink");
 		if (word !== "finder") this.view.ac("page-gen-look-" + word);
@@ -391,34 +331,13 @@ export default new Page({
 		return this.remember();
 	},
 
-	/**
-	 * WHAT THE URL DOES NOT CARRY. `#7` / `#s=…` is the TREE, and deliberately only the
-	 * tree — how wide you like your columns is not the tree (doc/decisions.md). But a
-	 * preference that resets every visit is a control nobody touches twice, so the split
-	 * is: **the url carries the tree, the store carries the dressing** — `size`, `gap`,
-	 * `look` — plus the last tree, for an arrival with no address at all.
-	 *
-	 * `prefs()` is core's, keyed on this page's own url (`doc/method/prefs.md`), so there
-	 * is no key to invent and nothing to configure.
-	 * ⚠ `patch()`, not `set()` — a second writer landed in the same key (`specs.js`'s
-	 *   `saved` list, wave 7). `set()` REPLACES the whole record, so switching `look`
-	 *   would have silently erased every saved spec on the very next write. */
 	remember(){
+		// ⚠ patch() not set() (second writer in same key; set() would erase saved specs)
 		return this.prefs().patch({ sized: this.sized, gapped: this.gapped, looked: this.looked, hash: this.hash() });
 	},
 
-	/**
-	 * THE WAY OUT — this tree, as real `page.js` files under `/imagine/generated/`.
-	 *
-	 * The whole of it is `export.js`; this is the seam, and it is deliberately three
-	 * lines: read the name, write the files, print the answer. Nothing is regrown and
-	 * the spec is not touched — an export is a READ of the tree you are looking at, so
-	 * the seed, the address and the reproducibility line all come out unchanged.
-	 *
-	 * ⚠ `Page.slug()` decides what a directory may be called, not the field: a name is
-	 *   typed by a human and lands on a filesystem, and `../` is not a tree name.
-	 */
 	async export(){
+		// ⚠ Page.slug() decides directory name not the field (.. is not a tree name)
 		const name = Page.slug(this.$export_name.el.value);
 
 		this.$export_msg.text("exporting…");
@@ -426,18 +345,13 @@ export default new Page({
 		return report(this, await run(this, name));
 	},
 
-	/* The url decides what this page is, before anything renders: `#7` a seed, `#s=…` a
-	   spec typed by hand and sent to someone. Neither, and it is the default seed.
-	   ⚠ It sets the state and stops — NOT `open()` / `type()`: this runs inside the
-	     constructor, where there are no controls to repaint and no Router to move. */
 	land(){
+		// ⚠ Sets state and stops (not open/type, runs in constructor before controls exist)
 		const saved = this.prefs().get({ sized: this.sized, gapped: this.gapped, looked: this.looked });
 
 		Object.assign(this, { sized: saved.sized, gapped: saved.gapped, looked: saved.looked });
 
-		/* ⚠ THE URL WINS. A link someone sent has to open what it says, so the remembered
-		     tree is read only when the address names none of one — the bare `/generator/`
-		     arrival, which is the only case "back where you left" is even a question. */
+		// ⚠ THE URL WINS: read saved tree only when address names none (bare /generator/)
 		const hash = decodeURIComponent(location.hash.slice(1)) || decodeURIComponent((saved.hash ?? "").slice(1));
 
 		if (hash.startsWith("s=")){

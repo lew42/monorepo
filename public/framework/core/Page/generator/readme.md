@@ -263,6 +263,7 @@ Inside the generator itself, a denser wall is `--gen-cell` on `.page-gen-wall`.
 
 ## More
 
+- Design notes: [`doc/notes.md`](/framework/core/Page/generator/doc/notes.md).
 - The arrangement is core's: `page.columns()`, `width:`, `.page-column-*` —
   [`core/Page/doc/columns.md`](/framework/core/Page/doc/columns.md).
 - Files: `gen.js` (seed → text, and `MODEL`), `spec.js` (the text format — parse, read a line,
