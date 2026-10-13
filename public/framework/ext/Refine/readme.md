@@ -1,5 +1,7 @@
 # Refine — speak one prompt and watch it refine (raw → clean → cards, with flags); plus a saved run shown as a ladder
 
+**Also here: the refine queue** — every past owner prompt becomes a refined card on its session page's Coverage tab ([doc/refine-queue.md](doc/refine-queue.md), `Server/RefineQueue.mjs`).
+
 The page opens on a **live demo**: a mic/text box, the result, and beside it the live `Prompt` instance and its class card. Class doc: `doc/prompt.md`. Files: `RefineSystem.js` (the boss), `Prompt.js` (data + view), `Scorer.js`, `RefineDemo.js` (the demo view), `Prompt.css`; the server half is `Servex/ext/refine/run.js` (`POST /api/refine`).
 
 `refine()` fetches one run of `Server/refine.mjs` (dev-only — see `Server/doc/refine.md`) and lays it out as four columns side by side: what was said, then each refinement step. Click an ask, or a bullet in Structured, and its source sentences light up in Clean and Raw — "wait, what did I actually say?" answered without reading anything twice.
@@ -48,6 +50,7 @@ pulling a sample straight from a recent voice session — no index of raw dictat
 today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
 
 ## More
+- [Refine queue](doc/refine-queue.md) — the owner's past prompts refined one per Haiku call, N at once (`Server/RefineQueue.mjs`), as `refined` cards (`RefinedCard.js`) on each session page's Coverage tab; the Opus review that picked brief v2; the promotion rule for asks said in 3+ sessions (`doc/refine-queue.md`)
 - [`doc/notes.md`](./doc/notes.md) — design, implementation, and API notes for `engine.js`
 - [Refine v3](/framework/ext/Refine/md/doc/refine-v3-2026-10-09/) — the one-screen workspace, instant clean, a session per model run, per-sentence clarity, numbers (`doc/refine-v3-2026-10-09.md`). The old saved-run ladder moved to `ladder/`.
 - [audio/Whisper](/framework/audio/Whisper/) — the Whisper server and per-surface session classes (`Whisper`, `WhisperSession`)
@@ -68,3 +71,4 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) 
 - `Server/doc/refine.md` — what `refine.mjs` writes, and why each file looks the way it does
 - `doc/refine-engine.md` — `engine.js`'s `clean()` and `structure.js`'s `structure()`: the shared, two-speed clean step Dictate and the prompt-log processor both call, its mechanical glossary/strike/diff-check rules, and the 3-model litmus test that picked the cheap model to run it on
 - Open work: [loose ends by system](/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/by-system.md) — unbuilt Refine stages (context cards, interactive request cards, handoff, request filing) with the smallest fix per row; source rows in `/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/loose-ends.jsonl`; the ten `now` transcription rows, checked: [loose-ends.md](/framework/ai/sessions/2026/10/12/session-0e99727c/voice-to-session-page/loose-ends.md)
+- [Confidence scale](/framework/ext/Refine/md/doc/confidence/) — 0.5 = not sure, over 0.7 needs evidence (`doc/confidence.md`); [past days refined, in reverse](/framework/ext/Refine/runs/) (`Server/refine-days.mjs`, input capped at 20k characters a day, so each day is a sample).

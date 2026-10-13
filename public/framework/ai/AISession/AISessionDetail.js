@@ -7,6 +7,7 @@ import AISessionFollow from "./AISessionFollow.js";
 import AISessionTrace from "./AISessionTrace.js";
 import AISession from "./AISession.js";
 import AISessionConversation from "./AISessionConversation.js";
+import AISessionCoverage from "./AISessionCoverage.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
 import Item from "/framework/core/Item/Item.js";
@@ -45,13 +46,23 @@ export default class AISessionDetail extends Page {
 			const session_id = row?.session_id ?? this.id;
 			if (!/^[0-9a-f]{8}-/.test(session_id)) return [];
 			await AISessionRows.load_index(this.home.url);   // fills AISession.days, so the dated folder is known
-			const own = AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname
+			if (AISession.days.has(session_id)) await AISessionDetail.folder_known(session_id);   // a named folder (2026/10/07/can-you-check-usage/) arrives with the feed; without it the log is looked for at <day>/<uuid>/ and 404s
+			const own =AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname
 				: new URL(`./${AISession.day(new Date())}/${AISessionDetail.slug(row, session_id)}/`, AISession.root_url()).pathname;
 			this._old_url = AISessionDetail.dir_index().then(index => {
 				const old = AISessionDetail.dir_of(index, session_id);
 				return old && old !== own ? old + "page.jsonl" : null;
 			});
 			return [own + "page.jsonl"];
+		});
+	}
+
+	/** Resolves once the feed has named this session's folder (AISession.slugs), or after `ms` regardless. */
+	static folder_known(session_id, ms = 8000){
+		if (AISession.slugs.has(session_id)) return Promise.resolve();
+		return new Promise(done => {
+			const off = AISession.of(session_id).on((_, fields) => { if (fields.includes("folder")){ off(); done(); } });
+			setTimeout(() => { off(); done(); }, ms);
 		});
 	}
 
@@ -79,9 +90,9 @@ export default class AISessionDetail extends Page {
 		const { home, id } = this, url = home.url;
 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
 		this.parts = new AISessionDetail.Parts($parts);
-		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace;
+		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage;
 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
-		const TABS = [["conversation", "Conversation"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+		const TABS = [["conversation", "Conversation"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
 		const want = new URLSearchParams(location.search).get("tab"), panels = {}, buttons = {};
 		const show = key => {
 			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
@@ -95,6 +106,7 @@ export default class AISessionDetail extends Page {
 				$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
 				$conv = div.c("flow sessions-conv");   // the live conversation
 			});
+			panels.coverage = div.c("flow sessions-panel", () => { $coverage = div.c("flow"); });   // every ask in the owner's prompts, its status, the raw words one click down (AISessionCoverage)
 			panels.cost = div.c("flow sessions-panel", () => { $costs = div.c("flow"); $trace = div.c("flow"); });   // logged cost, the cost-over-time chart and the per-tool table
 			panels.models = div.c("flow sessions-panel", () => { $session = div.c("flow"); });   // the Session class: cost tree, model + effort, tokens by purpose, audit
 			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
@@ -110,19 +122,21 @@ export default class AISessionDetail extends Page {
 		AISessionDetail.load_row(url, id).then(async row => {
 			const session_id = row?.session_id ?? id;
 			conv.session = session_id;
+			const coverage = new AISessionCoverage(session_id);
+			$coverage.append(coverage.view);
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
 			this.log_urls().then(urls => {
 				if (this.logs) return;
-				const open = url => new AISessionDetail.Log({ url, page: this, parts: this.parts, on_card: c => conv.add_card(c), on_lines: lines => voice.read(lines) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
+				const open = url => new AISessionDetail.Log({ url, page: this, parts: this.parts, on_card: c => conv.add_card(c), on_lines: lines => { voice.read(lines); coverage.read(lines); } }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
 				const logs = this.logs = urls.map(open);
 				this._old_url?.then(old => { if (old && this.logs === logs) logs.push(open(old)); });
 			});
 			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)){
-				const f = new AISessionFollow(session_id); f.on_lines = lines => conv.add(lines);   // the first pull draws the history, later pulls append live
+				const f = new AISessionFollow(session_id); f.on_lines = lines => { conv.add(lines); coverage.add_raw(lines); };   // the first pull draws the history, later pulls append live
 				this.follow = f.start();   // tails the log and corrects the grid row (doc/realtime.md)
 				this.follow.then(() => { if (!conv.count) $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
-			} else if (!this.follow) AISessionDetail.load_lines(session_id).then(lines => { if (lines) conv.add(lines); else $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
+			} else if (!this.follow) AISessionDetail.load_lines(session_id).then(lines => { if (lines){ conv.add(lines); coverage.add_raw(lines); } else $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
 			Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
 			AISessionRows.load_index(url).then(async () => { const snap = await AISessionDetail.load_snapshot(session_id); $related.empty(() => AISessionDetail.render_related(snap, url)); });
 			// the card's page.jsonl and trace.json live in the session's own folder now; the old card folder is the fallback until a checkout is migrated

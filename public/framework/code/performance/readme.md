@@ -4,7 +4,7 @@ A page should stay smooth with thousands of rows and multi-megabyte logs. The ru
 
 ## The four challenges (numbers, 2026-10-12)
 
-- **Thousands of rows:** the Sessions page holds 7,765 sessions; drawing them all was 5,930 DOM nodes and 1.6-2.2 s to the first row ([before numbers](/framework/ai/2026-10-12/data-grid/sessions-perf/)). Fix: window the rows, and [roll routine sessions into buckets](/framework/ai/sessions/doc/buckets.md) (7,765 rows become 1,233 + 5).
+- **Thousands of rows:** the Sessions page holds 7,765 sessions; drawing them all was 5,930 DOM nodes and 1.6-2.2 s to the first row ([before numbers](/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-perf/)). Fix: window the rows, and [roll routine sessions into buckets](/framework/ai/sessions/doc/buckets.md) (7,765 rows become 1,233 + 5).
 - **Evented properties:** one value fires several writes. Fix: `Batch` keeps the last write per key and flushes once per frame ([doc/batching.md](doc/batching.md)).
 - **Repaints and layout:** the browser already paints once per frame; reading layout inside a write loop made 15,001 layouts, 6.8 s for 1,000 rows. Clone-swap, detach and fragment tricks measured no better than a plain loop ([benchmark](/framework/code/performance/bench/)).
 - **Live streams:** append lines and tail them (`ext/JSONL`), and `Batch` the paint; never `setInterval` + `fetch`.

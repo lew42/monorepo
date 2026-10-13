@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/ext/Inbox/timeline/",
+ "widths": {
+  "1280": {
+   "empty": 0.672,
+   "widest_text": 283,
+   "widest_text_sample": "Note: the chain slice is merged. Set SER",
+   "overflow_x": false,
+   "items": 134,
+   "narrow_share": 0.149
+  },
+  "1920": {
+   "empty": 0.705,
+   "widest_text": 475,
+   "widest_text_sample": "Agents.js sends one landing nag per merg",
+   "overflow_x": false,
+   "items": 134,
+   "narrow_share": 0.552
+  },
+  "2560": {
+   "empty": 0.735,
+   "widest_text": 658,
+   "widest_text_sample": "Yes. Your prompts exist word for word in",
+   "overflow_x": false,
+   "items": 134,
+   "narrow_share": 0.552
+  },
+  "3440": {
+   "empty": 0.794,
+   "widest_text": 687,
+   "widest_text_sample": "The inbox is built from what each writer",
+   "overflow_x": false,
+   "items": 134,
+   "narrow_share": 0.552
+  }
+ },
+ "errors": []
+}

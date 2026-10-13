@@ -33,7 +33,7 @@ landed, but commits are not on michael/dev: review the diff, then `merge.mjs`.
 no log for over 2 h and no live agent: resume it or close it.
 
 - [page-templates-binding-merge](/framework/ai/sessions/2026/10/12/session-21449a90/page-templates-binding-merge/): minion-binding-merge, last log 23 h ago, step 1/0, agent stopped
-- [feedback-council](/framework/ai/2026-10-12/feedback-council/): task-mas, last log 23 h ago, step 0/0, agent unknown
+- [feedback-council](/framework/ai/sessions/2026/10/12/feedback-council-2/): task-mas, last log 23 h ago, step 0/0, agent unknown
 - [prompt-audit](/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit/): minion-prompt-audit, last log 5 d ago, step 1/0, agent dormant
 - [dictate-live-state](/framework/ai/sessions/2026/10/05/dictate-live-state/dictate-live-state/): task-mastermind-dictate-live-state, last log 8 d ago, step 1/0, agent stopped
 - [dictate-one-engine](/framework/ai/sessions/2026/10/05/dictate-one-engine/dictate-one-engine/): task-mastermind-dictate-one-engine, last log 8 d ago, step 1/0, agent stopped

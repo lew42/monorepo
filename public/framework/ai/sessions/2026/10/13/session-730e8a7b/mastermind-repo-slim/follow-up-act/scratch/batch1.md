@@ -1,5 +1,5 @@
 ### page-templates-merge
-dir: public/framework/ai/2026-10-12/page-templates-merge
+dir: public/framework/ai/sessions/2026/10/12/session-ceb73541/page-templates-merge
 kind: quiet
 task.jsonl (25 lines):
 {"assign":{"session_id":"ceb73541-3fa2-4121-8fda-1e220adeae47","agent":"minion-templates-merge","card":"core/Page/Template: review and merge the slice","brief":"public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/STATE.md","model":"claude-sonnet-5-5","worktree":"C:/Code/lew42/worktrees/qf-2","parent_task":"public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates","requested_at":"2026-10-12T15:22:30-05:00","now":"starting","steps":[],"step":1}}
@@ -39,7 +39,7 @@ git log michael/dev grep slug:
 
 
 ### feedback-council
-dir: public/framework/ai/2026-10-12/feedback-council
+dir: public/framework/ai/sessions/2026/10/12/feedback-council-2
 kind: quiet
 task.jsonl (4 lines):
 {"assign":{"session_id":"task-mastermind-council-2026-10-12","group":"system-design","request":"Feedback council: checkers verify asks against live site, record verdicts, append to asks.jsonl","requested_at":"2026-10-12T16:30:07-05:00","model":"claude-sonnet-5-5","words_gathered":2,"now":"words collected, preparing checkers"}}

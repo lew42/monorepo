@@ -109,6 +109,8 @@
 	}
 
 	.inbox-head .doc-well { padding-block: 0.8em 0.3em; }
+	/* The title is a link home (ai/page.js): it keeps the heading look, icon gap included. */
+	.inbox-head-home { display: inline-flex; align-items: center; gap: 0.3em; color: inherit; text-decoration: none; border: 0; box-shadow: none; }
 
 	/* ── the shell ──
 	   `--inbox-rail` is the grip's px override; `em` by default, because a rail is sized
@@ -470,12 +472,14 @@
 	/* The dot, the icon and the time sit at the TOP, on the title's first line. */
 	.inbox-row-head {
 		align-items: flex-start;
+		flex-wrap: wrap;   /* badges (new, decision, 100) used to squeeze the title to one word a line; now it drops below them */
+		row-gap: 0.15em;
 	}
 
 	/* WHOLE, NEVER CLIPPED (the owner, 2026-09-24: "render the whole thing as tall as it
 	   needs to be"). A title, not prose: the theme's 1.8 line-height read as a paragraph. */
 	.inbox-row-title {
-		flex: 1;
+		flex: 1 1 8em;
 		min-width: 0;
 		font-weight: 600;
 		line-height: 1.35;

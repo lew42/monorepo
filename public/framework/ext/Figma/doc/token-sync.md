@@ -28,7 +28,7 @@ Read: at 1920 the two already agree on type and radius; Figma pads cards taller 
 
 1. **Decide the numbers once** (owner): for each row above, pick the site's value or Figma's. The cheap direction is Figma follows the site where the site is deliberate (square card padding, larger gaps, fluid type), since changing Figma variables breaks nothing that ships.
 2. **New UI opts in** to `tokens.css`: a page designed in Figma and coded from the frame uses `.fig-*`, so it matches pixel for pixel at the three widths.
-3. **Move old UI one component at a time**, smallest blast radius first, each in a worktree with before/after screenshots (Shots) at 400/1200/1920/3440. The style-system census (`ai/2026-10-12/style-system/css-lines.mjs`) is the meter: custom CSS lines and raw colours per module go down, never up.
+3. **Move old UI one component at a time**, smallest blast radius first, each in a worktree with before/after screenshots (Shots) at 400/1200/1920/3440. The style-system census (`ai/sessions/2026/10/12/session-cbdc3ef5/style-system/css-lines.mjs`) is the meter: custom CSS lines and raw colours per module go down, never up.
 4. **When a `--fig-*` token and a site token mean the same thing, alias one to the other** (`--pad-card: var(--fig-pad-x)`), measure, then retire the extra name. Only then does anything old get removed.
 
 Open for the owner: `dark` differs (Figma `#675F56`, site `#42404B`); fluid vs fixed (the browser can interpolate between modes with `clamp()`, Figma cannot, so Figma's three modes are snapshots of a fluid site).

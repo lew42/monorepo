@@ -11,3 +11,10 @@
 {"log":{"at":"2026-10-13T17:28:18-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T17:29:04-05:00","heartbeat":"answered","msg":"The first reply took about 34 s from the mic and 8.5 s from the first sentence, and I haven't pinned the cause of the longer part. Your \"new session\" guess is half right.\n\n- **Cold spawn:** The 17:17 "}}
 {"log":{"at":"2026-10-13T17:29:31-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T17:39:31-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T17:42:37-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T17:44:31-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T17:50:19-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-dictate-check"}}
+{"log":{"at":"2026-10-13T17:50:21-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T17:50:24-05:00","heartbeat":"answered","msg":"I'm idle: the dictate-check task landed at 17:37 and its card reply is posted. The only open items are the out-of-order bubble fix in `ext/Chat/Chat.js`, outside my fence, and a timestamped headless r"}}
+{"log":{"at":"2026-10-13T17:51:35-05:00","msg":"session ended (other) without landing"}}

@@ -2,7 +2,7 @@
 
 **What it is:** while the owner dictates, each finished sentence is placed into the refined outline within a few seconds, instead of one big refine after they press a button. A sentence that clarifies an earlier point **amends that point**; a new topic gets a new section. Every sentence stays cited, so nothing said is lost.
 
-Asked in [refine-haiku-live](/framework/ai/2026-10-12/refine-haiku-live/requirements.md) §3. Runs on Haiku (`RefineCall.model()`, see [ai/doc/models.md](/framework/ai/doc/models.md)).
+Asked in [refine-haiku-live](/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/requirements.md) §3. Runs on Haiku (`RefineCall.model()`, see [ai/doc/models.md](/framework/ai/doc/models.md)).
 
 ## The classes
 
@@ -61,7 +61,7 @@ Every call is its own fresh session (`RefineCall`), seeded with the current outl
 - 30 sentences of a real dictation at speech pace, on Haiku: a sentence lands in the outline about **9 s** after it is spoken (median; p90 13 s), one call per ~2 sentences, at most 10k tokens per call, every sentence cited.
 - The first version (a clean call per sentence) took 42 s and cost $6 for 98 sentences; that is why clean rides in the amend call now, and why batches are paced and capped.
 
-`Servex/ext/refine/test/live-refine-measure.mjs` replays a long real dictation sentence by sentence at speaking pace and writes `results.jsonl` + `summary.md` in the task folder: per batch, sentences, clean ms, amend ms, arrival → placed ms, tokens in/out, cost. Results: [refine-haiku-live/measure/summary.md](/framework/ai/2026-10-12/refine-haiku-live/measure/summary.md).
+`Servex/ext/refine/test/live-refine-measure.mjs` replays a long real dictation sentence by sentence at speaking pace and writes `results.jsonl` + `summary.md` in the task folder: per batch, sentences, clean ms, amend ms, arrival → placed ms, tokens in/out, cost. Results: [refine-haiku-live/measure/summary.md](/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/measure/summary.md).
 
 ## Next to try
 

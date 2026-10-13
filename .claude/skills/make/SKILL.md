@@ -21,6 +21,7 @@ Say the thing in one plain sentence: what it is, and what a newcomer would call 
 - **A file about a module lives in that module's folder:** its docs in `<module>/doc/`, its decisions in `<module>/doc/architecture.md`, its data beside its page (`page.jsonl`, never a global `/data/`). Never a doc about a module in some other folder.
 - **A strictly AI class lives under `public/framework/ai/`**, the way `ext/`, `ui/` and `ux/` each hold a family of related modules. A class that only uses AI belongs with what it does.
 - **A task's records** go where `node Server/TaskDirs.mjs --new <slug>` puts them (`ai/sessions/YYYY/MM/DD/…`), never a dated folder you type. **Scratch** (probes, transcripts, temp JSON) goes in the session scratchpad, never the repo.
+- **Where a new file goes** (the owner, 2026-10-13: "creating a new file, what its name is and what goes in it" are the most important questions): a file about a module lives in that module's folder; a record lives in the store at its date path (`ai/sessions/YYYY/MM/DD/…`, made by `TaskDirs`); nothing else is created under `ai/`. A path the old way (`ai/<YYYY-MM-DD>/`) is refused by `append.mjs`.
 - No module fits? Then the thing may be a new module: name it (step 1) with its own `readme.md`. Never a loose file at a root.
 - **Link it from where a reader already is** (the parent's `children:` or readme index). A file nobody links does not exist. Moving existing files is a scripted move with a dry run (CLAUDE.md), not part of making a new one.
 

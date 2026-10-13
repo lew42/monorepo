@@ -38,7 +38,7 @@ Nothing new on the static site: production keeps reading the files (no server at
 
 ## Measure (before and after, same script)
 
-`ai/2026-10-12/data-grid/sessions-perf/perf-sessions.mjs`, extended with transfer KB (resource timing plus WebSocket frames over CDP): transfer KB, JS heap, long tasks, time to first row, at 400 and 1920. Plus node-side: query time, and server heap before and after the index is loaded. Same query timed in the browser (`Query.run` over the loaded rows) and in node.
+`ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-perf/perf-sessions.mjs`, extended with transfer KB (resource timing plus WebSocket frames over CDP): transfer KB, JS heap, long tasks, time to first row, at 400 and 1920. Plus node-side: query time, and server heap before and after the index is loaded. Same query timed in the browser (`Query.run` over the loaded rows) and in node.
 
 ## Docs
 

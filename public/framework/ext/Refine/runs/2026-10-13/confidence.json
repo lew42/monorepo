@@ -1,0 +1,1143 @@
+{
+ "day": "2026-10-13",
+ "scale": 2,
+ "truncated": true,
+ "sources": [
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/ai-system-page/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/assistant-chain/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/catalog/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/deploy-cap/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-check/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/figma-to-code/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/follow-up-act/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-ranking/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/model-switch/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/page-rendering/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/past-work-followup/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/pwa-check/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-confidence/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/repo-size-plan/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-2.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-3.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-4.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-5.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/session-index/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task.jsonl",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task.jsonl",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/tidy-git-status/requirements.md",
+  "sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-cleanup/requirements.md"
+ ],
+ "asks": [
+  {
+   "n": 1,
+   "kind": "question",
+   "ask": "Find whether the OpenRouter claim comes from Echo model_for or stale knowledge",
+   "quote": "we're configured to use open router tokens",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Owner's claim and both candidate sources are named explicitly"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "A cited Echo.js line or a stale-knowledge verdict is checkable"
+   }
+  },
+  {
+   "n": 2,
+   "kind": "command",
+   "ask": "Build read-only models-now table of roles and agents, with cost",
+   "quote": "I need to be able to see which agents are running what",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Fields, file, endpoint, render location and count check all specified"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Table rows must equal registry rows; checkable from script output"
+   }
+  },
+  {
+   "n": 3,
+   "kind": "command",
+   "ask": "Point Echo default at scan tier and fast tier at Haiku",
+   "quote": "when we have Claude tokens we can just use Haiku and Sonnet",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Tiers, defaults and switch-file rule named precisely"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "One commit, decision line, change visible after restart; checkable"
+   }
+  },
+  {
+   "n": 4,
+   "kind": "command",
+   "ask": "Add two-way backend switch command and show backend on models page",
+   "quote": "we need to switch to open router",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Command syntax and file behaviour given; doc content loosely described"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Switch file written or deleted; five-line readme checkable"
+   }
+  },
+  {
+   "n": 5,
+   "kind": "command",
+   "ask": "Send one decision owner_note answering the model question",
+   "quote": "what the assistants are on right now",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Required note content listed; depends on tasks 1-4 facts"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "One owner_note of kind decision exists in the inbox; checkable"
+   }
+  },
+  {
+   "n": 6,
+   "kind": "directive",
+   "ask": "Set up model-switch brief, budget, workers, fence and logging",
+   "quote": "Servex code is tested from a worktree on a private port",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, model, fence and log file all explicitly listed"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Brief, task log and card report are checkable artifacts"
+   }
+  },
+  {
+   "n": 7,
+   "kind": "command",
+   "ask": "Write one plain doc explaining how pages render, with links",
+   "quote": "I'm still not sure how we're rendering dynamic pages",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Six parts (a) to (f), diagram and path specified in detail"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Doc with six parts and links exists; plain-language quality is judgment"
+   }
+  },
+  {
+   "n": 8,
+   "kind": "command",
+   "ask": "Send inbox owner_note answering how pages render today",
+   "quote": "answer my question in the inbox so I'm gonna see it later",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Exact title and three-sentence shape specified"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "owner_note with exact title exists in the inbox; checkable"
+   }
+  },
+  {
+   "n": 9,
+   "kind": "command",
+   "ask": "Link the doc from two readmes and fix contradicting Page docs",
+   "quote": "Any Page doc that contradicts what the code does today",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Link targets named; contradiction scope clear but open-ended"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Two link lines exist; fixes depend on what is found"
+   }
+  },
+  {
+   "n": 10,
+   "kind": "directive",
+   "ask": "Set up page-rendering brief, budget, workers and fence",
+   "quote": "Worktree, `merge.mjs`. No code changes. Sonnet.",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, models, skills and fence explicitly listed"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Brief, log, merge and card report are checkable"
+   }
+  },
+  {
+   "n": 11,
+   "kind": "question",
+   "ask": "Recommend whether Figma mock-ups suit this framework; send owner_note",
+   "quote": "using Figma to mock up designs is the way to go",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Question explicit; format fixed as two or three sentences"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Note exists in format; the recommendation itself is judgment"
+   }
+  },
+  {
+   "n": 12,
+   "kind": "command",
+   "ask": "Ask each existing Figma agent three questions and record replies",
+   "quote": "talk to that Figma agent and figure out what it's doing",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Agents and three questions named; reply wording open"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Replies depend on dormant agents answering; timeouts possible"
+   }
+  },
+  {
+   "n": 13,
+   "kind": "command",
+   "ask": "Script an inventory of Figma designs versus code pages, both ways",
+   "quote": "every Figma design in `ext/Figma/data` and the kit task dirs",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Both directions and matching-count rule are explicit"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Two counts must agree; script output is checkable"
+   }
+  },
+  {
+   "n": 14,
+   "kind": "command",
+   "ask": "Build Figma-to-browser token map in three groups, with a page",
+   "quote": "with the ones that match by value",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Three groups named; match-by-role is a judgment call"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Map and page exist, but role matches are subjective"
+   }
+  },
+  {
+   "n": 15,
+   "kind": "command",
+   "ask": "Leave Figma mastermind a note with map link and needed item",
+   "quote": "the one thing the code side needs from Figma next",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Note content specified; recipient is most recently active mastermind"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "Note is checkable; the reply depends on another agent"
+   }
+  },
+  {
+   "n": 16,
+   "kind": "directive",
+   "ask": "Set up figma round-trip brief, budget, fence; spawn no new agents",
+   "quote": "Do not spawn new Figma agents; ask the existing ones",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, fence and no-spawn rule explicit"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "round-trip.md, owner_note and map exist; checkable"
+   }
+  },
+  {
+   "n": 17,
+   "kind": "command",
+   "ask": "Prove transcription works before building anything else",
+   "quote": "It should be working. It was sort of working",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Goal is clear, but what counts as working is undefined"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Works or does-not verdict with screenshot and proof command"
+   }
+  },
+  {
+   "n": 18,
+   "kind": "command",
+   "ask": "Run headless voice walk and phone-width transcribe proof",
+   "quote": "with a screenshot in this task dir",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Steps, width 400, reading list and screenshot location all named"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Screenshot and command log in task dir; checkable"
+   }
+  },
+  {
+   "n": 19,
+   "kind": "command",
+   "ask": "Fix any error in owner's live Dictate attempt, merge via merge.mjs",
+   "quote": "If their attempt shows an error, fix that first",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Conditional on an error appearing; trigger is unknown"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "Either no error seen or fix merged; depends on live session"
+   }
+  },
+  {
+   "n": 20,
+   "kind": "command",
+   "ask": "Append dated gap section to asks.md; build smallest change if cheap",
+   "quote": "the smallest change that makes the sheet the sidebar's collapsed form",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Design clear; build is conditional on one afternoon's effort"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Dated section appended; build or next.md brief is checkable"
+   }
+  },
+  {
+   "n": 21,
+   "kind": "question",
+   "ask": "Answer in asks.md whether Dictate has a new-session control",
+   "quote": "does the Dictate app have a",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Direct question; one paragraph with link; fix only if trivial"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "One paragraph with link in asks.md; checkable"
+   }
+  },
+  {
+   "n": 22,
+   "kind": "directive",
+   "ask": "Set up dictate-check brief, budget, fence and no-restart rule",
+   "quote": "Never restart Servex or the owner's dev server",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, fence and restart prohibition explicit"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "One-screen card report with works verdict; checkable"
+   }
+  },
+  {
+   "n": 23,
+   "kind": "command",
+   "ask": "Write FollowUp.mjs class flagging stale, unmerged and orphaned items",
+   "quote": "we don't have a very reliable system to make sure",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Columns, four flags and count-equality check specified"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Script count matches TaskDirs count; flagged rows checkable"
+   }
+  },
+  {
+   "n": 24,
+   "kind": "command",
+   "ask": "Generate one-screen follow-up page, flagged rows first, linked",
+   "quote": "most important first (unmerged code before stale logs)",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Ordering, format and line cap specified"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Under 100 lines, full table beside it, linked from readme"
+   }
+  },
+  {
+   "n": 25,
+   "kind": "command",
+   "ask": "Put Property.of at page top as owner decision with diff stat",
+   "quote": "put it at the top of the page as the owner's decision",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Placement, decision framing and diff command are explicit"
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Top-of-page entry with diff stat is checkable"
+   }
+  },
+  {
+   "n": 26,
+   "kind": "command",
+   "ask": "Land records for merged branches; merge small record-only branches",
+   "quote": "one per item, only if cheap and safe",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "Two action rules given; obvious is undefined"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Landing lines and merges checkable; which items qualify is judgment"
+   }
+  },
+  {
+   "n": 27,
+   "kind": "command",
+   "ask": "Census of unreferenced core and ext files; list only, no moves",
+   "quote": "Say in the doc that a reference-free file is a candidate",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Reference rules and no-deletion rule are explicit"
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "unreferenced.md with count and list; rerunnable and checkable"
+   }
+  },
+  {
+   "n": 28,
+   "kind": "directive",
+   "ask": "Set up past-work-followup brief, budget, skills and fence",
+   "quote": "never destructive, one screen for the owner",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, skills, fence and report contents listed"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Card report with flag counts and link; checkable"
+   }
+  },
+  {
+   "n": 29,
+   "kind": "command",
+   "ask": "Close or resume all 50 flagged tasks and asks, with evidence",
+   "quote": "close or resume the 50 flagged tasks and asks",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Target clear; verdict rules vary by item kind"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Before and after counts can show every flagged row resolved"
+   }
+  },
+  {
+   "n": 30,
+   "kind": "command",
+   "ask": "Haiku batches verify 36 quiet tasks; verdicts land with evidence",
+   "quote": "prove it is missing before you say so",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Verdict set and evidence fields specified; batch sizes given"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "36 verdicts with evidence and landing lines; checkable"
+   }
+  },
+  {
+   "n": 31,
+   "kind": "command",
+   "ask": "Add outcome lines for the three landed tasks lacking one",
+   "quote": "Add the outcome line from the evidence",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Three tasks and the append route named"
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Three landing lines with outcomes; FollowUp count drops by three"
+   }
+  },
+  {
+   "n": 32,
+   "kind": "command",
+   "ask": "Review two unmerged branches; merge records, review code first",
+   "quote": "the review says fix nothing or you fixed it",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Both branches and merge gate named; review branching clear"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Either merged after review or owner note with diff stat"
+   }
+  },
+  {
+   "n": 33,
+   "kind": "directive",
+   "ask": "Do not merge michael/property-of; it stays the owner's call",
+   "quote": "is the owner's decision: do not merge it",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Explicit prohibition repeated across the brief; no ambiguity"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Branch stays unmerged and listed for owner; checkable state"
+   }
+  },
+  {
+   "n": 34,
+   "kind": "command",
+   "ask": "Append one done, dropped or queued status line per open ask",
+   "quote": "append (never edit) a status line per ask",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Three status options and append-only rule explicit"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Nine status lines; queued items in todo.md; checkable"
+   }
+  },
+  {
+   "n": 35,
+   "kind": "command",
+   "ask": "Rerun FollowUp; propose daily run as one decision line",
+   "quote": "proposing that FollowUp runs daily and its page is linked",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "Make reliable conflicts with proposal-only, do-not-wire instruction"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Before and after counts and one decision line are checkable"
+   }
+  },
+  {
+   "n": 36,
+   "kind": "directive",
+   "ask": "Set up follow-up-act brief, budget, merge gate and forbidden commands",
+   "quote": "Never `git stash`, never `git clean`, never delete a task dir",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, merge gate and forbidden commands explicitly listed"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Card report with before and after counts; checkable"
+   }
+  },
+  {
+   "n": 37,
+   "kind": "command",
+   "ask": "Read deploy config and upload method before writing assetsignore",
+   "quote": "read how `public/` is uploaded before writing `.assetsignore`",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Goal, cap and reading-first order are specific"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Deployed count under 20,000 with margin; checkable"
+   }
+  },
+  {
+   "n": 38,
+   "kind": "command",
+   "ask": "Write public/.assetsignore and a read-only count script",
+   "quote": "commit it with a one-line comment per rule",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Syntax, rules, comments and count outputs explicit"
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Script prints before, after and margin; cross-checkable with ls-files"
+   }
+  },
+  {
+   "n": 39,
+   "kind": "command",
+   "ask": "Check nothing loaded at runtime is excluded; run smoke tests",
+   "quote": "nothing the site links to at runtime",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Two smoke URLs and exclusion check named"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Smoke runs pass on named pages; checkable"
+   }
+  },
+  {
+   "n": 40,
+   "kind": "command",
+   "ask": "Untrack 2,725 AI-log pictures from git index; files stay on disk",
+   "quote": "Files stay on disk; history is unchanged",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Dry manifest, batch apply, scope and undo line specified"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "One commit with exact message; git status clean; checkable"
+   }
+  },
+  {
+   "n": 41,
+   "kind": "command",
+   "ask": "Verify index drop and mark two plan items done with hashes",
+   "quote": "`git status` must be clean for your files",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Two checks and two checklist items named"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Logged du drop; two lines marked done with hashes"
+   }
+  },
+  {
+   "n": 42,
+   "kind": "directive",
+   "ask": "Set up deploy-cap brief, budget, worktree and no-delete rules",
+   "quote": "Never delete a file from disk, never rewrite history, never push",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, worktree, fence and forbidden actions explicit"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Card report with listed numbers and links; checkable"
+   }
+  },
+  {
+   "n": 43,
+   "kind": "question",
+   "ask": "Find where Cards.js scores owner_note 100 and what feeds it",
+   "quote": "scores 100 and sorts first until the owner opens or archives it",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "File, line and reading-only rule named; output is a record"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Recorded findings plus optional decision line with exact edit"
+   }
+  },
+  {
+   "n": 44,
+   "kind": "command",
+   "ask": "Build one Inbox.rank combining importance, recency and opened state",
+   "quote": "new things show up at once, important things stay up",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Intent clear; decay curve and kind weights left open"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Static rank function with listed rules; checkable by tests"
+   }
+  },
+  {
+   "n": 45,
+   "kind": "command",
+   "ask": "Write doc/ranking.md with one plain example per rule",
+   "quote": "in plain words with one example per rule",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Length and example rule explicitly given"
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Doc exists with one example per rule; checkable"
+   }
+  },
+  {
+   "n": 46,
+   "kind": "command",
+   "ask": "Add new-item mark, age, kind label and a debug score list",
+   "quote": "Reuse the existing card/row component; no new component",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Cue content listed; which existing component is unclear"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Mark, age and debug list visible; checkable at four widths"
+   }
+  },
+  {
+   "n": 47,
+   "kind": "directive",
+   "ask": "Set up inbox-ranking brief, budget, Sonnet workers and fence",
+   "quote": "Sonnet, one page, one minion at a time",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, workers, fence and checks explicitly listed"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Four-width checks, smoke, merge and screenshot; checkable"
+   }
+  },
+  {
+   "n": 48,
+   "kind": "command",
+   "ask": "Script-count every inbox source; mark duplicates and records",
+   "quote": "every source the inbox draws from today",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Counts, duplicates and record-versus-cache split specified"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "inbox-data.md one screen with script-computed counts"
+   }
+  },
+  {
+   "n": 49,
+   "kind": "command",
+   "ask": "Stay consistent with sibling storage and session-index docs",
+   "quote": "Read it when it lands and stay consistent",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Sibling docs may not exist yet; consistent is judgment"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Consistency is judged; sibling timing is outside our control"
+   }
+  },
+  {
+   "n": 50,
+   "kind": "command",
+   "ask": "Choose the one appendable JSONL set, with alternatives and retirement",
+   "quote": "an appendable JSONL set, loaded and sorted",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Decision needed is clear; likely answer is only a guess"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Decision line with alternatives; read-only retirement checkable"
+   }
+  },
+  {
+   "n": 51,
+   "kind": "directive",
+   "ask": "Use one streaming data structure shared by inbox, sessions, grid",
+   "quote": "one robust system for the data structure",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Shared intent clear; robust and cross-page scope vague"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "One shared module checkable via imports, but scope is large"
+   }
+  },
+  {
+   "n": 52,
+   "kind": "command",
+   "ask": "Build preview rail, click detail and card chat sidebar, reusing parts",
+   "quote": "a preview rail, click for the detail",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Three interaction parts named; reuse rule explicit"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Each part visible on the page; reuse checkable"
+   }
+  },
+  {
+   "n": 53,
+   "kind": "command",
+   "ask": "Build newest-first timeline with big-things filter on by default",
+   "quote": "Scrolling should show every big thing the owner asked for",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Filter defined; big thing criteria only partly defined"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Filter output checkable; completeness hard to verify"
+   }
+  },
+  {
+   "n": 54,
+   "kind": "directive",
+   "ask": "Stream via live() tail with no setInterval; Cards.js read-only",
+   "quote": "Streams via the existing `live()` tail; no `setInterval`",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Mechanism and forbidden pattern explicit and greppable"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "grep finds no setInterval; server edits only as decision line"
+   }
+  },
+  {
+   "n": 55,
+   "kind": "directive",
+   "ask": "Set up inbox-data brief: Opus judges, budget, four widths, fence",
+   "quote": "Opus judges; Sonnet minions build; Haiku counts",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Model roles, budget, fence and checks all explicit"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Decision lines, row count, link and screenshot; checkable"
+   }
+  },
+  {
+   "n": 56,
+   "kind": "command",
+   "ask": "Run PastWork searches for catalog and instance view; record answers",
+   "quote": "I feel like I've only seen a small fraction",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Two exact search strings given; answers recorded in log"
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Recorded search answers in log; checkable"
+   }
+  },
+  {
+   "n": 57,
+   "kind": "command",
+   "ask": "Build catalog page with live card previews, one click to demo",
+   "quote": "a preview on the catalog page is enough",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Preview and click target clear; preview method left open"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Under 2 s for 40 cards is measurable; method still open"
+   }
+  },
+  {
+   "n": 58,
+   "kind": "command",
+   "ask": "Group catalog cards by sidebar groups, computed from page tree",
+   "quote": "Group by the sidebar's own groups",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Grouping source and no hand-typed list stated"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Group headings match sidebar; checkable by comparison"
+   }
+  },
+  {
+   "n": 59,
+   "kind": "command",
+   "ask": "Add class-card section, with Refine, Dictate, System first",
+   "quote": "the three examples the owner asked for first",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Three named classes and computed source given"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Section lists classes with icon, API and links; checkable"
+   }
+  },
+  {
+   "n": 60,
+   "kind": "command",
+   "ask": "Mark catalog cards the owner has probably not seen",
+   "quote": "Mark the ones the owner has probably not seen",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Two fallback rules given; page-log existence unknown"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Unseen marks present; rule-based and checkable"
+   }
+  },
+  {
+   "n": 61,
+   "kind": "question",
+   "ask": "Find whether anything renders the live instance tree; spec if not",
+   "quote": "a live view of the actual instance hierarchy",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Owner wants to see it; brief says find, not build"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Verdict on card plus link or spec file; checkable"
+   }
+  },
+  {
+   "n": 62,
+   "kind": "directive",
+   "ask": "Place catalog where the page skill says; one page only",
+   "quote": "the place the `page` skill and the sidebar tree say it belongs",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Location rule given; the likely path is only a guess"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "One catalog page at one route; checkable"
+   }
+  },
+  {
+   "n": 63,
+   "kind": "directive",
+   "ask": "Set up catalog brief, budget, sub-mastermind checks and fence",
+   "quote": "Sonnet; Haiku minions for the census",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, workers, widths, fence and card contents explicit"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Link, counts, verdict and screenshot on card; checkable"
+   }
+  },
+  {
+   "n": 64,
+   "kind": "command",
+   "ask": "Write read-only census of architecture docs per module, by importers",
+   "quote": "how many files import it (from `PastWork.mjs`'s method)",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Census columns, ranking and read-only rule specified"
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Script prints counts per module; checkable"
+   }
+  },
+  {
+   "n": 65,
+   "kind": "command",
+   "ask": "Create architecture template in the documentation skill",
+   "quote": "the decision in one sentence, why in one or two",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Template sections and entry shape specified in detail"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Skill section and linked template file exist; checkable"
+   }
+  },
+  {
+   "n": 66,
+   "kind": "command",
+   "ask": "Write architecture.md for the top 12 modules by importers",
+   "quote": "written by Sonnet minions from the module's readme",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Twelve modules, method and reviewer named; list is computed"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Twelve docs exist; quality judged against template and code"
+   }
+  },
+  {
+   "n": 67,
+   "kind": "directive",
+   "ask": "Keep architecture docs under 80 lines; link from readme More line",
+   "quote": "Under 80 lines for most modules",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Line limit and link location explicit; most is soft"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Line counts and More-line links are checkable"
+   }
+  },
+  {
+   "n": 68,
+   "kind": "directive",
+   "ask": "Add one rule line to framework readme and documentation skill",
+   "quote": "a module's readme gives the one-line overview",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Two locations and rule wording given"
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Two lines exist; checkable by grep"
+   }
+  },
+  {
+   "n": 69,
+   "kind": "directive",
+   "ask": "Set up architecture-md brief, budget, fence and sibling exclusions",
+   "quote": "Do not touch the modules the sibling tasks own today",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, fence and excluded modules named"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Card report with counts and rule wording; checkable"
+   }
+  },
+  {
+   "n": 70,
+   "kind": "command",
+   "ask": "Write AI system brief listing open decisions, not invented answers",
+   "quote": "documenting the components properly for AI is first priority",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Brief content and open-decision list clear; define is broad"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Brief exists with open items recorded; scope loose"
+   }
+  },
+  {
+   "n": 71,
+   "kind": "command",
+   "ask": "Write AI system architecture.md under 100 lines, with decisions",
+   "quote": "the readme chain as the AI's memory",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Decision list and per-entry four-part format explicit"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "File under 100 lines with four parts per decision; checkable"
+   }
+  },
+  {
+   "n": 72,
+   "kind": "directive",
+   "ask": "Document the step loop, reusing Steps.mjs; start fresh sessions",
+   "quote": "all systems top to bottom use a functional approach",
+   "ask_clear": {
+    "p": 0.55,
+    "evidence": "Owner idea is broad; only reuse and documenting asked"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Doc linking Steps.mjs is checkable; depth undefined"
+   }
+  },
+  {
+   "n": 73,
+   "kind": "command",
+   "ask": "Add one-line overview and architecture link atop ai/readme.md",
+   "quote": "do not restate CLAUDE.md; link it",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Top-line content and no-restating rule explicitly given"
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Top lines present; checkable by reading the file"
+   }
+  },
+  {
+   "n": 74,
+   "kind": "command",
+   "ask": "Add AI system instance with eleven component cards on one screen",
+   "quote": "its components as cards, each one line and a link",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Eleven components and placement rule named; layout left open"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Instance renders eleven linked cards; screenshot checkable"
+   }
+  },
+  {
+   "n": 75,
+   "kind": "directive",
+   "ask": "Set up AI system page brief, budget, models, fence and widths",
+   "quote": "Stay out of `ai/doc/repo-size.md`, `follow-up*.md`, `asks-outcomes*.md`",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, models, fence and sibling exclusions explicit"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Card report with counts, links and 1200 screenshot"
+   }
+  },
+  {
+   "n": 76,
+   "kind": "command",
+   "ask": "Map one sentence's hops with files, models and measured latency",
+   "quote": "what happens to one transcribed sentence today, hop by hop",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Measurement sentence and hop fields specified"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Five-hop map with timings; latency varies per run"
+   }
+  },
+  {
+   "n": 77,
+   "kind": "command",
+   "ask": "Decide one global assistant: fast per sentence, smart at batches",
+   "quote": "one global assistant should be the way to go",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Roles and triggers specified; tier choice left open"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Decision line and doc with class mapping; judgment-heavy"
+   }
+  },
+  {
+   "n": 78,
+   "kind": "command",
+   "ask": "Build flagged slice: sentence replies and batch hand-off, with timings",
+   "quote": "it gets processed immediately for a response on screen",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Flag, proof and path clear; depends on dictation stream"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Three replies, one hand-off, timings in log; stream-dependent"
+   }
+  },
+  {
+   "n": 79,
+   "kind": "directive",
+   "ask": "Set up assistant-chain brief, budget, Servex test rules and fence",
+   "quote": "the live Servex is restarted by the mastermind, not you",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, fence, private port and restart owner explicit"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Hop map, decision, timings and flag on card; checkable"
+   }
+  }
+ ]
+}

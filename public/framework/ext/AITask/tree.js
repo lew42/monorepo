@@ -188,6 +188,10 @@ const lines = t => (t ?? "").split("\n").filter(s => s.trim()).flatMap(s => { tr
 
 /** The roots of one day's tree, fetched from the site. */
 export async function tree_for_day(date){
+	// The dev server's task index first (directory.json is frozen since 2026-10-09, so new days are not in it).
+	const { default: QueryClient } = await import("../Query/QueryClient.js");
+	const res = await new QueryClient("tasks").ask({ where: [{ field: "day", op: "eq", value: date }], limit: 2000 });
+	if (res.rows?.length) return build(res.rows.map(row_manifest));
 	const dir = JSON.parse(await text("/framework/directory.json") ?? "null");
 	const day = dir?.files?.find(f => f.name === "ai")?.children?.find(d => d.name === date);
 	const found = [];
@@ -207,8 +211,8 @@ export async function tree_for_day(date){
 
 /** A task index row (Server/SessionIndex.mjs, source "tasks") → a manifest. The row has no `parent_task` or `after`,
     so the parent is the folder and phases come from start and landed times. */
-export const row_manifest = r => ({ dir: r.dir, title: r.title, agent: r.agent, requested_at: r.started,
-	landed_at: r.landed_at, step: r.step, steps: r.steps, request: r.request });
+export const row_manifest = r => ({ dir: r.dir, title: r.title || undefined, agent: r.agent || undefined, requested_at: r.started || undefined,
+	landed_at: r.landed_at || undefined, step: r.step, steps: r.steps?.length ? r.steps : undefined, request: r.request || undefined });
 
 /** The tree of ONE task and everything inside its folder, asked of the dev server's task index (no directory.json,
     which is frozen). Resolves to the roots, or null off the dev server or when the index does not answer. */

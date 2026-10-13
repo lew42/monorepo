@@ -4,8 +4,8 @@
  * a918d03d-6afe-4958-b425-20e9eba998ef/task/runs/a/raw.txt, the longest raw text found under the
  * 2026-09-29 prompt-refine run set, ~10 minutes of speech), calling LiveRefine DIRECTLY (real Haiku
  * via RefineCall, no Servex process needed). Writes:
- *   public/framework/ai/2026-10-12/refine-haiku-live/measure/results.jsonl   — one line per sentence
- *   public/framework/ai/2026-10-12/refine-haiku-live/measure/summary.md      — the numbers, read by a person
+ *   public/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/measure/results.jsonl   — one line per sentence
+ *   public/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/measure/summary.md      — the numbers, read by a person
  * Design: public/framework/ext/Refine/doc/live-refine-2026-10-12.md.
  *
  * Two paces:
@@ -35,7 +35,7 @@ const MAX_COST = cost_i >= 0 ? +args[cost_i + 1] : 5;
 const limit_i = args.indexOf("--limit");   // replay only the first N sentences
 const LIMIT = limit_i >= 0 ? +args[limit_i + 1] : Infinity;
 
-const OUT_DIR = path.join(REPO, "public/framework/ai/2026-10-12/refine-haiku-live/measure");
+const OUT_DIR = path.join(REPO, "public/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/measure");
 fs.mkdirSync(OUT_DIR, { recursive: true });
 const RESULTS = path.join(OUT_DIR, "results.jsonl");
 const SUMMARY = path.join(OUT_DIR, "summary.md");

@@ -1,6 +1,6 @@
 # Past style work: what earlier tasks concluded, and whether it is still true
 
-Checked 2026-10-12 against the current code (two Haiku scans over a [digest script](/framework/ai/2026-10-12/style-system/digest.mjs) of 49 past task folders; three rows corrected by hand, marked *corrected*). Old conclusions are not trusted: each row names the evidence. Decisions made from this: [architecture.md](architecture.md).
+Checked 2026-10-12 against the current code (two Haiku scans over a [digest script](/framework/ai/sessions/2026/10/12/session-cbdc3ef5/style-system/digest.mjs) of 49 past task folders; three rows corrected by hand, marked *corrected*). Old conclusions are not trusted: each row names the evidence. Decisions made from this: [architecture.md](architecture.md).
 
 ## What still holds
 

@@ -1,0 +1,75 @@
+[sessions/2026/10/10/session-30be6115/server-perf/requirements.md]
+# Server perf: stop the site stalling (task mastermind brief)
+
+**Owner's ask (2026-10-09/10):** the site "crashes a lot": whisper threw an error, then the page would not reload. Do a quick performance look and fix the cheap, obvious causes.
+
+**Already measured** (`Server/doc/perf-2026-10-09.md`, read it first):
+- `Server/plugins/Directory.js` logs "Rebuilding Framework Directories" on ~36% of all requests (19,697 of 54,330): every `/framework/` page hit re-walks the tree. The main server (`Server/run.js`) is the hottest node process.
+- `monorepo.out` is 36 MB: every socket message and RPC is `console.log`ged synchronously.
+- 41 dev-server node processes (one per worktree/pool slot, started and stopped within seconds); free RAM ~7.7 of 32 GB.
+- Whisper reloaded its 1.6 GB model onto the GPU at 16:23 with no error line in `whisper.jsonl`; why it restarts is unknown.
+
+**Do, in order (each a small commit, smoke-tested):**
+- [ ] 1. **Directory rebuild**: rebuild only when a file under the walked tree actually changed (use the existing watcher/event, or mtime of the tree), not per request. Measure before/after (count rebuild log lines over N requests; request latency of `/framework/`).
+- [ ] 2. **Logging**: drop the per-message `Socket message` / `RPC:` console lines (or gate them behind an env flag, default off). Keep errors.
+- [ ] 3. **Pool dev servers**: find why qf-N worktrees each boot a dev server and churn; if a slot's dev server can start on demand (first request) instead of at checkout, do it; if that is `Servex/` code owned by another agent, write the finding and stop (do not edit `Servex/Pool.js` semantics).
+- [ ] 4. **Whisper**: find who supervises whisper-server (Servex) and make its exit code and reason a log line; if a restart loop exists, say why.
+5. Record results in `Server/doc/perf-2026-10-09.md` (update, do not duplicate).
+
+**Fences:**
+- Work in a worktree; never run `node server.js` directly (server-guard).
+- A `Server/` change needs a restart: batch it into one, then `node Server/worktree-restart.mjs <name>` proves it boots on a private port BEFORE merging; `Server/merge.mjs` must pass.
+- No new npm dependency; no OpenRouter. Sonnet 5.5; `node Server/usage-now.mjs` before any spawn; Haiku only for reading, under 60k tokens.
+- One-sentence chat replies. Write `STATE.md` here so a fresh session can resume. Land with `finish-task`, commit with attribution, leave no worktree behind.
+
+[sessions/2026/10/10/session-41240bd9/tasks-into-sessions/requirements.md]
+# Move task folders into their session folders (task mastermind brief)
+
+**Owner's ask (2026-10-10):** convert the old session and task directory structures to the new one, provided nothing is mangled, deleted or lost. Port things over and condense where it makes sense. **If tasks belong to sessions, put them within the session folder.** "Get it done." This reverses the earlier hold on `--tasks` (handover note 2026-10-10): the hold was only "a moved task has no route yet"; solve that, then move.
+
+## Where things stand
+- `Server/session-migrate.mjs` already moved session folders and cards to `public/framework/ai/sessions/YYYY/MM/DD/<slug>/`. It is a dry run by default, has `--apply` and `--undo`, deletes nothing, and records every move in `ai/sessions/migration-manifest.json` (header and `Server/session-migrate.test.mjs` explain more).
+- Its `--tasks` flag is off. When on, it also moves each task folder `ai/YYYY-MM-DD/<task>/` to `<session slug>/task/`, matched by the `session_id` in `task.jsonl`.
+- The blocker: a page exists only while its parent's `children:` declares it (CLAUDE.md "Nothing crawls"; `ai/sessions/doc/data/layout.md`), so a moved task has no route and every old link and card to it would 404.
+- Read first: `ai/sessions/doc/data/` (layout and data architecture), `ai/doc/` indexes for the date layout, `core/Page/doc/indexing-2026-10-08.md`.
+
+## Do, in order (tick each when proven)
+- [ ] 1. **Dry run `--tasks`** and report counts: tasks with a session (move), tasks without one (stay; list them), name clashes, tasks whose `task.jsonl` has several sessions (pick the first/owning one, list the rest), and the total bytes.
+- [ ] 2. **Make routes resolve before moving anything.** Choose the simplest working approach and record the alternative: e.g. a resolver that maps an old `/framework/ai/<date>/<task>/` URL through the manifest to its new path (a redirect or an alias in the dev server's router), AND the AI board/card links that name task dirs. Prove with a handful of real old URLs that they still load after a move. If this needs `core/Page` semantics, add it beside it as a resolver; do not change Page behaviour (note what you need).
+- [ ] 3. **Integrity proof:** a script that, before and after `--apply`, lists every file under the moved trees with size and sha1 and proves each old file exists at its new path with identical content (`migration-verify`): zero missing, zero changed. Condensing (merging duplicate folders, dropping empty ones) is allowed only as move-aside to an archive path with an entry in the manifest; never delete.
+- [ ] 4. **Apply** in a worktree, in batches if large, committing each batch after a smoke test (`node Server/merge.mjs <worktree> --dry-run` must pass; zero same-origin 404s). Keep `--undo` working; test it on a dry copy.
+- [ ] 5. **Update** `ai/sessions/readme.md`, the data-layout doc, the handover (remove the hold note I left: "Decision 2026-10-10 ... --tasks stays OFF"), and the AI board/dashboard readers that list tasks, so the board still shows every task. Everything stays linked from the site.
+
+## Fences
+- Never destructive: move, link, archive; `git mv` for tracked files; manifest of every old to new path; reversible.
+- The live working tree has machine-written session files; commit rule: `git add -A -- . ':!public/framework/ai/sessions/2026'` for agent logs, and add `ai/sessions/2026/` composites in their own commit once the move is verified.
+- Sonnet 5.5; `node Server/usage-now.mjs` before any spawn; Haiku minions only for cheap reading under 60k tokens; no OpenRouter. Do not touch `Servex/Pool.js`.
+- One-sentence chat replies; `STATE.md` in this dir so a fresh session resumes; land with `finish-task`, commit with attribution, no worktree left behind. If a decision needs the owner, make it, record the alternative, and keep going.
+
+[sessions/2026/10/10/session-62419663/figma-system/requirements.md]
+# Figma system: track, browse and reproduce Figma designs (task mastermind brief)
+
+**Owner's ask (2026-10-10, dictated; the essence, details are the owner's best guess):**
+Build a system, most likely an extension (`ext/Figma`), that tracks Figma files through the Figma MCP and lets the owner browse them on our own site: each page previewed, each document shown as a larger preview built from its pages. Keep notes of every observation about how the Figma system works while you do it. Then pull the Sept-2026 file in and reproduce as many of its designs as possible within reason, as real framework pages.
+
+## What is already known (verified 2026-10-10, no need to redo)
+- The Figma MCP is connected (`mcp__figma__*`); `whoami` works: plans lew42 (`team::846709509681843175`, admin), Test Team, UI, Test, Michael's Starter team. **No tool lists a user's files**: every call needs a file key from a URL. Keys known: Sept-2026 `QYN0G2URSBHYH5I06MOjxU`, July-2026 `0rZv3Z6Hnqkxa2UQJ5xOOG` (already converted into `styles/layouts`; see `ai/sessions/2026/08/18/figma/`), scratch file `T5PuB8EhKhfyh0xtpIT1L0` ("Claude layout test", lew42 drafts).
+- Tools: read = `get_metadata` (no nodeId lists the pages; with a nodeId an XML tree), `get_screenshot` (short-lived PNG URL, download with curl), `get_design_context` (4x the price; the 2026-08-18 run skipped it, see memory `figma-workflow-2026-08-18`), `get_variable_defs`; write = `use_figma` (Plugin API JS; load skill `skill://figma/figma-use/SKILL.md` through `ReadMcpResourceTool` server `figma` first), `create_new_file`, `generate_figma_design` (captures a live web page into a file), `html_to_figma`. A new page was added to Sept-2026 (id `124:1062`, "Claude test page", empty) and may be deleted.
+- Sept-2026 pages: Page 1 `0:1`, Page 2 `7:1148`, Page 6 `69:4759`, Page 3 `11:1467`, **Page 7 `112:10252`**, Page 8 `119:15240`, Vector Design `19:5982`, Paragraph Design `24:5995`.
+- **Page 7 is the one the owner values.** Frame `Color Schemes` (`112:11362`): nested color-scheme cards. White card with a ~10% grey card inside; the primary light blue card with a 10-20% darken so white text keeps contrast; a dark card with many lighten/darken steps (10%, 50%, nested). The owner's observation: **dark mode nests more levels while keeping contrast; unknown whether light mode can**. They read as transparency overlays (probably black/white at 10/25/50%), not fixed greys; verify via `get_design_context` on one card or `use_figma` reading fills/opacity. Frame `The Palette` (`112:12899`, 1920 x 11219) is a long style sheet: Palette, Typography, Controls, Feature Cards & Lists, Pricing & Dashboard, Task Management, Timeline & Task Detail, AI Collaboration, Hero Layouts. Screenshots are in the earlier session scratchpad; re-take them cheaply.
+- Embeds: the owner thinks Figma embeds are not responsive; if so, re-render them (screenshots) and lay them out in our own responsive grids. **Check current Figma embed behaviour** (a quick web check or test) and record the result.
+
+## Deliverables (smallest working slice first; ship, then widen)
+1. **Observations note** (`ext/Figma/doc/observations.md`): how the MCP behaves (limits, costs in tokens, rate limits, what failed), updated as you go. This is the memory for the next agent.
+2. **`ext/Figma`** extension, per CLAUDE.md "Write classes": e.g. `FigmaFile`, `FigmaPage` (names: design them first, put the class architecture on its readme, show the class). It stores a tracked file as JSONL data beside the extension (file key, name, pages, node ids, screenshot paths, fetched-at); a node script fetches/refreshes it (compute, don't recall). Screenshots are downloaded to the repo (size-capped) so the site works without Figma.
+3. **Browse page** on the site: files list, then a file's pages as a preview grid (responsive grid of screenshots), then a page's frames. Everything linked from the site (`ext` readme + framework index). Live via the `live()` tail where data changes.
+4. **Reproduce designs from Page 7**: start with `Color Schemes` as a framework demo (nested cards that use alpha-overlay darken/lighten tokens, dark and light), then the Palette sections one at a time. Reuse existing framework CSS/classes first (CLAUDE.md law 6; check `styles/` and `ux/` before writing anything). A cheap pattern: **you** (Sonnet) read the Figma file and write a minimal spec per section (node ids, the screenshot, the exact tokens); then a **Haiku 5.5 minion under 60k tokens** gets only that spec and builds the page. Record what Haiku got right and wrong per section.
+5. **Open design question to decide and write down** (do not wait on the owner): how page content should be stored. Owner's thinking: a page's content as a list of views serialized into the page's JSONL (first line may hold a snapshot, later lines are deltas, so playback and the live tail come free; condense/snapshot when large), the same way chat messages and session files already render as lists. Find out what exists today (`core/Page/doc/indexing-2026-10-08.md`, `ext/Refine`, the streaming list/Page classes, `page.js` vs `page.jsonl`), decide whether the first slice should use that or plain `page.js`, take the simpler working path, and record the alternative. If the page-as-JSONL-views idea is not built yet, do not build it here: write a short `doc/` note with what you learned and what the smallest slice would be.
+
+## Fences
+- Work in a worktree; commit each working step after a smoke test; merge via `Server/merge.mjs` after reviewing the diff. Linked from the site (CLAUDE.md "Everything is linked").
+- Figma writes: only the scratch file `T5PuB8EhKhfyh0xtpIT1L0` or new files in lew42 drafts. **Never modify or delete anything in Sept-2026 or July-2026** (read only).
+- Do not touch `ai/sessions/`, `Servex/`, `core/Page` semantics (note what you need instead).
+- Model: you are Sonnet 5.5. Run `node Server/usage-now.mjs` before each spawn; Haiku minions only for cheap reading/building, under 60k tokens; no OpenRouter. Chat replies one sentence; progress as short log lines at least every 5 minutes; write `STATE.md` in this dir so a fresh session can resume.
+- Land with `finish-task`; commit with attribution; leave no worktree behind.
+

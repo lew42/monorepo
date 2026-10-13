@@ -1,6 +1,10 @@
 # AI
 
-Where the agents' work is recorded: one folder per day, one folder per task inside it.
+Where the agents' work is recorded, in one tree ([doc/task-folders.md](doc/task-folders.md)):
+
+- **A task** (its log, brief, review): `ai/sessions/YYYY/MM/DD/<session>/<task>/`, made by `node Server/TaskDirs.mjs --new <slug>`; the day's log is `ai/sessions/YYYY/MM/DD/day.jsonl`.
+- **An Inbox card**: `ai/YYYY/MM/DD/<card>/` today; decided to move into `ai/sessions/YYYY/MM/DD/cards/` ([the plan](sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store/doc/one-tree.md)).
+- **Nothing else** is created under `ai/`: no `ai/<YYYY-MM-DD>/` day folder (refused since 2026-10-13), and a file about a module lives in that module's folder.
 
 The AI system: Servex runs the agents, the readme chain is their memory, each task is a folder with a JSONL log, and node (not memory) drives the steps. Components shown, one card each: [System tab](/framework/ai/system/). **Why it is shaped this way: [doc/architecture.md](doc/architecture.md).**
 
