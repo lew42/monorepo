@@ -74,3 +74,11 @@ just research. The two things you'll actually do with it:
    tasks — not just published benchmarks? (`qaoza`)
 5. Is a real path allowlist (a PreToolUse hook) worth building, or does worktree isolation
    already cover the actual risk seen so far? (`q5m7h`)
+
+## The wall switch (Claude tokens vs OpenRouter)
+
+- **Default:** every agent, the Echo and the voice pair run on Claude (fast = Haiku 5.5, smart = Sonnet 5.5); OpenRouter costs nothing because nothing uses it.
+- **When to flip:** when the Claude week or 5 h window hits its wall (`public/framework/ai/usage.json`; both percentages sit at the top of [/framework/ai/models](/framework/ai/models)).
+- **How:** `node Server/models-now.mjs --backend openrouter` (writes `session-backend.txt`), then `node Servex/sustain.mjs --restart`. Back: `--backend anthropic`, restart. The switch is read once at load; the script prints each tier's before and after.
+- **What it costs:** every Anthropic tier becomes `openai/gpt-6-luna`, metered per call into `logs/openrouter.jsonl` and capped by the spend guard (weekly cap in `openrouter-usage.json`). The switch itself lifts `SERVEX_OPENROUTER_PAUSED`.
+- **Refresh the table:** `node Server/models-now.mjs --write`.

@@ -8,6 +8,7 @@ import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./registry.js";
 import { defaults as role_defaults, opening, injected } from "./roles.js";
+import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import TaskDirs from "../../Server/TaskDirs.mjs";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
@@ -164,7 +165,7 @@ export class Agents {
 			 * model_for() already checks for echoes, now also covering real spawns.
 			 * The cost fix landed 2026-10-04 (meter() reads usage.cost), so the pause is
 			 * now opt-in: set SERVEX_OPENROUTER_PAUSED=1 to stop OpenRouter spawns. */
-			if (process.env.SERVEX_OPENROUTER_PAUSED !== "0" && !/^session-(fast|smart)$/.test(spec.role ?? ""))   // the voice roles are exempt (voice model policy, 2026-10-12: the accounting gap is fixed, the owner wants them off Claude); the spend guard below still applies. PAUSED BY DEFAULT (the owner, 2026-10-08: OpenRouter accounting is not trusted; avoid it). SERVEX_OPENROUTER_PAUSED=0 re-enables.
+			if (process.env.SERVEX_OPENROUTER_PAUSED !== "0" && !OR_ONLY && !/^session-(fast|smart)$/.test(spec.role ?? ""))   // OR_ONLY = the owner flipped session-backend.txt to openrouter (the wall switch): that IS the consent, or every spawn would be refused.   // the voice roles are exempt (voice model policy, 2026-10-12: the accounting gap is fixed, the owner wants them off Claude); the spend guard below still applies. PAUSED BY DEFAULT (the owner, 2026-10-08: OpenRouter accounting is not trusted; avoid it). SERVEX_OPENROUTER_PAUSED=0 re-enables.
 				throw new Error(`OpenRouter spawns are paused: the owner does not trust OpenRouter accounting yet (set SERVEX_OPENROUTER_PAUSED=0 to allow)`);
 			const guard = spend_guard();
 			if (!guard.ok) throw new Error(`openrouter spawn refused: ${guard.reason}`);

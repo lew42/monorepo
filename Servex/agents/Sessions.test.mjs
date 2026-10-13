@@ -213,7 +213,7 @@ check("recent_project() lists every session of one project, newest first, across
 check("voice roles run on Claude by default, even with OpenRouter ready; a Claude refusal moves that role to OpenRouter", () => {
 	const s = make(), sess = s.create({ path: "/a/", host: "siteA.localhost" }), row = s.map[sess.session];
 	s.or_ready = () => true;
-	assert.equal(s.session_model(row, "fast"), "claude-sonnet-5-5");
+	assert.equal(s.session_model(row, "fast"), "claude-haiku-5-5");
 	assert.ok(String(s.session_model(row, "smart")).startsWith("claude"));
 	row.fallback = { fast: true };   // Claude was refused once for this session: it stays on OpenRouter
 	assert.equal(s.session_model(row, "fast"), FALLBACK_MODEL);

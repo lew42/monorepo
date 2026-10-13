@@ -2,7 +2,8 @@
  * A role is four things: skill + tier + effort + tools; this file is only the tier.
  * Moving a tier to another provider (e.g. OpenRouter) is a one-line change here. */
 export const TIERS = {
-	fast: { provider: "anthropic", model: "claude-sonnet-5-5" },
+	// fast = Haiku (the owner, 2026-10-13: "fast = Haiku, smart = Sonnet"); judgment roles that used to share it moved to `manager` in roles.js.
+	fast: { provider: "anthropic", model: "claude-haiku-5-5" },
 	// ALL TIERS SONNET (the owner, 2026-10-07: the week ran out two days early; Opus is for a stated reason only).
 	manager: { provider: "anthropic", model: "claude-sonnet-5-5" },
 	architect: { provider: "anthropic", model: "claude-sonnet-5-5" },
@@ -30,12 +31,12 @@ export const TIERS = {
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-const OR_ONLY = (() => {
+export const OR_ONLY = (() => {
 	try {
 		const f = path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), "lew42", "servex", "session-backend.txt");
 		return fs.readFileSync(f, "utf8").trim().toLowerCase() === "openrouter";
 	} catch { return false; }
 })();
-const OR_MODEL = "openai/gpt-6-luna";
+export const OR_MODEL = "openai/gpt-6-luna";
 export const model = tier => (OR_ONLY && TIERS[tier]?.provider === "anthropic") ? OR_MODEL : (TIERS[tier]?.model ?? tier);
 export const provider = tier => (OR_ONLY && TIERS[tier]?.provider === "anthropic") ? "openrouter" : (TIERS[tier]?.provider ?? "anthropic");

@@ -63,7 +63,7 @@ export const ROLES = {
 	 * (the code) is unchanged; only the word is retired. doc/names.md has the detail. */
 	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "architect", model: model("architect"), effort: "high", permission_mode: "plan" },
 	/* Woken per landing and per proposal by Server/clarity.mjs; fresh each time, one pass (.claude/skills/clarity/). */
-	clarity:            { skill: "clarity",          prefix: "clarity",          tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
+	clarity:            { skill: "clarity",          prefix: "clarity",          tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
 	/* ONE PAIR PER VOICE SESSION (Sessions.js, ai/sessions/2026/09/30/voice-sessions/voice-sessions): spawned by code with
 	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill.
 	 * `session-smart` shares the "files for the next agent, cards for the owner" write discipline
@@ -71,7 +71,7 @@ export const ROLES = {
 	 * judging-against-the-owner's-sentence or landing parts — it spawns a task mastermind to do
 	 * those instead of doing them itself. Detail: tiers-design/doc/roles.md. */
 	"session-fast":     { prefix: "session-fast",     tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
-	"session-smart":    { prefix: "session-smart",    tier: "manager",   model: model("fast"),   /* Sonnet, not Opus: the owner, 2026-10-05, saving credits; the one mastermind above the sessions stays Opus */    effort: "medium", permission_mode: "bypassPermissions" },
+	"session-smart":    { prefix: "session-smart",    tier: "manager",   model: model("manager"),   /* Sonnet, not Opus: the owner, 2026-10-05, saving credits; the one mastermind above the sessions stays Opus */    effort: "medium", permission_mode: "bypassPermissions" },
 	/* A FRESH mastermind for one folder (Servex/agents/directory.js, `ask_directory`): the task
 	 * mastermind's posture, opened with the folder's plain files as its first message. Spawned by
 	 * code with `system` set, so this row's skills are inlined by directory.js, not by `opening()`
@@ -79,9 +79,9 @@ export const ROLES = {
 	"directory-mastermind": { skills: ["sub-mastermind", "page"], prefix: "directory-mastermind", tier: "manager", model: model("manager"), effort: "medium", permission_mode: "plan" },
 	/* Skill-usage audit 2026-10-12: these three were never told to load a skill (2 of 518 loaded one on their own);
 	 * a role row is what makes Servex prefix "Load the X skill". Callers' own model/effort/permissions still win. */
-	reviewer:           { skill: "review",           prefix: "reviewer",         tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
-	checker:            { skill: "review",           prefix: "checker",          tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
-	voter:              { skill: "research",         prefix: "voter",            tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
+	reviewer:           { skill: "review",           prefix: "reviewer",         tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
+	checker:            { skill: "review",           prefix: "checker",          tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
+	voter:              { skill: "research",         prefix: "voter",            tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
 	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }
 };
 

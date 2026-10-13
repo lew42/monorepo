@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { place } from "../home.js";
 import Usage from "../Usage.js";
+import { model as tier_model } from "./tiers.js";
 import { page_path } from "./Layers.js";
 import { session_facts } from "./Agents.js";
 import { has_key, spend_guard } from "../ext/openrouter/provider.js";
@@ -1000,7 +1001,7 @@ export default class Sessions {
 		return this.claude_model(role);
 	}
 
-	claude_model(role){ return role === "fast" ? "claude-sonnet-5-5" : Usage.pick("smart", this.repo); }
+	claude_model(role){ return role === "fast" ? tier_model("fast") : Usage.pick("smart", this.repo); }
 
 	/* OpenRouter usable right now? A key, and the spend guard (cached, never a network call here) says yes. */
 	or_ready(){ try { return has_key() && spend_guard().ok; } catch { return false; } }

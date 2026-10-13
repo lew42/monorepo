@@ -1,4 +1,5 @@
 import fs from "fs";
+import { model } from "./tiers.js";
 import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -132,21 +133,11 @@ export default class Echo {
 		return run;
 	}
 
-	/* THE OPENROUTER LIVE TRIAL (the owner, 2026-10-02: take load off the Claude windows). The
-	 * refiner is the first job moved: google/gemini-3.8-flash was closest to the consensus in the
-	 * audit pilot (distance 0.2; Sonnet 0.6). A model id with a slash picks the openrouter provider
-	 * by itself (Agents.js, the slash rule), with its spend guard and real cost. Every echo spawns
-	 * on it (vscode-mastermind, 2026-10-02: the Sonnet echo-361c4d18 cost $3.50 at 132k context).
-	 * SERVEX_ECHO_OR narrows it to a comma-separated list of session-id prefixes; "none" puts every
-	 * echo back on Claude. Token-reduction item 13 rotates a share to the other cheap models. */
-	model_for(session_id){
-		if (process.env.SERVEX_OPENROUTER_PAUSED !== "0") return {};   // OpenRouter is paused (Agents.spawn): echoes stay on Claude
-		const list = String(process.env.SERVEX_ECHO_OR ?? "all").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
-		const sid = String(session_id).toLowerCase();
-		if (!list.includes("all") && !list.some(p => sid.startsWith(p))) return {};
-		this.servex.log?.append?.("servex", { type: "route", job: "echo", id: this.id_for(session_id), model: "google/gemini-3.8-flash", why: "OpenRouter live trial (the owner, 2026-10-02)" })?.catch?.(() => {});
-		return { model: "google/gemini-3.8-flash" };
-	}
+	/* WHICH MODEL AN ECHO RUNS ON (the owner, 2026-10-13: no OpenRouter money while Claude tokens last).
+	 * The `scan` tier: Haiku, or OpenRouter only when session-backend.txt says `openrouter` (tiers.js, the one
+	 * switch: `node Server/models-now.mjs --backend openrouter|anthropic`). The 2026-10-02 Gemini trial and its
+	 * SERVEX_ECHO_OR / SERVEX_OPENROUTER_PAUSED gates are gone; history: Servex/ext/openrouter/readme.md. */
+	model_for(){ return { model: model("scan") }; }
 
 	async is_machine(session_id){
 		while (this.inflight.size) await Promise.allSettled([...this.inflight]);
