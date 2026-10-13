@@ -370,5 +370,5 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
 - **Nothing disappears, everything transfers** (the owner, 2026-10-04): raw Whisper sentences append to the box; each becomes its clean version in place as soon as it is ready; when sent, a sentence moves from the box to the chat in one atomic step (no gap, no reappearing). In the chat, sentences join the refined prompt cards; a sentence confidently accounted for in a card is shown as part of it.
 - **The prompt is a living object** (the owner, 2026-10-04): a content list that keeps growing as the owner talks; the mastermind working on it receives each update and can start before the prompt is "finished". Opinion, not yet designed.
 
-- [`doc/notes.md`](./doc/notes.md) and [`doc/widget-notes.md`](./doc/widget-notes.md) — comments pruned from `Dictate.js` and `Widget.js`, verbatim.
+- [`doc/notes.md`](./doc/notes.md), [`doc/widget-notes.md`](./doc/widget-notes.md), and [`doc/chat-notes.md`](./doc/chat-notes.md) — comments pruned from `Dictate.js`, `Widget.js`, and `chat.js`, verbatim.
 - [`playground/doc/Playground-notes.md`](./playground/doc/Playground-notes.md) — design notes and implementation details for the Playground widget.
