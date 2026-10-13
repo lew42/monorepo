@@ -18,3 +18,6 @@ Read: [page-layout.md](/framework/ext/Figma/doc/page-layout.md) (masters top lev
 5. The page is a `Page · Kit · Mobile builder` 1920 component (library + workspace inside as instances); masters beside it.
 
 Screenshot and fix. Link it from the Overview design-system card. Report `kit/builder.md`, committed by path.
+
+## Addendum (owner, 2026-10-13)
+A few blocks give thousands of combinations. Which block sits well above or below which, what gets padding, and which ground changes are the design system, so the workspaces exist to play with exactly that. **Workspaces at every benchmark:** 400 (mobile), 1000 (a 300–400 left sidebar plus the remaining main area), 1920, 3440. Do mobile first; add the 1000 / 1920 / 3440 workspaces (empty, plus one example each) if the blocks are FILL-based and it is cheap. Three-column page templates come after the two-column set (a later brief).
