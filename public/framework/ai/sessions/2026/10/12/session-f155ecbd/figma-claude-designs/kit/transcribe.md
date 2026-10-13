@@ -15,3 +15,6 @@ Hairline (black 10%), 4 px stamp gap, 16 px sheet radius, pill radius, 2 px care
 
 ## Still looks off
 (e) desktop has empty space below the tasks; (a) task 1 wraps to two lines on the phone.
+
+## Update 2026-10-13
+Masters moved top level on the page (old `Components` frame emptied and parked at x=-1000, kept). Icons are plain Material Symbols text: `kit/icons.md` did not exist yet.
