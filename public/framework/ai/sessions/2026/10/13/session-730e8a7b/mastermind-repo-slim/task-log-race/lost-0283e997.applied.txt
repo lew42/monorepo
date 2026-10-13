@@ -1,0 +1,744 @@
+{
+ "done": [
+  {
+   "f": ".claude/skills/clarity/flags.jsonl",
+   "n": 37
+  },
+  {
+   "f": "Server/refine-scoreboard.jsonl",
+   "n": 5
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/grid-core/page.jsonl",
+   "n": 2
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/grid-core/task.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-adopt/task.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-perf/page.jsonl",
+   "n": 6
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-ceb73541/page-templates-merge/task.jsonl",
+   "n": 2
+  },
+  {
+   "f": "public/framework/ai/2026/09/25/file-explorer-see-the-code/page.jsonl",
+   "n": 2
+  },
+  {
+   "f": "public/framework/ai/2026/10/03/now/page.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/2026/10/13/dictate-on-the-phone-proving-transcripti/page.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/2026/10/13/refine-confidence-0-5-means-not-sure-evi/page.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/2026/10/13/refine-pipeline-haiku-refines-one-prompt/page.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/ai/log.jsonl",
+   "n": 2
+  },
+  {
+   "f": "public/framework/ai/log.jsonl",
+   "n": 5
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-21449a90/page-templates-binding-merge/task.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/build/page.jsonl",
+   "n": 2
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-darker/task.jsonl",
+   "n": 4
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-dropdowns/task.jsonl",
+   "n": 4
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-icons/task.jsonl",
+   "n": 4
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-lists-cards/page.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-lists-cards/task.jsonl",
+   "n": 6
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-toggles/task.jsonl",
+   "n": 4
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/icons/task.jsonl",
+   "n": 4
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/lists/task.jsonl",
+   "n": 4
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/two-col/task.jsonl",
+   "n": 4
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/web-ground/task.jsonl",
+   "n": 4
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/day.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/assistant-chain/task.jsonl",
+   "n": 3
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-check/task.jsonl",
+   "n": 8
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/figma-to-code/task.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/model-switch/task.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes/task.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-confidence/task.jsonl",
+   "n": 4
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-pipeline/task.jsonl",
+   "n": 2
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/session-dup-check/task.jsonl",
+   "n": 4
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/skills-review/task.jsonl",
+   "n": 1
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task.jsonl",
+   "n": 1
+  }
+ ],
+ "skipped": [
+  {
+   "f": "public/ai/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/files.jsonl",
+   "n": 5,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/audits/paging/files.jsonl",
+   "n": 6,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/cards.jsonl",
+   "n": 4,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/col-resize/files.jsonl",
+   "n": 4,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/core-fixes/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/core-pass-3/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/game-round-2/files.jsonl",
+   "n": 12,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/gen-widths/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/imagine-mag/files.jsonl",
+   "n": 7,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/imagine-root/files.jsonl",
+   "n": 9,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/pg-chrome-polish/files.jsonl",
+   "n": 4,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/pg-seed-hug/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/preview-nav/files.jsonl",
+   "n": 10,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/scenes-3d/files.jsonl",
+   "n": 16,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/scenes-atmosphere/files.jsonl",
+   "n": 21,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/29/scenes-observatory/files.jsonl",
+   "n": 21,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/alpha-flip/files.jsonl",
+   "n": 9,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/blog-arch/files.jsonl",
+   "n": 5,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/blog-build/files.jsonl",
+   "n": 5,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/cloudflare-mcp/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/color-stacks/files.jsonl",
+   "n": 7,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/critique-blog/files.jsonl",
+   "n": 6,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/critique-fixes/files.jsonl",
+   "n": 5,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/demo-clips/files.jsonl",
+   "n": 9,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/demo-merge-2/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/demo-merge/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/json-pages/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/lazy-children/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/post-hello/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/post-tooling/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/30/research-depictions/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/31/improve-cms-stream/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/31/improve-feeds-vary/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/31/improve-generator/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/31/improve-scenes-yt/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/31/polish-vary-decks-blogx/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/31/qa-2026-08-31/files.jsonl",
+   "n": 7,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/08/31/research-round-6/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/01/padding-study/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/01/spacing-clamp/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/01/system-proposal/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/01/themes-browser/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/04/decision-identity/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/05/layout-system/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/05/nav-stability/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/05/page-builder-ux/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/05/paging-templates/files.jsonl",
+   "n": 4,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/05/persistence-rethink/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/05/sections/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/05/spacing-audit/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/05/spacing-components/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/05/spacing-judge/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/05/ux-mag/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/05/ux-platform/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/bleed-gutter/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/demo-parts/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/doodles/files.jsonl",
+   "n": 5,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/graduate-1/files.jsonl",
+   "n": 5,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/notes-pages-3/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/notes-pages-4/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/notes-pages/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/notes-split/files.jsonl",
+   "n": 17,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/omnibox-search/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/paging-lean/files.jsonl",
+   "n": 7,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/platform-slice/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/search-tidy/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/section-b/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/size-apply/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/size-standard/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/theme-button/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/06/ui-theme/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/08/ai-highlights/files.jsonl",
+   "n": 16,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/08/blog-playwright/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/08/critic-websites/files.jsonl",
+   "n": 10,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/08/font-fallback/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/08/notes-redactions/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/08/paging-scroll/files.jsonl",
+   "n": 4,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/08/patterns/files.jsonl",
+   "n": 4,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/08/platform-mvp-picture/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/08/title-wrap/files.jsonl",
+   "n": 4,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/13/importance/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/13/mastermind-page-cms/files.jsonl",
+   "n": 4,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/13/page-cms/files.jsonl",
+   "n": 7,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/13/page-data-children-proposal/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/13/paging-spacing-3440/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/13/self-evident-critique-2/files.jsonl",
+   "n": 9,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/13/self-evident-critique-3/files.jsonl",
+   "n": 6,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/13/self-evident-critique/files.jsonl",
+   "n": 8,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/22/files.jsonl",
+   "n": 16,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/23/files.jsonl",
+   "n": 8,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/24/files.jsonl",
+   "n": 104,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/25/files.jsonl",
+   "n": 12,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/28/files.jsonl",
+   "n": 195,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/29/files.jsonl",
+   "n": 208,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/09/30/files.jsonl",
+   "n": 180,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/01/files.jsonl",
+   "n": 93,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/02/files.jsonl",
+   "n": 37,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/04/files.jsonl",
+   "n": 41,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/05/files.jsonl",
+   "n": 27,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/usage.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/core/Item/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/core/Layout/doc/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/core/Page/doc/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/core/Router/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/core/View/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/dev/DevBar/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/dev/Socket/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/Ask/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/DesignTool/doc/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/JSONL/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/Research/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/catalog/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/demo/doc/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/markdown/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/styles/layouts/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/styles/system/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  }
+ ]
+}
