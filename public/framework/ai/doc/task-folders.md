@@ -1,6 +1,6 @@
 # Task folders: one home, inside the sessions store (2026-10-12)
 
-Decided by `mastermind-task-folders` (session e456f109), brief: [`requirements.md`](../2026-10-12/task-folders/requirements.md). The owner's words:
+Decided by `mastermind-task-folders` (session e456f109), brief: [`requirements.md`](../sessions/2026/10/12/session-e456f109/task-folders/requirements.md). The owner's words:
 
 > "Having a folder for every day inside of the AI folder… is an anti-pattern. I thought we were moving to nesting them, and actually I kind of think they should all be in the sessions folder… We cannot be having two similar but different systems where we have redundant data."
 
