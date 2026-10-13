@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/code/performance/",
+ "widths": {
+  "1280": {
+   "empty": 0.799,
+   "widest_text": 576,
+   "widest_text_sample": "A page should stay smooth with thousands",
+   "overflow_x": false,
+   "items": 28,
+   "narrow_share": 0.143
+  },
+  "1920": {
+   "empty": 0.862,
+   "widest_text": 613,
+   "widest_text_sample": "A page should stay smooth with thousands",
+   "overflow_x": false,
+   "items": 28,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.869,
+   "widest_text": 689,
+   "widest_text_sample": "A page should stay smooth with thousands",
+   "overflow_x": false,
+   "items": 28,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.899,
+   "widest_text": 689,
+   "widest_text_sample": "A page should stay smooth with thousands",
+   "overflow_x": false,
+   "items": 28,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/library/",
+ "widths": {
+  "1280": {
+   "empty": 0.632,
+   "widest_text": 567,
+   "widest_text_sample": "Everything we built, browsable: pick one",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 0.383
+  },
+  "1920": {
+   "empty": 0.734,
+   "widest_text": 603,
+   "widest_text_sample": "Everything we built, browsable: pick one",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 0.606
+  },
+  "2560": {
+   "empty": 0.762,
+   "widest_text": 678,
+   "widest_text_sample": "Everything we built, browsable: pick one",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.823,
+   "widest_text": 678,
+   "widest_text_sample": "Everything we built, browsable: pick one",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

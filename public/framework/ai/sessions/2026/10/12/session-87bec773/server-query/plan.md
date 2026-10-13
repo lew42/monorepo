@@ -26,10 +26,14 @@ Nothing new on the static site: production keeps reading the files (no server at
 ## Decisions
 
 1. **A query is data, never code.** The client sends `{ source, where: [{ field, op, value }], sort: { by, dir }, offset, limit, sum: [fields] }`; ops are `eq in gte lte contains`. *Alternative:* send a function body to eval in node. Rejected: this socket is localhost-only but already carries `rpc:cmd`; evaluating query text widens it further, and a declarative query is cacheable and loggable.
-2. **Where the full load happens.** A source has `load()` (async), run on the first query; the registry unloads it after `unload_after` idle (default 5 minutes). Sessions' `load` is `live.index.ready`; its data stays resident because the tailer needs it anyway, so its `unload` is a no-op. A page.jsonl-backed Page would `load` by replaying its log (the `page_read` path) and `unload` by dropping it. *Alternative:* a separate session store just for queries. Rejected: two copies of the same truth (law 6).
+2. **Where the full load happens.** A source has an async `load()`, run on the first query.
+   - The registry unloads it after `unload_after` idle (default 5 minutes).
+   - Sessions' `load` is `live.index.ready`; its data stays resident because the tailer needs it anyway, so its `unload` is a no-op. A page.jsonl-backed Page would `load` by replaying its log (the `page_read` path) and `unload` by dropping it. *Alternative:* a separate session store just for queries. Rejected: two copies of the same truth (law 6).
 3. **Full-load safety.** Sessions is already loaded; one query is one pass over ~7,800 objects (measure it; expected under 10 ms). A future source over about 1,000 items loads in chunks with `await` between them, so the server never blocks.
 4. **Live updates are scoped.** Each socket's last answer is remembered (the query and the ids it returned). On a change: if the id is among the shown rows, push `query_row(qid, row)`; otherwise if it matches the `where`, push `query_stale(qid, total)` at most once a second, and the client re-asks for its page. No per-row subscriptions.
-5. **Client stays one grid** (law 6). `AISessionsPage` gets a remote mode: the grid's rows come from `query` (first 50, the next page as the grid scrolls), and the summary totals come from `totals`. Off the dev socket (production, a phone on the LAN without it) the page falls back to today's file loading. *Alternative:* a new lightweight Sessions view. Rejected: a second version of the same page.
+5. **Client stays one grid** (law 6). `AISessionsPage` gets a remote mode.
+   - Grid rows come from `query` (first 50, the next page as the grid scrolls); summary totals come from `totals`.
+   - Off the dev socket (production, a phone on the LAN without it) the page falls back to today's file loading. *Alternative:* a new lightweight Sessions view. Rejected: a second version of the same page.
 6. **Buckets and nesting move with the query** only if they fit the slice; otherwise remote mode shows flat rows first and records the gap. Flat and fast first (law 1), then parity.
 
 ## Measure (before and after, same script)

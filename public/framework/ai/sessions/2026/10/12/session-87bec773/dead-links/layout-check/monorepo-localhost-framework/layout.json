@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/",
+ "widths": {
+  "1280": {
+   "empty": 0.657,
+   "widest_text": 537,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 154,
+   "narrow_share": 0.058
+  },
+  "1920": {
+   "empty": 0.723,
+   "widest_text": 572,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 154,
+   "narrow_share": 0.896
+  },
+  "2560": {
+   "empty": 0.726,
+   "widest_text": 643,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 154,
+   "narrow_share": 0.896
+  },
+  "3440": {
+   "empty": 0.72,
+   "widest_text": 643,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 152,
+   "narrow_share": 0.908
+  }
+ },
+ "errors": []
+}

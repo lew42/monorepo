@@ -1,0 +1,820 @@
+diff --git a/public/framework/ext/demo/exhibit.js b/public/framework/ext/demo/exhibit.js
+index 88ffbb74e..592a69ec0 100644
+--- a/public/framework/ext/demo/exhibit.js
++++ b/public/framework/ext/demo/exhibit.js
+@@ -99,6 +99,8 @@ function variants(page){
+ demo.page = (name, fn, config) => ({
+ 	name,
+ 
++	specimen: fn,
++
+ 	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", fn)); },
+ 
+ 	content(){
+diff --git a/public/framework/library/Collection.js b/public/framework/library/Collection.js
+new file mode 100644
+index 000000000..15923b171
+--- /dev/null
++++ b/public/framework/library/Collection.js
+@@ -0,0 +1,32 @@
++import Item from "./Item.js";
++
++// A category (ui, figma …): a name, a default width, and a loader that lists its top-level pages. Docs: doc/decisions.md.
++export default class LibraryCollection {
++
++	constructor({ name, label = name, optimalWidth = 1000, needs_parent_padding = false, draws_content = false, bands = null, load, base }){
++		Object.assign(this, { name, label, optimalWidth, needs_parent_padding, draws_content, bands, load, base });
++		this._items = null;
++	}
++
++	// [[key, page]] from the loader, as Items. Cached: pages are modules and never change under us.
++	async items(){
++		this._items ??= (async () => (await this.load()).map(([key, page]) =>
++			new Item({ collection: this, key, page, base: this.base(key) })))();
++		return this._items;
++	}
++
++	// ["card", "media"] → the last link of the Item chain, or undefined.
++	async find(segments){
++		const first = (await this.items()).find(item => item.key === segments[0]);
++		return first?.find(segments.slice(1));
++	}
++
++	// Same band as the item's top-level ancestor (ui/page.js BANDS), that ancestor left out.
++	async related(item){
++		if (!this.bands) return [];
++		const root = item.root, band = Object.values(this.bands).find(names => names.split(" ").includes(root.key));
++		if (!band) return [];
++		const keys = band.split(" ").filter(key => key !== root.key);
++		return (await this.items()).filter(one => keys.includes(one.key));
++	}
++}
+diff --git a/public/framework/library/Item.js b/public/framework/library/Item.js
+new file mode 100644
+index 000000000..580c5c165
+--- /dev/null
++++ b/public/framework/library/Item.js
+@@ -0,0 +1,67 @@
++// One thing to show: wraps a Page (a component page or a demo.page child) and never copies it.
++// Variants are the page's own `children`. Docs: doc/decisions.md.
++export default class LibraryItem {
++
++	static CHROME = ["overview", "api", "doc", "files"];
++
++	constructor({ collection, key, page, parent = null, base }){
++		Object.assign(this, { collection, key, page, parent, base });
++		this.path = (parent ? parent.path : collection.name) + "/" + key;
++		this.cache = null;
++	}
++
++	get title(){ return this.page.title || this.key; }
++	get icon(){ return this.page.icon; }
++	get description(){ return this.page.description; }
++	get href(){ return this.base; }   // the page's own url on the site
++	get root(){ return this.parent ? this.parent.root : this; }
++	get optimalWidth(){ return this.page.optimalWidth ?? this.page.data?.optimalWidth ?? this.collection.optimalWidth; }
++	get needs_parent_padding(){ return this.page.needs_parent_padding ?? this.collection.needs_parent_padding; }
++	get no_parent_padding(){ return this.page.no_parent_padding ?? false; }
++	get specimen(){ return this.page.specimen ?? this.page.data?.specimen; }
++
++	// The page's children as Items; lazy children resolve through page.child().
++	async variants(){
++		if (this.cache) return this.cache;
++
++		const names = [...this.page.children.keys()].filter(name => !this.constructor.CHROME.includes(name));
++		const pages = await Promise.all(names.map(name => this.page.child(name)));
++
++		return this.cache = names
++			.map((name, i) => pages[i] && new this.constructor({ collection: this.collection, key: name, page: pages[i], parent: this, base: this.base + name + "/" }))
++			.filter(Boolean);
++	}
++
++	async siblings(){ return this.parent ? this.parent.variants() : this.collection.items(); }
++
++	async find(segments){
++		if (!segments.length) return this;
++		const next = (await this.variants()).find(item => item.key === segments[0]);
++		return next?.find(segments.slice(1));
++	}
++
++	// Draws the item into the current capture: its `specimen`, else the page's own content function (Figma), else its preview thumb at 100%.
++	render(){
++		const { specimen, page } = this;
++		if (specimen) return specimen();
++
++		const content = page.content?.value;
++		if (this.collection.draws_content && typeof content === "function") return content.call(page);
++
++		return this.thumb();
++	}
++
++	// The page's preview() thumb with its `zoom-*` class taken off, so it lays out at full size.
++	thumb(){
++		const nav = { url: this.href, label: this.title, icon: this.icon, description: this.description };
++		const $card = this.page.preview(nav);
++		const inner = $card.el.querySelector(".page-preview-thumb");
++		const kids = inner ? [...inner.childNodes] : [$card.el];
++
++		kids.forEach(node => node.nodeType === 1 && [node, ...node.querySelectorAll("[class*='zoom-']")]
++			.forEach(el => [...el.classList].filter(c => /^zoom-\d+$/.test(c)).forEach(c => el.classList.remove(c))));
++
++		if (inner) $card.el.replaceWith(...kids);
++		return $card;
++	}
++}
+diff --git a/public/framework/library/Library.js b/public/framework/library/Library.js
+new file mode 100644
+index 000000000..6f8c74603
+--- /dev/null
++++ b/public/framework/library/Library.js
+@@ -0,0 +1,118 @@
++import { Page, View, div, a } from "/app.js";
++import Collection from "./Collection.js";
++import Item from "./Item.js";
++import Rail from "./Rail.js";
++import Stage from "./Stage.js";
++
++View.stylesheet(import.meta, "library.css");
++
++// The UI library: three columns (siblings · the chosen item at full size · its variants and related), one URL per view: ?at=ui/card/media.
++// Docs: readme.md, doc/decisions.md, doc/tree.md.
++export default class Library extends Page {
++
++	static Collection = Collection;
++	static Item = Item;
++	static Rail = Rail;
++	static Stage = Stage;
++
++	static DEFAULT = "ui/card";
++	static FIGMA = ["palette", "colors", "autolayout"];
++
++	// ui: the children of /framework/ui/ (mobile first, 400). figma: the rebuilt Figma pages (1920).
++	static collections(){
++		return this._collections ??= [
++			new Collection({
++				name: "ui", label: "ui", optimalWidth: 400, needs_parent_padding: true,
++				base: key => `/framework/ui/${key}/`,
++				load: async () => {
++					const { default: ui, BANDS } = await import("/framework/ui/page.js");
++					this._collections[0].bands = BANDS;
++					const keys = [...ui.children.keys()].filter(key => !ui.constructor.SECTIONS?.includes(key));
++					return Promise.all(keys.map(async key => [key, await ui.child(key)]));
++				},
++			}),
++			new Collection({
++				name: "figma", label: "figma", optimalWidth: 1920, draws_content: true,
++				base: key => `/framework/ext/Figma/${key}/`,
++				load: async () => Promise.all(this.FIGMA.map(async key =>
++					[key, (await import(`/framework/ext/Figma/${key}/page.js`)).default])),
++			}),
++		];
++	}
++
++	constructor(...args){
++		super({
++			title: "Library",
++			icon: "collections_bookmark",
++			description: "Everything we built, browsable: pick one on the left, see it at full size in the middle, its variants on the right.",
++			width: "full",
++		}, ...args);
++		this.epoch = 0;
++		this.rail = new Library.Rail({ library: this });
++	}
++
++	href_for(path){ return `${location.pathname}?at=${path}`; }
++
++	read(){ return new URLSearchParams(location.search).get("at") || Library.DEFAULT; }
++
++	content(){
++		div.c("library bleed wide", () => {
++			this.$left = div.c("library-col library-left");
++			this.$mid = div.c("library-col library-mid");
++			this.$right = div.c("library-col library-right");
++		});
++
++		this.listen();
++		this.show(this.read());
++	}
++
++	// One popstate listener for the page's life; it reads the url, so back and forward land where they were.
++	listen(){
++		if (this.listening) return;
++		this.listening = true;
++		addEventListener("popstate", () => this.$mid?.el.isConnected && this.show(this.read()));
++	}
++
++	go(path){
++		history.pushState(null, "", this.href_for(path));
++		this.show(path);
++	}
++
++	// "ui" → first item of ui; "ui/card/media" → that variant.
++	async resolve(path){
++		const [name, ...rest] = path.split("/").filter(Boolean);
++		const collection = Library.collections().find(one => one.name === name) ?? Library.collections()[0];
++		const items = await collection.items();
++		const item = rest.length ? await collection.find(rest) : items[0];
++		return { collection, item: item ?? items[0] };
++	}
++
++	async show(path){
++		const epoch = ++this.epoch;
++		const { collection, item } = await this.resolve(path);
++		const [siblings, variants, related] = await Promise.all([item.siblings(), item.variants(), collection.related(item)]);
++		if (epoch !== this.epoch) return;   // a newer click overtook this one
++
++		this.collection_row(collection);
++		this.rail.draw(this.$left_list, [{ title: item.parent ? `${item.parent.title} — siblings` : collection.label, items: siblings }], item);
++		new Library.Stage({ library: this, item }).draw(this.$mid);
++		this.rail.draw(this.$right, [{ title: "Variants", items: variants }, { title: "Related", items: related }], item);
++		document.title = `${item.title} — Library`;
++	}
++
++	// The collection filter on top of the left column; the list below it is drawn by the Rail.
++	collection_row(active){
++		if (!this.$left_list){
++			this.$left.append(() => {
++				this.$chips = div.c("library-collections");
++				this.$left_list = div.c("library-list");
++			});
++		}
++
++		this.$chips.empty(() => Library.collections().forEach(one => {
++			const $chip = a.c("library-chip", one.label).href(this.href_for(one.name));
++			if (one === active) $chip.ac("on");
++			$chip.on("click", event => { event.preventDefault(); this.go(one.name); });
++		}));
++	}
++}
+diff --git a/public/framework/library/PaddingContract.js b/public/framework/library/PaddingContract.js
+new file mode 100644
+index 000000000..097e2dcea
+--- /dev/null
++++ b/public/framework/library/PaddingContract.js
+@@ -0,0 +1,42 @@
++// Docs: doc/decisions.md §7. An item that says `needs_parent_padding` must not touch an unpadded parent edge.
++export default class PaddingContract {
++
++	static SELECTOR = "[data-needs-parent-padding]";
++	static SIDES = ["Top", "Right", "Bottom", "Left"];
++
++	// Marks every offender under `root` with `.padding-misuse` and logs one console.error each; returns them.
++	static check(root = document){
++		const found = [];
++
++		root.querySelectorAll(this.SELECTOR).forEach(el => {
++			el.classList.remove("padding-misuse");
++			if (this.misused(el)){
++				el.classList.add("padding-misuse");
++				found.push(el);
++				console.error(`[padding] ${el.dataset.needsParentPadding || el.className || el.tagName}: needs_parent_padding inside an unpadded box — add padding to the parent or a background to the item`);
++			}
++		});
++
++		return found;
++	}
++
++	// True when the element sits against a parent edge whose padding there is 0.
++	static misused(el){
++		const parent = el.parentElement;
++		if (!parent) return false;
++
++		const own = el.getBoundingClientRect(), box = parent.getBoundingClientRect();
++		if (!own.width && !own.height) return false;
++
++		const style = getComputedStyle(parent);
++		const gap = {
++			Top: own.top - box.top, Left: own.left - box.left,
++			Bottom: box.bottom - own.bottom, Right: box.right - own.right,
++		};
++
++		return this.SIDES.some(side => {
++			const border = parseFloat(style[`border${side}Width`]) || 0;
++			return gap[side] - border < 1 && !parseFloat(style[`padding${side}`]);
++		});
++	}
++}
+diff --git a/public/framework/library/Rail.js b/public/framework/library/Rail.js
+new file mode 100644
+index 000000000..bedf1fb78
+--- /dev/null
++++ b/public/framework/library/Rail.js
+@@ -0,0 +1,51 @@
++import { div, a, h4, span, icon } from "/framework/core/View/View.js";
++import { watch } from "/framework/ext/demo/stage.js";
++
++// A column of Item previews. Each card lays the item out at its optimalWidth and scales it with CSS `zoom`
++// (card width ÷ optimalWidth, never above 1). Docs: doc/decisions.md §5–6.
++export default class LibraryRail {
++
++	static MAX_HEIGHT = 14;   // em; a tall item is cropped, not stretched
++
++	constructor({ library }){ this.library = library; }
++
++	// sections: [{ title, items }]
++	draw($box, sections, active){
++		$box.empty(() => sections.forEach(({ title, items }) => {
++			if (!items.length) return;
++			div.c("library-rail-section", () => {
++				h4.c("muted library-rail-title", title);
++				items.forEach(item => this.card(item, item.path === active?.path));
++			});
++		}));
++	}
++
++	card(item, on){
++		const { library } = this;
++		const $card = a.c("card library-card", () => {
++			div.c("library-thumb", $thumb => {
++				const $inner = div.c("library-thumb-inner", () => item.render());
++				watch($thumb.el, () => this.fit($thumb.el, $inner, item.optimalWidth));
++			});
++			div.c("library-card-title", () => {
++				if (item.icon) icon(item.icon);
++				span(item.title);
++			});
++		}).href(library.href_for(item.path)).attr("title", item.description || item.title);
++
++		if (on) $card.ac("on").attr("aria-current", "page");
++		$card.on("click", event => {
++			if (event.metaKey || event.ctrlKey || event.shiftKey) return;
++			event.preventDefault();
++			library.go(item.path);
++		});
++		return $card;
++	}
++
++	fit(thumb, $inner, width){
++		if (!thumb.clientWidth) return;
++		const factor = Math.min(1, thumb.clientWidth / width);
++		$inner.style({ width: width + "px", zoom: factor });
++		thumb.style.maxHeight = this.constructor.MAX_HEIGHT + "em";
++	}
++}
+diff --git a/public/framework/library/Stage.js b/public/framework/library/Stage.js
+new file mode 100644
+index 000000000..18e9cd7c0
+--- /dev/null
++++ b/public/framework/library/Stage.js
+@@ -0,0 +1,62 @@
++import { div, h2, p, a, button } from "/framework/core/View/View.js";
++import { watch } from "/framework/ext/demo/stage.js";
++import PaddingContract from "./PaddingContract.js";
++
++// The centre: the active Item at 100% in a box as wide as the chosen chip; wider than the column, CSS `zoom` fits it.
++export default class LibraryStage {
++
++	static WIDTHS = [400, 1000, 1920, 3440];
++
++	constructor({ library, item }){
++		Object.assign(this, { library, item });
++		this.width = item.optimalWidth;
++	}
++
++	draw($box){
++		const { item } = this;
++
++		$box.empty(() => {
++			div.c("library-stage-head", () => {
++				h2(item.title);
++				if (item.description) p.c("muted", item.description);
++				a.c("page-link", "Open the page →").href(item.href);
++			});
++
++			this.$chips = div.c("library-chips", () => this.constructor.WIDTHS.forEach(w =>
++				button.c("library-chip", String(w)).on("click", () => this.set(w)).attr("data-width", w)));
++
++			this.$screen = div.c("library-screen", () => {
++				this.$render = div.c("library-render", () => item.render());
++			});
++		});
++
++		this.mark();
++		watch(this.$screen.el, () => this.fit());
++		requestAnimationFrame(() => this.fit());
++		requestAnimationFrame(() => PaddingContract.check(this.$render.el));
++	}
++
++	// The padding contract: the box carries the data attribute for what it holds.
++	mark(){
++		const { item, $render } = this;
++
++		if (item.no_parent_padding) $render.ac("bleed");
++		else if (item.needs_parent_padding)
++			[...$render.el.children].forEach(el => el.setAttribute("data-needs-parent-padding", item.path));
++	}
++
++	set(width){
++		this.width = width;
++		this.fit();
++		requestAnimationFrame(() => PaddingContract.check(this.$render.el));
++	}
++
++	fit(){
++		const room = this.$screen.el.clientWidth, width = this.width;
++		if (!room) return;
++		const factor = Math.min(1, room / width);
++
++		this.$render.style({ flex: "0 0 auto", width: width + "px", zoom: factor });
++		[...this.$chips.el.children].forEach(el => el.classList.toggle("on", Number(el.dataset.width) === width));
++	}
++}
+diff --git a/public/framework/library/doc/decisions.md b/public/framework/library/doc/decisions.md
+new file mode 100644
+index 000000000..ced6cd515
+--- /dev/null
++++ b/public/framework/library/doc/decisions.md
+@@ -0,0 +1,13 @@
++# Library decisions
++
++Plan: [ai/sessions/2026/10/12/session-87bec773/ui-library/plan.md](/framework/ai/sessions/2026/10/12/session-87bec773/ui-library/plan.md). Each decision names what it was chosen over.
++
++1. **Lives at `framework/library/`**, beside `ui/` and `ux/`, because it spans them. *Alternative:* `ui/library/` (reads as ui only), `ext/Library/` (buried).
++2. **One page, `?at=ui/card/media`**, with `history.pushState` and a `popstate` listener. *Alternative:* a routed child page per item (better urls, more code).
++3. **`specimen`**: a page names its bare render function; `demo.page()` sets it for every variant in one line, and about fifteen `ui/*` pages name theirs. *Alternative:* render the page's whole `content()` (docs and chrome come along). Figma pages are the exception: their `content()` is the specimen.
++4. **`optimalWidth`** per item: 400 mobile · 1000 default · 1920 desktop · 3440 mega. `ui` defaults to 400, `figma` to 1920.
++5. **Preview layout: span by width** (400→1 column, 1000→2, 1920→3, 3440→4, dense flow). *Alternatives:* masonry `pack()`, grouping by size. The rails are one column, so only the zoom rule is built so far.
++6. **One zoom rule:** a preview lays out at its `optimalWidth` and is scaled with CSS `zoom = card width ÷ optimalWidth`, never above 1; the height is capped. Never `transform`, which keeps the unscaled box.
++7. **Padding contract:** an item is `needs_parent_padding` (own border or background) or `no_parent_padding` (full bleed). The Stage puts `data-needs-parent-padding` on the item; `PaddingContract.check()` adds `.padding-misuse` and one `console.error` that `Server/smoke.mjs` already fails on. *Not yet:* the page assembler refusing before render.
++
++Decision 8 (tree and data) is in [tree.md](tree.md).
+diff --git a/public/framework/library/doc/files.jsonl b/public/framework/library/doc/files.jsonl
+new file mode 100644
+index 000000000..f74382898
+--- /dev/null
++++ b/public/framework/library/doc/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"decisions.md"}
++{"file":"tree.md"}
+diff --git a/public/framework/library/doc/tree.md b/public/framework/library/doc/tree.md
+new file mode 100644
+index 000000000..d7e4ba7b5
+--- /dev/null
++++ b/public/framework/library/doc/tree.md
+@@ -0,0 +1,13 @@
++# Tree and data (decision 8)
++
++A page holds **child pages or items/content, rarely both**. Dragging an item onto a page keeps what it is: a page stays a page, because a page is an Item plus routing. The library follows this: `Item` wraps a `Page` and its variants are the page's own `children`, never a second list. Open with @mastermind-page-templates.
++
++## What `Page` holds now (`core/Page/Page.class.js`)
++
++`Page extends Item` directly, and each part is a helper class it composes:
++
++- `content` — one `PageContent` List: a function, a string or an address is one item in it.
++- `pages` — the real child storage (a List); `children` is a Map-shaped view over it (`PageChildren`).
++- `settings` / `Prefs` — the page's own preferences; `jsonl` — its `page.jsonl` lines.
++- `previews()` / `preview(nav)` — the card a parent draws for it (`Previews`).
++- `related`, `columns`, `links`, `listing`, `weight`, `work` — one small class each.
+diff --git a/public/framework/library/files.jsonl b/public/framework/library/files.jsonl
+new file mode 100644
+index 000000000..a34876314
+--- /dev/null
++++ b/public/framework/library/files.jsonl
+@@ -0,0 +1,10 @@
++{"file":"doc/"}
++{"file":"PaddingContract.js"}
++{"file":"Item.js"}
++{"file":"Collection.js"}
++{"file":"Rail.js"}
++{"file":"Stage.js"}
++{"file":"Library.js"}
++{"file":"page.js"}
++{"file":"library.css"}
++{"file":"readme.md"}
+diff --git a/public/framework/library/library.css b/public/framework/library/library.css
+new file mode 100644
+index 000000000..3548ced77
+--- /dev/null
++++ b/public/framework/library/library.css
+@@ -0,0 +1,51 @@
++@layer base, theme, site, util;
++
++@layer theme {
++
++	/* Three columns: siblings · the stage · variants. One column under 60em. */
++	.library {
++		display: grid; gap: var(--gap);
++		grid-template-columns: minmax(12em, 18em) minmax(0, 1fr) minmax(12em, 18em);
++		padding: var(--pad-card);
++		align-items: start;
++	}
++
++	.library-col { min-width: 0; display: flex; flex-direction: column; gap: var(--gap); }
++
++	.library-left, .library-right { position: sticky; top: 0; max-height: 100dvh; overflow: auto; scrollbar-width: thin; }
++
++	.library-collections { display: flex; gap: 0.4em; flex-wrap: wrap; }
++	.library-list, .library-rail-section { display: flex; flex-direction: column; gap: var(--gap); }
++
++	.library-chip {
++		padding: 0.2em 0.8em; border-radius: 99em; cursor: pointer; text-decoration: none;
++		border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit;
++	}
++	.library-chip.on { background: var(--prime); color: var(--prime-ink, #fff); border-color: var(--prime); }
++
++	.library-card { display: flex; flex-direction: column; gap: 0.5em; padding: 0.6em; text-decoration: none; color: inherit; }
++	.library-card.on { outline: 2px solid var(--prime); }
++	.library-card:hover { outline: 2px solid color-mix(in srgb, var(--prime) 45%, transparent); }
++	.library-thumb { overflow: hidden; border-radius: var(--radius); pointer-events: none; user-select: none; scrollbar-width: none; }
++	.library-thumb-inner { transform-origin: top left; }
++	.library-card-title { display: flex; align-items: center; gap: 0.4em; font-weight: 600; }
++
++	.library-stage-head { display: flex; flex-direction: column; gap: 0.4em; }
++	.library-chips { display: flex; gap: 0.4em; flex-wrap: wrap; }
++
++	/* The viewport scrolls; the render inside is as wide as the chip, shrunk with `zoom` when the column is narrower. */
++	.library-screen { overflow: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
++	.library-render { padding: 1.5rem; box-sizing: border-box; }
++	.library-render.bleed { padding: 0; }
++
++	@media (max-width: 60em) {
++		.library { grid-template-columns: minmax(0, 1fr); }
++		.library-left, .library-right { position: static; max-height: none; }
++		.library-mid { order: -1; }
++	}
++}
++
++@layer util {
++	/* PaddingContract.check(): the item touches an unpadded parent edge. */
++	.padding-misuse { background-image: linear-gradient(rgb(255 0 0 / 0.22), rgb(255 0 0 / 0.22)); outline: 2px dashed red; }
++}
+diff --git a/public/framework/library/page.js b/public/framework/library/page.js
+new file mode 100644
+index 000000000..0b492ed9d
+--- /dev/null
++++ b/public/framework/library/page.js
+@@ -0,0 +1,3 @@
++import Library from "./Library.js";
++
++export default new Library({ meta: import.meta });
+diff --git a/public/framework/library/readme.md b/public/framework/library/readme.md
+new file mode 100644
+index 000000000..e5c608310
+--- /dev/null
++++ b/public/framework/library/readme.md
+@@ -0,0 +1,23 @@
++# Library — browse everything we built in three columns: siblings, the chosen item at full size, its variants
++
++Open [/framework/library/](/framework/library/) (`?at=ui/card/media` is the url of one view; reload and back land in the same place).
++
++## Index
++
++- `Library.js` — `class Library extends Page`, the one page; its parts are statics: `Library.Collection`, `Library.Item`, `Library.Rail`, `Library.Stage` (each its own file).
++- `Collection.js` — a category: `ui` (children of [`ui/`](/framework/ui/), mobile first, 400) and `figma` (the rebuilt [Figma](/framework/ext/Figma/) pages, 1920).
++- `Item.js` — wraps one Page; its variants are the page's own `children`. `render()`: the page's `specimen`, else its `content()` (figma), else its `preview()` thumb with `zoom-*` removed.
++- `Rail.js` — a column of cards; each lays the item out at its `optimalWidth` and scales it with CSS `zoom`.
++- `Stage.js` — the centre: width chips 400 · 1000 · 1920 · 3440, zoom-to-fit when wider than the column.
++- `PaddingContract.js` — `PaddingContract.check(root)`: an item marked `needs_parent_padding` touching an unpadded parent edge gets `.padding-misuse` (red) and one `console.error`.
++- [doc/decisions.md](doc/decisions.md) — decisions 1–7, each with its alternative. [doc/tree.md](doc/tree.md) — decision 8, and what `Page` holds now.
++
++## Use
++
++A page joins the library by being a child of `ui/` (or listed in `Library.FIGMA`). To show the real component, not a thumb, name its render function `specimen: fn` (`demo.page()` does it for every variant). Optional per page: `optimalWidth`, `needs_parent_padding`, `no_parent_padding`.
++
++## Watch out
++
++- Figma pages draw their `content()` into the stage (works cleanly). A ui page with no `specimen` shows its preview thumb at 100% instead; the ones that still do: those whose component is not a local one-liner (`table`, `tree`, `controls`, `field`, `dialog`, `menu`, `words`, …).
++- The padding contract is proved by a headless test, not a live demo: the live page must smoke clean. A deliberately broken box would print `[padding] demo/broken: needs_parent_padding inside an unpadded box …` and shade red.
++- Not built yet: `ux/`, sections, layouts, templates, and `Library.Rail` as a masonry/span-by-width wall (rails stack one column).
+diff --git a/public/framework/page.js b/public/framework/page.js
+index df98eb342..a7d3fd494 100644
+--- a/public/framework/page.js
++++ b/public/framework/page.js
+@@ -163,7 +163,7 @@ export default new Page({
+ 	// Inert: /styles.css decides what the class means, and Router.mark() unsets it.
+ 	classes: "hides-nav",
+ 
+-	children: "start ai research faq versus core styles ui ux audio ext util dev servex audit sources design code sandbox lab old",
++	children: "start ai research faq versus core styles ui ux audio ext util dev servex audit sources design code sandbox lab old library",
+ 
+ 	/* A LAYOUT, not a content page. Three things an override owes, all silent when
+ 	 * missed (core/Page/readme.md): set `this.view`, carry `.page`, never nest a
+diff --git a/public/framework/readme.md b/public/framework/readme.md
+index 99fbc5240..271999a69 100644
+--- a/public/framework/readme.md
++++ b/public/framework/readme.md
+@@ -5,6 +5,7 @@
+ - [core](./core/) — the seven classes under every page (View, Page, Router, App, Sidebar, Item, List)
+ - [ext](./ext/) — opt-in addons; core never imports them
+ - [ui](./ui/) — the template tier: components, one page each
++- [library](./library/) — every ui and Figma item in three columns: siblings, the chosen one at full size, its variants
+ - [ux](./ux/) — the behavior tier: classes you can extend
+ - [styles](./styles/) — the CSS strategy: four layers, one vocabulary
+ - [web](/web/) — the guide tier, live (it lives at `public/web/`, not in this folder; no readme here)
+diff --git a/public/framework/ui/accordion/page.js b/public/framework/ui/accordion/page.js
+index bcd1b26bf..8ac44f1fc 100644
+--- a/public/framework/ui/accordion/page.js
++++ b/public/framework/ui/accordion/page.js
+@@ -32,6 +32,7 @@ const markers = () => div.c("surface flex v", () => {
+ });
+ 
+ export default new Page({
++	specimen: faq,
+ 	meta: import.meta,
+ 	title: "Accordion",
+ 	description: "One at a time, with no JS — the exclusivity is an attribute you can see.",
+diff --git a/public/framework/ui/alert/page.js b/public/framework/ui/alert/page.js
+index df653b9f2..1fd8d6a03 100644
+--- a/public/framework/ui/alert/page.js
++++ b/public/framework/ui/alert/page.js
+@@ -27,6 +27,7 @@ const action = () => div.c("ui-alert card flex gap v-center accent", () => {
+ });
+ 
+ export default new Page({
++	specimen: alert,
+ 	meta: import.meta,
+ 	title: "Alerts",
+ 	description: "A template plus six lines of CSS — a coloured edge that is one token.",
+diff --git a/public/framework/ui/avatar/page.js b/public/framework/ui/avatar/page.js
+index e2eeff339..d394dd0b1 100644
+--- a/public/framework/ui/avatar/page.js
++++ b/public/framework/ui/avatar/page.js
+@@ -16,6 +16,7 @@ const photos = () => div.c("flex gap v-center", () => {
+ });
+ 
+ export default new Page({
++	specimen: stack,
+ 	meta: import.meta,
+ 	title: "Avatar",
+ 	description: "One class, sized by a token — and the circle, the ring and the overlap are all CSS.",
+diff --git a/public/framework/ui/badge/page.js b/public/framework/ui/badge/page.js
+index 824986cdd..676eb8963 100644
+--- a/public/framework/ui/badge/page.js
++++ b/public/framework/ui/badge/page.js
+@@ -18,6 +18,7 @@ const composed = () => div.c("flex wrap v-center gap", () =>
+ 		}).style("--gap", "calc(var(--gap) * 0.35)"))).style("--gap", "calc(var(--gap) * 0.4)");
+ 
+ export default new Page({
++	specimen: badges,
+ 	meta: import.meta,
+ 	title: "Badges",
+ 	description: "A template plus four variant classes — the class name is the component.",
+diff --git a/public/framework/ui/card/page.js b/public/framework/ui/card/page.js
+index 9df030f04..270c0035d 100644
+--- a/public/framework/ui/card/page.js
++++ b/public/framework/ui/card/page.js
+@@ -82,6 +82,7 @@ export default new Page({
+ 	title: "Card",
+ 	description: "The one card page — a template, not a function. `div.c(\"card\", …)` and framework.css does the rest: padding, child spacing, radius, shadow.",
+ 	icon: "web_asset",
++	specimen: card,
+ 
+ 	children: [
+ 		demo.page("linked", linked, {
+diff --git a/public/framework/ui/crumbs/page.js b/public/framework/ui/crumbs/page.js
+index 06938a961..b3de56446 100644
+--- a/public/framework/ui/crumbs/page.js
++++ b/public/framework/ui/crumbs/page.js
+@@ -29,6 +29,7 @@ const context = () => div.c("pad flex v gap", () => {
+ }).style("--gap", "calc(var(--gap) * 0.4)");
+ 
+ export default new Page({
++	specimen: crumbs,
+ 	meta: import.meta,
+ 	title: "Breadcrumbs",
+ 	description: "A template, not a function — a trail derives from where you are, not from typed pairs.",
+diff --git a/public/framework/ui/decision/page.js b/public/framework/ui/decision/page.js
+index 4dc7c6521..7e3f4775a 100644
+--- a/public/framework/ui/decision/page.js
++++ b/public/framework/ui/decision/page.js
+@@ -22,6 +22,7 @@ const decision = () => div.c("ui-decision", () => {
+ });
+ 
+ export default new Page({
++	specimen: decision,
+ 	meta: import.meta,
+ 	title: "Decision",
+ 	description: "The options as cards, the chosen one marked — a choice you can see.",
+diff --git a/public/framework/ui/kbd/page.js b/public/framework/ui/kbd/page.js
+index 3a47fd98d..52a25e16b 100644
+--- a/public/framework/ui/kbd/page.js
++++ b/public/framework/ui/kbd/page.js
+@@ -27,6 +27,7 @@ const bare = () => div.c("flex v gap", () => {
+ }).style("--gap", "calc(var(--gap) * 0.8)");
+ 
+ export default new Page({
++	specimen: list,
+ 	meta: import.meta,
+ 	title: "Keys",
+ 	description: "keys() is the one function here — the box and the row are markup.",
+diff --git a/public/framework/ui/page.js b/public/framework/ui/page.js
+index bb77934cf..4d2a569fe 100644
+--- a/public/framework/ui/page.js
++++ b/public/framework/ui/page.js
+@@ -7,7 +7,7 @@ import { Doc, md, code, ui } from "/app.js";
+    ⚠ Six, six, six and five — the sizes are load-bearing. A band is its own grid and
+      `auto-fit` stretches it to fill the row, so at 3440 a band of three would draw
+      three cards a thousand pixels wide. Even bands mean even cards. */
+-const BANDS = {
++export const BANDS = {
+ 	Surfaces: "card toolbar panel stats accordion decision",
+ 	Data:     "table timeline tree progress pagination crumbs",
+ 	Forms:    "controls field dialog tags menu tooltip",
+diff --git a/public/framework/ui/pagination/page.js b/public/framework/ui/pagination/page.js
+index 7e7675c0e..fcc9497ae 100644
+--- a/public/framework/ui/pagination/page.js
++++ b/public/framework/ui/pagination/page.js
+@@ -35,6 +35,7 @@ const context = () => div.c("pad flex v gap", () => {
+ }).style("--gap", "calc(var(--gap) * 0.6)");
+ 
+ export default new Page({
++	specimen: pager,
+ 	meta: import.meta,
+ 	title: "Pagination",
+ 	description: "A template, not a function — real buttons, and the caller holds the page number.",
+diff --git a/public/framework/ui/panel/page.js b/public/framework/ui/panel/page.js
+index d00bdadc6..6b87e7e0a 100644
+--- a/public/framework/ui/panel/page.js
++++ b/public/framework/ui/panel/page.js
+@@ -22,6 +22,7 @@ const headless = () => div.c("ui-panel surface raised", () => {
+ });
+ 
+ export default new Page({
++	specimen: panel,
+ 	meta: import.meta,
+ 	title: "Panel",
+ 	description: "A template plus three rules — and `reverse`, the right-aligned action row nobody expects.",
+diff --git a/public/framework/ui/progress/page.js b/public/framework/ui/progress/page.js
+index fb52949d5..ecb70ad56 100644
+--- a/public/framework/ui/progress/page.js
++++ b/public/framework/ui/progress/page.js
+@@ -31,6 +31,7 @@ const accent = () => progress().attr("max", "100").attr("value", "40")
+ 	.style({ width: "100%", accentColor: "var(--error)" });
+ 
+ export default new Page({
++	specimen: bars,
+ 	meta: import.meta,
+ 	title: "Progress",
+ 	description: "A template, not a function — the component is <progress>, and the browser wrote it.",
+diff --git a/public/framework/ui/readme.md b/public/framework/ui/readme.md
+index 8ba0ec9e9..8904386ed 100644
+--- a/public/framework/ui/readme.md
++++ b/public/framework/ui/readme.md
+@@ -4,6 +4,7 @@
+ 
+ Every component here, and what you would use it for. Only `table`, `kbd` and `timeline` are functions; the rest are markup you copy.
+ 
++- [library](/framework/library/) — browse every component here at full size, with its variants beside it.
+ - [accordion](./accordion/) — panels where one is open at a time, no JavaScript.
+ - [alert](./alert/) — a callout box with a coloured left edge.
+ - [avatar](./avatar/) — a circle holding initials or a photo, and a stacked ring of them.
+diff --git a/public/framework/ui/stats/page.js b/public/framework/ui/stats/page.js
+index f90afb5cb..dcf3bd864 100644
+--- a/public/framework/ui/stats/page.js
++++ b/public/framework/ui/stats/page.js
+@@ -24,6 +24,7 @@ const with_icons = () => div.c("grid gap auto", () => [
+ }).style("--gap", "calc(var(--gap) * 0.1)"))).style("--column", "10em");
+ 
+ export default new Page({
++	specimen: stats,
+ 	meta: import.meta,
+ 	title: "Stat tiles",
+ 	description: "A template, not a function — a card wall with one token retuned.",
+diff --git a/public/framework/ui/tags/page.js b/public/framework/ui/tags/page.js
+index fe04e89b0..f6a63f60b 100644
+--- a/public/framework/ui/tags/page.js
++++ b/public/framework/ui/tags/page.js
+@@ -25,6 +25,7 @@ const plain = () => div.c("flex v gap", () => {
+ }).style("--gap", "calc(var(--gap) * 0.4)");
+ 
+ export default new Page({
++	specimen: tags,
+ 	meta: import.meta,
+ 	title: "Tag input",
+ 	description: "A template, plus the library's one opt-out of a base rule.",
+diff --git a/public/framework/ui/timeline/page.js b/public/framework/ui/timeline/page.js
+index aaa7fee9b..d80122746 100644
+--- a/public/framework/ui/timeline/page.js
++++ b/public/framework/ui/timeline/page.js
+@@ -15,6 +15,7 @@ const releases = () => timeline(
+ const single = () => timeline(RELEASES[0]);
+ 
+ export default new Page({
++	specimen: releases,
+ 	meta: import.meta,
+ 	title: "Timeline",
+ 	description: "Releases down a rail — one of three components that kept its function.",
+diff --git a/public/framework/ui/toolbar/page.js b/public/framework/ui/toolbar/page.js
+index 779c1de48..960fa3455 100644
+--- a/public/framework/ui/toolbar/page.js
++++ b/public/framework/ui/toolbar/page.js
+@@ -74,6 +74,7 @@ const mobile = () => div.c("flex v gap", () => {
+ });
+ 
+ export default new Page({
++	specimen: toolbar,
+ 	meta: import.meta,
+ 	title: "Toolbar",
+ 	description: "A template, not a function — groups, a growing field, and why `flex-1` beats `split`.",
+diff --git a/public/framework/ui/tooltip/page.js b/public/framework/ui/tooltip/page.js
+index 09ff7bf7d..9f58b2259 100644
+--- a/public/framework/ui/tooltip/page.js
++++ b/public/framework/ui/tooltip/page.js
+@@ -45,6 +45,7 @@ const context = () => div.c("pad flex v gap", () => {
+ }).style("--gap", "calc(var(--gap) * 0.4)");
+ 
+ export default new Page({
++	specimen: tooltip,
+ 	meta: import.meta,
+ 	title: "Tooltip",
+ 	description: "Three spans and a stylesheet — the CSS is the whole component.",

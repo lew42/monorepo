@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Property/",
+ "widths": {
+  "1280": {
+   "empty": 0.792,
+   "widest_text": 570,
+   "widest_text_sample": "A Property holds one value and tells eve",
+   "overflow_x": false,
+   "items": 36,
+   "narrow_share": 0.111
+  },
+  "1920": {
+   "empty": 0.849,
+   "widest_text": 606,
+   "widest_text_sample": "A Property holds one value and tells eve",
+   "overflow_x": false,
+   "items": 36,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.866,
+   "widest_text": 682,
+   "widest_text_sample": "A Property holds one value and tells eve",
+   "overflow_x": false,
+   "items": 36,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.895,
+   "widest_text": 682,
+   "widest_text_sample": "A Property holds one value and tells eve",
+   "overflow_x": false,
+   "items": 36,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

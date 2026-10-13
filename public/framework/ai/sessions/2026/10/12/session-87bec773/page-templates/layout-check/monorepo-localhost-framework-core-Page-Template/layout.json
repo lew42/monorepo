@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/Template/",
+ "widths": {
+  "1280": {
+   "empty": 0.624,
+   "widest_text": 582,
+   "widest_text_sample": "A Template is a page that is drawn many ",
+   "overflow_x": false,
+   "items": 72,
+   "narrow_share": 0.222
+  },
+  "1920": {
+   "empty": 0.709,
+   "widest_text": 619,
+   "widest_text_sample": "A Template is a page that is drawn many ",
+   "overflow_x": false,
+   "items": 72,
+   "narrow_share": 0.944
+  },
+  "2560": {
+   "empty": 0.767,
+   "widest_text": 697,
+   "widest_text_sample": "A Template is a page that is drawn many ",
+   "overflow_x": false,
+   "items": 72,
+   "narrow_share": 0.944
+  },
+  "3440": {
+   "empty": 0.815,
+   "widest_text": 697,
+   "widest_text_sample": "A Template is a page that is drawn many ",
+   "overflow_x": false,
+   "items": 72,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

@@ -1,4 +1,9 @@
 verdict: pass
+
+Before and after a new Opus turn (model line changes live):
+
+![before](proof/pof-before.png)
+![after](proof/pof-after.png)
 1. [note] `AISessionDetail.js` (diff line ~35): `draw` is bound through three separate `Property.of` calls, so it runs three times on first paint and again for each field a turn changes. It is harmless here, but one redraw per change would be tidier.
 2. [note] `AISessionDetail.js` `live_item()`: the Item exists only to give `Property.of` something to read, and `ses.on` already reports the changed fields. This is a roundabout way to reach a redraw, but it is the one real caller the brief asked for.
 3. [note] `AISessionDetail.js`: cost (`$x.xx`) and an effort de-dupe (`!model.includes(effort)`) were added to the line. Cost is allowed by the brief ("model, cost or state"). The de-dupe is extra, so check that the new line reads the same as the old one.

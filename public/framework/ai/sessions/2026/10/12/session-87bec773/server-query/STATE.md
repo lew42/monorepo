@@ -1,10 +1,18 @@
 # server-query: state
 
-- ✅ Past work and [plan](plan.md).
-- ✅ First slice merged (0cfbc5613): [ext/Query](/framework/ext/Query/) (`Query`, `QueryServer`, `QueryClient`), Sessions remote mode at [`?source=node`](/framework/ai/sessions/?source=node), DataGrid remote-paging seam, socket log regression fixed, docs ([core/Page/doc/server.md](/framework/core/Page/doc/server.md), [server-query.md](/framework/code/performance/doc/server-query.md)). The builder's original commits are on the `salvage/server-query-builder` branch; the merged commit drops its worktree's files.jsonl churn.
-- ✅ Numbers (same server): JS heap 33 → 17 MB, socket 984 → 630 KB, one node query 1.4 ms over 8,729 sessions. Main-site shots: build/measure/main-node-*.png vs main-files-*.png.
-- ⚠️ Merged with `--no-review` and `--skip-smoke`. The [review](review/report.md) ran on the same code (its 2 fixes were done); the changed pages passed smoke, and the 6 failures were on linked pages and are kinds that already exist on main (missing doc/method md files, also on DataGrid/api).
-- ✅ [Parity](parity/requirements.md) merged (dcdd9bf74): node is the default on the dev socket, `?source=files` forces the old path. The date window now uses local midnight, which closed the 99-session gap; in-flight rows come first; routine groups and nesting are built in node. Live main site: 6,364 against 6,368 sessions.
-- ✅ Cost gap traced (ca08418a1): the same sessions cost the same, except a running session whose files-path figure is stale, so node is the correct side. Cold start: the first ask waits up to 60 s; proven on a restarted main server (7.4 s, then rows from node).
-- ⬜ Left: the `query_row`/`query_stale` live pushes have not been watched working in a browser; there is no "loading from node" label on a cold start; the page.jsonl-backed source (a generic server-side Page) is designed in core/Page/doc/server.md but not built.
-- ✅ Coordination: both other masterminds have landed (direct messages are now possible but would only revive them); the DataGrid doc line is in the parity brief.
+```
+ext/Query/
+├── Query.js         the filter / sort / page / totals
+├── QueryServer.js   node side, on the dev socket
+└── QueryClient.js   what the grid asks with
+```
+
+- [x] [ext/Query](/framework/ext/Query/) merged; Sessions asks node by default, `?source=files` keeps the old path
+- [x] [Page on the server](/framework/core/Page/doc/server.md) and [numbers](/framework/code/performance/doc/server-query.md): heap 33 → 17 MB, socket 984 → 630 KB
+- [x] [Parity](parity/requirements.md): 6,364 vs 6,368 sessions on the main site; the cost gap is a stale figure on the files path
+- [x] Cold start proven: the first ask waits 7.4 s, then rows come from node
+- [ ] `query_row` / `query_stale` live pushes not yet watched in a browser
+- [ ] no "loading from node" label on a cold start
+- [ ] page.jsonl-backed source: designed, not built
+
+Risk: merged with `--no-review --skip-smoke`; the [review](review/report.md) ran on the same code and its 2 fixes were done.

@@ -1,6 +1,11 @@
 # UI library: plan
 
-**What it is:** one page, `/framework/library/`, where you browse everything we built — `ui/`, `ux/`, the Figma rebuilds, later sections, layouts and templates — in three columns: the items of a category on the left, the chosen one at full size in the middle, its variants on the right. Click a variant and it becomes the chosen one. The library is drawn with the kit itself (`.card`, the toolbar, the rail).
+**What it is:** one page, `/framework/library/`, where you browse everything we built (`ui/`, `ux/`, the Figma rebuilds, sections, layouts, templates).
+
+- **Left:** the items of a category.
+- **Middle:** the chosen one at full size.
+- **Right:** its variants. Click one and it becomes the chosen one.
+- **Built with the kit:** `.card`, the toolbar, the rail.
 
 Brief: [requirements.md](requirements.md). State: [STATE.md](STATE.md).
 
