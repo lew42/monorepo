@@ -20,11 +20,11 @@ For the page you're building, first identify which navigation techniques it uses
 
 - A view with no address loses the reader's place on reload — check by clicking every view, then the site nav, then Back, and watch the URL change each time.
 - Each view is a plain link, never a button that flips a class: doing that once stopped a nav rail from switching pages at all.
-- A page's **inbox** — a note left for coordination — is a Servex fact, not a navigation one: [/framework/ai/inboxes/](/framework/ai/inboxes/).
+- A page's **inbox** — a note left for coordination — is a Servex fact, not a navigation one: [PageInbox](/framework/core/Page/PageInbox.js).
 
 ## More
 
 - [doc/looks.md](./doc/looks.md) — how links look, persistent or switching navigation, and transitions.
 - [questions.md](./questions.md) — review questions for this system.
-- [new-page skill](/framework/ai/skills/new-page/) — the mechanics: `children:`, routing, `swap_link`.
+- new-page skill (`.claude/skills/new-page/SKILL.md`) — the mechanics: `children:`, routing, `swap_link`.
 - [design/layout](/framework/design/layout/) — the layout never jumps, persistent navigation and work areas.

@@ -20,8 +20,13 @@ Servex holds port 80 and starts the site the first time you visit it (`Servex/re
 - **Transcription** (Whisper, Dictate): [ux/Dictate](public/framework/ux/Dictate/readme.md)
 - **Page system** (pages, routing, JSONL streaming): [core/Page](public/framework/core/Page/readme.md) · [ext/JSONL](public/framework/ext/JSONL/readme.md)
 - **Organization** (what goes where, the System class): [organization.md](public/framework/ai/doc/organization.md)
-- **Skills and CLAUDE.md** (what every agent reads first): [CLAUDE.md](CLAUDE.md) · [skills](public/framework/ai/skills/)
+- **Skills and CLAUDE.md** (what every agent reads first): [CLAUDE.md](CLAUDE.md) · [skills](.claude/skills/)
 - **Dashboard, Log, Inbox, tasks**: [ai/readme.md](public/framework/ai/readme.md) · [all systems, with size and freshness](public/framework/ai/systems-map.md)
+- **New today (2026-10-12):** [core/Property](public/framework/core/Property/readme.md) (`Property.of`) · [core/Page/Template](public/framework/core/Page/Template/readme.md) (page templates, `BigCard`) · [ext/Shots](public/framework/ext/Shots/readme.md) · [ext/Query](public/framework/ext/Query/readme.md) · [ext/DataGrid](public/framework/ext/DataGrid/readme.md) · [code/performance](public/framework/code/performance/readme.md)
+- **PageInbox** (a note left on a page reaches its owner): [PageInbox.js](public/framework/core/Page/PageInbox.js) · [inbox tab doc](public/framework/core/Page/doc/inbox-tab.md)
+- **UI library** (every ui and Figma item, three columns): [library](public/framework/library/readme.md) · **Layout catalog**: [layouts](public/layouts/readme.md)
+- **Step runner** (a task as ordered steps): [Servex/doc/steps.md](Servex/doc/steps.md)
+- **Past-work skill** (look before you build): `.claude/skills/past-work/SKILL.md` · [past-work-index.md](public/framework/ai/past-work-index.md)
 
 ## Cloudflare Previews
 

@@ -12,7 +12,7 @@ One folder per subsystem, one current doc per topic. Load the folder you need; t
 | [`tasks/`](tasks/tasks.md) | [Tasks and the one queue](tasks/tasks.md), [priorities](tasks/priorities.md) | you change tasks or the queue |
 | [`ai2/`](ai2/overview.md) | AI 2 (the card dashboard): its own docs, plus [AI 2 vs AI](ai2/ai2-vs-ai.md) and [branches](ai2/branches.md) | you work on the board |
 | [`organization.md`](organization.md) | What goes where, when and why; the System class and hourly check | you add a page, readme or check |
-| [`writing.md`](writing.md) · [`readmes.md`](readmes.md) · [`classes.md`](classes.md) | The finer points behind the root CLAUDE.md rules on writing, readmes and classes; [`claude-md-archive.md`](claude-md-archive.md) keeps the original wording of every rule that was shortened; the [review page](../2026-10-12/claude-md-consolidate/review.md) shows what changed | you write a page, a readme or a class |
+| [`writing.md`](writing.md) · [`readmes.md`](readmes.md) · [`classes.md`](classes.md) | The finer points behind the root CLAUDE.md rules on writing, readmes and classes; [`claude-md-archive.md`](claude-md-archive.md) keeps the original wording of every rule that was shortened; the [review page](../sessions/2026/10/12/session-3b391f22/claude-md-consolidate/review.md) shows what changed | you write a page, a readme or a class |
 | [`meta/`](meta/history.md) | [How the AI system evolved](meta/history.md), [readme system status](meta/readme-system-status.md) | you audit the docs |
 
 Naming rule: a doc is named for its topic, not its date; the date and the session that decided it go on its first lines. Words like "never" are for what really breaks; the rest are suggestions.

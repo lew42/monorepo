@@ -18,7 +18,7 @@ Design is what decides how a page, a card or a view looks and behaves, before an
 Answer these, in order, before the first line of markup. Each links to the child page that covers it in full.
 
 1. **What is it, and who is it for?** One sentence — it becomes the title or first line.
-2. **Where does it live, and how is it reached?** Its parent, its URL (route everything), its place in the nav — the mechanics are the [new-page skill](/framework/ai/skills/new-page/); the path and the links themselves are [navigation](./navigation/).
+2. **Where does it live, and how is it reached?** Its parent, its URL (route everything), its place in the nav — the mechanics are the new-page skill (`.claude/skills/new-page/SKILL.md`); the path and the links themselves are [navigation](./navigation/).
 3. **How big is it, and how does it use the space?** [layout](./layout/).
 4. **What does it say, and in what order?** [content](./content/).
 5. **What does the reader press, and how does it feel?** [ui](./ui/), for the controls; [color](./color/) for what carries them.

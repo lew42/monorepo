@@ -32,5 +32,5 @@ written in `em`, so the one font-size carries the whole thing down or up togethe
 ## More
 
 - [page](/framework/ui/scale/) — one box shown at two widths
-- Used by the Figma "Sept 2026" cards: [`/framework/ai2/2026/09/28/figma-sept-2026/`](/framework/ai2/2026/09/28/figma-sept-2026/)
+- Used by the Figma "Sept 2026" cards: [`/framework/ai/2026/09/28/figma-sept-2026/`](/framework/ai/2026/09/28/figma-sept-2026/)
 - Back to [UI](/framework/ui/).

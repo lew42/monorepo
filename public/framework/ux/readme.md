@@ -89,3 +89,8 @@ nineteen stay.
 - [`ui/words/`](/framework/ui/words/) — the two config words, live and toggleable
 - [`ui/readme.md`](/framework/ui/) — the template tier · [`core/View`](/framework/core/View/) —
   the base class a ux extends
+
+## Also here (readme audit, 2026-10-13)
+- [Hotkeys](./Hotkeys/) — one flat list of every hotkey in the app
+- [Objects](./Objects/) — inspect live objects: classes, maps, sets, arrays
+- [Revise](./Revise/) — text in, revised text out, at a chosen level

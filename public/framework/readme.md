@@ -48,3 +48,10 @@ p("Hello world.");
 - [`doc/decisions.md`](./doc/decisions.md) (the record) · [`doc/injection.md`](./doc/injection.md) (nothing reads `window.app`) · [`doc/theme-behaviour.md`](./doc/theme-behaviour.md) (a theme is CSS)
 - [`doc/docs-system.md`](./doc/docs-system.md) (what a doc page is made of) · [`doc/reachability.md`](./doc/reachability.md) (the crawl + audit method)
 - Files that matter: `/app.js` (the one import), `page.js` (sidebar + walls layout), `framework.css` (the utility vocabulary)
+
+## Also here (readme audit, 2026-10-13)
+- [audio](./audio/) — microphone building blocks: MicStream, Recorder, Whisper
+- [code](./code/) — code in the framework: patterns, dos and don'ts
+- [design](./design/) — layout, color, navigation, content and UI decisions
+- [servex](./servex/) — the always-on process: runs agents, starts servers, owns logs
+- [sources](./sources/) — source library wall of topics, each with a file browser

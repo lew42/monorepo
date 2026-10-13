@@ -47,3 +47,7 @@ export default new Page({ meta: import.meta, title: "Hello", children: "about", 
 - [Item](/framework/core/Item/) — persistent node, DOM-free
 - [List](/framework/core/List/) — ordered items, zero imports
 - [Task](/framework/core/Task/) — a unit of work, DOM-free
+
+## Also here (readme audit, 2026-10-13)
+- [Events](./Events/) — on/off/emit mixin everything else builds on
+- [track](./track/) — opt-in instance tracking: call once, read back live

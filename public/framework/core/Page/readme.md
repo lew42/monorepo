@@ -82,3 +82,11 @@ build one, and check the page with `node Server/layout-check.mjs --bands <url>`.
 - Notes: [doc/Page-notes.md](doc/Page-notes.md) — history and lessons moved out of the code comments.
 
 - Notes: [doc/page-js-notes.md](doc/page-js-notes.md) — history and lessons moved out of the code comments.
+
+## Also here (readme audit, 2026-10-13)
+- [content-shapes](./content-shapes/) — every shape a page's content can take
+- [dynamic](./dynamic/) — pages without a filesystem: seed to spec to page tree
+- [generator](./generator/) — a virtual page tree from a spec string, real urls
+- [overview](./overview/) — palette: one card per building block
+- [settings](./settings/) — tabs that manage themselves, the page's own nav switch
+- [weight](./weight/) — one number per page saying how much it matters

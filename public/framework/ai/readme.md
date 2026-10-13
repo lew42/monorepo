@@ -27,13 +27,17 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Prompt refinement** (Echo, running now): [Servex/doc/echo.md](/framework/servex/doc/echo.md) · [ext/Refine live demo + Prompt class](/framework/ext/Refine/) · [vision](/framework/ext/Refine/doc/vision-2026-10-08.md) · [dictation connection map](/framework/ai/doc/design/dictation-refine-connection-map.md)
 - **Page system**: [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/)
 - **Past work** (look before you build): [past-work-index.md](past-work-index.md), generated from every landed task; search a topic with `node Server/PastWork.mjs <topic>` (the `past-work` skill)
-- **Skills and CLAUDE.md**: [skills](skills/)
+- **Skills and CLAUDE.md**: [skills](../../../.claude/skills/)
 - **Dashboard, Log, Inbox**: the tabs above · [AI 2 (merged into this folder, old address kept)](/framework/ai2/readme.md)
 - **Classes that draw it** (moved here from `ai2/`, 2026-10-09): [cards/](cards/) — `Card` and what a card shows (chat, compose, outline, activity, tasks, faces…) · [rail/](rail/) — `AIRail`, `CardList`, `Groups`, the Live card, Needs, Log, Overview, Processes · [archive/ai2](archive/ai2/readme.md) — old AI 2 page logs, kept
 - Sizes and freshness of all of them: [systems-map.md](systems-map.md) · **Organization** (what goes where; System class, hourly check): [doc/organization.md](doc/organization.md) · [Systems](/framework/ai/systems/)
 
 - **Page parts** — a page body as a streamed list of parts: [`core/Page/parts/readme.md`](../core/Page/parts/readme.md)
 - **Page tool** — agents change any page by path + delta: [`core/Page/doc/page-tool-2026-10-09.md`](../core/Page/doc/page-tool-2026-10-09.md)
+- **New 2026-10-12:** [core/Property](../core/Property/readme.md) · [core/Page/Template](../core/Page/Template/readme.md) · [ext/Shots](../ext/Shots/readme.md) · [ext/Query](../ext/Query/readme.md) · [ext/DataGrid](../ext/DataGrid/readme.md) · [code/performance](../code/performance/readme.md)
+- **PageInbox** (a note left on a page reaches its owner): [PageInbox.js](../core/Page/PageInbox.js) · [inbox tab](../core/Page/doc/inbox-tab.md)
+- **UI library** (every ui and Figma item): [library](../library/readme.md) · **Layout catalog**: [layouts](../../layouts/readme.md)
+- **Step runner** (a task as ordered steps): [Servex/doc/steps.md](../../../Servex/doc/steps.md)
 
 ## Start here
 
@@ -105,3 +109,11 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Owner asks by module** — [`doc/asks.md`](doc/asks.md) (merged, open first); page system: [`core/Page/doc/asks.md`](../core/Page/doc/asks.md).
 
 - Notes: [doc/ai-page-notes.md](doc/ai-page-notes.md) — history and lessons moved out of the code comments.
+
+## Also here (readme audit, 2026-10-13)
+- [AISession](./AISession/) — one Claude session's cost, read from its transcript
+- [audits](./audits/) — read-only audits of how the framework is built
+- [health](./health/) — page health monitor, checks every page in a hidden browser
+- [quick-fix](./quick-fix/) — log of every quick-fix request
+- [review](./review/) — review questions per system, read live from the skills
+- [tests](./tests/) — test library: small tasks with known-good outcomes

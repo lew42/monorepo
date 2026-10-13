@@ -43,3 +43,13 @@ import { md, demo } from "/app.js";  // opted in by app.js — anything else, im
 - `markdown/marked.esm.js` and `highlight/hljs/` are vendored third-party code — a fix goes upstream or in the wrapper (`md.js`, `highlight.js`), not inside them — [`decisions.md`](./decisions.md)
 - Before deleting an ext, know who leans on it — a soft lean degrades (`demo` → `highlight`), a hard one throws (`Doc` → `tabs`, `files`) — [`decisions.md`](./decisions.md)
 ## More — [Overview](/framework/ext/) · [`decisions.md`](./decisions.md): the rule in full, cross-module traps, what's open (`editor` in use? `DesignTool` under `dev/`?)
+
+## Also here (readme audit, 2026-10-13)
+- [Classify](./Classify/) — light overlay that outlines layout classes
+- [Collab](./Collab/) — mastermind members move through phases to a vote, as a live object
+- [DataGrid](./DataGrid/) — a grid for records: table or card rail, a setting not a class
+- [ErrorLog](./ErrorLog/) — UI errors logged, one line per session
+- [filesystem](./filesystem/) — file and directory objects: FsFile, Dir, links
+- [Mention](./Mention/) — #Page and @owner icons and words in written content
+- [Refine](./Refine/) — prompt refinement: raw to clean to cards with flags
+- [Session](./Session/) — voice session started by the ✦ press, fast and smart assistants
