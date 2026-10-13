@@ -10,6 +10,7 @@ import AISessionConversation from "./AISessionConversation.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
 import Item from "/framework/core/Item/Item.js";
+import Property from "/framework/core/Property/Property.js";
 import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
 import "/framework/core/Page/parts/PageText.js";
 import "/framework/core/Page/parts/PageCard.js";
@@ -28,7 +29,7 @@ export default class AISessionDetail extends Page {
 	// With tabs on (a `tab` line in the session's page.jsonl), the template itself is the first tab.
 	home_tab = "Conversation";
 
-	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
+	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
 
 	/* THE SESSION'S OWN PAGE LOG (2026-10-09, the page tool): `page.jsonl` in the session's folder can
 	   reshape this page on top of the template — tabs, the six layout words — and carries the cards the
@@ -163,8 +164,15 @@ export default class AISessionDetail extends Page {
 					div.c("flex gap-50 v-center", () => {
 						span.c("sessions-tag sessions-tag-" + row.source, src.label);
 						span.c("sessions-row-title", row.tab_title || row.id);
-						const cur = AISession.all.get(row.session_id ?? id)?.ix, model = cur?.model ?? row.model;   // the index is rewritten every turn; sessions.json is written once
-						if (model) small.c("muted", model + (cur?.effort ? " · " + cur.effort : ""));
+						// Model, effort and cost are bound to the live session (Property.of), so a new turn redraws them: doc/binding.md
+						this.live_off?.();
+						const live = AISessionDetail.live_item(row.session_id ?? id, row), el = small.c("muted", ""), draw = () => {
+							const model = live.item.get("model"), effort = live.item.get("effort"), usd = live.item.get("usd");
+							el.el.textContent = [model, effort && !String(model).includes(effort) ? effort : null, usd != null && "$" + (+usd).toFixed(2)].filter(Boolean).join(" · ");
+						};
+						el.el.classList.add("session-live");
+						const offs = ["model", "effort", "usd"].map(k => Property.of(live.item, k).bind(draw));
+						this.live_off = () => { offs.forEach(off => off()); live.off(); };
 					});
 				}
 			});
@@ -183,6 +191,14 @@ export default class AISessionDetail extends Page {
 				});
 			});
 		});
+	}
+
+	/** An Item holding the live model, effort and cost of one session: the index row first, then every change the feed folds in. `off()` ends it. */
+	static live_item(session_id, row){
+		const ses = AISession.of(session_id), pick = (src, keys) => Object.fromEntries(keys.filter(k => src?.[k] != null).map(k => [k, src[k]]));
+		const KEYS = ["model", "effort", "usd"], item = new Item({ data: { ...pick(row, KEYS), ...pick(ses.ix, KEYS) } });
+		const off = ses.on((_, fields) => item.set(pick(ses.ix, fields.filter(k => KEYS.includes(k)))));
+		return { item, off };
 	}
 
 	/** The logged turns folded to one row per local hour, newest hour first: turns, tokens, dollars, and the running total at the hour's end. */

@@ -20,7 +20,7 @@ Live demo: [Templates](/framework/core/Page/Template/). The classes: [templates.
 | 1. How does a view subscribe, and unsubscribe? | Events (`on` / `off`), made lazily. Every binding returns its own unbind; the view keeps them and `drop()` / `dispose()` run them. |
 | 2. Is a clone linked or a copy? | Both. `clone()` is linked, `copy()` is a hard copy. Each property can be overridden, reset with `unset(name)`, and `overrides()` lists them. |
 | 3. When is a value a Property? | Only when something shows it live. Plain values stay plain; a record that is already an `Item` can use its own `change` event. |
-| 4. `Field extends Property`? | Designed below, not built yet: no screen needs a control bound to a field today. |
+| 4. `Field extends Property`? | `Property.of` is built; `Field` is designed below, not built yet: no screen needs a control bound to a field today. |
 | 5. Lists? | Already live: a `List` announces adds and removes. A list field in a template is the next step, designed below. |
 | 6. Paths and `={expr}`? | Later. The design is recorded below. |
 
@@ -146,10 +146,10 @@ class Field extends Property {
 | Syntax | Reads as | Verdict |
 |---|---|---|
 | `clone({ cost: prop })` | "this value, live" | ✅ today |
-| `clone({ cost: Property.of(item, "cost") })` | "item's cost, live" | ✅ recommended next: a Property that mirrors one key of an Item and writes back through `item.set`, so the Item still saves its delta |
+| `clone({ cost: Property.of(item, "cost") })` | "item's cost, live" | ✅ built: a Property that mirrors one key of an Item and writes back through `item.set`, so the Item still saves its delta. First caller: the model, effort and cost line of a [session detail](/framework/ai/sessions/) (`AISessionDetail.js`, `live_item()`); it redraws on a new turn within about a second ([before](/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-before.png), [after](/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-after.png)) |
 | `clone({ cost: [item, "cost"] })` | unclear: a pair, or an array value? | ❌ |
 
-`Property.of` must listen to the Item only while it has listeners of its own, or it leaks; that rule is why it is not a one-liner. Not built in this slice.
+`Property.of` listens to the Item only while it has listeners of its own (first `on` subscribes, last `off` unsubscribes), or it would leak; `Property.test.mjs` counts the Item's listeners to prove it. Watch out: an Item's `change` bubbles from its children, so a child's change of the same key is heard too.
 
 **Watch out:** `Item.set(key, v)` hands `v` to a value that has its own `set()`. So a `Property` stored inside an Item's data swallows the write, and the Item emits no `change` and no `delta`, so nothing is saved. Keep Properties beside Items, never inside their data.
 
