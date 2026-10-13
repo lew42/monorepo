@@ -1,0 +1,19 @@
+{
+ "by": "task-mastermind-prompt-outcomes (Opus), 2026-10-13",
+ "method": "10 features sampled (4 done, 3 not done, 3 partly, seeded random from the top 40 of each), each verdict judged against its gathered evidence plus a git/grep check",
+ "raw_right": 5,
+ "after_rule_right": 7,
+ "checks": [
+  { "feature": "page jsonl format", "haiku": "done", "right": true, "note": "page.jsonl + page tools exist; its link is an 08-30 landing older than the asks" },
+  { "feature": "dictation consolidate", "haiku": "done", "right": false, "note": "the owner said on 10-13 that sheet and sidebar still differ; the asked-again rule makes it partly" },
+  { "feature": "real time update", "haiku": "done", "right": false, "note": "the storage-options ask is open (storage-design brief, 10-13); the asked-again rule makes it partly" },
+  { "feature": "token accounting", "haiku": "done", "right": true, "note": "10-04 and 10-08 landings fix the pricing and undercount bugs" },
+  { "feature": "ai system", "haiku": "not done", "right": false, "note": "the System class and the ai-system-page task exist; the keyword search dropped 'system' as a stop word and found nothing" },
+  { "feature": "node runtime docs", "haiku": "not done", "right": true, "note": "nothing documents node access for agents beyond CLAUDE.md's 'let a script read'" },
+  { "feature": "page ai docs", "haiku": "not done", "right": false, "note": "ai-system-page landed 10-13 (c2ed23919), after the evidence was gathered" },
+  { "feature": "memory management", "haiku": "partly", "right": false, "note": "'Memory: dormant idle agents, working cap, auto-compaction' is landed in asks.jsonl; should be done" },
+  { "feature": "refinement ui", "haiku": "partly", "right": true, "note": "one shared widget landed; the labelled multi-column layout is not in evidence" },
+  { "feature": "real time logging", "haiku": "partly", "right": true, "note": "vague ask; the sessions tailer covers part of it" }
+ ],
+ "lesson": "'done' errs toward an early landing (fixed by the asked-again rule); 'not done' errs toward a keyword miss, so treat a not-done as 'no evidence found', not as proof"
+}
