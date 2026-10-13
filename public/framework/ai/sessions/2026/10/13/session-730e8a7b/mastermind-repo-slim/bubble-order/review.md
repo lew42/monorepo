@@ -1,0 +1,15 @@
+verdict: pass
+1. [note] The diff contains only deliverable 2, the Refine mic. Deliverable 1 had already landed as merge e7533ddfc on michael/dev, so the brief's order ("only after (1) is merged") holds. next.md marks both sections done; item 2 names a file instead of a commit hash, so add the hash after this merges.
+2. [note] Corrections can make Refine disagree with the chat. ext/Refine/VoiceFollow.js:34 drops every `c.fix` line, so when a dictated line is corrected, the chat shows the corrected words but the Refine page keeps the old ones. That cuts against "one result everywhere". The fix is to replace the line with the same `at` instead of skipping it.
+3. [note] It polls instead of streaming. VoiceFollow.js:18 re-reads sessionStorage every 2 s, and `Session.watch` re-fetches the file every 1.5 s, so a heard line can take up to about 3.5 s to show. CLAUDE.md's "stream, don't poll" rule wants something like ~100 ms. The simpler way: ux/Dictate/chat.js already holds the session, so it could fire an event that VoiceFollow listens to.
+4. [note] The timer is never cleaned up. RefineDemo.js:96 creates a VoiceFollow but never calls `stop()`, so its interval and watch keep running if the demo view is removed. Separately, the callback resets state by editing `v.lines` directly from outside (RefineDemo.js:98); a `voice.reset()` method would be clearer.
+5. [note] The proof does not show one live dictation. mic-proof.mjs seeds sessionStorage with a saved file in three separate browser contexts, so it proves that all three surfaces read the same session, not that one live dictation travels between them. A real phone is a different device with its own sessionStorage, so a dictation made on a phone will not reach a desktop Refine tab. The readme wording ("phone sheet") means the 400 px sheet in the same tab; it should say so.
+6. [note] Refine only shows the instant clean for ✦ chat text. RefineDemo.js:102 calls `system.quick(text)`, never `go()`, so text heard in the chat gets the quick clean but no refined result unless the owner presses Refine. That is acceptable for "takes its raw text from the chat() session", but the note "Heard in the ✦ chat." could say that.
+
+## Requirements
+- 1 "insert a drawn bubble before the first later `at`… headless proof" — yes — merged earlier as e7533ddfc; order-proof-output-after2.txt, order-before.png and order-after.png are in the task dir
+- 2 "Refine's page takes its raw text from the chat() session… one result" — yes, with gaps — VoiceFollow.js follows `lew42-voice-session`; mic-proof-output.txt shows PASS on phone-sheet, desktop-chat and refine-page; corrections are not followed (finding 2)
+- 3 "merge.mjs each; next.md sections marked done with hashes" — partly — section 1 has its hash, section 2 does not yet (finding 1)
+- Fence — yes — the diff touches only ext/Refine page wiring (RefineDemo.js, the new VoiceFollow.js, readme.md) and next.md; Scorer.js, the queue, ext/Chat and ext/drawer are untouched
+## Words
+- content — yes — the readme line and the next.md entries are plain and link the proof script; one small point: "phone sheet" needs the same-tab qualifier (finding 5)

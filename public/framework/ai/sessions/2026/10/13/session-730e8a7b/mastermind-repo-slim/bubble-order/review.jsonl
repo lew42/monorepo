@@ -1,0 +1,35 @@
+{"phase":{"at":"2026-10-13T18:35:47-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-10-13T18:35:47-05:00","n":1,"kind":"fix","text":"The brief's deliverable 2 (Refine's page takes raw text from the `chat()` session instead of `VoiceStrip`'s own mic) is absent from diff.patch; only `Chat.js` and `doc/notes.md` changed. If it is meant to land later, say so on the card. Otherwise half the ask is unmet."}}
+{"finding":{"at":"2026-10-13T18:35:47-05:00","n":2,"kind":"fix","text":"Chat.js:~703-709 (`chat()` draw path) has a mis-indented `made = $b.el;` and `if (made) place(made);`. More importantly, `made` is read right after `$box.append(() => ...)`, which only works if that callback runs synchronously. Confirm that, or move `place($b.el)` inside the callback. The repo rule is \"no DOM after an await\"."}}
+{"finding":{"at":"2026-10-13T18:35:47-05:00","n":3,"kind":"note","text":"order-proof-output.txt shows before FAIL and after PASS on 8 bubbles, including a late reply and a provisional-time retag (@99 becoming @7). This covers the ask. It is a scripted DOM run, not a replay of a real session file via `dictate-check/replay.mjs` as the brief named."}}
+{"finding":{"at":"2026-10-13T18:35:47-05:00","n":4,"kind":"note","text":"`place()` (Chat.js:17-26) scans from the first child each time, so it is O(n) per bubble. Scanning backwards from the end would stop at once in the common in-order case. Minor."}}
+{"finding":{"at":"2026-10-13T18:35:47-05:00","n":5,"kind":"note","text":"`retag_piece` (Chat.js:230-234) only moves the bubble when the retagged piece is the last one in a merged bubble. A retag of an earlier piece updates `pc.at` but not the order. This is probably fine, since the bubble's `data-at` is its last piece's time."}}
+{"finding":{"at":"2026-10-13T18:35:47-05:00","n":6,"kind":"note","text":"`bubble-order` in notes.md is good and linked to the task dir. The before and after pngs exist in the task dir. I did not view them."}}
+{"phase":{"at":"2026-10-13T18:35:47-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0.34479540000000003,"model":"claude-sonnet-5-5"}}
+{"phase":{"at":"2026-10-13T18:38:30-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-10-13T18:38:30-05:00","n":1,"reply":"declined: deliverable 2 (Refine mic) is built after this merge, per the brief order"}}
+{"answer":{"at":"2026-10-13T18:38:30-05:00","n":2,"reply":"fixed: indent tidied; callback is synchronous like speak(); place() scans from the end"}}
+{"answer":{"at":"2026-10-13T18:38:30-05:00","n":3,"reply":"noted"}}
+{"answer":{"at":"2026-10-13T18:38:30-05:00","n":4,"reply":"fixed: scans from the end"}}
+{"answer":{"at":"2026-10-13T18:38:30-05:00","n":5,"reply":"noted: bubble data-at is its last piece time"}}
+{"answer":{"at":"2026-10-13T18:38:30-05:00","n":6,"reply":"noted"}}
+{"phase":{"at":"2026-10-13T18:38:30-05:00","n":2,"kind":"answers","status":"done"}}
+{"phase":{"at":"2026-10-13T18:38:30-05:00","n":3,"kind":"replies","status":"start"}}
+{"reply":{"at":"2026-10-13T18:39:07-05:00","n":1,"stance":"accept","text":"The brief itself says deliverable 2 (the Refine mic) comes \"only after (1) is merged\", so its absence from this diff is correct. The author should note on the card that it follows this merge.","cost":0.262141}}
+{"phase":{"at":"2026-10-13T18:39:07-05:00","n":3,"kind":"replies","status":"done"}}
+{"phase":{"at":"2026-10-13T18:51:31-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-10-13T18:51:31-05:00","n":1,"kind":"note","text":"The diff contains only deliverable 2, the Refine mic. Deliverable 1 had already landed as merge e7533ddfc on michael/dev, so the brief's order (\"only after (1) is merged\") holds. next.md marks both sections done; item 2 names a file instead of a commit hash, so add the hash after this merges."}}
+{"finding":{"at":"2026-10-13T18:51:31-05:00","n":2,"kind":"note","text":"Corrections can make Refine disagree with the chat. ext/Refine/VoiceFollow.js:34 drops every `c.fix` line, so when a dictated line is corrected, the chat shows the corrected words but the Refine page keeps the old ones. That cuts against \"one result everywhere\". The fix is to replace the line with the same `at` instead of skipping it."}}
+{"finding":{"at":"2026-10-13T18:51:31-05:00","n":3,"kind":"note","text":"It polls instead of streaming. VoiceFollow.js:18 re-reads sessionStorage every 2 s, and `Session.watch` re-fetches the file every 1.5 s, so a heard line can take up to about 3.5 s to show. CLAUDE.md's \"stream, don't poll\" rule wants something like ~100 ms. The simpler way: ux/Dictate/chat.js already holds the session, so it could fire an event that VoiceFollow listens to."}}
+{"finding":{"at":"2026-10-13T18:51:31-05:00","n":4,"kind":"note","text":"The timer is never cleaned up. RefineDemo.js:96 creates a VoiceFollow but never calls `stop()`, so its interval and watch keep running if the demo view is removed. Separately, the callback resets state by editing `v.lines` directly from outside (RefineDemo.js:98); a `voice.reset()` method would be clearer."}}
+{"finding":{"at":"2026-10-13T18:51:31-05:00","n":5,"kind":"note","text":"The proof does not show one live dictation. mic-proof.mjs seeds sessionStorage with a saved file in three separate browser contexts, so it proves that all three surfaces read the same session, not that one live dictation travels between them. A real phone is a different device with its own sessionStorage, so a dictation made on a phone will not reach a desktop Refine tab. The readme wording (\"phone sheet\") means the 400 px sheet in the same tab; it should say so."}}
+{"finding":{"at":"2026-10-13T18:51:31-05:00","n":6,"kind":"note","text":"Refine only shows the instant clean for ✦ chat text. RefineDemo.js:102 calls `system.quick(text)`, never `go()`, so text heard in the chat gets the quick clean but no refined result unless the owner presses Refine. That is acceptable for \"takes its raw text from the chat() session\", but the note \"Heard in the ✦ chat.\" could say that."}}
+{"phase":{"at":"2026-10-13T18:51:31-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0.5046037999999999,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-10-13T18:52:10-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-10-13T18:52:10-05:00","n":1,"reply":"noted: hash added to next.md after merge"}}
+{"answer":{"at":"2026-10-13T18:52:10-05:00","n":2,"reply":"fixed: corrections replace the line with the same at"}}
+{"answer":{"at":"2026-10-13T18:52:10-05:00","n":3,"reply":"noted: polling kept (Session.watch is the existing stream-by-poll); a chat.js event is a follow-up"}}
+{"answer":{"at":"2026-10-13T18:52:10-05:00","n":4,"reply":"fixed: reset() added; stop() exists, demo pages live until navigation"}}
+{"answer":{"at":"2026-10-13T18:52:10-05:00","n":5,"reply":"fixed: readme says same tab"}}
+{"answer":{"at":"2026-10-13T18:52:10-05:00","n":6,"reply":"fixed: note says press Refine for the full result"}}
+{"phase":{"at":"2026-10-13T18:52:10-05:00","n":2,"kind":"answers","status":"done"}}

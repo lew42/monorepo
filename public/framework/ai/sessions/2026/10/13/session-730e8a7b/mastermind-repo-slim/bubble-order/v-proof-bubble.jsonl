@@ -1,0 +1,4 @@
+{"chat":{"at":"2026-10-13T12:00:30.000Z","from":{"kind":"owner"},"text":"Hello, can you hear me?"}}
+{"chat":{"at":"2026-10-13T12:01:00.000Z","from":{"kind":"assistant","id":"claude"},"text":"Yes, I can hear you."}}
+{"chat":{"at":"2026-10-13T12:01:30.000Z","from":{"kind":"owner"},"text":"Please refine this sentence about the weather."}}
+{"chat":{"at":"2026-10-13T12:02:00.000Z","from":{"kind":"assistant","id":"claude"},"text":"Done."}}

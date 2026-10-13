@@ -1,0 +1,100 @@
+diff --git a/public/framework/ext/Refine/RefineDemo.js b/public/framework/ext/Refine/RefineDemo.js
+index f7167dd4a..169db26cb 100644
+--- a/public/framework/ext/Refine/RefineDemo.js
++++ b/public/framework/ext/Refine/RefineDemo.js
+@@ -5,6 +5,7 @@ import Whisper from "../../audio/Whisper/Whisper.js";
+ import Prompt from "./Prompt.js";
+ import RefineSystem from "./RefineSystem.js";
+ import RefineExplorer from "./RefineExplorer.js";
++import VoiceFollow from "./VoiceFollow.js";
+ 
+ View.stylesheet(import.meta, "Prompt.css");
+ 
+@@ -91,6 +92,14 @@ export default class RefineDemo extends View {
+ 			this.$box = this.$compose.$input;
+ 			this.dictate.on_whisper = line => this.system.session.record(line);
+ 			this.$box.el.addEventListener("input", () => this.quick());
++			// the ✦ chat (drawer or phone sheet) heard something: show the same words here, one result everywhere
++			this.voice = new VoiceFollow({ on_text: (text, v) => {
++				if (this.$box.el.value.trim()) return;   // you are typing or dictating here: leave it alone
++				if (this.prompt.status === "done"){ this.system.next(); v.lines = v.lines.slice(-1); text = v.text; }
++				this.system.source = "dictated";
++				this.$note.text("Heard in the ✦ chat.");
++				this.system.quick(text);
++			} });
+ 		});
+ 
+ 		this.$result = div.c("refine-result");
+diff --git a/public/framework/ext/Refine/VoiceFollow.js b/public/framework/ext/Refine/VoiceFollow.js
+new file mode 100644
+index 000000000..316476bb3
+--- /dev/null
++++ b/public/framework/ext/Refine/VoiceFollow.js
+@@ -0,0 +1,42 @@
++import * as Session from "../Session/Session.js";
++
++const KEY = "lew42-voice-session";   // the ✦ chat's session, written by ux/Dictate/chat.js
++
++/**
++ * class VoiceFollow — lets the Refine page show what the ✦ chat (desktop drawer or phone sheet) heard, so
++ * one dictation gives one result everywhere. It watches this tab's voice session file and hands the owner's
++ * lines, joined, to `on_text`. Read-only: it never starts a session or a mic. See ux/Dictate/doc/asks.md.
++ */
++export default class VoiceFollow {
++	constructor({ on_text }){
++		this.on_text = on_text;
++		this.file = null;          // the session file being watched
++		this.lines = [];           // owner lines heard, in file order
++		this.seen = new Set();
++		this.stop_watch = null;
++		this.look();
++		this.timer = setInterval(() => this.look(), 2000);   // the session can start after this page opens
++	}
++
++	get text(){ return this.lines.join(" ").trim(); }
++
++	look(){
++		let saved = null;
++		try { saved = JSON.parse(sessionStorage.getItem(KEY) || "null"); } catch {}
++		if (!saved?.file || saved.file === this.file) return;
++		this.stop_watch?.();
++		Object.assign(this, { file: saved.file, lines: [], seen: new Set() });
++		this.stop_watch = Session.watch(saved.file, line => this.hear(line));
++	}
++
++	hear(line){
++		const c = line?.chat;
++		if (!c || c.from?.kind !== "owner" || c.fix || c.level || !c.text) return;
++		if (this.seen.has(c.at)) return;
++		this.seen.add(c.at);
++		this.lines.push(c.text);
++		this.on_text(this.text, this);
++	}
++
++	stop(){ clearInterval(this.timer); this.stop_watch?.(); }
++}
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index 41857c0e3..7c6f041d1 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -72,3 +72,5 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`)
+ - `doc/refine-engine.md` — `engine.js`'s `clean()` and `structure.js`'s `structure()`: the shared, two-speed clean step Dictate and the prompt-log processor both call, its mechanical glossary/strike/diff-check rules, and the 3-model litmus test that picked the cheap model to run it on
+ - Open work: [loose ends by system](/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/by-system.md) — unbuilt Refine stages (context cards, interactive request cards, handoff, request filing) with the smallest fix per row; source rows in `/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/loose-ends.jsonl`; the ten `now` transcription rows, checked: [loose-ends.md](/framework/ai/sessions/2026/10/12/session-0e99727c/voice-to-session-page/loose-ends.md)
+ - [Confidence scale](/framework/ext/Refine/md/doc/confidence/) — 0.5 = not sure, over 0.7 needs evidence (`doc/confidence.md`); [past days refined, in reverse](/framework/ext/Refine/runs/) (`Server/refine-days.mjs`, input capped at 20k characters a day, so each day is a sample).
++
++- **Hears the ✦ chat** — `VoiceFollow.js` watches this tab's voice session (`lew42-voice-session`) and shows the owner's dictated lines on the demo as the raw text, so phone sheet, drawer chat and this page agree. Its own composer mic is the shared `ComposerMic`. Proof: `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/bubble-order/mic-proof.mjs`.
+diff --git a/public/framework/ux/Dictate/doc/next.md b/public/framework/ux/Dictate/doc/next.md
+index 9470df405..6d85bbde9 100644
+--- a/public/framework/ux/Dictate/doc/next.md
++++ b/public/framework/ux/Dictate/doc/next.md
+@@ -11,8 +11,8 @@
+ 
+ # Next 2: live bubble order, and one mic for Refine (2026-10-13)
+ 
+-1. **Order:** in `ext/Chat/Chat.js` (coordinate with its owner), insert a drawn bubble before the first existing bubble with a later `at`, and re-place a bubble when `retag_piece` changes its id/time. Proof: a headless run with a scripted Whisper sends four sentences with replies in between; assert DOM order equals the session file order. Replay tool: `dictate-check/replay.mjs`.
+-2. **One mic:** Refine's page takes its raw text from the `chat()` session instead of `VoiceStrip`'s own mic, so desktop, phone and Refine give one result. Details: [asks.md](asks.md#2026-10-13-later--bubble-order-and-how-dictate--chat--refine-nest).
++1. **Order — done (e7533ddfc, `Chat.js` `place()`):** in `ext/Chat/Chat.js` (coordinate with its owner), insert a drawn bubble before the first existing bubble with a later `at`, and re-place a bubble when `retag_piece` changes its id/time. Proof: a headless run with a scripted Whisper sends four sentences with replies in between; assert DOM order equals the session file order. Replay tool: `dictate-check/replay.mjs`.
++2. **One mic — done (Refine `VoiceFollow.js`):** the VoiceStrip half was already gone (2026-10-12, composer); the page now also shows what the ✦ chat heard. Original ask: Refine's page takes its raw text from the `chat()` session instead of `VoiceStrip`'s own mic, so desktop, phone and Refine give one result. Details: [asks.md](asks.md#2026-10-13-later--bubble-order-and-how-dictate--chat--refine-nest).
+ 
+ # Next 3: from the surfaces page (2026-10-13)
+ 
