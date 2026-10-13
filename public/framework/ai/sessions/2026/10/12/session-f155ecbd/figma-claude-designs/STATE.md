@@ -14,13 +14,16 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ `DS · 1.1 Icons`, `1.2 Dark grounds`, `2.6 Dropdowns & menus` (with a ▶ prototype), `2.7 Toggles, checkboxes & radios`; reports in [kit/](kit/). Screenshotted, linked from the Overview card.
 - ✅ Review fixes: kit `Tab bar` active tab lost its prime ground (accent icon + ink label instead); Dark grounds' hand-drawn toggles swapped for the `Toggle` component.
 
-## In flight
-- ⬜ `DS · 4.1 Foundational layouts` — task-mastermind-figma-ds-foundational, brief [kit/brief-layouts.md](kit/brief-layouts.md)
-- ⬜ `DS · 5 Diagrams & charts` — task-mastermind-figma-ds-diagrams, brief [kit/brief-diagrams.md](kit/brief-diagrams.md)
-- ⬜ Kit sweep (Chip/Segment/Row prime states → inset, focus rings, lighter toggle knob) — task-mastermind-figma-ds-sweep, brief [kit/brief-sweep.md](kit/brief-sweep.md)
-- ⬜ Web: toggle, checkbox, radio, select, icons as opt-in `.fig-*` CSS on [/framework/ext/Figma/tokens/](/framework/ext/Figma/tokens/) — task-mastermind-figma-web-controls, brief [kit/brief-web-controls.md](kit/brief-web-controls.md)
+## Third wave
+- ✅ `DS · 4.1 Foundational layouts` ([report](kit/ds-foundational.md)): seven layouts × four uses + phone collapse + a ▶ prototype (settings nav swaps the panel). Review fix: rule tiles stretch to the phone tile's height (no grey void). Linked from Overview.
+- ✅ Kit sweep ([report](kit/ds-sweep.md)): `Focus` variant on Button/Toggle/Checkbox/Radio/Dropdown, white toggle-off knob, Tag/Toolbar/Pagination/Badge/Chat bubble lost their orange grounds. UI Kit's `PRIME` scheme column kept on purpose (it demos the scheme).
+- ✅ Web controls ([report](kit/web-controls.md), [doc](/framework/ext/Figma/doc/controls.md)): `.fig-toggle/check/radio/select/icon` on [/framework/ext/Figma/tokens/](/framework/ext/Figma/tokens/). Select is styling only (no outside-click/keyboard yet).
 
-Each writes `kit/<slug>.md`. Next: screenshot each page, link it from the Overview card, fix off-rule colour and fixed sizes.
+## In flight
+- ⬜ `DS · 5 Diagrams & charts` — task-mastermind-figma-ds-diagrams, brief [kit/brief-diagrams.md](kit/brief-diagrams.md)
+- ⬜ Web: the seven layouts as opt-in `.fig-*` CSS — task-mastermind-figma-web-layouts, brief [kit/brief-web-layouts.md](kit/brief-web-layouts.md)
+
+Next: review each by screenshot, link from the Overview card.
 
 ## Waiting on the owner
 - ⬜ Which numbers win per row of the token table in token-sync.md (site vs Figma).
