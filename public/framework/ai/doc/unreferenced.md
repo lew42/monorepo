@@ -1,0 +1,104 @@
+# Unreferenced files: a census
+
+**126 files** under `public/framework/{core,ext,ui,ux,styles}` and `public/web` have no reference anywhere: no `import`, no link in a `.md`, no `files.jsonl` row, no `children:` path. Searched 7877 text files with `node Server/Unreferenced.mjs --write`.
+
+**A reference-free file is a candidate, not a verdict.** A file can be loaded by a name built at runtime, by a script tag, or by the owner typing its URL. Nothing here was moved or deleted; the owner decides.
+
+Not counted: the 706 per-member docs under `doc/method|property|file/` (the Doc system lists those by folder), `readme.md`, `page.js`, `files.jsonl`, `index.html`, tests, and anything under `ai/sessions`. A path (`./Foo.js`, `/framework/ext/Foo/Foo.js`) must resolve to the file; a bare file name counts only when no other file shares it. Back to [follow-up.md](follow-up.md).
+
+- `core/Page/doc/` (3): `Page-notes.md`, `previews.md`, `readme-full-2026-10-12.md`
+- `core/Page/jsonl/doc/` (3): `caveats.md`, `size.md`, `writers.md`
+- `ext/Collab/demo/collab/haiku-a/` (3): `1-brief.md`, `2-read-peers.md`, `3-revise.md`
+- `ext/Collab/demo/collab/haiku-c/` (3): `1-brief.md`, `2-read-peers.md`, `3-revise.md`
+- `ext/Collab/demo/collab/sonnet-b/` (3): `1-brief.md`, `2-read-peers.md`, `3-revise.md`
+- `styles/layouts/catalog/` (3): `catalog.css`, `census.mjs`, `shots.mjs`
+- `core/Layout/doc/` (2): `rules-notes.md`, `rules.md`
+- `core/new/1/agents/urls/` (2): `router.md`, `schema.md`
+- `core/new/1/site/content/book/` (2): `capture.md`, `manifest.md`
+- `core/Page/ai/doc/` (2): `assistant.md`, `sessions.md`
+- `core/Page/card/doc/` (2): `inventory.md`, `system.md`
+- `core/Page/doc/archive/` (2): `findings.md`, `moved.md`
+- `core/Page/jsonl/` (2): `note.md`, `system.js`
+- `core/Page/jsonl/full/` (2): `content.js`, `note.md`
+- `core/Page/layout/switcher/doc/` (2): `decide.md`, `decisions.md`
+- `core/Page/navigation/doc/` (2): `alternatives.md`, `prior-work.md`
+- `ext/catalog/` (2): `browse.css`, `catalog.css`
+- `ext/demo/` (2): `demo.css`, `shell.css`
+- `ext/Refine/doc/` (2): `architecture.md`, `prompt.md`
+- `styles/layouts/cols/doc/` (2): `adoption.md`, `words.md`
+- `styles/system/studies/color/sections/` (2): `decisions.md`, `sections.css`
+- `styles/system/studies/size/` (2): `landing.md`, `size.css`
+- `ux/Content/Object/doc/` (2): `census.md`, `shape.md`
+- `ux/Dictate/doc/` (2): `chat.md`, `notes.md`
+- `core/Layout/` (1): `Layout.css`
+- `core/new/1/` (1): `server.js`
+- `core/new/1/agents/eric/` (1): `proposal.md`
+- `core/new/1/agents/steve/` (1): `proposal.md`
+- `core/new/1/agents/tim/` (1): `proposal.md`
+- `core/new/1/site/` (1): `app.js`
+- `core/new/1/site/budget/` (1): `budget.js`
+- `core/new/1/site/compose/` (1): `compose.css`
+- `core/new/1/site/content/` (1): `content.css`
+- `core/new/1/site/kit/` (1): `page.css`
+- `core/new/1/site/library/` (1): `library.css`
+- `core/new/1/site/motion/baseline/` (1): `baseline.css`
+- `core/new/1/site/patterns/` (1): `patterns.css`
+- `core/new/1/site/perf/` (1): `ui.js`
+- `core/Page/ai/` (1): `ai.css`
+- `core/Page/audit/design/` (1): `findings.md`
+- `core/Page/card/` (1): `card.css`
+- `core/Page/ext/` (1): `demo.js`
+- `core/Page/generator/doc/` (1): `traps.md`
+- `core/Page/parts/` (1): `Part.js`
+- `core/Page/parts/doc/` (1): `architecture.md`
+- `core/Search/doc/` (1): `decisions.md`
+- `core/Shell/` (1): `Shell.css`
+- `ext/Ask/` (1): `mic.js`
+- `ext/Chat/` (1): `index.js`
+- `ext/Collab/` (1): `collab.css`
+- `ext/DesignTool/doc/` (1): `rules-notes.md`
+- `ext/DesignTool/journey/` (1): `journey.css`
+- `ext/drawer/` (1): `rail.css`
+- `ext/ErrorLog/doc/` (1): `design.md`
+- `ext/Figma/palette/collab/` (1): `collab.css`
+- `ext/Figma/palette/controls/` (1): `controls.css`
+- `ext/Figma/palette/timeline/` (1): `timeline.css`
+- `ext/Figma/tokens/` (1): `page.css`
+- `ext/grip/` (1): `grip.css`
+- `ext/layout/` (1): `layout.css`
+- `ext/Mention/doc/` (1): `syntax.md`
+- `ext/Omnibox/` (1): `Omnibox.js`
+- `ext/Omnibox/doc/` (1): `decisions.md`
+- `ext/Panel/` (1): `toolbar.js`
+- `ext/Panel/playground/` (1): `playground.css`
+- `ext/Refine/` (1): `system.js`
+- `ext/Shots/doc/` (1): `architecture.md`
+- `ext/Timeline/` (1): `Timeline.css`
+- `styles/layouts/` (1): `layouts.css`
+- `styles/layouts/catalog/doc/` (1): `past-work.md`
+- `styles/system/studies/color/` (1): `decisions.md`
+- `styles/system/studies/lists/doc/` (1): `page-notes.md`
+- `styles/system/studies/spacing/nesting/` (1): `decisions.md`
+- `styles/system/studies/themes/` (1): `themes.css`
+- `styles/system/studies/type/anchors/` (1): `decisions.md`
+- `ui/background/` (1): `page.css`
+- `ui/controls/` (1): `controls.css`
+- `ui/icon/doc/` (1): `icons.md`
+- `ui/item/doc/` (1): `reuse.md`
+- `ux/Content/` (1): `content.css`
+- `ux/Content/catalog/` (1): `catalog.css`
+- `ux/Content/Decision/doc/` (1): `shape.md`
+- `ux/Content/Disclosure/doc/` (1): `decisions.md`
+- `ux/Content/Question/doc/` (1): `shape.md`
+- `ux/Content/Quotation/doc/` (1): `shape.md`
+- `ux/Dictate/` (1): `Dictate.css`
+- `ux/Dictate/playground/` (1): `Playground.css`
+- `ux/Dictate/variants/v1/` (1): `Dictate.css`
+- `ux/Dictate/workspace/` (1): `Workspace.css`
+- `ux/Hotkeys/doc/` (1): `decisions.md`
+- `ux/Menu/doc/` (1): `decisions.md`
+- `ux/Pagination/doc/` (1): `decisions.md`
+- `ux/Rename/doc/` (1): `decisions.md`
+- `ux/Tags/doc/` (1): `decisions.md`
+- `ux/Understand/doc/` (1): `decisions.md`
+- `public/web/nav/doc/study/` (1): `navigation.css`

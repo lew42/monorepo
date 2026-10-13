@@ -13,6 +13,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Dev server**: [Server/readme.md](/framework/dev/)
 - **MCP tools**: [doc/agents/mcp.md](doc/agents/mcp.md)
 - **Models**: [system/models](system/models/) · [OpenRouter](/framework/servex/) · local
+- **Follow-up** (what fell through the cracks, computed; plus unused-file census): [doc/follow-up.md](doc/follow-up.md) · [doc/unreferenced.md](doc/unreferenced.md) · `node Server/FollowUp.mjs --write`
 - **Sessions** (VS Code tabs, browser voice agents): [sessions/](sessions/readme.md) · [conversations](doc/logs/conversations.md)
 - **Transcription**: [ux/Dictate](/framework/ux/Dictate/)
 - **Class cards, live** ([classes](/framework/ai/classes/)): a class, its API, and a debug tree of a live instance beside its rendered view. First: Session.
