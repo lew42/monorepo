@@ -36,3 +36,5 @@ Both times the registry shows the agent `working` within a second of the sentenc
 5. **Two dictation widgets:** the Dictation tab embeds the playground widget while the chat uses `Widget` (already named in [voice-architecture.md](voice-architecture.md)).
 
 The merge itself is a later brief: [next.md](next.md).
+
+**Update 2026-10-13:** the phone sheet and the sidebar are now one component: the sheet's `full` state mounts the drawer's own tab row ([next.md](next.md)).
