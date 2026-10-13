@@ -31,7 +31,7 @@ Flags: `--parallel N` (default 2 calls at once), `--brief v1|v2` (default v2), `
 
 ## Review: why brief v2
 
-An Opus read of 10 products against their raw prompts: v1 mean coverage 0.90, v2 0.96 ([review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-pipeline/review.md)). Haiku seldom **dropped** detail; it **distorted** it: narration read as an ask, a self-correction ignored, a restated idea read as the owner's. v2 lists every specific first and adds one rule for each of those.
+An Opus read of 10 products against their raw prompts: v1 mean coverage 0.90, v2 0.96 ([haiku-review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-pipeline/haiku-review.md)). Haiku seldom **dropped** detail; it **distorted** it: narration read as an ask, a self-correction ignored, a restated idea read as the owner's. v2 lists every specific first and adds one rule for each of those.
 
 ## Cost: run the call outside the repo
 
