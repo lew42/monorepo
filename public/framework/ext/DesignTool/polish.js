@@ -1,12 +1,5 @@
-/* The second tier: not BROKEN, but OFF.
- *
- * `rules.js` reports geometry that fails — text unreachable, boxes overlapping,
- * content off screen. Nothing there fires on a page that merely looks wrong.
- * These do: edges that nearly line up, a card whose padding does not scale with
- * it, two headings shouting at each other, a page with no visible structure.
- *
- * ⚠ Everything here caps at MEDIUM. A near-miss alignment is worth a designer's
- * minute; it is not worth outranking content that cannot be reached. */
+/* The polish tier: looks off but not broken — nearly-aligned edges, misscaled padding, missing structure.
+ * Everything caps at MEDIUM. History and rules: doc/polish-notes.md. */
 
 import { each_child, boxed, children, text_bounds } from "./ratios.js";
 
@@ -18,21 +11,12 @@ const issue = (n, sev, value, detail, fix) =>
 
 export const polish = [
 
-	/* The owner's card: 20px of padding on a 1000px box "looks off", and it does —
-	 * while passing a font-size test, because 20px is a perfectly good gap for
-	 * 16px text. Both floors are real and they measure different things:
-	 *
-	 *   font-size  → can the text BREATHE next to the edge  (legibility)
-	 *   width      → is the frame PROPORTIONATE to what it holds  (composition)
-	 *
-	 * A box needs to clear both. The width floor is 3.5% capped at 3.5em, so it
-	 * binds on wide boxes and disappears on chips, where the font floor governs. */
+	/* ⚠ Both bounds matter: font-size (readability) and width (composition).
+	 * Width floor 3.5% capped at 3.5em binds on wide boxes. See doc/polish-notes.md. */
 	rule("pad-scale", "proportion", "Padding doesn't scale with the box", m => {
 		const bounds = text_bounds(m);
 
-		/* ⚠ Cards, not bands. 3.5% is a proportion for a bounded box; a full-width
-		 * section's inset is the page gutter's job, and `gutter` already owns it.
-		 * Without this the rule flagged every framed container on every page. */
+		// ⚠ Cards only (320–85vw); full-width sections use the gutter rule.
 		const card = n => n.w >= 320 && n.w <= m.viewport.w * 0.85;
 
 		return m.nodes.filter(n => n.framed && boxed(n) && card(n) && bounds[n.i]).flatMap(n => {
@@ -51,17 +35,12 @@ export const polish = [
 		});
 	}),
 
-	/* Near misses only. Two edges 40px apart are two columns; two edges 5px apart
-	 * are one column and a mistake — and the eye reads the second as a wobble
-	 * long before it can say why. Exact matches are the design working. */
+	// Only near misses (3–12px); bigger gaps are intentional columns.
 	rule("alignment", "alignment", "Edges nearly line up, but don't", m => {
 		const found = [];
 
 		for (const axis of ["x", "right"]){
-			/* ⚠ Block-level only. `boxed()` lets `inline-block` through, and an
-			 * icon's left bearing or a chip in a sentence then reads as a column
-			 * edge a few pixels off — six of those on one page, all noise. Only
-			 * boxes that participate in the block layout define a lane. */
+			// ⚠ Block-level only; inline elements don't define layout lanes.
 			const edges = m.nodes
 				.filter(n => n.w > 60 && n.h > 8 && n.position === "static"
 					&& !n.display.startsWith("inline") && n.display !== "contents")
@@ -69,10 +48,7 @@ export const polish = [
 
 			const lanes = cluster(edges.map(e => e.at), 1);
 
-			/* ⚠ A sub-pixel difference is not a misalignment. At 1.5px and a
-			 * three-element lane this fired 987 times across 120 pages — browsers
-			 * land fractional edges everywhere. 3px is a gap the eye can see, and
-			 * four elements make a lane worth aligning to. */
+			// ⚠ Browsers land fractional edges everywhere; 3px is visible, need 4+ for a lane.
 			for (const { n, at } of edges){
 				const lane = lanes.find(l => Math.abs(l.at - at) <= 12 && l.count >= 4);
 				const off = lane ? Math.abs(lane.at - at) : 0;
@@ -88,30 +64,12 @@ export const polish = [
 		return found;
 	}),
 
-	/* "the extra 2em makes the Title and Paragraph misalign. Why doesn't this
-	 * layout tool detect this?" — because `alignment` only looks at NEAR misses,
-	 * 3–12px, on the theory that a bigger gap is a deliberate second column. A
-	 * heading and the text under it are never two columns: they are one reading
-	 * column, and any step between them is a mistake at any size.
-	 *
-	 * ⚠ "ITS OWN TEXT" IS THE NEXT BLOCK SIBLING, and the first version took whatever
-	 *   text node came next in a GLOBAL y-sort — a different element entirely on any
-	 *   page with structure, and wrong in both directions. On `/framework/`, whose
-	 *   alignment is fine, it fired on the first CARD TITLE under a section `h2` (42px:
-	 *   the card's own padding, inside a frame the reader can see) and on an `li` under
-	 *   an `h2` (17px: a list's marker indent) — while on `/web/layout/flow/` an `h1`
-	 *   sitting 194px left of the content it heads fired nothing, because the offset
-	 *   cleared a 96px "deliberate indent" escape that only ever existed to survive the
-	 *   wrong pairing. Sibling pairing plus `starts()` makes the wide window genuinely
-	 *   safe, so the escape is gone. Evidence: `ai/sessions/2026/08/17/tier-calibration/`. */
+	// Only pairs directly below; sibling-matching avoids false positives. doc/polish-notes.md.
 	rule("heading-offset", "alignment", "A heading doesn't line up with its own text", m => {
 		const kids = children(m);
 		const found = [];
 
-		/* ⚠ A heading following a heading counts. The reported case was a page TITLE
-		 * against the `h2` inside a padded wrapper — skipping heading-over-heading as
-		 * "hierarchy's problem" made the rule miss the exact misalignment it was
-		 * written for. */
+		// Include heading-over-heading; hierarchy is about relative, not absolute.
 		for (const head of m.nodes){
 			if (!level(head) || !head.text || head.display.startsWith("inline")) continue;
 
@@ -134,13 +92,7 @@ export const polish = [
 		return found;
 	}),
 
-	/* Three cards in a row at three different heights read as ragged, even though
-	 * every one of them is doing what it was told.
-	 *
-	 * ⚠ This is deliberately LOW. `Page.css` sets `align-items: start` on the
-	 * preview wall on purpose — "a cell is as tall as what it shows, and
-	 * stretching hands the short ones their dead space straight back". So a
-	 * ragged row is a judgement call, and the tool says so rather than ruling. */
+	// Ragged rows may be intentional (align-items: start) — a judgement call, not an error.
 	rule("ragged-row", "alignment", "A row of cards ends at different heights", m =>
 		each_child(m).flatMap(({ node, kids }) => {
 			const row = kids.filter(k => k.framed && k.h > 24 && k.position === "static");
@@ -162,8 +114,7 @@ export const polish = [
 				{ sel: node.sel, decl: "align-items: stretch" })];
 		})),
 
-	/* "we don't want 2 h1's next to each other, it's distracting" — and the
-	 * document-outline version of the same complaint is a level skipped. */
+	// Multiple h1s are distracting; also check for skipped levels.
 	rule("hierarchy", "hierarchy", "Heading levels don't form an outline", m => {
 		const heads = m.nodes.filter(n => level(n) && n.text).sort((a, b) => a.y - b.y || a.x - b.x);
 		if (heads.length < 2) return [];
@@ -195,14 +146,7 @@ export const polish = [
 		return found;
 	}),
 
-	/* Padding inside padding. Legitimate exactly when the inner box CHANGES
-	 * SOMETHING you can see — a callout with its own background, a bordered
-	 * panel. When the two boxes paint the same, the second inset buys nothing and
-	 * the content just sits further in than anyone intended.
-	 *
-	 * ⚠ The test is "does the paint change", not "is there a background": two
-	 * nested boxes both painted `--surface` are as invisible as two transparent
-	 * ones. */
+	// Nested padding only legitimate if paint changes (background, border). doc/polish-notes.md.
 	rule("double-pad", "proportion", "Padding nested inside padding, with nothing to show for it", m =>
 		m.nodes.filter(n => n.parent >= 0 && boxed(n)).flatMap(n => {
 			const p = m.nodes[n.parent];
@@ -212,13 +156,7 @@ export const polish = [
 			const outer = Math.min(p.pad[1], p.pad[3]);
 			if (inner < 6 || outer < 6) return [];
 
-			/* Only when the child actually fills its parent — a card in a padded
-			 * grid is two boxes, not one box padded twice.
-			 *
-			 * ⚠ The parent's CONTENT width. Measured against `cw − outer` the test
-			 * read "child ≥ parent minus one inset" while a filling child is parent
-			 * minus TWO, so it demanded `outer ≤ 4` and the rule above demands
-			 * `outer ≥ 6`. Unsatisfiable — 0 findings in 854 site runs. */
+			// ⚠ Child fills parent iff width ≥ cw − both pads (was: one pad — unsatisfiable).
 			if (n.w < p.cw - p.pad[1] - p.pad[3] - 4) return [];
 			if (n.bg !== p.bg || n.framed !== p.framed) return [];
 
@@ -229,13 +167,7 @@ export const polish = [
 				{ sel: n.sel, decl: "padding: 0" })];
 		})),
 
-	/* "if there are large unused areas, more than necessary, we could flag these"
-	 * — and this is the one the vision model caught that no rule could: "the
-	 * content ends roughly halfway down the visible area." */
-	/* ⚠ A short page on a tall screen is not a defect — you cannot fill a screen
-	 * with nothing, and `.page` carries `min-height: 100%` by design. Only boxes
-	 * that RESERVE height they don't use count: the root and anything sized by
-	 * the viewport are excluded, or every page in the corpus reads as wasteful. */
+	// ⚠ Short pages aren't defects; only boxes that RESERVE unused height count.
 	rule("whitespace", "proportion", "A large empty area below the content", m =>
 		each_child(m).flatMap(({ node, kids }) => {
 			if (node.i === 0 || node.h < 320 || !boxed(node)) return [];
@@ -256,13 +188,7 @@ export const polish = [
 				{ sel: node.sel, decl: "min-height: auto" })];
 		})),
 
-	/* "transparent layouts can be powerful, but often it seems we're missing the
-	 * bg that would provide visual hierarchy."
-	 *
-	 * ⚠ An observation, not an error — a flat page is a legitimate style. It
-	 * fires only when the page has real STRUCTURE (many sibling groups) and
-	 * nothing at all to see it by, which is the case where a reader has to infer
-	 * the grouping from whitespace alone. */
+	// Flat pages are legitimate, but structure with nothing marking it is hard to read.
 	rule("invisible", "hierarchy", "Structure with nothing to see it by", m => {
 		const groups = each_child(m).filter(({ kids }) => kids.length >= 3
 			&& kids.filter(k => k.h > 24 && boxed(k)).length >= 3);
@@ -281,22 +207,8 @@ export const polish = [
 
 const level = n => HEADINGS[n.tag] ?? HEADINGS[[...n.sel.matchAll(/\.(h[1-6])\b/g)].at(0)?.[1]];
 
-/* Where the block under a heading STARTS DRAWING: the leftmost of the boxes inside it
- * that a reader can see. Descend past boxes that paint nothing and hold no text of
- * their own — a `.bleed` wrapper starts LEFT of the heading and its content starts
- * right — and stop at any box that has text, draws a frame, is a list, or has nothing
- * left below it. A frame explains the inset inside it and a list's indent is its own
- * convention; neither is a misalignment.
- *
- * ⚠ LEFTMOST, NOT FIRST IN DOCUMENT ORDER, and it is the difference between six false
- *   positives and none. `probe.IGNORE` empties a demo stage's subtree by policy, so a
- *   559px stage sitting exactly on the heading's lane offered nothing to land on and
- *   the descent slid sideways to the next branch — the right-aligned `button.demo-btn`
- *   control row — reporting six pages as 158–325px misaligned. Document order also has
- *   no claim to being where content begins: a justified row's first child is wherever
- *   the justification put it. The minimum is the only edge that means "the content
- *   starts here", and it can only ever be more forgiving than the first.
- * ⚠ A `display: contents` sibling has no box, and the rule declines rather than guess. */
+	/* Leftmost visible start under a heading (text, frame, list, or nothing below).
+	 * ⚠ LEFTMOST not first-in-order; display:contents has no box. doc/polish-notes.md. */
 function starts(kids, n){
 	const seen = [];
 
@@ -314,8 +226,7 @@ function starts(kids, n){
 	}
 }
 
-/* One pass over sorted values, merging anything within `tol`. Returns each lane
- * with how many elements sit on it — a lane of one is not a lane. */
+	// Merges values within tolerance; single-element lanes are ignored.
 function cluster(values, tol){
 	const sorted = [...values].sort((a, b) => a - b);
 	const lanes = [];
