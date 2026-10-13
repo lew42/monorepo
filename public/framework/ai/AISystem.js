@@ -20,7 +20,8 @@ export default class AISystem extends System {
 			const link = m?.[3].match(/\]\(([^)]+)\)/);
 			if (!m || !link) return [];
 			const href = link[1].startsWith("http") || link[1].startsWith("/") ? link[1] : new URL(link[1], location.origin + "/framework/ai/").pathname;
-			return [{ name: m[1].replace(/ \(.*/, ""), icon: AISystem.ICONS[m[1]] ?? "widgets", gist: m[2] ?? "", href }];
+			if (!AISystem.ICONS[m[1]]) return [];   // only the named major systems, one screen
+			return [{ name: m[1].replace(/ \(.*/, ""), icon: AISystem.ICONS[m[1]], gist: m[2] ?? "", href }];
 		});
 	}
 

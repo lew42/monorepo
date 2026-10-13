@@ -1,6 +1,6 @@
 # AI system architecture — files are the memory, code runs the loop
 
-The AI system is everything that lets agents do work here and lets the owner see it: Servex runs the agents, the readme chain tells them what exists, each task is a folder with a JSONL log, and the cards on `/framework/ai/` are the owner's surface. Terms: a card is one row on the AI board, a mastermind is the agent that owns a task, a minion is an agent it hands a piece to. The pattern: state lives in appended files, node drives the sequence, the model supplies judgment. Components, one line each, computed from the readme index: the System tab, [`/framework/ai/system/`](/framework/ai/system/). Servex's own decisions: [Servex/doc/architecture.md](/framework/servex/doc/architecture.md).
+The AI system is everything that lets agents do work here and lets the owner see it: Servex runs the agents, the readme chain tells them what exists, each task is a folder with a JSONL log, and the cards on `/framework/ai/` are the owner's surface. Terms: a card is one row on the AI board, a mastermind is the agent that owns a task, a minion is an agent it hands a piece to. The pattern: state lives in appended files, node drives the sequence, the model supplies judgment. Components, one line each, computed from the readme index: the System tab, [`/framework/ai/system/`](/framework/ai/system/). An earlier, shorter version of this file is in git history (it also said the System tab shows class cards: it still does). Servex's own decisions: [Servex/doc/architecture.md](/framework/servex/doc/architecture.md).
 
 ## The readme chain is the AI's memory
 **Decided:** every agent reads CLAUDE.md, then the readmes root to leaf; each readme is a short index (under ~100 lines) pointing into `doc/`.
@@ -60,6 +60,7 @@ The AI system is everything that lets agents do work here and lets the owner see
 **Decided:** start a new session when a round winds down or the topic changes; reuse one only while its cache is fresh and the topic continues.
 **Why:** a new agent reading the readmes and the code sees the current state without the bloat that built it.
 **Instead:** resuming everything (cheap per turn, but context grows and carries stale beliefs).
+**Detail:** [CLAUDE.md](../../../CLAUDE.md) "Cost and roles"
 
 ## Token directives
 **Decided:** (1) never copy a file by reading and rewriting it: use `git mv` or `cp`; (2) batch reads into one turn; (3) a script computes, the model reads the summary; (4) audits and scans go to Haiku under 100k tokens; (5) check pace before a spawn.

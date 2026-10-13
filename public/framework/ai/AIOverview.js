@@ -151,7 +151,8 @@ export class AIOverview {
 					AIOverview.section("The AI system", "Its components, one card each, read from the index in ai/readme.md. Why it is shaped this way: doc/architecture.md.", () => {
 						const box = div.c("wide");
 						new AISystem().show(box);
-						a("Decisions: doc/architecture.md").attr("href", base + "doc/md/architecture/");
+						a("Decisions: doc/architecture.md").attr("href", base + "doc/architecture.md");
+						a("What a System is (class card, live instances)").attr("href", "/framework/ext/System/");
 					});
 					AIOverview.section("AI system classes", "Servex is the one always-on process; each card is one of its classes.", () => {
 						SystemClasses.cards(["Servex", "Agents", "Dispatcher", "Sessions", "Pool", "Usage", "Budget"]);
