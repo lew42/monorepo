@@ -3,3 +3,8 @@
 	.fig-tokens-phone { width: 390px; max-width: 100%; }
 	.fig-tokens-bar > * { flex: 1; }
 }
+@layer theme {
+	.fig-controls-box { min-width: 0; }
+	.fig-controls-open { width: 320px; max-width: 100%; min-height: 300px; }
+	.fig-tokens-phone .fig-select-label { margin-bottom: calc(var(--fig-gap) * -0.6); }
+}
