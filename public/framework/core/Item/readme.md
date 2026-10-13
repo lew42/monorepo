@@ -8,7 +8,7 @@
 Item = Events(Object)                 // ✅ landed 2026-10-02 — on/off/emit come from the Events mixin
   id, data: {}                        // get(key), put(key, value) — seams over `data`; Page overrides both
   set(a, b)                           // ✅ one delta: a method key calls it, a nested .set() recurses, else data + emits "change"/"delta"
-  store: Item.Store                   // ✅ a Store attached (core/Item/Store.js) replays/appends/tails one .jsonl file — it writes through FsFile.append, the one file API (ext/filesystem)
+  store: Item.Store                   // ✅ a Store attached (core/Item/Store.js) replays/appends/tails one .jsonl file — it writes through FsFile.send, the one file API (ext/filesystem)
   view                                // getter/setter; lazy `new constructor.View({item})` once core grows one
   remove(), root(), contains(item), walk(fn), find(id), save(), delete()
   toJSON(), static hydrate(json), static register(Class, name), static open(src)
@@ -34,7 +34,7 @@ a PROPERTY instead of an inheritance: something that needs children gives ITSELF
 ```js
 const doc = await Item.open("/framework/core/Item/live/demo.jsonl");   // replay every line, then tail
 doc.content ??= new List({ owner: doc, name: "content" });             // a class gives ITSELF a list
-doc.content.add({ id: "hello", data: { text: "Hello" } });           // appends {"add":…} through FsFile.append
+doc.content.add({ id: "hello", data: { text: "Hello" } });           // appends {"add":…} through FsFile.send
 ```
 
 **A whole JSON file.** [`FileSaver`](/framework/ext/Saver/) (`ext/Saver/FileSaver.js`) rewrites the file through `FsFile.write`:
@@ -61,6 +61,7 @@ itself, written under its own name, omitted when it never made one. All user sta
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`doc/item-notes.md`](./doc/item-notes.md) — comments pruned from `Item.js`, verbatim.
 - [Overview](/framework/core/Item/) — the page asserts every claim on load; red is a broken framework.
 - [Live list](/framework/core/Item/live/) — the same List, on a real page, saved to a real file: drag, add, sort, reload.

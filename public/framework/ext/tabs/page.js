@@ -9,7 +9,7 @@ export default new Doc({
 
 	subject: Page,
 	methods: "tabs",
-	notes: "usage overflow extraction decisions",
+	notes: "usage overflow extraction decisions architecture",
 	files: "tabs.js tabs.css page.js readme.md",
 
 	content(){

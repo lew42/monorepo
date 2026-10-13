@@ -17,6 +17,7 @@ That is the whole API. Each url segment is one `page.child(name)`, a miss is an 
 - `redirect()` / `Router.enter()` were backed out — two live urls for one state: [doc/backed-out.md](./doc/backed-out.md)
 
 ## More
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [Overview](/framework/core/Router/) — the walk, the four classes, live anchors.
 - [doc/decisions.md](./doc/decisions.md) — the record: why a Router, verdicts, proposals, open items.
 - [doc/registry-gate.md](./doc/registry-gate.md) — optimistic interception: load first, push second.

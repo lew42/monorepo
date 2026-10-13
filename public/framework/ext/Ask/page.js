@@ -10,7 +10,7 @@ export default new Doc({
 
 	subject: Ask,
 	methods: "ask thread start available pick",
-	notes: "reply picking task process fork shot record decisions",
+	notes: "reply picking task process fork shot record decisions architecture",
 	files: "Ask.js pick.js reply.js mic.js verdict.js ask.css chat.js page.js readme.md",
 
 	content(){

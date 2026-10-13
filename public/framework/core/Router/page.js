@@ -13,7 +13,7 @@ export default new Doc({
 	methods: "go load load_segments activate mark mark_links " +
 	         "click link_clicked listen chain shared_depth root assign",
 
-	notes: "constructor registry-gate chain-diff marking styles-loaded " +
+	notes: "architecture constructor registry-gate chain-diff marking styles-loaded " +
 	       "navigated scroll-reset fragment backed-out measured decisions",
 
 	files: "Router.js page.js readme.md",

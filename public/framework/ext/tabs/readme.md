@@ -27,6 +27,7 @@ the panel, with the selected tab cut out of its top edge.
 ## More
 
 - [Overview](/framework/ext/tabs/) — live demos: the default strip, `.block`, `.vertical`
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [doc/decisions.md](./doc/decisions.md) — placement not marking, nest pages not sets, the quiet default, `.block`/`--tab-fill`, traps, caller census
 - [doc/usage.md](./doc/usage.md) — which page earns a tab bar (the four-condition test)
 - [doc/overflow.md](./doc/overflow.md) — one strip that scrolls; the hidden-scrollbar bargain

@@ -48,6 +48,7 @@ p("Hello world.");
 - [`ai/`](/framework/ai/) — the working log, daily
 - [`doc/decisions.md`](./doc/decisions.md) (the record) · [`doc/injection.md`](./doc/injection.md) (nothing reads `window.app`) · [`doc/theme-behaviour.md`](./doc/theme-behaviour.md) (a theme is CSS)
 - [`doc/docs-system.md`](./doc/docs-system.md) (what a doc page is made of) · [`doc/reachability.md`](./doc/reachability.md) (the crawl + audit method)
+- **Decisions:** a module's readme gives the one-line overview and links `doc/architecture.md` for the conclusive decisions and why; `doc/decisions.md` (the log) is history, read when you need to know how a decision moved ([shape](/.claude/skills/documentation/architecture-template.md))
 - Files that matter: `/app.js` (the one import), `page.js` (sidebar + walls layout), `framework.css` (the utility vocabulary)
 
 ## Also here (readme audit, 2026-10-13)

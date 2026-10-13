@@ -22,7 +22,7 @@ export default new Doc({
 
 	subject: demo,
 	methods: "stage exhibit page tree layout app source steps",
-	notes:   "record decisions",
+	notes:   "architecture record decisions",
 	files:   "app.css app.js demo.css demo.js exhibit.css exhibit.js layout.js mini.css mini.js page.js pane.js readme.md sample.js shell.css shell.js stage.css stage.js steps.css steps.js",
 
 	content(){

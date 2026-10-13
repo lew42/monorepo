@@ -10,7 +10,7 @@ export default new Doc({
 	subject: md,
 	properties: "cache",
 	methods:    "file details c resolve",
-	notes:      "decisions sanitization relative-links file-labels proposed",
+	notes:      "architecture decisions sanitization relative-links file-labels proposed",
 	files:      "example.md marked.esm.js md.css md.js page.js readme.md",
 
 	content(){

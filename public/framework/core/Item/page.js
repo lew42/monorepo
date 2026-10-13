@@ -136,7 +136,7 @@ export default new Doc({
 	subject: Item,
 	properties: "id data parent store view",
 	methods: "assign get put set locate remove root lists walk find contains save delete toJSON wire hydrate register open",
-	notes: "envelope decisions",
+	notes: "architecture envelope decisions",
 	files: "Item.js readme.md page.js",
 
 	// ⚠ NOT a plain `children: "live"` — that runs through `declare()` inside the

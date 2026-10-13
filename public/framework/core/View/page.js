@@ -20,7 +20,7 @@ export default new Doc({
 
 	properties: "el capture tag classes name parent captor previous_captors stylesheets supports_sanitizer",
 
-	notes: "capturing lifecycle decisions",
+	notes: "architecture capturing lifecycle decisions",
 
 	files: "View.js page.js readme.md",
 

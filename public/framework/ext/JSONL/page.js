@@ -10,7 +10,7 @@ export default new Doc({
 	subject: JSONL,
 	properties: "verbs logs actions skipped loaded offset unparsed",
 	methods:    "parse load live unsubscribe read apply flat log action skip reset",
-	notes:      "task-jsonl live decisions",
+	notes:      "task-jsonl live decisions architecture",
 	files:      "JSONL.js live.js page.js readme.md",
 
 	overview: [

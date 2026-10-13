@@ -22,6 +22,7 @@ md.file(import.meta, "readme.md");      // a promise of a div.md — View.append
 
 ## More
 - Page: [/framework/ext/markdown/](/framework/ext/markdown/) · record: [`doc/decisions.md`](./doc/decisions.md) — two ways in, why `marked` is vendored, why `file()` is a promise, who calls this
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`doc/file-labels.md`](./doc/file-labels.md) — `` ```js /app.js `` becomes `<pre data-file>`, drawn by `ext/highlight`
 - [`doc/relative-links.md`](./doc/relative-links.md) — the 40-broken-routes crawl and `md.resolve`
 - [`doc/sanitization.md`](./doc/sanitization.md) — `html_unsafe()` over the Sanitizer API, weighed

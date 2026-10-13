@@ -93,3 +93,7 @@ A Doc's `notes:` land at `/module/doc/<name>/`, `methods:`/`properties:` at `/mo
 - Say in your summary what you documented and what you deliberately left.
 
 Improve this skill: append to [`improvements.md`](improvements.md).
+
+## 5. `doc/architecture.md` — the conclusive decisions (the owner, 2026-10-13)
+
+**A module's readme gives the one-line overview and links `doc/architecture.md` for decisions; `doc/decisions.md` (the log) is history, read only when you need to know how a decision moved.** A new agent reads `architecture.md` and nothing else about "why is it like this". Shape, rules and a filled example: [`architecture-template.md`](architecture-template.md). Short: a title, one paragraph of what the module is and the pattern it uses, then one entry per *current* decision (decision, why, alternative and trade-off, one link to the log entry). No dates, no "the owner said", no reversal history; most stay under 80 lines. Candidates are ranked by `node Server/ArchitectureCensus.mjs`; `--decisions <module>` prints the task-log decision lines to write from. Link it from the readme's `## More` line.

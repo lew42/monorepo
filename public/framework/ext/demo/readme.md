@@ -43,6 +43,7 @@ preview(nav){ return this.preview_card(nav, () => mini("tabs")); }   // a card's
 - `mini()`: a PART is `.demo-mini-<part>`, a PICTURE `.demo-mini--<word>` — half the words name a part too, and one dash silently put a part's padding and `align-items` on the picture's root (the header of `mini.css` has it).
 
 ## More
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [Overview](/framework/ext/demo/) · [API](/framework/ext/demo/api/) — the seven doors, each with its real source
 - [doc/record.md](./doc/record.md) — twenty sections of question → options → verdict: the HTML pane, the toolbar, the width presets, the two-up's drag, the exhibit band at 390/810/1440/3440, every open question
 - [doc/decisions.md](./doc/decisions.md) — the retired readme: who uses it (counts), trap detail, the two soft dependencies, open items

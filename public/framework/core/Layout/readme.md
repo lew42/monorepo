@@ -17,7 +17,7 @@ Open [/framework/core/Layout/](/framework/core/Layout/) and click around. One co
 - **`check(layout, box)`** (`rules.js`) — the three deny rules, dev only, a visible warning and
   never a block.
 - **`prove(layout, width)`** — the eight stress fixtures at one width. It is the button on
-  every layout page, and it is what writes `approved:`.
+  every layout page, and `approved:` is set by hand in `layouts.js`; the button only reports.
 
 ## Watch out
 
@@ -59,6 +59,8 @@ Open [/framework/core/Layout/](/framework/core/Layout/) and click around. One co
 | `approved` | the date the fixtures last passed at every strip width — or nothing, and it is a draft |
 
 ## More
+
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 
 - [Props](/framework/core/Layout/doc/props/) — every prop in full, and why each one is a plain page prop.
 - [The rules](/framework/core/Layout/doc/rules/) — three deny rules, and the line-by-line argument for what CSS already answers.

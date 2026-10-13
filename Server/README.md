@@ -314,3 +314,7 @@ machine to anything on the LAN.
 Deliberately not built: `server_config` (nothing worth configuring yet — a tool
 with no consumer is API surface forever), auth tokens, SSE streaming, per-session
 tool scoping, exposing subagent transcripts.
+
+## More
+
+[`doc/architecture.md`](./doc/architecture.md) (decisions and why)

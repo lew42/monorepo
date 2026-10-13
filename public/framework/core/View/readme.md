@@ -25,6 +25,6 @@ new NoteView({ note: "hi" });
 
 ## More
 
-- [Overview](/framework/core/View/) · [`doc/decisions.md`](./doc/decisions.md) (used-by, decisions, the eight unapplied proposals, open questions) · [`doc/capturing.md`](./doc/capturing.md) (the model) · [`doc/lifecycle.md`](./doc/lifecycle.md) (assign → prerender → initialize → render)
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why) · [Overview](/framework/core/View/) · [`doc/decisions.md`](./doc/decisions.md) (used-by, decisions, the eight unapplied proposals, open questions) · [`doc/capturing.md`](./doc/capturing.md) (the model) · [`doc/lifecycle.md`](./doc/lifecycle.md) (assign → prerender → initialize → render)
 - One page per member under [`doc/method/`](./doc/method/) and [`doc/property/`](./doc/property/) — usage, necessity, simplicity; [`doc/file/`](./doc/file/View.js.md) annotates each file.
 - Files that matter: `View.js` (the whole class), `page.js` (the guided tour)
