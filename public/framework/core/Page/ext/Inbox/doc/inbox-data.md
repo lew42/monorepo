@@ -1,6 +1,6 @@
 # Inbox data: where the inbox's rows come from, and the one set it is built from
 
-**See it:** [the inbox timeline](/framework/core/Page/ext/Inbox/timeline/): every landed task, owner note and needs-you card in one ranked rail. Click a row to open its detail beside the rail; the detail links the card, where you talk to it. [`?debug`](/framework/core/Page/ext/Inbox/timeline/?debug) shows each row's source line and score.
+**See it:** [the inbox timeline](/framework/core/Page/ext/Inbox/timeline/): every landed task, owner note and needs-you card in one ranked rail. Click a row to open its detail beside the rail, with the card's own chat on its right, where you talk to it. [`?debug`](/framework/core/Page/ext/Inbox/timeline/?debug) shows each row's source line and score.
 
 ## The decision (2026-10-13)
 
@@ -42,7 +42,8 @@ Counted by `node InboxSources.mjs` on 2026-10-13 22:01 UTC.
 | `Landings` (node) | `Landings.mjs` | Reads every `task.jsonl` and turns each landing into one row. `--append` adds the missing rows to the index. |
 | `InboxSources` (node) | `InboxSources.mjs` | Counts every source above and writes the table. |
 | `Timeline` | `Timeline.js` | Streams the two indexes and returns ranked rows. Each row carries its `source` and its `score` (`Inbox.rank`). `Timeline.Landed` and `Timeline.Cards` are its two `JSONL` readers. |
-| `TimelinePage extends Page` | `timeline/TimelinePage.js` | The rail is one `ext/DataGrid` in rail view, and `columns()` opens a row beside it. `TimelinePage.Detail` is one row's page: the full outcome and links, read from the task's own log, and a link to its card. |
+| `TimelinePage extends Page` | `timeline/TimelinePage.js` | The rail is one `ext/DataGrid` in rail view, and `columns()` opens a row beside it. `TimelinePage.Detail` is one row's page: the full outcome and links, read from the task's own log. |
+| `TimelineTalk` | `timeline/TimelineTalk.js` | The card's chat beside the detail. It streams the card's `page.jsonl` (`prompt` and `message` lines) into the same `CardChat` log and `Compose` box the card page uses. |
 
 **Rows:** a landing has a page or a card → "big". An owner note, or a card with status `needs-you`/`blocked`, is always shown. The "Big things only" chip is on by default (`?all` turns it off).
 
@@ -55,6 +56,8 @@ Counted by `node InboxSources.mjs` on 2026-10-13 22:01 UTC.
 - **health-watch** should post through `owner_note` (Servex) instead of `say.mjs` → `board.jsonl`. Then the board has no writer at all.
 
 ## Watch out
+
+- With no row open, the space right of the rail is empty, as on the [Sessions](/framework/ai/sessions/?view=rail) rail. Opening the top row by itself was weighed and left out: it would change the url on every load.
 
 - `landings.jsonl` is committed, so it is kept small: about 340 bytes a row, links left out. The detail page reads the links and the full outcome from the task's own `task.jsonl`.
 - A row's url is its line number in `landings.jsonl` (`/timeline/1300/`). This is stable only because the file is append-only: never rewrite or re-sort it.
