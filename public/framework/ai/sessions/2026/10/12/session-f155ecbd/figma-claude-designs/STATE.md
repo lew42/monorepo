@@ -34,7 +34,9 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ Adopt ([report](kit/adopt.md)): 25 uses on 4.1, every DS 6 screen and the DS 5 dashboard are now `Kit · Layouts` instances; prototype reactions 21 before, 21 after; replaced frames kept as `was · …` backups off to the right. Review fix: 4.1 §7 gray app screen's tab bar centred and padded with tokens.
 
 ## In flight
-- (none)
+- ⬜ `Video · Kit` + `Video · Storyboard · The Twelve` — task-mastermind-figma-video, brief [kit/brief-video.md](kit/brief-video.md); idea and open questions in [ext/Figma/doc/video-kit.md](/framework/ext/Figma/doc/video-kit.md)
+
+Owner rule (2026-10-12): summaries and anything waiting on the owner go on the Figma Overview's **For you** card (`186:1062`) and page notes, not chat.
 
 ## Next, if picked up
 - Sheet select inside `.fig-lay` (container-type traps `position: fixed`; move the sheet to a top-layer `<dialog>`).
