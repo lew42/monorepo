@@ -122,7 +122,7 @@ export default class TimelinePage extends Page {
 		main_of(r){
 			const debug = this.home.flag("debug");
 			small.c("muted", [TimelinePage.KIND_WORD[r.kind], new Date(r.at).toLocaleString(), debug && `score ${r.score}`, debug && r.source].filter(Boolean).join(" · "));
-			h3(r.title);
+			h3.c("timeline-detail-title").text(r.title);   // plain text: a title like "/framework/core/Page/ is not loading" must not turn into a mention chip
 			div.c("timeline-links", () => {
 				if (r.page) a.c("timeline-link", "Open what was built").href(r.page);
 				if (r.card_url) a.c("timeline-link", "Its card").href(r.card_url);
