@@ -10,3 +10,6 @@ The owner's idea: "for any two-column layout with different coloured backgrounds
 
 ## Open
 Generalising to any colour and any width: the working rule for now is one toolbox per (ground, width class) pair. Whether a toolbox item should ever go to a mismatched target is still open; the owner leans towards "matched only".
+
+## Verified (2026-10-13, [report](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/builder.md))
+On `Kit · Mobile builder` (`260:71518`): 27 blocks set no mode, so dragging them from a dark toolbox into the dark column (and from the gray and near-black ones) gives the right ink with zero clicks. **Play-well rule:** a change of ground is its own divider, so nothing goes between bands of different ground; bands of the same ground are separated by the blocks' own gap. Gaps found: a 280 sidebar is too narrow for Stat pair and Context pill.
