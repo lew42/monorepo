@@ -41,18 +41,16 @@
 
 ## Contradictions (your words pull two ways)
 
-- **session system** (2026-10-09): Sessions tab needs sorting by recency, fix inconsistent storage locations, understand session naming patterns
-- **session system** (2026-10-05): Global session system, clarify storage and resume behavior
-- **session system** (2026-10-08): Consolidate AI vs AI2 directories to year/month/day subdirectories, migrate all session data, avoid deletions
-- **session system** (2026-10-12): having a folder for every day inside of the AI folder is it's too much already it's the it's an anti-pattern I thought we were moving to nes
-- **session system** (2026-10-13): Figure out archival process. Cloudflare cloud storage? Auto compaction? Compress logs?
-- **task system** (2026-10-03): Audit tasks for completion, cost, value, dependencies
-- **card system** (2026-10-03): Use prompt refinement skill to review today's prompts (raw/clean/refined); tag by system
-- **dashboard** (2026-10-02): AI dashboard with overview tab and dashboard tab
-- **class architecture** (2026-10-01): propose class hierarchy: which classes extend which (list, item, content, page, card)
-- **class architecture** (2026-10-01): separate list base class and UX list with sortable built-in to avoid confusion
-- **class architecture** (2026-10-01): could page set method and item set method merge? should page extend item? provide class architecture
-- **class architecture** (2026-10-03): Show class architecture: list, item, page, task, card; is card class needed?
+- **session system** (5 flagged, 2026-10-09 to 2026-10-13): Figure out archival process. Cloudflare cloud storage? Auto compaction? Compress logs?
+- **class architecture** (4 flagged, 2026-10-01 to 2026-10-03): Show class architecture: list, item, page, task, card; is card class needed?
+- **cost tracking** (3 flagged, 2026-10-03 to 2026-10-09): Spending reported as both $1.67 and $10.45 today; which is correct?
+- **prompt refinement** (3 flagged, 2026-10-03 to 2026-10-03): Reconfigure prompt refinement/chat as skill, per-session hook, preserve raw prompts in structure
+- **mobile dictation** (2 flagged, 2026-10-05 to 2026-10-05): Dictation still not working, connecting forever then microphone abort error
+- **page architecture** (2 flagged, 2026-10-12 to 2026-10-12): render content nesting and content as function vs list - too complex, simplify?
+- **task system** (1 flagged, 2026-10-03): Audit tasks for completion, cost, value, dependencies
+- **card system** (1 flagged, 2026-10-03): Use prompt refinement skill to review today's prompts (raw/clean/refined); tag by system
+- **dashboard** (1 flagged, 2026-10-02): AI dashboard with overview tab and dashboard tab
+- **system architecture** (1 flagged, 2026-10-03): 'at' and 'set' confusing; should use get() with dot-separated paths
 
 41 asks carry the conflict flag; all of them are in [the data file](asks-outcomes.jsonl).
 

@@ -374,7 +374,8 @@ ${F.filter(f => f.status === "not done").slice(0, 10).map(row).join("\n")}
 
 ## Contradictions (your words pull two ways)
 
-${conflicts.slice(0, 12).map(a => `- **${a.feature}** (${a.date}): ${a.raw || a.ask}`).join("\n")}
+${Object.entries(conflicts.reduce((o, a) => ((o[a.feature] ??= []).push(a), o), {})).sort((x, y) => y[1].length - x[1].length).slice(0, 10)
+	.map(([f, as]) => `- **${f}** (${as.length} flagged, ${as[0].date}${as.length > 1 ? ` to ${as[as.length - 1].date}` : ""}): ${as[as.length - 1].raw || as[as.length - 1].ask}`).join("\n")}
 
 ${conflicts.length} asks carry the conflict flag; all of them are in [the data file](asks-outcomes.jsonl).
 
