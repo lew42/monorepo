@@ -33,6 +33,10 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 
 - ✅ Adopt ([report](kit/adopt.md)): 25 uses on 4.1, every DS 6 screen and the DS 5 dashboard are now `Kit · Layouts` instances; prototype reactions 21 before, 21 after; replaced frames kept as `was · …` backups off to the right. Review fix: 4.1 §7 gray app screen's tab bar centred and padded with tokens.
 
+- ✅ 2026-10-13 [two-col.md](kit/two-col.md): `Layouts · Two columns` (213:24357), 15 variants 390→3440.
+- ✅ 2026-10-13 [lists.md](kit/lists.md): `Lists · Sidebars, TOC & trees` (212:1424), Tree item set, 12 TOC styles, mobile prototype.
+- ✅ 2026-10-13 desktop MCP connected (`figma-desktop`, 127.0.0.1:3845): reads the owner's live selection; see use-figma.md.
+
 ## In flight
 - ✅ `Video · Kit` + `Video · Storyboard · The Twelve` ([report](kit/video.md)). Review fixes: Location tag's map box hidden by default (`Show map` boolean), end-card thumbnails show a scene image, flat 72% scrims → gradients (15→90%) so images stay bright.
 - ✅ `Video · Channel ideas` ([report](kit/channels.md)): five channels (banner, comparison card, 4-tier price ladder, 7 thumbnails, 3 Shorts each) + sourcing (quoted-clip overlay, permission email, fair-use note); 43 credited Wikimedia photos, 9 generations.
