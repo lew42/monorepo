@@ -49,10 +49,14 @@ export class FigmaTokens {
 		"\t.fig-section { padding: var(--fig-section-pad-y) var(--fig-section-pad-x); }",
 		"\t.fig-row { padding: var(--fig-small-pad-y) var(--fig-small-pad-x); }",
 		"\t.fig-stack { display: flex; flex-direction: column; gap: var(--fig-gap); }",
+		"\t.fig-stack > * { margin: 0; }   /* auto layout has no margins: the gap is the only space, as in Figma */",
 		"\t.fig-inset { background: rgb(0 0 0 / 0.1); }",
 		"\t.fig-dark .fig-lift { background: rgb(255 255 255 / 0.1); }",
 		"\t.fig-muted { color: var(--fig-muted); }",
 		"\t.fig-accent { color: var(--fig-accent); }",
+		"\t.fig-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--fig-small-pad-x); min-height: 44px; padding: var(--fig-small-pad-y) var(--fig-gap); border: 0; border-radius: var(--fig-radius); font-family: inherit; font-weight: 700; font-size: 14px; line-height: 1.4; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fig-text); background: none; }",
+		"\t.fig-btn-primary { background: var(--fig-accent); color: var(--fig-on-accent); }",
+		"\t.fig-btn-secondary { background: rgb(0 0 0 / 0.1); }",
 	].join("\n");
 
 	write() {

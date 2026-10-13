@@ -1,0 +1,5 @@
+@layer base, theme, site, util;
+@layer theme {
+	.fig-tokens-phone { width: 390px; max-width: 100%; }
+	.fig-tokens-bar > * { flex: 1; }
+}

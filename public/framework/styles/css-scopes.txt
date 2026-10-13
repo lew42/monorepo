@@ -257,3 +257,6 @@ objects-
 shots-
 # public/framework/ext/Figma/guide — the coded Figma guide (2026-10-12)
 fgd-
+
+# public/framework/ext/Figma/tokens — opt-in CSS generated from the Figma variables (2026-10-12)
+fig-
