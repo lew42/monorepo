@@ -48,6 +48,7 @@ pulling a sample straight from a recent voice session — no index of raw dictat
 today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
 
 ## More
+- [`doc/notes.md`](./doc/notes.md) — design, implementation, and API notes for `engine.js`
 - [Refine v3](/framework/ext/Refine/md/doc/refine-v3-2026-10-09/) — the one-screen workspace, instant clean, a session per model run, per-sentence clarity, numbers (`doc/refine-v3-2026-10-09.md`). The old saved-run ladder moved to `ladder/`.
 - [audio/Whisper](/framework/audio/Whisper/) — the Whisper server and per-surface session classes (`Whisper`, `WhisperSession`)
 - [Architecture](/framework/ext/Refine/md/doc/architecture/) — the classes, the boss (`RefineSystem`), what composes what (`doc/architecture.md`)
