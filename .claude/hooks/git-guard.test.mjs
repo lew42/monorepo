@@ -23,6 +23,15 @@ const BLOCK = [
 	[`git checkout .`, MAIN],
 	[`git restore public/x.js`, MAIN],
 	[`git clean -fd`, MAIN],
+	// 2026-10-13: git merge on a dirty tree resets it (ai/sessions/doc/commit-rule.md)
+	[`git merge --no-ff worktree/assistant-chain`, MAIN],
+	[`git merge michael/dev`, MAIN],
+	[`git -c merge.ff=false merge x`, MAIN],
+	[`git pull`, MAIN],
+	[`git pull --rebase --autostash`, MAIN],
+	[`git rebase michael/dev`, MAIN],
+	[`git stash list && git merge x`, MAIN],
+	[`git merge --ff-only x`, MAIN],
 	// the 2026-10-01 incident's shape, and its cousins
 	[`git status --porcelain | grep '^??' | awk '{print $2}' | xargs rm -rf`, MAIN],
 	[`git ls-files --others --exclude-standard | xargs rm -f`, MAIN],
@@ -70,6 +79,18 @@ const ALLOW = [
 	[`git status --porcelain | grep '^??' | wc -l`, MAIN],       // a listing with no delete
 	[`git ls-files --others | xargs rm -rf`, WT],               // fed by git, but in your own tree
 	[`node Server/merge.mjs --quick`, MAIN],
+	// merge-family plumbing and the exits stay open; a worktree is your own tree
+	[`git merge-base --is-ancestor a b`, MAIN],
+	[`git merge-tree --write-tree a b`, MAIN],
+	[`git merge-file -p a b c`, MAIN],
+	[`git merge --abort`, MAIN],
+	[`git config merge.ff false`, MAIN],
+	[`git log --merges -5`, MAIN],
+	[`git commit -m "git merge and git pull are blocked"`, MAIN],
+	[`git merge --ff-only michael/dev`, WT],
+	[`git pull`, WT],
+	[`git rebase michael/dev`, WT],
+	[`git -C C:/Code/lew42/worktrees/qf-4 merge --ff-only michael/dev`, MAIN],
 ];
 
 for (const [c, cwd, tool] of BLOCK) { const r = run(as(c, cwd, tool)); ok(r.status === 2 && /GIT GUARD/.test(r.stderr), `blocks  [${cwd === MAIN ? "main" : cwd === WT ? "wt" : cwd}]  ${c}`); }

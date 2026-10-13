@@ -29,3 +29,8 @@
 {"log":{"at":"2026-10-13T17:43:17-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T17:43:24-05:00","heartbeat":"answered","msg":"The card report is posted, so this task is finished and the work is committed (a1129ce8d).\n\n- **Pages:** 36 Figma pages and 36 inventory rows, so the counts agree. 6 have code, 17 have only a doc, and"}}
 {"log":{"at":"2026-10-13T17:44:31-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T18:05:20-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-figma-to-code"}}
+{"log":{"at":"2026-10-13T18:05:22-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:05:24-05:00","heartbeat":"answered","msg":"Done and idle. The Figma round-trip work is committed (a1129ce8d) and the card report is posted. The only open item is the `figma-roundtrip` worktree, which is still on disk because it shows unrelated"}}
+{"log":{"at":"2026-10-13T18:06:38-05:00","msg":"session ended (other) without landing"}}
+{"assign":{"landed_at":"2026-10-13T17:37:52-05:00","title":"Figma to code: 36 pages inventoried, 6 have code, 17 only a doc, 13 none","outcome":"**The round-trip inventory is on the Figma pages: 36 Figma pages and 36 inventory rows (counts agree); 6 have a code page, 17 only a doc, 13 nothing yet.** Landed a1129ce8d. Landed by the mastermind from the agent's own log line and merge commit (the agent ended its turn without a landing line). The owner's question (is Figma mock-up the way) is answered in the task's owner note and round-trip doc.","links":[{"url":"/framework/ext/Figma/doc/round-trip.md","label":"round-trip.md"},{"url":"/framework/ai/2026/10/13/figma-to-code-what-came-back-the-token-l/","label":"card"}]}}

@@ -6,3 +6,6 @@
 {"log":{"at":"2026-10-12T16:56:35-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"log":{"at":"2026-10-12T17:11:36-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"core/Page: merge binding.md + Template fixes\\\"\"\n}","chase":"escalated"}}
 {"log":{"at":"2026-10-12T17:36:56-05:00","heartbeat":"deliberate","msg":"minion-binding-merge its agent is not running: it was stopped on purpose by mastermind-page-templates at 2026-10-12T15:40:41-05:00; not revived."}}
+{"log":{"at":"2026-10-13T18:10:47-05:00","heartbeat":"deliberate","msg":"minion-binding-merge its agent is not running: it was stopped on purpose by mastermind-page-templates at 2026-10-12T15:40:41-05:00; not revived."}}
+{"log":{"at":"2026-10-13T17:17:20-05:00","heartbeat":"deliberate","msg":"minion-binding-merge its agent is not running: it was stopped on purpose by mastermind-page-templates at 2026-10-12T15:40:41-05:00; not revived."}}
+{"log":{"at":"2026-10-13T18:30:06-05:00","heartbeat":"deliberate","msg":"minion-binding-merge its agent is not running: it was stopped on purpose by mastermind-page-templates at 2026-10-12T15:40:41-05:00; not revived."}}

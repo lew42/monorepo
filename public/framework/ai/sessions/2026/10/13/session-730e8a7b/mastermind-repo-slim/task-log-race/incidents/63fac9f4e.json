@@ -1,0 +1,31 @@
+{
+ "public/framework/ai/2026-10-12/data-grid/sessions-adopt/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:16:06-05:00\",\"heartbeat\":\"orphaned\",\"msg\":\"minion-sessions-adopt its agent is not running: its working directory C:\\\\Code\\\\lew42\\\\worktrees\\\\data-grid-3 no longer exists; not revived.\"}}"
+ ],
+ "public/framework/ai/2026-10-12/page-templates-merge/page.jsonl": [
+  "{\"note_state\":{\"id\":\"n-rvopanoj\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:04:55.167-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-qxwshna2\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:04:55.167-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-rvopanoj\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:06:45.029-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-qxwshna2\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:06:45.029-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-rvopanoj\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:10:34.984-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-qxwshna2\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:10:34.984-05:00\"}}"
+ ],
+ "public/framework/ai/2026-10-12/task-folders/page.jsonl": [
+  "{\"note_state\":{\"id\":\"n-pigx7978\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:05:02.209-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-papxq8sq\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:05:02.209-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-p2zytjcb\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:05:02.209-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-pigx7978\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:06:52.073-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-papxq8sq\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:06:52.073-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-p2zytjcb\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:06:52.073-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-pigx7978\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:08:44.971-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-papxq8sq\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:08:44.971-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-p2zytjcb\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:08:44.971-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-pigx7978\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:10:41.996-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-papxq8sq\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:10:41.996-05:00\"}}",
+  "{\"note_state\":{\"id\":\"n-p2zytjcb\",\"state\":\"read\",\"by\":\"owner\",\"at\":\"2026-10-13T16:10:41.996-05:00\"}}"
+ ],
+ "public/framework/ai/cards.jsonl": [
+  "{\"id\":\"2026/10/13/past-work-follow-up-a-computed-list-of-w\",\"title\":\"Past work follow-up: a computed list of what fell through the cracks\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\"],\"created\":\"2026-10-13T15:54:40-05:00\",\"last\":\"2026-10-13T16:18:12-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}",
+  "{\"id\":\"2026/10/13/repo-size-measuring-what-is-committed-an\",\"title\":\"Repo size: measuring what is committed and writing the slimming plan\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\"],\"created\":\"2026-10-13T15:54:28-05:00\",\"last\":\"2026-10-13T16:09:37-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}"
+ ]
+}
