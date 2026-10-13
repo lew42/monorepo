@@ -93,6 +93,28 @@ export class Inbox {
 	constructor(...args){ this.assign({ page: location.pathname }, ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
+	/** THE RANKING — one number per row, higher sits higher: importance + recency, with the
+	 *  owner's opened/archived state below everything. Plain-words formula: doc/ranking.md. */
+	static FRESH_MIN = 30;                        // minutes a row counts as "new"
+	static TAIL_HOURS = 24;                       // how long the small recency tail lasts after that
+	static KIND_WEIGHT = { "needs-you": 100, risk: 97, decision: 94, request: 80, question: 75, task: 60, note: 40, landed: 30 };
+	static age_min(it, now = Date.now()){ const t = Date.parse(it.at ?? 0); return t ? Math.max(0, (now - t) / 60000) : Infinity; }
+	static fresh(it, now = Date.now()){ return Inbox.age_min(it, now) < Inbox.FRESH_MIN && it.status !== "archived"; }
+	static importance(it){
+		if (it.kind === "owner_note" && !it.reviewed) return 100 + (this.KIND_WEIGHT[it.owner_kind] ?? 0) / 100;
+		return it.score ?? this.KIND_WEIGHT[it.owner_kind ?? it.kind] ?? 10;
+	}
+	static boost(it, now = Date.now()){
+		const m = Inbox.age_min(it, now);
+		if (m < Inbox.FRESH_MIN) return 101 + 100 * (1 - m / Inbox.FRESH_MIN);
+		return Math.max(0, 30 * (1 - (m - Inbox.FRESH_MIN) / (Inbox.TAIL_HOURS * 60)));
+	}
+	static rank(it, now = Date.now()){
+		if (it.status === "archived") return -1;
+		const raw = Inbox.importance(it) + Inbox.boost(it, now);
+		return it.unread === false ? raw / 100 : raw + 10;
+	}
+
 	get rail(){ return this._rail ??= new this.constructor.Rail({ page: this.page }); }
 	get compact(){ return this._compact ??= new this.constructor.Compact({ page: this.page }); }
 
@@ -224,6 +246,8 @@ Inbox.Compact = class Compact {
 };
 
 Inbox.Rail = Rail;
+Rail.rank = (it, now) => Inbox.rank(it, now);
+Rail.fresh = (it, now) => Inbox.fresh(it, now);
 
 // One release of back-compat: every existing import of the old names keeps working
 // unedited. New code reaches for `Inbox.Rail` / `Inbox.Compact` directly instead.

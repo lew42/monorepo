@@ -1,5 +1,6 @@
-import { Page, div, h1, a, p, small, md } from "/app.js";
-import InboxRail from "/framework/core/Page/ext/Inbox/Rail.js";
+import { Page, div, h1, h4, a, p, small, md } from "/app.js";
+import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
+const InboxRail = Inbox.Rail;
 
 /* A minute, an hour, a day ago — so the sample rows read like a live inbox. */
 const ago = minutes => new Date(Date.now() - minutes * 60000).toISOString();
@@ -7,6 +8,11 @@ const ago = minutes => new Date(Date.now() - minutes * 60000).toISOString();
 /* THE SAMPLE ROWS. Each is a page (`route()` below opens it beside the rail). The scores
    show the floor: the Inbox shows 90 and up, so two of these only appear at `?min=0`. */
 const SAMPLES = [
+	{ id: "risk", icon: "campaign", kind: "owner_note", owner_kind: "risk", score: 100, at: ago(300),
+		title: "Pinned: an agent left you a risk",
+		text: "Owner notes stay pinned (importance 100) until you open or archive them." },
+	{ id: "fresh-low", icon: "bolt", score: 10, at: ago(3), title: "Just arrived, unimportant (score 10)",
+		text: "Under 30 minutes old, so it floats to the top and the floor does not hide it." },
 	{ id: "welcome", icon: "waving_hand", score: 95, at: ago(2), needs: true,
 		title: "Welcome: this is an inbox rail",
 		text: "Each row is a page. Click one and it opens on the right. The rail stays exactly where it is: nothing in it moves, scrolls or redraws." },
@@ -55,7 +61,10 @@ export default new Page({
 				a.c("tab").href(this.url + "about/").text("How to use it");
 			}));
 		});
-		this.rail = new SampleRail({ page: this, items: SAMPLES }).mount();
+		div.c("inbox-demo flex gap", () => {
+			div.c("inbox-demo-live", () => { this.rail = new SampleRail({ page: this, items: SAMPLES }).mount(); });
+			debug_list(SAMPLES);
+		});
 	},
 
 	route(id){
@@ -64,6 +73,18 @@ export default new Page({
 		if (it) return sample(this, it);
 	},
 });
+
+/* THE DEBUG VIEW: the same items, sorted by Inbox.rank, each with the numbers behind its place. */
+function debug_list(items){
+	const now = Date.now();
+	div.c("inbox-debug", () => {
+		h4("Why each row sits where it does");
+		small.c("muted").text("rank = importance + recency boost (+10 if unopened). Archived: -1. See doc/ranking.md.");
+		[...items].sort((a, b) => Inbox.rank(b, now) - Inbox.rank(a, now)).forEach(it => {
+			p(`${Inbox.rank(it, now).toFixed(1)} = ${Inbox.importance(it).toFixed(0)} + ${Inbox.boost(it, now).toFixed(0)} · ${it.id}${Inbox.fresh(it, now) ? " · new" : ""}`);
+		});
+	});
+}
 
 /* One sample row's own page: what you see when you click it. */
 function sample(root, it){
