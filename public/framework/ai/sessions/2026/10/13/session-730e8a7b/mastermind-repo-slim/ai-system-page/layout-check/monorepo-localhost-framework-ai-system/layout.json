@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/system/",
+ "widths": {
+  "1280": {
+   "empty": 0.604,
+   "widest_text": 740,
+   "widest_text_sample": "Its components, one card each, read from",
+   "overflow_x": false,
+   "items": 170,
+   "narrow_share": 0.324
+  },
+  "1920": {
+   "empty": 0.681,
+   "widest_text": 787,
+   "widest_text_sample": "Its components, one card each, read from",
+   "overflow_x": false,
+   "items": 170,
+   "narrow_share": 0.688
+  },
+  "2560": {
+   "empty": 0.644,
+   "widest_text": 886,
+   "widest_text_sample": "Its components, one card each, read from",
+   "overflow_x": false,
+   "items": 170,
+   "narrow_share": 0.694
+  },
+  "3440": {
+   "empty": 0.723,
+   "widest_text": 886,
+   "widest_text_sample": "Its components, one card each, read from",
+   "overflow_x": false,
+   "items": 170,
+   "narrow_share": 0.694
+  }
+ },
+ "errors": []
+}
