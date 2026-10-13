@@ -29,6 +29,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Page parts** — a page body as a streamed list of parts: [`core/Page/parts/readme.md`](../core/Page/parts/readme.md)
 - **Page tool** — agents change any page by path + delta: [`core/Page/doc/page-tool-2026-10-09.md`](../core/Page/doc/page-tool-2026-10-09.md)
 - **New 2026-10-12:** [core/Property](../core/Property/readme.md) · [core/Page/Template](../core/Page/Template/readme.md) · [ext/Shots](../ext/Shots/readme.md) · [ext/Query](../ext/Query/readme.md) · [ext/DataGrid](../ext/DataGrid/readme.md) · [code/performance](../code/performance/readme.md)
+- **Inbox timeline** (everything built and everything waiting on you, ranked): [the timeline](/framework/core/Page/ext/Inbox/timeline/) · [where its data lives](../core/Page/ext/Inbox/doc/inbox-data.md)
 - **PageInbox** (a note left on a page reaches its owner): [PageInbox.js](../core/Page/PageInbox.js) · [inbox tab](../core/Page/doc/inbox-tab.md)
 - **UI library** (every ui and Figma item): [library](../library/readme.md) · **Layout catalog**: [layouts](../../layouts/readme.md)
 - **Step runner** (a task as ordered steps): [Servex/doc/steps.md](../../../Servex/doc/steps.md)

@@ -1,5 +1,7 @@
 # Inbox — one class, two views: a page's rail, and its small "leave a note" box
 
+**The inbox timeline** ([open it](/framework/core/Page/ext/Inbox/timeline/)): every landed task, owner note and needs-you card, ranked by `Inbox.rank`, as a preview rail with the detail beside it. Where its rows come from, the one data decision, and its classes (`Timeline`, `TimelinePage`, `Landings`, `InboxSources`): [doc/inbox-data.md](doc/inbox-data.md).
+
 `class Inbox` holds one page's inbox; `inbox.rail` and `inbox.compact` are its two views,
 each built lazily the first time you read it:
 
@@ -95,5 +97,6 @@ nothing from AI 2).
 - [`/framework/ux/Inbox/`](/framework/ux/Inbox/) — `Inbox.Rail`'s own demo and look
 - `ext/drawer/` and `doc/inbox.md` — the drawer's "Leave a note" box, `Inbox.Compact`
 
+- Data: [doc/inbox-data.md](doc/inbox-data.md) — the sources the inbox reads (computed by `node InboxSources.mjs`), which is the record and which a cache; `node Landings.mjs --append` refreshes the timeline's index.
 - Ranking: [doc/ranking.md](doc/ranking.md) — `Inbox.rank`: importance + recency, new rows float up, owner state sinks.
 - Notes: [doc/InboxRail-notes.md](doc/InboxRail-notes.md) — history and lessons moved out of the code comments.
