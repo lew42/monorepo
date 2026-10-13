@@ -556,12 +556,12 @@ export default class AISessionsPage extends Page {
 		return new AISessionDetail({ home: this, id });
 	}
 
-	/** "readme" is the readme, "doc" is the priority list (the rest of the docs link from it). */
+	/** "readme" is the readme, "doc" is the docs index (doc/readme.md). */
 	docs_page(id){
-		const file = id === "readme" ? "readme.md" : "doc/priorities.md", home = this;
+		const file = id === "readme" ? "readme.md" : "doc/readme.md", home = this;   // the docs index (priorities.md was archived to doc/archive/ in the 10-12 consolidation)
 		return new Page({
 			width: "fill",
-			title: id === "readme" ? "Sessions readme" : "Sessions: priorities",
+			title: id === "readme" ? "Sessions readme" : "Sessions docs",
 			url: home.url + id + "/",
 			content(){
 				a.c("page-link", "← all sessions").href(home.url);
