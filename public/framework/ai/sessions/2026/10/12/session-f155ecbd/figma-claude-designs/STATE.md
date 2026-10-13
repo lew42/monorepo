@@ -31,8 +31,15 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 
 - ✅ Web `.fig-near-black` + phone bottom sheet for `.fig-select` ([report](kit/web-ground.md)): sheet under 600 px screen width, pure CSS (not `ux/Popover`: it builds its own box; the select is native `<details>`). Limit: the sheet doesn't work inside `.fig-lay` (container-type traps `position: fixed`).
 
+- ✅ Adopt ([report](kit/adopt.md)): 25 uses on 4.1, every DS 6 screen and the DS 5 dashboard are now `Kit · Layouts` instances; prototype reactions 21 before, 21 after; replaced frames kept as `was · …` backups off to the right. Review fix: 4.1 §7 gray app screen's tab bar centred and padded with tokens.
+
 ## In flight
-- ⬜ Adopt `Kit · Layouts` instances on 4.1, 5, 6 — task-mastermind-figma-adopt, brief [kit/brief-adopt.md](kit/brief-adopt.md)
+- (none)
+
+## Next, if picked up
+- Sheet select inside `.fig-lay` (container-type traps `position: fixed`; move the sheet to a top-layer `<dialog>`).
+- Use the `.fig-*` layouts on one real site page, opt-in, as the first migration step in [token-sync.md](/framework/ext/Figma/doc/token-sync.md).
+- Delete the `was · …` backups once the owner has looked.
 
 ## Waiting on the owner
 - ⬜ Which numbers win per row of the token table in token-sync.md (site vs Figma).
