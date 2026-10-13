@@ -13,6 +13,23 @@ The numbers come from [`Server/SkillCensus.mjs`](/Server/SkillCensus.mjs): [cens
 
 ---
 
+## ✅ One `make` skill: name it, place it, class it, show it
+
+> "creating a new file, what the file name is and what goes in it, that's some of the most important questions and we're doing a really bad job" · "one big skill could do choosing names, choosing file names, choosing locations, making things object oriented whenever possible, creating simple views to see the object-oriented classes updating in real time"
+
+[`.claude/skills/make/SKILL.md`](/.claude/skills/make/SKILL.md) now replaces `naming` and `new-page`, so one skill covers making anything new. You load it before creating any file, folder, page, class or name. It asks four questions in order:
+
+1. **Name it:** the old `naming` skill, condensed. Brainstorm with cheap agents, pick for clarity, and use plural folders only for collections.
+2. **Place it:** your new rule. A file about a module lives in that module's folder, and a strictly AI class lives under `framework/ai`. Task records go where `TaskDirs.mjs` puts them, scratch stays out of the repo, and every new file is linked from where a reader already is.
+3. **Class it:** one class per file, and the architecture comes first. The detail stays in the `code` skill.
+4. **Show it:** every class gets a live view of its own state, the rendered view and the instance side by side.
+
+The page mechanics that were `new-page` moved word for word to [`make/page.md`](/.claude/skills/make/page.md). `naming/` and `new-page/` moved to `.claude/skills-archive/`; nothing was deleted. *Why it counts as safe:* the decisions are the same, apart from your one new rule. *The alternative:* keep three skills and only add the placement rule. That was rejected because you asked for one skill twice.
+
+⚠️ A `make` skill only helps if agents load it. Whether they do will show in the census's load count over the next two weeks.
+
+---
+
 ## ✅ Applied (safe: nothing a skill decides was changed, every cut text is in git or one click away)
 
 - **`ui-test` and `fork-claude-session` became short indexes** (4,115 → 345 and 2,938 → 290 words). Their full text moved, word for word, to a `reference.md` beside each one that the index links. Together they were loaded once in 14 days.
@@ -72,6 +89,7 @@ Most of the 27 `improvements.md` entries still open describe a tool that misbeha
 - **`worktree-up.mjs`**: it is reported three times as never returning and never writing `.worktrees.json` (`sub-mastermind` improvements, 2026-09-24). Check whether that is still true; if so, fix it.
 - **`syntax-guard.mjs`**: both `minion` and `mastermind` say it "exists but is not wired in `settings.json`". It is still not wired today. Wiring it in would replace the "run `node --check` after every write" rule. This needs `settings.json`, so ask first.
 - **`jsonl-guard.mjs`**: it blocks any Bash command that mentions a `.jsonl` path, even a node script that edits a `.md` file and only quotes a `.jsonl` name in its text. That happened during this review. The guard should only block a command that writes to a `.jsonl` file.
+- **A merge into the main tree stashes other agents' uncommitted edits.** At 17:38 today, a merge into the main tree stashed this review's uncommitted `make` files, and they vanished from the tree. They were recovered from the stash commit (`0283e997`) and committed as `08af2e3d0`. *Proposal:* a merge that finds a dirty tree should refuse with a list of the dirty files, never stash them. Until then, agents need to commit within seconds of writing.
 - **`merge.mjs` review gate**: it reads task logs from the main tree only, so a review written inside a worktree is invisible to it (`minion` improvements, 2026-10-01). Read the worktree's copy too, or say so in the refusal message.
 
 ---
