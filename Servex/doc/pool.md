@@ -94,7 +94,9 @@ Every 5 minutes (and when the pool is full) `reclaim()` hands a taken slot back 
 3. `git status` shows nothing of the slot's own, and its branch has no commits outside `michael/dev`.
 
 Otherwise the slot is kept, and the Servex log says why in one line (once, and again only if the reason changes): `pool: qf-9 is held by stopped X but kept — minion-Y (working) works in it`. A kept slot has no timeout. It is seen when the pool is full: `take_worktree`'s error names every kept slot and its reason, and whoever needs the slot decides whether to salvage it. A holder the registry doesn't know (a person, a CLI session) is never reclaimed; that slot waits for `return_worktree`.
-`Server/worktree-prune.mjs` follows the same rule for worktrees outside the pool: a changed file or an unmerged branch is skipped and named. `--only <name>` checks one worktree.
+`Server/worktree-prune.mjs` follows the same rule for worktrees outside the pool: a changed file or an unmerged branch is skipped and named. `--only <name>` checks one worktree. `--salvage` commits a merged worktree's leftovers on its own branch, then removes it. `--idle-hours <n>` leaves alone anything touched in the last n hours. `qf-N` names are left to the Pool.
+
+**Where worktrees should live, why `qf-N` slots were not being reused, and why 51 piled up (2026-10-13):** [worktrees.md](../../public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-cleanup/doc/worktrees.md).
 
 Why: on 2026-09-30 the sweep salvaged qf-9 twice (12:53 and 13:23), because its holder, a task mastermind, showed `stopped` while its minion was still writing there. Proof: [ai/sessions/2026/09/30/pool-taken/pool-taken/proof.txt](/framework/ai/sessions/2026/09/30/pool-taken/pool-taken/proof.txt).
 
