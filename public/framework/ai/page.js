@@ -1,11 +1,7 @@
 import { Page, md, div, a, h1, icon, span, AITask } from "/app.js";
-import AIRail, { card_page } from "/framework/ai/rail/rail.js";   // the Inbox and Log tabs: the same rail AI 2 draws
+import AIRail, { card_page } from "/framework/ai/rail/rail.js";
 
-/* WHAT A RAIL ROW CAN BE CALLED — the tabs beside it, Live, Now, the views, a changed site
-   page, a dated card folder (`2026/…`), and the ids of rows that are not folders: a spoken
-   sentence (`p-393`), a stalled ask (`ask:…`), an old board card (a uuid, `topic-…`).
-   ⚠ Only these shapes: AI 2 claims EVERY unknown name as a card, but here a real folder
-   with its own page.js (`v/`, `talk/`, `collab/`…) is found by the probe AFTER route(). */
+// ⚠ Only these shapes: AI 2 claims EVERY unknown name as a card, but here a real folder with its own page.js is found by the probe AFTER route(). Doc: doc/ai-page-notes.md.
 const RAIL_ID = /^(inbox|log|live|now|view|framework|\d{4}|p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
 const CARD_ID = /^(p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
 import { dashboard, rail, effort_board, log_board, has_page_js, warm, daySystemPage, monthPage } from "/framework/ext/AITask/dashboard.js";
@@ -19,9 +15,7 @@ import StoreFolder from "./AISession/StoreFolder.js";   // old ai/<date>/<task>/
 // "tests" → "Tests" — the label a detected tab wears when nobody says otherwise.
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
-/* `?v1` — the original board, kept addressable at this same url. Read fresh on
-   every call rather than captured once: a picker click is a real navigation, but
-   an intra-page route change is not, and a captured value would go stale. */
+// `?v1` — the original board; read fresh on every call. Doc: doc/ai-page-notes.md.
 const v1 = () => new URLSearchParams(location.search).has("v1");
 
 export default new Page({
@@ -36,65 +30,38 @@ export default new Page({
 	classes: v1() ? undefined : "full fill",
 	children: "classes quick-fix asks process review council audits tests local",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
 
-	/* LEVEL 1 IS THE AI SYSTEM, SHOWN (the owner, 2026-09-30: "just delete the
-	   current AI page"). The V3 board that stood here lives on at /framework/ai/v/3/,
-	   and `?v1` still draws the original board below. `board_drawn` stays true so
-	   the board's own hand-back (v/3/page.js draw_board) never paints it here. */
+	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
 	board_drawn: true,
 	content(){
 		if (!v1()){
-			// THE BAND: the title and the tabs, one strip, as AI 2 has them. Inbox owns the bare
-			// url and wears `.tab-default` (ext/tabs' "not really a match" flag), so a card url,
-			// which matches no tab, lights Inbox by ext/tabs' first-child fallback.
+			// Inbox owns the bare URL and wears `.tab-default`; the band is the title and tabs. Doc: doc/ai-page-notes.md.
 			div.c("inbox-head", () => {
-				div.c("doc-well", () => h1.c("doc-title h2", () => { icon(this.icon); span(this.title ?? "AI"); }));   // the icon before the name, as on every Doc page
+				div.c("doc-well", () => h1.c("doc-title h2", () => { icon(this.icon); span(this.title ?? "AI"); }));
 				div.c("tabs block", () => {
-					// Inbox has no folder of its own — the band always draws it first.
 					const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Inbox"); });
-					// The REST of the strip is DETECTED, not hand-listed (AIOverview.js's
-					// AIOverview.detectTabs(), the owner, 2026-10-01): these links render after
-					// the page's own mark() pass, so they need their own, same as a late
-					// ext/tabs strip does (tabs.js's draw_bar()).
+					// Tabs are detected by AIOverview.detectTabs() and render after mark(). Doc: doc/ai-page-notes.md.
 					AIOverview.detectTabs(this).then(tabs => {
 						$bar.append(() => tabs.forEach(({ name }) => a.c("tab").href(this.url + name + "/").text(cap(name))));
 						this.app?.router?.mark_links();
 					});
 				});
 			});
-			// THE RAIL — `AIRail`, the same class AI 2 builds: one of everything (CLAUDE.md law 6).
-			// Every page routed here opens in its detail column; a card beside the rail, any
-			// other page across the whole width (`add()` below).
+			// AIRail is the same class AI 2 builds (CLAUDE.md law 6): one of everything.
 			this.ai2 = new AIRail({ page: this }).mount();
 			return;
 		}
 
-		/* ONE ROW: the title and the version picker, side by side. Core draws the h1
-		   just before it calls content(), so the row is made here and the h1 it
-		   follows is moved into it — no core edit, and if core ever stops drawing
-		   the title first, the row simply holds the picker alone. */
+		// V1 only: the title and the version picker, side by side. Doc: doc/ai-page-notes.md.
 		const $head = div.c("ai-head", () => Versions.picker("/framework/ai/?v1"));
 		const $title = $head.el.previousElementSibling;
 		if ($title?.matches(".page-title")) $head.el.prepend($title);
 		md("A card for each thing worth going back to. Everything else is in [the log](/framework/ai/log/).");
 	},
-	// ⚠ Both of these draw the V1 board and must stay off when V3 is what is
-	// showing — `catalog()` mounts its own region and `previews()` fills it, so
-	// leaving either on paints the old rail underneath the new board.
+	// ⚠ Both catalog() and previews() draw the V1 board and must stay off when V3 is showing.
 	initialize(){ if (v1()) this.catalog(); },
 	previews(){ return v1() ? rail(this) : []; },
 
-	// A day that hasn't written its page yet is still a dashboard — and its
-	// task dirs still get the manifest viewer, same as a declared day's route().
-	// ⚠ A plain Page sets no `$pages`, so a routed task walks up to MY catalog
-	// region and lands beside its day rather than inside it — which is why
-	// ai.css stands the day aside while one of its tasks is showing.
-	//
-	// `effort/` is the second segment a category tag can claim, and it earns the
-	// nesting: a bare slug here is indistinguishable from a typo, and would turn
-	// every miss under /framework/ai/ into a blank filter.
-	/* WHAT SITS BESIDE THE RAIL: the Inbox and Log tabs, a card, Live, Now and the card views.
-	   Every other page routed here (System, a day, a concept, the old board views) takes the
-	   whole width — `inbox-takeover` (ux/Inbox/Inbox.css) steps the rail aside while it is open. */
+	// ⚠ A plain Page sets no `$pages`, so a routed task walks up to this page's catalog and lands beside its day. Doc: doc/ai-page-notes.md.
 	add(name, child){
 		const page = Page.prototype.add.call(this, name, child);
 		if (!v1() && !RAIL_ID.test(name))
@@ -103,72 +70,36 @@ export default new Page({
 	},
 
 	route(name){
-		/* THE FIVE VIEWS ARE FIVE URLS (board-declutter, 2026-09-22) —
-		   `/framework/ai/days/`, `/framework/ai/now/`, `/framework/ai/grid/`,
-		   `/framework/ai/timeline/` and `/framework/ai/prompts/` each open
-		   that view of the board this page draws, and a card opened inside one
-		   gets its own url under it. The owner's own words: "the timeline,
-		   prompts, grid, now, and days, don't even have a route... a live
-		   reload would navigate me away from this page." First, because none
-		   of the five can ever look like a date, `log` or `effort`. The board
-		   itself owns the routing (`v/3/page.js`'s own `board_route`), so
-		   `/framework/ai/grid/` and `/framework/ai/v/3/grid/` cannot drift. */
-		// (Under ?v1 the old board owns `log/`: the task log below.)
+		// Five views each get their own URL; none can look like a date, `log`, or `effort`. Doc: doc/ai-page-notes.md.
 		if (AIOverview.VIRTUAL_TABS.includes(name) && !(v1() && name === "log")) return AIOverview.tabPage(this, name);
-		// Old urls keep working: the Overview is now System, and its parts moved under it.
 		if (name === "overview") return AIOverview.tabPage(this, "system", this.url + "overview/");
 		if (AIOverview.SYSTEM_PARTS.includes(name)) return AIOverview.tabPage(this, name);
 		const concept = CONCEPTS.find(c => c.slug === name);
 		if (concept) return concept_page(this, concept);
 
-		// THE PINNED NOW CARD (followup.md item 2, 2026-09-30) — wins here, ahead of
-		// `board_route()`, which would otherwise claim "now" as one of the old v3 board's
-		// own five view words (`VIEW_WORDS`, `ai/v/3/page.js`) and show something empty:
-		// the owner already saw that happen (`/framework/ai/now/` rendered blank before
-		// this). `ai/now/page.jsonl` is a real Servex-made card folder — read directly
-		// with `fold.js`'s own small parser (no `ai2/card.js` `Card` class or its `shell`
-		// needed for a one-note read), same content AI 2's own `/framework/ai2/now/`
-		// shows (`ai2/page.js`, `card_page(this, "now")`).
-		if (name === "now") return card_page(this, "now");   // the same in-place card page the Inbox opens (no reload, 2026-10-04)
+		// Pinned Now card wins ahead of board_route(). Doc: doc/ai-page-notes.md.
+		if (name === "now") return card_page(this, "now");
 
-		// THE RAIL'S OWN ADDRESSES — Live, a card at its real folder (`2026/09/30/<card>/`, the
-		// year, month and day are pages too), the card views, a changed site page, Your prompts.
-		// `AIRail.handles()` is the ONE list (bug 4, 2026-10-03: this page used to hand-list a
-		// shorter set than the rail itself routes, so a rail link to "your-prompts" 404'd) — the
-		// same `AIRail.route()` AI 2 uses, so a card opens the same way on both.
+		// AIRail.handles() is the ONE list; AIRail.route() is what AI 2 uses.
 		if (!v1() && AIRail.handles(name)) return AIRail.route(this, name);
-		// A row that is not a card folder opens the same card page AI 2 gives it.
 		if (!v1() && CARD_ID.test(name)) return card_page(this, name);
 
 		const board_view = board_route(this, name);
 		if (board_view) return board_view;
 
 		if (/^\d{4}-\d{2}-\d{2}$/.test(name)){
-			// The day stays a dashboard at this address (a view, not a folder); its tasks moved into the sessions store
-			// (ai/doc/task-folders.md) and route(task) below redirects each old task address.
-			// Fired the instant this day is routed to, not when its dashboard()
-			// happens to render — a cold deep link straight to a task below has
-			// no earlier chance, and every other child() hop still ahead (this
-			// day Page's own construction, the task segment's child() call) gives
-			// the fetch time to land before route(task) below ever asks.
+			// Day stays a dashboard; tasks moved into sessions store. warm() fires instantly so a deep link has time to land.
 			warm(name);
 			return new Page({
 				title: name, icon: "history", url: this.url + name + "/",
 				content(){ dashboard(this); },
-				// A task dir with its own page.js wins by NOT being claimed here —
-				// Page.child()'s own filesystem probe (Page.load()) then dynamic-imports
-				// it. `has_page_js` is undefined until the day's own dashboard() has
-				// warmed the listing; undefined reads as "don't know", same as false.
 				route(task){
-					// "By system" — the SAME day's prompts, regrouped (the owner's own follow-up,
-					// 2026-10-04: "if all of my prompts can fit within a different structure").
-					// Its own URL, never a query-string toggle (route everything, CLAUDE.md).
+					// "By system" — the day's prompts regrouped (owner 2026-10-04). Doc: doc/ai-page-notes.md.
 					if (task === "by-system") return new Page({
 						title: name + " — by system", icon: "history", url: this.url + "by-system/",
 						content(){ daySystemPage(this); },
 					});
-					// "By module" — the day's spend/module breakdown's own click-through url
-					// (Server/day-spend.mjs writes the data; module-spend.js draws both ends).
+					// "By module" — the day's spend/module breakdown. Doc: doc/ai-page-notes.md.
 					if (task === "module") return new Page({
 						title: "By module", icon: "folder", url: this.url + "module/",
 						content(){ module_list(name); },
@@ -188,29 +119,23 @@ export default new Page({
 			});
 		}
 
-		// A MONTH, a stub (deliverable 5): checked after the day regex above (a day always
-		// wins — `\d{4}-\d{2}-\d{2}` never also matches `\d{4}-\d{2}`).
+		// Month (deliverable 5): checked after the day regex. Doc: doc/ai-page-notes.md.
 		if (/^\d{4}-\d{2}$/.test(name)) return new Page({
 			title: name, icon: "calendar_month", url: this.url + name + "/",
 			content(){ monthPage(this, name); },
 		});
 
-		// `log/` is the archive this page used to BE: every task of every day,
-		// in-flight first, forty at a time. A route rather than a `log/` dir with
-		// its own page.js, for one reason — the date route above is a regex on the
-		// SAME segment, and a declared child would have to be kept out of its way
-		// forever. `effort/` is the prior art; `log` can never look like a date.
-		// ?v1 only: the year/month/day dirs as bare pass-throughs (the rail answers them above).
+		// V1 only: year/month/day dirs as bare pass-throughs. `log` and `effort` can never look like dates.
 		if (/^\d{4}$/.test(name)){ const seg = (n, u, d) => new Page({ title: n, url: u, content(){}, route(m){ if (d < 3 && /^[\w-]+$/.test(m)) return seg(m, u + m + "/", d + 1); } }); return seg(name, this.url + name + "/", 0); }
 
-		// THE TASK LOG — every task of every day, in flight first. It was `log/` until the Log
-		// tab (the rail at floor 0) took that url; under ?v1 `log/` still draws it.
+		// Task log: every task of every day, in-flight first. Doc: doc/ai-page-notes.md.
 		if (name === "all-tasks" || name === "log") return new Page({
 			title: "Everything", icon: "history", url: this.url + name + "/",
 			description: "Every task of every day, in-flight first, forty at a time.",
 			content(){ return log_board(this); },
 		});
 
+		// Effort: a thread of work that outlives a day; each card wears one as a tag.
 		if (name === "effort") return new Page({
 			title: "Efforts", icon: "label", url: this.url + "effort/",
 			content(){ md("An **effort** is the thread of work that outlives any one day. Every card wears its own as a tag — click one to see the board filtered to it."); },
@@ -222,8 +147,7 @@ export default new Page({
 	},
 });
 
-/* One concept's page: the gist first, then a few items, then the code that owns it,
-   then the Servex page where Servex implements it (linked, never repeated). */
+// Concept page: gist, items, code, Servex page (linked, never repeated). Doc: doc/ai-page-notes.md.
 function concept_page(parent, c){
 	const links = list => list.map(([t, h]) => h ? `[${t}](${h})` : t).join(" · ");
 	return new Page({
@@ -233,8 +157,7 @@ function concept_page(parent, c){
 			md(c.items.map(i => "- " + i).join("\n"));
 			md("Code: " + links(c.code));
 			if (c.servex.length) md("In Servex: " + links(c.servex));
-			// A system is shown by its effect (the owner, 2026-09-30: the iceberg).
-			// Where a page's data lives (mastermind-servex-9's merge-approval proposal, §7).
+			// A system is shown by its effect (the owner, 2026-09-30: the iceberg). Doc: doc/ai-page-notes.md.
 			if (c.slug === "inboxes"){
 				AIOverview.heading("Everything is a page", "A page gets a directory once it has grown. Until then it is a line in its parent's `page.jsonl`. A name that only groups pages is a namespace.");
 				md([
