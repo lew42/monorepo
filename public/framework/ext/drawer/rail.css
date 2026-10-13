@@ -331,6 +331,5 @@
 	}
 	.drawer-rail-sheet-tabrow .drawer-tab.on { color: var(--ink); background: var(--fill-a08); font-weight: 600; }
 	.drawer-rail-sheet-tabbody { flex: 1 1 auto; min-block-size: 0; overflow: auto; }
-	.drawer-rail-sheet-chat-only { }
 	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { flex: 0 0 auto; }
 }

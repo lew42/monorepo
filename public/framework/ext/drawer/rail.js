@@ -648,11 +648,9 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
 	mount_tabs(){
 		if (this.$tabs?.el.isConnected) return;
 		this.$tabs = div.c("drawer-rail-sheet-tabs flex v");
-		this.$tabs.el.append(...(() => {
-			const row = div.c("drawer-tabs drawer-rail-sheet-tabrow flex"), body = div.c("drawer-rail-sheet-tabbody");
-			this.$tabrow = row; this.$tabbody = body;
-			return [row.el, body.el];
-		})());
+		this.$tabrow = div.c("drawer-tabs drawer-rail-sheet-tabrow flex");
+		this.$tabbody = div.c("drawer-rail-sheet-tabbody");
+		this.$tabs.el.append(this.$tabrow.el, this.$tabbody.el);
 		this.el.append(this.$tabs.el);
 		this.pick(tabs.current?.name ?? "ai");
 	}
