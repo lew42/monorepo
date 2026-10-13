@@ -25,3 +25,4 @@
 {"log":{"at":"2026-10-13T17:23:16-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-inbox-data"}}
 {"log":{"at":"2026-10-13T17:23:19-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T17:28:17-05:00","heartbeat":"revive-queued","msg":"task-mastermind-inbox-data it did not answer the status check; a revive is queued"}}
+{"log":{"at":"2026-10-13T17:31:31-05:00","msg":"merged 47569437c into michael/dev (smoke clean after: routed rows skip the settings probe, talk log silent, task-log link points at the file, detail title as plain text). Landings.mjs --append run in the main tree."}}
