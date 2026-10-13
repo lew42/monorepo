@@ -29,9 +29,12 @@ export default class LogSweeper {
         /^public\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/.+\/task\/(task\.jsonl|page\.jsonl|spend\.json|files\.jsonl)$/,
         /^public\/(ai\/[^/]+\.jsonl|files\.jsonl|framework\/ai\/(.+\/)?files\.jsonl)$/,
         /^\.claude\/skills\/[^/]+\/(flags|improvements)\.jsonl$/,
+        /^public\/framework\/ai\/(usage|cards)\.jsonl$/, // usage history (owner keeps it) and the board's card index: appended by Servex
+        /^public\/framework\/(?!ai\/).+\/doc\/files\.jsonl$/, // the dev server's folder listing under any module's doc/
+        /^public\/framework\/ai\/sessions\/(\d{4}(\/\d{2}){0,2}\/)?index\.json$/, // day/month/year composites: tracked, rewritten by the sessions indexer
     ];
     /* Never swept, even if an ALLOW pattern would match. */
-    static DENY = [/\.(js|mjs|css|html|md)$/, /(^|\/)index(\.tmp)?\.json$/, /node_modules/];
+    static DENY = [/\.(js|mjs|css|html|md)$/, /(^|\/)index\.tmp\.json$/, /node_modules/];
 
     constructor(...args){ Object.assign(this, ...args); this.initialize(); }
 
