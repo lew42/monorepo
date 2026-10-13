@@ -37,7 +37,7 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ `Video · Kit` + `Video · Storyboard · The Twelve` ([report](kit/video.md)). Review fixes: Location tag's map box hidden by default (`Show map` boolean), end-card thumbnails show a scene image, flat 72% scrims → gradients (15→90%) so images stay bright.
 - ✅ `Video · Channel ideas` ([report](kit/channels.md)): five channels (banner, comparison card, 4-tier price ladder, 7 thumbnails, 3 Shorts each) + sourcing (quoted-clip overlay, permission email, fair-use note); 43 credited Wikimedia photos, 9 generations.
 - ✅ Images verified: `generate_image` → `upload_assets`, and Wikimedia Commons → `upload_assets` (see [video-kit.md](/framework/ext/Figma/doc/video-kit.md)).
-- ⬜ `Type · Title layouts` (where the words go; filler words small; locked lines) — task-mastermind-figma-titles, brief [kit/brief-titles.md](kit/brief-titles.md), idea [doc/title-layouts.md](/framework/ext/Figma/doc/title-layouts.md)
+- ✅ `Type · Title layouts` ([report](kit/titles.md)): 7 `Title / …` components (2–5 words, word + subtitle, weight, case), 8 rows of 16:9 + Shorts uses, casing rules; keep-set verdict in the page Notes. Line lock = line height 100%, gap −0.12 em; filler ≈ 0.39 × big; ~10 caps per Shorts line.
 
 Owner rule (2026-10-12): summaries and anything waiting on the owner go on the Figma Overview's **For you** card (`186:1062`) and page notes, not chat.
 

@@ -10,4 +10,4 @@ A title card (Netflix / Prime Video key art, a video title slide, a T-shirt) is 
 - "I won't know how I'd judge it until I see it": show many variations side by side.
 
 ## Where it lives
-Figma page `Type · Title layouts` (brief: [brief-titles.md](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/brief-titles.md)); findings go on the page's Notes box and here.
+Figma page `Type · Title layouts` (brief: [brief-titles.md](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/brief-titles.md); report: [titles.md](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/titles.md)). Found: lock two lines with line height 100% and a −0.12 em gap; filler words at about 0.39 of the big word; about 10 capitals fit one Shorts line. Kept set: 2 words, 3 words (between, inline), 4 words stacked, 5 words stacked centre, word + subtitle.
