@@ -38,6 +38,10 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ 2026-10-13 desktop MCP connected (`figma-desktop`, 127.0.0.1:3845): reads the owner's live selection; see use-figma.md.
 
 ## In flight
+- ✅ 2026-10-13 tidy-ds/kit/lab, icons, nesting, slots, transcribe reported. Index (masonry, natural height) + Index · full size rebuilt from ext/Figma/scripts/index-pages.figma.txt.
+- ✅ builder ([report](kit/builder.md)): Kit · Mobile builder 260:71518, 27 blocks, matched toolboxes, mode inheritance verified.
+- ✅ fluid-ds, fluid-kit, grids (250:105044), templates (262:34669) reported 2026-10-13; Index re-run (42 pages).
+- ⬜ templates-3col (brief-templates-3col.md), icon-swap (brief-icon-swap.md): queued.
 - ✅ Index page `234:2003` built as page 1 (38 previews); re-run after tidy finishes.
 - ⬜ slots (brief-slots.md), icons (brief-icons.md).
 - ⬜ 2026-10-13 tidy-ds, tidy-kit, tidy-lab (brief-tidy.md): every Claude page → 1920 wrapper → `Page · …` component; then I build the Index page.

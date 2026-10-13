@@ -14,3 +14,25 @@
 {"log":{"at":"2026-10-13T17:39:31-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-13T17:42:37-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T17:44:31-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T17:50:19-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-dictate-check"}}
+{"log":{"at":"2026-10-13T17:50:21-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T17:50:24-05:00","heartbeat":"answered","msg":"I'm idle: the dictate-check task landed at 17:37 and its card reply is posted. The only open items are the out-of-order bubble fix in `ext/Chat/Chat.js`, outside my fence, and a timestamped headless r"}}
+{"log":{"at":"2026-10-13T17:51:35-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T18:02:20-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-dictate-check"}}
+{"log":{"at":"2026-10-13T18:02:22-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:02:24-05:00","heartbeat":"answered","msg":"Still idle, nothing new since the last check. dictate-check landed at 17:37 and its card reply is posted. The bubble-order fix and the timed headless run are briefed in `ux/Dictate/doc/next.md` and wa"}}
+{"log":{"at":"2026-10-13T18:03:38-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T17:37:34-05:00","msg":"session resumed"}}
+{"assign":{"landed_at":"2026-10-13T17:45:00-05:00","title":"Dictate: transcription proven at phone width; bubble-order cause named, fix briefed; 30 s breakdown","outcome":"PROVEN: Whisper :8178 up; mic-proof.mjs (400px touch, fake mic, https LAN :13104) shows text in the sheet (sheet-400-lan.png). Phone needs https, not http or :8137. COMMITS (docs and scripts only, committed directly, no worktree/merge needed): c92aa1c12 proof + sheet-vs-sidebar gap + new-session answer; 1541e5821 (swept in by a sibling) replay.mjs + nesting diagram + next.md; 03222f018 first-reply timing. BUBBLE ORDER NOT FIXED: stored file and cold replay (replay.mjs, v-jag436k) are in order; the live jumble is ext/Chat/Chat.js appending by arrival and not re-placing on retag, outside my fence; brief = ux/Dictate/doc/next.md 'Next 2'. 30 s: v-rs7u4o7 mic on 17:17:31 -> first sentence in file 17:17:57 (25.7 s) -> agents cold-spawned on that sentence -> fast reply 17:18:05 (8.5 s). The 25.7 s before the sentence is UNEXPLAINED (not Whisper log, not found; suspect held-back send in the mic); next = headless timestamped run. Sheet = sidebar collapsed form: not built, brief in doc/next.md. Links: ux/Dictate/doc/asks.md, doc/next.md.","links":["public/framework/ux/Dictate/doc/asks.md","public/framework/ux/Dictate/doc/next.md",".../dictate-check/sheet-400-lan.png"]}}
+{"log":{"at":"2026-10-13T17:37:51-05:00","msg":"text-check: outcome: a 146-word paragraph (\"PROVEN: Whisper :8178 up; mic-proof.mjs (400px tou…\"); outcome: 146 words (120 at most; move the rest one click down)"}}
+{"log":{"at":"2026-10-13T17:37:51-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-13T17:37:51-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-13T17:37:52-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-13T17:38:06-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-13T17:38:06-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-13T18:26:14-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:26:14-05:00","msg":"session resumed"}}
+{"assign":{"landed_at":"2026-10-13T18:00:00Z","title":"assistant-chain: one global fast assistant behind SERVEX_CHAIN=on","outcome":"Merged into michael/dev (d81697bd4). Fast Haiku cleaner answers each chunk in 1.0-1.6 s (first 6-7 s cold); one refined hand-off per batch reaches the mastermind. Smart Sonnet tier, TaskLoop loop and page-in-Dictate are not built.","links":["Servex/agents/doc/assistant-chain.md","Servex/agents/Chain.js","flag: SERVEX_CHAIN=on (restart Servex to activate)"]}}
+{"log":{"at":"2026-10-13T17:00:10-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-dictate-check"}}
+{"log":{"at":"2026-10-13T17:00:12-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T17:00:14-05:00","heartbeat":"answered","msg":"Nothing running; the task is finished. The headless mic proof at 400 px passed on `https://10.0.0.135:13104` and is committed as `c92aa1c12`, with the findings in `ux/Dictate/doc/asks.md` and the next"}}

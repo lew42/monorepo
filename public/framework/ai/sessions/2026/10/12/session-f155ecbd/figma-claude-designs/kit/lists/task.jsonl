@@ -17,3 +17,7 @@
 {"log":{"at":"2026-10-13T15:45:08-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T15:45:10-05:00","heartbeat":"answered","msg":"Idle, with nothing running. The Lists page and `kit/lists.md` are done and committed. The only loose end is that `append.mjs` crashed, so the landing line isn't in `task.jsonl`."}}
 {"log":{"at":"2026-10-13T15:46:26-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T17:07:08-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-fig-lists"}}
+{"log":{"at":"2026-10-13T17:07:10-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T17:07:21-05:00","heartbeat":"answered","msg":"Idle and finished. The Lists page and `kit/lists.md` are done and committed, and I'm not working on anything. The `append.mjs` hook crashed, so the landing line isn't in `task.jsonl`."}}
+{"log":{"at":"2026-10-13T17:08:29-05:00","msg":"session ended (other) without landing"}}

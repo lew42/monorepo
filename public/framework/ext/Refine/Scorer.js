@@ -6,12 +6,13 @@
 export default class Scorer {
 
 	/**
-	 * clarity (can we tell what this sentence means?) starts at 1 and only goes down:
-	 *   the model said "unsure" (S2?)          → at most 0.3
-	 *   the checker found a word nobody said   → at most 0.5
-	 *   a glossary fix (heard "Servex" as…)    → ×0.85 per fix: we guessed a reference
-	 *   a spoken self-correction               → ×0.8: the speaker changed their mind here
-	 *   under 3 words                          → ×0.7: too short to carry a meaning
+	 * clarity is a probability (`doc/confidence.md`): it starts at 0.5, "not sure", and moves on evidence.
+	 *   no flag, cited by exactly one card, 3+ words → 0.75, with that evidence written in `evidence`
+	 *   a glossary fix or a spoken self-correction  → at most 0.5 (a guess was made here)
+	 *   under 3 words                                → at most 0.4
+	 *   the checker found a word nobody said         → 0.25 (probably wrong)
+	 *   the model said "unsure" (S2?)                → 0.3
+	 * Over 0.7 needs `evidence`; without it the number is clamped to 0.7.
 	 * weight (does it matter, does it still apply?) = how sure the outline placed it
 	 * (`structure()` confidence: once = 1, twice = 0.4, never = 0.2), halved a little for a
 	 * sub-point, then pulled down by low clarity.
@@ -34,17 +35,24 @@ export default class Scorer {
 		prompt.clean.forEach(s => {
 			const flags = [];
 			for (const f of clean?.flags ?? []) if (f.sentence_n === s.n) flags.push({ kind: f.source, question: f.question, confidence: f.confidence });
-			for (const m of clean?.misheard ?? []) if (m.sentence_n === s.n) flags.push({ kind: "misheard", question: `Heard "${m.from}", read as ${m.to}.`, confidence: 0.85 });
-			for (const k of clean?.strikes ?? []) if (k.sentence_n === s.n) flags.push({ kind: "strike", question: `Self-correction: "${k.struck_text}" was struck.`, confidence: 0.8 });
+			for (const m of clean?.misheard ?? []) if (m.sentence_n === s.n) flags.push({ kind: "misheard", question: `Heard "${m.from}", read as ${m.to}.`, confidence: 0.6 });
+			for (const k of clean?.strikes ?? []) if (k.sentence_n === s.n) flags.push({ kind: "strike", question: `Self-correction: "${k.struck_text}" was struck.`, confidence: 0.6 });
 
-			let clarity = 1;
+			let clarity = 0.5, evidence = "";
+			const words = s.text.trim().split(/\s+/).length;
+			const placed_once = structure?.confidence?.[s.n] === 1 || (!structure?.confidence && depth.has(s.n));
+			if (!flags.length && words >= 3 && placed_once){ clarity = 0.75; evidence = `cited once by "${card_of.get(s.n)}", no flags`; }
 			for (const f of flags){
 				if (f.kind === "model") clarity = Math.min(clarity, 0.3);
-				else if (f.kind === "mechanical") clarity = Math.min(clarity, 0.5);
-				else clarity *= f.confidence;
+				else if (f.kind === "mechanical") clarity = Math.min(clarity, 0.25);
+				else clarity = Math.min(clarity, 0.5);
 			}
-			if (s.text.trim().split(/\s+/).length < 3) clarity *= 0.7;
+			if (words < 3) clarity = Math.min(clarity, 0.4);
+			if (clarity > 0.7 && !evidence) clarity = 0.7;
+			if (clarity <= 0.7) evidence = "";
 			s.clarity = +clarity.toFixed(2);
+			s.evidence = evidence;
+			s.scale = 2;
 
 			const placed = structure?.confidence?.[s.n] ?? (depth.has(s.n) ? 1 : 0.2);
 			const sub = depth.get(s.n) >= 2 ? 0.8 : 1;

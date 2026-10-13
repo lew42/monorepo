@@ -1,0 +1,172 @@
+[sessions/2026/10/12/feedback-council/requirements.md]
+# Feedback council — brief for each of the five checkers
+
+Card dir (read the raw words there): `public/framework/ai/council/` (and the current run directory).
+Words: `words.jsonl` in the active run directory.
+Asks to check: new asks extracted from `words.jsonl` plus every open ask in `public/framework/ai/council/asks.jsonl` whose latest verdict isn't `done`.
+
+## Your job
+For EVERY ask, LOOK at the real result and give one verdict:
+`done` / `partly` / `not done` / `done-but-wrong`, one line of evidence (URL, screenshot path, file:line), and for anything not `done` the smallest fix.
+**Prove before you call something missing.** A false "not done" is the common failure: search the repo (`git log`, grep, the skills in `.claude/skills/`, CLAUDE.md) before writing it.
+The live site: http://monorepo.localhost (never http://localhost/). Visual asks: headless Playwright at 1920 and 3440 (Playwright, never the owner's tabs, no `mcp__site__eval` on tabs the owner has open). Time the Live card load. Check scroll on the named URLs with real overflow measures. No window may pop up: `windowsHide: true`, `-WindowStyle Hidden`.
+Do NOT edit any repo file. Scratch goes in your scratchpad; screenshots to `<run-dir>/shots/<your-name>-<ask>.png` only for the ones that are evidence (keep <=12).
+Also scan `words.jsonl` and add up to 8 **extra asks** the owner made there that current asks miss, with the same verdict.
+
+## Return
+Write ONE json file `<run-dir>/votes/<your-name>.json`:
+`{"name":"...","votes":{"A1":{"v":"done|partly|not done|done-but-wrong","e":"evidence","f":"smallest fix or empty"},...},"extra":[{"ask":"...","v":"...","e":"...","f":"..."}]}`
+Then reply "done" in one line. Never write the owner's name anywhere. Budget about $2 each: be quick, do not over-explore.
+Load the `minion` skill first only if it does not conflict: you edit nothing but your votes file and shots.
+
+[sessions/2026/10/12/session-0e99727c/voice-to-session-page/requirements.md]
+# Voice to session page, in real time (mastermind brief)
+
+**Goal:** when the owner speaks, they watch their words turn into cards on the session's own page, live, from the phone. They test it tomorrow.
+
+**The five stages, each shown on the page as it happens:**
+1. **Raw** — Whisper's text, as spoken.
+2. **Clean** — the same text, tidied.
+3. **Structure** — the clean text split into its points.
+4. **Refined** — the finished prompt.
+5. **Cards** — the refining model writes them onto the page with the page tools.
+
+**Which page:** every session has one at `/framework/ai/sessions/<id>/`. By default an agent writes to its own page. This works the same whether the owner dictates in the browser or the app.
+
+> "That's the kind of feedback loop that I'd like." (the owner, 2026-10-12)
+
+**What exists (read STATE/reports first, do not rebuild):** `ai/sessions/2026/10/09/session-48083d9d/refine-dictate-ui/` (VoiceStrip, phase-2 report, mobile-socket answer), `ux/Dictate/doc/voice-architecture.md`, `ext/Refine`, Whisper server under Servex, the task-audit's transcription loose ends (`ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task/by-system.md`, "Transcription and refinement": 10 `now` rows, Haiku-labelled, about 58% reliable). Page tools: `Servex/agents/page_tools.js`; the AI-facing page model is being written by @mastermind-page-ai-api (`core/Page/doc/ai-api.md`); use its tools, ask it, don't fork them.
+
+## Done when (tick each with proof)
+- [ ] **Reproduce first** on current `michael/dev`: dictate (a recorded audio file fed headless is fine) and record which stage breaks or lags, with timings, in `STATE.md`.
+- [ ] **Whisper stays up:** it survives a reload and a phone reconnect; a crash restarts by itself (Servex) and the page says so in one plain line.
+- [ ] **Each stage visible live on the session page:** raw → clean → structure → refined → cards, each written by page-tool deltas as it happens (stream, not poll; about 100 ms updates), one class per stage with its own view.
+- [ ] **Phone:** the same flow works at 400 px from the phone address (`10.0.0.135`), proven headless at mobile width.
+- [ ] **For tomorrow's test:** a short `ux/Dictate/doc/try-it.md` (open this URL on the phone, press this, expect that) linked from the Dictate readme, and an `owner_note` (kind `needs-you`) pointing to it.
+- [ ] Close the transcription `now` loose ends this resolves, each by checking it, not trusting the Haiku label.
+- [ ] Layout-check at 400/1200/1920/3440; smoke clean; commit each step; merge.
+
+Sonnet 5.5 (you); Haiku under 60k for reading. Worktree; one Servex restart batched and proven on a private port. One-sentence chat replies; `STATE.md` here; land with `finish-task`.
+
+[sessions/2026/10/12/session-0eaa4f07/inbox-asks/requirements.md]
+# the AI Inbox and dashboard cards: close the open asks
+
+**The asks:** [ai/doc/asks.md](/framework/ai/doc/asks.md) cluster **inbox-dashboard-cards** (#3, asked 19x). Read that entry and its source links first; its "Open" line is the work. Labels came from reading docs, not every line of code, so check each against the code before building.
+
+## Done when
+- [ ] Each open point in the cluster is done (with a commit), or written up in `STATE.md` with the reason it cannot be done tonight and the smallest next step.
+- [ ] Proof per point: a headless check, a screenshot, or a command's output. Layout-check 400/1200/1920/3440 for any page change; smoke clean.
+- [ ] The cluster's entry in `ai/doc/asks.md` is updated (done / partly / open) with commit links.
+
+Never destructive (move aside, never delete). Sonnet 5.5, medium. Worktree; commit each step; merge. One-sentence chat replies; `STATE.md`; land with `finish-task`.
+
+[sessions/2026/10/12/session-15fbffb1/sessions-asks/requirements.md]
+# the Sessions system: close the open asks
+
+**The asks:** [ai/doc/asks.md](/framework/ai/doc/asks.md) cluster **sessions-system** (#4, asked 16x). Read that entry and its source links first; its "Open" line is the work. Labels came from reading docs, not every line of code, so check each against the code before building.
+
+## Done when
+- [ ] Each open point in the cluster is done (with a commit), or written up in `STATE.md` with the reason it cannot be done tonight and the smallest next step.
+- [ ] Proof per point: a headless check, a screenshot, or a command's output. Layout-check 400/1200/1920/3440 for any page change; smoke clean.
+- [ ] The cluster's entry in `ai/doc/asks.md` is updated (done / partly / open) with commit links.
+
+Never destructive (move aside, never delete). Sonnet 5.5, medium. Worktree; commit each step; merge. One-sentence chat replies; `STATE.md`; land with `finish-task`.
+
+[sessions/2026/10/12/session-19429b3d/session-housekeeping/requirements.md]
+# Session data housekeeping: commit rule, machine-log sweeper, OpenRouter gap (task mastermind brief)
+
+Read `public/framework/ai/handover.md`, `ai/sessions/readme.md`, `ai/sessions/doc/` and `ai/sessions/2026/10/10/session-41240bd9/tasks-into-sessions/STATE.md` (tasks were moved into session folders; check what landed and what is left: 994 tasks had no session and stay, 12 not landed).
+
+## Do
+1. **Working-tree hygiene:** `git status` shows dozens of machine-written files (`ai/sessions/2026/**/index.json`, `*/files.jsonl`, `public/ai/*.jsonl`, task `page.jsonl`/`task.jsonl`). Decide for each class of file: commit (versioned log), gitignore (cache), or regenerate. Write the rule in `ai/sessions/doc/` and the readme; apply it (`.gitignore` edits are fine; committing is fine; never delete data).
+2. **A Servex sweeper:** a small class (one file named for the class) that commits machine-written logs in batches on a timer (e.g. every 30 min when quiet, only paths on an allowlist, attributed `servex: log sweep`), idempotent, never touching code files or other agents' staged work; dry run mode; log what it did. Put it where Servex jobs live (`Servex/`), after reading `Servex/readme.md`; do not change `Servex/Pool.js`.
+3. **OpenRouter account-vs-log gap:** the account showed more dollars than `openrouter.jsonl` explains (handover item 1). With a script, reconcile by day and model, find the missing calls (other keys? Servex-external callers? echo?) and write the finding in `ai/sessions/doc/`; make the Sessions page show "unattributed OpenRouter $" so the gap is visible, not hidden.
+4. **Verify the tasks-into-sessions move end to end** with its verify script; list anything unreachable from the site and link it.
+
+## Fences
+Never destructive. Worktree for code, commit each working step after a smoke test, merge via `Server/merge.mjs`. A `Servex/` change needs a restart: batch it and prove it boots. Sonnet 5.5; Haiku under 60k tokens for reading; `node Server/usage-now.mjs` before spawns; no OpenRouter calls. One-sentence chat replies; `STATE.md` here; land with `finish-task`.
+
+[sessions/2026/10/12/session-1c7d9e04/page-split-3/requirements.md]
+# Page.class.js split, step 7: jsonl (the last move)
+
+**Plan:** [core/Page/doc/split-plan.md](/framework/core/Page/doc/split-plan.md) step 7. Steps 1-6 landed tonight ([page-split-1](../../session-75fc1375/page-split-1/STATE.md), [page-split-2](../../session-e55f5a4b/page-split-2/STATE.md)): 2,270 to 1,089 lines, nothing broke. Jsonl (~470 lines: replay, the file steps, `set()`'s jsonl handling) is the core path of every page, so this is the careful one.
+
+## Do
+- Move the jsonl replay and file steps into their own class file (`Page.Jsonl`, or the name the plan settles), held by the page or attached as a static so a subclass can swap it. `page.set()`, `Page.Reader` and every public name keep their exact behaviour; replay order is unchanged.
+- Before moving: record a baseline. For 40 pages (core, ai, sessions incl. a live session page, imagine/paging, markdown, a parts page, a page-tool-built page) save the computed state (`page_read`) and a 1200 screenshot. After: the same, diffed. Any difference is a failure.
+- Prove the page tools still stream: `page_set`/`page_add` on a scratch page show in a watching headless browser within a second (as in `core/Page/doc/ai-api.md`'s proof).
+
+## Done when
+- [ ] Baseline vs after: 0 state diffs, 0 new console errors, screenshots match at 400/1200/1920/3440. Smoke clean.
+- [ ] `split-measure.mjs` before/after in `STATE.md`; step 7 ticked; split-plan.md says the split is complete.
+- [ ] Merge with live reloads held during the batch. If any diff can't be fixed, don't merge: leave the branch and write why in `STATE.md`.
+
+Sonnet 5.5, high. Worktree. Land with `finish-task`.
+
+[sessions/2026/10/12/session-26eee6cc/live-page-error/requirements.md]
+# Live site: a page load error hit the owner mid-browse, and UI lands without screenshots
+
+**Owner (2026-10-12, ~14:10 local):** browsing `/framework/ai/sessions/` (a session detail open), the page refreshed itself and showed a page load error.
+> "We shouldn't be causing errors on the live site while I'm browsing it… I thought we weren't doing that anymore."
+
+## Done when (tick each with proof)
+- [ ] **Find the cause:** what reloaded and what failed around 19:00–19:15Z (merges on `michael/dev`: `git log --since`, the dev server and Servex logs via `server_logs`, the hold log). Name the commit or write that did it and why the guard (`Server/hold.mjs`, worktree → `check_page` → merge) didn't stop it.
+- [ ] **Close the gap in code**, not in a rule only: e.g. merge holds reloads and boots the page headless before releasing; a page that fails after a reload keeps the old one with a one-line notice instead of an error screen. Smallest fix that would have prevented this one; record the alternative.
+- [ ] **Screenshots gate:** UI agents keep landing layouts nobody looked at (cut-off columns, crammed tables). Check whether `merge.mjs`'s review gate really requires the 400/1200/1920/3440 shots for a page change; if it can be skipped, make it require them (files present in the task dir). One line in the relevant doc.
+- [ ] Note in `Server/doc/watch.md`; commit; merge; land.
+
+Sonnet 5.5. Worktree; one Servex restart if needed, proven on a private port. `STATE.md` here; one-sentence replies; land with `finish-task`.
+
+[sessions/2026/10/12/session-38388428/page-split-plan/requirements.md]
+# Page.class.js split plan (plan only, no code moves)
+
+**Owner (2026-10-12):** "What exactly is 2,000 lines in the Page class? That might be a mistake."
+
+**Measured:** `core/Page/Page.class.js` is 2,270 lines: 926 comment (40%), 317 blank, 1,027 code, 151 methods. Biggest areas by section markers: page.jsonl replay and the three file steps (lines ~72-500), the six words, roles, link opening (~907), rendering (~1238, `render_content_list` 101 lines), related aside (~1474), columns, the Finder shape (~1526-1973, ~450 lines), preferences (~1973).
+
+**Done when (tick each with proof):**
+- [ ] The measuring script exists and its output answers the owner's question: what the 2,270 lines are (code vs comment vs blank).
+- [ ] `core/Page/doc/split-plan.md` fits one screen and shows the target class tree in code, with a target size for `Page.class.js` (for example under 600 lines).
+- [ ] Each move names its risk (callers) and its order, lowest risk first.
+- [ ] The core/Page readme links `doc/split-plan.md`.
+- [ ] `Page.class.js` is unchanged (`git diff` empty for it).
+
+## Do (write, do not move code)
+1. A script that measures each section and method (code vs comment lines) and lists which other files call each group of methods (a cheap import/call grep).
+2. `core/Page/doc/split-plan.md`, one screen: for each group, keep in Page / move to a composed helper class (one file named for it, e.g. `Page.Columns`, `Page.Links`, `Page.Jsonl`, attached as statics or held by reference) / move to an extension. Aim for a Page class whose file a reader can scan. Show the target as a class tree in code. Name the risk per move (callers) and an order (lowest risk first). Comments: flag ones that are history, not explanation (candidates to move to `doc/`).
+3. Link it from the core/Page readme. No changes to Page.class.js in this task; executing the split is a later task.
+
+Sonnet 5.5; Haiku under 60k tokens for counting; commit; one-sentence chat replies; land with `finish-task`.
+
+[sessions/2026/10/12/session-3b391f22/claude-md-consolidate/requirements.md]
+# CLAUDE.md consolidation, non-destructive (task mastermind brief)
+
+**Owner (2026-10-12):** CLAUDE.md is too long (~4,100 words, ~5,700 tokens paid by every session), and rules added one correction at a time may conflict or be worded too strongly. Consolidate for clarity, **but nothing useful may be lost**: a tip that does not belong in CLAUDE.md moves to where it belongs (a module readme, a `doc/`, a skill), it is never just deleted. The owner cannot judge each line, so the process must be safe by construction. Do not wait on the owner: they may not read chat.
+
+Inputs: `ai/sessions/2026/10/09/session-a07780b9/system-architect/claude-md-proposal.md` (a 1,172-word draft, never applied), `ai/sessions/2026/10/12/session-b5cae4be/skill-usage-audit/recommendation.md`.
+
+## Do
+1. **Sentence manifest, by script:** split current CLAUDE.md into sentences/rules with ids; for each, a row: keep (in CLAUDE.md) / move (to a named file, with the anchor) / merge (into which kept rule) / retire (only for a rule about a system that no longer exists, and it still goes to an archive file). Every sentence appears in exactly one row. A check script proves zero sentences are dropped: every one is in the new CLAUDE.md, in its destination file, or in `ai/doc/claude-md-archive.md`.
+2. **Strength words:** keep the owner's own strength ("always" only for what has broken things; else "usually", "prefer"). Never strengthen a rule while moving it. Owner quotes and dates stay with the rule wherever it goes.
+3. **Review page for the owner** (one screen, linked from the AI board as a Note card): what was cut from CLAUDE.md, shown as short before/after blocks grouped by destination, plus the word counts. The owner can read it later; it does not block.
+4. **Apply** in a worktree: the new CLAUDE.md, the moved text appended to its destinations, the archive file, the manifest. Recent owner rules (2026-10-07 to 10-12: "Chat is the headline", "How to respond", "Mind the token burn", "Never destructive", "Stream, don't poll", "Haiku stays under 100k", "Commit after every working step", the class rules) stay in CLAUDE.md, tightened but not weakened. Commit, review the diff yourself, merge. Reversible: the old file is in git and the manifest maps every sentence.
+5. Write `STATE.md`; land with `finish-task`.
+
+## Fences
+Sonnet 5.5 (you); a fresh Sonnet reviewer reads the manifest and the new file once before merge and flags any rule whose meaning changed. No OpenRouter. One-sentence chat replies.
+
+[sessions/2026/10/12/session-471f8c3b/page-slice/requirements.md]
+# Page system smallest slice: a page whose content is a streamed list of views (task mastermind brief)
+
+**Why (owner, 2026-10-08 and 2026-10-10):** page content should not be only a markdown string; a page's views are a list loaded from the page's own JSONL, rendered in a loop (as chat messages and session files already are), and editing the list persists by itself because that is how streaming lists and pages work. Templates (toolbars, headers, sidebars) are saved as JSONL view data. Not yet proven.
+
+## Do
+1. **Inventory what exists (cheap, a script + readmes):** `core/Page` (`page.jsonl`, `live()` tail, `thing.page`/`page.thing` composition), `ext/Refine`, the session viewers (`ai/AISession/*`), streaming lists. Read `core/Page/doc/indexing-2026-10-08.md`, `ext/Chat/doc/panel-composition-2026-10-08.md`, `ai/doc/tooling-architecture-2026-10-08.md`, `ai/sessions/2026/10/08/task-system-design/task-system-design/`.
+2. **Design the class architecture first** (CLAUDE.md "Design the class architecture before you build"): a short page naming each class, its job, what extends/composes what, and the orchestrator; show it where the owner can see it.
+3. **Build the smallest slice that proves it:** one page whose body is a list of views stored in its `page.jsonl` (first line a snapshot is allowed, later lines deltas), rendered by one class, with at least three view kinds (heading, text/markdown, card) and add/move/remove through a tool or method that appends deltas; a reload and a second tab show the same state live. Smoke-test and layout-check it.
+4. **Then use it once for real**: render one existing small page (a readme-like page) through it to show it is not a toy.
+5. Record decisions and the alternative (e.g. `page.js` as today vs JSONL views; a snapshot line vs all deltas) in the module's `doc/`, linked from its readme and from the AI/page indexes.
+
+## Fences
+Worktree, commit each working step after a smoke test, review the diff, merge via `Server/merge.mjs`. Everything linked from the site. Do not change existing `core/Page` behaviour: add beside it (note what you need). One class per file; `Thing.View = ...` after the class. Sonnet 5.5; `node Server/usage-now.mjs` before spawns; Haiku only for reading under 60k tokens; no OpenRouter. One-sentence chat replies; `STATE.md` here; land with `finish-task`.
+

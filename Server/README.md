@@ -319,3 +319,4 @@ tool scoping, exposing subagent transcripts.
 ## More
 
 [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+- [`RefineQueue.mjs`](../public/framework/ext/Refine/doc/refine-queue.md) — refines the owner's past prompts, one Haiku call per prompt, N at once, onto each session page's Coverage tab (`public/framework/ext/Refine/doc/refine-queue.md`)

@@ -135,3 +135,7 @@ A fix (`fix: true`) is a later line with the same `at` as an earlier one, "here 
 ## revision-lines
 
 (`ext/Chat/readme.md`'s "revision line".) `c.re` names the raw line's `at` this tidies up, `c.level` says how much; never a `fix` (a correction to what was said) and never its own bubble. Keyed on the line's shape alone (`re` + `level`, no `fix`), not on who wrote it, so `ChatPanel`'s `handle_revision()` and a later voice-sessions assistant writing the same shape both land here unchanged. If the raw line isn't on screen it is shown as a plain reply, rather than a revision nobody can see.
+
+## bubble-order
+
+A bubble drawn late (a reply that beat its sentence, or a sentence whose Whisper time arrives after `retag_piece`) is moved before the first bubble with a later `data-at`, so the log reads in session-file order. `place()` does it; proof and before/after run: `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/bubble-order/`.

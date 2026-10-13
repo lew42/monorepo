@@ -24,8 +24,9 @@
  * screenshot, not the old smoke test (which only loaded the pages an agent remembered to list).
  * Every NEW page.js in the diff (added, not modified) then gets a 1920 screenshot via `layout-check.mjs`,
  * in `.merge-shots/` at the repo root, and the file paths print at the end.
- *   No overlap: `git merge-tree` proves the merge is clean, then `git merge --no-ff` commits it.
- *   Overlap:    a three-way merge per file (`git merge-file`: base = the merge base, ours = the main
+ *   No overlap: `git merge-tree` proves the merge is clean, then the same three-way write below lands it
+ *               (2026-10-13: never `git merge` at all; see ai/sessions/doc/commit-rule.md).
+ *   Overlap:  a three-way merge per file (`git merge-file`: base = the merge base, ours = the main
  *               tree's working file, theirs = the branch), computed for EVERY file in memory first;
  *               one conflict and nothing is written. If no prior staged files exist, it stages only
  *               the merged files and commits via MERGE_HEAD; otherwise leaves them in the working
@@ -60,6 +61,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sizeOf, status as reviewStatus, diffStat, pageUrlFor, widthsFor, splitPatch, writeNoReviewPass } from "./review.mjs";
 import { keepLive } from "./jsonl-keep.mjs";
+import TaskDirs from "./TaskDirs.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 
 const BASE = "michael/dev";
@@ -81,6 +83,7 @@ const mangled = [...paths, mainArg ?? ""].find(p => /Program Files[\\/]Git[\\/]/
 if (mangled) { console.error(`refused: "${mangled}" was rewritten by Git Bash. Rerun as MSYS_NO_PATHCONV=1 node Server/merge.mjs ...`); process.exit(1); }
 // (also --no-review "why": see the review-gate paragraph in the header above)
 const dir = path.resolve(dirArg);
+if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) { console.error(`refused: "${dirArg}" is not a directory. merge.mjs takes the worktree's folder (git worktree list), not a branch name.`); process.exit(1); }
 const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
 const git = (cwd, ...a) => run("git", a, cwd);
 // the main repo: the one this worktree belongs to, unless --main says otherwise
@@ -116,6 +119,11 @@ function guessTaskDir(aiDir, branch){
 	for (const day of fs.readdirSync(aiDir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && daysAgo(d) <= 3 && daysAgo(d) >= 0).sort().reverse()) {
 		const p = path.join(aiDir, day, slug);
 		if (fs.existsSync(p)) return p;
+	}
+	// the sessions store, where every task has lived since 2026-10-12 (ai/doc/task-folders.md): the slug in the last 3 days
+	for (let i = 0; i <= 3; i++){
+		const hit = TaskDirs.locate(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10), slug, path.join(aiDir, "sessions"));
+		if (hit) return hit;
 	}
 	return null;
 }
@@ -546,23 +554,14 @@ try {
 				console.error(`refused: ${branch} conflicts with ${BASE}; nothing was touched. Conflicting files:\n` + lines(mt.stdout).slice(1).join("\n"));
 				code = 4;
 			} else if (dryRun) {
-				console.log(`no overlap with the main tree's uncommitted edits: would run git merge --no-ff (merge-tree says clean). Files:\n  ${changed.join("\n  ")}`);
+				console.log(`no overlap with the main tree's uncommitted edits: would land by three-way write (merge-tree says clean). Files:\n  ${changed.join("\n  ")}`);
 			} else {
 				held = hold("on", "merge — " + branch, changed);
-				// The dirty check ran before the screenshots: a live log (a task.jsonl) may have been
-				// appended since. A late overlap goes the three-way way, which keeps every line.
-				const late = changed.filter(f => dirtyFiles().has(f));
-				if (late.length) { console.log(`${late.join(", ")} changed in the main tree since the check; three-way merging instead`); threeWay(); }
-				else {
-				const m = git(MAIN, "merge", "--no-ff", "--no-edit", branch);
-				console.log(m.stdout + m.stderr);
-				if (m.status !== 0) {
-					// should be impossible after merge-tree; abort only a merge that actually started
-					if (fs.existsSync(path.join(MAIN, ".git", "MERGE_HEAD"))) git(MAIN, "merge", "--abort");
-					console.error("git merge failed after merge-tree said it was clean — look at the output above");
-					code = 4;
-				}
-				}
+				/* Never `git merge` here, even with no overlap (2026-10-13, ai/sessions/doc/commit-rule.md): git saves
+				 * ANY dirty tree as a hidden WIP commit and resets it to HEAD; a live writer touching a file in that
+				 * window made the restore fail and wiped other agents' appended lines. threeWay() writes only the
+				 * branch's files, re-reads every live log at write time, and commits through the index. */
+				threeWay();
 			}
 		} else {
 			// the main tree has uncommitted edits to files this branch changes: never git merge

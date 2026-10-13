@@ -1,0 +1,1603 @@
+{
+ "day": "2026-10-08",
+ "scale": 2,
+ "truncated": true,
+ "sources": [
+  "sessions/2026/10/08/3f5a5fec-dbf0-4a4b-8573-560f281a0be3/session-class/requirements.md",
+  "sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs/requirements.md",
+  "sessions/2026/10/08/cache-ttl-and-plan/cache-ttl-and-plan/requirements.md",
+  "sessions/2026/10/08/docs-vs-code-audit/docs-vs-code-audit/requirements.md",
+  "sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/requirements.md",
+  "sessions/2026/10/08/feedback-council/requirements.md",
+  "sessions/2026/10/08/live-not-polling/live-not-polling/requirements.md",
+  "sessions/2026/10/08/mastermind-cheap-models/mastermind-cheap-models/requirements.md",
+  "sessions/2026/10/08/mobile-voice-access/mobile-voice-access/requirements.md",
+  "sessions/2026/10/08/prompt-audit/prompt-audit/requirements.md",
+  "sessions/2026/10/08/task-system-design/task-system-design/requirements.md",
+  "sessions/2026/10/08/token-accounting/token-accounting/requirements.md"
+ ],
+ "asks": [
+  {
+   "n": 1,
+   "kind": "directive",
+   "ask": "Batch reads, let scripts read raw data, keep chat to one sentence.",
+   "quote": "Batch reads; scripts read raw data; chat = one sentence.",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Three rules stated verbatim in the brief header."
+   },
+   "outcome_clear": {
+    "p": 0.3,
+    "evidence": "Behavioural rule; no checkable end state."
+   }
+  },
+  {
+   "n": 2,
+   "kind": "directive",
+   "ask": "Site files go through worktree and merge gate, landed with finish-task.",
+   "quote": "Worktree + merge gate for site files",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Explicit rule naming worktree, merge gate, finish-task."
+   },
+   "outcome_clear": {
+    "p": 0.4,
+    "evidence": "Checkable via merge log, but no end state given."
+   }
+  },
+  {
+   "n": 3,
+   "kind": "directive",
+   "ask": "Commit after each step with attribution; leave no loose files.",
+   "quote": "commit with attribution; no loose files",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Rule explicit; attribution format given elsewhere."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Clean git status and attributed commits are checkable."
+   }
+  },
+  {
+   "n": 4,
+   "kind": "directive",
+   "ask": "Run worktree, diff review and merge cycle often.",
+   "quote": "Run the full cycle (worktree, diff review, merge) often.",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Steps named; 'often' has no threshold."
+   },
+   "outcome_clear": {
+    "p": 0.4,
+    "evidence": "Frequency vague, so completion hard to verify."
+   }
+  },
+  {
+   "n": 5,
+   "kind": "directive",
+   "ask": "Owner items go on a Note card and in findings.md.",
+   "quote": "Anything needing the owner → `Note:` card on the AI board",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Card type, board and findings.md line all named."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Checkable: Note card exists and findings line present."
+   }
+  },
+  {
+   "n": 6,
+   "kind": "directive",
+   "ask": "Link everything you create from the site.",
+   "quote": "Everything you create must be linked from the site",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Explicit mandate, cites CLAUDE.md link rule."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Visibility check verifies links; scope of create is broad."
+   }
+  },
+  {
+   "n": 7,
+   "kind": "command",
+   "ask": "Show each page's template label and keep a template list.",
+   "quote": "Say which template renders a page",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Label and template list both requested explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Placement 'unobtrusive' is judgement; list is checkable."
+   }
+  },
+  {
+   "n": 8,
+   "kind": "question",
+   "ask": "Explain how 4,000 sessions is computed; serve counts from index.",
+   "quote": "how is that computed? If the client loads all of them",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Question explicit; the counting method is unknown."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Answer plus index-served counts can be verified."
+   }
+  },
+  {
+   "n": 9,
+   "kind": "command",
+   "ask": "Fix cards flashing running; derive state from registry and ledger.",
+   "quote": "State flashes \"running\" on some cards when it isn't",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Symptom, cause hunt and derived-state fix all stated."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: displayed state matches registry and ledger."
+   }
+  },
+  {
+   "n": 10,
+   "kind": "question",
+   "ask": "Report whether module ai folders are documented anywhere.",
+   "quote": "Report whether it is already documented anywhere",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Yes/no question with named places to grep."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Answer is a checkable yes/no with grep evidence."
+   }
+  },
+  {
+   "n": 11,
+   "kind": "directive",
+   "ask": "Module ai folders hold events, voice transcripts and dated folders.",
+   "quote": "they hold a log of events about that module",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Contents listed with examples; still a description."
+   },
+   "outcome_clear": {
+    "p": 0.4,
+    "evidence": "Descriptive fact; end state only via item 12 docs."
+   }
+  },
+  {
+   "n": 12,
+   "kind": "command",
+   "ask": "Document what writes module ai folders, when, why, how to read.",
+   "quote": "what writes them, when, why, how to read them",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Five document items listed explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Each listed item is checkable in the new doc."
+   }
+  },
+  {
+   "n": 13,
+   "kind": "command",
+   "ask": "Link the module ai folder doc from the AI System page.",
+   "quote": "link it from the AI System page",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Single target page and single action named."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: link exists on the AI System page."
+   }
+  },
+  {
+   "n": 14,
+   "kind": "question",
+   "ask": "Check whether the Agent SDK already accounts in real time.",
+   "quote": "if it does, lean on it, otherwise our own script",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Question plus conditional decision rule stated."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "findings.md must answer yes or no with evidence."
+   }
+  },
+  {
+   "n": 15,
+   "kind": "command",
+   "ask": "Build a cached Session class giving exact cost per session.",
+   "quote": "Session class: exact cost per session, cached",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Class and caching clear; 'exact' not yet measured."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable against reconcile total; target gap zero stated."
+   }
+  },
+  {
+   "n": 16,
+   "kind": "directive",
+   "ask": "Session class budget is $6, Sonnet 5.5, medium effort.",
+   "quote": "Budget **$6**, Sonnet 5.5, medium effort.",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, model and effort values explicitly stated."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Spend under $6 is checkable; tracking method unstated."
+   }
+  },
+  {
+   "n": 17,
+   "kind": "command",
+   "ask": "Account every message and tool call; keep Claude and OpenRouter separate.",
+   "quote": "Account for every message and every tool call",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Scope and provider separation explicit; labels given."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Per-provider totals checkable; 'accrues cost' undefined."
+   }
+  },
+  {
+   "n": 18,
+   "kind": "command",
+   "ask": "One Session class, native ESM, runs on server and client.",
+   "quote": "usable on the server AND the client",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Single class, native ESM, no build, both sides stated."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: same module imports in node and browser."
+   }
+  },
+  {
+   "n": 19,
+   "kind": "command",
+   "ask": "Session loads raw file in code; computes costs and subagent rollups.",
+   "quote": "loads the whole raw session file in code, never into an LLM",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Input method, cost fields and rollup all stated."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Breakdown fields and parent rollup totals checkable."
+   }
+  },
+  {
+   "n": 20,
+   "kind": "directive",
+   "ask": "Never trigger an SDK resume to read cost.",
+   "quote": "Never trigger an SDK resume to read cost",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Absolute never-rule, no ambiguity in wording."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable by absence of resume calls in logs."
+   }
+  },
+  {
+   "n": 21,
+   "kind": "command",
+   "ask": "Process raw file once into session.jsonl; page loads only the cache.",
+   "quote": "Process it once and cache the result in a per-session",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Once-process and cache-only page loading explicit."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: page requests never fetch the raw session file."
+   }
+  },
+  {
+   "n": 22,
+   "kind": "command",
+   "ask": "After first pass, read only new lines and skip counted message ids.",
+   "quote": "read only new lines, skipping any message id already counted",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Exact incremental rule with dedupe key named."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "A rerun should add zero double-counted messages."
+   }
+  },
+  {
+   "n": 23,
+   "kind": "command",
+   "ask": "Reuse the live-not-polling stream; build no second stream.",
+   "quote": "Use its stream (read its findings.md); don't build another",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Reuse source task and build-nothing rule explicit."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "No new stream code is checkable; reuse scope partly fuzzy."
+   }
+  },
+  {
+   "n": 24,
+   "kind": "command",
+   "ask": "Build preview row and detail view as two modes of Session.",
+   "quote": "a preview row for the data grid and a detailed view (click-through)",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Two named display modes and their roles given."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: both views render on the Sessions page."
+   }
+  },
+  {
+   "n": 25,
+   "kind": "command",
+   "ask": "Measure Sessions page bytes and requests before and after.",
+   "quote": "measure the bytes and requests the Sessions page loads",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Metrics and before/after comparison explicitly requested."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Two measured numbers reported; checkable."
+   }
+  },
+  {
+   "n": 26,
+   "kind": "command",
+   "ask": "Keep session.jsonl beside page.jsonl in one session folder.",
+   "quote": "session.jsonl (usage, costs) sits beside page.jsonl (page data)",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Folder path conflicts with later ai/sessions/YYYY/MM/DD."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: folder listing shows both files together."
+   }
+  },
+  {
+   "n": 27,
+   "kind": "command",
+   "ask": "findings.md: say if SDK accounts in real time; name truth per provider.",
+   "quote": "which source is the truth per provider",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Two questions and deliverable file explicitly named."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: findings.md answers both with evidence."
+   }
+  },
+  {
+   "n": 28,
+   "kind": "command",
+   "ask": "Session.js plus node test reconciling total against session-cost.mjs.",
+   "quote": "a node test that loads a real session file",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Test input, comparison target and gap target named."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: test runs and gap reported against zero."
+   }
+  },
+  {
+   "n": 29,
+   "kind": "command",
+   "ask": "Build session-summary.mjs printing the same session summary.",
+   "quote": "(so agents ask a script, not read a file)",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Script path, argument form and purpose all explicit."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: script runs on id or file and prints summary."
+   }
+  },
+  {
+   "n": 30,
+   "kind": "command",
+   "ask": "Write sessions/doc note on session.jsonl shape, loading, saving, timing.",
+   "quote": "shape of session.jsonl, loading, saving, timing",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Four topics and readme link requirement stated."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: doc exists, covers four topics, is linked."
+   }
+  },
+  {
+   "n": 31,
+   "kind": "command",
+   "ask": "Inventory every session storage pattern in a sessions/doc table.",
+   "quote": "find and document every pattern where sessions live today",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Table columns listed: pattern, path, count, read method."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: table lists every pattern with counts."
+   }
+  },
+  {
+   "n": 32,
+   "kind": "command",
+   "ask": "Answer storage and link findings in findings.md, then fix.",
+   "quote": "answer in findings.md first, then fix",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Order explicit; which questions to answer is broad."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Findings before fix is checkable; answers vague."
+   }
+  },
+  {
+   "n": 33,
+   "kind": "command",
+   "ask": "Pick the date tree as the one session store.",
+   "quote": "the date tree, `ai/YYYY/MM/DD/`, is the owner's preference",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Conflicts with later ai/sessions/YYYY/MM/DD addendum."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "One store and resolving old links are checkable."
+   }
+  },
+  {
+   "n": 34,
+   "kind": "command",
+   "ask": "Name the alternative store in findings.md.",
+   "quote": "that ports old session data to it. Name the alternative.",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Asks for an alternative but never names the candidate."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "findings.md naming one alternative is checkable."
+   }
+  },
+  {
+   "n": 35,
+   "kind": "command",
+   "ask": "Move session raw data under ai/sessions/YYYY/MM/DD/, children nested.",
+   "quote": "Move the session raw data under `ai/sessions/YYYY/MM/DD/`",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Latest addendum gives explicit path; earlier paths differ."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: paths match pattern; children inside parents."
+   }
+  },
+  {
+   "n": 36,
+   "kind": "command",
+   "ask": "Merge session folders via dry-run script, git mv and manifest.",
+   "quote": "dry-run, `git mv`, manifest of old to new, old paths resolve",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Mechanism, manifest and resolver all specified explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: manifest lists every old and new path."
+   }
+  },
+  {
+   "n": 37,
+   "kind": "directive",
+   "ask": "One store, real names, compact grid.",
+   "quote": "one store, real names, compact grid",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "Three goals stated; compact and real names undefined."
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Checkable only through the specific bullets below."
+   }
+  },
+  {
+   "n": 38,
+   "kind": "command",
+   "ask": "Derive session names from title, first prompt, or agent id.",
+   "quote": "task/card title, the first real prompt, or the agent id",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Three name sources and forbidden repo name given."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: no card titled with the repo name."
+   }
+  },
+  {
+   "n": 39,
+   "kind": "directive",
+   "ask": "Give every session and task a proper name going forward.",
+   "quote": "Going forward every session/task gets a proper name",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Rule clear; 'proper' name left undefined."
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Completeness checkable only once 'proper' is defined."
+   }
+  },
+  {
+   "n": 40,
+   "kind": "directive",
+   "ask": "Nest child sessions as real subdirectories, parent/child.",
+   "quote": "literally subdirectories of the parent's directory",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Example paths and no-suffix rule explicitly given."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: child folders exist inside parent folder."
+   }
+  },
+  {
+   "n": 41,
+   "kind": "command",
+   "ask": "Sessions carry tags and alerts, alerts with priority.",
+   "quote": "a reference to a class, page, system or file",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Both data types and their fields explicitly defined."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Schema checkable; line shapes deferred to task-audit."
+   }
+  },
+  {
+   "n": 42,
+   "kind": "command",
+   "ask": "Servex log tool appends tagged lines, stamping time and author.",
+   "quote": "a Servex tool writes each line and stamps time and author",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Writer tool, stamps and any-minion access all stated."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: every appended line has time and author."
+   }
+  },
+  {
+   "n": 43,
+   "kind": "command",
+   "ask": "Task-audit writes first; agree line shapes with its addendum.",
+   "quote": "will be the first writer: agree the line shapes",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Writer and coordination named; shapes not yet defined."
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Agreement step has no defined finish."
+   }
+  },
+  {
+   "n": 44,
+   "kind": "command",
+   "ask": "Sessions table filters and sorts by tag; needs-attention filter.",
+   "quote": "filters/sorts by tag and has a \"needs attention\" filter",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Filter and tag sorting named; priority rule vague."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: filter present and orders by priority."
+   }
+  },
+  {
+   "n": 45,
+   "kind": "command",
+   "ask": "Swap big tiles for Dashboard progress bars with pace marker.",
+   "quote": "progress bars with the pace marker that the Dashboard already has",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Replaced element and reused component named explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: tiles gone, Dashboard component rendered."
+   }
+  },
+  {
+   "n": 46,
+   "kind": "command",
+   "ask": "Cut wasted space above the grid; make the list compact.",
+   "quote": "The list of sessions should be as compact as possible",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Two parts clear; 'as compact as possible' unmeasured."
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "No size target; judged visually at four widths."
+   }
+  },
+  {
+   "n": 47,
+   "kind": "command",
+   "ask": "Add in flight / now / active filter beside the checkboxes.",
+   "quote": "filter next to the existing checkboxes",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Filter values and placement named explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: filter sits beside checkboxes and works."
+   }
+  },
+  {
+   "n": 48,
+   "kind": "command",
+   "ask": "Add sort toggles to flip chronological and cost views.",
+   "quote": "to flip between chronological and cost views",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Sort keys and two views named; model key open."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: each toggle reorders the list."
+   }
+  },
+  {
+   "n": 49,
+   "kind": "command",
+   "ask": "Move the state icon to the first column.",
+   "quote": "the state icon moves to the first column",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Exact placement and reason stated explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: state icon is first column in the grid."
+   }
+  },
+  {
+   "n": 50,
+   "kind": "command",
+   "ask": "Nest child rows under parent, collapsed, with rolled-up cost.",
+   "quote": "nested rows under their parent, collapsed by default",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Nesting, default state and roll-up cost all stated."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: children collapsed; parent shows rolled-up cost."
+   }
+  },
+  {
+   "n": 51,
+   "kind": "command",
+   "ask": "Host sub-pages inside the Sessions tab.",
+   "quote": "find a way to host sub-pages within the tab",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "Goal clear; mechanism left open to the agent."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Checkable: readme and decisions open inside the tab."
+   }
+  },
+  {
+   "n": 52,
+   "kind": "command",
+   "ask": "Write Sessions readme and decisions doc, priority-ordered, linked from tab.",
+   "quote": "priority-ordered with the top priorities first so they are always followed",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Two docs, ordering and tab link all named."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: both docs exist and are linked from the tab."
+   }
+  },
+  {
+   "n": 53,
+   "kind": "directive",
+   "ask": "Do not over-build the Sessions grid yet.",
+   "quote": "as important as the name). Don't over-build yet.",
+   "ask_clear": {
+    "p": 0.4,
+    "evidence": "'Over-build' has no threshold; pure judgement."
+   },
+   "outcome_clear": {
+    "p": 0.3,
+    "evidence": "No checkable end state; restraint only."
+   }
+  },
+  {
+   "n": 54,
+   "kind": "command",
+   "ask": "One open mode and one location: master-detail layout.",
+   "quote": "One open mode and one location, a master-detail layout",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Single mode and layout named; IN FLIGHT strip kept on top."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: one route, master-detail, strip stays on top."
+   }
+  },
+  {
+   "n": 55,
+   "kind": "command",
+   "ask": "Every session card opens in the right-hand column, not Inbox.",
+   "quote": "Every session card opens in the right-hand column",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Target column and banned Inbox jump explicitly named."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: card clicks open the right column only."
+   }
+  },
+  {
+   "n": 56,
+   "kind": "command",
+   "ask": "One route per session; same detail view however it is reached.",
+   "quote": "One route per session, whatever its storage",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Single route and same-view requirement explicit."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: every arrival path renders the same view."
+   }
+  },
+  {
+   "n": 57,
+   "kind": "command",
+   "ask": "Reuse existing master-detail/columns mechanism and Inbox list.",
+   "quote": "Reuse the existing master-detail/columns page mechanism and the Inbox's list",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Mechanism and Inbox list named as reuse targets."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: no new master-detail code introduced."
+   }
+  },
+  {
+   "n": 58,
+   "kind": "command",
+   "ask": "Default 50/50 split, resizable, detail fills its side.",
+   "quote": "the detail must FILL its side, no fixed width",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Default split, resize and fill rule explicit."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: resize keeps detail filling its side."
+   }
+  },
+  {
+   "n": 59,
+   "kind": "command",
+   "ask": "Narrow screens: compact inbox-style cards; click swaps the detail.",
+   "quote": "compact inbox-style cards (fields wrapped, not tall)",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Narrow layout and click-swap behaviour explicit."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable at narrow width: cards short, click swaps."
+   }
+  },
+  {
+   "n": 60,
+   "kind": "command",
+   "ask": "Preview and detail pass four widths, then merge.",
+   "quote": "pass at four widths, then merge",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Four widths and merge gate explicitly required."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: screenshots at 400, 1200, 1920, 3440."
+   }
+  },
+  {
+   "n": 61,
+   "kind": "command",
+   "ask": "Document inbox: where cards save, creation paths, who reads them.",
+   "quote": "where cards are saved, how they are created",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Four documentation facts listed explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: inbox doc covers each listed fact."
+   }
+  },
+  {
+   "n": 62,
+   "kind": "command",
+   "ask": "Wrap inbox cards in a session context card with icon and name.",
+   "quote": "wrap inbox cards in a session context card",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Wrap target and icon-plus-name content named."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: each inbox card shows session icon and name."
+   }
+  },
+  {
+   "n": 63,
+   "kind": "directive",
+   "ask": "System mastermind: fresh Sonnet 5.5 on a directory, not resumed.",
+   "quote": "a fresh Sonnet 5.5 pointed at a directory, not a resumed session",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Model, fresh start and directory scope explicitly stated."
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Spawn record checkable; role end state is not."
+   }
+  },
+  {
+   "n": 64,
+   "kind": "directive",
+   "ask": "Budget $5; run usage-now before each spawn; Haiku minions.",
+   "quote": "run `node Server/usage-now.mjs` before each spawn",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Budget, script and minion models all explicit."
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Spend under $5 checkable; tracking method unstated."
+   }
+  },
+  {
+   "n": 65,
+   "kind": "directive",
+   "ask": "Docs-first: additive edits and proposals only, no moves.",
+   "quote": "additive edits and proposals only. No API changes, no moves",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Allowed and forbidden change types listed explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable by diff: additive doc changes only."
+   }
+  },
+  {
+   "n": 66,
+   "kind": "command",
+   "ask": "Show AI system structure as classes with class cards.",
+   "quote": "where a thing is a class, show it as a class card",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Class-card rule explicit; applies per class."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Checkable per class; 'where a thing is a class' is judgement."
+   }
+  },
+  {
+   "n": 67,
+   "kind": "command",
+   "ask": "Find and extend the existing class-doc mechanism; build no second.",
+   "quote": "reuse/extend it; do not build a second",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Search target and reuse-or-extend rule explicit."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: no second class-doc renderer added."
+   }
+  },
+  {
+   "n": 68,
+   "kind": "command",
+   "ask": "Class cards: icon, name, core API, key members, live instances.",
+   "quote": "with the most important properties/methods picked by judgement",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Card fields and live-instance examples explicitly listed."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: each card has the listed fields."
+   }
+  },
+  {
+   "n": 69,
+   "kind": "command",
+   "ask": "Servex class card focused on the AI system, not monitoring.",
+   "quote": "Servex class card focused on the AI system",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Included and excluded parts explicitly listed."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: card lists AI parts and omits monitoring side."
+   }
+  },
+  {
+   "n": 70,
+   "kind": "command",
+   "ask": "Make eight systems and their locations clear at a glance.",
+   "quote": "Systems and where they live must be clear at a glance",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Eight systems named; 'clear' is subjective."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Checkable visually; clarity is a judgement."
+   }
+  },
+  {
+   "n": 71,
+   "kind": "command",
+   "ask": "Short SDK section: query(), in-process MCP, session files, entrypoints.",
+   "quote": "how tools reach it via in-process MCP, how session files are written",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Four SDK topics and entrypoints explicitly enumerated."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: SDK page covers each listed topic."
+   }
+  },
+  {
+   "n": 72,
+   "kind": "directive",
+   "ask": "List stale pages such as AI/minions; fix obvious ones.",
+   "quote": "must not be treated as a hard boundary",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "Stale example named; which pages to fix undefined."
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Findings list is checkable; fixes are judgement."
+   }
+  },
+  {
+   "n": 73,
+   "kind": "command",
+   "ask": "System tab becomes a class architecture view.",
+   "quote": "a class architecture view: which classes exist and how they fit",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Tab and target view content explicitly named."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: tab shows classes and how they connect."
+   }
+  },
+  {
+   "n": 74,
+   "kind": "command",
+   "ask": "Write readme and architecture.md for ai/ and Servex/, reusing reports.",
+   "quote": "Reuse the agents' reports rather than redoing them",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Two directories and reuse-not-redo rule explicit."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: both files exist and link each other."
+   }
+  },
+  {
+   "n": 75,
+   "kind": "command",
+   "ask": "history.md: one line per main event, deep link, no copied content.",
+   "quote": "each a line with problem, solution and a deep link",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "File path, line format and no-copy rule explicit."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: each line has problem, solution and link."
+   }
+  },
+  {
+   "n": 76,
+   "kind": "command",
+   "ask": "findings.md: changes, stale items, non-class pieces, owner Note.",
+   "quote": "which AI-system pieces are NOT yet classes and should be",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Four contents listed; no-refactor limit explicit."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: findings.md has each listed section."
+   }
+  },
+  {
+   "n": 77,
+   "kind": "directive",
+   "ask": "Cut system page prose that explains what readers already know.",
+   "quote": "words explain things the reader already knows",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Problem and example (first sentence) explicitly identified."
+   },
+   "outcome_clear": {
+    "p": 0.45,
+    "evidence": "Prose removal is judgement; no measure given."
+   }
+  },
+  {
+   "n": 78,
+   "kind": "command",
+   "ask": "Rebuild system page as class and instance cards, minimal words.",
+   "quote": "mostly cards of classes and live instances with minimal words",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Target shape explicit; 'minimal' left undefined."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable at four widths and by card content."
+   }
+  },
+  {
+   "n": 79,
+   "kind": "directive",
+   "ask": "Most important information above the fold, no wasted space.",
+   "quote": "jam-packed with the most important information above the fold",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Goal clear; 'most important' is judgement."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Checkable by first-screen view; importance judged."
+   }
+  },
+  {
+   "n": 80,
+   "kind": "directive",
+   "ask": "Make grids fill the full width of the page.",
+   "quote": "Prefer grids that fill the width",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Explicit width rule; 'prefer' is soft."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable at wide widths: grids span the width."
+   }
+  },
+  {
+   "n": 81,
+   "kind": "directive",
+   "ask": "No paragraph between a section heading and its cards.",
+   "quote": "Don't put a paragraph between a section heading and its cards",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Explicit prohibition with exact placement."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: no paragraph between heading and cards."
+   }
+  },
+  {
+   "n": 82,
+   "kind": "command",
+   "ask": "Give each section a visible border or panel including its heading.",
+   "quote": "a border or panel around each, so it is clear",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Border or panel style and wrapping goal explicit."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: each heading sits inside its section border."
+   }
+  },
+  {
+   "n": 83,
+   "kind": "command",
+   "ask": "Servex title: say classes in one line, else regroup.",
+   "quote": "say so in one line; otherwise regroup",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Two-branch rule stated; choice left to agent."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: heading states classes or is regrouped."
+   }
+  },
+  {
+   "n": 84,
+   "kind": "command",
+   "ask": "Link the ai/ subdirectory system from the AI System page.",
+   "quote": "Include a link to the ai/ subdirectory system",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Single target and location on page named."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: link present on the AI System page."
+   }
+  },
+  {
+   "n": 85,
+   "kind": "command",
+   "ask": "Link readme system high on the AI System page.",
+   "quote": "is one of the most important, so it sits high",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Target URL and high placement explicitly requested."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: link present near top of page."
+   }
+  },
+  {
+   "n": 86,
+   "kind": "directive",
+   "ask": "Show concept card data openly; no expandable hiding.",
+   "quote": "don't hide a large body of data inside an expandable area",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Explicit prohibition on expandable containers."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: no collapsed data blocks on cards."
+   }
+  },
+  {
+   "n": 87,
+   "kind": "command",
+   "ask": "Root and ai readmes become one-line-per-system indexes, accounting first.",
+   "quote": "(what it is, when to load it) plus a link; no explanations",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Index line format and no-explanation rule explicit."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: each system listed once with a link."
+   }
+  },
+  {
+   "n": 88,
+   "kind": "directive",
+   "ask": "Each system readme indexes its children, recursively.",
+   "quote": "which indexes ITS children the same way, recursively",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Recursive index shape explicitly stated."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: every system readme links its children."
+   }
+  },
+  {
+   "n": 89,
+   "kind": "directive",
+   "ask": "Keep readmes under about 100 lines; verify claims cheaply.",
+   "quote": "Keep each readme under ~100 lines; verify its claims against code",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Line cap and verification method explicitly stated."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Line counts checkable; claim verification partly judgement."
+   }
+  },
+  {
+   "n": 90,
+   "kind": "command",
+   "ask": "Each named thing gets a page; its readme links to it.",
+   "quote": "each gets a page that documents what it is",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Page rule clear; which things deserve names is judgement."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Checkable per named thing; the set of names is open."
+   }
+  },
+  {
+   "n": 91,
+   "kind": "command",
+   "ask": "ai/readme.md references everything that influences the AI systems.",
+   "quote": "must reference everything that influences the AI systems",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Requirement explicit; 'everything' broad, no inventory."
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "Checkable only against an agreed inventory list."
+   }
+  },
+  {
+   "n": 92,
+   "kind": "directive",
+   "ask": "Each module readme: short index, principles, doc links, architecture.md.",
+   "quote": "essence and guiding principles, links to doc/",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Four readme parts explicitly listed as required."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable per module for each of four parts."
+   }
+  },
+  {
+   "n": 93,
+   "kind": "command",
+   "ask": "Create or refresh readmes for ai/, ai/sessions/, and Servex docs.",
+   "quote": "coordinate with minion-session-class, don't fight",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Three directories and coordination rule named."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: readmes exist for each named directory."
+   }
+  },
+  {
+   "n": 94,
+   "kind": "command",
+   "ask": "Report documentation truth vs claims; skill references readmes system.",
+   "quote": "Report what is true vs what pages claim",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Four sources and report plus skill edit named."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: report exists and skill links readmes system."
+   }
+  },
+  {
+   "n": 95,
+   "kind": "directive",
+   "ask": "Architect watches all systems and keeps them tuned.",
+   "quote": "It watches every system and keeps them tuned",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Mandate clear; 'watches' and 'tuned' undefined."
+   },
+   "outcome_clear": {
+    "p": 0.4,
+    "evidence": "Ongoing mandate; no finished state defined."
+   }
+  },
+  {
+   "n": 96,
+   "kind": "directive",
+   "ask": "Over pace means queue, not spawn; run usage check first.",
+   "quote": "Over pace means queue, not spawn",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Check command and over-pace rule explicitly given."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: spawn log shows none spawned over pace."
+   }
+  },
+  {
+   "n": 97,
+   "kind": "directive",
+   "ask": "Start only when comfortably under pace and in-flight tasks landed.",
+   "quote": "comfortably under pace and in-flight tasks have landed",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Start gate explicit; 'comfortably' unmeasured."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Findings and gate checkable; 'comfortably' is vague."
+   }
+  },
+  {
+   "n": 98,
+   "kind": "command",
+   "ask": "Fan out Sonnet and Haiku minions in small inlined batches.",
+   "quote": "minions fanned out in small inlined batches, so token cost stays low",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Models and inlined batching named; batch size vague."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Batch sizes and token spend checkable only roughly."
+   }
+  },
+  {
+   "n": 99,
+   "kind": "command",
+   "ask": "Write plan.md, one screen, linked from the task card.",
+   "quote": "plan.md in your task dir, one screen, linked from your card",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "File location, length and link named explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: plan.md exists, one screen, and linked."
+   }
+  },
+  {
+   "n": 100,
+   "kind": "command",
+   "ask": "Write systems-map.md table linked from ai/readme.md.",
+   "quote": "one short table linked from ai/readme.md",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "File, form, link target and systems list given."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: table lists each named system with owner."
+   }
+  },
+  {
+   "n": 101,
+   "kind": "directive",
+   "ask": "Order work: readmes first, then structure pages, then accounting pages.",
+   "quote": "Readmes up to date and clear first across these systems",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Three-step order explicit; pace gates later steps."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: readme commits precede page commits."
+   }
+  },
+  {
+   "n": 102,
+   "kind": "command",
+   "ask": "Group loose ends by core system; tune whole systems with many.",
+   "quote": "say how to tune that whole system up",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Grouping list and tuning instruction explicitly stated."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Groups checkable; tuning plans need judgement."
+   }
+  },
+  {
+   "n": 103,
+   "kind": "directive",
+   "ask": "Order plan by value over cost, quick and easy first.",
+   "quote": "Order by value over cost, quick and easy first",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Ranking rule explicitly stated."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Ranking checkable only through judgement of value."
+   }
+  },
+  {
+   "n": 104,
+   "kind": "command",
+   "ask": "Study skills and prompts for size, duplicates, contradictions, stale rules.",
+   "quote": "duplicates, contradictions, stale rules, skills that cost context for little value",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Five study criteria listed explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: report covers each listed criterion."
+   }
+  },
+  {
+   "n": 105,
+   "kind": "command",
+   "ask": "Report findings and propose changes; make only additive fixes.",
+   "quote": "propose changes; make only obviously-correct, additive fixes",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Report plus limited fix scope explicitly stated."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Checkable: diffs are additive and reported."
+   }
+  },
+  {
+   "n": 106,
+   "kind": "directive",
+   "ask": "Big architecture changes need architect approval after reading the diff.",
+   "quote": "approval from you after reading the diff",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "'You' is the architect; approval chain ambiguous."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Checkable: approval recorded after diff is read."
+   }
+  },
+  {
+   "n": 107,
+   "kind": "command",
+   "ask": "Message running masterminds to share findings and unblock them.",
+   "quote": "to share findings, avoid overlap and unblock them",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Named agents, tool and purpose explicitly given."
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Messages checkable; 'unblock' outcome not defined."
+   }
+  },
+  {
+   "n": 108,
+   "kind": "directive",
+   "ask": "Queue AI dashboard overview; do not start yet.",
+   "quote": "an overview of the AI dashboard pages",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Start-later instruction and page list explicit."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Checkable: findings.md holds overview and order."
+   }
+  },
+  {
+   "n": 109,
+   "kind": "directive",
+   "ask": "Haiku minions never do major coding; architect not tied by code.",
+   "quote": "Haiku minions never do major coding",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Explicit prohibition; 'major' not defined."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Checkable via model assignments in the spawn ledger."
+   }
+  },
+  {
+   "n": 110,
+   "kind": "directive",
+   "ask": "Check file owners before code spawn; message owner instead.",
+   "quote": "Avoid overlap; message the owner agent instead",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Check, avoid and message steps explicitly listed."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: owner check recorded before each spawn."
+   }
+  },
+  {
+   "n": 111,
+   "kind": "command",
+   "ask": "Spawn Sonnet coder in a worktree for bite-sized code tasks.",
+   "quote": "merge only after you read the diff",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Model, role, worktree and merge rule explicit."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Checkable: spawn record and diff review before merge."
+   }
+  },
+  {
+   "n": 112,
+   "kind": "directive",
+   "ask": "Sonnet coder may spawn Haiku minions for cheap searches.",
+   "quote": "spawn Haiku minions for cheap searching",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Permission and task type explicit; 'cheap' judged."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Checkable through spawn records; outcomes verifiable."
+   }
+  },
+  {
+   "n": 113,
+   "kind": "command",
+   "ask": "Keep spawns.jsonl: model, scope, expected cost, outcome per spawn.",
+   "quote": "Keep a short list of what you spawned and why in spawns.jsonl",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "File name and four fields explicitly listed."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable: each spawn has the four fields recorded."
+   }
+  }
+ ]
+}

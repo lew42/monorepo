@@ -30,14 +30,13 @@ function fill(v, t){
 
 let [target, source] = process.argv.slice(2);
 if (!target || !source) { console.error("usage: node append.mjs <target.jsonl> <lines.json>"); process.exit(2); }
-// A task log or day log named by its OLD path (ai/YYYY-MM-DD/...) goes to where it lives now (Server/TaskDirs.mjs,
-// ai/doc/task-folders.md): a moved folder is followed; a day or task never made in the old shape is made in the new one.
 {
-	const abs = resolve_path(target), moved = TaskDirs.follow(abs);
-	const m = /[\\/]public[\\/]framework[\\/]ai[\\/](\d{4}-\d{2}-\d{2})[\\/]/.exec(abs);
-	const now = moved !== abs ? moved
-		: m && !existsSync(dirname(abs)) ? (basename(abs) === "day.jsonl" && basename(dirname(abs)) === m[1] ? join(TaskDirs.day_dir(m[1]), "day.jsonl") : join(TaskDirs.normalize(dirname(abs), process.env.CLAUDE_CODE_SESSION_ID), basename(abs)))
-		: abs;
+	// THE GUARD (2026-10-13): a moved or findable old path is followed; anything else new under ai/YYYY-MM-DD/ is refused, naming the right place.
+	const abs = resolve_path(target);
+	const m = /[\\/]public[\\/]framework[\\/]ai[\\/](\d{4}-\d{2}-\d{2})[\\/]day\.jsonl$/.exec(abs);
+	let now;
+	try { now = m ? join(TaskDirs.day_dir(m[1]), "day.jsonl") : existsSync(dirname(abs)) ? TaskDirs.follow(abs) : TaskDirs.refuse(abs); }
+	catch (e){ console.error(e.message + "\nNothing was written."); process.exit(3); }
 	if (now !== abs){ mkdirSync(dirname(now), { recursive: true }); console.error(`(old path followed: ${target} -> ${now})`); target = now; }
 }
 const strip_bom = s => s.replace(/^﻿/, "");

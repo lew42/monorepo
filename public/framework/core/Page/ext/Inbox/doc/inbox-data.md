@@ -45,6 +45,8 @@ Counted by `node InboxSources.mjs` on 2026-10-13 22:01 UTC.
 | `TimelinePage extends Page` | `timeline/TimelinePage.js` | The rail is one `ext/DataGrid` in rail view, and `columns()` opens a row beside it. `TimelinePage.Detail` is one row's page: the full outcome and links, read from the task's own log. |
 | `TimelineTalk` | `timeline/TimelineTalk.js` | The card's chat beside the detail. It streams the card's `page.jsonl` (`prompt` and `message` lines) into the same `CardChat` log and `Compose` box the card page uses. |
 
+**Seen and the day (2026-10-13, the owner: "once I've seen it, we get rid of it"; "filtering the inbox by date"):** opening a row marks it seen, and seen rows leave the default view. They are never deleted: the **Seen too** chip (`?seen`) brings them back, and **Mark all seen** clears everything up to now. Seen is kept per browser (`PagePrefs`, `Timeline.Seen`), like the AI rail's read flag. The **Today** and **Yesterday** chips (`?day=today`, `?day=yesterday`, or `?day=2026-10-12`) scope the rows to one local day. Browsing *sessions* by date belongs to the [Sessions](/framework/ai/sessions/) page.
+
 **Rows:** a landing has a page or a card → "big". An owner note, or a card with status `needs-you`/`blocked`, is always shown. The "Big things only" chip is on by default (`?all` turns it off).
 
 ## Edits outside this module (not made here; exact text)

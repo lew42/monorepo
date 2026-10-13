@@ -1,6 +1,6 @@
 # Task folders: one home, inside the sessions store (2026-10-12)
 
-Decided by `mastermind-task-folders` (session e456f109), brief: [`requirements.md`](../2026-10-12/task-folders/requirements.md). The owner's words:
+Decided by `mastermind-task-folders` (session e456f109), brief: [`requirements.md`](../sessions/2026/10/12/session-e456f109/task-folders/requirements.md). The owner's words:
 
 > "Having a folder for every day inside of the AI folder… is an anti-pattern. I thought we were moving to nesting them, and actually I kind of think they should all be in the sessions folder… We cannot be having two similar but different systems where we have redundant data."
 
@@ -45,3 +45,12 @@ The conflict that needed settling: the 10-10 pass named every task `task/` (and 
 - **The relink** (`02b42fe87`): 4,195 links in 1,612 md/js/html files, plus 67 relative imports fixed for the deeper folders. `.json` records, the generated `directory.json` and CLAUDE.md keep their old addresses, which redirect.
 - **Old URLs:** the router reads `task-moves.jsonl` and sends `/framework/ai/YYYY-MM-DD/<task>/…` to the new folder. Production needs nothing more, because the site falls back to the app for unknown paths (`not_found_handling: single-page-application`). A Cloudflare `_redirects` file would need 1,269 wildcard rules against a limit of 100, so `ai/sessions/task-redirects.txt` is kept as the reference list instead.
 - **Left for a sweep:** tasks still running at move time (`data-grid`, `style-system`, `refine-haiku-live`, this one) stay in `ai/2026-10-12/` until they land. Re-run `node Server/TaskMove.mjs --apply` then, and it moves only what is left. The dev server re-creates a `files.jsonl` with "gone" lines in an emptied day folder; the same sweep moves it. `ai/2026/MM/DD/a-*/` is the older card tree (09-19 to 09-24) and is not part of this move.
+
+## 2026-10-13: the day folder came back, and one tree
+
+The owner found an Inbox link to `/framework/ai/2026-10-13/…` and asked, again, for one data structure ([requirements-8.md](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-8.md)). What was done ([audit](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store/doc/why-the-day-folder-came-back.md)):
+
+- **The writers that still made `ai/<date>/`** (`Server/plugins/Start.js`, `crawl.mjs`, `council.mjs`, `on-landing.mjs`) now build every path with `TaskDirs`. **The guard:** `TaskDirs.refuse()` throws on a new `ai/YYYY-MM-DD/` path and names the right place; `append.mjs` calls it; `node Server/TaskDirs.mjs --census` lists any day folder or hand-joined writer, and `Server/TaskDirs.test.mjs` fails on one.
+- **The link the owner clicked** was a reader guessing `/framework/ai/<date>/<slug>/` from the day log. Such a url now finds the task in the store and redirects (`StoreFolder.lookup`; `TaskDirs.redirect()` is the node twin).
+- **The last day folders moved:** `ai/2026-10-12/` (6 tasks) and `ai/2026-10-13/`, by `TaskMove` (`--undo` and `--relink` now act on one run, never the whole ledger).
+- **One tree, decided:** Inbox cards move from `ai/YYYY/MM/DD/<card>/` into `ai/sessions/YYYY/MM/DD/cards/<card>/`. Not yet applied: card ids are paths kept in records, so the readers need one resolver first ([one-tree.md](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store/doc/one-tree.md)). The alternative, the store moving up to `ai/YYYY/MM/DD/`, is fifteen times larger and was rejected.

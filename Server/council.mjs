@@ -15,6 +15,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import TaskDirs from "./TaskDirs.mjs";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
 const councilDir = path.join(root, "public/framework/ai/council");
@@ -25,7 +26,7 @@ const MCP = "http://127.0.0.1:8090/mcp";
 const [cmd, argDir] = process.argv.slice(2);
 
 // run folders live in the sessions store (ai/doc/task-folders.md), never the retired ai/YYYY-MM-DD/ day folder
-const storeDir = slug => path.join(root, "public/framework/ai/sessions", new Date().toISOString().slice(0, 10).replace(/-/g, "/"), slug);
+const storeDir = slug => TaskDirs.dir({ slug });
 const now = () => {
 	const d = new Date(), o = -d.getTimezoneOffset(), p = n => String(Math.floor(Math.abs(n))).padStart(2, "0");
 	return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}${o < 0 ? "-" : "+"}${p(o / 60)}:${p(o % 60)}`;

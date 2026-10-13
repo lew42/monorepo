@@ -25,3 +25,7 @@
 {"log":{"at":"2026-10-13T16:07:09-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T16:07:11-05:00","heartbeat":"answered","msg":"Idle: the kit tidy is finished and the report `kit/tidy-kit.md` is committed (`e412ea619`).\n\nThe `task.jsonl` log line is written. Still open: no screenshots since the masters moved to top level, and "}}
 {"log":{"at":"2026-10-13T16:08:26-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T16:49:08-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-fig-tidy-kit"}}
+{"log":{"at":"2026-10-13T16:49:10-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T16:49:14-05:00","heartbeat":"answered","msg":"Idle and waiting; the kit tidy is done and nothing is in progress. The report `kit/tidy-kit.md` is committed (`e412ea619`) and the `task.jsonl` line is written.\n\nI haven't re-screenshotted the pages s"}}
+{"log":{"at":"2026-10-13T16:50:26-05:00","msg":"session ended (other) without landing"}}

@@ -114,7 +114,7 @@ export default class Dispatcher {
 		const { topics } = await this.context(task);
 		const post = (state, now) => `append_log({name: "prompts", entry: {type: "task", id: "${task.id}",`
 			+ ` state: "${state}", now: "${now}"}})`;
-		const opening = "you own this task; open `ai/<date>/<slug>/` with `new-task`; a"
+		const opening = "you own this task; open your task folder with `new-task` (`node Server/TaskDirs.mjs --new <slug>`; it lands in ai/sessions/YYYY/MM/DD/); a"
 			+ " worktree if you edit site files; land with `finish-task`. Separately from your own"
 			+ " task.jsonl, post your progress on THIS log — call the MCP tool"
 			+ ` \`${post("working", "<one line>")}\` as you start, again with state "blocked" if you`

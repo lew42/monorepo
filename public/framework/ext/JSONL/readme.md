@@ -17,6 +17,8 @@ if (task.loaded) show();    // .loaded unset = the file was missing, under eithe
 Append with the validated route only: `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` — write `lines.json` (an array of the new line objects) with the Write tool first. It stamps `at`, checks the shape, and re-parses the file; never a raw `printf`/`>>` or PowerShell's `Out-File`, which writes a BOM that breaks the first line's JSON.
 
 ## Watch out
+
+- A record file is append only: never read-modify-write it, and never run a plain merge, pull, rebase or reset in the main tree (a merge parked other agents' appended lines in a hidden commit on 2026-10-13). [ai/sessions/doc/commit-rule.md](../../ai/sessions/doc/commit-rule.md)
 - `load()`/`live()` never throw or reject — a missing file (the SPA fallback answers 200 html) just leaves `.loaded` unset; check it before rendering. [doc/decisions.md](./doc/decisions.md)
 - A line that isn't JSON is dropped, counted in `unparsed`, warned once — a BOM, or a backslash before a backtick, costs that line silently (a landed task read as running for a day). [doc/decisions.md](./doc/decisions.md)
 - `live()`'s `changed` fires for every batch after the first, outside any captor — redraw through `$view.empty(() => …)`. [doc/live.md](./doc/live.md)

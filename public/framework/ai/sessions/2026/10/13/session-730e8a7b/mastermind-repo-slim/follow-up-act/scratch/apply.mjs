@@ -19,7 +19,7 @@ const rows = [
  T("live-not-polling","Live, not polling","Findings landed (01d39eb1f); worktree/qf-6 has 0 commits ahead of michael/dev, so its work is merged.",[]),
  T("session-detail-live","Session detail live","Session page live two-sided via ext/Chat, merged 5ff7890cc. Open per the heartbeat: per-line transcript push.",[]),
  T("checker-1","Feedback council checker 1","Verified all 48 open asks against the live site (1ea84b4ee); stopped by its parent on purpose.",[]),
- T("feedback-council","Feedback council run (older)","Superseded by the 2026-10-12 council run, which carries the open asks forward.",["/framework/ai/2026-10-12/feedback-council/"], "old"),
+ T("feedback-council","Feedback council run (older)","Superseded by the 2026-10-12 council run, which carries the open asks forward.",["/framework/ai/sessions/2026/10/12/feedback-council-2/"], "old"),
  T("session-trace","Session trace","Unverified: the earlier landed line claims it, but trace_of_transcript is not in Server/session-cost.mjs and no page exists in this task dir. Treat as open; see todo.md.",[]),
 ];
 const sel = (r)=> r.pick==="old" ? (D[r.slug]||[]).filter(d=>!d.includes("2026-10-12")) : (D[r.slug]||[]).slice(0,1);

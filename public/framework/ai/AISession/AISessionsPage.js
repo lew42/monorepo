@@ -1,5 +1,6 @@
 import { Prompts } from "/framework/ai/v/3/Prompts.js";
 import { Page, md, h3, div, a, span, small, p, label, input, button, View } from "/app.js";
+import { nav, icon } from "/framework/core/View/View.js";
 import Panel2 from "/framework/ext/panel2/Panel2.js";
 import { usage_rail } from "/framework/ai/AITask/usage.js";
 import DataGrid from "/framework/ext/DataGrid/DataGrid.js";
@@ -14,6 +15,7 @@ import AISessionFlags from "./AISessionFlags.js";
 import StoreFolder from "./StoreFolder.js";
 AISessionFlags.usd_of = r => AISessionRows.claude_usd_of(r);   // flags_of reads the row's Claude $ from the session index here
 import QueryClient from "/framework/ext/Query/QueryClient.js";
+import PageWork from "/framework/core/Page/ai/PageWork.js";
 
 const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
 View.stylesheet(sessions_dir, "sessions.css");
@@ -56,11 +58,7 @@ export default class AISessionsPage extends Page {
 	content(){
 		const panel = new Panel2({ title: "Sessions" }).ac("wide");   // `wide`: a plain Page's track is the narrow prose column
 		this.$asof = null;
-		panel.header.append(() => {
-			a.c("sessions-doclink").href(this.url + "doc/").text("Priorities").attr("title", "What the owner asked for, most important first");
-			a.c("sessions-doclink").href(this.url + "readme/").text("Readme").attr("title", "What this tab is, and the docs it links to");
-			this.$asof = small.c("muted", "loading…");
-		});
+		panel.header.append(() => { this.$asof = small.c("muted", "loading…"); });
 
 		this.$summary = null;       // a re-render builds the controls again
 		this.role_filter = null;    // Set<string> | null (null until the first real data arrives)
@@ -72,22 +70,93 @@ export default class AISessionsPage extends Page {
 		this.last_rows = [];        // the latest merged rows, UNFILTERED: filters and sort redraw from this
 		this.filtered_count = 0;    // the "sessions shown" count
 
+		this.scope = new URLSearchParams(location.search).get("scope") || AISessionsPage.month_of(today);   // month is the default view
+		if (/^\d{4}(-\d{2}){0,2}$/.test(this.scope)) [this.date_from, this.date_to] = AISessionsPage.range(this.scope, new URLSearchParams(location.search).has("scope") ? null : this.date_from);
+		else this.scope = AISessionsPage.month_of(today);
+
+		this.$scope = div.c("sessions-scope");
+		this.render_scope();
+
 		this.$stats = div.c("sessions-stats");
-		panel.main.append(this.$stats);
+		this.$status = div.c("sessions-status");   // the footer: one line of small things (counts, plan meters, open tasks)
+		this.$status.append(this.$stats, span.c("sessions-status-open").append(PageWork.line(this.url)));
 		this.render_stats();
 
 		this.$controls = div.c("sessions-controls");
-		panel.main.append(this.$controls);
 
 		this.grid = this.make_grid();
 		this.$empty = p.c("muted", "No sessions with an id yet.");
 		this.$empty.el.hidden = true;
-		panel.main.append(this.grid, this.$empty);
+		panel.main.append(div.c("sessions-body").append(this.nav_view(), div.c("sessions-main").append(this.$scope, this.$controls, this.grid, this.$empty, this.$status)));
 		this.arrange_for(this.grid.view);
 		this.grid.watch(g => this.arrange_for(g.view));
 		const grid = this.grid;
 		page_settings(this.url).then(s => { if (s.view) grid.default_view(s.view); });   // the default in settings.jsonl, unless the url or your last toggle chose
 		this.snapshot_rows = [];
+	}
+
+	// ---- scope: year / month / day, a breadcrumb that is also the URL (?scope=2026-10) ------------------
+
+	static pad = n => String(n).padStart(2, "0");
+	static month_of(d){ return d.getUTCFullYear() + "-" + AISessionsPage.pad(d.getUTCMonth() + 1); }
+
+	/** [from, to] day strings for "2026", "2026-10" or "2026-10-13". `floor`: the default month keeps its 7-day minimum window. */
+	static range(scope, floor){
+		const [y, m, d] = scope.split("-").map(Number), pad = AISessionsPage.pad;
+		if (d) return [scope, scope];
+		if (m) return [floor && floor < `${y}-${pad(m)}-01` ? floor : `${y}-${pad(m)}-01`, `${y}-${pad(m)}-${pad(new Date(Date.UTC(y, m, 0)).getUTCDate())}`];
+		return [`${y}-01-01`, `${y}-12-31`];
+	}
+
+	static MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+	/** One clickable trail: All sessions / 2026 / October / 13, the last part current; the arrows step the level (newer/older). */
+	render_scope(){
+		const parts = this.scope.split("-"), pad = AISessionsPage.pad;
+		const step = dir => {
+			const [y, m, d] = parts.map(Number);
+			if (d) return AISessionsPage.ymd(new Date(Date.UTC(y, m - 1, d + dir))).replaceAll("/", "-");
+			if (m) return AISessionsPage.month_of(new Date(Date.UTC(y, m - 1 + dir, 1)));
+			return String(y + dir);
+		};
+		this.$scope?.empty(() => {
+			div.c("ui-crumbs flex wrap v-center gap-35", () => {
+				parts.forEach((part, i) => {
+					const path = parts.slice(0, i + 1).join("-"), text = i === 1 ? AISessionsPage.MONTHS[+part - 1] : i === 2 ? String(+part) : part;
+					if (i) span.c("muted", "/");
+					const crumb = a.c("page-link sessions-crumb" + (i === parts.length - 1 ? " sessions-crumb-on" : ""), text).href(this.url + "?scope=" + path).attr("title", "Only sessions active in " + path);
+					crumb.click(e => { e.preventDefault(); this.set_scope(path); });
+				});
+				for (const [dir, text, tip] of [[-1, "‹", "the one before"], [1, "›", "the next one"]]){
+					const to = step(dir);
+					button.c("sessions-crumb-step", text).attr("title", tip + " (" + to + ")").attr("aria-label", tip).on("click", () => this.set_scope(to));
+				}
+				if (parts.length < 3 && !this.scope.startsWith(AISessionsPage.ymd(new Date()).slice(0, parts.length === 1 ? 4 : 7).replaceAll("/", "-"))) return;
+				if (parts.length < 3) button.c("sessions-crumb-step sessions-crumb-day", "today").attr("title", "Only today").on("click", () => this.set_scope(AISessionsPage.ymd(new Date()).replaceAll("/", "-")));
+			});
+		});
+	}
+
+	static ymd(d){ return d.getUTCFullYear() + "/" + AISessionsPage.pad(d.getUTCMonth() + 1) + "/" + AISessionsPage.pad(d.getUTCDate()); }
+
+	/** Scope the list to a year, month or day: the dates move, the URL follows (`?scope=`), and the query asks again. */
+	set_scope(scope){
+		this.scope = scope;
+		[this.date_from, this.date_to] = AISessionsPage.range(scope);
+		const url = new URL(location.href); url.searchParams.set("scope", scope);
+		history.replaceState(history.state, "", url);
+		this.render_scope();
+		if (this.$from) this.$from.el.value = this.date_from;
+		if (this.$to) this.$to.el.value = this.date_to;
+		this.set_from(this.date_from);
+	}
+
+	/** The left rail: this page's own sub-views, each a route (the grid, its docs, the other dashboard versions). */
+	nav_view(){
+		const items = [["Sessions", this.url, "list", "the grid"], ["Docs", this.url + "doc/", "flag", "The docs index for this tab"], ["Readme", this.url + "readme/", "menu_book", "What this tab is, and the docs it links to"],
+			["Dashboard v2", "/framework/ai/v/2/", "dashboard", "The older dashboard"], ["All versions", "/framework/ai/v/", "history", "Every dashboard version"]];
+		return nav.c("sessions-nav", () => items.forEach(([text, href, glyph, tip], i) =>
+			a.c("sessions-nav-item" + (i === 0 ? " sessions-nav-on" : ""), () => { icon(glyph); span(text); }).href(href).attr("title", tip)));
 	}
 
 	// ---- drawing -------------------------------------------------------------------------------------
@@ -539,7 +608,7 @@ export default class AISessionsPage extends Page {
 				const $from = input().attr("type", "date"); $from.el.value = this.date_from; this.$from = $from;
 				$from.on("change", () => this.set_from($from.el.value));
 				small.c("muted", "to");
-				const $to = input().attr("type", "date"); $to.el.value = this.date_to;
+				const $to = input().attr("type", "date"); this.$to = $to; $to.el.value = this.date_to;
 				$to.on("change", () => { this.date_to = $to.el.value; this.remote_ask(); });
 			});
 		}); this.$kinds = div.c("sessions-kinds"); });
@@ -556,12 +625,12 @@ export default class AISessionsPage extends Page {
 		return new AISessionDetail({ home: this, id });
 	}
 
-	/** "readme" is the readme, "doc" is the priority list (the rest of the docs link from it). */
+	/** "readme" is the readme, "doc" is the docs index (doc/readme.md). */
 	docs_page(id){
-		const file = id === "readme" ? "readme.md" : "doc/priorities.md", home = this;
+		const file = id === "readme" ? "readme.md" : "doc/readme.md", home = this;   // the docs index (priorities.md was archived to doc/archive/ in the 10-12 consolidation)
 		return new Page({
 			width: "fill",
-			title: id === "readme" ? "Sessions readme" : "Sessions: priorities",
+			title: id === "readme" ? "Sessions readme" : "Sessions docs",
 			url: home.url + id + "/",
 			content(){
 				a.c("page-link", "← all sessions").href(home.url);

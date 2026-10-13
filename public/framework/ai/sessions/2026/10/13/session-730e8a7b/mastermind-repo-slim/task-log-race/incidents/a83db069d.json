@@ -1,0 +1,5 @@
+{
+ "public/framework/ai/cards.jsonl": [
+  "{\"id\":\"2026/10/13/refine-confidence-0-5-means-not-sure-evi\",\"title\":\"Refine confidence: 0.5 means not sure, evidence required above 0.7; the refiner run on past days\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"refine\"],\"created\":\"2026-10-13T17:02:40-05:00\",\"last\":\"2026-10-13T18:05:26-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}"
+ ]
+}

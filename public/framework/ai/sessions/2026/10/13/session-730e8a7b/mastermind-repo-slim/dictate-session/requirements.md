@@ -1,0 +1,11 @@
+# One "New session" button, and a dictate indicator you can see
+
+Budget: $10. Load the `sub-mastermind`, `ui` and `ui-test` skills first. The owner's words: `../requirements-2.md` ask 7 ("I tried to get a new session feature built in… I'm not sure how those sessions are managed with the Dictate app"), and the asks tally (`ai/doc/asks-outcomes.md`): "dictate indicator" asked twice, never landed. The surfaces page found the button built three times: `ux/Dictate/doc/surfaces.md` line 34 ("`new_session_button` in `ux/Dictate/chat.js`, `new_session_button()` in `ext/drawer/rail.js` near 383 and 641, `new_session()` in `ext/drawer/tabs/ai.js`; recommendation: the sheet and the AI tab call the one in `chat.js`"). Your log is this dir's `task.jsonl`. CLAUDE.md: one of everything; show don't tell; route everything (a new session has a URL).
+
+## Deliverable
+
+1. **One New session**: the sheet and the AI tab call `chat.js`'s button; the other two copies go (git keeps them). What a new session does is written in one paragraph in `ux/Dictate/doc/chat.md` (where the session is created, what the URL becomes, where it shows on the Sessions page); proof: a headless run presses it on the desktop drawer and on the 400 px sheet, both land on the same new session page.
+2. **The dictate indicator**: while the mic is open, a visible state on every surface that has the mic (the floating mic, the sheet, the drawer): the level meter already exists in the dictation widget (the owner: "the microphone button that starts listening and has a little level meter"); make the same indicator component show on all three (one component, `ux/Dictate`'s), and a small "listening" dot in the sidebar tab when the mic is open but the surface is collapsed. Proof: shots of each surface with the mic open at 400 and 1200.
+3. `merge.mjs`; the surfaces page's duplicates list updated (the button now one); landing line checked with `tail -1`; card with the shots.
+
+Fence: `ux/Dictate/chat.js`, the indicator component in `ux/Dictate`, `ext/drawer/rail.js` and `ext/drawer/tabs/ai.js` (the button call and the dot only), `ux/Dictate/doc/chat.md`, `doc/surfaces.md` (one line), this task dir. Not `ext/Chat` (bubble-order's). The dictate-sheet task landed at 18:46 (bbd88fab4): start from current `michael/dev`. Sonnet.

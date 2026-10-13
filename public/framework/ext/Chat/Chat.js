@@ -14,6 +14,21 @@ export function mergeable($box, sender, at){
 	return at - Number(last.dataset.at) < MERGE_GAP_MS ? last : null;
 }
 
+/** Put a drawn bubble before the first one with a later `at`, so a late line lands in time order (doc/notes.md#bubble-order). */
+export function place(b){
+	const t = Number(b.dataset.at);
+	if (!b.dataset.at || !b.parentElement) return b;
+	let at_end = null;   // scan from the end: the in-order case stops at once
+	for (let s = b.parentElement.lastElementChild; s; s = s.previousElementSibling){
+		if (s === b) continue;
+		if (!s.dataset.at) continue;
+		if (Number(s.dataset.at) <= t) break;
+		at_end = s;
+	}
+	if (at_end && at_end.previousElementSibling !== b) at_end.before(b);
+	return b;
+}
+
 // see doc/notes.md#refined-bubbles
 const bubbles = new WeakMap();
 
@@ -197,7 +212,7 @@ export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark
 			onmount?.($b.el);
 		});
 	});
-	return made;
+	return made && place(made);
 }
 
 /** Change one piece's fields after speak() drew it and redraw its bubble; false if no such piece. See doc/notes.md#bare-speak-helpers */
@@ -216,6 +231,11 @@ export function retag_piece(bubble, old_id, new_id){
 	const pc = st?.pieces.find(pc => pc.id === old_id);
 	if (!pc || old_id === new_id) return false;
 	pc.id = new_id;
+	const t = Date.parse(new_id);
+	if (Number.isFinite(t) && t !== pc.at){
+		pc.at = t;
+		if (st.pieces[st.pieces.length - 1] === pc){ bubble.dataset.at = t; place(bubble); }
+	}
 	return true;
 }
 
@@ -676,6 +696,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				if (cls === "chatbox-you") mark_owner_piece(last, piece, c);
 				return;
 			}
+			let made = null;
 			$box.append(() => {
 				p.c("chatbox " + cls, $b => {
 					$b.el.dataset.sender = who; $b.el.dataset.at = at;
@@ -686,8 +707,10 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 					make_selectable($b.el);
 					target(c.at, $b.el);
 					if (cls === "chatbox-you") mark_owner_piece($b.el, piece, c);
+					made = $b.el;
 				});
 			});
+			if (made) place(made);
 	}
 
 	function live_bubble(key, cls, who){

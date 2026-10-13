@@ -48,6 +48,25 @@ export default class StoreFolder extends Page {
 		} });
 	}
 
+	/** An old-shaped /framework/ai/<day>/<slug>/ that no move ever recorded (a reader guessed it from a day log line):
+	    find the slug in that day of the store through the task index (ext/Query `tasks`, dev), and go there; with no
+	    index (the static site) or no hit, link the store's day folder, which lists its tasks. Node twin: TaskDirs.locate(). */
+	static lookup(url, day, slug){
+		const store = "/framework/ai/sessions/" + day.replaceAll("-", "/") + "/";
+		return new Page({ title: slug, icon: "move_up", url, content(){
+			const tail = location.pathname.startsWith(url) ? location.pathname.slice(url.length) : "";
+			const box = p("Finding " + slug + " in the sessions store…");   // captured now; filled after the query (no DOM after an await)
+			import("/framework/ext/Query/QueryClient.js")
+				.then(({ default: QueryClient }) => new QueryClient("tasks").ask({ where: [{ field: "day", op: "eq", value: day }, { field: "slug", op: "eq", value: slug }], limit: 5 }, { timeout: 3000 }))
+				.catch(() => null)
+				.then(res => {
+					const hit = res?.rows?.map(r => r.url ?? (r.dir && "/" + r.dir.replace(/^public\//, "") + "/")).find(Boolean);
+					if (hit) return location.replace(hit + tail + location.search + location.hash);
+					box.empty().append(() => a().href(store).text(`${slug} is not in the index; the ${day} tasks are in the sessions store →`));
+				});
+		} });
+	}
+
 	/** What the move log already knows, so a known folder routes without a probe (a 404 probe is a console error):
 	    the moved task urls, and the ones with their own page.js (ai/sessions/task-pages.json, Server/TaskMove.mjs --pages). */
 	static known(){

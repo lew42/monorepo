@@ -1,5 +1,6 @@
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import { Inbox } from "./Inbox.js";
+import PagePrefs from "../../Prefs.js";
 
 /** Timeline — the inbox as one ranked list: every landed task, every owner note, every open needs-you card.
  *  Two streamed indexes in, rows out; each row says which file it came from and its score. Doc: doc/inbox-data.md. */
@@ -23,15 +24,33 @@ export default class Timeline {
 	start(){ return Promise.all([this.landed.live(() => this.changed()), this.cards.live(() => this.changed())]).then(() => this.changed()); }
 	stop(){ this.landed.unsubscribe(); this.cards.unsubscribe(); }
 
-	/** Every row, highest rank first (ties: newest first). `big` keeps landed tasks with a page or a card, and every card row. */
-	rows({ big = false, now = Date.now() } = {}){
+	/** Every row, highest rank first (ties: newest first). `big` keeps landed tasks with a page or a card, and every card row;
+	 *  `seen: false` drops the rows you have seen (`keep` stays, so the open row never jumps out); `day` ("YYYY-MM-DD") scopes to one local day. */
+	rows({ big = false, seen = true, day = null, keep = null, now = Date.now() } = {}){
 		const all = this._rows ??= [
 			...this.landed.rows.map((r, n) => Timeline.from_landing(r, n)),
 			...[...this.cards.by_id.values()].map(Timeline.from_card).filter(Boolean),
 		].map(r => Object.assign(r, { score: Math.round(Inbox.rank(r, now) * 10) / 10 }))
 			.sort((a, b) => b.score - a.score || Date.parse(b.at) - Date.parse(a.at));
-		return big ? all.filter(r => r.big) : all;
+		return all.filter(r => (!big || r.big) && (!day || Timeline.day_of(r.at) === day)
+			&& (seen || r.row_key === keep || !this.seen.has(r)));
 	}
+
+	get seen(){ return this._seen ??= new Timeline.Seen(); }
+
+	/** "2026-10-13" for an instant, in this browser's own time zone. */
+	static day_of(at, d = new Date(at)){ const p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
+
+	/** SEEN — "once I've seen it, we get rid of it" (the owner, 2026-10-13): out of the default view, never deleted.
+	 *  Per browser, like the AI rail's read flag: everything up to `cleared` is seen, plus the keys opened since. */
+	static Seen = class Seen {
+		constructor(){ this.prefs = new PagePrefs({ id: "inbox-timeline-seen" }); }
+		get state(){ return this.prefs.get({ cleared: null, keys: [] }); }
+		has(r){ const s = this.state; return (s.cleared && Date.parse(r.at) <= Date.parse(s.cleared)) || s.keys.includes(r.row_key); }
+		mark(r){ const s = this.state; if (!this.has(r)) this.prefs.patch({ keys: [...s.keys, r.row_key] }); }
+		clear_all(at = new Date().toISOString()){ this.prefs.set({ cleared: at, keys: [] }); }
+		count(rows){ return rows.filter(r => this.has(r)).length; }
+	};
 
 	row(row_key){ return this.rows().find(r => r.row_key === row_key) ?? null; }
 

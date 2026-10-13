@@ -11,7 +11,7 @@ export default new Page({
 	title: "Refine",
 	description: "Speak one prompt: see it cleaned instantly, then refined into an outline with a clarity score per sentence.",
 	icon: "fact_check",
-	children: "try ladder",
+	children: "try ladder runs",
 
 	content(){
 		new RefineDemo().ac("wide");
@@ -19,6 +19,8 @@ export default new Page({
 			a("Saved long run (ladder)").href(new URL("ladder/", import.meta.url).pathname);
 			span(" · ");
 			a("Compare models (try)").href(new URL("try/", import.meta.url).pathname);
+			span(" · ");
+			a("Past days refined (runs)").href(new URL("runs/", import.meta.url).pathname);
 			span(" · ");
 			a("Whisper (server and session logs)").href("/framework/audio/Whisper/");
 			span(" · ");

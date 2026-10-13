@@ -21,7 +21,7 @@ import { quick_clean } from "./engine.js";
 export default class RefineSystem {
 
 	/** POST one live-refine batch (`doc/live-refine-2026-10-12.md`, wire shape at
-	 *  `ai/2026-10-12/refine-haiku-live/contract.md`). Static, so a plain `ComposerMic` (`ext/Chat/Mic.js`), with no `RefineSystem` instance
+	 *  `ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/contract.md`). Static, so a plain `ComposerMic` (`ext/Chat/Mic.js`), with no `RefineSystem` instance
 	 *  of its own, can call it too: CLAUDE.md law 2/6, "every mic refines live", not just the Refine
 	 *  demo's own page. Fails quietly (`null`) until Servex's own `/api/refine/live` route lands
 	 *  (`Servex/ext/refine/LiveRefine.js`) and the dev server restarts — a 404, any non-OK status,

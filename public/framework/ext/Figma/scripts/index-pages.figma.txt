@@ -1,0 +1,60 @@
+// Run through use_figma (remote MCP) on file QYN0G2URSBHYH5I06MOjxU. Rebuilds two pages from every top-level `Page · …` component:
+//   "Index" (first page): scaled previews in a 4-column masonry, natural height, grouped.
+//   "Index · full size" (second page): every page component at 100%, a row per group, so the 0 key shows true scale.
+// Each Page · component carries its own ground on the MAIN component (a transparent page gets white there, never as an index override); the index only adds an edge (stroke + shadow).
+// Re-run whenever pages change. Rules: ext/Figma/doc/page-layout.md, doc/figma-layout.md.
+await figma.loadFontAsync({family:'Montserrat',style:'Bold'}); await figma.loadFontAsync({family:'Montserrat',style:'Medium'});
+const comps=[];
+for (const p of figma.root.children) { if (/^Index/.test(p.name)) continue; await p.loadAsync(); for (const n of p.children) if (n.type==='COMPONENT' && n.name.startsWith('Page ·')) comps.push({p, n}); }
+const groups = [
+ ['Start here', x=>/Overview/.test(x)],
+ ['Design system · elements & components', x=>/DS · [123]|Lists ·|Colour ·/.test(x)],
+ ['Layouts & page templates', x=>/DS · [456]|Layouts ·|Templates/.test(x)],
+ ['Kits', x=>/Kit|UI Kit/.test(x)],
+ ['Screens & prototypes', x=>/Screens ·|Claude prototype/.test(x)],
+ ['Video & type', x=>/Video|Type ·/.test(x)],
+ ['Lab', x=>/Lab ·|test page/.test(x)],
+ ['Other', x=>true],
+];
+const grouped=[]; const used=new Set();
+for (const [title,test] of groups) { const items=comps.filter(c=>!used.has(c.n.id)&&test(c.n.name)); items.forEach(c=>used.add(c.n.id)); if(items.length) grouped.push([title,items]); }
+const ink={type:'SOLID',color:{r:0,g:0,b:0},opacity:0.8}, muted={type:'SOLID',color:{r:0,g:0,b:0},opacity:0.55};
+const T=(s,size,style,fill=ink)=>{const t=figma.createText(); t.fontName={family:'Montserrat',style}; t.characters=s; t.fontSize=size; t.fills=[fill]; return t;};
+const AL=(dir,gap,pad=0)=>{const f=figma.createFrame(); f.layoutMode=dir; f.itemSpacing=gap; f.paddingLeft=f.paddingRight=f.paddingTop=f.paddingBottom=pad; f.primaryAxisSizingMode='AUTO'; f.counterAxisSizingMode='AUTO'; f.fills=[]; f.clipsContent=false; return f;};
+const page = async (name, index) => { let pg = figma.root.children.find(p=>p.name===name); if(!pg){ pg=figma.createPage(); pg.name=name; } figma.root.insertChild(index, pg); await figma.setCurrentPageAsync(pg); for (const c of [...pg.children]) c.remove(); return pg; };
+const frame = i=>{ i.strokes=[{type:'SOLID',color:{r:0,g:0,b:0},opacity:0.15}]; i.strokeWeight=Math.max(1,2*i.width/1920); i.effects=[{type:'DROP_SHADOW',color:{r:0,g:0,b:0,a:0.18},offset:{x:0,y:4},radius:16,spread:0,visible:true,blendMode:'NORMAL'}]; };
+const link = (t,id)=>{ t.setRangeHyperlink(0,t.characters.length,{type:'NODE',value:id}); };
+
+// 1. Index: masonry of scaled previews
+const p1 = await page('Index', 0);
+const root = AL('VERTICAL', 72, 80); root.name='Index (1920)'; root.counterAxisSizingMode='FIXED'; root.resize(1920,100); root.primaryAxisSizingMode='AUTO'; root.fills=[{type:'SOLID',color:{r:0.95,g:0.95,b:0.95}}];
+root.appendChild(T('Index', 56, 'Bold'));
+const g1 = T(`All ${comps.length} pages Claude built, each a live instance of its Page · component, shrunk to a column and shown at full height. Click a title to jump there; the page after this one ("Index · full size") shows every page at 100%.`, 18, 'Medium', muted); root.appendChild(g1); g1.layoutSizingHorizontal='FILL'; g1.textAutoResize='HEIGHT';
+const COLS=4, GAP=40, CW=(1920-160-80-GAP*(COLS-1))/COLS;
+for (const [title, items] of grouped) {
+  const sec = AL('VERTICAL', 32, 40); sec.name='Group · '+title; sec.fills=[{type:'SOLID',color:{r:0,g:0,b:0},opacity:0.1}]; sec.cornerRadius=12; root.appendChild(sec); sec.layoutSizingHorizontal='FILL';
+  sec.appendChild(T(title, 44, 'Bold'));
+  const row = AL('HORIZONTAL', GAP); row.name='Masonry'; sec.appendChild(row); row.layoutSizingHorizontal='FILL'; row.counterAxisAlignItems='MIN';
+  const cols = Array.from({length:COLS},()=>{ const c=AL('VERTICAL',48); row.appendChild(c); c.layoutSizingHorizontal='FILL'; return c; });
+  const hts = Array(COLS).fill(0);
+  for (const {p,n} of items) {
+    const tile = AL('VERTICAL', 10); tile.name='Tile · '+n.name;
+    const cap = T(n.name.replace(/^Page · /,''), 18, 'Bold'); link(cap, n.id); tile.appendChild(cap);
+    const inst = n.createInstance(); tile.appendChild(inst); inst.rescale(CW / n.width); frame(inst);
+    const meta = T(`${Math.round(n.width)} × ${Math.round(n.height)} · page "${p.name}"`, 12, 'Medium', muted); tile.appendChild(meta);
+    const i = hts.indexOf(Math.min(...hts)); cols[i].appendChild(tile); tile.layoutSizingHorizontal='FILL'; cap.layoutSizingHorizontal='FILL'; cap.textAutoResize='HEIGHT';
+    hts[i] += inst.height + 80;
+  }
+}
+// 2. Index · full size: a row per group, 100%
+await page('Index · full size', 1);
+const root2 = AL('VERTICAL', 240, 160); root2.name='Index · full size'; root2.fills=[{type:'SOLID',color:{r:0.95,g:0.95,b:0.95}}];
+root2.appendChild(T('Index · full size: press 0 for 100%', 640, 'Bold'));
+for (const [title, items] of grouped) {
+  const sec = AL('VERTICAL', 160, 240); sec.name='Group · '+title; sec.fills=[{type:'SOLID',color:{r:0,g:0,b:0},opacity:0.1}]; sec.cornerRadius=64; root2.appendChild(sec);
+  sec.appendChild(T(title, 1200, 'Bold'));
+  const row = AL('HORIZONTAL', 160); row.counterAxisAlignItems='MIN'; sec.appendChild(row);
+  for (const {n} of items) { const tile = AL('VERTICAL', 64); const cap = T(n.name.replace(/^Page · /,''), 160, 'Bold'); link(cap, n.id); tile.appendChild(cap); const fi=n.createInstance(); tile.appendChild(fi); frame(fi); row.appendChild(tile); }
+}
+await figma.setCurrentPageAsync(p1);
+return {pages: comps.length, index: root.id, h: Math.round(root.height), full: root2.id, w2: Math.round(root2.width), h2: Math.round(root2.height)};

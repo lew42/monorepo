@@ -25,7 +25,7 @@ View.stylesheet(import.meta, "Prompt.css");
 export default class Prompt {
 
 	static icon = "article";
-	static LOW_CLARITY = 0.6;   // below this a sentence gets the yellow flag
+	static LOW_CLARITY = 0.4;   // below this (under the 0.5 default, "not sure") a sentence gets the yellow flag
 
 	status = "empty";   // empty | working | done | error
 	raw = "";
@@ -44,6 +44,15 @@ export default class Prompt {
 
 	constructor(...args){ Object.assign(this, ...args); }
 
+	/** The number printed with its meaning (`doc/confidence.md`); a score without `scale: 2` is from the old scorer. */
+	static label(s){
+		const c = s.clarity;
+		if (c == null) return "–";
+		if (s.scale !== 2) return `${c} (old scale)`;
+		if (c > 0.7) return `${c}: evidence: ${s.evidence || s.why || "none given"}`;
+		return `confidence ${c}: ` + (c < 0.3 ? "probably wrong" : c < 0.45 ? "doubtful" : c <= 0.55 ? "not sure" : "leaning yes");
+	}
+
 	/** Fill the instance from one `/api/refine` answer (also how a saved answer is replayed). */
 	load({ clean, structure, ms, clarity, stages, runs, notes, prompt: prompt_id, session }){
 		const parsed = Prompt.parse_outline(structure?.md ?? "");
@@ -58,7 +67,7 @@ export default class Prompt {
 		// score stays as `rule_clarity` so both can be compared (doc/refine-v3-2026-10-09.md).
 		for (const c of clarity ?? []){
 			const s = this.sentence(c.n);
-			if (s && c.clarity != null){ s.rule_clarity = s.clarity; s.clarity = +c.clarity.toFixed(2); s.why = c.why; }
+			if (s && c.clarity != null){ s.rule_clarity = s.clarity; s.clarity = +c.clarity.toFixed(2); s.why = c.why; s.scale = c.scale ?? null; s.evidence = c.clarity > 0.7 ? c.why : ""; }
 		}
 		// The Haiku pass (Servex/ext/refine/Annotator.js): alternates, names and tags per sentence, by 0-based index.
 		for (const n of notes ?? []){
@@ -192,7 +201,7 @@ Prompt.View = class extends View {
 			prompt.clean.forEach(s => div.c("refine-score", () => {
 				span.c("refine-s-num", "S" + s.n);
 				span.c("refine-bar").attr("style", `--v:${s.clarity ?? 0}`);
-				span.c("refine-s-text", `${s.clarity ?? "–"}`);
+				span.c("refine-s-text", Prompt.label(s));
 				if (s.why) span.c("refine-s-scores", s.why);
 				if (s.names.length) span.c("refine-s-scores", "name: " + s.names.join(", "));
 				s.tags.forEach(t => span.c("refine-class-key", t));

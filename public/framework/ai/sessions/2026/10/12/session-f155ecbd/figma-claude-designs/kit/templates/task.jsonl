@@ -1,0 +1,7 @@
+{"assign":{"session_id":"e2a65e65-b65c-4a87-85e8-0139fe0bfd0d","agent":"task-mastermind-fig-templates","card":"Figma: Templates · Two-column pages (1920)","brief":"public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/brief-templates.md","model":"claude-sonnet-5-5","requested_at":"2026-10-13T18:05:26-05:00","now":"starting","steps":[],"step":1}}
+{"log":{"at":"2026-10-13T18:05:36-05:00","msg":"skill: figma:figma-use"}}
+{"log":{"at":"2026-10-13T18:10:48-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:10:48-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:10:51-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T18:23:39-05:00","msg":"Built 15 templates (12 sets x 4 Scheme + 3 Site-template nav), overview 262:34669, 3-screen prototype, 3 filled instances; report kit/templates.md"}}
+{"decision":{"at":"2026-10-13T18:23:39-05:00","msg":"Nav templates nest Site template so they have no Scheme or Title props (Figma cannot expose nested text); said so in the report and overview"}}

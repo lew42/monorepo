@@ -1,0 +1,6 @@
+{
+ "public/framework/ai/cards.jsonl": [
+  "{\"id\":\"2026/10/13/dictate-on-the-phone-proving-transcripti\",\"title\":\"Dictate on the phone: proving transcription works right now, fixing what fails\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"dictate\"],\"created\":\"2026-10-13T16:37:24-05:00\",\"last\":\"2026-10-13T17:50:24-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}",
+  "{\"id\":\"2026/10/13/every-voice-and-chat-surface-on-one-perm\",\"title\":\"Every voice and chat surface on one permanent page: where it is, what runs it, who answers\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"dictate\"],\"created\":\"2026-10-13T17:20:45-05:00\",\"last\":\"2026-10-13T17:49:38-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}"
+ ]
+}

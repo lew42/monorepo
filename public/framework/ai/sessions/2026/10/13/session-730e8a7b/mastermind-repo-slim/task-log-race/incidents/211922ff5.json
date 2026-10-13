@@ -1,0 +1,367 @@
+{
+ ".claude/skills/clarity/flags.jsonl": [
+  "{\"at\":\"2026-10-13T21:24:09.823Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/deploy-cap/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:24:10.902Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/follow-up-act/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:25:10.841Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/deploy-cap/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-deploy-cap\"}",
+  "{\"at\":\"2026-10-13T21:25:11.920Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/follow-up-act/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-follow-up-act\"}",
+  "{\"at\":\"2026-10-13T16:30:00.000Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/follow-up-act\",\"verdict\":\"clear\",\"what\":\"text-check clean; counts add to 50; deliverables numbered with fence\",\"to\":\"clarity/flags.jsonl\"}",
+  "{\"at\":\"2026-10-13T21:25:21Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/deploy-cap\",\"verdict\":\"clear\",\"what\":\"Agent brief: clear title, facts, three numbered deliverables, fence; text-check found no flags.\",\"to\":\"none\"}",
+  "{\"at\":\"2026-10-13T21:26:45.123Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-cleanup\",\"verdict\":\"skipped\",\"what\":\"a sub-task: its parent task gets the one check\"}",
+  "{\"at\":\"2026-10-13T21:35:31.830Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/follow-up-act\",\"verdict\":\"skipped\",\"what\":\"a sub-task: its parent task gets the one check\"}",
+  "{\"at\":\"2026-10-13T21:36:56.550Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-check/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:36:57.623Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/catalog/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:36:58.690Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:36:59.770Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:37:00.953Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:37:57.568Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-check/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-dictate-check\"}",
+  "{\"at\":\"2026-10-13T21:37:58.671Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/catalog/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-catalog\"}",
+  "{\"at\":\"2026-10-13T21:37:59.721Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-prompt-outcomes\"}",
+  "{\"at\":\"2026-10-13T21:38:00.791Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-architecture-md\"}",
+  "{\"at\":\"2026-10-13T21:38:01.862Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-storage-design\"}",
+  "{\"at\":\"2026-10-13T12:00:00.000Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/catalog/requirements.md\",\"verdict\":\"clear\",\"what\":\"text-check clean; agent-facing brief with a numbered deliverable list and a report line\",\"to\":\"clarity-catalog\"}",
+  "{\"at\":\"2026-10-13T12:00:00.000Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-check/requirements.md\",\"verdict\":\"clear\",\"what\":\"Agent brief: text-check clean, title states the question, five numbered deliverables with proofs named.\",\"to\":\"flags.jsonl\"}",
+  "{\"at\":\"2026-10-13T21:38:12Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md/requirements.md\",\"verdict\":\"clear\",\"what\":\"agent brief: text-check no flags, title and deliverables clear, ten-second point is obvious; long deliverable bullets are acceptable for an agent-facing brief\",\"to\":\"clarity-architecture-md\"}",
+  "{\"at\":\"2026-10-13T12:00:00.000Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design/requirements.md\",\"verdict\":\"clear\",\"what\":\"text-check clean; titled, deliverables numbered, asks traceable to requirements-2.md; dense but agent-facing\",\"to\":\"clarity\"}",
+  "{\"at\":\"2026-10-13T16:40:00-05:00\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes\",\"verdict\":\"rewrote\",\"what\":\"shortened title to 6 words; split 110-word 'What exists' bullet into 5 one-line bullets\",\"to\":\"requirements.md\"}",
+  "{\"at\":\"2026-10-13T21:43:28.981Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/pwa-check/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:43:29.986Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:43:31.077Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/session-index/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:43:32.632Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/assistant-chain/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:44:29.879Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/pwa-check/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-pwa-check\"}",
+  "{\"at\":\"2026-10-13T21:44:31.008Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-inbox-data\"}",
+  "{\"at\":\"2026-10-13T21:44:32.228Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/session-index/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-session-index\"}",
+  "{\"at\":\"2026-10-13T21:44:33.691Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/assistant-chain/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-assistant-chain\"}",
+  "{\"at\":\"2026-10-13T12:00:00.000Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/pwa-check\",\"verdict\":\"rewrote\",\"what\":\"Split the 110-word item 1 into a four-item checklist\",\"to\":\"pwa-check/requirements.md\"}",
+  "{\"at\":\"2026-10-13T12:00:00.000Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/session-index\",\"verdict\":\"rewrote\",\"what\":\"Shortened title to 6 words; split the 100-word What-exists bullet into three labelled bullets\",\"to\":\"requirements.md\"}",
+  "{\"at\":\"2026-10-13T12:00:00.000Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/assistant-chain/requirements.md\",\"verdict\":\"rewrote\",\"what\":\"Split the 80-word What-exists paragraph into four flat bullets; rest is agent-facing and clear\",\"to\":\"requirements.md\"}",
+  "{\"at\":\"2026-10-13T16:40:00-05:00\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/requirements.md\",\"verdict\":\"rewrote\",\"what\":\"Split two 100+ word paragraphs into labelled quote and flat bullet list; content unchanged\",\"to\":\"requirements.md\"}",
+  "{\"at\":\"2026-10-13T21:45:10.211Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/figma-to-code/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:45:11.292Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/page-rendering/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T21:46:11.249Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/figma-to-code/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-figma-to-code\"}",
+  "{\"at\":\"2026-10-13T21:46:12.330Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/page-rendering/requirements.md\",\"verdict\":\"spawned\",\"to\":\"clarity-page-rendering\"}",
+  "{\"at\":\"2026-10-13T12:00:00.000Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/page-rendering/requirements.md\",\"verdict\":\"clear\",\"what\":\"text-check clean; deliverables numbered, owner ask quoted and linked, fence stated\",\"to\":\"clarity\"}",
+  "{\"at\":\"2026-10-13T21:46:21Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/figma-to-code/requirements.md\",\"verdict\":\"clear\",\"what\":\"Agent brief; text-check clean, five numbered deliverables, fence stated, answer goes to owner_note. Only nit: opening paragraph runs long.\",\"to\":\"clarity-figma-to-code\"}",
+  "{\"at\":\"2026-10-13T21:51:43.725Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design\",\"verdict\":\"skipped\",\"what\":\"a sub-task: its parent task gets the one check\"}",
+  "{\"at\":\"2026-10-13T22:02:37.359Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/model-switch/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T22:02:38.447Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-confidence/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}",
+  "{\"at\":\"2026-10-13T22:02:39.716Z\",\"target\":\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/ai-system-page/requirements.md\",\"verdict\":\"queued\",\"kind\":\"proposal\"}"
+ ],
+ "public/ai/log.jsonl": [
+  "{\"session\":{\"id\":\"v-jag436k\",\"event\":\"started\",\"title\":null,\"file\":\"/ai/v-jag436k.jsonl\",\"at\":\"2026-10-13T16:43:03.079-05:00\"}}",
+  "{\"session\":{\"id\":\"v-jag436k\",\"event\":\"started\",\"title\":\"Voice check on home page\",\"file\":\"/ai/v-jag436k.jsonl\",\"at\":\"2026-10-13T16:43:16.886-05:00\"}}",
+  "{\"session\":{\"id\":\"v-jag436k\",\"event\":\"ended\",\"title\":\"Voice check on home page\",\"file\":\"/ai/v-jag436k.jsonl\",\"at\":\"2026-10-13T16:49:27.251-05:00\"}}"
+ ],
+ "public/framework/ai/2026-10-12/page-templates-merge/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:18-05:00\",\"title\":\"Review and merge the page-template slice\",\"outcome\":\"Read-only review of the Template slice finished; merge prep was done on qf-2 (e118b8f73). Landed through the later page-templates run.\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/2026/10/13/catalog-every-demo-and-class-card-you-ma/page.jsonl": [
+  "{\"message\":{\"by\":\"servex-heartbeat\",\"text\":\"task-mastermind-catalog: The catalog is done and committed (`c016e9e1a`), but one thing is unfinished: the landing log line in `task.jsonl` is written to disk and not committed. A stale `.git/index.lock` has blocked every git write for over a minute. I didn't delete it, since another agent's git process may own it. The log line goes in with the next commit once the lock clears.\\n\\nThe 1200 screenshot is at `catalog/catalog-1200.png` in the task dir. It is gitignored, so it exists only on disk.\",\"kind\":\"reply\",\"at\":\"2026-10-13T17:00:41-05:00\",\"id\":\"m-mv785ytt65\"}}"
+ ],
+ "public/framework/ai/2026/10/13/dictate-on-the-phone-proving-transcripti/page.jsonl": [
+  "{\"message\":{\"by\":\"servex-heartbeat\",\"text\":\"task-mastermind-dictate-check: Nothing running; the task is finished. The headless mic proof at 400 px passed on `https://10.0.0.135:13104` and is committed as `c92aa1c12`, with the findings in `ux/Dictate/doc/asks.md` and the next brief in `doc/next.md`. The owner needs the https address on the phone, because `:8137` and plain `http://…:3104` have no mic.\",\"kind\":\"reply\",\"at\":\"2026-10-13T17:00:14-05:00\",\"id\":\"m-mv785effev\"}}"
+ ],
+ "public/framework/ai/2026/10/13/pwa-and-notifications-what-was-built-and/page.jsonl": [
+  "{\"message\":{\"by\":\"review.mjs\",\"text\":\"Review: pass, 0 findings (0 fix). Report: /framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/pwa-check/review.md\",\"kind\":\"reply\",\"at\":\"2026-10-13T16:50:21-05:00\",\"id\":\"m-mv77somb1x\"}}"
+ ],
+ "public/framework/ai/2026/10/13/your-asks-tallied-how-often-each-feature/page.jsonl": [
+  "{\"message\":{\"by\":\"servex-heartbeat\",\"text\":\"task-mastermind-prompt-outcomes: 19 of the 20 Haiku chunks are done and none have errored. I'm waiting on the last chunk, then I'll tally the asks by feature.\",\"kind\":\"reply\",\"at\":\"2026-10-13T16:56:17-05:00\",\"id\":\"m-mv780bb51l\"}}"
+ ],
+ "public/framework/ai/cards.jsonl": [
+  "{\"id\":\"2026/10/13/refine-confidence-0-5-means-not-sure-evi\",\"title\":\"Refine confidence: 0.5 means not sure, evidence required above 0.7; the refiner run on past days\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"refine\"],\"created\":\"2026-10-13T17:02:40-05:00\",\"last\":\"2026-10-13T17:02:40-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}",
+  "{\"id\":\"2026/10/13/the-ai-system-defined-its-decisions-in-o\",\"title\":\"The AI system, defined: its decisions in one architecture.md and its components shown\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"ai-system\"],\"created\":\"2026-10-13T17:02:40-05:00\",\"last\":\"2026-10-13T17:02:40-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}",
+  "{\"id\":\"2026/10/13/catalog-every-demo-and-class-card-you-ma\",\"title\":\"Catalog: every demo and class card you may not have seen, previewed on one page\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"catalog\"],\"created\":\"2026-10-13T16:37:24-05:00\",\"last\":\"2026-10-13T17:00:41-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}",
+  "{\"id\":\"2026/10/13/dictate-on-the-phone-proving-transcripti\",\"title\":\"Dictate on the phone: proving transcription works right now, fixing what fails\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"dictate\"],\"created\":\"2026-10-13T16:37:24-05:00\",\"last\":\"2026-10-13T17:00:14-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}",
+  "{\"id\":\"2026/10/13/your-asks-tallied-how-often-each-feature\",\"title\":\"Your asks, tallied: how often each feature was requested and whether it got done\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"prompt-audit\"],\"created\":\"2026-10-13T16:37:24-05:00\",\"last\":\"2026-10-13T16:56:17-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}",
+  "{\"id\":\"2026/10/13/pwa-and-notifications-what-was-built-and\",\"title\":\"PWA and notifications: what was built and whether it works today\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"pwa\"],\"created\":\"2026-10-13T16:45:14-05:00\",\"last\":\"2026-10-13T16:50:21-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}"
+ ],
+ "public/framework/ai/sessions/2026/10/03/main-branch-guard/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:18-05:00\",\"title\":\"Main-branch guard\",\"outcome\":\"Superseded: .claude/hooks/git-guard.mjs blocks checkout, stash, reset, clean in the main tree (3657d8d12, 00c327b4a). The worktree-violation alarm was not separately built.\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/03/phone-server/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:18-05:00\",\"title\":\"Phone server on 0.0.0.0\",\"outcome\":\"Superseded by phone-https (9f45f5899); Servex binds 0.0.0.0 (Servex.js, ReverseProxy.js).\",\"links\":[\"/framework/ai/sessions/2026/10/12/session-f73e4a4a/phone-https/\"],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:18-05:00\",\"title\":\"Push-to-talk\",\"outcome\":\"Site-wide push-to-talk dictation and hotkey manager merged (c25c5a394).\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/03/retire-ai2/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:19-05:00\",\"title\":\"Retire AI 2\",\"outcome\":\"Superseded by ai2-merge: nav (a02d9b044) then the full migration (4a6ba4b2c).\",\"links\":[\"/framework/ai/sessions/2026/10/09/session-6784f3f5/ai2-merge/\"],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/03/session-trace/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:19-05:00\",\"title\":\"Session trace\",\"outcome\":\"Unverified: the earlier landed line claims it, but trace_of_transcript is not in Server/session-cost.mjs and no page exists in this task dir. Treat as open; see todo.md.\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/03/spend-gate/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:18-05:00\",\"title\":\"Spend gate\",\"outcome\":\"Spend gate shipped on michael/dev (5ac92c930, 5c3e48758); proof script Servex/agents/spend-gate-proof.mjs (the planned test file was never written under that name).\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/04/new-brain/new-brain/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:18-05:00\",\"title\":\"New brain: cheap model sweep\",\"outcome\":\"14-model sweep, per-model token counts and models catalog merged (6024de4c1, b42dfe9a0).\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/05/local-ctx-fix/local-ctx-fix/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:18-05:00\",\"title\":\"Local model context fix\",\"outcome\":\"Fix (llama-server --parallel 1 in Servex/ext/local/) landed as 3e1d0530f by the sibling task local-model-hunt.\",\"links\":[\"/framework/ai/sessions/2026/10/05/local-ctx-fix/local-model-hunt/\"],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/05/voice-pipeline/voice-pipeline/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:18-05:00\",\"title\":\"Voice pipeline\",\"outcome\":\"Two bugs fixed and merged: Dictate dup-bubble (4963c7c6f), Whisper timing (dfc3f7c36), status words (ec6d7692e).\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/06/feedback-council/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:19-05:00\",\"title\":\"Feedback council run (older)\",\"outcome\":\"Superseded by the 2026-10-12 council run, which carries the open asks forward.\",\"links\":[\"/framework/ai/2026-10-12/feedback-council/\"],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/07/feedback-council/checker-1/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:19-05:00\",\"title\":\"Feedback council checker 1\",\"outcome\":\"Verified all 48 open asks against the live site (1ea84b4ee); stopped by its parent on purpose.\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/07/feedback-council/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:19-05:00\",\"title\":\"Feedback council run (older)\",\"outcome\":\"Superseded by the 2026-10-12 council run, which carries the open asks forward.\",\"links\":[\"/framework/ai/2026-10-12/feedback-council/\"],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:19-05:00\",\"title\":\"AI system docs\",\"outcome\":\"Landed: worktree/ai-system-docs merged into michael/dev (c49f32fe4) plus four addendum commits; requirement 1 (system page as cards) was only partly shown at review.\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/08/feedback-council/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:19-05:00\",\"title\":\"Feedback council run (older)\",\"outcome\":\"Superseded by the 2026-10-12 council run, which carries the open asks forward.\",\"links\":[\"/framework/ai/2026-10-12/feedback-council/\"],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/08/live-not-polling/live-not-polling/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:19-05:00\",\"title\":\"Live, not polling\",\"outcome\":\"Findings landed (01d39eb1f); worktree/qf-6 has 0 commits ahead of michael/dev, so its work is merged.\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/09/feedback-council/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:19-05:00\",\"title\":\"Feedback council run (older)\",\"outcome\":\"Superseded by the 2026-10-12 council run, which carries the open asks forward.\",\"links\":[\"/framework/ai/2026-10-12/feedback-council/\"],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/09/notifications-lab/notifications-lab/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:18-05:00\",\"title\":\"Notifications lab\",\"outcome\":\"Merged to michael/dev (6aa438200), dev server restarted, /push/key live.\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/09/session-b431af83/worktree-pool-ready/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:18-05:00\",\"title\":\"Worktree pool ready\",\"outcome\":\"Landed and closed (8c37a7af6, 4ab5f031a).\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/09/session-ca11999b/session-detail-live/task.jsonl": [
+  "{\"assign\":{\"now\":\"landed\",\"landed_at\":\"2026-10-13T16:33:19-05:00\",\"title\":\"Session detail live\",\"outcome\":\"Session page live two-sided via ext/Chat, merged 5ff7890cc. Open per the heartbeat: per-line transcript push.\",\"links\":[],\"by\":\"task-mastermind-follow-up-act\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/adopt/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:32:06-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-figma-adopt\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:32:08-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:32:09-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Idle, nothing running: the adopt task is done and committed (`kit/adopt.md`), and the `adopt/task.jsonl` log line is still unwritten.\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:33:26-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/channels/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:59:09-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-figma-channels\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:59:11-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:59:15-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Still done and idle, with no change since the last check. The `Video · Channel ideas` page is built, and `kit/channels.md` and the task log are committed. Only the Million-dollar section was screensho\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:27-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/componentize/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:23:26-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-elements/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:59:07-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-figma-ds-elements\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:59:09-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:59:37-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Idle: both Figma pages (`159:17691`, `160:1062`) and the committed report `ds-elements.md` are done. Still open: the Buttons page's \\\"1 · Elements\\\" link should point to `159:17691`, which is another ag\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:27-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-inputs-sections/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:59:08-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-figma-ds-inputs-sections\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:59:09-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:59:14-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Idle: the task is finished, with both Figma pages built and the report committed as `76018f72b`. Two small loose ends remain: the 2.4 Field tiles haven't been re-shot, and the Overview \\\"For you\\\" card \"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:27-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-lists-cards/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T17:00:07-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-figma-ds-lists-cards\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:09-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:36-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Idle and finished. Both Figma pages (2.2 Lists & rows, 2.3 Cards & containers) are built and the report is committed (68414be43). Nothing is running.\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:01:27-05:00\",\"msg\":\"session ended (other) without landing\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:01:40-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:03:27-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/icons/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:33:07-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-fig-icons\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:33:08-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:33:14-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Idle and unchanged: everything is committed (latest `63ea89660`). Three things are still open: the docs-check agent, the review, and a screenshot of the variant grid after my last spacing fix. Also, `\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:34:26-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/nesting/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:42:07-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-fig-nesting\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:42:09-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:42:12-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Still idle. The `Kit · Nesting` work is finished and committed, and I have no open tasks.\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:43:26-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/slots/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:27:07-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-fig-slots\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:27:09-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:27:15-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Nothing running: I'm finished. The `Kit · Slots vs components` task landed with its report at `kit/slots.md` (commit `0167e2644`) and a landing line in `task.jsonl`, and the two layout flaws noted in \"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:28:26-05:00\",\"msg\":\"session ended (other) without landing\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:49:10-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-fig-slots\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:49:12-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:49:15-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Still finished, nothing running. The slots task landed (report `kit/slots.md`, commit `0167e2644`), and the only open items are the two small layout flaws in that report.\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:50:26-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-ds/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:50:08-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-fig-tidy-ds\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:50:11-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:50:25-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Finished and idle. The 14 DS pages are wrapped, the report is committed at `kit/tidy-ds.md`, and I'm waiting on the mastermind's Index step. The Servex and site connections have dropped, but I don't n\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:51:27-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-kit/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:49:08-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-fig-tidy-kit\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:49:10-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:49:14-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Idle and waiting; the kit tidy is done and nothing is in progress. The report `kit/tidy-kit.md` is committed (`e412ea619`) and the `task.jsonl` line is written.\\n\\nI haven't re-screenshotted the pages s\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:50:26-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-lab/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:50:09-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-fig-tidy-lab\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:50:11-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:50:27-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Same as before: finished and idle, nothing running. The task is complete, with its report at `kit/tidy-lab.md` (067e48ffd). You can close or stop this agent.\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:51:27-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/titles/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T17:00:08-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-figma-titles\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:11-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:13-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Idle, nothing in progress. The title-layouts task is landed (4b19a9b48, `kit/titles.md`).\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:01:27-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/transcribe/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:50:09-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-fig-transcribe\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:50:12-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:50:23-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Still idle: the task is landed (`03256814c`, update `eccf4b617`) and I have no open work.\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:51:27-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/video/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:51:08-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-figma-video\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:51:10-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:51:14-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Idle, task finished: both Figma pages, the Overview links and the committed report `kit/video.md`.\\n\\nStill unchecked: the prototype click-through in Present mode, and the kit's Chapter, Quote, Caption \"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:52:26-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/web-ground/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:27:06-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-figma-web-ground\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:27:08-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:27:15-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Idle: the task is finished and nothing is running. Both pieces are merged (`8b7756b79`) and `kit/web-ground.md` is committed (`5e9cc744a`). You can stop this agent.\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:28:26-05:00\",\"msg\":\"session ended (other) without landing\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:01:39-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:03:27-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T17:00:08-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/catalog/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T17:00:10-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-catalog\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:12-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:25-05:00\",\"msg\":\"catalog landed c016e9e1a: /framework/catalog/, 228 page cards (33 NEW), 55 class cards, instance tree at ux/Content/Object/page and app, spec catalog/doc/instance-tree.md; 4 widths clean\"}}",
+  "{\"shot\":{\"path\":\"catalog-1200.png\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:41-05:00\",\"heartbeat\":\"answered\",\"msg\":\"The catalog is done and committed (`c016e9e1a`), but one thing is unfinished: the landing log line in `task.jsonl` is written to disk and not committed. A stale `.git/index.lock` has blocked every git\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:01:27-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-check/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T17:00:10-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-dictate-check\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:12-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:14-05:00\",\"heartbeat\":\"answered\",\"msg\":\"Nothing running; the task is finished. The headless mic proof at 400 px passed on `https://10.0.0.135:13104` and is committed as `c92aa1c12`, with the findings in `ux/Dictate/doc/asks.md` and the next\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/task.jsonl": [
+  "{\"decision\":{\"id\":\"d-which-appendable-jsonl-set-is\",\"question\":\"Which appendable JSONL set is the inbox built from?\",\"ask\":\"Which appendable JSONL set is the inbox built from?\",\"rank\":1,\"options\":[{\"id\":\"records-plus-indexes\",\"text\":\"Records stay where they are written (card page.jsonl, each task.jsonl landing line); the inbox reads two static indexes: ai/cards.jsonl (Cards.js) and Inbox/timeline/landings.jsonl (Landings.mjs --append), tailed with live(); board.jsonl read-only\",\"say\":\"Records stay where they are written (card page.jsonl, each task.jsonl landing line); the inbox reads two static indexes: ai/cards.jsonl (Cards.js) and Inbox/timeline/landings.jsonl (Landings.mjs --append), tailed with live(); board.jsonl read-only\",\"caveats\":[\"landings.jsonl lags until Landings.mjs --append runs: needs one line in Server/on-landing.mjs (outside this fence) to be live on every landing\",\"cards.jsonl is a debounced whole rewrite, not an append; live() replays it as a reset\"],\"caveat\":\"landings.jsonl lags until Landings.mjs --append runs: needs one line in Server/on-landing.mjs (outside this fence) to be live on every landing cards.jsonl is a debounced whole rewrite, not an append; live() replays it as a reset\",\"then\":[]},{\"id\":\"node-query-source\",\"text\":\"A Query source in node (QueryServer.source('inbox')) holds every task.jsonl and card page in memory and answers the timeline's query, no index file\",\"say\":\"A Query source in node (QueryServer.source('inbox')) holds every task.jsonl and card page in memory and answers the timeline's query, no index file\",\"caveats\":[\"dev server only: a static host or a worktree has no source, so a file fallback is needed anyway\",\"registration lives in Server/run.js (outside the fence) and needs a server restart\"],\"caveat\":\"dev server only: a static host or a worktree has no source, so a file fallback is needed anyway registration lives in Server/run.js (outside the fence) and needs a server restart\",\"then\":[]},{\"id\":\"one-new-log\",\"text\":\"One new append-only ai/inbox.jsonl that every writer (Cards.js, finish-task, owner_note) also appends to\",\"say\":\"One new append-only ai/inbox.jsonl that every writer (Cards.js, finish-task, owner_note) also appends to\",\"caveats\":[\"a third copy of every card and landing: two writers per event, which drift (board.jsonl vs cards.jsonl is that drift today: 297 shared titles)\",\"needs edits in Cards.js and every landing writer\"],\"caveat\":\"a third copy of every card and landing: two writers per event, which drift (board.jsonl vs cards.jsonl is that drift today: 297 shared titles) needs edits in Cards.js and every landing writer\",\"then\":[]},{\"id\":\"keep-board\",\"text\":\"Keep board.jsonl as the inbox's record and write landings there\",\"say\":\"Keep board.jsonl as the inbox's record and write landings there\",\"caveats\":[\"it is the v/3 board, last written 2026-10-12 by health-watch only; 372 slug ids that do not match card folders\"],\"caveat\":\"it is the v/3 board, last written 2026-10-12 by health-watch only; 372 slug ids that do not match card folders\",\"then\":[]}],\"recommended\":\"records-plus-indexes\",\"confidence\":0.8,\"why\":\"One record per thing (the file its writer already appends to), indexes are computed caches (law 7), it works on a static host, and the node query can be added later over the same row shape without changing the view. The lag is closed by one line in on-landing.mjs.\",\"sources\":[\"public/framework/core/Page/ext/Inbox/doc/inbox-data.md\"],\"depends_on\":null,\"status\":\"decided\",\"decided_by\":\"system\",\"owner_only\":null,\"by\":null,\"at\":\"2026-10-13T16:53:56-05:00\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:01:57-05:00\",\"msg\":\"map computed (InboxSources.mjs): 506 card folders / 572 cards.jsonl rows / 22 owner notes; 1302 landings in 1487 task logs (1087 big); board.jsonl 770 lines, retired; doc/inbox-data.md\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:01:57-05:00\",\"msg\":\"built in worktree inbox-data: Landings.mjs index (428 KB, append-only), Timeline.js (two live() JSONL readers + Inbox.rank), TimelinePage (DataGrid rail + columns detail); commits d1082f4d0 + docs\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:01:57-05:00\",\"msg\":\"caveat: routing needed Inbox/page.js (the module had no page) + one {file:Inbox/page.js} line in core/Page/ext/page.jsonl, one level above the fence; Page method names render/draw/card/toggle collide, renamed\"}}",
+  "{\"bands\":{\"400\":\"rail fills the screen, cards readable, chips on one row; detail replaces the rail (full)\",\"1200\":\"rail ~290px column, right side empty until a row opens (same as Sessions rail); head count wraps to two lines\",\"1920\":\"rail 475px; detail beside it fills the row, outcome in a prose measure\",\"3440\":\"rail 688px, detail beside; 67% empty is the prose measure on the right, no wrapping faults\",\"at\":\"2026-10-13T17:02:45-05:00\",\"page\":\"/framework/core/Page/ext/Inbox/timeline/\",\"errors\":\"only worktree-wide 404s (directory.json, tasks.json, page-work.json are generated files absent in every worktree)\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/page.jsonl": [
+  "{\"file\":\"requirements-5.md\"}"
+ ],
+ "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes/task.jsonl": [
+  "{\"experiment\":{\"try\":\"owner-prompt filter: vscode entrypoint, agent-session detection, relayed [from: owner] kept, >30k dropped\",\"measure\":\"prompts / est tokens since 09-15\",\"result\":\"6479 prompts 43M tokens before -> 1990 prompts 0.66M tokens after\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:49:51-05:00\",\"msg\":\"fan-out 1 (asks): 20 Haiku 4.5 calls of ~40k tokens via askOnce; test chunk cost $0.20, so expected ~$4\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:56:07-05:00\",\"heartbeat\":\"check\",\"msg\":\"status check sent to task-mastermind-prompt-outcomes\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:56:17-05:00\",\"heartbeat\":\"answered\",\"msg\":\"19 of the 20 Haiku chunks are done and none have errored. I'm waiting on the last chunk, then I'll tally the asks by feature.\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:01:20-05:00\",\"msg\":\"session resumed\"}}",
+  "{\"experiment\":{\"try\":\"run 1: Haiku ask extraction, 20 chunks\",\"measure\":\"cost / asks / errors\",\"result\":\"$3.77, 1997 asks, 0 errors (kept as asks-v1 in scratch)\"}}",
+  "{\"decision\":{\"at\":\"2026-10-13T17:02:04-05:00\",\"what\":\"re-extract with the owner 17:05 shape (raw -> ask -> command|question|directive -> outcome -> ask_clear, outcome_clear on 0.5-default scale), newest chunk first\",\"alternative\":\"a second Haiku pass enriching run-1 asks: same input cost, but it would judge asks without the prompt text in front of it\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:02:04-05:00\",\"msg\":\"fan-out 2 (asks v2): 20 Haiku calls ~40k in, more output; expected ~$5\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/pwa-check/task.jsonl": [
+  "{\"decision\":{\"at\":\"2026-10-13T16:50:14-05:00\",\"question\":\"review size\",\"computed\":\"light\",\"chose\":\"none\",\"why\":\"mastermind read: 4 files, head-only link tags + a static JSON manifest + two icon PNGs; installability checked by CDP (no manifest errors)\"}}",
+  "{\"review\":{\"at\":\"2026-10-13T16:50:14-05:00\",\"size\":\"none\",\"verdict\":\"pass\",\"findings\":[],\"branch\":\"worktree/pwa-manifest\",\"head\":\"3d7e0c740830332ad6d3b9231208e72ee1ab0fca\",\"model\":null,\"cost\":0,\"file\":\"review.md\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:10-05:00\",\"heartbeat\":\"mid-tool\",\"msg\":\"task-mastermind-pwa-check is mid-tool; left alone\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:00:00-05:00\",\"msg\":\"PWA: manifest, sw, push/key proven by curl; headless subscribe fails (platform limit); manifest+icons merged 1b4bc1136, installability errors now only in-incognito; docs lab/doc/pwa-state.md + next.md\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:01:16-05:00\",\"msg\":\"session ended (other) without landing\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design/docs-check/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:53:08-05:00\",\"heartbeat\":\"deliberate\",\"msg\":\"reviewer-storage-docs-check its agent is not running: it was stopped on purpose by task-mastermind-storage-design at 2026-10-13T16:47:16-05:00; not revived.\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design/task.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:51:43-05:00\",\"msg\":\"text-check: cloudflare-asks.md: 404 words and no picture; docs-check.md: a 67-word paragraph (\\\"1. **storage.md, intro and diagram (newcomer).** I…\\\"); docs-check.md: a 63-word paragraph (\\\"4. **storage.md: `Store` row says `close()` \\\"moves…\\\"); docs-check.md: a 64-word paragraph (\\\"6. **Name collision: `Journal` and `Room`.** `work…\\\"); docs-check.md: a 61-word paragraph (\\\"10. **Slice 1 proof, missing detail you need.** (a…\\\"); docs-check.md: a 68-word paragraph (\\\"12. **Page readme: storage paragraph.** Good tip, …\\\"); docs-check.md: 756 words of prose (500 at most); docs-check.md: 756 words and no picture\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:51:43-05:00\",\"msg\":\"card-check: missing state line ({\\\"state\\\": \\\"...\\\"}); missing preview line ({\\\"preview\\\": \\\"...\\\"}); missing checklist ({\\\"checklist\\\": [...]} or item lines)\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:51:43-05:00\",\"msg\":\"doc-check: 1 module — clean\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:51:43-05:00\",\"msg\":\"owner-note: posted 3 decisions to the Inbox\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:51:44-05:00\",\"msg\":\"owner-check: no owner words found\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:51:51-05:00\",\"msg\":\"lifecycle: nothing of this task's was left running\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:52:02-05:00\",\"msg\":\"layout-check: 2 pages at 1280/1920/2560/3440 — /framework/core/Page/md/doc/storage/: empty 0.706 at 2560, empty 0.77 at 3440, narrow_share 0.741 at 3440; /framework/core/Page/md/doc/storage-slice-1/: empty 0.723 at 2560, empty 0.787 at 3440, narrow_share 0.871 at 3440; sheets in layout-check/\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:52:29-05:00\",\"msg\":\"padding-check: 2 pages — clean\"}}"
+ ],
+ "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task.jsonl": [
+  "{\"action\":{\"at\":\"2026-10-13T17:00:22-05:00\",\"did\":\"edit\",\"files\":[\"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-5.md\"]}}",
+  "{\"chat\":{\"at\":\"2026-10-13T17:03:27-05:00\",\"from\":\"owner\",\"text\":\"Dictation 7 (models/OpenRouter, dictation UX bugs and chunking, one dictation code path, fast vs smart assistant roles, automated loops, the AI system page, sessions raw logs, refine on past days, confidence weights, fresh sessions): verbatim in requirements-5.md.\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:03:27-05:00\",\"msg\":\"Checked the OpenRouter question myself (10 s): tiers.js is all Anthropic; the switch file %LOCALAPPDATA%/lew42/servex/session-backend.txt does not exist; Echo.model_for() returns Gemini only when SERVEX_OPENROUTER_PAUSED=0 (default paused); the last Gemini echo ran 10-08; master-assistant is Sonnet 5.5. So the smart assistant's 'we're configured for OpenRouter' is most likely stale; model-switch proves it from the live process and answers the owner with an owner_note.\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:03:27-05:00\",\"msg\":\"Relayed the owner's new words by send_to_agent: dictate-check (bubble order bug, page tools, one code path, chunking), assistant-chain (fast=Haiku silent cleaner, smart=Sonnet responder/refiner with a clarify timeout, JSONL persistence), prompt-outcomes (ask → request → outcome → two confidences, 0.5 scale), session-index (raw log path on every row).\"}}",
+  "{\"agent\":{\"at\":\"2026-10-13T17:03:27-05:00\",\"id\":\"task-mastermind-model-switch\",\"task\":\"model-switch\",\"model\":\"claude-sonnet-5-5\",\"brief\":\"model-switch/requirements.md\",\"budget_usd\":10,\"state\":\"spawned\"}}",
+  "{\"agent\":{\"at\":\"2026-10-13T17:03:27-05:00\",\"id\":\"task-mastermind-refine-confidence\",\"task\":\"refine-confidence\",\"model\":\"claude-sonnet-5-5\",\"brief\":\"refine-confidence/requirements.md\",\"budget_usd\":12,\"state\":\"spawned\"}}",
+  "{\"agent\":{\"at\":\"2026-10-13T17:03:27-05:00\",\"id\":\"task-mastermind-ai-system-page\",\"task\":\"ai-system-page\",\"model\":\"claude-sonnet-5-5\",\"brief\":\"ai-system-page/requirements.md\",\"budget_usd\":12,\"state\":\"spawned\"}}",
+  "{\"decision\":{\"at\":\"2026-10-13T17:03:27-05:00\",\"topic\":\"confidence scale across Refine and the asks tally\",\"chosen\":\"a probability 0–1, default 0.5 = not sure, above 0.7 only with named evidence; both tasks told the same scale\",\"options\":[{\"name\":\"1.0 default as a multiplier\",\"caveat\":\"reads as a weight, which is the misreading the owner hit (0.9 looked like 'pretty high')\"}]}}",
+  "{\"decision\":{\"at\":\"2026-10-13T17:03:27-05:00\",\"topic\":\"fresh sessions (the owner's ask 10)\",\"chosen\":\"every task in this run is a fresh task mastermind; follow-ups go to the warm agent only while its topic continues; the mastermind skill already says this (Context: specialists and checkpoints), so no edit\",\"options\":[{\"name\":\"resume dormant specialists for related work\",\"caveat\":\"context bloat; the owner prefers a fresh read of readmes and code after a round\"}]}}",
+  "{\"log\":{\"at\":\"2026-10-13T17:03:27-05:00\",\"msg\":\"Wave 5 launched ~17:15: three Sonnet task masterminds, ceiling ~$34. In flight or queued now: 14 task masterminds; Servex's 5-working cap paces them.\"}}"
+ ],
+ "public/framework/ai/usage.jsonl": [
+  "{\"log\":{\"at\":\"2026-10-13T16:36:54-05:00\",\"session\":24,\"weekly_all\":46,\"weekly_scoped\":2,\"resets_at\":\"2026-10-13T21:59:59.945275+00:00\"}}",
+  "{\"log\":{\"at\":\"2026-10-13T16:51:54-05:00\",\"session\":30,\"weekly_all\":47,\"weekly_scoped\":2,\"resets_at\":\"2026-10-13T22:00:00.224097+00:00\"}}"
+ ],
+ "public/framework/core/Item/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/core/Layout/doc/files.jsonl": [
+  "{\"file\":\"Layout-notes.md\"}",
+  "{\"file\":\"rules-notes.md\"}",
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/core/Page/doc/files.jsonl": [
+  "{\"file\":\"storage.md\"}",
+  "{\"file\":\"storage-slice-1.md\"}",
+  "{\"file\":\"how-a-page-renders.md\"}"
+ ],
+ "public/framework/core/Page/files.jsonl": [
+  "{\"file\":\"screenshots/\",\"gone\":true}"
+ ],
+ "public/framework/core/Router/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/core/View/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/dev/DevBar/doc/files.jsonl": [
+  "{\"file\":\"says-notes.md\"}"
+ ],
+ "public/framework/dev/Socket/doc/files.jsonl": [
+  "{\"file\":\"Socket-notes.md\"}"
+ ],
+ "public/framework/ext/Ask/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/ext/DesignTool/doc/files.jsonl": [
+  "{\"file\":\"polish-notes.md\"}",
+  "{\"file\":\"rules-notes.md\"}"
+ ],
+ "public/framework/ext/JSONL/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/ext/Research/doc/files.jsonl": [
+  "{\"file\":\"Program-notes.md\"}"
+ ],
+ "public/framework/ext/catalog/doc/files.jsonl": [
+  "{\"file\":\"browse-notes.md\"}"
+ ],
+ "public/framework/ext/demo/doc/files.jsonl": [
+  "{\"file\":\"demo-notes.md\"}",
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/ext/markdown/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/files.jsonl": [
+  "{\"file\":\"catalog/\"}"
+ ],
+ "public/framework/styles/layouts/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/styles/system/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ]
+}
