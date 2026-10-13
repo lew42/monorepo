@@ -56,7 +56,7 @@
   included, which used to be the worst offender.
 - **Days reads `day.jsonl` for the list and `task.jsonl` only on a click** (`days-view`,
   2026-09-22) — about 700 task dirs exist across the archive, so fetching every landed task's
-  own `task.jsonl` up front (the way `ext/AITask/dashboard.js`'s own `all_tasks()` does) was
+  own `task.jsonl` up front (the way `ai/AITask/dashboard.js`'s own `all_tasks()` does) was
   measured and rejected: 32 small day.jsonl fetches instead of 700. A row's headline is
   therefore the one line a task wrote for `day.jsonl` at landing time, not `assign.outcome`'s
   own bold sentence — the two are usually close but never guaranteed identical; opening the

@@ -17,7 +17,7 @@ node Server/task-cost.mjs --agent minion-card-view                   every task 
 
 A day's own total, split into Claude $ and real $, and which module each task touched, is a
 separate sibling script that reads what this one already wrote: `Server/day-spend.mjs <date>` —
-`public/framework/ext/AITask/doc/cost.md`'s "Two currencies, and what got touched" section.
+`public/framework/ai/AITask/doc/cost.md`'s "Two currencies, and what got touched" section.
 
 ## When to run it
 
@@ -40,7 +40,7 @@ has never heard of, it prints one line to stderr and exits 0.
 - `own_usd` is the root's share alone (the **mastermind**), and `minions_usd` is everything below it.
 - `agents` lists every agent that was counted, the root first: its id, its model (from the
   registry), its role and its dollars. ⚠ Before 2026-09-24 this was a **count**, and older lines
-  still carry the number; `ext/AITask/cost.js` reads both.
+  still carry the number; `ai/AITask/cost.js` reads both.
 - `window` is the task's own span: line 1's `requested_at` to its last `landed_at` (`null` while
   it is still open). The rule below says what the root's time around it counts toward.
 - `open` counts what can still grow: minions that have not stopped, plus the root while this task

@@ -8,7 +8,7 @@ Two real, already-running systems build their pages this way today. Neither has 
 
 ## The AI day pages — `route()` + one dashboard function
 
-[`ai/page.js`](/framework/ai/page.js), `route(name)`: a name shaped like a date (`2026-09-29`) builds `new Page({ content(){ dashboard(this); } })` on the spot — `dashboard()` (from [`ext/AITask/dashboard.js`](/framework/ext/AITask/dashboard.js)) is the one template, and it reads that day's task directories and their `task.jsonl`/`session.json` files to draw the board. The same `route()` goes one level deeper: a task name inside that day becomes `new AITask({ src: this.url + task + "/session.json" })`, again one template reading one file, no `page.js` written for any single day or task.
+[`ai/page.js`](/framework/ai/page.js), `route(name)`: a name shaped like a date (`2026-09-29`) builds `new Page({ content(){ dashboard(this); } })` on the spot — `dashboard()` (from [`ai/AITask/dashboard.js`](/framework/ai/AITask/dashboard.js)) is the one template, and it reads that day's task directories and their `task.jsonl`/`session.json` files to draw the board. The same `route()` goes one level deeper: a task name inside that day becomes `new AITask({ src: this.url + task + "/session.json" })`, again one template reading one file, no `page.js` written for any single day or task.
 
 ## This module's own example
 

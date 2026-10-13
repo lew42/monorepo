@@ -53,7 +53,7 @@ card and an open task page read one url, and one of them leaving must not blind 
 other. It settles a stream that never answered rather than clearing its timer, so
 a caller awaiting `live()` can never be stranded by a drop.
 
-Its one caller is `ext/AITask`'s legacy fallback — see
+Its one caller is `ai/AITask`'s legacy fallback — see
 [`unsubscribe()`](/framework/ext/JSONL/api/unsubscribe/). Navigation still drops
 nothing.
 

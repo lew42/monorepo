@@ -559,7 +559,7 @@
 	/* THE USAGE FOOTER (item 5, 2026-09-19) — "one SLIM footer across both
 	   columns": a real grid row of its own (`.v3-board:has(.v3-split)`,
 	   above), but capped short and its meters shrunk down from `usage_rail()`'s
-	   own default full-size look (`ext/AITask/ai.css`'s `.ai-meter` is built
+	   own default full-size look (`ai/AITask/ai.css`'s `.ai-meter` is built
 	   for a roomy sidebar rail, not a footer strip) — the two meters run
 	   side by side instead of stacked, and the track/gap sizes come down a
 	   size so "slim" is actually true, not just a word in a comment. */
@@ -737,7 +737,7 @@
 	.page:has(> .v3) { --gutter-x: 0px; --pad-y: 0px; }
 
 	/* ⚠ The LAST 40px, found by measuring `.v3`'s own `getBoundingClientRect()`
-	   after the two rules above still left it non-zero: `ext/AITask/ai.css`
+	   after the two rules above still left it non-zero: `ai/AITask/ai.css`
 	   (outside this task's fence — read, never edited) carries its own
 	   `.page-title + * { margin-block-start: var(--flow); }` for the ai/
 	   index-rail layout. `.page-title` is `display: none` here (this file's

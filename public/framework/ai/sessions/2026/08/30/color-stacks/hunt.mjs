@@ -32,7 +32,7 @@ const PAGES = `/
 /framework/core/App/ /framework/core/Item/ /framework/core/List/ /framework/core/Page/
 /framework/core/Router/ /framework/core/Sidebar/ /framework/core/View/
 /framework/dev/Claim/ /framework/dev/DevBar/ /framework/dev/Socket/
-/framework/ext/AITask/ /framework/ext/Ask/ /framework/ext/DesignTool/ /framework/ext/Doc/
+/framework/ai/AITask/ /framework/ext/Ask/ /framework/ext/DesignTool/ /framework/ext/Doc/
 /framework/ext/Draggable/ /framework/ext/Dropdown/ /framework/ext/JSONL/ /framework/ext/Panel/
 /framework/ext/Playground/ /framework/ext/Research/ /framework/ext/Saver/ /framework/ext/Timeline/
 /framework/ext/catalog/ /framework/ext/demo/ /framework/ext/depth/ /framework/ext/drawer/

@@ -140,7 +140,7 @@ export default new Page({
 
 				div.c("themes-wall", () => SEEDS.forEach(seed => generated(seed)));
 
-				note("**What generation guarantees.** Every ink token clears its floor *by construction*, because it was solved rather than picked. The last figure under each tile is the point: `--prime` measures **2.8–3.0:1 as text** on every light seed — under AA, exactly the shape of the live defect the colour study found in `ext/AITask` (2.25:1) and `ext/toc` (2.01:1), where a component painted text with the *fill* token. A generator cannot make that mistake, because the fill and the ink are two different solves and the ink's floor is an input.");
+				note("**What generation guarantees.** Every ink token clears its floor *by construction*, because it was solved rather than picked. The last figure under each tile is the point: `--prime` measures **2.8–3.0:1 as text** on every light seed — under AA, exactly the shape of the live defect the colour study found in `ai/AITask` (2.25:1) and `ext/toc` (2.01:1), where a component painted text with the *fill* token. A generator cannot make that mistake, because the fill and the ink are two different solves and the ink's floor is an input.");
 
 				note("**What it cannot.** The bottom two dials of every set — `--radius` and `--font` — are the generator lying. It derives radius from chroma and the family from the curve because they have to be *something*, and nothing about a hue implies a serif. `riso`'s hard offset, `phosphor`'s refusal of light mode, `press`'s cream-not-white paper: none is derivable, all three are the reason those themes are worth looking at. Also single-mode by construction — these are flat hex, not `light-dark()`; pairing two runs on one hue is how you would emit the mode axis.");
 

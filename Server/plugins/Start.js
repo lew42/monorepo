@@ -12,7 +12,7 @@ const STOP = new Set("the a an to of for and or in on it is we i you can lets le
  * turn: a task runs for an hour, so the call returns as soon as the directory
  * exists and the process is away, and the task's own log carries it to the
  * board from there — live-reload is the progress channel.
- * Dev server only; see public/framework/ext/AITask/readme.md. */
+ * Dev server only; see public/framework/ai/AITask/readme.md. */
 export default class Start {
 
 	static setup(socket){ new Start(socket); }
@@ -98,7 +98,7 @@ const MODELS = { sonnet: "claude-sonnet-5", opus: "claude-opus-5", haiku: "claud
 const one_line = (s, n = 90) => s.split("\n")[0].slice(0, n);
 
 /* ⚠ Path-ish tokens go first: an ask that opens by naming a file ("Read
-   public/framework/ext/AITask/readme.md and …") slugged to `read-public-framework-ext`,
+   public/framework/ai/AITask/readme.md and …") slugged to `read-public-framework-ext`,
    which names nothing. The compose box's own name field is the real answer;
    this is the fallback. */
 const slugify = text => text.toLowerCase()

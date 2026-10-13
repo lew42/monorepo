@@ -17,7 +17,7 @@ at `ai/sessions/2026/09/19/devbar-chat/` has the whole trail, verbatim).
 
 New files: `chat.js` (the tab itself — live session, picker, minions, composer),
 `log.js` (`session_log()` — one Claude transcript as a scrolling log of compact cards with a
-reader; a SIBLING of `ext/AITask/conversation.js`, not a fork of it — the owner asked for a
+reader; a SIBLING of `ai/AITask/conversation.js`, not a fork of it — the owner asked for a
 card-log presentation, which is a different shape from `conversation.js`'s continuous bubble
 stream, not a smaller version of the same one), `sessions.js` (the `/ai-logs/` index, a
 session's minions, the picker UI).

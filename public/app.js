@@ -182,8 +182,8 @@ export { default as toc } from "./framework/ext/toc/toc.js";
 export { hljs, highlight } from "./framework/ext/highlight/highlight.js";
 
 // AITask renders a task's session.json — the spend, the agents, a transcript
-// replay off the dev server. See ext/AITask/readme.md.
-export { AITask } from "./framework/ext/AITask/AITask.js";
+// replay off the dev server. See ai/AITask/readme.md.
+export { AITask } from "./framework/ai/AITask/AITask.js";
 
 // The UI components, as one namespace: `ui.table(head, rows)`, `ui.timeline(…)`,
 // `ui.keys("Ctrl", "K")`. Three functions — the other sixteen are documented as

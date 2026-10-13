@@ -19,7 +19,7 @@ through the base class.
 |---|---|
 | files | 3 (`JSONL.js`, `page.js`, `readme.md`) — no subdirectories, no `ai/` |
 | lines of JS / CSS | 162 (82 `JSONL.js` + 80 `page.js`) / 0 — no stylesheet |
-| callers | 4 — `ext/AITask/AITask.js`, `ext/AITask/dashboard.js`, `ext/Timeline/ai.js`, `dev/DevBar/ask.js` (all import `TaskJSONL`; no caller imports base `JSONL` directly) |
+| callers | 4 — `ai/AITask/AITask.js`, `ai/AITask/dashboard.js`, `ext/Timeline/ai.js`, `dev/DevBar/ask.js` (all import `TaskJSONL`; no caller imports base `JSONL` directly) |
 | docs before | `readme.md` existed and was already well-shaped (conceptual overview + short topic sections + a "Deferred" list) but had no "Traps" or "Who uses it" section; `page.js` was a plain `Page` with three stacked `demo()` calls (a wall, not a rail); zero `doc/*.md` files anywhere |
 | docs after | `readme.md` tightened, `agent`/`chat`/progress sections consolidated into one linked paragraph, "Traps" and "Who uses it" added; `page.js` rewritten as `new Doc({...})`, `subject: JSONL`, 5 properties + 7 methods + 1 note; 13 `doc/property|method/*.md` + 1 `doc/task-jsonl.md` (new) + 3 `doc/file/*.md` (new) = 17 new files |
 
@@ -55,7 +55,7 @@ changed — every finding below is a recommendation, not an edit.
 
 1. **A four-line `json = url => fetch(url).then(...).catch(() => null)` SPA-fallback
    guard is duplicated near-verbatim in `dev/DevBar/ask.js`, `ext/Timeline/ai.js`,
-   and `ext/AITask/dashboard.js`** — `JSONL.load()` already centralizes this
+   and `ai/AITask/dashboard.js`** — `JSONL.load()` already centralizes this
    exact guard for anyone using the class; three of its four real callers
    still hand-roll it for plain JSON fetches next to their `TaskJSONL` calls.
    **medium, useful** — not a fix inside this module's fences (three other

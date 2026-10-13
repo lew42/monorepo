@@ -1,6 +1,6 @@
 import { div, span, button, small, p } from "../../core/View/View.js";
 import md from "../../ext/markdown/md.js";
-import { clock } from "../../ext/AITask/stats.js";
+import { clock } from "../../ai/AITask/stats.js";
 
 /**
  * session_log({ url, live }) — one Claude transcript (a live session, a past
@@ -12,7 +12,7 @@ import { clock } from "../../ext/AITask/stats.js";
  * body) with the full text; a back button returns to the list, which is still
  * there, still scrolled where it was, because reading never rebuilds it.
  *
- * This is a SIBLING of `ext/AITask/conversation.js`, not a fork of it: the
+ * This is a SIBLING of `ai/AITask/conversation.js`, not a fork of it: the
  * owner asked for the dev bar's chat to read as a scrolling log of compact
  * cards you open one at a time (2026-09-19), where `conversation.js` reads as
  * one continuous stream of bubbles with tool noise folded inline — a genuinely

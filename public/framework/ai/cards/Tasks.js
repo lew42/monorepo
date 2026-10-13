@@ -2,7 +2,7 @@ import { div, p, pre, button, details, summary, section, span, small, a } from "
 import { icon } from "/framework/core/View/View.js";
 import { Faces } from "./Faces.js";
 import { plain, headline } from "../rail/inbox.js";
-import { money, cost_of } from "/framework/ext/AITask/cost.js";
+import { money, cost_of } from "/framework/ai/AITask/cost.js";
 import { PageLog } from "/framework/core/Page/Log.js";
 
 /**
@@ -11,7 +11,7 @@ import { PageLog } from "/framework/core/Page/Log.js";
  * preview, plus a link to the task page. I want these to be the actual task
  * page data. Let's just render the task page right here").
  *
- * The page is `ext/AITask`'s own, drawn by `AITask.into(base)` — the same class
+ * The page is `ai/AITask`'s own, drawn by `AITask.into(base)` — the same class
  * `/framework/ai/<date>/<slug>/` draws, never a copy. A card that points at a
  * task shows one; a group card shows every member's, newest first.
  */
@@ -33,7 +33,7 @@ export class Tasks {
 	/* ⚠ Imported LAZILY: AITask is another tree's module with a dozen imports of
 	   its own, and one of them failing must cost this section, not AI 2. */
 	static loading = null;
-	static aitask = () => (Tasks.loading ??= import("/framework/ext/AITask/AITask.js").then(m => m.AITask));
+	static aitask = () => (Tasks.loading ??= import("/framework/ai/AITask/AITask.js").then(m => m.AITask));
 
 	/** One task's page as a section: a head that names it, then the task page itself. */
 	static task_section(m, { head = true } = {}){

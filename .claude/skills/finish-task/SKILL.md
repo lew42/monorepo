@@ -61,7 +61,7 @@ board renders it in place of the generic viewer.
 
 **Give the task a plain `title`** in the same landing line (`"title": "Live card: replying hid the usage bars"`): the part it is about, then what changed, in a few words. The AI board lists a task by it; without one it shows the request cut short, and "When I respond on that page" means nothing to the owner (2026-09-25).
 
-Optional, and only when this landing produced something the owner will go looking for later — a tier, a realm, a system, a class, a standard, a post, a tool, a study with a page — append one more line so it draws a card on the front of `/framework/ai/`: `{"assign": {"highlight": {"icon": "<one of layers explore science article build straighten>", "title": "<five words or fewer>", "line": "<one plain sentence>", "url": "<THE THING, never this task page>"}}}` — what earns one and what the six icons mean: [`ext/AITask/doc/highlights.md`](/framework/ext/AITask/doc/highlights.md).
+Optional, and only when this landing produced something the owner will go looking for later — a tier, a realm, a system, a class, a standard, a post, a tool, a study with a page — append one more line so it draws a card on the front of `/framework/ai/`: `{"assign": {"highlight": {"icon": "<one of layers explore science article build straighten>", "title": "<five words or fewer>", "line": "<one plain sentence>", "url": "<THE THING, never this task page>"}}}` — what earns one and what the six icons mean: [`ai/AITask/doc/highlights.md`](/framework/ai/AITask/doc/highlights.md).
 
 **Append the landing line with the helper.** Write it to `<scratchpad>/landing-<your-slug>.json`
 with the **Write tool** (the scratchpad is shared by every agent in the session — a generic name
@@ -95,6 +95,6 @@ appended to the day's `day.jsonl` (`node Server/TaskDirs.mjs --day` prints its f
 `.claude/hooks/ledger.mjs` logs the first edit of each file (`action`), every skill call
 (`log: skill: …`), session resume/end, and **blocks a stop** while `step < steps.length`
 with no `landed_at` — this skill is how you satisfy it honestly. Format:
-`ext/JSONL/readme.md`; the board: `ext/AITask/readme.md`.
+`ext/JSONL/readme.md`; the board: `ai/AITask/readme.md`.
 
 Improve this skill: append to [`improvements.md`](improvements.md).

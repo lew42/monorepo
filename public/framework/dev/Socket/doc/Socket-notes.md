@@ -35,7 +35,7 @@ WHAT A RELOAD THROWS AWAY: Most reloads are gone now (see changed() above), but 
 
 `window.scrollY` IS ALWAYS 0 ON THIS SITE, so stashing it would restore nothing while looking like it worked. The document does not scroll: `.pages` inside the app shell does (measured headless on /framework/ai/sessions/2026/09/22/ at 1440×900 — document 900px tall in a 900px window, `.pages` 5,028px in 900). So this walks for the elements that really carry a scrollTop.
 
-It cannot restore a fold whose body is BUILT ON CLICK (ext/AITask's `fold()`): re-adding the open class would show an empty box, which is worse than a shut one. Native `<details>` is safe because its content is always there. A module with lazily-built state has to remember that itself.
+It cannot restore a fold whose body is BUILT ON CLICK (ai/AITask's `fold()`): re-adding the open class would show an empty box, which is worse than a shut one. Native `<details>` is safe because its content is always there. A module with lazily-built state has to remember that itself.
 
 ## loaded() path tracking
 Every same-origin url this tab fetched, pathname → still hot-swappable. False once something read the file as data — ext/files shows sources, and swapping a <link> would leave that copy stale on screen.

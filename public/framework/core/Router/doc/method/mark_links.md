@@ -7,7 +7,7 @@ every in-app anchor.
 - [`ext/tabs/tabs.js:55`](/framework/ext/tabs/) — a tab bar filled after an import, by which time `mark()`
   has been and gone.
 - [`ext/catalog/catalog.js:62`](/framework/ext/catalog/) — the Overview rail's first card, built the same way.
-- [`ext/AITask/dashboard.js:115`](/framework/ai/) — the day/task dashboard's usage
+- [`ai/AITask/dashboard.js:115`](/framework/ai/) — the day/task dashboard's usage
   and effort cards, built after `catalog()`'s own pass.
 
 Same reason all three times: links rendered after `mark()` already ran need their

@@ -5,7 +5,7 @@ Importers = files outside the module that import it (grep, 2026-09-25; `/app.js`
 | kind | module · URL | use it when | example | importers |
 |---|---|---|---|---|
 | Question | [ux/Content/Question](/framework/ux/Content/Question/) | you ask the reader something with answers | `Content/Question/page.js` | 0 |
-| Decision | [ux/Content/Decision](/framework/ux/Content/Decision/) | a choice waits, options + pick | ext/AITask/decisions.js | 1 |
+| Decision | [ux/Content/Decision](/framework/ux/Content/Decision/) | a choice waits, options + pick | ai/AITask/decisions.js | 1 |
 | Quotation | [ux/Content/Quotation](/framework/ux/Content/) | quoting the owner or a source | its own page only | 0 |
 | Spend | [ux/Content/Spend](/framework/ux/Content/) | a cost or budget line | its own page only | 0 |
 | Kind catalog (75 kinds) | [ux/Content/catalog](/framework/ux/Content/) | choosing which kind to write | ux/Content/page.js | 0 |

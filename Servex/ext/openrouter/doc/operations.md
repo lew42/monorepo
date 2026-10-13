@@ -75,7 +75,7 @@ Three pieces, all in `provider.js` unless noted:
   host's own `Log` — the same single-writer object every other agent event already goes through,
   so two agents settling a turn at once can never tear a line.
 - **The dashboard** — the spend guard also writes `openrouter-usage.json` (next to `usage.json`),
-  and `ext/AITask/dashboard.js`'s `rail()` merges its one `limit` into the SAME `usage_rail()`
+  and `ai/AITask/dashboard.js`'s `rail()` merges its one `limit` into the SAME `usage_rail()`
   meter the Claude session/weekly windows already draw — one more bar, not a second widget.
   Credit left rides along as the meter's label.
 - **Warm at boot, not on import** — the guard's cache starts empty, and an empty cache fails

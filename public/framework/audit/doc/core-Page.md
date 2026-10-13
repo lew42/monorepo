@@ -18,7 +18,7 @@ that hadn't been updated since the code it described was simplified.
 |---|---|
 | files | 70 before this pass, 94 after (+24 `doc/file/*.md`) |
 | lines of JS / CSS | 1387 / 235 |
-| callers | ~160 `page.js` files via `import { Page } from "/app.js"` (the overwhelming majority); a dozen direct `Page.class.js` importers (`core/App/App.js`, `ext/Doc/Doc.js` — `class Doc extends Page` — `ext/AITask/AITask.js`, `ext/catalog`, `ext/demo/{app,demo,sample}.js`, `ext/tabs`, `styles/page.js`, `versus/page.js`, sandbox subclasses). Full table in `readme.md`'s new "Who uses this" section. |
+| callers | ~160 `page.js` files via `import { Page } from "/app.js"` (the overwhelming majority); a dozen direct `Page.class.js` importers (`core/App/App.js`, `ext/Doc/Doc.js` — `class Doc extends Page` — `ai/AITask/AITask.js`, `ext/catalog`, `ext/demo/{app,demo,sample}.js`, `ext/tabs`, `styles/page.js`, `versus/page.js`, sandbox subclasses). Full table in `readme.md`'s new "Who uses this" section. |
 | docs before | `readme.md` (238 lines, Decisions/Traps/Proposed/Open, three already-broken-out `doc/*.md` notes); `page.js` already a `Doc` (not `classdoc`) with `properties`/`methods`/`notes`/`overview`/`children` all present and — checked against the live class — **100% accurate**: all 26 methods, 17 properties, 3 notes, 5 declared children and 14 overview demos had a `.md`/directory on disk, no orphans, no gaps. **Zero `doc/file/*.md`, no `files:` key.** |
 | docs after | added `files:` (24 entries) + 24 `doc/file/*.md`; fixed one factually-wrong property doc and 9 files' worth of stale `file:line` citations (2 of which named a caller relationship that no longer exists, not just a wrong line number); added "Who uses this" to `readme.md` |
 

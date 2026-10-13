@@ -125,5 +125,5 @@ merge.
 - **No duplicate data (2026-10-03):** a session's own prompts are never copied anywhere — the old
   `transcripts/<id>.json` snapshot (110 files, 2.5 MB) is gone. The detail page reads a session's
   real prompts LIVE, through `/ai-logs/<id>` (`Server/plugins/AILogs.js`, dev-server only, the same
-  route [`ext/AITask/replay.js`](/framework/ext/AITask/) already used) — the owner's own dictated
+  route [`ai/AITask/replay.js`](/framework/ai/AITask/) already used) — the owner's own dictated
   text never sits in `public/`, the folder this site deploys statically, even transiently.

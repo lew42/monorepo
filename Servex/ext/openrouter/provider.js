@@ -232,7 +232,7 @@ const OR_GUARD_CACHE_MS = 30_000;
 let or_guard_status = null;       // last successful key_status() reading
 let or_guard_checked_at = 0;
 
-/* The snapshot the dashboard reads (ext/AITask/dashboard.js merges this into the
+/* The snapshot the dashboard reads (ai/AITask/dashboard.js merges this into the
  * same usage_rail() meter the Claude session/weekly windows already use — one
  * component, not a second one). Written next to usage.json so both live under
  * the same "ai" directory a reader already knows to look in. */

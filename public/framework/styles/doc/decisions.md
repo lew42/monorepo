@@ -299,7 +299,7 @@ buttons, and the rule in one sentence. It ships **no stylesheet**, like every pa
 `styles/`: the page that is the design system is built out of the design system. It is the
 first line of `styles/readme.md`'s Use and the first child in `styles/page.js`.
 
-**The first consumer.** `ext/AITask/ai.css` — the file the owner pointed at — went onto the
+**The first consumer.** `ai/AITask/ai.css` — the file the owner pointed at — went onto the
 ladder in the same task. Its 55 spacing rows: 7 plain tokens → **12**, 0 rungs → **23**, 24
 token-times-a-multiplier → **0**, 6 control-`em` → **13** (every one now carrying a line
 saying why it is `em`), 12 raw → **1**, and that one is `margin-block-start: auto`, a

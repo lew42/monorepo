@@ -1,5 +1,5 @@
 import { Page, div, a, p } from "/app.js";
-import { AITask } from "/framework/ext/AITask/AITask.js";
+import { AITask } from "/framework/ai/AITask/AITask.js";
 
 /* One folder of the sessions store, routed by its own path: /framework/ai/sessions/2026/10/12/<session>/<task>/.
    Tasks live here since 2026-10-12 (ai/doc/task-folders.md); the flat /framework/ai/sessions/<id>/ session route is untouched.

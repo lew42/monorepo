@@ -5,13 +5,13 @@ Reply to ONE thing, where it already is. Every item of the hierarchy — an ask 
 
 `m` is the task's own manifest (an `ext/JSONL` `TaskJSONL`) — the thread is read out of `m.chats` and written back into `m.url`, so the record is the task's own log and there is no second store. `about` is the item: its `kind` and `id` are what the thread is filed under, everything else is what the turn is told about it.
 
-Off the dev server the buttons are not drawn at all and the thread renders read-only — the same rule `ext/AITask`'s Approve and Improve already follow.
+Off the dev server the buttons are not drawn at all and the thread renders read-only — the same rule `ai/AITask`'s Approve and Improve already follow.
 
 ## WIRE constant timing
-How long the wire gets to take an append. `ext/AITask`'s decisions tab waits the same 2s for the same reason: /imagine/stream/ measures the real round trip at 9ms, and this is the net for a dev server that is up enough to accept an append and not to stream it.
+How long the wire gets to take an append. `ai/AITask`'s decisions tab waits the same 2s for the same reason: /imagine/stream/ measures the real round trip at 9ms, and this is the net for a dev server that is up enough to accept an append and not to stream it.
 
 ## stamp() timezone handling
-An ISO timestamp carrying the reader's own offset, so a line says when it was written where it was written — `toISOString()` would silently move it to UTC. A copy of `ext/AITask/rank.js`'s, on purpose: imports flow DOWN, and `ext/AITask` imports `ext/Ask`, so `ext/Ask` may never import back.
+An ISO timestamp carrying the reader's own offset, so a line says when it was written where it was written — `toISOString()` would silently move it to UTC. A copy of `ai/AITask/rank.js`'s, on purpose: imports flow DOWN, and `ai/AITask` imports `ext/Ask`, so `ext/Ask` may never import back.
 
 ## append() through dev socket
 Whole lines into a task's own log, through the dev socket. The return value is true when it took them.

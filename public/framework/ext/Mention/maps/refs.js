@@ -45,7 +45,7 @@ export default {
 
 	// ext/ — nineteen addons a reader runs into often enough to deserve a
 	// one-word mention. `Task` points at AITask, the module that renders one.
-	Task:       { url: "/framework/ext/AITask/", icon: "smart_toy", class_card: true },
+	Task:       { url: "/framework/ai/AITask/", icon: "smart_toy", class_card: true },
 	Chat:       { url: "/framework/ext/Chat/", icon: "chat" },
 	Panel:      { url: "/framework/ext/Panel/", icon: "dashboard_customize", class_card: true },
 	Doc:        { url: "/framework/ext/Doc/", icon: "menu_book", class_card: true },

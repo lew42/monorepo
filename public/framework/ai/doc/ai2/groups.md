@@ -70,7 +70,7 @@ or the words you said into the group card itself. The order changes only while t
 ## A card's detail is the real task page
 
 A card that points at a task (a `task` field, or a link to `/framework/ai/<date>/<slug>/`) shows
-that task's page below it, and a group card shows each member's. The page is `ext/AITask`'s own,
+that task's page below it, and a group card shows each member's. The page is `ai/AITask`'s own,
 drawn by its static `AITask.into(base, { listing })` — the same class the task's own url draws,
 never a copy. It sits OUTSIDE the box the card redraws, so a new chat line never refetches it or
 closes the tab you had open; the sections are rebuilt only when the SET of members changes.

@@ -13,7 +13,7 @@ Revisable, all of them; the first run (`/framework/research/livereload/`, 2026-0
 - **Sockets already existed.** `Tail` streams appended lines to subscribed tabs; the page uses `.live()`. No new channel — the "MCP → JS → file → socket → browser" path is MCP tools writing a file `Tail` already watches.
 - **Two writers, one core.** `research.mjs` (CLI, works today) and `Server/plugins/Research.js` (MCP tools, need a server restart to appear) call `store.mjs`; agents that see the MCP tools get schema'd arguments and no shell quoting; agents that don't still have the CLI.
 - **Random ids, kind-lettered** (`c7k2q`, `d…`, `e…`, `s…`): parallel writers must not coordinate; the letter makes an outline scannable.
-- **Data ≠ code.** `ext/Research/` is the module (renderer, verbs, writers); `research/` holds topics — the same split as `ext/AITask` ↔ `ai/`. Topics need no `page.js`; `research/page.js` routes the slug.
+- **Data ≠ code.** `ext/Research/` is the module (renderer, verbs, writers); `research/` holds topics — the same split as `ai/AITask` ↔ `ai/`. Topics need no `page.js`; `research/page.js` routes the slug.
 - **Not the Doc system.** Docs explain a module; research argues a question. The Doc page of `ext/Research` is ordinary; a topic can cite any `doc/*.md` in a `--refs`, which is all the integration needed until a topic wants to *dig into a module's docs* — then the brief fences a scout to that `doc/` dir (no code change).
 
 ## The program shape — 2026-08-30

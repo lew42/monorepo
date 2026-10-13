@@ -14,7 +14,7 @@ export default new Page({
     return this.preview_card(nav, () => div.c("zoom-25", () => this.layout()));
 }`);
 
-		md("[`ext/AITask/dashboard.js`](/framework/ext/AITask/)'s `card(t)` calls the override whenever a declared child's `preview` isn't the inherited `Page.prototype.preview` — the whole bridge is one ternary:");
+		md("[`ext/AITask/dashboard.js`](/framework/ai/AITask/)'s `card(t)` calls the override whenever a declared child's `preview` isn't the inherited `Page.prototype.preview` — the whole bridge is one ternary:");
 
 		code.js(`const card = t => t.child?.preview && t.child.preview !== Page.prototype.preview
     ? t.child.preview(t.nav)

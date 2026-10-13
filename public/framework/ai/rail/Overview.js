@@ -1,7 +1,7 @@
 import { div, span, small, p, a, h3, label, input, details, summary } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { Faces } from "../cards/Faces.js";
-import { money } from "/framework/ext/AITask/cost.js";
+import { money } from "/framework/ai/AITask/cost.js";
 
 /**
  * THE OVERVIEW — what you asked for, and what was done, one big card per concept

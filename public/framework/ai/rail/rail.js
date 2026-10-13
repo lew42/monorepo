@@ -13,7 +13,7 @@ import { NeedsRule } from "./NeedsRule.js";
 import { CardChat } from "../cards/CardChat.js";
 import mount_chat from "/framework/ux/Dictate/chat.js";
 import { LIVE, live_model, live_full, usage_head } from "./live.js";
-import { cost_of } from "/framework/ext/AITask/cost.js";
+import { cost_of } from "/framework/ai/AITask/cost.js";
 import { Meter } from "../cards/Meter.js";
 import { Agents } from "../cards/Agents.js";
 import workspace from "../cards/workspace.js";
@@ -152,7 +152,7 @@ export default class AIRail extends Inbox.Rail {
 		if (this.your_prompts_item) list.push(this.your_prompts_item);
 		// TODAY AND YESTERDAY — two more pinned rows (day-cards, 2026-10-04), same one pinning
 		// mechanism as Now/Your-prompts (the owner's own instruction, never a second one). Each
-		// opens the REAL day page (`/framework/ai/<date>/`, `ext/AITask/dashboard.js`) directly —
+		// opens the REAL day page (`/framework/ai/<date>/`, `ai/AITask/dashboard.js`) directly —
 		// no routed alias to maintain, so `render_pinned()` just needs to honour an item's own
 		// `href` instead of always building one from `this.url + id`.
 		this.build_day_items();
@@ -164,7 +164,7 @@ export default class AIRail extends Inbox.Rail {
 	   unread flag every day, which a stable id could never give (open yesterday's card once and
 	   the word "yesterday" would read forever after). `is_read()`/`mark_read()` (rules.js) are
 	   the same per-browser localStorage flag every other row already uses; `dashboard()` marks
-	   the day read the moment its page actually renders (ext/AITask/dashboard.js). Today is
+	   the day read the moment its page actually renders (ai/AITask/dashboard.js). Today is
 	   never bold — same "pinned rows never bold" rule Now and Your-prompts already follow. */
 	build_day_items(){
 		const pad = n => String(n).padStart(2, "0");

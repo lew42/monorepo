@@ -1,5 +1,5 @@
 import { Page, md, AITask } from "/app.js";
-import { dashboard, glance, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
+import { dashboard, glance, has_page_js, warm } from "/framework/ai/AITask/dashboard.js";
 
 // Fired at MODULE EVAL time — this file is imported as part of ai/page.js's
 // own declared-children auto-import, well before Router walks to a task

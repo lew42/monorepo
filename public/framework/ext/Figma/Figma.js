@@ -29,7 +29,7 @@ export class Figma {
 
 	/* route() must answer NOW (Page.child() never awaits it — doc/property/route.md), so a cold
 	   deep link straight onto `/framework/ext/Figma/<file-slug>/` gets one blocking read instead
-	   of a guess — the same trade ext/AITask/dashboard.js's has_page_js() makes for the AI day
+	   of a guess — the same trade ai/AITask/dashboard.js's has_page_js() makes for the AI day
 	   pages. Cached in #resolved, so every later hop (and the normal async files()) reuses it. */
 	static files_sync(){
 		if (this.#resolved) return this.#resolved;

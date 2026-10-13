@@ -82,7 +82,7 @@ preview card.
   [`ai-page`](/framework/ai/sessions/2026/08/14/ai-page/), replaced the same day by
   [`ai-dashboard`](/framework/ai/sessions/2026/08/14/ai-dashboard/) — Mike wanted
   step/cost cards over a time axis for that page). `framework/ai/page.js`
-  now calls `ext/AITask`'s `rail()` instead. `ai.js` was left in place,
+  now calls `ai/AITask`'s `rail()` instead. `ai.js` was left in place,
   correct and importable, wired to nothing — a module with no callers is
   itself a finding; detail at
   [`doc/file/ai.js.md`](file/ai.js.md).

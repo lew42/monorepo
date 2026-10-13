@@ -1,6 +1,6 @@
 import { div, span } from "/framework/core/View/View.js";
-import { money } from "/framework/ext/AITask/cost.js";
-import { progress } from "/framework/ext/AITask/stats.js";
+import { money } from "/framework/ai/AITask/cost.js";
+import { progress } from "/framework/ai/AITask/stats.js";
 
 /**
  * THE FACE OF A CARD — a SHORT bar that says what it counts, and what was spent:

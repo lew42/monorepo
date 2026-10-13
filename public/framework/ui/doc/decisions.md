@@ -230,7 +230,7 @@ and this list confirms again.
 | `styles/sections/changelog.js` | `timeline()`, imported directly from `ui/timeline/timeline.js` (not via `ui.js`) | [/framework/styles/sections/](/framework/styles/sections/) |
 | `styles/sections/team.js`, `styles/sections/testimonials.js` | the single-circle `avatar()` export | [/framework/styles/sections/](/framework/styles/sections/) |
 | `styles/elements/forms/page.js` | `css()` from `parts.js`, for its own unrelated stylesheet | [/framework/styles/elements/forms/](/framework/styles/elements/forms/) |
-| `ext/AITask/AITask.js` | `ui.table()` | wherever a task's `AITask` renders |
+| `ai/AITask/AITask.js` | `ui.table()` | wherever a task's `AITask` renders |
 | `ext/DesignTool/tests/page.js`, `ext/DesignTool/audit/page.js` | `ui.table()` | [/framework/ext/DesignTool/](/framework/ext/DesignTool/) |
 | `dev/DevBar/page.js` | `ui.keys("Ctrl", "\\")` | the dev rail (localhost only) |
 | several `framework/ai/*/page.js` task logs | `ui.table()`, `ui.timeline()` | the AI task dashboards |

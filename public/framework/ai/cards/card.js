@@ -2,7 +2,7 @@ import { Page, View, div, p, span, small, a, button, input, select, option, deta
 import { icon, table, thead, tbody, tr, th, td } from "/framework/core/View/View.js";
 import List from "/framework/core/List/List.js";
 import { Faces } from "./Faces.js";
-import { money, cost_of, summary_line as cost_line } from "/framework/ext/AITask/cost.js";
+import { money, cost_of, summary_line as cost_line } from "/framework/ai/AITask/cost.js";
 import { Tasks } from "./Tasks.js";
 
 import grip from "/framework/ext/grip/grip.js";

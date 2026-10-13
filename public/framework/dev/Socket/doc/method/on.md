@@ -42,7 +42,7 @@ Six lines of registry, no global namespace spent, and `off()` comes back for fre
 
 **⚠ Nothing unsubscribes for you.** A page that subscribes and is then navigated
 away from keeps its listener, its closure and everything the closure holds. Guard
-on `isConnected` — `ext/AITask/dashboard.js`'s `on_directory()` is the worked
+on `isConnected` — `ai/AITask/dashboard.js`'s `on_directory()` is the worked
 example — or keep the `off()` and call it.
 
 **⚠ Silent off localhost.** There is no socket at all on static hosting

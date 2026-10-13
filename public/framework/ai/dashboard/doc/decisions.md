@@ -11,7 +11,7 @@
 
 ### Revision, 2026-10-02: the Log tile was first built on `log_board()`
 
-The first version embedded `ext/AITask/dashboard.js`'s whole `log_board()` render — active strip,
+The first version embedded `ai/AITask/dashboard.js`'s whole `log_board()` render — active strip,
 compose box and all — cropped to a fixed height. A fresh review caught two real problems: it did
 not filter out whatever the Inbox tile was already showing (the brief's own "no duplicates" ask),
 and the crop cut a card off mid-way with no visual cue that more existed below a hidden scrollbar.

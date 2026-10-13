@@ -3,7 +3,7 @@ file. Drops this instance from `live.js`'s registry and — only when it was the
 **last** reader of that path — sends `{"method": "unsubscribe", "args": [url]}`, so
 the dev server drops the subscription too. Returns `this`.
 
-```js /framework/ext/AITask/AITask.js
+```js /framework/ai/AITask/AITask.js
 await t.live(() => this.$live && this.refresh(t));
 if (t.loaded) return t;
 
@@ -11,8 +11,8 @@ const old = await this.legacy();
 if (old) t.unsubscribe();
 ```
 
-One caller today, and it is the case the method exists for: `ext/AITask`'s
-[`session()`](/framework/ext/AITask/api/session/) probes `<task>/task.jsonl` blind,
+One caller today, and it is the case the method exists for: `ai/AITask`'s
+[`session()`](/framework/ai/AITask/api/session/) probes `<task>/task.jsonl` blind,
 and a task from before the log format has no such file. A missing file is answered
 with an empty batch and a **standing** subscription — right for a task dir whose
 log is about to be written, wrong forever for a legacy task that will never have

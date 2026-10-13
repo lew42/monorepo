@@ -93,7 +93,7 @@ A sub-card is not always a request. System design's are topic stubs, `{"title", 
 (the owner, 2026-09-25, on "More: this card's files, its full words, what it cost": "what does that mean... when I click this what am I supposed to expect".) The label is built from what is actually inside.
 
 ## cost
-(the owner, 2026-09-24: "What took so many tokens?") A group shows one row per member task (its mastermind, its minions, its total) and the group's sum, each dollar once. A task card shows its one line. Who spent it, agent by agent with each model, is the task page's own Report tab just below (`ext/AITask/cost.js` `breakdown()`), so it is drawn once. A card with no task shows nothing: nothing measured it.
+(the owner, 2026-09-24: "What took so many tokens?") A group shows one row per member task (its mastermind, its minions, its total) and the group's sum, each dollar once. A task card shows its one line. Who spent it, agent by agent with each model, is the task page's own Report tab just below (`ai/AITask/cost.js` `breakdown()`), so it is drawn once. A card with no task shows nothing: nothing measured it.
 
 `cost_model()` is the cost block as data, and `draw_sig()` reads it too. The signature skips a redraw that would paint the same pixels, and it did not list cost: the card drew once before the group's task logs had loaded (no rows, so no table), and when the cost lines arrived the signature said "unchanged" and the table never appeared (live, 2026-09-24). Rows sort by cost, largest first: that answers the question, and a task's `now` moving (which reorders `members()`) is no reason to redraw.
 

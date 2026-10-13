@@ -52,7 +52,7 @@ const off = app.socket.on("data", path => {
 ```
 
 `on(name, fn)` returns its own unsubscribe. The first subscriber is
-`ext/AITask/dashboard.js` — the AI board's day list and index rail re-read the
+`ai/AITask/dashboard.js` — the AI board's day list and index rail re-read the
 manifest in place, so a new task dir appears without the page moving.
 
 **⚠ Extension *and* initiator both have to say data.** [files](/framework/ext/files/)

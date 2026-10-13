@@ -246,7 +246,7 @@ async function* lines_of(file) {
 /* Is this line a real person's own typed words? The CLI marks its own harness
    injections (a skill load, a caveat, a system reminder) `isMeta` — without
    excluding those, a transcript's "first prompt" is often a 40k-character skill
-   body instead of what was actually asked (ext/AITask/conversation.js hits the
+   body instead of what was actually asked (ai/AITask/conversation.js hits the
    same trap, client-side, for the same reason).
    `sidechain_ok`: a TOP-LEVEL session marks a nested agent's own chatter
    `isSidechain`, which is not something a person typed and must be excluded —

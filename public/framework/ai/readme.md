@@ -1,5 +1,7 @@
 # AI
 
+**What goes in `ai/` (the rule, 2026-10-13):** a module that exists only to run, show or feed an AI agent or model (`AITask`, `AISession`, `cards`, `rail`), and the AI system's records (the sessions store). A module that AI uses but any page could use too lives next door: `ext/` (JSONL, Chat, Mention, Query), `ux/` or `core/`. Which module is which, and what moves next: [doc/module-homes.md](doc/module-homes.md).
+
 Where the agents' work is recorded, in one tree ([doc/task-folders.md](doc/task-folders.md)):
 
 - **A task** (its log, brief, review): `ai/sessions/YYYY/MM/DD/<session>/<task>/`, made by `node Server/TaskDirs.mjs --new <slug>`; the day's log is `ai/sessions/YYYY/MM/DD/day.jsonl`. A script that writes a record of its own (a crawl, a council) asks `TaskDirs.dir({slug})` for the folder, never joins a date itself.
@@ -30,6 +32,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Past work** (look before you build): [past-work-index.md](past-work-index.md), generated from every landed task; search a topic with `node Server/PastWork.mjs <topic>` (the `past-work` skill)
 - **Skills and CLAUDE.md**: [skills](../../../.claude/skills/)
 - **Dashboard, Log, Inbox**: the tabs above · [AI 2 (merged into this folder, old address kept)](/framework/ai2/readme.md)
+- **AITask** (one task's log, a day, the board; moved here from `ext/`, 2026-10-13): [AITask/readme.md](AITask/readme.md)
 - **Classes that draw it** (moved here from `ai2/`, 2026-10-09): [cards/](cards/) — `Card` and what a card shows (chat, compose, outline, activity, tasks, faces…) · [rail/](rail/) — `AIRail`, `CardList`, `Groups`, the Live card, Needs, Log, Overview, Processes · [archive/ai2](archive/ai2/readme.md) — old AI 2 page logs, kept
 - Sizes and freshness of all of them: [systems-map.md](systems-map.md) · **Organization** (what goes where; System class, hourly check): [doc/organization.md](doc/organization.md) · [Systems](/framework/ai/systems/)
 
@@ -57,7 +60,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
   what each one cost.
 - **Today** and **Yesterday** are pinned rows above the rail (same mechanism as the Now card,
   `ai/rail/rail.js`'s `build_day_items()`) — each opens that day's summary: cost (two currencies),
-  tasks started/landed/open, and the owner's own prompts, refined (`ext/AITask/day-prompts.js`).
+  tasks started/landed/open, and the owner's own prompts, refined (`ai/AITask/day-prompts.js`).
   Yesterday stays bold until opened. Prev/next day arrows sit on the day page itself.
 
 ## For a fresh session

@@ -26,7 +26,7 @@ that have to exist before `/app.js` itself can be trusted:
 |---|---|
 | `core/App/App.js` | adopts the routed root page in `App.load()` |
 | `ext/Doc/Doc.js` | `class Doc extends Page` — the class-page system this audit itself runs on |
-| `ext/AITask/AITask.js` | `class AITask extends Page` — the AI dashboard |
+| `ai/AITask/AITask.js` | `class AITask extends Page` — the AI dashboard |
 | `ext/catalog/catalog.js`, `ext/demo/{app,demo,sample}.js`, `ext/tabs/{page,tabs}.js` | the arrangement exts — each fills or reads `$pages` / `regions`, the two properties `container()` looks for |
 | `styles/page.js`, `versus/page.js` | build demo trees outside `/app.js`'s own re-export |
 | `alex/framework/core/Page/ErrorPage.js` | a sandbox subclass |

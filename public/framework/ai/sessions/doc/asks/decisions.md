@@ -267,7 +267,7 @@ Start/Stop/Duration alongside Cost on every row. Full brief:
 [`/framework/ai/sessions/2026/10/02/panel2-sessions/sessions-date-homes/requirements.md`](/framework/ai/sessions/2026/10/02/panel2-sessions/sessions-date-homes/requirements.md).
 
 **No duplicate data — reused, not rebuilt.** `ai/sessions/transcripts/<id>.json` (110 files,
-2.5 MB) is gone; `sessions.mjs` no longer writes it, and `ext/AITask/replay.js`'s own `load()`
+2.5 MB) is gone; `sessions.mjs` no longer writes it, and `ai/AITask/replay.js`'s own `load()`
 (exported, reused as-is — law 6) already fetched a session's transcript LIVE through
 `/ai-logs/<id>`, a loopback-guarded dev-server route (`Server/plugins/AILogs.js`) that reads
 straight from `~/.claude/projects/...`. `load_transcript()` (`page.js`) now calls that instead of
@@ -307,7 +307,7 @@ a computed stand-in, not a fabricated one, and is openly described that way in t
 small addition: `GET /api/agents` (`Agents.js` `card()`) didn't expose it, though the live Agent
 object already carried it once stopped (`Agents.js:542`) — a one-line additive fix (no rename, no
 moved responsibility, every existing caller unaffected), not the "major surgery" CLAUDE.md asks
-first about. Duration reuses `dur(elapsed(...))` from `ext/AITask/stats.js` (already used by
+first about. Duration reuses `dur(elapsed(...))` from `ai/AITask/stats.js` (already used by
 `replay.js`'s own header) rather than writing a third time-formatter.
 
 **Also fixed while here:** `.claude/hooks/syntax-guard.mjs`'s `hidden_guard()` false-flagged

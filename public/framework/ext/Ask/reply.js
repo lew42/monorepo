@@ -18,7 +18,7 @@ const open_threads = new Set();
 
 /**
  * Redraw every reply thread on the page — call it when the task's log has
- * streamed a new line. `ext/AITask`'s `streamed()` does, so a reply sent in one
+ * streamed a new line. `ai/AITask`'s `streamed()` does, so a reply sent in one
  * tab appears in every other tab on that task without a reload.
  */
 export function streamed(){
@@ -26,7 +26,7 @@ export function streamed(){
 		item.$thread.el.isConnected ? item.draw() : open_threads.delete(item);
 }
 
-// ⚠ Copy of ext/AITask/rank.js (imports flow DOWN, can't import back)
+// ⚠ Copy of ai/AITask/rank.js (imports flow DOWN, can't import back)
 export function stamp(){
 	const now = new Date();
 	const off = -now.getTimezoneOffset();

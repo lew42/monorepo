@@ -128,7 +128,7 @@ new Timeline({ orientation: "h", zoom: 6, items: [
 
 		md("Not to be confused with [`ui.timeline()`](/framework/ui/timeline/) — a dated list with no time axis, sharing only the English name.");
 
-		md("Next: [ext/AITask](/framework/ext/AITask/) — the AI dashboard this Timeline fed for part of one day, before the step/cost card rail replaced it. This module still stands on its own; its `ai.js` adapter has no callers today.");
+		md("Next: [ai/AITask](/framework/ai/AITask/) — the AI dashboard this Timeline fed for part of one day, before the step/cost card rail replaced it. This module still stands on its own; its `ai.js` adapter has no callers today.");
 
 		md.details(import.meta, "readme.md", "Readme");
 	},

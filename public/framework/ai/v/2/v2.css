@@ -151,7 +151,7 @@
 	.v2-links { display: flex; flex-wrap: wrap; gap: 0.15rem 0.9em; }
 	.v2-link { white-space: nowrap; }
 
-	/* The Decisions panel calls ext/AITask/decisions.js's own function — the
+	/* The Decisions panel calls ai/AITask/decisions.js's own function — the
 	   same writer the real Decisions tab uses, not a fork of it. Its rows are
 	   already built from framework.css's own flex/split/wrap utilities, so
 	   almost nothing is needed here; these handful of rules are copied

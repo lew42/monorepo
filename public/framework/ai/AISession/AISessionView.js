@@ -1,6 +1,6 @@
 import { View, div, span, small, p, a } from "/app.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
-import { dur, elapsed } from "/framework/ext/AITask/stats.js";
+import { dur, elapsed } from "/framework/ai/AITask/stats.js";
 import AISessionRows from "./AISessionRows.js";
 import AISession from "./AISession.js";
 import AISessionFlags from "./AISessionFlags.js";

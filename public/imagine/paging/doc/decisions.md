@@ -1527,7 +1527,7 @@ purpose — the hub's own content margin and the full-screen takeover padding).
 
 **Most of the 100 raw rows did NOT convert, and that is the finding, not a shortfall.** The
 first pass converted 40 of them; proving it with a stylesheet-swap pixel diff (the method
-`ext/AITask/ai.css` used the night before) found real problems in three shapes, each fixed by
+`ai/AITask/ai.css` used the night before) found real problems in three shapes, each fixed by
 reverting to the control's own `em` rather than by inventing a new rule:
 
 1. **The nav rail's own gaps were already measured to a fold budget** — the file's own comment

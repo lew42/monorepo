@@ -1,6 +1,6 @@
 import { div, span, small, button, h3, p, a, form, input, details, summary } from "/app.js";
 import { View, icon } from "/framework/core/View/View.js";
-import { usage_rail } from "/framework/ext/AITask/usage.js";
+import { usage_rail } from "/framework/ai/AITask/usage.js";
 import { servex_base, servex_fetch, card_stream, agent_frames } from "./inbox.js";
 import { Faces } from "../cards/Faces.js";
 import { md_into, who_label, speak } from "../cards/CardChat.js";
@@ -9,7 +9,7 @@ import { Processes } from "./Processes.js";
 // Architecture and design decisions: doc/live-notes.md
 export const LIVE = "live";
 
-View.stylesheet("/framework/ext/AITask/ai.css");
+View.stylesheet("/framework/ai/AITask/ai.css");
 
 // The three limits, in the words the owner reads them by.
 const LABELS = { session: "5-hour", weekly_scoped: "weekly Fable", weekly_all: "weekly all" };

@@ -1,6 +1,6 @@
 import { Page, div, span, small, p, a, button } from "/app.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
-import { load as raw_transcript_lines } from "/framework/ext/AITask/replay.js";
+import { load as raw_transcript_lines } from "/framework/ai/AITask/replay.js";
 import AISessionRows from "./AISessionRows.js";
 import AISessionView from "./AISessionView.js";
 import AISessionFollow from "./AISessionFollow.js";

@@ -1,4 +1,4 @@
-import { elapsed } from "/framework/ext/AITask/stats.js";
+import { elapsed } from "/framework/ai/AITask/stats.js";
 import AISession from "./AISession.js";
 import AISessionBuckets from "./AISessionBuckets.js";
 

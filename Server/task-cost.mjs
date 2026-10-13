@@ -295,7 +295,7 @@ function append(c){
 }
 
 // A tree that billed nothing writes no figure. If an earlier run wrote $0 for it, clear that
-// once with nulls, so the board falls back to "not tracked" (ext/AITask/cost.js: non-number).
+// once with nulls, so the board falls back to "not tracked" (ai/AITask/cost.js: non-number).
 function clearZero(c){
 	if (typeof current(c.dir).cost_usd !== "number") return "not measured";
 	const tmp = join(mkdtempSync(join(tmpdir(), "task-cost-")), "line.json");

@@ -57,7 +57,7 @@ per-subclass copies until you make them one. Full record:
 
 1. **`load()`'s SPA-fallback guard duplicates a `const json = url => fetch(...)`
    helper that exists nearly verbatim in `dev/DevBar/ask.js`,
-   `ext/Timeline/ai.js`, and `ext/AITask/dashboard.js`.** Four copies of the
+   `ext/Timeline/ai.js`, and `ai/AITask/dashboard.js`.** Four copies of the
    same five-line guard, one per caller plus this file's `load()`. Not this
    module's fix alone — `JSONL.load()` already centralizes it for anyone using
    the class, so the real fix is those three callers using `TaskJSONL.load()`
