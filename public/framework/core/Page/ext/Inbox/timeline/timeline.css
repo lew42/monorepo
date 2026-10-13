@@ -22,6 +22,7 @@
 	.timeline-links:empty { display: none; }
 	/* The detail: the row's outcome on the left, its card's chat on the right; stacked when the detail itself is under 48em (a container query: the column, not the screen, decides). */
 	.timeline-detail { container-type: inline-size; }
+	.timeline-main { max-inline-size: 46em; }   /* a prose measure: at 3440 the outcome ran 1,770px wide */
 	.timeline-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(18em, 26em); gap: var(--gap-100, 1.5em); align-items: start; }
 	@container (max-width: 48em) { .timeline-split { grid-template-columns: minmax(0, 1fr); } }
 	.timeline-talk { display: flex; flex-direction: column; gap: var(--gap-50); position: sticky; top: 0; max-block-size: calc(100dvh - 6rem); }
