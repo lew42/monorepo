@@ -6,3 +6,9 @@
 {"log":{"at":"2026-10-13T16:33:08-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-follow-up-act"}}
 {"log":{"at":"2026-10-13T16:33:09-05:00","msg":"session resumed"}}
 {"assign":{"now":"landed","landed_at":"2026-10-13T16:33:51-05:00","title":"Follow-up acted on","outcome":"Flags 50 to 23 (quiet 36 to 19, no-outcome 3 to 0, open asks 9 to 0, unmerged 2 to 4 only because two other tasks landed since). 20 landing lines appended, 9 ask status lines, 19 open items in todo.md, neither old branch merged (conflicts/superseded; owner note). FollowUp.read_asks keys by card ?? title so an empty card collapses asks: noted in Servex/doc/task-loop.md.","links":["/framework/ai/doc/follow-up.md","/framework/ai/todo.md"],"by":"task-mastermind-follow-up-act"}}
+{"log":{"at":"2026-10-13T16:35:31-05:00","msg":"text-check: outcome: a 62-word paragraph (\"Flags 50 to 23 (quiet 36 to 19, no-outcome 3 to 0,…\")"}}
+{"log":{"at":"2026-10-13T16:35:31-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-13T16:35:31-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-13T16:35:31-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-13T16:35:35-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-13T16:35:35-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
