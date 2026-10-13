@@ -1,4 +1,6 @@
 import { Page, View, div, p, h3, h4, button, span, input, details, summary } from "/app.js";
+import FigSelect from "./FigSelect.js";
+FigSelect.install();
 View.stylesheet(import.meta, "tokens.css");
 View.stylesheet(import.meta, "page.css");
 
