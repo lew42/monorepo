@@ -84,14 +84,7 @@ Research searches the web in round one. Design votes on the whole signature firs
 
 ## Judge against the owner's sentence
 
-**The outcome is a checklist of the owner's asks, each with its proof**, one line per ask in the owner's words, ticked only with proof beside it:
-
-```
-- [x] newest card on top: shot rail-1920.png, the new card at row 1
-- [ ] segmented progress bar: bars are still one solid line
-```
-
-A built-but-unproven ask stays unticked; a smaller or easier version than named is a **miss**, not a partial win (a 2026-09-25 audit found 24 of 44 asks only "partly" done, mostly unproven). At harvest check each numbered deliverable by name, plus:
+**The outcome is a checklist of the owner's asks, each ticked only with its proof beside it**; a smaller or easier version than named is a **miss** (shape and example: `finish-task`). At harvest check each numbered deliverable by name, plus:
 
 - the page loads with **zero failed requests** (parsing is not booting);
 - **one picture of the whole thing** at 1920, which you open;

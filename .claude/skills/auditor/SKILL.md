@@ -13,8 +13,8 @@ suggestion sound like a law, or a law that nobody could find at the moment they 
 
 ## What you read, once
 
-`CLAUDE.md`, then every `.claude/skills/*/SKILL.md` with its `caveats.md` and `improvements.md`
-(about 2,300 lines — read them as an agent meets them, biggest first). That reading is what
+`CLAUDE.md`, then every `.claude/skills/*/SKILL.md` with its `improvements.md` (and `caveats.md` where one exists)
+(about 2,300 lines; `node Server/SkillCensus.mjs` prints the current size per skill — read them as an agent meets them, biggest first). That reading is what
 makes you the architect, so **stay alive**: the mastermind wakes you again with `SendMessage`
 for the next mistake, and you re-read only what changed. If your context is gone, a fresh spawn
 re-reads; never block waiting for a resume.
