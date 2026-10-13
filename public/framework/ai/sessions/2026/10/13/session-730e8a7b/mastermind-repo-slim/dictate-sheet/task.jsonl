@@ -8,3 +8,4 @@
 {"review":{"answer":{"n":4,"reply":"fixed: IIFE replaced by plain lines"}}}
 {"log":{"at":"2026-10-13T19:05:00-05:00","msg":"landed: the phone sheet's full state now mounts the drawer tab row and body under the chat (commit 4cb0adf91, merged 6441b0642). Mic proof passes; 400 px shots full-400-before.png / full-400-after.png / full-400-dictation.png in this dir."}}
 {"shot":{"path":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-sheet/full-400-after.png"}}
+{"log":{"at":"2026-10-13T18:47:56-05:00","msg":"session ended (other) without landing"}}

@@ -7,3 +7,11 @@
 {"finding":{"at":"2026-10-13T17:56:32-05:00","n":6,"kind":"note","text":"The diff includes generated churn in `sessions/files.jsonl` (\"gone\" entries for json files and screenshots/). It is unrelated to the layout work and just noise."}}
 {"finding":{"at":"2026-10-13T17:56:32-05:00","n":7,"kind":"note","text":"`set_scope` hides the date inputs but keeps them in sync, so the \"hand edits don't update the breadcrumb\" caveat is moot. Hiding them with `display:none` (sessions.css util layer) leaves no manual range at all, and the brief did not ask for that."}}
 {"phase":{"at":"2026-10-13T17:56:32-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0.3803764,"model":"claude-sonnet-5-5"}}
+{"phase":{"at":"2026-10-13T18:18:58-05:00","n":1,"kind":"findings","status":"start"}}
+{"phase":{"at":"2026-10-13T18:18:58-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0,"model":null}}
+{"phase":{"at":"2026-10-13T18:20:54-05:00","n":1,"kind":"findings","status":"start"}}
+{"phase":{"at":"2026-10-13T18:20:54-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0,"model":null}}
+{"phase":{"at":"2026-10-13T18:25:25-05:00","n":1,"kind":"findings","status":"start"}}
+{"phase":{"at":"2026-10-13T18:25:25-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0,"model":null}}
+{"phase":{"at":"2026-10-13T18:25:44-05:00","n":1,"kind":"findings","status":"start"}}
+{"phase":{"at":"2026-10-13T18:25:44-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0,"model":null}}

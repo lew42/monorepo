@@ -1,263 +1,238 @@
-diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
-index 37feb93a4..9bff637a7 100644
---- a/public/framework/ai/AISession/AISessionsPage.js
-+++ b/public/framework/ai/AISession/AISessionsPage.js
-@@ -1,5 +1,6 @@
- import { Prompts } from "/framework/ai/v/3/Prompts.js";
- import { Page, md, h3, div, a, span, small, p, label, input, button, View } from "/app.js";
-+import { nav, icon } from "/framework/core/View/View.js";
- import Panel2 from "/framework/ext/panel2/Panel2.js";
- import { usage_rail } from "/framework/ext/AITask/usage.js";
- import DataGrid from "/framework/ext/DataGrid/DataGrid.js";
-@@ -14,6 +15,7 @@ import AISessionFlags from "./AISessionFlags.js";
- import StoreFolder from "./StoreFolder.js";
- AISessionFlags.usd_of = r => AISessionRows.claude_usd_of(r);   // flags_of reads the row's Claude $ from the session index here
- import QueryClient from "/framework/ext/Query/QueryClient.js";
-+import PageWork from "/framework/core/Page/ai/PageWork.js";
- 
- const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
- View.stylesheet(sessions_dir, "sessions.css");
-@@ -56,11 +58,7 @@ export default class AISessionsPage extends Page {
- 	content(){
- 		const panel = new Panel2({ title: "Sessions" }).ac("wide");   // `wide`: a plain Page's track is the narrow prose column
- 		this.$asof = null;
--		panel.header.append(() => {
--			a.c("sessions-doclink").href(this.url + "doc/").text("Priorities").attr("title", "What the owner asked for, most important first");
--			a.c("sessions-doclink").href(this.url + "readme/").text("Readme").attr("title", "What this tab is, and the docs it links to");
--			this.$asof = small.c("muted", "loading…");
--		});
-+		panel.header.append(() => { this.$asof = small.c("muted", "loading…"); });
- 
- 		this.$summary = null;       // a re-render builds the controls again
- 		this.role_filter = null;    // Set<string> | null (null until the first real data arrives)
-@@ -72,17 +70,24 @@ export default class AISessionsPage extends Page {
- 		this.last_rows = [];        // the latest merged rows, UNFILTERED: filters and sort redraw from this
- 		this.filtered_count = 0;    // the "sessions shown" count
- 
-+		this.scope = new URLSearchParams(location.search).get("scope") || AISessionsPage.month_of(today);   // month is the default view
-+		if (/^\d{4}(-\d{2}){0,2}$/.test(this.scope)) [this.date_from, this.date_to] = AISessionsPage.range(this.scope, new URLSearchParams(location.search).has("scope") ? null : this.date_from);
-+		else this.scope = AISessionsPage.month_of(today);
-+
-+		this.$scope = div.c("sessions-scope");
-+		this.render_scope();
-+
- 		this.$stats = div.c("sessions-stats");
--		panel.main.append(this.$stats);
-+		this.$status = div.c("sessions-status");   // the footer: one line of small things (counts, plan meters, open tasks)
-+		this.$status.append(this.$stats, span.c("sessions-status-open").append(PageWork.line(this.url)));
- 		this.render_stats();
- 
- 		this.$controls = div.c("sessions-controls");
--		panel.main.append(this.$controls);
- 
- 		this.grid = this.make_grid();
- 		this.$empty = p.c("muted", "No sessions with an id yet.");
- 		this.$empty.el.hidden = true;
--		panel.main.append(this.grid, this.$empty);
-+		panel.main.append(div.c("sessions-body").append(this.nav_view(), div.c("sessions-main").append(this.$scope, this.$controls, this.grid, this.$empty, this.$status)));
- 		this.arrange_for(this.grid.view);
- 		this.grid.watch(g => this.arrange_for(g.view));
- 		const grid = this.grid;
-@@ -90,6 +95,70 @@ export default class AISessionsPage extends Page {
- 		this.snapshot_rows = [];
- 	}
- 
-+	// ---- scope: year / month / day, a breadcrumb that is also the URL (?scope=2026-10) ------------------
-+
-+	static pad = n => String(n).padStart(2, "0");
-+	static month_of(d){ return d.getUTCFullYear() + "-" + AISessionsPage.pad(d.getUTCMonth() + 1); }
-+
-+	/** [from, to] day strings for "2026", "2026-10" or "2026-10-13". `floor`: the default month keeps its 7-day minimum window. */
-+	static range(scope, floor){
-+		const [y, m, d] = scope.split("-").map(Number), pad = AISessionsPage.pad;
-+		if (d) return [scope, scope];
-+		if (m) return [floor && floor < `${y}-${pad(m)}-01` ? floor : `${y}-${pad(m)}-01`, `${y}-${pad(m)}-${pad(new Date(Date.UTC(y, m, 0)).getUTCDate())}`];
-+		return [`${y}-01-01`, `${y}-12-31`];
-+	}
-+
-+	static MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-+
-+	/** One clickable trail: All sessions / 2026 / October / 13, the last part current; the arrows step the level (newer/older). */
-+	render_scope(){
-+		const parts = this.scope.split("-"), pad = AISessionsPage.pad;
-+		const step = dir => {
-+			const [y, m, d] = parts.map(Number);
-+			if (d) return AISessionsPage.ymd(new Date(Date.UTC(y, m - 1, d + dir))).replaceAll("/", "-");
-+			if (m) return AISessionsPage.month_of(new Date(Date.UTC(y, m - 1 + dir, 1)));
-+			return String(y + dir);
-+		};
-+		this.$scope?.empty(() => {
-+			div.c("ui-crumbs flex wrap v-center gap-35", () => {
-+				parts.forEach((part, i) => {
-+					const path = parts.slice(0, i + 1).join("-"), text = i === 1 ? AISessionsPage.MONTHS[+part - 1] : i === 2 ? String(+part) : part;
-+					if (i) span.c("muted", "/");
-+					const crumb = a.c("page-link sessions-crumb" + (i === parts.length - 1 ? " sessions-crumb-on" : ""), text).href(this.url + "?scope=" + path).attr("title", "Only sessions active in " + path);
-+					crumb.click(e => { e.preventDefault(); this.set_scope(path); });
-+				});
-+				for (const [dir, text, tip] of [[-1, "‹", "the one before"], [1, "›", "the next one"]]){
-+					const to = step(dir);
-+					button.c("sessions-crumb-step", text).attr("title", tip + " (" + to + ")").attr("aria-label", tip).on("click", () => this.set_scope(to));
-+				}
-+				if (parts.length < 3 && !this.scope.startsWith(AISessionsPage.ymd(new Date()).slice(0, parts.length === 1 ? 4 : 7).replaceAll("/", "-"))) return;
-+				if (parts.length < 3) button.c("sessions-crumb-step sessions-crumb-day", "today").attr("title", "Only today").on("click", () => this.set_scope(AISessionsPage.ymd(new Date()).replaceAll("/", "-")));
-+			});
-+		});
-+	}
-+
-+	static ymd(d){ return d.getUTCFullYear() + "/" + AISessionsPage.pad(d.getUTCMonth() + 1) + "/" + AISessionsPage.pad(d.getUTCDate()); }
-+
-+	/** Scope the list to a year, month or day: the dates move, the URL follows (`?scope=`), and the query asks again. */
-+	set_scope(scope){
-+		this.scope = scope;
-+		[this.date_from, this.date_to] = AISessionsPage.range(scope);
-+		const url = new URL(location.href); url.searchParams.set("scope", scope);
-+		history.replaceState(history.state, "", url);
-+		this.render_scope();
-+		if (this.$from) this.$from.el.value = this.date_from;
-+		if (this.$to) this.$to.el.value = this.date_to;
-+		this.set_from(this.date_from);
-+	}
-+
-+	/** The left rail: this page's own sub-views, each a route (the grid, its docs, the other dashboard versions). */
-+	nav_view(){
-+		const items = [["Sessions", this.url, "list", "the grid"], ["Priorities", this.url + "doc/", "flag", "What the owner asked for, most important first"], ["Readme", this.url + "readme/", "menu_book", "What this tab is, and the docs it links to"],
-+			["Dashboard v3", "/framework/ai/v/3/", "dashboard", "The newer dashboard"], ["Dashboard v2", "/framework/ai/v/2/", "dashboard", "The older dashboard"], ["All versions", "/framework/ai/v/", "history", "Every dashboard version"]];
-+		return nav.c("sessions-nav", () => items.forEach(([text, href, glyph, tip], i) =>
-+			a.c("sessions-nav-item" + (i === 0 ? " sessions-nav-on" : ""), () => { icon(glyph); span(text); }).href(href).attr("title", tip)));
-+	}
-+
- 	// ---- drawing -------------------------------------------------------------------------------------
- 
- 	static WIDTHS = { state: "4rem", name: "1fr", cost: "14rem", updated: "6rem", duration: "6rem", role: "13rem", source: "6rem", model: "9rem" };
-@@ -539,7 +608,7 @@ export default class AISessionsPage extends Page {
- 				const $from = input().attr("type", "date"); $from.el.value = this.date_from; this.$from = $from;
- 				$from.on("change", () => this.set_from($from.el.value));
- 				small.c("muted", "to");
--				const $to = input().attr("type", "date"); $to.el.value = this.date_to;
-+				const $to = input().attr("type", "date"); this.$to = $to; $to.el.value = this.date_to;
- 				$to.on("change", () => { this.date_to = $to.el.value; this.remote_ask(); });
- 			});
- 		}); this.$kinds = div.c("sessions-kinds"); });
-diff --git a/public/framework/ai/sessions/doc/files.jsonl b/public/framework/ai/sessions/doc/files.jsonl
-index 12c6669ad..aba4b5128 100644
---- a/public/framework/ai/sessions/doc/files.jsonl
-+++ b/public/framework/ai/sessions/doc/files.jsonl
+diff --git a/public/files.jsonl b/public/files.jsonl
+index 941bdb4e7..3ac9b790c 100644
+--- a/public/files.jsonl
++++ b/public/files.jsonl
 @@ -57,3 +57,4 @@
- {"file":"commit-rule.md"}
- {"file":"readme-full-2026-10-12.md"}
- {"file":"buckets.md"}
-+{"file":"data-sources.md"}
-diff --git a/public/framework/ai/sessions/doc/ui/compact-layout.md b/public/framework/ai/sessions/doc/ui/compact-layout.md
-new file mode 100644
-index 000000000..0336608a6
---- /dev/null
-+++ b/public/framework/ai/sessions/doc/ui/compact-layout.md
-@@ -0,0 +1,9 @@
-+# Sessions layout, 2026-10-13: the grid gets the screen
-+
-+The owner's complaint: the first row sat halfway down the page and a 200 px footer cut the grid to a third. Measured at 1200 wide (1000 tall): first row y=464 before, y=267 after; the footer was two stacked lines of chips (open tasks, "Inbox · 1, 1 new") that came from the ancestor AI page, now one 36 px status line.
-+
-+- **Which module draws the tab:** `ai/AISession/AISessionsPage.js` (`sessions/page.js` only instantiates it). Styles: `sessions/sessions.css`.
-+- **Status line:** counts, plan meters and an open-tasks chip (`PageWork.line`, opens upward as a popover) sit in one sticky `.sessions-status`. The ancestor page's own chips are hidden only while a `.sessions-page` is inside (`:has`), so no other page changes.
-+- **Scope:** the breadcrumb `2026 / October / 13` with step arrows is `?scope=2026`, `2026-10` or `2026-10-13` (month is the default). Query params, not `/2026/10/`, because those paths already belong to `StoreFolder` (the store browsed by path). The dates feed the same server query as before.
-+- **Left rail:** a plain link list (Sessions, Priorities, Readme, dashboard versions); no existing vertical nav fit. Below 40em it becomes a row.
-+- **Not done:** editing a date by hand does not update the breadcrumb (the picker inputs are hidden now).
-diff --git a/public/framework/ai/sessions/doc/ui/files.jsonl b/public/framework/ai/sessions/doc/ui/files.jsonl
-index 58228a05e..29a1df0cd 100644
---- a/public/framework/ai/sessions/doc/ui/files.jsonl
-+++ b/public/framework/ai/sessions/doc/ui/files.jsonl
-@@ -2,3 +2,4 @@
- {"file":"session-class.md"}
- {"file":"views.md"}
- {"file":"detail-layout.md"}
-+{"file":"compact-layout.md"}
+ {"file":"data/","gone":true}
+ {"file":"data/"}
+ {"file":"manifest.webmanifest"}
++{"file":"data/","gone":true}
+diff --git a/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl b/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
+index e4b3e3e9d..3a8b9d1e7 100644
+--- a/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
++++ b/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
+@@ -33,3 +33,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026/10/13/page.jsonl b/public/framework/ai/2026/10/13/page.jsonl
+index e377c72bb..b436da91c 100644
+--- a/public/framework/ai/2026/10/13/page.jsonl
++++ b/public/framework/ai/2026/10/13/page.jsonl
+@@ -56,3 +56,7 @@
+ {"file":"inbox-timeline-one-record-per-thing-two/page.jsonl"}
+ {"file":"inbox-data-decided-1-thing-for-you/page.jsonl"}
+ {"file":"task-logs-lose-lines-a-writer-rewrites-t/page.jsonl"}
++{"file":"session-730e8a7b/page.jsonl","gone":true}
++{"file":"session-index-thousands-of-sessions-held/page.jsonl","gone":true}
++{"file":"session-data-are-we-duplicating-the-raw/page.jsonl","gone":true}
++{"file":"session-data-yes-we-duplicate-your-promp/page.jsonl","gone":true}
+diff --git a/public/framework/ai/archive/files.jsonl b/public/framework/ai/archive/files.jsonl
+index 2c4b5033b..e9af1fb7b 100644
+--- a/public/framework/ai/archive/files.jsonl
++++ b/public/framework/ai/archive/files.jsonl
+@@ -1,2 +1,3 @@
+ {"file":"ai2/"}
+ {"file":"task-stubs/"}
++{"file":"day-listings/"}
+diff --git a/public/framework/ai/files.jsonl b/public/framework/ai/files.jsonl
+index b1957a79e..6d234b209 100644
+--- a/public/framework/ai/files.jsonl
++++ b/public/framework/ai/files.jsonl
+@@ -430,3 +430,27 @@
+ {"file":"models/page.js"}
+ {"file":"v-rs7u4o7.jsonl"}
+ {"file":"v-rs7u4o7.summary.json"}
++{"file":"recordings/","gone":true}
++{"file":"openrouter-usage.json","gone":true}
++{"file":"servex-queue.json","gone":true}
++{"file":"v-h999x0j.jsonl","gone":true}
++{"file":"v-h999x0j.summary.json","gone":true}
++{"file":"v-nfpj4z2.jsonl","gone":true}
++{"file":"v-05va2n7.jsonl","gone":true}
++{"file":"v-05vdrmk.jsonl","gone":true}
++{"file":"v-06cup4p.jsonl","gone":true}
++{"file":"v-09rornv.jsonl","gone":true}
++{"file":"v-09rrbo1.jsonl","gone":true}
++{"file":"v-0a0u4dv.jsonl","gone":true}
++{"file":"v-rzd5ehk.jsonl","gone":true}
++{"file":"v-s9g6vd1.jsonl","gone":true}
++{"file":"v-s9g6vd1.summary.json","gone":true}
++{"file":"v-z2l35rm.jsonl","gone":true}
++{"file":"v-z2l7kof.jsonl","gone":true}
++{"file":"v-z32l2dk.jsonl","gone":true}
++{"file":"v-omwdzl5.jsonl","gone":true}
++{"file":"v-omwdzl5.summary.json","gone":true}
++{"file":"2026-10-12/","gone":true}
++{"file":"screenshots/","gone":true}
++{"file":"v-rs7u4o7.jsonl","gone":true}
++{"file":"v-rs7u4o7.summary.json","gone":true}
+diff --git a/public/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-perf/page.jsonl b/public/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-perf/page.jsonl
+index ffd14b8b6..b0da7fc2c 100644
+--- a/public/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-perf/page.jsonl
++++ b/public/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-perf/page.jsonl
+@@ -56,3 +56,4 @@
+ {"file":"perf-sessions.mjs"}
+ {"file":"probe-views.mjs"}
+ {"file":"requirements.md"}
++{"file":"results-partial-interrupted.txt"}
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/page.jsonl b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/page.jsonl
+index c0551e552..ebf3d167d 100644
+--- a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/page.jsonl
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/page.jsonl
+@@ -34,3 +34,4 @@
+ {"file":"ai-modules-home/"}
+ {"file":"aitask-views/"}
+ {"file":"sessions-page-layout/"}
++{"file":"task-log-race/"}
 diff --git a/public/framework/ai/sessions/files.jsonl b/public/framework/ai/sessions/files.jsonl
-index b917079e3..cc7faa381 100644
+index cc7faa381..04d756647 100644
 --- a/public/framework/ai/sessions/files.jsonl
 +++ b/public/framework/ai/sessions/files.jsonl
-@@ -30305,3 +30305,11 @@
- {"file":"task-pages.json","gone":true}
- {"file":"task-pages.json"}
- {"file":"screenshots/"}
-+{"file":"sessions.json","gone":true}
-+{"file":"spend-tree.json","gone":true}
-+{"file":"week.json","gone":true}
-+{"file":"session-index.json","gone":true}
-+{"file":"session-tree.json","gone":true}
-+{"file":"openrouter-reconcile.json","gone":true}
-+{"file":"openrouter-costs.json","gone":true}
-+{"file":"screenshots/","gone":true}
-diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
-index 4ce155fc5..2d1a923dc 100644
---- a/public/framework/ai/sessions/readme.md
-+++ b/public/framework/ai/sessions/readme.md
-@@ -13,6 +13,7 @@ opens as a side peek beside the grid instead of replacing it.
- - **Where the real dollars come from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-real-dollars-come-from), verbatim.
- - **Where the data comes from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-data-comes-from), verbatim.
- - **Tasks in memory** — every `task.jsonl` as a queryable row (`module`, `landed`, `text`): [Server/doc/session-index.md](/Server/doc/session-index.md).
-+- **Layout** — the compact grid, scope trail, left rail, status line: [doc/ui/compact-layout.md](doc/ui/compact-layout.md).
- - **Buckets** — thousands of routine sessions fold into a few chips with their own totals: [doc/buckets.md](doc/buckets.md).
- - **Data sources** — the SDK session file is the one copy of what was said; where the repo still duplicates it, and the deep link: [doc/data-sources.md](doc/data-sources.md).
- ## Watch out
+@@ -30313,3 +30313,9 @@
+ {"file":"openrouter-reconcile.json","gone":true}
+ {"file":"openrouter-costs.json","gone":true}
+ {"file":"screenshots/","gone":true}
++{"file":"openrouter-reconcile.json"}
++{"file":"session-flags.json"}
++{"file":"session-index.json"}
++{"file":"session-tree.json"}
++{"file":"sessions.json"}
++{"file":"spend-tree.json"}
 diff --git a/public/framework/ai/sessions/sessions.css b/public/framework/ai/sessions/sessions.css
-index f189e8af6..6f8124181 100644
+index 6f8124181..e3f08ec57 100644
 --- a/public/framework/ai/sessions/sessions.css
 +++ b/public/framework/ai/sessions/sessions.css
-@@ -319,3 +319,57 @@
- 	.sessions-row-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
- 	.sessions-flight-grid .sessions-cell { block-size: 3em; overflow: hidden; }
- }
-+
-+/* THE SESSIONS LAYOUT (2026-10-13): a left rail, a one-line scope trail, compact controls, a one-line status footer.
-+   Why: the first grid row sat 48% down at 1200 and a 200 px footer cut the grid to a third (doc/ui/compact-layout.md). */
-+@layer site {
-+	.sessions-body { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 0 var(--gap-50, .5rem); align-items: start; }
-+	.sessions-main { position: relative; min-width: 0; display: flex; flex-direction: column; gap: var(--gap-25, .25rem); }
-+	.sessions-nav { display: flex; flex-direction: column; gap: .1rem; position: sticky; top: .5rem; padding-block: .25rem; border-inline-end: 1px solid var(--line); padding-inline-end: .35rem; }
-+	.sessions-nav-item { display: flex; align-items: center; gap: .4rem; padding: .25rem .4rem; border-radius: var(--radius); text-decoration: none; color: inherit; font-size: .9em; }
-+	.sessions-nav-item:hover { background: var(--tint); }
-+	.sessions-nav-on { font-weight: 600; background: var(--tint); }
-+	.sessions-nav .icon { font-size: 1.1em; }
-+	@container (width < 40em) {
-+		.sessions-body { grid-template-columns: minmax(0, 1fr); }
-+		.sessions-nav { position: static; flex-direction: row; flex-wrap: wrap; border-inline-end: none; }
-+	}
-+
-+	.sessions-scope { font-size: .9em; }
-+	.sessions-crumb { text-decoration: none; }
-+	.sessions-crumb-on { font-weight: 700; }
-+	.sessions-crumb-step { border: 1px solid var(--line); background: none; border-radius: var(--radius); padding: 0 .5em; cursor: pointer; color: inherit; font-size: .9em; }
-+	.sessions-crumb-step:first-of-type { margin-inline-start: .5rem; }
-+
-+	.sessions-controls { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 1rem; row-gap: .25rem; margin-block-end: .25rem; }
-+	.sessions-controls .sessions-filters { gap: .5rem 1rem; }
-+	.sessions-controls .sessions-search { inline-size: 11em; padding-block: .1em; }
-+	.sessions-controls .sessions-filters label { font-size: .75em; }
-+	.sessions-page .sessions-chip { font-size: .75em; padding: .05em .55em; }
-+	.sessions-page .sessions-chip-head { font-size: .75em; }
-+	.sessions-page .datagrid { position: static; }
-+	.sessions-page .datagrid-bar { position: absolute; inset-block-start: 0; inset-inline-end: 0; margin: 0; }   /* the Table / Rail toggle rides on the scope line */
-+	.sessions-page .datagrid-toggle-btn { padding: .1em .6em; font-size: .85em; }
-+	.sessions-page .sessions-kinds .sessions-chip { font-size: .8em; padding: .05em .6em; }
-+
-+	.sessions-status { position: sticky; inset-block-end: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1rem; padding: .25rem .5rem; margin-block-start: .5rem; background: var(--surface); border-block-start: 1px solid var(--line); font-size: .8em; }
-+	.sessions-status .sessions-stats { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1rem; }
-+	.sessions-status .sessions-stats-text { display: flex; flex-wrap: wrap; gap: 0 1rem; }
-+	.sessions-status .sessions-counts { margin: 0; }
-+	.sessions-status .ai-usage { display: flex; gap: 1rem; }
-+	.sessions-status .ai-meter { flex-direction: row; align-items: center; gap: .4rem; }
-+	.sessions-status .ai-meter .flex { gap: .4rem; }
-+	.sessions-status .ai-gauge { inline-size: 5rem; }
-+	.sessions-status .ai-note { display: none; }
-+	.sessions-status-open { margin-inline-start: auto; position: relative; }
-+	.sessions-status-open .page-open-line { padding: .05em .6em; }
-+	.sessions-status-open .page-open-rows { position: absolute; inset-block-end: 100%; inset-inline-end: 0; min-inline-size: 22em; padding: .5rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 .25rem 1rem rgb(0 0 0 / .15); }
-+
-+}
-+
-+/* Hides, in util so they beat `.flex`: the cache link and the date pickers (the scope trail replaces them); the ancestor
-+   page's footer chips (open tasks, "Inbox · 1, 1 new", AI cost) go: the open tasks return as a chip in the status line. */
-+@layer util {
-+	.sessions-controls .sessions-summary, .sessions-controls .sessions-daterange { display: none; }
-+	.page:has(.sessions-page) > :is(.page-open, .page-inbox-chip, .page-ai-cost) { display: none; }
-+}
+@@ -353,13 +353,13 @@
+ 	.sessions-page .sessions-kinds .sessions-chip { font-size: .8em; padding: .05em .6em; }
+ 
+ 	.sessions-status { position: sticky; inset-block-end: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1rem; padding: .25rem .5rem; margin-block-start: .5rem; background: var(--surface); border-block-start: 1px solid var(--line); font-size: .8em; }
+-	.sessions-status .sessions-stats { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1rem; }
+-	.sessions-status .sessions-stats-text { display: flex; flex-wrap: wrap; gap: 0 1rem; }
++	.sessions-status .sessions-stats, .sessions-status .sessions-stats-text, .sessions-status .ai-usage { display: contents; }   /* counts, meters and the open-tasks chip all flow in the status line itself */
+ 	.sessions-status .sessions-counts { margin: 0; }
+-	.sessions-status .ai-usage { display: flex; gap: 1rem; }
++	.sessions-status .sessions-counts + .sessions-counts { display: none; }   /* the OpenRouter dollars: Readme, "Where the real dollars come from" */
++	.sessions-status .ai-meter, .sessions-status .ai-meter * { white-space: nowrap; }
+ 	.sessions-status .ai-meter { flex-direction: row; align-items: center; gap: .4rem; }
+ 	.sessions-status .ai-meter .flex { gap: .4rem; }
+-	.sessions-status .ai-gauge { inline-size: 5rem; }
++	.sessions-status .ai-gauge { inline-size: 4rem; }
+ 	.sessions-status .ai-note { display: none; }
+ 	.sessions-status-open { margin-inline-start: auto; position: relative; }
+ 	.sessions-status-open .page-open-line { padding: .05em .6em; }
+diff --git a/public/framework/core/Item/doc/files.jsonl b/public/framework/core/Item/doc/files.jsonl
+index 8fc693d02..a9c6f0b0f 100644
+--- a/public/framework/core/Item/doc/files.jsonl
++++ b/public/framework/core/Item/doc/files.jsonl
+@@ -19,3 +19,4 @@
+ {"file":"property/"}
+ {"file":"property/"}
+ {"file":"item-notes.md"}
++{"file":"architecture.md"}
+diff --git a/public/framework/core/Layout/doc/files.jsonl b/public/framework/core/Layout/doc/files.jsonl
+index 8c7c107f2..35e84f784 100644
+--- a/public/framework/core/Layout/doc/files.jsonl
++++ b/public/framework/core/Layout/doc/files.jsonl
+@@ -3,3 +3,6 @@
+ {"file":"porting.md"}
+ {"file":"props.md"}
+ {"file":"rules.md"}
++{"file":"architecture.md"}
++{"file":"Layout-notes.md"}
++{"file":"rules-notes.md"}
+diff --git a/public/framework/core/Page/doc/files.jsonl b/public/framework/core/Page/doc/files.jsonl
+index 724481c2d..3b309d9c8 100644
+--- a/public/framework/core/Page/doc/files.jsonl
++++ b/public/framework/core/Page/doc/files.jsonl
+@@ -74,3 +74,6 @@
+ {"file":"Frame-notes.md"}
+ {"file":"page-js-notes.md"}
+ {"file":"Page-notes.md"}
++{"file":"how-a-page-renders.md"}
++{"file":"storage-slice-1.md"}
++{"file":"storage.md"}
+diff --git a/public/framework/core/Page/files.jsonl b/public/framework/core/Page/files.jsonl
+index 68bba2b82..b90794991 100644
+--- a/public/framework/core/Page/files.jsonl
++++ b/public/framework/core/Page/files.jsonl
+@@ -79,3 +79,4 @@
+ {"file":"Related.js"}
+ {"file":"Template/page.js"}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/core/Router/doc/files.jsonl b/public/framework/core/Router/doc/files.jsonl
+index 6ae4f81a4..c4d475c00 100644
+--- a/public/framework/core/Router/doc/files.jsonl
++++ b/public/framework/core/Router/doc/files.jsonl
+@@ -26,3 +26,4 @@
+ {"file":"property/"}
+ {"file":"method/"}
+ {"file":"property/"}
++{"file":"architecture.md"}
+diff --git a/public/framework/core/View/doc/files.jsonl b/public/framework/core/View/doc/files.jsonl
+index c88d29643..df63b95a5 100644
+--- a/public/framework/core/View/doc/files.jsonl
++++ b/public/framework/core/View/doc/files.jsonl
+@@ -18,3 +18,4 @@
+ {"file":"property/"}
+ {"file":"method/"}
+ {"file":"property/"}
++{"file":"architecture.md"}
+diff --git a/public/framework/dev/DevBar/doc/files.jsonl b/public/framework/dev/DevBar/doc/files.jsonl
+index 1f3b8bb66..8e066108d 100644
+--- a/public/framework/dev/DevBar/doc/files.jsonl
++++ b/public/framework/dev/DevBar/doc/files.jsonl
+@@ -11,3 +11,4 @@
+ {"file":"file/page.jsonl"}
+ {"file":"file/"}
+ {"file":"method/"}
++{"file":"says-notes.md"}
+diff --git a/public/framework/ext/DataGrid/files.jsonl b/public/framework/ext/DataGrid/files.jsonl
+index ecec7fdde..2a1331a5c 100644
+--- a/public/framework/ext/DataGrid/files.jsonl
++++ b/public/framework/ext/DataGrid/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"DataGridRail.js"}
+ {"file":"DataGridTable.js"}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/Figma/files.jsonl b/public/framework/ext/Figma/files.jsonl
+index 9b43a4eda..287d5ea56 100644
+--- a/public/framework/ext/Figma/files.jsonl
++++ b/public/framework/ext/Figma/files.jsonl
+@@ -34,3 +34,5 @@
+ {"file":"screenshots/"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"scripts/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/Refine/files.jsonl b/public/framework/ext/Refine/files.jsonl
+index 02c9b8b13..8b412673f 100644
+--- a/public/framework/ext/Refine/files.jsonl
++++ b/public/framework/ext/Refine/files.jsonl
+@@ -47,3 +47,5 @@
+ {"file":"screenshots/"}
+ {"file":"RefinedCard.js"}
+ {"file":"queue/"}
++{"file":"runs/page.js"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/Refine/runs/2026-10-06/files.jsonl b/public/framework/ext/Refine/runs/2026-10-06/files.jsonl
+index 1d2474020..5e907fb44 100644
+--- a/public/framework/ext/Refine/runs/2026-10-06/files.jsonl
++++ b/public/framework/ext/Refine/runs/2026-10-06/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"brief.md"}
+ {"file":"coverage.md"}
+ {"file":"refine.json"}
++{"file":"confidence.json"}
+diff --git a/public/framework/files.jsonl b/public/framework/files.jsonl
+index b745ad4db..b2ef1ca44 100644
+--- a/public/framework/files.jsonl
++++ b/public/framework/files.jsonl
+@@ -73,3 +73,4 @@
+ {"file":"lab/page.js"}
+ {"file":"library/page.js"}
+ {"file":"library/page.js"}
++{"file":"catalog/page.js"}
