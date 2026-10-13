@@ -655,3 +655,12 @@
 {"at":"2026-10-12T23:30:33.119Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/sessions-fixes/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-10-12T23:31:34.096Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/sessions-fixes/requirements.md","verdict":"spawned","to":"clarity-sessions-fixes"}
 {"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/sessions-fixes","verdict":"clear","what":"Brief is short, three numbered asks, checkable done-list; text-check clean","to":"flags.jsonl"}
+{"at":"2026-10-12T23:36:59.267Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/sessions-fixes","verdict":"queued","kind":"landing"}
+{"at":"2026-10-12T23:36:59.462Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/sessions-fixes","verdict":"spawned","to":"clarity-sessions-fixes-2"}
+{"at":"2026-10-12T19:20:00-05:00","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/sessions-fixes","verdict":"rewrote","what":"outcome now lists each ask as a checkbox; shots path corrected; unproven asks left unticked","to":"task.jsonl"}
+{"at":"2026-10-13T00:00:32.191Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/comment-prune/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-13T00:01:33.104Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/comment-prune/requirements.md","verdict":"spawned","to":"clarity-comment-prune"}
+{"at":"2026-10-12T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/comment-prune/requirements.md","verdict":"clear","what":"Title, owner quote, census and unticked Done-when checklist read in ten seconds; text-check clean.","to":"clarity"}
+{"at":"2026-10-13T00:06:00.018Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/comment-prune","verdict":"queued","kind":"landing"}
+{"at":"2026-10-13T00:06:00.243Z","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/comment-prune","verdict":"spawned","to":"clarity-comment-prune-2"}
+{"at":"2026-10-12T19:10:00-05:00","target":"public/framework/ai/sessions/2026/10/12/session-87bec773/comment-prune","verdict":"clear","what":"text-check clean; outcome short, asks ticked with proof, STATE.md linked","to":"none"}
