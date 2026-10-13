@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
 import stamp from "../stamp.js";
+import TaskDirs from "../TaskDirs.mjs";
 
 const AI = path.resolve("public/framework/ai");
 const STOP = new Set("the a an to of for and or in on it is we i you can lets let please make just some that this".split(" "));
@@ -38,14 +39,12 @@ export default class Start {
 	 * writes by hand, so a browser-started task is indistinguishable from one a
 	 * session opened for itself. */
 	scaffold(prompt, { group, model = "sonnet", name }){
-		const date = stamp().slice(0, 10);
-		const day = path.join(AI, date);
-		const slug = unique(day, slugify(name || prompt));
-		const dir = path.join(day, slug);
-		if (!dir.startsWith(AI)) throw new Error("refusing path " + dir);
-
-		fs.mkdirSync(dir, { recursive: true });
+		// The task's folder is in the sessions store, under the new session (Server/TaskDirs.mjs; ai/doc/task-folders.md).
 		const session_id = randomUUID(), at = stamp();
+		const home = TaskDirs.session_dir(session_id), day = TaskDirs.day_dir();
+		const slug = unique(home, slugify(name || prompt));
+		const dir = TaskDirs.make({ slug, session_id });
+		if (!dir.startsWith(AI)) throw new Error("refusing path " + dir);
 
 		this.write(path.join(dir, "requirements.md"),
 			`# ${slug}\n\n## The ask, verbatim\n\n> ${prompt.split("\n").join("\n> ")}\n\n`
@@ -62,7 +61,8 @@ export default class Start {
 
 		// `task` is a path under `public/` — the one shape `rpc:ask` and `rpc:thread`
 		// also take, so a started task can be chatted to without a second format.
-		return { task: `framework/ai/${date}/${slug}`, slug, session_id, url: `/framework/ai/${date}/${slug}/` };
+		const task = path.relative(path.join(TaskDirs.REPO, "public"), dir).split(path.sep).join("/");
+		return { task, slug, session_id, url: `/${task}/` };
 	}
 
 	/* ⚠ Muted for the tab that asked: three scaffold writes in a row would

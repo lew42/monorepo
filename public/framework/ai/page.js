@@ -1,4 +1,4 @@
-import { Page, md, div, a, h1, icon, span, AITask } from "/app.js";
+import { Page, md, div, a, h1, icon, span } from "/app.js";
 import AIRail, { card_page } from "/framework/ai/rail/rail.js";
 
 // ⚠ Only these shapes: AI 2 claims EVERY unknown name as a card, but here a real folder with its own page.js is found by the probe AFTER route(). Doc: doc/ai-page-notes.md.
@@ -111,10 +111,8 @@ export default new Page({
 					const moved = !task.includes(".") && StoreFolder.moved(this.url + task + "/");
 					if (moved) return StoreFolder.redirect(this.url + task + "/", moved);
 					if (task.includes(".") || has_page_js(name, task)) return;
-					return new AITask({
-						title: task, icon: "receipt_long",
-						url: this.url + task + "/", src: this.url + task + "/session.json",
-					});
+					// no task lives in a day folder any more: a reader guessed this url from the day log; find it in the store (one-store, 2026-10-13)
+					return StoreFolder.lookup(this.url + task + "/", name, task);
 				},
 			});
 		}

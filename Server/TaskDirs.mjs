@@ -8,7 +8,8 @@
 //   node Server/TaskDirs.mjs --day                print today's day folder (where day.jsonl goes)
 //   node Server/TaskDirs.mjs --find <slug>        print the newest task folder with that slug
 //   node Server/TaskDirs.mjs --list [days]        print every task folder of the last N days (default 7)
-//   node Server/TaskDirs.mjs --follow <old dir>   print where an old ai/YYYY-MM-DD/<slug>/ path lives now
+//   node Server/TaskDirs.mjs --follow <old dir>   print where an old ai/YYYY-MM-DD/<slug>/ path lives now (moved, or the slug found in that day)
+//   node Server/TaskDirs.mjs --census             day folders still on disk + code that hand-joins one (exit 1 if any); TaskDirs.refuse() is the guard
 // Old paths keep working: every move is a line in ai/sessions/task-moves.jsonl (Server/TaskMove.mjs) or the 2026-10-10
 // ai/sessions/task-manifest.json; follow(), alias() and redirect() chain through both. The 2026-10-10 mover (plan/apply/verify/undo) is below.
 import fs from "node:fs";
@@ -107,13 +108,60 @@ export default class TaskDirs {
 		return p;
 	}
 
+	/** The task folder named `slug` on `day` ("YYYY-MM-DD") anywhere in that day of the store (inside a session, a parent
+	 *  task, up to 4 levels), newest first; null if none. What an old /framework/ai/<day>/<slug>/ guess meant. */
+	static locate(day, slug){
+		const hits = [], walk = (d, n) => { for (const e of ls(d)){ const f = path.join(d, e); if (e === slug && fs.existsSync(path.join(f, "task.jsonl"))) hits.push(f); if (n < 4) walk(f, n + 1); } };
+		walk(this.day_dir(day), 1);
+		return hits.sort((a, b) => fs.statSync(path.join(b, "task.jsonl")).mtimeMs - fs.statSync(path.join(a, "task.jsonl")).mtimeMs)[0] ?? null;
+	}
+
+	/** An old-shaped path (dir or file) -> where it is: a moved folder, else the same slug found in that day of the store; else itself. */
+	static resolve(p){
+		const abs = path.resolve(REPO, p), f = this.follow(abs);
+		if (f !== abs || fs.existsSync(abs)) return f;
+		const m = /^public\/framework\/ai\/(\d{4}-\d{2}-\d{2})\/([^/]+)((?:\/[^/]+)*)$/.exec(rel(abs));
+		const hit = m && this.locate(m[1], m[2]);
+		return hit ? path.join(hit, ...m[3].split("/").filter(Boolean)) : abs;
+	}
+
+	/** THE GUARD (2026-10-13, one-store/doc/why-the-day-folder-came-back.md): nothing new is made under the retired
+	 *  public/framework/ai/YYYY-MM-DD/. An old path that moved or can be found is followed; anything else throws, naming the right place. */
+	static refuse(p){
+		const abs = path.resolve(REPO, p), m = /^public\/framework\/ai\/(\d{4}-\d{2}-\d{2})(?:\/|$)/.exec(rel(abs));
+		if (!m) return abs;
+		const now = this.resolve(abs);
+		if (now !== abs) return now;
+		const day = rel(this.day_dir(m[1]));
+		throw Object.assign(new Error(`refused: ${rel(abs)} is under the retired day folder public/framework/ai/${m[1]}/. `
+			+ `A task folder goes in the store: \`node Server/TaskDirs.mjs --new <slug>\` (it lands in ${day}/<session>/<slug>/); `
+			+ `a script's run folder is TaskDirs.dir({slug}) (${day}/<slug>/); the day log is ${day}/day.jsonl. Why: public/framework/ai/doc/task-folders.md`), { code: "RETIRED_DAY_FOLDER" });
+	}
+
+	/** Every day folder still on disk, and every code line that joins public/framework/ai with a date by hand (a writer)
+	 *  or builds a /framework/ai/<date>/ url (a reader, which the router redirects). `node Server/TaskDirs.mjs --census`. */
+	static census(){
+		const days = ls(AI).filter(n => /^\d{4}-\d{2}-\d{2}$/.test(n)).map(n => ({ dir: rel(path.join(AI, n)), files: this.files(path.join(AI, n)).length }));
+		const writers = [], readers = [], skip = /node_modules|[\\/]public[\\/]framework[\\/]ai[\\/](sessions|\d{4}|\d{4}-\d{2}-\d{2}|archive)([\\/]|$)|\.test\.|TaskDirs\.mjs|TaskMove\.mjs/;
+		const WRITE = /["'`]public\/framework\/ai\/?["'`]\s*,\s*(?!["'`]sessions)[^)\n]*(date|day|now\(\)|stamp|slice\(0, ?10\))|path\.join\(AI, *(date|day)\b/i;
+		const READ = /\/framework\/ai\/\$\{[^}]*(date|day)[^}]*\}\//i;
+		const walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })){
+			const f = path.join(d, e.name); if (skip.test(f)) continue;
+			if (e.isDirectory()) walk(f);
+			else if (/\.(m?js)$/.test(e.name)) fs.readFileSync(f, "utf8").split("\n").forEach((l, i) => {
+				if (WRITE.test(l)) writers.push(`${rel(f)}:${i + 1}`); else if (READ.test(l)) readers.push(`${rel(f)}:${i + 1}`); });
+		} };
+		for (const d of ["Server", "Servex", ".claude/hooks", "public/framework"]) walk(path.join(REPO, d));
+		return { days, writers, readers };
+	}
+
 	/** A site URL under an old task dir (/framework/ai/<date>/<task>/<rest>) -> the absolute file it now is, or null. */
 	static alias(url){
 		const m = /^\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+)$/.exec(url);
 		if (!m) return null;
 		const old = path.join(AI, ...decodeURIComponent(m[1]).split("/"));
 		if (!old.startsWith(AI)) return null;
-		const now = this.follow(old);
+		const now = this.resolve(old);
 		return now === old ? null : now;
 	}
 
@@ -123,7 +171,7 @@ export default class TaskDirs {
 		if (day) return `/framework/ai/sessions/${day[1]}/${day[2]}/${day[3]}/`;
 		const m = /^\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/[^/]+)(\/.*)?$/.exec(url);
 		if (!m) return null;
-		const old = path.join(AI, ...m[1].split("/")), now = this.follow(old);
+		const old = path.join(AI, ...m[1].split("/")), now = this.resolve(old);
 		return now === old ? null : "/" + slash(path.relative(path.join(REPO, "public"), now)) + (m[2] ?? "/");
 	}
 
@@ -212,10 +260,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 	else if (flag("--day")){ const d = TaskDirs.day_dir(); fs.mkdirSync(d, { recursive: true }); console.log(rel(d)); }
 	else if (flag("--find")){ const d = TaskDirs.find(arg("--find")); if (!d) process.exit(1); console.log(rel(d)); }
 	else if (flag("--list")) for (const t of TaskDirs.list(Number(arg("--list")) || 7)) console.log(t.day, rel(t.dir));
-	else if (flag("--follow")) console.log(rel(TaskDirs.follow(path.resolve(REPO, arg("--follow")))));
+	else if (flag("--follow")) console.log(rel(TaskDirs.resolve(arg("--follow"))));
+	else if (flag("--census")){ const c = TaskDirs.census(); console.log(JSON.stringify(c, null, 1)); console.error(`${c.days.length} day folders, ${c.writers.length} writers, ${c.readers.length} readers (redirected)`); process.exit(c.days.length || c.writers.length ? 1 : 0); }
 	else if (flag("--undo")) console.log(`moved back ${TaskDirs.undo()} folders`);
 	else if (flag("--verify")){ const r = TaskDirs.verify(); console.log(`${r.folders} folders, ${r.files} files, ${r.bytes} bytes checked: ${r.bad.length} missing/changed`); if (r.bad.length){ console.log(r.bad.slice(0, 20)); process.exit(1); } }
 	else if (flag("--apply")) console.log(await TaskDirs.apply());
 	else if (flag("--plan")){ const p = await TaskDirs.plan(); console.log(`move: ${p.moves.length}; stay: ${p.stay.length}; no session: ${p.orphans}`); }
-	else console.log("usage: --new <slug> [--session id] [--parent dir] | --day | --find <slug> | --list [days] | --follow <dir> | 2026-10-10 mover: --plan --apply --verify --undo");
+	else console.log("usage: --new <slug> [--session id] [--parent dir] | --day | --find <slug> | --list [days] | --follow <dir> | --census | 2026-10-10 mover: --plan --apply --verify --undo");
 }

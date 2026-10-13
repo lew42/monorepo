@@ -117,6 +117,13 @@ function guessTaskDir(aiDir, branch){
 		const p = path.join(aiDir, day, slug);
 		if (fs.existsSync(p)) return p;
 	}
+	// the sessions store, where every task has lived since 2026-10-12 (ai/doc/task-folders.md): the slug in the last 3 days
+	for (let i = 0; i <= 3; i++){
+		const [y, m, d] = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10).split("-");
+		const hit = (function walk(dir, n){ let es; try { es = fs.readdirSync(dir, { withFileTypes: true }); } catch { return null; }
+			for (const e of es) if (e.isDirectory()){ const f = path.join(dir, e.name); if (e.name === slug && fs.existsSync(path.join(f, "task.jsonl"))) return f; const r = n < 4 && walk(f, n + 1); if (r) return r; } return null; })(path.join(aiDir, "sessions", y, m, d), 1);
+		if (hit) return hit;
+	}
 	return null;
 }
 

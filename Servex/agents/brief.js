@@ -11,7 +11,7 @@ export function remember_focus(text){ focus = text ? String(text) : null; }
 
 export function brief(servex){
 	const out = ["# Servex right now",
-		"Who launched a task: the first line of its public/framework/ai/<date>/<slug>/task.jsonl (session_id, tab). The owner's VS Code tab dispatches work, and it is not in the list below. mastermind-servex audits and launches nothing.",
+		"Who launched a task: the first line of its task.jsonl (public/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/) (session_id, tab). The owner's VS Code tab dispatches work, and it is not in the list below. mastermind-servex audits and launches nothing.",
 		"If you don't know who did something, say you don't know. Never guess."];
 	try {
 		const claims = (servex?.claims?.list?.() ?? []).filter(c => !c.stale);

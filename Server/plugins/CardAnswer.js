@@ -1,4 +1,5 @@
 import { spawn } from "child_process";
+import TaskDirs from "../TaskDirs.mjs";
 import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
@@ -196,12 +197,10 @@ export default class CardAnswer {
 	 * doorbell needs to write — spawning it would still leave this search duplicated
 	 * one level up. Ten lines, read-only, kept beside its one caller. */
 	static mastermind_run(){
-		const AI = path.resolve("public/framework/ai");
-		const days = fs.readdirSync(AI).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().reverse();
-		for (const day of days){
-			const dir = path.join(AI, day);
-			for (const slug of fs.readdirSync(dir).filter(s => s.startsWith("mastermind-")).sort().reverse()){
-				const file = path.join(dir, slug, "task.jsonl");
+		// both task shapes, newest day first: the sessions store and any old ai/YYYY-MM-DD/ (Server/TaskDirs.mjs)
+		for (const { dir: d, slug } of TaskDirs.list(30).filter(t => t.slug.startsWith("mastermind-"))){
+			{
+				const file = path.join(d, "task.jsonl");
 				if (!fs.existsSync(file)) continue;
 				const lines = fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
 				const state = Object.assign({}, ...lines.filter(e => e.assign).map(e => e.assign));

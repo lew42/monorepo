@@ -18,6 +18,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import TaskDirs from "./TaskDirs.mjs";
 import { browser as launch, close as closeBrowser } from "./browser.mjs";
 import { check_page } from "./padding-check.mjs";
 
@@ -47,7 +48,7 @@ const dateStr = () => {
 	return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 };
 
-const outDir = outOpt ? path.resolve(outOpt) : path.join(root, "public/framework/ai/sessions", new Date().toISOString().slice(0, 10).replace(/-/g, "/"), "crawl");
+const outDir = outOpt ? path.resolve(outOpt) : TaskDirs.dir({ slug: "crawl" })   // the store (ai/doc/task-folders.md), never ai/<date>/;
 const shotsDir = path.join(outDir, "shots");
 const jsonlFile = path.join(outDir, "crawl.jsonl");
 const summaryFile = path.join(outDir, "summary.md");
