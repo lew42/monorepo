@@ -2,6 +2,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import Chain from "./Chain.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
@@ -58,7 +59,12 @@ export default class Assistant {
 		catch { return []; }
 	}
 
-	install(){ this.tool(); this.route(); this.listen(); return this; }
+	install(){
+		this.tool(); this.route(); this.listen();
+		/* SERVEX_CHAIN=on: the one global assistant (Chain.js, doc/assistant-chain.md) answers every sentence; this lobby path stands down. */
+		if (Chain.enabled()) this.chain = new Chain({ servex: this.servex }).install();
+		return this;
+	}
 
 	live(){ const a = this.servex.agents.live.get(this.id); return a && a.state !== "stopped" ? a : null; }
 
@@ -89,7 +95,7 @@ export default class Assistant {
 	 * cue. Nothing polls; nothing else in Servex has to know we exist. */
 	listen(){
 		this.servex.log.on("append", (name, entry) => {
-			if (name === this.log && entry.type === "prompt" && !String(entry.via ?? "").startsWith("worktree:")) this.heard(entry);   // a worktree page's test post wakes nobody
+			if (name === this.log && entry.type === "prompt" && !String(entry.via ?? "").startsWith("worktree:") && !this.chain) this.heard(entry);   // a worktree page's test post wakes nobody
 		});
 	}
 

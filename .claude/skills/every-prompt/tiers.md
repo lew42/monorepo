@@ -32,3 +32,5 @@ assistant** instead (the roles page above).
 `say.mjs state` prints the `MASTERMIND SESSION` today; the smallest extension is a `masterminds`
 list in the ledger (session name + topics owned) that `state` prints, so the fast tier still reads
 one line. Proposed, not built.
+
+The assistant chain (`SERVEX_CHAIN=on`): one Haiku fast cleaner for the owner, one Sonnet smart refiner, one batch hand-off to the mastermind: `Servex/agents/doc/assistant-chain.md`.
