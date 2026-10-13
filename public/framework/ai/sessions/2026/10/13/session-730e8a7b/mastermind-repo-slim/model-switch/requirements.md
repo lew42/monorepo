@@ -9,7 +9,12 @@ Budget: $10. Load the `sub-mastermind` skill first. The owner's raw words: `../r
 
 ## Deliverable
 
-1. **The truth, computed** (`Server/models-now.mjs`, read-only): for every role in `roles.js` and every live/dormant agent in the registry (`GET :8090/agents`): role, model, provider, where that came from (tier, role override, Echo `model_for`, the switch file), and the last 24 h cost per provider from the registry/spend files. Print it, and render it on the existing models page (`/framework/ai/models`, memory says it exists; find it) as a live table: the owner's "which agents are running what". Two numbers that must agree: agents counted vs registry rows.
+1. **The truth, computed** (`Server/models-now.mjs`, read-only). One row per role in `roles.js` and per live/dormant agent in the registry (`GET :8090/agents`):
+   - role, model, provider
+   - where it came from (tier, role override, Echo `model_for`, the switch file)
+   - last 24 h cost per provider, from the registry/spend files
+
+   Print it, and render it as a live table on the existing models page (`/framework/ai/models`; find it): the owner's "which agents are running what". Two numbers must agree: agents counted vs registry rows.
 2. **Put the assistants on Claude now:** the Echo's default `model_for()` resolves to the `scan` tier (Haiku) unless the switch file says openrouter; the fast assistant tier `fast` to Haiku 5.5 (the owner: fast = Haiku), `master-assistant`/smart stays Sonnet 5.5. One commit, a `decision` line, and a note that the change takes effect at the next Servex restart (the mastermind restarts; do not).
 3. **The wall switch:** make the switch two-way and visible: `node Server/models-now.mjs --backend openrouter|anthropic` writes/deletes the switch file and prints what will change at restart; the models page shows the current backend and the Claude week/5 h usage beside it (from `usage.json`); document in `Servex/ext/openrouter/readme.md` in five lines: when to flip, how, what it costs. Do not flip it yourself.
 4. **Answer the owner** with one `owner_note` (kind `decision`): what the assistants are on right now, what the Echo was on, what changes at the restart, and where to see it live.

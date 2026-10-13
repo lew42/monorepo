@@ -1,0 +1,735 @@
+diff --git a/Server/figma-roundtrip.mjs b/Server/figma-roundtrip.mjs
+new file mode 100644
+index 000000000..54ddd2265
+--- /dev/null
++++ b/Server/figma-roundtrip.mjs
+@@ -0,0 +1,98 @@
++// Figma ↔ code round trip, computed: node Server/figma-roundtrip.mjs
++// 1. every Figma page (data/<key>/live-pages.json, read from the file) → is a code page/CSS built from it? (evidence = files naming its node id or DS tag)
++// 2. every Figma variable (tokens/variables.json) → the site's custom property (framework.css), by value / by role / one-sided → tokens/map.json
++// Writes data/<key>/roundtrip.jsonl, tokens/map.json, and refreshes the generated blocks in doc/round-trip.md. Why: ext/Figma/doc/round-trip.md
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const fw = path.join(root, "public/framework"), fig = path.join(fw, "ext/Figma");
++const KEY = "QYN0G2URSBHYH5I06MOjxU";
++const read = f => fs.readFileSync(f, "utf8");
++const walk = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => e.isDirectory() ? (["data", "screenshots", "node_modules"].includes(e.name) ? [] : walk(path.join(d, e.name))) : [path.join(d, e.name)]);
++
++// ---- 1. inventory ----
++const live = JSON.parse(read(path.join(fig, "data", KEY, "live-pages.json"))).pages;
++const tracked = new Set(read(path.join(fig, "data", KEY, "pages.jsonl")).trim().split("\n").map(l => JSON.parse(l).page?.id).filter(Boolean));
++const built = read(path.join(fig, "data", KEY, "built.jsonl")).trim().split("\n").map(l => JSON.parse(l));
++const files = walk(fig).filter(f => /\.(js|mjs|css|md)$/.test(f) && !/round-trip\.md$|next\.md$/.test(f));
++const texts = files.map(f => ({ rel: path.relative(fw, f).replaceAll("\\", "/"), code: /\.(js|mjs|css)$/.test(f), text: read(f) }));
++const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
++function matcher(id, name) {
++	const alts = [esc(id), esc(name)];
++	const ds = /^DS · (\d+(?:\.\d+)?)\b/.exec(name);
++	if (ds) alts.push(`DS\\s*·?\\s*${esc(ds[1])}(?![.\\d])`);
++	return new RegExp(alts.join("|"));
++}
++const rows = live.map(([id, name]) => {
++	const re = name === "Index" ? new RegExp(esc(id)) : matcher(id, name);
++	const hits = texts.filter(t => re.test(t.text));
++	const code = hits.filter(h => h.code).map(h => h.rel), docs = hits.filter(h => !h.code).map(h => h.rel);
++	return { id, name, status: code.length ? "coded" : docs.length ? "documented" : "none", code, docs };
++});
++const liveIds = new Set(live.map(p => p[0]));
++const builtGone = built.filter(b => !liveIds.has(b.node));
++fs.writeFileSync(path.join(fig, "data", KEY, "roundtrip.jsonl"), rows.map(r => JSON.stringify(r)).join("\n") + "\n");
++const count = s => rows.filter(r => r.status === s).length;
++// the second, independent count: node ids the kit reports name (Figma side), all of which must be live pages
++const kit = path.join(root, "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs");
++const reportIds = new Set(walk(kit).filter(f => f.endsWith(".md")).flatMap(f => read(f).match(/\b\d{3}:\d{3,5}\b/g) || []));
++const trackedGone = [...tracked].filter(i => !liveIds.has(i));
++
++// ---- 2. token map ----
++const css = read(path.join(fw, "framework.css"));
++const site = {};
++for (const m of css.matchAll(/^\s*(--[a-z0-9-]+)\s*:\s*([^;]+);/gm)) site[m[1]] ??= m[2].trim();
++const hex = v => { const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v.trim()); if (!m) return null; let h = m[1].toLowerCase(); if (h.length === 3) h = [...h].map(c => c + c).join(""); return "#" + h; };
++const siteHexes = v => [...v.matchAll(/#[0-9a-fA-F]{3,6}\b/g)].map(m => hex(m[0])).filter(Boolean);
++// role pairs: same job under another name (declared, each with the reason)
++const roles = {
++	text: ["--ink", "body text"], muted: ["--subtle", "second text colour"], surface: ["--surface", "content ground"],
++	accent: ["--prime", "the accent; the site never swaps it per ground"], "on-accent": [null, "no site token: text on an accent fill is picked per component"],
++	"pad-x": ["--pad-card", "card inset; fluid on the site, fixed per mode in Figma"], "pad-y": ["--pad-card", "same"],
++	gap: ["--gap", "fluid on the site"], radius: ["--radius", "0.5em on the site, 4/4/6px in Figma"],
++	"section-pad-x": ["--pad", "page edge pad; fluid"], "section-pad-y": ["--flow", "vertical flow between sections; fluid"],
++};
++const vars = JSON.parse(read(path.join(fig, "tokens/variables.json")));
++const map = [];
++for (const col of vars.collections) for (const [name, v] of Object.entries(col.vars)) {
++	if (["size", "ref"].includes(name)) { map.push({ figma: name, collection: col.name, relation: "skipped", note: "unfinished experiment in the file" }); continue; }
++	const modes = Object.fromEntries(Object.entries(v.values).map(([m, x]) => [m, typeof x === "object" ? "alias:" + x.alias : x]));
++	const row = { figma: name, collection: col.name, type: v.type, modes };
++	const same = site["--" + name];
++	if (same !== undefined && v.type === "COLOR") {
++		const fh = Object.values(v.values).map(x => typeof x === "string" ? hex(x) : null).filter(Boolean);
++		const eq = fh.some(h => siteHexes(same).includes(h));
++		Object.assign(row, { site: "--" + name, siteValue: same, relation: eq ? "same name, same value" : "same name, different value" });
++	} else if (roles[name]) {
++		const [prop, why] = roles[name];
++		Object.assign(row, prop ? { site: prop, siteValue: site[prop], relation: "same role, other name", note: why } : { relation: "figma only", note: why });
++	} else Object.assign(row, { relation: "figma only", note: "no site token (the site has no " + name + ")" });
++	map.push(row);
++}
++const mapped = new Set(map.map(r => r.site).filter(Boolean));
++const siteOnly = Object.keys(site).filter(k => !mapped.has(k) && /^--(prime-ink|tint|wash|line|hot|shadow|light|dark|ink|surface|subtle|error|ok|warn)$/.test(k));
++const tally = r => map.filter(x => x.relation === r).length;
++const summary = { same_value: tally("same name, same value"), same_name_other_value: tally("same name, different value"), same_role: tally("same role, other name"), figma_only: tally("figma only"), skipped: tally("skipped"), total: map.length, site_only_colour_tokens: siteOnly };
++fs.writeFileSync(path.join(fig, "tokens/map.json"), JSON.stringify({ generated: "node Server/figma-roundtrip.mjs", figma: KEY, summary, map }, null, 1) + "\n");
++
++// ---- doc blocks ----
++const link = p => `[${p.replace(/^ext\/Figma\//, "")}](/framework/${p})`;
++const inv = [`| Figma page | Node | In code |`, `|---|---|---|`, ...rows.map(r => `| ${r.name} | \`${r.id}\` | ${r.status === "coded" ? "coded: " + r.code.slice(0, 2).map(link).join(", ") : r.status === "documented" ? "doc only: " + link(r.docs[0]) : "no"} |`)].join("\n");
++const tok = [`| Figma variable | Site property | Relation |`, `|---|---|---|`, ...map.map(r => `| \`${r.figma}\` (${r.collection}) | ${r.site ? "`" + r.site + "`" : "-"} | ${r.relation}${r.note ? ": " + r.note : ""} |`)].join("\n");
++const out = path.join(fig, "doc/round-trip.md");
++if (fs.existsSync(out)) {
++	let md = read(out);
++	const put = (tag, body) => { md = md.replace(new RegExp(`(<!-- ${tag} -->)[\\s\\S]*?(<!-- /${tag} -->)`), `$1\n${body}\n$2`); };
++	put("tokens", tok);
++	fs.writeFileSync(path.join(fig, "doc/figma-pages.md"), `# Every Figma page, and whether code exists for it
++
++Generated by node Server/figma-roundtrip.mjs (never edit). The story and the counts: [round-trip.md](./round-trip.md).
++
++${inv}
++`);
++	put("counts", `Figma file lists **${live.length}** pages; this inventory lists **${rows.length}**; they agree. Coded **${count("coded")}**, doc only **${count("documented")}**, not coded **${count("none")}**. Cross-check: the Figma agents' reports name ${live.filter(p => reportIds.has(p[0])).length} of those ${live.length} page ids (the rest are named by title only). Tracked in \`data/\` since 2026-10-10: ${tracked.size} pages, **${trackedGone.length}** no longer in the file (the owner's Page 1-8); ${built.length} site pages were built from them (${builtGone.length} from nodes no longer in the page list: the Palette sections are frames inside the old Page 7).\n\nTokens: ${summary.total} Figma variables: ${summary.same_value} same name and value, ${summary.same_name_other_value} same name other value, ${summary.same_role} same role other name, ${summary.figma_only} Figma only, ${summary.skipped} skipped.`);
++	fs.writeFileSync(out, md);
++}
++console.log(JSON.stringify({ livePages: live.length, inventoryRows: rows.length, coded: count("coded"), documented: count("documented"), none: count("none"), trackedGone: trackedGone.length, builtFromOldPages: built.length, tokens: summary }, null, 1));
+diff --git a/public/framework/ext/Figma/colors/files.jsonl b/public/framework/ext/Figma/colors/files.jsonl
+index 050dfca4a..4e37d080f 100644
+--- a/public/framework/ext/Figma/colors/files.jsonl
++++ b/public/framework/ext/Figma/colors/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"colors.css"}
+ {"file":"colors.css","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/files.jsonl b/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/files.jsonl
+index 73deee14d..37eb37070 100644
+--- a/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/files.jsonl
++++ b/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/files.jsonl
+@@ -4,3 +4,5 @@
+ {"file":"pages.jsonl"}
+ {"file":"built.jsonl"}
+ {"file":"thumbs/"}
++{"file":"live-pages.json"}
++{"file":"roundtrip.jsonl"}
+diff --git a/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/live-pages.json b/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/live-pages.json
+new file mode 100644
+index 000000000..0796a1791
+--- /dev/null
++++ b/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/live-pages.json
+@@ -0,0 +1,2 @@
++{"file":"QYN0G2URSBHYH5I06MOjxU","source":"figma get_metadata (no nodeId), top-level pages","read":"2026-10-13","pages":[
++["234:2003","Index"],["144:1062","Claude · Overview"],["159:17691","DS · 1 Elements"],["163:20989","DS · 1.1 Icons"],["163:18033","DS · 1.2 Dark grounds"],["158:1263","DS · 2.1 Buttons"],["159:17140","DS · 2.2 Lists & rows"],["212:1424","Lists · Sidebars, TOC & trees"],["159:17141","DS · 2.3 Cards & containers"],["159:3788","DS · 2.4 Inputs & controls"],["160:1062","DS · 2.5 Status & progress"],["163:18208","DS · 2.6 Dropdowns & menus"],["163:18561","DS · 2.7 Toggles, checkboxes & radios"],["160:18402","DS · 3 Sections"],["153:1062","DS · 4 Layouts"],["164:1067","DS · 5 Diagrams & charts"],["169:1063","DS · 6 Screens"],["222:27861","Screens · Transcription"],["164:1062","DS · 4.1 Foundational layouts"],["213:24357","Layouts · Two columns"],["126:15264","UI Kit"],["145:13667","Kit · Controls"],["143:1235","Kit · Containers"],["144:1140","Kit · Workflows"],["222:27026","Kit · Nesting"],["135:1062","Claude prototype"],["142:1246","Lab · Site shell"],["150:1062","Lab · Stacks"],["155:1062","Lab · Elements"],["124:1062","Claude test page"],["177:1062","Kit · Layouts"],["187:1062","Video · Kit"],["189:1062","Video · Storyboard · The Twelve"],["196:1062","Video · Channel ideas"],["198:23900","Type · Title layouts"],["218:1062","Colour · Permutations"]]}
+diff --git a/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/roundtrip.jsonl b/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/roundtrip.jsonl
+new file mode 100644
+index 000000000..c4fa72cf9
+--- /dev/null
++++ b/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/roundtrip.jsonl
+@@ -0,0 +1,36 @@
++{"id":"234:2003","name":"Index","status":"documented","code":[],"docs":["ext/Figma/doc/page-layout.md"]}
++{"id":"144:1062","name":"Claude · Overview","status":"documented","code":[],"docs":["ext/Figma/doc/figma-browser-loop.md","ext/Figma/doc/scheme.md","ext/Figma/doc/use-figma.md","ext/Figma/readme.md"]}
++{"id":"159:17691","name":"DS · 1 Elements","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"163:20989","name":"DS · 1.1 Icons","status":"documented","code":[],"docs":["ext/Figma/doc/controls.md","ext/Figma/doc/icons.md","ext/Figma/doc/use-figma.md"]}
++{"id":"163:18033","name":"DS · 1.2 Dark grounds","status":"coded","code":["ext/Figma/tokens/page.js"],"docs":["ext/Figma/doc/token-sync.md"]}
++{"id":"158:1263","name":"DS · 2.1 Buttons","status":"coded","code":["ext/Figma/tokens/page.js"],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"159:17140","name":"DS · 2.2 Lists & rows","status":"none","code":[],"docs":[]}
++{"id":"212:1424","name":"Lists · Sidebars, TOC & trees","status":"none","code":[],"docs":[]}
++{"id":"159:17141","name":"DS · 2.3 Cards & containers","status":"none","code":[],"docs":[]}
++{"id":"159:3788","name":"DS · 2.4 Inputs & controls","status":"none","code":[],"docs":[]}
++{"id":"160:1062","name":"DS · 2.5 Status & progress","status":"none","code":[],"docs":[]}
++{"id":"163:18208","name":"DS · 2.6 Dropdowns & menus","status":"coded","code":["ext/Figma/tokens/FigmaTokens.mjs","ext/Figma/tokens/page.js","ext/Figma/tokens/tokens.css"],"docs":["ext/Figma/doc/controls.md","ext/Figma/readme.md"]}
++{"id":"163:18561","name":"DS · 2.7 Toggles, checkboxes & radios","status":"coded","code":["ext/Figma/tokens/page.js"],"docs":["ext/Figma/doc/controls.md"]}
++{"id":"160:18402","name":"DS · 3 Sections","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"153:1062","name":"DS · 4 Layouts","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"164:1067","name":"DS · 5 Diagrams & charts","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"169:1063","name":"DS · 6 Screens","status":"none","code":[],"docs":[]}
++{"id":"222:27861","name":"Screens · Transcription","status":"none","code":[],"docs":[]}
++{"id":"164:1062","name":"DS · 4.1 Foundational layouts","status":"coded","code":["ext/Figma/tokens/FigmaTokens.mjs","ext/Figma/tokens/page.js"],"docs":["ext/Figma/doc/layouts.md","ext/Figma/readme.md"]}
++{"id":"213:24357","name":"Layouts · Two columns","status":"none","code":[],"docs":[]}
++{"id":"126:15264","name":"UI Kit","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"145:13667","name":"Kit · Controls","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"143:1235","name":"Kit · Containers","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"144:1140","name":"Kit · Workflows","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"222:27026","name":"Kit · Nesting","status":"none","code":[],"docs":[]}
++{"id":"135:1062","name":"Claude prototype","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"142:1246","name":"Lab · Site shell","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"150:1062","name":"Lab · Stacks","status":"none","code":[],"docs":[]}
++{"id":"155:1062","name":"Lab · Elements","status":"none","code":[],"docs":[]}
++{"id":"124:1062","name":"Claude test page","status":"coded","code":["ext/Figma/guide/page.js"],"docs":["ext/Figma/doc/use-figma.md"]}
++{"id":"177:1062","name":"Kit · Layouts","status":"none","code":[],"docs":[]}
++{"id":"187:1062","name":"Video · Kit","status":"documented","code":[],"docs":["ext/Figma/doc/video-kit.md"]}
++{"id":"189:1062","name":"Video · Storyboard · The Twelve","status":"documented","code":[],"docs":["ext/Figma/doc/video-kit.md"]}
++{"id":"196:1062","name":"Video · Channel ideas","status":"none","code":[],"docs":[]}
++{"id":"198:23900","name":"Type · Title layouts","status":"documented","code":[],"docs":["ext/Figma/doc/title-layouts.md"]}
++{"id":"218:1062","name":"Colour · Permutations","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
+diff --git a/public/framework/ext/Figma/doc/figma-pages.md b/public/framework/ext/Figma/doc/figma-pages.md
+new file mode 100644
+index 000000000..6cce0b5b7
+--- /dev/null
++++ b/public/framework/ext/Figma/doc/figma-pages.md
+@@ -0,0 +1,42 @@
++# Every Figma page, and whether code exists for it
++
++Generated by node Server/figma-roundtrip.mjs (never edit). The story and the counts: [round-trip.md](./round-trip.md).
++
++| Figma page | Node | In code |
++|---|---|---|
++| Index | `234:2003` | doc only: [doc/page-layout.md](/framework/ext/Figma/doc/page-layout.md) |
++| Claude · Overview | `144:1062` | doc only: [doc/figma-browser-loop.md](/framework/ext/Figma/doc/figma-browser-loop.md) |
++| DS · 1 Elements | `159:17691` | doc only: [doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) |
++| DS · 1.1 Icons | `163:20989` | doc only: [doc/controls.md](/framework/ext/Figma/doc/controls.md) |
++| DS · 1.2 Dark grounds | `163:18033` | coded: [tokens/page.js](/framework/ext/Figma/tokens/page.js) |
++| DS · 2.1 Buttons | `158:1263` | coded: [tokens/page.js](/framework/ext/Figma/tokens/page.js) |
++| DS · 2.2 Lists & rows | `159:17140` | no |
++| Lists · Sidebars, TOC & trees | `212:1424` | no |
++| DS · 2.3 Cards & containers | `159:17141` | no |
++| DS · 2.4 Inputs & controls | `159:3788` | no |
++| DS · 2.5 Status & progress | `160:1062` | no |
++| DS · 2.6 Dropdowns & menus | `163:18208` | coded: [tokens/FigmaTokens.mjs](/framework/ext/Figma/tokens/FigmaTokens.mjs), [tokens/page.js](/framework/ext/Figma/tokens/page.js) |
++| DS · 2.7 Toggles, checkboxes & radios | `163:18561` | coded: [tokens/page.js](/framework/ext/Figma/tokens/page.js) |
++| DS · 3 Sections | `160:18402` | doc only: [doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) |
++| DS · 4 Layouts | `153:1062` | doc only: [doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) |
++| DS · 5 Diagrams & charts | `164:1067` | doc only: [doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) |
++| DS · 6 Screens | `169:1063` | no |
++| Screens · Transcription | `222:27861` | no |
++| DS · 4.1 Foundational layouts | `164:1062` | coded: [tokens/FigmaTokens.mjs](/framework/ext/Figma/tokens/FigmaTokens.mjs), [tokens/page.js](/framework/ext/Figma/tokens/page.js) |
++| Layouts · Two columns | `213:24357` | no |
++| UI Kit | `126:15264` | doc only: [doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) |
++| Kit · Controls | `145:13667` | doc only: [doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) |
++| Kit · Containers | `143:1235` | doc only: [doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) |
++| Kit · Workflows | `144:1140` | doc only: [doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) |
++| Kit · Nesting | `222:27026` | no |
++| Claude prototype | `135:1062` | doc only: [doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) |
++| Lab · Site shell | `142:1246` | doc only: [doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) |
++| Lab · Stacks | `150:1062` | no |
++| Lab · Elements | `155:1062` | no |
++| Claude test page | `124:1062` | coded: [guide/page.js](/framework/ext/Figma/guide/page.js) |
++| Kit · Layouts | `177:1062` | no |
++| Video · Kit | `187:1062` | doc only: [doc/video-kit.md](/framework/ext/Figma/doc/video-kit.md) |
++| Video · Storyboard · The Twelve | `189:1062` | doc only: [doc/video-kit.md](/framework/ext/Figma/doc/video-kit.md) |
++| Video · Channel ideas | `196:1062` | no |
++| Type · Title layouts | `198:23900` | doc only: [doc/title-layouts.md](/framework/ext/Figma/doc/title-layouts.md) |
++| Colour · Permutations | `218:1062` | doc only: [doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) |
+diff --git a/public/framework/ext/Figma/doc/files.jsonl b/public/framework/ext/Figma/doc/files.jsonl
+index 003fdd464..d80d82a83 100644
+--- a/public/framework/ext/Figma/doc/files.jsonl
++++ b/public/framework/ext/Figma/doc/files.jsonl
+@@ -19,3 +19,10 @@
+ {"file":"mcp-servers.md"}
+ {"file":"page-layout.md"}
+ {"file":"icons.md"}
++{"file":"round-trip.md"}
++{"file":"next.md"}
++{"file":"round-trip.md"}
++{"file":"next.md"}
++{"file":"figma-pages.md"}
++{"file":"figma-pages.md","gone":true}
++{"file":"figma-pages.md"}
+diff --git a/public/framework/ext/Figma/doc/next.md b/public/framework/ext/Figma/doc/next.md
+new file mode 100644
+index 000000000..5634a07f4
+--- /dev/null
++++ b/public/framework/ext/Figma/doc/next.md
+@@ -0,0 +1,7 @@
++# Token sync: what a sync would do, and its first slice
++
++`sync.js` today is only the cold-deep-link reader; it syncs nothing. A real sync would read [tokens/map.json](/framework/ext/Figma/tokens/) (made by `node Server/figma-roundtrip.mjs`) and, for each row marked "same name, same value" or "same role", emit `--fig-x: var(--site-prop)` aliases so the Figma names resolve to the site's tokens instead of their own numbers.
++
++**First slice (do this):** alias only the colours that already agree by name (`prime ok error warn surface`) inside `FigmaTokens.mjs`, so `tokens.css` stops duplicating them. Spacing stays fixed `--fig-*` until the owner picks fluid or fixed for the Figma Resolution modes; `dark` (`#675F56` in Figma, `#42404B` on the site) needs the same one-line decision. Check with `measure.mjs` that nothing moves at 390, 1920 and 3440.
++
++What the code side needs from Figma next: a decision on dark, on fluid vs fixed, and where the inset, scrim and hairline tokens live (asked by the lists-cards agent).
+diff --git a/public/framework/ext/Figma/doc/round-trip.md b/public/framework/ext/Figma/doc/round-trip.md
+new file mode 100644
+index 000000000..58f617a0e
+--- /dev/null
++++ b/public/framework/ext/Figma/doc/round-trip.md
+@@ -0,0 +1,68 @@
++# Figma and code: what came back, the token link, and whether to mock up in Figma
++
++Computed by `node Server/figma-roundtrip.mjs` (the counts and tables below are rewritten by it, never typed). Asked by the owner 2026-10-13 ([the words](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-4.md)).
++
++## The answer in four lines
++
++- **Little has come back.** The Figma file has many pages; the ones that became code are the controls, layouts and button bar on [/framework/ext/Figma/tokens/](/framework/ext/Figma/tokens/), the title-layout and icon docs, the guide, and (older) the Palette pages built from the owner's pages 1-8.
++- **The tokens are half-linked.** Colours match by name; spacing is a different system (Figma fixed per mode, the site fluid). The map is [tokens/map.json](/framework/ext/Figma/tokens/), shown on that page.
++- **Nothing on the site loads the Figma tokens yet** (`tokens.css` is opt-in), so a map exists but no alias does.
++- **Next step** is in [next.md](./next.md).
++
++## Counts
++
++<!-- counts -->
++Figma file lists **36** pages; this inventory lists **36**; they agree. Coded **6**, doc only **17**, not coded **13**. Cross-check: the Figma agents' reports name 35 of those 36 page ids (the rest are named by title only). Tracked in `data/` since 2026-10-10: 8 pages, **8** no longer in the file (the owner's Page 1-8); 11 site pages were built from them (11 from nodes no longer in the page list: the Palette sections are frames inside the old Page 7).
++
++Tokens: 24 Figma variables: 5 same name and value, 2 same name other value, 9 same role other name, 6 Figma only, 2 skipped.
++<!-- /counts -->
++
++"Coded" means a `.js`, `.css` or `.mjs` file under `ext/Figma/` names the page's node id or `DS n.n` tag; "doc only" means only a `.md` does. The scan is conservative: `DS · 1.1 Icons` is really coded as `.fig-icon` (see [controls.md](./controls.md)) but only the doc names it.
++
++## Every Figma page
++
++One row per page, with the code that names it: [figma-pages.md](./figma-pages.md) (generated).
++
++Code to Figma runs the other way through `generate_figma_design`: [capture.md](./capture.md) (our page into Figma works; flex survives as auto layout).
++
++## Figma variable to site property
++
++<!-- tokens -->
++| Figma variable | Site property | Relation |
++|---|---|---|
++| `prime` (Colors) | `--prime` | same name, same value |
++| `light` (Colors) | `--light` | same name, different value |
++| `dark` (Colors) | `--dark` | same name, different value |
++| `error` (Colors) | `--error` | same name, same value |
++| `ok` (Colors) | `--ok` | same name, same value |
++| `warn` (Colors) | `--warn` | same name, same value |
++| `text` (Text) | `--ink` | same role, other name: body text |
++| `muted` (Text) | `--subtle` | same role, other name: second text colour |
++| `surface` (Text) | `--surface` | same name, same value |
++| `accent` (Text) | `--prime` | same role, other name: the accent; the site never swaps it per ground |
++| `on-accent` (Text) | - | figma only: no site token: text on an accent fill is picked per component |
++| `pad-x` (Resolution) | `--pad-card` | same role, other name: card inset; fluid on the site, fixed per mode in Figma |
++| `pad-y` (Resolution) | `--pad-card` | same role, other name: same |
++| `radius` (Resolution) | `--radius` | same role, other name: 0.5em on the site, 4/4/6px in Figma |
++| `gap` (Resolution) | `--gap` | same role, other name: fluid on the site |
++| `section-pad-y` (Resolution) | `--flow` | same role, other name: vertical flow between sections; fluid |
++| `h1-size` (Resolution) | - | figma only: no site token (the site has no h1-size) |
++| `section-pad-x` (Resolution) | `--pad` | same role, other name: page edge pad; fluid |
++| `btn-pad-x` (Resolution) | - | figma only: no site token (the site has no btn-pad-x) |
++| `btn-pad-y` (Resolution) | - | figma only: no site token (the site has no btn-pad-y) |
++| `small-pad-x` (Resolution) | - | figma only: no site token (the site has no small-pad-x) |
++| `small-pad-y` (Resolution) | - | figma only: no site token (the site has no small-pad-y) |
++| `size` (Resolution) | - | skipped: unfinished experiment in the file |
++| `ref` (Resolution) | - | skipped: unfinished experiment in the file |
++<!-- /tokens -->
++
++Site-only colour tokens with no Figma variable: `--prime-ink`, `--line`, `--wash`, `--tint`, `--hot`, `--shadow`. Values and the measured gaps at 390 / 1920 / 3440: [token-sync.md](./token-sync.md).
++
++## What the Figma agents said (2026-10-13)
++
++- **ds-lists-cards:** nothing it built (Lists & rows, Cards & containers) has been coded. It asks for one file saying which CSS variable each Figma variable becomes (that is `map.json`), a decision on fluid vs fixed Resolution, and a home for the pieces with no token: the 10% black/white insets, the 50% scrim and the hairline divider.
++- **web-ground:** nothing on the site aliases a Figma variable; only `ext/Figma/tokens/` uses `--fig-*`. (Its guess that `text`, `muted`, `accent` have no site twin is corrected by the map: `--ink`, `--subtle`, `--prime`.)
++
++## Is mocking up in Figma the way to go?
++
++**Recommendation: use Figma for the visual surface, but keep code the single source of truth for tokens and for any page that ships.** Figma gives you something to look at and click through, and the agents can read it with the MCP tools. But the code already renders from tokens and a page tree, so a design that lives only in Figma is a second source of truth that drifts (dark is `#675F56` there and `#42404B` here; spacing is fixed there and fluid here). So tokens flow from code to Figma (the map is the one place both agree), and a Figma frame is approved, then coded straight away, as the 2026-10-12 process says. The alternative is skipping Figma and mocking up as live pages checked with Shots: cheaper per page and it never drifts, but there is no canvas to rearrange. Choose that if the Figma round trip feels slower than writing the page.
+diff --git a/public/framework/ext/Figma/files.jsonl b/public/framework/ext/Figma/files.jsonl
+index c109c7292..8d2ea1d9e 100644
+--- a/public/framework/ext/Figma/files.jsonl
++++ b/public/framework/ext/Figma/files.jsonl
+@@ -32,3 +32,4 @@
+ {"file":"screenshots/"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/Figma/guide/files.jsonl b/public/framework/ext/Figma/guide/files.jsonl
+index d7c397f1e..bd99de849 100644
+--- a/public/framework/ext/Figma/guide/files.jsonl
++++ b/public/framework/ext/Figma/guide/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"guide.css"}
+ {"file":"page.js"}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/Figma/readme.md b/public/framework/ext/Figma/readme.md
+index ecdccce36..6f41d41db 100644
+--- a/public/framework/ext/Figma/readme.md
++++ b/public/framework/ext/Figma/readme.md
+@@ -33,6 +33,7 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
+ 
+ ## More
+ 
++- [doc/round-trip.md](./doc/round-trip.md) — what came back from Figma into code, every Figma page and variable mapped (`node Server/figma-roundtrip.mjs`), and whether to mock up in Figma; first sync slice in [doc/next.md](./doc/next.md)
+ - [doc/token-sync.md](./doc/token-sync.md) — Figma vs site tokens, measured at 390/1920/3440; `tokens/` turns the Figma variables into opt-in `--fig-*` CSS (`node .../tokens/FigmaTokens.mjs`), and the safe path to one system
+ - [doc/figma-browser-loop.md](./doc/figma-browser-loop.md) — the design is the spec: Figma frame → code → screenshot diff against the frame (Shots); measuring tools check, never design
+ - [doc/video-kit.md](./doc/video-kit.md) — planning videos in Figma: 16:9 and Shorts safe zones, responsive title graphics, AI storyboards, the path to Premiere
+diff --git a/public/framework/ext/Figma/tokens/files.jsonl b/public/framework/ext/Figma/tokens/files.jsonl
+index 96673aae1..c3a361006 100644
+--- a/public/framework/ext/Figma/tokens/files.jsonl
++++ b/public/framework/ext/Figma/tokens/files.jsonl
+@@ -11,3 +11,4 @@
+ {"file":"tokens.css"}
+ {"file":"variables.json"}
+ {"file":"FigSelect.js"}
++{"file":"map.json"}
+diff --git a/public/framework/ext/Figma/tokens/map.json b/public/framework/ext/Figma/tokens/map.json
+new file mode 100644
+index 000000000..a5950a939
+--- /dev/null
++++ b/public/framework/ext/Figma/tokens/map.json
+@@ -0,0 +1,316 @@
++{
++ "generated": "node Server/figma-roundtrip.mjs",
++ "figma": "QYN0G2URSBHYH5I06MOjxU",
++ "summary": {
++  "same_value": 5,
++  "same_name_other_value": 2,
++  "same_role": 9,
++  "figma_only": 6,
++  "skipped": 2,
++  "total": 24,
++  "site_only_colour_tokens": [
++   "--prime-ink",
++   "--shadow",
++   "--line",
++   "--wash",
++   "--tint",
++   "--hot"
++  ]
++ },
++ "map": [
++  {
++   "figma": "prime",
++   "collection": "Colors",
++   "type": "COLOR",
++   "modes": {
++    "Mode 1": "#ff6157"
++   },
++   "site": "--prime",
++   "siteValue": "#FF6157",
++   "relation": "same name, same value"
++  },
++  {
++   "figma": "light",
++   "collection": "Colors",
++   "type": "COLOR",
++   "modes": {
++    "Mode 1": "#dddddd"
++   },
++   "site": "--light",
++   "siteValue": "light-dark(color-mix(in srgb, var(--dark) 8%, #fff), color-mix(in srgb, #fff 6%, #17161a))",
++   "relation": "same name, different value"
++  },
++  {
++   "figma": "dark",
++   "collection": "Colors",
++   "type": "COLOR",
++   "modes": {
++    "Mode 1": "#675f56"
++   },
++   "site": "--dark",
++   "siteValue": "#42404B",
++   "relation": "same name, different value"
++  },
++  {
++   "figma": "error",
++   "collection": "Colors",
++   "type": "COLOR",
++   "modes": {
++    "Mode 1": "#cc0000"
++   },
++   "site": "--error",
++   "siteValue": "light-dark(#c00, #ff7b72)",
++   "relation": "same name, same value"
++  },
++  {
++   "figma": "ok",
++   "collection": "Colors",
++   "type": "COLOR",
++   "modes": {
++    "Mode 1": "#15803d"
++   },
++   "site": "--ok",
++   "siteValue": "light-dark(#15803d, #4ade80)",
++   "relation": "same name, same value"
++  },
++  {
++   "figma": "warn",
++   "collection": "Colors",
++   "type": "COLOR",
++   "modes": {
++    "Mode 1": "#a16207"
++   },
++   "site": "--warn",
++   "siteValue": "light-dark(#a16207, #fbbf24)",
++   "relation": "same name, same value"
++  },
++  {
++   "figma": "text",
++   "collection": "Text",
++   "type": "COLOR",
++   "modes": {
++    "Light BG": "#000000cc",
++    "Dark BG": "#ffffff",
++    "Light gray BG": "#000000cc",
++    "Prime BG": "#000000d9"
++   },
++   "site": "--ink",
++   "siteValue": "light-dark(#1a1a1a, #e8e8ea)",
++   "relation": "same role, other name",
++   "note": "body text"
++  },
++  {
++   "figma": "muted",
++   "collection": "Text",
++   "type": "COLOR",
++   "modes": {
++    "Light BG": "#0000008c",
++    "Dark BG": "#ffffffb2",
++    "Light gray BG": "#0000008c",
++    "Prime BG": "#0000009e"
++   },
++   "site": "--subtle",
++   "siteValue": "light-dark(rgba(0,0,0,0.55), rgba(255,255,255,0.55))",
++   "relation": "same role, other name",
++   "note": "second text colour"
++  },
++  {
++   "figma": "surface",
++   "collection": "Text",
++   "type": "COLOR",
++   "modes": {
++    "Light BG": "#ffffff",
++    "Dark BG": "alias:dark",
++    "Light gray BG": "#f2f2f2",
++    "Prime BG": "alias:prime"
++   },
++   "site": "--surface",
++   "siteValue": "light-dark(#fff, #17161a)",
++   "relation": "same name, same value"
++  },
++  {
++   "figma": "accent",
++   "collection": "Text",
++   "type": "COLOR",
++   "modes": {
++    "Light BG": "alias:prime",
++    "Dark BG": "alias:prime",
++    "Light gray BG": "alias:prime",
++    "Prime BG": "alias:dark"
++   },
++   "site": "--prime",
++   "siteValue": "#FF6157",
++   "relation": "same role, other name",
++   "note": "the accent; the site never swaps it per ground"
++  },
++  {
++   "figma": "on-accent",
++   "collection": "Text",
++   "type": "COLOR",
++   "modes": {
++    "Light BG": "#000000d9",
++    "Dark BG": "#000000d9",
++    "Light gray BG": "#000000d9",
++    "Prime BG": "#ffffff"
++   },
++   "relation": "figma only",
++   "note": "no site token: text on an accent fill is picked per component"
++  },
++  {
++   "figma": "pad-x",
++   "collection": "Resolution",
++   "type": "FLOAT",
++   "modes": {
++    "Default": 32,
++    "Mobile": 16,
++    "Mega": 56
++   },
++   "site": "--pad-card",
++   "siteValue": "calc(clamp(1rem, 2.6%, 2em) * var(--size))",
++   "relation": "same role, other name",
++   "note": "card inset; fluid on the site, fixed per mode in Figma"
++  },
++  {
++   "figma": "pad-y",
++   "collection": "Resolution",
++   "type": "FLOAT",
++   "modes": {
++    "Default": 36,
++    "Mobile": 24,
++    "Mega": 64
++   },
++   "site": "--pad-card",
++   "siteValue": "calc(clamp(1rem, 2.6%, 2em) * var(--size))",
++   "relation": "same role, other name",
++   "note": "same"
++  },
++  {
++   "figma": "radius",
++   "collection": "Resolution",
++   "type": "FLOAT",
++   "modes": {
++    "Default": 4,
++    "Mobile": 4,
++    "Mega": 6
++   },
++   "site": "--radius",
++   "siteValue": "0.5em",
++   "relation": "same role, other name",
++   "note": "0.5em on the site, 4/4/6px in Figma"
++  },
++  {
++   "figma": "gap",
++   "collection": "Resolution",
++   "type": "FLOAT",
++   "modes": {
++    "Default": 16,
++    "Mobile": 14,
++    "Mega": 32
++   },
++   "site": "--gap",
++   "siteValue": "calc(clamp(1em, 1.5cqi - 0.3em, 2.4em) * var(--size))",
++   "relation": "same role, other name",
++   "note": "fluid on the site"
++  },
++  {
++   "figma": "section-pad-y",
++   "collection": "Resolution",
++   "type": "FLOAT",
++   "modes": {
++    "Default": 120,
++    "Mobile": 48,
++    "Mega": 64
++   },
++   "site": "--flow",
++   "siteValue": "calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * var(--size))",
++   "relation": "same role, other name",
++   "note": "vertical flow between sections; fluid"
++  },
++  {
++   "figma": "h1-size",
++   "collection": "Resolution",
++   "type": "FLOAT",
++   "modes": {
++    "Default": 48,
++    "Mobile": 32,
++    "Mega": 64
++   },
++   "relation": "figma only",
++   "note": "no site token (the site has no h1-size)"
++  },
++  {
++   "figma": "section-pad-x",
++   "collection": "Resolution",
++   "type": "FLOAT",
++   "modes": {
++    "Default": 48,
++    "Mobile": 16,
++    "Mega": 80
++   },
++   "site": "--pad",
++   "siteValue": "calc(clamp(1em, 2.6% - 1.1em,   4em)   * var(--size))",
++   "relation": "same role, other name",
++   "note": "page edge pad; fluid"
++  },
++  {
++   "figma": "btn-pad-x",
++   "collection": "Resolution",
++   "type": "FLOAT",
++   "modes": {
++    "Default": 26,
++    "Mobile": 14,
++    "Mega": 24
++   },
++   "relation": "figma only",
++   "note": "no site token (the site has no btn-pad-x)"
++  },
++  {
++   "figma": "btn-pad-y",
++   "collection": "Resolution",
++   "type": "FLOAT",
++   "modes": {
++    "Default": 16,
++    "Mobile": 8,
++    "Mega": 14
++   },
++   "relation": "figma only",
++   "note": "no site token (the site has no btn-pad-y)"
++  },
++  {
++   "figma": "small-pad-x",
++   "collection": "Resolution",
++   "type": "FLOAT",
++   "modes": {
++    "Default": 12,
++    "Mobile": 8,
++    "Mega": 16
++   },
++   "relation": "figma only",
++   "note": "no site token (the site has no small-pad-x)"
++  },
++  {
++   "figma": "small-pad-y",
++   "collection": "Resolution",
++   "type": "FLOAT",
++   "modes": {
++    "Default": 6,
++    "Mobile": 4,
++    "Mega": 8
++   },
++   "relation": "figma only",
++   "note": "no site token (the site has no small-pad-y)"
++  },
++  {
++   "figma": "size",
++   "collection": "Resolution",
++   "relation": "skipped",
++   "note": "unfinished experiment in the file"
++  },
++  {
++   "figma": "ref",
++   "collection": "Resolution",
++   "relation": "skipped",
++   "note": "unfinished experiment in the file"
++  }
++ ]
++}
+diff --git a/public/framework/ext/Figma/tokens/page.css b/public/framework/ext/Figma/tokens/page.css
+index bdcb9b8f4..13d6dfed5 100644
+--- a/public/framework/ext/Figma/tokens/page.css
++++ b/public/framework/ext/Figma/tokens/page.css
+@@ -12,3 +12,7 @@
+ 	.fig-layouts-box { flex: 1 1 24em; min-width: 0; overflow: hidden; border-radius: var(--fig-radius); }
+ 	.fig-layouts-box:not(:has(.fig-bands)) { padding: var(--fig-pad-y) var(--fig-pad-x); }
+ }
++
++@layer site {
++	.fig-swatch { display: inline-block; width: 1em; height: 1em; border: 1px solid var(--line); vertical-align: -0.15em; }
++}
+diff --git a/public/framework/ext/Figma/tokens/page.js b/public/framework/ext/Figma/tokens/page.js
+index 62f3d973c..8ac0af540 100644
+--- a/public/framework/ext/Figma/tokens/page.js
++++ b/public/framework/ext/Figma/tokens/page.js
+@@ -1,4 +1,4 @@
+-import { Page, View, div, p, h3, h4, button, span, input, details, summary } from "/app.js";
++import { Page, View, div, p, h3, h4, button, span, input, details, summary, table, tr, th, td } from "/app.js";
+ import FigSelect from "./FigSelect.js";
+ FigSelect.install();
+ View.stylesheet(import.meta, "tokens.css");
+@@ -71,6 +71,10 @@ function layoutsDemo() {
+ 		div.c("flex wrap gap", () => layouts.filter(l => l[0] === n).forEach(([, scheme, build]) => div.c(`${scheme} fig-lay fig-layouts-box`, build)));
+ 	}
+ }
++// Figma variable → site property, computed by Server/figma-roundtrip.mjs; the story: ../doc/round-trip.md
++const map = await fetch(new URL("map.json", import.meta.url)).then(r => r.json()).catch(() => ({ summary: { same_value: 0, total: 0, same_role: 0, figma_only: 0 }, map: [] }));
++const swatch = c => span.c("fig-swatch").attr("style", `background:${c}`).attr("title", c);
++const hexOf = r => Object.values(r.modes ?? {}).find(v => /^#/.test(v));
+ const modes = [["fig-mobile", "Mobile"], ["fig-default", "Default"], ["fig-mega", "Mega"]];
+ 
+ function sample(scheme) {
+@@ -91,7 +95,16 @@ export default new Page({
+ 	width: "full",
+ 	description: "The Figma file's variables as opt-in --fig-* CSS: the same schemes, modes and spacing, coded.",
+ 	content() {
+-		p("Generated from the Figma variables by FigmaTokens.mjs. Nothing else on the site loads it; a page opts in. The numbers and the plan: doc/token-sync.md.");
++		p("Generated from the Figma variables by FigmaTokens.mjs. Nothing else on the site loads it; a page opts in. The numbers and the plan: [doc/token-sync.md](/framework/ext/Figma/doc/token-sync.md).");
++		h3("Figma variable → site property");
++		p(`${map.summary.same_value} of ${map.summary.total} variables match the site by name and value, ${map.summary.same_role} by role under another name, ${map.summary.figma_only} exist only in Figma. Why and what next: [doc/round-trip.md](/framework/ext/Figma/doc/round-trip.md).`);
++		details(() => {
++			summary("All " + map.summary.total + " variables");
++			table(() => {
++				tr(() => ["Figma", "Site", "Relation"].forEach(h => th(h)));
++				map.map.forEach(r => tr(() => { td(() => { if (hexOf(r)) swatch(hexOf(r)); span(" " + r.figma); }); td(() => { if (r.site && r.siteValue && /^#/.test(r.siteValue)) swatch(r.siteValue); span(" " + (r.site ?? "-")); }); td(r.relation + (r.note ? ": " + r.note : "")); }));
++			});
++		});
+ 		h3("Schemes");
+ 		div.c("grid auto gap", () => {
+ 			for (const [cls, name] of schemes) div.c(`${cls} fig-card fig-stack`, () => {

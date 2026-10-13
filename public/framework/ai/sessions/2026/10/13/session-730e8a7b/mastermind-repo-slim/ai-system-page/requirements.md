@@ -1,6 +1,17 @@
 # The AI system, defined: its components for AI first, shown to the owner second; the directives that belong in its readme
 
-Budget: $12. Load the `sub-mastermind`, `page` and `documentation` skills first. The owner's raw words: `../requirements-5.md`, asks 5, 6 and 10 ("we should have a framework slash AI system defined somewhere… the whole README system is basically the AI system… documenting the components properly for AI is first priority, then letting me see what they look like… directives that resonate go in architecture.md or the readme: don't copy a file by reading and writing it, use move/copy… how many minions, which model, which effort, and what they get done are open questions… all systems top to bottom use a functional approach: node answers each finished step with the next step, steps pre-programmed once the mastermind approves, each step logged with timestamps… start fresh sessions after a round of work"). Your log is this dir's `task.jsonl`. CLAUDE.md: readmes point, docs explain; the iceberg readme; show the class; link every mention; never destructive.
+Budget: $12. Load the `sub-mastermind`, `page` and `documentation` skills first. Your log is this dir's `task.jsonl`.
+
+The owner's asks (raw words: `../requirements-5.md`, asks 5, 6, 10). Report each as `- [x]` with proof, or `- [ ]`:
+
+- [ ] The AI system is defined in one place, `framework/ai`.
+- [ ] Its components are documented for AI first, then shown to the owner.
+- [ ] Directives that resonate go in `architecture.md` or the readme (never copy a file by reading and rewriting it; move or copy).
+- [ ] Open questions are named: how many minions, which model, which effort, what they get done.
+- [ ] The functional approach is recorded: node answers each finished step with the next, steps are pre-programmed once the mastermind approves, each step is logged with timestamps.
+- [ ] Fresh sessions after a round of work.
+
+CLAUDE.md rules that apply: readmes point, docs explain; the iceberg readme; show the class; link every mention; never destructive.
 
 ## What exists
 

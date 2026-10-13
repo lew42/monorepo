@@ -1,0 +1,2 @@
+{"assign":{"session_id":"e08a82e9-d6ef-42be-91eb-15b61a073d09","agent":"task-mastermind-model-switch","card":"2026/10/13/models-which-agent-runs-on-what-visibly","brief":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/model-switch/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim","requested_at":"2026-10-13T17:07:23-05:00","now":"starting","steps":[],"step":1}}
+{"action":{"at":"2026-10-13T17:10:12-05:00","did":"edit","files":["Server/models-now.mjs"]}}

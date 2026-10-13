@@ -85,3 +85,21 @@ Walk through it yourself: [try-it.md](try-it.md).
 **Phone sheet vs desktop sidebar.** One already: the chat itself (`ux/Dictate/chat.js`: `chat()`, one global session, the mic, `new_session_button`); both surfaces mount it. Two today: the container. The phone's `DrawerRailSheetChat` (`ext/drawer/rail.js`) has a drag handle and the states closed / open / full, but "full" is only a taller sheet with link buttons (New session, Dictation, Settings, Open full AI) that close it and open the desktop `DrawerTabs` (`ext/drawer/tabs.js`: ai, dictation, settings, element). Smallest change: in the "full" state mount `DrawerTabs` (its AI tab already is the chat) inside the sheet instead of closing it for the link buttons. Not built here: it edits `ext/drawer/`, outside this module's fence, and needs 400/1200/1920/3440 checks. The brief is [next.md](next.md).
 
 **New session:** yes. The "New session" button (`new_session_button` in `chat.js`, shown in the sheet's links row) calls `reset()`: it forgets the saved session; the next message starts a fresh one through `Session.start`, so it lands as a normal session page at `/framework/ai/sessions/<id>/`, and the old one stays resumable ("Pick up where you left off?"). Nothing to fix.
+
+## 2026-10-13 (later) — bubble order, and how dictate / chat / refine nest
+
+**Order check.** The owner's attempt is `public/ai/v-jag436k.jsonl` (16:43). Its lines are in time order, and a headless replay of that file into the 400 px sheet draws the bubbles in the same order ([replay.mjs](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-check/replay.mjs), [shot](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-check/replay-400.png)): so the **stored order is right and a cold load is right**. The jumble happened live: `chat.js draw()` and `Chat.js sync()` sort only the batch they receive, then append; a bubble drawn from the mic's own timestamp and later retagged to the server's `at` never moves, and streamed assistant bubbles are placed by arrival. The sequence in the log also shows 3 owner bubbles in 7 seconds from one run of speech (`Hello, can you hear me?`, `Hello.`, `can you hear me?`), because the mic sends at every pause. Not fixed: the fix is in `ext/Chat/Chat.js` (insert each bubble by its `at`, re-place on retag), outside this fence; briefed in [next.md](next.md). Could not reproduce the live jumble from the file alone; the check that would is a live run with a scripted Whisper.
+
+**Nesting, as it is** (the desktop AI tab and the phone sheet already make the same `chat()` call):
+
+```
+Dictate            ux/Dictate/Dictate.js    mic + Whisper: audio in, interim guess + settled text out
+ └ ComposerMic     ext/Chat/Mic.js          pause/sentence rules, what is sent and when
+   └ Widget        ux/Dictate/Widget.js     level meter, thread (bubbles), composer box
+     └ chat()      ux/Dictate/chat.js       binds one Widget to the one global voice session (Session.say / watch / stream)
+        ├ DrawerRailSheetChat  ext/drawer/rail.js          phone sheet   ← same chat() call
+        └ AI tab               ext/drawer/tabs/ai.js       desktop drawer ← same chat() call
+Refine page: VoiceStrip + run_refine (ext/Refine)  a SEPARATE path: its own mic, its own stages page, not chat()
+```
+
+**As it should be:** one dictation path, the stages page being a view of the same session. `Dictate → Mic → Widget → chat()` stays; Refine stops owning a mic and instead reads the `chat()` session's lines (raw as delivered, then the minimal clean, then the per-chunk cards) through the page tools; both containers (sheet, drawer) differ only in size. What differs today is only Refine's mic; moving it onto `chat()` is a separate brief ([next.md](next.md)).
