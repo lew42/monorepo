@@ -39,3 +39,4 @@ drawer.showing();     // boolean
 - [`doc/inbox.md`](./doc/inbox.md) — Coordination inbox per page.
 - [`doc/select.md`](./doc/select.md) — Element selection and AI context chips.
 - [`doc/rail-notes.md`](./doc/rail-notes.md) — comments pruned from `rail.js`: history, lessons and design reasons, verbatim.
+- [`doc/ai-tab-notes.md`](./doc/ai-tab-notes.md) — comments pruned from `tabs/ai.js`, verbatim.
