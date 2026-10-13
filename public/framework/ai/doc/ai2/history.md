@@ -184,7 +184,7 @@ at a task shows that task's dollars (a "+" means an agent on it is still running
 card opens with a table of its tasks, each split into mastermind and minions, and each task page
 inside it says who spent it, agent by agent, with each model. The figures come from
 `Server/task-cost.mjs`, which splits a shared mastermind by time so no dollar is counted twice
-([`ext/AITask/doc/cost.md`](/framework/ext/AITask/doc/cost.md)). A card's page fills the whole
+([`ai/AITask/doc/cost.md`](/framework/ai/AITask/doc/cost.md)). A card's page fills the whole
 column; only its text keeps the reading width ([`doc/decisions.md`](./decisions.md#cost-and-fill)).
 
 **The Now card's topics are real sub-cards now, not a bulleted wall of text** (topic-cards,

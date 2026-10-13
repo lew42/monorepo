@@ -3,7 +3,7 @@
 	/* The rail is `core/Page/Page.css`'s `.rail` now — the basis, the column, the gap,
 	   the pin, the scrollport and the below-52em strip all arrive with the word. This
 	   file's own `position: sticky; top: 0; align-self: start` was one half of what
-	   the primitive says, and `ext/AITask`'s rail was the other half in a third place.
+	   the primitive says, and `ai/AITask`'s rail was the other half in a third place.
 	   Only the width is browse's own opinion: a filter rail wants to be narrower than
 	   a card rail. */
 	.browse-rail { flex-basis: 12em; }

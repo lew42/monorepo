@@ -12,7 +12,7 @@ Nothing to call — open it:
 [`/imagine/importance/ranked/`](/imagine/importance/ranked/)
 
 The data verbs and the drag that writes an order live in
-[`ext/AITask/doc/ranking.md`](/framework/ext/AITask/doc/ranking/).
+[`ai/AITask/doc/ranking.md`](/framework/ai/AITask/doc/ranking/).
 
 ## Watch out
 
@@ -34,7 +34,7 @@ The data verbs and the drag that writes an order live in
 
 ## More
 
-- [`ext/AITask/doc/ranking.md`](/framework/ext/AITask/doc/ranking/) — the strip, the
+- [`ai/AITask/doc/ranking.md`](/framework/ai/AITask/doc/ranking/) — the strip, the
   `rank` line, what threaded means, and why this is a drag and not pairwise
 - [`/imagine/importance/`](/imagine/importance/) — the other way to rank: two things,
   "which matters more?", over and over

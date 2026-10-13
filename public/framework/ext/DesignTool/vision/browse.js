@@ -16,7 +16,7 @@ const image_src = (path, dir) => path.startsWith("/") ? path : new URL(path, loc
 const FIXTURE = "/framework/ai/sessions/2026/08/17/vision-browse-page/fixture.jsonl";
 
 /** Every `ai/*\/*\/vision.jsonl` the directory manifest knows about — same source
- * `ext/AITask/dashboard.js` reads, one level of walking. */
+ * `ai/AITask/dashboard.js` reads, one level of walking. */
 async function known_runs(){
 	const dir = await fetch("/framework/directory.json").then(r => r.json()).catch(() => null);
 	const ai = dir?.files?.find(f => f.name === "ai");

@@ -18,10 +18,10 @@ The owner turned off the one-file site listing: it had grown to 16 MB and rebuil
 - `public/framework/core/Search/Search.js`
 - `public/framework/dev/DevBar/page.js`
 - `public/framework/dev/Socket/Socket.js`
-- `public/framework/ext/AITask/dashboard.js`
-- `public/framework/ext/AITask/day-prompts.js`
-- `public/framework/ext/AITask/listing.js`
-- `public/framework/ext/AITask/tree.js`
+- `public/framework/ai/AITask/dashboard.js`
+- `public/framework/ai/AITask/day-prompts.js`
+- `public/framework/ai/AITask/listing.js`
+- `public/framework/ai/AITask/tree.js`
 - `public/framework/ext/DesignTool/vision/browse.js`
 - `public/framework/ext/Doc/page.js`
 - `public/framework/ext/Omnibox/page.js`

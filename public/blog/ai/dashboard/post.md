@@ -80,4 +80,4 @@ decided not to fix. Running AI agents at this scale only works if you can audit 
 as cheaply as you dispatch them. The board is the standup nobody has to attend.
 
 More: [the AI board](/framework/ai/) · [a real day](/framework/ai/sessions/2026/08/29/) ·
-[`ext/JSONL`](/framework/ext/JSONL/) · [`ext/AITask`](/framework/ext/AITask/)
+[`ext/JSONL`](/framework/ext/JSONL/) · [`ai/AITask`](/framework/ai/AITask/)

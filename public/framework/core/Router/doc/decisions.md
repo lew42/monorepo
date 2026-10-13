@@ -20,7 +20,7 @@ One real importer — everything else reaches the running instance through `app`
   `router.load(location.pathname)` for first paint (`App.js:58`), and re-exports the
   class so a site can `import { Router } from "/app.js"`.
 - [`ext/tabs`](/framework/ext/tabs/), [`ext/catalog`](/framework/ext/catalog/) and
-  [`ext/AITask`](/framework/ai/) each call `app.router.mark_links()` bare, for the
+  [`ai/AITask`](/framework/ai/) each call `app.router.mark_links()` bare, for the
   same reason: they render anchors *after* `mark()` has already run for this
   navigation, so `.active`/`.in-path` would otherwise never land on them. No other
   module reaches into the Router — see each method's own Usage section for the
@@ -95,7 +95,7 @@ spells one idea with two.
 
 **Who re-runs `mark_links()` for links rendered late?** Three external callers, and
 all three are saying *"I built anchors after you ran"* — `ext/tabs`, `ext/catalog`,
-`ext/AITask`.
+`ai/AITask`.
 *Options:* (a) keep the manual re-run; (b) a `MutationObserver` on `$app` that
 re-marks added anchors; (c) let `app.navigated?.()` own it, so an ext hooks the
 moment instead of the method.

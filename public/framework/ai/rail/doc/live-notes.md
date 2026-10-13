@@ -5,7 +5,7 @@
 The first card that does not come from `ai/board.jsonl` (the owner, 2026-09-23). It shows what is going on right now: the usage limits, every agent Servex is running, and today's tasks. It rises to the top of the rail whenever any of that changes, and its page ends in a chat — every update, one line, and anything you say.
 
 Where each part comes from:
-- usage — `/framework/ai/usage.json`, the same snapshot the overview reads; the page draws it with the first dashboard's pace meters (`ext/AITask/usage.js`), all three limits, always
+- usage — `/framework/ai/usage.json`, the same snapshot the overview reads; the page draws it with the first dashboard's pace meters (`ai/AITask/usage.js`), all three limits, always
 - agents — Servex's live map (`GET /api/agents`), then every agent moment it pushes over the page's one `EventSource`
 - tasks — today's `day.jsonl` (opened, not yet landed) and the `task` lines on Servex's `prompts` log (the Dispatcher's own)
 - chat — Servex's `cards/live` log: the updates Servex writes there, your words, the assistant's replies, and every `clear`

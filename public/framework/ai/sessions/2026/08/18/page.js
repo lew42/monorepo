@@ -1,5 +1,5 @@
 import { Page, AITask } from "/app.js";
-import { dashboard, glance, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
+import { dashboard, glance, has_page_js, warm } from "/framework/ai/AITask/dashboard.js";
 
 // Fired at module eval so a cold deep link has a warm cache before route() asks.
 warm("2026-08-18");

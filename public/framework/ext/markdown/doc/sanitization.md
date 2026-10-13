@@ -28,7 +28,7 @@ costs correctness.
 vouch for their input; this module opts out because it can vouch for its own.
 (c) stays on the table and is the right answer **the moment markdown arrives
 from anywhere but the repo** — a comment field, a user-submitted note, an AI
-response embedded verbatim. `ext/AITask` and `ext/Ask` currently render model
+response embedded verbatim. `ai/AITask` and `ext/Ask` currently render model
 output through `md()` too; that content is not user-typed, but it is not
 repo-authored either, and is the nearest thing to a live edge case this
 verdict has.

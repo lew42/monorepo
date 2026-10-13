@@ -81,7 +81,7 @@ instance) would break every renderer holding a reference to it.
 Nothing unsubscribes on navigation — a stale stream redraws a detached node, which
 costs nothing and accumulates nothing, since re-registering a path replaces the
 entry. The one case that *does* leave is a probe for a file that will never exist:
-`ext/AITask` asks every task dir for a `task.jsonl`, and a task from before the log
+`ai/AITask` asks every task dir for a `task.jsonl`, and a task from before the log
 format answers with an empty batch and a standing subscription. Once its
 `session.json` has answered instead, the reader calls
 [`unsubscribe()`](/framework/ext/JSONL/api/unsubscribe/) and the server drops it.

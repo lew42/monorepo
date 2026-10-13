@@ -32,7 +32,7 @@ agent(value){
 				p(`${task.agents.length} agent — ${task.agents[0].outcome}, ${task.agents[0].tokens.toLocaleString()} tokens`);
 			}, "Dispatched once, landed later — merged by task into one row, never two.");
 
-			md("`ask` does the same by `id` — one thing the owner asked for, kept in their own words with the `uuid` of the message they said it in, so [ext/AITask](/framework/ext/AITask/) can show it as a card that links back to the real sentence. `chat` (one browser turn), `shot` (one screenshot taken outside the repo — path, url, viewport width, label), and a `steps`/`step` progress pair follow the same rule: an extra verb or an extra assigned field, never a second file. `decision` and `verdict` are a PAIR on the same rule: the worker writes down a choice and the alternatives it was made over, the owner presses Approve or Improve on [ext/AITask](/framework/ext/AITask/doc/decisions-tab/)'s Decisions tab, and the press is a verdict line in this same log. [TaskJSONL](/framework/ext/JSONL/doc/task-jsonl/) has the full shape, including the subclassing trap the static `verbs` list sets.");
+			md("`ask` does the same by `id` — one thing the owner asked for, kept in their own words with the `uuid` of the message they said it in, so [ai/AITask](/framework/ai/AITask/) can show it as a card that links back to the real sentence. `chat` (one browser turn), `shot` (one screenshot taken outside the repo — path, url, viewport width, label), and a `steps`/`step` progress pair follow the same rule: an extra verb or an extra assigned field, never a second file. `decision` and `verdict` are a PAIR on the same rule: the worker writes down a choice and the alternatives it was made over, the owner presses Approve or Improve on [ai/AITask](/framework/ai/AITask/doc/decisions-tab/)'s Decisions tab, and the press is a verdict line in this same log. [TaskJSONL](/framework/ext/JSONL/doc/task-jsonl/) has the full shape, including the subclassing trap the static `verbs` list sets.");
 		} },
 		{ title: "experiment, review, shots and bands", icon: "science", description: "Four verbs, one line each — no new array.", content(){
 
@@ -125,7 +125,7 @@ await task.live(show);   // resolves like load(), then calls show() per appended
 - \`ai/<date>/<task>/task.jsonl\` — the task manifest as a log (**TaskJSONL**, in the rail beside this text). The [day dashboard](/framework/ai/) reads it, falling back to legacy \`session.json\`.
 - \`ai/<date>/day.jsonl\` — the day's blind-append log, read fine by base **JSONL**.`);
 
-		md("Next: [AITask](/framework/ext/AITask/) — the viewer these logs feed.");
+		md("Next: [AITask](/framework/ai/AITask/) — the viewer these logs feed.");
 
 		md.details(import.meta, "readme.md", "Readme");
 	}

@@ -104,7 +104,7 @@ it's one more key on the same object, the way `cost_usd` arrived on `chat`
 without touching `chat`'s contract. Nothing here reserves a slot for it in
 advance; there's nothing to reserve.
 
-`shots[]` replays in `TaskJSONL`; `ext/AITask`'s `shot_wall()` (`shots.js`)
+`shots[]` replays in `TaskJSONL`; `ai/AITask`'s `shot_wall()` (`shots.js`)
 renders it as a lazy-loaded thumbnail wall, clickable to full size — degrading
 to a plain label off the dev server, where `/screenshot` doesn't exist.
 
@@ -142,7 +142,7 @@ to a plain label off the dev server, where `/screenshot` doesn't exist.
 - **Browser-side append** — the dev server appends `chat` lines on the browser's
   behalf (`ext/Ask`); a *direct* browser append would still go through
   ext/Saver's RPC. Everything else is appended by Claude, with file tools.
-- **`unsubscribe` on navigation** — `unsubscribe()` exists and `ext/AITask`'s
+- **`unsubscribe` on navigation** — `unsubscribe()` exists and `ai/AITask`'s
   legacy probe calls it, but navigating away still leaves a stream registered,
   redrawing a detached element. That costs nothing and accumulates nothing
   (re-registering a path replaces the entry), so it waits for a page teardown
@@ -152,7 +152,7 @@ to a plain label off the dev server, where `/screenshot` doesn't exist.
 
 ## Who uses it
 
-- [`ext/AITask`](/framework/ext/AITask/) — `AITask.js` and `dashboard.js` both
+- [`ai/AITask`](/framework/ai/AITask/) — `AITask.js` and `dashboard.js` both
   read a task's `TaskJSONL` through `live()`, falling back to legacy
   `session.json` when there's no `task.jsonl` yet. Renders every task page under
   `/framework/ai/<date>/<task>/` and the day/board views at `/framework/ai/`. The

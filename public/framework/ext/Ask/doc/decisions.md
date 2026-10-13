@@ -27,8 +27,8 @@ Four real callers, one per shape of "browser talks to Claude":
 | caller | uses it for | page |
 |---|---|---|
 | [`dev/DevBar/ask.js`](/framework/dev/DevBar/) | `thread()` + `chat()` — the dev rail's per-page thread panel, mounted on every page | every page |
-| [`ext/AITask/AITask.js`](/framework/ext/AITask/) | `chat()` — "Chat with this session" on a task's own detail page | every task under [`/framework/ai/`](/framework/ai/) |
-| [`ext/AITask/compose.js`](/framework/ext/AITask/) | `start()` — the board's "what should Claude work on" box | [`/framework/ai/`](/framework/ai/) |
+| [`ai/AITask/AITask.js`](/framework/ai/AITask/) | `chat()` — "Chat with this session" on a task's own detail page | every task under [`/framework/ai/`](/framework/ai/) |
+| [`ai/AITask/compose.js`](/framework/ai/AITask/) | `start()` — the board's "what should Claude work on" box | [`/framework/ai/`](/framework/ai/) |
 | [`ext/DesignTool/vision.js`](/framework/ext/DesignTool/) | `ask()` with `shot`, locked to `Read,Glob,Grep` — a second opinion on a numeric layout report | [`/framework/ext/DesignTool/`](/framework/ext/DesignTool/), its [`audit`](/framework/ext/DesignTool/audit/) |
 
 No dead exports: `ask`, `available`, `thread`, `start` and `chat` are each in
@@ -154,7 +154,7 @@ knows which item a reply belongs to. Two routes existed: add `about` to
 through `rpc:append`. The browser won, because a `Server/` change is dead until
 the owner restarts their dev server and this had to work on the one that was
 already running. `rpc:append` was already the browser's writer, already fenced to
-a `.jsonl` under `public/`, and already what `ext/AITask`'s Approve and Improve
+a `.jsonl` under `public/`, and already what `ai/AITask`'s Approve and Improve
 use. **Nothing in `Server/` was touched**, so no restart is needed — the same
 property the element picker has.
 
@@ -433,8 +433,8 @@ instead of checking the dev socket itself.
 .disabled`: `Ask.js`'s `available()` (plus three inline throws in `ask()`/`thread()`/
 `start()`), `layouts/browse/verdicts.js`'s `writable()`, `imagine/paging/make/real.js`'s drag
 refusal, `imagine/paging/make/made.js`'s write guard and its `store_for()` FileStore/
-LocalStore choice, `ext/Saver/FileSaver.js`'s `write()`/`delete()`, `ext/AITask/decisions.js`'s
-`writable`, and `ext/AITask/rank.js`'s `writable`. All seven files now call `edit()`; the
+LocalStore choice, `ext/Saver/FileSaver.js`'s `write()`/`delete()`, `ai/AITask/decisions.js`'s
+`writable`, and `ai/AITask/rank.js`'s `writable`. All seven files now call `edit()`; the
 `Socket.singleton().disabled` check itself lives in exactly one place, inside `edit()`.
 
 **`edit()` is true only when both halves hold: the dev socket is live, AND the dev rail's

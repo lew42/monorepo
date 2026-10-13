@@ -1,7 +1,7 @@
 import { Prompts } from "/framework/ai/v/3/Prompts.js";
 import { Page, md, h3, div, a, span, small, p, label, input, button, View } from "/app.js";
 import Panel2 from "/framework/ext/panel2/Panel2.js";
-import { usage_rail } from "/framework/ext/AITask/usage.js";
+import { usage_rail } from "/framework/ai/AITask/usage.js";
 import DataGrid from "/framework/ext/DataGrid/DataGrid.js";
 import { page_settings } from "/framework/core/Page/settings/settings.js";
 import AISessionRows from "./AISessionRows.js";
@@ -17,7 +17,7 @@ import QueryClient from "/framework/ext/Query/QueryClient.js";
 
 const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
 View.stylesheet(sessions_dir, "sessions.css");
-View.stylesheet("/framework/ext/AITask/ai.css");   // the usage rail's bars
+View.stylesheet("/framework/ai/AITask/ai.css");   // the usage rail's bars
 
 // THE SESSIONS TAB: a grid of every Claude session that has an id (a VS Code tab, a Servex agent, a CLI run).
 // `page.js` instantiates it. The data side is AISessionRows, one row is a AISessionView, a clicked row opens a
@@ -157,7 +157,7 @@ export default class AISessionsPage extends Page {
 		return [AISessionRows.display_name(r, AISessionRows.tree).text, r.title, r.agent, r.session_id, r.id, r.role, r.model, ix.agent, ix.title, ix.folder].filter(Boolean).join(" ").toLowerCase();
 	}
 
-	/** The plan's meters as progress bars with the pace marker (ext/AITask/usage.js), then one line of counts. */
+	/** The plan's meters as progress bars with the pace marker (ai/AITask/usage.js), then one line of counts. */
 	render_stats(){
 		if (!this.$stats) return;
 		this.$stats.empty(() => {

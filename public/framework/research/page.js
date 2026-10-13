@@ -7,7 +7,7 @@ const json = url => fetch(url)
 	.catch(() => null);
 
 /* Topics are the DIRS under this one, enumerated from the dev server's manifest the
-   way ext/AITask/dashboard.js does — a new topic appears when that rebuilds. Each
+   way ai/AITask/dashboard.js does — a new topic appears when that rebuilds. Each
    one's own log names it, so the list reads as titles rather than as slugs. */
 async function topics(base){
 	const dir = await json("/framework/directory.json");

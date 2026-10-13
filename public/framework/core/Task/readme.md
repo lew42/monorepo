@@ -43,8 +43,8 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - **This is the base class only.** `AITask extends Task` (brief, asks, agents,
   sessions, cost vs budget, review) is a later pass — see
   `ai/sessions/2026/10/03/list-events/task-class/requirements.md` for what's deliberately left: folding
-  in `ai/objects.js`'s display `Task`, `ext/AITask`'s page renderer, `ext/JSONL`'s
-  `TaskJSONL`, and `ext/AITask/nested.js`'s `TaskTree`.
+  in `ai/objects.js`'s display `Task`, `ai/AITask`'s page renderer, `ext/JSONL`'s
+  `TaskJSONL`, and `ai/AITask/nested.js`'s `TaskTree`.
 
 ## More
 

@@ -770,7 +770,7 @@ function open_task(task, { session_id, agent, model, worktree, parent_dir }){
 	fs.mkdirSync(dir, { recursive: true });
 	/* NESTED TASKS: `parent_task` (the parent's task dir, repo-relative, forward
 	 * slashes) and `after` (sibling task dirs this one waits for) — the tree
-	 * ext/AITask/tree.js draws. */
+	 * ai/AITask/tree.js draws. */
 	// `worktree` (lifecycle, 2026-09-29): on-landing.mjs finds the task's worktree through it.
 	const rel = d => d && path.relative(process.cwd(), path.resolve(d)).split(path.sep).join("/");
 	const parent_task = rel(task.parent_task ?? parent_dir);

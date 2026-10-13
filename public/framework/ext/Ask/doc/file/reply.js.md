@@ -45,8 +45,8 @@ A model that returns no block at all produces a perfectly good reply with one
 
 ## `stamp()` and `append()` are copies, on purpose
 
-`ext/AITask/rank.js` exports the same two functions. Imports flow **down** and
-`ext/AITask` imports `ext/Ask`, so `ext/Ask` may never import back — a
+`ai/AITask/rank.js` exports the same two functions. Imports flow **down** and
+`ai/AITask` imports `ext/Ask`, so `ext/Ask` may never import back — a
 parent↔child cycle breaks only on a deep reload, which is the worst kind. Twelve
 duplicated lines is the cheaper of the two prices, and both copies carry the
 comment saying so.
@@ -61,7 +61,7 @@ mid-stream.
 
 `open_threads` is a module-level `Set` of every thread on the page; `streamed()`
 walks it, redraws the ones still in the document and forgets the ones that are
-not. `ext/AITask`'s own `streamed()` is the only caller.
+not. `ai/AITask`'s own `streamed()` is the only caller.
 
 ## Improvements
 

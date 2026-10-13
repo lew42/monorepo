@@ -2,7 +2,7 @@
 // Server/ModuleHomes.mjs — read-only census: every module dir under public/framework/{ext,ui,ux,ai,core} and public/web,
 // with its readme's one line, its size, how many files elsewhere import or mention it, and whether its readme says its scope.
 // The AI judgment (strictly AI / uses AI / not AI) is NOT computed here: it is read from a judgments file a mastermind wrote
-// (--judgments <file.json>, {"ext/AITask": {"ai": "strict", "why": "..."}}), so code keeps the record and AI only judges.
+// (--judgments <file.json>, {"ai/AITask": {"ai": "strict", "why": "..."}}), so code keeps the record and AI only judges.
 // Rule and decisions: public/framework/ai/readme.md (top) and the task that built this,
 // public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/ai-modules-home/.
 //

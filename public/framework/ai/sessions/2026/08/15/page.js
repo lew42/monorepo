@@ -1,5 +1,5 @@
 import { Page, md, AITask } from "/app.js";
-import { dashboard, glance } from "/framework/ext/AITask/dashboard.js";
+import { dashboard, glance } from "/framework/ai/AITask/dashboard.js";
 
 export default new Page({
 	meta: import.meta,

@@ -1,5 +1,5 @@
 import { Page, div, p, md, ui } from "/app.js";
-import { usage_of, tail_activity, timeline_of, clock, count } from "/framework/ext/AITask/stats.js";
+import { usage_of, tail_activity, timeline_of, clock, count } from "/framework/ai/AITask/stats.js";
 
 /* Same fetch + SPA-html-sniff pattern as replay.js's load() — not imported,
  * since load() there is a private, unexported helper. */

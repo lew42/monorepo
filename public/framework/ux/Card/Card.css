@@ -183,7 +183,7 @@
 
 	/* The card's own words hold the measure; its cost table does not. The task
 	   pages below it (`.ai2-tasks`) run the full width and cap their own prose
-	   (ext/AITask's ai.css), so their tables, steps bar and shots are wide.
+	   (ai/AITask's ai.css), so their tables, steps bar and shots are wide.
 	   On the text, never on the scrolling box, so the scrollbar stays at the
 	   column's edge.
 	   ⚠ card-measure-gap, 2026-09-30 (the owner: "there's no border at the right

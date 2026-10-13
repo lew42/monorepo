@@ -1,4 +1,4 @@
-# ext/AITask
+# ai/AITask
 
 `AITask` is the busiest small module in the framework: it renders every task
 in the AI working log — hundreds of pages across nine days — through one
@@ -121,7 +121,7 @@ directory walk in at least three places here, not a config flag.
 
 ## Where this module overlaps others
 
-**`ext/AITask` and `ext/JSONL` are the tightest pair in the framework** —
+**`ai/AITask` and `ext/JSONL` are the tightest pair in the framework** —
 `AITask` is essentially `TaskJSONL`'s *renderer*, and the manifest schema
 this module's readme documents (`doc/manifest.md`, new) is the same object
 `ext/JSONL`'s readme documents from the writing side. They're correctly two

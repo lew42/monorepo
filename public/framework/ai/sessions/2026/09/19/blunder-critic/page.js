@@ -42,7 +42,7 @@ const FINDINGS = [
 		rank: 3, count: 2,
 		sentence: "A tab strip longer than its box has no scrollbar and no fade, so a scrolled-to tab can land flush against the module title with zero gap, sliced mid-word.",
 		measurement: "/framework/ux/ at 1280: 12 tabs = 1029px of content in a 948px slot (81px/9% overflow) — the last tab, “Docs”, sits entirely past x:1280 with nothing to say it exists. On /framework/ux/Dictate/ the strip auto-scrolls to its maximum and the “Overview” tab's own box ends up clipped flush against the title's right edge (0px gap) — it reads “UX” immediately followed by “view”. The same mechanism clips a bare “m” at the right edge of AITask's 11-note Docs strip at 400px.",
-		pages: ["/framework/ux/", "/framework/ux/Dictate/", "/framework/ext/AITask/doc/asks/", "/framework/ext/AITask/doc/decisions-tab/", "/framework/ext/AITask/doc/ranking/"],
+		pages: ["/framework/ux/", "/framework/ux/Dictate/", "/framework/ai/AITask/doc/asks/", "/framework/ai/AITask/doc/decisions-tab/", "/framework/ai/AITask/doc/ranking/"],
 		file: "ext/tabs/tabs.css — .tab-bar { overflow: auto; scrollbar-width: none; } (~line 46); padding-inline-start (~line 51) pads only the FIRST tab's position, not whatever scrolls into that slot.",
 		fix: "Restore a left-edge fade/mask on .tab-bar (removed 2026-08-18 per doc/overflow.md), or give it scroll-padding-inline-start equal to the gutter so a scrolled tab never sits flush against the title.",
 		shot: "finding-3-ux-tab-collision",

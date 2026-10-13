@@ -50,7 +50,7 @@ export default new Page({
 
 		md("## Who uses it");
 
-		md("The **Decisions tab** on every task page — [`ext/AITask`](/framework/ext/AITask/) — draws one of these per decision in a task's log, with Approve and Improve under it. The data is [`ext/JSONL`](/framework/ext/JSONL/)'s `decision` verb: the question, the options considered, the one chosen, the reason, and the skill rule that produced it. [The doc](/framework/ext/AITask/doc/decisions-tab/).");
+		md("The **Decisions tab** on every task page — [`ai/AITask`](/framework/ai/AITask/) — draws one of these per decision in a task's log, with Approve and Improve under it. The data is [`ext/JSONL`](/framework/ext/JSONL/)'s `decision` verb: the question, the options considered, the one chosen, the reason, and the skill rule that produced it. [The doc](/framework/ai/AITask/doc/decisions-tab/).");
 	},
 
 	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", decision)); },

@@ -20,7 +20,7 @@ rows are listed first, most useful first (`Page` and `App` at the very top); the
 | List | core/List | yes — items array, order | no | yes — see the order |
 | Search | core/Search | yes — query, results, index | no | yes — query + hit count |
 | Section | core/Section | yes — a Page subclass, same shape as Page | no | yes — same as Page |
-| AITask | ext/AITask | yes — Page subclass; task log state | no | yes — task status at a glance |
+| AITask | ai/AITask | yes — Page subclass; task log state | no | yes — task status at a glance |
 | JSONL | ext/JSONL | yes — rows, file handle, cursor | no | yes — row count + last line |
 | TaskJSONL | ext/JSONL | yes — extends JSONL with task fields | no | yes — same as JSONL |
 | Collab | ext/Collab | yes — extends JSONL, live participants | no | yes — who's connected |
@@ -88,7 +88,7 @@ rows are listed first, most useful first (`Page` and `App` at the very top); the
 | Card (blocks) | ext/editor/blocks | no — an empty Block subclass | n/a | no |
 | Text (blocks) | ext/editor/blocks | no — an empty Block subclass | n/a | no |
 | History | ext/editor | no — an undo stack, not a model worth a card | n/a | no |
-| Ranking | ext/AITask | no — a scoring helper function-object | n/a | no |
+| Ranking | ai/AITask | no — a scoring helper function-object | n/a | no |
 
 No class in this walk already uses `ObjectCard` for its own instances — only `Page`
 does, and that's the module's own API tab reusing the card to show a `Page` object,

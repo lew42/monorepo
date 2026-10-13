@@ -69,7 +69,7 @@ export const PAGES = [
 	"/framework/dev/DevBar/",
 	"/framework/dev/Socket/",
 	"/framework/ext/",
-	"/framework/ext/AITask/",
+	"/framework/ai/AITask/",
 	"/framework/ext/Ask/",
 	"/framework/ext/Draggable/",
 	"/framework/ext/JSONL/",

@@ -44,7 +44,7 @@ export const CONCEPTS = [
 			"A card is a mini page. Its log is `page.jsonl`, and you can reply on it.",
 			"Every day's tasks: [the log](/framework/ai/log/). The live board: [V3](/framework/ai/v/3/).",
 		],
-		code: [["ext/AITask", "/framework/ext/AITask/"], ["ext/JSONL", "/framework/ext/JSONL/"], ["Card rules", "/framework/core/Page/card/"]],
+		code: [["ai/AITask", "/framework/ai/AITask/"], ["ext/JSONL", "/framework/ext/JSONL/"], ["Card rules", "/framework/core/Page/card/"]],
 		servex: [] },
 
 	{ group: "tracked", slug: "asks", name: "Asks", icon: "record_voice_over",
@@ -53,7 +53,7 @@ export const CONCEPTS = [
 			"A line holds the ask, its owner agent, its card and its status.",
 			"Servex marks an ask that has stalled, so nothing sits in limbo.",
 		],
-		code: [["ai/asks.jsonl", "/framework/ai/asks.jsonl"], ["ext/AITask (asks.js)", "/framework/ext/AITask/"]],
+		code: [["ai/asks.jsonl", "/framework/ai/asks.jsonl"], ["ai/AITask (asks.js)", "/framework/ai/AITask/"]],
 		servex: [] },
 
 	{ group: "tracked", slug: "inboxes", name: "Page inboxes", icon: "inbox",

@@ -56,9 +56,9 @@ reader can get back to the real sentence; `status` is `open`, `building` or
 
 It merges by `id`, exactly as `agent` merges by `task`: the ask is appended once
 when it is heard and again whenever its status moves, so an append-only file
-never holds two disagreeing copies of it. `ext/AITask` renders `asks[]` as the
+never holds two disagreeing copies of it. `ai/AITask` renders `asks[]` as the
 **Asks** tab — see
-[`ext/AITask/doc/asks.md`](/framework/ext/AITask/doc/asks/).
+[`ai/AITask/doc/asks.md`](/framework/ai/AITask/doc/asks/).
 
 An ask may also carry **`topic`** — one short phrase naming the parent subject
 it belongs to (`"AI log"`, `"Layouts"`, `"Design system"`). The Asks tab groups
@@ -136,7 +136,7 @@ Written by a press on the **Decisions** tab, through the dev socket's
 `rpc:append`, into the task's own log — never a second file. `say` is the
 button (`approve` or `improve`), `note` is the one line an Improve takes, and
 `filed` is stamped later by
-[`decisions.mjs`](/framework/ext/AITask/doc/decisions-tab/) once the note has
+[`decisions.mjs`](/framework/ai/AITask/doc/decisions-tab/) once the note has
 been written into the skill's `improvements.md`.
 
 A verdict is **its own line, never an edit of the decision** — the log is the
@@ -151,7 +151,7 @@ verbs because a replayed file can carry them in either order.
 into the other, and the tab counted zero approvals until it did.
 
 Full design record, and why the filing is a CLI:
-[`ext/AITask/doc/decisions-tab.md`](/framework/ext/AITask/doc/decisions-tab/).
+[`ai/AITask/doc/decisions-tab.md`](/framework/ai/AITask/doc/decisions-tab/).
 
 ## `needs` — this one is waiting on the owner
 
@@ -180,7 +180,7 @@ item you most needed to see. A **decision** has a second, free off switch: a
 verdict on it. "Say whether ranking should stay a drag" is answered by pressing
 Approve or Improve, so nothing has to be stamped twice.
 
-Full design record: [`ext/AITask/doc/ranking.md`](/framework/ext/AITask/doc/ranking/).
+Full design record: [`ai/AITask/doc/ranking.md`](/framework/ai/AITask/doc/ranking/).
 
 ## `rank` — the owner's order for one list
 
@@ -245,7 +245,7 @@ every `chat` line ever written stays valid.
 
 `{"shot": {"at", "path", "url", "width", "label"}}`, appended by whatever took
 the screenshot — the session scratchpad, never the repo (RULE#12), so `path`
-(absolute) is the only way back to it. `ext/AITask`'s `shot_wall()` reads
+(absolute) is the only way back to it. `ai/AITask`'s `shot_wall()` reads
 `shots[]` and asks the dev-only `Server/plugins/Screenshots.js` route for each
 one by that path; see [readme.md](../readme.md#shot--a-screenshot-taken-outside-the-repo)
 for the full shape and why it stays a plain dict rather than growing named
@@ -311,7 +311,7 @@ next time a verb happens to share a field's name.
 
 `steps` (the outline, declared once at launch) and `step` (the 1-based index
 underway) arrive as ordinary `assign` fields, read by
-[`stats.js`'s `progress()`](/framework/ext/AITask/). A `step` verb was the
+[`stats.js`'s `progress()`](/framework/ai/AITask/). A `step` verb was the
 obvious alternative and is worse: two sources would exist for one number, and
 an append-only file can never retract a miscount. With a single index,
 `1..step-1` are done by definition — nothing else needs to say so.
@@ -344,7 +344,7 @@ file is one line in the console, not forty.
 
 ## Who reads it
 
-`ext/AITask`, `ext/Timeline` and `dev/DevBar` all load a `TaskJSONL` and read
+`ai/AITask`, `ext/Timeline` and `dev/DevBar` all load a `TaskJSONL` and read
 `.agents`/`.chats` (and, through plain `assign`, every legacy `session.json`
-field); `ext/AITask` alone also reads `.shots`, into `shot_wall()` — see
+field); `ai/AITask` alone also reads `.shots`, into `shot_wall()` — see
 [readme.md](../readme.md#who-uses-it) for what each does with it.

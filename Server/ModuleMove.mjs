@@ -6,12 +6,12 @@
 //   node Server/ModuleMove.mjs <from> <to> [--repo <path>]                      dry run: what would change, per file
 //   node Server/ModuleMove.mjs <from> <to> --apply --manifest <file> [--repo <path>]
 //   node Server/ModuleMove.mjs --undo <manifest> [--repo <path>]
-//   <from>/<to> are repo-relative folders, e.g. public/framework/ext/AITask public/framework/ai/AITask
+//   <from>/<to> are repo-relative folders, e.g. public/framework/ai/AITask public/framework/ai/AITask
 //
 // What is rewritten (a token is a path-like run of characters):
 //   - inside the moved module: a relative path that resolves OUTSIDE it is re-aimed from the new place;
 //   - everywhere else: a relative path that resolves INTO it, and any absolute url (/framework/...) or repo path
-//     (public/framework/...) naming it. In live docs and code also the bare name ("ext/AITask").
+//     (public/framework/...) naming it. In live docs and code also the bare name ("ai/AITask").
 //   - records (dated session/task folders, *.json/*.jsonl data) are history: only their import paths change, so old
 //     pages keep loading; their prose keeps the old name, and a pointer page at the old url says where it went.
 import fs from "node:fs";
@@ -76,10 +76,10 @@ class ModuleMove {
 			const end = token[i + name[0].length];
 			return i >= 0 && (end === undefined || end === "/") ? token.slice(0, i) + name[1] + token.slice(i + name[0].length) : null;
 		};
-		// "/framework/ext/AITask/…" (also inside public/… and http://…/…): always; it is a link or an import.
+		// "/framework/ai/AITask/…" (also inside public/… and http://…/…): always; it is a link or an import.
 		const u = at(url);
 		if (u) return u;
-		// "ext/AITask" or "framework/ext/AITask" as a name in prose: live files only.
+		// "ai/AITask" or "framework/ai/AITask" as a name in prose: live files only.
 		if (history) return null;
 		if (token.startsWith(bare[0])) return at(bare, 0);
 		if (token.startsWith("framework/" + bare[0])) return at(bare, "framework/".length);

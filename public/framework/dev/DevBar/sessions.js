@@ -1,6 +1,6 @@
 import { div, span, button, small, p } from "../../core/View/View.js";
 import dropdown from "../../ext/Dropdown/dropdown.js";
-import { clock } from "../../ext/AITask/stats.js";
+import { clock } from "../../ai/AITask/stats.js";
 
 /* Past sessions and minions — the parts of the chat tab that read `GET
  * /ai-logs/` (the index) and `GET /ai-logs/<id>/subagents/` (one session's

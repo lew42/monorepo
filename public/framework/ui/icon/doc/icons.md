@@ -98,7 +98,7 @@ fence (`public/framework/ui/item/` was not touched).
   (`font-size: 0`) and fakes a `/` divider with CSS `content`. The audit's own read: this is
   probably a "use `icon("chevron_right")` like everywhere else" fix, not a frame/button
   question at all — worth a direct look before touching it.
-- **The hero-icon size variants** (`ext/AITask/nested.css`, `ux/Content/content.css`'s
+- **The hero-icon size variants** (`ai/AITask/nested.css`, `ux/Content/content.css`'s
   `.w1`/`.w2`/`.w3`) — three near-identical big-display-size blocks that could share one
   `--icon-hero` token. Low risk, cosmetic only; not touched.
 - `ui/item`'s own `.item-icon`/`.item-caret` frame (1.3em) — reused as-is in this page's list

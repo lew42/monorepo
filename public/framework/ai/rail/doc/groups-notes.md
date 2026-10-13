@@ -119,7 +119,7 @@ The loaded task a task-page url (`/framework/ai/<date>/<slug>/`) points at, or n
 
 ## cost() — sum member tasks
 
-What a group cost: its member TASKS summed, each dollar once — `total()` is the board's own sum (ext/AITask/cost.js), so AI 2 and the day page agree. Cards carry no cost of their own; nothing measures them.
+What a group cost: its member TASKS summed, each dollar once — `total()` is the board's own sum (ai/AITask/cost.js), so AI 2 and the day page agree. Cards carry no cost of their own; nothing measures them.
 
 ## latest() — group's newest member
 

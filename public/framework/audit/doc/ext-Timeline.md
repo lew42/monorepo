@@ -6,7 +6,7 @@ property write and a class swap, greedy lane packing for parallel work. It
 earns its place as a piece of engineering. It does **not** currently earn its
 place as a *live* module: nothing on the site renders one. It was wired into
 `framework/ai/page.js` for a few hours on 2026-08-14 and was deliberately
-replaced the same day by `ext/AITask`'s step/cost card rail — `ai.js`, this
+replaced the same day by `ai/AITask`'s step/cost card rail — `ai.js`, this
 module's own AI-log adapter, has zero callers today. The single most
 important thing to do to it: **decide, with the owner, whether `ai.js` gets
 re-wired or deleted** — a correct, unreachable adapter is a standing trap for
@@ -65,7 +65,7 @@ a later item while the first is still visually open.
    still-in-progress data (exactly what `ai.js`'s task bars are).
 2. **Decide `ai.js`'s fate.** It's correct, current, and has zero callers —
    built into `framework/ai/page.js`, deliberately replaced the same day by
-   `ext/AITask`'s card rail. Either re-wire it somewhere (a Timeline-shaped
+   `ai/AITask`'s card rail. Either re-wire it somewhere (a Timeline-shaped
    view of the AI log is a legitimate alternate presentation) or delete it;
    leaving it is the "module with no callers is itself a finding" case named
    in the brief, and it will keep costing every future reader of this

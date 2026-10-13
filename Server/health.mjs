@@ -374,7 +374,7 @@ function lint_findings(){
 	// tag names the rule had not been given yet.
 	// ⚠ Also excludes `.ai-fold-bar` (2026-09-19, `health-quiet`): it is a
 	// clickable disclosure toggle (`cursor: pointer`), not a plain text box —
-	// `ext/AITask/ai.css` (lines 316-319) already documents this exact
+	// `ai/AITask/ai.css` (lines 316-319) already documents this exact
 	// element as a control that keeps its own em-sized padding on purpose,
 	// and notes that an earlier automated tool (the spacing census) flagged
 	// it as a mistake for the same reason this rule just did, and was wrong:

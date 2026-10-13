@@ -700,7 +700,7 @@ _page.js line 830_
 
 USAGE FOOTER (item 5) — "the usage progress bars from the old
 default timeline", the owner's own words: reused whole
-(`ext/AITask/usage.js`'s own `usage_rail()`, the exact
+(`ai/AITask/usage.js`'s own `usage_rail()`, the exact
 component the old dashboard's own rail already showed), never
 redrawn — this only fetches the same `usage.json` snapshot
 every other reader of it fetches and hands it over. Built once

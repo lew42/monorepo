@@ -1,7 +1,9 @@
 # Ext — opt-in addons for the framework: an ext may patch core, vendor a dependency, ship its own CSS; core never imports an ext, and this site opts in once, in `app.js`
 
+**What goes here, and what goes in `ai/`:** an ext is an opt-in addon any page can use. A module that exists only to run, show or feed an AI agent or model lives in [`ai/`](../ai/readme.md) instead (rule at its top; census: [module-homes.md](../ai/doc/module-homes.md)). Ask, Refine, Research, Collab and Session are strictly AI and are proposed to move there next.
+
 ## Index
-- [AITask](./AITask/) — the AI working log, rendered: one task, a day, the highlights wall, the board — use it to show task logs
+- [AITask](./AITask/) — moved to [ai/AITask](../ai/AITask/) on 2026-10-13; this folder is a pointer
 - [Ask](./Ask/) — talk to a Claude Code session from the browser (dev server, localhost only)
 - **CSSDoc** (`ext/CSSDoc/`, no page yet) — every CSS rule that lands on one element, read live from the CSSOM — use it to see why an element looks as it does
 - [Chat](./Chat/) — a chat log that follows new messages only while you are at the bottom

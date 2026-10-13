@@ -18,7 +18,7 @@ transcript, never touching the task's original one again.
 
 ## Where the id comes from, both times
 
-`ext/AITask/AITask.js`'s `chat()` method picks the branch for you:
+`ai/AITask/AITask.js`'s `chat()` method picks the branch for you:
 `from: m.chat_session_id ? undefined : m.session_id, resume:
 m.chat_session_id`. First render, `chat_session_id` doesn't exist yet, so
 `from` carries the task's own `session_id` and `resume` is `undefined` — a

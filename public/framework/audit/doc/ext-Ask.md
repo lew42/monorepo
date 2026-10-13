@@ -20,7 +20,7 @@ deliberately chose a floor.
 |---|---|
 | files | 5 (`Ask.js` 90 lines, `chat.js` 73, `page.js` 80 after rewrite, `ask.css` 25, `readme.md` 130) |
 | lines of JS / CSS | 243 / 25 |
-| callers | 4 real: [`dev/DevBar/ask.js`](/framework/dev/DevBar/) (`thread`+`chat`, every page), [`ext/AITask/AITask.js`](/framework/ext/AITask/) (`chat`, every task page), [`ext/AITask/compose.js`](/framework/ext/AITask/) (`start`, the board), [`ext/DesignTool/vision.js`](/framework/ext/DesignTool/) (`ask`+`shot`, locked to `Read,Glob,Grep`). No dead exports. |
+| callers | 4 real: [`dev/DevBar/ask.js`](/framework/dev/DevBar/) (`thread`+`chat`, every page), [`ai/AITask/AITask.js`](/framework/ai/AITask/) (`chat`, every task page), [`ai/AITask/compose.js`](/framework/ai/AITask/) (`start`, the board), [`ext/DesignTool/vision.js`](/framework/ext/DesignTool/) (`ask`+`shot`, locked to `Read,Glob,Grep`). No dead exports. |
 | docs before | `readme.md` only — thorough prose, no "Who uses it," a "Phase 2" list instead of "Open," and a piece table missing `Server/plugins/Start.js` entirely. `page.js` was a plain `Page`: two inline demo buttons, no Files/API/Docs tabs. Zero `doc/*.md`. |
 | docs after | `page.js` rewritten as `Doc` (Files, API, Docs tabs all now real); `readme.md` restructured with a "Who uses it" section and the stale table fixed; 14 new `doc/*.md` — 5 `doc/file/*.md`, 4 `doc/method/*.md` (`ask`, `thread`, `start`, `available`), 5 `doc/<note>.md` (`task`, `process`, `fork`, `shot`, `record`). |
 
@@ -41,12 +41,12 @@ deliberately chose a floor.
 
 ## Where this module overlaps others
 
-**`ext/AITask` is the clean case** — it depends on `ext/Ask` (`chat()`) rather than reimplementing any part of it, which is the layering this module's design already gets right: `Ask` is the transport and the panel, `AITask` is the record. No overlap worth flagging there.
+**`ai/AITask` is the clean case** — it depends on `ext/Ask` (`chat()`) rather than reimplementing any part of it, which is the layering this module's design already gets right: `Ask` is the transport and the panel, `AITask` is the record. No overlap worth flagging there.
 
 **Two real overlaps exist, both small:**
 
 - `page.js`'s `asker()` and `ext/DesignTool/vision.js`'s `run()` (Recommendation 2, above) — the same "ask button" shape, built twice, in two different modules, by two different hands.
-- `dev/DevBar/ask.js`'s `threads()` (walks `directory.json` for child dirs holding a `task.jsonl`) and `ext/AITask/dashboard.js`'s task enumeration are two independent readers of the same "which dirs under here are tasks" question over the same `directory.json`. Neither is inside this module's fence to touch, but both are `ext/Ask`-adjacent enough that a future pass on either `dev/DevBar` or `ext/AITask` should check whether one directory-walking helper could serve both.
+- `dev/DevBar/ask.js`'s `threads()` (walks `directory.json` for child dirs holding a `task.jsonl`) and `ai/AITask/dashboard.js`'s task enumeration are two independent readers of the same "which dirs under here are tasks" question over the same `directory.json`. Neither is inside this module's fence to touch, but both are `ext/Ask`-adjacent enough that a future pass on either `dev/DevBar` or `ai/AITask` should check whether one directory-walking helper could serve both.
 
 Outside those two, `ext/Ask` doesn't look like Editor/Panel/`ext/layout`/DevBar/demo wearing a sixth name — it's the one module in that neighborhood whose job (a socket RPC to a CLI process) genuinely doesn't overlap a layout or persistence concern.
 

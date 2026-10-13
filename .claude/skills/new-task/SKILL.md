@@ -6,7 +6,7 @@ description: Open a task — create its folder with node Server/TaskDirs.mjs --n
 # New task
 
 Anything that changes the repo is a **task**: a folder inside your session's folder in the sessions store,
-`public/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/`, whose append-only `task.jsonl` the board renders live. **Never type the path:** `node Server/TaskDirs.mjs --new <slug>` makes it and prints it (your session id comes from `$CLAUDE_CODE_SESSION_ID`; a child task: add `--parent <parent dir>`). Why: [`ai/doc/task-folders.md`](/framework/ai/doc/task-folders.md). The old flat `ai/<YYYY-MM-DD>/` day folders are retired; an old path still works for appends (`append.mjs` follows it). Open it **before the first edit**. Format: `ext/JSONL/readme.md`; viewer: `ext/AITask/readme.md`.
+`public/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/`, whose append-only `task.jsonl` the board renders live. **Never type the path:** `node Server/TaskDirs.mjs --new <slug>` makes it and prints it (your session id comes from `$CLAUDE_CODE_SESSION_ID`; a child task: add `--parent <parent dir>`). Why: [`ai/doc/task-folders.md`](/framework/ai/doc/task-folders.md). The old flat `ai/<YYYY-MM-DD>/` day folders are retired; an old path still works for appends (`append.mjs` follows it). Open it **before the first edit**. Format: `ext/JSONL/readme.md`; viewer: `ai/AITask/readme.md`.
 
 If your brief names a task dir, Servex already opened it: log there and skip step 1.
 

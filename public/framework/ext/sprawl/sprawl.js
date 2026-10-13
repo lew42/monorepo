@@ -49,7 +49,7 @@ export function sprawl(sections){
 		// so `isConnected` legitimately reads false right then — disconnecting on THAT would
 		// kill the observer before it ever saw the page's real, attached size. Past the first
 		// callback, the same check every other recurring callback in this codebase uses to
-		// notice it has outlived its element (ext/AITask/dashboard.js, ext/files/files.js, …):
+		// notice it has outlived its element (ai/AITask/dashboard.js, ext/files/files.js, …):
 		// nothing here ever disconnected this observer once its host left the document, so
 		// every sprawl() ever built kept it (and the whole `sections` closure) alive forever
 		// (review round 4, 2026-10-02 — the leak doc/algorithm.md now records).

@@ -1,6 +1,6 @@
 import { Page, View, div, span, a, p, button, details, summary } from "/app.js";
 import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
-import { decisions } from "/framework/ext/AITask/decisions.js";
+import { decisions } from "/framework/ai/AITask/decisions.js";
 
 View.stylesheet(import.meta, "v2.css");
 

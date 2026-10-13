@@ -28,7 +28,7 @@ The chain code is the truth for what agents see; [Readmes](/framework/ai/readmes
 Counted by searching `public/framework/**/*.js` for the file name. Zero or one hit means a blind spot.
 | File | Shown on | Note |
 |---|---|---|
-| `task.jsonl`, `page.jsonl`, `requirements.md` | AI board, task pages, `ext/AITask` | well covered |
+| `task.jsonl`, `page.jsonl`, `requirements.md` | AI board, task pages, `ai/AITask` | well covered |
 | `log.jsonl` (per module `ai/`), `v-*.jsonl` | Dictate and Session pages | [../design/module-ai-dirs.md](../design/module-ai-dirs.md) |
 | `asks.jsonl`, `cards.jsonl`, `prompts.jsonl`, `usage.json` | `ai2` inbox and dashboard | few readers each |
 | `spawns.jsonl` (a mastermind's list of what it spawned) | **nowhere** | blind spot: no page reads it |

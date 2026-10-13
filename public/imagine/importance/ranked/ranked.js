@@ -7,11 +7,11 @@
    The log is READ ONLY. It is the mastermind's own `task.jsonl` and the mastermind is
    writing it while you read this, so nothing here appends: the order comes out of the
    file, and the drag that writes one is on a task's own Asks tab
-   (`/framework/ext/AITask/doc/ranking/`). */
+   (`/framework/ai/AITask/doc/ranking/`). */
 
 import { Page, div, span, a, icon } from "/app.js";
 import { TaskJSONL, ranked } from "/framework/ext/JSONL/JSONL.js";
-import { ask_title } from "/framework/ext/AITask/asks.js";
+import { ask_title } from "/framework/ai/AITask/asks.js";
 
 /* ⚠ Against `import.meta`, never the document: the SPA fallback makes the document url
      whatever route you are on, so a relative read would follow the reader around. */

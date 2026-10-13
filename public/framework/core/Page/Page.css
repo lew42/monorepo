@@ -1100,7 +1100,7 @@
 	     `ext/drawer`, `ext/Panel`'s text overlay and `ext/Draggable` inside the page.
 	     Only pages that actually carry a rail pay the containment.
 	   ⚠ Below the threshold a rail is a STRIP that scrolls sideways — never a short
-	     vertical scroll band. `ext/AITask` shipped `flex: 0 0 min(22em, 34dvh)`,
+	     vertical scroll band. `ai/AITask` shipped `flex: 0 0 min(22em, 34dvh)`,
 	     which at 900px put 31,838px of content inside a 306px box above a second
 	     scroller: the owner's "50/50 vertical split, two scrollable rows". One property
 	     (`flex-direction`) is the whole flip.

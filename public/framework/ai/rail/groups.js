@@ -1,6 +1,6 @@
 import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
 import { resolve_card, plain, headline, first_sentence } from "./inbox.js";
-import { total } from "/framework/ext/AITask/cost.js";
+import { total } from "/framework/ai/AITask/cost.js";
 import { PageLog } from "/framework/core/Page/Log.js";
 import { NeedsRule } from "./NeedsRule.js";
 

@@ -1,5 +1,5 @@
 How many lines this instance failed to `JSON.parse`, summed over every batch it
-has read — `0` on a healthy log, and the number `ext/AITask` prints beside the
+has read — `0` on a healthy log, and the number `ai/AITask` prints beside the
 checklist as *"N unparsed lines"*.
 
 Written by [`parse()`](/framework/ext/JSONL/api/parse/), which also warns once per

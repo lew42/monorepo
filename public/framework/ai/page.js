@@ -6,8 +6,8 @@ import AIRail, { card_page } from "/framework/ai/rail/rail.js";
 // day pages and Your prompts are rail rows, so they are here; every other page routed below takes the whole width.
 const RAIL_ID = /^(inbox|log|live|now|view|framework|your-prompts|\d{4}|\d{4}-\d{2}-\d{2}|p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
 const CARD_ID = /^(p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
-import { dashboard, rail, effort_board, log_board, has_page_js, warm, daySystemPage, monthPage } from "/framework/ext/AITask/dashboard.js";
-import { module_list, module_detail } from "/framework/ext/AITask/module-spend.js";
+import { dashboard, rail, effort_board, log_board, has_page_js, warm, daySystemPage, monthPage } from "/framework/ai/AITask/dashboard.js";
+import { module_list, module_detail } from "/framework/ai/AITask/module-spend.js";
 import { Versions } from "/framework/ai/v/Versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
 import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages

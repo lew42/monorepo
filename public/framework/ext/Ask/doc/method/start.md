@@ -19,7 +19,7 @@ whether `ask()`/`chat()` should carry the same one.
 
 Unlike `ask()`, `start()` takes no `tools` — the spawned session gets whatever
 tools its permission mode allows, full stop. `group` tags the task for the
-board's grouping (`efforts`, see `ext/AITask/compose.js`); `model` is one of
+board's grouping (`efforts`, see `ai/AITask/compose.js`); `model` is one of
 `sonnet` / `opus` / `haiku`, mapped to a real model id server-side
 (`Server/plugins/Start.js`'s `MODELS`).
 
@@ -37,5 +37,5 @@ board's grouping (`efforts`, see `ext/AITask/compose.js`); `model` is one of
    running short of watching `task.jsonl` for `landed_at`. That's the intended
    design (log as progress channel), but it means a caller who wants "is it
    done yet" has to poll or re-fetch, which nothing in this module wraps.
-   *(medium, speculative — `ext/AITask`'s dashboard may already solve this by
+   *(medium, speculative — `ai/AITask`'s dashboard may already solve this by
    live-reload; worth confirming there before building anything here.)*

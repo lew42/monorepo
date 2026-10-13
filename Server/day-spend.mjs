@@ -111,7 +111,7 @@ function build(date){
 	});
 
 	// The day's own totals — skip a task whose parent_task is ALSO one of today's tasks: its
-	// cost is already folded into that parent's own cost.agents (mirrors ext/AITask/cost.js's
+	// cost is already folded into that parent's own cost.agents (mirrors ai/AITask/cost.js's
 	// `total()`, same reason: counting both would count that time twice).
 	let claude_usd = 0, real_usd = 0;
 	for (const t of tasks){

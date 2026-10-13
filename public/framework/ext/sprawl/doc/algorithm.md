@@ -69,6 +69,6 @@ logic" falls out of the same code path rather than needing its own branch.
 
 Nothing ever disconnected the `ResizeObserver` once its host left the document — review round 4,
 2026-10-02. Fixed the same way every other recurring callback in this codebase notices it has
-outlived its element (`ext/AITask/dashboard.js`, `ext/files/files.js`, …): the observer's own
+outlived its element (`ai/AITask/dashboard.js`, `ext/files/files.js`, …): the observer's own
 callback checks `host.el.isConnected` first and disconnects itself the moment it isn't, rather
 than adding a second teardown mechanism nothing else here uses.

@@ -128,7 +128,7 @@ bytes for `public/directory.json` and 1,820,583 for `public/framework/directory.
 | reader | what it uses it for |
 | --- | --- |
 | `core/Search` | the whole search index — every directory that holds a `page.js` |
-| `ext/AITask/dashboard.js` | enumerates every `ai/<date>/<slug>` task dir |
+| `ai/AITask/dashboard.js` | enumerates every `ai/<date>/<slug>` task dir |
 | `ext/Research/Program.js`, `Topic.js` | what each research topic has actually written |
 | `framework/research/page.js` | the same listing, for the research index |
 | `ext/DesignTool/vision/browse.js` | the shot listing |
@@ -142,7 +142,7 @@ are not the same job and this is not a migration waiting to happen.
 
 What *could* move, and what it would take:
 
-- **`ext/AITask/dashboard.js`** is the closest. If `new-task` wrote a `page.json` in each
+- **`ai/AITask/dashboard.js`** is the closest. If `new-task` wrote a `page.json` in each
   `ai/<date>/` directory naming that day's tasks, the dashboard would read one small file
   per day instead of a 1.8 MB index — and every day page would become a real page for
   free. It needs the `new-task` skill to write one more file, which is a decision for the

@@ -12,7 +12,7 @@ the answer is not written.
 **Nested.** The default. A page renders inside whatever region its parent gives
 it. Under a `catalog()` parent that region is what is left after the rail —
 `var(--rail, 19em)` by default, and `min(34em, 45%)` for everything under
-`/framework/ai/` (`ext/AITask/ai.css`). Below `64em` `catalog.css` turns the split
+`/framework/ai/` (`ai/AITask/ai.css`). Below `64em` `catalog.css` turns the split
 into a **column**, so the rail stops being a rail and becomes a full-width block
 above the content.
 

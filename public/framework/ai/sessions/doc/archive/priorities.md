@@ -20,7 +20,7 @@ This is the list to follow. Higher means do it first and never break it for some
 
 ## 4. A compact grid you can scan
 - **Asked:** state icon first, plan usage as bars with the pace marker (the Dashboard's), no wasted space above the list, an "in flight" filter, sort toggles for recency and cost.
-- **Decided:** all of it is built. The bars are `usage_rail` from `ext/AITask/usage.js`, the same component the Dashboard uses. Every column header sorts; the default order is cost weighted by recency; "Updated" sorts newest first.
+- **Decided:** all of it is built. The bars are `usage_rail` from `ai/AITask/usage.js`, the same component the Dashboard uses. Every column header sorts; the default order is cost weighted by recency; "Updated" sorts newest first.
 - **Lives in:** `page.js`, `sessions.css`.
 
 ## 5. Children nest under their parent

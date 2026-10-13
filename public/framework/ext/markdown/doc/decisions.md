@@ -65,7 +65,7 @@ not just the prose factory) are far fewer:
 |---|---|---|
 | `ext/Doc/Doc.js` | every module built on `Doc` | `md.file()` renders every member page's `doc/*.md`, the Files tab's per-file "about" pane, and note pages |
 | `ext/Ask/chat.js` | [/framework/ext/Ask/](/framework/ext/Ask/) | chat bubbles — the user's prompt and the streamed reply, rendered live |
-| `ext/AITask/{AITask,message,feed,replay}.js` | [/framework/ext/AITask/](/framework/ext/AITask/) | task prose, chat replay, thinking blocks, feed summaries |
+| `ai/AITask/{AITask,message,feed,replay}.js` | [/framework/ai/AITask/](/framework/ai/AITask/) | task prose, chat replay, thinking blocks, feed summaries |
 | `core/new/1/**` (27 files) | not part of the live site tree | the earlier "new/1" design-proof sketch; historical, not linked from current navigation |
 
 A module with **no** callers would be a finding on its own; this one sits at

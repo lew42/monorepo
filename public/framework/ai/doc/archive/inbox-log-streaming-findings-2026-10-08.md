@@ -25,7 +25,7 @@ Partly. `ai2/inbox.js` opens an `EventSource` on Servex's `/api/stream` for its 
 | `ext/JSONL` `live()` over the dev-server socket (`dev/Socket`) | `page.jsonl` pages, `core/Page` | stream (the standard) |
 | `EventSource /api/stream` | `ai2/inbox.js` (prompts, board) | stream, from Servex |
 | `setInterval` 10 to 60 s | `ai2/live.js` (agents, usage, pool, tasks), `ai2/agents.js`, `ai2/needs.js`, `ai2/processes.js`, `ai2/inbox.js` | polling |
-| `setInterval` | `ext/Session`, `ext/AITask/usage.js`, `ext/drawer/*`, `core/Task/live`, Dictate | polling |
+| `setInterval` | `ext/Session`, `ai/AITask/usage.js`, `ext/drawer/*`, `core/Task/live`, Dictate | polling |
 | Debounced whole-file rewrite of `ai/cards.jsonl` | `Cards.js` | snapshot, not a stream |
 
 Recompute with `grep -rc setInterval public/framework --include=*.js` (about 30 files; most under `core/new/` are demos).
