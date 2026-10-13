@@ -52,7 +52,7 @@ const root2 = AL('VERTICAL', 240, 160); root2.name='Index · full size'; root2.f
 root2.appendChild(T('Index · full size: press 0 for 100%', 640, 'Bold'));
 for (const [title, items] of grouped) {
   const sec = AL('VERTICAL', 160, 240); sec.name='Group · '+title; sec.fills=[{type:'SOLID',color:{r:0,g:0,b:0},opacity:0.1}]; sec.cornerRadius=64; root2.appendChild(sec);
-  sec.appendChild(T(title, 480, 'Bold'));
+  sec.appendChild(T(title, 1200, 'Bold'));
   const row = AL('HORIZONTAL', 160); row.counterAxisAlignItems='MIN'; sec.appendChild(row);
   for (const {n} of items) { const tile = AL('VERTICAL', 64); const cap = T(n.name.replace(/^Page · /,''), 160, 'Bold'); link(cap, n.id); tile.appendChild(cap); const fi=n.createInstance(); tile.appendChild(fi); frame(fi); row.appendChild(tile); }
 }
