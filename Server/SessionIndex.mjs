@@ -2,6 +2,7 @@
 // Doc: Server/doc/session-index.md. Extends ext/Query's node side: it registers the "tasks" QueryServer source, so the browser asks it
 // over the dev socket exactly like "sessions". PastWork.mjs and FollowUp.mjs read task.jsonl through SessionIndex.reduce (one reader).
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Query from "../public/framework/ext/Query/Query.js";
@@ -14,6 +15,14 @@ export default class SessionIndex {
 
 	/** The one process-wide index (the "tasks" source uses it). */
 	static shared = null;
+
+	/** session id -> transcript path (a file in a project folder of ~/.claude/projects) on this machine; built once, so a row can say whether its raw log exists. */
+	static transcripts() {
+		if (SessionIndex._tr) return SessionIndex._tr;
+		const map = SessionIndex._tr = new Map(), base = path.join(os.homedir(), ".claude", "projects");
+		try { for (const d of fs.readdirSync(base)) { if (!/^c--code-lew42-/i.test(d)) continue; for (const f of fs.readdirSync(path.join(base, d))) if (f.endsWith(".jsonl")) map.set(f.slice(0, -6), path.join(base, d, f)); } } catch {}
+		return map;
+	}
 
 	/** A task record's empty shape. */
 	static blank(dir) {
@@ -61,6 +70,7 @@ export default class SessionIndex {
 	/** Seal a record after lines were applied: sorted module list, a start time, the landing day. */
 	static seal(r) {
 		r.started ||= r.last;
+		r.raw = { task: r.url + "task.jsonl", transcript: (r.session && SessionIndex.transcripts().get(r.session)) || null };   // the raw logs to click through to (the transcript only if it is on this machine)
 		r.modules = [...r._mods].sort();
 		r.landed_day = r.landed_at ? new Date(r.landed_at).toISOString().slice(0, 10) : "";
 		r.text = `${r.title} ${r.request} ${r.outcome} ${r.slug} ${r.group}`.toLowerCase();

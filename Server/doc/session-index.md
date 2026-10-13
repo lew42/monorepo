@@ -3,7 +3,7 @@
 [`Server/SessionIndex.mjs`](../SessionIndex.mjs) (`class SessionIndex`) holds one record per `task.jsonl` under `public/framework/ai/`, loaded once and kept current. It is the node side of [ext/Query](/framework/ext/Query/) grown by one source, `tasks`: no database, nothing to install, the JSONL files stay the truth. The owner's ask (ask 6, `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-3.md`): a process that holds the thousands of records and filters them in JavaScript; the index and the query are the same thing.
 
 ## A row
-`{ id, kind:"task", dir, slug, url, day, title, request, outcome, group, agent, session, model, branch, started, last, step, steps, landed, landed_at, usd, links, topics, modules[], files, chats, reviews }`. `modules` comes from each `action` line's `files` plus the `Fence:` line of the task's `requirements.md`: `core/Page`, `ux/Dictate`, `Server`, `ai`.
+`{ id, kind:"task", dir, slug, url, day, title, request, outcome, group, agent, session, model, branch, started, last, step, steps, landed, landed_at, usd, links, topics, modules[], files, chats, reviews }`. `raw: { task, transcript }` is the raw log to click through to: `task` is the site URL of the task's log file; `transcript` is the session's Claude transcript path if it exists on this machine (32 of the 33 `ux/Dictate` rows have one). `modules` comes from each `action` line's `files` plus the `Fence:` line of the task's `requirements.md`: `core/Page`, `ux/Dictate`, `Server`, `ai`.
 
 ## Ask it
 - **Node:** `index.query({ kind, since, text, agent, module, landed, group, sort, limit, offset })` returns `{ rows, count }`. `module: "ux"` finds `ux/Dictate` too; `text` is every word; `since` is a day.
