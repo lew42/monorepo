@@ -25,7 +25,7 @@ is worth everything. A recurring line is a rule waiting to be written.
 ## Which skill
 
 The one that **should** have warned you, not the one you happened to be running. A CSS surprise
-goes to `css`; a naming collision to `new-css-class`; a page that 404'd to `new-page`. If no
+goes to `css`; a naming collision to `new-css-class`; a page that 404'd to `make`. If no
 skill covers it, put the line in the closest one and say a new skill may be needed — the owner
 promotes.
 

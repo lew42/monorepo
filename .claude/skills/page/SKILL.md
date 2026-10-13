@@ -11,3 +11,5 @@ Overview: the order of the job is what it is → where it lives (navigation) →
 (layout) → what it says (content) → what the reader presses (ui, carried by color). The two
 tests for every element: self-evident, and necessary. A page's inbox (coordination notes) is a
 Servex fact, not a design one — see /framework/ai/inboxes/.
+
+Making the page's files (its name, its folder, `create_page`, the class behind it): the `make` skill.

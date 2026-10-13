@@ -1,6 +1,6 @@
 ---
 name: code
-description: Load once per session before writing or editing JS under public/ — classes not function bags (one class per file, named for the file, page templates extend Page), assign-based OOP, every method a seam, the lifecycle of a task, and the traps that never throw. Reference skill; reload only after a long gap. Companions it will remind you of — new-task, layout, css, new-css-class, new-page, documentation, finish-task.
+description: Load once per session before writing or editing JS under public/ — classes not function bags (one class per file, named for the file, page templates extend Page), assign-based OOP, every method a seam, the lifecycle of a task, and the traps that never throw. Reference skill; reload only after a long gap. Companions it will remind you of — new-task, make, layout, css, new-css-class, documentation, finish-task.
 ---
 
 # Code

@@ -11,7 +11,7 @@ How skills behave, and how we mean to use them. (The owner, 2026-08-17.)
 ## Two kinds of skill
 
 1. **Reference** — load once, or when stale. A larger set of dos and don'ts, with `caveats.md`/`strategy.md` beside it read only when they apply. `code`, `css`, `layout`, `fork-claude-session`, `mastermind`.
-2. **Trigger** — invoke *every time* the thing happens. Small: a minimal reminder set with its caveats. Hookable — every skill call is logged to the task by `ledger.mjs`. `new-task`, `new-page`, `new-css-class`, `documentation`, `finish-task`, `skill-improvement`.
+2. **Trigger** — invoke *every time* the thing happens. Small: a minimal reminder set with its caveats. Hookable — every skill call is logged to the task by `ledger.mjs`. `new-task`, `make`, `new-css-class`, `documentation`, `finish-task`, `skill-improvement`.
 
 Every skill has an `improvements.md` any agent may append to; skills remind each other they exist (that raises invocation). The lifecycle a task follows: `code` §"The lifecycle".
 
