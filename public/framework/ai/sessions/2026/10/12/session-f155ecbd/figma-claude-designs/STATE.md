@@ -27,8 +27,15 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 
 - ✅ Web `.fig-select` behaviour ([report](kit/web-select.md)): `FigSelect` (one delegated listener; pick, outside click, Escape, arrows + Enter, one open at a time), reusing `ux/Menu`'s `<details>` recipe. Not done: phone bottom sheet.
 
+- ✅ `Kit · Layouts` ([report](kit/componentize.md)): the seven layouts as components with a SLOT per region and a `Collapsed` phone form; `Chart / Bars, Stacked bar, Donut, Sparkline`; a `Ground` component (Dark / Near-black / Light / Gray) — near-black is Dark BG + 50% black, no new token. DS 6 dashboard and article now use them. Linked from Overview.
+
 ## In flight
-- ⬜ Layouts + charts as components (`Kit · Layouts`), near-black ground — task-mastermind-figma-componentize, brief [kit/brief-componentize.md](kit/brief-componentize.md)
+- (none)
+
+## Next, if picked up
+- Swap the remaining 4.1 and DS 6 frames to `Kit · Layouts` instances with real content.
+- Phone bottom sheet for `.fig-select` (needs a sheet mode in `ux/Popover`).
+- Code a `Ground` scheme class on the web (`.fig-near-black`).
 
 
 ## Waiting on the owner
