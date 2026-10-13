@@ -3,37 +3,7 @@ import { ComposerMic, SETTINGS, CLEAN_CHANGED_EVENT } from "./Mic.js";
 
 View.stylesheet(import.meta, "Chat.css");
 
-/**
- * ONE BOX ON TOP, FULL WIDTH; the mic, Send and one ⚙ menu button sit in ONE ROW
- * below it (one-dictation, 2026-10-01 — the owner, on a phone: "the text area was
- * kind of partial width and would grow really tall and then create this big void
- * of empty space… if the text area is gonna grow, it needs to be like full
- * width… the send button could be below it"). This is the SAME layout
- * `ux/Dictate/Widget.js`'s own composer already used — every caller of this one
- * function gets it now, not just the Dictate widget.
- *
- * IT NEVER GROWS BEYOND A CEILING, and that is a requirement, not a detail: rows
- * sit under it, so a composer that gains a line pushes everything down (`Chat.css`'s
- * `max-height` on the box itself now, not a row that has to match it). What
- * `ux/Dictate` draws that does not shrink — its engine name, its status, its
- * "stop after a pause" checkbox — USED to live in one small popover, and the
- * settings grid in a second, separate one behind its own gear button (two
- * buttons, two popovers). **Merged into ONE ⚙ button that opens ONE full-screen
- * menu** (chat-menu-merge, 2026-10-01 — the owner, looking at both: "I think the
- * gear and that more button should be merged together into one menu… it maybe
- * should swap out the entire UI, right? Like full screen") — see `build_menu()`
- * below, same full-screen shape as `Drill.js`'s own `.chatbox-drill`.
- *
- *     composer({ deliver: async entry => (await post(entry)).ok, re: () => "card-1" })
- *
- * `deliver(entry)` is how a message leaves — the entry is
- * `{ at, type: "prompt", by: "owner", text, via, re?, selected? }` and the answer
- * is true when it went. `re()` is asked fresh on every send, never captured, so
- * the target can change under a composer that stays put. `on_text(text)` is how
- * a caller shows the words the instant they exist, before anything has logged
- * them. `mic: false` makes a typed-only box. `autostart` opens the mic after a
- * quarter second.
- */
+// history and reasons: doc/Composer-notes.md
 const MAX_PROMPT = 20000;   // one message is never legitimately longer; a runaway box is refused, not sent
 const GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.47.47 0 0 0-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>';
 
@@ -62,21 +32,9 @@ export function composer({
 	const view = div.c("chatbox-compose", () => {
 		div.c("chatbox-field", $f => {
 			$box = $f;
-			// `.auto` = `field-sizing: content` (framework.css, util layer): the box grows with the
-			// text, full width, up to `Chat.css`'s own ceiling (`.chatbox-compose-input`'s `max-height`).
-			// ONE LINE TALL WHEN EMPTY, UP TO 3 THEN SCROLLS (one-input, 2026-10-12 — decided over a
-			// single-line `<input>` that scrolls sideways: it cannot show a paragraph of raw dictation,
-			// which is the whole point of the raw reference while speaking. `doc/one-input-2026-10-12.md`).
 			$input = textarea().attr("rows", "1").ac("auto chatbox-compose-input").attr("placeholder", placeholder);
 		});
 
-		// ONE ROW, UNDER THE BOX: mic on the left, the gear next to it, Send pinned to the
-		// right — same edges as the box above it (drawer-chat, one-dictation, 2026-10-02 —
-		// the owner: "the microphone and send and settings buttons are kind of just
-		// floating awkwardly down there"). The row used to read mic, Send, gear — Send sat
-		// in the middle, at neither edge. `Chat.css`'s own `.chatbox-compose-send`
-		// (`margin-inline-start: auto`) is what actually pushes it to the row's far end,
-		// past whatever else is in the row (the gear, and the "raw" toggle when it shows).
 		div.c("chatbox-compose-row", () => {
 			if (with_mic) mic = new ComposerMic({
 				re,
@@ -90,41 +48,15 @@ export function composer({
 				on_refine_live,
 				refine_session_id: typeof session === "function" ? session : () => session,
 				field: $input,
-				// ONE STATUS LINE REPLACES ERROR ROWS (round 2, 2026-10-04 — the owner: "an
-				// error happens and that error doesn't get cleared out… wasting three more
-				// lines of screen space"). An error is never ALSO pushed into `note()` (the
-				// line below the row): `ux/Dictate`'s own `log_step()` already wrote a short
-				// form of it into `$diag` (surfaced as `$status_line`, below) the moment it
-				// happened, and the very next real stage change overwrites that text — so an
-				// old error cannot outlive the thing that caused it. This is only a console
-				// trail for anyone reading devtools; nothing here draws a second row.
 				on_error: e => console.warn("[dictate] composer:", e),
-				// Deliverable 2 - "if Servex/tidy fails, send raw and say so in the hint line":
-				// ComposerMic calls this at most ONCE per send (`notify_if_failed()` - review
-				// finding 5, a string of failed chunks used to repeat this line once each,
-				// before anything had actually gone out), right before the message leaves -
-				// "will send raw", not "sent raw".
 				on_clean_failed: why => note("clean-up isn't answering - will send raw (" + why + ")"),
 			}).ac("chatbox-mic");
 
-			// ONE MENU BUTTON (chat-menu-merge, 2026-10-01) — used to be TWO buttons here,
-			// `⋯` (engine, microphone and status) and a separate gear (settings); see
-			// `build_menu()` below for the one full-screen panel this now opens. A real
-			// gear (an SVG), not the ⚙ character: on a phone that glyph drew as a ship's
-			// wheel (the owner, 2026-09-30).
 			if (with_mic){
 				const $menu_btn = button.c("chatbox-compose-more chatbox-compose-menu").attr("type", "button")
 					.attr("title", "dictation settings").attr("aria-label", "dictation settings").click(() => open_menu());
 				$menu_btn.el.innerHTML = GEAR;
 			}
-			// Deliverable 3 - "dig back": one small toggle shows exactly what Whisper produced,
-			// in place of the clean-up, for whatever is currently in the box. Only worth showing
-			// on a composer that asked for a revise: level at all - a plain box has no raw/clean
-			// split to dig into. Review finding 7: it must also HIDE the instant the gear's
-			// "clean" kill switch is off, since toggling it then would show raw = clean (nothing
-			// to dig into, nothing to show) - `SETTINGS.clean` decides its hidden state, both up
-			// front and live, via `CLEAN_CHANGED_EVENT` (the one way a plain DOM node outside the
-			// mic hears that ONE setting change - `Mic.js`'s own settings_panel() fires it).
 			if (with_mic && revise) $raw_btn = button.c("chatbox-compose-more chatbox-compose-raw").attr("type", "button")
 				.attr("title", "show exactly what Whisper heard, before the clean-up")
 				.text("raw").click(() => $raw_btn.el.classList.toggle("active", mic?.toggle_raw()));
@@ -143,28 +75,7 @@ export function composer({
 		$note = small.c("chatbox-compose-note muted").text(hint);
 	});
 
-	/* ONE FULL-SCREEN MENU (chat-menu-merge, 2026-10-01 — the owner, looking at the
-	   gear and the `⋯` button side by side: "I think the gear and that more button
-	   should be merged together into one menu... it maybe should swap out the
-	   entire UI, right? Like full screen"). It holds BOTH halves that used to be
-	   two separate small popovers:
-	     - Dictate's own info block — the engine, the status, the "stop after a
-	       pause" box. One node, moved here bodily (not copied), so it can never
-	       disagree with the microphone it describes.
-	     - The settings grid, `Mic.js`'s own `settings_panel()` — it used to
-	       position ITSELF as a small floating popover with inline styles; now it
-	       is a plain in-flow grid (`Chat.css`'s `.chatbox-mic-settings`) and this
-	       full-screen panel decides where it sits.
-	   Built once, on first open, and appended to <body> — the same full-screen
-	   shape `Drill.js`'s own `.chatbox-drill` uses for its own full-screen shell,
-	   so there is one way a chat surface goes full screen, not two. */
 	const $info = mic?.el.querySelector(".ux-dictate-info");
-	// ONE STATUS LINE (round 2, 2026-10-04 — see the long comment on `on_error` above): the
-	// short "mic: … · socket: … · whisper: …" line `ux/Dictate` already keeps live
-	// (`log_step()`/`draw_diag()`) used to sit buried inside the full-screen menu along with
-	// the rest of `$info`. Pulled out and shown here, right above the send-flow `note()` line,
-	// so the owner always sees current mic/connection/whisper health without opening the menu
-	// — and it is never stale, because the next real stage change overwrites its own text.
 	const $diag = mic?.el.querySelector(".ux-dictate-diag");
 	if ($diag){ $diag.classList.add("chatbox-compose-diag"); $note.el.before($diag); }
 	let $menu;
@@ -205,15 +116,8 @@ export function composer({
 
 	async function send(){
 		const msg = $input.el.value.trim();
-		// Dictating into the chat: an empty box + Send sends the growing bubble now, without waiting for the pause.
 		if (!msg && mic?.live_active?.() && mic.box()?.value.trim()) return mic.send_screen();
-		// The box is everything on screen, the moving guess included; an empty box says so, never a silent nothing.
 		if (!msg) return note("nothing to send — the box is empty");
-		// "rename this" on a selected card is a COMMAND, not a message (requirements.md
-		// deliverable 3: "itself must not also be sent as a chat message"). `try_command`
-		// only swallows it when it actually did something (something was selected) — with
-		// nothing selected, "rename this" has no target, so it falls through and sends
-		// as a plain line, same as any other typo'd command would.
 		if (try_command?.(msg)){ if (!mic?.live_active?.()) mic?.consume_sent(); $input.el.value = ""; return note("renaming…"); }
 		if (msg.length > max) return note("That is " + msg.length + " characters — over the " + max + " limit, so nothing was sent. Trim it and press Send again.");
 		if (!mic?.live_active?.()) mic?.consume_sent();   // dictating into the chat: the typed box is separate, the bubble keeps growing
@@ -229,19 +133,6 @@ export function composer({
 		note(ok ? sent : failed);
 	}
 
-	/* ⚠ The status goes in the PLACEHOLDER as well as the small note under the row
-	   (`$note`, a plain line now — chat-menu-merge, 2026-10-01 — it used to be
-	   folded out of sight behind the `⋯` button, which is gone), because a note
-	   nobody can see is not feedback. The placeholder is inside a fixed-height
-	   box, so saying something there cannot move anything.
-	   ⚠ `$note`'s OWN TEXT NOW REVERTS TOO (round 2, 2026-10-04 — the owner: "an error
-	   happens and that error doesn't get cleared out… wasting three more lines of screen
-	   space for some old artifact error"). Only the placeholder used to be put back after
-	   4s; `$note.text(...)` itself was left exactly as the last call set it, forever, so
-	   a one-off "nothing to send" or a Send failure sat there until something else
-	   happened to call `note()` again — which, on a quiet composer, could be never. A
-	   later call (or the composer being torn down) cancels the pending revert so two
-	   overlapping notes never fight over which one gets to clear last. */
 	let note_timer;
 	function note(text){
 		$note.text(text);
