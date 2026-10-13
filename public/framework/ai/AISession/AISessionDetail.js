@@ -168,7 +168,7 @@ export default class AISessionDetail extends Page {
 						this.live_off?.();
 						const live = AISessionDetail.live_item(row.session_id ?? id, row), el = small.c("muted", ""), draw = () => {
 							const model = live.item.get("model"), effort = live.item.get("effort"), usd = live.item.get("usd");
-							el.el.textContent = [model, effort, usd != null && "$" + (+usd).toFixed(2)].filter(Boolean).join(" · ");
+							el.el.textContent = [model, effort && !String(model).includes(effort) ? effort : null, usd != null && "$" + (+usd).toFixed(2)].filter(Boolean).join(" · ");
 						};
 						el.el.classList.add("session-live");
 						const offs = ["model", "effort", "usd"].map(k => Property.of(live.item, k).bind(draw));
