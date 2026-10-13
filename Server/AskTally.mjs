@@ -7,7 +7,8 @@
 //   node Server/AskTally.mjs tally                            normalise tags, Haiku maps tags to feature + area
 //   node Server/AskTally.mjs group                            Haiku groups the asks in each area into repeated features
 //   node Server/AskTally.mjs verdicts  [--par 4]              Haiku per feature batch, with gathered evidence
-//   node Server/AskTally.mjs write                            asks-outcomes.jsonl + the page's numbers
+//   node Server/AskTally.mjs write                            asks-outcomes.jsonl (one-line asks only)
+//   node Server/AskTally.mjs page                             asks-outcomes.md, every number computed from the jsonl
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -309,18 +310,93 @@ FEATURES:
 		const v = JSON.parse(fs.readFileSync(this.file("verdicts.json"), "utf8"));
 		const merge = JSON.parse(fs.readFileSync(this.file("merge.json"), "utf8"));
 		const ev = Object.fromEntries(JSON.parse(fs.readFileSync(this.file("evidence.json"), "utf8")).map(p => [p.feature, p]));
-		const lines = [{ meta: { at: new Date().toISOString(), script: "Server/AskTally.mjs", model: HAIKU, prompts_since: "2026-09-15" } }];
+		const lines = [{ meta: { at: new Date().toISOString(), script: "Server/AskTally.mjs", model: HAIKU, prompts_since: "2026-09-15", prompts: this.read_jsonl(this.file("prompts.jsonl")).length } }];
 		for (const [from, to] of Object.entries(merge)) if (from !== to) lines.push({ merge: { from, to } });
+		// Computed rule: a "done" whose evidence landed before the owner's last ask is "partly": they asked again after it landed.
+		const landed_on = (f, link) => {
+			const e = ev[f.feature]?.evidence ?? {};
+			const l = (e.land ?? []).find(x => link && (x.file.includes(link) || link.includes(x.file)));
+			if (l?.landed_at) return l.landed_at.slice(0, 10);
+			const g = (e.git ?? []).find(x => link && x.startsWith(link.slice(0, 7)));
+			return g ? g.split(" ")[1] : null;
+		};
 		for (const f of feats){
-			const d = v[f.feature] ?? null;
+			let d = v[f.feature] ?? null;
+			if (d?.status === "done"){
+				const on = landed_on(f, d.link), again = f.asks.filter(a => on && a.date > on).map(a => a.date).sort().pop();
+				if (again) d = { ...d, status: "partly", proof: `asked again on ${again}, after this landed on ${on}. ${d.proof}`, rule: "asked-again" };
+			}
 			const in_audit = (ev[f.feature]?.evidence.audit ?? []).map(a => `${a.title} (${a.status})`);
-			lines.push({ feature: { name: f.feature, count: f.count, first: f.first, last: f.last, status: d?.status ?? "unjudged", link: d?.link ?? "", proof: d?.proof ?? "", audit_10_08: in_audit } });
+			const conf = f.asks.map(a => this.confidence(a)), avg = k => this.clamp(conf.reduce((s, c) => s + c[k], 0) / (conf.length || 1));
+			lines.push({ feature: { name: f.feature, area: f.area, count: f.count, first: f.first, last: f.last, status: d?.status ?? "unjudged", link: d?.link ?? "", proof: d?.proof ?? "", rule: d?.rule, ask_clear: avg("ask_clear"), outcome_clear: avg("outcome_clear"), audit_10_08: in_audit } });
 			for (const a of f.asks) lines.push({ ask: { feature: f.feature, date: a.date, source: a.source, raw: String(a.raw ?? "").slice(0, 140), ask: String(a.ask).slice(0, 140), kind: a.kind, outcome: String(a.outcome ?? "").slice(0, 140),
 				flags: { names_thing: !!a.names_thing, names_result: !!a.names_result, hedged: !!a.hedged, conflicts: !!a.conflicts }, ...this.confidence(a) } });
 		}
 		fs.writeFileSync(this.OUT, lines.map(l => JSON.stringify(l)).join("\n") + "\n");
-		const st = {}; for (const f of feats){ const s = v[f.feature]?.status ?? "unjudged"; st[s] = (st[s] ?? 0) + 1; }
+		const st = {}; for (const l of lines) if (l.feature){ const s = l.feature.status + (l.feature.rule ? " (" + l.feature.rule + ")" : ""); st[s] = (st[s] ?? 0) + 1; }
 		return { lines: lines.length, features: feats.length, status: st };
+	}
+
+	// ---- 6. page: asks-outcomes.md, every number computed from asks-outcomes.jsonl ----
+	static SPOTCHECK = path.join(ROOT, "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes/spotcheck.json");
+	static link(l){
+		if (!l) return "none";
+		if (/^[0-9a-f]{7,12}$/.test(l)) return `\`${l}\``;
+		const p = l.replace(/^public/, "").replace(/\/task\.jsonl$/, "/");
+		return `[${p.split("/").filter(Boolean).slice(-1)[0]}](${p.startsWith("/") ? p : "/" + p})`;
+	}
+	static page(){
+		const L = this.read_jsonl(this.OUT), meta = L[0].meta;
+		const F = L.filter(l => l.feature).map(l => l.feature), A = L.filter(l => l.ask).map(l => l.ask);
+		const sc = fs.existsSync(this.SPOTCHECK) ? JSON.parse(fs.readFileSync(this.SPOTCHECK, "utf8")) : null;
+		const n = s => F.filter(f => f.status === s).length;
+		const cost = this.read_jsonl(this.file("cost.jsonl")).reduce((s, x) => s + (x.cost ?? 0), 0);
+		const row = f => `| ${f.count} | ${f.name} | ${f.status}${f.rule ? " (asked again)" : ""} | ${f.last} | ${this.link(f.link)} | ${String(f.proof).replace(/\|/g, "/").slice(0, 110)} |`;
+		const head = "| asks | feature | status | last asked | evidence | why |\n|---|---|---|---|---|---|";
+		const open = F.filter(f => f.status !== "done");
+		const conflicts = A.filter(a => a.flags.conflicts);
+		const avg = k => this.clamp(A.reduce((s, a) => s + a[k], 0) / A.length);
+		const md = `# Your asks, tallied: what landed and what didn't
+
+**Confidence scale, everywhere on this page: 0.5 = not sure (the default), 0 = no idea, 1 = certain.** It is computed from yes/no flags, never typed by a model ([how](#how-it-was-computed)).
+
+${A.length} asks found in ${meta.prompts} of your prompts since ${meta.prompts_since}, grouped into ${F.length} features: **${n("done")} done, ${n("partly")} partly, ${n("not done")} not done.** ${F.filter(f => f.rule).length} of the "partly" had a landing, but you asked again after it landed. Verdicts were spot-checked ${sc ? `${sc.after_rule_right}/10` : "?"} right, so read a "not done" as "no evidence found", not as proof.
+
+## Asked most, not finished
+
+${head}
+${open.slice(0, 15).map(row).join("\n")}
+
+## Never landed (no evidence found)
+
+${head}
+${F.filter(f => f.status === "not done").slice(0, 10).map(row).join("\n")}
+
+## Contradictions (your words pull two ways)
+
+${conflicts.slice(0, 12).map(a => `- **${a.feature}** (${a.date}): ${a.raw || a.ask}`).join("\n")}
+
+${conflicts.length} asks carry the conflict flag; all of them are in [the data file](asks-outcomes.jsonl).
+
+## Every feature, by how often you asked
+
+${head}
+${F.map(row).join("\n")}
+
+## How it was computed
+
+- **Script:** [\`Server/AskTally.mjs\`](/Server/AskTally.mjs), steps \`extract → asks → tally → group → verdicts → write → page\`. Data: [asks-outcomes.jsonl](asks-outcomes.jsonl): one \`feature\` line per feature, one \`ask\` line per ask (raw → ask → kind → outcome → flags → the two confidences), and the \`merge\` lines.
+- **Prompts:** what you typed in VS Code tabs, read from the raw transcripts on this machine (agent sessions keep only \`[from: owner]\` relays; pastes over 30k characters are skipped). Prompt text stays in the scratch dir; only the one-line asks are committed.
+- **Asks:** Haiku 4.5 read the prompts in 20 chunks of about 35k tokens, newest first. For each ask it answered four flags, and the script turns them into \`ask_clear = 0.5 + 0.25·names_thing − 0.2·hedged − 0.25·conflicts\` and \`outcome_clear = 0.5 + 0.25·names_result − 0.15·hedged − 0.25·conflicts − 0.1·(no named thing)\`. Average: ask ${avg("ask_clear")}, outcome ${avg("outcome_clear")}. Kinds: ${["command", "question", "directive"].map(k => `${A.filter(a => a.kind === k).length} ${k}s`).join(", ")}.
+- **Features:** Haiku mapped tags to a feature and an area, then grouped the asks inside each area. Some groups are still broad ("session system", "task system"), and their verdict can only be "partly".
+- **Verdicts:** the script gathered evidence for each feature (task landing lines, git subjects since 09-10, [follow-up-full.md](follow-up-full.md), the asks ledger and the [10-08 audit](/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit/)), and Haiku judged it. Then a computed rule: a "done" whose landing is older than your last ask becomes "partly (asked again)". ${F.filter(f => f.audit_10_08.length).length} features overlap the 10-08 audit, whose ledger statuses were part of the evidence, so nothing it covered was judged blind.
+- **Spot-check:** ${sc ? `${sc.raw_right}/10 right from Haiku alone, ${sc.after_rule_right}/10 after the asked-again rule. ${sc.lesson}. Detail: [spotcheck.json](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes/spotcheck.json)` : "not yet run"}.
+- **Cost:** ${cost.toFixed(2)} of Haiku for this run, plus $3.77 for a first extraction kept as a baseline.
+- **Re-run:** each step caches in the scratch dir, so a re-run only pays for what changed.
+`;
+		const out = this.OUT.replace(/\.jsonl$/, ".md");
+		fs.writeFileSync(out, md);
+		return { file: path.relative(ROOT, out), lines: md.split("\n").length };
 	}
 
 	static async main(argv){
@@ -332,7 +408,8 @@ FEATURES:
 			: cmd === "group" ? await this.group({ par: n("par") })
 			: cmd === "verdicts" ? await this.verdicts({ par: n("par"), top: n("top") })
 			: cmd === "write" ? this.write()
-			: (console.error("usage: node Server/AskTally.mjs extract|asks|tally|verdicts|write"), process.exit(2));
+			: cmd === "page" ? this.page()
+			: (console.error("usage: node Server/AskTally.mjs extract|asks|tally|group|verdicts|write|page"), process.exit(2));
 		console.log(JSON.stringify(r, null, 1));
 	}
 }
