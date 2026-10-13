@@ -124,6 +124,16 @@
 		color: var(--fig-text);
 	}
 
+	.fig-near-black {
+		--fig-text: #ffffff;
+		--fig-muted: #ffffffb2;
+		--fig-surface: color-mix(in srgb, var(--fig-dark) 50%, #000);
+		--fig-accent: var(--fig-prime);
+		--fig-on-accent: #000000d9;
+		background: var(--fig-surface);
+		color: var(--fig-text);
+	}
+
 	.fig-card { padding: var(--fig-pad-y) var(--fig-pad-x); border-radius: var(--fig-radius); }
 	.fig-section { padding: var(--fig-section-pad-y) var(--fig-section-pad-x); }
 	.fig-row { padding: var(--fig-small-pad-y) var(--fig-small-pad-x); }
@@ -131,7 +141,7 @@
 	.fig-stack > * { margin: 0; }   /* auto layout has no margins: the gap is the only space, as in Figma */
 	.fig-stack > .fig-btn { align-self: flex-start; }   /* buttons hug, as in Figma */
 	.fig-inset { background: rgb(0 0 0 / 0.1); }
-	.fig-dark .fig-lift { background: rgb(255 255 255 / 0.1); }
+	:is(.fig-dark, .fig-near-black) .fig-lift { background: rgb(255 255 255 / 0.1); }
 	.fig-muted { color: var(--fig-muted); }
 	.fig-accent { color: var(--fig-accent); }
 	.fig-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--fig-small-pad-x); min-height: 44px; padding: var(--fig-small-pad-y) var(--fig-gap); border: 0; border-radius: var(--fig-radius); font-family: inherit; font-weight: 700; font-size: 14px; line-height: 1.4; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fig-text); background: none; }
@@ -161,7 +171,7 @@
 	:is(.fig-toggle, .fig-check, .fig-radio):has(> input:disabled) { opacity: 0.4; cursor: default; }
 	.fig-select { position: relative; display: block; width: 100%; box-sizing: border-box; }
 	.fig-select > summary { list-style: none; display: flex; width: 100%; align-items: center; gap: var(--fig-small-pad-x); min-height: 44px; padding: var(--fig-small-pad-y) var(--fig-gap); border: 0; border-radius: var(--fig-radius); background: rgb(0 0 0 / 0.1); color: var(--fig-text); font: inherit; cursor: pointer; box-sizing: border-box; }
-	.fig-dark .fig-select > summary, .fig-dark.fig-select > summary { background: rgb(255 255 255 / 0.1); }
+	:is(.fig-dark, .fig-near-black) .fig-select > summary, :is(.fig-dark, .fig-near-black).fig-select > summary { background: rgb(255 255 255 / 0.1); }
 	.fig-select > summary::-webkit-details-marker { display: none; }
 	.fig-select > summary > :first-child { flex: 1; }
 	.fig-select > summary::after { content: 'expand_more'; font-family: 'Material Symbols Rounded', 'Material Icons'; font-size: 24px; line-height: 1; transition: transform 0.12s; }
@@ -172,6 +182,12 @@
 	.fig-select-row:hover { background: color-mix(in srgb, var(--fig-text) 8%, transparent); }
 	.fig-select-row[aria-selected=true] { background: color-mix(in srgb, var(--fig-text) 10%, transparent); font-weight: 700; }
 	.fig-select-row > :first-child { flex: 1; }
+	/* DS 2.6 variant C: under a phone width the open panel is a bottom sheet over a scrim (the scrim is the details itself, so a tap on it closes it: FigSelect.js). Not inside .fig-lay: its container-type traps position: fixed. */
+	@media (max-width: 599px) {
+		.fig-select[open]::before { content: ''; position: fixed; inset: 0; z-index: 4; background: rgb(0 0 0 / 0.4); }
+		.fig-select-panel { position: fixed; z-index: 5; left: 0; right: 0; bottom: 0; top: auto; max-height: 70dvh; padding: var(--fig-gap) 4px calc(var(--fig-gap) + env(safe-area-inset-bottom)); border-radius: calc(var(--fig-radius) * 3) calc(var(--fig-radius) * 3) 0 0; border-width: 1px 0 0; box-shadow: 0 -8px 24px rgb(0 0 0 / 0.25); }
+		.fig-select-panel::before { content: ''; display: block; width: 36px; height: 4px; margin: 0 auto var(--fig-small-pad-x); border-radius: 2px; background: color-mix(in srgb, var(--fig-text) 25%, transparent); }
+	}
 
 	.fig-lay { container-type: inline-size; }
 	.fig-cols, .fig-split, .fig-media, .fig-side, .fig-three { display: grid; gap: var(--fig-gap); align-items: start; }
@@ -180,7 +196,7 @@
 	.fig-split { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.fig-media { grid-template-columns: 160px minmax(0, 1fr); }
 	.fig-media-box { aspect-ratio: 1; border-radius: var(--fig-radius); background: rgb(0 0 0 / 0.1); display: grid; place-content: center; }
-	.fig-dark .fig-media-box { background: rgb(255 255 255 / 0.1); }
+	:is(.fig-dark, .fig-near-black) .fig-media-box { background: rgb(255 255 255 / 0.1); }
 	.fig-media-sm { grid-template-columns: 120px minmax(0, 1fr); }
 	.fig-side { grid-template-columns: 200px minmax(0, 1fr); }
 	.fig-side-rail { display: flex; flex-direction: column; gap: var(--fig-small-pad-y); }
@@ -189,7 +205,7 @@
 	.fig-bands > * { margin: 0; padding: var(--fig-pad-y) var(--fig-pad-x); border-radius: 0; }
 	.fig-bands > .fig-body { flex: 1; }
 	.fig-bands > .fig-head, .fig-bands > .fig-foot { background: rgb(0 0 0 / 0.1); }
-	.fig-dark .fig-bands > .fig-head, .fig-dark .fig-bands > .fig-foot { background: rgb(255 255 255 / 0.1); }
+	:is(.fig-dark, .fig-near-black) .fig-bands > .fig-head, :is(.fig-dark, .fig-near-black) .fig-bands > .fig-foot { background: rgb(255 255 255 / 0.1); }
 	@container (max-width: 479px) {
 		.fig-cols, .fig-split, .fig-media, .fig-side, .fig-three { grid-template-columns: minmax(0, 1fr); }
 		.fig-side-rail { flex-direction: row; flex-wrap: wrap; }

@@ -30,6 +30,7 @@ export default class FigSelect {
 			(rows.find(r => r.getAttribute("aria-selected") === "true") ?? rows[0])?.scrollIntoView({ block: "nearest" });
 		}, true);
 		document.addEventListener("click", e => {
+			if (e.target.matches?.(".fig-select[open]")) { e.target.open = false; return; }   // the phone sheet's scrim is the details itself
 			const row = e.target.closest?.(".fig-select-row");
 			if (row) return FigSelect.pick(row.closest(".fig-select"), row);
 			const inside = e.target.closest?.(".fig-select");   // outside click closes the rest

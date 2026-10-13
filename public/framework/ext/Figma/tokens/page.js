@@ -8,7 +8,7 @@ View.stylesheet(import.meta, "page.css");
 if (!document.querySelector("meta[name=fig-symbols]")) document.head.append(Object.assign(document.createElement("link"), { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:FILL@0..1" }), Object.assign(document.createElement("meta"), { name: "fig-symbols" }));
 
 // The opt-in --fig-* tokens generated from the Figma variables; why: ../doc/token-sync.md
-const schemes = [["fig-white", "White"], ["fig-gray", "Light gray"], ["fig-dark", "Dark"]];
+const schemes = [["fig-white", "White"], ["fig-gray", "Light gray"], ["fig-dark", "Dark"], ["fig-near-black", "Near-black"]];
 const dom = (view, props) => (Object.assign(view.el, props), view);   // DOM properties (checked, open) that attributes cannot set
 const icon = (name, size = 24) => span.c(`fig-icon fig-icon-${size}`, name);
 const toggle = (label, on, dis) => div.c("fig-toggle", () => { span(label); dom(input().attr("type", "checkbox"), { checked: !!on, disabled: !!dis }); });
@@ -19,7 +19,7 @@ const select = (value, rows, open) => {
 	summary(span(value));
 	div.c("fig-select-panel", () => rows.forEach(r => div.c("fig-select-row", () => { span(r); if (r === value) icon("check", 20); }).attr("aria-selected", r === value)));
 });
-	dom(d, { open: !!open });
+	dom(d, { open: !!open && innerWidth >= 600 });   // a phone shows the open panel as a sheet over a scrim, so the demo starts closed there
 	return d;
 };
 let uid = 0;
@@ -39,7 +39,7 @@ function settings(scheme) {
 		h3("Settings");
 		toggle("Push notifications", true); toggle("Email digest", false); toggle("Location", true);
 		div.c("fig-select-label fig-muted", "Language");
-		select("English", ["English", "Español", "Français"]);
+		select("English", ["English", "Espaï¿½ol", "Franï¿½ais"]);
 		check("Remember me", true);
 		const g = "p" + uid++;
 		radio("Free", false, g); radio("Plus", true, g);
@@ -120,7 +120,9 @@ export default new Page({
 		layoutsDemo();
 		h3("Layouts on a phone (390)");
 		div.c("flex wrap gap", () => div.c("fig-white fig-lay fig-card fig-tokens-phone", () => div.c("fig-side", () => { div.c("fig-side-rail", () => ["Profile", "Billing"].forEach(t => button.c("fig-btn fig-btn-secondary", t))); div.c("fig-cols", () => { h4("Profile"); p.c("fig-muted", "Rail on top; label above content."); }); })));
-		h3("The settings screen (DS 2.7, In action)");
+		h3("Dropdown as a bottom sheet (DS 2.6 C)");
+			p("Under 600 px of screen width an open fig-select becomes a bottom sheet over a dimmed page; tap the dim area, press Escape or pick a row to close. Resize the window below 600 px to see it.");
+			h3("The settings screen (DS 2.7, In action)");
 		div.c("flex wrap gap", () => schemes.forEach(([cls]) => settings(cls)));
 	},
 });
