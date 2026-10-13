@@ -1,49 +1,106 @@
-import { Page, md, code, div, h3, a } from "/app.js";
-import chat from "../chat.js";
+import { Page, md, div, h3, img, a } from "/app.js";
 
-/* SURFACES (one-dictation, merge 4): the one chat, live, then each real place it is
- * mounted: a screenshot of that surface beside the one call it makes. */
-const SHOT = "/framework/ux/Dictate/surfaces/";
+/* The one permanent map of every voice and chat surface. Long form, the census and the measurement:
+ * /framework/ux/Dictate/doc/surfaces.md. Screenshots: shoot.mjs in the task that built this page
+ * (ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-surfaces/). */
+const SHOT = new URL("./", import.meta.url).href;
+
+// name · where · file · who answers · where it writes · screenshot
 const SURFACES = [
-	{ name: "The ✦ phone sheet", file: "/framework/ext/drawer/rail.js",
-		says: "On a phone, the ✦ at the bottom opens it. Drag its top edge down and it shrinks to one line.",
-		shots: ["sheet-400.png", "sheet-collapsed-400.png"],
-		call: `chat(this.$slot.el, { path: drawer.page(), card: this.card_ref?.id })` },
-	{ name: "The ☰ drawer's AI tab", file: "/framework/ext/drawer/tabs/ai.js",
-		says: "On a desktop, the ☰ at the top right opens it. The chat fills the drawer's full height.",
-		shots: ["drawer-ai-1920.png"],
-		call: `chat($slot.el, { path: page, card: card?.id })` },
-	{ name: "An AI 2 card's sidebar", file: "/framework/ai/cards/card.js",
-		says: "Every card page has it on the right, under a line naming the card.",
-		shots: ["card-sidebar-1920.png"],
-		call: `chat(slot.el, { path: this.url, card: this.id })` },
-	{ name: "AI 2's Live card", file: "/framework/ai2/page.js",
-		says: "Open the Live card's fold to ask about what is running.",
-		shots: ["live-fold-1920.png"],
-		call: `chat(slot.el, { path: root.url + id + "/", card: id })` },
-	{ name: "The dev bar", file: "/framework/dev/DevBar/ask.js",
-		says: "On localhost only, the dev bar's AI tab.",
-		shots: [],
-		call: `chat(slot.el, { path: url })` },
+	{ name: "Drawer chat", where: "Every page, width over 52em: ☰ top right, AI tab",
+		file: "/framework/ext/drawer/tabs/ai.js", agent: "fast + smart", log: "`ai/<id>.jsonl`", shot: "drawer-ai-1920.png",
+		says: "The main one. The header names the session, shows whether fast and smart are awake, and holds New session and Switch session." },
+	{ name: "Phone sheet", where: "Every page, width under 52em: ✦ at the bottom",
+		file: "/framework/ext/drawer/rail.js", agent: "fast + smart", log: "`ai/<id>.jsonl`", shot: "sheet-400.png",
+		says: "The same chat in a sheet that slides up. Same session as the drawer chat." },
+	{ name: "Floating mic", where: "Every page, while the mic is on",
+		file: "/framework/ux/Dictate/push-to-talk.js", agent: "fast + smart", log: "`ai/<id>.jsonl`", shot: "floating-mic-1920.png",
+		says: "A small button, not a chat. It speaks into the same global session, so the words land in the drawer chat." },
+	{ name: "Dictation tab", where: "Drawer, Dictation tab",
+		file: "/framework/ext/drawer/tabs/dictation.js", agent: "none", log: "none", shot: "drawer-dictation-1920.png",
+		says: "The dictation playground embedded: a debug view of the mic and the stages. Nobody answers here." },
+	{ name: "Card chat", where: "A card's page, Activity tab",
+		file: "/framework/ai/cards/card.js", agent: "whoever is attached to the card, or none", log: "the card's `page.jsonl`", shot: "card-chat-1920.png",
+		says: "A different conversation: the card's own thread, posted with `POST /card/append`, not a voice session." },
+	{ name: "Session page", where: "`/framework/ai/sessions/<id>/`, Conversation tab",
+		file: "/framework/ai/AISession/AISessionConversation.js", agent: "none (it replays a Claude Code session)", log: "reads the SDK session file; Refine writes the stages", shot: "session-page-1920.png",
+		says: "A read-only view of what you and a Claude Code agent said. Its one action is the Refine button on a prompt." },
+	{ name: "Refine view", where: "`/framework/ext/Refine/`",
+		file: "/framework/ext/Refine/RefineDemo.js", agent: "none (a pipeline: clean, structure, refine)", log: "the session's `page.jsonl`", shot: "refine-1920.png",
+		says: "Dictate or paste, press Refine, watch the five stages fill in." },
+	{ name: "Dev shell", where: "Localhost only, ctrl + \\: ai and chat tabs",
+		file: "/framework/dev/DevShell/DevShell.js", agent: "not traced", log: "not traced", shot: "devshell-1920.png",
+		says: "Dev chrome. Its chat tab was not traced to a mount in this pass; see the doc." },
+	{ name: "Live card", where: "`/framework/ai/`, the board's Live card",
+		file: "/framework/ai/rail/rail.js", agent: "the global session at its foot, the card thread above", log: "`ai/<id>.jsonl` and the card", shot: "live-card-1920.png",
+		says: "The board's own rail: card threads on top, the global chat at the bottom." },
 ];
+
+const FLOW = `microphone
+  → Whisper (local, audio/Whisper)                     words appear at once
+  → the stream: a JSONL line per sentence               ai/<id>.jsonl   (raw, kept first)
+  → cleaning (ext/Refine/engine.js, fillers out)
+  → structure → refined prompt → cards                  drawn on the session page
+        ↑ these three run only when Refine is pressed (or Echo is on), never on every sentence
+
+the same sentence also goes, as typed text, to:
+  POST /api/session/say → Servex Sessions.js
+        → fast agent  (first reply, usually "(listening)")
+        → smart agent (the real answer, can use tools)
+  both replies are written back to ai/<id>.jsonl and drawn by every surface that follows it
+
+which surface shows which stage
+  drawer chat · phone sheet · live card foot ... raw words + fast and smart replies
+  session page, Refine view ................... all five stages (raw, clean, structure, refined, cards)
+  card chat ................................... the card's own lines, not the voice session
+  dictation tab ............................... the mic and Whisper state only`;
+
+const SESSIONS = `ONE voice session per browser tab   (sessionStorage "lew42-voice-session", ux/Dictate/chat.js)
+  shared by: drawer chat · phone sheet · floating mic · live card foot · Dictate page
+  first sentence in a tab   → POST /api/session/new  (instant; resumes this page's session if it spoke in the last hour)
+  "New session" button      → same call with fresh:true; the old session stays on disk, resumable from Switch session
+  "Switch session"          → picks an older session by id (ext/Session recent())
+  where sessions are listed → Switch session menu (drawer header), /framework/ai/sessions/ (every kind of session)
+card chat and session page  → NOT this session; they have their own stores`;
 
 export default new Page({
 	meta: import.meta,
-	title: "Surfaces",
-	description: "The one chat, live, and the five places on the site that mount it.",
+	title: "Voice and chat surfaces",
+	description: "Every place on the site that talks to an agent or shows what was said: where it is, what runs it, who answers, what it writes.",
 	icon: "dashboard",
 
 	content(){
-		md("**One chat, five places, one conversation.** This box is the real chat. Say something into it, then open the ✦ or the ☰: the same words are there.");
-		div.c("ux-dictate-surfaces-live", $slot => { chat($slot.el, { path: location.pathname }); });
+		md("**Nine places talk, show or record what you say.** Four share one conversation (the global voice session), three are separate things, and two are a debug view and a dev-only tab. Each card below is one surface: a screenshot, then where it is, what renders it, who answers and where it writes.");
 
-		SURFACES.forEach(s => {
-			h3(s.name);
-			md(s.says);
-			s.shots.forEach(f => md(`![${s.name}](${SHOT}${f})`));
-			code.js(s.call);
-			a.c("muted").href(s.file).text(s.file.replace("/framework/", ""));
+		md("**Same conversation:** drawer chat, phone sheet, floating mic, live card foot (and the Dictate page's own box). One chat file, [`ux/Dictate/chat.js`](/framework/ux/Dictate/chat.js), is mounted by all of them. **Not the same:** card chat, session page, Refine view.");
+
+		div.c("ux-dictate-surfaces-grid", $g => {
+			$g.style({ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 22em), 1fr))", gap: "1.5em", alignItems: "start" });
+			SURFACES.forEach(s => div.c("ux-dictate-surfaces-card", () => {
+				h3(s.name).attr("id", s.shot.replace(".png", ""));
+				md(s.says);
+				img().attr("src", SHOT + s.shot + "?v=20261013").attr("alt", s.name + " screenshot").attr("loading", "lazy")
+					.style({ width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
+				md(["- **Appears:** " + s.where,
+					"- **Renders:** [" + s.file.replace("/framework/", "") + "](" + s.file + ")",
+					"- **Answers:** " + s.agent,
+					"- **Writes to:** " + s.log].join("\n"));
+			}));
 		});
+
+		md("## The flow\nFrom the microphone to the screen, and which surface shows which stage.");
+		md("```\n" + FLOW + "\n```");
+
+		md("## Sessions\nWhich surfaces share one session, which start a new one, and what the New session button does.");
+		md("```\n" + SESSIONS + "\n```");
+
+		md("## The 30-second first reply\n**Cause:** not a new session and not a queue. The pair's process starts in under a second; the wait is the model's first token, 8 to 17 s measured, on a machine with 27 agents working on the same Claude account. A pair is stopped after 5 idle minutes, so the first sentence after a pause pays it again. Numbers and the next brief: [doc/surfaces.md](/framework/ux/Dictate/doc/surfaces.md#the-30-second-first-reply).");
+
+		md("## What is duplicated\nOne system is wanted; today there are copies. Detail and links: [doc/surfaces.md](/framework/ux/Dictate/doc/surfaces.md#what-is-duplicated), the merge is a later brief ([doc/next.md](/framework/ux/Dictate/doc/next.md)).\n\n" +
+			"- Three conversation stores behind one renderer: the voice session (`ai/<id>.jsonl`), the card thread (`page.jsonl`), the Claude Code transcript.\n" +
+			"- Three writers of the same five Refine stages: the Refine button, the session page's Refine button, Echo.\n" +
+			"- A \"New session\" button built three times: `chat.js`, `rail.js`, `tabs/ai.js`.\n" +
+			"- An older chat, `ext/Ask/chat.js`, kept alive by the dev bar's v1 tab.");
 
 		md.details(import.meta, "readme.md", "Readme");
 	},

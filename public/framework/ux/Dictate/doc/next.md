@@ -13,3 +13,7 @@
 
 1. **Order:** in `ext/Chat/Chat.js` (coordinate with its owner), insert a drawn bubble before the first existing bubble with a later `at`, and re-place a bubble when `retag_piece` changes its id/time. Proof: a headless run with a scripted Whisper sends four sentences with replies in between; assert DOM order equals the session file order. Replay tool: `dictate-check/replay.mjs`.
 2. **One mic:** Refine's page takes its raw text from the `chat()` session instead of `VoiceStrip`'s own mic, so desktop, phone and Refine give one result. Details: [asks.md](asks.md#2026-10-13-later--bubble-order-and-how-dictate--chat--refine-nest).
+
+# Next 3: from the surfaces page (2026-10-13)
+
+Recommendations only, evidence in [surfaces.md](surfaces.md): measure luna vs Claude for the fast assistant (the 30-second first reply); one "New session" button; Echo and the Refine buttons share one call; retire `ext/Ask/chat.js`; trace the Dev shell chat tab.

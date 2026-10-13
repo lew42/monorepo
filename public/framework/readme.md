@@ -7,7 +7,7 @@
 - [ui](./ui/) — the template tier: components, one page each
 - [library](./library/) — every ui and Figma item in three columns: siblings, the chosen one at full size, its variants
 - [catalog](./catalog/) — every page with a demo as a live preview card, plus the class cards
-- [ux](./ux/) — the behavior tier: classes you can extend
+- [ux](./ux/) — the behavior tier: classes you can extend; [every voice and chat surface](./ux/Dictate/surfaces/)
 - [styles](./styles/) — the CSS strategy: four layers, one vocabulary
 - [web](/web/) — the guide tier, live (it lives at `public/web/`, not in this folder; no readme here)
 - [start](./start/) — three files, no build step, a working site (no readme yet)

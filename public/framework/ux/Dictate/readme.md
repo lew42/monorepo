@@ -1,5 +1,7 @@
 # Dictate — a mic button that always shows what is happening
 
+**Every voice and chat surface, one page** (screenshots, who answers, the flow, the 30-second first reply): [`surfaces/`](./surfaces/) · [long form](doc/surfaces.md).
+
 State = which engine is listening and what it has heard so far, remembered between
 renders — the graduation rule `Filter` and `Tags` already followed, applied to a
 microphone. Built 2026-09-19 to replace `ext/Ask/mic.js`'s button, whose failures were
@@ -16,7 +18,7 @@ ever appeared — no error, no clue why.
 
 ## Also here (readme audit, 2026-10-13)
 - [playground](./playground/) — The dictation playground — a full-bleed, live diagram of a dictation session
-- [surfaces](./surfaces/) — Surfaces
+- [surfaces](./surfaces/) — every voice and chat surface on one page
 - [v1](./v1/)
 - [variants](./variants/) — Dictate variants — the same mic, a different look (or, once, a different mic)
 - [workspace](./workspace/)

@@ -10,11 +10,11 @@ const shots = [
 	["drawer-switch-session-1920", 1920, "/framework/", async p => { await p.click(".drawer-menu"); await p.click("text=Switch session"); }],
 	["drawer-dictation-1920", 1920, "/framework/", async p => { await p.click(".drawer-menu"); await p.click(".drawer-tab:has-text('Dictation')"); await p.waitForTimeout(1500); }],
 	["sheet-400", 400, "/framework/", async p => { await p.click(".drawer-rail-ai"); await p.waitForSelector(".drawer-rail-sheet"); }],
-	["card-chat-1920", 1920, "/framework/ai/2026/10/13/every-voice-and-chat-surface-on-one-perm/", async () => {}],
+	["card-chat-1920", 1920, "/framework/ai/2026/10/13/every-voice-and-chat-surface-on-one-perm/", async p => { await p.click("text=Activity"); }],
 	["session-page-1920", 1920, "/framework/ai/sessions/0467707f-3701-496d-8890-65a875cd1c8f/", async () => {}],
 	["refine-1920", 1920, "/framework/ext/Refine/", async () => {}],
 	["floating-mic-1920", 1920, "/framework/audio/push-to-talk/", async p => { await p.evaluate(() => document.querySelector(".ux-dictate-ptt-mic")?.classList.add("showing")); }],
-	["devbar-ai-1920", 1920, "/framework/", async p => { await p.evaluate(() => document.documentElement.classList.add("dev-open")); await p.click(".dev-tab:has-text('AI')", { timeout: 4000 }); }],
+	["devshell-1920", 1920, "/framework/", async p => { await p.keyboard.press("Control+Backslash"); await p.waitForTimeout(1500); }],
 	["live-card-1920", 1920, "/framework/ai/", async () => {}],
 ];
 for (const [name, w, url, act] of shots){
