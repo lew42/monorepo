@@ -1,0 +1,40 @@
+{
+ "done": [],
+ "skipped": [
+  {
+   "f": "public/framework/ai/2026-10-12/page-templates-merge/page.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/2026-10-12/style-system/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/2026-10-12/task-folders/page.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/2026/10/12/page.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/2026/10/13/page.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/layouts/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  }
+ ]
+}

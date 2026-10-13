@@ -25,3 +25,11 @@
 {"log":{"at":"2026-10-13T17:40:54-05:00","msg":"layout-check: 1 pages at 1280/1920/2560/3440 — /Server/AskTally.mjs: errors, empty 0.644 at 2560, empty 0.731 at 3440; sheets in layout-check/"}}
 {"log":{"at":"2026-10-13T17:41:07-05:00","msg":"padding-check: /Server/AskTally.mjs 400: 1 at an edge (\"// AskTally — every owner prompt since a dat\"); /Server/AskTally.mjs 1280: 2 at an edge (\"// AskTally — every owner prompt since a dat\"); /Server/AskTally.mjs 1920: 1 at an edge (\"// AskTally — every owner prompt since a dat\"); /Server/AskTally.mjs 3440: 1 at an edge (\"// AskTally — every owner prompt since a dat\")"}}
 {"action":{"at":"2026-10-13T17:37:49-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes/spotcheck.json"]}}
+{"experiment":{"try":"owner-prompt filter: vscode entrypoint, agent-session detection, relayed [from: owner] kept, >30k dropped","measure":"prompts / est tokens since 09-15","result":"6479 prompts 43M tokens before -> 1990 prompts 0.66M tokens after"}}
+{"log":{"at":"2026-10-13T16:49:51-05:00","msg":"fan-out 1 (asks): 20 Haiku 4.5 calls of ~40k tokens via askOnce; test chunk cost $0.20, so expected ~$4"}}
+{"log":{"at":"2026-10-13T16:56:07-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-prompt-outcomes"}}
+{"log":{"at":"2026-10-13T16:56:17-05:00","heartbeat":"answered","msg":"19 of the 20 Haiku chunks are done and none have errored. I'm waiting on the last chunk, then I'll tally the asks by feature."}}
+{"log":{"at":"2026-10-13T17:01:20-05:00","msg":"session resumed"}}
+{"experiment":{"try":"run 1: Haiku ask extraction, 20 chunks","measure":"cost / asks / errors","result":"$3.77, 1997 asks, 0 errors (kept as asks-v1 in scratch)"}}
+{"decision":{"at":"2026-10-13T17:02:04-05:00","what":"re-extract with the owner 17:05 shape (raw -> ask -> command|question|directive -> outcome -> ask_clear, outcome_clear on 0.5-default scale), newest chunk first","alternative":"a second Haiku pass enriching run-1 asks: same input cost, but it would judge asks without the prompt text in front of it"}}
+{"log":{"at":"2026-10-13T17:02:04-05:00","msg":"fan-out 2 (asks v2): 20 Haiku calls ~40k in, more output; expected ~$5"}}

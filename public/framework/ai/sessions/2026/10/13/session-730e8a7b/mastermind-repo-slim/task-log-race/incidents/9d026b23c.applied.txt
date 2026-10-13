@@ -1,0 +1,320 @@
+{
+ "done": [],
+ "skipped": [
+  {
+   "f": ".claude/skills/clarity/flags.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/ai/log.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/2026-10-12/page-templates-merge/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/2026/10/13/pwa-and-notifications-what-was-built-and/page.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/2026/10/13/your-asks-tallied-how-often-each-feature/page.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/cards.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/03/main-branch-guard/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/03/phone-server/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/03/retire-ai2/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/03/session-trace/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/03/spend-gate/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/04/new-brain/new-brain/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/05/local-ctx-fix/local-ctx-fix/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/05/voice-pipeline/voice-pipeline/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/06/feedback-council/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/07/feedback-council/checker-1/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/07/feedback-council/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/08/feedback-council/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/08/live-not-polling/live-not-polling/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/09/feedback-council/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/09/notifications-lab/notifications-lab/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/09/session-b431af83/worktree-pool-ready/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/09/session-ca11999b/session-detail-live/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/adopt/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/channels/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/componentize/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-elements/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-inputs-sections/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/icons/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/nesting/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/slots/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-ds/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-kit/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-lab/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/transcribe/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/video/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/web-ground/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/pwa-check/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design/docs-check/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design/task.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/usage.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/core/Item/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/core/Layout/doc/files.jsonl",
+   "n": 3,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/core/Page/doc/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/core/Page/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/core/Router/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/core/View/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/dev/DevBar/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/dev/Socket/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/Ask/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/DesignTool/doc/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/JSONL/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/Research/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/catalog/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/demo/doc/files.jsonl",
+   "n": 2,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/ext/markdown/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/styles/layouts/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  },
+  {
+   "f": "public/framework/styles/system/doc/files.jsonl",
+   "n": 1,
+   "why": "listing/snapshot"
+  }
+ ]
+}
