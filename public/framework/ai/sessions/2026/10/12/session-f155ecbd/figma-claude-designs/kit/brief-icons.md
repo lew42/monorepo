@@ -28,3 +28,6 @@ File `QYN0G2URSBHYH5I06MOjxU`; load the figma-use skill first. Work on `DS · 1.
 - **Status:** check_circle, error, warning, info, schedule, bolt, star
 
 Show a specimen grid on the page (each category, plain and framed, at body and h3), the Icon label ladder, and a "How to use" box: place `Icon`, pick Size and Style, choose the glyph from the dropdown, and add a new icon by duplicating a glyph component and changing its ligature. Other agents will reuse this system (the `Kit · Nesting` agent is waiting for it), so report as soon as it works. Write [doc/icons.md](/framework/ext/Figma/doc/icons.md) (short: the shape, the sizes, how to add an icon), link it from the ext/Figma readme, and report `kit/icons.md` with the ids, committed by path.
+
+## Addendum: handoff to code (owner, 2026-10-13, sent to the agent)
+In the site, `icon(name)` (`core/View/View.js`) renders the ligature NAME, so the Material name is the icon's identity in Figma too: in the glyph text, in the glyph component's leaf name, and in the placed instance's layer name. Verify that `get_design_context` output carries it. The site loads Material Icons, not Symbols, so prefer names that exist in both and flag any that are Symbols-only.
