@@ -108,6 +108,14 @@ Five phone screens use only those instances: Lists, Tree in a sheet (split scree
 
 Clickable flows carry a big ▶ PROTOTYPE badge (Claude prototype, UI Kit, Kit · Workflows). The kit's `DataGrid` exposes only its toolbar chips as a slot; its body rows are not a slot yet, so a layout composes Grid toolbar + Grid head + Grid rows directly.
 
+## The design-system pages (2026-10-12, night; [brief v2](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/brief-ds.md))
+
+The file reads in tier order after the owner's pages: `Claude · Overview` (start here) → `DS · 1 Elements` → `DS · 2.1 Buttons` (the exemplar every page copies) → `2.2 Lists & rows` → `2.3 Cards & containers` → `2.4 Inputs & controls` → `2.5 Status & progress` → `DS · 3 Sections` → `DS · 4 Layouts`; then the kit pages (`UI Kit`, `Kit · Controls/Containers/Workflows`), the `Claude prototype`, and the explorations renamed `Lab · …` (Site shell, Stacks, Elements; `Claude test page` keeps the owner's name).
+
+Every DS page has the same shape: a nav row of links, an accent code, an h1, one gist line, sections of `Specimen` tiles (component `158:1238`: Content slot + Label) on white and on dark, an "In action" row of 390 phone samples, and a dark Rules box.
+
+Colour rule (owner, night): prime is a splash (the one primary button, accent labels, progress fills, active icons), never a ground; selected and current = 10% black inset + accent icon; dark grounds step up with 10% white and down with 10%/50% black. Chip `Selected`, Segment `Active` and the View switch follow it; Panel and Dialog bind their fill to `surface` (white by default via Text mode `Light BG`).
+
 ## Traps
 
 - **`code` style can't load**: Figma has no Consolas, so `loadFontAsync` throws and the whole script aborts. Code text uses Cousine Bold by hand. The real fix is to change the style's font in Figma (the owner's file; ask first).
