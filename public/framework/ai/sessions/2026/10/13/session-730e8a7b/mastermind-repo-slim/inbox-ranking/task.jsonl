@@ -9,3 +9,9 @@
 {"review":{"answer":{"n":6,"reply":"fixed: doc says kind weight applies only to rows without a score"}}}
 {"review":{"found":6,"real":3,"fixed":3}}
 {"decision":{"at":"2026-10-13T16:10:00-05:00","question":"touch ai/rail/inbox.js?","options":["2-line change","leave it"],"chose":"2-line change","why":"inbox_order must call Inbox.rank for the live AI inbox; Servex score untouched"}}
+{"log":{"at":"2026-10-13T16:12:35-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T16:18:08-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-inbox-ranking"}}
+{"log":{"at":"2026-10-13T16:18:10-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T16:18:12-05:00","heartbeat":"answered","msg":"Done. The inbox-ranking task is merged into `michael/dev`, and the task records and owner-note card are committed.\n\nI'm not working on anything now. Open items:\n- **Worktree:** `C:\\Code\\lew42\\worktree"}}
+{"log":{"at":"2026-10-13T16:19:26-05:00","msg":"session ended (other) without landing"}}
+{"assign":{"landed_at":"2026-10-13T16:23:24-05:00","title":"AI Inbox: one ranking rule, importance plus recency, with a debug view","outcome":"**The Inbox now ranks by importance and recency (`Inbox.rank`), marks new rows with their age, and shows each row's score beside the live rail.** Merged into michael/dev (07497fefb, review fixes 93460a038). Landed by the mastermind from the agent's own answer (the agent ended without a landing line).\n\n- [x] `Inbox.rank` + `doc/ranking.md`\n- [x] new/kind cues; debug list on the Inbox page\n- [x] four widths checked, screenshots on the card\n\nLeft: the `worktree/inbox-ranking` worktree is merged and can be removed (handed to worktree-cleanup).","links":[{"url":"/framework/core/Page/ext/Inbox/","label":"Inbox page"},{"url":"/framework/ai/2026/10/13/ai-inbox-new-things-now-float-important/","label":"owner note"}]}}

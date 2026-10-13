@@ -1,0 +1,54 @@
+pruned agent-a26ce54dac0bc7bef
+salvaged agent-a3c7fdb6298cb9b59  (branch worktree-agent-a3c7fdb6298cb9b59 kept: salvaged as 6fdd611d6)
+pruned agent-a7d2d39bc12acdec7
+salvaged agent-aa071c45801e00b21  (branch michael/bags-rail kept: salvaged as e2e7e925f)
+salvaged agent-abb091b2425c042b2  (branch michael/bags-misc kept: salvaged as 3a44a0c31)
+pruned agent-ae2ff71d0568101da
+salvaged models-asks  (branch michael/models-asks kept: salvaged as 9cc47fd54)
+salvaged relay-2  (branch worktree/relay-2 kept: salvaged as 1a8fd3d8a)
+salvaged claude-md-consolidate  (branch worktree/claude-md-consolidate kept: salvaged as 69b53572e)
+salvaged content-list  (branch worktree/content-list kept: salvaged as d27b886b4)
+pruned data-grid-3
+salvaged data-grid-4  (branch worktree/data-grid-4 kept: salvaged as 89b97fc4a)
+pruned data-grid-5
+pruned fig-btn-hug
+pruned fig-controls
+pruned fig-ground
+pruned fig-layouts
+pruned fig-select
+skip   inbox-ranking: touched in the last 6 h
+skip   orphans: branch not merged into michael/dev
+pruned owner-inbox
+pruned page-ai-api
+salvaged page-mm  (branch worktree/page-mm kept: salvaged as b98e17be3)
+pruned page-split-2
+pruned page-split-3
+salvaged part-link-run  (branch worktree/part-link-run kept: salvaged as c1800851c)
+skip   qf-2: named like a pool slot: the Pool recycles it (recycle_orphans)
+skip   qf-5: locked
+skip   qf-6: a pool slot (the Pool removes its own)
+skip   qf-7: a pool slot (the Pool removes its own)
+skip   qf-8: a pool slot (the Pool removes its own)
+skip   readmeaudit: branch not merged into michael/dev
+skip   refine-demo: branch not merged into michael/dev
+pruned refine-parse-fix
+salvaged refine-session-log2  (branch worktree/refine-session-log2 kept: salvaged as a71894be5)
+salvaged refine-v3  (branch worktree/refine-v3 kept: salvaged as 873bb112a)
+FAILED screenshot-build-a: error: failed to delete 'C:/Code/lew42/worktrees/screenshot-build-a': Permission denied
+pruned screenshot-build-c
+pruned server-query-cost
+pruned sessions-detail
+pruned sessions-fixes
+pruned step-runner
+pruned style-system
+pruned transcription-crash
+pruned ui-library
+salvaged voice-asks-2  (branch worktree/voice-asks-2 kept: salvaged as 4abb348de)
+salvaged voice-verify  (branch worktree/voice-verify kept: salvaged as c5718c12a)
+pruned page-ai-api-proof
+pruned wt-readme-audit
+FAILED wt-refine-haiku-live: error: failed to delete 'C:/Code/lew42/wt-refine-haiku-live': Invalid argument
+pruned wt-task-folders  (branch salvage/wt-task-folders-2026-10-13 kept: detached, no branch)
+pruned comment-prune-3
+manifest: C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-cleanup/manifest.json (14)
+41 pruned; 11 worktree(s) remain

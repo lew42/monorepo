@@ -1,0 +1,13 @@
+removed ai2-real-pages: 0 files, 0 in git, 0 ignored, 0 server logs
+removed ai2-row-vanish: 0 files, 0 in git, 0 ignored, 0 server logs
+removed audit-page: 1 files, 0 in git, 1 ignored, 0 server logs
+removed core-columns: 1 files, 0 in git, 1 ignored, 0 server logs
+removed fixer: 0 files, 0 in git, 0 ignored, 0 server logs
+removed framework-home: 0 files, 0 in git, 0 ignored, 0 server logs
+removed module-experts: 0 files, 0 in git, 0 ignored, 0 server logs
+removed probe-p3wyez: 4144 files, 3296 in git, 0 ignored, 848 server logs
+removed probe-p48xwa: 4146 files, 3298 in git, 0 ignored, 848 server logs
+keep    proposal-flow: 10370 files, 7967 in git, 554 ignored, 1847 server logs — 2 file(s) git has never seen, e.g. public/framework/ai/2026-09-30/probe-tasks/runner/task.jsonl
+removed qf-9: 0 files, 0 in git, 0 ignored, 0 server logs
+removed recursive-pairs: 0 files, 0 in git, 0 ignored, 0 server logs
+removed refine-nothing: 7902 files, 6273 in git, 3 ignored, 1626 server logs

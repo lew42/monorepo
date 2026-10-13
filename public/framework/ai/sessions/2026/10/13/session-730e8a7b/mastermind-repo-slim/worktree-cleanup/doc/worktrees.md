@@ -55,11 +55,14 @@ worktrees made with `worktree-up.mjs`**. Three causes, most important first:
    `salvage/qf-1-<date>-<n>` branch, failed at `git add`, and threw. That one error stopped the loop at
    `qf-1`, so `qf-4` and the other leftovers were never reached. The result: 143 failures and 150
    salvage branches, all at the same, already-merged commit. Fixed for now by moving the stale lock
-   aside (the file is in the task's scratch).
+   aside. At 16:07 the pool then recycled `qf-1` to `qf-4` by itself; their salvage commits held only
+   the dev server's `page.jsonl` and `files.jsonl` lines.
 3. **A slot only goes back to the pool when it is clean, and agents' logs make it dirty.** `return_worktree`
    refuses any changed file. Agents write `task.jsonl`, `usage.jsonl` and `cards.jsonl` inside their
    worktree, so a finished slot reads as dirty. It then waits for `reclaim()` instead of going straight
-   back to the pool.
+   back to the pool. A slot's own dev server does the same to a *ready* slot: at 15:55, `qf-2` "would
+   not fast-forward to michael/dev" because its server had rewritten `files.jsonl`, so the pool dropped
+   it and built a new one (`qf-3`, 40 s).
 
 **What makes them reusable:**
 
@@ -69,6 +72,8 @@ worktrees made with `worktree-up.mjs`**. Three causes, most important first:
 - In the `sub-mastermind` skill, the default becomes `take_worktree()` for any one-team task, and
   `worktree-up.mjs <slug>` only when the task needs a long-lived branch with a name a sibling must find.
   *(system architect.)*
+- A slot treats its own server's `page.jsonl`/`files.jsonl` as noise when it fast-forwards (it does
+  so already on return), instead of dropping the slot. *(Servex owner.)*
 - Live logs go to the main tree, not into the worktree. That is the
   [tidy-git-status](../../tidy-git-status/) task.
 
@@ -88,8 +93,9 @@ no timer calls it. Even when it ran, it skipped 20 of 50, because a single chang
 to keep a worktree.
 
 **One more source of waste:** `git worktree remove` on Windows can fail partway when a file is held
-open. Git then forgets the worktree but leaves its files on disk. 13 folders like that sat in `worktrees/`.
-They are counted in the [report](../report.md).
+open. Git then forgets the worktree but leaves its files on disk. 23 folders like that sat in `worktrees/`.
+`Server/worktree-leftovers.mjs` removes one only when every file in it is already in git (each file is
+hashed and looked up), is ignored by `.gitignore`, or is a server log. Counts are in the [report](../report.md).
 
 **The one fix: run the prune on a timer.** Servex's 10-minute pool sweep also runs
 `node Server/worktree-prune.mjs --salvage --idle-hours 6`. It removes only a worktree whose branch is in

@@ -11,3 +11,5 @@
 {"agent":{"at":"2026-10-13T15:55:54-05:00","id":"task-mastermind-inbox-ranking","model":"claude-sonnet-5-5","task":"inbox-ranking","brief":"inbox-ranking/requirements.md","budget_usd":10,"state":"queued (Servex working 5/5)"}}
 {"log":{"at":"2026-10-13T15:55:54-05:00","msg":"Expected cost of this wave: about $67 ceiling (2 Opus at $15–20, 3 Sonnet at $10–12); pace at launch 54% of the week's line (44% used, 82% gone), target 95% by the week's end with the owner's Figma agents also spending."}}
 {"assign":{"step":6,"now":"five task masterminds dispatched (3 working, 2 queued); harvesting on wakeups","at":"2026-10-13T15:55:54-05:00"}}
+{"log":{"at":"2026-10-13T16:06:58-05:00","msg":"task-loop chase 2 of 2: could not wake: no owning agent found","chase":2}}
+{"log":{"at":"2026-10-13T16:21:58-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
