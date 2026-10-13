@@ -37,6 +37,7 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ `Video · Kit` + `Video · Storyboard · The Twelve` ([report](kit/video.md)). Review fixes: Location tag's map box hidden by default (`Show map` boolean), end-card thumbnails show a scene image, flat 72% scrims → gradients (15→90%) so images stay bright.
 - ⬜ `Video · Channel ideas` (supercars, yachts, dream homes, jets; ladders, thumbnails, Shorts, sourcing) — task-mastermind-figma-channels, brief [kit/brief-channels.md](kit/brief-channels.md)
 - ✅ Images verified: `generate_image` → `upload_assets`, and Wikimedia Commons → `upload_assets` (see [video-kit.md](/framework/ext/Figma/doc/video-kit.md)).
+- ⬜ `Type · Title layouts` (where the words go; filler words small; locked lines) — task-mastermind-figma-titles, brief [kit/brief-titles.md](kit/brief-titles.md), idea [doc/title-layouts.md](/framework/ext/Figma/doc/title-layouts.md)
 
 Owner rule (2026-10-12): summaries and anything waiting on the owner go on the Figma Overview's **For you** card (`186:1062`) and page notes, not chat.
 
