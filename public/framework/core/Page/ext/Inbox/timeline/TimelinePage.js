@@ -26,9 +26,9 @@ export default class TimelinePage extends Page {
 
 	/** The two switches live in the url, so a reload keeps them: `?all` shows every landing, `?debug` shows sources and scores. */
 	flag(name){ return new URLSearchParams(location.search).has(name); }
-	flip(name){
+	flip(name, value = ""){
 		const url = new URL(location.href);
-		url.searchParams.has(name) ? url.searchParams.delete(name) : url.searchParams.set(name, "");
+		url.searchParams.get(name) === value ? url.searchParams.delete(name) : url.searchParams.set(name, value);
 		history.replaceState(history.state, "", url.pathname + url.search.replace(/=(?=&|$)/g, "") + url.hash);
 		this.refill();
 	}
@@ -50,18 +50,37 @@ export default class TimelinePage extends Page {
 
 	deactivated(){ this.off?.(); this.off = null; }
 
+	/** `?day=today`, `?day=yesterday` or `?day=2026-10-12` → the local day it means (a word stays a word, so a reload tomorrow still says "today"). */
+	day(){
+		const word = new URLSearchParams(location.search).get("day");
+		if (!word) return null;
+		const d = new Date();
+		if (word === "yesterday") d.setDate(d.getDate() - 1);
+		return word === "today" || word === "yesterday" ? Timeline.day_of(d) : word;
+	}
+
 	refill(){
 		if (!this.grid) return;
-		const all = this.timeline.rows(), big = !this.flag("all"), rows = big ? all.filter(r => r.big) : all, debug = this.flag("debug");
+		const big = !this.flag("all"), seen = this.flag("seen"), day = this.day(), debug = this.flag("debug"), word = new URLSearchParams(location.search).get("day");
+		const scoped = this.timeline.rows({ big, day });
+		const rows = seen ? scoped : this.timeline.rows({ big, day, seen: false, keep: this.open_key });
 		this.grid.set_rows(rows);
 		this.$head.empty(() => {
-			const landed = rows.filter(r => r.kind === "landed").length;
-			p.c("timeline-count", `${landed} built · ${rows.length - landed} for you`);
+			const landed = rows.filter(r => r.kind === "landed").length, hidden = scoped.length - rows.length;
+			p.c("timeline-count", `${landed} built · ${rows.length - landed} for you` + (hidden ? ` · ${hidden} seen` : ""));
+			if (!rows.length && hidden) p.c("timeline-zero muted", "Inbox zero: everything here is seen. Seen too brings it back.");
 			div.c("timeline-chips", () => {
-				button.c("timeline-chip" + (big ? " timeline-chip-on" : ""), "Big things only").attr("aria-pressed", String(big)).click(() => this.flip("all"));
-				button.c("timeline-chip" + (debug ? " timeline-chip-on" : ""), "Sources and scores").attr("aria-pressed", String(debug)).click(() => this.flip("debug"));
+				const chip = (label, on, go) => button.c("timeline-chip" + (on ? " timeline-chip-on" : ""), label).attr("aria-pressed", String(on)).click(go);
+				chip("Big things only", big, () => this.flip("all"));
+				chip("Today", word === "today", () => this.flip("day", "today"));
+				chip("Yesterday", word === "yesterday", () => this.flip("day", "yesterday"));
+				if (word && word !== "today" && word !== "yesterday") chip(word, true, () => this.flip("day", word));
+				chip("Seen too", seen, () => this.flip("seen"));
+				chip("Sources and scores", debug, () => this.flip("debug"));
+				if (rows.length && !seen) button.c("timeline-chip timeline-chip-clear", "Mark all seen").attr("title", "Everything up to now leaves this view; Seen too brings it back")
+					.click(() => { this.timeline.seen.clear_all(); this.refill(); });
 			});
-			if (debug) small.c("muted timeline-sources", TimelinePage.sources(all));
+			if (debug) small.c("muted timeline-sources", TimelinePage.sources(this.timeline.rows()));
 		});
 	}
 
@@ -102,6 +121,7 @@ export default class TimelinePage extends Page {
 				if (r && r.row_key === this.shown?.row_key) return;   // a stream batch keeps the open row and its chat as they are
 				this.talk?.stop();
 				this.shown = r;
+				if (r){ this.home.timeline.seen.mark(r); this.home.open_key = r.row_key; this.home.refill(); }   // seen once opened; it stays in the rail while open
 				$box.empty(() => r ? this.detail_of(r) : p.c("muted", "Loading…"));
 			};
 			this.off = this.home.timeline.on(draw);
@@ -109,7 +129,7 @@ export default class TimelinePage extends Page {
 			draw();
 		}
 
-		deactivated(){ this.off?.(); this.talk?.stop(); this.shown = null; }
+		deactivated(){ this.off?.(); this.talk?.stop(); this.shown = null; this.home.open_key = null; this.home.refill(); }
 
 		/** The row on the left; its card's chat on the right (stacked on a narrow screen). */
 		detail_of(r){
