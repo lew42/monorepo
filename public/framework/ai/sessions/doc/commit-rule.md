@@ -12,6 +12,7 @@
 | `ai/usage.jsonl`, `ai/cards.jsonl` | record | committed by the sweeper; usage history is kept (184 KB; see `repo-size-plan` for any later archiving) |
 | `public/framework/**/doc/files.jsonl` (outside `ai/`) | record, noisy | committed by the sweeper |
 | `*.summary.json` next to a voice log | cache | gitignored |
+| a screenshot (`png`/`jpg`/`webp`) anywhere under `public/framework/ai/`, outside a `doc/` folder | output, too heavy for git | gitignored (2026-10-13): pictures were 84% of git history; they stay on disk ([repo-size.md](../../doc/repo-size.md)) |
 | code, briefs, readmes, docs | work | never swept: committed by the agent that wrote them |
 
 ## The sweeper
