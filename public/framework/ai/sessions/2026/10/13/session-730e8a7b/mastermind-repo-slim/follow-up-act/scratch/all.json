@@ -1,0 +1,197 @@
+[
+ {
+  "slug": "page-templates-merge",
+  "dir": "public/framework/ai/2026-10-12/page-templates-merge",
+  "kind": "quiet"
+ },
+ {
+  "slug": "page-templates-binding-merge",
+  "dir": "public/framework/ai/sessions/2026/10/12/session-21449a90/page-templates-binding-merge",
+  "kind": "quiet"
+ },
+ {
+  "slug": "feedback-council",
+  "dir": "public/framework/ai/2026-10-12/feedback-council",
+  "kind": "quiet"
+ },
+ {
+  "slug": "ai-system-docs",
+  "dir": "public/framework/ai/sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs",
+  "kind": "quiet"
+ },
+ {
+  "slug": "worktree-pool-ready",
+  "dir": "public/framework/ai/sessions/2026/10/09/session-b431af83/worktree-pool-ready",
+  "kind": "quiet"
+ },
+ {
+  "slug": "feedback-council",
+  "dir": "public/framework/ai/sessions/2026/10/09/feedback-council",
+  "kind": "quiet"
+ },
+ {
+  "slug": "feedback-council",
+  "dir": "public/framework/ai/sessions/2026/10/08/feedback-council",
+  "kind": "quiet"
+ },
+ {
+  "slug": "notifications-lab",
+  "dir": "public/framework/ai/sessions/2026/10/09/notifications-lab/notifications-lab",
+  "kind": "quiet"
+ },
+ {
+  "slug": "live-not-polling",
+  "dir": "public/framework/ai/sessions/2026/10/08/live-not-polling/live-not-polling",
+  "kind": "quiet"
+ },
+ {
+  "slug": "prompt-audit",
+  "dir": "public/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit",
+  "kind": "quiet"
+ },
+ {
+  "slug": "feedback-council",
+  "dir": "public/framework/ai/sessions/2026/10/07/feedback-council",
+  "kind": "quiet"
+ },
+ {
+  "slug": "openrouter-agent-trial",
+  "dir": "public/framework/ai/sessions/2026/10/05/openrouter-agent-trial/openrouter-agent-trial",
+  "kind": "quiet"
+ },
+ {
+  "slug": "feedback-council",
+  "dir": "public/framework/ai/sessions/2026/10/06/feedback-council",
+  "kind": "quiet"
+ },
+ {
+  "slug": "dictate-live-state",
+  "dir": "public/framework/ai/sessions/2026/10/05/dictate-live-state/dictate-live-state",
+  "kind": "quiet"
+ },
+ {
+  "slug": "dictate-one-engine",
+  "dir": "public/framework/ai/sessions/2026/10/05/dictate-one-engine/dictate-one-engine",
+  "kind": "quiet"
+ },
+ {
+  "slug": "local-ctx-fix",
+  "dir": "public/framework/ai/sessions/2026/10/05/local-ctx-fix/local-ctx-fix",
+  "kind": "quiet"
+ },
+ {
+  "slug": "voice-pipeline",
+  "dir": "public/framework/ai/sessions/2026/10/05/voice-pipeline/voice-pipeline",
+  "kind": "quiet"
+ },
+ {
+  "slug": "push-to-talk",
+  "dir": "public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk",
+  "kind": "quiet"
+ },
+ {
+  "slug": "new-brain",
+  "dir": "public/framework/ai/sessions/2026/10/04/new-brain/new-brain",
+  "kind": "quiet"
+ },
+ {
+  "slug": "framework-home-grids",
+  "dir": "public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids",
+  "kind": "quiet"
+ },
+ {
+  "slug": "web-benchmarks",
+  "dir": "public/framework/ai/sessions/2026/10/04/web-benchmarks/web-benchmarks",
+  "kind": "quiet"
+ },
+ {
+  "slug": "retire-ai2",
+  "dir": "public/framework/ai/sessions/2026/10/03/retire-ai2",
+  "kind": "quiet"
+ },
+ {
+  "slug": "message-cost",
+  "dir": "public/framework/ai/sessions/2026/10/04/message-cost/message-cost",
+  "kind": "quiet"
+ },
+ {
+  "slug": "merge-commits",
+  "dir": "public/framework/ai/sessions/2026/10/03/merge-commits",
+  "kind": "quiet"
+ },
+ {
+  "slug": "spend-shape",
+  "dir": "public/framework/ai/sessions/2026/10/03/spend-shape",
+  "kind": "quiet"
+ },
+ {
+  "slug": "spend-gate",
+  "dir": "public/framework/ai/sessions/2026/10/03/spend-gate",
+  "kind": "quiet"
+ },
+ {
+  "slug": "phone-server",
+  "dir": "public/framework/ai/sessions/2026/10/03/phone-server",
+  "kind": "quiet"
+ },
+ {
+  "slug": "main-branch-guard",
+  "dir": "public/framework/ai/sessions/2026/10/03/main-branch-guard",
+  "kind": "quiet"
+ },
+ {
+  "slug": "perf-audit",
+  "dir": "public/framework/ai/sessions/2026/10/03/perf-audit",
+  "kind": "quiet"
+ },
+ {
+  "slug": "openrouter-reads-cache",
+  "dir": "public/framework/ai/sessions/2026/10/03/openrouter-reads-cache",
+  "kind": "quiet"
+ },
+ {
+  "slug": "worktree-servers-revive",
+  "dir": "public/framework/ai/sessions/2026/10/03/worktree-servers-revive",
+  "kind": "quiet"
+ },
+ {
+  "slug": "review-empty-diff",
+  "dir": "public/framework/ai/sessions/2026/10/03/review-empty-diff",
+  "kind": "quiet"
+ },
+ {
+  "slug": "spawn-logs-ask",
+  "dir": "public/framework/ai/sessions/2026/10/03/spawn-logs-ask",
+  "kind": "quiet"
+ },
+ {
+  "slug": "restart-keeps-agents",
+  "dir": "public/framework/ai/sessions/2026/10/03/restart-keeps-agents",
+  "kind": "quiet"
+ },
+ {
+  "slug": "pool-unstick",
+  "dir": "public/framework/ai/sessions/2026/10/03/pool-unstick",
+  "kind": "quiet"
+ },
+ {
+  "slug": "node-reap-run",
+  "dir": "public/framework/ai/sessions/2026/10/03/node-reap-run",
+  "kind": "quiet"
+ },
+ {
+  "slug": "session-detail-live",
+  "dir": "public/framework/ai/sessions/2026/10/09/session-ca11999b/session-detail-live",
+  "kind": "no-outcome"
+ },
+ {
+  "slug": "checker-1",
+  "dir": "public/framework/ai/sessions/2026/10/07/feedback-council/checker-1",
+  "kind": "no-outcome"
+ },
+ {
+  "slug": "session-trace",
+  "dir": "public/framework/ai/sessions/2026/10/03/session-trace",
+  "kind": "no-outcome"
+ }
+]

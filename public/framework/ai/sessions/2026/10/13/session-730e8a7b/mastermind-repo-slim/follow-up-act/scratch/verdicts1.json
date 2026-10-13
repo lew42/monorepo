@@ -1,0 +1,58 @@
+[
+  {
+    "slug": "page-templates-merge",
+    "on_dev": "e118b8f73",
+    "left": "Card \"core/Page/Template: review and merge the slice\" missing; task was read-only review, merge of qf-2 prepared",
+    "verdict": "landed",
+    "evidence": "e118b8f73 page-templates-merge: review records confirms review completed; qf-2 worktree prepared; task.jsonl shows read-only mastermind accomplished"
+  },
+  {
+    "slug": "page-templates-binding-merge",
+    "on_dev": "no",
+    "left": "Never started; merge binding.md + Template fixes never executed; agent stopped deliberately before running",
+    "verdict": "open",
+    "evidence": "No commits found in git log michael/dev; task.jsonl shows agent stopped at 2026-10-12T15:40:41 before starting"
+  },
+  {
+    "slug": "feedback-council",
+    "on_dev": "c9b4e43a9",
+    "left": "23 of 69 asks remain non-done as of 2026-10-09; ongoing checker runs required; escalation re missing card \"live\"",
+    "verdict": "open",
+    "evidence": "c9b4e43a9 recent commit confirms work continuing; 2026-10-09 log shows 23 non-done asks tracking; multiple council runs logged but not yet complete"
+  },
+  {
+    "slug": "ai-system-docs",
+    "on_dev": "c49f32fe4",
+    "left": "Session ended without formal landing; review found requirement 1 (system page structure as cards) showed only page.jsonl +1 line, not class-card implementation",
+    "verdict": "superseded",
+    "evidence": "c49f32fe4 Merge landed worktree/ai-system-docs into michael/dev; 4 addendum commits (65b2155cc...a5a642592) follow with incremental fixes; work is on branch despite session not formally landing"
+  },
+  {
+    "slug": "worktree-pool-ready",
+    "on_dev": "8c37a7af6",
+    "left": "None; task explicitly closed",
+    "verdict": "landed",
+    "evidence": "8c37a7af6 + 4ab5f031a landing lines; task.jsonl final log 2026-10-09T18:26:39 confirms close_task with 'worktree-pool-ready is landed and closed'"
+  },
+  {
+    "slug": "notifications-lab",
+    "on_dev": "6aa438200",
+    "left": "None; merged, dev server restarted, /push/key live",
+    "verdict": "landed",
+    "evidence": "6aa438200 Merge branch 'worktree/notifications-lab' into michael/dev; task.jsonl STATE.md line 203 confirms merge + restart; everything built + headless tested"
+  },
+  {
+    "slug": "live-not-polling",
+    "on_dev": "01d39eb1f",
+    "left": "Work on worktree/qf-6 not merged to michael/dev; landed_at not written; minion stopped at $3 budget",
+    "verdict": "open",
+    "evidence": "01d39eb1f live-not-polling: findings on michael/dev but task.jsonl shows minion revived 2x, escalated; chat says 'committed on worktree/qf-6 but not merged'"
+  },
+  {
+    "slug": "prompt-audit",
+    "on_dev": "428412f60",
+    "left": "Minion idle after $13.14 spend; commit 428412f60 is task-output logging, not task completion; minion escalated",
+    "verdict": "unknown",
+    "evidence": "428412f60 is 'docs(ai): commit overnight task output' (ledger/logging only); task.jsonl shows minion escalated 2026-10-08T14:17:25 and revived 2x with no new work"
+  }
+]
