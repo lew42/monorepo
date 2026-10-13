@@ -10,7 +10,7 @@
  *   node Server/RefineQueue.mjs <session-uuid>:<line> ...    # exactly these prompts (line = 1-based line of the session's transcript)
  *   node Server/RefineQueue.mjs --task <dir>                 # the owner's `chat` lines in a task.jsonl instead
  *   node Server/RefineQueue.mjs --report                     # cost per prompt and max tokens, computed from the run log
- *   node Server/RefineQueue.mjs --repeats [--min 3]          # asks said in 3+ sessions: promotion candidates (doc/refine.md)
+ *   node Server/RefineQueue.mjs --repeats [--min 3]          # asks said in 3+ sessions: promotion candidates (ext/Refine/doc/refine-queue.md, "Promotion")
  *   flags: --parallel N (default 2) · --budget $ (stop when spent) · --brief v1|v2 (default v2) · --force (redo refined ones) · --since YYYY-MM-DD
  *
  * Owner prompts = the user turns of VS Code tabs' transcripts (`entrypoint: claude-vscode`), minus agent relays
@@ -197,7 +197,7 @@ export default class RefineQueue {
 			asks: runs.reduce((s, r) => s + (r.asks ?? 0), 0), sessions: new Set(runs.map(r => r.session)).size };
 	}
 
-	/** Asks said in `min`+ different sessions, grouped by their key's words: the promotion candidates (doc/refine.md, "Promotion"). */
+	/** Asks said in `min`+ different sessions, grouped by their key's words: the promotion candidates (ext/Refine/doc/refine-queue.md, "Promotion"). */
 	static repeats({ min = 3, today } = {}){
 		const latest = new Map();   // a rerun of the same prompt replaces its asks (latest brief wins)
 		for (const a of RefineQueue.read(RefineQueue.ASKS)) latest.set(`${a.session}:${a.line}:${a.id}`, a);

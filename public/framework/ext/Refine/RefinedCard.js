@@ -114,10 +114,18 @@ Rules:
 	/** One verdict per ask, from the asks-outcomes lines (prompt-outcomes' tally) matched on session + transcript line, else "unreviewed". */
 	static STATUSES = ["done", "partly", "not done", "open", "unreviewed"];
 	static status_of(ask, card, outcomes){
-		const here = outcomes?.get?.(`${card.session}:${card.line}`) ?? [];
-		const hit = here.find(o => RefinedCard.same(o.ask ?? o.raw ?? o.text, ask.text)) ?? outcomes?.features?.find(f => RefinedCard.same_key(f.feature, ask.key));
-		return hit ? RefinedCard.verdict(hit) : "unreviewed";
+		const here = outcomes?.get?.(`${String(card.session).slice(0, 8)}:${card.line}`) ?? [];
+		// The tally's own asks for this prompt: the one sharing the most content words (at least 2) with this ask.
+		const mine = RefinedCard.words(ask.text + " " + ask.key);
+		let best = null, most = 1;
+		for (const o of here){ const n = RefinedCard.shared(mine, RefinedCard.words(o.ask + " " + o.feature)); if (o.status && n > most){ best = o; most = n; } }
+		// Else a feature the tally judged whose name (2+ content words) is wholly inside this ask's key and text.
+		best ??= outcomes?.features?.find(f => { const w = RefinedCard.words(f.feature); return w.size >= 2 && RefinedCard.shared(w, mine) === w.size; });
+		return best ? RefinedCard.verdict(best) ?? "unreviewed" : "unreviewed";
 	}
+
+	static words(t){ return new Set(String(t ?? "").toLowerCase().match(/[a-z0-9]{3,}/g)?.filter(x => !RefinedCard.STOP.has(x)) ?? []); }
+	static shared(A, B){ let n = 0; for (const x of A) if (B.has(x)) n++; return n; }
 
 	/** A tally line's verdict as one of STATUSES ("contradicted" reads as open); null when it carries none. */
 	static verdict(o){
@@ -129,15 +137,22 @@ Rules:
 		return null;
 	}
 
-	/** asks-outcomes.jsonl text → a Map `session:line` → lines, plus `.features` = the lines with a verdict, for matching by feature name. */
+	/** asks-outcomes.jsonl (Server/AskTally.mjs: `{"ask":{source:"<id8>:<line>", ask, raw, feature:<tag>}}`, `{"merge":{from:<tag>, to:{feature}}}`,
+	 *  `{"feature":{name, status}}`) → a Map `<id8>:<line>` → [{ ask, raw, feature, status }], plus `.features` = [{ feature, status }] for matching by name. */
 	static outcomes(text){
-		const map = new Map();
-		map.features = [];
+		const asks = [], tag_to = new Map(), status = new Map(), map = new Map();
 		for (const line of String(text ?? "").split("\n")){
 			let o; try { o = JSON.parse(line); } catch { continue; }
-			if (o?.feature && RefinedCard.verdict(o)) map.features.push(o);
-			const src = String(o?.source ?? ""), id = /[0-9a-f]{8}-[0-9a-f-]{27}/.exec(src)?.[0], n = /:(\d+)\s*$/.exec(src)?.[1];
-			if (id && n) (map.get(`${id}:${n}`) ?? map.set(`${id}:${n}`, []).get(`${id}:${n}`)).push(o);
+			if (o?.ask?.source) asks.push(o.ask);
+			else if (o?.merge?.from) tag_to.set(o.merge.from, o.merge.to?.feature ?? o.merge.to);
+			else if (o?.feature?.name){ const v = RefinedCard.verdict(o.feature); if (v) status.set(o.feature.name, v); }
+		}
+		map.features = [...status].map(([feature, s]) => ({ feature, status: s }));
+		for (const a of asks){
+			const hit = /([0-9a-f]{8})[0-9a-f-]*:(\d+)\s*$/.exec(String(a.source));
+			if (!hit) continue;
+			const feature = tag_to.get(a.feature) ?? a.feature, key = `${hit[1]}:${hit[2]}`;
+			(map.get(key) ?? map.set(key, []).get(key)).push({ ask: a.ask, raw: a.raw, feature, status: status.get(feature) ?? null });
 		}
 		return map;
 	}
@@ -158,7 +173,7 @@ Rules:
 		let n = 0; for (const x of A) if (B.has(x)) n++;
 		return n >= 2 && n / Math.max(A.size, B.size) >= 0.6;
 	}
-	static STOP = new Set(["the", "and", "for", "with", "from", "into", "per", "all", "not", "via", "own"]);
+	static STOP = new Set(["the", "and", "for", "with", "from", "into", "per", "all", "not", "via", "own", "page", "pages", "build", "make", "use", "add", "system", "systems", "agent", "agents", "keep", "new", "set", "every", "thing", "things", "check", "whether", "when", "that", "this", "its", "have", "should", "can"]);
 
 	/** Coverage of a session: asks found, how many have a verdict, the score (with a verdict ÷ found), counts per status. */
 	static score(cards, outcomes){
