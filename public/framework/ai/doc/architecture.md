@@ -1,15 +1,75 @@
-# AI architecture: the decisions, and where they came from
+# AI system architecture — files are the memory, code runs the loop
 
-`/framework/ai/` is where the agents' work is recorded and shown. Servex (the process that runs the agents) is documented in [Servex/doc/architecture.md](/framework/servex/doc/architecture.md); this page covers the data and the page.
+The AI system is everything that lets agents do work here and lets the owner see it: Servex runs the agents, the readme chain tells them what exists, each task is a folder with a JSONL log, and the cards on `/framework/ai/` are the owner's surface. Terms: a card is one row on the AI board, a mastermind is the agent that owns a task, a minion is an agent it hands a piece to. The pattern: state lives in appended files, node drives the sequence, the model supplies judgment. Components, one line each, computed from the readme index: the System tab, [`/framework/ai/system/`](/framework/ai/system/). An earlier, shorter version of this file is in git history (it also said the System tab shows class cards: it still does). Servex's own decisions: [Servex/doc/architecture.md](/framework/servex/doc/architecture.md).
 
-## Decisions
+## The readme chain is the AI's memory
+**Decided:** every agent reads CLAUDE.md, then the readmes root to leaf; each readme is a short index (under ~100 lines) pointing into `doc/`.
+**Why:** a fresh agent pays only for the context it needs, and nothing depends on a chat that will not be read again.
+**Instead:** handoff files written per session (stale the day after) or one big context file (every agent pays for it).
+**Detail:** [readmes](/framework/ai/readmes/), [doc/readmes.md](readmes.md)
 
-- **Files are the memory.** Every task is a folder `ai/<date>/<slug>/` with a `task.jsonl` log; chat is not kept. The committed repo is the source of truth (CLAUDE.md law 5).
-- **Append, never rewrite.** Data is JSONL, one line per event, written through one writer, so nothing is lost and git is the undo. See [system/data](/framework/ai/system/data/).
-- **The System tab shows classes.** `/framework/ai/system/` is a wall of class cards (Servex's classes, with their core API) and the live agents, from `system-classes.js`. The words version of the same system sits one click down under "Concepts" (`concepts.js`).
-- **A readme is a module's memory.** It stays under about 100 lines and points into `doc/`; this file holds the decisions.
-- **Audits go to cheap models; record-keeping is code** (CLAUDE.md law 7).
+## A task is a folder with a JSONL log
+**Decided:** `ai/sessions/<Y>/<M>/<D>/<session>/<task>/` holds `task.jsonl` and `requirements.md`; children nest inside parents.
+**Why:** the committed repo is the source of truth; a vanished agent's state is its log.
+**Instead:** a database (needs a server, production is static) or chat history (lost).
+**Detail:** [doc/task-folders.md](task-folders.md)
 
-## Related
+## Append, never rewrite
+**Decided:** data is one JSON line per event, written by one writer (Servex, or `append.mjs`).
+**Why:** two writers cannot tear a line; read-modify-write loses lines; git is the undo.
+**Instead:** whole-file rewrites (measured: lose most concurrent updates).
+**Detail:** [system/data](/framework/ai/system/data/)
 
-[handover.md](../handover.md) · [todo.md](../todo.md) · [design/systems-overview.md](design/systems-overview.md) · [Servex architecture](/framework/servex/doc/architecture.md) · [session classes](/framework/ai/sessions/) (owned by minion-session-class)
+## Cards are the owner's surface; chat is not
+**Decided:** every task reports on its card; anything important is also a `Note:` card or `owner_note`.
+**Why:** the owner mostly does not read chat.
+**Instead:** long chat replies (unread).
+**Detail:** [rail/](/framework/ai/rail/), [cards/](/framework/ai/cards/)
+
+## Three tiers: assistant, mastermind, minion
+**Decided:** assistants answer fast and keep their hands free (fast = Haiku, smart = Sonnet); a mastermind owns one task end to end; minions build in parallel. The tier-to-model map is one file, `Servex/agents/tiers.js`. Roles are a default, not a fence.
+**Why:** a busy mastermind queues prompts; a free assistant relays them at once.
+**Instead:** one agent for everything (blocks on its own tools) or hard role fences (stops a capable minion).
+**Detail:** [Servex roles](../../../../Servex/doc/skills.md), [skills](/framework/ai/system/skills/)
+
+## Claude by default; OpenRouter only by the switch
+**Decided:** voice assistants and refine run on Claude; one file (`session-backend.txt`) moves them, and every spawned agent's tier too, to OpenRouter (Servex reads it at start, so restart it after a change); a Claude refusal moves that one session by itself.
+**Why:** OpenRouter spend is waste while Claude tokens are paid for; the switch is for the day the Claude usage limit is hit.
+**Instead:** OpenRouter first (the pre-2026-10-12 order).
+**Detail:** [doc/models.md](models.md), [Servex/ext/openrouter](/framework/servex/)
+
+## Work happens in a worktree and lands through a gate
+**Decided:** builds run in a git worktree; `Server/merge.mjs` smoke-tests, holds reloads, and merges; pages are checked at 400, 1200, 1920 and 3440.
+**Why:** the owner edits the live site; a broken file reloads every open tab.
+**Instead:** editing the main tree (one bad write breaks the live site).
+**Detail:** [Servex/doc/pool.md](/framework/servex/doc/pool.md)
+
+## The step runner is the loop: code reprompts, memory does not
+**Decided:** a mastermind approves the plan once; node then answers each finished step with the next step's text, logs each step with timestamps, and nudges (`TaskLoop`) a step that runs past twice its estimate. The agent is never trusted to remember the next skill or to close its worktree.
+**Why:** an agent that must remember to log, close or move on forgets; code does not.
+**Instead:** skills the agent must call in order from memory. Today the step runner covers task steps and landing; closing worktrees and moving to the next task are still prompts (open, see below).
+**Detail:** [Servex/doc/steps.md](/framework/servex/doc/steps.md), [doc/agents/autonomy.md](agents/autonomy.md)
+
+## Logs are persistence; no handoff files
+**Decided:** an agent logs as it goes, so its state survives if it vanishes; a successor reads the log.
+**Why:** a handoff written at the end is exactly what a crashed agent never writes.
+**Instead:** end-of-session handoff files (still read by hand: [handover.md](../handover.md)).
+**Detail:** [Servex/doc/never-lose-a-wake.md](/framework/servex/doc/never-lose-a-wake.md)
+
+## Fresh sessions after a round of work
+**Decided:** start a new session when a round winds down or the topic changes; reuse one only while its cache is fresh and the topic continues.
+**Why:** a new agent reading the readmes and the code sees the current state without the bloat that built it.
+**Instead:** resuming everything (cheap per turn, but context grows and carries stale beliefs).
+**Detail:** [CLAUDE.md](../../../CLAUDE.md) "Cost and roles"
+
+## Token directives
+**Decided:** (1) never copy a file by reading and rewriting it: use `git mv` or `cp`; (2) batch reads into one turn; (3) a script computes, the model reads the summary; (4) audits and scans go to Haiku under 100k tokens; (5) check pace before a spawn.
+**Why:** every turn re-reads the whole context; output tokens are the dearest.
+**Detail:** [CLAUDE.md](../../../CLAUDE.md) "Cost and roles", [doc/tokens/tokens.md](tokens/tokens.md)
+
+## Open (not decided; do not invent an answer)
+- **How many minions, which model, which effort, what they get done.** Evidence so far: [doc/models.md](models.md) (27-task known-answer suite: cheap models pass simple jobs; judgment stays on Sonnet or Opus); [model testing past work](/framework/ai/past-work-index.md) (`node Server/PastWork.mjs "model testing eval"`); spend per session at [sessions/](/framework/ai/sessions/). No measurement ties agent count or effort to outcome yet.
+- **Fast and smart assistant split.** Direction: fast cleans the transcript per chunk and rarely speaks; smart replies, refines and hands off. Map: [dictation-refine connection map](design/dictation-refine-connection-map.md).
+- **Confidence weights.** Whether 0.5 is neutral or 1.0 is a multiplier is undecided; until then every number needs its meaning printed beside it.
+- **Automating the remaining AI duties** (close worktree, start next task) in the step runner.
+- Raw words behind these: [dictation 7](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-5.md).
