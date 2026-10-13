@@ -4,102 +4,39 @@ import Capture from "/framework/ux/Dictate/capture.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 import RefineSystem from "/framework/ext/Refine/RefineSystem.js";
 
-/**
- * THE MICROPHONE of a composer: `ux/Dictate` with a few methods redirected, and
- * `ux/Dictate` itself untouched. Speech goes into the composer's own text box
- * (`field`); when the speaker has been quiet long enough the words go out as ONE
- * message through `deliver(entry)`.
- *
- * ⚠ `log_prompt()` — Dictate posts every finished utterance on its own. A composer
- * that also posted from its `on_text` callback would log every dictated sentence
- * twice; overriding the one method that builds the entry is how a sentence carries
- * `re` instead.
- * ⚠ `draw_caption()` — Dictate's own grey caption strip is a row under the button,
- * which would grow the composer. It types into the box instead.
- */
-/* The two sounds: a rising pair when the mic starts, a falling pair when it stops
-   (any stop — a press, leaving the card, a dead device, an error). WebAudio
-   only, no files; a browser that blocks sound just stays silent. */
-/* EVERY KNOB OF THE WHISPER-TO-BOX FLOW lives in this one object (the owner, 2026-09-25); the gear on the
-   composer edits it and remembers it in localStorage. Everything below reads it live, never a copy.
-   DICTATION SENDS BY ITSELF, IN CHUNKS (the owner, 2026-09-25: no message per sentence): everything said since
-   the last send goes out as ONE message at a natural pause (`paragraph_pause_ms` of quiet after a finished
-   sentence); a long stretch is cut at a sentence end past `chunk_chars` or `chunk_ms`; whatever is left goes out
-   after `pause_send_ms` of silence. `sentences_per_send` > 0 brings back one message per N sentences. */
+/** The microphone of a composer: `ux/Dictate` with a few methods redirected; speech goes into the composer's box and goes out as one message. see doc/mic-notes.md#overrides */
+// Every knob of the whisper-to-box flow, read live everywhere. see doc/mic-notes.md#settings
 export const SETTINGS = {
 	send_mode: "pause",         // "pause" (sentences + the silence remainder) | "sentences" (no silence send)
-	                            // "manual" (Send/Enter only, nothing ever auto-sent) still WORKS if something sets it directly,
-	                            // but merge 11 ("one widget," 2026-10-01) removed every way to reach it: it is no longer a
-	                            // `MODES` row (`ux/Dictate/Widget.js`) or a gear choice (`settings_panel()`, below) — autosend
-	                            // is the default and the only behaviour a reader can pick, everywhere.
 	sentences_per_send: 0,      // 0 = off; N = one message per N finished sentences (the old way)
-	paragraph_pause_ms: 700,    // quiet after a finished sentence that sends everything said so far as one message (one-dictation,
-	                            // 2026-10-01 — the owner asked for "500 to 1000 milliseconds" so a finished sentence goes out quickly;
-	                            // was 1500, then 2500 before that. `can_break()` still requires the sentence to actually END in
-	                            // `. ! ?` first — a pause mid-sentence is only a breath, never a send.)
+	paragraph_pause_ms: 700,   // quiet after a finished sentence that sends everything so far; see doc/mic-notes.md#settings
 	chunk_chars: 1200,          // safety: a message this long is cut at the next sentence end
 	chunk_ms: 60000,            // safety: words waiting this long are cut at the next sentence end
-	pause_send_ms: 1500,        // quiet time before everything left on screen is sent (was 2500: the owner asked for a shorter delay, 2026-09-30; before that 4000, words without a closing full stop waited 4 s, the owner's "four or five seconds", 2026-09-29)
+	pause_send_ms: 1500,   // quiet before everything left on screen is sent; see doc/mic-notes.md#settings
 	break_pause_ms: 1500,       // quiet before a segment may start a new paragraph in the box
 	guess_ms: 900,              // how often the growing sentence is re-sent to Whisper
-	box_lines: 3,               // the box grows to this many lines, then scrolls (one-input, 2026-10-12 — the
-	                            // mastermind's decided shape: a textarea, one line empty, 3 lines ceiling (the owner's 2026-10-04 cap kept),
-	                            // `doc/one-input-2026-10-12.md`. Was 3, round 2, 2026-10-04 — the owner: "as I
-	                            // hit transcribe, the text area grows… gets so big I can't read anything else"
-	                            // — before that 7.)
+	box_lines: 3,   // box grows to this many lines, then scrolls; see doc/mic-notes.md#settings
 	fillers: "ah uh um er erm hmm mm",   // words that never reach the box
-	clean: true,                // KILL SWITCH (ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode, deliverable 4):
-	                            // on, a composer built with `revise:` set (`ai2/compose.js` turns it on by default)
-	                            // actually runs the fast assistant's clean-up; off, every utterance stays raw, same
-	                            // as before this task, with no model call at all. A composer that never asked for
-	                            // `revise:` in the first place is unaffected either way.
-	into: "chat",               // WHERE DICTATION APPEARS (the owner, 2026-09-30: "the live whisper transcription creating the
-	                            // messages right in the chat window"): "chat" = a bubble in the chat log that grows as you speak
-	                            // (only on a composer whose host can draw one, i.e. `on_live` is set: `ChatPanel`); "box" = the
-	                            // text box first, the old way ("it's not a bad function to have"). Typing always uses the box.
+	clean: true,   // on: a composer with `revise:` runs the clean-up; off: all raw; see doc/mic-notes.md#settings
+	into: "chat",   // "chat" = growing bubble in the chat log, "box" = the text box; see doc/mic-notes.md#settings
 };
 const STORE = "chat.mic.settings.3";   // .3: the shorter 2026-09-30 defaults must not be shadowed by an old saved value
-/* The gear saves EVERY key, so a box that ever saved a setting still holds an old default for
-   `pause_send_ms` or `paragraph_pause_ms`. Nothing is saved yet under the new `.3` key the first
-   time this loads, so the owner's other saved values are carried over from the old `.2` key — only
-   the stale defaults (4000 or 2500 for `pause_send_ms`, 2500 or 1500 for `paragraph_pause_ms`) are
-   dropped so the new defaults above reach them; any other saved value is the owner's own. */
+// Carry the owner's saved values over from the old key; drop stale defaults. see doc/mic-notes.md#settings-migration
 try {
 	const saved = JSON.parse(localStorage.getItem(STORE) ?? localStorage.getItem("chat.mic.settings.2") ?? "{}");
 	if (saved.pause_send_ms === 4000 || saved.pause_send_ms === 2500) delete saved.pause_send_ms;
 	if (saved.paragraph_pause_ms === 2500 || saved.paragraph_pause_ms === 1500) delete saved.paragraph_pause_ms;
-	// MERGE 11, "ONE WIDGET" (2026-10-01): "manual" send (only Send/Enter, nothing ever
-	// auto-sent) used to be one of the gear's own choices — and a box that had it saved
-	// would silently turn autosend off for good, which is exactly the "look alike but
-	// behave differently" bug the owner hit. Autosend is the only behaviour now, so an
-	// old saved "manual" is changed back to "pause" here, the same way a stale
-	// `pause_send_ms`/`paragraph_pause_ms` default is dropped just above. The choice
-	// itself is also gone from `settings_panel()`'s own `send_mode` row, below.
+	// A saved "manual" send mode can no longer be chosen: reset it. see doc/mic-notes.md#settings-migration
 	if (saved.send_mode === "manual") saved.send_mode = "pause";
 	Object.assign(SETTINGS, saved);
 } catch {}
 export const save_settings = () => { try { localStorage.setItem(STORE, JSON.stringify(SETTINGS)); } catch {} };
 export const CHECK_MS = 250;
-// Fired on `document` whenever the gear panel's "clean" checkbox changes (`detail` is the new
-// value) — the one way a DOM node outside this mic (Composer.js's own "raw" chip) can react to
-// the kill switch the instant it's flipped, review finding 7.
+// Fired on `document` when the gear's "clean" checkbox changes (`detail` is the new value), for nodes outside this mic.
 export const CLEAN_CHANGED_EVENT = "chat-mic-clean-changed";
 
 let beep_ctx;
-/* ⚠ WAIT FOR THE CONTEXT TO ACTUALLY BE RUNNING BEFORE SCHEDULING A NOTE (dictate-stop-sound,
- * 2026-10-01 — the owner: "I didn't get a sound to let me know it stopped… the sounds aren't
- * playing properly"). A brand-new `AudioContext` starts `"suspended"`; its own clock
- * (`currentTime`) is FROZEN at 0 until something actually resumes it. The old code called
- * `resume()` but never waited for it, then read `currentTime` and scheduled the notes
- * relative to that frozen instant anyway — so the very first beep on a page (or any beep
- * fired with no fresh click behind it, like the stop chime from a page-hidden mic release)
- * could be scheduled on a clock that was still stuck at 0 when the context woke up moments
- * later, coming out silent, clipped to a fraction of its length, or buried under whatever
- * else was scheduled by then. Awaiting `resume()` first means `currentTime` is always read
- * from a context that is genuinely ticking, so the two notes land exactly where they're meant
- * to. `beep()` is still called fire-and-forget everywhere (`on_listening()`, both `stop()`s) —
- * nothing needs its promise, this only delays WHEN the oscillators get scheduled, not whether
- * the caller waits. */
+// Await resume() so currentTime is not frozen at 0. see doc/mic-notes.md#beep-needs-a-running-context
 async function beep(kind){
 	try {
 		beep_ctx ??= new AudioContext();
@@ -117,18 +54,13 @@ async function beep(kind){
 	} catch {}
 }
 
-// A live reload waits while a mic is recording or has words not yet sent.
-// It asks EVERY mic on the page, not just the last one started, and it counts the
-// gaps a plain state check missed: the moment between the press and "listening"
-// (engine check, permission prompt, a new card's 250 ms autostart), the 400 ms
-// while a dead device is reopened, and the sentence still being posted.
+// A live reload waits while any mic is recording or has unsent words. see doc/mic-notes.md#reload-guard
 const all_mics = new Set();
 Socket.singleton().add_busy(() => [...all_mics].some(m => m.active()));
-// The last net: ANY reload or navigation while a mic is live asks first.
+// The last net: any reload or navigation while a mic is live asks first.
 addEventListener("beforeunload", e => { if ([...all_mics].some(m => m.active())){ e.preventDefault(); e.returnValue = ""; } });
 
-/* FILLER WORDS never reach the box or the log: whole words only, any case, and
-   the comma that hung on one goes with it ("Well, um, so" → "Well, so"). */
+// Filler words never reach the box or the log (whole words, any case, with their comma).
 const filler_re = (flags, edge = "") => new RegExp(edge + String.raw`\b(?:` +SETTINGS.fillers.split(/[\s,]+/).filter(Boolean).map(w => w.slice(0, -1).replace(/[^\p{L}]/gu, "") + w.slice(-1) + "+").join("|") + String.raw`)\b` +(edge ? "" : ",?"), flags);
 export function unfill(text){
 	if (!SETTINGS.fillers.trim()) return text;
@@ -141,13 +73,7 @@ export function unfill(text){
 	return t;
 }
 
-/* `text` without the words `sent` already covers at its start. A guess that went out with Send is
-   cumulative and Whisper's FINAL for the same speech never matches it word for word ("county" for
-   "country", "check mark" / "checkmark"), so an exact-prefix test let the whole final through as a
-   second message ~200 ms after the first — the owner's duplicate bubble (ext/Chat/doc/duplicate-bubbles.md).
-   Words are lined up with an edit distance (a word costs 0 when equal, else its letter-level distance);
-   when the two are at least 65% alike the sent part is dropped and only the words after it are returned.
-   If they do not agree, nothing is removed. */
+// `text` minus the words `sent` already covers at its start, fuzzy-matched. see doc/mic-notes.md#strip_words-duplicate-bubble
 export function strip_words(text, sent){
 	const norm = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
 	const tw = text.split(/\s+/).filter(Boolean), sw = sent.split(/\s+/).filter(Boolean);
@@ -166,8 +92,7 @@ export function strip_words(text, sent){
 	for (let j = 0; j <= T.length; j++) D[0][j] = j;
 	for (let i = 1; i <= S.length; i++) for (let j = 1; j <= T.length; j++)
 		D[i][j] = Math.min(D[i - 1][j] + 1, D[i][j - 1] + 1, D[i - 1][j - 1] + word(S[i - 1], T[j - 1]));
-	// Either all of `sent` is matched against the front of `text` (the final goes on past the guess), or all of
-	// `text` is matched against the front of `sent` (the guess ran longer than the final).
+	// Match all of `sent` to the front of `text`, or all of `text` to the front of `sent`.
 	let best = null;
 	const consider = (i, j) => {
 		if (!i || !j) return;
@@ -183,11 +108,7 @@ export function strip_words(text, sent){
 export class ComposerMic extends Dictate {
 
 	static REFINE_WAIT_MS = 1500;   // the longest a send waits for the live refine's paragraphed text
-	/* PARAGRAPHS ON PAUSES. Whisper closes a segment after 0.7 s of quiet, so
-	   segments are already the natural units; what is missing is HOW LONG the
-	   quiet before each one was. `on_level` measures it (silence between the last
-	   loud frame and the first loud frame of the next segment); a gap of
-	   `para_gap_ms` or more starts a new paragraph, written as a blank line. */
+	// Paragraph gaps: `on_level` measures the silence before each segment. see doc/mic-notes.md#paragraph-gaps
 	on_level(level){
 		const before = this.has_speech, now = performance.now();
 		super.on_level(level);
@@ -197,15 +118,10 @@ export class ComposerMic extends Dictate {
 		}
 	}
 
-	/* A PARAGRAPH BREAK needs BOTH: a real pause (`para_gap_ms`) AND a sentence that
-	   has ended before it. A pause in the middle of a sentence is only a breath. */
+	// A paragraph break needs a real pause AND a finished sentence before it.
 	can_break(prev, gap){ return !!prev && gap >= SETTINGS.break_pause_ms && /[.!?…]["')\]]*$/.test(prev.trim()); }
 
-	// One gap per segment that will really be sent, in order — commit() takes the next.
-	/* ⚠ THE GUESS STAYS ON SCREEN UNTIL ITS FINAL ARRIVES. Dictate's own close_segment
-	   blanks the still-moving guess at once, then waits for Whisper's final (a few
-	   hundred ms): the box lost its words, shrank a line, and grew them back — that
-	   was the jump. The guess is kept in `pending` and drawn until commit() takes it. */
+	// The guess stays on screen until its final arrives. see doc/mic-notes.md#the-guess-stays-on-screen-until-its-final-arrives
 	async close_segment(){
 		let mine;
 		try {
@@ -242,26 +158,7 @@ export class ComposerMic extends Dictate {
 		return !!(this.starting || this.reviving || this.posting || this.held?.length || this.state === "listening" || this.state === "transcribing" || this.state === "connecting");
 	}
 
-	/* THE BOX IS WHERE THE WORDS APPEAR. Each Whisper update — the still-moving
-	   guess and every finished sentence not yet sent — is written after whatever
-	   the owner has typed. Only the dictated tail is ever replaced: if the box no
-	   longer ends with it, the owner edited it, and their text becomes the new
-	   start. The cursor goes to the end. `this.field` is the composer's own input. */
-	/* ⚠ THE BOX IS ALWAYS `base + dictated words`, REPLACED, NEVER APPENDED
-	   (the owner, 2026-09-24: one prompt reached 121,604 characters). `base` is
-	   the owner's own text, remembered explicitly and updated only by a real
-	   input event (our own dispatch is flagged and ignored). The old code found
-	   the owner's text by asking whether the box still `endsWith` the dictated
-	   tail; when that failed the whole box, dictation included, counted as the
-	   owner's text and every update wrote the transcript on top of itself. */
-	/* CLEAN MODE (ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode): each
-	 * `held` item is a finished Whisper utterance, `{text, raw, chunk_id, ready}`.
-	 * `text` starts out equal to `raw` and is swapped in place, by `on_revised()`
-	 * below, for the fast assistant's cleaned-up wording once it answers — so the
-	 * box shows raw words for a moment, then the same words tidied, never both at
-	 * once and never a flash of empty. `build_tail(use_raw)` reads either column,
-	 * so the "raw" dig-back toggle (`toggle_raw()`) and the real box share one
-	 * piece of paragraph-break logic instead of two that could disagree. */
+	// The box is `base + dictated words`, replaced, never appended. see doc/mic-notes.md#the-box-base--dictated-words-and-clean-mode
 	build_tail(use_raw){
 		const parts = (this.held ?? []).filter(h => !h.gone).map((h, i) => (i ? (h.br ? "\n\n" : " ") : "") + (use_raw ? (h.raw ?? h.text) : h.text));
 		for (const p of (this.pending ?? []).filter(p => p.text)) parts.push((parts.length ? (this.can_break(parts.join(""), p.gap) ? "\n\n" : " ") : "") + p.text);
@@ -271,22 +168,12 @@ export class ComposerMic extends Dictate {
 		return parts.join("");
 	}
 
-	/* INTO THE CHAT, NOT THE BOX (dictation-stream, 2026-09-30). With `SETTINGS.into === "chat"` and a
-	   host that can draw a growing bubble (`on_live`, given by `ChatPanel` through `composer()`), every
-	   piece of logic below still writes into a text box — but into a GHOST one that is never on the page,
-	   and each change is handed to `on_live({text, settled, guess, sent})` for the chat log to draw. The
-	   real box is left to typing. Sending, clean-up, paragraphs and the auto-send all work unchanged,
-	   because they only ever read `this.box()`. */
-	// `this.into` (one-dictation, item 1): a mode preset's own override, same seam
-	// `send_mode`/`mode_now()` already has — set directly on ONE mic instance
-	// (`ux/Dictate/Widget.js`'s own mode table), never on the shared `SETTINGS`, so it
-	// never touches what the owner's gear has saved. The gear itself still wins: picking
-	// "into" there clears this override (`settings_panel()`, below).
+	// With `into === "chat"` all drawing goes into a ghost textarea and `on_live` draws the bubble. see doc/mic-notes.md#into-the-chat-not-the-box
+	// `this.into`: a per-mic override of SETTINGS.into; the gear clears it.
 	live_active(){ return !!this.on_live && (this.into ?? SETTINGS.into) === "chat"; }
 	box(){ return this.live_active() ? (this.ghost ??= document.createElement("textarea")) : this.field?.el; }
 
-	/* The box this mic draws into changed (first draw, or the gear's "into" setting flipped): take the
-	   dictated words out of the old one, remember what the new one already holds as the owner's own. */
+	// The box changed: take the dictated words out of the old one, adopt the new one's text as the owner's.
 	adopt(box){
 		if (this.drawn_box === box) return;
 		const old = this.drawn_box;
@@ -305,7 +192,7 @@ export class ComposerMic extends Dictate {
 		this.adopt(box);
 		const t0 = performance.now();
 		const said = this.build_tail(this.show_raw);
-		const t1 = performance.now();   // build_tail done (filler filter + paragraphing folded into one call, see above)
+		const t1 = performance.now();
 		this.tail = said ? (this.base && !/\s$/.test(this.base) ? " " : "") + said : "";
 		const next = this.base + this.tail;
 		const t2 = performance.now();
@@ -315,11 +202,10 @@ export class ComposerMic extends Dictate {
 		box.value = next;
 		box.setSelectionRange?.(next.length, next.length);
 		if (stuck) box.scrollTop = box.scrollHeight;   // keep the newest words in view unless the owner scrolled up
-		/* NEVER SHRINK WHILE DICTATING: Whisper rewrites its guess and it can come back a line
-		   shorter for a moment. The box keeps the tallest height it reached until it is emptied. */
+		// Never shrink while dictating: Whisper's guess can briefly come back shorter.
 		this.floor_h = Math.max(this.floor_h ?? 0, box.offsetHeight);
 		box.style.minHeight = this.floor_h + "px";
-		const t3 = performance.now();   // box set (and laid out)
+		const t3 = performance.now();
 		box.dispatchEvent(new Event("input", { bubbles: true }));
 		this.own = false;
 		if (box === this.ghost) this.show_live(said);
@@ -327,14 +213,7 @@ export class ComposerMic extends Dictate {
 		this.refine_tick(next);
 	}
 
-	/* EVERY MIC REFINES LIVE (one-input, 2026-10-12, CLAUDE.md law 2/6): whatever is in the
-	 * box right now — raw while speaking, already true above — is also posted to
-	 * `/api/refine/live` (`RefineSystem.post_live()`, `ext/Refine/RefineSystem.js`) so the outline keeps
-	 * up underneath, debounced so a run of Whisper updates sends one batch, not one per
-	 * keystroke. Gated on `this.revise`, the same switch `clean_active()` already reads: a
-	 * composer that never asked for the dictation pipeline is untouched either way.
-	 * `doc/one-input-2026-10-12.md` has the decision; `contract.md` the wire shape. Fails
-	 * quietly — the route 404s until Servex restarts with `LiveRefine.js` wired in. */
+	// Every mic refines live, debounced, fails quietly. see doc/mic-notes.md#live-refine
 	live_prompt_id(){ return this._live_prompt_id ??= "composer-" + Math.random().toString(36).slice(2, 10); }
 
 	refine_tick(text){
@@ -346,11 +225,7 @@ export class ComposerMic extends Dictate {
 		}, 400);
 	}
 
-	/* THE SEND ITSELF closes the batch (`final: true`) — the contract's own "drains the queue,
-	 * logs the prompt, marks it done". A caller (`send_screen()`/`flush_held()`, below) awaits
-	 * this right before building the entry that actually posts, and swaps in the paragraphed
-	 * slots text when one comes back; `null` (today, before the route exists) means "keep doing
-	 * what you were already doing" — never a blocked or failed send. */
+	// The send closes the live-refine batch (`final: true`); null means keep the plain text. see doc/mic-notes.md#live-refine-final
 	async refine_final(text){
 		if (!this.revise || !text?.trim()) return null;
 		clearTimeout(this._live_timer);
@@ -361,9 +236,7 @@ export class ComposerMic extends Dictate {
 		return Promise.race([RefineSystem.post_live({ prompt, text, final: true, session: this.refine_session_id?.() }), late]);
 	}
 
-	/* CHAT BUBBLES SHOW THE CLEAN TEXT, PARAGRAPHED — NEVER A WALL OF RAW (CLAUDE.md law 2).
-	 * One paragraph per outline section the slots cite, or every ~4 sentences within the same
-	 * section, whichever comes first — a topic change reads as a topic change, not a run-on. */
+	// One paragraph per outline section the slots cite, or every ~4 sentences.
 	static paragraph_from_slots(slots, outline){
 		if (!slots?.length) return "";
 		const sections = outline?.sections ?? [];
@@ -380,10 +253,7 @@ export class ComposerMic extends Dictate {
 		return paras.join("\n\n");
 	}
 
-	/* The growing bubble's words: `settled` is what Whisper has finished (and the clean-up has
-	   swapped in place), `guess` the still-moving end, drawn grey. `sent` is true on the one call
-	   that empties it because the words just went out, so the host can keep the bubble showing
-	   until the real line arrives instead of flashing empty. */
+	// `settled` is what Whisper finished, `guess` the still-moving end; `sent` is true on the one call that empties the bubble after a send.
 	show_live(said){
 		const guess = this.live_guess(), settled = guess && said.endsWith(guess) ? said.slice(0, said.length - guess.length).trimEnd() : said;
 		const sent = !!this.just_sent && !said;
@@ -397,9 +267,7 @@ export class ComposerMic extends Dictate {
 		return guess;
 	}
 
-	/* THE DELAY, in ms, per box update: `wait` = Whisper's answer arrived → this draw began (queueing);
-	   `unfill`, `para`, `box` = the three stages here; `input` = every listener of the box's input event.
-	   Only updates that follow a Whisper answer are logged (`t_result` is stamped by Dictate.transcribe). */
+	// Timing per box update (`wait`, `unfill`, `para`, `box`, `input`); only updates that follow a Whisper answer are logged.
 	mark(t0, t1, t2, t3, t4){
 		if (this.t_result === undefined) return;
 		const row = { wait: t0 - this.t_result, unfill: t1 - t0, para: t2 - t1, box: t3 - t2, input: t4 - t3, whisper: this.whisper_ms ?? 0 };
@@ -407,35 +275,21 @@ export class ComposerMic extends Dictate {
 		(ComposerMic.timings ??= []).push(row);
 	}
 
-	// The box was emptied (sent): it may be one line again.
 	release_height(){
 		this.floor_h = 0;
 		if (this.field?.el) this.field.el.style.minHeight = "";
 	}
 
-	// The first time the box is drawn: remember the owner's text and listen for their edits.
-	// (Called once per box by `adopt()`, which also sets `base` and dresses the real box.)
 	watch_box(box){
 		box.addEventListener("input", () => { if (!this.own && this.drawn_box === box) this.owner_edit(box); });
 	}
 
-	/* THE BOX GROWS UP TO A CEILING, THEN SCROLLS (one-dictation, 2026-10-01 — the owner: "if
-	   the text area is gonna grow, it needs to be like full width… the send button could be
-	   below it"). `Chat.css`'s own `max-height: 7lh` on `.chatbox-compose-input` is the box's
-	   DEFAULT ceiling, set once in CSS so even a mic-less composer gets one; this only keeps it
-	   in sync when the gear's own `box_lines` setting is changed live. The mic and Send are no
-	   longer glued to the box's own height — they sit in their own row UNDER it now
-	   (`Composer.js`, `Chat.css`), so there is nothing left here to size beside the box. */
+	// The box grows to a ceiling, then scrolls. see doc/mic-notes.md#box-ceiling
 	dress(box){
 		box.style.maxHeight = SETTINGS.box_lines + "lh"; box.style.overflowY = "auto";
 	}
 
-	/* THE SETTINGS GRID: one small input per setting in SETTINGS. A change writes the object at once, is
-	   saved in localStorage, and is read live by everything above (the guess interval waits for the
-	   next mic start). Plain DOM, laid out by `Chat.css`'s `.chatbox-mic-settings` — this used to
-	   position ITSELF as a small floating popover with inline styles and its own show/hide `gear()`
-	   method; now the CALLER decides where and how it is shown (`Composer.js`'s own full-screen menu,
-	   chat-menu-merge, 2026-10-01 — it had only the one caller anyway, so nothing else loses anything). */
+	// One small input per SETTINGS key; the caller decides where it is shown. see doc/mic-notes.md#settings-panel
 	settings_panel(){
 		const panel = document.createElement("div");
 		panel.className = "chatbox-mic-settings";
@@ -459,10 +313,7 @@ export class ComposerMic extends Dictate {
 				if (key === "send_mode") this.send_mode = undefined;   // the panel wins over a per-mic override
 				if (key === "into") this.into = undefined;   // same rule, for the mode table's own "into" override
 				if (key === "box_lines" && this.field?.el) this.field.el.style.maxHeight = SETTINGS.box_lines + "lh";
-				// SETTINGS is shared and read live everywhere, but a DOM node outside this
-				// mic (Composer.js's own "raw" chip — review finding 7: it must hide when
-				// the kill switch is off, since toggling it then would do nothing visible)
-				// has no other way to hear this ONE change happen right now.
+				// Tell nodes outside this mic (Composer's "raw" chip) that the kill switch flipped.
 				if (key === "into") this.draw_caption();   // move the words still being spoken to the new place at once
 				if (key === "clean") document.dispatchEvent(new CustomEvent(CLEAN_CHANGED_EVENT, { detail: SETTINGS.clean }));
 				save_settings();
@@ -472,9 +323,7 @@ export class ComposerMic extends Dictate {
 		return panel;
 	}
 
-	/* The owner typed or pasted. If the box still ends with the dictated words,
-	   only what is before them is theirs; if they edited INSIDE the dictation,
-	   the whole box is theirs now and the words shown so far stop being redrawn. */
+	// The owner typed or pasted: text before the dictated tail is theirs; an edit inside the dictation makes the whole box theirs.
 	owner_edit(box){
 		const v = box.value, t = this.tail ?? "";
 		if (t && v.endsWith(t)){ this.base = v.slice(0, v.length - t.length); return; }
@@ -485,16 +334,13 @@ export class ComposerMic extends Dictate {
 		this.tail = "";
 	}
 
-	// The moving guess belongs to the segment still being spoken and is cumulative: once its words
-	// are in the box for good (edited in, or sent), only what comes AFTER them may appear again.
+	// The moving guess is cumulative: once its words are in the box for good, only what comes after may appear again.
 	drop_partial(){
 		const g = unfill(this.partial_text ?? "");
 		this.dropped = g ? { text: g, epoch: this.segment_epoch } : null;
 	}
 
-	/* SEND happened. Everything the caption uses is reset, so a Whisper update
-	   that lands after Send starts a fresh box and can never restore what was
-	   sent; the still-moving guess is trimmed of the words already sent. */
+	// Send happened: reset everything the caption uses so a late Whisper update cannot restore what was sent.
 	consume_sent(){
 		clearTimeout(this.held_timer);
 		this.just_sent = true;   // the growing chat bubble (show_live) stays up until the real line lands
@@ -510,10 +356,7 @@ export class ComposerMic extends Dictate {
 		queueMicrotask(() => this.draw_caption());   // after the composer has emptied the box
 	}
 
-	/* ONE MICROPHONE AT A TIME. A card's page stays mounted while a sub-card
-	   opens beside it, so its mic never hears `deactivated()` — pressing the
-	   sub-card's mic ran two at once, and every sentence was posted twice (the
-	   owner, 2026-09-23). Starting any mic stops whichever one was on. */
+	// Starting any mic stops whichever one was on. see doc/mic-notes.md#one-microphone-at-a-time
 	async start(){
 		const other = ComposerMic.on;
 		ComposerMic.on = this;
@@ -526,43 +369,14 @@ export class ComposerMic extends Dictate {
 		} finally { this.starting = false; }
 	}
 
-	/* THE START SOUND — moved here from the end of `start()`. `Dictate` now calls this
-	 * the INSTANT the mic is genuinely open (whisper's own `capture.start()` resolved, or
-	 * the browser engine's `rec.onstart` fired), never merely because `start()` was asked
-	 * to run. Before this, `start()` returning was treated as "it's on" — but for the
-	 * browser engine `start()` returns before Chrome has done anything at all, and on an
-	 * insecure LAN page Chrome can go on "trying" for a long time with no error, so the
-	 * chime played while nothing was actually listening (the owner's own phone report,
-	 * `ai/sessions/2026/09/29/mobile-nav/mobile-nav/`, `doc/https-lan.md`). `Dictate.set_state()` also never
-	 * fires this twice for one press — Chrome's own silent mid-session restarts (still
-	 * "listening" throughout) do not replay the chime. */
+	// Dictate calls this the instant the mic is genuinely open. see doc/mic-notes.md#start-sound
 	on_listening(){
 		beep("start"); this.watch_capture();
 		clearInterval(this.auto_timer);
 		this.auto_timer = setInterval(() => this.auto_check(), CHECK_MS);
 	}
 
-	/* WHY THE MIC "TURNED ITSELF OFF": a Windows sleep, a Bluetooth switch or an
-	   unplugged device ends the microphone's audio track — Dictate never listened
-	   for that, so the button kept saying "listening" while nothing was recorded.
-	   Now a dead track stops the mic (with the stop sound) and reopens it once. A
-	   suspended audio engine is woken the same way. */
-	/* ⚠ NO STOP/START BEEP FOR AN AUTOMATIC REVIVAL (round 2, 2026-10-04 — the owner, on the
-	 * phone: "it's bleeping twice… it seems like it's maybe turning off and then turning
-	 * back on after every pause"). The old code answered a dead track by running a FULL
-	 * `this.stop()` then, 400ms later, a full `this.start()` — two real state transitions,
-	 * one chime each, so a single revival sounded like two beeps. On a phone, a quiet
-	 * stretch in speech (exactly "every pause") is also the moment mobile Chrome/Android is
-	 * most likely to recycle or briefly suspend the mic track to save power — so this fired
-	 * on ordinary pauses almost every time, not on a real disconnect.
-	 *
-	 * Fix: open a FRESH `Capture` directly and swap it in, with `this.state` left at
-	 * "listening" throughout. Nothing here is a state transition, so Dictate's own
-	 * beep-on-listen (`on_listening`) and beep-on-error never fire — from the owner's side
-	 * the mic never looked like it turned off at all, which is exactly "the mic stays on
-	 * until the owner stops it." A revival that genuinely fails (nothing left to reopen,
-	 * permission pulled) still calls `set_error()`, which DOES beep "stop" — that is a real,
-	 * owner-visible failure, not a false one. */
+	// A dead track is revived silently, with no stop/start beep. see doc/mic-notes.md#silent-revival-of-a-dead-track
 	watch_capture(){
 		const cap = this.mic, track = cap?.stream?.getAudioTracks()[0];
 		if (cap?.ctx) cap.ctx.onstatechange = () => {
@@ -598,38 +412,20 @@ export class ComposerMic extends Dictate {
 		if (was) beep("stop");
 	}
 
-	// No `at` sent to Servex — see Dictate.js's own `log_prompt` for why a
-	// client clock must never override Servex's local-offset stamp.
-	/* WHEN WORDS GO OUT is `SETTINGS.send_mode`, one switch (a mic can override it with its own `send_mode`):
-	   "manual"    only the Send button (or Enter) sends. Nothing is ever sent early.
-	   "sentences" every `sentences_per_send` finished sentences go out at once, as their segment arrives.
-	   "pause"     "sentences", plus whatever is left on screen after `pause_send_ms` of silence.
-	   Each message is one or more whole sentences; the words still being spoken stay in the box. */
+	// No `at` sent to Servex: see Dictate.js `log_prompt`.
+	// `send_mode` is one switch ('pause' | 'sentences'; 'manual' is legacy). see doc/mic-notes.md#send-modes
 	mode_now(){ return this.send_mode ?? SETTINGS.send_mode; }
 
-	// Clean mode is ON for this mic only when BOTH the caller asked for a `revise:`
-	// level (deliverable 1: `ai2/compose.js` turns this on by default) AND the
-	// owner's own kill switch (deliverable 4, `SETTINGS.clean`) has not turned it
-	// back off. A composer that never asked for `revise:` is untouched either way.
+	// Clean mode needs both the caller's `revise:` and the owner's kill switch (`SETTINGS.clean`).
 	clean_active(){ return !!(this.revise && SETTINGS.clean); }
 
-	// Only run the fast assistant's clean-up while it is actually wanted — the
-	// kill switch can turn this OFF without the caller's own `revise:` choice
-	// ever changing (`Dictate.js`'s `revise_chunk` is the one place that calls
-	// `Revise.run` and logs a revision; this is the one gate in front of it).
+	// The one gate in front of Dictate's `revise_chunk`.
 	revise_chunk(raw, chunk_id, chunk_at){
 		if (!this.clean_active()) return;
 		return super.revise_chunk(raw, chunk_id, chunk_at);
 	}
 
-	/* EACH FINISHED UTTERANCE IS ITS OWN `held` ITEM (deliverable 1): `text` is what
-	 * the box shows and what a send actually reads; `raw` is what Whisper really
-	 * said, kept alongside forever, never overwritten (deliverable 3, the dig-back
-	 * toggle). `ready` resolves once this item can no longer change — instantly if
-	 * clean mode is off (nothing is ever coming), or when `on_revised()` below hears
-	 * back from the fast assistant, ok or not. A send that is about to go out awaits
-	 * every held item's `ready`, capped at ~5s (`await_clean()`), so it never sends
-	 * half of a clean-up and the raw rest (deliverable 2). */
+	// Each finished utterance is its own `held` item `{text, raw, chunk_id, ready}`. see doc/mic-notes.md#held-items
 	log_prompt(text, chunk_id){
 		let resolve_ready;
 		const ready = new Promise(res => { resolve_ready = res; });
@@ -641,19 +437,8 @@ export class ComposerMic extends Dictate {
 		this.arm();
 	}
 
-	/* THE FAST ASSISTANT ANSWERED for one utterance — `Dictate.js`'s own `revise_chunk()`
-	 * calls this once `/api/tidy` says OK, never with a falsy `text` (a failure goes to
-	 * `on_revise_failed` below instead — two hooks, never one overloaded with `null`,
-	 * review finding 1: an existing caller like `ext/drawer/rail.js` that only ever
-	 * handled success must never be handed something to draw a blank card for). Find
-	 * the item that is STILL waiting (a send may already have cut it out of `held`,
-	 * raw and gone — nothing left to update, but the waiter still needs releasing so
-	 * `await_clean()` doesn't wait the full 5s for an answer nobody can use any more)
-	 * and swap its `text` for the clean version. */
-	/* ⚠ A CALLER'S OWN HOOK IS `on_clean`, NEVER `on_revised` (dictation-stream, 2026-09-30): View's
-	   constructor Object.assign()s every option onto the instance, so an `on_revised` option (even an
-	   `undefined` one, which Composer.js always passed) SHADOWED this method, the swap never ran, the
-	   bubbles stayed raw Whisper with clean mode on, and every send waited the full 5 s. */
+	// The fast assistant answered for one utterance: swap its text in. see doc/mic-notes.md#on_revised-and-on_revise_failed
+	// A caller's hook is `on_clean`, never `on_revised`: View would shadow this method. see doc/mic-notes.md#on_revised-and-on_revise_failed
 	on_revised(text, meta = {}){
 		const { chunk_id } = meta;
 		const item = (this.held ?? []).find(h => h.chunk_id === chunk_id);
@@ -662,13 +447,7 @@ export class ComposerMic extends Dictate {
 		this.on_clean?.(text, meta);
 	}
 
-	/* THE FAST ASSISTANT GAVE UP for one utterance (Servex down, or any other
-	 * failure) — `raw` stays showing in the box (`item.text` is never touched, it
-	 * was already the raw words); only `item.failed`/`item.fail_why` are stamped, so
-	 * a send about to go out can say so ONCE (`notify_if_failed()`, called by the
-	 * send paths right after `await_clean()`) instead of `Composer.js`'s hint firing
-	 * once per failed chunk — a string of failures used to repeat "sent raw" over
-	 * and over before anything had actually been sent (review finding 5). */
+	// The fast assistant gave up: stamp the item so a send can say so once. see doc/mic-notes.md#on_revised-and-on_revise_failed
 	on_revise_failed({ chunk_id, why }){
 		const item = (this.held ?? []).find(h => h.chunk_id === chunk_id);
 		if (item){ item.failed = true; item.fail_why = why; }
@@ -681,58 +460,27 @@ export class ComposerMic extends Dictate {
 		if (resolve){ resolve(); this.clean_waiters.delete(chunk_id); }
 	}
 
-	/* Called by every send path right after `await_clean()` — once per send, never
-	 * once per chunk. `items` is whatever this send is about to read; if any of them
-	 * gave up, the hint says so ONCE, worded as what is ABOUT to happen ("will send
-	 * raw") since this runs before the message actually leaves. */
+	// Called by every send path after `await_clean()`, once per send: hints once if any item failed.
 	notify_if_failed(items){
 		const failed = items.find(h => h.failed);
 		if (failed) this.on_clean_failed?.(failed.fail_why ?? this.last_fail_why);
 	}
 
-	/* Deliverable 3 — "dig back": one toggle shows exactly what Whisper produced for
-	 * everything currently in the box, in place of the clean-up. Returns the new
-	 * state so a caller (`Composer.js`'s own button) can reflect it visually. */
+	// Dig back: show what Whisper produced instead of the clean-up; returns the new state.
 	toggle_raw(){
 		this.show_raw = !this.show_raw;
 		this.draw_caption();
 		return this.show_raw;
 	}
 
-	/* Deliverable 2 — "wait for it (at most ~5s), then fall back to raw for anything
-	 * unanswered": every held item not yet cleaned (`ready` unresolved) blocks a send
-	 * for up to `ms`; items answered already resolve instantly (`Promise.all` needs
-	 * no real wait for those), and items that time out simply keep the raw text
-	 * `log_prompt()` gave them — never a missing word, never a second wait later. */
+	// Wait up to `ms` for unanswered clean-ups, then fall back to raw. see doc/mic-notes.md#held-items
 	async await_clean(ms = 5000){
 		const waiters = (this.held ?? []).filter(h => !h.gone && h.ready).map(h => h.ready);
 		if (!waiters.length) return;
 		await Promise.race([Promise.all(waiters), new Promise(res => setTimeout(res, ms))]);
 	}
 
-	/* ⚠ ONE MICROPHONE AT A TIME, STILL TRUE FOR A LATE ANSWER (review finding 1/2,
-	 * one-dictation, 2026-10-02 — the owner: "duplicate transcriptions on the same
-	 * card... it seemed to even chunk one into a new card"). `start()`'s own singleton
-	 * (`ComposerMic.on`) stops whichever mic was running before this one — but Whisper
-	 * is a network round trip: a segment already in flight on the OLD mic when it is
-	 * stolen from can still resolve AFTER `stop()`'s own final flush has already run,
-	 * landing in `commit()` -> `log_prompt()` -> here, on a mount nobody is looking at
-	 * any more (a card the reader has since navigated away from, its own composer kept
-	 * mounted — `ext/drawer/rail.js`'s and `ai2/card.js`'s own doc on why mounts are
-	 * never torn down on navigation). `auto_check()` already guards the exact same way
-	 * (`this.state !== "listening" && this.state !== "transcribing"`); this arms every
-	 * other autosend path (`log_prompt()`'s own segment-finished call, and the safety
-	 * chunk cut) the same way.
-	 *
-	 * DISCARD, DON'T STRAND (re-review finding 4, 2026-10-02): leaving the late words
-	 * sitting in `held` used to mean the box kept showing them, unsent, until this
-	 * mount's mic started again — and then they would go out attached to whatever page
-	 * was current THEN, the very wrongly-attributed send this guard exists to stop.
-	 * Nothing is lost by discarding: `log_prompt()` above this call already drew them
-	 * in this mount's own thread (its chat log has them); only the still-live box and
-	 * the unsent `held` queue are stale. Mark every held item `gone` (`owner_edit()`'s
-	 * own pattern, above) and redraw the box so it empties instead of holding words
-	 * that will never be theirs to send. */
+	// A late answer on a stolen mic is discarded, not stranded. see doc/mic-notes.md#arm-late-answers
 	arm(){
 		if (this.mode_now() === "manual") return;
 		if (this.state !== "listening" && this.state !== "transcribing"){
@@ -744,22 +492,13 @@ export class ComposerMic extends Dictate {
 		if (SETTINGS.sentences_per_send | 0) this.send_sentences(SETTINGS.sentences_per_send | 0); else this.check_chunk();
 	}
 
-	/* THE SAFETY CHUNK: words that have waited chunk_ms, or passed chunk_chars, go out at the next sentence end
-	   (all the finished sentences in one message; the unfinished tail stays). */
+	// Safety chunk: words past chunk_ms or chunk_chars go out at the next sentence end.
 	check_chunk(){
 		const text = this.held_text();
 		if (text && (text.length >= SETTINGS.chunk_chars || performance.now() - (this.chunk_start ?? performance.now()) >= SETTINGS.chunk_ms)) this.send_sentences(Infinity);
 	}
 
-	/* The finished sentences among the held words go out now, `sentences_per_send` to a message; the
-	   unfinished tail stays held and on screen. The words are cut out of `held` in the same tick they
-	   are queued, so a later check can never send them again.
-	   ⚠ Sentences are re-sliced from the JOINED text of every held item, so one outgoing message can
-	   span several utterances — there is no clean way to keep a single `raw` string lined up
-	   character-for-character with a re-cut `text` string. This path (only reached with
-	   `sentences_per_send` set, or the `chunk_chars`/`chunk_ms` safety cut) sends the RAW joined text
-	   as `raw` — a whole-message best-effort record of what was actually said, not a
-	   word-for-word pairing with `text` the way `send_screen()`'s single-utterance case gets. */
+	// Finished sentences go out now; the unfinished tail stays held. Sends the joined RAW text as `raw`. see doc/mic-notes.md#send_sentences
 	async send_sentences(n = Math.max(1, SETTINGS.sentences_per_send | 0)){
 		if (this.sending_sentences) return;   // `await_clean()` below can take up to 5s — never two of these reading/cutting `held` at once
 		this.sending_sentences = true;
@@ -772,9 +511,7 @@ export class ComposerMic extends Dictate {
 			const sents = joined.match(/[^.!?…]*[.!?…]+["')\]]*(?=\s|$)/g) ?? [];
 			if (!sents.length || sents.length < n) return;
 			const per = Math.min(n, sents.length), cut = sents.length - sents.length % per, texts = [];
-			// `raw` goes on the FIRST outgoing message only (review finding 6) — the whole
-			// joined paragraph, once, not the same best-effort string repeated on every
-			// message this batch happens to split into.
+			// `raw` goes on the first outgoing message only.
 			for (let i = 0; i < cut; i += per) texts.push({ text: sents.slice(i, i + per).join("").trim(), raw: i === 0 ? joined_raw : null });
 			const rest = joined.slice(sents.slice(0, cut).join("").length).trim();
 			if (this.base.trim()){ texts[0].text = this.base.trim() + " " + texts[0].text; this.base = ""; }
@@ -785,8 +522,7 @@ export class ComposerMic extends Dictate {
 		finally { this.sending_sentences = false; }
 	}
 
-	// Messages leave in order, one at a time; `posting` keeps a live reload waiting until the last is delivered.
-	// Each item is `{text, raw}` (or a plain string, for a caller with no raw to give).
+	// Messages leave in order; `posting` keeps a live reload waiting. Items are `{text, raw}` or a string.
 	enqueue(items){
 		this.posting = (this.posting ?? 0) + 1;
 		this.last_send_at = performance.now(); this.chunk_start = undefined;
@@ -796,8 +532,7 @@ export class ComposerMic extends Dictate {
 			.finally(() => { this.posting--; });
 	}
 
-	/* "pause" mode, checked every CHECK_MS while listening: `pause_send_ms` of silence sends EVERYTHING
-	   still on screen, the guess included (the same words Send would send). A failure is logged, never silent. */
+	// "pause" mode, every CHECK_MS: `pause_send_ms` of silence sends everything on screen.
 	auto_check(){
 		try {
 			if (this.mode_now() === "manual" || this.state !== "listening" && this.state !== "transcribing") return;
@@ -810,27 +545,12 @@ export class ComposerMic extends Dictate {
 		} catch (e){ console.error("chat: automatic send failed", e); }
 	}
 
-	/* Everything visible goes out as one message, the mic keeps recording, the box starts fresh.
-	 * This is the common case (the default "pause" send mode's own tail send, and every
-	 * natural-pause send) so it is the one place deliverable 2's wait really matters: if a
-	 * clean-up for something on screen is still in flight, WAIT for it (`await_clean`, capped
-	 * at ~5s) before reading the box, so the message sent is the clean text whenever it
-	 * arrived in time — raw otherwise, never a half-cleaned mix and never a lost word.
-	 * `this.sending_screen` stops a second call (another `auto_check` tick, `stop()`) from
-	 * reading and clearing the SAME box while the first is still waiting. */
+	// Everything visible goes out as one message after waiting for clean-ups. see doc/mic-notes.md#send_screen
 	async send_screen(){
 		if (this.sending_screen) return;
 		if (!this.box()?.value.trim()) return;
 		this.sending_screen = true;
-		// INSTANT FEEDBACK (the owner, 2026-10-04: "instead of putting it quickly into the
-		// UI, it takes a minute… we always want that instant feedback"). `await_clean()`
-		// below can wait up to 5s for the fast assistant's clean-up before the box even
-		// clears — the exact "minute" the owner saw, since nothing reached the chat log
-		// until AFTER that wait. `on_send_start(raw)` fires HERE, before any of that,
-		// with whatever is on screen right now: the caller (`Composer.js` → the rail/card's
-		// own chat) draws it at once via `Chat.js`'s own `live({text, sent:true})` — the
-		// same fading "sent" bubble already built for the open-mic live stream, reused
-		// rather than a second mechanism. Nothing about the clean-up wait itself changes.
+		// Instant feedback: fires before the clean-up wait. see doc/mic-notes.md#instant-feedback
 		this.on_send_start?.((this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim());
 		try {
 			await this.await_clean();
@@ -840,8 +560,7 @@ export class ComposerMic extends Dictate {
 			const raw = (this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim() || text;
 			this.consume_sent();
 			this.draw_caption();   // empty the box now, in this same tick, so no second check can send it again
-			// ONE LAST LIVE-REFINE CALL, final: true (law 2/6) — paragraphed slots replace the plain
-			// joined `text` when the route answers; `null` (today) keeps `text` exactly as it was.
+			// One last live-refine call (`final: true`); paragraphed slots replace `text` when the route answers.
 			const live = await this.refine_final(raw);
 			this.enqueue([{ text: live?.slots?.length ? ComposerMic.paragraph_from_slots(live.slots, live.outline) : text, raw }]);
 		} finally { this.sending_screen = false; }
@@ -850,8 +569,7 @@ export class ComposerMic extends Dictate {
 	held_text(){ return (this.held ?? []).filter(h => !h.gone).map(h => h.text).join(" ").trim(); }
 	ends_sentence(t){ return /[.!?…]["')\]]*$/.test(t.trim()); }
 
-	// Stopping the mic never loses words: in the two auto modes whatever is on screen goes out now;
-	// in "manual" it stays in the box for Send.
+	// Stopping never loses words: auto modes send what is on screen.
 	async stop(){
 		const was = this.state === "listening";
 		clearInterval(this.auto_timer);
@@ -860,22 +578,14 @@ export class ComposerMic extends Dictate {
 			const mode = this.mode_now();
 			if (mode !== "manual") this.send_sentences();
 			if (mode === "pause") this.send_screen(); else if (mode === "sentences") this.flush_held();
-			// ⚠ NOT when `set_error()` already beeped (dictate-stop-sound, 2026-10-01). Whisper
-			// going unreachable while THIS stop is still sending its last segment
-			// (`Dictate.close_segment()`'s own catch) calls `set_error()` while `this.state` is
-			// still `"transcribing"` — and this class's own `set_error()` override (below) beeps
-			// "stop" right there, on the spot. `super.stop()` then resolves normally (the error
-			// is handled, not thrown), so without this check `was` (captured above, before any of
-			// that ran) would still be true and this `finally` would beep "stop" a SECOND time —
-			// two overlapping chimes landing as one garbled noise instead of one clean tone,
-			// which read to the owner as "the sound isn't playing properly", not as two sounds.
+			// Not when `set_error()` already beeped. see doc/mic-notes.md#stop-beeps-once
 			if (was && this.state !== "error") beep("stop");
 		}
 	}
 
 	async flush_held(){
 		clearTimeout(this.held_timer);
-		// INSTANT FEEDBACK, same seam as `send_screen()` above — fire before the clean-up wait, not after.
+		// Instant feedback, same seam as `send_screen()`.
 		this.on_send_start?.((this.held ?? []).map(h => h.raw ?? h.text).join(" ").trim());
 		await this.await_clean();   // deliverable 2: wait ~5s for anything still cleaning, then send what's there
 		const held = (this.held ?? []);
@@ -884,43 +594,17 @@ export class ComposerMic extends Dictate {
 		const raw = held.map(h => h.raw ?? h.text).join(" ").trim();
 		this.held = [];
 		if (!text) return;
-		// SENT: the box empties (the mic keeps listening) and the words become
-		// their own chat bubble when Servex logs them.
 		this.draw_caption();
 		if (!this.pending?.length && !this.partial_text) this.release_height();
-		// ONE LAST LIVE-REFINE CALL, final: true — same rule as `send_screen()` above.
+		// One last live-refine call, as in `send_screen()`.
 		const live = await this.refine_final(raw);
 		return this.post_held({ text: live?.slots?.length ? ComposerMic.paragraph_from_slots(live.slots, live.outline) : text, raw });
 	}
 
-	/* Hand the finished words to the caller's `deliver(entry)` (how a send is posted is
-	   the app's business; it answers true or false). `re` still pins the sentence to the
-	   open target (unchanged); `selected` says the same thing explicitly, so a router
-	   can read it as the DEFAULT and still file a sentence elsewhere. If delivery fails
-	   the words are appended to the dev-server log through Dictate's own fallback file.
-	   `item` is `{text, raw}` or a plain string (a caller with nothing but the clean
-	   text to give — `raw` is only ever added to the entry when it differs from `text`,
-	   deliverable 2: "the message that is sent is the clean text, with the raw kept on
-	   the entry"). */
-	/* ⚠ NEVER SEND THE SAME SENTENCE TWICE IN A ROW (the owner, 2026-10-04: "I said
-	 * something and see it appear in the same chat bubble four times in a row"). Several
-	 * paths can hand a finished utterance to `post_held()` close together for the SAME
-	 * words — a pause-triggered `send_screen()` and a safety-chunk `check_chunk()` both
-	 * noticing the same held text within one 250ms tick, or a late Whisper final landing
-	 * right after its own guess was already sent — and each one is a genuinely separate,
-	 * correctly-built `entry`, so nothing upstream of this point is "wrong" to de-dupe.
-	 * This is the one seam every outgoing send already passes through, so it is the one
-	 * place that can catch all of them: the same text (case/space-insensitive), from the
-	 * SAME mic, within `DUP_WINDOW_MS`, is logged and dropped instead of posted again.
-	 * A real, separately-spoken repeat ("yes. yes.") is two SEGMENTS at least a pause
-	 * apart, almost always well outside this window — `pause_ms` (700ms) plus the time to
-	 * actually say the word. */
+	// Hand the words to `deliver(entry)`; on failure they go to Dictate's fallback log. see doc/mic-notes.md#post_held
+	// Never send the same sentence twice in a row. see doc/mic-notes.md#duplicate-sends
 	same_as_last_send(text){
-		// Same normalisation `strip_words()` already uses above (word-for-word, ignoring
-		// case and punctuation) — Whisper's own re-punctuation of an identical resend
-		// ("turn on the lights" vs "Turn on the lights.") must still count as the same words.
-		// Same words, or words that differ only by what Whisper mishears (`strip_words` is the one fuzzy matcher):
-		// "What is minion-kak?" then "What is minion-kaq?" 300 ms apart is ONE utterance (the owner's 4-copies bubble, 2026-10-09).
+		// Same words, or words differing only by Whisper mishearing (`strip_words` is the fuzzy matcher).
 		const now = performance.now(), prev = this.last_sent_text, t = String(text ?? "").trim();
 		const close = !!prev && !!t && now - (this.last_sent_at ?? -Infinity) < ComposerMic.DUP_WINDOW_MS;
 		const dup = close && (strip_words(t, prev) === "" && strip_words(prev, t) === "")   // BOTH ways: "Okay." then "Okay, now delete it." is two messages;
@@ -928,8 +612,7 @@ export class ComposerMic extends Dictate {
 		return dup;
 	}
 
-	/* A repeated phrase inside ONE text ("What is it? What is it?"): Whisper's own doubling when the live guess and the
-	   final are joined. The first half is kept. Only a whole-text repeat of 2+ words counts. */
+	// Whisper's doubling of a whole-text repeat of 2+ words: keep the first half.
 	static collapse_repeat(text){
 		const w = String(text ?? "").trim().split(/\s+/).filter(Boolean);
 		if (w.length < 4 || w.length % 2) return text;
@@ -953,5 +636,5 @@ export class ComposerMic extends Dictate {
 		catch (e){ console.warn("chat: could not log this utterance", e); }
 	}
 }
-ComposerMic.prototype.mode = "open";   // the mic stays on; Dictate writes nothing itself — draw_caption() types into the box
-ComposerMic.DUP_WINDOW_MS = 4000;   // same words, this close together, from the same mic -> one send, not several (see post_held/same_as_last_send)
+ComposerMic.prototype.mode = "open";   // the mic stays on; draw_caption() types into the box
+ComposerMic.DUP_WINDOW_MS = 4000;   // same words from the same mic this close together are one send (see post_held)
