@@ -116,6 +116,12 @@ Every DS page has the same shape: a nav row of links, an accent code, an h1, one
 
 Colour rule (owner, night): prime is a splash (the one primary button, accent labels, progress fills, active icons), never a ground; selected and current = 10% black inset + accent icon; dark grounds step up with 10% white and down with 10%/50% black. Chip `Selected`, Segment `Active` and the View switch follow it; Panel and Dialog bind their fill to `surface` (white by default via Text mode `Light BG`).
 
+Second and third waves (same night): `DS · 1.1 Icons` (Material Symbols Rounded as ligature text; sizes 16–48; inline icon at the text's line height beats a big icon above, except on cards and images), `1.2 Dark grounds` (dark and near-black ladders, contrast computed per step), `2.6 Dropdowns & menus` (phone: inner scroll, page scroll, bottom sheet; ▶ prototype), `2.7 Toggles, checkboxes & radios` (toggle for one on/off, segments for 2–3 modes, dropdown for more), `4.1 Foundational layouts` (seven layouts, four uses each), `5 Diagrams & charts`. Every interactive kit control has a `Focus` variant (2 px accent ring, offset 2). Reports: [kit/](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/).
+
+## Diagrams from auto layout (DS · 5, verified 2026-10-12)
+
+Design files have no live connectors (`ConnectorNode` is FigJam-only), so arrows are **layout pieces**: a connector frame between cards whose 2 px line FILLs it, an elbow made of two FILL halves with one or two stroke sides, a T piece (top bar of two halves + stem + stubs) for branch and merge. When a card grows, the stack reflows and the line stays joined; each case has a before/after pair on the page. Pieces: `DG Node`, `DG Line V`, `DG Line H`, `DG Turn`, `DG Fan`. Limit: a FILL stub under a short card in a HUG row is not re-measured by the plugin API, so those stubs are sized to the tallest card. Charts: bars FILL a row with data heights, stacked bar shares by `layoutGrow`, donut by `ellipse.arcData`, sparkline as a vector. For free-form charts, the MCP's `generate_diagram` makes FigJam diagrams instead.
+
 ## Traps
 
 - **`code` style can't load**: Figma has no Consolas, so `loadFontAsync` throws and the whole script aborts. Code text uses Cousine Bold by hand. The real fix is to change the style's font in Figma (the owner's file; ask first).

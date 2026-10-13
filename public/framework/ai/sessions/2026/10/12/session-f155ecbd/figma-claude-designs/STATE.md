@@ -19,8 +19,9 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ Kit sweep ([report](kit/ds-sweep.md)): `Focus` variant on Button/Toggle/Checkbox/Radio/Dropdown, white toggle-off knob, Tag/Toolbar/Pagination/Badge/Chat bubble lost their orange grounds. UI Kit's `PRIME` scheme column kept on purpose (it demos the scheme).
 - ✅ Web controls ([report](kit/web-controls.md), [doc](/framework/ext/Figma/doc/controls.md)): `.fig-toggle/check/radio/select/icon` on [/framework/ext/Figma/tokens/](/framework/ext/Figma/tokens/). Select is styling only (no outside-click/keyboard yet).
 
+- ✅ `DS · 5 Diagrams & charts` ([report](kit/ds-diagrams.md)): flowcharts whose arrows follow growing cards (vertical, horizontal, snake, branch/merge, timeline), charts (bars, stacked, donut, sparkline), phone + desktop in action. Linked from Overview; technique in [use-figma.md](/framework/ext/Figma/doc/use-figma.md).
+
 ## In flight
-- ⬜ `DS · 5 Diagrams & charts` — task-mastermind-figma-ds-diagrams, brief [kit/brief-diagrams.md](kit/brief-diagrams.md)
 - ⬜ Web: the seven layouts as opt-in `.fig-*` CSS — task-mastermind-figma-web-layouts, brief [kit/brief-web-layouts.md](kit/brief-web-layouts.md)
 
 Next: review each by screenshot, link from the Overview card.
