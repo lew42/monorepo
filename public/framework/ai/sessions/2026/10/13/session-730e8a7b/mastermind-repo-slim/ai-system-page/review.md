@@ -1,0 +1,7 @@
+verdict: pass
+1. [note] AIOverview.js:~154 links the decisions to `base + "doc/md/architecture/"`, a route I found nowhere else in the repo's JS; the CLAUDE.md rule says to link the plain `doc/architecture.md` path. Check it resolves, or use the plain path.
+2. [note] AISystem.js extends `System` but only fills a few fields and one `rules` entry. The class card, live instances and beat that requirements.md item 2 names are not shown on this page, so "System instance with class card" is only partly met.
+3. [note] The card wall is about 25 entries (every line of the readme's "Every system" section, including the "Page parts", "New 2026-10-12" and "PageInbox" lines), which is more than one screen. A bare-icon fallback ("widgets") covers the unmapped ones; consider capping the list or filtering to the major systems the brief lists.
+4. [note] architecture.md replaced the old file wholesale: the old "System tab shows classes" decision and the link to the session classes were dropped. Git keeps the old text, but a one-line pointer to the old version would honour "never destructive". The new file is 74 lines and has all the requested decisions.
+5. [note] The "Confidence weights" open item in architecture.md is not among the owner's asks in requirements.md. It looks like it comes from another source. Check that it belongs here.
+6. [note] The "Fresh sessions" decision has no `Detail:` link, unlike the others. The readme top lines and the open questions (minions, model, effort, outcomes) are covered and link to evidence.
