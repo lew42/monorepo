@@ -61,6 +61,7 @@ itself, written under its own name, omitted when it never made one. All user sta
 
 ## More
 
+- [`doc/item-notes.md`](./doc/item-notes.md) — comments pruned from `Item.js`, verbatim.
 - [Overview](/framework/core/Item/) — the page asserts every claim on load; red is a broken framework.
 - [Live list](/framework/core/Item/live/) — the same List, on a real page, saved to a real file: drag, add, sort, reload.
 - [doc/envelope.md](./doc/envelope.md) — the envelope, unknown types, what is deliberately excluded.

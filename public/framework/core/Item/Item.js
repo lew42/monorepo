@@ -4,10 +4,7 @@ import { Events } from "../Events/Events.js";
 const is_data = value => !!value && typeof value === "object" && !Array.isArray(value);
 const is_plain = value => !!value && typeof value === "object" && value.constructor === Object;
 
-// Walks a prototype chain (stopping at Object.prototype) looking for an OWN
-// descriptor named `name` — used by `define_fields()` to find a real collision
-// (a method, accessor or plain property already sitting on some class in the
-// chain) versus its own prior accessor from an earlier `register()` call.
+// Walk prototype chain for collision detection: doc/item-notes.md
 const find_descriptor = (proto, name) => {
 	for (; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto)){
 		const descriptor = Object.getOwnPropertyDescriptor(proto, name);
@@ -17,71 +14,26 @@ const find_descriptor = (proto, name) => {
 };
 const skipped = key => key === "constructor" || key === "__proto__" || key.startsWith("_");
 
-// A duck-typed "is this a List?" — NOT `instanceof List`, because this file must
-// never import `../List/List.js` (2026-10-03, `List extends Item` now: List.js
-// imports THIS file for `extends`, so the other direction would be a true cycle
-// — `class List extends Item` needs Item fully defined, and importing it back
-// from here would hand List.js the TDZ instead, mid-definition). Specific enough
-// in practice: an ordered `items` array plus a by-id `find` is what a List IS.
+// Duck-typed list check: items array + find(): doc/item-notes.md
 const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
 
-/* An arbitrary THING: an id, an icon, a title, a data bag, one `set(delta)`, a
-   place to save (`store`) and a place to be seen (`view`). No list methods at all —
-   `Item` itself holds no children. Something that needs them gives ITSELF a named
-   `List` property (`item.content = new List({ owner: this, name: "content" })`),
-   the same way `page.pages` and `page.content` do (core/Page). This is
-   composition, not inheritance, on purpose: Page already has about 70 methods of
-   its own, several of which — `add`, `move`, `get`/`set` — would collide with the
-   list API if Item inherited it instead of merely offering it as a property.
-   (`List extends Item`, 2026-10-03 — a List IS an Item too, just never one Item
-   HOLDS its lists by inheriting them.)
-
-   `Item = Events(Object)`: `on` / `off` / `emit` come from the mixin (core/Events),
-   not from here, so the exact same three methods work on a `List` too. */
+// Architecture: composition not inheritance; doc/item-notes.md
 export class Item extends Events(Object) {
 
 	constructor(...args){
 		super();
 		this.assign(...args);
-		// A null-prototype bag (2026-10-03, the owner: "ALL item values live in
-		// `this.data`") — still plain enough for `JSON.stringify` (that only reads
-		// own enumerable keys, never the prototype), but a data key named
-		// `constructor` or `toString` can never shadow a real built-in by accident.
-		// The instance's OWN namespace is reserved for built-ins instead: id,
-		// parent, store, the named Lists, the methods — never a value.
+		// Null-prototype data bag: no collision with built-in names
 		this.data = is_data(this.data) ? this.data : Object.create(null);
 		this.id ??= this.constructor.new_id();
 	}
 
 	assign(...args){ return Object.assign(this, ...args); }
 
-	// The one-segment seam under `get(path)`/`put()` below — everything that
-	// isn't a declared `fields` accessor (right below) ends up here, in `data`.
 	get_one(key){ return this.data[key]; }
 	put(key, value){ this.data[key] = value; }
 
-	/* `static fields = ["title", "icon", "description"]` (2026-10-03, the owner):
-	   one convenience, not a new storage rule — the value still lives in `data`,
-	   exactly like any other key. Each name just gets a REAL accessor on the
-	   prototype, so `item.title` keeps reading/writing exactly as before, but now
-	   through `get_one`/`set` underneath, so `item.title = x` fires the same
-	   `change`/`delta` events a jsonl `{"title": x}` line would. Called once per
-	   class, from `register()` below (every registered class already goes
-	   through there).
-
-	   REFINEMENT (2026-10-03, the owner, second pass): `fields` is declared in
-	   CODE ONLY — nothing at runtime (a page tool, a line, an agent) may add an
-	   accessor; this method is the one and only place one is ever created. A
-	   name that collides with a real method, getter or property ANYWHERE up the
-	   prototype chain is no longer silently skipped — that hid a real bug (a
-	   field quietly losing to an existing method, found live as List's ~70
-	   methods colliding with folder names). It now THROWS a clear error naming
-	   the class and the kind of thing it collided with, at `register()` time —
-	   load-time, not first-use — so a bad field list breaks loudly, once, in
-	   the one place that can see the whole prototype chain. Re-registering the
-	   same class twice is still safe: the guard below recognizes ITS OWN prior
-	   accessor (tagged via `.is_field_accessor`) and skips past it rather than
-	   treating it as a collision. */
+	// Static fields as accessors: doc/item-notes.md. ⚠ Collision detection at register time
 	static define_fields(){
 		for (const name of this.fields ?? []){
 			const prior = find_descriptor(this.prototype, name);
