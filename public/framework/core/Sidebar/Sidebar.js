@@ -9,35 +9,7 @@ import mode from "../App/mode.js";
 
 View.stylesheet(import.meta, "Sidebar.css");
 
-/**
- * Sidebar — [ 🖼 Brand ] over a TREE of links, over a footer that stays put, in a
- * track that never moves when the page beside it scrolls.
- *
- *   new Sidebar({ brand: "Lew42", root: this });                     a live page's whole tree
- *   new Sidebar({ brand: "Lew42", pages: [{ title, url }] });        a flat list (back-compat)
- *
- *   brand / brand_url   text beside the logo, and where it points  (default "/")
- *   logo / logo_url     image url (default: the document's icon), and where it points
- *   root                a real Page — its `children`, walked live and lazily by
- *                       `ux/Tree`, become the rows; folds to whichever branch you
- *                       are on and re-runs Router.mark_links() once they exist
- *   pages               POJO fallback — {title|label, url, icon}, or an entry with
- *                       its own `pages` for a group — converted to the same tree
- *   app                 lets the footer render the colour-scheme toggle
- *   header / footer     passed as a function, REPLACES the method (`footer: null` for none)
- *
- * A search box (`ux/Filter`, search-only) sits above the tree: typing narrows the
- * rows to titles that match, keeping every ancestor of a match visible so the path
- * to it never disappears; clearing the box (or pressing Escape) puts back whichever
- * branches were open before the first keystroke.
- *
- * Resizable by its own right edge, 12rem to half the room, remembered under one
- * localStorage key shared by every Sidebar on the site — it is one piece of
- * persistent chrome, not a per-page setting. Double-click the edge to reset. The
- * gesture itself is `ext/grip`, shared with `/layouts/shell/`'s own rail.
- *
- * Design record: core/Sidebar/readme.md, doc/decisions.md.
- */
+// Design and architecture: doc/sidebar-notes.md, doc/decisions.md
 export class Sidebar extends View {
 
 	render(){
@@ -60,7 +32,6 @@ export class Sidebar extends View {
 		window.addEventListener("popstate", () => this.reveal());
 	}
 
-	// [ header | ☰ ] — the whole sidebar on a narrow screen, the top strip of it wide
 	bar(){
 		return div.c("sidebar-bar", () => {
 			this.header();
@@ -68,7 +39,7 @@ export class Sidebar extends View {
 		});
 	}
 
-	// ⚠ Named header(), not brand(), so it cannot collide with the `brand` property.
+	// ⚠ header(), not brand(), to avoid colliding with brand property
 	header(){
 		return div.c("brand", () => {
 			const logo = this.logo ?? Sidebar.favicon();
@@ -82,7 +53,6 @@ export class Sidebar extends View {
 		});
 	}
 
-	// Always in the DOM; the media query decides when it shows, so no resize listener.
 	toggle(){
 		return this.$toggle = button.c("sidebar-toggle", () => {
 			span.c("sidebar-toggle-bar");
@@ -100,8 +70,6 @@ export class Sidebar extends View {
 		return this;
 	}
 
-	// Filter over nav over footer, one box — so the narrow menu is a single thing to
-	// show and hide.
 	menu(){
 		return div.c("sidebar-menu", () => {
 			this.filter();
@@ -111,24 +79,7 @@ export class Sidebar extends View {
 		}).on("click", e => e.target.closest("a") && this.open(false));
 	}
 
-	// THE FILTER. `ux/Filter`, composed with no segments — this rail has one fact to
-	// narrow by (a title), not a category, so the segment row `ux/Filter` would
-	// otherwise draw never gets a second button and stays empty. `search_field:
-	// "text"` reads straight off a `ux/Tree` node (`{ text, href, children }`), so
-	// `filtered()` below can hand the tree's own nodes to the predicate with no
-	// reshaping. `changed(predicate)` is the one wire (`ux/Filter/readme.md`) —
-	// Filter never touches the tree itself.
-	//
-	// ⚠ `chrome: false` and `.darken-2` are the two halves of ONE look: the Filter
-	// stops drawing its own `.surface.pad` card (a card inside a rail reads as a
-	// broken box), and framework's `.darken-2` gives the bar its ground AND the
-	// `--field-bg` that turns the field white on it. Neither is a local override —
-	// both are words the system owns, so a second UI bar anywhere gets the same pair.
-	// The owner's direction, 2026-09-19; Sidebar.css says the rest.
-	// ⚠ `-2` (16%), not `-1` (8%), and that was decided by looking at both: at 8% the
-	// bar barely read as a band, and the field's own 32% hairline was DARKER than the
-	// ground it sat on, which is backwards. At 16% the bar is plainly a bar and the
-	// white field is the brightest thing on it, which is the whole point of the pair.
+	// Filter setup: doc/sidebar-notes.md. ⚠ chrome: false + .darken-2 are one pair
 	filter(){
 		const f = this.$filter = new Filter({
 			segments: [], chrome: false, search_field: "text", placeholder: "Filter pages…",
@@ -146,11 +97,7 @@ export class Sidebar extends View {
 		this.$filter.query(q);
 	}
 
-	// THE TREE. `root`: the live thing, walked lazily by `ux/Tree` — a branch's
-	// children fetch the first time it opens, so a fifty-page section costs one row
-	// until you ask. `pages`: the same shape flattened ahead of time, for a caller
-	// with no real Page (a demo, a hand-typed list). Either way this is the ONE
-	// place rows get built — `group()`/`link()` are gone, `ux/Tree` draws every row.
+	// Tree navigation: doc/sidebar-notes.md
 	nav(){
 		return div.c("sidebar-nav", () => {
 			if (this.root){
@@ -178,46 +125,15 @@ export class Sidebar extends View {
 		});
 	}
 
-	// The live-update half of nav() above: same tree, redrawn in place, no reload.
-	// ⚠ `draw()` throws every row away and rebuilds closed — reveal() after it is not
-	// optional, or a redraw that lands mid-cold-load silently erases whatever the
-	// COLD LOAD's own reveal() had already opened, with nothing to put it back
-	// (2026-09-29 fix round part 2, regression: a page whose tab strip corrects
-	// itself on first paint — core/Page/'s own "old" tab, weight-demoted below 1 —
-	// fires exactly this redraw while Sidebar is still walking down to the active
-	// page, so `/framework/core/Page/` cold-loaded with Core shut and Page nowhere
-	// in the tree). Same two-step nav() itself always takes: draw, THEN reveal.
+	// Tree update: doc/sidebar-notes.md. ⚠ draw() then reveal(); order matters
 	refresh_nav(){
 		if (!this.$tree) return;
 		Tree.nodes_of(this.root).then(nodes => this.visible_nodes(this.root, nodes)).then(nodes => this.$tree.draw(nodes))
 			.then(() => this.reveal());
 	}
 
-	// "Appears in navigation" (core/Page/settings/) means the RAIL too, not only
-	// ext/Doc's tab strip — a child whose own `tab` line says `nav: false`, or whose
-	// own settings (a page.jsonl page's own log, or a page.js folder's sibling
-	// settings.jsonl, or its weight if nobody ever set either) says so, skips the
-	// tree here the same way `Doc.bar()` already skips it there. Both read the
-	// SAME rule (core/Page/Log.js's `nav_ready()`/`tab_visible()`, core/Page/
-	// settings/settings.js's `page_settings()`) so the two can never disagree
-	// about what "hidden" means. The child is still real, still reachable at its
-	// own url — this only drops it from the list.
-	//
-	// ⚠ ASYNC, on purpose (2026-09-29 fix round, finding 3): the real answer for a
-	// page.js child needs a fetch (page_settings()), and this whole call already
-	// sits inside a `.then()` in nav()/refresh_nav() below — awaiting the REAL
-	// answer (`nav_ready()`) here, once, before the first paint, is what keeps the
-	// rail from ever flashing a tab that a moment later disappears. `tab_visible()`
-	// (the same rule, cached and synchronous) is for callers that render
-	// synchronously and correct themselves later instead — Doc.bar(), tabs().
-	// ⚠ `Tree.nodes_of(page)` builds `nodes` from `[...page.children.keys()]`, same
-	//   order, so zipping the two by index is exact — `ux/Tree` is consumed here,
-	//   never edited (this file's own rule, above), so the filter runs on ITS
-	//   OUTPUT instead of inside it.
-	// ⚠ A deeper branch opens LAZILY — `node.children` is a function ux/Tree calls
-	//   the first time a reader expands it (`Tree.grow()`), not now — so the same
-	//   filter is wrapped around that function too, one level at a time, or a
-	//   hidden grandchild would still show the moment its parent branch opened.
+	// Visibility rules and filters: doc/sidebar-notes.md
+	// ⚠ ASYNC for cold-load race; ⚠ Tree nodes by index; ⚠ Deeper branches open lazily
 	async visible_nodes(page, nodes){
 		const names = [...page.children.keys()];
 		const visible = await Promise.all(names.map(name => page.nav_ready(name)));
@@ -231,10 +147,7 @@ export class Sidebar extends View {
 			});
 	}
 
-	// THE WIRE. A query swaps the tree for a flat list of results taken from the
-	// WHOLE site: `index()` walks every branch of the live page tree, loaded or not, once.
-	// The tree itself is never touched, so clearing the box puts back exactly what was
-	// open. The query lives in the url (`?q=`), so a reload keeps it.
+	// Search index: doc/sidebar-notes.md
 	filtered(predicate){
 		if (!this.$tree) return;
 		const q = this.$filter.needle.trim();
@@ -252,15 +165,12 @@ export class Sidebar extends View {
 		});
 	}
 
-	// `?q=` in the address bar, without adding a history entry per keystroke.
 	remember(q){
 		const url = new URL(location.href);
 		q ? url.searchParams.set("q", q) : url.searchParams.delete("q");
 		history.replaceState(history.state, "", url);
 	}
 
-	// Every page under the root as { text, href, trail } — memoised. Branches are
-	// opened through ux/Tree's own lazy `children()`, so hidden pages stay hidden.
 	index(){
 		return this._index ??= (async () => {
 			const out = [], seen = new Set();
@@ -283,15 +193,12 @@ export class Sidebar extends View {
 		})();
 	}
 
-	// Best first: exact title, then title starts with it, then contains it, then trail-only
-	// matches; ties go to the shallowest url, so a module page beats its demos.
 	ranked(list, q){
 		const n = q.toLowerCase(), depth = h => h.split("/").filter(Boolean).length;
 		const score = h => { const t = h.text.toLowerCase(); return t === n ? 0 : t.startsWith(n) ? 1 : t.includes(n) ? 2 : 3; };
 		return [...list].sort((a, b) => score(a) - score(b) || depth(a.href) - depth(b.href) || a.text.localeCompare(b.text));
 	}
 
-	// Links, so click, middle-click and Enter all work; ArrowUp/Down move between them.
 	show_results(list){
 		const box = this.$results.el;
 		box.textContent = "";
@@ -308,8 +215,6 @@ export class Sidebar extends View {
 		}
 	}
 
-	// Opening a result: the router takes the click, then the query is cleared and the
-	// tree opens down to the page (reveal()).
 	results(){
 		return this.$results = div.c("sidebar-results")
 			.style("display", "none")
@@ -320,7 +225,6 @@ export class Sidebar extends View {
 			.on("keydown", e => this.arrow(e, "results"));
 	}
 
-	// Field → first result → … and back. Enter on the field opens the first result.
 	arrow(e, from){
 		const links = [...this.$results.el.querySelectorAll("a")];
 		const i = links.indexOf(document.activeElement);
@@ -331,11 +235,7 @@ export class Sidebar extends View {
 		e.preventDefault();
 	}
 
-	// One entry → one Tree node. A group (an entry with its own `pages`) becomes a
-	// branch with no `href` — a heading you can fold, not a link, same as today.
-	// ⚠ `ux/Tree` has no idea a page can be `leaf: true` (core/Page/doc/data-children.md)
-	// — it would draw a leaf section as an expandable branch instead of the flat link
-	// `sections()` gives it today. Not fixable here: `ux/Tree` is consumed, not edited.
+	// ⚠ leaf: true not in ux/Tree; it's consumed, not edited
 	tree_nodes(pages){
 		return (pages || []).map(page => ({
 			text: page.label ?? page.title,
@@ -345,12 +245,7 @@ export class Sidebar extends View {
 		}));
 	}
 
-	// Cold load: open the branches down to the page you are ON — its siblings and
-	// its own children — so a five-level site reads as a short list from the first
-	// paint, not only after a click inside the tree. `Router.mark_links()` has
-	// usually already run and missed these rows (they did not exist yet, ⚠ doc's
-	// own "Watch out"); this re-runs it once they do. Walking further than 10 levels
-	// never happens on this site; the cap is only so a bad match can't loop forever.
+	// Cold load: open branches to current page. ⚠ mark_links() may have missed new rows
 	async reveal(){
 		const here = this.app?.router?.active?.url ?? location.pathname;
 		let nodes = this.$tree.nodes, last = null;
@@ -373,21 +268,13 @@ export class Sidebar extends View {
 		this.app?.router?.mark_links();
 	}
 
-	// A `pages:` GROUP (`tree_nodes()`) has no `href` of its own — it is a heading,
-	// not a page — so `reveal()` can't tell by prefix whether `here` is inside it.
-	// This is the one-level lookahead that answers instead: does it hold a child
-	// (grandchild, in `sections()`'s two-level shape) whose OWN href matches?
-	// ⚠ Only ever asked of an already-resolved array — a `root:` tree never reaches
-	// here, because a real Page's node always carries its own href (Tree.node_of()).
+	// Group lookahead: does it hold a child whose href matches?
+	// ⚠ Only asked of already-resolved arrays; root trees have href always
 	under(node, here){
 		return is.arr(node.children) && node.children.some(c => (c.href && here.startsWith(c.href)) || this.under(c, here));
 	}
 
-	// The pinned strip under the nav. `mode()` styles `app.$app`, so the toggle is
-	// quietly absent when the sidebar wasn't given an app.
-	// ⚠ No `$mode` handle — doc/views.md measured it assigned and never read, same
-	// as `$bar`/`$menu` above (gone now that `bar()`/`menu()` return their box
-	// directly); this adopts that recommendation while the file was already open.
+	// Footer with mode toggle. ⚠ No $mode handle; doc/views.md measured it unused
 	footer(){
 		return div.c("sidebar-footer", () => {
 			if (this.app) mode(this.app);
@@ -395,15 +282,7 @@ export class Sidebar extends View {
 		});
 	}
 
-	// THE HANDLE. `ext/grip`, shared with `/layouts/shell/`'s own rail (this file's
-	// copy and Shell's merged into it, 2026-09-18) — pointer capture, so the drag
-	// survives leaving the strip, and a double-click resets. `write` sets the token
-	// only (`false` — see `size()`); `done` saves the ONE width the pointer let go of,
-	// not every frame of the drag. The clamp lives in CSS
-	// (`clamp(12rem, var(--sidebar-w), 50%)`), never here, so it stays right when the
-	// WINDOW changes size mid-drag rather than the width that was last asked for.
-	// `from: "start"` — this rail is docked at the screen's start and drags its own
-	// INLINE-END edge (`ext/grip/readme.md`'s whole point about `from`).
+	// Resize grip: doc/sidebar-notes.md. Clamp lives in CSS, not code
 	grab(){
 		return grip({
 			from: "start",
@@ -413,11 +292,7 @@ export class Sidebar extends View {
 		});
 	}
 
-	// The width, in one place: sets the token, remembers it. `null` (double-click,
-	// or nothing ever saved) removes the override and CSS's own default — 20em,
-	// doc/decisions.md says why — answers instead.
-	// ⚠ `setProperty(prop, "")` REMOVES the declaration (Shell.js's own note) —
-	// that is what makes `size(null)` a true reset rather than a stored "no value".
+	// Width in one place. ⚠ setProperty("", "") removes the declaration, true reset
 	size(px, save = true){
 		const width = px ? Math.round(px) : null;
 
@@ -427,15 +302,9 @@ export class Sidebar extends View {
 		return width;
 	}
 
-	// One key, shared by every Sidebar on the site: it is one piece of persistent
-	// chrome, not a per-page setting, so resizing it on one topic remembers for all
-	// of them. `Page.prefs()` is keyed on a PAGE's own url; `id: "sidebar"` is the
-	// seam `Page.Prefs` gained for exactly this (merged 2026-09-18, doc/decisions.md)
-	// — the same `lew42:sidebar` key this file always wrote, now with no second
-	// copy of the read/write/JSON-parse/catch it takes to get there.
+	// One shared persistent key for all Sidebars
 	store(){ return new Page.Prefs({ id: "sidebar" }); }
 
-	// The document already declares the site's icon; don't hardcode an asset path.
 	static favicon(){
 		return document.querySelector('link[rel~="icon"]')?.href;
 	}
