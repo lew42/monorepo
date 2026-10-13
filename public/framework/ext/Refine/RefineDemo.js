@@ -5,6 +5,7 @@ import Whisper from "../../audio/Whisper/Whisper.js";
 import Prompt from "./Prompt.js";
 import RefineSystem from "./RefineSystem.js";
 import RefineExplorer from "./RefineExplorer.js";
+import VoiceFollow from "./VoiceFollow.js";
 
 View.stylesheet(import.meta, "Prompt.css");
 
@@ -91,6 +92,14 @@ export default class RefineDemo extends View {
 			this.$box = this.$compose.$input;
 			this.dictate.on_whisper = line => this.system.session.record(line);
 			this.$box.el.addEventListener("input", () => this.quick());
+			// the ✦ chat (drawer or phone sheet) heard something: show the same words here, one result everywhere
+			this.voice = new VoiceFollow({ on_text: (text, v) => {
+				if (this.$box.el.value.trim()) return;   // you are typing or dictating here: leave it alone
+				if (this.prompt.status === "done"){ this.system.next(); v.lines = v.lines.slice(-1); text = v.text; }
+				this.system.source = "dictated";
+				this.$note.text("Heard in the ✦ chat.");
+				this.system.quick(text);
+			} });
 		});
 
 		this.$result = div.c("refine-result");
