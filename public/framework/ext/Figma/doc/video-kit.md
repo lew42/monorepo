@@ -21,3 +21,6 @@ The idea: use the Figma file to plan videos the way it plans pages. A rough draf
 ## Open, for the owner (also on the Figma Overview's "For you" card)
 - **Image generator**: Figma's `generate_image` works and is in use (it spends Figma AI credits). A Fal or Higgsfield MCP is only needed for video clips or higher-end photoreal stills.
 - **Premiere**: Claude cannot drive Premiere's UI, but Premiere imports a **Final Cut Pro XML** (or EDL) timeline. A node script can turn a storyboard (scenes, durations, stills, titles exported from Figma as PNG) into that XML, so the rough cut opens in Premiere ready to edit. Premiere's UXP scripting is a later option. Not built yet.
+
+## Built (2026-10-12)
+The kit and the storyboard are on the Figma pages `Video · Kit` and `Video · Storyboard · The Twelve`; the report with ids, Shorts measurements and the image result is [kit/video.md](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/video.md).

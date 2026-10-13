@@ -131,3 +131,4 @@ Design files have no live connectors (`ConnectorNode` is FigJam-only), so arrows
 - `getRangeAllFontNames(0, 0)` throws on an empty text (an empty Meta), so skip empty texts when loading fonts.
 - **A removed ground leaves its mode behind**: a frame that once had a prime fill also had an explicit Text mode (`Light BG`) so its ink stayed dark. Removing the fill keeps that mode, so on a dark screen the label still renders dark. When you drop a ground, also `clearExplicitVariableModeForCollection` (the kit Tab bar hit this, 2026-10-12).
 - Load the `figma-use` skill (MCP resource `skill://figma/figma-use/SKILL.md`) before the first call.
+- **Paint opacity on a variable-bound paint is lost in instances**: `setBoundVariableForPaint` drops `opacity`, and even re-applied it read as 1 inside instances (a 72% scrim rendered solid). Put the translucency on the node (`node.opacity = 0.72`), paint opacity 1.
