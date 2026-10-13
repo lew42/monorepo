@@ -8,22 +8,10 @@ import Socket from "/framework/dev/Socket/Socket.js";
 
 View.stylesheet(import.meta, "Dictate.css");
 
-/* The browser's own engine: free, needs no install, but the audio leaves the
- * machine — Chrome sends it to Google to recognise it (Firefox and iOS Safari
- * have neither the API nor a polyfill, so `Recognition` is undefined there and
- * this engine is simply unavailable). whisper (below) is tried FIRST because it
- * never leaves the machine and, on this GPU, answers in well under a second. */
+// The browser's own engine (audio goes to Google); whisper is tried first. see doc/notes.md#browser-engine
 const Recognition = globalThis.SpeechRecognition ?? globalThis.webkitSpeechRecognition;
 
-/* GIVE THE MIC BACK WHEN THE PAGE IS HIDDEN (mic-hijack, 2026-09-30). On a phone,
- * switching apps left a live dictation holding the microphone for seconds and
- * then "bugged out", so the next app's own dictation did not work. Every Dictate
- * whose mic is on (connecting or listening) is in LIVE. When the page is hidden
- * (visibilitychange, or pagehide on a real navigation away), each one stops
- * (the words said so far still finish) and its tracks and AudioContext are
- * released AT ONCE, not after the last segment is sent. When the page shows
- * again, each one that was live restarts itself and says "resumed". Cross-app
- * dictation would need a PWA with a background process, or a native app. */
+// see doc/notes.md#release-the-mic-when-the-page-is-hidden
 const LIVE = new Set();
 const PAUSED = new Set();   // live when the page was hidden: restarted when it shows again
 const release_on_hide = () => {
@@ -38,7 +26,6 @@ const resume_on_show = () => {
 	for (const d of [...PAUSED]){
 		PAUSED.delete(d);
 		if (!d.el?.isConnected || d.state === "listening" || d.state === "connecting") continue;
-		// Still sending the last words (whisper): try again once that finishes.
 		if (d.state === "transcribing"){ PAUSED.add(d); setTimeout(resume_on_show, 300); continue; }
 		d.resumed = true;
 		d.start();
@@ -54,41 +41,19 @@ if (globalThis.document){
 	globalThis.addEventListener?.("pagehide", release_on_hide);
 }
 
-/** **Which microphone**, remembered in this browser. The test bench at
- *  `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/` writes the owner's pick here, and every
- *  `Dictate` on the site reads it — so choosing a microphone once, in one place,
- *  moves the board's own mic too, with nothing to wire. A caller that needs a
- *  specific device passes `device_id` and that wins over the remembered one. */
+/** Remembered mic pick, shared by every Dictate. see doc/notes.md#which-microphone */
 export const DEVICE_KEY = "lew42.dictate.device";
 
-/** **Did whisper ever answer on this browser?** Remembered so a LATER failure to
- *  reach it reads as "whisper just went quiet", not "this machine has no whisper" —
- *  the two need different endings. A machine that has never once seen whisper (no
- *  install, Firefox, iOS Safari) keeps today's behaviour: the browser's own
- *  recognizer, picked quietly, no error shown. A machine where whisper HAS worked
- *  before gets a clear line instead, and the browser's recognizer is never engaged
- *  automatically — the owner's own freeze, 2026-10-04: "Chrome's recognition is
- *  never used automatically." See `detect_engine()`. */
+// Did whisper ever answer in this browser? see doc/notes.md#whisper-seen
 const WHISPER_SEEN_KEY = "lew42.dictate.whisper_seen";
 function whisper_seen(){ try { return localStorage.getItem(WHISPER_SEEN_KEY) === "1"; } catch { return false; } }
 function mark_whisper_seen(){ try { localStorage.setItem(WHISPER_SEEN_KEY, "1"); } catch {} }
 
-/** Remember (or, with no id, forget) the owner's microphone. Never throws —
- *  `localStorage` is unreadable in some privacy modes, and a dictation must not
- *  fail because a preference could not be saved.
- *
- *  ⚠ The NAME is stored beside the id on purpose. A `deviceId` is salted per
- *  origin and is not forever: it changes when the browser clears site data, and
- *  in a fresh automation profile it changes on every page load (measured —
- *  `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`, where the remembered pick silently reverted
- *  to the default). The id is tried first and is exact; the name is how the pick
- *  is recovered when that id no longer names anything. */
+/** Remember (or forget) the mic; the NAME is stored too because deviceId changes. see doc/notes.md#device-name-stored-beside-the-id */
 export function remember_device(id, label = ""){
 	try { id ? localStorage.setItem(DEVICE_KEY, JSON.stringify({ id, label })) : localStorage.removeItem(DEVICE_KEY); } catch { /* private mode */ }
 }
 
-/** The remembered `{ id, label }`, or null. Tolerates the bare id string an
- *  earlier build of this wrote, so nobody's pick is lost to the format change. */
 export function remembered_device(){
 	try {
 		const raw = localStorage.getItem(DEVICE_KEY);
@@ -97,8 +62,6 @@ export function remembered_device(){
 	} catch { return null; }
 }
 
-/** `fetch`, but it gives up after `ms` instead of hanging silently forever —
- *  the exact failure mode that made the old dictation look "stuck". */
 async function fetch_timeout(url, opts, ms){
 	const ctrl = new AbortController();
 	const timer = setTimeout(() => ctrl.abort(), ms);
@@ -106,16 +69,7 @@ async function fetch_timeout(url, opts, ms){
 	finally { clearTimeout(timer); }
 }
 
-/** ONE health check per tab, not one per `Dictate` on the page (dictate-one-engine,
- *  2026-10-04 — the owner's phone: six mic buttons on one page load each ran their
- *  own whisper health check and printed their own `[dictate]` trail, so a headless
- *  load logged "socket: connected" / "whisper: checking…" / "whisper: answering" six
- *  times). The FIRST `Dictate` built while a page is loading runs the real check (and
- *  logs it, through its own `detect_engine()`); any other one built while that is
- *  still in flight just waits for the SAME answer and copies it onto its own status
- *  line, quietly — one truth, however many mic buttons are on the page. Cleared the
- *  moment it resolves, so the next page load (or a reload) runs its own fresh check,
- *  exactly once, same as today. */
+// see doc/notes.md#one-health-check-per-tab
 let shared_check = null;
 function shared_detect_engine(instance){
 	if (!shared_check){
@@ -126,15 +80,7 @@ function shared_detect_engine(instance){
 	return shared_check;
 }
 
-/** POST one entry to Servex's single-writer prompt log; `true` once it took,
- *  `false` on any failure — never throws, so a caller can fall back with no
- *  try/catch of its own. Shared by `Dictate`'s own `log_prompt()` (below) and
- *  `v/3/compose.js`'s typed `send()` — one shape for "did Servex take this
- *  prompt", not two.
- *
- *  Every entry also gets `floor` ("speaking" | "done") and, after a dictation,
- *  `cues` (its pauses and speaking time) stamped on here — `floor.js`, and the
- *  contract for readers in `ext/Chat/doc/floor.md`. */
+/** POST to Servex's prompt log: true once it took, false on failure (never throws). see doc/notes.md#post_prompt */
 export async function post_prompt(entry, url = servex_url("/log/prompts")){
 	floor.stamp(entry);
 	try {
@@ -145,59 +91,7 @@ export async function post_prompt(entry, url = servex_url("/log/prompts")){
 	} catch { return false; }
 }
 
-/**
- * A 🎤 that dictates into one textarea (or hands text to a callback), with a
- * state you can always see and an error said in plain words — the two things
- * the old `ext/Ask/mic.js` control did not have.
- *
- *     import Dictate, { dictate } from "/framework/ux/Dictate/Dictate.js";
- *     dictate(() => this.$input, { on_start: () => this.open() });
- *     // or: new Dictate({ on_text: text => … })   // no box — just the words
- *
- * **`on_guess(text)`** — optional, does nothing when unset: the still-moving grey
- * guess, fired every partial resend (whisper) or interim result (the browser
- * engine), text `""` the instant a segment closes. `on_text(chunk)` (above) is
- * still the settled-chunk hook — `on_guess` only adds the in-between guess a
- * caller building its own transcript view (`ux/Dictate/playground/`) needs.
- *
- * **`on_meter(level)`** — optional, does nothing when unset: the SAME smoothed
- * 0..1 number `on_level()` already writes to `--ux-dictate-level` (this button's
- * own tiny bar), handed to a caller that wants a bigger meter of its own
- * (`ux/Dictate/playground/`'s audio source panel) — one number, two bars, never
- * two smoothing calculations to keep in sync. whisper only; the browser engine
- * has no raw stream to read a level from (`doc/decisions.md`).
- *
- * **Engines, tried in order:** whisper.cpp running locally on this machine
- * (`http://127.0.0.1:8178`, checked with a fast health request) — private, and
- * on an RTX 4070 SUPER an 11-second clip transcribes in about a tenth of a
- * second — then the browser's own `SpeechRecognition`. The one in use is named
- * in small text beside the button; if neither is reachable, no button is drawn
- * at all — see `readme.md`.
- *
- * **Whisper is not streaming**, so this fakes "live": while the owner keeps
- * talking, the growing recording is re-sent to whisper about every 1.5s and
- * shown GREYED after the settled (already-finished) text — the owner sees
- * words appear as they talk, which was the whole complaint that opened this
- * task. A pause of ~700ms (or 15s, whichever comes first) closes that segment:
- * the grey text is replaced by the real answer, it is written into the target
- * box, and a new segment starts while the microphone keeps running. If a
- * re-send is still in flight when the next tick comes due, that tick is
- * SKIPPED, never queued — `doc/decisions.md`.
- *
- * **`mode: "open"`** — the live open mic (`talk`, AI 2's composer): the mic stays on
- * indefinitely, each finished sentence is its own settled line in the caption (never a
- * truncated blob), and nothing is ever written into or submitted from the target box —
- * the box stays exactly as the owner left it. `doc/decisions.md`.
- *
- * **Ending is always explicit** — the button, or the `Ctrl+Shift+M` shortcut
- * (both say so: the button's tooltip, and the small text beside it once an
- * engine is chosen). Nothing ends a dictation on its own UNLESS the owner
- * turns on the "stop after a pause" checkbox beside the mic — off by default —
- * in which case a *longer* silence (2.5s, separate from the 700ms that only
- * closes one segment) shows a visible countdown and stops for real when it
- * runs out; talking again cancels it. `doc/decisions.md` has the alternative
- * this replaced.
- */
+/** A 🎤 that dictates into a textarea or a callback: `dictate(() => this.$input, opts)`. Options and behaviour: see doc/notes.md#the-dictate-class */
 export default class Dictate extends View {
 
 	render(){
@@ -206,10 +100,6 @@ export default class Dictate extends View {
 		this.settled = "";
 		this.partial_text = "";
 
-		// The icon is a child, not the button's own text, so a separate LEVEL BAR
-		// can sit beside it and inherit `--ux-dictate-level` (set every audio
-		// frame in on_level()) without the button itself moving — the owner's own
-		// complaint was the button flickering with sound; now only this bar does.
 		this.$button = button.c("ux-dictate-btn", () => {
 			span.c("ux-dictate-icon", "🎤");
 			span.c("ux-dictate-level");
@@ -223,11 +113,7 @@ export default class Dictate extends View {
 				this.$status = span.c("ux-dictate-status muted");
 				this.$countdown = span.c("ux-dictate-countdown muted");
 				this.$countdown.el.hidden = true;
-				// ALWAYS-VISIBLE STAGES (the owner, 2026-10-04, after a reload left the mic
-				// stuck at "connecting…" with no clue which part was stuck): mic / socket /
-				// whisper, one small muted line, so the next time this happens the reader —
-				// or a headless check reading this same text — can see exactly where it stopped
-				// instead of guessing. `log_step()` below is the one place that updates it.
+				// see doc/notes.md#always-visible-stages
 				this.$diag = span.c("ux-dictate-diag muted");
 				this.steps = { mic: "idle", socket: "", whisper: "" };
 
@@ -247,14 +133,7 @@ export default class Dictate extends View {
 		this.init();
 	}
 
-	/* `Ctrl+Shift+M` (or `Cmd+Shift+M`) toggles THIS instance — checked against
-	 * the site's other global keys before picking it: `/` and `Ctrl+K` open the
-	 * omnibox, `Ctrl+\` toggles the dev bar, none of them "M". Scoped so several
-	 * mic buttons on one page (every ask card has one) don't fight: it always
-	 * works on the instance that is already listening, and otherwise only on
-	 * the one the owner's focus is actually in or on. Self-removes once this
-	 * element leaves the page — there is no framework-wide "unmount" hook to
-	 * hang a `removeEventListener` on instead (`doc/decisions.md`). */
+	// Ctrl/Cmd+Shift+M toggles this instance; self-removes when detached. see doc/notes.md#hotkey
 	hotkey(e){
 		if (!this.el.isConnected) return document.removeEventListener("keydown", this.hotkey_bound);
 		if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.key.toLowerCase() !== "m") return;
@@ -272,17 +151,9 @@ export default class Dictate extends View {
 		if (!on) this.hide_countdown();
 	}
 
-	/* The box may not exist yet when the button is built (a control draws its
-	 * buttons above its box) — same trick as the old `mic.js`. ⚠ Same NAME as
-	 * the `input` element factory imported at the top of this file on purpose —
-	 * `this.input()` (this method) and the bare `input()` (the factory, used
-	 * once above to build the checkbox) never collide, because a method is
-	 * always reached through `this.`, but they are two different things. */
+	// Same name as the imported input() factory on purpose. see doc/notes.md#input-name-clash
 	input(){ return typeof this.$input === "function" ? this.$input() : this.$input; }
 
-	/* Runs once, at build time — decides whether there is anything to draw the
-	 * button FOR. No DOM is created after this `await`; only the button already
-	 * built above is shown, hidden, or labelled (`code` skill §1). */
 	async init(){
 		const { engine, steps } = await shared_detect_engine(this);
 		this.engine = engine;
@@ -301,18 +172,7 @@ export default class Dictate extends View {
 		this.name_engine();
 	}
 
-	/** One stage changed — console-logged with a `[dictate]` prefix (the owner, 2026-10-04:
-	 *  "log each step... so a headless load can read the order of events") and folded into
-	 *  the always-visible `$diag` line. `stage` is `"mic" | "socket" | "whisper"`.
-	 *
-	 *  TIMED, LIVE (2026-10-05 — the owner: "'connecting…' stays too long, even once it
-	 *  actually connected"). Every call is stamped with how long it has been since THIS
-	 *  press (`connect_started_at`, set at the top of `start()`) — `requesting… (420ms)`,
-	 *  `ready (512ms)` — and kept on `this.stage_log` (last 12, newest last) for the status
-	 *  tray below. While the button still reads "connecting…", the BIG status line is
-	 *  swapped to show this same timed text the instant it changes, instead of sitting on
-	 *  the one static word for however long the engine check and the permission prompt
-	 *  together take — see `set_state()`'s own "connecting" branch. */
+	/** One stage changed: console-logged, shown in $diag, timed since the press. see doc/notes.md#timed-stage-log */
 	log_step(stage, detail){
 		const ms = this.connect_started_at ? Math.round(performance.now() - this.connect_started_at) : null;
 		this.steps[stage] = detail;
@@ -325,9 +185,6 @@ export default class Dictate extends View {
 		if (this.state === "connecting" && stage === "mic") this.$status?.rc("error").text(this.timed_text("mic"));
 	}
 
-	/** The ONE place that turns a stamped stage into its on-screen words — `log_step()`'s
-	 *  own "connecting" branch and `set_state()`'s both read this, so the two can never
-	 *  drift into two slightly different ms formats. `null` if that stage has nothing yet. */
 	timed_text(stage){
 		const text = this.steps?.[stage];
 		if (!text) return null;
@@ -338,33 +195,15 @@ export default class Dictate extends View {
 	draw_diag(){
 		if (!this.$diag) return;
 		const s = this.steps;
-		// Plain words (the owner, 2026-10-09). The dev-reload socket is not part of dictation, so it is
-		// kept in `steps.socket` for the console trail but no longer printed here.
 		this.$diag.text(`Mic: ${s.mic || "idle"} · Whisper: ${s.whisper || "—"}`);
 	}
 
-	/* "connected" / "retrying" — read straight off the dev socket singleton (the one the
-	 * owner named: "a reconnect race"). A production build (no dev socket) reads "—": this
-	 * stage is diagnostic, never something dictation itself depends on. */
 	socket_status(){
 		try { const s = Socket.singleton?.(); return s ? (s.connected ? "connected" : "retrying") : "—"; }
 		catch { return "—"; }
 	}
 
-	/* Re-checked on every press, not just once — the owner may start
-	 * whisper-server, or it may have been stopped, between two presses of the
-	 * same button. */
-	/* ⚠ 2.5 s, not 0.8 s (2026-10-01). A phone's first request after a quiet spell can take
-	 * longer than 800 ms just to wake its Wi-Fi radio. Whisper then looked "unreachable", the
-	 * phone fell back to its own recognizer, and that recognizer repeats and beeps (see
-	 * `heard_browser()`). The cost of the longer wait is only paid when whisper really is down. */
-	/* ⚠ ONE RETRY, SHORT GAP (2026-10-04 — the owner, on a reload: "worked, then reload stuck
-	 * at connecting, then abort, then Chrome's recognizer"). A page reload fires this health
-	 * check again at once; if the PREVIOUS page's mic/socket were still a few hundred ms into
-	 * tearing down, the very first request after a reload can time out for reasons that have
-	 * nothing to do with whisper actually being down. One retry after a short pause (400 ms)
-	 * tells the two apart without materially slowing the common case (whisper answers in well
-	 * under a second once it is warm). */
+	// 2.5 s timeout and one 400 ms retry are deliberate. see doc/notes.md#detect_engine-timeout-and-retry
 	async detect_engine(){
 		this.log_step("socket", this.socket_status());
 		for (let attempt = 1; attempt <= 2; attempt++){
@@ -376,45 +215,24 @@ export default class Dictate extends View {
 			if (attempt === 1) await new Promise(res => setTimeout(res, 400));
 		}
 		this.log_step("whisper", "not reachable");
-		// WHISPER WORKED BEFORE ON THIS BROWSER: never slide into the browser's own
-		// recognizer by itself — that silent swap is the exact "beeping" bug. Say so
-		// instead and stop; `start()` turns this into the clear line on screen.
+		// Whisper worked before here: never slide silently into the browser recognizer.
 		if (whisper_seen()) return "whisper-down";
 		return Recognition ? "browser" : null;
 	}
 
-	/* Whisper is the normal case, so it says nothing (the owner, 2026-09-29: the
-	 * label "just takes up space"). Only the fallback names itself, because it
-	 * transcribes worse and the reader should know why. */
 	name_engine(){
 		this.$engine.text(this.engine === "whisper" ? "" : "the browser's recognizer" + this.keyboard_hint());
 	}
 
-	/* "Ctrl+Shift+M stops" only means anything on a machine with a physical keyboard.
-	 * `(pointer: coarse)` is true on a phone or tablet (the primary pointer is a finger),
-	 * false on a desktop or laptop with a mouse/trackpad — the standard, no-dependency
-	 * way to ask "is this mainly a touch device" (found from a mobile screenshot showing
-	 * the hint on a phone's own bottom sheet: `ai/sessions/2026/09/29/mobile-nav/mobile-nav/`). */
 	keyboard_hint(){
 		try { if (globalThis.matchMedia?.("(pointer: coarse)").matches) return ""; } catch {}
 		return " · Ctrl+Shift+M stops";
 	}
 
-	// ---- the button ---------------------------------------------------------
 
 	toggle(){ (this.state === "idle" || this.state === "error") ? this.start() : this.stop(); }
 
-	/** An INSTANT, one-line check, before anything else is even tried. A browser only
-	 *  hands out a real microphone on a secure context — https, or the special-cased
-	 *  `localhost` / `127.0.0.1` / `*.localhost` — and off that, `navigator.mediaDevices`
-	 *  is simply `undefined`. But the Web Speech API's own CONSTRUCTOR still exists on an
-	 *  insecure page and quietly does nothing useful, so without this check the code would
-	 *  sail past `detect_engine()`, pick `"browser"`, and `start()` would return having
-	 *  asked Chrome to listen — with no error ever arriving. Proved headless, on a page
-	 *  loaded over this machine's own LAN address: `isSecureContext` was `false`,
-	 *  `navigator.mediaDevices` was `undefined`, and the state stayed `"listening"` for
-	 *  1.5s with no error — while the START SOUND had already played
-	 *  (`ai/sessions/2026/09/29/mobile-nav/mobile-nav/`, `doc/https-lan.md`). */
+	/** Instant secure-context check; the Web Speech constructor exists but fails silently off https. see doc/notes.md#insecure-context */
 	insecure_context_message(){
 		if (globalThis.isSecureContext) return null;
 		const port = globalThis.location?.port ? ":" + globalThis.location.port : "";
@@ -425,34 +243,17 @@ export default class Dictate extends View {
 		const insecure = this.insecure_context_message();
 		if (insecure){ this.log_step("mic", "refused: insecure context"); this.set_error(insecure); return; }
 
-		// ONE MICROPHONE AT A TIME, whichever surface is pressed (dictate-one-engine,
-		// 2026-10-04 — base-class lock, so a card's mic, the push-to-talk mount and a
-		// bare demo box never hold the real microphone at once and double-post the
-		// same words). `LIVE` (above) already tracks every `Dictate` on the page with
-		// its mic open, of any kind — stop each of THOSE before taking it over.
-		// `ext/Chat/Mic.js`'s own `ComposerMic.start()` still does the same thing for
-		// itself too, between ComposerMics only; this covers every other engine class.
+		// see doc/notes.md#one-microphone-at-a-time
 		for (const other of [...LIVE]) if (other !== this) try { await other.stop(); } catch {}
 
 		this.settled = "";
 		this.partial_text = "";
 		this.segment_epoch = 0;
 		this.inflight = null;
-		// Timed status (2026-10-05): every `log_step()` between now and the first real
-		// "listening" gets its own elapsed-ms stamp — see `log_step()`'s own doc comment.
 		this.connect_started_at = performance.now();
 		this.heard_first_sample = false;
 		this.heard_first_answer = false;
-		// THE DUPLICATE-BUBBLE RACE (2026-10-05 — the owner's phone: one spoken sentence became
-		// TWO chat lines, the full sentence first, then a shorter, older guess landing ~4s
-		// later). Whisper requests can answer OUT OF ORDER — a request sent for a shorter,
-		// earlier slice of the segment can take longer than one sent after it, and resolve
-		// AFTER a newer, fuller answer already committed. Every request gets a ticket here
-		// (`req_seq`, strictly increasing); an answer is only ever applied — shown as the
-		// live guess, or committed as a real chat line — if its ticket is the newest one
-		// applied so far (`applied_seq`). An older ticket's answer, however correct it once
-		// was, is dropped the moment a newer one has already landed. See `partial_tick()` and
-		// `close_segment()` below, the only two places a transcribe answer is used.
+		// Every request gets a ticket; stale answers are dropped. see doc/notes.md#duplicate-bubble-race
 		this.req_seq = 0;
 		this.applied_seq = 0;
 		this.skipped_silent = false;
@@ -460,20 +261,13 @@ export default class Dictate extends View {
 		this.on_start?.();
 
 		this.log_step("mic", "checking the engine…");
-		// Shared, not `this.detect_engine()` raw (dictate-one-engine, 2026-10-04): a
-		// sheet whose mic starts the INSTANT it opens (`rail.js`'s own "the mic starts
-		// listening the instant the sheet opens") calls this within the same tick as
-		// `init()`'s own construction-time check above — without sharing, that is a
-		// second real health check and a second "[dictate]" trail for the one engine
-		// that just opened. Still "re-checked on every press": a LATER press, once the
-		// shared check has resolved and cleared itself, runs its own fresh one.
+		// Shared check, not detect_engine() raw. see doc/notes.md#one-health-check-per-tab
 		const { engine, steps } = await shared_detect_engine(this);
 		this.engine = engine;
 		this.steps.socket = steps.socket; this.steps.whisper = steps.whisper;
 		this.draw_diag();
 		if (this.engine === "whisper-down"){
-			// NEVER the browser's own recognizer here — that silent swap is the bug this
-			// freeze exists to kill. One clear line, nothing started, no beep.
+			// Never the browser recognizer here: one clear line, nothing started.
 			this.log_step("mic", "refused: whisper not reachable");
 			this.set_state("idle");
 			this.set_error("Whisper has gone quiet — it answered before, but not just now. Check whisper-server is still running (doc/decisions.md), then press 🎤 again. The browser's own recognizer is not used automatically.");
@@ -486,22 +280,12 @@ export default class Dictate extends View {
 		}
 		this.name_engine();
 		this.$button.el.dataset.engine = this.engine;
-		// "connecting", not "listening" — the mic may still need a permission prompt
-		// answered or a device opened. `set_state("listening")` below only runs once the
-		// mic is REALLY on: after whisper's own `capture.start()` resolves, or (for the
-		// browser engine) from `rec.onstart`, never merely because we asked for it. A
-		// caller's "start sound" (`ext/Chat/Mic.js`'s `on_listening()`) is wired to that
-		// same real transition, not to this call returning.
+		// "connecting" until the mic is really on. see doc/notes.md#connecting-vs-listening
 		this.set_state("connecting");
 
-		// One shared clock for both engines: whisper's own segment/resend timing
-		// (heartbeat(), whisper-only) AND the "stop after a pause" countdown
-		// (either engine, only when the owner has turned it on).
 		this.last_loud_at = performance.now();
 		this.timer = setInterval(() => this.heartbeat(), 200);
-		// Nothing genuinely started within a few seconds — a permission dialog nobody
-		// answered, or (should the up-front secure-context check above ever miss a case)
-		// a browser that fails this quietly. Never leaves the owner without a reason.
+		// see doc/notes.md#connect-watchdog
 		this.connect_watchdog = setTimeout(() => {
 			if (this.state === "connecting"){
 				this.log_step("mic", "timed out waiting for the device");
@@ -523,23 +307,10 @@ export default class Dictate extends View {
 			return;
 		}
 		this.log_step("mic", "ok");
-		// The browser engine sets "listening" itself, from `rec.onstart` (below) — its
-		// own `.start()` call returns long before recognition is actually live.
 		if (this.engine === "whisper"){ clearTimeout(this.connect_watchdog); this.set_state("listening"); }
 	}
 
-	/** ⚠ THE RELOAD RACE (round 2, 2026-10-04 — the owner: "when I reload that page… it says
-	 *  connecting for about four to five seconds, and then says microphone abort error").
-	 *  The PREVIOUS page's microphone is released by the browser the instant that page's JS
-	 *  context is torn down — but the OS-level hand-off of the physical device is not
-	 *  guaranteed to finish in that same instant. Asking `getUserMedia()` for a device that
-	 *  is still a few hundred ms into being let go answers, after several seconds of trying,
-	 *  with a slow `AbortError` — exactly the "connecting… then abort" shape, and a DIFFERENT
-	 *  bug from the one `detect_engine()`'s own one-retry already fixed (that one was about
-	 *  reaching *whisper-server*, never about the *microphone* itself). One retry, after a
-	 *  short pause, tells this one-time race apart from a real refusal (no mic, denied
-	 *  permission, in use by another app) without slowing the common case — most dictations
-	 *  are not right after a reload, and this path is never even tried for those. */
+	// see doc/notes.md#reload-race
 	async open_engine(){
 		try { this.engine === "whisper" ? await this.start_whisper() : this.start_browser(); return; }
 		catch (e){
@@ -553,9 +324,6 @@ export default class Dictate extends View {
 
 	async stop(){
 		if (this.state === "connecting"){
-			// Cancel an attempt still in flight (a permission prompt the owner gave up
-			// on) instead of only ever handling "listening" — the button must still work
-			// as a stop button in the gap the owner's own bug lived in.
 			this.cancel_connect = true;
 			clearTimeout(this.connect_watchdog);
 			clearInterval(this.timer);
@@ -575,12 +343,8 @@ export default class Dictate extends View {
 		if (this.engine === "whisper"){
 			await this.close_segment("manual");
 			this.mic?.stop();
-			// close_segment() may itself have set_error()'d (whisper stopped answering
-			// mid-session) — never stamp that back to "idle" as if nothing happened.
 			if (this.state !== "error"){
 				this.set_state("idle");
-				// Never silence about silence: a dictation that heard nothing loud
-				// enough to send now SAYS so, instead of just ending with an empty box.
 				if (!this.settled && this.skipped_silent)
 					this.$status.text("nothing loud enough to transcribe was heard — check the level meter moves while you talk");
 			}
@@ -599,17 +363,10 @@ export default class Dictate extends View {
 		if (e?.name === "SecurityError") return this.insecure_context_message() ?? "The browser refused the microphone for security reasons.";
 		if (e?.name === "NotSupportedError")
 			return "This browser can't run the audio pipeline dictation needs here — try Chrome, or use the browser's own speech recognition instead of Whisper.";
-		// Never just echo a raw browser message with no next step — the owner's own
-		// complaint was exactly that: an error nobody could act on. Every OTHER case
-		// above says what to check; this last resort still says what to try.
 		return `The microphone stopped (${e?.name ? e.name + ": " : ""}${e?.message ?? e}) — press 🎤 again, or reload the page if it keeps happening.`;
 	}
 
-	/* `"connecting"` is new: set the instant `start()` decides to try, before the mic
-	 * is really open — asked-for, not yet on. Only a genuine transition INTO
-	 * `"listening"` (never a same-state restatement, which Chrome's own silent
-	 * mid-session restarts would otherwise cause) fires `on_listening()` — the hook
-	 * `ext/Chat/Mic.js` plays the start sound from. */
+	// Only a real transition INTO listening fires on_listening(). see doc/notes.md#set_state
 	set_state(state){
 		const was_listening = this.state === "listening";
 		this.state = state;
@@ -617,9 +374,6 @@ export default class Dictate extends View {
 		if (state === "listening" && !was_listening) floor.mic_on(this);   // the floor: `floor.js`
 		else if (state !== "listening" && was_listening) floor.mic_off(this);
 		this.$button.rc("listening transcribing connecting").ac(["listening", "transcribing", "connecting"].includes(state) ? state : "");
-		// "connecting" shows the live, timed stage text (`log_step()`'s own doc comment) —
-		// never the one static word for however long the engine check and the permission
-		// prompt together take (the owner, 2026-10-05: "'connecting…' stays too long").
 		const connect_text = this.timed_text("mic") ?? "connecting…";
 		this.$status.rc("error").text({ listening: "listening…", transcribing: "finishing…", connecting: connect_text }[state] ?? "");
 		if (state === "listening" && this.resumed){ this.resumed = false; this.$status.text("resumed — listening…"); }
@@ -640,10 +394,7 @@ export default class Dictate extends View {
 		this.on_error?.(msg);
 	}
 
-	// ---- whisper: segment, resend, cut ---------------------------------------
 
-	/** The microphone this instance should open: the one the caller named, else
-	 *  the one the owner picked on the test bench, else the system default. */
 	device(){
 		if (this.device_id) return { id: this.device_id, label: this.device_label };
 		return remembered_device() ?? { id: null, label: "" };
@@ -658,15 +409,8 @@ export default class Dictate extends View {
 		await this.mic.start(level => this.on_level(level));
 	}
 
-	/* A rough, un-calibrated loudness -> `--ux-dictate-level` (0..1), read by
-	 * Dictate.css to drive the button's real level meter, and also the pause-cut
-	 * clock below. `silence_at` is a starting guess, not a measured threshold —
-	 * `doc/decisions.md`. */
+	// silence_at is an uncalibrated guess. see doc/decisions.md
 	on_level(level){
-		// FIRST SAMPLE, timed (2026-10-05) — the second of the three checkpoints the owner
-		// asked for (mic open, first samples, first Whisper answer): this is the first time
-		// `AudioWorklet` has actually handed back a real frame, proof the mic isn't just
-		// "open" but genuinely feeding audio.
 		if (!this.heard_first_sample){ this.heard_first_sample = true; this.log_step("mic", "on, level ok"); }
 		this.level = this.level * 0.6 + level * 0.4;
 		this.$button.style("--ux-dictate-level", Math.min(1, this.level * 6).toFixed(3));
@@ -675,13 +419,7 @@ export default class Dictate extends View {
 		floor.level(this, this.level > this.silence_at);   // pauses and speaking time for `entry.cues`
 	}
 
-	/* One clock tick (5/sec), shared by both engines. For whisper: a pause
-	 * closes the segment, so does hitting the length cap, and otherwise a
-	 * resend fires roughly every `resend_ms` (only one of the three per tick).
-	 * For either engine: the opt-in "stop after a pause" countdown. */
 	heartbeat(){
-		// Taken off the page while its mic was on (a navigation that removed it,
-		// a panel rebuilt): stop and release, so no path leaves a track running.
 		if (!this.el.isConnected){ this.stop(); this.mic?.stop(); try { this.rec?.abort?.(); } catch {} return; }
 		const now = performance.now();
 		if (this.engine === "whisper"){
@@ -692,12 +430,7 @@ export default class Dictate extends View {
 		if (this.send_on_pause) this.check_end_pause(now);
 	}
 
-	/* Opt-in, off by default (the owner's own comparison to another product:
-	 * ending a dictation must be a choice the owner can SEE coming and cancel,
-	 * never a silent auto-submit). Counts quiet time since `last_loud_at` —
-	 * whisper updates that in `on_level()`, the browser engine in
-	 * `heard_browser()` — completely separately from whisper's own 700ms
-	 * segment-cut, which never ends the whole dictation by itself. */
+	// Opt-in countdown that ends the whole dictation. see doc/notes.md#stop-after-a-pause
 	check_end_pause(now){
 		const quiet = now - this.last_loud_at;
 		if (quiet >= this.end_pause_ms){ this.hide_countdown(); this.stop(); return; }
@@ -713,9 +446,7 @@ export default class Dictate extends View {
 	async partial_tick(){
 		this.last_partial_at = performance.now();
 		if (this.inflight) return;   // a resend is already in flight — SKIP this tick, never queue
-		/* ⚠ QUIET ALREADY? DO NOT START A GUESS. The pause that closes this segment is about to fire, and
-		   whisper-server answers ONE request at a time — so the final would sit behind this guess
-		   (measured 68 ms of a 167 ms wait, about half of all segment ends). */
+		// Quiet already: no guess, the final is next and whisper answers one request at a time. see doc/notes.md#skip-partial-when-quiet
 		if (this.has_speech && performance.now() - this.last_loud_at > this.skip_partial_after_ms) return;
 		const epoch = this.segment_epoch;
 		const samples = this.mic.snapshot();
@@ -725,28 +456,13 @@ export default class Dictate extends View {
 		this.inflight = this.transcribe(samples, "interim");
 		let text;
 		try { text = await this.inflight; } catch { return; } finally { this.inflight = null; }
-		// The segment may have closed WHILE this was in flight — a stale partial must never
-		// paint over a segment that has already gone final. `seq <= this.applied_seq` is the
-		// OTHER half of the same guard (duplicate-bubble race, 2026-10-05): a request can
-		// answer out of order, so even within the SAME segment a slower, older request must
-		// never overwrite what a faster, newer one already applied.
+		// Stale answers are dropped (epoch + ticket). see doc/notes.md#duplicate-bubble-race
 		if (epoch !== this.segment_epoch || seq <= this.applied_seq) return;
 		this.applied_seq = seq;
 		this.partial_text = text; this.draw_caption(); this.on_guess?.(text);
 	}
 
-	/** ⚠ THE GUESS IS NEVER CLEARED BEFORE THE FINAL TEXT IS READY TO REPLACE IT.
-	 *  An earlier version cleared `partial_text` and redrew the caption THE INSTANT
-	 *  a segment closed, then redrew AGAIN once `transcribe()`'s await returned —
-	 *  two real, separately-painted frames, with the caption visibly SHORTER in
-	 *  between (the grey guess gone, the settled text not landed yet) for however
-	 *  long Whisper took to answer. That is the flicker the owner saw: "smooth"
-	 *  when Whisper was fast enough nobody noticed the gap, "erased and redrawn in
-	 *  two steps" when it wasn't (`ai/sessions/2026/09/29/audio/audio/b-refine/`, measured with a
-	 *  `ResizeObserver` — `doc/decisions.md`). Now the guess is only ever cleared
-	 *  in the SAME `draw_caption()` call that either shows the real text (`commit()`)
-	 *  or gives up on this segment (nothing worth sending, or Whisper errored) —
-	 *  one paint, never a visible dip. */
+	/** The guess is cleared only in the same draw_caption() that shows the final. see doc/notes.md#never-clear-the-guess-early */
 	async close_segment(reason = "pause"){
 		const samples = this.mic.snapshot();
 		this.mic.cut();
@@ -760,9 +476,6 @@ export default class Dictate extends View {
 			return;
 		}
 
-		// Let a partial resend for the OLD segment finish first — whisper-server
-		// answers one request at a time, and its answer is about to be thrown
-		// away anyway (the epoch check above already ignores it).
 		if (this.inflight) try { await this.inflight; } catch { /* ignored — see above */ }
 
 		const seq = ++this.req_seq;
@@ -770,15 +483,8 @@ export default class Dictate extends View {
 		let text;
 		try { text = await this.inflight; }
 		catch (e){
-			// A stale request failing is not a real failure — a newer segment or resend
-			// already landed while this one was still on the wire, so what it would have
-			// said no longer matters; ending the whole dictation over it would be its own
-			// new bug (duplicate-bubble guard, 2026-10-05).
+			// A stale request failing is not a real failure. see doc/notes.md#duplicate-bubble-race
 			if (epoch !== this.segment_epoch || seq <= this.applied_seq) return;
-			// This is the "Whisper server unreachable" case, surfaced where it was only
-			// ever a console.error before — the owner's own words: "we don't want users
-			// to just have it not work and not know why". Ends the dictation rather than
-			// silently dropping every segment from here on.
 			console.error("ux/Dictate: whisper-server did not answer for a segment:", e);
 			this.clear_guess();
 			this.log_step("whisper", "stopped answering: " + (e?.message ?? e));
@@ -786,43 +492,22 @@ export default class Dictate extends View {
 			return;
 		}
 		finally { this.inflight = null; }
-		// THE DUPLICATE-BUBBLE GUARD (2026-10-05): never commit an answer for a segment that
-		// has since closed again (`epoch !== this.segment_epoch` — a second close raced this
-		// one), or one that is simply OLDER than an answer already committed or shown
-		// (`seq <= this.applied_seq` — whisper answered out of order). Either way, the
-		// content behind this answer is already covered by something newer; posting it now
-		// would only resurrect a stale, shorter guess as a second, bogus chat line — exactly
-		// the bug the owner caught on the phone (the full sentence, then an older partial of
-		// it landing ~4s later as if it were new).
+		// Never commit a stale or out-of-order answer. see doc/notes.md#duplicate-bubble-race
 		if (epoch !== this.segment_epoch || seq <= this.applied_seq){
 			this.clear_guess();
 			return;
 		}
 		this.applied_seq = seq;
-		// `commit()` itself clears `partial_text` and redraws WITH the new settled
-		// line already in place — see its own comment. No separate clear here.
 		this.commit(text, reason);
 	}
 
-	/** The still-moving guess is gone with nothing to replace it (a silent segment,
-	 *  or Whisper failed) — the one place `close_segment()` clears it on its own. */
 	clear_guess(){
 		this.partial_text = "";
 		this.draw_caption();
 		this.on_guess?.("");
 	}
 
-	/** **Is there any speech in here at all?** Whisper never answers "nothing" —
-	 *  handed silence it invents a plausible sentence, and for this model that
-	 *  sentence is almost always "Thank you." So the recording of the quiet gap
-	 *  between the owner's last word and their press of the button used to be
-	 *  transcribed, committed, typed into the box and logged as a prompt. That
-	 *  was the whole "it just says Thank you" bug (`ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`).
-	 *
-	 *  The test is `Capture.loudness()`'s `loud_ms` — how many milliseconds of the
-	 *  segment are above a speaking floor, not how loud the segment is on average.
-	 *  Measured on the real dumps: silent segments 0ms, the weakest real sentence
-	 *  220ms, so `min_speech_ms` at 120 sits in a gap with nothing in it. */
+	/** Whisper invents "Thank you." from silence, so quiet segments are never sent. see doc/notes.md#is-there-any-speech-in-here; doc/silence.md */
 	worth_sending(samples){
 		if (!samples.length) return false;
 		const loud = this.last_loudness = this.mic.loudness(samples, this.speech_floor);
@@ -840,41 +525,22 @@ export default class Dictate extends View {
 		const t_sent = performance.now();
 		const url = this.whisper_url + "/inference";
 		let r;
-		// Named here, not left for the caller to guess: WHICH url this device tried, and
-		// WHY it failed — a timeout (the 20s cap below), a plain network error (nothing
-		// there to answer), or an HTTP status (something answered, but not with success).
 		try { r = await fetch_timeout(url, { method: "POST", body: form }, 20000); }
 		catch (e){ throw new Error(`${url}: ${e?.name === "AbortError" ? "timed out after 20 s" : (e?.message || "network error")}`); }
 		if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
 		const body = await r.json();
 		this.t_result = performance.now();   // the delay marks (ComposerMic.draw_caption) start here
 		this.whisper_ms = this.t_result - t_sent;
-		// FIRST WHISPER ANSWER, timed (2026-10-05) — the third checkpoint: proof the whole
-		// pipeline (mic → samples → whisper-server → a real reply) works, not just that the
-		// mic opened.
 		const reply = `connected, last reply ${(this.whisper_ms / 1000).toFixed(1)} s`;
 		if (!this.heard_first_answer){ this.heard_first_answer = true; this.log_step("whisper", reply); }
 		else { this.steps.whisper = reply; this.draw_diag(); this.on_step?.("whisper", reply); }   // every answer updates the line; only the first is console-logged
-		// ⚠ Whisper puts "\n" between ITS OWN segments, mid-speech ("Testing, testing.\n My name is…") —
-		// left in, every one became a paragraph break in the box. Real breaks come from real pauses only.
+		// Whisper puts "\n" between its own segments; collapse them (real breaks come from real pauses).
 		const text = (body.text ?? "").replace(/\s+/g, " ").trim();
-		// The WhisperLog hook: exactly what whisper-server answered (`raw`) and what we kept (`text`).
 		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000) });
 		return text;
 	}
 
-	/** **The debug seam.** Off unless you turn it on, in the console of the tab
-	 *  you are dictating in:
-	 *
-	 *      window.$DICTATE_DUMP = true;   // or a path: "framework/ai/…/dumps.jsonl"
-	 *
-	 *  Every WAV this posts to whisper is then ALSO written, base64, one line per
-	 *  send, into `dump_file` — so the exact bytes the browser sent can be pulled
-	 *  apart on disk afterwards: `node public/framework/ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/measure.mjs <that file>`
-	 *  prints each one's sample rate, duration, peak, RMS and whether the header's
-	 *  byte count agrees with the file's real length. Never awaited and never
-	 *  throws into the caller — a debug write failing must not disturb a real
-	 *  dictation. */
+	/** Debug seam: `window.$DICTATE_DUMP = true` also writes each WAV to dump_file. see doc/notes.md#debug-dump */
 	dump(wav, samples){
 		const where = globalThis.$DICTATE_DUMP;
 		if (!where) return;
@@ -893,12 +559,8 @@ export default class Dictate extends View {
 		}).catch(e => console.warn("ux/Dictate: $DICTATE_DUMP could not write:", e));
 	}
 
-	// ---- the browser's own engine --------------------------------------------
 
 	start_browser(){
-		// Chrome sometimes finishes a whole session hearing NOTHING and erroring
-		// NOTHING — `onstart` fires, `onend` fires, and no `onresult` ever comes.
-		// That silence was the bug the owner reported; this says so instead.
 		this.watchdog = setTimeout(() => {
 			if (this.state === "listening" && !this.settled && !this.partial_text){
 				this.log_step("mic", "browser engine heard nothing in 6s");
@@ -910,10 +572,6 @@ export default class Dictate extends View {
 		rec.lang = this.lang;
 		rec.continuous = true;
 		rec.interimResults = true;
-		// The ONLY place the browser engine is really live — `rec.start()` below returns
-		// long before this fires. This is what `set_state("listening")` (and therefore
-		// the start SOUND, via `on_listening()`) now waits for, instead of firing the
-		// instant `.start()` was merely called.
 		rec.onstart = () => {
 			clearTimeout(this.connect_watchdog);
 			if (this.cancel_connect){ try { rec.stop(); } catch {} return; }
@@ -921,17 +579,11 @@ export default class Dictate extends View {
 			this.set_state("listening");
 		};
 		rec.onresult = e => this.heard_browser(e);
-		/* ⚠ "aborted" AND "no-speech" ARE NOT A STOPPED MIC (2026-10-01, the owner's "abort error"
-		 * on the phone). Android ends its recognizer after every pause and often reports "aborted"
-		 * as it does; Chrome reports "no-speech" after a quiet spell. Both are followed by `onend`,
-		 * which restarts it below (or, after a press, sets it idle). Treating them as errors stopped the mic mid-dictation and pushed
-		 * an error line into the layout. Only a press (`this.stopping`) ends it. */
+		// "aborted" and "no-speech" are not a stopped mic: onend restarts. see doc/notes.md#aborted-and-no-speech
 		rec.onerror = e => {
 			if (e.error === "aborted" || e.error === "no-speech") return console.warn("ux/Dictate: SpeechRecognition", e.error, this.stopping ? "(stopping)" : "(restarting)");
 			console.error("ux/Dictate: SpeechRecognition error:", e.error); this.browser_error(e.error);
 		};
-		// Chrome stops on its own after a few seconds of silence even with
-		// `continuous` — restart unless a real press asked to stop (`this.stopping`).
 		rec.onend = () => {
 			if (this.stopping){ this.stopping = false; this.set_state("idle"); }
 			else if (this.state === "listening" || this.state === "connecting") try { rec.start(); } catch (e){ console.warn("ux/Dictate: restart failed:", e); }
@@ -955,12 +607,7 @@ export default class Dictate extends View {
 		this.on_guess?.(this.partial_text);
 	}
 
-	/* ⚠ CHROME ON ANDROID REPEATS THE WHOLE PHRASE IN EVERY RESULT (2026-10-01, the owner's
-	 * "so so tell so tell me so tell me why…"). Desktop Chrome gives each finished piece once:
-	 * "hello there", then "how are you". Android gives "so", then "so tell", then "so tell me",
-	 * each marked final, so committing each one wrote the sentence over and over. A result that
-	 * starts with the last one (or repeats it) only adds the words after it. `peek` reads
-	 * without remembering, for the grey guess. Reset when the recognizer restarts (`onstart`). */
+	// Android Chrome repeats the whole phrase in every result. see doc/notes.md#android-repeats-the-phrase
 	browser_fresh(said, peek = false){
 		const last = this.browser_last ?? "";
 		if (!peek && said) this.browser_last = said;
@@ -988,84 +635,30 @@ export default class Dictate extends View {
 		try { this.rec?.stop(); } catch { /* already stopped */ }
 	}
 
-	// ---- text: the live caption, then the real box ---------------------------
 
-	/** One finished piece of text — a whisper segment, or a browser `isFinal`
-	 *  result — settles into the caption and lands in the real target. `reason` says
-	 *  WHY this segment closed — `"pause"` (silence), `"forced"` (the 15s cap), or
-	 *  `"manual"` (the owner pressed stop) — the browser engine never has one to give
-	 *  (its own `isFinal` flag decides on its own), so callers there see `undefined`.
-	 *  Additive only: every caller before this task reads one argument and ignores
-	 *  the rest, so nothing that only wanted `on_text(text)` changes. */
 	commit(text, reason){
-		// Discarding (nothing heard, or a whisper annotation like `[BLANK_AUDIO]`) still
-		// clears the guess — the one thing `close_segment()` no longer does up front,
-		// so a discarded segment must not leave a stale grey guess frozen on screen.
 		if (!text || this.annotation(text)){ this.clear_guess(); return; }
 		this.settled = this.settled ? this.settled + " " + text : text;
 		(this.settled_lines ??= []).push(text);
 		this.partial_text = "";
 		this.draw_caption();
-		// One id per settled chunk, made HERE (never by the server) — it is what lets a
-		// later revision line point back at exactly this one, before either has been
-		// logged (owner's ask 2026-09-29: "the revision logs its output as its own
-		// line pointing back to the raw line it came from"). `chunk_at` is made the
-		// same way, at the same moment, so a revision's `re` (the universal chat
-		// line's field for "which line this answers") has something to point at —
-		// the raw `{type:"prompt"}` line itself still carries no `at` of its own
-		// (Servex stamps that on arrival; see `log_prompt`'s own note on why).
 		const chunk_id = this.next_chunk_id();
 		const chunk_at = new Date().toISOString();
 		this.push_to_target(text, reason, chunk_id, chunk_at);
 		this.log_prompt(text, chunk_id);
 	}
 
-	/* A plain, locally-made id — not cryptographic, just unique enough to tell two
-	 * chunks apart in one log. `crypto.randomUUID` where it exists (every browser
-	 * this needs to run in); a timestamp+random fallback otherwise. */
 	next_chunk_id(){ return globalThis.crypto?.randomUUID?.() ?? (Date.now() + "-" + Math.random().toString(36).slice(2)); }
 
-	/* Every finished utterance becomes one log entry, not just words on screen.
-	 * Tried first: Servex's own single-writer log (`POST /log/<name>`, being
-	 * built by the sibling `servex-port` task) — once it is up, this is the
-	 * only writer of prompt history and every dictation across the whole site
-	 * reaches it the same way. Until then, or whenever Servex is down, this
-	 * falls back to the dev server's own existing generic append route
-	 * (`Server/plugins/SocketServer/Append.js`, `rpc:append`) so a dictation
-	 * during today's setup still lands somewhere real instead of vanishing
-	 * once it scrolls off screen. Never throws into the caller — a log write
-	 * failing must not break the dictation the owner is mid-sentence in.
-	 *
-	 * ⚠ Neither path can reach anywhere from a LAN client that is not itself
-	 * `localhost`/`127.0.0.1`: `log_url` is `127.0.0.1:8090`, which on a phone
-	 * means the PHONE, and `Socket` — the dev-server fallback — refuses to even
-	 * open a connection off `localhost` by design (`dev/Socket/Socket.js`, "LOCALHOST
-	 * ONLY — production is static hosting with nothing to connect to"). Both
-	 * failures are already silent-safe (this `catch` only warns), so a dictation
-	 * from the phone still shows its words live; they are just never logged.
-	 * Left as-is on purpose — see "Voice → log from the LAN" in `doc/https-lan.md`. */
+	// Servex first, dev-server append as fallback; neither reaches a LAN client. see doc/notes.md#log_prompt
 	async log_prompt(text, id){
-		// No `at` sent to Servex on purpose — `Log.append()` stamps its own local-offset
-		// clock only when the entry arrives without one; a client-side `new Date()` used
-		// to override it with a UTC string, so the same log mixed two clocks. The dev-server
-		// fallback below has no clock of its own, so that path still stamps one itself.
-		// `id` (this chunk's own `next_chunk_id()`) is what a later revision line's `of`
-		// points back at — never required by anything that reads this log today.
+		// No `at` sent on purpose: Servex stamps its own clock. see doc/notes.md#log_prompt-no-at
 		const entry = { type: "prompt", by: "owner", text, via: "whisper", id };
 		if (await post_prompt(entry, this.log_url)) return;
 		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
 		catch (e) { console.warn("ux/Dictate: could not log this utterance (Servex down, dev-server fallback also failed):", e); }
 	}
 
-	/** The REVISED text becomes its OWN log line — the universal chat line every
-	 *  surface (voice, typed, an agent's own reply) shares (`ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md`,
-	 *  "The universal chat line"), not the old `{type:"revision"}` shape nothing ever
-	 *  drew. `re` is the raw chunk's own `at` (`commit()`'s `chunk_at`, made at the
-	 *  same moment as the raw line itself) — how a reader (or `ext/Chat`) finds the
-	 *  raw line this answers; `level` says which pass ran. Never merged into the raw
-	 *  line, and never written until the revision is actually ready (no half-done
-	 *  text logged). Same Servex-then-dev-server fallback as `log_prompt`, for the
-	 *  same reason: a log write failing must never break the dictation itself. */
 	async log_revision(text, level, re){
 		const entry = { chat: { at: new Date().toISOString(), from: { kind: "assistant", id: "revise" }, via: "voice", text, re, level } };
 		if (await post_prompt(entry, this.log_url)) return;
@@ -1073,23 +666,10 @@ export default class Dictate extends View {
 		catch (e) { console.warn("ux/Dictate: could not log this revision (Servex down, dev-server fallback also failed):", e); }
 	}
 
-	/** Whisper does not only return words. A noise that is loud but is not speech
-	 *  comes back as an ANNOTATION — `*shriek*`, `(door closes)`, `[BLANK_AUDIO]`,
-	 *  `♪` — which is whisper being honest, not a mistake, and which must still
-	 *  never be typed into the owner's box or logged as something they said. This
-	 *  is a rule about the SHAPE of the answer, not a list of phrases to ban: a
-	 *  list would have to grow forever, this does not (a real fan noise came back
-	 *  as `*shriek*` while proving this task's fix, 2026-09-22). */
+	/** Annotations like *shriek* or [BLANK_AUDIO] are never speech: a rule about shape, not a phrase list. see doc/notes.md#annotations */
 	annotation(text){ return /^[\s*([♪_-]*[^\w]*$|^([*([♪])[\s\S]*[*)\]♪]$/.test(text); }
 
-	/** Only the finished text ever reaches the caller — the grey, still-moving
-	 *  partial stays in this component's own caption, never the target box.
-	 *  This APPENDS to whatever is already in the box (never rewrites it), so
-	 *  an edit the owner makes mid-dictation, in a pause, is never clobbered —
-	 *  unlike the old `mic.js`, which rewrote the whole value every time. */
 	push_to_target(chunk, reason, chunk_id, chunk_at){
-		// Open mode: the box is for typing, never for the mic — a committed sentence
-		// only ever reaches `on_text` (the caption stream), the box stays untouched.
 		const $in = this.mode !== "open" && this.input();
 		if ($in){
 			const joiner = $in.el.value && !/\s$/.test($in.el.value) ? " " : "";
@@ -1100,28 +680,7 @@ export default class Dictate extends View {
 		this.revise_chunk(chunk, chunk_id, chunk_at);
 	}
 
-	/** **`revise`** — `"clean" | "edit" | "summary" | false` (default `false`, so
-	 *  every caller that never asked for this keeps working with zero change).
-	 *  The RAW text has already reached `on_text` above, unchanged, before this even
-	 *  starts — a caller that only wants what it always got can ignore `on_revised`
-	 *  completely. When `revise` names a level, this runs `ux/Revise` in the
-	 *  background (never blocking the box, which already has the raw words) and,
-	 *  once it answers OK: logs the REVISED text as its own line (`log_revision()`,
-	 *  pointing back at the raw line's own id — never merged into it), and, if the
-	 *  caller set one, calls `on_revised(text, {raw, level, chunk_id})` too — the
-	 *  revised text, the original raw chunk it came from (so the raw text is always
-	 *  kept alongside the revised one, never replaced), and which level ran.
-	 *  `on_revised` NEVER fires with a falsy `text` — a Servex that isn't up yet, or
-	 *  any other failure, calls the SEPARATE `on_revise_failed({raw, level, chunk_id,
-	 *  why})` instead, so an existing caller that only ever handled success (like
-	 *  `ext/drawer/rail.js`'s `on_revised: text => this.card(text)`) can never be
-	 *  handed `null` to draw a card for. Only the FINISHED revision is ever logged —
-	 *  no guess, no in-between chunk, no per-tick timing (those stay in memory only,
-	 *  e.g. the playground's Chunks view — `ai/sessions/2026/09/29/audio/audio/b-refine/`). */
-	/* `before` (ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode, deliverable 1)
-	 * is the tail of everything already revised in THIS dictation — a little context so
-	 * the fast assistant can see the sentence it is joining, same idea as the playground's
-	 * own `BEFORE_CHARS`. `revised_so_far` only grows here; nothing else touches it. */
+	// `revise` option and revise_chunk(). see doc/notes.md#revise
 	revise_chunk(raw, chunk_id, chunk_at){
 		if (!this.revise || this.sampling) return;   // sample() lines are never something the owner said
 		const level = this.revise;
@@ -1137,22 +696,9 @@ export default class Dictate extends View {
 		});
 	}
 
-	/** **The variant seam.** `build_output()` builds whatever holds the transcript
-	 *  (here, one muted line — `this.$caption`); `draw_caption()` repaints it every
-	 *  time a segment settles or the live guess changes. A variant with a genuinely
-	 *  different user experience — a wall of "prompt item" cards instead of one
-	 *  running line, a single-line compact strip for a toolbar — overrides ONLY
-	 *  these two methods; the whole state machine above (engines, errors, the start
-	 *  sound's real timing) is untouched and every variant inherits it for free. See
-	 *  `ux/Dictate/variants/` for the built ones, and `doc/variants.md` for how to
-	 *  write another. */
+	// Variants override build_output() and draw_caption() only; see doc/variants.md
 	build_output(){ this.$caption = div.c("ux-dictate-caption muted"); }
 
-	/* Settled text in the page's own ink, the still-moving guess grey after it —
-	 * capped so a long dictation does not grow the caption without bound. Open
-	 * mode never runs for long unwatched (a mic left on indefinitely), so instead
-	 * of one truncated blob it keeps every sentence as its own line, appended,
-	 * never moved — the "settled line, never moved" the caption stream promises. */
 	draw_caption(){
 		if (this.mode === "open"){
 			this.$caption.empty(() => {
@@ -1168,13 +714,7 @@ export default class Dictate extends View {
 		});
 	}
 
-	/** **Demo only — no mic, no whisper, nothing logged.** Feeds sentences straight
-	 *  into the settled transcript exactly as `commit()` would (same `settled_lines`,
-	 *  same `draw_caption()`, same target box), so a variant page can show what makes
-	 *  it different the instant it loads, without anyone talking into a real
-	 *  microphone first. Skips `log_prompt()` on purpose — sample text is not
-	 *  something the owner said, and must never land in the real prompt log. The
-	 *  owner's own rule this exists for: "I want to see" (`ai/sessions/2026/09/29/mobile-nav/mobile-nav/review.md`). */
+	/** Demo only: feeds sentences into the transcript, no mic, no whisper, nothing logged. see doc/notes.md#sample */
 	async sample(lines){
 		this.sampling = true;   // revise_chunk()'s own guard — sample text must never reach a real log or a real model call
 		try {
@@ -1189,15 +729,7 @@ export default class Dictate extends View {
 	}
 }
 
-/** Where to reach `whisper-server`. On this machine (`localhost`/`127.0.0.1`/`*.localhost`)
- *  that is the direct port, unchanged. From anywhere else — a phone on the LAN — `127.0.0.1`
- *  would mean the PHONE, so the page's own origin is used instead, and
- *  `Server/plugins/Whisper.js`'s `/whisper/inference` + `/whisper/` proxy that same-origin
- *  request on to the real `127.0.0.1:8178` on the machine actually running whisper-server.
- *  This does NOT open the microphone on an insecure LAN page — that is a separate, harder
- *  browser rule `insecure_context_message()` catches — it only means that once the mic
- *  IS open (secure context reached some other way), reaching whisper does not require
- *  hard-coding a loopback address that means a different machine on every device. */
+// Off-localhost the page origin proxies to whisper-server. see doc/notes.md#whisper-url
 function default_whisper_url(){
 	const h = globalThis.location?.hostname;
 	const local = h === "localhost" || h === "127.0.0.1" || h?.endsWith(".localhost");
@@ -1227,6 +759,5 @@ Dictate.prototype.revise = false;         // "clean" | "edit" | "summary" | fals
 Dictate.prototype.on_revised = null;      // (text, {raw, level, chunk_id}) => … — fires once ux/Revise answers OK; never a falsy text, never required
 Dictate.prototype.on_revise_failed = null;   // ({raw, level, chunk_id, why}) => … — fires instead of on_revised when Revise.run couldn't answer; never required
 
-/** `dictate(() => this.$input, opts)` — the drop-in shape `ext/Ask/mic.js`'s
- *  `mic()` used, for callers that just want the button. */
+/** `dictate($input, opts)`: the drop-in shape of ext/Ask/mic.js's `mic()`. */
 export function dictate($input, opts = {}){ return new Dictate({ $input, ...opts }); }
