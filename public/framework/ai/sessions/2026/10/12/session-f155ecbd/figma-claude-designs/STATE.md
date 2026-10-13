@@ -38,6 +38,8 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ 2026-10-13 desktop MCP connected (`figma-desktop`, 127.0.0.1:3845): reads the owner's live selection; see use-figma.md.
 
 ## In flight
+- ✅ Index page `234:2003` built as page 1 (38 previews); re-run after tidy finishes.
+- ⬜ slots (brief-slots.md), icons (brief-icons.md).
 - ⬜ 2026-10-13 tidy-ds, tidy-kit, tidy-lab (brief-tidy.md): every Claude page → 1920 wrapper → `Page · …` component; then I build the Index page.
 - ⬜ 2026-10-13 nesting (brief-nesting.md), transcribe (brief-transcribe.md).
 - ✅ Page 7 blue → accent on the master; Colour · Permutations (218:1062); Wizard step actions row.

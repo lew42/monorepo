@@ -11,3 +11,4 @@ Every page Claude makes in Figma is laid out like a web page, not as frames scat
   - A prototype only links to top-level frames. Screens that a prototype links to stay top-level, in a tidy row to the right of the wrapper, inside a Figma Section named `Prototype screens`.
 - **Never delete.** Old `was · …` backups move into a `Backups` section at the far right.
 - **Owner's pages** (Page 1–8, Color Schemes, Vector Design, Paragraph Design) are not touched.
+- **The Index page** (`234:2003`, page 1 of the file) holds a scaled instance (400 wide, clipped to the top 520) of every `Page · …` component, grouped, each with a caption linked to the page. Rebuild it by re-running the same script whenever pages change; it's in the session transcript, and the session STATE links it. 38 previews rendered without trouble (2026-10-13).
