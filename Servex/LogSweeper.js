@@ -25,7 +25,7 @@ export default class LogSweeper {
     /* A repo-relative path is swept only if it matches one of these. */
     static ALLOW = [
         /^public\/framework\/ai\/(\d{4}-\d{2}-\d{2}|\d{4}\/\d{2}(\/\d{2})?)\/.*\b(task\.jsonl|page\.jsonl|spend\.json|log\.jsonl|words\.jsonl|files\.jsonl)$/,
-        /^public\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/.+\/(task\.jsonl|page\.jsonl|spend\.json|session\.jsonl|files\.jsonl)$/,
+        /^public\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/.+\/(task\.jsonl|page\.jsonl|spend\.json|session\.jsonl|day\.jsonl|files\.jsonl)$/,
         /^public\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/.+\/task\/(task\.jsonl|page\.jsonl|spend\.json|files\.jsonl)$/,
         /^public\/(ai\/[^/]+\.jsonl|files\.jsonl|framework\/ai\/(.+\/)?files\.jsonl)$/,
         /^\.claude\/skills\/[^/]+\/(flags|improvements)\.jsonl$/,
