@@ -46,7 +46,7 @@ export default class AISessionDetail extends Page {
 			const session_id = row?.session_id ?? this.id;
 			if (!/^[0-9a-f]{8}-/.test(session_id)) return [];
 			await AISessionRows.load_index(this.home.url);   // fills AISession.days, so the dated folder is known
-			if (AISession.days.has(session_id)) await AISessionDetail.folder_known(session_id);   // a named folder (2026/10/07/can-you-check-usage/) arrives with the feed; without it the log is looked for at <day>/<uuid>/ and 404s
+			if (!AISession.slugs.has(session_id)) await AISessionDetail.folder_from_day(row, session_id);   // a named folder (2026/10/07/can-you-check-usage/): without it the log is looked for at <day>/<uuid>/ and 404s
 			const own =AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname
 				: new URL(`./${AISession.day(new Date())}/${AISessionDetail.slug(row, session_id)}/`, AISession.root_url()).pathname;
 			this._old_url = AISessionDetail.dir_index().then(index => {
@@ -57,13 +57,13 @@ export default class AISessionDetail extends Page {
 		});
 	}
 
-	/** Resolves once the feed has named this session's folder (AISession.slugs), or after `ms` regardless. */
-	static folder_known(session_id, ms = 8000){
-		if (AISession.slugs.has(session_id)) return Promise.resolve();
-		return new Promise(done => {
-			const off = AISession.of(session_id).on((_, fields) => { if (fields.includes("folder")){ off(); done(); } });
-			setTimeout(() => { off(); done(); }, ms);
-		});
+	/** The session's folder name, read from the day index of its last activity (where AISessionIndex writes its snapshot), folded in so AISession.dir_url() knows it. */
+	static async folder_from_day(row, session_id){
+		const at = row?.last_activity ?? row?.started_at;
+		if (!at) return;
+		const ix = await AISessionRows.get_json(new URL(`./${AISession.day(new Date(at))}/index.json`, AISession.root_url()).pathname);
+		const snap = ix?.snapshots?.find(x => x.id === session_id);
+		if (snap?.folder) AISession.apply_delta({ id: session_id, folder: snap.folder, ...(snap.day ? { day: snap.day } : {}) });
 	}
 
 	/** The folder name the page tool gives a session it makes a folder for: the Servex agent's id + id8, else session-<id8> (Servex/agents/page_tools.js). */
