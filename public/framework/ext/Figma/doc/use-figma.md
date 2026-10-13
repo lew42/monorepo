@@ -18,6 +18,8 @@
 3. **Mode**: `frame.setExplicitVariableModeForCollection(collection, modeId)`, for `Text` per ground and for `Resolution` on the root.
 4. **Compose**: `figma.createAutoLayout(dir)`, append, *then* set `layoutSizingHorizontal = "FILL"`; wrapping text needs `textAutoResize = "HEIGHT"` first.
 5. **Check**: `get_screenshot` with `maxDimension: 2400`; compute each column's used height in the script, since `clipsContent` hides overflow.
+6. **Edit the master, not the instances** (owner, 2026-10-13). To change something that every copy shows (a colour, a size, a label), edit the main component once, and every instance follows. Never apply the same change as an override on each instance. An instance carries only what makes it different: its Text mode, and its ground bound to a variable. Before you edit, check `instance.overrides`. If a change would add overrides to many instances, it belongs on the main component. The model is Page 7's `The Palette`: one master and four copies (white, gray, prime, dark), and each copy overrides only its mode and its section fills (bound to `light`, `prime` or `dark`).
+7. **Colour breakouts are for colour that changes with the ground.** Text sits on a card, the card on a section, and the section on the page. A four-up breakout earns its place where those layers interact: lighten and darken layers, translucent cards, and inks bound to tokens. A fully opaque, fixed card looks the same in every copy. Text on a translucent card needs the right Text mode for the colour that results, so check it on `Colour · Permutations`. A second prime column (prime with white ink, beside prime with dark ink) is a planned option; it would need a new Text mode.
 
 ## The mode model: same section, any context (owner, 2026-10-12)
 
