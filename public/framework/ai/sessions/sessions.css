@@ -354,9 +354,9 @@
 
 	.sessions-status { position: sticky; inset-block-end: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1rem; padding: .25rem .5rem; margin-block-start: .5rem; background: var(--surface); border-block-start: 1px solid var(--line); font-size: .8em; }
 	.sessions-status .sessions-stats, .sessions-status .sessions-stats-text, .sessions-status .ai-usage { display: contents; }   /* counts, meters and the open-tasks chip all flow in the status line itself */
-	.sessions-status .sessions-stats-text { display: flex; flex-wrap: wrap; gap: 0 1rem; }
 	.sessions-status .sessions-counts { margin: 0; }
-	.sessions-status .ai-usage { display: flex; gap: 1rem; }
+	.sessions-status .sessions-counts + .sessions-counts { display: none; }   /* the OpenRouter dollars: Readme, "Where the real dollars come from" */
+	.sessions-status .ai-meter, .sessions-status .ai-meter * { white-space: nowrap; }
 	.sessions-status .ai-meter { flex-direction: row; align-items: center; gap: .4rem; }
 	.sessions-status .ai-meter .flex { gap: .4rem; }
 	.sessions-status .ai-gauge { inline-size: 4rem; }

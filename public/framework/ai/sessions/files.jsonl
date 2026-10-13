@@ -30313,3 +30313,9 @@
 {"file":"openrouter-reconcile.json","gone":true}
 {"file":"openrouter-costs.json","gone":true}
 {"file":"screenshots/","gone":true}
+{"file":"openrouter-reconcile.json"}
+{"file":"session-flags.json"}
+{"file":"session-index.json"}
+{"file":"session-tree.json"}
+{"file":"sessions.json"}
+{"file":"spend-tree.json"}
