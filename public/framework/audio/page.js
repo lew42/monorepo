@@ -148,7 +148,7 @@ export default new Doc({
 
 		div.c("wide grid gap auto", () => TOOLS.forEach(tool_tile)).style("--column", "16em");
 
-		md("The old six-class version (MicPicker, LevelMeter, PushToTalk as separate classes) is still reachable at [v1](./v1/) for comparison.");
+		md("The old six-class version (MicPicker, LevelMeter, PushToTalk as separate classes) is still reachable at [v1](/framework/audio/v1/) for comparison.");
 
 		md.details(import.meta, "readme.md", "Readme");
 	},

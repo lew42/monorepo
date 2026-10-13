@@ -10,7 +10,7 @@ function promise(){
 }
 
 export default class Socket {
-	// history and reasons: doc/Socket-notes.md
+	// history and reasons: /framework/dev/Socket/doc/Socket-notes.md
 
 	static DATA = /\.(json|jsonl|md|txt|csv)$/i;
 

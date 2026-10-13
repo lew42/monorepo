@@ -79,7 +79,7 @@ export default new Page({
 	route(name){
 		return name === "doc" && {
 			title: `${this.title} Docs`,
-			content(){ return md("Two long-form pages: [System](system/) — the tier boundary argued, the config-word contract, the naming rules. [Decisions](decisions/) — every call made and rejected on 2026-08-21."); },
+			content(){ return md("Two long-form pages: [System](/framework/ux/doc/system.md) — the tier boundary argued, the config-word contract, the naming rules. [Decisions](/framework/ux/doc/decisions.md) — every call made and rejected on 2026-08-21."); },
 			// The two pages themselves, one level further — same lever again, so
 			// `/framework/ux/doc/system/` and `.../decisions/` actually resolve
 			// instead of 404ing (found while landing an unrelated task: every

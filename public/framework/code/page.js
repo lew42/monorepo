@@ -17,7 +17,7 @@ export default new Page({
 	children: "patterns dos-and-donts css objects performance",
 
 	content(){
-		div.c("pad", () => new Concepts({ items }));
+		div.c("pad", () => new Concepts({ items: items.map(i => ({ ...i, href: `/framework/code/${i.slug}/` })) }));
 
 		md(`**No build, real ESM.** \`public/\` runs in the browser exactly as written. Pick a topic above.`);
 

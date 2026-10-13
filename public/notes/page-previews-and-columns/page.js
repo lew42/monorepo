@@ -158,7 +158,7 @@ built version.`);
   compositions you can read a page out of.
 - [ext/markdown](/framework/ext/markdown/) — \`md({file})\`, built as \`md.file(import.meta,
   "name.md")\`, resolved against the **module** rather than the document.
-- [Themes](/framework/styles/doc/theme/) — the note picks option (b), and option (b) is
+- [Themes](/framework/styles/doc/theme.md) — the note picks option (b), and option (b) is
   what shipped: a theme is a class, not a stylesheet swap.
 
 The auto-render question is answered by the shape every page in this repo now has:

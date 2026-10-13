@@ -396,7 +396,7 @@ export class Page extends Item {
 	// ⚠ Imported on first use: Markdown extends Page, so a static import is a cycle.
 	async md_folder(){
 		const { default: PageMarkdown } = await import("./Markdown.js");
-		return new PageMarkdown({ folder: this.md_dir(), title: "Markdown" });
+		return new PageMarkdown({ folder: this.md_dir(), title: "Markdown", name: "md" });
 	}
 
 	// This directory's real files, full screen, at my own `fs/` (`?v=1` is the old view). ⚠ Dynamic import. (doc/decisions.md)

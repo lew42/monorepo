@@ -44,7 +44,7 @@ Six classes are now three. `MicPicker` (device choice), `LevelMeter` (the level 
 `mic.level`, and `mic.mode` (`"hold"` | `"toggle"`) + `mic.press()`/`.release()`/`.toggle()`.
 `MicStream.Controls` is the one view that draws the picker, the bar and the mode button together.
 The old six-class version — same classes, same three demo pages, unchanged — is still clickable at
-**[v1](./v1/)** for comparison; see `doc/decisions.md`'s last entry for the full reasoning.
+**[v1](/framework/audio/v1/)** for comparison; see `doc/decisions.md`'s last entry for the full reasoning.
 
 ## Watch out
 
@@ -71,7 +71,7 @@ The old six-class version — same classes, same three demo pages, unchanged —
 
 - [`doc/decisions.md`](doc/decisions.md) — what got extracted vs. rebuilt, the push-to-talk
   `<audio>` choice, and the six-to-three consolidation
-- [v1](./v1/) — the old six-class version, kept clickable for comparison
+- [v1](/framework/audio/v1/) — the old six-class version, kept clickable for comparison
 - Files: one folder per class (`MicStream/`, `Recorder/`, `Transcriber/`), each with its class
   file, `page.js`, `readme.md`
 
