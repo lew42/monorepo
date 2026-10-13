@@ -1,4 +1,4 @@
-import { Page, View, div, p, h3, h4, button, span, input, details, summary } from "/app.js";
+import { Page, View, div, p, h3, h4, button, span, input, details, summary, table, tr, th, td } from "/app.js";
 import FigSelect from "./FigSelect.js";
 FigSelect.install();
 View.stylesheet(import.meta, "tokens.css");
@@ -71,6 +71,10 @@ function layoutsDemo() {
 		div.c("flex wrap gap", () => layouts.filter(l => l[0] === n).forEach(([, scheme, build]) => div.c(`${scheme} fig-lay fig-layouts-box`, build)));
 	}
 }
+// Figma variable → site property, computed by Server/figma-roundtrip.mjs; the story: ../doc/round-trip.md
+const map = await fetch(new URL("map.json", import.meta.url)).then(r => r.json()).catch(() => ({ summary: { same_value: 0, total: 0, same_role: 0, figma_only: 0 }, map: [] }));
+const swatch = c => span.c("fig-swatch").attr("style", `background:${c}`).attr("title", c);
+const hexOf = r => Object.values(r.modes ?? {}).find(v => /^#/.test(v));
 const modes = [["fig-mobile", "Mobile"], ["fig-default", "Default"], ["fig-mega", "Mega"]];
 
 function sample(scheme) {
@@ -91,7 +95,16 @@ export default new Page({
 	width: "full",
 	description: "The Figma file's variables as opt-in --fig-* CSS: the same schemes, modes and spacing, coded.",
 	content() {
-		p("Generated from the Figma variables by FigmaTokens.mjs. Nothing else on the site loads it; a page opts in. The numbers and the plan: doc/token-sync.md.");
+		p("Generated from the Figma variables by FigmaTokens.mjs. Nothing else on the site loads it; a page opts in. The numbers and the plan: [doc/token-sync.md](/framework/ext/Figma/doc/token-sync.md).");
+		h3("Figma variable → site property");
+		p(`${map.summary.same_value} of ${map.summary.total} variables match the site by name and value, ${map.summary.same_role} by role under another name, ${map.summary.figma_only} exist only in Figma. Why and what next: [doc/round-trip.md](/framework/ext/Figma/doc/round-trip.md).`);
+		details(() => {
+			summary("All " + map.summary.total + " variables");
+			table(() => {
+				tr(() => ["Figma", "Site", "Relation"].forEach(h => th(h)));
+				map.map.forEach(r => tr(() => { td(() => { if (hexOf(r)) swatch(hexOf(r)); span(" " + r.figma); }); td(() => { if (r.site && r.siteValue && /^#/.test(r.siteValue)) swatch(r.siteValue); span(" " + (r.site ?? "-")); }); td(r.relation + (r.note ? ": " + r.note : "")); }));
+			});
+		});
 		h3("Schemes");
 		div.c("grid auto gap", () => {
 			for (const [cls, name] of schemes) div.c(`${cls} fig-card fig-stack`, () => {

@@ -1,0 +1,36 @@
+{"id":"234:2003","name":"Index","status":"documented","code":[],"docs":["ext/Figma/doc/page-layout.md"]}
+{"id":"144:1062","name":"Claude · Overview","status":"documented","code":[],"docs":["ext/Figma/doc/figma-browser-loop.md","ext/Figma/doc/scheme.md","ext/Figma/doc/use-figma.md","ext/Figma/readme.md"]}
+{"id":"159:17691","name":"DS · 1 Elements","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"163:20989","name":"DS · 1.1 Icons","status":"documented","code":[],"docs":["ext/Figma/doc/controls.md","ext/Figma/doc/icons.md","ext/Figma/doc/use-figma.md"]}
+{"id":"163:18033","name":"DS · 1.2 Dark grounds","status":"coded","code":["ext/Figma/tokens/page.js"],"docs":["ext/Figma/doc/token-sync.md"]}
+{"id":"158:1263","name":"DS · 2.1 Buttons","status":"coded","code":["ext/Figma/tokens/page.js"],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"159:17140","name":"DS · 2.2 Lists & rows","status":"none","code":[],"docs":[]}
+{"id":"212:1424","name":"Lists · Sidebars, TOC & trees","status":"none","code":[],"docs":[]}
+{"id":"159:17141","name":"DS · 2.3 Cards & containers","status":"none","code":[],"docs":[]}
+{"id":"159:3788","name":"DS · 2.4 Inputs & controls","status":"none","code":[],"docs":[]}
+{"id":"160:1062","name":"DS · 2.5 Status & progress","status":"none","code":[],"docs":[]}
+{"id":"163:18208","name":"DS · 2.6 Dropdowns & menus","status":"coded","code":["ext/Figma/tokens/FigmaTokens.mjs","ext/Figma/tokens/page.js","ext/Figma/tokens/tokens.css"],"docs":["ext/Figma/doc/controls.md","ext/Figma/readme.md"]}
+{"id":"163:18561","name":"DS · 2.7 Toggles, checkboxes & radios","status":"coded","code":["ext/Figma/tokens/page.js"],"docs":["ext/Figma/doc/controls.md"]}
+{"id":"160:18402","name":"DS · 3 Sections","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"153:1062","name":"DS · 4 Layouts","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"164:1067","name":"DS · 5 Diagrams & charts","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"169:1063","name":"DS · 6 Screens","status":"none","code":[],"docs":[]}
+{"id":"222:27861","name":"Screens · Transcription","status":"none","code":[],"docs":[]}
+{"id":"164:1062","name":"DS · 4.1 Foundational layouts","status":"coded","code":["ext/Figma/tokens/FigmaTokens.mjs","ext/Figma/tokens/page.js"],"docs":["ext/Figma/doc/layouts.md","ext/Figma/readme.md"]}
+{"id":"213:24357","name":"Layouts · Two columns","status":"none","code":[],"docs":[]}
+{"id":"126:15264","name":"UI Kit","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"145:13667","name":"Kit · Controls","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"143:1235","name":"Kit · Containers","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"144:1140","name":"Kit · Workflows","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"222:27026","name":"Kit · Nesting","status":"none","code":[],"docs":[]}
+{"id":"135:1062","name":"Claude prototype","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"142:1246","name":"Lab · Site shell","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"150:1062","name":"Lab · Stacks","status":"none","code":[],"docs":[]}
+{"id":"155:1062","name":"Lab · Elements","status":"none","code":[],"docs":[]}
+{"id":"124:1062","name":"Claude test page","status":"coded","code":["ext/Figma/guide/page.js"],"docs":["ext/Figma/doc/use-figma.md"]}
+{"id":"177:1062","name":"Kit · Layouts","status":"none","code":[],"docs":[]}
+{"id":"187:1062","name":"Video · Kit","status":"documented","code":[],"docs":["ext/Figma/doc/video-kit.md"]}
+{"id":"189:1062","name":"Video · Storyboard · The Twelve","status":"documented","code":[],"docs":["ext/Figma/doc/video-kit.md"]}
+{"id":"196:1062","name":"Video · Channel ideas","status":"none","code":[],"docs":[]}
+{"id":"198:23900","name":"Type · Title layouts","status":"documented","code":[],"docs":["ext/Figma/doc/title-layouts.md"]}
+{"id":"218:1062","name":"Colour · Permutations","status":"documented","code":[],"docs":["ext/Figma/doc/use-figma.md"]}

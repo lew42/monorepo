@@ -1,0 +1,316 @@
+{
+ "generated": "node Server/figma-roundtrip.mjs",
+ "figma": "QYN0G2URSBHYH5I06MOjxU",
+ "summary": {
+  "same_value": 5,
+  "same_name_other_value": 2,
+  "same_role": 9,
+  "figma_only": 6,
+  "skipped": 2,
+  "total": 24,
+  "site_only_colour_tokens": [
+   "--prime-ink",
+   "--shadow",
+   "--line",
+   "--wash",
+   "--tint",
+   "--hot"
+  ]
+ },
+ "map": [
+  {
+   "figma": "prime",
+   "collection": "Colors",
+   "type": "COLOR",
+   "modes": {
+    "Mode 1": "#ff6157"
+   },
+   "site": "--prime",
+   "siteValue": "#FF6157",
+   "relation": "same name, same value"
+  },
+  {
+   "figma": "light",
+   "collection": "Colors",
+   "type": "COLOR",
+   "modes": {
+    "Mode 1": "#dddddd"
+   },
+   "site": "--light",
+   "siteValue": "light-dark(color-mix(in srgb, var(--dark) 8%, #fff), color-mix(in srgb, #fff 6%, #17161a))",
+   "relation": "same name, different value"
+  },
+  {
+   "figma": "dark",
+   "collection": "Colors",
+   "type": "COLOR",
+   "modes": {
+    "Mode 1": "#675f56"
+   },
+   "site": "--dark",
+   "siteValue": "#42404B",
+   "relation": "same name, different value"
+  },
+  {
+   "figma": "error",
+   "collection": "Colors",
+   "type": "COLOR",
+   "modes": {
+    "Mode 1": "#cc0000"
+   },
+   "site": "--error",
+   "siteValue": "light-dark(#c00, #ff7b72)",
+   "relation": "same name, same value"
+  },
+  {
+   "figma": "ok",
+   "collection": "Colors",
+   "type": "COLOR",
+   "modes": {
+    "Mode 1": "#15803d"
+   },
+   "site": "--ok",
+   "siteValue": "light-dark(#15803d, #4ade80)",
+   "relation": "same name, same value"
+  },
+  {
+   "figma": "warn",
+   "collection": "Colors",
+   "type": "COLOR",
+   "modes": {
+    "Mode 1": "#a16207"
+   },
+   "site": "--warn",
+   "siteValue": "light-dark(#a16207, #fbbf24)",
+   "relation": "same name, same value"
+  },
+  {
+   "figma": "text",
+   "collection": "Text",
+   "type": "COLOR",
+   "modes": {
+    "Light BG": "#000000cc",
+    "Dark BG": "#ffffff",
+    "Light gray BG": "#000000cc",
+    "Prime BG": "#000000d9"
+   },
+   "site": "--ink",
+   "siteValue": "light-dark(#1a1a1a, #e8e8ea)",
+   "relation": "same role, other name",
+   "note": "body text"
+  },
+  {
+   "figma": "muted",
+   "collection": "Text",
+   "type": "COLOR",
+   "modes": {
+    "Light BG": "#0000008c",
+    "Dark BG": "#ffffffb2",
+    "Light gray BG": "#0000008c",
+    "Prime BG": "#0000009e"
+   },
+   "site": "--subtle",
+   "siteValue": "light-dark(rgba(0,0,0,0.55), rgba(255,255,255,0.55))",
+   "relation": "same role, other name",
+   "note": "second text colour"
+  },
+  {
+   "figma": "surface",
+   "collection": "Text",
+   "type": "COLOR",
+   "modes": {
+    "Light BG": "#ffffff",
+    "Dark BG": "alias:dark",
+    "Light gray BG": "#f2f2f2",
+    "Prime BG": "alias:prime"
+   },
+   "site": "--surface",
+   "siteValue": "light-dark(#fff, #17161a)",
+   "relation": "same name, same value"
+  },
+  {
+   "figma": "accent",
+   "collection": "Text",
+   "type": "COLOR",
+   "modes": {
+    "Light BG": "alias:prime",
+    "Dark BG": "alias:prime",
+    "Light gray BG": "alias:prime",
+    "Prime BG": "alias:dark"
+   },
+   "site": "--prime",
+   "siteValue": "#FF6157",
+   "relation": "same role, other name",
+   "note": "the accent; the site never swaps it per ground"
+  },
+  {
+   "figma": "on-accent",
+   "collection": "Text",
+   "type": "COLOR",
+   "modes": {
+    "Light BG": "#000000d9",
+    "Dark BG": "#000000d9",
+    "Light gray BG": "#000000d9",
+    "Prime BG": "#ffffff"
+   },
+   "relation": "figma only",
+   "note": "no site token: text on an accent fill is picked per component"
+  },
+  {
+   "figma": "pad-x",
+   "collection": "Resolution",
+   "type": "FLOAT",
+   "modes": {
+    "Default": 32,
+    "Mobile": 16,
+    "Mega": 56
+   },
+   "site": "--pad-card",
+   "siteValue": "calc(clamp(1rem, 2.6%, 2em) * var(--size))",
+   "relation": "same role, other name",
+   "note": "card inset; fluid on the site, fixed per mode in Figma"
+  },
+  {
+   "figma": "pad-y",
+   "collection": "Resolution",
+   "type": "FLOAT",
+   "modes": {
+    "Default": 36,
+    "Mobile": 24,
+    "Mega": 64
+   },
+   "site": "--pad-card",
+   "siteValue": "calc(clamp(1rem, 2.6%, 2em) * var(--size))",
+   "relation": "same role, other name",
+   "note": "same"
+  },
+  {
+   "figma": "radius",
+   "collection": "Resolution",
+   "type": "FLOAT",
+   "modes": {
+    "Default": 4,
+    "Mobile": 4,
+    "Mega": 6
+   },
+   "site": "--radius",
+   "siteValue": "0.5em",
+   "relation": "same role, other name",
+   "note": "0.5em on the site, 4/4/6px in Figma"
+  },
+  {
+   "figma": "gap",
+   "collection": "Resolution",
+   "type": "FLOAT",
+   "modes": {
+    "Default": 16,
+    "Mobile": 14,
+    "Mega": 32
+   },
+   "site": "--gap",
+   "siteValue": "calc(clamp(1em, 1.5cqi - 0.3em, 2.4em) * var(--size))",
+   "relation": "same role, other name",
+   "note": "fluid on the site"
+  },
+  {
+   "figma": "section-pad-y",
+   "collection": "Resolution",
+   "type": "FLOAT",
+   "modes": {
+    "Default": 120,
+    "Mobile": 48,
+    "Mega": 64
+   },
+   "site": "--flow",
+   "siteValue": "calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * var(--size))",
+   "relation": "same role, other name",
+   "note": "vertical flow between sections; fluid"
+  },
+  {
+   "figma": "h1-size",
+   "collection": "Resolution",
+   "type": "FLOAT",
+   "modes": {
+    "Default": 48,
+    "Mobile": 32,
+    "Mega": 64
+   },
+   "relation": "figma only",
+   "note": "no site token (the site has no h1-size)"
+  },
+  {
+   "figma": "section-pad-x",
+   "collection": "Resolution",
+   "type": "FLOAT",
+   "modes": {
+    "Default": 48,
+    "Mobile": 16,
+    "Mega": 80
+   },
+   "site": "--pad",
+   "siteValue": "calc(clamp(1em, 2.6% - 1.1em,   4em)   * var(--size))",
+   "relation": "same role, other name",
+   "note": "page edge pad; fluid"
+  },
+  {
+   "figma": "btn-pad-x",
+   "collection": "Resolution",
+   "type": "FLOAT",
+   "modes": {
+    "Default": 26,
+    "Mobile": 14,
+    "Mega": 24
+   },
+   "relation": "figma only",
+   "note": "no site token (the site has no btn-pad-x)"
+  },
+  {
+   "figma": "btn-pad-y",
+   "collection": "Resolution",
+   "type": "FLOAT",
+   "modes": {
+    "Default": 16,
+    "Mobile": 8,
+    "Mega": 14
+   },
+   "relation": "figma only",
+   "note": "no site token (the site has no btn-pad-y)"
+  },
+  {
+   "figma": "small-pad-x",
+   "collection": "Resolution",
+   "type": "FLOAT",
+   "modes": {
+    "Default": 12,
+    "Mobile": 8,
+    "Mega": 16
+   },
+   "relation": "figma only",
+   "note": "no site token (the site has no small-pad-x)"
+  },
+  {
+   "figma": "small-pad-y",
+   "collection": "Resolution",
+   "type": "FLOAT",
+   "modes": {
+    "Default": 6,
+    "Mobile": 4,
+    "Mega": 8
+   },
+   "relation": "figma only",
+   "note": "no site token (the site has no small-pad-y)"
+  },
+  {
+   "figma": "size",
+   "collection": "Resolution",
+   "relation": "skipped",
+   "note": "unfinished experiment in the file"
+  },
+  {
+   "figma": "ref",
+   "collection": "Resolution",
+   "relation": "skipped",
+   "note": "unfinished experiment in the file"
+  }
+ ]
+}
