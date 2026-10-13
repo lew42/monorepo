@@ -36,6 +36,8 @@ The brief's condition was "every mention relinked". The dry run shows it is not:
 
 ## What is ready, and the order to apply it
 
+The decision was accepted on 2026-10-13. The apply is the next brief: [next.md](next.md), with the exact edit list.
+
 1. `Cards.dir(id)` in `Servex/cards/Cards.js`: id → `ai/sessions/YYYY/MM/DD/cards/<slug>/`, falling back to the old `ai/YYYY/MM/DD/<slug>/` while both exist; every reader above calls it (one resolver, CLAUDE.md law 6). `create_card` writes the new place.
 2. The router: `/framework/ai/YYYY/MM/DD/<card>/` answers from the new folder (the same redirect `StoreFolder` gives old task urls).
 3. The move: `TaskMove` with the manifest (sha1 snapshot, `--verify --run last`, `--undo` reverses that run only; proven on a worktree copy today), then `--relink --run last`.
