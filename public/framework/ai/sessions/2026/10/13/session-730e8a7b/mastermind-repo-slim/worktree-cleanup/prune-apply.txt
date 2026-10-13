@@ -52,3 +52,5 @@ pruned wt-task-folders  (branch salvage/wt-task-folders-2026-10-13 kept: detache
 pruned comment-prune-3
 manifest: C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-cleanup/manifest.json (14)
 41 pruned; 11 worktree(s) remain
+pruned inbox-ranking
+1 pruned; 8 worktree(s) remain

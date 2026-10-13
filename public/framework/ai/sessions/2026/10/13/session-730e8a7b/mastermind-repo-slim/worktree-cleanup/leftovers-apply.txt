@@ -11,3 +11,18 @@ keep    proposal-flow: 10370 files, 7967 in git, 554 ignored, 1847 server logs �
 removed qf-9: 0 files, 0 in git, 0 ignored, 0 server logs
 removed recursive-pairs: 0 files, 0 in git, 0 ignored, 0 server logs
 removed refine-nothing: 7902 files, 6273 in git, 3 ignored, 1626 server logs
+removed refine-style: 35317 files, 9053 in git, 24279 ignored, 1985 server logs
+removed restart-outside-tree: 1 files, 0 in git, 1 ignored, 0 server logs
+removed review-turns: 171 files, 170 in git, 1 ignored, 0 server logs
+removed scratchpad: 0 files, 0 in git, 0 ignored, 0 server logs
+keep    screenshot-build-a: 0 files, 0 in git, 0 ignored, 0 server logs — remove failed: EPERM
+removed server-query: 411 files, 407 in git, 2 ignored, 2 server logs
+keep    server-query-parity: 14905 files, 7808 in git, 5259 ignored, 1809 server logs — 29 file(s) git has never seen, e.g. public/framework/ai/sessions/2026/09/04/index.json
+removed servex-docs-tab: 0 files, 0 in git, 0 ignored, 0 server logs
+removed session-class7: 362 files, 357 in git, 2 ignored, 3 server logs
+removed source-library: 167 files, 166 in git, 1 ignored, 0 server logs
+keep    whisper-log: 10986 files, 8415 in git, 623 ignored, 1948 server logs — remove failed: EPERM
+removed worktrees: 0 files, 0 in git, 0 ignored, 0 server logs
+removed figma-guide: 409 files, 407 in git, 0 ignored, 2 server logs
+removed phone-https: 18665 files, 12849 in git, 2218 ignored, 3598 server logs
+removed worktrees: 0 files, 0 in git, 0 ignored, 0 server logs

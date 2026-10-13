@@ -1,0 +1,40 @@
+{
+	"at": "2026-10-13T21:24:52.146Z",
+	"apply": true,
+	"root": "C:/Code/lew42/worktrees",
+	"folders": [
+		{
+			"name": "figma-guide",
+			"path": "C:/Code/lew42/monorepo/.claude/worktrees/figma-guide",
+			"files": 409,
+			"ignored": 0,
+			"noise": 2,
+			"in_git": 407,
+			"unique": [],
+			"unique_count": 0,
+			"removed": true
+		},
+		{
+			"name": "phone-https",
+			"path": "C:/Code/lew42/monorepo/.claude/worktrees/phone-https",
+			"files": 18665,
+			"ignored": 2218,
+			"noise": 3598,
+			"in_git": 12849,
+			"unique": [],
+			"unique_count": 0,
+			"removed": true
+		},
+		{
+			"name": "worktrees",
+			"path": "C:/Code/lew42/monorepo/.claude/worktrees/worktrees",
+			"files": 0,
+			"ignored": 0,
+			"noise": 0,
+			"in_git": 0,
+			"unique": [],
+			"unique_count": 0,
+			"removed": true
+		}
+	]
+}
