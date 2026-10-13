@@ -10,23 +10,14 @@ import { set_item } from "./persist.js";
 import { item_selection } from "./text.js";
 import { name_of, remove } from "./Workspace/documents.js";
 
-/* The inspector: one panel showing the FOCUSED panel's words as live controls — the wide
-   version of the bar, for a panel that is not the one you are pointing at. Every mutation
-   is `item.set(key, value)`, the same call the bar makes, followed by `repaint()`, which
-   is how a control in one panel redraws another. Look: templates.css (`.panel-props*`).
-   `.panel-controls` is the one word that says "my top edge is live" — panel.css reserves
-   the bar's height for it, and any other control surface says it the same way.
-   Design record: doc/focus.md. */
-
+// Inspector: live controls for FOCUSED panel; every mutation via item.set() + repaint(); see doc/properties-notes.md.
 export function properties(panel){
 	const root = panel.root();
 	const $props = div.c("panel-props panel-controls");
 
 	const render = () => { $props.empty(() => { fields(focused(panel)); }); };
 
-	/* ⚠ The listener outlives this DOM — a template switch or a structural redraw drops
-	   the element and leaves the root holding a dead closure. So it checks whether it is
-	   still in a workspace and unbinds itself if it is not: one round, then gone. */
+	// ⚠ Check in workspace and unbind if not (see doc/properties-notes.md).
 	const hear = () => { $props.el.closest(".panel-workspace") ? render() : stop(); };
 	const stop = () => { root.off("focus", hear); root.off("change", hear); };
 
@@ -36,9 +27,7 @@ export function properties(panel){
 	render();
 }
 
-/* `document: true` is the DRAWER's call (tools.js): only the rail at the page's edge shows the
-   document block — an in-workspace inspector (the `properties` template) is content, and a
-   Delete button inside the document it would delete is not. */
+// Document block only in drawer, not in-workspace (see doc/properties-notes.md).
 export function fields(target, { document: doc = false } = {}){
 	if (!target){
 		span.c("panel-props-empty muted", "Click any panel — its words appear here.");
@@ -48,13 +37,10 @@ export function fields(target, { document: doc = false } = {}){
 	const entries = vocab(target);
 	const split = !target.leaf();
 
-	/* A SPLIT alone gets a head. A leaf's head was its template's picture and name — which
-	   is exactly what the template dropdown right underneath says now, and the same thing
-	   twice in two rows is one thing too many (2026-08-19). */
+	// Split gets head (see doc/properties-notes.md).
 	if (split) div.c("panel-props-head", () => { span("split · " + target.get("dir")); });
 
-	/* ⚠ `hug` on a SPLIT measures children that size themselves from it and collapses the
-	   panel to 0px, with nothing left to point at. A split gets its axis; a leaf the rest. */
+	// ⚠ Split axis only; leaf gets rest (hug on split collapses to 0px) (see doc/properties-notes.md).
 	if (split){
 		root_words(target);
 		group_words(target);
@@ -74,13 +60,7 @@ export function fields(target, { document: doc = false } = {}){
 	   word whose `names` are the document's own vocabulary. doc/words.md. */
 	words(target, "template", { names: Object.keys(entries), pics: entries, drop: true });
 
-	/* Every word that is one key with a fixed list, from `glyphs.js`'s `WORDS` — the table
-	   this rail is now the ONLY reader of: tone, display, then whatever that display mode
-	   makes live — a `gap`, a `wrap` and a `justify` under flex, a track count and `dense`
-	   under grid — then align, then position. ⚠ `position` stays last of them for the reason
-	   it always was: it says what the two size rows MEAN — in flow an extent is a flex
-	   basis, out of flow a declared box. A split is offered none of it, the same
-	   withholding `w`/`h` already make. */
+	// ⚠ position last (see doc/properties-notes.md); split gets none (w/h withheld).
 	live_words(target).forEach(([key, word]) => words(target, key, word));
 
 	size_words(target, "w", "width");
@@ -96,25 +76,7 @@ export function fields(target, { document: doc = false } = {}){
 	if (doc) document_block(target);
 }
 
-/* ── WHAT A HAND DOES TO A PANEL ───────────────────────────────────────────────
-   Split it in two, and close it. These are the last three buttons off the floating bar,
-   which is deleted (2026-09-18, `workspace.js`) — a control that floats over the thing it
-   controls is not a control, and this module measured that twice.
-
-   ⚠ ONE `split` ROW, NOT TWO. The brief that moved them said "two rows"; every other row
-     in this rail is one tag and one set of buttons, and two rows holding one button each
-     would be the only rows here shaped differently — which is exactly the kind of drift
-     that made the bar unreadable. The tag says `split`; the two pictures say which way.
-     `doc/decisions.md`.
-
-   ⚠ `close` IS OFFERED ONLY WHERE IT MEANS SOMETHING — a panel with no sibling to give its
-     space back to cannot be closed, which is the same test the bar made. And it is LAST, in
-     the place this rail already puts its one irreversible verb (`document_block()` below).
-
-   ⚠ NO `apply()` AFTER EITHER. Both `divide()` and `close()` change the TREE, which raises
-     `add`/`remove` on the root — `workspace.js` redraws the whole workspace from that, and
-     `focus.js` moves the selection with it. `apply()` here would repaint a panel that the
-     redraw has already replaced. */
+// ⚠ One split row (two pictures); close only if sibling exists; no apply() (tree changes) (see doc/properties-notes.md).
 const hand_words = target => {
 	row(() => {
 		span.c("panel-props-tag", "split");
@@ -142,13 +104,7 @@ const hand_words = target => {
 	});
 };
 
-/* The DOCUMENT, when the selection is a ROOT that documents.js opened (the owner,
-   2026-08-19: "a right drawer selection for the document itself … a red delete button at the
-   bottom of the drawer, with an 'ok' accept prompt"). Its name, and the one irreversible
-   verb — Delete, red, pushed to the rail's foot, behind the browser's own `confirm`.
-   `default` is `/data/panels.json`, the owner's own file: never offered. A MemorySaver root
-   (a demo) has no name and gets no block. The removal is announced on the document so the
-   playground can leave the page it is standing on — `properties.js` knows no router. */
+// Document block (Delete button, confirm) if root has name (not default or demo) (see doc/properties-notes.md).
 const document_block = root => {
 	const name = !root.parent && name_of(root.saver);
 	if (!name) return;
@@ -168,24 +124,11 @@ const document_block = root => {
 	});
 };
 
-/* What every control here does after it writes: repaint the PANEL, then restate the RAIL.
-
-   ⚠ The rail does not redraw itself. `properties()` above (the in-workspace inspector)
-   listens for `change`; `fields()` drawn into `ext/drawer` by `tools.js` has no listener at
-   all, so every control rendered its lit state ONCE — pick `cells` and the trigger still
-   said `toc`, pick `grid` and the grid rows never appeared, because `live_words()` had
-   already been read. The owner read that, correctly, as "the dropdown doesn't do anything"
-   (2026-08-19). Re-announcing the SELECTION is the redraw: `tools.js` fills the rail from
-   `panel-focus` and nothing else has to know this happened.
-   ⚠ The scroll position is the rail's, not the fill's — an `empty()` throws it away, and a
-   long rail jumping to the top on every click is its own bug. Restored a frame later,
-   because `tools.js` fills after a dynamic import. */
+// ⚠ Dispatch panel-focus event; restore scroll position after fill (see doc/properties-notes.md).
 const apply = target => {
 	repaint(target);
 
-	// `repaint()` paints EVERY live rendering since 2026-08-19 (paint.js `views_of`) — the
-	// box under the pointer included; it used to hold one, and painted a hidden twin.
-
+	// repaint() paints every live rendering (see doc/properties-notes.md).
 	const scroller = document.querySelector(".drawer-body");
 	const top = scroller?.scrollTop ?? 0;
 
