@@ -19,3 +19,10 @@
 {"log":{"at":"2026-10-13T18:10:46-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T18:10:47-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T18:10:51-05:00","msg":"session ended (other) without landing"}}
+{"review":{"at":"2026-10-13T18:12:05-05:00","answer":{"n":1,"reply":"fixed: a module outside judgments.json now counts as 'not a candidate' (= not AI), in Server/ModuleHomes.mjs and ai/doc/module-homes.md (9cfc23f9f)"}}}
+{"review":{"at":"2026-10-13T18:12:05-05:00","answer":{"n":2,"reply":"fixed: the coordination with one-store and dictate-check is now logged in task.jsonl; one-store moves record folders only, so the moves do not cross"}}}
+{"review":{"at":"2026-10-13T18:12:05-05:00","answer":{"n":3,"reply":"noted: the owner_note and the card report are written at landing, right after this merge"}}}
+{"review":{"at":"2026-10-13T18:12:05-05:00","answer":{"n":4,"reply":"declined: no children: entry in ai/page.js, because children there become tabs; the page is linked from ai/readme.md, the old-address pointer and module-homes.md"}}}
+{"review":{"at":"2026-10-13T18:12:05-05:00","answer":{"n":5,"reply":"noted: the shared 404 is on every page, including pages this move does not touch (optional weight.jsonl / settings.jsonl lookups); it was there before this change"}}}
+{"review":{"at":"2026-10-13T18:12:05-05:00","answer":{"n":6,"reply":"fixed: the out-of-fence files hold only relinked ext/AITask mentions; 7 health-watch cards in board.jsonl and a health line in task.jsonl had ridden in from the private server, and they are now off the branch (9cfc23f9f)"}}}
+{"review":{"at":"2026-10-13T18:12:05-05:00","answer":{"n":7,"reply":"noted: ai/AISession's readme has no title line; that readme is outside this task's fence"}}}
