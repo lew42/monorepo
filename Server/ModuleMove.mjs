@@ -102,8 +102,9 @@ class ModuleMove {
 					if (!tok.includes("/")) continue;
 					const r = this.relink(tok, file, { moved, history, code });
 					if (r == null) continue;
-					out += line.slice(last, m.index) + r; last = m.index + tok.length;
-					edits.push({ line: n, from: tok, to: r });
+					out += line.slice(last, m.index);
+					edits.push({ line: n, col: out.length, from: tok, to: r });
+					out += r; last = m.index + tok.length;
 				}
 				if (last) lines[n] = out + line.slice(last);
 			});
@@ -122,7 +123,7 @@ class ModuleMove {
 		fs.mkdirSync(path.dirname(path.join(this.repo, this.to)), { recursive: true });
 		this.git("mv", this.from, this.to);
 		const manifest = { at: new Date().toISOString(), from: this.from, to: this.to,
-			files: changes.map(c => ({ file: c.file, now: c.moved ? this.to + c.file.slice(this.from.length) : c.file, edits: c.edits.map(({ line, from, to }) => ({ line, from, to })) })) };
+			files: changes.map(c => ({ file: c.file, now: c.moved ? this.to + c.file.slice(this.from.length) : c.file, edits: c.edits.map(({ line, col, from, to }) => ({ line, col, from, to })) })) };
 		fs.mkdirSync(path.dirname(manifestFile), { recursive: true });
 		fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, "\t") + "\n");
 		return manifest;
@@ -133,9 +134,9 @@ class ModuleMove {
 		const mover = new ModuleMove(repo, m.from, m.to);
 		for (const f of m.files){
 			const abs = path.join(repo, f.now), lines = fs.readFileSync(abs, "utf8").split("\n");
-			for (const e of [...f.edits].reverse()){
-				const i = lines[e.line].lastIndexOf(e.to);
-				if (i < 0) throw new Error(`${f.now}:${e.line + 1} no longer holds ${e.to}`);
+			for (const e of [...f.edits].reverse()){   // right to left, so each col is still where the forward pass put it
+				const i = e.col;
+				if (lines[e.line].slice(i, i + e.to.length) !== e.to) throw new Error(`${f.now}:${e.line + 1}:${i} no longer holds ${e.to}`);
 				lines[e.line] = lines[e.line].slice(0, i) + e.from + lines[e.line].slice(i + e.to.length);
 			}
 			fs.writeFileSync(abs, lines.join("\n"));
