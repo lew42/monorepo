@@ -4,14 +4,16 @@
 
 | File | Class | What happens |
 |---|---|---|
-| `task.jsonl`, `page.jsonl`, `spend.json`, `log.jsonl`, `words.jsonl`, `session.jsonl` (in a task or session folder) | record | committed in batches by the sweeper |
-| `files.jsonl` (folder listing the dev server regenerates) | record, noisy | committed by the sweeper (2,800 are already tracked; untracking them is a later, scripted step) |
+| `task.jsonl`, `page.jsonl`, `spend.json`, `log.jsonl`, `words.jsonl`, `session.jsonl`, `day.jsonl` (in a task, session or day folder) | record | committed in batches by the sweeper |
+| `files.jsonl` (folder listing the dev server regenerates) | record, noisy | committed by the sweeper, and kept committed: the static site reads them and has no build step to make them (decided 2026-10-13, [repo-size.md](../../doc/repo-size.md)) |
 | `public/ai/*.jsonl` (voice logs), `.claude/skills/*/flags.jsonl` | record | committed by the sweeper |
 | `ai/sessions/YYYY/MM/DD/<session>/index.json` | cache (rebuildable) | gitignored already (never swept) |
 | `ai/sessions/YYYY[/MM[/DD]]/index.json` (day, month, year composite) | cache, but 31 are tracked | the sweeper commits the tracked ones when they change (a new, ignored one never appears) |
 | `ai/usage.jsonl`, `ai/cards.jsonl` | record | committed by the sweeper; usage history is kept (184 KB; see `repo-size-plan` for any later archiving) |
 | `public/framework/**/doc/files.jsonl` (outside `ai/`) | record, noisy | committed by the sweeper |
 | `*.summary.json` next to a voice log | cache | gitignored |
+| a screenshot (`png`/`jpg`/`webp`) anywhere under `public/framework/ai/`, outside a `doc/` folder (images inside a `doc/` folder stay committed) | output, too heavy for git | gitignored (2026-10-13): pictures were 84% of git history; they stay on disk; the 2,725 already tracked stay tracked until a scripted untrack ([repo-size.md](../../doc/repo-size.md)) |
+| `owner-prompts.jsonl`, `sessions/transcripts/`, `.claude/prompts/` (the owner's own words, extracted from transcripts) | private, regenerable | gitignored, so the owner's words never leave this machine; one `owner-prompts.jsonl` (2026-10-12) is tracked and awaits the owner's call |
 | code, briefs, readmes, docs | work | never swept: committed by the agent that wrote them |
 
 ## The sweeper

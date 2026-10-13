@@ -9,6 +9,7 @@ Where the agents' work is recorded: one folder per day, one folder per task insi
 Accounting first. Each link is that system's own short readme; follow it to go one level deeper.
 
 - **Accounting**: [token accounting](doc/tokens/tokens.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md)
+- **Repo size** (what git holds, what should be committed, the plan to slim it): [doc/repo-size.md](doc/repo-size.md) · `node Server/repo-size.mjs`
 - **Servex** (runs the agents): [readme](/framework/servex/) · [SDK](/framework/servex/doc/sdk.md) · [decisions](/framework/servex/doc/architecture.md)
 - **Dev server**: [Server/readme.md](/framework/dev/)
 - **MCP tools**: [doc/agents/mcp.md](doc/agents/mcp.md)
