@@ -9,3 +9,7 @@
 {"log":{"at":"2026-10-13T19:05:00-05:00","msg":"landed: the phone sheet's full state now mounts the drawer tab row and body under the chat (commit 4cb0adf91, merged 6441b0642). Mic proof passes; 400 px shots full-400-before.png / full-400-after.png / full-400-dictation.png in this dir."}}
 {"shot":{"path":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-sheet/full-400-after.png"}}
 {"log":{"at":"2026-10-13T18:47:56-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T18:53:05-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-dictate-sheet"}}
+{"log":{"at":"2026-10-13T18:53:06-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:53:38-05:00","heartbeat":"answered","msg":"Done and landed. The phone sheet's full state now shows the drawer's tab row (AI, Dictation, Settings) under the chat, and the mic keeps listening as it expands. It merged as `6441b0642` (change commi"}}
+{"assign":{"landed_at":"2026-10-13T19:10:00-05:00","title":"ext/drawer: the phone sheet's full state is the sidebar's tabs","outcome":"The sheet's full state mounts the drawer tab row and body under the chat; mic keeps listening; mic-proof passes; merged 6441b0642 (change 4cb0adf91). 400 px shots only; 1200/1920/3440 layout-check not run.","links":["/framework/ext/drawer/","/framework/ux/Dictate/doc/next.md","/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-sheet/"]}}
