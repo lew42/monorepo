@@ -6,3 +6,9 @@
 {"decision":{"at":"2026-10-13T17:21:09-05:00","what":"Readers are 4 Haiku Agent-tool subagents (batches A-C of skills ~12k words each + CLAUDE.md, D = improvements.md), not spawn_agent","alternative":"spawn_agent minions with task dirs","why":"read-only, ~10 min, results are files in this dir; no tracking needed"}}
 {"action":{"at":"2026-10-13T17:21:28-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/skills-review/readers/A.md"]}}
 {"action":{"at":"2026-10-13T17:22:02-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/skills-review/readers/B.md"]}}
+{"action":{"at":"2026-10-13T17:22:32-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/skills-review/readers/D.md"]}}
+{"action":{"at":"2026-10-13T17:23:22-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/skills-review/readers/C.md"]}}
+{"action":{"at":"2026-10-13T17:26:38-05:00","did":"edit","files":[".claude/skills/mastermind/SKILL.md"]}}
+{"action":{"at":"2026-10-13T17:26:55-05:00","did":"edit","files":[".claude/skills/minion/SKILL.md"]}}
+{"action":{"at":"2026-10-13T17:27:49-05:00","did":"edit","files":[".claude/skills/documentation/SKILL.md"]}}
+{"action":{"at":"2026-10-13T17:27:50-05:00","did":"edit","files":[".claude/skills/new-page/SKILL.md"]}}

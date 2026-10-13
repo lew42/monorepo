@@ -15,3 +15,4 @@
 {"review":{"answer":{"n":5,"reply":"declined: it is ask 9 of the same dictation (requirements-5), linked as open"}}}
 {"review":{"answer":{"n":6,"reply":"fixed: Detail link added"}}}
 {"review":{"found":6,"real":5,"fixed":5}}
+{"decision":{"at":"2026-10-13T17:27:59-05:00","what":"merge with --skip-smoke","why":"smoke 404s are main-tree untracked page.jsonl files absent from the worktree (also on /framework/servex/, untouched by this branch); layout-check at 4 widths shows no script errors on the changed page","alternative":"copy untracked cards into the worktree"}}

@@ -1,0 +1,25 @@
+# One AI store: retire day folders
+
+**Goal:** `framework/ai` has one tree. The flat `ai/<date>/` folders move into it, the code that still writes them is fixed, and the readme states the pattern.
+
+- **Budget:** $25. Load the `sub-mastermind` skill first. You are an Opus task mastermind: a wrong step breaks the pages the whole AI UI reads.
+- **Owner's words:** `../requirements-8.md`, asks 1, 3 and 4: "I don't like having that date directory right in the AI folder… port everything over to one single data structure… I've asked for this to be cleaned up".
+- **Log:** this dir's `task.jsonl`.
+- **Rules (CLAUDE.md):** moves are scripted (dry run, manifest, reversible), never retyped; never destructive; link every mention.
+
+## The facts (mastermind, 17:35)
+
+- Flat day folders still exist and are still being WRITTEN: `public/framework/ai/2026-10-12/` (96 MB, from the 10-12 night run) and `public/framework/ai/2026-10-13/` (created today 16:54: `crawl/crawl.jsonl`, `feedback-council/{requirements.md, words.jsonl}`). Writers that still build an `ai/<date>/` path: `Servex/Servex.js`, `Servex/agents/Sessions.js`, `Servex/cards/Cards.js` (grep `ai/2026-10-` and date-joined paths), maybe the crawl script. The day folders were retired 2026-10-12 (`ai/doc/task-folders.md`; `Server/TaskDirs.mjs` has the mover: `--plan --apply --verify --undo`; `Server/TaskMove.mjs --apply/--relink` relinks every md/js/html mention).
+- Two year trees exist: `ai/sessions/YYYY/MM/DD/session-<id>/<task>/` (tasks, the store) and `ai/YYYY/MM/DD/<card-slug>/` (the owner's cards, written by `Servex/cards/Cards.js create_card`; 43 cards today). The Inbox and the AI page read both.
+
+## Deliverable, in order; each step committed before the next
+
+1. **Mistake audit, one screen** (`doc/why-the-day-folder-came-back.md` in this task dir): which code wrote `ai/2026-10-13/` today (file:line, the agent, the time), why the 10-12 retirement did not stop it, and the one change that stops it for good (a check in `TaskDirs.mjs`/the append hook that refuses an `ai/<YYYY-MM-DD>/` path, with the message naming the right place).
+2. **Fix the writers** (Servex.js, Sessions.js, Cards.js, any script): every path goes through `TaskDirs` (or the cards' own resolver), never a hand-joined date. Tested on a private Servex from a worktree (spawn a stub session, see where its folder lands). The live Servex is restarted by the mastermind.
+3. **Move the two flat day folders into the store** with the existing mover: `--plan`, then `--apply`, `--verify`, then `TaskMove.mjs --relink`; the manifest in this task dir; `git mv` so history follows; the old paths keep answering through `TaskDirs.redirect()` (prove one old URL still loads). Nothing deleted; `--undo` proven once on a worktree copy before the real apply.
+4. **One tree, the decision**: the owner wants a single structure. Decide between (a) `ai/YYYY/MM/DD/` holding both `session-<id>/` and the cards side by side (the sessions store moves up one level; `ai/sessions/` becomes the index page only), and (b) cards moving under `ai/sessions/YYYY/MM/DD/cards/`. Write the decision with the alternative and the caveats (callers: `TaskDirs`, `Cards.js`, the Inbox, `AISession*`, `SessionIndex`, `FollowUp`, `PastWork`, every link in md). Then produce the DRY-RUN manifest and the relink count for the chosen one, and the proof plan (every link in the repo resolves after; the undo). **Apply it only if** the dry run shows every mention relinked and the undo works on a worktree copy and the four pages (`/framework/ai/`, the Inbox, a session page, a card page) pass `check_page` on the worktree; otherwise land the manifest + plan and an `owner_note` saying exactly what is ready and why it waited (that is the one acceptable reason to wait: a proof that failed).
+5. **The pattern in the readme**: `public/framework/ai/readme.md` states the one tree in three lines (what goes where, with the path), and `ai/doc/task-folders.md` gets the decision; the `new-task`, `new-page` and `documentation` skills each get one line: "a file about a module lives in that module's folder; a record lives in the store at its date path; nothing else is created under `ai/`" (the owner: "creating a new file, what its name is and what goes in it are the most important questions").
+6. **Owner note** (kind `decision`): what was moved, what writer was fixed, the one tree chosen, the link to the readme pattern.
+7. Report on your card: folders moved, links relinked, writers fixed, the decision, the proof results.
+
+Fence: `Server/TaskDirs.mjs`, `Server/TaskMove.mjs`, `Servex/Servex.js`, `Servex/agents/Sessions.js`, `Servex/cards/Cards.js` (path building only), `.claude/hooks/append.mjs` (the path check), `public/framework/ai/readme.md`, `ai/doc/task-folders.md`, the three skill lines, the moved folders and their relinked mentions, this task dir. Coordinate: the `inbox-data` task (Opus) is editing `core/Page/ext/Inbox` right now and reads card paths: tell it by `send_to_agent` before any card path changes, and do not touch its files. Opus judges; Haiku runs the censuses.
