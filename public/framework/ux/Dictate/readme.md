@@ -371,3 +371,4 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
 - **The prompt is a living object** (the owner, 2026-10-04): a content list that keeps growing as the owner talks; the mastermind working on it receives each update and can start before the prompt is "finished". Opinion, not yet designed.
 
 - [`doc/notes.md`](./doc/notes.md) and [`doc/widget-notes.md`](./doc/widget-notes.md) — comments pruned from `Dictate.js` and `Widget.js`, verbatim.
+- [`playground/doc/Playground-notes.md`](./playground/doc/Playground-notes.md) — design notes and implementation details for the Playground widget.
