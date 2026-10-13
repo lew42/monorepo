@@ -1,0 +1,51 @@
+would  agent-a26ce54dac0bc7bef
+skip   agent-a3c7fdb6298cb9b59: 1 changed file(s), e.g. public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/task.jsonl
+would  agent-a7d2d39bc12acdec7
+skip   agent-aa071c45801e00b21: 1 changed file(s), e.g. public/framework/ai/2026-10-02/card-pipeline/task.jsonl
+skip   agent-abb091b2425c042b2: 13 changed file(s), e.g. assemble.cjs
+would  agent-ae2ff71d0568101da
+skip   models-asks: 6 changed file(s), e.g. public/framework/ai/2026-10-12/claude-md-consolidate/review/task.jsonl
+skip   relay-2: 1 changed file(s), e.g. public/framework/ai/usage.jsonl
+skip   claude-md-consolidate: 1 changed file(s), e.g. public/framework/ai/2026-10-12/claude-md-consolidate/review/report.md
+skip   content-list: 719 changed file(s), e.g. .scratch-cl/ab.txt
+would  data-grid-3
+skip   data-grid-4: 1 changed file(s), e.g. public/framework/ai/2026-10-12/data-grid/review/diff.patch
+would  data-grid-5
+would  fig-btn-hug
+would  fig-controls
+would  fig-ground
+would  fig-layouts
+would  fig-select
+skip   orphans: branch not merged into michael/dev
+would  owner-inbox
+would  page-ai-api
+skip   page-mm: 1 changed file(s), e.g. public/framework/ai/sessions/session-flags.json
+would  page-split-2
+would  page-split-3
+skip   part-link-run: 4 changed file(s), e.g. public/framework/ai/2026-10-12/part-link/proof-1200.png
+would  qf-1
+skip   qf-2: a pool slot (the Pool removes its own)
+would  qf-4
+skip   qf-5: locked
+skip   readmeaudit: branch not merged into michael/dev
+skip   refine-demo: branch not merged into michael/dev
+would  refine-parse-fix
+skip   refine-session-log2: 1 changed file(s), e.g. public/framework/ai/sessions/session-flags.json
+skip   refine-v3: 1 changed file(s), e.g. public/framework/ai/sessions/session-flags.json
+would  screenshot-build-a
+would  screenshot-build-c
+would  server-query-cost
+would  sessions-detail
+would  sessions-fixes
+would  step-runner
+would  style-system
+would  transcription-crash
+would  ui-library
+skip   voice-asks-2: 8 changed file(s), e.g. public/framework/ai/2026-10-12/claude-md-consolidate/review/task.jsonl
+skip   voice-verify: 2 changed file(s), e.g. public/framework/ai/errors/2026-10-12.jsonl
+would  page-ai-api-proof
+would  wt-readme-audit
+would  wt-refine-haiku-live
+skip   wt-task-folders: no branch (detached)
+would  comment-prune-3
+dry run; 50 worktree(s) remain
