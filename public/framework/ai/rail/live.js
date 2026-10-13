@@ -106,7 +106,7 @@ export function live_model({ prompts, day }){
 		const by_id = new Map();
 		const landed = new Set(day.landings.map(l => l.task));
 		day.opened.forEach(o => by_id.set(o.task, { id: o.task, title: o.task, line: o.sentence,
-			state: landed.has(o.task) ? "landed" : "working", at: o.at, url: `/framework/ai/${day.date}/${o.task}/` }));
+			state: landed.has(o.task) ? "landed" : "working", at: o.at, url: `/framework/ai/${day.date}/` }));   // the day page: task folders moved into the sessions store, so <date>/<task>/ 404s (2026-10-13)
 		prompts.entries.forEach(e => {
 			if (e.type !== "task" || !e.id) return;
 			const was = by_id.get(e.id) ?? {};
@@ -167,7 +167,7 @@ export function live_model({ prompts, day }){
 			const last = [...log.entries].reverse().find(e => e.type === "reply");
 			const lim = limits();
 			const bars = lim.map(l => ({ kind: l.kind, label: LABELS[l.kind] ?? l.kind, percent: l.percent, severity: l.severity }));
-			const landed = day.landings.slice(-5).reverse().map(l => ({ id: l.task, title: l.task.replace(/-/g, " "), line: l.sentence, at: l.at, url: `/framework/ai/${day.date}/${l.task}/` }));
+			const landed = day.landings.slice(-5).reverse().map(l => ({ id: l.task, title: l.task.replace(/-/g, " "), line: l.sentence, at: l.at, url: `/framework/ai/${day.date}/` }));   // the day page lists it; <date>/<task>/ is the retired folder format
 			return { id: LIVE, kind: "live", landed, icon: "speed", title: "Live", author: "servex", at,
 				usage: lim.length ? { utilization: { limits: lim } } : null, bars, agents: a, tasks: t, pool: pool_rows(pool), processes: proc.data(), last: last?.text ?? "", links: [], transcript: [] };
 		},
