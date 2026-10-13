@@ -1,6 +1,6 @@
 # AI system architecture — files are the memory, code runs the loop
 
-The AI system is everything that lets agents do work here and lets the owner see it: Servex runs the agents, the readme chain tells them what exists, each task is a folder with a JSONL log, and the cards on `/framework/ai/` are the owner's surface. The pattern: state lives in appended files, node drives the sequence, the model supplies judgment. Components, one line each, computed from the readme index: the System tab, [`/framework/ai/system/`](/framework/ai/system/). Servex's own decisions: [Servex/doc/architecture.md](/framework/servex/doc/architecture.md).
+The AI system is everything that lets agents do work here and lets the owner see it: Servex runs the agents, the readme chain tells them what exists, each task is a folder with a JSONL log, and the cards on `/framework/ai/` are the owner's surface. Terms: a card is one row on the AI board, a mastermind is the agent that owns a task, a minion is an agent it hands a piece to. The pattern: state lives in appended files, node drives the sequence, the model supplies judgment. Components, one line each, computed from the readme index: the System tab, [`/framework/ai/system/`](/framework/ai/system/). Servex's own decisions: [Servex/doc/architecture.md](/framework/servex/doc/architecture.md).
 
 ## The readme chain is the AI's memory
 **Decided:** every agent reads CLAUDE.md, then the readmes root to leaf; each readme is a short index (under ~100 lines) pointing into `doc/`.
@@ -30,11 +30,11 @@ The AI system is everything that lets agents do work here and lets the owner see
 **Decided:** assistants answer fast and keep their hands free (fast = Haiku, smart = Sonnet); a mastermind owns one task end to end; minions build in parallel. The tier-to-model map is one file, `Servex/agents/tiers.js`. Roles are a default, not a fence.
 **Why:** a busy mastermind queues prompts; a free assistant relays them at once.
 **Instead:** one agent for everything (blocks on its own tools) or hard role fences (stops a capable minion).
-**Detail:** [Servex roles](/framework/servex/doc/roles/), [skills](/framework/ai/system/skills/)
+**Detail:** [Servex roles](../../../../Servex/doc/skills.md), [skills](/framework/ai/system/skills/)
 
 ## Claude by default; OpenRouter only by the switch
-**Decided:** voice assistants and refine run on Claude; one file (`session-backend.txt`) moves them to OpenRouter, and a Claude refusal moves that session by itself.
-**Why:** OpenRouter spend is waste while Claude tokens are paid for; the switch is for the Claude wall.
+**Decided:** voice assistants and refine run on Claude; one file (`session-backend.txt`) moves them, and every spawned agent's tier too, to OpenRouter (Servex reads it at start, so restart it after a change); a Claude refusal moves that one session by itself.
+**Why:** OpenRouter spend is waste while Claude tokens are paid for; the switch is for the day the Claude usage limit is hit.
 **Instead:** OpenRouter first (the pre-2026-10-12 order).
 **Detail:** [doc/models.md](models.md), [Servex/ext/openrouter](/framework/servex/)
 
@@ -45,7 +45,7 @@ The AI system is everything that lets agents do work here and lets the owner see
 **Detail:** [Servex/doc/pool.md](/framework/servex/doc/pool.md)
 
 ## The step runner is the loop: code reprompts, memory does not
-**Decided:** a mastermind approves the plan once; node then answers each finished step with the next step's text, logs each step with timestamps, and nudges a step that runs past twice its estimate. The agent is never trusted to remember the next skill or to close its worktree.
+**Decided:** a mastermind approves the plan once; node then answers each finished step with the next step's text, logs each step with timestamps, and nudges (`TaskLoop`) a step that runs past twice its estimate. The agent is never trusted to remember the next skill or to close its worktree.
 **Why:** an agent that must remember to log, close or move on forgets; code does not.
 **Instead:** skills the agent must call in order from memory. Today the step runner covers task steps and landing; closing worktrees and moving to the next task are still prompts (open, see below).
 **Detail:** [Servex/doc/steps.md](/framework/servex/doc/steps.md), [doc/agents/autonomy.md](agents/autonomy.md)
