@@ -1,0 +1,23 @@
+/* Inbox timeline (TimelinePage.js): the head's count and chips, a preview card's lines, the detail's links. */
+@layer base, theme, site, util;
+@layer theme {
+	.timeline-head { display: flex; flex-direction: column; gap: var(--gap-50); margin-block-end: var(--gap-50); }
+	.timeline-count { margin: 0; font-weight: 600; }
+	.timeline-chips { display: flex; flex-wrap: wrap; gap: var(--gap-50); }
+	.timeline-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--gap-50); }
+	.timeline-kind { font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.75; }
+	.timeline-kind-owner_note, .timeline-kind-card { opacity: 1; font-weight: 600; }
+	.timeline-title { font-weight: 600; line-height: 1.3; }
+	.timeline-sub { font-size: 0.9em; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+	.timeline-debug { display: block; font-family: var(--mono, monospace); font-size: 0.75em; }
+	.timeline-links { display: flex; flex-wrap: wrap; gap: var(--gap-50); }
+	/* The same pill as .sessions-chip (ai/sessions/sessions.css); a shared ui chip would replace both. */
+	.timeline-chip { font: inherit; padding: .15em .7em; border: 1px solid var(--line); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
+	.timeline-chip:hover { background: var(--tint); }
+	.timeline-chip-on { background: var(--tint); border-color: var(--prim-ink); font-weight: 600; }
+	/* The rail scrolls in its own box, so DataGrid pages 60 cards at a time (the same rule as ai/sessions/sessions.css). */
+	.timeline-page .datagrid-view-rail { block-size: calc(100dvh - 14rem); }
+	.timeline-page .datagrid-view-rail .datagrid-rail { max-block-size: none; }
+	.timeline-page .datagrid-count { display: none; }
+	.timeline-links:empty { display: none; }
+}
