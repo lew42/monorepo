@@ -21,20 +21,20 @@ import workspace from "./workspace.js";
 
 View.stylesheet("/framework/ux/Card/Card.css");
 
-/** A top-level card's tabs. Card, request and task words: doc/notes.md#words */
+
 const TABS = { overview: "Overview", tasks: "Tasks", activity: "Activity" };
-// Tasks routes even while its tab is hidden: a group card knows it has tasks only once its groups load.
+
 const ROUTED = ["tasks", "activity"];
 
-/** A card is a folder and this is its page; line 1 of page.jsonl names this class: doc/notes.md#card-is-a-folder */
+
 
 export const TYPES = ["question", "request", "sub-question", "note", "task"];
 
-// Line 1's assign() would REPLACE type()/tags() with data, so assign() calls these methods instead.
+
 const VERBS = new Set(["type", "tags", "status", "message", "prompt", "attach", "detach", "legacy", "cites", "item", "chat", "state", "checklist", "objects", "preview"]);
 
 
-/** One card summary (`GET /cards`) as a row: icon, title, and what it is. */
+
 export const summary_line = s => [s.type, s.status && s.status !== "open" && s.status,
 	...(s.tags ?? []).map(t => "#" + t), Faces.when(s.last ?? s.created)].filter(Boolean).join(" · ");
 
@@ -65,7 +65,7 @@ export default class Card extends Page {
 	/* Off by default: the global AI talks into the card now. doc/notes.md#one-ai */
 	static V1 = false;
 
-	/** Old box or new: a subclass flips `Card.V1`, or the url says `?chat=v1`. */
+
 	chat_v1(){ return !!this.constructor.V1 || new URLSearchParams(location.search).get("chat") === "v1"; }
 
 	assign(...args){
@@ -77,7 +77,7 @@ export default class Card extends Page {
 	initialize(){ this.classes ??= "ai2-card-page"; }
 
 	// ⚠ A refined line is kept whole (latest wins), never assigned: its type/text/by would overwrite the card's own.
-	// content() is the render method, so {"content"} lines go to this.dashboard: core/Page/doc/content-list-step-1.md
+
 	set(obj){
 		if (obj?.type === "refined"){ this.refined = obj; return this; }
 		// ⚠ Redirect EVERY content line, not just the first: doc/notes.md#content-redirect
@@ -93,13 +93,13 @@ export default class Card extends Page {
 		return super.set(obj);
 	}
 
-	/** The Now card's dashboard List, drawn with core's render_content_list(): doc/notes.md#dashboard */
+
 	dashboard_list(){
 		if (!(this.dashboard instanceof List)) return;
 		return this.render_content_list(this.dashboard);
 	}
 
-	/** The latest-wins labels. Kept apart because `type`, `tags` and `status` are methods. */
+
 	facts(){ return this.info ??= { type: "card", tags: [], status: "open" }; }
 
 	type(t){ this.facts().type = t; }
@@ -111,7 +111,7 @@ export default class Card extends Page {
 		this.talk?.sync();
 	}
 
-	/** The owner's own words. A later line with the SAME id is the cleaned reading, merged in. */
+
 	prompt(pr){
 		const list = this.prompts ??= [];
 		const had = pr?.id && list.find(x => x.id === pr.id);
@@ -120,7 +120,7 @@ export default class Card extends Page {
 		this.talk?.sync();
 	}
 
-	/** One outline line, `{"item": {"id", "title", "asked_at", "done", "proof"}}`; the same id again updates it. */
+
 	item(it){
 		if (!it?.id) return;
 		const list = this.outline_items ??= new Map();
@@ -128,13 +128,13 @@ export default class Card extends Page {
 		this.talk?.sync();
 	}
 
-	/** One-line state ("● Running · 11 agents · 3 working"). */
+
 	state(st){
 		this._state = st;
 		this.talk?.sync();
 	}
 
-	/** Card checklist: array of items [{text, done, href}] or rendered list. */
+
 	checklist(items){
 		if (Array.isArray(items)){
 			this.checklist_items = items;
@@ -144,19 +144,19 @@ export default class Card extends Page {
 		this.render_checklist(items);
 	}
 
-	/** Live object module path ("<module path>" or "/Servex/"). */
+
 	objects(mod){
 		this._objects = mod;
 		this.talk?.sync();
 	}
 
-	/** Preview line, 60 characters at most. */
+
 	preview(text){
 		this._preview = String(text ?? "").slice(0, 60);
 		this.talk?.sync();
 	}
 
-	// Leveled dictation lines land here from Servex Sessions.js; refinements() draws them: doc/notes.md#chat-and-card
+
 	chat(line){
 		if (!line?.level) return;
 		const list = this.chats ??= [];
@@ -170,7 +170,7 @@ export default class Card extends Page {
 	legacy(id){ (this.legacies ??= []).push(id); }
 	cites(refs){ const list = this.citing ??= []; [].concat(refs).forEach(r => { if (!list.includes(r)) list.push(r); }); }
 
-	// A rewritten (not appended) log replays from line 1 onto a clean slate.
+
 	log_forget(){
 		super.log_forget();
 		this.info = null;
@@ -188,26 +188,26 @@ export default class Card extends Page {
 		this._preview = null;
 	}
 
-	/** Where the log lives — this page's own url is AI 2's, not the folder's. */
+
 	folder_url(){ return String(this.jsonl_url ?? "").replace(/page\.jsonl$/, ""); }
 
-	/** Where this card's .md files really are: its folder, not AI 2's address. */
+
 	md_dir(){ return this.folder_url(); }
 
-	/** A doc opens inside the card with a Back button; it lives in this.view, outside $box. */
+
 	open_link(link){ return this.swap_link(link); }
 
-	/** The bare .md names from the card's own `{"file": "notes.md"}` lines. */
+
 	md_names(){
 		const placed = (this.placed ?? []).map(e => typeof e === "string" ? e : e.module);
 		return [...(this.listed?.values() ?? [])].filter(n => /\.md$/i.test(n) && !n.includes("/") && !placed.includes(n));
 	}
 
-	/** The sub-card folders, from the `file` lines (Page's own `file()` records them). */
+
 	subs(){ return [...(this.child_kinds?.keys() ?? [])]; }
 
 	// ⚠ Core reads a listed child from AI 2's address; a sub-card is read from its FOLDER: doc/notes.md#sub-cards
-	/** A tiny card's tab name, and not one of its requests (a request keeps its name). */
+
 	is_tab(name){
 		if (!this.tabbed() || this.subs().includes(name)) return false;
 		return this.tiny() ? this.tab_list().some(t => t.key === name) : ROUTED.includes(name);
@@ -223,17 +223,17 @@ export default class Card extends Page {
 		return this.add(name, kid).load_all_children(levels);
 	}
 
-	/* Two fixed regions: the card and a properties sidebar (40em and wider): doc/notes.md#regions */
+
 	content(){
 		const shell = this.shell;
 		const sub = this.parent instanceof Card;
-		/* Every depth joins the same flat row: doc/notes.md#flat-row */
+
 		if (shell) this.$pages = shell.$sub;
 
 		if (sub) this.breadcrumb();
 		else a.c("ai2-back page-link").href(shell?.url ?? "/framework/ai2/").text("← all cards");
 
-		// Two boxes: the card (redrawn every line) and the task pages (drawn only when WHICH tasks change).
+
 		div.c("ai2-full", () => {
 			const body = () => {
 				this.$box = div.c("ai2-full-card", () => { this.draw(); });
@@ -255,28 +255,28 @@ export default class Card extends Page {
 					re: () => this.id,
 					placeholder: sub ? "talk into this request" : "talk into this card",
 					on_text: text => this.talk.echo(text),
-					// Instant feedback: two live() calls, see ai2/rail.js.
+
 					on_send_start: text => { this.talk.live({ text }); this.talk.live({ text: "", sent: true }); },
 					autostart: fresh && shell.auto_transcribe?.(),
 				});
-				// One chat column on screen at a time, so one token for every card.
+
 				Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
 			});
 		} else {
 			this.properties_sidebar(sub);
-			// A fresh card starts listening into the global drawer agent: doc/notes.md#fresh-card
+
 			if (fresh){
 				shell.opening = null;
 				if (shell.auto_transcribe?.() && matchMedia?.("(max-width: 52em)")?.matches)
 					import("/framework/ext/drawer/rail.js").then(m => m.default(this.app)?.open_sheet());
 			}
 		}
-		// A sub-card is its own column; its seam holds the chat width while you drag.
+
 		if (sub) Card.seam("--ai2-subw", "ai2-sub-w", 320, () => innerWidth - 700, () => this.hold_chat());
 		this.talk?.sync();
 	}
 
-	/* Breadcrumb: ancestors beyond the last two open levels, oldest first; CSS decides if it shows: doc/notes.md#breadcrumb */
+
 	breadcrumb(){
 		const chain = [];
 		for (let p = this.parent; p instanceof Card; p = p.parent) chain.unshift(p);
@@ -285,10 +285,10 @@ export default class Card extends Page {
 		});
 	}
 
-	/** The card's own properties sidebar: read, not talked into. doc/notes.md#properties */
+
 	properties_sidebar(sub){
 		const f = this.facts();
-		// Cost always shows here: state_span() only speaks while something is running.
+
 		const { usd, open } = this.cost_now(this.group_info());
 		div.c("ai2-foot ai2-foot-chat ai2-props", () => {
 			div.c("ai2-props-row", () => { span.c("muted").text("Type"); this.type_picker(); });
@@ -311,7 +311,7 @@ export default class Card extends Page {
 		});
 	}
 
-	/** Pin the chat column at its current width, for this session only, if nothing has set it. */
+
 	hold_chat(){
 		const shell = document.querySelector(".ai2");
 		const foot = this.view?.el.querySelector(":scope > .ai2-foot");
@@ -319,7 +319,7 @@ export default class Card extends Page {
 		shell.style.setProperty("--ai2-chat", foot.offsetWidth + "px");
 	}
 
-	/* Column seams: one ext/grip per token on the AI 2 shell, shared by every card; double-click resets. */
+
 	static seam(token, key, lo, hi_of, before){
 		const shell = () => document.querySelector(".ai2");
 		const write = px => {
@@ -333,17 +333,17 @@ export default class Card extends Page {
 			reset: () => { try { localStorage.removeItem(key); } catch {} write(); } });
 	}
 
-	/** What Page.jsonl() calls after each live batch of lines; the list hears too. */
+
 	log_redraw(){
 		this.redraw();
 		this.shell?.ai2?.cards_changed?.();
 	}
 
-	/** Everything draw() reads; an unchanged signature skips the redraw. */
+
 	draw_sig(){
 		const cards = this.shell?.ai2?.cards;
 		return JSON.stringify([this.layout, this.facts(), this.title, this.name, this.icon, this.by, this.created, this.text,
-			// So "Reviewed ✓" appears the moment the shared scan says so.
+
 			Needs.for_card(this.id).map(n => n.ask).join(","),
 			this.description, this.links, this.flag_note, this.attached?.length, this.md_names(), this.placed, [...this.listed?.values() ?? []], cards_ready.known,
 			this.group_info(), this.subs().map(s => cards?.card(this.id + "/" + s) ?? s), this.cost_model(this.group_info()),
@@ -365,20 +365,20 @@ export default class Card extends Page {
 		if (!this.chat_v1()) this.sync_global_ai();
 	}
 
-	/* The global AI's copies of this thread (mobile sheet, drawer tab) need the sync too: doc/notes.md#global-ai */
+
 	sync_global_ai(){
 		import("/framework/ext/drawer/rail.js").then(m => {
 			const sheet = m.default(this.app)?.$sheet;
 			if (sheet?.card_id === this.id) sheet.talk?.sync();
 		});
-		// The desktop drawer's AI tab, if it is open on this card.
+
 		import("/framework/ext/drawer/tabs/ai.js").then(m => m.sync_card_thread?.(this.id));
 	}
 
 	/** This card's groups.json row, else null. ⚠ Not group(): a {"group": …} data line would overwrite that method. */
 	group_info(){ return this.shell?.ai2?.groups?.by_card?.get(this.id) ?? null; }
 
-	/** The tasks this card shows whole: a group's members, newest first, or the one task a card points at. */
+
 	task_list(){
 		const g = this.group_info();
 		if (g) return this.shell.ai2.groups.members(g.id).filter(m => m.kind !== "said");
@@ -386,20 +386,20 @@ export default class Card extends Page {
 	}
 
 	fill_tasks(){
-		// A group's tasks are the faces in the card; only its member CARDS follow below.
+
 		const g = this.group_info();
-		// With no Tasks tab, the one task page follows Overview, never Activity.
+
 		if (this.$tasks) this.$tasks.el.hidden = this.shows_tabs() && (this.has_tasks() ? this.open_tab() !== "tasks" : this.open_tab() === "activity");
 		if (this.$tasks) Tasks.task_region(this.$tasks, this.task_list().filter(m => !g || m.kind !== "task"), this.task_state ??= {}, { head: !!g });
 	}
 
-	/* A top-level card has Overview, Tasks and Activity tabs; the strip wears ext/tabs' classes but is not Page.tabs(): doc/notes.md#tabs */
+
 	draw(){
 		const f = this.facts();
 		const g = this.group_info();
 		const items = this.overview_items(g);
 		this.head(f, g, items);
-		// In the workspace view the Floating nav IS the tab strip.
+
 		if (this.tiny()){ if (!this.in_workspace()) this.tiny_tabs(); return; }
 		if (!this.shows_tabs()) return void this.overview(f, g, items, true);
 		const tab = this.open_tab();
@@ -413,7 +413,7 @@ export default class Card extends Page {
 		});
 	}
 
-	/* Marks use the seen time from BEFORE this visit (seen_from), so they stay while you read. */
+
 	activity_tab(){
 		const since = this.seen_from ??= Activity.seen(this.id);
 		const g = this.group_info();
@@ -427,7 +427,7 @@ export default class Card extends Page {
 		});
 	}
 
-	/** A group's member tasks and cards as events — what its rail row's bar reads from. */
+
 	member_events(g){
 		return this.shell.ai2.groups.members(g.id).filter(m => m.kind !== "said").map(m => ({
 			at: m.at, where: m.kind === "task" && m.landed ? null : m.title,
@@ -436,20 +436,20 @@ export default class Card extends Page {
 		}));
 	}
 
-	/** Store the newest of these times as seen; the rail repaints when it moved. */
+
 	saw(...ats){
 		const t = Math.max(0, ...ats.map(a => Date.parse(a ?? 0) || 0));
 		if (t && Activity.mark_seen(this.id, new Date(t).toISOString())) this.shell?.ai2?.repaint?.();
 	}
 
-	/** The Tasks tab: the requests, then what each cost and who worked on it, then the task pages below. */
+
 	tasks_tab(g){
 		this.contents();
 		this.cost_block(g);
 		Agents.panel(this.id);
 	}
 
-	/** The card's dollars: a group's from its tasks, else its task's, else its own agents'. */
+
 	cost_now(g){
 		const groups = this.shell?.ai2?.groups;
 		if (g){ const s = groups?.cost(g.id); return s?.tracked ? { usd: s.usd, open: !!s.open } : {}; }
@@ -459,12 +459,12 @@ export default class Card extends Page {
 
 	tabbed(){ return !(this.parent instanceof Card); }
 
-	// Tabs show only when Tasks has something; Activity is always there: doc/notes.md#tabs
+
 	shows_tabs(){ return this.tabbed(); }
 	has_tasks(){ return this.tabbed() && (this.tiny() || !!this.group_info() || this.subs().length > 0); }
 	tab_names(){ return Object.keys(TABS).filter(name => name !== "tasks" || this.has_tasks()); }
 
-	/* Tiny top tabs, full bleed: opt-in with {"layout": "tabs"}; each tab is a routed page: doc/notes.md#tiny-tabs */
+
 	tiny(){ return this.layout === "tabs" && this.tabbed(); }
 
 	/** `[{ key, label, draw }]`, in order. ⚠ A tab never takes a request's name; it becomes `<name>-tab`. */
@@ -488,7 +488,7 @@ export default class Card extends Page {
 		return list;
 	}
 
-	/** The strip: one link per tab. The outline's link is the card's own url. */
+
 	tiny_tabs(){
 		const tab = this.open_tab();
 		div.c("ai2-tiny-tabs", () => {
@@ -516,13 +516,13 @@ export default class Card extends Page {
 		});
 	}
 
-	/** The classes a tab page wears. Padding is never a default: a card asks with `{"tab_classes": "pad"}`. */
+
 	tab_classes_of(){ return ("ai2-tab-page " + (this.tab_classes ?? "")).trim(); }
 
-	/** One tab's content, from the list as it is now (a live line may have renamed it). */
+
 	tab_fill(name){ this.tab_list().find(t => t.key === name)?.draw(); }
 
-	/** The panel the tab pages mount in, and the outline as its default. Called once, from `content()`. */
+
 	tab_panel(){
 		this.$tab_panel = div.c("ai2-tiny-panel").attr("role", "tabpanel");
 		this.regions ??= new Map();
@@ -531,7 +531,7 @@ export default class Card extends Page {
 		this.$tab_panel.append(() => { outline.assign({ app: this.app }).render().ac("default"); });
 	}
 
-	/** A tab page arrived (or left): mark its link, show or hide the task pages. No redraw. */
+
 	tab_shown(name){
 		this.tab = name ?? "outline";
 		this.view?.el.querySelectorAll(":scope > .ai2-full > .ai2-full-card .ai2-tiny-tab").forEach(el =>
@@ -540,10 +540,10 @@ export default class Card extends Page {
 		this.fill_tasks();
 	}
 
-	/** A top-level card, with `?view=workspace` on. A request (a sub-card) keeps its own look. */
+
 	in_workspace(){ return workspace.on && this.tabbed(); }
 
-	/** The Floating page's nav: the card's tabs, the open one marked, then its sub-cards. */
+
 	ws_nav(){
 		const tab = this.open_tab(), n = this.subs().length;
 		const tabs = this.tiny()
@@ -554,14 +554,14 @@ export default class Card extends Page {
 		return [...tabs, ...(subs.length ? [{ label: "Sub-cards" }, ...subs] : [])];
 	}
 
-	/** A live line changed the card: every tab page drawn so far redraws its body. */
+
 	tab_redraw(){
 		this.children.forEach((page, name) => {
 			if (page?.$body) page.$body.empty(() => { this.tab_fill(name); });
 		});
 	}
 
-	/* A card's own tabs are routed too (Tasks and Activity are child pages), so a url alone lands on a tab: doc/notes.md#tab-routes */
+
 	tab_route(name){
 		if (!this.tabbed() || !ROUTED.includes(name)) return null;
 		const card = this;
@@ -572,20 +572,20 @@ export default class Card extends Page {
 		});
 	}
 
-	/** Where those tab pages mount: a hidden box, so a tab url never moves anything on screen. */
+
 	tab_slot(){
 		this.$tab_slot = div.c("ai2-tab-slot").attr("hidden", "");
 		this.regions ??= new Map();
 		ROUTED.forEach(name => this.regions.set(name, this.$tab_slot));
 	}
 
-	/** The open tab: whichever tab page is routed — a tiny card's own list, or Overview · Tasks · Activity. */
+
 	open_tab(){
 		if (this.tiny()) return this.tab ?? "outline";
 		return this.tab_names().includes(this.tab) ? this.tab : "overview";
 	}
 
-	/* A plain link: tab_route() makes the urls; `.active` is drawn from open_tab(). */
+
 	tab_link(name){
 		const n = name === "tasks" ? this.subs().length : 0;
 		const on = this.open_tab() === name;
@@ -594,7 +594,7 @@ export default class Card extends Page {
 			.text(TABS[name] + (n ? " · " + n : ""));
 	}
 
-	/* Quiet unless something is running: state_span() draws nothing idle: doc/notes.md#header */
+
 	head(f, g, items){
 		div.c("ai2-full-head flex v-center gap-25", () => {
 			icon(this.icon ?? g?.icon ?? type_icon(f.type));
@@ -607,7 +607,7 @@ export default class Card extends Page {
 		});
 	}
 
-	/** "Reviewed ✓", only for the two heuristic needs; writes one {"reviewed"} line: doc/notes.md#reviewed */
+
 	reviewed_control(){
 		if (!Needs.for_card(this.id).some(n => n.ask === "card" || n.ask === "last")) return;
 		button.c("ai2-reviewed").attr("type", "button")
@@ -620,7 +620,7 @@ export default class Card extends Page {
 			});
 	}
 
-	/* One menu for what you can do to a card: doc/notes.md#actions */
+
 	actions(){
 		const flag = this.flag_note, ready = cards_ready.known;
 		if (flag) button.c("ai2-flag on").attr("type", "button").attr("title", "you flagged this — press to withdraw")
@@ -634,7 +634,7 @@ export default class Card extends Page {
 		if (items.length) new Menu({ label: "Actions", items, onPick: it => it.act() }).ac("ai2-actions");
 	}
 
-	/** Page-mode dictation: summary/edit points newest first, the clean transcript folded under: doc/notes.md#refinements */
+
 	refinements(){
 		const chats = this.chats ?? [];
 		if (!chats.length) return;
@@ -653,7 +653,7 @@ export default class Card extends Page {
 		});
 	}
 
-	/** The outline; everything else is one fold down. */
+
 	overview(f, g, items, with_contents, with_placed = true){
 		this.dashboard_list();
 
@@ -703,13 +703,13 @@ export default class Card extends Page {
 		else if (this.by_request()) this.request_outline(items);
 		else Outline.outline(this, items);
 
-		// A card nothing was asked in yet (a topic stub, a new sub-card) says so, instead of a blank page.
+
 		if (!line && !this._state && !this._objects && !items.length && !this.prompts?.length && !this.messages?.length && !this.chats?.length)
 			p.c("ai2-ol-about muted").text("Nothing has been asked here yet. Talk into this " + (this.parent instanceof Card ? "request" : "card") + " and your words land here.");
 		if (this.flag_note) small.c("ai2-flag-said muted")
 			.text("flagged" + (this.flag_note.quote ? " on “" + this.flag_note.quote + "”" : "") + " — " + (this.flag_note.note ?? ""));
 
-		// A `place` line is drawn where it is placed, by the page's own log_draw().
+
 		if (with_placed && this.placed?.length) div.c("page-log flow", () => { this.log_draw(); });
 
 		const docs = this.md_names();
@@ -720,7 +720,7 @@ export default class Card extends Page {
 		if (with_contents) this.contents();
 	}
 
-	/* A card with requests is summed up by them (old cards have no item lines): doc/notes.md#by-request */
+
 	by_request(){ return !this.outline_items?.size && this.subs().length > 0; }
 
 	/* ⚠ A sub-card is not always a request (topic stubs have no id, nothing asked): doc/notes.md#topics */
@@ -731,10 +731,10 @@ export default class Card extends Page {
 		return [...tasks.map(t => ({ ...t, proof: this.task_href(t.proof) })), ...this.request_items().filter(i => i.asked)];
 	}
 
-	/** A task's base (`2026-09-24/recipe-lab`) as the url of its task page. */
+
 	task_href(base){ return !base || /^(\/|https?:)/.test(base) ? base : "/framework/ai/" + base + "/"; }
 
-	/** A sub-card's title: its own title line, else the card list's, else its slug in words. */
+
 	sub_title(slug){
 		const s = this.shell?.ai2?.cards?.card(this.id + "/" + slug);
 		const own = this.sub_meta?.get(slug)?.title ?? s?.title;
@@ -750,13 +750,13 @@ export default class Card extends Page {
 		});
 	}
 
-	/** Delivered · To do · All (the filter, as in outline.js), then each group with its rows, to do first. */
+
 	request_outline(items){
 		const subs = this.subs();
 		this.load_groups(subs);
 		if (!subs.every(s => this.sub_group?.has(s))) return void small.c("muted").text("Reading " + subs.length + " sub-cards…");
 		if (items.length) this.checklist(items);
-		// Topics: listed where nothing else lists them (System design's Concepts tiles already do).
+
 		const topics = this.request_items().filter(i => !i.asked);
 		if (topics.length && !this.placed?.length) div.c("ai2-toc-section ai2-topics", () => {
 			div.c("ai2-toc-group muted").text("Topics · " + topics.length);
@@ -800,7 +800,7 @@ export default class Card extends Page {
 		});
 	}
 
-	/** `[[heading, rows], …]`: requests under their group in first-seen order, then the task pages, then the ungrouped. */
+
 	item_sections(items){
 		const by = new Map();
 		const put = (k, it) => { if (!by.has(k)) by.set(k, []); by.get(k).push(it); };
@@ -814,7 +814,7 @@ export default class Card extends Page {
 		return out.length === 1 && !by.size ? [["", out[0][1]]] : out;
 	}
 
-	/** One number that is also the filter: pressing it shows only those rows, redrawing nothing. */
+
 	count_button($box, k, name, n){
 		button.c("ai2-ol-count" + (this.req_show === k ? " on" : "")).attr("type", "button").attr("data-show", k)
 			.attr("title", "show " + (k === "all" ? "everything" : name.toLowerCase()) + " in the list below")
@@ -828,7 +828,7 @@ export default class Card extends Page {
 	}
 
 	request_row(r){
-		// A topic unread since it changed gets one word, "new" (Rules.is_read); activated() clears it.
+
 		const fresh = r.topic && !Rules.is_read(r.id);
 		div.c("ai2-ol-row" + (r.topic ? " topic" : r.done ? " done" : " open") + (r.live ? " live" : ""), () => {
 			span.c("ai2-ol-mark").text(r.topic ? "•" : r.done ? "✓" : "☐");
@@ -839,7 +839,7 @@ export default class Card extends Page {
 		});
 	}
 
-	/** One fold for the words the outline leaves out: tidied dictation, full text, links. */
+
 	more(f, g){
 		if (!this.refined?.text && !this.text && !this.description && !this.links?.length) return;
 		details.c("ai2-more", () => {
@@ -854,14 +854,14 @@ export default class Card extends Page {
 		});
 	}
 
-	/* The fold names what is in it, so it never promises something absent. */
+
 	more_label(){
 		const words = [this.refined?.text, this.text, this.description].filter(Boolean).join(" ").split(/s+/).filter(Boolean).length;
 		const n = this.links?.length ?? 0;
 		return "Show " + [words && "the full text (" + words + " words)", n && n + (n === 1 ? " link" : " links")].filter(Boolean).join(", ");
 	}
 
-	/* What this card cost, one row per member task and the group's sum: doc/notes.md#cost */
+
 	/* ⚠ Cost as data, because draw_sig() reads it too: doc/notes.md#cost. Rows sort by cost, largest first. */
 	cost_model(g){
 		const groups = this.shell?.ai2?.groups;
@@ -882,7 +882,7 @@ export default class Card extends Page {
 		Tasks.group_faces(rows, sum, this.face_state ??= {});
 	}
 
-	/** Turn this card into another kind: one `{"type": …}` line, and the latest wins. */
+
 	type_picker(){
 		const now = this.facts().type;
 		const words = TYPES.includes(now) ? TYPES : [now, ...TYPES];
@@ -894,10 +894,10 @@ export default class Card extends Page {
 
 	retype(type){ return append_card(this.id, { type }); }
 
-	/** Archive, never delete — one `{"status": "archived"}` line; the list then hides it. */
+
 	clear(){ return append_card(this.id, { status: "archived" }).then(() => this.shell?.ai2?.cards_changed?.()); }
 
-	/* The table of contents: this card's requests, grouped by their {"group"} lines. */
+
 	contents(){
 		const subs = this.subs();
 		this.load_groups(subs);
@@ -906,7 +906,7 @@ export default class Card extends Page {
 				small.c("muted").text(subs.length ? subs.length + (subs.length === 1 ? " request" : " requests") : this.parent instanceof Card ? "" : "no requests yet");
 				if (cards_ready.known) this.sub_adder();
 			});
-			// Drawn once every request's group is known, so rows never reshuffle.
+
 			if (subs.length && subs.every(s => this.sub_group?.has(s))) div.c("ai2-toc-groups", () => {
 				this.sections(subs).forEach(([name, slugs]) => { div.c("ai2-toc-section", () => {
 					if (name) div.c("ai2-toc-group muted").text(name + " · " + slugs.length);
@@ -923,7 +923,7 @@ export default class Card extends Page {
 		});
 	}
 
-	/** `[[heading, slugs], …]` in the order the groups first appear; the ungrouped last, as "Other". */
+
 	sections(subs){
 		const by = new Map();
 		subs.forEach(s => {
@@ -954,10 +954,10 @@ export default class Card extends Page {
 					if (!o || typeof o !== "object") continue;
 					if (typeof o.group === "string" && Object.keys(o).length === 1) name = o.group;
 					if (typeof o.status === "string") status = o.status;
-					// The title is the latest plain title line, never a refined reading's.
+
 					if (typeof o.title === "string" && o.type !== "refined") title = o.title;
 					created ??= o.created ?? null;
-					// Asked: someone's words, a reply, an outline item, or a card made AS an ask.
+
 					if (o.prompt || o.message || o.item || ASKS.has(o.type)) asked = true;
 					const m = o.message;
 					if (m && /^manager-/.test(m.by ?? "") && /^\s*(Landed|Done)\b/i.test(m.text ?? "")) done = true;
@@ -996,7 +996,7 @@ export default class Card extends Page {
 	async add_sub(title){
 		const made = await create_card({ parent: this.id, title });
 		this.held = false;
-		// Draw the lines held back while the title was typed.
+
 		this.redraw();
 		if (!made?.ok) return;
 		if (this.shell) this.shell.opening = made.id;   // a new sub-card opens listening, like a new card
@@ -1004,7 +1004,7 @@ export default class Card extends Page {
 		this.app?.router?.go(workspace.url(this.url + made.id.split("/").at(-1) + "/"));
 	}
 
-	/** The card's own lines as a conversation, in `chat.js`'s shape. */
+
 	chat_entries(){
 		return [
 			...(this.prompts ?? []).map(pr => ({ type: "prompt", id: pr.id, at: pr.at, by: pr.by, text: pr.raw ?? pr.text })),
@@ -1019,7 +1019,7 @@ export default class Card extends Page {
 		return { type: "reply", id: m.id, at: m.at, by: m.by, heading: m.heading, text: m.text ?? m.name ?? m.title };
 	}
 
-	/** What the flag, the selection flagger and `clear` ask of this card. */
+
 	face(){
 		return this.acts ??= {
 			held: v => { this.held = v; if (!v) this.redraw(); },
@@ -1032,9 +1032,9 @@ export default class Card extends Page {
 		};
 	}
 
-	/** AI 2 hands every open card its list row on each repaint; only a flag change redraws. */
+
 	flag_changed(it){
-		// The rail's own time for this card: while you are ON Activity, a newer one is seen too.
+
 		this.row_at = it?.at;
 		if (this.shows_tabs() && this.tab === "activity" && this.seen_from) this.saw(it?.at);
 		const flag = it?.flag ?? null;
@@ -1046,18 +1046,18 @@ export default class Card extends Page {
 	// ⚠ activated(), not content(): the view is cached.
 	activated(){
 		this.seen_from = null;   // each visit marks what is new since the last one (activity_tab)
-		// A per-browser read flag (rules.js), not the shared verdicts.jsonl read: doc/notes.md#mark-read
+
 		Rules.mark_read(this.id);
-		// An owner note is read for good (a shared `reviewed` line) the moment you open it, so it leaves the top of the Inbox.
+
 		if (this.shell?.ai2?.cards?.by_id?.get(this.id)?.tags?.includes("owner-note")) append_card(this.id, { reviewed: { at: stamp(), by: "owner" } });
 		this.shell?.ai2?.repaint?.();
-		// top/ws only for a top-level card; a sub-card must not touch the word for the card open beside it.
+
 		this.handle = this.shell?.ai2?.open({ id: this.id, draw: it => this.flag_changed(it), on: this.face(), $box: this.$box, top: this.tabbed(), ws: this.tabbed() });
-		// The sub-cards' titles come off AI 2's card list, which refreshes on its own clock.
+
 		this.stop_list = this.shell?.ai2?.cards?.on(() => this.redraw());
-		// Same shared scan as the Needs tab, so the Reviewed button follows it.
+
 		this.stop_needs = Needs.watch(() => this.redraw());
-		// A member landing, or a task's `now` moving, reorders a group's sections.
+
 		this.stop_groups = this.shell?.ai2?.groups?.on(() => this.redraw());
 		if (this.tabbed()) this.load_groups(this.subs(), true);
 		this.redraw();
@@ -1075,7 +1075,7 @@ export default class Card extends Page {
 	}
 }
 
-/** The year, month and day folders above the cards; their child is read from the folder. */
+
 Card.Folder = class CardFolder extends Page {
 
 	initialize(){ this.classes ??= "ai2-index-page"; }
@@ -1094,7 +1094,7 @@ Card.Folder = class CardFolder extends Page {
 		return this.add(name, kid).load_all_children(levels);
 	}
 
-	/** "2026", "September 2026", "Thursday 24 September". */
+
 	static title_of(id){
 		const [y, m, d] = id.split("/").map(Number);
 		if (!m) return String(y);
@@ -1104,12 +1104,12 @@ Card.Folder = class CardFolder extends Page {
 
 	content(){
 		div.c("ai2-index", $box => {
-			// A day's cards are keyed rows (only changed ones are replaced); month and year are count rows.
+
 			let sig;
 			const rows = new Map();
 			const draw = () => {
 				const mine = (this.shell?.ai2?.cards?.cards ?? []).filter(c => c.id.startsWith(this.id + "/"));
-				// month and year rows only show counts, so only the ids matter there
+
 				const next = this.level() < 3 ? mine.map(c => c.id).join() : JSON.stringify(mine);
 				if (next === sig) return;
 				sig = next;
@@ -1135,7 +1135,7 @@ Card.Folder = class CardFolder extends Page {
 		});
 	}
 
-	/** A day lists its cards; a month its days, a year its months, each with a count. */
+
 	folder_rows(){
 		const all = this.shell?.ai2?.cards?.cards ?? [];
 		const mine = all.filter(c => c.id.startsWith(this.id + "/"));

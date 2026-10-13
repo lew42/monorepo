@@ -42,3 +42,7 @@ sweep("/framework/", { from: 360, to: 3440 });           // → the widths where
 - [`journey/`](./journey/) — the raw material every score here reads: one overnight crawl, a screenshot of every page on the site. Moved from `/imagine/design/journey/` 2026-09-18 (`ai/sessions/2026/09/18/imagine-move-2/`); the old address still answers.
 - [`doc/decisions.md`](./doc/decisions.md) — the record: decisions, open questions, every trap in detail · [`doc/cost.md`](./doc/cost.md) — ~25µs a node, and the quadratic trap · [`doc/addressing.md`](./doc/addressing.md) — a finding's address is a path, not an index
 - Page: [/framework/ext/DesignTool/](/framework/ext/DesignTool/) · Files: `DesignTool.js` (the front door), `probe.js` (the browser read), `rules.js` (what is broken), `polish.js` (what is off)
+
+- Notes: [doc/polish-notes.md](doc/polish-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/rules-notes.md](doc/rules-notes.md) — history and lessons moved out of the code comments.

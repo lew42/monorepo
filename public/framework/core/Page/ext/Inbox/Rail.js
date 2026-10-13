@@ -1,45 +1,10 @@
+// history and reasons: doc/InboxRail-notes.md
+
 import { View, div, span, small, a, button, label, input, h4, icon } from "/framework/core/View/View.js";
 import grip from "/framework/ext/grip/grip.js";
 
-/* The look lives in the ux block (ux/Inbox/), so any page that builds a rail gets it. */
 View.stylesheet("/framework/ux/Inbox/Inbox.css");
 
-/**
- * THE BIG RAIL — `Inbox.Rail` (restructured 2026-10-02; this file still defines the class,
- * now named plain `Rail`, and `Inbox.js` imports it to assign `Inbox.Rail = Rail` — chosen
- * over moving this whole body into `Inbox.js` so this file never has to import that one back
- * (an import cycle). The old name, `InboxRail`, is a one-release re-export from `Inbox.js`;
- * see this folder's readme.md, "Architecture", for the full before/after).
- *
- * A list of previews on the left, the one you picked open on the right, and nothing in the
- * list ever jumps (the owner, 2026-09-22, 2026-09-30: "it is a persistent navigation… it
- * shouldn't jump when you click on an item").
- *
- * This is the base class. The AI page and AI 2 both draw `AIRail` (ai2/rail.js), which
- * extends this (`class AIRail extends Inbox.Rail`) with the usage meters, "+ New card" and
- * the AI data. Any other page can extend it the same way: override `source()` to say what
- * the rows are, and the rest comes with it.
- *
- *   const rail = new Rail({ page: this, items: [...] }).mount();   // inside content()
- *
- * WHAT YOU GET
- *   - three columns: the rail, the detail (`page.$pages`, where a row's page opens) and
- *     a sub column (`page.$sub`, where a sub-page opens beside it);
- *   - the rail is a FLUSH STACK of row previews (rows touching, no gaps), resizable by
- *     its grip, and it scrolls by itself;
- *   - filters: Needs you (a chip), search, notes, archived, and a SCORE FLOOR (`?min=`,
- *     default 90 — the Inbox shows only rows that score at least that; 0 is the Log);
- *   - read/unread (the row's dot), archive (the row's ×) and "clear all";
- *   - THE ORDER NEVER MOVES ON ITS OWN while you look: an existing row that changed is
- *     counted on an "N updated ↑" pill, and only a press (or a reload) re-sorts.
- *
- * THE SELECTION IS THE URL. A row is a plain `<a>` to its page; the Router navigates
- * it, marks it `.active`, and Back, a reload and a pasted link all work. A click swaps
- * only the detail column: no row here is rebuilt, re-sorted or scrolled by a click.
- *
- * Every part is a method, so a subclass changes one part and keeps the rest. Docs:
- * ux/Inbox/readme.md · see one running at /framework/ux/Inbox/.
- */
 export default class Rail {
 	/* ── settings a subclass or a caller may override ── */
 	title = "Inbox";          // the rail's own name, above its filters
@@ -108,8 +73,7 @@ export default class Rail {
 	shell_extra(){}
 
 	rail(){
-		// ⚠ No `flex v` utility: util beats theme, so a `.flex` here could never be hidden
-		// by the phone rule. The column is declared in Inbox.css.
+		// ⚠ No `flex v` utility: util beats theme, so a `.flex` here could never be hidden by the phone rule.
 		div.c("inbox-rail", () => {
 			this.top();
 			this.stream();
@@ -134,14 +98,11 @@ export default class Rail {
 		});
 	}
 
-	/* The rail names itself (the owner, 2026-09-25: it "identifies this as the navigation rail"). */
 	name(){ return h4.c("inbox-rail-name", () => { this.$name = span(this.title); }); }
-	head_extra(){}      // AIRail: the usage meters
-	actions(){}         // AIRail: "+ New card"
-	toggles(){}         // AIRail: auto-transcribe
+	head_extra(){}
+	actions(){}
+	toggles(){}
 
-	/* NEEDS YOU IS A FILTER, not a tab (the owner, 2026-09-30). Its state is the url
-	   (`?review=1`), so a reload keeps it on; its badge counts what is waiting. */
 	needs_chip(){
 		label.c("inbox-review flex v-center gap-25 muted").attr("title", "show only what's waiting on you").append(() => {
 			const $box = input().attr("type", "checkbox");
@@ -156,8 +117,6 @@ export default class Rail {
 		});
 	}
 
-	/* BLOCKING / REVIEW / FYI — three chips; click one to show only that kind, click again for all.
-	   State is the url (`?cat=`). FYI shows rows under the floor, since that is where they live. */
 	category_chips(){
 		this.$cats = span.c("inbox-cats flex v-center gap-25", () => {
 			Rail.CATEGORIES.forEach(word => {
@@ -184,16 +143,12 @@ export default class Rail {
 		return n >= 97 ? "blocking" : n >= this.min_default ? "review" : "fyi";
 	}
 
-	/* SEARCH — title and text, archived rows included ("find this, wherever it is"). */
 	search(){
 		this.$search = input.c("inbox-search").attr("type", "search").attr("placeholder", "Search…")
 			.attr("title", "filter the list below by title or text")
 			.on("input", e => { this.search_q = e.target.value.trim().toLowerCase(); this.relist(); });
 	}
 
-	/* THE SCORE FLOOR (the owner, 2026-09-30: "inbox is only… priority… and above"; then
-	   inbox zero: 90 and up). A number you can move; the url keeps it (`?min=30`). The
-	   Inbox is this rail at 90, the Log the same rail at 0. */
 	floor(){
 		label.c("inbox-floor flex v-center gap-25 muted")
 			.attr("title", "show only rows scoring at least this — 0 shows everything").append(() => {
@@ -205,24 +160,18 @@ export default class Rail {
 			});
 	}
 
-	/* The box the "N new" pill floats over — in the flow, its own arrival pushed every row down. */
 	stream(){
 		div.c("inbox-stream", () => {
 			this.$pill = button.c("inbox-new prim").attr("type", "button").click(() => this.flush(true));
 			this.$rows = div.c("inbox-rows", () => {
-				// STICKY, INSIDE the scrolling box, so it pushes the row below it down rather
-				// than covering it (review finding 3, 2026-09-30).
 				this.$updated = button.c("inbox-updated").attr("type", "button").attr("hidden", "")
 					.click(() => this.order_rows(true));
-				// ONE BOX, ROWS TOUCHING: the flush stack (design/layout/doc/rules.md). The
-				// pinned row sits on top of it, flush too, so the two read as one list.
 				this.$pinned = div.c("inbox-pinned flush-stack");
 				this.$list = div.c("inbox-list flush-stack");
 			});
 		});
 	}
 
-	/* The foot: the list's quieter filters, and "clear all". */
 	foot(){
 		div.c("inbox-rail-foot flex v-center", () => {
 			this.foot_words();
@@ -231,13 +180,12 @@ export default class Rail {
 				.text("notes").click(() => { this.only_notes = !this.only_notes; this.$notes.el.classList.toggle("on", this.only_notes); this.relist(); });
 			this.$archived = button.c("inbox-word inbox-archived-word").attr("type", "button")
 				.click(() => { this.show_archived = !this.show_archived; this.$archived.el.classList.toggle("on", this.show_archived); this.relist(); });
-			// INBOX ZERO: archive every row shown right now, in one press.
 			button.c("inbox-word inbox-clear-all").attr("type", "button")
 				.attr("title", "archive every row shown here right now")
 				.text("clear all").click(() => this.clear_all());
 		});
 	}
-	foot_words(){}      // AIRail: "views"
+	foot_words(){}
 
 	grip(){
 		const k = this.key + "-rail-w";
@@ -259,12 +207,8 @@ export default class Rail {
 		});
 	}
 
-	/* THE THIRD COLUMN: a sub-page opens here, beside the page that owns it. A page sets
-	   its own `$pages = shell.$sub` for that, and Inbox.css grows the shell to three
-	   columns while one is open (`:has()`), with no state of ours to get stale. */
 	sub(){ this.$sub = div.c("inbox-sub"); }
 
-	// Returns the width it applied, which `grip` remembers — clamped, so no column hides.
 	size(px){
 		const w = px ? Math.round(Math.max(200, Math.min(px, innerWidth - 320))) : null;
 		this.$shell.style("--inbox-rail", w ? w + "px" : "");
@@ -276,7 +220,6 @@ export default class Rail {
 		this.$rows.on("pointerleave", () => { this.hovering = false; this.draw_extras(); });
 	}
 
-	/** Start the data. The base just paints `items`; a subclass subscribes to its streams. */
 	start(){
 		this.needs_changed(new Set(this.items.filter(it => it.needs).map(it => it.id)));
 		this.paint();
@@ -284,30 +227,24 @@ export default class Rail {
 
 	/* ════ THE DATA — what the rows are ════ */
 
-	/** The rows, newest data first or not — `paint()` sorts. Override this. `.archived` on the
-	 *  returned array is the archived pile (searched, and shown greyed on "archived"). */
 	source(){
 		const live = this.items.filter(it => it.status !== "archived");
 		live.archived = this.items.filter(it => it.status === "archived");
 		return live;
 	}
 
-	/** Before sorting: mark each row read or unread (the dot). AIRail adds the scores. */
 	decorate(list){ list.forEach(it => { it.unread = !this.is_read(it.id); }); }
-	/** After sorting, on every row (archived too): anything the face draws. */
 	prepare(rows){}
-	/** Newest first. */
 	order(x, y){ return (Date.parse(y.at ?? 0) || 0) - (Date.parse(x.at ?? 0) || 0); }
 
 	/* ── what the filters read — one seam each ── */
-	pool(list){ return list; }                       // the rows that can be listed at all
-	pool_archived(list){ return list; }              // the archived rows that can
-	resolved(it){ return false; }                    // left by itself (AIRail: rules.js)
-	needs(it){ return this.needs_ids.has(it.id); }   // waiting on you
-	exempt(it){ return !!it.exempt; }                // never under the floor (AIRail: the Live row)
+	pool(list){ return list; }
+	pool_archived(list){ return list; }
+	resolved(it){ return false; }
+	needs(it){ return this.needs_ids.has(it.id); }
+	exempt(it){ return !!it.exempt; }
 	haystack(it){ return (it.title + " " + (it.text ?? "")).toLowerCase(); }
 
-	/** The rows on screen right now, in data order. */
 	visible(){
 		let base = this.pool(this.list);
 		if (this.only_notes) base = base.filter(it => it.kind === "note");
@@ -324,7 +261,6 @@ export default class Rail {
 		return base.filter(it => this.exempt(it) || (it.score ?? 0) >= this.min);
 	}
 
-	/** Is the floor on right now? Off while searching, showing archived, or at 0. */
 	floored(){ return this.min > 0 && this.cat !== "fyi" && !this.search_q && !this.show_archived; }
 
 	/* ── read / unread and archive — a subclass writes them somewhere real ── */
@@ -336,12 +272,10 @@ export default class Rail {
 	}
 	read_set(){ try { return new Set(JSON.parse(this.store_get(this.key + "-read-ids") ?? "[]")); } catch { return new Set(); } }
 	archive(it){ it.status = "archived"; return Promise.resolve(); }
-	archived_soon(){}   // after an archive: AIRail asks its folders to refresh
+	archived_soon(){}
 
 	/* ════ DRAWING ════ */
 
-	// THE LIST IS QUIET when you are at its top and not pointing at it — the one test a
-	// new row has to pass to enter on its own.
 	quiet(){ return this.$rows.el.scrollTop <= 2 && !this.hovering; }
 
 	paint(){
@@ -361,14 +295,11 @@ export default class Rail {
 		if (this.quiet()) this.flush();
 		else this.pill();
 
-		// Everything already on screen redraws in place, wherever it sits.
 		this.shown.forEach(id => { const it = by_id.get(id); if (it) this.refill(this.rows.get(id), it); });
 		this.draw_extras();
 		this.list_watchers.forEach(fn => fn(list));
 	}
 
-	/** Many answers arriving at once ask for one paint, not one each (a card's cost
-	 *  answering for each of 300 rows once meant 300 full paints, 2.6s at load). */
 	paint_soon(){
 		if (this.paint_timer) return;
 		this.paint_timer = setTimeout(() => { this.paint_timer = null; this.paint(); }, 40);
@@ -382,8 +313,6 @@ export default class Rail {
 		this.flush(true);
 	}
 
-	/* Let the waiting rows in. A row APPEARING or LEAVING forces a reorder (it has no old
-	   place to keep); an existing row merely moving waits behind the "updated" pill. */
 	flush(to_top){
 		const here = this.visible();
 		const by_id = new Map(here.map(it => [it.id, it]));
@@ -405,15 +334,9 @@ export default class Rail {
 		this.router?.mark_links?.();
 	}
 
-	/** Rows a subclass draws itself (AIRail: groups, real pages), then the one order. */
 	draw_extras(force){ this.order_rows(force); }
-	/** `[id, at, el]` for each of those extra rows, so `order_rows()` sorts them in. */
 	extra_entries(){ return []; }
 
-	/* ONE TIMELINE, NEWEST FIRST — BUT THE ORDER NEVER MOVES WHILE YOU ARE LOOKING (the
-	   owner, 2026-09-30: "the rail reorders live and jumps"). A reorder is applied only on
-	   the first paint (and a short settle after mount), when `force`d (a row appeared or
-	   left, or the pill was pressed). Anything else is counted on the "N updated ↑" pill. */
 	order_rows(force){
 		const entries = [
 			...this.shown.filter(id => this.rows.has(id)).map(id => [id, this.at_of.get(id), this.rows.get(id).$row.el]),
@@ -462,15 +385,13 @@ export default class Rail {
 		this.$archived.el.hidden = !a_n && !this.show_archived;
 		this.$archived.text("archived (" + a_n + ")");
 	}
-	count_note(){ return null; }   // AIRail: "· the assistant is off"
+	count_note(){ return null; }
 
 	/* ── one row ── */
 
-	/** A row's address: its page under mine, carrying a floor that is not the Inbox's own. */
 	href(it){ return this.url + it.id + "/" + this.query(); }
 	query(){ return this.min !== Rail.FLOOR ? "?min=" + this.min : ""; }
 
-	/* A ROW IS AN ANCHOR — no click handler: the Router navigates it and marks it. */
 	make(it){
 		const rec = { sig: null, $row: a.c("inbox-row").href(this.href(it)) };
 		this.refill(rec, it);
@@ -493,19 +414,15 @@ export default class Rail {
 	}
 	row_classes(rec, it){}
 
-	/** THE FACE — what one row shows: its head, one quiet line, then anything a subclass adds. */
 	face(it, on = {}){
 		this.row_head(it, on);
 		if (it.sub) div.c("inbox-row-foot flex v-center gap-25", () => { small.c("inbox-row-line muted").text(it.sub); });
 		this.face_extra(it);
 	}
-	face_extra(it){}   // AIRail: the progress meter and "what happened"
+	face_extra(it){}
 
-	/** The head: the unread dot (a button: press it to toggle), the icon, the score,
-	 *  the title, when, and the archive ×. `it.dot === false` draws no dot at all. */
 	row_head(it, on = {}){
 		return div.c("inbox-row-head flex gap-25" + (it.kind === "stalled" ? " inbox-row-ask" : ""), () => {
-			// No toggle (the AI's Live row): a plain dot, so a click on it still opens the row.
 			if (it.dot !== false) on.toggle_read ? button.c("inbox-dot").attr("type", "button")
 				.attr("title", it.unread ? "mark read" : "mark unread")
 				.click(e => { e.preventDefault(); e.stopPropagation(); on.toggle_read(); }) : span.c("inbox-dot");
@@ -518,11 +435,8 @@ export default class Rail {
 				.click(e => { e.preventDefault(); e.stopPropagation(); on.archive(); });
 		});
 	}
-	title_text($title, it){}   // AIRail: turn #Page and /path into links (ext/Mention)
+	title_text($title, it){}
 
-	/** SHORT, so the title keeps the row's width: "10:04 PM" today, "Sep 28" this year,
-	 *  "Sep 28, 2025" before. "Sep 28, 2:20 PM" squeezed long titles to one word a line at
-	 *  1920 (review, 2026-09-30). The whole date and time is the hover (`when_full()`). */
 	when(at){
 		const d = new Date(at ?? 0);
 		if (!at || isNaN(d)) return "";
@@ -535,8 +449,6 @@ export default class Rail {
 		return !at || isNaN(d) ? "" : d.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 	}
 
-	/** The row's two buttons — built once per record, so a click during a redraw never
-	 *  reaches a stale closure. Both act at once and redraw just this row. */
 	row_on(rec, it){
 		const on = {
 			toggle_read: () => {
@@ -545,8 +457,6 @@ export default class Rail {
 				rec.sig = null;
 				this.refill(rec, it);
 			},
-			// The row LEAVES — `archived_pending` keeps it out however often the data rebuilds
-			// before the write lands.
 			archive: () => {
 				this.archived_pending.add(it.id);
 				this.apply_pending_archives();
@@ -571,8 +481,6 @@ export default class Rail {
 		}
 	}
 
-	/* "CLEAR ALL" — every row shown right now, through the same write the × makes, a
-	   batch at a time so neither the page nor the server freezes on hundreds. */
 	async clear_all(){
 		const targets = this.visible().filter(it => this.archivable(it) && !this.exempt(it));
 		if (!targets.length) return;
@@ -588,13 +496,11 @@ export default class Rail {
 
 	/* ════ OUTSIDE IN — what a subclass or a page tells the rail ════ */
 
-	/** What waits on you changed: the chip's badge, and the filter if it is on. */
 	needs_changed(ids, n = ids.size){
 		this.needs_ids = ids;
 		if (this.review_only) this.relist();
 		this.$needs_count.el.hidden = !n;
 		if (n) this.$needs_count.text(String(n));
-		// A row's signature cannot see this set, so redraw them — but only on a real change.
 		const key = [...ids].sort().join(",");
 		if (key === this.last_needs) return;
 		this.last_needs = key;
@@ -602,13 +508,11 @@ export default class Rail {
 		if (this.$list) this.paint();
 	}
 
-	/** A detail page on screen asks to be redrawn from the list: `{ id, draw(it) }`. */
 	open(h){ this.watching.add(h); this.current = h; this.paint(); return h; }
 	close(h){ this.watching.delete(h); if (this.current === h) this.current = null; }
 	repaint(){ this.paint(); }
 	on_list(fn){ this.list_watchers.add(fn); if (this.list?.length) fn(this.list); return () => this.list_watchers.delete(fn); }
 
-	/** Change the floor: the input, the url (`?min=`, dropped at the default) and the rows. */
 	set_min(n){
 		if (n === this.min) return;
 		this.min = n;
@@ -618,9 +522,6 @@ export default class Rail {
 		this.router?.mark_links?.();
 	}
 
-	/** A tab says which floor it means — the Inbox 90, the Log 0 — and what the rail is
-	 *  called there. A `?min=` in the url wins. Read on the next tick: the Router pushes the
-	 *  new url only after the page activates. */
 	tab_floor(d, title = this.title){
 		this.min_default = d;
 		this.$name?.text(title);

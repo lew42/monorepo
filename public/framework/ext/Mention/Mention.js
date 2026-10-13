@@ -5,15 +5,7 @@ import { css } from "../../ui/parts.js";
 import refs from "./maps/refs.js";
 import people from "./maps/people.js";
 
-// `ui/item`'s own `.item` rule resets `background: none` (so a tree row isn't a stack
-// of buttons) at the SAME specificity `.page-surface-dark` uses (one class each), in the
-// SAME layer — a tie that `.item`'s rule was winning, because it loads first (Mention.js
-// imports it). This file importing AFTER it, and declaring its own rule after that, is
-// what lets a dark mention actually paint dark. `--dark-bg`/`--dark-ink` are Page.css's
-// own custom properties, SET on this exact element by its `.page-surface-dark` class
-// (core/Page/Page.css) — reading them back here, instead of repeating the hex a second
-// time, is what review finding 5 (2026-10-02) asked for: one colour, one place it's
-// actually written, however many rules need to paint it.
+// CSS specificity dance and dark mention styling: doc/Mention-notes.md
 css(`@layer theme {
 	.item.page-surface-dark { background: var(--dark-bg); color: var(--dark-ink); }
 
@@ -29,46 +21,18 @@ css(`@layer theme {
 }`);
 
 /**
- * Mention — `#Name` and `@name` become a small icon + the word, linking to
- * wherever that name means. Two SEPARATE namespaces, one per control
- * character (the owner, 2026-09-30): `#` looks names up in `refs.js` (real
- * things on the site — `#Page`, `#Servex`), `@` looks them up in `people.js`
- * (users and agents — `@owner`, `@mastermind`). Adding a THIRD namespace
- * later is adding a third map and a third key to `maps` below — nothing in
- * this file needs to change.
- *
- *   mentions(el)                 // walk el's own text, using the site's two maps
- *   mentions(el, { "#": my_map })  // a caller with its own namespace
- *   mention_html("See #Page")    // the string form, for a template literal
- *
- * PATTERN (below): `#` and `@` as described here, plus `/`, a path from the web root.
- *   - not preceded by a letter/digit/underscore or `[` — so `a#b` and
- *     `user@example.com` are left alone (an email's `@` always has a word
- *     character right before it).
- *   - `#[Page layout]` — the bracket form, for a name with a space in it.
- *   - a markdown heading (`# Title`, `#` then a SPACE) never matches — the
- *     character right after `#` has to be `[` or a letter, never a space.
- *   - `#fff` (a colour written in prose) matches the shape but almost never
- *     the map, so it falls through to plain text — same as any other typo.
- *
- * A name not in its map is left as plain text (untouched — the original
- * text node is never even split) and recorded in `unknown`, once per name,
- * with one `console.debug` — never `warn`/`error`, which would fail this
- * site's own merge smoke test. `unknown`'s keys carry their sigil
- * (`"#Nope"`, not `"Nope"`) so `#Nope` and a future `@Nope` don't collide.
- *
- * Synchronous throughout — no fetch, nothing awaited — so this is safe to
- * call from inside a `View` capture callback, same as `md()` itself.
+ * Mention — `#Name`, `@name`, `/path` → icon + link.
+ * Namespaces, pattern rules, and design: doc/Mention-notes.md
+ *   mentions(el)                 // walk el's text, using site maps
+ *   mentions(el, { "#": my_map })  // custom namespace
+ *   mention_html("See #Page")    // for template literals
  */
-// `#` and `@` may not follow a word character or `[`; `/` must START a word (only after
-// a space, `(` or the start), so "and/or", "1/2" and a url's inner slashes never match.
+// Pattern: `#`, `@` not after word/`[`; `/` starts a word only. See doc/Mention-notes.md
 const PATTERN = /(?:(?<![\w\[])([#@])|(?<![^\s(])(\/))(\[[^\]\n]+\]|[A-Za-z][\w./-]*[\w]\/?)/g;
 
 export const maps = { "#": refs, "@": people };
 
-// OPT-IN, never every div (the owner, 2026-09-30): md(), chat bubbles and comments call
-// mentions() themselves; p() and h1–h6 reach it through this one hook in core/View
-// (core can't import ext — imports flow down — so ext registers itself here).
+// Opt-in integration: doc/Mention-notes.md
 View.upgrade = el => mentions(el);
 
 export const unknown = new Set();
@@ -79,16 +43,11 @@ function raw_name(raw){
 	return (raw.startsWith("[") ? raw.slice(1, -1) : raw).replace(/\/$/, "");
 }
 
-// `/` — a path from the web root (the owner, 2026-09-30: "/framework/core/Page would be the
-// same thing as #Page"). No map of its own: it points into the others by url, and only a
-// path that IS a known page's url upgrades; every other slash stays plain text, silently.
+// `/` — path from web root; see doc/Mention-notes.md
 const norm = url => String(url).toLowerCase().replace(/[?#].*$/, "").replace(/\/?$/, "/");
 function by_path(m, raw){
 	const want = norm("/" + raw_name(raw));
-	// `path: false` (refs.js) — this entry BORROWS another page's url (it has none of its
-	// own), so a literal path must never resolve to it: typing "/framework/" means the
-	// Framework page, never "CLAUDE.md" just because CLAUDE.md's own mention happens to
-	// point there too (bug, 2026-10-03).
+	// TRAP: `path: false` must not resolve from `/` lookup; prevents alias collisions (2026-10-03)
 	for (const map of [m["#"], m["@"]]) for (const key in map ?? {})
 		if (map[key].url && map[key].path !== false && norm(map[key].url) === want) return { key, ...map[key] };
 	return null;
@@ -99,12 +58,7 @@ function find(map, name){
 	return key ? { key, ...map[key] } : null;
 }
 
-// A LIVE AGENT'S OWN ID is never in `people.js` — Servex mints one per task
-// (`task-mastermind-inbox-cards-work`, `minion-card`, …), unbounded, so there is no
-// roster to keep in sync the way `refs.js`'s fixed pages are (bug, 2026-10-03: a card's
-// own text named `@task-mastermind-…` and it stayed plain words). No page of its own to
-// link to from here, but it still reads as a small icon mention, by its own shape, the
-// same four kinds `activity.js`'s `who_word()` already names in plain sentences.
+// Live agent ids: doc/Mention-notes.md
 const AGENT_KIND = [[/^task-mastermind-/, "psychology"], [/^mastermind-/, "psychology"],
 	[/^minion-/, "smart_toy"], [/^manager-/, "support_agent"], [/^assistant/, "bolt"]];
 function agent_entry(name){
@@ -112,10 +66,7 @@ function agent_entry(name){
 	return icon ? { key: name, icon } : null;
 }
 
-// A PATH walks down from a known page (the owner, 2026-09-30: "@parent/child",
-// "@Servex/heartbeat"): the first segment is looked up, the rest is appended to
-// its url as child slugs. `@` falls back to the `#` map when the first segment
-// is a page rather than an agent, so `@Servex/lifecycle` still resolves.
+// Path lookup: doc/Mention-notes.md
 function lookup_cached(m, sigil, raw){
 	if (sigil === "/"){ const hit = by_path(m, raw); return hit && { name: hit.key, ...hit }; }
 	const [head, ...rest] = raw_name(raw).split("/");
@@ -126,17 +77,7 @@ function lookup_cached(m, sigil, raw){
 	return { ...hit, name: [hit.key, ...rest].join("/"), url };
 }
 
-// THE LIVE HALF (review finding 2, 2026-10-02): `refs.js`'s `icon`/`class_card` are a
-// CACHE, only as fresh as the last `sync.mjs` run — editing a page's icon does not
-// update its mentions until someone remembers to re-run that script. `Page.instances()`
-// (`core/track/track.js`; every `Page` ever constructed this session, opted in once,
-// WeakRef'd so a throwaway build doesn't leak) answers the common case for real: a page
-// you've already visited this session, or one `/framework/`'s own wall just loaded, IS a
-// live object right now, holding its OWN current `icon` and (for a Doc) `nav()
-// .class_card` — read those instead of the cache. A page nobody has loaded yet has no
-// live instance to ask, so the cache is still the fallback for that cold case — fixing
-// THAT would mean eagerly loading every one of the ~30 mentioned pages just to answer
-// "what's its icon", a much bigger and slower change than this one lookup, not done here.
+// Live instances vs. cache: doc/Mention-notes.md
 function live(entry){
 	if (!entry?.url) return entry;
 
@@ -160,22 +101,7 @@ function note_unknown(sigil, raw){
 	}
 }
 
-// Built OUTSIDE whatever captor happens to be open when `mentions()` runs
-// (a page's own content() callback, most of the time) — `item()` is a normal
-// View factory and would otherwise auto-append itself into that captor
-// before this file ever moves it into place. doc/decisions.md if this ever
-// needs to be true for a second reason.
-// `entry.class_card` (maps/refs.js, kept in sync by sync.mjs) is true when the page this
-// mention points at documents a real ES class — the SAME always-dark "this is a class"
-// look `Page.preview_card()` already gives a class's own card on its module index
-// (`page-surface-dark`, deliverable 3), so a reference to `#Page` in a sentence and the
-// `Page` card on `/framework/core/` read as the one idea rather than two different looks
-// for the same fact.
-// `extra` is the inline-text sizing ("inline mention", Mention.css's tightened padding, so a
-// dark card sits at its line's own height) — the ONE caller outside this file that needs the
-// same dark card at ordinary row height (a content-list "ref" row, core/Page/Page.class.js,
-// 2026-10-03: "a content row can BE a page reference … the #Mention class-card look") passes
-// just "mention", keeping the identifying class but skipping the tighten-for-text rule.
+// Build context, class card, and styling: doc/Mention-notes.md
 export function build_row(name, entry, extra = "inline mention"){
 	const saved = View.captor;
 	View.captor = null;
@@ -187,12 +113,7 @@ export function build_row(name, entry, extra = "inline mention"){
 	}
 }
 
-// THE SAME `/` LOOKUP `mentions()` uses on inline text, exposed for a caller that already HAS
-// a url (not a sentence to scan) and wants the page it names — icon, title, class_card — without
-// re-reading `refs.js` or `Page.instances()` by hand. `url` may or may not start with "/"; either
-// way it is read the same way a literal "/path" mention in prose is. Returns `null` for a url
-// this site's `#`/`@` maps don't know (refs.js doesn't have every page yet — a caller falls
-// back to the raw url rather than treating that as an error).
+// Lookup by url for template literals: doc/Mention-notes.md
 export function ref_entry(url){
 	return url ? lookup(maps, "/", String(url).replace(/^\//, "")) : null;
 }

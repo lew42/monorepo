@@ -5,9 +5,7 @@ import { CREDENCE, validate, notes, credences, kinds } from "./entries.js";
 
 View.stylesheet(import.meta, "Research.css");
 
-/* What a kind LOOKS like is this side's business — the schema never says.
-   ⚠ Material ICONS, not Symbols: a Symbols-only name renders as its literal
-     WORD, many em wide, and nothing throws. Every name here is classic. */
+// ⚠ Material ICONS only, not Symbols: missing symbol name renders as literal WORD.
 const KIND_ICON = {
 	finding: "lightbulb", source: "link", theory: "account_tree",
 	opinion: "gavel", question: "help",
@@ -22,19 +20,7 @@ export const CREDENCE_MEANS = {
 	speculation: "nobody has evidence — this is a possibility, written down",
 };
 
-/**
- * ONE topic's log — flat entries, no verb key.
- *
- * A `JSONL` line is `{"<verb>": {…}}`; a program line IS the entry. `apply()`
- * takes both, so a topic that later wants a `{"log": …}` line beside its
- * entries gets it free.
- *
- * ⚠ TOLERANT ON PURPOSE. The writer refuses an illegal line; a reader that
- *   refused one too would hide the defect it is supposed to show. Everything
- *   parseable lands in `entries`, carrying `bad` (why the schema refuses it)
- *   and `notes` (why it is weak) — the page marks them rather than dropping
- *   them, and `entries.length + unparsed` equals the file's line count.
- */
+/** ONE topic's log — flat entries, no verb key. Tolerant on purpose: see doc/Program-notes.md. */
 export class ProgramJSONL extends JSONL {
 	entries = [];
 
@@ -61,19 +47,7 @@ export class ProgramJSONL extends JSONL {
 	}
 }
 
-/**
- * The front of a research PROGRAM — several topics dug in parallel, each
- * appending to its own `<topic>/log.jsonl`, aggregated into one living page:
- * the credence legend, a card per topic, the theories board, the latest stream.
- *
- *   export default new Program({ meta: import.meta, topics: "stone theories" });
- *
- * Live — every log is `.live()`d, so a line a minion appends arrives without a
- * reload. Off localhost there is no socket and each log is fetched once.
- *
- * Every step is a method, so a program with its own emphasis overrides one and
- * inherits the rest.
- */
+/** Aggregates research topics live, one `.jsonl` per topic. See doc/Program-notes.md. */
 export class Program extends Page {
 
 	/** The topics I aggregate, in the order they should read. */
@@ -85,8 +59,6 @@ export class Program extends Page {
 	// ⚠ No DOM after the await: `draw()` builds inside `empty()`, which
 	//   re-establishes the captor the first await dropped.
 	content(){
-		// `wide`: under a columns host the prose cap would squeeze the whole front to one
-		// measure (650px of a 2900px column at 3440); the text inside is capped by its own css.
 		div.c("research-program flow wide", async $r => {
 			this.$live = $r;
 
@@ -102,17 +74,7 @@ export class Program extends Page {
 		});
 	}
 
-	/**
-	 * What each topic has actually written, from `directory.json` — the dir tree
-	 * the dev server keeps and the site ships.
-	 *
-	 * ⚠ ONE fetch, and no probing. Asking `<topic>/page.js` four times answers
-	 *   with four console 404s on a program whose topics have not started yet —
-	 *   which is the normal state of a program, and a page that logs errors when
-	 *   nothing is wrong trains you to ignore the console.
-	 * ⚠ The SPA fallback answers a miss with index.html at 200 — content-type is
-	 *   the 404, exactly as `Page.file()` reads it.
-	 */
+	/** Directory contents from `/directory.json`. See doc/Program-notes.md for traps. */
 	async listing(){
 		const res = await fetch("/directory.json").catch(() => null);
 		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
@@ -122,21 +84,14 @@ export class Program extends Page {
 			.reduce((node, name) => node?.children?.find(kid => kid.name === name), root);
 	}
 
-	/**
-	 * A topic's way in. Its own `page.js` wins; failing that, every `.md` it has
-	 * curated is already a page — core serves `<topic>/x.md` at `<topic>/x/`
-	 * with no declaration, so the owner can read what a minion wrote the moment
-	 * the file lands, and nothing here has to be edited when it does.
-	 */
+	/** Populate page.js, pages, capstone from directory listing. See doc/Program-notes.md. */
 	found(log, dir){
 		const mine = dir?.children?.find(kid => kid.name === log.topic)?.children ?? [];
 
 		log.page = mine.some(file => file.name === "page.js");
 		log.pages = mine.filter(file => file.name.endsWith(".md")).map(file => file.name.slice(0, -3));
 
-		// The capstone, by convention: a sub-page of any topic, named `capstone`
-		// (default "synthesis"). Discovered the same way as everything else, so a
-		// program that writes one gets it on the front with no edit here.
+		// capstone: config field, not method (assign style collision).
 		log.capstone = mine.find(kid => kid.name === (this.capstone ?? "synthesis")
 			&& kid.children?.some(file => file.name === "page.js")) ? log.topic : null;
 	}
@@ -174,14 +129,7 @@ export class Program extends Page {
 		});
 	}
 
-	/* ── the capstone ──
-	   Above the legend, because at 300+ entries the front's real job is to say
-	   where the READ of all this is — otherwise the one page that crosses the
-	   topics sits three clicks down inside one of them. Card, not banner: the
-	   same shape as a topic card, so it needs no CSS of its own, and the line
-	   under it is counted from the logs rather than written here.
-	   ⚠ NOT `capstone()` — `capstone:` is the config field naming the sub-page.
-	     Same swap that cost an hour on `topic_card`, one line up. */
+	/* Capstone card sits above legend. See doc/Program-notes.md for placement. */
 	capstone_card(all){
 		const topic = this.logs.find(log => log.capstone)?.capstone;
 		if (!topic) return;
@@ -218,13 +166,7 @@ export class Program extends Page {
 		});
 	}
 
-	/* ── one card per topic ──
-	   Counts, not claims: how much is in there, and how sure it is. The title is
-	   a link only once the topic has written its own page. */
-	/* ⚠ NOT `topics()` either — `topics:` is this page's own config FIELD, and the
-	   constructor's Object.assign overwrites the method with the string. A method
-	   and a field of the same name is a silent swap in this codebase's whole
-	   assign-based style; every name here has to miss BOTH lists. */
+	// ⚠ NOT `topics()` — assign overwrites method with config field string (silent swap).
 	topic_cards(){
 		div.c("research-topics flow", () => {
 			p.c("h4 muted", "The dig");
@@ -233,10 +175,7 @@ export class Program extends Page {
 		});
 	}
 
-	/* ⚠ NOT `card()`. `Page.nav()` reads `this.card` as the extra classes for this
-	   page's PREVIEW, so a method by that name is handed to `.ac()` and every card
-	   wall linking here dies with `arg.split is not a function` — on the PARENT's
-	   page, not this one. `topic()` is taken by core too. Cost an hour, 2026-08-30. */
+	// ⚠ NOT `card()` — Page.nav() reads `.card` as preview classes; method causes .ac() crash.
 	topic_card(log){
 		const t = log.tally();
 
@@ -279,11 +218,7 @@ export class Program extends Page {
 					.attr("title", `${n} ${c}`)));
 	}
 
-	/* ── the theories board ──
-	   Grouped by topic, because the schema has no field linking an assessment to
-	   the theory it assesses (doc/program.md) — the topic is the only honest
-	   join, so the opinions sit under their own theories and nothing implies a
-	   pairing the data does not contain. */
+	/* Theories grouped by topic. See doc/Program-notes.md for design. */
 	board(all){
 		const theories = all.filter(e => e.kind === "theory");
 		if (!theories.length) return;
@@ -295,10 +230,7 @@ export class Program extends Page {
 				const mine = theories.filter(e => e.topic === log.topic);
 				if (!mine.length) return;
 
-				// ⚠ Newest first and CAPPED. Uncapped this board was 35 cards and
-				// 10.8 screens on its own, with the stream below it — the front of a
-				// program that never closes has to stay a front. The rest is one
-				// click away on the topic's own page, and the count says how many.
+				// ⚠ CAPPED to keep front fast; full list on topic's page.
 				const shown = mine.slice(0, this.board_cap ?? 4);
 
 				div.c("research-board-group flow", () => {
@@ -334,11 +266,7 @@ export class Program extends Page {
 		});
 	}
 
-	/* The mainstream half — every `opinion` in this topic, ONCE, under the whole
-	   group. It sat inside each theory card first, which repeated the same
-	   thirteen assessments under four claims and read as if each list belonged to
-	   the card above it. It does not: the schema has no field pairing an
-	   assessment to a theory, and the honest shape says so by placement. */
+	/* Opinions grouped under whole topic, not repeated in cards. See doc/Program-notes.md. */
 	takes(log){
 		const takes = log.entries.filter(e => e.kind === "opinion");
 		if (!takes.length) return;
@@ -355,16 +283,14 @@ export class Program extends Page {
 		});
 	}
 
-	/* ── the stream ──
-	   Everything, newest first, capped — the raw feed under the read of it. */
+	/* Stream latest entries, capped for speed. */
 	stream(all){
 		div.c("research-stream", () => {
 			h2("Latest");
 
 			if (!all.length) return p.c("muted", "Nothing logged yet. Each topic appends to its own log.jsonl as it digs; this page streams them live.");
 
-			// ⚠ A feed, not an archive. 40 entries measured 8367px — the stream alone
-			// was 9 screens under a board that was 10 more.
+			// ⚠ CAPPED feed—uncapped: 40 entries = 8367px, stream + board = 19 screens.
 			const shown = all.slice(0, this.cap ?? 20);
 			shown.forEach(e => this.entry(e));
 
@@ -390,9 +316,7 @@ export class Program extends Page {
 		});
 	}
 
-	/* The badge says the word AND its promise — the treatment is never the only
-	   thing carrying the credence, so this survives greyscale, a screenshot and
-	   a screen reader. */
+	/* Badge shows word + promise. See doc/Program-notes.md. */
 	badge(e){
 		span.c("research-badge").ac("research-cred-" + e.credence)
 			.attr("title", CREDENCE_MEANS[e.credence] ?? "no credence given")
@@ -405,9 +329,7 @@ export class Program extends Page {
 		e.notes?.forEach(note => p.c("research-note muted", note));
 	}
 
-	/* The HOST, not the url. A research url is a 120-character permalink; printed
-	   in full it wraps to three mono lines and buries the claim above it. The
-	   host is the part you judge a source by, and the full url is the `title`. */
+	/* Show host only; full url in title. See doc/Program-notes.md. */
 	source(e){
 		if (!e.url) return;
 
@@ -417,9 +339,7 @@ export class Program extends Page {
 			.attr("target", "_blank").attr("rel", "noopener").text(host);
 	}
 
-	/* ── the foot ──
-	   Where the data is, what the page refuses to do to it, and the honest
-	   count: entries + unreadable lines = the files' line count. */
+	/* Footer: log sources and count; entries + unreadable = file line count. */
 	foot(all){
 		const torn = this.logs.reduce((n, log) => n + log.unparsed, 0);
 		const bad = all.filter(e => e.bad).length;

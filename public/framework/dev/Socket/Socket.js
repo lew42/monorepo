@@ -10,18 +10,10 @@ function promise(){
 }
 
 export default class Socket {
+	// history and reasons: doc/Socket-notes.md
 
-	/* Paths this tab reads as DATA rather than RUNS. A change to one of these is new
-	 * CONTENT, not new code — the program in the browser is byte-for-byte the same
-	 * afterwards, so re-reading the file is the whole fix and a reload costs the
-	 * reader their scroll position for nothing. Measured 2026-09-22: 203 of the 215
-	 * reloads an /framework/ai/ tab took that day were `directory.json` being
-	 * rebuilt because an agent created a file somewhere. Extension AND initiator
-	 * both have to say "data" — `ext/files` FETCHES a `.js` to show its source, and
-	 * that same `.js` is a live module that really does need a reload. */
 	static DATA = /\.(json|jsonl|md|txt|csv)$/i;
 
-	// Where a reload's stashed scroll / open / focus state waits. See stash().
 	static STATE = "dev-reload-state";
 
 	static singleton() {
@@ -51,20 +43,11 @@ export default class Socket {
 		this.listeners = {};
 		this.skipped = 0;
 
-		/* THE PER-TAB PAUSE SWITCH, restored before anything can reload this tab.
-		 * `window.$BLOCKRELOAD` used to be the whole of it, which meant the switch was
-		 * forgotten by the very first reload it failed to stop. sessionStorage is
-		 * exactly right here: it survives the reload and dies with the tab.
-		 * The checkbox and its "n held" count are dev/DevBar/blocked.js. */
 		if (sessionStorage.getItem("dev-block") === "1") window.$BLOCKRELOAD = true;
 
-		// Put the reader back where they were, if the last thing this tab did was reload.
 		this.restore();
 
-		// ⚠ LOCALHOST ONLY, kept on purpose — this socket also carries `rpc:cmd`
-		// and `rpc:write`, so widening it to the LAN would be RCE, not a UX fix.
-		// `POST /ask/turn` (Server/plugins/Ask.js) is the narrow door for a phone
-		// instead; see `ai/sessions/2026/09/29/mobile-nav/mobile-nav/` (task log) for why.
+		// ⚠ LOCALHOST ONLY — RCE risk if widened to LAN (socket carries rpc:cmd/write)
 		if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname.endsWith(".localhost")) {
 			this.connect();
 		} else {
@@ -75,7 +58,6 @@ export default class Socket {
 	connect() {
 		if (this.disabled) return;
 
-		// only one attempt in flight
 		clearTimeout(this.retry);
 		this.retry = null;
 
@@ -83,9 +65,7 @@ export default class Socket {
 		this.ws.addEventListener("open", () => this.open());
 		this.ws.addEventListener("message", res => this.message(res));
 
-		// ⚠ A failed connect fires "error" AND THEN "close". Reconnecting from both
-		// turned a dead dev server into a connection storm, so "close" is the single
-		// reconnect path and "error" only reports.
+		// ⚠ Failed connect fires "error" AND THEN "close" — reconnect only on "close"
 		this.ws.addEventListener("close", () => this.reconnect());
 		this.ws.addEventListener("error", () => console.warn("Socket error."));
 	}
@@ -99,49 +79,28 @@ export default class Socket {
 		this.rpc("hello", window.location.pathname, this.tab());
 	}
 
-	// A stable name for THIS tab, minted once. Two tabs on one page are otherwise
-	// indistinguishable, so `path` cannot address one of them — every `hello` carries
-	// this instead, and MCP's tools take it as `tab`. ⚠ sessionStorage: it survives the
-	// reload (constant here) and dies with the tab, which is exactly a tab's lifetime.
 	tab() {
 		let id = sessionStorage.getItem("dev-tab");
 		if (!id) sessionStorage.setItem("dev-tab", id = crypto.randomUUID().slice(0, 8));
 		return id;
 	}
 	reconnect() {
-		// ⚠ Never reject `.ready` — a pending promise parks send()s until we are
-		// back, and restarting `node server.js` is routine.
+		// ⚠ Never reject `.ready` — parks pending send()s
 		if (this.disabled || this.retry) return;
 
-		// ⚠ Only swap in a fresh `.ready` if the old one resolved, or anything
-		// already awaiting it is stranded on a dead promise.
+		// ⚠ Only swap fresh `.ready` if old one resolved
 		if (this.connected) {
 			this.connected = false;
 			this.ready = promise();
 		}
 
-		// Only once this tab has ever really connected — the very first attempt,
-		// before the server has even finished starting on a cold load, is not a
-		// restart and should not say it is one.
 		if (this.ever_connected) this.show_reconnecting();
 
-		// 250ms, 500ms, 1s, 2s ... capped at 10s
 		const delay = Math.min(250 * 2 ** this.fails++, 10000);
 		console.warn(`Socket closed, reconnecting in ${delay}ms.`);
 		this.retry = setTimeout(() => this.connect(), delay);
 	}
 
-	/* THE HOLD STRIP (2026-10-01, page-holds) — the owner's words: a restart
-	 * blanked the page; it should hold and reconnect, never go white. Nothing
-	 * in this file ever reloads on a close (reconnect() above only retries —
-	 * search this file for `reload()` and every caller is changed()/a stale
-	 * pill click, never the socket lifecycle), so the page was never actually
-	 * going blank FROM the disconnect itself. What was missing is this: zero
-	 * sign that anything is happening, so a few hundred ms of silence during
-	 * the supervisor's boot-tested swap (Server/doc/watch.md) reads as "it
-	 * died" instead of "it's coming back." This shows one small, fixed,
-	 * un-clickable line the moment a reconnect is scheduled and removes it the
-	 * instant `open()` succeeds — it never reloads or blocks anything itself. */
 	show_reconnecting() {
 		if (this.strip || !document.body) return;
 		this.inject_style("dev-reconnect", "@layer util { .dev-reconnect-strip { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: 61; padding: 0.3em 0.9em; background: #78350f; color: #fef3c7; font: 0.8rem system-ui, sans-serif; text-align: center; } }");
@@ -156,11 +115,6 @@ export default class Socket {
 		this.strip = null;
 	}
 
-	/* Shared by show_reconnecting() and mark_stale(): both are a fixed, un-asked-for
-	 * notice over whatever is already on screen, and both need their one `<style>`
-	 * rule in the DOM exactly once no matter how many times they fire. `marker`
-	 * becomes a `data-<marker>` attribute so a second call is a no-op instead of a
-	 * second `<style>` tag. */
 	inject_style(marker, css) {
 		if (document.querySelector(`style[data-${marker}]`)) return;
 		const style = document.createElement("style");
@@ -168,7 +122,6 @@ export default class Socket {
 		style.textContent = css;
 		document.head.append(style);
 	}
-	// A reply to a pending request(), or the server calling a method on us.
 	message(res) {
 		const data = JSON.parse(res.data);
 
@@ -180,10 +133,7 @@ export default class Socket {
 				this[data.method](...data.args);
 		}
 	}
-	/* The socket is the only thing in the browser that hears the file system, so this
-	 * is how a page hears it too: `socket.on("data", path => …)`. Returns its own
-	 * unsubscribe. A plain registry rather than window events, because what a page
-	 * wants to subscribe to is THIS socket, and there is only ever one. */
+
 	on(name, fn) {
 		(this.listeners[name] ??= new Set()).add(fn);
 		return () => this.listeners[name].delete(fn);
@@ -203,9 +153,6 @@ export default class Socket {
 		});
 	}
 
-	/* THE PRE-FLIGHT (2026-10-12, live-page-error). A reload that lands while a batch of writes is
-	 * half done shows the reader a load error. Fetch the page and every module that changed first;
-	 * if any answer is not OK, keep the old page and show the pill instead. Fails open. */
 	async preflight() {
 		try {
 			const urls = [location.href, ...(this.changed_paths ?? [])];
@@ -214,9 +161,6 @@ export default class Socket {
 		} catch { return true; }
 	}
 
-	/* THE OUT-OF-DATE PILL. A reload this tab refused or postponed (blocked, or busy
-	 * with the mic) means code on screen is older than the file on disk. Say so, with
-	 * one click to fix it; never reload by itself. Plain DOM, so it works on any page. */
 	mark_stale(text = "This page is out of date — reload") {
 		if (this.pill || !document.body) return;
 		this.inject_style("dev-stale", "@layer util { .dev-stale-pill { position: fixed; inset-block-end: 1rem; inset-inline-start: 1rem; z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }");
@@ -227,10 +171,6 @@ export default class Socket {
 		document.body.append(pill);
 	}
 
-	/* A page can say "not now": add_busy(fn), where fn() is true while a reload
-	 * would destroy something (ai2 registers one that is true while its mic is
-	 * recording or a transcript is pending). A busy reload is not lost: it waits,
-	 * checking once a second, and happens once as soon as every hook says idle. */
 	add_busy(fn) { (this.busy_hooks ??= new Set()).add(fn); return () => this.busy_hooks.delete(fn); }
 	busy() { for (const fn of this.busy_hooks ?? []) try { if (fn()) return true; } catch {} return false; }
 	defer() {
@@ -238,34 +178,19 @@ export default class Socket {
 		this.deferring = setInterval(() => { if (!this.busy()) { clearInterval(this.deferring); this.deferring = null; this.reload(); } }, 1000);
 	}
 
-	/* A reload this tab refused. The count matters as much as the refusal: a switch
-	 * that silently swallows reloads reads as "the dev server has stopped working"
-	 * ten minutes later, and the reader has no way to tell the two apart. The dev
-	 * bar shows it and clicking it takes them all at once — dev/DevBar/blocked.js. */
 	skip() {
 		this.skipped++;
 		this.emit("skipped", this.skipped);
 	}
 
-	// ⚠ Called BY the server, like reload() — Server/plugins/SocketServer/LiveReload.js
-	// broadcasts this every time the reload-hold's holder list changes (never on
-	// every poll tick, only when it differs). `hold_holders` is read by
-	// dev/DevBar/hold.js for the readout beside Block; this file stays the one
-	// place that knows the wire shape, so hold.js never has to. A plain window
-	// event, not a bare property, because a tab can open dev/DevBar/hold.js
-	// AFTER a hold already changed the socket's state at least once.
 	hold(holders) {
 		this.hold_holders = holders || [];
 		window.dispatchEvent(new CustomEvent("dev-hold", { detail: this.hold_holders }));
 	}
 
-	// ⚠ Called BY the server, like reload() — this is MCP's `eval` tool, and it
-	// must never throw: message() has no catch, so one bad expression would take
-	// down every frame after it.
+	// ⚠ eval must never throw — message() has no catch
 	eval(code, token) {
-		// ⚠ Read at REPLY time, never at call time — a three-second eval spans a
-		//   click-away, and what the answer is worth depends on the state it was
-		//   answered in. A hidden tab still evaluates; it just stops rendering.
+		// ⚠ Read at REPLY time, not call time — answer's value depends on tab state
 		const reply = result => this.rpc("eval_result", token, { ...result,
 			visibility: document.visibilityState,
 			focused: document.hasFocus(),
@@ -275,7 +200,6 @@ export default class Socket {
 			catch { return String(value); }
 		};
 
-		// The tab may have navigated since it connected.
 		this.rpc("hello", window.location.pathname, this.tab());
 
 		try {
@@ -288,19 +212,6 @@ export default class Socket {
 		}
 	}
 
-	/* ⚠ Called BY the server, like reload(). No `paths` — or a null inside one —
-	 * means "unknown", which is the old reload-everything.
-	 *
-	 * Three outcomes, cheapest first. A path this tab never loaded is ignored. A
-	 * stylesheet is hot-swapped in place. A DATA file the tab fetched fires a `data`
-	 * event any page can subscribe to, so the page re-reads the file itself and
-	 * nothing is lost. Only the fourth case — a module this tab actually RAN has
-	 * changed — reloads, because a changed ES module cannot be re-imported over the
-	 * old one without a build step.
-	 *
-	 * ⚠ It no longer short-circuits on `$BLOCKRELOAD`. Blocking means "do not throw
-	 * my state away"; a CSS swap and a data event throw nothing away, so they keep
-	 * running while blocked and only `reload()` itself refuses (and counts). */
 	changed(paths) {
 		if (!paths || paths.includes(null)) return this.reload();
 
@@ -317,23 +228,6 @@ export default class Socket {
 		if (stale) { this.changed_paths = paths.filter(path => loaded.has(path)); this.reload(); }
 	}
 
-	/* ── WHAT A RELOAD THROWS AWAY ──────────────────────────────────────────────
-	 * Most reloads are gone now (see changed() above), but the ones that are left
-	 * are real, and they still cost the reader their place on the page. These two
-	 * methods put back the three things they would notice: where they had scrolled,
-	 * which disclosures were open, and the text they were typing. `?view=` and any
-	 * `#hash` need nothing — the url survives a reload by itself.
-	 *
-	 * ⚠ `window.scrollY` IS ALWAYS 0 ON THIS SITE, so stashing it would restore
-	 * nothing while looking like it worked. The document does not scroll: `.pages`
-	 * inside the app shell does (measured headless on /framework/ai/sessions/2026/09/22/ at
-	 * 1440×900 — document 900px tall in a 900px window, `.pages` 5,028px in 900).
-	 * So this walks for the elements that really carry a scrollTop.
-	 *
-	 * ⚠ It cannot restore a fold whose body is BUILT ON CLICK (ext/AITask's
-	 * `fold()`): re-adding the open class would show an empty box, which is worse
-	 * than a shut one. Native `<details>` is safe because its content is always
-	 * there. A module with lazily-built state has to remember that itself. */
 	stash() {
 		const where = el => {
 			const parts = [];
@@ -360,19 +254,12 @@ export default class Socket {
 		let state;
 		try {
 			const raw = sessionStorage.getItem(this.constructor.STATE);
-			sessionStorage.removeItem(this.constructor.STATE);   // one reload only, whatever happens next
+			sessionStorage.removeItem(this.constructor.STATE);
 			state = raw && JSON.parse(raw);
 		} catch {}
 
-		// Ours only. A reader who navigated somewhere else, or came back an hour
-		// later on a restored tab, is not asking to be put back where they were.
 		if (!state || state.url !== location.pathname + location.search || Date.now() - state.at > 20000) return;
 
-		/* ⚠ The page builds itself asynchronously — the scroller does not exist for
-		 * the first few frames, and is not tall enough to ACCEPT the offset for
-		 * several more (setting scrollTop past scrollHeight silently clamps). So this
-		 * keeps trying for about a second instead of once, and stops the moment every
-		 * piece has landed. */
 		let tries = 0;
 		const put = () => {
 			let done = true;
@@ -389,9 +276,7 @@ export default class Socket {
 				if (el) el.open = true; else done = false;
 			}
 
-			// ⚠ Only into an EMPTY field, and only once. The page may have rebuilt this
-			// input with real content of its own, and putting stale text back over that
-			// would lose more than the reload did.
+			// ⚠ Only into EMPTY field, once — page may have its own content
 			const $f = state.focus && document.querySelector(state.focus.at);
 			if (state.focus && !$f) done = false;
 			else if ($f && !$f.value) {
@@ -407,9 +292,6 @@ export default class Socket {
 		requestAnimationFrame(put);
 	}
 
-	// Every same-origin url this tab fetched, pathname → still hot-swappable.
-	// ⚠ False once something read the file as data — ext/files shows sources, and
-	// swapping a <link> would leave that copy stale on screen.
 	loaded() {
 		const paths = new Map();
 		for (const entry of performance.getEntriesByType("resource")) {
@@ -421,8 +303,6 @@ export default class Socket {
 		return paths;
 	}
 
-	// ⚠ Bumps `?t=` on the SAME <link> element. A replacement element registers
-	// its @layer at the END of the cascade and silently reorders the whole site.
 	restyle(path) {
 		const links = [...document.querySelectorAll('link[rel="stylesheet"]')].filter(link => {
 			const url = new URL(link.href);
@@ -471,8 +351,6 @@ export default class Socket {
 	cmd(res) {
 		console.log("cmd response:", res);
 	}
-
-	// No `write()` helper: files are written only through ext/filesystem/FsFile.js (the one file API).
 
 	log() {
 		console.log(...arguments);

@@ -49,3 +49,5 @@ preview(nav){ return this.preview_card(nav, () => mini("tabs")); }   // a card's
 - `doc/method/*.md`, `doc/file/*.md` — one page per door and per file (the Doc's `methods:` / `files:`)
 - Files that matter: `shell.js` (`page.demo()` — the one demo UX), `demo.js` (demo, stage, `source_block()`), `exhibit.js` (exhibit, page, tree — shapes over the shell), `stage.js` (the one viewport), `mini.js` (the picture a preview card wants instead of a zoomed instance), `steps.js` (a demo beside its own steps, `steps.css` the four rules it needs)
 - `stage.js` exports `simulate`/`watch`/`drag`/`magnifier`/`ruler`/`WIDTHS`; `pane.js` (was `twin.js`) exports one device frame, for `ext/Panel/Workspace/viewports.js`
+
+- Notes: [doc/demo-notes.md](doc/demo-notes.md) — history and lessons moved out of the code comments.

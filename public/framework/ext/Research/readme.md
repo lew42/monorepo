@@ -32,3 +32,5 @@ The pages: `/framework/research/<slug>/` for a topic; a `Program({ topics: "a b 
 - How an agent runs a round, and grades what it finds: the **`research` skill**.
 - Live: [Ancient technology](/imagine/research/) — 4 topics, streaming, 2026-08-30 · [LiveReload](/framework/research/livereload/) — 52 nodes, 7 minions, 2026-08-18
 - Files that matter: `verbs.js` / `entries.js` (the two schemas, browser + Node), `store.mjs` (read/write/outline), `research.mjs` / `entry.mjs` (the writers), `Research.js` / `Program.js` (readers + pages), `Server/plugins/Research.js` (MCP tools)
+
+- Notes: [doc/Program-notes.md](doc/Program-notes.md) — history and lessons moved out of the code comments.

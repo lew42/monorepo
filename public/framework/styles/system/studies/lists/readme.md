@@ -49,3 +49,5 @@ sentence on which shape fits the site's own sidebar.
 - [`/imagine/team/`](/imagine/team/) — the six-person, four-role fixture this page reuses.
 - [`ui/accordion/`](/framework/ui/accordion/) — the `name`-grouped `<details>` mechanism this
   page's shape 3 borrows.
+
+- Notes: [doc/page-notes.md](doc/page-notes.md) — history and lessons moved out of the code comments.

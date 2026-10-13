@@ -13,11 +13,7 @@ import { day_costs, total_line } from "./cost.js";
 import { spend_summary, module_list } from "./module-spend.js";
 import { prompts_section } from "./day-prompts.js";
 
-// Mark a pinned row read — the SAME `localStorage` flag and key `ai2/rules.js`'s own
-// `mark_read()` writes (review, 2026-10-04: importing that function here instead
-// would pull a module under `ext/` from a PAGE folder, backwards — "imports flow
-// down"). Six lines, duplicated on purpose rather than imported, same choice
-// `engine.js`'s own top comment makes for the same reason.
+// history and reasons: doc/dashboard-notes.md
 function mark_read(id){
 	try {
 		const key = "ai2-read-ids";
@@ -27,13 +23,6 @@ function mark_read(id){
 	} catch {}
 }
 
-/* The day dashboard and the ai index rail, over the same rows. A task directory
-   speaks through its files: requirements.md alone is PROPOSED, a manifest with
-   no landed_at is RUNNING, landed_at is LANDED. Enumeration comes from the dev
-   server's directory manifest (declared children on static hosting); a NEW task
-   dir arrives when that manifest rebuilds, while appends to a log already on the
-   board stream in over the socket. */
-
 const running = t => state(t.m) === "running";
 
 /* ⚠ The SPA fallback answers every miss with index.html — content-type is the 404. */
@@ -41,9 +30,6 @@ const json = url => fetch(url)
 	.then(res => res.ok && !res.headers.get("content-type")?.includes("html") ? res.json() : null)
 	.catch(() => null);
 
-// task.jsonl is the log-native manifest; session.json the legacy snapshot.
-// `files` is the directory listing when we have one — a blind fetch would 404 the console.
-// `live` (a redraw callback) streams the log instead of fetching it once.
 async function manifest(base, files, live){
 	if (!files || files.includes("task.jsonl")){
 		const t = new TaskJSONL({ url: base + "task.jsonl" });
@@ -56,26 +42,9 @@ async function manifest(base, files, live){
 const ai_dir = dir => dir?.files?.find(f => f.name === "ai")?.children ?? [];
 const kids_of = day => (day.children ?? []).filter(kid => kid.type === "dir");
 
-/* Per-day file listing, from directory.json. Two tiers: warm() (async, fired
-   at module-eval time by ai/page.js and ai/sessions/2026/08/17/page.js, plus again by
-   dashboard()) usually wins the race for an in-app click. A COLD deep link —
-   The owner opening a task url straight in VS Code's Simple Browser — has no head
-   start at all, so route() cannot just guess: has_page_js() below blocks with
-   ONE synchronous XHR the first time it's asked before warm() has landed,
-   answers correctly, and every later call (same date) reuses the cached value.
-   The block is a small same-origin JSON file, once, only on a cold task nav —
-   never on a click from an already-warm day page. */
 const day_cache = new Map();
 
-/* A NEW TASK DIR USED TO RELOAD THIS PAGE, and that was 203 of the 215 reloads an
-   /framework/ai/ tab took on 2026-09-22 — every file any agent created anywhere
-   under public/ rebuilds directory.json, this board fetched it, and a fetched path
-   counted as stale. It is DATA: the dev socket now says `data` instead of reloading
-   (dev/Socket/Socket.js), and these boards re-read the manifest in place.
-
-   ⚠ Silent off localhost, where there is no socket at all — `?.` the whole way.
-   ⚠ `$v.el.isConnected` because nothing unsubscribes: a board the reader has
-     navigated away from must not redraw, and must not keep the old rows alive. */
+// ⚠ Silent off localhost (no socket); ⚠ el.isConnected: navigated-away boards must not redraw
 function on_directory(page, $v, reread){
 	page?.app?.socket?.on("data", path => {
 		if (!path.endsWith("/directory.json") || !$v.el.isConnected) return;
@@ -97,11 +66,7 @@ export function warm(date){
 	return day_cache.get(date);
 }
 
-/* A blocking GET, same-origin, tiny file — the one place this module trades
-   a brief main-thread freeze for a synchronous answer, because route() must
-   return NOW (Page.child() checks its result with a plain `if`, never awaits
-   it — core/new/1's own deep/errors demo names returning a Promise here as a
-   documented failure mode). */
+// Sync fetch for route() which must return immediately, not a Promise
 function fetch_sync(url){
 	const xhr = new XMLHttpRequest();
 	xhr.open("GET", url, false);
@@ -135,15 +100,6 @@ async function day_log(date){
 	});
 }
 
-/** The day's own log, newest first, BEHIND A CLICK and below the board.
-    ⚠ It was the page's header for one build (ai-board-fix) and that was the
-    defect: twelve grey lines, every one naming a task, none of them a link,
-    filling the whole first screen at 1440 before a single card. `ux-v1` read
-    them AS the task list at every width and called the missing affordance the
-    top `broken` finding. Each line is its task's link now, and the whole thing
-    is one fold at the foot: the timeline is the day's receipt, not its answer.
-    Outside the board's redraw — day.jsonl is history, and a reopened fold that
-    snapped shut every time a running task appended would be its own defect. */
 export function timeline(date){
 	return div.c("ai-timeline wide", async $t => {
 		const lines = (await day_log(date)).sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
@@ -186,28 +142,18 @@ async function all_tasks(){
 			kid.children?.map(c => c.name) ?? [], null, null))));
 }
 
-/* Active above, dormant below. A landed task and an unstarted one are both
-   dormant, but they are not the same kind of dormant — and only Active carries
-   a progress bar. A dir with neither manifest nor brief matches nothing here. */
 const GROUPS = [
 	["Active", t => state(t.m) === "running"],
 	["Landed", t => state(t.m) === "landed"],
 	["Proposed", t => state(t.m) === "proposed" && (t.m || t.files.includes("requirements.md"))],
 ];
 
-/* Now first, then today, then the rest behind a click — the day page's whole
-   argument. Landed runs `compact` (one line of outcome, not two): thirty landed
-   cards at two lines each is 1,400px of the first screen spent on rows the
-   reader has already finished with. Proposed is a fold: a task nobody has
-   started is the one thing here that can wait. */
 function groups(rows_of){
 	const found = GROUPS.map(([title, match]) => [title, rows_of.filter(match).sort(newest)]);
 
 	if (!found.some(([, rows]) => rows.length))
 		return p.c("muted", "Nothing yet — a task appears when its directory holds a requirements.md or a task.jsonl.");
 
-	// What the day cost, and what each effort in it cost — only tasks that ran
-	// (a manifest), so a brief nobody started is not "not tracked". cost.js.
 	day_costs(rows_of.filter(t => t.m));
 
 	found.forEach(([title, rows]) => {
@@ -217,27 +163,21 @@ function groups(rows_of){
 	});
 }
 
-// One day forward or back, pure UTC date-component arithmetic (never `new
-// Date("2026-10-04")` + `setDate()` — that parses as UTC midnight but mutates in
-// the BROWSER's own timezone, which is a day off for anyone west of it).
+// Pure UTC date arithmetic; see doc/dashboard-notes.md for timezone traps
 function addDays(dateStr, delta){
 	const [y, m, d] = dateStr.split("-").map(Number);
 	const dt = new Date(Date.UTC(y, m - 1, d));
 	dt.setUTCDate(dt.getUTCDate() + delta);
 	return dt.toISOString().slice(0, 10);
 }
-// The browser's OWN local calendar day — every `date` string in this module means
-// "the owner's day", so this must read LOCAL components (review, 2026-10-04: the
-// previous version read `new Date().toISOString()`, the UTC day, which disagreed
-// with `addDays()`'s own meaning after 7pm Central and showed tomorrow's arrow a
-// day early).
+
+// Local calendar day, not UTC; see doc/dashboard-notes.md
 function todayStr(){
 	const d = new Date();
 	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Prev/next day arrows (deliverable 1: "a little navigation for focusing on a
-    specific day"). Never a link into the future — tomorrow has no page yet. */
+// Never a link into the future — tomorrow has no page yet
 export function day_nav(date){
 	return div.c("flex gap v-center ai-day-nav", () => {
 		a("‹ " + addDays(date, -1)).href(`/framework/ai/${addDays(date, -1)}/`);
@@ -246,21 +186,11 @@ export function day_nav(date){
 	});
 }
 
-/** `/framework/ai/<YYYY-MM>/` — a STUB (deliverable 5: "a stub only — title + month
-    cost total"). Sums whichever days of the month already have a `spend.json`
-    (`Server/day-spend.mjs`, same two-currency numbers the day page itself reads —
-    never recomputed here, law 7); a day with no file yet is silently skipped, and
-    the total says so. Moving a multi-day task's own page under this path is a
-    To-do, not built here — see `public/framework/ai/readme.md`. */
+// Month view; see doc/dashboard-notes.md for timezone details
 export function monthPage(page, month){
-	// The local 3-argument `Date(year, monthIndex, day)` constructor, never
-	// `new Date("2026-10-01")` (review, 2026-10-04: that string form parses as UTC
-	// midnight, so west of UTC this showed "September 2026" for October, and day 1
-	// along with it — the exact bug `addDays()`'s own doc comment already warns
-	// against, just hit a second time in this same file).
 	const [y, m] = month.split("-").map(Number);
 	const title = new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
-	const daysInMonth = new Date(y, m, 0).getDate();   // day 0 of next month = this month's last day, both local
+	const daysInMonth = new Date(y, m, 0).getDate();   // day 0 of next month = this month's last day
 	div.c("flex v gap", $m => {
 		p.c("doc-title h2", title);
 		$m.append(async () => {
@@ -299,31 +229,24 @@ export function dashboard(page){
 
 	day_nav(date);
 
-	// The same day, drawn as a tree of tasks (nested.js) — a link only.
 	p.c("muted", () => a("See this day as a tree: what ran together, what waited →").attr("href", `/framework/ext/AITask/tree/?date=${date}`));
 
-	// Two dollars, by task and by model (Server/day-spend.mjs), then what got touched — the
-	// owner's own ask, 2026-10-03. Beside `day_costs()` below, not replacing it: that one is
-	// "today's effort tags", this one is "today's modules and the two currencies".
 	spend_summary(date);
 	module_list(date);
 
-	// The owner's own words, refined (deliverable 2/3) — by time, the default reading.
 	prompts_section(date, "time");
 
-	// ⚠ `wide`, not `bleed` — `bleed` spends the page's two gutter tracks, and the
-	//   rule in ai.css that handed them back went with it (layout-primitives).
+	// ⚠ `wide` not `bleed` — bleed spends the page's two gutter tracks
 	const $board = div.c("ai-dashboard flex v gap wide", async $d => {
 		let rows;
 		const redraw = () => rows && $d.empty(() => groups(rows));
 		rows = await tasks(page, redraw);
 		$d.append(() => groups(rows));
 
-		// A task dir appearing re-reads the manifest here instead of reloading the tab.
 		on_directory(page, $d, async () => { rows = await tasks(page, redraw); redraw(); });
 	});
 
-	timeline(date);   // after the board, fetched once — see its own note
+	timeline(date);
 	return $board;
 }
 
@@ -332,13 +255,7 @@ const strip = rows => {
 	return live.length ? group("Active", live, dated) : p.c("muted", "Nothing running right now.");
 };
 
-/**
- * What is running right now, above everything else — and `rail()` subtracts
- * these rows from the spine below, so a task is listed once. These few logs
- * re-read through `live()`, so their bars and `now` lines move in place and a
- * task that lands drops out of the strip on its next append; every other task
- * on the board stays on `all_tasks()`'s fetch.
- */
+// What is running right now, above everything else
 export function active_strip(list){
 	return div.c("ai-active", async $a => {
 		let rows;
@@ -349,26 +266,9 @@ export function active_strip(list){
 	});
 }
 
-/**
- * The ai index — what is running right now, the usage windows, then the
- * HIGHLIGHTS: the work worth going back to, newest first, one card each.
- *
- * ⚠ It used to end with `dated()` — every task of every day, 572 rows on one
- *   page. That is the archive, and an archive is not an answer: the owner came
- *   here to find the controls study they asked for weeks ago and could not.
- *   The whole spine moved to `/framework/ai/log/` (`log_board()` below), which
- *   this page names in one line, and the front now holds only what a reader
- *   scans in ten seconds. `compose()` — start work from the board — went with
- *   it: starting work is a working action, and the log is the working surface.
- * ⚠ Returns the element synchronously (catalog's previews() has no time to
- *   await) and fills it inside a callback, which re-establishes the captor the
- *   first await dropped.
- */
-/* openrouter-usage.json (Servex/ext/openrouter/provider.js's spend guard): the same
-   {utilization:{limits:[...]}} shape usage.json already carries, just one more entry —
-   merged in here so usage_rail() draws both the Claude windows and OpenRouter spend as
-   ONE list of meters, never a second rail. Missing file (OpenRouter never used, or
-   Servex not running) is silent: `json()` already returns null for a 404. */
+// ⚠ Returns synchronously (catalog needs no await); fills inside a callback
+// The ai index: running now, usage, then HIGHLIGHTS — newest first
+// see doc/dashboard-notes.md for archive rationale
 function merge_usage(claude, openrouter){
 	const limits = [...(claude?.utilization?.limits ?? []), ...(openrouter?.utilization?.limits ?? [])];
 	return limits.length ? { utilization: { limits } } : null;
@@ -380,14 +280,10 @@ export function rail(page){
 			[json("/framework/ai/usage.json"), json("/framework/ai/openrouter-usage.json"), all_tasks()]);
 
 		const draw = () => $r.empty(() => {
-			// ⚠ ABOVE what is running. A bot can do almost everything here; the few
-			//   things it cannot — a login, a paid account, a deploy — stop a whole
-			//   thread until the owner spends five minutes on them, so they lead the
-			//   page. Silent when there are none, which is the normal state. needs.js.
+			// ⚠ Blocker items first: they stop whole threads until the owner acts
 			needs_strip(needs_all(list));
 			active_strip(list);
-			// The dollar figures live in the raw limit, not the meter's own fields, so they
-			// ride along as a label override rather than a second number on the page.
+			// Dollar figures from raw limit, ride as label override
 			const or_week = or_usage?.utilization?.limits?.find(l => l.kind === "openrouter_weekly");
 			const money = v => typeof v === "number" ? "$" + v.toFixed(2) : "?";
 			usage_rail(merge_usage(usage, or_usage), or_week ? {
@@ -399,27 +295,19 @@ export function rail(page){
 				a.c("ai-link", "the whole log").href("/framework/ai/log/");
 			});
 
-			// ⚠ These cards were built after catalog's mark pass, so they missed it —
-			// on a cold deep link nothing in the rail would be lit. Inside draw(), so a
-			// redraw relights the cards it just rebuilt.
+			// ⚠ Mark links inside draw() because cold deep links missed the mark pass
 			page?.app?.router?.mark_links();
 		});
 
 		draw();
 
-		// A task dir appearing re-reads the manifest here instead of reloading the tab.
 		on_directory(page, $r, async () => { list = await all_tasks(); draw(); });
 	});
 }
 
-// 40 rows is roughly two screens at 1920 — enough to keep scrolling in, few
-// enough that 572 cards never all exist at once.
-const PAGE = 40;
+const PAGE = 40;   // roughly two screens at 1920
 
-/* The spine, a page at a time. `shown` lives in this closure only: a refresh
-   starts over at 40, which is the honest default for a log nobody asked to
-   keep a place in. `dated()` re-sorts what it is given, so the slice has to be
-   sorted FIRST or page two would draw rows page one already showed. */
+// `shown` lives in closure; re-sorts through dated()
 function paged(rows){
 	const sorted = [...rows].sort(newest);
 	let shown = PAGE;
@@ -435,16 +323,9 @@ function paged(rows){
 	});
 }
 
-/**
- * `/framework/ai/log/` — everything, in-flight first, then newest first,
- * `PAGE` at a time. The same rows the front used to end with, and the same
- * compose box: this is the working surface the board always was.
- */
+// Everything in-flight first, then newest first, PAGE at a time
 export function log_board(page){
-	// ⚠ `wide`, the same word `dashboard()` says: without it the board sits in the
-	//   page's `main` track and every card is 640px of a 1920 screen, its three
-	//   regions stacked. `wide` is main + breakout; `bleed` would spend the page's
-	//   two gutter tracks (see dashboard()'s own note).
+	// ⚠ `wide` not `bleed` — bleed spends the page's two gutter tracks
 	return div.c("ai-all flow wide", async $l => {
 		const list = await all_tasks();
 		$l.append(() => {
@@ -457,12 +338,11 @@ export function log_board(page){
 	});
 }
 
-/** The same spine, filtered to one effort — where a card's category tag lands. */
+// The same spine, filtered to one effort
 export function effort_board(page, slug){
 	return div.c("ai-effort", async $e => {
 		const list = (await all_tasks()).filter(t => t.m?.group === slug);
 
-		// The effort's cost across every day first — cost.js.
 		$e.append(() => {
 			if (!list.length) return void p.c("muted", "No task claims this effort — a task joins one by naming it as `group` in its log.");
 			total_line(list, "on this effort, every day");
@@ -473,8 +353,6 @@ export function effort_board(page, slug){
 	});
 }
 
-// A day's own status, inert enough for a thumb — a day's page.js opts in:
-// `preview(nav){ return this.preview_card(nav, () => glance(this)); }`.
 export function glance(page){
 	return div.c("ai-glance flex v gap", async $g => {
 		const known = (await tasks(page)).filter(t => t.m || t.files.includes("requirements.md"));

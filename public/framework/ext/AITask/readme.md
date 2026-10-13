@@ -92,3 +92,11 @@ Anything only the owner can do says so, and says how long it will take — those
 - [Overview](/framework/ext/AITask/) · [Task tree](/framework/ext/AITask/tree/) a day's tasks as a tree, with [`doc/nested.md`](./doc/nested.md) the model · [`doc/asks.md`](./doc/asks.md) the Asks tab and the `ask` verb · [`doc/decisions-tab.md`](./doc/decisions-tab.md) the Decisions tab, the verdict seam and the CLI that files an Improve back into its skill · [`doc/decisions.md`](./doc/decisions.md) — the record: the time-spine board, the file table, every trap in full, open items, where replays come from
 - [`doc/ranking.md`](./doc/ranking.md) the Needs-you strip, the `rank` verb, what threaded means and the pairwise alternative · [`doc/highlights.md`](./doc/highlights.md) the front page's wall · [`doc/manifest.md`](./doc/manifest.md) the schema · [`doc/effort.md`](./doc/effort.md) the `group` tag · [`doc/pace.md`](./doc/pace.md) the usage rail · [`doc/template.md`](./doc/template.md) `report()` and its override · [`doc/starting-work.md`](./doc/starting-work.md) `rpc:start` · [`doc/waves.md`](./doc/waves.md) how it got here
 - Files that matter: `AITask.js` (the task template), `asks.js` (the Asks tab), `decisions.js` (the Decisions tab), `decisions.mjs` (the CLI that closes the loop), `conversation.js` (the transcript as a chat), `dashboard.js` (rail, day board, the `day.jsonl` timeline fold), `card.js` (one task row), `highlights.js` (the front page's wall), `needs.js` (the owner-items strip), `rank.js` (the grip and the `rank` line), `stats.js` (pure derivations), `cost.js` (one task's dollars), `module-spend.js` (a day's two-currency totals + module breakdown, fed by `Server/day-spend.mjs`)
+
+- Notes: [doc/AITask-notes.md](doc/AITask-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/dashboard-notes.md](doc/dashboard-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/day-prompts-notes.md](doc/day-prompts-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/rank-notes.md](doc/rank-notes.md) — history and lessons moved out of the code comments.

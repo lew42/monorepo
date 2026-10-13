@@ -41,3 +41,7 @@ item.set("display", "grid").set("cols", 3);     // layout properties in rail
 - [`doc/flow.md`](./doc/flow.md) — Snapshot history, scrubber, and step cost.
 - [`doc/generator.md`](./doc/generator.md) — Generative layouts from seeds.
 - [`doc/overlays.md`](./doc/overlays.md) — Surface z-indexes and event disposers.
+
+- Notes: [doc/glyphs-notes.md](doc/glyphs-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/text-notes.md](doc/text-notes.md) — history and lessons moved out of the code comments.

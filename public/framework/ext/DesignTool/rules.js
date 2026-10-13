@@ -1,14 +1,5 @@
-/* Every rule reads plain numbers from probe.js and yields issues. No DOM here —
- * which is what lets the same rules run on a live page, an iframe, or a JSON
- * capture taken an hour ago.
- *
- * A threshold is a RATIO wherever one exists: padding against font-size, not
- * against 8px; characters per line, not ems. One number then holds at every
- * viewport and every font scale. Calibration: knowledge/thresholds.md.
- *
- * ⚠ SEVERITY IS A CURVE, NOT A LINE. Every rule states three thresholds and the
- * magnitude picks one. A binary test reported 87 characters a line and 300
- * characters a line identically — and those are not the same bug. */
+// Design system and thresholds: doc/rules-notes.md
+// ⚠ Severity is a curve, not a line: three thresholds per rule, magnitude picks one.
 
 import {
 	boxed, each_child, gaps, overlap, padding_box, region, scrolls, spill,
@@ -22,26 +13,18 @@ const rule = (id, cat, title, scan) => ({ id, cat, title, scan });
 const issue = (n, sev, value, detail, fix) =>
 	({ sel: n.sel, node: n.i, path: n.path, sev, value, detail, fix });
 
-/* The width the ROOT actually gave its children — its client box less its own
- * inline padding. `m.viewport.w` is the window, which is a different number the
- * moment anything pads the shell (the dev rail does, by 272px). Falls back to the
- * window when there is no root to ask. */
+// ROOT's client box less inline padding; doc/rules-notes.md
 function content_width(m){
 	const root = m.nodes[0];
 	return root ? root.cw - root.pad[1] - root.pad[3] : m.viewport.w;
 }
 
-// Bigger is worse / smaller is worse. Both return null below the low threshold,
-// which is the rule declining to report.
 const over = (v, low, med, high) => (v >= high ? "high" : v >= med ? "med" : v >= low ? "low" : null);
 const under = (v, low, med, high) => (v <= high ? "high" : v <= med ? "med" : v <= low ? "low" : null);
 
 export const rules = [
 
-	/* More hidden than shown, and no scrollbar anywhere: the reader cannot get to
-	 * it by any means. Its own rule rather than `clipped`'s top band because a
-	 * severity tier cannot say this — `/web/nav/drill/` hides 4099px of a 900px
-	 * region and scored 82/B as one 12-point `high`. score.js weights it by RULE. */
+	// More hidden than shown, and no scrollbar: doc/rules-notes.md
 	rule("unreachable", "overflow", "Content clipped away with no way to scroll to it", m =>
 		spill(m).filter(gone).map(s => issue(s.child, "high", s.ratio,
 			`${s.over}px of ${s.parent.sel} is past its own ${side(s)} (${pct(s.ratio)}) and `
@@ -64,14 +47,10 @@ export const rules = [
 				{ sel: s.child.sel, decl: "min-width: 0" })] : [];
 		})),
 
-	/* ⚠ Not gated on the DOCUMENT scrolling. In an app shell the scroll lives on
-	 * a region, so `documentElement.scrollWidth` never grows and the rule would
-	 * never fire — while the content is just as far off screen. */
+	// ⚠ Not gated on DOCUMENT scrolling; in app shells scroll lives on a region
 	rule("doc-overflow", "responsive", "Content extends past the viewport", m => {
 		const past = n => n && n.x + n.w > m.viewport.w + 2;
 
-		// Only the OUTERMOST offender in a chain — a wide element's children are
-		// all wide too, and reporting each is one bug counted twenty times.
 		return m.nodes
 			.filter(n => n.position !== "fixed" && past(n) && !past(m.nodes[n.parent])
 				&& !under_scroller(m, n))
@@ -83,19 +62,13 @@ export const rules = [
 		});
 	}),
 
-	/* The owner's original example, measured rather than inferred: how close does the
-	 * nearest text actually get to a box that draws an edge? Reading the box's own
-	 * padding would miss the common shape — no padding on the card, a margin on
-	 * the paragraph inside — and flag a card that is in fact fine. */
+	// Measured from text bounds, not box padding: doc/rules-notes.md
 	rule("cramped", "spacing", "Text butts against its own frame", m => {
 		const bounds = text_bounds(m);
 		const still = n => n.ovx === "visible" && n.ovy === "visible";
 		const shell = n => n.w >= m.viewport.w - 2;
 
-		/* ⚠ A table's insets belong to the CELL, so measuring a `<tr>` reports a
-		 * padding it cannot hold — and a cell's 4px row rhythm is not a cramped
-		 * card, which was 175 identical findings on one page. Cells stay in at the
-		 * touching band only, which still catches `padding: 0`. */
+		// ⚠ Table insets belong to CELL not TR; cells only high tier to avoid 4px row rhythm
 		return m.nodes
 			.filter(n => n.framed && n.w > 24 && boxed(n) && still(n) && !shell(n) && bounds[n.i]
 				&& !TABLE.has(n.tag))
@@ -113,30 +86,12 @@ export const rules = [
 			});
 	}),
 
-	/* The one the tool missed on its own audit page, where the h1 sat 0px from the
-	 * region's edge. `cramped` could not see it: a page draws no frame, so there
-	 * was nothing it considered an edge. A REGION's edge is an edge too. */
+	// Scroll containers only; measured against content_width not viewport: doc/rules-notes.md
 	rule("gutter", "spacing", "Text flush against the edge of its region", m => {
 		const bounds = text_bounds(m);
 
-		/* Scroll containers only.
-		 *
-		 * ⚠ Not the shell — a full-bleed `.app` spans the viewport, so its edge
-		 * IS the window and the nav sitting against it is the design.
-		 * ⚠ And not the analysis ROOT. A caller measuring a bare container gets
-		 * its own boundary reported as a missing gutter, which is how a live
-		 * panel pointed at one demo box accused it of touching its own edge. A
-		 * region is a thing that scrolls; the page's own is `.pages`, which is
-		 * still checked and is what caught the audit page's flush h1.
-		 *
-		 * ⚠ AGAINST THE ROOT'S CONTENT WIDTH, NEVER THE WINDOW — measured against
-		 * the window, THE TOOL MANUFACTURED ITS OWN TOP FINDING. `framework.css`
-		 * gives `.app` a `padding-inline-end` the width of the dev rail, so with the
-		 * rail open `.pages` measures 1648 of a 1920 window, clears "not the shell"
-		 * by 270px, and a `high · gutter` appears on the page region: 18 of 24
-		 * page×width pairs with the rail as the only variable, the TOP finding on
-		 * 12, ringing 79% of the viewport. Opening the tool must not change what the
-		 * tool reports. `ai/sessions/2026/08/17/tier-calibration/`. */
+		// ⚠ Not the shell (.app spans viewport) ⚠ Not the ROOT (reports own boundary as gutter)
+		// ⚠ AGAINST ROOT'S CONTENT WIDTH not WINDOW; dev-rail padding causes false top findings
 		const shell = content_width(m) - 2;
 		const regions = m.nodes.filter(n =>
 			(scrolls(n.ovx) || scrolls(n.ovy)) && n.w < shell);
@@ -153,14 +108,7 @@ export const rules = [
 		});
 	}),
 
-	/* ⚠ Code is exempt, and so is anything INSIDE it. Checking the tag alone let
-	 * every highlighted `span.hljs-*` through — a syntax-coloured string reported
-	 * as a 129-character line, and the proposed fix was `max-width` on a token.
-	 * A code line is authored, not wrapped: short lines are the author's, and
-	 * long ones are what the horizontal scrollbar is for.
-	 *
-	 * ⚠ One line counts. Requiring two missed the worst case there is: at 3440 an
-	 * unbounded paragraph fits on a SINGLE 300-character line. */
+	// ⚠ Code exempt + contents; one line counts (3440 fits 300-char single line)
 	rule("measure", "typography", "Line length outside the readable band", m =>
 		m.nodes.filter(n => n.text && !in_code(m, n)).flatMap(n => {
 			const ch = n.text.per_line;
@@ -170,10 +118,7 @@ export const rules = [
 				`~${ch} characters per line (readable is 45–85)`,
 				{ sel: n.sel, decl: "max-width: 52em" })];
 
-			/* Laddering: two words a line over five lines. A card description, a
-			 * table cell and a stat tile all run 18–24 legitimately — and a cell
-			 * is the one of the three the rule cannot see is narrow on purpose,
-			 * so it authored 173 of 203 high findings site-wide. */
+			// Laddering: two words a line; cells run 18–24 legitimately; doc/rules-notes.md
 			if (n.text.lines < 5 || in_cell(m, n)) return [];
 			const thin = under(ch, 20, 15, 11);
 
@@ -182,9 +127,7 @@ export const rules = [
 				{ sel: n.sel, decl: "min-width: 12em" })] : [];
 		})),
 
-	/* ⚠ A 10px label is a label; a 10px paragraph is a problem. Judging by size
-	 * alone reported 362 findings across 120 pages — every badge, chip and
-	 * eyebrow on the site. The low tier now needs real text behind it. */
+	// 10px label ok; 10px paragraph is problem: low tier needs real text. doc/rules-notes.md
 	rule("illegible", "typography", "Rendered too small to read", m =>
 		m.nodes.filter(n => n.text && n.text.chars > 8).flatMap(n => {
 			const px = n.fs * n.escale;
@@ -211,13 +154,7 @@ export const rules = [
 				`overlaps ${b.sel} across ${pct(share)} of the smaller box (${Math.round(area)}px²)`,
 				{ sel: a.sel, decl: "position: static" }))),
 
-	/* ⚠ Asks the text BOUNDS, not the node's own text: the common shape is a
-	 * collapsed wrapper whose paragraph is a block child, so the wrapper itself
-	 * never counts as a text block and the rule saw nothing.
-	 *
-	 * ⚠ And `boxed()`, or a `display: contents` wrapper — which HAS no box, by
-	 * design — reads as one collapsed to nothing. `div.tabs.block` alone was 360
-	 * of the site's 371 findings here. */
+	// ⚠ Uses text BOUNDS not node text; ⚠ boxed()/display:contents read as 0
 	rule("zero-size", "overflow", "Collapsed to nothing", m => {
 		const bounds = text_bounds(m);
 
@@ -227,19 +164,11 @@ export const rules = [
 				{ sel: n.sel, decl: "min-height: 1em" }));
 	}),
 
-	/* ⚠ Two exemptions, both from WCAG 2.5.8 itself: a link INSIDE a sentence is
-	 * sized by the line, not by anyone's choice; and a control whose `::after` is
-	 * stretched over its card has a hit area its own rect knows nothing about.
-	 * Without them this rule fired 4274 times across 116 pages. */
-	/* ⚠ One control, reported once. `input.layout-range` is 60×17 wherever it
-	 * appears, and the panel puts eight on a page — 437 findings site-wide for a
-	 * single CSS line. Identical selector at an identical size is one declaration,
-	 * so the rule counts them and reports the count. */
+	// ⚠ WCAG 2.5.8 exemptions: links in sentences, controls with stretched ::after
+	// ⚠ Identical selector at identical size = one declaration, counts them
 	rule("hit-size", "spacing", "Too small to tap", m =>
 		distinct(m.nodes.filter(n => n.interactive && n.w > 0 && n.h > 0
 			&& n.display !== "inline" && !n.stretched).flatMap(n => {
-			// At its own scale: a control inside a miniature is a picture of a
-			// control, and the design under it may be fine.
 			const w = n.w / n.escale, h = n.h / n.escale;
 			const sev = under(Math.min(w, h), 24, 18, 12);
 
@@ -249,9 +178,7 @@ export const rules = [
 				key: `${n.sel}|${Math.round(w)}×${Math.round(h)}` }] : [];
 		}))),
 
-	/* A gap far larger than its neighbours is the "72px under a card icon" bug:
-	 * `.flow`'s heading margin resolving against a heading's own font-size inside
-	 * a UI cluster that wanted a flat `gap`. */
+	// "72px under a card icon" bug: margin resolving against font-size; doc/rules-notes.md
 	rule("rhythm", "rhythm", "One gap breaks the stack's rhythm", m =>
 		each_child(m).flatMap(({ node, kids }) => {
 			if (kids.length < 3) return [];
@@ -286,11 +213,7 @@ export const rules = [
 			{ sel: m.nodes[0].sel, decl: "--column: 40em  /* on a .grid.auto */" })] : [];
 	}),
 
-	/* Not geometry — the absence of it. A page with nothing on it trips no rule,
-	 * so seven dead urls scored 90–94/A against a site median of 66.
-	 *
-	 * ⚠ The thinnest threshold in the module: dead urls hold 63–64 characters and
-	 * the sparsest live page holds 141. knowledge/thresholds.md carries the spread. */
+	// Dead urls vs live pages: thinnest threshold in module; doc/rules-notes.md
 	rule("empty", "content", "Nothing here to lay out", m => {
 		const box = region(m);
 		if (!box || box.h < 320) return [];
@@ -305,11 +228,10 @@ export const rules = [
 	}),
 ];
 
-// More hidden than shown, and enough of it to matter.
+// More hidden than shown
 const gone = s => s.hidden && s.ratio >= 1 && s.over >= 200;
 
-/* One finding per distinct `key`, carrying how many boxes share it. A repeated
- * component is one declaration however many times the page draws it. */
+// One finding per distinct key with count; doc/rules-notes.md
 function distinct(list){
 	const by = new Map();
 	for (const i of list) by.set(i.key, [...(by.get(i.key) ?? []), i]);
@@ -319,9 +241,7 @@ function distinct(list){
 		: first);
 }
 
-// The closest approach on any of four edges, with the font size of the text that
-// reached it — so a 45px heading and a 13px caption are each judged against
-// themselves.
+// Closest approach on any edge with font size of text; doc/rules-notes.md
 function nearest(box, t){
 	const edges = [
 		[t.x0 - box.x, t.x0fs], [box.x + box.w - t.x1, t.x1fs],

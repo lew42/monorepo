@@ -65,3 +65,7 @@ Open [/framework/core/Layout/](/framework/core/Layout/) and click around. One co
 - [Fixtures and approval](/framework/core/Layout/doc/fixtures/) — the eight runs, what the checker reads, and what "approved" means.
 - [The port](/framework/core/Layout/doc/porting/) — where the thirty came from and the five things that changed on the way.
 - The plan this is slice A of: `ai/sessions/2026/09/06/layout-study/plan.md`.
+
+- Notes: [doc/Layout-notes.md](doc/Layout-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/rules-notes.md](doc/rules-notes.md) — history and lessons moved out of the code comments.

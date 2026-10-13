@@ -71,3 +71,5 @@ same ones `ui.item` takes.
   edge cases, and the derive-the-map note.
 - [`doc/ideas.md`](doc/ideas.md) — open ideas to evaluate (not decisions).
 - Back to [Ext](/framework/ext/).
+
+- Notes: [doc/Mention-notes.md](doc/Mention-notes.md) — history and lessons moved out of the code comments.

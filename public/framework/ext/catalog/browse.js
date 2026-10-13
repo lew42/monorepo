@@ -4,75 +4,10 @@ import { Page } from "../../core/Page/Page.class.js";
 /* css: .browse, .browse-rail, .browse-wall, .browse-facet-head, .browse-more */
 View.stylesheet(import.meta, "browse.css");
 
-/**
- * browse(bands, tokens, options) — `previews()` as a WALL YOU BROWSE: a sticky filter
- * rail beside a wall of bands, one grid per band.
- *
- *     const BANDS = { Surfaces: "card toolbar panel", Data: "table timeline" };
- *     content(){ return this.browse(BANDS, { "--column": "18em" }); }
- *
- * The sibling of `catalog()`, and the distinction is whether the reader is CHOOSING
- * from the set or reading it in order: a catalog is a rail beside the one child you
- * picked, browse spends the whole width on the set. Both draw the same `preview()`
- * cards — there is no second card shape here (RULE#7).
- *
- * ⚠ `browse`, not `browser`: `Doc.browser()` is the Files tab's file browser, so a
- * method of that name on a Doc resolves to THAT and draws a file tree where the wall
- * should be, with nothing in the console. The class name is the registry.
- *
- * `bands` is an object of `label: "name name name"`, declared once and in reading
- * order; the caller derives its own `children:` from it so no name is written twice.
- * `tokens` lands on the wall — `--column` is the one that matters, and it is a
- * legibility argument: a thumb is the page at `zoom-25`/`zoom-50`, so the card's
- * width times four (or two) is the width the thing inside it lays out at. `--gap`
- * there is the space BETWEEN bands; the gap between cards is the wall's own 1em,
- * because `--gap` inherits and a band that set it would retune every grid inside it.
- *
- * ── `options` — the three things a big catalogue needs, all optional ─────────────
- *
- *     cap      how many cards to draw before a "show more" control. Default: all of
- *              them. `core/Layout` passes 60 — two full rows at 3440 on a 20em
- *              column — because a card is a PICTURE, not a live instance.
- *     facets   extra rail rows, each read STRAIGHT OFF a child page's own props.
- *              There is no schema and nothing registers: a layout page declares
- *              `columns: 2` and a facet named `columns` can filter on it.
- *
- *                  facets: [
- *                    { head: "Columns", key: "columns", values: [1, 2, 3, 4],
- *                      label: n => n + " columns" },
- *                    { head: "Tags", key: "tags", all: "Every tag" },
- *                  ]
- *
- *              `values` may be left out for a prop whose values are worth collecting
- *              from the wall itself (`tags`, an array). `label` names a value in the
- *              reader's words; `match(page, value)` is the escape hatch for a prop
- *              that is not a plain equality (a boolean read as two named states).
- *     search   extra prop names the search box reads, space separated — the default
- *              needle is the card's label, title, description and name.
- *
- * FILTERS DEFAULT TO ALL. Every facet starts empty, and empty means "everything", so
- * the first thing a reader sees is the whole set and a filter can only take away.
- *
- * ⚠ Bands are DECLARED, never derived from each child's `group:`. Two of the four
- * bands on `styles/layouts/` cannot be expressed that way — one is made of
- * grandchildren, and one member belongs to another effort — and a taxonomy that
- * cannot express half the wall is not the taxonomy.
- *
- * ⚠ ONE GRID PER BAND. `previews()` emits one flat run with a full-width heading per
- * group, so a band of one renders a row holding one card. Per band, only a band's
- * LAST row can be ragged.
- *
- * The heading is the caller's: this returns the row, and a page that wants a title
- * puts one above it. Design record: readme.md.
- *
- * `rail: false` — a fourth, optional key in `options`, for a caller that already has
- * its own filter UI (a sticky tier strip with live approved-counts, say — a search-
- * and-facets rail would be a second, competing one). Skips the sticky rail entirely;
- * the wall still renders byte for byte. Every band's own heading always carries
- * `data-band="<group>"`, rail or none, so a caller with its own strip can scroll
- * straight to one: `$browse.el.querySelector('[data-band="Global"]')`.
- * (`/layouts/browse/`, 2026-09-18 — the first caller with its own strip.)
- */
+// browse(bands, tokens, options) — wall of previews with sticky filter rail
+// ⚠ `browse` not `browser`: Doc.browser() is the file tab; the name matters
+// ⚠ Bands are DECLARED, never derived from each child's group:
+// ⚠ ONE GRID PER BAND. History, options, traps: doc/browse-notes.md
 Page.prototype.browse = function(bands, tokens, options){
 	const opts = { facets: [], search: "", rail: true, ...options };
 	const state = { group: "", text: "", shown: opts.cap ?? Infinity, facet: {} };
@@ -97,19 +32,14 @@ function wall(page, bands, state, opts, redraw){
 		const kept = band.filter(entry => hit(entry, state, opts));
 		if (!kept.length) return;
 
-		// ⚠ The cap is over the WHOLE wall, not per band: a reader asked for sixty
-		//   cards, not sixty in each of four bands.
+		// ⚠ Cap is over the WHOLE wall, not per band
 		const shown = kept.slice(0, Math.max(0, state.shown - drawn));
 		drawn += shown.length;
 		held += kept.length - shown.length;
 
 		if (!shown.length) return;
 
-		/* ⚠ The heading sits OUTSIDE the grid, not in it as `previews()` puts it. A
-		   `.page-previews-group` spans `1 / -1`, which means every track holds an item —
-		   so `auto-fit` had nothing to collapse and a five-card band still drew eight
-		   tracks, four of them empty. Measured at 3440: 2626px of grid for 1640px of
-		   cards. Out of the grid, the tracks collapse and the band fills its row. */
+		// ⚠ Heading sits OUTSIDE grid so auto-fit can collapse empty tracks
 		div.c("browse-band flex v gap", () => {
 			h4.c("page-previews-group", group).attr("data-band", group);
 			div.c("page-previews", () => shown.forEach(({ page: child, nav }) => child.preview(nav)))
@@ -120,8 +50,7 @@ function wall(page, bands, state, opts, redraw){
 	// ⚠ A wall filtered to nothing is a dead end; the rail is sticky for this reason.
 	if (!drawn) return void span.c("muted", "Nothing matches. Clear the search, or pick Everything.");
 
-	// ⚠ Only when a cap was asked for. Without one `shown` is Infinity, `held` is 0,
-	//   and every existing caller draws exactly the markup it drew before.
+	// ⚠ Only when a cap was asked for; existing callers draw exactly the same markup
 	if (held) button.c("browse-more", `Show ${Math.min(held, opts.cap)} more — ${held} of ${drawn + held} not drawn yet`)
 		.click(() => { state.shown += opts.cap; redraw(); });
 }
@@ -129,10 +58,7 @@ function wall(page, bands, state, opts, redraw){
 const entries = (page, bands) => new Map(Object.entries(bands).map(([label, band]) =>
 	[label, band.split(" ").map(path => entry(page, path)).filter(Boolean)]));
 
-/* A page, and the nav that addresses it. ⚠ `owner/name` BORROWS a grandchild — shown
-   here and never moved, so the OWNING page builds the nav: `nav_for()` addresses a
-   child at its own url, and building these here would point every borrowed card at
-   this page. The borrowed label is the grandchild's own title. */
+// ⚠ owner/name BORROWS a grandchild; owning page builds nav so card points there
 function entry(page, path){
 	const [owner, name] = path.includes("/") ? path.split("/") : [null, path];
 	const parent = owner ? page.children.get(owner) : page;
@@ -144,18 +70,14 @@ function entry(page, path){
 	return { page: child, nav: owner ? { ...nav, label: child.title } : nav };
 }
 
-/* The rail: a search, one row per band with its count, and a row per value of every
-   facet the caller declared. The rows redraw themselves so the lit one is read off
-   `state` rather than pushed onto the DOM; the ⚠ search box must NOT be inside that
-   redraw, or it loses focus per keystroke. */
+// ⚠ Search box must NOT be in the row redraw or it loses focus per keystroke
 function rail(page, bands, state, opts, redraw){
 	const counts = entries(page, bands);
 	const all = [...counts.values()].flat();
 	const total = all.length;
 	let $rows;
 
-	// ⚠ THE SAME BUTTON THE BAND ROWS ALWAYS WERE, class for class — a facet row is
-	//   not a new control, and a wall with no facets must render byte for byte.
+	// ⚠ Same button class as band rows; no facets = render byte for byte
 	const row = (label, pick, lit, count) => button.c("flex gap v-center split", () => {
 		span(label);
 		span.c("muted", String(count));
@@ -178,17 +100,13 @@ function rail(page, bands, state, opts, redraw){
 	const rows = () => {
 		opts.facets.forEach(facet_rows);
 
-		// The bands themselves are the last facet, and the only one every wall has.
+		// Bands are the last facet, the one every wall has
 		if (opts.facets.length) h4.c("browse-facet-head", "Band");
 		row(opts.facets.length ? "Every band" : "Everything", () => state.group = "", !state.group, total);
 		counts.forEach((band, group) => row(group, () => state.group = group, state.group === group, band.length));
 	};
 
-	/* `rail` is the framework word now (core/Page/Page.css): the basis, the column,
-	   the gap, the pin and the scrollport arrive together, and below 52em of the
-	   PAGE — not the window — it becomes a sideways strip on its own line. The four
-	   utilities it replaces (`basis flex v gap`) and browse.css's own sticky rule
-	   said the same thing in two places. */
+	// `rail` is the framework word (core/Page/Page.css): basis+column+gap+pin+scrollport
 	return div.c("browse-rail rail", () => {
 		input().attr("type", "search").attr("placeholder", `Search ${total}`)
 			.on("input", event => { state.text = event.target.value; redraw(); });
@@ -197,9 +115,7 @@ function rail(page, bands, state, opts, redraw){
 	});
 }
 
-/* Does a page match one facet's value? Empty means everything. The default reads the
-   prop straight off the page — `includes` for an array, `===` for anything else — and
-   `match` is the escape hatch for a prop that is not a plain equality. */
+// Empty means everything; match() is the escape hatch for non-equality props
 const matches = (page, facet, value) => {
 	if (!value) return true;
 	if (facet.match) return facet.match(page, value);
@@ -208,9 +124,7 @@ const matches = (page, facet, value) => {
 	return Array.isArray(held) ? held.includes(value) : held === value;
 };
 
-/* ⚠ The needle is the card's OWN words — never its `textContent`. A card here holds a
-   live render, so its text includes every word inside the thing: searching `mail`
-   matched two layouts that merely contain the word. */
+// ⚠ Needle is card's OWN words, not textContent; live render includes all inner words
 const hit = ({ page, nav }, state, opts) => {
 	if (opts.facets.some(facet => !matches(page, facet, state.facet[facet.key]))) return false;
 

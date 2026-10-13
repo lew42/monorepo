@@ -57,3 +57,5 @@ Nothing imports this — it is a page, not a component. What it is built from:
 
 - [`doc/no-jump.md`](doc/no-jump.md) — why the card's top edge holds still, and the numbers.
 - [the task](/framework/ai/sessions/2026/09/22/talk/talk/) — the brief, the decisions, the proof run.
+
+- Notes: [doc/talk-page-notes.md](doc/talk-page-notes.md) — history and lessons moved out of the code comments.

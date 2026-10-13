@@ -46,3 +46,5 @@ search.rank("columns");        // best first
 - Files: `Search.js` (the corpus, the ranking, `Search.Filters`), `Omnibox.js` (the box and its
   one `omnibox(app)` installer), `Search.css` (`omnibox-`), `tags.js` (tag → axis, the only
   thing core knows about the [vocabulary](/framework/styles/system/studies/vocabulary/))
+
+- Notes: [doc/Search-notes.md](doc/Search-notes.md) — history and lessons moved out of the code comments.

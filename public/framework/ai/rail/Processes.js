@@ -3,13 +3,7 @@ import { servex_base } from "./inbox.js";
 
 View.stylesheet(import.meta, "processes.css");
 
-/* ── the graph: RAM stacked area, CPU line below, one shared hover ─────────
- * Both charts share one time axis (the same `history[]`, left to right, oldest
- * to newest), so one crosshair driven by pointer position serves both — the
- * owner glancing at a CPU spike can read the RAM underneath it at the same
- * instant. Inline SVG, `viewBox` only (no build step): `preserveAspectRatio=
- * "none"` lets CSS give each chart its own fixed height while the width fills
- * the column, exactly like every other fluid chart on this site. */
+// Graph design: RAM stacked area + CPU line with shared hover; see doc/Processes-notes.md
 
 const VB_W = 200;   // one shared horizontal resolution for both charts
 const RAM_H = 60, CPU_H = 22;
@@ -17,40 +11,9 @@ const RAM_H = 60, CPU_H = 22;
 const TOP_GROUPS = 5;
 
 export class Processes {
-	/**
-	 * THE PROCESSES SECTION — `/framework/ai2/live/`'s "Processes" block (the owner,
-	 * 2026-09-30: "we definitely want a summary of all of our spawned memory... a
-	 * task manager process snapshot... maybe log it in a way where it's a graph").
-	 *
-	 * One fetch, `GET <servex_base()>/api/processes` — the shape is documented at
-	 * `Servex/doc/processes.md`. It is new, so a Servex that has not restarted onto
-	 * it yet answers 404: this whole section then draws nothing, same as `poll_pool`
-	 * shows nothing when `/api/worktrees` is missing.
-	 *
-	 * What one snapshot holds (the fields this file reads):
-	 *   ours / other   — `{n, mb, cpu}`, plus `free_mb` and `total_mb` alongside them
-	 *   commit_mb / commit_limit_mb — the machine's commit charge (RAM + pagefile);
-	 *                    shows pressure free RAM alone hides (ask 5)
-	 *   groups[]       — one row per task, agent kind or system bucket: `{key, kind,
-	 *                    label, n, mb, cpu, pids, agents?}`; a `kind: "session"` group
-	 *                    (a VS Code conversation) also carries `stale`, `idle_h` (ask 3)
-	 *   sessions       — `{n, stale, stale_mb, stale_h}`: how many VS Code conversations
-	 *                    there are, how many are stale, and the threshold itself (ask 3)
-	 *   orphans[]      — flagged leftovers; `reaped[]` — ones already cleaned up
-	 *   games_closed[] — every game Games.js closed (or would have), newest last (ask 4)
-	 *   running[]      — `{id, state, pid, mb, lost}`, one per live agent — the real
-	 *                    process behind it, or why there isn't one
-	 *   worktrees      — `{total, pool, in_use, open, uncommitted, finished, removed_today}`
-	 *   history[]      — up to 360 points, `{at, cpu, ours_mb, other_mb, free_mb, groups: {key: [mb, cpu]}}`
-	 *
-	 * This file has two jobs: poll the snapshot (`create_processes`), and draw it
-	 * (`processes_section`). `live.js` owns the Live card itself and only wires the
-	 * two together — see its own comments for where.
-	 */
+	// Processes section: `/framework/ai2/live/`'s "Processes" block; polls `/api/processes` snapshot, draws it. See doc/Processes-notes.md for data shape.
 
-	/** Same shape as `live.js`'s other pollers (`poll_pool`): fetch, skip while the
-	 *  tab is hidden, catch up the moment it is looked at again. `changed` is the
-	 *  Live card's own repaint signal. */
+	// Poller: skip while tab hidden, catch up on visibility; same pattern as poll_pool
 	static create(changed){
 		let data = null;
 		async function poll(){
@@ -71,18 +34,12 @@ export class Processes {
 		};
 	}
 
-	/* ── one place that knows "is this agent really running" ──────────────────
-	 * Shared by this file's own group-agent rows and by `live.js`'s "Running now"
-	 * list, so the three words — running, lost, dormant — never drift apart. */
+	// One place knows agent state (running/lost/dormant) — shared with live.js "Running now"
 
 	/** `running[]` as a lookup by agent id. */
 	static running_index = list => new Map((list ?? []).map(r => [r.id, r]));
 
-	/** The small process line for one agent: real ("pid 47356 · 248 MB"), working
-	 *  with no process behind it ("no process" — `running[].lost`), or dormant on
-	 *  purpose ("dormant, no process" — a dormant agent never has a process at
-	 *  all, `Servex/doc/dormant.md`). Empty string when `running[]` says nothing
-	 *  about this agent yet (an older Servex, or the id is not in the snapshot). */
+	// Process state badge: "pid N · MB", "no process", "dormant, no process", or "" if unknown
 	static badge(agent_id, state, by_id){
 		if (state === "dormant") return "dormant, no process";
 		const r = by_id.get(agent_id);
@@ -91,7 +48,7 @@ export class Processes {
 		return `pid ${r.pid} · ${Math.round(r.mb)} MB`;
 	}
 
-	/* ── plain words ────────────────────────────────────────────────────────── */
+	// Formatting utilities
 
 	static gb = mb => (Math.round((mb ?? 0) / 102.4) / 10).toFixed(1) + " GB";
 
@@ -101,10 +58,7 @@ export class Processes {
 
 	static clock = at => { const d = new Date(at); return isNaN(d) ? "" : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); };
 
-	/** The two stacked-area fills: ours from the baseline up, everything else
-	 *  stacked above it — so "ours" is always the band touching the floor, the
-	 *  one glance the owner asked for. The space above both, up to the top of the
-	 *  chart, IS total RAM: nothing is drawn there, so it reads as free. */
+	// Stacked-area: ours from floor up, other stacked above, empty space above = free RAM
 	static ram_svg(history){
 		const n = history.length;
 		if (n < 2) return "";
@@ -124,10 +78,7 @@ export class Processes {
 		</svg>`;
 	}
 
-	/** Two thin lines on the same 0–100 scale: everything on the machine (muted —
-	 *  the context), ours alone (the accent — the one the fan noise is asking
-	 *  about). Same accent-vs-muted pairing as the RAM chart, so one legend
-	 *  explains both. */
+	// Two lines: total CPU (muted), ours (accent); 0–100 scale; same legend as RAM chart
 	static cpu_svg(history){
 		const n = history.length;
 		if (n < 2) return "";
@@ -141,10 +92,7 @@ export class Processes {
 		</svg>`;
 	}
 
-	/** One small line under the cursor: the point's own time, then both charts'
-	 *  numbers — the hover layer the dataviz method asks every line/area chart to
-	 *  ship. A plain positioned box, not more SVG text, because the numbers need
-	 *  to stay legible at any zoom and wrap freely at 400px. */
+	// Hover: time + RAM/CPU numbers in positioned box (not SVG text for legibility at any zoom)
 	static wire_hover($wrap, $cross, $tip, history){
 		if (history.length < 2) return;
 		const move = e => {
@@ -164,30 +112,23 @@ export class Processes {
 		$wrap.el.addEventListener("pointerleave", leave);
 	}
 
-	/** The headline line above the charts — the one sentence that, on its own,
-	 *  answers "how much of the machine is ours right now". Commit charge (ask 5)
-	 *  rides along: free RAM alone can look fine while the pagefile is nearly
-	 *  full, and commit is the number that actually explains that. */
+	// Headline: "how much of the machine is ours"; commit charge shows pagefile pressure
 	static headline(proc){
 		const { ours, other, free_mb, total_mb, commit_mb, commit_limit_mb } = proc;
 		const commit = commit_mb != null && commit_limit_mb != null ? ` · commit ${Processes.gb0(commit_mb)} / ${Processes.gb0(commit_limit_mb)} GB` : "";
 		return `${Processes.gb(ours?.mb)} ours of ${Processes.gb(total_mb)} total · ${Processes.gb(other?.mb)} other · ${Processes.gb(free_mb)} free${commit}`;
 	}
 
-	/** The line under the totals naming stale VS Code conversations (ask 3) — the
-	 *  owner's own words: "close them in VS Code" (never closed here; a VS Code
-	 *  conversation is the owner's to close). Empty when none are stale. */
+	// Stale VS Code conversation line; owner closes them in VS Code, not here
 	static stale_line(sessions){
 		if (!sessions?.stale) return "";
 		const n = sessions.stale;
 		return `${n} VS Code conversation${n === 1 ? "" : "s"} idle over ${sessions.stale_h} h (${Processes.gb(sessions.stale_mb)}): close them in VS Code`;
 	}
 
-	/* ── by task: one row per group, biggest first ─────────────────────────── */
+	// By task: one row per group, biggest first
 
-	/** One group's RAM sparkline — a single quiet line, no legend (one series
-	 *  needs none): `history[].groups[key]` is `[mb, cpu]`, and only mb draws
-	 *  here, the same story the row's own "mb" figure already tells over time. */
+	// Group sparkline: only RAM (mb), no legend; mirrors the row's own mb figure over time
 	static group_spark(history, key){
 		const pts = history.map(h => h.groups?.[key]?.[0]).filter(v => v != null);
 		if (pts.length < 2) return "";
@@ -200,9 +141,7 @@ export class Processes {
 		</svg>`;
 	}
 
-	/** A group's own detail: its agents (with a real process badge each) when it
-	 *  has any, else the bare PIDs it rolled up — "render every kind the same
-	 *  way" (the brief), so this is the one branch every group kind shares. */
+	// Group detail: agents with badges, or bare PIDs; one branch for all group kinds
 	static group_detail(g, by_id){
 		if (g.agents?.length){
 			g.agents.forEach(a => div.c("ai2-live-item", () => {
@@ -214,9 +153,7 @@ export class Processes {
 		div.c("ai2-proc-pids", () => (g.pids ?? []).forEach(pid => span.c("ai2-proc-pid").text("pid " + pid)));
 	}
 
-	/** A stale VS Code session's own badge — "stale · idle 5 h" — right on its row,
-	 *  so it is seen without opening anything (ask 3; `g.stale`/`g.idle_h` come
-	 *  straight off `/api/processes`, Servex/doc/processes.md). */
+	// Stale badge: "stale · idle N h" on the row so seen without opening details
 	static stale_badge(g){
 		if (!g.stale) return;
 		small.c("ai2-proc-badge ai2-proc-stale").text(`stale · idle ${g.idle_h} h`);
@@ -240,11 +177,7 @@ export class Processes {
 		});
 	}
 
-	/** Biggest first, and only the top few OPEN on the page by default — a
-	 *  machine with two dozen "Claude Code session" groups used to draw two
-	 *  dozen closed rows before this, correct once the details-collapse bug
-	 *  above was fixed, but still a long scroll for what is mostly noise. The
-	 *  rest fold behind one more "N more" row, same shape as the others. */
+	// Biggest first; only top groups open by default; rest fold behind "N more" row
 	static task_rows(proc){
 		const groups = [...(proc.groups ?? [])].sort((a, b) => (b.mb ?? 0) - (a.mb ?? 0));
 		if (!groups.length) return small.c("muted").text("nothing measured yet");
@@ -258,7 +191,7 @@ export class Processes {
 		});
 	}
 
-	/* ── orphans, reaped, worktrees ─────────────────────────────────────────── */
+	// Orphans, reaped, worktrees
 
 	static proc_list(items, line){
 		(items ?? []).forEach(it => div.c("ai2-live-item", () => small.c("ai2-live-line").text(line(it))));
@@ -276,22 +209,16 @@ export class Processes {
 
 	static worktrees_row(w){
 		if (!w) return;
-		// A plain box, not `.ai2-live-item` — that class's 4-column grid put
-		// `.ai2-live-line` (column 3) ~100px in from the left edge, when this is
-		// two whole lines of text, not a name + a line beside a badge (fix round,
-		// 2026-09-30). `.ai2-proc-row`'s siblings (Orphans) start flush left; this
-		// does too.
+		// Plain box (not .ai2-live-item): two text lines, not name + line; flush left like Orphans
 		div.c("ai2-proc-worktrees", () => {
 			small.c("ai2-proc-worktrees-line").text(`${w.total} worktrees: ${w.pool} pool, ${w.in_use} in use, ${w.open} open, ${w.uncommitted} uncommitted`);
 			small.c("ai2-proc-worktrees-line muted").text(`${w.removed_today} removed today`);
 		});
 	}
 
-	/* ── the whole section ──────────────────────────────────────────────────── */
+	// Render the whole section
 
-	/** Drawn straight into whatever is capturing when this runs — `live.js` calls
-	 *  it exactly where the other `ai2-live-section`s sit. `proc` is one snapshot
-	 *  from `create_processes().data()`, or `null` until Servex answers. */
+	// Render snapshot (or null until Servex answers); live.js calls where other ai2-live-sections sit
 	static section(proc){
 		if (!proc) return;
 		div.c("ai2-live-section ai2-proc-section", () => {
@@ -305,10 +232,7 @@ export class Processes {
 				span.c("ai2-proc-dot ai2-proc-dot-other");
 				small.c("muted").text("everything else");
 			});
-			// `$cross`/`$tip` are built INSIDE `$wrap`'s own capture — a `div.c()`
-			// called after that block closes would land as $wrap's SIBLING instead
-			// of its child, and `position: absolute` would then track the page,
-			// not the graph (caught by the headless proof's own hover shot).
+			// TRAP: $cross/$tip must build inside $wrap's capture, not after (or absolute positioning breaks)
 			let $cross, $tip;
 			const $wrap = div.c("ai2-proc-graph", () => {
 				div.c("ai2-proc-ram").html_unsafe(Processes.ram_svg(proc.history ?? []));
