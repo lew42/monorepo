@@ -11,3 +11,4 @@
 {"review":{"answer":{"n":3,"reply":"declined: matches native details; click/Esc/pick close it"}}}
 {"review":{"answer":{"n":4,"reply":"noted: tooling noise"}}}
 {"review":{"answer":{"n":5,"reply":"fixed: kit/web-select.md written"}}}
+{"log":{"at":"2026-10-12T21:06:03-05:00","msg":"session ended (other) without landing"}}

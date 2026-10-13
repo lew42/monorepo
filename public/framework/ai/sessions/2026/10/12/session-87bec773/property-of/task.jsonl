@@ -19,3 +19,9 @@
 {"log":{"at":"2026-10-12T20:52:01-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-12T21:00:21-05:00","msg":"session resumed"}}
 {"assign":{"step":1,"landed_at":"2026-10-12T21:00:40-05:00","title":"Property: bind an Item key live (Property.of)","outcome":"**`Property.of(item, name)` is built, and the session detail's model, effort and cost line now redraws on a new turn.**\n\n- [x] Property.of reads the Item, writes through `item.set`, listens only while bound: `core/Property/Property.test.mjs`, 36 checks, Item listener count back to 0\n- [x] One real caller: `ai/AISession/AISessionDetail.js` (`live_item()`); a new Opus turn changed the line from Sonnet 5.5 to Opus 5.5 in 0.2 s, shots [before](/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-before.png) and [after](/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-after.png)\n- [x] [binding.md](/framework/core/Page/doc/binding.md) section 4 and the [Property readme](/framework/core/Property/readme.md) say it is built\n- [x] reviewed: pass, 5 notes answered ([review.md](/framework/ai/sessions/2026/10/12/session-87bec773/property-of/review.md))\n\nLeft: the detail page's other fields (state, tokens) are still drawn once.","links":[{"url":"/framework/core/Property/","label":"core/Property"},{"url":"/framework/core/Page/doc/binding.md","label":"binding.md"}],"tokens":null}}
+{"log":{"at":"2026-10-12T21:00:43-05:00","msg":"text-check: review.md: 253 words and no picture"}}
+{"log":{"at":"2026-10-12T21:00:43-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-13T02:00:43.800Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-12T21:00:43-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-12T21:00:46-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-12T21:00:46-05:00","msg":"layout-check: skipped — the landing names no site pages"}}

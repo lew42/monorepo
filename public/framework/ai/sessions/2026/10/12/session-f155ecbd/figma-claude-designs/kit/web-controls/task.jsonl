@@ -4,3 +4,6 @@
 {"log":{"at":"2026-10-12T20:53:58-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-12T20:54:01-05:00","heartbeat":"answered","msg":"Done, and nothing is running now. The controls are merged into `michael/dev` and the report is committed at `kit/web-controls.md`.\n\nThe one open item is the leftover worktree at `C:\\Code\\lew42\\worktre"}}
 {"log":{"at":"2026-10-12T20:55:01-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-12T21:05:57-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-figma-web-controls"}}
+{"log":{"at":"2026-10-12T21:05:59-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-12T21:06:06-05:00","heartbeat":"answered","msg":"Done and merged: the controls are in `michael/dev` and the report is committed at `kit/web-controls.md`. The only open item is removing the leftover `fig-controls` worktree, which waits on cleaning up"}}
