@@ -638,6 +638,42 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
 		setTimeout(() => this.mount?.nav(drawer.page(), this.active_card()?.id ?? null));
 	}
 
+	// Full state = the whole sidebar: the chat above stays mounted (mic keeps running), the drawer's own tab row and tab body sit below it.
+	state(mode){
+		super.state(mode);
+		mode === "full" ? this.mount_tabs() : this.unmount_tabs();
+		return this;
+	}
+
+	mount_tabs(){
+		if (this.$tabs?.el.isConnected) return;
+		this.$tabs = div.c("drawer-rail-sheet-tabs flex v");
+		this.$tabrow = div.c("drawer-tabs drawer-rail-sheet-tabrow flex");
+		this.$tabbody = div.c("drawer-rail-sheet-tabbody");
+		this.$tabs.el.append(this.$tabrow.el, this.$tabbody.el);
+		this.el.append(this.$tabs.el);
+		this.pick(tabs.current?.name ?? "ai");
+	}
+
+	unmount_tabs(){
+		this.$tabs?.el.remove();
+		this.$tabs = null;
+	}
+
+	pick(name){
+		const shown = tabs.shown();
+		const tab = shown.find(t => t.name === name) ?? shown[0];
+		this.$tabrow.empty(() => {
+			shown.forEach(t => button.c("drawer-tab", t.label).attr("type", "button").ac(t === tab && "on").click(() => this.pick(t.name)));
+		});
+		if (tab.name === "ai"){ this.$tabbody.empty(); this.ac("drawer-rail-sheet-chat-only"); return; }   // the chat above IS the AI tab
+		this.rc("drawer-rail-sheet-chat-only");
+		const ctx = tabs.context(), body = this.$tabbody;
+		body.empty(() => { span.c("drawer-wait muted", "loading…"); });
+		tab.load().then(m => { if (this.$tabbody === body) body.empty(() => { m.default(ctx); }); })
+			.catch(e => body.empty(() => { span.c("drawer-wait muted", "This tab could not load: " + e.message); }));
+	}
+
 	new_session_button(){
 		return chat_new_session_button(() => this.mount)
 			.ac("drawer-rail-sheet-link drawer-rail-sheet-new")

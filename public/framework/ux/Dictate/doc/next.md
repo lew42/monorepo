@@ -1,4 +1,4 @@
-# Next: make the phone sheet the sidebar's collapsed form (brief, 2026-10-13)
+# Next: make the phone sheet the sidebar's collapsed form (brief, 2026-10-13) — DONE: section 1 landed in commit 4cb0adf91 (`DrawerRailSheetChat.state()` mounts the drawer tab row in `full`; mic proof passes, 400 px shot in the dictate-sheet task dir)
 
 **Owner's design:** on mobile a small sheet holds only the transcribe button and the text area, resizable; expanded, it becomes the whole sidebar (chat plus the AI, sessions, … tabs). Findings and what is already shared: [asks.md](asks.md#2026-10-13--does-it-work-today-and-is-the-phone-sheet-the-sidebars-small-form).
 
