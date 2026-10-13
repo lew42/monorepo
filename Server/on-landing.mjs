@@ -15,8 +15,11 @@ import { text_flags } from "./text-check.mjs";
 import { card_flags } from "./card-check.mjs";
 import { doc_check } from "./doc-check.mjs";
 import { can_stop, entry_for_task_dir } from "./worktree-sweep.mjs";
+import TaskDirs from "./TaskDirs.mjs";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
+// servex-mastermind's own task log for today, found in the store (Server/TaskDirs.mjs), never a hand-joined ai/<date>/ path
+const arch_log = () => { const d = TaskDirs.find("servex-mastermind", 1); return d ? path.join(d, "task.jsonl") : ""; };
 const dir = path.resolve(process.argv[2] || ".");
 const task = path.join(dir, "task.jsonl");
 const HOST = "http://monorepo.localhost";
@@ -46,7 +49,7 @@ try {
 		const tf = text_flags(dir);
 		const tm = `text-check: ${tf.length ? tf.join("; ") : "no walls of text"}`;
 		append(task, tm);
-		const arch = path.join(root, "public/framework/ai", now().slice(0, 10), "servex-mastermind", "task.jsonl");
+		const arch = arch_log();
 		if (tf.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${tm}`);
 	} catch {}
 	// The card check (cards-that-show-the-thing, 2026-09-25): checks the card against the card standard
@@ -56,7 +59,7 @@ try {
 			const cf = card_flags(cardDir);
 			const cm = `card-check: ${cf.length ? cf.join("; ") : "standard passed"}`;
 			append(task, cm);
-			const arch = path.join(root, "public/framework/ai", now().slice(0, 10), "servex-mastermind", "task.jsonl");
+			const arch = arch_log();
 			if (cf.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${cm}`);
 		}
 	} catch {}
@@ -95,7 +98,7 @@ try {
 			const text = `${name} landed after deciding ${made.length} thing${made.length === 1 ? "" : "s"} for you:\n${lines.join("\n")}`;
 			const r = await fetch(`http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/owner_note`, {
 				method: "POST", headers: { "content-type": "application/json" },
-				body: JSON.stringify({ title: `${name} decided ${made.length} thing${made.length === 1 ? "" : "s"} for you`, text, kind: "decision", by: "on-landing", links: [`/framework/ai/${path.basename(path.dirname(dir))}/${name}/`] }),
+				body: JSON.stringify({ title: `${name} decided ${made.length} thing${made.length === 1 ? "" : "s"} for you`, text, kind: "decision", by: "on-landing", links: ["/" + path.relative(path.join(root, "public"), dir).split(path.sep).join("/") + "/"] }),
 				signal: AbortSignal.timeout(3000),
 			});
 			append(task, "owner-note: " + (r.ok ? `posted ${made.length} decision${made.length === 1 ? "" : "s"} to the Inbox` : "not posted (HTTP " + r.status + ")"));
@@ -180,8 +183,7 @@ try {
 	const msg = `layout-check: ${urls.length} pages at ${WIDTHS.replaceAll(",", "/")} — ${flags.length ? flags.join("; ") : "no flags"}; sheets in layout-check/`;
 	append(task, msg);
 	if (flags.length) {
-		const day = now().slice(0, 10).replaceAll("-", "-");
-		const arch = path.join(root, "public/framework/ai", day, "servex-mastermind", "task.jsonl");
+		const arch = arch_log();
 		if (fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${msg}`);
 	}
 	// The padding law (padding-system, 2026-09-25): nothing a reader looks at sits
@@ -195,7 +197,7 @@ try {
 			: `${x.url} ${x.width}: ${x.violations} at an edge ("${x.worst[0]?.text || ""}")`);
 		const pm = `padding-check: ${bad.length ? bad.join("; ") : `${pages.length} pages — clean`}`;
 		append(task, pm);
-		const arch = path.join(root, "public/framework/ai", now().slice(0, 10), "servex-mastermind", "task.jsonl");
+		const arch = arch_log();
 		if (bad.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${pm}`);
 	} catch (e) {
 		try { append(task, "padding-check: not run — " + String(e && e.message || e).slice(0, 200)); } catch {}

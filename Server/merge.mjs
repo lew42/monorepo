@@ -60,6 +60,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sizeOf, status as reviewStatus, diffStat, pageUrlFor, widthsFor, splitPatch, writeNoReviewPass } from "./review.mjs";
 import { keepLive } from "./jsonl-keep.mjs";
+import TaskDirs from "./TaskDirs.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 
 const BASE = "michael/dev";
@@ -116,6 +117,11 @@ function guessTaskDir(aiDir, branch){
 	for (const day of fs.readdirSync(aiDir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && daysAgo(d) <= 3 && daysAgo(d) >= 0).sort().reverse()) {
 		const p = path.join(aiDir, day, slug);
 		if (fs.existsSync(p)) return p;
+	}
+	// the sessions store, where every task has lived since 2026-10-12 (ai/doc/task-folders.md): the slug in the last 3 days
+	for (let i = 0; i <= 3; i++){
+		const hit = TaskDirs.locate(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10), slug, path.join(aiDir, "sessions"));
+		if (hit) return hit;
 	}
 	return null;
 }

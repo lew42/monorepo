@@ -22,7 +22,7 @@
 
 export const schemas = {
 	"task.jsonl": {
-		what: "a task's log (public/framework/ai/<date>/<slug>/task.jsonl)",
+		what: "a task's log (public/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/task.jsonl)",
 		reader: { file: "public/framework/ext/JSONL/JSONL.js", class: "TaskJSONL" },
 		verbs: {
 			assign:     { fields: [], eg: { step: 2, now: "what is happening" } },
@@ -52,7 +52,7 @@ export const schemas = {
 		pending: ["snooze", "kill", "priority"],
 	},
 	"day.jsonl": {
-		what: "a day's log (public/framework/ai/<date>/day.jsonl)",
+		what: "a day's log (public/framework/ai/sessions/YYYY/MM/DD/day.jsonl)",
 		reader: { file: "public/framework/ai/rail/inbox.js", class: "Day" },
 		verbs: {
 			assign: { fields: [], eg: { title: "…" } },
@@ -94,7 +94,7 @@ export const schemas = {
 		eg: { at: "NOW", target: "task dir, url, or look:<page>", verdict: "clear", what: "one line on what was found", to: "agent or file" },
 	},
 	"audit.jsonl": {
-		what: "one task's audit log (public/framework/ai/<date>/<slug>/audit.jsonl) — one line per auditor; audit.mjs reads every one and computes the consensus (never hand-write it)",
+		what: "one task's audit log (<task folder>/audit.jsonl) — one line per auditor; audit.mjs reads every one and computes the consensus (never hand-write it)",
 		verbs: {
 			audit: {
 				fields: ["at", "by", "model", "cost_usd", "complete", "obedience", "utility", "review_done", "name_ok", "icon_ok"],
