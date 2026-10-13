@@ -1,0 +1,93 @@
+diff --git a/public/framework/ext/Figma/doc/controls.md b/public/framework/ext/Figma/doc/controls.md
+index aa5b9928a..96528bf36 100644
+--- a/public/framework/ext/Figma/doc/controls.md
++++ b/public/framework/ext/Figma/doc/controls.md
+@@ -12,4 +12,4 @@ Coded from the Figma pages `DS · 2.7 Toggles, checkboxes & radios`, `DS · 2.6
+ 
+ Shared: 44 px minimum height, off = 15% of the text ink (works on all three schemes), focus = 2 px accent outline, offset 2, disabled = 40% opacity (`<input disabled>`).
+ 
+-Watch out: the page must load the Symbols font itself (the demo adds a `<link>`); without it icons fall back to Material Icons, which has the same names for the common glyphs. `.fig-select` does not close on outside click or choose a row yet: it is the styling, wire behavior with `ux/Menu` / `ux/Popover`.
++Watch out: the page must load the Symbols font itself (the demo adds a `<link>`); without it icons fall back to Material Icons, which has the same names for the common glyphs. `.fig-select` behaves via `FigSelect.install()` (`tokens/FigSelect.js`): a row click sets the trigger text, marks `aria-selected`, closes and fires a bubbling `fig-select` event (`detail.value`); outside click and Escape close; Arrow keys move, Enter picks; one open at a time. It reuses `ux/Menu`'s native-`<details>` recipe but with delegated listeners, so plain markup works with no per-instance setup. Not done: a phone bottom sheet (`ux/Popover` has no sheet mode); the 264 cap and scroll are CSS.
+diff --git a/public/framework/ext/Figma/files.jsonl b/public/framework/ext/Figma/files.jsonl
+index 479e68a88..37bd2f231 100644
+--- a/public/framework/ext/Figma/files.jsonl
++++ b/public/framework/ext/Figma/files.jsonl
+@@ -30,3 +30,4 @@
+ {"file":"tokens/page.js"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/Figma/tokens/FigSelect.js b/public/framework/ext/Figma/tokens/FigSelect.js
+new file mode 100644
+index 000000000..9e8bc9fbb
+--- /dev/null
++++ b/public/framework/ext/Figma/tokens/FigSelect.js
+@@ -0,0 +1,48 @@
++// Behaviour for the opt-in `.fig-select` <details> (styled in tokens.css): doc/controls.md.
++// Same recipe as ux/Menu (native <details>, outside-click bound only while open), but one
++// delegated listener set serves every .fig-select on the page, so the markup stays plain.
++export default class FigSelect {
++	static rows(sel){ return [...sel.querySelectorAll(".fig-select-row")]; }
++
++	static pick(sel, row){
++		FigSelect.rows(sel).forEach(r => r.setAttribute("aria-selected", r === row));
++		sel.querySelector("summary > :first-child").textContent = row.firstElementChild.textContent;
++		sel.open = false;
++		sel.querySelector("summary").focus();
++		sel.dispatchEvent(new CustomEvent("fig-select", { bubbles: true, detail: { value: row.firstElementChild.textContent, row } }));
++	}
++
++	static move(sel, step){
++		const rows = FigSelect.rows(sel), at = rows.indexOf(document.activeElement);
++		rows[at < 0 ? (step > 0 ? 0 : rows.length - 1) : Math.min(rows.length - 1, Math.max(0, at + step))]?.focus();
++	}
++
++	static install(){
++		if (FigSelect.installed) return;
++		FigSelect.installed = true;
++		document.addEventListener("toggle", e => {          // one open at a time; rows become keyboard targets
++			const sel = e.target;
++			if (!sel.matches?.(".fig-select") || !sel.open) return;
++			document.querySelectorAll(".fig-select[open]").forEach(o => { if (o !== sel) o.open = false; });
++			const rows = FigSelect.rows(sel);
++			sel.querySelector(".fig-select-panel")?.setAttribute("role", "listbox");
++			rows.forEach(r => { r.setAttribute("role", "option"); r.tabIndex = -1; });
++			(rows.find(r => r.getAttribute("aria-selected") === "true") ?? rows[0])?.scrollIntoView({ block: "nearest" });
++		}, true);
++		document.addEventListener("click", e => {
++			const row = e.target.closest?.(".fig-select-row");
++			if (row) return FigSelect.pick(row.closest(".fig-select"), row);
++			const inside = e.target.closest?.(".fig-select");   // outside click closes the rest
++			document.querySelectorAll(".fig-select[open]").forEach(o => { if (o !== inside) o.open = false; });
++		});
++		document.addEventListener("keydown", e => {
++			const sel = e.target.closest?.(".fig-select");
++			if (!sel) return;
++			const key = e.key;
++			if (key === "Escape" && sel.open){ sel.open = false; sel.querySelector("summary").focus(); e.preventDefault(); }
++			else if ((key === "ArrowDown" || key === "ArrowUp") && !sel.open){ sel.open = true; e.preventDefault(); requestAnimationFrame(() => FigSelect.move(sel, key === "ArrowDown" ? 1 : -1)); }
++			else if (key === "ArrowDown" || key === "ArrowUp"){ e.preventDefault(); FigSelect.move(sel, key === "ArrowDown" ? 1 : -1); }
++			else if (key === "Enter" && e.target.matches(".fig-select-row")){ e.preventDefault(); FigSelect.pick(sel, e.target); }
++		});
++	}
++}
+diff --git a/public/framework/ext/Figma/tokens/files.jsonl b/public/framework/ext/Figma/tokens/files.jsonl
+index 465eb7f94..96673aae1 100644
+--- a/public/framework/ext/Figma/tokens/files.jsonl
++++ b/public/framework/ext/Figma/tokens/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"page.js"}
+ {"file":"tokens.css"}
+ {"file":"variables.json"}
++{"file":"FigSelect.js"}
+diff --git a/public/framework/ext/Figma/tokens/page.js b/public/framework/ext/Figma/tokens/page.js
+index dc6b27aac..863dfab09 100644
+--- a/public/framework/ext/Figma/tokens/page.js
++++ b/public/framework/ext/Figma/tokens/page.js
+@@ -1,4 +1,6 @@
+ import { Page, View, div, p, h3, h4, button, span, input, details, summary } from "/app.js";
++import FigSelect from "./FigSelect.js";
++FigSelect.install();
+ View.stylesheet(import.meta, "tokens.css");
+ View.stylesheet(import.meta, "page.css");
+ 

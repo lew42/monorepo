@@ -1,0 +1,11 @@
+{"phase":{"at":"2026-10-12T21:04:10-05:00","n":1,"kind":"findings","status":"start"}}
+{"phase":{"at":"2026-10-12T21:04:10-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0,"model":null}}
+{"phase":{"at":"2026-10-12T21:04:14-05:00","n":1,"kind":"findings","status":"start"}}
+{"phase":{"at":"2026-10-12T21:04:14-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0,"model":null}}
+{"phase":{"at":"2026-10-12T21:05:23-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-10-12T21:05:23-05:00","n":1,"kind":"note","text":"The earlier review.md says \"only CSS/docs changed, no new file\", but the diff adds `tokens/FigSelect.js` (48 lines); the size was overridden to \"none\" twice in task.jsonl. This full review replaces it."}}
+{"finding":{"at":"2026-10-12T21:05:23-05:00","n":2,"kind":"note","text":"The behaviour (pick, close, keys, one open) is JavaScript, so the shots can't show it: both shots show the same static closed and open states as before. Judged from the code in diff.patch; the agent reports a headless test in task.jsonl."}}
+{"finding":{"at":"2026-10-12T21:05:23-05:00","n":3,"kind":"note","text":"Tab moving focus out of an open `.fig-select` leaves it open (only a click, Escape or a pick closes it). This is the same as `<details>`, but a listbox usually closes on blur."}}
+{"finding":{"at":"2026-10-12T21:05:23-05:00","n":4,"kind":"note","text":"`ext/Figma/files.jsonl` gains a third `screenshots/` \"gone\" line. It is tooling noise and harmless, but the log now flips gone, back, gone."}}
+{"finding":{"at":"2026-10-12T21:05:23-05:00","n":5,"kind":"note","text":"The report the brief asks for, `kit/web-select.md`, is not written yet. It should land with the merge."}}
+{"phase":{"at":"2026-10-12T21:05:23-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0.6704626,"model":"claude-opus-5-5"}}
