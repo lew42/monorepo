@@ -129,4 +129,5 @@ Design files have no live connectors (`ConnectorNode` is FigJam-only), so arrows
 - **3440×1440 is wide, not tall**: v1 stacked its cards and overflowed the bottom; v2 moved them side by side (steps in a 2×2 grid, stacks across the width, type ramp in the rail) and fits.
 - A glyph outside Montserrat (↳ ✕ ⌕) falls back to Noto Sans Symbols2; any later edit to that frame needs that font loaded too, so load every font with `getRangeAllFontNames` first.
 - `getRangeAllFontNames(0, 0)` throws on an empty text (an empty Meta), so skip empty texts when loading fonts.
+- **A removed ground leaves its mode behind**: a frame that once had a prime fill also had an explicit Text mode (`Light BG`) so its ink stayed dark. Removing the fill keeps that mode, so on a dark screen the label still renders dark. When you drop a ground, also `clearExplicitVariableModeForCollection` (the kit Tab bar hit this, 2026-10-12).
 - Load the `figma-use` skill (MCP resource `skill://figma/figma-use/SKILL.md`) before the first call.

@@ -23,11 +23,11 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 
 - ✅ Web layouts ([report](kit/web-layouts.md), [doc](/framework/ext/Figma/doc/layouts.md)): `.fig-cols/split/three/media/side/bands` in a `.fig-lay` container that goes one column under 480 px; `.fig-stack` reused. Review fix: buttons hug inside a stack (were full width). Demo shows two uses per layout, not four.
 
+- ✅ `DS · 6 Screens` ([report](kit/ds-screens.md)): sessions list, session detail, settings, near-black dashboard, article; 390 phones + three 1440 desktops; ▶ prototype (rows → detail, tab bar). Built only from kit instances. Review fix: the Tab bar's active label was dark on dark (a leftover Light BG mode); cleared on all instances. Gaps it found: 4.1 layouts and charts are not components yet; no near-black token.
+
 ## In flight
+- (none; next ideas: make the 4.1 layouts and chart pieces components so screens can instance them; a near-black Text mode; wire `.fig-select` behaviour on the web)
 
-- ⬜ `DS · 6 Screens` (five real screens from kit instances only, ▶ prototype list → detail + tab bar) — task-mastermind-figma-ds-screens, brief [kit/brief-screens.md](kit/brief-screens.md)
-
-Next: review each by screenshot, link from the Overview card.
 
 ## Waiting on the owner
 - ⬜ Which numbers win per row of the token table in token-sync.md (site vs Figma).
