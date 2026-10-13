@@ -321,4 +321,16 @@
 	.drawer-rail-sheet .ux-dictate-widget-bubbles { gap: 0.15em; }
 	.drawer-rail-sheet .chatbox-text + .chatbox-text { margin-block-start: 0.3em; }
 	.drawer-rail-sheet .chatbox-log { margin-block-end: 0.15em; }
+
+	/* FULL STATE TABS: the drawer's own tab row + body under the chat (rail.js mount_tabs). */
+	.drawer-rail-sheet-tabs { flex: 0 1 45%; min-block-size: 0; border-top: 1px solid var(--line); }
+	.drawer-rail-sheet-tabrow { flex: 0 0 auto; flex-wrap: wrap; gap: 0.1em; padding-block: 0.3em; }
+	.drawer-rail-sheet-tabrow .drawer-tab {
+		font: inherit; font-size: 0.85em; padding: 0.35em 0.7em; min-block-size: 2.2rem;
+		color: var(--ink-muted, var(--ink)); background: none; border: 0; border-radius: calc(var(--radius) / 2);
+	}
+	.drawer-rail-sheet-tabrow .drawer-tab.on { color: var(--ink); background: var(--fill-a08); font-weight: 600; }
+	.drawer-rail-sheet-tabbody { flex: 1 1 auto; min-block-size: 0; overflow: auto; }
+	.drawer-rail-sheet-chat-only { }
+	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { flex: 0 0 auto; }
 }
