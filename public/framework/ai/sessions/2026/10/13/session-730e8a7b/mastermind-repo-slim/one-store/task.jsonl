@@ -15,3 +15,9 @@
 {"review":{"answer":{"n":3,"reply":"noted: recorded as a decision line with the alternative; Servex.js, Sessions.js and Cards.js build no day path (census), and Servex open_task already goes through TaskDirs.normalize"}}}
 {"review":{"answer":{"n":4,"reply":"fixed: 87ae58c9e + 630e5a93d — merge.mjs calls TaskDirs.locate (store root as a parameter), CardAnswer loop flattened, crawl.mjs semicolon. Declined for Start.js: `day` is used (the day.jsonl append on line 59)"}}}
 {"review":{"answer":{"n":5,"reply":"noted: the census is the backstop for direct fs writers and runs in TaskDirs.test.mjs (fails on any hand-joined writer); the audit doc says so"}}}
+{"log":{"at":"2026-10-13T18:10:45-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:10:46-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:10:52-05:00","msg":"session ended (other) without landing"}}
+{"action":{"at":"2026-10-13T18:11:41-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store/doc/one-tree.md"]}}
+{"decision":{"at":"2026-10-13T18:12:06-05:00","chose":"one tree = the sessions store: Inbox cards move from ai/YYYY/MM/DD/<card>/ to ai/sessions/YYYY/MM/DD/cards/<card>/ (option b)","why":"census: 639 folders / 251 links / 0 merges vs 40,867 files / 3,591 links / 164 merges; the owner said on 10-12 everything belongs in the sessions folder","options":["(a) the store moves up to ai/YYYY/MM/DD/ beside the cards; ai/sessions/ becomes the index page"]}}
+{"log":{"at":"2026-10-13T18:12:06-05:00","msg":"step 4: dry run written (one-tree-manifest.json: 639 card folders, 0 targets taken, 251 mentions in 174 files). NOT applied: the proof 'every mention relinked' fails, 656 card ids live in records that are never rewritten, so every card reader needs Cards.dir(id) first; plan in doc/one-tree.md"}}
