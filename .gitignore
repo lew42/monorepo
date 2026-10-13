@@ -171,3 +171,8 @@ public/framework/ai/**/*.jpg
 public/framework/ai/**/*.jpeg
 public/framework/ai/**/*.webp
 !public/framework/ai/**/doc/**
+
+# the owner's prompts extracted from transcripts (a task's working file): regenerable,
+# and private like sessions/transcripts/ above. The one tracked copy (2026-10-12) stays
+# until the owner decides. public/framework/ai/doc/repo-size.md
+public/framework/ai/**/owner-prompts.jsonl

@@ -43,7 +43,7 @@ export default class RepoSize {
 				}
 			});
 			p.on("error", reject); p.on("close", resolve);
-			for (const line of list) p.stdin.write(line.slice(0, 40) + "\n");
+			for (const line of list) p.stdin.write(line.split(" ")[0] + "\n"); // the object id, whatever the hash length
 			p.stdin.end();
 		});
 		return out;
@@ -119,7 +119,7 @@ export default class RepoSize {
 
 	// the .git folder itself: packs vs the rest
 	dotgit(){
-		const g = join(this.root, ".git"), parts = {};
+		const g = this.git("rev-parse", "--path-format=absolute", "--git-common-dir").trim(), parts = {}; // a worktree's .git is a file; measure the shared one
 		for (const e of readdirSync(g, { withFileTypes: true })) parts[e.name] = e.isDirectory() ? RepoSize.du(join(g, e.name)) : statSync(join(g, e.name)).size;
 		return { total: Object.values(parts).reduce((s, n) => s + n, 0), pack: RepoSize.du(join(g, "objects", "pack")), parts: Object.entries(parts).sort((a, b) => b[1] - a[1]).slice(0, 8) };
 	}
