@@ -20,3 +20,7 @@
 {"log":{"at":"2026-10-12T23:32:00-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-12T23:32:04-05:00","heartbeat":"answered","msg":"Idle: the Figma web controls are merged into `michael/dev`, and the report is committed at `kit/web-controls.md`. The only open item is removing the leftover `fig-controls` worktree, which waits on it"}}
 {"log":{"at":"2026-10-12T23:33:06-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T00:53:59-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-figma-web-controls"}}
+{"log":{"at":"2026-10-13T00:54:01-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T00:54:07-05:00","heartbeat":"answered","msg":"Idle: the controls are merged into `michael/dev` and the report is at `kit/web-controls.md`. I'm not doing anything else. The leftover `fig-controls` worktree still needs removing, once its generated "}}
+{"log":{"at":"2026-10-13T00:55:06-05:00","msg":"session ended (other) without landing"}}
