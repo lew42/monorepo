@@ -103,3 +103,19 @@ Refine page: VoiceStrip + run_refine (ext/Refine)  a SEPARATE path: its own mic,
 ```
 
 **As it should be:** one dictation path, the stages page being a view of the same session. `Dictate → Mic → Widget → chat()` stays; Refine stops owning a mic and instead reads the `chat()` session's lines (raw as delivered, then the minimal clean, then the per-chunk cards) through the page tools; both containers (sheet, drawer) differ only in size. What differs today is only Refine's mic; moving it onto `chat()` is a separate brief ([next.md](next.md)).
+
+## 2026-10-13 (17:20) — "thirty seconds to the first response": where the time went
+
+Measured from the owner's session `public/framework/ai/v-rs7u4o7.jsonl` (the file's own timestamps; Servex had restarted at 17:17:06):
+
+| Hop | Time | Gap |
+|---|---|---|
+| Mic turned on (`cues.mic_on_at`) | 17:17:31.4 | |
+| First sentence written to the session file | 17:17:57.07 | **25.7 s** after the mic, though only 1.25 s of it was speech |
+| `session-fast` and `session-smart` agents started (`list_agents.started_at`) | 17:17:57.08 | same instant: they are spawned by the first sentence, not before |
+| First reply (fast) | 17:18:05.5 | **8.5 s** after the sentence |
+| Smart reply | 17:18:09.2 | 12.1 s |
+
+- **Yes, it starts a new session's agents on the first sentence** (a cold spawn). That costs about 8 s; earlier sessions (`v-jag436k`, 16:43) answered warm in 4 to 6 s.
+- **The bigger part, about 24 s, is before the agents.** Two sentences landed 0.45 s apart, which looks like a held-back send, not slow Whisper. Whisper's own log for that minute was not found, so the cause (the mic's send rule, a stalled post, or Whisper warm-up) is **not pinned**. Next: a headless run with timestamps at the mic, the post and the file.
+- Not the working cap: the cap was full (5/5) but the assistants are not queued behind it.
