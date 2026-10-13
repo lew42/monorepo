@@ -14,8 +14,9 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ⬜ `DS · 1.1 Icons` — task-mastermind-figma-ds-icons
 - ⬜ `DS · 1.2 Dark grounds` — task-mastermind-figma-ds-darker
 - ⬜ `DS · 2.6 Dropdowns & menus` (fixed-height phone: inner scroll / page scroll / sheet; prototype) — task-mastermind-figma-ds-dropdowns
-- ⬜ `DS · 2.7 Toggles, checkboxes & radios` — task-mastermind-figma-ds-toggles
+- ✅ `DS · 2.7 Toggles, checkboxes & radios` — report kit/ds-toggles.md (not yet reviewed or linked)
 - ⬜ `DS · 5 Diagrams & charts` (auto-layout flowcharts whose connectors follow resized cards; charts) — task-mastermind-figma-ds-diagrams, queued behind Servex's 5-agent cap; brief [kit/brief-diagrams.md](kit/brief-diagrams.md)
+- ⬜ `DS · 4.1 Foundational layouts` (seven simple layouts, each shown four+ ways across schemes, phone collapse) — task-mastermind-figma-ds-foundational; brief [kit/brief-layouts.md](kit/brief-layouts.md)
 
 Each writes `kit/<slug>.md` when done. Next for whoever picks this up: review each page by screenshot, link it from the Overview's design-system card, fix off-rule colour (prime grounds) and fixed sizes, commit the task logs.
 
