@@ -114,7 +114,7 @@ export default new Page({
 		h3("Open dropdown");
 		div.c("flex wrap gap", () => schemes.forEach(([cls]) => div.c(`${cls} fig-card fig-controls-box fig-controls-open`, () => select("Canada", ["Country", "Canada", "Mexico", "United States"], true))));
 		h3("Foundational layouts (DS 4.1)");
-		p("Opt-in classes: fig-stack (reused), fig-cols, fig-split, fig-media, fig-side, fig-three, fig-bands. Each collapses to one column at 600 px of its own container. Details: doc/layouts.md.");
+		p("Opt-in classes: fig-stack (reused), fig-cols, fig-split, fig-media, fig-side, fig-three, fig-bands. Each collapses to one column at 480 px of its own container. Details: doc/layouts.md.");
 		layoutsDemo();
 		h3("Layouts on a phone (390)");
 		div.c("flex wrap gap", () => div.c("fig-white fig-lay fig-card fig-tokens-phone", () => div.c("fig-side", () => { div.c("fig-side-rail", () => ["Profile", "Billing"].forEach(t => button.c("fig-btn fig-btn-secondary", t))); div.c("fig-cols", () => { h4("Profile"); p.c("fig-muted", "Rail on top; label above content."); }); })));

@@ -185,11 +185,11 @@
 	.fig-side-rail { display: flex; flex-direction: column; gap: var(--fig-small-pad-y); }
 	.fig-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 	.fig-bands { display: flex; flex-direction: column; }
-	.fig-bands > * { margin: 0; padding: var(--fig-section-pad-y) var(--fig-section-pad-x); border-radius: 0; }
+	.fig-bands > * { margin: 0; padding: var(--fig-pad-y) var(--fig-pad-x); border-radius: 0; }
 	.fig-bands > .fig-body { flex: 1; }
 	.fig-bands > .fig-head, .fig-bands > .fig-foot { background: rgb(0 0 0 / 0.1); }
 	.fig-dark .fig-bands > .fig-head, .fig-dark .fig-bands > .fig-foot { background: rgb(255 255 255 / 0.1); }
-	@container (max-width: 599px) {
+	@container (max-width: 479px) {
 		.fig-cols, .fig-split, .fig-media, .fig-side, .fig-three { grid-template-columns: minmax(0, 1fr); }
 		.fig-side-rail { flex-direction: row; flex-wrap: wrap; }
 	}
