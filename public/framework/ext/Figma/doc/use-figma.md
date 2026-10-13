@@ -90,6 +90,24 @@ Five phone screens use only those instances: Lists, Tree in a sheet (split scree
 
 **Values no token gives yet** (all three agents hit them; the candidates for the small rock-solid set): text under 14 px, a hairline border (black 10%), the 50% scrim, a large radius (16) for sheets and round buttons, a stat-number style. Everything else they built came from the existing tokens.
 
+## Schemes, prime and modes, revised (owner, 2026-10-12 evening)
+
+- **Prime is used plain, with dark ink** (about 5:1; white on prime is under 3:1). The 25% black darkening is gone everywhere (46 fills) and no longer an approved stack.
+- **A scheme is a Text mode:** `Light BG` (white), `Light gray BG`, `Prime BG`, `Dark BG`. The Text collection now also holds `surface` (the ground), `accent` (prime; dark on a prime ground) and `on-accent` (ink on an accent fill). Bind a container's fill to `surface`, highlights to `accent`, and one master serves every scheme: switch the mode, not the component.
+- **Insets are a bare 10% black layer**, never white + 10%, so the same card darkens any ground.
+- **Components inherit Resolution; containers set it.** A phone (or a sample) is `Mobile`, a desktop page `Default`. The earlier "components always Default" rule is retired (112 main components cleared).
+- **Mobile sections pad with `section-pad`** (Mobile 48 top and bottom, 16 sides): tall phones breathe vertically, horizontal space stays scarce.
+- **Edges:** rows that run edge to edge (own side padding = `pad-x`) line up with the heading above; a card that touches the screen edge has no radius; a card with full-width sections has zero padding and each section pads itself.
+
+## The four tiers in the file
+
+1. `Claude · Elements` — mobile element library as a tree: A one column (text, images, overlays, card edges), B two on a row (hug + fill), C three or more (equal shares, wrapping), D nesting & grounds, E progress.
+2. Components — `UI Kit`, `Kit · Controls`, `Kit · Containers`, `Kit · Workflows`.
+3. `Claude · Stacks` — the `Section` master (fill `surface`, Content slot) stacked into recipes across White, Light gray, Prime, Dark and Mixed.
+4. `Claude · Layouts` — 1920 desktop pages from components: the `Site sidebar` component (dark = a mode), Docs on gray and on white, Sessions with the grid, the dev shell.
+
+Clickable flows carry a big ▶ PROTOTYPE badge (Claude prototype, UI Kit, Kit · Workflows). The kit's `DataGrid` exposes only its toolbar chips as a slot; its body rows are not a slot yet, so a layout composes Grid toolbar + Grid head + Grid rows directly.
+
 ## Traps
 
 - **`code` style can't load**: Figma has no Consolas, so `loadFontAsync` throws and the whole script aborts. Code text uses Cousine Bold by hand. The real fix is to change the style's font in Figma (the owner's file; ask first).
