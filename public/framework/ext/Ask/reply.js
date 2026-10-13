@@ -4,38 +4,13 @@ import { ask, available } from "./Ask.js";
 import Dictate from "../../ux/Dictate/Dictate.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 
-/**
- * Reply to ONE thing, where it already is.
- *
- * Every item of the hierarchy — an ask card, a decision row, a task card — can
- * carry this control: two small buttons, **reply** and **🎤**, that open a
- * one-line box under that item. What you type or say goes to Claude with the
- * item already explained, so you never have to say which one you mean, and the
- * answer lands under the same item a few seconds later.
- *
- *     import { reply } from "/framework/ext/Ask/reply.js";
- *     reply({ m, about: { kind: "ask", id: ask.id, summary: ask.summary, quote: ask.quote } });
- *
- * `m` is the task's own manifest (an `ext/JSONL` `TaskJSONL`) — the thread is
- * read out of `m.chats` and written back into `m.url`, so the record is the
- * task's own log and there is no second store. `about` is the item: its `kind`
- * and `id` are what the thread is filed under, everything else is what the turn
- * is told about it.
- *
- * Off the dev server the buttons are not drawn at all and the thread renders
- * read-only — the same rule `ext/AITask`'s Approve and Improve already follow.
- *
- * See `readme.md` (Use) and `doc/decisions.md` (the record, the cost, the tools).
- */
+// History and design: doc/notes.md
 export function reply(opts){ return new Reply(opts).view(); }
 
 /** The dictation box: one box at the top of a wall that turns talking into asks. */
 export function dictate(opts){ return new Reply.Dictation(opts).view(); }
 
-/* How long the wire gets to take an append. `ext/AITask`'s decisions tab waits
-   the same 2s for the same reason: /imagine/stream/ measures the real round trip
-   at 9ms, and this is the net for a dev server that is up enough to accept an
-   append and not to stream it. */
+// Wire timeout: 2s wait for append (dev server round trip ~9ms); see doc/notes.md
 const WIRE = 2000;
 
 /** Every thread on the page right now, so a streamed line can redraw them. */
@@ -51,12 +26,7 @@ export function streamed(){
 		item.$thread.el.isConnected ? item.draw() : open_threads.delete(item);
 }
 
-/**
- * An ISO timestamp carrying the reader's own offset, so a line says when it was
- * written where it was written — `toISOString()` would silently move it to UTC.
- * ⚠ A copy of `ext/AITask/rank.js`'s, on purpose: imports flow DOWN, and
- *   `ext/AITask` imports `ext/Ask`, so `ext/Ask` may never import back.
- */
+// ⚠ Copy of ext/AITask/rank.js (imports flow DOWN, can't import back)
 export function stamp(){
 	const now = new Date();
 	const off = -now.getTimezoneOffset();
@@ -66,7 +36,7 @@ export function stamp(){
 		+ (off < 0 ? "-" : "+") + pad(off / 60) + ":" + pad(off % 60);
 }
 
-/** Whole lines into a task's own log, through the dev socket. True when it took them. */
+// Append to task's own log through dev socket
 export async function append(url, lines){
 	const answer = await Promise.race([
 		FsFile.append(url, lines),
@@ -78,9 +48,7 @@ export async function append(url, lines){
 	return false;
 }
 
-/* What the turn is asked to be. It is not a chat partner: the owner is looking
-   at the item right now, so the answer is four sentences, and anything they
-   ASKED for becomes lines in the log that show up on the tab within seconds. */
+// What the turn is asked to be: see MINION design in doc/notes.md
 const MINION = `You are this item's own minion inside the web UI. The owner is looking at the item right now and your answer appears under it within seconds.
 
 Answer their words in at most four plain sentences. No preamble, no restating the question.
@@ -105,9 +73,7 @@ export class Reply {
 	view(){
 		return div.c("ask-reply", $reply => {
 			this.$reply = $reply;
-			/* ⚠ The ask card's WHOLE body is a click target (it opens the detail
-			   sheet) and a task card's title spreads a link over its whole row —
-			   so a press in here must stop before it reaches either. */
+			// ⚠ Ask card body + task card title are click targets; stop propagation
 			$reply.on("click", e => e.stopPropagation());
 
 			// The record, then whatever is in flight, then the controls — a
@@ -246,7 +212,7 @@ export class Reply {
 		this.sending = false;
 	}
 
-	/** The owner's words, filed on their own, the instant Send is pressed. */
+	// File owner's words instantly (before turn runs)
 	async asked(text){
 		const said = { id: crypto.randomUUID(), at: stamp(), role: "user", text,
 			about: { kind: this.about.kind, id: this.about.id } };
@@ -370,19 +336,10 @@ export class Reply {
    do the same job. doc/decisions.md. */
 Reply.prototype.model = "sonnet";
 Reply.prototype.tools = "";
-/* `fork`: whether the reply thread INHERITS the task's own session. Off, because
-   the prompt already says everything about the item and a day-long session is
-   both dear and, past the model's context, unusable — see `turn_it()`. */
+// fork: false (prompt self-contained; avoid expensive day-long sessions)
 Reply.prototype.fork = false;
 
-/* ── the answer, split from the lines it asked for ─────────────────────────── */
-
-/**
- * A turn answers in prose and may end with one fenced `jsonl` block. The prose is
- * what the owner reads; the block is what the log gets. ⚠ The block is stripped
- * out of the answer — raw jsonl under a card is not something anybody reads, and
- * the lines are about to appear on the tab as cards and rows anyway.
- */
+// Answer parsing: prose read by owner, jsonl block for log (block stripped); doc/notes.md
 export function harvest(text, at, about){
 	const block = text.match(/```(?:jsonl|json)?\s*\n([\s\S]*?)```/);
 	const answer = (block ? text.replace(block[0], "") : text).trim();
@@ -392,9 +349,7 @@ export function harvest(text, at, about){
 		.filter(l => l && VERBS.some(v => l[v]))
 		.map(l => { VERBS.forEach(v => l[v] && (l[v].at ??= at)); return l; });
 
-	/* The mastermind reads `log` lines at its next wake, so a reply that left no
-	   trace there is a reply it never hears about. If the turn didn't write one,
-	   the browser writes it from the answer's own first line. */
+	// Log lines: mastermind reads on next wake; browser writes if turn didn't
 	if (!lines.some(l => l.log)) lines.push({ log: { at,
 		msg: `reply handled: ${about.kind} ${about.id} — ${first_line(answer)}` } });
 
@@ -422,14 +377,7 @@ function report(lines, r){
 
 /* ── dictation: talking, turned into asks ──────────────────────────────────── */
 
-/**
- * The same machine with a different job: one box at the top of a wall, where the
- * owner talks through what they want and each sentence comes back as its own
- * `ask` card, live. The turn's whole instruction is "split this into asks".
- *
- * ⚠ Attached as a static, so it travels with the class and a subclass can
- *   replace just this branch (`code` §3).
- */
+// ⚠ Attached as static so subclass can replace just this branch
 Reply.Dictation = class Dictation extends Reply {
 
 	label = "dictate";
@@ -437,15 +385,10 @@ Reply.Dictation = class Dictation extends Reply {
 	rows = "3";
 	placeholder = "say or type what you want — each thing you name becomes its own ask card";
 
-	/* Dictation is not filed under one item — it is about the whole wall — so the
-	   thread under the box is every dictation made on this task. */
+	// Filed under wall (not one item); thread shows every dictation made on task
 	line(){ return `the ${this.about.kind} box on ${this.m?.url ?? "this task"}`; }
 
-	/* ⚠ ONLY THE LAST EXCHANGE. This box sits at the top of the Asks tab, and its
-	   thread grows downward into the wall: after two dictations the cards started
-	   below the fold (measured 2026-09-18). It is a control, not a conversation —
-	   the receipt for the last thing said is all it owes, and the real record of
-	   every dictation is the ask cards on the wall underneath it. */
+	// ⚠ ONLY LAST EXCHANGE (shows below fold); ask cards are the real record
 	mine(){ return super.mine().slice(-2); }
 
 	prompt(text){
@@ -459,18 +402,14 @@ Reply.Dictation = class Dictation extends Reply {
 		].join("\n\n");
 	}
 
-	/* Each new ask is linked back to the sentence it came from: `prompt` is the id
-	   of the `chat` line this dictation was filed as, which the Asks tab's "the
-	   prompt" pill opens. */
+	// Each new ask linked back to sentence (prompt = chat line id)
 	written(lines, chat_id){
 		lines.forEach(l => l.ask && (l.ask.prompt ??= chat_id));
 		return lines;
 	}
 };
 
-/* A split is mechanical work, not judgement: every `quote` is copied verbatim, so
-   there is nothing to weigh. haiku does it for about a fifth of the money — and
-   on its own prototype, so it stays haiku when a page retunes `Reply`'s. */
+// Split is mechanical (copy verbatim); haiku costs ~1/5 (uses own prototype)
 Reply.Dictation.prototype.model = "haiku";
 
 export default reply;
