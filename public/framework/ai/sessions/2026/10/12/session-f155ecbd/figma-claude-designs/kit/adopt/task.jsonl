@@ -8,3 +8,7 @@
 {"log":{"at":"2026-10-12T21:41:59-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-12T21:42:01-05:00","heartbeat":"answered","msg":"I'm idle: the adopt task is done and committed (`kit/adopt.md`). DS · 4.1, DS · 5 and DS · 6 now use the Kit instances, and reactions on DS · 6 are 21 before and 21 after. The one gap is that the `ado"}}
 {"log":{"at":"2026-10-12T21:43:03-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-12T22:03:57-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-figma-adopt"}}
+{"log":{"at":"2026-10-12T22:03:59-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-12T22:04:01-05:00","heartbeat":"answered","msg":"Still idle, nothing running: the adopt task is done and committed as `kit/adopt.md`. The only loose end is the missing `adopt/task.jsonl` log line."}}
+{"log":{"at":"2026-10-12T22:05:03-05:00","msg":"session ended (other) without landing"}}
