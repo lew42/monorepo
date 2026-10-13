@@ -5,47 +5,12 @@ import Sortable from "../Draggable/Sortable.js";
 import { ranked } from "../JSONL/JSONL.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 
-/**
- * RANKING — the owner drags a list into the order they want, and the order is
- * one line in that task's own `task.jsonl`.
- *
- * The list keeps the shape it already had. A card stays a card and a row stays
- * a row; all that is added is a **grip** on each one, and the order they are
- * drawn in. That is the whole of it:
- *
- *     const rank = new Ranking({ m, list: "asks" });     // m is the TaskJSONL
- *     items = rank.sort(items);                          // the file's order
- *     div.c("ai-asks", $wall => {
- *         const band = rank.band($wall);
- *         items.forEach(item => div.c("ai-ask", $card => band.grip($card, item.id)));
- *     });
- *
- * A list may be drawn in several **bands** (the Asks tab draws one grid per
- * topic). Each band is its own drop zone — you can reorder inside a topic, not
- * across topics — and a drop writes the whole list's order, band after band, so
- * one line always says everything.
- *
- * ⚠ THE WRITER DOES NOT APPLY ITS OWN LINE. The append goes up the dev socket
- *   and comes back off the wire like anybody else's, so there is one code path
- *   and the server is the only orderer — the rule `/layouts/browse/verdicts.js`
- *   set and the Decisions tab follows. `expect()` is the safety net.
- *
- * ⚠ Off the dev server there is no socket, so no grip is drawn at all. The
- *   order still renders, because the order is in the file. See `doc/ranking.md`.
- */
-
-/* How long the wire gets to hand the writer its own line back. /imagine/stream/
-   measures the real round trip at 9 ms. */
+// Overview and reasoning: doc/rank-notes.md
 const WIRE = 2000;
 
 /** Can this page write to the log at all? The one switch, ext/Ask/edit.js. */
 export const writable = () => edit();
 
-/**
- * An ISO timestamp carrying the reader's own offset, so a line says when it was
- * written where it was written — `toISOString()` would silently move it to UTC.
- * Every line this browser appends to a task log is stamped here.
- */
 export function stamp(){
 	const now = new Date();
 	const off = -now.getTimezoneOffset();
@@ -55,7 +20,6 @@ export function stamp(){
 		+ (off < 0 ? "-" : "+") + pad(off / 60) + ":" + pad(off % 60);
 }
 
-/** One line up the socket, into `m.url`. Answers true when the server took it. */
 export async function append(m, entry){
 	const reply = await Promise.race([
 		FsFile.append(m.url, entry),
@@ -73,16 +37,9 @@ export class Ranking {
 	constructor(...args){ this.assign(...args); this.bands = []; }
 	assign(...args){ return Object.assign(this, ...args); }
 
-	/** How an item of this list says its own id. Overridable; every verb uses `id`. */
 	id(item){ return item.id; }
-
-	/** The order the log asks for — `[]` until somebody has dragged something. */
 	order(){ return this.m?.order?.(this.list) ?? []; }
-
-	/** One band's items, in the file's order. Unranked items keep their place at the end. */
 	sort(items){ return ranked(items, this.order(), item => this.id(item)); }
-
-	/** A drop zone over one box of rows. Returns null where there is no dev socket. */
 	band($box){
 		if (!writable()) return null;
 
@@ -90,19 +47,12 @@ export class Ranking {
 		this.bands.push(band);
 		return band;
 	}
-
-	/** Every band's ids, in the order they are on screen right now — one whole list. */
 	ids(){ return this.bands.flatMap(band => band.ids()); }
-
-	/* A drop landed. One `rank` line, the whole list, and then we wait for it to
-	   come back off the wire like everybody else's. */
 	async moved(){
 		const order = this.ids();
 		if (await append(this.m, { rank: { list: this.list, at: stamp(), order } })) this.expect(order);
 	}
 
-	/* On a working dev server this never fires: the appended line arrives, the
-	   page redraws from it, and the list is already in this order. */
 	expect(order){
 		setTimeout(() => {
 			if (String(this.order()) === String(order)) return;
@@ -113,13 +63,6 @@ export class Ranking {
 	}
 }
 
-/**
- * ONE BAND — a box of rows you can drag within.
- *
- * It is a `Draggable` with `handle: false`, which is `ext/Draggable`'s word for
- * "a drop target, never a grip": it registers the box so a dragged row can find
- * it, and binds no pointer listeners of its own.
- */
 Ranking.Band = class RankBand extends Draggable {
 
 	initialize(){
@@ -128,7 +71,6 @@ Ranking.Band = class RankBand extends Draggable {
 		this.rows = new Map();          // element → the id it carries
 	}
 
-	/** Add the grip to one row, and remember which id that row is. */
 	grip($row, id){
 		this.rows.set($row.el, id);
 
@@ -149,7 +91,6 @@ Ranking.Band = class RankBand extends Draggable {
 		return $grip;
 	}
 
-	/** My rows that are on screen, in DOM order — never the dragged one, which is hidden. */
 	shown(){
 		return [...this.view.el.children]
 			.filter(el => this.rows.has(el) && el.getClientRects().length);
@@ -169,22 +110,11 @@ Ranking.Band = class RankBand extends Draggable {
 	/** The ids I am showing, top to bottom. This is what a `rank` line is made of. */
 	ids(){ return [...this.view.el.children].filter(el => this.rows.has(el)).map(el => this.rows.get(el)); }
 
-	/* Does this band WRAP? A grid of cards asks a different question of the cursor
-	   than a column of rows does, and the answer is in the layout, not in a flag
-	   the caller has to remember to set: two rows sharing a top means it wraps. */
 	wraps(){
 		const tops = this.shown().map(el => Math.round(el.offsetTop));
 		return new Set(tops).size < tops.length;
 	}
 
-	/**
-	 * The row a drop would land BEFORE, or null to land last.
-	 *
-	 * In a column, that is the first row whose vertical midpoint the cursor has
-	 * not reached. In a WRAPPING grid it is reading order: a card is "after" the
-	 * cursor if it starts on a lower line, or shares the cursor's line and its
-	 * own midpoint is to the right.
-	 */
 	before(e, dragged){
 		const wraps = this.wraps();
 
@@ -201,22 +131,9 @@ Ranking.Band = class RankBand extends Draggable {
 		return null;
 	}
 
-	/* `Sortable` asks its container for the ELEMENT to insert the placeholder in
-	   front of. Its own version looks the row up through a `core/Item` registry
-	   this has none of — here the answer already is an element. */
 	row(el){ return el ?? null; }
 };
 
-/**
- * ONE ROW'S DRAG, on `ext/Draggable`'s `Sortable` — pointer capture, the ghost,
- * the placeholder, Escape and the `.drag-source` display fix, all of it the
- * already-debugged half, kept whole.
- *
- * What is replaced is only where a drop LANDS: `Sortable` commits through
- * `item.move()` against a `core/Item` tree, and a ranked list has no Items —
- * it has ids and a file. `ux/Tree.Drag` overrides the same method for the same
- * reason.
- */
 Ranking.Drag = class RankDrag extends Sortable {
 
 	/* You can reorder inside a band, not across them: a drop is only valid over
@@ -238,9 +155,6 @@ Ranking.Drag = class RankDrag extends Sortable {
 		if (where) this.commit(where.before);
 	}
 
-	/* Put the row where it was dropped — in the DOM only — and let the band read
-	   the new order off itself. The line goes to the server; the redraw comes
-	   back off the wire. */
 	commit(before){
 		this.band.place(this.view.el, before);
 		this.band.ranking.moved();
