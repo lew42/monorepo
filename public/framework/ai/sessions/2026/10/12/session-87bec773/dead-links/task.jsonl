@@ -5,3 +5,6 @@
 {"log":{"at":"2026-10-12T22:21:59-05:00","heartbeat":"answered","msg":"The headless crawl of `/framework/` and `/notes/` is still running, at about 25 pages per 100 s. It had no 404s at 25 pages, and I'll fix each dead link at its source once it finishes."}}
 {"log":{"at":"2026-10-12T22:32:56-05:00","heartbeat":"check","msg":"status check sent to mastermind-dead-links"}}
 {"log":{"at":"2026-10-12T22:33:07-05:00","heartbeat":"answered","msg":"The first crawl process died silently, so I restarted it as a tracked background job. It has found no 404s so far, and I'm waiting for it to finish before fixing anything."}}
+{"log":{"at":"2026-10-12T22:46:55-05:00","msg":"task-loop chase 1 of 2: woke mastermind-dead-links","chase":1}}
+{"log":{"at":"2026-10-12T22:52:56-05:00","heartbeat":"check","msg":"status check sent to mastermind-dead-links"}}
+{"log":{"at":"2026-10-12T22:53:05-05:00","heartbeat":"answered","msg":"The crawl is moving now: 310 pages done and about 234 queued. It has 11 problems so far, but only one is a real 404 (`/framework/core/View/doc/file/`). The rest are timeouts or load errors on heavy pa"}}

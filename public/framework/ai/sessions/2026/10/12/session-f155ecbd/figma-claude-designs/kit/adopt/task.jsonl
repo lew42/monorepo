@@ -12,3 +12,7 @@
 {"log":{"at":"2026-10-12T22:03:59-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-12T22:04:01-05:00","heartbeat":"answered","msg":"Still idle, nothing running: the adopt task is done and committed as `kit/adopt.md`. The only loose end is the missing `adopt/task.jsonl` log line."}}
 {"log":{"at":"2026-10-12T22:05:03-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-12T22:45:58-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-figma-adopt"}}
+{"log":{"at":"2026-10-12T22:45:59-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-12T22:46:08-05:00","heartbeat":"answered","msg":"Idle: the adopt task is done and committed (`kit/adopt.md`). I just tried once more to write the `adopt/task.jsonl` log line and it failed again, so that line is still missing. Nothing else is pending"}}
+{"log":{"at":"2026-10-12T22:47:05-05:00","msg":"session ended (other) without landing"}}
