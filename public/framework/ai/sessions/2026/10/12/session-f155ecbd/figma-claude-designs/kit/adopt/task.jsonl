@@ -16,3 +16,7 @@
 {"log":{"at":"2026-10-12T22:45:59-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-12T22:46:08-05:00","heartbeat":"answered","msg":"Idle: the adopt task is done and committed (`kit/adopt.md`). I just tried once more to write the `adopt/task.jsonl` log line and it failed again, so that line is still missing. Nothing else is pending"}}
 {"log":{"at":"2026-10-12T22:47:05-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T00:07:58-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-figma-adopt"}}
+{"log":{"at":"2026-10-13T00:08:00-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T00:08:02-05:00","heartbeat":"answered","msg":"Idle: the adopt task is done and committed (`kit/adopt.md`), with nothing running. The only loose end is the `adopt/task.jsonl` log line, which failed twice because of how I called the append hook."}}
+{"log":{"at":"2026-10-13T00:09:06-05:00","msg":"session ended (other) without landing"}}
