@@ -60,6 +60,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sizeOf, status as reviewStatus, diffStat, pageUrlFor, widthsFor, splitPatch, writeNoReviewPass } from "./review.mjs";
 import { keepLive } from "./jsonl-keep.mjs";
+import TaskDirs from "./TaskDirs.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 
 const BASE = "michael/dev";
@@ -119,9 +120,7 @@ function guessTaskDir(aiDir, branch){
 	}
 	// the sessions store, where every task has lived since 2026-10-12 (ai/doc/task-folders.md): the slug in the last 3 days
 	for (let i = 0; i <= 3; i++){
-		const [y, m, d] = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10).split("-");
-		const hit = (function walk(dir, n){ let es; try { es = fs.readdirSync(dir, { withFileTypes: true }); } catch { return null; }
-			for (const e of es) if (e.isDirectory()){ const f = path.join(dir, e.name); if (e.name === slug && fs.existsSync(path.join(f, "task.jsonl"))) return f; const r = n < 4 && walk(f, n + 1); if (r) return r; } return null; })(path.join(aiDir, "sessions", y, m, d), 1);
+		const hit = TaskDirs.locate(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10), slug, path.join(aiDir, "sessions"));
 		if (hit) return hit;
 	}
 	return null;

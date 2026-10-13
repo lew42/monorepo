@@ -110,9 +110,9 @@ export default class TaskDirs {
 
 	/** The task folder named `slug` on `day` ("YYYY-MM-DD") anywhere in that day of the store (inside a session, a parent
 	 *  task, up to 4 levels), newest first; null if none. What an old /framework/ai/<day>/<slug>/ guess meant. */
-	static locate(day, slug){
+	static locate(day, slug, store = SESS){
 		const hits = [], walk = (d, n) => { for (const e of ls(d)){ const f = path.join(d, e); if (e === slug && fs.existsSync(path.join(f, "task.jsonl"))) hits.push(f); if (n < 4) walk(f, n + 1); } };
-		walk(this.day_dir(day), 1);
+		walk(path.join(store, ...this.ymd(day).split("/")), 1);
 		return hits.sort((a, b) => fs.statSync(path.join(b, "task.jsonl")).mtimeMs - fs.statSync(path.join(a, "task.jsonl")).mtimeMs)[0] ?? null;
 	}
 

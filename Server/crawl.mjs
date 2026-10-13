@@ -48,7 +48,7 @@ const dateStr = () => {
 	return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 };
 
-const outDir = outOpt ? path.resolve(outOpt) : TaskDirs.dir({ slug: "crawl" })   // the store (ai/doc/task-folders.md), never ai/<date>/;
+const outDir = outOpt ? path.resolve(outOpt) : TaskDirs.dir({ slug: "crawl" });   // the store (ai/doc/task-folders.md), never ai/<date>/
 const shotsDir = path.join(outDir, "shots");
 const jsonlFile = path.join(outDir, "crawl.jsonl");
 const summaryFile = path.join(outDir, "summary.md");
