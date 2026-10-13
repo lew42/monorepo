@@ -1,0 +1,12 @@
+/* ux/Dictate/MicIndicator — hidden until the mic is open (`.open`, set from Dictate.js). */
+@layer base, theme, site, util;
+@layer theme {
+	.ux-dictate-mic-indicator { display: none; align-items: center; gap: 0.5em; font-size: 0.85em; }
+	.ux-dictate-mic-indicator.open { display: flex; }
+	.ux-dictate-mic-indicator-dot { inline-size: 0.6em; block-size: 0.6em; border-radius: 50%; background: #e5484d; flex: none;
+		animation: ux-dictate-mic-pulse 1.2s ease-in-out infinite; }
+	.ux-dictate-mic-indicator-bar { flex: 1; min-inline-size: 4em; block-size: 0.35em; border-radius: 1em; background: color-mix(in srgb, currentColor 15%, transparent); overflow: hidden; }
+	.ux-dictate-mic-indicator-fill { inline-size: 100%; block-size: 100%; background: #e5484d; transform-origin: left; transform: scaleX(var(--ux-dictate-mic-level, 0)); transition: transform 90ms linear; }
+	.ux-dictate-mic-indicator.compact { position: absolute; inset-block-start: 0.1em; inset-inline-end: 0.1em; pointer-events: none; }
+	@keyframes ux-dictate-mic-pulse { 50% { opacity: 0.35; } }
+}

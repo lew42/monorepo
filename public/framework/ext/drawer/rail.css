@@ -37,6 +37,7 @@
 		border: 0;
 		border-radius: calc(var(--radius) / 2);
 		cursor: pointer;
+		position: relative;
 	}
 	.drawer-rail-ai:hover, .drawer-rail-menu:hover { background: var(--fill-a08); }
 	.drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; }

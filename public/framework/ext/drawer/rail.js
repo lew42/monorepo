@@ -3,6 +3,7 @@ import { View, div, span, button } from "/framework/core/View/View.js";
 import Dictate from "/framework/ux/Dictate/Dictate.js";
 import grip from "/framework/ext/grip/grip.js";
 import floor from "/framework/ux/Dictate/floor.js";
+import MicIndicator from "/framework/ux/Dictate/MicIndicator.js";
 import Widget from "/framework/ux/Dictate/Widget.js";
 import chat, { ago, new_session_button as chat_new_session_button } from "/framework/ux/Dictate/chat.js";
 import Inbox from "./inbox.js";
@@ -120,6 +121,7 @@ export class DrawerRail extends View {
 			.append(() => {
 				span.c("drawer-rail-ai-icon", "✦");
 				span.c("drawer-rail-ai-label", "AI");
+				new MicIndicator({ compact: true });   // mic open while the sheet is collapsed
 			})
 			.click(() => this.open_sheet());
 	}
@@ -371,18 +373,11 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
 			.click(() => this.close().then(() => tabs.open(tab)));
 	}
 
-	new_session(){
-		if (!this.card_ref){
-			this.$cards?.empty();
-			this.$empty?.show();
-		}
-		import("./tabs/ai.js").then(m => m.new_session?.({ page: drawer.page(), card: this.card_ref?.id }));
-	}
-
+	// The one New session button: ux/Dictate/chat.js's (doc/chat.md). Older sheet classes have no mount, so it does nothing there.
 	new_session_button(){
-		return button.c("drawer-rail-sheet-link drawer-rail-sheet-new", "New session").attr("type", "button")
-			.attr("title", "Clear this sheet and start a fresh conversation")
-			.click(() => this.new_session());
+		return chat_new_session_button(() => this.mount)
+			.ac("drawer-rail-sheet-link drawer-rail-sheet-new")
+			.attr("title", "Clear this sheet and start a fresh conversation");
 	}
 }
 
@@ -583,12 +578,6 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 			this.watch_session();
 		}).catch(() => {});
 	}
-
-	new_session(){
-		this.forget_session();
-		this.force_fresh = true;
-		this.build_voice_panel();
-	}
 }
 
 export class DrawerRailSheetChat extends DrawerRailSheetPanel {
@@ -672,12 +661,6 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
 		body.empty(() => { span.c("drawer-wait muted", "loading…"); });
 		tab.load().then(m => { if (this.$tabbody === body) body.empty(() => { m.default(ctx); }); })
 			.catch(e => body.empty(() => { span.c("drawer-wait muted", "This tab could not load: " + e.message); }));
-	}
-
-	new_session_button(){
-		return chat_new_session_button(() => this.mount)
-			.ac("drawer-rail-sheet-link drawer-rail-sheet-new")
-			.attr("title", "Clear this sheet and start a fresh conversation");
 	}
 }
 

@@ -1,4 +1,5 @@
 import { View, div, span, button, select, option, label, textarea, details, summary, strong } from "../../core/View/View.js";
+import MicIndicator from "./MicIndicator.js";
 import Dictate, { remember_device, remembered_device } from "./Dictate.js";
 import { pg } from "./playground/Playground.js";
 import { marks as fetch_marks } from "../Understand/Understand.js";
@@ -555,6 +556,7 @@ Widget.Composer = class WidgetComposer extends View {
 			on_live: w.mic_preset.bubble ? state => this.widget.$thread?.live?.(state) : undefined,
 		});
 		w.dictate = view.mic;
+		new MicIndicator();   // the one shared "mic is open" indicator
 		// the preset lands on this one mic, never the shared SETTINGS
 		if (view.mic){
 			if ("send_mode" in w.mic_preset) view.mic.send_mode = w.mic_preset.send_mode;
