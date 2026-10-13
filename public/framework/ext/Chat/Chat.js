@@ -18,10 +18,14 @@ export function mergeable($box, sender, at){
 export function place(b){
 	const t = Number(b.dataset.at);
 	if (!b.dataset.at || !b.parentElement) return b;
-	for (let s = b.parentElement.firstElementChild; s; s = s.nextElementSibling){
+	let at_end = null;   // scan from the end: the in-order case stops at once
+	for (let s = b.parentElement.lastElementChild; s; s = s.previousElementSibling){
 		if (s === b) continue;
-		if (s.dataset.at && Number(s.dataset.at) > t){ if (s.previousElementSibling !== b) s.before(b); return b; }
+		if (!s.dataset.at) continue;
+		if (Number(s.dataset.at) <= t) break;
+		at_end = s;
 	}
+	if (at_end && at_end.previousElementSibling !== b) at_end.before(b);
 	return b;
 }
 
@@ -703,10 +707,10 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 					make_selectable($b.el);
 					target(c.at, $b.el);
 					if (cls === "chatbox-you") mark_owner_piece($b.el, piece, c);
-						made = $b.el;
+					made = $b.el;
 				});
 			});
-				if (made) place(made);
+			if (made) place(made);
 	}
 
 	function live_bubble(key, cls, who){
