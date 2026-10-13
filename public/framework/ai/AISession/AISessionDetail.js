@@ -59,11 +59,13 @@ export default class AISessionDetail extends Page {
 
 	/** The session's folder name, read from the day index of its last activity (where AISessionIndex writes its snapshot), folded in so AISession.dir_url() knows it. */
 	static async folder_from_day(row, session_id){
-		const at = row?.last_activity ?? row?.started_at;
-		if (!at) return;
-		const ix = await AISessionRows.get_json(new URL(`./${AISession.day(new Date(at))}/index.json`, AISession.root_url()).pathname);
-		const snap = ix?.snapshots?.find(x => x.id === session_id);
-		if (snap?.folder) AISession.apply_delta({ id: session_id, folder: snap.folder, ...(snap.day ? { day: snap.day } : {}) });
+		// sessions.json can be days stale, so its last activity, then today, then the start day: the first index naming the folder wins.
+		const days = [...new Set([row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))).filter(Boolean))];
+		for (const day of days){
+			const ix = await AISessionRows.get_json(new URL(`./${day}/index.json`, AISession.root_url()).pathname);
+			const snap = ix?.snapshots?.find(x => x.id === session_id);
+			if (snap?.folder) return AISession.apply_delta({ id: session_id, folder: snap.folder, ...(snap.day ? { day: snap.day } : {}) });
+		}
 	}
 
 	/** The folder name the page tool gives a session it makes a folder for: the Servex agent's id + id8, else session-<id8> (Servex/agents/page_tools.js). */
