@@ -8,3 +8,7 @@
 {"log":{"at":"2026-10-13T17:31:54-05:00","msg":"LANDED: owner prompts are duplicated, 8.05 MB in git and ~185 MB local. words and voice test logs ignored, council/crawl write to the store, strays moved by script. Link-not-text edits for prompt-relay.mjs:248 and council collect are in /framework/ai/sessions/doc/data-sources.md."}}
 {"log":{"at":"2026-10-13T17:32:00-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-13T17:38:31-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T17:49:18-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-session-dup-check"}}
+{"log":{"at":"2026-10-13T17:49:20-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T17:49:38-05:00","heartbeat":"answered","msg":"Nothing is running and the task is finished. Your prompts are stored twice: about 8 MB of copies in git and about 185 MB in local files git ignores. The raw session files already hold every prompt.\n\nT"}}
+{"log":{"at":"2026-10-13T17:50:36-05:00","msg":"session ended (other) without landing"}}

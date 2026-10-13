@@ -1,0 +1,8 @@
+verdict: pass
+1. [note] Scoping uses `?scope=2026-10` (AISessionsPage.js:37, set_scope) instead of the asked `/2026/10/` routes. compact-layout.md explains why: those paths already belong to StoreFolder. It is a sound, documented call, and each filter is still a URL.
+2. [note] The left rail (`nav_view`, AISessionsPage.js:~122) is a new hand-built link list, though the brief said "reuse, never a new one". The doc says no vertical nav fit. The active item is hard-coded to index 0, and the other entries leave the page, so the rail disappears when you click them. Sub-views are not really in-page routes yet.
+3. [note] The brief asked for a docs view and health/cost views as rail entries. Only Priorities, Readme and the dashboard versions are there.
+4. [note] The rail has no "All sessions" crumb, though the render_scope comment mentions one. The year is the top level, so there is no way back to an unscoped list. Month is the default and the arrows step the level.
+5. [note] The first row is at y=267 of 1000 at 1200, about 27%, near the ~25% target. The diff holds no 400 / 1920 / 3440 shots or first-row/rows-visible numbers for those widths. I could not check the four widths or the `:has(.sessions-page)` footer hide, whose class name was not verified in the diff.
+6. [note] The diff includes generated churn in `sessions/files.jsonl` ("gone" entries for json files and screenshots/). It is unrelated to the layout work and just noise.
+7. [note] `set_scope` hides the date inputs but keeps them in sync, so the "hand edits don't update the breadcrumb" caveat is moot. Hiding them with `display:none` (sessions.css util layer) leaves no manual range at all, and the brief did not ask for that.

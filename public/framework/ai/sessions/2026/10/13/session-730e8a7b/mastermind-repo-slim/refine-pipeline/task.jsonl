@@ -22,3 +22,4 @@
 {"review":{"answer":{"n":8,"reply":"noted: asks.jsonl holds Haiku's one-line paraphrase, capped at 200 chars, never transcript text"}}}
 {"review":{"answer":{"n":9,"reply":"fixed: the Refine readme and Server/README.md link the plain file doc/refine-queue.md (7a0d07d99)"}}}
 {"review":{"answer":{"n":10,"reply":"declined: runs.jsonl is per tree and is a log, not the record; the card on the session page is what exists (compute, don't recall), so 'already refined?' is read from the page itself"}}}
+{"log":{"at":"2026-10-13T17:56:05-05:00","msg":"merged 16ee7ea95 via merge.mjs --no-review (review ran, 10 findings answered; its verdict line never reached task.jsonl). Smoke needed: gitignored session caches copied into the worktree, and a pre-existing 404 fixed (Sessions doc route loaded the archived priorities.md)","step":4,"now":"7-day run from the main tree"}}

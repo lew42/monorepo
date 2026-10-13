@@ -7,3 +7,7 @@
 {"log":{"at":"2026-10-13T17:24:18-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T17:24:23-05:00","heartbeat":"answered","msg":"Status: the scale doc, scorer, UI labels, `refine-days.mjs` and the runs page are committed in the `refine-confidence` worktree. The day runner has finished 2026-10-13 (18 asks, $0.72) and is working "}}
 {"log":{"at":"2026-10-13T17:25:31-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T17:58:19-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-refine-confidence"}}
+{"log":{"at":"2026-10-13T17:58:22-05:00","msg":"session resumed"}}
+{"experiment":{"try":"Spot-check 10 Haiku-scored asks against the raw prompt (one pair of days' samples)","measure":"agree with both numbers' direction and evidence","result":"8 of 10 agree; 2 miss (a vague mis-extracted ask at 0.4/0.3 was fair, but two outcome scores sit high for open fixes); 4 of 14 quotes were paraphrased, not found verbatim; input is mostly agent briefs, not pure owner words"}}
+{"log":{"at":"2026-10-13T17:58:43-05:00","msg":"Ran 7 days (10-13..10-06), 10-11 had no owner words; 338 asks, spend $6.72 of $12; mean ask 0.64-0.83, outcome 0.62-0.74. Merging next."}}

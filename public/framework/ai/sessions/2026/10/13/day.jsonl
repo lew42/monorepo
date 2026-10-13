@@ -1,3 +1,4 @@
 {"log":{"at":"2026-10-13T15:50:12-05:00","task":"mastermind-repo-slim","msg":"task opened — mastermind run: E-drive backup, worktree cleanup, repo-size plan, inbox ranking, past-work follow-up"}}
 {"log":{"at":"2026-10-13T16:19:33-05:00","task":"repo-size-plan","msg":"landed — repo size measured: screenshots are 84% of history; new ones gitignored; three-phase plan at ai/doc/repo-size.md"}}
 {"log":{"at":"2026-10-13T16:50:07-05:00","task":"storage-design","msg":"landed — core/Page/doc/storage.md: Store backends + Journals, Cloudflare costs ($0 at today volume), 16 past asks, slice-1 brief"}}
+{"log":{"at":"2026-10-13T17:54:19-05:00","task":"inbox-data","msg":"landed — inbox timeline: every landed task + owner notes ranked, seen goes away, date chips, card chat beside; AI rail stays when Today opens"}}
