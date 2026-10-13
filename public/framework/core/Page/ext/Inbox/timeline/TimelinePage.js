@@ -80,7 +80,7 @@ export default class TimelinePage extends Page {
 				if (rows.length && !seen) button.c("timeline-chip timeline-chip-clear", "Mark all seen").attr("title", "Everything up to now leaves this view; Seen too brings it back")
 					.click(() => { this.timeline.seen.clear_all(); this.refill(); });
 			});
-			if (debug) small.c("muted timeline-sources", TimelinePage.sources(all));
+			if (debug) small.c("muted timeline-sources", TimelinePage.sources(this.timeline.rows()));
 		});
 	}
 
