@@ -17,6 +17,8 @@ Read this first. One system, a handful of small classes, one boss. Written befor
 | `Structurer` | sentences → outline of cards that cite them (`structure.js` `structure()`) | a step of `RefineSystem` | exists as a function; named here |
 | `DictationSource` | where words come from: the mic (`ux/Dictate`) or the text box | wraps `Dictate` | the demo wires `Dictate` directly |
 | `Echo` | the same steps run on every VS Code prompt (`Servex/agents/Echo.js`) | a second caller of Cleaner + Structurer | built, separate |
+| `RefinedCard` | one past prompt refined by one Haiku call: brief, sentence split, parse, coverage score (`RefinedCard.js`) | plain data, DOM-free; read by the session page's Coverage tab | built 2026-10-13 |
+| `RefineQueue` | runs `RefinedCard` over the owner's past prompts, N calls at once (`Server/RefineQueue.mjs`) | node only; reuses `RefineCall` and the page tool | built 2026-10-13, [doc/refine-queue.md](refine-queue.md) |
 
 Not classes yet, on purpose: `Cleaner` and `Structurer` stay the two functions that already work. Wrapping them in classes is one small step, taken when something needs more than a call (per-sentence streaming will).
 
