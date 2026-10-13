@@ -7,6 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import TaskDirs from "./TaskDirs.mjs";
+import SessionIndex from "./SessionIndex.mjs";
 
 const QUIET_H = 2, OPEN_ASK = new Set(["building", "routed", "queued", "stalled", undefined]), LIVE = new Set(["working", "idle", "dormant"]);
 const DOC = path.join(TaskDirs.AI, "doc"), ts = s => { const t = Date.parse(s); return Number.isNaN(t) ? 0 : t; };
@@ -44,24 +45,8 @@ export default class FollowUp {
 	}
 
 	read_task(t){
-		const r = { key: t.key, day: t.day, slug: t.slug, group: "", session: "", agent: "", model: "", branch: "", started: 0, last: 0, step: 0, steps: 0, landed: false, landed_at: 0, outcome: false };
-		for (const line of fs.readFileSync(path.join(t.dir, "task.jsonl"), "utf8").split("\n")) {
-			if (!line.trim()) continue;
-			let o; try { o = JSON.parse(line); } catch { continue; }
-			if (typeof o.group === "string") r.group ||= o.group;
-			if (o.landed_at) { r.landed = true; r.landed_at = ts(o.landed_at); }
-			if (o.outcome) r.outcome = true;
-			const a = o.assign;
-			if (a) {
-				r.group ||= a.group ?? ""; r.session ||= a.session_id ?? ""; r.agent ||= a.agent ?? ""; r.model ||= a.model ?? ""; r.branch ||= a.branch ?? "";
-				if (Array.isArray(a.steps) && a.steps.length) r.steps = a.steps.length;
-				if (a.step) r.step = a.step;
-				r.started ||= ts(a.requested_at);
-				if (a.landed_at) r.landed = true;
-				if (a.outcome) r.outcome = true;
-			}
-			for (const v of [o.at, o.log?.at, o.decision?.at, o.action?.at, o.note?.at, o.review?.at, o.shots?.at, a?.requested_at]) r.last = Math.max(r.last, ts(v));
-		}
+		const x = SessionIndex.reduce(t.key, fs.readFileSync(path.join(t.dir, "task.jsonl"), "utf8"));   // the one task.jsonl reader: Server/SessionIndex.mjs
+		const r = { key: t.key, day: t.day, slug: t.slug, group: x.group, session: x.session, agent: x.agent, model: x.model, branch: x.branch, started: x.started, last: x.last, step: x.step, steps: x.steps, landed: x.landed, landed_at: x.landed_at, outcome: !!x.outcome };
 		if (!r.last) r.last = fs.statSync(path.join(t.dir, "task.jsonl")).mtimeMs;
 		r.started ||= r.last;
 		r.ahead = r.branch ? this.ahead(r.branch) : null;

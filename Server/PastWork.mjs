@@ -8,6 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import SessionIndex from "./SessionIndex.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(here, "..");
@@ -38,21 +39,10 @@ export default class PastWork {
 		const out = [];
 		for (const f of this.walk(AI)){
 			if (path.basename(f) !== "task.jsonl") continue;
-			const r = { dir: rel(path.dirname(f)), slug: path.basename(path.dirname(f)), title: "", request: "", outcome: "", group: "", landed: "", links: [], topics: [] };
 			let text; try { text = fs.readFileSync(f, "utf8"); } catch { continue; }
-			for (const l of text.split("\n")){
-				if (!l.startsWith("{")) continue;
-				let o; try { o = JSON.parse(l); } catch { continue; }
-				const a = o.assign; if (!a) continue;
-				if (a.title) r.title = a.title;
-				if (a.request && !r.request) r.request = a.request;
-				if (a.outcome) r.outcome = a.outcome;
-				if (a.group) r.group = a.group;
-				if (a.landed_at) r.landed = a.landed_at;
-				if (Array.isArray(a.links)) r.links = a.links;
-				if (Array.isArray(a.topics)) r.topics = a.topics;
-				if (!r.request && a.brief) r.brief = a.brief;
-			}
+			const x = SessionIndex.reduce(rel(path.dirname(f)), text);   // the one task.jsonl reader: Server/SessionIndex.mjs
+			const r = { dir: x.dir, slug: x.slug, title: x.title, request: x.request, outcome: x.outcome, group: x.group, landed: x.assign_landed, links: x.links, topics: x.topics };
+			if (!r.request && x.brief) r.brief = x.brief;
 			const m = r.dir.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
 			r.date = (r.landed || "").slice(0, 10) || (m ? `${m[1]}-${m[2]}-${m[3]}` : "");
 			r.url = "/" + r.dir.replace(/^public\//, "") + "/";
