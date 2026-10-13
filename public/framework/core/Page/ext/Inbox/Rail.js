@@ -235,7 +235,12 @@ export default class Rail {
 
 	decorate(list){ list.forEach(it => { it.unread = !this.is_read(it.id); }); }
 	prepare(rows){}
-	order(x, y){ return (Date.parse(y.at ?? 0) || 0) - (Date.parse(x.at ?? 0) || 0); }
+	order(x, y){
+		const now = Date.now();
+		return Rail.rank ? Rail.rank(y, now) - Rail.rank(x, now) : (Date.parse(y.at ?? 0) || 0) - (Date.parse(x.at ?? 0) || 0);
+	}
+	/** New rows (under 30 min) show whatever their score: the floor never hides them. */
+	is_new(it){ return !!Rail.fresh?.(it); }
 
 	/* ── what the filters read — one seam each ── */
 	pool(list){ return list; }
@@ -258,7 +263,7 @@ export default class Rail {
 		}
 		if (this.show_archived) return [...base, ...archived];
 		if (this.cat === "fyi") return base;
-		return base.filter(it => this.exempt(it) || (it.score ?? 0) >= this.min);
+		return base.filter(it => this.exempt(it) || this.is_new(it) || (it.score ?? 0) >= this.min);
 	}
 
 	floored(){ return this.min > 0 && this.cat !== "fyi" && !this.search_q && !this.show_archived; }
@@ -427,9 +432,11 @@ export default class Rail {
 				.attr("title", it.unread ? "mark read" : "mark unread")
 				.click(e => { e.preventDefault(); e.stopPropagation(); on.toggle_read(); }) : span.c("inbox-dot");
 			if (it.icon) icon(it.icon);
+			if (this.is_new(it)) span.c("inbox-new-mark").text("new").attr("title", "arrived in the last 30 minutes");
+			if (it.owner_kind) span.c("inbox-kind inbox-kind-" + it.owner_kind).text(it.owner_kind);
 			if (it.score != null) span.c("inbox-score" + (it.score >= 70 ? " inbox-score-hot" : "")).text(String(it.score));
 			this.title_text(span.c("inbox-row-title").text(it.title), it);
-			small.c("inbox-row-when muted").text(this.when(it.at, it)).attr("title", this.when_full(it.at));
+			small.c("inbox-row-when muted").text(this.is_new(it) ? this.age(it.at) : this.when(it.at, it)).attr("title", this.when_full(it.at));
 			if (on.archive) button.c("inbox-clear").attr("type", "button")
 				.attr("title", "archive — nothing is deleted").text("×")
 				.click(e => { e.preventDefault(); e.stopPropagation(); on.archive(); });
@@ -437,6 +444,7 @@ export default class Rail {
 	}
 	title_text($title, it){}
 
+	age(at){ const m = Math.floor((Date.now() - Date.parse(at)) / 60000); return m < 1 ? "now" : m + " min"; }
 	when(at){
 		const d = new Date(at ?? 0);
 		if (!at || isNaN(d)) return "";

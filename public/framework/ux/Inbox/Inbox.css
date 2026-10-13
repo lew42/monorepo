@@ -564,6 +564,20 @@
 		color: white;
 	}
 
+	/* NEW + KIND CUES — "new" for a row under 30 minutes; the owner-note kind in words. */
+	.inbox-new-mark, .inbox-kind {
+		flex: none;
+		padding: 0.05em 0.45em;
+		border-radius: var(--radius);
+		font-size: 0.7em;
+		font-weight: 700;
+		text-transform: uppercase;
+		background: var(--fill-a08);
+	}
+
+	.inbox-new-mark { background: var(--accent, #2d6cdf); color: white; }
+	.inbox-kind-needs-you, .inbox-kind-risk { background: var(--error); color: white; }
+
 	/* THE ARCHIVE × — the dot's stretch bug, and the dot's fix: a small "×" on the title's
 	   first line, not a tall grey rectangle. */
 	.inbox-clear {

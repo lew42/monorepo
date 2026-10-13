@@ -95,4 +95,5 @@ nothing from AI 2).
 - [`/framework/ux/Inbox/`](/framework/ux/Inbox/) — `Inbox.Rail`'s own demo and look
 - `ext/drawer/` and `doc/inbox.md` — the drawer's "Leave a note" box, `Inbox.Compact`
 
+- Ranking: [doc/ranking.md](doc/ranking.md) — `Inbox.rank`: importance + recency, new rows float up, owner state sinks.
 - Notes: [doc/InboxRail-notes.md](doc/InboxRail-notes.md) — history and lessons moved out of the code comments.

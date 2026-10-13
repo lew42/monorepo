@@ -4,6 +4,7 @@ import { fold } from "/framework/ai/sessions/2026/09/22/session-66db742f/log-mod
 import { Fold } from "../cards/Fold.js";
 import { AskFold } from "../asks/AskFold.js";
 import { NeedsRule } from "./NeedsRule.js";
+import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 export { fold };
@@ -12,7 +13,8 @@ export { fold };
 export const HOT = 90;
 // An unread owner note outranks even a blocker at 100 (`importance()`): a half point puts it first.
 const hot = it => (it.score >= HOT ? it.score + (it.kind === "owner_note" && it.score >= 100 ? 0.5 : 0) : 0);
-export const inbox_order = (a, b) => (hot(b) - hot(a)) || (Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
+// One ranking, Inbox.rank (core/Page/ext/Inbox/doc/ranking.md): importance + recency; `hot` stays for callers.
+export const inbox_order = (a, b) => (Inbox.rank(b) - Inbox.rank(a)) || (Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
 
 /** The inbox model: board, prompts and day logs in, one list of cards out. doc/notes.md#the-inbox-model */
 
