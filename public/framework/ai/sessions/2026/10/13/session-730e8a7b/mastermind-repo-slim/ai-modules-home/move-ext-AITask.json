@@ -1,0 +1,3739 @@
+{
+	"at": "2026-10-13T22:51:31.267Z",
+	"from": "public/framework/ext/AITask",
+	"to": "public/framework/ai/AITask",
+	"files": [
+		{
+			"file": "public/app.js",
+			"now": "public/app.js",
+			"edits": [
+				{
+					"line": 184,
+					"col": 34,
+					"from": "ext/AITask/readme.md",
+					"to": "ai/AITask/readme.md"
+				},
+				{
+					"line": 185,
+					"col": 24,
+					"from": "./framework/ext/AITask/AITask.js",
+					"to": "./framework/ai/AITask/AITask.js"
+				}
+			]
+		},
+		{
+			"file": "public/blog/ai/dashboard/post.md",
+			"now": "public/blog/ai/dashboard/post.md",
+			"edits": [
+				{
+					"line": 82,
+					"col": 41,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 82,
+					"col": 53,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/AISession/AISessionDetail.js",
+			"now": "public/framework/ai/AISession/AISessionDetail.js",
+			"edits": [
+				{
+					"line": 2,
+					"col": 46,
+					"from": "/framework/ext/AITask/replay.js",
+					"to": "/framework/ai/AITask/replay.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/AISession/AISessionRows.js",
+			"now": "public/framework/ai/AISession/AISessionRows.js",
+			"edits": [
+				{
+					"line": 0,
+					"col": 25,
+					"from": "/framework/ext/AITask/stats.js",
+					"to": "/framework/ai/AITask/stats.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/AISession/AISessionsPage.js",
+			"now": "public/framework/ai/AISession/AISessionsPage.js",
+			"edits": [
+				{
+					"line": 3,
+					"col": 28,
+					"from": "/framework/ext/AITask/usage.js",
+					"to": "/framework/ai/AITask/usage.js"
+				},
+				{
+					"line": 19,
+					"col": 17,
+					"from": "/framework/ext/AITask/ai.css",
+					"to": "/framework/ai/AITask/ai.css"
+				},
+				{
+					"line": 159,
+					"col": 62,
+					"from": "ext/AITask/usage.js",
+					"to": "ai/AITask/usage.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/AISession/AISessionView.js",
+			"now": "public/framework/ai/AISession/AISessionView.js",
+			"edits": [
+				{
+					"line": 2,
+					"col": 30,
+					"from": "/framework/ext/AITask/stats.js",
+					"to": "/framework/ai/AITask/stats.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/AISession/StoreFolder.js",
+			"now": "public/framework/ai/AISession/StoreFolder.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 24,
+					"from": "/framework/ext/AITask/AITask.js",
+					"to": "/framework/ai/AITask/AITask.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/audits/paging/content.md",
+			"now": "public/framework/ai/audits/paging/content.md",
+			"edits": [
+				{
+					"line": 7,
+					"col": 103,
+					"from": "ext/AITask/decisions.js",
+					"to": "ai/AITask/decisions.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/audits/paging/types.md",
+			"now": "public/framework/ai/audits/paging/types.md",
+			"edits": [
+				{
+					"line": 11,
+					"col": 49,
+					"from": "ext/AITask/card.js",
+					"to": "ai/AITask/card.js"
+				},
+				{
+					"line": 11,
+					"col": 403,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/cards/card.js",
+			"now": "public/framework/ai/cards/card.js",
+			"edits": [
+				{
+					"line": 4,
+					"col": 59,
+					"from": "/framework/ext/AITask/cost.js",
+					"to": "/framework/ai/AITask/cost.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/cards/doc/notes.md",
+			"now": "public/framework/ai/cards/doc/notes.md",
+			"edits": [
+				{
+					"line": 95,
+					"col": 296,
+					"from": "ext/AITask/cost.js",
+					"to": "ai/AITask/cost.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/cards/Meter.js",
+			"now": "public/framework/ai/cards/Meter.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 23,
+					"from": "/framework/ext/AITask/cost.js",
+					"to": "/framework/ai/AITask/cost.js"
+				},
+				{
+					"line": 2,
+					"col": 26,
+					"from": "/framework/ext/AITask/stats.js",
+					"to": "/framework/ai/AITask/stats.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/cards/Outline.js",
+			"now": "public/framework/ai/cards/Outline.js",
+			"edits": [
+				{
+					"line": 3,
+					"col": 23,
+					"from": "/framework/ext/AITask/cost.js",
+					"to": "/framework/ai/AITask/cost.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/cards/Tasks.js",
+			"now": "public/framework/ai/cards/Tasks.js",
+			"edits": [
+				{
+					"line": 4,
+					"col": 32,
+					"from": "/framework/ext/AITask/cost.js",
+					"to": "/framework/ai/AITask/cost.js"
+				},
+				{
+					"line": 13,
+					"col": 16,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 35,
+					"col": 50,
+					"from": "/framework/ext/AITask/AITask.js",
+					"to": "/framework/ai/AITask/AITask.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/concepts.js",
+			"now": "public/framework/ai/concepts.js",
+			"edits": [
+				{
+					"line": 46,
+					"col": 11,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 46,
+					"col": 24,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 55,
+					"col": 58,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 55,
+					"col": 81,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/dashboard/doc/decisions.md",
+			"now": "public/framework/ai/dashboard/doc/decisions.md",
+			"edits": [
+				{
+					"line": 13,
+					"col": 28,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/doc/ai2/decisions.md",
+			"now": "public/framework/ai/doc/ai2/decisions.md",
+			"edits": [
+				{
+					"line": 544,
+					"col": 1075,
+					"from": "ext/AITask/cost.js",
+					"to": "ai/AITask/cost.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/doc/ai2/groups.md",
+			"now": "public/framework/ai/doc/ai2/groups.md",
+			"edits": [
+				{
+					"line": 72,
+					"col": 78,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/doc/ai2/history.md",
+			"now": "public/framework/ai/doc/ai2/history.md",
+			"edits": [
+				{
+					"line": 186,
+					"col": 3,
+					"from": "ext/AITask/doc/cost.md",
+					"to": "ai/AITask/doc/cost.md"
+				},
+				{
+					"line": 186,
+					"col": 27,
+					"from": "/framework/ext/AITask/doc/cost.md",
+					"to": "/framework/ai/AITask/doc/cost.md"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/doc/archive/inbox-log-streaming-findings-2026-10-08.md",
+			"now": "public/framework/ai/doc/archive/inbox-log-streaming-findings-2026-10-08.md",
+			"edits": [
+				{
+					"line": 27,
+					"col": 34,
+					"from": "ext/AITask/usage.js",
+					"to": "ai/AITask/usage.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/doc/logs/inbox-log-streaming.md",
+			"now": "public/framework/ai/doc/logs/inbox-log-streaming.md",
+			"edits": [
+				{
+					"line": 53,
+					"col": 34,
+					"from": "ext/AITask/usage.js",
+					"to": "ai/AITask/usage.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/doc/meta/readme-system-status.md",
+			"now": "public/framework/ai/doc/meta/readme-system-status.md",
+			"edits": [
+				{
+					"line": 30,
+					"col": 73,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/doc/watch-out-2026-10-12.md",
+			"now": "public/framework/ai/doc/watch-out-2026-10-12.md",
+			"edits": [
+				{
+					"line": 33,
+					"col": 60,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/page.js",
+			"now": "public/framework/ai/page.js",
+			"edits": [
+				{
+					"line": 8,
+					"col": 103,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				},
+				{
+					"line": 9,
+					"col": 44,
+					"from": "/framework/ext/AITask/module-spend.js",
+					"to": "/framework/ai/AITask/module-spend.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/past-work-index.md",
+			"now": "public/framework/ai/past-work-index.md",
+			"edits": [
+				{
+					"line": 483,
+					"col": 130,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				},
+				{
+					"line": 711,
+					"col": 220,
+					"from": "/framework/ext/AITask/tree",
+					"to": "/framework/ai/AITask/tree"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/rail/doc/groups-notes.md",
+			"now": "public/framework/ai/rail/doc/groups-notes.md",
+			"edits": [
+				{
+					"line": 121,
+					"col": 97,
+					"from": "ext/AITask/cost.js",
+					"to": "ai/AITask/cost.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/rail/doc/live-notes.md",
+			"now": "public/framework/ai/rail/doc/live-notes.md",
+			"edits": [
+				{
+					"line": 7,
+					"col": 135,
+					"from": "ext/AITask/usage.js",
+					"to": "ai/AITask/usage.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/rail/groups.js",
+			"now": "public/framework/ai/rail/groups.js",
+			"edits": [
+				{
+					"line": 2,
+					"col": 23,
+					"from": "/framework/ext/AITask/cost.js",
+					"to": "/framework/ai/AITask/cost.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/rail/live.js",
+			"now": "public/framework/ai/rail/live.js",
+			"edits": [
+				{
+					"line": 2,
+					"col": 28,
+					"from": "/framework/ext/AITask/usage.js",
+					"to": "/framework/ai/AITask/usage.js"
+				},
+				{
+					"line": 11,
+					"col": 17,
+					"from": "/framework/ext/AITask/ai.css",
+					"to": "/framework/ai/AITask/ai.css"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/rail/Overview.js",
+			"now": "public/framework/ai/rail/Overview.js",
+			"edits": [
+				{
+					"line": 3,
+					"col": 23,
+					"from": "/framework/ext/AITask/cost.js",
+					"to": "/framework/ai/AITask/cost.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/rail/rail.js",
+			"now": "public/framework/ai/rail/rail.js",
+			"edits": [
+				{
+					"line": 15,
+					"col": 25,
+					"from": "/framework/ext/AITask/cost.js",
+					"to": "/framework/ai/AITask/cost.js"
+				},
+				{
+					"line": 154,
+					"col": 56,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				},
+				{
+					"line": 166,
+					"col": 55,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/readme.md",
+			"now": "public/framework/ai/readme.md",
+			"edits": [
+				{
+					"line": 55,
+					"col": 68,
+					"from": "ext/AITask/day-prompts.js",
+					"to": "ai/AITask/day-prompts.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/13/manifest-vs-log/page.js",
+			"now": "public/framework/ai/sessions/2026/08/13/manifest-vs-log/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 68,
+					"from": "/framework/ext/AITask/stats.js",
+					"to": "/framework/ai/AITask/stats.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/13/page.js",
+			"now": "public/framework/ai/sessions/2026/08/13/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 35,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/13/task-previews/page.js",
+			"now": "public/framework/ai/sessions/2026/08/13/task-previews/page.js",
+			"edits": [
+				{
+					"line": 16,
+					"col": 34,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/14/page.js",
+			"now": "public/framework/ai/sessions/2026/08/14/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 35,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/15/page.js",
+			"now": "public/framework/ai/sessions/2026/08/15/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 35,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/16/page.js",
+			"now": "public/framework/ai/sessions/2026/08/16/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 35,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/17/page.js",
+			"now": "public/framework/ai/sessions/2026/08/17/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/18/page.js",
+			"now": "public/framework/ai/sessions/2026/08/18/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/19/page.js",
+			"now": "public/framework/ai/sessions/2026/08/19/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/21/page.js",
+			"now": "public/framework/ai/sessions/2026/08/21/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/26/page.js",
+			"now": "public/framework/ai/sessions/2026/08/26/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/27/page.js",
+			"now": "public/framework/ai/sessions/2026/08/27/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/28/page.js",
+			"now": "public/framework/ai/sessions/2026/08/28/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/29/page.js",
+			"now": "public/framework/ai/sessions/2026/08/29/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/30/color-stacks/hunt.mjs",
+			"now": "public/framework/ai/sessions/2026/08/30/color-stacks/hunt.mjs",
+			"edits": [
+				{
+					"line": 34,
+					"col": 0,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/30/page.js",
+			"now": "public/framework/ai/sessions/2026/08/30/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/08/31/page.js",
+			"now": "public/framework/ai/sessions/2026/08/31/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/01/page.js",
+			"now": "public/framework/ai/sessions/2026/09/01/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/04/page.js",
+			"now": "public/framework/ai/sessions/2026/09/04/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/05/page.js",
+			"now": "public/framework/ai/sessions/2026/09/05/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/06/page.js",
+			"now": "public/framework/ai/sessions/2026/09/06/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/08/page.js",
+			"now": "public/framework/ai/sessions/2026/09/08/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/13/page.js",
+			"now": "public/framework/ai/sessions/2026/09/13/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/14/page.js",
+			"now": "public/framework/ai/sessions/2026/09/14/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/17/page.js",
+			"now": "public/framework/ai/sessions/2026/09/17/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/18/page.js",
+			"now": "public/framework/ai/sessions/2026/09/18/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/19/blunder-critic/page.js",
+			"now": "public/framework/ai/sessions/2026/09/19/blunder-critic/page.js",
+			"edits": [
+				{
+					"line": 44,
+					"col": 55,
+					"from": "/framework/ext/AITask/doc/asks",
+					"to": "/framework/ai/AITask/doc/asks"
+				},
+				{
+					"line": 44,
+					"col": 89,
+					"from": "/framework/ext/AITask/doc/decisions-tab",
+					"to": "/framework/ai/AITask/doc/decisions-tab"
+				},
+				{
+					"line": 44,
+					"col": 132,
+					"from": "/framework/ext/AITask/doc/ranking",
+					"to": "/framework/ai/AITask/doc/ranking"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/19/page.js",
+			"now": "public/framework/ai/sessions/2026/09/19/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/20/page.js",
+			"now": "public/framework/ai/sessions/2026/09/20/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/21/page.js",
+			"now": "public/framework/ai/sessions/2026/09/21/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/22/page.js",
+			"now": "public/framework/ai/sessions/2026/09/22/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/23/page.js",
+			"now": "public/framework/ai/sessions/2026/09/23/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/24/inventory/inventory/rows.js",
+			"now": "public/framework/ai/sessions/2026/09/24/inventory/inventory/rows.js",
+			"edits": [
+				{
+					"line": 59,
+					"col": 45,
+					"from": "public/framework/ext/AITask",
+					"to": "public/framework/ai/AITask"
+				},
+				{
+					"line": 69,
+					"col": 389,
+					"from": "public/framework/ext/AITask/board.js",
+					"to": "public/framework/ai/AITask/board.js"
+				},
+				{
+					"line": 122,
+					"col": 392,
+					"from": "public/framework/ext/AITask/decisions.js",
+					"to": "public/framework/ai/AITask/decisions.js"
+				},
+				{
+					"line": 162,
+					"col": 105,
+					"from": "public/framework/ext/AITask",
+					"to": "public/framework/ai/AITask"
+				},
+				{
+					"line": 164,
+					"col": 385,
+					"from": "public/framework/ext/AITask/compose.js",
+					"to": "public/framework/ai/AITask/compose.js"
+				},
+				{
+					"line": 284,
+					"col": 531,
+					"from": "public/framework/ext/AITask/doc/ranking.md",
+					"to": "public/framework/ai/AITask/doc/ranking.md"
+				},
+				{
+					"line": 287,
+					"col": 291,
+					"from": "public/framework/ext/AITask",
+					"to": "public/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/24/page.js",
+			"now": "public/framework/ai/sessions/2026/09/24/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/25/page.js",
+			"now": "public/framework/ai/sessions/2026/09/25/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/28/page.js",
+			"now": "public/framework/ai/sessions/2026/09/28/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 54,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/doc/archive/priorities.md",
+			"now": "public/framework/ai/sessions/doc/archive/priorities.md",
+			"edits": [
+				{
+					"line": 22,
+					"col": 67,
+					"from": "ext/AITask/usage.js",
+					"to": "ai/AITask/usage.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/doc/asks/asks.md",
+			"now": "public/framework/ai/sessions/doc/asks/asks.md",
+			"edits": [
+				{
+					"line": 25,
+					"col": 67,
+					"from": "ext/AITask/usage.js",
+					"to": "ai/AITask/usage.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/doc/asks/decisions.md",
+			"now": "public/framework/ai/sessions/doc/asks/decisions.md",
+			"edits": [
+				{
+					"line": 269,
+					"col": 58,
+					"from": "ext/AITask/replay.js",
+					"to": "ai/AITask/replay.js"
+				},
+				{
+					"line": 309,
+					"col": 55,
+					"from": "ext/AITask/stats.js",
+					"to": "ai/AITask/stats.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/doc/readme-full-2026-10-12.md",
+			"now": "public/framework/ai/sessions/doc/readme-full-2026-10-12.md",
+			"edits": [
+				{
+					"line": 127,
+					"col": 10,
+					"from": "ext/AITask/replay.js",
+					"to": "ai/AITask/replay.js"
+				},
+				{
+					"line": 127,
+					"col": 32,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/v/2/page.js",
+			"now": "public/framework/ai/v/2/page.js",
+			"edits": [
+				{
+					"line": 2,
+					"col": 27,
+					"from": "/framework/ext/AITask/decisions.js",
+					"to": "/framework/ai/AITask/decisions.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/v/2/readme.md",
+			"now": "public/framework/ai/v/2/readme.md",
+			"edits": [
+				{
+					"line": 23,
+					"col": 32,
+					"from": "ext/AITask/decisions.js",
+					"to": "ai/AITask/decisions.js"
+				},
+				{
+					"line": 29,
+					"col": 201,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 29,
+					"col": 212,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/v/2/v2.css",
+			"now": "public/framework/ai/v/2/v2.css",
+			"edits": [
+				{
+					"line": 153,
+					"col": 30,
+					"from": "ext/AITask/decisions.js",
+					"to": "ai/AITask/decisions.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/v/3/doc/notes.md",
+			"now": "public/framework/ai/v/3/doc/notes.md",
+			"edits": [
+				{
+					"line": 702,
+					"col": 2,
+					"from": "ext/AITask/usage.js",
+					"to": "ai/AITask/usage.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/v/3/doc/traps.md",
+			"now": "public/framework/ai/v/3/doc/traps.md",
+			"edits": [
+				{
+					"line": 58,
+					"col": 38,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/v/3/page.js",
+			"now": "public/framework/ai/v/3/page.js",
+			"edits": [
+				{
+					"line": 14,
+					"col": 28,
+					"from": "/framework/ext/AITask/usage.js",
+					"to": "/framework/ai/AITask/usage.js"
+				},
+				{
+					"line": 15,
+					"col": 25,
+					"from": "/framework/ext/AITask/card.js",
+					"to": "/framework/ai/AITask/card.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/v/3/v3.css",
+			"now": "public/framework/ai/v/3/v3.css",
+			"edits": [
+				{
+					"line": 561,
+					"col": 33,
+					"from": "ext/AITask/ai.css",
+					"to": "ai/AITask/ai.css"
+				},
+				{
+					"line": 739,
+					"col": 55,
+					"from": "ext/AITask/ai.css",
+					"to": "ai/AITask/ai.css"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/doc/core-Page.md",
+			"now": "public/framework/audit/doc/core-Page.md",
+			"edits": [
+				{
+					"line": 20,
+					"col": 207,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/doc/core-Router.md",
+			"now": "public/framework/audit/doc/core-Router.md",
+			"edits": [
+				{
+					"line": 20,
+					"col": 389,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 32,
+					"col": 239,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				},
+				{
+					"line": 39,
+					"col": 24,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 48,
+					"col": 47,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/doc/ext-AITask.md",
+			"now": "public/framework/audit/doc/ext-AITask.md",
+			"edits": [
+				{
+					"line": 0,
+					"col": 2,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 123,
+					"col": 3,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/doc/ext-Ask.md",
+			"now": "public/framework/audit/doc/ext-Ask.md",
+			"edits": [
+				{
+					"line": 22,
+					"col": 99,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				},
+				{
+					"line": 22,
+					"col": 121,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 22,
+					"col": 173,
+					"from": "ext/AITask/compose.js",
+					"to": "ai/AITask/compose.js"
+				},
+				{
+					"line": 22,
+					"col": 196,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 43,
+					"col": 3,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 48,
+					"col": 104,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				},
+				{
+					"line": 48,
+					"col": 395,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/doc/ext-JSONL.md",
+			"now": "public/framework/audit/doc/ext-JSONL.md",
+			"edits": [
+				{
+					"line": 21,
+					"col": 17,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				},
+				{
+					"line": 21,
+					"col": 40,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				},
+				{
+					"line": 57,
+					"col": 8,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/doc/ext-markdown.md",
+			"now": "public/framework/audit/doc/ext-markdown.md",
+			"edits": [
+				{
+					"line": 20,
+					"col": 350,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 20,
+					"col": 415,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 20,
+					"col": 438,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/doc/ext-Timeline.md",
+			"now": "public/framework/audit/doc/ext-Timeline.md",
+			"edits": [
+				{
+					"line": 8,
+					"col": 26,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 67,
+					"col": 4,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/doc/ui.md",
+			"now": "public/framework/audit/doc/ui.md",
+			"edits": [
+				{
+					"line": 24,
+					"col": 179,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/modules/core-Page.md",
+			"now": "public/framework/audit/modules/core-Page.md",
+			"edits": [
+				{
+					"line": 20,
+					"col": 207,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/modules/core-Router.md",
+			"now": "public/framework/audit/modules/core-Router.md",
+			"edits": [
+				{
+					"line": 20,
+					"col": 389,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 32,
+					"col": 239,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				},
+				{
+					"line": 39,
+					"col": 24,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 48,
+					"col": 47,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/modules/ext-AITask.md",
+			"now": "public/framework/audit/modules/ext-AITask.md",
+			"edits": [
+				{
+					"line": 0,
+					"col": 2,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 123,
+					"col": 3,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/modules/ext-Ask.md",
+			"now": "public/framework/audit/modules/ext-Ask.md",
+			"edits": [
+				{
+					"line": 22,
+					"col": 99,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				},
+				{
+					"line": 22,
+					"col": 121,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 22,
+					"col": 173,
+					"from": "ext/AITask/compose.js",
+					"to": "ai/AITask/compose.js"
+				},
+				{
+					"line": 22,
+					"col": 196,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 43,
+					"col": 3,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 48,
+					"col": 104,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				},
+				{
+					"line": 48,
+					"col": 395,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/modules/ext-JSONL.md",
+			"now": "public/framework/audit/modules/ext-JSONL.md",
+			"edits": [
+				{
+					"line": 21,
+					"col": 17,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				},
+				{
+					"line": 21,
+					"col": 40,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				},
+				{
+					"line": 57,
+					"col": 8,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/modules/ext-markdown.md",
+			"now": "public/framework/audit/modules/ext-markdown.md",
+			"edits": [
+				{
+					"line": 20,
+					"col": 350,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 20,
+					"col": 415,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 20,
+					"col": 438,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/modules/ext-Timeline.md",
+			"now": "public/framework/audit/modules/ext-Timeline.md",
+			"edits": [
+				{
+					"line": 8,
+					"col": 26,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 67,
+					"col": 4,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/audit/modules/ui.md",
+			"now": "public/framework/audit/modules/ui.md",
+			"edits": [
+				{
+					"line": 24,
+					"col": 179,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/code/patterns/readme.md",
+			"now": "public/framework/code/patterns/readme.md",
+			"edits": [
+				{
+					"line": 30,
+					"col": 1201,
+					"from": "ext/AITask/nested.js",
+					"to": "ai/AITask/nested.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/core/Page/doc/data.md",
+			"now": "public/framework/core/Page/doc/data.md",
+			"edits": [
+				{
+					"line": 130,
+					"col": 3,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				},
+				{
+					"line": 144,
+					"col": 5,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/core/Page/doc/decisions.md",
+			"now": "public/framework/core/Page/doc/decisions.md",
+			"edits": [
+				{
+					"line": 28,
+					"col": 3,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/core/Page/doc/layout.md",
+			"now": "public/framework/core/Page/doc/layout.md",
+			"edits": [
+				{
+					"line": 14,
+					"col": 19,
+					"from": "ext/AITask/ai.css",
+					"to": "ai/AITask/ai.css"
+				}
+			]
+		},
+		{
+			"file": "public/framework/core/Page/dynamic/doc/uses.md",
+			"now": "public/framework/core/Page/dynamic/doc/uses.md",
+			"edits": [
+				{
+					"line": 10,
+					"col": 184,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				},
+				{
+					"line": 10,
+					"col": 209,
+					"from": "/framework/ext/AITask/dashboard.js",
+					"to": "/framework/ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/core/Page/Page.css",
+			"now": "public/framework/core/Page/Page.css",
+			"edits": [
+				{
+					"line": 1102,
+					"col": 29,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/core/Router/doc/decisions.md",
+			"now": "public/framework/core/Router/doc/decisions.md",
+			"edits": [
+				{
+					"line": 22,
+					"col": 4,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 97,
+					"col": 1,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/core/Router/doc/method/mark_links.md",
+			"now": "public/framework/core/Router/doc/method/mark_links.md",
+			"edits": [
+				{
+					"line": 9,
+					"col": 4,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/core/Task/readme.md",
+			"now": "public/framework/core/Task/readme.md",
+			"edits": [
+				{
+					"line": 45,
+					"col": 40,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 46,
+					"col": 20,
+					"from": "ext/AITask/nested.js",
+					"to": "ai/AITask/nested.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/dev/DevBar/doc/chat.md",
+			"now": "public/framework/dev/DevBar/doc/chat.md",
+			"edits": [
+				{
+					"line": 19,
+					"col": 22,
+					"from": "ext/AITask/conversation.js",
+					"to": "ai/AITask/conversation.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/dev/DevBar/log.js",
+			"now": "public/framework/dev/DevBar/log.js",
+			"edits": [
+				{
+					"line": 2,
+					"col": 23,
+					"from": "../../ext/AITask/stats.js",
+					"to": "../../ai/AITask/stats.js"
+				},
+				{
+					"line": 14,
+					"col": 25,
+					"from": "ext/AITask/conversation.js",
+					"to": "ai/AITask/conversation.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/dev/DevBar/sessions.js",
+			"now": "public/framework/dev/DevBar/sessions.js",
+			"edits": [
+				{
+					"line": 2,
+					"col": 23,
+					"from": "../../ext/AITask/stats.js",
+					"to": "../../ai/AITask/stats.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/dev/Socket/doc/method/changed.md",
+			"now": "public/framework/dev/Socket/doc/method/changed.md",
+			"edits": [
+				{
+					"line": 54,
+					"col": 1,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/dev/Socket/doc/method/on.md",
+			"now": "public/framework/dev/Socket/doc/method/on.md",
+			"edits": [
+				{
+					"line": 44,
+					"col": 20,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/dev/Socket/doc/Socket-notes.md",
+			"now": "public/framework/dev/Socket/doc/Socket-notes.md",
+			"edits": [
+				{
+					"line": 37,
+					"col": 55,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/AITask.js",
+			"now": "public/framework/ai/AITask/AITask.js",
+			"edits": [
+				{
+					"line": 4,
+					"col": 27,
+					"from": "../JSONL/JSONL.js",
+					"to": "../../ext/JSONL/JSONL.js"
+				},
+				{
+					"line": 5,
+					"col": 16,
+					"from": "../markdown/md.js",
+					"to": "../../ext/markdown/md.js"
+				},
+				{
+					"line": 15,
+					"col": 22,
+					"from": "../Ask/chat.js",
+					"to": "../../ext/Ask/chat.js"
+				},
+				{
+					"line": 17,
+					"col": 44,
+					"from": "../Ask/reply.js",
+					"to": "../../ext/Ask/reply.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/asks.js",
+			"now": "public/framework/ai/AITask/asks.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 16,
+					"from": "../markdown/md.js",
+					"to": "../../ext/markdown/md.js"
+				},
+				{
+					"line": 2,
+					"col": 27,
+					"from": "../JSONL/JSONL.js",
+					"to": "../../ext/JSONL/JSONL.js"
+				},
+				{
+					"line": 10,
+					"col": 32,
+					"from": "../Ask/reply.js",
+					"to": "../../ext/Ask/reply.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/card.js",
+			"now": "public/framework/ai/AITask/card.js",
+			"edits": [
+				{
+					"line": 4,
+					"col": 23,
+					"from": "../Ask/reply.js",
+					"to": "../../ext/Ask/reply.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/compose.js",
+			"now": "public/framework/ai/AITask/compose.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 34,
+					"from": "../Ask/Ask.js",
+					"to": "../../ext/Ask/Ask.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/conversation.js",
+			"now": "public/framework/ai/AITask/conversation.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 16,
+					"from": "../markdown/md.js",
+					"to": "../../ext/markdown/md.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/dashboard.js",
+			"now": "public/framework/ai/AITask/dashboard.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 27,
+					"from": "../JSONL/JSONL.js",
+					"to": "../../ext/JSONL/JSONL.js"
+				},
+				{
+					"line": 231,
+					"col": 96,
+					"from": "/framework/ext/AITask/tree",
+					"to": "/framework/ai/AITask/tree"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/day-prompts.js",
+			"now": "public/framework/ai/AITask/day-prompts.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 26,
+					"from": "../Refine/engine.js",
+					"to": "../../ext/Refine/engine.js"
+				},
+				{
+					"line": 2,
+					"col": 26,
+					"from": "../Mention/Mention.js",
+					"to": "../../ext/Mention/Mention.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/decisions.js",
+			"now": "public/framework/ai/AITask/decisions.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 22,
+					"from": "../Ask/edit.js",
+					"to": "../../ext/Ask/edit.js"
+				},
+				{
+					"line": 5,
+					"col": 23,
+					"from": "../Ask/reply.js",
+					"to": "../../ext/Ask/reply.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/decisions.mjs",
+			"now": "public/framework/ai/AITask/decisions.mjs",
+			"edits": [
+				{
+					"line": 4,
+					"col": 10,
+					"from": "public/framework/ext/AITask/decisions.mjs",
+					"to": "public/framework/ai/AITask/decisions.mjs"
+				},
+				{
+					"line": 5,
+					"col": 10,
+					"from": "public/framework/ext/AITask/decisions.mjs",
+					"to": "public/framework/ai/AITask/decisions.mjs"
+				},
+				{
+					"line": 6,
+					"col": 10,
+					"from": "public/framework/ext/AITask/decisions.mjs",
+					"to": "public/framework/ai/AITask/decisions.mjs"
+				},
+				{
+					"line": 33,
+					"col": 3,
+					"from": "public/framework/ext/AITask",
+					"to": "public/framework/ai/AITask"
+				},
+				{
+					"line": 40,
+					"col": 7,
+					"from": "public/framework/ext/AITask/decisions.mjs",
+					"to": "public/framework/ai/AITask/decisions.mjs"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/asks.md",
+			"now": "public/framework/ai/AITask/doc/asks.md",
+			"edits": [
+				{
+					"line": 12,
+					"col": 21,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 56,
+					"col": 19,
+					"from": "/framework/ext/AITask/doc/ranking",
+					"to": "/framework/ai/AITask/doc/ranking"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/decisions-tab.md",
+			"now": "public/framework/ai/AITask/doc/decisions-tab.md",
+			"edits": [
+				{
+					"line": 78,
+					"col": 5,
+					"from": "public/framework/ext/AITask/decisions.mjs",
+					"to": "public/framework/ai/AITask/decisions.mjs"
+				},
+				{
+					"line": 79,
+					"col": 5,
+					"from": "public/framework/ext/AITask/decisions.mjs",
+					"to": "public/framework/ai/AITask/decisions.mjs"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/file/AITask.js.md",
+			"now": "public/framework/ai/AITask/doc/file/AITask.js.md",
+			"edits": [
+				{
+					"line": 10,
+					"col": 14,
+					"from": "/framework/ext/AITask/api/refresh",
+					"to": "/framework/ai/AITask/api/refresh"
+				},
+				{
+					"line": 35,
+					"col": 8,
+					"from": "/framework/ext/AITask/api/src",
+					"to": "/framework/ai/AITask/api/src"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/file/asks.js.md",
+			"now": "public/framework/ai/AITask/doc/file/asks.js.md",
+			"edits": [
+				{
+					"line": 5,
+					"col": 7,
+					"from": "/framework/ext/AITask/doc/asks",
+					"to": "/framework/ai/AITask/doc/asks"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/file/card.js.md",
+			"now": "public/framework/ai/AITask/doc/file/card.js.md",
+			"edits": [
+				{
+					"line": 61,
+					"col": 12,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/file/compose.js.md",
+			"now": "public/framework/ai/AITask/doc/file/compose.js.md",
+			"edits": [
+				{
+					"line": 3,
+					"col": 44,
+					"from": "/framework/ext/AITask/doc/starting-work",
+					"to": "/framework/ai/AITask/doc/starting-work"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/file/decisions.js.md",
+			"now": "public/framework/ai/AITask/doc/file/decisions.js.md",
+			"edits": [
+				{
+					"line": 21,
+					"col": 31,
+					"from": "/framework/ext/AITask/doc/decisions-tab",
+					"to": "/framework/ai/AITask/doc/decisions-tab"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/file/decisions.mjs.md",
+			"now": "public/framework/ai/AITask/doc/file/decisions.mjs.md",
+			"edits": [
+				{
+					"line": 4,
+					"col": 5,
+					"from": "public/framework/ext/AITask/decisions.mjs",
+					"to": "public/framework/ai/AITask/decisions.mjs"
+				},
+				{
+					"line": 5,
+					"col": 5,
+					"from": "public/framework/ext/AITask/decisions.mjs",
+					"to": "public/framework/ai/AITask/decisions.mjs"
+				},
+				{
+					"line": 6,
+					"col": 5,
+					"from": "public/framework/ext/AITask/decisions.mjs",
+					"to": "public/framework/ai/AITask/decisions.mjs"
+				},
+				{
+					"line": 27,
+					"col": 31,
+					"from": "/framework/ext/AITask/doc/decisions-tab",
+					"to": "/framework/ai/AITask/doc/decisions-tab"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/file/effort.js.md",
+			"now": "public/framework/ai/AITask/doc/file/effort.js.md",
+			"edits": [
+				{
+					"line": 2,
+					"col": 48,
+					"from": "/framework/ext/AITask/doc/effort",
+					"to": "/framework/ai/AITask/doc/effort"
+				},
+				{
+					"line": 19,
+					"col": 11,
+					"from": "/framework/ext/AITask/files/board.js",
+					"to": "/framework/ai/AITask/files/board.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/file/highlights.js.md",
+			"now": "public/framework/ai/AITask/doc/file/highlights.js.md",
+			"edits": [
+				{
+					"line": 10,
+					"col": 22,
+					"from": "/framework/ext/AITask/doc/highlights.md",
+					"to": "/framework/ai/AITask/doc/highlights.md"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/file/needs.js.md",
+			"now": "public/framework/ai/AITask/doc/file/needs.js.md",
+			"edits": [
+				{
+					"line": 19,
+					"col": 25,
+					"from": "/framework/ext/AITask/doc/ranking",
+					"to": "/framework/ai/AITask/doc/ranking"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/file/rank.js.md",
+			"now": "public/framework/ai/AITask/doc/file/rank.js.md",
+			"edits": [
+				{
+					"line": 41,
+					"col": 25,
+					"from": "/framework/ext/AITask/doc/ranking",
+					"to": "/framework/ai/AITask/doc/ranking"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/file/usage.js.md",
+			"now": "public/framework/ai/AITask/doc/file/usage.js.md",
+			"edits": [
+				{
+					"line": 1,
+					"col": 56,
+					"from": "/framework/ext/AITask/doc/pace",
+					"to": "/framework/ai/AITask/doc/pace"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/highlights.md",
+			"now": "public/framework/ai/AITask/doc/highlights.md",
+			"edits": [
+				{
+					"line": 99,
+					"col": 30,
+					"from": "/framework/ext/AITask/doc/decisions.md",
+					"to": "/framework/ai/AITask/doc/decisions.md"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/manifest.md",
+			"now": "public/framework/ai/AITask/doc/manifest.md",
+			"edits": [
+				{
+					"line": 55,
+					"col": 22,
+					"from": "/framework/ext/AITask/doc/highlights.md",
+					"to": "/framework/ai/AITask/doc/highlights.md"
+				},
+				{
+					"line": 85,
+					"col": 16,
+					"from": "/framework/ext/AITask/doc/asks",
+					"to": "/framework/ai/AITask/doc/asks"
+				},
+				{
+					"line": 98,
+					"col": 25,
+					"from": "/framework/ext/AITask/doc/decisions-tab",
+					"to": "/framework/ai/AITask/doc/decisions-tab"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/asks.md",
+			"now": "public/framework/ai/AITask/doc/method/asks.md",
+			"edits": [
+				{
+					"line": 2,
+					"col": 44,
+					"from": "/framework/ext/AITask/files",
+					"to": "/framework/ai/AITask/files"
+				},
+				{
+					"line": 8,
+					"col": 7,
+					"from": "/framework/ext/AITask/doc/asks",
+					"to": "/framework/ai/AITask/doc/asks"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/base.md",
+			"now": "public/framework/ai/AITask/doc/method/base.md",
+			"edits": [
+				{
+					"line": 6,
+					"col": 40,
+					"from": "/framework/ext/AITask/api/src",
+					"to": "/framework/ai/AITask/api/src"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/chat.md",
+			"now": "public/framework/ai/AITask/doc/method/chat.md",
+			"edits": [
+				{
+					"line": 0,
+					"col": 33,
+					"from": "/framework/ext/AITask/api/composer",
+					"to": "/framework/ai/AITask/api/composer"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/composer.md",
+			"now": "public/framework/ai/AITask/doc/method/composer.md",
+			"edits": [
+				{
+					"line": 1,
+					"col": 43,
+					"from": "/framework/ext/AITask/api/chat",
+					"to": "/framework/ai/AITask/api/chat"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/content.md",
+			"now": "public/framework/ai/AITask/doc/method/content.md",
+			"edits": [
+				{
+					"line": 1,
+					"col": 11,
+					"from": "/framework/ext/AITask/doc/template",
+					"to": "/framework/ai/AITask/doc/template"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/decisions.md",
+			"now": "public/framework/ai/AITask/doc/method/decisions.md",
+			"edits": [
+				{
+					"line": 3,
+					"col": 12,
+					"from": "/framework/ext/AITask/files",
+					"to": "/framework/ai/AITask/files"
+				},
+				{
+					"line": 16,
+					"col": 31,
+					"from": "/framework/ext/AITask/doc/decisions-tab",
+					"to": "/framework/ai/AITask/doc/decisions-tab"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/legacy.md",
+			"now": "public/framework/ai/AITask/doc/method/legacy.md",
+			"edits": [
+				{
+					"line": 1,
+					"col": 56,
+					"from": "/framework/ext/AITask/api/src",
+					"to": "/framework/ai/AITask/api/src"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/log.md",
+			"now": "public/framework/ai/AITask/doc/method/log.md",
+			"edits": [
+				{
+					"line": 1,
+					"col": 30,
+					"from": "/framework/ext/AITask/files",
+					"to": "/framework/ai/AITask/files"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/refresh.md",
+			"now": "public/framework/ai/AITask/doc/method/refresh.md",
+			"edits": [
+				{
+					"line": 5,
+					"col": 6,
+					"from": "/framework/ext/AITask/AITask.js",
+					"to": "/framework/ai/AITask/AITask.js"
+				},
+				{
+					"line": 16,
+					"col": 15,
+					"from": "/framework/ext/AITask/api/unparsed",
+					"to": "/framework/ai/AITask/api/unparsed"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/report.md",
+			"now": "public/framework/ai/AITask/doc/method/report.md",
+			"edits": [
+				{
+					"line": 2,
+					"col": 24,
+					"from": "/framework/ext/AITask/doc/template",
+					"to": "/framework/ai/AITask/doc/template"
+				},
+				{
+					"line": 8,
+					"col": 34,
+					"from": "/framework/ext/AITask/api/refresh",
+					"to": "/framework/ai/AITask/api/refresh"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/session.md",
+			"now": "public/framework/ai/AITask/doc/method/session.md",
+			"edits": [
+				{
+					"line": 15,
+					"col": 14,
+					"from": "/framework/ext/AITask/api/refresh",
+					"to": "/framework/ai/AITask/api/refresh"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/method/unparsed.md",
+			"now": "public/framework/ai/AITask/doc/method/unparsed.md",
+			"edits": [
+				{
+					"line": 2,
+					"col": 14,
+					"from": "/framework/ext/AITask/api/refresh",
+					"to": "/framework/ai/AITask/api/refresh"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/nested.md",
+			"now": "public/framework/ai/AITask/doc/nested.md",
+			"edits": [
+				{
+					"line": 2,
+					"col": 153,
+					"from": "/framework/ext/AITask/tree",
+					"to": "/framework/ai/AITask/tree"
+				},
+				{
+					"line": 4,
+					"col": 29,
+					"from": "/framework/ext/AITask/tree",
+					"to": "/framework/ai/AITask/tree"
+				},
+				{
+					"line": 4,
+					"col": 86,
+					"from": "/framework/ext/AITask/tree/demo",
+					"to": "/framework/ai/AITask/tree/demo"
+				},
+				{
+					"line": 5,
+					"col": 57,
+					"from": "public/framework/ext/AITask/tree.test.mjs",
+					"to": "public/framework/ai/AITask/tree.test.mjs"
+				},
+				{
+					"line": 51,
+					"col": 307,
+					"from": "/framework/ext/AITask/tree/demo",
+					"to": "/framework/ai/AITask/tree/demo"
+				},
+				{
+					"line": 59,
+					"col": 123,
+					"from": "/framework/ext/AITask/tree/lanes",
+					"to": "/framework/ai/AITask/tree/lanes"
+				},
+				{
+					"line": 60,
+					"col": 81,
+					"from": "/framework/ext/AITask/tree/outline",
+					"to": "/framework/ai/AITask/tree/outline"
+				},
+				{
+					"line": 61,
+					"col": 58,
+					"from": "/framework/ext/AITask/tree/flow",
+					"to": "/framework/ai/AITask/tree/flow"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/ranking.md",
+			"now": "public/framework/ai/AITask/doc/ranking.md",
+			"edits": [
+				{
+					"line": 50,
+					"col": 55,
+					"from": "/framework/ext/AITask/doc/decisions-tab",
+					"to": "/framework/ai/AITask/doc/decisions-tab"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/starting-work.md",
+			"now": "public/framework/ai/AITask/doc/starting-work.md",
+			"edits": [
+				{
+					"line": 41,
+					"col": 0,
+					"from": "public/framework/ext/AITask/readme.md",
+					"to": "public/framework/ai/AITask/readme.md"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/template.md",
+			"now": "public/framework/ai/AITask/doc/template.md",
+			"edits": [
+				{
+					"line": 9,
+					"col": 8,
+					"from": "/framework/ext/AITask/doc/asks",
+					"to": "/framework/ai/AITask/doc/asks"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/views.md",
+			"now": "public/framework/ai/AITask/doc/views.md",
+			"edits": [
+				{
+					"line": 2,
+					"col": 485,
+					"from": "/framework/ext/AITask/tree",
+					"to": "/framework/ai/AITask/tree"
+				},
+				{
+					"line": 8,
+					"col": 164,
+					"from": "/framework/ext/AITask/tree",
+					"to": "/framework/ai/AITask/tree"
+				},
+				{
+					"line": 8,
+					"col": 224,
+					"from": "/framework/ext/AITask/tree/lanes",
+					"to": "/framework/ai/AITask/tree/lanes"
+				},
+				{
+					"line": 8,
+					"col": 276,
+					"from": "/framework/ext/AITask/tree/demo",
+					"to": "/framework/ai/AITask/tree/demo"
+				},
+				{
+					"line": 9,
+					"col": 130,
+					"from": "/framework/ext/AITask/tree/outline",
+					"to": "/framework/ai/AITask/tree/outline"
+				},
+				{
+					"line": 10,
+					"col": 91,
+					"from": "/framework/ext/AITask/tree/flow",
+					"to": "/framework/ai/AITask/tree/flow"
+				},
+				{
+					"line": 19,
+					"col": 28,
+					"from": "/framework/ext/AITask/tree",
+					"to": "/framework/ai/AITask/tree"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/doc/waves.md",
+			"now": "public/framework/ai/AITask/doc/waves.md",
+			"edits": [
+				{
+					"line": 2,
+					"col": 54,
+					"from": "/framework/ext/AITask/files",
+					"to": "/framework/ai/AITask/files"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/feed.js",
+			"now": "public/framework/ai/AITask/feed.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 16,
+					"from": "../markdown/md.js",
+					"to": "../../ext/markdown/md.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/message.js",
+			"now": "public/framework/ai/AITask/message.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 16,
+					"from": "../markdown/md.js",
+					"to": "../../ext/markdown/md.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/module-spend.js",
+			"now": "public/framework/ai/AITask/module-spend.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 38,
+					"from": "../Mention/Mention.js",
+					"to": "../../ext/Mention/Mention.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/page.js",
+			"now": "public/framework/ai/AITask/page.js",
+			"edits": [
+				{
+					"line": 60,
+					"col": 275,
+					"from": "/framework/ext/AITask/doc/cost",
+					"to": "/framework/ai/AITask/doc/cost"
+				},
+				{
+					"line": 93,
+					"col": 662,
+					"from": "/framework/ext/AITask/doc/asks",
+					"to": "/framework/ai/AITask/doc/asks"
+				},
+				{
+					"line": 101,
+					"col": 643,
+					"from": "/framework/ext/AITask/doc/asks",
+					"to": "/framework/ai/AITask/doc/asks"
+				},
+				{
+					"line": 119,
+					"col": 177,
+					"from": "public/framework/ext/AITask/decisions.mjs",
+					"to": "public/framework/ai/AITask/decisions.mjs"
+				},
+				{
+					"line": 119,
+					"col": 486,
+					"from": "/framework/ext/AITask/doc/decisions-tab",
+					"to": "/framework/ai/AITask/doc/decisions-tab"
+				},
+				{
+					"line": 138,
+					"col": 392,
+					"from": "/framework/ext/AITask/doc/ranking",
+					"to": "/framework/ai/AITask/doc/ranking"
+				},
+				{
+					"line": 144,
+					"col": 145,
+					"from": "/framework/ext/AITask/tree",
+					"to": "/framework/ai/AITask/tree"
+				},
+				{
+					"line": 144,
+					"col": 274,
+					"from": "/framework/ext/AITask/doc/nested",
+					"to": "/framework/ai/AITask/doc/nested"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/rank.js",
+			"now": "public/framework/ai/AITask/rank.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 22,
+					"from": "../Ask/edit.js",
+					"to": "../../ext/Ask/edit.js"
+				},
+				{
+					"line": 2,
+					"col": 23,
+					"from": "../Draggable/Draggable.js",
+					"to": "../../ext/Draggable/Draggable.js"
+				},
+				{
+					"line": 3,
+					"col": 22,
+					"from": "../Draggable/Sortable.js",
+					"to": "../../ext/Draggable/Sortable.js"
+				},
+				{
+					"line": 4,
+					"col": 24,
+					"from": "../JSONL/JSONL.js",
+					"to": "../../ext/JSONL/JSONL.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/readme.md",
+			"now": "public/framework/ai/AITask/readme.md",
+			"edits": [
+				{
+					"line": 23,
+					"col": 13,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 23,
+					"col": 50,
+					"from": "/framework/ext/AITask/tree",
+					"to": "/framework/ai/AITask/tree"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/replay.js",
+			"now": "public/framework/ai/AITask/replay.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 16,
+					"from": "../markdown/md.js",
+					"to": "../../ext/markdown/md.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/tree/design.js",
+			"now": "public/framework/ai/AITask/tree/design.js",
+			"edits": [
+				{
+					"line": 8,
+					"col": 14,
+					"from": "/framework/ext/AITask/tree",
+					"to": "/framework/ai/AITask/tree"
+				},
+				{
+					"line": 29,
+					"col": 244,
+					"from": "/framework/ext/AITask/doc/nested",
+					"to": "/framework/ai/AITask/doc/nested"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/tree/page.js",
+			"now": "public/framework/ai/AITask/tree/page.js",
+			"edits": [
+				{
+					"line": 30,
+					"col": 16,
+					"from": "/framework/ext/AITask/tree",
+					"to": "/framework/ai/AITask/tree"
+				},
+				{
+					"line": 49,
+					"col": 156,
+					"from": "/framework/ext/AITask/tree/demo",
+					"to": "/framework/ai/AITask/tree/demo"
+				},
+				{
+					"line": 56,
+					"col": 122,
+					"from": "/framework/ext/AITask/doc/nested",
+					"to": "/framework/ai/AITask/doc/nested"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/tree.js",
+			"now": "public/framework/ai/AITask/tree.js",
+			"edits": [
+				{
+					"line": 191,
+					"col": 48,
+					"from": "../Query/QueryClient.js",
+					"to": "../../ext/Query/QueryClient.js"
+				},
+				{
+					"line": 220,
+					"col": 48,
+					"from": "../Query/QueryClient.js",
+					"to": "../../ext/Query/QueryClient.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/AITask/tree.test.mjs",
+			"now": "public/framework/ai/AITask/tree.test.mjs",
+			"edits": [
+				{
+					"line": 0,
+					"col": 8,
+					"from": "public/framework/ext/AITask/tree.test.mjs",
+					"to": "public/framework/ai/AITask/tree.test.mjs"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Ask/doc/decisions.md",
+			"now": "public/framework/ext/Ask/doc/decisions.md",
+			"edits": [
+				{
+					"line": 29,
+					"col": 4,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				},
+				{
+					"line": 29,
+					"col": 26,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 30,
+					"col": 4,
+					"from": "ext/AITask/compose.js",
+					"to": "ai/AITask/compose.js"
+				},
+				{
+					"line": 30,
+					"col": 27,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 156,
+					"col": 46,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 435,
+					"col": 69,
+					"from": "ext/AITask/decisions.js",
+					"to": "ai/AITask/decisions.js"
+				},
+				{
+					"line": 436,
+					"col": 17,
+					"from": "ext/AITask/rank.js",
+					"to": "ai/AITask/rank.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Ask/doc/file/reply.js.md",
+			"now": "public/framework/ext/Ask/doc/file/reply.js.md",
+			"edits": [
+				{
+					"line": 47,
+					"col": 1,
+					"from": "ext/AITask/rank.js",
+					"to": "ai/AITask/rank.js"
+				},
+				{
+					"line": 48,
+					"col": 1,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 63,
+					"col": 6,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Ask/doc/fork.md",
+			"now": "public/framework/ext/Ask/doc/fork.md",
+			"edits": [
+				{
+					"line": 20,
+					"col": 1,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Ask/doc/method/start.md",
+			"now": "public/framework/ext/Ask/doc/method/start.md",
+			"edits": [
+				{
+					"line": 21,
+					"col": 34,
+					"from": "ext/AITask/compose.js",
+					"to": "ai/AITask/compose.js"
+				},
+				{
+					"line": 39,
+					"col": 28,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Ask/doc/notes.md",
+			"now": "public/framework/ext/Ask/doc/notes.md",
+			"edits": [
+				{
+					"line": 7,
+					"col": 102,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 10,
+					"col": 43,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 13,
+					"col": 167,
+					"from": "ext/AITask/rank.js",
+					"to": "ai/AITask/rank.js"
+				},
+				{
+					"line": 13,
+					"col": 225,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Ask/reply.js",
+			"now": "public/framework/ext/Ask/reply.js",
+			"edits": [
+				{
+					"line": 20,
+					"col": 25,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 28,
+					"col": 13,
+					"from": "ext/AITask/rank.js",
+					"to": "ai/AITask/rank.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/catalog/browse.css",
+			"now": "public/framework/ext/catalog/browse.css",
+			"edits": [
+				{
+					"line": 5,
+					"col": 29,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/DesignTool/audit/pages.js",
+			"now": "public/framework/ext/DesignTool/audit/pages.js",
+			"edits": [
+				{
+					"line": 71,
+					"col": 2,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/DesignTool/vision/browse.js",
+			"now": "public/framework/ext/DesignTool/vision/browse.js",
+			"edits": [
+				{
+					"line": 18,
+					"col": 4,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Figma/Figma.js",
+			"now": "public/framework/ext/Figma/Figma.js",
+			"edits": [
+				{
+					"line": 31,
+					"col": 32,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Figma/sync.js",
+			"now": "public/framework/ext/Figma/sync.js",
+			"edits": [
+				{
+					"line": 2,
+					"col": 9,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/JSONL/doc/decisions.md",
+			"now": "public/framework/ext/JSONL/doc/decisions.md",
+			"edits": [
+				{
+					"line": 106,
+					"col": 35,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 144,
+					"col": 64,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 154,
+					"col": 4,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 154,
+					"col": 16,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/JSONL/doc/file/JSONL.js.md",
+			"now": "public/framework/ext/JSONL/doc/file/JSONL.js.md",
+			"edits": [
+				{
+					"line": 59,
+					"col": 30,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/JSONL/doc/file/live.js.md",
+			"now": "public/framework/ext/JSONL/doc/file/live.js.md",
+			"edits": [
+				{
+					"line": 55,
+					"col": 19,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/JSONL/doc/live.md",
+			"now": "public/framework/ext/JSONL/doc/live.md",
+			"edits": [
+				{
+					"line": 83,
+					"col": 1,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/JSONL/doc/method/unsubscribe.md",
+			"now": "public/framework/ext/JSONL/doc/method/unsubscribe.md",
+			"edits": [
+				{
+					"line": 5,
+					"col": 6,
+					"from": "/framework/ext/AITask/AITask.js",
+					"to": "/framework/ai/AITask/AITask.js"
+				},
+				{
+					"line": 13,
+					"col": 61,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 14,
+					"col": 14,
+					"from": "/framework/ext/AITask/api/session",
+					"to": "/framework/ai/AITask/api/session"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/JSONL/doc/property/loaded.md",
+			"now": "public/framework/ext/JSONL/doc/property/loaded.md",
+			"edits": [
+				{
+					"line": 2,
+					"col": 75,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/JSONL/doc/property/unparsed.md",
+			"now": "public/framework/ext/JSONL/doc/property/unparsed.md",
+			"edits": [
+				{
+					"line": 1,
+					"col": 49,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/JSONL/doc/task-jsonl.md",
+			"now": "public/framework/ext/JSONL/doc/task-jsonl.md",
+			"edits": [
+				{
+					"line": 58,
+					"col": 43,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 60,
+					"col": 2,
+					"from": "ext/AITask/doc/asks.md",
+					"to": "ai/AITask/doc/asks.md"
+				},
+				{
+					"line": 60,
+					"col": 26,
+					"from": "/framework/ext/AITask/doc/asks",
+					"to": "/framework/ai/AITask/doc/asks"
+				},
+				{
+					"line": 138,
+					"col": 18,
+					"from": "/framework/ext/AITask/doc/decisions-tab",
+					"to": "/framework/ai/AITask/doc/decisions-tab"
+				},
+				{
+					"line": 153,
+					"col": 2,
+					"from": "ext/AITask/doc/decisions-tab.md",
+					"to": "ai/AITask/doc/decisions-tab.md"
+				},
+				{
+					"line": 153,
+					"col": 35,
+					"from": "/framework/ext/AITask/doc/decisions-tab",
+					"to": "/framework/ai/AITask/doc/decisions-tab"
+				},
+				{
+					"line": 182,
+					"col": 22,
+					"from": "ext/AITask/doc/ranking.md",
+					"to": "ai/AITask/doc/ranking.md"
+				},
+				{
+					"line": 182,
+					"col": 49,
+					"from": "/framework/ext/AITask/doc/ranking",
+					"to": "/framework/ai/AITask/doc/ranking"
+				},
+				{
+					"line": 247,
+					"col": 40,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 313,
+					"col": 28,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 346,
+					"col": 1,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 348,
+					"col": 9,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/JSONL/page.js",
+			"now": "public/framework/ext/JSONL/page.js",
+			"edits": [
+				{
+					"line": 34,
+					"col": 144,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 34,
+					"col": 155,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 34,
+					"col": 634,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 34,
+					"col": 645,
+					"from": "/framework/ext/AITask/doc/decisions-tab",
+					"to": "/framework/ai/AITask/doc/decisions-tab"
+				},
+				{
+					"line": 127,
+					"col": 21,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/markdown/doc/decisions.md",
+			"now": "public/framework/ext/markdown/doc/decisions.md",
+			"edits": [
+				{
+					"line": 67,
+					"col": 3,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 67,
+					"col": 49,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 67,
+					"col": 72,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/markdown/doc/sanitization.md",
+			"now": "public/framework/ext/markdown/doc/sanitization.md",
+			"edits": [
+				{
+					"line": 30,
+					"col": 29,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Mention/maps/refs.js",
+			"now": "public/framework/ext/Mention/maps/refs.js",
+			"edits": [
+				{
+					"line": 47,
+					"col": 21,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/readme.md",
+			"now": "public/framework/ext/readme.md",
+			"edits": [
+				{
+					"line": 3,
+					"col": 11,
+					"from": "./AITask",
+					"to": "../ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Research/doc/decisions.md",
+			"now": "public/framework/ext/Research/doc/decisions.md",
+			"edits": [
+				{
+					"line": 15,
+					"col": 123,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/sprawl/doc/algorithm.md",
+			"now": "public/framework/ext/sprawl/doc/algorithm.md",
+			"edits": [
+				{
+					"line": 71,
+					"col": 23,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/sprawl/sprawl.js",
+			"now": "public/framework/ext/sprawl/sprawl.js",
+			"edits": [
+				{
+					"line": 51,
+					"col": 41,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Timeline/doc/decisions.md",
+			"now": "public/framework/ext/Timeline/doc/decisions.md",
+			"edits": [
+				{
+					"line": 84,
+					"col": 13,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ext/Timeline/page.js",
+			"now": "public/framework/ext/Timeline/page.js",
+			"edits": [
+				{
+					"line": 130,
+					"col": 13,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 130,
+					"col": 24,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/research/page.js",
+			"now": "public/framework/research/page.js",
+			"edits": [
+				{
+					"line": 9,
+					"col": 7,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/styles/doc/decisions.md",
+			"now": "public/framework/styles/doc/decisions.md",
+			"edits": [
+				{
+					"line": 301,
+					"col": 25,
+					"from": "ext/AITask/ai.css",
+					"to": "ai/AITask/ai.css"
+				}
+			]
+		},
+		{
+			"file": "public/framework/styles/layouts/cols/doc/adoption.md",
+			"now": "public/framework/styles/layouts/cols/doc/adoption.md",
+			"edits": [
+				{
+					"line": 14,
+					"col": 91,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 33,
+					"col": 1,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 48,
+					"col": 67,
+					"from": "ext/AITask/ai.css",
+					"to": "ai/AITask/ai.css"
+				},
+				{
+					"line": 60,
+					"col": 4,
+					"from": "framework/ext/AITask/ai.css",
+					"to": "framework/ai/AITask/ai.css"
+				}
+			]
+		},
+		{
+			"file": "public/framework/styles/system/studies/color/palette/page.js",
+			"now": "public/framework/styles/system/studies/color/palette/page.js",
+			"edits": [
+				{
+					"line": 82,
+					"col": 10,
+					"from": "ext/AITask/ai.css",
+					"to": "ai/AITask/ai.css"
+				}
+			]
+		},
+		{
+			"file": "public/framework/styles/system/studies/themes/page.js",
+			"now": "public/framework/styles/system/studies/themes/page.js",
+			"edits": [
+				{
+					"line": 142,
+					"col": 319,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ui/decision/page.js",
+			"now": "public/framework/ui/decision/page.js",
+			"edits": [
+				{
+					"line": 52,
+					"col": 51,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 52,
+					"col": 63,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 52,
+					"col": 353,
+					"from": "/framework/ext/AITask/doc/decisions-tab",
+					"to": "/framework/ai/AITask/doc/decisions-tab"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ui/doc/decisions.md",
+			"now": "public/framework/ui/doc/decisions.md",
+			"edits": [
+				{
+					"line": 232,
+					"col": 3,
+					"from": "ext/AITask/AITask.js",
+					"to": "ai/AITask/AITask.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ui/icon/doc/icons.md",
+			"now": "public/framework/ui/icon/doc/icons.md",
+			"edits": [
+				{
+					"line": 100,
+					"col": 36,
+					"from": "ext/AITask/nested.css",
+					"to": "ai/AITask/nested.css"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ux/Card/Card.css",
+			"now": "public/framework/ux/Card/Card.css",
+			"edits": [
+				{
+					"line": 185,
+					"col": 5,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ux/Content/Object/doc/census.md",
+			"now": "public/framework/ux/Content/Object/doc/census.md",
+			"edits": [
+				{
+					"line": 22,
+					"col": 11,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 90,
+					"col": 12,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "public/imagine/importance/ranked/ranked.js",
+			"now": "public/imagine/importance/ranked/ranked.js",
+			"edits": [
+				{
+					"line": 9,
+					"col": 5,
+					"from": "/framework/ext/AITask/doc/ranking",
+					"to": "/framework/ai/AITask/doc/ranking"
+				},
+				{
+					"line": 13,
+					"col": 27,
+					"from": "/framework/ext/AITask/asks.js",
+					"to": "/framework/ai/AITask/asks.js"
+				}
+			]
+		},
+		{
+			"file": "public/imagine/importance/ranked/readme.md",
+			"now": "public/imagine/importance/ranked/readme.md",
+			"edits": [
+				{
+					"line": 14,
+					"col": 2,
+					"from": "ext/AITask/doc/ranking.md",
+					"to": "ai/AITask/doc/ranking.md"
+				},
+				{
+					"line": 14,
+					"col": 29,
+					"from": "/framework/ext/AITask/doc/ranking",
+					"to": "/framework/ai/AITask/doc/ranking"
+				},
+				{
+					"line": 36,
+					"col": 4,
+					"from": "ext/AITask/doc/ranking.md",
+					"to": "ai/AITask/doc/ranking.md"
+				},
+				{
+					"line": 36,
+					"col": 31,
+					"from": "/framework/ext/AITask/doc/ranking",
+					"to": "/framework/ai/AITask/doc/ranking"
+				}
+			]
+		},
+		{
+			"file": "public/imagine/paging/doc/decisions.md",
+			"now": "public/imagine/paging/doc/decisions.md",
+			"edits": [
+				{
+					"line": 1529,
+					"col": 1,
+					"from": "ext/AITask/ai.css",
+					"to": "ai/AITask/ai.css"
+				}
+			]
+		},
+		{
+			"file": "Server/day-spend.mjs",
+			"now": "Server/day-spend.mjs",
+			"edits": [
+				{
+					"line": 113,
+					"col": 71,
+					"from": "ext/AITask/cost.js",
+					"to": "ai/AITask/cost.js"
+				}
+			]
+		},
+		{
+			"file": "Server/doc/directory-off.md",
+			"now": "Server/doc/directory-off.md",
+			"edits": [
+				{
+					"line": 20,
+					"col": 3,
+					"from": "public/framework/ext/AITask/dashboard.js",
+					"to": "public/framework/ai/AITask/dashboard.js"
+				},
+				{
+					"line": 21,
+					"col": 3,
+					"from": "public/framework/ext/AITask/day-prompts.js",
+					"to": "public/framework/ai/AITask/day-prompts.js"
+				},
+				{
+					"line": 22,
+					"col": 3,
+					"from": "public/framework/ext/AITask/listing.js",
+					"to": "public/framework/ai/AITask/listing.js"
+				},
+				{
+					"line": 23,
+					"col": 3,
+					"from": "public/framework/ext/AITask/tree.js",
+					"to": "public/framework/ai/AITask/tree.js"
+				}
+			]
+		},
+		{
+			"file": "Server/doc/task-cost.md",
+			"now": "Server/doc/task-cost.md",
+			"edits": [
+				{
+					"line": 19,
+					"col": 1,
+					"from": "public/framework/ext/AITask/doc/cost.md",
+					"to": "public/framework/ai/AITask/doc/cost.md"
+				},
+				{
+					"line": 42,
+					"col": 27,
+					"from": "ext/AITask/cost.js",
+					"to": "ai/AITask/cost.js"
+				}
+			]
+		},
+		{
+			"file": "Server/health.mjs",
+			"now": "Server/health.mjs",
+			"edits": [
+				{
+					"line": 376,
+					"col": 5,
+					"from": "ext/AITask/ai.css",
+					"to": "ai/AITask/ai.css"
+				}
+			]
+		},
+		{
+			"file": "Server/ModuleHomes.mjs",
+			"now": "Server/ModuleHomes.mjs",
+			"edits": [
+				{
+					"line": 4,
+					"col": 31,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "Server/ModuleMove.mjs",
+			"now": "Server/ModuleMove.mjs",
+			"edits": [
+				{
+					"line": 8,
+					"col": 49,
+					"from": "public/framework/ext/AITask",
+					"to": "public/framework/ai/AITask"
+				},
+				{
+					"line": 13,
+					"col": 84,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 78,
+					"col": 6,
+					"from": "/framework/ext/AITask",
+					"to": "/framework/ai/AITask"
+				},
+				{
+					"line": 81,
+					"col": 6,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				},
+				{
+					"line": 81,
+					"col": 21,
+					"from": "framework/ext/AITask",
+					"to": "framework/ai/AITask"
+				}
+			]
+		},
+		{
+			"file": "Server/plugins/AILogs.js",
+			"now": "Server/plugins/AILogs.js",
+			"edits": [
+				{
+					"line": 248,
+					"col": 44,
+					"from": "ext/AITask/conversation.js",
+					"to": "ai/AITask/conversation.js"
+				}
+			]
+		},
+		{
+			"file": "Server/plugins/Start.js",
+			"now": "Server/plugins/Start.js",
+			"edits": [
+				{
+					"line": 13,
+					"col": 24,
+					"from": "public/framework/ext/AITask/readme.md",
+					"to": "public/framework/ai/AITask/readme.md"
+				},
+				{
+					"line": 100,
+					"col": 3,
+					"from": "public/framework/ext/AITask/readme.md",
+					"to": "public/framework/ai/AITask/readme.md"
+				}
+			]
+		},
+		{
+			"file": "Server/task-cost.mjs",
+			"now": "Server/task-cost.mjs",
+			"edits": [
+				{
+					"line": 297,
+					"col": 62,
+					"from": "ext/AITask/cost.js",
+					"to": "ai/AITask/cost.js"
+				}
+			]
+		},
+		{
+			"file": "Servex/agents/Agents.js",
+			"now": "Servex/agents/Agents.js",
+			"edits": [
+				{
+					"line": 772,
+					"col": 4,
+					"from": "ext/AITask/tree.js",
+					"to": "ai/AITask/tree.js"
+				}
+			]
+		},
+		{
+			"file": "Servex/ext/openrouter/doc/operations.md",
+			"now": "Servex/ext/openrouter/doc/operations.md",
+			"edits": [
+				{
+					"line": 77,
+					"col": 7,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": "Servex/ext/openrouter/provider.js",
+			"now": "Servex/ext/openrouter/provider.js",
+			"edits": [
+				{
+					"line": 234,
+					"col": 37,
+					"from": "ext/AITask/dashboard.js",
+					"to": "ai/AITask/dashboard.js"
+				}
+			]
+		},
+		{
+			"file": ".claude/skills/code/improvements.md",
+			"now": ".claude/skills/code/improvements.md",
+			"edits": [
+				{
+					"line": 19,
+					"col": 96,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": ".claude/skills/documentation/improvements.md",
+			"now": ".claude/skills/documentation/improvements.md",
+			"edits": [
+				{
+					"line": 4,
+					"col": 522,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": ".claude/skills/finish-task/SKILL.md",
+			"now": ".claude/skills/finish-task/SKILL.md",
+			"edits": [
+				{
+					"line": 63,
+					"col": 510,
+					"from": "ext/AITask/doc/highlights.md",
+					"to": "ai/AITask/doc/highlights.md"
+				},
+				{
+					"line": 63,
+					"col": 540,
+					"from": "/framework/ext/AITask/doc/highlights.md",
+					"to": "/framework/ai/AITask/doc/highlights.md"
+				},
+				{
+					"line": 97,
+					"col": 35,
+					"from": "ext/AITask/readme.md",
+					"to": "ai/AITask/readme.md"
+				}
+			]
+		},
+		{
+			"file": ".claude/skills/new-task/SKILL.md",
+			"now": ".claude/skills/new-task/SKILL.md",
+			"edits": [
+				{
+					"line": 8,
+					"col": 566,
+					"from": "ext/AITask/readme.md",
+					"to": "ai/AITask/readme.md"
+				}
+			]
+		},
+		{
+			"file": ".claude/skills/sub-mastermind/improvements.md",
+			"now": ".claude/skills/sub-mastermind/improvements.md",
+			"edits": [
+				{
+					"line": 13,
+					"col": 306,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		},
+		{
+			"file": ".claude/skills/ui-test/improvements.md",
+			"now": ".claude/skills/ui-test/improvements.md",
+			"edits": [
+				{
+					"line": 3,
+					"col": 507,
+					"from": "ext/AITask",
+					"to": "ai/AITask"
+				}
+			]
+		}
+	]
+}
