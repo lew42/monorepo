@@ -39,6 +39,7 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 
 ## In flight
 - ✅ 2026-10-13 tidy-ds/kit/lab, icons, nesting, slots, transcribe reported. Index (masonry, natural height) + Index · full size rebuilt from ext/Figma/scripts/index-pages.figma.txt.
+- ⬜ builder (brief-builder.md) queued 2026-10-13.
 - ⬜ fluid-ds, fluid-kit (brief-fluid.md), grids (brief-grids.md), templates (brief-templates.md): queued 2026-10-13; re-run the Index script after.
 - ✅ Index page `234:2003` built as page 1 (38 previews); re-run after tidy finishes.
 - ⬜ slots (brief-slots.md), icons (brief-icons.md).
