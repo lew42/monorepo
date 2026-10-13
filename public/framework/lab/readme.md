@@ -1,6 +1,7 @@
 # Lab — small browser-feature experiments, each a live demo page
 
 ## Index
+- [PWA and notifications: state today](doc/pwa-state.md) — what works, proven; [next steps](doc/next.md)
 - [notifications](notifications/) — web notifications from a plain Android Chrome tab: demo cards, a [phone checklist](notifications/phone/), a [report](notifications/report/)
 - [WorkerHost](WorkerHost/WorkerHost.js) — registers `/sw.js`, shows its state, relays its messages
 - [NotificationManager](NotificationManager/NotificationManager.js) — permission, `maxActions`, `showNotification`, `getNotifications`; [NotificationHandle](NotificationManager/NotificationHandle.js) is one tag's slot

@@ -5,6 +5,7 @@ A query is plain JSON (`where`, `sort`, `offset`, `limit`, `sum`); node runs it 
 - `Query.js` (node and browser) — `new Query(spec).run(items)` gives `{ rows, total, totals, offset }`. Ops: `eq in gte lte contains`.
 - `QueryServer.mjs` (node) — `QueryServer.source(name, { load, items, on, unload_after })`, and the socket plugin that answers `rpc:query` and pushes `query_row` / `query_stale`.
 - `QueryClient.js` (browser) — `new QueryClient("sessions", { row, stale }).ask(spec)`.
+- `Server/SessionIndex.mjs` — the second source, `tasks` (every task record, module tags): [Server/doc/session-index.md](/Server/doc/session-index.md).
 - `check.mjs` — `node check.mjs`: the assertions.
 
 First user: the [Sessions page](/framework/ai/sessions/) (remote mode is the default on the dev socket; [`?source=files`](/framework/ai/sessions/?source=files) forces the old files path; what still differs is in doc/architecture.md). A node-side Page: [core/Page/doc/server.md](/framework/core/Page/doc/server.md). Numbers: [code/performance/doc/server-query.md](/framework/code/performance/doc/server-query.md).
