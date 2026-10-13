@@ -215,3 +215,30 @@ Change the floor: the input, the url (`?min=`, dropped at the default) and the r
 ## Tab floor setup (lines 621-623)
 
 A tab says which floor it means — the Inbox 90, the Log 0 — and what the rail is called there. A `?min=` in the url wins. Read on the next tick: the Router pushes the new url only after the page activates.
+
+
+## Architecture (moved from readme.md, 2026-10-13, verbatim): before and after (restructured 2026-10-02)
+
+**Before:** two unrelated classes shared this folder, with no connection to each other —
+`InboxRail` (`Rail.js`) and `DrawerInbox` (`Inbox.js`), even though both are "a message,
+on a page," just read from two different places (Servex's `/api/inbox` vs. whatever rows
+a page's own `source()` returns). Nothing pointed from one to the other, and `ai2/rail.js`
+named `InboxRail.prototype` the misleading `store` — it holds no data, just the rail's
+try/catch `localStorage` helper methods.
+
+**After:** one class, `Inbox` (`Inbox.js`), holding `{ page }`. Its two views are reached
+through two lazy getters, `inbox.rail` and `inbox.compact`, each built once and cached on
+first read — building one never builds the other. `Inbox.Rail` is `Rail.js`'s class,
+unchanged, imported into `Inbox.js` and assigned there (`Inbox.Rail = Rail`) — chosen over
+moving the class body itself so `Rail.js` never has to import `Inbox.js` back (no import
+cycle). `Inbox.Compact` is `DrawerInbox`, renamed and kept inside `Inbox.js` itself (small
+enough that a second file would be more ceremony than help) — a later task builds the
+actual Overview-dashboard tile on top of this same class. `ai2/rail.js`'s `store` is now
+`storage`, and `AIRail` extends `Inbox.Rail` directly.
+
+**Deprecation, for one release:** `InboxRail` and `DrawerInbox` are both still exported
+from `Inbox.js`, pointing at the new names (`export const InboxRail = Inbox.Rail;` etc.),
+so any import written before this change keeps working with no edit — `ux/Inbox/page.js`'s
+demo, for one, still imports `InboxRail` from `Rail.js` directly and needs no change. New
+code should write `Inbox.Rail` / `Inbox.Compact` instead; these two old names go away once
+nothing in the repo still uses them.
