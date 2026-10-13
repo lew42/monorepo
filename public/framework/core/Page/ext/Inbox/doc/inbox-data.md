@@ -5,7 +5,7 @@
 ## The decision (2026-10-13)
 
 1. **A record is the file its writer already appends to:** a card's own `page.jsonl` (cards, owner notes, chat) and a task's own `task.jsonl` landing line (what was built). Nothing is copied by hand.
-2. **The inbox reads two computed indexes, streamed with `live()`:** `ai/cards.jsonl` (written by Servex `Cards.js`) and [`timeline/landings.jsonl`](../timeline/landings.jsonl) (written by `node Landings.mjs --append`, append-only).
+2. **The inbox reads two indexes (caches, computed from the records), streamed with `live()`:** [`ai/cards.jsonl`](/framework/ai/cards.jsonl) (written by Servex `Cards.js`) and [`timeline/landings.jsonl`](../timeline/landings.jsonl) (written by `node Landings.mjs --append`, append-only).
 3. **`ai/board.jsonl` is retired, read-only.** It is the v/3 board. Its last writer is health-watch (`every-prompt/say.mjs`), and only `rail/inbox.js` reads it, as a fallback when `cards.jsonl` is missing. Nothing deletes it.
 
 Alternatives weighed (the `decision` line in [the task log](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/)):
@@ -16,7 +16,7 @@ Alternatives weighed (the `decision` line in [the task log](/framework/ai/sessio
 
 ## The map, computed
 
-Run `node InboxSources.mjs --write` from the main tree to refresh the table below. Never type a number into it by hand.
+Refresh the table below from the repo root of the main tree (a worktree counts its own, older files): `node public/framework/core/Page/ext/Inbox/InboxSources.mjs --write`. Never type a number into it by hand.
 
 <!-- sources -->
 | Source | Role | Writer | Reader | Holds today | Last |
@@ -50,7 +50,7 @@ Counted by `node InboxSources.mjs` on 2026-10-13 22:01 UTC.
 
 - **Live on every landing.** In `Server/on-landing.mjs`, after the `council.mjs` spawn (line ~43), add:
   `try { spawnSync(process.execPath, [path.join(root, "public/framework/core/Page/ext/Inbox/Landings.mjs"), "--append"], { stdio: "ignore", windowsHide: true }); } catch {}`
-  Until then, run `node public/framework/core/Page/ext/Inbox/Landings.mjs --append` yourself; the page's `live()` tail shows the new rows at once.
+  **Not made yet (2026-10-13).** Until it is, run `node public/framework/core/Page/ext/Inbox/Landings.mjs --append` from the repo root, then commit `timeline/landings.jsonl`; the page's `live()` tail shows the new rows at once.
 - **The AI page's Inbox tab** (`ai/rail/inbox.js`, `CardList`) still reads `cards.jsonl` on a 20 s `setInterval`. It should take its rows from `Timeline` (one stream, no poll), so both inboxes show the same ranked list.
 - **health-watch** should post through `owner_note` (Servex) instead of `say.mjs` → `board.jsonl`. Then the board has no writer at all.
 
