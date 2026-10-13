@@ -24,8 +24,8 @@ export class Search {
 
 	constructor(...args){
 		this.rows = [];
-		this.read = 0;        // pages loaded so far — the progress the UI shows
-		this.candidates = 0;  // urls to try, known as soon as the listing lands
+		this.read = 0;
+		this.candidates = 0;
 		this.assign(...args);
 		this.filters = new this.constructor.Filters({ search: this });
 	}
@@ -34,9 +34,6 @@ export class Search {
 
 	// ════ THE CORPUS ════════════════════════════════════════════════════════
 
-	// One build per instance, however many times this is called — the promise IS
-	// the guard. `watched` is called every `batch` pages and once at the end, so a
-	// UI can draw partial results the moment the first of them land.
 	build(watched){ return this.building ??= this.gather(watched); }
 
 	async gather(watched){
@@ -44,15 +41,11 @@ export class Search {
 		const queue = this.candidates_from(await this.listing());
 		this.candidates = queue.length;
 
-		// A pool, not `Promise.all` over the whole list: 838 dynamic imports fired at
-		// once starve the very navigation the reader may be making while they arrive.
 		await Promise.all(Array.from({ length: this.workers }, async () => {
 			while (queue.length){
 				const url = queue.shift();
 				const page = await Page.load(url, 0).catch(() => null);
 
-				// Not `instanceof Page` = a `page.js` whose default export is something
-				// else (a bare function, the pre-Page sandboxes). Nothing to search.
 				if (page instanceof Page) this.rows.push(this.row(page, url));
 
 				if (++this.read % this.batch === 0) watched?.(this);
@@ -66,27 +59,14 @@ export class Search {
 		return this;
 	}
 
-	/* ⚠ IMPORTING A PAGE MODULE CHANGES THIS DOCUMENT. `View.stylesheet()` runs at
-	 * module scope, so the build pulls ~70 page stylesheets into `<head>`, and a
-	 * module can touch `<body>` outright. Both are harmless while every rule sits in
-	 * one of the four layers `framework.css` declares — and immediately visible when
-	 * one does not: a rule outside every layer, or inside a layer nobody declared,
-	 * sorts AFTER all of them and beats every framework rule at any specificity.
-	 * `/castin/main.css` opens `@layer theme_cm` and its `a { color: #212121 }`
-	 * repainted every link on the site the first time anyone searched; `/arya/`
-	 * re-themed the whole page with one class on `<body>` (both 2026-09-06).
-	 *
-	 * The pages that do it today are skipped by url in `skip` below. This is the
-	 * guard for the next one: it cannot fix the sheet, but it refuses to let the site
-	 * change colour silently. CLAUDE.md — "Every CSS rule inside a layer". */
+	// ⚠ IMPORTING A PAGE MODULE CAN CHANGE THE SITE: CSS outside declared layers or
+	// module scope touching <body> silently outrank framework rules. check() detects it.
+	// See doc/Search-notes.md.
 	check(before){
 		if (typeof document === "undefined") return [];
 
 		const bad = [];
 
-		// The other half of the same hazard: a module can touch the document
-		// directly. `/arya/lib/Page.js` runs `app.$body.ac("arya")` at module scope,
-		// and one class on <body> re-themed the whole site.
 		[document.documentElement, document.body].forEach((el, i) => {
 			if (el.className !== before.classes[i])
 				bad.push(`<${el.tagName.toLowerCase()} class="${el.className}"> — a page module changed it at import`);
@@ -96,7 +76,7 @@ export class Search {
 			if (!sheet.href || before.sheets.has(sheet.href)) continue;
 
 			let rules;
-			try { rules = sheet.cssRules; } catch { continue; }   // cross-origin: not ours
+			try { rules = sheet.cssRules; } catch { continue; }   // cross-origin sheets throw
 
 			for (const rule of rules){
 				const kind = rule.constructor.name;
@@ -125,10 +105,8 @@ export class Search {
 		};
 	}
 
-	// The dev server writes this file on every change; production ships it built.
 	listing(){ return fetch(this.source).then(res => res.json()); }
 
-	// Every directory holding a `page.js`, minus the ones no url can walk to.
 	candidates_from(data){
 		const dirs = new Set();
 
@@ -144,9 +122,7 @@ export class Search {
 		return [...dirs].filter(url => this.reachable(url, dirs));
 	}
 
-	// ⚠ The Router resolves a url ONE SEGMENT AT A TIME (`Router.load_segments`), so
-	// a page dir whose parent has no `page.js` of its own is a url nothing can walk
-	// to — 69 of them on this site, most inside the `core/new/1` sandbox.
+	// ⚠ TRAP: not every page.js is reachable — parent must have page.js too.
 	reachable(url, dirs){
 		if (this.skip.some(prefix => url.startsWith(prefix))) return false;
 
@@ -157,9 +133,6 @@ export class Search {
 		return true;
 	}
 
-	// One row per page: what a reader searches by, and nothing else. `tags` is the
-	// page's own `tags:` prop — no page declares one yet, and the filter groups for
-	// them stay hidden until some do (doc/filters.md).
 	row(page, url){
 		return {
 			url,
@@ -173,9 +146,6 @@ export class Search {
 	}
 
 	// ════ RANKING ═══════════════════════════════════════════════════════════
-	// Six tiers, best first, and the whole rule is: the TITLE answers if it can,
-	// and only a title that says nothing lets the description answer. Explained,
-	// with a live example of each, on /framework/core/Search/.
 
 	static TIERS = [
 		"the title IS what you typed",
@@ -186,7 +156,6 @@ export class Search {
 		"every word you typed is somewhere",
 	];
 
-	// The query, prepared once per keystroke rather than once per row.
 	query(text){
 		const needle = text.trim().toLowerCase();
 		return {
@@ -196,7 +165,6 @@ export class Search {
 		};
 	}
 
-	// Which tier a row earns, or null for "not a match at all".
 	tier(row, q){
 		const title = row.title.toLowerCase();
 		const description = row.description.toLowerCase();
@@ -211,8 +179,6 @@ export class Search {
 		return null;
 	}
 
-	/* Best first. An empty query is not "no results" — it is the whole site, nearest
-	 * the front door first, so the box is a way to browse and not only to search. */
 	rank(text){
 		const rows = this.rows.filter(row => this.filters.match(row));
 		const q = this.query(text);
@@ -225,8 +191,6 @@ export class Search {
 			if (tier !== null) scored.push({ row, tier });
 		}
 
-		// After the tier: the shortest title (the most exactly-about-this page), then
-		// the shallowest url (a section beats a page buried inside it), then a-z.
 		scored.sort((a, b) => a.tier - b.tier
 			|| a.row.title.length - b.row.title.length
 			|| a.row.depth - b.row.depth
@@ -236,69 +200,30 @@ export class Search {
 	}
 }
 
-// Defaults on the prototype, so a caller overrides one by assign and none of them
-// is an argument anybody has to pass.
 Search.prototype.source = "/directory.json";
-Search.prototype.workers = 12;   // parallel imports; 12 read 818 pages in ~1s
-Search.prototype.batch = 40;     // pages between progress callbacks
+Search.prototype.workers = 12;
+Search.prototype.batch = 40;
 
-// The four layers framework.css declares, in `check_sheets()`'s order-of-truth.
 Search.LAYERS = ["base", "theme", "site", "util"];
 
-/* The exclusions. Each is a citation, not a preference — delete the line when the
- * reason goes away.
- *
- * ⚠ `core/new/1/` is the prior-art sandbox — "read, never import" (the `code` skill),
- *   and one page in it throws at import ON PURPOSE. 264 page.js files, none of them
- *   a page anybody is looking for.
- * ⚠ The four named hazards are FIXED (2026-09-06, search-tidy): `/castin/main.css`'s
- *   undeclared `@layer theme_cm` and `/alex/`'s and `/edric/`'s unlayered sheets are
- *   now wrapped in the framework's own declared `@layer base` — same rules, contained
- *   where they sort, so a framework rule always wins a conflict. `/arya/lib/Page.js`'s
- *   `app.$body.ac("arya")` moved out of module scope into a new `initialize()`, which
- *   only runs when one of arya's pages is actually shown.
- * ⚠ `/arya/` is OUT of skip: its whole tree checks clean (`Search.check()` reports
- *   nothing importing all twelve of its pages, computed styles on `/framework/`
- *   unchanged). It adds 12 candidates and 0 rows — `/arya/lib/Page.js` is arya's own
- *   hand-rolled `Page` class, never this framework's, so `page instanceof Page` is
- *   false for every one of them. That is a separate, pre-existing fact about how
- *   arya's pages are built, not a search bug.
- * ⚠ `/alex/`, `/castin/` and `/edric/` stay IN, for a DIFFERENT reason found while
- *   proving the above: `/alex/page.js`, `/edric/page.js` and six files under
- *   `/castin/` (`root/page.js` among them) each run `app.$body.ac("theme-1")` — the
- *   site's own real theme, declared in `/styles.css` — at MODULE SCOPE. Same shape of
- *   bug as arya's, in files this task's fence did not cover. Measured 2026-09-06:
- *   importing any of these three trees still repaints the site and `Search.check()`
- *   names it. Move each `app.$body.ac("theme-1")` into a lifecycle hook and these
- *   three lines go too. */
+// Exclusions: see doc/Search-notes.md
 Search.prototype.skip = ["/framework/core/new/", "/alex/", "/castin/", "/edric/"];
 
-/* The facets. A group is a name and a way to read a row's values for it; a chip is
- * one value. Nothing is selected by default, and nothing selected means everything
- * — which is what "filters default to all" is, with no special case to write.
- *
- * Within a group the chips are OR (Framework or Imagine); between groups they are
- * AND (Framework AND docs). doc/filters.md. */
+// Filters: see doc/Search-notes.md
 Search.Filters = class SearchFilters {
 
 	constructor(...args){
-		this.on = new Map();   // group name → Set of chosen values; absent or empty = all
+		this.on = new Map();
 		this.assign(...args);
 	}
 
 	assign(...args){ return Object.assign(this, ...args); }
 
-	// A row's values for one group. Section is the first url segment, which EVERY
-	// page has; each axis is the subset of the page's own `tags:` on that axis.
 	values(group, row){
 		if (group === "section") return [row.section || "home"];
 		return row.tags.filter(tag => (AXES[tag] ?? "other") === group);
 	}
 
-	// Every group that has something to choose between, options counted from the
-	// corpus and commonest first. A group with fewer than two options is not a
-	// choice, so it does not render — which is exactly how the four tag axes stay
-	// invisible until pages start declaring `tags:`, and appear on their own after.
 	groups(){
 		if (this.stamp === this.search.rows.length) return this.cache;
 
@@ -321,7 +246,6 @@ Search.Filters = class SearchFilters {
 
 	title(value){ return value.replace(/[-_]+/g, " ").replace(/\b\w/g, c => c.toUpperCase()); }
 
-	// AND across groups, OR inside one. An empty set is not a filter.
 	match(row){
 		for (const [group, chosen] of this.on){
 			if (!chosen.size) continue;
@@ -338,7 +262,6 @@ Search.Filters = class SearchFilters {
 		return this;
 	}
 
-	// How many chips are lit — the number the "clear" control shows.
 	count(){ return [...this.on.values()].reduce((n, set) => n + set.size, 0); }
 
 	clear(){ this.on.clear(); return this; }
