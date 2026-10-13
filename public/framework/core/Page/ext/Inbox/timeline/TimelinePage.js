@@ -4,6 +4,7 @@ import DataGrid from "/framework/ext/DataGrid/DataGrid.js";
 import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
 import Timeline from "../Timeline.js";
 import { age } from "../Inbox.js";
+import TimelineTalk from "./TimelineTalk.js";
 
 View.stylesheet({ url: import.meta.url }, "timeline.css");
 
@@ -55,7 +56,7 @@ export default class TimelinePage extends Page {
 		this.grid.set_rows(rows);
 		this.$head.empty(() => {
 			const landed = rows.filter(r => r.kind === "landed").length;
-			p.c("timeline-count", `${landed} things built · ${rows.length - landed} waiting on you or for you`);
+			p.c("timeline-count", `${landed} built · ${rows.length - landed} for you`);
 			div.c("timeline-chips", () => {
 				button.c("timeline-chip" + (big ? " timeline-chip-on" : ""), "Big things only").attr("aria-pressed", String(big)).click(() => this.flip("all"));
 				button.c("timeline-chip" + (debug ? " timeline-chip-on" : ""), "Sources and scores").attr("aria-pressed", String(debug)).click(() => this.flip("debug"));
@@ -92,9 +93,12 @@ export default class TimelinePage extends Page {
 		constructor({ home, row_key }){ super({ home, row_key, width: "fill", title: "", url: home.url + row_key + "/" }); }
 
 		content(){
-			const $box = div.c("timeline-detail flow");
+			const $box = div.c("timeline-detail");
 			const draw = () => {
 				const r = this.home.timeline.row(this.row_key);
+				if (r && r.row_key === this.shown?.row_key) return;   // a stream batch keeps the open row and its chat as they are
+				this.talk?.stop();
+				this.shown = r;
 				$box.empty(() => r ? this.detail_of(r) : p.c("muted", "Loading…"));
 			};
 			this.off = this.home.timeline.on(draw);
@@ -102,21 +106,30 @@ export default class TimelinePage extends Page {
 			draw();
 		}
 
-		deactivated(){ this.off?.(); }
+		deactivated(){ this.off?.(); this.talk?.stop(); this.shown = null; }
 
+		/** The row on the left; its card's chat on the right (stacked on a narrow screen). */
 		detail_of(r){
-			small.c("muted", [TimelinePage.KIND_WORD[r.kind], new Date(r.at).toLocaleString(), `score ${r.score}`, r.source].join(" · "));
+			div.c("timeline-split", () => {
+				div.c("timeline-main flow", () => this.main_of(r));
+				if (r.card) this.talk = new TimelineTalk({ card: r.card }), this.talk.view();
+			});
+		}
+
+		main_of(r){
+			const debug = this.home.flag("debug");
+			small.c("muted", [TimelinePage.KIND_WORD[r.kind], new Date(r.at).toLocaleString(), debug && `score ${r.score}`, debug && r.source].filter(Boolean).join(" · "));
 			h3(r.title);
 			div.c("timeline-links", () => {
-				if (r.card_url) a.c("button primary", "Open its card, and talk to it").href(r.card_url);
-				if (r.page) a.c("button", "Open what was built").href(r.page);
-				if (r.dir) a.c("button", "Its task log").href(r.dir);
+				if (r.page) a.c("timeline-link", "Open what was built").href(r.page);
+				if (r.card_url) a.c("timeline-link", "Its card").href(r.card_url);
+				if (r.dir) a.c("timeline-link", "Its task log").href(r.dir);
 			});
 			const $links = div.c("timeline-links"), $out = div.c("timeline-outcome");
 			if (r.sub) $out.append(() => p(r.sub));
 			if (r.kind === "landed") TimelineDetail.landing(r).then(l => {   // filled in a callback: no DOM after an await
 				if (!l) return;
-				$links.append(() => (l.links ?? []).filter(k => k?.url && k.url !== r.page).forEach(k => a.c("button", k.label || k.url).href(k.url)));
+				$links.append(() => (l.links ?? []).filter(k => k?.url && k.url !== r.page).forEach(k => a.c("timeline-link", k.label || k.url).href(k.url)));
 				if (!l.outcome) return;
 				const view = md(l.outcome);
 				md.resolve(view.el, location.origin + r.dir);

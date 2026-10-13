@@ -7,7 +7,7 @@ export default new Page({
 	icon: "inbox",
 	children: "timeline",
 	content(){
-		p(() => a.c("button primary", "Open the inbox timeline").href(this.url + "timeline/"));
-		div.c("flow").append(md.file({ url: import.meta.url }, "readme.md"));
+		p(() => a("Open the inbox timeline →").href(this.url + "timeline/"));
+		div.c("flow").append(md.file({ url: import.meta.url }, "readme.md", { h1: false }));
 	},
 });
