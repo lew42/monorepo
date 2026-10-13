@@ -41,6 +41,8 @@
 
 ## Contradictions (your words pull two ways)
 
+Flagged by Haiku and not yet checked: about half of these read as open questions rather than true reversals.
+
 - **session system** (5 flagged, 2026-10-09 to 2026-10-13): Figure out archival process. Cloudflare cloud storage? Auto compaction? Compress logs?
 - **class architecture** (4 flagged, 2026-10-01 to 2026-10-03): Show class architecture: list, item, page, task, card; is card class needed?
 - **cost tracking** (3 flagged, 2026-10-03 to 2026-10-09): Spending reported as both $1.67 and $10.45 today; which is correct?

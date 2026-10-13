@@ -374,6 +374,8 @@ ${F.filter(f => f.status === "not done").slice(0, 10).map(row).join("\n")}
 
 ## Contradictions (your words pull two ways)
 
+Flagged by Haiku and not yet checked: about half of these read as open questions rather than true reversals.
+
 ${Object.entries(conflicts.reduce((o, a) => ((o[a.feature] ??= []).push(a), o), {})).sort((x, y) => y[1].length - x[1].length).slice(0, 10)
 	.map(([f, as]) => `- **${f}** (${as.length} flagged, ${as[0].date}${as.length > 1 ? ` to ${as[as.length - 1].date}` : ""}): ${as[as.length - 1].raw || as[as.length - 1].ask}`).join("\n")}
 
