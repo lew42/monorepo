@@ -32,6 +32,7 @@ Append with the validated route only: `node .claude/hooks/append.mjs <task.jsonl
 - `experiment`, `review`, `shots` and `bands` don't grow their own array — they push a computed `msg` onto `logs`, the same line every other reader of this file already draws. [doc/task-jsonl.md](./doc/task-jsonl.md)
 
 ## More
+- [`core/Page/doc/storage.md`](../../core/Page/doc/storage.md) — where page lines can be kept besides `.jsonl` files (Durable Object, D1, archive), and why JSONL stays the default and the reference
 - [`doc/JSONL-notes.md`](./doc/JSONL-notes.md) — implementation details and schema notes
 - [Overview](/framework/ext/JSONL/) · [`doc/task-jsonl.md`](./doc/task-jsonl.md) the task manifest verbs · [`doc/live.md`](./doc/live.md) streaming, registry, resets · [`doc/decisions.md`](./doc/decisions.md) the record: verb format, deferred, who uses it
 - Files that matter: `JSONL.js` (parse, replay, verbs), `live.js` (the socket half), `page.js` (the demos)

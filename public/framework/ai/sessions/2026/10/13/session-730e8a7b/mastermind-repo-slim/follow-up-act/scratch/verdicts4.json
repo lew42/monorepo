@@ -1,0 +1,65 @@
+[
+  {
+    "slug": "worktree-servers-revive",
+    "on_dev": "no",
+    "left": "Implement worktree server persistence through Servex restarts; all 5 steps to start (registration, external flag handling, recovery logic).",
+    "verdict": "open",
+    "evidence": "Task.jsonl shows 'queued'; no commit on michael/dev; brief describes unstarted work (lines 13-22)."
+  },
+  {
+    "slug": "review-empty-diff",
+    "on_dev": "no",
+    "left": "Add empty diff refusal in review.mjs main path and rename sizeOf() empty case from 'none' to 'empty'.",
+    "verdict": "open",
+    "evidence": "Task.jsonl shows 'queued'; no commit on michael/dev; brief specifies two concrete changes (lines 43-45)."
+  },
+  {
+    "slug": "spawn-logs-ask",
+    "on_dev": "no",
+    "left": "Wire spawn_agent to auto-append ask ledger line in Servex/agents/Agents.js; add tests; skip duplicate writes.",
+    "verdict": "open",
+    "evidence": "Task.jsonl shows 'queued'; no commit on michael/dev; brief specifies integration point and test requirement (lines 62-71)."
+  },
+  {
+    "slug": "restart-keeps-agents",
+    "on_dev": "no",
+    "left": "Fix 4 bugs: resume working agents after restart, keep mastermind wakeable, stop main-branch commits in worktrees, free stuck landings.",
+    "verdict": "open",
+    "evidence": "Task.jsonl shows 'queued'; no commit on michael/dev; brief lists 4 bugs with evidence of breakage (lines 90-98)."
+  },
+  {
+    "slug": "pool-unstick",
+    "on_dev": "no",
+    "left": "Rebalance worktree pool (free qf-6/qf-9; recover lost 5 worktrees); fix return_worktree log-file refusal.",
+    "verdict": "open",
+    "evidence": "Task.jsonl shows 'queued'; no commit on michael/dev; brief shows pool is out of sync (lines 121-125)."
+  },
+  {
+    "slug": "node-reap-run",
+    "on_dev": "no",
+    "left": "Run node-reap.mjs dry-run and --apply; capture result.json before/after and append as experiment line to task.jsonl.",
+    "verdict": "open",
+    "evidence": "Task.jsonl shows 'queued'; no commit on michael/dev; brief is a one-step operational task (lines 139-149)."
+  },
+  {
+    "slug": "session-detail-live",
+    "on_dev": "5ff7890cc",
+    "left": "Two items open per heartbeat (line 164): per-line transcript push, and real AI card shown arriving live.",
+    "verdict": "landed",
+    "evidence": "Task.jsonl line 164 heartbeat: 'task is landed...merged to michael/dev as 5ff7890cc'; git log shows 3 commits (4ecd60a2d, bf3bb1416); verified on branch."
+  },
+  {
+    "slug": "checker-1",
+    "on_dev": "1ea84b4ee",
+    "left": "Task complete; minion was intentionally stopped by parent task-mastermind-feedback-council on 2026-10-07T22:57:39.",
+    "verdict": "landed",
+    "evidence": "Git log michael/dev shows commit 1ea84b4ee 'Feedback council: verify all 48 open asks against the live site'; task.jsonl completed lines 194-207."
+  },
+  {
+    "slug": "session-trace",
+    "on_dev": "no",
+    "left": "Step 1 (trace_of_transcript + CLI) claimed done but not in Server/session-cost.mjs; step 2 (page.js, chart, table) held; verify if work was rebased or abandoned.",
+    "verdict": "unknown",
+    "evidence": "Task.jsonl line 238 verdict='landed' but `grep trace_of_transcript Server/session-cost.mjs` finds nothing; no commit on michael/dev; step 2 marked 'held' suggests incomplete."
+  }
+]

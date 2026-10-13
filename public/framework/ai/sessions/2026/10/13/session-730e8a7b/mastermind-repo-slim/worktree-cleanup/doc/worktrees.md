@@ -93,7 +93,7 @@ no timer calls it. Even when it ran, it skipped 20 of 50, because a single chang
 to keep a worktree.
 
 **One more source of waste:** `git worktree remove` on Windows can fail partway when a file is held
-open. Git then forgets the worktree but leaves its files on disk. 23 folders like that sat in `worktrees/`.
+open. Git then forgets the worktree but leaves its files on disk. 29 folders like that were found; 24 were removed.
 `Server/worktree-leftovers.mjs` removes one only when every file in it is already in git (each file is
 hashed and looked up), is ignored by `.gitignore`, or is a server log. Counts are in the [report](../report.md).
 

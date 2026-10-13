@@ -1,0 +1,72 @@
+[
+  {
+    "slug": "web-benchmarks",
+    "on_dev": "124cef444",
+    "left": "Implementation never started; brief only, task ended without landing after session interrupts",
+    "verdict": "open",
+    "evidence": "Commit is brief only; task.jsonl marked open:1, cost $0.053, session ended (other) without landing"
+  },
+  {
+    "slug": "retire-ai2",
+    "on_dev": "a02d9b044",
+    "left": "Merge 1 complete; merges 2-3 (file moves, shim, cleanup) done in later ai2-merge task",
+    "verdict": "superseded",
+    "evidence": "a02d9b044 is merge 1 (nav only); full migration via ai2-merge (4a6ba4b2c: task log, review and landing) + Merge branch worktree/ai2-merge (957505d35)"
+  },
+  {
+    "slug": "message-cost",
+    "on_dev": "bf5528ea2",
+    "left": "Implementation never started; brief only, task snoozed, session ended without landing",
+    "verdict": "open",
+    "evidence": "Commit is brief only; task.jsonl marked open:1, cost $4.78, snoozed until Oct 7, session ended (other) without landing"
+  },
+  {
+    "slug": "merge-commits",
+    "on_dev": "no",
+    "left": "Must identify files in .merge-landed.json still uncommitted and commit them",
+    "verdict": "open",
+    "evidence": "No commits found for this task; queued state in task.jsonl"
+  },
+  {
+    "slug": "spend-shape",
+    "on_dev": "no",
+    "left": "Must add spawned_by field to every spawn_agent call and display in Sessions tab",
+    "verdict": "open",
+    "evidence": "No commits found; task was queued; requirements cite 474 of 563 agents have no parent field"
+  },
+  {
+    "slug": "spend-gate",
+    "on_dev": "4d2860a7a",
+    "left": "Test file Servex/agents/spend-gate.test.mjs never written; step 1-2 incomplete",
+    "verdict": "open",
+    "evidence": "Commit 4d2860a7a is draft checkpoint only; test file does not exist; task marked open:1, ended without landing"
+  },
+  {
+    "slug": "phone-server",
+    "on_dev": "no",
+    "left": "Must add phone project to Servex at port 8137 with HOST=0.0.0.0, started on boot",
+    "verdict": "open",
+    "evidence": "No commits found; task was queued; requirements describe need for phone project env override"
+  },
+  {
+    "slug": "main-branch-guard",
+    "on_dev": "no",
+    "left": "Must add git-guard script to prevent michael/dev checkout outside main, and alarm for worktree violations",
+    "verdict": "open",
+    "evidence": "No commits found; task was queued after restart-keeps-agents; requirements describe guard + alarm"
+  },
+  {
+    "slug": "perf-audit",
+    "on_dev": "no",
+    "left": "Must write Servex/perf.mjs to measure spawn→result, quick-fix→live, merge smoke times from logs",
+    "verdict": "open",
+    "evidence": "No commits found; task was queued; requirements specify perf.mjs script to read real logs and output medians"
+  },
+  {
+    "slug": "openrouter-reads-cache",
+    "on_dev": "no",
+    "left": "Parallelization and system prompt work moved to spend-gate; optimization left undone",
+    "verdict": "superseded",
+    "evidence": "Requirements state: caching half moved to spend-gate; do this after it lands; the optimization (read all files in one turn) remains incomplete"
+  }
+]

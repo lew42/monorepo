@@ -100,3 +100,5 @@ runs `sweep()` once a tick, in a hidden child process: it walks every worktree S
 working at landing time and has since finished). Neither one ever touches the main tree's server
 or Servex's own — those are never in that registry. `node Server/worktree-sweep.mjs --dry` prints
 what a real run would do without stopping anything.
+
+**Decision (2026-10-13, proposal, not wired):** run `node Server/FollowUp.mjs --write` once a day as one more TaskLoop check, and link its page ([follow-up](/framework/ai/doc/follow-up.md)) from `public/framework/ai/handover.md`, so work that goes quiet or lands without an outcome is listed daily instead of found by accident. Alternative: run it on demand only (today); rejected because the 2026-10-13 pass found 50 flagged rows nobody had looked at. Known flaw to fix first: `FollowUp.read_asks` keys asks by `card ?? title`, and an empty `card: ""` collapses unrelated asks into one key.
