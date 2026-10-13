@@ -26,3 +26,9 @@ Read [doc/page-layout.md](/framework/ext/Figma/doc/page-layout.md), [brief-ds.md
 4. Layout per page-layout.md: one 1920 wrapper made into `Page · Screens · Transcription`. Prototype screens stay top-level in a `Prototype screens` Section. Masters go in a `Components` frame.
 
 Screenshot and fix. Link the page from the Overview design-system card. Report `kit/transcribe.md`, committed by path.
+
+## Addendum (owner, 2026-10-13, sent to the agent)
+Also build the streaming permutations, the refining ladder and the context-card family from [ux/Dictate/doc/streaming-ui.md](/framework/ux/Dictate/doc/streaming-ui.md):
+- a filmstrip of the 3-line live area (sentences leaving it and moving up), in 3–4 styles of words appearing, one of them a prototype;
+- mentions, then pills, then relations;
+- Pill → Card as one component family with a launch arrow.
