@@ -21,8 +21,9 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 
 - ✅ `DS · 5 Diagrams & charts` ([report](kit/ds-diagrams.md)): flowcharts whose arrows follow growing cards (vertical, horizontal, snake, branch/merge, timeline), charts (bars, stacked, donut, sparkline), phone + desktop in action. Linked from Overview; technique in [use-figma.md](/framework/ext/Figma/doc/use-figma.md).
 
+- ✅ Web layouts ([report](kit/web-layouts.md), [doc](/framework/ext/Figma/doc/layouts.md)): `.fig-cols/split/three/media/side/bands` in a `.fig-lay` container that goes one column under 480 px; `.fig-stack` reused. Review fix: buttons hug inside a stack (were full width). Demo shows two uses per layout, not four.
+
 ## In flight
-- ⬜ Web: the seven layouts as opt-in `.fig-*` CSS — task-mastermind-figma-web-layouts, brief [kit/brief-web-layouts.md](kit/brief-web-layouts.md)
 
 - ⬜ `DS · 6 Screens` (five real screens from kit instances only, ▶ prototype list → detail + tab bar) — task-mastermind-figma-ds-screens, brief [kit/brief-screens.md](kit/brief-screens.md)
 
