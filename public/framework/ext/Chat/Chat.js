@@ -4,32 +4,8 @@ import { who_label, WHO } from "./roles.js";
 
 View.stylesheet(import.meta, "Chat.css");
 
-/**
- * A CHAT LOG: a scrolling column of message bubbles — yours on the right,
- * everyone else's on the left, updates as one quiet line.
- *
- *     const talk = chat({ source: () => entries, keep: e => true, answer: choice => send(choice) });
- *     talk.view;      // the scrolling box
- *     talk.sync();    // draw whatever is new since the last call
- *
- * APPEND, NEVER REWRITE. A line is drawn once and never moves: `seen` is every
- * entry already on screen, so `sync()` can be called as often as anything
- * changes. `source()` is the entries to show, asked fresh each time; `keep(e)`
- * says which of them belong here. `answer(choice)` is called when a button on a
- * question is clicked — how the answer is sent is the caller's business.
- *
- * SMART SCROLL: at the bottom, the box stays locked to the bottom as lines arrive;
- * scroll up and it freezes; scroll back to the bottom and it locks again.
- */
-/* ONE BUBBLE PER RUN (the owner, 2026-09-25). A message from the SAME sender as the
-   bubble at the end of the box, with nobody else in between and less than
-   MERGE_GAP_MS since that bubble's last message, adds a paragraph to it instead of
-   opening a new bubble. A longer gap opens a new one, even for the same sender.
-   Drawing only: the card's log keeps every message separate, nothing is rewritten.
-   The sender and the time of the last message are stamped on the bubble
-   (`data-sender`, `data-at`), so a re-drawn log merges the same way; an update, a
-   question or a headed reply carries no sender and so ends the run.
-   `mergeable()` is the whole rule, in one place. */
+// A chat log: scrolling message bubbles, yours right, others left. See doc/notes.md#chat-log
+// see doc/notes.md#one-bubble-per-run
 export const MERGE_GAP_MS = 10000;
 
 export function mergeable($box, sender, at){
@@ -38,14 +14,7 @@ export function mergeable($box, sender, at){
 	return at - Number(last.dataset.at) < MERGE_GAP_MS ? last : null;
 }
 
-/* REFINED (the owner, 2026-09-25): a merged bubble keeps its raw pieces
-   (`{ id, text, at }`) in `bubbles`. A `{ type: "refined", of: [ids], sections:
-   [{ text, from: [ids] }] }` line, drawn by `refine()`, replaces the raw
-   paragraphs of the bubble holding those ids with its sections (markdown). A
-   section with a `from` opens IN PLACE, on click, to the raw pieces it cites; a
-   click on the bubble opens all of its raw pieces, in time order. With no refined
-   line the raw paragraphs show, as before. `fill()` is the one place a bubble is
-   drawn from its state. */
+// see doc/notes.md#refined-bubbles
 const bubbles = new WeakMap();
 
 const el = (cls, tag = "div") => Object.assign(document.createElement(tag), { className: cls });
@@ -57,10 +26,7 @@ function raw_list(cls, pieces){
 	return box;
 }
 
-/* THE VIA MARK — a small, faint 🎤 (said) or ⌨ (typed) TRAILING each message's
-   last word (the owner, 2026-09-30: the mark stays, "small and trailing"), for
-   a universal chat line (below) that carries `via`. Glued after the last word
-   like the ✓/? mark, so it never takes a row of its own. */
+// see doc/notes.md#via-mark
 function via_text(via){ return via === "voice" || via === "whisper" ? "🎤" : "⌨"; }
 function via_badge(via){
 	const b = el("chatbox-via", "span");
@@ -69,37 +35,22 @@ function via_badge(via){
 	return b;
 }
 
-/* A FAILED SEND — "— not sent", muted, glued after the piece's own last word the same way
-   a ✓/? mark is (`append_mark()`'s own comment). `ux/Dictate/Widget.js`'s own Thread used to
-   write this straight onto the DOM node it had just drawn; review finding 1 named why that
-   broke (a later merge's `fill()` redraws every piece from its STORED state and wipes
-   anything bolted on afterward) — stored on the piece instead, same as `mark`/`via`. */
+// see doc/notes.md#failed-send
 function failed_badge(){
 	const b = el("chatbox-failed muted", "span");
 	b.textContent = "— not sent";
 	return b;
 }
 
-/* A PLACE CARD — `place: {module, id, ...}` swaps a piece's text for that
-   `ux/Content` module's own card, the exact contract `page.jsonl`'s own
-   "place" lines already use: `new Module({ id, ...rest })`. `capture: false`
-   stops it self-attaching to whatever the page's OWN captor happens to be —
-   the import resolves later, asynchronously, so that captor is long gone
-   (`code` skill's own "no DOM after an await") — this appends it to the
-   bubble EXPLICITLY once it is built instead. A module that fails to load (a
-   bad url, a missing file) says so in the card's own place, not silently. */
+// see doc/notes.md#place-card
 export function place_card(place){
-	// `on_chosen` (the ✓/? loop-back, below) is OURS, never the module's own
-	// constructor prop — pulled off before `rest` reaches `new mod.default(...)`.
+	// on_chosen is ours: pulled off before rest reaches the module's constructor
 	const { module, on_chosen, ...rest } = place ?? {};
 	const box = el("chatbox-text chatbox-place");
 	if (!module){ box.textContent = "(no module named)"; return box; }
 	import(module).then(mod => {
 		const view = new mod.default({ ...rest, capture: false });
-		// The module's own `write()` is its ONE seam for "an option got picked"
-		// (`ux/Content/ContentModule`'s own doc comment) — wrapping it, rather
-		// than adding a second prop the module has to know about, is the same
-		// "reuse, never rebuild" rule the rename/marks features already follow.
+			// wrap write(), the module's one seam for "an option got picked" (doc/notes.md#place-card)
 		if (on_chosen){
 			const original_write = view.write.bind(view);
 			view.write = line => { on_chosen(line); return original_write(line); };
@@ -112,13 +63,7 @@ export function place_card(place){
 	return box;
 }
 
-/** A REVISION, drawn as a PAIR under its raw line (the owner, 2026-09-29:
- *  "the revised text right under its raw line, raw greyed"): the raw words
- *  stay, muted, above the tidied-up version. A click toggles `.showraw` —
- *  the revised line hides and the raw one loses its muting, "back to raw" —
- *  a second click returns to the pair. `pc.revision` is `{text, level}`,
- *  set by `chat_line()` below when a revision line's `re` matches this
- *  piece's own `at`. */
+/** Raw line muted above its revised text; a click toggles `.showraw`. See doc/notes.md#revision-pair */
 function revision_pair_node(pc){
 	const wrap = el("chatbox-text chatbox-revision-pair");
 	wrap.dataset.level = pc.revision.level ?? "";
@@ -131,15 +76,7 @@ function revision_pair_node(pc){
 	return wrap;
 }
 
-/** One piece of a bubble's own text — a `place` card if it has one, else its
- *  markdown, or (once a revision has landed) the raw/revised PAIR above. The
- *  via mark (if the piece carries one) is on the bubble's own sender label
- *  instead — see `label_via()` above. */
-/** A ✓/? mark (`ux/Understand`'s own shape, `{mark: "ok"|"unclear", purpose}`),
- *  glued after the sentence's OWN LAST WORD, not on a line of its own — the
- *  owner's own words, "a green check mark after it." A non-breaking space is
- *  `ux/Understand`'s own trick for this (`Understand.js`'s `row()`): it makes
- *  the mark wrap like a word instead of a block dropping onto its own line. */
+/** A ✓/? mark glued after the sentence's last word. See doc/notes.md#check-mark */
 function mark_badge(m){
 	const b = el("chatbox-mark " + (m.mark === "ok" ? "chatbox-mark-ok" : "chatbox-mark-unclear"), "span");
 	b.title = m.purpose || (m.mark === "ok" ? "Reads as clear." : "This sentence might mean more than one thing.");
@@ -147,11 +84,7 @@ function mark_badge(m){
 	return b;
 }
 
-/* `md_into` (Markdown) renders `pc.text` as one or more BLOCK elements (a `<p>`,
-   a list, …) inside `node` — appending the mark to `node` itself lands it AFTER
-   that block, on its own line. Landing it inside the LAST block's own last
-   child, with a non-breaking space in front, keeps it on the sentence's own
-   line, right after the last word, the way `ux/Understand` already draws it. */
+// the mark goes inside the last block (not after it) so it stays on the last line
 function append_mark(node, m){
 	const last = node.lastElementChild ?? node;
 	last.append(" ", mark_badge(m));
@@ -168,7 +101,7 @@ function piece_body(pc){
 	if (pc.revision) return revision_pair_node(pc);
 	const node = para("chatbox-text", pc.text);
 	if (pc.mark) append_mark(node, pc.mark);
-	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));   // a no-break space: the mark never wraps onto a line of its own
+	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));
 	if (pc.failed) (node.lastElementChild ?? node).append(" ", failed_badge());
 	return node;
 }
@@ -202,16 +135,7 @@ function fill(b){
 	}
 }
 
-/* REACTIONS — an SMS tap-back (the owner, 2026-09-30: "long hold on a message
-   and thumbs up or a green check mark… just kind of like an acknowledged").
-   A reaction is its own log line, never an edit of the message:
-
-     {"react": {"at": "…", "re": "<the message's at or id>", "emoji": "👍", "from": {"kind": "owner"}}}
-
-   ONE PER PERSON PER MESSAGE: the newest line from a sender for a message wins,
-   and an empty `emoji` takes that sender's reaction off. `reacts_of` holds, per
-   bubble, message id -> sender -> {emoji, at}; `draw_reacts()` pins the result
-   on the bubble's top corner. */
+// see doc/notes.md#reactions
 export const REACTIONS = ["👍", "✅", "❤️", "😂", "❓", "👎"];
 const reacts_of = new WeakMap();
 const sender_of = from => String(from?.id || from?.kind || "someone");
@@ -236,7 +160,7 @@ export function reaction_of(b, re, who = "owner"){ return reacts_of.get(b)?.get(
 
 function draw_reacts(b){
 	b.querySelector(":scope > .chatbox-reacts")?.remove();
-	const counts = new Map();   // emoji -> [who, …]
+	const counts = new Map();
 	for (const on of (reacts_of.get(b) ?? new Map()).values())
 		for (const [who, r] of on) if (r.emoji) counts.set(r.emoji, [...(counts.get(r.emoji) ?? []), who]);
 	b.classList.toggle("chatbox-has-reacts", counts.size > 0);
@@ -251,20 +175,10 @@ function draw_reacts(b){
 	b.append(box);
 }
 
-/** Draw one message: a new bubble, or a paragraph on the bubble it merges into.
- *  `onmount(el)` fires once, only for a brand-new bubble — `chat()`'s own
- *  selection wiring (below) hangs off it. `via`/`mark`/`failed` are stored ON THE
- *  PIECE, same as `chat()`'s own `put_line()` does for its universal chat lines
- *  (review finding 1 and 6, one-dictation: a caller that bolted these onto the DOM
- *  node it got back, instead of handing them to `speak()` here, lost them the next
- *  time a merge's `fill()` redrew the bubble from its stored pieces — `patch_piece()`,
- *  below, is how that same caller updates one of these AFTER it was drawn, e.g. a
- *  mark that only answers once the bubble is already on screen). */
+/** Draw one message: a new bubble, or a paragraph on the bubble it merges into. See doc/notes.md#speak */
 export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark, failed, join = true }){
 	at = Date.parse(at ?? 0) || Date.now();
-	// `join: false` (one-dictation, item 2 — a chat-mode preset's own opt-out): never merge
-	// onto the last bubble, even from the same sender within `MERGE_GAP_MS` — every send is
-	// its own bubble. Default `true` is every caller before this task, unchanged.
+	// join: false never merges onto the last bubble (doc/notes.md#speak)
 	const last = join ? mergeable($box, sender, at) : null, piece = { id, text, at, via, mark, failed };
 	if (last){
 		bubbles.get(last).pieces.push(piece);
@@ -286,13 +200,7 @@ export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark
 	return made;
 }
 
-/** Change one piece's `mark`/`via`/`failed` (or any other field `piece_body()` reads)
- *  AFTER `speak()` already drew it, and redraw its bubble in place — the same thing
- *  `chat()`'s own `mark_owner_piece()`/`resolve_mark()` do internally with the full
- *  factory's own state, exposed here for a caller using the bare `speak()` primitive
- *  instead (`ux/Dictate/Widget.js`'s own `Thread`). `id` is the piece's own id
- *  (`speak()`'s own `id` option, usually its `at`). `false` when no piece on this
- *  bubble has that id — nothing to patch, nothing redrawn. */
+/** Change one piece's fields after speak() drew it and redraw its bubble; false if no such piece. See doc/notes.md#bare-speak-helpers */
 export function patch_piece(bubble, id, patch){
 	const st = bubble && bubbles.get(bubble);
 	const pc = st?.pieces.find(pc => pc.id === id);
@@ -302,11 +210,7 @@ export function patch_piece(bubble, id, patch){
 	return true;
 }
 
-/** Rekey one piece's own id in place, no redraw (the id is never shown — only
- *  `patch_piece()`'s own lookup, and a caller's own bookkeeping, ever read it).
- *  `ux/Dictate/Widget.js`'s own `retag()`: a bubble drawn under a local echo's `at`
- *  before the caller's real server answered with a different, final one — without
- *  this, a `patch_piece()` call under the NEW `at` would find nothing to patch. */
+/** Rekey one piece's id in place, no redraw; false if absent. See doc/notes.md#bare-speak-helpers */
 export function retag_piece(bubble, old_id, new_id){
 	const st = bubble && bubbles.get(bubble);
 	const pc = st?.pieces.find(pc => pc.id === old_id);
@@ -315,15 +219,7 @@ export function retag_piece(bubble, old_id, new_id){
 	return true;
 }
 
-/** Split a bubble in two (the `para` marker, one-dictation): the piece named `at_id`, and
- *  every piece merged into this SAME bubble after it, move out into a brand-new bubble of
- *  its own, placed right after the original — same sender, same look, built the normal way
- *  `speak()` would (registered in this module's own piece-tracking, so a LATER merge, mark
- *  or `retag()` on either half still works, same reason `patch_piece()`/`retag_piece()` above
- *  are exported instead of a caller reaching into that private state itself). `false`/`null`
- *  when `at_id` isn't on this bubble, or is already its FIRST piece — nothing to split off.
- *  Exported for `ux/Dictate/Widget.js`'s `Thread`, built from this module's own `speak()`
- *  rather than the whole `chat()` factory — see that class's own doc. */
+/** Move `at_id` and every later piece into a new bubble right after; null if not splittable. See doc/notes.md#bare-speak-helpers */
 export function split_bubble($box, bubble, at_id){
 	const st = bubble && bubbles.get(bubble);
 	if (!st) return null;
@@ -361,27 +257,15 @@ export function refine($box, e){
 	}
 }
 
-/* A universal chat line (below) has no `type`/`id` of its own to key on — every
-   one would collide on the same key without this, and a `fix` line (which MUST
-   still be drawn, to replace the original) would be silently dropped as a
-   duplicate. `at` plus whether this line is a `fix` is enough: two ordinary
-   lines never legitimately share an `at`, and a fix always differs from its
-   original by that one flag. */
+// see doc/notes.md#dedupe-key
 const key = e => e.react
 	? "react|" + e.react.at + "|" + e.react.re + "|" + sender_of(e.react.from) + "|" + (e.react.emoji ?? "")
 	: e.chat
-	// A fix line's key includes its TEXT: latest wins, so a later fix reading
-	// different words for the same `at` is never dropped as a duplicate of an
-	// earlier placeholder ("waiting for the page's assistant…" then the real
-	// reply, both `fix: true` on the same `at` — audio-review, 2026-09-29).
+		// a fix's key includes its text so a later fix is not dropped (doc/notes.md#dedupe-key)
 	? "chat|" + e.chat.at + "|" + (e.chat.fix ? "fix|" + e.chat.text : "line") + "|" + (e.chat.session ?? "")
 	: (e.type === "prompt" && e.id ? "prompt|" + e.id : [e.type, e.id, e.at, e.ref, e.text].join("|"));
 
-/* A BUBBLE AS A TREE (drill in, `doc/drill.md`): `{ key, title, text, place,
-   children }` — a card is a tiny page. A bubble's key is its first piece's `at`
-   (or id): the same key a `fix` line uses, so it survives a reload. Its
-   children: a refined bubble's sections (each with the raw pieces it cites as
-   ITS children — one level deeper), else its pieces. A leaf has none. */
+// A bubble as a tree for drilling in; see doc/notes.md#bubble-tree
 const first_line = t => { const s = String(t ?? "").replace(/^#+\s*/, "").split(/\r?\n/)[0].trim(); return s.length > 70 ? s.slice(0, 67) + "…" : s; };
 const leaf = pc => ({ key: String(pc.id), title: first_line(pc.text ?? pc.place?.ask ?? pc.place?.title ?? ""), text: pc.text, place: pc.place, children: [] });
 function bubble_key(b){ const st = bubbles.get(b); return st ? String(st.key ?? st.pieces[0]?.id ?? "") : null; }
@@ -396,40 +280,14 @@ export function card_of(b){
 			children: (sec.from ?? []).map(id => byid.get(id)).filter(Boolean).map(leaf) }))
 			.concat(st.pieces.filter(pc => !of.has(pc.id)).map(leaf));
 	}
-	// One plain piece is the bubble itself — nothing inside to open.
 	if (!st.head && !r && children.length === 1 && !children[0].place) children = [];
-	// A refined bubble is named by its first section, plus how many more — never
-	// the first section alone, which is the title of the level below it too.
+	// named by first section plus a count: the section alone is also the next level's title
 	const more = r && r.sections.length > 1 ? " (+" + (r.sections.length - 1) + " more)" : "";
 	const title = st.head ?? (r ? first_line(r.sections[0]?.text) + more : children[0]?.title ?? first_line(st.pieces[0]?.text));
 	return { key: bubble_key(b), title: title || "(untitled)", who: b.querySelector(":scope > .chatbox-who, :scope > .who")?.textContent ?? "", children };
 }
 
-/** STICKY-BOTTOM SCROLL — one scroll behavior for every scrolling chat log on the site:
- *  this file's own `chat()` log below, and `ux/Dictate/Widget.js`'s `Thread` (the Dictate
- *  page and the ✦ sheet both build their chat through that class, not through `chat()` —
- *  it owns a lighter box with no selection/reaction/drill wiring — so it used to hand-roll
- *  its OWN, broken copy of this same idea; CLAUDE.md law 6 says fix it once, here, and have
- *  every caller use this instead of a second copy. `box` is the element that actually
- *  scrolls (`overflow-y: auto` in its own CSS) — this appends a small jump-to-bottom
- *  button into it, so `box`'s CSS also needs `position: relative` for the button to anchor
- *  to the scrolling box itself rather than drift off to some ancestor.
- *
- *  `locked` starts true — "the reader is at the bottom, so every new line follows" (the
- *  owner's own words: sticks to the bottom, follows every new message, UNLESS scrolled up,
- *  in which case it stays put and a small button appears; clicking it jumps back down and
- *  resumes following). Scrolling UP turns it false and shows the button; reaching the
- *  bottom again (by hand, or the button) turns it back on.
- *
- *  `pin()` — call it once after drawing new lines — jumps to the bottom only while locked;
- *  it is also what a `ResizeObserver` on `box` calls, so a composer growing under the log,
- *  or the box's own first layout (0px tall until the page is on screen), re-pins the
- *  bottom with no scroll event at all. See `doc/scroll.md` for why only a move UP unlocks
- *  it (reading "am I at the bottom?" on every event lost the lock on first load, because
- *  our own jump-to-bottom's scroll event arrives a frame later, after the box is already
- *  taller). The button is moved to the very end of `box` every time it jumps — never left
- *  as `box`'s first child — so `.chatbox-log > :first-child`'s own push-to-the-bottom
- *  margin (Chat.css) still lands on the real first message, not on the button. */
+/** One sticky-bottom scroll for every chat log; call `pin()` after drawing. See doc/notes.md#sticky-scroll */
 export function sticky_scroll(box){
 	let locked = true, last = 0;
 	const at_bottom = () => box.scrollHeight - box.scrollTop - box.clientHeight < 4;
@@ -463,30 +321,14 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		$script = $s;
 	});
 
-	// SMART SCROLL — `sticky_scroll()`, above, owns the lock/button logic; `doc/scroll.md`
-	// has the why (only a move UP unlocks it, and the ResizeObserver re-pins a growing box).
 	const scroll = sticky_scroll($script.el);
-	// ONE pin per batch, not one per line: `scroll.pin()` forces a layout, and the Live
-	// card (hundreds of lines) paid that once per line - 5.7 s. The microtask runs after
-	// the synchronous batch; the second try (`requestAnimationFrame`) is for a box not on
-	// the page yet (its height is 0 until then).
+	// one pin per batch (doc/notes.md#pin-per-batch)
 	let pinning = false;
-	/* LIVE BUBBLES (dictation-stream, 2026-09-30) are not lines of the log: your words while you are
-	   still speaking (`live()`) and an assistant's reply while it is still being written (`stream()`).
-	   They always sit at the very end, so every real line is drawn with them lifted out and put back
-	   after it — `mergeable()` then never sees one as "the last bubble". A real line from the same
-	   speaker removes its live bubble (`chat_line()`). */
+	// see doc/notes.md#live-bubbles
 	const lives = new Map();   // key -> { el, text, timer }
 	const follow = fn => { for (const l of lives.values()) l.el.remove(); fn(); for (const l of lives.values()) $script.el.append(l.el); if (pinning) return; pinning = true; queueMicrotask(() => { pinning = false; scroll.pin(); }); requestAnimationFrame(scroll.pin); };
 
-	/* SELECTION (the owner: "when you click on a specific card, first it kind of
-	   selects that card"). One bubble at a time, in THIS log; a second tap on the
-	   same bubble, or Esc, clears it — added on top of whatever a bubble's own
-	   click already does (opening a refined bubble, a place card's own clicks),
-	   never instead of it: two listeners on the SAME element both still fire even
-	   when one of them calls `stopPropagation()` (that only blocks bubbling up to
-	   an ANCESTOR, never a sibling listener on the same node — requirements.md's
-	   own "a tap selects AND opens what's inside"). */
+	// see doc/notes.md#selection
 	let $selected = null;
 	function deselect(){
 		if (!$selected) return;
@@ -512,16 +354,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		if (on_refine && $b.classList.contains("chatbox-you")) add_refine_button($b);
 	}
 
-	/* THREADS (the owner, 2026-09-30: "a reply is attached to its parent bubble,
-	   shown as a thread under it, collapsed to N replies, not appended at the
-	   bottom out of context"). A selected bubble grows a Reply button; pressing
-	   it hands `on_reply({re, title})` to the caller, whose next message then
-	   carries `re` = that bubble's key and `thread: true`. Such a line is drawn
-	   in a small thread right under its parent (`thread_item()`, below), never
-	   at the bottom. A reply to a message that is itself in a thread joins the
-	   same thread: threads are one level deep. `thread: true` is what marks it:
-	   an ordinary assistant reply also carries `re` (the line it answers) and
-	   stays in the main flow. */
+	// see doc/notes.md#threads
 	function key_of($b){ return String(bubbles.get($b)?.key ?? bubbles.get($b)?.pieces[0]?.id ?? $b.dataset.re ?? ""); }
 	function add_reply_button($b){
 		const $btn = document.createElement("button");
@@ -534,9 +367,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		});
 		$b.appendChild($btn);
 	}
-	/* REFINE (asks #7, 2026-10-12): a selected bubble of YOURS grows a "Refine ✦" button. It hands `on_refine({ text, at, button })`
-	   the bubble's words (every piece, in order) and the time of its first piece; the caller runs the refine pipeline on them
-	   (`AISessionConversation.refine`: POST /api/refine, and the stages draw above the chat). No `on_refine` → no button. */
+	// see doc/notes.md#refine
 	function add_refine_button($b){
 		const $btn = document.createElement("button");
 		$btn.type = "button"; $btn.className = "chatbox-thread-btn chatbox-refine-btn"; $btn.textContent = "Refine ✦";
@@ -585,10 +416,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		return true;
 	}
 
-	/* DRILL IN (`doc/drill.md`, 2026-09-30): a selected bubble that HAS contents
-	   grows an "Open" button; pressing it hands `on_open` the bubble's own
-	   tree — `card_of()`, below — and the caller (`ChatPanel` → `Drill.js`)
-	   takes it full screen. No `on_open` → no button: v1 exactly. */
+	// see doc/drill.md
 	function add_open_button($b){
 		const $btn = document.createElement("button");
 		$btn.type = "button"; $btn.className = "chatbox-open-btn"; $btn.textContent = "Open ⤢";
@@ -600,20 +428,14 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		$b.tabIndex = 0;
 		$b.addEventListener("click", e => {
 			if (e.target.closest("select, .chatbox-rename-btn, .chatbox-open-btn, .chatbox-thread-btn, .chatbox-refine-btn, .chatbox-thread-toggle, .chatbox-react-picker, .chatbox-react-btn")) return;
-			// The click that ends a long-press opened the picker: it is not also a
-			// select, and it must not reach the document, which closes an open picker.
+			// the click ending a long-press is not a select and must not reach the document
 			if (pressed){ pressed = false; e.stopPropagation(); return; }
 			select_bubble($b);
 		});
 		if (on_react) reactable($b);
 	}
 
-	/* REACTING (the owner, 2026-09-30). Three ways to open the row of reactions on
-	   a bubble: hold it (a phone, about half a second), right-click it (a
-	   desktop; an Android long-press fires the same event), or the small smiley
-	   button that shows on hover. A tap on an emoji pins it on the bubble's
-	   corner; the same emoji again takes it off. `on_react({re, emoji, at})` is
-	   how the caller saves it (a line in the session log); it is drawn here at once. */
+	// see doc/notes.md#reacting
 	const HOLD_MS = 450;
 	let pressed = false, $picker = null;
 	function target_of($b, node){
@@ -667,9 +489,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		document.addEventListener("keydown", e => { if (e.key === "Escape") close_picker(); });
 	}
 
-	/* Which bubble holds each message id (a chat line's `at`, an old line's `id`),
-	   so a reaction line finds its bubble. A reaction that arrives before its
-	   message waits in `early` until the message is drawn. */
+	// message id -> bubble; a reaction arriving before its message waits in `early`
 	const targets = new Map(), early = new Map();
 	function target(id, $b){
 		if (id == null || !$b) return;
@@ -685,13 +505,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 	}
 	if (typeof document !== "undefined") document.addEventListener("keydown", e => { if (e.key === "Escape") deselect(); });
 
-	/* RENAME (`ux/Rename`'s own ask, reused — never rebuilt here): `rename.options(text)`
-	   is `rename_options` from `ux/Rename/Rename.js`, handed in by the caller
-	   (`ChatPanel`) so this file never imports `ux/` itself. Choosing a name calls
-	   `rename.on_renamed({el, piece}, name)` — the CALLER delivers the new title
-	   the normal way (a `fix` line, same `at`, so latest wins everywhere the log
-	   is read); `chat_line()`'s own fix handling below then redraws the title
-	   from that line, same as any other correction. */
+	// see doc/notes.md#rename
 	function add_rename_button($b){
 		const $btn = document.createElement("button");
 		$btn.type = "button"; $btn.className = "chatbox-rename-btn"; $btn.textContent = "Rename";
@@ -729,15 +543,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		}
 	}
 
-	/* ✓/? MARKS (`ux/Understand`'s own `marks()`, reused — never rebuilt here):
-	   after each of YOUR OWN lines, asked once, in the background ("the smart
-	   assistant, no hurry" — requirements.md). `fetch_marks` is `marks` from
-	   `ux/Understand/Understand.js`, handed in by `ChatPanel` the same way
-	   `rename` is, so this file never imports `ux/` either. The mark is stored
-	   ON THE PIECE (`piece.mark`) and drawn by `piece_node()` above, so a later
-	   `fill()` keeps showing it without asking again. An UNCLEAR sentence also
-	   calls `on_unclear(chat_line, mark)` once, so the caller can drop a
-	   clarification card into the flow. */
+	// see doc/notes.md#understand-marks
 	function mark_owner_piece(bubble, piece, c){
 		if (!fetch_marks) return;
 		fetch_marks([c.text]).then(out => {
@@ -757,12 +563,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 	/* A REPLY'S HEADING (the owner, 2026-09-24): a `heading` field, or a first line
 	   written `# Heading`, shows as a short bold title above the body. */
 	function reply(e){
-		// A THREADED REPLY (card-threaded-replies, 2026-10-01): `thread: true` + `re` (the id
-		// of the prompt or reply this one answers) nests it right under that line, the same
-		// `thread_item()` a `{chat:{thread,re}}` voice-session line already uses (THREADS,
-		// above). Tried first — a heading on a threaded reply is rare, but if the parent isn't
-		// on screen (opened mid-conversation), this falls through to the plain flow below
-		// rather than vanish, same rule `chat_line()`'s own threaded branch follows.
+		// threaded reply: nest under its parent, else fall through to the plain flow (doc/notes.md#threads)
 		if (e.thread && e.re){
 			let placed = false;
 			follow(() => { placed = thread_item(e, "chatbox-reply", e.by, Date.parse(e.at ?? 0) || Date.now()); });
@@ -778,18 +579,14 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				span.c("chatbox-head", $t => { md_into($t.el, head, true); });
 				if (body) div.c("chatbox-text md", $t => { md_into($t.el, body); });
 				if (e.id != null){ $b.el.dataset.re = e.id; target(e.id, $b.el); }
-				// Never `fill()`-ed (its markup is drawn right here); kept so `card_of()`
-				// can open it — its title is the heading, its one child the body.
+					// never fill()-ed; kept in bubbles so card_of() can open it
 				bubbles.set($b.el, { pieces: body ? [{ id: e.id ?? e.at, text: body, at: e.at }] : [], refined: null, head, key: e.id ?? e.at });
 				make_selectable($b.el);
 			});
 		}));
 	}
 
-	/* A QUESTION FOR YOU: `{type: "ask", text, choices: ["Yes", "No"]}` (or a `prompt`
-	   line that carries `choices`). A click calls `answer(choice)`; the buttons then
-	   show which was picked. Your later message matching a choice also settles it,
-	   so a reload shows it answered. */
+	// A question for you; see doc/notes.md#questions
 	const asks = [];
 	function ask(e){
 		const choices = e.choices?.length ? e.choices : ["Yes", "No"];
@@ -827,19 +624,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		if (hit) settle(hit, e.text);
 	}
 
-	/* THE UNIVERSAL CHAT LINE (voice-sessions/design.md, 2026-09-29):
-	   `{"chat": {at, session, path, from: {kind, id}, via, text, re}}`, the one
-	   shape every surface — voice, typed, an agent's own reply — logs a turn
-	   as. Mapped onto this file's own bubbles rather than the old `{type, by,
-	   text}` dispatch below, so THAT shape (what AI 2 and the drawer still log)
-	   is completely untouched: `from.kind === "owner"` is your bubble (right
-	   side); anything else is a reply (left side), labelled by `from.id`
-	   (`who_label()` already reads ids like `assistant-fast`) or, missing that,
-	   by `from.kind`.
-	   A FIX (`fix: true`) is a later line with the SAME `at` as an earlier one
-	   — "here is what was actually meant" — and replaces that piece's words in
-	   place instead of adding a second bubble; `fix_index` remembers which
-	   bubble and piece each `at` landed in, per this `chat()` instance. */
+	// see doc/notes.md#universal-chat-line
 	const fix_index = new Map();   // chat.at (string) -> { bubble, piece }
 
 	function chat_line(c){
@@ -854,31 +639,21 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				Object.assign(hit.piece, { text: c.text, via: c.via, place: c.place });
 				return follow(() => fill(hit.bubble));
 			}
-			// No original found (a page opened mid-conversation, or logs out of
-			// order) — the correction is still the newest truth, so show it as
-			// its own line rather than dropping it.
+			// no original on screen: show the correction as its own line, never drop it
 		}
 
-		/* A REVISION (`ext/Chat/readme.md`'s "revision line"): `c.re` names the
-		   RAW line's own `at` this tidies up, `c.level` says how much — never a
-		   `fix` (a correction to what was actually said) and never its own
-		   bubble. Keyed on the LINE'S SHAPE alone (`re` + `level`, no `fix`), not
-		   on who wrote it, so `ChatPanel`'s own `handle_revision()` and a later
-		   voice-sessions assistant writing the identical shape both land here
-		   with no change. */
+		/* A revision line; see doc/notes.md#revision-lines */
 		if (c.re && c.level && !c.fix){
 			const hit = fix_index.get(c.re);
 			if (hit){
 				hit.piece.revision = { text: c.text, level: c.level };
 				return follow(() => fill(hit.bubble));
 			}
-			// The raw line isn't on screen (a page opened mid-conversation) —
-			// still shown, as a plain reply, rather than a revision nobody can see.
+			// raw line not on screen: show as a plain reply
 			return follow(() => speak($script, { cls: "chatbox-reply", who: "", text: c.text, sender: "", at: c.at, id: "revision-" + at }));
 		}
 
-		// A THREADED reply (`thread: true` + `re`) goes under its parent; with the
-		// parent not on screen, it falls through to the main flow rather than vanish.
+		// a threaded reply goes under its parent, else falls through to the main flow
 		if (c.thread && c.re){
 			let placed = false;
 			follow(() => { placed = thread_item(c, cls, who, at); });
@@ -888,8 +663,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		follow(() => put_line($script, c, cls, who, at));
 	}
 
-	/** One universal chat line into `$box` (the log, or a thread's body): a paragraph
-	 *  on the bubble it merges into, or a new bubble. */
+	/** One universal chat line into `$box` (the log or a thread body). */
 	function put_line($box, c, cls, who, at){
 			const last = mergeable($box, who, at);
 			const piece = { id: c.at, text: c.text, at, via: c.via, place: c.place };
@@ -926,9 +700,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		lives.set(key, hit = { el: node, text });
 		return hit;
 	}
-	/** The small "cleaning…" / "sent, waiting" label beside a faded sent bubble
-	 *  (deliverable 3, the owner 2026-10-04: raw text at once, a mark while it
-	 *  cleans, "sent, waiting" if nothing real came back in ~2s). */
+	/** The "cleaning…" / "sent, waiting" label beside a faded sent bubble. */
 	function set_mark(hit, label){
 		if (!hit.mark){ hit.mark = el("chatbox-live-mark muted"); hit.el.append(hit.mark); }
 		hit.mark.textContent = label;
@@ -985,16 +757,9 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		locked: scroll.locked,
 		/** Kept so callers still work: your words are drawn once, when they are logged, never twice. */
 		echo(){},
-		/** Start (or re-start) the rename flow on whatever is currently selected —
-		 *  the composer's "rename this" hooks here (`ChatPanel.js`'s `try_command`),
-		 *  so typing it never ALSO sends it as a message. `false` when nothing is
-		 *  selected — the caller decides what to do then (send it as a plain line). */
+		/** Start the rename flow on the selected bubble; false when none is selected. */
 		rename_selected(){ if (!$selected) return false; start_rename($selected); return true; },
-		/** The ✓/? LOOP-BACK: a clarification card's own answer (`place_card()`'s
-		 *  wrapped `write()`) calls this with the ORIGINAL line's `at` and a new
-		 *  mark — flips that sentence's ? back to a ✓ in place, same as choosing
-		 *  an answer in `ux/Understand`'s own demo does. `false` when the piece
-		 *  isn't on screen any more (a page opened after it scrolled off). */
+		/** Flip a ✓/? mark in place (the clarification loop-back); false if the piece is off screen. See doc/notes.md#check-mark */
 		resolve_mark(at, mark){
 			const hit = fix_index.get(at);
 			if (!hit) return false;
@@ -1002,11 +767,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 			fill(hit.bubble);
 			return true;
 		},
-		/** YOUR WORDS WHILE YOU SPEAK — one bubble on your side that grows; `settled` in ink, the
-		 *  still-moving `guess` grey. Empty text removes it, unless `sent`: then it stays, faded,
-		 *  marked "cleaning…", until your real (cleaned) line is drawn in its place — or, after
-		 *  ~2s with nothing back, the mark flips to "sent, waiting" and the raw text stays put
-		 *  (the owner, 2026-10-04: instant feedback, never a silent minute-long wait). */
+		/** Your words while you speak: one growing bubble. See doc/notes.md#live-bubbles */
 		live({ text = "", settled = text, guess = "", sent = false } = {}){
 			if (!text){
 				const hit = lives.get("draft");
@@ -1026,8 +787,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				if (guess){ const g = el("chatbox-guess", "span"); g.textContent = (settled ? " " : "") + guess; hit.text.append(g); }
 			});
 		},
-		/** AN ASSISTANT'S REPLY WHILE IT IS WRITTEN — the whole text so far, redrawn each call; empty
-		 *  text removes it. Its final line (same `from.id` as `who`) replaces it. */
+		/** An assistant's reply while it is written; empty text removes it. */
 		stream(who, text){
 			if (!text) return drop_live("stream:" + who);
 			follow(() => md_into(live_bubble("stream:" + who, "chatbox-reply chatbox-streaming", who).text, text));
@@ -1045,8 +805,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				return keep(e);
 			});
 			fresh.sort((a, b) => Date.parse(a.at ?? 0) - Date.parse(b.at ?? 0));
-			// WINDOW: the first draw shows only the newest `recent` entries (default 50; pass Infinity for all) (a chat may hold thousands); the rest wait behind a
-			// "show earlier" button at the top. Oldest-to-newest stays the order; the box opens at the newest (sticky_scroll).
+			// WINDOW: the first draw shows only the newest `recent`; the rest wait behind "show earlier".
 			if (!drawn && fresh.length > recent){ earlier = fresh.slice(0, fresh.length - recent); fresh.splice(0, earlier.length); show_earlier_button(); }
 			drawn = true;
 			fresh.forEach(draw);
