@@ -139,7 +139,7 @@ Flagged by Haiku and not yet checked: about half of these read as open questions
 | 3 | research system | partly (asked again) | 2026-09-29 | [research-mastermind](/framework/ai/sessions/2026/08/18/research-mastermind/) | asked again on 2026-09-29, after this landed on 2026-08-19. ext/Research shipped with 7-minion multi-agent res |
 | 3 | weight system | not done | 2026-10-01 | none | no landing line names it; only proposal commit a8c76d07a exists; audit shows Templates weight queued but not d |
 | 3 | drawer ui | partly (asked again) | 2026-10-02 | [m2](/framework/ai/sessions/2026/09/28/884d4241-bddb-4047-976a-43b49c72e973/page-drawer/m2/) | asked again on 2026-10-02, after this landed on 2026-09-28. landing line shows Element tab and selected-elemen |
-| 3 | data grid | done | 2026-10-12 | [data-grid](/framework/ai/2026-10-12/data-grid/) | landing line shows DataGrid built as one grid component; Sessions grid implemented with table or rail view; co |
+| 3 | data grid | done | 2026-10-12 | [data-grid](/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/) | landing line shows DataGrid built as one grid component; Sessions grid implemented with table or rail view; co |
 | 3 | responsive ui | done | 2026-10-09 | [v3-timeline](/framework/ai/sessions/2026/09/19/v3-timeline/) | V3 timeline landed with responsive time layout at 1920/400px; layouts redesigned to stack across mobile to ult |
 | 3 | dashboard redesign | partly | 2026-10-03 | [v3-timeline](/framework/ai/sessions/2026/09/19/v3-timeline/) | V3 timeline redesigned with left column and responsive layout landed; dashboard left rail + detail view confir |
 | 3 | layout system | done | 2026-10-13 | `42ef66769` | Blog shells at /imagine/blogx/ shipped; two-column layouts page in Figma briefs (d892f8b6d); eight blog shells |
@@ -156,8 +156,8 @@ Flagged by Haiku and not yet checked: about half of these read as open questions
 | 2 | figma component | done | 2026-10-13 | `0167e2644` | Figma slots vs components documentation created and linked from use-figma doc |
 | 2 | figma collaborate | done | 2026-10-13 | `6c16099c5` | Figma presence APIs research completed; commit documents presence APIs limitation and desktop MCP selection re |
 | 2 | file explorer | done | 2026-09-29 | `0001a763a` | File explorer redesigned with ext/filesystem classes; /fs v2 explorer implemented |
-| 2 | file system | done | 2026-10-02 | [task-folders](/framework/ai/2026-10-12/task-folders/) | File system APIs consolidated into one class (TaskDirs.mjs) for file operations |
-| 2 | framework page | done | 2026-10-02 | [data-grid](/framework/ai/2026-10-12/data-grid/) | Framework page reorganized with Sessions grid on DataGrid, style system with dark cards, and class documentati |
+| 2 | file system | done | 2026-10-02 | [task-folders](/framework/ai/sessions/2026/10/12/session-e456f109/task-folders/) | File system APIs consolidated into one class (TaskDirs.mjs) for file operations |
+| 2 | framework page | done | 2026-10-02 | [data-grid](/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/) | Framework page reorganized with Sessions grid on DataGrid, style system with dark cards, and class documentati |
 | 2 | ram upgrade | not done | 2026-10-05 | none | no landing line names it; evidence is about AI model pricing, not RAM hardware |
 | 2 | inbox system | done | 2026-10-12 | `7fad40dc9` | Inbox with read/unread states, archive, auto-resolve shipped; inbox rail CSS improved with transparent scrollb |
 | 2 | inbox per page | partly (asked again) | 2026-10-13 | `c4c85f11c` | asked again on 2026-10-13, after this landed on 2026-10-12. Refined prompts leave notes on module page via Inb |
@@ -314,7 +314,7 @@ Flagged by Haiku and not yet checked: about half of these read as open questions
 | 1 | evaluation scoring | partly | 2026-10-03 | `de14646d2` | Core turns/scoring landed in review-turns commit, but Reviews view and collab-rounds deferred |
 | 1 | catalog page | done | 2026-10-13 | `c016e9e1a` | Catalog page with demo preview cards, class cards, and instance-tree verdict delivered |
 | 1 | paging summary | partly (asked again) | 2026-09-24 | [graduate-plan](/framework/ai/sessions/2026/09/06/graduate-plan/) | asked again on 2026-09-24, after this landed on 2026-09-06. Spacing audit and graduate-plan with six-word page |
-| 1 | refine page | done | 2026-10-09 | [refine-haiku-live](/framework/ai/2026-10-12/refine-haiku-live/) | Refine runs on Haiku with live outline growth, unified chat input, under 100k tokens per call |
+| 1 | refine page | done | 2026-10-09 | [refine-haiku-live](/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/) | Refine runs on Haiku with live outline growth, unified chat input, under 100k tokens per call |
 | 1 | youtube strategy | not done | 2026-10-13 | none | no landing line names it |
 | 1 | queue statu | partly | 2026-10-03 | `143032ee3` | Asks ledger with queue statuses and reasons landed; token consumption and RAM constraints not addressed |
 | 1 | socket routing | done | 2026-09-24 | `bf22ffdaf` | Socket routing with path-based channel determination and sessions query API with remote mode default landed |

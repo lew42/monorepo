@@ -24,7 +24,7 @@ new DataGrid({ columns: [{ key: "name", label: "Name" }, { key: "age", label: "A
 
 ## Who uses it
 
-- [Sessions](/framework/ai/sessions/) (`ai/AISession/AISessionsPage.js`): table or rail, its own row and card (`AISessionView`), its own sort + nesting hook. Before/after: long tasks ~430–680 ms → ~50–130 ms, DOM nodes 5,900 → 2,700 ([numbers](/framework/ai/2026-10-12/data-grid/sessions-perf/results.jsonl)).
+- [Sessions](/framework/ai/sessions/) (`ai/AISession/AISessionsPage.js`): table or rail, its own row and card (`AISessionView`), its own sort + nesting hook. Before/after: long tasks ~430–680 ms → ~50–130 ms, DOM nodes 5,900 → 2,700 ([numbers](/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-perf/results.jsonl)).
 - [AI Overview](/framework/ai/) (`ai/AIOverview.js`), the demo, and every `ui.datagrid` / `ui.table` caller through the re-exports.
 
 ## Watch out

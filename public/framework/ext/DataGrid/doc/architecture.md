@@ -2,7 +2,7 @@
 
 **One grid for every list of records on the site. It draws the same rows two ways, a table or a rail of cards, and which one is a setting, not a new class. The page around it owns the click from a row to its detail.**
 
-Written 2026-10-12, before the build, from the owner's ask in [the brief](/framework/ai/2026-10-12/data-grid/requirements.md): "we don't want to have to create a new class every time we want a little bit different layout."
+Written 2026-10-12, before the build, from the owner's ask in [the brief](/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/requirements.md): "we don't want to have to create a new class every time we want a little bit different layout."
 
 ## The classes
 
@@ -73,7 +73,7 @@ Before this, the site had three: `ext/DataGrid` (behaviour), `ui/datagrid` (its 
 
 - The fold, the two drawers, the hooks and the view setting landed as designed; the demo on [the Overview page](/framework/ext/DataGrid/) shows the toggle beside a live view of the instance.
 - [Sessions](/framework/ai/sessions/) draws its list with one DataGrid: its row is `AISessionView`, its card is `AISessionView.render_card()`, its order and nesting are `AISessionsPage.arrange()` (the `sort_rows` hook, now always called, so a page supplies its default order too).
-- Measured with the same script before and after ([perf-sessions.mjs](/framework/ai/2026-10-12/data-grid/sessions-perf/perf-sessions.mjs), three runs each, four widths): long tasks ~430–680 ms → ~50–130 ms, DOM nodes ~5,900 → ~2,700 (50 rows drawn first instead of 200, the rest load as you scroll), first row about the same (0.9–1.8 s, noisy).
+- Measured with the same script before and after ([perf-sessions.mjs](/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-perf/perf-sessions.mjs), three runs each, four widths): long tasks ~430–680 ms → ~50–130 ms, DOM nodes ~5,900 → ~2,700 (50 rows drawn first instead of 200, the rest load as you scroll), first row about the same (0.9–1.8 s, noisy).
 - One small change to Page: `page_settings()` now also reads a `view` key, so the default can sit in `settings.jsonl`.
 
 ## Remote paging seam (2026-10-12)

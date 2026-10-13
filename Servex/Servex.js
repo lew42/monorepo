@@ -677,7 +677,7 @@ export default class Servex extends Events {
             res.json(await run_refine({ ...(req.body ?? {}), inbox: this.inbox }));
         });
 
-        /* LIVE REFINE (ai/2026-10-12/refine-haiku-live/live-server): the outline grows while you talk — each
+        /* LIVE REFINE (ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/live-server): the outline grows while you talk — each
          * finished sentence placed within a few seconds, instead of one big refine on demand. One LiveRefine
          * per prompt (Servex/ext/refine/LiveRefine.js); design: public/framework/ext/Refine/doc/live-refine-2026-10-12.md. */
         router.options("/api/refine/live", cors, (req, res) => res.status(204).end());

@@ -16,7 +16,7 @@ Thinking "high" never beat "low" on this suite, and cost up to 20x more (Gemini)
 
 ## The default and the switch (2026-10-12)
 
-**Claude by default; OpenRouter only by the switch** (the owner, 2026-10-12: "while we pay for Claude tokens anyway, keep OpenRouter to a minimum"; task [refine-haiku-live](/framework/ai/2026-10-12/refine-haiku-live/)).
+**Claude by default; OpenRouter only by the switch** (the owner, 2026-10-12: "while we pay for Claude tokens anyway, keep OpenRouter to a minimum"; task [refine-haiku-live](/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/)).
 
 - **Refine** (clean, structure, clarity, notes, live refine) runs on **Claude Haiku**: `RefineCall.model()` in `Servex/ext/refine/RefineCall.js` is the one place it is decided.
 - **The voice assistants** run on Claude (`Sessions.claude_model()`).

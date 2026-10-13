@@ -9,7 +9,7 @@
 | [dictate-without-claude](/framework/ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude/) | - | 15d15aca | sonnet-5 | 10-04 23:17 | 10-05 01:48 | 1/0 | yes | yes | 1 ahead | dormant | unmerged |
 | [sessions-tab-polish](/framework/ai/sessions/2026/10/03/sessions-tab-polish/sessions-tab-polish/) | - | 8de620c5 | sonnet-5 | 10-03 22:04 | 10-04 04:10 | 11/7 | yes | yes | 12 ahead | dormant | unmerged |
 | [page-templates-binding-merge](/framework/ai/sessions/2026/10/12/session-21449a90/page-templates-binding-merge/) | - | 21449a90 | sonnet-5-5 | 10-12 20:39 | 10-12 22:36 | 1/0 | no | no | - | stopped | quiet |
-| [feedback-council](/framework/ai/2026-10-12/feedback-council/) | system-design | task-mas | sonnet-5-5 | 10-12 21:30 | 10-12 22:11 | 0/0 | no | no | - | unknown | quiet |
+| [feedback-council](/framework/ai/sessions/2026/10/12/feedback-council-2/) | system-design | task-mas | sonnet-5-5 | 10-12 21:30 | 10-12 22:11 | 0/0 | no | no | - | unknown | quiet |
 | [prompt-audit](/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit/) | - | b95560ec | haiku-4-5-20251001 | 10-08 03:48 | 10-08 19:17 | 1/0 | no | no | - | dormant | quiet |
 | [openrouter-agent-trial](/framework/ai/sessions/2026/10/05/openrouter-agent-trial/openrouter-agent-trial/) | - | 9fb9cba3 | openai/gpt-6-luna | 10-05 18:58 | 10-06 18:35 | 1/0 | no | no | - | stopped | quiet |
 | [dictate-live-state](/framework/ai/sessions/2026/10/05/dictate-live-state/dictate-live-state/) | - | f40d3c82 | sonnet-5 | 10-05 03:23 | 10-05 23:43 | 1/0 | no | no | - | stopped | quiet |
@@ -38,10 +38,10 @@
 | [comment-prune](/framework/ai/sessions/2026/10/12/session-87bec773/comment-prune/) | - | cbfda437 | sonnet-5-5 | 10-13 00:00 | 10-13 00:06 | 2/0 | yes | yes | - | dormant | ok |
 | [sessions-fixes](/framework/ai/sessions/2026/10/12/session-87bec773/sessions-fixes/) | - | 0bb7da26 | sonnet-5-5 | 10-12 23:30 | 10-12 23:37 | 1/0 | yes | yes | - | dormant | ok |
 | [today-shots-review](/framework/ai/sessions/2026/10/12/session-87bec773/today-shots-review/) | - | db145c3f | sonnet-5-5 | 10-12 22:30 | 10-12 23:00 | 1/0 | yes | yes | - | dormant | ok |
-| [page-templates-merge](/framework/ai/2026-10-12/page-templates-merge/) | - | ceb73541 | sonnet-5-5 | 10-12 20:22 | 10-12 22:36 | 1/0 | yes | yes | - | stopped | ok |
+| [page-templates-merge](/framework/ai/sessions/2026/10/12/session-ceb73541/page-templates-merge/) | - | ceb73541 | sonnet-5-5 | 10-12 20:22 | 10-12 22:36 | 1/0 | yes | yes | - | stopped | ok |
 | [server-query](/framework/ai/sessions/2026/10/12/session-87bec773/server-query/) | - | 66cde12c | opus-5-5 | 10-12 21:03 | 10-12 22:35 | 1/0 | yes | yes | - | gone | ok |
 | [screenshot-system](/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/) | - | cfd33847 | opus-5-5 | 10-12 20:55 | 10-12 22:22 | 1/0 | yes | yes | - | dormant | ok |
-| [data-grid](/framework/ai/2026-10-12/data-grid/) | - | 6d3ef407 | opus-5-5 | 10-12 19:37 | 10-12 22:13 | 1/0 | yes | yes | - | dormant | ok |
+| [data-grid](/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/) | - | 6d3ef407 | opus-5-5 | 10-12 19:37 | 10-12 22:13 | 1/0 | yes | yes | - | dormant | ok |
 | [peer-messages](/framework/ai/sessions/2026/10/12/session-87bec773/peer-messages/) | - | 702bb1eb | sonnet-5-5 | 10-12 21:31 | 10-12 22:00 | 1/0 | yes | yes | - | dormant | ok |
 | [ui-library](/framework/ai/sessions/2026/10/12/session-87bec773/ui-library/) | - | 8f8c421d | opus-5-5 | 10-12 20:35 | 10-12 22:00 | 4/0 | yes | yes | - | dormant | ok |
 | [feedback-council](/framework/ai/sessions/2026/10/12/feedback-council/) | system-design | task-mas | sonnet-5-5 | 10-12 06:08 | 10-12 22:00 | 0/0 | yes | yes | - | unknown | ok |
@@ -54,10 +54,10 @@
 | [layout-catalog](/framework/ai/sessions/2026/10/12/session-87bec773/layout-catalog/) | - | 0ea68652 | sonnet-5-5 | 10-12 20:05 | 10-12 21:00 | 1/0 | yes | yes | - | dormant | ok |
 | [perf-system](/framework/ai/sessions/2026/10/12/session-87bec773/perf-system/) | - | 3d239bcc | sonnet-5-5 | 10-12 20:11 | 10-12 21:00 | 1/0 | yes | yes | - | dormant | ok |
 | [page-templates](/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/) | - | 29fadce8 | opus-5-5 | 10-12 20:05 | 10-12 20:56 | 1/0 | yes | yes | - | dormant | ok |
-| [task-folders](/framework/ai/2026-10-12/task-folders/) | - | e456f109 | opus-5-5 | 10-12 19:28 | 10-12 20:32 | 8/8 | yes | yes | - | dormant | ok |
-| [refine-haiku-live](/framework/ai/2026-10-12/refine-haiku-live/) | - | cca8d997 | opus-5-5 | 10-12 19:25 | 10-12 20:18 | 3/0 | yes | yes | - | dormant | ok |
+| [task-folders](/framework/ai/sessions/2026/10/12/session-e456f109/task-folders/) | - | e456f109 | opus-5-5 | 10-12 19:28 | 10-12 20:32 | 8/8 | yes | yes | - | dormant | ok |
+| [refine-haiku-live](/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/) | - | cca8d997 | opus-5-5 | 10-12 19:25 | 10-12 20:18 | 3/0 | yes | yes | - | dormant | ok |
 | [past-work-skill](/framework/ai/sessions/2026/10/12/session-87bec773/past-work-skill/) | - | a768e020 | sonnet-5-5 | 10-12 20:05 | 10-12 20:17 | 5/0 | yes | yes | - | dormant | ok |
-| [style-system](/framework/ai/2026-10-12/style-system/) | - | cbdc3ef5 | opus-5-5 | 10-12 19:01 | 10-12 20:01 | 1/0 | yes | yes | - | dormant | ok |
+| [style-system](/framework/ai/sessions/2026/10/12/session-cbdc3ef5/style-system/) | - | cbdc3ef5 | opus-5-5 | 10-12 19:01 | 10-12 20:01 | 1/0 | yes | yes | - | dormant | ok |
 | [sessions-detail](/framework/ai/sessions/2026/10/12/session-f90a4e29/sessions-detail/) | - | f90a4e29 | sonnet-5-5 | 10-12 19:20 | 10-12 19:39 | 1/0 | yes | yes | - | dormant | ok |
 | [sidebar-index](/framework/ai/sessions/2026/10/12/session-65e9c7eb/sidebar-index/) | - | 65e9c7eb | sonnet-5-5 | 10-12 19:01 | 10-12 19:30 | 1/0 | yes | yes | branch gone | gone | ok |
 | [live-page-error](/framework/ai/sessions/2026/10/12/session-26eee6cc/live-page-error/) | - | 26eee6cc | sonnet-5-5 | 10-12 19:20 | 10-12 19:24 | 2/0 | yes | yes | - | dormant | ok |

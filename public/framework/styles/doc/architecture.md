@@ -1,6 +1,6 @@
 # Style architecture: few tokens, four grounds, one card
 
-Decided 2026-10-12 from the owner's dictation ([the brief](/framework/ai/2026-10-12/style-system/requirements.md)). The goal, in the owner's words: "a simple, consistent system that just works everywhere."
+Decided 2026-10-12 from the owner's dictation ([the brief](/framework/ai/sessions/2026/10/12/session-cbdc3ef5/style-system/requirements.md)). The goal, in the owner's words: "a simple, consistent system that just works everywhere."
 
 ## The whole system on one screen
 
