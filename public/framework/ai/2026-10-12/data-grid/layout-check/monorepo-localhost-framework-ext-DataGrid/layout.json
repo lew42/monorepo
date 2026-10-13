@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/DataGrid/",
+ "widths": {
+  "1280": {
+   "empty": 0.487,
+   "widest_text": 588,
+   "widest_text_sample": "it gets, automatically: a date gets a fr",
+   "overflow_x": false,
+   "items": 225,
+   "narrow_share": 0.582
+  },
+  "1920": {
+   "empty": 0.588,
+   "widest_text": 625,
+   "widest_text_sample": "it gets, automatically: a date gets a fr",
+   "overflow_x": false,
+   "items": 225,
+   "narrow_share": 0.84
+  },
+  "2560": {
+   "empty": 0.632,
+   "widest_text": 703,
+   "widest_text_sample": "it gets, automatically: a date gets a fr",
+   "overflow_x": false,
+   "items": 225,
+   "narrow_share": 0.973
+  },
+  "3440": {
+   "empty": 0.692,
+   "widest_text": 703,
+   "widest_text_sample": "it gets, automatically: a date gets a fr",
+   "overflow_x": false,
+   "items": 225,
+   "narrow_share": 0.973
+  }
+ },
+ "errors": []
+}

@@ -79,6 +79,7 @@ Your own turns are the most expensive tokens in the task, so spend through cheap
 3. **The console is part of the review:** `Server/smoke.mjs` must show no FAIL before merge. A same-origin 404 is always a FAIL. A warning stays only with a live entry in `Server/console-allow.jsonl` (pattern, why, until, owner); expired entries fail merges again.
 4. **Merge yourself** (`merge.mjs`), then close the worktree. In audit phases, minions make only obvious additive edits or propose; destructive or API-changing work waits for you.
 5. **Land everything:** every piece of work is committed and merged if on a branch. Check a child's files are committed and merged before counting it done. Work on a branch or worktree by default; only a live fix goes straight to `michael/dev`. No loose files.
+6. **A clean `git status`, always** (the owner, 2026-10-13: "I don't want to check git status and see a bunch of bullshit"). Every file you or a child creates or changes is either committed or gitignored: records (logs, reviews, shots in a task dir) are committed; machine state, scratch and stray output are ignored with a one-line reason in `.gitignore`. Nothing sits untracked, or it gets lost or breaks things. Write scratch to the session scratchpad, never the repo root. A landing line means the code is on `michael/dev` too, not only the landing line: check `git log michael/dev..<branch>` is empty before counting a task done (`property-of` landed without its code, 2026-10-12). At the end of every cycle, run `git status --porcelain` and clear it.
 
 ## Each cycle
 

@@ -1,0 +1,675 @@
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/templates-draft.md b/public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/templates-draft.md
+index 763936976..ca8b69941 100644
+--- a/public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/templates-draft.md
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/templates-draft.md
+@@ -19,25 +19,25 @@ Live demo: [Templates](/framework/core/Page/Template/). Plan and decisions: [pla
+ | Class | File | Job |
+ |---|---|---|
+ | `Property extends Events(Object)` | `core/Property/Property.js` | One live value: `get()`, `set(v)`, a `change` event, `bind(fn)` that returns its own unbind. Never bubbles. |
+-| `Template extends Page` | `core/Page/Template/Template.js` | A page that renders many times: `views`, `clone(data)`, `field(name)`, `show(name)`, `drop(view)`, `refresh()`. |
++| `Template extends Page` | `core/Page/Template/Template.js` | A page that renders many times: `views`, `clone(data)`, `show(name)`, `set` / `unset`, `drop(view)`, `refresh()`. |
+ | `BigCard extends Template` | `core/Page/Template/BigCard/BigCard.js` | The first template: the Figma palette's big white card — a mark, a heading, a lead line and a grid of column cards. |
+ 
+-What composes what: a template's `data` holds plain values and `Property` objects side by side. A view holds the unbind functions of the Properties it drew.
++What composes what: a template's `map` holds plain values (`data`) and `Property` objects (`props`) side by side. A view holds the unbind functions of the Properties it drew.
+ 
+ ## Extend or clone
+ 
+ - **Extend** to make a new kind of layout: `class Pricing extends Template { draw(){ … } }`.
+ - **Clone** to use a layout with your own data: `template.clone({ title: "x", cost: prop })`. A clone is `Object.create(template)`; it reads the template's filler until you give it its own value.
+-- **What a clone owns** (so nothing leaks between linked objects): its event listeners (`_on`), its `views`, and its `data`, which is `Object.create(template.data)` — reads fall through to the template, writes stay on the clone. The template lists its `clones`.
++- **What a clone owns** (so nothing leaks between linked objects): its event listeners (`_on`), its `views`, and its `map`, a `Property.Map` layered on the template's — reads fall through to the template, writes stay on the clone. The template lists its `clones`.
+ 
+ ## The binding flow
+ 
+-1. `clone({ cost: prop })` stores the Property in the clone's `data`.
+-2. `render()` calls the subclass's `draw()`; `draw()` asks `this.show("cost")`.
+-3. `show()` sees a Property, draws a text span, and calls `prop.bind(...)`; the unbind is filed on the view being drawn.
+-4. `prop.set("$1.25")` emits `change`; every bound span (in every view) updates its own text. Nothing else redraws.
+-5. A static value changed with `clone.set({ heading: "…" })` redraws that clone's views (`refresh()`), since a plain value has nobody listening.
+-6. `drop(view)` runs the view's unbinds and removes it from `views`, so the Property's listener count goes back down.
++1. `clone({ cost: prop })` fills the clone's own map layer. A `Property` goes in `props`, a plain value in `data`; both maps fall through to the layer below (`Property.Map`).
++2. `render()` calls `draw()`; `draw()` asks `this.show("cost")`.
++3. `show()` asks the map for the field's Property (`prop(name)`, made lazily on the layer that owns the value), draws a span and binds it; the unbind is filed on the view being drawn.
++4. `prop.set("$1.25")` emits `change`; every bound span, in every view of every clone that reads through to it, updates its own text. Nothing else redraws.
++5. `clone.set("cost", v)` on a value the clone inherits as a Property makes a new own Property (a "rebind") and redraws that clone's views; it never sets the parent's. A plain value is written and redrawn (`refresh()`), also in clones that inherit it. `unset(name)` deletes the clone's own key, so reads fall back, and redraws.
++6. `drop(view)` runs the view's unbinds and removes it, so the listener count goes back down.
+ 
+ ## Why Property and not Item's events
+ 
+diff --git a/public/framework/core/Page/Template/BigCard/BigCard.js b/public/framework/core/Page/Template/BigCard/BigCard.js
+new file mode 100644
+index 000000000..c137f5b68
+--- /dev/null
++++ b/public/framework/core/Page/Template/BigCard/BigCard.js
+@@ -0,0 +1,56 @@
++import { Template } from "../Template.js";
++import { div, h1, h2, h4, p } from "../../../View/View.js";
++import { View } from "../../../View/View.js";
++
++View.stylesheet(import.meta, "../../../../ext/Figma/palette/palette.css");
++
++const FILLER = {
++	mark: true,
++	heading: "THE PALETTE",
++	lead: "Three solid bases. A fixed set of approved tints. Every stack is explicit.",
++	columns: [
++		{ ground: "bg-white", label: "WHITE BASE", title: "White", text: "Primary text on white." },
++		{ ground: "bg-prime", label: "PRIME BASE", title: "Prime", text: "Primary text on the approved prime tint." },
++		{ ground: "bg-dark", label: "DARK BASE", title: "Dark", text: "Primary text on dark." },
++	],
++};
++
++// The big white card of ext/Figma/palette: a mark, a heading, a lead line and a grid of column cards.
++export class BigCard extends Template {
++
++	static FILLER = FILLER;
++
++	constructor(data = FILLER, ...args){ super(data, { name: "big-card" }, ...args); }
++
++	// columns: [{label,title,text,ground}] become flat keys columns.0.title ...
++	expand(data = {}){
++		const { columns, ...rest } = data;
++		const flat = { ...rest };
++		if (columns){
++			columns.forEach((c, i) => Object.entries(c).forEach(([k, v]) => { flat[`columns.${i}.${k}`] = v; }));
++			flat["columns.count"] = columns.length;
++		}
++		return flat;
++	}
++
++	draw(){
++		div.c("card wide", () => {
++			div.c("flex v gap v-center", () => {
++				if (this.get("mark")) div.c("pal-square");
++				h1(() => this.show("heading"));
++				p(() => this.show("lead"));
++			});
++			div.c("grid gap auto", () => {
++				for (let i = 0; i < this.get("columns.count"); i++){
++					div.c(`card ${this.get(`columns.${i}.ground`) ?? ""}`, () => {
++						h4.c("muted", () => this.show(`columns.${i}.label`));
++						h2(() => this.show(`columns.${i}.title`));
++						p(() => this.show(`columns.${i}.text`));
++					});
++				}
++			}).style("--column", "16em");
++		});
++	}
++}
++
++export default BigCard;
+diff --git a/public/framework/core/Page/Template/BigCard/files.jsonl b/public/framework/core/Page/Template/BigCard/files.jsonl
+new file mode 100644
+index 000000000..e2d5a3e96
+--- /dev/null
++++ b/public/framework/core/Page/Template/BigCard/files.jsonl
+@@ -0,0 +1 @@
++{"file":"BigCard.js"}
+diff --git a/public/framework/core/Page/Template/Template.js b/public/framework/core/Page/Template/Template.js
+new file mode 100644
+index 000000000..244622e8c
+--- /dev/null
++++ b/public/framework/core/Page/Template/Template.js
+@@ -0,0 +1,114 @@
++import { Page } from "../Page.class.js";
++import { div, span } from "../../View/View.js";
++import { Property } from "../../Property/Property.js";
++
++// A page that renders many times, each time from its own data. See ../doc/templates.md
++export class Template extends Page {
++
++	views = [];
++	clones = [];
++	source = null;
++
++	// `data` fills this template's own map; the rest goes to Page as usual.
++	constructor(data, ...args){
++		super(...args);
++		this.map = new Property.Map().assign(this.expand(data));
++	}
++
++	// The seam a subclass fills: draw the layout, asking show(name) for every value.
++	draw(){}
++
++	// Subclass hook: turn friendly data into flat map keys.
++	expand(data){ return data; }
++
++	// Always a NEW view, never the cached one.
++	render(){
++		const unbinds = [], before = this._drawing;
++		this._drawing = { unbinds };
++		let view;
++		try { view = div.c(`template template--${this.name ?? "x"}`, () => this.draw()); }
++		finally { this._drawing = before; }
++		view.unbinds = unbinds;
++		this.views.push(view);
++		this.view = view;
++		Page.views.set(view.el, this);
++		this.emit("render", view);
++		return view;
++	}
++
++	// A text span bound to the field; the unbind is filed on the view being drawn.
++	show(name){
++		const el = span();
++		const prop = this.map.prop(name);
++		if (!prop) return el;
++		this._drawing?.unbinds.push(prop.bind(value => el.text(value ?? "")));
++		return el;
++	}
++
++	// A new use of this layout: reads through to this one, writes only to itself.
++	clone(data){
++		const c = Object.create(this);
++		c._on = {};
++		c.views = [];
++		c.clones = [];
++		c.view = null;
++		c.source = this;
++		c.map = this.map.clone(this.expand(data));
++		this.clones.push(c);
++		return c;
++	}
++
++	// set({name: v}) or set(name, v); a bound value updates its spans, anything else redraws.
++	set(a, b){
++		const delta = typeof a === "string" ? { [a]: b } : a;
++		for (const [name, value] of Object.entries(delta ?? {})){
++			const how = this.map.set(name, value);
++			if (how !== "prop") this.refresh();
++			if (how === "plain") this.clones.forEach(c => c.inherits(name) && c.refresh());
++		}
++		return this;
++	}
++
++	unset(name){
++		if (this.map.unset(name)) this.refresh();
++		return this;
++	}
++
++	inherits(name){ return !this.map.has_own(name); }
++
++	get(name){ return this.map.get(name); }
++
++	// Redraw every view in place.
++	refresh(){
++		this.views.slice().forEach(old => {
++			const was = this.views.indexOf(old);
++			const view = this.render();
++			this.views.pop();
++			this.views[was] = view;
++			old.el.replaceWith(view.el);
++			this.release(old);
++		});
++		return this;
++	}
++
++	release(view){
++		view.unbinds?.splice(0).forEach(off => off());
++		Page.views.delete(view.el);
++	}
++
++	// Remove one view and its listeners.
++	drop(view){
++		const at = this.views.indexOf(view);
++		if (at < 0) return this;
++		this.views.splice(at, 1);
++		this.release(view);
++		view.el.remove();
++		if (this.view === view) this.view = this.views.at(-1) ?? null;
++		return this;
++	}
++
++	// Listeners on every Property this template can see.
++	listeners(name){ return this.map.listeners(name); }
++}
++
++export default Template;
+diff --git a/public/framework/core/Page/Template/TemplateDemo.js b/public/framework/core/Page/Template/TemplateDemo.js
+new file mode 100644
+index 000000000..a187e2399
+--- /dev/null
++++ b/public/framework/core/Page/Template/TemplateDemo.js
+@@ -0,0 +1,75 @@
++import { div, h2, p, span, button, code } from "../../View/View.js";
++import { Property } from "../../Property/Property.js";
++import { inspect } from "../../../ux/Content/Object/Inspect.js";
++import { BigCard } from "./BigCard/BigCard.js";
++
++// The demo behind /framework/core/Page/Template/: one BigCard, three clones, live numbers.
++export class TemplateDemo {
++
++	amount = 0;
++	timer = null;
++
++	constructor(){
++		this.cost = new Property("$0.00");
++		this.card = new BigCard();
++		this.A = this.card.clone({});
++		this.B = this.card.clone({
++			heading: "SPEND", lead: "Cost is one live value; both views and the clone below it follow it.",
++			columns: [
++				{ ground: "bg-prime", label: "SPENT TODAY", title: this.cost, text: "A Property: only this text updates." },
++				{ ground: "bg-white", label: "TASKS", title: "12", text: "A plain value: no listeners at all." },
++				{ ground: "bg-dark", label: "MODEL", title: "Sonnet", text: "Static too." },
++			],
++		});
++		this.C = this.B.clone({});
++		this.shown = [
++			{ name: "A", note: "Palette data, static.", t: this.A, views: 1 },
++			{ name: "B", note: "Live cost, rendered twice.", t: this.B, views: 2 },
++			{ name: "C", note: "A clone of B that overrides nothing.", t: this.C, views: 1 },
++		];
++	}
++
++	run(){
++		div.c("flex gap v-center wrap", () => {
++			button("+ $0.25").on("click", () => this.add(0.25));
++			this.tick_button = button("Start tick").on("click", () => this.tick());
++			button("override heading on C").on("click", () => { this.C.set("heading", "Only on C"); this.update(); });
++			button("unset C heading").on("click", () => { this.C.unset("heading"); this.update(); });
++			button("drop one view of B").on("click", () => { this.B.drop(this.B.views.at(-1)); this.update(); });
++		});
++		this.line = p.c("muted");
++
++		this.shown.forEach(row => {
++			h2(`${row.name} — ${row.note}`);
++			div.c("wide grid gap auto", () => {
++				div.c("flow", () => { for (let i = 0; i < row.views; i++) div.c("card bleed", () => row.t.render()); });
++				row.box = div.c("card flow");
++			}).style("--column", "28em");
++		});
++		this.update();
++	}
++
++	add(n){
++		this.amount += n;
++		this.cost.set("$" + this.amount.toFixed(2));
++		this.measure();
++	}
++
++	tick(){
++		this.timer ? (clearInterval(this.timer), this.timer = null) : (this.timer = setInterval(() => this.add(0.01), 1000));
++		this.tick_button.text(this.timer ? "Stop tick" : "Start tick");
++	}
++
++	measure(){
++		const views = this.shown.map(r => `${r.name}: ${r.t.views.length} view${r.t.views.length === 1 ? "" : "s"}`).join(" · ");
++		this.line.text(`${views} · listeners on cost: ${this.cost.listeners()}`);
++	}
++
++	// Rebuild each inspector from the live instance.
++	update(){
++		this.measure();
++		this.shown.forEach(row => row.box.empty(() => inspect(row.t)));
++	}
++}
++
++export default TemplateDemo;
+diff --git a/public/framework/core/Page/Template/files.jsonl b/public/framework/core/Page/Template/files.jsonl
+new file mode 100644
+index 000000000..622dcf3f1
+--- /dev/null
++++ b/public/framework/core/Page/Template/files.jsonl
+@@ -0,0 +1,5 @@
++{"file":"BigCard/"}
++{"file":"Template.js"}
++{"file":"page.js"}
++{"file":"readme.md"}
++{"file":"TemplateDemo.js"}
+diff --git a/public/framework/core/Page/Template/page.js b/public/framework/core/Page/Template/page.js
+new file mode 100644
+index 000000000..d1e6e1ba8
+--- /dev/null
++++ b/public/framework/core/Page/Template/page.js
+@@ -0,0 +1,11 @@
++import { Page } from "/app.js";
++import { TemplateDemo } from "./TemplateDemo.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Template",
++	icon: "dashboard_customize",
++	width: "full",
++	description: "A page that renders many times. One BigCard, three clones, one live value.",
++	content(){ new TemplateDemo().run(); },
++});
+diff --git a/public/framework/core/Page/Template/readme.md b/public/framework/core/Page/Template/readme.md
+new file mode 100644
+index 000000000..60fad570f
+--- /dev/null
++++ b/public/framework/core/Page/Template/readme.md
+@@ -0,0 +1,7 @@
++# Template — a page that renders many times, each time from its own data
++
++`Template extends Page`: `render()` draws a new view every call (`views`), `clone(data)` makes a new use of the layout that reads through to its source, `show(name)` draws a text span bound to a field, `set` / `unset` / `drop(view)` keep it live. Values live in a `Property.Map` ([core/Property](/framework/core/Property/)): plain until something binds, a `Property` after.
++
++- `Template.js` — the class · `BigCard/BigCard.js` — the first template (the Figma palette's big card) · `TemplateDemo.js` — the demo class
++- Design and decisions: [../doc/templates.md](../doc/templates.md)
++- Watch out: never `Object.create` a template by hand, `clone()` gives the copy its own listeners and views. `core/Page` itself is unchanged.
+diff --git a/public/framework/core/Page/doc/templates.md b/public/framework/core/Page/doc/templates.md
+new file mode 100644
+index 000000000..ca8b69941
+--- /dev/null
++++ b/public/framework/core/Page/doc/templates.md
+@@ -0,0 +1,49 @@
++# Templates — one layout, rendered many times, bound to live data
++
++A **template** is a page that knows one layout and can draw it as many times as you like, each time with its own data. Instead of hand-building another preview with filler text, you take a template and hand it your values.
++
++```js
++import { BigCard } from "/framework/core/Page/Template/BigCard/BigCard.js";
++import { Property } from "/framework/core/Property/Property.js";
++
++const cost = new Property("$0.00");
++const card = new BigCard().clone({ heading: "Spend", lead: "Live from the log.", cost });
++card.render();          // a view; render() again for a second view
++cost.set("$1.25");      // every view of this card updates, no rerender
++```
++
++Live demo: [Templates](/framework/core/Page/Template/). Plan and decisions: [plan.md](/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/plan.md).
++
++## The classes
++
++| Class | File | Job |
++|---|---|---|
++| `Property extends Events(Object)` | `core/Property/Property.js` | One live value: `get()`, `set(v)`, a `change` event, `bind(fn)` that returns its own unbind. Never bubbles. |
++| `Template extends Page` | `core/Page/Template/Template.js` | A page that renders many times: `views`, `clone(data)`, `show(name)`, `set` / `unset`, `drop(view)`, `refresh()`. |
++| `BigCard extends Template` | `core/Page/Template/BigCard/BigCard.js` | The first template: the Figma palette's big white card — a mark, a heading, a lead line and a grid of column cards. |
++
++What composes what: a template's `map` holds plain values (`data`) and `Property` objects (`props`) side by side. A view holds the unbind functions of the Properties it drew.
++
++## Extend or clone
++
++- **Extend** to make a new kind of layout: `class Pricing extends Template { draw(){ … } }`.
++- **Clone** to use a layout with your own data: `template.clone({ title: "x", cost: prop })`. A clone is `Object.create(template)`; it reads the template's filler until you give it its own value.
++- **What a clone owns** (so nothing leaks between linked objects): its event listeners (`_on`), its `views`, and its `map`, a `Property.Map` layered on the template's — reads fall through to the template, writes stay on the clone. The template lists its `clones`.
++
++## The binding flow
++
++1. `clone({ cost: prop })` fills the clone's own map layer. A `Property` goes in `props`, a plain value in `data`; both maps fall through to the layer below (`Property.Map`).
++2. `render()` calls `draw()`; `draw()` asks `this.show("cost")`.
++3. `show()` asks the map for the field's Property (`prop(name)`, made lazily on the layer that owns the value), draws a span and binds it; the unbind is filed on the view being drawn.
++4. `prop.set("$1.25")` emits `change`; every bound span, in every view of every clone that reads through to it, updates its own text. Nothing else redraws.
++5. `clone.set("cost", v)` on a value the clone inherits as a Property makes a new own Property (a "rebind") and redraws that clone's views; it never sets the parent's. A plain value is written and redrawn (`refresh()`), also in clones that inherit it. `unset(name)` deletes the clone's own key, so reads fall back, and redraws.
++6. `drop(view)` runs the view's unbinds and removes it, so the listener count goes back down.
++
++## Why Property and not Item's events
++
++Item emits one `change` for every key, so a view of one field wakes on all of them; listeners are never removed when a view goes away; and Events bubble to the parent by default. A Property wakes only the views of its own value, each binding carries its own unbind, and it never bubbles. Item is unchanged: Property is opt-in.
++
++## Watch out
++
++- A template's own `render()` never caches: each call is a new view. Code that wants one view keeps the one it got.
++- Never `Object.create` a template by hand: `clone()` is what gives the copy its own listeners, views and data.
+diff --git a/public/framework/core/Page/page.js b/public/framework/core/Page/page.js
+index ddbf8d3db..f95285ebe 100644
+--- a/public/framework/core/Page/page.js
++++ b/public/framework/core/Page/page.js
+@@ -63,7 +63,7 @@ export default new Doc({
+ 	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
+ 	// links to it, same as before. `settings` (same day, tabs-settings task): tabs
+ 	// that manage themselves via a `tab` line, and a page's own nav switch.
+-	children: "make layout navigation tool/page.jsonl parts/page.jsonl content-shapes ai dynamic weight card generator old jsonl/page.jsonl settings/page.jsonl ext/page.jsonl audit",
++	children: "Template make layout navigation tool/page.jsonl parts/page.jsonl content-shapes ai dynamic weight card generator old jsonl/page.jsonl settings/page.jsonl ext/page.jsonl audit",
+ 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
+ 
+ 	// Every member, in the order a reader meets them: the tree, then rendering,
+diff --git a/public/framework/core/Page/readme.md b/public/framework/core/Page/readme.md
+index dcf77b059..0e105e65d 100644
+--- a/public/framework/core/Page/readme.md
++++ b/public/framework/core/Page/readme.md
+@@ -35,6 +35,7 @@ A page is a folder, and the folder is its storage:
+ How a line travels from a writer to the screen, and who may write: [`doc/streaming.md`](doc/streaming.md).
+ The classes and the decisions (log growth, big collections, file vs database): [`doc/architecture.md`](doc/architecture.md).
+ **A page body as a list of parts** (heading, text, card; each one a line in `page.jsonl`): [`parts/`](parts/readme.md), [architecture](parts/doc/architecture.md). **Pages, content, parts: one way each, and the plan for `children` and `content`:** [`doc/content.md`](doc/content.md); step 1 built: [`doc/content-list-step-1.md`](doc/content-list-step-1.md).
++**Templates** (one layout rendered many times from its own data, bound to live `Property` values): [`doc/templates.md`](doc/templates.md), demo [Template](./Template/).
+ **Agents change any page with one tool**, `page_set(path, delta)`: a property, a card, a subpage; `page_read(path)` shows the result. The model and the "to do X, send delta Y" table: [`doc/ai-api.md`](doc/ai-api.md). Live demo: [tool](./tool/).
+ 
+ - **Architecture** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#architecture), verbatim.
+diff --git a/public/framework/core/Property/Property.js b/public/framework/core/Property/Property.js
+new file mode 100644
+index 000000000..a1d94f30c
+--- /dev/null
++++ b/public/framework/core/Property/Property.js
+@@ -0,0 +1,116 @@
++import { Events } from "../Events/Events.js";
++
++// One live value. Design and decisions: ../Page/doc/templates.md
++export class Property extends Events(Object) {
++
++	constructor(value){
++		super();
++		this._value = value;
++	}
++
++	get value(){ return this._value; }
++	set value(v){ this.set(v); }
++
++	get(){ return this._value; }
++
++	set(v){
++		const old = this._value;
++		if (Object.is(old, v)) return this;
++		this._value = v;
++		this.emit("change", v, old);
++		return this;
++	}
++
++	// Calls fn(current) now and on every change; returns the unbind.
++	bind(fn){
++		const listener = value => fn(value);
++		this.on("change", listener);
++		fn(this._value);
++		return () => this.off("change", listener);
++	}
++
++	listeners(){ return this._on?.change?.length ?? 0; }
++
++	bubbles(){ return false; }
++
++	static is(x){ return x instanceof Property; }
++}
++
++const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
++
++/* Two fallthrough maps, `data` (plain values) and `props` (live Property objects),
++   each Object.create of the layer below. DOM-free. A value lives in exactly one of
++   the two on a layer. Rules: ../Page/doc/templates.md */
++Property.Map = class PropertyMap {
++
++	constructor(parent){
++		this.parent = parent ?? null;
++		this.data = Object.create(parent ? parent.data : null);
++		this.props = Object.create(parent ? parent.props : null);
++	}
++
++	// Fill this layer from an object; a Property value is kept as the live one.
++	assign(obj = {}){
++		for (const [name, value] of Object.entries(obj)){
++			if (Property.is(value)) this.props[name] = value;
++			else { delete this.props[name]; this.data[name] = value; }
++		}
++		return this;
++	}
++
++	// The layer that owns `name` (has it as a plain value or a Property), or null.
++	owner(name){
++		for (let m = this; m; m = m.parent) if (own(m.props, name) || own(m.data, name)) return m;
++		return null;
++	}
++
++	has(name){ return !!this.owner(name); }
++	has_own(name){ return own(this.props, name) || own(this.data, name); }
++
++	get(name){
++		const m = this.owner(name);
++		return !m ? undefined : own(m.props, name) ? m.props[name].get() : m.data[name];
++	}
++
++	// Creates the Property on first ask, on the layer that owns the value.
++	prop(name){
++		const m = this.owner(name);
++		if (!m) return undefined;
++		if (!own(m.props, name)){
++			m.props[name] = new Property(m.data[name]);
++			delete m.data[name];
++		}
++		return m.props[name];
++	}
++
++	// Returns "prop" (a bound value changed itself), "rebind" (an inherited Property was
++	// overridden here: the owner must redraw), or "plain" (an unbound write: redraw too).
++	set(name, value){
++		if (own(this.props, name)){ this.props[name].set(value); return "prop"; }
++		if (own(this.data, name)){ this.data[name] = value; return "plain"; }
++		const m = this.owner(name);
++		if (m && own(m.props, name)){ this.props[name] = new Property(value); return "rebind"; }
++		this.data[name] = value;
++		return "plain";
++	}
++
++	// Delete this layer's own value; reads now fall back to the layer below.
++	unset(name){
++		const had = this.has_own(name);
++		delete this.props[name];
++		delete this.data[name];
++		return had;
++	}
++
++	clone(data){ return new this.constructor(this).assign(data); }
++
++	// Count every listener on every Property this layer can see.
++	listeners(name){
++		let n = 0;
++		for (let m = this; m; m = m.parent)
++			for (const k of Object.keys(m.props)) if (!name || k === name) n += m.props[k].listeners();
++		return n;
++	}
++};
++
++export default Property;
+diff --git a/public/framework/core/Property/Property.test.mjs b/public/framework/core/Property/Property.test.mjs
+new file mode 100644
+index 000000000..225c324fd
+--- /dev/null
++++ b/public/framework/core/Property/Property.test.mjs
+@@ -0,0 +1,42 @@
++// Run: node public/framework/core/Property/Property.test.mjs
++import assert from "node:assert";
++import { Property } from "./Property.js";
++
++let n = 0;
++const t = (v, msg) => { assert.ok(v, msg); n++; };
++
++const p = new Property(1), seen = [];
++const off = p.bind(v => seen.push(v));
++p.set(2); p.set(2); p.set(3);
++t(seen.join() === "1,2,3", "bind fires now and on real changes only");
++t(p.listeners() === 1, "one listener");
++off();
++t(p.listeners() === 0, "unbind drops it");
++
++const base = new Property.Map().assign({ heading: "Base", cost: new Property("$0") , note: "n" });
++const a = base.clone({ heading: "A" });
++t(a.get("heading") === "A" && base.get("heading") === "Base", "override stays on the clone");
++t(a.get("note") === "n", "unset keys fall through");
++a.unset("heading");
++t(a.get("heading") === "Base", "delete falls back");
++t(a.unset("heading") === false, "unset of nothing is false");
++
++t(a.prop("cost") === base.prop("cost"), "shared until written");
++t(a.set("cost", "$5") === "rebind" && base.get("cost") === "$0", "write copies, parent untouched");
++t(a.prop("cost") !== base.prop("cost") && a.get("cost") === "$5", "clone now owns its Property");
++a.unset("cost");
++t(a.get("cost") === "$0", "unset own Property falls back to the shared one");
++t(base.set("cost", "$1") === "prop" && a.get("cost") === "$1", "parent write reaches the sharing clone");
++
++t(!Object.keys(base.props).includes("note"), "no Property before bind");
++const noteProp = a.prop("note");
++t(base.props.note === noteProp && !Object.keys(a.props).includes("note"), "created on the owning layer");
++t(base.data.note === undefined && a.get("note") === "n", "value moved into the Property");
++t(a.set("fresh", 1) === "plain" && a.get("fresh") === 1 && base.get("fresh") === undefined, "unbound write is plain and own");
++
++const offs = [a.prop("cost").bind(() => {}), a.prop("cost").bind(() => {})];
++t(base.listeners("cost") === 2, "listeners counted through the layers");
++offs.forEach(f => f());
++t(base.listeners() === 0, "listeners back to 0 after unbind");
++
++console.log(`Property.test.mjs: ${n} checks passed`);
+diff --git a/public/framework/core/Property/files.jsonl b/public/framework/core/Property/files.jsonl
+new file mode 100644
+index 000000000..eb781402a
+--- /dev/null
++++ b/public/framework/core/Property/files.jsonl
+@@ -0,0 +1,4 @@
++{"file":"Property.js"}
++{"file":"Property.test.mjs"}
++{"file":"page.js"}
++{"file":"readme.md"}
+diff --git a/public/framework/core/Property/page.js b/public/framework/core/Property/page.js
+new file mode 100644
+index 000000000..3c1b9805c
+--- /dev/null
++++ b/public/framework/core/Property/page.js
+@@ -0,0 +1,20 @@
++import { Page, div, button, span } from "/app.js";
++import { Property } from "./Property.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Property",
++	icon: "tune",
++	description: "One live value. Two spans bound to it update together; unbinding drops the listener.",
++	content(){
++		const p = new Property(0), count = span();
++		div.c("card flex gap v-center", () => {
++			const spans = [span(), span()];
++			const offs = spans.map(s => p.bind(v => s.text(`value ${v}`)));
++			button("+1").on("click", () => p.set(p.get() + 1));
++			button("unbind one").on("click", () => { offs.pop()?.(); count.text(`listeners: ${p.listeners()}`); });
++			p.on("change", () => count.text(`listeners: ${p.listeners()}`));
++			count.text(`listeners: ${p.listeners()}`);
++		});
++	},
++});
+diff --git a/public/framework/core/Property/readme.md b/public/framework/core/Property/readme.md
+new file mode 100644
+index 000000000..10d415eea
+--- /dev/null
++++ b/public/framework/core/Property/readme.md
+@@ -0,0 +1,8 @@
++# Property — one live value you can bind to
++
++`class Property extends Events(Object)`: `get()`, `set(v)` (emits `change(value, old)` only if it changed), `bind(fn)` (calls `fn` now and on every change, returns the unbind), `listeners()`. It never bubbles. Item stays as it is; Property is opt-in.
++
++`Property.Map` is the DOM-free helper that gives a template its two fallthrough maps (`data` and `props`): clone, override, delete falls back, shared until written, a Property created lazily when something binds. Test: `node public/framework/core/Property/Property.test.mjs`.
++
++- Used by [Template](/framework/core/Page/Template/) · design: [core/Page/doc/templates.md](../Page/doc/templates.md)
++- Watch out: a clone that writes an inherited bound value gets its own new Property (`"rebind"`); it never sets the parent's.
+diff --git a/public/framework/core/page.js b/public/framework/core/page.js
+index 804f983f1..7f52bba76 100644
+--- a/public/framework/core/page.js
++++ b/public/framework/core/page.js
+@@ -6,7 +6,7 @@ export default new Page({
+ 	description: "The core classes. Five are an element you can point at in the inspector; four are not.",
+ 	icon: "dashboard",
+ 
+-	children: "View Page Router App Sidebar Shell Search Layout Section Item List Task",
++	children: "View Page Router App Sidebar Shell Search Layout Section Item List Property Task",
+ 
+ 	content(){
+ 
+diff --git a/public/framework/core/readme.md b/public/framework/core/readme.md
+index 8a55ed50a..3073ae0f0 100644
+--- a/public/framework/core/readme.md
++++ b/public/framework/core/readme.md
+@@ -6,6 +6,7 @@
+ - [Item](./Item/) — one node of a persistent document tree, no DOM; base for anything that nests and saves
+ - [Layout](./Layout/) — thirty browsable page arrangements, each proven at seven widths
+ - [List](./List/) — the ordered collection behind `item.items`; an Item detail
++- [Property](./Property/) — one live value; `bind(fn)` returns its own unbind (used by Template)
+ - [Page](./Page/) — a folder with `page.js`: a url, content and children
+ - [Session](./Session/) — a record in its own dated folder with a `page.jsonl`; `AISession` extends it
+ - [Router](./Router/) — turns a url change into the DOM state; for anyone building pages or links

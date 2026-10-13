@@ -5,3 +5,4 @@
 {"file":"notes/page.jsonl"}
 {"content":{"remove":"c2"}}
 {"content":{"add":{"type":"part-link","id":"c2","path":"./notes/","title":"Notes worth a page","after":"c1"}}}
+{"file":"promoted.jsonl"}
