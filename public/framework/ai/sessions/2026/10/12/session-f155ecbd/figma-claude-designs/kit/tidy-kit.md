@@ -19,3 +19,6 @@ Each page now has a 1920 wrapper turned into a component (`Page · <name>`): tit
 - Kit · Controls: the Avatar and Pagination rows still run a little past the right edge (their inner rows are wider than the sheet). Kit · Containers: the DataGrid area is crowded and a few specimens overlap. Both look as they did before the move; a layout pass on those two sheets would fix them.
 - Specimen instances of Card, Panel and Dialog show empty slots (the masters hold no slot content).
 - Other pages were left alone, and the Index page is the mastermind's.
+
+## Update 2026-10-13: masters are top level (rule change)
+Per the new rule in [page-layout.md](/framework/ext/Figma/doc/page-layout.md), the masters were taken out of every `Components` frame and now sit directly on the page canvas in a grid right of the page: DS 4.1 (1), DS 5 (5), Kit · Layouts (12), UI Kit (6), Kit · Controls (21), Kit · Containers (16), Kit · Workflows (8). Moving kept node ids, so instances still point at them. Emptied `Components` frames were removed (no content lost); two still exist because they hold other things: DS 5 (222:27230, the "Piece components (diagram)" frame) and Workflows (144:1141, eight `Hdr·` label instances). Not re-screenshotted.
