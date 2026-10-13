@@ -40,3 +40,4 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 - [`doc/duplicate-bubbles.md`](./doc/duplicate-bubbles.md) — why a dictated line showed 2-4 times in one bubble, the three fixes, and the proofs in `doc/proof/`.
 - [`doc/panel-composition-2026-10-08.md`](./doc/panel-composition-2026-10-08.md) — the owner's idea: one Chat panel owning the whole window, dictation built into it (open design).
 - [`doc/one-input-2026-10-12.md`](./doc/one-input-2026-10-12.md) — textarea vs single-line `<input>` decided; every mic ticks `/api/refine/live` (`Mic.js`'s `refine_tick`/`refine_final`); the Refine demo moved onto `composer()`.
+- [`doc/notes.md`](./doc/notes.md) and [`doc/mic-notes.md`](./doc/mic-notes.md) — comments pruned from `Chat.js` and `Mic.js`, verbatim.

@@ -38,3 +38,4 @@ drawer.showing();     // boolean
 - [`doc/sheet.md`](./doc/sheet.md) — Mobile sheet resizing, gestures, and state.
 - [`doc/inbox.md`](./doc/inbox.md) — Coordination inbox per page.
 - [`doc/select.md`](./doc/select.md) — Element selection and AI context chips.
+- [`doc/rail-notes.md`](./doc/rail-notes.md) — comments pruned from `rail.js`: history, lessons and design reasons, verbatim.

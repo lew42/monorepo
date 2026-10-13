@@ -9,3 +9,5 @@ Moved here from `ai2/` on 2026-10-09 (the old paths are one-line shims). A card 
 - `Fold.js`, `Rules.js`: turn a card's `page.jsonl` lines into its current state; read/resolved rules.
 
 The list that holds these cards is in [rail/](../rail/readme.md). Why it moved: [doc/ai2/ai2-vs-ai.md](../doc/ai2/ai2-vs-ai.md).
+
+Comments pruned from `card.js`, verbatim: [doc/notes.md](./doc/notes.md).

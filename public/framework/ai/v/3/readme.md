@@ -216,3 +216,4 @@ approved toggle, **Live**, the author filter and the card-width slider. Nothing 
   double-mount finding
 - Files: `page.js` (the page, all five views and their routes), `v3.css`, `timeline.js` (the board's data model), `Composer.js`,
   `AskControls.js`, `Demos.js`, `AgentsStrip.js` (the Agents strip)
+- [`doc/notes.md`](./doc/notes.md) — comments pruned from `page.js`: history, lessons and design reasons, verbatim.
