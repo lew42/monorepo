@@ -130,4 +130,39 @@ Property.Map = class PropertyMap {
 	}
 };
 
+/* One key of an Item, live: reads follow the Item, `set` writes through `item.set` (so the Item still saves its delta).
+   It listens to the Item only while it has listeners of its own: the first `on` subscribes, the last `off` unsubscribes.
+   Any object with get / set / on / off / emit("change", key, value, old) works. Design: ../Page/doc/binding.md (section 4).
+   Watch out: an Item's change bubbles from its children, so a child's change of the same key is heard too. */
+Property.Of = class ItemProperty extends Property {
+
+	constructor(item, name){
+		super();
+		this.item = item;
+		this.name = name;
+	}
+
+	get _value(){ return this.item.get(this.name); }   // the base class reads _value: bind() and value
+	set _value(v){}   // the base constructor assigns it; the Item owns the value
+	get(){ return this._value; }
+	get value(){ return this.get(); }
+	set value(v){ this.set(v); }
+
+	set(v){ this.item.set(this.name, v); return this; }
+
+	on(event, fn){
+		super.on(event, fn);
+		if (event === "change" && !this._hear) this.item.on("change", this._hear = (key, value, old) => { if (key === this.name) this.emit("change", value, old); });
+		return this;
+	}
+
+	off(event, fn){
+		super.off(event, fn);
+		if (this._hear && !this.listeners()){ this.item.off("change", this._hear); this._hear = null; }
+		return this;
+	}
+};
+
+Property.of = (item, name) => new Property.Of(item, name);
+
 export default Property;

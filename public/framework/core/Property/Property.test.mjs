@@ -51,4 +51,35 @@ t(hard.get("columns.0.title") === "T0" && hard.get("live") === 1, "a copy is not
 t(linked.get("columns.0.title") === "changed" && linked.get("live") === 2, "a clone is linked");
 t(!Property.is(hard.props.live) && hard.data.live === 1, "a copy holds plain values, no shared Property");
 
+
+// Property.of: one key of an Item, live
+import { Item } from '../Item/Item.js';
+const item = new Item({ data: { model: 'sonnet' } });
+const deltas = [];
+item.on('delta', d => deltas.push(d));
+const m = Property.of(item, 'model');
+t(m.get() === 'sonnet' && item._on?.change === undefined, 'reads the Item; no Item listener before a view binds');
+item.set('model', 'opus');
+t(m.get() === 'opus' && m.value === 'opus', 'a read with no listener still follows the Item');
+const mseen = [];
+const moff = m.bind(v => mseen.push(v));
+t(item._on.change.length === 1, 'first listener subscribes to the Item once');
+const moff2 = m.bind(() => {});
+t(item._on.change.length === 1, 'a second listener adds no second Item subscription');
+item.set('model', 'haiku'); item.set('other', 1);
+t(mseen.join() === 'opus,haiku', 'live change redraws; another key is ignored');
+m.set('fable');
+t(item.get('model') === 'fable' && mseen.at(-1) === 'fable' && deltas.at(-1).set.model === 'fable', 'set writes through item.set: the delta is saved');
+moff();
+t(item._on.change.length === 1, 'one view still bound: still subscribed');
+moff2();
+t(item._on.change.length === 0 && m.listeners() === 0, 'last view gone: no listener left on the Item');
+m.set('x'); t(mseen.at(-1) === 'fable', 'a dropped view hears nothing');
+
+const lm = new Property.Map().assign({ model: Property.of(item, 'model'), note: 'n' });
+const c = lm.clone({});
+t(c.get('model') === 'x', 'a template layer reads the Item through the Property');
+t(c.set('model', 'own') === 'rebind' && c.get('model') === 'own' && item.get('model') === 'x', 'a clone override never writes the Item');
+c.unset('model');
+t(c.get('model') === 'x' && lm.set('model', 'y') === 'prop' && item.get('model') === 'y' && c.get('model') === 'y', 'unset falls back to the live Item; a layer write goes through');
 console.log(`Property.test.mjs: ${n} checks passed`);
