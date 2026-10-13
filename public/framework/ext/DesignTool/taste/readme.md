@@ -20,6 +20,7 @@ rate(document.querySelector(".page.active-page"));
 
 ## More
 - [Overview](/framework/ext/DesignTool/taste/) · [Corpus](/framework/ext/DesignTool/taste/corpus/) — pairs, one named break each, judged on the band the case names; two are expected to fail
+- [`doc/notes.md`](./doc/notes.md) — read.js measurement notes, scope lessons, and guard documentation
 - [`doc/decisions.md`](./doc/decisions.md) — the whole record: why a rating not a rule, the refit, the second wave, the 2026-08-17 re-derivations, what is open (`frame-gap` reads the nav rail site-wide — the owner's call)
 - [`../knowledge/ideal-ranges.md`](../knowledge/ideal-ranges.md) — where every number came from, every rejected candidate; rendered at [knowledge/](/framework/ext/DesignTool/knowledge/)
 - `doc/file/*.md` — one note per file, the page's Files tab

@@ -1,12 +1,6 @@
 import { boxed, children, inside, padding_box, region, text_bounds, text_chars, width_used } from "../ratios.js";
 
-/* The eleven quantities of `ranges.js`, derived from one probe model. Arithmetic
- * only — no DOM, no judgement, exactly like `ratios.js`.
- *
- * ⚠ EVERY LENGTH IS READ AT ITS OWN SCALE. The five shots on the layout-space ruler
- *   are a whole 3440 page rendered at 19%, so a 400px column measures 76px and any
- *   raw pixel threshold reads every one of them as a sliver. Ratios survive a zoom;
- *   `space` and `own()` are what the two absolute measurements use instead. */
+// Eleven quantities (ratios + arithmetic, no DOM); scaling and measurement notes in doc/notes.md
 
 export function read(m){
 	const kids = children(m);
@@ -32,41 +26,21 @@ export function read(m){
 	const content = inside(m, box);
 	const floor = box?.depth ?? 0;
 
-	/* ⚠ 80, not 120: `styles/layouts/web.js`'s shared blurb is 117 characters, and a
-	     120 floor made `measure` unreadable on the whole rail it was written for.
-	   ⚠ AND IT CARRIES `rules.js`'s EXEMPTIONS, all three of them. This band is that
-	     rule read as a quantity, and it shipped with the rule's arithmetic and one of
-	     its three guards — which is the same mistake `frame-gap` made, one file over.
-	     Code is authored, not wrapped. A cell is a column. And text inside a box that
-	     draws an edge is that COMPONENT's text — a card blurb, a chip, a stat tile —
-	     which the rule's own comment has called "18–24 legitimately" since it was
-	     written. Unguarded, `/framework/` read 26.1 characters because fourteen 188px
-	     card captions supplied 70 of its 137 prose lines, and one 125px `td` was the
-	     whole reading of `styles/elements/misc/` at 13.7. */
+	// 80 floor (not 120); carries rules.js exemptions; doc/notes.md
 	const prose = content.filter(n => n.text && n.text.chars > 80
 		&& !in_code(m, n) && !in_cell(m, n) && !in_frame(m, n));
 
-	/* ⚠ THE SAMPLE IS COUNTED IN LINES, because a line is the unit being measured.
-	   Gated on BLOCKS this band declined on 55 of 169 pages — three one-line captions
-	   passed and one eight-line paragraph did not. */
+	// ⚠ SAMPLE counted in LINES (unit being measured); gated on BLOCKS
 	const lines = lines_of(prose);
 
-	// ⚠ EVERY text node in the region. A 20-character floor filters for prose, and a
-	//   dashboard of numbers has none — five ranges then read null.
+	// ⚠ EVERY text node in region (20-char floor for prose; no prose = null)
 	const texts = content.filter(n => n.text);
 	const solid = texts.filter(n => n.text.chars > 20);
 
-	// ⚠ A framed box must HOLD TEXT before its inset means anything: a decorative
-	//   swatch is a painted box with no padding by design.
+	// ⚠ Framed box must HOLD TEXT (decorative swatch has no padding by design)
 	const chars = text_chars(m);
 	const bounds = text_bounds(m);
-	/* ⚠ THIS BAND IS `cramped` AS A QUANTITY, so it must carry `cramped`'s GUARDS —
-	   and it shipped with none of them, which cost four separate false readings in one
-	   afternoon. A full-bleed SHELL's edge is the window, and text against it is the
-	   design (`gutter` excludes the shell for the same reason). A box that CLIPS is
-	   answering a different question, which `clipped` owns. Cells are row rhythm.
-	   Text outside its box is overflow. Every one of those had to be learned here
-	   after `rules.js` had already learned it — copy the guards, not just the maths. */
+	// ⚠ THIS BAND IS cramped AS QUANTITY (must carry cramped's GUARDS); doc/notes.md
 	const shell = n => n.w >= m.frame.w - 2;
 	const still = n => n.ovx === "visible" && n.ovy === "visible";
 
@@ -320,16 +294,7 @@ function reach(n, box){
 
 	const near = Math.min(...gaps.map(([gap, fs]) => gap / fs));
 
-	/* ⚠ TEXT OUTSIDE A BOX IS NOT A NARROW INSET, it is overflow — and `escape`,
-	 *   `clipped` and `unreachable` already own it. Unguarded, a shell holding an
-	 *   absolutely-positioned or overflowing descendant reported a frame gap of
-	 *   **−235**, which then became the page's 10th percentile and took a healthy
-	 *   page to zero credit on a defect it did not have. A band should decline to
-	 *   answer a question that is not its own.
-	 * ⚠ AND A FRAME GAP CANNOT BE NEGATIVE. Between −1 and 0 the guard let a rounding
-	 *   through as a measurement, and the band's site-wide minimum was **−0.01** — a
-	 *   tenth of a pixel of subpixel drift, printed as a padding. Text at or past the
-	 *   edge is a gap of zero. (No credit moves: both read zero against a 0.1 floor.) */
+	// ⚠ TEXT OUTSIDE = OVERFLOW (not inset); FRAME GAP >= 0 (clamped); doc/notes.md
 	return near < -1 ? null : Math.max(0, near);
 }
 
