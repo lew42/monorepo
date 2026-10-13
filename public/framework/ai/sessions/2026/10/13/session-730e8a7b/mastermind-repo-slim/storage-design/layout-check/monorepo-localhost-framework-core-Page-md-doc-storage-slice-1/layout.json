@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/md/doc/storage-slice-1/",
+ "widths": {
+  "1280": {
+   "empty": 0.521,
+   "widest_text": 564,
+   "widest_text_sample": "MSYS_NO_PATHCONV=1 node Server/merge.mjs",
+   "overflow_x": false,
+   "items": 210,
+   "narrow_share": 0.586
+  },
+  "1920": {
+   "empty": 0.682,
+   "widest_text": 600,
+   "widest_text_sample": "MSYS_NO_PATHCONV=1 node Server/merge.mjs",
+   "overflow_x": false,
+   "items": 210,
+   "narrow_share": 0.862
+  },
+  "2560": {
+   "empty": 0.723,
+   "widest_text": 675,
+   "widest_text_sample": "object is the one seam every later store",
+   "overflow_x": false,
+   "items": 210,
+   "narrow_share": 0.862
+  },
+  "3440": {
+   "empty": 0.787,
+   "widest_text": 675,
+   "widest_text_sample": "object is the one seam every later store",
+   "overflow_x": false,
+   "items": 210,
+   "narrow_share": 0.871
+  }
+ },
+ "errors": []
+}

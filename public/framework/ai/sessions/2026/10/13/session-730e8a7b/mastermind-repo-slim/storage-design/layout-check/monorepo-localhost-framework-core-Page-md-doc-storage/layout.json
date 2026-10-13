@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/md/doc/storage/",
+ "widths": {
+  "1280": {
+   "empty": 0.516,
+   "widest_text": 766,
+   "widest_text_sample": "// core/Item/Journal.js — later (slice 2",
+   "overflow_x": false,
+   "items": 471,
+   "narrow_share": 0.488
+  },
+  "1920": {
+   "empty": 0.681,
+   "widest_text": 815,
+   "widest_text_sample": "// core/Item/Journal.js — later (slice 2",
+   "overflow_x": false,
+   "items": 471,
+   "narrow_share": 0.66
+  },
+  "2560": {
+   "empty": 0.706,
+   "widest_text": 826,
+   "widest_text_sample": "//\ttail(seq, on_lines, on_reset) → stop(",
+   "overflow_x": false,
+   "items": 471,
+   "narrow_share": 0.701
+  },
+  "3440": {
+   "empty": 0.77,
+   "widest_text": 826,
+   "widest_text_sample": "//\ttail(seq, on_lines, on_reset) → stop(",
+   "overflow_x": false,
+   "items": 471,
+   "narrow_share": 0.741
+  }
+ },
+ "errors": []
+}
