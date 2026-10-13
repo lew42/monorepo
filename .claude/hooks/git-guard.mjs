@@ -8,7 +8,7 @@
  * BLOCKS (exit 2, the reason on stderr), in the MAIN checkout only:
  *   git stash (push/pop/drop/clear; `stash list` and `stash show` are fine),
  *   git reset --hard, git checkout -- <path> / git checkout ., git restore <path> (not --staged),
- *   git clean -f.
+ *   git clean -f, git merge (not --abort/--continue/--quit), git pull, git rebase, --autostash.
  * A worktree (C:/Code/lew42/worktrees/…, .claude/worktrees/…) is untouched: there it's your own tree.
  * The owner can always run these in their own terminal; the hook only stops agents.
  *
@@ -36,6 +36,11 @@ const RISKY = [
 	[/\bgit\b[^|;&]*\bcheckout\b[^|;&]*(\s--\s|\s\.(\s|$))/, "git checkout -- <path>"],
 	[/\bgit\b[^|;&]*\brestore\b(?![^|;&]*--staged)/, "git restore"],
 	[/\bgit\b[^|;&]*\bclean\b[^|;&]*-\w*f/, "git clean -f"],
+	/* 2026-10-13 (ai/sessions/doc/commit-rule.md): `git merge` over a dirty tree quietly saves it as a
+	 * stash commit, resets it to HEAD, and drops the edits if the restore fails. Land with merge.mjs. */
+	[/\bgit\b(?:\s+(?:-[cC]\s+\S+|--no-pager))*\s+merge(?=\s|$)(?![^|;&]*--(?:abort|continue|quit)\b)/, "git merge (use `node Server/merge.mjs <worktree>`)"],
+	[/\bgit\b[^|;&]*--autostash\b/, "git --autostash"],
+	[/\bgit\b(?:\s+(?:-[cC]\s+\S+|--no-pager))*\s+(?:pull|rebase)(?=\s|$)(?![^|;&]*--(?:abort|continue|quit)\b)/, "git pull / git rebase"],
 ];
 
 const WORKTREE = /worktrees[\\/]/i;
