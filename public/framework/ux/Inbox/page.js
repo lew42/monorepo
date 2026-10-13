@@ -1,4 +1,4 @@
-import { Page, div, h1, a, p, small, md } from "/app.js";
+import { Page, div, h1, h4, a, p, small, md } from "/app.js";
 import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
 const InboxRail = Inbox.Rail;
 
@@ -78,7 +78,7 @@ export default new Page({
 function debug_list(items){
 	const now = Date.now();
 	div.c("inbox-debug", () => {
-		h1.c("h4", "Why each row sits where it does");
+		h4("Why each row sits where it does");
 		small.c("muted").text("rank = importance + recency boost (+10 if unopened). Archived: -1. See doc/ranking.md.");
 		[...items].sort((a, b) => Inbox.rank(b, now) - Inbox.rank(a, now)).forEach(it => {
 			p(`${Inbox.rank(it, now).toFixed(1)} = ${Inbox.importance(it).toFixed(0)} + ${Inbox.boost(it, now).toFixed(0)} · ${it.id}${Inbox.fresh(it, now) ? " · new" : ""}`);
