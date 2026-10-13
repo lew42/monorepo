@@ -11,5 +11,6 @@ The general rules (fluid first, no voids, no clipping, repetition, masonry) live
   - Either way, align card content to the TOP (`primaryAxisAlignItems = "MIN"`), never centre it (see space.md).
   - When heights can't be tamed, use the masonry script instead of a grid.
 - **Wrapping grids:** a horizontal auto layout with `layoutWrap = "WRAP"` works like flex-wrap. Children set to FILL with `minWidth` / `maxWidth` decide how many fit per row; `counterAxisSpacing` is the row gap. Check how it reflows by resizing the parent. Earlier trap: wrap rows left children at their minWidth when they weren't set to FILL (see use-figma.md Traps).
+- **Orphans in a wrap (measured 2026-10-13, Kit · Grids):** FILL children stretch the last row, up to their `maxWidth` (big orphans, so set a max); FIXED children keep the column width (small orphans). `layoutGrow` is flex-like (content width counts first), so grow 2 : 1 measures about 1.9 : 1.
 - **Masonry is manual in Figma, so let a script do it.** Make N vertical column frames (FILL width, HUG height) and put each item into the column that is currently shortest, by real height, in reading order. Re-run the script after the content changes. The Index page is built this way.
 - **Pages:** one 1920 auto-layout wrapper per page, made a component. See [page-layout.md](page-layout.md).
