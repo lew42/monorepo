@@ -107,7 +107,7 @@ for (const w of trees.slice(1)) {
 	// a salvage/* branch is a record, never deleted (pool.md), even once its head is merged
 	const b = !w.branch ? { status: 1, stdout: "detached, no branch" } : commit ? { status: 1, stdout: `salvaged as ${commit.slice(0, 9)}` }
 		: w.branch.startsWith("salvage/") ? { status: 1, stdout: "a salvage branch is kept" } : git(MAIN, "branch", "-d", w.branch);
-	pruned++; console.log(`${commit ? "salvaged" : "pruned"} ${name}${b.status ? `  (branch ${branch} kept: ${(b.stderr || b.stdout).trim().split("\n")[0]})` : ""}`);
+	pruned++; console.log(`${commit ? "salvaged" : "pruned"} ${name}${!w.branch && !commit ? "  (detached, no branch)" : b.status ? `  (branch ${branch} kept: ${(b.stderr || b.stdout).trim().split("\n")[0]})` : ""}`);
 }
 git(MAIN, "worktree", "prune");
 if (MANIFEST && manifest.length) { fs.mkdirSync(path.dirname(path.resolve(MANIFEST)), { recursive: true }); fs.writeFileSync(MANIFEST, JSON.stringify({ at: new Date().toISOString(), dry: DRY, base: BASE, worktrees: manifest }, null, "\t") + "\n"); console.log(`manifest: ${MANIFEST} (${manifest.length})`); }
