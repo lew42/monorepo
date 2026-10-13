@@ -43,6 +43,32 @@ function settings(scheme) {
 		radio("Free", false, g); radio("Plus", true, g);
 	});
 }
+
+// DS 4.1 Foundational layouts: two uses of each, in two schemes; doc/layouts.md
+const box = label => div.c("fig-media-box fig-muted", label);
+const two = (a, b) => div.c("fig-stack", () => { h4(a); p.c("fig-muted", b); });
+const layouts = [
+	["Stack", "fig-white", () => div.c("fig-stack", () => { h4("Account"); p.c("fig-muted", "One column, the gap from the token."); button.c("fig-btn fig-btn-primary", "Save"); })],
+	["Stack", "fig-dark", () => div.c("fig-stack", () => { h4("Welcome back"); p.c("fig-muted", "Pick up where you left off."); button.c("fig-btn fig-btn-secondary", "Continue"); })],
+	["Two columns", "fig-white", () => div.c("fig-cols", () => { h4("Profile"); two("Name and photo", "Shown on your public page."); })],
+	["Two columns", "fig-gray", () => div.c("fig-cols", () => { h4("Billing"); two("Plan and card", "Changes apply next cycle."); })],
+	["Split 50/50", "fig-white", () => div.c("fig-split", () => { two("Before", "The old flow."); two("After", "The new flow."); })],
+	["Split 50/50", "fig-dark", () => div.c("fig-split", () => { two("Monthly", "Pay as you go."); two("Yearly", "Two months free."); })],
+	["Media + text", "fig-white", () => div.c("fig-media", () => { box("image"); two("Field notes", "A 160 px image, text beside it."); })],
+	["Media + text", "fig-gray", () => div.c("fig-media fig-media-sm", () => { box("image"); two("Thumbnail row", "The 120 px image."); })],
+	["Sidebar + content", "fig-white", () => div.c("fig-side", () => { div.c("fig-side-rail", () => ["Profile", "Notifications", "Billing"].forEach(t => button.c("fig-btn fig-btn-secondary", t))); two("Profile", "The 200 px rail becomes a top row on a phone."); })],
+	["Sidebar + content", "fig-dark", () => div.c("fig-side", () => { div.c("fig-side-rail", () => ["Inbox", "Sent", "Drafts"].forEach(t => button.c("fig-btn fig-btn-secondary", t))); two("Inbox", "Mail with a folder rail."); })],
+	["Three columns", "fig-white", () => div.c("fig-three", () => ["Free", "Plus", "Pro"].forEach(t => two(t, "Three equal columns.")))],
+	["Three columns", "fig-gray", () => div.c("fig-three", () => ["Plan", "Build", "Ship"].forEach(t => two(t, "One step each.")))],
+	["Header / body / footer", "fig-white", () => div.c("fig-bands", () => { h4.c("fig-head", "Header"); p.c("fig-body", "Full-width bands, no radius."); p.c("fig-foot fig-muted", "Footer"); })],
+	["Header / body / footer", "fig-dark", () => div.c("fig-bands", () => { h4.c("fig-head", "Dashboard"); p.c("fig-body", "The body takes the rest."); p.c("fig-foot fig-muted", "Updated just now"); })],
+];
+function layoutsDemo() {
+	for (const n of [...new Set(layouts.map(l => l[0]))]) {
+		h4(n);
+		div.c("flex wrap gap", () => layouts.filter(l => l[0] === n).forEach(([, scheme, build]) => div.c(`${scheme} fig-lay fig-layouts-box`, build)));
+	}
+}
 const modes = [["fig-mobile", "Mobile"], ["fig-default", "Default"], ["fig-mega", "Mega"]];
 
 function sample(scheme) {
@@ -87,6 +113,11 @@ export default new Page({
 		div.c("grid auto gap", () => schemes.forEach(([cls]) => controls(cls)));
 		h3("Open dropdown");
 		div.c("flex wrap gap", () => schemes.forEach(([cls]) => div.c(`${cls} fig-card fig-controls-box fig-controls-open`, () => select("Canada", ["Country", "Canada", "Mexico", "United States"], true))));
+		h3("Foundational layouts (DS 4.1)");
+		p("Opt-in classes: fig-stack (reused), fig-cols, fig-split, fig-media, fig-side, fig-three, fig-bands. Each collapses to one column at 480 px of its own container. Details: doc/layouts.md.");
+		layoutsDemo();
+		h3("Layouts on a phone (390)");
+		div.c("flex wrap gap", () => div.c("fig-white fig-lay fig-card fig-tokens-phone", () => div.c("fig-side", () => { div.c("fig-side-rail", () => ["Profile", "Billing"].forEach(t => button.c("fig-btn fig-btn-secondary", t))); div.c("fig-cols", () => { h4("Profile"); p.c("fig-muted", "Rail on top; label above content."); }); })));
 		h3("The settings screen (DS 2.7, In action)");
 		div.c("flex wrap gap", () => schemes.forEach(([cls]) => settings(cls)));
 	},
