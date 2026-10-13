@@ -162,3 +162,12 @@ public/ai/*.summary.json
 # same reason as sessions/transcripts/ above (2026-10-13)
 public/framework/ai/whisper/*.jsonl
 public/framework/ai/errors/*.jsonl
+
+# screenshots in the AI work log: Playwright output (layout-check, proof, review), 84% of git
+# history by size; merge.mjs reads them from disk. doc/ illustrations stay committed.
+# Already-tracked ones stay tracked until a scripted untrack. public/framework/ai/doc/repo-size.md
+public/framework/ai/**/*.png
+public/framework/ai/**/*.jpg
+public/framework/ai/**/*.jpeg
+public/framework/ai/**/*.webp
+!public/framework/ai/**/doc/**
