@@ -12,3 +12,16 @@
 {"action":{"at":"2026-10-13T17:26:55-05:00","did":"edit","files":[".claude/skills/minion/SKILL.md"]}}
 {"action":{"at":"2026-10-13T17:27:49-05:00","did":"edit","files":[".claude/skills/documentation/SKILL.md"]}}
 {"action":{"at":"2026-10-13T17:27:50-05:00","did":"edit","files":[".claude/skills/new-page/SKILL.md"]}}
+{"action":{"at":"2026-10-13T17:29:25-05:00","did":"edit","files":[".claude/skills/sub-mastermind/SKILL.md"]}}
+{"action":{"at":"2026-10-13T17:29:26-05:00","did":"edit","files":[".claude/skills/auditor/SKILL.md"]}}
+{"action":{"at":"2026-10-13T17:29:32-05:00","did":"edit","files":[".claude/skills/finish-task/SKILL.md"]}}
+{"action":{"at":"2026-10-13T17:30:10-05:00","did":"edit","files":[".claude/skills/system-architect/SKILL.md"]}}
+{"assign":{"now":"fail-safe edits applied (6 commits); writing proposals","step":4}}
+{"log":{"at":"2026-10-13T17:31:00-05:00","msg":"census after: 33 skills of 33 dirs, 27522 words (was 34140, -6618, -19%), 189 rule lines (was 225), 7 dead links (was 9; the 7 left are template examples in documentation + finish-task), 27 open improvements (was 45). census-after.md"}}
+{"log":{"at":"2026-10-13T17:31:00-05:00","msg":"words per skill, before -> after: ui-test 4115->345 (body to reference.md), fork-claude-session 2938->290 (body to reference.md), mastermind 3960->3919 (another agent added ~70 words concurrently), minion 3131->3033, sub-mastermind 2535->2479, check-claude-usage 748->711, finish-task 1421->1444 (who-runs-review clause), auditor 782->793, documentation 1359->1357; improvements open: sub-mastermind 18->10, minion 9->6, code 5->3, css 3->1, finish-task/documentation/log-assistant 1->0"}}
+{"log":{"at":"2026-10-13T17:31:00-05:00","msg":"Haiku readers A-C reported 0 conflicts; Opus reading found 5 (usage-script, direct-question, board-vs-create_card, state-card wakeup vs idle rule, who-runs-review). Haiku also wrongly flagged ext/Research and public/framework/sources as missing. Haiku is fine for inventories, not for conflict judgment."}}
+{"experiment":{"try":"Haiku readers find rule conflicts across ~12k-word skill batches + CLAUDE.md","measure":"conflicts found by Haiku vs by Opus on the same files","result":"Haiku 0, Opus 5; Haiku stale-path checks 2 of 3 wrong"}}
+{"decision":{"at":"2026-10-13T17:31:00-05:00","question":"how to cut ui-test and fork-claude-session (7053 words, 1 load in 14 days)","options":["delete low-value sections","move the body verbatim to reference.md, SKILL.md becomes a short index"],"chose":"move verbatim to reference.md","why":"CLAUDE.md: detail is never removed, it nests one click down; nothing lost, one revert undoes it"}}
+{"decision":{"at":"2026-10-13T17:31:00-05:00","question":"check-claude-usage tells agents to run claude-usage.py and write usage.json; mastermind, new-task and CLAUDE.md say never, Servex refreshes it","options":["keep both","rewrite the skill around node Server/usage-now.mjs"],"chose":"rewrite around usage-now.mjs; the python script stays for outside the repo","why":"resolves in favour of CLAUDE.md and the newer rule; usage-now.mjs already caches and serializes"}}
+{"action":{"at":"2026-10-13T17:31:53-05:00","did":"edit","files":["public/framework/ai/doc/skills-proposals-2026-10-13.md"]}}
+{"action":{"at":"2026-10-13T17:31:58-05:00","did":"edit","files":["public/framework/ai/doc/readme.md"]}}

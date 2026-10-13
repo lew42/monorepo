@@ -7,7 +7,7 @@ description: Run once a task's decisions are made and before finish-task — mak
 
 **This pass is step (2) of the build order** (in `sub-mastermind`): a fresh agent then reads only these docs, so they must stand alone. **The task's mastermind runs it**, from what its minions report changed; minions build, test and fix and don't refine readmes. The quick look a mastermind gives every readme it reads is in `sub-mastermind` ("Readme upkeep is yours").
 
-How the chain reaches agents, and its cap, is explained in [`Servex/doc/readme-chain.md`](/Servex/doc/readme-chain.md); this skill is how to write them. Size: a readme is a short index (CLAUDE.md: under about 100 lines), and the chain injects only the first 40 lines (or up to `## More`), so put the index first.
+How the chain reaches agents, and its cap, is explained in [`Servex/doc/readme-chain.md`](/Servex/doc/readme-chain.md) and [`ai/doc/readmes.md`](/framework/ai/doc/readmes.md); this skill is how to write them. Size: a readme is a short index (CLAUDE.md: under about 100 lines), and the chain injects only the first 40 lines (or up to `## More`), so put the index first.
 
 Read the directory's readme index first — it lists what exists — before working with anything in that directory.
 
