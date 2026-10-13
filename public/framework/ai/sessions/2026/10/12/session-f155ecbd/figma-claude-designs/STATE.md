@@ -24,6 +24,8 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 ## In flight
 - ⬜ Web: the seven layouts as opt-in `.fig-*` CSS — task-mastermind-figma-web-layouts, brief [kit/brief-web-layouts.md](kit/brief-web-layouts.md)
 
+- ⬜ `DS · 6 Screens` (five real screens from kit instances only, ▶ prototype list → detail + tab bar) — task-mastermind-figma-ds-screens, brief [kit/brief-screens.md](kit/brief-screens.md)
+
 Next: review each by screenshot, link from the Overview card.
 
 ## Waiting on the owner
