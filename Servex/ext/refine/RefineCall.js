@@ -9,6 +9,7 @@ import { session_backend } from "../../agents/Sessions.js";
  * page at `/framework/ai/sessions/<session_id>/`, and the call reports what it cost.
  *
  *   const r = await RefineCall.run(prompt, { model, system });
+ *   RefineCall.run(prompt, { model, system, cwd: os.tmpdir() })   // cwd outside the repo: no auto-memory in the prefix (33x cheaper)
  *   r.answer; r.session_id; r.model; r.cost_usd; r.duration_ms; r.tokens   // plain data
  *
  * A model with a `/` (an OpenRouter slug, e.g. `openai/gpt-6-luna`) is one plain chat-completion instead: no session,
@@ -28,7 +29,7 @@ export default class RefineCall {
 	 *  (the owner's switch for when Claude tokens run out; read per call, no restart). ai/doc/models.md */
 	static model(){ return session_backend() === "openrouter" ? RefineCall.OPENROUTER : RefineCall.FALLBACK; }
 
-	static async run(prompt, { model = "claude-haiku-5-5", system, stage = "" } = {}){
+	static async run(prompt, { model = "claude-haiku-5-5", system, stage = "", cwd } = {}){
 		if (String(model).includes("/")){
 			try { const out = await RefineCall.run_or(prompt, { model, system, stage }); RefineCall.sink?.push(out); return out; }
 			catch (e){ const out = await RefineCall.run(prompt, { model: RefineCall.FALLBACK, system, stage }); out.fallback_from = model; out.fallback_why = String(e.message ?? e).slice(0, 160); return out; }
@@ -40,6 +41,7 @@ export default class RefineCall {
 			maxTurns: 1, thinking: { type: "disabled" }, effort: "low", permissionMode: "bypassPermissions",
 			extraArgs: { "disable-slash-commands": null },
 			...(system ? { systemPrompt: system } : {}),
+			...(cwd ? { cwd } : {}),   // a folder outside the repo skips the project auto-memory: ~8k tokens, $0.066 → $0.002 a call (ext/Refine/doc/refine-queue.md)
 		} });
 		for await (const m of q){
 			if (m.type === "system" && m.subtype === "init") session_id = m.session_id;
