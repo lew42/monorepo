@@ -7,8 +7,8 @@
 //
 //   node Server/TaskMove.mjs [--repo <path>]                                  dry run: plan + counts, writes the plan file (default)
 //   node Server/TaskMove.mjs --apply [--only Y-M-D,...] [--skip slug,...] [--repo <path>]
-//   node Server/TaskMove.mjs --verify [--repo <path>]
-//   node Server/TaskMove.mjs --undo   [--repo <path>]
+//   node Server/TaskMove.mjs --verify [--run <stamp>|last] [--repo <path>]
+//   node Server/TaskMove.mjs --undo   [--run <stamp> | --all] [--repo <path>]  the last apply only, unless told
 //   node Server/TaskMove.mjs --relink [--dry] [--repo <path>]
 //   node Server/TaskMove.mjs --redirects [--repo <path>]
 //   node Server/TaskMove.mjs --pages     [--repo <path>]                      ai/sessions/task-pages.json: moved tasks with their own page.js
@@ -144,10 +144,11 @@ export default class TaskMove {
 		const man = this.ledger(repo), filesMan = this.filesLedger(repo);
 		fs.mkdirSync(path.dirname(man), { recursive: true });
 		let moved = 0;
+		const run = new Date().toISOString();   // every line of this apply carries it, so --undo reverses THIS run only (one-store, 2026-10-13)
 		for (const m of moves){
 			if (!wanted(m)) continue;
 			if (m.kind === "redirect"){   // virtual: no fs action, just the small line so old URLs resolve straight to the final dir
-				fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), kind: m.kind, from: m.from, to: m.to, session: m.session }) + "\n");
+				fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), run, kind: m.kind, from: m.from, to: m.to, session: m.session }) + "\n");
 				continue;
 			}
 			const from = path.join(repo, m.from), to = path.join(repo, m.to);
@@ -156,13 +157,13 @@ export default class TaskMove {
 			const files = m.kind === "dayfile"
 				? [{ p: path.basename(from), size: fs.statSync(from).size, sha1: crypto.createHash("sha1").update(fs.readFileSync(from)).digest("hex") }]
 				: TaskDirs.files(from);   // the snapshot: taken before the folder moves
-			fs.appendFileSync(filesMan, JSON.stringify({ from: m.from, to: m.to, files }) + "\n");   // recorded first, so an interrupted run can still be undone
+			fs.appendFileSync(filesMan, JSON.stringify({ run, from: m.from, to: m.to, files }) + "\n");   // recorded first, so an interrupted run can still be undone
 			fs.mkdirSync(path.dirname(to), { recursive: true });
 			for (let n = 0; ; n++){   // Windows: a watcher or reader can hold a handle for a moment (EPERM/EBUSY); retry, then give up loudly
 				try { fs.renameSync(from, to); break; }
 				catch (e){ if (n >= 20 || !["EPERM", "EBUSY", "EACCES"].includes(e.code)) throw e; Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250); }
 			}
-			fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), kind: m.kind, from: m.from, to: m.to, session: m.session }) + "\n");   // after the rename: the log never claims a move that did not happen
+			fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), run, kind: m.kind, from: m.from, to: m.to, session: m.session }) + "\n");   // after the rename: the log never claims a move that did not happen
 			moved++;
 		}
 		// a day folder that is now empty goes away (never recursive: a non-empty one throws here and is left alone)
@@ -170,21 +171,24 @@ export default class TaskMove {
 			const d = path.join(this.ai(repo), day);
 			try { if (fs.readdirSync(d).length === 0) fs.rmdirSync(d); } catch {}
 		}
-		return { moved };
+		return { moved, run };
 	}
 
 	/** The physical (non-redirect) moves still in effect: a later {undone:true} line whose to/from is the exact reverse cancels one. */
 	static #active(repo){
-		const lines = jsonl(this.ledger(repo));
-		const cancelled = new Set();
-		for (const l of lines) if (l.undone) cancelled.add(`${l.to}|${l.from}`);
-		return lines.filter(l => !l.undone && ["task", "rename", "stub", "dayfile"].includes(l.kind) && !cancelled.has(`${l.from}|${l.to}`));
+		// in ledger order: an undo cancels the move it reverses, and a later re-apply of the same pair is active again
+		const on = new Map();
+		for (const l of jsonl(this.ledger(repo))){
+			if (l.undone) on.delete(`${l.to}|${l.from}`);
+			else if (["task", "rename", "stub", "dayfile"].includes(l.kind)) on.set(`${l.from}|${l.to}`, l);
+		}
+		return [...on.values()];
 	}
 	static #snapshot(repo, from, to){ return jsonl(this.filesLedger(repo)).find(f => f.from === from && f.to === to)?.files ?? []; }
 
 	/** Every snapshot file of every still-active move must exist at its new path with the same size and sha1. */
-	static verify(repo){
-		const active = this.#active(repo), bad = [];
+	static verify(repo, { run } = {}){
+		const active = this.#active(repo).filter(l => !run || l.run === run), bad = [];
 		let files = 0, bytes = 0;
 		for (const m of active){
 			const to = path.join(repo, m.to);
@@ -200,9 +204,16 @@ export default class TaskMove {
 		return { folders: active.length, files, bytes, bad };
 	}
 
-	/** Move every still-active physical move back, in reverse order; append {undone:true} lines rather than rewrite anything. */
-	static undo(repo){
-		const active = this.#active(repo), man = this.ledger(repo);
+	/** Move a run's still-active physical moves back, in reverse order; append {undone:true} lines rather than rewrite anything.
+	 *  Default: the LAST run only (its `run` stamp). `run` names another; `all` reverses every move ever made, the 10-12 ones too. */
+	static undo(repo, { run, all } = {}){
+		let active = this.#active(repo);
+		const man = this.ledger(repo);
+		if (!all){
+			run ??= active.map(l => l.run).filter(Boolean).sort().at(-1);
+			if (!run) throw new Error("no run-stamped move to undo (moves before 2026-10-13 have no run); --all reverses every move");
+			active = active.filter(l => l.run === run);
+		}
 		let n = 0;
 		for (const m of [...active].reverse()){
 			const from = path.join(repo, m.from), to = path.join(repo, m.to);
@@ -210,7 +221,7 @@ export default class TaskMove {
 			fs.mkdirSync(path.dirname(from), { recursive: true });
 			if (fs.existsSync(from)) throw new Error("undo target occupied: " + m.from);
 			fs.renameSync(to, from);
-			fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), kind: m.kind, from: m.to, to: m.from, session: m.session, undone: true }) + "\n");
+			fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), run: m.run, kind: m.kind, from: m.to, to: m.from, session: m.session, undone: true }) + "\n");
 			n++;
 		}
 		return n;
@@ -350,9 +361,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 	const skip = val("--skip")?.split(",").filter(Boolean);
 	const planOut = val("--plan-out") ?? (repoGiven ? path.join(os.tmpdir(), "task-moves.plan.json") : TaskMove.planFile(REPO));
 
-	if (flag("--undo")) console.log(`moved back ${TaskMove.undo(REPO)} folders`);
+	if (flag("--undo")) console.log(`moved back ${TaskMove.undo(REPO, { run: val("--run"), all: flag("--all") })} folders`);
 	else if (flag("--verify")){
-		const r = TaskMove.verify(REPO);
+		const r = TaskMove.verify(REPO, { run: val("--run") === "last" ? jsonl(TaskMove.ledger(REPO)).map(l => l.run).filter(Boolean).sort().at(-1) : val("--run") });
 		console.log(`${r.folders} folders, ${r.files} files, ${r.bytes} bytes checked: ${r.bad.length} missing/changed`);
 		if (r.bad.length){ console.log(r.bad.slice(0, 20)); process.exit(1); }
 	}
