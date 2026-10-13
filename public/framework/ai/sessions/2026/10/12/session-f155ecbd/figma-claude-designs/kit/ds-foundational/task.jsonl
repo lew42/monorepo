@@ -25,3 +25,7 @@
 {"log":{"at":"2026-10-13T00:55:01-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T00:55:04-05:00","heartbeat":"answered","msg":"Still idle: the task is finished and committed. `DS · 4.1 Foundational layouts` (`164:1062`) is built and its report is at `kit/ds-foundational.md`. Sections 6 and 7 still need a visual check, since I"}}
 {"log":{"at":"2026-10-13T00:56:07-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T02:17:00-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-figma-ds-foundational"}}
+{"log":{"at":"2026-10-13T02:17:02-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T02:17:05-05:00","heartbeat":"answered","msg":"Idle; the work is done. `DS · 4.1 Foundational layouts` (`164:1062`) is built and `kit/ds-foundational.md` is committed. The one open item is a visual check of sections 6 and 7."}}
+{"log":{"at":"2026-10-13T02:18:07-05:00","msg":"session ended (other) without landing"}}
