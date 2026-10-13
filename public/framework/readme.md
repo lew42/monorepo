@@ -14,7 +14,7 @@
 - [faq](./faq/) — short answers, code first (no readme yet)
 - [versus](./versus/) — how this compares with other choices (no readme yet)
 - [util](./util/) — small plain helper functions (no readme yet)
-- [lab](./lab/) — small browser-feature experiments, each a live demo (today: notifications on Android)
+- [lab](./lab/) — small browser-feature experiments, each a live demo (today: notifications on Android; [PWA state](./lab/doc/pwa-state.md))
 - [dev](./dev/) — local-only live reload and the dev bar
 - [research](./research/) — research programs shown live (no readme yet)
 - [ai](./ai/) — the daily working log and task board (its card rail and inbox are AI 2's old code, being migrated in place; `ai2/` itself is retired)
