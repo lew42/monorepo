@@ -76,3 +76,9 @@ build one, and check the page with `node Server/layout-check.mjs --bands <url>`.
 **Reference** — [doc](./doc/) (every method, property and topic in full, on its own tab) — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/data-children.md`](./doc/data-children.md) (children from data) · [`doc/property/related.md`](./doc/property/related.md) (related pages) · [`doc/indexing-2026-10-08.md`](./doc/indexing-2026-10-08.md) (open: directory deltas, session index, querying) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/architecture.md`](./doc/architecture.md) (the classes and decisions), [`doc/decisions.md`](./doc/decisions.md) (older history) · Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette), `tools/links.mjs` (a link-checking script, not a page)
 
 **Asks** — [`doc/asks.md`](./doc/asks.md) (the owner's repeated asks about the page system, merged, open first)
+
+- Notes: [doc/Frame-notes.md](doc/Frame-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/Page-notes.md](doc/Page-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/page-js-notes.md](doc/page-js-notes.md) — history and lessons moved out of the code comments.

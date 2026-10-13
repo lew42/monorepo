@@ -62,3 +62,5 @@ Section.from("/framework/core/Section/example/").then(section => section.render(
   overlay sits, what a slot is), `example/page.json` (the JSON form, read by the page).
 - Next door: [core/Layout](/framework/core/Layout/) owns the thirty layouts, their proven
   ranges and the rules; [core/Page](/framework/core/Page/) owns everything else here.
+
+- Notes: [doc/Section-notes.md](doc/Section-notes.md) — history and lessons moved out of the code comments.

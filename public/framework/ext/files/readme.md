@@ -109,3 +109,7 @@ resize the one on its left, plain flex — no panels underneath it as of 2026-09
   `files.css` (frame, columns, tree rows), `fs.js` (v1, full screen, no site nav),
   `explorer.js` (v2, the default — framework nav kept, tree + code columns / mobile
   switcher), `switcher.css` (the generic responsive shell v2 is built on)
+
+- Notes: [doc/explorer-notes.md](doc/explorer-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/files-notes.md](doc/files-notes.md) — history and lessons moved out of the code comments.

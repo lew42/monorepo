@@ -41,3 +41,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 - [`doc/panel-composition-2026-10-08.md`](./doc/panel-composition-2026-10-08.md) — the owner's idea: one Chat panel owning the whole window, dictation built into it (open design).
 - [`doc/one-input-2026-10-12.md`](./doc/one-input-2026-10-12.md) — textarea vs single-line `<input>` decided; every mic ticks `/api/refine/live` (`Mic.js`'s `refine_tick`/`refine_final`); the Refine demo moved onto `composer()`.
 - [`doc/notes.md`](./doc/notes.md) and [`doc/mic-notes.md`](./doc/mic-notes.md) — comments pruned from `Chat.js` and `Mic.js`, verbatim.
+
+- Notes: [doc/ChatPanel-notes.md](doc/ChatPanel-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/Composer-notes.md](doc/Composer-notes.md) — history and lessons moved out of the code comments.

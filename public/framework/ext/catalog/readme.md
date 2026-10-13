@@ -24,3 +24,5 @@ content(){ return this.browse(BANDS, { "--column": "18em" }); }  // wall — one
 - [`doc/method/catalog.md`](./doc/method/catalog.md) — the rail's contract · [`doc/method/browse.md`](./doc/method/browse.md) — the wall's contract, `bands`, `tokens`, `owner/name`.
 - [`doc/file/catalog.js.md`](./doc/file/catalog.js.md) · [`doc/file/catalog.css.md`](./doc/file/catalog.css.md) · [`doc/file/page.js.md`](./doc/file/page.js.md) · [`doc/file/readme.md.md`](./doc/file/readme.md.md) — per-file walkthroughs.
 - Files: `catalog.js` (the rail method), `catalog.css` (wall turned sideways), `browse.js` (bands and filter), `browse.css` (one grid per band). `ext/Doc` calls `catalog()` for every Overview tab; `app.js` imports it once.
+
+- Notes: [doc/browse-notes.md](doc/browse-notes.md) — history and lessons moved out of the code comments.

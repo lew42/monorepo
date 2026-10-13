@@ -26,3 +26,5 @@ rate(document.querySelector(".page.active-page"));
 - `doc/file/*.md` — one note per file, the page's Files tab
 - Files that matter: `ranges.js` (the rulebook; `AUTHOR` for writers), `read.js` (eleven ratios, one probe), `taste.js` (`rate()`, front door), `corpus.js` (the pairs)
 - Used by: `styles/layouts/space/` (gen · search · page), `dev/DevBar/layout.js`
+
+- Notes: [doc/corpus-notes.md](doc/corpus-notes.md) — history and lessons moved out of the code comments.

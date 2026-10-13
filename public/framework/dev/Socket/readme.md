@@ -38,3 +38,5 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 - [doc/backoff.md](./doc/backoff.md) — reconnecting without a storm
 - [doc/wire.md](./doc/wire.md) — the whole protocol, both directions: Claude → `POST /mcp` → frame → tab
 - Files: `Socket.js` (the class), `/app.js` (the one caller), `Server/plugins/SocketServer/` (the other end)
+
+- Notes: [doc/Socket-notes.md](doc/Socket-notes.md) — history and lessons moved out of the code comments.

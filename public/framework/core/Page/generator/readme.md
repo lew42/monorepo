@@ -281,3 +281,9 @@ Inside the generator itself, a denser wall is `--gen-cell` on `.page-gen-wall`.
   header's own settings in the address (`#7` has to keep meaning one **tree**; how wide you
   like your columns is not the tree), a delete control for an export (that is `rm` on a
   directory somebody may have edited), and reading files back into a spec.
+
+- Notes: [doc/generator-controls-notes.md](doc/generator-controls-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/generator-export-notes.md](doc/generator-export-notes.md) — history and lessons moved out of the code comments.
+
+- Notes: [doc/generator-tree-notes.md](doc/generator-tree-notes.md) — history and lessons moved out of the code comments.

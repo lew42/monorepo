@@ -40,3 +40,5 @@ navigated(){ devbar.refresh(); },
 - [`doc/structure.md`](./doc/structure.md) — the `structure` section: the nested `.page` chain, the children, and why the display is computed
 - [`doc/measuring.md`](./doc/measuring.md) — the `layout` tab: `.app` as root, the 200ms settle, panel retargeting, the hidden-page trap
 - Files that matter: `DevBar.js` (shell, toggle, refresh) · `tools.js` (sections array, no registry) · `settings.js` (one localStorage document) · `ext/grip` (the resize edge, shared) · `chat.js`/`log.js`/`sessions.js` (the chat tab) · `pathbar.js` (the head's own url) · `says.js` (the mastermind log) · `blocked.js` (the reader's pause switch) · `hold.js` (the writer's hold, read-only)
+
+- Notes: [doc/says-notes.md](doc/says-notes.md) — history and lessons moved out of the code comments.
