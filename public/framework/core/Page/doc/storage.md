@@ -2,19 +2,29 @@
 
 **A page is a list of changes (deltas), one JSON line each. Where those lines are kept can change; the page never knows.** Today they are kept in a file, `page.jsonl`. Later the same lines can sit in a Cloudflare Durable Object (live, for visitors), in a D1 table, or in an archive, and the page code does not change.
 
-```
-Page ── page.store ──▶ Store (core/Item/Store.js, exists)      replays lines into the page, records its changes
-                         └─ backend: how the browser reaches the lines
-                              DevBackend     localhost: fetch + live socket + append    (today's code, moved)
-                              StaticBackend  production: fetch once, read only          (today's code, moved)
-                              CloudBackend   production: a page whose home is Cloudflare (later)
-                              MemoryBackend  demos and tests: never writes anything     (new, tiny)
+Three words do the work. The **Store** (`Item.Store`, the page's `page.store`) reads the lines into the page and writes its changes out. A **Backend** is how the browser reaches the lines. A **Journal** is where a server keeps them: the page's *home*. ("Store" here always means `Item.Store`; `ai/AISession/StoreFolder.js` and `ext/Saver` are unrelated.)
 
-the lines live in one Journal (the page's "home"), on a server:
-   FileJournal   page.jsonl files under public/       the default, the reference   (folds Append.js, Tail.js, write_line)
-   RoomJournal   one Durable Object per page url       live pages visitors write to (worker/room.js, generalised)
-   D1Journal     one D1 table of lines                 visitor pages listed across pages (worker/pages.js, later)
-   Archive       E: drive, R2, Google Drive            old pages, read only; the url keeps working
+```jsonc
+// a page.jsonl: line 1 builds the page, each later line is one change
+// "home": "room" = in production, kept live in a Durable Object
+{"title": "Comments", "home": "room"}
+{"content": {"add": {"id": "c1", "text": "First!"}}}
+{"c1": {"text": "First! (edited)"}}
+```
+
+```
+Page ─ page.store ─▶ Store          core/Item/Store.js (exists)
+  backend (how the browser reaches the lines):
+    DevBackend      localhost: fetch, live socket, append
+    StaticBackend   production: fetch once, read only
+    MemoryBackend   demos and tests: writes nothing
+    CloudBackend    a page whose home is Cloudflare (later)
+
+Journal (the page's home, on a server):
+    FileJournal     page.jsonl files: the default
+    RoomJournal     one Durable Object per live page
+    D1Journal       one table: lists across visitor pages
+    Archive         E:, R2, Drive: old pages, read only
 ```
 
 - **The first slice** (a brief, ready to spawn): [storage-slice-1.md](storage-slice-1.md): split `Store`'s fetch/socket code into `DevBackend` + `StaticBackend` with zero behaviour change.
@@ -35,10 +45,11 @@ Two sides, because a line has two ends: the **browser** that shows the page, and
 // core/Item/Store.js — EXISTS. The one class a page talks to (page.store). Its API does not change.
 class Store {                                  // one log of lines ↔ one live object
 	static for(url)                            // one Store per url (exists)
-	static pick(url)                           // NEW: the ONE place a backend is chosen (localhost → Dev, else Static)
+	static dev                                 // NEW: the ONE "am I on localhost" test (Page.Reader.dev becomes an alias)
+	static pick(url)                           // NEW: the ONE place a backend is chosen (dev → Dev, else Static)
 	backend                                    // NEW: a Store.Backend; every fetch, socket and write goes through it
 	open()        → this                       // read everything, then tail (exists; body now calls the backend)
-	close()                                    // stop tailing (moves up from Page.Reader)
+	close()                                    // stop tailing (Page.Reader's close() moves here, into backend.close())
 	load()        → this                       // read once (exists; body now calls the backend)
 	read(lines)                                // replay each line through host.set(line); echo skip (exists, unchanged)
 	attach(host)                               // listen for the host's "delta" event → append (exists, unchanged)
@@ -47,27 +58,29 @@ class Store {                                  // one log of lines ↔ one live 
 }
 class PageLogReader extends Store             // core/Page/Reader.js — EXISTS, unchanged (Page.Reader)
 
-// core/Item/backend/Backend.js — NEW. How the browser reaches one page's lines.
+// core/Item/backend/Backend.js — NEW in slice 1. How the browser reaches one page's lines.
 class Backend {
-	open(store)                  → store            // read everything into store.read(), then keep tailing (slice 1)
-	load(store)                  → store            // read everything once (slice 1)
-	append(lines)                → { seq }          // resolves once the lines are durable (slice 1)
-	close(store)                                    // stop tailing (slice 1)
+	open(store)                  → store            // base: same as load(); a live backend (DevBackend) also keeps tailing
+	load(store)                  → store            // read everything once, into store.read()
+	append(lines)                                   // resolves once the lines are durable; base: does nothing
+	close(store)                                    // stop tailing
 	get writable()                                  // false: changes stay in memory, with the one warning Store prints today
 	get live()                                      // false: nothing streams (static production)
-	read(since = 0)              → { lines, seq }   // later, with CloudBackend: every line after line number `since`
-	tail(seq, on_lines, on_reset) → stop()          // later: new lines within ~100 ms; on_reset = history was replaced
 }
-class DevBackend    extends Backend   // core/Item/backend/ — localhost: fetch + ext/JSONL/live.js + FsFile.send() (Store's code today, moved)
-class StaticBackend extends Backend   // core/Item/backend/ — production: one fetch, not writable, not live (Store.load() today, moved)
-class MemoryBackend extends Backend   // core/Item/backend/ — an array; demos and node tests (a demo never persists)
-class CloudBackend  extends Backend   // ext/Cloud/ (later) — GET /api/page?since=, then a WebSocket to the page's RoomJournal
+class DevBackend    extends Backend   // [slice 1] localhost: fetch + ext/JSONL/live.js + FsFile.send() (Store's code today, moved)
+class StaticBackend extends Backend   // [slice 1] production: one fetch, not writable, not live (Store.load() today, moved)
+class MemoryBackend extends Backend   // [slice 1] an array; demos and node tests (a demo never persists)
+class CloudBackend  extends Backend   // [later, ext/Cloud/] GET /api/page?since=, then a WebSocket to the page's RoomJournal
+
+// NOT in slice 1: CloudBackend adds a line-number cursor (it can't replay a whole file on every reconnect)
+//	read(since = 0)               → { lines, seq }   // every line after line number `since`
+//	tail(seq, on_lines, on_reset) → stop()           // new lines within ~100 ms; on_reset = history was replaced
 ```
 
 ### Server side: `Journal`, the page's home
 
 ```js
-// core/Item/Journal.js — NEW, plain ESM with no node imports, so node AND a Cloudflare Worker can extend it.
+// core/Item/Journal.js — later (slice 2), plain ESM with no node imports, so node AND a Cloudflare Worker can extend it.
 class Journal {                                // where one kind of page keeps its lines; the "home"
 	append(path, lines)        → { seq, bytes } // validate (jsonl-schema check), then write; durable before it returns
 	read(path, since = 0)      → { lines, seq }
@@ -88,7 +101,7 @@ class Archive                        // Server/Archive.mjs — put(path, files) 
 
 | Today | Becomes | Change |
 |---|---|---|
-| `core/Item/Store.js` (`Item.Store`) | `Store`, same name, same API | its `fetch`, `live.js` and `FsFile` lines move into `DevBackend`/`StaticBackend` |
+| `core/Item/Store.js` (`Item.Store`) | `Store`, same name, every existing method kept; adds `dev`, `pick`, `backend`, `close` | its `fetch`, `live.js` and `FsFile` lines move into `DevBackend`/`StaticBackend` |
 | `core/Page/Reader.js` (`Page.Reader`) | unchanged | still `extends Item.Store` |
 | `ext/JSONL/live.js`, `ext/filesystem/FsFile.js` | used by `DevBackend` | none |
 | `Server/plugins/SocketServer/Append.js`, `Tail.js` | callers of `FileJournal` | their file reads and writes move into it (slice 2) |
