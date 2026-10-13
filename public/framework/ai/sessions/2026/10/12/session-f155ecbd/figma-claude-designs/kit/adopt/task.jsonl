@@ -24,3 +24,7 @@
 {"log":{"at":"2026-10-13T01:30:01-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T01:30:04-05:00","heartbeat":"answered","msg":"Still idle: the adopt task is finished and committed as `kit/adopt.md`, and nothing is running. The `adopt/task.jsonl` log line is still unwritten."}}
 {"log":{"at":"2026-10-13T01:31:07-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T02:52:00-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-figma-adopt"}}
+{"log":{"at":"2026-10-13T02:52:02-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T02:52:07-05:00","heartbeat":"answered","msg":"Idle, no change: the adopt task is done and committed (`kit/adopt.md`). The `adopt/task.jsonl` log line is still missing."}}
+{"log":{"at":"2026-10-13T02:53:07-05:00","msg":"session ended (other) without landing"}}
