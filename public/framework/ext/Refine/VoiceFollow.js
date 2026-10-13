@@ -12,7 +12,7 @@ export default class VoiceFollow {
 		this.on_text = on_text;
 		this.file = null;          // the session file being watched
 		this.lines = [];           // owner lines heard, in file order
-		this.seen = new Set();
+		this.ats = [];            // the `at` of each line, to match corrections
 		this.stop_watch = null;
 		this.look();
 		this.timer = setInterval(() => this.look(), 2000);   // the session can start after this page opens
@@ -25,18 +25,27 @@ export default class VoiceFollow {
 		try { saved = JSON.parse(sessionStorage.getItem(KEY) || "null"); } catch {}
 		if (!saved?.file || saved.file === this.file) return;
 		this.stop_watch?.();
-		Object.assign(this, { file: saved.file, lines: [], seen: new Set() });
+		Object.assign(this, { file: saved.file, lines: [], ats: [] });
 		this.stop_watch = Session.watch(saved.file, line => this.hear(line));
 	}
 
 	hear(line){
 		const c = line?.chat;
-		if (!c || c.from?.kind !== "owner" || c.fix || c.level || !c.text) return;
-		if (this.seen.has(c.at)) return;
-		this.seen.add(c.at);
-		this.lines.push(c.text);
+		if (!c || c.from?.kind !== "owner" || c.level || !c.text) return;
+		if (c.fix){   // a correction replaces the line it fixes, same `at`
+			const i = this.ats.indexOf(c.at);
+			if (i < 0) return;
+			this.lines[i] = c.text;
+		} else {
+			if (this.ats.includes(c.at)) return;
+			this.ats.push(c.at);
+			this.lines.push(c.text);
+		}
 		this.on_text(this.text, this);
 	}
+
+	/** Start the next prompt from the last line heard. */
+	reset(){ this.lines = this.lines.slice(-1); this.ats = this.ats.slice(-1); }
 
 	stop(){ clearInterval(this.timer); this.stop_watch?.(); }
 }

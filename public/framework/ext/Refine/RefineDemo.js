@@ -95,9 +95,9 @@ export default class RefineDemo extends View {
 			// the ✦ chat (drawer or phone sheet) heard something: show the same words here, one result everywhere
 			this.voice = new VoiceFollow({ on_text: (text, v) => {
 				if (this.$box.el.value.trim()) return;   // you are typing or dictating here: leave it alone
-				if (this.prompt.status === "done"){ this.system.next(); v.lines = v.lines.slice(-1); text = v.text; }
+				if (this.prompt.status === "done"){ this.system.next(); v.reset(); text = v.text; }
 				this.system.source = "dictated";
-				this.$note.text("Heard in the ✦ chat.");
+				this.$note.text("Heard in the ✦ chat (press Refine for the full result).");
 				this.system.quick(text);
 			} });
 		});
