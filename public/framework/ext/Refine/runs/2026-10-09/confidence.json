@@ -1,0 +1,815 @@
+{
+ "day": "2026-10-09",
+ "scale": 2,
+ "truncated": true,
+ "sources": [
+  "sessions/2026/10/09/core-session/requirements.md",
+  "sessions/2026/10/09/feedback-council/requirements.md",
+  "sessions/2026/10/09/notifications-lab/notifications-lab/requirements.md",
+  "sessions/2026/10/09/refine-demo/refine-demo/requirements.md",
+  "sessions/2026/10/09/session-060cdfff/page-mastermind/doc-audit/requirements.md",
+  "sessions/2026/10/09/session-060cdfff/page-mastermind/requirements.md",
+  "sessions/2026/10/09/session-060cdfff/page-mastermind/streaming-doc/requirements.md",
+  "sessions/2026/10/09/session-1c89ffc4/sessions-red-flags/requirements.md",
+  "sessions/2026/10/09/session-2c32c17c/code-mastermind/requirements.md",
+  "sessions/2026/10/09/session-48083d9d/refine-dictate-ui/requirements.md",
+  "sessions/2026/10/09/session-48083d9d/refine-session-log/requirements.md",
+  "sessions/2026/10/09/session-48083d9d/refine-style/requirements.md",
+  "sessions/2026/10/09/session-48083d9d/tag-notes/requirements.md",
+  "sessions/2026/10/09/session-54d56780/production-stack/requirements.md",
+  "sessions/2026/10/09/session-6784f3f5/ai2-merge/requirements.md",
+  "sessions/2026/10/09/session-7d523708/card-to-task-proof/requirements-minion.md",
+  "sessions/2026/10/09/session-7d523708/card-to-task-proof/requirements.md",
+  "sessions/2026/10/09/session-7eb632b1/ai2-live-card/requirements.md",
+  "sessions/2026/10/09/session-81c5e98b/open-mic/requirements.md",
+  "sessions/2026/10/09/session-89570e67/refine-v3/requirements.md",
+  "sessions/2026/10/09/session-9d1f0c2e/system-retro/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/oo-census/demo-class/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/oo-census/edit-mode-class/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/oo-census/files-class/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/oo-census/grip-class/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/oo-census/highlight-class/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/oo-census/markdown-class/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/oo-census/openrouter-class/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/oo-census/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/oo-census/servex-home-class/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/oo-census/source-text-class/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/oo-census/task-record-class/requirements.md",
+  "sessions/2026/10/09/session-a07780b9/system-architect/requirements.md",
+  "sessions/2026/10/09/session-a27774cd/ai-mastermind/requirements.md",
+  "sessions/2026/10/09/session-bdcef106/servex-port-80/requirements.md",
+  "sessions/2026/10/09/session-ca11999b/session-detail-live/requirements.md"
+ ],
+ "asks": [
+  {
+   "n": 1,
+   "kind": "command",
+   "ask": "Write one overview doc of page storage and streaming",
+   "quote": "Document the page streaming system in core/Page very clearly",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Topic and one-overview form stated plainly by the owner."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Named file path, line budget and section list make an end state checkable."
+   }
+  },
+  {
+   "n": 2,
+   "kind": "directive",
+   "ask": "Write only streaming.md in page-mm worktree, plain and short",
+   "quote": "Plain sentences for a new coder",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Single file, worktree path and plain-language style are stated."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Line budget is approximate (about 120); the rest is checkable."
+   }
+  },
+  {
+   "n": 3,
+   "kind": "directive",
+   "ask": "Doc sections: folder files, one line's journey, writers, rules, path systems",
+   "quote": "one line each: what it is, who writes it, who reads it",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Five numbered sections listed in order with contents."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Each section's contents named; checkable against the finished file."
+   }
+  },
+  {
+   "n": 4,
+   "kind": "directive",
+   "ask": "Verify every doc claim against the real code; link, don't repeat",
+   "quote": "Read the real code to verify every claim",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Verification sources and link-not-repeat rule are explicit."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Every claim is open-ended, so a sampled check is likely."
+   }
+  },
+  {
+   "n": 5,
+   "kind": "directive",
+   "ask": "Edit only that file; commit by exact path; reply in two sentences",
+   "quote": "Do not edit readmes or code",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Fence, exact-path commit and reply length are spelled out."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "A single commit touching one path is checkable with git."
+   }
+  },
+  {
+   "n": 6,
+   "kind": "command",
+   "ask": "Give one recommendation per core/Page doc file",
+   "quote": "core/Page doc audit: one recommendation per doc file",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Owner wants overlaps merged, condensed, moved or archived."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "A recs.md with one block per file is checkable."
+   }
+  },
+  {
+   "n": 7,
+   "kind": "directive",
+   "ask": "Audit minions: Haiku, under 60k tokens, read-only",
+   "quote": "Stay under 60k tokens: read each file once",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Model, budget and read-only limits stated explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Token limit is hard to verify after the run."
+   }
+  },
+  {
+   "n": 8,
+   "kind": "command",
+   "ask": "Read readme and architecture first, then grep for links and staleness",
+   "quote": "the current class architecture and decisions; treat it as the truth",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Reading order and checks named; key-word search left to judgment."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Stale claims and link checks are grep-checkable."
+   }
+  },
+  {
+   "n": 9,
+   "kind": "directive",
+   "ask": "Give each doc file exactly one of five verdicts",
+   "quote": "current, unique, and in the right place",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Five verdict options defined with one-line meanings."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Each file gets exactly one of five labels."
+   }
+  },
+  {
+   "n": 10,
+   "kind": "command",
+   "ask": "Write recs.md: one block per file, fixed fields",
+   "quote": "recs.md in your own task folder, one block per file",
+   "ask_clear": {
+    "p": 0.88,
+    "evidence": "Block template with four fields given verbatim."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Template makes output checkable block by block."
+   }
+  },
+  {
+   "n": 11,
+   "kind": "directive",
+   "ask": "Minions only recommend; mastermind decides and moves files by script",
+   "quote": "decides and does the moves with a script",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Decision rights and script-based moves are explicit."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Moves happen in a later step; done state is checkable then."
+   }
+  },
+  {
+   "n": 12,
+   "kind": "directive",
+   "ask": "Session class decision recorded; the build is still pending",
+   "quote": "One core class for time-based pages",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Decision is recorded; owner's words name the class scope."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Done when subtasks 13 to 19 land and architecture.md records it."
+   }
+  },
+  {
+   "n": 13,
+   "kind": "command",
+   "ask": "Create core/Session/Session.js with readme, linked from core/readme.md",
+   "quote": "record, dated folder, locate/scan/day/dir_url, its page.jsonl",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Path, export form and readme contents stated."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "File exists, exports the class, readme linked from core/readme.md."
+   }
+  },
+  {
+   "n": 14,
+   "kind": "directive",
+   "ask": "AISession extends Session; RefineSession extends later",
+   "quote": "AISession extends Session, keeps everything else",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Inheritance direction and later subclass are explicit."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Checkable via grep for extends and a load test."
+   }
+  },
+  {
+   "n": 15,
+   "kind": "command",
+   "ask": "Move generic statics to Session; subclass overrides root_url hook",
+   "quote": "Root folder is a static hook",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Statics list and hook pattern are named."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Statics located on Session; behaviour unchanged needs proof."
+   }
+  },
+  {
+   "n": 16,
+   "kind": "directive",
+   "ask": "Each subclass declares its own days, slugs and scanned",
+   "quote": "each subclass must declare its OWN days, slugs and scanned",
+   "ask_clear": {
+    "p": 0.9,
+    "evidence": "Rule and the shared-map failure mode are spelled out."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Throwaway subclass test gives a checkable pass or fail."
+   }
+  },
+  {
+   "n": 17,
+   "kind": "directive",
+   "ask": "AISession keeps cache, costs, transcript; scan reads page.jsonl header",
+   "quote": "keeps everything else (cache, costs, transcript, live index",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Kept list is explicit; scan header rule is stated."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Methods remain on AISession; checkable by grep."
+   }
+  },
+  {
+   "n": 18,
+   "kind": "directive",
+   "ask": "Prove: node --check, same output for 3 ids, 1920 screenshot, subclass test",
+   "quote": "before and after, and show equal output for 3 known ids",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Four proof steps listed; ticking requires proof."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "The three ids are not named; script choice is open."
+   }
+  },
+  {
+   "n": 19,
+   "kind": "directive",
+   "ask": "No caller API change; exact-path commits; one-screen report",
+   "quote": "Do not change any caller's API",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Rules, commit scope and report size all stated."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Commits, report and classes.md line are each checkable."
+   }
+  },
+  {
+   "n": 20,
+   "kind": "command",
+   "ask": "Write a brief for each of the five checkers",
+   "quote": "brief for each of the five checkers",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Brief-per-checker stated, but raw holds one shared brief."
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "Five separate briefs versus one shared brief is unresolved."
+   }
+  },
+  {
+   "n": 21,
+   "kind": "command",
+   "ask": "Collect asks: new words.jsonl asks plus open council asks",
+   "quote": "new asks extracted from words.jsonl plus every open ask in",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Sources named, but the current run directory is unspecified."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Final list is checkable against the run's words.jsonl."
+   }
+  },
+  {
+   "n": 22,
+   "kind": "command",
+   "ask": "Give every ask one verdict with evidence and smallest fix",
+   "quote": "For EVERY ask, LOOK at the real result",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Verdict options and evidence format are explicit."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "One vote entry per ask is checkable in the JSON."
+   }
+  },
+  {
+   "n": 23,
+   "kind": "directive",
+   "ask": "Search the repo before calling any ask not done",
+   "quote": "A false not done is the common failure",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Failure mode and search sources named explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Search evidence is checkable per not-done vote."
+   }
+  },
+  {
+   "n": 24,
+   "kind": "directive",
+   "ask": "Follow live-site, headless, timing, scroll and no-popup rules",
+   "quote": "Check scroll on the named URLs with real overflow measures",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Rules enumerated; the named URLs live in another file."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Timings and overflow have no thresholds given."
+   }
+  },
+  {
+   "n": 25,
+   "kind": "directive",
+   "ask": "Edit no repo file; scratch in scratchpad; at most 12 shots",
+   "quote": "Do NOT edit any repo file",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Fence and screenshot cap are explicit."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Only votes file and shots change; checkable by git status."
+   }
+  },
+  {
+   "n": 26,
+   "kind": "command",
+   "ask": "Add up to 8 owner asks the current list misses",
+   "quote": "add up to 8 extra asks the owner made there",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Cap of eight is clear; what counts as missed needs judgment."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Count is checkable; relevance of extras is judgment."
+   }
+  },
+  {
+   "n": 27,
+   "kind": "command",
+   "ask": "Write one votes JSON file, then reply done",
+   "quote": "Then reply done in one line",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Single file path pattern and one-word reply are stated."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "File exists at the votes path with the JSON shape."
+   }
+  },
+  {
+   "n": 28,
+   "kind": "command",
+   "ask": "Study the page system so agents change pages by path and delta",
+   "quote": "study the page system, then agents change pages by path",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Goal is clear, but study has no fixed end."
+   },
+   "outcome_clear": {
+    "p": 0.45,
+    "evidence": "Study has no checkable endpoint beyond the later build."
+   }
+  },
+  {
+   "n": 29,
+   "kind": "directive",
+   "ask": "Readme sanity check: fix only major errors, log each fix",
+   "quote": "Fix only major errors and omissions",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Scope limited to major errors, with examples given."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Fix list in task log is checkable; major is judgment."
+   }
+  },
+  {
+   "n": 30,
+   "kind": "command",
+   "ask": "Write a short class architecture page before building",
+   "quote": "a short page: classes, what extends/composes what",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "CLAUDE.md requires architecture first; contents listed."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Page with class names exists; quality is judgment."
+   }
+  },
+  {
+   "n": 31,
+   "kind": "command",
+   "ask": "Close the four page-tool gaps, including the live add-a-tab demo",
+   "quote": "Close the four gaps in page-tool-2026-10-09.md",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Four gaps enumerated in the owner's brief."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Add-a-tab with no reload is a checkable end state."
+   }
+  },
+  {
+   "n": 32,
+   "kind": "command",
+   "ask": "Give sessions and VS Code tabs a slug where missing",
+   "quote": "Sessions get a name (slug) where they lack one",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Slug rule clear; name and slug used interchangeably."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Every session and tab having a slug is checkable."
+   }
+  },
+  {
+   "n": 33,
+   "kind": "directive",
+   "ask": "Coordinate with the session-detail agent before touching its template",
+   "quote": "let it land first and build on it",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Either message it or wait; the choice is left open."
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Coordination done is hard to confirm from the outside."
+   }
+  },
+  {
+   "n": 34,
+   "kind": "directive",
+   "ask": "Use Opus, spawn bounded helpers, merge with checks, land with Note card",
+   "quote": "we want this to work properly",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Model, worktree, merge and landing steps are explicit."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Note card with demo screenshot is checkable."
+   }
+  },
+  {
+   "n": 35,
+   "kind": "command",
+   "ask": "Build a page: speak a prompt, watch it become structured text",
+   "quote": "speak one prompt and watch it become raw, clean and structured",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Goal and layout concrete; the live Prompt view is named."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Speaking visibly produces the three stages; checkable."
+   }
+  },
+  {
+   "n": 36,
+   "kind": "directive",
+   "ask": "Read the Refine design doc, readme, engine, structure and Dictate first",
+   "quote": "the owner's whole design, both addenda",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Reading list named file by file."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Reading leaves no artifact; proof is indirect."
+   }
+  },
+  {
+   "n": 37,
+   "kind": "command",
+   "ask": "Build Prompt class with raw, clean, refined and per-sentence scores",
+   "quote": "per sentence clarity, weight, flags, alternates",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Fields, file path and View pattern all named."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Class file with these properties is checkable by reading."
+   }
+  },
+  {
+   "n": 38,
+   "kind": "directive",
+   "ask": "Reuse engine.js and structure.js; no second pipeline",
+   "quote": "Reuse engine.js/structure.js for the actual cleaning and structuring",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Reuse of existing files and no second pipeline explicit."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Reuse is grep-checkable; the scoring choice is judgment."
+   }
+  },
+  {
+   "n": 39,
+   "kind": "command",
+   "ask": "Dictation widget refines one prompt at a time, with yellow flags",
+   "quote": "that refines one prompt at a time: speak, then see raw",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Flow, flag and fallback specified; never nag is vague."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Phone and text-box paths checkable; flag rule is judgment."
+   }
+  },
+  {
+   "n": 40,
+   "kind": "command",
+   "ask": "Live debug tree of the Prompt instance, rendering property types",
+   "quote": "a tree/card of the live Prompt instance",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Render-by-type and class card both named."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Visible tree that updates during use is checkable."
+   }
+  },
+  {
+   "n": 41,
+   "kind": "command",
+   "ask": "Write Refine readme and one Prompt doc; link demo from site",
+   "quote": "link the demo from the AI system page",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Readme, one doc and a site link are all named."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Files exist and the link resolves on the site."
+   }
+  },
+  {
+   "n": 42,
+   "kind": "directive",
+   "ask": "Do not build hand-off, inbox, ranking or VS Code hooks; note them",
+   "quote": "No refined-prompt hand-off to agents, no inbox filing",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Four excluded items listed; action is only to note them."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Next-step notes exist and no code for these is built."
+   }
+  },
+  {
+   "n": 43,
+   "kind": "directive",
+   "ask": "Sonnet mastermind; Haiku helpers under 60k; no OpenRouter",
+   "quote": "use Claude Haiku 5.5, the local model, or plain code",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Model choices and the OpenRouter ban are stated outright."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Usage check before spawn is checkable only in logs."
+   }
+  },
+  {
+   "n": 44,
+   "kind": "directive",
+   "ask": "Keep STATE.md current; commit each step; finish-task; no loose files",
+   "quote": "in the task dir current after every step",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Git and STATE.md steps each named explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Clean tree, current STATE.md and finish-task are checkable."
+   }
+  },
+  {
+   "n": 45,
+   "kind": "command",
+   "ask": "Get web notifications working on phone against local dev server",
+   "quote": "Get web notifications working on my Android phone against the local dev",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Goal is clear; working is judged on a real phone."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Success needs the owner's real phone test, not the agent's."
+   }
+  },
+  {
+   "n": 46,
+   "kind": "directive",
+   "ask": "Vanilla JS, native ESM, no TypeScript, no build; use View pattern",
+   "quote": "Vanilla JS, native ESM, no TypeScript, no build step",
+   "ask_clear": {
+    "p": 0.9,
+    "evidence": "Constraint list is explicit and repeated in the brief."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Code either follows these rules or not; checkable by reading."
+   }
+  },
+  {
+   "n": 47,
+   "kind": "directive",
+   "ask": "Use lab/ClassName/ClassName.js; nest helpers; avoid native API names",
+   "quote": "Don't reuse native API names (Notification, ServiceWorker, etc.)",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Location of lab/ is left to a readme-chain choice."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Class paths and no native names are checkable."
+   }
+  },
+  {
+   "n": 48,
+   "kind": "command",
+   "ask": "WorkerHost registers sw.js, relays messages, no caching or fetch",
+   "quote": "Registers the service worker (sw.js at site root",
+   "ask_clear": {
+    "p": 0.88,
+    "evidence": "Path, module type and responsibilities all named."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Registration and relay are checkable in file and demo."
+   }
+  },
+  {
+   "n": 49,
+   "kind": "command",
+   "ask": "NotificationManager wraps permission and showNotification; verify Android throw",
+   "quote": "throws on Android Chrome, so everything goes through",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "API wrapped and relay duties listed; verify step named."
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "The Android-throw claim needs a real device test."
+   }
+  },
+  {
+   "n": 50,
+   "kind": "command",
+   "ask": "NotificationHandle: tag-keyed slot, set re-shows, close and events",
+   "quote": "Native notifications are immutable, so set(props) re-shows under the same tag",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Tag keying, set and events are specified."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Demo shows update-like behaviour; visual update is uncertain."
+   }
+  },
+  {
+   "n": 51,
+   "kind": "command",
+   "ask": "Demo cards covering every option, maxActions, long body, progress, chains",
+   "quote": "Stacked demo cards, each with buttons plus a live view",
+   "ask_clear": {
+    "p": 0.88,
+    "evidence": "Eight coverage bullets listed one by one."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Each bullet is a checkable card; some need a phone."
+   }
+  },
+  {
+   "n": 52,
+   "kind": "command",
+   "ask": "Phone test setup: flag steps, isSecureContext display, fallback if needed",
+   "quote": "If the flag doesn't make service workers + notifications work",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Flag steps and fallback request are stated."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Phone success depends on the owner's device."
+   }
+  },
+  {
+   "n": 53,
+   "kind": "command",
+   "ask": "One-screen phone checklist page: URL, flag steps, buttons",
+   "quote": "the URL to open, the flag steps, the buttons to press",
+   "ask_clear": {
+    "p": 0.88,
+    "evidence": "Three checklist contents named exactly."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "A page with the three items is checkable on the site."
+   }
+  },
+  {
+   "n": 54,
+   "kind": "command",
+   "ask": "Stretch: push subscription and delayed dev-server test-push route",
+   "quote": "a dev-server route that sends a test push after a delay",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Route and push named; only-once-above-works is conditional."
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Push on a device needs the owner's test; route review is vague."
+   }
+  },
+  {
+   "n": 55,
+   "kind": "command",
+   "ask": "Write a short markdown report of findings, setup and limits",
+   "quote": "what works without installing a PWA, setup steps that worked",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Report sections are listed in the brief."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Report file with the listed sections is checkable."
+   }
+  }
+ ]
+}

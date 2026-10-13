@@ -1,0 +1,65 @@
+[sessions/2026/10/06/feedback-council/requirements.md]
+# Feedback council — brief for each of the five checkers
+
+Card dir (read the raw words there): `public/framework/ai/council/` (and the current run directory).
+Words: `words.jsonl` in the active run directory.
+Asks to check: new asks extracted from `words.jsonl` plus every open ask in `public/framework/ai/council/asks.jsonl` whose latest verdict isn't `done`.
+
+## Your job
+For EVERY ask, LOOK at the real result and give one verdict:
+`done` / `partly` / `not done` / `done-but-wrong`, one line of evidence (URL, screenshot path, file:line), and for anything not `done` the smallest fix.
+**Prove before you call something missing.** A false "not done" is the common failure: search the repo (`git log`, grep, the skills in `.claude/skills/`, CLAUDE.md) before writing it.
+The live site: http://monorepo.localhost (never http://localhost/). Visual asks: headless Playwright at 1920 and 3440 (Playwright, never the owner's tabs, no `mcp__site__eval` on tabs the owner has open). Time the Live card load. Check scroll on the named URLs with real overflow measures. No window may pop up: `windowsHide: true`, `-WindowStyle Hidden`.
+Do NOT edit any repo file. Scratch goes in your scratchpad; screenshots to `<run-dir>/shots/<your-name>-<ask>.png` only for the ones that are evidence (keep <=12).
+Also scan `words.jsonl` and add up to 8 **extra asks** the owner made there that current asks miss, with the same verdict.
+
+## Return
+Write ONE json file `<run-dir>/votes/<your-name>.json`:
+`{"name":"...","votes":{"A1":{"v":"done|partly|not done|done-but-wrong","e":"evidence","f":"smallest fix or empty"},...},"extra":[{"ask":"...","v":"...","e":"...","f":"..."}]}`
+Then reply "done" in one line. Never write the owner's name anywhere. Budget about $2 each: be quick, do not over-explore.
+Load the `minion` skill first only if it does not conflict: you edit nothing but your votes file and shots.
+
+[sessions/2026/10/06/markdown-explorer-and-class-cards/requirements.md]
+# Markdown Explorer, Command Characters & Class Card Views (2026-10-06)
+
+Brief recorded verbatim from the owner's dictation on 2026-10-06.
+
+---
+
+## 1. The Markdown Explorer (`md/` Dynamic Path & Tab)
+
+- **The Dynamic `md/` Path**:
+  - Every page/module already has an `md/` subpath.
+  - Upgrade `<module>/md/` so it operates as a full Markdown Explorer:
+    - **Main Content Pane**: Renders the module's primary `readme.md`.
+    - **Sidebar / Quick-Reference**: Lists all sub-markdown files (`doc/*.md`, sibling `.md` files) for quick scanning and instant jumping (`swap_link`).
+  - **`md` Tab**: Expose an `md` tab on modules that have markdown files so readers and AIs can inspect the documentation hub directly.
+  - **Authoring Benefit**: Enables AIs writing pure Markdown (without JavaScript) to create dynamic, interconnected documentation that is both served raw and rendered rich.
+
+---
+
+## 2. Command Characters & Mention Namespaces (`ext/Mention`)
+
+- **Command Characters**:
+  - `/` — **File System Paths**: Strictly 1:1 with the actual file system (`/framework/core/Page/`). No separate namespace or lookup alias; resolves directly to the disk/URL path.
+  - `@` — **Actors**: Reserved for users and agents (`@owner`, `@mastermind`, `@minion-*`).
+  - `#` — **Classes & Concepts**: Reserved for object-oriented classes and framework concepts (`#Page`, `#Item`, `#List`).
+- **Visual Distinction & Color Schemes**:
+  - Each kind gets a distinct icon + color theme so the reader learns what type of thing it is at a glance.
+  - Class mentions get an upgraded framed icon and dark card surface (`.page-surface-dark`) so living classes visibly stand out from plain pages.
+
+---
+
+## 3. Class Documentation Page Architecture
+
+- **Class Title Card**:
+  - The class itself is represented by an icon item card (icon + class name), matching its inline mention form and tree navigator row.
+- **No Claustrophobic Cards-within-Cards**:
+  - Inside the class card, properties and methods are rendered as clean, unboxed icon items (avoiding nested boxes and borders).
+- **Inheritance Hierarchy**:
+  - The class's own methods appear first.
+  - Inherited base class methods appear below it (e.g. `Page`'s methods first, followed by inherited `Item` methods).
+- **Core API & Importance Weighting**:
+  - The top of the card shows the **Core API** (the 5–7 most critical methods/properties).
+  - Properties and methods are ranked by importance/usage weight (manually ranked in docs/metadata first).
+

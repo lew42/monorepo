@@ -1,0 +1,663 @@
+{
+ "day": "2026-10-12",
+ "scale": 2,
+ "truncated": true,
+ "sources": [
+  "sessions/2026/10/12/feedback-council/requirements.md",
+  "sessions/2026/10/12/session-0e99727c/voice-to-session-page/requirements.md",
+  "sessions/2026/10/12/session-0eaa4f07/inbox-asks/requirements.md",
+  "sessions/2026/10/12/session-15fbffb1/sessions-asks/requirements.md",
+  "sessions/2026/10/12/session-19429b3d/session-housekeeping/requirements.md",
+  "sessions/2026/10/12/session-1c7d9e04/page-split-3/requirements.md",
+  "sessions/2026/10/12/session-26eee6cc/live-page-error/requirements.md",
+  "sessions/2026/10/12/session-38388428/page-split-plan/requirements.md",
+  "sessions/2026/10/12/session-3b391f22/claude-md-consolidate/requirements.md",
+  "sessions/2026/10/12/session-471f8c3b/page-slice/requirements.md",
+  "sessions/2026/10/12/session-4e965597/servex-health/requirements.md",
+  "sessions/2026/10/12/session-51ad4d45/readme-trim/requirements.md",
+  "sessions/2026/10/12/session-65e9c7eb/sidebar-index/requirements.md",
+  "sessions/2026/10/12/session-687c6f45/sidebar-search/requirements.md",
+  "sessions/2026/10/12/session-707f57ee/content-list/requirements.md",
+  "sessions/2026/10/12/session-728df7fd/models-asks/requirements.md",
+  "sessions/2026/10/12/session-75fc1375/page-split-1/requirements.md",
+  "sessions/2026/10/12/session-78a7b293/part-link/requirements.md",
+  "sessions/2026/10/12/session-78fdc37f/skill-reliability/requirements.md",
+  "sessions/2026/10/12/session-7bb8fd90/systems/requirements.md",
+  "sessions/2026/10/12/session-87bec773/comment-prune/requirements.md",
+  "sessions/2026/10/12/session-87bec773/comment-prune-2/requirements.md",
+  "sessions/2026/10/12/session-87bec773/comment-prune-3/requirements.md",
+  "sessions/2026/10/12/session-87bec773/dead-links/requirements.md",
+  "sessions/2026/10/12/session-87bec773/figma-colors-fix/requirements.md",
+  "sessions/2026/10/12/session-87bec773/inbox-scrollbar/requirements.md",
+  "sessions/2026/10/12/session-87bec773/layout-catalog/requirements.md",
+  "sessions/2026/10/12/session-87bec773/page-inbox/requirements.md",
+  "sessions/2026/10/12/session-87bec773/page-templates/binding/requirements.md",
+  "sessions/2026/10/12/session-87bec773/page-templates/requirements.md",
+  "sessions/2026/10/12/session-87bec773/past-work-skill/requirements.md",
+  "sessions/2026/10/12/session-87bec773/peer-messages/requirements.md",
+  "sessions/2026/10/12/session-87bec773/perf-system/requirements.md",
+  "sessions/2026/10/12/session-87bec773/property-of/requirements.md",
+  "sessions/2026/10/12/session-87bec773/readme-audit/requirements.md",
+  "sessions/2026/10/12/session-87bec773/screenshot-system/requirements.md",
+  "sessions/2026/10/12/session-87bec773/server-query/build/requirements.md",
+  "sessions/2026/10/12/session-87bec773/server-query/parity/requirements.md",
+  "sessions/2026/10/12/session-87bec773/server-query/requirements.md",
+  "sessions/2026/10/12/session-87bec773/sessions-fixes/requirements.md",
+  "sessions/2026/10/12/session-87bec773/step-runner/build/requirements.md",
+  "sessions/2026/10/12/session-87bec773/step-runner/requirements.md",
+  "sessions/2026/10/12/session-87bec773/today-shots-review/requirements.md",
+  "sessions/2026/10/12/session-87bec773/ui-library/build/requirements.md",
+  "sessions/2026/10/12/session-87bec773/ui-library/requirements.md",
+  "sessions/2026/10/12/session-87bec773/ui-library/widen/requirements.md",
+  "sessions/2026/10/12/session-8e24c457/page-content-unify/requirements.md",
+  "sessions/2026/10/12/session-9098993a/smoke-gate/requirements.md",
+  "sessions/2026/10/12/session-92b11b57/page-columns-asks/requirements.md",
+  "sessions/2026/10/12/session-971b7153/ai-classes-asks/requirements.md",
+  "sessions/2026/10/12/session-a2bdd14b/page-context-asks/requirements.md",
+  "sessions/2026/10/12/session-ac44c638/relay-2/requirements.md",
+  "sessions/2026/10/12/session-b0c9ab63/voice-verify/requirements.md",
+  "sessions/2026/10/12/session-b5cae4be/skill-usage-audit/requirements.md",
+  "sessions/2026/10/12/session-c7880390/docs-handover/requirements.md",
+  "sessions/2026/10/12/session-cb7ffa45/page-ai-api/build/requirements.md",
+  "sessions/2026/10/12/session-cb7ffa45/page-ai-api/requirements.md",
+  "sessions/2026/10/12/session-cd792e48/figma-phase2/requirements.md",
+  "sessions/2026/10/12/session-ce9b99f2/night-audit/requirements.md",
+  "sessions/2026/10/12/session-d2954950/asks-transcription/requirements.md",
+  "sessions/2026/10/12/session-d2fd8fab/owner-inbox/requirements.md",
+  "sessions/2026/10/12/session-d399581f/refine-asks/requirements.md",
+  "sessions/2026/10/12/session-d4cd44ab/asks-by-module/requirements.md",
+  "sessions/2026/10/12/session-e272f2d6/relay-asks/requirements.md",
+  "sessions/2026/10/12/session-e4a1482d/transcription-crash/requirements.md",
+  "sessions/2026/10/12/session-e55f5a4b/page-split-2/requirements.md",
+  "sessions/2026/10/12/session-eecd88fa/sessions-grid/requirements.md",
+  "sessions/2026/10/12/session-f73e4a4a/phone-https/requirements.md",
+  "sessions/2026/10/12/session-f90a4e29/sessions-detail/requirements.md",
+  "sessions/2026/10/12/session-fb723164/voice-asks-2/requirements.md",
+  "sessions/2026/10/12/session-fb77ab71/openrouter-gap/requirements.md",
+  "2026-10-12/data-grid/grid-core/requirements.md",
+  "2026-10-12/data-grid/requirements.md",
+  "2026-10-12/data-grid/sessions-adopt/requirements.md",
+  "2026-10-12/data-grid/sessions-perf/requirements.md",
+  "2026-10-12/refine-haiku-live/live-server/requirements.md",
+  "2026-10-12/refine-haiku-live/one-input/requirements.md",
+  "2026-10-12/refine-haiku-live/requirements.md",
+  "2026-10-12/style-system/requirements.md",
+  "2026-10-12/task-folders/requirements.md"
+ ],
+ "asks": [
+  {
+   "n": 1,
+   "kind": "command",
+   "ask": "Find the cause of the sessions-page load error and name the commit",
+   "quote": "what reloaded and what failed around 19:00–19:15Z",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Concrete time window and named checks; the cause question is direct"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Done-when requires a named commit plus why the guard failed"
+   }
+  },
+  {
+   "n": 2,
+   "kind": "command",
+   "ask": "Close the reload gap in code so a failed reload keeps the old page",
+   "quote": "Close the gap in code, not in a rule only",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Says code not rules, but the specific fixes are only e.g. examples"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "The fix is open; only recording the alternative is checkable"
+   }
+  },
+  {
+   "n": 3,
+   "kind": "command",
+   "ask": "Make merge.mjs require 400/1200/1920/3440 shots if it can skip them",
+   "quote": "really requires the 400/1200/1920/3440 shots for a page change",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Conditional but explicit: check the gate, then require shots if skippable"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Ends in a checkable gate: shots must exist in the task dir"
+   }
+  },
+  {
+   "n": 4,
+   "kind": "command",
+   "ask": "Note the rule in watch.md, then commit, merge and land",
+   "quote": "one Servex restart if needed, proven on a private port",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Steps named in order; the content of the one-line note is loose"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Each step is a file or git state, checkable on the branch"
+   }
+  },
+  {
+   "n": 5,
+   "kind": "question",
+   "ask": "Explain what the 2,000 lines in the Page class actually are",
+   "quote": "What exactly is 2,000 lines in the Page class?",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Owner's direct question, quoted verbatim, with a clear measure requested"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Script output by section and caller answers it; what counts as an answer is judgement"
+   }
+  },
+  {
+   "n": 6,
+   "kind": "command",
+   "ask": "Write the Page split plan only, with no code moves",
+   "quote": "Page.class.js split plan (plan only, no code moves)",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Explicit plan-only scope with named file and required sections"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "One-screen doc, target size, risk per move, and an empty git diff are checkable"
+   }
+  },
+  {
+   "n": 7,
+   "kind": "command",
+   "ask": "Link the split plan from the core/Page readme",
+   "quote": "Link it from the core/Page readme. No changes to Page.class.js",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Single named action with a named target file"
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "A grep for the link in the readme proves it"
+   }
+  },
+  {
+   "n": 8,
+   "kind": "command",
+   "ask": "Move the jsonl replay and file steps into their own Page class file",
+   "quote": "Move the jsonl replay and file steps into their own class file",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Clear move with name options; attachment style left to the plan"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Behaviour sameness is checkable only through the step 9 baseline"
+   }
+  },
+  {
+   "n": 9,
+   "kind": "command",
+   "ask": "Baseline 40 pages before the move, diff after, with zero differences",
+   "quote": "0 state diffs, 0 new console errors, screenshots match",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Page list and metrics explicit; live pages make diffs ambiguous"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "A live session page changes over time; diff rule for it is undefined"
+   }
+  },
+  {
+   "n": 10,
+   "kind": "command",
+   "ask": "Record split measures, tick step 7, merge with reloads held or leave branch",
+   "quote": "Merge with live reloads held during the batch",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Explicit close-out items plus an explicit do-not-merge branch"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "STATE.md before and after numbers and merge state are checkable"
+   }
+  },
+  {
+   "n": 11,
+   "kind": "command",
+   "ask": "Run five checkers giving every open ask a verdict",
+   "quote": "For EVERY ask, LOOK at the real result and give one verdict",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Verdict set and votes file format explicitly defined"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Five votes files with one verdict per ask is countable"
+   }
+  },
+  {
+   "n": 12,
+   "kind": "directive",
+   "ask": "Search git, grep, skills and CLAUDE.md before any not-done verdict",
+   "quote": "Prove before you call something missing",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Method and search order named explicitly in the brief"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Vote schema holds only evidence and fix; search proof is not recorded"
+   }
+  },
+  {
+   "n": 13,
+   "kind": "command",
+   "ask": "Check the live site at monorepo.localhost with timings, overflow and no popups",
+   "quote": "Visual asks: headless Playwright at 1920 and 3440",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Host, viewports, measures and no-popup rule are all named"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "The named URLs are not in this text; the end state depends on them"
+   }
+  },
+  {
+   "n": 14,
+   "kind": "command",
+   "ask": "Add up to eight extra asks the current list misses",
+   "quote": "the owner made there that current asks miss",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Count is capped, but which words count as asks is judgement"
+   },
+   "outcome_clear": {
+    "p": 0.45,
+    "evidence": "Up to eight means zero is valid; no fixed finished size"
+   }
+  },
+  {
+   "n": 15,
+   "kind": "directive",
+   "ask": "Keep the council read-only: votes files, at most 12 shots, reply done",
+   "quote": "Do NOT edit any repo file",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Explicit no-edit rule, output files, shot cap and reply word"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Clean git status and five votes files are checkable"
+   }
+  },
+  {
+   "n": 16,
+   "kind": "command",
+   "ask": "Read the handover, sessions readme and docs before housekeeping",
+   "quote": "ai/sessions/readme.md, ai/sessions/doc/ and the tasks-into-sessions STATE.md",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Exact files listed; the reading order is explicit"
+   },
+   "outcome_clear": {
+    "p": 0.4,
+    "evidence": "Reading has no named deliverable; only a written summary would show it"
+   }
+  },
+  {
+   "n": 17,
+   "kind": "command",
+   "ask": "Verify the tasks-into-sessions move and list unreachable items with links",
+   "quote": "Verify the tasks-into-sessions move end to end with its verify script",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Verify is clear; then doing it for the 12 not-landed is vague"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "Verify output and link list are checkable; the do-it scope is unclear"
+   }
+  },
+  {
+   "n": 18,
+   "kind": "command",
+   "ask": "Classify machine-written files as commit, gitignore or regenerate; apply the rule",
+   "quote": "Decide for each class of file: commit (versioned log)",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Three options and target docs named; never-delete rule stated"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Rule text in docs plus gitignore edits are checkable via git status"
+   }
+  },
+  {
+   "n": 19,
+   "kind": "command",
+   "ask": "Build a Servex log-sweeper class that commits allowlisted logs on a timer",
+   "quote": "commits machine-written logs in batches on a timer",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Class, allowlist, attribution, dry-run and restart are all specified"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Dry-run output, idempotent rerun, attributed commit and clean boot are checkable"
+   }
+  },
+  {
+   "n": 20,
+   "kind": "command",
+   "ask": "Reconcile the OpenRouter spend gap by day and model, and show the unattributed line",
+   "quote": "account showed more dollars than openrouter.jsonl explains",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Visible unattributed line is explicit; the cause hunt is open-ended"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "The unattributed line is checkable; the root cause may stay unknown"
+   }
+  },
+  {
+   "n": 21,
+   "kind": "directive",
+   "ask": "Stay inside the fences: non-destructive, worktree, smoke-tested commits, merge.mjs",
+   "quote": "Never destructive. Worktree for code, commit each working step",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Each fence is explicit, with the model and merge tool named"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "Constraints; compliance is checkable only through logs and commits"
+   }
+  },
+  {
+   "n": 22,
+   "kind": "command",
+   "ask": "Close the inbox-dashboard-cards open asks, each with a commit or a reason",
+   "quote": "Each open point in the cluster is done (with a commit)",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "The form is clear, but the cluster content lives in another doc"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Each point needs a commit or written reason, checkable per point"
+   }
+  },
+  {
+   "n": 23,
+   "kind": "command",
+   "ask": "Close the sessions-system open asks, each with a commit or a reason",
+   "quote": "Read that entry and its source links first",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Same form as cluster 22; the content is only in the linked asks doc"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Per-point commit or reason is checkable; the scope depends on the doc"
+   }
+  },
+  {
+   "n": 24,
+   "kind": "command",
+   "ask": "Show voice words live on the session page through five stages",
+   "quote": "they watch their words turn into cards on the session's own page",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Goal and five named stages are explicit; stage contents are loosely described"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Five live stages on a phone-width page are checkable, but many moving parts"
+   }
+  },
+  {
+   "n": 25,
+   "kind": "directive",
+   "ask": "Route each session's output to its own session page by default",
+   "quote": "By default an agent writes to its own page",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Default routing rule and exact page path are stated"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Must work from browser and app, but the test method is not specified"
+   }
+  },
+  {
+   "n": 26,
+   "kind": "directive",
+   "ask": "Read the existing voice pieces first and do not rebuild them",
+   "quote": "read STATE/reports first, do not rebuild",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Explicit read-first and do-not-rebuild rule with named artifacts"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "The outcome is a fact-finding summary with no fixed end state"
+   }
+  },
+  {
+   "n": 27,
+   "kind": "command",
+   "ask": "Reproduce the dictation failure headless and record stage timings",
+   "quote": "record which stage breaks or lags, with timings",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Method, branch and file named; stage timings explicitly requested"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "STATE.md with stage timings is checkable whatever the result"
+   }
+  },
+  {
+   "n": 28,
+   "kind": "command",
+   "ask": "Meet the voice done-when list: resilience, live stages, phone width, try-it doc",
+   "quote": "each written by page-tool deltas as it happens",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Explicit tick-list with proof types; some items like restarts itself are vague"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Each item is tickable with a named proof; many items raise miss risk"
+   }
+  },
+  {
+   "n": 29,
+   "kind": "directive",
+   "ask": "Keep voice work inside fences: models, one batched Servex restart, short replies",
+   "quote": "one Servex restart batched and proven on a private port",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Fences and restart rule are explicit; model and reply limits named"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Compliance-type; proof is the restart test and the landing record"
+   }
+  },
+  {
+   "n": 30,
+   "kind": "command",
+   "ask": "Prove a page body can be a persisted list of views in its JSONL",
+   "quote": "a page's views are a list loaded from the page's own JSONL",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "The idea is clear, but the brief says not yet proven, so framing is open"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Proof depends on the slice in items 32 and 33; the prove step itself is loose"
+   }
+  },
+  {
+   "n": 31,
+   "kind": "command",
+   "ask": "Write a short class-architecture page before building the views slice",
+   "quote": "a short page naming each class, its job",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Page contents itemised: classes, jobs, extends, orchestrator, visibility"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "A visible page with those four elements is checkable"
+   }
+  },
+  {
+   "n": 32,
+   "kind": "command",
+   "ask": "Build a JSONL-backed view-list page with delta add, move and remove",
+   "quote": "with at least three view kinds (heading, text/markdown, card)",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "View kinds, delta writes, one class per file and no core change are specified"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "A page with three kinds, a delta tool and a live second tab is checkable"
+   }
+  },
+  {
+   "n": 33,
+   "kind": "command",
+   "ask": "Prove the slice live in two tabs, then render one small existing page with it",
+   "quote": "render one existing small page (a readme-like page)",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Two tabs and one page are named; which page is left to the mastermind"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Reload and second-tab sync plus one rendered page are checkable"
+   }
+  },
+  {
+   "n": 34,
+   "kind": "command",
+   "ask": "Record decisions and alternatives in the module doc, linked from indexes",
+   "quote": "linked from its readme and from the AI/page indexes",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Where to record and link is explicit; the decision content is open"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Doc exists and links resolve from readme and indexes, which is checkable"
+   }
+  },
+  {
+   "n": 35,
+   "kind": "directive",
+   "ask": "Keep the page slice inside fences: worktree, step commits, merge.mjs, model rules",
+   "quote": "commit each working step after a smoke test, review the diff",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Each fence explicitly named with its tool and model"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Constraint-style; checkable only through the commit and merge log"
+   }
+  },
+  {
+   "n": 36,
+   "kind": "command",
+   "ask": "Consolidate CLAUDE.md for clarity with nothing useful lost",
+   "quote": "Consolidate for clarity, but nothing useful may be lost",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Explicit consolidate request; clarity itself is a judgement call"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Checkable via manifest and check script; clarity itself is judgement"
+   }
+  },
+  {
+   "n": 37,
+   "kind": "command",
+   "ask": "Build a sentence manifest script that proves no sentence is dropped",
+   "quote": "Every sentence appears in exactly one row",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Row actions and the zero-dropped check are explicitly specified"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Check script pass or fail is checkable; sentence segmentation is the risk"
+   }
+  },
+  {
+   "n": 38,
+   "kind": "directive",
+   "ask": "Keep strength words; never strengthen a rule while moving it",
+   "quote": "Never strengthen a rule while moving it",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Direct prohibition, with the always and usually rule stated"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Which rules broke things is judgement; a word-count script helps"
+   }
+  },
+  {
+   "n": 39,
+   "kind": "directive",
+   "ask": "Keep the recent owner rules in CLAUDE.md, tightened but not weakened",
+   "quote": "stay in CLAUDE.md, tightened but not weakened",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Named rule list and keep-in-place requirement are explicit"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Presence is checkable by grep; tightened but not weakened is judgement"
+   }
+  },
+  {
+   "n": 40,
+   "kind": "command",
+   "ask": "Write a one-screen review page for the owner, linked as a Note card",
+   "quote": "The owner can read it later; it does not block",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Contents, length, link target and non-blocking status are all named"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Page and Note card exist and fit one screen: checkable by viewing"
+   }
+  },
+  {
+   "n": 41,
+   "kind": "command",
+   "ask": "Apply the CLAUDE.md consolidation in a worktree with a fresh reviewer, then land",
+   "quote": "reads the manifest and the new file once before merge",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Steps, reviewer role and reversibility are all explicit"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Merged file plus reviewer flag list is checkable; flags may be none"
+   }
+  }
+ ]
+}

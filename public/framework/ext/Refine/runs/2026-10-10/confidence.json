@@ -1,0 +1,390 @@
+{
+ "day": "2026-10-10",
+ "scale": 2,
+ "truncated": false,
+ "sources": [
+  "sessions/2026/10/10/session-30be6115/server-perf/requirements.md",
+  "sessions/2026/10/10/session-41240bd9/tasks-into-sessions/requirements.md",
+  "sessions/2026/10/10/session-62419663/figma-system/requirements.md"
+ ],
+ "asks": [
+  {
+   "n": 1,
+   "kind": "directive",
+   "ask": "Read the perf doc first, then work from requirements",
+   "quote": "Already measured (`Server/doc/perf-2026-10-09.md`, read it first)",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Explicit: read it first, then work the requirements list."
+   },
+   "outcome_clear": {
+    "p": 0.35,
+    "evidence": "Reading has no checkable end state; the later steps do."
+   }
+  },
+  {
+   "n": 2,
+   "kind": "command",
+   "ask": "Fix the cheap, obvious causes of the site stalling",
+   "quote": "Do a quick performance look and fix the cheap, obvious causes.",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "Clear directive, but 'crashes' versus 'stalling' is loose."
+   },
+   "outcome_clear": {
+    "p": 0.45,
+    "evidence": "Which causes count as cheap and obvious is left open."
+   }
+  },
+  {
+   "n": 3,
+   "kind": "command",
+   "ask": "Drop or flag-gate per-message socket and RPC logging; keep errors",
+   "quote": "drop the per-message `Socket message` / `RPC:` console lines",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Names the exact lines, the flag option, and keeping errors."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Log file shrinks, errors still appear; checkable by size and grep."
+   }
+  },
+  {
+   "n": 4,
+   "kind": "command",
+   "ask": "Rebuild Directory only when a walked file changes",
+   "quote": "rebuild only when a file under the walked tree actually changed",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Condition is stated plainly; the mechanism is left open."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Rebuild line count over N requests drops; N is unset."
+   }
+  },
+  {
+   "n": 5,
+   "kind": "command",
+   "ask": "Find why each qf-N worktree boots a dev server; start on demand",
+   "quote": "find why qf-N worktrees each boot a dev server and churn",
+   "ask_clear": {
+    "p": 0.55,
+    "evidence": "Investigation is clear; the on-demand fix depends on code ownership."
+   },
+   "outcome_clear": {
+    "p": 0.4,
+    "evidence": "Two branches, on-demand start or written finding; neither is pinned."
+   }
+  },
+  {
+   "n": 6,
+   "kind": "command",
+   "ask": "Log whisper-server exit code and reason; explain any restart loop",
+   "quote": "make its exit code and reason a log line",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "Log requirement is clear; supervisor ownership is unresolved."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Needs an exit line in whisper.jsonl and a stated restart cause."
+   }
+  },
+  {
+   "n": 7,
+   "kind": "command",
+   "ask": "Record before/after numbers in the perf doc; write STATE.md",
+   "quote": "Record results in `Server/doc/perf-2026-10-09.md` (update, do not duplicate)",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Explicit: update the existing doc, do not duplicate it."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Doc holds before/after counts and latency; STATE.md exists."
+   }
+  },
+  {
+   "n": 8,
+   "kind": "directive",
+   "ask": "Follow fences: worktree, boot check, merge, Sonnet, finish-task",
+   "quote": "Work in a worktree; never run `node server.js` directly",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Fences are an explicit list, each stated as a must."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Merge passes, worktree removed, attributed commits, finish-task run."
+   }
+  },
+  {
+   "n": 9,
+   "kind": "command",
+   "ask": "Convert old session and task folders to the new structure",
+   "quote": "convert the old session and task directory structures to the new one",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Dated owner ask; 'condense where it makes sense' stays vague."
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Every task sits in a session folder; condensing scope is open."
+   }
+  },
+  {
+   "n": 10,
+   "kind": "command",
+   "ask": "Turn on --tasks so task folders move into sessions",
+   "quote": "This reverses the earlier hold on `--tasks`",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Owner reversed the hold; the item mixes status with an action."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Manifest lists each task move; flag run is checkable."
+   }
+  },
+  {
+   "n": 11,
+   "kind": "command",
+   "ask": "Dry-run --tasks and report counts, clashes, multi-session tasks, bytes",
+   "quote": "tasks with a session (move), tasks without one (stay; list them)",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Report items enumerated; 'owning' session needs a rule."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Each category is a countable line in the dry-run output."
+   }
+  },
+  {
+   "n": 12,
+   "kind": "command",
+   "ask": "Make old task URLs resolve before any move",
+   "quote": "Make routes resolve before moving anything.",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Goal stated: old URLs still load; method left to agent."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "A handful of real old URLs load after the move; browser-checkable."
+   }
+  },
+  {
+   "n": 13,
+   "kind": "command",
+   "ask": "Prove every moved file keeps identical size and sha1",
+   "quote": "proves each old file exists at its new path with identical content",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Exact check defined: zero missing, zero changed."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "Before and after hash lists show zero missing, zero changed."
+   }
+  },
+  {
+   "n": 14,
+   "kind": "command",
+   "ask": "Archive duplicate and empty task folders; never delete",
+   "quote": "move-aside to an archive path with an entry in the manifest",
+   "ask_clear": {
+    "p": 0.5,
+    "evidence": "'Allowed only' and 'where it makes sense' leave scope open."
+   },
+   "outcome_clear": {
+    "p": 0.4,
+    "evidence": "Which folders qualify is undefined; no count target given."
+   }
+  },
+  {
+   "n": 15,
+   "kind": "command",
+   "ask": "Apply moves in a worktree, batch by batch, committing each",
+   "quote": "Apply in a worktree, in batches if large, committing each batch",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Explicit: apply, batch, commit each, merge dry-run passes."
+   },
+   "outcome_clear": {
+    "p": 0.85,
+    "evidence": "merge.mjs dry-run passes with zero same-origin 404s."
+   }
+  },
+  {
+   "n": 16,
+   "kind": "command",
+   "ask": "Update readmes, data doc, handover, and task-listing board readers",
+   "quote": "so the board still shows every task",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Four named targets; board-shows-every-task is clear."
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Board lists every task; hold note gone; checkable."
+   }
+  },
+  {
+   "n": 17,
+   "kind": "directive",
+   "ask": "Never destructive: move, link, archive; git mv; manifest",
+   "quote": "Never destructive: move, link, archive; `git mv` for tracked files",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Fence names specific commands, rules and the manifest."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Git diff shows moves, zero deletions, manifest covers every path."
+   }
+  },
+  {
+   "n": 18,
+   "kind": "directive",
+   "ask": "Keep Figma observation notes in ext/Figma/doc/observations.md",
+   "quote": "Keep notes of every observation about how the Figma system works",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Exact file path and content types named explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "File exists and grows; 'every observation' is open-ended."
+   }
+  },
+  {
+   "n": 19,
+   "kind": "command",
+   "ask": "Check Figma embed responsiveness; record it; re-render if needed",
+   "quote": "Check current Figma embed behaviour (a quick web check or test)",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "The check is clear; re-rendering depends on its result."
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Result recorded is checkable; re-render branch depends on it."
+   }
+  },
+  {
+   "n": 20,
+   "kind": "question",
+   "ask": "Verify whether Color Scheme cards use alpha overlays",
+   "quote": "dark mode nests more levels while keeping contrast",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "Verification method is clear; the transparency idea is a guess."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Fills and opacity read and written down; checkable against the file."
+   }
+  },
+  {
+   "n": 21,
+   "kind": "question",
+   "ask": "Decide page content storage; write a short doc note",
+   "quote": "Open design question to decide and write down",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Decide and record, don't wait; simpler path stated."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Doc note with decision, alternative and smallest slice exists."
+   }
+  },
+  {
+   "n": 22,
+   "kind": "command",
+   "ask": "Build ext/Figma to track files and browse them on-site",
+   "quote": "Build a system, most likely an extension (`ext/Figma`)",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Owner's purpose stated: browse tracked Figma files on the site."
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Browse page shows files, pages, frames; 'ship, then widen' leaves scope open."
+   }
+  },
+  {
+   "n": 23,
+   "kind": "command",
+   "ask": "Store tracked files as JSONL; refresh script; screenshots; browse",
+   "quote": "It stores a tracked file as JSONL data beside the extension",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Fields, browse levels and live tail specified; size cap unset."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "JSONL fields, local screenshots and three browse levels are checkable."
+   }
+  },
+  {
+   "n": 24,
+   "kind": "command",
+   "ask": "Reproduce Page 7 designs, starting with Color Schemes",
+   "quote": "start with `Color Schemes` as a framework demo",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Order is clear: Color Schemes first, then Palette sections."
+   },
+   "outcome_clear": {
+    "p": 0.4,
+    "evidence": "'As many as possible within reason' has no checkable end state."
+   }
+  },
+  {
+   "n": 25,
+   "kind": "directive",
+   "ask": "Sonnet specs each section; Haiku builds; record what worked",
+   "quote": "Record what Haiku got right and wrong per section.",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Method explicit, but called a 'cheap pattern', so optional."
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Per-section right and wrong notes exist; checkable."
+   }
+  },
+  {
+   "n": 26,
+   "kind": "question",
+   "ask": "Decide whether Sept-2026 test page 124:1062 stays",
+   "quote": "A new page was added to Sept-2026 (id `124:1062`",
+   "ask_clear": {
+    "p": 0.35,
+    "evidence": "Says 'may be deleted', but fences forbid touching Sept-2026."
+   },
+   "outcome_clear": {
+    "p": 0.2,
+    "evidence": "Stays open by design; no end state is defined."
+   }
+  },
+  {
+   "n": 27,
+   "kind": "directive",
+   "ask": "Write Figma only to scratch or drafts; never touch Sept or July",
+   "quote": "Never modify or delete anything in Sept-2026 or July-2026",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Write targets and forbidden files named explicitly."
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Sept and July untouched; writes land only in named targets."
+   }
+  }
+ ]
+}

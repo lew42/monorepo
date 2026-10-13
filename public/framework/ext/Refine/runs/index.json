@@ -1,0 +1,77 @@
+[
+ {
+  "day": "2026-10-13",
+  "asks": 18,
+  "ask_clear": 0.64,
+  "outcome_clear": 0.63,
+  "texts": 28,
+  "chars": 20000,
+  "truncated": true,
+  "cost_usd": 0.72
+ },
+ {
+  "day": "2026-10-12",
+  "asks": 41,
+  "ask_clear": 0.78,
+  "outcome_clear": 0.68,
+  "texts": 80,
+  "chars": 19224,
+  "truncated": true,
+  "cost_usd": 1.75
+ },
+ {
+  "day": "2026-10-11",
+  "asks": 0,
+  "note": "no owner words found in that day's task logs or requirements files"
+ },
+ {
+  "day": "2026-10-10",
+  "asks": 27,
+  "ask_clear": 0.72,
+  "outcome_clear": 0.65,
+  "texts": 3,
+  "chars": 12735,
+  "truncated": false,
+  "cost_usd": 2.45
+ },
+ {
+  "day": "2026-10-09",
+  "asks": 55,
+  "ask_clear": 0.83,
+  "outcome_clear": 0.74,
+  "texts": 36,
+  "chars": 19577,
+  "truncated": true,
+  "cost_usd": 3.55
+ },
+ {
+  "day": "2026-10-08",
+  "asks": 113,
+  "ask_clear": 0.79,
+  "outcome_clear": 0.68,
+  "texts": 12,
+  "chars": 20000,
+  "truncated": true,
+  "cost_usd": 5.04
+ },
+ {
+  "day": "2026-10-07",
+  "asks": 52,
+  "ask_clear": 0.77,
+  "outcome_clear": 0.62,
+  "texts": 6,
+  "chars": 20000,
+  "truncated": true,
+  "cost_usd": 5.91
+ },
+ {
+  "day": "2026-10-06",
+  "asks": 32,
+  "ask_clear": 0.73,
+  "outcome_clear": 0.63,
+  "texts": 2,
+  "chars": 4502,
+  "truncated": false,
+  "cost_usd": 6.72
+ }
+]
