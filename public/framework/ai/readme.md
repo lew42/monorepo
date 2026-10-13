@@ -2,15 +2,7 @@
 
 Where the agents' work is recorded: one folder per day, one folder per task inside it.
 
-The page has three tabs:
-
-- **Inbox** (the default): a rail of what needs you, only rows scoring 90 and up. The card you pick opens beside it, at its own address (`/framework/ai/2026/09/30/<card>/`).
-- **Log**: the same rail, showing everything (`?min=0`). Every task by day is at [all-tasks/](all-tasks/).
-- **System**: the whole AI system explained, full width — the map, [Skills](skills.json) (rerun `node public/framework/ai/skills.mjs` after a skill changes), [Readmes](readmes/), how data is written and how a page saves, Objects ([objects.js](objects.js)), Authoring, Models and CLAUDE.md. Concept text: [concepts.js](concepts.js); tabs: [overview.js](overview.js).
-
-A tab after Inbox is **detected, not hand-listed**: any folder whose own `page.jsonl` (or `settings.jsonl`, beside a `page.js`) has `{"settings":{"tab":true,"weight":5}}` joins the strip there, ordered by `weight` (`overview.js`'s `detect_tabs()`; more on the System tab).
-
-The rail is `AIRail` ([ai/rail/rail.js](/framework/ai/rail/rail.js)), the same one AI 2 draws; how it works is at [/framework/ux/Inbox/](/framework/ux/Inbox/). The old board is at [/framework/ai/v/3/](/framework/ai/v/3/) (and `?v1`).
+- Moved verbatim to [doc/readme-full-2026-10-12.md](./doc/readme-full-2026-10-12.md): the page tabs, in full.
 
 ## Every system, one line each
 
@@ -69,46 +61,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - A task's folder holds `task.jsonl` (its log) and usually `requirements.md` (its brief).
 
 ## Watch out
-
-- Agents put work you didn't ask for into [todo.md](todo.md) rather than starting it.
-- Dynamic heartbeats & the unstuck protocol: [doc/agents/autonomy.md](doc/agents/autonomy.md).
-- How cost is counted (per request, not per token; why agents read millions; the cache discount): [doc/tokens/tokens.md](doc/tokens/tokens.md).
-- Token efficiency, batching rules, and pre-processing: [doc/tokens/tokens.md](doc/tokens/tokens.md).
-- Context windows, primacy/recency attention bias, and token budgets: [doc/tokens/context-window.md](doc/tokens/context-window.md).
-- Single universal log tool for constrained models & file system truth: [doc/logs/log-tool.md](doc/logs/log-tool.md).
-- Pass-by-reference message routing & queue latency handling: [doc/agents/pass-by-reference.md](doc/agents/pass-by-reference.md).
-- Agent interrupts, queue preemption, and the stop-and-switch pattern: [doc/agents/interrupts.md](doc/agents/interrupts.md).
-- Agent concurrency, serial prompt-response loops, and the two-tier listener/minion pattern: [doc/agents/concurrency.md](doc/agents/concurrency.md).
-- Model evaluation, what is "truth", and avoiding circular grading: [doc/agents/eval-truth.md](doc/agents/eval-truth.md).
-- MCP tool doors and multi-harness config locations (Claude vs. Antigravity): [doc/agents/mcp.md](doc/agents/mcp.md).
-- Which log is ground truth for "what did the owner ask, and did it land" (session files vs.
-  asks.jsonl vs. task dirs vs. Servex logs): [doc/logs/log-sources.md](doc/logs/log-sources.md).
-- Where tasks should live (session first, then the module) and a JSONL message channel the owner can watch: [doc/tasks/tasks.md](doc/tasks/tasks.md) (open design).
-- Tools, session templates and a generic path+method tool (owner thinking, open design): [doc/design/tooling-architecture.md](doc/design/tooling-architecture.md).
-- Long-term direction: the website must show all the work (index pages, demos, a recently-landed view): [doc/design/website-shows-everything.md](doc/design/website-shows-everything.md).
-- AI 2 vs AI (two card stores), the date directory layout, zombie branches: [doc/ai2/ai2-vs-ai.md](doc/ai2/ai2-vs-ai.md) (open, owner decisions). Inventory and proposal: [doc/ai2/ai2-vs-ai.md](doc/ai2/ai2-vs-ai.md). Inbox/Log/streaming: [doc/logs/inbox-log-streaming.md](doc/logs/inbox-log-streaming.md). History: [doc/meta/history.md](doc/meta/history.md). Per-module `ai/` folders: [doc/design/module-ai-dirs.md](doc/design/module-ai-dirs.md). Readme and documentation system status: [doc/meta/readme-system-status.md](doc/meta/readme-system-status.md).
-- Inbox, Log and one streaming system, programmatic writes: [doc/logs/inbox-log-streaming.md](doc/logs/inbox-log-streaming.md).
-- Ranked priorities and who owns what: [doc/tasks/priorities.md](doc/tasks/priorities.md).
-- Cost: `node Server/task-cost.mjs --date <YYYY-MM-DD>`. A follow-up task that reused its
-  parent's session currently shows the parent's whole total, not its own share.
-- `tasks.json` — stalled, budget vs. actual, snooze/kill/re-prioritise — is DERIVED: Servex's
-  `Servex/asks/tasks.js` regenerates it every tick; never hand-edit it (`Servex/asks/readme.md`).
-- A day's prompts are only as refined as `node Server/day-prompts-refine.mjs <date>` (or Echo,
-  live) has gotten to — a day page says how many are still plain text. The local model
-  (`local/qwen2.5-coder`) is currently overflowing its own context on every call (tracked at
-  `2026-10-04/local-brain/`); until that's fixed, refining is a real-$ Sonnet call, so the
-  retroactive run was capped small on purpose rather than run over every old prompt.
-- **To-do:** a task that spans several days has nowhere to live yet — `/framework/ai/<YYYY-MM>/`
-  is a stub (title + month cost total only, `monthPage()`, `ext/AITask/dashboard.js`). Moving a
-  multi-day task's own page under its month, and linking it from both the day and month pages,
-  is still open.
-- **To-do:** "by system" (`/framework/ai/<date>/by-system/`) buckets by a plain keyword match
-  against `ext/Refine/engine.js`'s `GLOSSARY`, not a model's judgment — cheap and code-only (law
-  7), but a sentence naming no module lands in "General" even when a reader would call it
-  something else. A model-graded version is a fair upgrade once there's budget for it.
-- **Owner asks by module** — [`doc/asks.md`](doc/asks.md) (merged, open first); page system: [`core/Page/doc/asks.md`](../core/Page/doc/asks.md).
-
-- Notes: [doc/ai-page-notes.md](doc/ai-page-notes.md) — history and lessons moved out of the code comments.
+- Moved verbatim to [doc/watch-out-2026-10-12.md](./doc/watch-out-2026-10-12.md): the watch-out list.
 
 ## Also here (readme audit, 2026-10-13)
 - [AISession](./AISession/) — one Claude session's cost, read from its transcript

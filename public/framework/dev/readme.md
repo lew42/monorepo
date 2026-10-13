@@ -26,3 +26,7 @@ Save a file under `public/`; every tab that loaded it reloads. That is the whole
 - [Overview](/framework/dev/) · [doc/decisions.md](./doc/decisions.md) — the boundary rules (dev may import ext, core may not), cross-module traps, the open DesignTool question
 - [Socket](/framework/dev/Socket/) — reload + RPC bridge · [DevBar](/framework/dev/DevBar/) — `Ctrl + \` rail · [Claim](/framework/dev/Claim/) — agent's tab ring
 - Files that matter: `Socket/Socket.js` (localhost check, RPC), `DevBar/DevBar.js` (tier's one mount), `Server/` (Node half, dev-only)
+
+## Also here (readme audit, 2026-10-13)
+- [DevShell](./DevShell/) — DevShell — Ctrl + \ opens a dark shell around the whole site: page tree left, the dev bar's own tabs right
+- [mobile](./mobile/) — Mobile — How to open this site on a phone, why the microphone and the socket behave differently there, and wha

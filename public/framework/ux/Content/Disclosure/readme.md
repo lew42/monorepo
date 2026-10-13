@@ -15,3 +15,6 @@ One line places it: `{"place": {"module": "/framework/ux/Content/Disclosure/Disc
 
 ## More
 - [Live demo](/framework/ux/Content/Disclosure/)
+
+## Also here (readme audit, 2026-10-13)
+- [variants](./variants/)

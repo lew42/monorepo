@@ -78,3 +78,8 @@ The old six-class version — same classes, same three demo pages, unchanged —
 
 ## Known issue (2026-10-09)
 The owner reports the `Transcriber` page layout "is all broken". Not investigated yet (noted only; the Refine task fenced it). Look at `Transcriber/page.js` at 1400 and 400 wide first.
+
+## Also here (readme audit, 2026-10-13)
+- [mic-to-text](./mic-to-text/)
+- [sound-recorder](./sound-recorder/)
+- [Voice](./Voice/) — Voice — text to speech

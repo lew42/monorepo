@@ -30,3 +30,7 @@ A page places one with a single line: `{"place": {"module": "/framework/ux/Conte
 - [Card catalog](/framework/ux/Content/catalog/) — every card kind on the site, drawn live, duplicates marked
 - [Built from lines](/framework/ux/Content/built/) — a page that is only a `page.jsonl`: prose plus the three modules
 - [Question](/framework/ux/Content/Question/) · [Decision](/framework/ux/Content/Decision/) · [Quotation](/framework/ux/Content/Quotation/) · [record shapes](/framework/ux/Content/doc/shapes.md)
+
+## Also here (readme audit, 2026-10-13)
+- [Object](./Object/) — Object — show a real object instead of explaining it
+- [structure](./structure/) — Structure: words drawn as a picture

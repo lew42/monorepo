@@ -45,3 +45,6 @@ item.set("display", "grid").set("cols", 3);     // layout properties in rail
 - Notes: [doc/glyphs-notes.md](doc/glyphs-notes.md) — history and lessons moved out of the code comments.
 
 - Notes: [doc/text-notes.md](doc/text-notes.md) — history and lessons moved out of the code comments.
+
+## Also here (readme audit, 2026-10-13)
+- [demo](./demo/)

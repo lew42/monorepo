@@ -25,3 +25,8 @@ from.
 
 - [`../readme.md`](../readme.md) — the current audio/ library and its live demo
 - [`../doc/decisions.md`](../doc/decisions.md) — what got extracted vs. rebuilt
+
+## Also here (readme audit, 2026-10-13)
+- [mic-to-text](./mic-to-text/) — Mic → Whisper → text
+- [push-to-talk](./push-to-talk/) — Push-to-talk stream — Discord-style, local only
+- [sound-recorder](./sound-recorder/) — Sound recorder — MicPicker + LevelMeter + Recorder

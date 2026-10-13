@@ -60,3 +60,15 @@ sticky header — and touches zero of Router's or Page.css's own code to do it.
 - [core/Page/layout](/framework/core/Page/layout/) — the hub this page sits in, beside `floating`
 - [ext/tabs](/framework/ext/tabs/) — the routing and vertical-rail styling this builds on, and
   where `switcher()` itself now lives (`ext/tabs/switcher.js`)
+
+## Also here (readme audit, 2026-10-13)
+- [cmp-w-app](./cmp-w-app/)
+- [cmp-w-index](./cmp-w-index/)
+- [narrow-app](./narrow-app/)
+- [narrow-index](./narrow-index/)
+- [nav-home](./nav-home/)
+- [nav-settings](./nav-settings/)
+- [tree-router](./tree-router/)
+- [tree-styles](./tree-styles/)
+- [wide-app](./wide-app/)
+- [wide-index](./wide-index/)

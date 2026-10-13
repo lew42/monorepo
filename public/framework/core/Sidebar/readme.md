@@ -47,3 +47,6 @@ this file's.
 - [`doc/narrow.md`](./doc/narrow.md) — below 52em: sticky bar and burger, CSS decides · [`doc/comp.md`](./doc/comp.md) — porting the July 2026 comp, the two em traps
 - `doc/method/<name>.md`, `doc/property/<name>.md`, `doc/file/<name>.md` — one per member and file: usage, necessity, simplicity
 - Page: [/framework/core/Sidebar/](/framework/core/Sidebar/) · Files: `Sidebar.js` (the class), `Sidebar.css` (tokens, the tree's dressing, resize, narrow mode), `page.js` (four demos)
+
+## Also here (readme audit, 2026-10-13)
+- [variants](./variants/)

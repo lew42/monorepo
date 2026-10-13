@@ -9,3 +9,25 @@ Four bands, declared as `BANDS` in [`page.js`](../page.js) — the source of tru
 - **The cards are drawn centrally**, by the `add()` override in `page.js`'s `overview_section()` — a page's own `preview()` is *not* what shows here. A palette has to be one hand at one scale; the old wall was a live app zoomed to 0.5 per card and no two alike.
 - **No band under six.** `browse()`'s grid collapses its empty tracks, so a band of two stretched its cards to 659px at 1920 and ~1400px at 3440.
 - A picture is `.demo-mini--<word>`, **two dashes** — half the words (`tabs`, `rail`, `list`, `crumbs`, `strip`) name a part too.
+
+## Also here (readme audit, 2026-10-13)
+- [catalog](./catalog/)
+- [children](./children/)
+- [columns](./columns/)
+- [dashboard](./dashboard/)
+- [flush](./flush/)
+- [folders](./folders/)
+- [full](./full/)
+- [inset](./inset/)
+- [labels](./labels/)
+- [landing](./landing/)
+- [measure](./measure/)
+- [mounts](./mounts/)
+- [region](./region/)
+- [render](./render/)
+- [replace](./replace/)
+- [route](./route/)
+- [shell](./shell/)
+- [site](./site/)
+- [vtabs](./vtabs/)
+- [width](./width/)
