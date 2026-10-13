@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Server/TaskMove.mjs — move every flat day folder public/framework/ai/YYYY-MM-DD/ into the sessions store.
-// Decision: public/framework/ai/doc/task-folders.md. Brief: public/framework/ai/2026-10-12/task-folders/move-script.md
+// Decision: public/framework/ai/doc/task-folders.md. Brief: public/framework/ai/sessions/2026/10/12/session-e456f109/task-folders/move-script.md
 // Reuses TaskDirs.files() (Server/TaskDirs.mjs) for snapshots, and core/Session/Session.js's scan() for id -> folder
 // (never a second session-folder scanner). Both are loaded against the CHOSEN --repo (not necessarily this script's
 // own checkout): TaskDirs via LEDGER_ROOT + a cache-busted re-import, Session.js by file URL into that repo's copy.
@@ -9,7 +9,7 @@
 //   node Server/TaskMove.mjs --apply [--only Y-M-D,...] [--skip slug,...] [--repo <path>]
 //   node Server/TaskMove.mjs --verify [--run <stamp>|last] [--repo <path>]
 //   node Server/TaskMove.mjs --undo   [--run <stamp> | --all] [--repo <path>]  the last apply only, unless told
-//   node Server/TaskMove.mjs --relink [--dry] [--repo <path>]
+//   node Server/TaskMove.mjs --relink [--dry] [--plan | --run <stamp>|last | --all] [--repo <path>]   default: the last apply's moves
 //   node Server/TaskMove.mjs --redirects [--repo <path>]
 //   node Server/TaskMove.mjs --pages     [--repo <path>]                      ai/sessions/task-pages.json: moved tasks with their own page.js
 //
@@ -370,8 +370,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 	else if (flag("--relink")){
 		const dry = flag("--dry");
 		// a real move line, not the file's own placeholder "note" line (ai/sessions/task-moves.jsonl declares its own shape before anything moves)
-		const real = jsonl(TaskMove.ledger(REPO)).filter(l => ["task", "rename", "stub", "dayfile", "redirect"].includes(l.kind));
-		const moves = real.length ? real : (await TaskMove.plan(REPO)).moves;
+		// ONE run's moves (default: the last apply), never a replay of the whole ledger: a replay re-deepens relative links
+		// the earlier relink already fixed (found 2026-10-13). --plan: from the dry-run plan, before any apply; --all: every move.
+		const real = jsonl(TaskMove.ledger(REPO)).filter(l => !l.undone && ["task", "rename", "stub", "dayfile", "redirect"].includes(l.kind));
+		const run = val("--run") && val("--run") !== "last" ? val("--run") : real.map(l => l.run).filter(Boolean).sort().at(-1);
+		const moves = flag("--plan") || !real.length ? (await TaskMove.plan(REPO)).moves : flag("--all") ? real : real.filter(l => l.run && l.run === run);
+		if (!moves.length){ console.log("nothing to relink: no run-stamped move (--plan before an apply, --all for every move)"); process.exit(1); }
 		const r = TaskMove.relink(REPO, moves, { dry });
 		console.log(`files: ${r.files}, hits: ${r.hits} (of which import/URL specifiers: ${r.importHits}), CLAUDE.md hits (listed, not edited): ${r.claudeMdHits}`);
 		console.log(r.samples.slice(0, 20));
