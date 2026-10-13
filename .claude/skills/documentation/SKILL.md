@@ -81,6 +81,8 @@ A Doc's `notes:` land at `/module/doc/<name>/`, `methods:`/`properties:` at `/mo
 
 **Where:** `readme.md` is the index (one line per thing, a link each, read whole). The detail goes in `doc/<topic>.md`, one topic per file. Decisions go in `doc/architecture.md`, a line or two each, linking the session or task where it was decided. When a folder passes about 10–15 files, group them into subfolders, each with its own small readme, so the parent stays an index.
 
+**Promotion:** an ask the owner made in three or more sessions is a directive: write it into the module's `doc/architecture.md`, or, if it is site-wide, propose it for the root readme as a decision line (`node Server/RefineQueue.mjs --repeats` lists today's candidates; `ext/Refine/doc/refine-queue.md`).
+
 **Who:** the mastermind of the task keeps the docs it reads true ("Readme upkeep is yours" in `sub-mastermind`); minions report what went stale.
 
 **Cleanup:** a mastermind spawns one Haiku per `doc/*.md`, given that file and the files it describes, asking "still true? duplicated elsewhere? superseded?". The mastermind reads the answers and decides. A superseded doc moves to an `archive/` folder beside it (`git mv`, one line in the readme saying why), never deleted.

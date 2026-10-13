@@ -203,7 +203,7 @@ export default class RefineQueue {
 		for (const a of RefineQueue.read(RefineQueue.ASKS)) latest.set(`${a.session}:${a.line}:${a.id}`, a);
 		const asks = [...latest.values()].filter(a => a.key), groups = [];
 		for (const a of asks){
-			const g = groups.find(g => RefinedCard.same(g.key, a.key) && (g.module === a.module || !a.module || !g.module));
+			const g = groups.find(g => g.module === a.module && RefinedCard.same_key(g.key, a.key));
 			g ? g.asks.push(a) : groups.push({ key: a.key, module: a.module, asks: [a] });
 		}
 		return groups.map(g => ({ ...g, sessions: new Set(g.asks.map(a => a.session)).size, last: g.asks.map(a => a.at).sort().at(-1) }))
@@ -231,7 +231,7 @@ export default class RefineQueue {
 			const today = a.today ?? (argv.includes("--all") ? null : new Date().toLocaleDateString("en-CA"));
 			const rows = RefineQueue.repeats({ min: a.min, today });
 			console.log(`${rows.length} ask(s) said in ${a.min}+ sessions${today ? `, last said ${today}` : ""}:`);
-			for (const g of rows) console.log(`- ${g.sessions} sessions · ${g.module || "?"} · ${g.key} — e.g. "${g.asks.at(-1).ask}" (${g.asks.map(x => `${x.session.slice(0, 8)}:${x.line}`).slice(0, 6).join(", ")})`);
+			for (const g of rows) console.log(`- ${g.sessions} sessions · ${g.module || "?"} · ${g.key} — e.g. "${g.asks.at(-1).ask}" (${[...new Set(g.asks.map(x => `${x.session.slice(0, 8)}:${x.line}`))].slice(0, 6).join(", ")})`);
 			return;
 		}
 		const since = a.since ? Date.parse(a.since + "T00:00:00") : Date.now() - (a.days ?? 7) * 864e5;

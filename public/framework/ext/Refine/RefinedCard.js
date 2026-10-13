@@ -114,9 +114,32 @@ Rules:
 	/** One verdict per ask, from the asks-outcomes lines (prompt-outcomes' tally) matched on session + transcript line, else "unreviewed". */
 	static STATUSES = ["done", "partly", "not done", "open", "unreviewed"];
 	static status_of(ask, card, outcomes){
-		const hit = outcomes?.get?.(`${card.session}:${card.line}`)?.find(o => RefinedCard.same(o.ask ?? o.text, ask.text));
-		const s = String(hit?.status ?? hit?.outcome ?? "").toLowerCase().replace(/[_-]/g, " ");
-		return RefinedCard.STATUSES.includes(s) ? s : s === "contradicted" ? "open" : "unreviewed";
+		const here = outcomes?.get?.(`${card.session}:${card.line}`) ?? [];
+		const hit = here.find(o => RefinedCard.same(o.ask ?? o.raw ?? o.text, ask.text)) ?? outcomes?.features?.find(f => RefinedCard.same_key(f.feature, ask.key));
+		return hit ? RefinedCard.verdict(hit) : "unreviewed";
+	}
+
+	/** A tally line's verdict as one of STATUSES ("contradicted" reads as open); null when it carries none. */
+	static verdict(o){
+		for (const v of [o?.status, o?.verdict, o?.state, o?.outcome]){
+			const s = String(v ?? "").toLowerCase().replace(/[_-]/g, " ").trim();
+			if (RefinedCard.STATUSES.includes(s) && s !== "unreviewed") return s;
+			if (s === "contradicted") return "open";
+		}
+		return null;
+	}
+
+	/** asks-outcomes.jsonl text → a Map `session:line` → lines, plus `.features` = the lines with a verdict, for matching by feature name. */
+	static outcomes(text){
+		const map = new Map();
+		map.features = [];
+		for (const line of String(text ?? "").split("\n")){
+			let o; try { o = JSON.parse(line); } catch { continue; }
+			if (o?.feature && RefinedCard.verdict(o)) map.features.push(o);
+			const src = String(o?.source ?? ""), id = /[0-9a-f]{8}-[0-9a-f-]{27}/.exec(src)?.[0], n = /:(\d+)\s*$/.exec(src)?.[1];
+			if (id && n) (map.get(`${id}:${n}`) ?? map.set(`${id}:${n}`, []).get(`${id}:${n}`)).push(o);
+		}
+		return map;
 	}
 
 	/** Two asks are the same when most of the shorter one's content words are in the other (a cheap, stated heuristic). */
@@ -127,6 +150,15 @@ Rules:
 		let n = 0; for (const x of A) if (B.has(x)) n++;
 		return n / small >= 0.6;
 	}
+
+	/** Two ask keys name the same thing: at least two content words shared, and most of the LONGER key's words (stricter than same()). */
+	static same_key(a, b){
+		const w = t => new Set(String(t ?? "").toLowerCase().match(/[a-z0-9]{3,}/g)?.filter(x => !RefinedCard.STOP.has(x)) ?? []);
+		const A = w(a), B = w(b);
+		let n = 0; for (const x of A) if (B.has(x)) n++;
+		return n >= 2 && n / Math.max(A.size, B.size) >= 0.6;
+	}
+	static STOP = new Set(["the", "and", "for", "with", "from", "into", "per", "all", "not", "via", "own"]);
 
 	/** Coverage of a session: asks found, how many have a verdict, the score (with a verdict ÷ found), counts per status. */
 	static score(cards, outcomes){
