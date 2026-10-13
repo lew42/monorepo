@@ -1445,3 +1445,5 @@
 {"at":"2026-10-12T20:30:48.115Z","kind":"stub","from":"public/framework/ai/2026-10-03/data-grid","to":"public/framework/ai/archive/task-stubs/2026-10-03/data-grid","session":"016756ee-1cb3-4b42-b20f-3ef5f0659261"}
 {"at":"2026-10-12T20:30:48.119Z","kind":"dayfile","from":"public/framework/ai/2026-10-03/files.jsonl","to":"public/framework/ai/sessions/2026/10/03/day-files.jsonl-2","session":null}
 {"at":"2026-10-12T20:30:48.121Z","kind":"dayfile","from":"public/framework/ai/2026-10-09/files.jsonl","to":"public/framework/ai/sessions/2026/10/09/day-files.jsonl","session":null}
+{"at":"2026-10-13T22:27:08.142Z","kind":"task","from":"public/framework/ai/2026-10-13/crawl","to":"public/framework/ai/sessions/2026/10/13/crawl","session":null}
+{"at":"2026-10-13T22:27:08.142Z","kind":"task","from":"public/framework/ai/2026-10-13/feedback-council","to":"public/framework/ai/sessions/2026/10/13/feedback-council","session":null}

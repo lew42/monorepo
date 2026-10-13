@@ -176,3 +176,10 @@ public/framework/ai/**/*.webp
 # and private like sessions/transcripts/ above. The one tracked copy (2026-10-12) stays
 # until the owner decides. public/framework/ai/doc/repo-size.md
 public/framework/ai/**/owner-prompts.jsonl
+
+# session-dup check (2026-10-13, ai/sessions/doc/data-sources.md): the council's words file is the owner's prompts
+# copied out of .claude/prompts by `council.mjs collect` (regenerable; nearly all of it is also in the SDK session files).
+# The 6 already-tracked copies stay until a scripted untrack. Voice-session test logs that ext/Session writes into
+# public/ai/ are machine state, like the same-named ignores under framework/ai/ and ux/Dictate/ai/.
+public/framework/ai/**/words.jsonl
+public/ai/v-*.jsonl

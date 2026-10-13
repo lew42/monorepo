@@ -24,6 +24,8 @@ const MCP = "http://127.0.0.1:8090/mcp";
 
 const [cmd, argDir] = process.argv.slice(2);
 
+// run folders live in the sessions store (ai/doc/task-folders.md), never the retired ai/YYYY-MM-DD/ day folder
+const storeDir = slug => path.join(root, "public/framework/ai/sessions", new Date().toISOString().slice(0, 10).replace(/-/g, "/"), slug);
 const now = () => {
 	const d = new Date(), o = -d.getTimezoneOffset(), p = n => String(Math.floor(Math.abs(n))).padStart(2, "0");
 	return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}${o < 0 ? "-" : "+"}${p(o / 60)}:${p(o % 60)}`;
@@ -135,7 +137,7 @@ export function isOwnerPrompt(p, agentSessions, sinceAt) {
 /** Collect all owner words since the last run and write to words.jsonl */
 export async function collect(targetDir) {
 	const { lastRunAt, lastRunId } = lastRunInfo();
-	const outDir = targetDir || path.join(root, "public/framework/ai", now().slice(0, 10), "feedback-council");
+	const outDir = targetDir || storeDir("feedback-council");
 	fs.mkdirSync(outDir, { recursive: true });
 
 	const agentSessions = await getKnownAgentSessions();
@@ -282,7 +284,7 @@ export async function maybeRun() {
 
 /** Run the full council loop */
 export async function runCouncil(targetDir) {
-	const outDir = targetDir || path.join(root, "public/framework/ai", now().slice(0, 10), "feedback-council");
+	const outDir = targetDir || storeDir("feedback-council");
 	fs.mkdirSync(outDir, { recursive: true });
 
 	const col = await collect(outDir);
@@ -433,7 +435,7 @@ async function main() {
 		const res = await runCouncil(argDir);
 		console.log(JSON.stringify(res));
 	} else if (cmd === "merge") {
-		const res = mergeVotes(argDir || path.join(root, "public/framework/ai", now().slice(0, 10), "feedback-council"));
+		const res = mergeVotes(argDir || storeDir("feedback-council"));
 		console.log(JSON.stringify(res));
 	} else {
 		// Default: collect preview

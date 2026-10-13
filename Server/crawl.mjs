@@ -47,7 +47,7 @@ const dateStr = () => {
 	return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 };
 
-const outDir = outOpt ? path.resolve(outOpt) : path.join(root, "public/framework/ai", dateStr(), "crawl");
+const outDir = outOpt ? path.resolve(outOpt) : path.join(root, "public/framework/ai/sessions", new Date().toISOString().slice(0, 10).replace(/-/g, "/"), "crawl");
 const shotsDir = path.join(outDir, "shots");
 const jsonlFile = path.join(outDir, "crawl.jsonl");
 const summaryFile = path.join(outDir, "summary.md");
