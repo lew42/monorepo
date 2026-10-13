@@ -36,3 +36,5 @@ Checked at 1920 (full-page screenshot, three rounds): header, notes, all six sec
 - `Page template` master `232:1347` (top level): nav with Icon instance, Title TEXT, Show breadcrumb BOOLEAN, footer, Content SLOT. Placed twice (`232:1371` Sessions, `232:1415` Files), slots hold Card and List instances.
 - Edited the template nav once (pale bar to prime, "Lew42" to "Lew42 Kit"): both pages updated; slot contents stayed; cards still follow `Card · schemes demo`. Before snapshot is on the page.
 - Decision table and the "a variant per page" anti-pattern are in section 7 (`232:1365`); source is `ext/Figma/doc/use-figma.md`.
+
+**Update:** section 7 cut to the two-page demo plus a pointer to `Kit · Slots vs components` (fig-slots). The decision table, anti-pattern and before-snapshot are hidden in section 7, not deleted.
