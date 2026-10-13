@@ -85,7 +85,7 @@ Your own turns are the most expensive tokens in the task, so spend through cheap
 
 1. **Usage:** `node Server/usage-now.mjs` sets the mode.
 2. **Harvest:** judge finished agents, log `agent` outcomes, verify every deliverable is linked from where a reader already is.
-3. **Prioritize:** the owner's explicit asks, then unfinished tasks on `/framework/ai/`, then the prime objective (organized, visual, browsable, mobile to 3440). An empty queue sends Haiku scouts. RULE#1 surgery becomes a proposal, never an autonomous edit.
+3. **Prioritize:** the owner's explicit asks, then unfinished tasks on `/framework/ai/`, then the prime objective (organized, visual, browsable, mobile to 3440). An empty queue sends Haiku scouts. Major surgery (CLAUDE.md *Ask before*) becomes a proposal, never an autonomous edit.
 4. **Spawn:** one task dir per effort (`new-task`), a `requirements.md` brief, file fences; no two agents in one file; smoke-test the seams yourself.
 5. **Log:** `now` and `agent` lines in your run task. ⚠ Set `steps` to this cycle's plan and bump `step` as each cycle ends (a suggestion: write each step as `"do it (N min)"`, or let `node Server/Steps.mjs --plan <dir> [--kind ui] ...` add the template steps, so the [Step runner](../../../Servex/doc/steps.md) can prompt and nudge): the Stop hook blocks a turn whenever `step < steps.length` with no `landed_at`, and a run task never lands until the owner stands it down.
 6. **Wakeup:** `ScheduleWakeup` with `/mastermind` only while something is in flight (1200 s fallback; a landing wakes you anyway). Idle is not a reason to wake. With nothing in flight, stop the loop; wait for a known moment (a window reset) with ONE one-shot `CronCreate`, not a chain of `noop` wakeups.
@@ -116,20 +116,17 @@ Write ideas into skills and briefs relatively minimal, link the detail rather th
 
 Measure a skill in **words**, never lines. Every cycle read the `improvements.md` files. A **fail-safe** improvement you may apply straight to the SKILL.md, then delete the entry and log it: naming a trap that actually bit, with evidence · correcting a renamed API, moved path or dead link · adding a link to detail that exists · tightening wording without moving the decision. **Not fail-safe (a proposal):** anything that changes what the skill decides · a new required step · relaxing or hardening a rule or number the owner chose · deleting guidance because you disagree. Do not re-harden what was deliberately loosened. A non-fail-safe line recurring across cycles is the strongest proposal to bring, with the fix already written.
 
-## The owner dictates; the board answers
+## The owner dictates; cards answer
 
-The owner dictates by phone and mostly does not read replies. Do the things asked. A direct, specific question gets a short chat answer; thinking out loud and open uncertainties go in the report.
+The owner dictates by phone and mostly does not read replies. Do the things asked; a direct question is answered as in *How you work* (a permanent page, and an `owner_note` linking it); open uncertainties go in the report.
 
-**The board:** `/framework/ai/v/3/` reads `ai/board.jsonl` live (import `LOG_URL` from `v/3/timeline.js`, never a path): one `card` line per thing the owner said, `{id, title, text, status: working | done | needs-you, links, demo, code}`, and a later line with the same `id` updates it. Post the card within a minute of the message, before building.
-
-**Tiers** (table in `.claude/skills/every-prompt/tiers.md`): the fast assistant (`every-prompt`, Sonnet) sorts, logs, echoes the owner's words, drafts the card and rings you. The master assistant (`master-assistant`, Opus) gives opinions when asked and loads `auditor` on a mistake. You decide, assign and judge, no hand-written code, and **own topics**: write `{"assign": {"mastermind_session": "<your agent id or session uuid>", "topics": ["…"]}}` into your run ledger at the start so a second mastermind does not work your targets blind. The owner's words reach you as `chat` lines (`from: "owner"`) in your run's `task.jsonl`; read that inbox at the top of every cycle and after every harvest (`node .claude/skills/every-prompt/say.mjs state`), and treat each as a message typed here. The same script posts cards (`say.mjs <file.json>`; it stamps the time, never type one into a title). Judge from one-screen reports; never read a minion's transcript.
-
-**Keep the log fresh.** The owner watches the log, not chat; a six-minute gap reads as nothing happening.
-- **Post first, work second.** Refine the fast assistant's draft card under the SAME `--id` (real status, who, link); never a second card for one thing. With no assistant, the two-sentence card is yours at once. A card is sent the moment it is written.
-- **A `state` card** (id `state`) whenever anything changes and at least every ten minutes while work is in flight: working now · landed today · waiting on the owner. Schedule the wakeup (600 s).
-- **A landing is one card within a minute:** what it is, in plain sentences, with the link.
-- **Cards, not paragraphs:** an `icon`, a title of about five words, the time; two or three short sentences of text, the rest one click down.
+- **Post first, work second.** The request's card (`create_card`, above) exists within a minute of the message, before building; later news updates the SAME card (`card_set`, `card_reply`), never a second card for one thing. A landing is one update within a minute: what it is, in plain sentences, with the link. Cards, not paragraphs: an icon, a title of about five words, two or three short sentences, the rest one click down.
+- **Own topics:** write `{"assign": {"mastermind_session": "<your agent id or session uuid>", "topics": ["…"]}}` into your run ledger at the start so a second mastermind does not work your targets blind.
+- **Your inbox:** the owner's words relayed by the fast assistant (`every-prompt`; tiers in `.claude/skills/every-prompt/tiers.md`) reach you as `chat` lines (`from: "owner"`) in your run's `task.jsonl`; read them at the top of every cycle and after every harvest (`node .claude/skills/every-prompt/say.mjs state`) and treat each as a message typed here.
+- Judge from one-screen reports; never read a minion's transcript.
 - **Do not edit the screen the owner is reading.** Appending a log line is your only write to the live site; everything else is a minion's, behind the reload hold.
+
+(Retired 2026-10-13: posting `card`/`state` lines to the v/3 board, `ai/board.jsonl`, through `say.mjs`. Cards are Servex's `create_card`. Old text: git history of this file.)
 
 ⚠ **A reverted working tree is a STASH until `git stash list` says otherwise**: check it before `git fsck` or commissioning any reconstruction ([`reset-recovery`](/framework/ai/sessions/2026/09/19/reset-recovery/); reading a stash safely is in [`minion/SKILL.md`](../minion/SKILL.md)).
 
@@ -141,11 +138,11 @@ When a mistake reaches the owner (a broken page, a visibly wrong layout, a rule 
 
 ## Reporting
 
-Lead every item with its conclusion as a plain statement (this is this, this is not that) as its title; under it on demand: what was asked, the conclusion again, then thought process, references, record. Easy and important first. An item taking more than 3–5 minutes to dig into says so with an estimate. Visual when possible; a claim without a clickable link, screenshot or measurement is not a result. The morning report is one page, two minutes: what landed (clickable), in flight, parked, spend.
+**Only names the owner knows** (the owner, 2026-10-13: "reference things that I know about, in a way that I know about them"): a page, module or class by the name it has on the site, one thing per bullet; never the run's own labels (a harvest number, a wave, "dictation 8") and never two unrelated things in one line. Lead every item with its conclusion as a plain statement (this is this, this is not that) as its title; under it on demand: what was asked, the conclusion again, then thought process, references, record. Easy and important first. An item taking more than 3–5 minutes to dig into says so with an estimate. Visual when possible; a claim without a clickable link, screenshot or measurement is not a result. The morning report is one page, two minutes: what landed (clickable), in flight, parked, spend.
 
 Nest detail, never dump it: every page a minion lands is level 1 first (CLAUDE.md "Presentation"); when a landing report is a wall, you rewrite it before it reaches the owner and the wall goes in the log.
 
-⚠ **A warning that rides the failing system is not a warning.** A "do NOT restart yet" notice on a dev bar that lives on the downed site never reaches the owner. Anything they must act on RIGHT NOW goes out of band: `node .claude/skills/every-prompt/say.mjs` or the terminal.
+⚠ **A warning that rides the failing system is not a warning.** A "do NOT restart yet" notice on a dev bar that lives on the downed site never reaches the owner. Anything they must act on RIGHT NOW goes out of band: `owner_note` (kind `needs-you`; it lives on Servex, not the site) or the terminal.
 
 ## Readme upkeep is yours
 

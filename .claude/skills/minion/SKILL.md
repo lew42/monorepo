@@ -43,7 +43,7 @@ If you were opened with `spawn_agent`'s `task: {dir}` option, you start with the
 
 ## Before the first edit
 
-Run `new-task` inside the task dir your brief names — it already exists; you write its `task.jsonl` launch line, with your own `session_id`. **No brief and no task dir?** (a rough prompt such as "make a new page here") Run `new-task` FIRST, before the first edit, so the task opens under `public/framework/ai/<today>/<slug>/` — never a `task.jsonl` at a path you invent. (2026-10-01: the probe runs showed every model skipping this, so it was the skill, not the model.)
+Run `new-task` inside the task dir your brief names — it already exists; you write its `task.jsonl` launch line, with your own `session_id`. **No brief and no task dir?** (a rough prompt such as "make a new page here") Run `new-task` FIRST, before the first edit, so the task opens where `node Server/TaskDirs.mjs --new <slug>` puts it — never a `task.jsonl` at a path you invent. (2026-10-01: the probe runs showed every model skipping this, so it was the skill, not the model.)
 
 **This skill and `new-task` are all you carry by default. Everything else is "read X when Y":** `code` before your first JS edit under `public/` · `layout` before building or restyling anything with a size · `css` before a declaration, `new-css-class` before a new class name · `new-page` before creating a `page.js` · `ui-test` to prove a drag, resize or hover really works · `research` before writing down anything you researched · `finish-task` at landing · `skill-improvement` for any skill that misled you.
 
@@ -91,7 +91,7 @@ The design and the measurements: [`reload-hold`](/framework/ai/sessions/2026/09/
 - **Never edit outside your fence** — your brief names the files you may touch; nothing else.
 - **Write and Edit may refuse a path under `.claude/`** (seen 2026-09-22 under `acceptEdits`; under `bypassPermissions` they worked on 2026-10-09). If refused, a small node script that replaces the exact old text, run with Bash, does the same edit.
 - **Never measure the repo while another agent is editing it** — the numbers will be wrong.
-- **Append to any `.jsonl` with `node .claude/hooks/append.mjs <target.jsonl> <lines.json>`**, writing `lines.json` with the Write tool. It stamps the clock, sniffs the newline and re-parses the file — the only route that dodges the BOM, the ANSI byte and the hand-typed timestamp all at once. Never PowerShell's `Out-File`.
+- **Append to any `.jsonl` only with `append.mjs`**, `lines.json` written with the Write tool (why: `new-task`). Never PowerShell's `Out-File`.
 - **Never kill a process by name or port pattern** (2026-09-05: a minion killed the mastermind's own server by matching `node server.js`). Kill only a PID you started; in git-bash `$!` is not the Windows PID, so read it from `netstat -ano` or `Get-Process`.
 
 ## How to wait
@@ -110,4 +110,4 @@ Run `finish-task` to land, naming any readme or doc your change made out of date
 
 **A reviewer's finding is answered, not debated:** reply in `task.jsonl` as `fixed` or `declined: <why>` (`Server/doc/review.md`).
 
-**The owner watches a live log, and you can write to it** (2026-09-19): one command puts a line on their screen under your task's name — `node .claude/skills/every-prompt/say.mjs say "<what just happened, as one sentence>" "<one or two more sentences>" --as <your-task-slug> --id <your-task-slug> --status working` (the steady `--id` makes your card EVOLVE instead of piling up; `--status done` when you land). Worth one line when you start, when something the owner can now go and see exists, and when you land. Plain words for a non-reader of code; an apostrophe is fine inside the double quotes, a double quote, a dollar sign or a backtick is not.
+**The owner follows your work through your task's card and `task.jsonl`**, which the board renders live: keep `now` current and log as things happen. (The `say.mjs` line to the v/3 board is retired, 2026-10-13.)

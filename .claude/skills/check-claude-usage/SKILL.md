@@ -5,6 +5,10 @@ description: Check how much of the Claude subscription's usage limits are consum
 
 # Checking usage limits
 
+**In the lew42 monorepo, one command:** `node Server/usage-now.mjs` prints one pace line (exit code 2 = over pace). It reads `public/framework/ai/usage.json`, which Servex refreshes every 15 minutes, and re-runs the live script itself only when that file is stale, one caller at a time. So never run `claude-usage.py` or write `usage.json` yourself in this repo: many agents doing it at once is what draws the endpoint's 429s.
+
+**Anywhere else** (or when the owner asks for the raw windows):
+
 ```powershell
 python $env:USERPROFILE\.claude\bin\claude-usage.py          # live
 python $env:USERPROFILE\.claude\bin\claude-usage.py --json   # machine-readable
@@ -17,22 +21,7 @@ LIVE usage:
   weekly_scoped     0%
 ```
 
-Fetches live by default and is read-only. Script: `~/.claude/bin/claude-usage.py`.
-
-## Feed the AI dashboard (lew42 monorepo)
-
-When working in `c:\Code\lew42\monorepo` (or any repo with a
-`public/framework/ai/` dir), run the check THROUGH the snapshot instead of the
-plain form, and quote the percentages from the file — one API call, and the day
-dashboard (`ext/ai/dashboard.js`) renders it as the usage strip via live-reload:
-
-```powershell
-python $env:USERPROFILE\.claude\bin\claude-usage.py --json | Out-File -Encoding utf8 public\framework\ai\usage.json
-Get-Content public\framework\ai\usage.json | ConvertFrom-Json | % { $_.utilization.limits } | Format-Table kind, percent, severity, resets_at
-```
-
-The file is gitignored. The "never in a loop" rule below still governs how
-often you check at all.
+Read-only. Script: `~/.claude/bin/claude-usage.py`.
 
 ## When to run it
 
@@ -45,11 +34,7 @@ often you check at all.
 
 ## How often
 
-**On demand, plus a ~15-minute cadence during active orchestration** (the owner,
-2026-08-13): while agents are running or a dashboard is watching `usage.json`,
-refresh at natural checkpoints roughly every 15 minutes — never tighter. No
-tight loops, no per-turn checks: the endpoint throttles aggressively and starts
-returning 429s exactly when the number would have been useful.
+On demand, and at natural checkpoints during active orchestration — never in a tight loop or every turn (the endpoint throttles and returns 429s exactly when the number would have been useful). In this repo `usage-now.mjs` already caches, so asking it often is fine.
 
 ## Reading the output
 
@@ -85,11 +70,11 @@ The `/framework/ai/` board draws exactly this: fill = spend, ▼ = the clock.
 
 ## Overnight — never let the owner wake to a spent window
 
-CLAUDE.md RULE#16 (the owner, 2026-08-15): autonomous runs while they're away
+The owner's rule (2026-08-15): autonomous runs while they're away
 front-load heavy waves right after a window reset and taper toward morning —
 the window they wake into stays nowhere near 90%. Exhausting an allowance
 does no good. Escape hatch: an explicit "ignore usage recommendations" from
-The owner suspends the guardrails for that run.
+the owner suspends the guardrails for that run.
 
 ## If it breaks
 
