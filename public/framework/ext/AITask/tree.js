@@ -24,7 +24,7 @@
 /* "public/framework/ai/2026-09-29/x/y/" or "/framework/ai/…" → "2026-09-29/x/y". */
 export const norm = dir => {
 	const s = String(dir ?? "").replaceAll("\\", "/").replace(/\/+$/, "");
-	const at = s.search(/(^|\/)ai\/\d{4}-\d{2}-\d{2}(\/|$)/);
+	const at = s.search(/(^|\/)ai\/(\d{4}-\d{2}-\d{2}|sessions\/\d{4}\/\d{2}\/\d{2})(\/|$)/);   // old day folders and the sessions/Y/M/D store
 	return at < 0 ? s.replace(/^\/+/, "") : s.slice(at).replace(/^\/?ai\//, "");
 };
 
@@ -203,4 +203,20 @@ export async function tree_for_day(date){
 	const manifests = await Promise.all(found.map(async f => fold(f.here,
 		lines(await text(f.here + "task.jsonl")), f.inbox ? lines(await text(f.here + "inbox.jsonl")) : [])));
 	return build(manifests);
+}
+
+/** A task index row (Server/SessionIndex.mjs, source "tasks") → a manifest. The row has no `parent_task` or `after`,
+    so the parent is the folder and phases come from start and landed times. */
+export const row_manifest = r => ({ dir: r.dir, title: r.title, agent: r.agent, requested_at: r.started,
+	landed_at: r.landed_at, step: r.step, steps: r.steps, request: r.request });
+
+/** The tree of ONE task and everything inside its folder, asked of the dev server's task index (no directory.json,
+    which is frozen). Resolves to the roots, or null off the dev server or when the index does not answer. */
+export async function tree_for_task(dir){
+	const base = norm(dir);
+	const { default: QueryClient } = await import("../Query/QueryClient.js");
+	const res = await new QueryClient("tasks").ask({ where: [{ field: "dir", op: "contains", value: base }], limit: 500 });
+	if (res.error || !res.rows) return null;
+	const mine = res.rows.filter(r => { const d = norm(r.dir); return d === base || d.startsWith(base + "/"); });
+	return build(mine.map(row_manifest));
 }

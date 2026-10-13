@@ -17,6 +17,8 @@ import { chat } from "../Ask/chat.js";
 import { breakdown } from "./cost.js";
 import { streamed as reply_streamed } from "../Ask/reply.js";
 import { fold } from "./message.js";
+import TaskViews from "./TaskViews.js";
+import { tree_for_task } from "./tree.js";
 
 View.stylesheet(import.meta, "ai.css");
 
@@ -91,7 +93,8 @@ export class AITask extends Page {
 
 	content(){
 		div.c("ai-task flow wide", async $s => {
-			const [m, req] = await Promise.all([this.session(), this.requirements()]);
+			const [m, req, roots] = await Promise.all([this.session(), this.requirements(), this.subtasks()]);
+			this.roots = roots;
 			$s.append(() => m || req ? this.report(m, req) : md("No `task.jsonl` or `session.json` beside this page yet."));
 		});
 	}
@@ -105,6 +108,12 @@ export class AITask extends Page {
 		const old = await this.legacy();
 		if (old) t.unsubscribe();
 		return old;
+	}
+
+	// The task and the tasks inside its folder, or null when it has none (or off the dev server). Drawn by the Tree tab.
+	async subtasks(){
+		const roots = await tree_for_task(this.base()).catch(() => null);
+		return roots && TaskViews.inner(roots) ? roots : null;
 	}
 
 	async legacy(){
@@ -132,11 +141,12 @@ export class AITask extends Page {
 			["session", "Session", () => { this.chat(m); this.log(m); }],
 		];
 		// After Asks, before Report: what was wanted, the brief, what was chosen, the answer.
+		if (this.roots) sections.splice(sections.length - 1, 0, ["tree", "Tree", () => TaskViews.from_url(this.roots).draw()]);
 		if (m.decisions?.length) sections.splice(1, 0, ["decisions", "Decisions", () => this.decisions(m)]);
 		if (m.asks?.length) sections.unshift(["asks", "Asks", () => this.asks(m, to_prompt)]);
 
 		const message = wanted_message();
-		tabs = tab_bar(sections, message ? "session" : m.asks?.length ? "asks" : "report");
+		tabs = tab_bar(sections, message ? "session" : this.roots && new URLSearchParams(location.search).has("view") ? "tree" : m.asks?.length ? "asks" : "report");
 		if (message) reveal(message);
 	}
 
