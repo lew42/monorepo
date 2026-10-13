@@ -38,6 +38,9 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ 2026-10-13 desktop MCP connected (`figma-desktop`, 127.0.0.1:3845): reads the owner's live selection; see use-figma.md.
 
 ## In flight
+- ⬜ 2026-10-13 tidy-ds, tidy-kit, tidy-lab (brief-tidy.md): every Claude page → 1920 wrapper → `Page · …` component; then I build the Index page.
+- ⬜ 2026-10-13 nesting (brief-nesting.md), transcribe (brief-transcribe.md).
+- ✅ Page 7 blue → accent on the master; Colour · Permutations (218:1062); Wizard step actions row.
 - ✅ `Video · Kit` + `Video · Storyboard · The Twelve` ([report](kit/video.md)). Review fixes: Location tag's map box hidden by default (`Show map` boolean), end-card thumbnails show a scene image, flat 72% scrims → gradients (15→90%) so images stay bright.
 - ✅ `Video · Channel ideas` ([report](kit/channels.md)): five channels (banner, comparison card, 4-tier price ladder, 7 thumbnails, 3 Shorts each) + sourcing (quoted-clip overlay, permission email, fair-use note); 43 credited Wikimedia photos, 9 generations.
 - ✅ Images verified: `generate_image` → `upload_assets`, and Wikimedia Commons → `upload_assets` (see [video-kit.md](/framework/ext/Figma/doc/video-kit.md)).
