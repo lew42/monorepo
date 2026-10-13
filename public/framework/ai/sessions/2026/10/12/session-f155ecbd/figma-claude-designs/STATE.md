@@ -30,13 +30,8 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ `Kit · Layouts` ([report](kit/componentize.md)): the seven layouts as components with a SLOT per region and a `Collapsed` phone form; `Chart / Bars, Stacked bar, Donut, Sparkline`; a `Ground` component (Dark / Near-black / Light / Gray) — near-black is Dark BG + 50% black, no new token. DS 6 dashboard and article now use them. Linked from Overview.
 
 ## In flight
-- (none)
-
-## Next, if picked up
-- Swap the remaining 4.1 and DS 6 frames to `Kit · Layouts` instances with real content.
-- Phone bottom sheet for `.fig-select` (needs a sheet mode in `ux/Popover`).
-- Code a `Ground` scheme class on the web (`.fig-near-black`).
-
+- ⬜ Adopt `Kit · Layouts` instances on 4.1, 5, 6 — task-mastermind-figma-adopt, brief [kit/brief-adopt.md](kit/brief-adopt.md)
+- ⬜ Web `.fig-near-black` + phone sheet for `.fig-select` — task-mastermind-figma-web-ground, brief [kit/brief-web-ground.md](kit/brief-web-ground.md)
 
 ## Waiting on the owner
 - ⬜ Which numbers win per row of the token table in token-sync.md (site vs Figma).
