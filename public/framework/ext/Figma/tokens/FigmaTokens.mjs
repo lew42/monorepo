@@ -50,6 +50,7 @@ export class FigmaTokens {
 		"\t.fig-row { padding: var(--fig-small-pad-y) var(--fig-small-pad-x); }",
 		"\t.fig-stack { display: flex; flex-direction: column; gap: var(--fig-gap); }",
 		"\t.fig-stack > * { margin: 0; }   /* auto layout has no margins: the gap is the only space, as in Figma */",
+		"	.fig-stack > .fig-btn { align-self: flex-start; }   /* buttons hug, as in Figma */",
 		"\t.fig-inset { background: rgb(0 0 0 / 0.1); }",
 		"\t.fig-dark .fig-lift { background: rgb(255 255 255 / 0.1); }",
 		"\t.fig-muted { color: var(--fig-muted); }",
