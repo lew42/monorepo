@@ -36,7 +36,7 @@ A day that hasn't written its page yet is still a dashboard, and its task dirs s
 
 ## What sits beside the rail
 
-The Inbox and Log tabs, a card, Live, Now and the card views are rail-sized. Every other page routed here (System, a day, a concept, the old board views) takes the whole width — `inbox-takeover` (ux/Inbox/Inbox.css) steps the rail aside while it is open.
+The Inbox and Log tabs, a card, Live, Now, the pinned Today/Yesterday day pages, Your prompts and the card views are rail-sized: the rail is a switcher and stays beside them (the owner, 2026-10-13). Every other page routed here (System, a concept, the old board views) takes the whole width — `inbox-takeover` (ux/Inbox/Inbox.css) steps the rail aside while it is open.
 
 ## The five views (2026-09-22)
 

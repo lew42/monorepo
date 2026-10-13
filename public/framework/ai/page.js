@@ -2,7 +2,9 @@ import { Page, md, div, a, h1, icon, span, AITask } from "/app.js";
 import AIRail, { card_page } from "/framework/ai/rail/rail.js";
 
 // ⚠ Only these shapes: AI 2 claims EVERY unknown name as a card, but here a real folder with its own page.js is found by the probe AFTER route(). Doc: doc/ai-page-notes.md.
-const RAIL_ID = /^(inbox|log|live|now|view|framework|\d{4}|p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
+// A rail row's own page keeps the rail beside it (the owner, 2026-10-13: "the rail is a switcher"): the pinned Today/Yesterday
+// day pages and Your prompts are rail rows, so they are here; every other page routed below takes the whole width.
+const RAIL_ID = /^(inbox|log|live|now|view|framework|your-prompts|\d{4}|\d{4}-\d{2}-\d{2}|p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
 const CARD_ID = /^(p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
 import { dashboard, rail, effort_board, log_board, has_page_js, warm, daySystemPage, monthPage } from "/framework/ext/AITask/dashboard.js";
 import { module_list, module_detail } from "/framework/ext/AITask/module-spend.js";
@@ -36,7 +38,9 @@ export default new Page({
 		if (!v1()){
 			// Inbox owns the bare URL and wears `.tab-default`; the band is the title and tabs. Doc: doc/ai-page-notes.md.
 			div.c("inbox-head", () => {
-				div.c("doc-well", () => h1.c("doc-title h2", () => { icon(this.icon); span(this.title ?? "AI"); }));
+				// The title is the way back to the inbox from any page under it (the owner, 2026-10-13: the header did not navigate back).
+				div.c("doc-well", () => h1.c("doc-title h2", () => a.c("inbox-head-home").href(this.url).attr("title", "Back to the AI inbox")
+					.append(() => { icon(this.icon); span(this.title ?? "AI"); })));
 				div.c("tabs block", () => {
 					const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Inbox"); });
 					// Tabs are detected by AIOverview.detectTabs() and render after mark(). Doc: doc/ai-page-notes.md.
