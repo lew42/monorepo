@@ -1,33 +1,4 @@
-/**
- * THE RULE for "this card needs the owner" — one pure function, read off a card's raw
- * `page.jsonl` lines, with no DOM and no `/app.js` import (contract-v2 §1). Three callers
- * share it so they can never disagree: the AI 2 "Needs you" tab (`needs.js`), the rail's
- * "Needs review" filter, and Servex's `list_waiting` tool / `GET /waiting` route
- * (`Servex/cards/Cards.js`, imported as `../../public/framework/ai/rail/needs-rule.js`, the same
- * way `Cards.js` already imports `fold.js`).
- *
- * An item is open when it is one of these (contract-v2 §1):
- *
- *   1. A `place` line for a Decision (ux/Content) with no later `chose` line for its id.
- *   2. A `place` line for a Question (ux/Content) with no later `answer` line for its id.
- *   3. A legacy `{"ask": {id, title, question, options, from}}` line (yesterday's sweep wrote
- *      6 of these) with no `{"answer": {"ask": id}}` line.
- *   4. A card of `type: "question"` (pseudo-id `"card"`), or a card whose last message from an
- *      agent (not the owner) ends in "?" (pseudo-id `"last"`) — in both cases only when there
- *      is no answer line for it, AND no `{"reviewed": {"at"}}` line newer than it.
- *
- * It drops out entirely once the card's status is `done` or `archived` — and a Decision or
- * legacy ask matching `is_task_loop_escalation()` below drops out too (2026-09-30, the owner:
- * "not the owner's"): a task-loop or heartbeat "close it, or keep chasing?" is the SYSTEM's own
- * question, answered by the heartbeat or the Servex mastermind, never something that should
- * flood the owner's "Needs you". It still draws and still answers on the card's own page.
- *
- * ⚠ WHY NOT `fold_card()` (fold.js): its generic `absorb()` keeps only the LATEST line for a
- * repeated key like `place`, which is right for a single "where is X placed" fact but wrong
- * here — a card can carry several open asks (a Decision AND a Question AND a legacy `ask`) at
- * once, and every one of them is wanted, not just the last. This file reads the raw lines
- * itself instead.
- */
+// History and reasons: doc/NeedsRule-notes.md (shared by needs.js, rail filter, Servex /waiting)
 
 const DECISION_MOD = /\/Decision\/Decision\.js$/;
 const QUESTION_MOD = /\/Question\/Question\.js$/;

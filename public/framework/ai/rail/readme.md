@@ -11,4 +11,4 @@ Moved here from `ai2/` on 2026-10-09 (the old paths are one-line shims). `AIRail
 
 What a card looks like is in [cards/](../cards/readme.md). Old docs (decisions, owner asks) are in [doc/ai2/history.md](../doc/ai2/history.md).
 
-Comments pruned from `inbox.js`, verbatim: [doc/notes.md](./doc/notes.md). Comments pruned from `live.js`, verbatim: [doc/live-notes.md](./doc/live-notes.md).
+Comments pruned from `inbox.js`, verbatim: [doc/notes.md](./doc/notes.md). Comments pruned from `live.js`, verbatim: [doc/live-notes.md](./doc/live-notes.md). Comments pruned from `NeedsRule.js`, verbatim: [doc/NeedsRule-notes.md](./doc/NeedsRule-notes.md).
