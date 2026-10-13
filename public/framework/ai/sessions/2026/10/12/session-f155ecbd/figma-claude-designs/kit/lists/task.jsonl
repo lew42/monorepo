@@ -5,3 +5,11 @@
 {"log":{"at":"2026-10-13T14:29:08-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T14:29:10-05:00","heartbeat":"answered","msg":"Done: the Lists page is built, linked from the Overview card and `DS · 2.2`, and the report `kit/lists.md` is committed. Nothing is running now. The one loose end is that the `append.mjs` hook crashed"}}
 {"log":{"at":"2026-10-13T14:30:26-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T14:41:06-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-fig-lists"}}
+{"log":{"at":"2026-10-13T14:41:09-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T14:41:11-05:00","heartbeat":"answered","msg":"Finished and idle. The Lists page is built in Figma, linked from the Overview card and `DS · 2.2`, and the report `kit/lists.md` is committed. One loose end: the `append.mjs` hook crashed under Node, "}}
+{"log":{"at":"2026-10-13T14:42:26-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T15:03:06-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-fig-lists"}}
+{"log":{"at":"2026-10-13T15:03:08-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T15:03:12-05:00","heartbeat":"answered","msg":"Idle: the Lists page and its report (`kit/lists.md`) are done and committed, and I'm not working on anything. The `append.mjs` hook crashed under Node, so the landing line is missing from `task.jsonl`"}}
+{"log":{"at":"2026-10-13T15:04:26-05:00","msg":"session ended (other) without landing"}}
