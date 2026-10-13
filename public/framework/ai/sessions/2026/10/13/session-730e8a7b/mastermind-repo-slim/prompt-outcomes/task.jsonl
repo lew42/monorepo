@@ -8,3 +8,5 @@
 {"log":{"at":"2026-10-13T17:23:16-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-prompt-outcomes"}}
 {"log":{"at":"2026-10-13T17:23:19-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T17:28:16-05:00","heartbeat":"revive-queued","msg":"task-mastermind-prompt-outcomes it did not answer the status check; a revive is queued"}}
+{"experiment":{"try":"cluster asks into features: tag merge vs per-area grouping","measure":"features / singletons for 859 asks","result":"raw tags 738; first merge collapsed to 179 generic buckets (card, layout); strict merge 697 (612 singletons); per-area Haiku grouping 309 (164 singletons) - kept"}}
+{"log":{"at":"2026-10-13T17:32:05-05:00","msg":"fan-out 4 (verdicts): top 150 features, 15 Haiku calls of ~10 features with script-gathered evidence (landing lines, git subjects, follow-up-full, asks.jsonl, 10-08 audit); expected ~$0.6"}}
