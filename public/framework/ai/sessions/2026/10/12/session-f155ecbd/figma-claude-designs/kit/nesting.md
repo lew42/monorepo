@@ -21,3 +21,7 @@ Figma file `QYN0G2URSBHYH5I06MOjxU`, page `Kit · Nesting` (page component `222:
 Icon-item padding 8/12, gap 12, min height 40; icon sizes 16/20/24.
 
 Checked at 1920 (full-page screenshot, three rounds): header, notes, all six sections read; no clipping after the cell-height and title fixes.
+
+## Update 2026-10-13 (Figma mastermind)
+- **Masters are top level** on the page canvas (the `Components` frame is gone; nothing was deleted, only the two emptied frames). Page text says so.
+- **One icon system:** `Icon` here is a stand-in. Once `kit/icons.md` exists (task-mastermind-fig-icons, `DS · 1.1 Icons`), swap the Nesting atom to that `Icon`, keep this font-vs-vector comparison as an explainer. **Still open: `kit/icons.md` did not exist when this was written.**
