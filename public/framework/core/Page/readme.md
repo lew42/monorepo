@@ -1,5 +1,7 @@
 # Page — a folder with a `page.js` or `page.jsonl` is a page: a url, some content, and children.
 
+**How a page renders** (code with helper functions, `page.jsonl` deltas, or both; markdown; live updates): [`doc/how-a-page-renders.md`](doc/how-a-page-renders.md).
+
 ## Make a page (the whole recipe)
 
 1. Create `<parent>/hello/page.js`:

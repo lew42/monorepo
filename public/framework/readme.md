@@ -2,7 +2,7 @@
 
 ## Index
 
-- [core](./core/) — the seven classes under every page (View, Page, Router, App, Sidebar, Item, List)
+- [core](./core/) — the seven classes under every page (View, Page, Router, App, Sidebar, Item, List); [how a page renders](./core/Page/doc/how-a-page-renders.md)
 - [ext](./ext/) — opt-in addons; core never imports them
 - [ui](./ui/) — the template tier: components, one page each
 - [library](./library/) — every ui and Figma item in three columns: siblings, the chosen one at full size, its variants
