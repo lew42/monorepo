@@ -153,8 +153,8 @@ export default class AISessionsPage extends Page {
 
 	/** The left rail: this page's own sub-views, each a route (the grid, its docs, the other dashboard versions). */
 	nav_view(){
-		const items = [["Sessions", this.url, "list", "the grid"], ["Priorities", this.url + "doc/", "flag", "What the owner asked for, most important first"], ["Readme", this.url + "readme/", "menu_book", "What this tab is, and the docs it links to"],
-			["Dashboard v3", "/framework/ai/v/3/", "dashboard", "The newer dashboard"], ["Dashboard v2", "/framework/ai/v/2/", "dashboard", "The older dashboard"], ["All versions", "/framework/ai/v/", "history", "Every dashboard version"]];
+		const items = [["Sessions", this.url, "list", "the grid"], ["Docs", this.url + "doc/", "flag", "The docs index for this tab"], ["Readme", this.url + "readme/", "menu_book", "What this tab is, and the docs it links to"],
+			["Dashboard v2", "/framework/ai/v/2/", "dashboard", "The older dashboard"], ["All versions", "/framework/ai/v/", "history", "Every dashboard version"]];
 		return nav.c("sessions-nav", () => items.forEach(([text, href, glyph, tip], i) =>
 			a.c("sessions-nav-item" + (i === 0 ? " sessions-nav-on" : ""), () => { icon(glyph); span(text); }).href(href).attr("title", tip)));
 	}
