@@ -23,3 +23,8 @@ Hairline divider (black 10%, 1px), 50% scrim, 10% white overlay (all bare paints
 ## Still looks off
 - The dark dialog phone has no own fill (a bound `surface` fill plus a 50% scrim rendered pure black there; the dark specimen's ground shows through instead).
 - Full-bleed band on a white specimen: the 390 sample is white-on-white, so its edges are not visible.
+
+## Open for the owner (from figma-to-code, 2026-10-13)
+- Pick the dark: site #42404B or Figma #675F56. Code aliases colours first (ext/Figma/doc/next.md).
+- Say whether Resolution stays fixed per mode (Default/Mobile) or goes fluid.
+- Token map: ext/Figma/tokens/map.json; page code status: ext/Figma/doc/figma-pages.md.
