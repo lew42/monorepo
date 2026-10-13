@@ -2,6 +2,8 @@
 
 Where the agents' work is recorded: one folder per day, one folder per task inside it.
 
+The AI system: Servex runs the agents, the readme chain is their memory, each task is a folder with a JSONL log, and node (not memory) drives the steps. Components shown, one card each: [System tab](/framework/ai/system/). **Why it is shaped this way: [doc/architecture.md](doc/architecture.md).**
+
 - Moved verbatim to [doc/readme-full-2026-10-12.md](./doc/readme-full-2026-10-12.md): the page tabs, in full.
 
 ## Every system, one line each

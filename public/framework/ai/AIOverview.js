@@ -1,5 +1,6 @@
 import { details, summary } from "/framework/core/View/View.js";
 import { SystemClasses } from "./SystemClasses.js";
+import AISystem from "./AISystem.js";
 import { Page, md, div, a, span, small, strong, icon, h2, h3 } from "/app.js";
 import { code } from "/framework/ext/highlight/highlight.js";
 import { file_link } from "/framework/ext/filesystem/file_link.js";
@@ -147,6 +148,11 @@ export class AIOverview {
 			system: {
 				title: "System", icon: "account_tree", classes: "inbox-takeover inbox-tab",
 				content(){
+					AIOverview.section("The AI system", "Its components, one card each, read from the index in ai/readme.md. Why it is shaped this way: doc/architecture.md.", () => {
+						const box = div.c("wide");
+						new AISystem().show(box);
+						a("Decisions: doc/architecture.md").attr("href", base + "doc/md/architecture/");
+					});
 					AIOverview.section("AI system classes", "Servex is the one always-on process; each card is one of its classes.", () => {
 						SystemClasses.cards(["Servex", "Agents", "Dispatcher", "Sessions", "Pool", "Usage", "Budget"]);
 						a("Class cards with a live debug view").attr("href", "/framework/ai/classes/");
