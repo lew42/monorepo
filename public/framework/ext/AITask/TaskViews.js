@@ -6,12 +6,15 @@ import { designs, counts } from "./nested.js";
    `roots` come from tree.js (tree_for_task). What each view is and who uses it: doc/views.md. */
 export default class TaskViews {
 
-	/** Lanes is the default: the winning design of the nested-tasks task (doc/nested.md). */
-	static default = "lanes";
+	/** Lanes (the winning design, doc/nested.md) for a small task; Outline once a task has more than 8 direct subtasks,
+	    where lanes and flow grow one column or one arrow per sibling. */
+	static default(roots){
+		return roots.some(r => (r.children?.length ?? 0) > 8) ? "outline" : "lanes";
+	}
 
 	constructor(roots, { view } = {}){
 		this.roots = roots;
-		this.view = designs[view] ? view : TaskViews.default;
+		this.view = designs[view] ? view : TaskViews.default(roots);
 	}
 
 	static from_url(roots){
