@@ -20,19 +20,10 @@ import workspace from "../cards/workspace.js";
 import { RealPage, page_events, real_title } from "../cards/real.js";
 import { Rules } from "../cards/Rules.js";
 
-/* The AI-only look: the usage meters, a row's progress meter, "what happened", groups.
-   The rail itself is styled by the ux block (ux/Inbox/Inbox.css), loaded by Inbox.Rail. */
 View.stylesheet(import.meta, "rail.css");
 
-/* Servex down: the page is read-only — "+ New card" quietly goes away. */
 servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.createElement("style"), { textContent: "@layer site { .ai2-newcard { display: none } }" })); });
 
-/* THE REASON NEXT TO THE NUMBER (card-pipeline, 2026-10-02, item 3: "the items above 90 seem
- * arbitrary"). `importance()` (`needs-rule.js`) already picks a number with a written-down rule
- * for every band; `reason_of()` (same file) names, in five words or fewer, WHICH branch of that
- * rule actually fired — this just finds the row's own highest-scoring open need (the same ones
- * `score_for()` already looked at, never a second idea of the score) and hands it over. The full
- * band legend, in prose: this module's own readme. */
 function reason_for(it, now = Date.now()){
 	const open = it.kind === "stalled" ? null : Needs.for_card(it.id);
 	const top = open?.length ? open.reduce((a, b) => (NeedsRule.importance(b, now) > NeedsRule.importance(a, now) ? b : a)) : null;
@@ -41,39 +32,12 @@ function reason_for(it, now = Date.now()){
 
 const AUTO_KEY = "ai2-auto-transcribe";
 const LIVEVIEW_KEY = "ai2-live-default";
-// `Inbox.Rail.prototype` — its try/catch localStorage helpers (`store_get`/`store_set`),
-// shared rather than copied. Was named `store`, which read as "a data store"; it holds
-// no data at all, just the wrapper methods (restructure, 2026-10-02 — the owner: "a
-// misleading name").
 const storage = Inbox.Rail.prototype;
 
-/** On by default — a card you just opened starts listening unless you turned this off. */
 export const auto_transcribe = () => storage.store_get(AUTO_KEY) !== "off";
 
-/**
- * AI RAIL — the AI's inbox: the base rail (`Inbox.Rail`, `core/Page/ext/Inbox/Inbox.js`)
- * plus what only the AI system has (the owner, 2026-09-30: "we don't need the AI usage
- * meters on the inbox for every single page… override the rail… and you add the progress
- * bars above it").
- *
- * Adds, each as an override of one base method:
- *   - the usage meters above the filters (`head_extra`) — the ONLY place they exist;
- *   - "+ New card" (`actions`) and auto-transcribe (`toggles`);
- *   - the rows: cards, the Live card, groups and changed site pages, from the AI logs
- *     (`source`, `draw_extras`), with a progress meter and "what happened" on each;
- *   - the pinned Now card, the focus-follow (an agent can open a card on your screen),
- *     the workspace word, and flagging a sentence you selected in the detail.
- *
- * AI 2 (`ai2/page.js`) and the AI page's Inbox and Log tabs (`ai/page.js`) both build one:
- * `this.ai2 = new AIRail({ page: this }).mount()` inside `content()`. Card pages read it
- * back as `shell.ai2` (card.js).
- *
- * ⚠ The shell also wears `.ai2`: card.js finds it with `document.querySelector(".ai2")`
- *   to write its column widths (`--ai2-subw`, `--ai2-chat`) — rail.css passes those on.
- */
+// See doc/rail-notes.md for architecture and design details.
 export default class AIRail extends Inbox.Rail {
-	// No name above the usage bars: the page band already reads "AI · Inbox" right above it
-	// (the owner, 2026-10-03: "completely redundant").
 	title = "";
 	key = "ai2";
 	now_item = null;
@@ -84,20 +48,16 @@ export default class AIRail extends Inbox.Rail {
 
 	shell_classes(){ return "inbox-shell ai2 bleed"; }
 
-	/* The data first: the usage meters in the head read `live` while the head is built. */
 	mount(){
 		this.log = new Board({ url: BOARD_URL });
 		this.says = new Says({ url: VERDICTS_URL });
 		this.day = day_log();
 		this.prompts = prompt_stream();
 		this.live = live_model({ prompts: this.prompts, day: this.day });
-		// Every card folder, as Servex lists them; `board.jsonl` is read only when it is not `ok`.
 		this.cards = new CardList();
-		// The familiar groups the work is filed under — `groups.json`, `groups.js`.
 		this.groups = new Groups();
 		this.page.auto_transcribe = auto_transcribe;
 		super.mount();
-		// With the workspace view on, every link clicked in here keeps `?view=workspace`.
 		this.$shell.el.addEventListener("click", e => workspace.keep(e));
 		// LIVE IS THE INBOX'S DEFAULT — the bare url goes to it once per load (Back returns
 		// here, no loop). A stored "off" from the old toggle is still honoured.
