@@ -14,6 +14,7 @@ export default class TimelineTalk {
 		prompt(v){ this.prompts.push(v); }
 		message(v){ this.messages.push(v); }
 		reset(){ this.prompts = []; this.messages = []; return super.reset(); }
+		skip(){}   // every other card line (title, status, chat…) is the card page's business, not a warning
 	};
 
 	constructor(...args){ Object.assign(this, ...args); }

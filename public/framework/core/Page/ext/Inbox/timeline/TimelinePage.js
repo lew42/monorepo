@@ -83,6 +83,9 @@ export default class TimelinePage extends Page {
 		if (this.flag("debug")) small.c("timeline-debug muted", `${r.source} · score ${r.score}`);
 	}
 
+	/** A routed row is always shown: answering here skips the per-row settings.jsonl/page.jsonl/weight.jsonl probe (Page/Jsonl.js tab_visible). */
+	tab_state(name){ return { nav: true, ...super.tab_state(name) }; }
+
 	route(id){
 		if (id.includes(".")) return;
 		return new TimelinePage.Detail({ home: this, row_key: id });
@@ -123,7 +126,7 @@ export default class TimelinePage extends Page {
 			div.c("timeline-links", () => {
 				if (r.page) a.c("timeline-link", "Open what was built").href(r.page);
 				if (r.card_url) a.c("timeline-link", "Its card").href(r.card_url);
-				if (r.dir) a.c("timeline-link", "Its task log").href(r.dir);
+				if (r.dir) a.c("timeline-link", "Its task log").href(r.dir + "task.jsonl").attr("target", "_blank");   // the file: the dated folder page 404-probes page.js (noted on /framework/ai/sessions/)
 			});
 			const $links = div.c("timeline-links"), $out = div.c("timeline-outcome");
 			if (r.sub) $out.append(() => p(r.sub));
