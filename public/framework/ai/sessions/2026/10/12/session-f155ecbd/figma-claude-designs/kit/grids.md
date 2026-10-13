@@ -15,3 +15,8 @@ Built in the Figma file `QYN0G2URSBHYH5I06MOjxU`: page `Kit · Grids` (`250:1050
 - A masonry by the shortest-column rule ends within one tall card of level.
 
 Checked at 1680 wide in screenshots of each section; the page is a Figma file, so the four web widths do not apply. Not done: the `Grid card` master has no variants, since the specimens only needed a title and a body.
+
+## Addendum: 6 Responsive dynamics (`254:32591`)
+- ✅ **Count-driven:** 3 FILL cards at 164 wide; a 4th makes all four 117; with a min width of 150 on a wrap row the 4th wraps (164, 164, 164, then 540 as a big orphan).
+- ✅ **Icon + title** at 480 / 360 / 280 / 220: with a HUG title the long one drops under the icon from 360 and overflows at 280 and 220; fix 1 (icon FIXED, title FILL) wraps beside the icon (it breaks mid-word at 220); fix 2 truncates to one line, so the height never moves.
+- ✅ **Margins:** noted in the Notes box (a grid spans margin to margin; the narrow specimens are narrow on purpose).
