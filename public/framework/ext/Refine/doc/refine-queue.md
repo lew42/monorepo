@@ -39,7 +39,7 @@ An Opus read of 10 products against their raw prompts: v1 mean coverage 0.90, v2
 
 ## Cost: run the call outside the repo
 
-A "lean" SDK call made with the repo as its working folder still carries ~8k tokens: the project's auto-memory, loaded whatever `settingSources` says. Measured: $0.066 a call from the repo, $0.002 from `os.tmpdir()`; a week of prompts then costs a few dollars, not ~$90. `RefineCall.run(prompt, { cwd })` takes the folder; the queue passes the temp folder. Other `RefineCall` users (Echo) still run from the repo: worth the same one-word change, owned by their module.
+A "lean" SDK call made with the repo as its working folder still carries ~8k tokens: the project's auto-memory, loaded whatever `settingSources` says. Measured: $0.066 a call from the repo, $0.002 from `os.tmpdir()`. With that gone, Haiku's own answer (2–3k tokens of JSON) is most of the bill: $0.094 a prompt over the 61-prompt run, so a full week (~540 prompts) is about $50; budget it with `--budget`. `RefineCall.run(prompt, { cwd })` takes the folder; the queue passes the temp folder. Other `RefineCall` users (Echo) still run from the repo: worth the same one-word change, owned by their module.
 
 ## Promotion: an ask said in three sessions is a directive
 
@@ -49,4 +49,5 @@ As past prompts are refined, an ask that shows up in **three or more sessions** 
 
 - The cites are sentence numbers of `RefinedCard.sentences()` over the raw text; change that split and old cards cite the wrong sentences.
 - The Coverage tab finds the raw words in the transcript lines the Conversation tab already pulled (by `uuid`), so it never downloads a transcript twice; a session without a live transcript shows the link only.
+- **A session whose folder has a name** (`2026/10/07/can-you-check-usage/`, not `session-<id8>`) gets its cards, but its page cannot find that folder yet: the browser learns folder names only from the live snapshots, and the day indexes it checks (`AISessionDetail.folder_from_day`) don't always carry them. Its Coverage tab then shows nothing (seen on 87bec773).
 - A worktree has no `Servex/node_modules`: the queue then loads `RefineCall` and the page tool from the main tree, so cards land on the main site's session pages.
