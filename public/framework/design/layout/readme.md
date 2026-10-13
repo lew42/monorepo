@@ -31,6 +31,7 @@ Full version, with every warning and measured number: [doc/rules.md](./doc/rules
 
 - [doc/rules.md](./doc/rules.md) — the full rules, verbatim from the old `layout` skill.
 - [doc/caveats.md](./doc/caveats.md) — what has bitten, one line each.
+- [doc/space.md](./doc/space.md) — using the space: fluid first, no voids, no clipping, equal heights, masonry, simplest layouts first (suggestions; web and Figma alike).
 - [questions.md](./questions.md) — review questions for this system (Layout, Sizing, Wrapping, Flow, Spacing and padding).
 - [/layouts/browse/](/layouts/browse/) and [/framework/ext/DesignTool/library/](/framework/ext/DesignTool/library/) — the approved layouts and arrangements, live.
 - Templates: [/framework/ui/](/framework/ui/)
