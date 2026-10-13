@@ -9,25 +9,10 @@ import { decision_menu } from "./decisions.js";
 import "../tabs/tabs.js";      // this.tabs() — ext leaning on ext, the allowed direction
 import "../catalog/catalog.js";   // this.catalog() — the Overview section is one
 
-/* css: .doc-page, .doc-well, .doc-title, .doc-section, .doc-decision(-wrap|-btn|-pop|-link)
-   — all emitted below. Also .tab-bar (../tabs), .files (../files) and .page-catalog-pages /
-   .page--intro / .page-title (../catalog and core/Page) — every emitter is imported above. */
+// CSS classes in Doc.css (see readme.md for style layers and exported names)
 View.stylesheet(import.meta, "Doc.css");
 
-/**
- * Doc — a module documented as a page: its files, its members, its notes.
- *
- *   export default new Doc({ meta: import.meta, title: "View", subject: View,
- *       methods: "append ac", properties: "el", notes: "capturing",
- *       files: "View.js View.css", overview: demos, content(){ … } });
- *
- * Overview | …declared children… | API | Docs | Files, derived — a call site lists
- * members and never says "tab". `subject` is whatever owns those members: a class,
- * a function with properties (`md`, `demo`), a namespace object, or nothing at all.
- *
- * Every part is a method, so a module with a different shape subclasses rather than
- * grows an option. Design record: ext/Doc/readme.md.
- */
+// History and reasons: doc/Doc-notes.md
 export class Doc extends Page {
 
 	// ⚠ Runs inside the Page constructor, BEFORE load_all_children() — which is what
@@ -46,35 +31,11 @@ export class Doc extends Page {
 		return this;
 	}
 
-	// One flag, read everywhere a preview card is drawn (Page.preview_card(), the sidebar
-	// tree, a future Mention chip): does this module's page document a real ES CLASS, or a
-	// plain function/namespace (`md`, `demo`) that merely has members? `Doc.is_class()`
-	// already answered this for the Overrides note below — this is the same fact, exposed
-	// through the one method every card-drawing caller already calls (`nav_for()` →
-	// `child.nav()`), so nothing has to ask `instanceof Doc` or re-derive it a second way.
+	// See doc/Doc-notes.md for nav()
 	nav(){ return { ...super.nav(), class_card: Doc.is_class(this.subject) }; }
 
-	// "docs/" is not a real page anywhere — the convention is `doc/`, everywhere (75
-	// modules use it) — but someone will type "docs" out of habit (it happened once
-	// already), so make it resolve instead of 404ing, with no Router change. Router.js
-	// never parses a whole url: it just asks each page for `child(name)`, one segment
-	// at a time (Router.js:77-88). So catching the ONE segment "docs" here is enough —
-	// `docs/method/foo/` keeps walking correctly afterward, because the page this
-	// returns already carries the real `.../doc/` url, and every later hop calls
-	// `.child()` on THAT page object, never on a re-parsed url.
-	//
-	// ⚠ `history.replaceState`, never `pushState`: for an in-app click, Router's own
-	// `go()` calls `load()` (which is what reaches here) BEFORE `history.pushState(...)`
-	// — a `pushState` made here would just be overwritten a moment later by that later
-	// call. Typing the url directly — this feature's real case — never runs `go()` at
-	// all, so the fix made here is the only write to history and it sticks. Because it
-	// REPLACES the current entry instead of pushing a new one, Back leaves one entry to
-	// undo, not two.
-	//
-	// ⚠ Only ever fires when *I* (the page asked for "docs") am a Doc instance. The two
-	// real pages named "docs" today (styles/layouts/docs/, core/Page/overview/docs/)
-	// are children of a plain Page — a `new Page({...})` module and a `section()`-built
-	// tab, respectively, never a Doc — so this override never runs for them at all.
+	// ⚠ Redirect "docs" to "doc" (see doc/Doc-notes.md); replaceState not pushState.
+	// ⚠ Only runs when this Doc instance is asked for "docs", not on plain Pages.
 	async child(name, levels){
 		if (name !== "docs") return super.child(name, levels);
 
@@ -89,16 +50,7 @@ export class Doc extends Page {
 		return page;
 	}
 
-	// A top tab: a page whose own children are a left rail. Two levels of real pages,
-	// so a member is /View/api/append/ and every tab is a url.
-	//
-	// ⚠ 2026-09-29 fix round, finding 3: `nav: true` here PINS this tab always-shown,
-	// with no fetch — Overview/API/Docs/Files are this class's own derived chrome,
-	// never a real page anyone's `settings.jsonl` describes, and `this.url + name +
-	// "/"` could, for an unlucky name, collide with a REAL folder somewhere that
-	// does have one (core/Page/'s own "overview/" folder, for one). `tab_visible()`
-	// (core/Page/Log.js) treats an explicit `nav: true` the same way it already
-	// treats `nav: false` — it wins outright, no page_settings() lookup at all.
+	// ⚠ `nav: true` pins derived tabs without a fetch (see doc/Doc-notes.md).
 	section(name, label, config){
 		this.tab({ name, nav: true });
 
@@ -113,15 +65,7 @@ export class Doc extends Page {
 		});
 	}
 
-	// The Overview is a CATALOG: the demos as a rail of live cards, and catalog() makes
-	// `content` the rail's first card — the intro, wearing my title, label and icon — so
-	// a module with demos and one without are the same shape. `overview:` hands the demos
-	// in as child configs (an array) or names sibling directories (a string).
-	// ⚠ `content` is BOUND to me, not to the section. catalog() makes it the intro
-	// child's and would otherwise call it with the section as `this` — but it was
-	// written as a method of THIS config, beside the helpers it calls, so `this.look()`
-	// has to mean what the author typed. Two audit agents wrote exactly that and both
-	// pages threw; the binding was the bug, not the pages.
+	// ⚠ Bind content to Doc, not section (doc/Doc-notes.md).
 	overview_section(){
 		return this.section("overview", "Overview", {
 			title: this.title,
@@ -143,15 +87,7 @@ export class Doc extends Page {
 		return this.section("api", "API", { initialize(){ this.parent.api(this); } });
 	}
 
-	// The "Docs" tab, PLUS a second door every member gets at the same time: whatever
-	// api() (above) just built landed in `member_index` by kind, and member_group()
-	// below answers `doc/method/<name>/` / `doc/property/<name>/` from it — the address
-	// where the `.md` itself actually sits (declaring.md), same as a note's own
-	// `doc/<name>/`. A module with members but no notes still gets this node; render()
-	// only ever lists real notes, and bar() only shows the tab when one exists, so
-	// nothing looks different until you go looking for the second door.
-	// ⚠ Order matters: api_section() (above) runs first, so `member_index` is already
-	// filled by the time this checks it — sections() calls them in that order.
+	// ⚠ Order matters: api_section() first, so member_index is filled (see doc/Doc-notes.md).
 	docs_section(){
 		const has_notes = Doc.names(this.notes).length > 0;
 		const has_members = [...(this.member_index?.values() ?? [])].some(names => names.size);
@@ -162,10 +98,7 @@ export class Doc extends Page {
 
 		return this.section("doc", "Docs", {
 			initialize(){ if (has_notes) doc.docs(this); },
-			// A flat list (no "/" in any name) renders exactly as it always has: a
-			// vertical tab bar. Only when a name NESTS ("guide/setup") does this switch
-			// to note_tree() below — same classes either way, so the ~75 flat-list
-			// modules see zero change.
+			// Flat names render as tab bar; nested names use note_tree() (see doc/Doc-notes.md).
 			render(){
 				const names = Doc.names(doc.notes);
 				const nested = names.some(name => name.includes("/"));
@@ -181,10 +114,7 @@ export class Doc extends Page {
 		});
 	}
 
-	// One container per kind, answering `doc/<kind>/<name>/` from whatever api() (via
-	// member_page()) actually recorded — so a second, prefixed subject
-	// (`members(section, History, { prefix: "History." })`, readme.md's own example)
-	// aliases exactly like the first, with nothing here naming it specially.
+	// See doc/Doc-notes.md for member_group aliasing logic.
 	member_group(kind){
 		const doc = this;
 		const names = this.member_index?.get(kind) ?? new Map();
@@ -203,7 +133,7 @@ export class Doc extends Page {
 		return section;
 	}
 
-	// One view, not a rail — so it declares its own render rather than taking section()'s.
+	// See doc/Doc-notes.md for files_section layout (one view, custom render).
 	files_section(){
 		if (!Doc.names(this.files).length) return;
 
@@ -212,16 +142,7 @@ export class Doc extends Page {
 		return this.section("files", "Files", {
 			render(){
 				return this.view ??= div.c("page doc-section doc-files", () => {
-					// `.doc-files` itself is a flex ROW (Doc.css) built for exactly ONE
-					// child, `doc.browser()`'s tree|about|source panels — so a second
-					// child (the link) needs its OWN box, one that stacks the two
-					// vertically, rather than becoming a squeezed fourth column in that
-					// same row. Inline styles only: Doc.css is outside this fence.
 					div.c("doc-files-body", () => {
-						// This tab's own box is small — nested in the tab panel, the page
-						// padding and the site sidebar — so a reader who wants the real
-						// size gets the module's own full-screen `fs/` route instead.
-						// core/Page/Page.class.js's fs_folder() seam; ext/files/fs.js.
 						div.c("doc-files-head", () => {
 							a.c("doc-files-fs", () => { icon("open_in_full"); span("Open full screen"); })
 								.href(doc.url + "fs/")
@@ -242,15 +163,7 @@ export class Doc extends Page {
 		});
 	}
 
-	// What fills the API tab. One subject is the whole job for most modules; a module
-	// with a SECOND class overrides this and calls members() again — the seam this
-	// class exists for. `prefix` keeps the two sets from colliding, in the url and in
-	// the filename both:
-	//
-	//   api(section){
-	//       super.api(section);
-	//       this.members(section, History, { methods: "push undo", prefix: "History." });
-	//   }
+	// See doc/Doc-notes.md for api() override pattern (prefix to avoid name collisions).
 	api(section){
 		return this.members(section, this.subject, { properties: this.properties, methods: this.methods });
 	}
@@ -286,22 +199,13 @@ export class Doc extends Page {
 		return section;
 	}
 
-	// A note is prose that earned a url — the whole page is `doc/<name>.md`, the same
-	// file the readme cites. No source pane, and no `call`: there is nothing to override.
-	// A name may NEST ("guide/setup") — declare_note() below is where that is handled;
-	// a flat name (no "/") goes through it too and comes out exactly as before.
+	// Notes are prose at doc/<name>.md; see doc/Doc-notes.md for nesting.
 	docs(section){
 		Doc.names(this.notes).forEach(name => this.declare_note(section, name));
 		return section;
 	}
 
-	// One plain pass-through page per segment before the last — its only job is to hold
-	// the next segment's children, the same one-level trick member_group() (above)
-	// plays for "method"/"property", generalized here to any depth. `guide/setup` and
-	// `guide/config` share one real "guide" page, built the first time either is seen
-	// and reused the second time. The LAST segment gets the real note page, the exact
-	// shape a flat note always got — `doc/${name}.md`, slashes and all, is already the
-	// right file, because the whole name IS the path.
+	// See doc/Doc-notes.md for nested note page sharing logic.
 	declare_note(section, name){
 		const segments = name.split("/"), leaf = segments.pop();
 		const parent = segments.reduce((page, seg) => page.children.get(seg) ?? page.add(seg, {
@@ -315,18 +219,13 @@ export class Doc extends Page {
 		this.member_page(parent, leaf, { title: leaf.replaceAll("-", " "), file: `doc/${name}.md` });
 	}
 
-	// The one member page shape: an optional banner, an optional source pane, the prose.
-	// `kind` ("method" | "property") is the ONLY thing that makes a member open a
-	// second way — recorded here into `member_index`, read back by member_group()
-	// above. A note (docs(), no kind) keeps its one address, `doc/<name>/`.
+	// See doc/Doc-notes.md; kind records member_index (method | property).
 	member_page(section, name, config, kind){
 		if (kind) this.remember_member(kind, name, config);
 		return section.add(name, this.member_page_config(name, config, kind));
 	}
 
-	// Framework-relative module path this page documents — "ext/Saver" for a page whose
-	// `this.url` is "/framework/ext/Saver/" — matched against the shared decisions.jsonl's
-	// own `module` field (Server/collab.mjs's `target.module`, a collab.json's own words).
+	// Extract module path from url for decision.jsonl matching (see doc/Doc-notes.md).
 	module(){ return this.url?.replace(/^\/framework\//, "").replace(/\/$/, ""); }
 
 	remember_member(kind, name, config){
@@ -335,21 +234,14 @@ export class Doc extends Page {
 		this.member_index.get(kind).set(name, config);
 	}
 
-	// Pulled out of member_page() so member_group() can build the SAME page a second
-	// time, at a second address, without member_page() growing a second job.
-	// `kind` ("method" | "property") is also what turns on the ⋯ menu below — a note
-	// (docs(), no kind) never gets one, because nothing wires a collab decision to a name
-	// that isn't a real class member.
+	// See doc/Doc-notes.md (member_page_config can build same address twice, kind-specific).
 	member_page_config(name, { title = name, source, subject, call, banner, file }, kind){
 		const doc = this;
 
 		return {
 			title,
 			content(){
-				// The owner's want (file-explorer-fs/owner-words.md, first half): a method's own
-				// page shows the ⋯ the moment a design collab named it, with no AI having to
-				// remember to wire the link. decision_menu() is a promise: append() places it
-				// once Collab.Decisions.for() resolves, and does nothing when it resolves empty.
+				// decision_menu() is a promise, appended when Collab.Decisions.for() resolves.
 				if (kind && doc.module()) span.c("doc-decision-wrap").append(decision_menu(doc.module(), name));
 				if (banner) md(banner);
 				if (source) (code.js ?? code)(source);   // highlighted if ext/highlight is loaded
@@ -362,10 +254,7 @@ export class Doc extends Page {
 		};
 	}
 
-	// The framework's own override lever, and the only one a member page can name from
-	// what it knows: every constructor here is Object.assign-based, so an assigned member
-	// shadows the prototype's. A static has no instance to assign to, so it gets no line —
-	// and a subject that is not a class has no constructor to speak of at all.
+	// See doc/Doc-notes.md (only classes can have instance overrides).
 	overrides(subject, name, call){
 		if (!Doc.is_class(subject)) return;
 
@@ -374,15 +263,7 @@ export class Doc extends Page {
 			md(`**Overrides:** \`new ${subject.name}({ ${call} })\` — an assigned member shadows the prototype's, for that instance only. A subclass changes it for every instance.`);
 	}
 
-	// Overview first and the reference sections last, whatever order they were added in;
-	// a declared child sits between. Filtered, because an empty section was never added
-	// — except "doc", which docs_section() now also builds for a module with members and
-	// no notes (so `doc/method/<name>/` has a node to live under): that one shows only
-	// when there is a real NOTE to read, so a module gains no tab it did not have before.
-	// ⚠ 2026-09-29, page-system task: a declared child can carry a `tab` line
-	//   (core/Page/Log.js's `tab()`) — `tab_visible()`/`tab_order()` read it. Neither
-	//   finds anything for a page that never wrote one, so this is a no-op for every
-	//   Doc page that doesn't use the new lines.
+	// ⚠ "doc" tab shows only when there are real notes (see doc/Doc-notes.md).
 	bar(){
 		const middle = [...this.children.keys()]
 			.filter(name => !Doc.SECTIONS.includes(name))
@@ -393,23 +274,15 @@ export class Doc extends Page {
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	}
 
-	// My declared children as a wall, WITHOUT the sections I derived — those are the tab
-	// strip, and a module previewing them on its own Overview is previewing its own
-	// chrome. `/framework/ui/` drew four extra cards that way.
+	// See doc/Doc-notes.md (wall shows declared children, not derived sections).
 	wall(){
 		return this.previews(new Map([...this.children].filter(([name]) => !Doc.SECTIONS.includes(name))));
 	}
 
-	// The title and the tab strip share one row in a full-bleed band. See readme.md.
-	// The page's own icon before its name (the owner, 2026-10-03): the same icon the
-	// sidebar shows, so the heading and the nav entry read as one thing.
+	// See doc/Doc-notes.md (title + tab strip in one full-bleed band, with sidebar icon).
 	well(){ return div.c("doc-well", () => h1.c("doc-title h2", () => { if (this.icon) icon(this.icon); span(this.title); })); }
 
-	// True once an ANCESTOR is another Doc — I am rendering inside its `.tab-panel`.
-	// Two `--well` bands stacked over `--wash` read as broken alternating stripes
-	// (ux/*, 2026-08-26): the fix is the shape ext/Panel/Workspace/page.js already
-	// hand-wrote — no well, no second `.doc-page`, just a left rail like Doc's own
-	// api/doc/files sections. render() below picks it automatically.
+	// See doc/Doc-notes.md (nested Doc renders as left rail, not stacked wells).
 	nested_in_doc(){
 		for (let page = this.parent; page; page = page.parent)
 			if (page instanceof Doc) return true;
@@ -427,20 +300,13 @@ export class Doc extends Page {
 			.ac(this.name && "page--" + this.name)
 			.ac(this.classes);
 
-		// "N open tasks touch this page" (core/Page/ai/PageWork.js); a Doc draws its own view, so Page.render()'s line never reaches it.
-		if (fresh) this.mailbox?.start();   // streams page.jsonl so the tab shows its unread count
+		if (fresh) this.mailbox?.start();   // Streams page.jsonl for unread count in tab.
 		if (fresh && this.url) view.append(() => { span.c("page-open").append(PageWork.line(this.url)); });
 		return view;
 	}
 }
 
-// The Docs tab as a TREE, once any note nests — reusing ext/files' own nest() for the
-// grouping and its CSS classes for the look (folder icon, indent, .file-tree/.file-dir/
-// .file-name — files.css), so this inherits the styling rather than forking it. The one
-// real difference from ext/files' own rows(): each leaf here is a REAL routed link to
-// the note's own page (`a().href(...)`), because a note has a bookmarkable url — ext/
-// files draws a click handler that swaps a query param instead, right for browsing a
-// file selection, wrong for a note that is its own page.
+// See doc/Doc-notes.md (reuses ext/files styles for note tree, links not click handlers).
 function note_tree(base, names){
 	return div.c("file-tree", () => note_rows(nest(names, 0), base));
 }
@@ -458,8 +324,7 @@ function note_rows(node, base){
 	}
 }
 
-// The sections this class derives, as opposed to the children a call site declared.
-// One list, two readers: `bar()` orders the strip by it, `wall()` subtracts it.
+// See doc/Doc-notes.md (derived sections: read by bar() and wall()).
 Doc.SECTIONS = ["overview", "api", "doc", "files", "inbox"];
 
 Doc.names = names => (names ?? "").trim().split(/\s+/).filter(Boolean);
