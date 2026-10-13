@@ -472,12 +472,14 @@
 	/* The dot, the icon and the time sit at the TOP, on the title's first line. */
 	.inbox-row-head {
 		align-items: flex-start;
+		flex-wrap: wrap;   /* badges (new, decision, 100) used to squeeze the title to one word a line; now it drops below them */
+		row-gap: 0.15em;
 	}
 
 	/* WHOLE, NEVER CLIPPED (the owner, 2026-09-24: "render the whole thing as tall as it
 	   needs to be"). A title, not prose: the theme's 1.8 line-height read as a paragraph. */
 	.inbox-row-title {
-		flex: 1;
+		flex: 1 1 8em;
 		min-width: 0;
 		font-weight: 600;
 		line-height: 1.35;
