@@ -6,48 +6,48 @@ Note: the 8 round-2 files in the top 40 were swapped for the next 8 in the censu
 
 40 files pruned, one commit each, every one passing `verify.mjs` (code identical); history moved to the notes docs below, each linked from its module readme.
 
-| File | Lines before → after | Notes doc |
+| File | Diff lines | Notes doc |
 |---|---|---|
-| `ai/cards/card.js` | -105 comment lines, +105 | |
-| `ai/page.js` | -24 comment lines, +101 | |
-| `ai/rail/Processes.js` | -22 comment lines, +98 | |
-| `ai/rail/groups.js` | -7 comment lines, +129 | |
-| `ai/talk/page.js` | -11 comment lines, +123 | |
-| `ai/v/3/page.js` | -2 comment lines, +246 | |
-| `core/Layout/Layout.js` | -13 comment lines, +97 | |
-| `core/Layout/rules.js` | -6 comment lines, +104 | |
-| `core/Page/Frame.js` | -13 comment lines, +101 | |
-| `core/Page/Page.class.js` | -18 comment lines, +120 | |
-| `core/Page/ext/Inbox/Rail.js` | -16 comment lines, +115 | |
-| `core/Page/generator/controls.js` | -14 comment lines, +99 | |
-| `core/Page/generator/export.js` | -10 comment lines, +127 | |
-| `core/Page/generator/tree.js` | -3 comment lines, +129 | |
-| `core/Page/page.js` | -10 comment lines, +110 | |
-| `core/Search/Search.js` | -12 comment lines, +89 | |
-| `core/Section/Section.js` | -33 comment lines, +147 | |
-| `core/new/1/site/chrome/chrome.js` | -3 comment lines, +122 | |
-| `core/new/1/site/kit/kit.js` | -7 comment lines, +103 | |
-| `core/new/1/site/library/page.js` | -3 comment lines, +148 | |
-| `dev/DevBar/says.js` | -16 comment lines, +108 | |
-| `dev/Socket/Socket.js` | -10 comment lines, +132 | |
-| `ext/AITask/AITask.js` | -7 comment lines, +152 | |
-| `ext/AITask/dashboard.js` | -23 comment lines, +145 | |
-| `ext/AITask/day-prompts.js` | -18 comment lines, +99 | |
-| `ext/AITask/rank.js` | -1 comment lines, +87 | |
-| `ext/Chat/ChatPanel.js` | -6 comment lines, +123 | |
-| `ext/Chat/Composer.js` | -1 comment lines, +110 | |
-| `ext/DesignTool/polish.js` | -19 comment lines, +108 | |
-| `ext/DesignTool/rules.js` | -21 comment lines, +101 | |
-| `ext/DesignTool/taste/corpus.js` | -2 comment lines, +94 | |
-| `ext/Mention/Mention.js` | -15 comment lines, +94 | |
-| `ext/Panel/glyphs.js` | -1 comment lines, +119 | |
-| `ext/Panel/text.js` | -20 comment lines, +94 | |
-| `ext/Research/Program.js` | -17 comment lines, +97 | |
-| `ext/catalog/browse.js` | -14 comment lines, +100 | |
-| `ext/demo/demo.js` | -12 comment lines, +120 | |
-| `ext/files/explorer.js` | -10 comment lines, +115 | |
-| `ext/files/files.js` | -4 comment lines, +135 | |
-| `styles/system/studies/lists/page.js` | -16 comment lines, +126 | |
+| `ai/cards/card.js` | 105 removed, 105 added | |
+| `ai/page.js` | 101 removed, 24 added | |
+| `ai/rail/Processes.js` | 98 removed, 22 added | |
+| `ai/rail/groups.js` | 129 removed, 7 added | |
+| `ai/talk/page.js` | 123 removed, 11 added | |
+| `ai/v/3/page.js` | 246 removed, 2 added | |
+| `core/Layout/Layout.js` | 97 removed, 13 added | |
+| `core/Layout/rules.js` | 104 removed, 6 added | |
+| `core/Page/Frame.js` | 101 removed, 13 added | |
+| `core/Page/Page.class.js` | 120 removed, 18 added | |
+| `core/Page/ext/Inbox/Rail.js` | 115 removed, 16 added | |
+| `core/Page/generator/controls.js` | 99 removed, 14 added | |
+| `core/Page/generator/export.js` | 127 removed, 10 added | |
+| `core/Page/generator/tree.js` | 129 removed, 3 added | |
+| `core/Page/page.js` | 110 removed, 10 added | |
+| `core/Search/Search.js` | 89 removed, 12 added | |
+| `core/Section/Section.js` | 147 removed, 33 added | |
+| `core/new/1/site/chrome/chrome.js` | 122 removed, 3 added | |
+| `core/new/1/site/kit/kit.js` | 103 removed, 7 added | |
+| `core/new/1/site/library/page.js` | 148 removed, 3 added | |
+| `dev/DevBar/says.js` | 108 removed, 16 added | |
+| `dev/Socket/Socket.js` | 132 removed, 10 added | |
+| `ext/AITask/AITask.js` | 152 removed, 7 added | |
+| `ext/AITask/dashboard.js` | 145 removed, 23 added | |
+| `ext/AITask/day-prompts.js` | 99 removed, 18 added | |
+| `ext/AITask/rank.js` | 87 removed, 1 added | |
+| `ext/Chat/ChatPanel.js` | 123 removed, 6 added | |
+| `ext/Chat/Composer.js` | 110 removed, 1 added | |
+| `ext/DesignTool/polish.js` | 108 removed, 19 added | |
+| `ext/DesignTool/rules.js` | 101 removed, 21 added | |
+| `ext/DesignTool/taste/corpus.js` | 94 removed, 2 added | |
+| `ext/Mention/Mention.js` | 94 removed, 15 added | |
+| `ext/Panel/glyphs.js` | 119 removed, 1 added | |
+| `ext/Panel/text.js` | 94 removed, 20 added | |
+| `ext/Research/Program.js` | 97 removed, 17 added | |
+| `ext/catalog/browse.js` | 100 removed, 14 added | |
+| `ext/demo/demo.js` | 120 removed, 12 added | |
+| `ext/files/explorer.js` | 115 removed, 10 added | |
+| `ext/files/files.js` | 135 removed, 4 added | |
+| `styles/system/studies/lists/page.js` | 126 removed, 16 added | |
 
 Notes docs added:
 - [ai/cards/doc/card-notes.md]
