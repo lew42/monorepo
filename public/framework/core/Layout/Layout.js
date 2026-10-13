@@ -9,42 +9,15 @@ import { strip } from "./strip.js";
 
 View.stylesheet(import.meta, "Layout.css");
 
-/* ── A LAYOUT PAGE ─────────────────────────────────────────────────────────────
-
-   A Layout is a Page that declares AN ARRANGEMENT OF NAMED BOXES, the width range
-   it is proven at, and the rules about where it may go — and owns no content. The
-   stress fixtures are what goes in the boxes, and they are the separation: a
-   layout that only looks right with particular content is a draft page, not a
-   layout (the owner, addendum 2).
-
-   Every prop is a plain page prop, so a filter reads `layout.columns`,
-   `layout.tags`, `layout.widths[0]` with nothing to register and no schema. The
-   whole catalogue is `layouts.js`; readme.md has the prop table.
-
-   ⚠ `Layout extends Page`, and `Page` is NOT a `View` — so `View.classify()` never
-     sees this class and no CSS class is minted from its name. Every VIEW part
-     built below is named `PageLayout*`, which mints `.page-layout-*`: `page-` is
-     core/Page's reserved prefix and `layout-` belongs to `ext/layout`
-     (styles/css-scopes.txt). `core/Page/Frame.js`'s `PageFrame` is the precedent.
-
-   ⚠ `words()` IS OVERRIDDEN TO DO NOTHING. Core's `words()` does
-     `this.width ??= this.room`, and `room` here means the framework layout word a
-     layout compiles to (`page` `rail` `wall` `stage` `solo`) — not a page width.
-     Without this override every layout page would stamp a bogus `page-w-page`.
-
-   ⚠ NO CLASS FIELDS FOR DEFAULTS. A subclass's field initializers run AFTER
-     `super()` has finished, so a field here would overwrite the config that was
-     just assigned. The defaults are on the prototype at the bottom of this file,
-     where an assigned value shadows them the ordinary way.                       */
+// History and reasons: doc/Layout-notes.md
+// ⚠ Layout extends Page, not View — every VIEW part is PageLayout* for .page-layout-* (not .layout-*; see css-scopes.txt).
+// ⚠ words() overridden to do nothing: room means framework layout word, not page width.
+// ⚠ No class fields for defaults; they shadow from prototype at the bottom.
 
 export class Layout extends Page {
 
 	words(){ return this; }
 
-	/* ── THE PAGE ──────────────────────────────────────────────────────────────
-	   One screen first: the sentence that says what this divides, then the layout
-	   itself at its floor width with the handle, and the strip beside it. Every
-	   word after that is one scroll down. */
 	content(){
 		p(this.intro);
 
@@ -77,30 +50,14 @@ export class Layout extends Page {
 		this.approval();
 	}
 
-	// The fixture currently poured into the boxes. One place, so the viewport, the
-	// strip and the chips can never disagree about what is on screen.
 	fixture(){ return this.showing ??= FIXTURES[4]; }
 
-	/* name → fixture kind. DERIVED from `boxes`, never declared beside it: written
-	   twice, the two are one edit away from disagreeing about what a slot holds.
-	   ⚠ A METHOD, not a getter. `assign()` writes with [[Set]], and a prototype
-	     accessor with no setter throws on the way in — a config that happened to
-	     carry a `slots` key would take the whole page down. */
+	// ⚠ METHOD not getter — assign() uses [[Set]]; a prototype accessor without setter would throw.
 	slots(){ return Object.fromEntries((this.boxes ?? []).map(box => [box.label, box.kind ?? "bare"])); }
 
-	/* THE VIEWPORT — the site's one resizable stage (`ext/demo/stage.js`), opened at
-	   this layout's own FLOOR, because the floor is where a layout is hardest and
-	   where a reader learns the most. The handle and the strip are how you leave it.
-	   ⚠ `bleed` on the stage zeroes `.demo-screen`'s padding, so the render is the
-	     stage's width to the pixel and the readout says the number that was asked
-	     for. Without it the render is 3rem narrower than the floor and the proof
-	     "it opens at its floor" quietly fails by 48px. */
+	// ⚠ bleed on stage zeroes .demo-screen padding; without it render is 3rem narrower.
+	// ⚠ flex basis asks ROW for floor; max-width caps layout at room width (not token).
 	viewport(){
-		/* ⚠ THE FLEX BASIS IS THE FLOOR, not a token. A `1 1 24em` viewport gets
-		   whatever the row hands it, and the stage's `max-width: 100%` then caps a
-		   1400px layout at 602px on a 1280 screen with nothing thrown — measured
-		   before this line existed. The basis asks the ROW for the floor, and the
-		   aside wraps below when there is not room for both. */
 		return div.c("page-layout-viewport").style("flex", `1 1 ${this.widths[0]}px`).append(() => {
 			this.chips();
 
@@ -113,12 +70,7 @@ export class Layout extends Page {
 		});
 	}
 
-	/* The arrangement with the current fixture in it, and the rules checked against
-	   the box it landed in.
-	   ⚠ THE BOX HAS NO SIZE YET. A page is built detached, so every rect right now
-	     reads 0 and rule 1 would fire on all thirty. The observer fires the moment
-	     it gets a size — and again on every drag of the handle, which is exactly
-	     when the width rule needs asking again. */
+	// ⚠ Box has no size yet (page built detached); observer fires on first size + drag.
 	render_fixture(){
 		const $box = apply(div.c("page-layout-host"), tone_of(this.fixture()));
 
@@ -133,8 +85,6 @@ export class Layout extends Page {
 		return $box;
 	}
 
-	// One chip per fixture. Clicking one redraws the render and the strip — the
-	// whole point of the fixtures is that you can see the layout survive them.
 	chips(){
 		return div.c("page-layout-chips flex gap wrap v-center", () => {
 			span.c("muted", "Fixture");
@@ -146,17 +96,13 @@ export class Layout extends Page {
 		});
 	}
 
-	// ⚠ A page memoizes its view, so redrawing means emptying the box we own and
-	//   building it again — never `render()`, which hands back the cached view.
+	// ⚠ Page memoizes view; redraw empties and rebuilds, never calls render().
 	redraw(){
 		const view = this.view;
 		this.view = null;
 		view?.el.replaceWith(this.render().el);
 	}
 
-	/* THE PROPS, AS A TABLE. Everything a filter reads, in the order the readme's
-	   prop table lists them — one drawing, so a prop that exists is a prop that
-	   shows. */
 	props(){
 		const rows = [
 			["columns", String(this.columns), "1 · 2 · 3 · 4 (four or more) — the band it lands in"],
@@ -191,9 +137,6 @@ export class Layout extends Page {
 		code.c("page-layout-config", this.config);
 	}
 
-	/* A WALL OF SIBLINGS, drawn with the same card the tree uses — `preview()` is
-	   the layout's own, so there is one card shape on this site and not a second
-	   one here (the browse() rule). */
 	wall(names){
 		const kin = (names ?? []).map(name => this.parent?.children.get(name)).filter(Boolean);
 
@@ -202,11 +145,8 @@ export class Layout extends Page {
 		return div.c("page-previews wide", () => kin.forEach(page => page.preview(this.parent.nav_for(page.name))));
 	}
 
-	/* THE FIXTURE RUN, ON A BUTTON. 8 fixtures x 7 widths is 56 renders for one
-	   layout, which is why it is a click and not something that happens on load.
-	   The verdict written back into `layouts.js` came from the headless probe,
-	   which sets the REAL viewport to each width — a fixed-width box here answers
-	   container queries but not `@media`, and the button says so. */
+	// ⚠ click binds this to BUTTON's View; page reached via closure above.
+	// ⚠ requestAnimationFrame required: 56 renders block paint; show "Running…" before.
 	approval(){
 		const page = this;
 
@@ -216,10 +156,6 @@ export class Layout extends Page {
 
 		let $out;
 
-		// ⚠ `click` binds `this` to the BUTTON's View, so the page is reached through
-		//   the closure above — the shape every other button in core takes.
-		// ⚠ One frame before the run: 56 renders block the paint, and a button that
-		//   never says "Running…" reads as a button that did nothing.
 		button.c("prim page-layout-run", "Run the fixtures at all seven widths").click(function(){
 			const label = this.el.textContent;
 			this.text("Running…");
@@ -253,23 +189,12 @@ export class Layout extends Page {
 
 	prose(text){ return p.c("muted", text); }
 
-	/* ── THE CARD ──────────────────────────────────────────────────────────────
-	   A PICTURE, never a live instance (the layout skill's rule): the arrangement
-	   drawn as grey boxes, at the card's size, with nothing to read. It is the
-	   layout's own shape rather than a generic word, which is what makes a wall of
-	   thirty a palette you can pick from.
-	   ⚠ The thumb is a `.stage` — 16/10, `overflow: hidden` — so the picture is
-	     flex-sized and `height` is dropped from the declarations. A ported entry
-	     that says `height: 16em` would otherwise be twice the thumb. */
+	// ⚠ Thumb is .stage (16/10, overflow hidden); height dropped to avoid 2x on port.
 	preview(nav){
 		return this.preview_card(nav, () => pane({ width: 900, height: 560 }, () => this.picture()));
 	}
 
-	/* ⚠ DRAWN AT 900px AND PAINTED DOWN, not drawn at the card's own width. A rail
-	   is `15em` and a measure is `40em` — real lengths — so a picture built inside a
-	   200px thumb would show a wrapped stack for every one of the thirty and the
-	   wall would be thirty identical grey rectangles. `ext/demo/pane.js` lays the
-	   box out at a fixed width and fits it to the room, which is exactly this. */
+	// ⚠ Drawn at 900px and painted down (not card's width); prevents 30 identical rects.
 	picture(){
 		const { height, ...decl } = this.decl ?? {};
 
@@ -277,8 +202,6 @@ export class Layout extends Page {
 			.append(() => (this.boxes ?? []).forEach(box => this.blocks(box)));
 	}
 
-	// One block per track — and per REPEAT, capped at eight, so a wall looks like a
-	// wall rather than like one box. `kids` recurses: a split inside a split.
 	blocks(box){
 		for (let i = 0; i < Math.min(box.repeat ?? 1, 8); i++){
 			const { height, ...decl } = box.decl ?? {};
@@ -289,16 +212,9 @@ export class Layout extends Page {
 	}
 }
 
-/* A picture of a STACK is a column of bars: `display: block` (and a decl that says
-   no display at all) becomes a flex column here, so the boxes share the height
-   instead of collapsing to three hairlines at the top of the card. `columns:` is
-   left alone — masonry's whole picture IS its columns. */
 const stacked = decl => (decl.columns || (decl.display && decl.display !== "block"))
 	? decl : { ...decl, display: "flex", "flex-direction": "column" };
 
-/* The defaults every layout inherits — on the PROTOTYPE, so a declared value
-   shadows one without a line of code. `accepts: "any"` and `allowed_in: "any"` are
-   the owner's own instruction: a layout that says nothing restricts nothing. */
 Object.assign(Layout.prototype, {
 	columns: 1,
 	room: "page",
