@@ -199,12 +199,11 @@ export default class CardAnswer {
 	static mastermind_run(){
 		// both task shapes, newest day first: the sessions store and any old ai/YYYY-MM-DD/ (Server/TaskDirs.mjs)
 		for (const { dir: d } of TaskDirs.list(30).filter(t => t.slug.startsWith("mastermind-"))){
-				const file = path.join(d, "task.jsonl");
-				if (!fs.existsSync(file)) continue;
-				const lines = fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
-				const state = Object.assign({}, ...lines.filter(e => e.assign).map(e => e.assign));
-				if (!state.landed_at) return file;
-			}
+			const file = path.join(d, "task.jsonl");
+			if (!fs.existsSync(file)) continue;
+			const lines = fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
+			const state = Object.assign({}, ...lines.filter(e => e.assign).map(e => e.assign));
+			if (!state.landed_at) return file;
 		}
 		return null;
 	}
