@@ -1,0 +1,48 @@
+{
+  "at": "2026-10-13T17:32:58-05:00",
+  "input": "C:\\Code\\lew42\\worktrees\\refine-confidence\\public\\framework\\ext\\Refine\\runs\\2026-10-10\\input.txt",
+  "source_file": "C:/Code/lew42/worktrees/refine-confidence/public/framework/ext/Refine/runs/2026-10-10/input.txt",
+  "out": "public/framework/ext/Refine/runs/2026-10-10",
+  "models": {
+    "clean": "claude-haiku-5-5",
+    "structured": [
+      "claude-haiku-5-5"
+    ],
+    "pick": "claude-haiku-5-5",
+    "brief": "claude-sonnet-5-5",
+    "coverage": "claude-sonnet-5-5",
+    "repair": "claude-sonnet-5-5"
+  },
+  "collab": false,
+  "mock": false,
+  "structured_winner": "haiku",
+  "tie_broken_by": null,
+  "cost_usd": {
+    "clean": 0.4820972,
+    "structured": {
+      "haiku": 0.7577792
+    },
+    "pick": 0,
+    "brief": 0.3548802,
+    "coverage": 0,
+    "repair": 0,
+    "total": 1.594757
+  },
+  "word_counts": {
+    "raw": 2114,
+    "clean": 2207,
+    "structured": 2209,
+    "brief": 2267
+  },
+  "clean_overlap_ratio": 0.993,
+  "coverage": {
+    "sentences": 108,
+    "cited": 108,
+    "context_only": 0,
+    "dropped": 0,
+    "unclassified": 0,
+    "flags": 16,
+    "thin_citations": 0
+  },
+  "repair": null
+}
