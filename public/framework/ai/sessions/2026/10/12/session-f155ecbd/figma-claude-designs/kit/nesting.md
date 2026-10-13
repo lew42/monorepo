@@ -25,3 +25,9 @@ Checked at 1920 (full-page screenshot, three rounds): header, notes, all six sec
 ## Update 2026-10-13 (Figma mastermind)
 - **Masters are top level** on the page canvas (the `Components` frame is gone; nothing was deleted, only the two emptied frames). Page text says so.
 - **One icon system:** `Icon` here is a stand-in. Once `kit/icons.md` exists (task-mastermind-fig-icons, `DS · 1.1 Icons`), swap the Nesting atom to that `Icon`, keep this font-vs-vector comparison as an explainer. **Still open: `kit/icons.md` did not exist when this was written.**
+
+## Update 2026-10-13, after kit/icons.md landed
+- **The atom is now the shared `Icon`** (`229:29044`, DS · 1.1): swapped in the Icon item variants, the Card header and every specimen (sizes H4/Body/H3 × Text/Accent, icon from the dropdown). My stand-in set is kept, unused, renamed `was · Icon (font stand-in…)` at the right edge.
+- The font-vs-vector comparison stays as an explainer; copy now says the glyphs are font-glyph components picked from a dropdown.
+- The glyph set has no home/mail/inbox/favorite, so the specimens use folder, search, settings, send, draft, delete, bolt, star. The master-edit demo is now folder → star.
+- Checked: full-page screenshot at 1920, all six sections read.
