@@ -39,7 +39,7 @@ function settings(scheme) {
 		h3("Settings");
 		toggle("Push notifications", true); toggle("Email digest", false); toggle("Location", true);
 		div.c("fig-select-label fig-muted", "Language");
-		select("English", ["English", "Espa�ol", "Fran�ais"]);
+		select("English", ["English", "Español", "Français"]);
 		check("Remember me", true);
 		const g = "p" + uid++;
 		radio("Free", false, g); radio("Plus", true, g);
@@ -101,6 +101,7 @@ export default new Page({
 				div.c("fig-inset fig-card", () => p("A 10% inset."));
 			});
 		});
+		p("Contrast note (DS · 1.2 Dark grounds): secondary text on plain Dark is 4.0 to 1, under the 4.5 to 1 a reader needs. On Near-black (Dark mixed 50% with black) it is 7.3 to 1, and primary text is 13 to 1. Use Near-black where muted text sits on a dark ground.");
 		h3("Modes");
 		div.c("grid auto gap", () => {
 			for (const [cls, name] of modes) div.c(`${cls} fig-white fig-card fig-stack`, () => {
@@ -121,8 +122,9 @@ export default new Page({
 		h3("Layouts on a phone (390)");
 		div.c("flex wrap gap", () => div.c("fig-white fig-lay fig-card fig-tokens-phone", () => div.c("fig-side", () => { div.c("fig-side-rail", () => ["Profile", "Billing"].forEach(t => button.c("fig-btn fig-btn-secondary", t))); div.c("fig-cols", () => { h4("Profile"); p.c("fig-muted", "Rail on top; label above content."); }); })));
 		h3("Dropdown as a bottom sheet (DS 2.6 C)");
-			p("Under 600 px of screen width an open fig-select becomes a bottom sheet over a dimmed page; tap the dim area, press Escape or pick a row to close. Resize the window below 600 px to see it.");
-			h3("The settings screen (DS 2.7, In action)");
+		p("Under 600 px of screen width an open fig-select becomes a bottom sheet over a dimmed page; tap the dim area, press Escape or pick a row to close. Resize the window below 600 px to see it.");
+		div.c("flex wrap gap", () => [["fig-white", "Canada"], ["fig-near-black", "Mexico"]].forEach(([cls, v]) => div.c(`${cls} fig-card fig-controls-box`, () => select(v, ["Country", "Canada", "Mexico", "United States"]))));
+		h3("The settings screen (DS 2.7, In action)");
 		div.c("flex wrap gap", () => schemes.forEach(([cls]) => settings(cls)));
 	},
 });
