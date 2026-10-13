@@ -2,7 +2,13 @@
 
 The file a fresh assistant, mastermind or minion reads before anything else. Keep it one screen; replace dated sections as they go stale.
 
-## LATEST, 2026-10-12 morning: the night run (30 tasks)
+## LATEST, 2026-10-13: the 10-12 day, landed and open
+- **Landed 10-12 (task folders, each with its own STATE or report):** [property-of](sessions/2026/10/12/session-87bec773/property-of/) · [page-templates](sessions/2026/10/12/session-87bec773/page-templates/) · [page-inbox](sessions/2026/10/12/session-87bec773/page-inbox/) · [past-work-skill](sessions/2026/10/12/session-87bec773/past-work-skill/) · [screenshot-system](sessions/2026/10/12/session-87bec773/screenshot-system/) · [server-query](sessions/2026/10/12/session-87bec773/server-query/) · [perf-system](sessions/2026/10/12/session-87bec773/perf-system/) · [ui-library](sessions/2026/10/12/session-87bec773/ui-library/) · [layout-catalog](sessions/2026/10/12/session-87bec773/layout-catalog/) · [step-runner](sessions/2026/10/12/session-87bec773/step-runner/) · [dead-links](sessions/2026/10/12/session-87bec773/dead-links/) · [comment-prune-3](sessions/2026/10/12/session-87bec773/comment-prune-3/) · [readme-audit](sessions/2026/10/12/session-87bec773/readme-audit/). Every one is indexed in the root and framework/ai readmes.
+- **Readme audit:** no readme over 100 lines, every child module indexed, before/after counts and the list of what CLAUDE.md needs in [readme-audit/STATE.md](sessions/2026/10/12/session-87bec773/readme-audit/STATE.md).
+- **Open:**  merge follow-ups;  →  rename; duplicate-bubble details; the Figma  token; CLAUDE.md edits listed in the audit STATE (ask first).
+- **Dead links:** 53 real 404s down to 3 (040b82753).
+
+## EARLIER, 2026-10-12 morning: the night run (30 tasks)
 - **Every task, one line each (computed from the task logs):** [docs-handover/night.md](2026-10-12/docs-handover/night.md). Still running when written (06:10): [page-split-2](2026-10-12/page-split-2/STATE.md) (Columns.js extracted, 1200px probe 0 diffs, 400/1920/3440 probe running) and [refine-asks](2026-10-12/refine-asks/STATE.md) (reviewer verdict "fix": asks.md commit links; chased twice).
 - **Try first (2 min):** the phone voice walk, [try-it.md](/framework/ux/Dictate/doc/try-it.md); a headless run already passed ([voice-verify](2026-10-12/voice-verify/STATE.md)).
 - **Needs a Servex restart to take effect** (merged, not live): role skills inlined by node ([skill-reliability](2026-10-12/skill-reliability/STATE.md)), relay-bypass log line, OpenRouter overlap-cost split in `Agents.js` ([openrouter-gap](2026-10-12/openrouter-gap/STATE.md)), `LogSweeper` ([session-housekeeping](2026-10-12/session-housekeeping/STATE.md)), mastermind role now `bypassPermissions` (`Servex/agents/roles.js`, 96f5ec3c2), `list_agents` live-only. A restart drops running agents, so do it when none are in flight.
