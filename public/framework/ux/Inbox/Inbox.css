@@ -564,6 +564,10 @@
 		color: white;
 	}
 
+	.inbox-demo { flex-wrap: wrap; align-items: flex-start; }
+	.inbox-demo-live { flex: 1 1 22em; min-width: 0; }
+	.inbox-debug { flex: 1 1 18em; min-width: 0; }
+
 	/* NEW + KIND CUES — "new" for a row under 30 minutes; the owner-note kind in words. */
 	.inbox-new-mark, .inbox-kind {
 		flex: none;
