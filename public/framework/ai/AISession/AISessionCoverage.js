@@ -90,10 +90,12 @@ export default class AISessionCoverage {
 			md(c.refined || "");
 			div.c("flow", () => (c.asks ?? []).forEach(ask => {
 				const status = RefinedCard.status_of(ask, c, this.outcomes);
-				div.c("flex gap-50 v-center wrap", () => {
+				div.c("flex gap-50", () => {   // the tag stays beside the ask; the ask and its cites wrap as one line of text
 					AISessionCoverage.tag(status, status);
-					span(ask.text);
-					a.c("muted", ask.cites?.length ? "S" + ask.cites.join(", S") : "raw").href("#" + box.el.id).on("click", e => { e.preventDefault(); this.show_raw(box, ask.cites); });
+					span(() => {
+						span(ask.text + " ");
+						a.c("muted", ask.cites?.length ? "S" + ask.cites.join(", S") : "raw").href("#" + box.el.id).on("click", e => { e.preventDefault(); this.show_raw(box, ask.cites); });
+					});
 				});
 			}));
 			if (c.uncited?.length) small.c("muted", `Sentences no ask cites: S${c.uncited.join(", S")} (often filler; worth a look when a long prompt drops many).`);
@@ -101,7 +103,7 @@ export default class AISessionCoverage {
 			details.c("session-coverage-raw", () => {
 				summary(() => { span("Raw prompt "); a.c("muted", `transcript line ${c.line}`).href(c.raw ?? RefinedCard.raw_link(c.session, c.line)); });
 				div.c("flow");   // filled when opened: show_raw()
-			}).on("toggle", e => { if (e.target.open) this.show_raw(box); });
+			}).on("toggle", e => { if (e.target.open && !e.target.querySelector("ol")) this.show_raw(box); });   // a cite click already filled it, with its highlight
 		});
 	}
 
@@ -121,7 +123,7 @@ export default class AISessionCoverage {
 		$list.querySelector(".sessions-flag")?.scrollIntoView({ block: "center", behavior: "smooth" });
 	}
 
-	static tag(status, label){ return span.c("sessions-tag", label).style("--sessions-tag-color", AISessionCoverage.COLOR[status] ?? "var(--ink)"); }
+	static tag(status, label){ return span.c("sessions-tag", label).style({ "--sessions-tag-color": AISessionCoverage.COLOR[status] ?? "var(--ink)", "align-self": "start" }); }
 
 	static NO_RAW = "The raw words come from this page's own transcript (the Conversation tab loads it); it has not reached this prompt yet. The transcript link above opens the file itself (local only).";
 	static EMPTY ="No refined prompts for this session yet. `node Server/RefineQueue.mjs <session>:<line>` refines one; `--days 7` refines the week (ext/Refine/doc/refine-queue.md).";
