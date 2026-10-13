@@ -31,6 +31,7 @@ export default class LogSweeper {
         /^\.claude\/skills\/[^/]+\/(flags|improvements)\.jsonl$/,
         /^public\/framework\/ai\/(usage|cards)\.jsonl$/, // usage history (owner keeps it) and the board's card index: appended by Servex
         /^public\/framework\/(?!ai\/).+\/doc\/files\.jsonl$/, // the dev server's folder listing under any module's doc/
+        /^public\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/(day|day-files)\.jsonl$/, // a day's own stream, one level up from the sessions
         /^public\/framework\/ai\/sessions\/(\d{4}(\/\d{2}){0,2}\/)?index\.json$/, // day/month/year composites: tracked, rewritten by the sessions indexer
     ];
     /* Never swept, even if an ALLOW pattern would match. */
