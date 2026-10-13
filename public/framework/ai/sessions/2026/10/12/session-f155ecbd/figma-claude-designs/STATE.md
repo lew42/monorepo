@@ -35,6 +35,8 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 
 ## In flight
 - ⬜ `Video · Kit` + `Video · Storyboard · The Twelve` — task-mastermind-figma-video, brief [kit/brief-video.md](kit/brief-video.md); idea and open questions in [ext/Figma/doc/video-kit.md](/framework/ext/Figma/doc/video-kit.md)
+- ⬜ `Video · Channel ideas` (supercars, yachts, dream homes, jets; ladders, thumbnails, Shorts, sourcing) — task-mastermind-figma-channels, brief [kit/brief-channels.md](kit/brief-channels.md)
+- ✅ Images verified: `generate_image` → `upload_assets`, and Wikimedia Commons → `upload_assets` (see [video-kit.md](/framework/ext/Figma/doc/video-kit.md)).
 
 Owner rule (2026-10-12): summaries and anything waiting on the owner go on the Figma Overview's **For you** card (`186:1062`) and page notes, not chat.
 
