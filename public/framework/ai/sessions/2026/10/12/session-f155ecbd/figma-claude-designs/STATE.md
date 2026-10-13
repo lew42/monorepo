@@ -10,15 +10,17 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ Web: `ext/Figma/tokens/` (FigmaTokens.mjs → opt-in `--fig-*` CSS; measure.mjs; demo page).
 - ✅ Relayed: Sessions grid bugs → mastermind-data-grid; Figma-vs-page diff → mastermind-screenshot-system (no replies seen yet).
 
-## In flight (started 01:34 UTC, brief: [kit/brief-ds-2.md](kit/brief-ds-2.md))
-- ⬜ `DS · 1.1 Icons` — task-mastermind-figma-ds-icons
-- ⬜ `DS · 1.2 Dark grounds` — task-mastermind-figma-ds-darker
-- ⬜ `DS · 2.6 Dropdowns & menus` (fixed-height phone: inner scroll / page scroll / sheet; prototype) — task-mastermind-figma-ds-dropdowns
-- ✅ `DS · 2.7 Toggles, checkboxes & radios` — report kit/ds-toggles.md (not yet reviewed or linked)
-- ⬜ `DS · 5 Diagrams & charts` (auto-layout flowcharts whose connectors follow resized cards; charts) — task-mastermind-figma-ds-diagrams, queued behind Servex's 5-agent cap; brief [kit/brief-diagrams.md](kit/brief-diagrams.md)
-- ⬜ `DS · 4.1 Foundational layouts` (seven simple layouts, each shown four+ ways across schemes, phone collapse) — task-mastermind-figma-ds-foundational; brief [kit/brief-layouts.md](kit/brief-layouts.md)
+## Landed and reviewed (second wave, brief [kit/brief-ds-2.md](kit/brief-ds-2.md))
+- ✅ `DS · 1.1 Icons`, `1.2 Dark grounds`, `2.6 Dropdowns & menus` (with a ▶ prototype), `2.7 Toggles, checkboxes & radios`; reports in [kit/](kit/). Screenshotted, linked from the Overview card.
+- ✅ Review fixes: kit `Tab bar` active tab lost its prime ground (accent icon + ink label instead); Dark grounds' hand-drawn toggles swapped for the `Toggle` component.
 
-Each writes `kit/<slug>.md` when done. Next for whoever picks this up: review each page by screenshot, link it from the Overview's design-system card, fix off-rule colour (prime grounds) and fixed sizes, commit the task logs.
+## In flight
+- ⬜ `DS · 4.1 Foundational layouts` — task-mastermind-figma-ds-foundational, brief [kit/brief-layouts.md](kit/brief-layouts.md)
+- ⬜ `DS · 5 Diagrams & charts` — task-mastermind-figma-ds-diagrams, brief [kit/brief-diagrams.md](kit/brief-diagrams.md)
+- ⬜ Kit sweep (Chip/Segment/Row prime states → inset, focus rings, lighter toggle knob) — task-mastermind-figma-ds-sweep, brief [kit/brief-sweep.md](kit/brief-sweep.md)
+- ⬜ Web: toggle, checkbox, radio, select, icons as opt-in `.fig-*` CSS on [/framework/ext/Figma/tokens/](/framework/ext/Figma/tokens/) — task-mastermind-figma-web-controls, brief [kit/brief-web-controls.md](kit/brief-web-controls.md)
+
+Each writes `kit/<slug>.md`. Next: screenshot each page, link it from the Overview card, fix off-rule colour and fixed sizes.
 
 ## Waiting on the owner
 - ⬜ Which numbers win per row of the token table in token-sync.md (site vs Figma).
