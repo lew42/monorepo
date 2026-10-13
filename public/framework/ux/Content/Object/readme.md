@@ -9,6 +9,7 @@ Three ways in, all from one real object, a class, or a class instance:
   itself an object opens (lazily — nothing under it is read until you click) to
   show its own properties the same way, as deep as you keep going. Best guess by
   default; a class overrides it with its own `Thing.View`.
+- **`InstanceTree`** (`InstanceTree.js`, [page](/framework/ux/Content/Object/instance-tree/), [doc](doc/instance-tree.md)) — the whole running site as a live tree.
 - **`inspect()`** (`Inspect.js`) — the debug/inspector view, separate from a class's
   own `render()` (it exists even when a class has no `render()` at all). Bigger than
   `object()`'s card, and a property whose value is itself an object nests its own

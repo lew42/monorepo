@@ -5,7 +5,7 @@ Open [/framework/catalog/](/framework/catalog/): a card per page (a scaled live 
 - `catalog.jsonl` is computed, never typed: `node public/framework/catalog/build.mjs` walks the page tree (`page.js` folders under core, ext, ux, ui, code, lab, library, design, styles) and writes one line per page and per class (`<Name>/<Name>.js`). Re-run it after adding a page.
 - `CatalogPage.js` (`class CatalogPage extends Page`), `CatalogPage.css`, `page.js`.
 - NEW = the page's `page.js` first landed in git after 2026-10-01 (no page-visit log exists to say what you have seen).
-- Live instance hierarchy: exists as [the Page object](/framework/ux/Content/Object/page/) and [the App object](/framework/ux/Content/Object/app/); what is still missing is [doc/instance-tree.md](doc/instance-tree.md).
+- Live instance hierarchy: exists as [the Page object](/framework/ux/Content/Object/page/) and [the App object](/framework/ux/Content/Object/app/); the whole running site is now [InstanceTree](/framework/ux/Content/Object/instance-tree/), live ([spec and status](doc/instance-tree.md)).
 
 ## Watch out
 - Page methods named `icon` or `link` shadow the page's own; the class uses `glyph()` and `anchor()`.
