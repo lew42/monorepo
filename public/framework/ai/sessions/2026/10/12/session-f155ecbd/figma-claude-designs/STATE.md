@@ -26,7 +26,8 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ `DS · 6 Screens` ([report](kit/ds-screens.md)): sessions list, session detail, settings, near-black dashboard, article; 390 phones + three 1440 desktops; ▶ prototype (rows → detail, tab bar). Built only from kit instances. Review fix: the Tab bar's active label was dark on dark (a leftover Light BG mode); cleared on all instances. Gaps it found: 4.1 layouts and charts are not components yet; no near-black token.
 
 ## In flight
-- (none; next ideas: make the 4.1 layouts and chart pieces components so screens can instance them; a near-black Text mode; wire `.fig-select` behaviour on the web)
+- ⬜ Layouts + charts as components (`Kit · Layouts`), near-black ground — task-mastermind-figma-componentize, brief [kit/brief-componentize.md](kit/brief-componentize.md)
+- ⬜ Web: `.fig-select` behaviour (pick, close, keys), reusing ux/Popover — task-mastermind-figma-web-select, brief [kit/brief-web-select.md](kit/brief-web-select.md)
 
 
 ## Waiting on the owner
