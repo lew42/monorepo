@@ -36,7 +36,7 @@ rules, and so the AI just gets bogged down"). Your job is to delete and merge mo
 
 A mastermind that owns one system (code, design, content…) edits its own readmes and `doc/` freely; that is where its rules live. It does not edit a shared `SKILL.md`: it writes the text it proposes in its task dir and tells you, and you apply it. Aim for the fewest skills, each about 10–20 lines (when to load it, the few rules that break things, a link to its system's readme), never a copy of the readme.
 
-**Is a skill used?** `node .claude/skills/system-architect/skill-usage.mjs` counts skill calls in the task logs (only logged while a task is open, so it undercounts) and which Servex role loads which skill. No calls and no role means fold it into a neighbour or archive it. 2026-10-09: color, ui, performance, prompt-refine and fork-claude-session had no calls in 30 days.
+**Is a skill used?** `node Server/SkillCensus.mjs` is the current census (words, rules, dead links, loads in 14 days from both task-folder layouts, open improvements; 2026-10-13). The older `skill-usage.mjs` reads only the retired `ai/YYYY-MM-DD/` day folders and misses every task since 2026-10-12. Both count only Skill-tool calls logged while a task is open (an undercount); a Servex role's preloaded skill shows in the role column. No calls and no role means fold it into a neighbour or archive it. 2026-10-09: color, ui, performance, prompt-refine and fork-claude-session had no calls in 30 days.
 
 ## Between runs
 
