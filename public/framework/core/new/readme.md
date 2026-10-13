@@ -62,3 +62,7 @@ Its own dev site, over the repo's real `Server` + `DevSocket`:
 ```bash
 node public/framework/core/new/1/server.js   # http://localhost:8300/
 ```
+
+## More
+
+- Design notes: [`1/doc/notes.md`](./1/doc/notes.md)
