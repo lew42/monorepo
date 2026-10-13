@@ -20,21 +20,27 @@ import { model, provider } from "./tiers.js";
  * DERIVED from the tier, so moving a tier to another model is one line in tiers.js.
  * ⚠ 2026-09-24: `mastermind` and `master-assistant` were Fable rows; the tier table has
  * no Fable tier, so they now run on the architect and fast tiers. */
+/* COMPACTION POLICY (2026-10-13, doc/lifecycle.md): `compact_after` on a row is {tokens, minutes}: the agent runs
+ * `/compact` at the end of a turn once its context passes `tokens` or it is `minutes` old (since start or last
+ * compaction). `null` = never (minions live 10-30 min). A row with no field keeps the host default (200k tokens). */
+export const MASTERMIND_COMPACT = { tokens: 150000, minutes: 45 };
+export function compact_after(role){ const r = ROLES[canonical(role)]; return r && "compact_after" in r ? r.compact_after : undefined; }
+
 export const ROLES = {
 	/* bypassPermissions (2026-10-02): a minion builds with Bash, node and the servex/site MCP
 	 * tools, and under acceptEdits every one of those is refused with nobody to approve — the
 	 * minion only finds out when its first call fails (minion-framework-home lost a turn this way;
 	 * the CLI-launcher version of the same bug is 2026-09-19's). Same reasoning as task-mastermind below. */
-	minion:             { skill: "minion",           prefix: "minion",           tier: "scan",      model: model("scan"),       effort: "low", permission_mode: "bypassPermissions" },
+	minion:             { skill: "minion",           prefix: "minion",           tier: "scan",      model: model("scan"),       effort: "low", permission_mode: "bypassPermissions", compact_after: null },
 	/* bypassPermissions, not acceptEdits: this role's whole job is calling
 	 * spawn_agent/send_to_agent/list_agents, and an MCP tool call needs the same
 	 * approval a Bash command would under acceptEdits — approval nobody can give
 	 * a non-interactive SDK session. Found 2026-09-22 (sub-mastermind-live run 1):
 	 * a task mastermind spawned under the old default had both its spawn_agent
 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
-	"task-mastermind":  { skills: ["sub-mastermind", "page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions" },
+	"task-mastermind":  { skills: ["sub-mastermind", "page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
-	mastermind:         { skill: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions" },
+	mastermind:         { skill: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	assistant:          { skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
 	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
 	 * included, and a page-mastermind — the same two roles Layers.js now spawns for a card
@@ -61,7 +67,7 @@ export const ROLES = {
 	 * "master assistant" is a retired WORD as of 2026-09-29 — its "decide, then spawn the right
 	 * mastermind" job now belongs to a voice session's `session-smart` row, below. This row
 	 * (the code) is unchanged; only the word is retired. doc/names.md has the detail. */
-	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "architect", model: model("architect"), effort: "high", permission_mode: "plan" },
+	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "architect", model: model("architect"), effort: "high", permission_mode: "plan", compact_after: MASTERMIND_COMPACT },
 	/* Woken per landing and per proposal by Server/clarity.mjs; fresh each time, one pass (.claude/skills/clarity/). */
 	clarity:            { skill: "clarity",          prefix: "clarity",          tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
 	/* ONE PAIR PER VOICE SESSION (Sessions.js, ai/sessions/2026/09/30/voice-sessions/voice-sessions): spawned by code with

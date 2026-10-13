@@ -7,7 +7,7 @@ import path from "node:path";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./registry.js";
-import { defaults as role_defaults, opening, injected } from "./roles.js";
+import { defaults as role_defaults, opening, injected, compact_after as role_compact_after } from "./roles.js";
 import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import TaskDirs from "../../Server/TaskDirs.mjs";
@@ -701,8 +701,11 @@ export class Agents {
 		 * whole turn's text, not only its last block. Any other wake is a headline. */
 		const fork = child.one_shot && (kind === "done" || kind === "blocked");
 		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
-		const body = fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 4000)}`;
+		const body = (fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 4000)}`);
 		child.woke = true;
+		/* THE NEXT STEP, in node (2026-10-13): a landed task tells its parent which queued sibling it unblocks, with the brief's path. */
+		const next = kind === "done" && child.task?.dir && task_landed(child.task.dir) ? next_briefs(child.task.dir) : [];
+		const note = next.length ? `\n\nNext: ${next.map(n => `${n.dir}${n.brief ? ` (brief ${n.brief})` : ""}`).join("; ")}. Its \`after\` edge is met; start it.` : "";
 		this.inbox(child, kind, text);
 		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
 		child.parent = this.holder(child.parent);   // a child of a retired mastermind-servex-N reports to the live one
@@ -714,7 +717,7 @@ export class Agents {
 		}
 		/* Through the HOST's send(), which revives a stopped parent — `get(parent).send()`
 		 * threw "has stopped" into an empty catch, and results were lost (task-loop, 09-29). */
-		try { this.send(child.parent, body, { from: child.id, reply_to: `log agent-${child.parent}` }); }
+		try { this.send(child.parent, body + note, { from: child.id, reply_to: `log agent-${child.parent}` }); }
 		catch (e){ this.store().append("servex", { type: "wake-failed", child: child.id, parent: child.parent, error: String(e.message || e) }).catch(() => {}); }
 	}
 
@@ -777,6 +780,22 @@ function open_task(task, { session_id, agent, model, worktree, parent_dir }){
 		model, worktree: task.worktree ?? worktree, parent_task, after, requested_at: stamp(), now: "starting", steps: [], step: 1 }) });
 	fs.appendFileSync(path.join(dir, "task.jsonl"), line + "\n");
 	return dir;
+}
+
+/* Queued siblings a landed task unblocks: task dirs next to it whose `assign.after` names it, that no agent has
+ * started, and whose every `after` has landed. [{dir, brief}], repo-relative like `after` itself. */
+export function next_briefs(dir){
+	const here = path.relative(process.cwd(), path.resolve(dir)).split(path.sep).join("/"), out = [];
+	let names; try { names = fs.readdirSync(path.dirname(path.resolve(dir)), { withFileTypes: true }); } catch { return out; }
+	for (const e of names){
+		if (!e.isDirectory()) continue;
+		const sib = path.join(path.dirname(path.resolve(dir)), e.name), file = path.join(sib, "task.jsonl");
+		let state = {}; try { for (const raw of fs.readFileSync(file, "utf8").split("\n")){ const o = raw.trim() && JSON.parse(raw); if (o?.assign) Object.assign(state, o.assign); } } catch { continue; }
+		if (state.agent || !Array.isArray(state.after) || !state.after.includes(here)) continue;
+		if (!state.after.every(a => task_landed(path.resolve(a)))) continue;
+		out.push({ dir: path.relative(process.cwd(), sib).split(path.sep).join("/"), brief: state.brief ?? null });
+	}
+	return out;
 }
 
 /* A task has landed: any assign merged says landed_at + a non-empty outcome,
@@ -1203,6 +1222,13 @@ Agents.Agent = class Agent {
 		/* The front desk is never compacted: Layers.js restarts a page's assistant and manager
 		 * FRESH from a checkpoint instead ("fresh, not compacted" — the owner). */
 		if (this.one_shot || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return null;
+		/* roles.js `compact_after` (2026-10-13): masterminds 150k tokens or 45 min; minions never. */
+		const after = role_compact_after(this.role);
+		if (after === null) return null;
+		if (after){
+			if ((this.context ?? 0) > after.tokens) return "context";
+			if (Date.parse(this.compacted_at ?? this.started_at) < Date.now() - after.minutes * 60000 && (this.context ?? 0) > 20000) return "age";
+		}
 		if ((this.context ?? 0) > tokens) return "context";
 		if ((this.rss_mb ?? 0) > mb) return "memory";
 		return null;
@@ -1224,9 +1250,19 @@ Agents.Agent = class Agent {
 		 * turn showed $0 while OpenRouter charged ~$3 (2026-10-01). Settle them now. */
 		if (this.provider === "openrouter" && this.turn_message_ids?.size) this.refresh_or_cost();
 		this.emit({ type: "result", stopped: true, mid_turn, turns: this.turns, cost: this.cost });
+		this.unlanded_note();
 		this.host?.register?.(this);
 		this.settle();
 		return this;
+	}
+
+	/* The agent is gone and its task never landed: say so in the task's log; the parent's harvest lands it. */
+	unlanded_note(){
+		const dir = this.task?.dir;
+		if (!dir || this.landing_nagged || this.one_shot || !/^(task-mastermind|mastermind|sub-mastermind)/.test(this.role ?? "")) return;
+		if (task_landed(dir) || !/\b(merged|merge commit|landed)\b/i.test(this.words ?? this.last_text ?? "")) return;
+		this.landing_nagged = true;
+		try { fs.appendFileSync(path.join(dir, "task.jsonl"), JSON.stringify({ log: { at: stamp(), msg: "agent stopped with the work merged but no landing line; too late to nag, the parent's harvest lands it" } }) + "\n"); } catch {}
 	}
 
 	card(){
@@ -1698,6 +1734,28 @@ Agents.Agent = class Agent {
 		else if (ONE_PASS.includes(this.role) && this.state === "idle") setImmediate(() => { if (this.state === "idle") this.stop(); });
 		/* Grown past a threshold: compact before anything else arrives. */
 		else if (this.state === "idle"){ const why = this.oversized(); if (why) setImmediate(() => this.compact(why)); }
+		if (this.state === "idle") this.landing_nag();
+	}
+
+	/* THE LANDING NAG (2026-10-13, doc/lifecycle.md): a task agent whose turn ended with the
+	 * work merged but no `landed_at` line gets ONE message asking for it, so no AI has to
+	 * remember to land (7 of 14 task masterminds forgot on 10-13). `landing_nagged` is the
+	 * once-flag, kept on the registry row. Done = not BLOCKED, no child still working, and
+	 * the last words say merged/landed. */
+	landing_nag(){
+		const dir = this.task?.dir;
+		if (!dir || this.landing_nagged || this.one_shot || STANDING.test(this.id ?? "")) return false;
+		if (!/^(task-mastermind|mastermind|sub-mastermind)/.test(this.role ?? "")) return false;
+		if (task_landed(dir) || /^BLOCKED/i.test(this.last_text ?? "")) return false;
+		if (!/\b(merged|merge commit|landed)\b/i.test(this.words ?? this.last_text ?? "")) return false;
+		const kids = [...(this.host?.live?.values() ?? [])].filter(a => a.parent === this.id && (a.state === "working" || a.state === "starting"));
+		if (kids.length) return false;
+		this.landing_nagged = true;
+		const file = path.join(dir, "task.jsonl").split(path.sep).join("/");
+		this.host?.store().append("servex", { type: "landing-nag", agent: this.id, task: dir }).catch(() => {});
+		this.send(`Your work is merged but your task has no landing line. Append it now: {"assign": {"landed_at": "NOW", "title": …, "outcome": …, "links": […]}} via \`node .claude/hooks/append.mjs ${file} <lines.json>\`, then \`card_reply\` one screen.`, { from: "servex-landing-nag" });
+		this.host?.register?.(this);
+		return true;
 	}
 
 	/* The end of a `/compact` turn: logged, no parent woken, the last turn's words kept. */
@@ -1705,6 +1763,7 @@ Agents.Agent = class Agent {
 		const c = this.compacting;
 		this.compacting = null;
 		this.compacted_turn = this.turns;
+		this.compacted_at = stamp();
 		if (this.provider === "openrouter") this.refresh_or_cost();
 		else this.cost = message.total_cost_usd ?? this.cost;
 		this.queued = message.queued_turn_count ?? 0;

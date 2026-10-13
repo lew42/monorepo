@@ -1,0 +1,16 @@
+PASS  first turn end: nag sent — Your work is merged but your task has no landing line. Appen
+PASS  second turn end: not resent
+PASS  flag persisted on the registry row
+PASS  blocked agent not nagged
+PASS  not-yet-merged agent not nagged
+PASS  agent with a working child not nagged
+PASS  gone agent: log line in its task, no message
+PASS  landed task never nagged
+PASS  minion never compacts (compact_after null)
+PASS  task-mastermind compacts at 150k / 45 min
+PASS  mastermind at 160k asks to compact
+PASS  minion at 160k does not
+PASS  landed task names its unblocked sibling with the brief — [{"dir":"t/parent/next","brief":"t/parent/next/requirements.md"}]
+PASS  parent's wake carries 'Next: …' — done: done
+
+Next: t/parent/next (brief t/parent/next/requirements.md). Its `after` edge is met; start it.

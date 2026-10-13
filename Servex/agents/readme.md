@@ -73,6 +73,7 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 - The first restart onto the revive code finds rows with no `boot` field. It revives them when
   the agent's own log was written in the last 30 minutes, and marks the rest `gone`.
 - Names and aliases for roles and ids: [`doc/names.md`](./doc/names.md).
+- Landing nag, next-step wake, compaction policy: [`doc/lifecycle.md`](./doc/lifecycle.md).
 
 ## Files
 

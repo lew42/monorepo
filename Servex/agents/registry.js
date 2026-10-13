@@ -43,7 +43,7 @@ export default class Registry {
 	row(agent){
 		const { id, role, name, topics, page, state, visibility, session_id, started_at, parent,
 			model, effort, cwd, permission_mode, allowed_tools, setting_sources,
-			forked_from, resumed_from, ended, context, stopped_by, stopped_at } = agent;
+			forked_from, resumed_from, ended, context, stopped_by, stopped_at, landing_nagged } = agent;
 		const task_dir = agent.task?.dir ? path.resolve(agent.task.dir) : null;
 		return { id, role, name: name ?? null, topics: topics ?? null, page: page ?? null,
 			state, visibility, session_id, started_at, parent: parent ?? null,
@@ -56,7 +56,7 @@ export default class Registry {
 			forked_from: forked_from ?? null, resumed_from: resumed_from ?? null,
 			ended: ended ?? null, context: context ?? null,
 			// the revive guard (Agents.blocked): a stop on purpose, and the task it works for
-			stopped_by: stopped_by ?? null, stopped_at: stopped_at ?? null, task_dir,
+			stopped_by: stopped_by ?? null, stopped_at: stopped_at ?? null, task_dir, landing_nagged: landing_nagged ?? null,
 			spec: agent.recipe?.() ?? null };
 	}
 
@@ -65,6 +65,7 @@ export default class Registry {
 		const row = this.row(agent);
 		// a reopened session has no `task` spec; keep its dir — only for the SAME session (a reused id is a new agent)
 		if (!row.task_dir && rows[agent.id]?.session_id && rows[agent.id].session_id === row.session_id) row.task_dir = rows[agent.id].task_dir ?? null;
+		if (!row.landing_nagged && rows[agent.id]?.session_id === row.session_id) row.landing_nagged = rows[agent.id].landing_nagged ?? null;   // the once-flag survives a revive
 		rows[agent.id] = row;
 		this.save(rows);
 		return rows[agent.id];
