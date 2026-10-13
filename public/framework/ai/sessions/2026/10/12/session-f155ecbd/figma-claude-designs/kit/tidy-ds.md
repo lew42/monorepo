@@ -6,11 +6,11 @@ Method: each page's existing auto-layout frame (1440, FILL children) moved into 
 |---|---|---|---|
 | Claude · Overview (144:1062) | 222:27012 | 1440 frame wrapped, 1920×4038 | 0 → 0 |
 | 1 Elements (159:17691) | 222:27014 | wrapped, 1920×5773 | 0 → 0 |
-| 1.1 Icons (163:20989) | 222:27016 | wrapped, 1920×6770 | 0 → 0 |
+| 1.1 Icons (163:20989) | 222:27016 | wrapped before the skip order arrived; left as is, the icon agent owns it | 0 → 0 |
 | 1.2 Dark grounds (163:18033) | 222:27018 | wrapped, 1920×5943 | 0 → 0 |
 | 2.1 Buttons (158:1263) | 222:27010 | wrapped, 1920×2200 (screenshotted) | 0 → 0 |
 | 2.2 Lists & rows (159:17140) | 222:27058 | wrapped, 1920×4736 | 0 → 0 |
-| Lists · Sidebars, TOC & trees (212:1424) | 222:27185 | wrapped; 3 component sets into `Components` frame 222:27186 (x 2000); 3632-wide `Placements` in its own wrapper 222:27187 (it overlapped the page at x 1600) | 5 → 5 (all inside the TOC sets) |
+| Lists · Sidebars, TOC & trees (212:1424) | 222:27185 | wrapped; 3 component sets top-level at x 2000 (no Components frame, per the updated rule); 3632-wide `Placements` in its own wrapper 222:27187 (it overlapped the page at x 1600) | 5 → 5 (all inside the TOC sets) |
 | 2.3 Cards & containers (159:17141) | 222:27060 | wrapped, 1920×6420 | 0 → 0 |
 | 2.4 Inputs & controls (159:3788) | 222:27062 | wrapped, 1920×4567 | 0 → 0 |
 | 2.5 Status & progress (160:1062) | 222:27064 | wrapped, 1920×4841 | 0 → 0 |
