@@ -76,6 +76,19 @@ Five phone screens use only those instances: Lists, Tree in a sheet (split scree
 
 `const k = comp.addComponentProperty('Content', 'SLOT', '')`, then bind a child auto-layout frame: `frame.componentPropertyReferences = {slotContentId: k}`. In every instance that frame is a `SLOT` node, and `slot.appendChild(node)` puts arbitrary content in it. So a card, panel, dialog or sheet is a component with a Content slot, not a frame we detach.
 
+### Slot, property, swap or variant: which one (owner's question, 2026-10-13)
+
+A slot does **not** detach anything. The instance stays linked to its main component, and only what is inside the slot belongs to that one instance. Put instances of other components in the slot and they stay linked to *their* masters. So a template with a slot keeps updating everywhere except the hole.
+
+| The part… | Use | Example |
+|---|---|---|
+| is the same in every use | leave it in the main component | site nav, footer, page padding |
+| differs only in words or on/off | a TEXT or BOOLEAN property | page title, subtitle, "show breadcrumb" |
+| is one of a small, known set | a VARIANT (style or state) or an INSTANCE_SWAP (pick one thing from a list) | icon, button style, size |
+| is open-ended content | a SLOT, filled with instances of small components | a page body, a card body, a dialog body |
+
+A page is a `Page` template: its nav, title (a TEXT property) and footer live in the main component, and its body is a `Content` slot holding Card, List and Section instances. Don't make a variant per page. That means editing the main component for every new page, which is the awkward loop. A variant is for a handful of styles, never for content.
+
 ## Links that work in design mode
 
 `text.setRangeHyperlink(0, len, {type: 'NODE', value: nodeId})` links to a frame or a page; `{type: 'URL', value}` to the site. The `Claude · Overview` page (`144:1062`) is an index built this way.
