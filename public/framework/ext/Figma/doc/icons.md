@@ -11,3 +11,8 @@ File `QYN0G2URSBHYH5I06MOjxU`, page `DS · 1.1 Icons` (`163:20989`). Material Sy
 
 ## Add an icon
 Duplicate any glyph component, rename it `Icon / <Category> / <name>`, change its `glyph` text to the Material Symbols name, then add it to the Icon set's `Icon` property preferred values (`set.editComponentProperty(key, {preferredValues})`).
+
+## Handoff to code
+- **The Material name is the identity.** The site's `icon(name)` (`core/View/View.js`) makes `<span class="material-icons icon">name</span>`. In Figma the `glyph` text is that exact name, and the glyph component's leaf name is too (`Icon / Arrows / arrow_forward`). `get_design_context` on a placed `Icon` returns a `<p>` whose text is `arrow_forward` (checked): that is `icon("arrow_forward")`. The nested layer's name carries the path, with the name last.
+- **Trap: Icons vs Symbols.** The site loads Material **Icons**; Figma draws with Material **Symbols**. A Symbols-only name shows on the site as literal text (measured in `styles/layouts/apidoc/page.js`). Probed all 54 names against Figma's Material Icons font: only **`draft`** is Symbols-only (use `description` on the site). It is flagged in the glyph's description and in the page Notes. Probe any new name the same way: set it in `Material Icons` and check the text is glyph-width, not word-width.
+- The Fill axis (and `Size`/`Style` frames) have no site equivalent: the site's font has no FILL, so Fill On is a design-only variant.
