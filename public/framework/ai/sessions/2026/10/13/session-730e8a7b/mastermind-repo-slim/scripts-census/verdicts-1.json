@@ -1,0 +1,170 @@
+[
+  {
+    "file": ".claude/hooks/append.mjs",
+    "verdict": "live",
+    "reason": "Function bag actively referenced by multiple hooks and skills for appending JSONL data",
+    "evidence": ".claude/hooks/readme.md, .claude/skills/clarity/SKILL.md"
+  },
+  {
+    "file": ".claude/hooks/auto-hold.mjs",
+    "verdict": "live",
+    "reason": "PreToolUse hook loaded by .claude/settings.json for live-page-error handling",
+    "evidence": ".claude/settings.json"
+  },
+  {
+    "file": ".claude/hooks/git-guard.mjs",
+    "verdict": "live",
+    "reason": "PreToolUse hook loaded by .claude/settings.json for git safety checks",
+    "evidence": ".claude/settings.json"
+  },
+  {
+    "file": ".claude/hooks/git-guard.test.mjs",
+    "verdict": "tool",
+    "reason": "Test script for git-guard hook, run by hand to verify hook behavior",
+    "evidence": ".claude/hooks/readme.md"
+  },
+  {
+    "file": ".claude/hooks/health-guard.mjs",
+    "verdict": "live",
+    "reason": "PreToolUse hook loaded by .claude/settings.json, monitors server health",
+    "evidence": ".claude/settings.json, Server/health.mjs"
+  },
+  {
+    "file": ".claude/hooks/hold-guard.mjs",
+    "verdict": "live",
+    "reason": "PreToolUse hook loaded by .claude/settings.json, manages live-page reloads",
+    "evidence": ".claude/settings.json"
+  },
+  {
+    "file": ".claude/hooks/jsonl-guard.mjs",
+    "verdict": "live",
+    "reason": "PreToolUse hook loaded by .claude/settings.json, validates JSONL operations",
+    "evidence": ".claude/settings.json"
+  },
+  {
+    "file": ".claude/hooks/jsonl-guard.test.mjs",
+    "verdict": "tool",
+    "reason": "Test script for jsonl-guard hook, run by hand to verify validation",
+    "evidence": ".claude/hooks/readme.md"
+  },
+  {
+    "file": ".claude/hooks/jsonl-schema.mjs",
+    "verdict": "live",
+    "reason": "Function bag defining canonical JSONL schema, actively used by append and ledger",
+    "evidence": ".claude/hooks/append.mjs, .claude/hooks/ledger.mjs"
+  },
+  {
+    "file": ".claude/hooks/jsonl-schema.test.mjs",
+    "verdict": "tool",
+    "reason": "Test script for jsonl-schema and append.mjs, run by hand to verify schema compliance",
+    "evidence": ".claude/hooks/readme.md"
+  },
+  {
+    "file": ".claude/hooks/junction-guard.mjs",
+    "verdict": "live",
+    "reason": "PreToolUse hook loaded by .claude/settings.json, validates git junctions in worktrees",
+    "evidence": ".claude/settings.json"
+  },
+  {
+    "file": ".claude/hooks/ledger.mjs",
+    "verdict": "live",
+    "reason": "Script actively used by multiple hooks (health-guard, hold-guard, syntax-guard) to append task logs",
+    "evidence": ".claude/hooks/health-guard.mjs, .claude/hooks/hold-guard.mjs"
+  },
+  {
+    "file": ".claude/hooks/ledger.test.mjs",
+    "verdict": "tool",
+    "reason": "Test script proving ledger.mjs write path works, run by hand to verify logging",
+    "evidence": "ledger.mjs (tests append_checked function)"
+  },
+  {
+    "file": ".claude/hooks/naming-guard.mjs",
+    "verdict": "stale",
+    "reason": "Function bag only referenced by ledger.mjs warning; not in .claude/settings.json, superseded or unused",
+    "evidence": "last modified 2026-09-28, only 1 reference, not configured as active hook"
+  },
+  {
+    "file": ".claude/hooks/prompt-relay.mjs",
+    "verdict": "live",
+    "reason": "UserPromptSubmit hook loaded by .claude/settings.json, logs owner prompts to task.jsonl",
+    "evidence": ".claude/settings.json"
+  },
+  {
+    "file": ".claude/hooks/reply-relay.mjs",
+    "verdict": "live",
+    "reason": "Stop hook loaded by .claude/settings.json, logs owner replies and echo replay",
+    "evidence": ".claude/settings.json"
+  },
+  {
+    "file": ".claude/hooks/server-guard.mjs",
+    "verdict": "live",
+    "reason": "PreToolUse hook loaded by .claude/settings.json, validates server start commands",
+    "evidence": ".claude/settings.json"
+  },
+  {
+    "file": ".claude/hooks/server-guard.test.mjs",
+    "verdict": "tool",
+    "reason": "Test script for server-guard hook, run by hand to verify command validation",
+    "evidence": ".claude/hooks/readme.md"
+  },
+  {
+    "file": ".claude/hooks/session-page.mjs",
+    "verdict": "live",
+    "reason": "SessionStart hook loaded by .claude/settings.json, tells sessions their own page",
+    "evidence": ".claude/settings.json"
+  },
+  {
+    "file": ".claude/hooks/step-prompt.mjs",
+    "verdict": "live",
+    "reason": "PostToolUse hook loaded by .claude/settings.json, relays step text when task.jsonl updates",
+    "evidence": ".claude/settings.json"
+  },
+  {
+    "file": ".claude/hooks/syntax-guard.mjs",
+    "verdict": "live",
+    "reason": "PreToolUse hook loaded by .claude/settings.json, validates code syntax in native ESM",
+    "evidence": ".claude/settings.json"
+  },
+  {
+    "file": "Server/ArchitectureCensus.mjs",
+    "verdict": "live",
+    "reason": "Class actively used by documentation skill to census module architecture docs",
+    "evidence": ".claude/skills/documentation/SKILL.md"
+  },
+  {
+    "file": "Server/AskTally.mjs",
+    "verdict": "live",
+    "reason": "Class actively used to tally owner asks and feature outcomes in AI documentation",
+    "evidence": "public/framework/ai/doc/asks-outcomes.md, public/framework/ai/readme.md"
+  },
+  {
+    "file": "Server/FollowUp.mjs",
+    "verdict": "live",
+    "reason": "Class actively used by TaskLoop and AI system to identify stalled work",
+    "evidence": "Servex/TaskLoop.js, public/framework/ai/doc/follow-up.md"
+  },
+  {
+    "file": "Server/ModuleHomes.mjs",
+    "verdict": "tool",
+    "reason": "Census utility class run by hand to audit module directory structure",
+    "evidence": "public/framework/ai/doc/module-homes.md"
+  },
+  {
+    "file": "Server/ModuleMove.mjs",
+    "verdict": "tool",
+    "reason": "Utility class run by hand to move a module and relink all paths to it",
+    "evidence": "public/framework/ai/doc/module-homes.md, public/framework/ext/AITask/readme.md"
+  },
+  {
+    "file": "Server/PastWork.mjs",
+    "verdict": "live",
+    "reason": "Class actively referenced by new-task and past-work skills to search prior work",
+    "evidence": ".claude/skills/past-work/SKILL.md, .claude/skills/new-task/SKILL.md"
+  },
+  {
+    "file": "Server/RefineQueue.mjs",
+    "verdict": "live",
+    "reason": "Class actively used by Refine system and documentation skill for refinement queue",
+    "evidence": ".claude/skills/documentation/SKILL.md, public/framework/ext/Refine/doc/refine-queue.md"
+  }
+]

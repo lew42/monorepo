@@ -30326,3 +30326,11 @@
 {"file":"week.json"}
 {"file":"card-moves-files.jsonl"}
 {"file":"card-moves.jsonl"}
+{"file":"Session.js","gone":true}
+{"file":"SessionView.js","gone":true}
+{"file":"SessionDetail.js","gone":true}
+{"file":"SessionRows.js","gone":true}
+{"file":"SessionsPage.js","gone":true}
+{"file":"SessionTrace.js","gone":true}
+{"file":"SessionLive.js","gone":true}
+{"file":"SessionFollow.js","gone":true}

@@ -1,0 +1,442 @@
+[
+ {
+  "file": ".claude/hooks/append.mjs",
+  "bytes": 3980,
+  "header": "append.mjs — append the objects in <lines.json> to <target.jsonl>, one JSON line each.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 63,
+  "refFiles": [
+   ".claude/hooks/jsonl-guard.mjs",
+   ".claude/hooks/jsonl-guard.test.mjs",
+   ".claude/hooks/jsonl-schema.mjs",
+   ".claude/hooks/jsonl-schema.test.mjs",
+   ".claude/hooks/readme.md",
+   ".claude/hooks/step-prompt.mjs",
+   ".claude/skills/clarity/SKILL.md",
+   ".claude/skills/documentation/SKILL.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/auto-hold.mjs",
+  "bytes": 1594,
+  "header": "AUTO HOLD (2026-10-12, live-page-error): a PreToolUse hook on Write/Edit/MultiEdit. Taking the",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 2,
+  "refFiles": [
+   ".claude/settings.json",
+   "Server/doc/watch.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/git-guard.mjs",
+  "bytes": 7806,
+  "header": "GIT GUARD HOOK (2026-09-30): a PreToolUse hook on Bash and PowerShell.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 5,
+  "refFiles": [
+   ".claude/hooks/git-guard.test.mjs",
+   ".claude/hooks/readme.md",
+   ".claude/settings.json",
+   "Server/task-log-race.test.mjs",
+   "public/framework/ai/past-work-index.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/git-guard.test.mjs",
+  "bytes": 5286,
+  "header": "git-guard.test.mjs — feed the PreToolUse hook fake tool inputs, exactly as Claude Code does (JSON on stdin).",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 2,
+  "refFiles": [
+   ".claude/hooks/readme.md",
+   ".claude/hooks/server-guard.test.mjs"
+  ]
+ },
+ {
+  "file": ".claude/hooks/health-guard.mjs",
+  "bytes": 6776,
+  "header": "THE HEALTH GUARD (2026-09-19) — the sibling of syntax-guard.mjs that catches the",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-21",
+  "refs": 7,
+  "refFiles": [
+   ".claude/hooks/hold-guard.mjs",
+   ".claude/hooks/ledger.mjs",
+   ".claude/hooks/readme.md",
+   "Server/doc/health.md",
+   "Server/health.mjs",
+   "public/framework/ai/health/doc/decisions.md",
+   "public/framework/ai/health/readme.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/hold-guard.mjs",
+  "bytes": 7479,
+  "header": "THE HOLD GUARD (2026-09-19) — the sibling of syntax-guard.mjs and health-guard.mjs that",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 4,
+  "refFiles": [
+   ".claude/hooks/ledger.mjs",
+   ".claude/hooks/readme.md",
+   "Server/doc/watch.md",
+   "Server/hold.mjs"
+  ]
+ },
+ {
+  "file": ".claude/hooks/jsonl-guard.mjs",
+  "bytes": 3050,
+  "header": "JSONL GUARD HOOK (2026-09-30, extended 2026-10-02): a PreToolUse hook on Bash, PowerShell,",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-02",
+  "refs": 16,
+  "refFiles": [
+   ".claude/hooks/jsonl-guard.test.mjs",
+   ".claude/hooks/readme.md",
+   ".claude/settings.json",
+   ".claude/skills/servex-mastermind/improvements.md",
+   "Servex/ext/openrouter/evals/rules.mjs",
+   "public/framework/ai/AIOverview.js",
+   "public/framework/ai/doc/skills-proposals-2026-10-13.md",
+   "public/framework/core/Page/doc/streaming.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/jsonl-guard.test.mjs",
+  "bytes": 3356,
+  "header": "jsonl-guard.test.mjs — feed the PreToolUse hook fake tool inputs, exactly as Claude Code does (JSON on stdin).",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-02",
+  "refs": 1,
+  "refFiles": [
+   ".claude/hooks/readme.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/jsonl-schema.mjs",
+  "bytes": 13216,
+  "header": "JSONL SCHEMA (2026-09-30) — the ONE list of what a line may look like, per log file.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 23,
+  "refFiles": [
+   ".claude/hooks/append.mjs",
+   ".claude/hooks/jsonl-schema.test.mjs",
+   ".claude/hooks/ledger.mjs",
+   ".claude/hooks/ledger.test.mjs",
+   ".claude/hooks/readme.md",
+   ".claude/skills/clarity/SKILL.md",
+   ".claude/skills/new-task/SKILL.md",
+   "Server/README.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/jsonl-schema.test.mjs",
+  "bytes": 9723,
+  "header": "jsonl-schema.test.mjs — does the schema agree with the readers, and does append.mjs obey it?",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 2,
+  "refFiles": [
+   ".claude/hooks/jsonl-schema.mjs",
+   ".claude/hooks/readme.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/junction-guard.mjs",
+  "bytes": 6150,
+  "header": "JUNCTION GUARD HOOK (2026-09-29): a PreToolUse hook on Bash and PowerShell.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 9,
+  "refFiles": [
+   ".claude/settings.json",
+   "Server/doc/worktrees.md",
+   "Server/junction-check.mjs",
+   "Server/junction-guard.mjs",
+   "Server/merge.mjs",
+   "Server/worktree-down.mjs",
+   "Server/worktree-sweep.mjs",
+   "Server/worktree-up.mjs"
+  ]
+ },
+ {
+  "file": ".claude/hooks/ledger.mjs",
+  "bytes": 16311,
+  "header": "A review (2026-10-02) caught this: a STATIC `import { check } from \"./jsonl-schema.mjs\"`",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-02",
+  "refs": 19,
+  "refFiles": [
+   ".claude/hooks/health-guard.mjs",
+   ".claude/hooks/hold-guard.mjs",
+   ".claude/hooks/ledger.test.mjs",
+   ".claude/hooks/naming-guard.mjs",
+   ".claude/hooks/prompt-relay.mjs",
+   ".claude/hooks/readme.md",
+   ".claude/hooks/syntax-guard.mjs",
+   ".claude/settings.json"
+  ]
+ },
+ {
+  "file": ".claude/hooks/ledger.test.mjs",
+  "bytes": 3062,
+  "header": "ledger.test.mjs — proves append_checked() (ledger.mjs's one write path) writes in all three",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-02",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": ".claude/hooks/naming-guard.mjs",
+  "bytes": 5360,
+  "header": "⚠ Same override as ledger.mjs: a worktree session's task.jsonl usually lives in the",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-28",
+  "refs": 1,
+  "refFiles": [
+   ".claude/hooks/ledger.mjs"
+  ]
+ },
+ {
+  "file": ".claude/hooks/prompt-relay.mjs",
+  "bytes": 17647,
+  "header": "prompt-relay.mjs — the UserPromptSubmit hook (2026-09-19).",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 16,
+  "refFiles": [
+   ".claude/hooks/ledger.mjs",
+   ".claude/hooks/readme.md",
+   ".claude/hooks/reply-relay.mjs",
+   ".claude/settings.json",
+   ".claude/skills/every-prompt/trouble.md",
+   "Server/doc/refine.md",
+   "Server/refine.mjs",
+   "Servex/Servex.js"
+  ]
+ },
+ {
+  "file": ".claude/hooks/reply-relay.mjs",
+  "bytes": 10288,
+  "header": "reply-relay.mjs — the Stop hook that logs the owner's side of the chat too (2026-10-02).",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 6,
+  "refFiles": [
+   ".claude/hooks/prompt-relay.mjs",
+   ".claude/settings.json",
+   "Servex/agents/Echo.js",
+   "Servex/agents/echo-replay.mjs",
+   "Servex/doc/echo.md",
+   "Servex/doc/readme-full-2026-10-12.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/server-guard.mjs",
+  "bytes": 4588,
+  "header": "SERVER GUARD HOOK (2026-10-03): a PreToolUse hook on Bash and PowerShell.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 4,
+  "refFiles": [
+   ".claude/hooks/readme.md",
+   ".claude/hooks/server-guard.test.mjs",
+   ".claude/settings.json",
+   "Server/window-lint.mjs"
+  ]
+ },
+ {
+  "file": ".claude/hooks/server-guard.test.mjs",
+  "bytes": 3656,
+  "header": "server-guard.test.mjs — feed the PreToolUse hook fake tool inputs, exactly as Claude Code does (JSON on stdin).",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 1,
+  "refFiles": [
+   ".claude/hooks/readme.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/session-page.mjs",
+  "bytes": 700,
+  "header": "session-page.mjs — the SessionStart hook: tells a VS Code / CLI tab its own page.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 3,
+  "refFiles": [
+   ".claude/settings.json",
+   "Servex/agents/doc/own-page.md",
+   "public/framework/core/Page/doc/architecture.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/step-prompt.mjs",
+  "bytes": 1837,
+  "header": "step-prompt.mjs — PostToolUse(Bash). When an append.mjs to a task.jsonl moves `step`, tell the agent that step's text",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 2,
+  "refFiles": [
+   ".claude/settings.json",
+   "Servex/doc/steps.md"
+  ]
+ },
+ {
+  "file": ".claude/hooks/syntax-guard.mjs",
+  "bytes": 8620,
+  "header": "THE SYNTAX GUARD (2026-09-19). Every page of the site is native ESM served as written,",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 17,
+  "refFiles": [
+   ".claude/hooks/health-guard.mjs",
+   ".claude/hooks/hold-guard.mjs",
+   ".claude/hooks/ledger.mjs",
+   ".claude/hooks/naming-guard.mjs",
+   ".claude/hooks/readme.md",
+   ".claude/skills/css/caveats.md",
+   ".claude/skills/mastermind/SKILL.md",
+   ".claude/skills/minion/SKILL.md"
+  ]
+ },
+ {
+  "file": "Server/ArchitectureCensus.mjs",
+  "bytes": 5348,
+  "header": "Server/ArchitectureCensus.mjs — read-only census of module docs: who has doc/architecture.md, who is imported most.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 8,
+  "refFiles": [
+   ".claude/skills/documentation/SKILL.md",
+   "public/framework/ext/Refine/runs/2026-10-13/brief.md",
+   "public/framework/ext/Refine/runs/2026-10-13/clean.md",
+   "public/framework/ext/Refine/runs/2026-10-13/coverage.md",
+   "public/framework/ext/Refine/runs/2026-10-13/input.txt",
+   "public/framework/ext/Refine/runs/2026-10-13/raw.txt",
+   "public/framework/ext/Refine/runs/2026-10-13/structured-haiku.md",
+   "public/framework/ext/Refine/runs/2026-10-13/structured.md"
+  ]
+ },
+ {
+  "file": "Server/AskTally.mjs",
+  "bytes": 32654,
+  "header": "AskTally — every owner prompt since a date → the asks in it → a tally per feature → a verdict per feature.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 3,
+  "refFiles": [
+   "public/framework/ai/doc/asks-outcomes.md",
+   "public/framework/ai/readme.md",
+   "public/framework/ext/Refine/RefinedCard.js"
+  ]
+ },
+ {
+  "file": "Server/FollowUp.mjs",
+  "bytes": 9858,
+  "header": "Server/FollowUp.mjs — WHAT FELL THROUGH THE CRACKS, computed from task.jsonl + git + the agent registry. Doc: public/framework/ai/doc/follow-up.md",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 8,
+  "refFiles": [
+   "Server/SessionIndex.mjs",
+   "Server/doc/session-index.md",
+   "Servex/TaskLoop.js",
+   "Servex/doc/task-loop.md",
+   "public/framework/ai/doc/follow-up.md",
+   "public/framework/ai/readme.md",
+   "public/framework/ai/todo.md",
+   "public/framework/ext/Refine/runs/2026-10-13/confidence.json"
+  ]
+ },
+ {
+  "file": "Server/ModuleHomes.mjs",
+  "bytes": 7135,
+  "header": "Server/ModuleHomes.mjs — read-only census: every module dir under public/framework/{ext,ui,ux,ai,core} and public/web,",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 1,
+  "refFiles": [
+   "public/framework/ai/doc/module-homes.md"
+  ]
+ },
+ {
+  "file": "Server/ModuleMove.mjs",
+  "bytes": 8989,
+  "header": "Server/ModuleMove.mjs — move one module folder to a new home and relink every path that points into it.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 2,
+  "refFiles": [
+   "public/framework/ai/doc/module-homes.md",
+   "public/framework/ext/AITask/readme.md"
+  ]
+ },
+ {
+  "file": "Server/PastWork.mjs",
+  "bytes": 10880,
+  "header": "Server/PastWork.mjs — SEARCH PAST WORK before building. The script searches and counts; a model only judges.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 20,
+  "refFiles": [
+   ".claude/skills/new-task/SKILL.md",
+   ".claude/skills/past-work/SKILL.md",
+   "Server/ArchitectureCensus.mjs",
+   "Server/SessionIndex.mjs",
+   "Server/doc/session-index.md",
+   "public/framework/ai/doc/architecture.md",
+   "public/framework/ai/past-work-index.md",
+   "public/framework/ai/readme.md"
+  ]
+ },
+ {
+  "file": "Server/RefineQueue.mjs",
+  "bytes": 16360,
+  "header": "*",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 7,
+  "refFiles": [
+   ".claude/skills/documentation/SKILL.md",
+   "Server/README.md",
+   "public/framework/ai/AISession/AISessionCoverage.js",
+   "public/framework/ext/Refine/RefinedCard.js",
+   "public/framework/ext/Refine/doc/architecture.md",
+   "public/framework/ext/Refine/doc/refine-queue.md",
+   "public/framework/ext/Refine/readme.md"
+  ]
+ }
+]

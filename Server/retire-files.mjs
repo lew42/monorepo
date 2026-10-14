@@ -3,13 +3,13 @@
 //   node Server/retire-files.mjs --plan    list what would move (no change)
 //   node Server/retire-files.mjs --apply   git mv each ticked `- [x]` line of the checklist into ai/archive/retired/2026-10-13/<original path>, write manifest.json
 //   node Server/retire-files.mjs --undo    git mv everything in the manifest back
-// The checklist is the "Dead" section of unreferenced-verdicts.md: every line starts ticked; untick (`- [ ]`) a file to keep it in place.
+// Add `--manifest <md>` to read another checklist (Server/doc/scripts.md). The checklist is the "Dead" section of unreferenced-verdicts.md: every line starts ticked; untick (`- [ ]`) a file to keep it in place.
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import TaskDirs from "./TaskDirs.mjs";
 
-const REPO = TaskDirs.REPO, PAGE = path.join(TaskDirs.AI, "doc", "unreferenced-verdicts.md");
+const REPO = TaskDirs.REPO, PAGE = (i => i > 0 ? path.resolve(REPO, process.argv[i + 1]) : path.join(TaskDirs.AI, "doc", "unreferenced-verdicts.md"))(process.argv.indexOf("--manifest"));
 const DEST = "public/framework/ai/archive/retired/2026-10-13", MANIFEST = path.join(REPO, DEST, "manifest.json");
 const git = (...a) => execFileSync("git", a, { cwd: REPO, encoding: "utf8", windowsHide: true });
 

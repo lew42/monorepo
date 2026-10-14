@@ -1,0 +1,487 @@
+[
+ {
+  "file": "Servex/Project.js",
+  "bytes": 2366,
+  "header": "A DIRECTORY SERVEX FOUND — anything under the scan root with a package.json.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-09-23",
+  "refs": 1,
+  "refFiles": [
+   "Servex/Servex.js"
+  ]
+ },
+ {
+  "file": "Servex/ReverseProxy.js",
+  "bytes": 13207,
+  "header": "",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-09-24",
+  "refs": 3,
+  "refFiles": [
+   "Servex/Servex.js",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "Servex/gate.mjs"
+  ]
+ },
+ {
+  "file": "Servex/Servex.js",
+  "bytes": 99146,
+  "header": "",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 41,
+  "refFiles": [
+   ".claude/skills/code/SKILL.md",
+   "Server/TranscribeLoop.mjs",
+   "Server/browser-check.mjs",
+   "Server/doc/transcription-crash-2026-10-12.md",
+   "Server/plugins/DevSource.js",
+   "Server/worktree-restart.mjs",
+   "Servex/Follow.js",
+   "Servex/Games.js"
+  ]
+ },
+ {
+  "file": "Servex/Stream.js",
+  "bytes": 3201,
+  "header": "THE LIVE WIRE — Servex pushes, the dashboard listens.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-09-23",
+  "refs": 21,
+  "refFiles": [
+   "Servex/Servex.js",
+   "Servex/agents/doc/architecture.md",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "public/framework/ai/doc/ai2/decisions.md",
+   "public/framework/ai/doc/design/systems-overview.md",
+   "public/framework/audio/MicStream/doc/micstream-notes.md",
+   "public/framework/audio/MicStream/page.js",
+   "public/framework/audio/MicStream/readme.md"
+  ]
+ },
+ {
+  "file": "Servex/TaskLoop-steps.test.mjs",
+  "bytes": 2541,
+  "header": "node Servex/TaskLoop-steps.test.mjs — the Step runner's nudge (Servex/TaskLoop.js nudge_step, 2026-10-12):",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 2,
+  "refFiles": [
+   "Servex/doc/steps.md",
+   "Servex/proof/step-runner-proof.mjs"
+  ]
+ },
+ {
+  "file": "Servex/TaskLoop.js",
+  "bytes": 16907,
+  "header": "THE TASK LOOP — nobody should have to remember to land a task.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 23,
+  "refFiles": [
+   "Server/worktree-sweep.mjs",
+   "Servex/Heartbeat.js",
+   "Servex/Servex.js",
+   "Servex/TaskLoop-steps.test.mjs",
+   "Servex/agents/awaken-race.test.mjs",
+   "Servex/asks/Asks.js",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "Servex/doc/steps.md"
+  ]
+ },
+ {
+  "file": "Servex/Usage.js",
+  "bytes": 3494,
+  "header": "Usage.js — keeps the usage bars fresh, so no agent has to.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 5,
+  "refFiles": [
+   "Servex/Servex.js",
+   "Servex/agents/Sessions.js",
+   "public/framework/ai/AIOverview.js",
+   "public/framework/ai/SystemClasses.js",
+   "public/framework/ai/local/doc/strategy.md"
+  ]
+ },
+ {
+  "file": "Servex/Worktrees.js",
+  "bytes": 18640,
+  "header": "WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 6,
+  "refFiles": [
+   "Servex/Processes.js",
+   "Servex/Servex.js",
+   "Servex/doc/processes.md",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "Servex/processes.test.mjs",
+   "public/framework/ai/SystemClasses.js"
+  ]
+ },
+ {
+  "file": "Servex/agents/Agents.js",
+  "bytes": 108438,
+  "header": "",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 82,
+  "refFiles": [
+   ".claude/hooks/reply-relay.mjs",
+   ".claude/hooks/syntax-guard.mjs",
+   "Server/README.md",
+   "Server/ask-each.mjs",
+   "Server/day-spend.mjs",
+   "Server/owner-check.mjs",
+   "Server/refine-litmus.mjs",
+   "Servex/Follow.js"
+  ]
+ },
+ {
+  "file": "Servex/agents/Assistant.js",
+  "bytes": 26612,
+  "header": "The same pause switch the Dispatcher reads — one file stops every agent the",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 37,
+  "refFiles": [
+   ".claude/skills/every-prompt/headless.md",
+   "Server/doc/readme-sections-2026-10-13.md",
+   "Server/plugins/Ask.js",
+   "Server/plugins/CardAnswer.js",
+   "Servex/Servex.js",
+   "Servex/agents/Agents.js",
+   "Servex/agents/Dispatcher.js",
+   "Servex/agents/Echo.js"
+  ]
+ },
+ {
+  "file": "Servex/agents/Chain.js",
+  "bytes": 7254,
+  "header": "THE ASSISTANT CHAIN, behind SERVEX_CHAIN=on (doc/assistant-chain.md). ONE fast assistant for the",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 4,
+  "refFiles": [
+   "Servex/agents/Assistant.js",
+   "Servex/agents/doc/assistant-chain.md",
+   "Servex/agents/readme.md",
+   "public/framework/ux/Dictate/doc/surfaces.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/Dispatcher.js",
+  "bytes": 9190,
+  "header": "THE DISPATCHER — a spoken card becomes a task mastermind, nobody polling.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 26,
+  "refFiles": [
+   "Servex/Servex.js",
+   "Servex/agents/Assistant.js",
+   "Servex/agents/Sessions.js",
+   "Servex/agents/doc/assistant-chain.md",
+   "Servex/agents/doc/dictate-backend.md",
+   "Servex/agents/layers.test.mjs",
+   "Servex/agents/ops.js",
+   "Servex/agents/readme.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/Echo.js",
+  "bytes": 35587,
+  "header": "",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 29,
+  "refFiles": [
+   ".claude/hooks/prompt-relay.mjs",
+   ".claude/skills-archive/MANIFEST.md",
+   "Server/day-prompts-refine.mjs",
+   "Servex/Servex.js",
+   "Servex/agents/Agents.js",
+   "Servex/agents/Sessions.js",
+   "Servex/agents/echo-replay.mjs",
+   "Servex/agents/page_tools.test.mjs"
+  ]
+ },
+ {
+  "file": "Servex/agents/External.js",
+  "bytes": 9166,
+  "header": "EXTERNAL AGENTS — a VS Code tab, a terminal, or any Claude session Servex",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 6,
+  "refFiles": [
+   "Servex/Servex.js",
+   "Servex/agents/Agents.js",
+   "Servex/agents/External.test.mjs",
+   "Servex/agents/doc/external.md",
+   "Servex/agents/policy.js",
+   "Servex/agents/policy.test.mjs"
+  ]
+ },
+ {
+  "file": "Servex/agents/Fixer.js",
+  "bytes": 4789,
+  "header": "THE STANDING QUICK-FIXER, living inside Servex, the same shape as Assistant.js (the fast",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 7,
+  "refFiles": [
+   "Servex/Servex.js",
+   "Servex/agents/doc/architecture.md",
+   "Servex/agents/fixer.test.mjs",
+   "Servex/doc/fixer.md",
+   "Servex/pool-hold.test.mjs",
+   "public/framework/ai/quick-fix/readme.md",
+   "public/framework/sandbox/quick-fix/page.js"
+  ]
+ },
+ {
+  "file": "Servex/agents/Global.js",
+  "bytes": 30477,
+  "header": "",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 24,
+  "refFiles": [
+   "Server/collab.mjs",
+   "Servex/Servex.js",
+   "Servex/agents/Layers.js",
+   "Servex/agents/awaken-race.test.mjs",
+   "Servex/agents/doc/layers.md",
+   "Servex/agents/doc/page-pairs.md",
+   "Servex/agents/doc/page-roles.md",
+   "Servex/agents/global.test.mjs"
+  ]
+ },
+ {
+  "file": "Servex/agents/Layers.js",
+  "bytes": 62029,
+  "header": "",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 46,
+  "refFiles": [
+   ".claude/skills/every-prompt/page-assistant.md",
+   "Servex/Servex.js",
+   "Servex/agents/Agents.js",
+   "Servex/agents/Assistant.js",
+   "Servex/agents/Dispatcher.js",
+   "Servex/agents/External.js",
+   "Servex/agents/Global.js",
+   "Servex/agents/Sessions.js"
+  ]
+ },
+ {
+  "file": "Servex/agents/Promote.js",
+  "bytes": 4880,
+  "header": "Promote one block of a page.jsonl page to its own child page, leaving a `part-link` in its place.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 2,
+  "refFiles": [
+   "Servex/agents/page_tools.js",
+   "public/framework/core/Page/doc/part-link.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/Sessions.js",
+  "bytes": 80276,
+  "header": "",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 41,
+  "refFiles": [
+   "Server/doc/on-landing.md",
+   "Server/models-now.mjs",
+   "Server/owner-check.mjs",
+   "Servex/Servex.js",
+   "Servex/agents/Chain.js",
+   "Servex/agents/Fixer.js",
+   "Servex/agents/Layers.js",
+   "Servex/agents/Sessions.test.mjs"
+  ]
+ },
+ {
+  "file": "Servex/agents/Subpages.js",
+  "bytes": 7266,
+  "header": "The subpages of ONE parent folder: add, rename, remove. The one implementation behind",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 6,
+  "refFiles": [
+   "Servex/agents/Promote.js",
+   "Servex/agents/doc/architecture.md",
+   "Servex/agents/page_tools.js",
+   "Servex/agents/page_tools.test.mjs",
+   "Servex/pages.js",
+   "public/framework/core/Page/doc/ai-api.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/brief.js",
+  "bytes": 1960,
+  "header": "THE ONE-SCREEN GLOBAL BRIEF — what every long-lived agent starts with: who is",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 8,
+  "refFiles": [
+   "Servex/agents/Global.js",
+   "Servex/agents/Layers.js",
+   "Servex/agents/doc/layers.md",
+   "Servex/agents/global.test.mjs",
+   "Servex/agents/readme-chain.js",
+   "Servex/agents/readme.md",
+   "public/framework/ai/concepts.js",
+   "public/framework/ai/systems-map.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/claims.js",
+  "bytes": 5704,
+  "header": "THE CLAIMS LIST — who is changing what, so two cards never change the same",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-30",
+  "refs": 7,
+  "refFiles": [
+   "Servex/agents/Global.js",
+   "Servex/agents/doc/layers.md",
+   "Servex/agents/global.test.mjs",
+   "Servex/agents/inbox.js",
+   "Servex/agents/readme.md",
+   "Servex/doc/inbox.md",
+   "public/framework/ai/concepts.js"
+  ]
+ },
+ {
+  "file": "Servex/agents/directory.js",
+  "bytes": 13787,
+  "header": "DIRECTORY MASTERMIND — a fresh mastermind for one folder, started from its plain files.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-30",
+  "refs": 131,
+  "refFiles": [
+   ".claude/skills/minion/improvements.md",
+   ".claude/skills/research/SKILL.md",
+   ".gitignore",
+   ".mjs",
+   "Server/Server.js",
+   "Server/TaskMove.mjs",
+   "Server/compress.js",
+   "Server/doc/directory-off.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/experts.js",
+  "bytes": 21206,
+  "header": "EXPERTS — an agent that has already read one module, ready to be asked.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 7,
+  "refFiles": [
+   "Servex/agents/directory.js",
+   "Servex/agents/doc/architecture.md",
+   "Servex/agents/doc/experts.md",
+   "Servex/agents/experts-proof.mjs",
+   "Servex/agents/readme.md",
+   "Servex/agents/tools.js",
+   "Servex/doc/tool-process.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/hitl.js",
+  "bytes": 5292,
+  "header": "HITL — the smart assistant's two small model calls for the human-in-the-loop",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 3,
+  "refFiles": [
+   "Servex/Servex.js",
+   "Servex/agents/hitl.proof.mjs",
+   "Servex/doc/readme-full-2026-10-12.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/inbox.js",
+  "bytes": 16981,
+  "header": "Local time with its offset and milliseconds, as Sessions.js writes it (not imported:",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 75,
+  "refFiles": [
+   ".claude/hooks/jsonl-schema.mjs",
+   ".claude/skills/minion/improvements.md",
+   "Servex/Heartbeat.js",
+   "Servex/Servex.js",
+   "Servex/agents/Agents.js",
+   "Servex/agents/Global.js",
+   "Servex/cards/Cards.js",
+   "Servex/doc/follow.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/jobs.js",
+  "bytes": 16196,
+  "header": "JOBS — background work done by node, answered later as a message.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-24",
+  "refs": 7,
+  "refFiles": [
+   "Servex/agents/doc/architecture.md",
+   "Servex/agents/jobs-proof.mjs",
+   "Servex/agents/readme.md",
+   "Servex/agents/tidy.js",
+   "Servex/agents/tools.js",
+   "Servex/doc/tool-process.md",
+   "Servex/ext/openrouter/snapshot.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/ops.js",
+  "bytes": 3157,
+  "header": "The three operator tools: restart Servex, pause dispatch, resume dispatch.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 7,
+  "refFiles": [
+   "Servex/agents/doc/api.md",
+   "Servex/agents/doc/architecture.md",
+   "Servex/agents/readme.md",
+   "Servex/agents/tools.js",
+   "Servex/doc/restart.md",
+   "Servex/doc/tool-process.md",
+   "Servex/sustain.mjs"
+  ]
+ }
+]

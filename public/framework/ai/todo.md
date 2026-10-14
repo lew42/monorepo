@@ -185,3 +185,30 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - Servex small jobs, all queued and never started: [merge-commits](/framework/ai/sessions/2026/10/03/merge-commits/) (commit files left in .merge-landed.json), [spend-shape](/framework/ai/sessions/2026/10/03/spend-shape/) (`spawned_by` on every spawn), [perf-audit](/framework/ai/sessions/2026/10/03/perf-audit/) (Servex/perf.mjs), [worktree-servers-revive](/framework/ai/sessions/2026/10/03/worktree-servers-revive/), [review-empty-diff](/framework/ai/sessions/2026/10/03/review-empty-diff/), [spawn-logs-ask](/framework/ai/sessions/2026/10/03/spawn-logs-ask/), [restart-keeps-agents](/framework/ai/sessions/2026/10/03/restart-keeps-agents/), [pool-unstick](/framework/ai/sessions/2026/10/03/pool-unstick/), [node-reap-run](/framework/ai/sessions/2026/10/03/node-reap-run/), [openrouter-reads-cache](/framework/ai/sessions/2026/10/03/openrouter-reads-cache/).
 - Briefs only, no build: [web-benchmarks](/framework/ai/sessions/2026/10/04/web-benchmarks/web-benchmarks/), [message-cost](/framework/ai/sessions/2026/10/04/message-cost/message-cost/), [openrouter-agent-trial](/framework/ai/sessions/2026/10/05/openrouter-agent-trial/openrouter-agent-trial/) (one readme line), [prompt-audit](/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit/) (unclear; minion idle after $13).
 - [session-trace](/framework/ai/sessions/2026/10/03/session-trace/): marked landed but `trace_of_transcript` and its page are not in the repo.
+
+- Rename candidate: [`Server/ai2-overview.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/antigravity-usage.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/archive-sessions.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/ask-each.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/audit.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/browser-check.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/browser.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/card-check.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/collab.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/council.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/crawl.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/day-prompts-refine.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/day-spend.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/decide.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/deploy-count.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/https-cert.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/models-now.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/repo-size.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Server/retire-files.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Servex/agents/Agents.js`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Servex/agents/brief.js`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Servex/agents/directory.js`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Servex/agents/experts.js`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Servex/agents/hitl.js`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Servex/agents/jobs.js`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- Rename candidate: [`Servex/agents/registry.js`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.

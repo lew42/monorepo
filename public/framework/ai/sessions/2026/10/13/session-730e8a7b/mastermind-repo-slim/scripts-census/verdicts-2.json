@@ -1,0 +1,170 @@
+[
+ {
+  "file": "Server/ScriptsCensus.mjs",
+  "verdict": "tool",
+  "reason": "Utility script for reading census data; documented in Server/doc/scripts.md",
+  "evidence": "Header references Server/doc/scripts.md"
+ },
+ {
+  "file": "Server/SessionIndex.mjs",
+  "verdict": "live",
+  "reason": "Core in-memory session querying system; actively referenced and recently updated",
+  "evidence": "12 refFiles, date 2026-10-13"
+ },
+ {
+  "file": "Server/SessionResume.mjs",
+  "verdict": "tool",
+  "reason": "Session resumption utility; documented in public/framework/ai/sessions/doc/data/resumption.md",
+  "evidence": "Documented header, date 2026-10-12"
+ },
+ {
+  "file": "Server/SkillCensus.mjs",
+  "verdict": "live",
+  "reason": "Core skill audit system referenced by auditor and system-architect skills",
+  "evidence": "3 refFiles, date 2026-10-13"
+ },
+ {
+  "file": "Server/Steps.mjs",
+  "verdict": "live",
+  "reason": "THE STEP RUNNER's core data class; heavily referenced in task orchestration",
+  "evidence": "15 refFiles, date 2026-10-12"
+ },
+ {
+  "file": "Server/Steps.test.mjs",
+  "verdict": "tool",
+  "reason": "Test runner for Steps; run by hand to verify step parsing and overdue logic",
+  "evidence": "node Server/Steps.test.mjs (header), date 2026-10-12"
+ },
+ {
+  "file": "Server/TaskDirs.mjs",
+  "verdict": "live",
+  "reason": "Core task folder location resolver; heavily referenced across hooks and skills",
+  "evidence": "37 refFiles, date 2026-10-13"
+ },
+ {
+  "file": "Server/TaskDirs.test.mjs",
+  "verdict": "tool",
+  "reason": "Test runner verifying day-folder guard rules; run by hand",
+  "evidence": "node Server/TaskDirs.test.mjs (header), date 2026-10-13"
+ },
+ {
+  "file": "Server/TaskMove.mjs",
+  "verdict": "live",
+  "reason": "Moves flat day folders into sessions store; actively referenced and used",
+  "evidence": "5 refFiles, date 2026-10-13"
+ },
+ {
+  "file": "Server/TaskMove.test.mjs",
+  "verdict": "tool",
+  "reason": "Test runner building temp repo; run by hand, no dependencies",
+  "evidence": "plain node test (header), date 2026-10-12"
+ },
+ {
+  "file": "Server/TranscribeLoop.mjs",
+  "verdict": "live",
+  "reason": "Core transcription loop; referenced by Whisper plugin and transcription docs",
+  "evidence": "3 refFiles, date 2026-10-12"
+ },
+ {
+  "file": "Server/Unreferenced.mjs",
+  "verdict": "live",
+  "reason": "Core census utility finding files with no references; documented",
+  "evidence": "1 refFile (unreferenced.md), date 2026-10-13"
+ },
+ {
+  "file": "Server/ai2-overview.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) that should be a class per code skill rules",
+  "evidence": "kind: bag, 6 refFiles, date 2026-10-12"
+ },
+ {
+  "file": "Server/antigravity-usage.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) that should be a class per code skill rules",
+  "evidence": "kind: bag, 2 refFiles, date 2026-10-06"
+ },
+ {
+  "file": "Server/archive-sessions.mjs",
+  "verdict": "misnamed",
+  "reason": "Class in lowercase filename violates naming rule; should be ArchiveSessions.mjs",
+  "evidence": "lowerCaseClass: true, date 2026-10-13"
+ },
+ {
+  "file": "Server/ask-each.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) with 26 references that should be a class",
+  "evidence": "kind: bag, 26 refFiles, date 2026-10-12"
+ },
+ {
+  "file": "Server/audit.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) that should be a class per code skill rules",
+  "evidence": "kind: bag, 4 refFiles, date 2026-10-02"
+ },
+ {
+  "file": "Server/branch-prune.mjs",
+  "verdict": "tool",
+  "reason": "Maintenance script run by hand to prune merged worktree branches",
+  "evidence": "node Server/branch-prune.mjs [--dry|--run] (header), date 2026-10-12"
+ },
+ {
+  "file": "Server/browser-check.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) that should be a class per code skill rules",
+  "evidence": "kind: bag, 1 refFile, date 2026-10-12"
+ },
+ {
+  "file": "Server/browser.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) with 45 refs that should be a class; core browser launcher",
+  "evidence": "kind: bag, 45 refFiles, date 2026-10-03"
+ },
+ {
+  "file": "Server/card-check.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) that should be a class per code skill rules",
+  "evidence": "kind: bag, 2 refFiles, date 2026-10-06"
+ },
+ {
+  "file": "Server/clarity.mjs",
+  "verdict": "live",
+  "reason": "Script run by hand; referenced by landing and review systems",
+  "evidence": "9 refFiles, date 2026-10-08"
+ },
+ {
+  "file": "Server/collab.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) that should be a class per code skill rules",
+  "evidence": "kind: bag, 11 refFiles, date 2026-09-29"
+ },
+ {
+  "file": "Server/council.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) that should be a class per code skill rules",
+  "evidence": "kind: bag, 7 refFiles, date 2026-10-13"
+ },
+ {
+  "file": "Server/crawl.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) that should be a class per code skill rules",
+  "evidence": "kind: bag, 5 refFiles, date 2026-10-13"
+ },
+ {
+  "file": "Server/day-prompts-refine.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) that should be a class per code skill rules",
+  "evidence": "kind: bag, 4 refFiles, date 2026-10-13"
+ },
+ {
+  "file": "Server/day-spend.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) that should be a class per code skill rules",
+  "evidence": "kind: bag, 8 refFiles, date 2026-10-13"
+ },
+ {
+  "file": "Server/decide.mjs",
+  "verdict": "misnamed",
+  "reason": "Function bag (kind: bag) that should be a class per code skill rules",
+  "evidence": "kind: bag, 14 refFiles, date 2026-09-29"
+ }
+]

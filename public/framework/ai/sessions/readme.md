@@ -91,3 +91,4 @@ Every Sessions doc, by subsystem: [`doc/readme.md`](doc/readme.md).
 - The owner wants a later redesign (less text, clear hierarchy, the home of everything real-time): [`doc/asks/asks.md`](doc/asks/asks.md).
 - Why some tabs read as running when they are not, and which launcher made them: [`doc/asks/stuck-sessions.md`](doc/asks/stuck-sessions.md).
 - Models and cost per turn: [`doc/cost/models-and-cost.md`](doc/cost/models-and-cost.md); detail tabs and chat-bubble storage: [`doc/ui/detail-layout.md`](doc/ui/detail-layout.md).
+- Compaction dry run (what a compacted task log would keep and lose, 4.5 MB saved, not applied): [`doc/compaction.md`](doc/compaction.md).

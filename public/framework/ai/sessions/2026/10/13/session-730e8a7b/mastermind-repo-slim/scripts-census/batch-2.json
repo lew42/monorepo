@@ -1,0 +1,424 @@
+[
+ {
+  "file": "Server/ScriptsCensus.mjs",
+  "bytes": 3405,
+  "header": "Server/ScriptsCensus.mjs — read-only census of Server/, Servex/ and .claude/hooks scripts: header, references, last commit, class or bag. Doc: Server/doc/scripts.md",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/SessionIndex.mjs",
+  "bytes": 11980,
+  "header": "Server/SessionIndex.mjs — every task record (and, when given, every live session snapshot) in memory, queried with plain JavaScript.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 12,
+  "refFiles": [
+   "Server/FollowUp.mjs",
+   "Server/PastWork.mjs",
+   "Server/doc/session-index.md",
+   "Server/openrouter-attribute.mjs",
+   "Server/run.js",
+   "Server/session-rename.mjs",
+   "public/framework/ai/AISession/AISessionIndex.mjs",
+   "public/framework/ai/AISession/AISessionTailer.mjs"
+  ]
+ },
+ {
+  "file": "Server/SessionResume.mjs",
+  "bytes": 1262,
+  "header": "Server/SessionResume.mjs — which way to resume a session, computed from session-flags.json (ctx, last). Doc: public/framework/ai/sessions/doc/data/resumption.md",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/SkillCensus.mjs",
+  "bytes": 5560,
+  "header": "SkillCensus — one row per skill: words, rules, links (ok/dead), last edit, loads in N days, open improvements.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 3,
+  "refFiles": [
+   ".claude/skills/auditor/SKILL.md",
+   ".claude/skills/system-architect/SKILL.md",
+   "public/framework/ai/doc/skills-proposals-2026-10-13.md"
+  ]
+ },
+ {
+  "file": "Server/Steps.mjs",
+  "bytes": 10187,
+  "header": "Server/Steps.mjs — THE STEP RUNNER's data class: a task's plan (`steps` + `step` in task.jsonl), where it stands, who is overdue.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 15,
+  "refFiles": [
+   ".claude/hooks/step-prompt.mjs",
+   ".claude/skills/mastermind/SKILL.md",
+   "Server/Steps.test.mjs",
+   "Servex/TaskLoop.js",
+   "Servex/agents/doc/assistant-chain.md",
+   "Servex/agents/doc/lifecycle.md",
+   "Servex/doc/steps.md",
+   "public/framework/ext/Refine/runs/2026-10-13/brief.md"
+  ]
+ },
+ {
+  "file": "Server/Steps.test.mjs",
+  "bytes": 3161,
+  "header": "node Server/Steps.test.mjs — parse, overdue at 2x, nudged once, report counts (plain asserts, temp fixtures).",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 1,
+  "refFiles": [
+   "Servex/doc/steps.md"
+  ]
+ },
+ {
+  "file": "Server/TaskDirs.mjs",
+  "bytes": 17885,
+  "header": "Server/TaskDirs.mjs — WHERE A TASK FOLDER LIVES. The one class every writer and reader asks; nobody types ai/<date>/ by hand.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 37,
+  "refFiles": [
+   ".claude/hooks/append.mjs",
+   ".claude/hooks/prompt-relay.mjs",
+   ".claude/skills/every-prompt/say.mjs",
+   ".claude/skills/finish-task/SKILL.md",
+   ".claude/skills/make/SKILL.md",
+   ".claude/skills/minion/SKILL.md",
+   ".claude/skills/new-task/SKILL.md",
+   "Server/FollowUp.mjs"
+  ]
+ },
+ {
+  "file": "Server/TaskDirs.test.mjs",
+  "bytes": 2482,
+  "header": "node Server/TaskDirs.test.mjs — the day-folder guard (2026-10-13): old addresses resolve into the store, nothing new",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 1,
+  "refFiles": [
+   "public/framework/ai/doc/task-folders.md"
+  ]
+ },
+ {
+  "file": "Server/TaskMove.mjs",
+  "bytes": 27581,
+  "header": "Server/TaskMove.mjs — move every flat day folder public/framework/ai/YYYY-MM-DD/ into the sessions store.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 5,
+  "refFiles": [
+   "Server/TaskDirs.mjs",
+   "Server/TaskMove.test.mjs",
+   "public/framework/ai/AISession/StoreFolder.js",
+   "public/framework/ai/doc/task-folders.md",
+   "public/framework/ai/handover.md"
+  ]
+ },
+ {
+  "file": "Server/TaskMove.test.mjs",
+  "bytes": 11062,
+  "header": "Server/TaskMove.test.mjs — plain node, no deps. Builds a fake repo in the OS temp dir and runs the whole",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/TranscribeLoop.mjs",
+  "bytes": 13171,
+  "header": "`node Server/TranscribeLoop.mjs [--minutes 10] [--out dir] [--reload-every 3] [--churn] [--against <origin>]`",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 3,
+  "refFiles": [
+   "Server/doc/transcription-crash-2026-10-12.md",
+   "Server/plugins/PageFiles.js",
+   "Server/plugins/Whisper.js"
+  ]
+ },
+ {
+  "file": "Server/Unreferenced.mjs",
+  "bytes": 5697,
+  "header": "Server/Unreferenced.mjs — CENSUS of files nothing points at. Candidates, not verdicts; moves and deletes nothing. Doc: public/framework/ai/doc/unreferenced.md",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 1,
+  "refFiles": [
+   "public/framework/ai/doc/unreferenced.md"
+  ]
+ },
+ {
+  "file": "Server/ai2-overview.mjs",
+  "bytes": 16447,
+  "header": "Server/ai2-overview.mjs — builds public/framework/ai/rail/overview/overview.json",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 6,
+  "refFiles": [
+   "public/framework/ai/doc/ai2/ai2-vs-ai.md",
+   "public/framework/ai/doc/ai2/history.md",
+   "public/framework/ai/doc/ai2/overview.md",
+   "public/framework/ai/doc/archive/ai2-merge-and-layout-proposal-2026-10-08.md",
+   "public/framework/ai/rail/Overview.js",
+   "public/framework/ai/rail/readme.md"
+  ]
+ },
+ {
+  "file": "Server/antigravity-usage.mjs",
+  "bytes": 6656,
+  "header": "antigravity-usage.mjs — Fetches Antigravity model quotas and plan status.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-06",
+  "refs": 2,
+  "refFiles": [
+   "public/framework/ai/doc/agents/autonomy.md",
+   "public/framework/ai/handover.md"
+  ]
+ },
+ {
+  "file": "Server/archive-sessions.mjs",
+  "bytes": 13135,
+  "header": "Move a month's untracked session pictures to the archive drive; tracked records stay. Doc: public/framework/ai/sessions/doc/picture-archive.md",
+  "kind": "class",
+  "lowerCaseClass": true,
+  "last": "2026-10-13",
+  "refs": 1,
+  "refFiles": [
+   "public/framework/ai/doc/repo-size.md"
+  ]
+ },
+ {
+  "file": "Server/ask-each.mjs",
+  "bytes": 6626,
+  "header": "Ask-each — ask a model one question at a time, in one continuous session,",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 26,
+  "refFiles": [
+   "Server/AskTally.mjs",
+   "Server/README.md",
+   "Server/day-prompts-refine.mjs",
+   "Server/doc/ask-each.md",
+   "Server/doc/refine.md",
+   "Server/refine-days.mjs",
+   "Server/refine-litmus.mjs",
+   "Server/refine.mjs"
+  ]
+ },
+ {
+  "file": "Server/audit.mjs",
+  "bytes": 9622,
+  "header": "audit.mjs — read every task's audit.jsonl (one line per auditor, written by minions through",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-02",
+  "refs": 4,
+  "refFiles": [
+   ".claude/hooks/jsonl-schema.mjs",
+   ".claude/hooks/readme.md",
+   "Server/README.md",
+   "public/framework/ai/doc/asks-outcomes.md"
+  ]
+ },
+ {
+  "file": "Server/branch-prune.mjs",
+  "bytes": 2185,
+  "header": "`node Server/branch-prune.mjs [--dry|--run]` — prune merged `worktree/*` branches nobody has checked out.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/browser-check.mjs",
+  "bytes": 4265,
+  "header": "Server/browser-check.mjs — what a developer tools console would show, for one URL, without",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 1,
+  "refFiles": [
+   "Servex/Servex.js"
+  ]
+ },
+ {
+  "file": "Server/browser.mjs",
+  "bytes": 8357,
+  "header": "Server/browser.mjs — the one way any script in this repo starts Chromium.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-03",
+  "refs": 45,
+  "refFiles": [
+   ".claude/hooks/syntax-guard.mjs",
+   ".claude/skills-archive/performance/SKILL.md",
+   ".claude/skills/clarity/SKILL.md",
+   ".claude/skills/review/SKILL.md",
+   ".claude/skills/servex-mastermind/SKILL.md",
+   ".claude/skills/ui-test/SKILL.md",
+   ".claude/skills/ui-test/drive.mjs",
+   ".claude/skills/ui-test/reference.md"
+  ]
+ },
+ {
+  "file": "Server/card-check.mjs",
+  "bytes": 4220,
+  "header": "`node Server/card-check.mjs <card-dir or card page.jsonl>` — checks a card against the card standard:",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-06",
+  "refs": 2,
+  "refFiles": [
+   "Server/on-landing.mjs",
+   "public/framework/ai/todo.md"
+  ]
+ },
+ {
+  "file": "Server/clarity.mjs",
+  "bytes": 6489,
+  "header": "`node Server/clarity.mjs landing <task dir>` or `node Server/clarity.mjs proposal <file>`",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 9,
+  "refFiles": [
+   ".claude/hooks/ledger.mjs",
+   "Server/doc/on-landing.md",
+   "Server/jsonl-keep.mjs",
+   "Server/on-landing.mjs",
+   "Server/owner-check.mjs",
+   "Server/review.mjs",
+   "Servex/Servex.js",
+   "Servex/agents/roles.js"
+  ]
+ },
+ {
+  "file": "Server/collab.mjs",
+  "bytes": 42397,
+  "header": "`node Server/collab.mjs <taskdir> [--mock]`",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 11,
+  "refFiles": [
+   ".claude/hooks/naming-guard.mjs",
+   ".claude/skills/mastermind/SKILL.md",
+   ".claude/skills/sub-mastermind/SKILL.md",
+   "Server/ask-each.mjs",
+   "Server/doc/collab.md",
+   "Server/doc/refine.md",
+   "Server/refine.mjs",
+   "public/framework/ai/rail/overview/overview.json"
+  ]
+ },
+ {
+  "file": "Server/council.mjs",
+  "bytes": 14889,
+  "header": "Server/council.mjs — The Feedback Council collector and runner.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 7,
+  "refFiles": [
+   ".gitignore",
+   "Server/README.md",
+   "Server/on-landing.mjs",
+   "public/framework/ai/doc/logs/log-sources.md",
+   "public/framework/ai/doc/task-folders.md",
+   "public/framework/ai/todo.md",
+   "public/framework/core/Page/ext/Inbox/doc/inbox-data.md"
+  ]
+ },
+ {
+  "file": "Server/crawl.mjs",
+  "bytes": 10807,
+  "header": "Server/crawl.mjs — Nightly full crawl of the site under /framework/.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 5,
+  "refFiles": [
+   ".claude/skills/ui-test/reference.md",
+   "Server/README.md",
+   "public/framework/ai/doc/task-folders.md",
+   "public/framework/ai/todo.md",
+   "public/framework/core/Page/audit/readme.md"
+  ]
+ },
+ {
+  "file": "Server/day-prompts-refine.mjs",
+  "bytes": 11247,
+  "header": "day-prompts-refine.mjs — retroactively runs the SAME mechanical refine step Echo.js runs",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 4,
+  "refFiles": [
+   "public/framework/ai/AITask/day-prompts.js",
+   "public/framework/ai/AITask/doc/day-prompts-notes.md",
+   "public/framework/ai/doc/task-folders.md",
+   "public/framework/ai/doc/watch-out-2026-10-12.md"
+  ]
+ },
+ {
+  "file": "Server/day-spend.mjs",
+  "bytes": 8171,
+  "header": "day-spend.mjs — one day's spend, two currencies, and which modules it touched.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 8,
+  "refFiles": [
+   "Server/doc/task-cost.md",
+   "public/framework/ai/AITask/dashboard.js",
+   "public/framework/ai/AITask/doc/api.md",
+   "public/framework/ai/AITask/doc/cost.md",
+   "public/framework/ai/AITask/doc/dashboard-notes.md",
+   "public/framework/ai/AITask/module-spend.js",
+   "public/framework/ai/AITask/readme.md",
+   "public/framework/ai/doc/ai-page-notes.md"
+  ]
+ },
+ {
+  "file": "Server/decide.mjs",
+  "bytes": 21527,
+  "header": "decide.mjs — walks ONE decision into being, step by step, so no part can be forgotten.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 14,
+  "refFiles": [
+   ".claude/skills/decide/SKILL.md",
+   "Server/doc/decide.md",
+   "Servex/ext/clean-test/run.js",
+   "Servex/ext/openrouter/doc/tests.md",
+   "Servex/ext/openrouter/evals/library.mjs",
+   "public/framework/ai/AIOverview.js",
+   "public/framework/ai/past-work-index.md",
+   "public/framework/ai/skills.json"
+  ]
+ }
+]

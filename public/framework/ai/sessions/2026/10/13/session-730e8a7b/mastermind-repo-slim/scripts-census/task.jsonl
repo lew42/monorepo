@@ -1,0 +1,13 @@
+{"assign":{"session_id":"5504f74b-1bbf-4893-ba6d-ab30c7759666","agent":"task-mastermind-scripts-census","card":"2026/10/13/the-scripts-under-server-and-servex-what","brief":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-census/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim","requested_at":"2026-10-13T20:47:26-05:00","now":"starting","steps":[],"step":1}}
+{"action":{"at":"2026-10-13T20:48:18-05:00","did":"edit","files":["Server/ScriptsCensus.mjs"]}}
+{"log":{"at":"2026-10-13T21:00:00-05:00","msg":"Census built (Server/ScriptsCensus.mjs): 193 listed = 193 on disk. 7 Haiku batches running."}}
+{"action":{"at":"2026-10-13T20:49:53-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-census/verdicts-6.json"]}}
+{"action":{"at":"2026-10-13T20:49:57-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-census/verdicts-2.json"]}}
+{"action":{"at":"2026-10-13T20:49:58-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-census/verdicts-4.json"]}}
+{"action":{"at":"2026-10-13T20:49:59-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-census/verdicts-3.json"]}}
+{"action":{"at":"2026-10-13T20:50:03-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-census/verdicts-5.json"]}}
+{"action":{"at":"2026-10-13T20:50:04-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-census/verdicts-1.json"]}}
+{"action":{"at":"2026-10-13T20:50:12-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-census/verdicts-7.json"]}}
+{"log":{"at":"2026-10-13T20:56:08-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-scripts-census"}}
+{"log":{"at":"2026-10-13T20:56:10-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T21:20:00-05:00","msg":"Spot-check 15 (5 stale, 4 misnamed, 3 live, 3 tool): 11 agree (73%). 4 stale verdicts broke the >30-day rule (m4a2wav, readme-reach, week-cost, naming-guard) and were demoted to tool by script. Final: live 112, tool 54, stale 1 (session-cost shim, 198 bytes), misnamed 26. retire-files.mjs takes --manifest; plan shows 0 (nothing ticked). Nothing deleted."}}
