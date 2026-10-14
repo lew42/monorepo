@@ -13,3 +13,15 @@
 {"log":{"at":"2026-10-13T23:48:08-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T23:48:38-05:00","heartbeat":"answered","msg":"Still idle. The reading-page task is complete and nothing is running; the report is committed at `kit/reading-page.md` (9fd52d460)."}}
 {"log":{"at":"2026-10-13T23:49:24-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-14T00:30:06-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-fig-reading-page"}}
+{"log":{"at":"2026-10-14T00:30:08-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-14T00:30:39-05:00","heartbeat":"answered","msg":"Idle, with nothing in progress. The reading-page task is landed and its report is committed at `kit/reading-page.md` (9fd52d460). I'm waiting for the next brief."}}
+{"assign":{"landed_at":"2026-10-14T00:00:00-05:00","title":"Figma: reading page — attached inner sidebar, light page, permutations","outcome":"Screen 3440 reworked (dark global, gray canvas, white page block with attached light-gray inner sidebar, 720 measure, no right TOC); Reading page · permutations built with (a)-(d), (e) at 1920 and 1000, Notes verdict: ship (a); old screen kept as was · Screen 3440.","links":["public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/reading-page.md"]}}
+{"log":{"at":"2026-10-14T00:30:49-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-14T05:30:49.677Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-14T00:30:49-05:00","msg":"card-check: card-check: path not found: C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\Figma: reading page — attached inner sidebar, light page, permutations"}}
+{"log":{"at":"2026-10-14T00:30:49-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-14T00:30:49-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-14T00:30:57-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-14T00:30:57-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"assign":{"outcome":"Reading page, Figma Screen 3440 (landed). Asked / delivered:\n- [x] Text no longer spans a huge area: 720 measure, centred in a white page block.\n- [x] Light page for reading: white page on a gray canvas, dark global sidebar kept.\n- [x] No right-hand TOC: removed; \"On this page\" and related sit in the inner left sidebar.\n- [x] Inner sidebar attached to the page block: light-gray, shares its top edge and height.\n- [x] Colour permutations: Reading page · permutations has (a)-(d) at 3440, (e) at 1920 and 1000; Notes verdict: ship (a).\nThe old screen is kept as Screen 3440 (old)."}}
