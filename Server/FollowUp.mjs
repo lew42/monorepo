@@ -64,7 +64,7 @@ export default class FollowUp {
 	read_asks(){
 		const file = path.join(TaskDirs.AI, "asks.jsonl"), seen = new Map();
 		if (!fs.existsSync(file)) return;
-		for (const l of fs.readFileSync(file, "utf8").split("\n")) { try { const a = JSON.parse(l).ask; if (a) seen.set(a.card ?? a.title, a); } catch {} }
+		for (const l of fs.readFileSync(file, "utf8").split("\n")) { try { const a = JSON.parse(l).ask; if (a) seen.set(a.card || a.title, a); } catch {} }
 		for (const a of seen.values()) {
 			if (!OPEN_ASK.has(a.status)) continue;
 			if (!a.title || !a.owner) continue;

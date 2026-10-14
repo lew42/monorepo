@@ -26,10 +26,10 @@
 | [message-cost](/framework/ai/sessions/2026/10/04/message-cost/message-cost/) | - | f58cf585 | sonnet-5 | 10-04 04:31 | 10-04 13:13 | 1/0 | no | no | - | dormant | quiet |
 | [session-detail-live](/framework/ai/sessions/2026/10/09/session-ca11999b/session-detail-live/) | - | ca11999b | sonnet-5-5 | 10-09 21:39 | 10-11 14:00 | 1/0 | yes | no | - | dormant | no-outcome |
 | [checker-1](/framework/ai/sessions/2026/10/07/feedback-council/checker-1/) | - | a784b7fc | sonnet-5 | 10-08 03:44 | 10-09 03:53 | 1/0 | yes | no | - | stopped | no-outcome |
-| [mastermind-repo-slim](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/) | ai-ops | 730e8a7b | fable-5-1 | 10-13 20:50 | 10-14 00:15 | 10/11 | no | no | - | unknown | ok |
+| [mastermind-repo-slim](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/) | ai-ops | 730e8a7b | fable-5-1 | 10-13 20:50 | 10-14 01:01 | 11/11 | no | no | - | unknown | ok |
+| [page-templates-merge](/framework/ai/sessions/2026/10/12/session-ceb73541/page-templates-merge/) | - | ceb73541 | sonnet-5-5 | 10-12 20:22 | 10-14 00:55 | 1/0 | no | no | - | stopped | ok |
+| [page-templates-binding-merge](/framework/ai/sessions/2026/10/12/session-21449a90/page-templates-binding-merge/) | - | 21449a90 | sonnet-5-5 | 10-12 20:39 | 10-14 00:55 | 1/0 | no | no | - | stopped | ok |
 | [figma-claude-designs](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/) | - | - | - | 10-14 00:11 | 10-14 00:11 | 0/0 | no | no | - | unknown | ok |
-| [page-templates-merge](/framework/ai/sessions/2026/10/12/session-ceb73541/page-templates-merge/) | - | ceb73541 | sonnet-5-5 | 10-12 20:22 | 10-13 23:30 | 1/0 | no | no | - | stopped | ok |
-| [page-templates-binding-merge](/framework/ai/sessions/2026/10/12/session-21449a90/page-templates-binding-merge/) | - | 21449a90 | sonnet-5-5 | 10-12 20:39 | 10-13 23:30 | 1/0 | no | no | - | stopped | ok |
 | [readme-audit](/framework/ai/sessions/2026/10/12/session-87bec773/readme-audit/) | - | 7944574c | sonnet-5-5 | 10-13 05:30 | 10-13 05:37 | 1/0 | yes | yes | - | dormant | ok |
 | [dead-links](/framework/ai/sessions/2026/10/12/session-87bec773/dead-links/) | - | 6ef784b9 | sonnet-5-5 | 10-13 03:00 | 10-13 04:22 | 3/0 | yes | yes | - | gone | ok |
 | [property-of](/framework/ai/sessions/2026/10/12/session-87bec773/property-of/) | - | 6f9e671f | sonnet-5-5 | 10-13 01:30 | 10-13 02:00 | 1/0 | yes | yes | - | dormant | ok |
@@ -59,7 +59,7 @@
 | [style-system](/framework/ai/sessions/2026/10/12/session-cbdc3ef5/style-system/) | - | cbdc3ef5 | opus-5-5 | 10-12 19:01 | 10-12 20:01 | 1/0 | yes | yes | - | dormant | ok |
 | [sessions-detail](/framework/ai/sessions/2026/10/12/session-f90a4e29/sessions-detail/) | - | f90a4e29 | sonnet-5-5 | 10-12 19:20 | 10-12 19:39 | 1/0 | yes | yes | - | dormant | ok |
 | [sessions-grid](/framework/ai/sessions/2026/10/12/session-eecd88fa/sessions-grid/) | - | eecd88fa | sonnet-5-5 | 10-12 18:30 | 10-12 19:39 | 1/0 | yes | yes | merged | dormant | ok |
-| [sidebar-index](/framework/ai/sessions/2026/10/12/session-65e9c7eb/sidebar-index/) | - | 65e9c7eb | sonnet-5-5 | 10-12 19:01 | 10-12 19:30 | 1/0 | yes | yes | branch gone | gone | ok |
+| [sidebar-index](/framework/ai/sessions/2026/10/12/session-65e9c7eb/sidebar-index/) | - | 65e9c7eb | sonnet-5-5 | 10-12 19:01 | 10-12 19:30 | 1/0 | yes | yes | merged | gone | ok |
 | [live-page-error](/framework/ai/sessions/2026/10/12/session-26eee6cc/live-page-error/) | - | 26eee6cc | sonnet-5-5 | 10-12 19:20 | 10-12 19:24 | 2/0 | yes | yes | - | dormant | ok |
 | [relay-2](/framework/ai/sessions/2026/10/12/session-ac44c638/relay-2/) | - | ac44c638 | sonnet-5-5 | 10-12 18:30 | 10-12 19:22 | 1/0 | yes | yes | - | dormant | ok |
 | [transcription-crash](/framework/ai/sessions/2026/10/12/session-e4a1482d/transcription-crash/) | - | e4a1482d | sonnet-5-5 | 10-12 17:30 | 10-12 18:07 | 3/0 | yes | yes | - | dormant | ok |
@@ -100,7 +100,7 @@
 | [tag-notes](/framework/ai/sessions/2026/10/09/session-48083d9d/tag-notes/) | refine | 48083d9d | sonnet-5-5 | 10-12 06:44 | 10-12 06:44 | 4/4 | yes | yes | - | dormant | ok |
 | [refine-style](/framework/ai/sessions/2026/10/09/session-48083d9d/refine-style/) | refine | 48083d9d | sonnet-5-5 | 10-12 06:37 | 10-12 06:37 | 4/4 | yes | yes | - | dormant | ok |
 | [refine-dictate-ui](/framework/ai/sessions/2026/10/09/session-48083d9d/refine-dictate-ui/) | - | 48083d9d | sonnet-5-5 | 10-09 21:43 | 10-12 06:33 | 1/0 | yes | yes | - | dormant | ok |
-| [figma-phase2](/framework/ai/sessions/2026/10/12/session-cd792e48/figma-phase2/) | - | cd792e48 | sonnet-5-5 | 10-12 06:03 | 10-12 06:30 | 1/0 | yes | yes | branch gone | dormant | ok |
+| [figma-phase2](/framework/ai/sessions/2026/10/12/session-cd792e48/figma-phase2/) | - | cd792e48 | sonnet-5-5 | 10-12 06:03 | 10-12 06:30 | 1/0 | yes | yes | merged | dormant | ok |
 | [system-architect](/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/) | - | a07780b9 | opus-5-5 | 10-09 21:32 | 10-12 06:26 | 6/6 | yes | yes | - | dormant | ok |
 | [page-slice](/framework/ai/sessions/2026/10/12/session-471f8c3b/page-slice/) | - | 471f8c3b | sonnet-5-5 | 10-12 06:03 | 10-12 06:23 | 99/0 | yes | yes | merged | dormant | ok |
 | [task-audit](/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/) | - | f74e9f54 | sonnet-5-5 | 10-08 19:40 | 10-12 06:03 | 1/0 | yes | yes | - | dormant | ok |
@@ -153,3 +153,20 @@
 
 ## Open asks with no live owner
 
+- Merges: approval for foundational merges, reversible from the card (queued, owner `mastermind-servex (proposal-flow, 10 PM)` no such agent, card )
+- Templates: weight per use, use-template skill/tool, one library (queued, owner `mastermind-servex (proposal-flow, 10 PM)` no such agent, card )
+- Logs: page.jsonl curated vs log.jsonl everything (recommendation) (queued, owner `mastermind-servex (proposal-flow, 10 PM)` no such agent, card )
+- UI: System class; /framework/ui/ library of approved blocks; class pills; masonry; sibling/child rails (queued, owner `servex-mastermind-opus (spawn after the 10 PM weekly reset)` no such agent, card )
+- Servex: process monitor (PIDs, RAM/CPU per task, graph, orphans) (building, owner `task-mastermind-dormant-idle` gone, card )
+- Selection: tap to select and drill down on mobile; the AI knows the element (queued, owner `servex-mastermind-opus (spawn after the 4:50 PM reset)` no such agent, card )
+- Task pages: grey checkboxes, full-width bars, reports as free content (queued, owner `ui-system brief (after the System class)` no such agent, card )
+- Padding: percentage padding, a wrapper per grid item, the rule in the layout system (queued, owner `servex-mastermind-opus (spawn at the 10 PM reset)` no such agent, card )
+- Monitor: a Playwright agent on main; template changes get console + screenshot + stall checks (queued, owner `mastermind-servex (10 PM, first in the task)` no such agent, card )
+- Logs: validated writes only; shell appends to .jsonl blocked (queued, owner `mastermind-servex (10 PM task, item 11): make the validated route the default, then wire the guard` no such agent, card )
+- Logs: unknown verbs on AI 2; the validator checks the schema; register experiment and review (queued, owner `mastermind-servex (10 PM task, item 12)` no such agent, card )
+- Worktrees: remove merged ones; Servex drops their subdomains (building, owner `task-mastermind-dormant-idle` gone, card )
+- Shell: header, sidebars, footer; the dark dev shell on Ctrl+\ (queued, owner `task-mastermind-dev-shell (restart at 4:50 PM)` no such agent, card )
+- Dictation: one configurable widget everywhere; widget first on the page (queued, owner `task-mastermind-audio-consolidate (restart at 4:50 PM)` no such agent, card )
+- AI 2: finish the retirement now (nav entry + ai2/ dir, Git keeps history) (building, owner `mastermind-ai-3` gone, card )
+- Now card: topics as nested sub-cards from refined prompts (raw → clean → structured), subtle 'updated' marks, Now card in the inbox list (queued, owner `vscode-mastermind` gone, card )
+- AI systems: git, context, cost pages collecting how we work (queued, owner `vscode-mastermind` gone, card )

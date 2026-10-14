@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { spawn } from "child_process";
+import { spawn, execFile } from "child_process";
 import { stamp } from "./home.js";
 import { CHECK } from "./Heartbeat.js";
 import Steps from "../Server/Steps.mjs";
@@ -58,6 +58,7 @@ export default class TaskLoop {
         try {
             // worktree-down, 2026-09-29: a landed+merged task's dev server goes down (Server/worktree-sweep.mjs), hidden child so it never blocks this tick.
             try { spawn(process.execPath, [path.join(this.root, "Server", "worktree-sweep.mjs")], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
+            this.follow_up_daily();
             const now = Date.now(), registry = this.servex.agents.registry_list();
             let open = 0, quiet = 0, escalations = 0;
 
@@ -93,6 +94,23 @@ export default class TaskLoop {
                 this.servex.say(`task-loop: first run, ${open} open tasks today (${quiet} quiet)`);
             }
         } finally { this.busy = false; }
+    }
+
+    /* follow-up-daily, 2026-10-13: once per local day, run Server/FollowUp.mjs --write (what fell through the cracks) and post ONE owner_note row for the day.
+     * "Done today" = follow-up.md's mtime is today, so a restart never repeats it. LogSweeper (ALLOW) commits the two files. Doc: Servex/doc/task-loop.md */
+    follow_up_daily(){
+        const file = path.join(this.root, "public", "framework", "ai", "doc", "follow-up.md");
+        let m = 0; try { m = fs.statSync(file).mtimeMs; } catch {}
+        const day = this.date_id(new Date());
+        if (this.date_id(new Date(m)) === day || this.follow_up_busy) return;
+        this.follow_up_busy = true;
+        execFile(process.execPath, [path.join(this.root, "Server", "FollowUp.mjs"), "--write"], { cwd: this.root, windowsHide: true, timeout: 120000 }, (err, out) => {
+            this.follow_up_busy = false;
+            if (err) return this.servex?.log?.append("servex", { type: "task-loop-error", error: "follow-up: " + String(err.message || err) }).catch(() => {});
+            const c = (out.match(/\{[\s\S]*?\}/) || [""])[0]; let n = {}; try { n = JSON.parse(c.replace(/'/g, "").replace(/([\w-]+):/g, '"$1":')); } catch {}
+            const flagged = ["unmerged", "merged-not-landed", "quiet", "no-outcome", "asks"].reduce((t, k) => t + (n[k] || 0), 0);
+            this.servex?.cards?.owner_note?.({ title: `Follow-up ${day}: ${flagged} flagged`, text: `${flagged} rows fell through today (${n.healthy ?? "?"} healthy): see the list`, kind: "risk", links: ["/framework/ai/doc/follow-up.md"], by: "task-loop" })?.catch?.(() => {});
+        });
     }
 
     /* ── finding tasks ────────────────────────────────────────────────── */
