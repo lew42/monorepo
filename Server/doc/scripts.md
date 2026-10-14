@@ -24,6 +24,8 @@ Run: `node Server/RetireFiles.mjs --plan --manifest Server/doc/scripts.md` then 
 - `Servex/agents/jobs.js`: Function bag (kind:bag) should be a class per code skill, 7 references
 - `Servex/agents/registry.js`: class in lowercase file; should be Registry.js; 30 refs, live but violates naming rule
 
+**Case-only renames on Windows** (batch 3: `audit.mjs` to `Audit.mjs`, `brief.js`, `hitl.js`): `RenameScript` moves through a temporary name, and `merge.mjs` now reads the main tree by exact case and deletes before it writes. The merge still left the old case in git's index, so after merging run `git mv a a.case-tmp && git mv a.case-tmp A` and commit (done for batch 3 at 5b7d10aa1); check with `git ls-tree HEAD <dir>`.
+
 ## All scripts
 
 | file | verdict | bytes | last | what it says it is | why |
