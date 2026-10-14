@@ -57,7 +57,8 @@ Section.from("/framework/core/Section/example/").then(section => section.render(
 ## More
 
 - [Overview](/framework/core/Section/) · [`doc/idea.md`](./doc/idea.md) ·
-  [`doc/picker.md`](./doc/picker.md) · [`doc/slots.md`](./doc/slots.md)
+  [`doc/picker.md`](./doc/picker.md) · [`doc/slots.md`](./doc/slots.md) ·
+  [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - Files that matter: `Section.js` (the class and its picker), `Section.css` (where the
   overlay sits, what a slot is), `example/page.json` (the JSON form, read by the page).
 - Next door: [core/Layout](/framework/core/Layout/) owns the thirty layouts, their proven
