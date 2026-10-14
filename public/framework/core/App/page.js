@@ -17,7 +17,7 @@ export default new Doc({
 
 	// Each name is a ./doc/<name>.md the readme cites. `mode` and `fonts` cover the
 	// two sibling modules — mode.js and Font.js — which are not members of App.
-	notes: "constructor boot error-page loaders adoption fonts mode aliases decisions",
+	notes: "constructor boot error-page loaders adoption fonts mode aliases decisions architecture",
 
 	files: "App.js Font.js mode.js mode.css page.js readme.md",
 

@@ -33,6 +33,7 @@ edge), `action` (a button row), `list` (a repeated row).
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`styles/doc/architecture.md`](/framework/styles/doc/architecture.md) — tokens,
   grounds, card and section, the whole system on one screen.
 - Other card pages, linked from the page itself and never deleted:

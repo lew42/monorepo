@@ -20,7 +20,7 @@ export default new Doc({
 
 	methods: "render header footer left right main slot grab size restore_sizes store apply_dark watch_frame",
 
-	notes: "decisions",
+	notes: "architecture decisions",
 
 	files: "Shell.js Shell.css page.js readme.md",
 

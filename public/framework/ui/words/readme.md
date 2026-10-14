@@ -30,4 +30,5 @@ with it.
 
 - [Overview](/framework/ui/words/) — the live before/after comparison, the density slider, the gaps it found
 - [`ux/`](/framework/ux/) — the tier boundary: what stays a word here, what graduates to a class
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - Files: `words.js` (the two words, `@layer theme`), `page.js` (the comparison demo)

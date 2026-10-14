@@ -61,6 +61,7 @@ design-tree sidebar; this is the general region system any page can wrap itself 
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`doc/decisions.md`](./doc/decisions.md) — the prefix collision and the rename, the
   content/method split, why `frame`'s hole never draws `main`, why 34em stacks instead of
   sheeting, reusing `Page.Store` instead of a second `localStorage` guard

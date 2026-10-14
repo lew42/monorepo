@@ -74,6 +74,7 @@ file.store                                                    // a .jsonl's Item
 ## More
 
 - [Overview](/framework/ext/filesystem/) — the tree live, `file_link` live
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [doc/decisions.md](./doc/decisions.md) — names weighed, the url form, what's reused, what's left
 - [`ext/files`](/framework/ext/files/) — the browsing UI built on these classes
 - Files: `FsFile.js` · `Dir.js` (`FsDir.js` stays as a re-export shim) · `tree.js` (the

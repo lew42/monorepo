@@ -6,7 +6,7 @@ export default new Doc({
 	description: "A tree of real files, and the one you clicked — plain, resizable columns, no panels.",
 	icon: "folder_open",
 
-	notes: "about tree fetched columns",
+	notes: "architecture about tree fetched columns",
 	files: "files.js files.css page.js readme.md",
 
 	overview: [

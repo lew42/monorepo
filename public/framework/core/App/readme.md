@@ -23,6 +23,6 @@ window.app = new App({
 - `mode.js` lives here, not under `styles/layers/theme/` — that import once took the site down. [`doc/mode.md`](./doc/mode.md)
 
 ## More
-- [Overview](/framework/core/App/) · [`doc/decisions.md`](./doc/decisions.md) the record: callers, verdicts, proposals, open costs · [`doc/constructor.md`](./doc/constructor.md) why `instantiate()` is unawaited · [`doc/fonts.md`](./doc/fonts.md) `Font.js`, the CDN registry (the one unvendored dependency)
+- [Overview](/framework/core/App/) · [`doc/architecture.md`](./doc/architecture.md) (decisions and why) · [`doc/decisions.md`](./doc/decisions.md) the record: callers, verdicts, proposals, open costs · [`doc/constructor.md`](./doc/constructor.md) why `instantiate()` is unawaited · [`doc/fonts.md`](./doc/fonts.md) `Font.js`, the CDN registry (the one unvendored dependency)
 - Every member has `doc/method/<name>.md` and `doc/property/<name>.md`; every file `doc/file/<path>.md`.
 - Files that matter: `App.js` (the class), `Font.js` (font registry), `mode.js` + `mode.css` (light/dark/auto toggle).

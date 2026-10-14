@@ -10,7 +10,7 @@ export default new Doc({
 	icon: "straighten",
 	children: "library taste tests audit knowledge widths vision diff journey",
 
-	notes: "cost addressing decisions",
+	notes: "architecture cost addressing decisions",
 	files: "DesignTool.css DesignTool.js address.js audit/findings.json audit/page.js audit/pages.js audit/twin.js "
 		+ "defer.js highlight.js knowledge/alignment-vs-padding.md knowledge/blind-spots.md knowledge/bounds.md "
 		+ "knowledge/characters-per-line.md knowledge/false-positives.md knowledge/page.js "

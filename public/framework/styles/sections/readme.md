@@ -23,5 +23,6 @@ A band is `tone => view`, no stylesheet. It becomes a url as an inline child in 
 
 ## More
 - [/framework/styles/sections/](/framework/styles/sections/) — the page: fifteen live bands in the rail, the whole page composed, which layout each band is.
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [doc/decisions.md](./doc/decisions.md) — the full record: what a section is, band vs measure, registry → children, de-flow, the end of `parts.js`.
 - Files: `page.js` (children, `whole()`), `tone.js` (`band(tone)`, tone chips), `hero.js` (the canonical band).

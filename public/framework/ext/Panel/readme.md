@@ -34,6 +34,8 @@ item.set("display", "grid").set("cols", 3);     // layout properties in rail
 
 ## Doc topics
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+
 - [`doc/decisions.md`](./doc/decisions.md) — Architecture history, bar deletion, and operational traps.
 - [`doc/focus.md`](./doc/focus.md) — Selection contract, hover previews, and multi-edit design.
 - [`doc/words.md`](./doc/words.md) — The `WORDS` table, tracks, and layout tokens.

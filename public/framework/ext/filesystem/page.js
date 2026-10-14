@@ -16,7 +16,7 @@ export default new Doc({
 	// was happening here before this line existed.
 	subject: FsFile,
 
-	notes: "decisions",
+	notes: "architecture decisions",
 	files: "FsFile.js Dir.js tree.js file_link.js menu.js filesystem.css",
 
 	content(){

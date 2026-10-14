@@ -35,6 +35,7 @@ next, is what turns this on.
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [Overview](/framework/ext/files/) · [doc/decisions.md](./doc/decisions.md) — the record: decisions, traps, open items, who uses it
 - [doc/fetched.md](./doc/fetched.md) — why real files, never string literals; why the examples aren't routes
 - [doc/tree.md](./doc/tree.md) — nesting, the shortened display path, selection by `data-path`, open/close

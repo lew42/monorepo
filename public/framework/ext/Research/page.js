@@ -7,7 +7,7 @@ export default new Doc({
 	icon: "biotech",
 
 	files: "Research.js Program.js Topic.js Research.css verbs.js entries.js store.mjs research.mjs entry.mjs",
-	notes: "program render verbs writers process decisions",
+	notes: "architecture program render verbs writers process decisions",
 
 	content(){
 		md("**A topic** is one `.jsonl` file. Minions append `node`, `vote`, `verdict` and `agent` lines to it; the page streams those over the dev socket and redraws in place — the minions strip first, then the conclusions, then every claim as a card that opens forever. No reload, ever.");
