@@ -12,6 +12,10 @@
 	/* Prose stays at a reading measure; only the cards and demos (.wide) use the full track. */
 	.page--model:has(> .page-navm-qa) > :is(p, ul, ol, table, h2) { max-width: 46em; }
 
+	/* A wide table scrolls inside its own box; otherwise at 400px it pushes the whole page sideways. */
+	.page--model:has(> .page-navm-qa) table { display: block; max-width: 100%; overflow-x: auto; }
+	.page--model:has(> .page-navm-qa) :is(td, th) { min-width: 9em; }
+
 	/* An embedded Sidebar: the real component, boxed to a fixed height instead of the screen. */
 	.page-navm-rail { height: 26em; border: 1px solid var(--line); border-radius: 0.4em; overflow: hidden; }
 	.page-navm-rail > .sidebar { height: 100%; width: 100%; }
@@ -19,9 +23,9 @@
 
 	.page-navm-room { display: flex; flex-direction: column; gap: 0.6em; }
 	.page-navm-bar { display: grid; grid-template-columns: 16em 1fr; gap: 0.8em; align-items: center; }
-	.page-navm-track { display: flex; height: 2em; border: 1px solid var(--line); border-radius: 0.3em; overflow: hidden; }
+	.page-navm-track { display: flex; min-width: 0; height: 2em; border: 1px solid var(--line); border-radius: 0.3em; overflow: hidden; }
 	.page-navm-seg { flex: 0 0 auto; background: var(--fill-a08, #0001); border-right: 1px solid var(--line); }
-	.page-navm-left { display: flex; align-items: center; padding: 0 0.6em; white-space: nowrap; overflow: hidden; font-size: 0.85em; }
+	.page-navm-left { display: flex; min-width: 0; align-items: center; padding: 0 0.6em; white-space: nowrap; overflow: hidden; font-size: 0.85em; }
 	@media (max-width: 40em) { .page-navm-bar { grid-template-columns: 1fr; gap: 0.2em; } }
 
 	.page-navm-frame { display: grid; grid-template-columns: 7em 1fr; min-height: 5em; border: 1px solid var(--line); border-radius: 0.4em; overflow: hidden; font-size: 0.85em; }
