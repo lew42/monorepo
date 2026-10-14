@@ -37,3 +37,22 @@ When the reviewing mastermind writes or changes a rule because of a line, it **s
 
 - `ModuleReview --run`: spawn per module with `readme_chain`, record `outcome`; a periodic trigger in `TaskLoop`.
 - Show a module's inbox in its Docs tab.
+
+## How work passes between agents today
+
+There are two kinds of hand-off, and only one leaves a record. **Recorded** means the words end up in a file that git keeps, so a fresh agent can read them later. **Unrecorded** means the words went into the receiving agent's live conversation and exist nowhere else.
+
+- `spawn_agent` is both: it writes the new task's first `task.jsonl` line (the `assign` line, with the brief path) and then sends the agent one prompt. The brief file is the real hand-off; the prompt only points at it.
+- `send_to_agent` is an SDK message into a running agent. It is **not** recorded unless the receiver chooses to log it. If the receiver restarts or its context is compacted, the message is gone.
+- Cards and `task.jsonl` lines are the recorded channel: anything an agent must not lose goes there.
+- The module inbox (above) is the recorded hand-off for owner asks that belong to a module.
+
+| Channel | Recorded where | Survives a restart |
+|---|---|---|
+| `spawn_agent` brief + `assign` line | the task's `task.jsonl` and `requirements.md` | yes |
+| `send_to_agent` | nowhere, unless the receiver logs it | no |
+| Card reply / `card_ask` | the card's `page.jsonl` | yes |
+| `page_note` / `drop` | the page's `page.jsonl` | yes |
+| `module_inbox` | `<module>/inbox.jsonl` | yes |
+
+**Recommendation (not built yet):** every `send_to_agent` should also append a `chat` line to the receiver's `task.jsonl` (sender, text, time), done by Servex itself, so nothing passes between agents unrecorded. It is a small change in the send path: the live message stays the wake-up, the file becomes the memory.
