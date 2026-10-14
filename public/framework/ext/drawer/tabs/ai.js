@@ -90,22 +90,6 @@ async function post_card(entry){
 const recap = (history = []) => "Earlier in this thread:\n" + history.filter(c => c.text).slice(-4)
 	.map(c => `${c.role}: ${String(c.text).slice(0, 170)}`).join("\n");
 
-export async function new_session({ page, card } = {}){
-	if (!DEV) return { ok: false, note: "No assistant reachable here, so only this screen was cleared." };
-	try {
-		const list_url = card ? `/api/card-agents?card=${encodeURIComponent(card)}` : `/api/page-agents?page=${encodeURIComponent(page)}`;
-		const res = await fetch(servex_url(list_url), { cache: "no-store", signal: AbortSignal.timeout(4000) });
-		const rows = res.ok ? await res.json() : [];
-		const assistant = Array.isArray(rows) ? rows.find(r => r.role === "assistant") : null;
-		if (!assistant) return { ok: true, note: "no session yet — the next message starts fresh anyway" };
-		const out = await fetch(servex_url(`/api/agent/${assistant.id}/recycle`), { method: "POST", signal: AbortSignal.timeout(4000) })
-			.then(r => r.ok ? r.json() : { ok: false });
-		return { ok: !!out.ok, note: out.ok ? "the assistant will start a fresh session next time" : "could not reset the session" };
-	} catch {
-		return { ok: false, note: "Servex is not answering, so only this screen was cleared." };
-	}
-}
-
 let live_card = null;
 
 export function sync_card_thread(id){

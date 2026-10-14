@@ -37,9 +37,10 @@
 		border: 0;
 		border-radius: calc(var(--radius) / 2);
 		cursor: pointer;
+		position: relative;
 	}
 	.drawer-rail-ai:hover, .drawer-rail-menu:hover { background: var(--fill-a08); }
-	.drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; }
+	.drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; position: relative; }
 	.drawer-rail-ai { color: var(--prime); }
 	.drawer-rail-ai-label, .drawer-rail-menu-label { font-weight: 600; }
 

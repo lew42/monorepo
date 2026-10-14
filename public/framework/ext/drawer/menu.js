@@ -2,6 +2,7 @@ import { button } from "/framework/core/View/View.js";
 import tabs from "./tabs.js";
 import select from "./select.js";
 import rail from "./rail.js";
+import MicIndicator from "/framework/ux/Dictate/MicIndicator.js";
 
 /* THE ☰ — a menu button in the top right of every page (the owner, 2026-09-28: "each
    page could have like a little menu button in the top right… that kind of makes it
@@ -26,6 +27,7 @@ export default function menu(app){
 		.attr("title", "Menu — AI, dictation, settings")
 		.attr("aria-label", "Open the page menu")
 		.click(() => tabs.toggle());
+	new MicIndicator({ compact: true, capture: false }).append_to($menu);   // mic open while the drawer is shut
 
 	// A url that names a tab opens on it, once the styles are in (so the rail never paints
 	// unstyled and slides) — `tabs.open()` itself remaps an old `?drawer=sessions` to "ai".

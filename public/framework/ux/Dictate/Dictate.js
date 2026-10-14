@@ -3,6 +3,7 @@ import Capture from "./capture.js";
 import Revise from "../Revise/Revise.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 import floor from "./floor.js";
+import MicIndicator from "./MicIndicator.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 
@@ -371,6 +372,7 @@ export default class Dictate extends View {
 		const was_listening = this.state === "listening";
 		this.state = state;
 		(state === "listening" || state === "connecting") ? LIVE.add(this) : LIVE.delete(this);
+		MicIndicator.set_open(LIVE.size > 0);
 		if (state === "listening" && !was_listening) floor.mic_on(this);   // the floor: `floor.js`
 		else if (state !== "listening" && was_listening) floor.mic_off(this);
 		this.$button.rc("listening transcribing connecting").ac(["listening", "transcribing", "connecting"].includes(state) ? state : "");
@@ -387,6 +389,7 @@ export default class Dictate extends View {
 		this.mic?.stop();
 		floor.mic_off(this);
 		LIVE.delete(this);
+		MicIndicator.set_open(LIVE.size > 0);
 		this.state = "error";
 		this.$button.rc("listening transcribing connecting");
 		this.$status.ac("error").text(msg);
@@ -414,6 +417,7 @@ export default class Dictate extends View {
 		if (!this.heard_first_sample){ this.heard_first_sample = true; this.log_step("mic", "on, level ok"); }
 		this.level = this.level * 0.6 + level * 0.4;
 		this.$button.style("--ux-dictate-level", Math.min(1, this.level * 6).toFixed(3));
+		MicIndicator.set_level(Math.min(1, this.level * 6));
 		this.on_meter?.(Math.min(1, this.level * 6));   // same smoothed number, for a caller's own bigger bar
 		if (this.level > this.silence_at){ this.has_speech = true; this.last_loud_at = performance.now(); }
 		floor.level(this, this.level > this.silence_at);   // pauses and speaking time for `entry.cues`

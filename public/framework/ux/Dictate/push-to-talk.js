@@ -1,5 +1,6 @@
 import { View, div, icon } from "../../core/View/View.js";
 import Hotkeys from "../Hotkeys/Hotkeys.js";
+import MicIndicator from "./MicIndicator.js";
 import mount_chat from "./chat.js";
 import devshell from "../../dev/DevShell/DevShell.js";
 import LocalStorageSaver from "../../ext/Saver/LocalStorageSaver.js";
@@ -85,7 +86,7 @@ export default function push_to_talk(app){
 	const $mic = div.c("ux-dictate-ptt-mic").attr("role", "button").attr("tabindex", "0")
 		.attr("title", "Dictating — release to send; click to open the chat")
 		.attr("aria-label", "Open the dictation chat")
-		.append(() => icon("mic"))
+		.append(() => { icon("mic"); new MicIndicator({ compact: true }); })
 		.click(() => devshell.open_tab("ai"))
 		.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); devshell.open_tab("ai"); } });
 
