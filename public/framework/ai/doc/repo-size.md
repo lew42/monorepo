@@ -37,7 +37,7 @@ The rule stays the one in [commit-rule.md](../sessions/doc/commit-rule.md): a re
 | Phase | Saves | Risk | Undo |
 |---|---|---|---|
 | 1. Stop the bleeding | ~350 MB of history a month | low | delete the `.gitignore` lines |
-| 2. Archive old sessions out of the working tree | ~670 MB of disk (Aug + Sep) | low | copy the folders back |
+| 2. Archive old sessions out of the working tree ✅ Aug + Sep done | 578 MB of disk (Aug + Sep) | low | `node Server/archive-sessions.mjs --undo` |
 | 3. Rewrite history | ~310 MB of the 474 MB (the AI-log pictures outside `doc/`, 309 MB, plus `owner-prompts.jsonl`) | high: every clone and worktree | the legacy archive repo |
 
 ### Phase 1 — stop the bleeding
@@ -48,6 +48,10 @@ The rule stays the one in [commit-rule.md](../sessions/doc/commit-rule.md): a re
 - ⬜ Records keep flowing through `Servex/LogSweeper.js` ([commit-rule.md](../sessions/doc/commit-rule.md)); nothing to change.
 
 ### Phase 2 — archive old sessions
+
+✅ **Done for August and September (2026-10-13):** the two months went from **651 MB to 72 MB** on disk. **4,982 pictures (578 MB)** moved to `E:/Projects/lew42/archive/sessions/2026/<MM>/`, copied with sha1 and checked (count, bytes and every hash agree), then removed from C:; commit 59c7752b4. Only the untracked pictures moved: the 4,794 tracked records (52 MB) stay, because `git rm` would free 0 bytes of `.git`, blind `SessionIndex`, `PastWork` and `FollowUp` to two months, and break every old task URL. Each month keeps a `readme.md` and an `archive.jsonl` (every file, bytes, sha1). **Undo:** `node Server/archive-sessions.mjs --undo --months 08,09` with the drive plugged in (proven on a worktree copy: 1,419 pictures out and back, sha1 identical). How to read or restore one: [picture-archive.md](../sessions/doc/picture-archive.md). The decision and its log: [archive-phase-2](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/task.jsonl). Still open: a second copy in R2 (below).
+
+The plan as written before the run:
 
 A session older than about 30 days is moved out of `public/framework/ai/sessions/<year>/<month>/` by a script that writes a manifest of every path. A tracked folder is `git rm`'d in one commit (history keeps it); an ignored one (most of the disk, mostly `shots/`) is just moved. Where it goes:
 

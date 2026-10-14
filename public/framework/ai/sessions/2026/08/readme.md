@@ -4,7 +4,7 @@ The 1,331 untracked pictures of this month (122.5 MB, mostly review screenshots 
 
 - **Every file, its size and sha1:** [archive.jsonl](archive.jsonl), the same file as `E:/Projects/lew42/archive/sessions/2026/08/archive.jsonl` on the drive (whose own README says what it is).
 - **Bring it back:** `node Server/archive-sessions.mjs --undo --months 08` (the drive plugged in) copies every file back and checks its sha1.
-- **How it works:** [archive.md](../../doc/archive.md).
+- **How it works:** [picture-archive.md](../../doc/picture-archive.md).
 
 | Day | Pictures | Size | Folders |
 |---|---|---|---|

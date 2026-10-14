@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Move a month's untracked session pictures to the archive drive; tracked records stay. Doc: public/framework/ai/sessions/doc/archive.md
+// Move a month's untracked session pictures to the archive drive; tracked records stay. Doc: public/framework/ai/sessions/doc/picture-archive.md
 //   node Server/archive-sessions.mjs --plan  [--months 08,09]   what would move: per day, files, MB, destination
 //   node Server/archive-sessions.mjs --copy                     copy to the archive, sha1 every file, write its manifest + README
 //   node Server/archive-sessions.mjs --apply                    re-verify both sides, remove the C: copy, write the repo stub
@@ -175,7 +175,7 @@ export default class ArchiveSessions {
 			"",
 			`- **Every file, its size and sha1:** [archive.jsonl](archive.jsonl), the same file as \`${dst}/archive.jsonl\` on the drive (whose own README says what it is).`,
 			`- **Bring it back:** \`node Server/archive-sessions.mjs --undo --months ${m}\` (the drive plugged in) copies every file back and checks its sha1.`,
-			`- **How it works:** [archive.md](../../doc/archive.md).`,
+			`- **How it works:** [picture-archive.md](../../doc/picture-archive.md).`,
 			"",
 			"| Day | Pictures | Size | Folders |",
 			"|---|---|---|---|",
@@ -196,7 +196,7 @@ export default class ArchiveSessions {
 			"",
 			`- Months here: ${months.map(m => `${this.year}/${m}`).join(", ")}. Each month folder has \`archive.jsonl\`: one line per file, its path below the month, bytes and sha1.`,
 			"- Restore: in the repo, `node Server/archive-sessions.mjs --undo --months <MM>` copies them back to the same paths and checks every sha1. Or copy a folder back by hand: the paths are the same.",
-			"- Written by `Server/archive-sessions.mjs`; the repo doc is `public/framework/ai/sessions/doc/archive.md`.",
+			"- Written by `Server/archive-sessions.mjs`; the repo doc is `public/framework/ai/sessions/doc/picture-archive.md`.",
 			"",
 		].join("\n"));
 	}
