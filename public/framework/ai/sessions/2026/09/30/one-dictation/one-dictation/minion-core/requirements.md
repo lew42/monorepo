@@ -2,7 +2,7 @@
 
 Load the `minion` skill first. Your parent is **task-mastermind-one-dictation**. Work only in your served worktree, `C:/Code/lew42/worktrees/dictate-core`, which has its own server (the port is in `.worktrees.json` in the main repo, under `dictate-core`). These three bugs come first; nothing else goes in this merge.
 
-**The evidence** is the owner's own session, read it first: `public/framework/ai/2026/10/01/remote-access-install-tailscale-on-pc-an/ai/v-pl3m2ih.jsonl` (68 lines). The owner was on a phone (host `10.0.0.135:8137`), mostly on `/framework/ux/Dictate/` with the ✦ sheet open.
+**The evidence** is the owner's own session, read it first: `public/framework/ai/sessions/2026/10/01/cards/remote-access-install-tailscale-on-pc-an/ai/v-pl3m2ih.jsonl` (68 lines). The owner was on a phone (host `10.0.0.135:8137`), mostly on `/framework/ux/Dictate/` with the ✦ sheet open.
 
 ## 1. No assistant replies (the smart assistant went silent for 8 minutes)
 **What happened:** the smart assistant answered at 20:40:16 and 20:40:42. From 20:41:13 it spent ONE turn of 8 minutes (its transcript is `C:/Users/mike/.claude/projects/C--Code-lew42-monorepo/b58e7543-c665-44a6-8932-1b6bce68947f.jsonl`). It called `list_agents` (1.8 million characters, over the limit), grepped, then fought `dir_log`'s format twice. Its reply landed at 20:49:28. Everything the owner said in between waited behind it.

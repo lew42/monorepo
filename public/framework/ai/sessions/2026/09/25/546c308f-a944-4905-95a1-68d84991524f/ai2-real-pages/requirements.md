@@ -4,7 +4,7 @@ Load the `minion` skill first, then `code`, `page` and `layout`.
 
 ## The owner's words
 
-Verbatim, in full: `public/framework/ai/2026/09/28/inbox-rows-are-the-real-pages-page-class/owner-words.md`.
+Verbatim, in full: `public/framework/ai/sessions/2026/09/28/cards/inbox-rows-are-the-real-pages-page-class/owner-words.md`.
 Read all of it. The key sentences: "we could render the actual page class right there in the inbox.
 And so the inbox is sort of just a different navigation mechanism for like recent things." —
 "it's the exact same page as the framework core page. It's just, like I said, a different way to

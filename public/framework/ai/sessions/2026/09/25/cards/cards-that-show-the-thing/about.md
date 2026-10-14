@@ -10,7 +10,7 @@
 ## How this card is stored
 
 ```
-public/framework/ai/2026/09/25/cards-that-show-the-thing/
+public/framework/ai/sessions/2026/09/25/cards/cards-that-show-the-thing/
 ├── page.jsonl   the card itself: one line per event, the latest wins
 └── about.md     this text
 ```

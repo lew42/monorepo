@@ -1,6 +1,6 @@
 # Minion: roles — one skill per role, each hears only its role
 
-Rules shared by all minions: `../common.md`. Owner's words: `../requirements.md` and the card dir `public/framework/ai/2026/09/25/one-recursive-agent-system-the-same-pair/` (its role table is the spec).
+Rules shared by all minions: `../common.md`. Owner's words: `../requirements.md` and the card dir `public/framework/ai/sessions/2026/09/25/cards/one-recursive-agent-system-the-same-pair/` (its role table is the spec).
 **Fence:** `Servex/agents/Global.js`, `Servex/agents/global.test.mjs`, `Servex/agents/policy.js`, `Servex/agents/policy.test.mjs`, `Servex/agents/roles.js`, `Servex/agents/card-assistant.md`, `Servex/agents/master-assistant.md`, a NEW file `.claude/skills/every-prompt/page-assistant.md`, new files under `Servex/agents/doc/`. ⚠ Do NOT edit `.claude/skills/every-prompt/SKILL.md`: the main tree has uncommitted edits to it. Write the merged text into the new `page-assistant.md` and put in proof.md the one line SKILL.md should gain to point at it. Private Servex port **8390**.
 
 ## Deliverables

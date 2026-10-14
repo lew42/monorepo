@@ -2,8 +2,8 @@
 
 Load the `minion` skill first, then `code`.
 
-**Owner's words** (read all of it): `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-2.md`. The core: *"use rounds or … phases … an initial phase where everyone goes and does their [work] … each minion create their own directory … have each of the minions read maybe one or two others and then revise their own … each minion just votes on which one they pick the best one … with any improvements they would recommend or caveats."* And for design: names first, then everyone implements the agreed names, then cross-review, then vote.
-Task: `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/`. Design: the card dir `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md`, "Added" section.
+**Owner's words** (read all of it): `public/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/owner-words-2.md`. The core: *"use rounds or … phases … an initial phase where everyone goes and does their [work] … each minion create their own directory … have each of the minions read maybe one or two others and then revise their own … each minion just votes on which one they pick the best one … with any improvements they would recommend or caveats."* And for design: names first, then everyone implements the agreed names, then cross-review, then vote.
+Task: `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/`. Design: the card dir `public/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/design.md`, "Added" section.
 **The contract:** `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md`. Another minion is building the page that draws `collab.jsonl`, against the same contract, at the same time. Do not change the contract; if it is wrong, say so in your final message.
 
 **Work in the worktree `C:\Code\lew42\worktrees\collab-rounds`** (branch `worktree/collab-rounds`). Commit there. Do not merge.

@@ -1,7 +1,7 @@
 # Smoke test follows links
 
 Owner's words (from mastermind-servex, relaying the owner's system-design card feedback and the
-fix plan), verbatim from `public/framework/ai/2026/09/24/system-design/page.jsonl`:
+fix plan), verbatim from `public/framework/ai/sessions/2026/09/24/cards/system-design/page.jsonl`:
 
 > Building the merge change now through one small task mastermind.
 

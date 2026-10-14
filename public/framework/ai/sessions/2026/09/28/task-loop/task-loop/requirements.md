@@ -1,6 +1,6 @@
 # The task loop: node opens, chases and checks tasks
 
-Design (picture and table): [/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md](/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md). Owner's words: `.claude/prompts/2026-09-28.jsonl`, the prompt containing "consider the skills system kind of a workflow process". Build every row marked **task-loop**:
+Design (picture and table): [/framework/ai/sessions/2026/09/28/cards/skills-as-a-workflow-tasks-chased-by-nod/design.md](/framework/ai/sessions/2026/09/28/cards/skills-as-a-workflow-tasks-chased-by-nod/design.md). Owner's words: `.claude/prompts/2026-09-28.jsonl`, the prompt containing "consider the skills system kind of a workflow process". Build every row marked **task-loop**:
 
 1. **Open by node:** `spawn_agent` takes `task: {dir, card, brief}` and writes task.jsonl line 1 (session_id, card, brief, model) before the agent's first turn. The new-task skill then says: already done for you if your brief names a task dir.
 2. **The role's skills:** `roles.js` takes a list of skills per role and puts them all in the first turn.

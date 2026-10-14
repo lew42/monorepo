@@ -1,6 +1,6 @@
 # Minion A — nested tasks: the data rule and the tree
 
-Load the `minion` skill first, then `code`. The owner's words: [owner-words.md](/framework/ai/2026/09/29/lifecycle-nothing-left-running-nested-ta/owner-words.md). The parent brief: [../requirements.md](../requirements.md) (read it all). Log in YOUR OWN task.jsonl, this folder — never in the parent's.
+Load the `minion` skill first, then `code`. The owner's words: [owner-words.md](/framework/ai/sessions/2026/09/29/cards/lifecycle-nothing-left-running-nested-ta/owner-words.md). The parent brief: [../requirements.md](../requirements.md) (read it all). Log in YOUR OWN task.jsonl, this folder — never in the parent's.
 
 **Work in the worktree `C:/Code/lew42/worktrees/qf-5`** (branch `worktree/qf-5`, its server at http://127.0.0.1:52847/). Commit there by exact path. Don't merge; your parent does.
 

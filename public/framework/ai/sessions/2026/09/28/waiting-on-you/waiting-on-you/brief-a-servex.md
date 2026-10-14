@@ -2,7 +2,7 @@
 
 Load the `minion` skill first. Then read `contract.md` beside this file. It is your spec, and siblings build against it right now.
 
-The owner's words, 2026-09-28: "for things that you're waiting on me for, this is what the dashboard is for. We need to create a way where I don't, even if I miss something, I don't actually miss it forever… I'll find it in the dashboard." The whole brief is `requirements.md`, and the card's conversation is at `public/framework/ai/2026/09/28/waiting-on-you-never-buried/`.
+The owner's words, 2026-09-28: "for things that you're waiting on me for, this is what the dashboard is for. We need to create a way where I don't, even if I miss something, I don't actually miss it forever… I'll find it in the dashboard." The whole brief is `requirements.md`, and the card's conversation is at `public/framework/ai/sessions/2026/09/28/cards/waiting-on-you-never-buried/`.
 
 **Work in:** `C:\Code\lew42\worktrees\waiting-on-you`, and commit there on its branch.
 **Fence:** `public/framework/ai2/fold.js` (the ask and answer folding, plus `waiting` in summary), `Servex/cards/Cards.js`, `Servex/cards/test.mjs`, `Servex/cards/readme.md`. Touch nothing else.

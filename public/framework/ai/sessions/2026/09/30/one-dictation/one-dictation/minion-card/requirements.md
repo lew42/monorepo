@@ -18,7 +18,7 @@ The card page has "a card-specific right sidebar with a 'talk into this card' te
 4. The font is Montserrat on the card chat (computed `font-family`).
 
 ## Prove it
-Headless Playwright only (a scratchpad script named `od-card-probe.mjs`). Never drive the owner's tabs, and never `say()` into a live session. Seed `sessionStorage["lew42-voice-session"]` with `{"session":"v-gck9buj","file":"/framework/ai/2026/09/30/now/ai/v-gck9buj.jsonl","card":"2026/09/30/now"}`. The file isn't in git, so copy it into the worktree at the same path, and never commit the copy. Take before and after shots of both card pages at 400, 1920 and 3440×1440, with the bubbles visible. Save them in your task dir.
+Headless Playwright only (a scratchpad script named `od-card-probe.mjs`). Never drive the owner's tabs, and never `say()` into a live session. Seed `sessionStorage["lew42-voice-session"]` with `{"session":"v-gck9buj","file":"/framework/ai/sessions/2026/09/30/cards/now/ai/v-gck9buj.jsonl","card":"2026/09/30/now"}`. The file isn't in git, so copy it into the worktree at the same path, and never commit the copy. Take before and after shots of both card pages at 400, 1920 and 3440×1440, with the bubbles visible. Save them in your task dir.
 
 ## Fence
 `ai2/card.js`, `ai2/page.js`, `ai2/ai2.css` (removals and the chat column only), `ux/Dictate/Widget.css`, `ext/Chat/Chat.css` (the orange border only), and your task dir. Other tasks edit ai2/ too: run `git merge michael/dev` in the worktree before you start, keep the diff small, and commit by exact path (another minion shares this worktree).

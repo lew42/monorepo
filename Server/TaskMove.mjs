@@ -349,6 +349,7 @@ export default class TaskMove {
 			const dots = /\.+$/.exec(p)?.[0] ?? "", at = p.slice(0, p.length - dots.length);
 			const file = /\.[a-z0-9]+$/i.test(at.split("/").at(-1));
 			if (lead === "/framework/ai/" && !file) return m;   // a card's page: the Inbox route, unchanged
+			if (at.split("/").length < 3) return m;   // a bare ai/2026 or ai/2026/10 in prose names the old tree, not an index file
 			const now = CardDir.rel(at);
 			return now !== at && has(now) && !has(at) ? lead + now + dots : m;
 		} };

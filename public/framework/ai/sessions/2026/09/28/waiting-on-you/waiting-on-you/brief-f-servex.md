@@ -2,7 +2,7 @@
 
 Load the `minion` skill first. Then read `contract-v2.md` beside this file. It is your spec, and minion G builds the page side against it at the same time.
 
-The owner, 2026-09-28: "for things that you're waiting on me for, this is what the dashboard is for… even if I miss something, I don't actually miss it forever… I'll find it in the dashboard." The whole brief is `requirements.md` (deliverables 1, 2, 3 and 6). The card's conversation is at `public/framework/ai/2026/09/28/waiting-on-you-never-buried/`.
+The owner, 2026-09-28: "for things that you're waiting on me for, this is what the dashboard is for… even if I miss something, I don't actually miss it forever… I'll find it in the dashboard." The whole brief is `requirements.md` (deliverables 1, 2, 3 and 6). The card's conversation is at `public/framework/ai/sessions/2026/09/28/cards/waiting-on-you-never-buried/`.
 
 **Work in:** `C:\Code\lew42\worktrees\needs-you`. Commit only your own files.
 **Fence:** a new `public/framework/ai2/needs-rule.js`; the import lines in `ai2/needs.js` (moving the function out, nothing else); `Servex/cards/Cards.js`, `Servex/cards/test.mjs`, `Servex/cards/readme.md`; the four skills in deliverable 5 below.

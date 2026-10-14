@@ -1,6 +1,6 @@
 # replay — restore every other deleted file from worktrees and transcripts
 
-Load the `minion` skill first. Parent: task-mastermind-recover-main. Read the whole parent brief: [../requirements.md](../requirements.md) (its Rules are absolute and apply to you). The incident card: `public/framework/ai/2026/10/01/601-untracked-files-were-deleted-from-th/`.
+Load the `minion` skill first. Parent: task-mastermind-recover-main. Read the whole parent brief: [../requirements.md](../requirements.md) (its Rules are absolute and apply to you). The incident card: `public/framework/ai/sessions/2026/10/01/cards/601-untracked-files-were-deleted-from-th/`.
 
 ## The ask
 At 22:36 on 2026-10-01 `rm -rf` removed the 601 paths in [../deleted-paths.txt](../deleted-paths.txt) from the MAIN tree `C:/Code/lew42/monorepo`. 239 entries end in `/`: whole folders whose file list is not in that file. Put back every file that has a source, and never touch one that exists now.

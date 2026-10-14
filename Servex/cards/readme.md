@@ -4,7 +4,7 @@ A card is a folder under `public/framework/ai/`, holding one append-only `page.j
 lives in the folder of the day it was made, and a sub-card is a folder inside it, to any depth:
 
 ```
-ai/2026/09/24/page.jsonl                   the day's own page, listing its cards
+ai/sessions/2026/09/24/cards/page.jsonl                   the day's own page, listing its cards
 ai/2026/09/24/fix-the-sidebar/page.jsonl   a card — its id is 2026/09/24/fix-the-sidebar
 ai/2026/09/24/fix-the-sidebar/wider/…      a sub-card — 2026/09/24/fix-the-sidebar/wider
 ```

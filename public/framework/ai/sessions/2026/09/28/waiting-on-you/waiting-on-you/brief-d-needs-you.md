@@ -1,6 +1,6 @@
 # Brief D — the "Needs you" tab (2026-09-29)
 
-Load the `minion` skill first, then `page`. Card directory: public/framework/ai/2026/09/28/waiting-on-you-never-buried/ and the task dir public/framework/ai/sessions/2026/09/28/waiting-on-you/waiting-on-you/ (read requirements.md there; the old branch `worktree/waiting-on-you` has a strip design — `git show worktree/waiting-on-you:public/framework/ai2/waiting.js` and its fold.js/Cards.js diff — reuse ideas, it is 75 commits stale so do NOT merge it).
+Load the `minion` skill first, then `page`. Card directory: public/framework/ai/sessions/2026/09/28/cards/waiting-on-you-never-buried/ and the task dir public/framework/ai/sessions/2026/09/28/waiting-on-you/waiting-on-you/ (read requirements.md there; the old branch `worktree/waiting-on-you` has a strip design — `git show worktree/waiting-on-you:public/framework/ai2/waiting.js` and its fold.js/Cards.js diff — reuse ideas, it is 75 commits stale so do NOT merge it).
 
 ## The owner's words, today
 "does the AI2 dashboard... have a view yet that just shows me... the most important things that are waiting on me? ... having a prioritized view ... what's needed from me ... I don't even want to look at it because it's just so... we have not built like a solid foundational thing."
