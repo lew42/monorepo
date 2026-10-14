@@ -54,3 +54,21 @@ The owner found an Inbox link to `/framework/ai/2026-10-13/…` and asked, again
 - **The link the owner clicked** was a reader guessing `/framework/ai/<date>/<slug>/` from the day log. Such a url now finds the task in the store and redirects (`StoreFolder.lookup`; `TaskDirs.redirect()` is the node twin).
 - **The last day folders moved:** `ai/2026-10-12/` (6 tasks) and `ai/2026-10-13/`, by `TaskMove` (`--undo` and `--relink` now act on one run, never the whole ledger).
 - **One tree, decided:** Inbox cards move from `ai/YYYY/MM/DD/<card>/` into `ai/sessions/YYYY/MM/DD/cards/<card>/`. Not yet applied: card ids are paths kept in records, so the readers need one resolver first ([one-tree.md](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store/doc/one-tree.md)). The alternative, the store moving up to `ai/YYYY/MM/DD/`, is fifteen times larger and was rejected.
+
+## 2026-10-13: one tree, applied
+
+Every Inbox card folder now lives inside the sessions store. `framework/ai` has one year tree: `ai/sessions/YYYY/MM/DD/`, holding that day's sessions, their tasks, `day.jsonl`, and `cards/`.
+
+```
+ai/sessions/2026/10/13/cards/<card>/page.jsonl    was ai/2026/10/13/<card>/page.jsonl
+ai/sessions/2026/10/13/cards/page.jsonl           the day's card index (was ai/2026/10/13/page.jsonl)
+ai/sessions/2026/cards/page.jsonl                 the year's index; a month's is ai/sessions/2026/10/cards/
+```
+
+- **What did not change:** a card's id (`2026/10/13/<card>`, carried by 656 records that are never rewritten) and its page, `/framework/ai/2026/10/13/<card>/`, which is the Inbox route. Old card links keep working with no redirect.
+- **The one rule:** [`cards/CardDir.js`](../cards/CardDir.js) puts `cards` after the date. Servex's `Cards.dir(id)` uses it and falls back to the old folder when only that one exists (a card written by a Servex not yet restarted). Every reader goes through it: `Cards`, `Layers`, `Sessions`, `on-landing.mjs`, `smoke.mjs`, `day-prompts-refine.mjs`, the card page, the Inbox scans. The dev server serves an old file url (`/framework/ai/2026/10/13/<card>/report.md`) from the new folder.
+- **The move:** `node Server/TaskMove.mjs --apply --manifest <dry run> --ledger card-moves`, with the dry run written by [`card-move-plan.mjs`](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store-apply/card-move-plan.mjs). Two runs in the worktree moved 557 card folders and 24 index files; `--verify` found 0 bad. The ledger is `ai/sessions/card-moves.jsonl` (with `card-moves-files.jsonl`, the sha1 snapshot).
+- **The undo, proven first** on a worktree copy: apply, verify, `--undo`, 0 tracked files changed, apply again ([undo-proof.txt](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store-apply/undo-proof.txt)). To undo the real move: `node Server/TaskMove.mjs --undo --ledger card-moves --run <stamp>`, one run at a time.
+- **The relink:** `--relink --ledger card-moves` rewrote 165 mentions in 122 md/js files: file paths and file links into the moved folders, and relative links inside them. Page links stay, because the page address did not change.
+- **Git-ignored cards** (`session-<id8>`, the owner's session pages) are not in git, so a merge cannot carry them. They move in the main tree by a third run of the same command after the merge, and stay ignored in their new place.
+- **Watch out:** a dev server watching the tree (`Server/plugins/PageFiles.js`) appends listing lines into `page.jsonl` files while their folders move. Run a move with no server watching that checkout, or expect a `files.jsonl` to reappear in an emptied old folder.
