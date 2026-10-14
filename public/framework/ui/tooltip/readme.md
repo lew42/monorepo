@@ -19,3 +19,4 @@ span.c("ui-tooltip", () => {
 
 - [Overview](/framework/ui/tooltip/) — the hover demo, the held-open `.shown` demo, the native `title` variant
 - Files: `tooltip.js` (the whole component, as CSS), `page.js` (show, don't tell)
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
