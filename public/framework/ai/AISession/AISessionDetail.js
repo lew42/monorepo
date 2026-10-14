@@ -34,12 +34,25 @@ export default class AISessionDetail extends Page {
 	}
 
 	/** Fetch sessions.json, the index and the tree once, before the detail page is built (called from AISessionsPage.child()). */
-	static preload(root_url){
-		return AISessionDetail._preload ??= Promise.all([
-			AISessionRows.get_json(root_url + "sessions.json").then(s => AISessionRows.snapshot = s),
-			AISessionRows.load_index(root_url).catch(() => {}),
-			AISessionRows.load_tree(root_url).then(t => { AISessionRows.tree ??= t; }).catch(() => {}),
-		]);
+	static preload(root_url, id){
+		return (async () => {
+			AISessionDetail._rows ??= Promise.all([
+				AISessionRows.get_json(root_url + "sessions.json"),
+				AISessionRows.load_index(root_url),
+				AISessionRows.load_tree(root_url),
+			]);
+			const [snap, , tree] = await AISessionDetail._rows;
+			AISessionRows.snapshot = snap; AISessionRows.tree ??= tree;
+			// The name lives in the day index snapshot (session-index.json can be days stale): fold in the row's own snapshot, as the live feed would.
+			const row = snap?.rows?.find(r => r.id === id || r.session_id === id), sid = row?.session_id ?? id;
+			if (!AISession.all.get(sid)?.ix?.title){
+				const days = [...new Set([row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))).filter(Boolean))];
+				for (const day of days){
+					const hit = (await AISessionRows.get_json(new URL(`./${day}/index.json`, AISession.root_url()).pathname))?.snapshots?.find(x => x.id === sid);
+					if (hit){ AISession.apply_delta(hit); break; }
+				}
+			}
+		})();
 	}
 
 	/** Show the session's name (the grid's Name column) instead of its id, once the row is known: the column head and the crumb were drawn with the id. */
