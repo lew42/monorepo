@@ -23,5 +23,6 @@ new Dropdown({ options, value, pick }).draw();   // the class — every method i
 
 ## More
 - [/framework/ext/Dropdown/](/framework/ext/Dropdown/) — the page: pick one, see it
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`doc/decisions.md`](./doc/decisions.md) — why the top layer, why a class, what a native `<select>` could not do
 - Consumers: [`ext/Panel`](/framework/ext/Panel/)'s properties rail — its **template** and **display** pickers
