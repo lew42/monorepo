@@ -658,6 +658,26 @@
 		display: none;
 	}
 
+	/* ── THE ROWS GROW WITH THE LIST (ux/Browse: the list pane is the `browse-list` container) ──
+	   Narrow (a phone, a narrow drag): the summary is one line. Wide (3440, or dragged wide):
+	   one row reads like a table row, the title and its badges on the left, the rest beside it. */
+	@container browse-list (width < 30em) {
+		.inbox-row-line { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; }
+	}
+
+	@container browse-list (width >= 60em) {
+		.inbox-rows .inbox-row {
+			display: grid;
+			grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+			column-gap: calc(var(--pad-card) * 1.5);
+			align-items: start;
+		}
+		.inbox-rows .inbox-row > .inbox-row-head { grid-column: 1; grid-row: 1 / span 6; }
+		.inbox-rows .inbox-row > :not(.inbox-row-head) { grid-column: 2; }
+		.inbox-rows .inbox-row > * + * { margin-block-start: 0; }
+		.inbox-rows .inbox-row > :not(.inbox-row-head) + :not(.inbox-row-head) { margin-block-start: var(--inbox-step); }
+	}
+
 	/* ── ONE SCREEN AT A TIME, ON A PHONE ──
 	   Below 40em each level is its own screen: the rail, then a row's page, then a
 	   sub-page. Which shows is read off the Router's own marks: the page that owns the
