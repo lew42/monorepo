@@ -5,7 +5,7 @@ thing to get right. [Live page](/framework/core/Page/navigation/).
 
 ## Use
 
-- **The answer to the four questions** (table of contents or sub pages, nest or swap, where a link opens, workspace or document): [Navigation: one model](model/readme.md), one rule each, live demos.
+- **Start here: [Navigation: one model](model/readme.md)** answers the owner's four questions of 2026-10-14 (table of contents or sub pages, nest or swap, where a link opens, workspace or document), one rule each, with live demos. The rest of this page is the earlier study of 2026-09-29: persistent vs switching.
 
 - **Persistent vs switching** is the first and biggest concept: a persistent element (rail,
   header, crumb strip) never moves; switching replaces the whole screen, which is fine as long
@@ -49,4 +49,5 @@ thing to get right. [Live page](/framework/core/Page/navigation/).
 - [`doc/alternatives.md`](doc/alternatives.md) — the alternatives table, with more detail than
   the page shows.
 - [`doc/prior-work.md`](doc/prior-work.md) — every navigation row the inventory found, linked.
-- Built by `minion-nav-page` for the [page-system](/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/) task.
+- [`weight.jsonl`](weight.jsonl) and [`shots/`](shots/) — the measurements and screenshots behind the page.
+- History: first built for the [page-system](/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/) task (2026-09-29).
