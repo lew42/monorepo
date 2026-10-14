@@ -36,7 +36,7 @@ export default new Page({
 	icon: "dashboard",
 	description: "Every layout named, defined and drawn at three widths.",
 
-	children: "browse decide practice shell labs tag doc explorer",
+	children: "browse decide practice shell labs tag doc explorer archive",
 
 	/* A layout's page, built from its entry. `route()` sees undeclared names only, so
 	   it can never shadow `tag` or `doc`.

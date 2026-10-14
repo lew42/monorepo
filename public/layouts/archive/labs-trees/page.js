@@ -84,7 +84,7 @@ export default new Page({
 
 		DRAWINGS.filter(d => d.key !== "family").forEach(d => this.canvas(d.key));
 
-		md("The [readme](/layouts/labs/trees/readme/) has why plain CSS instead of canvas or SVG, why full screen uses the real `requestFullscreen()` API, and the mobile-framing numbers.");
+		md("The [readme](/layouts/archive/labs-trees/readme/) has why plain CSS instead of canvas or SVG, why full screen uses the real `requestFullscreen()` API, and the mobile-framing numbers.");
 	},
 
 	// ── THE GENERATOR CONTROL ──────────────────────────────────────────────────

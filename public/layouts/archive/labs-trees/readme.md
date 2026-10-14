@@ -2,7 +2,7 @@
 
 **A tree generator makes labels like `a`, `a1`, `a1a`, `a1b`, and this lab draws the same
 tree three ways** — a family tree, a flow chart, a brainstorm map — at
-[`/layouts/labs/trees/`](/layouts/labs/trees/). Every connector line is a CSS border sitting
+[`/layouts/archive/labs-trees/`](/layouts/archive/labs-trees/). Every connector line is a CSS border sitting
 wherever flexbox or grid put the edge of a box; nothing here is a `<canvas>`, an SVG, or a
 pixel this page calculated. This is the owner's own spatial-layout idea (2026-09-18), built
 small enough to see in one page rather than described.

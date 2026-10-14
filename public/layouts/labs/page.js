@@ -21,7 +21,7 @@ export default new Page({
 	width: "full",
 	index: true,
 
-	children: "shells screens sections blogx mag decks trees",
+	children: "shells screens sections blogx mag decks",
 
 	content(){
 		md("**Seven labs where an arrangement got tried before it earned an id above.** Each one built and proved one shape: an app shell, what a click does to your screen, a horizontal band, a blog shell at 3440, a magazine page, a deck cut into regions, a spatial tree drawn three ways. Six moved here from `/imagine/` on 2026-09-18 — the old addresses still work, each a one-line pointer back to this page.");
