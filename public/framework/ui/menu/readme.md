@@ -27,4 +27,5 @@ details.c("ui-menu", $menu => {
 
 - [Overview](/framework/ui/menu/) — both variants, why there is no `ui.menu()`, the CSS in full
 - [`ux/Menu`](/framework/ux/Menu/) — the class this graduated to
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - Files: `menu.js` (the `.ui-menu-*` CSS), `page.js` (the demo)
