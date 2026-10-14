@@ -3,3 +3,4 @@
 {"log":{"at":"2026-10-13T18:55:57-05:00","msg":"Kit Controls done; census all pages; 23 new glyphs (130 total; frame_source Symbols-only); migrating page by page"}}
 {"action":{"at":"2026-10-13T19:11:16-05:00","did":"edit","files":["public/framework/ext/Figma/doc/use-figma.md"]}}
 {"action":{"at":"2026-10-13T19:11:17-05:00","did":"edit","files":["public/framework/ext/Figma/doc/icons.md"]}}
+{"log":{"at":"2026-10-13T19:25:00-05:00","msg":"swap complete; 159 glyphs; report kit/icon-swap.md; landed"}}
