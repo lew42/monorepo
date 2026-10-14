@@ -1,0 +1,24 @@
+// Run through use_figma (remote MCP) on file QYN0G2URSBHYH5I06MOjxU. READ-ONLY: writes nothing into the file.
+// Contrast ratios are computed from the LIVE variable values every time, never stored in the design,
+// so a changed colour can't leave stale numbers behind (owner, 2026-10-13). Doc: ext/Figma/doc/figma-layout.md.
+// Grounds: each Text-collection mode's `surface`, plus the Colors collection's prime, dark and light.
+// Inks: each mode's `text`, `muted`, `accent` over its `surface`; `on-accent` over `accent` (it is ink on an accent fill). Alphas are blended.
+const lum = c => { const f = x => x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
+const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+const blend = (fg, bg) => { const a = fg.a ?? 1; return { r: fg.r * a + bg.r * (1 - a), g: fg.g * a + bg.g * (1 - a), b: fg.b * a + bg.b * (1 - a) }; };
+const grade = r => r >= 7 ? 'AAA' : r >= 4.5 ? 'AA' : r >= 3 ? 'large/icons' : r >= 1.5 ? 'decorative' : 'invisible';
+const vars = await figma.variables.getLocalVariablesAsync('COLOR');
+const cols = await figma.variables.getLocalVariableCollectionsAsync();
+const resolve = async (v, modeId, depth = 0) => { let val = v.valuesByMode[modeId] ?? Object.values(v.valuesByMode)[0];
+  if (val && val.type === 'VARIABLE_ALIAS' && depth < 5) { const t = await figma.variables.getVariableByIdAsync(val.id); const tc = cols.find(c => c.id === t.variableCollectionId); return resolve(t, tc.modes.find(m => m.modeId === modeId) ? modeId : tc.defaultModeId, depth + 1); }
+  return val; };
+const textCol = cols.find(c => c.name === 'Text');
+const byName = n => vars.find(v => v.name === n && v.variableCollectionId === textCol.id);
+const rows = [];
+for (const m of textCol.modes) {
+  const ground = await resolve(byName('surface'), m.modeId);
+  for (const ink of ['text', 'muted', 'accent', 'on-accent']) { const v = byName(ink); if (!v) continue;
+    const c = await resolve(v, m.modeId); const under = ink === 'on-accent' ? await resolve(byName('accent'), m.modeId) : ground; const r = ratio(blend(c, under), under);
+    rows.push(`${m.name.padEnd(14)} ${ink.padEnd(10)} ${r.toFixed(1).padStart(5)}  ${grade(r)}`); }
+}
+return rows.join('\n');

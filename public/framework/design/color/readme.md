@@ -19,7 +19,7 @@ Colour on this site is never a literal value. It is a small set of tokens (`--su
 
 ## More
 
-- [/framework/ext/Figma/doc/use-figma.md](/framework/ext/Figma/doc/use-figma.md) and Figma's `Colour · Permutations` page — every ground × ink pair with its computed ratio (2026-10-13). Findings: prime is never body text (3.0 on white, 4.4 at best); black ink on the dark ground `#675F56` is only 3.0, so dark takes white ink; 10% insets are decorative edges (1.0–1.4), never the only cue.
+- **Contrast numbers are computed, never stored** (owner, 2026-10-13). Colours are meant to be adjustable, so a ratio written into a design or a doc goes stale the moment a colour changes. In Figma, run `ext/Figma/scripts/contrast.figma.txt`: it reads the live variables and writes nothing. On a single layer, use Figma's own contrast checker. Figma's `Colour · Permutations` page shows every ground × ink pairing, without numbers.
 
 - [doc/rules.md](./doc/rules.md) — the tokens and traps, verbatim from the old `css` skill.
 - [questions.md](./questions.md) — review questions for this system.
