@@ -1,2 +1,3 @@
 {"log":{"at":"2026-10-13T19:00:53-05:00","task":"ai-modules-home","msg":"landed: AITask moved from ext/ to ai/, the ai/ rule written in the ai and ext readmes, Dictate and the AI-group moves proposed"}}
 {"log":{"at":"2026-10-13T19:09:31-05:00","task":"dictate-session","msg":"landed: one New session button, one MicIndicator"}}
+{"log":{"at":"2026-10-13T23:12:40-05:00","task":"voice-e2e-review","msg":"landed — dictation walked on phone and desktop; New session now starts fresh, first sentence no longer vanishes"}}

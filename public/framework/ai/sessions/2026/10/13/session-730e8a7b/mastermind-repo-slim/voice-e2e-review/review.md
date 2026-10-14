@@ -10,7 +10,7 @@ The walk ran headless through real Whisper. A spoken WAV played as the microphon
 
 - **New session brought the old conversation straight back.** On both surfaces, the first sentence after the press went into the old session: Servex's "resume the last hour on this page" rule won. The desktop drawer even reopened the phone's conversation ([before](shots/before-desk-05-bubble.png)). ✅ Now the press always starts a new session: v-s6za79d and v-vnsnak7 in the after runs ([after](shots/after-phone-04-new-session.png)).
 - **The first sentence after New session vanished from the phone sheet.** It was in the session file, but not on screen. ✅ It now shows on screen.
-- **The phone sheet's title was the class name `DrawerRailSheetChat`.** The smart assistant even repeated that name back as its guess for "the sheet". ✅ It now says **AI**. New session moved into the sheet's head, so it is one tap, the same as on the desktop. When the sheet is full, the links row that repeated the tab row is gone ([full](shots/after-phone-20-before-mic-off.png)).
+- **The phone sheet's title was the class name `DrawerRailSheetChat`.** ✅ It now says **AI**. New session moved into the sheet's head, so it is one tap, the same as on the desktop. When the sheet is full, the links row that repeated the tab row is gone ([full](shots/after-phone-20-before-mic-off.png)).
 - **A refused-mic message ran 330 px off the right edge at 400** ([before](shots/before-phone-mic-refused.png)). ✅ It now wraps ([after](shots/after-phone-mic-refused.png)).
 
 ---
