@@ -18,8 +18,9 @@ export default new Page({
 		div.c("cols half", () => {
 			div(() => {
 				h3("The demo");
-				div.c("flex gap", () => {
-					button("add a child page").click(() => { n++; page.add(`demo-${n}`, { title: `Demo ${n}` }); });
+				div.c("flex gap", $b => {
+					$b.style({ flexWrap: "wrap" });   // the buttons wrap as a whole, never their words
+					button("add a child page").click(() => { n++; page.add(`demo-${n}`, { title: `Demo ${n}` }); }).style({ whiteSpace: "nowrap" });
 					button("rename this page").click(() => {
 						const title = `InstanceTree ${++n}`;
 						page.title = title;                       // a config title is a plain own property: silent,

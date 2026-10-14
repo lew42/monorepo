@@ -84,14 +84,15 @@ export default class CatalogPage extends Page {
 		]);
 	}
 
-	page_as_class(p){ return p && { name: p.name, url: p.url, icon: p.icon, extends: "", methods: [], api: false }; }
+	// A featured name with no class of that name (Refine is a function plus RefineView): its page card instead, described.
+	page_as_class(p){ return p && { name: p.name, url: p.url, icon: p.icon, extends: "", group: "a page, not one class", methods: [], desc: p.desc, api: false }; }
 
 	class_card(c, featured){
 		return this.anchor(c.url, `cat-class${c.api ? " has-api" : ""}${featured ? " featured" : ""}`, [
 			this.glyph(c.icon),
 			this.node("strong", c.name),
 			this.node("small", c.extends ? `extends ${c.extends}` : c.group || "", "cat-ext"),
-			this.node("code", c.methods?.join(" · ") || "", "cat-methods"),
+			c.methods?.length ? this.node("code", c.methods.join(" · "), "cat-methods") : this.node("small", c.desc || "", "cat-desc"),
 		]);
 	}
 
