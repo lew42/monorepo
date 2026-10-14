@@ -78,3 +78,4 @@ nothing from AI 2).
 - Data: [doc/inbox-data.md](doc/inbox-data.md) — the sources the inbox reads (computed by `node InboxSources.mjs`), which is the record and which a cache; `node Landings.mjs --append` refreshes the timeline's index.
 - Ranking: [doc/ranking.md](doc/ranking.md) — `Inbox.rank`: importance + recency, new rows float up, owner state sinks.
 - Notes: [doc/InboxRail-notes.md](doc/InboxRail-notes.md) — history and lessons moved out of the code comments.
+- Next: [doc/next.md](doc/next.md) — what the 2026-10-13 review ([review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/review-ai-pages/review.md)) left open: the stale pinned Now card.
