@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/",
+ "widths": {
+  "1280": {
+   "empty": 0.388,
+   "widest_text": 4134,
+   "widest_text_sample": "4,248 old screenshots (483 MB) now live ",
+   "overflow_x": false,
+   "items": 105,
+   "narrow_share": 0.086
+  },
+  "1920": {
+   "empty": 0.381,
+   "widest_text": 4399,
+   "widest_text_sample": "4,248 old screenshots (483 MB) now live ",
+   "overflow_x": false,
+   "items": 105,
+   "narrow_share": 0.295
+  },
+  "2560": {
+   "empty": 0.408,
+   "widest_text": 4949,
+   "widest_text_sample": "4,248 old screenshots (483 MB) now live ",
+   "overflow_x": false,
+   "items": 105,
+   "narrow_share": 0.295
+  },
+  "3440": {
+   "empty": 0.542,
+   "widest_text": 4949,
+   "widest_text_sample": "4,248 old screenshots (483 MB) now live ",
+   "overflow_x": false,
+   "items": 105,
+   "narrow_share": 0.848
+  }
+ },
+ "errors": []
+}

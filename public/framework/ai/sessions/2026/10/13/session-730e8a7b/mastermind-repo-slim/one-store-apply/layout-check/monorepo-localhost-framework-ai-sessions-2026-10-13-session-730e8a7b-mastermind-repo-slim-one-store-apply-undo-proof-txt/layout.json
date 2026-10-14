@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store-apply/undo-proof.txt",
+ "widths": {
+  "1280": {
+   "empty": 0.804,
+   "widest_text": 1237,
+   "widest_text_sample": "# undo proof on the worktree copy (C:/Co",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.864,
+   "widest_text": 1751,
+   "widest_text_sample": "# undo proof on the worktree copy (C:/Co",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.894,
+   "widest_text": 1751,
+   "widest_text_sample": "# undo proof on the worktree copy (C:/Co",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.924,
+   "widest_text": 1751,
+   "widest_text_sample": "# undo proof on the worktree copy (C:/Co",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": []
+}

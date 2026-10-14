@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store-apply/servex-proof.txt",
+ "widths": {
+  "1280": {
+   "empty": 0.919,
+   "widest_text": 536,
+   "widest_text_sample": "pass  private Servex up on 8490\npass  cr",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.946,
+   "widest_text": 536,
+   "widest_text_sample": "pass  private Servex up on 8490\npass  cr",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.958,
+   "widest_text": 536,
+   "widest_text_sample": "pass  private Servex up on 8490\npass  cr",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.969,
+   "widest_text": 536,
+   "widest_text_sample": "pass  private Servex up on 8490\npass  cr",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": []
+}

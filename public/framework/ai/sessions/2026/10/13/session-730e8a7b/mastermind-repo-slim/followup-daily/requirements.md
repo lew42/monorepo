@@ -1,4 +1,4 @@
-# Follow-up runs itself: the daily computed list, wired into Servex, linked from the handover
+# Follow-up: a daily computed list
 
 Budget: $6. Load the `sub-mastermind` skill first. The owner's words: `../requirements.md` dictation 2 ("we don't have a very reliable system to make sure that past work is being followed up on") and `../requirements-5.md` ask 5 (loops are node's job, not the AI's memory). What exists: `Server/FollowUp.mjs --write` produces `ai/doc/follow-up.md` (+ `follow-up-full.md`) from every task of the last 10 days through `SessionIndex`; the follow-up-act task left a `decision` line in `Servex/doc/task-loop.md` proposing a daily run; `Servex/TaskLoop.js` ticks on a schedule; the landing nag + next-step wake landed today (`Servex/agents`, live since the 19:55 restart). Your log is this dir's `task.jsonl`.
 
