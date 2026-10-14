@@ -1,0 +1,3 @@
+{"class":"/framework/ai/cards/card.js","title":"First-reply latency: measuring hops","type":"note","id":"2026/10/13/first-reply-latency-measuring-hops","created":"2026-10-13T19:38:57-05:00","by":"agent","tags":["owner-note","decision"]}
+{"owner_note":{"kind":"decision","text":"Reading the session path. First suspects: the 8 s fast-reply hold, the 2.5 s quiet hold and the cold spawn. Measuring each hop before fixing anything.","links":[],"by":"agent","at":"2026-10-13T19:38:57-05:00"}}
+{"message":{"by":"agent","kind":"note","text":"Reading the session path. First suspects: the 8 s fast-reply hold, the 2.5 s quiet hold and the cold spawn. Measuring each hop before fixing anything.","at":"2026-10-13T19:38:57-05:00","id":"m-mv7dti0nuw"}}

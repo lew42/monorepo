@@ -521,7 +521,17 @@ export class Agents {
 		const cwd = base.cwd ?? facts.cwd;
 		if (!cwd) throw new Error(`Cannot find where session ${row.session_id} ran, so it cannot be resumed.`);
 		return this.spawn(strip({ ...base, cwd, model: base.model ?? facts.model,
-			id: row.id, started_at: row.started_at, resume: row.session_id }));
+			id: row.id, started_at: row.started_at, resume: row.session_id,
+			cost: Math.max(Number(row.cost) || 0, this.logged_cost(row.id)), turns: row.turns ?? 0 }));
+	}
+
+	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */
+	logged_cost(id){
+		try {
+			const text = fs.readFileSync(this.store().file(`agent-${id}`).path, "utf8");
+			let sum = 0; for (const m of text.matchAll(/"turn_cost":([0-9.eE+-]+)/g)) sum += Number(m[1]) || 0;
+			return sum;
+		} catch { return 0; }
 	}
 	interrupt(id){ return this.get(id).interrupt(); }
 	/* Continue (+$5) on a spend-gate card: raise the allowance and send the agent on its
@@ -915,6 +925,7 @@ Agents.Agent = class Agent {
 		 * read just means the first turn's cost stays whatever the SDK guessed
 		 * until the next turn settles it. */
 		if (this.provider === "openrouter") this.refresh_or_cost();
+		this.proc_cost = 0;   // the SDK's total_cost_usd counts from ZERO in every claude process (spawn, awaken, reopen): see add_cost()
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
 		this.pump(this.gen = (this.gen ?? 0) + 1);
 		if (!this.prompt){ this.state = "idle"; return this; }
@@ -1662,6 +1673,20 @@ Agents.Agent = class Agent {
 		} catch {}   // billing not settled yet, or no key — this.cost keeps its last value
 	}
 
+	/* COST ACCUMULATES (agent-cost, 2026-10-13). `total_cost_usd` is cumulative only inside ONE claude
+	 * process; sleep()/awaken() and a Servex restart (reopen) start a new process whose total begins at 0, so
+	 * `this.cost = total` made a resumed agent's cost shrink or read 0. This adds each turn's DELTA onto the
+	 * running `this.cost` (carried across processes) and keeps the delta as `turn_cost`, which result() logs. */
+	add_cost(message){
+		const total = Number(message.total_cost_usd);
+		if (!Number.isFinite(total)) return this.turn_cost = 0;
+		const prev = this.proc_cost ?? 0;
+		this.turn_cost = total >= prev ? total - prev : total;
+		this.proc_cost = total;
+		this.cost = (Number(this.cost) || 0) + this.turn_cost;
+		return this.turn_cost;
+	}
+
 	/* A turn ended — but the agent is only IDLE if nothing is queued behind it.
 	 * `queued_turn_count` is how the CLI says "another turn follows without
 	 * further input"; without that check a watcher reads the gap between two
@@ -1683,7 +1708,7 @@ Agents.Agent = class Agent {
 		 * (openrouter/readme.md point 3), so it must never touch `this.cost`
 		 * here; refresh_or_cost() below owns `this.cost` for that agent instead. */
 		if (this.provider === "openrouter") this.refresh_or_cost();
-		else this.cost = message.total_cost_usd ?? this.cost;
+		else this.add_cost(message);
 		this.queued = message.queued_turn_count ?? 0;
 		this.state = this.queued > 0 ? "working" : "idle";
 		this.spend_gate?.open.clear();   // a turn's end closes every tool call it opened
@@ -1704,6 +1729,7 @@ Agents.Agent = class Agent {
 			type: "result",
 			ok: !message.is_error,
 			cost: this.cost,
+			turn_cost: this.turn_cost ?? 0,   // THE RECORD: this turn's own dollars; reopen() re-sums these (agent-cost, 2026-10-13)
 			duration_ms: message.duration_ms,
 			turns: this.turns,
 			api_turns: message.num_turns,
@@ -1765,12 +1791,12 @@ Agents.Agent = class Agent {
 		this.compacted_turn = this.turns;
 		this.compacted_at = stamp();
 		if (this.provider === "openrouter") this.refresh_or_cost();
-		else this.cost = message.total_cost_usd ?? this.cost;
+		else this.add_cost(message);
 		this.queued = message.queued_turn_count ?? 0;
 		this.state = this.queued > 0 ? "working" : "idle";
 		this.said = [];
 		this.log({ at: stamp(), agent: this.id, type: "compact", ok: !message.is_error, why: c.why, before: c.before, after: this.context ?? null,
-			rss_mb_before: c.rss_mb, duration_ms: Date.now() - c.at, cost: this.cost });
+			rss_mb_before: c.rss_mb, duration_ms: Date.now() - c.at, cost: this.cost, turn_cost: this.turn_cost ?? 0 });
 		this.host?.register?.(this);
 		this.settle();
 		/* Compacted for MEMORY: a process keeps the heap it grew, so restart it

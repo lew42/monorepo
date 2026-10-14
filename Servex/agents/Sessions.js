@@ -216,7 +216,9 @@ export default class Sessions {
 		 * so that, when the smart one answers (or reacts) first, only ONE acknowledgement
 		 * goes out (the owner, 2026-09-30). `hold_fast()` below. */
 		return { repo: REPO, file: process.env.SERVEX_SESSIONS_FILE || null, quiet_ms: env("SERVEX_SESSION_QUIET_MS", 1500),
-			fast_wait_ms: env("SERVEX_SESSION_FAST_WAIT_MS", 8000),
+			/* 1500, was 8000 (first-reply, 2026-10-13): the smart one never answered inside 8 s, so the wait only delayed
+			 * the first reply; ai/.../first-reply/ and ux/Dictate/doc/latency.md. Set the env to 8000 for the old pace. */
+			fast_wait_ms: env("SERVEX_SESSION_FAST_WAIT_MS", 1500), prewarm: env("SERVEX_SESSION_PREWARM", 1),
 			idle_ms: env("SERVEX_SESSION_IDLE_MS", 5 * 60000), resume_ms: env("SERVEX_SESSION_RESUME_MS", 60 * 60000),
 			max_pairs: env("SERVEX_SESSION_MAX_PAIRS", 2), floor_wait_ms: env("SERVEX_SESSION_FLOOR_WAIT_MS", 8000),
 			/* THE THOUGHT (dictation-stream, 2026-09-30): a spoken line is held from BOTH assistants until the
@@ -647,14 +649,23 @@ export default class Sessions {
 		this.write(s, { session: { id, home, at: s.at, project, host, ...(card ? { card } : {}), fast: null, smart: null, backing: s.backing } });
 		this.point(s, home);
 		this.save();
+		this.prewarm_fast(s);
 		const previous = last ? { session: last.session, title: last.title, summary: last.summary, at: last.last_at } : null;
 		return { ok: true, session: id, home, file, resumed: false, previous };
 	}
 
-	/* Continue any session by id. Nothing spawns until the next say. */
+	/* PRE-WARM (first-reply, 2026-10-13): opening the drawer starts the FAST agent now, so the first sentence meets a live
+	 * process, not a cold spawn. The smart one still waits for the first say. The idle sweep stops it after idle_ms. */
+	prewarm_fast(s){
+		if (!this.prewarm) return;
+		setImmediate(() => { try { this.wake(s, "fast"); this.save(); } catch (e){ console.error(`sessions: prewarm: ${e.message}`); } });
+	}
+
+	/* Continue any session by id. The fast agent pre-warms (above); the smart one spawns at the next say. */
 	resume({ session } = {}){
 		const s = this.get(session);
 		const { title = null, summary = null } = this.summary_of(s);
+		this.prewarm_fast(s);
 		return { ok: true, session: s.id, home: s.home, file: s.file, resumed: true, title, summary, at: s.at, last_at: s.last_at ?? s.at };
 	}
 

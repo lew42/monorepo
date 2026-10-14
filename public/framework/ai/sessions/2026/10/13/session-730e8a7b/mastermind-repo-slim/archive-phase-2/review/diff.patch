@@ -1,0 +1,827 @@
+diff --git a/Server/archive-sessions.mjs b/Server/archive-sessions.mjs
+new file mode 100644
+index 000000000..976282a36
+--- /dev/null
++++ b/Server/archive-sessions.mjs
+@@ -0,0 +1,235 @@
++#!/usr/bin/env node
++// Move a month's untracked session pictures to the archive drive; tracked records stay. Doc: public/framework/ai/sessions/doc/picture-archive.md
++//   node Server/archive-sessions.mjs --plan  [--months 08,09]   what would move: per day, files, MB, destination
++//   node Server/archive-sessions.mjs --copy                     copy to the archive, sha1 every file, write its manifest + README
++//   node Server/archive-sessions.mjs --apply                    re-verify both sides, remove the C: copy, write the repo stub
++//   node Server/archive-sessions.mjs --undo [--drawn]           copy every file back (or only the ones a page.js draws) and verify (archive kept)
++// A picture a page.js draws on load stays on C: (a copy still goes to the archive): an archived one would 404 and fail merge.mjs's smoke.
++// Flags: --root <repo> (default: this repo)  --dest <archive root> (default E:/Projects/lew42/archive)  --year 2026
++import { execFileSync } from "node:child_process";
++import { createHash } from "node:crypto";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++export default class ArchiveSessions {
++	static PICTURE = /\.(png|jpe?g|webp|gif)$/i;
++	static STORE = "public/framework/ai/sessions";
++
++	constructor({ root, dest, year = "2026", months = ["08", "09"] } = {}) {
++		this.root = path.resolve(root || path.join(path.dirname(fileURLToPath(import.meta.url)), ".."));
++		this.dest = path.resolve(dest || "E:/Projects/lew42/archive");
++		this.year = year;
++		this.months = months;
++	}
++
++	monthDir(m) { return `${ArchiveSessions.STORE}/${this.year}/${m}`; }       // repo-relative, forward slashes
++	archiveDir(m) { return path.join(this.dest, "sessions", this.year, m); }
++	manifestPath(m) { return path.join(this.archiveDir(m), "archive.jsonl"); }
++
++	git(args) { return execFileSync("git", args, { cwd: this.root, maxBuffer: 1 << 28, windowsHide: true }).toString(); }
++
++	static sha1(file) { return createHash("sha1").update(fs.readFileSync(file)).digest("hex"); }
++
++	static walk(dir, out = []) {
++		if (!fs.existsSync(dir)) return out;
++		for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
++			const f = path.join(dir, e.name);
++			if (e.isDirectory()) ArchiveSessions.walk(f, out); else out.push(f);
++		}
++		return out;
++	}
++
++	// Untracked pictures under the month (tracked ones, e.g. inside doc/, stay with git).
++	scan(m) {
++		const rel = this.monthDir(m);
++		const tracked = new Set(this.git(["ls-files", "-z", "--", rel]).split("\0").filter(Boolean));
++		const abs = path.join(this.root, rel);
++		return ArchiveSessions.walk(abs)
++			.map(f => path.relative(abs, f).split(path.sep).join("/"))
++			.filter(p => ArchiveSessions.PICTURE.test(p) && !tracked.has(`${rel}/${p}`))
++			.map(p => ({ path: p, bytes: fs.statSync(path.join(abs, p)).size }))
++			.sort((a, b) => a.path.localeCompare(b.path));
++	}
++
++	static mb(b) { return (b / 1e6).toFixed(1) + " MB"; }
++
++	// Pictures a page shows when it opens, so they never leave: named in an ancestor page.js, or embedded as a picture
++	// (markdown ![](…), <img src>, a {"shot"} line) in an ancestor's task.jsonl, page.jsonl or .md.
++	static EMBED = /!\[[^\]]*\]\(([^)\s]+)|<img[^>]*src=\\?["']([^"'\\]+)|"shot":\s*\{[^}]*"(?:path|url|file)":\s*"([^"]+)"/g;
++	drawn(m, list) {
++		const rel = this.monthDir(m);
++		const srcs = this.git(["ls-files", "--", rel]).split("\n").filter(f => /(^|\/)(page\.js|page\.jsonl|task\.jsonl|[^/]+\.md)$/.test(f))
++			.map(f => {
++				const text = fs.readFileSync(path.join(this.root, f), "utf8");
++				const refs = f.endsWith("page.js") ? null : [...text.matchAll(ArchiveSessions.EMBED)].map(x => x[1] || x[2] || x[3]);
++				return { dir: path.posix.dirname(f), text, refs };
++			});
++		return new Set(list.filter(r => {
++			const dir = path.posix.dirname(`${rel}/${r.path}`), name = path.posix.basename(r.path);
++			return srcs.some(s => (dir + "/").startsWith(s.dir + "/") && (s.refs ? s.refs.some(u => u.endsWith(name)) : s.text.includes(name)));
++		}).map(r => r.path));
++	}
++
++	static byDay(rows) {
++		const days = {};
++		for (const r of rows) {
++			const [day, folder] = r.path.split("/");
++			const d = days[day] ||= { files: 0, bytes: 0, folders: new Set() };
++			d.files++; d.bytes += r.bytes; if (folder && r.path.split("/").length > 2) d.folders.add(folder);
++		}
++		return days;
++	}
++
++	plan() {
++		const out = {};
++		for (const m of this.months) {
++			const rows = this.scan(m);
++			const bytes = rows.reduce((s, r) => s + r.bytes, 0);
++			out[m] = { files: rows.length, bytes, from: this.monthDir(m), to: this.archiveDir(m) };
++			console.log(`${this.year}/${m}: ${rows.length} pictures, ${ArchiveSessions.mb(bytes)}  ${this.monthDir(m)} -> ${this.archiveDir(m)}`);
++			for (const [day, d] of Object.entries(ArchiveSessions.byDay(rows)).sort())
++				console.log(`  ${day}: ${d.files} files, ${ArchiveSessions.mb(d.bytes)}, ${d.folders.size} folders`);
++		}
++		return out;
++	}
++
++	readManifest(m) {
++		const f = this.manifestPath(m);
++		if (!fs.existsSync(f)) throw new Error(`no manifest at ${f}: run --copy first`);
++		return fs.readFileSync(f, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++	}
++
++	copy() {
++		for (const m of this.months) {
++			const src = path.join(this.root, this.monthDir(m)), dst = this.archiveDir(m);
++			const rows = this.scan(m);
++			let copied = 0;
++			for (const r of rows) {
++				const a = path.join(src, r.path), b = path.join(dst, r.path);
++				fs.mkdirSync(path.dirname(b), { recursive: true });
++				r.sha1 = ArchiveSessions.sha1(a);
++				if (!(fs.existsSync(b) && fs.statSync(b).size === r.bytes && ArchiveSessions.sha1(b) === r.sha1)) {
++					fs.copyFileSync(a, b); copied++;
++					const st = fs.statSync(a); fs.utimesSync(b, st.atime, st.mtime);
++				}
++			}
++			// merge with an earlier manifest so a re-run never forgets a file already archived
++			const prior = fs.existsSync(this.manifestPath(m)) ? this.readManifest(m) : [];
++			const all = new Map(prior.map(r => [r.path, r]));
++			for (const r of rows) all.set(r.path, r);
++			const list = [...all.values()].sort((a, b) => a.path.localeCompare(b.path));
++			fs.writeFileSync(this.manifestPath(m), list.map(r => JSON.stringify(r)).join("\n") + "\n");
++			const v = this.verify(m, list);
++			console.log(`${this.year}/${m}: copied ${copied} of ${rows.length} (the rest were already there); archive holds ${v.files} files, ${v.bytes} bytes; manifest ${list.length} files, ${list.reduce((s, r) => s + r.bytes, 0)} bytes; sha1 bad ${v.bad.length}`);
++			if (v.bad.length) throw new Error(`verify failed: ${v.bad.slice(0, 5).join(", ")}`);
++		}
++		this.writeArchiveReadme();
++	}
++
++	// Every manifest file is on the archive with its size and sha1; the archive's own count and bytes equal the manifest's.
++	verify(m, list = this.readManifest(m)) {
++		const dst = this.archiveDir(m);
++		const files = ArchiveSessions.walk(dst).filter(f => ArchiveSessions.PICTURE.test(f));
++		const bytes = files.reduce((s, f) => s + fs.statSync(f).size, 0);
++		const bad = list.filter(r => { const b = path.join(dst, r.path); return !fs.existsSync(b) || fs.statSync(b).size !== r.bytes || ArchiveSessions.sha1(b) !== r.sha1; }).map(r => r.path);
++		const want = list.reduce((s, r) => s + r.bytes, 0);
++		if (files.length !== list.length || bytes !== want) bad.push(`count/bytes: archive ${files.length}/${bytes} vs manifest ${list.length}/${want}`);
++		return { files: files.length, bytes, bad };
++	}
++
++	apply() {
++		for (const m of this.months) {
++			const list = this.readManifest(m), src = path.join(this.root, this.monthDir(m));
++			const v = this.verify(m, list);
++			if (v.bad.length) throw new Error(`${m}: archive does not verify, nothing removed: ${v.bad.slice(0, 5).join(", ")}`);
++			const left = this.scan(m).filter(r => !list.some(x => x.path === r.path));
++			if (left.length) throw new Error(`${m}: ${left.length} pictures are not on the archive yet (run --copy): ${left[0].path}`);
++			let removed = 0, bytes = 0;
++			const keep = this.drawn(m, list);
++			for (const r of list) {
++				const a = path.join(src, r.path);
++				if (!fs.existsSync(a) || keep.has(r.path)) continue;
++				if (ArchiveSessions.sha1(a) !== r.sha1) throw new Error(`${a} changed since --copy; re-run --copy`);
++				fs.unlinkSync(a); removed++; bytes += r.bytes;
++				ArchiveSessions.pruneEmpty(path.dirname(a), src);
++			}
++			this.writeStub(m, list, keep);
++			fs.copyFileSync(this.manifestPath(m), path.join(this.root, this.monthDir(m), "archive.jsonl"));   // the record of what left stays in git
++			console.log(`${this.year}/${m}: removed ${removed} pictures (${ArchiveSessions.mb(bytes)}) from the working tree; stub ${this.monthDir(m)}/readme.md`);
++		}
++	}
++
++	static pruneEmpty(dir, stop) {
++		while (path.resolve(dir) !== path.resolve(stop) && fs.existsSync(dir) && fs.readdirSync(dir).length === 0) {
++			fs.rmdirSync(dir); dir = path.dirname(dir);
++		}
++	}
++
++	undo(onlyDrawn = false) {
++		for (const m of this.months) {
++			let list = this.readManifest(m);
++			if (onlyDrawn) { const keep = this.drawn(m, list); list = list.filter(r => keep.has(r.path)); }
++			const src = path.join(this.root, this.monthDir(m)), dst = this.archiveDir(m);
++			let restored = 0, bad = 0;
++			for (const r of list) {
++				const a = path.join(src, r.path), b = path.join(dst, r.path);
++				if (fs.existsSync(a) && ArchiveSessions.sha1(a) === r.sha1) continue;
++				fs.mkdirSync(path.dirname(a), { recursive: true });
++				fs.copyFileSync(b, a);
++				const st = fs.statSync(b); fs.utimesSync(a, st.atime, st.mtime);
++				if (ArchiveSessions.sha1(a) !== r.sha1) bad++; else restored++;
++			}
++			console.log(`${this.year}/${m}: restored ${restored} of ${list.length} pictures, sha1 bad ${bad}; the stub readme.md stays (git keeps it), the archive copy stays`);
++		}
++	}
++
++	// The repo side: one readme per month saying what left, where to, and how to bring it back.
++	writeStub(m, all, keep = new Set()) {
++		const list = all.filter(r => !keep.has(r.path)), kept = all.length - list.length;
++		const days = ArchiveSessions.byDay(list);
++		const bytes = list.reduce((s, r) => s + r.bytes, 0);
++		const dst = this.archiveDir(m).split(path.sep).join("/");
++		const lines = [
++			`# ${this.year}/${m}: the pictures are archived`,
++			"",
++			`The ${list.length.toLocaleString("en-US")} untracked pictures of this month (${ArchiveSessions.mb(bytes)}, mostly review screenshots in \`shots/\`) moved to the archive drive at \`${dst}/\`, same paths below it, to free the working disk. ${kept ? `The ${kept} pictures a page draws when it opens stayed here (a copy is on the drive too). ` : ""}Every record (task.jsonl, page.jsonl, docs, pages) is still here, so the [Sessions page](/framework/ai/sessions/) and every search still read this month. An old report shows a broken picture until it is copied back.`,
++			"",
++			`- **Every file, its size and sha1:** [archive.jsonl](archive.jsonl), the same file as \`${dst}/archive.jsonl\` on the drive (whose own README says what it is).`,
++			`- **Bring it back:** \`node Server/archive-sessions.mjs --undo --months ${m}\` (the drive plugged in) copies every file back and checks its sha1.`,
++			`- **How it works:** [picture-archive.md](../../doc/picture-archive.md).`,
++			"",
++			"| Day | Pictures | Size | Folders |",
++			"|---|---|---|---|",
++			...Object.entries(days).sort().map(([d, x]) => `| [${m}/${d}](${d}/) | ${x.files} | ${ArchiveSessions.mb(x.bytes)} | ${x.folders.size} |`),
++			"",
++		];
++		fs.writeFileSync(path.join(this.root, this.monthDir(m), "readme.md"), lines.join("\n"));
++	}
++
++	writeArchiveReadme() {
++		const f = path.join(this.dest, "sessions", "README.md");
++		fs.mkdirSync(path.dirname(f), { recursive: true });
++		const months = fs.readdirSync(path.join(this.dest, "sessions", this.year)).sort();
++		fs.writeFileSync(f, [
++			"# Archived session pictures from the lew42 monorepo",
++			"",
++			"These are the untracked screenshots that lived under `public/framework/ai/sessions/<year>/<month>/` in `C:/Code/lew42/monorepo`, moved here to free the working disk. The records themselves (task logs, pages, docs) stayed in the repo and in git.",
++			"",
++			`- Months here: ${months.map(m => `${this.year}/${m}`).join(", ")}. Each month folder has \`archive.jsonl\`: one line per file, its path below the month, bytes and sha1.`,
++			"- Restore: in the repo, `node Server/archive-sessions.mjs --undo --months <MM>` copies them back to the same paths and checks every sha1. Or copy a folder back by hand: the paths are the same.",
++			"- Written by `Server/archive-sessions.mjs`; the repo doc is `public/framework/ai/sessions/doc/picture-archive.md`.",
++			"",
++		].join("\n"));
++	}
++
++	static cli(argv) {
++		const flag = n => argv.includes(n) ? argv[argv.indexOf(n) + 1] : undefined;
++		const a = new ArchiveSessions({ root: flag("--root"), dest: flag("--dest"), year: flag("--year"), months: flag("--months")?.split(",") });
++		const verb = ["--plan", "--copy", "--apply", "--undo"].find(v => argv.includes(v));
++		if (!verb) { console.log("usage: --plan | --copy | --apply | --undo  [--months 08,09] [--root R] [--dest D]"); return; }
++		a[verb.slice(2)](argv.includes("--drawn"));
++	}
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) ArchiveSessions.cli(process.argv.slice(2));
+diff --git a/public/framework/ai/doc/follow-up.md b/public/framework/ai/doc/follow-up.md
+index 0ffdfbf70..90bec8181 100644
+--- a/public/framework/ai/doc/follow-up.md
++++ b/public/framework/ai/doc/follow-up.md
+@@ -1,8 +1,8 @@
+ # Follow-up: what fell through the cracks
+ 
+-Computed 2026-10-13 21:33 UTC by `node Server/FollowUp.mjs --write` from every task folder of the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
++Computed 2026-10-14 00:25 UTC by `node Server/FollowUp.mjs --write` from every task folder of the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+ 
+-**4 landed with unmerged commits · 0 merged but never landed · 19 quiet over 2 h · 0 landed with no outcome · 0 open asks with no live owner · 171 healthy of 194.**
++**2 landed with unmerged commits · 0 merged but never landed · 18 quiet over 2 h · 2 landed with no outcome · 0 open asks with no live owner · 124 healthy of 146.**
+ 
+ ## ⚠️ The owner decides: `michael/property-of`
+ 
+@@ -19,33 +19,38 @@ public/framework/ai/AISession/AISessionDetail.js   |  22 +++++++++++--
+  8 files changed, 93 insertions(+), 6 deletions(-)
+ ```
+ 
+-## unmerged: 4
++## unmerged: 2
+ 
+ landed, but commits are not on michael/dev: review the diff, then `merge.mjs`.
+ 
+-- [part-link](/framework/ai/sessions/2026/10/12/session-78a7b293/part-link/) (`worktree/part-link-run`, 1 ahead): mastermind-part-link, last log 27 h ago, step 1/0, agent gone
+-- [sessions-grid](/framework/ai/sessions/2026/10/12/session-eecd88fa/sessions-grid/) (`worktree/qf-3`, 3 ahead): mastermind-sessions-grid, last log 26 h ago, step 1/0, agent dormant
++- [part-link](/framework/ai/sessions/2026/10/12/session-78a7b293/part-link/) (`worktree/part-link-run`, 1 ahead): mastermind-part-link, last log 30 h ago, step 1/0, agent gone
+ - [dictate-without-claude](/framework/ai/sessions/2026/10/04/dictate-without-claude/dictate-without-claude/) (`worktree/dictate-without-claude`, 1 ahead): task-mastermind-dictate-without-claude, last log 9 d ago, step 1/0, agent dormant
+-- [sessions-tab-polish](/framework/ai/sessions/2026/10/03/sessions-tab-polish/sessions-tab-polish/) (`worktree/sessions-tab-polish`, 12 ahead): task-mastermind-sessions-tab-polish, last log 10 d ago, step 11/7, agent dormant
+ 
+-## quiet: 19
++## quiet: 18
+ 
+ no log for over 2 h and no live agent: resume it or close it.
+ 
+-- [page-templates-binding-merge](/framework/ai/sessions/2026/10/12/session-21449a90/page-templates-binding-merge/): minion-binding-merge, last log 23 h ago, step 1/0, agent stopped
+-- [feedback-council](/framework/ai/sessions/2026/10/12/feedback-council-2/): task-mas, last log 23 h ago, step 0/0, agent unknown
++- [feedback-council-2](/framework/ai/sessions/2026/10/12/feedback-council-2/): task-mas, last log 26 h ago, step 0/0, agent unknown
++- [feedback-council](/framework/ai/sessions/2026/10/09/feedback-council/): task-mas, last log 4 d ago, step 0/0, agent unknown
++- [notifications-lab](/framework/ai/sessions/2026/10/09/notifications-lab/notifications-lab/): mastermind-notifications-lab, last log 5 d ago, step 1/0, agent dormant
++- [worktree-pool-ready](/framework/ai/sessions/2026/10/09/session-b431af83/worktree-pool-ready/): task-mastermind-worktree-pool-ready, last log 4 d ago, step 1/0, agent dormant
++- [ai-system-docs](/framework/ai/sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs/): mastermind-ai-system-docs, last log 42 h ago, step 1/0, agent gone
++- [feedback-council](/framework/ai/sessions/2026/10/08/feedback-council/): task-mas, last log 5 d ago, step 0/0, agent unknown
++- [live-not-polling](/framework/ai/sessions/2026/10/08/live-not-polling/live-not-polling/): minion-live-not-polling, last log 5 d ago, step 1/0, agent dormant
+ - [prompt-audit](/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit/): minion-prompt-audit, last log 5 d ago, step 1/0, agent dormant
++- [feedback-council](/framework/ai/sessions/2026/10/07/feedback-council/): task-mas, last log 6 d ago, step 0/0, agent unknown
++- [feedback-council](/framework/ai/sessions/2026/10/06/feedback-council/): task-mas, last log 8 d ago, step 0/0, agent unknown
+ - [dictate-live-state](/framework/ai/sessions/2026/10/05/dictate-live-state/dictate-live-state/): task-mastermind-dictate-live-state, last log 8 d ago, step 1/0, agent stopped
+ - [dictate-one-engine](/framework/ai/sessions/2026/10/05/dictate-one-engine/dictate-one-engine/): task-mastermind-dictate-one-engine, last log 8 d ago, step 1/0, agent stopped
+-- [openrouter-agent-trial](/framework/ai/sessions/2026/10/05/openrouter-agent-trial/openrouter-agent-trial/): task-mastermind-openrouter-agent-trial, last log 7 d ago, step 1/0, agent stopped
+-- [message-cost](/framework/ai/sessions/2026/10/04/message-cost/message-cost/): task-mastermind-message-cost, last log 9 d ago, step 1/0, agent dormant
+-- [web-benchmarks](/framework/ai/sessions/2026/10/04/web-benchmarks/web-benchmarks/): task-mastermind-web-benchmarks, last log 9 d ago, step 1/0, agent dormant
+-- [framework-home-grids](/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids/): task-mastermind-framework-home-grids, last log 9 d ago, step 1/0, agent stopped
+-- [merge-commits](/framework/ai/sessions/2026/10/03/merge-commits/): no agent, last log 10 d ago, step 0/0, agent unknown
+-- [node-reap-run](/framework/ai/sessions/2026/10/03/node-reap-run/): no agent, last log 11 d ago, step 0/0, agent unknown
+-- [openrouter-reads-cache](/framework/ai/sessions/2026/10/03/openrouter-reads-cache/): no agent, last log 10 d ago, step 0/0, agent unknown
+-- …7 more in [follow-up-full.md](follow-up-full.md)
++- …6 more in [follow-up-full.md](follow-up-full.md)
++
++## no-outcome: 2
++
++landed with no outcome text: add one line saying what shipped.
++
++- [session-detail-live](/framework/ai/sessions/2026/10/09/session-ca11999b/session-detail-live/): minion-session-detail-live, last log 2 d ago, step 1/0, agent dormant
++- [checker-1](/framework/ai/sessions/2026/10/07/feedback-council/checker-1/): minion-checker-1, last log 5 d ago, step 1/0, agent stopped
+ 
+ ## Check
+ 
+-Tasks counted 194, `TaskDirs --list 10` 194: agree. 140 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
++Tasks counted 146, `TaskDirs --list 10` 146: agree. 168 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
+diff --git a/public/framework/ai/doc/repo-size.md b/public/framework/ai/doc/repo-size.md
+index 6d79b2e4c..7ebac280b 100644
+--- a/public/framework/ai/doc/repo-size.md
++++ b/public/framework/ai/doc/repo-size.md
+@@ -37,7 +37,7 @@ The rule stays the one in [commit-rule.md](../sessions/doc/commit-rule.md): a re
+ | Phase | Saves | Risk | Undo |
+ |---|---|---|---|
+ | 1. Stop the bleeding | ~350 MB of history a month | low | delete the `.gitignore` lines |
+-| 2. Archive old sessions out of the working tree | ~670 MB of disk (Aug + Sep) | low | copy the folders back |
++| 2. Archive old sessions out of the working tree ✅ Aug + Sep done | 483 MB of disk (Aug + Sep) | low | `node Server/archive-sessions.mjs --undo` |
+ | 3. Rewrite history | ~310 MB of the 474 MB (the AI-log pictures outside `doc/`, 309 MB, plus `owner-prompts.jsonl`) | high: every clone and worktree | the legacy archive repo |
+ 
+ ### Phase 1 — stop the bleeding
+@@ -49,6 +49,10 @@ The rule stays the one in [commit-rule.md](../sessions/doc/commit-rule.md): a re
+ 
+ ### Phase 2 — archive old sessions
+ 
++✅ **Done for August and September (2026-10-13):** the two months went from **650.8 MB to 168.6 MB** on disk, to free the working disk. **4,248 pictures (482.9 MB)** moved to `E:/Projects/lew42/archive/sessions/2026/<MM>/`, copied with sha1 and checked (count, bytes and every hash agree), then removed from C:. The 734 pictures a page shows when it opens (96.3 MB) stayed, so no page loses a picture and the merge smoke test stays clean. Only untracked pictures moved: the 4,794 tracked records (52 MB) stay, because `git rm` would free 0 bytes of `.git`, blind `SessionIndex`, `PastWork` and `FollowUp` to two months, and break every old task URL. Each month keeps a `readme.md` and an `archive.jsonl` (every file, bytes, sha1). **Undo:** `node Server/archive-sessions.mjs --undo --months 08,09` with the drive plugged in (proven twice on a worktree copy: 1,419 pictures out and back, sha1 identical). How to read or restore one: [picture-archive.md](../sessions/doc/picture-archive.md). The decision and its proofs: [the archive-phase-2 task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/). Still open: a second copy in R2 (below).
++
++The plan as written before the run:
++
+ A session older than about 30 days is moved out of `public/framework/ai/sessions/<year>/<month>/` by a script that writes a manifest of every path. A tracked folder is `git rm`'d in one commit (history keeps it); an ignored one (most of the disk, mostly `shots/`) is just moved. Where it goes:
+ 
+ | Where | Cost over time | Can a server query it? | Forgotten-bill risk |
+diff --git a/public/framework/ai/sessions/2026/08/readme.md b/public/framework/ai/sessions/2026/08/readme.md
+new file mode 100644
+index 000000000..2fc062a1b
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/08/readme.md
+@@ -0,0 +1,22 @@
++# 2026/08: the pictures are archived
++
++The 1,124 untracked pictures of this month (105.1 MB, mostly review screenshots in `shots/`) moved to the archive drive at `E:/Projects/lew42/archive/sessions/2026/08/`, same paths below it, to free the working disk. The 207 pictures a page draws when it opens stayed here (a copy is on the drive too). Every record (task.jsonl, page.jsonl, docs, pages) is still here, so the [Sessions page](/framework/ai/sessions/) and every search still read this month. An old report shows a broken picture until it is copied back.
++
++- **Every file, its size and sha1:** [archive.jsonl](archive.jsonl), the same file as `E:/Projects/lew42/archive/sessions/2026/08/archive.jsonl` on the drive (whose own README says what it is).
++- **Bring it back:** `node Server/archive-sessions.mjs --undo --months 08` (the drive plugged in) copies every file back and checks its sha1.
++- **How it works:** [picture-archive.md](../../doc/picture-archive.md).
++
++| Day | Pictures | Size | Folders |
++|---|---|---|---|
++| [08/14](14/) | 15 | 2.1 MB | 1 |
++| [08/15](15/) | 32 | 4.7 MB | 8 |
++| [08/17](17/) | 364 | 33.8 MB | 20 |
++| [08/18](18/) | 109 | 8.9 MB | 12 |
++| [08/19](19/) | 35 | 2.2 MB | 16 |
++| [08/21](21/) | 63 | 4.6 MB | 17 |
++| [08/26](26/) | 5 | 0.4 MB | 4 |
++| [08/27](27/) | 70 | 5.7 MB | 8 |
++| [08/28](28/) | 1 | 0.0 MB | 1 |
++| [08/29](29/) | 194 | 17.5 MB | 18 |
++| [08/30](30/) | 217 | 23.4 MB | 27 |
++| [08/31](31/) | 19 | 2.0 MB | 8 |
+diff --git a/public/framework/ai/sessions/2026/09/readme.md b/public/framework/ai/sessions/2026/09/readme.md
+new file mode 100644
+index 000000000..5921c334a
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/09/readme.md
+@@ -0,0 +1,28 @@
++# 2026/09: the pictures are archived
++
++The 3,124 untracked pictures of this month (377.7 MB, mostly review screenshots in `shots/`) moved to the archive drive at `E:/Projects/lew42/archive/sessions/2026/09/`, same paths below it, to free the working disk. The 527 pictures a page draws when it opens stayed here (a copy is on the drive too). Every record (task.jsonl, page.jsonl, docs, pages) is still here, so the [Sessions page](/framework/ai/sessions/) and every search still read this month. An old report shows a broken picture until it is copied back.
++
++- **Every file, its size and sha1:** [archive.jsonl](archive.jsonl), the same file as `E:/Projects/lew42/archive/sessions/2026/09/archive.jsonl` on the drive (whose own README says what it is).
++- **Bring it back:** `node Server/archive-sessions.mjs --undo --months 09` (the drive plugged in) copies every file back and checks its sha1.
++- **How it works:** [picture-archive.md](../../doc/picture-archive.md).
++
++| Day | Pictures | Size | Folders |
++|---|---|---|---|
++| [09/01](01/) | 3 | 0.7 MB | 2 |
++| [09/04](04/) | 99 | 12.2 MB | 14 |
++| [09/05](05/) | 486 | 36.7 MB | 52 |
++| [09/06](06/) | 70 | 11.2 MB | 14 |
++| [09/08](08/) | 184 | 17.7 MB | 13 |
++| [09/13](13/) | 46 | 6.2 MB | 10 |
++| [09/14](14/) | 3 | 0.2 MB | 1 |
++| [09/17](17/) | 37 | 5.3 MB | 9 |
++| [09/18](18/) | 7 | 1.1 MB | 4 |
++| [09/19](19/) | 90 | 7.5 MB | 15 |
++| [09/20](20/) | 26 | 2.8 MB | 5 |
++| [09/22](22/) | 55 | 6.1 MB | 15 |
++| [09/23](23/) | 4 | 0.2 MB | 2 |
++| [09/24](24/) | 85 | 12.2 MB | 11 |
++| [09/25](25/) | 224 | 40.4 MB | 12 |
++| [09/28](28/) | 241 | 27.1 MB | 14 |
++| [09/29](29/) | 619 | 75.0 MB | 10 |
++| [09/30](30/) | 845 | 115.2 MB | 17 |
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/apply.txt b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/apply.txt
+new file mode 100644
+index 000000000..7f9c2a94c
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/apply.txt
+@@ -0,0 +1,12 @@
++2026/08: removed 1331 pictures (122.5 MB) from the working tree; stub public/framework/ai/sessions/2026/08/readme.md
++2026/09: removed 3651 pictures (429.9 MB) from the working tree; stub public/framework/ai/sessions/2026/09/readme.md
++== restore the pictures a page.js draws
++2026/08: restored 1 of 1 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
++2026/09: restored 46 of 46 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
++2026/08: removed 0 pictures (0.0 MB) from the working tree; stub public/framework/ai/sessions/2026/08/readme.md
++2026/09: removed 0 pictures (0.0 MB) from the working tree; stub public/framework/ai/sessions/2026/09/readme.md
++== restore every picture a page shows (page.js, or embedded in task.jsonl/page.jsonl/.md)
++2026/08: restored 206 of 207 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
++2026/09: restored 481 of 527 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
++2026/08: removed 0 pictures (0.0 MB) from the working tree; stub public/framework/ai/sessions/2026/08/readme.md
++2026/09: removed 0 pictures (0.0 MB) from the working tree; stub public/framework/ai/sessions/2026/09/readme.md
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/copy.txt b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/copy.txt
+new file mode 100644
+index 000000000..d7818f78d
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/copy.txt
+@@ -0,0 +1,2 @@
++2026/08: copied 1331 of 1331 (the rest were already there); archive holds 1331 files, 128424044 bytes; manifest 1331 files, 128424044 bytes; sha1 bad 0
++2026/09: copied 3651 of 3651 (the rest were already there); archive holds 3651 files, 450749252 bytes; manifest 3651 files, 450749252 bytes; sha1 bad 0
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/disk-after.txt b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/disk-after.txt
+new file mode 100644
+index 000000000..3b6bd4a94
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/disk-after.txt
+@@ -0,0 +1,2 @@
++34304466	public/framework/ai/sessions/2026/08
++134306492	public/framework/ai/sessions/2026/09
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/disk-before.txt b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/disk-before.txt
+new file mode 100644
+index 000000000..6517021c7
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/disk-before.txt
+@@ -0,0 +1,2 @@
++139278379	public/framework/ai/sessions/2026/08
++511480292	public/framework/ai/sessions/2026/09
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/docs-check.md b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/docs-check.md
+new file mode 100644
+index 000000000..cf283de01
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/docs-check.md
+@@ -0,0 +1,16 @@
++# Docs check: can you restore a broken September picture?
++
++**Verdict: mostly yes.** `2026/09/readme.md` alone answers where, what and the command. Gaps below.
++
++- **Where it went: clear.** `2026/09/readme.md` line 3 names the drive path, "same paths below it". `doc/picture-archive.md` line 12 gives a worked path example.
++- **Command: clear for a whole month.** `2026/09/readme.md` line 6 and `picture-archive.md` line 16 give `node Server/archive-sessions.mjs --undo --months 09`.
++- **Why: only in one place, and not where you land.** The reason (651 MB to 72 MB, `.git` unaffected) is only in `repo-size.md` line 52. `2026/09/readme.md` line 3 and `picture-archive.md` line 3 say pictures leave "once its month is old" but never say the disk was the problem. Add one sentence and a link to each.
++- **Restoring ONE picture has no command.** `picture-archive.md` line 17 says "copy it back by hand". The tab you reach from a broken image needs a literal line, e.g. `copy E:/Projects/lew42/archive/sessions/2026/09/22/x/shots/a.png` to the matching repo path. The only scripted route restores 3,651 files (430 MB) just to fix one.
++- **Unit mismatch.** `picture-archive.md` lines 7-8 sum to 4,982 pictures and 552.4 MB, but `repo-size.md` line 52 says 578 MB. The counts agree; the sizes do not (MiB vs MB?). Pick one unit and say it.
++- **Undo months differ in form, not meaning.** `repo-size.md` line 52 uses `--months 08,09`, the others `--months 09`. Fine, but only the first shows that a comma list works.
++- **Unstated assumptions.** Nothing says what happens if the drive is not `E:` (drive letters move) or whether `--undo` overwrites a file you edited. `picture-archive.md` line 16 says "the drive keeps its copy", which helps.
++- **Link that may go nowhere.** `2026/09/readme.md` lines 11-28 link each day as `01/`, `04/`...; those are folders, not pages, and I did not check they have a readme. `picture-archive.md` line 6 links `../2026/08/readme.md`, unchecked too.
++- **Dead end for readers.** `repo-size.md` line 52 links the decision to `archive-phase-2/task.jsonl`, a raw log, not a readable page.
++- **Entry from Sessions is thin.** `sessions/readme.md` line 20 and `doc/readme.md` line 12 point to `picture-archive.md` correctly, but neither names the command. One click is fine.
++- **No contradictions found** in the counts (September day table sums to 3,651) or the anchor `#phase-2--archive-old-sessions`.
++- **Readability.** `repo-size.md` line 52 is one dense paragraph with nine facts; the newcomer rule would split it into short bullets.
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/readers.txt b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/readers.txt
+new file mode 100644
+index 000000000..465562cce
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/readers.txt
+@@ -0,0 +1,26 @@
++== SessionIndex
++== PastWork panel
++# Past work: "panel overhaul" (words: panel, overhaul)
++
++## Tasks (5, best first)
++- 2026-08-15 [panel-ui-overhaul](/framework/ai/sessions/2026/08/15/panel-ui-overhaul/) — Panel UI overhauled — [/framework/ext/Panel/](/framework/ext/Panel/): toolbar is a hover overlay (light+dark free via tokens, popovers not selects, innermost panel wins), panels touch at 0px with cursor-following grip pills and per-neighbor hug/fill menus, ex… · paths 1/2 exist, gone: framework/ext/Panel/full/
++- 2026-10-02 [ext/panel2: header/main/footer chrome, drawer sides, split, dashboard…](/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/part1-panel2/) — Panel2 shipped: header/main/footer, a grip split, a drawer side, a dashboard grid. new module, reuses only ext/grip header/main/footer; a side becomes a drawer under 34em header is a real toolbar (panel.header.append()), verified live Panel2.split(a, b, { axi… · paths 1/1 exist
++- 2026-10-02 [panel2-sessions Part 2: AI Dashboard + Sessions tabs](/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/part2-sessions-dashboard/) — Dashboard + Sessions tabs shipped on top of ext/panel2. Sessions tab: live, tagged (Servex/VS Code/CLI), newest first; click → prompts in order verified on the named VS Code session (361c4d18) after fixing a turnOrigin bug Dashboard tab: one Panel2, full-widt… · paths 1/1 exist
++- 2026-10-02 [panel2-sessions](/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/) — Build ext/panel2 (new standard UI chrome: header/main/footer, side drawers, grip-resized splits, auto-fit responsive grid) then rebuild the AI dashboard (/framework/ai/) Overview + a new Sessions tab on top of it, covering VS Code/Servex/CLI sessions live.
++- 2026-10-02 [Sessions tab: CSS-grid data grid, side peek, Panel2 preview levels](/framework/ai/sessions/2026/10/02/panel2-sessions/sessions-grid-v2/) — Sessions is now a real data grid. [/framework/ai/sessions/](/framework/ai/sessions/) — six columns (Start, Source, Name, Model, State, Cost), newest activity first. data grid of every session, six named columns — shot in task log no <table>, one --col-<name> … · paths 2/3 exist, gone: framework/ext/panel2/doc/preview-levels/
++
++## Modules that exist now (files outside the module that import it)
++- [ext/Panel](/framework/ext/Panel/) — used by 24 files
++- [ext/panel2](/framework/ext/panel2/) — used by 2 files
++== FollowUp --write
++  asks: 0,
++  healthy: 124
++}
++tasks counted 146 vs TaskDirs --list 146
++== SessionIndex --check
++SessionIndex: 1521 rows from 1521 task.jsonl in 900 ms, +20.9 MB heap
++{"files":1521,"rows":1521,"ms":900,"heap_mb":20.9} 
++module=ux/Dictate: 38 tasks; first: dictate-session, dictate-sheet, ai-modules-home
++landed: 1179 | text 'dictate' since 2026-10-01: 40
++tasks in memory 0
++task.jsonl under 08/09 (all still read): 1020
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/smoke.txt b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/smoke.txt
+new file mode 100644
+index 000000000..21ee84ba6
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/smoke.txt
+@@ -0,0 +1,216 @@
++  (console-allow.jsonl: "Doc: .* has no member ".*" — nothing added" expired 2026-10-10 — no longer covered)
++  (console-allow.jsonl: "Item\.Store: unparsed line in .*files\.jsonl" expired 2026-10-10 — no longer covered)
++ok   /framework/
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai2/
++  noise %cSocket connected. color: green; font-weight: bold;
++  noise [dictate] socket: connected
++  noise [dictate] whisper: checking…
++  noise [dictate] whisper: connected
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/08/
++  noise %cSocket connected. color: green; font-weight: bold;
++  (1 warn/log line allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/08/15/panel-ui-overhaul/
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/22/
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/doc/picture-archive.md
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/favicon.ico)
++ok   /framework/ai/doc/repo-size.md
++ok   /framework/ai/sessions/2026/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/01/color-study/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++FAIL /framework/ai/sessions/2026/09/01/controls-study/  (link found on /framework/ai/sessions/2026/09/)  1 error
++       HTTP 404: http://monorepo.localhost/framework/ai/sessions/2026/09/01/controls-study/requirements.md
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/sessions/2026/09/01/controls-study/requirements.md)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/01/journey-crawl/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++FAIL /framework/ai/sessions/2026/09/01/layout-study/  (link found on /framework/ai/sessions/2026/09/)  1 error
++       HTTP 404: http://monorepo.localhost/framework/ai/sessions/2026/09/01/layout-study/requirements.md
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/sessions/2026/09/01/layout-study/requirements.md)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/01/mastermind-design-crawl/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/01/navigation-study/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/01/padding-study/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/01/scale-study/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/01/spacing-clamp/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/01/system-proposal/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/01/themes-browser/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/01/type-study/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++FAIL /framework/ai/sessions/2026/09/01/vocabulary-tags/  (link found on /framework/ai/sessions/2026/09/)  1 error
++       HTTP 404: http://monorepo.localhost/framework/ai/sessions/2026/09/01/vocabulary-tags/shots/vocabulary-1280.png
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/sessions/2026/09/01/vocabulary-tags/shots/vocabulary-1280.png)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/decision-data/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/decision-identity/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/decision-topic-model/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/existing-framework/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/hub-report/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-blogx/  (link found on /framework/ai/sessions/2026/09/)
++  warn HTTP 404: http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/blogx.jpg
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/blogx.jpg)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-cms/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-decks/  (link found on /framework/ai/sessions/2026/09/)
++  warn HTTP 404: http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/decks.jpg
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/decks.jpg)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-design/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-feeds/  (link found on /framework/ai/sessions/2026/09/)
++  warn HTTP 404: http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/feeds.jpg
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/feeds.jpg)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-gallery/  (link found on /framework/ai/sessions/2026/09/)
++  warn HTTP 404: http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/gallery.jpg
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/gallery.jpg)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-game/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++FAIL /framework/ai/sessions/2026/09/04/imagine-generated/  (link found on /framework/ai/sessions/2026/09/)  1 error
++       HTTP 400: http://monorepo.localhost/screenshot?path=undefined
++  warn console: Failed to load resource: the server responded with a status of 400 (Bad Request)  (http://monorepo.localhost/screenshot?path=undefined)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-mag/  (link found on /framework/ai/sessions/2026/09/)
++  warn HTTP 404: http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/mag.jpg
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/mag.jpg)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-platform/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-research/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-review/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-scenes/  (link found on /framework/ai/sessions/2026/09/)
++  warn HTTP 404: http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/scenes.jpg
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/scenes.jpg)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-screens/  (link found on /framework/ai/sessions/2026/09/)
++  warn HTTP 404: http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/screens.jpg
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/screens.jpg)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-shells/  (link found on /framework/ai/sessions/2026/09/)
++  warn HTTP 404: http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/shells.jpg
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/shells.jpg)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++FAIL /framework/ai/sessions/2026/09/04/imagine-stream/  (link found on /framework/ai/sessions/2026/09/)  1 error
++       HTTP 400: http://monorepo.localhost/screenshot?path=undefined
++  warn console: Failed to load resource: the server responded with a status of 400 (Bad Request)  (http://monorepo.localhost/screenshot?path=undefined)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-team/  (link found on /framework/ai/sessions/2026/09/)
++  warn HTTP 404: http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/team.jpg
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/team.jpg)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-vary/  (link found on /framework/ai/sessions/2026/09/)
++  warn HTTP 404: http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/vary.jpg
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/vary.jpg)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/imagine-youtube/  (link found on /framework/ai/sessions/2026/09/)
++  warn HTTP 404: http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/youtube.jpg
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/2026-09-04/imagine-review/shots/youtube.jpg)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/local-dev-harness/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/mastermind-platform/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/omnibox-prototype/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/paging-clarity/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/paging-core/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/paging-critique/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/paging-explorer/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/paging-rightnav/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/paging-scout/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/paging-toolbars/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++FAIL /framework/ai/sessions/2026/09/04/paging/  (link found on /framework/ai/sessions/2026/09/)  1 error
++       HTTP 404: http://monorepo.localhost/framework/ai/sessions/2026/09/04/paging/session.json
++  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://monorepo.localhost/framework/ai/sessions/2026/09/04/paging/session.json)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/prior-cloudflare/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/realm-alternates/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
++ok   /framework/ai/sessions/2026/09/04/research-ai/  (link found on /framework/ai/sessions/2026/09/)
++  noise %cSocket connected. color: green; font-weight: bold;
++  (2 warn/log lines allow-listed — console-allow.jsonl)
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/task.jsonl b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/task.jsonl
+new file mode 100644
+index 000000000..3c58995f0
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/task.jsonl
+@@ -0,0 +1,11 @@
++{"assign":{"session_id":"0a619e3d-93f0-43ee-aaed-6cd98fe56cb4","agent":"task-mastermind-archive-phase-2","card":"2026/10/13/archive-august-and-september-sessions-mo","brief":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/requirements.md","model":"claude-opus-5-5","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim","requested_at":"2026-10-13T19:15:00-05:00","now":"starting","steps":[],"step":1}}
++{"log":{"at":"2026-10-13T19:25:00-05:00","msg":"taken: one mastermind, no minions; a worktree only to prove the undo. Plan: map readers, write Server/archive-sessions.mjs (--plan/--copy/--apply/--undo), copy to E: verified, undo proven on a worktree, apply, prove readers, merge, docs, owner note.","steps":["map readers of 2026/08 and 2026/09 (10 min)","write Server/archive-sessions.mjs --plan (20 min)","copy to E: and verify (15 min)","prove undo on a worktree copy (15 min)","apply: stubs + git rm (10 min)","prove readers, check_page, smoke, merge (20 min)","docs, owner note, landing (15 min)"],"step":1,"now":"mapping the readers of the Aug and Sep folders"}}
++{"action":{"at":"2026-10-13T19:21:06-05:00","did":"edit","files":["Server/archive-sessions.mjs"]}}
++{"log":{"at":"2026-10-13T19:25:32-05:00","msg":"session resumed"}}
++{"log":{"at":"2026-10-13T19:25:33-05:00","msg":"session resumed"}}
++{"log":{"at":"2026-10-13T19:25:35-05:00","msg":"session ended (other) without landing"}}
++{"action":{"at":"2026-10-13T19:26:56-05:00","did":"edit","files":["public/framework/ai/sessions/doc/picture-archive.md"]}}
++{"action":{"at":"2026-10-13T19:28:19-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/docs-check.md"]}}
++{"decision":{"at":"2026-10-13T19:55:00-05:00","id":"d-what-leaves-the-working-tree","what":"Archive shape: only untracked pictures leave (to E:/Projects/lew42/archive/sessions/2026/<MM>/, sha1-verified); tracked records stay; a picture a page shows on open (page.js names it, or task.jsonl/page.jsonl/.md embeds it) stays on C: too. Month stub = readme.md + archive.jsonl (the generated index.json the Sessions page reads is left untouched).","alternative":"the brief's git rm of the 4,794 tracked records with stub index files: saves 52 MB more disk and 0 bytes of .git, blinds SessionIndex/PastWork/FollowUp to two months and 404s old task URLs; R2 waits on the owner's Cloudflare login."}}
++{"experiment":{"try":"archive every untracked picture vs keep the ones a page shows","measure":"merge.mjs smoke over /2026/09/ and its links; MB freed","result":"all archived: prior-cloudflare/shot.png 404 (would fail any later merge touching September), 578 MB freed; keep-shown: 734 pictures stay, 0 failures from the archive (6 pre-existing, none in the manifest), 483 MB freed"}}
++{"log":{"at":"2026-10-13T19:56:00-05:00","msg":"Applied. Aug+Sep 650.8 MB -> 168.6 MB on disk; 4,248 pictures (482.9 MB) on E:, every sha1 checked; 734 shown pictures kept. Readers proven: SessionIndex --check 1521 rows, PastWork finds the Aug panel task, FollowUp --write 146=146; check_page clean on /2026/09/, an Aug task, /framework/ai/. Docs check (Sonnet) findings fixed: one-picture cp command, the why, decimal MB everywhere, task page link. qf-3 from take_worktree had no .git (broken worktree); proof ran on a sparse worktree/archive-proof instead.","step":6,"now":"commit, owner note, landing"}}
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/undo-proof.txt b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/undo-proof.txt
+new file mode 100644
+index 000000000..f986600a4
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/undo-proof.txt
+@@ -0,0 +1,31 @@
++== plan
++2026/08: 1331 pictures, 122.5 MB  public/framework/ai/sessions/2026/08 -> C:\Users\mike\AppData\Local\Temp\archive-proof\dest\sessions\2026\08
++2026/09: 88 pictures, 9.6 MB  public/framework/ai/sessions/2026/09 -> C:\Users\mike\AppData\Local\Temp\archive-proof\dest\sessions\2026\09
++== copy
++2026/08: copied 1331; archive holds 1331 files, 128424044 bytes; manifest 1331 files, 128424044 bytes; sha1 bad 0
++2026/09: copied 88; archive holds 88 files, 10096689 bytes; manifest 88 files, 10096689 bytes; sha1 bad 0
++== copy again (idempotent)
++2026/08: copied 1331; archive holds 1331 files, 128424044 bytes; manifest 1331 files, 128424044 bytes; sha1 bad 0
++2026/09: copied 88; archive holds 88 files, 10096689 bytes; manifest 88 files, 10096689 bytes; sha1 bad 0
++== apply
++2026/08: removed 1331 pictures (122.5 MB) from the working tree; stub public/framework/ai/sessions/2026/08/readme.md
++2026/09: removed 88 pictures (9.6 MB) from the working tree; stub public/framework/ai/sessions/2026/09/readme.md
++pictures left in worktree: 0
++git status after apply: ?? public/framework/ai/sessions/2026/08/readme.md
++?? public/framework/ai/sessions/2026/09/readme.md
++== undo
++2026/08: restored 1331 of 1331 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
++2026/09: restored 88 of 88 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
++== compare (sha1 of every picture, before vs after undo)
++before 1419 after 1419: identical
++git status --ignored diff: only the two new stub readme.md files
++
++== round 2 (2026-10-13 ~19:50): apply keeps the pictures a page.js draws
++2026/08: copied 0 of 1331 (the rest were already there); archive holds 1331 files, 128424044 bytes; manifest 1331 files, 128424044 bytes; sha1 bad 0
++2026/09: copied 0 of 88 (the rest were already there); archive holds 88 files, 10096689 bytes; manifest 88 files, 10096689 bytes; sha1 bad 0
++2026/08: removed 1330 pictures (128.4 MB) from the working tree; stub public/framework/ai/sessions/2026/08/readme.md
++2026/09: removed 68 pictures (8.1 MB) from the working tree; stub public/framework/ai/sessions/2026/09/readme.md
++pictures left on the worktree: 21
++2026/08: restored 1330 of 1331 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
++2026/09: restored 68 of 88 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
++after undo: sha1 of all 1419 identical to before
+diff --git a/public/framework/ai/sessions/doc/picture-archive.md b/public/framework/ai/sessions/doc/picture-archive.md
+new file mode 100644
+index 000000000..08251f937
+--- /dev/null
++++ b/public/framework/ai/sessions/doc/picture-archive.md
+@@ -0,0 +1,30 @@
++# The picture archive: where old session screenshots live
++
++**A session's pictures leave the working tree once its month is old; its records never do.** The archive frees the working disk: August and September went from 650.8 MB to 168.6 MB. The task logs, pages and docs of every month stay in the repo, so the [Sessions page](/framework/ai/sessions/), `SessionIndex`, `PastWork` and `FollowUp` read every month. Only the untracked screenshots (mostly `shots/` from reviews) move to the external drive. They were never in git, so this is where their one copy lives. A picture that a page shows when it opens stays here, so no page loses a picture.
++
++| Month | Moved to the drive | Stayed (a page shows it) | Where the moved ones are |
++|---|---|---|---|
++| [2026/08](../2026/08/readme.md) | 1,124 pictures, 105.1 MB | 207, 23.3 MB | `E:/Projects/lew42/archive/sessions/2026/08/` |
++| [2026/09](../2026/09/readme.md) | 3,124 pictures, 377.7 MB | 527, 73.0 MB | `E:/Projects/lew42/archive/sessions/2026/09/` |
++
++## Read one
++
++The path below the month is the same: `public/framework/ai/sessions/2026/09/22/x/shots/a.png` is at `E:/Projects/lew42/archive/sessions/2026/09/22/x/shots/a.png`. Each month's `archive.jsonl` (in the month folder here and on the drive) lists every file with its bytes and sha1.
++
++## Restore one
++
++- **One picture**, from the repo root with the drive plugged in (Git Bash):
++  `cp E:/Projects/lew42/archive/sessions/2026/09/22/x/shots/a.png public/framework/ai/sessions/2026/09/22/x/shots/`
++- **A whole month:** `node Server/archive-sessions.mjs --undo --months 09`. It copies every file back and checks its sha1; the drive keeps its copy.
++
++## Archive the next month
++
++```sh
++node Server/archive-sessions.mjs --plan  --months 10   # what would move, per day
++node Server/archive-sessions.mjs --copy  --months 10   # copy + sha1; the count and bytes must agree
++node Server/archive-sessions.mjs --apply --months 10   # re-verify, remove the C: copy except pictures a page shows, write the month's readme.md
++```
++
++"A page shows it" means some `page.js` in its folder or above names it, or a `task.jsonl`, `page.jsonl` or `.md` there embeds it as a picture (`![](…)`, `<img>`, a `shot` line). Anything else archived shows as a broken link at most, never on a page's first screen; `merge.mjs`'s smoke test stays clean.
++
++The plan and why the records stay: [repo-size.md, phase 2](../../doc/repo-size.md#phase-2--archive-old-sessions). Open for later: a second copy on Cloudflare R2 that a server can read (needs the Cloudflare login).
+diff --git a/public/framework/ai/sessions/doc/readme.md b/public/framework/ai/sessions/doc/readme.md
+index 88589b120..60bfa2371 100644
+--- a/public/framework/ai/sessions/doc/readme.md
++++ b/public/framework/ai/sessions/doc/readme.md
+@@ -9,4 +9,5 @@ The Sessions tab's detail, by subsystem. The tab itself: [`../readme.md`](../rea
+ | [`ui/`](ui/classes.md) | [The classes](ui/classes.md), [the Session class](ui/session-class.md), [the views](ui/views.md) | you change the page |
+ | [`live/`](live/realtime.md) | [Real time: index, tailer, plan](live/realtime.md) | you touch streaming; [how the grid loads](live/grid-loading.md) |
+ | [`commit-rule.md`](commit-rule.md) | [What is committed, what is ignored, the log sweeper, and the append-only rule for record files](commit-rule.md) | `git status` is full of machine logs |
++| [`picture-archive.md`](picture-archive.md) | [Where old months' screenshots live (the E: drive), how to read or restore one, how to archive the next month](picture-archive.md) | a picture on an old report is broken, or the disk is full |
+ | [`cost/`](cost/spend-tree.md) | [Spend tree](cost/spend-tree.md), [context cost](cost/context-cost.md), [OpenRouter dollars](cost/openrouter-dollars.md), [the account-vs-log gap](cost/openrouter-gap.md) | you touch cost numbers |
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index b8e85047c..b465b8d26 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -17,6 +17,7 @@ opens as a side peek beside the grid instead of replacing it.
+ - **Layout** — the compact grid, scope trail, left rail, status line: [doc/ui/compact-layout.md](doc/ui/compact-layout.md).
+ - **Buckets** — thousands of routine sessions fold into a few chips with their own totals: [doc/buckets.md](doc/buckets.md).
+ - **Data sources** — the SDK session file is the one copy of what was said; where the repo still duplicates it, and the deep link: [doc/data-sources.md](doc/data-sources.md).
++- **Picture archive** — old months' screenshots live on the E: drive, records stay here; how to read or restore one: [doc/picture-archive.md](doc/picture-archive.md).
+ ## Watch out
+ 
+ - **"Session" means two different things on this site.** This tab is a *Claude Code* session

@@ -1,0 +1,12 @@
+pass  private Servex up on 8490
+pass  create writes the new card into ai/sessions/<day>/cards/
+pass  create answers the card's page url, unchanged
+pass  open new card (2026/10/13/one-tree-proof)
+pass  open moved card (2026/10/13/ai-modules-home-decided-4-things-for-you)
+pass  open old-tree card (2025/12/31/old-tree-proof)
+pass  reply on the new card appends in the store
+pass  reply on an old-tree card appends in place (no copy in the store)
+pass  the card list has the new, the moved and the old-tree card
+pass  page_read on a moved card's page reads its folder
+
+all passed

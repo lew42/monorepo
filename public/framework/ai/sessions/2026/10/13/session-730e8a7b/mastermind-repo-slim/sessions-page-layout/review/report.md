@@ -1,45 +1,47 @@
 verdict: fix
-1. [fix] Requirements 3 and 4 (year/month/day scoping routes, left rail for sub-views) have no change in the diff — the only code change is `sessions.css`, a status-line tweak (diff.patch).
-2. [fix] The shots do not show the Sessions grid. They are the day inbox, a data-grid task page and two task pages, so requirements 1, 2 and 5 (first-row y, rows visible, before/after) cannot be judged. Widths given: all four (400, 1200, 1920, 3440).
-3. [fix] In the day-inbox shots the "6 open tasks on this page, 1 on pages inside it" expander and the "inbox 1, 1 new" link are still at the bottom (`shots/…-framework-ai-2026-10-13/sheet.png`, bottom band, all widths). If that page is meant to be in scope, requirement 2 is unmet. If it is out of scope, the wrong pages were shot.
-4. [note] Most of the diff is `files.jsonl` / `page.jsonl` churn unrelated to the task.
+1. [fix] Ask 2 "first row in the top ~25% at 1200" is not met — shots/sessions/1200.png: first row title at y≈370 of 900 (≈41%); the filter chips (routine and role, two rows each) take the band between y 130 and 340. At 1920 the first row is at y≈387 of 1080 (≈36%).
+2. [fix] The status rail is still two lines at 1200 and six lines at 400 (shots/sessions/1200.png bottom, 400.png bottom ≈ 150 px). The ask was one line of small text and icons; the "show 30 more days" button and the "1 open task on this page" chip are still plain buttons, not icon chips. Only 1920 comes close to one line.
+3. [fix] Ask 3 day scoping is not visible — the breadcrumb reads "2026 / October" with ‹ › and "today"; there is no day level, so /2026/10/13/ cannot be reached from it (shots/sessions/1200.png, band under the title).
+4. [fix] At 1920 the Role cell clips the MASTERMIND tag under the SERVEX tag on the first row (shots/sessions/1920.png, row 1, Role/Source columns).
+5. [note] The page left a status-rail CSS-only diff; there is no layout.json for shots/sessions, so tab_rows, bands and left padding were judged from the shots. The diff is mostly files.jsonl churn (unrelated gone/added lines); only sessions.css matters.
+6. [note] The status rail's fixed `.ai-gauge` and `white-space: nowrap` meters make the 400 rail tall; let them stack as one chip per meter or hide the gauges below ~600px.
+
+Widths given: 400, 1200, 1920, 3440 (page layout).
 
 ## Requirements
-- 1 "Measure first (first-row y, footer height, left padding)" — not measured — no numbers in the shots' layout.json for the Sessions grid
-- 2 "Compact: first row in the top ~25%; footer becomes a status rail; inbox link gone; expander becomes a chip" — partly — the CSS flows the counts into one status line and hides the dollars line (sessions.css), but the grid is not shown and the inbox link / expander remain on the shot pages
-- 3 "Year / month / day scoping as routes, month default" — no — nothing in the diff
-- 4 "Left rail for sub-views" — no — nothing in the diff
-- 5 "check_page at four widths, before/after pair" — no — the shots are of other pages, with no before shots
-- 6 "Report on the card with numbers" — not measured — no numbers
-
+- 1 "Measure first: y of first row, footer height, left padding, before screenshot" — not verifiable from this diff — no before shot or numbers in the folder given
+- 2a "header block shrinks so first row sits in top ~25% at 1200" — no — first row ≈41% down (shots/sessions/1200.png)
+- 2b "footer becomes a one-line status rail, small text, icons/chips" — partly — one line at 1920, two at 1200, six at 400
+- 2c "'inbox 1, 1 new' link gone" — yes — not present in any shot
+- 2d "open-tasks expander becomes a chip" — partly — it is a small chip on the rail but still reads "1 open task on this page" with a button look
+- 2e "left padding matches the gutter token" — yes — list sits inside the card with the same inset as the title (shots/sessions/1200.png)
+- 3 "year / month / day breadcrumb, month default, most recent first" — partly — year and month only, no day; month default and newest first are yes
+- 4 "left rail for sub-views (grid, docs, versions)" — yes — Sessions, Docs, Readme, Dashboard v2, All versions in shots/sessions/1200.png; at 400 it becomes a wrapped row of links, not a rail
+- 5 "check_page at four widths, 1200 before/after pair" — partly — four shots exist, no before shot
+- 6 "report with numbers" — not in this folder
 ## Page structure
-- title says what the page is — yes — day page "Tuesday, October 13", `shots/…-ai-2026-10-13/1200.png`
-- one clear takeaway above the fold on the Sessions page — not measured — page not shot
-
+- page 1 — yes — shots/sessions/1920.png: title "Sessions" and the grid say what it is
+- page 2 — yes — the grid is the main thing, filters above it
+- page 3 — no — chips and filters push the content down (finding 1)
 ## Navigation
-- techniques used — tabs (AI top tabs), a sidebar; no left sub-view rail
-- tab rows — 2 at 400, 1 at 1200 (layout.json `tab_rows`) — yes at 1200, note at 400
-- left rail for sub-views — no — not built
-
+- techniques: top tabs (AI), a left rail (sub-views), a sidebar, a bottom bar at 400
+- rail — yes at 1200 and 1920; no at 400, where it flows as a wrapped row (shots/sessions/400.png, "All versions" on its own line)
+- tabs — yes — one tab row at 1200 and 1920, two rows at 400 (tab_rows 2 on other pages)
 ## Layout
-- the grid uses the screen — not measured — Sessions page not shot
-- day page at 3440 — no — empty 0.61, content sits in a narrow column (`shots/…-ai-2026-10-13/3440.png`)
-
+- grid uses the width — yes — shots/sessions/1920.png, table spans the card
+- filters take too much height — no — finding 1
 ## Sizing
-- bands — n/a for the Sessions page; day page bands are title 8%, index 53% at 400 (layout.json)
-
+- table columns — no — Role cell too narrow at 1920 (finding 4)
+- rail width — yes — narrow and steady at 1200 and 1920
 ## Wrapping
-- h1 "Tuesday, October 13" wraps to 2 lines at 400 (layout.json wraps) — no, a note
-- rail buttons ✦AI and ⋯More show lines 3.2 at 400 — no
-
+- wraps that should not — no — 400: status rail wraps to six lines; 1920 Role column wraps "task-/mastermind" on row 1
 ## Spacing and padding
-- left padding matches the gutter token — not measured — h1 `doc-well` 14px at 400 and 19px at 1200 on the shot pages; the Sessions grid was not measured
-
+- yes — row rhythm is even at 1920; chip rows are tight but readable; 400 rail has uneven gaps
 ## Colour and contrast
-- n/a — the diff changes no colours
-
+- yes — grey text on white at small size is readable; red filter summary line stands out against the grey (shots/sessions/1200.png)
 ## Flow
-- status rail reads as one line — not measured — not shown in any shot
-
+- no — the eye passes four filter rows before the first session (finding 1)
 ## Words
-- status chips and counts — n/a — no new words in the diff
+- "1 open task on this page" — yes, but "tasks" is the owner's word here, fine
+- "show 30 more days" — note — unclear what it extends; a month breadcrumb already scopes the list
+- "$$$" in "78 $$$" — note — jargon

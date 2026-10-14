@@ -1,0 +1,2 @@
+2026/08: copied 1331 of 1331 (the rest were already there); archive holds 1331 files, 128424044 bytes; manifest 1331 files, 128424044 bytes; sha1 bad 0
+2026/09: copied 3651 of 3651 (the rest were already there); archive holds 3651 files, 450749252 bytes; manifest 3651 files, 450749252 bytes; sha1 bad 0

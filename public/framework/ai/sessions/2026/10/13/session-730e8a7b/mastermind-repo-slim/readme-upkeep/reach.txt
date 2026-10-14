@@ -1,0 +1,20 @@
+OK   catalog/  <- public/framework/readme.md
+OK   ux/Dictate/surfaces/  <- public/framework/ux/Dictate/readme.md
+OK   ux/Content/Object/  <- public/framework/ux/Content/readme.md
+OK   ai/models  <- public/framework/ai/readme.md
+OK   ai/AITask  <- public/framework/ai/readme.md
+OK   ai/doc/architecture.md  <- public/framework/ai/readme.md
+OK   ai/doc/repo-size.md  <- public/framework/ai/readme.md
+OK   ai/doc/follow-up.md  <- public/framework/ai/readme.md
+OK   ai/doc/asks-outcomes.md  <- public/framework/ai/readme.md
+OK   ai/doc/skills-proposals-2026-10-13.md  <- public/framework/ai/readme.md
+OK   core/Page/doc/how-a-page-renders.md  <- public/framework/core/Page/readme.md
+OK   core/Page/doc/storage.md  <- public/framework/core/Page/readme.md
+OK   ext/Figma/doc/round-trip.md  <- public/framework/ext/Figma/readme.md
+OK   ext/Refine/doc/confidence.md  <- public/framework/ext/Refine/readme.md
+OK   ext/Refine/runs/  <- public/framework/ext/Refine/readme.md
+OK   Server/doc/session-index.md  <- Server/readme.md
+OK   Servex/agents/doc/assistant-chain.md  <- Servex/agents/readme.md
+OK   lab/doc/pwa-state.md  <- public/framework/lab/readme.md
+checked 18 / listed 18, misses 0
+OVER100 Server/readme.md 111

@@ -9,3 +9,5 @@
 {"file":"room-test-bob.png"}
 {"file":"room-test.mjs"}
 {"file":"task.jsonl"}
+{"file":"room-test-alice.png","gone":true}
+{"file":"room-test-bob.png","gone":true}

@@ -1,0 +1,16 @@
+{"decision":{"id":"d-what-leaves-the-working-tree","question":"What leaves the working tree for the August and September sessions archive?","ask":"What leaves the working tree for the August and September sessions archive?","rank":1,"options":[{"id":"pictures","text":"Only the untracked pictures (580 MB) move to E: (sha1-verified copy, then removed from C:); every tracked record stays in place; a readme.md + archive.jsonl manifest per month","say":"Only the untracked pictures (580 MB) move to E: (sha1-verified copy, then removed from C:); every tracked record stays in place; a readme.md + archive.jsonl manifest per month","caveats":["Old task reports from Aug/Sep show a broken picture until the file is copied back","The 52 MB of tracked text stays on disk"],"caveat":"Old task reports from Aug/Sep show a broken picture until the file is copied back The 52 MB of tracked text stays on disk","then":[]},{"id":"git-rm","text":"Everything: pictures move to E: and the 4,794 tracked files are git rm-ed in one commit, with stub index files","say":"Everything: pictures move to E: and the 4,794 tracked files are git rm-ed in one commit, with stub index files","caveats":["Saves only 52 MB more disk and 0 bytes of .git (history keeps every file)","SessionIndex, PastWork and FollowUp go blind to two months; old task URLs 404","Crosses one-store-apply, which is git mv-ing 414 cards into 2026/09 right now"],"caveat":"Saves only 52 MB more disk and 0 bytes of .git (history keeps every file) SessionIndex, PastWork and FollowUp go blind to two months; old task URLs 404 Crosses one-store-apply, which is git mv-ing 414 cards into 2026/09 right now","then":[]},{"id":"r2","text":"Pictures to Cloudflare R2 instead of E:","say":"Pictures to Cloudflare R2 instead of E:","caveats":["Needs the Cloudflare login, which only the owner can do","A bill to remember after 10 GB"],"caveat":"Needs the Cloudflare login, which only the owner can do A bill to remember after 10 GB","then":[]}],"recommended":"pictures","confidence":0.85,"why":"90% of the 668 MB is untracked pictures; git rm of the tracked text saves 0 of .git and blinds every reader for 52 MB; the brief named git rm but the measure says pictures are the disk","sources":["public/framework/ai/doc/repo-size.md"],"depends_on":null,"status":"decided","decided_by":"system","owner_only":null,"by":null,"at":"2026-10-13T19:20:02-05:00"}}
+{"file":"task.jsonl"}
+{"file":"undo-proof.txt"}
+{"file":"plan.txt"}
+{"file":"copy.txt"}
+{"file":"disk-before.txt"}
+{"file":"apply.txt"}
+{"file":"disk-after.txt"}
+{"file":"readers.txt"}
+{"file":"smoke.txt"}
+{"file":"docs-check.md"}
+{"file":"inbox.jsonl"}
+{"file":"review-run.txt"}
+{"file":"review/"}
+{"file":"review.md"}
+{"file":"review.jsonl"}

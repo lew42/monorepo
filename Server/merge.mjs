@@ -454,8 +454,13 @@ try {
 			console.log(vis.stdout + vis.stderr);
 			if (vis.status !== 0) { console.error("merge.mjs refused: ext/Figma has a page nothing links to (see HIDDEN above)."); process.exit(1); }
 		}
+		// a big scripted move changes hundreds of pages; Windows caps a command line at 32k characters (654 urls failed
+		// silently, one-tree 2026-10-13), and smoke.mjs caps its own run anyway: pass an even spread of at most SMOKE_MAX
+		const SMOKE_MAX = 40, step = Math.ceil(autoPages.length / SMOKE_MAX);
+		const smokePages = autoPages.filter((_, i) => i % step === 0);
+		if (smokePages.length < autoPages.length) console.log(`smoke checks an even spread of ${smokePages.length} of the ${autoPages.length} changed pages (command-line limit)`);
 		const smoke = skipSmoke ? { status: 0, stdout: "", stderr: "" }
-			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...autoPages, ...(mainArg ? ["--main", MAIN] : [])], MAIN);
+			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...smokePages, ...(mainArg ? ["--main", MAIN] : [])], MAIN);
 		console.log(smoke.stdout + smoke.stderr);
 		const dirty = dirtyFiles();
 		const staged = lines(git(MAIN, "diff", "--cached", "--name-only").stdout);   // git merge refuses any staged change, so treat it like overlap

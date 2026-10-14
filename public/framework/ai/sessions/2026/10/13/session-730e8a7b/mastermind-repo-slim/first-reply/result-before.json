@@ -1,0 +1,71 @@
+{
+ "label": "before",
+ "extra": {},
+ "rel": {
+  "say_returned": 37,
+  "line_session": 158,
+  "line_chat_owner": 158,
+  "line_backing": 158,
+  "line_chat_assistant:fast": 8059
+ },
+ "ags": [
+  {
+   "id": "dispatcher",
+   "role": "dispatcher",
+   "model": null,
+   "state": "idle",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:39:43.761Z",
+   "turns": 0,
+   "session_id": null,
+   "cost": 0,
+   "parent": null
+  },
+  {
+   "id": "sessions",
+   "role": "sessions",
+   "model": null,
+   "state": "idle",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:39:43.785Z",
+   "turns": 0,
+   "session_id": null,
+   "cost": 0,
+   "parent": null
+  },
+  {
+   "id": "session-fast-v-ujpf69v",
+   "role": "session-fast",
+   "model": "claude-haiku-5-5",
+   "state": "idle",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:39:45.998Z",
+   "stopped_at": null,
+   "turns": 1,
+   "session_id": "87f5b19a-0535-436d-a4a1-d287c6f519c5",
+   "cost": 0.018366,
+   "parent": "sessions",
+   "revivable": false,
+   "forked_from": null,
+   "resumed_from": null,
+   "context": 1702
+  },
+  {
+   "id": "session-smart-v-ujpf69v",
+   "role": "session-smart",
+   "model": "claude-sonnet-5-5",
+   "state": "working",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:39:46.017Z",
+   "stopped_at": null,
+   "turns": 0,
+   "session_id": "a0712b01-29c5-4760-a4b3-6b3fd3de05a8",
+   "cost": 0,
+   "parent": "sessions",
+   "revivable": false,
+   "forked_from": null,
+   "resumed_from": null,
+   "context": null
+  }
+ ]
+}
