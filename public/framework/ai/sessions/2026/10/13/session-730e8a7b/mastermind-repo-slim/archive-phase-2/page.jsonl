@@ -6,3 +6,7 @@
 {"file":"disk-before.txt"}
 {"file":"apply.txt"}
 {"file":"disk-after.txt"}
+{"file":"readers.txt"}
+{"file":"smoke.txt"}
+{"file":"docs-check.md"}
+{"file":"inbox.jsonl"}

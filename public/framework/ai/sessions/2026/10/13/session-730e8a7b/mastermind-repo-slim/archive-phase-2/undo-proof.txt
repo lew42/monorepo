@@ -19,3 +19,13 @@ git status after apply: ?? public/framework/ai/sessions/2026/08/readme.md
 == compare (sha1 of every picture, before vs after undo)
 before 1419 after 1419: identical
 git status --ignored diff: only the two new stub readme.md files
+
+== round 2 (2026-10-13 ~19:50): apply keeps the pictures a page.js draws
+2026/08: copied 0 of 1331 (the rest were already there); archive holds 1331 files, 128424044 bytes; manifest 1331 files, 128424044 bytes; sha1 bad 0
+2026/09: copied 0 of 88 (the rest were already there); archive holds 88 files, 10096689 bytes; manifest 88 files, 10096689 bytes; sha1 bad 0
+2026/08: removed 1330 pictures (128.4 MB) from the working tree; stub public/framework/ai/sessions/2026/08/readme.md
+2026/09: removed 68 pictures (8.1 MB) from the working tree; stub public/framework/ai/sessions/2026/09/readme.md
+pictures left on the worktree: 21
+2026/08: restored 1330 of 1331 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
+2026/09: restored 68 of 88 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
+after undo: sha1 of all 1419 identical to before

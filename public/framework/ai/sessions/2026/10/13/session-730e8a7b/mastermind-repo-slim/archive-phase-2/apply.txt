@@ -1,2 +1,12 @@
 2026/08: removed 1331 pictures (122.5 MB) from the working tree; stub public/framework/ai/sessions/2026/08/readme.md
 2026/09: removed 3651 pictures (429.9 MB) from the working tree; stub public/framework/ai/sessions/2026/09/readme.md
+== restore the pictures a page.js draws
+2026/08: restored 1 of 1 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
+2026/09: restored 46 of 46 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
+2026/08: removed 0 pictures (0.0 MB) from the working tree; stub public/framework/ai/sessions/2026/08/readme.md
+2026/09: removed 0 pictures (0.0 MB) from the working tree; stub public/framework/ai/sessions/2026/09/readme.md
+== restore every picture a page shows (page.js, or embedded in task.jsonl/page.jsonl/.md)
+2026/08: restored 206 of 207 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
+2026/09: restored 481 of 527 pictures, sha1 bad 0; the stub readme.md stays (git keeps it), the archive copy stays
+2026/08: removed 0 pictures (0.0 MB) from the working tree; stub public/framework/ai/sessions/2026/08/readme.md
+2026/09: removed 0 pictures (0.0 MB) from the working tree; stub public/framework/ai/sessions/2026/09/readme.md

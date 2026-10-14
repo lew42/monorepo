@@ -3,7 +3,8 @@
 //   node Server/archive-sessions.mjs --plan  [--months 08,09]   what would move: per day, files, MB, destination
 //   node Server/archive-sessions.mjs --copy                     copy to the archive, sha1 every file, write its manifest + README
 //   node Server/archive-sessions.mjs --apply                    re-verify both sides, remove the C: copy, write the repo stub
-//   node Server/archive-sessions.mjs --undo                     copy every file back from the archive and verify (archive kept)
+//   node Server/archive-sessions.mjs --undo [--drawn]           copy every file back (or only the ones a page.js draws) and verify (archive kept)
+// A picture a page.js draws on load stays on C: (a copy still goes to the archive): an archived one would 404 and fail merge.mjs's smoke.
 // Flags: --root <repo> (default: this repo)  --dest <archive root> (default E:/Projects/lew42/archive)  --year 2026
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -51,7 +52,24 @@ export default class ArchiveSessions {
 			.sort((a, b) => a.path.localeCompare(b.path));
 	}
 
-	static mb(b) { return (b / 1048576).toFixed(1) + " MB"; }
+	static mb(b) { return (b / 1e6).toFixed(1) + " MB"; }
+
+	// Pictures a page shows when it opens, so they never leave: named in an ancestor page.js, or embedded as a picture
+	// (markdown ![](…), <img src>, a {"shot"} line) in an ancestor's task.jsonl, page.jsonl or .md.
+	static EMBED = /!\[[^\]]*\]\(([^)\s]+)|<img[^>]*src=\\?["']([^"'\\]+)|"shot":\s*\{[^}]*"(?:path|url|file)":\s*"([^"]+)"/g;
+	drawn(m, list) {
+		const rel = this.monthDir(m);
+		const srcs = this.git(["ls-files", "--", rel]).split("\n").filter(f => /(^|\/)(page\.js|page\.jsonl|task\.jsonl|[^/]+\.md)$/.test(f))
+			.map(f => {
+				const text = fs.readFileSync(path.join(this.root, f), "utf8");
+				const refs = f.endsWith("page.js") ? null : [...text.matchAll(ArchiveSessions.EMBED)].map(x => x[1] || x[2] || x[3]);
+				return { dir: path.posix.dirname(f), text, refs };
+			});
+		return new Set(list.filter(r => {
+			const dir = path.posix.dirname(`${rel}/${r.path}`), name = path.posix.basename(r.path);
+			return srcs.some(s => (dir + "/").startsWith(s.dir + "/") && (s.refs ? s.refs.some(u => u.endsWith(name)) : s.text.includes(name)));
+		}).map(r => r.path));
+	}
 
 	static byDay(rows) {
 		const days = {};
@@ -128,14 +146,15 @@ export default class ArchiveSessions {
 			const left = this.scan(m).filter(r => !list.some(x => x.path === r.path));
 			if (left.length) throw new Error(`${m}: ${left.length} pictures are not on the archive yet (run --copy): ${left[0].path}`);
 			let removed = 0, bytes = 0;
+			const keep = this.drawn(m, list);
 			for (const r of list) {
 				const a = path.join(src, r.path);
-				if (!fs.existsSync(a)) continue;
+				if (!fs.existsSync(a) || keep.has(r.path)) continue;
 				if (ArchiveSessions.sha1(a) !== r.sha1) throw new Error(`${a} changed since --copy; re-run --copy`);
 				fs.unlinkSync(a); removed++; bytes += r.bytes;
 				ArchiveSessions.pruneEmpty(path.dirname(a), src);
 			}
-			this.writeStub(m, list);
+			this.writeStub(m, list, keep);
 			fs.copyFileSync(this.manifestPath(m), path.join(this.root, this.monthDir(m), "archive.jsonl"));   // the record of what left stays in git
 			console.log(`${this.year}/${m}: removed ${removed} pictures (${ArchiveSessions.mb(bytes)}) from the working tree; stub ${this.monthDir(m)}/readme.md`);
 		}
@@ -147,9 +166,11 @@ export default class ArchiveSessions {
 		}
 	}
 
-	undo() {
+	undo(onlyDrawn = false) {
 		for (const m of this.months) {
-			const list = this.readManifest(m), src = path.join(this.root, this.monthDir(m)), dst = this.archiveDir(m);
+			let list = this.readManifest(m);
+			if (onlyDrawn) { const keep = this.drawn(m, list); list = list.filter(r => keep.has(r.path)); }
+			const src = path.join(this.root, this.monthDir(m)), dst = this.archiveDir(m);
 			let restored = 0, bad = 0;
 			for (const r of list) {
 				const a = path.join(src, r.path), b = path.join(dst, r.path);
@@ -164,14 +185,15 @@ export default class ArchiveSessions {
 	}
 
 	// The repo side: one readme per month saying what left, where to, and how to bring it back.
-	writeStub(m, list) {
+	writeStub(m, all, keep = new Set()) {
+		const list = all.filter(r => !keep.has(r.path)), kept = all.length - list.length;
 		const days = ArchiveSessions.byDay(list);
 		const bytes = list.reduce((s, r) => s + r.bytes, 0);
 		const dst = this.archiveDir(m).split(path.sep).join("/");
 		const lines = [
 			`# ${this.year}/${m}: the pictures are archived`,
 			"",
-			`The ${list.length.toLocaleString("en-US")} untracked pictures of this month (${ArchiveSessions.mb(bytes)}, mostly review screenshots in \`shots/\`) moved to the archive drive at \`${dst}/\`, same paths below it. Every record (task.jsonl, page.jsonl, docs, pages) is still here, so the [Sessions page](/framework/ai/sessions/) and every search still read this month. An old report shows a broken picture until it is copied back.`,
+			`The ${list.length.toLocaleString("en-US")} untracked pictures of this month (${ArchiveSessions.mb(bytes)}, mostly review screenshots in \`shots/\`) moved to the archive drive at \`${dst}/\`, same paths below it, to free the working disk. ${kept ? `The ${kept} pictures a page draws when it opens stayed here (a copy is on the drive too). ` : ""}Every record (task.jsonl, page.jsonl, docs, pages) is still here, so the [Sessions page](/framework/ai/sessions/) and every search still read this month. An old report shows a broken picture until it is copied back.`,
 			"",
 			`- **Every file, its size and sha1:** [archive.jsonl](archive.jsonl), the same file as \`${dst}/archive.jsonl\` on the drive (whose own README says what it is).`,
 			`- **Bring it back:** \`node Server/archive-sessions.mjs --undo --months ${m}\` (the drive plugged in) copies every file back and checks its sha1.`,
@@ -206,7 +228,7 @@ export default class ArchiveSessions {
 		const a = new ArchiveSessions({ root: flag("--root"), dest: flag("--dest"), year: flag("--year"), months: flag("--months")?.split(",") });
 		const verb = ["--plan", "--copy", "--apply", "--undo"].find(v => argv.includes(v));
 		if (!verb) { console.log("usage: --plan | --copy | --apply | --undo  [--months 08,09] [--root R] [--dest D]"); return; }
-		a[verb.slice(2)]();
+		a[verb.slice(2)](argv.includes("--drawn"));
 	}
 }
 
