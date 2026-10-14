@@ -275,7 +275,7 @@
 {"kind":"class","group":"ux","name":"Tree","url":"/framework/ux/Tree/","extends":"View","icon":"data_object","api":false,"methods":["render","draw","list","item","branch","holds"]}
 {"kind":"class","group":"ux","name":"Understand","url":"/framework/ux/Understand/","extends":"View","icon":"data_object","api":false,"methods":["history","write","head","render","draw","row"]}
 {"kind":"class","group":"ux","name":"Wizard","url":"/framework/ux/Wizard/","extends":"View","icon":"data_object","api":false,"methods":["render","own_step","next","back","go","done"]}
-{"kind":"class","group":"lab","name":"EventLog","url":"/framework/lab/EventLog/","extends":"Lab","icon":"data_object","api":false,"methods":["add","clear"]}
-{"kind":"class","group":"lab","name":"LiveView","url":"/framework/lab/LiveView/","extends":"View","icon":"data_object","api":false,"methods":["render","redraw","draw"]}
-{"kind":"class","group":"lab","name":"NotificationManager","url":"/framework/lab/NotificationManager/","extends":"Lab","icon":"data_object","api":false,"methods":["request","show","handle","refresh","relay","probe"]}
-{"kind":"class","group":"lab","name":"WorkerHost","url":"/framework/lab/WorkerHost/","extends":"Lab","icon":"data_object","api":false,"methods":["register","watch","sync","ping","unregister"]}
+{"kind":"class","group":"lab","name":"EventLog","url":"/framework/lab/","extends":"Lab","icon":"data_object","api":false,"methods":["add","clear"]}
+{"kind":"class","group":"lab","name":"LiveView","url":"/framework/lab/","extends":"View","icon":"data_object","api":false,"methods":["render","redraw","draw"]}
+{"kind":"class","group":"lab","name":"NotificationManager","url":"/framework/lab/","extends":"Lab","icon":"data_object","api":false,"methods":["request","show","handle","refresh","relay","probe"]}
+{"kind":"class","group":"lab","name":"WorkerHost","url":"/framework/lab/","extends":"Lab","icon":"data_object","api":false,"methods":["register","watch","sync","ping","unregister"]}
