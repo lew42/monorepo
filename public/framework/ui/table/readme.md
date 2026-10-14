@@ -20,5 +20,6 @@ table.c("num", ["module", "lines"], [["View", "641"]]);  // right-aligns every c
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [page](/framework/ui/table/) — numeric alignment, wide tables, and function cells
 - Back to [UI](/framework/ui/).
