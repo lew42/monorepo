@@ -1,6 +1,6 @@
 # Foundations · Layouts report (2026-10-14)
 
-Figma file `QYN0G2URSBHYH5I06MOjxU`: page `Foundations · Layouts` (`296:108171`, right after `Demo · Site`), its 2640-wide component `Page · Foundations · Layouts` (`296:107999`). Brief: [brief-foundations.md](brief-foundations.md). The Figma MCP call limit stopped the work before the last checks, so two things are still open (below).
+Figma file `QYN0G2URSBHYH5I06MOjxU`: page `Foundations · Layouts` (`296:108171`, right after `Demo · Site`), its 2640-wide component `Page · Foundations · Layouts` (`296:107999`). Brief: [brief-foundations.md](brief-foundations.md).
 
 ## The set (simplest first, one row each, 400 / 1000 / 1920 with the same content)
 | Row | Master | Row id |
@@ -20,6 +20,9 @@ Content is real: `Card A · Properties` instances (title, note, meta, button), `
 - `Layout / Two columns` (not collapsed): the Title slot is now FIXED 170 (was HUG), so rows line up as a section-row layout.
 - Cut from the set (masters kept, nothing deleted): Media + text, Three columns, the charts.
 
-## Open
-- ⬜ **Dark row** (two layouts in `Ground`, Text mode only): not built, tool limit.
-- ⬜ **Screenshots**: I saw only Split 1:1 (clean at all three widths); the other six rows are built and measured but not looked at. Also the card's title band renders white on the gray tile (a fill on `Card A`'s inner "Frame"): fix it in the card, or swap to the `Card / …` components when `kit/essentials.md` lands.
+## Last pass (all seven rows and the dark row looked at at 100%)
+- ✅ **Dark row** (`297:105681`, a `Ground=Dark` instance 1000 wide with a Stack and a Split inside, Text mode only): text and button read correctly, no overrides.
+- ✅ **Card title band**: `Card A` and `Card C` had a hard-coded white fill on the title frame; removed in the masters (`239:31003`, `239:31027`).
+- ✅ Button labels fixed (I had overwritten the icon text); Section rows now have 32 between rows; the Bands instances get 32 between bands (instance override, the master stays 0 because DS · 6 uses it); the dark ground has 48 padding.
+- Checked: Stack, Reading column (centred, 720 max), Split (stacks at 400), Section rows, Sidebar (stacks at 400), Bands, Card grid (1 / 2 / 4 columns at 400 / 1000 / 1920, cards 400 to 468), dark. No clipping, overlap or void.
+- Still not done: swapping the cards for the `Card / …` components when `kit/essentials.md` exists.

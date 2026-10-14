@@ -2,3 +2,6 @@
 {"log":{"at":"2026-10-14T18:41:24-05:00","msg":"skill: figma:figma-use"}}
 {"decision":{"at":"2026-10-14T18:45:13-05:00","question":"Which layouts","options":["keep 9","cut to 7"],"chose":"7: Two columns repaired as Section rows (title 170); Media+text and Three columns cut; Collapsed kept as the Wide/Narrow switch","why":"DS 4.1 uses Collapsed; fewer is simpler"}}
 {"log":{"at":"2026-10-14T18:45:13-05:00","msg":"Page Foundations · Layouts 296:108171 built, 7 rows. Figma MCP call limit hit: dark row and screenshots of 6 rows still open, see kit/foundations.md"}}
+{"log":{"at":"2026-10-14T18:45:20-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-14T18:45:59-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-14T18:47:55-05:00","msg":"Dark row built, all rows screenshot-checked, Card A/C white band fixed, button labels and spacing fixed. Landed; see kit/foundations.md"}}
