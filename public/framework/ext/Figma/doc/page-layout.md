@@ -9,7 +9,8 @@ Every page Claude makes in Figma is laid out like a web page, not as frames scat
 - **The page is a component.** Turn each page's wrapper into a component named `Page · <page name>`. The `Index` page places an instance of every page component, grouped in sections. Right-click an instance and choose "Go to main component", and the index works as navigation.
 - **Two exceptions Figma forces:**
   - A component can't contain another component's main. **Master components sit directly on the page canvas, top level** (owner, 2026-10-13): there Figma labels each one with its purple diamond and name, so it is obvious what is a master. Lay them out in a tidy row or grid beside the page component, not inside any frame. The page component shows instances of them.
-  - A prototype only links to top-level frames. Screens that a prototype links to stay top-level, in a tidy row to the right of the wrapper, inside a Figma Section named `Prototype screens`.
-- **Never delete.** Old `was · …` backups move into a `Backups` section at the far right.
+  - A prototype only links to top-level frames. Screens that a prototype links to stay top-level, in a tidy row to the right of the wrapper, as plain top-level frames (no Figma Section: see below).
+- **Never delete.** Old `was · …` backups go in a tidy row at the far right, as plain frames.
+- **No Figma Sections** (owner, 2026-10-13). A Section has no auto layout, so duplicating something inside it means resizing the Section by hand. Use auto-layout frames for grouping. For prototype screens, which must stay top level, a labelled row of plain frames works.
 - **Owner's pages** (Page 1–8, Color Schemes, Vector Design, Paragraph Design) are not touched.
 - **The Index page** (`234:2003`, page 1 of the file) holds a scaled instance (400 wide, clipped to the top 520) of every `Page · …` component, grouped, each with a caption linked to the page. Rebuild it by re-running the same script whenever pages change; it's in the session transcript, and the session STATE links it. 38 previews rendered without trouble (2026-10-13).
