@@ -63,4 +63,5 @@ Owner rule (2026-10-12): summaries and anything waiting on the owner go on the F
 - ⬜ Which numbers win per row of the token table in token-sync.md (site vs Figma).
 - ⬜ `dark`: Figma `#675F56` vs site `#42404B`.
 - ✅ ds-rows ([report](kit/ds-rows.md)): 11 DS pages on section rows (400 head + FILL specimens, min 480 wrap); single-stat block 277:104073; Stat hairline. Index re-run.
-- ⬜ 2026-10-14 wave (before the weekly reset): captions, essentials, demo, foundations, fluid-audit, type (briefs in kit/). Afterwards: reorder pages (foundations first) and re-run the Index script.
+- ✅ 2026-10-14 wave: captions, essentials (296:109702), demo (296:106079), foundations (296:107999), fluid-audit, type (297:105637). Pages reordered; Index regrouped (45 pages).
+- ⬜ dogfood (brief-dogfood.md): new pages use the Essentials cards.
