@@ -18,4 +18,5 @@ div.c("ui-alert surface pad flex gap accent", () => {
 ## More
 
 - [page](/framework/ui/alert/) — the tones, an action row, and why there is no `ui.alert()`
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - Back to [UI](/framework/ui/).
