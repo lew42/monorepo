@@ -30,6 +30,7 @@ seven child pages (text, lists, code, table, forms, media, misc) prove it elemen
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [Overview](/framework/styles/elements/) · [`doc/decisions.md`](./doc/decisions.md) — why seven pages, `demo()` for everything, unstyled elements covered too, the no-stylesheet record · [`doc/framework-css.md`](./doc/framework-css.md) — what surprised us in `framework.css`, recorded not fixed
 - `doc/file/*.md` — one note per file: this `page.js`, this readme, and each child's `page.js`
 - Files that matter: `page.js` (index and routing table), `<group>/page.js` (one `demo()` per element), `/framework/styles/framework.css` (the only source of truth)
