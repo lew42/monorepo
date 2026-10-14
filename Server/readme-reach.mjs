@@ -15,6 +15,16 @@ const items = [
  ['Server/doc/session-index.md','Server/readme.md','session-index'],
  ['Servex/agents/doc/assistant-chain.md','Servex/agents/readme.md','assistant-chain'],
  ['lab/doc/pwa-state.md',F+'lab/readme.md','pwa-state'],
+ ['ai/doc/unreferenced-verdicts.md',F+'ai/readme.md','unreferenced-verdicts'],
+ ['ux/Dictate/MicIndicator.js',F+'ux/Dictate/readme.md','MicIndicator'],
+ ['ai/sessions/doc/picture-archive.md',F+'ai/sessions/readme.md','picture-archive'],
+ ['ai/sessions/doc/compaction.md',F+'ai/sessions/readme.md','compaction'],
+ ['ai/sessions/ Coverage tab',F+'ai/sessions/readme.md','Coverage'],
+ ['ai/archive/retired/2026-10-13/',F+'ai/sessions/readme.md','retired'],
+ ['Server/doc/scripts.md','Server/readme.md','scripts.md'],
+ ['ai/sessions/YYYY/MM/DD/cards/',F+'ai/sessions/readme.md','cards/'],
+ ['ai/models page',F+'ai/readme.md','models'],
+ ...['ext/Refine','ext/Figma','core/Page','ux/Dictate','ui','ai'].map(m=>[m+'/doc/architecture.md',F+m+'/readme.md','architecture.md']),
 ];
 let miss=0;
 for (const [it,rd,n] of items){ const t=fs.existsSync(rd)?fs.readFileSync(rd,'utf8'):''; const ok=t.includes(n); if(!ok)miss++; console.log((ok?'OK  ':'MISS')+' '+it+'  <- '+rd);}

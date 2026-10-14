@@ -84,3 +84,4 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - [quick-fix](./quick-fix/) — log of every quick-fix request
 - [review](./review/) — review questions per system, read live from the skills
 - [tests](./tests/) — test library: small tasks with known-good outcomes
+- [unreferenced verdicts](doc/unreferenced-verdicts.md) — 167 unreferenced candidates judged, 0 dead; a mover with undo, not run

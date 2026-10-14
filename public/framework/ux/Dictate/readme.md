@@ -24,3 +24,4 @@ ever appeared — no error, no clue why.
 - [v1](./v1/)
 - [variants](./variants/) — Dictate variants — the same mic, a different look (or, once, a different mic)
 - [workspace](./workspace/)
+- [MicIndicator](MicIndicator.js) — the one mic-state badge every voice surface shows

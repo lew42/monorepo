@@ -92,3 +92,4 @@ Every Sessions doc, by subsystem: [`doc/readme.md`](doc/readme.md).
 - Why some tabs read as running when they are not, and which launcher made them: [`doc/asks/stuck-sessions.md`](doc/asks/stuck-sessions.md).
 - Models and cost per turn: [`doc/cost/models-and-cost.md`](doc/cost/models-and-cost.md); detail tabs and chat-bubble storage: [`doc/ui/detail-layout.md`](doc/ui/detail-layout.md).
 - Compaction dry run (what a compacted task log would keep and lose, 4.5 MB saved, not applied): [`doc/compaction.md`](doc/compaction.md).
+- **Cards (one tree)** — task cards live under `ai/sessions/YYYY/MM/DD/cards/`, one folder per card; [today](/framework/ai/sessions/2026/10/13/cards/).
