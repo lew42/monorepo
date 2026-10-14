@@ -1,0 +1,11 @@
+# Fresh-eyes review of today's new site pages: the catalog, the voice surfaces, InstanceTree, the Figma tokens page
+
+Budget: $20. Load the `review` skill first (you are the fresh-eyes reviewer), then `sub-mastermind`; you are Opus because the owner judges by looking. The owner's standards: `../requirements-2.md` ask 1 (the catalog: "a preview on the catalog page is enough… click through to the full demo… class cards with the icon and the core API… the live instance hierarchy"), `../requirements-7.md` (the surfaces page: "a page I can click through to, that documents how it all works"), `../requirements-10.md` ask 2 (simple views of the live classes), CLAUDE.md "Presentation" (level 1 above the fold, show don't tell, the four widths 400 / 1200 / 1920 / 3440), "Show the class" (rendered view beside the live instance). What landed: `/framework/catalog/` (228 pages, 34 new, 55 class cards), `/framework/ux/Dictate/surfaces/`, `/framework/ux/Content/Object/` (InstanceTree with the dev bar toggle), `/framework/ext/Figma/tokens/`. Your log is this dir's `task.jsonl`.
+
+## Deliverable
+
+1. **One review pass per page** with the `review` skill's method: headless shots at the four widths; each design system's questions answered with a number or a shot; the owner's sentences above as the acceptance test (does the catalog preview load under 2 s for 40 cards; does a click open the demo; is the instance tree live when a child page mounts; does the surfaces page say for every surface where it is, the file, who answers; does the tokens page show the pairs).
+2. **Fix what you find yourself**, in a worktree, smallest working fix, `check_page` at the four widths, smoke clean, `merge.mjs`; anything over an hour becomes the next brief in the page's module `doc/next.md` with the measurement.
+3. **The report**: `review.md` in this task dir (one screen: pass/fix per page, numbers, before/after shots), linked from each page's module doc; card report; landing line checked with `tail -1`.
+
+Fence: `public/framework/catalog/**`, `ux/Dictate/surfaces/**` and `ux/Dictate/doc/surfaces.md`, `ux/Content/Object/**`, `ext/Figma/tokens/**`, their docs, this task dir. Not `ux/Dictate` code outside `surfaces/`, not `ext/Figma` outside `tokens/`. Opus; Sonnet minions for the fixes if you want them.
