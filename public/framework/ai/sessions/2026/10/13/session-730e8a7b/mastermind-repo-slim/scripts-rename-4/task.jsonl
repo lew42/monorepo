@@ -1,0 +1,11 @@
+{"assign":{"session_id":"7bee36e2-8fc6-4a33-98a4-dd05efa13fda","agent":"task-mastermind-scripts-rename-4","card":"2026/10/13/misnamed-scripts-batch-4-five-more-renam","brief":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-rename-4/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim","requested_at":"2026-10-13T22:42:11-05:00","now":"starting","steps":[],"step":1}}
+{"experiment":{"try":"undo on a worktree copy","measure":"git status after --undo","result":"clean, 33 files restored"}}
+{"decision":{"at":"2026-10-13T22:46:15-05:00","question":"worktree and merge.mjs?","options":["worktree plus merge.mjs","commit on michael/dev"],"chose":"commit on michael/dev (a64cd47a9)","why":"rename-only; git ls-tree shows the new case"}}
+{"assign":{"landed_at":"2026-10-13T22:46:15-05:00","title":"Misnamed scripts, batch 4: five renamed to class names","outcome":"Crawl, Council, Jobs, Experts, Registry renamed with RenameScript (a64cd47a9); 33 callers relinked, node --check and module imports green, undo proven on a worktree copy; scripts.md marks them, 6 remain. Not done: Servex not restarted (mastermind does it), merge.mjs skipped."}}
+{"log":{"at":"2026-10-13T22:46:22-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-13T22:46:22-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-13T22:46:22-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-13T22:46:22-05:00","msg":"owner-note: posted 1 decision to the Inbox"}}
+{"log":{"at":"2026-10-13T22:46:23-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-13T22:46:32-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-13T22:46:32-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
