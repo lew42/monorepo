@@ -6,26 +6,18 @@ The owner, 2026-10-14 ([dictation 14, ask 7](/framework/ai/sessions/2026/10/13/s
 
 A list on the left, the thing you clicked on the right. The list stays put while you read; it is resizable, a third of the screen at 1920 and wider at 3440; on a phone the list and the detail are two screens.
 
-```
-┌─ Browse ─────────────────────────────────────────────┐
-│ ┌─ list (resizable) ─┐ ┌─ detail (page.$pages) ─────┐ │
-│ │ pinned: Waiting on │ │  the row's own page,       │ │
-│ │   you (one line    │ │  routed: /…/<row>/         │ │
-│ │   each, tick = gone)│ │  reload and Back land here │ │
-│ │ rows …             │ │                            │ │
-│ └────────────────────┘ └────────────────────────────┘ │
-└──────────────────────────────────────────────────────┘
-```
-
 ## The classes
 
-| class | file | job | extends | composes |
-|---|---|---|---|---|
-| **`Browse`** | `ux/Browse/Browse.js` | **The orchestrator.** Builds the shell: the list pane, its grip, the detail pane (`page.$pages`, so a row's page renders there through the Router) and the third column for a sub-page. Remembers the list's width. | — | `Browse.Pinned` lists, the rows a subclass draws |
-| `Browse.Pinned` | `ux/Browse/Browse.js` (static) | A short titled list pinned above the rows: one line each, a link, a tick that makes it go. Hidden when empty. | — | its rows `{id, title, href, sub, at}` |
-| `Inbox.Rail` | `core/Page/ext/Inbox/Rail.js` | The Inbox's rows: ranking, read and unread, archive, the filters, the live "new" pill. | **`Browse`** | — |
-| `AIRail` | `ai/rail/rail.js` | The AI page's Inbox: usage meters, cards, the pinned day rows, Waiting on you. | `Inbox.Rail` | `WaitingOnYou` |
-| `WaitingOnYou` | `core/Page/ext/Inbox/WaitingOnYou.js` | Every open owner decision, one line each, its card linked; ticked → archived, gone. Reads `ai/cards.jsonl` and `ai/asks.jsonl`. | `Browse.Pinned` | — |
+```js
+class Browse                                  // ux/Browse/Browse.js: THE ORCHESTRATOR. The shell: the list pane and its grip,
+                                              //   the detail pane (page.$pages: a row's page renders there through the Router),
+                                              //   a third column for a sub-page; remembers the list's width.
+Browse.Pinned                                 // a short titled list above the rows: one line each, a link, a tick that makes it go
+class Rail extends Browse                     // core/Page/ext/Inbox/Rail.js (Inbox.Rail): the Inbox's rows, ranking, read, archive, filters
+class AIRail extends Inbox.Rail               // ai/rail/rail.js: the AI page's Inbox: meters, cards, the pinned day rows
+class WaitingOnYou extends Browse.Pinned      // core/Page/ext/Inbox/WaitingOnYou.js: every open owner decision (ai/cards.jsonl,
+                                              //   ai/asks.jsonl); ticked → its card archived, gone. AIRail pins it.
+```
 
 ## What each surface becomes
 
@@ -38,10 +30,10 @@ A list on the left, the thing you clicked on the right. The list stays put while
 
 The list pane is a container (`container-type: inline-size`), so a row reads its own width, not the screen's:
 
-- under about 30em (a phone, a narrow drag): one line per row, the title and when;
+- under about 30em (a phone, a narrow drag): the title whole, its summary cut to one line;
 - from 30em (the default third at 1920): the row's badges, title and when on one line, its one-line summary under it;
 - from 60em (3440, or dragged wide): one line per row as a table: badges, title, summary, when, side by side, like the Sessions data grid.
 
 ## One of everything
 
-Browse replaces the shell code that was in `Inbox.Rail` (and the copy of it that the timeline gets from `columns()`); it is not a third rail. The CSS classes `inbox-shell`, `inbox-rail` and `inbox-detail` stay on the same elements, so every rule in `ux/Inbox/Inbox.css` still lands; Browse adds `browse`, `browse-list` and `browse-detail` beside them.
+Browse replaces the shell code that was in `Inbox.Rail`; it is not a third rail. The CSS classes `inbox-shell`, `inbox-rail` and `inbox-detail` stay on the same elements, so every rule in `ux/Inbox/Inbox.css` still lands; Browse adds `browse`, `browse-list` and `browse-detail` beside them.
