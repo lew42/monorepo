@@ -97,7 +97,7 @@ export default new Doc({
 	subject: Draggable,
 	properties: "view handle dragging registry",
 	methods: "assign initialize grab drag release cancel end under drop_check start move drop restore destroy",
-	notes: "sortable verdicts decisions",
+	notes: "architecture sortable verdicts decisions",
 	files: "Draggable.js Sortable.js draggable.css page.js",
 
 	overview: [{ title: "Draggable alone", icon: "pan_tool", content(){

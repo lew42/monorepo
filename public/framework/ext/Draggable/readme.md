@@ -20,6 +20,7 @@ new Card({ view: $node, handle: false, $items, item });  // drop site only — n
 
 ## More
 - [Overview](/framework/ext/Draggable/) · [`doc/decisions.md`](./doc/decisions.md) — traps in full, deferred edge bands, who subclasses it
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`doc/sortable.md`](./doc/sortable.md) — what Sortable adds: ghost, placeholder, `locate(e)` → a position
 - [`doc/verdicts.md`](./doc/verdicts.md) — pointer capture, `elementsFromPoint`, filter on the dragger, two classes
 - `doc/method/`, `doc/property/`, `doc/file/` — per-member notes the overview renders
