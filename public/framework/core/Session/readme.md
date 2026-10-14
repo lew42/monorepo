@@ -7,3 +7,7 @@
 - `scan` finds a folder by its uuid name, `index.json`, cache summary, or the first `page.jsonl` line `{"session":uuid}` the page tool writes.
 
 Decision: `core/Page/doc/architecture.md` (Session). Folder layout: `ai/sessions/doc/data/layout.md`.
+
+## More
+
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
