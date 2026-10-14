@@ -17,3 +17,14 @@
 # Next 3: from the surfaces page (2026-10-13)
 
 Recommendations; evidence in [surfaces.md](surfaces.md). Done 2026-10-13 (voice-dedupe): Echo and the Refine buttons share `run_refine` (9b25b1a80); `ext/Ask/chat.js` checked and kept (ten-plus importers); the Dev shell chat tab traced (a fourth surface, recommendation on surfaces.md). Still open: measure luna vs Claude for the fast assistant (the 30-second first reply); one "New session" button; Echo and the Refine buttons share one call; retire `ext/Ask/chat.js`; trace the Dev shell chat tab.
+
+# Next 4: what the 2026-10-13 end-to-end walk left (measured, [review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review/review.md))
+
+Walked headless through real Whisper (a spoken WAV as the fake mic) at 400 and 1200. Fixed in the same task: New session resumed the old session; the first sentence after a session start could vanish from the sheet; the phone sheet's title was the class name; New session needed two taps on the phone; the full sheet repeated its tab row as links; a refused-mic message ran off a 400 px screen.
+
+1. **The fast assistant answers when it is not addressed (Servex, `session-fast.md`).** The owner's rule: fast "does NOT reply in chat unless addressed by name". Measured: it replied 2.3-2.7 s after 4 of the 8 "Smart assistant, …" sentences across four runs, with a guess ("probably the /framework/ home page") the smart one then corrected. Change: in `Servex/agents/session-fast.md`, reply only when the sentence names "fast"; a sentence that names "smart" is a skip.
+2. **The smart assistant's first answer is slow when cold: 23.6 s and 11.0 s (phone runs), 11.4 s and 6.2 s (desktop runs); warm 4.3-5.8 s.** Each new smart agent starts with about 60,000 tokens of context and costs $0.38-0.48 per four-sentence session. Halving that prompt is the lever; measure with `first-reply/measure.mjs`.
+3. **A smart assistant took a test sentence ("the sheet should show every bubble in order") as a task and started `task-mastermind`** (stopped at 0 turns). It should confirm before spawning work from a statement that is not a request.
+4. **`/framework/page.jsonl` 404 on every sheet or drawer open** (`core/Page/ext/Inbox/Inbox.js` fetches a page's `page.jsonl` that most pages do not have). Harmless, but a console error on every open.
+5. **The status line can say "Mic: on, level ok" just after the mic was stopped** (phone, step "new-session"): it updates on the next level tick.
+6. **The half sheet shows about two bubbles** (thread ~190 px of a 400 px sheet). Dragging to full fixes it; a taller default is the alternative.

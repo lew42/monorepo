@@ -40,3 +40,5 @@ Duplicates now: 3 open (stores named, Ask/chat.js kept, Dev shell chat tab); 2 c
 **Update 2026-10-13:** the phone sheet and the sidebar are now one component: the sheet's `full` state mounts the drawer's own tab row ([next.md](next.md)).
 
 Reviewed 2026-10-13 at four widths, with before and after shots: [review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/review-site-pages/review.md).
+
+Walked end to end on 2026-10-13 (phone 400 and desktop 1200, real Whisper, a shot after every gesture): [review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review/review.md).
