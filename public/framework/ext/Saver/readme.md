@@ -25,6 +25,7 @@ const json = await saver.load();   // the stored JSON, or null
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [Overview](/framework/ext/Saver/) · [doc/backends.md](./doc/backends.md) (the four compared, why `FileSaver` is dev-only) · [doc/decisions.md](./doc/decisions.md) (the record: callers, verdicts, open items)
 - Per-method and per-property docs: `doc/method/*.md`, `doc/property/*.md`; per-file: `doc/file/*.md`
 - Files that matter: `Saver.js` (the queue itself), `FileSaver.js` (dev socket backend), `LocalStorageSaver.js` (deployed backend)
