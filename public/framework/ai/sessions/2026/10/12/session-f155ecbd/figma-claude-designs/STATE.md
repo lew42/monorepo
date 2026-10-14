@@ -41,7 +41,7 @@ Owner's ask, in short: one design system drawn in Figma (Sept-2026 file `QYN0G2U
 - ✅ 2026-10-13 tidy-ds/kit/lab, icons, nesting, slots, transcribe reported. Index (masonry, natural height) + Index · full size rebuilt from ext/Figma/scripts/index-pages.figma.txt.
 - ✅ builder ([report](kit/builder.md)): Kit · Mobile builder 260:71518, 27 blocks, matched toolboxes, mode inheritance verified.
 - ✅ fluid-ds, fluid-kit, grids (250:105044), templates (262:34669) reported 2026-10-13; Index re-run (42 pages).
-- ⬜ templates-3col (brief-templates-3col.md), icon-swap (brief-icon-swap.md): queued.
+- ✅ templates-3col (269:89897, [report](kit/templates-3col.md)), icon-swap ([report](kit/icon-swap.md): 159 glyph components; UI Kit Back reaction is a best guess). Index re-run: 43 pages.
 - ✅ Index page `234:2003` built as page 1 (38 previews); re-run after tidy finishes.
 - ⬜ slots (brief-slots.md), icons (brief-icons.md).
 - ⬜ 2026-10-13 tidy-ds, tidy-kit, tidy-lab (brief-tidy.md): every Claude page → 1920 wrapper → `Page · …` component; then I build the Index page.
