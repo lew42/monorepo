@@ -11,3 +11,5 @@ Bubbles are drawn by `ext/Chat` from the raw transcript lines (`/ai-logs/<id>/se
 ## Raw logs and asks (2026-10-13)
 **Raw** lives in the Conversation tab's header: `task.jsonl` (the session's own folder) and `transcript` (`/ai-logs/<id>`, dev server only), drawn by `AISessionDetail`.
 Each ask in the Coverage tab ends with `line N`, a link to `/ai-logs/<id>#N`, the prompt's line in the transcript; the cite link beside it opens the same words inline.
+Coverage is a flat list of rows (no card around each prompt); twelve fit above the fold at 1920.
+The page's title is the session's name from the first paint: AISessionsPage.child() preloads the rows and the day-index snapshot (AISessionDetail.preload) before the page is built. Detail: next.md.
