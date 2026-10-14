@@ -1,6 +1,6 @@
 # Old branches: 1 landed, 26 superseded, 17 set aside, nothing lost
 
-Run 2026-10-14. 141 branches now have a file missing from michael/dev (the earlier landing check counted 54; the branch list has grown since). Classified by `classify.mjs` (kinds: records = anything under ai/, files.jsonl, png, json, scratch; docs = .md; code = js/mjs/css/skills), then  asked, for each code/docs file, whether dev has edited it since the branch base. No branch was deleted or rewritten.
+Run 2026-10-14. 141 branches now have a file missing from michael/dev (the earlier landing check counted 54; the branch list has grown since). Classified by `classify.mjs` (kinds: records = anything under ai/, files.jsonl, png, json, scratch; docs = .md; code = js/mjs/css/skills), then `moved.mjs` asked, for each code/docs file, whether dev has edited it since the branch base. No branch was deleted or rewritten.
 
 ## Branches with code or docs missing (44)
 
