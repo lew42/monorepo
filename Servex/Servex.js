@@ -49,7 +49,7 @@ import { run_refine } from "./ext/refine/run.js";
 import VoicePage from "./ext/refine/VoicePage.js";
 import CardAsk from "./ext/refine/CardAsk.js";
 import LiveRefine from "./ext/refine/LiveRefine.js";
-import hitl from "./agents/hitl.js";
+import Hitl from "./agents/Hitl.js";
 import Inbox from "./agents/inbox.js";
 import { docs_list, docs_read_file } from "./pages.js";
 import { warm_guard } from "./ext/openrouter/provider.js";
@@ -615,7 +615,7 @@ export default class Servex extends Events {
         /* THE HIT-API CHAT CALLS (chat-hitl, 2026-09-29) — two small no-tools
          * model calls the human-in-the-loop chat uses: `marks` (per-sentence
          * purpose + ambiguity flag) and `rename` (five title alternatives).
-         * See Servex/agents/hitl.js. Named ops only — an unknown `op`, or a
+         * See Servex/agents/Hitl.js. Named ops only — an unknown `op`, or a
          * caller-supplied `system`/`model`, is refused: this route (reachable
          * from the LAN via `/servex`) never runs an arbitrary prompt. */
         router.options("/api/hitl", cors, (req, res) => res.status(204).end());
@@ -626,7 +626,7 @@ export default class Servex extends Events {
                 return res.status(400).json({ ok: false, why: "system and model are not accepted here" });
             if (body.op !== "marks" && body.op !== "rename")
                 return res.status(400).json({ ok: false, why: `unknown op "${body.op}"` });
-            res.json(await hitl(body));
+            res.json(await Hitl.run(body));
         });
 
         /* THE LOCAL-MODELS CHAT PAGE'S OWN CALLS (public/framework/ai/local/,

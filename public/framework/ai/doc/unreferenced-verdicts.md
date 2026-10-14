@@ -4,7 +4,7 @@
 
 ## Your list: dead files
 
-None. The scripted mover, `Server/retire-files.mjs` (`--plan`, `--apply`, `--undo`), is ready and reads this checklist, so it has nothing to move. Dead files, if the census finds more later, are listed here as `- [x] `path`` lines.
+None. The scripted mover, `Server/RetireFiles.mjs` (`--plan`, `--apply`, `--undo`), is ready and reads this checklist, so it has nothing to move. Dead files, if the census finds more later, are listed here as `- [x] `path`` lines.
 
 
 ## Why so few

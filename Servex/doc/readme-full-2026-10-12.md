@@ -19,7 +19,7 @@ says something to one running agent (queued behind its current turn) — the AI 
 inline chat uses it; an unknown id is a 404, a stopped one a 409.
 
 **`POST /api/tidy`** (`agents/tidy.js`) cleans one chunk of dictated text with a single
-no-tools Sonnet call. **`POST /api/hitl`** (`agents/hitl.js`) is the human-in-the-loop chat's
+no-tools Sonnet call. **`POST /api/hitl`** (`agents/Hitl.js`) is the human-in-the-loop chat's
 own two small model calls, `marks` (per-sentence purpose + a green-check/yellow-question flag)
 and `rename` (five title alternatives) — named ops only, and a `system` or `model` in the body
 is refused rather than run.

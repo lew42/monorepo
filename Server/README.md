@@ -79,7 +79,7 @@ task once (not on every retry), so `landed_at` alone can never read as done.
 author's conversation — to read the brief and the diff and say pass or fix, before `merge.mjs`
 will take a `light` or `full` branch. Full story: [`doc/review.md`](./doc/review.md).
 
-**`node Server/audit.mjs <taskdir...> [--out <path.json>]`** (2026-10-02) is law 7 for a task
+**`node Server/Audit.mjs <taskdir...> [--out <path.json>]`** (2026-10-02) is law 7 for a task
 audit: given several `audit.jsonl` files (one line per model that graded a landed task on
 complete/obedience/utility, written through `.claude/hooks/append.mjs` against the schema in
 `jsonl-schema.mjs`), it COMPUTES the consensus — never an AI writing it from memory. Per task:

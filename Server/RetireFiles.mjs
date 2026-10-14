@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Server/retire-files.mjs — moves the owner-approved `dead` files aside (git mv), never deletes. Doc: public/framework/ai/doc/unreferenced-verdicts.md
-//   node Server/retire-files.mjs --plan    list what would move (no change)
-//   node Server/retire-files.mjs --apply   git mv each ticked `- [x]` line of the checklist into ai/archive/retired/2026-10-13/<original path>, write manifest.json
-//   node Server/retire-files.mjs --undo    git mv everything in the manifest back
+// Server/RetireFiles.mjs — moves the owner-approved `dead` files aside (git mv), never deletes. Doc: public/framework/ai/doc/unreferenced-verdicts.md
+//   node Server/RetireFiles.mjs --plan    list what would move (no change)
+//   node Server/RetireFiles.mjs --apply   git mv each ticked `- [x]` line of the checklist into ai/archive/retired/2026-10-13/<original path>, write manifest.json
+//   node Server/RetireFiles.mjs --undo    git mv everything in the manifest back
 // Add `--manifest <md>` to read another checklist (Server/doc/scripts.md). The checklist is the "Dead" section of unreferenced-verdicts.md: every line starts ticked; untick (`- [ ]`) a file to keep it in place.
 import fs from "node:fs";
 import path from "node:path";
@@ -37,10 +37,10 @@ export default class RetireFiles {
 	}
 }
 
-if (process.argv[1]?.endsWith("retire-files.mjs")) {
+if (process.argv[1]?.endsWith("RetireFiles.mjs")) {
 	const a = process.argv;
 	if (a.includes("--apply")) console.log(`moved ${RetireFiles.apply().length} files to ${DEST}`);
 	else if (a.includes("--undo")) console.log(`restored ${RetireFiles.undo().length} files`);
 	else if (a.includes("--plan")) { const p = RetireFiles.plan(); console.log(p.map(r => `${r.from} -> ${r.to}`).join("\n") + `\n${p.length} files (plan only)`); }
-	else console.log("usage: node Server/retire-files.mjs --plan | --apply | --undo");
+	else console.log("usage: node Server/RetireFiles.mjs --plan | --apply | --undo");
 }

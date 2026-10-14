@@ -11,7 +11,7 @@ process.env.SERVEX_MASTER_BATCH_MS = "50";
 delete process.env.SERVEX_NO_ASSISTANT;
 
 const { Claims } = await import("./claims.js");
-const { brief, remember_focus } = await import("./brief.js");
+const { brief, remember_focus } = await import("./Brief.js");
 const { default: Global } = await import("./Global.js");
 
 let n = 0;

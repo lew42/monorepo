@@ -20,6 +20,13 @@ export default class RenameScript {
 
 	git(...args) { return execFileSync("git", args, { cwd: this.root, encoding: "utf8", windowsHide: true, maxBuffer: 1 << 28 }); }
 
+	// A case-only rename (foo.mjs -> Foo.mjs) goes through a temporary name: Windows sees one file, and git mv or a later merge conflicts.
+	move(from, to) {
+		if (from.toLowerCase() !== to.toLowerCase()) return this.git("mv", from, to);
+		const tmp = from + ".case-tmp";
+		this.git("mv", from, tmp); this.git("mv", tmp, to);
+	}
+
 	static parse(spec) { return spec.split(",").map(s => s.split("=")).map(([from, to]) => ({ from, to })); }
 
 	// "./card-check.mjs", "Server/card-check.mjs" and a bare "card-check.mjs" after a space, quote or backtick all match.
@@ -45,7 +52,7 @@ export default class RenameScript {
 	apply(moves, manifestPath) {
 		const { callers } = this.plan(moves);
 		const edits = [];
-		for (const { from, to } of moves) this.git("mv", from, to);
+		for (const { from, to } of moves) this.move(from, to);
 		for (const file of [...new Set(callers.map(c => c.file))]) {
 			const current = moves.some(m => m.from === file) ? moves.find(m => m.from === file).to : file;
 			const abs = path.join(this.root, current);
@@ -62,7 +69,7 @@ export default class RenameScript {
 	}
 
 	undo(manifest) {
-		for (const { from, to } of [...manifest.moves].reverse()) this.git("mv", to, from);
+		for (const { from, to } of [...manifest.moves].reverse()) this.move(to, from);
 		for (const { file, before } of manifest.edits) {
 			const now = manifest.moves.find(m => m.to === file)?.from || file; // the edit's exact original text is in the manifest
 			fs.writeFileSync(path.join(this.root, now), zlib.gunzipSync(Buffer.from(before, "base64")).toString("utf8"));
