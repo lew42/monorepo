@@ -74,7 +74,7 @@
 		"title": "Decide",
 		"kind": "trigger",
 		"for": "Run whenever a research round, a plan or a task reaches a decision — anything with options to choose between (which library, proxy or build, where it lives).",
-		"when": "The decision is written by Server/decide.mjs, a node tool that walks it step by step and refuses a missing part. The tool is the only way to write one; never hand-write a decision line.",
+		"when": "The decision is written by Server/Decide.mjs, a node tool that walks it step by step and refuses a missing part. The tool is the only way to write one; never hand-write a decision line.",
 		"lines": 47,
 		"improvements": false,
 		"questions": []

@@ -174,7 +174,7 @@ once Collab.Decisions.for() resolves, and does nothing when it resolves empty.
 
 Framework-relative module path this page documents — "ext/Saver" for a page whose
 `this.url` is "/framework/ext/Saver/" — matched against the shared decisions.jsonl's
-own `module` field (Server/collab.mjs's `target.module`, a collab.json's own words).
+own `module` field (Server/Collab.mjs's `target.module`, a collab.json's own words).
 
 ### overrides() — shadow instance members
 

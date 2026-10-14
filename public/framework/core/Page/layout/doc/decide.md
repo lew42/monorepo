@@ -16,7 +16,7 @@ a list read all at once gets answered all at once, and thinly.
 5. **Which approved layout fits?** [The approved five](/layouts/doc/studies/approved/); if none, it is a proposal.
 
 Each is a judgement with its usual answers, never a rule (the owner, 2026-09-28). To ask them
-of a real page, one at a time: `node Server/ask-each.mjs` on `public/layouts/decide/questions.md`
+of a real page, one at a time: `node Server/AskEach.mjs` on `public/layouts/decide/questions.md`
 ([a worked run](/layouts/decide/servex/)).
 
 ## Then: how big (the `layout` skill's five)

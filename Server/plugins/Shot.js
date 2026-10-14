@@ -1,6 +1,6 @@
 import os from "os";
 import path from "path";
-import { browser as launch } from "../browser.mjs";
+import { browser as launch } from "../Browser.mjs";
 
 /** One element of one page, as a png on disk, so a headless turn can look at it. */
 export default async function shot({ url, selector, width = 1400, height = 1000 }){

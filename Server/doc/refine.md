@@ -64,7 +64,7 @@ node Server/refine.mjs --repair-only <dir> [--mock] [--repair-rounds N]
 - `--out <dir>` — where the files land (default: the current directory).
 - `--models haiku,sonnet` — which models draft `structured.md`, cheap first (default). Each gets
   its own `structured-<name>.md`; the winner becomes `structured.md`.
-- `--collab` — the pick among structured drafts goes through `Server/collab.mjs`'s own real vote
+- `--collab` — the pick among structured drafts goes through `Server/Collab.mjs`'s own real vote
   (real Servex agents, real cost — see "Reuse, not a third engine" below). Without it, one cheap
   judge call (Haiku) picks or merges.
 - `--mock` — every step is deterministic and model-free; the whole pipeline, including the
@@ -167,12 +167,12 @@ Each model in `--models` drafts `structured-<name>.md` independently from the sa
   one cheap Haiku call reads every draft, picks a base or merges the best of each, and says which
   it started from (`WINNER: <name>` as its first line, stripped before saving).
 - **With `--collab`:** each draft is pre-seeded as that model's own file inside a
-  `collab-structured/` sub-run, and `Server/collab.mjs` runs its OWN real vote over them (see
+  `collab-structured/` sub-run, and `Server/Collab.mjs` runs its OWN real vote over them (see
   `Server/doc/collab.md`) — real Servex agents, real cost, but its full machinery: every option
   keeps a vote count (zero included), every voter's caveat is kept, and a scoreboard line lands in
   the shared `public/framework/ai/collab/scoreboard.jsonl`, same as any other collab run.
 
-  This needed one small addition to `collab.mjs` itself: a `phase.given: true` flag a phase can
+  This needed one small addition to `Collab.mjs` itself: a `phase.given: true` flag a phase can
   carry, meaning "the caller already wrote this phase's file — don't spawn an agent to make it,
   just confirm it's there." Without it, collab would have re-drafted `structured.md` itself
   (spawning fresh agents to redo work `refine.mjs`'s own models already did), doubling the cost
@@ -192,14 +192,14 @@ Each model in `--models` drafts `structured-<name>.md` independently from the sa
 
 Either way, one line is appended to `Server/refine-scoreboard.jsonl`
 (`{at, input, models, winner, costs}`) per run, so over many runs it can say which model actually
-refines best — separate from `collab.mjs`'s own shared scoreboard, which only fills in on
+refines best — separate from `Collab.mjs`'s own shared scoreboard, which only fills in on
 `--collab` runs.
 
 ## Reuse, not a third engine
 
-Every model call goes through `askOnce`, exported from `Server/ask-each.mjs` (its own `main()` is
+Every model call goes through `askOnce`, exported from `Server/AskEach.mjs` (its own `main()` is
 now guarded so importing it for `askOnce` doesn't also run its CLI). The `--collab` path goes
-through `Server/collab.mjs` unchanged except for the `given` hook above. `refine.mjs` makes no
+through `Server/Collab.mjs` unchanged except for the `given` hook above. `refine.mjs` makes no
 direct SDK or MCP call of its own.
 
 ## The required sample run

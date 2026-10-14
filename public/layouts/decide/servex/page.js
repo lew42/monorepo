@@ -13,7 +13,7 @@ const PICKS = [
    `main` track. Own layout: one markdown file. Preview: the default card.
 
    The five questions from ../questions.js, asked of /framework/servex/ ONE AT A TIME by
-   Server/ask-each.mjs (one agent session, context once, then each question as its own turn),
+   Server/AskEach.mjs (one agent session, context once, then each question as its own turn),
    answers saved beside this file as answers.md. How it was run: the top of answers.md. */
 export default new Page({
 	meta: import.meta,

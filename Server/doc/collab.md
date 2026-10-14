@@ -1,6 +1,6 @@
 # collab — a few agents work the same question, then vote
 
-`Server/collab.mjs` runs one **collaboration**: several Servex agents (the **members**) go through
+`Server/Collab.mjs` runs one **collaboration**: several Servex agents (the **members**) go through
 the same numbered steps (the **phases**), one phase at a time — everyone finishes phase 1 before
 anyone starts phase 2 — and end by voting on the best draft. It is the runner for the shape both
 this doc and the live page agree on: `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md`.
@@ -40,9 +40,9 @@ Put this next to where you want the run's files (`<taskdir>/collab.json`):
 ## Run it
 
 ```
-node Server/collab.mjs <taskdir>            the real run — spawns real Servex agents, costs real $
-node Server/collab.mjs <taskdir> --mock     no agents, canned files and votes, $0 — proves the flow
-node Server/collab.mjs --score <taskdir>    turn the owner's overrule clicks into scoreboard lines
+node Server/Collab.mjs <taskdir>            the real run — spawns real Servex agents, costs real $
+node Server/Collab.mjs <taskdir> --mock     no agents, canned files and votes, $0 — proves the flow
+node Server/Collab.mjs --score <taskdir>    turn the owner's overrule clicks into scoreboard lines
 ```
 
 Run it from the repo root. Every member is one Servex agent, alive for the whole run (`spawn_agent`

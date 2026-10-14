@@ -182,7 +182,7 @@ function applyFaithfulnessCheck(rawForCheck, rawTextThisCall, sentences, strikes
 async function nodeCall(text, prev, model, cwd, call){
 	// ⚠ Dynamic imports (not static) to avoid node:* builtins in browser
 	const [{ askOnce }, { LEVELS, bodyFor }] = await Promise.all([
-		import("../../../../Server/ask-each.mjs"),
+		import("../../../../Server/AskEach.mjs"),
 		import("../../../../Servex/agents/tidy.js"),
 	]);
 	const theCall = call || askOnce; // same (prompt, {model, cwd}) -> {answer, cost_usd} shape

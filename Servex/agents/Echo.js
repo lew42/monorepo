@@ -124,7 +124,7 @@ export default class Echo {
 		// a claude process too, but never passes through agents.spawn, so it checks the floor itself.
 		const floor = Number(process.env.SERVEX_MIN_FREE_MB) || 4096, free = os.freemem() / 1048576;
 		if (free < floor) throw new Error(`only ${Math.round(free)} MB free, under the ${floor} MB floor: this prompt is not refined`);
-		this.ask ??= (await import("../../Server/ask-each.mjs")).askOnce;
+		this.ask ??= (await import("../../Server/AskEach.mjs")).askOnce;
 		const run = this.ask(prompt, opts).then(r => { if (r?.sessionId) this.machine.add(r.sessionId); return r; });
 		this.inflight.add(run);
 		run.finally(() => this.inflight.delete(run)).catch(() => {});

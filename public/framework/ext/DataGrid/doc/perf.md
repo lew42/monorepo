@@ -14,14 +14,14 @@ report measured on the old grid ("108% CPU").
   divided by the drag's real wall-clock time — the same "% of one core" shape Chrome's own task
   manager reports, which is what the owner's "108% CPU" came from.
 - **The drag itself** — `page.mouse.move/down/move×30/up` across the handle, 8ms between steps (a
-  human-speed drag, not a teleport), via headless Chromium (`Server/browser.mjs` — the one way any
+  human-speed drag, not a teleport), via headless Chromium (`Server/Browser.mjs` — the one way any
   script in this repo opens a browser; never a visible window, never `mcp__playwright`, per this
   task's own fence).
 
 Run it yourself: `node public/framework/ext/DataGrid/perf.mjs` (from the repo root), once the
 worktree's own page is reachable — see the open item below.
 
-## The measured numbers (2026-10-03, headless Chromium, `Server/browser.mjs`)
+## The measured numbers (2026-10-03, headless Chromium, `Server/Browser.mjs`)
 
 ```
 DataGrid perf: drag 300px across a 2,000-row grid — 6.95ms/frame avg (93 frames over 640ms), CPU 10.0% (target: 60fps / 16.6ms/frame)

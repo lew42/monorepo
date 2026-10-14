@@ -14,7 +14,7 @@ import Games from "./Games.js";
 import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
 import { check_page, cap } from "../Server/BrowserCheck.mjs";
-import { pid as browser_pid } from "../Server/browser.mjs";
+import { pid as browser_pid } from "../Server/Browser.mjs";
 import Heartbeat from "./Heartbeat.js";
 import LogSweeper from "./LogSweeper.js";
 import Usage from "./Usage.js";
@@ -880,12 +880,12 @@ export default class Servex extends Events {
             /* THE WARM SHARED BROWSER (2026-10-03): `check_page` is the one way to see what a
              * developer tools console would show for a URL, without opening a tab yourself — the
              * owner's own ask: "if I say 'this page isn't loading,' you can load it and see what
-             * the network is saying, or the console." It reuses `Server/browser.mjs`'s one
+             * the network is saying, or the console." It reuses `Server/Browser.mjs`'s one
              * shared Chromium (Servex is a long-running process, so that's already "started
              * lazily, stays warm"); after every call its RSS is checked and it's closed (the
              * next call relaunches fresh) once it's grown past 600 MB or sat idle 30 minutes —
              * both logged to the `browser-check` log, never silently. */
-            .tool("check_page", { description: "Navigate the one warm shared headless Chromium to a URL and report what a developer tools console would show: console lines (errors/warns/logs, deduped with counts), failed requests, HTTP 4xx/5xx responses, page errors (uncaught JS exceptions), and load time. Waits for load plus 2s so late console lines land too. Starts the shared browser on first call (a few hundred MB); closes the tab when done, never the owner's own browser — this is its own private Chromium (Server/browser.mjs).",
+            .tool("check_page", { description: "Navigate the one warm shared headless Chromium to a URL and report what a developer tools console would show: console lines (errors/warns/logs, deduped with counts), failed requests, HTTP 4xx/5xx responses, page errors (uncaught JS exceptions), and load time. Waits for load plus 2s so late console lines land too. Starts the shared browser on first call (a few hundred MB); closes the tab when done, never the owner's own browser — this is its own private Chromium (Server/Browser.mjs).",
                 inputSchema: { type: "object", required: ["url"], properties: {
                     url: { type: "string", description: "The page to load." },
                     shot: { type: "boolean", description: "Also take a screenshot; the response names its saved path." } } } },

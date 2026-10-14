@@ -256,12 +256,12 @@ export function checksParse(runDir){
 }
 
 /* The run's own page, loaded headless, with no console error — the smoke test every page on this
- * site gets (probe-tasks.md's own checklist, item 2). `browser.mjs` is the one way this repo opens
+ * site gets (probe-tasks.md's own checklist, item 2). `Browser.mjs` is the one way this repo opens
  * Chromium (never a second one — CLAUDE.md law 6), imported by its real file:// url because it is
  * resolved relative to THIS module, not the run dir. Runs only if the run dir (still) has a
  * page.js — plan-counter never does, and that's fine: there's nothing to load. */
 export async function checksLoadClean(runUrl){
-	const { browser } = await import(pathToFileURL(path.join(ROOT, "Server/browser.mjs")).href);
+	const { browser } = await import(pathToFileURL(path.join(ROOT, "Server/Browser.mjs")).href);
 	const b = await browser();
 	const page = await (await b.newContext()).newPage();
 	const errors = [];
@@ -292,19 +292,19 @@ export function diffFromFixture(fixtureDir, runDir){
 	return { changed, added, removed };
 }
 
-/* A real decision record, written through Server/decide.mjs — checked for EVERY run, not just
+/* A real decision record, written through Server/Decide.mjs — checked for EVERY run, not just
  * plan-views: Phase 4's `reasoning` score (item 3) applies to any run that wrote one, and a model
  * asked to fix a page is free to think out loud with a decision record too. `decide.logged()`
  * reads a log the same way the decide CLI does, so this is the exact same truth a `decide show`
  * call would print — never a parallel reader of the file.
  *
- * Checks EVERY `.jsonl` in the run dir, not just task.jsonl: decide.mjs's own `--file` usage
+ * Checks EVERY `.jsonl` in the run dir, not just task.jsonl: Decide.mjs's own `--file` usage
  * example targets `<page.jsonl>`, not a fixed name, so there is no single canonical target —
  * a run is free to log its decision into task.jsonl, page.jsonl, or its own decisions.jsonl.
  * (Found the hard way: plan-views's first real runs wrote valid decisions into page.jsonl and
  * decisions.jsonl respectively, and a task.jsonl-only check scored both as FAIL.) */
 export async function checksDecision(runDir){
-	const decide = await import(pathToFileURL(path.join(ROOT, "Server/decide.mjs")).href);
+	const decide = await import(pathToFileURL(path.join(ROOT, "Server/Decide.mjs")).href);
 	const logs = fs.readdirSync(runDir).filter(n => n.endsWith(".jsonl"));
 	const decisions = logs.flatMap(name => [...decide.logged(path.join(runDir, name)).values()]);
 	const d = decisions.find(d => (d.options?.length ?? 0) >= 2 && d.recommended);
@@ -329,7 +329,7 @@ export function checksLinked(runDir, child){
  * asked for? Loaded headless at the child's own url (not the parent's — the parent is checked
  * separately by checksLinked above, and by the generic checksLoadClean on the run dir's own page). */
 export async function checksH1(childUrl, expectedText){
-	const { browser } = await import(pathToFileURL(path.join(ROOT, "Server/browser.mjs")).href);
+	const { browser } = await import(pathToFileURL(path.join(ROOT, "Server/Browser.mjs")).href);
 	const b = await browser();
 	const page = await (await b.newContext()).newPage();
 	const errors = [];
@@ -361,7 +361,7 @@ export async function checksH1(childUrl, expectedText){
  * children) that ignores whitespace, attribute order and class order — the only things nobody
  * should be marked wrong for. Returns a node-by-node diff, by code, never a judge's opinion. */
 export async function checksTreeMatch(runUrl, sourceHtml, containerSelector){
-	const { browser } = await import(pathToFileURL(path.join(ROOT, "Server/browser.mjs")).href);
+	const { browser } = await import(pathToFileURL(path.join(ROOT, "Server/Browser.mjs")).href);
 	const b = await browser();
 	const canon = `(el) => {
 		const walk = node => ({
@@ -943,11 +943,11 @@ async function main(){
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) main()
 	.catch(e => { console.error(String(e?.stack || e)); process.exitCode = 1; })
-	// checksLoadClean() opens Chromium through browser.mjs's ONE shared instance and never closes
+	// checksLoadClean() opens Chromium through Browser.mjs's ONE shared instance and never closes
 	// it (right — a long-lived caller, like a running Servex process, should keep reusing it). This
 	// CLI is one-shot, so it closes that shared browser itself at the very end; without this the
 	// node process never exits on its own (Playwright's open connection keeps the event loop alive)
 	// — confirmed the hard way: two runs sat as live "working" Servex agents and two live node.exe
 	// processes for 10+ minutes after printing their own final table, because nothing ever called
 	// close(). Importing lazily, so a run with no page.js test (plan-views only) never pays for it.
-	.finally(async () => { try { (await import("../../../../Server/browser.mjs")).close?.(); } catch {} });
+	.finally(async () => { try { (await import("../../../../Server/Browser.mjs")).close?.(); } catch {} });

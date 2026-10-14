@@ -61,7 +61,7 @@ RAW:
 ${raw}
 """`;
 
-const askOnce = DRY ? null : (await import("file:///" + path.join(SERVER, "ask-each.mjs").replaceAll("\\", "/"))).askOnce;
+const askOnce = DRY ? null : (await import("file:///" + path.join(SERVER, "AskEach.mjs").replaceAll("\\", "/"))).askOnce;
 const mean = a => a.length ? +(a.reduce((s, x) => s + x, 0) / a.length).toFixed(2) : null;
 let spent = 0;
 const index = fs.existsSync(path.join(RUNS, "index.json")) ? JSON.parse(fs.readFileSync(path.join(RUNS, "index.json"), "utf8")) : [];

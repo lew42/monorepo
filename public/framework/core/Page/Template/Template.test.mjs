@@ -6,7 +6,7 @@ import { join, dirname } from "node:path";
 
 const site = (process.argv[2] ?? "http://monorepo.localhost").replace(/\/$/, "");
 const repo = join(dirname(fileURLToPath(import.meta.url)), "../../../../..");
-const { browser, close } = await import(pathToFileURL(join(repo, "Server/browser.mjs")).href);
+const { browser, close } = await import(pathToFileURL(join(repo, "Server/Browser.mjs")).href);
 
 const page = await (await browser()).newPage();
 await page.goto(`${site}/framework/core/Page/Template/`);

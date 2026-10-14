@@ -7,7 +7,7 @@
  * never a second copy of the clean prompt (law 6: one clean prompt, not two).
  *
  * HOW: `clean(text, {call, model})` already takes a swappable `call` function instead of
- * its own default (`Server/ask-each.mjs`'s `askOnce`, which only ever reaches real
+ * its own default (`Server/AskEach.mjs`'s `askOnce`, which only ever reaches real
  * Anthropic) — see engine.js's own doc comment on `call`. This file's `call` sends the
  * exact same combined prompt `clean()` builds to one of two plain HTTP endpoints instead:
  *   - a local gguf file, through Servex's own local proxy (`Servex/ext/local/provider.js`,
@@ -118,7 +118,7 @@ export async function run_clean({ text, model } = {}){
  * "good" (this IS the clean text to aim for) or "dont" (a wrong clean, kept so a future
  * model can be checked against the SAME mistake, not just the right answer). Appended
  * with the exact newline-sniffed, re-verified pattern every other hand-made JSONL
- * fixture in this repo uses (Server/decide.mjs's `append()`, copied here rather than
+ * fixture in this repo uses (Server/Decide.mjs's `append()`, copied here rather than
  * imported — that file is a CLI script, not a module meant for another process to
  * import) — never a hand-built JSON string. */
 export function list_examples(){

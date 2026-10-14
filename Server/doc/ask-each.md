@@ -8,12 +8,12 @@ about 11:15 PM".)
 
 ## What it is
 
-`Server/ask-each.mjs` — plain Node, one Claude Agent SDK session (the same SDK Servex uses),
+`Server/AskEach.mjs` — plain Node, one Claude Agent SDK session (the same SDK Servex uses),
 context sent once, then every question sent as its own turn in that same session so the model
 still remembers the context and its own earlier answers.
 
 ```
-node Server/ask-each.mjs <questions.md> [--context <file>] [--model claude-sonnet-5] [--out answers.md]
+node Server/AskEach.mjs <questions.md> [--context <file>] [--model claude-sonnet-5] [--out answers.md]
 ```
 
 - `<questions.md>` — one question per non-empty line (a leading `- `, `* ` or `1. ` is stripped,
@@ -34,7 +34,7 @@ node Server/ask-each.mjs <questions.md> [--context <file>] [--model claude-sonne
 Context: a fake doc page to lay out (`ext/Panel`, 5 sections, viewed at 3440px). Three layout
 questions about it (columns? which piece gets centered? where does a table go?).
 
-- **One at a time (`ask-each.mjs`):** $1.98, one session, 3 turns.
+- **One at a time (`AskEach.mjs`):** $1.98, one session, 3 turns.
 - **One combined prompt (all 3 questions in a single turn):** $0.27, one turn.
 
 Full transcripts: `public/framework/ai/sessions/2026/09/29/6ceb521e-fbb9-4e19-bff6-24009fe1cade/ask-each/answers-one-at-a-time.md` and
@@ -73,4 +73,4 @@ of simple or dependent questions is cheaper and nearly as good in one prompt.
 Both scratch inputs (context + questions) and both outputs live at
 `public/framework/ai/sessions/2026/09/29/6ceb521e-fbb9-4e19-bff6-24009fe1cade/ask-each/` for anyone who wants to re-run the comparison or reuse
 the 3-question layout test. The comparison script that produced the single-prompt run was a
-one-off scratch file, not committed — `askOnce()` in `ask-each.mjs` is the reusable half.
+one-off scratch file, not committed — `askOnce()` in `AskEach.mjs` is the reusable half.

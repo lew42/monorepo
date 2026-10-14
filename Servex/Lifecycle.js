@@ -19,9 +19,9 @@
  * and every port in Servex/keep.json. A worktree keeps its files; only its processes stop.
  *
  * CHROME.EXE WITHOUT A LOG LINE (2026-10-03): most browser-kind resources come from
- * `Server/browser.mjs`'s own start/end log lines (`logged: true`). A chrome.exe that was never
+ * `Server/Browser.mjs`'s own start/end log lines (`logged: true`). A chrome.exe that was never
  * logged at all — e.g. `@playwright/mcp`'s own internal Playwright, which doesn't go through
- * `browser.mjs` — is found a different way: by its own executable path (`ms-playwright` or
+ * `Browser.mjs` — is found a different way: by its own executable path (`ms-playwright` or
  * `chrome-for-testing`, never the owner's own Chrome), and closed only if its launching process
  * is already gone or it's been running over 30 minutes. See `resources()` and `why()`.
  *
@@ -211,7 +211,7 @@ export default class Lifecycle {
 			add({ kind: "server", id: `wrapper:${p.pid}`, pid: p.pid, path: dir || null, port: p.ports[0] ?? (Number(sh.match(/PORT=(\d+)/)?.[1]) || undefined),
 				owner_task: dir ? task_for_worktree(dir, main)?.key ?? null : null, born: p.born });
 		}
-		// A chrome.exe Playwright launched (`Server/browser.mjs`'s own channel, or any future
+		// A chrome.exe Playwright launched (`Server/Browser.mjs`'s own channel, or any future
 		// `@playwright/mcp` use) that never got a log line at all — the only way that happens is a
 		// browser that isn't ours to log, e.g. `@playwright/mcp`'s own internal Playwright install.
 		// Recognised ONLY by its own executable path (`ms-playwright`, or `chrome-for-testing` for

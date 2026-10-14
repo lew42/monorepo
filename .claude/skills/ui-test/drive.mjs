@@ -7,7 +7,7 @@
  * console errors since the last step, the watched rects before/after, and layout flags.
  * The json is the evidence; the pngs are the picture. SKILL.md has the verbs. */
 
-import { browser as launch } from "../../../Server/browser.mjs";
+import { browser as launch } from "../../../Server/Browser.mjs";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import os from "node:os";

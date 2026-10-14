@@ -62,7 +62,7 @@ Decide the review size (none/light/full; `Server/doc/review.md`): the computed s
 When the answer isn't obvious (a question to research, rival plans, a class or method name), run a collab: cheap agents work the same question in rounds and vote, and you read only the tally. Research you pay for must outlive the task: load the `research` skill.
 
 1. Write `<taskdir>/collab.json`: the question, `kind` (`research` or `design`), 3 members (Haiku/Sonnet mixed), the context files. Every run starts by listing the simple truths together; an `open` one is what the next round digs into.
-2. `node Server/collab.mjs <taskdir>` runs in the background and ends with `collab/tally.md` (winner's file, votes, caveats). Read that and the winner's file only.
+2. `node Server/Collab.mjs <taskdir>` runs in the background and ends with `collab/tally.md` (winner's file, votes, caveats). Read that and the winner's file only.
 3. Apply the winner plus its caveats; you may overrule the vote with a `decision` line saying why.
 
 Research searches the web in round one. Design votes on the whole signature first, then builds, then votes on builds; set `target: {module, class}` to record names. Cost about $1.50–2 for 3 members; a one-line claim needs a `check` (under $0.01), not a collab. A plain vote does most of the work: if the tally is close, run one more read-and-revise round, never more. Spec and tally: [`Server/doc/collab.md`](/Server/doc/collab.md); a run drawn live: `/framework/ext/Collab/?src=/framework/ai/<task>/collab.jsonl`.

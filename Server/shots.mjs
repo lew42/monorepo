@@ -18,7 +18,7 @@
  * given — a worktree's own dev server has its own origin, e.g. `--base http://localhost:62292`.
  */
 import { Shots } from "../public/framework/ext/Shots/Shots.mjs";
-import { close as closeBrowser } from "./browser.mjs";
+import { close as closeBrowser } from "./Browser.mjs";
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf("--" + name); if (i < 0) return def; const v = argv[i + 1]; argv.splice(i, 2); return v; };

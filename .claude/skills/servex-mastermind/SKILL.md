@@ -28,7 +28,7 @@ standpoint, in terms of revising the skills."
   minions).
 - **Coordination**: two agents in the same files, duplicate launches, stale bug reports from
   another branch, agents parked waiting on a notice that never comes.
-- **The owner's browser is the owner's** (2026-09-30): no agent claims or evals a connected tab; every look is headless (`mcp__site__shot`, `Server/browser.mjs`). The site MCP refuses non-headless tabs unless the server runs with `SITE_OWNER_TABS=1`. When it happens anyway, stop that agent and fix the skill that let it.
+- **The owner's browser is the owner's** (2026-09-30): no agent claims or evals a connected tab; every look is headless (`mcp__site__shot`, `Server/Browser.mjs`). The site MCP refuses non-headless tabs unless the server runs with `SITE_OWNER_TABS=1`. When it happens anyway, stop that agent and fix the skill that let it.
 - **Health**: crashes (`logs/sustain.log`, `logs/reports/`), the monitor's hot flag, console
   errors (watcher of console errors per worktree; health-supervisor).
 - **Processes** (2026-09-30): on every check, read the last line of `system_health` — our RAM vs. everything else, the top 3 tasks by RAM, the orphan count and the worktree count. `GET /api/processes` has the whole table (per task, per Claude Code session, orphans, worktrees). Servex reaps idle orphans and removes finished worktrees itself; a spinning server that serves nothing is what to look for. See `Servex/doc/processes.md`.

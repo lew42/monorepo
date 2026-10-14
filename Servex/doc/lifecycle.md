@@ -14,7 +14,7 @@ Every server, health watcher, headless browser, worktree, agent and task writes 
 |---|---|
 | `server` | `server.js` and `Server/run.js` write their own lines, so a server started by hand (`PORT=… node server.js`) is logged too |
 | `health` | `Server/health-supervisor.mjs`, about itself |
-| `browser` | `Server/browser.mjs`, at launch and on close |
+| `browser` | `Server/Browser.mjs`, at launch and on close |
 | `worktree` | `worktree-up.mjs`, `worktree-down.mjs`, and the pool's `take_worktree` / return |
 | `agent`, `task` | Servex's `spawn_agent` (start) and the agent's stop (end) |
 
@@ -58,5 +58,5 @@ Since 2026-09-30 the sweep never salvages: a slot that still holds work is kept 
 
 - **A clarity check runs once per task**, not once per minion landing, and waits while the machine monitor's flag is up (`Server/clarity.mjs`).
 - **The monitor's "stop the finished ones" message goes out only when the list of stoppable agents has changed**, and it names them, using the same `ONE_PASS` rule `Lifecycle.js` reaps by, imported rather than copied (`Servex/Monitor.js`, review finding 7).
-- **One browser per process.** `Server/browser.mjs`'s `browser()` now reuses the one Chromium it already launched in this process instead of starting a new one on every call; `close()` shuts it down (idempotent — safe to call twice, or after a caller closed the Browser it got back directly). It also closes itself on a normal exit (`beforeExit`) and makes a best-effort kill on `process.exit()` (`exit`), with the reaper's sweep as the backstop for anything killed outright.
+- **One browser per process.** `Server/Browser.mjs`'s `browser()` now reuses the one Chromium it already launched in this process instead of starting a new one on every call; `close()` shuts it down (idempotent — safe to call twice, or after a caller closed the Browser it got back directly). It also closes itself on a normal exit (`beforeExit`) and makes a best-effort kill on `process.exit()` (`exit`), with the reaper's sweep as the backstop for anything killed outright.
 - **A task log learns its worktree.** `spawn_agent` with a `task` and a worktree `cwd`, `take_worktree`, and `worktree-up.mjs --task <dir>` all write `worktree` into the task's log. `entry_for_task_dir` also matches by the task's slug or branch when that line is missing, so on-landing can find the worktree to tear down.

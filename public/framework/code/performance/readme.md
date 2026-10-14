@@ -16,7 +16,7 @@ A page should stay smooth with thousands of rows and multi-megabyte logs. The ru
 - **No work on hover.** A resize handle or hover affordance is plain CSS (`:hover`), visible at once: no JavaScript hover-intent timers.
 - **Read logs in pieces.** A large `page.jsonl` or log is replayed incrementally, newest first, or snapshotted; a page never parses 25 MB before its first paint.
 - **Measure, then fix.** Time a page's load (start of `instantiate()` to first paint) and log it; fix the slowest page that's opened most often first.
-- **Prove a gesture with a trace.** Drag-to-resize, scroll and open/close animations get a headless CDP trace (`Server/browser.mjs`): frame times and CPU, target 60 fps.
+- **Prove a gesture with a trace.** Drag-to-resize, scroll and open/close animations get a headless CDP trace (`Server/Browser.mjs`): frame times and CPU, target 60 fps.
 
 ## Watch out
 

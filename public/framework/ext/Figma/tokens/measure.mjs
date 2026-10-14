@@ -1,6 +1,6 @@
 // What the site's spacing and type tokens compute to at 390 / 1440 / 1920 / 3440, to compare with Figma's modes.
-// Run: node public/framework/ext/Figma/tokens/measure.mjs [url]   (uses Server/browser.mjs; prints one line per width)
-import { browser as shared, close } from "../../../../../Server/browser.mjs";
+// Run: node public/framework/ext/Figma/tokens/measure.mjs [url]   (uses Server/Browser.mjs; prints one line per width)
+import { browser as shared, close } from "../../../../../Server/Browser.mjs";
 
 const url = process.argv[2] || "http://monorepo.localhost/framework/ui/card/";
 const page = await (await shared()).newPage();

@@ -19,7 +19,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TaskDirs from "./TaskDirs.mjs";
-import { browser as launch, close as closeBrowser } from "./browser.mjs";
+import { browser as launch, close as closeBrowser } from "./Browser.mjs";
 import { check_page } from "./padding-check.mjs";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");

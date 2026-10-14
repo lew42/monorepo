@@ -29,7 +29,7 @@
  * Haiku alone still runs and still gets a verdict; a missing key is never a crash.
  *
  * HOW EACH MODEL IS ACTUALLY CALLED: `engine.js`'s `clean()` takes a `call` override —
- * the same `(prompt, {model, cwd}) => {answer, cost_usd}` shape `Server/ask-each.mjs`'s own
+ * the same `(prompt, {model, cwd}) => {answer, cost_usd}` shape `Server/AskEach.mjs`'s own
  * `askOnce` already has (that shape IS the reuse point: see `engine.js`'s own doc comment).
  * For the plain Claude model, `call` IS `askOnce`, unchanged. For an OpenRouter model (its id
  * has a "/" in it), this file's own `callOpenRouter()` runs the exact same `query()` loop
@@ -54,7 +54,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { clean } from "../public/framework/ext/Refine/engine.js";
-import { askOnce } from "./ask-each.mjs";
+import { askOnce } from "./AskEach.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 

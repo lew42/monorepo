@@ -10,5 +10,5 @@ The rules live on one page: [/framework/code/performance/](/framework/code/perfo
 Before you land:
 1. **Over a few hundred items?** Window them (only visible rows in the DOM) or page them. Never render them all.
 2. **A drag or resize?** It writes one CSS variable; nothing loops over rows during the gesture. Hover affordances are pure CSS.
-3. **Prove it:** a headless trace through `Server/browser.mjs` (never the mcp__playwright tools): frame times during the gesture, the page's load time, its peak memory. Put the numbers on the task card.
+3. **Prove it:** a headless trace through `Server/Browser.mjs` (never the mcp__playwright tools): frame times during the gesture, the page's load time, its peak memory. Put the numbers on the task card.
 4. **Something slow you didn't build?** Note it on the performance page's Watch out list with the number, and tell the Servex mastermind (it owns speeding up the slowest frequent paths).

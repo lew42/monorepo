@@ -14,13 +14,13 @@
  * errors or new sideways scroll appeared) — a changed pixel alone is not a
  * failure, a human still looks at the picture.
  *
- * ⚠ Chromium is started through Server/browser.mjs, the one launcher every
+ * ⚠ Chromium is started through Server/Browser.mjs, the one launcher every
  * script in this repo shares — it resolves Playwright from the GLOBAL npm
  * install (CLAUDE.md: no new npm dependency) and opens no window.
  *
  * doc: readme.md beside this file — the baseline-dir convention (never the repo).
  */
-import { browser as launch } from "../../../../../Server/browser.mjs";
+import { browser as launch } from "../../../../../Server/Browser.mjs";
 import fs from "fs";
 import path from "path";
 

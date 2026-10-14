@@ -62,7 +62,7 @@ function args_span(src, idx) {
 const CALL = /([.\w$])?\b(spawn|spawnSync|execFile|execFileSync|fork)\s*(\(|Sync\()|(^|[^.\w$])exec\s*\(/g;
 
 function scan_js(file, rel) {
-	if (rel === "Server/browser.mjs" || rel === ".claude/hooks/syntax-guard.mjs" || rel === "Server/window-lint.mjs") return [];
+	if (rel === "Server/Browser.mjs" || rel === ".claude/hooks/syntax-guard.mjs" || rel === "Server/window-lint.mjs") return [];
 	const raw = fs.readFileSync(file, "utf8");
 	if (!/child_process/.test(raw)) return [];
 	const src = blank_comments(raw);
@@ -94,10 +94,10 @@ function scan_js(file, rel) {
 // browser_guard() in .claude/hooks/syntax-guard.mjs (that one fires per-Edit;
 // this one sweeps everything in one run). Same reasoning: `chromium.launch()`
 // with no `channel: "chromium"` opens a real window even "headless", so every
-// script gets Chromium from Server/browser.mjs now — a `.launch(` anywhere
+// script gets Chromium from Server/Browser.mjs now — a `.launch(` anywhere
 // else, next to a Playwright import, means a script bypassed it.
 function scan_browser_launch(file, rel) {
-	if (rel === "Server/browser.mjs" || rel === ".claude/hooks/syntax-guard.mjs" || rel === "Server/window-lint.mjs") return [];
+	if (rel === "Server/Browser.mjs" || rel === ".claude/hooks/syntax-guard.mjs" || rel === "Server/window-lint.mjs") return [];
 	const src = fs.readFileSync(file, "utf8");
 	if (!/playwright/i.test(src)) return [];
 	const LAUNCH = /\.launch(PersistentContext|Server)?\s*\(/g;
@@ -105,7 +105,7 @@ function scan_browser_launch(file, rel) {
 	let m;
 	while ((m = LAUNCH.exec(src))) {
 		const line = src.slice(0, m.index).split("\n").length;
-		hits.push({ file: rel, line, call: "launch", why: "Chromium launched directly instead of through Server/browser.mjs" });
+		hits.push({ file: rel, line, call: "launch", why: "Chromium launched directly instead of through Server/Browser.mjs" });
 	}
 	return hits;
 }

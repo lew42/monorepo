@@ -66,7 +66,7 @@ export async function structure(sentences, { call, cwd, model } = {}){
 		const mod = await import("../../../../Server/refine.mjs");
 		promptText = mod.structuredPromptDefault(sentences);
 		if (!theCall){
-			const { askOnce } = await import("../../../../Server/ask-each.mjs");
+			const { askOnce } = await import("../../../../Server/AskEach.mjs");
 			theCall = askOnce;
 		}
 	} else if (!theCall){

@@ -2,12 +2,12 @@
 // handle 300px across the demo page's 2,000-row grid and report the average
 // frame time and CPU, the same shape the owner's own bug report measured
 // ("108% CPU" on the old, hand-built grid). Headless Chromium only, via
-// Server/browser.mjs (CLAUDE.md: never a window-opening process) — never the
+// Server/Browser.mjs (CLAUDE.md: never a window-opening process) — never the
 // owner's own tabs, never mcp__playwright (this task's own fence).
 //
 // Run from the repo root: `node public/framework/ext/DataGrid/perf.mjs`
 // Numbers go in two places: this task's task.jsonl log, and doc/perf.md.
-import { browser, close } from "../../../../Server/browser.mjs";
+import { browser, close } from "../../../../Server/Browser.mjs";
 
 const URL = process.env.DATAGRID_PERF_URL || "http://data-grid.localhost/framework/ext/DataGrid/";
 const DRAG_PX = 300;

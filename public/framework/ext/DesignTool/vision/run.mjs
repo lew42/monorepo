@@ -16,7 +16,7 @@ import { randomUUID, createHash } from "crypto";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import path from "path";
-import { browser as launch } from "../../../../../Server/browser.mjs";
+import { browser as launch } from "../../../../../Server/Browser.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SYSTEM = "You are a visual design critic. You are given one screenshot and asked about it. Judge only what is in the image; never open or read any other file.";

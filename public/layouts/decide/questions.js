@@ -1,5 +1,5 @@
 /* The layout decision questions, read by the page (/layouts/decide/). gen-questions.mjs writes
-   questions.md from this file for Server/ask-each.mjs. The same list, in prose, sits in the
+   questions.md from this file for Server/AskEach.mjs. The same list, in prose, sits in the
    `layout` skill under "Choosing a layout (before sizing)"; change that one by hand.
 
    Each question is a judgement, worded with examples, never a do/don't rule: the owner

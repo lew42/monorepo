@@ -1,7 +1,7 @@
 // Proof for ext/Chat/doc/duplicate-bubbles.md — drives a REAL ComposerMic (no mic, no Whisper: a fake Capture
 // and a scripted transcribe) through the exact sequence behind the owner's duplicate bubbles, and counts what
 // reaches deliver(). Usage: node prove-dup-send.mjs <base url>   (exit 1 when any scenario sent a duplicate)
-const { browser, close } = await import(new URL("../../../../../../Server/browser.mjs", import.meta.url).href);
+const { browser, close } = await import(new URL("../../../../../../Server/Browser.mjs", import.meta.url).href);
 const BASE = process.argv[2] || "http://localhost:54923";
 const b = await browser(), page = await (await b.newContext()).newPage();
 page.on("pageerror", e => console.log("PAGEERROR", e.message));

@@ -39,7 +39,7 @@ Sortable.List.View = class SortableListView extends List.View { … };
 		md(`- If it does work, it's a method (\`page.chain()\`); a getter only aliases state.
 - Short and exactly right beats long and complete. Say a new name out loud before adding it to \`View\`/\`Page\`/\`App\`/\`Router\`/\`Sidebar\`.
 - A dir or file named after the class it exports is PascalCase (\`ext/Panel/Panel.js\`); everything else lowercase. \`$prop\` after the class it carries (\`this.$sidebar_inner\` ↔ \`.sidebar-inner\`).
-- A new class or public method gets its name recorded, so the Docs API tab shows how it was chosen — run a names vote (\`node Server/collab.mjs <taskdir>\`) if the name is still open.`);
+- A new class or public method gets its name recorded, so the Docs API tab shows how it was chosen — run a names vote (\`node Server/Collab.mjs <taskdir>\`) if the name is still open.`);
 
 		h3("5. The blessed page shape");
 		code.js(`import { Page, p } from "/app.js";

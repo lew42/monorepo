@@ -166,4 +166,4 @@ async function main(){
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) main()
 	.catch(e => { console.error(String(e?.stack || e)); process.exitCode = 1; })
-	.finally(async () => { try { (await import("../../../../Server/browser.mjs")).close?.(); } catch {} });
+	.finally(async () => { try { (await import("../../../../Server/Browser.mjs")).close?.(); } catch {} });
