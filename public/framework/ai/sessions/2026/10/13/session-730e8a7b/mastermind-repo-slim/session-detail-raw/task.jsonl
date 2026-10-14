@@ -3,3 +3,8 @@
 {"action":{"at":"2026-10-13T21:12:44-05:00","did":"edit","files":["public/framework/ai/AISession/AISessionDetail.js"]}}
 {"log":{"at":"2026-10-13T21:13:21-05:00","msg":"Before (87bec773, 1200): no Raw link in header; Coverage had a prompt-level raw link only. After: Raw task.jsonl + transcript in header, line N per ask; shots in before/ and after/ at 400/1200/1920/3440. Edited main tree, committed 566b6926f; no worktree (two small files)."}}
 {"note":{"landed_at":"2026-10-13T21:13:21-05:00","text":"landed"}}
+{"log":{"at":"2026-10-13T21:13:28-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T21:19:08-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-session-detail-raw"}}
+{"log":{"at":"2026-10-13T21:19:10-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T21:19:42-05:00","heartbeat":"answered","msg":"Landed and idle. The session detail page now has Raw links (`task.jsonl` and `transcript`) in its header, and each Coverage ask has a `line N` link to the transcript. Both changes are in commit `566b6"}}
+{"assign":{"landed_at":"2026-10-13T21:19:47-05:00","title":"Session detail: Raw links and per-ask transcript line","outcome":"Header shows task.jsonl + transcript links; each Coverage ask links to its transcript line; Coverage stays empty where no refined cards exist (ext/Refine side, untested on real asks). Committed 566b6926f; no merge.mjs run (main-tree edit).","links":["/framework/ai/AISession/","/framework/ai/sessions/doc/ui/detail-layout.md"]}}
