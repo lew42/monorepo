@@ -106,7 +106,7 @@ Run the same `filter-repo` line with `--refs origin/michael/dev..michael/dev` ad
 
 ---
 
-## Compaction (proposal, not built)
+## Compaction (proposal; dry run built, `--apply` not: [numbers](../sessions/doc/compaction.md))
 
 A JSONL log may be compacted when its task has **landed with no surprises**: no `kill`, no failed review finding, no `decision` overruled later, nothing still linking to one of its middle lines.
 
