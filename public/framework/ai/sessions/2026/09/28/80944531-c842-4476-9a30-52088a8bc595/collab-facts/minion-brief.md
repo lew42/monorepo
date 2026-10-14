@@ -6,7 +6,7 @@ files **only inside that worktree**, never in `C:\Code\lew42\monorepo`.
 
 ## The owner's words (verbatim, read before you touch anything)
 
-`public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-4.md`
+`public/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/owner-words-4.md`
 (the FIRST HALF only — facts, disputes, abstaining; the second half, about a per-element
 suggestion sidebar, is a different task, not yours).
 

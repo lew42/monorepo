@@ -77,7 +77,7 @@
   mcp__servex__create_page, list_pages, read_page, set_layout, place tools exist in this session, so a page MCP exists. Not tried.  
   **Fix:** Try create_page and set_layout once on a scratch page
 - 🟡 **C4 Page system upgrade: simpler, live JSONL pages documented, core pages page less wordy.** — partly **4/5** (4 partly)  
-  Commit 15291daa shortened core/Page docs; live JSONL pages appear used (ai/2026/09/24/ai-dashboard/page.jsonl)
+  Commit 15291daa shortened core/Page docs; live JSONL pages appear used (ai/sessions/2026/09/24/cards/ai-dashboard/page.jsonl)
 - 🟡 **C6 CSS audit by directory with a tree view of CSS amounts, proposals to reduce; tokens + container queries on columns.** — partly **4/5** (4 partly, 1 done)  
   ai/sessions/2026/09/25/css-audit/css-audit exists, 'landed: explorer, ranked plan and padding curves; up to 8,599 of 35,769 lines can go' per Live note  
   **Fix:** Open css-audit and confirm the tree view page exists

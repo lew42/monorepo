@@ -4,7 +4,7 @@ Load the `minion` skill first. You have never seen this page. Read nothing about
 
 **The page:** `http://localhost:61596/layouts/explorer/` (a worktree's own server). Drive it headless with Playwright from the scratchpad (`windowsHide: true` on anything you spawn), never the owner's browser.
 
-**What the owner asked for** (his words): `public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/owner-words.md`, the first half. Read that and nothing else before you look.
+**What the owner asked for** (his words): `public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/owner-words.md`, the first half. Read that and nothing else before you look.
 
 ## The test
 

@@ -17,7 +17,7 @@ Each call prints `{ok, id, next, missing}`, where `next` is the exact command fo
 A bad part is refused with a reason, `{ok:false, refused:"…"}`, and exit code 1. Examples: a question that is two sentences, a rank of 0, a confidence of 1.5, an option with no caveat, a `then` that names a decision that doesn't exist, or a `depends_on` that names a missing option.
 
 ```sh
-F=public/framework/ai/2026/09/29/<card>/page.jsonl
+F=public/framework/ai/sessions/2026/09/29/cards/<card>/page.jsonl
 node Server/decide.mjs create    --file $F --id d-host --question "Where should it run?" --rank 1
 node Server/decide.mjs options   --file $F --id d-host --option "On this machine" --option "On a rented server"
 node Server/decide.mjs create    --file $F --id d-port --question "Which port?" --rank 2 --depends-on d-host:on-this-machine

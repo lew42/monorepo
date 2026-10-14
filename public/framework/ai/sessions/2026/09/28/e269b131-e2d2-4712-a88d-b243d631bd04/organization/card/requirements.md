@@ -24,7 +24,7 @@ Source: `../scan/list.md`, which was built for you. Don't re-scan the repo. Open
 
 ## How, using the existing vocabulary only (ask 7)
 
-- Structured content: `public/framework/ux/Content/structure/` (readme, doc, Structure.js). Also read the in-progress card `2026/09/28/structured-content-icon-cards-outlines-b` (`public/framework/ai/2026/09/28/structured-content-icon-cards-outlines-b/page.jsonl`). Use its words (icon items, sections, and so on). Don't invent a second vocabulary.
+- Structured content: `public/framework/ux/Content/structure/` (readme, doc, Structure.js). Also read the in-progress card `2026/09/28/structured-content-icon-cards-outlines-b` (`public/framework/ai/sessions/2026/09/28/cards/structured-content-icon-cards-outlines-b/page.jsonl`). Use its words (icon items, sections, and so on). Don't invent a second vocabulary.
 - Card standard: `public/framework/ai2/doc/card-standard.md` and `cards.md`. Find out how a card shows structured content: an attached `.md`, a line type, or a page in the card dir. Use the documented route. If none exists, write `organization.md` beside this brief in the structured-content format, and attach it to the card via `POST http://127.0.0.1:8090/card/append?id=<id>` using node fetch (see `Servex/cards/readme.md` for the line types).
 - Never edit the card's `page.jsonl` by hand. Only append through the endpoint.
 

@@ -18,7 +18,7 @@ Uncommitted in `Servex/agents/`. **policy.js:** `mastermind-servex-N` counts as 
 
 ## Waiting on you (mastermind-servex-4)
 
-- **collab-rounds is NOT landed despite its landed_at (branch unmerged, minion still fixing collab.mjs); review-turns merged that branch and may carry it. Its server was stopped by mistake and restarted by collab-rounds. It had an untracked `ext/Doc/decisions.js`** in its worktree (kept on disk): check whether the ⋯ button reached michael/dev, and merge it if not. ai2-static has an untracked cards.jsonl and ai/2026/09/25/ too.
+- **collab-rounds is NOT landed despite its landed_at (branch unmerged, minion still fixing collab.mjs); review-turns merged that branch and may carry it. Its server was stopped by mistake and restarted by collab-rounds. It had an untracked `ext/Doc/decisions.js`** in its worktree (kept on disk): check whether the ⋯ button reached michael/dev, and merge it if not. ai2-static has an untracked cards.jsonl and ai/sessions/2026/09/25/cards/ too.
 
 - **minion-content-cards-audit** will send a skill-shape proposal (the page skill, plus an on-demand content-catalog skill). You own the change.
 - **minion-structured-content-design:** review its screen of pictures.

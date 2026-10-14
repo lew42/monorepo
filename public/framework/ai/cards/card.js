@@ -4,6 +4,7 @@ import List from "/framework/core/List/List.js";
 import { Faces } from "./Faces.js";
 import { money, cost_of, summary_line as cost_line } from "/framework/ai/AITask/cost.js";
 import { Tasks } from "./Tasks.js";
+import CardDir from "./CardDir.js";
 
 import grip from "/framework/ext/grip/grip.js";
 import Menu from "/framework/ux/Menu/Menu.js";
@@ -1087,9 +1088,10 @@ Card.Folder = class CardFolder extends Page {
 		const id = this.id + "/" + name;
 		const kid = this.level() < 3
 			? new this.constructor({ id, title: this.constructor.title_of(id), shell: this.shell })
-			: await Card.jsonl(Card.base + id + "/");
+			: await Card.jsonl(CardDir.url(id));   // the card's folder is in the sessions store; its page stays at this route
 		if (!kid) return null;
 		kid.id ??= id;
+		kid.url = this.url + name + "/";
 		kid.assign({ shell: this.shell });
 		return this.add(name, kid).load_all_children(levels);
 	}

@@ -51,7 +51,7 @@ Node smoke tests (scratchpad, not committed):
   (`{"k2":{"answers":{"add":{...}}}}`), unaffected.
 - Replaying the new nested content-move line onto a fresh copy rebuilds the same order.
 
-Historic broken lines already in `ai/2026/10/03/now/page.jsonl` (lines 8-33, flat
+Historic broken lines already in `ai/sessions/2026/10/03/cards/now/page.jsonl` (lines 8-33, flat
 `{"move":{...}}`) are left as-is — they were silent no-ops (no `page.move` method, no
 content item named "move"), so they never corrupted anything; the card's current order
 comes from its one correctly-nested `move` line plus the original `add` order. Not

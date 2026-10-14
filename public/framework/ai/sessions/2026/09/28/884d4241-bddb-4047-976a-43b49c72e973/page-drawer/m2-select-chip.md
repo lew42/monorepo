@@ -1,6 +1,6 @@
 # Minion 2: select any element, its properties, a chip in the chat
 
-Load the `minion` skill first, then `code`, `page` and `css`. The owner's raw words: `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-4.md`, the second half ("for any content card whether it's a paragraph or a question or any list item… it should be selectable…"). Read it; it is the acceptance test.
+Load the `minion` skill first, then `code`, `page` and `css`. The owner's raw words: `public/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/owner-words-4.md`, the second half ("for any content card whether it's a paragraph or a question or any list item… it should be selectable…"). Read it; it is the acceptance test.
 
 **Work only in the worktree** `C:\Code\lew42\worktrees\page-drawer` (branch `worktree/page-drawer`, server http://localhost:62178/). Minion 1 already built the ☰ menu and the drawer's tabs there (read `ext/drawer/doc/tabs.md` and `m1/proof.md`). Commit there; do not merge. Log in `public/framework/ai/sessions/2026/09/28/884d4241-bddb-4047-976a-43b49c72e973/page-drawer/m2/task.jsonl` in the worktree.
 

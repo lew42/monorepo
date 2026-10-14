@@ -1,6 +1,6 @@
 # Minion 1: the ☰ menu and the drawer's tabs
 
-Load the `minion` skill first, then `code`, `page` and `css`. The owner's raw words: `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words.md` (read the last third: "each page could have like a little menu button in the top right…"). The design: `design.md` in the same dir. The whole brief: `public/framework/ai/sessions/2026/09/28/884d4241-bddb-4047-976a-43b49c72e973/page-drawer/requirements.md`.
+Load the `minion` skill first, then `code`, `page` and `css`. The owner's raw words: `public/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/owner-words.md` (read the last third: "each page could have like a little menu button in the top right…"). The design: `design.md` in the same dir. The whole brief: `public/framework/ai/sessions/2026/09/28/884d4241-bddb-4047-976a-43b49c72e973/page-drawer/requirements.md`.
 
 **Work only in the worktree** `C:\Code\lew42\worktrees\page-drawer` (branch `worktree/page-drawer`, its own server at http://localhost:62178/). Commit there. Do not merge. Log in `public/framework/ai/sessions/2026/09/28/884d4241-bddb-4047-976a-43b49c72e973/page-drawer/m1/task.jsonl` (in the worktree).
 

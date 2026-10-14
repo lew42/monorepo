@@ -4,7 +4,7 @@ Load the `minion` skill first, then `css` and `layout`.
 
 ## The owner's words, verbatim (10:50 PM)
 
-Full: `public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`.
+Full: `public/framework/ai/sessions/2026/09/28/cards/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`.
 
 "the visual hierarchy is so bad. Like, there's not enough padding on the preview cards. And so they
 all just run together as this big sloppy mess. We need like a cadence or a rhythm or a consistency

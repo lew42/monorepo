@@ -1,9 +1,9 @@
 # AI 2 vs AI, and the date directory layout — owner decisions, 2026-10-08
 
 Recorded from dictation. **Facts found by looking:**
-- `framework/ai2/` is a separate module (the "AI 2" dashboard: `card.js`, `rail.js`, chat, compose, agents…). **Correction (checked after writing the first version):** it has **no card data tree of its own**: `ai2/2026/10/08/` does not exist on disk; the card at `/framework/ai2/2026/10/08/task-audit-what-was-asked-and-never-fini/` lives in `ai/2026/10/08/` and the `ai2` URL is another way to view it (find the route/alias that makes `/framework/ai2/<date-path>/` resolve). So the question is not two data stores but **two URL spaces and two UIs (AI 1 and AI 2) over the same data**, plus the unfinished merge.
+- `framework/ai2/` is a separate module (the "AI 2" dashboard: `card.js`, `rail.js`, chat, compose, agents…). **Correction (checked after writing the first version):** it has **no card data tree of its own**: `ai2/2026/10/08/` does not exist on disk; the card at `/framework/ai2/2026/10/08/task-audit-what-was-asked-and-never-fini/` lives in `ai/sessions/2026/10/08/cards/` and the `ai2` URL is another way to view it (find the route/alias that makes `/framework/ai2/<date-path>/` resolve). So the question is not two data stores but **two URL spaces and two UIs (AI 1 and AI 2) over the same data**, plus the unfinished merge.
 - The plan itself is under `ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/` (hyphen layout); the card folder name was cut by the slug length (`…never-fini`).
-- `ai/` has **46 hyphen-dated directories** (`2026-10-08/`) plus the year tree (`ai/2026/10/08/`, 393 entries). Git has **141 `worktree/*` branches**, 11 of them `worktree/ai2-*` (zombie candidates).
+- `ai/` has **46 hyphen-dated directories** (`2026-10-08/`) plus the year tree (`ai/sessions/2026/10/08/cards/`, 393 entries). Git has **141 `worktree/*` branches**, 11 of them `worktree/ai2-*` (zombie candidates).
 
 **Owner's decisions / directives**
 1. The intent was to **merge AI 2 into AI (AI 1)**. Find out how far that got, what is still only in `ai2/`, and what uses it. Do not duplicate data.

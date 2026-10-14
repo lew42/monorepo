@@ -12,7 +12,7 @@ Load the `minion` skill first. Shared rules: `../common.md` (worktree, windowsHi
 1. **Resolve every conflict by keeping both sides' intent.** Never take "ours" or "theirs" wholesale. Where they truly contradict, prefer ours for the recursive-pairs rules (feed cut to direct children, policy kinds incl. `external` and `mastermind-servex-N`, page pairs and lifecycle), and theirs for everything else; log each such call as a `decision` in `task.jsonl` beside this brief.
 2. **Tests green** after the merge: `node Servex/agents/layers.test.mjs`, `policy.test.mjs`, `global.test.mjs`, `External.test.mjs`, and every other `Servex/agents/*.test.mjs` that passed on michael/dev.
 3. **A private Servex boots** from the worktree (port 8590, own SERVEX_HOME and SERVEX_LAYERS_FILE, recipe in `../common.md`) and answers `GET /api/page-agents?page=/` and `POST /api/page-ai` for `/notes/` with a reply line in `public/notes/ai/chat.jsonl` (delete that test file afterwards). Kill it when done.
-4. Commit the merge (`git commit --no-edit` plus a body line). Don't touch `public/framework/ai/2026/09/page.jsonl` or `public/framework/core/Page/jsonl/page.jsonl` — a server rewrites them; never commit them.
+4. Commit the merge (`git commit --no-edit` plus a body line). Don't touch `public/framework/ai/sessions/2026/09/cards/page.jsonl` or `public/framework/core/Page/jsonl/page.jsonl` — a server rewrites them; never commit them.
 
 End with one paragraph: the merge commit hash, test counts, the boot proof, and any hunk you were unsure about.
 

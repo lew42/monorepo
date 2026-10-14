@@ -1,6 +1,6 @@
 # Minion: inbox — a VS Code tab is an agent you can message (D8)
 
-Rules shared by all minions: `../common.md`. Owner's words: `../requirements.md` deliverable 8, and the card dir `public/framework/ai/2026/09/25/one-recursive-agent-system-the-same-pair/`.
+Rules shared by all minions: `../common.md`. Owner's words: `../requirements.md` deliverable 8, and the card dir `public/framework/ai/sessions/2026/09/25/cards/one-recursive-agent-system-the-same-pair/`.
 **Fence:** a NEW `Servex/agents/External.js` (and its test), `Servex/agents/registry.js`, `Servex/agents/tools.js`, `Servex/agents/Agents.js` (the send path only), `Servex/cards/Cards.js` (only if `by` is not already recorded), `Servex/Servex.js` (one install line), `.claude/skills/servex-mastermind/SKILL.md`, new files under `Servex/agents/doc/`. Private Servex port **8490**, run with `SERVEX_NO_LAYERS=1`.
 
 ## Deliverables

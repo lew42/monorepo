@@ -18,6 +18,8 @@ import fs, { appendFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { clean } from "../public/framework/ext/Refine/engine.js";
+import CardDir from "../public/framework/ai/cards/CardDir.js";
+import Cards from "../Servex/cards/Cards.js";
 import { structure } from "../public/framework/ext/Refine/structure.js";
 import { askOnce } from "./ask-each.mjs";
 import { env_for } from "../Servex/ext/local/provider.js";
@@ -56,14 +58,15 @@ function write_line(file, line){
 
 function listSessionDirs(){
 	const out = [];
-	for (const y of safeReaddir(AI)){
+	for (const y of new Set([...safeReaddir(AI), ...safeReaddir(path.join(AI, "sessions"))])){
 		if (!/^\d{4}$/.test(y)) continue;
-		for (const m of safeReaddir(path.join(AI, y))){
-			for (const d of safeReaddir(path.join(AI, y, m))){
-				const dir = path.join(AI, y, m, d);
-				for (const s of safeReaddir(dir)){
+		for (const m of new Set([...safeReaddir(path.join(AI, y)), ...safeReaddir(path.join(AI, "sessions", y))])){
+			for (const d of new Set([...safeReaddir(path.join(AI, y, m)), ...safeReaddir(path.join(AI, "sessions", y, m))])){
+				if (!/^\d{2}$/.test(m) || !/^\d{2}$/.test(d)) continue;
+				// these session pages are cards: their folders moved into the store (ai/cards/CardDir.js, one tree 2026-10-13)
+				for (const s of new Set([...safeReaddir(path.join(AI, y, m, d)), ...safeReaddir(path.join(AI, ...CardDir.rel(`${y}/${m}/${d}`).split("/")))])){
 					if (s.startsWith("session-")){
-						const f = path.join(dir, s, "page.jsonl");
+						const f = path.join(Cards.dir(`${y}/${m}/${d}/${s}`, AI), "page.jsonl");
 						if (fs.existsSync(f)) out.push({ url: `/framework/ai/${y}/${m}/${d}/${s}/`, file: f });
 					}
 				}

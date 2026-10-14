@@ -1,6 +1,6 @@
 # Minion brief: AI 2 → tabs Inbox · Overview, and the Overview itself
 
-Load the `minion` skill, then the `page` skill. Your parent is `task-mastermind-ai2-overview`; the whole task is `public/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-overview/requirements.md`. Read the owner's raw words first: `public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`, the "about 10:50 PM" ask for tabs and "Continued (about 11:00 PM)" in full.
+Load the `minion` skill, then the `page` skill. Your parent is `task-mastermind-ai2-overview`; the whole task is `public/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-overview/requirements.md`. Read the owner's raw words first: `public/framework/ai/sessions/2026/09/28/cards/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`, the "about 10:50 PM" ask for tabs and "Continued (about 11:00 PM)" in full.
 
 > "using the top tabs at the root level, just kind of like a class doc page ... the title, and then some tabs for like inbox, but over then maybe an overview"
 > "I need to see simple, big simple interfaces with big simple icons and like the important things are big and then the sub things go inside the big ones"
