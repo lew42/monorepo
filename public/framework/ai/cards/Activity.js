@@ -2,6 +2,7 @@ import { div, span, small } from "/app.js";
 import { Faces } from "./Faces.js";
 import { plain, headline } from "../rail/inbox.js";
 import { Fold } from "./Fold.js";
+import CardDir from "./CardDir.js";
 import { Outline } from "./Outline.js";
 
 /**
@@ -18,7 +19,6 @@ import { Outline } from "./Outline.js";
  * is ever remembered — the page still works, the lines just stay.
  */
 
-const AI_ROOT = new URL("../", import.meta.url).pathname;
 const DAY = 24 * 60 * 60 * 1000;
 export class Activity {
 
@@ -160,7 +160,7 @@ export class Activity {
 	 *  with no time of its own was written after the line before it, so it takes that
 	 *  time. A request's events say which request: its own title. */
 	static async log_events(id, depth){
-		const lines = Fold.parse_lines(await Activity.read(AI_ROOT + id + "/page.jsonl"));
+		const lines = Fold.parse_lines(await Activity.read(CardDir.url(id) + "page.jsonl"));
 		const where = depth ? plain(lines.find(l => l.class)?.title ?? "") || null : null;
 		let at = null;
 		const out = [], kids = [];

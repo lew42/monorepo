@@ -68,6 +68,11 @@ export default class Cards {
 	/* The folder of a card id: the store, or the old tree when only it has the folder. Static too, for readers with no Cards. */
 	static dir(id, root = ROOT){ return path.join(root, ...CardDir.pick(id, rel => fs.existsSync(path.join(root, ...rel.split("/")))).split("/")); }
 	dir(id){ return Cards.dir(id, this.root); }
+	/* A path under ai/ that starts with a card address (`2026/10/13/x/ai/v.jsonl`) -> its file: the card's folder decides, the rest follows. */
+	static path(rel, root = ROOT){
+		const segs = String(rel).split("/").filter(Boolean), n = Math.min(segs.length, 4);
+		return path.join(Cards.dir(segs.slice(0, n).join("/"), root), ...segs.slice(n));
+	}
 	folder(id){ return this.dir(id); }
 	file(id){ return path.join(this.folder(id), "page.jsonl"); }
 	url(id){ return this.base + id + "/"; }

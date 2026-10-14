@@ -6,6 +6,7 @@ import fs from "fs";
 import { fileURLToPath } from 'url';
 import compress from "./compress.js";
 import TaskDirs from "./TaskDirs.mjs";
+import CardDir from "../public/framework/ai/cards/CardDir.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,6 +44,10 @@ export default class Server extends Events {
 
         // A finished task moved into its session folder (Server/TaskDirs.mjs): its old address keeps serving the files from the new place.
         this.app.use((req, res, next) => { const f = TaskDirs.alias(decodeURIComponent(req.path)); if (f && fs.existsSync(f) && fs.statSync(f).isFile()) return res.sendFile(f, { dotfiles: "allow", headers: { "Cache-Control": "no-cache" } }); next(); });
+
+        // An Inbox card's folder moved into the sessions store (ai/cards/CardDir.js, one tree 2026-10-13): an old file url
+        // /framework/ai/2026/10/13/<card>/<file> keeps serving from the new place. A page url (no file) falls through to the app.
+        this.app.use((req, res, next) => { const p = decodeURIComponent(req.path); if (!/^\/framework\/ai\/\d{4}\//.test(p) || p.includes("..")) return next(); const f = path.join(__dirname, "../public", ...CardDir.site(p).split("/").filter(Boolean)); if (fs.existsSync(f) && fs.statSync(f).isFile()) return res.sendFile(f, { dotfiles: "allow", headers: { "Cache-Control": "no-cache" } }); next(); });
 
         // hook point for subclasses/plugins to add routes before the fallback
         this.app.use(this.router);

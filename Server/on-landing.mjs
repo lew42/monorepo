@@ -16,6 +16,7 @@ import { card_flags } from "./card-check.mjs";
 import { doc_check } from "./doc-check.mjs";
 import { can_stop, entry_for_task_dir } from "./worktree-sweep.mjs";
 import TaskDirs from "./TaskDirs.mjs";
+import Cards from "../Servex/cards/Cards.js";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
 // servex-mastermind's own task log for today, found in the store (Server/TaskDirs.mjs), never a hand-joined ai/<date>/ path
@@ -55,7 +56,7 @@ try {
 	// The card check (cards-that-show-the-thing, 2026-09-25): checks the card against the card standard
 	try {
 		if (card) {
-			const cardDir = path.join(root, "public/framework/ai", card);
+			const cardDir = Cards.dir(card, path.join(root, "public/framework/ai"));   // the sessions store, or the old tree (one tree, 2026-10-13)
 			const cf = card_flags(cardDir);
 			const cm = `card-check: ${cf.length ? cf.join("; ") : "standard passed"}`;
 			append(task, cm);

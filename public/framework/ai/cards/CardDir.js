@@ -39,6 +39,13 @@ export default class CardDir {
 		return this.AI + this.rel(m[1]) + (m[1].endsWith("/") ? "/" : "");
 	}
 
+	/** The inverse: a store folder (`/framework/ai/sessions/2026/10/13/cards/x/`, or the same without /framework/ai/) → its id
+	    `2026/10/13/x`; null for anything else. */
+	static id(p){
+		const m = /(?:^|\/)sessions\/(\d{4}(?:\/\d{2}){0,2})\/cards(?:\/(.*?))?\/?$/.exec(String(p ?? ""));
+		return m ? [m[1], m[2]].filter(Boolean).join("/") : null;
+	}
+
 	/** With a disk: the new place, unless only the old one exists (a card written by a Servex not yet restarted).
 	    `has(rel)` answers whether framework/ai/<rel> exists. */
 	static pick(id, has){
