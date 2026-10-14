@@ -66,3 +66,4 @@ node public/framework/core/new/1/server.js   # http://localhost:8300/
 ## More
 
 - Design notes: [`doc/notes.md`](./doc/notes.md)
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
