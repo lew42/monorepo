@@ -1,4 +1,11 @@
-# Fresh-eyes review of today's new site pages: the catalog, the voice surfaces, InstanceTree, the Figma tokens page
+# Review the four new site pages
+
+Pages to check, each ticked when reviewed and fixed:
+
+- [ ] `/framework/catalog/` (228 pages, 34 new, 55 class cards)
+- [ ] `/framework/ux/Dictate/surfaces/`
+- [ ] `/framework/ux/Content/Object/` (InstanceTree, dev bar toggle)
+- [ ] `/framework/ext/Figma/tokens/`
 
 Budget: $20. Load the `review` skill first (you are the fresh-eyes reviewer), then `sub-mastermind`; you are Opus because the owner judges by looking. The owner's standards: `../requirements-2.md` ask 1 (the catalog: "a preview on the catalog page is enough… click through to the full demo… class cards with the icon and the core API… the live instance hierarchy"), `../requirements-7.md` (the surfaces page: "a page I can click through to, that documents how it all works"), `../requirements-10.md` ask 2 (simple views of the live classes), CLAUDE.md "Presentation" (level 1 above the fold, show don't tell, the four widths 400 / 1200 / 1920 / 3440), "Show the class" (rendered view beside the live instance). What landed: `/framework/catalog/` (228 pages, 34 new, 55 class cards), `/framework/ux/Dictate/surfaces/`, `/framework/ux/Content/Object/` (InstanceTree with the dev bar toggle), `/framework/ext/Figma/tokens/`. Your log is this dir's `task.jsonl`.
 
