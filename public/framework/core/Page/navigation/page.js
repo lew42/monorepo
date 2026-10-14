@@ -59,8 +59,11 @@ export default new Page({
 	description: "Persistent vs switching, the levels that stack, the go-to pattern, and the alternatives.",
 	icon: "route",
 	width: "wide",
+	children: "model",
 
 	content(){
+		md("**New, 2026-10-14: [Navigation: one model](./model/)** answers the four questions (table of contents or sub pages, nest or swap, where a link opens, workspace or document) with live demos.");
+
 		md("**One question decides almost everything below: when you click, does the thing you were already looking at move?**");
 
 		// One even row in the WIDE track (a bare `flex wrap` sat in the reading track as

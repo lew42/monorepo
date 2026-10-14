@@ -5,6 +5,8 @@ thing to get right. [Live page](/framework/core/Page/navigation/).
 
 ## Use
 
+- **The answer to the four questions** (table of contents or sub pages, nest or swap, where a link opens, workspace or document): [Navigation: one model](model/readme.md), one rule each, live demos.
+
 - **Persistent vs switching** is the first and biggest concept: a persistent element (rail,
   header, crumb strip) never moves; switching replaces the whole screen, which is fine as long
   as it does so cleanly. Already measured at 0px drift for four real mechanisms —
@@ -40,6 +42,8 @@ thing to get right. [Live page](/framework/core/Page/navigation/).
   [`doc/levels.md`](doc/levels.md) for what to drop first.
 
 ## More
+
+- [`model/readme.md`](model/readme.md) — Navigation: one model (2026-10-14).
 
 - [`doc/levels.md`](doc/levels.md) — the four levels, why four is the ceiling, what to cut first.
 - [`doc/alternatives.md`](doc/alternatives.md) — the alternatives table, with more detail than
