@@ -35,6 +35,7 @@ Empty section, no tab. Nothing at the call site says "tab" — a different shape
 - Below 600px the tab row scrolls sideways on one line instead of wrapping to a second row (Doc.css's own `@media` block, bottom of the file) — shrinks the title+tabs band by about 30% on a phone. **To-do:** the owner also asked for the title itself to become a switcher there ("Dictate · Overview ▾", tap to jump to another tab or the parent page) — not built yet, parked for budget: `/framework/ai/sessions/2026/10/05/mobile-doc-header/mobile-doc-header/`.
 
 ## More
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`doc/Doc-notes.md`](./doc/Doc-notes.md) — implementation details, design decisions, key patterns
 - [Overview](/framework/ext/Doc/) · [`doc/decisions.md`](./doc/decisions.md) the record — verdicts, traps, open items · [`doc/rail.md`](./doc/rail.md) why the Overview is a catalog · [`doc/reflection.md`](./doc/reflection.md) why the lists are hand-typed · [`doc/files.md`](./doc/files.md) why files are declared · [`doc/tree/redirect/history.md`](./doc/tree/redirect/history.md) why the address-bar fix uses `replaceState`, not `pushState`
 - `doc/method/`, `doc/property/`, `doc/file/` — one prose file per listed member or file. The page is at `/api/<name>/` (the tab) and, since this fix, also cold-loads at `/doc/method/<name>/` or `/doc/property/<name>/` — the same address the `.md` file itself sits at. A note (`doc/<name>.md`) has just the one address, `/doc/<name>/`. A file's is `/files/`.
