@@ -2,6 +2,8 @@
 
 **Every voice and chat surface, one page** (screenshots, who answers, the flow, the 30-second first reply): [`surfaces/`](./surfaces/) · [long form](doc/surfaces.md).
 
+**Talking to the mastermind from the Claude app's voice mode** (why not a browser bridge; a connector instead): [`doc/voice-bridge.md`](doc/voice-bridge.md).
+
 State = which engine is listening and what it has heard so far, remembered between
 renders — the graduation rule `Filter` and `Tags` already followed, applied to a
 microphone. Built 2026-09-19 to replace `ext/Ask/mic.js`'s button, whose failures were
