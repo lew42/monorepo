@@ -130,7 +130,7 @@
 	.figma-ai-face-you {
 		background: var(--prim);
 		color: white;
-		font-size: 0.6em;   /* "YOU" is three letters, not two initials */
+		font-size: 0.5em;   /* "YOU" is three letters, not two initials; at 0.6em it touched the circle (smoke layout lint) */
 		font-weight: 700;
 	}
 
