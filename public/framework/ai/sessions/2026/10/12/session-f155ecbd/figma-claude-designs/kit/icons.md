@@ -5,4 +5,4 @@ Done on `DS · 1.1 Icons` (`163:20989`); the page is its 1920 component `Page ·
 - `Icon label` set `229:29082` (Size H1..Body).
 - 54 glyph components `Icon / <Category> / <name>` top level at x 2100 (e.g. arrow_forward `229:28811`, folder `229:28847`, account_tree `229:28855`, schema `229:28889`).
 - Fill axis works; two-tone absent, not faked. Doc: [doc/icons.md](/framework/ext/Figma/doc/icons.md).
-- Open: the older sections on the page still use plain text glyphs, not the Icon component.
+- Closed 2026-10-13: the plain text glyphs were swapped to `Icon` across the file, 159 glyphs now; see [icon-swap.md](icon-swap.md).
