@@ -17,8 +17,14 @@ export default class InstanceTree extends View {
 
 	static installed = false;
 
-	// Child pages mount quietly (no event), so announce them once here, for every tree.
-	static install(){
+	// Child pages mount and routes change quietly (no event), so announce both once here, for every tree.
+	// Once per app: wrapping `navigated` per tree stacked a new wrapper on every dev-bar redraw.
+	static install(app){
+		if (app && !app.instance_tree_hooked){
+			app.instance_tree_hooked = true;
+			const navigated = app.navigated;
+			app.navigated = function(...args){ const r = navigated?.apply(this, args); window.dispatchEvent(new CustomEvent("instance-tree-change")); return r; };
+		}
 		if (InstanceTree.installed) return;
 		InstanceTree.installed = true;
 		const add = Page.prototype.add;
@@ -35,13 +41,11 @@ export default class InstanceTree extends View {
 		this.shown = new Set();   // pages whose properties are shown
 		this.watched = new Map(); // page -> its "change" listener
 		this.redraws = 0;
-		InstanceTree.install();
 		this.app ??= window.app;
+		InstanceTree.install(this.app);
 		const again = () => this.refresh();
 
 		window.addEventListener("instance-tree-change", again);
-		const navigated = this.app.navigated;
-		this.app.navigated = (...args) => { navigated?.apply(this.app, args); again(); };
 
 		// A tree that left the document (the dev rail re-renders its tabs) stops listening.
 		this.gone = () => !this.$box.el.isConnected;

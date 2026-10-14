@@ -13,6 +13,7 @@ export default class CatalogPage extends Page {
 			title: "Catalog",
 			description: "Everything built with a UI, previewed. Click a card for its full demo page.",
 			icon: "grid_view",
+			width: "wide",   // a wall of cards: every pixel the middle has (at 1920 the default measure left 70% of the screen empty)
 		}, ...args);
 	}
 
@@ -51,13 +52,13 @@ export default class CatalogPage extends Page {
 	instance_tree(){
 		return this.node("section", "", "cat-section", [
 			this.node("h2", "Live instance hierarchy"),
-			this.node("p", "This is it: a real running Page or App drawn as an open-able tree of its actual instances, nothing described.", "cat-note"),
+			this.node("p", "This is it: the running App and its pages drawn as a live tree (class, title, children, the page you are on). Add a page and it appears, no reload. The same tree is a toggle in the dev bar's page tab.", "cat-note"),
 			this.node("p", "", "cat-links", [
+				this.anchor("/framework/ux/Content/Object/instance-tree/", "cat-pill", [this.glyph("account_tree"), "InstanceTree, the live tree"]),
 				this.anchor("/framework/ux/Content/Object/page/", "cat-pill", [this.glyph("account_tree"), "The Page object, live"]),
 				this.anchor("/framework/ux/Content/Object/app/", "cat-pill", [this.glyph("account_tree"), "The App object, live"]),
 				this.anchor("/framework/ux/Content/Object/", "cat-pill", [this.glyph("data_object"), "How it works (object, view, inspect)"]),
 			]),
-			this.node("p", "Gap: it shows one instance you open by hand. The page that follows whatever you are working on, beside the demo, is specified in doc/instance-tree.md.", "cat-note"),
 		]);
 	}
 
