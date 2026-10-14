@@ -42,3 +42,5 @@ Times are from the session file: the owner line's `at` to the reply's `at`. Befo
 ---
 
 Fresh-eyes review of the fix: [review/fresh-eyes.md](review/fresh-eyes.md). Surfaces page: [/framework/ux/Dictate/surfaces/](/framework/ux/Dictate/surfaces/).
+
+The shots are in [shots/](shots/) on this machine; pictures under `ai/` are not committed (`.gitignore` line 173), and the step logs beside them are the numbers. After the merge, the live phone sheet: [live-phone-after-merge.png](shots/live-phone-after-merge.png).
