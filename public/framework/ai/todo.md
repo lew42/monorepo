@@ -207,3 +207,4 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - Rename candidate: [`Servex/agents/hitl.js`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Servex/agents/jobs.js`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Servex/agents/registry.js`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
+- 2026-10-13 22:20 (mastermind): a landing line can be written while the task branch is unmerged (property-of 10-12, InstanceTree today, caught by the site review). The landing nag (Servex/agents) should check `git log michael/dev..<branch>` is empty before accepting a landed_at, and flag it on the card otherwise. Brief: one Servex task, Sonnet, tested on a private port. See mastermind-repo-slim/review-site-pages.
