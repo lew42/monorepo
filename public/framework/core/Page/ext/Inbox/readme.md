@@ -1,5 +1,7 @@
 # Inbox — one class, two views: a page's rail, and its small "leave a note" box
 
+**The rail is a [Browse](/framework/ux/Browse/)** (2026-10-14): `Inbox.Rail extends Browse`, the one list-and-detail view the Inbox and Sessions share; the AI Inbox pins **Waiting on you** (`WaitingOnYou.js`, every open owner decision, one line each, ticked → archived) above its rows. Classes: [ux/Browse/doc/architecture.md](/framework/ux/Browse/doc/architecture.md).
+
 **The inbox timeline** ([open it](/framework/core/Page/ext/Inbox/timeline/)): every landed task, owner note and needs-you card, ranked by `Inbox.rank`, as a preview rail with the detail beside it. Where its rows come from, the one data decision, and its classes (`Timeline`, `TimelinePage`, `Landings`, `InboxSources`): [doc/inbox-data.md](doc/inbox-data.md).
 
 `class Inbox` holds one page's inbox; `inbox.rail` and `inbox.compact` are its two views,
@@ -62,7 +64,7 @@ One class, `Inbox`, with two lazy views (`inbox.rail`, `inbox.compact`); `InboxR
 
 ## Files
 
-`Timeline.js` — `class Timeline`, the timeline's rows (two streamed indexes, ranked). `timeline/` — its page (`TimelinePage.js`) and its index `landings.jsonl`. `Landings.mjs` and `InboxSources.mjs` (node) — write that index and count every source the inbox reads; run them from the repo root: `node public/framework/core/Page/ext/Inbox/Landings.mjs --append`. `ai/board.jsonl` (the v/3 board) is retired, read-only: [doc/inbox-data.md](doc/inbox-data.md). `Inbox.js` — `class Inbox`, its `Inbox.Compact` static (the drawer's box + the page.jsonl
+`WaitingOnYou.js` — `class WaitingOnYou extends Browse.Pinned`, the open owner decisions from `ai/cards.jsonl` and `ai/asks.jsonl`. `Timeline.js` — `class Timeline`, the timeline's rows (two streamed indexes, ranked). `timeline/` — its page (`TimelinePage.js`) and its index `landings.jsonl`. `Landings.mjs` and `InboxSources.mjs` (node) — write that index and count every source the inbox reads; run them from the repo root: `node public/framework/core/Page/ext/Inbox/Landings.mjs --append`. `ai/board.jsonl` (the v/3 board) is retired, read-only: [doc/inbox-data.md](doc/inbox-data.md). `Inbox.js` — `class Inbox`, its `Inbox.Compact` static (the drawer's box + the page.jsonl
 extension), and the deprecated re-exports. `Rail.js` — `Inbox.Rail`'s class body (plain
 `class Rail`), the big navigation rail — see its look and demo at
 [/framework/ux/Inbox/](/framework/ux/Inbox/). `servex.js` — Servex's address and whether
