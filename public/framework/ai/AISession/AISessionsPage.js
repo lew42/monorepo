@@ -619,7 +619,7 @@ export default class AISessionsPage extends Page {
 
 	/** Waits for the session rows before a detail page is built, so its title is the name on the first paint (route() cannot wait). */
 	async child(name, levels){
-		if (name && !name.includes(".") && !/^\d{4}$/.test(name) && name !== "doc" && name !== "readme") await AISessionDetail.preload(this.url);
+		if (name && !name.includes(".") && !/^\d{4}$/.test(name) && name !== "doc" && name !== "readme") await AISessionDetail.preload(this.url, name);
 		return super.child(name, levels);
 	}
 
