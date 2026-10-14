@@ -22,7 +22,7 @@ const CLASSES = [
 	{ name: "Prompt", icon: "edit_note", file: "public/framework/ext/Refine/Prompt.js", doc: "/framework/ext/Refine/",
 		gist: "One owner prompt: raw text, clean numbered sentences, structured sections. Its page shows the rendered result beside a live debug tree.",
 		api: ["raw", "clean", "structure", "ms", "load({ clean, structure, ms })", "set(fields)", "sentence(n)", "render()"] },
-	{ name: "Session", icon: "history_toggle_off", file: "public/framework/ai/sessions/Session.js", doc: "/framework/ai/classes/Session/",
+	{ name: "Session", icon: "history_toggle_off", file: "public/framework/ai/AISession/AISession.js", doc: "/framework/ai/classes/Session/",
 		gist: "One Claude session's cost and state, computed in code from its transcript. Same file runs on the server and in the browser.",
 		api: ["id", "ix", "s", "total_usd", "wall_ms", "render()", "on(fn)", "detail()", "Session.of(id)", "Session.all", "Session.apply_delta(line)"] },
 	{ name: "Sessions", icon: "forum", file: "Servex/agents/Sessions.js", doc: "/framework/ai/sessions/",

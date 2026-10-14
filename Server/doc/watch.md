@@ -250,3 +250,5 @@ Streams (the chat log, the AI board) keep flowing during a hold; it expires by i
 **Screenshots gate.** `merge.mjs`'s review gate only checked that `review/report.md` existed. It now also requires a `<width>.png` under the task's `shots/` for every width `widthsFor` picks for the change (one to four), else it refuses. `--no-review "why"` still skips and is logged; `--quick` takes its own shot and is unchanged.
 
 **Alternatives not taken:** a post-merge headless boot of the changed pages before releasing the hold (slower for every merge, and merge was not the cause); a longer server-side debounce (agent edits are seconds apart, so no window spans a batch); a global hold (the 2026-09-22 verdict says never). **Not covered:** an agent that writes via Bash/PowerShell rather than Edit/Write.
+
+If the Directory plugin recreates `files.jsonl` for an empty folder (seen with the retired `ai/2026/`), delete the empty folder again and `git rm` the listing.
