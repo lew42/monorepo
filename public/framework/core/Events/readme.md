@@ -51,6 +51,7 @@ a boundary (`core/Page` will, so a page's own events never leak into its parent'
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`core/List/List.js`](../List/List.js) — the list that uses this to
   announce `add`/`remove`/`move`/`order`, plus one uniform `"delta"` event
   `Item.Store` listens for. One class — the event-less `List` and the announcing
