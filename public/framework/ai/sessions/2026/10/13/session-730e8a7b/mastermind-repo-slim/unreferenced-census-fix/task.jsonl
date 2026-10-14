@@ -2,3 +2,10 @@
 {"decision":{"at":"2026-10-14T13:46:17-05:00","question":"review size","computed":"full","chose":"none","why":"self-evident: census learns 3 loads, test passes, result 0 suspects"}}
 {"review":{"at":"2026-10-14T13:46:17-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/qf-4","head":"8b3939f3618a7d2dbe75d9e43217db5f8b391934","model":null,"cost":0,"file":"review.md"}}
 {"assign":{"step":1,"landed_at":"2026-10-14T13:46:44-05:00","outcome":"**Unreferenced files: census fixed, 0 suspects, 0 deleted.** The census now counts a quoted name in a same-folder script, a page.jsonl place and a files.jsonl row: 161 suspects became 0, so nothing was dead and no per-file Haiku pass ran. Caveat: a files.jsonl row counts as a reference.","links":[{"url":"/framework/ai/doc/unreferenced-verdicts.md","label":"Verdicts"}],"tokens":null}}
+{"log":{"at":"2026-10-14T13:46:55-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-14T13:46:55-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-14T13:46:55-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-14T13:46:55-05:00","msg":"owner-note: posted 1 decision to the Inbox"}}
+{"log":{"at":"2026-10-14T13:46:55-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-14T13:46:58-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-14T13:46:58-05:00","msg":"layout-check: skipped — the landing names no site pages"}}

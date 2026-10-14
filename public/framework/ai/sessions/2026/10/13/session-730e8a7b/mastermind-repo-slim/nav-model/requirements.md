@@ -1,0 +1,20 @@
+# Navigation: the owner's four questions, what we already built, one proposed model, shown; the layouts that survive it; where the template library stands
+
+Budget: $25. Load the `sub-mastermind`, `layout` and `make` skills first. You are Opus: the owner has been confused about this for months and asked "help me work through all this stuff". Read the owner's words first: `../requirements-12.md` asks 4, 5, 6 (verbatim below the list), and the earlier runs on the same ground: `core/Page/navigation/doc/` (alternatives, prior-work), `core/Page/overview/columns` (Miller columns: nested pages are peers), `core/Page/layout/switcher/doc/`, `web/nav/doc/study/`, `/imagine/paging/` (four mechanisms, five surfaces), `/layouts/` (the encyclopedia and its browser's Approve), the `make` page CMS (templates). Your log is this dir's `task.jsonl`.
+
+## The questions, in the owner's order
+
+1. Is the left sidebar a table of contents (headings) or a list of sub pages, or both at once?
+2. Nesting a sidebar per level consumes the screen; swapping sidebars means choosing at which level to swap. Which, and when?
+3. Which ancestor does a link activate at, and may the same link render differently depending on where it was clicked (the router decides)?
+4. Workspace pages (zero padding, fill, panes) vs document pages (padded, content flows): how does one navigation model serve both?
+Underneath: file-system hierarchy vs visual hierarchy; pages inside pages; how much of the tree the sidebar shows.
+
+## Deliverable
+
+1. **One page, `core/Page/navigation/model/`** (title "Navigation: one model"), level 1 above the fold: the four questions in one line each, then **the answer shown**: a live demo of the proposed model on a real five-level slice of this site (framework → core → Page → navigation → model), at 1200 and 3440. The mastermind's starting proposal, to test and change if the demos argue otherwise: one left sidebar = the tree expanded along the active path (siblings at each level, children of the current page), rooted at the nearest ancestor that declares itself a section root; it never gains a second sidebar as you go deeper, the breadcrumb carries the ancestors; a right "on this page" column holds the headings and appears only when a page has three or more; a page declares `kind: document | workspace`, a workspace page's children are its panes, not nav items, and it fills; a link activates at its nearest section root unless the router is told otherwise by the link's context (`?in=<ancestor>`), one rule, written once. Each part of the model is a one-line decision with the alternative and why it lost. Reuse the existing classes (`Sidebar`, `Router`, `Page.children`, the switcher, the columns demo); build no second navigation system.
+2. **Layouts, the keep list**: `/layouts/` has many; under this model most are variations of three or four. A section "The layouts that survive" names the ones to keep (each a link and a one-line reason) and the rest as "retire" (not deleted; a node script with `--plan` moves them under `layouts/archive/` by `git mv` with a manifest, run with `--apply` only for ones whose page nothing links to). Say the counts before and after.
+3. **Where the template library stands**: the owner asked recently for cloning any layout into a library of approved templates with container rules. Find it (`make`, paging templates, the layouts browser's Approve); write five lines on what exists, what does not, and the next step, as a section of the same page.
+4. `check_page` at 400 / 1200 / 1920 / 3440; the page is linked from `core/Page/navigation/readme.md` and `core/Page/readme.md`; card report (title "Navigation: one model, shown"); landing line checked with `tail -1`; `merge.mjs`.
+
+Fence: `core/Page/navigation/**`, `public/layouts/**` (archive moves only), one readme line in `core/Page/readme.md`, this task dir. Do not change `Sidebar`, `Router` or `Page` themselves in this task: a needed core change is a `decision` line with the exact edit and the model page shows it with a demo override. Opus; Sonnet minions for the demos.

@@ -1,0 +1,16 @@
+# The Inbox and the Sessions page become one list-and-detail component; class architecture first, then the Inbox rebuilt on it
+
+Budget: $25. Load the `sub-mastermind`, `layout`, `make` and `review` skills first. You are Opus: the owner has asked for this redesign several times and said today that every click through the Inbox "makes me cringe"; read their words first, `../requirements-12.md` ask 7 (verbatim below the list), then `../requirements-10.md` ask 2 (the rail must stay when a card opens) and `../requirements-4.md` (inbox as a timeline, inbox zero, date filter), and the Inbox's own `core/Page/ext/Inbox/doc/next.md` (the pinned "Waiting on you" list is the open item at the top). What exists: `core/Page/ext/Inbox` (the rail, the timeline, ranking), `ai/rail/`, the Sessions page (`ai/sessions/`: year/month/day scope, left rail, the data grid `ext/DataGrid`), the catalog (`/framework/catalog/`). Your log is this dir's `task.jsonl`.
+
+## The owner's essence
+
+"The general essence is good": a preview rail like an email inbox, click one and the detail opens beside it; the rail is resizable and, on a huge screen, much wider, like the Sessions page's data grid; Inbox and Sessions are "the same essential problem: pages and sub pages and previews and how you click through them to see a deeper thing", and could collapse into one component.
+
+## Deliverable
+
+1. **The class architecture, as a page first** (`core/Page/ext/Browse/` or the best existing home: one `Browse` view = a resizable list pane (rows from any source: cards, sessions, catalog entries) + a detail pane that routes (`/…/<item>` keeps the list), with the list's columns growing from one line per row at 400 to a data grid at 3440). Each class: name, one-line job, extends what, composes what, which one orchestrates; what `Inbox`, `SessionsPage` and the catalog each become (a subclass or a configuration). Show it where the owner can see it before building; one of everything: this replaces the Inbox rail and the Sessions rail, never a third.
+2. **The smallest working slice**: the Inbox rebuilt on `Browse`, with the pinned "Waiting on you" list at the top (every open owner decision, one line each, its card linked; gone when ticked; source: cards whose body says "for you"/"decision", plus waiting lines in `ai/asks.jsonl`), the timeline and date scope kept, inbox zero kept, the rail resizable and defaulting to a third of the screen at 1920 and wider at 3440. Shot after every step (`ui-test`); `check_page` at 400 / 1200 / 1920 / 3440; a fresh-eyes read of each shot against the owner's words before landing.
+3. **Sessions on the same component** only if it fits in budget after 2 lands; otherwise a `decision` line with what it takes and the next brief in `ai/sessions/doc/next.md`.
+4. Docs inside the module (`doc/architecture.md` for Browse; the Inbox readme's one line); card report (title "Inbox: one list-and-detail view, waiting-on-you at the top"); landing line checked with `tail -1`; `merge.mjs`.
+
+Fence: `core/Page/ext/Inbox/**`, the new Browse module, `ai/rail/**`, `ai/sessions/**` (only for step 3), this task dir. Not `Servex/`. Opus; Sonnet minions for the build. Never drive the owner's live tabs.

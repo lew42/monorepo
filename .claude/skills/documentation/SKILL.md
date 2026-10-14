@@ -51,7 +51,9 @@ one snippet, the common case
 The first section of a directory readme with child modules is `## Index`, one line per child: `[name](./name/) — what it is and what you'd use it for`.
 
 Mostly suggestions, minimal direction. No rules that might need breaking — they mislead the
-next agent. Every important `doc/*.md` gets one summary line here, linked. Deliberation,
+next agent. **Word a judgment call as a judgment call** (the owner, 2026-10-14): a dynamic
+situation written as a hard "must" fails at the edge cases, and the owner is "often going to be wrong"; write *should* or *could*,
+name the factors and the clearly good or bad sides, and leave the call to the agent reading it. Don't load every caveat everywhere. Every important `doc/*.md` gets one summary line here, linked. Deliberation,
 history and rejected alternatives move **verbatim** to `doc/decisions.md`; nothing is lost,
 it is one click down.
 

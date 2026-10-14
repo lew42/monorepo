@@ -4,3 +4,10 @@
 {"log":{"at":"2026-10-14T13:47:12-05:00","msg":"Untracked 1690 pictures (41.2 MB) under shots/, files kept; deploy upload unchanged (shots/ already in .assetsignore), tracked public files 17830 to 16171. merge.mjs left the deletions uncommitted, so UntrackShots --apply was committed in the main tree."}}
 {"log":{"at":"2026-10-14T13:47:12-05:00","msg":"LANDED: Screenshots: never committed, 1690 untracked, 41.2 MB off future commits"}}
 {"assign":{"landed_at":"2026-10-14T13:47:23-05:00","title":"Screenshots: never committed, 1690 untracked, 41.2 MB off the deploy","outcome":"**/shots/ ignored; 1690 pictures untracked (files kept); ShotsPurge.mjs added (plan only run); thumbs/ stays; worktree answer in repo-size.md. Upload count unchanged (shots/ already in .assetsignore); tracked public files 17830 to 16171.","links":["/framework/ai/sessions/doc/commit-rule.md","/framework/ai/doc/repo-size.md"]}}
+{"log":{"at":"2026-10-14T13:47:31-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-14T13:47:31-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-14T13:47:31-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-14T13:47:31-05:00","msg":"owner-note: posted 1 decision to the Inbox"}}
+{"log":{"at":"2026-10-14T13:47:31-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-14T13:47:34-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-14T13:47:34-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
