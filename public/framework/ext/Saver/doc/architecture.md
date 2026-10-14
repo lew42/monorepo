@@ -78,4 +78,3 @@
 
 - [backends.md](./backends.md) — the four compared, and why `FileSaver` is dev-only
 - [decisions.md](./decisions.md) — the full record: callers, verdicts, dated reversals
-- [readme.md](../readme.md) — the index and the watch-outs
