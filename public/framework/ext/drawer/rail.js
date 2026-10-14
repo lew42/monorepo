@@ -161,7 +161,7 @@ export class DrawerRailSheetV1 extends View {
 	head(){
 		return div.c("drawer-rail-sheet-head flex v-center", () => {
 			div.c("drawer-rail-sheet-heading flex v-center wrap", () => {
-				span.c("drawer-rail-sheet-title", this.constructor.name);
+				span.c("drawer-rail-sheet-title", this.title);
 				this.$path = span.c("drawer-rail-sheet-path muted");
 			});
 			button.c("drawer-x", "✕").attr("type", "button").attr("title", "Close").click(() => this.close());
@@ -360,7 +360,7 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
 
 	links(){
 		return div.c("drawer-rail-sheet-links flex wrap", () => {
-			this.new_session_button();
+			if (!this.new_in_head) this.new_session_button();
 			this.link("Dictation", "dictation");
 			this.link("Settings", "settings");
 			this.link("Open full AI", "ai");
@@ -580,6 +580,13 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 }
 
 export class DrawerRailSheetChat extends DrawerRailSheetPanel {
+	// New session sits in the head, one tap, as in the desktop AI tab (voice-e2e-review 2026-10-13)
+	head(){
+		const $head = super.head();
+		$head.append(() => { const $new = this.new_session_button(); $head.el.insertBefore($new.el, $head.el.querySelector(".drawer-rail-sheet-more")); });
+		return $head;
+	}
+
 	render(){
 		this.head();
 		this.handle();
@@ -664,6 +671,8 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
 }
 
 DrawerRailSheetV1.prototype.full_at = 0.85;
+DrawerRailSheetV1.prototype.title = "AI";   // the ✦ AI button's own word; was the class name (voice-e2e-review)
+DrawerRailSheetChat.prototype.new_in_head = true;
 DrawerRailSheetV1.prototype.close_at = 0.28;
 
 DrawerRail.Sheet = DrawerRailSheetChat;

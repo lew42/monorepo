@@ -292,6 +292,11 @@
 	   beats `@layer theme` for a normal declaration (an important one in a lower
 	   layer wins back). */
 	.drawer-rail-sheet-links-folded { display: none !important; }
+	/* Full = the drawer's own tab row sits below, so the links row and More repeat it (voice-e2e-review). */
+	.drawer-rail-sheet-full .drawer-rail-sheet-links,
+	.drawer-rail-sheet-full .drawer-rail-sheet-more { display: none !important; }
+	.drawer-rail-sheet-head .drawer-rail-sheet-new { margin-inline-start: auto; }
+	.drawer-rail-sheet-head .drawer-rail-sheet-new + .drawer-rail-sheet-more { margin-inline-start: 0.4em; }
 	.drawer-rail-sheet-more {
 		font: inherit; font-size: 0.8em; margin-inline-start: auto;
 		padding: 0.3em 0.7em; min-block-size: 2.2rem;

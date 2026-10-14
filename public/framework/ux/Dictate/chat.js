@@ -33,6 +33,7 @@ function create_controller({ persist }){
 	const ctl = {
 		session: null,
 		file: null,
+		fresh: false,     // true after New session until the next session starts: Session.start({fresh})
 		starting: null,   // a pending Session.start() promise — two mounts' first sentence at once share ONE session
 		nav_path: null,   // the path last actually reported to the session (report_nav's own dedupe)
 		nav_card: null,   // the card last actually reported alongside it (item 1, one-dictation)
@@ -43,6 +44,7 @@ function create_controller({ persist }){
 		if (!persist || ctl.session) return;
 		const saved = read_saved();
 		if (saved?.session && saved?.file){ ctl.session = saved.session; ctl.file = saved.file; }
+		else if (saved?.fresh) ctl.fresh = true;   // New session was pressed (this tab, maybe before a reload)
 	}
 	sync_from_storage();
 
@@ -64,8 +66,9 @@ function create_controller({ persist }){
 		sync_from_storage();
 		if (ctl.session) return;
 		if (!ctl.starting){
-			ctl.starting = Session.start({ path: target.path, card: target.card }).then(made => {
-				ctl.session = made.session; ctl.file = made.file;
+			// fresh: after New session, never resume the last hour's session on this page (doc/chat.md#new-session-and-the-mic-indicator)
+			ctl.starting = Session.start({ path: target.path, card: target.card, fresh: ctl.fresh }).then(made => {
+				ctl.session = made.session; ctl.file = made.file; ctl.fresh = false;
 				write_saved({ session: made.session, file: made.file });
 				broadcast();
 			}).finally(() => { ctl.starting = null; });
@@ -93,8 +96,8 @@ function create_controller({ persist }){
 	}
 
 	function reset(){
-		ctl.session = null; ctl.file = null; ctl.starting = null;
-		write_saved(null);
+		ctl.session = null; ctl.file = null; ctl.starting = null; ctl.fresh = true;
+		write_saved({ fresh: true });
 		broadcast();
 	}
 
@@ -167,7 +170,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		if (!line?.chat) return;
 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
 		if (echo){ own_ats.add(line.chat.at); panel.retag(echo.at, line.chat.at); return; }
-		if (own_ats.has(line.chat.at)) return;
+		if (own_ats.has(line.chat.at) && panel.$thread?.lines?.has(line.chat.at)) return;   // own line still drawn; a session start's reset() may have wiped it
 		const key = line.chat.at + (line.chat.fix ? "|fix|" + line.chat.text : "");
 		if (seen_chat.has(key)) return;
 		seen_chat.add(key);
@@ -175,7 +178,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	}
 
 	function maybe_offer(){
-		if (!keep) return;
+		if (!keep || owner.ctl.fresh) return;   // New session was pressed: do not offer the old one back
 		Session.recent(target.path, { limit: 1 }).then(([row]) => {
 			if (!row || owner.ctl.session) return;
 			const at = row.at ?? row.last_at;
