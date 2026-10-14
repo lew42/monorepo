@@ -1,13 +1,13 @@
 # Nav architecture — show each pattern as a real site, never a screenshot
 
-`/web/nav/` is a set of navigation patterns, each one a live, clickable fake site. The section is a plain page whose `children:` names the patterns; the rail beside its text is the section itself. Entry: [`page.js`](../page.js). Each pattern lives in its own folder, one `page.js` per folder, and the demo sites are built in the page files, not in shared code.
+`/web/nav/` is a set of navigation patterns, each one a live, clickable fake site. The section is a plain page whose `children:` names the patterns; the rail beside its text is the section itself. Entry: [`page.js`](../page.js). Each pattern is one folder with one `page.js`; demo sites are built there, not in shared code.
 
 ## The rail is built from `initialize()`, never `content()`
 
 **Decided:** the section calls `this.catalog()` from `initialize()`, so its children exist before they get their URLs.
 **Why:** a child added at render time has no url, so the rail's links would not work.
 **Instead:** building the rail in `content()` (fails: no urls) or hand-writing the rail links (drifts from `children:`).
-**Detail:** [`page.js`](../page.js) (comment at `initialize`).
+**Detail:** [`page.js`](../page.js) .
 
 ## Each pattern file writes its own shell
 

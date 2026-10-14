@@ -1,8 +1,8 @@
 # Events — `on` / `off` / `emit`, a mixin everything else builds on
 
 A mixin, not a base class: `Events(Object)` is a plain emitter. `Item` (`core/Item/`) is
-`Events(Object)` plus an id, a data bag and `set(delta)`; `List` (`core/List/`) is
-`Events(Object)` plus the array and the four verbs. Nothing here is specific to either —
+`Events(Object)` plus an id, a data bag and `set(delta)`; `List` (`core/List/`) extends
+`Item` and adds the array and the four verbs. Nothing here is specific to either —
 it is `on`, `off`, `emit`, and one more method, `bubbles()`, that says whether an event
 keeps climbing.
 
@@ -15,7 +15,7 @@ const Events = Base => class extends Base {   // ✅ the ONLY mixin in core — 
   bubbles(event)                              // true by default; a class overrides it to be a boundary
 }
 Item = Events(Object)                         // core/Item/Item.js
-List = Events(Object)                         // core/List/List.js — its parent is its owner Item
+List extends Item                             // core/List/List.js — its parent is its owner Item
 ```
 
 Because a List's `parent` is the Item that owns it, one listener on a root Item hears

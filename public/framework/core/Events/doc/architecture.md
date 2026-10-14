@@ -30,9 +30,8 @@ Events is a small mixin, not a base class: `Events(Base)` returns a subclass tha
 **Instead:** a `stopPropagation` flag set per event, which would need clearing and has no owner.
 **Detail:** [`Events.js`](./../Events.js) `bubbles()`
 
-⚠ **Code mismatch:** the readme and the `Events.js` comment say `core/Page` overrides `bubbles()` so a page's events stop at the page. No class in `public/framework` overrides it today, so events from a page do reach its parent. The mixin behaves as described; the page boundary described in the readme does not exist yet.
+`core/Page` overrides `bubbles()` to return `false` (`Page.class.js`), so a page's events stop at the page.
 
-⚠ **Code mismatch:** the readme says `List = Events(Object)` directly. In code `List extends Item` (`core/List/List.js`), and `Item` is `Events(Object)`. The event behaviour is the same; the inheritance line in the readme is wrong.
 
 ## Listeners are called with the emitting object as `this`
 
