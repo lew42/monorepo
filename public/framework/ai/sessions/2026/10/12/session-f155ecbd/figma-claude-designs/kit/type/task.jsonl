@@ -1,3 +1,8 @@
 {"assign":{"session_id":"9446b75f-7fa0-4eee-a83e-e222e22fb81e","agent":"task-mastermind-fig-type","card":"Figma: Foundations · Type & spacing","brief":"public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/brief-type.md","model":"claude-sonnet-5-5","requested_at":"2026-10-14T18:43:11-05:00","now":"starting","steps":[],"step":1}}
 {"log":{"at":"2026-10-14T18:43:47-05:00","msg":"skill: figma:figma-use"}}
 {"log":{"at":"2026-10-14T19:30:00-05:00","msg":"Landed: Foundations · Type & spacing built in Figma (page 297:105636); report kit/type.md"}}
+{"log":{"at":"2026-10-14T18:48:52-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-14T18:54:41-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-fig-type"}}
+{"log":{"at":"2026-10-14T18:54:43-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-14T18:55:13-05:00","heartbeat":"answered","msg":"Done and landed. The Figma page `Foundations · Type & spacing` (frame `297:105637`) is built, and the report [kit/type.md](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/t"}}
+{"assign":{"landed_at":"2026-10-14T19:35:00-05:00","title":"Figma: Foundations · Type & spacing","outcome":"New Figma page with the 5 text styles in use (script census), 4 pairing components, a 720-measure article, instances at 400 and 1000, and the 10-token spacing ladder in Mobile/Default/Mega. No token values changed; notes list unused code style, 45% unstyled text, and proposed h2-size/h3-size.","links":["/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/type.md"]}}
