@@ -14,7 +14,7 @@ export default new Doc({
 	icon: "arrow_drop_down_circle",
 
 	files: "dropdown.js dropdown.css page.js readme.md",
-	notes: "decisions",
+	notes: "decisions architecture",
 
 	content(){
 

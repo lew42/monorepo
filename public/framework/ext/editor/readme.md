@@ -22,6 +22,7 @@ workspace({ saver: panels, templates: REGIONS, seed });              // five reg
 
 ## More
 - [Overview](/framework/ext/editor/) · [`doc/decisions.md`](./doc/decisions.md) — the design record: undo by snapshot, who uses it (nothing), Decisions, Traps, Open
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`doc/shell.md`](./doc/shell.md) — why the shell is a panel workspace with a workspace-local `T` vocabulary
 - `doc/method/`, `doc/property/`, `doc/file/` — History's API and per-file notes the overview renders
 - Files that matter: `page.js` (widget and page), `blocks.js` (the palette), `History.js` (undo snapshots), `editor.css` (regions, nodes)

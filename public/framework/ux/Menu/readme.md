@@ -27,5 +27,6 @@ it navigates or not. `label` sets the trigger text ("Actions" by default).
 ## More
 - [Overview](/framework/ux/Menu/) — a file-actions menu, live · [words](/framework/ux/Menu/words/) — the same picker under `ui-contrast ui-compact`
 - [`doc/decisions.md`](/framework/ux/Menu/doc/decisions/) — the split argued, the click-outside design, why no named extension shipped
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`ui/menu`](/framework/ui/menu/) — the template half · [`ux/`](/framework/ux/) — the tier
 - Files: `Menu.js` (the class, no parts — every item is a plain link)

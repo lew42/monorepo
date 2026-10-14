@@ -17,4 +17,5 @@ button("Open").click(() => $dialog.el.showModal());
 ## More
 
 - [Overview](/framework/ui/dialog/) — the confirm demo, the form variant, the opened-state variant
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - Files: `dialog.js` (the three CSS fixes), `page.js` (show, don't tell)

@@ -273,7 +273,7 @@ export default new Doc({
 	subject: History,
 	properties: "past future",
 	methods:    "act undo redo step can_undo can_redo read restore",
-	notes:      "shell decisions",
+	notes:      "shell decisions, architecture",
 	files:      "blocks.js History.js editor.css page.js",
 
 	content(){

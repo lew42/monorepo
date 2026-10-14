@@ -41,7 +41,7 @@ export default new Doc({
 	icon: "arrow_drop_down_circle",
 
 	files: "Menu.js page.js readme.md",
-	notes: "decisions",
+	notes: "architecture decisions",
 
 	children: [
 		demo.page("words", words, {

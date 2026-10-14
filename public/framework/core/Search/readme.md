@@ -43,6 +43,7 @@ search.rank("columns");        // best first
   dropped, and the calls this made instead
 - [`doc/corpus.md`](/framework/core/Search/doc/corpus/) — how the list of urls is built, and what it misses
 - [`doc/filters.md`](/framework/core/Search/doc/filters/) — the facet model, and why the tag groups are empty today
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - Files: `Search.js` (the corpus, the ranking, `Search.Filters`), `Omnibox.js` (the box and its
   one `omnibox(app)` installer), `Search.css` (`omnibox-`), `tags.js` (tag → axis, the only
   thing core knows about the [vocabulary](/framework/styles/system/studies/vocabulary/))
