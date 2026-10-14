@@ -67,7 +67,7 @@ the repo. This is the projection a dashboard reads.
   without one makes its own, which is what `demo.mjs` does.
 - **`Agent.log(entry)`** is still the only thing that writes — one line, through `store()`.
 - **`tools(host)`** in `tools.js` builds all sixteen agent tools (its own seven, plus `ops.js`,
-  `jobs.js` and the four module-expert tools in `experts.js`) against the host you give it,
+  `Jobs.js` and the four module-expert tools in `Experts.js`) against the host you give it,
   `{name, description, inputSchema, schema, handler}` — what `servex.mcp.tool(tool)` takes.
   It is a function, not a constant, so the handlers close over the host that is really running:
   `for (const tool of tools(servex.agents)) servex.mcp.tool(tool);`

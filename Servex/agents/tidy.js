@@ -2,7 +2,7 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 
 /* TIDY — revise one chunk of dictated (or rambling) text, at a LEVEL.
  *
- * One no-tools Sonnet call, same minimal options `jobs.js` `decide` uses (see
+ * One no-tools Sonnet call, same minimal options `Jobs.js` `decide` uses (see
  * that file's comment: without `strictMcpConfig` etc. the prefix is ~51k
  * tokens instead of about 800). `level` names one of LEVELS below (`clean`,
  * `edit` or `summary` — see ux/Revise, which shows all three on one page);
@@ -91,7 +91,7 @@ export async function tidy({ text, before, level, system, model } = {}, { run_qu
 	let out = "";
 	try {
 		for await (const m of run_query({ prompt, options: {
-			/* Same minimal config as jobs.js `decide` — see its comment. */
+			/* Same minimal config as Jobs.js `decide` — see its comment. */
 			model: use_model, tools: [], mcpServers: {}, strictMcpConfig: true, skills: [],
 			settingSources: [], maxTurns: 1, persistSession: false,
 			extraArgs: { "disable-slash-commands": null },

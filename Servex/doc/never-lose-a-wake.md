@@ -27,7 +27,7 @@ Fixed two ways, belt and braces:
 The "at most 5 working at once" cap (`doc/dormant.md`, "The working cap") used to count any row
 whose *state* said `working` — which a phantom from #1 could claim forever, holding a slot no
 agent was actually using. `Agents.working()` now checks the real process too (`claude_pid` and a
-direct `process.kill(pid, 0)`, `registry.js`'s own `alive()` — one check, not three separate
+direct `process.kill(pid, 0)`, `Registry.js`'s own `alive()` — one check, not three separate
 copies of it), past a short grace window for a spawn that is still booting.
 
 **Not `idle` — `dormant`** (fresh-eyes review finding 3): the brief that opened this task said

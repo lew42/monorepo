@@ -81,7 +81,7 @@ async function session_file(id){
 	// A folder made here is named for the agent (its Servex id), not left as session-<id8> (brief: "sessions get a name").
 	let uuid = UUID.test(id) ? id : null, name = uuid ? null : id;
 	try {
-		const { default: Registry } = await import("./registry.js"), agents = new Registry().read();
+		const { default: Registry } = await import("./Registry.js"), agents = new Registry().read();
 		if (!uuid) uuid = agents[id]?.session_id ?? null;
 		else name = Object.entries(agents).find(([, a]) => a?.session_id === uuid)?.[0] ?? null;
 	} catch {}

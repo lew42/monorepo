@@ -3,7 +3,7 @@ import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
 import { place } from "../home.js";
-import Registry from "./registry.js";
+import Registry from "./Registry.js";
 import { Claims } from "./claims.js";
 import { page_tools } from "../pages.js";
 import { brief, remember_focus } from "./Brief.js";

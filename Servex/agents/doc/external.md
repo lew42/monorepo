@@ -16,7 +16,7 @@ Call it near the start of a session, from inside that session (it needs its own 
 same value a terminal would pass to `claude --resume`). From then on:
 
 - **`list_agents`** shows it: `{ id, kind: "external", session_id, state: "external", … }`, in the
-  very same `registry.json` every real agent's row lives in — `registry.js` needed no change, its
+  very same `registry.json` every real agent's row lives in — `Registry.js` needed no change, its
   `read()`/`save()` already take any shape.
 - **`send_to_agent`** to that id no longer throws "no agent" or tries to resume a session Servex
   does not hold: it appends one line to the id's own **inbox file**.

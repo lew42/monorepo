@@ -13,7 +13,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Agents } from "./Agents.js";
-import { start_job, job_result, job_tools } from "./jobs.js";
+import { start_job, job_result, job_tools } from "./Jobs.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = "C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/09/24/concurrency/concurrency/jobs-proof.txt";
@@ -36,7 +36,7 @@ const specs = {
 	read:   { files: ["readme.md", "Agents.js", "tools.js"], find: "wake_parent" },
 	grep:   { pattern: "wake_parent", dir: HERE, glob: "*.js" },
 	watch:  { file: watched, pattern: "listening on \\d+", timeout_s: 20 },
-	check:  { files: ["Agents.js", "tools.js", "jobs.js", "registry.js", broken] },
+	check:  { files: ["Agents.js", "tools.js", "Jobs.js", "Registry.js", broken] },
 	decide: { files: ["readme.md"], question: "In one sentence: what does wake_parent do, and when is it called?" }
 };
 
@@ -70,7 +70,7 @@ console.log(`decide: ${JSON.stringify(d.usage)} cost $${d.cost_usd} model_ms ${d
 
 /* The tools really build, and a handler answers at once. */
 const tools = job_tools(host);
-const via_tool = JSON.parse(await tools.find(t => t.name === "start_job").handler({ kind: "check", args: { files: ["jobs.js"] } }));
+const via_tool = JSON.parse(await tools.find(t => t.name === "start_job").handler({ kind: "check", args: { files: ["Jobs.js"] } }));
 console.log(`tools: ${tools.map(t => t.name).join(", ")}; start_job handler → ${via_tool.job_id}`);
 
 const failures = [

@@ -39,7 +39,7 @@ import Asks from "./asks/Asks.js";
 import Layers from "./agents/Layers.js";
 import Sessions from "./agents/Sessions.js";
 import Global, { claude_processes } from "./agents/Global.js";
-import { alive } from "./agents/registry.js";
+import { alive } from "./agents/Registry.js";
 import External from "./agents/External.js";
 import agent_tools from "./agents/tools.js";
 import { directory_tools } from "./agents/directory.js";

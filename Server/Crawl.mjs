@@ -1,4 +1,4 @@
-/* Server/crawl.mjs — Nightly full crawl of the site under /framework/.
+/* Server/Crawl.mjs — Nightly full crawl of the site under /framework/.
  *
  * Crawls every page under /framework/ at viewport 1920:
  * - Follows all same-site links under /framework/
@@ -12,7 +12,7 @@
  * Builds on smoke.mjs link-following and padding-check.mjs.
  *
  * Usage:
- *   node Server/crawl.mjs [--limit N] [--base URL] [--seed PATH] [--out DIR] [--no-shots] [--no-todo]
+ *   node Server/Crawl.mjs [--limit N] [--base URL] [--seed PATH] [--out DIR] [--no-shots] [--no-todo]
  */
 
 import fs from "node:fs";

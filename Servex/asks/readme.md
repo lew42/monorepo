@@ -47,7 +47,7 @@ fold, it will disagree with this one the moment the ledger grows an update line.
 - **`stalled` is a pure judgment, not a side effect.** It never marks anything; `Asks.tick()`
   reads the verdict and decides whether a mark is actually new (stalled once, not every tick).
 - **`owner_row` isn't just the registry row.** `Asks.owner_row()` adds `last_task_line_at`,
-  `task_landed` (both read from the owner's task dir — `registry.js`'s own `task_dir` field) and
+  `task_landed` (both read from the owner's task dir — `Registry.js`'s own `task_dir` field) and
   `queued` (messages waiting in its live send queue). Passing a bare registry row to `stalled()`
   works for the state checks but will always look "never seen" for the silence check.
 - **`dormant` is a string, not a feature this file owns.** Another task (2026-09-30) is adding

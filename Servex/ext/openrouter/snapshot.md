@@ -49,7 +49,7 @@ source-library slug where the research cites a URL that's now saved in
   should pick the backend from it. Its own comment calling this a "one-line change" is untrue
   until a reader exists. [`cx5h6`]
 - **established (round-2 correction folded in)** — The SDK import surface to cover is three
-  files, not one: `Agents.js`, `jobs.js`, `tools.js` (round 2 rejected the earlier one-file count,
+  files, not one: `Agents.js`, `Jobs.js`, `tools.js` (round 2 rejected the earlier one-file count,
   `cihlr`, as wrong). [`de2ph`; `adijt`]
 - **established** — Claude stays on the subscription (usage windows, not dollars); per-token
   Claude through any gateway could cost far more for the same work — this is unmeasured, so
@@ -88,7 +88,7 @@ source-library slug where the research cites a URL that's now saved in
 - **established** — The switcher the owner means is the manager/mastermind model per card, not
   the transcription engine (Dictate.js has no model concept) and not the fast assistant, which
   stays cheap and its model stays in config. [`coks7`; `ckkc4`]
-- **established** — No per-card model override exists yet (`Layers.js`/`registry.js` grepped
+- **established** — No per-card model override exists yet (`Layers.js`/`Registry.js` grepped
   clean); the picker belongs at card *creation* as well as in the card's existing chrome, with
   OpenRouter model slugs as the options — not the four Anthropic tiers a first pass proposed
   (round 2 rejected that narrower version, `am32f`, for exactly this reason). [`ccnix`; `d9rz5`]

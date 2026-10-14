@@ -19,7 +19,7 @@ not re-derive it from scratch. Written 2026-10-08 (mastermind-cheap-models), ext
    starts a real `claude` session per minion/mastermind, and that session's first "user" turn is
    the ORCHESTRATOR'S prompt text, structurally identical to an owner message. The giveaway is the
    text itself: boilerplate like `[You are Servex agent ...]`, `[You are an assistant ...]`,
-   `[from: ...]` (not `[from: owner`), skill-preamble text, or a long structured brief — `Server/council.mjs`'s
+   `[from: ...]` (not `[from: owner`), skill-preamble text, or a long structured brief — `Server/Council.mjs`'s
    `isOwnerPrompt()` already has this exact filter, written for a different source (below); reuse it.
    **Scale:** 6.5 GB, ~7,700 files across ~167 directories on this machine (2026-10-08 measurement) —
    never read these directly; always script-filter first (grep for `"role":"user"` before parsing
@@ -32,7 +32,7 @@ not re-derive it from scratch. Written 2026-10-08 (mastermind-cheap-models), ext
 2. **`.claude/prompts/<day>.jsonl`** — a curated extraction Servex already does from (1), tagged
    `{"prompt":{"author":"owner", "text", "at", "session_id"}}`. Easier to read than the raw session
    files, but it is only as complete as whatever extracted it — treat as a fast index into (1), not
-   a replacement for it. `Server/council.mjs`'s `collect()` reads this first.
+   a replacement for it. `Server/Council.mjs`'s `collect()` reads this first.
 
 3. **`public/framework/ai/asks.jsonl`** — the routed-ask ledger: one line per ask with its owner
    agent, card, and status (`building`/`landed`/`stalled`/`dropped`/`parked`/`queued`). This is
@@ -49,7 +49,7 @@ not re-derive it from scratch. Written 2026-10-08 (mastermind-cheap-models), ext
 
 5. **`public/framework/ai/cards.jsonl`** and the card folders under `public/framework/ai/<y>/<m>/<d>/<slug>/`
    — the owner-facing board. A card's `page.jsonl` sometimes carries a `{"prompt":...}` line of its
-   own (owner words typed into that card) — `council.mjs`'s `collect()` step 2 already walks these.
+   own (owner words typed into that card) — `Council.mjs`'s `collect()` step 2 already walks these.
 
 6. **Servex's own logs**, `%LOCALAPPDATA%\lew42\servex\logs\` — `lifecycle.jsonl` (agent start/stop,
    useful for matching a session uuid to an agent id and a task dir) and `openrouter.jsonl` (real

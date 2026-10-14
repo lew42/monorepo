@@ -4,7 +4,7 @@
 
 ## Two processes, one door
 
-- **Servex process** (one `node`, kept alive by `Servex/sustain.mjs`): owns the tool list (`Servex/agents/tools.js`, `page_tools.js`, `ops.js`, `jobs.js`, `experts.js`), the agent registry, and every log file. Tool handlers are plain `async` functions here.
+- **Servex process** (one `node`, kept alive by `Servex/sustain.mjs`): owns the tool list (`Servex/agents/tools.js`, `page_tools.js`, `ops.js`, `Jobs.js`, `Experts.js`), the agent registry, and every log file. Tool handlers are plain `async` functions here.
 - **One `claude.exe` per agent**: started by `Agent.spawn_claude()` (`Servex/agents/Agents.js`). It runs the model and the agent's own Bash/Read/Edit. It holds no Servex state.
 - **The door between them is HTTP, loopback only.** `door()` adds an `mcpServers` entry pointing at Servex's `/mcp` (`Servex/MCP.js`) with `?as=<agent id>`, so the handler knows who called. An in-process route also exists (`server()` in `tools.js`, via `createSdkMcpServer`), but it is for hosts with no HTTP door such as `fork-proof.mjs`; the live agents use HTTP.
 

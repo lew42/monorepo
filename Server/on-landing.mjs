@@ -45,7 +45,7 @@ try {
 	// the clarity agent (.claude/skills/clarity/): a fresh Sonnet inside Servex, detached so layout-check does not wait
 	try { spawn(process.execPath, [path.join(root, "Server/clarity.mjs"), "landing", dir], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
 	// the feedback council loop: checks rhythm (10 landings or 24h) and re-runs if due
-	try { spawn(process.execPath, [path.join(root, "Server/council.mjs"), "maybe"], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
+	try { spawn(process.execPath, [path.join(root, "Server/Council.mjs"), "maybe"], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
 	try {
 		const tf = text_flags(dir);
 		const tm = `text-check: ${tf.length ? tf.join("; ") : "no walls of text"}`;

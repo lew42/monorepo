@@ -6,11 +6,12 @@ import os from "node:os";
 import path from "node:path";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
-import Registry, { alive } from "./registry.js";
+import Registry, { alive } from "./Registry.js";
 import { defaults as role_defaults, opening, injected, compact_after as role_compact_after } from "./roles.js";
 import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import TaskDirs from "../../Server/TaskDirs.mjs";
+import LandingCheck from "../../Server/LandingCheck.mjs";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 
@@ -592,7 +593,7 @@ export class Agents {
 
 	/* NEVER-LOSE-A-WAKE, item 2 (2026-10-01): a row counts toward the cap only while its
 	 * claude.exe is actually alive — `claude_pid` and a direct `process.kill(pid, 0)`, the same
-	 * test `registry.js`'s own sweep uses. Before this, the awaken race (item 1; `sleep()`'s
+	 * test `Registry.js`'s own sweep uses. Before this, the awaken race (item 1; `sleep()`'s
 	 * queue closing a moment before `send()`'s own push, item 5) could leave a row stuck
 	 * "working" with no process at all — a PHANTOM that held one of the 5 working slots
 	 * forever, with nothing to ever free it. A row just spawned (no pid YET, because
@@ -1760,7 +1761,27 @@ Agents.Agent = class Agent {
 		else if (ONE_PASS.includes(this.role) && this.state === "idle") setImmediate(() => { if (this.state === "idle") this.stop(); });
 		/* Grown past a threshold: compact before anything else arrives. */
 		else if (this.state === "idle"){ const why = this.oversized(); if (why) setImmediate(() => this.compact(why)); }
-		if (this.state === "idle") this.landing_nag();
+		if (this.state === "idle") { this.landing_nag(); this.landing_check(); }
+	}
+
+	/* THE LANDING CHECK (2026-10-13, Servex/doc/landing.md): a task with a landing line whose branch work is
+	 * NOT on michael/dev (by file content, Server/LandingCheck.mjs) gets a log line, a card reply and a
+	 * wake of its parent. The landing line is never deleted. Once per distinct missing set. */
+	landing_check(){
+		const dir = this.task?.dir;
+		if (!dir || this.one_shot || !task_landed(dir)) return false;
+		let v; try { v = LandingCheck.verify(dir); } catch { return false; }
+		if (v.landed) return false;
+		const key = v.missing.join("|");
+		if (this.landing_flagged === key) return false;
+		this.landing_flagged = key;
+		const msg = LandingCheck.sentence(v);
+		try { fs.appendFileSync(path.join(dir, "task.jsonl"), JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
+		this.host?.store().append("servex", { type: "landing-unmerged", agent: this.id, task: dir, branch: v.branch, missing: v.missing.length }).catch(() => {});
+		const card = this.task?.card;
+		if (card) try { this.host?.servex?.assistant?.card_reply({ card, from: "servex-landing-check", text: msg }); } catch {}
+		if (this.parent && this.parent !== this.id) try { this.host?.send(this.parent, `landing-check: ${this.id}: ${msg}`, { from: "servex-landing-check" }); } catch {}
+		return true;
 	}
 
 	/* THE LANDING NAG (2026-10-13, doc/lifecycle.md): a task agent whose turn ended with the

@@ -8,8 +8,8 @@ import { fileURLToPath } from "node:url";
 import { agents as singleton } from "./Agents.js";
 import { Policy } from "./policy.js";
 import { ops_tools } from "./ops.js";
-import { job_tools } from "./jobs.js";
-import { expert_tools } from "./experts.js";
+import { job_tools } from "./Jobs.js";
+import { expert_tools } from "./Experts.js";
 import { page_tools } from "./page_tools.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -56,8 +56,8 @@ const tool = (name, description, properties, required, handler) => {
 const card = agent => JSON.stringify(agent.card(), null, 2);
 
 /* Everything an agent can call: the seven agent verbs below, the three
- * operator tools (ops.js), the two job tools (jobs.js), the four module-expert
- * tools (experts.js: ask_expert, list_experts, load_module, readme_modules) and the
+ * operator tools (ops.js), the two job tools (Jobs.js), the four module-expert
+ * tools (Experts.js: ask_expert, list_experts, load_module, readme_modules) and the
  * four page tools (page_tools.js: page_add, page_set, page_log, page_read — core/Page's
  * readme, "storage") — so one line in
  * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,

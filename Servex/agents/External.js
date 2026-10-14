@@ -8,7 +8,7 @@ import { place, stamp } from "../home.js";
  *
  * `register_session({id, session_id})` — called by the outside session
  * itself — writes one row to the SAME shared registry every real agent
- * writes to (`registry.js`, `registry.json`), with `kind: "external"`. From
+ * writes to (`Registry.js`, `registry.json`), with `kind: "external"`. From
  * then on:
  *
  *   - `list_agents` shows it beside every real agent (`registry_list()`
@@ -99,7 +99,7 @@ export default class External {
 	/* One line: `from`, `text`, `reply_to`, `at`. A synchronous append —
 	 * Servex is one process and this is the only thing that ever writes this
 	 * file, so there is no second writer to race, the same guarantee
-	 * `registry.js`'s own `save()` (a synchronous whole-file rewrite) already
+	 * `Registry.js`'s own `save()` (a synchronous whole-file rewrite) already
 	 * relies on. Returns an agent-shaped stand-in so `send_to_agent`'s
 	 * `card(agents.send(...))` has a `.card()` to call, same as a real one. */
 	deliver(id, text, note = {}){

@@ -1,14 +1,14 @@
-/* Server/council.mjs — The Feedback Council collector and runner.
+/* Server/Council.mjs — The Feedback Council collector and runner.
  *
  * Gathers the owner's words since the last run from `.claude/prompts/<day>.jsonl`
  * and AI 2 card `page.jsonl` files (filtering out Servex agent sessions), writes
  * `words.jsonl` to the run directory, and manages the council evaluation loop.
  *
  * Usage:
- *   node Server/council.mjs collect [dir]   # Gathers words since last run into words.jsonl
- *   node Server/council.mjs maybe           # Called by on-landing: checks 10 landings / 24h rhythm
- *   node Server/council.mjs run [dir]       # Collects words and spawns council mastermind
- *   node Server/council.mjs merge <dir>     # Merges votes/*.json into ai/council/asks.jsonl
+ *   node Server/Council.mjs collect [dir]   # Gathers words since last run into words.jsonl
+ *   node Server/Council.mjs maybe           # Called by on-landing: checks 10 landings / 24h rhythm
+ *   node Server/Council.mjs run [dir]       # Collects words and spawns council mastermind
+ *   node Server/Council.mjs merge <dir>     # Merges votes/*.json into ai/council/asks.jsonl
  *
  * Off switch: public/framework/ai/council/off, or env COUNCIL=off. Never throws.
  */

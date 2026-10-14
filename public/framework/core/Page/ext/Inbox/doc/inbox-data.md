@@ -51,7 +51,7 @@ Counted by `node InboxSources.mjs` on 2026-10-13 22:01 UTC.
 
 ## Edits outside this module (not made here; exact text)
 
-- **Live on every landing.** In `Server/on-landing.mjs`, after the `council.mjs` spawn (line ~43), add:
+- **Live on every landing.** In `Server/on-landing.mjs`, after the `Council.mjs` spawn (line ~43), add:
   `try { spawnSync(process.execPath, [path.join(root, "public/framework/core/Page/ext/Inbox/Landings.mjs"), "--append"], { stdio: "ignore", windowsHide: true }); } catch {}`
   **Not made yet (2026-10-13).** Until it is, run `node public/framework/core/Page/ext/Inbox/Landings.mjs --append` from the repo root, then commit `timeline/landings.jsonl`; the page's `live()` tail shows the new rows at once.
 - **The AI page's Inbox tab** (`ai/rail/inbox.js`, `CardList`) still reads `cards.jsonl` on a 20 s `setInterval`. It should take its rows from `Timeline` (one stream, no poll), so both inboxes show the same ranked list.

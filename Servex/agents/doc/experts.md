@@ -26,7 +26,7 @@ A module with no `expert.json` still works: its readme in full, its `doc/*.md` o
 Size the `load` list by real tokens: this repo's code and markdown run about **2.25 characters per
 token**, not 4 (core/Page: 169k characters is ~75k tokens).
 
-## The verbs — `experts.js`, plain functions
+## The verbs — `Experts.js`, plain functions
 
 | verb | does |
 |---|---|
@@ -38,7 +38,7 @@ token**, not 4 (core/Page: 169k characters is ~75k tokens).
 | `ask(host, module, question, {deep})` | stale? rebuild; then fork and answer |
 
 MCP tools (in `tools.js`): `ask_expert`, `list_experts`, `load_module`, `readme_modules`.
-CLI: `node Servex/agents/experts.js readme core/Page Servex` · `tokens core/Page` · `list` · `fresh core/Page`.
+CLI: `node Servex/agents/Experts.js readme core/Page Servex` · `tokens core/Page` · `list` · `fresh core/Page`.
 
 ## `ask_expert` is the default; `load_module` is the exception
 

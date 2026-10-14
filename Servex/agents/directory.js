@@ -13,7 +13,7 @@
  *   ask(host, {dir, question, session, parent})   spawn or reuse, send, return {agent, dir} at once
  *   directory_tools(host)              the MCP tool, wired by one line in Servex.js
  *
- * It is NOT `ask_expert` (experts.js): an expert FORKS a saved checkpoint and
+ * It is NOT `ask_expert` (Experts.js): an expert FORKS a saved checkpoint and
  * answers once; this starts fresh from the readmes every time and is kept for
  * follow-ups within one voice session. doc/directory.md says when to use which.
  *

@@ -81,9 +81,9 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 `Assistant.js` + `assistant.md` (the always-up fast assistant and its posture) · `Chain.js` + `doc/assistant-chain.md` (flagged one-global-assistant chain, `SERVEX_CHAIN=on`) ·
 `Layers.js` + `Global.js` (the card and cross-card agents, [`doc/layers.md`](./doc/layers.md)) ·
 `policy.js` · `claims.js` · `Brief.js` · `tiers.js` ·
-`roles.js` (role → posture) · `registry.js` (who has ever been spawned, and which host holds it) ·
-`ops.js` (restart, pause, resume) · `jobs.js` (background work in node) ·
-`experts.js` (module experts: a checkpoint per module, `ask_expert`, `load_module` — [`doc/experts.md`](./doc/experts.md)) ·
+`roles.js` (role → posture) · `Registry.js` (who has ever been spawned, and which host holds it) ·
+`ops.js` (restart, pause, resume) · `Jobs.js` (background work in node) ·
+`Experts.js` (module experts: a checkpoint per module, `ask_expert`, `load_module` — [`doc/experts.md`](./doc/experts.md)) ·
 `readme-chain.js` + `readme-chain.test.mjs` (a fresh, directory-bound agent's opening context,
 [`doc/readme-chain.md`](../doc/readme-chain.md)) ·
 `demo.mjs` · `fork-proof.mjs` · `experts-proof.mjs` · `revive-proof.mjs` · `revive-guard-proof.mjs` · `queue-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·

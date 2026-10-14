@@ -18,9 +18,9 @@
  * provider swap touches the host, never this file. `module` is a path under
  * public/framework/ (`core/Page`) or, failing that, under the repo (`Servex`).
  *
- * CLI:  node Servex/agents/experts.js readme core/Page Servex
- *       node Servex/agents/experts.js list
- *       node Servex/agents/experts.js fresh core/Page */
+ * CLI:  node Servex/agents/Experts.js readme core/Page Servex
+ *       node Servex/agents/Experts.js list
+ *       node Servex/agents/Experts.js fresh core/Page */
 
 import fs from "node:fs";
 import path from "node:path";
@@ -189,7 +189,7 @@ export function rows({ index = INDEX() } = {}){
 }
 function save(list, { index = INDEX() } = {}){
 	fs.mkdirSync(path.dirname(index), { recursive: true });
-	fs.writeFileSync(index, JSON.stringify({ note: "Module expert checkpoints. Written by Servex/agents/experts.js; see Servex/agents/doc/experts.md.", rows: list }, null, "\t") + "\n");
+	fs.writeFileSync(index, JSON.stringify({ note: "Module expert checkpoints. Written by Servex/agents/Experts.js; see Servex/agents/doc/experts.md.", rows: list }, null, "\t") + "\n");
 }
 function record(row, opts){
 	const list = rows(opts).filter(r => !(r.module === row.module && r.kind === row.kind && r.model === row.model
@@ -366,5 +366,5 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 	else if (verb === "list") console.log(JSON.stringify(rows().map(r => ({ ...r, files: r.files.length, ...row_fresh(r) })), null, 2));
 	else if (verb === "fresh" && args[0]) console.log(JSON.stringify(fresh(args[0]), null, 2));
 	else if (verb === "tokens" && args.length){ const p = load_module(args); console.log(`${p.tokens} tokens (chars / 2.25), ${p.files.length} files`); }
-	else console.log("usage: node Servex/agents/experts.js readme <module> [module…] | tokens <module…> | list | fresh <module>");
+	else console.log("usage: node Servex/agents/Experts.js readme <module> [module…] | tokens <module…> | list | fresh <module>");
 }

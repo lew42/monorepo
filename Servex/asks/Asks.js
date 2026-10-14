@@ -148,7 +148,7 @@ export default class Asks {
 
 	/* The registry row for `ask.owner`, plus what the registry alone can't
 	 * say: `last_task_line_at` and `task_landed` (its task dir's task.jsonl —
-	 * `registry.js`'s own `task_dir` field names it), and `queued` (messages
+	 * `Registry.js`'s own `task_dir` field names it), and `queued` (messages
 	 * waiting in its live send queue; 0 for a stopped, gone or never-live
 	 * agent). `null` when the agent never registered at all — `stalled()`
 	 * treats that the same as gone. */
