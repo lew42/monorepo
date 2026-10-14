@@ -4,3 +4,5 @@
 {"action":{"at":"2026-10-13T22:43:38-05:00","did":"edit","files":["Server/FollowUp.mjs"]}}
 {"action":{"at":"2026-10-13T22:46:03-05:00","did":"edit","files":["Servex/readme.md"]}}
 {"log":{"at":"2026-10-13T22:52:01-05:00","heartbeat":"mid-tool","msg":"task-mastermind-landing-check is mid-tool; left alone"}}
+{"log":{"at":"2026-10-13T23:13:39-05:00","msg":"verify: 90 branches audited, 8 real findings (missing code/doc files, task landed); LandingCheck changed==checked on every branch; nag tested on a stub Agent (Servex/agents/landing-check.test.mjs), not a private Servex port; Agents.js edit rode in commit a64cd47a9"}}
+{"assign":{"landed_at":"2026-10-13T23:13:39-05:00","title":"Landing check by file content","outcome":"LandingCheck.verify compares each changed file to michael/dev's content and history; the landing nag and FollowUp use it; 90 branches audited, 8 real misses listed at the top of the audit table. Merge needs the mastermind to restart Servex.","links":["/Server/LandingCheck.mjs","/Servex/doc/landing.md","/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/landing-check/audit-table.md"]}}
