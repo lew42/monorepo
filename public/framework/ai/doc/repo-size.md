@@ -32,6 +32,16 @@ The rule stays the one in [commit-rule.md](../sessions/doc/commit-rule.md): a re
 
 ---
 
+## Worktrees and ignored shots (checked against `Server/merge.mjs` and `Server/review.mjs`, 2026-10-14)
+
+- Ignored shots are not in a worktree: a worktree checks out tracked files only, so it starts with no pictures.
+- A task mastermind's review shots land in the task's `shots/` folder, which `review.mjs` resolves in the main tree (the task directory it is given), not in the worktree.
+- `merge.mjs` reads them from that same main-tree `shots/` for its screenshots gate, and writes a new page's 1920 shot to `.merge-shots/` at the main root, so nothing needs porting back.
+- A `check_page` or `layout-check` run writes to wherever `--out` points; in a worktree that stays in the worktree and is lost with it, which is fine for a throwaway.
+- Your own live site shoots into the main tree's folders; `node Server/ShotsPurge.mjs --plan` shows them. Rule: [commit-rule.md](../sessions/doc/commit-rule.md#automated-pictures-are-never-committed-decided-2026-10-14).
+
+---
+
 ## The plan, in three phases
 
 | Phase | Saves | Risk | Undo |

@@ -52,3 +52,11 @@ To add a log type, add one pattern to `LogSweeper.ALLOW`.
 **The test.** `node Server/task-log-race.test.mjs` builds scratch repos, makes a git smudge filter play the live writer inside the hard-reset window, and checks: (1) a plain `git merge` loses the lines, (2) `merge.mjs` lands the same branch and loses none, (3) a no-overlap `merge.mjs` leaves no hidden WIP commit, (4) the guard blocks the command. Case 3 fails against the old `merge.mjs` (`MERGE_UNDER_TEST=<old copy>`).
 
 **If lines go missing anyway.** The hidden commit is not in the stash list. `git fsck --no-reflog` lists it as dangling; the task's `recover.mjs <commit>` prints the record lines it holds that the disk lacks and `recover-apply.mjs` appends them back (idempotent, append only). Pin a find with `git update-ref refs/salvage/<name> <commit>` so garbage collection cannot take it. The 2026-10-13 incident is recovered; the manifest is `lost-0283e997.applied.txt` in the task dir `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task-log-race/`.
+
+## Automated pictures are never committed (decided 2026-10-14)
+
+An automated screenshot (Playwright, `layout-check`, Shots, review proof, journey, audit) is machine output. It lives on disk in a `shots/` or `screenshots/` folder beside the page, is browsable on the dev server, is ignored by git (`**/shots/`, `**/screenshots/`, `.merge-shots/`, pictures under `ai/` outside `doc/`), and is purged by `node Server/ShotsPurge.mjs` once it is old. A picture is committed only when a person chose it for a doc or a post: inside a `doc/` folder, `public/blog/`, `public/notes/` or an `assets/img/` folder.
+
+- **Exception:** `thumbs/` stays committed (about 1 MB of small jpgs); the decks and the Figma pages show them on the live site.
+- **Purge:** `--plan` lists every ignored shots folder with size and age; `--apply --older-than 30d` deletes only ignored files and refuses in a tree where a picture in such a folder is still tracked.
+- **Untracked already:** 1,690 pictures (41.2 MB) by `UntrackShots.mjs`, manifest and undo in [the task](../2026/10/13/session-730e8a7b/mastermind-repo-slim/screenshots-never-committed/). Pages that showed them lose nothing on the live site, which never uploaded `shots/` (`public/.assetsignore`); on a fresh clone the dev server shows an empty slot until the page's script re-shoots it.
