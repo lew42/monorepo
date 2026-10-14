@@ -27,6 +27,14 @@ export default class AISessionDetail extends Page {
 		super({ home, id, width: "fill", title: id, url: home.url + id + "/" });
 	}
 
+	/** Show the session's name (the grid's Name column) instead of its id, once the row is known: the column head and the crumb were drawn with the id. */
+	retitle(name){
+		if (!name || name === this.title) return;
+		this.title = name;
+		this.view?.el.querySelector(".page-column-title")?.replaceChildren(name);
+		for (const crumb of document.querySelectorAll(`.page-crumbs a[href="${this.url}"]`)) crumb.replaceChildren(name);
+	}
+
 	// With tabs on (a `tab` line in the session's page.jsonl), the template itself is the first tab.
 	home_tab = "Conversation";
 
@@ -123,6 +131,7 @@ export default class AISessionDetail extends Page {
 		// and the transcript and the date-path lookup both need the session_id.
 		AISessionDetail.load_row(url, id).then(async row => {
 			const session_id = row?.session_id ?? id;
+			if (row) this.retitle(AISessionRows.display_name(row, AISessionRows.tree).text);
 			conv.session = session_id;
 			const coverage = new AISessionCoverage(session_id);
 			$coverage.append(coverage.view);

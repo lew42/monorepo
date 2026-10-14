@@ -364,6 +364,17 @@
 	.sessions-status-open { margin-inline-start: auto; position: relative; }
 	.sessions-status-open .page-open-line { padding: .05em .6em; }
 	.sessions-status-open .page-open-rows { position: absolute; inset-block-end: 100%; inset-inline-end: 0; min-inline-size: 22em; padding: .5rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 .25rem 1rem rgb(0 0 0 / .15); }
+	/* Review 2026-10-13 (review-ai-pages/review.md): the panel's own "Sessions" header repeated the tab and the rail's first
+	   item, and cost 70-120 px above the grid; its "updated" time now sits in the status line. Rows lose half their padding. */
+	.sessions-frame > .panel2-body > .panel2-main { padding-block-start: var(--gap-50, .5rem); }
+	.sessions-page .datagrid-cell { padding-block: .3em; }
+	.sessions-status .sessions-asof { margin-inline-start: auto; }
+	.sessions-status .sessions-asof + .sessions-status-open { margin-inline-start: 0; }
+	@container (width < 40em) {
+		.sessions-status .ai-meter { display: none; }   /* a phone keeps the counts and the open-tasks chip; the meters are on the Inbox */
+		.sessions-page :is(.sessions-kinds, .sessions-chiprow) { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }   /* each chip row is one swipeable line on a phone, not three */
+		.sessions-page :is(.sessions-kinds, .sessions-chiprow) > * { flex: none; }
+	}
 
 }
 
@@ -372,4 +383,5 @@
 @layer util {
 	.sessions-controls .sessions-summary, .sessions-controls .sessions-daterange { display: none; }
 	.page:has(.sessions-page) > :is(.page-open, .page-inbox-chip, .page-ai-cost) { display: none; }
+	.sessions-frame > .panel2-header { display: none; }
 }

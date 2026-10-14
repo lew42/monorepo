@@ -111,3 +111,10 @@
 		display: block;
 	}
 }
+
+/* The AI page is a full-height shell: the core end-of-page chips ("N open tasks", "Inbox · N", AI cost) sat under it in a
+   ~150 px band at 1920 and cut the rail short; the Inbox itself lists what is open (review 2026-10-13, ai/sessions/2026/10/13/
+   session-730e8a7b/mastermind-repo-slim/review-ai-pages/review.md). Util, so it beats Page.css's `.page .page-open`. */
+@layer util {
+	.page.page--ai > :is(.page-open, .page-inbox-chip, .page-ai-cost) { display: none; }
+}

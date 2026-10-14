@@ -56,9 +56,8 @@ export default class AISessionsPage extends Page {
 	initialize(){ this.columns(); }
 
 	content(){
-		const panel = new Panel2({ title: "Sessions" }).ac("wide");   // `wide`: a plain Page's track is the narrow prose column
+		const panel = new Panel2({ title: "Sessions" }).ac("wide sessions-frame");   // `wide`: a plain Page's track is the narrow prose column; its header is hidden (sessions.css), the tab names it
 		this.$asof = null;
-		panel.header.append(() => { this.$asof = small.c("muted", "loading…"); });
 
 		this.$summary = null;       // a re-render builds the controls again
 		this.role_filter = null;    // Set<string> | null (null until the first real data arrives)
@@ -79,7 +78,8 @@ export default class AISessionsPage extends Page {
 
 		this.$stats = div.c("sessions-stats");
 		this.$status = div.c("sessions-status");   // the footer: one line of small things (counts, plan meters, open tasks)
-		this.$status.append(this.$stats, span.c("sessions-status-open").append(PageWork.line(this.url)));
+		this.$status.append(() => { this.$asof = small.c("muted sessions-asof", "loading…"); });   // "updated 9:35 PM", once the panel header's
+		this.$status.append(this.$stats, this.$asof, span.c("sessions-status-open").append(PageWork.line(this.url)));
 		this.render_stats();
 
 		this.$controls = div.c("sessions-controls");
