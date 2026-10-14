@@ -25,7 +25,7 @@ export default new Doc({
 	subject:    layout,
 	methods:    "bar context",
 	properties: "words",
-	notes:      "vocabulary drawer selection controls decisions",
+	notes:      "architecture vocabulary drawer selection controls decisions",
 	files:      "layout.js panel.js body.js words.js controls.js layout.css page.js readme.md",
 
 	content(){
