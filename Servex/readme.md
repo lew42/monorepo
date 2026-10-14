@@ -100,3 +100,4 @@ Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:
 - Skills each role gets, injected by node, with measured rates: [`doc/skills.md`](./doc/skills.md)
 
 - **Scripts census** (every Servex file with verdict and references): [../Server/doc/scripts.md](../Server/doc/scripts.md)
+- **Module inbox** (drop an ask's essence on a module; a fresh mastermind reads it later; `module_inbox`, `node Server/ModuleReview.mjs --plan`): [`doc/module-inbox.md`](./doc/module-inbox.md)

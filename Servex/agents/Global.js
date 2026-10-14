@@ -6,6 +6,7 @@ import { place } from "../home.js";
 import Registry from "./Registry.js";
 import { Claims } from "./claims.js";
 import { page_tools } from "../pages.js";
+import ModuleInbox from "./ModuleInbox.js";
 import { brief, remember_focus } from "./Brief.js";
 import { model } from "./tiers.js";
 import { Policy } from "./policy.js";
@@ -510,6 +511,7 @@ export default class Global {
 	tools(){
 		for (const tool of this.claims().tools()) this.servex.mcp.tool(tool.name === "claim_topic" ? this.logged(tool) : tool);
 		for (const tool of page_tools()) this.servex.mcp.tool(tool);
+		for (const tool of ModuleInbox.tools()) this.servex.mcp.tool(tool);   // module_inbox: Servex/doc/module-inbox.md
 		this.servex.mcp.tool({
 			name: "set_focus",
 			description: "Write today's focus: one plain sentence every agent sees in its one-screen brief.",
