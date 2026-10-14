@@ -1,0 +1,851 @@
+diff --git a/public/framework/catalog/CatalogPage.css b/public/framework/catalog/CatalogPage.css
+index b1f189290..db9da62bb 100644
+--- a/public/framework/catalog/CatalogPage.css
++++ b/public/framework/catalog/CatalogPage.css
+@@ -18,6 +18,7 @@
+ 	.cat-frame { position: relative; aspect-ratio: 8 / 5; overflow: hidden; border-radius: .3em; background: color-mix(in srgb, currentColor 6%, transparent); }
+ 	.cat-frame iframe { position: absolute; top: 0; left: 0; width: 1200px; max-width: none; height: 750px; border: 0; pointer-events: none; transform-origin: 0 0; }
+ 
++	.cat-nopreview { position: absolute; inset: 0; display: grid; place-items: center; opacity: .6; font-size: .85em; }
+ 	.cat-label { display: flex; align-items: center; gap: .4em; }
+ 	.cat-icon { font-size: 1.3em; }
+ 	.cat-badge { margin-left: auto; font-size: .7em; padding: .1em .5em; border-radius: 1em; background: orange; color: black; }
+diff --git a/public/framework/catalog/CatalogPage.js b/public/framework/catalog/CatalogPage.js
+index 54a71120f..7c8df81a9 100644
+--- a/public/framework/catalog/CatalogPage.js
++++ b/public/framework/catalog/CatalogPage.js
+@@ -13,6 +13,7 @@ export default class CatalogPage extends Page {
+ 			title: "Catalog",
+ 			description: "Everything built with a UI, previewed. Click a card for its full demo page.",
+ 			icon: "grid_view",
++			width: "wide",   // a wall of cards: every pixel the middle has (at 1920 the default measure left 70% of the screen empty)
+ 		}, ...args);
+ 	}
+ 
+@@ -42,22 +43,31 @@ export default class CatalogPage extends Page {
+ 
+ 		root.append(
+ 			this.node("p", `${pages.length} pages with a demo, ${fresh} landed since 2026-10-01 (marked NEW, probably not seen yet). A card's preview is the live page; click it to open the full demo.`, "cat-lede"),
+-			this.instance_tree(), this.class_section(classes, pages), ...this.page_sections(pages),
++			this.new_section(pages), this.instance_tree(), this.class_section(classes, pages), ...this.page_sections(pages),
+ 		);
+ 		this.watch_previews(root);
+ 	}
+ 
++	// What the owner has probably not seen goes first, so the first screen is previews (they appear again in their group below).
++	new_section(pages){
++		const list = pages.filter(p => p.isNew).sort((a, b) => a.title.localeCompare(b.title));
++		return this.node("section", "", "cat-section", [
++			this.node("h2", `New since 2026-10-01 (${list.length})`),
++			this.node("div", "", "cat-grid", list.map(p => this.page_card(p))),
++		]);
++	}
++
+ 	// The live instance hierarchy the owner asked for: it exists.
+ 	instance_tree(){
+ 		return this.node("section", "", "cat-section", [
+ 			this.node("h2", "Live instance hierarchy"),
+-			this.node("p", "This is it: a real running Page or App drawn as an open-able tree of its actual instances, nothing described.", "cat-note"),
++			this.node("p", "This is it: the running App and its pages drawn as a live tree (class, title, children, the page you are on). Add a page and it appears, no reload. The same tree is a toggle in the dev bar's page tab.", "cat-note"),
+ 			this.node("p", "", "cat-links", [
++				this.anchor("/framework/ux/Content/Object/instance-tree/", "cat-pill", [this.glyph("account_tree"), "InstanceTree, the live tree"]),
+ 				this.anchor("/framework/ux/Content/Object/page/", "cat-pill", [this.glyph("account_tree"), "The Page object, live"]),
+ 				this.anchor("/framework/ux/Content/Object/app/", "cat-pill", [this.glyph("account_tree"), "The App object, live"]),
+ 				this.anchor("/framework/ux/Content/Object/", "cat-pill", [this.glyph("data_object"), "How it works (object, view, inspect)"]),
+ 			]),
+-			this.node("p", "Gap: it shows one instance you open by hand. The page that follows whatever you are working on, beside the demo, is specified in doc/instance-tree.md.", "cat-note"),
+ 		]);
+ 	}
+ 
+@@ -98,7 +108,8 @@ export default class CatalogPage extends Page {
+ 
+ 	page_card(p){
+ 		const frame = this.node("div", "", "cat-frame");
+-		frame.dataset.src = p.url;
++		if (this.constructor.NO_PREVIEW.includes(p.url)) frame.append(this.node("span", "runs a benchmark: open it to see", "cat-nopreview"));
++		else frame.dataset.src = p.url;
+ 		return this.anchor(p.url, `cat-card${p.isNew ? " is-new" : ""}`, [
+ 			frame,
+ 			this.node("div", "", "cat-label", [
+@@ -111,20 +122,38 @@ export default class CatalogPage extends Page {
+ 	}
+ 
+ 	// An iframe is made only when its card scrolls near the screen, so 200+ cards cost nothing until seen.
++	// Each preview boots the whole app, so at most LOADING load at once, in screen order (doc/next.md has the numbers).
++	static LOADING = 4;
++	// Pages that hold the main thread on load (a benchmark). Same-origin previews share this tab's thread, so one froze the whole catalog.
++	static NO_PREVIEW = ["/framework/code/performance/bench/"];
++
+ 	watch_previews(root){
+-		const io = new IntersectionObserver(entries => {
+-			for (const e of entries){
+-				if (!e.isIntersecting) continue;
+-				io.unobserve(e.target);
++		if (window.top !== window) return;   // inside a preview: no previews of previews (the catalog is a card in itself; nesting crashed the tab)
++		const queue = [];
++		let busy = 0;
++		const next = () => {
++			while (busy < this.constructor.LOADING && queue.length){
++				const frame = queue.shift();
++				if (!frame.isConnected) continue;
++				busy++;
+ 				const f = document.createElement("iframe");
+-				f.src = e.target.dataset.src;
+-				f.loading = "lazy";
+-				f.style.scale = String(e.target.clientWidth / 1200);
++				let done = false;
++				const free = () => { if (done) return; done = true; busy--; next(); };
++				f.addEventListener("load", free);
++				setTimeout(free, 4000);   // a slow page never holds the queue
++				f.src = frame.dataset.src;
++				f.style.scale = String(frame.clientWidth / 1200);
+ 				f.tabIndex = -1;
+ 				f.setAttribute("aria-hidden", "true");
+-				e.target.append(f);
++				frame.append(f);
+ 			}
++		};
++		const io = new IntersectionObserver(entries => {
++			entries.filter(e => e.isIntersecting)
++				.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top || a.boundingClientRect.left - b.boundingClientRect.left)
++				.forEach(e => { io.unobserve(e.target); queue.push(e.target); });
++			next();
+ 		}, { rootMargin: "200px" });
+-		root.querySelectorAll(".cat-frame").forEach(el => io.observe(el));
++		root.querySelectorAll(".cat-frame[data-src]").forEach(el => io.observe(el));
+ 	}
+ }
+diff --git a/public/framework/catalog/doc/files.jsonl b/public/framework/catalog/doc/files.jsonl
+index cf5f6c55e..02f710152 100644
+--- a/public/framework/catalog/doc/files.jsonl
++++ b/public/framework/catalog/doc/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"instance-tree.md"}
++{"file":"next.md"}
+diff --git a/public/framework/catalog/doc/instance-tree.md b/public/framework/catalog/doc/instance-tree.md
+index 9f98b3c8f..c8795de64 100644
+--- a/public/framework/catalog/doc/instance-tree.md
++++ b/public/framework/catalog/doc/instance-tree.md
+@@ -1,4 +1,6 @@
+-# InstanceTree — spec for the live instance hierarchy (not built)
++# InstanceTree — spec for the live instance hierarchy (built 2026-10-13)
++
++**Built:** [`InstanceTree.js`](/framework/ux/Content/Object/InstanceTree.js), page [/framework/ux/Content/Object/instance-tree/](/framework/ux/Content/Object/instance-tree/), doc [ux/Content/Object/doc/instance-tree.md](../../ux/Content/Object/doc/instance-tree.md); toggle in the dev bar `page` tab. Below is the original spec.
+ 
+ The ask (dictation 3, 2026-10-13): while we build an object-oriented system, show on screen its live instance hierarchy, beside the demo.
+ 
+diff --git a/public/framework/catalog/doc/next.md b/public/framework/catalog/doc/next.md
+new file mode 100644
+index 000000000..cb0d377cd
+--- /dev/null
++++ b/public/framework/catalog/doc/next.md
+@@ -0,0 +1,19 @@
++# Catalog — next: previews that load in under 2 s
++
++**The ask:** "a preview on the catalog page is enough to see what it looks like" — the review's test was 40 previews in under 2 s. Today they are live iframes, and they cannot meet it.
++
++**Measured 2026-10-13** (headless, 1920×4000 viewport so ~40 cards are on screen, time to each iframe's `load`):
++
++| Previews loading at once | 1st | 4th | 10th | 20th | 40th |
++|---|---|---|---|---|---|
++| all (before) | 8.3 s | 8.8 s | 8.9 s | 8.9 s | 8.9 s |
++| 8 | 1.3 s | 1.3 s | 4.5 s | 10.3 s | not in 12 s |
++| **4 (shipped)** | **0.9 s** | **1.0 s** | 4.1 s | 10.4 s | not in 12 s |
++
++Main site before any change: 10th 1.6 s, 40th 11.0 s, 44 of 50 within 12 s.
++
++**Why:** each preview boots the whole app (router, sidebar of ~1400 pages, dev bar), and same-origin iframes share the catalog tab's one main thread, so 40 previews cost about 40 app boots in a row. A page that holds the thread (`code/performance/bench/`, a benchmark) froze the whole catalog; it is now in `CatalogPage.NO_PREVIEW`.
++
++**The fix (over an hour, so not done here):** a still picture per card, with the live iframe only on hover or click.
++- Pictures: `node Server/shots.mjs` already shoots a page ([ext/Shots](../../ext/Shots/readme.md)); a `build.mjs --shots` pass could write one small 600×375 webp per page next to `catalog.jsonl`. 228 × ~15 KB ≈ 3.4 MB, and `screenshots/` is gitignored, so decide first whether thumbnails are committed (production is static) or the card falls back to the iframe when there is no picture.
++- Or a light preview mode (`?preview` that skips the sidebar and dev bar): touches `core/App`, ask first.
+diff --git a/public/framework/catalog/readme.md b/public/framework/catalog/readme.md
+index 3c659a810..06a7c80fc 100644
+--- a/public/framework/catalog/readme.md
++++ b/public/framework/catalog/readme.md
+@@ -1,12 +1,14 @@
+ # Catalog — every page with a demo as a live preview, plus every class card
+ 
+-Open [/framework/catalog/](/framework/catalog/): a card per page (a scaled live iframe, loaded only when it scrolls into view), new ones marked NEW, grouped like the sidebar. Click a card for the full demo. Above them: the live instance hierarchy links and the class cards (Refine, Dictate, System first).
++Open [/framework/catalog/](/framework/catalog/): a card per page (a scaled live iframe, loaded only when it scrolls into view), new ones marked NEW, grouped like the sidebar. Click a card for the full demo. Order: the NEW pages first (so the first screen is previews of what you have not seen), then the live instance hierarchy links, the class cards (Refine, Dictate, System first), then every group.
+ 
+ - `catalog.jsonl` is computed, never typed: `node public/framework/catalog/build.mjs` walks the page tree (`page.js` folders under core, ext, ux, ui, code, lab, library, design, styles) and writes one line per page and per class (`<Name>/<Name>.js`). Re-run it after adding a page.
+ - `CatalogPage.js` (`class CatalogPage extends Page`), `CatalogPage.css`, `page.js`.
+ - NEW = the page's `page.js` first landed in git after 2026-10-01 (no page-visit log exists to say what you have seen).
+-- Live instance hierarchy: exists as [the Page object](/framework/ux/Content/Object/page/) and [the App object](/framework/ux/Content/Object/app/); what is still missing is [doc/instance-tree.md](doc/instance-tree.md).
++- Live instance hierarchy: exists as [the Page object](/framework/ux/Content/Object/page/) and [the App object](/framework/ux/Content/Object/app/); the whole running site is now [InstanceTree](/framework/ux/Content/Object/instance-tree/), live ([spec and status](doc/instance-tree.md)).
+ 
+ ## Watch out
++- Previews are slow: each one boots the whole app on the tab's one thread, so they load 4 at a time in screen order (`LOADING`); 40 take ~10 s. The picture-per-card fix and the numbers: [doc/next.md](doc/next.md).
++- A page that holds the main thread freezes every preview: list it in `NO_PREVIEW` (today: `code/performance/bench/`). A preview never loads previews of its own (the catalog is a card in itself).
+ - Page methods named `icon` or `link` shadow the page's own; the class uses `glyph()` and `anchor()`.
+ - `framework.css` caps `iframe` at `max-width: 100%`; the preview frames reset it or the page renders narrow.
+diff --git a/public/framework/dev/DevBar/tools.js b/public/framework/dev/DevBar/tools.js
+index 4a00a705e..47c50e54e 100644
+--- a/public/framework/dev/DevBar/tools.js
++++ b/public/framework/dev/DevBar/tools.js
+@@ -1,4 +1,4 @@
+-import { div, a } from "../../core/View/View.js";
++import { div, a, button } from "../../core/View/View.js";
+ import Socket from "../Socket/Socket.js";
+ import { section, row, check } from "./parts.js";
+ import ask from "./ask.js";
+@@ -16,7 +16,7 @@ import shots from "./shots.js";
+    rows were the same state as the layout tab's readout, on a different screen and
+    in a different unit. Both live in the head now — width.js. */
+ export const tabs = [
+-	["page", [says, route, server, xray, structure, jump]],
++	["page", [says, route, server, xray, instances, structure, jump]],
+ 	["layout", [layout]],
+ 	["ai", [ask]],
+ 	["chat", [page_chat]],
+@@ -65,6 +65,19 @@ function server(){
+ 	});
+ }
+ 
++/* Toggle: the live instance tree (ux/Content/Object/InstanceTree.js). Off by default, so nothing loads. */
++let tree_on = false;
++function instances(app){
++	section("instances", () => {
++		button.c("dev-link", tree_on ? "hide live tree" : "show live tree").click(() => { tree_on = !tree_on; devbar_refresh(); });
++		if (!tree_on) return;
++		const $box = div.c("dev-tree");
++		import("../../ux/Content/Object/InstanceTree.js").then(m => $box.append(() => new m.default({ app })));
++	});
++}
++
++function devbar_refresh(){ import("./DevBar.js").then(m => m.default.refresh()); }
++
+ function xray(){
+ 	section("x-ray", () => check("outline every box", "dev-outline"));
+ }
+diff --git a/public/framework/ext/Figma/doc/controls.md b/public/framework/ext/Figma/doc/controls.md
+index 5b8270912..3b1691381 100644
+--- a/public/framework/ext/Figma/doc/controls.md
++++ b/public/framework/ext/Figma/doc/controls.md
+@@ -12,4 +12,4 @@ Coded from the Figma pages `DS · 2.7 Toggles, checkboxes & radios`, `DS · 2.6
+ 
+ Shared: 44 px minimum height, off = 15% of the text ink (works on all three schemes), focus = 2 px accent outline, offset 2, disabled = 40% opacity (`<input disabled>`).
+ 
+-Watch out: the page must load the Symbols font itself (the demo adds a `<link>`); without it icons fall back to Material Icons, which has the same names for the common glyphs. `.fig-select` behaves via `FigSelect.install()` (`tokens/FigSelect.js`): a row click sets the trigger text, marks `aria-selected`, closes and fires a bubbling `fig-select` event (`detail.value`); outside click and Escape close; Arrow keys move, Enter picks; one open at a time. It reuses `ux/Menu`'s native-`<details>` recipe but with delegated listeners, so plain markup works with no per-instance setup. **Phone sheet (DS 2.6 C):** under 600 px of screen width the open panel is a bottom sheet over a 40% scrim, pure CSS in `tokens.css` plus one line in `FigSelect.js` (a tap on the scrim, which is the `<details>` itself, closes it). Not `ux/Popover`: that anchors a JS-built box to a trigger, and the select is native `<details>` with delegated listeners, so adopting it would mean rebuilding the markup. The sheet is by screen width, not the `.fig-mobile` class, and does not work inside a `.fig-lay` (its container-type traps `position: fixed`). The 264 cap and scroll are CSS.
++Watch out: the page must load the Symbols font itself (the demo adds a `<link>`); without it icons fall back to Material Icons, which has the same names for the common glyphs. `.fig-select` behaves via `FigSelect.install()` (`tokens/FigSelect.js`): a row click sets the trigger text, marks `aria-selected`, closes and fires a bubbling `fig-select` event (`detail.value`); outside click and Escape close; Arrow keys move, Enter picks; one open at a time when you open one (a page may start with several open, as the tokens demo does), and the chosen row scrolls into view inside the panel, never the page. It reuses `ux/Menu`'s native-`<details>` recipe but with delegated listeners, so plain markup works with no per-instance setup. **Phone sheet (DS 2.6 C):** under 600 px of screen width the open panel is a bottom sheet over a 40% scrim, pure CSS in `tokens.css` plus one line in `FigSelect.js` (a tap on the scrim, which is the `<details>` itself, closes it). Not `ux/Popover`: that anchors a JS-built box to a trigger, and the select is native `<details>` with delegated listeners, so adopting it would mean rebuilding the markup. The sheet is by screen width, not the `.fig-mobile` class, and does not work inside a `.fig-lay` (its container-type traps `position: fixed`). The 264 cap and scroll are CSS.
+diff --git a/public/framework/ext/Figma/tokens/FigSelect.js b/public/framework/ext/Figma/tokens/FigSelect.js
+index c2144c8f8..11eabb726 100644
+--- a/public/framework/ext/Figma/tokens/FigSelect.js
++++ b/public/framework/ext/Figma/tokens/FigSelect.js
+@@ -17,17 +17,27 @@ export default class FigSelect {
+ 		rows[at < 0 ? (step > 0 ? 0 : rows.length - 1) : Math.min(rows.length - 1, Math.max(0, at + step))]?.focus();
+ 	}
+ 
++	// The chosen row scrolls into view inside the panel only; scrollIntoView also scrolled the page (it opened at the demo's bottom).
++	static reveal(sel, row){
++		const panel = sel.querySelector(".fig-select-panel");
++		if (!row || !panel) return;
++		const p = panel.getBoundingClientRect(), r = row.getBoundingClientRect();
++		if (r.top < p.top) panel.scrollTop -= p.top - r.top;
++		else if (r.bottom > p.bottom) panel.scrollTop += r.bottom - p.bottom;
++	}
++
+ 	static install(){
+ 		if (FigSelect.installed) return;
+ 		FigSelect.installed = true;
+-		document.addEventListener("toggle", e => {          // one open at a time; rows become keyboard targets
++		// Rows become keyboard targets. One-open-at-a-time is enforced by the click and key handlers, not here,
++		// so a demo may start with several open (it used to close all but one on load).
++		document.addEventListener("toggle", e => {
+ 			const sel = e.target;
+ 			if (!sel.matches?.(".fig-select") || !sel.open) return;
+-			document.querySelectorAll(".fig-select[open]").forEach(o => { if (o !== sel) o.open = false; });
+ 			const rows = FigSelect.rows(sel);
+ 			sel.querySelector(".fig-select-panel")?.setAttribute("role", "listbox");
+ 			rows.forEach(r => { r.setAttribute("role", "option"); r.tabIndex = -1; });
+-			(rows.find(r => r.getAttribute("aria-selected") === "true") ?? rows[0])?.scrollIntoView({ block: "nearest" });
++			FigSelect.reveal(sel, rows.find(r => r.getAttribute("aria-selected") === "true") ?? rows[0]);
+ 		}, true);
+ 		document.addEventListener("click", e => {
+ 			if (e.target.matches?.(".fig-select[open]")) { e.target.open = false; return; }   // the phone sheet's scrim is the details itself
+@@ -41,7 +51,7 @@ export default class FigSelect {
+ 			if (!sel) return;
+ 			const key = e.key;
+ 			if (key === "Escape" && sel.open){ sel.open = false; sel.querySelector("summary").focus(); e.preventDefault(); }
+-			else if ((key === "ArrowDown" || key === "ArrowUp") && !sel.open){ sel.open = true; e.preventDefault(); requestAnimationFrame(() => FigSelect.move(sel, key === "ArrowDown" ? 1 : -1)); }
++			else if ((key === "ArrowDown" || key === "ArrowUp") && !sel.open){ document.querySelectorAll(".fig-select[open]").forEach(o => { o.open = false; }); sel.open = true; e.preventDefault(); requestAnimationFrame(() => FigSelect.move(sel, key === "ArrowDown" ? 1 : -1)); }
+ 			else if (key === "ArrowDown" || key === "ArrowUp"){ e.preventDefault(); FigSelect.move(sel, key === "ArrowDown" ? 1 : -1); }
+ 			else if (key === "Enter" && e.target.matches(".fig-select-row")){ e.preventDefault(); FigSelect.pick(sel, e.target); }
+ 		});
+diff --git a/public/framework/ext/Figma/tokens/page.js b/public/framework/ext/Figma/tokens/page.js
+index 4d7429472..e59def91c 100644
+--- a/public/framework/ext/Figma/tokens/page.js
++++ b/public/framework/ext/Figma/tokens/page.js
+@@ -1,4 +1,4 @@
+-import { Page, View, div, p, h3, h4, button, span, input, details, summary, table, tr, th, td } from "/app.js";
++import { Page, View, div, p, md, h3, h4, button, span, input, details, summary, table, tr, th, td } from "/app.js";
+ import FigSelect from "./FigSelect.js";
+ FigSelect.install();
+ View.stylesheet(import.meta, "tokens.css");
+@@ -111,9 +111,9 @@ export default new Page({
+ 	width: "full",
+ 	description: "The Figma file's variables as opt-in --fig-* CSS: the same schemes, modes and spacing, coded.",
+ 	content() {
+-		p("Generated from the Figma variables by FigmaTokens.mjs. Nothing else on the site loads it; a page opts in. The numbers and the plan: [doc/token-sync.md](/framework/ext/Figma/doc/token-sync.md).");
++		md("Generated from the Figma variables by FigmaTokens.mjs. Nothing else on the site loads it; a page opts in. The numbers and the plan: [doc/token-sync.md](/framework/ext/Figma/doc/token-sync.md).");
+ 		h3("Figma variable → site property");
+-		p(`${map.summary.same_value} of ${map.summary.total} variables match the site by name and value (${map.summary.aliased} are aliases of the site property, one definition), ${map.summary.same_role} by role under another name, ${map.summary.figma_only} exist only in Figma. Why and what next: [doc/round-trip.md](/framework/ext/Figma/doc/round-trip.md).`);
++		md(`${map.summary.same_value} of ${map.summary.total} variables match the site by name and value (${map.summary.aliased} are aliases of the site property, one definition), ${map.summary.same_role} by role under another name, ${map.summary.figma_only} exist only in Figma. Why and what next: [doc/round-trip.md](/framework/ext/Figma/doc/round-trip.md).`);
+ 		colours();
+ 		details(() => {
+ 			summary("All " + map.summary.total + " variables");
+diff --git a/public/framework/ext/System/readme.md b/public/framework/ext/System/readme.md
+index 9a3f0d8e0..c4e429697 100644
+--- a/public/framework/ext/System/readme.md
++++ b/public/framework/ext/System/readme.md
+@@ -7,7 +7,7 @@ A System knows where its files live (`root`), its `readme`, its `rules`, and can
+ - `Systems.js` — the manager: runs every system, appends a line each to `results.jsonl`
+ - `ReadmeSystem.js`, `NavigationSystem.js` — two checks, kept here for now because they check the whole site, not one module
+ - `DemoSystem.js` — a tiny in-memory system so the page can run `check()` and `heal()` live
+-- `SystemPage.js`, `page.js` — the page
++- `SystemPage.js`, `page.js` — the page; its live instance tree: [InstanceTree](/framework/ux/Content/Object/instance-tree/)
+ - A module's own system is a `system.js` beside its `page.js` (an instance, e.g. `ai/sessions/system.js`); list it in `Systems.modules`
+ - [doc/system.md](doc/system.md) — what each member means, the hourly beat, the future compositor
+ - [doc/move-manifest.md](doc/move-manifest.md) — the 2026-10-12 move from `ai/systems/` (old paths are one-line shims)
+diff --git a/public/framework/ux/Content/Object/InstanceTree.css b/public/framework/ux/Content/Object/InstanceTree.css
+new file mode 100644
+index 000000000..ab8e1cdc0
+--- /dev/null
++++ b/public/framework/ux/Content/Object/InstanceTree.css
+@@ -0,0 +1,13 @@
++@layer base, theme, site, util;
++
++@layer site {
++	.instance-tree { font-size: .85em; }
++	.instance-tree-head { padding-block: .25em; }
++	.instance-node > .instance-kids { padding-inline-start: 1.2em; border-inline-start: 1px solid color-mix(in srgb, currentColor 20%, transparent); margin-inline-start: .5em; }
++	.instance-row { display: flex; border: 0; background: none; box-shadow: none; width: auto; align-items: center; gap: .4em; padding: .15em .3em; cursor: pointer; border-radius: .3em; }
++	.instance-row:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
++	.instance-node.is-active > .instance-row { background: color-mix(in srgb, var(--accent, #4a8) 25%, transparent); font-weight: 600; }
++	.instance-class { opacity: .7; }
++	.instance-view { margin-inline-start: auto; font: inherit; font-size: .8em; padding: 0 .5em; }
++	.instance-props { padding: .3em .5em; }
++}
+diff --git a/public/framework/ux/Content/Object/InstanceTree.js b/public/framework/ux/Content/Object/InstanceTree.js
+new file mode 100644
+index 000000000..b9178fd94
+--- /dev/null
++++ b/public/framework/ux/Content/Object/InstanceTree.js
+@@ -0,0 +1,132 @@
++import View, { div, span, details, summary, button, icon } from "../../../core/View/View.js";
++import { Page } from "../../../core/Page/Page.class.js";
++import { view } from "./DefaultView.js";
++
++/**
++ * class InstanceTree extends View — the live instance hierarchy of the running site.
++ * Root = the `App`; each node = class icon + class name + `title`; children = `page.children`;
++ * the page you are on is highlighted; the `view` button opens that instance's DefaultView.
++ * It redraws (next frame) when a child mounts, a shown page's field changes, or the router
++ * navigates. No store: it reads the pages themselves. Doc: doc/instance-tree.md
++ *
++ *   new InstanceTree({ app })        // app defaults to window.app
++ */
++export default class InstanceTree extends View {
++
++	static icon = "account_tree";
++
++	static installed = false;
++
++	// Child pages mount and routes change quietly (no event), so announce both once here, for every tree.
++	// Once per app: wrapping `navigated` per tree stacked a new wrapper on every dev-bar redraw.
++	static install(app){
++		if (app && !app.instance_tree_hooked){
++			app.instance_tree_hooked = true;
++			const navigated = app.navigated;
++			app.navigated = function(...args){ const r = navigated?.apply(this, args); window.dispatchEvent(new CustomEvent("instance-tree-change")); return r; };
++		}
++		if (InstanceTree.installed) return;
++		InstanceTree.installed = true;
++		const add = Page.prototype.add;
++		Page.prototype.add = function(...args){
++			const page = add.apply(this, args);
++			window.dispatchEvent(new CustomEvent("instance-tree-change"));
++			return page;
++		};
++	}
++
++	// ⚠ State is set in render(), not as class fields: View's constructor calls render() before fields initialise.
++	render(){
++		this.open = new Set();    // pages whose children are shown
++		this.shown = new Set();   // pages whose properties are shown
++		this.watched = new Map(); // page -> its "change" listener
++		this.redraws = 0;
++		this.app ??= window.app;
++		InstanceTree.install(this.app);
++		const again = () => this.refresh();
++
++		window.addEventListener("instance-tree-change", again);
++
++		// A tree that left the document (the dev rail re-renders its tabs) stops listening.
++		this.gone = () => !this.$box.el.isConnected;
++		this.stop = () => {
++			window.removeEventListener("instance-tree-change", again);
++			this.watched.forEach((fn, page) => page.off("change", fn));
++		};
++
++		this.$box = div.c("instance-tree");
++		this.draw();
++	}
++
++	// Redraw once per frame however many changes arrive together.
++	refresh(){
++		if (this.queued) return;
++		this.queued = true;
++		requestAnimationFrame(() => { this.queued = false; this.gone() ? this.stop() : this.draw(); });
++	}
++
++	draw(){
++		this.redraws++;
++		const active = this.app.router?.active;
++		this.watched.forEach((fn, page) => page.off("change", fn));
++		this.watched.clear();
++
++		this.$box.empty(() => {
++			div.c("instance-tree-head muted", `${this.constructor.name} · redrawn ${this.redraws}×`);
++			this.node(this.app, active, 0);
++		});
++	}
++
++	watch(page){
++		if (this.watched.has(page) || !page.on) return;
++		const fn = () => this.refresh();
++		page.on("change", fn);
++		this.watched.set(page, fn);
++	}
++
++	pages(of){
++		if (of === this.app) return of.root ? [of.root] : [];
++		return [...(of.children?.values() ?? [])].filter(Boolean);
++	}
++
++	node(subject, active, depth){
++		const isApp = subject === this.app;
++		const kids = this.pages(subject);
++		if (!isApp) this.watch(subject);
++
++		const mark = active && subject === active ? " is-active" : "";
++		const open = depth < 1 || this.open.has(subject) || this.on_path(subject, active);
++
++		details.c("instance-node" + mark, $d => {
++			if (open) $d.attr("open", true);
++			// Closed nodes draw no children (the site has ~1400 pages); opening one redraws.
++			$d.el.addEventListener("toggle", () => {
++				if ($d.el.open === open) return;
++				$d.el.open ? this.open.add(subject) : this.open.delete(subject);
++				this.refresh();
++			});
++
++			summary.c("instance-row", () => {
++				icon(subject.constructor.icon ?? subject.icon ?? "data_object");
++				span.c("instance-class", subject.constructor.name);
++				if (!isApp) span.c("instance-title", String(subject.title ?? subject.name ?? ""));
++				if (kids.length) span.c("muted", `(${kids.length})`);
++				button.c("instance-view", "view").click(e => {
++					e.preventDefault();
++					this.shown.has(subject) ? this.shown.delete(subject) : this.shown.add(subject);
++					this.refresh();
++				});
++			});
++
++			if (this.shown.has(subject)) div.c("instance-props", () => view(subject));
++			if (open) div.c("instance-kids", () => kids.forEach(kid => this.node(kid, active, depth + 1)));
++		});
++	}
++
++	on_path(page, active){
++		for (let p = active; p; p = p.parent) if (p === page) return true;
++		return false;
++	}
++}
++
++View.stylesheet(import.meta, "InstanceTree.css");
+diff --git a/public/framework/ux/Content/Object/Object.js b/public/framework/ux/Content/Object/Object.js
+index 22134a4f5..0ca0e78fd 100644
+--- a/public/framework/ux/Content/Object/Object.js
++++ b/public/framework/ux/Content/Object/Object.js
+@@ -69,8 +69,8 @@ export default class ObjectCard extends View {
+ 	value_for(name){
+ 		if (this.subject && Object.prototype.hasOwnProperty.call(this.subject, name)) return this.subject[name];
+ 		const proto = typeof this.subject === "function" ? this.subject.prototype : undefined;
+-		if (proto && Object.prototype.hasOwnProperty.call(proto, name)) return proto[name];
+-		return undefined;
++		// A descriptor, never `proto[name]`: that runs accessors (Item's `title`, Page's `unknown`) on a prototype with no data.
++		return proto ? Object.getOwnPropertyDescriptor(proto, name)?.value : undefined;
+ 	}
+ 
+ 	/* Method names live up the WHOLE prototype chain — the instance's class, then
+@@ -85,7 +85,7 @@ export default class ObjectCard extends View {
+ 		const names = new Set();
+ 		for (let proto = start; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto))
+ 			for (const name of Object.getOwnPropertyNames(proto))
+-				if (name !== "constructor" && typeof proto[name] === "function") names.add(name);
++				if (name !== "constructor" && typeof Object.getOwnPropertyDescriptor(proto, name).value === "function") names.add(name);   // a descriptor, never `proto[name]`: that would run getters (Page.prototype.unknown threw)
+ 
+ 		return [...names];
+ 	}
+diff --git a/public/framework/ux/Content/Object/doc/files.jsonl b/public/framework/ux/Content/Object/doc/files.jsonl
+index daae4cf2d..fd9418386 100644
+--- a/public/framework/ux/Content/Object/doc/files.jsonl
++++ b/public/framework/ux/Content/Object/doc/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"census.md"}
+ {"file":"default-view.md"}
+ {"file":"shape.md"}
++{"file":"instance-tree.md"}
+diff --git a/public/framework/ux/Content/Object/doc/instance-tree.md b/public/framework/ux/Content/Object/doc/instance-tree.md
+new file mode 100644
+index 000000000..85a4b9bf3
+--- /dev/null
++++ b/public/framework/ux/Content/Object/doc/instance-tree.md
+@@ -0,0 +1,7 @@
++# InstanceTree — the live instance hierarchy (built 2026-10-13)
++
++`InstanceTree extends View` (`../InstanceTree.js`): root = `App`, each node = class icon + class name + `title`, children = `page.children`, the current page highlighted, a `view` button opens that instance's `DefaultView`. Demo: `/framework/ux/Content/Object/instance-tree/`. Also the dev bar `page` tab (section "instances").
++
++**What updates live:** a child mounted with `page.add()` (the one hook: `InstanceTree.install()` wraps `Page.prototype.add` to fire a window event), a field change on any page shown (`page.on("change")`), and every route change (`install(app)` wraps `app.navigated` once per app, never per tree). Redraws are batched to one per frame.
++
++**Not live yet:** a plain `page.title = x` on a page built from a config is an own property and fires nothing (the demo then calls `page.emit("change", "title", x)`; `Item.set()` on a data-backed field announces itself); a quiet child load (`children.set`, stubs becoming pages via `load_all_children`) fires no event, so it shows on the next redraw. The property panel (`view`) is a snapshot, redrawn with the tree. `Property.of` is not on `michael/dev` (4 commits sit on `michael/property-of`), so change events come from `Item`'s own `"change"`; switch when that branch lands.
+diff --git a/public/framework/ux/Content/Object/files.jsonl b/public/framework/ux/Content/Object/files.jsonl
+index 1974a03a6..a8abddae8 100644
+--- a/public/framework/ux/Content/Object/files.jsonl
++++ b/public/framework/ux/Content/Object/files.jsonl
+@@ -8,3 +8,6 @@
+ {"file":"doc/page.jsonl"}
+ {"file":"doc/"}
+ {"file":"Inspect.js"}
++{"file":"instance-tree/page.js"}
++{"file":"InstanceTree.css"}
++{"file":"InstanceTree.js"}
+diff --git a/public/framework/ux/Content/Object/instance-tree/files.jsonl b/public/framework/ux/Content/Object/instance-tree/files.jsonl
+new file mode 100644
+index 000000000..ffae31dad
+--- /dev/null
++++ b/public/framework/ux/Content/Object/instance-tree/files.jsonl
+@@ -0,0 +1 @@
++{"file":"page.js"}
+diff --git a/public/framework/ux/Content/Object/instance-tree/page.js b/public/framework/ux/Content/Object/instance-tree/page.js
+new file mode 100644
+index 000000000..cd40ffeec
+--- /dev/null
++++ b/public/framework/ux/Content/Object/instance-tree/page.js
+@@ -0,0 +1,39 @@
++import { Page, md, div, h3, button, p } from "/app.js";
++import InstanceTree from "../InstanceTree.js";
++
++/** "InstanceTree" — the live instance hierarchy of this running site, beside a demo that changes it. Doc: ../doc/instance-tree.md */
++export default new Page({
++	meta: import.meta,
++	title: "InstanceTree",
++	description: "The running App and its pages as a live tree: class, title, children, the page you are on. Updates without a reload.",
++	icon: "account_tree",
++
++	content(){
++		md("**This is the site's real instance tree, drawn from the live `App`.** Press a button on the left: the tree on the right follows with no reload. `view` on a row opens that instance's properties.");
++
++		const page = this, app = this.app;
++		let n = 0;
++
++		// "Show the class": the rendered demo on the left, the live instance on the right (CLAUDE.md).
++		div.c("cols half", () => {
++			div(() => {
++				h3("The demo");
++				div.c("flex gap", () => {
++					button("add a child page").click(() => { n++; page.add(`demo-${n}`, { title: `Demo ${n}` }); });
++					button("rename this page").click(() => {
++						const title = `InstanceTree ${++n}`;
++						page.title = title;                       // a config title is a plain own property: silent,
++						page.emit("change", "title", title);      // so announce it the way Item.set() does
++					});
++				});
++				p("Each press changes the real Page instance this screen is. Its new children show under the highlighted row.");
++			});
++			div(() => {
++				h3("The live instance");
++				new InstanceTree({ app });
++			});
++		});
++
++		md.details(import.meta, "../doc/instance-tree.md", "How this works");
++	},
++});
+diff --git a/public/framework/ux/Content/Object/page.js b/public/framework/ux/Content/Object/page.js
+index 7a080231b..8d937219f 100644
+--- a/public/framework/ux/Content/Object/page.js
++++ b/public/framework/ux/Content/Object/page.js
+@@ -32,9 +32,9 @@ export default new Doc({
+ 	description: "A little card that shows what a real object IS — class, name, properties, methods — instead of explaining it in words.",
+ 	icon: "data_object",
+ 
+-	files: "Object.js Inspect.js DefaultView.js page.js readme.md",
++	files: "Object.js Inspect.js DefaultView.js InstanceTree.js page.js readme.md",
+ 	notes: "shape default-view",
+-	children: "page app",
++	children: "page app instance-tree",
+ 
+ 	content(){
+ 
+diff --git a/public/framework/ux/Content/Object/readme.md b/public/framework/ux/Content/Object/readme.md
+index be2c4227e..a57cb1ade 100644
+--- a/public/framework/ux/Content/Object/readme.md
++++ b/public/framework/ux/Content/Object/readme.md
+@@ -9,6 +9,7 @@ Three ways in, all from one real object, a class, or a class instance:
+   itself an object opens (lazily — nothing under it is read until you click) to
+   show its own properties the same way, as deep as you keep going. Best guess by
+   default; a class overrides it with its own `Thing.View`.
++- **`InstanceTree`** (`InstanceTree.js`, [page](/framework/ux/Content/Object/instance-tree/), [doc](doc/instance-tree.md)) — the whole running site as a live tree.
+ - **`inspect()`** (`Inspect.js`) — the debug/inspector view, separate from a class's
+   own `render()` (it exists even when a class has no `render()` at all). Bigger than
+   `object()`'s card, and a property whose value is itself an object nests its own
+diff --git a/public/framework/ux/Content/catalog/catalog.json b/public/framework/ux/Content/catalog/catalog.json
+index 3ea5b8b94..6bdc9f9a9 100644
+--- a/public/framework/ux/Content/catalog/catalog.json
++++ b/public/framework/ux/Content/catalog/catalog.json
+@@ -572,7 +572,7 @@
+    {
+     "name": "decision row",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/decisions.js:72"
++    "source": "public/framework/ai/AITask/decisions.js:72"
+    }
+   ],
+   "classes": [
+@@ -1481,7 +1481,7 @@
+    {
+     "name": "task card (manifest card)",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/card.js:91"
++    "source": "public/framework/ai/AITask/card.js:91"
+    },
+    {
+     "name": "v3 tile (inbox card)",
+@@ -1503,7 +1503,7 @@
+    ".v3-tile-sentence",
+    ".v3-tile-author"
+   ],
+-  "render": "import { manifest_card } from '/framework/ext/AITask/card.js'; manifest_card({ title: 'Demo task', url: '/framework/ai/', name: 'demo', brief: 'A task that has not started.', m: null });",
++  "render": "import { manifest_card } from '/framework/ai/AITask/card.js'; manifest_card({ title: 'Demo task', url: '/framework/ai/', name: 'demo', brief: 'A task that has not started.', m: null });",
+   "used_in": [
+    "/framework/ai/v/3/",
+    "/framework/ai/"
+@@ -1588,12 +1588,12 @@
+    {
+     "name": "ask card",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/asks.js:265"
++    "source": "public/framework/ai/AITask/asks.js:265"
+    },
+    {
+     "name": "ask sheet",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/asks.js:426"
++    "source": "public/framework/ai/AITask/asks.js:426"
+    },
+    {
+     "name": "inbox full card",
+@@ -2026,7 +2026,7 @@
+    {
+     "name": "highlight card",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/highlights.js:63"
++    "source": "public/framework/ai/AITask/highlights.js:63"
+    }
+   ],
+   "classes": [
+@@ -2034,7 +2034,7 @@
+    ".surface",
+    ".ai-hl-wall"
+   ],
+-  "render": "import { highlights } from '/framework/ext/AITask/highlights.js'; highlights([{ url: '/framework/ai/2026-09-24/demo/', m: { highlight: { title: 'A demo highlight', line: 'One sentence about it.', url: '/framework/ai/' } } }]);",
++  "render": "import { highlights } from '/framework/ai/AITask/highlights.js'; highlights([{ url: '/framework/ai/2026-09-24/demo/', m: { highlight: { title: 'A demo highlight', line: 'One sentence about it.', url: '/framework/ai/' } } }]);",
+   "used_in": [
+    "/framework/ai/"
+   ],
+@@ -2064,7 +2064,7 @@
+    {
+     "name": "needs-you strip",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/needs.js:94"
++    "source": "public/framework/ai/AITask/needs.js:94"
+    }
+   ],
+   "classes": [
+@@ -2073,7 +2073,7 @@
+    ".ai-need-mins",
+    ".surface"
+   ],
+-  "render": "import { needs_strip } from '/framework/ext/AITask/needs.js'; needs_strip([{ what: 'Log in to the host', minutes: 5, id: 'x', url: '/framework/ai/', label: 'demo' }]);",
++  "render": "import { needs_strip } from '/framework/ai/AITask/needs.js'; needs_strip([{ what: 'Log in to the host', minutes: 5, id: 'x', url: '/framework/ai/', label: 'demo' }]);",
+   "used_in": [
+    "/framework/ai/",
+    "/framework/ai2/"
+@@ -2104,7 +2104,7 @@
+    {
+     "name": "fold (expando bar)",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/message.js:15"
++    "source": "public/framework/ai/AITask/message.js:15"
+    }
+   ],
+   "classes": [
+@@ -2113,7 +2113,7 @@
+    ".wash",
+    ".ai-fold-body"
+   ],
+-  "render": "import { fold } from '/framework/ext/AITask/message.js'; fold('Click to open', () => { p('The hidden body.'); });",
++  "render": "import { fold } from '/framework/ai/AITask/message.js'; fold('Click to open', () => { p('The hidden body.'); });",
+   "used_in": [
+    "/framework/ai/"
+   ],
+@@ -2144,12 +2144,12 @@
+    {
+     "name": "transcript message",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/message.js:36"
++    "source": "public/framework/ai/AITask/message.js:36"
+    },
+    {
+     "name": "turn (transcript turn)",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/feed.js:129"
++    "source": "public/framework/ai/AITask/feed.js:129"
+    },
+    {
+     "name": "chat line",
+@@ -2172,7 +2172,7 @@
+    ".ai2-chat-you",
+    ".ai2-script"
+   ],
+-  "render": "import { message } from '/framework/ext/AITask/message.js'; message({ type: 'assistant', message: { content: 'Hello from an agent.' } });",
++  "render": "import { message } from '/framework/ai/AITask/message.js'; message({ type: 'assistant', message: { content: 'Hello from an agent.' } });",
+   "used_in": [
+    "/framework/ai/",
+    "/framework/ai2/"
+@@ -2210,7 +2210,7 @@
+    {
+     "name": "owner prompt bubble (ai-you)",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/conversation.js:182"
++    "source": "public/framework/ai/AITask/conversation.js:182"
+    }
+   ],
+   "classes": [
+@@ -2240,7 +2240,7 @@
+   },
+   "notes": "Three different ways to mark the owner's words.",
+   "sheets": [
+-   "/framework/ext/AITask/ai.css"
++   "/framework/ai/AITask/ai.css"
+   ]
+  },
+  {
+@@ -2251,7 +2251,7 @@
+    {
+     "name": "prompt rail row",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/conversation.js:288"
++    "source": "public/framework/ai/AITask/conversation.js:288"
+    },
+    {
+     "name": "inbox row (rail preview)",
+@@ -2335,7 +2335,7 @@
+    {
+     "name": "screenshot thumb",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/shots.js:19"
++    "source": "public/framework/ai/AITask/shots.js:19"
+    }
+   ],
+   "classes": [
+@@ -2343,7 +2343,7 @@
+    ".ai-shot-frame",
+    ".ai-shot-label"
+   ],
+-  "render": "import { shot_thumb } from '/framework/ext/AITask/shots.js'; shot_thumb({ path: 'nope.png', label: 'demo shot', width: 800 });",
++  "render": "import { shot_thumb } from '/framework/ai/AITask/shots.js'; shot_thumb({ path: 'nope.png', label: 'demo shot', width: 800 });",
+   "used_in": [
+    "/framework/ai/"
+   ],
+@@ -2372,7 +2372,7 @@
+    {
+     "name": "usage meter",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/usage.js:42"
++    "source": "public/framework/ai/AITask/usage.js:42"
+    },
+    {
+     "name": "overview usage bar",
+@@ -2390,7 +2390,7 @@
+    ".ai2-ov-usage-track",
+    ".ai2-ov-usage-fill"
+   ],
+-  "render": "import { usage_rail } from '/framework/ext/AITask/usage.js'; usage_rail({ utilization: { limits: [{ kind: 'session', group: 'session', percent: 40, resets_at: new Date(Date.now() + 3e6).toISOString() }] } });",
++  "render": "import { usage_rail } from '/framework/ai/AITask/usage.js'; usage_rail({ utilization: { limits: [{ kind: 'session', group: 'session', percent: 40, resets_at: new Date(Date.now() + 3e6).toISOString() }] } });",
+   "used_in": [
+    "/framework/ai/",
+    "/framework/ai2/"
+@@ -2424,7 +2424,7 @@
+    {
+     "name": "group heading (ai-group)",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/board.js:50"
++    "source": "public/framework/ai/AITask/board.js:50"
+    }
+   ],
+   "classes": [
+@@ -2465,7 +2465,7 @@
+    {
+     "name": "timeline day line",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/dashboard.js:136"
++    "source": "public/framework/ai/AITask/dashboard.js:136"
+    },
+    {
+     "name": "axis time item",
+@@ -2508,7 +2508,7 @@
+   },
+   "notes": "",
+   "sheets": [
+-   "/framework/ext/AITask/ai.css"
++   "/framework/ai/AITask/ai.css"
+   ]
+  },
+  {
+@@ -2519,7 +2519,7 @@
+    {
+     "name": "link chip",
+     "census": "c",
+-    "source": "public/framework/ext/AITask/asks.js:338"
++    "source": "public/framework/ai/AITask/asks.js:338"
+    }
+   ],
+   "classes": [
+diff --git a/public/framework/ux/Dictate/surfaces/page.js b/public/framework/ux/Dictate/surfaces/page.js
+index 57d3549b6..1ddf094ed 100644
+--- a/public/framework/ux/Dictate/surfaces/page.js
++++ b/public/framework/ux/Dictate/surfaces/page.js
+@@ -29,8 +29,8 @@ const SURFACES = [
+ 		file: "/framework/ext/Refine/RefineDemo.js", agent: "none (a pipeline: clean, structure, refine)", log: "the session's `page.jsonl`", shot: "refine-1920.png",
+ 		says: "Dictate or paste, press Refine, watch the five stages fill in." },
+ 	{ name: "Dev shell", where: "Localhost only, ctrl + \\: ai and chat tabs",
+-		file: "/framework/dev/DevShell/DevShell.js", agent: "not traced", log: "not traced", shot: "devshell-1920.png",
+-		says: "Dev chrome. Its chat tab was not traced to a mount in this pass; see the doc." },
++		file: "/framework/dev/DevShell/DevShell.js", agent: "ai tab: fast + smart (the same chat file); chat tab: this page's own Servex agent", log: "ai tab: `ai/<id>.jsonl`; chat tab: a Servex page session (`/api/page-session/*`)", shot: "devshell-1920.png",
++		says: "Dev chrome, reusing the dev bar's tabs. Its ai tab ([dev/DevBar/ask.js](/framework/dev/DevBar/ask.js)) mounts the one shared chat; its chat tab ([dev/DevBar/chat.js](/framework/dev/DevBar/chat.js)) talks to the agent that owns the page, a separate conversation." },
+ 	{ name: "Live card", where: "`/framework/ai/`, the board's Live card",
+ 		file: "/framework/ai/rail/rail.js", agent: "the global session at its foot, the card thread above", log: "`ai/<id>.jsonl` and the card", shot: "live-card-1920.png",
+ 		says: "The board's own rail: card threads on top, the global chat at the bottom." },
+@@ -72,7 +72,7 @@ export default new Page({
+ 	content(){
+ 		md("**Nine places talk, show or record what you say.** Four share one conversation (the global voice session), three are separate things, and two are a debug view and a dev-only tab. Each card below is one surface: a screenshot, then where it is, what renders it, who answers and where it writes.");
+ 
+-		md("**Same conversation:** drawer chat, phone sheet, floating mic, live card foot (and the Dictate page's own box). One chat file, [`ux/Dictate/chat.js`](/framework/ux/Dictate/chat.js), is mounted by all of them. **Not the same:** card chat, session page, Refine view.");
++		md("**Same conversation:** drawer chat, phone sheet, floating mic, live card foot, the dev shell's ai tab (and the Dictate page's own box). One chat file, [`ux/Dictate/chat.js`](/framework/ux/Dictate/chat.js), is mounted by all of them. **Not the same:** card chat, session page, Refine view, the dev shell's chat tab.");
+ 
+ 		div.c("ux-dictate-surfaces-grid", $g => {
+ 			$g.style({ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 22em), 1fr))", gap: "1.5em", alignItems: "start" });

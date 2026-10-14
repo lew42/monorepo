@@ -1,0 +1,269 @@
+{
+ "url": "http://review-site-pages.localhost/framework/catalog/",
+ "widths": {
+  "400": {
+   "empty": 0.358,
+   "widest_text": 331,
+   "widest_text_sample": "This is it: the running App and its page",
+   "overflow_x": false,
+   "items": 238,
+   "narrow_share": 0,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 72,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.4,
+     "big_empty": false
+    },
+    {
+     "cls": "cat",
+     "y": 154,
+     "h": 74723,
+     "share": 74.723,
+     "ink": 0.349,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Live instance hierarchy",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.597,
+   "widest_text": 592,
+   "widest_text_sample": "This is it: the running App and its page",
+   "overflow_x": false,
+   "items": 260,
+   "narrow_share": 0.015,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 38,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.375,
+     "big_empty": false
+    },
+    {
+     "cls": "cat",
+     "y": 132,
+     "h": 24010,
+     "share": 24.01,
+     "ink": 0.298,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.708,
+   "widest_text": 635,
+   "widest_text_sample": "This is it: the running App and its page",
+   "overflow_x": false,
+   "items": 260,
+   "narrow_share": 0.112,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    },
+    "p": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.263,
+     "big_empty": false
+    },
+    {
+     "cls": "cat",
+     "y": 160,
+     "h": 15919,
+     "share": 15.919,
+     "ink": 0.275,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.801,
+   "widest_text": 714,
+   "widest_text_sample": "This is it: the running App and its page",
+   "overflow_x": false,
+   "items": 260,
+   "narrow_share": 0.962,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.188,
+     "big_empty": false
+    },
+    {
+     "cls": "cat",
+     "y": 181,
+     "h": 11457,
+     "share": 11.457,
+     "ink": 0.224,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": [
+  "400: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}
