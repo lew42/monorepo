@@ -1,6 +1,13 @@
 # Retire the eight ai/sessions/Session*.js re-export shims; one Sessions module set
 
-Budget: $8. Load the `sub-mastermind` and `code` skills first. The owner's words: `../requirements-8.md` ask 3 ("one single data structure, no stale fragments") and `../requirements-10.md` ask 1 ("the categorization process needs to be carefully looked at"). The verdict is already in: `../ai-modules-home/module-homes.md` and its task log: "`ai/AISession` is live; the 8 `ai/sessions/Session*.js` files are 10-09 re-export shims; propose repointing their 3 importers and moving the shims aside." Your log is this dir's `task.jsonl`. CLAUDE.md: one of everything; moves are scripted with relink and undo; never destructive; link every mention.
+**In one line:** eight old `Session*.js` files only forward to the live `ai/AISession` classes; point their importers at `ai/AISession` and archive the eight, so there is one set of Session classes.
+
+Budget: $8. Load the `sub-mastermind` and `code` skills first.
+- **Owner's words:** `../requirements-8.md` ask 3 ("one single data structure, no stale fragments") and `../requirements-10.md` ask 1 ("the categorization process needs to be carefully looked at").
+- **Verdict already in:** `../ai-modules-home/module-homes.md` — "`ai/AISession` is live; the 8 `ai/sessions/Session*.js` files are 10-09 re-export shims; propose repointing their 3 importers and moving the shims aside."
+- **Your log:** this dir's `task.jsonl`.
+
+ CLAUDE.md: one of everything; moves are scripted with relink and undo; never destructive; link every mention.
 
 ## Deliverable
 
