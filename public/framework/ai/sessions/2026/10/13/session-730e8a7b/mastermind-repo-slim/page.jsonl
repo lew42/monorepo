@@ -54,3 +54,6 @@
 {"file":"asks-tally-rerun/"}
 {"file":"scripts-census/"}
 {"file":"compaction-dryrun/"}
+{"file":"session-detail-raw/"}
+{"file":"voice-dedupe/"}
+{"file":"site-reach-refresh/"}
