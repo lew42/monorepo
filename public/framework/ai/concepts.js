@@ -34,7 +34,7 @@ export const CONCEPTS = [
 			"Each minion gets its own task log, a subtask of its mastermind's.",
 			"It is stopped once its result has been read, so it stops holding memory.",
 		],
-		code: [["Servex/agents/Agents.js", fs("Servex/agents/Agents.js")], ["Servex/agents/brief.js", fs("Servex/agents/brief.js")]],
+		code: [["Servex/agents/Agents.js", fs("Servex/agents/Agents.js")], ["Servex/agents/Brief.js", fs("Servex/agents/Brief.js")]],
 		servex: [["Spawning (Agents & roles)", S + "doc/roles/"]] },
 
 	{ group: "tracked", slug: "tasks", name: "Tasks and cards", icon: "task_alt",

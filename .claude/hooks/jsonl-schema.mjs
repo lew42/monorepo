@@ -94,7 +94,7 @@ export const schemas = {
 		eg: { at: "NOW", target: "task dir, url, or look:<page>", verdict: "clear", what: "one line on what was found", to: "agent or file" },
 	},
 	"audit.jsonl": {
-		what: "one task's audit log (<task folder>/audit.jsonl) — one line per auditor; audit.mjs reads every one and computes the consensus (never hand-write it)",
+		what: "one task's audit log (<task folder>/audit.jsonl) — one line per auditor; Audit.mjs reads every one and computes the consensus (never hand-write it)",
 		verbs: {
 			audit: {
 				fields: ["at", "by", "model", "cost_usd", "complete", "obedience", "utility", "review_done", "name_ok", "icon_ok"],

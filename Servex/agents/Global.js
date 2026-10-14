@@ -6,7 +6,7 @@ import { place } from "../home.js";
 import Registry from "./registry.js";
 import { Claims } from "./claims.js";
 import { page_tools } from "../pages.js";
-import { brief, remember_focus } from "./brief.js";
+import { brief, remember_focus } from "./Brief.js";
 import { model } from "./tiers.js";
 import { Policy } from "./policy.js";
 import { queued } from "./Layers.js";

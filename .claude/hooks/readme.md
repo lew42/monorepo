@@ -13,7 +13,7 @@ checked before anything is written (the owner, 2026-09-30).
   in its reader (`ext/JSONL/JSONL.js`), or `node .claude/hooks/jsonl-schema.test.mjs` fails.
   ⚠ `audit.jsonl` (2026-10-02, the task-audit pilot — one line per model that graded a landed
   task) is checked here but has no `ext/JSONL/JSONL.js` reader yet: nothing renders it live, only
-  `Server/audit.mjs` reads it, so the test still passes without one. Add a reader before any page
+  `Server/Audit.mjs` reads it, so the test still passes without one. Add a reader before any page
   needs to show these lines directly.
 - **Servex's `append_log`** — for Servex's own event logs only (an object with a string `type`);
   it is checked against the same module.

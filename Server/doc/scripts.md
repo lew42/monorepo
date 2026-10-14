@@ -6,26 +6,21 @@ Re-run: `node Server/ScriptsCensus.mjs` (read-only, writes census.json). Verdict
 
 ## Retire list (tick = move aside; not run)
 
-Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then `--apply --manifest ...`; undo: `--undo`.
+Run: `node Server/RetireFiles.mjs --plan --manifest Server/doc/scripts.md` then `--apply --manifest ...`; undo: `--undo`.
 
 - [ ] `Server/session-cost.mjs` (198 bytes): Explicitly superseded by public/framework/ai/AISession/AISessionAudit.mjs; stub shim marked for removal one release after rename
 
-## Misnamed (queued in ai/todo.md; batch 1 renamed five at 1a56eebd0 with `node Server/RenameScript.mjs`, batch 2 renamed five at b77cda096, 16 remain)
+## Misnamed (queued in ai/todo.md; batch 1 renamed five at 1a56eebd0 with `node Server/RenameScript.mjs`, batch 2 renamed five at b77cda096, batch 3 renamed five at b058d8a3f, 11 remain)
 
 - `Server/ask-each.mjs`: Function bag (kind: bag) with 26 references that should be a class
-- `Server/audit.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/browser.mjs`: Function bag (kind: bag) with 45 refs that should be a class; core browser launcher
 - `Server/collab.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/council.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/crawl.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/decide.mjs`: Function bag (kind: bag) that should be a class per code skill rules
-- `Server/deploy-count.mjs`: class in lowercase file
-- `Server/retire-files.mjs`: Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format)
 - `Servex/agents/Agents.js`: Function bag (kind:bag) should be a class per code skill, but heavily used (82 refs)
-- `Servex/agents/brief.js`: Function bag (kind:bag) should be a class per code skill, 8 references
 - `Servex/agents/directory.js`: Function bag (kind:bag) should be a class per code skill, heavily used (131 refs)
 - `Servex/agents/experts.js`: Function bag (kind:bag) should be a class per code skill, 7 references
-- `Servex/agents/hitl.js`: Function bag (kind:bag) should be a class per code skill, 3 references
 - `Servex/agents/jobs.js`: Function bag (kind:bag) should be a class per code skill, 7 references
 - `Servex/agents/registry.js`: class in lowercase file; should be Registry.js; 30 refs, live but violates naming rule
 
@@ -77,7 +72,7 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 | `Server/AntigravityUsage.mjs` | renamed (1a56eebd0) | 6656 | 2026-10-06 | AntigravityUsage.mjs — Fetches Antigravity model quotas and plan status. | renamed to its class name; old exports aliased until 2026-10-20 |
 | `Server/ArchiveSessions.mjs` | renamed (1a56eebd0) | 13135 | 2026-10-13 | Move a month's untracked session pictures to the archive drive; tracked records stay. Doc: public/framework/ai/sessions/doc/picture-archive.md | renamed to its class name; old exports aliased until 2026-10-20 |
 | `Server/ask-each.mjs` | misnamed | 6626 | 2026-10-12 | Ask-each — ask a model one question at a time, in one continuous session, | Function bag (kind: bag) with 26 references that should be a class |
-| `Server/audit.mjs` | misnamed | 9622 | 2026-10-02 | audit.mjs — read every task's audit.jsonl (one line per auditor, written by minions through | Function bag (kind: bag) that should be a class per code skill rules |
+| `Server/Audit.mjs` | renamed (batch 3) | 9622 | 2026-10-02 | audit.mjs — read every task's audit.jsonl (one line per auditor, written by minions through | renamed to its class name |
 | `Server/branch-prune.mjs` | tool | 2185 | 2026-10-12 | `node Server/branch-prune.mjs [--dry/--run]` — prune merged `worktree/*` branches nobody has checked out. | Maintenance script run by hand to prune merged worktree branches |
 | `Server/BrowserCheck.mjs` | renamed (1a56eebd0) | 4265 | 2026-10-12 | Server/BrowserCheck.mjs — what a developer tools console would show, for one URL, without | renamed to its class name; old exports aliased until 2026-10-20 |
 | `Server/browser.mjs` | misnamed | 8357 | 2026-10-03 | Server/browser.mjs — the one way any script in this repo starts Chromium. | Function bag (kind: bag) with 45 refs that should be a class; core browser launcher |
@@ -89,7 +84,7 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 | `Server/DayPromptsRefine.mjs` | renamed (b77cda096) | 11247 | 2026-10-13 | DayPromptsRefine.mjs — retroactively runs the SAME mechanical refine step Echo.js runs | renamed to its class name; no importers, no alias |
 | `Server/DaySpend.mjs` | renamed (b77cda096) | 8171 | 2026-10-13 | DaySpend.mjs — one day's spend, two currencies, and which modules it touched. | renamed to its class name; no importers, no alias |
 | `Server/decide.mjs` | misnamed | 21527 | 2026-09-29 | decide.mjs — walks ONE decision into being, step by step, so no part can be forgotten. | Function bag (kind: bag) that should be a class per code skill rules |
-| `Server/deploy-count.mjs` | misnamed | 2302 | 2026-10-13 | Read-only: how many files Cloudflare would upload from public/, before and after public/.assetsignore. | class in lowercase file |
+| `Server/DeployCount.mjs` | renamed (batch 3) | 2302 | 2026-10-13 | Read-only: how many files Cloudflare would upload from public/, before and after public/.assetsignore. | renamed to its class name |
 | `Server/doc-check.mjs` | tool | 5277 | 2026-09-29 | `node Server/doc-check.mjs <task dir>` — does every module a task touched have a | run by hand to check docs on task landing |
 | `Server/figma-roundtrip.mjs` | live | 10682 | 2026-10-13 | Figma ↔ code round trip, computed: node Server/figma-roundtrip.mjs | referenced by Figma system page |
 | `Server/health-supervisor.mjs` | live | 16851 | 2026-09-30 | `node Server/health-supervisor.mjs` — keeps Server/health.mjs alive, the | referenced in Servex and loaded by skills |
@@ -119,7 +114,7 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 | `Server/refine-litmus.mjs` | tool | 12197 | 2026-10-02 | refine-litmus.mjs — deliverable 7: "the first rung of the model ladder, machine-checked." | validation tool for refiner output |
 | `Server/refine.mjs` | live | 57142 | 2026-10-12 | refine.mjs — a raw dictation, turned into a brief a mastermind can act on, with nothing lost | Heavily referenced in skills (every-prompt, new-task, servex-mastermind, sub-mastermind) and Server scripts; documented in doc/refine.md; recent (2026-10-12) |
 | `Server/RepoSize.mjs` | renamed (b77cda096) | 11523 | 2026-10-13 | RepoSize.mjs — what the repo weighs, by path, in git history and on disk. Read-only: never writes to git. | renamed to its class name; no importers, no alias |
-| `Server/retire-files.mjs` | misnamed | 2855 | 2026-10-13 | Server/retire-files.mjs — moves the owner-approved `dead` files aside (git mv), never deletes. Doc: public/framework/ai/doc/unreferenced-verdicts.md | Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format) |
+| `Server/RetireFiles.mjs` | renamed (batch 3) | 2855 | 2026-10-13 | Server/retire-files.mjs — moves the owner-approved `dead` files aside (git mv), never deletes. Doc: public/framework/ai/doc/unreferenced-verdicts.md | renamed to its class name |
 | `Server/review.mjs` | live | 54282 | 2026-10-12 | `node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none/light/full] [--why "..."] [--model <id>] [--widths 1200,1920]` | Heavily referenced in skills (finish-task, mastermind, minion, review, sub-mastermind) and Server docs; used for review gates and merge flow; recent (2026-10-12) |
 | `Server/review.test.mjs` | tool | 4489 | 2026-10-02 | node Server/review.test.mjs — widthsFor() and splitPatch(), no git, no network, no fs writes. | Test script for widthsFor() and splitPatch(); designed for hand execution with no dependencies; recent enough (2026-10-02) |
 | `Server/session-buckets.mjs` | tool | 2211 | 2026-10-12 | Reads every day's index.json under ai/sessions, builds the bucket indexes, prints a measured summary, writes | Analysis script designed for manual execution; reads indexes and builds bucket summaries; recent (2026-10-12) |
@@ -193,11 +188,11 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 | `Servex/agents/Promote.js` | live | 4880 | 2026-10-12 | Promote one block of a page.jsonl page to its own child page, leaving a `part-link` in its place. | Page tool for promoting blocks, documented in page system |
 | `Servex/agents/Sessions.js` | live | 80276 | 2026-10-13 |  | Core session system, 41 references, last 2026-10-13 |
 | `Servex/agents/Subpages.js` | live | 7266 | 2026-10-12 | The subpages of ONE parent folder: add, rename, remove. The one implementation behind | Page subpages management, 6 references, documented |
-| `Servex/agents/brief.js` | misnamed | 1960 | 2026-10-13 | THE ONE-SCREEN GLOBAL BRIEF — what every long-lived agent starts with: who is | Function bag (kind:bag) should be a class per code skill, 8 references |
+| `Servex/agents/Brief.js` | renamed (batch 3) | 1960 | 2026-10-13 | THE ONE-SCREEN GLOBAL BRIEF — what every long-lived agent starts with: who is | renamed to its class name; old exports aliased until 2026-10-20 |
 | `Servex/agents/claims.js` | live | 5704 | 2026-09-30 | THE CLAIMS LIST — who is changing what, so two cards never change the same | Claims list system for coordination, 7 references, documented |
 | `Servex/agents/directory.js` | misnamed | 13787 | 2026-09-30 | DIRECTORY MASTERMIND — a fresh mastermind for one folder, started from its plain files. | Function bag (kind:bag) should be a class per code skill, heavily used (131 refs) |
 | `Servex/agents/experts.js` | misnamed | 21206 | 2026-10-08 | EXPERTS — an agent that has already read one module, ready to be asked. | Function bag (kind:bag) should be a class per code skill, 7 references |
-| `Servex/agents/hitl.js` | misnamed | 5292 | 2026-09-29 | HITL — the smart assistant's two small model calls for the human-in-the-loop | Function bag (kind:bag) should be a class per code skill, 3 references |
+| `Servex/agents/Hitl.js` | renamed (batch 3) | 5292 | 2026-09-29 | HITL — the smart assistant's two small model calls for the human-in-the-loop | renamed to its class name; old exports aliased until 2026-10-20 |
 | `Servex/agents/inbox.js` | live | 16981 | 2026-10-12 | Local time with its offset and milliseconds, as Sessions.js writes it (not imported: | Core inbox system, 75 references across core agents |
 | `Servex/agents/jobs.js` | misnamed | 16196 | 2026-09-24 | JOBS — background work done by node, answered later as a message. | Function bag (kind:bag) should be a class per code skill, 7 references |
 | `Servex/agents/ops.js` | live | 3157 | 2026-09-29 | The three operator tools: restart Servex, pause dispatch, resume dispatch. | Operator tools system, 7 references, documented |

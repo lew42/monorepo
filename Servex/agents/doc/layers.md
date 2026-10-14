@@ -6,7 +6,7 @@ owner), or one of them. This page says how that works, as the code does it today
 
 Code: [`Layers.js`](../Layers.js) (the two agents on each card), [`Global.js`](../Global.js) (the
 two across cards, the reaper, the memory check), [`policy.js`](../policy.js),
-[`claims.js`](../claims.js), [`brief.js`](../brief.js), [`tiers.js`](../tiers.js).
+[`claims.js`](../claims.js), [`Brief.js`](../Brief.js), [`tiers.js`](../tiers.js).
 
 ## The four agents
 

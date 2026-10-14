@@ -17,7 +17,7 @@ One row per system: its entry readme, its size and last change (computed 2026-10
 | Chat, Refine, Session widgets | `ext/Chat/`, `ext/Refine/`, `ext/Session/` | their readmes | 40 · 53 · 51 | fine |
 | Skills | `.claude/skills/` (34) | `/framework/ai/skills/` | n/a | see sizes below |
 | CLAUDE.md | repo root | itself | 88 lines, 15.7 KB | read by every agent |
-| System prompts agents receive | `Servex/agents/*.md`, `Servex/agents/brief.js` | `Servex/agents/readme.md` | n/a | per-role prompts; not yet measured |
+| System prompts agents receive | `Servex/agents/*.md`, `Servex/agents/Brief.js` | `Servex/agents/readme.md` | n/a | per-role prompts; not yet measured |
 
 ## Skill size (bytes, largest first; about 4 bytes per token)
 

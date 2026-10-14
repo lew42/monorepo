@@ -19,7 +19,7 @@
  *
  * Plain functions, no class, never throw: a readme this can't read (permissions,
  * a symlink loop, whatever) is just skipped, the same as a level with no readme
- * at all. Matches brief.js's own shape and promise. */
+ * at all. Matches Brief.js's own shape and promise. */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

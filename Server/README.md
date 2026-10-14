@@ -79,7 +79,7 @@ task once (not on every retry), so `landed_at` alone can never read as done.
 author's conversation — to read the brief and the diff and say pass or fix, before `merge.mjs`
 will take a `light` or `full` branch. Full story: [`doc/review.md`](./doc/review.md).
 
-**`node Server/audit.mjs <taskdir...> [--out <path.json>]`** (2026-10-02) is law 7 for a task
+**`node Server/Audit.mjs <taskdir...> [--out <path.json>]`** (2026-10-02) is law 7 for a task
 audit: given several `audit.jsonl` files (one line per model that graded a landed task on
 complete/obedience/utility, written through `.claude/hooks/append.mjs` against the schema in
 `jsonl-schema.mjs`), it COMPUTES the consensus — never an AI writing it from memory. Per task:
@@ -108,3 +108,5 @@ The supervisor, watching `public/`, holding reloads, what a browser can ask, the
 
 [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`RefineQueue.mjs`](../public/framework/ext/Refine/doc/refine-queue.md) — refines the owner's past prompts, one Haiku call per prompt, N at once, onto each session page's Coverage tab (`public/framework/ext/Refine/doc/refine-queue.md`)
+
+- **Scripts census** (what every script under `Server/`, `Servex/`, `.claude/hooks/` is, who uses it, which are stale): [doc/scripts.md](doc/scripts.md)
