@@ -395,7 +395,8 @@ export default class AIRail extends Inbox.Rail {
 	   same place, same "never bold, never in the sortable list" rule, just a short list
 	   instead of a single hardcoded row. */
 	render_pinned(){
-		const pinned = [this.now_item, this.today_item, this.yesterday_item, this.your_prompts_item].filter(Boolean);
+		const now_ok = this.now_item && Inbox.pin_alive(this.now_item) ? this.now_item : null; // Inbox.pin_alive: a Now card over a day old leaves the slot
+		const pinned = [now_ok, this.today_item, this.yesterday_item, this.your_prompts_item].filter(Boolean);
 		if (!pinned.length) return;
 		this.$pinned.empty(() => {
 			pinned.forEach(it => a.c("inbox-row inbox-row-pinned").ac(it.unread && "inbox-unread")

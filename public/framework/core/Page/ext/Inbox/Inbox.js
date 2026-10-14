@@ -115,6 +115,10 @@ export class Inbox {
 		return it.unread === false ? raw / 100 : raw + 10;
 	}
 
+	/** THE PINNED-SLOT RULE — a pinned card holds the top only while its newest line is under a day
+	 *  old (TAIL_HOURS); an older one leaves the slot, so Today and Live are the first rows. */
+	static pin_alive(it, now = Date.now()){ return Inbox.age_min(it, now) < Inbox.TAIL_HOURS * 60; }
+
 	get rail(){ return this._rail ??= new this.constructor.Rail({ page: this.page }); }
 	get compact(){ return this._compact ??= new this.constructor.Compact({ page: this.page }); }
 

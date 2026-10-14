@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/",
+ "widths": {
+  "400": {
+   "empty": 0.373,
+   "widest_text": 326,
+   "widest_text_sample": "4.2 GB ours of 31.7 GB total · 20.6 GB o",
+   "overflow_x": false,
+   "items": 30,
+   "narrow_share": 0.033
+  },
+  "1200": {
+   "empty": 0.363,
+   "widest_text": 4698,
+   "widest_text_sample": "architecture-md-3 landed after deciding ",
+   "overflow_x": false,
+   "items": 123,
+   "narrow_share": 0.073
+  },
+  "1920": {
+   "empty": 0.401,
+   "widest_text": 5038,
+   "widest_text_sample": "architecture-md-3 landed after deciding ",
+   "overflow_x": false,
+   "items": 123,
+   "narrow_share": 0.252
+  },
+  "3440": {
+   "empty": 0.555,
+   "widest_text": 5668,
+   "widest_text_sample": "architecture-md-3 landed after deciding ",
+   "overflow_x": false,
+   "items": 123,
+   "narrow_share": 0.829
+  }
+ },
+ "errors": []
+}

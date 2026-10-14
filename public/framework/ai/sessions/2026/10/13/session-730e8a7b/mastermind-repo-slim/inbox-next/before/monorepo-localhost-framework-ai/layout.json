@@ -1,0 +1,14 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/",
+ "widths": {
+  "1200": {
+   "empty": 0.378,
+   "widest_text": 4698,
+   "widest_text_sample": "architecture-md-3 landed after deciding ",
+   "overflow_x": false,
+   "items": 123,
+   "narrow_share": 0.073
+  }
+ },
+ "errors": []
+}
