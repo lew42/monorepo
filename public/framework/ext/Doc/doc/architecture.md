@@ -58,26 +58,12 @@
 **Instead:** a preview wall of cards, one per demo.
 **Detail:** [doc/rail.md](./rail.md)
 
-## Class or not is read from the source text
-
-**Decided:** `Doc.is_class()` tests `/^class[\s{]/` on `String(subject)`, not `typeof`.
-**Why:** `md` and `demo` are functions that also own a `prototype`, so `typeof` says "class" for them.
-**Instead:** `typeof subject === "function"`, which misreports them.
-**Detail:** [doc/decisions.md](./decisions.md) (`subject` — classes and non-classes alike)
-
 ## Patched methods show the patch, labelled
 
 **Decided:** when an ext has replaced a class method at runtime, the member page shows the replacement with a "Replaced at runtime" line, and the declared source is never run to find out.
 **Why:** a doc page that reads a live object documents the running program. Reading a getter would execute it, so declarations come from property descriptors.
 **Instead:** showing only the class-body source, which hides what actually runs.
 **Detail:** [doc/decisions.md](./decisions.md) (A patched method shows the patch, labelled)
-
-## `docs` redirects to `doc` without a history entry
-
-**Decided:** a request for `.../docs/...` is rewritten to `.../doc/...` with `history.replaceState`.
-**Why:** the address bar gets fixed while the back button stays clean.
-**Instead:** `pushState`, which leaves a dead entry behind.
-**Detail:** [doc/tree/redirect/history.md](./tree/redirect/history.md)
 
 ## Decision menus come from one shared index
 
