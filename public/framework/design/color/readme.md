@@ -19,6 +19,8 @@ Colour on this site is never a literal value. It is a small set of tokens (`--su
 
 ## More
 
+- [doc/error-colour.md](./doc/error-colour.md): the error red is unreadable on Dark and too close to prime. Recommended: a mode-based `error`, a darker Dark, and destructive actions outlined (2026-10-13, waiting on the owner).
+
 - **Contrast numbers are computed, never stored** (owner, 2026-10-13). Colours are meant to be adjustable, so a ratio written into a design or a doc goes stale the moment a colour changes. In Figma, run `ext/Figma/scripts/contrast.figma.txt`: it reads the live variables and writes nothing. On a single layer, use Figma's own contrast checker. Figma's `Colour · Permutations` page shows every ground × ink pairing, without numbers.
 
 - [doc/rules.md](./doc/rules.md) — the tokens and traps, verbatim from the old `css` skill.
