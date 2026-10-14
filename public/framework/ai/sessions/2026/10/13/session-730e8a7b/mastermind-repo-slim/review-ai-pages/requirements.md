@@ -1,6 +1,21 @@
 # Fresh-eyes review of today's AI pages: the Inbox, the Sessions page, the session detail, the models page
 
-Budget: $20. Load the `review` skill first (you are the fresh-eyes reviewer), then `sub-mastermind`; you are Opus because the owner judges by looking and these are the pages they look at every day. The owner's standards: `../requirements-10.md` ask 6 (the Sessions page was "a major fail on layout": header 50% down, a giant empty footer, zero left padding), `../requirements-3.md` ask 2 (the inbox: "a prioritized view of only the important things, ranked by recency… inbox zero"), `../requirements-9.md` (the rail must stay when a card opens), `../requirements-8.md` ask 2 (names the owner knows), CLAUDE.md "Presentation" (level 1 above the fold; the four widths 400 / 1200 / 1920 / 3440). What landed today on these pages: Inbox timeline + rail fix + seen/day (inbox-data), the Sessions page (sessions-page-layout), Raw links and the Coverage tab (session-detail-raw, refine-pipeline), the models page (model-switch). Your log is this dir's `task.jsonl`.
+Budget: $20. Load the `review` skill first (you are the fresh-eyes reviewer), then `sub-mastermind`. You are Opus because the owner judges by looking. Your log is this dir's `task.jsonl`.
+
+## The owner's standards (each one is an acceptance test)
+
+- [ ] Sessions page: no "major fail on layout" (header 50% down, giant empty footer, zero left padding): `../requirements-10.md` ask 6
+- [ ] Inbox: "a prioritized view of only the important things, ranked by recency… inbox zero": `../requirements-3.md` ask 2
+- [ ] The rail stays when a card opens: `../requirements-9.md`
+- [ ] Names the owner knows: `../requirements-8.md` ask 2
+- [ ] Level 1 above the fold, checked at 400 / 1200 / 1920 / 3440: CLAUDE.md "Presentation"
+
+## What landed today on these pages
+
+- Inbox: timeline, rail fix, seen/day (inbox-data)
+- Sessions page (sessions-page-layout)
+- Session detail: Raw links, Coverage tab (session-detail-raw, refine-pipeline)
+- Models page (model-switch)
 
 ## Deliverable
 

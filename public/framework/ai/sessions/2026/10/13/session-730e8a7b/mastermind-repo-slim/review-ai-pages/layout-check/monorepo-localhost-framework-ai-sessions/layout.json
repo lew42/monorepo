@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/sessions/",
+ "widths": {
+  "1280": {
+   "empty": 0.514,
+   "widest_text": 519,
+   "widest_text_sample": "ai/sessions · Servex/cards/Cards.js · Se",
+   "overflow_x": false,
+   "items": 489,
+   "narrow_share": 0.751
+  },
+  "1920": {
+   "empty": 0.411,
+   "widest_text": 441,
+   "widest_text_sample": "578 sessions listed (6,096 routine hidde",
+   "overflow_x": false,
+   "items": 447,
+   "narrow_share": 0.886
+  },
+  "2560": {
+   "empty": 0.562,
+   "widest_text": 621,
+   "widest_text_sample": "ai/sessions · Servex/cards/Cards.js · Se",
+   "overflow_x": false,
+   "items": 447,
+   "narrow_share": 0.886
+  },
+  "3440": {
+   "empty": 0.631,
+   "widest_text": 496,
+   "widest_text_sample": "578 sessions listed (6,096 routine hidde",
+   "overflow_x": false,
+   "items": 447,
+   "narrow_share": 0.886
+  }
+ },
+ "errors": []
+}
