@@ -15,7 +15,7 @@ export default class ModelsPage extends Page {
 		fetch(ModelsPage.DATA).then(r => r.json()).catch(() => null).then(d => $box.append(() => {
 		if (!d) return p("No now.json yet: run `node Server/models-now.mjs --write`.");
 		const c = d.cost_24h, k = c.claude, G = ModelsPage.grid;
-		p(`Backend now: ${d.backend}. Claude is at ${k.five_hour_pct}% of its 5-hour window and ${k.seven_day_pct}% of the week; OpenRouter cost in the last 24 hours: $${c.openrouter_usd}. Flip with \`node Server/models-now.mjs --backend openrouter|anthropic\` (takes effect at the next Servex restart).`);
+		p(`Backend now: ${d.backend}. When this was computed (${new Date(d.generated_at).toLocaleString()}), Claude was at ${k.five_hour_pct}% of its 5-hour window and ${k.seven_day_pct}% of the week, and OpenRouter had cost $${c.openrouter_usd} in 24 hours; the live meters are on the AI Inbox. Flip with \`node Server/models-now.mjs --backend openrouter|anthropic\` (takes effect at the next Servex restart).`);
 		h2("What a new agent gets, by role");
 		G(["role", "model", "provider", "where it comes from"], d.roles.map(r => [r.role, r.model, r.provider, r.origin]));
 		h2("Agents in the registry, by role and model");
