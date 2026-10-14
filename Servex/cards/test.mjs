@@ -260,7 +260,7 @@ check("opening it records reviewed", (await cards.list({ view: "all" })).find(c 
 // listed, appended to in place, and a sub-card made under it lands beside it
 const oldId = "2025/01/02/left-behind";
 fs.mkdirSync(path.join(root, "2025", "01", "02", "left-behind"), { recursive: true });
-fs.writeFileSync(path.join(root, "2025", "01", "02", "page.jsonl"), JSON.stringify({ title: "day" }) + "\n" + JSON.stringify({ file: "left-behind/page.jsonl" }) + "\n");
+// no year, month or day index page: a Servex not yet restarted may leave none
 fs.writeFileSync(path.join(root, "2025", "01", "02", "left-behind", "page.jsonl"), JSON.stringify({ class: "/framework/ai/cards/card.js", title: "Left behind", id: oldId, created: stamp(), by: "t" }) + "\n");
 check("old-tree card: dir() falls back to it", cards.dir(oldId) === path.join(root, "2025", "01", "02", "left-behind"), cards.dir(oldId));
 check("old-tree card: walk() lists it beside the store's", (await cards.walk()).includes(oldId) && (await cards.walk()).includes(a.id));

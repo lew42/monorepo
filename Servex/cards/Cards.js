@@ -405,7 +405,7 @@ export default class Cards {
 		const visit = async (id) => {
 			for (const name of this.kids(id)){
 				const child = `${id}/${name}`;
-				if (!fs.existsSync(this.file(child))){ if (child.split("/").length < 3) await visit(child); continue; }   // a date folder with no index page is still walked
+				if (!fs.existsSync(this.file(child))){ if (child.split("/").length < 4) await visit(child); continue; }   // a date folder with no index page is still walked
 				const head = this.parse(await fs.promises.readFile(this.file(child), "utf8"))[0] ?? {};
 				if (head.class) out.push(child);
 				await visit(child);
@@ -424,7 +424,7 @@ export default class Cards {
 			for (const name of this.kids(id)){
 				const child = `${id}/${name}`;
 				let text;
-				try { text = fs.readFileSync(this.file(child), "utf8"); } catch { if (child.split("/").length < 3) visit(child); continue; }
+				try { text = fs.readFileSync(this.file(child), "utf8"); } catch { if (child.split("/").length < 4) visit(child); continue; }
 				for (const line of this.parse(text)) if (line.legacy) this.legacies.set(line.legacy, child);
 				visit(child);
 			}
