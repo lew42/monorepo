@@ -10,3 +10,7 @@
 Code: `styles/layers/page.js`
 
 _Stub — more to come._
+
+## More
+
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
