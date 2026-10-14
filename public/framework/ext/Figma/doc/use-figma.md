@@ -76,6 +76,12 @@ Five phone screens use only those instances: Lists, Tree in a sheet (split scree
 
 `const k = comp.addComponentProperty('Content', 'SLOT', '')`, then bind a child auto-layout frame: `frame.componentPropertyReferences = {slotContentId: k}`. In every instance that frame is a `SLOT` node, and `slot.appendChild(node)` puts arbitrary content in it. So a card, panel, dialog or sheet is a component with a Content slot, not a frame we detach.
 
+**What the pink outline is.** When you select a slot, the pink outline is the slot's *area*, not its content. In `Specimen` the area is the card's inside, after the card's 48 padding (the slot itself has no padding). A small piece of content (a button, a chip) keeps its own size and sits centred in that area, so the outline looks too big. That isn't double padding. So `Specimen` (`287:50406`) has a `Slot` variant (owner question, 2026-10-13):
+- `Fill`: the slot spans the card, for rows, cards and phone screens, which FILL it.
+- `Fit`: the slot hugs its content, centred, for buttons and chips, so the outline wraps what's inside.
+
+417 instances whose content was all narrower than the slot were switched to `Fit`. Slots never clip (`clipsContent = false`).
+
 ### Slot, property, swap or variant: which one (owner's question, 2026-10-13)
 
 A slot does **not** detach anything. The instance stays linked to its main component, and only what is inside the slot belongs to that one instance. Put instances of other components in the slot and they stay linked to *their* masters. So a template with a slot keeps updating everywhere except the hole.
