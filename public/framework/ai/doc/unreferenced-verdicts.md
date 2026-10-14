@@ -7,6 +7,12 @@
 None. The scripted mover, `Server/RetireFiles.mjs` (`--plan`, `--apply`, `--undo`), is ready and reads this checklist, so it has nothing to move. Dead files, if the census finds more later, are listed here as `- [x] `path`` lines.
 
 
+## What "unreferenced" and "dead" mean here (the owner asked, 2026-10-14)
+
+The census is a grep: it searches the repo for each file's name and lists the files whose name turns up nowhere. That is "unreferenced": 167 files the grep could not connect to anything. It is not a verdict; it is a list of suspects. A Haiku agent then read each suspect and looked for the loads a grep misses (a stylesheet loaded by a bare name, a note placed by a `page.jsonl` line, a doc listed in its folder's `files.jsonl` index), and a Sonnet pass re-read 15 of its calls. "Dead" means nothing loads it and nothing links to it. Every one of the 167 turned out to be loaded or linked, so none is dead, and the number says more about the census than the files: a bare name like `page.css` or `card.css` matches many files, so the grep gives up on it.
+
+**The owner's rule, recorded:** a file that is truly unreferenced and already in git is deleted, not kept. Git is the undo. Before the delete, one cheap agent per file looks for references a grep misses (generated paths, dynamic loads, index files). That is the method used above; the next step is to teach the census the three load patterns Haiku found, so the suspect list stops being 167 names long. Task: `../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unreferenced-census-fix/`.
+
 ## Why so few
 
 The census matches a bare file name only when no other file shares it, so `card.css`, `shell.css`, `clean.md` and every `page.css` look unreferenced even when code loads them with `View.stylesheet(import.meta, "card.css")`. Haiku found those loads; the Sonnet spot-check below caught four "dead" calls that were wrong. A next census pass should count a quoted bare name in the same folder's `.js` as a reference.
