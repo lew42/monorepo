@@ -30,7 +30,7 @@ export default new Doc({
 
 	methods: "render bar header toggle open menu filter nav filtered remember index show_results results arrow restore_query tree_nodes reveal footer grab size store favicon",
 
-	notes: "entries placement views tokens narrow comp decisions",
+	notes: "entries placement views tokens narrow comp decisions architecture",
 
 	files: "Sidebar.js Sidebar.css page.js readme.md",
 
