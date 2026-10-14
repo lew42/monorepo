@@ -72,13 +72,6 @@ The editor is a page you visit, not a module you import. Its main class is `Hist
 **Instead:** a separate registry per tree, which would duplicate the drag code.
 **Detail:** [doc/shell.md](./shell.md)
 
-## No live preview on the wall card
-
-**Decided:** the framework wall shows the plain default card for the editor, not a rendered sketch of the saved document.
-**Why:** a rendered preview spilled across the page on first paint, and the zoom could not lock onto a width.
-**Instead:** a live preview, which needs the sizing solved first.
-**Detail:** [doc/decisions.md](./decisions.md)
-
 ## More
 - [`doc/decisions.md`](./decisions.md) — the full design record: rulings, traps, open items
 - [`doc/shell.md`](./shell.md) — the workspace shell in full
