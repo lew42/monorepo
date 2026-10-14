@@ -1,11 +1,12 @@
 // history and reasons: doc/InboxRail-notes.md
 
 import { View, div, span, small, a, button, label, input, h4, icon } from "/framework/core/View/View.js";
-import grip from "/framework/ext/grip/grip.js";
+import Browse from "/framework/ux/Browse/Browse.js";
 
 View.stylesheet("/framework/ux/Inbox/Inbox.css");
 
-export default class Rail {
+/** The Inbox's rows (ranking, read, archive, filters) on Browse's list-and-detail shell: ux/Browse/doc/architecture.md. */
+export default class Rail extends Browse {
 	/* ── settings a subclass or a caller may override ── */
 	title = "Inbox";          // the rail's own name, above its filters
 	key = "inbox";            // localStorage prefix: `<key>-rail-w`, `<key>-read-ids`
@@ -31,21 +32,17 @@ export default class Rail {
 	archived_pending = new Set();
 	last_needs = "";
 
-	constructor(...args){ this.assign(...args); }
-	assign(...args){ return Object.assign(this, ...args); }
+	// Assigned again after this class's own fields, which would otherwise overwrite what a caller passed.
+	constructor(...args){ super(); this.assign(...args); }
 
 	/** The Inbox's floor: rows scoring under this stay out of it (inbox zero, 2026-09-30). */
 	static FLOOR = 90;
 	/** The three plain words a row is sorted into by its score (the owner's ask: blocking / review / fyi). */
 	static CATEGORIES = ["blocking", "review", "fyi"];
 
-	/** The page this rail belongs to — rows link under its url. */
-	get url(){ return this.page.url; }
-	get router(){ return this.page.app?.router; }
-
 	/* ════ BUILDING IT — call `mount()` synchronously, inside the page's content() ════ */
 
-	mount(){
+	before_mount(){
 		const q = new URLSearchParams(location.search);
 		this.review_only = q.get("review") === "1";
 		this.cat = Rail.CATEGORIES.includes(q.get("cat")) ? q.get("cat") : null;
@@ -53,33 +50,13 @@ export default class Rail {
 		// A fresh mount keeps applying every reorder for a moment while the data's several
 		// streams each finish their first load — see `order_rows()`.
 		this.settle_until = Date.now() + 2500;
-
-		this.$shell = div.c(this.shell_classes(), () => {
-			this.rail();
-			this.detail();
-			this.sub();
-			this.shell_extra();
-		});
-		this.page.$pages = this.$detail;
-		this.page.$sub = this.$sub;
-		this.size(parseInt(this.store_get(this.key + "-rail-w"), 10) || null);
-		this.listen();
-		this.start();
-		return this;
 	}
 
-	/* `bleed`: the whole region, never the prose track. */
-	shell_classes(){ return "inbox-shell bleed"; }
-	shell_extra(){}
-
-	rail(){
-		// ⚠ No `flex v` utility: util beats theme, so a `.flex` here could never be hidden by the phone rule.
-		div.c("inbox-rail", () => {
-			this.top();
-			this.stream();
-			this.foot();
-			this.grip();
-		});
+	/* Browse's list pane holds these three; its grip comes after them. */
+	draw_list(){
+		this.top();
+		this.stream();
+		this.foot();
 	}
 
 	top(){
@@ -166,6 +143,7 @@ export default class Rail {
 			this.$rows = div.c("inbox-rows", () => {
 				this.$updated = button.c("inbox-updated").attr("type", "button").attr("hidden", "")
 					.click(() => this.order_rows(true));
+				this.pins_box();   // Browse's pinned lists (AIRail: Waiting on you)
 				this.$pinned = div.c("inbox-pinned flush-stack");
 				this.$list = div.c("inbox-list flush-stack");
 			});
@@ -186,34 +164,6 @@ export default class Rail {
 		});
 	}
 	foot_words(){}
-
-	grip(){
-		const k = this.key + "-rail-w";
-		grip({ from: "start", write: px => this.size(px), done: w => this.store_set(k, w + "px"),
-			reset: () => { this.store_drop(k); this.size(); } });
-	}
-
-	/* ⚠ THE DETAIL COLUMN IS `page.$pages` — core's own word for "where my child pages
-	   mount" (`Page.container()`). That is the whole master–detail: a row's page renders
-	   here, so the list never has to know what one looks like. */
-	detail(){
-		this.$detail = div.c("inbox-detail", () => { this.empty(); });
-	}
-
-	empty(){
-		div.c("inbox-empty muted", () => {
-			span("Pick something on the left.");
-			small("It opens here and stays here while the list keeps filling.");
-		});
-	}
-
-	sub(){ this.$sub = div.c("inbox-sub"); }
-
-	size(px){
-		const w = px ? Math.round(Math.max(200, Math.min(px, innerWidth - 320))) : null;
-		this.$shell.style("--inbox-rail", w ? w + "px" : "");
-		return w;
-	}
 
 	listen(){
 		this.$rows.on("pointerenter", () => { this.hovering = true; });
@@ -546,10 +496,4 @@ export default class Rail {
 		v == null ? url.searchParams.delete(k) : url.searchParams.set(k, v);
 		history.replaceState(history.state, "", url.pathname + url.search + url.hash);
 	}
-
-	/* ⚠ Storage can throw (a private window, blocked site data); a bare read once stopped
-	   the whole rail drawing. Every read and write goes through these. */
-	store_get(k){ try { return localStorage.getItem(k); } catch { return null; } }
-	store_set(k, v){ try { localStorage.setItem(k, v); } catch {} }
-	store_drop(k){ try { localStorage.removeItem(k); } catch {} }
 }

@@ -19,6 +19,7 @@ import { Agents } from "../cards/Agents.js";
 import workspace from "../cards/workspace.js";
 import { RealPage, page_events, real_title } from "../cards/real.js";
 import { Rules } from "../cards/Rules.js";
+import WaitingOnYou from "/framework/core/Page/ext/Inbox/WaitingOnYou.js";
 
 View.stylesheet(import.meta, "rail.css");
 
@@ -46,7 +47,7 @@ export default class AIRail extends Inbox.Rail {
 	yesterday_item = null;
 	followed = new Set();
 
-	shell_classes(){ return "inbox-shell ai2 bleed"; }
+	shell_classes(){ return "browse inbox-shell ai2 bleed"; }
 
 	mount(){
 		this.log = new Board({ url: BOARD_URL });
@@ -57,12 +58,14 @@ export default class AIRail extends Inbox.Rail {
 		this.cards = new CardList();
 		this.groups = new Groups();
 		this.page.auto_transcribe = auto_transcribe;
+		// WAITING ON YOU, pinned above every row (Browse.Pinned): ticking a line archives its card, the row's own × write.
+		this.waiting_list = this.pin(new WaitingOnYou({ tick: r => r.card && Rules.archive_row({ id: r.card }), changed: () => this.paint_soon() }));
 		super.mount();
 		this.$shell.el.addEventListener("click", e => workspace.keep(e));
 		// LIVE IS THE INBOX'S DEFAULT — the bare url goes to it once per load (Back returns
-		// here, no loop). A stored "off" from the old toggle is still honoured.
+		// here, no loop). A stored "off" from the old toggle is still honoured. On a phone the list is the first screen.
 		const url = this.page.url;
-		if ((location.pathname === url || location.pathname === url + "inbox/") && this.store_get(LIVEVIEW_KEY) !== "off" && !this.page.went_live){
+		if ((location.pathname === url || location.pathname === url + "inbox/") && this.store_get(LIVEVIEW_KEY) !== "off" && !this.page.went_live && innerWidth >= 640){
 			this.page.went_live = true;
 			setTimeout(() => this.router?.go(workspace.url(url + "live/" + location.search)), 0);
 		}
@@ -255,7 +258,8 @@ export default class AIRail extends Inbox.Rail {
 		// dated id — the plain literal "now" never matches a real card row, which always
 		// carries its own folder id (bug, 2026-10-03: fixing the pinned row's own lookup made
 		// this the live card list's id too, and it doubled up under its own pinned row).
-		return list.filter(it => it.id !== "now" && it.id !== this.now_real_id && it.id !== "your-prompts" && !group_cards.has(it.id) && (!this.groups.filed(it) || fresh(it)));
+		const waiting = this.waiting_list?.ids() ?? new Set();   // shown once, in Waiting on you, never twice
+		return list.filter(it => !waiting.has(it.id) && it.id !== "now" && it.id !== this.now_real_id && it.id !== "your-prompts" && !group_cards.has(it.id) && (!this.groups.filed(it) || fresh(it)));
 	}
 	pool_archived(list){ return list.filter(it => !this.groups.filed(it)); }
 	resolved(it){ return Rules.is_resolved(it); }
@@ -459,6 +463,7 @@ export default class AIRail extends Inbox.Rail {
 		this.live.on(paint);
 		this.cards.on(paint);
 		this.cards.start();
+		this.waiting_list.start();
 		this.groups.on(paint);
 		this.groups.start({ folders: this.cards, socket: this.page.app?.socket });
 		resolve_card("now").then(fold => { if (fold){ this.build_now_item(fold); this.render_pinned(); this.paint_soon(); } });
