@@ -42,3 +42,4 @@
 {"log":{"at":"2026-10-14T03:25:07-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-sessions-next"}}
 {"log":{"at":"2026-10-14T03:25:09-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-14T03:25:41-05:00","heartbeat":"answered","msg":"Idle: the task is landed (`bcc2f48fd`). The Coverage list is flat, with 12 rows above the fold at 1920. The session name now shows on first paint. Still undone: the shots card, and I haven't looked at"}}
+{"log":{"at":"2026-10-14T03:26:25-05:00","msg":"session ended (other) without landing"}}
