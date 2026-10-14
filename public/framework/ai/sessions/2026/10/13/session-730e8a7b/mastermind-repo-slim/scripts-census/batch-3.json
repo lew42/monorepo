@@ -1,0 +1,436 @@
+[
+ {
+  "file": "Server/deploy-count.mjs",
+  "bytes": 2302,
+  "header": "Read-only: how many files Cloudflare would upload from public/, before and after public/.assetsignore.",
+  "kind": "class",
+  "lowerCaseClass": true,
+  "last": "2026-10-13",
+  "refs": 9,
+  "refFiles": [
+   "public/.assetsignore",
+   "public/framework/ai/doc/repo-size.md",
+   "public/framework/ext/Refine/runs/2026-10-13/brief.md",
+   "public/framework/ext/Refine/runs/2026-10-13/clean.md",
+   "public/framework/ext/Refine/runs/2026-10-13/coverage.md",
+   "public/framework/ext/Refine/runs/2026-10-13/input.txt",
+   "public/framework/ext/Refine/runs/2026-10-13/raw.txt",
+   "public/framework/ext/Refine/runs/2026-10-13/structured-haiku.md"
+  ]
+ },
+ {
+  "file": "Server/doc-check.mjs",
+  "bytes": 5277,
+  "header": "`node Server/doc-check.mjs <task dir>` — does every module a task touched have a",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 5,
+  "refFiles": [
+   "Server/README.md",
+   "Server/doc/on-landing.md",
+   "Server/on-landing.mjs",
+   "Server/owner-check.mjs",
+   "public/framework/ai/doc/organization.md"
+  ]
+ },
+ {
+  "file": "Server/figma-roundtrip.mjs",
+  "bytes": 10682,
+  "header": "Figma ↔ code round trip, computed: node Server/figma-roundtrip.mjs",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 8,
+  "refFiles": [
+   "public/framework/ext/Figma/doc/figma-pages.md",
+   "public/framework/ext/Figma/doc/figma-to-framework.md",
+   "public/framework/ext/Figma/doc/next.md",
+   "public/framework/ext/Figma/doc/round-trip.md",
+   "public/framework/ext/Figma/readme.md",
+   "public/framework/ext/Figma/tokens/FigmaTokens.mjs",
+   "public/framework/ext/Figma/tokens/map.json",
+   "public/framework/ext/Figma/tokens/page.js"
+  ]
+ },
+ {
+  "file": "Server/health-supervisor.mjs",
+  "bytes": 16851,
+  "header": "`node Server/health-supervisor.mjs` — keeps Server/health.mjs alive, the",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-30",
+  "refs": 16,
+  "refFiles": [
+   ".claude/skills/mastermind/SKILL.md",
+   ".claude/skills/sub-mastermind/SKILL.md",
+   ".gitignore",
+   "Server/doc/health.md",
+   "Server/health.mjs",
+   "Server/window-watch.mjs",
+   "Servex/Pool.js",
+   "Servex/Worktrees.js"
+  ]
+ },
+ {
+  "file": "Server/health.mjs",
+  "bytes": 50092,
+  "header": "`node Server/health.mjs` — a standalone \"is it working\" watcher: the monitor",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 26,
+  "refFiles": [
+   ".claude/hooks/health-guard.mjs",
+   ".claude/skills/minion/improvements.md",
+   ".claude/skills/sub-mastermind/SKILL.md",
+   ".claude/skills/sub-mastermind/improvements.md",
+   ".gitignore",
+   "Server/README.md",
+   "Server/doc/health.md",
+   "Server/doc/watch.md"
+  ]
+ },
+ {
+  "file": "Server/hold.mjs",
+  "bytes": 13309,
+  "header": "THE RELOAD HOLD — one lock any agent takes before a batch of writes, so",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 34,
+  "refFiles": [
+   ".claude/hooks/auto-hold.mjs",
+   ".claude/hooks/hold-guard.mjs",
+   ".claude/hooks/ledger.mjs",
+   ".claude/hooks/readme.md",
+   ".claude/settings.json",
+   ".claude/skills/minion/SKILL.md",
+   ".claude/skills/minion/improvements.md",
+   ".claude/skills/sub-mastermind/SKILL.md"
+  ]
+ },
+ {
+  "file": "Server/https-cert.mjs",
+  "bytes": 2118,
+  "header": "Makes a self-signed https certificate for the LAN IP + localhost, with the openssl that ships in Git Bash.",
+  "kind": "class",
+  "lowerCaseClass": true,
+  "last": "2026-10-12",
+  "refs": 3,
+  "refFiles": [
+   "Server/plugins/HttpsLan.js",
+   "public/framework/ai/past-work-index.md",
+   "public/framework/ux/Dictate/doc/https-lan.md"
+  ]
+ },
+ {
+  "file": "Server/jsonl-keep.mjs",
+  "bytes": 2867,
+  "header": "keepLive(planned, fresh) — what merge.mjs writes for an append-only *.jsonl.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-30",
+  "refs": 2,
+  "refFiles": [
+   "Server/doc/worktrees.md",
+   "Server/merge.mjs"
+  ]
+ },
+ {
+  "file": "Server/junction-check.mjs",
+  "bytes": 2906,
+  "header": "JUNCTION CHECK: list every link under the worktree roots, and flag the ones into the main checkout.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 5,
+  "refFiles": [
+   ".claude/hooks/junction-guard.mjs",
+   "Server/doc/worktrees.md",
+   "Server/worktree-up.mjs",
+   "Servex/Worktrees.js",
+   "Servex/doc/processes.md"
+  ]
+ },
+ {
+  "file": "Server/junction-guard.mjs",
+  "bytes": 4307,
+  "header": "JUNCTION GUARD: refuse to delete or reinstall a directory that has a link into the main checkout.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 8,
+  "refFiles": [
+   ".claude/settings.json",
+   "Server/doc/worktrees.md",
+   "Server/junction-check.mjs",
+   "Server/merge.mjs",
+   "Server/worktree-down.mjs",
+   "Server/worktree-sweep.mjs",
+   "Server/worktree-up.mjs",
+   "Servex/Pool.js"
+  ]
+ },
+ {
+  "file": "Server/layout-check.mjs",
+  "bytes": 19497,
+  "header": "`node Server/layout-check.mjs <url...> [--widths 1280,1920,2560,3440] [--out dir] [--height 1000] [--bands]`",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-30",
+  "refs": 23,
+  "refFiles": [
+   ".claude/skills/clarity/SKILL.md",
+   ".claude/skills/servex-mastermind/SKILL.md",
+   ".claude/skills/sub-mastermind/SKILL.md",
+   ".gitignore",
+   "Server/README.md",
+   "Server/doc/review.md",
+   "Server/merge.mjs",
+   "Server/on-landing.mjs"
+  ]
+ },
+ {
+  "file": "Server/m4a2wav.mjs",
+  "bytes": 2065,
+  "header": "m4a2wav.mjs <in.m4a> <out.wav> — decode with headless Chromium's Web Audio (no ffmpeg on this machine), resample to 16 kHz mono, write 16-bit PCM WAV.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-28",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/merge.mjs",
+  "bytes": 40881,
+  "header": "`node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--quick [--asked <iso>]]` — the one serialized way to land a worktree.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 91,
+  "refFiles": [
+   ".claude/hooks/git-guard.mjs",
+   ".claude/hooks/git-guard.test.mjs",
+   ".claude/hooks/server-guard.mjs",
+   ".claude/hooks/server-guard.test.mjs",
+   ".claude/skills/every-prompt/page-assistant.md",
+   ".claude/skills/mastermind/SKILL.md",
+   ".claude/skills/minion/SKILL.md",
+   ".claude/skills/minion/improvements.md"
+  ]
+ },
+ {
+  "file": "Server/models-now.mjs",
+  "bytes": 8388,
+  "header": "models-now.mjs — which agent runs on which model, computed (never recalled). Read-only except --backend / --write.",
+  "kind": "class",
+  "lowerCaseClass": true,
+  "last": "2026-10-13",
+  "refs": 4,
+  "refFiles": [
+   "Servex/agents/Echo.js",
+   "Servex/ext/openrouter/readme.md",
+   "public/framework/ai/models/ModelsPage.js",
+   "public/framework/ai/models/readme.md"
+  ]
+ },
+ {
+  "file": "Server/on-landing.mjs",
+  "bytes": 13966,
+  "header": "`node Server/on-landing.mjs <task dir>` — runs text-check (walls of text), doc-check",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 22,
+  "refFiles": [
+   ".claude/hooks/ledger.mjs",
+   ".claude/skills/finish-task/SKILL.md",
+   "Server/README.md",
+   "Server/card-check.mjs",
+   "Server/doc-check.mjs",
+   "Server/doc/on-landing.md",
+   "Server/doc/watch.md",
+   "Server/doc/worktrees.md"
+  ]
+ },
+ {
+  "file": "Server/openrouter-attribute.mjs",
+  "bytes": 6332,
+  "header": "Server/openrouter-attribute.mjs — put OpenRouter's own per-call dollars onto the session snapshots.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/openrouter-gap.mjs",
+  "bytes": 3328,
+  "header": "Server/openrouter-gap.mjs — where does the OpenRouter ledger disagree with the account?",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 1,
+  "refFiles": [
+   "Servex/ext/openrouter/readme.md"
+  ]
+ },
+ {
+  "file": "Server/openrouter-reconcile.mjs",
+  "bytes": 5081,
+  "header": "Server/openrouter-reconcile.mjs — does the OpenRouter dollar total the Sessions page shows match what OpenRouter says the account spent?",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 2,
+  "refFiles": [
+   "Server/openrouter-attribute.mjs",
+   "public/framework/ai/AISession/AISessionsPage.js"
+  ]
+ },
+ {
+  "file": "Server/owner-check.mjs",
+  "bytes": 15501,
+  "header": "`node Server/owner-check.mjs <task dir>` — does a landed task actually do what the OWNER",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 3,
+  "refFiles": [
+   "Server/README.md",
+   "Server/doc/on-landing.md",
+   "Server/on-landing.mjs"
+  ]
+ },
+ {
+  "file": "Server/padding-check.mjs",
+  "bytes": 26306,
+  "header": "`node Server/padding-check.mjs <url>` — one page, the padding law, pass or fail.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 12,
+  "refFiles": [
+   ".claude/skills/layout/improvements.md",
+   ".claude/skills/sub-mastermind/improvements.md",
+   "Server/README.md",
+   "Server/crawl.mjs",
+   "Server/health.mjs",
+   "Server/on-landing.mjs",
+   "public/framework/ai/handover.md",
+   "public/framework/ai/todo.md"
+  ]
+ },
+ {
+  "file": "Server/page-ai-cost.mjs",
+  "bytes": 9626,
+  "header": "page-ai-cost.mjs — \"$N.NN of AI work\" on every page: redistributes each task's already-",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 9,
+  "refFiles": [
+   "public/framework/ai/past-work-index.md",
+   "public/framework/core/Page/ai/doc/page-work-line.md",
+   "public/framework/core/Page/doc/Page-notes.md",
+   "public/framework/core/Page/doc/asks.md",
+   "public/framework/core/Page/doc/comment-move.mjs",
+   "public/framework/core/Page/doc/comment-plan.md",
+   "public/framework/core/Page/doc/decisions.md",
+   "public/framework/core/Page/weight/ai-cost.js"
+  ]
+ },
+ {
+  "file": "Server/page-files-backfill.mjs",
+  "bytes": 1980,
+  "header": "One-time: gives every covered folder its file list, using the EXACT SAME WALK the dev",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 3,
+  "refFiles": [
+   "Server/page-files-migrate.mjs",
+   "Server/plugins/PageFiles.js",
+   "public/framework/core/Page/doc/jsonl.md"
+  ]
+ },
+ {
+  "file": "Server/page-files-migrate.mjs",
+  "bytes": 4919,
+  "header": "ONE-TIME MOVE: a folder's file list leaves page.jsonl for files.jsonl, unless the folder",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 2,
+  "refFiles": [
+   "Server/page-files-backfill.mjs",
+   "public/framework/core/Page/doc/jsonl.md"
+  ]
+ },
+ {
+  "file": "Server/page-refs.mjs",
+  "bytes": 5157,
+  "header": "page-refs.mjs — the ONE way weight data gets appended to a page's own log.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 5,
+  "refFiles": [
+   "Server/page-ai-cost.mjs",
+   "public/framework/core/Page/jsonl/doc/writers.md",
+   "public/framework/core/Page/weight/doc/design.md",
+   "public/framework/core/Page/weight/page.js",
+   "public/framework/core/Page/weight/readme.md"
+  ]
+ },
+ {
+  "file": "Server/page-size.mjs",
+  "bytes": 2820,
+  "header": "page-size.mjs — a REPORT, never a gate: every page.jsonl under public/ bigger than a",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 2,
+  "refFiles": [
+   "public/framework/ai/doc/unreferenced-verdicts.md",
+   "public/framework/core/Page/jsonl/doc/size.md"
+  ]
+ },
+ {
+  "file": "Server/readme-reach.mjs",
+  "bytes": 1740,
+  "header": "Read-only: is each item linked from its parent readme, and are chain readmes <100 lines?",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/refine-days.mjs",
+  "bytes": 7125,
+  "header": "refine-days — run the refiner on the owner's prompts of past days, newest first.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 3,
+  "refFiles": [
+   "public/framework/ext/Refine/doc/confidence.md",
+   "public/framework/ext/Refine/readme.md",
+   "public/framework/ext/Refine/runs/page.js"
+  ]
+ },
+ {
+  "file": "Server/refine-litmus.mjs",
+  "bytes": 12197,
+  "header": "refine-litmus.mjs — deliverable 7: \"the first rung of the model ladder, machine-checked.\"",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-02",
+  "refs": 1,
+  "refFiles": [
+   "public/framework/ext/Refine/doc/refine-engine.md"
+  ]
+ }
+]

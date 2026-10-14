@@ -1,0 +1,152 @@
+[
+  {
+    "file": "Servex/agents/page_tools.js",
+    "verdict": "live",
+    "reason": "34 refs, recent (2026-10-12), actively used by core Servex tools and hooks",
+    "evidence": ".claude/hooks/prompt-relay.mjs, Servex/agents/tools.js"
+  },
+  {
+    "file": "Servex/agents/policy.js",
+    "verdict": "live",
+    "reason": "17 refs, recent (2026-10-12), manages Servex agent permissions and spawning",
+    "evidence": "Servex/agents/Global.js, Servex/agents/Layers.js, .claude/skills/sub-mastermind/SKILL.md"
+  },
+  {
+    "file": "Servex/agents/readme-chain.js",
+    "verdict": "live",
+    "reason": "13 refs, recent (2026-10-08), provides context chain for fresh agents",
+    "evidence": "Servex/agents/Agents.js, Servex/agents/Layers.js"
+  },
+  {
+    "file": "Servex/agents/registry.js",
+    "verdict": "misnamed",
+    "reason": "class in lowercase file; should be Registry.js; 30 refs, live but violates naming rule",
+    "evidence": "lowerCaseClass=true, 2026-10-13"
+  },
+  {
+    "file": "Servex/agents/roles.js",
+    "verdict": "live",
+    "reason": "41 refs, recent (2026-10-13), core mapping for spawn_agent role routing",
+    "evidence": "Servex/agents/Agents.js, .claude/skills/servex-mastermind/SKILL.md"
+  },
+  {
+    "file": "Servex/agents/tidy.js",
+    "verdict": "live",
+    "reason": "16 refs, recent (2026-10-02), active tool for text refinement workflow",
+    "evidence": "Servex/agents/hitl.js, .claude/skills/code/improvements.md"
+  },
+  {
+    "file": "Servex/agents/tiers.js",
+    "verdict": "live",
+    "reason": "20 refs, very recent (2026-10-13), sole place tier becomes model id",
+    "evidence": "Servex/agents/Agents.js, Server/models-now.mjs"
+  },
+  {
+    "file": "Servex/agents/tools.js",
+    "verdict": "live",
+    "reason": "114 refs, recent (2026-10-12), core tools for agents to manipulate pages and state",
+    "evidence": ".claude/hooks/prompt-relay.mjs, Servex/agents/Echo.js"
+  },
+  {
+    "file": "Servex/asks/Asks.js",
+    "verdict": "live",
+    "reason": "15 refs, recent (2026-10-12), manages routed owner asks and their lifecycle",
+    "evidence": "Servex/Servex.js, Servex/agents/tools.js"
+  },
+  {
+    "file": "Servex/asks/stalled.js",
+    "verdict": "live",
+    "reason": "7 refs, recent (2026-09-30), pure function for stalled ask detection",
+    "evidence": "Servex/asks/Asks.js, Servex/asks/readme.md"
+  },
+  {
+    "file": "Servex/asks/tasks.js",
+    "verdict": "live",
+    "reason": "28 refs, recent (2026-10-12), implements task check requested 2026-10-02",
+    "evidence": "Servex/agents/tools.js, Servex/asks/Asks.js"
+  },
+  {
+    "file": "Servex/cards/Cards.js",
+    "verdict": "live",
+    "reason": "36 refs, very recent (2026-10-13), manages append-only card pages in sessions store",
+    "evidence": "Servex/Servex.js, Servex/TaskLoop.js"
+  },
+  {
+    "file": "Servex/ensure-deps.mjs",
+    "verdict": "live",
+    "reason": "2 refs, recent (2026-09-29), bootstrap dependency check for keeper startup",
+    "evidence": "Servex/sustain.mjs"
+  },
+  {
+    "file": "Servex/gate.mjs",
+    "verdict": "live",
+    "reason": "6 refs, recent (2026-09-24), core port 80 gate that never refuses",
+    "evidence": "Servex/sustain.mjs, Servex/Servex.js"
+  },
+  {
+    "file": "Servex/home.js",
+    "verdict": "live",
+    "reason": "34 refs, recent (2026-09-23), manages Servex state directory outside repo",
+    "evidence": "Servex/Budget.js, Servex/Follow.js"
+  },
+  {
+    "file": "Servex/index.js",
+    "verdict": "live",
+    "reason": "127 refs, recent (2026-09-23), main entry point; loads entire Servex system",
+    "evidence": "Servex/Servex.js, Server/models-now.mjs"
+  },
+  {
+    "file": "Servex/orphan.mjs",
+    "verdict": "live",
+    "reason": "6 refs, recent (2026-09-24), core infra for orphaning processes",
+    "evidence": "Servex/sustain.mjs, Servex/gate.mjs"
+  },
+  {
+    "file": "Servex/pages.js",
+    "verdict": "live",
+    "reason": "45 refs, recent (2026-10-12), core page tools for agents without shell",
+    "evidence": "Servex/Servex.js, Servex/agents/Global.js"
+  },
+  {
+    "file": "Servex/pool-heal.test.mjs",
+    "verdict": "tool",
+    "reason": "1 ref, proof script for worktree pool healing (2026-10-09); run by hand",
+    "evidence": "Servex/doc/pool-stuck-2026-10-09.md"
+  },
+  {
+    "file": "Servex/pool-hold.test.mjs",
+    "verdict": "tool",
+    "reason": "2 refs, proof script for Pool.hold fixer (2026-10-01); run by hand",
+    "evidence": "Servex/doc/fixer.md"
+  },
+  {
+    "file": "Servex/processes.test.mjs",
+    "verdict": "stale",
+    "reason": "0 refs, orphaned unit test for process monitor sorting; tests made-up data only",
+    "evidence": "0 refFiles, 2026-10-12"
+  },
+  {
+    "file": "Servex/public/docs.js",
+    "verdict": "live",
+    "reason": "12 refs, recent (2026-09-29), generates docs tab for Servex modules",
+    "evidence": "Servex/public/servex.js, Servex/public/index.html"
+  },
+  {
+    "file": "Servex/public/servex.js",
+    "verdict": "live",
+    "reason": "13 refs, recent (2026-09-30), the Servex dashboard UI",
+    "evidence": "Servex/public/index.html, Server/models-now.mjs"
+  },
+  {
+    "file": "Servex/sustain.mjs",
+    "verdict": "live",
+    "reason": "23 refs, recent (2026-09-29), the keeper; makes Servex always-on",
+    "evidence": "Servex/Servex.js, .claude/skills/mastermind/SKILL.md"
+  },
+  {
+    "file": "Servex/whisper-detach.test.mjs",
+    "verdict": "tool",
+    "reason": "1 ref, proof script for Servex restart not killing whisper (2026-10-12); run by hand",
+    "evidence": "Server/doc/transcription-crash-2026-10-12.md"
+  }
+]

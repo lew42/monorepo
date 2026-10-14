@@ -1,0 +1,437 @@
+[
+ {
+  "file": "Servex/agents/page_tools.js",
+  "bytes": 24346,
+  "header": "SIX TOOLS over `Item.Store` (core/Item/Store.js), so an agent writes a LIVE page the",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 34,
+  "refFiles": [
+   ".claude/hooks/prompt-relay.mjs",
+   "Server/RefineQueue.mjs",
+   "Server/day-prompts-refine.mjs",
+   "Servex/agents/Echo.js",
+   "Servex/agents/doc/architecture.md",
+   "Servex/agents/page_tools.test.mjs",
+   "Servex/agents/tools.js",
+   "Servex/doc/tool-process.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/policy.js",
+  "bytes": 11327,
+  "header": "Who may message and spawn whom. Kept as one small class so the rules are data",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 17,
+  "refFiles": [
+   ".claude/skills/sub-mastermind/SKILL.md",
+   "Servex/agents/Global.js",
+   "Servex/agents/Layers.js",
+   "Servex/agents/claims.js",
+   "Servex/agents/doc/api.md",
+   "Servex/agents/doc/architecture.md",
+   "Servex/agents/doc/external.md",
+   "Servex/agents/doc/layers.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/readme-chain.js",
+  "bytes": 5637,
+  "header": "README CHAIN — what a fresh agent starts already knowing about \"where it is\".",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 13,
+  "refFiles": [
+   "Servex/agents/Agents.js",
+   "Servex/agents/Layers.js",
+   "Servex/agents/directory.js",
+   "Servex/agents/doc/directory.md",
+   "Servex/agents/experts.js",
+   "Servex/agents/layers.test.mjs",
+   "Servex/agents/readme-chain.test.mjs",
+   "Servex/agents/readme.md"
+  ]
+ },
+ {
+  "file": "Servex/agents/registry.js",
+  "bytes": 6273,
+  "header": "Where every agent Servex has ever registered lives, for anything OUTSIDE this",
+  "kind": "class",
+  "lowerCaseClass": true,
+  "last": "2026-10-13",
+  "refs": 30,
+  "refFiles": [
+   "Server/doc/task-cost.md",
+   "Server/models-now.mjs",
+   "Server/session-summary.mjs",
+   "Server/spend-tree.mjs",
+   "Server/task-cost.mjs",
+   "Server/worktree-sweep.mjs",
+   "Servex/Servex.js",
+   "Servex/agents/Agents.js"
+  ]
+ },
+ {
+  "file": "Servex/agents/roles.js",
+  "bytes": 13148,
+  "header": "roles.js — the mapping role -> posture. `spawn_agent({role})` uses this to load",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 41,
+  "refFiles": [
+   ".claude/skills-archive/MANIFEST.md",
+   ".claude/skills/servex-mastermind/SKILL.md",
+   ".claude/skills/system-architect/SKILL.md",
+   ".claude/skills/system-architect/skill-usage.mjs",
+   "Server/SkillCensus.mjs",
+   "Server/models-now.mjs",
+   "Servex/agents/Agents.js",
+   "Servex/agents/Assistant.js"
+  ]
+ },
+ {
+  "file": "Servex/agents/tidy.js",
+  "bytes": 6695,
+  "header": "TIDY — revise one chunk of dictated (or rambling) text, at a LEVEL.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-02",
+  "refs": 16,
+  "refFiles": [
+   ".claude/skills/code/improvements.md",
+   "Servex/Servex.js",
+   "Servex/agents/hitl.js",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "Servex/ext/local/chat.js",
+   "Servex/ext/local/readme.md",
+   "Servex/ext/refine/RefineCall.js",
+   "Servex/proof/tidy-proof.mjs"
+  ]
+ },
+ {
+  "file": "Servex/agents/tiers.js",
+  "bytes": 2916,
+  "header": "THE ONE PLACE A TIER BECOMES A MODEL ID.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 20,
+  "refFiles": [
+   ".claude/skills/openrouter/SKILL.md",
+   "Server/models-now.mjs",
+   "Servex/agents/Agents.js",
+   "Servex/agents/Dispatcher.js",
+   "Servex/agents/Echo.js",
+   "Servex/agents/Global.js",
+   "Servex/agents/Layers.js",
+   "Servex/agents/Sessions.js"
+  ]
+ },
+ {
+  "file": "Servex/agents/tools.js",
+  "bytes": 34266,
+  "header": "",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 114,
+  "refFiles": [
+   ".claude/hooks/prompt-relay.mjs",
+   ".claude/skills/css/caveats.md",
+   ".claude/skills/minion/improvements.md",
+   "Server/RefineQueue.mjs",
+   "Server/day-prompts-refine.mjs",
+   "Servex/Servex.js",
+   "Servex/agents/Echo.js",
+   "Servex/agents/Fixer.js"
+  ]
+ },
+ {
+  "file": "Servex/asks/Asks.js",
+  "bytes": 10826,
+  "header": "",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 15,
+  "refFiles": [
+   "Servex/Servex.js",
+   "Servex/agents/tools.js",
+   "Servex/asks/asks.test.mjs",
+   "Servex/asks/mark.mjs",
+   "Servex/asks/readme.md",
+   "Servex/asks/stalled.js",
+   "Servex/asks/tasks.js",
+   "public/framework/ai/asks/AskFold.js"
+  ]
+ },
+ {
+  "file": "Servex/asks/stalled.js",
+  "bytes": 3100,
+  "header": "stalled(ask, owner_row, now) — ONE pure function, no fs, no clock read: the",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-30",
+  "refs": 7,
+  "refFiles": [
+   "Servex/asks/Asks.js",
+   "Servex/asks/asks.test.mjs",
+   "Servex/asks/readme.md",
+   "Servex/asks/tasks.js",
+   "Servex/ext/refine/CardAsk.js",
+   "public/framework/ai/asks/readme.md",
+   "public/framework/ai/todo.md"
+  ]
+ },
+ {
+  "file": "Servex/asks/tasks.js",
+  "bytes": 13130,
+  "header": "Servex/asks/tasks.js — the task check the owner asked for (2026-10-02, roadmap items 1-2):",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 28,
+  "refFiles": [
+   ".claude/hooks/jsonl-schema.mjs",
+   ".gitignore",
+   "Server/page-ai-cost.mjs",
+   "Server/smoke.mjs",
+   "Servex/agents/tools.js",
+   "Servex/asks/Asks.js",
+   "Servex/asks/doc/asks-operations.md",
+   "Servex/asks/readme.md"
+  ]
+ },
+ {
+  "file": "Servex/cards/Cards.js",
+  "bytes": 34589,
+  "header": "CARDS — one folder per card, one append-only `page.jsonl` per folder, inside the sessions store (one tree, 2026-10-13):",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 36,
+  "refFiles": [
+   "Server/day-prompts-refine.mjs",
+   "Server/on-landing.mjs",
+   "Servex/Servex.js",
+   "Servex/TaskLoop.js",
+   "Servex/agents/Agents.js",
+   "Servex/agents/Assistant.js",
+   "Servex/agents/External.js",
+   "Servex/agents/Layers.js"
+  ]
+ },
+ {
+  "file": "Servex/ensure-deps.mjs",
+  "bytes": 2901,
+  "header": "ENSURE DEPS: before the keeper starts Servex, make sure the two packages it dies without are there.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 2,
+  "refFiles": [
+   "Server/doc/worktrees.md",
+   "Servex/sustain.mjs"
+  ]
+ },
+ {
+  "file": "Servex/gate.mjs",
+  "bytes": 3940,
+  "header": "THE GATE — port 80 never refuses, even while Servex is down.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-24",
+  "refs": 6,
+  "refFiles": [
+   "Servex/Processes.js",
+   "Servex/Servex.js",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "Servex/orphan.mjs",
+   "Servex/sustain.mjs",
+   "public/framework/ai/doc/design/systems-overview.md"
+  ]
+ },
+ {
+  "file": "Servex/home.js",
+  "bytes": 1945,
+  "header": "WHERE SERVEX KEEPS ITS STATE — outside the repo, always.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-23",
+  "refs": 34,
+  "refFiles": [
+   "Server/owner-check.mjs",
+   "Servex/Budget.js",
+   "Servex/Follow.js",
+   "Servex/Games.js",
+   "Servex/Heartbeat.js",
+   "Servex/Lifecycle.js",
+   "Servex/Log.js",
+   "Servex/Monitor.js"
+  ]
+ },
+ {
+  "file": "Servex/index.js",
+  "bytes": 294,
+  "header": "`node Servex/index.js` from the repo root. Everything is a field with a",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-23",
+  "refs": 127,
+  "refFiles": [
+   ".claude/skills/sub-mastermind/improvements.md",
+   ".gitignore",
+   "Server/TaskMove.test.mjs",
+   "Server/doc/session-index.md",
+   "Server/openrouter-attribute.mjs",
+   "Server/openrouter-reconcile.mjs",
+   "Server/plugins/Directory.js",
+   "Server/refine-days.mjs"
+  ]
+ },
+ {
+  "file": "Servex/orphan.mjs",
+  "bytes": 2797,
+  "header": "ORPHAN — start a process that outlives whoever started it.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-24",
+  "refs": 6,
+  "refFiles": [
+   "Server/window-lint.mjs",
+   "Server/window-watch.mjs",
+   "Servex/Process.js",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "Servex/gate.mjs",
+   "Servex/readme.md"
+  ]
+ },
+ {
+  "file": "Servex/pages.js",
+  "bytes": 12413,
+  "header": "Page tools: list, read and make pages without a shell. Every write is ONE appended line",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 45,
+  "refFiles": [
+   "Server/TaskMove.mjs",
+   "Server/figma-roundtrip.mjs",
+   "Servex/Servex.js",
+   "Servex/agents/Global.js",
+   "Servex/agents/Promote.js",
+   "Servex/agents/Subpages.js",
+   "Servex/agents/doc/architecture.md",
+   "Servex/agents/layers.test.mjs"
+  ]
+ },
+ {
+  "file": "Servex/pool-heal.test.mjs",
+  "bytes": 4241,
+  "header": "node Servex/pool-heal.test.mjs — proves the pool heals itself (worktree-pool-ready, 2026-10-09).",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 1,
+  "refFiles": [
+   "Servex/doc/pool-stuck-2026-10-09.md"
+  ]
+ },
+ {
+  "file": "Servex/pool-hold.test.mjs",
+  "bytes": 4779,
+  "header": "node Servex/pool-hold.test.mjs — proves Pool.hold(id, by) (quick-fix-path/fixer, 2026-10-01)",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-01",
+  "refs": 2,
+  "refFiles": [
+   "Servex/agents/fixer.test.mjs",
+   "Servex/doc/fixer.md"
+  ]
+ },
+ {
+  "file": "Servex/processes.test.mjs",
+  "bytes": 12304,
+  "header": "The process monitor's sorting, on made-up rows (no PowerShell, no Servex):",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Servex/public/docs.js",
+  "bytes": 5220,
+  "header": "THE DOCS TAB — every module under Servex/ and Server/ that has a readme.md,",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 12,
+  "refFiles": [
+   "Servex/public/servex.js",
+   "public/alex/framework/app/page.js",
+   "public/alex/framework/page.js",
+   "public/alex/framework/view/page.js",
+   "public/alex/page.js",
+   "public/alex/styles/bem/page.js",
+   "public/alex/styles/flex/page.js",
+   "public/alex/styles/forms/page.js"
+  ]
+ },
+ {
+  "file": "Servex/public/servex.js",
+  "bytes": 15400,
+  "header": "THE SERVEX DASHBOARD — every project on this machine, every Claude agent",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-30",
+  "refs": 13,
+  "refFiles": [
+   ".claude/skills/css/improvements.md",
+   "Server/models-now.mjs",
+   "Servex/agents/awaken-race.test.mjs",
+   "Servex/agents/doc/architecture.md",
+   "Servex/agents/spawn-worktree.test.mjs",
+   "Servex/doc/echo.md",
+   "Servex/public/docs.js",
+   "Servex/public/index.html"
+  ]
+ },
+ {
+  "file": "Servex/sustain.mjs",
+  "bytes": 20430,
+  "header": "THE KEEPER — the one thing that makes Servex actually always-on.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 23,
+  "refFiles": [
+   ".claude/skills/mastermind/SKILL.md",
+   ".claude/skills/sub-mastermind/SKILL.md",
+   "Server/doc/worktrees.md",
+   "Server/models-now.mjs",
+   "Servex/Process.js",
+   "Servex/agents/doc/lifecycle.md",
+   "Servex/agents/ops.js",
+   "Servex/agents/revive-proof.mjs"
+  ]
+ },
+ {
+  "file": "Servex/whisper-detach.test.mjs",
+  "bytes": 2917,
+  "header": "node Servex/whisper-detach.test.mjs — proves a Servex restart no longer kills whisper-server (2026-10-12).",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 1,
+  "refFiles": [
+   "Server/doc/transcription-crash-2026-10-12.md"
+  ]
+ }
+]
