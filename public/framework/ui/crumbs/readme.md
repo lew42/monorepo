@@ -27,3 +27,4 @@ and cannot disagree with where you are.
 
 - [Overview](/framework/ui/crumbs/) — both variants, and why there is no function
 - Files: `crumbs.js` (the one CSS rule), `page.js` (the demo and its own explanation)
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
