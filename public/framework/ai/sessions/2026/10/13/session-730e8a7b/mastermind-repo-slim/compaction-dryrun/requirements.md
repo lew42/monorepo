@@ -1,6 +1,10 @@
 # Smart compaction, as a dry-run script: what a compacted task log would keep and lose
 
-Budget: $10. Load the `sub-mastermind` and `code` skills first. The owner's words: `../requirements.md` ask 4 ("a smart compaction system… for completed tasks where there wasn't anything surprising… when we compact we lose the deltas and the pathway… compress the deltas significantly without losing much of the history or decision-making… a really complex question; definitely do not do anything destructive"). The proposal is written: `public/framework/ai/doc/repo-size.md`, the compaction section (when a log may be compacted, what a compacted record keeps, what it loses, the one rule that keeps the decision path). Your log is this dir's `task.jsonl`. CLAUDE.md: never destructive; compute don't recall; classes not function bags.
+- Budget: $10. Load the `sub-mastermind` and `code` skills first.
+- The owner's words: `../requirements.md` ask 4 ("compress the deltas significantly without losing much of the history or decision-making… definitely do not do anything destructive").
+- The proposal is written: the compaction section of `public/framework/ai/doc/repo-size.md` (when a log may be compacted, what is kept, what is lost, the rule that keeps the decision path).
+- Your log is this dir's `task.jsonl`.
+- CLAUDE.md: never destructive; compute don't recall; classes not function bags.
 
 ## Deliverable: `Server/Compact.mjs` (`class Compact`), dry run only, and `ai/sessions/doc/compaction.md`
 

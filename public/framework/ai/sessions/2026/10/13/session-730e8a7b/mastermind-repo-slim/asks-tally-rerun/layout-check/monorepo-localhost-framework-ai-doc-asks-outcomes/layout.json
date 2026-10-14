@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/doc/asks-outcomes",
+ "widths": {
+  "1280": {
+   "empty": 0.542,
+   "widest_text": 598,
+   "widest_text_sample": "None: every feature you asked about toda",
+   "overflow_x": false,
+   "items": 2658,
+   "narrow_share": 0.708
+  },
+  "1920": {
+   "empty": 0.68,
+   "widest_text": 636,
+   "widest_text_sample": "None: every feature you asked about toda",
+   "overflow_x": false,
+   "items": 2658,
+   "narrow_share": 0.727
+  },
+  "2560": {
+   "empty": 0.71,
+   "widest_text": 716,
+   "widest_text_sample": "None: every feature you asked about toda",
+   "overflow_x": false,
+   "items": 2658,
+   "narrow_share": 0.847
+  },
+  "3440": {
+   "empty": 0.781,
+   "widest_text": 716,
+   "widest_text_sample": "None: every feature you asked about toda",
+   "overflow_x": false,
+   "items": 2658,
+   "narrow_share": 0.847
+  }
+ },
+ "errors": [
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}
