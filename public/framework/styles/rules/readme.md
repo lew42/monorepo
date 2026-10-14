@@ -18,6 +18,6 @@ Every rule that can be measured has an `ext/DesignTool` rule of the same name an
 
 ## More
 - Page: [/framework/styles/rules/](/framework/styles/rules/) — the five rules and their live examples.
-- [`doc/decisions.md`](./doc/decisions.md) why in the site not only a skill, the enforcement seam, the open `.measure` default, what is missing · `doc/files.jsonl` lists the files in this directory
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why) · [`doc/decisions.md`](./doc/decisions.md) why in the site not only a skill, the enforcement seam, the open `.measure` default, what is missing · `doc/files.jsonl` lists the files in this directory
 - Rules: [`cascade.md`](./cascade.md) where a declaration belongs · [`proportion.md`](./proportion.md) two floors, one clamp · [`nesting.md`](./nesting.md) what contains what · [`robust.md`](./robust.md) seven arrangements, four widths · [`reuse.md`](./reuse.md) before a new block
 - Files that matter: `page.js` (declares the five), `demos.js` (padding ladder, nesting table), `rules.css` (demo frames only)
