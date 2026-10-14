@@ -13,7 +13,7 @@ export default new Doc({
 	icon: "search",
 
 	files: "Search.js Omnibox.js Search.css tags.js page.js readme.md",
-	notes: "decisions corpus filters",
+	notes: "decisions corpus filters architecture",
 
 	// The box lives on THIS page only (2026-09-06 — a site-wide box was breaking
 	// other pages). `activated()`/`deactivated()` fire once per visit here, not once per site —
