@@ -62,3 +62,4 @@ Owner rule (2026-10-12): summaries and anything waiting on the owner go on the F
 ## Waiting on the owner
 - ⬜ Which numbers win per row of the token table in token-sync.md (site vs Figma).
 - ⬜ `dark`: Figma `#675F56` vs site `#42404B`.
+- ✅ ds-rows ([report](kit/ds-rows.md)): 11 DS pages on section rows (400 head + FILL specimens, min 480 wrap); single-stat block 277:104073; Stat hairline. Index re-run.
