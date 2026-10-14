@@ -1,4 +1,4 @@
-import { Page, View, div, p, h3, h4, button, span, input, details, summary, table, tr, th, td } from "/app.js";
+import { Page, View, div, p, md, h3, h4, button, span, input, details, summary, table, tr, th, td } from "/app.js";
 import FigSelect from "./FigSelect.js";
 FigSelect.install();
 View.stylesheet(import.meta, "tokens.css");
@@ -111,9 +111,9 @@ export default new Page({
 	width: "full",
 	description: "The Figma file's variables as opt-in --fig-* CSS: the same schemes, modes and spacing, coded.",
 	content() {
-		p("Generated from the Figma variables by FigmaTokens.mjs. Nothing else on the site loads it; a page opts in. The numbers and the plan: [doc/token-sync.md](/framework/ext/Figma/doc/token-sync.md).");
+		md("Generated from the Figma variables by FigmaTokens.mjs. Nothing else on the site loads it; a page opts in. The numbers and the plan: [doc/token-sync.md](/framework/ext/Figma/doc/token-sync.md).");
 		h3("Figma variable → site property");
-		p(`${map.summary.same_value} of ${map.summary.total} variables match the site by name and value (${map.summary.aliased} are aliases of the site property, one definition), ${map.summary.same_role} by role under another name, ${map.summary.figma_only} exist only in Figma. Why and what next: [doc/round-trip.md](/framework/ext/Figma/doc/round-trip.md).`);
+		md(`${map.summary.same_value} of ${map.summary.total} variables match the site by name and value (${map.summary.aliased} are aliases of the site property, one definition), ${map.summary.same_role} by role under another name, ${map.summary.figma_only} exist only in Figma. Why and what next: [doc/round-trip.md](/framework/ext/Figma/doc/round-trip.md).`);
 		colours();
 		details(() => {
 			summary("All " + map.summary.total + " variables");
