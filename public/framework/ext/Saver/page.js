@@ -59,7 +59,7 @@ export default new Doc({
 	subject: Saver,
 	properties: "writing pending",
 	methods:    "save load delete drain saving write assign",
-	notes:      "backends decisions architecture",
+	notes:      "backends decisions",
 	files:      "Saver.js FileSaver.js LocalStorageSaver.js MemorySaver.js page.js",
 
 	content(){
