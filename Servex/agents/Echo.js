@@ -3,10 +3,8 @@ import { model } from "./tiers.js";
 import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
-import { clean } from "../../public/framework/ext/Refine/engine.js";
-import { structure } from "../../public/framework/ext/Refine/structure.js";
+import { run_refine } from "../ext/refine/run.js";
 import { env_for } from "../ext/local/provider.js";
-import VoicePage from "../ext/refine/VoicePage.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
@@ -326,25 +324,15 @@ export default class Echo {
 		// one seam that needs touching — neither clean() nor structure() changes.
 		const call = local_refine_enabled()
 			? (p, o) => base_call(p, { ...o, model: LOCAL_REFINE_MODEL, env: env_for("local") })
-				.catch(e => { this.servex.say?.(`echo: local model unavailable (${e.message || e}), falling back`); return base_call(p, o); })
+				.catch(e => { this.servex.say?.(`echo: local model unavailable (${e.message || e}), falling back`); return base_call(p, { ...o, model: undefined }); })
 			: base_call;
-		// The same five-stage view the Refine page fills (VoicePage -> the session page's VoiceFlow): one dictation system, one widget (Dictate/doc/asks.md, vscode-voice-path).
-		// Best-effort: a page-write failure never stops the echo. The prompt id matches the Refine button's ("t" + the line's time), so pressing it later refreshes these stages.
-		const voice = VoicePage.get(session_id, "t" + (Date.parse(at) || Date.now()).toString(36), "echo");
-		const show = work => work(voice).catch(e => this.servex.say?.(`echo: voice page write failed: ${e.message || e}`));
-		await show(v => v.raw(text, { final: true, source: "vscode" }));
-		const t_clean = Date.now();
-		let cleaned, built;
-		try { cleaned = await clean(text, { call }); }
-		catch (e){ await show(v => v.failed(e?.message ?? e)); throw e; }   // the page says it stopped instead of staying on "Cleaning"
-		const { sentences, strikes, misheard, flags } = cleaned;
-		await show(v => v.clean(sentences.map(x => x.text), { ms: Date.now() - t_clean }));
-		const t_structure = Date.now();
-		try { built = await structure(sentences, { call }); }
-		catch (e){ await show(v => v.failed(e?.message ?? e)); throw e; }
-		await show(v => v.structured(built.md ?? "", { ms: Date.now() - t_structure }));
-		await show(v => v.notes([], { ms: 0 }));
-		voice.done();
+		// ONE CALL with the Refine buttons: run_refine (Servex/ext/refine/run.js) fills the same five-stage page (VoicePage) and runs
+		// clean() + structure(); `light` skips the PromptLog lines and the clarity/notes calls Echo never made. The prompt id matches
+		// the Refine button's ("t" + the line's time), so pressing it later refreshes these stages.
+		const r = await run_refine({ text, session: session_id, prompt: "t" + (Date.parse(at) || Date.now()).toString(36), source: "vscode", by: "echo", light: true, call: () => call });
+		if (!r.ok) throw new Error(r.why);
+		const { sentences, strikes, misheard, flags } = r.clean;
+		const built = r.structure;
 		const sections = this.sections_with_ids(this.parse_sections(built.md));
 		const cited = [...new Set(sections.flatMap(s => s.items.flatMap(i => i.cites)))].sort((a, b) => a - b);
 		// `confidence`, per sentence -> section (day-cards, 2026-10-04): structure.js's own

@@ -18,11 +18,16 @@ import LiveClean from "./LiveClean.js";
 import PromptLog from "../../../public/framework/ai/AISession/PromptLog.js";
 
 
-/* With `session` (a Claude session uuid) the prompt is also kept in that session's own log
+/* ONE CALL FOR THE BUTTONS AND ECHO (voice-dedupe, 2026-10-13): the Refine buttons reach this through /api/refine;
+ * `Servex/agents/Echo.js` calls it too, with `call` (a `stage => (prompt, opts) => answer` factory, so Echo can run
+ * local-first and total its cost), `by` (the page writer's name) and `light: true` (raw, clean, structured, then done:
+ * no PromptLog lines, no clarity scores, no notes call). The page shows the same stages either way.
+ *
+ * With `session` (a Claude session uuid) the prompt is also kept in that session's own log
  * (ai/AISession/PromptLog.js): raw first and untouched, then the clean sentences set as final, then
  * the refined cards citing sentence indexes, then the Haiku notes (clarity, alternates, names, tags).
  * Logging never fails the refine: a refusal comes back as `log_error`. */
-export async function run_refine({ text, model = RefineCall.model(), clarity_model = RefineCall.model(), session = "", prompt = "", source = "typed", inbox = null, clean_live = false } = {}){
+export async function run_refine({ text, model = RefineCall.model(), clarity_model = RefineCall.model(), session = "", prompt = "", source = "typed", inbox = null, clean_live = false, call: make_call = null, light = false, by: writer } = {}){
 	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
 	if (text.length > 20000) return { ok: false, why: "text is over 20000 characters" };
 	let voice = null;   // outside the try so the catch can mark a generated prompt id as failed too
@@ -30,16 +35,17 @@ export async function run_refine({ text, model = RefineCall.model(), clarity_mod
 		const t0 = Date.now();
 		const stages = {};
 		const id = session ? (prompt || PromptLog.new_id()) : "";
+		const notes_wanted = !!id && !light;
 		const log_errors = [];
 		let tag_notes = null;
 		// Each stage is also written onto the session's page as it lands (VoicePage.js), so a tab watching it sees raw -> cards live.
-		voice = id ? VoicePage.get(session, id) : null;
+		voice = id ? VoicePage.get(session, id, writer) : null;
 		const page = work => voice ? work(voice).catch(e => log_errors.push("page: " + String(e.message ?? e))) : null;
 		await page(v => v.raw(text, { final: true, source }));
-		const log = async line => { if (id) try { await PromptLog.add(session, { prompt: id, ...line }, "refine"); } catch (e){ log_errors.push(String(e.message ?? e)); } };
+		const log = async line => { if (notes_wanted) try { await PromptLog.add(session, { prompt: id, ...line }, "refine"); } catch (e){ log_errors.push(String(e.message ?? e)); } };
 		await log({ stage: "raw", text, source });
 		const [result, runs] = await RefineCall.collect(async () => {
-			const call = stage => (p, o) => RefineCall.run(p, { ...o, stage });
+			const call = make_call ?? (stage => (p, o) => RefineCall.run(p, { ...o, stage }));
 			const spent = stage => +(RefineCall.sink ?? []).filter(r => r.stage === stage).reduce((a, r) => a + r.cost_usd, 0).toFixed(5);   // measured, from the calls so far
 			const t_clean = Date.now();
 			// clean_live (opt-in): one small Haiku call per sentence, each landing on the page as it returns; costs more than one call (LiveClean.js).
@@ -52,10 +58,13 @@ export async function run_refine({ text, model = RefineCall.model(), clarity_mod
 			const t_next = Date.now();
 			const [s, clar, notes] = await Promise.all([
 				structure(c.sentences, { call: call("structure"), model }).then(async r => (stages.structure_ms = Date.now() - t_next, await page(v => v.structured(r?.md ?? "", { ms: stages.structure_ms, cost: spent("structure") })), r)),
-				ClarityScorer.score(c.sentences, { model: clarity_model }).then(r => (stages.clarity_ms = Date.now() - t_next, r)),
-				id ? Annotator.annotate(c.sentences.map(x => x.text)).then(r => (stages.notes_ms = Date.now() - t_next, r)) : [],
+				light ? [] : ClarityScorer.score(c.sentences, { model: clarity_model }).then(r => (stages.clarity_ms = Date.now() - t_next, r)),
+				notes_wanted ? Annotator.annotate(c.sentences.map(x => x.text)).then(r => (stages.notes_ms = Date.now() - t_next, r)) : [],
 			]);
-			if (id){
+			if (light && id){
+				await page(v => v.notes([], { ms: 0 }));
+				voice?.done();
+			} else if (id){
 				const parsed = Outline.parse(s?.md ?? "");
 				await log({ stage: "refined", subject: parsed.subject, cards: Outline.indexes(parsed.sections) });
 				const by = new Map(notes.map(n => [n.i, n]));
