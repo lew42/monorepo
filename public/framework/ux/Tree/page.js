@@ -258,7 +258,7 @@ export default new Doc({
 	related: "/framework/ui/tree/ /layouts/shell/ /imagine/gallery/lists/",
 
 	files: "Tree.js TreeKeys.js TreeDrag.js Tree.css page.js readme.md",
-	notes: "decisions",
+	notes: "decisions architecture",
 
 	children: [
 		demo.page("compare", compare, {
