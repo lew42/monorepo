@@ -373,9 +373,9 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
 			.click(() => this.close().then(() => tabs.open(tab)));
 	}
 
-	// The one New session button: ux/Dictate/chat.js's (doc/chat.md). Older sheet classes have no mount, so it does nothing there.
+	// The one New session button: ux/Dictate/chat.js's (doc/chat.md). Older sheet classes have no mount of their own, so they reset the shared session.
 	new_session_button(){
-		return chat_new_session_button(() => this.mount)
+		return chat_new_session_button(() => this.mount ?? chat)
 			.ac("drawer-rail-sheet-link drawer-rail-sheet-new")
 			.attr("title", "Clear this sheet and start a fresh conversation");
 	}

@@ -10,7 +10,9 @@ async function surface(name, w, h, open){
   await p.goto(base + "/framework/", { waitUntil: "networkidle" });
   await open(p);
   await p.waitForTimeout(800);
+  const real_open = await p.evaluate(() => globalThis.$dictate_widget?.mic_active?.() ?? null);
   const mi = await p.evaluate(async () => {
+    document.querySelector(".ux-dictate-ptt-mic")?.classList.add("showing");   // seam: the floating mic shows only on its hotkey
     const M = (await import("/framework/ux/Dictate/MicIndicator.js")).default;
     M.set_open(true); M.set_level(0.6);   // the exact setter Dictate.set_state/on_level call (fake mic may not reach Whisper)
     await new Promise(r => setTimeout(r, 200));
@@ -27,12 +29,14 @@ async function surface(name, w, h, open){
     await p.waitForTimeout(800);
     res[name + "-" + w + "-press"] = { before, after: await cur() };
   }
-  res[name + "-" + w] = { mi, btns, errs };
+  res[name + "-" + w] = { real_open, mi: mi.filter(m => m.shown).length + " shown of " + mi.length, btns, errs };
   await ctx.close();
 }
 await surface("sheet", 400, 800, async p => { await p.click(".drawer-rail-ai"); await p.waitForSelector(".drawer-rail-sheet .ux-dictate-widget, .drawer .ux-dictate-widget", { timeout: 10000, state: "attached" }); });
 await surface("collapsed", 400, 800, async p => {});   // dot on the collapsed ✦ button
 await surface("drawer", 1200, 800, async p => { await p.click(".drawer-menu"); await p.waitForSelector(".drawer-rail-sheet .ux-dictate-widget, .drawer .ux-dictate-widget", { timeout: 10000, state: "attached" }); });
 await surface("closed-menu", 1200, 800, async p => {});
+await surface("floating", 400, 800, async p => {});
+await surface("floating", 1200, 800, async p => {});
 console.log(JSON.stringify(res, null, 1));
 await close();

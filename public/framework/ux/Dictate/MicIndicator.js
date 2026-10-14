@@ -31,13 +31,14 @@ export default class MicIndicator extends View {
 			span.c("ux-dictate-mic-indicator-label", "listening");
 			div.c("ux-dictate-mic-indicator-bar", () => { this.$fill = div.c("ux-dictate-mic-indicator-fill"); });
 		}
+		this.born = performance.now();
 		MicIndicator.views.add(this);
 		this.sync();
 	}
 
 	sync(){
-		if (!this.el.isConnected && this.seen){ MicIndicator.views.delete(this); return; }
 		if (this.el.isConnected) this.seen = true;
+		else if (this.seen || performance.now() - this.born > 2000){ MicIndicator.views.delete(this); return; }   // gone, or never mounted
 		this.el.classList.toggle("open", MicIndicator.open);
 		this.paint();
 	}
