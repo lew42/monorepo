@@ -10,16 +10,12 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 
 - [ ] `Server/session-cost.mjs` (198 bytes): Explicitly superseded by public/framework/ai/AISession/AISessionAudit.mjs; stub shim marked for removal one release after rename
 
-## Misnamed (queued in ai/todo.md, rename is a later brief)
+## Misnamed (queued in ai/todo.md; batch 1 renamed five at 1a56eebd0 with `node Server/RenameScript.mjs`, 21 remain)
 
 - `Server/ai2-overview.mjs`: Function bag (kind: bag) that should be a class per code skill rules
-- `Server/antigravity-usage.mjs`: Function bag (kind: bag) that should be a class per code skill rules
-- `Server/archive-sessions.mjs`: Class in lowercase filename violates naming rule; should be ArchiveSessions.mjs
 - `Server/ask-each.mjs`: Function bag (kind: bag) with 26 references that should be a class
 - `Server/audit.mjs`: Function bag (kind: bag) that should be a class per code skill rules
-- `Server/browser-check.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/browser.mjs`: Function bag (kind: bag) with 45 refs that should be a class; core browser launcher
-- `Server/card-check.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/collab.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/council.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/crawl.mjs`: Function bag (kind: bag) that should be a class per code skill rules
@@ -27,7 +23,6 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 - `Server/day-spend.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/decide.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/deploy-count.mjs`: class in lowercase file
-- `Server/https-cert.mjs`: class in lowercase file
 - `Server/models-now.mjs`: class in lowercase file
 - `Server/repo-size.mjs`: Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format)
 - `Server/retire-files.mjs`: Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format)
@@ -84,14 +79,14 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 | `Server/TranscribeLoop.mjs` | live | 13171 | 2026-10-12 | `node Server/TranscribeLoop.mjs [--minutes 10] [--out dir] [--reload-every 3] [--churn] [--against <origin>]` | Core transcription loop; referenced by Whisper plugin and transcription docs |
 | `Server/Unreferenced.mjs` | live | 5697 | 2026-10-13 | Server/Unreferenced.mjs — CENSUS of files nothing points at. Candidates, not verdicts; moves and deletes nothing. Doc: public/framework/ai/doc/unreferenced.md | Core census utility finding files with no references; documented |
 | `Server/ai2-overview.mjs` | misnamed | 16447 | 2026-10-12 | Server/ai2-overview.mjs — builds public/framework/ai/rail/overview/overview.json | Function bag (kind: bag) that should be a class per code skill rules |
-| `Server/antigravity-usage.mjs` | misnamed | 6656 | 2026-10-06 | antigravity-usage.mjs — Fetches Antigravity model quotas and plan status. | Function bag (kind: bag) that should be a class per code skill rules |
-| `Server/archive-sessions.mjs` | misnamed | 13135 | 2026-10-13 | Move a month's untracked session pictures to the archive drive; tracked records stay. Doc: public/framework/ai/sessions/doc/picture-archive.md | Class in lowercase filename violates naming rule; should be ArchiveSessions.mjs |
+| `Server/AntigravityUsage.mjs` | renamed (1a56eebd0) | 6656 | 2026-10-06 | AntigravityUsage.mjs — Fetches Antigravity model quotas and plan status. | Function bag (kind: bag) that should be a class per code skill rules |
+| `Server/ArchiveSessions.mjs` | renamed (1a56eebd0) | 13135 | 2026-10-13 | Move a month's untracked session pictures to the archive drive; tracked records stay. Doc: public/framework/ai/sessions/doc/picture-archive.md | Class in lowercase filename violates naming rule; should be ArchiveSessions.mjs |
 | `Server/ask-each.mjs` | misnamed | 6626 | 2026-10-12 | Ask-each — ask a model one question at a time, in one continuous session, | Function bag (kind: bag) with 26 references that should be a class |
 | `Server/audit.mjs` | misnamed | 9622 | 2026-10-02 | audit.mjs — read every task's audit.jsonl (one line per auditor, written by minions through | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/branch-prune.mjs` | tool | 2185 | 2026-10-12 | `node Server/branch-prune.mjs [--dry/--run]` — prune merged `worktree/*` branches nobody has checked out. | Maintenance script run by hand to prune merged worktree branches |
-| `Server/browser-check.mjs` | misnamed | 4265 | 2026-10-12 | Server/browser-check.mjs — what a developer tools console would show, for one URL, without | Function bag (kind: bag) that should be a class per code skill rules |
+| `Server/BrowserCheck.mjs` | renamed (1a56eebd0) | 4265 | 2026-10-12 | Server/BrowserCheck.mjs — what a developer tools console would show, for one URL, without | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/browser.mjs` | misnamed | 8357 | 2026-10-03 | Server/browser.mjs — the one way any script in this repo starts Chromium. | Function bag (kind: bag) with 45 refs that should be a class; core browser launcher |
-| `Server/card-check.mjs` | misnamed | 4220 | 2026-10-06 | `node Server/card-check.mjs <card-dir or card page.jsonl>` — checks a card against the card standard: | Function bag (kind: bag) that should be a class per code skill rules |
+| `Server/CardCheck.mjs` | renamed (1a56eebd0) | 4220 | 2026-10-06 | `node Server/CardCheck.mjs <card-dir or card page.jsonl>` — checks a card against the card standard: | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/clarity.mjs` | live | 6489 | 2026-10-08 | `node Server/clarity.mjs landing <task dir>` or `node Server/clarity.mjs proposal <file>` | Script run by hand; referenced by landing and review systems |
 | `Server/collab.mjs` | misnamed | 42397 | 2026-09-29 | `node Server/collab.mjs <taskdir> [--mock]` | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/council.mjs` | misnamed | 14889 | 2026-10-13 | Server/council.mjs — The Feedback Council collector and runner. | Function bag (kind: bag) that should be a class per code skill rules |
@@ -105,7 +100,7 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 | `Server/health-supervisor.mjs` | live | 16851 | 2026-09-30 | `node Server/health-supervisor.mjs` — keeps Server/health.mjs alive, the | referenced in Servex and loaded by skills |
 | `Server/health.mjs` | live | 50092 | 2026-10-13 | `node Server/health.mjs` — a standalone "is it working" watcher: the monitor | loaded by health-guard hook |
 | `Server/hold.mjs` | live | 13309 | 2026-10-12 | THE RELOAD HOLD — one lock any agent takes before a batch of writes, so | loaded by config in settings.json |
-| `Server/https-cert.mjs` | misnamed | 2118 | 2026-10-12 | Makes a self-signed https certificate for the LAN IP + localhost, with the openssl that ships in Git Bash. | class in lowercase file |
+| `Server/HttpsCert.mjs` | renamed (1a56eebd0) | 2118 | 2026-10-12 | Makes a self-signed https certificate for the LAN IP + localhost, with the openssl that ships in Git Bash. | class in lowercase file |
 | `Server/jsonl-keep.mjs` | tool | 2867 | 2026-09-30 | keepLive(planned, fresh) — what merge.mjs writes for an append-only *.jsonl. | helper for merge.mjs, used in worktree workflow |
 | `Server/junction-check.mjs` | live | 2906 | 2026-09-29 | JUNCTION CHECK: list every link under the worktree roots, and flag the ones into the main checkout. | referenced in Servex worktree system |
 | `Server/junction-guard.mjs` | live | 4307 | 2026-09-29 | JUNCTION GUARD: refuse to delete or reinstall a directory that has a link into the main checkout. | loaded by config in settings.json |
