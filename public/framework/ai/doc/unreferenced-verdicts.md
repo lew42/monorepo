@@ -13,7 +13,7 @@ The census matches a bare file name only when no other file shares it, so `card.
 
 Spot-check (Sonnet, 15 verdicts read against the files): 11 agreed, 4 changed (the 3 `core/Page/card` files and `ext/Ask/mic.js`, all "dead" to "runtime-loaded" or "record"). Haiku was too eager only on "dead"; its "runtime-loaded" calls checked out 8 of 8 (Layout.css, baseline.css, timeline.css, shell.css, Refine `clean.md` ×3, Part.js shim).
 
-Census diff against the 10-13 list: 126 then, 167 now. The 41 extra come from the session-store move and the one-tree apply (more folders now count as live code, fewer dated dirs hide references), not from new stray files. Total size of all candidates: 1245246 B.
+Census diff against the 10-13 list: 126 then, 167 now. The 41 extra are not isolated: modules moved today (ext/AITask to ai/AITask, the one-tree apply) changed which paths resolve, so some references no longer match. The table below is the current truth. Total size of all candidates: 1245246 B.
 
 ## Every file
 
