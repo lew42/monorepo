@@ -1,0 +1,1016 @@
+diff --git a/public/framework/core/Search/doc/architecture.md b/public/framework/core/Search/doc/architecture.md
+new file mode 100644
+index 000000000..45584a3ea
+--- /dev/null
++++ b/public/framework/core/Search/doc/architecture.md
+@@ -0,0 +1,76 @@
++# Search architecture — the corpus is the Router's own walk
++
++`Search` (`Search.js`) is the list of every page the Router can reach, plus the rules that order it. It has no DOM. `Omnibox` (`Omnibox.js`) is the one box that shows it, and it lives only on [the Search page](/framework/core/Search/). Pattern: a plain class for data (`Search`), a `View` for the picture (`Omnibox`), and a `Search.Filters` helper class that lives in the same file.
++
++## The corpus is built by the Router, one url at a time
++
++**Decided:** every row is made by `Page.load(url, 0)`, the same call `Page.child()` makes on navigation. The urls to try come from `/directory.json`.
++**Why:** a result must open. A row built from a filesystem guess ("Colstyles" from a folder name) or a hand list can promise a page the Router cannot open.
++**Instead:** a title guessed from the directory name (fast, but wrong and with no description), or a build-time manifest (a build step, which is forbidden).
++**Detail:** [corpus](./corpus.md), [decisions](./decisions.md#the-corpus-is-the-routers-walk-not-a-filesystem-index)
++
++## Nothing is read until somebody searches
++
++**Decided:** `Omnibox.open()` calls `search.build()` for the first time. A page load never builds the corpus.
++**Why:** about 540 to 840 dynamic imports cost about a second and 21 MB. A reader who never searches should pay nothing.
++**Instead:** building on page load (a cost for every visitor) or in a worker (more moving parts for one second).
++**Detail:** [corpus](./corpus.md#what-it-costs)
++
++## The box lives on one page, not the whole site
++
++**Decided:** `core/Search/page.js` builds the box in `activated()` and calls `unmount()` in `deactivated()`. Unmount removes the document listeners and the DOM.
++**Why:** a site-wide box repainted other pages.
++**Instead:** a site-wide box, which broke other pages. Its keyboard shortcuts would also fire everywhere.
++**Detail:** [decisions](./decisions.md#the-prototype-was-always-visible-this-one-is-always-visible-too)
++
++## Ranking: the title answers first, then the description
++
++**Decided:** `Search.rank(text)` sorts by six tiers (`Search.TIERS`): exact title, title prefix, word start, title contains, description contains, and every word found somewhere. Ties break on shorter title, shallower url, then a to z. An empty query lists the shallowest pages first.
++**Why:** a title is three words and a description is a sentence. "Titles first, then descriptions" is what autocomplete users expect.
++**Instead:** the prototype's buckets split "this page's subtree" from "everywhere". They are dropped, because the box belongs to the window, not to the page under it.
++**Detail:** [decisions](./decisions.md#ranking-title-tiers-then-a-description-tier)
++
++## Filters: chips are OR inside a group, AND between groups
++
++**Decided:** `Search.Filters.match()` requires any chosen value in each group. A group with no chosen values is skipped. Groups are built from the corpus (`section` and the four tag axes from `tags.js`). A group with fewer than two options is not drawn.
++**Why:** "no chip lit means everything" needs no special case. Building from the corpus means new `tags:` appear without code changes.
++**Instead:** a hand-typed list of groups, which goes stale.
++**Detail:** [filters](./filters.md)
++
++## Forty cards, then a button
++
++**Decided:** `Omnibox` draws `PAGE = 40` cards, then a "Show more" button. A new query or chip resets the count.
++**Why:** a wall of forty is scannable; the whole corpus is not.
++**Instead:** a scroll-loaded list, which needs a scroll container and more state.
++
++## The wall is `auto-fill`, not the `.grid.auto` utility
++
++**Decided:** `Search.css` declares `repeat(auto-fill, minmax(min(var(--column), 100%), 1fr))` with `--column: 17em`. That gives 1 column at 400px, 4 at 1280px and 7 at 3440px.
++**Why:** `.grid.auto` is `auto-fit`, which collapses empty tracks into huge cards. A util-layer class also cannot be overridden from this module's theme layer.
++**Instead:** `.grid.auto`, rejected for the reason above.
++
++## Some urls are skipped, each with a reason
++
++**Decided:** `Search.prototype.skip` lists url prefixes the corpus will not load. Each entry is a citation to its reason in `Search.js`.
++**Why:** `/framework/core/new/` is prior art that one page throws on import. The personal sandboxes restyle the whole site when imported (see [corpus](./corpus.md#the-hazard-this-found-importing-a-page-changes-the-document)).
++**Instead:** a guard only, which warns but lets the restyle happen. `Search.check()` is kept as that guard for any sandbox not yet listed.
++⚠ `corpus.md` and `readme.md` name five skipped prefixes, including `/arya/`. The code's `skip` list has four and omits `/arya/`, whose `Page.js` puts a class on `<body>` at import. Add it to `skip`, or update the two docs.
++**Detail:** [corpus](./corpus.md#the-five-skipped-prefixes-each-with-its-reason)
++
++## No url state for the query
++
++**Decided:** the query is not written to the address bar.
++**Why:** nobody links a colleague to a half-typed search.
++**Instead:** a `?q=` param, which would make every keystroke a history entry.
++
++## The box's position is a preference, saved per site
++
++**Decided:** top or bottom placement is saved with `Page.Prefs` under `store_key: "omnibox"`.
++**Why:** a reader who moves the box means it. Losing that on refresh would be the box forgetting.
++**Instead:** no memory (a reset on every load), or a position that is not user-controlled.
++⚠ `decisions.md` says this is `Page.Store` under `localStorage` key `lew42:omnibox`. The code calls `Page.Prefs` with `store_key: "omnibox"`. The behaviour matches; the naming in `decisions.md` is stale.
++
++## More
++
++- [`readme.md`](./../readme.md) — what the module is, and when to load it
++- [`doc/decisions.md`](./decisions.md) — the dated log, read only to learn how a call moved
+diff --git a/public/framework/core/Search/doc/files.jsonl b/public/framework/core/Search/doc/files.jsonl
+index 2800f02bd..5e5550da6 100644
+--- a/public/framework/core/Search/doc/files.jsonl
++++ b/public/framework/core/Search/doc/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"decisions.md"}
+ {"file":"filters.md"}
+ {"file":"Search-notes.md"}
++{"file":"architecture.md"}
+diff --git a/public/framework/core/Search/page.js b/public/framework/core/Search/page.js
+index c53277f08..7594eac80 100644
+--- a/public/framework/core/Search/page.js
++++ b/public/framework/core/Search/page.js
+@@ -13,7 +13,7 @@ export default new Doc({
+ 	icon: "search",
+ 
+ 	files: "Search.js Omnibox.js Search.css tags.js page.js readme.md",
+-	notes: "decisions corpus filters",
++	notes: "decisions corpus filters architecture",
+ 
+ 	// The box lives on THIS page only (2026-09-06 — a site-wide box was breaking
+ 	// other pages). `activated()`/`deactivated()` fire once per visit here, not once per site —
+diff --git a/public/framework/core/Search/readme.md b/public/framework/core/Search/readme.md
+index ebb5668fe..18c269fe0 100644
+--- a/public/framework/core/Search/readme.md
++++ b/public/framework/core/Search/readme.md
+@@ -43,6 +43,7 @@ search.rank("columns");        // best first
+   dropped, and the calls this made instead
+ - [`doc/corpus.md`](/framework/core/Search/doc/corpus/) — how the list of urls is built, and what it misses
+ - [`doc/filters.md`](/framework/core/Search/doc/filters/) — the facet model, and why the tag groups are empty today
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - Files: `Search.js` (the corpus, the ranking, `Search.Filters`), `Omnibox.js` (the box and its
+   one `omnibox(app)` installer), `Search.css` (`omnibox-`), `tags.js` (tag → axis, the only
+   thing core knows about the [vocabulary](/framework/styles/system/studies/vocabulary/))
+diff --git a/public/framework/core/new/doc/architecture.md b/public/framework/core/new/doc/architecture.md
+new file mode 100644
+index 000000000..a31fac157
+--- /dev/null
++++ b/public/framework/core/new/doc/architecture.md
+@@ -0,0 +1,33 @@
++# core/new architecture — a sealed proving ground, read and never imported
++
++`core/new` is the sketch where the shipping framework was first proved: `App`, `Page` and `Router` as they lived before they moved into [`core/`](/framework/core/). Its one live folder is [`1/`](./1/), a self-contained copy with its own dev server. Nothing else in the repo runs from it. Entry: [`1/Router.js`](./1/Router.js), [`1/App.js`](./1/App.js), [`1/Page.class.js`](./1/Page.class.js).
++
++## Nothing imports it
++
++**Decided:** no file imports from `core/new/`. It is read for its record, never loaded.
++**Why:** `public/` is the deploy artifact, so a stray import of `new/1/Page.class.js` resolves to a second, different `Page` class with the same name. The instance is silently wrong.
++**Instead:** delete the tree outright. Rejected, because it is the only record of the council round and the measurements that `core/App`, `core/Page` and `core/Router` cite.
++**Detail:** [`doc/notes.md`](./notes.md), and the framework readme's `instanceof` trap.
++
++## Only `1/` is kept
++
++**Decided:** `1/` is the single proof. The earlier drafts `0/` and `starter/` are gone.
++**Why:** the two drafts were 445 files and 2.8 MB with zero importers. Their value was already moved into `1/` and its readme.
++**Instead:** keep all three as history. Rejected: the cost was size and noise, and the lessons survive in `1/`'s readme.
++**Detail:** [`1/readme.md`](./1/readme.md), and the "What each one proved" section of [`readme.md`](./readme.md).
++
++## Outside the site's navigation, on purpose
++
++**Decided:** `core/page.js` does not list `new` as a child, and search skips it.
++**Why:** a proving ground should be read on purpose, not reached by accident. The same rule keeps [`ext/DesignTool`](/framework/ext/DesignTool/)'s audit out of its crawl.
++**Instead:** a visible link from the framework index. Rejected, because a link would make dead sketches look like live framework.
++**Detail:** the skip list is `Search.js` line 210 ([`core/Search`](/framework/core/Search/)).
++
++## ⚠ The Router is not line-for-line
++
++The `1/` readme and this folder's [`page.js`](./page.js) say `1/Router.js` is "line-for-line" the shipped `core/Router/Router.js`. It is not. The two files differ by about 213 diff lines: the shipped one imports `Page` from `../Page/`, and `1/` has a longer header comment and extra logging. The claim is stale, and the readme should say "the same design", not "the same lines".
++**Detail:** [`core/Router`](/framework/core/Router/) holds the live version.
++
++## More
++
++- Design notes: [`doc/notes.md`](./notes.md)
+diff --git a/public/framework/core/new/doc/files.jsonl b/public/framework/core/new/doc/files.jsonl
+index e17a194ef..15f71a44b 100644
+--- a/public/framework/core/new/doc/files.jsonl
++++ b/public/framework/core/new/doc/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"notes.md"}
++{"file":"architecture.md"}
+diff --git a/public/framework/core/new/readme.md b/public/framework/core/new/readme.md
+index 8e994b08f..5b028f40e 100644
+--- a/public/framework/core/new/readme.md
++++ b/public/framework/core/new/readme.md
+@@ -11,7 +11,7 @@ everything below is how it got there.
+ 
+ ```
+ new/
+-  1/   WHERE THE SHIPPING DESIGN WAS PROVED — Router.js is line-for-line core/Router/
++  1/   WHERE THE SHIPPING DESIGN WAS PROVED — Router.js is an earlier, diverged copy of core/Router/ (not line-for-line)
+ ```
+ 
+ `0/` (the Router-less MVP, before routing) and `starter/` (the earliest working
+@@ -66,3 +66,4 @@ node public/framework/core/new/1/server.js   # http://localhost:8300/
+ ## More
+ 
+ - Design notes: [`doc/notes.md`](./doc/notes.md)
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+diff --git a/public/framework/ext/Dropdown/doc/architecture.md b/public/framework/ext/Dropdown/doc/architecture.md
+new file mode 100644
+index 000000000..fb6f810fd
+--- /dev/null
++++ b/public/framework/ext/Dropdown/doc/architecture.md
+@@ -0,0 +1,54 @@
++# Dropdown architecture — a trigger that shows its choice, and a list the top layer lifts out of every clip
++
++`Dropdown` is one choice out of a short list: a button that shows the current option's picture and name, and a `[popover]` list that opens above the page. It is a class tree of one: `dropdown(…)` is the door, `class Dropdown` in [`dropdown.js`](../dropdown.js) holds every part as a method, and [`dropdown.css`](../dropdown.css) styles it. It imports only `core/View`.
++
++## The top layer is the whole clipping fix
++
++**Decided:** the list is a `[popover="auto"]` element, so an open list is promoted to the top layer.
++**Why:** panels, their workspaces and rails are all `overflow: hidden`; absolute positioning cannot escape them, and measured on `/framework/ext/Panel/` most open menus were cut off.
++**Instead:** `position: absolute` (clipped) or capping the width (squeezes instead). CSS anchor positioning would be declarative, but is not in every target browser yet.
++**Detail:** [decisions.md](./decisions.md#the-top-layer-is-the-whole-module)
++
++## Light dismiss is the browser's, Escape is ours
++
++**Decided:** outside click closes the list through `popover="auto"`; Escape is handled in `keys()`, which closes, stops the event and returns focus to the trigger.
++**Why:** `ext/Panel`'s focus code drops the panel selection on Escape, so a browser-dismissed list took the selection with it.
++**Instead:** a hand-written outside-click listener, which the popover already provides for free.
++**Detail:** [decisions.md](./decisions.md#the-top-layer-is-the-whole-module)
++
++⚠ The readme's "Watch out" line says Escape is the browser's too. The code stops that: see `keys()`. The readme line is stale and is not fixed here (outside this module's fence).
++
++## Positioning is measured once, in viewport coordinates
++
++**Decided:** `place()` reads `getBoundingClientRect()` of the trigger and list, writes `position: fixed` `left`/`top`, and runs once per open. It goes below the trigger when it fits, else above, clamped to the viewport.
++**Why:** a top-layer box has no containing block to inherit from.
++**Instead:** anchor positioning (not yet universal). A scroll or resize re-place is not implemented; a list left open while the page scrolls stays put.
++**Detail:** [decisions.md](./decisions.md#the-top-layer-is-the-whole-module)
++
++## The list stays a child of the dropdown
++
++**Decided:** the list is appended inside `.dropdown`, not to `document.body`.
++**Why:** the rail that hosts it rebuilds on every `change`; a body-appended list would leak one detached element per change.
++**Instead:** a body-appended list, which leaks unless the caller removes it by hand.
++**Detail:** [decisions.md](./decisions.md#the-list-stays-a-child)
++
++## A class, not a factory
++
++**Decided:** `dropdown(…)` is `new Dropdown(…).draw()`, and each part (`face`, `option`, `place`, `keys`) is a method a caller can override.
++**Why:** a caller sometimes needs a different `place()` or keyboard without forking the file.
++**Instead:** a plain factory like `ext/drawer` or `ext/grip`, which cannot be changed in part.
++**Detail:** [decisions.md](./decisions.md#why-a-class-not-a-function)
++
++## A picture is an icon or a function, never a bare `<option>`
++
++**Decided:** `face(o)` draws `o.icon` as a Material ligature, or calls it when it is a function, then the name.
++**Why:** the panel vocabulary is pictorial, and a native `<select>` cannot show an icon and a name together.
++**Instead:** a native `<select>`, which is free on mobile and typeahead but cannot hold a picture.
++**Detail:** [decisions.md](./decisions.md#why-not-a-native-select)
++
++## The control grammar sets the box, the theme keeps its voice
++
++**Decided:** the trigger and options use `:is(button, .btn)` in their selectors, restating the theme's own shape, so they clear its uppercase label box. Only size and fit are reclaimed here.
++**Why:** the theme sizes every `button` as a wide label, which is four times too wide for a picture and a word.
++**Instead:** a plain `.dropdown-trigger` selector, which loses to the theme's 0-2-0 rule.
++**Detail:** [decisions.md](./decisions.md#specificity-restated-from-the-theme)
+diff --git a/public/framework/ext/Dropdown/doc/files.jsonl b/public/framework/ext/Dropdown/doc/files.jsonl
+index c2443362a..90f4ea5ca 100644
+--- a/public/framework/ext/Dropdown/doc/files.jsonl
++++ b/public/framework/ext/Dropdown/doc/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"file/"}
+ {"file":"file/page.jsonl"}
+ {"file":"file/"}
++{"file":"architecture.md"}
+diff --git a/public/framework/ext/Dropdown/page.js b/public/framework/ext/Dropdown/page.js
+index fcad425f8..0315a38cf 100644
+--- a/public/framework/ext/Dropdown/page.js
++++ b/public/framework/ext/Dropdown/page.js
+@@ -14,7 +14,7 @@ export default new Doc({
+ 	icon: "arrow_drop_down_circle",
+ 
+ 	files: "dropdown.js dropdown.css page.js readme.md",
+-	notes: "decisions",
++	notes: "decisions architecture",
+ 
+ 	content(){
+ 
+diff --git a/public/framework/ext/Dropdown/readme.md b/public/framework/ext/Dropdown/readme.md
+index e75d33541..aca3d0e3b 100644
+--- a/public/framework/ext/Dropdown/readme.md
++++ b/public/framework/ext/Dropdown/readme.md
+@@ -15,7 +15,7 @@ new Dropdown({ options, value, pick }).draw();   // the class — every method i
+ ```
+ 
+ ## Watch out
+-- The list is a `[popover]`, so **outside-click and Escape are the browser's**, not this module's — don't add your own, and don't reach for `position: absolute`: [doc/decisions.md](./doc/decisions.md)
++- The list is a `[popover]`, so **outside-click is the browser's** (Escape is handled by `keys()`, a shared key), not this module's — don't add your own, and don't reach for `position: absolute`: [doc/decisions.md](./doc/decisions.md)
+ - It closes on a pick and hands you the value; **redraw the trigger yourself** if the value it shows can change from elsewhere — nothing here watches your data
+ - A picture is a Material Icons **ligature**: a name the font lacks renders as the whole word, hundreds of px wide. Measure before you ship one
+ - `place()` runs once per open, off `getBoundingClientRect()` — a trigger that moves while the list is open takes the list nowhere with it
+@@ -23,5 +23,6 @@ new Dropdown({ options, value, pick }).draw();   // the class — every method i
+ 
+ ## More
+ - [/framework/ext/Dropdown/](/framework/ext/Dropdown/) — the page: pick one, see it
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - [`doc/decisions.md`](./doc/decisions.md) — why the top layer, why a class, what a native `<select>` could not do
+ - Consumers: [`ext/Panel`](/framework/ext/Panel/)'s properties rail — its **template** and **display** pickers
+diff --git a/public/framework/ext/Figma/doc/architecture.md b/public/framework/ext/Figma/doc/architecture.md
+new file mode 100644
+index 000000000..83d964ff6
+--- /dev/null
++++ b/public/framework/ext/Figma/doc/architecture.md
+@@ -0,0 +1,65 @@
++# Figma architecture — the browser reads, an agent writes
++
++The Figma module shows tracked Figma files as routed pages. The browser only reads JSONL and screenshots that already sit in the repo; an agent in a Figma session does all the talking to Figma. The main classes are `Figma` ([`Figma.js`](../Figma.js)), `FigmaFile` ([`FigmaFile.js`](../FigmaFile.js)) and `FigmaNode` ([`FigmaNode.js`](../FigmaNode.js)). Writing is done by [`track.mjs`](../track.mjs).
++
++## The browser never calls Figma
++
++**Decided:** the page only fetches `index.jsonl`, `data/<key>/pages.jsonl` and `built.jsonl`. Nothing in the browser talks to Figma.
++**Why:** the Figma MCP answers only inside an agent session, and the site is static, so there is no server to proxy it.
++**Instead:** a browser-side Figma token would add a secret to a static site and still need every fetch to be re-run by hand.
++**Detail:** [readme](../readme.md) (Classes); [doc/mcp-servers.md](./mcp-servers.md).
++
++## Tracking is a spec in, append-only lines out
++
++**Decided:** an agent writes a spec (`{key, name, pages[]}` of node ids and screenshot urls). `track.mjs` downloads the shots and appends lines to `pages.jsonl`. It never edits old lines.
++**Why:** the agent does the Figma reads, but the sizes, timestamps and line format are computed by code, so the record is never written from memory.
++**Instead:** the agent writes the JSONL itself. Rejected: it would drift from the format the reader expects.
++**Detail:** [track.mjs](../track.mjs) header.
++
++## The newest line per id wins
++
++**Decided:** `FigmaFile.apply()` keeps the last line seen for each page id. Earlier generations stay in the file.
++**Why:** re-tracking a file must not lose history, and a plain append is the one write that cannot tear a line.
++**Instead:** overwriting the file. Rejected: it deletes the last good copy.
++**Detail:** [FigmaFile.js](../FigmaFile.js) `apply()`.
++
++## Screenshots over 600 KB are refused
++
++**Decided:** `track.mjs` deletes any shot over 600 KB and fails the track.
++**Why:** every card on the browse grid loads its shot, so one huge PNG slows every page that shows it.
++**Instead:** keeping large shots and resizing in the browser. Rejected: the cost lands on every visitor.
++
++## Routes use readable slugs, never Figma ids
++
++**Decided:** every file, page and frame gets a unique slug from `unique_slug()`, and the routes match only slugs. Pages live at `/framework/ext/Figma/<file>/<page>/`.
++**Why:** a reload or back button must land in the same place, and a Figma id in the url is unreadable.
++**Instead:** `?file=<key>&page=<id>` query links. They still open: `FigmaBrowse` rewrites them to the routed url.
++**Detail:** [readme](../readme.md) (Use).
++
++## A cold deep link reads synchronously
++
++**Decided:** `Figma.files_sync()` does one blocking XHR for `index.jsonl` (and the file's pages) when a route is hit before the async load has landed.
++**Why:** `Page.child()` never awaits `route()`, so a route can only answer with a value that exists now.
++**Instead:** an async route that waits. Rejected: `route()` cannot wait, so a Promise would render nothing.
++**Detail:** [sync.js](../sync.js) and [FigmaFile.js](../FigmaFile.js) `load_sync()`.
++
++## Figma values are copies of the site's tokens
++
++**Decided:** the browser `styles/` tokens are the source of truth, and Figma mirrors them. The rebuilt pages show the site's `--prime`, never Figma's blue.
++**Why:** the site is what ships, so a Figma copy can only be wrong on the site, not the reverse.
++**Instead:** Figma as the source, pushed into the site. Rejected: this repo never writes to Figma, and the site is what ships.
++**Detail:** [doc/figma-to-framework.md](./figma-to-framework.md#direction-of-the-token-sync-decided-2026-10-13), [doc/scheme.md](./scheme.md).
++⚠ Two variables (`dark`, `light`) still differ between Figma and the site; they are listed on `/framework/ext/Figma/tokens/`, not fixed.
++
++## Rebuilt pages are plain `page.js`, not JSONL views
++
++**Decided:** a rebuilt design (`colors/page.js`, for example) is written as an ordinary `page.js`. Its data stays in JSONL.
++**Why:** `page.js` is the simplest thing that works, and no code yet rebuilds a view tree from JSONL lines.
++**Instead:** a `View` list renderer that replays JSONL. It is the next step and needs its own slice first, since it changes how `core/Page` loads content.
++**Detail:** [doc/page-storage.md](./page-storage.md).
++
++## Figma only holds what Figma alone does
++
++**Decided:** this module covers auto layout, components, variables and the MCP. General design rules (space, contrast, layout) live in [`/framework/design/`](/framework/design/).
++**Why:** a rule written here would drift from the copy in `design/`, and every finding that applies to both should live in one place.
++**Instead:** duplicate the guidance here. Rejected: two copies would drift apart.
+diff --git a/public/framework/ext/Figma/doc/files.jsonl b/public/framework/ext/Figma/doc/files.jsonl
+index ee6e556bf..e88c5b59b 100644
+--- a/public/framework/ext/Figma/doc/files.jsonl
++++ b/public/framework/ext/Figma/doc/files.jsonl
+@@ -28,3 +28,4 @@
+ {"file":"figma-pages.md"}
+ {"file":"figma-layout.md"}
+ {"file":"builder.md"}
++{"file":"architecture.md"}
+diff --git a/public/framework/ext/Figma/readme.md b/public/framework/ext/Figma/readme.md
+index 0d98e235e..782f35363 100644
+--- a/public/framework/ext/Figma/readme.md
++++ b/public/framework/ext/Figma/readme.md
+@@ -35,6 +35,7 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
+ 
+ ## More
+ 
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - [doc/round-trip.md](./doc/round-trip.md) — what came back from Figma into code, every Figma page and variable mapped (`node Server/figma-roundtrip.mjs`), and whether to mock up in Figma; first sync slice in [doc/next.md](./doc/next.md)
+ - [doc/token-sync.md](./doc/token-sync.md) — Figma vs site tokens, measured at 390/1920/3440; `tokens/` turns the Figma variables into opt-in `--fig-*` CSS (`node .../tokens/FigmaTokens.mjs`), and the safe path to one system
+ - [doc/figma-browser-loop.md](./doc/figma-browser-loop.md) — the design is the spec: Figma frame → code → screenshot diff against the frame (Shots); measuring tools check, never design
+diff --git a/public/framework/ext/editor/doc/architecture.md b/public/framework/ext/editor/doc/architecture.md
+new file mode 100644
+index 000000000..b64a9ee9a
+--- /dev/null
++++ b/public/framework/ext/editor/doc/architecture.md
+@@ -0,0 +1,77 @@
++# editor architecture — one document, whole-snapshot undo, and a panel shell
++
++The editor is a page you visit, not a module you import. Its main class is `History` ([`History.js`](../History.js)) for undo; the widget and its five regions live in [`page.js`](../page.js); the blocks it builds are in [`blocks.js`](../blocks.js). The document is an `Item` tree, and each node gets a `Sortable` view.
++
++## Undo is whole-document snapshots
++
++**Decided:** `history.act(fn)` stores the whole document as JSON before `fn` runs, and undo restores it by hydrating a new tree.
++**Why:** every Ctrl+Z is then a live test of the same reload path, with no second serializer to keep in step.
++**Instead:** a command stack behind the same `act()` signature; it buys finer undo granularity the editor does not need yet.
++**Detail:** [doc/decisions.md](./decisions.md)
++
++## `swap()` moves everything onto the new tree at once
++
++**Decided:** `swap(json)` hydrates a new tree, then re-attaches the saver, re-binds the listeners, redraws, and saves.
++**Why:** `Item.hydrate` returns a new tree, so the saver, the listeners, the canvas and the selection must all move together or a live editor writes to a document nobody sees.
++**Instead:** patching the old tree in place, which cannot be done safely for a whole-document restore.
++**Detail:** [doc/decisions.md](./decisions.md)
++
++## Selection is an id, never a node
++
++**Decided:** the selection is stored as an id; `nodes` (id → view) is rebuilt on every `draw()`, and `doc.find(id)` recovers the Item.
++**Why:** after an undo every object in the document is a different object, so a remembered node or Item is detached.
++**Instead:** holding the Item or its view, which goes stale on the first undo.
++**Detail:** [doc/decisions.md](./decisions.md)
++
++## Structure redraws; every change saves
++
++**Decided:** `change` calls `changed()` (save and badge only). `add`, `remove`, `move` and `order` also call `draw()`.
++**Why:** a properties edit fires `change`; a redraw there would replace the element the properties region is holding.
++**Instead:** redraw on every event, which breaks the properties panel on each chip click.
++**Detail:** [doc/decisions.md](./decisions.md)
++
++## One line chooses the saver
++
++**Decided:** `store(path, key)` returns a `FileSaver` on localhost and a `LocalStorageSaver` everywhere else. The read-only badge follows the boolean that `save()` resolves to.
++**Why:** off localhost there is no dev socket, so `FileSaver` writes nothing; only a `false` from `save()` is an honest signal that nothing was written.
++**Instead:** one saver for both cases, which would show "saved" on the deployed site when nothing persisted.
++**Detail:** [doc/decisions.md](./decisions.md)
++
++## A block is data, not a component
++
++**Decided:** a block's styling is `data.words` (a class string) and `data.css`; a leaf is a block with `data.text`, and only a container gets `$items`.
++**Why:** the utility vocabulary is then the design, and undo and reload carry the styling for free.
++**Instead:** a component per block type, which would need a second styling system.
++**Detail:** [doc/decisions.md](./decisions.md)
++
++## The properties panel writes the element; `sync()` copies it back
++
++**Decided:** `ext/layout`'s controls change the element. `sync()` copies its classes and inline style back onto the Item, skipping `drag-items`.
++**Why:** this is `ext/layout`'s contract. `drag-items` is `Sortable`'s mark, re-added on every render, and saving it would grow the class string on each reload.
++**Instead:** having the controls write the Item directly, which would make two sources of truth.
++**Detail:** [doc/decisions.md](./decisions.md)
++
++## Drags are undoable; property edits are not
++
++**Decided:** a drop runs inside one `history.act()`, so a drop that lands nowhere adds no snapshot. Text edits in a block also use `act()`. Property edits from `ext/layout` persist but do not push a snapshot.
++**Why:** a slider fires dozens of `input` events, and each would become its own undo step.
++**Instead:** one snapshot per gesture (on `pointerdown`), which is not built yet.
++**Detail:** [doc/decisions.md](./decisions.md#open)
++
++## The shell is a panel workspace with its own vocabulary
++
++**Decided:** the five regions are a workspace-local `T` vocabulary passed to `workspace({ saver, templates, seed })`, not entries in `ext/Panel`'s global one.
++**Why:** otherwise editor state would reach a module that must not know the editor exists, and every panel on the site would offer `canvas`.
++**Instead:** adding the regions to `ext/Panel/templates.js`, or assigning `draw` onto each panel after load (it fights `paint()`).
++**Detail:** [doc/shell.md](./shell.md)
++
++## Drag targets are checked by root
++
++**Decided:** a drop target must share the same root tree as the dragged item (`target.item?.root() === this.item.root()`).
++**Why:** `Draggable.registry` is one document-wide map, so a panel could be dropped into a block, and two trees would cross.
++**Instead:** a separate registry per tree, which would duplicate the drag code.
++**Detail:** [doc/shell.md](./shell.md)
++
++## More
++- [`doc/decisions.md`](./decisions.md) — the full design record: rulings, traps, open items
++- [`doc/shell.md`](./shell.md) — the workspace shell in full
+diff --git a/public/framework/ext/editor/doc/files.jsonl b/public/framework/ext/editor/doc/files.jsonl
+index a2305c808..fbe9a4940 100644
+--- a/public/framework/ext/editor/doc/files.jsonl
++++ b/public/framework/ext/editor/doc/files.jsonl
+@@ -9,3 +9,4 @@
+ {"file":"file/"}
+ {"file":"method/"}
+ {"file":"property/"}
++{"file":"architecture.md"}
+diff --git a/public/framework/ext/editor/page.js b/public/framework/ext/editor/page.js
+index fa136116a..adf312129 100644
+--- a/public/framework/ext/editor/page.js
++++ b/public/framework/ext/editor/page.js
+@@ -273,7 +273,7 @@ export default new Doc({
+ 	subject: History,
+ 	properties: "past future",
+ 	methods:    "act undo redo step can_undo can_redo read restore",
+-	notes:      "shell decisions",
++	notes:      "shell decisions, architecture",
+ 	files:      "blocks.js History.js editor.css page.js",
+ 
+ 	content(){
+diff --git a/public/framework/ext/editor/readme.md b/public/framework/ext/editor/readme.md
+index 8f21483c5..aa3442bd0 100644
+--- a/public/framework/ext/editor/readme.md
++++ b/public/framework/ext/editor/readme.md
+@@ -22,6 +22,7 @@ workspace({ saver: panels, templates: REGIONS, seed });              // five reg
+ 
+ ## More
+ - [Overview](/framework/ext/editor/) · [`doc/decisions.md`](./doc/decisions.md) — the design record: undo by snapshot, who uses it (nothing), Decisions, Traps, Open
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - [`doc/shell.md`](./doc/shell.md) — why the shell is a panel workspace with a workspace-local `T` vocabulary
+ - `doc/method/`, `doc/property/`, `doc/file/` — History's API and per-file notes the overview renders
+ - Files that matter: `page.js` (widget and page), `blocks.js` (the palette), `History.js` (undo snapshots), `editor.css` (regions, nodes)
+diff --git a/public/framework/styles/stacks/doc/architecture.md b/public/framework/styles/stacks/doc/architecture.md
+new file mode 100644
+index 000000000..3605d7a57
+--- /dev/null
++++ b/public/framework/styles/stacks/doc/architecture.md
+@@ -0,0 +1,55 @@
++# Stacking architecture — floors are opaque, fills are alpha
++
++Stacking is the rule for what a fill paints on top of: a floor is opaque, a fill is a transparent black or white rung, so one word works on every floor. The tokens live in [`framework.css`](/framework/framework.css); the page that measures them is [`stacks.js`](../stacks.js) (colour maths) plus [`page.js`](../page.js) (the matrix). Both the page and the scan read the same maths.
++
++## Floors are opaque, fills are alpha
++
++**Decided:** a surface you stand a thing on is an opaque token (`--wash`, `--tint`, `--surface`, `--bg`); anything that sits on a floor, such as a button, chip, hover or inline code, uses `--fill-aNN`.
++**Why:** one token painted twice (`.btn` and `.surface` both on `--surface`) made every default button on a card a zero-delta fill: 101 invisible pairs across 76 pages.
++**Instead:** a second opaque ladder per floor (one name per floor per step), which multiplies the "which grey, and does it work here" question.
++**Detail:** [doc/decisions.md](./decisions.md#why-the-metric-is-maxfill-border-inset-ring)
++
++## Four rungs that double
++
++**Decided:** `--fill-a04`, `a08`, `a16`, `a32`, each rung double the last.
++**Why:** a ratio ladder means one question at a call site ("how many steps up") and every adjacent step is equally separable. Measured on `--wash` the rungs land at ΔL\* 3.4 / 6.8 / 13.7 / 27.9.
++**Instead:** a five- or six-rung linear scale, rejected: 4/8/16/32 already covers the hand-written values on the site.
++**Detail:** [doc/decisions.md](./decisions.md#why-four-rungs-doubling)
++
++## Literal `rgba()`, not `color-mix()`
++
++**Decided:** the two primitives are literal `rgba(0,0,0,a)` (`--shade-aNN`) and `rgba(255,255,255,a)` (`--paper-aNN`), so no interpolation space is involved.
++**Why:** source-over compositing is arithmetic in sRGB, and deriving rungs from `--ink` would make them drift whenever a theme retunes its ink.
++**Instead:** `color-mix(in srgb, …)`, kept only where a rung must come from a theme colour. Mixing toward `transparent` in `oklab` shifts the hue.
++**Detail:** [doc/decisions.md](./decisions.md#why-literal-rgba-rather-than-color-mix)
++
++## `light-dark()` plus `color-scheme: dark` is the always-dark primitive
++
++**Decided:** `--fill-aNN` is `light-dark(shade, paper)`; an island that is dark in both modes declares `color-scheme: dark` and every rung inside it flips with `--ink` and `--line`.
++**Why:** `light-dark()` reads `color-scheme` at the element where the token is used, not where it is declared.
++**Instead:** a third ladder typed by hand on dark surfaces, which brings the "which grey" question back.
++**Detail:** [doc/decisions.md](./decisions.md#why-color-scheme-dark-is-the-always-dark-primitive)
++
++## The metric is `max(fill, border, inset ring)`
++
++**Decided:** `visibility()` in [`stacks.js`](../stacks.js) scores an element by the largest ΔL\* of its fill, its border, or an inset ring; the bar is `BAR = 3`.
++**Why:** a button whose fill matches its card but whose hairline does not is faint, not invisible. Scoring the fill alone flags every default button and teaches nothing.
++**Instead:** fill-only scoring (rejected for the reason above).
++**Detail:** [doc/decisions.md](./decisions.md#why-the-metric-is-maxfill-border-inset-ring)
++
++## Two halves per cell: opaque beside alpha
++
++**Decided:** the matrix shows each fill twice in one cell: the real site class on the left, the `.stacks-a` alpha version on the right.
++**Why:** same floor, same lighting, half the eye travel, and the matrix can side-scroll at 400.
++**Detail:** [doc/decisions.md](./decisions.md#why-the-two-halves-of-a-cell-sit-together)
++
++## What the ladder does not fix
++
++**Decided:** an accent (`--prime`) is a hue, not a rung. A `button.prim` on `--prime` stays ΔL\* 0.0, and the answer is a rung with white ink.
++**Why:** alpha compresses on a saturated floor, so a white rung moves only some channels.
++**Detail:** [doc/decisions.md](./decisions.md#what-the-ladder-does-not-fix)
++
++## More
++
++- [`decisions.md`](./decisions.md) — the full record, including what was reversed
++- [`/framework/styles/doc/stacking.md`](/framework/styles/doc/stacking.md) — the rules and fix list
+diff --git a/public/framework/styles/stacks/doc/files.jsonl b/public/framework/styles/stacks/doc/files.jsonl
+index acfb368b0..ec126808b 100644
+--- a/public/framework/styles/stacks/doc/files.jsonl
++++ b/public/framework/styles/stacks/doc/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"decisions.md"}
++{"file":"architecture.md"}
+diff --git a/public/framework/styles/stacks/readme.md b/public/framework/styles/stacks/readme.md
+index bdfca1380..2656df4c9 100644
+--- a/public/framework/styles/stacks/readme.md
++++ b/public/framework/styles/stacks/readme.md
+@@ -30,6 +30,7 @@ across 76 pages, now 19, and none of those is a control you cannot see.
+ 
+ - Page: [/framework/styles/stacks/](/framework/styles/stacks/) — the matrix, live, both modes
+ - [`/framework/styles/doc/stacking.md`](/framework/styles/doc/stacking.md) — the rules, the bill, the fix list
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - [`doc/decisions.md`](./doc/decisions.md) — why four rungs, why literal `rgba()`, what the ladder does not fix
+ - [the lab task](/framework/ai/sessions/2026/08/30/color-stacks/) — `hunt.mjs` and its threshold calibration
+ - [the flip task](/framework/ai/sessions/2026/08/30/alpha-flip/) — what moved, what deliberately did not
+diff --git a/public/framework/ui/alert/doc/architecture.md b/public/framework/ui/alert/doc/architecture.md
+new file mode 100644
+index 000000000..d769bc942
+--- /dev/null
++++ b/public/framework/ui/alert/doc/architecture.md
+@@ -0,0 +1,38 @@
++# alert architecture — markup and one token, no component
++
++`alert` is a callout: a padded card with a coloured left edge. It is not a function. The markup is written by hand from a template in [`page.js`](../page.js), and the look comes from six lines of CSS in [`alert.js`](../alert.js). The page is at [/framework/ui/alert/](/framework/ui/alert/).
++
++## There is no `ui.alert()`
++
++**Decided:** an alert is markup (`div.c("ui-alert card flex gap accent", …)`), not a function call.
++**Why:** the old export had only one job, `if (glyph)`, and two real faults: a bare `alert` shadows `window.alert`, and `alert("msg")` failed silently because the first argument was read as an icon name.
++**Instead:** a `ui.alert(glyph, message)` helper. It would hide the markup, and the two faults would come back with it.
++**Detail:** [the page, exhibit note](/framework/ui/alert/)
++
++## The tone is a class, and the class names a token
++
++**Decided:** a tone is a class (`accent`, `error`) whose CSS reads a theme token. The markup holds no colour.
++**Why:** a token retunes with the theme, so an alert works in a theme it has never seen.
++**Instead:** an inline colour or a `tone:` option. Either one puts colour into every call site, so a theme change would miss some of them.
++**Detail:** [alert.js](./alert.js), tones demo on [the page](/framework/ui/alert/)
++
++## Two tones, because the token set has two
++
++**Decided:** only the default (`--line`), `accent` (`--prime`) and `error` (`--error`) tones exist.
++**Why:** `framework.css` defines one accent and one error colour. It defines no `--ok` or `--warn`.
++**Instead:** add a tone by adding a token, then two lines in `alert.js`. No tone option is needed, since a class is already the mechanism.
++**Detail:** [framework.css](../../../framework.css) (the tokens)
++
++## Import the module that emits the class you style
++
++**Decided:** `alert.js` imports `View.js`, though it emits no code itself.
++**Why:** its CSS styles `> .icon`, a class that `icon()` in `View.js` emits. Without the import, the rule loads before its class exists.
++**Instead:** copy the icon class into `alert.js`, which would drift from `icon()` the first time it changed.
++**Detail:** the comment at the top of [alert.js](./alert.js)
++
++## Cards and rows, not a dismiss state
++
++**Decided:** an alert has no close button, no title option and no state. Anything extra is a utility class or a button placed in the markup.
++**Why:** a callout is a card with a coloured edge, and every other part is already a utility.
++**Instead:** a stateful alert component, which would need its own API for each new use.
++**Detail:** the `action` demo on [the page](/framework/ui/alert/)
+diff --git a/public/framework/ui/alert/doc/files.jsonl b/public/framework/ui/alert/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ui/alert/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/ui/alert/files.jsonl b/public/framework/ui/alert/files.jsonl
+index 255f4cbd9..aee6002bc 100644
+--- a/public/framework/ui/alert/files.jsonl
++++ b/public/framework/ui/alert/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"alert.js"}
+ {"file":"page.js"}
+ {"file":"readme.md"}
++{"file":"doc/"}
+diff --git a/public/framework/ui/alert/readme.md b/public/framework/ui/alert/readme.md
+index 91d118ab8..089a34478 100644
+--- a/public/framework/ui/alert/readme.md
++++ b/public/framework/ui/alert/readme.md
+@@ -18,4 +18,5 @@ div.c("ui-alert surface pad flex gap accent", () => {
+ ## More
+ 
+ - [page](/framework/ui/alert/) — the tones, an action row, and why there is no `ui.alert()`
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - Back to [UI](/framework/ui/).
+diff --git a/public/framework/ui/crumbs/doc/architecture.md b/public/framework/ui/crumbs/doc/architecture.md
+new file mode 100644
+index 000000000..022b6ac1d
+--- /dev/null
++++ b/public/framework/ui/crumbs/doc/architecture.md
+@@ -0,0 +1,37 @@
++# Crumbs architecture — the trail is markup, not a function
++
++Crumbs is a breadcrumb trail of real links. It has no JavaScript API: the trail is a template written in [`page.js`](./page.js), and the only code this module owns is one CSS rule in [`crumbs.js`](./crumbs.js). The one alternative the framework does provide is `page.crumbs(from)` on `Page`, which derives the trail from the page tree.
++
++## There is no `ui.crumbs()` function
++
++**Decided:** a trail is written by hand as markup, and `page.js` shows it verbatim.
++**Why:** a loop over `[text, url]` pairs typed by hand can be wrong, and a breadcrumb must not be. Writing the five lines out keeps the reader's eye on what the trail actually says.
++**Instead:** a `ui.crumbs(pairs)` helper, which would make a wrong trail look right. Rejected.
++**Detail:** [the Overview demo](/framework/ui/crumbs/)
++
++## A derived trail comes from `Page`, not from pairs
++
++**Decided:** when the trail must match where the reader is, use `page.crumbs(from)`, which walks `Page.chain()`.
++**Why:** a derived trail cannot disagree with the current page. `Columns` calls it to redraw the strip above the row whenever a column opens or closes.
++**Instead:** typed pairs, which are right only for a trail that is not the page tree.
++**Detail:** [Columns: the trail](/framework/core/Page/doc/columns/) — code: [`Page.class.js`](../../../core/Page/Page.class.js) (`crumbs(from)`)
++
++## Links are real anchors; nothing here compares the URL
++
++**Decided:** every crumb is an `<a href>` with class `page-link`, and the router marks the active one.
++**Why:** `Router.mark_links()` already adds `.active` (this exact URL) and `.in-path` (an ancestor) after each navigation. A breadcrumb is `.in-path` all the way down, which is what a breadcrumb means. No view needs `window.location`.
++**Instead:** each crumb reads `window.location` itself. Rejected: it duplicates the router and breaks on every new route.
++**Detail:** code — [`Router.js`](../../../core/Router/Router.js) (`mark_links`)
++
++## One CSS rule, in the theme layer
++
++**Decided:** the only style is `.ui-crumbs a { text-decoration: none }`, inside `@layer theme`.
++**Why:** `framework.css` has no rule for a bare `a`, so a trail's links keep the browser underline. The rule must be a descendant selector, which the markup cannot express on itself.
++**Instead:** a class on every link (`.nounderline`). Rejected: every trail would repeat the same class.
++**Detail:** [`crumbs.js`](./crumbs.js) — the layer order lives once in `framework.css`.
++
++## Checked against the code
++
++- Every entry above was verified in source: `crumbs.js` (the one rule), `page.js` (the template), `Page.class.js` (`crumbs(from)`), `Router.js` (`mark_links`). No mismatch found.
++- `doc/decisions.md` does not exist and the census found no decision lines for this module, so nothing was reversed or dropped.
++- Next row with a current item: [Pagination](/framework/ui/pagination/).
+diff --git a/public/framework/ui/crumbs/doc/files.jsonl b/public/framework/ui/crumbs/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ui/crumbs/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/ui/crumbs/files.jsonl b/public/framework/ui/crumbs/files.jsonl
+index 5ab3bf555..d009c9c0d 100644
+--- a/public/framework/ui/crumbs/files.jsonl
++++ b/public/framework/ui/crumbs/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"crumbs.js"}
+ {"file":"page.js"}
+ {"file":"readme.md"}
++{"file":"doc/"}
+diff --git a/public/framework/ui/crumbs/readme.md b/public/framework/ui/crumbs/readme.md
+index 7d92988af..339b380b1 100644
+--- a/public/framework/ui/crumbs/readme.md
++++ b/public/framework/ui/crumbs/readme.md
+@@ -27,3 +27,4 @@ and cannot disagree with where you are.
+ 
+ - [Overview](/framework/ui/crumbs/) — both variants, and why there is no function
+ - Files: `crumbs.js` (the one CSS rule), `page.js` (the demo and its own explanation)
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+diff --git a/public/framework/ui/dialog/doc/architecture.md b/public/framework/ui/dialog/doc/architecture.md
+new file mode 100644
+index 000000000..72e82e248
+--- /dev/null
++++ b/public/framework/ui/dialog/doc/architecture.md
+@@ -0,0 +1,51 @@
++# Dialog architecture — the browser is the component, the CSS is the trap
++
++Dialog is not a class: it is the native `<dialog>` element, opened with `showModal()`. The module's only code is [`dialog.js`](/framework/ui/dialog/dialog.js), which fixes three silent CSS traps. The demos are in [`page.js`](/framework/ui/dialog/page.js).
++
++## Use the native `<dialog>`, not a div
++
++**Decided:** a modal is `el.c("dialog", …)` opened with `showModal()`.
++**Why:** `showModal()` gives a focus trap, Esc to close, a `::backdrop` dim and top-layer stacking for free. A div modal must rebuild each of those, usually wrongly.
++**Instead:** a div-based modal, dropped because it re-implements the whole browser feature. Record: [ui/doc/record.md](/framework/ui/doc/record.md).
++
++## No `ui.dialog()` factory
++
++**Decided:** there is no `dialog` helper; callers use `el.c("dialog", …)`.
++**Why:** a wrapper around `el.c("dialog")` adds nothing, and its own `.c()` form put the class on the `<dialog>` itself, re-arming the display trap below.
++**Instead:** a named factory, rejected for the reason above.
++
++## No layout class on the `<dialog>`
++
++**Decided:** layout (`flex v gap`) goes on an inner `div`; the `<dialog>` carries only the surface and `ui-dialog`.
++**Why:** the UA rule `dialog:not([open]) { display: none }` loses to any author `display` at any layer. A layout class keeps a closed dialog on screen, invisibly eating clicks. Found by a timed-out click, not an error.
++**Instead:** a `display` class on the dialog itself, which only works while it is open and breaks the closed state. Measured in [ui/doc/record.md](/framework/ui/doc/record.md).
++
++## Restate the ink colour
++
++**Decided:** `.ui-dialog { color: var(--ink) }` in `@layer theme`.
++**Why:** the UA sets `color: CanvasText` on dialogs, which blocks inheritance, so a themed page shows black text in dark mode.
++**Instead:** rely on inheritance, which the UA blocks.
++
++## Restate `margin: auto` in `@layer util`
++
++**Decided:** `.ui-dialog { margin: auto }` is declared again in `@layer util`.
++**Why:** `margin: auto` is the UA's centring, and `.flex > * { margin: 0 }` erases it when a dialog sits in a flex column. The later layer wins that argument.
++**Instead:** a centring transform, which is more CSS for the same result.
++
++## Forms close themselves: `method="dialog"`
++
++**Decided:** a confirm that needs no logic uses `<form method="dialog">`; the caller reads `$dialog.el.returnValue` in a `close` listener.
++**Why:** submitting closes the dialog and sets `returnValue` from the submitter's `value`, so no click handler is needed per button. `formnovalidate` on Cancel lets it out past required fields.
++**Instead:** a click listener per button, which works but repeats code. Demo: [`/framework/ui/dialog/form`](/framework/ui/dialog/form/).
++
++## Open-state demo is drawn, not shown
++
++**Decided:** the `opened` demo draws what `showModal()` shows, inline.
++**Why:** a closed `<dialog>` renders nothing, so a rail card or preview must draw the open state to be seen.
++**Instead:** a real screenshot, which goes stale.
++
++## More
++
++- [Overview](/framework/ui/dialog/) — the confirm demo, the form variant, the opened-state variant
++- [ui/doc/record.md](/framework/ui/doc/record.md) — the measurements behind the CSS traps
++- Files: [`dialog.js`](/framework/ui/dialog/dialog.js) (the three CSS fixes), [`page.js`](/framework/ui/dialog/page.js) (show, don't tell)
+diff --git a/public/framework/ui/dialog/doc/files.jsonl b/public/framework/ui/dialog/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ui/dialog/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/ui/dialog/files.jsonl b/public/framework/ui/dialog/files.jsonl
+index b5fd9c442..13a239732 100644
+--- a/public/framework/ui/dialog/files.jsonl
++++ b/public/framework/ui/dialog/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"dialog.js"}
+ {"file":"page.js"}
+ {"file":"readme.md"}
++{"file":"doc/"}
+diff --git a/public/framework/ui/dialog/readme.md b/public/framework/ui/dialog/readme.md
+index bd03a56a9..d44631558 100644
+--- a/public/framework/ui/dialog/readme.md
++++ b/public/framework/ui/dialog/readme.md
+@@ -17,4 +17,5 @@ button("Open").click(() => $dialog.el.showModal());
+ ## More
+ 
+ - [Overview](/framework/ui/dialog/) — the confirm demo, the form variant, the opened-state variant
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - Files: `dialog.js` (the three CSS fixes), `page.js` (show, don't tell)
+diff --git a/public/framework/ui/tags/doc/architecture.md b/public/framework/ui/tags/doc/architecture.md
+new file mode 100644
+index 000000000..3484d21bb
+--- /dev/null
++++ b/public/framework/ui/tags/doc/architecture.md
+@@ -0,0 +1,33 @@
++# Tags architecture — the template is markup, the behaviour lives in a class
++
++`ui/tags` is a copy-paste template: a row of chips with a `×`, plus an input. It holds no logic. The page [`/framework/ui/tags/`](/framework/ui/tags/) is the template, rendered and printed as source (`page.js`). The working version is [`class Tags`](/framework/ux/Tags/) in `ux/Tags/Tags.js`.
++
++## The template has no behaviour
++**Decided:** `ui/tags` ships markup only. Its `×` and input have no listeners on purpose.
++**Why:** an inert template cannot be wrong about wiring, and the first real use would rewrite it anyway.
++**Instead:** a `ui.tags()` factory with wiring. It was built and dropped: it was inert too, so it was deleted rather than extended.
++**Detail:** [`ux/Tags` decisions](/framework/ux/Tags/doc/decisions/)
++
++## Behaviour is a class, not a function
++**Decided:** `class Tags extends View` holds the list. `add()` and `drop()` change it and fire `onChange`.
++**Why:** the list has state, so it is a class. Typing a tag and clicking `×` both go through the same two methods.
++**Instead:** a loose helper that mutates DOM chips. Each new surface would copy its own version.
++**Detail:** [`ux/Tags` decisions](/framework/ux/Tags/doc/decisions/)
++
++## A chip owns its own `×` listener
++**Decided:** `Tags.Chip` is a `View` that calls `this.tags.drop(this.value)` on its own `×`.
++**Why:** each chip knows its own value, so the parent never tracks which `×` was clicked.
++**Instead:** one click handler on the parent that finds the chip. That works, but every parent would need the same lookup.
++**Detail:** [`ux/Tags` decisions](/framework/ux/Tags/doc/decisions/)
++
++## The field opts out of the theme's input rule, in the `util` layer
++**Decided:** `.ui-tags-input` (`border: none; background: none; padding: 0`) sits in `@layer util` in [`ui/parts.js`](/framework/ui/), not in `@layer theme`.
++**Why:** the theme styles every `input` with `input:not(…)`. That selector carries attribute-selector specificity, so a class in `theme` loses. A later layer wins regardless of specificity.
++**Instead:** an inline style. That works, but it is the top rung of the escalation ladder, and a layer does the same job properly.
++**Detail:** the comment at [`parts.js`](/framework/ui/) line 18
++
++## One class for the field, shared with every inline input
++**Decided:** `ui-tags-input` is a shared class in `parts.js`, not a rule private to tags.
++**Why:** a search box, inline editor or editable cell needs the same opt-out. One class means one fix.
++**Instead:** a copy in each module, which would drift.
++**Detail:** [`ux/Tags` decisions](/framework/ux/Tags/doc/decisions/)
+diff --git a/public/framework/ui/tags/doc/files.jsonl b/public/framework/ui/tags/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ui/tags/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/ui/tags/files.jsonl b/public/framework/ui/tags/files.jsonl
+index cf4934c19..37d547963 100644
+--- a/public/framework/ui/tags/files.jsonl
++++ b/public/framework/ui/tags/files.jsonl
+@@ -1,2 +1,3 @@
+ {"file":"page.js"}
+ {"file":"readme.md"}
++{"file":"doc/"}
+diff --git a/public/framework/ui/tags/readme.md b/public/framework/ui/tags/readme.md
+index 2074bb967..8e02a431a 100644
+--- a/public/framework/ui/tags/readme.md
++++ b/public/framework/ui/tags/readme.md
+@@ -5,3 +5,7 @@ Chips with a remove mark, plus an input. A `ui/` template: copy the markup from
+ Code: `page.js` in this folder.
+ 
+ _Stub — more to come._
++
++## More
++
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+diff --git a/public/framework/ui/tooltip/doc/architecture.md b/public/framework/ui/tooltip/doc/architecture.md
+new file mode 100644
+index 000000000..1084d25a6
+--- /dev/null
++++ b/public/framework/ui/tooltip/doc/architecture.md
+@@ -0,0 +1,42 @@
++# Tooltip architecture — the bubble is a stylesheet, not a function
++
++The tooltip is a hover bubble made of three plain spans and one stylesheet. There is no JavaScript and no class: the whole component is [`tooltip.js`](../tooltip.js), a single `css()` block in the `theme` layer. The demo is [`page.js`](../page.js), which prints its own template so the code on the page is the code that ran. Read the [overview](/framework/ui/tooltip/) first.
++
++## The bubble is CSS, not `ui.tooltip()`
++
++**Decided:** a tooltip is markup plus a stylesheet. There is no `ui.tooltip()` helper.
++**Why:** the two things that make a tooltip work are a relationship and a state. The bubble is positioned against a positioned ancestor, and it appears on `:hover`. An inline class or style can only describe the element it sits on, so neither can be written there.
++**Instead:** a `ui.tooltip()` factory that wraps two spans in a span. It would only hide the selectors that do the work.
++**Detail:** [the page's "Where the line actually is" section](/framework/ui/tooltip/)
++
++## One selector list for pointer and keyboard
++
++**Decided:** `:hover`, `:focus-visible` and `.shown` open the bubble from a single selector list in `tooltip.js`.
++**Why:** a keyboard user and a mouse user must see the same thing. Keeping them in one list means the two paths cannot drift apart. `.shown` lets a screenshot test hold the bubble open.
++**Instead:** separate rules for hover and focus. They drift, and the keyboard path is the one nobody checks.
++**Detail:** the `tabindex="0"` on the trigger is what makes the focus path exist at all; see the [held-open demo](/framework/ui/tooltip/shown/).
++
++## Hidden with both `opacity` and `visibility`
++
++**Decided:** a closed bubble sets `opacity: 0` and `visibility: hidden`.
++**Why:** opacity alone leaves an invisible box that still takes hit tests. It swallows clicks meant for the line above.
++**Instead:** opacity only, which is simpler and wrong.
++
++## Colours are the inverted theme pair
++
++**Decided:** the bubble is `background: var(--ink)` with `color: var(--surface)`.
++**Why:** the theme already guarantees contrast between those two tokens, so the bubble stays readable in light and dark mode without a literal colour. A component may not name a literal colour.
++**Instead:** `color: white` over `var(--bg)`. It read fine in light mode and sat two shades off the page in dark mode.
++
++## The bubble is clipped by any `overflow: hidden` ancestor
++
++**Decided:** the bubble is out of flow, so it is not a layout child and it will be cut off by a clipping ancestor.
++**Why:** the bubble has to float over neighbouring text, which only out-of-flow positioning allows.
++**Watch out:** a stage or demo box that clips will hide a tooltip at the very top edge. The template in `page.js` wraps itself in `pad` for this reason.
++
++## The native `title` is rung one
++
++**Decided:** when the design does not insist on a styled bubble, use the `title` attribute and ship no CSS at all.
++**Why:** the browser gives a real tooltip with a delay, keyboard support and no positioning code.
++**Instead:** the styled bubble, which costs the stylesheet above. The [native demo](/framework/ui/tooltip/native/) shows the trade.
++**Detail:** the [styles ladder](/framework/styles/) places this rung.
+diff --git a/public/framework/ui/tooltip/doc/files.jsonl b/public/framework/ui/tooltip/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ui/tooltip/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/ui/tooltip/files.jsonl b/public/framework/ui/tooltip/files.jsonl
+index 60db9a451..f9129dd51 100644
+--- a/public/framework/ui/tooltip/files.jsonl
++++ b/public/framework/ui/tooltip/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"page.js"}
+ {"file":"readme.md"}
+ {"file":"tooltip.js"}
++{"file":"doc/"}
+diff --git a/public/framework/ui/tooltip/readme.md b/public/framework/ui/tooltip/readme.md
+index bf6a6a405..66f49fd19 100644
+--- a/public/framework/ui/tooltip/readme.md
++++ b/public/framework/ui/tooltip/readme.md
+@@ -19,3 +19,4 @@ span.c("ui-tooltip", () => {
+ 
+ - [Overview](/framework/ui/tooltip/) — the hover demo, the held-open `.shown` demo, the native `title` variant
+ - Files: `tooltip.js` (the whole component, as CSS), `page.js` (show, don't tell)
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+diff --git a/public/framework/ux/Menu/doc/architecture.md b/public/framework/ux/Menu/doc/architecture.md
+new file mode 100644
+index 000000000..b430ce8bd
+--- /dev/null
++++ b/public/framework/ux/Menu/doc/architecture.md
+@@ -0,0 +1,46 @@
++# Menu architecture — the template's state and listeners, owned by one class
++
++`ux/Menu` is a `<details>` menu you can drive from code: it closes itself after a pick and closes on a click outside. Its main class is [`class Menu extends View`](../Menu.js), and it is the only file in the module. Its look is not here: every `.ui-menu-*` rule stays in the template, [`ui/menu`](/framework/ui/menu/), and this class wears those classes.
++
++## The CSS stays in ui/, the state moves to ux/
++
++**Decided:** `ui/menu` keeps every stylesheet rule and no JavaScript; `Menu.js` imports that stylesheet and adds the behaviour.
++**Why:** the template's one line of logic (close after a pick) has to be per item, and the template could not own it without becoming a framework. Splitting keeps the two tiers from drifting, because both read the same classes.
++**Instead:** moving the CSS into `ux/` (two copies to keep in step) or letting `ui/` import the class (an import cycle that breaks on deep reload).
++**Detail:** [doc/decisions.md](./decisions.md#the-caller-census-and-why-the-split-was-simpler-than-trees)
++
++## Click-outside listens only while open
++
++**Decided:** a `toggle` listener adds a `document` click listener on open and removes it on close.
++**Why:** `<details>` has no light dismiss, and a listener left on `document` after the panel is gone would fire on every later click for nothing.
++**Instead:** one `document` listener from `render()`, which has to filter out the click that opened the menu. Attaching it on open avoids that check.
++**Detail:** [doc/decisions.md](./decisions.md#click-outside-one-toggle-listener-not-a-click-listener-on-document-from-render)
++
++## `pick(item)` is the seam, not `onPick` alone
++
++**Decided:** every item click calls `pick(item)`, which closes the panel and then calls `onPick`. A subclass overrides `pick()`.
++**Why:** a real menu item needs a confirm step or a second effect, and rebuilding the panel to add one is the cost the class exists to remove.
++**Instead:** a plain `onPick` callback only. It cannot add a confirm step without rebuilding the panel.
++**Detail:** [`Menu.js`](../Menu.js) (`pick`, lines near the end of the class)
++
++## An item is a plain link, not a class
++
++**Decided:** `item()` is a method that makes one `<a class="ui-menu-item">`. There is no `Menu.Item` part.
++**Why:** every item runs the same code: prevent the jump when there is no real `href`, then `pick()`. Nothing branches per item, so a class would only wrap one element and one handler.
++**Instead:** a static part, as `Tags.Chip` uses, which fits only when an item owns its own listener.
++**Detail:** [doc/decisions.md](./decisions.md#no-part-an-item-is-a-plain-link-not-a-class)
++
++## Prototype fields, not class fields
++
++**Decided:** `tag`, `classes`, `label` and `items` are set on `Menu.prototype`, not as class fields.
++**Why:** `View` renders inside its constructor, and a subclass class field is set only after that, so `render()` would never see it.
++**Instead:** class fields, which fail silently here.
++**Detail:** [`Menu.js`](../Menu.js) (the comment above the prototype assignments)
++
++## Not shipped yet
++
++- **Named variants.** None are shipped. Light dismiss is base behaviour, not an opt-in, and the Popover API would be a platform migration of the whole template, not a subclass.
++- **Sections and ARIA.** Group labels stay a `ui/` variant, and no `role="menu"` is set, the same call [`ux/Tree`](/framework/ux/Tree/) made.
++- ⚠ The doc says the outside listener is removed before the item click reaches `document`. It is not: `toggle` fires after the click, so the listener is still attached. The result is still correct, because `this.el.contains(e.target)` is true for an item click and nothing closes twice.
++
++Related: [`ux/doc/system.md`](/framework/ux/doc/system/) (the tier and its import rule) · [`ui/menu`](/framework/ui/menu/) (the template half)
+diff --git a/public/framework/ux/Menu/doc/files.jsonl b/public/framework/ux/Menu/doc/files.jsonl
+index 04e0079cd..06518bdb5 100644
+--- a/public/framework/ux/Menu/doc/files.jsonl
++++ b/public/framework/ux/Menu/doc/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"decisions.md"}
+ {"file":"files.jsonl"}
+ {"file":"decisions.md"}
++{"file":"architecture.md"}
+diff --git a/public/framework/ux/Menu/page.js b/public/framework/ux/Menu/page.js
+index 6fe2e3f34..aa3f33c15 100644
+--- a/public/framework/ux/Menu/page.js
++++ b/public/framework/ux/Menu/page.js
+@@ -41,7 +41,7 @@ export default new Doc({
+ 	icon: "arrow_drop_down_circle",
+ 
+ 	files: "Menu.js page.js readme.md",
+-	notes: "decisions",
++	notes: "architecture decisions",
+ 
+ 	children: [
+ 		demo.page("words", words, {
+diff --git a/public/framework/ux/Menu/readme.md b/public/framework/ux/Menu/readme.md
+index ab8086053..bae857e06 100644
+--- a/public/framework/ux/Menu/readme.md
++++ b/public/framework/ux/Menu/readme.md
+@@ -27,5 +27,6 @@ it navigates or not. `label` sets the trigger text ("Actions" by default).
+ ## More
+ - [Overview](/framework/ux/Menu/) — a file-actions menu, live · [words](/framework/ux/Menu/words/) — the same picker under `ui-contrast ui-compact`
+ - [`doc/decisions.md`](/framework/ux/Menu/doc/decisions/) — the split argued, the click-outside design, why no named extension shipped
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - [`ui/menu`](/framework/ui/menu/) — the template half · [`ux/`](/framework/ux/) — the tier
+ - Files: `Menu.js` (the class, no parts — every item is a plain link)

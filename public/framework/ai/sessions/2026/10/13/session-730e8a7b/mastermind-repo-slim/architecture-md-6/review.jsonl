@@ -1,0 +1,6 @@
+{"phase":{"at":"2026-10-13T22:33:23-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-10-13T22:33:23-05:00","n":1,"kind":"note","text":"Widths given: all four (400, 1200, 1920, 3440) for 4 pages whose `notes:` line gained an \"architecture\" tab (Search, Dropdown, editor, Menu); 8 other modules changed only in markdown, so no shots."}}
+{"finding":{"at":"2026-10-13T22:33:23-05:00","n":2,"kind":"note","text":"The Dropdown readme \"Watch out\" line was reworded (Escape is handled by `keys()`, not the browser) — a correction beyond \"link it once\", but inside the readme fence and matches the code claim in the new doc; worth a glance, not a fix."}}
+{"finding":{"at":"2026-10-13T22:33:23-05:00","n":3,"kind":"note","text":"`core/new/readme.md` also changed a line (`Router.js` \"line-for-line\" to \"earlier, diverged copy\"); a factual correction in the fence."}}
+{"finding":{"at":"2026-10-13T22:33:23-05:00","n":4,"kind":"note","text":"editor `notes:` uses \"shell decisions, architecture\" (comma) while Search and Dropdown use spaces; the editor line already had its own style, so it is consistent with the file it sits in."}}
+{"phase":{"at":"2026-10-13T22:33:23-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0.48639600000000005,"model":"claude-sonnet-5-5"}}
