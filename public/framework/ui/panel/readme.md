@@ -4,7 +4,6 @@ A titled box with a header and a close button. A `ui/` template: copy the markup
 
 Code: `page.js` and `panel.js` in this folder.
 
-_Stub — more to come._
 
 ## More
 

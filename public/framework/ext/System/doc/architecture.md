@@ -12,7 +12,7 @@ A System is anything we keep in order: its files (`root`), its readme, its rules
 ## Checks compute, never recall
 
 **Decided:** `check()` reads the real files and returns findings `{rule, path, text}`. An empty list means healthy. It only reads.
-**Why:** the owner's rule that record-keeping is code, not an AI's memory (CLAUDE.md law 7).
+**Why:** the rule that record-keeping is code, not an AI's memory (CLAUDE.md law 7).
 **Instead:** an AI summary of the health of a module (rejected: it can be wrong and it costs tokens).
 **Detail:** [system.md](./system.md)
 
