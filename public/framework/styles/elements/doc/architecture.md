@@ -47,7 +47,7 @@ Elements is the reference for every HTML element `framework.css` styles, and the
 
 ## Checked by hand
 
-**Decided:** the decisions above were checked against `page.js` children, the absence of `.css` files, and the `framework.css` lines cited,. The census (`Server/ArchitectureCensus.mjs --decisions`) found no task-log decision lines naming this module, so every entry comes from its own `doc/` and code.
+**Decided:** the decisions above were checked against `page.js` children, the absence of `.css` files, and the `framework.css` lines cited. The census (`Server/ArchitectureCensus.mjs --decisions`) found no task-log decision lines naming this module, so every entry comes from its own `doc/` and code.
 **Why:** a doc that copies a stale claim misleads the next agent; the source is the test.
 **Instead:** trusting `framework-css.md` as written, which the ⚠ above shows would be wrong on four points.
 **Detail:** [doc/framework-css.md](./framework-css.md)
