@@ -1,0 +1,910 @@
+{
+ "at": "2026-10-14T00:51:23.368Z",
+ "dry_run": true,
+ "rule": "public/framework/ai/cards/CardDir.js",
+ "repo": "C:\\Code\\lew42\\monorepo",
+ "totals": {
+  "cards": 102,
+  "files": 25,
+  "skipped_listings": 3,
+  "target_exists": 0,
+  "odd": 0
+ },
+ "odd": [],
+ "skipped": [
+  "public/framework/ai/2026/09/19/a-153628/files.jsonl",
+  "public/framework/ai/2026/09/19/files.jsonl",
+  "public/framework/ai/2026/09/files.jsonl"
+ ],
+ "moves": [
+  {
+   "kind": "card",
+   "id": "2026/09/25/cards-that-show-the-thing/shots",
+   "from": "public/framework/ai/2026/09/25/cards-that-show-the-thing/shots",
+   "to": "public/framework/ai/sessions/2026/09/25/cards/cards-that-show-the-thing/shots",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/25/classify-see-the-css-classes-on-the-page/page-1920.png",
+   "from": "public/framework/ai/2026/09/25/classify-see-the-css-classes-on-the-page/page-1920.png",
+   "to": "public/framework/ai/sessions/2026/09/25/cards/classify-see-the-css-classes-on-the-page/page-1920.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/25/file-explorer-see-the-code/after-1920.png",
+   "from": "public/framework/ai/2026/09/25/file-explorer-see-the-code/after-1920.png",
+   "to": "public/framework/ai/sessions/2026/09/25/cards/file-explorer-see-the-code/after-1920.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/25/file-explorer-see-the-code/after-3440.png",
+   "from": "public/framework/ai/2026/09/25/file-explorer-see-the-code/after-3440.png",
+   "to": "public/framework/ai/sessions/2026/09/25/cards/file-explorer-see-the-code/after-3440.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/25/file-explorer-see-the-code/before-1920.png",
+   "from": "public/framework/ai/2026/09/25/file-explorer-see-the-code/before-1920.png",
+   "to": "public/framework/ai/sessions/2026/09/25/cards/file-explorer-see-the-code/before-1920.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/25/file-explorer-see-the-code/before-3440.png",
+   "from": "public/framework/ai/2026/09/25/file-explorer-see-the-code/before-3440.png",
+   "to": "public/framework/ai/sessions/2026/09/25/cards/file-explorer-see-the-code/before-3440.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/25/file-explorer-see-the-code/demo-1920.png",
+   "from": "public/framework/ai/2026/09/25/file-explorer-see-the-code/demo-1920.png",
+   "to": "public/framework/ai/sessions/2026/09/25/cards/file-explorer-see-the-code/demo-1920.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/25/file-explorer-see-the-code/demo-3440.png",
+   "from": "public/framework/ai/2026/09/25/file-explorer-see-the-code/demo-3440.png",
+   "to": "public/framework/ai/sessions/2026/09/25/cards/file-explorer-see-the-code/demo-3440.png",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/09/25/why-padding-keeps-going-missing/shots",
+   "from": "public/framework/ai/2026/09/25/why-padding-keeps-going-missing/shots",
+   "to": "public/framework/ai/sessions/2026/09/25/cards/why-padding-keeps-going-missing/shots",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/28/figma-sept-2026/1-typography/figma.png",
+   "from": "public/framework/ai/2026/09/28/figma-sept-2026/1-typography/figma.png",
+   "to": "public/framework/ai/sessions/2026/09/28/cards/figma-sept-2026/1-typography/figma.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/28/figma-sept-2026/2-lists/figma.png",
+   "from": "public/framework/ai/2026/09/28/figma-sept-2026/2-lists/figma.png",
+   "to": "public/framework/ai/sessions/2026/09/28/cards/figma-sept-2026/2-lists/figma.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/28/figma-sept-2026/3-form-elements/figma.png",
+   "from": "public/framework/ai/2026/09/28/figma-sept-2026/3-form-elements/figma.png",
+   "to": "public/framework/ai/sessions/2026/09/28/cards/figma-sept-2026/3-form-elements/figma.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/28/figma-sept-2026/4-2-col-pricing/figma.png",
+   "from": "public/framework/ai/2026/09/28/figma-sept-2026/4-2-col-pricing/figma.png",
+   "to": "public/framework/ai/sessions/2026/09/28/cards/figma-sept-2026/4-2-col-pricing/figma.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/28/figma-sept-2026/5-2-col-sidebar-content/figma.png",
+   "from": "public/framework/ai/2026/09/28/figma-sept-2026/5-2-col-sidebar-content/figma.png",
+   "to": "public/framework/ai/sessions/2026/09/28/cards/figma-sept-2026/5-2-col-sidebar-content/figma.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/28/figma-sept-2026/6-ui-controls/figma.png",
+   "from": "public/framework/ai/2026/09/28/figma-sept-2026/6-ui-controls/figma.png",
+   "to": "public/framework/ai/sessions/2026/09/28/cards/figma-sept-2026/6-ui-controls/figma.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/28/figma-sept-2026/7-task-management-ai-patterns/figma.png",
+   "from": "public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/figma.png",
+   "to": "public/framework/ai/sessions/2026/09/28/cards/figma-sept-2026/7-task-management-ai-patterns/figma.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/28/structured-content-icon-cards-outlines-b/structure-1920.png",
+   "from": "public/framework/ai/2026/09/28/structured-content-icon-cards-outlines-b/structure-1920.png",
+   "to": "public/framework/ai/sessions/2026/09/28/cards/structured-content-icon-cards-outlines-b/structure-1920.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/28/structured-content-icon-cards-outlines-b/structure-3440.png",
+   "from": "public/framework/ai/2026/09/28/structured-content-icon-cards-outlines-b/structure-3440.png",
+   "to": "public/framework/ai/sessions/2026/09/28/cards/structured-content-icon-cards-outlines-b/structure-3440.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/ai2-drawer.png",
+   "from": "public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/ai2-drawer.png",
+   "to": "public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study/ai2-drawer.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/ai2-narrow.png",
+   "from": "public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/ai2-narrow.png",
+   "to": "public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study/ai2-narrow.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/columns.png",
+   "from": "public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/columns.png",
+   "to": "public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study/columns.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/framework.png",
+   "from": "public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/framework.png",
+   "to": "public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study/framework.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/home.png",
+   "from": "public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/home.png",
+   "to": "public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study/home.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/page-tabs.png",
+   "from": "public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/page-tabs.png",
+   "to": "public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study/page-tabs.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/servex.png",
+   "from": "public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/servex.png",
+   "to": "public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study/servex.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/sidebar-a.png",
+   "from": "public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/sidebar-a.png",
+   "to": "public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study/sidebar-a.png",
+   "exists": false
+  },
+  {
+   "kind": "cardfile",
+   "id": "2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/sidebar-rail.png",
+   "from": "public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study/sidebar-rail.png",
+   "to": "public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study/sidebar-rail.png",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/02/session-042b5fc9",
+   "from": "public/framework/ai/2026/10/02/session-042b5fc9",
+   "to": "public/framework/ai/sessions/2026/10/02/cards/session-042b5fc9",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/02/session-74c3d080",
+   "from": "public/framework/ai/2026/10/02/session-74c3d080",
+   "to": "public/framework/ai/sessions/2026/10/02/cards/session-74c3d080",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/02/session-a56900e3",
+   "from": "public/framework/ai/2026/10/02/session-a56900e3",
+   "to": "public/framework/ai/sessions/2026/10/02/cards/session-a56900e3",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/07/session-87bec773",
+   "from": "public/framework/ai/2026/10/07/session-87bec773",
+   "to": "public/framework/ai/sessions/2026/10/07/cards/session-87bec773",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-05d46e88",
+   "from": "public/framework/ai/2026/10/09/session-05d46e88",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-05d46e88",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-07a8a9ee",
+   "from": "public/framework/ai/2026/10/09/session-07a8a9ee",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-07a8a9ee",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-0cacee39",
+   "from": "public/framework/ai/2026/10/09/session-0cacee39",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-0cacee39",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-0fa49ac0",
+   "from": "public/framework/ai/2026/10/09/session-0fa49ac0",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-0fa49ac0",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-15159d23",
+   "from": "public/framework/ai/2026/10/09/session-15159d23",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-15159d23",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-1774173f",
+   "from": "public/framework/ai/2026/10/09/session-1774173f",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-1774173f",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-196d8953",
+   "from": "public/framework/ai/2026/10/09/session-196d8953",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-196d8953",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-1ad9a2b7",
+   "from": "public/framework/ai/2026/10/09/session-1ad9a2b7",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-1ad9a2b7",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-1b18de6e",
+   "from": "public/framework/ai/2026/10/09/session-1b18de6e",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-1b18de6e",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-24d3873b",
+   "from": "public/framework/ai/2026/10/09/session-24d3873b",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-24d3873b",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-2cb18c1a",
+   "from": "public/framework/ai/2026/10/09/session-2cb18c1a",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-2cb18c1a",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-30922ee9",
+   "from": "public/framework/ai/2026/10/09/session-30922ee9",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-30922ee9",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-322d5270",
+   "from": "public/framework/ai/2026/10/09/session-322d5270",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-322d5270",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-348fceca",
+   "from": "public/framework/ai/2026/10/09/session-348fceca",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-348fceca",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-35d7f59c",
+   "from": "public/framework/ai/2026/10/09/session-35d7f59c",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-35d7f59c",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-3c160880",
+   "from": "public/framework/ai/2026/10/09/session-3c160880",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-3c160880",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-402f189d",
+   "from": "public/framework/ai/2026/10/09/session-402f189d",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-402f189d",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-40b254b9",
+   "from": "public/framework/ai/2026/10/09/session-40b254b9",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-40b254b9",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-426400fa",
+   "from": "public/framework/ai/2026/10/09/session-426400fa",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-426400fa",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-451a3e6f",
+   "from": "public/framework/ai/2026/10/09/session-451a3e6f",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-451a3e6f",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-46645ed4",
+   "from": "public/framework/ai/2026/10/09/session-46645ed4",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-46645ed4",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-4c841788",
+   "from": "public/framework/ai/2026/10/09/session-4c841788",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-4c841788",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-5426fb6e",
+   "from": "public/framework/ai/2026/10/09/session-5426fb6e",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-5426fb6e",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-58dad4d1",
+   "from": "public/framework/ai/2026/10/09/session-58dad4d1",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-58dad4d1",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-5adbce37",
+   "from": "public/framework/ai/2026/10/09/session-5adbce37",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-5adbce37",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-67eecfc0",
+   "from": "public/framework/ai/2026/10/09/session-67eecfc0",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-67eecfc0",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-7356c8c8",
+   "from": "public/framework/ai/2026/10/09/session-7356c8c8",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-7356c8c8",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-7efd07d5",
+   "from": "public/framework/ai/2026/10/09/session-7efd07d5",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-7efd07d5",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-8a100671",
+   "from": "public/framework/ai/2026/10/09/session-8a100671",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-8a100671",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-8a312084",
+   "from": "public/framework/ai/2026/10/09/session-8a312084",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-8a312084",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-9e0d643b",
+   "from": "public/framework/ai/2026/10/09/session-9e0d643b",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-9e0d643b",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-9f459d64",
+   "from": "public/framework/ai/2026/10/09/session-9f459d64",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-9f459d64",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-a4b8d74f",
+   "from": "public/framework/ai/2026/10/09/session-a4b8d74f",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-a4b8d74f",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-ad7ab1c0",
+   "from": "public/framework/ai/2026/10/09/session-ad7ab1c0",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-ad7ab1c0",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-b127eae4",
+   "from": "public/framework/ai/2026/10/09/session-b127eae4",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-b127eae4",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-b48f1620",
+   "from": "public/framework/ai/2026/10/09/session-b48f1620",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-b48f1620",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-b490f767",
+   "from": "public/framework/ai/2026/10/09/session-b490f767",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-b490f767",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-b53405f3",
+   "from": "public/framework/ai/2026/10/09/session-b53405f3",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-b53405f3",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-ba60304c",
+   "from": "public/framework/ai/2026/10/09/session-ba60304c",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-ba60304c",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-c320f6b2",
+   "from": "public/framework/ai/2026/10/09/session-c320f6b2",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-c320f6b2",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-c33ad9eb",
+   "from": "public/framework/ai/2026/10/09/session-c33ad9eb",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-c33ad9eb",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-c90006cc",
+   "from": "public/framework/ai/2026/10/09/session-c90006cc",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-c90006cc",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-d619ec02",
+   "from": "public/framework/ai/2026/10/09/session-d619ec02",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-d619ec02",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-dc7293be",
+   "from": "public/framework/ai/2026/10/09/session-dc7293be",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-dc7293be",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-ddcca6ba",
+   "from": "public/framework/ai/2026/10/09/session-ddcca6ba",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-ddcca6ba",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-e51a9690",
+   "from": "public/framework/ai/2026/10/09/session-e51a9690",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-e51a9690",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-e8eafb48",
+   "from": "public/framework/ai/2026/10/09/session-e8eafb48",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-e8eafb48",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-ee039f1c",
+   "from": "public/framework/ai/2026/10/09/session-ee039f1c",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-ee039f1c",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-f12b5f94",
+   "from": "public/framework/ai/2026/10/09/session-f12b5f94",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-f12b5f94",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/09/session-fc97c255",
+   "from": "public/framework/ai/2026/10/09/session-fc97c255",
+   "to": "public/framework/ai/sessions/2026/10/09/cards/session-fc97c255",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-031adfe9",
+   "from": "public/framework/ai/2026/10/12/session-031adfe9",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-031adfe9",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-0896fe19",
+   "from": "public/framework/ai/2026/10/12/session-0896fe19",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-0896fe19",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-0f0d988f",
+   "from": "public/framework/ai/2026/10/12/session-0f0d988f",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-0f0d988f",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-185a6605",
+   "from": "public/framework/ai/2026/10/12/session-185a6605",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-185a6605",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-189b7d26",
+   "from": "public/framework/ai/2026/10/12/session-189b7d26",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-189b7d26",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-1ae8330d",
+   "from": "public/framework/ai/2026/10/12/session-1ae8330d",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-1ae8330d",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-1b5bfb95",
+   "from": "public/framework/ai/2026/10/12/session-1b5bfb95",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-1b5bfb95",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-22dda6dd",
+   "from": "public/framework/ai/2026/10/12/session-22dda6dd",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-22dda6dd",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-25a204a6",
+   "from": "public/framework/ai/2026/10/12/session-25a204a6",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-25a204a6",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-2b3b7710",
+   "from": "public/framework/ai/2026/10/12/session-2b3b7710",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-2b3b7710",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-3a9be227",
+   "from": "public/framework/ai/2026/10/12/session-3a9be227",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-3a9be227",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-46706691",
+   "from": "public/framework/ai/2026/10/12/session-46706691",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-46706691",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-4cf6e92a",
+   "from": "public/framework/ai/2026/10/12/session-4cf6e92a",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-4cf6e92a",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-4d6d8c66",
+   "from": "public/framework/ai/2026/10/12/session-4d6d8c66",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-4d6d8c66",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-5a68c607",
+   "from": "public/framework/ai/2026/10/12/session-5a68c607",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-5a68c607",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-5aaa4ae5",
+   "from": "public/framework/ai/2026/10/12/session-5aaa4ae5",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-5aaa4ae5",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-5f360cb5",
+   "from": "public/framework/ai/2026/10/12/session-5f360cb5",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-5f360cb5",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-6ec41c59",
+   "from": "public/framework/ai/2026/10/12/session-6ec41c59",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-6ec41c59",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-96aa6a5e",
+   "from": "public/framework/ai/2026/10/12/session-96aa6a5e",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-96aa6a5e",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-9876c97a",
+   "from": "public/framework/ai/2026/10/12/session-9876c97a",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-9876c97a",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-9f33f4b3",
+   "from": "public/framework/ai/2026/10/12/session-9f33f4b3",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-9f33f4b3",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-aa997dba",
+   "from": "public/framework/ai/2026/10/12/session-aa997dba",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-aa997dba",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-b52ae844",
+   "from": "public/framework/ai/2026/10/12/session-b52ae844",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-b52ae844",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-b787d4b6",
+   "from": "public/framework/ai/2026/10/12/session-b787d4b6",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-b787d4b6",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-bb921b88",
+   "from": "public/framework/ai/2026/10/12/session-bb921b88",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-bb921b88",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-bcfc12a0",
+   "from": "public/framework/ai/2026/10/12/session-bcfc12a0",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-bcfc12a0",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-c2d7c4e8",
+   "from": "public/framework/ai/2026/10/12/session-c2d7c4e8",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-c2d7c4e8",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-c3baa54f",
+   "from": "public/framework/ai/2026/10/12/session-c3baa54f",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-c3baa54f",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-c8200d6c",
+   "from": "public/framework/ai/2026/10/12/session-c8200d6c",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-c8200d6c",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-c8c133d0",
+   "from": "public/framework/ai/2026/10/12/session-c8c133d0",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-c8c133d0",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-cc9c0c62",
+   "from": "public/framework/ai/2026/10/12/session-cc9c0c62",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-cc9c0c62",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-cef12942",
+   "from": "public/framework/ai/2026/10/12/session-cef12942",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-cef12942",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-d24d2ee6",
+   "from": "public/framework/ai/2026/10/12/session-d24d2ee6",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-d24d2ee6",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-d5164825",
+   "from": "public/framework/ai/2026/10/12/session-d5164825",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-d5164825",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-dd91fe29",
+   "from": "public/framework/ai/2026/10/12/session-dd91fe29",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-dd91fe29",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-e34f35c8",
+   "from": "public/framework/ai/2026/10/12/session-e34f35c8",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-e34f35c8",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-e46b1215",
+   "from": "public/framework/ai/2026/10/12/session-e46b1215",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-e46b1215",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-ea10831d",
+   "from": "public/framework/ai/2026/10/12/session-ea10831d",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-ea10831d",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-f155ecbd",
+   "from": "public/framework/ai/2026/10/12/session-f155ecbd",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-f155ecbd",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-f8217045",
+   "from": "public/framework/ai/2026/10/12/session-f8217045",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-f8217045",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-fbe81ab2",
+   "from": "public/framework/ai/2026/10/12/session-fbe81ab2",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-fbe81ab2",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/12/session-fd2c1a0c",
+   "from": "public/framework/ai/2026/10/12/session-fd2c1a0c",
+   "to": "public/framework/ai/sessions/2026/10/12/cards/session-fd2c1a0c",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/session-730e8a7b",
+   "from": "public/framework/ai/2026/10/13/session-730e8a7b",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/session-730e8a7b",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/session-data-are-we-duplicating-the-raw",
+   "from": "public/framework/ai/2026/10/13/session-data-are-we-duplicating-the-raw",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/session-data-are-we-duplicating-the-raw",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/session-data-yes-we-duplicate-your-promp",
+   "from": "public/framework/ai/2026/10/13/session-data-yes-we-duplicate-your-promp",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/session-data-yes-we-duplicate-your-promp",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/session-index-thousands-of-sessions-held",
+   "from": "public/framework/ai/2026/10/13/session-index-thousands-of-sessions-held",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/session-index-thousands-of-sessions-held",
+   "exists": false
+  }
+ ]
+}

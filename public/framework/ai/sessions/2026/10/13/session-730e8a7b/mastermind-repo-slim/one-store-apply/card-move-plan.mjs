@@ -21,6 +21,17 @@ const add = (kind, id) => {
 	const from = path.join(AI, ...id.split("/")), to = path.join(AI, ...CardDir.rel(id).split("/"));
 	moves.push({ kind, id, from: rel(from), to: rel(to), exists: fs.existsSync(to) });
 };
+// a card folder moves whole; if its folder already exists in the store (a merge carried its tracked files, and git-ignored
+// ones were left behind), what is left moves file by file into it
+const tree = id => {
+	if (!fs.existsSync(path.join(AI, ...CardDir.rel(id).split("/")))) return add("card", id);
+	for (const e of ents(path.join(AI, ...id.split("/")))){
+		const child = `${id}/${e.name}`;
+		if (e.isDirectory()) tree(child);
+		else if (e.name === "files.jsonl") skipped.push(rel(path.join(AI, ...child.split("/"))));
+		else add("cardfile", child);
+	}
+};
 // year, month, day: their files are index pages; a day's folders are cards; anything else is reported, never guessed
 const walk = (id, depth) => {
 	for (const e of ents(path.join(AI, ...id.split("/")))){
@@ -28,7 +39,7 @@ const walk = (id, depth) => {
 		if (e.isFile() && e.name === "files.jsonl") skipped.push(rel(path.join(AI, ...child.split("/"))));   // a generated listing (Server/plugins/PageFiles.js): the store ignores it and makes its own
 		else if (e.isFile()) add("cardfile", child);
 		else if (depth < 2 && /^\d{2}$/.test(e.name)) walk(child, depth + 1);
-		else if (depth === 2) add("card", child);
+		else if (depth === 2) tree(child);
 		else odd.push(rel(path.join(AI, ...child.split("/"))));
 	}
 };
