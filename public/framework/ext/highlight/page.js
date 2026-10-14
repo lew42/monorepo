@@ -9,7 +9,7 @@ export default new Doc({
 	subject: code,
 	methods:    "lang fn file ext",
 	properties: "cache",
-	notes:      "choice hooks chaining decisions",
+	notes:      "choice hooks chaining decisions architecture",
 	files:      "highlight.js highlight.css example.js page.js readme.md editor.md "
 		+ "hljs/core.min.js hljs/languages/css.min.js hljs/languages/javascript.min.js "
 		+ "hljs/languages/json.min.js hljs/languages/markdown.min.js hljs/languages/xml.min.js",

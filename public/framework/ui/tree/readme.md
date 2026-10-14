@@ -37,5 +37,6 @@ takes; this page hand-writes the same `.ui-tree-*` shape to show it styled.
 - **Drag-reorder** — shipped too: [`TreeDrag`](/framework/ux/Tree/drag/).
 
 ## More
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [Overview](/framework/ui/tree/) — navigation, a Figma-like layer stack, the indent knob live
 - [`doc/decisions.md`](./doc/decisions.md) — reserved icon/toggle slots, nesting over a depth counter, selection rules, the twentieth band, and the graduation

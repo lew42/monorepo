@@ -39,6 +39,7 @@ this file's.
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`doc/sidebar-notes.md`](./doc/sidebar-notes.md) — comments pruned from `Sidebar.js`, verbatim.
 - [`doc/decisions.md`](./doc/decisions.md) — the record: who uses it, why one component, header-replaces, `›`, the 2026-09-18 tree + resize pass, the same-day filter + shared-`ext/grip` pass, the 2026-09-19 look pass (the row, the square frame, the filter bar, the pinned footer, the avatar), the workspace-note verdict, the proposals and open items
 - [The 2026-09-19 rebuild, before and after](/framework/ai/sessions/2026/09/19/sidebar-repair/) — the rail at 1280 / 1920 / 3440 and the 400 menu, with the numbers

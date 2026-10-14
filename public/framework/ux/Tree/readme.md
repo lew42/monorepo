@@ -49,6 +49,7 @@ through `this.constructor`, so replacing one gives you the rest of the machine f
   reload — [`ux/doc/system.md`](/framework/ux/doc/system/)
 
 ## More
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [Overview](/framework/ux/Tree/) — the five-level tree, live · [compare](/framework/ux/Tree/compare/) — the three trees that existed, and why this one won · [keys](/framework/ux/Tree/keys/) · [words](/framework/ux/Tree/words/) · [drag](/framework/ux/Tree/drag/) — the three targets
 - [`doc/decisions.md`](/framework/ux/Tree/doc/decisions/) — the merge argued, the edge model's measurement, what `adapt` is in four lines, and what is parked
 - [`ui/tree`](/framework/ui/tree/) — the template half, and every `.ui-tree-*` rule · [`ux/`](/framework/ux/) — the tier

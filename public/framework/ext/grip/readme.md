@@ -39,6 +39,7 @@ grip({
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [doc/decisions.md](./doc/decisions.md) — why it left `dev/DevBar`, the offscreen record, what `write`/`done`/`reset` are for, and the 2026-09-18 merge with `core/Sidebar` + `/layouts/shell/`'s own copied gesture
 - Files: `grip.js` (the pointer choreography), `grip.css` (the strip, the pill, the sizing class)
 - [Overview](/framework/ext/grip/) — the page

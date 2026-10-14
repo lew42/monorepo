@@ -58,3 +58,7 @@ title is now the url of *this section*, so every use of it here renames the root
   `drift` pages each render their own nav that way.
 - **A bleed stage has no inset.** Fine around a bordered demo app, wrong around
   prose — the three comparison pages add `pad` to their own container.
+
+## More
+
+[`doc/architecture.md`](./doc/architecture.md) (decisions and why)

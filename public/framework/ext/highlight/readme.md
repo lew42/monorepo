@@ -23,4 +23,5 @@ highlighted too, and a fence's second info word (```` ```js /app.js ````) is the
 - [Overview](/framework/ext/highlight/) · [doc/decisions.md](./doc/decisions.md) — why highlight.js, the `code.*` namespace, who uses it, open items
 - [doc/choice.md](./doc/choice.md) — which highlighter, why five languages · [doc/hooks.md](./doc/hooks.md) — block-awareness, the two hook points, FOUC
 - [doc/chaining.md](./doc/chaining.md) — the one sharp edge and every workaround · `editor.md` — MVP spec for the editor this was built for, unwritten
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - Files: `highlight.js` (API at top), `highlight.css` (token colours only), `hljs/` (vendored ESM grammars)
