@@ -70,7 +70,6 @@ export default class AISessionCoverage {
 						small.c("muted", `${s.judged} of ${s.found} asks have a verdict, across ${cards.length} prompt${cards.length > 1 ? "s" : ""}`);
 					});
 					div.c("flex gap-50 wrap", () => RefinedCard.STATUSES.forEach(k => s.by[k] && AISessionCoverage.tag(k, `${k} ${s.by[k]}`)));
-					small.c("muted", "Asks found by Haiku, one call per prompt (Server/RefineQueue.mjs). A verdict comes from the asks-outcomes tally; until it names a prompt, its asks are unreviewed.");
 				});
 				cards.forEach((c, i) => this.prompt(c, i + 1, open));
 			});
@@ -79,14 +78,14 @@ export default class AISessionCoverage {
 
 	/** One prompt: its refined form and asks up front; the structured outline and the raw words one click down. */
 	prompt(c, n, open){
-		const box = details.c("flow session-coverage-row").style({ "border-bottom": "1px solid var(--line, #8883)", "padding-block": "0.35em" });
+		const box = details.c("flow session-coverage-row").style({ "border-bottom": "1px solid var(--line, #8883)", margin: "0", padding: "0" });
 		box.el.id = "p" + c.line;
 		if (open.has(box.el.id)) box.el.open = true;
 		box.append(() => {
 			summary(() => {
 				strong(`${n}. ${c.subject || "Prompt"}`);
 				small.c("muted", ` · ${(c.asks ?? []).length} asks · ${c.at ? new Date(c.at).toLocaleString() : ""}`);
-			});
+			}).style({ border: "0", background: "none", margin: "0", padding: "0.3em 0", "box-shadow": "none" });
 			md(c.refined || "");
 			div.c("flow", () => (c.asks ?? []).forEach(ask => {
 				const status = RefinedCard.status_of(ask, c, this.outcomes);

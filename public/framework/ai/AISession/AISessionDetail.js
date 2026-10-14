@@ -30,7 +30,7 @@ export default class AISessionDetail extends Page {
 	/** The name from rows AISessionsPage.child() preloaded, so the first paint already shows it; the id only when there is no row. */
 	static first_title(home, id){
 		const row = AISessionRows.snapshot?.rows?.find(r => r.id === id || r.session_id === id);
-		return row ? AISessionRows.display_name(row, AISessionRows.tree).text : id;
+		return AISessionRows.display_name(row ?? { id, session_id: id }, AISessionRows.tree).text;   // a VS Code tab has no row; the index names it
 	}
 
 	/** Fetch sessions.json, the index and the tree once, before the detail page is built (called from AISessionsPage.child()). */
