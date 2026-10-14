@@ -51,4 +51,4 @@ The one way to lose real money is a loop: R2 writes cost $4.50 per million, so a
 
 ## What happens first once you do steps 1 and 2
 
-The R2 second copy of the archived pictures (`ai/sessions/doc/picture-archive.md`), then the one-tool connector test (`ux/Dictate/doc/voice-bridge.md`) through a quick tunnel. D1 and Durable Objects wait for the storage design's go-ahead.
+**Built 2026-10-14, waiting on one click (enable R2 in the dashboard):** `node Server/ArchiveCopy.mjs --plan` then `--apply` ([Cloudflare.mjs](/Server/Cloudflare.mjs), capped at 10,000 writes a run). The R2 second copy of the archived pictures (`ai/sessions/doc/picture-archive.md`), then the one-tool connector test (`ux/Dictate/doc/voice-bridge.md`) through a quick tunnel. D1 and Durable Objects wait for the storage design's go-ahead.

@@ -7,7 +7,7 @@
 | [2026/08](../2026/08/readme.md) | 1,124 pictures, 105.1 MB | 207, 23.3 MB | `E:/Projects/lew42/archive/sessions/2026/08/` |
 | [2026/09](../2026/09/readme.md) | 3,124 pictures, 377.7 MB | 527, 73.0 MB | `E:/Projects/lew42/archive/sessions/2026/09/` |
 
-⚠️ **The drive holds the only copy** of the moved pictures (they were never in git). A second copy on Cloudflare R2 is the open next step: [repo-size.md](../../doc/repo-size.md#phase-2--archive-old-sessions).
+⚠️ **The drive holds the only copy** of the moved pictures (they were never in git). A second copy on Cloudflare R2 is built and waiting on the R2 enable click: see [The second copy on R2](#the-second-copy-on-r2).
 
 ## Read one
 
@@ -29,4 +29,19 @@ node Server/ArchiveSessions.mjs --apply --months 10   # re-verify, remove the C:
 
 "A page shows it" means some `page.js` in its folder or above names it, or a `task.jsonl`, `page.jsonl` or `.md` there embeds it as a picture (`![](…)`, `<img>`, a `shot` line). Anything else archived shows as a broken link at most, never on a page's first screen; `merge.mjs`'s smoke test stays clean.
 
-The plan and why the records stay: [repo-size.md, phase 2](../../doc/repo-size.md#phase-2--archive-old-sessions). Open for later: a second copy on Cloudflare R2 that a server can read (needs the Cloudflare login).
+The plan and why the records stay: [repo-size.md, phase 2](../../doc/repo-size.md#phase-2--archive-old-sessions). 
+
+## The second copy on R2
+
+Bucket `lew42-archive` (key = `sessions/2026/<month>/<path from archive.jsonl>`, the sha1 stored as object metadata). **Status 2026-10-14: ready, waiting on R2 enable** (one click: dash.cloudflare.com → R2 → Enable). Then create the bucket once with `npx wrangler r2 bucket create lew42-archive`.
+
+```sh
+node Server/ArchiveCopy.mjs --plan                 # files to upload / already there (by sha1) / bytes / writes / cost; uploads nothing
+node Server/ArchiveCopy.mjs --apply [--cap 10000]  # uploads; refuses a plan bigger than the cap; each upload is appended to the month's archive-r2.jsonl
+```
+
+- **Credentials** stay in `%LOCALAPPDATA%\lew42\servex\cloudflare.env`, read by [Server/Cloudflare.mjs](/Server/Cloudflare.mjs) at the moment of use; no agent holds them. Tests run against a fake: `node Server/Cloudflare.test.mjs`, `node Server/ArchiveCopy.test.mjs`.
+- **List:** `npx wrangler r2 object get` has no list; use `Cloudflare.r2().list("lew42-archive", "sessions/2026/09/")`.
+- **Restore one file:** `npx wrangler r2 object get lew42-archive/sessions/2026/09/22/x/shots/a.png --file a.png --remote`, then check the sha1 in `archive.jsonl`.
+- **Cost:** about 5,000 files, 580 MB. Storage is free under 10 GB and writes free under 1M, so **$0.00 a month**; past the free tier it is $0.015 per GB-month and $4.50 per million writes ([cloudflare.md](../../doc/cloudflare.md)).
+- The R2 record is a separate `archive-r2.jsonl` (not lines in `archive.jsonl`): `ArchiveSessions` reads every `archive.jsonl` line as a file entry, so an extra line shape would break `--undo`.
