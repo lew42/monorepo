@@ -1,0 +1,56 @@
+{
+ "at": "2026-10-14T00:43:52.205Z",
+ "dry_run": true,
+ "rule": "public/framework/ai/cards/CardDir.js",
+ "repo": "C:\\Code\\lew42\\worktrees\\one-tree",
+ "totals": {
+  "cards": 5,
+  "files": 0,
+  "skipped_listings": 3,
+  "target_exists": 0,
+  "odd": 0
+ },
+ "odd": [],
+ "skipped": [
+  "public/framework/ai/2026/10/13/files.jsonl",
+  "public/framework/ai/2026/10/files.jsonl",
+  "public/framework/ai/2026/files.jsonl"
+ ],
+ "moves": [
+  {
+   "kind": "card",
+   "id": "2026/10/13/agent-cost-every-agent-s-spend-is-record",
+   "from": "public/framework/ai/2026/10/13/agent-cost-every-agent-s-spend-is-record",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/agent-cost-every-agent-s-spend-is-record",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/august-and-september-screenshots-moved-t",
+   "from": "public/framework/ai/2026/10/13/august-and-september-screenshots-moved-t",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/august-and-september-screenshots-moved-t",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/first-reply-latency-measuring-hops",
+   "from": "public/framework/ai/2026/10/13/first-reply-latency-measuring-hops",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/first-reply-latency-measuring-hops",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/sessions-page-layout-decided-3-things-fo",
+   "from": "public/framework/ai/2026/10/13/sessions-page-layout-decided-3-things-fo",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/sessions-page-layout-decided-3-things-fo",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/the-first-reply-to-a-dictation-in-under",
+   "from": "public/framework/ai/2026/10/13/the-first-reply-to-a-dictation-in-under",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/the-first-reply-to-a-dictation-in-under",
+   "exists": false
+  }
+ ]
+}
