@@ -3,6 +3,7 @@
 The general rules (fluid first, no voids, no clipping, repetition, masonry) live in the design system: [design/layout/doc/space.md](/framework/design/layout/doc/space.md). This page covers only how to do them in Figma.
 
 - **Fill, not fixed.** Children default to `layoutSizingHorizontal = "FILL"` in a row or column that has a width, and to `HUG` vertically. Use `FIXED` only for icons, avatars, controls and a deliberately pinned column, and name it in the layer (`Sidebar (fixed 280)`), as the fixed-size register in [use-figma.md](use-figma.md) says.
+- **Wrappers are transparent.** A frame that only groups or lays out (Tiles, Specimens, a row) has no fill; `createFrame()` defaults to white, so clear it. Grounds belong to cards, sections and pages.
 - **No clipping by default.** `clipsContent = false` on cards and specimens unless the clip is the point (an image crop, a phone screen). A specimen that clips its own content means its size is wrong, not its content.
 - **A HUG parent with only FILL children collapses.** At least one child must give the size.
 - **Equal heights in a row: two ways, and both have a cost.**
