@@ -617,6 +617,12 @@ export default class AISessionsPage extends Page {
 
 	deactivated(){ this.polling = false; this.source?.close(); this.source = null; this.stream_open = false; clearInterval(this.tick); }
 
+	/** Waits for the session rows before a detail page is built, so its title is the name on the first paint (route() cannot wait). */
+	async child(name, levels){
+		if (name && !name.includes(".") && !/^\d{4}$/.test(name) && name !== "doc" && name !== "readme") await AISessionDetail.preload(this.url);
+		return super.child(name, levels);
+	}
+
 	/** `/framework/ai/sessions/<id>/` is one session's page; `doc` and `readme` are this page's own docs. */
 	route(id){
 		if (id.includes(".")) return;   // a stray asset request, not a session id

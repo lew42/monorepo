@@ -24,7 +24,22 @@ export default class AISessionDetail extends Page {
 
 	constructor({ home, id }){
 		// The title is the page's path, so it is shown whole (the header line is compact; the row's tab title sits in the conversation's head).
-		super({ home, id, width: "fill", title: id, url: home.url + id + "/" });
+		super({ home, id, width: "fill", title: AISessionDetail.first_title(home, id), url: home.url + id + "/" });
+	}
+
+	/** The name from rows AISessionsPage.child() preloaded, so the first paint already shows it; the id only when there is no row. */
+	static first_title(home, id){
+		const row = AISessionRows.snapshot?.rows?.find(r => r.id === id || r.session_id === id);
+		return row ? AISessionRows.display_name(row, AISessionRows.tree).text : id;
+	}
+
+	/** Fetch sessions.json, the index and the tree once, before the detail page is built (called from AISessionsPage.child()). */
+	static preload(root_url){
+		return AISessionDetail._preload ??= Promise.all([
+			AISessionRows.get_json(root_url + "sessions.json").then(s => AISessionRows.snapshot = s),
+			AISessionRows.load_index(root_url).catch(() => {}),
+			AISessionRows.load_tree(root_url).then(t => { AISessionRows.tree ??= t; }).catch(() => {}),
+		]);
 	}
 
 	/** Show the session's name (the grid's Name column) instead of its id, once the row is known: the column head and the crumb were drawn with the id. */

@@ -64,7 +64,7 @@ export default class AISessionCoverage {
 			this.view.empty(() => {
 				if (!cards.length) return p.c("muted", AISessionCoverage.EMPTY);
 				const s = RefinedCard.score(cards, this.outcomes);
-				div.c("card flow", () => {
+				div.c("flow", () => {
 					div.c("flex gap-50 wrap v-center", () => {
 						strong(s.score == null ? "–" : Math.round(s.score * 100) + "% coverage");
 						small.c("muted", `${s.judged} of ${s.found} asks have a verdict, across ${cards.length} prompt${cards.length > 1 ? "s" : ""}`);
@@ -79,7 +79,7 @@ export default class AISessionCoverage {
 
 	/** One prompt: its refined form and asks up front; the structured outline and the raw words one click down. */
 	prompt(c, n, open){
-		const box = details.c("card flow");
+		const box = details.c("flow session-coverage-row").style({ "border-bottom": "1px solid var(--line, #8883)", "padding-block": "0.35em" });
 		box.el.id = "p" + c.line;
 		if (open.has(box.el.id)) box.el.open = true;
 		box.append(() => {
