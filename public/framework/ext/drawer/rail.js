@@ -119,9 +119,8 @@ export class DrawerRail extends View {
 		return button.c("drawer-rail-ai").attr("type", "button")
 			.attr("aria-label", "Ask, by voice — opens a listening sheet")
 			.append(() => {
-				span.c("drawer-rail-ai-icon", "✦");
+				span.c("drawer-rail-ai-icon").append(() => { span("✦"); new MicIndicator({ compact: true }); });   // the dot: mic open while the sheet is collapsed
 				span.c("drawer-rail-ai-label", "AI");
-				new MicIndicator({ compact: true });   // mic open while the sheet is collapsed
 			})
 			.click(() => this.open_sheet());
 	}

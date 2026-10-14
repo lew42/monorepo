@@ -8,11 +8,12 @@ async function surface(name, w, h, open){
   const p = await ctx.newPage(); await p.addInitScript(() => sessionStorage.setItem("lew42-voice-session", JSON.stringify({ session: "v-proof-fake", file: "/framework/ai/proof-fake.jsonl" }))); const errs = [];
   p.on("pageerror", e => errs.push(String(e))); p.on("requestfailed", r => /.(js|css)$/.test(r.url()) && errs.push("req " + r.url()));
   await p.goto(base + "/framework/", { waitUntil: "networkidle" });
+  await p.evaluate(n => globalThis.__name = n, name);
   await open(p);
   await p.waitForTimeout(800);
   const real_open = await p.evaluate(() => globalThis.$dictate_widget?.mic_active?.() ?? null);
   const mi = await p.evaluate(async () => {
-    document.querySelector(".ux-dictate-ptt-mic")?.classList.add("showing");   // seam: the floating mic shows only on its hotkey
+    if (!/^collapsed/.test(globalThis.__name||"")) document.querySelector(".ux-dictate-ptt-mic")?.classList.add("showing");   // seam: the floating mic shows only on its hotkey
     const M = (await import("/framework/ux/Dictate/MicIndicator.js")).default;
     M.set_open(true); M.set_level(0.6);   // the exact setter Dictate.set_state/on_level call (fake mic may not reach Whisper)
     await new Promise(r => setTimeout(r, 200));
