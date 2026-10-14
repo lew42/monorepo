@@ -1,0 +1,384 @@
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session/proof.mjs b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session/proof.mjs
+new file mode 100644
+index 000000000..71c8f834e
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session/proof.mjs
+@@ -0,0 +1,42 @@
++// node proof.mjs <base>  — presses New session on desktop drawer and 400px sheet; shoots mic-open indicator.
++import { browser as launch, close } from "file:///C:/Code/lew42/monorepo/Server/browser.mjs";
++const base = process.argv[2], out = "C:/Code/lew42/worktrees/dictate-indicator/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session/shots/";
++const b = await launch();
++const res = {};
++async function surface(name, w, h, open){
++  const ctx = await b.newContext({ viewport: { width: w, height: h }, permissions: ["microphone"] });
++  const p = await ctx.newPage(); await p.addInitScript(() => sessionStorage.setItem("lew42-voice-session", JSON.stringify({ session: "v-proof-fake", file: "/framework/ai/proof-fake.jsonl" }))); const errs = [];
++  p.on("pageerror", e => errs.push(String(e))); p.on("requestfailed", r => /.(js|css)$/.test(r.url()) && errs.push("req " + r.url()));
++  await p.goto(base + "/framework/", { waitUntil: "networkidle" });
++  await open(p);
++  await p.waitForTimeout(800);
++  const real_open = await p.evaluate(() => globalThis.$dictate_widget?.mic_active?.() ?? null);
++  const mi = await p.evaluate(async () => {
++    document.querySelector(".ux-dictate-ptt-mic")?.classList.add("showing");   // seam: the floating mic shows only on its hotkey
++    const M = (await import("/framework/ux/Dictate/MicIndicator.js")).default;
++    M.set_open(true); M.set_level(0.6);   // the exact setter Dictate.set_state/on_level call (fake mic may not reach Whisper)
++    await new Promise(r => setTimeout(r, 200));
++    return [...document.querySelectorAll(".ux-dictate-mic-indicator")].map(e => ({ cls: e.className, shown: getComputedStyle(e).display !== "none" && e.getBoundingClientRect().width > 0 }));
++  });
++  const btns = await p.evaluate(() => [...document.querySelectorAll(".ux-dictate-chat-new-session")].map(e => e.textContent));
++  await p.screenshot({ path: `${out}${name}-${w}.png` });
++  if (btns.length){
++    const cur = () => p.evaluate(async () => { const c = (await import("/framework/ux/Dictate/chat.js")).default; return { session: c.current(), shows_line: !!globalThis.$dictate_widget.el.innerText.includes("proof line before"), url: location.pathname + location.search }; });
++    await p.evaluate(() => globalThis.$dictate_widget.say({ chat: { at: new Date().toISOString(), from: { kind: "owner" }, text: "proof line before New session" } }));
++    await p.waitForTimeout(300);
++    const before = await cur();
++    await p.evaluate(() => document.querySelector(".ux-dictate-chat-new-session").click());
++    await p.waitForTimeout(800);
++    res[name + "-" + w + "-press"] = { before, after: await cur() };
++  }
++  res[name + "-" + w] = { real_open, mi: mi.filter(m => m.shown).length + " shown of " + mi.length, btns, errs };
++  await ctx.close();
++}
++await surface("sheet", 400, 800, async p => { await p.click(".drawer-rail-ai"); await p.waitForSelector(".drawer-rail-sheet .ux-dictate-widget, .drawer .ux-dictate-widget", { timeout: 10000, state: "attached" }); });
++await surface("collapsed", 400, 800, async p => {});   // dot on the collapsed ✦ button
++await surface("drawer", 1200, 800, async p => { await p.click(".drawer-menu"); await p.waitForSelector(".drawer-rail-sheet .ux-dictate-widget, .drawer .ux-dictate-widget", { timeout: 10000, state: "attached" }); });
++await surface("closed-menu", 1200, 800, async p => {});
++await surface("floating", 400, 800, async p => {});
++await surface("floating", 1200, 800, async p => {});
++console.log(JSON.stringify(res, null, 1));
++await close();
+diff --git a/public/framework/ext/drawer/menu.js b/public/framework/ext/drawer/menu.js
+index 33461b28c..e25689680 100644
+--- a/public/framework/ext/drawer/menu.js
++++ b/public/framework/ext/drawer/menu.js
+@@ -2,6 +2,7 @@ import { button } from "/framework/core/View/View.js";
+ import tabs from "./tabs.js";
+ import select from "./select.js";
+ import rail from "./rail.js";
++import MicIndicator from "/framework/ux/Dictate/MicIndicator.js";
+ 
+ /* THE ☰ — a menu button in the top right of every page (the owner, 2026-09-28: "each
+    page could have like a little menu button in the top right… that kind of makes it
+@@ -26,6 +27,7 @@ export default function menu(app){
+ 		.attr("title", "Menu — AI, dictation, settings")
+ 		.attr("aria-label", "Open the page menu")
+ 		.click(() => tabs.toggle());
++	new MicIndicator({ compact: true, capture: false }).append_to($menu);   // mic open while the drawer is shut
+ 
+ 	// A url that names a tab opens on it, once the styles are in (so the rail never paints
+ 	// unstyled and slides) — `tabs.open()` itself remaps an old `?drawer=sessions` to "ai".
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+index 85f22fa4f..7ef850b91 100644
+--- a/public/framework/ext/drawer/rail.css
++++ b/public/framework/ext/drawer/rail.css
+@@ -37,6 +37,7 @@
+ 		border: 0;
+ 		border-radius: calc(var(--radius) / 2);
+ 		cursor: pointer;
++		position: relative;
+ 	}
+ 	.drawer-rail-ai:hover, .drawer-rail-menu:hover { background: var(--fill-a08); }
+ 	.drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; }
+diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
+index 505fe4419..5847866fb 100644
+--- a/public/framework/ext/drawer/rail.js
++++ b/public/framework/ext/drawer/rail.js
+@@ -3,6 +3,7 @@ import { View, div, span, button } from "/framework/core/View/View.js";
+ import Dictate from "/framework/ux/Dictate/Dictate.js";
+ import grip from "/framework/ext/grip/grip.js";
+ import floor from "/framework/ux/Dictate/floor.js";
++import MicIndicator from "/framework/ux/Dictate/MicIndicator.js";
+ import Widget from "/framework/ux/Dictate/Widget.js";
+ import chat, { ago, new_session_button as chat_new_session_button } from "/framework/ux/Dictate/chat.js";
+ import Inbox from "./inbox.js";
+@@ -120,6 +121,7 @@ export class DrawerRail extends View {
+ 			.append(() => {
+ 				span.c("drawer-rail-ai-icon", "✦");
+ 				span.c("drawer-rail-ai-label", "AI");
++				new MicIndicator({ compact: true });   // mic open while the sheet is collapsed
+ 			})
+ 			.click(() => this.open_sheet());
+ 	}
+@@ -371,18 +373,11 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
+ 			.click(() => this.close().then(() => tabs.open(tab)));
+ 	}
+ 
+-	new_session(){
+-		if (!this.card_ref){
+-			this.$cards?.empty();
+-			this.$empty?.show();
+-		}
+-		import("./tabs/ai.js").then(m => m.new_session?.({ page: drawer.page(), card: this.card_ref?.id }));
+-	}
+-
++	// The one New session button: ux/Dictate/chat.js's (doc/chat.md). Older sheet classes have no mount of their own, so they reset the shared session.
+ 	new_session_button(){
+-		return button.c("drawer-rail-sheet-link drawer-rail-sheet-new", "New session").attr("type", "button")
+-			.attr("title", "Clear this sheet and start a fresh conversation")
+-			.click(() => this.new_session());
++		return chat_new_session_button(() => this.mount ?? chat)
++			.ac("drawer-rail-sheet-link drawer-rail-sheet-new")
++			.attr("title", "Clear this sheet and start a fresh conversation");
+ 	}
+ }
+ 
+@@ -583,12 +578,6 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
+ 			this.watch_session();
+ 		}).catch(() => {});
+ 	}
+-
+-	new_session(){
+-		this.forget_session();
+-		this.force_fresh = true;
+-		this.build_voice_panel();
+-	}
+ }
+ 
+ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
+@@ -673,12 +662,6 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
+ 		tab.load().then(m => { if (this.$tabbody === body) body.empty(() => { m.default(ctx); }); })
+ 			.catch(e => body.empty(() => { span.c("drawer-wait muted", "This tab could not load: " + e.message); }));
+ 	}
+-
+-	new_session_button(){
+-		return chat_new_session_button(() => this.mount)
+-			.ac("drawer-rail-sheet-link drawer-rail-sheet-new")
+-			.attr("title", "Clear this sheet and start a fresh conversation");
+-	}
+ }
+ 
+ DrawerRailSheetV1.prototype.full_at = 0.85;
+diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
+index 83c3d777f..914c958e4 100644
+--- a/public/framework/ext/drawer/tabs/ai.js
++++ b/public/framework/ext/drawer/tabs/ai.js
+@@ -90,22 +90,6 @@ async function post_card(entry){
+ const recap = (history = []) => "Earlier in this thread:\n" + history.filter(c => c.text).slice(-4)
+ 	.map(c => `${c.role}: ${String(c.text).slice(0, 170)}`).join("\n");
+ 
+-export async function new_session({ page, card } = {}){
+-	if (!DEV) return { ok: false, note: "No assistant reachable here, so only this screen was cleared." };
+-	try {
+-		const list_url = card ? `/api/card-agents?card=${encodeURIComponent(card)}` : `/api/page-agents?page=${encodeURIComponent(page)}`;
+-		const res = await fetch(servex_url(list_url), { cache: "no-store", signal: AbortSignal.timeout(4000) });
+-		const rows = res.ok ? await res.json() : [];
+-		const assistant = Array.isArray(rows) ? rows.find(r => r.role === "assistant") : null;
+-		if (!assistant) return { ok: true, note: "no session yet — the next message starts fresh anyway" };
+-		const out = await fetch(servex_url(`/api/agent/${assistant.id}/recycle`), { method: "POST", signal: AbortSignal.timeout(4000) })
+-			.then(r => r.ok ? r.json() : { ok: false });
+-		return { ok: !!out.ok, note: out.ok ? "the assistant will start a fresh session next time" : "could not reset the session" };
+-	} catch {
+-		return { ok: false, note: "Servex is not answering, so only this screen was cleared." };
+-	}
+-}
+-
+ let live_card = null;
+ 
+ export function sync_card_thread(id){
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index 47b31ea6c..cbb217ca7 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -3,6 +3,7 @@ import Capture from "./capture.js";
+ import Revise from "../Revise/Revise.js";
+ import { servex_url } from "/framework/dev/servex_url.js";
+ import floor from "./floor.js";
++import MicIndicator from "./MicIndicator.js";
+ import FsFile from "/framework/ext/filesystem/FsFile.js";
+ import Socket from "/framework/dev/Socket/Socket.js";
+ 
+@@ -371,6 +372,7 @@ export default class Dictate extends View {
+ 		const was_listening = this.state === "listening";
+ 		this.state = state;
+ 		(state === "listening" || state === "connecting") ? LIVE.add(this) : LIVE.delete(this);
++		MicIndicator.set_open(LIVE.size > 0);
+ 		if (state === "listening" && !was_listening) floor.mic_on(this);   // the floor: `floor.js`
+ 		else if (state !== "listening" && was_listening) floor.mic_off(this);
+ 		this.$button.rc("listening transcribing connecting").ac(["listening", "transcribing", "connecting"].includes(state) ? state : "");
+@@ -387,6 +389,7 @@ export default class Dictate extends View {
+ 		this.mic?.stop();
+ 		floor.mic_off(this);
+ 		LIVE.delete(this);
++		MicIndicator.set_open(LIVE.size > 0);
+ 		this.state = "error";
+ 		this.$button.rc("listening transcribing connecting");
+ 		this.$status.ac("error").text(msg);
+@@ -414,6 +417,7 @@ export default class Dictate extends View {
+ 		if (!this.heard_first_sample){ this.heard_first_sample = true; this.log_step("mic", "on, level ok"); }
+ 		this.level = this.level * 0.6 + level * 0.4;
+ 		this.$button.style("--ux-dictate-level", Math.min(1, this.level * 6).toFixed(3));
++		MicIndicator.set_level(Math.min(1, this.level * 6));
+ 		this.on_meter?.(Math.min(1, this.level * 6));   // same smoothed number, for a caller's own bigger bar
+ 		if (this.level > this.silence_at){ this.has_speech = true; this.last_loud_at = performance.now(); }
+ 		floor.level(this, this.level > this.silence_at);   // pauses and speaking time for `entry.cues`
+diff --git a/public/framework/ux/Dictate/MicIndicator.css b/public/framework/ux/Dictate/MicIndicator.css
+new file mode 100644
+index 000000000..cd3591286
+--- /dev/null
++++ b/public/framework/ux/Dictate/MicIndicator.css
+@@ -0,0 +1,12 @@
++/* ux/Dictate/MicIndicator — hidden until the mic is open (`.open`, set from Dictate.js). */
++@layer base, theme, site, util;
++@layer theme {
++	.ux-dictate-mic-indicator { display: none; align-items: center; gap: 0.5em; font-size: 0.85em; }
++	.ux-dictate-mic-indicator.open { display: flex; }
++	.ux-dictate-mic-indicator-dot { inline-size: 0.6em; block-size: 0.6em; border-radius: 50%; background: var(--error); flex: none;
++		animation: ux-dictate-mic-pulse 1.2s ease-in-out infinite; }
++	.ux-dictate-mic-indicator-bar { flex: 1; min-inline-size: 4em; block-size: 0.35em; border-radius: 1em; background: color-mix(in srgb, currentColor 15%, transparent); overflow: hidden; }
++	.ux-dictate-mic-indicator-fill { inline-size: 100%; block-size: 100%; background: var(--error); transform-origin: left; transform: scaleX(var(--ux-dictate-mic-level, 0)); transition: transform 90ms linear; }
++	.ux-dictate-mic-indicator.compact { position: absolute; inset-block-start: 0.1em; inset-inline-end: 0.1em; pointer-events: none; }
++	@keyframes ux-dictate-mic-pulse { 50% { opacity: 0.35; } }
++}
+diff --git a/public/framework/ux/Dictate/MicIndicator.js b/public/framework/ux/Dictate/MicIndicator.js
+new file mode 100644
+index 000000000..99d30b1aa
+--- /dev/null
++++ b/public/framework/ux/Dictate/MicIndicator.js
+@@ -0,0 +1,49 @@
++import { View, div, span } from "../../core/View/View.js";
++
++View.stylesheet(import.meta, "MicIndicator.css");
++
++/** The one "the mic is open" indicator: a red dot, the word "listening" and a level bar. Every mic
++ *  surface shows this same class (chat composer in the sheet and the drawer, the floating mic); the
++ *  `compact` variant is the dot alone, for a collapsed tab or button. State is global, set by
++ *  `Dictate.js` (`set_open`, `set_level`), so any instance anywhere follows it. Doc: doc/surfaces.md. */
++export default class MicIndicator extends View {
++	static open = false;
++	static level = 0;
++	static views = new Set();
++
++	static set_open(open){
++		if (open === this.open) return;
++		this.open = open;
++		if (!open) this.level = 0;
++		this.views.forEach(v => v.sync());
++	}
++
++	static set_level(level){
++		this.level = level;
++		this.views.forEach(v => v.paint());
++	}
++
++	render(){
++		this.ac("ux-dictate-mic-indicator" + (this.compact ? " compact" : ""));
++		this.attr("role", "status").attr("aria-label", "Microphone open — listening");
++		div.c("ux-dictate-mic-indicator-dot");
++		if (!this.compact){
++			span.c("ux-dictate-mic-indicator-label", "listening");
++			div.c("ux-dictate-mic-indicator-bar", () => { this.$fill = div.c("ux-dictate-mic-indicator-fill"); });
++		}
++		this.born = performance.now();
++		MicIndicator.views.add(this);
++		this.sync();
++	}
++
++	sync(){
++		if (this.el.isConnected) this.seen = true;
++		else if (this.seen || performance.now() - this.born > 2000){ MicIndicator.views.delete(this); return; }   // gone, or never mounted
++		this.el.classList.toggle("open", MicIndicator.open);
++		this.paint();
++	}
++
++	paint(){
++		this.$fill?.style("--ux-dictate-mic-level", Math.min(1, MicIndicator.level).toFixed(3));
++	}
++}
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index 659f1c7fe..b5486b679 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -1,4 +1,5 @@
+ import { View, div, span, button, select, option, label, textarea, details, summary, strong } from "../../core/View/View.js";
++import MicIndicator from "./MicIndicator.js";
+ import Dictate, { remember_device, remembered_device } from "./Dictate.js";
+ import { pg } from "./playground/Playground.js";
+ import { marks as fetch_marks } from "../Understand/Understand.js";
+@@ -555,6 +556,7 @@ Widget.Composer = class WidgetComposer extends View {
+ 			on_live: w.mic_preset.bubble ? state => this.widget.$thread?.live?.(state) : undefined,
+ 		});
+ 		w.dictate = view.mic;
++		new MicIndicator();   // the one shared "mic is open" indicator
+ 		// the preset lands on this one mic, never the shared SETTINGS
+ 		if (view.mic){
+ 			if ("send_mode" in w.mic_preset) view.mic.send_mode = w.mic_preset.send_mode;
+diff --git a/public/framework/ux/Dictate/ai/files.jsonl b/public/framework/ux/Dictate/ai/files.jsonl
+index 4c21a3ac7..96a52b578 100644
+--- a/public/framework/ux/Dictate/ai/files.jsonl
++++ b/public/framework/ux/Dictate/ai/files.jsonl
+@@ -52,3 +52,16 @@
+ {"file":"v-jmyg239.jsonl"}
+ {"file":"v-jmyg239.summary.json"}
+ {"file":"v-js3vqn5.jsonl"}
++{"file":"v-03nd2g8.jsonl","gone":true}
++{"file":"v-2joydc7.jsonl","gone":true}
++{"file":"v-2joydc7.summary.json","gone":true}
++{"file":"v-5ey9a9r.jsonl","gone":true}
++{"file":"v-5ey9a9r.summary.json","gone":true}
++{"file":"v-6jvcrk2.jsonl","gone":true}
++{"file":"v-6jvcrk2.summary.json","gone":true}
++{"file":"v-g2roikw.jsonl","gone":true}
++{"file":"v-h07426y.jsonl","gone":true}
++{"file":"v-h07426y.summary.json","gone":true}
++{"file":"v-jmyg239.jsonl","gone":true}
++{"file":"v-jmyg239.summary.json","gone":true}
++{"file":"v-js3vqn5.jsonl","gone":true}
+diff --git a/public/framework/ux/Dictate/doc/chat.md b/public/framework/ux/Dictate/doc/chat.md
+index 8541404f5..0dca7c001 100644
+--- a/public/framework/ux/Dictate/doc/chat.md
++++ b/public/framework/ux/Dictate/doc/chat.md
+@@ -238,6 +238,12 @@ bubbles through `ext/Chat/Chat.js`'s `speak()`, so sentences said close together
+ bubble instead of opening a new one each time, and made `Widget.Composer` the same
+ `ext/Chat/Composer.js` every other chat box on the site already uses).
+ 
++## New session, and the mic indicator
++
++**New session** is one button, `new_session_button()` in `chat.js`; the sheet's footer, the drawer's AI tab and the Dictate page all call it. Pressing it calls the mount's `reset()`, which clears the one shared voice session (`GLOBAL.reset()`: the saved session id in `sessionStorage` is dropped and the thread is cleared). Nothing is created at that moment: the next sentence you say or type starts a fresh session through `Session.start()`, which writes that session's own file, and the session then shows on the Sessions page. The url does not change on the press. Proof (`ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session/proof.mjs`): pressed on the 400 px sheet and on the 1200 px drawer, both go from a session id to none and clear the thread.
++
++**The mic indicator** is one class, `MicIndicator.js`: a red dot, "listening" and a level bar, visible only while a mic is open. `Dictate.js` tells it the state and level, so every instance follows. It sits under the composer (the full variant with the level bar, so in the sheet, the drawer's AI tab and anywhere else `Widget` mounts); the dot-only `compact` variant (no bar: the buttons are too small) sits on the floating mic, the ✦ button of the bottom rail and the ☰, so a collapsed surface still shows the mic is on. Dropped with the duplicate button: `new_session()` in `ext/drawer/tabs/ai.js`, which also asked Servex to recycle a card's assistant; the live sheet never used it. The URL is not created on the press (the alternative, starting the session at once and routing to its page, would pull the reader off the page they are on).
++
+ ## More
+ 
+ - [`ext/Session`](/framework/ext/Session/) — the voice session `chat.js` wires every mount to
+diff --git a/public/framework/ux/Dictate/doc/surfaces.md b/public/framework/ux/Dictate/doc/surfaces.md
+index 568001829..530d958cb 100644
+--- a/public/framework/ux/Dictate/doc/surfaces.md
++++ b/public/framework/ux/Dictate/doc/surfaces.md
+@@ -31,7 +31,7 @@ Both times the registry shows the agent `working` within a second of the sentenc
+ 
+ 1. **Three conversation stores, one renderer.** The voice session writes `ai/<id>.jsonl` (Servex `Sessions.js`); a card thread posts `POST /card/append` into the card's `page.jsonl` (`ai/cards/Compose.js`); the session page replays the Claude Code transcript (`AISessionConversation.js`). All three draw with `ext/Chat`. Recommendation: say on each surface which store it shows.
+ 2. **Three writers of the same Refine stages.** `AISessionConversation.refine()` and the Refine view both end in `/api/refine`; `Servex/agents/Echo.js` writes the stages itself through `VoicePage` (off by default, `SERVEX_ECHO`). Recommendation: Echo calls the same function the buttons do.
+-3. **A "New session" button built three times:** `new_session_button` in `ux/Dictate/chat.js`, `new_session_button()` in `ext/drawer/rail.js` (a sheet copy near line 383, and one near 641 that wraps the `chat.js` one) and `new_session()` in `ext/drawer/tabs/ai.js`. The AI board's copy was removed 2026-10-03. Recommendation: the sheet and the AI tab call the one in `chat.js`.
++3. **A "New session" button (was built three times; now one, 2026-10-13):** `new_session_button` in `ux/Dictate/chat.js`, now the only one (`rail.js`'s sheet copy and `ai.js`'s `new_session()` are gone; the AI board's was removed 2026-10-03). The sheet and the AI tab call it ([chat.md](chat.md#new-session-and-the-mic-indicator)).
+ 4. **An older chat, `ext/Ask/chat.js`:** a headless one-turn Claude chat with its own composer, kept reachable by `askV1` in `dev/DevBar/ask.js`. A fourth way to talk to an agent, with no mic and no session. Recommendation: retire it once the dev bar v1 goes.
+ 5. **Two dictation widgets:** the Dictation tab embeds the playground widget while the chat uses `Widget` (already named in [voice-architecture.md](voice-architecture.md)).
+ 
+diff --git a/public/framework/ux/Dictate/files.jsonl b/public/framework/ux/Dictate/files.jsonl
+index 06e768dad..f25ce4c7a 100644
+--- a/public/framework/ux/Dictate/files.jsonl
++++ b/public/framework/ux/Dictate/files.jsonl
+@@ -34,3 +34,5 @@
+ {"file":"VoiceStrip.js"}
+ {"file":"WhisperLog.css"}
+ {"file":"WhisperLog.js"}
++{"file":"MicIndicator.css"}
++{"file":"MicIndicator.js"}
+diff --git a/public/framework/ux/Dictate/push-to-talk.js b/public/framework/ux/Dictate/push-to-talk.js
+index 1c0986d7b..7e22926ba 100644
+--- a/public/framework/ux/Dictate/push-to-talk.js
++++ b/public/framework/ux/Dictate/push-to-talk.js
+@@ -1,5 +1,6 @@
+ import { View, div, icon } from "../../core/View/View.js";
+ import Hotkeys from "../Hotkeys/Hotkeys.js";
++import MicIndicator from "./MicIndicator.js";
+ import mount_chat from "./chat.js";
+ import devshell from "../../dev/DevShell/DevShell.js";
+ import LocalStorageSaver from "../../ext/Saver/LocalStorageSaver.js";
+@@ -85,7 +86,7 @@ export default function push_to_talk(app){
+ 	const $mic = div.c("ux-dictate-ptt-mic").attr("role", "button").attr("tabindex", "0")
+ 		.attr("title", "Dictating — release to send; click to open the chat")
+ 		.attr("aria-label", "Open the dictation chat")
+-		.append(() => icon("mic"))
++		.append(() => { icon("mic"); new MicIndicator({ compact: true }); })
+ 		.click(() => devshell.open_tab("ai"))
+ 		.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); devshell.open_tab("ai"); } });
+ 
