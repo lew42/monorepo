@@ -72,20 +72,6 @@ The editor is a page you visit, not a module you import. Its main class is `Hist
 **Instead:** a separate registry per tree, which would duplicate the drag code.
 **Detail:** [doc/shell.md](./shell.md)
 
-## Blocks register on import
-
-**Decided:** `blocks.js` registers its four types as a side effect, and `page.js` imports it for that effect.
-**Why:** an unregistered type hydrates as a plain `Item`, so the saved document would lose its structure on reload.
-**Instead:** an explicit `register()` call from the page, which people can forget.
-**Detail:** [doc/file/blocks.js.md](./file/blocks.js.md)
-
-## Grips: `handle: false`, not `null`
-
-**Decided:** the root node gets `handle: false`, because `Draggable` fills the handle with `??=` and `null` would give the whole canvas a grip.
-**Why:** the root is a drop site with nothing to grab.
-**Instead:** `null` or `undefined`, which both trigger the fallback.
-**Detail:** [doc/decisions.md](./decisions.md)
-
 ## No live preview on the wall card
 
 **Decided:** the framework wall shows the plain default card for the editor, not a rendered sketch of the saved document.
