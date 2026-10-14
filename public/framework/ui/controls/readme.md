@@ -32,6 +32,7 @@ block marked **THE CONTROL GRAMMAR** — this directory is the page that shows t
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [./doc/grammar.md](./doc/grammar.md) — how the box is built, and every before/after number.
 - [/framework/ui/controls/study/](/framework/ui/controls/study/) — the 2026-09-01 survey that
   counted 305 clickables into nine accidental families.

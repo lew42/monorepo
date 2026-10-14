@@ -45,3 +45,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 - Notes: [doc/ChatPanel-notes.md](doc/ChatPanel-notes.md) — history and lessons moved out of the code comments.
 
 - Notes: [doc/Composer-notes.md](doc/Composer-notes.md) — history and lessons moved out of the code comments.
+
+## More
+
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)

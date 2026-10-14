@@ -41,5 +41,8 @@ drawer.showing();     // boolean
 - [`doc/rail-notes.md`](./doc/rail-notes.md) — comments pruned from `rail.js`: history, lessons and design reasons, verbatim.
 - [`doc/ai-tab-notes.md`](./doc/ai-tab-notes.md) — comments pruned from `tabs/ai.js`, verbatim.
 
+## More
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+
 ## Also here (readme audit, 2026-10-13)
 - [walkthrough](./walkthrough/)
