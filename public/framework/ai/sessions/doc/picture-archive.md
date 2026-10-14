@@ -17,14 +17,14 @@ The path below the month is the same: `public/framework/ai/sessions/2026/09/22/x
 
 - **One picture**, from the repo root with the drive plugged in (Git Bash):
   `cp E:/Projects/lew42/archive/sessions/2026/09/22/x/shots/a.png public/framework/ai/sessions/2026/09/22/x/shots/`
-- **A whole month:** `node Server/archive-sessions.mjs --undo --months 09`. It copies every file back and checks its sha1; the drive keeps its copy.
+- **A whole month:** `node Server/ArchiveSessions.mjs --undo --months 09`. It copies every file back and checks its sha1; the drive keeps its copy.
 
 ## Archive the next month
 
 ```sh
-node Server/archive-sessions.mjs --plan  --months 10   # what would move, per day
-node Server/archive-sessions.mjs --copy  --months 10   # copy + sha1; the count and bytes must agree
-node Server/archive-sessions.mjs --apply --months 10   # re-verify, remove the C: copy except pictures a page shows, write the month's readme.md
+node Server/ArchiveSessions.mjs --plan  --months 10   # what would move, per day
+node Server/ArchiveSessions.mjs --copy  --months 10   # copy + sha1; the count and bytes must agree
+node Server/ArchiveSessions.mjs --apply --months 10   # re-verify, remove the C: copy except pictures a page shows, write the month's readme.md
 ```
 
 "A page shows it" means some `page.js` in its folder or above names it, or a `task.jsonl`, `page.jsonl` or `.md` there embeds it as a picture (`![](…)`, `<img>`, a `shot` line). Anything else archived shows as a broken link at most, never on a page's first screen; `merge.mjs`'s smoke test stays clean.

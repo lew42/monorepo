@@ -1,5 +1,5 @@
 // RenameScript — rename scripts to their class name, rewrite every caller, keep a manifest, undo it.
-// Detail: Server/doc/scripts.md. History logs (*.jsonl) and session dirs are never rewritten.
+// Detail: Server/doc/scripts.md. History logs (*.jsonl) and dated task dirs (sessions/Y/M/D/…) are never rewritten. Read --plan by hand: it matches a basename anywhere.
 //   node Server/RenameScript.mjs --plan  <old=New,old2=New2>   dry run: list files to move and callers to rewrite
 //   node Server/RenameScript.mjs --apply <old=New,...> [--manifest <file.json>]
 //   node Server/RenameScript.mjs --undo  <manifest.json>
@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 export default class RenameScript {
 	static TEXT = /\.(mjs|js|json|md|html|css|txt|cmd|ps1|sh|yml|yaml)$/i;
-	static SKIP = /(^|\/)(node_modules|\.git)\/|\.jsonl$|^public\/framework\/ai\/sessions\/|^public\/framework\/ai\/\d{4}-/;
+	static SKIP = /(^|\/)(node_modules|\.git)\/|\.jsonl$|^public\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/|^public\/framework\/ai\/\d{4}-/;
 
 	constructor(root = process.env.RENAME_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")) {
 		this.root = root;

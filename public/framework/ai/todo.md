@@ -187,13 +187,9 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - [session-trace](/framework/ai/sessions/2026/10/03/session-trace/): marked landed but `trace_of_transcript` and its page are not in the repo.
 
 - Rename candidate: [`Server/ai2-overview.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
-- Rename candidate: [`Server/AntigravityUsage.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
-- Rename candidate: [`Server/ArchiveSessions.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Server/ask-each.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Server/audit.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
-- Rename candidate: [`Server/BrowserCheck.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Server/browser.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
-- Rename candidate: [`Server/CardCheck.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Server/collab.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Server/council.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Server/crawl.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
@@ -201,7 +197,6 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - Rename candidate: [`Server/day-spend.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Server/decide.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Server/deploy-count.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
-- Rename candidate: [`Server/HttpsCert.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Server/models-now.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Server/repo-size.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.
 - Rename candidate: [`Server/retire-files.mjs`](/Server/doc/scripts.md) is a function bag or lowercase class; should be a class per the code skill.

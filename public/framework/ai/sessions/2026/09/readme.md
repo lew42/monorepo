@@ -3,7 +3,7 @@
 The 3,124 untracked pictures of this month (377.7 MB, mostly review screenshots in `shots/`) moved to the archive drive at `E:/Projects/lew42/archive/sessions/2026/09/`, same paths below it, to free the working disk. The 527 pictures a page draws when it opens stayed here (a copy is on the drive too). Every record (task.jsonl, page.jsonl, docs, pages) is still here, so the [Sessions page](/framework/ai/sessions/) and every search still read this month. An old report shows a broken picture until it is copied back.
 
 - **Every file, its size and sha1:** [archive.jsonl](archive.jsonl), the same file as `E:/Projects/lew42/archive/sessions/2026/09/archive.jsonl` on the drive (whose own README says what it is).
-- **Bring it back:** `node Server/archive-sessions.mjs --undo --months 09` (the drive plugged in) copies every file back and checks its sha1.
+- **Bring it back:** `node Server/ArchiveSessions.mjs --undo --months 09` (the drive plugged in) copies every file back and checks its sha1.
 - **How it works:** [picture-archive.md](../../doc/picture-archive.md).
 
 | Day | Pictures | Size | Folders |
