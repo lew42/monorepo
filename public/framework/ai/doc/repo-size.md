@@ -37,7 +37,7 @@ The rule stays the one in [commit-rule.md](../sessions/doc/commit-rule.md): a re
 | Phase | Saves | Risk | Undo |
 |---|---|---|---|
 | 1. Stop the bleeding | ~350 MB of history a month | low | delete the `.gitignore` lines |
-| 2. Archive old sessions out of the working tree ✅ Aug + Sep done | 483 MB of disk (Aug + Sep) | low | `node Server/archive-sessions.mjs --undo` |
+| 2. Archive old session pictures out of the working tree ✅ Aug + Sep done | 483 MB of disk (Aug + Sep) | low | `node Server/archive-sessions.mjs --undo` |
 | 3. Rewrite history | ~310 MB of the 474 MB (the AI-log pictures outside `doc/`, 309 MB, plus `owner-prompts.jsonl`) | high: every clone and worktree | the legacy archive repo |
 
 ### Phase 1 — stop the bleeding
@@ -49,7 +49,15 @@ The rule stays the one in [commit-rule.md](../sessions/doc/commit-rule.md): a re
 
 ### Phase 2 — archive old sessions
 
-✅ **Done for August and September (2026-10-13):** the two months went from **650.8 MB to 168.6 MB** on disk, to free the working disk. **4,248 pictures (482.9 MB)** moved to `E:/Projects/lew42/archive/sessions/2026/<MM>/`, copied with sha1 and checked (count, bytes and every hash agree), then removed from C:. The 734 pictures a page shows when it opens (96.3 MB) stayed, so no page loses a picture and the merge smoke test stays clean. Only untracked pictures moved: the 4,794 tracked records (52 MB) stay, because `git rm` would free 0 bytes of `.git`, blind `SessionIndex`, `PastWork` and `FollowUp` to two months, and break every old task URL. Each month keeps a `readme.md` and an `archive.jsonl` (every file, bytes, sha1). **Undo:** `node Server/archive-sessions.mjs --undo --months 08,09` with the drive plugged in (proven twice on a worktree copy: 1,419 pictures out and back, sha1 identical). How to read or restore one: [picture-archive.md](../sessions/doc/picture-archive.md). The decision and its proofs: [the archive-phase-2 task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/). Still open: a second copy in R2 (below).
+✅ **Done for August and September (2026-10-13): the two months went from 650.8 MB to 168.6 MB on disk.**
+
+- **Moved:** 4,248 pictures (482.9 MB) to `E:/Projects/lew42/archive/sessions/2026/<MM>/`, copied with sha1 and checked (count, bytes and every hash agree), then removed from C:.
+- **Stayed:** the 734 pictures a page shows when it opens (96.3 MB), so no page loses a picture; and all 4,794 tracked records (52 MB). Removing those from git would free 0 bytes of `.git`, hide two months from `SessionIndex`, `PastWork` and `FollowUp`, and break old task URLs.
+- **The record:** each month keeps a `readme.md` and an `archive.jsonl` (every file, bytes, sha1).
+- **Undo:** `node Server/archive-sessions.mjs --undo --months 08,09` with the drive plugged in (proven twice on a worktree copy: 1,419 pictures out and back, sha1 identical).
+- ⚠️ **One copy:** the E: drive now holds the only copy of those 4,248 files, so the R2 copy below is the next step.
+
+How to read or restore one: [picture-archive.md](../sessions/doc/picture-archive.md). The decision and its proofs: [the archive-phase-2 task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/archive-phase-2/).
 
 The plan as written before the run:
 

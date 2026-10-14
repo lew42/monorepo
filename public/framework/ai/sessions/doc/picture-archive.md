@@ -7,6 +7,8 @@
 | [2026/08](../2026/08/readme.md) | 1,124 pictures, 105.1 MB | 207, 23.3 MB | `E:/Projects/lew42/archive/sessions/2026/08/` |
 | [2026/09](../2026/09/readme.md) | 3,124 pictures, 377.7 MB | 527, 73.0 MB | `E:/Projects/lew42/archive/sessions/2026/09/` |
 
+⚠️ **The drive holds the only copy** of the moved pictures (they were never in git). A second copy on Cloudflare R2 is the open next step: [repo-size.md](../../doc/repo-size.md#phase-2--archive-old-sessions).
+
 ## Read one
 
 The path below the month is the same: `public/framework/ai/sessions/2026/09/22/x/shots/a.png` is at `E:/Projects/lew42/archive/sessions/2026/09/22/x/shots/a.png`. Each month's `archive.jsonl` (in the month folder here and on the drive) lists every file with its bytes and sha1.
