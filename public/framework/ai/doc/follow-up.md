@@ -69,3 +69,11 @@ An ask in `asks.jsonl` still building, routed, queued or stalled whose owner age
 ## Check
 
 Tasks counted 146, `TaskDirs --list 10` 146: agree. 171 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
+
+## Old branches: 1 landed, 26 superseded, 17 set aside, nothing lost (2026-10-14)
+
+- 141 branches have a file absent or different on `michael/dev`; 97 carry records only (logs, `files.jsonl`, pictures) and need nothing.
+- Landed: `worktree/orphans` as `1d2ebd6d4` (`Server/OrphanCheck.mjs`, a merge warning for pages their parent does not name, opt-in `children: "... auto"`).
+- Superseded: every other branch with code, because dev edited the same files since; `ui-system-land*` carry `core/System`, which dev replaced with `core/Shell`.
+- Set aside, not deleted: `worktree/check-consensus` (check/consensus tools), `worktree/fix-label` (broken eval fixtures), `audio/chat-revision-pairs-wip`, probe and scratch branches.
+- The table: [review.md](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/branch-audit-merge/review.md). No branch was deleted or rewritten.

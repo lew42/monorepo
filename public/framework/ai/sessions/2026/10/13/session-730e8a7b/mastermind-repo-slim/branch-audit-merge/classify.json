@@ -1,0 +1,1469 @@
+[
+ {
+  "branch": "_tmp_cards_and_logs_check",
+  "ahead": 6,
+  "missing": 17,
+  "records": 4,
+  "docs": [
+   "public/framework/core/Page/card/doc/system.md",
+   "public/framework/core/Page/card/log/doc/logger.md",
+   "public/framework/core/Page/card/log/readme.md",
+   "public/framework/core/Page/card/log/whisper/readme.md",
+   "public/framework/core/Page/readme.md"
+  ],
+  "code": [
+   "public/framework/core/Page/card/card.css",
+   "public/framework/core/Page/card/grounds/page.js",
+   "public/framework/core/Page/card/headers/page.js",
+   "public/framework/core/Page/card/log/LogView.js",
+   "public/framework/core/Page/card/log/page.js",
+   "public/framework/core/Page/card/log/whisper/page.js",
+   "public/framework/core/Page/card/nesting/page.js",
+   "public/framework/core/Page/page.js"
+  ]
+ },
+ {
+  "branch": "audio/chat-revision-pairs-wip",
+  "ahead": 13,
+  "missing": 25,
+  "records": 13,
+  "docs": [
+   "public/framework/audio/readme.md",
+   "public/framework/ext/Chat/readme.md"
+  ],
+  "code": [
+   "public/framework/ai2/compose.js",
+   "public/framework/audio/Transcriber/page.js",
+   "public/framework/audio/page.js",
+   "public/framework/ext/Chat/Chat.css",
+   "public/framework/ext/Chat/Chat.js",
+   "public/framework/ext/Chat/ChatPanel.js",
+   "public/framework/ext/Chat/Composer.js",
+   "public/framework/ux/Dictate/Dictate.js",
+   "public/framework/ux/Dictate/variants/sheet/page.js",
+   "public/framework/ux/Revise/Revise.js"
+  ]
+ },
+ {
+  "branch": "follow/clean",
+  "ahead": 2,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "michael/bags-misc",
+  "ahead": 1,
+  "missing": 13,
+  "records": 9,
+  "docs": [],
+  "code": [
+   "assemble.cjs",
+   "conv.cjs",
+   "smoke.cjs",
+   "sub.cjs"
+  ]
+ },
+ {
+  "branch": "michael/bags-rail",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "michael/figma-guide",
+  "ahead": 1,
+  "missing": 2,
+  "records": 0,
+  "docs": [],
+  "code": [
+   "public/framework/ext/Figma/guide/guide.css",
+   "public/framework/ext/Figma/guide/page.js"
+  ]
+ },
+ {
+  "branch": "michael/models-asks",
+  "ahead": 1,
+  "missing": 6,
+  "records": 6,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "michael/task-folders",
+  "ahead": 1,
+  "missing": 269,
+  "records": 269,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-1-2026-10-09",
+  "ahead": 2,
+  "missing": 2,
+  "records": 2,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-1-2026-10-09-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-1-2026-10-10",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-1-2026-10-11",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-1-2026-10-12-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-1-2026-10-13-97",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-1-2026-10-13-98",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-1-2026-10-13-99",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-09-29",
+  "ahead": 24,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-09-29-2",
+  "ahead": 24,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-09-30",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-09",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-10",
+  "ahead": 1,
+  "missing": 2,
+  "records": 2,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-12",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-12-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13",
+  "ahead": 1,
+  "missing": 9,
+  "records": 9,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-10",
+  "ahead": 1,
+  "missing": 9,
+  "records": 9,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-11",
+  "ahead": 1,
+  "missing": 9,
+  "records": 9,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-12",
+  "ahead": 1,
+  "missing": 20,
+  "records": 20,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-13",
+  "ahead": 1,
+  "missing": 8,
+  "records": 8,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-14",
+  "ahead": 1,
+  "missing": 8,
+  "records": 8,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-15",
+  "ahead": 1,
+  "missing": 7,
+  "records": 7,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-16",
+  "ahead": 1,
+  "missing": 5,
+  "records": 5,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-17",
+  "ahead": 1,
+  "missing": 5,
+  "records": 5,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-18",
+  "ahead": 1,
+  "missing": 5,
+  "records": 5,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-19",
+  "ahead": 1,
+  "missing": 5,
+  "records": 5,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-2",
+  "ahead": 1,
+  "missing": 5,
+  "records": 5,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-20",
+  "ahead": 1,
+  "missing": 5,
+  "records": 5,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-21",
+  "ahead": 1,
+  "missing": 17,
+  "records": 17,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-22",
+  "ahead": 1,
+  "missing": 6,
+  "records": 6,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-23",
+  "ahead": 1,
+  "missing": 4,
+  "records": 4,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-24",
+  "ahead": 1,
+  "missing": 18,
+  "records": 18,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-25",
+  "ahead": 1,
+  "missing": 9,
+  "records": 9,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-26",
+  "ahead": 1,
+  "missing": 2,
+  "records": 2,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-27",
+  "ahead": 1,
+  "missing": 2,
+  "records": 2,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-28",
+  "ahead": 1,
+  "missing": 2,
+  "records": 2,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-29",
+  "ahead": 1,
+  "missing": 3,
+  "records": 3,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-3",
+  "ahead": 1,
+  "missing": 8,
+  "records": 8,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-30",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-31",
+  "ahead": 1,
+  "missing": 2,
+  "records": 2,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-32",
+  "ahead": 1,
+  "missing": 2,
+  "records": 2,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-4",
+  "ahead": 1,
+  "missing": 6,
+  "records": 6,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-5",
+  "ahead": 1,
+  "missing": 4,
+  "records": 4,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-6",
+  "ahead": 1,
+  "missing": 4,
+  "records": 4,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-7",
+  "ahead": 1,
+  "missing": 4,
+  "records": 4,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-8",
+  "ahead": 1,
+  "missing": 4,
+  "records": 4,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-2-2026-10-13-9",
+  "ahead": 1,
+  "missing": 10,
+  "records": 10,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-3-2026-09-29",
+  "ahead": 8,
+  "missing": 8,
+  "records": 3,
+  "docs": [
+   "public/framework/ux/Dictate/playground/readme.md"
+  ],
+  "code": [
+   "Servex/Servex.js",
+   "public/framework/ux/Dictate/Dictate.js",
+   "public/framework/ux/Dictate/page.js",
+   "public/framework/ux/Dictate/playground/page.js"
+  ]
+ },
+ {
+  "branch": "salvage/qf-3-2026-10-09",
+  "ahead": 7,
+  "missing": 5,
+  "records": 0,
+  "docs": [
+   "public/framework/ux/Dictate/playground/readme.md"
+  ],
+  "code": [
+   "Servex/Servex.js",
+   "public/framework/ux/Dictate/Dictate.js",
+   "public/framework/ux/Dictate/page.js",
+   "public/framework/ux/Dictate/playground/page.js"
+  ]
+ },
+ {
+  "branch": "salvage/qf-3-2026-10-11",
+  "ahead": 1,
+  "missing": 10,
+  "records": 10,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-3-2026-10-12",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-3-2026-10-12-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-3-2026-10-12-3",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-3-2026-10-13",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-3-2026-10-13-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-4-2026-09-29",
+  "ahead": 3,
+  "missing": 6,
+  "records": 6,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-4-2026-09-29-2",
+  "ahead": 3,
+  "missing": 5,
+  "records": 5,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-4-2026-10-12",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-4-2026-10-12-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-4-2026-10-13",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-4-2026-10-14",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-4-2026-10-14-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-5-2026-10-09",
+  "ahead": 1,
+  "missing": 58,
+  "records": 58,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-6-2026-09-29",
+  "ahead": 14,
+  "missing": 155,
+  "records": 155,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-6-2026-09-30",
+  "ahead": 1,
+  "missing": 50,
+  "records": 50,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-6-2026-09-30-2",
+  "ahead": 1,
+  "missing": 6,
+  "records": 6,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-6-2026-10-07",
+  "ahead": 6,
+  "missing": 12,
+  "records": 3,
+  "docs": [
+   "Servex/asks/readme.md",
+   "Servex/cards/readme.md",
+   "public/framework/ai2/readme.md"
+  ],
+  "code": [
+   "Servex/asks/Asks.js",
+   "Servex/asks/asks.test.mjs",
+   "Servex/cards/Cards.js",
+   "Servex/cards/test.mjs",
+   "public/framework/ai2/rail.js",
+   "public/framework/servex/page.js"
+  ]
+ },
+ {
+  "branch": "salvage/qf-6-2026-10-10",
+  "ahead": 8,
+  "missing": 24,
+  "records": 18,
+  "docs": [],
+  "code": [
+   "Server/session-cost.mjs",
+   "Servex/Servex.js",
+   "counts.txt",
+   "dry.txt",
+   "merge-out.txt",
+   "merge-real.txt"
+  ]
+ },
+ {
+  "branch": "salvage/qf-6-2026-10-13",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-6-2026-10-13-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-6-2026-10-14",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-6-2026-10-14-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-7-2026-09-29",
+  "ahead": 5,
+  "missing": 214,
+  "records": 213,
+  "docs": [],
+  "code": [
+   "Servex/Servex.js"
+  ]
+ },
+ {
+  "branch": "salvage/qf-7-2026-10-09",
+  "ahead": 33,
+  "missing": 10,
+  "records": 10,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-7-2026-10-14-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-8-2026-10-14",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-8-2026-10-14-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-9-2026-09-29",
+  "ahead": 4,
+  "missing": 37,
+  "records": 25,
+  "docs": [
+   "Servex/agents/doc/directory.md",
+   "Servex/agents/readme.md",
+   "Servex/agents/session-smart.md",
+   "public/framework/ext/Session/doc/sessions.md",
+   "public/framework/ext/Session/readme.md"
+  ],
+  "code": [
+   "Servex/Servex.js",
+   "Servex/agents/Sessions.js",
+   "Servex/agents/directory.js",
+   "Servex/agents/roles.js",
+   "Servex/agents/tools.js",
+   "public/framework/ext/Session/Session.js",
+   "public/framework/ext/Session/page.js"
+  ]
+ },
+ {
+  "branch": "salvage/qf-9-2026-09-30",
+  "ahead": 5,
+  "missing": 12,
+  "records": 12,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/qf-9-2026-09-30-2",
+  "ahead": 1,
+  "missing": 2,
+  "records": 1,
+  "docs": [],
+  "code": [
+   "public/framework/ui/icon/page.js"
+  ]
+ },
+ {
+  "branch": "salvage/qf-9-2026-09-30-3",
+  "ahead": 1,
+  "missing": 6,
+  "records": 4,
+  "docs": [],
+  "code": [
+   "public/framework/ext/Mention/Mention.js",
+   "public/framework/ext/Mention/registry.js"
+  ]
+ },
+ {
+  "branch": "salvage/server-query-builder",
+  "ahead": 11,
+  "missing": 6,
+  "records": 6,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "salvage/sessions-layout-old",
+  "ahead": 3,
+  "missing": 2,
+  "records": 2,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree-agent-a3c7fdb6298cb9b59",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/ai2-base2",
+  "ahead": 2,
+  "missing": 47,
+  "records": 30,
+  "docs": [
+   "public/framework/ai2/doc/cards.md",
+   "public/framework/ai2/doc/decisions.md",
+   "public/framework/ai2/readme.md",
+   "public/framework/ux/Content/Concepts/readme.md"
+  ],
+  "code": [
+   "public/app.js",
+   "public/framework/ai2/ai2.css",
+   "public/framework/ai2/card.js",
+   "public/framework/ai2/faces.js",
+   "public/framework/ai2/groups.js",
+   "public/framework/ai2/inbox.js",
+   "public/framework/ai2/live.js",
+   "public/framework/ai2/page.js",
+   "public/framework/ext/page.js",
+   "public/framework/styles/css-scopes.txt",
+   "public/framework/ux/Content/Concepts/Concepts.js",
+   "public/framework/ux/Dictate/Dictate.js",
+   "public/framework/ux/Dictate/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/ai2-overview",
+  "ahead": 1,
+  "missing": 2,
+  "records": 2,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/ai2-real-pages",
+  "ahead": 2,
+  "missing": 51,
+  "records": 48,
+  "docs": [],
+  "code": [
+   "public/app.js",
+   "public/framework/ext/page.js",
+   "public/framework/styles/css-scopes.txt"
+  ]
+ },
+ {
+  "branch": "worktree/ai2-resurface",
+  "ahead": 5,
+  "missing": 47,
+  "records": 31,
+  "docs": [
+   "public/framework/ai2/doc/cards.md",
+   "public/framework/ai2/doc/decisions.md",
+   "public/framework/ai2/readme.md",
+   "public/framework/ux/Content/Concepts/readme.md"
+  ],
+  "code": [
+   "public/app.js",
+   "public/framework/ai2/ai2.css",
+   "public/framework/ai2/card.js",
+   "public/framework/ai2/groups.js",
+   "public/framework/ai2/inbox.js",
+   "public/framework/ai2/live.js",
+   "public/framework/ai2/page.js",
+   "public/framework/ext/page.js",
+   "public/framework/styles/css-scopes.txt",
+   "public/framework/ux/Content/Concepts/Concepts.js",
+   "public/framework/ux/Dictate/Dictate.js",
+   "public/framework/ux/Dictate/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/ai2-rhythm",
+  "ahead": 3,
+  "missing": 2,
+  "records": 2,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/ai2-row-vanish",
+  "ahead": 3,
+  "missing": 45,
+  "records": 31,
+  "docs": [
+   "public/framework/ai2/doc/cards.md",
+   "public/framework/ai2/doc/decisions.md",
+   "public/framework/ai2/readme.md",
+   "public/framework/ux/Content/Concepts/readme.md"
+  ],
+  "code": [
+   "public/app.js",
+   "public/framework/ai2/ai2.css",
+   "public/framework/ai2/card.js",
+   "public/framework/ai2/groups.js",
+   "public/framework/ai2/inbox.js",
+   "public/framework/ai2/page.js",
+   "public/framework/ext/page.js",
+   "public/framework/styles/css-scopes.txt",
+   "public/framework/ux/Dictate/Dictate.js",
+   "public/framework/ux/Dictate/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/ai2-static",
+  "ahead": 1,
+  "missing": 4,
+  "records": 0,
+  "docs": [],
+  "code": [
+   "public/framework/ai2/agents.js",
+   "public/framework/ai2/inbox.js",
+   "public/framework/ai2/live.js",
+   "public/framework/ai2/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/ai2-workspace",
+  "ahead": 3,
+  "missing": 66,
+  "records": 57,
+  "docs": [
+   "public/framework/ai2/doc/cards.md",
+   "public/framework/ai2/readme.md"
+  ],
+  "code": [
+   "public/app.js",
+   "public/framework/ai2/ai2.css",
+   "public/framework/ai2/groups.js",
+   "public/framework/ai2/inbox.js",
+   "public/framework/ai2/page.js",
+   "public/framework/ext/page.js",
+   "public/framework/styles/css-scopes.txt"
+  ]
+ },
+ {
+  "branch": "worktree/cards-and-logs",
+  "ahead": 12,
+  "missing": 66,
+  "records": 66,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/check-consensus",
+  "ahead": 4,
+  "missing": 15,
+  "records": 9,
+  "docs": [
+   ".claude/skills/sub-mastermind/SKILL.md",
+   "Server/doc/check.md"
+  ],
+  "code": [
+   "Server/check.mjs",
+   "Server/consensus.mjs",
+   "Servex/agents/check-tools.js",
+   "Servex/agents/tools.js"
+  ]
+ },
+ {
+  "branch": "worktree/claude-md-consolidate",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/content-list",
+  "ahead": 1,
+  "missing": 719,
+  "records": 719,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/data-grid-4",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/dictate-marks",
+  "ahead": 1,
+  "missing": 61,
+  "records": 59,
+  "docs": [],
+  "code": [
+   "Servex/agents/Sessions.js",
+   "Servex/agents/Sessions.test.mjs"
+  ]
+ },
+ {
+  "branch": "worktree/dictate-onewidget",
+  "ahead": 3,
+  "missing": 1,
+  "records": 0,
+  "docs": [
+   "public/framework/ux/Dictate/readme.md"
+  ],
+  "code": []
+ },
+ {
+  "branch": "worktree/dictate-without-claude",
+  "ahead": 1,
+  "missing": 6,
+  "records": 6,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/fix-label",
+  "ahead": 5,
+  "missing": 14,
+  "records": 8,
+  "docs": [
+   "Servex/ext/openrouter/evals/library/plan-counter/fixture/readme.md"
+  ],
+  "code": [
+   "Servex/ext/openrouter/evals/library/broken-import/fixture/dates.js",
+   "Servex/ext/openrouter/evals/library/broken-import/fixture/page.js",
+   "Servex/ext/openrouter/evals/library/broken-overflow/fixture/page.js",
+   "Servex/ext/openrouter/evals/library/fix-label/fixture/page.js",
+   "Servex/ext/openrouter/evals/library/new-page-glossary/fixture/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/local-ai",
+  "ahead": 16,
+  "missing": 77,
+  "records": 77,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/mentions",
+  "ahead": 1,
+  "missing": 56,
+  "records": 56,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/mobile-nav",
+  "ahead": 3,
+  "missing": 12,
+  "records": 5,
+  "docs": [
+   ".claude/skills/every-prompt/page-assistant.md",
+   "public/framework/ext/drawer/readme.md"
+  ],
+  "code": [
+   "public/framework/ext/drawer/menu.js",
+   "public/framework/ext/drawer/rail.css",
+   "public/framework/ext/drawer/rail.js",
+   "public/framework/ext/drawer/rail/page.js",
+   "public/framework/ext/drawer/tabs/ai.js"
+  ]
+ },
+ {
+  "branch": "worktree/mobile-nav-live",
+  "ahead": 4,
+  "missing": 11,
+  "records": 0,
+  "docs": [
+   "public/framework/ai2/readme.md"
+  ],
+  "code": [
+   "Server/plugins/Ask.js",
+   "Server/plugins/ServexProxy.js",
+   "Server/run.js",
+   "public/framework/ai2/ai2.css",
+   "public/framework/ai2/card.js",
+   "public/framework/ext/Ask/Ask.js",
+   "public/framework/ext/drawer/rail.css",
+   "public/framework/ext/drawer/rail.js",
+   "public/framework/ext/drawer/tabs.js",
+   "public/framework/ext/drawer/tabs/ai.js"
+  ]
+ },
+ {
+  "branch": "worktree/orphans",
+  "ahead": 2,
+  "missing": 7,
+  "records": 1,
+  "docs": [
+   "public/framework/core/Page/doc/indexing-2026-10-08.md",
+   "public/framework/core/Page/readme.md"
+  ],
+  "code": [
+   "Server/OrphanCheck.mjs",
+   "Server/merge.mjs",
+   "public/framework/core/Page/Page.class.js",
+   "public/framework/ext/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/page-mm",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/page-system",
+  "ahead": 7,
+  "missing": 12,
+  "records": 11,
+  "docs": [],
+  "code": [
+   "public/framework/ai2/card.js"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p22vkh",
+  "ahead": 1,
+  "missing": 62,
+  "records": 60,
+  "docs": [
+   "public/framework/sandbox/probe/log-line-owls-22vei/readme.md"
+  ],
+  "code": [
+   "public/framework/sandbox/probe/log-line-owls-22vei/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p25a52",
+  "ahead": 1,
+  "missing": 61,
+  "records": 59,
+  "docs": [
+   "public/framework/sandbox/probe/page-blog-owls-259zv/readme.md"
+  ],
+  "code": [
+   "public/framework/sandbox/probe/page-blog-owls-259zv/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p2o2q9",
+  "ahead": 2,
+  "missing": 61,
+  "records": 59,
+  "docs": [
+   "Servex/ext/openrouter/readme.md"
+  ],
+  "code": [
+   "Servex/ext/openrouter/evals/probes.mjs"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p2oo1g",
+  "ahead": 2,
+  "missing": 65,
+  "records": 61,
+  "docs": [
+   "Servex/ext/openrouter/readme.md",
+   "public/framework/sandbox/probe/log-line-badgers-2onus/readme.md"
+  ],
+  "code": [
+   "Servex/ext/openrouter/evals/probes.mjs",
+   "public/framework/sandbox/probe/log-line-badgers-2onus/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p3wyez",
+  "ahead": 3,
+  "missing": 66,
+  "records": 62,
+  "docs": [
+   "public/framework/sandbox/probe/page-blog-how-bread-rises-3wyab/readme.md"
+  ],
+  "code": [
+   "public/framework/sandbox/page.js",
+   "public/framework/sandbox/probe/page-blog-how-bread-rises-3wyab/page.js",
+   "public/framework/sandbox/probe/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p43vgu",
+  "ahead": 1,
+  "missing": 64,
+  "records": 62,
+  "docs": [
+   "public/framework/sandbox/probe/log-line-the-first-bicycles-43vba/readme.md"
+  ],
+  "code": [
+   "public/framework/sandbox/probe/log-line-the-first-bicycles-43vba/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p44yt9",
+  "ahead": 1,
+  "missing": 66,
+  "records": 62,
+  "docs": [
+   "public/framework/sandbox/probe/page-blog-why-the-sky-is-blue-44yo8/readme.md"
+  ],
+  "code": [
+   "public/framework/sandbox/page.js",
+   "public/framework/sandbox/probe/page-blog-why-the-sky-is-blue-44yo8/page.js",
+   "public/framework/sandbox/probe/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p48xwa",
+  "ahead": 3,
+  "missing": 75,
+  "records": 69,
+  "docs": [
+   "public/framework/sandbox/probe/page-blog-owls-48xrc/readme.md",
+   "public/framework/sandbox/probe/readme.md",
+   "public/framework/sandbox/readme.md"
+  ],
+  "code": [
+   "public/framework/sandbox/page.js",
+   "public/framework/sandbox/probe/page-blog-owls-48xrc/page.js",
+   "public/framework/sandbox/probe/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p4fv8y",
+  "ahead": 1,
+  "missing": 64,
+  "records": 62,
+  "docs": [
+   "public/framework/sandbox/probe/log-line-the-first-bicycles-4fv49/readme.md"
+  ],
+  "code": [
+   "public/framework/sandbox/probe/log-line-the-first-bicycles-4fv49/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p4hnh7",
+  "ahead": 1,
+  "missing": 68,
+  "records": 64,
+  "docs": [
+   "public/framework/sandbox/probe/page-blog-a-walk-in-the-rain-4hnca/readme.md"
+  ],
+  "code": [
+   "public/framework/sandbox/page.js",
+   "public/framework/sandbox/probe/page-blog-a-walk-in-the-rain-4hnca/page.js",
+   "public/framework/sandbox/probe/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p4lonn",
+  "ahead": 1,
+  "missing": 66,
+  "records": 64,
+  "docs": [
+   "public/framework/sandbox/probe/log-line-a-walk-in-the-rain-4lohu/readme.md"
+  ],
+  "code": [
+   "public/framework/sandbox/probe/log-line-a-walk-in-the-rain-4lohu/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/probe-p4o7n3",
+  "ahead": 1,
+  "missing": 64,
+  "records": 62,
+  "docs": [
+   "public/framework/sandbox/probe/page-blog-owls-4o46p/readme.md"
+  ],
+  "code": [
+   "public/framework/sandbox/probe/page-blog-owls-4o46p/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/prompts-live",
+  "ahead": 1,
+  "missing": 71,
+  "records": 71,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/quick-merge",
+  "ahead": 1,
+  "missing": 64,
+  "records": 63,
+  "docs": [
+   ".claude/skills/minion/improvements.md"
+  ],
+  "code": []
+ },
+ {
+  "branch": "worktree/readmeaudit",
+  "ahead": 2,
+  "missing": 5,
+  "records": 4,
+  "docs": [
+   "readme.md"
+  ],
+  "code": []
+ },
+ {
+  "branch": "worktree/refine-demo",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/refine-session-log2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/refine-v3",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/relay-2",
+  "ahead": 1,
+  "missing": 1,
+  "records": 1,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/ui-system-clean-land",
+  "ahead": 8,
+  "missing": 12,
+  "records": 1,
+  "docs": [
+   "public/framework/core/System/demo/readme.md",
+   "public/framework/core/System/doc/system.md",
+   "public/framework/core/System/readme.md"
+  ],
+  "code": [
+   "public/app.js",
+   "public/framework/code/page.js",
+   "public/framework/core/System/System.js",
+   "public/framework/core/System/page.js",
+   "public/framework/core/page.js",
+   "public/framework/design/page.js",
+   "public/framework/ui/page.js",
+   "public/framework/ux/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/ui-system-land2",
+  "ahead": 12,
+  "missing": 19,
+  "records": 5,
+  "docs": [
+   "public/framework/core/Shell/doc/property/content.md",
+   "public/framework/core/System/demo/readme.md",
+   "public/framework/core/System/doc/method/omitted.md",
+   "public/framework/core/System/doc/system.md",
+   "public/framework/core/System/readme.md"
+  ],
+  "code": [
+   "public/app.js",
+   "public/framework/code/page.js",
+   "public/framework/core/Shell/page.js",
+   "public/framework/core/System/System.js",
+   "public/framework/core/System/page.js",
+   "public/framework/core/page.js",
+   "public/framework/design/page.js",
+   "public/framework/ui/page.js",
+   "public/framework/ux/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/ui-system-land3",
+  "ahead": 12,
+  "missing": 15,
+  "records": 2,
+  "docs": [
+   "public/framework/core/Shell/doc/property/content.md",
+   "public/framework/core/System/demo/readme.md",
+   "public/framework/core/System/doc/system.md",
+   "public/framework/core/System/readme.md"
+  ],
+  "code": [
+   "public/app.js",
+   "public/framework/code/page.js",
+   "public/framework/core/Shell/page.js",
+   "public/framework/core/System/System.js",
+   "public/framework/core/System/page.js",
+   "public/framework/core/page.js",
+   "public/framework/design/page.js",
+   "public/framework/ui/page.js",
+   "public/framework/ux/page.js"
+  ]
+ },
+ {
+  "branch": "worktree/voice-asks-2",
+  "ahead": 1,
+  "missing": 8,
+  "records": 8,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/voice-verify",
+  "ahead": 1,
+  "missing": 2,
+  "records": 2,
+  "docs": [],
+  "code": []
+ },
+ {
+  "branch": "worktree/waiting-on-you",
+  "ahead": 3,
+  "missing": 14,
+  "records": 1,
+  "docs": [
+   ".claude/skills/every-prompt/SKILL.md",
+   ".claude/skills/mastermind/SKILL.md",
+   ".claude/skills/minion/SKILL.md",
+   ".claude/skills/sub-mastermind/SKILL.md",
+   "Servex/cards/readme.md",
+   "public/framework/ai2/doc/waiting.md",
+   "public/framework/ai2/readme.md"
+  ],
+  "code": [
+   "Servex/cards/Cards.js",
+   "Servex/cards/test.mjs",
+   "public/framework/ai2/ai2.css",
+   "public/framework/ai2/fold.js",
+   "public/framework/ai2/page.js",
+   "public/framework/ai2/waiting.js"
+  ]
+ }
+]
