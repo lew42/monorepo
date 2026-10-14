@@ -55,6 +55,7 @@ Everything binds `127.0.0.1` and every route refuses a non-loopback caller
 twice over. These tools start processes; nothing here is for a network.
 
 - **The Step runner** — a task's steps carry estimates; node prompts each next step and nudges once at 2x: [doc/steps.md](doc/steps.md).
+- **Landing check** — a landing line is flagged when the branch's files are not on michael/dev, by content: [doc/landing.md](doc/landing.md).
 - **The six parts** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-six-parts), verbatim.
 - **The Servex mastermind is always on** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-servex-mastermind-is-always-on), verbatim.
 - **The voice pair: one standing pair, recycled** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-voice-pair-one-standing-pair-recycled-the-owner-2026-10-02), verbatim.

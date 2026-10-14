@@ -8,6 +8,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import TaskDirs from "./TaskDirs.mjs";
 import SessionIndex from "./SessionIndex.mjs";
+import LandingCheck from "./LandingCheck.mjs";
 
 const QUIET_H = 2, OPEN_ASK = new Set(["building", "routed", "queued", "stalled", undefined]), LIVE = new Set(["working", "idle", "dormant"]);
 const DOC = path.join(TaskDirs.AI, "doc"), ts = s => { const t = Date.parse(s); return Number.isNaN(t) ? 0 : t; };
@@ -54,7 +55,7 @@ export default class FollowUp {
 		r.state = ag?.state ?? (this.registry ? "unknown" : "?");
 		r.quiet_h = (this.now - r.last) / 36e5;
 		r.flags = [];
-		if (r.landed && r.ahead > 0) r.flags.push("unmerged");
+		if (r.landed && r.ahead > 0 && !LandingCheck.verify(r.branch).landed) r.flags.push("unmerged");   // by file content, not commit count
 		if (!r.landed && r.branch && !r.branch.startsWith("worktree/qf-") && r.ahead === 0) r.flags.push("merged-not-landed");
 		if (!r.landed && r.quiet_h > QUIET_H && r.state !== "working") r.flags.push("quiet");
 		if (r.landed && !r.outcome) r.flags.push("no-outcome");
