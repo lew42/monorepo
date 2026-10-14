@@ -7,3 +7,7 @@
 
 ## How chat bubbles are stored today
 Bubbles are drawn by `ext/Chat` from the raw transcript lines (`/ai-logs/<id>/session`, tailed by `AISessionFollow`); the cards the AI posts come from the session folder's `page.jsonl`. They are not page items yet. The direction (owner, 2026-10-12): a bubble becomes a page item written by a page-tool delta, so the work shows up live; the owner's message text should come from the refine pipeline's clean text (`mastermind-refine-haiku-live` owns it; this view will read it, not build a second).
+
+## Raw logs and asks (2026-10-13)
+**Raw** lives in the Conversation tab's header: `task.jsonl` (the session's own folder) and `transcript` (`/ai-logs/<id>`, dev server only), drawn by `AISessionDetail`.
+Each ask in the Coverage tab ends with `line N`, a link to `/ai-logs/<id>#N`, the prompt's line in the transcript; the cite link beside it opens the same words inline.

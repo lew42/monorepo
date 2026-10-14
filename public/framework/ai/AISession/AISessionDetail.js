@@ -193,7 +193,13 @@ export default class AISessionDetail extends Page {
 				}
 			});
 
-			$trace.empty(() => { if (trace) AISessionTrace.render(trace); });
+			// Raw: the session's own task log and its transcript (/ai-logs is dev-server only), on every session, row or not
+				$box.append(() => div.c("flex gap-50 v-center muted", () => {
+					small("Raw");
+					a.c("", "task.jsonl").href(own_dir + "task.jsonl");
+					a.c("", "transcript").href("/ai-logs/" + session_id);
+				}));
+				$trace.empty(() => { if (trace) AISessionTrace.render(trace); });
 			};
 			// the folder name (a card slug, not the id) arrives with the live feed; draw again the moment it does
 			fill();

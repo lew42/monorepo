@@ -1,0 +1,16 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/",
+ "widths": {
+  "1200": {
+   "empty": 0.258,
+   "widest_text": 401,
+   "widest_text_sample": "ai/AISession · ext/Refine · ai/sessions ",
+   "overflow_x": false,
+   "items": 566,
+   "narrow_share": 0.668
+  }
+ },
+ "errors": [
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

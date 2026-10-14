@@ -95,6 +95,7 @@ export default class AISessionCoverage {
 					span(() => {
 						span(ask.text + " ");
 						a.c("muted", ask.cites?.length ? "S" + ask.cites.join(", S") : "raw").href("#" + box.el.id).on("click", e => { e.preventDefault(); this.show_raw(box, ask.cites); });
+						span(" "); a.c("muted", "line " + c.line).href(c.raw ?? RefinedCard.raw_link(c.session, c.line));   // the same prompt in the transcript file
 					});
 				});
 			}));

@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/",
+ "widths": {
+  "400": {
+   "empty": 0.227,
+   "widest_text": 293,
+   "widest_text_sample": "Everything is committed and ready to han",
+   "overflow_x": false,
+   "items": 544,
+   "narrow_share": 0.472
+  },
+  "1200": {
+   "empty": 0.261,
+   "widest_text": 403,
+   "widest_text_sample": "563 sessions listed (6,087 routine hidde",
+   "overflow_x": false,
+   "items": 566,
+   "narrow_share": 0.668
+  },
+  "1920": {
+   "empty": 0.393,
+   "widest_text": 552,
+   "widest_text_sample": "ai/sessions · Servex/cards/Cards.js · Se",
+   "overflow_x": false,
+   "items": 566,
+   "narrow_share": 0.708
+  },
+  "3440": {
+   "empty": 0.535,
+   "widest_text": 520,
+   "widest_text_sample": "Oh, also before you uh, wrap up, make su",
+   "overflow_x": false,
+   "items": 524,
+   "narrow_share": 0.901
+  }
+ },
+ "errors": [
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "400: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}
