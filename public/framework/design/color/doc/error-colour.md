@@ -11,4 +11,6 @@ The owner checked Figma's `error` (`#CC0000`) on the Dark ground and found it al
 2. **Darken Dark** (the owner's own idea; site `#42404B` vs Figma `#675F56` is already an open question). It fixes black-on-Dark and error-on-Dark together.
 3. **Keep error unmistakable from prime by shape as well as hue:** an error always carries an icon and words; a destructive action is an outline or ghost button in error ink, never a filled red that looks like the primary. Prime stays the only filled coral.
 
+**Step the right way (owner, 2026-10-13).** When a chip or inset behind coloured text is short on contrast, step its ground *away* from the text: darken under dark-ish ink, lighten under light ink. A white-10% lighten under red on Dark made it worse. DS · 2.5's status chips on dark now darken (black 20%). That helps, but `#CC0000` is still weak there, so the mode-based error is still needed. It doesn't solve error versus prime either.
+
 Alternative considered: a non-red error (magenta or purple). It avoids the clash with prime, but red is what people expect an error to look like, so it is kept as a fallback only.
