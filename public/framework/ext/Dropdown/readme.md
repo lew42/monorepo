@@ -15,7 +15,7 @@ new Dropdown({ options, value, pick }).draw();   // the class — every method i
 ```
 
 ## Watch out
-- The list is a `[popover]`, so **outside-click and Escape are the browser's**, not this module's — don't add your own, and don't reach for `position: absolute`: [doc/decisions.md](./doc/decisions.md)
+- The list is a `[popover]`, so **outside-click is the browser's** (Escape is handled by `keys()`, a shared key), not this module's — don't add your own, and don't reach for `position: absolute`: [doc/decisions.md](./doc/decisions.md)
 - It closes on a pick and hands you the value; **redraw the trigger yourself** if the value it shows can change from elsewhere — nothing here watches your data
 - A picture is a Material Icons **ligature**: a name the font lacks renders as the whole word, hundreds of px wide. Measure before you ship one
 - `place()` runs once per open, off `getBoundingClientRect()` — a trigger that moves while the list is open takes the list nowhere with it

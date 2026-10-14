@@ -11,7 +11,7 @@ everything below is how it got there.
 
 ```
 new/
-  1/   WHERE THE SHIPPING DESIGN WAS PROVED — Router.js is line-for-line core/Router/
+  1/   WHERE THE SHIPPING DESIGN WAS PROVED — Router.js is an earlier, diverged copy of core/Router/ (not line-for-line)
 ```
 
 `0/` (the Router-less MVP, before routing) and `starter/` (the earliest working
