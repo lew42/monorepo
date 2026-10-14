@@ -16,4 +16,5 @@ span.c("ui-avatar accent", "AK");
 ## More
 
 - [page](/framework/ui/avatar/) — the stack, photos, and the ring/overlap CSS
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - Back to [UI](/framework/ui/).

@@ -26,5 +26,6 @@ Opt a real component (not an example) out of the scan: `div.c("toc-skip", …)`.
 - [Overview](/framework/ext/toc/) — the page, with the walkthrough
 - [`doc/skip-list.md`](./doc/skip-list.md) — what the scan excludes, and the two times it earned the opt-out
 - [`doc/decisions.md`](./doc/decisions.md) — scan vs declare, the microtask fill, the spy without `IntersectionObserver`, `sticky` vs `fixed`, who calls it, open items
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - `doc/file/*.md` — per-file notes, rendered by the page's `files:`
 - Files that matter: `toc.js` (scan, spy, fill), `toc.css` (sticky grid track), `page.js` (show, don't tell)

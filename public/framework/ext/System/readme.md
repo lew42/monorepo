@@ -11,3 +11,6 @@ A System knows where its files live (`root`), its `readme`, its `rules`, and can
 - A module's own system is a `system.js` beside its `page.js` (an instance, e.g. `ai/sessions/system.js`); list it in `Systems.modules`
 - [doc/system.md](doc/system.md) — what each member means, the hourly beat, the future compositor
 - [doc/move-manifest.md](doc/move-manifest.md) — the 2026-10-12 move from `ai/systems/` (old paths are one-line shims)
+
+## More
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)

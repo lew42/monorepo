@@ -65,6 +65,7 @@ same ones `ui.item` takes.
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [Overview](/framework/ext/Mention/) — every known name, live, and the unknown ones this
   session has actually seen.
 - [`doc/syntax.md`](doc/syntax.md) — the exact pattern, the markdown-heading and email/colour

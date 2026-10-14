@@ -20,6 +20,7 @@ content(){ return this.browse(BANDS, { "--column": "18em" }); }  // wall — one
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [Overview](/framework/ext/catalog/) · [`doc/decisions.md`](./doc/decisions.md) — every verdict, trap, open item and the dated caller census, in full.
 - [`doc/method/catalog.md`](./doc/method/catalog.md) — the rail's contract · [`doc/method/browse.md`](./doc/method/browse.md) — the wall's contract, `bands`, `tokens`, `owner/name`.
 - [`doc/file/catalog.js.md`](./doc/file/catalog.js.md) · [`doc/file/catalog.css.md`](./doc/file/catalog.css.md) · [`doc/file/page.js.md`](./doc/file/page.js.md) · [`doc/file/readme.md.md`](./doc/file/readme.md.md) — per-file walkthroughs.

@@ -14,5 +14,6 @@ span.c("ui-badge ui-pill h4 accent", "shipped");
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [page](/framework/ui/badge/) — every variant, the dot, and the tones finding
 - Back to [UI](/framework/ui/).

@@ -17,4 +17,5 @@ details.c("ui-accordion-item pad", () => {
 ## More
 
 - [Overview](/framework/ui/accordion/) — the FAQ demo and the marker-vs-flex-summary demo
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - Files: `accordion.js` (the two CSS rules), `page.js` (show, don't tell)
