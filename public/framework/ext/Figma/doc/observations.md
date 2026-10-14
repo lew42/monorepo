@@ -13,3 +13,5 @@
 - **Browse clicks were not laggy, just unredrawn:** the Router ignores query-only links; `FigmaBrowse` handles its own `?query` clicks (about 35 ms).
 - **Not yet checked:** Figma embed responsiveness (the owner thinks embeds are not responsive; screenshots in our own grid make it moot), rate limits. A `use_figma` write works (2026-10-12): [use-figma.md](./use-figma.md).
 - The dev server's `jsonl-guard` hook blocks any shell command that writes a `.jsonl`; generate those through a node script (`track.mjs`), as the repo intends.
+
+- **Rate limit with many agents (2026-10-14).** With six agents calling `use_figma` at once, three of them hit "the Figma tool call limit" within about 40 minutes. A minute later a single call from another session went through, so the limit looks like a short window shared across the account, not a daily cap. Keep about four Figma agents at once, make each script do more per call, and tell agents to stop and record what's left when it hits.
