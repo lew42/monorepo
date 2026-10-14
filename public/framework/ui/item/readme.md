@@ -41,4 +41,5 @@ stack of buttons, not a tree.
 - [Overview](/framework/ui/item/) — the framework's own folder tree, drawn live, and all seven variants side by side.
 - [doc/reuse.md](doc/reuse.md) — where `.item` could replace a row in `ux/Tree`, `ux/Content/Disclosure` or `ext/files`, at low risk, in a later pass.
 - [doc/core-item.md](doc/core-item.md) — `core/Item` compared, and the recommendation.
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - Back to [UI](/framework/ui/).
