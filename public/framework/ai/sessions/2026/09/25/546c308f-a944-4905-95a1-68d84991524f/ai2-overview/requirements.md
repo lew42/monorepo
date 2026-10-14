@@ -1,6 +1,6 @@
 # AI 2 Overview: what you asked for, and what came of it
 
-The owner's words: `public/framework/ai/sessions/2026/09/28/cards/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`, especially "Continued (about 11:00 PM)". Read them in full. They sum up the day:
+The owner's words: `public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/owner-words.md`, especially "Continued (about 11:00 PM)". Read them in full. They sum up the day:
 
 > "What we have failed to do is create very clear, familiar, concrete topics ... Servex ... the view class, the app class, the page class, these things are concrete. We need to reference those as much as possible ... simplify everything tremendously ... big simple interfaces with big simple icons and like the important things are big and then the sub things go inside the big ones."
 

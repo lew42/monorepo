@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then the `code` and `css` skills.
 
-**Read first:** the owner's words in `../owner-words.md` (the file-explorer half), the task brief `../requirements.md`, and the card's folder `public/framework/ai/sessions/2026/09/28/cards/file-explorer-no-panels-full-screen-at-a/`. How resizable columns work today: `public/framework/ai/sessions/2026/09/28/cards/resizable-columns-how-they-work-today/about.md`.
+**Read first:** the owner's words in `../owner-words.md` (the file-explorer half), the task brief `../requirements.md`, and the card's folder `public/framework/ai/2026/09/28/file-explorer-no-panels-full-screen-at-a/`. How resizable columns work today: `public/framework/ai/2026/09/28/resizable-columns-how-they-work-today/about.md`.
 
 Owner, verbatim: "the file explorer widget that we have right now is using the panel system, which is really cluttered and kind of broken … it should be a a file tree so we can expand uh, directory subdirectories … there's like a very primitive toolbar above that whole file explorer system that's kind of strange … let's strip the panels out of the file explorer system and do kind of like a audit of that file explorer".
 

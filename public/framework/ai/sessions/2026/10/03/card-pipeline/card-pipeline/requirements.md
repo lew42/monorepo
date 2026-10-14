@@ -4,7 +4,7 @@ Budget: $20
 
 **The owner's words (2026-10-02):** "I never saw anything on my dashboard about [the Inbox restructure / new classes / major work]… the items above 90 seem arbitrary… when I click through, there's not a lot of helpful information… often they're associated with a task that may or may not be linked… there wasn't anything on the card."
 
-**The fact behind it (computed):** `ai/sessions/2026/10/02/cards/` holds one card today. The four major asks of the day — `page-extends-item`, `panel2-sessions`, `ai-system-docs`, `framework-home` (all in `ai/2026-10-02/`) — have task dirs, briefs and ask lines in `ai/asks.jsonl`, and **no card**. Fix the pipeline, not the four cards; then the four cards fall out of it.
+**The fact behind it (computed):** `ai/2026/10/02/` holds one card today. The four major asks of the day — `page-extends-item`, `panel2-sessions`, `ai-system-docs`, `framework-home` (all in `ai/2026-10-02/`) — have task dirs, briefs and ask lines in `ai/asks.jsonl`, and **no card**. Fix the pipeline, not the four cards; then the four cards fall out of it.
 
 Laws that rule this task: 6 (one of everything — the card tool, the rail, the ledger already exist; extend them), 7 (compute, don't recall — every link, score reason and `paths` field is written by node from real state). Cards are what the owner reads (CLAUDE.md "Cards"); the content skill says how a card reads at a glance.
 

@@ -1,6 +1,6 @@
 # Step A: a menu on every page, and the drawer's tabs
 
-Design (one picture, one table): [/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/design.md](/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/design.md). Owner's words: `2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words.md`. This is ① and ② plus Sessions.
+Design (one picture, one table): [/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md](/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md). Owner's words: `2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words.md`. This is ① and ② plus Sessions.
 
 1. **The menu:** a ☰ button, top right, on every page (site chrome in `public/app.js`). It opens `ext/drawer`. It must not cover the page head or the dev bar; check at 1280 and 3440.
 2. **Tabs:** AI, Sessions, Dictation, Settings, Admin. Each is routed (`?drawer=sessions` or a child URL), so a reload lands on the same tab.

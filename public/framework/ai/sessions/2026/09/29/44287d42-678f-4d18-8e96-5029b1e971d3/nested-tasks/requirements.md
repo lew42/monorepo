@@ -1,6 +1,6 @@
 # Nested tasks: parallel and series, with a picture that shows the flow
 
-**Owner's words:** [owner-words.md](/framework/ai/sessions/2026/09/29/cards/lifecycle-nothing-left-running-nested-ta/owner-words.md) (09-29, about 5:35 PM). Every sentence is traced in [../lifecycle/refine/coverage.md](../lifecycle/refine/coverage.md). This task covers items 5–10 of [../lifecycle/refine/brief.md](../lifecycle/refine/brief.md). The sibling task `lifecycle` covers the rest.
+**Owner's words:** [owner-words.md](/framework/ai/2026/09/29/lifecycle-nothing-left-running-nested-ta/owner-words.md) (09-29, about 5:35 PM). Every sentence is traced in [../lifecycle/refine/coverage.md](../lifecycle/refine/coverage.md). This task covers items 5–10 of [../lifecycle/refine/brief.md](../lifecycle/refine/brief.md). The sibling task `lifecycle` covers the rest.
 
 ## What the owner asked
 - A task can have **subtasks, to any depth**. Completion % **aggregates from the subtasks**.

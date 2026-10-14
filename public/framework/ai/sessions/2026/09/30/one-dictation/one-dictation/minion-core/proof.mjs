@@ -32,7 +32,7 @@ const WIDTHS = [400, 1920];
 // The owner's own real evidence session — read LIVE, every run, never a committed copy
 // (review finding 8). An env var lets this be pointed at a different session.
 const EVIDENCE_FILE = process.env.EVIDENCE_FILE
-	?? "C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/10/01/cards/remote-access-install-tailscale-on-pc-an/ai/v-pl3m2ih.jsonl";
+	?? "C:/Code/lew42/monorepo/public/framework/ai/2026/10/01/remote-access-install-tailscale-on-pc-an/ai/v-pl3m2ih.jsonl";
 
 function servex_stub(session_id, file_route, extra = {}){
 	return async route => {

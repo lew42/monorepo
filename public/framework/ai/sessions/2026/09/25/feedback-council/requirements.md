@@ -1,6 +1,6 @@
 # Feedback council — brief for each of the five checkers
 
-Card dir (read the raw words there): `public/framework/ai/sessions/2026/09/25/cards/feedback-council/`
+Card dir (read the raw words there): `public/framework/ai/2026/09/25/feedback-council/`
 Words: `public/framework/ai/sessions/2026/09/25/feedback-council/owner-words.md` and `ai2-prompts.md`.
 Asks to check: `public/framework/ai/sessions/2026/09/25/feedback-council/asks.md` (A1–D14, plus extras you find).
 

@@ -1,6 +1,6 @@
 # Minion: Server/smoke.mjs, Server/merge.mjs, and the skill lines
 
-Load the `minion` skill first. Card with the owner's raw words: `public/framework/ai/sessions/2026/09/25/cards/quick-fix-worktrees-smoke-test-then-merg/` (page.jsonl). Parent brief: `public/framework/ai/sessions/2026/09/25/quickfix-worktrees/requirements.md`. Read it all.
+Load the `minion` skill first. Card with the owner's raw words: `public/framework/ai/2026/09/25/quick-fix-worktrees-smoke-test-then-merg/` (page.jsonl). Parent brief: `public/framework/ai/sessions/2026/09/25/quickfix-worktrees/requirements.md`. Read it all.
 
 **Work only in the worktree** `C:/Code/lew42/worktrees/quickfix-worktrees` (branch `worktree/quickfix-worktrees`, its dev server on http://127.0.0.1:65447). Commit there. Do not merge; the task mastermind merges.
 

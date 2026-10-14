@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then the `code` skill.
 
-**Read first:** the owner's words in `../owner-words.md` (the file-explorer half), the task brief `../requirements.md` (asks 4, 5, 6), the card's folder `public/framework/ai/sessions/2026/09/28/cards/file-explorer-no-panels-full-screen-at-a/`.
+**Read first:** the owner's words in `../owner-words.md` (the file-explorer half), the task brief `../requirements.md` (asks 4, 5, 6), the card's folder `public/framework/ai/2026/09/28/file-explorer-no-panels-full-screen-at-a/`.
 
 Owner, verbatim: "if you go to any path slash fs … maybe you leave the the ending slash off so it, it actually looks more less like a page.js and more like a dynamic path any path slash fs just loads the file system in full screen mode showing you just the files in that directory … you could even have a little link to it from any page template, you know, could just link to the FS page." And about the doc pages' Files tab: "if that file system … is nested within the left sidebar, within the page padding, within the tabs, you know, it'll be much much smaller than it should be".
 

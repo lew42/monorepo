@@ -2,7 +2,6 @@ import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { fold } from "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js";
 import { Fold } from "../cards/Fold.js";
-import CardDir from "../cards/CardDir.js";
 import { AskFold } from "../asks/AskFold.js";
 import { NeedsRule } from "./NeedsRule.js";
 import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
@@ -343,12 +342,12 @@ export const append_card = (id, line) => servex_json("/card/append?id=" + encode
 const AI_ROOT = new URL("../", import.meta.url).pathname;
 const read_text = url => fetch(url, { cache: "no-store" }).then(r => (r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? r.text() : "")).catch(() => "");
 
-// ids, not folders: an index page lists its children by slug, and CardDir says where each one's folder is (one tree, 2026-10-13)
 async function walk_cards(){
-	const kids = async id => Fold.parse_lines(await read_text(CardDir.url(id) + "page.jsonl")).filter(l => l.file).map(l => id + "/" + l.file.replace(/\/?(page\.jsonl)?$/, ""));
-	let ids = ["2026"];
-	for (let depth = 0; depth < 3; depth++) ids = (await Promise.all(ids.map(kids))).flat();   // year → month → day → card
-	const rows = await Promise.all(ids.map(async id => Fold.fold_card(id, Fold.parse_lines(await read_text(CardDir.url(id) + "page.jsonl")))));
+	const kids = async dir => Fold.parse_lines(await read_text(AI_ROOT + dir + "page.jsonl")).filter(l => l.file).map(l => dir + l.file.replace(/page\.jsonl$/, ""));
+	let dirs = ["2026/"];
+	for (let depth = 0; depth < 2; depth++) dirs = (await Promise.all(dirs.map(kids))).flat();   // → day folders
+	const ids = (await Promise.all(dirs.map(kids))).flat().map(d => d.replace(/\/$/, ""));
+	const rows = await Promise.all(ids.map(async id => Fold.fold_card(id, Fold.parse_lines(await read_text(AI_ROOT + id + "/page.jsonl")))));
 	return rows.map(Fold.summary);
 }
 
@@ -369,7 +368,7 @@ export async function resolve_card(id){
 		if (latest) return resolve_card(latest.id);
 	}
 	if (is_folder_id(id)){
-		const text = await read_text(CardDir.url(id) + "page.jsonl");
+		const text = await read_text(AI_ROOT + id + "/page.jsonl");
 		if (text) return Fold.fold_card(id, Fold.parse_lines(text));
 	}
 	if (id.startsWith("ask:")){

@@ -1,6 +1,6 @@
 # Minion B — the dictation playground
 
-Load the `minion` skill first, then `code`, `page`, `new-page`, `css`, `new-css-class` as they apply. Parent task: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/` (read its `requirements.md` — the numbered asks there are your acceptance test). **Read the owner's raw words in full:** `public/framework/ai/sessions/2026/09/28/cards/dictation-a-playground-and-a-better-proc/owner-words.md`. Use the owner's own names: playground, audio source, raw Whisper, corrections, live, fast assistant, strike / add.
+Load the `minion` skill first, then `code`, `page`, `new-page`, `css`, `new-css-class` as they apply. Parent task: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/` (read its `requirements.md` — the numbered asks there are your acceptance test). **Read the owner's raw words in full:** `public/framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md`. Use the owner's own names: playground, audio source, raw Whisper, corrections, live, fast assistant, strike / add.
 
 ## Work in the worktree
 

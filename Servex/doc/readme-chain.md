@@ -33,9 +33,8 @@ Both are plain functions, never throw: an unreadable readme is just skipped.
   nothing is added.
 - **`Layers.js`'s card assistant and manager** — their fresh-spawn prompt
   closures (only ever called when there is no session to resume) open with
-  `first_prompt(dir_of(card))`, the card's folder from `Cards.dir(id)`
-  (`ai/sessions/<day>/cards/<card>/` since the one-tree move, 2026-10-13),
-  before their existing text.
+  `first_prompt(\`public/framework/ai/${card}\`)` — a card's id IS its
+  directory — before their existing text.
 - **Not yet wired: `Dispatcher.js`'s own (non-carded) task-mastermind
   spawns.** They have no directory at spawn time — the task mastermind opens
   its own with `new-task` on its first turn — so nothing is passed today.

@@ -11,7 +11,7 @@ Like, you know, if I haven't deleted something, you know, I'm not sure if there 
 patched to it. So it's kind of removed and then re-added, but generally the logs should be append
 only, right? And so I don't know why that disappeared, if it was See if you can figure it out."
 
-Card: `public/framework/ai/sessions/2026/09/24/cards/system-design/` (a GROUP card). Around 10:59-11:00 on
+Card: `public/framework/ai/2026/09/24/system-design/` (a GROUP card). Around 10:59-11:00 on
 2026-09-28 three `message` lines were appended to its page.jsonl; every line parses, no commits
 or merges then. So the file was appended to, not rewritten: the gap is in the rail.
 

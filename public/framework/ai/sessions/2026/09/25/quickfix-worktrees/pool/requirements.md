@@ -1,6 +1,6 @@
 # Minion: the worktree pool in Servex (take_worktree / return_worktree)
 
-Load the `minion` skill first. Card with the owner's raw words: `public/framework/ai/sessions/2026/09/25/cards/quick-fix-worktrees-smoke-test-then-merg/` (page.jsonl; read the correction: NO manager agent, NO standing fixer). Parent brief: `public/framework/ai/sessions/2026/09/25/quickfix-worktrees/requirements.md`. Read all of it; deliverables 3 and 4 are yours.
+Load the `minion` skill first. Card with the owner's raw words: `public/framework/ai/2026/09/25/quick-fix-worktrees-smoke-test-then-merg/` (page.jsonl; read the correction: NO manager agent, NO standing fixer). Parent brief: `public/framework/ai/sessions/2026/09/25/quickfix-worktrees/requirements.md`. Read all of it; deliverables 3 and 4 are yours.
 
 **Work only in the worktree** `C:/Code/lew42/worktrees/quickfix-worktrees` (branch `worktree/quickfix-worktrees`). Commit there. Never touch or restart the live Servex (port 8090). Do not merge.
 

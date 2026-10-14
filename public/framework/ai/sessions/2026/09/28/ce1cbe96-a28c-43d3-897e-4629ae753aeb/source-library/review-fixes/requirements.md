@@ -16,7 +16,7 @@ Only the files review.md's findings actually name:
 - `public/framework/page.js` (finding 1 — one line, add `sources` to `children:`)
 - `public/framework/ext/DesignTool/doc/file/{mirror,probe,report,live}.js.md` (finding 2)
 - `public/framework/sources/page.js` (findings 3, 7)
-- `public/framework/ai/sessions/2026/09/cards/page.jsonl`, `public/framework/core/Page/jsonl/page.jsonl` (finding 4)
+- `public/framework/ai/2026/09/page.jsonl`, `public/framework/core/Page/jsonl/page.jsonl` (finding 4)
 - `public/framework/ext/Doc/Doc.js` (finding 6, optional — see below)
 - `public/framework/sources/readme.md` (finding 9)
 - `public/framework/styles/css-scopes.txt` (finding 10)
@@ -29,11 +29,11 @@ Nothing else — this is a fix pass, not a rewrite.
    404s — "nothing crawls" (root `CLAUDE.md`). Add it.
 2. Four `.md` files under `ext/DesignTool/doc/file/` still link `../../docs/…` instead of
    `../../doc/…` — the module's OWN convention, from before this task. Fix all four.
-3. Two `.jsonl` watcher files (`ai/sessions/2026/09/cards/page.jsonl`, `core/Page/jsonl/page.jsonl`) picked
+3. Two `.jsonl` watcher files (`ai/2026/09/page.jsonl`, `core/Page/jsonl/page.jsonl`) picked
    up lines that don't belong to this task's diff — most likely the dev server's own
    file-watcher catching up on pre-existing, previously-untracked state the moment
    something nearby changed, not anything this task's code wrote on purpose. Check: do
-   `public/framework/ai/sessions/2026/09/25/cards/` and `public/framework/core/Page/jsonl/readme.md`
+   `public/framework/ai/2026/09/25/` and `public/framework/core/Page/jsonl/readme.md`
    already exist independently of this task? If yes, these two lines are the watcher
    correctly catching up, not a stray write — say so in your log and revert them anyway
    (a task's diff should only carry what it meant to change, watcher catch-up included).

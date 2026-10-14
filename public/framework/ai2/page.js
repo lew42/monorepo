@@ -83,7 +83,7 @@ export default new Page({
 	   never load. `overview`, `needs`, `log`, `live` and `now` are reserved: no card can be
 	   called any of them. `live` is an ordinary card page whose card comes from `live.js`;
 	   `now` (followup.md item 2, 2026-09-30) is a real card, but NOT at a fixed folder — it is
-	   rewritten fresh under a new dated folder each day (`ai/sessions/2026/10/03/cards/now/`), so `resolve_card()`
+	   rewritten fresh under a new dated folder each day (`ai/2026/10/03/now/`), so `resolve_card()`
 	   (inbox.js) looks up the latest one by id suffix before reading it (bug fix, 2026-10-03: the
 	   literal id "now" used to resolve nowhere and the card vanished from the rail). Routed the
 	   same plain way as any other card id below — the only thing special about it is that

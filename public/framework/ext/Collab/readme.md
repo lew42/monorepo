@@ -76,5 +76,5 @@ or `undefined` when nothing named it yet.
 ## More
 - [The live page](/framework/ext/Collab/) · [doc/collab.md](./doc/collab.md) — the objects, the phase lists, the decision tree
 - Files: `Collab.js` (the objects), `view.js` (draws one run), `collab.css`, `page.js`, `demo/` (a sample research run, a sample scoreboard)
-- The contract: `/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md` · the design: `/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/design.md`
+- The contract: `/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md` · the design: `/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md`
 - Consumers: the runner writes what this reads; a task page can embed `view(collab)` for its own run

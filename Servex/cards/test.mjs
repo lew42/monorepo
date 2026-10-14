@@ -30,13 +30,13 @@ const lines = file => fs.readFileSync(file, "utf8").split("\n").filter(Boolean).
 const day = cards.day_id();
 const a = await cards.create({ title: "Fix the Sidebar, please!", type: "question", by: "owner", tags: ["site"] });
 check("create → today's folder", a.ok && a.id === `${day}/fix-the-sidebar-please`, a);
-check("create → url and path", a.url === `/framework/ai/${a.id}/` && a.path === path.join(root, "sessions", ...a.id.split("/").slice(0, 3), "cards", ...a.id.split("/").slice(3), "page.jsonl"), a);   // the store (one tree, 2026-10-13)
+check("create → url and path", a.url === `/framework/ai/${a.id}/` && a.path === path.join(root, ...a.id.split("/"), "page.jsonl"), a);
 const [y, m] = day.split("/");
-check("year page", lines(cards.file(y))[0].title === y);
-check("month page", /^[A-Z][a-z]+ \d{4}$/.test(lines(cards.file(`${y}/${m}`))[0].title));
+check("year page", lines(path.join(root, y, "page.jsonl"))[0].title === y);
+check("month page", /^[A-Z][a-z]+ \d{4}$/.test(lines(path.join(root, y, m, "page.jsonl"))[0].title));
 check("day page", /^[A-Z][a-z]+day \d{1,2} [A-Z][a-z]+$/.test(lines(cards.file(day))[0].title), lines(cards.file(day))[0]);
-check("year lists month, month lists day", lines(cards.file(y))[1]?.file === `${m}/page.jsonl`
-	&& lines(cards.file(`${y}/${m}`))[1]?.file === `${day.split("/")[2]}/page.jsonl`);
+check("year lists month, month lists day", lines(path.join(root, y, "page.jsonl"))[1]?.file === `${m}/page.jsonl`
+	&& lines(path.join(root, y, m, "page.jsonl"))[1]?.file === `${day.split("/")[2]}/page.jsonl`);
 check("day lists the card", lines(cards.file(day)).some(l => l.file === "fix-the-sidebar-please/page.jsonl"));
 const head = lines(a.path)[0];
 check("line 1 is the constructor", head.class === "/framework/ai/cards/card.js" && head.title === "Fix the Sidebar, please!"
@@ -255,19 +255,6 @@ check("owner_note makes a tagged note card whose summary carries the note", on.o
 check("owner_note refuses empty text and unknown kinds", !(await cards.owner_note({ text: "" })).ok && !(await cards.owner_note({ text: "x", kind: "fyi" })).ok);
 await cards.append(on.id, { reviewed: { at: stamp(), by: "owner" } });
 check("opening it records reviewed", (await cards.list({ view: "all" })).find(c => c.id === on.id)?.reviewed != null);
-
-// one tree (2026-10-13): a card folder only the OLD tree has (written by a Servex not yet restarted) is still found,
-// listed, appended to in place, and a sub-card made under it lands beside it
-const oldId = "2025/01/02/left-behind";
-fs.mkdirSync(path.join(root, "2025", "01", "02", "left-behind"), { recursive: true });
-// no year, month or day index page: a Servex not yet restarted may leave none
-fs.writeFileSync(path.join(root, "2025", "01", "02", "left-behind", "page.jsonl"), JSON.stringify({ class: "/framework/ai/cards/card.js", title: "Left behind", id: oldId, created: stamp(), by: "t" }) + "\n");
-check("old-tree card: dir() falls back to it", cards.dir(oldId) === path.join(root, "2025", "01", "02", "left-behind"), cards.dir(oldId));
-check("old-tree card: walk() lists it beside the store's", (await cards.walk()).includes(oldId) && (await cards.walk()).includes(a.id));
-await cards.append(oldId, { status: "open" });
-check("old-tree card: append writes in place", lines(path.join(root, "2025", "01", "02", "left-behind", "page.jsonl")).length === 2 && !fs.existsSync(path.join(root, "sessions", "2025")));
-const sub = await cards.create({ parent: oldId, title: "Sub of old" });
-check("old-tree card: a sub-card goes in its real folder", sub.ok && fs.existsSync(path.join(root, "2025", "01", "02", "left-behind", "sub-of-old", "page.jsonl")), sub);
 
 fs.rmSync(root, { recursive: true, force: true });
 console.log(failed ? `\n${failed} FAILED` : "\nall passed");

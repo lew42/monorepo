@@ -8,7 +8,7 @@ import TaskDirs from "../Server/TaskDirs.mjs";
 
 /* THE TASK LOOP — nobody should have to remember to land a task.
  *
- * Design: public/framework/ai/sessions/2026/09/28/cards/skills-as-a-workflow-tasks-chased-by-nod/design.md
+ * Design: public/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md
  * Interfaces shared with waiting-on-you and recursive-pairs:
  *   public/framework/ai/sessions/2026/09/28/task-loop/task-loop/interfaces.md
  *

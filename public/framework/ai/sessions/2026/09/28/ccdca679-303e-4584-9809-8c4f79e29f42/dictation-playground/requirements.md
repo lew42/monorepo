@@ -1,6 +1,6 @@
 # Dictation playground — requirements
 
-The owner's words, verbatim, are the brief: /framework/ai/sessions/2026/09/28/cards/dictation-a-playground-and-a-better-proc/owner-words.md (two parts). Read them fully. Use the owner's own names for things.
+The owner's words, verbatim, are the brief: /framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md (two parts). Read them fully. Use the owner's own names for things.
 
 ## The asks, numbered (tick each against the owner's sentence at landing)
 

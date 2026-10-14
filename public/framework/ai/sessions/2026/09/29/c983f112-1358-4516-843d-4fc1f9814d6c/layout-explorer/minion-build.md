@@ -3,9 +3,9 @@
 Load the `minion` skill first, then `page`, `code` and `css`.
 
 **Read first, in this order:**
-1. The owner's words: `public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/owner-words.md` (the first half is yours; the aside about the selected element is another task's).
+1. The owner's words: `public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/owner-words.md` (the first half is yours; the aside about the selected element is another task's).
 2. The task brief: `public/framework/ai/sessions/2026/09/29/c983f112-1358-4516-843d-4fc1f9814d6c/layout-explorer/requirements.md`.
-3. The HTML study, and follow its recommendation: `public/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study.md`.
+3. The HTML study, and follow its recommendation: `public/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study.md`.
 
 ## Where you work
 

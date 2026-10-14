@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
  * `prompt-relay.mjs` (the UserPromptSubmit hook) already writes every prompt the owner types
  * into an INTERACTIVE Claude Code session, verbatim, onto that session's own page — a sibling
  * of that day's task dirs and cards, inside the existing year/month/day tree
- * (public/framework/ai/sessions/2026/09/25/cards/<slug>/page.jsonl is the same tree an ordinary dated page
+ * (public/framework/ai/2026/09/25/<slug>/page.jsonl is the same tree an ordinary dated page
  * already uses) — "a session is a page", public/framework/ai/sessions/2026/09/30/proposal-flow/
  * page-item-design.md (three corrections landed on the exact path; see minion-echo's
  * task.jsonl for all of them). This hook is the other half: when that same session's turn

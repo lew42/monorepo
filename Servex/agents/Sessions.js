@@ -6,7 +6,6 @@ import { place } from "../home.js";
 import Usage from "../Usage.js";
 import { model as tier_model } from "./tiers.js";
 import { page_path } from "./Layers.js";
-import Cards from "../cards/Cards.js";
 import { session_facts } from "./Agents.js";
 import { has_key, spend_guard } from "../ext/openrouter/provider.js";
 import { clean } from "../../public/framework/ext/Refine/engine.js";
@@ -433,11 +432,7 @@ export default class Sessions {
 
 	// ── files ────────────────────────────────────────────────────────────────
 
-	disk(site){
-		const card = /^\/?framework\/ai\/(\d{4}(?:\/.*)?)$/.exec(site);   // a card address: its folder is in the sessions store (one tree, 2026-10-13)
-		if (card) return Cards.path(card[1], path.join(this.repo, "public", "framework", "ai"));
-		return path.join(this.repo, "public", ...site.split("/").filter(Boolean));
-	}
+	disk(site){ return path.join(this.repo, "public", ...site.split("/").filter(Boolean)); }
 	is_dir(site){ try { return fs.statSync(this.disk(site)).isDirectory(); } catch { return false; } }
 
 	/* A CARD id (voice-sessions, card sessions): a path under `/framework/ai/`, such as
@@ -629,7 +624,7 @@ export default class Sessions {
 		let home = this.nearest(asked);
 		if (card != null && card !== ""){
 			home = this.card_home(card);
-			if (!home) throw Object.assign(new Error(`"${card}" is not a known card (no page.jsonl in its folder, ai/sessions/<day>/cards/<slug>/)`), { status: 400 });
+			if (!home) throw Object.assign(new Error(`"${card}" is not a known card (no public/framework/ai/${card}/page.jsonl)`), { status: 400 });
 		}
 		const project = this.project_of(host);
 		/* Resume is per card when a card was given (same one-hour rule as a page): `recent()` on

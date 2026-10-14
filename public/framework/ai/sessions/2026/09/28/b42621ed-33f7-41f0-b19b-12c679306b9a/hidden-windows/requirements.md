@@ -8,7 +8,7 @@ sets `windowsHide: true`, `Start-Process` uses `-WindowStyle Hidden`, prove it w
 `MainWindowHandle` = 0). It keeps getting broken. This task ENFORCES it, it doesn't just
 patch one call site.
 
-Card log (the owner's words) is at `public/framework/ai/sessions/2026/09/24/cards/system-design/`.
+Card log (the owner's words) is at `public/framework/ai/2026/09/24/system-design/`.
 
 ## Evidence handed down
 

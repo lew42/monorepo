@@ -1,6 +1,6 @@
 # Minion: pairs — one pair per page, and its lifecycle
 
-Rules shared by all minions: `../common.md`. Owner's words: `../requirements.md` and the card dir `public/framework/ai/sessions/2026/09/25/cards/one-recursive-agent-system-the-same-pair/`.
+Rules shared by all minions: `../common.md`. Owner's words: `../requirements.md` and the card dir `public/framework/ai/2026/09/25/one-recursive-agent-system-the-same-pair/`.
 **Fence:** `Servex/agents/Layers.js`, `Servex/agents/layers.test.mjs`, `Servex/agents/layers-proof.mjs`, new files under `Servex/agents/doc/` about layers, `Servex/agents/tiers.js` only if you must. Private Servex port **8290**.
 
 ## Deliverables

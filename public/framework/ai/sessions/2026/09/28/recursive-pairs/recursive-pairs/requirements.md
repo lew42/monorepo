@@ -30,6 +30,6 @@ The owner (verbatim: `.claude/prompts/2026-09-28.jsonl`, the prompt containing "
 
 **Proof:** the process count and MB before and after, with 3 contexts dictated to and then left idle for 6 minutes; the start time of a resume and of a fresh start; one recycled assistant whose context begins under 10k.
 
-## Added 2026-09-28: a pair for any page, not only a card (step B of [the design](/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/design.md))
+## Added 2026-09-28: a pair for any page, not only a card (step B of [the design](/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md))
 
 `Layers.record(card)` mints `assistant-<base>` and `manager-<base>` from a card id. Generalize it to any page path, keyed the same way, so the drawer's AI tab on any page talks to that page's own pair. The lifecycle rule above applies to every pair.

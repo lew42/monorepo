@@ -1,6 +1,6 @@
 # Minion: merge.mjs must never run git merge over uncommitted edits
 
-Load the `minion` skill first. Card directory with the owner's raw words: `public/framework/ai/sessions/2026/09/25/cards/quick-fix-worktrees-smoke-test-then-merg/`. Parent brief: `public/framework/ai/sessions/2026/09/25/quickfix-worktrees/requirements.md`. Read the last lines of `public/framework/ai/sessions/2026/09/25/quickfix-worktrees/task.jsonl` (the INCIDENT and decision d3), and `smoke/proof/merge-reset-incident.txt`.
+Load the `minion` skill first. Card directory with the owner's raw words: `public/framework/ai/2026/09/25/quick-fix-worktrees-smoke-test-then-merg/`. Parent brief: `public/framework/ai/sessions/2026/09/25/quickfix-worktrees/requirements.md`. Read the last lines of `public/framework/ai/sessions/2026/09/25/quickfix-worktrees/task.jsonl` (the INCIDENT and decision d3), and `smoke/proof/merge-reset-incident.txt`.
 
 **Work only in the worktree** `C:/Code/lew42/worktrees/quickfix-worktrees` (branch `worktree/quickfix-worktrees`). Commit there. **Never run merge.mjs against the real main tree** (`C:/Code/lew42/monorepo`): prove everything on a scratch repo.
 

@@ -1,6 +1,6 @@
 # Minion A — Server/review.mjs and the merge.mjs gate
 
-Load the `minion` skill first. The task: `public/framework/ai/sessions/2026/09/28/b6fa1bc1-fad0-4bdd-9b20-8cd1cd20afb4/fresh-eyes-review/` — read `requirements.md` there (the owner's words and the three sizes) before anything. The card with the raw conversation: `public/framework/ai/sessions/2026/09/28/cards/fresh-eyes-review-built-into-every-task/`.
+Load the `minion` skill first. The task: `public/framework/ai/sessions/2026/09/28/b6fa1bc1-fad0-4bdd-9b20-8cd1cd20afb4/fresh-eyes-review/` — read `requirements.md` there (the owner's words and the three sizes) before anything. The card with the raw conversation: `public/framework/ai/2026/09/28/fresh-eyes-review-built-into-every-task/`.
 
 **Work only in the worktree** `C:\Code\lew42\worktrees\fresh-eyes-review` (branch `worktree/fresh-eyes-review`, its server http://127.0.0.1:49989). Commit there. Do not merge; your task mastermind merges.
 

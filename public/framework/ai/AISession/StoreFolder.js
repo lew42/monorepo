@@ -1,6 +1,5 @@
 import { Page, div, a, p } from "/app.js";
 import { AITask } from "/framework/ai/AITask/AITask.js";
-import CardDir from "/framework/ai/cards/CardDir.js";
 
 /* One folder of the sessions store, routed by its own path: /framework/ai/sessions/2026/10/12/<session>/<task>/.
    Tasks live here since 2026-10-12 (ai/doc/task-folders.md); the flat /framework/ai/sessions/<id>/ session route is untouched.
@@ -38,15 +37,6 @@ export default class StoreFolder extends Page {
 		let to = this._moves.get(m[1] + m[2]);
 		for (let n = 0; to && this._moves.has(to) && n < 9; n++) to = this._moves.get(to);
 		return to ? to + url.slice(m[0].length) : null;
-	}
-
-	/** A `cards/` folder of the store, or anything under it (one tree, 2026-10-13): a card's page is the Inbox route,
-	    /framework/ai/<id>/, so the folder's url forwards there (CardDir.id is the inverse of CardDir.rel). */
-	static cards(url){
-		const to = CardDir.page(CardDir.id(url));
-		return new Page({ title: "Card", icon: "move_up", url,
-			route(name){ return name.includes(".") ? undefined : StoreFolder.cards(url + name + "/"); },
-			content(){ p(() => a().href(to).text("This card's page → " + to)); location.replace(to + location.search + location.hash); } });
 	}
 
 	/** A page that sends the browser on to `to` (old task and day addresses); a deeper old path keeps its tail. */
@@ -96,7 +86,6 @@ export default class StoreFolder extends Page {
 		if (name.includes(".")) return;
 		const url = this.url + name + "/", bare = url.slice(0, -1), next = () => new StoreFolder({ home: this.home, segs: [...this.segs, name] });
 		const task = () => new AITask({ title: name, icon: "receipt_long", url, src: url + "session.json" });
-		if (name === "cards") return StoreFolder.cards(url);   // a day's Inbox cards: their pages are the Inbox's
 		if (this.segs.length < 3) return next();
 		const { tasks, pages } = StoreFolder.known();
 		if (tasks.has(bare)) return pages.has(bare) ? undefined : task();   // undefined: Page.child() loads the folder's own page.js

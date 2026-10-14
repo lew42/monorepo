@@ -4,8 +4,6 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { model } from "./tiers.js";
-import Cards from "../cards/Cards.js";
-import CardDir from "../../public/framework/ai/cards/CardDir.js";
 import { brief } from "./brief.js";
 import { first_prompt } from "./readme-chain.js";
 
@@ -128,11 +126,10 @@ export default class Layers {
 		return card ? root_of(card) : page;
 	}
 
-	/* `/framework/ai/2026/09/24/x/wider/` -> `2026/09/24/x/wider`, when that card exists. Its folder's own url,
-	 * `/framework/ai/sessions/2026/09/24/cards/x/wider/`, names the same card (CardDir.id). */
+	/* `/framework/ai/2026/09/24/x/wider/` -> `2026/09/24/x/wider`, when that card exists. */
 	card_of(page){
 		if (!page?.startsWith(CARDS_AT)) return null;
-		const id = CardDir.id(page) ?? page.slice(CARDS_AT.length).replace(/\/$/, "");
+		const id = page.slice(CARDS_AT.length).replace(/\/$/, "");
 		const canonical = id && this.servex.cards.canonical(id);
 		return canonical && root_of(canonical) ? canonical : null;
 	}
@@ -164,8 +161,7 @@ export default class Layers {
 	baseline_file(key){
 		const norm = is_page(key) ? (page_path(key) ?? key) : key;
 		if (is_page(norm)){
-			const card = /^\/framework\/ai\/(\d{4}\/.*)$/.exec(norm);   // a card address: its folder is in the sessions store (one tree)
-			const dir = card ? Cards.path(card[1], path.join(this.repo, "public", "framework", "ai")) : path.join(this.repo, "public", ...norm.split("/").filter(Boolean));
+			const dir = path.join(this.repo, "public", ...norm.split("/").filter(Boolean));
 			const page_jsonl = path.join(dir, "page.jsonl");
 			if (fs.existsSync(page_jsonl)) return { file: page_jsonl, kind: "card", path: norm };
 			const readme = path.join(dir, "readme.md");
@@ -173,7 +169,7 @@ export default class Layers {
 		}
 		const cards = this.servex?.cards;
 		const id = cards?.canonical?.(norm) ?? norm;
-		const f = cards?.file ? cards.file(id) : path.join(Cards.dir(id, path.join(this.repo, "public", "framework", "ai")), "page.jsonl");
+		const f = cards?.file ? cards.file(id) : path.join(this.repo, "public", "framework", "ai", ...id.split("/"), "page.jsonl");
 		return { file: f, kind: "card", path: this.path_of?.(norm) ?? `${CARDS_AT}${id}/` };
 	}
 
@@ -869,7 +865,7 @@ export default class Layers {
 
 	/* The directory a context's files live in, repo-relative: a card's task dir, or a page's own dir. */
 	dir_of(key){
-		if (!is_page(key)) return path.relative(this.repo, Cards.dir(key, path.join(this.repo, "public", "framework", "ai"))).split(path.sep).join("/");
+		if (!is_page(key)) return `public/framework/ai/${key}`;
 		return ("public" + key).replace(/\/$/, "");
 	}
 

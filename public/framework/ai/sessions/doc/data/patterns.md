@@ -6,7 +6,7 @@ Counted by `node Server/session-patterns.mjs --write`, not typed. Every row open
 |---|---|---|---|
 | Session store, dated | `ai/sessions/2026/09/01/f825457a-2f19-4006-af89-83c5df126d07/` | [7783](/framework/ai/sessions/) | `Session.dir_url(id)` from the index `day` column. The shape new sessions are written in. |
 | Session store, flat (old) | `ai/sessions/a56900e3-8b50-49d0-bb1c-42f986cd407b/` | 1 | `Session.locate` finds it and moves it into the dated shape on first write; `session-place.mjs` moves all. |
-| Card folder by date | `ai/sessions/2026/09/19/cards/session-tracking/` | [4092](/framework/ai/sessions/?records=has-card) | A Servex or VS Code card's `page.jsonl`. Listed from `sessions.json`; opens in the same detail view. |
+| Card folder by date | `ai/2026/09/19/session-tracking/` | [4092](/framework/ai/sessions/?records=has-card) | A Servex or VS Code card's `page.jsonl`. Listed from `sessions.json`; opens in the same detail view. |
 | Task folder | `ai/sessions/2026/08/12/apps/` | [1066](/framework/ai/sessions/?records=has-task) | `task.jsonl` and the brief. Joined to a session by the `session_id` in its launch line. |
 | Raw transcript (outside the repo) | `~/.claude/projects/<cwd>/<id>.jsonl` | 7824 | The source of truth, never copied. `public/framework/ai/AISession/AISessionAudit.mjs` reads it; the page reads the small cached summaries. |
 

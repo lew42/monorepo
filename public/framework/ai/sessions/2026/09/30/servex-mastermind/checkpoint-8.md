@@ -19,7 +19,7 @@ Skills architect: others send recommendations and append to a skill's improvemen
 | voice-sessions-2 ($12) | fix round committed in worktree voice-fixes; one minion queued for the double owner line + 10 review findings | merge, then restart |
 | chat-hitl-2 ($20 cap, ~$12 spent) | finishing slice 2 with minion-chat-finish; card 2026/09/30/chat-hitl-slice-2-marks-rename-revision | merge, restart, then row 43 drill-in |
 | mastermind-page (not yours) | page audit; minion-layout-bands adds --bands to layout-check.mjs | it sends the path when merged |
-| page-system-3-3 | still stopped: 6 unmerged commits on worktree/page-system + junk untracked dirs (undefined/, a stray ai/sessions/2026/09/25/cards tree), inventory audit 62/81 | resume when a slot frees; it must delete the junk before merging |
+| page-system-3-3 | still stopped: 6 unmerged commits on worktree/page-system + junk untracked dirs (undefined/, a stray ai/2026/09/25 tree), inventory audit 62/81 | resume when a slot frees; it must delete the junk before merging |
 
 ## Pending Servex restart (batch, GPU idle, whisper in use by the owner)
 jsonl-keep + Agents.js 4000 (merged); then voice-sessions-2 and chat-hitl-2 (/api) when merged. Restart once for all.

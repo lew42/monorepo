@@ -2,7 +2,7 @@
 
 Load the `minion` skill first, then `code` and `css`.
 
-**The owner's words** (read the first half): `public/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/owner-words.md`. The core: *"for each method name … we go to the method page and we see the method name right after that … there could be a little menu button … then we could see the decision tree … we either need the AI to remember to wire up every decision that was made … I'm not sure if it could happen in more of a systematic way."* Also `public/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/owner-words-3.md`.
+**The owner's words** (read the first half): `public/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/owner-words.md`. The core: *"for each method name … we go to the method page and we see the method name right after that … there could be a little menu button … then we could see the decision tree … we either need the AI to remember to wire up every decision that was made … I'm not sure if it could happen in more of a systematic way."* Also `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-3.md`.
 Task: `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/`. The contract: `collab-format.md` there, the section "Added 14:25".
 
 **Work in the worktree `C:\Code\lew42\worktrees\collab-rounds`** (branch `worktree/collab-rounds`, server http://localhost:64519/). Commit there. Do not merge. `ext/Collab/` (Collab.js, view.js, page.js) and `Server/collab.mjs` are already built and committed there: read them first.

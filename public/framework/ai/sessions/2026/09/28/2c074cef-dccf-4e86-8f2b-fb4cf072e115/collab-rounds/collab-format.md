@@ -26,7 +26,7 @@ One run of a collaboration = one directory, `<taskdir>/collab/`, holding:
     {"id": "sonnet-b", "model": "claude-sonnet-5"},
     {"id": "haiku-c", "model": "claude-haiku-4-5-20251001"}
   ],
-  "context": ["public/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/owner-words-2.md"]
+  "context": ["public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-2.md"]
 }
 ```
 

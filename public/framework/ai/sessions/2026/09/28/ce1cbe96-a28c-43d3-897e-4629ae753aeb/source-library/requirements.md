@@ -1,6 +1,6 @@
 # The source library, the web fan-out, lessons, and one doc convention
 
-Design: [/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/design.md](/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/design.md), the "Added" section. Owner's words: `2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-2.md`.
+Design: [/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md](/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md), the "Added" section. Owner's words: `2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-2.md`.
 
 1. **The library:** `public/framework/sources/<topic>/<slug>.md`, each page converted to markdown once, with a header block (url, fetched_at, kind: docs, source code or article, authority) and one `index.jsonl` per topic. A tool `cite(topic)` lists what exists before anyone fetches again.
 2. **The fan-out:** `node Server/sources.mjs "<question>" --topic <t>`: 2 or 3 cheap searchers search, then run follow-up searches from what they found, preferring documentation sites and GitHub source, and save the best pages. Use WebSearch/WebFetch in Claude agents now; the OpenRouter web plugin comes with harness step 2.

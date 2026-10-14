@@ -200,7 +200,7 @@ per-browser read flag every other row's bold title already uses (`rules.js`'s `i
 open: the owner's own statements aren't linked in with sentence ids yet — that needs
 [`prompts-live`](/framework/ai/sessions/2026/10/03/7eb6e8f0-913b-43c4-afa7-1d833bc354d1/prompts-live/)'s remaining per-prompt wiring. Also fixed
 the same day: the Now card used to vanish from the rail entirely, because it is rewritten under a
-NEW dated folder every day (`ai/sessions/2026/10/03/cards/now/`, never a fixed `ai/now/`) and the pinned row's
+NEW dated folder every day (`ai/2026/10/03/now/`, never a fixed `ai/now/`) and the pinned row's
 old lookup only knew the literal id "now" — `resolve_card()` (`inbox.js`) now finds the latest
 real one first; **its own preview line** falls back to the newest dashboard section's text (then
 the card's one-line `chat` summary) when there are no chat messages or prompts to read, so the

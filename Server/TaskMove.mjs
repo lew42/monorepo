@@ -7,8 +7,6 @@
 //
 //   node Server/TaskMove.mjs [--repo <path>]                                  dry run: plan + counts, writes the plan file (default)
 //   node Server/TaskMove.mjs --apply [--only Y-M-D,...] [--skip slug,...] [--repo <path>]
-//   node Server/TaskMove.mjs --apply --manifest <dry-run.json> --ledger card-moves [--repo <path>]   a dry run's moves as written
-//        (the one-tree card move, 2026-10-13: ai/YYYY/MM/DD/<card>/ -> ai/sessions/YYYY/MM/DD/cards/<card>/); every verb takes --ledger
 //   node Server/TaskMove.mjs --verify [--run <stamp>|last] [--repo <path>]
 //   node Server/TaskMove.mjs --undo   [--run <stamp> | --all] [--repo <path>]  the last apply only, unless told
 //   node Server/TaskMove.mjs --relink [--dry] [--plan | --run <stamp>|last | --all] [--repo <path>]   default: the last apply's moves
@@ -32,8 +30,6 @@ import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
-
-import CardDir from "../public/framework/ai/cards/CardDir.js";   // the card tree's one rule (cardSub)
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
@@ -66,12 +62,8 @@ export default class TaskMove {
 
 	static ai(repo){ return path.join(repo, "public", "framework", "ai"); }
 	static sessStore(repo){ return path.join(this.ai(repo), "sessions"); }
-	// the ledger's name: "task-moves" (task folders, the default) or "card-moves" (Inbox cards into the store, one tree 2026-10-13); --ledger
-	static LEDGER = "task-moves";
-	static PHYSICAL = ["task", "rename", "stub", "dayfile", "card", "cardfile"];
-	static isFile(m){ return m.kind === "dayfile" || m.kind === "cardfile"; }   // a single loose file, not a folder
-	static ledger(repo){ return path.join(this.sessStore(repo), `${this.LEDGER}.jsonl`); }
-	static filesLedger(repo){ return path.join(this.sessStore(repo), `${this.LEDGER}-files.jsonl`); }
+	static ledger(repo){ return path.join(this.sessStore(repo), "task-moves.jsonl"); }
+	static filesLedger(repo){ return path.join(this.sessStore(repo), "task-moves-files.jsonl"); }
 	static planFile(repo){ return path.join(this.sessStore(repo), "task-moves.plan.json"); }
 
 	/** id -> abs session dir, and id8 -> abs session dir. Reuses core/Session/Session.js's own scan() — one scanner, not two. */
@@ -145,11 +137,10 @@ export default class TaskMove {
 	}
 
 	// ---- apply: snapshot, log (small line + files line), move ----
-	// manifest: a dry run's file ({moves: [{kind, from, to}]}, e.g. the one-tree card move) applied as written, instead of plan()
-	static async apply(repo, { only, skip, manifest } = {}){
+	static async apply(repo, { only, skip } = {}){
 		const TaskDirs = await loadTaskDirs(repo);
-		const { moves } = manifest ? JSON.parse(fs.readFileSync(manifest, "utf8")) : await this.plan(repo);
-		const wanted = m => manifest ? fs.existsSync(path.join(repo, m.from)) : (!only || only.includes(m.day)) && (!skip || !skip.includes(m.slug));
+		const { moves } = await this.plan(repo);
+		const wanted = m => (!only || only.includes(m.day)) && (!skip || !skip.includes(m.slug));
 		const man = this.ledger(repo), filesMan = this.filesLedger(repo);
 		fs.mkdirSync(path.dirname(man), { recursive: true });
 		let moved = 0;
@@ -163,7 +154,7 @@ export default class TaskMove {
 			const from = path.join(repo, m.from), to = path.join(repo, m.to);
 			if (fs.existsSync(to)) throw new Error("target exists: " + m.to);
 			// a "dayfile" move is a single loose file, not a folder: TaskDirs.files() walks a directory, so snapshot the one file directly
-			const files = this.isFile(m)
+			const files = m.kind === "dayfile"
 				? [{ p: path.basename(from), size: fs.statSync(from).size, sha1: crypto.createHash("sha1").update(fs.readFileSync(from)).digest("hex") }]
 				: TaskDirs.files(from);   // the snapshot: taken before the folder moves
 			fs.appendFileSync(filesMan, JSON.stringify({ run, from: m.from, to: m.to, files }) + "\n");   // recorded first, so an interrupted run can still be undone
@@ -180,9 +171,6 @@ export default class TaskMove {
 			const d = path.join(this.ai(repo), day);
 			try { if (fs.readdirSync(d).length === 0) fs.rmdirSync(d); } catch {}
 		}
-		// the old card tree's year/month/day folders, now empty, go too (bottom-up, never recursive)
-		const prune = d => { for (const n of dirs(d)) prune(path.join(d, n)); try { if (fs.readdirSync(d).length === 0) fs.rmdirSync(d); } catch {} };
-		if (manifest) for (const y of dirs(this.ai(repo)).filter(n => /^\d{4}$/.test(n))) prune(path.join(this.ai(repo), y));
 		return { moved, run };
 	}
 
@@ -192,7 +180,7 @@ export default class TaskMove {
 		const on = new Map();
 		for (const l of jsonl(this.ledger(repo))){
 			if (l.undone) on.delete(`${l.to}|${l.from}`);
-			else if (this.PHYSICAL.includes(l.kind)) on.set(`${l.from}|${l.to}`, l);
+			else if (["task", "rename", "stub", "dayfile"].includes(l.kind)) on.set(`${l.from}|${l.to}`, l);
 		}
 		return [...on.values()];
 	}
@@ -207,8 +195,8 @@ export default class TaskMove {
 			for (const f of this.#snapshot(repo, m.from, m.to)){
 				files++; bytes += f.size;
 				// a "dayfile" move's `to` is the file itself, not a folder containing it
-				const file = this.isFile(m) ? to : path.join(to, f.p);
-				const label = this.isFile(m) ? m.to : m.to + "/" + f.p;
+				const file = m.kind === "dayfile" ? to : path.join(to, f.p);
+				const label = m.kind === "dayfile" ? m.to : m.to + "/" + f.p;
 				if (!fs.existsSync(file)) bad.push({ missing: label });
 				else if (crypto.createHash("sha1").update(fs.readFileSync(file)).digest("hex") !== f.sha1) bad.push({ changed: label });
 			}
@@ -296,9 +284,8 @@ export default class TaskMove {
 			const [Y, M, D] = day.split("-");
 			subs.push({ re: new RegExp(esc(`/framework/ai/${day}/`) + String.raw`(?=["'\)\s,]|$)`, "g"), to: `/framework/ai/sessions/${Y}/${M}/${D}/` });   // the day page only: a skipped (live) task under it keeps its old address
 		}
-		if (moves.some(m => m.kind === "card" || m.kind === "cardfile")) subs.push(this.cardSub(repo));   // the card tree: one rule, not one regex per card
 		// folder moves only (not the virtual "redirect" line) — a moved file's own relative references resolve against these
-		const movesByFrom = moves.filter(m => m.kind === "task" || m.kind === "rename" || m.kind === "card").map(m => ({ from: path.join(repo, m.from), to: path.join(repo, m.to) }));
+		const movesByFrom = moves.filter(m => m.kind === "task" || m.kind === "rename").map(m => ({ from: path.join(repo, m.from), to: path.join(repo, m.to) }));
 		const resolveRef = (file, mv, link) => {
 			const oldDir = path.join(mv.from, path.relative(mv.to, path.dirname(file)));
 			const oldAbs = path.resolve(oldDir, link);
@@ -315,7 +302,7 @@ export default class TaskMove {
 			let text; try { text = fs.readFileSync(file, "utf8"); } catch { continue; }
 			let out = text, n = 0, importN = 0, sampleBefore = null, sampleAfter = null;
 			const sample = (before, after) => { if (sampleBefore === null){ sampleBefore = before; sampleAfter = after; } };
-			for (const s of subs) out = out.replace(s.re, (...a) => { const to = typeof s.to === "function" ? s.to(...a) : s.to; if (to !== a[0]){ n++; sample(a[0], to); } return to; });
+			for (const s of subs) out = out.replace(s.re, match => { n++; sample(match, s.to); return s.to; });
 
 			const mv = movesByFrom.find(m => file === m.to || file.startsWith(m.to + path.sep));
 			if (mv){
@@ -338,21 +325,6 @@ export default class TaskMove {
 			if (!dry) fs.writeFileSync(file, out);
 		}
 		return { files, hits, importHits, claudeMdHits, samples };
-	}
-
-	/** ONE substitution for the whole card tree (one tree, 2026-10-13): a path into ai/YYYY/… becomes its path in the store
-	 *  (CardDir.rel), only when that file or folder really moved (new exists, old does not). A page url /framework/ai/<id>/ is
-	 *  the Inbox route and stays as it is; a file under it, a public/… path and a bare ai/… path are rewritten. */
-	static cardSub(repo){
-		const ai = this.ai(repo), has = r => fs.existsSync(path.join(ai, ...r.split("/")));
-		return { re: /((?:public)?\/framework\/ai\/|(?<![\w\/.-])ai\/)(\d{4}(?![\w-])(?:\/[\w.-]+)*)/g, to: (m, lead, p) => {
-			const dots = /\.+$/.exec(p)?.[0] ?? "", at = p.slice(0, p.length - dots.length);
-			const file = /\.[a-z0-9]+$/i.test(at.split("/").at(-1));
-			if (lead === "/framework/ai/" && !file) return m;   // a card's page: the Inbox route, unchanged
-			if (at.split("/").length < 3) return m;   // a bare ai/2026 or ai/2026/10 in prose names the old tree, not an index file
-			const now = CardDir.rel(at);
-			return now !== at && has(now) && !has(at) ? lead + now + dots : m;
-		} };
 	}
 
 	/** ai/sessions/task-pages.json: the moved task folders that carry their own page.js, as site urls. StoreFolder.js reads it so
@@ -385,7 +357,6 @@ export default class TaskMove {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
 	const repoGiven = flag("--repo");
 	const REPO = path.resolve(val("--repo") ?? path.join(here, ".."));
-	if (val("--ledger")){ if (!/^[\w-]+$/.test(val("--ledger"))) throw new Error("--ledger is a name, e.g. card-moves"); TaskMove.LEDGER = val("--ledger"); }
 	const only = val("--only")?.split(",").filter(Boolean);
 	const skip = val("--skip")?.split(",").filter(Boolean);
 	const planOut = val("--plan-out") ?? (repoGiven ? path.join(os.tmpdir(), "task-moves.plan.json") : TaskMove.planFile(REPO));
@@ -401,7 +372,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 		// a real move line, not the file's own placeholder "note" line (ai/sessions/task-moves.jsonl declares its own shape before anything moves)
 		// ONE run's moves (default: the last apply), never a replay of the whole ledger: a replay re-deepens relative links
 		// the earlier relink already fixed (found 2026-10-13). --plan: from the dry-run plan, before any apply; --all: every move.
-		const real = jsonl(TaskMove.ledger(REPO)).filter(l => !l.undone && [...TaskMove.PHYSICAL, "redirect"].includes(l.kind));
+		const real = jsonl(TaskMove.ledger(REPO)).filter(l => !l.undone && ["task", "rename", "stub", "dayfile", "redirect"].includes(l.kind));
 		const run = val("--run") && val("--run") !== "last" ? val("--run") : real.map(l => l.run).filter(Boolean).sort().at(-1);
 		const moves = flag("--plan") || !real.length ? (await TaskMove.plan(REPO)).moves : flag("--all") ? real : real.filter(l => l.run && l.run === run);
 		if (!moves.length){ console.log("nothing to relink: no run-stamped move (--plan before an apply, --all for every move)"); process.exit(1); }
@@ -416,7 +387,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 		const moves = real.length ? real : (await TaskMove.plan(REPO)).moves;
 		console.log(TaskMove.redirects(REPO, moves));
 	}
-	else if (flag("--apply")) console.log(await TaskMove.apply(REPO, { only, skip, manifest: val("--manifest") && path.resolve(val("--manifest")) }));
+	else if (flag("--apply")) console.log(await TaskMove.apply(REPO, { only, skip }));
 	else {
 		const { moves, counts } = await TaskMove.plan(REPO);
 		fs.mkdirSync(path.dirname(planOut), { recursive: true });

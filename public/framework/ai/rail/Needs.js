@@ -4,7 +4,6 @@ import { mentions } from "/framework/ext/Mention/Mention.js";
 import { Faces } from "../cards/Faces.js";
 import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
 import { Fold } from "../cards/Fold.js";
-import CardDir from "../cards/CardDir.js";
 import { NeedsRule } from "./NeedsRule.js";
 import { AskFold } from "../asks/AskFold.js";
 
@@ -20,6 +19,7 @@ import { AskFold } from "../asks/AskFold.js";
  * with the Inbox's score badge and the asks ledger's own page.
  */
 
+const AI_ROOT = new URL("../", import.meta.url).pathname;
 /* ── the asks ledger's STALLED lines, shaped like a `card_needs()` row ─────────────────────
  * (asks-ledger/view, deliverable 2) so `need_row()` and `importance()` treat one exactly like
  * the other — one row renderer, one ranking rule, for both sources. */
@@ -113,7 +113,7 @@ export class Needs {
 			.sort((a, b) => Date.parse(b.last ?? b.created ?? 0) - Date.parse(a.last ?? a.created ?? 0))
 			.slice(0, limit);
 		const rows = await Promise.all(live.map(async c => {
-			const text = await Needs.read_text(CardDir.url(c.id) + "page.jsonl");
+			const text = await Needs.read_text(AI_ROOT + c.id + "/page.jsonl");
 			if (!text) return [];
 			return NeedsRule.card_needs(c.id, Fold.parse_lines(text), c).map(n => ({ ...n, url: "/framework/ai2/" + c.id + "/" }));
 		}));

@@ -4,7 +4,7 @@ The owner's words are in `owner-words.md` (the dictation may have been cut off; 
 
 ## Asks
 1. **A general SHELL:** it wraps any page in optional regions: a HEADER, a LEFT sidebar, a RIGHT sidebar and a FOOTER. Every region is optional. Headers and footers are MINIMAL (a thin bar: properties, path, toolbar buttons). Shells NEST (a shell within a shell). The usual patterns are two or three regions.
-   - Start from what exists; don't invent a second one: /layouts/shell/ (and its Shell.js), core/Sidebar and its variants, ext/drawer (the right rail), ext/grip (resizing), and the HTML study at /framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study.md (its recommendation for named sidebars: app.left, app.right).
+   - Start from what exists; don't invent a second one: /layouts/shell/ (and its Shell.js), core/Sidebar and its variants, ext/drawer (the right rail), ext/grip (resizing), and the HTML study at /framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study.md (its recommendation for named sidebars: app.left, app.right).
    - It belongs in core (core/Page/layout/ or core/Shell); coordinate with mastermind-page, which owns core/Page and its layout audit.
 2. **The DEV SHELL:** Ctrl+\ (today's dev bar shortcut) toggles a DARK-MODE shell around the whole site, which is obviously different from the site. It MERGES the dev bar into it: the dev bar's tools move into the shell's regions. Scrap most of the dev bar's own CSS and lean on the site's CSS and tokens (a dark theme via the existing tokens, not a separate stylesheet world).
    - The default dev shell is left and right sidebars; the header and footer are optional and thin.

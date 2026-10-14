@@ -45,4 +45,4 @@ explorer is where you'd actually sit and look at one.
 - [`explorer.json`](./explorer.json) — the tree: every category, every layout id, every real
   page, one object each
 - [`doc/adding.md`](/layouts/explorer/doc/adding/) — how to add a layout to the tree
-- The html study this page follows: `/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study.md`
+- The html study this page follows: `/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study.md`

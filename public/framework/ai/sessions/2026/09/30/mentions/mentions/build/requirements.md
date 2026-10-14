@@ -27,7 +27,7 @@ process you start sets `windowsHide: true`; stop every server you start.
 
 1. **`ext/Mention/registry.js`** — `export default { Page: { url: "/framework/core/Page/", icon: "description" }, … }`.
    A plain JS module (no fetch, so no DOM-after-await, and the browser caches it). Seed about
-   20–30 entries from `public/framework/ai/sessions/2026/09/29/cards/familiar-structure-every-named-system-ge/systems.md`
+   20–30 entries from `public/framework/ai/2026/09/29/familiar-structure-every-named-system-ge/systems.md`
    and the familiar concepts: Page, View, App, Router, Servex, Card, Agent, Task, Chat, Panel,
    Item, Doc, JSONL, Markdown, Tabs, Files, Collab, Research, Mastermind… Check every url answers
    200 on the worktree server; drop any that don't. Icons are Material Symbols names (as `ui.item` uses).

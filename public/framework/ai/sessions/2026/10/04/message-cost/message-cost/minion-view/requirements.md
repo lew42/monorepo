@@ -40,7 +40,7 @@ law 7 — the data is already in hand, just never added up).
 **What's missing #2 — the VS Code / Dictate-chat side shows nothing.** Open
 `/framework/ai/sessions/<id>/` for a REAL VS Code session that has echo data — e.g.
 `/framework/ai/2026/10/03/session-60d9def6/` (check it still exists; if not, `ls
-public/framework/ai/sessions/2026/10/03/cards/` for a `session-*` folder with more than a couple of
+public/framework/ai/2026/10/03/` for a `session-*` folder with more than a couple of
 `{"<uuid>": {"sentences"...}}` lines in its `page.jsonl`). Today `sessions/page.js`'s
 `session_page()` function (around line 937) only shows raw prompt text, via `load_transcript()` —
 it never reads or shows the echo clean/cost data that's RIGHT THERE in that same session's own

@@ -1,6 +1,6 @@
 # Why padding keeps going missing — fix the system
 
-Card: `public/framework/ai/sessions/2026/09/25/cards/why-padding-keeps-going-missing/` (read its page.jsonl; the owner's raw words are on `public/framework/ai/sessions/2026/09/25/cards/now/page.jsonl`).
+Card: `public/framework/ai/2026/09/25/why-padding-keeps-going-missing/` (read its page.jsonl; the owner's raw words are on `public/framework/ai/2026/09/25/now/page.jsonl`).
 
 ## The owner, verbatim (2026-09-25, on the Now card)
 

@@ -4,7 +4,7 @@
 
 Nobody has to remember to land a task. [`TaskLoop.js`](../TaskLoop.js) checks every open task on a
 timer, wakes its agent when it has gone quiet, and — if that gets no landing — puts the task where
-the owner will see it. Design: [`skills-as-a-workflow-tasks-chased-by-nod`](/framework/ai/sessions/2026/09/28/cards/skills-as-a-workflow-tasks-chased-by-nod/design.md).
+the owner will see it. Design: [`skills-as-a-workflow-tasks-chased-by-nod`](/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md).
 Interfaces it agreed with its siblings: [`interfaces.md`](/framework/ai/sessions/2026/09/28/task-loop/task-loop/interfaces.md).
 
 ## The timers

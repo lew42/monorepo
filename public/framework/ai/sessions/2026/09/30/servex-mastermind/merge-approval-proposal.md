@@ -89,7 +89,7 @@ The three states, and how you tell them apart:
 A virtual page has a preview and a detail view like any page: the preview is its line drawn as a chip or row, the detail is its `panel()` at `parent/<id>/`; a thread is the lines whose `parent` field names that id, nested as deep as they go. Nothing needs a name or a directory to exist: the id is minted (`m-3f9k`), the title is optional until promotion.
 
 **Where per-path AI data lives today** (so nobody has to remember):
-- **A module's own facts:** `<module>/page.jsonl` beside its `page.js` — its inbox (`inbox` lines), notes, later its uses (§3). A card *is* such a directory under `ai/sessions/2026/09/30/cards/<slug>/`, so a card's messages already live in the card's own `page.jsonl` (`message` lines).
+- **A module's own facts:** `<module>/page.jsonl` beside its `page.js` — its inbox (`inbox` lines), notes, later its uses (§3). A card *is* such a directory under `ai/2026/09/30/<slug>/`, so a card's messages already live in the card's own `page.jsonl` (`message` lines).
 - **A task's record:** `ai/<date>/<slug>/task.jsonl` (assign, log, landed) beside its brief and its files.
 - **Site-wide streams, one per kind, in `ai/`:** `log.jsonl` (everything, the firehose), `day.jsonl`, `board.jsonl`, `cards.jsonl`, `chat.jsonl`, `asks.jsonl`, `prompts.jsonl`, `usage.jsonl`, `verdicts.jsonl`, `files.jsonl`, the voice sessions `v-*.jsonl`. These are indexes and feeds; the page's own file is the truth for that page.
 - Not used: an `ai/` subdirectory per module. A module's AI data goes in the module's `page.jsonl`; only tasks get a dated directory.
@@ -104,7 +104,7 @@ A virtual page has a preview and a detail view like any page: the preview is its
 
 When to promote: the thread is deeper than the parent's view shows well (three levels), the message became a task or research, or the owner names it. Never automatically on length alone.
 
-**Why this and not one directory per message:** a directory per message is the bloat the owner named — and every one needs a name. Lines are free, ids are free, and the promotion path means nothing is decided early. The alternative — every message a real page from the start — is what `ai/sessions/2026/09/30/cards/` would look like with ten thousand folders.
+**Why this and not one directory per message:** a directory per message is the bloat the owner named — and every one needs a name. Lines are free, ids are free, and the promotion path means nothing is decided early. The alternative — every message a real page from the start — is what `ai/2026/09/30/` would look like with ten thousand folders.
 
 ## 8. Embedded or promoted: the same widget, two ways to save (adds to §7; core/Page, foundational, no rush)
 

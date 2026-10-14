@@ -5,7 +5,7 @@
 1. **Servex cards** — `GET /cards?view=open` (CORS-open, works from any page). Each row:
    `{id, title, type, status, tags, created, last}`. `tags` is described as "projects this
    card belongs to" — the closest thing to a page link — but it's almost unused: of the ~20
-   cards made today (`ai/sessions/2026/09/29/cards/`), only 3 carry any tag (`layout`, `harness`,
+   cards made today (`ai/2026/09/29/`), only 3 carry any tag (`layout`, `harness`,
    `servex-system`); none say `dictate` or `mobile-nav`. A card's `id` is its own date-nested
    path (`2026/09/29/mobile-nav-back-an-ai-rail-at-the-bottom`), and its page lives at
    `/framework/ai/<id>/` — a **different id shape** from the flat `ai/2026-09-29/<slug>/`

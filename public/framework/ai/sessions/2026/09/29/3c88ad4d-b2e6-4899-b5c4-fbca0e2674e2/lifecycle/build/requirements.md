@@ -1,6 +1,6 @@
 # Lifecycle build: log every resource, reap what a finished task owns
 
-Load the `minion` skill first, then `code`. Parent: task-mastermind-lifecycle. Card dir: `public/framework/ai/sessions/2026/09/29/cards/lifecycle-nothing-left-running-nested-ta/`.
+Load the `minion` skill first, then `code`. Parent: task-mastermind-lifecycle. Card dir: `public/framework/ai/2026/09/29/lifecycle-nothing-left-running-nested-ta/`.
 **The owner's words and full brief:** `public/framework/ai/sessions/2026/09/29/3c88ad4d-b2e6-4899-b5c4-fbca0e2674e2/lifecycle/requirements.md` (read it all; you own deliverables 1, 3 and 4 there, plus the monitor fix and the clarity fix under "Evidence"). Owner: "we don't want to rely on the AIs to remember". **Node code, not a skill line.**
 
 ## Where you work

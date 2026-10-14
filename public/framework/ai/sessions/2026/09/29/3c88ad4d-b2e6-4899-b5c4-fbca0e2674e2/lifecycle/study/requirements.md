@@ -1,6 +1,6 @@
 # Lifecycle study: how much does the system leave running?
 
-Load the `minion` skill first, then `page`. Parent: task-mastermind-lifecycle. Card dir: `public/framework/ai/sessions/2026/09/29/cards/lifecycle-nothing-left-running-nested-ta/`.
+Load the `minion` skill first, then `page`. Parent: task-mastermind-lifecycle. Card dir: `public/framework/ai/2026/09/29/lifecycle-nothing-left-running-nested-ta/`.
 **The owner's words:** `public/framework/ai/sessions/2026/09/29/3c88ad4d-b2e6-4899-b5c4-fbca0e2674e2/lifecycle/requirements.md` (read it; you own deliverable 2). The owner: "how many things are created that are never finished and how many servers are started that are never shut down properly? How many work trees get orphaned and are just sitting there?"
 
 ## Count (a number for each, with how you counted)

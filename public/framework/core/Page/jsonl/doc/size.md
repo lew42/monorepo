@@ -28,7 +28,7 @@ check that can fail a build.
 
 | file | size | lines |
 |---|---|---|
-| `ai/sessions/2026/09/24/cards/prompt-mechanics-2/chat-as-right-hand-column/page.jsonl` | 252 KB | 21 |
+| `ai/2026/09/24/prompt-mechanics-2/chat-as-right-hand-column/page.jsonl` | 252 KB | 21 |
 
 21 lines holding 252 KB means the lines themselves are huge (a chat log, not a page's
 structure) — the file that needs a purge plan is the exception here, not the rule. Most of

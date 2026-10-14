@@ -1,6 +1,6 @@
 # Minion E — the playground walkthrough (Next / Next)
 
-Load the `minion` skill first, then `page`, `new-page`, `code`. Parent task: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/` (read `requirements.md`; owner's words at `public/framework/ai/sessions/2026/09/28/cards/dictation-a-playground-and-a-better-proc/owner-words.md`).
+Load the `minion` skill first, then `page`, `new-page`, `code`. Parent task: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/` (read `requirements.md`; owner's words at `public/framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md`).
 
 The owner, 2026-09-25: "demos so simple and self-evident that I literally just click Next." One small screen per step: a real screenshot, one sentence, a link to open it live.
 

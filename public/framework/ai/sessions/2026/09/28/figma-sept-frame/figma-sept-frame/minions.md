@@ -12,7 +12,7 @@ Load the `minion` skill first, then `code`, `css` and `layout`. The whole task: 
 
 ## Where you write (your fence)
 Worktree: `C:/Code/lew42/worktrees/qf-2` (branch `worktree/qf-2`, server `http://127.0.0.1:60969/`). Every minion shares it; write only your own files.
-- Your card folder(s): `public/framework/ai/sessions/2026/09/28/cards/figma-sept-2026/<card>/` — write `view.js` (plus `view.css` if you need it, loaded with `View.stylesheet(import.meta, "view.css")`) and copy your section png there as `figma.png`.
+- Your card folder(s): `public/framework/ai/2026/09/28/figma-sept-2026/<card>/` — write `view.js` (plus `view.css` if you need it, loaded with `View.stylesheet(import.meta, "view.css")`) and copy your section png there as `figma.png`.
 - ⚠ `page.jsonl` in that folder is a PREVIEW COPY: you may append `{"place":"view.js"}` to it to see your view, but never `git add` it (the real card lives in the main tree; Servex writes it). Commit only `view.js`, `view.css`, `figma.png` — `git add <those paths>`, never `git add -A`.
 - A reusable new piece goes in a NEW dir under `public/framework/ui/` or `ux/` named for it (not the card folder), and you say so in your report. Do not edit existing ui/ux/core/styles files or any `page.js`/`readme.md` outside your folders; if one needs a change, tell your parent instead.
 

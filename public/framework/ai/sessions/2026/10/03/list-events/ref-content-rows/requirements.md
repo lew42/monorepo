@@ -12,7 +12,7 @@
 - `ext/Mention/Mention.js` — export the existing class-card build so Page.class.js reuses it
   (no new card component). Do NOT touch `ext/Mention/sync.mjs` or `maps/refs.js` generation —
   a sibling task owns the indexer.
-- `/framework/ai/sessions/2026/10/03/cards/now/page.jsonl` — convert the AI / Page / Servex content rows to
+- `/framework/ai/2026/10/03/now/page.jsonl` — convert the AI / Page / Servex content rows to
   `ref` rows once the feature renders.
 
 ## Decisions made without asking (Law 5)

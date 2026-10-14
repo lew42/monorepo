@@ -4,7 +4,7 @@ Load the `minion` skill first, then the `code` skill.
 
 ## The owner's ask (card `2026/09/25/inbox-show-what-changed-when-a-card-resu`)
 
-Read the card's whole conversation first: `public/framework/ai/sessions/2026/09/25/cards/inbox-show-what-changed-when-a-card-resu/page.jsonl`
+Read the card's whole conversation first: `public/framework/ai/2026/09/25/inbox-show-what-changed-when-a-card-resu/page.jsonl`
 and the handover in `public/framework/ai2/readme.md` (its "Open, first" item).
 
 The brief as handed to the lead: when a card or group jumps to the top of the rail, its row shows a

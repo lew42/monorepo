@@ -93,7 +93,7 @@ export default class TaskDirs {
 		if (key !== this.#cache.key){
 			const map = new Map();
 			try { for (const e of JSON.parse(fs.readFileSync(MANIFEST, "utf8")).moves) map.set(e.from, e); } catch {}
-			try { for (const l of fs.readFileSync(MOVES, "utf8").split("\n")) if (l.trim()) try { const e = JSON.parse(l); if (e.from && e.to && !e.undone && !(e.kind === "stub" && map.get(e.from)?.kind === "redirect")) map.set(e.from, e); } catch {} } catch {}   // a stub's archive copy never beats the redirect to the real folder
+			try { for (const l of fs.readFileSync(MOVES, "utf8").split("\n")) if (l.trim()) try { const e = JSON.parse(l); if (e.from && e.to && !e.undone) map.set(e.from, e); } catch {} } catch {}
 			for (const [from, e] of map){ let to = e.to, n = 0; while (map.has(to) && n++ < 9) to = map.get(to).to; if (to !== e.to) map.set(from, { ...e, to }); }
 			this.#cache = { key, map };
 		}

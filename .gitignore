@@ -143,10 +143,6 @@ public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/index.js
 public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/page.jsonl
 public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/trace.json
 public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/card/
-# a day's Inbox cards (one tree, 2026-10-13: ai/YYYY/MM/DD/<card>/ moved to ai/sessions/YYYY/MM/DD/cards/<card>/): the day's card
-# index is source, unlike a session's page.jsonl above; a session-* card stays ignored, as it was in the old tree
-!public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/cards/page.jsonl
-public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/cards/session-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]/
 public/framework/ai/sessions/openrouter-reconcile.json
 public/framework/ai/sessions/openrouter-costs.json
 

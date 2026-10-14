@@ -1,7 +1,7 @@
 # Page roles: one pair, one skill, a narrower feed
 
 The recursive-pairs redesign (2026-09-25/28, `/framework/ai/2026/09/25/one-recursive-agent-system-the-same-pair/`
-and `/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/design.md`) makes every page
+and `/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md`) makes every page
 — a card, or any other page — get the same two agents [`layers.md`](layers.md) already describes for a
 card. This page covers the four small, code-level pieces of that: the new role words, the narrower
 root feed, the messaging fix, and the reaper gap. What actually spawns a pair for a plain page (not
