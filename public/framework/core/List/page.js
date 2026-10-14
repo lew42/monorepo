@@ -50,7 +50,7 @@ export default new Doc({
 	// `member()`), so listing an inherited name here just warns "has no member" and adds
 	// nothing (found 2026-10-03, console-clean task, via a CDP console trace on /ai/live/).
 	methods: "forEach map at adopt append insert_before take index_of key find add remove move order toJSON",
-	notes: "decisions",
+	notes: "architecture decisions",
 	files: "List.js List.examples.js readme.md page.js",
 
 	content(){
