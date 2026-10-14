@@ -35,14 +35,14 @@ function visit(dir, url, group, depth) {
 }
 for (const g of GROUPS) if (fs.existsSync(path.join(root, g))) for (const e of dirs(path.join(root, g))) visit(path.join(root, g, e.name), `/framework/${g}/${e.name}/`, g, 1);
 
-// class cards: <Name>/<Name>.js holding `class Name`
+// class cards: <Name>/<Name>.js holding `class Name`; a class with no page.js of its own links its parent (never a 404)
 for (const g of GROUPS) {
 	const walk = (dir, url, depth) => {
 		if (!fs.existsSync(dir)) return;
 		for (const e of dirs(dir)) {
 			const f = path.join(dir, e.name, e.name + ".js"), src = read(f);
 			const m = src.match(new RegExp(/class\s+/.source + e.name + /\b(?:\s+extends\s+([\w.]+))?/.source));
-			if (m) out.push({ kind: "class", group: g, name: e.name, url: `${url}${e.name}/`, extends: m[1] || "", icon: str(src, "static icon") || (src.match(/static icon\s*=\s*["']([\w_]+)["']/) || [])[1] || "data_object", api: /static api\b/.test(src), methods: [...src.matchAll(/^\t(?:static\s+|async\s+)?([a-z]\w*)\s*\([^)]*\)\s*\{/gm)].map(x => x[1]).filter(n => !["if", "for", "while", "switch", "constructor"].includes(n)).slice(0, 6) });
+			if (m) out.push({ kind: "class", group: g, name: e.name, url: fs.existsSync(path.join(dir, e.name, "page.js")) ? `${url}${e.name}/` : url, extends: m[1] || "", icon: str(src, "static icon") || (src.match(/static icon\s*=\s*["']([\w_]+)["']/) || [])[1] || "data_object", api: /static api\b/.test(src), methods: [...src.matchAll(/^\t(?:static\s+|async\s+)?([a-z]\w*)\s*\([^)]*\)\s*\{/gm)].map(x => x[1]).filter(n => !["if", "for", "while", "switch", "constructor"].includes(n)).slice(0, 6) });
 			if (depth < 1) walk(path.join(dir, e.name), `${url}${e.name}/`, depth + 1);
 		}
 	};

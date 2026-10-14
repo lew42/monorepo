@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { model } from "./tiers.js";
 import Cards from "../cards/Cards.js";
 import CardDir from "../../public/framework/ai/cards/CardDir.js";
-import { brief } from "./brief.js";
+import { brief } from "./Brief.js";
 import { first_prompt } from "./readme-chain.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));

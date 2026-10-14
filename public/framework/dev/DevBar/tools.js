@@ -1,4 +1,4 @@
-import { div, a } from "../../core/View/View.js";
+import { div, a, button } from "../../core/View/View.js";
 import Socket from "../Socket/Socket.js";
 import { section, row, check } from "./parts.js";
 import ask from "./ask.js";
@@ -16,7 +16,7 @@ import shots from "./shots.js";
    rows were the same state as the layout tab's readout, on a different screen and
    in a different unit. Both live in the head now — width.js. */
 export const tabs = [
-	["page", [says, route, server, xray, structure, jump]],
+	["page", [says, route, server, xray, instances, structure, jump]],
 	["layout", [layout]],
 	["ai", [ask]],
 	["chat", [page_chat]],
@@ -64,6 +64,19 @@ function server(){
 		row("host", location.host);
 	});
 }
+
+/* Toggle: the live instance tree (ux/Content/Object/InstanceTree.js). Off by default, so nothing loads. */
+let tree_on = false;
+function instances(app){
+	section("instances", () => {
+		button.c("dev-link", tree_on ? "hide live tree" : "show live tree").click(() => { tree_on = !tree_on; devbar_refresh(); });
+		if (!tree_on) return;
+		const $box = div.c("dev-tree");
+		import("../../ux/Content/Object/InstanceTree.js").then(m => $box.append(() => new m.default({ app })));
+	});
+}
+
+function devbar_refresh(){ import("./DevBar.js").then(m => m.default.refresh()); }
 
 function xray(){
 	section("x-ray", () => check("outline every box", "dev-outline"));

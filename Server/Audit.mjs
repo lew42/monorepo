@@ -1,4 +1,4 @@
-// audit.mjs — read every task's audit.jsonl (one line per auditor, written by minions through
+// Audit.mjs — read every task's audit.jsonl (one line per auditor, written by minions through
 // append.mjs) and COMPUTE the consensus. Never hand-write a consensus: this is the one place
 // that does (law 7 — compute, don't recall).
 //
@@ -19,7 +19,7 @@
 // Also folds in each model's distance from the per-task median and from the Sonnet reference —
 // the model-ladder input the requirements page asks for.
 //
-// usage: node Server/audit.mjs <taskdir...> [--out <path.json>] [--timeout-ms 4000]
+// usage: node Server/Audit.mjs <taskdir...> [--out <path.json>] [--timeout-ms 4000]
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { execFileSync } from "node:child_process";
@@ -29,7 +29,7 @@ const out_path = args.includes("--out") ? args[args.indexOf("--out") + 1] : null
 const timeout_i = args.indexOf("--timeout-ms");
 const TIMEOUT_MS = timeout_i >= 0 ? Number(args[timeout_i + 1]) : 4000;
 const taskdirs = args.filter((a, i) => !a.startsWith("--") && args[i - 1] !== "--out" && args[i - 1] !== "--timeout-ms");
-if (!taskdirs.length) { console.error("usage: node Server/audit.mjs <taskdir...> [--out <path.json>]"); process.exit(2); }
+if (!taskdirs.length) { console.error("usage: node Server/Audit.mjs <taskdir...> [--out <path.json>]"); process.exit(2); }
 
 const read_jsonl = p => existsSync(p) ? readFileSync(p, "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean) : [];
 

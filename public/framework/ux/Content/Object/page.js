@@ -32,9 +32,9 @@ export default new Doc({
 	description: "A little card that shows what a real object IS — class, name, properties, methods — instead of explaining it in words.",
 	icon: "data_object",
 
-	files: "Object.js Inspect.js DefaultView.js page.js readme.md",
+	files: "Object.js Inspect.js DefaultView.js InstanceTree.js page.js readme.md",
 	notes: "shape default-view",
-	children: "page app",
+	children: "page app instance-tree",
 
 	content(){
 

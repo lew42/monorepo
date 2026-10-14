@@ -7,9 +7,9 @@ let focus = null;
 
 /* `servex.log.tail` is async and the brief is not, so the last focus is kept
  * here: Global sets it at boot and whenever `set_focus` writes one. */
-export function remember_focus(text){ focus = text ? String(text) : null; }
+function remember_focus(text){ focus = text ? String(text) : null; }
 
-export function brief(servex){
+function brief(servex){
 	const out = ["# Servex right now",
 		"Who launched a task: the first line of its task.jsonl (public/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/) (session_id, tab). The owner's VS Code tab dispatches work, and it is not in the list below. mastermind-servex audits and launches nothing.",
 		"If you don't know who did something, say you don't know. Never guess."];
@@ -32,4 +32,11 @@ export function brief(servex){
 	return out.slice(0, 25).join("\n");
 }
 
-export default brief;
+/* The class: Brief.build(servex) is the one-screen text, Brief.remember_focus(text) sets the focus line. */
+export default class Brief {
+	static build = brief;
+	static remember_focus = remember_focus;
+}
+
+// Old function exports, kept until 2026-10-20.
+export { brief, remember_focus };

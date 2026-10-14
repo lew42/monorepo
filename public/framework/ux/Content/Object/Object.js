@@ -69,8 +69,8 @@ export default class ObjectCard extends View {
 	value_for(name){
 		if (this.subject && Object.prototype.hasOwnProperty.call(this.subject, name)) return this.subject[name];
 		const proto = typeof this.subject === "function" ? this.subject.prototype : undefined;
-		if (proto && Object.prototype.hasOwnProperty.call(proto, name)) return proto[name];
-		return undefined;
+		// A descriptor, never `proto[name]`: that runs accessors (Item's `title`, Page's `unknown`) on a prototype with no data.
+		return proto ? Object.getOwnPropertyDescriptor(proto, name)?.value : undefined;
 	}
 
 	/* Method names live up the WHOLE prototype chain — the instance's class, then
@@ -85,7 +85,7 @@ export default class ObjectCard extends View {
 		const names = new Set();
 		for (let proto = start; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto))
 			for (const name of Object.getOwnPropertyNames(proto))
-				if (name !== "constructor" && typeof proto[name] === "function") names.add(name);
+				if (name !== "constructor" && typeof Object.getOwnPropertyDescriptor(proto, name).value === "function") names.add(name);   // a descriptor, never `proto[name]`: that would run getters (Page.prototype.unknown threw)
 
 		return [...names];
 	}

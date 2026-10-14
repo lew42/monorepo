@@ -29,8 +29,8 @@ const SURFACES = [
 		file: "/framework/ext/Refine/RefineDemo.js", agent: "none (a pipeline: clean, structure, refine)", log: "the session's `page.jsonl`", shot: "refine-1920.png",
 		says: "Dictate or paste, press Refine, watch the five stages fill in." },
 	{ name: "Dev shell", where: "Localhost only, ctrl + \\: ai and chat tabs",
-		file: "/framework/dev/DevShell/DevShell.js", agent: "not traced", log: "not traced", shot: "devshell-1920.png",
-		says: "Dev chrome. Its chat tab was not traced to a mount in this pass; see the doc." },
+		file: "/framework/dev/DevShell/DevShell.js", agent: "ai tab: fast + smart (the same chat file); chat tab: this page's own Servex agent", log: "ai tab: `ai/<id>.jsonl`; chat tab: a Servex page session (`/api/page-session/*`)", shot: "devshell-1920.png",
+		says: "Dev chrome, reusing the dev bar's tabs. Its ai tab ([dev/DevBar/ask.js](/framework/dev/DevBar/ask.js)) mounts the one shared chat; its chat tab ([dev/DevBar/chat.js](/framework/dev/DevBar/chat.js)) talks to the agent that owns the page, a separate conversation." },
 	{ name: "Live card", where: "`/framework/ai/`, the board's Live card",
 		file: "/framework/ai/rail/rail.js", agent: "the global session at its foot, the card thread above", log: "`ai/<id>.jsonl` and the card", shot: "live-card-1920.png",
 		says: "The board's own rail: card threads on top, the global chat at the bottom." },
@@ -72,7 +72,7 @@ export default new Page({
 	content(){
 		md("**Nine places talk, show or record what you say.** Four share one conversation (the global voice session), three are separate things, and two are a debug view and a dev-only tab. Each card below is one surface: a screenshot, then where it is, what renders it, who answers and where it writes.");
 
-		md("**Same conversation:** drawer chat, phone sheet, floating mic, live card foot (and the Dictate page's own box). One chat file, [`ux/Dictate/chat.js`](/framework/ux/Dictate/chat.js), is mounted by all of them. **Not the same:** card chat, session page, Refine view.");
+		md("**Same conversation:** drawer chat, phone sheet, floating mic, live card foot, the dev shell's ai tab (and the Dictate page's own box). One chat file, [`ux/Dictate/chat.js`](/framework/ux/Dictate/chat.js), is mounted by all of them. **Not the same:** card chat, session page, Refine view, the dev shell's chat tab.");
 
 		div.c("ux-dictate-surfaces-grid", $g => {
 			$g.style({ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 22em), 1fr))", gap: "1.5em", alignItems: "start" });

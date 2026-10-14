@@ -10,3 +10,7 @@ One function, `Inbox.rank(item, now)` (`Inbox.js`): a bigger number sits higher.
 4. **The owner's state sits below everything.** An opened row is divided by 100 (it falls beneath every unopened row); an archived row is -1.
 
 Visible cues (same row component, `Rail.row_head`): a **new** mark and the age ("4 min") for rows under 30 minutes, and the owner-note kind (`risk`) as a small word. The score floor (default 90) never hides a new row.
+
+## The pinned slot (2026-10-13)
+
+A pinned card (the Now card) holds the top only while its newest line is under a day old (`Inbox.pin_alive`, the same `TAIL_HOURS` as the recency tail). An older one leaves the slot, so Today and Live are the first rows. The alternative, ranking it like any row, would have put it in the sortable list; dropping it is simpler.

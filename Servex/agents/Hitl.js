@@ -57,7 +57,7 @@ function with_context(context, body){
 }
 
 /* {sentences:[string], context?} -> {ok:true, marks:[{i, mark, purpose, question?}], model, ms} or {ok:false, why}. */
-export async function marks({ sentences, context } = {}, { run_query = query } = {}){
+async function marks({ sentences, context } = {}, { run_query = query } = {}){
 	if (!Array.isArray(sentences) || !sentences.every(s => typeof s === "string"))
 		return { ok: false, why: "sentences must be an array of strings" };
 	if (!sentences.length) return { ok: true, marks: [], model: MODEL, ms: 0 };
@@ -77,7 +77,7 @@ export async function marks({ sentences, context } = {}, { run_query = query } =
 }
 
 /* {title, context?} -> {ok:true, names:[5 strings], model, ms} or {ok:false, why}. */
-export async function rename({ title, context } = {}, { run_query = query } = {}){
+async function rename({ title, context } = {}, { run_query = query } = {}){
 	if (typeof title !== "string" || !title.trim()) return { ok: false, why: "title must be a non-empty string" };
 
 	const prompt = with_context(context, `Current title: ${title.trim()}`);
@@ -98,10 +98,17 @@ export async function rename({ title, context } = {}, { run_query = query } = {}
 const OPS = { marks, rename };
 
 /* {op, ...} -> dispatches to the named op above by `op`. Unknown op: {ok:false, why}. */
-export async function hitl(body = {}, { run_query = query } = {}){
-	const op = OPS[body?.op];
-	if (!op) return { ok: false, why: `unknown op "${body?.op}"` };
-	return op(body, { run_query });
+/* The class: Hitl.marks, Hitl.rename, Hitl.run({op, ...}). Unknown op: {ok:false, why}. */
+export default class Hitl {
+	static marks = marks;
+	static rename = rename;
+	static async run(body = {}, { run_query = query } = {}){
+		const op = OPS[body?.op];
+		if (!op) return { ok: false, why: `unknown op "${body?.op}"` };
+		return op(body, { run_query });
+	}
 }
 
-export default hitl;
+// Old function exports, kept until 2026-10-20.
+export { marks, rename };
+export const hitl = Hitl.run;

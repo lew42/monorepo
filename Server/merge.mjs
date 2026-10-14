@@ -264,7 +264,9 @@ function dirtyFiles() {
 
 /* ---- the three-way merge, per file, in memory. Buffers throughout: bytes in, bytes out. ---- */
 const blob = (rev, f) => { const r = spawnSync("git", ["cat-file", "blob", `${rev}:${f}`], { cwd: MAIN, windowsHide: true, maxBuffer: 256 << 20 }); return r.status === 0 ? r.stdout : null; };
-const readWork = f => { const p = path.join(MAIN, f); try { return fs.statSync(p).isFile() ? fs.readFileSync(p) : null; } catch { return null; } };
+// Exact case only: on Windows audit.mjs also answers to Audit.mjs, which made a case-only rename read as a conflict with itself.
+const exactCase = p => { try { return fs.readdirSync(path.dirname(p)).includes(path.basename(p)); } catch { return false; } };
+const readWork = f => { const p = path.join(MAIN, f); try { return exactCase(p) && fs.statSync(p).isFile() ? fs.readFileSync(p) : null; } catch { return null; } };
 const same = (a, b) => (a === null || b === null) ? a === b : a.equals(b);
 const binary = b => b !== null && b.includes(0);
 // latin1 maps every byte to one char and back, so these only touch the line endings
@@ -385,7 +387,8 @@ function planAll(files, branch) {
 function writeAll(plan) {
 	const done = [];
 	try {
-		for (const p of plan) {
+		// deletes first: a case-only rename deletes audit.mjs and writes Audit.mjs, the same file on Windows
+		for (const p of [...plan].sort((a, b) => (b.action === "delete") - (a.action === "delete"))) {
 			if (p.action !== "write" && p.action !== "delete") continue;
 			const full = path.join(MAIN, p.f);
 			done.push([full, readWork(p.f)]);

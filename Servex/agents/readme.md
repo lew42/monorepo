@@ -80,7 +80,7 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 `Agents.js` (the host, the agent, its queue) · `tools.js` (the MCP tools) ·
 `Assistant.js` + `assistant.md` (the always-up fast assistant and its posture) · `Chain.js` + `doc/assistant-chain.md` (flagged one-global-assistant chain, `SERVEX_CHAIN=on`) ·
 `Layers.js` + `Global.js` (the card and cross-card agents, [`doc/layers.md`](./doc/layers.md)) ·
-`policy.js` · `claims.js` · `brief.js` · `tiers.js` ·
+`policy.js` · `claims.js` · `Brief.js` · `tiers.js` ·
 `roles.js` (role → posture) · `registry.js` (who has ever been spawned, and which host holds it) ·
 `ops.js` (restart, pause, resume) · `jobs.js` (background work in node) ·
 `experts.js` (module experts: a checkpoint per module, `ask_expert`, `load_module` — [`doc/experts.md`](./doc/experts.md)) ·
