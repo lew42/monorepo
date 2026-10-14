@@ -43,6 +43,7 @@ this.rail = new MyRail({ page: this }).mount();
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`Inbox.css`](./Inbox.css) — the whole look, including the phone rule (one screen at a time)
 - [`ai2/rail.js`](/framework/ai/rail/rail.js) — `AIRail`, the subclass with the usage meters
 - [`core/Page/ext/Inbox/`](/framework/core/Page/ext/Inbox/) — the Inbox extension the class lives in
