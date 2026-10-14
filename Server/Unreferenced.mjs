@@ -50,10 +50,25 @@ export default class Unreferenced {
 			if (/\/doc\/(method|property|file)\//.test(slash(p))) { this.members++; continue; }   // per-member docs the Doc system lists by folder
 			const users = this.refs.get(name.toLowerCase()), common = (this.names.get(name.toLowerCase()) ?? 0) > 1;
 			if (this.paths.has(p.toLowerCase()) || this.paths.has(p.toLowerCase().replace(/\.js$/, ""))) continue;
+			if (this.sibling_ref(p)) continue;
 			if (!common && users && [...users].some(u => u !== p)) continue;
 			this.candidates.push(slash(path.relative(REPO, p)));
 		}
 		return this;
+	}
+
+	/** The three loads a name-grep misses, read from the file's own folder: a quoted name or "./name" in a .js, a "place" value in page.jsonl, a "file" row in files.jsonl. */
+	sibling_ref(p){
+		const dir = path.dirname(p), name = path.basename(p), esc = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		const quoted = new RegExp("[\"'`](?:\\./)?" + esc + "[\"'`?#]"), jsonl = new RegExp("\"(?:place|file)\"\\s*:\\s*\"(?:\\./)?" + esc + "\"");
+		let es; try { es = fs.readdirSync(dir, { withFileTypes: true }); } catch { return false; }
+		for (const e of es) {
+			if (!e.isFile() || e.name === name) continue;
+			const re = /\.m?js$/i.test(e.name) ? quoted : /^(page|files)\.jsonl$/i.test(e.name) ? jsonl : null;
+			if (!re) continue;
+			try { if (re.test(fs.readFileSync(path.join(dir, e.name), "utf8"))) return true; } catch {}
+		}
+		return false;
 	}
 
 	by_dir(){ const g = new Map(); for (const c of this.candidates) { const d = path.posix.dirname(c); (g.get(d) ?? g.set(d, []).get(d)).push(path.posix.basename(c)); } return g; }
@@ -62,7 +77,7 @@ export default class Unreferenced {
 		const g = this.by_dir(), L = ["# Unreferenced files: a census", "",
 			`**${this.candidates.length} files** under \`public/framework/{core,ext,ui,ux,styles}\` and \`public/web\` have no reference anywhere: no \`import\`, no link in a \`.md\`, no \`files.jsonl\` row, no \`children:\` path. Searched ${this.scanned} text files with \`node Server/Unreferenced.mjs --write\`.`, "",
 			"**A reference-free file is a candidate, not a verdict.** A file can be loaded by a name built at runtime, by a script tag, or by the owner typing its URL. Nothing here was moved or deleted; the owner decides.", "",
-			"Not counted: the " + this.members + " per-member docs under `doc/method|property|file/` (the Doc system lists those by folder), `readme.md`, `page.js`, `files.jsonl`, `index.html`, tests, and anything under `ai/sessions`. A path (`./Foo.js`, `/framework/ext/Foo/Foo.js`) must resolve to the file; a bare file name counts only when no other file shares it. Back to [follow-up.md](follow-up.md).", ""];
+			"Not counted: the " + this.members + " per-member docs under `doc/method|property|file/` (the Doc system lists those by folder), `readme.md`, `page.js`, `files.jsonl`, `index.html`, tests, and anything under `ai/sessions`. A path (`./Foo.js`, `/framework/ext/Foo/Foo.js`) must resolve to the file; a bare file name counts only when no other file shares it, unless a `.js` in the same folder quotes it or its `page.jsonl` (`place`) or `files.jsonl` (`file`) names it. Back to [follow-up.md](follow-up.md).", ""];
 		for (const [d, names] of [...g].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))) L.push(`- \`${d.replace("public/framework/", "")}/\` (${names.length}): ${names.slice(0, 8).map(n => "`" + n + "`").join(", ")}${names.length > 8 ? ", …" : ""}`);
 		return L.join("\n") + "\n";
 	}

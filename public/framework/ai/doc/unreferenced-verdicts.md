@@ -1,5 +1,7 @@
 # Unreferenced files: a verdict for each
 
+**Update 2026-10-14: census fixed, 161 suspects → 0.** `Server/Unreferenced.mjs` now counts the three loads Haiku found (a quoted name or `./name` in a same-folder `.js`, a `place` in the folder's `page.jsonl`, a `file` row in its `files.jsonl`; test: `Server/Unreferenced.test.mjs`). Of the 161 suspects it now sees (44 by a quoted name in code, 111 by a `files.jsonl` row, 6 by a `page.jsonl` line), none is left, so there was nothing to delete and no per-file Haiku pass was needed. Caveat: a `files.jsonl` row counts as a reference, so a dead file still listed in an index is not flagged; that index is the owner's own listing. Below is the earlier 167-suspect history.
+
 **Of 167 candidates, 0 are dead.** 76 are loaded in a way the census cannot see (almost all a stylesheet or fixture named in code), 91 are notes worth keeping where they are, 0 are misplaced. Nothing was moved or deleted. Census: [unreferenced.md](unreferenced.md).
 
 ## Your list: dead files
