@@ -10,7 +10,7 @@ Run: `node Server/RetireFiles.mjs --plan --manifest Server/doc/scripts.md` then 
 
 - [ ] `Server/session-cost.mjs` (198 bytes): Explicitly superseded by public/framework/ai/AISession/AISessionAudit.mjs; stub shim marked for removal one release after rename
 
-## Misnamed (queued in ai/todo.md; batch 1 renamed five at 1a56eebd0 with `node Server/RenameScript.mjs`, batch 2 renamed five at b77cda096, batch 3 renamed five at BATCH3HASH, 11 remain)
+## Misnamed (queued in ai/todo.md; batch 1 renamed five at 1a56eebd0 with `node Server/RenameScript.mjs`, batch 2 renamed five at b77cda096, batch 3 renamed five at b058d8a3f, 11 remain)
 
 - `Server/ask-each.mjs`: Function bag (kind: bag) with 26 references that should be a class
 - `Server/browser.mjs`: Function bag (kind: bag) with 45 refs that should be a class; core browser launcher
