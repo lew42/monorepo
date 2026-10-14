@@ -1,0 +1,944 @@
+diff --git a/public/framework/core/Section/doc/architecture.md b/public/framework/core/Section/doc/architecture.md
+new file mode 100644
+index 000000000..9729ef897
+--- /dev/null
++++ b/public/framework/core/Section/doc/architecture.md
+@@ -0,0 +1,78 @@
++# Section architecture — a page inside a page, with an approved layout
++
++`Section` is a box inside a page. It `extends Page`, so storage, children, naming and the six page words are inherited. Its one idea of its own is an approved layout from [core/Layout](/framework/core/Layout/), whose named boxes become the section's slots. Main class: [`Section.js`](../Section.js) (`class Section`, plus `Section.Picker`). JSON form: [`example/page.json`](../example/page.json).
++
++## Section extends Page, and adds one prop
++
++**Decided:** `class Section extends Page`. The only new prop is `layout`; storage, naming, children and words are never re-implemented.
++**Why:** a sub page should get every page feature, such as individual storage. Inheriting them keeps one copy of each.
++**Instead:** a standalone box class, which would copy Page's storage and children and drift.
++**Detail:** [doc/idea.md](./doc/idea.md)
++
++## No chrome, no padding control
++
++**Decided:** a Section draws no chrome and has no padding UI. It borrows one arrangement by name from Layout.
++**Why:** `Page.Frame` is per whole page; a rail is `arrangement: "rail-left"`, a word that already exists.
++**Instead:** a padding-scheme picker, replaced by approved layouts.
++**Detail:** [doc/idea.md](./doc/idea.md)
++
++## Editing is off by default, and demos never persist a pick
++
++**Decided:** `editing` is `false` on the prototype; demo and doc pages call `section.edit()`. `pick()` sets `this.layout` and redraws, and writes nothing to storage.
++**Why:** visitors never see the control, and a reload of a demo is the page again. Storage works and is inherited, but an editor must call it and make saving visible.
++**Instead:** editing on by default, or saving every pick, which leaves state a reader cannot see.
++**Detail:** [doc/idea.md](./doc/idea.md)
++
++## The picker is `ext/Dropdown`, subclassed
++
++**Decided:** `Section.Picker` extends `Dropdown` and overrides `chosen()`, `open()`, `option()` and `list()`. The list is a `popover`, in the top layer.
++**Why:** a section sits inside `overflow: hidden` boxes, and a top-layer list is not clipped by them. `open()` rebuilds the options each time, because the box may have been resized.
++**Instead:** a plain absolute list, clipped by every parent; a list built once, which ignores resizes.
++**Detail:** [doc/picker.md](./doc/picker.md)
++
++## A layout below its floor is a row that says why
++
++**Decided:** a layout whose `widths[0]` is above the box is drawn as a `div.page-section-unfit` row with its note. It is not a button and not focusable.
++**Why:** a disabled button reads as something the user failed to reach. The row states the need.
++**Instead:** a greyed-out button, which teaches nothing.
++**Detail:** [doc/picker.md](./doc/picker.md)
++
++## The width rule is `fits()` in core/Layout
++
++**Decided:** `fits(layout, room)` is exported from [`core/Layout/rules.js`](../../Layout/rules.js). Section and the rule both call it.
++**Why:** a second copy of the floor check disagrees after one edit. An unmeasured box (`room` 0) fits everything, so the picker is not greyed out before layout.
++**Instead:** a second copy inside Section.
++**Detail:** [doc/picker.md](./doc/picker.md)
++
++## Layout names the boxes, the page names the children, and they meet by name
++
++**Decided:** `slot(box)` slugs each label (`Main` → `main`), mounts `children.get(name)` there, and registers it in `this.regions`.
++**Why:** `Page.container()` already reads `parent.regions.get(this.name)`, so this uses the seam core reads.
++**Instead:** a registration or subscription step between layout and page.
++**Detail:** [doc/slots.md](./doc/slots.md)
++
++## Unclaimed children still render, and below the floor a section stacks
++
++**Decided:** children not in `regions` mount in declaration order after the arrangement. When `drawn()` returns `null`, `draw()` skips `arrange()` entirely, so the children simply follow each other.
++**Why:** content is never silently dropped. A fallback's boxes have other slot names, so content would land where it was not written for.
++**Instead:** drawing the fallback's boxes, which puts content in the wrong slots.
++**Detail:** [doc/slots.md](./doc/slots.md)
++
++## The box is re-asked by a ResizeObserver, redrawn only on change
++
++**Decided:** `watch()` observes the view; the callback calls `redraw()` only when `drawn()?.name` differs from `drawn_name`.
++**Why:** the box has no size on first draw. An unguarded redraw changes the DOM, which fires the observer again: an infinite loop.
++**Detail:** [doc/slots.md](./doc/slots.md)
++
++## A child is appended to its slot, never built inside a captor
++
++**Decided:** `mount()` appends `child.render()` and marks it `default`.
++**Why:** a Page memoizes its view. On a second draw a captured `render()` appends nothing and the slot comes up empty with no error. `default` is needed because `Page.css` hides an unmarked `.page`.
++**Instead:** building inside the captor, which fails silently after one redraw.
++**Detail:** [doc/slots.md](./doc/slots.md)
++
++## Every View part is `PageSection*`
++
++**Decided:** the class is `Section` (Page is not a View, so no CSS class is minted from it). Every View part is `.page-section-*`.
++**Why:** `.section` is a live rule elsewhere, and `/blog` and `ext/editor` each export their own `Section`.
++**Detail:** [doc/idea.md](./doc/idea.md)
+diff --git a/public/framework/core/Section/doc/files.jsonl b/public/framework/core/Section/doc/files.jsonl
+index c627f7e4e..f2693c724 100644
+--- a/public/framework/core/Section/doc/files.jsonl
++++ b/public/framework/core/Section/doc/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"picker.md"}
+ {"file":"slots.md"}
+ {"file":"Section-notes.md"}
++{"file":"architecture.md"}
+diff --git a/public/framework/core/Section/readme.md b/public/framework/core/Section/readme.md
+index 2bb0a4f0e..977e8f39b 100644
+--- a/public/framework/core/Section/readme.md
++++ b/public/framework/core/Section/readme.md
+@@ -57,7 +57,8 @@ Section.from("/framework/core/Section/example/").then(section => section.render(
+ ## More
+ 
+ - [Overview](/framework/core/Section/) · [`doc/idea.md`](./doc/idea.md) ·
+-  [`doc/picker.md`](./doc/picker.md) · [`doc/slots.md`](./doc/slots.md)
++  [`doc/picker.md`](./doc/picker.md) · [`doc/slots.md`](./doc/slots.md) ·
++  [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - Files that matter: `Section.js` (the class and its picker), `Section.css` (where the
+   overlay sits, what a slot is), `example/page.json` (the JSON form, read by the page).
+ - Next door: [core/Layout](/framework/core/Layout/) owns the thirty layouts, their proven
+diff --git a/public/framework/ext/Mention/doc/architecture.md b/public/framework/ext/Mention/doc/architecture.md
+new file mode 100644
+index 000000000..4f19c5bfe
+--- /dev/null
++++ b/public/framework/ext/Mention/doc/architecture.md
+@@ -0,0 +1,71 @@
++# Mention architecture — two maps, read synchronously, shown live
++
++`ext/Mention` turns `#Page`, `@owner` and `/path` in written text into a small icon + word that links to the thing it names. Its main entry is [`Mention.js`](../Mention.js) (class-free: one exported `mentions(el)` walker and `mention_html(str)` for strings). The data is two plain maps, [`maps/refs.js`](../maps/refs.js) for `#` and [`maps/people.js`](../maps/people.js) for `@`. Live page data comes from `core/Page`'s instance registry; the cache is only the fallback.
++
++## Synchronous over plain maps
++
++**Decided:** the maps are imported ES modules and every lookup and DOM edit runs synchronously, with no fetch and no `await`.
++**Why:** a mention is applied inside a `View` capture callback, where any `await` would leave the box to fill in after the DOM has moved on.
++**Instead:** a fetched JSON index, which needs a JSON import attribute and a load step that can fail and blank every markdown page.
++**Detail:** [Mention-notes: synchronous design](./Mention-notes.md#synchronous-design)
++
++## Two namespaces, one per control character
++
++**Decided:** `#` looks only in `refs.js` (things), `@` only in `people.js` (people and agent roles), and `@` falls back to `#` for a page name.
++**Why:** a thing and a person can never collide, and a third kind is a third map plus one key in `maps`.
++**Instead:** one shared map, where `#Page` and `@Page` would fight for the same name.
++**Detail:** [Mention-notes: namespace design](./Mention-notes.md#namespace-design)
++
++## Live page data before the cache
++
++**Decided:** `live()` reads `Page.instances()` first, so an icon or `class_card` comes from the page object when this session has built it; `refs.js` answers only for a page nobody has loaded yet.
++**Why:** a page's icon changes in its own `page.js`, and the mention should show the change without a second step.
++**Instead:** eagerly load all ~30 mentioned pages to answer every lookup, which is much slower.
++**Detail:** [Mention-notes: live instances vs. cache](./Mention-notes.md#live-instances-vs-cache)
++
++## The dev server keeps the cache fresh
++
++**Decided:** when a watched `page.js` changes, `Server/plugins/MentionSync.js` re-reads its icon and rewrites `refs.js`, using the same `fs.watch` handle as the rest of the dev server.
++**Why:** a hand-typed icon copy drifted from the page's own `icon:` field with nothing to notice.
++**Instead:** a human re-runs `sync.mjs` after each change (still needed for `class_card`, which needs a headless page load).
++**Detail:** [sync-icons and auto-sync](/framework/ai/sessions/2026/10/03/list-events/mention-auto-sync/)
++
++## Opt-in only, never every element
++
++**Decided:** only `md()`, chat bubbles and `p()`/`h1`–`h6` call `mentions()`; `View.js` reaches it through the `View.upgrade` hook that `Mention.js` sets.
++**Why:** `core` may not import `ext` (imports flow down), and walking every text node would cost time on every page.
++**Instead:** walk every element, which turns ordinary words into links by surprise.
++**Detail:** [Mention-notes: opt-in integration](./Mention-notes.md#opt-in-integration)
++
++## An unknown name stays plain text, logged once
++
++**Decided:** a `#name` or `@name` that no map knows is left untouched and added to the exported `unknown` set, with one `console.debug`.
++**Why:** a `console.warn` or `error` fails the merge smoke test, and a stray name must not break a page.
++**Instead:** `console.warn` on every miss, which would fail every merge that mentions a new page before its map line lands.
++**Detail:** [Mention-notes: unknown mentions](./Mention-notes.md#unknown-mentions-and-logging)
++
++## A path matches only a known page's own url
++
++**Decided:** a `/path` upgrades only when it equals a known page's `url`; an entry with `path: false` never answers a path.
++**Why:** `/framework/` once resolved to `CLAUDE.md`, because that entry borrows the Framework page's url.
++**Instead:** resolve any slash-led word, which turns file paths in prose into broken links.
++**Detail:** [Mention-notes: path mentions and fallback](./Mention-notes.md#path-mentions-and-fallback)
++
++## One class look, from the class's own card
++
++**Decided:** a mention whose entry has `class_card` gets the same always-dark card that a class's own module index uses (`page-surface-dark`), built by one function, `build_row()`.
++**Why:** a `#Page` in a sentence and the `Page` card on the index are the same fact, and should read the same.
++**Instead:** a second style for inline mentions, which would drift from the card on the index.
++**Detail:** [Mention-notes: build context and class card](./Mention-notes.md#build-context-and-class-card)
++
++## Rows are built outside the open captor
++
++**Decided:** `build_row()` clears `View.captor` while it makes the `item()`, then puts it back.
++**Why:** `item()` is a normal `View` factory and would otherwise append itself into whatever content callback is open.
++**Instead:** pass the parent in, which every caller would have to know to do.
++**Detail:** [Mention-notes: build context and class card](./Mention-notes.md#build-context-and-class-card)
++
++## CSS order: the dark mention wins over the item reset
++
++⚠ `ui/item`'s `.item` rule resets the background at the same specificity as `.page-surface-dark`, in the same layer. `Mention.js` imports `item.js` first and declares its own `.item.page-surface-dark` rule after, so the dark fill wins. Moving the `css()` call above the import silently un-darkens every class card.
++**Detail:** [Mention-notes: CSS specificity](./Mention-notes.md#css-specificity-and-dark-mentions)
+diff --git a/public/framework/ext/Mention/doc/files.jsonl b/public/framework/ext/Mention/doc/files.jsonl
+index 3d360a207..5f8c2556d 100644
+--- a/public/framework/ext/Mention/doc/files.jsonl
++++ b/public/framework/ext/Mention/doc/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"syntax.md"}
+ {"file":"ideas.md"}
+ {"file":"Mention-notes.md"}
++{"file":"architecture.md"}
+diff --git a/public/framework/ext/Mention/readme.md b/public/framework/ext/Mention/readme.md
+index 73da85412..97cac7608 100644
+--- a/public/framework/ext/Mention/readme.md
++++ b/public/framework/ext/Mention/readme.md
+@@ -65,6 +65,7 @@ same ones `ui.item` takes.
+ 
+ ## More
+ 
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - [Overview](/framework/ext/Mention/) — every known name, live, and the unknown ones this
+   session has actually seen.
+ - [`doc/syntax.md`](doc/syntax.md) — the exact pattern, the markdown-heading and email/colour
+diff --git a/public/framework/ext/System/doc/architecture.md b/public/framework/ext/System/doc/architecture.md
+new file mode 100644
+index 000000000..4e2d0f846
+--- /dev/null
++++ b/public/framework/ext/System/doc/architecture.md
+@@ -0,0 +1,46 @@
++# System architecture — a checkable container per module, one manager
++
++A System is anything we keep in order: its files (`root`), its readme, its rules, and a `check()` that computes whether they hold. The base class is [`System.js`](../System.js) (page: [`/framework/ext/System/`](/framework/ext/System/)). It is a plain class with no file access, so pages can import it; each module's own subclass or instance does the reading. The manager is [`Systems.js`](../Systems.js), which runs every system and writes one line per system to `results.jsonl`.
++
++## Base class, not a page
++
++**Decided:** `System` is a plain class; it never extends `Page`. The page for it is `SystemPage`, which extends `Page` and shows the class card.
++**Why:** the base class runs in the browser and in node. A page base would tie every checkable thing to the UI.
++**Instead:** making each System a Page (rejected: a system is data plus checks, not a screen).
++**Detail:** [system.md](./system.md)
++
++## Checks compute, never recall
++
++**Decided:** `check()` reads the real files and returns findings `{rule, path, text}`. An empty list means healthy. It only reads.
++**Why:** the owner's rule that record-keeping is code, not an AI's memory (CLAUDE.md law 7).
++**Instead:** an AI summary of the health of a module (rejected: it can be wrong and it costs tokens).
++**Detail:** [system.md](./system.md)
++
++## One manager; each module declares its own system
++
++**Decided:** `Systems.run()` runs every system and appends one JSON line per report to `results.jsonl`. A module joins by adding its `system.js` path to `Systems.modules`.
++**Why:** one log the page can stream, and no module has to know about the others.
++**Instead:** each module writing its own log (rejected: the page would read many files, and the log becomes two datastores).
++**Detail:** [system.md](./system.md)
++
++## Two whole-site checks live here, for now
++
++**Decided:** `ReadmeSystem` and `NavigationSystem` live in this folder because they check the whole site, not one module. They are listed in `Systems.shared`.
++**Why:** neither belongs to one module, and both need the same manager.
++**Instead:** a home in each module they touch (not yet chosen: no single module owns them).
++**Detail:** [readme](./readme.md)
++
++## The hourly beat only reports
++
++**Decided:** `Server/systems-beat.mjs` calls `Systems.run()`, which calls `check()` only. Nothing heals on the beat. `heal()` runs only from the page's Heal button, on the demo system.
++**Why:** no real system has a fix proven safe yet, so an automatic fix would be a guess.
++**Instead:** automatic healing capped per cycle (not built). The cap is the `heal_limit` field.
++⚠ **Code mismatch:** `heal_limit` (default 3) is declared in `System.js` but nothing reads it. No cap is enforced anywhere.
++**Detail:** [system.md](./system.md)
++
++## Each module's system is an instance beside its page
++
++**Decided:** a module's system is `system.js` in the module's own folder, a default-export instance with `root` set to that folder. The page for the class is `page.js`, which stays a thin import.
++**Why:** the checks sit with the files they check, so moving a module moves its checks with it.
++**Instead:** one central file that describes every module (rejected: it drifts from the folders it describes).
++**Detail:** [system.md](./system.md)
+diff --git a/public/framework/ext/System/doc/files.jsonl b/public/framework/ext/System/doc/files.jsonl
+index a179a5284..ad00329d5 100644
+--- a/public/framework/ext/System/doc/files.jsonl
++++ b/public/framework/ext/System/doc/files.jsonl
+@@ -1,2 +1,3 @@
+ {"file":"move-manifest.md"}
+ {"file":"system.md"}
++{"file":"architecture.md"}
+diff --git a/public/framework/ext/System/readme.md b/public/framework/ext/System/readme.md
+index 9a3f0d8e0..7c61ba83a 100644
+--- a/public/framework/ext/System/readme.md
++++ b/public/framework/ext/System/readme.md
+@@ -11,3 +11,6 @@ A System knows where its files live (`root`), its `readme`, its `rules`, and can
+ - A module's own system is a `system.js` beside its `page.js` (an instance, e.g. `ai/sessions/system.js`); list it in `Systems.modules`
+ - [doc/system.md](doc/system.md) — what each member means, the hourly beat, the future compositor
+ - [doc/move-manifest.md](doc/move-manifest.md) — the 2026-10-12 move from `ai/systems/` (old paths are one-line shims)
++
++## More
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+diff --git a/public/framework/ext/catalog/doc/architecture.md b/public/framework/ext/catalog/doc/architecture.md
+new file mode 100644
+index 000000000..8671fe8f9
+--- /dev/null
++++ b/public/framework/ext/catalog/doc/architecture.md
+@@ -0,0 +1,78 @@
++# catalog architecture — two arrangements of `previews()`, patched onto `Page`
++
++`catalog()` and `browse()` are two ways to arrange the same cards for any index page: a rail beside the routed child, or a filterable wall of bands. The main code is [`catalog.js`](../catalog.js) (the rail, which the page's own `content()` feeds) and [`browse.js`](../browse.js) (the wall). Both are `Page.prototype` methods, not classes, and they reuse each child's own `preview()` card. The one question that picks between them: is the reader choosing from the set, or reading it in order?
++
++## Declared in `initialize()`, not `content()`
++
++**Decided:** `catalog()` is called from `initialize()`, so the intro child exists before the router walks.
++**Why:** a child only has a url once the router has walked it. `render()`, where `content()` runs, is too late; a card made there links to a 404.
++**Instead:** calling it from `content()` builds an unroutable intro. A config key such as `intro:` would add API surface that `content()` already says.
++**Detail:** [decisions.md](./decisions.md#the-call-moved-from-content-to-initialize)
++
++## The page's own `content()` becomes the first rail card
++
++**Decided:** `catalog()` moves `content` into a new first child, `intro`, that takes the page's title, label and icon.
++**Why:** the intro then gets a card, a deep link and marking like every other entry. The moved function keeps its original `this`.
++**Instead:** a separate prose slot above the rail. That makes every converting page place its prose by hand.
++**Detail:** [decisions.md](./decisions.md#where-does-the-pages-own-prose-go)
++
++## The rail is `previews()` in one column
++
++**Decided:** the rail is the same `.page-previews` wall, set to one `1fr` column, and it turns into a horizontal strip below `64em`.
++**Why:** one card style, so a child styles its card once and it is right on a wall, a rail and a strip.
++**Instead:** a second card shape for the rail. A span on a wall card would invent a track in the rail, so the rail drops it.
++**Detail:** [file/catalog.css.md](./file/catalog.css.md)
++
++## The rail is pinned and has a height ceiling
++
++**Decided:** the rail and the region beside it are a flex row with a definite height, so each scrolls itself.
++**Why:** the outer `.pages` scroller reset to the top on every navigation, throwing a scrolled rail back up.
++**Instead:** a `calc(100dvh - chrome)` guess, which breaks when the nav bar wraps.
++**Detail:** [decisions.md](./decisions.md#the-ceiling-had-to-stop-at-the-pages-boundary)
++⚠ The ceiling is scoped to a routed child, but `/framework/ai/<day>/` still clips below `64em` while routed. The fix belongs in `ai.css` ([decisions.md](./decisions.md#open)).
++
++## `browse()` is the wall, for choosing
++
++**Decided:** a set that a reader chooses from gets `browse()`: a sticky rail of band counts and a search, beside one grid per band.
++**Why:** on a rail, twenty-three layout cards showed six at a time, so the reader could not see the choices.
++**Instead:** a rail for a set read in order. The layouts page moved from a rail to this wall for this reason.
++**Detail:** [method/browse.md](./method/browse.md)
++
++## One grid per band, with the heading outside it
++
++**Decided:** `browse()` draws one `auto-fit` grid per band, and each band's heading sits outside its grid.
++**Why:** `previews()` emits one flat run, so a band of one drew a row holding one card. A heading inside the grid stopped `auto-fit` from collapsing the empty tracks.
++**Instead:** `auto-fill` keeps the empty tracks, and a fixed-length track maximum changes the column count it measures.
++**Detail:** [decisions.md](./decisions.md#browsebands-tokens--the-wall-2026-08-17)
++
++## Band sizes are load-bearing, and a card caps at `28em`
++
++**Decided:** a band stretches its cards to fill its row, but a card never grows past `28em`.
++**Why:** a short band on a 3440 screen spread to about 3000px. The cap goes on the card (`min(28em, 1fr)` on the track broke the `auto-fit` count).
++**Instead:** no cap, which lets short bands spread.
++**Detail:** [decisions.md](./decisions.md)
++
++## `browse`, never `browser`
++
++**Decided:** the wall method is named `browse`, because `Doc.browser()` is the Files tab.
++**Why:** on a `Doc`, `this.browser(BANDS)` silently draws a file tree where the wall should be, with no console error.
++**Instead:** none; the name is the registry key.
++**Detail:** [decisions.md](./decisions.md#browsebands-tokens--the-wall-2026-08-17)
++
++## `ext`, not core, and a method, not a recipe
++
++**Decided:** `catalog()` and `browse()` live in `ext/`, and `app.js` imports them once for the whole site.
++**Why:** core owns what a page is; arrangements are opt-in. Three real users had pasted the same recipe, so it became a method.
++**Instead:** each page hand-builds its rail, which repeats the same fill and link-marking fixes.
++**Detail:** [decisions.md](./decisions.md#decisions)
++
++## A `Doc` Overview is this method
++
++**Decided:** `ext/Doc` calls `this.catalog()` from its Overview section, so every `Doc` Overview tab is a catalog.
++**Why:** the Overview needs the same intro-plus-rail arrangement as any index, with no second copy.
++**Instead:** a separate Overview renderer inside `Doc`, which was the duplicate this method replaced.
++**Detail:** [decisions.md](./decisions.md#who-calls-it)
++
++---
++
++Entry files: [`catalog.js`](../catalog.js) · [`browse.js`](../browse.js) · [`catalog.css`](../catalog.css) · [`browse.css`](../browse.css). Full history and traps: [decisions.md](./decisions.md).
+diff --git a/public/framework/ext/catalog/doc/files.jsonl b/public/framework/ext/catalog/doc/files.jsonl
+index 714bdfba4..4b61b76f8 100644
+--- a/public/framework/ext/catalog/doc/files.jsonl
++++ b/public/framework/ext/catalog/doc/files.jsonl
+@@ -3,6 +3,7 @@
+ {"file":"method/"}
+ {"file":"file/page.jsonl"}
+ {"file":"method/page.jsonl"}
++{"file":"browse-notes.md"}
++{"file":"architecture.md"}
+ {"file":"file/"}
+ {"file":"method/"}
+-{"file":"browse-notes.md"}
+diff --git a/public/framework/ext/catalog/readme.md b/public/framework/ext/catalog/readme.md
+index 2132d537b..a28cd36f5 100644
+--- a/public/framework/ext/catalog/readme.md
++++ b/public/framework/ext/catalog/readme.md
+@@ -20,6 +20,7 @@ content(){ return this.browse(BANDS, { "--column": "18em" }); }  // wall — one
+ 
+ ## More
+ 
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - [Overview](/framework/ext/catalog/) · [`doc/decisions.md`](./doc/decisions.md) — every verdict, trap, open item and the dated caller census, in full.
+ - [`doc/method/catalog.md`](./doc/method/catalog.md) — the rail's contract · [`doc/method/browse.md`](./doc/method/browse.md) — the wall's contract, `bands`, `tokens`, `owner/name`.
+ - [`doc/file/catalog.js.md`](./doc/file/catalog.js.md) · [`doc/file/catalog.css.md`](./doc/file/catalog.css.md) · [`doc/file/page.js.md`](./doc/file/page.js.md) · [`doc/file/readme.md.md`](./doc/file/readme.md.md) — per-file walkthroughs.
+diff --git a/public/framework/ext/toc/doc/architecture.md b/public/framework/ext/toc/doc/architecture.md
+new file mode 100644
+index 000000000..63e6814c6
+--- /dev/null
++++ b/public/framework/ext/toc/doc/architecture.md
+@@ -0,0 +1,71 @@
++# toc architecture — read the page, don't declare it
++
++`toc()` builds a "On this page" nav from the headings already on the page you are reading, and marks the section you are in. It is one function in [`toc.js`](../toc.js), styled by [`toc.css`](../toc.css), and called as the first line of `content()`. Usage and the opt-out are in the [overview](/framework/ext/toc/) and the [readme](../readme.md).
++
++## Scan the page, don't declare the list
++**Decided:** the nav is derived from the `h2`, `h3`, `.h2` and `.h3` nodes already inside the page.
++**Why:** a declared list drifts quietly, and a drifted entry points at a section that is not on the page the reader is looking at. A heading is already in hand; a network-costing child list is not.
++**Instead:** a declared `children`-style list, which costs a menu entry forever when it goes stale.
++**Detail:** [decisions.md](./decisions.md)
++
++## Place now, fill in a microtask
++**Decided:** `toc()` appends its empty `nav` synchronously, then `queueMicrotask(() => fill($toc))` adds the links.
++**Why:** `toc()` runs on the first line of `content()`, so no headings exist yet. A microtask runs after `render()` and `activate()` have added the node, but before the browser paints, so no empty rail is ever on screen.
++**Instead:** calling `toc()` last (the nav lands below the content it indexes), wrapping the body in a callback, or scanning in `activated()` or `requestAnimationFrame` (both paint one empty frame).
++**Detail:** [decisions.md](./decisions.md)
++
++## The current section is the last heading past a line
++**Decided:** on each scroll, the spy marks the last heading whose top is above the scroller's top plus 90px. It does this with one passive listener and a loop over the headings, not an `IntersectionObserver`.
++**Why:** between two widely spaced headings nothing intersects, so an observer reports "no section" where the reader expects the last one they passed.
++**Instead:** `IntersectionObserver` with `rootMargin` tricks, which reintroduce the same "last heading above" logic by a longer route.
++**Detail:** [decisions.md](./decisions.md)
++
++## Listen on the region, and skip hidden pages
++**Decided:** the scroll listener is on `page.closest(".pages")`, and `update()` returns early when `page.offsetParent` is null.
++**Why:** the region scrolls, not `window`, so a window listener never fires. A hidden page measures every rect at 0,0, so every heading would read as "above the line" and the last one would win.
++**Instead:** a `window` listener, which never fires here.
++**Detail:** [decisions.md](./decisions.md)
++
++## The current link is `.current`, not `.active`
++**Decided:** the spy toggles `.current` on the nav links.
++**Why:** `Router.mark_links()` owns `.active` and `.in-path`, and it skips `#` hrefs, so it never clears an `.active` set by the toc. Two owners for one class leave a stale highlight.
++**Instead:** reusing `.active`, which the router would never clear.
++**Detail:** [decisions.md](./decisions.md)
++
++## Wide screens get a sticky grid track, not a fixed box
++**Decided:** at 82em and up, `.page:has(> .toc)` adds a real rail column, and the rail is `position: sticky` with `align-self: start`. Below 82em it is `display: none`.
++**Why:** the region scrolls, not the page, so a sticky element inside `.page` sticks to a box that never moves. A `position: fixed` rail reserved no space and overlapped the prose on the way to the breakpoint.
++**Instead:** `position: fixed`, which overlapped the prose.
++**Detail:** [decisions.md](./decisions.md)
++
++⚠ The rule matches `.page:has(> .toc)` at any depth, with no `.pages >` prefix and no `:not(.standard)` guard. `decisions.md`'s "Traps" section still says a `Doc` with `overview:` no-ops, citing the old `.pages >` selector. The current selector suggests it no longer does, but this is not checked in a browser here.
++
++## The rail restates the page's tracks, never replaces them
++**Decided:** the rail template redeclares every track of the page shell: bleed gutter, wide, main, the rail, and the trailing gutter.
++**Why:** a page's left and right padding are its first and last grid tracks. Replacing the template dropped both gutters above 82em, so the `h1` sat flush against the sidebar.
++**Instead:** a template with only `main` and the rail, which loses the gutters.
++**Detail:** [decisions.md](./decisions.md)
++
++## Skip the headings that are not sections
++**Decided:** headings inside `.demo, .md-details, .toc, .files, .tab-bar, .sidebar, .page-previews` and anything with `.toc-skip` are not indexed.
++**Why:** every example on the site sits in a `demo()`, and galleries and stat tiles render real `h2`/`h3` that are values or titles, not sections. The selector covers the common cases; `.toc-skip` is the opt-out for the rest.
++**Instead:** declaring headings by hand (drifts), or a `.gallery` class, which teaches the ext about docs pages.
++**Detail:** [skip-list.md](./skip-list.md)
++
++## Only zero headings hides the rail, and only h2 and h3 count
++**Decided:** a page with no indexed headings removes the rail. There is no minimum count, and `h4` is never indexed.
++**Why:** a two-heading page still draws a useful nav. An `h4` is an uppercase annotation on this site, and listing it made the rail read like a list of labels.
++**Instead:** a minimum of three headings, which the code never did.
++**Detail:** [decisions.md](./decisions.md)
++
++## The scan runs once per render
++**Decided:** `fill()` runs once. A heading appended later, such as from a promise or `md.file()`, is not in the nav.
++**Why:** pages render once and are cached. A `MutationObserver` would fix it, but it costs the same kind of always-on watching the spy rejected, and no page needs it yet.
++**Instead:** a `MutationObserver` on the page.
++**Detail:** [decisions.md](./decisions.md)
++
++## `toc.css` stays ASCII
++**Decided:** `toc.css` is ASCII only, comments included.
++**Why:** a host that serves CSS without a charset decodes UTF-8 as Windows-1252, which double-encodes any non-ASCII character.
++
++⚠ Not true today: `toc.css` has non-ASCII bytes in its comments (the `⚠` markers, among others). Either the comments change to ASCII markers, or the rule is kept only where the host has a charset. Left as written here, pending a fix outside this fence.
+diff --git a/public/framework/ext/toc/doc/files.jsonl b/public/framework/ext/toc/doc/files.jsonl
+index 27b390e70..840a85173 100644
+--- a/public/framework/ext/toc/doc/files.jsonl
++++ b/public/framework/ext/toc/doc/files.jsonl
+@@ -2,7 +2,4 @@
+ {"file":"file/"}
+ {"file":"skip-list.md"}
+ {"file":"file/page.jsonl"}
+-{"file":"file/"}
+-{"file":"file/page.jsonl"}
+-{"file":"file/"}
+-{"file":"file/"}
++{"file":"architecture.md"}
+diff --git a/public/framework/ext/toc/readme.md b/public/framework/ext/toc/readme.md
+index f4bef9b1e..35c758bd7 100644
+--- a/public/framework/ext/toc/readme.md
++++ b/public/framework/ext/toc/readme.md
+@@ -26,5 +26,6 @@ Opt a real component (not an example) out of the scan: `div.c("toc-skip", …)`.
+ - [Overview](/framework/ext/toc/) — the page, with the walkthrough
+ - [`doc/skip-list.md`](./doc/skip-list.md) — what the scan excludes, and the two times it earned the opt-out
+ - [`doc/decisions.md`](./doc/decisions.md) — scan vs declare, the microtask fill, the spy without `IntersectionObserver`, `sticky` vs `fixed`, who calls it, open items
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - `doc/file/*.md` — per-file notes, rendered by the page's `files:`
+ - Files that matter: `toc.js` (scan, spy, fill), `toc.css` (sticky grid track), `page.js` (show, don't tell)
+diff --git a/public/framework/ui/accordion/doc/architecture.md b/public/framework/ui/accordion/doc/architecture.md
+new file mode 100644
+index 000000000..165809c82
+--- /dev/null
++++ b/public/framework/ui/accordion/doc/architecture.md
+@@ -0,0 +1,45 @@
++# Accordion architecture — the browser closes the others, so there is no JS
++
++The accordion is a set of native `<details>` elements that share one `name` attribute. It is a pattern, not a class: there is no `ui.accordion()` and no instance to hold state. Entry points: [`accordion.js`](../accordion.js) (two CSS rules) and the [Overview page](/framework/ui/accordion/), whose demos are the reference. Start with the [readme](../readme.md).
++
++## Exclusivity is the `name` attribute
++
++**Decided:** panels that share a `name` attribute open one at a time; the browser closes the others.
++**Why:** the open panel is the DOM's own `open` attribute, so there is no listener, no state, and no arrow that can disagree with the panel under it.
++**Instead:** a JS accordion keeps an `open` index in memory. It needs listeners, must be kept in sync, and is lost on rebuild.
++**Detail:** [the demo](/framework/ui/accordion/).
++
++## The name is visible, not minted
++
++**Decided:** every accordion names its group yourself, e.g. `attr("name", "faq")`.
++**Why:** a readable name can be seen, shared on purpose, or removed when you want all panels open at once.
++**Instead:** a module-scope counter minting `ui-accordion-3`. It hid the group and made every accordion a separate, invisible identity.
++**Detail:** [the demo](/framework/ui/accordion/).
++
++## No helper function
++
++**Decided:** the component is markup: `details.c("ui-accordion-item pad", …)` with a `name`.
++**Why:** the whole behaviour is one attribute, so a helper would only hide it.
++**Instead:** a `ui.accordion(items)` builder. It adds an API to learn and still needs the same attribute.
++**Detail:** [the demo](/framework/ui/accordion/).
++
++## Only relationships live in CSS
++
++**Decided:** `accordion.js` holds two rules in `@layer theme`: a hairline between items (`+` sibling) and a margin under each answer.
++**Why:** both are relationships between elements, which an inline style cannot express.
++**Instead:** a border on every item, which would put a rule above the first one too.
++**Detail:** [the demo](/framework/ui/accordion/).
++
++## The summary keeps its marker
++
++**Decided:** the summary stays `display: list-item`, so the browser draws the disclosure triangle.
++**Why:** the triangle is free, accessible, and turns on open with no code.
++**Instead:** a flex summary for a badge at the far end. It removes the triangle, so put the flex on an inner `div` when you need both.
++**Detail:** [the markers demo](/framework/ui/accordion/markers/).
++
++## Deliberately not built
++
++**Decided:** no animation, no nesting, no remembering the open panel across a reload.
++**Why:** a height transition needs its own stylesheet (`interpolate-size`). Nesting reads as a file tree, which [Sidebar](/framework/core/Sidebar/) already is. Remembered state would need storage, and the markup is rebuilt on reload.
++**Instead:** for animation, a separate stylesheet; for nesting, Sidebar; for memory, store the open name yourself.
++**Detail:** [the demo's "deliberately doesn't do" section](/framework/ui/accordion/).
+diff --git a/public/framework/ui/accordion/doc/files.jsonl b/public/framework/ui/accordion/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ui/accordion/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/ui/accordion/files.jsonl b/public/framework/ui/accordion/files.jsonl
+index 140167239..e904a5da9 100644
+--- a/public/framework/ui/accordion/files.jsonl
++++ b/public/framework/ui/accordion/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"accordion.js"}
+ {"file":"page.js"}
+ {"file":"readme.md"}
++{"file":"doc/"}
+diff --git a/public/framework/ui/accordion/readme.md b/public/framework/ui/accordion/readme.md
+index a161ff049..b4aacfbf3 100644
+--- a/public/framework/ui/accordion/readme.md
++++ b/public/framework/ui/accordion/readme.md
+@@ -17,4 +17,5 @@ details.c("ui-accordion-item pad", () => {
+ ## More
+ 
+ - [Overview](/framework/ui/accordion/) — the FAQ demo and the marker-vs-flex-summary demo
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - Files: `accordion.js` (the two CSS rules), `page.js` (show, don't tell)
+diff --git a/public/framework/ui/avatar/doc/architecture.md b/public/framework/ui/avatar/doc/architecture.md
+new file mode 100644
+index 000000000..a9c16d29f
+--- /dev/null
++++ b/public/framework/ui/avatar/doc/architecture.md
+@@ -0,0 +1,49 @@
++# Avatar architecture — one CSS class, sized by a token
++
++The avatar is not a component with code. It is one class, `.ui-avatar` (a circle that holds initials or a photo), plus `.ui-avatars` (a row of them that overlap). Everything lives in [`avatar.js`](../avatar.js), which only adds CSS inside `@layer theme`. The demo and its source are on the [page](/framework/ui/avatar/), which is [`page.js`](../page.js). There is no JavaScript at runtime.
++
++## Size is a token, never a variant
++
++**Decided:** the size is `--avatar`, read as `width` and `height: var(--avatar, 2.5em)`. There are no `small` or `large` classes.
++**Why:** a size class would have to pick the sizes for the caller. A token lets any caller set any size inline.
++**Instead:** size variant classes. They were not built, because they would fix the sizes for everyone.
++**Detail:** [the page's photo demo](/framework/ui/avatar/photos/).
++
++## Copy the markup; there is no helper
++
++**Decided:** the component is markup. Write `span.c("ui-avatar", "ML")` for a circle and `div.c("ui-avatars", …)` for a stack. There is no `ui.avatar()`.
++**Why:** the old `ui.avatar()` and `ui.avatars()` were one-line passthroughs to `span.c()` and `div.c()`. They added a name to learn and nothing else.
++**Instead:** a helper function in `ui.js`. It would duplicate `span.c()`, so it was removed.
++**Detail:** [the page's note on the removal](/framework/ui/avatar/).
++
++## Colours are theme pairs, never literals
++
++**Decided:** the fill is `var(--ink)` and the letters are `var(--surface)`. `.accent` fills with `var(--prime)`. `.wash` fills with `var(--wash)` and sets its letters to `var(--ink)`.
++**Why:** `--ink` over `--surface` is a pair the theme already keeps readable in light and dark mode. A component may not name a colour, so a literal `white` would break in dark mode.
++**Instead:** a literal `white` over `--bg`. This was caught in review and changed.
++**Detail:** [the page](/framework/ui/avatar/).
++
++## The overlap is a sibling selector, and the ring is the page colour
++
++**Decided:** every circle after the first in a stack gets `margin-inline-start: -0.6em`, and every circle gets a `2px` border in `var(--surface)`.
++**Why:** the caller used to set the margin on each circle with `i ? … : 0`. The `+` selector says it once and cannot get the first circle wrong. The surface-coloured ring reads as a hole onto whatever the stack sits on, and it retints with the theme.
++**Instead:** a margin and border set per circle by the caller. That repeats the same rule everywhere it is used.
++**Detail:** [the page's ring section](/framework/ui/avatar/).
++
++## Photos fill the circle through the class
++
++**Decided:** `.ui-avatar` clips with `overflow: hidden`, and a child `img` takes `100%` width and height with `object-fit: cover`.
++**Why:** a photo and its initials share one component, so no second class is needed.
++**Instead:** a separate photo class. Not needed, because the clip and the fit already live in the one class.
++**Detail:** [the page's photo demo](/framework/ui/avatar/photos/).
++
++## Every rule sits in the theme layer
++
++**Decided:** all rules are inside `@layer theme`.
++**Why:** `framework.css` orders the layers, and an unlayered rule would beat the util layer's own rules without any error.
++**Instead:** unlayered rules. They silently lose or win the cascade depending on the page.
++**Detail:** [the layer order in `framework.css`](/framework/styles/).
++
++## Mismatches found in the check
++
++- ⚠ The page's note says `.accent` and `.wash` "inherit the rest". `.wash` also sets the letters to `var(--ink)`, so it does not inherit them. The code is right; the page wording is loose (page is outside this doc's fence).
+diff --git a/public/framework/ui/avatar/doc/files.jsonl b/public/framework/ui/avatar/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ui/avatar/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/ui/avatar/files.jsonl b/public/framework/ui/avatar/files.jsonl
+index 72168cad7..9d17d498f 100644
+--- a/public/framework/ui/avatar/files.jsonl
++++ b/public/framework/ui/avatar/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"page.js"}
+ {"file":"readme.md"}
+ {"file":"ai/"}
++{"file":"doc/"}
+diff --git a/public/framework/ui/avatar/readme.md b/public/framework/ui/avatar/readme.md
+index 2d9855338..8bf07fdf8 100644
+--- a/public/framework/ui/avatar/readme.md
++++ b/public/framework/ui/avatar/readme.md
+@@ -16,4 +16,5 @@ span.c("ui-avatar accent", "AK");
+ ## More
+ 
+ - [page](/framework/ui/avatar/) — the stack, photos, and the ring/overlap CSS
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - Back to [UI](/framework/ui/).
+diff --git a/public/framework/ui/badge/doc/architecture.md b/public/framework/ui/badge/doc/architecture.md
+new file mode 100644
+index 000000000..12c31248c
+--- /dev/null
++++ b/public/framework/ui/badge/doc/architecture.md
+@@ -0,0 +1,35 @@
++# Badge architecture — the class list is the component
++
++`badge` is a pill label made from classes, not a function. The whole component is `ui-badge ui-pill h4` plus one tone class. Its only code is [`badge.js`](../badge.js), which holds four tones and a dot. The live examples are on [the badge page](/framework/ui/badge/).
++
++## There is no `ui.badge()`
++
++**Decided:** a badge is written as a `span` with classes; no helper function exists.
++**Why:** the old helper's body was one `span.c()`, so the function only spelled the same three words a second way.
++**Instead:** a `ui.badge()` helper, which would be a second way to build the same thing.
++**Detail:** [the page's note](/framework/ui/badge/)
++
++## Four tones only
++
++**Decided:** the tones are `accent`, `dark`, `outline`, and plain. No green or amber tone exists.
++**Why:** the token set has one accent and no `--ok` or `--warn`, so any "passing" or "warning" colour would invent a token.
++**Instead:** a success or warning tone with its own colour, which means adding tokens to the theme first.
++**Detail:** [`badge.js`](../badge.js) header comment
++
++## The dot is `currentColor`
++
++**Decided:** `.dot` draws its circle with `::before` and `background: currentColor`.
++**Why:** the dot takes whatever colour the tone already sets, so no tone needs a second dot rule.
++**Instead:** one dot colour rule per tone, which would repeat three colours in CSS.
++**Detail:** [the page's note](/framework/ui/badge/)
++
++## The pill is owned by `ui-pill` and `h4`
++
++**Decided:** size, case and tracking come from `h4`; the wash background and `999px` radius come from `ui-pill`. `.ui-badge` only holds the tones.
++**Why:** `h4` is already a small, tracked, uppercase label, so badge needs no size rules of its own.
++**Instead:** a badge-owned font and padding, which would drift from the rest of the headings.
++**Detail:** [the page's note](/framework/ui/badge/)
++
++---
++
++Code check: the four tone rules and the dot rule in `badge.js` match this page. `ui-pill` and `h4` are defined outside this module and were not checked here. No `⚠` mismatches.
+diff --git a/public/framework/ui/badge/readme.md b/public/framework/ui/badge/readme.md
+index fa688269f..691680987 100644
+--- a/public/framework/ui/badge/readme.md
++++ b/public/framework/ui/badge/readme.md
+@@ -14,5 +14,6 @@ span.c("ui-badge ui-pill h4 accent", "shipped");
+ 
+ ## More
+ 
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - [page](/framework/ui/badge/) — every variant, the dot, and the tones finding
+ - Back to [UI](/framework/ui/).
+diff --git a/public/framework/ui/panel/doc/architecture.md b/public/framework/ui/panel/doc/architecture.md
+new file mode 100644
+index 000000000..f69e95172
+--- /dev/null
++++ b/public/framework/ui/panel/doc/architecture.md
+@@ -0,0 +1,39 @@
++# Panel architecture — a template and three rules, not a component
++
++Panel is a titled box: a header row, a body and a footer row on a surface. It has no class and no JavaScript. The module is two files: [`panel.js`](../panel.js) holds the three rules as CSS, and [`page.js`](../page.js) holds the template that is both shown on the page and printed as its source. Copy the markup; the rules do the rest.
++
++## A template, not a `ui.panel()` function
++
++**Decided:** a panel is markup you copy from [`page.js`](../page.js). There is no `ui.panel()` helper.
++**Why:** the earlier helper took three slots by position (`panel(null, body, foot)`). Leaving a slot out meant getting the arguments backwards, and the one page that wanted a panel wrote its own anyway.
++**Instead:** a helper with positional slots (rejected, above) or named options (more API for three rows of markup).
++**Detail:** [ui decisions](/framework/ui/doc/decisions.md) — the template tier.
++
++## Hairlines sit on the rows, not between them
++
++**Decided:** the header draws its bottom border and the footer its top border (`.ui-panel-head`, `.ui-panel-foot` in [`panel.js`](../panel.js)). The body has none.
++**Why:** a panel with no header then has no line drawing to nowhere. Omitting the header removes its rule with it.
++**Instead:** a divider element between rows, which would need its own removal when a row is dropped.
++**Detail:** [ui record](/framework/ui/doc/record.md).
++
++## The raised shadow mixes the ink token
++
++**Decided:** `.ui-panel.raised` uses `color-mix(in srgb, var(--ink) 14%, transparent)`, not an `rgba()` literal.
++**Why:** a literal black shadow is invisible on a dark surface and too heavy on a light one. The ink token scales with whatever the theme calls contrast.
++**Instead:** a fixed `rgba(0,0,0,0.14)` (rejected: it breaks on one of the two themes).
++**Detail:** the note on the `raised` demo in [`page.js`](../page.js). `raised` is a variant, not the default, because most panels sit on a page rather than above one.
++
++## Action rows use `reverse`, not `flex-end`
++
++**Decided:** the footer is `flex gap reverse`, which is `flex-direction: row-reverse`. The primary action sits at the far end.
++**Why:** the utility set has `h-center` and `split` but no end alignment, and `reverse` gets the right-aligned row with the gap intact.
++**Instead:** `justify-content: flex-end` on the footer, which is one inline declaration. Use it where the DOM order matters.
++**⚠ trade-off:** `row-reverse` also reverses the DOM order, so the primary button is first in the source and in the tab order. That suits a confirm dialog. A wizard's *Back / Next* row should use `flex-end` instead.
++**Detail:** [ui record](/framework/ui/doc/record.md) (the `reverse` section); the utility itself is `.flex.reverse` in [`framework.css`](/framework/framework.css).
++
++## Not a modal
++
++**Decided:** a panel has no backdrop, no focus trap and no `<dialog>`.
++**Why:** a panel is a surface made of a header, a body, a footer and two hairlines. Modal behaviour belongs to a different component.
++**Instead:** putting the modal behaviour in the panel, which would make every panel carry a trap it may not need.
++**Detail:** [Dialog](/framework/ui/dialog/) is the modal, and it uses the browser's own `<dialog>`.
+diff --git a/public/framework/ui/panel/readme.md b/public/framework/ui/panel/readme.md
+index bacbcdc03..76e5b52aa 100644
+--- a/public/framework/ui/panel/readme.md
++++ b/public/framework/ui/panel/readme.md
+@@ -5,3 +5,7 @@ A titled box with a header and a close button. A `ui/` template: copy the markup
+ Code: `page.js` and `panel.js` in this folder.
+ 
+ _Stub — more to come._
++
++## More
++
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+diff --git a/public/framework/ui/table/doc/architecture.md b/public/framework/ui/table/doc/architecture.md
+new file mode 100644
+index 000000000..a0bd857b8
+--- /dev/null
++++ b/public/framework/ui/table/doc/architecture.md
+@@ -0,0 +1,24 @@
++# table architecture — a re-export, so one table lives in one place
++
++`ui/table` is a two-line shim. The table code lives in `DataGrid.table(head, rows)` inside [`ext/DataGrid`](/framework/ext/DataGrid/); this module only re-exports it, so `import { table } from "/app.js"` keeps working. Entry: [`table.js`](../table.js).
++
++## One table implementation, owned by DataGrid
++
++**Decided:** `ui/table` holds no markup of its own; `table` is `DataGrid.table`.
++**Why:** the site had three grid-like pieces (`ext/DataGrid`, `ui/datagrid`, `ui/table`); one owner means one fix updates every caller.
++**Instead:** keep `ui/table` as its own copy, which duplicates the markup and drifts (law 6: one of everything).
++**Detail:** [DataGrid architecture, "One grid, not three"](/framework/ext/DataGrid/doc/architecture.md#one-grid-not-three)
++
++## A native `<table>`, not a data grid, for prose-sized tables
++
++**Decided:** `table(head, rows)` renders a plain `<table>` with no sorting, filtering or windowing.
++**Why:** a five-row table in a doc page is prose; a grid would add JavaScript and a fixed-height box it does not need.
++**Instead:** send every table through `new DataGrid(...)`. That gives sort and filter, but costs a fixed height and a render pass, and suits long lists only.
++**Detail:** [DataGrid architecture, "One grid, not three"](/framework/ext/DataGrid/doc/architecture.md#one-grid-not-three)
++
++## A cell is text or a function, never a markdown pass
++
++**Decided:** a string cell becomes a text node; a function cell runs with its `<td>` as the open element, so a link or `<kbd>` goes straight in.
++**Why:** cells are data, and a markdown pass would turn a backtick or `**` in a value into formatting.
++**Instead:** run cells through `md()` first; that makes every value a markup decision, which is the wrong default for records.
++**Detail:** [ui readme, "no markdown pass"](/framework/ui/readme.md)
+diff --git a/public/framework/ui/table/doc/files.jsonl b/public/framework/ui/table/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ui/table/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/ui/table/files.jsonl b/public/framework/ui/table/files.jsonl
+index 28786a53d..589c76aa8 100644
+--- a/public/framework/ui/table/files.jsonl
++++ b/public/framework/ui/table/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"page.js"}
+ {"file":"readme.md"}
+ {"file":"table.js"}
++{"file":"doc/"}
+diff --git a/public/framework/ui/table/readme.md b/public/framework/ui/table/readme.md
+index ddd2b1f8c..d6a009461 100644
+--- a/public/framework/ui/table/readme.md
++++ b/public/framework/ui/table/readme.md
+@@ -20,5 +20,6 @@ table.c("num", ["module", "lines"], [["View", "641"]]);  // right-aligns every c
+ 
+ ## More
+ 
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+ - [page](/framework/ui/table/) — numeric alignment, wide tables, and function cells
+ - Back to [UI](/framework/ui/).
+diff --git a/public/framework/ui/timeline/doc/architecture.md b/public/framework/ui/timeline/doc/architecture.md
+new file mode 100644
+index 000000000..dd45bc6e0
+--- /dev/null
++++ b/public/framework/ui/timeline/doc/architecture.md
+@@ -0,0 +1,42 @@
++# Timeline architecture — a function that returns markup, and CSS that owns the line
++
++`timeline()` draws a dated list: a date column, a rail of dots with a line, and an entry column. It is a `ui/` template. It is a plain exported function built with `component()` from `../parts.js`, with no state and no class. The markup and its one `@layer theme` block live in [`timeline.js`](../timeline.js). The demo and the reader's view are in [`page.js`](../page.js).
++
++## A function that returns markup, not a class
++
++**Decided:** `timeline(...items)` is an exported function that returns a `div` tree. Callers pass rows as arguments.
++**Why:** a timeline has no state and no behaviour to keep between calls. A class would only hold nothing.
++**Instead:** a class with `.render()` (it would add a construct with nothing to hold); or copy-paste markup like `badge` (rejected because the rail CSS would then be repeated in every copy).
++**Detail:** [the demo](/framework/ui/timeline/).
++
++## Rows are `[when, what, note]` triples
++
++**Decided:** each row is an array of three strings. `timeline()` destructures it as `([when, what, note])`.
++**Why:** the call reads as a table in the page source, so a newcomer can edit a release list without learning an object shape.
++**Instead:** `{when, what, note}` objects (clearer keys, but twice the characters for the same three strings).
++**Detail:** [the demo](/framework/ui/timeline/).
++
++## The line is a border on an empty box, not a `::before`
++
++**Decided:** the connecting line is `border-inline-start` on an empty `div.ui-timeline-line.flex-1` sitting under each dot.
++**Why:** the `flex-1` box takes all the row height the dot does not, so the line stretches to match the entry. It stays in the normal flow, so it needs no positioning.
++**Instead:** a `::before` with `position: absolute`. That needs a relationship between two elements and cannot be set from an inline style.
++**Detail:** [the demo, "The line, without a pseudo-element"](/framework/ui/timeline/).
++
++## The run stops at the last row, by CSS, not by an index
++
++**Decided:** the last row has no line and no bottom padding, via `:last-child` rules. Nothing in JS marks it.
++**Why:** a line that trails off under the final entry reads as a loading state. The DOM already knows which row is last.
++**Instead:** an index compared with `items.length` and a `last` class, which the page notes were removed.
++**Detail:** [the demo, "The run has to stop"](/framework/ui/timeline/).
++
++## Colours are derived, never named
++
++**Decided:** the dot is `var(--eyebrow, var(--prime))`. The line is `currentColor` at 25% through `color-mix()`.
++**Why:** the timeline lands on more than one background. A fixed `--subtle` colour measured 1.06:1 on an accent band. `--eyebrow` is a band's own safe accent, and `currentColor` already contrasts with whatever is behind it.
++**Instead:** a fixed muted colour (fails contrast on accent bands).
++**Detail:** [the demo, "The colours are derived"](/framework/ui/timeline/).
++
++## Code check
++
++No `⚠` mismatches. Every entry matches `timeline.js` and `page.js` as they are now. No `doc/decisions.md` exists for this module, so there is no reversal history to link.
+diff --git a/public/framework/ui/timeline/doc/files.jsonl b/public/framework/ui/timeline/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ui/timeline/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/ui/timeline/readme.md b/public/framework/ui/timeline/readme.md
+index ef3cf4094..d4a35a858 100644
+--- a/public/framework/ui/timeline/readme.md
++++ b/public/framework/ui/timeline/readme.md
+@@ -5,3 +5,7 @@ A dated list of events. A `ui/` template: copy the markup from [its page](/frame
+ Code: `page.js` and `timeline.js` in this folder.
+ 
+ _Stub — more to come._
++
++## More
++
++- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+diff --git a/public/framework/ui/toolbar/doc/architecture.md b/public/framework/ui/toolbar/doc/architecture.md
+new file mode 100644
+index 000000000..8ace3160a
+--- /dev/null
++++ b/public/framework/ui/toolbar/doc/architecture.md
+@@ -0,0 +1,49 @@
++# Toolbar architecture — markup you copy, not a component you call
++
++The toolbar is a row of buttons, a search field and a segment control, made from plain `card flex` classes. It is a `ui/` template: its page shows the markup and the reasons, and the source is [`page.js`](../page.js). There is no class and no function to import; the page's own `specimen` is the template.
++
++## No `ui.toolbar()` function
++
++**Decided:** a bar is written out as markup (`card flex wrap gap v-center`), and the page prints that markup as its source.
++**Why:** what makes a bar useful is what goes in it: which groups, which one grows, how tight each gap is. A function would hardcode one bar or take a config object that describes the row, which is worse than the row.
++**Instead:** a `ui.toolbar({ groups, grow })` helper. It would be used once per app, and every change would go through its config.
++**Detail:** [the page, `content()`](/framework/ui/toolbar/)
++
++## Wrap by default; scroll only for a one-line bar
++
++**Decided:** the row uses `wrap`, so buttons drop to a new line on a narrow screen.
++**Why:** every button stays reachable. The cost is height, and that is the accepted trade.
++**Instead:** `flex-nowrap` with `overflow-x: auto`. It keeps one line, but hides an unknown number of buttons off the right edge with nothing telling the reader they are there.
++**Detail:** [the page, `mobile` demo](/framework/ui/toolbar/)
++
++## The growing field uses `flex-1`, not `split`
++
++**Decided:** the one element that should absorb the slack gets `flex-1`.
++**Why:** `split` (`space-between`) spreads three groups into thirds and leaves the field at its own width. `flex-1` works with any number of groups, and it fixes the input, which `framework.css` sets to `width: 100%`.
++**Instead:** `split`. It is still right for a two-group bar with no field, as the `title` demo shows.
++**Detail:** [the page, `## flex-1, not split`](/framework/ui/toolbar/)
++
++## `flex-1` needs a `min-width` under `wrap`
++
++**Decided:** the growing field sets a `min-width` (`9em` in the template).
++**Why:** `flex: 1` is `flex-basis: 0`. In a tight row, without a minimum, the field shrinks to a couple of pixels instead of wrapping to the next line.
++**Instead:** no minimum, which fails as described above.
++**Detail:** [the page, the `wrap` paragraph](/framework/ui/toolbar/)
++
++## Gaps are a fraction of the theme gap
++
++**Decided:** a group's gap is `calc(var(--gap) * 0.3)` for labelled buttons and `* 0.15` for icon-only buttons.
++**Why:** a tight gap reads as one group. The theme already draws borderless buttons, so no border or joining CSS is needed.
++**Instead:** a joined segmented control (negative margins, corner suppression on the middle buttons). It needs real CSS and earns none here.
++**Detail:** [the page, `group` demo](/framework/ui/toolbar/)
++
++## A segment is a group where `.prim` marks the selected option
++
++**Decided:** in a segment control, the selected button carries `.prim`, and the others are plain.
++**Why:** `.prim` on one of several mutually exclusive buttons reads as "selected", not as a fourth independent action.
++**Instead:** a separate `.selected` class. It would be new CSS for a state `.prim` already expresses.
++**Detail:** [the page, `filter` demo](/framework/ui/toolbar/)
++
++## Checked against the code
++
++Every entry above matches `page.js` as it is now. No `⚠` mismatch was found.
+diff --git a/public/framework/ui/toolbar/readme.md b/public/framework/ui/toolbar/readme.md
+index 4bd601942..a985430a4 100644
+--- a/public/framework/ui/toolbar/readme.md
++++ b/public/framework/ui/toolbar/readme.md
+@@ -5,3 +5,7 @@ A row of buttons and a search box. A `ui/` template: copy the markup from [its p
+ Code: `page.js` in this folder.
+ 
+ _Stub — more to come._
++
++## More
++
++[`doc/architecture.md`](./doc/architecture.md) (decisions and why)
