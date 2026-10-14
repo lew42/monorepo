@@ -66,13 +66,6 @@
 **Instead:** reactive `filter`, `sort` and `group_by` lists, which were cut.
 **Detail:** [decisions.md, Verdicts](./decisions.md)
 
-## Serialized as a bare array
-
-**Decided:** `toJSON()` returns `[...items]`, so an Item reads `"items": [ … ]` with no wrapper.
-**Why:** `JSON.stringify` recurses with no custom code at the call site.
-**Instead:** `{ children: [...] }`, which needs a wrapper on every read.
-**Detail:** [decisions.md, Verdicts](./decisions.md)
-
 ## Two forms of move
 
 **Decided:** `move(id, {after})` is the saved line form, and `move(node, {before})` is the drag form. A cross-list move leaves its source quietly, so the one event is the move itself.
@@ -80,6 +73,3 @@
 **Instead:** one form. Each caller would then translate its own input.
 **Detail:** [readme.md, Watch out](../readme.md)
 
----
-
-Entry: [List.js](../List.js) · Examples and tests: [List.examples.js](../List.examples.js) · Readme: [readme.md](../readme.md)
