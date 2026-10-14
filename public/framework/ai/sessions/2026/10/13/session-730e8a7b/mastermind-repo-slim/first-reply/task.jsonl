@@ -2,3 +2,9 @@
 {"decision":{"at":"2026-10-13T19:43:08-05:00","text":"Biggest hop was the 8 s fast_wait_ms hold, not the spawn (spawn+turn ~2.2 s). Cut to 1500 ms and pre-warm the fast agent at create/resume. Alternative: assistant cap exemption (not the cause), or hold only while smart is mid-turn (more code, same result)."}}
 {"experiment":{"try":"first reply on a private Servex, one sentence","measure":"ms from the sentence to the reply in the session file","result":"before 8126; after 1585-1710 pre-warmed, 2830-4709 cold"}}
 {"assign":{"landed_at":"2026-10-13T19:43:08-05:00","title":"voice sessions: first reply in about 2 s","outcome":"Committed a0d113505 on michael/dev: the 8 s fast-reply hold is now 1.5 s and the fast agent pre-warms when the drawer opens. First reply 8.1 s to 1.6-2.8 s (4.7 s once cold); floor ~1.2 s. Takes effect at the next Servex restart. Whisper and browser draw not measured (outside fence).","links":["ux/Dictate/doc/latency.md","Servex/agents/Sessions.js"]}}
+{"log":{"at":"2026-10-13T19:43:18-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-13T19:43:18-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-13T19:43:18-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-13T19:43:18-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-13T19:43:25-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-13T19:43:25-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
