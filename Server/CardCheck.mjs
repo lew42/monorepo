@@ -1,4 +1,4 @@
-/* `node Server/card-check.mjs <card-dir or card page.jsonl>` — checks a card against the card standard:
+/* `node Server/CardCheck.mjs <card-dir or card page.jsonl>` — checks a card against the card standard:
  *   1. A state line
  *   2. A preview of 60 characters or less
  *   3. A checklist
@@ -18,7 +18,8 @@ const MAX_PARA = 60;
 
 const words = s => s.replace(/\]\([^)]*\)/g, "]").replace(/`[^`]*`/g, "x").split(/\s+/).filter(w => /\w/.test(w)).length;
 
-function parse_lines(filePath){
+export default class CardCheck {
+static parse_lines(filePath){
 	try {
 		return fs.readFileSync(filePath, "utf8").split("\n").flatMap(l => {
 			try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; }
@@ -28,7 +29,7 @@ function parse_lines(filePath){
 	}
 }
 
-export function card_flags(targetPath){
+static card_flags(targetPath){
 	const flags = [];
 	let jsonlPath = targetPath;
 	try {
@@ -44,7 +45,7 @@ export function card_flags(targetPath){
 		return [`card-check: page.jsonl not found in ${targetPath}`];
 	}
 
-	const lines = parse_lines(jsonlPath);
+	const lines = CardCheck.parse_lines(jsonlPath);
 	if (!lines.length) return ["card-check: empty card log"];
 
 	const card = {
@@ -124,6 +125,10 @@ export function card_flags(targetPath){
 
 	return flags;
 }
+}
+
+/** Old names, kept until 2026-10-20 (callers: on-landing.mjs). */
+export const card_flags = CardCheck.card_flags;
 
 if (path.resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)){
 	const target = path.resolve(process.argv[2] || ".");

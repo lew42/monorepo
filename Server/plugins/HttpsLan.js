@@ -1,9 +1,9 @@
 import https from "https";
-import HttpsCert from "../https-cert.mjs";
+import HttpsCert from "../HttpsCert.mjs";
 
 /* A second listener, https, beside the http one, so a phone on the LAN gets a secure context (and its mic).
  * Same Express app, so every route and the Whisper proxy work unchanged. Needs the cert from
- * `node Server/https-cert.mjs`; without it, nothing happens. Port: HTTPS_PORT, else PORT + 10000 (3104 -> 13104).
+ * `node Server/HttpsCert.mjs`; without it, nothing happens. Port: HTTPS_PORT, else PORT + 10000 (3104 -> 13104).
  * Why a self-signed cert: public/framework/ux/Dictate/doc/https-lan.md */
 export default class HttpsLan {
 

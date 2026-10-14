@@ -62,7 +62,7 @@ We never guess, estimate, or hallucinate token usage. We only use real data:
    - Anthropic SDK returns `usage.input_tokens`, `usage.output_tokens`, `usage.cache_read_input_tokens`, `usage.cache_creation_input_tokens`.
    - OpenRouter returns `usage.cost` directly from the `/generation` settlement endpoint.
 2. **Local Language Server Ground Truth:**
-   - `Server/antigravity-usage.mjs` queries the local Language Server gRPC-Web status.
+   - `Server/AntigravityUsage.mjs` queries the local Language Server gRPC-Web status.
    - Exposes exact `remainingFraction` and ISO `resetTime` for every model.
 3. **No Fabricated Stats:**
    - If token counts are missing from a mock or unmetered call, it is flagged as `unpriced_calls` in the ledger, never filled with estimated guesses.

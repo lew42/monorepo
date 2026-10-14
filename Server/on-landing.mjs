@@ -12,7 +12,7 @@ import path from "node:path";
 import { spawnSync, spawn, execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { text_flags } from "./text-check.mjs";
-import { card_flags } from "./card-check.mjs";
+import { card_flags } from "./CardCheck.mjs";
 import { doc_check } from "./doc-check.mjs";
 import { can_stop, entry_for_task_dir } from "./worktree-sweep.mjs";
 import TaskDirs from "./TaskDirs.mjs";

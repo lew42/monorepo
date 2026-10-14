@@ -75,7 +75,7 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 - **Dynamic Heartbeat & Autonomy Policy Landed:**
   - `doc/agents/autonomy.md`: State-driven wakeups (no polling when idle, one-shot timer when tasks are in flight, sleep until reset when quota exhausted).
   - Unstuck protocol: Mastermind acts as executive decision-maker; minions are forbidden from stopping mid-flight for trivial user questions.
-  - Truthful token accounting: Zero hallucinated tokens; ground truth from `Server/antigravity-usage.mjs` and OpenRouter `/generation`.
+  - Truthful token accounting: Zero hallucinated tokens; ground truth from `Server/AntigravityUsage.mjs` and OpenRouter `/generation`.
 - **Todo Items 153 & 158 Landed & Retired (commit `a5cc0a04`):**
   - Item 158: `merge.mjs` skips deleted/moved `page.js` files during smoke tests, eliminating false 404 failures.
   - Item 153: `threeWay()` landing in `merge.mjs` now auto-commits clean merges as 2-parent merge commits via `MERGE_HEAD` when no prior staged files exist, leaving unrelated working tree files untouched; prints `left uncommitted in main tree: <files>` if pre-staged.

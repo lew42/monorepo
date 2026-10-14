@@ -13,7 +13,7 @@ import Processes from "./Processes.js";
 import Games from "./Games.js";
 import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
-import { check_page, cap } from "../Server/browser-check.mjs";
+import { check_page, cap } from "../Server/BrowserCheck.mjs";
 import { pid as browser_pid } from "../Server/browser.mjs";
 import Heartbeat from "./Heartbeat.js";
 import LogSweeper from "./LogSweeper.js";

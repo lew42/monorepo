@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-/* antigravity-usage.mjs — Fetches Antigravity model quotas and plan status.
+/* AntigravityUsage.mjs — Fetches Antigravity model quotas and plan status.
  * Communicates with the local Antigravity LanguageServerService via gRPC-Web.
  * Usage:
- *   node Server/antigravity-usage.mjs          # Formatted console summary
- *   node Server/antigravity-usage.mjs --json   # Machine-readable JSON
- *   node Server/antigravity-usage.mjs --sync   # Write public/framework/ai/antigravity-usage.json & append .jsonl
+ *   node Server/AntigravityUsage.mjs          # Formatted console summary
+ *   node Server/AntigravityUsage.mjs --json   # Machine-readable JSON
+ *   node Server/AntigravityUsage.mjs --sync   # Write public/framework/ai/antigravity-usage.json & append .jsonl
  */
 
 import fs from "fs";
@@ -22,7 +22,8 @@ const stamp = () => {
 	return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}${o < 0 ? "-" : "+"}${p(o / 60)}:${p(o % 60)}`;
 };
 
-export function discoverCredentials() {
+export default class AntigravityUsage {
+static discoverCredentials() {
 	try {
 		// Discover language_server.exe process and command line
 		const psCmd = 'Get-CimInstance Win32_Process -Filter \\"Name = \'language_server.exe\'\\" | Select-Object -First 1 ProcessId, CommandLine | ConvertTo-Json';
@@ -55,7 +56,7 @@ export function discoverCredentials() {
 	}
 }
 
-export function fetchStatus({ port = 53301, csrfToken } = {}) {
+static fetchStatus({ port = 53301, csrfToken } = {}) {
 	return new Promise((resolve, reject) => {
 		const payload = Buffer.from("{}", "utf8");
 		const envelope = Buffer.alloc(5 + payload.length);
@@ -98,8 +99,8 @@ export function fetchStatus({ port = 53301, csrfToken } = {}) {
 	});
 }
 
-export async function getAntigravityUsage() {
-	const creds = discoverCredentials();
+static async getAntigravityUsage() {
+	const creds = AntigravityUsage.discoverCredentials();
 	if (!creds || !creds.csrfToken) {
 		throw new Error("Antigravity language_server process not running or CSRF token not found");
 	}
@@ -107,7 +108,7 @@ export async function getAntigravityUsage() {
 	let lastErr = null;
 	for (const port of creds.ports) {
 		try {
-			const raw = await fetchStatus({ port, csrfToken: creds.csrfToken });
+			const raw = await AntigravityUsage.fetchStatus({ port, csrfToken: creds.csrfToken });
 			const userStatus = raw?.userStatus || {};
 			const planInfo = userStatus?.planStatus?.planInfo || {};
 			const configs = userStatus?.cascadeModelConfigData?.clientModelConfigs || [];
@@ -138,13 +139,13 @@ export async function getAntigravityUsage() {
 	throw lastErr || new Error("Failed to connect to Antigravity gRPC service");
 }
 
-async function main() {
+static async main() {
 	const args = process.argv.slice(2);
 	const wantJson = args.includes("--json");
 	const wantSync = args.includes("--sync");
 
 	try {
-		const usage = await getAntigravityUsage();
+		const usage = await AntigravityUsage.getAntigravityUsage();
 
 		if (wantSync) {
 			const targetJson = path.join(AI_DIR, "antigravity-usage.json");
@@ -190,7 +191,11 @@ async function main() {
 		process.exit(1);
 	}
 }
+}
+
+/** Old names, kept until 2026-10-20. */
+export const discoverCredentials = AntigravityUsage.discoverCredentials, fetchStatus = AntigravityUsage.fetchStatus, getAntigravityUsage = AntigravityUsage.getAntigravityUsage;
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-	main();
+	AntigravityUsage.main();
 }

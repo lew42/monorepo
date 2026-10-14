@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Move a month's untracked session pictures to the archive drive; tracked records stay. Doc: public/framework/ai/sessions/doc/picture-archive.md
-//   node Server/archive-sessions.mjs --plan  [--months 08,09]   what would move: per day, files, MB, destination
-//   node Server/archive-sessions.mjs --copy                     copy to the archive, sha1 every file, write its manifest + README
-//   node Server/archive-sessions.mjs --apply                    re-verify both sides, remove the C: copy, write the repo stub
-//   node Server/archive-sessions.mjs --undo [--drawn]           copy every file back (or only the ones a page.js draws) and verify (archive kept)
+//   node Server/ArchiveSessions.mjs --plan  [--months 08,09]   what would move: per day, files, MB, destination
+//   node Server/ArchiveSessions.mjs --copy                     copy to the archive, sha1 every file, write its manifest + README
+//   node Server/ArchiveSessions.mjs --apply                    re-verify both sides, remove the C: copy, write the repo stub
+//   node Server/ArchiveSessions.mjs --undo [--drawn]           copy every file back (or only the ones a page.js draws) and verify (archive kept)
 // A picture a page.js draws on load stays on C: (a copy still goes to the archive): an archived one would 404 and fail merge.mjs's smoke.
 // Flags: --root <repo> (default: this repo)  --dest <archive root> (default E:/Projects/lew42/archive)  --year 2026
 import { execFileSync } from "node:child_process";
@@ -196,7 +196,7 @@ export default class ArchiveSessions {
 			`The ${list.length.toLocaleString("en-US")} untracked pictures of this month (${ArchiveSessions.mb(bytes)}, mostly review screenshots in \`shots/\`) moved to the archive drive at \`${dst}/\`, same paths below it, to free the working disk. ${kept ? `The ${kept} pictures a page draws when it opens stayed here (a copy is on the drive too). ` : ""}Every record (task.jsonl, page.jsonl, docs, pages) is still here, so the [Sessions page](/framework/ai/sessions/) and every search still read this month. An old report shows a broken picture until it is copied back.`,
 			"",
 			`- **Every file, its size and sha1:** [archive.jsonl](archive.jsonl), the same file as \`${dst}/archive.jsonl\` on the drive (whose own README says what it is).`,
-			`- **Bring it back:** \`node Server/archive-sessions.mjs --undo --months ${m}\` (the drive plugged in) copies every file back and checks its sha1.`,
+			`- **Bring it back:** \`node Server/ArchiveSessions.mjs --undo --months ${m}\` (the drive plugged in) copies every file back and checks its sha1.`,
 			`- **How it works:** [picture-archive.md](../../doc/picture-archive.md).`,
 			"",
 			"| Day | Pictures | Size | Folders |",
@@ -217,8 +217,8 @@ export default class ArchiveSessions {
 			"These are the untracked screenshots that lived under `public/framework/ai/sessions/<year>/<month>/` in `C:/Code/lew42/monorepo`, moved here to free the working disk. The records themselves (task logs, pages, docs) stayed in the repo and in git.",
 			"",
 			`- Months here: ${months.map(m => `${this.year}/${m}`).join(", ")}. Each month folder has \`archive.jsonl\`: one line per file, its path below the month, bytes and sha1.`,
-			"- Restore: in the repo, `node Server/archive-sessions.mjs --undo --months <MM>` copies them back to the same paths and checks every sha1. Or copy a folder back by hand: the paths are the same.",
-			"- Written by `Server/archive-sessions.mjs`; the repo doc is `public/framework/ai/sessions/doc/picture-archive.md`.",
+			"- Restore: in the repo, `node Server/ArchiveSessions.mjs --undo --months <MM>` copies them back to the same paths and checks every sha1. Or copy a folder back by hand: the paths are the same.",
+			"- Written by `Server/ArchiveSessions.mjs`; the repo doc is `public/framework/ai/sessions/doc/picture-archive.md`.",
 			"",
 		].join("\n"));
 	}
