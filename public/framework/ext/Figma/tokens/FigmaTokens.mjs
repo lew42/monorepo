@@ -14,17 +14,22 @@ export class FigmaTokens {
 	static derived = [{ cls: "fig-near-black", from: "Dark BG", surface: "color-mix(in srgb, var(--fig-dark) 50%, #000)" }];
 	static skip = new Set(["size", "ref"]);   // unfinished experiments in the file, not tokens
 
-	constructor(json) {
+	constructor(json, map = []) {
 		this.json = json;
+		// colours that agree with the site by name and value: Figma's name aliases the site's property (rows marked alias in map.json, made by Server/figma-roundtrip.mjs)
+		this.alias = Object.fromEntries(map.filter(r => r.alias).map(r => [r.figma, r.site]));
 		this.col = Object.fromEntries(json.collections.map(c => [c.name, c]));
 	}
 
-	static load() { return new FigmaTokens(JSON.parse(fs.readFileSync(path.join(this.dir, "variables.json"), "utf8"))); }
+	static load() {
+		const read = f => JSON.parse(fs.readFileSync(path.join(this.dir, f), "utf8"));
+		return new FigmaTokens(read("variables.json"), read("map.json").map);
+	}
 
 	value(v) { return v && typeof v === "object" && v.alias ? `var(--fig-${v.alias})` : typeof v === "number" ? `${v}px` : v; }
 
-	block(selector, vars, mode) {
-		const lines = Object.entries(vars).filter(([n]) => !FigmaTokens.skip.has(n)).map(([n, d]) => `\t\t--fig-${n}: ${this.value(d.values[mode])};`);
+	block(selector, vars, mode, alias = {}) {
+		const lines = Object.entries(vars).filter(([n]) => !FigmaTokens.skip.has(n)).map(([n, d]) => `\t\t--fig-${n}: ${alias[n] ? `var(${alias[n]})` : this.value(d.values[mode])};`);
 		return `\t${selector} {\n${lines.join("\n")}\n\t}`;
 	}
 
@@ -38,7 +43,7 @@ export class FigmaTokens {
 	css() {
 		const { Colors, Text, Resolution } = this.col;
 		const out = [];
-		out.push(this.block(":root", Colors.vars, Colors.modes[0]));
+		out.push(this.block(":root", Colors.vars, Colors.modes[0], this.alias));
 		// Resolution: Default everywhere, Mobile under 600, Mega from 2560; a class pins a mode like Figma's explicit mode
 		out.push(this.block(":root, .fig-default", Resolution.vars, "Default"));
 		out.push(`\t@media (max-width: 599px) {\n${this.block(":root", Resolution.vars, "Mobile")}\n\t}`);

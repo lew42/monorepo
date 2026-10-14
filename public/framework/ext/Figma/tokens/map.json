@@ -3,6 +3,7 @@
  "figma": "QYN0G2URSBHYH5I06MOjxU",
  "summary": {
   "same_value": 5,
+  "aliased": 4,
   "same_name_other_value": 2,
   "same_role": 9,
   "figma_only": 6,
@@ -27,7 +28,8 @@
    },
    "site": "--prime",
    "siteValue": "#FF6157",
-   "relation": "same name, same value"
+   "relation": "same name, same value",
+   "alias": true
   },
   {
    "figma": "light",
@@ -60,7 +62,8 @@
    },
    "site": "--error",
    "siteValue": "light-dark(#c00, #ff7b72)",
-   "relation": "same name, same value"
+   "relation": "same name, same value",
+   "alias": true
   },
   {
    "figma": "ok",
@@ -71,7 +74,8 @@
    },
    "site": "--ok",
    "siteValue": "light-dark(#15803d, #4ade80)",
-   "relation": "same name, same value"
+   "relation": "same name, same value",
+   "alias": true
   },
   {
    "figma": "warn",
@@ -82,7 +86,8 @@
    },
    "site": "--warn",
    "siteValue": "light-dark(#a16207, #fbbf24)",
-   "relation": "same name, same value"
+   "relation": "same name, same value",
+   "alias": true
   },
   {
    "figma": "text",
@@ -126,7 +131,9 @@
    },
    "site": "--surface",
    "siteValue": "light-dark(#fff, #17161a)",
-   "relation": "same name, same value"
+   "relation": "same name, same value",
+   "alias": false,
+   "note": "agrees in one ground only; each Figma ground keeps its own value"
   },
   {
    "figma": "accent",

@@ -75,6 +75,22 @@ function layoutsDemo() {
 const map = await fetch(new URL("map.json", import.meta.url)).then(r => r.json()).catch(() => ({ summary: { same_value: 0, total: 0, same_role: 0, figma_only: 0 }, map: [] }));
 const swatch = c => span.c("fig-swatch").attr("style", `background:${c}`).attr("title", c);
 const hexOf = r => Object.values(r.modes ?? {}).find(v => /^#/.test(v));
+// the colour rows: Figma variable, site property, one swatch when they are one definition (an alias), two plus the delta when they are not
+const rgbOf = css => { const el = Object.assign(document.createElement("i"), { style: `color:${css}` }); document.body.append(el); const c = getComputedStyle(el).color; el.remove(); const n = c.match(/[\d.]+/g)?.map(Number); return !n ? null : /^color\(/.test(c) ? n.slice(0, 3).map(x => x * 255) : n.slice(0, 3); };
+const delta = (a, b) => { const x = rgbOf(a), y = rgbOf(b); return x && y ? Math.round(Math.max(...x.map((v, i) => Math.abs(v - y[i])))) : null; };
+function colours() {
+	const rows = map.map.filter(r => r.type === "COLOR" && r.site && hexOf(r));
+	table(() => {
+		tr(() => ["Figma variable", "Browser property", "Colour", "State"].forEach(h => th(h)));
+		rows.forEach(r => tr(() => {
+			const d = r.alias ? 0 : delta(hexOf(r), `var(${r.site})`);
+			td(() => span("--fig-" + r.figma));
+			td(() => span(r.site));
+			td(() => { if (r.alias) swatch(`var(${r.site})`); else { swatch(hexOf(r)); span(" vs "); swatch(`var(${r.site})`); } });
+			td(r.alias ? "one definition: --fig-" + r.figma + " is var(" + r.site + ")" : (d === 0 ? "equal in light, not aliased: " + (r.note ?? "") : `differs by ${d ?? "?"} of 255 (Figma ${hexOf(r)}): next slice`));
+		}));
+	});
+}
 const modes = [["fig-mobile", "Mobile"], ["fig-default", "Default"], ["fig-mega", "Mega"]];
 
 function sample(scheme) {
@@ -97,7 +113,8 @@ export default new Page({
 	content() {
 		p("Generated from the Figma variables by FigmaTokens.mjs. Nothing else on the site loads it; a page opts in. The numbers and the plan: [doc/token-sync.md](/framework/ext/Figma/doc/token-sync.md).");
 		h3("Figma variable → site property");
-		p(`${map.summary.same_value} of ${map.summary.total} variables match the site by name and value, ${map.summary.same_role} by role under another name, ${map.summary.figma_only} exist only in Figma. Why and what next: [doc/round-trip.md](/framework/ext/Figma/doc/round-trip.md).`);
+		p(`${map.summary.same_value} of ${map.summary.total} variables match the site by name and value (${map.summary.aliased} are aliases of the site property, one definition), ${map.summary.same_role} by role under another name, ${map.summary.figma_only} exist only in Figma. Why and what next: [doc/round-trip.md](/framework/ext/Figma/doc/round-trip.md).`);
+		colours();
 		details(() => {
 			summary("All " + map.summary.total + " variables");
 			table(() => {

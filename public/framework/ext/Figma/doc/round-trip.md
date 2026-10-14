@@ -12,7 +12,7 @@ Computed by `node Server/figma-roundtrip.mjs` (the counts and tables below are r
 ## Counts
 
 <!-- counts -->
-Figma file lists **36** pages; this inventory lists **36**; they agree. Coded **6**, doc only **17**, not coded **13**. Cross-check: the Figma agents' reports name 35 of those 36 page ids (the rest are named by title only). Tracked in `data/` since 2026-10-10: 8 pages, **8** no longer in the file (the owner's Page 1-8); 11 site pages were built from them (11 from nodes no longer in the page list: the Palette sections are frames inside the old Page 7).
+Figma file lists **36** pages; this inventory lists **36**; they agree. Coded **6**, doc only **30**, not coded **0**. Cross-check: the Figma agents' reports name 35 of those 36 page ids (the rest are named by title only). Tracked in `data/` since 2026-10-10: 8 pages, **8** no longer in the file (the owner's Page 1-8); 11 site pages were built from them (11 from nodes no longer in the page list: the Palette sections are frames inside the old Page 7).
 
 Tokens: 24 Figma variables: 5 same name and value, 2 same name other value, 9 same role other name, 6 Figma only, 2 skipped.
 <!-- /counts -->
@@ -38,7 +38,7 @@ Code to Figma runs the other way through `generate_figma_design`: [capture.md](.
 | `warn` (Colors) | `--warn` | same name, same value |
 | `text` (Text) | `--ink` | same role, other name: body text |
 | `muted` (Text) | `--subtle` | same role, other name: second text colour |
-| `surface` (Text) | `--surface` | same name, same value |
+| `surface` (Text) | `--surface` | same name, same value: agrees in one ground only; each Figma ground keeps its own value |
 | `accent` (Text) | `--prime` | same role, other name: the accent; the site never swaps it per ground |
 | `on-accent` (Text) | - | figma only: no site token: text on an accent fill is picked per component |
 | `pad-x` (Resolution) | `--pad-card` | same role, other name: card inset; fluid on the site, fixed per mode in Figma |

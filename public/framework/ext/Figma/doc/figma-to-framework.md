@@ -35,3 +35,9 @@
 Confirmed by building the nine Palette pages: flex row/column, gap, padding, align, HUG chips, alpha overlays, the em round trip. Not confirmed (no example in these files): Figma grid layout, component variant sets.
 
 See also: [capture.md](./capture.md) (the other direction: our page into Figma), [haiku-builds.md](./haiku-builds.md) (what a spec must name), [mapping.md](./mapping.md) (first draft).
+
+## Direction of the token sync (decided 2026-10-13)
+
+- **The browser `styles/` tokens are the source of truth; Figma mirrors them.** The site is what ships, and a Figma value is a copy of it.
+- **How a change flows:** edit the property in `styles/`, run `node Server/figma-roundtrip.mjs` then `node public/framework/ext/Figma/tokens/FigmaTokens.mjs` (aliases regenerate, `--check` proves it), commit.
+- **Figma follows later:** a Figma masterminds task writes the new value into the variable through the Figma MCP; this repo never writes to Figma. Rows that still differ (`dark`, `light`) are listed on `/framework/ext/Figma/tokens/`.

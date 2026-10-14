@@ -65,6 +65,8 @@ for (const col of vars.collections) for (const [name, v] of Object.entries(col.v
 		const fh = Object.values(v.values).map(x => typeof x === "string" ? hex(x) : null).filter(Boolean);
 		const eq = fh.some(h => siteHexes(same).includes(h));
 		Object.assign(row, { site: "--" + name, siteValue: same, relation: eq ? "same name, same value" : "same name, different value" });
+		// one mode in Figma = safe to alias (FigmaTokens writes var(--site)); a per-ground colour keeps its own values
+		if (eq) Object.assign(row, Object.keys(v.values).length === 1 ? { alias: true } : { alias: false, note: "agrees in one ground only; each Figma ground keeps its own value" });
 	} else if (roles[name]) {
 		const [prop, why] = roles[name];
 		Object.assign(row, prop ? { site: prop, siteValue: site[prop], relation: "same role, other name", note: why } : { relation: "figma only", note: why });
@@ -74,8 +76,28 @@ for (const col of vars.collections) for (const [name, v] of Object.entries(col.v
 const mapped = new Set(map.map(r => r.site).filter(Boolean));
 const siteOnly = Object.keys(site).filter(k => !mapped.has(k) && /^--(prime-ink|tint|wash|line|hot|shadow|light|dark|ink|surface|subtle|error|ok|warn)$/.test(k));
 const tally = r => map.filter(x => x.relation === r).length;
-const summary = { same_value: tally("same name, same value"), same_name_other_value: tally("same name, different value"), same_role: tally("same role, other name"), figma_only: tally("figma only"), skipped: tally("skipped"), total: map.length, site_only_colour_tokens: siteOnly };
+const summary = { same_value: tally("same name, same value"), aliased: map.filter(x => x.alias).length, same_name_other_value: tally("same name, different value"), same_role: tally("same role, other name"), figma_only: tally("figma only"), skipped: tally("skipped"), total: map.length, site_only_colour_tokens: siteOnly };
 fs.writeFileSync(path.join(fig, "tokens/map.json"), JSON.stringify({ generated: "node Server/figma-roundtrip.mjs", figma: KEY, summary, map }, null, 1) + "\n");
+
+// ---- --check: an agreeing colour has one value. Two numbers must agree: aliases written in tokens.css vs map rows marked alias ----
+if (process.argv.includes("--check")) {
+	const tcss = read(path.join(fig, "tokens/tokens.css"));
+	const agree = map.filter(r => r.relation === "same name, same value");
+	const want = map.filter(r => r.alias);
+	const bad = [];
+	for (const r of want) {
+		const m = new RegExp(String.raw`--fig-${r.figma}:\s*([^;]+);`).exec(tcss);
+		if (!m || m[1].trim() !== `var(${r.site})`) bad.push(`${r.figma}: tokens.css has "${m ? m[1].trim() : "nothing"}", want var(${r.site})`);
+	}
+	const written = [...tcss.matchAll(/--fig-([a-z-]+):\s*var\((--[a-z-]+)\)\s*;/g)].filter(m => map.some(r => r.figma === m[1] && r.site === m[2] && r.relation === "same name, same value"));
+	if (written.length !== want.length) bad.push(`aliases written ${written.length} != map rows marked alias ${want.length}`);
+	// no second literal value: no --fig-<agreeing name> or site --<name> defined with a literal outside framework.css and styles/ themes
+	const hits = walk(fw).filter(f => /\.css$/.test(f) && !/[\\/]core[\\/]new[\\/]|[\\/]styles[\\/]/.test(f) && !/framework\.css$/.test(f));
+	for (const f of hits) for (const r of agree) for (const m of read(f).matchAll(new RegExp(String.raw`^\s*(--fig-${r.figma}|--${r.figma})\s*:\s*([^;]+);`, "gm")))
+		if (!/^var\(/.test(m[2].trim()) && !(r.alias === false)) bad.push(`${path.relative(fw, f)}: ${m[1]} = ${m[2].trim()} (second value)`);
+	console.log(JSON.stringify({ agreeByName: agree.length, aliasRows: want.length, aliasesWritten: written.length, exceptions: agree.filter(r => !r.alias).map(r => r.figma), problems: bad }));
+	process.exit(bad.length ? 1 : 0);
+}
 
 // ---- doc blocks ----
 const link = p => `[${p.replace(/^ext\/Figma\//, "")}](/framework/${p})`;

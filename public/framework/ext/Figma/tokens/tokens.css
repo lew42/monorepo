@@ -2,12 +2,12 @@
    Opt-in: nothing on the site loads this file yet. ../doc/token-sync.md */
 @layer theme {
 	:root {
-		--fig-prime: #ff6157;
+		--fig-prime: var(--prime);
 		--fig-light: #dddddd;
 		--fig-dark: #675f56;
-		--fig-error: #cc0000;
-		--fig-ok: #15803d;
-		--fig-warn: #a16207;
+		--fig-error: var(--error);
+		--fig-ok: var(--ok);
+		--fig-warn: var(--warn);
 	}
 
 	:root, .fig-default {
