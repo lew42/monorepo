@@ -7,6 +7,7 @@
 //   node Server/AskTally.mjs tally                            normalise tags, Haiku maps tags to feature + area
 //   node Server/AskTally.mjs group                            Haiku groups the asks in each area into repeated features
 //   node Server/AskTally.mjs verdicts  [--par 4]              Haiku per feature batch, with gathered evidence
+//   node Server/AskTally.mjs rejudge  [--par 4]              today's dictations as asks, re-judge features whose evidence moved, record before/after
 //   node Server/AskTally.mjs write                            asks-outcomes.jsonl (one-line asks only)
 //   node Server/AskTally.mjs page                             asks-outcomes.md, every number computed from the jsonl
 import fs from "node:fs";
@@ -258,7 +259,7 @@ ASKS:
 	static words(s){ return [...new Set(String(s).toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 2 && !["the", "and", "for", "with", "page", "system", "new", "add", "make"].includes(w)))]; }
 	static evidence(f, idx){
 		const w = this.words([f.feature, ...f.tags].join(" "));
-		const score = t => { const lt = t.toLowerCase(); return w.filter(x => lt.includes(x)).length; };
+		const score = t => { const lt = String(t ?? "").toLowerCase(); return w.filter(x => lt.includes(x)).length; };
 		const need = Math.min(2, w.length);
 		const land = idx.land.map(x => ({ ...x, s: score(x.text) })).filter(x => x.s >= need).sort((a, b) => b.s - a.s).slice(0, 6);
 		const git = idx.git.map(x => ({ x, s: score(x) })).filter(x => x.s >= need).sort((a, b) => b.s - a.s).slice(0, 8).map(o => o.x);
@@ -304,6 +305,76 @@ FEATURES:
 		return { judged: Object.keys(done).length, land_lines: idx.land.length, commits: idx.git.length, audit_items: audit.length };
 	}
 
+	// ---- 4b. rejudge: new asks in, verdicts re-judged only where the evidence moved, before/after recorded ----
+	static REQ_DIR = path.join(ROOT, "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim");
+	static REJUDGE_ASK_PROMPT = `Same job as before, with one change. Each prompt below is one of the owner's dictations of 2026-10-13, written up with the owner's words verbatim (ignore the mastermind's own reading). Extract the owner's DISTINCT asks the same way, but for "feature" you MUST use one name from the EXISTING FEATURES list when the ask is the same thing, and a new short lowercase tag only if none fits.
+EXISTING FEATURES: `;
+	static REJUDGE_SPOT = path.join(ROOT, "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/asks-tally-rerun/rejudge-spotcheck.json");
+	static read_json(f){ try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch { return null; } }
+	static signature(e){ return JSON.stringify([(e?.land ?? []).map(x => x.file + x.landed_at).sort(), (e?.git ?? []).map(x => x.split(" ")[0]).sort()]); }
+	static async rejudge({ par = 4 } = {}){
+		const L = this.read_jsonl(this.OUT);
+		const before_rows = L.filter(l => l.feature).map(l => l.feature), before = Object.fromEntries(before_rows.map(f => [f.name, f]));
+		const today = new Date().toISOString().slice(0, 10);
+		// 1. today's dictations become asks, mapped onto existing features (one Haiku job)
+		const ff = this.file("features.json"), feats = JSON.parse(fs.readFileSync(ff, "utf8"));
+		fs.copyFileSync(ff, this.file("features-pre-rejudge.json"));
+		const files = fs.readdirSync(this.REQ_DIR).filter(f => /^requirements(-\d+)?\.md$/.test(f));
+		const body = files.map(f => JSON.stringify({ id: f, at: today, source: "req:" + f, text: fs.readFileSync(path.join(this.REQ_DIR, f), "utf8").slice(0, 30000) })).join("\n");
+		const r = await askOnce(this.REJUDGE_ASK_PROMPT + feats.map(f => f.feature).join("; ") + "\n" + this.ASK_PROMPT + body, { model: HAIKU, cwd: this.SCRATCH });
+		fs.appendFileSync(this.file("cost.jsonl"), JSON.stringify({ phase: "rejudge-asks", n: files.length, cost: r.cost_usd }) + "\n");
+		const fresh = this.parse_array(r.answer), by_name = Object.fromEntries(feats.map(f => [f.feature, f])), touched = new Set(), seen = new Set(feats.flatMap(f => f.asks.map(a => this.norm(a.ask))));
+		let added = 0;
+		for (const a of fresh){
+			if (!a.ask || seen.has(this.norm(a.ask))) continue; seen.add(this.norm(a.ask));
+			const name = this.norm(a.feature), tag = by_name[name] ? name : null;
+			const f = by_name[name] ??= (feats.push({ feature: name, area: "misc", count: 0, first: today, last: today, tags: [], asks: [] }), feats[feats.length - 1]);
+			f.asks.push({ ...a, date: today, tag: tag ?? name }); f.count++; f.last = today; touched.add(name); added++;
+		}
+		fs.writeFileSync(ff, JSON.stringify(feats.sort((a, b) => b.count - a.count)));
+		// 2. fresh evidence for every feature; re-judge only those whose evidence moved or that got a new ask
+		const old_pack = Object.fromEntries(JSON.parse(fs.readFileSync(this.file("evidence.json"), "utf8")).map(p => [p.feature, p]));
+		fs.copyFileSync(this.file("evidence.json"), this.file("evidence-pre-rejudge.json"));
+		const vf = this.file("verdicts.json"), verdicts = JSON.parse(fs.readFileSync(vf, "utf8"));
+		fs.copyFileSync(vf, this.file("verdicts-pre-rejudge.json"));
+		const idx = { land: this.landing_index(), git: this.git_subjects(), follow: [], audit: [] };
+		const dirty = [];
+		for (const f of feats){
+			const sig = this.signature(this.evidence(f, idx)), prev = old_pack[f.feature] ? this.signature(old_pack[f.feature].evidence) : null;
+			if (touched.has(f.feature) || sig !== prev){ delete verdicts[f.feature]; dirty.push(f.feature); }
+		}
+		fs.writeFileSync(vf, JSON.stringify(verdicts));
+		const v = await this.verdicts({ par, top: 99999 });          // judges only the deleted ones (it rebuilds evidence with follow-up + audit lines too)
+		const w = this.write();
+		return { new_asks: added, wrote: w.lines, verdicts: v, ...this.record({ before_rows, touched, rejudged: dirty.length, added, today }) };
+	}
+	// Compare the written features with the pre-rejudge ones; keep change lines + one rejudge line in the jsonl. 'record' on the CLI rebuilds it from git HEAD.
+	static record({ before_rows, touched, rejudged, added, today }){
+		const cnt = rows => { const o = {}; for (const f of rows) o[f.status] = (o[f.status] ?? 0) + 1; return o; };
+		const before = Object.fromEntries(before_rows.map(f => [f.name, f]));
+		const all = this.read_jsonl(this.OUT), now = all.filter(l => l.feature).map(l => l.feature), changes = [];
+		for (const f of now){
+			const b = before[f.name]; if (b && b.status === f.status && b.link === f.link) continue;
+			if (!b && f.status === "unjudged") continue;
+			changes.push({ change: { feature: f.name, from: b?.status ?? "new", to: f.status, link: f.link, proof: f.proof, last: f.last, asked_today: touched.has(f.name) } });
+		}
+		const rest = all.filter(l => !l.change && !l.rejudge);
+		const rj = { rejudge: { at: new Date().toISOString(), since: today, before: cnt(before_rows), after: cnt(now), features_before: before_rows.length, features_after: now.length, rejudged, new_asks: added, asked_today_features: [...touched] } };
+		fs.writeFileSync(this.OUT, [...rest, rj, ...changes].map(l => JSON.stringify(l)).join("\n") + "\n");
+		return { rejudged, before: rj.rejudge.before, after: rj.rejudge.after, changed: changes.length };
+	}
+	static record_from_git(){
+		const today = new Date().toISOString().slice(0, 10), rel = path.relative(ROOT, this.OUT).split(path.sep).join("/");
+		const old = execFileSync("git", ["show", "HEAD:" + rel], { cwd: ROOT, encoding: "utf8", maxBuffer: 64e6, windowsHide: true }).split("\n").filter(Boolean).map(l => JSON.parse(l));
+		const before_rows = old.filter(l => l.feature).map(l => l.feature);
+		const feats = JSON.parse(fs.readFileSync(this.file("features.json"), "utf8")), pre = new Set(JSON.parse(fs.readFileSync(this.file("features-pre-rejudge.json"), "utf8")).flatMap(f => f.asks.map(a => this.norm(a.ask))));
+		const touched = new Set(feats.filter(f => f.asks.some(a => a.date === today && !pre.has(this.norm(a.ask)))).map(f => f.feature));
+		const old_ev = Object.fromEntries(JSON.parse(fs.readFileSync(this.file("evidence-pre-rejudge.json"), "utf8")).map(p => [p.feature, p]));
+		const new_ev = JSON.parse(fs.readFileSync(this.file("evidence.json"), "utf8")), moved = new_ev.filter(p => touched.has(p.feature) || this.signature(p.evidence) !== this.signature(old_ev[p.feature]?.evidence)).length;
+		this.write();
+		return this.record({ before_rows, touched, rejudged: moved, added: [...touched].reduce((n, t) => n + feats.find(f => f.feature === t).asks.filter(a => a.date === today && !pre.has(this.norm(a.ask))).length, 0), today });
+	}
+
 	// ---- 5. write: the committed data (one-line asks only, never prompt text) ----
 	static write(){
 		const feats = JSON.parse(fs.readFileSync(this.file("features.json"), "utf8"));
@@ -320,12 +391,14 @@ FEATURES:
 			const g = (e.git ?? []).find(x => link && x.startsWith(link.slice(0, 7)));
 			return g ? g.split(" ")[1] : null;
 		};
+		const spot = Object.fromEntries((this.read_json(this.REJUDGE_SPOT)?.checks ?? []).filter(c => !c.agree).map(c => [c.feature, c]));
 		for (const f of feats){
 			let d = v[f.feature] ?? null;
 			if (d?.status === "done"){
 				const on = landed_on(f, d.link), again = f.asks.filter(a => on && a.date > on).map(a => a.date).sort().pop();
 				if (again) d = { ...d, status: "partly", proof: `asked again on ${again}, after this landed on ${on}. ${d.proof}`, rule: "asked-again" };
 			}
+			if (spot[f.feature] && d) d = { ...d, status: spot[f.feature].mine, proof: "spot-check: " + spot[f.feature].why, rule: "spot-check" };
 			const in_audit = (ev[f.feature]?.evidence.audit ?? []).map(a => `${a.title} (${a.status})`);
 			const conf = f.asks.map(a => this.confidence(a)), avg = k => this.clamp(conf.reduce((s, c) => s + c[k], 0) / (conf.length || 1));
 			lines.push({ feature: { name: f.feature, area: f.area, count: f.count, first: f.first, last: f.last, status: d?.status ?? "unjudged", link: d?.link ?? "", proof: d?.proof ?? "", rule: d?.rule, ask_clear: avg("ask_clear"), outcome_clear: avg("outcome_clear"), audit_10_08: in_audit } });
@@ -353,14 +426,50 @@ FEATURES:
 		const cost = this.read_jsonl(this.file("cost.jsonl")).reduce((s, x) => s + (x.cost ?? 0), 0);
 		const row = f => `| ${f.count} | ${f.name} | ${f.status}${f.rule ? " (asked again)" : ""} | ${f.last} | ${this.link(f.link)} | ${String(f.proof).replace(/\|/g, "/").slice(0, 110)} |`;
 		const head = "| asks | feature | status | last asked | evidence | why |\n|---|---|---|---|---|---|";
+		const rj = L.find(l => l.rejudge)?.rejudge, C = L.filter(l => l.change).map(l => l.change);
+		const rs = this.read_json(this.REJUDGE_SPOT) ?? { checks: [] }, rs_ok = rs.checks.filter(c => c.agree).length;
+		const cell = s => String(s).replace(/\|/g, "/").slice(0, 100);
+		const crow = c => `| ${c.feature} | ${c.from} | ${c.to} | ${this.link(c.link)} | ${cell(c.proof)} |`;
+		const chead = "| feature | was | now | evidence | why |\n|---|---|---|---|---|";
+		const to_done = C.filter(c => c.to === "done" && c.from !== "done"), slipped = C.filter(c => c.from === "done" && c.to !== "done");
+		const today_done = F.filter(f => (rj?.asked_today_features ?? []).includes(f.name) && f.status === "done");
+		const changed_md = !rj ? "" : `## What changed today
+
+**${rj.features_after} features in the data file, ${F.length} rows on this page (they agree). Before: ${rj.before.done} done, ${rj.before.partly} partly, ${rj.before["not done"]} not done. After: ${rj.after.done} done, ${rj.after.partly} partly, ${rj.after["not done"]} not done.** ${rj.rejudged} features were re-judged (their evidence moved, or you asked about them today), ${rj.new_asks} asks from today's dictations were added, and ${rj.features_after - rj.features_before} features are new. Most of today's ~40 landings were infrastructure no ask names, so the totals move little; a "done" that rested on a keyword match was overruled when I read the landing line ([spot-check](#spot-check-of-the-changed-verdicts)).
+
+### Moved to done (${to_done.length})
+
+${chead}
+${to_done.map(crow).join("\n") || "| none | | | | |"}
+
+### Asked today and already landed (${today_done.length})
+
+${today_done.length ? "" : "None: every feature you asked about today either still lacks a landing that names it, or its landing came first and you asked again, which counts as partly.\n"}
+
+| feature | status | evidence | why |
+|---|---|---|---|
+${today_done.map(f => `| ${f.name} | ${f.status} | ${this.link(f.link)} | ${cell(f.proof)} |`).join("\n") || "| none | | | |"}
+
+### Went the other way (${slipped.length})
+
+A "done" that slid back: you asked again after it landed, or today's evidence did not support it.
+
+${chead}
+${slipped.map(crow).join("\n") || "| none | | | | |"}
+
+### Spot-check of the changed verdicts
+
+${rs_ok}/${rs.checks.length} of the changed verdicts I read against the landing lines agreed; the ${rs.checks.length - rs_ok} that did not were corrected (rule spot-check) before the counts above. Detail: [rejudge-spotcheck.json](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/asks-tally-rerun/rejudge-spotcheck.json).
+
+`;
 		const open = F.filter(f => f.status !== "done");
 		const conflicts = A.filter(a => a.flags.conflicts);
 		const avg = k => this.clamp(A.reduce((s, a) => s + a[k], 0) / A.length);
 		const md = `# Your asks, tallied: what landed and what didn't
 
-**Confidence scale, everywhere on this page: 0.5 = not sure (the default), 0 = no idea, 1 = certain.** It is computed from yes/no flags, never typed by a model ([how](#how-it-was-computed)).
+${changed_md}**Confidence scale, everywhere on this page: 0.5 = not sure (the default), 0 = no idea, 1 = certain.** It is computed from yes/no flags, never typed by a model ([how](#how-it-was-computed)).
 
-${A.length} asks found in ${meta.prompts} of your prompts since ${meta.prompts_since}, grouped into ${F.length} features: **${n("done")} done, ${n("partly")} partly, ${n("not done")} not done.** ${F.filter(f => f.rule).length} of the "partly" had a landing, but you asked again after it landed. Verdicts were spot-checked ${sc ? `${sc.after_rule_right}/10` : "?"} right, so read a "not done" as "no evidence found", not as proof.
+${A.length} asks found in ${meta.prompts} of your prompts since ${meta.prompts_since}, grouped into ${F.length} features: **${n("done")} done, ${n("partly")} partly, ${n("not done")} not done.** ${F.filter(f => f.rule === "asked-again").length} of the "partly" had a landing, but you asked again after it landed. Verdicts were spot-checked ${sc ? `${sc.after_rule_right}/10` : "?"} right, so read a "not done" as "no evidence found", not as proof.
 
 ## Asked most, not finished
 
@@ -395,7 +504,7 @@ ${F.map(row).join("\n")}
 - **Verdicts:** the script gathered evidence for each feature (task landing lines, git subjects since 09-10, [follow-up-full.md](follow-up-full.md), the asks ledger and the [10-08 audit](/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit/)), and Haiku judged it. Then a computed rule: a "done" whose landing is older than your last ask becomes "partly (asked again)". ${F.filter(f => f.audit_10_08.length).length} features overlap the 10-08 audit, whose ledger statuses were part of the evidence, so nothing it covered was judged blind.
 - **Spot-check:** ${sc ? `${sc.raw_right}/10 right from Haiku alone, ${sc.after_rule_right}/10 after the asked-again rule. ${sc.lesson}. Detail: [spotcheck.json](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes/spotcheck.json)` : "not yet run"}.
 - **Cost:** ${cost.toFixed(2)} of Haiku for this run, plus $3.77 for a first extraction kept as a baseline.
-- **Re-run:** each step caches in the scratch dir, so a re-run only pays for what changed.
+- **Re-run:** each step caches in the scratch dir, so a re-run only pays for what changed. The rejudge command adds new dictations as asks and re-judges only features whose landing lines or commits moved; the record command rebuilds the before/after from git.
 `;
 		const out = this.OUT.replace(/\.jsonl$/, ".md");
 		fs.writeFileSync(out, md);
@@ -410,9 +519,11 @@ ${F.map(row).join("\n")}
 			: cmd === "tally" ? await this.tally({ par: n("par") })
 			: cmd === "group" ? await this.group({ par: n("par") })
 			: cmd === "verdicts" ? await this.verdicts({ par: n("par"), top: n("top") })
+			: cmd === "record" ? this.record_from_git()
+			: cmd === "rejudge" ? await this.rejudge({ par: n("par") })
 			: cmd === "write" ? this.write()
 			: cmd === "page" ? this.page()
-			: (console.error("usage: node Server/AskTally.mjs extract|asks|tally|group|verdicts|write|page"), process.exit(2));
+			: (console.error("usage: node Server/AskTally.mjs extract|asks|tally|group|verdicts|rejudge|write|page"), process.exit(2));
 		console.log(JSON.stringify(r, null, 1));
 	}
 }
