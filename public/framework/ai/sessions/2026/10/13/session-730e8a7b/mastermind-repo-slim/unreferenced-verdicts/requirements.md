@@ -1,0 +1,13 @@
+# Unreferenced files: a verdict per file, moving nothing, a deletion list for the owner
+
+Budget: $10. Load the `sub-mastermind` skill first. The owner's words: `../requirements.md` dictation 2 ("there are way too many files in every directory… some of it might not even be used anywhere… the AI can answer basic questions about each file, but who should make those decisions in terms of what stays and what goes… unless it's very obviously a bad way and there is a clear, much better way, don't move") and `../requirements-8.md` ask 1 ("random files everywhere that nobody knows what they are, where they came from, or what they do"). The census exists: `public/framework/ai/doc/unreferenced.md` (126 files with no import, link, listing or `children:` path; "a candidate, not a verdict"). Your log is this dir's `task.jsonl`. CLAUDE.md: never destructive; compute don't recall; the owner decides deletions.
+
+## Deliverable: `public/framework/ai/doc/unreferenced-verdicts.md` (one screen first, then the table), linked from `unreferenced.md`
+
+1. **Re-run the census** (`node Server/Unreferenced.mjs`) on current `michael/dev` (modules moved today: `ext/AITask` → `ai/AITask`; the one-tree apply) and diff against the 10-13 list; the count must agree with the table you write.
+2. **A verdict per file**, by Haiku minions in batches of ~30 (each reads only the file head, its folder's readme, and `git log -3 --format=%ad %s -- <file>`), with a reason and evidence: `dead` (nothing loads it, superseded by a named file, last touched > 30 days ago), `runtime-loaded` (a name built at runtime, a script tag, a route: say which, file:line), `record` (a doc or note worth keeping where it is), `misplaced` (belongs in a named module's `doc/`: say where). You (Sonnet) spot-check 15 verdicts against the files and log the agreement.
+3. **The owner's list**: the `dead` files grouped by module with total bytes and the one-line reason each, as a checklist the owner can tick; a scripted mover (`Server/retire-files.mjs --plan --apply --undo`, `git mv` into `public/framework/ai/archive/retired/2026-10-13/<original path>` with a manifest) ready to run, NOT run. `misplaced` files with few importers (0–1) and an obvious home may be moved now with `git mv` + `TaskMove --relink` (log each; under 10 files; never a file another task touched today).
+4. Owner note (kind `decision`): how many dead, how many bytes, the link, "run `node Server/retire-files.mjs --apply` when you agree, `--undo` to put them back".
+5. Card report; landing line checked with `tail -1`.
+
+Fence: `public/framework/ai/doc/unreferenced*.md`, `Server/retire-files.mjs`, `Server/Unreferenced.mjs` (re-run only), the under-10 misplaced moves, this task dir. Sonnet; Haiku reads.
