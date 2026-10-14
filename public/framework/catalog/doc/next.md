@@ -17,3 +17,5 @@ Main site before any change: 10th 1.6 s, 40th 11.0 s, 44 of 50 within 12 s.
 **The fix (over an hour, so not done here):** a still picture per card, with the live iframe only on hover or click.
 - Pictures: `node Server/shots.mjs` already shoots a page ([ext/Shots](../../ext/Shots/readme.md)); a `build.mjs --shots` pass could write one small 600×375 webp per page next to `catalog.jsonl`. 228 × ~15 KB ≈ 3.4 MB, and `screenshots/` is gitignored, so decide first whether thumbnails are committed (production is static) or the card falls back to the iframe when there is no picture.
 - Or a light preview mode (`?preview` that skips the sidebar and dev bar): touches `core/App`, ask first.
+
+Reviewed 2026-10-13 at four widths, with before and after shots: [review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/review-site-pages/review.md).
