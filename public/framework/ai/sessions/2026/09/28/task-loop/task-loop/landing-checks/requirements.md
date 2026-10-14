@@ -1,6 +1,6 @@
 # Minion C — the doc check on landing, and no landing without an outcome
 
-Load the `minion` skill first. Parent task: `public/framework/ai/sessions/2026/09/28/task-loop/task-loop/` (read its requirements.md). The design: `public/framework/ai/2026/09/28/skills-as-a-workflow-tasks-chased-by-nod/design.md`.
+Load the `minion` skill first. Parent task: `public/framework/ai/sessions/2026/09/28/task-loop/task-loop/` (read its requirements.md). The design: `public/framework/ai/sessions/2026/09/28/cards/skills-as-a-workflow-tasks-chased-by-nod/design.md`.
 
 The owner's asks, as briefed:
 - "`Server/on-landing.mjs` also checks that every module the task touched has a readme.md, a doc/ and resolving links, and posts one nag line on the card when not."

@@ -13,7 +13,7 @@ Ask 6 of `requirements.md`. **Do not soften it.** If the tab dropped things, say
 | # | owner's dictation | what the tab relayed |
 |---|---|---|
 | A | line 151 (13:22) + line 170 (13:29), the "organization mastermind" | `public/framework/ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/requirements.md` (and `owner-words.md` beside it: check whether the raw words were passed verbatim too), line 171 |
-| B | line 219 (13:51), the "consensus" one | the relay at line 220, and the messages on card `2026/09/28/agent-work-on-every-page-sanity-checks-c` (its `page.jsonl` under `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/`), plus any requirements.md it led to — find it |
+| B | line 219 (13:51), the "consensus" one | the relay at line 220, and the messages on card `2026/09/28/agent-work-on-every-page-sanity-checks-c` (its `page.jsonl` under `public/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/`), plus any requirements.md it led to — find it |
 | C | line 61 (12:04), the harness / research one | line 62 (the spawn prompt) and `public/framework/ai/sessions/2026/09/28/11e3ca4d-25f2-443f-bd31-a9f638890021/harness-research/requirements.md` |
 
 Verify these line numbers yourself first; if one is wrong, find the right one and say so.

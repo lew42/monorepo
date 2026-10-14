@@ -4,7 +4,7 @@ Load the `minion` skill first, then `code`, `layout` and `css`.
 
 ## The owner's words, verbatim (2026-09-28, about 2:10 PM)
 
-Full text: `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-3.md`, second half.
+Full text: `public/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/owner-words-3.md`, second half.
 
 "…from the AI inbox to the first detail page, I do think having a split, well, so may, maybe after
 the inbox uh, card, we can have a Uh, split screen view where essentially instead of just a one

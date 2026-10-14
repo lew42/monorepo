@@ -1,6 +1,6 @@
 # Minion B — nested tasks: the picture
 
-Load the `minion` skill first, then `page`, `layout`, `css`, `new-page`. The owner's words: [owner-words.md](/framework/ai/2026/09/29/lifecycle-nothing-left-running-nested-ta/owner-words.md). The parent brief: [../requirements.md](../requirements.md). Minion A's module: `public/framework/ext/AITask/tree.js` (+ `tree.test.mjs`) and its outcome in [../minion-data/task.jsonl](../minion-data/task.jsonl). Log in YOUR OWN task.jsonl, this folder.
+Load the `minion` skill first, then `page`, `layout`, `css`, `new-page`. The owner's words: [owner-words.md](/framework/ai/sessions/2026/09/29/cards/lifecycle-nothing-left-running-nested-ta/owner-words.md). The parent brief: [../requirements.md](../requirements.md). Minion A's module: `public/framework/ext/AITask/tree.js` (+ `tree.test.mjs`) and its outcome in [../minion-data/task.jsonl](../minion-data/task.jsonl). Log in YOUR OWN task.jsonl, this folder.
 
 **Work in the worktree `C:/Code/lew42/worktrees/qf-5`** (its server: http://127.0.0.1:52847/). Commit there by exact path. Don't merge.
 

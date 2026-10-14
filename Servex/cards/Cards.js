@@ -5,16 +5,19 @@ import { fileURLToPath } from "url";
 import { stamp } from "../home.js";
 import { Fold } from "../../public/framework/ai/cards/Fold.js";
 import { NeedsRule } from "../../public/framework/ai/rail/NeedsRule.js";
+import CardDir from "../../public/framework/ai/cards/CardDir.js";
 
-/* CARDS — one folder per card, one append-only `page.jsonl` per folder.
+/* CARDS — one folder per card, one append-only `page.jsonl` per folder, inside the sessions store (one tree, 2026-10-13):
  *
- *   ai/2026/page.jsonl                          {"title": "2026"}
- *   ai/2026/09/page.jsonl                       {"title": "September 2026"}
- *   ai/2026/09/24/page.jsonl                    {"title": "Thursday 24 September"}, then {"file": "my-card/page.jsonl"}
- *   ai/2026/09/24/my-card/page.jsonl            line 1 = the card's constructor, every later line one change
- *   ai/2026/09/24/my-card/a-sub-card/page.jsonl a sub-card, any depth
+ *   ai/sessions/2026/cards/page.jsonl                    {"title": "2026"}
+ *   ai/sessions/2026/09/cards/page.jsonl                 {"title": "September 2026"}
+ *   ai/sessions/2026/09/24/cards/page.jsonl              {"title": "Thursday 24 September"}, then {"file": "my-card/page.jsonl"}
+ *   ai/sessions/2026/09/24/cards/my-card/page.jsonl      line 1 = the card's constructor, every later line one change
+ *   ai/sessions/2026/09/24/cards/my-card/a-sub/page.jsonl  a sub-card, any depth
  *
- * A card's id is its path under `ai/`: `2026/09/24/my-card/a-sub-card`.
+ * A card's id is still its OLD path under `ai/`, `2026/09/24/my-card/a-sub-card` (records carry ids and are never
+ * rewritten), and its page is still `/framework/ai/<id>/`. `dir(id)` turns an id into its folder: ai/cards/CardDir.js
+ * is the one rule, and a folder only the old tree has (written by a Servex not yet restarted) is still found there.
  * Every change is one appended line and the latest line wins, so turning a
  * question into a request is one `{"type": "request"}` line. This class is the
  * ONLY writer of these files — `create_card` is the only way a card is made. */
@@ -62,7 +65,15 @@ export default class Cards {
 	/* An id is slash-joined slugs; anything else (`..`, `\`, capitals, empty
 	 * segments) is refused, so an id can never walk out of the root. */
 	valid(id){ return typeof id === "string" && id.length > 0 && id.split("/").every(s => SLUG.test(s)); }
-	folder(id){ return path.join(this.root, ...id.split("/")); }
+	/* The folder of a card id: the store, or the old tree when only it has the folder. Static too, for readers with no Cards. */
+	static dir(id, root = ROOT){ return path.join(root, ...CardDir.pick(id, rel => fs.existsSync(path.join(root, ...rel.split("/")))).split("/")); }
+	dir(id){ return Cards.dir(id, this.root); }
+	/* A path under ai/ that starts with a card address (`2026/10/13/x/ai/v.jsonl`) -> its file: the card's folder decides, the rest follows. */
+	static path(rel, root = ROOT){
+		const segs = String(rel).split("/").filter(Boolean), n = Math.min(segs.length, 4);
+		return path.join(Cards.dir(segs.slice(0, n).join("/"), root), ...segs.slice(n));
+	}
+	folder(id){ return this.dir(id); }
 	file(id){ return path.join(this.folder(id), "page.jsonl"); }
 	url(id){ return this.base + id + "/"; }
 	exists(id){ return this.valid(id) && fs.existsSync(this.file(id)); }
@@ -141,7 +152,7 @@ export default class Cards {
 	async claim(parent, base){
 		for (let n = 1; ; n++){
 			const slug = n === 1 ? base : `${base}-${n}`;
-			try { await fs.promises.mkdir(this.folder(`${parent}/${slug}`)); return slug; }
+			try { await fs.promises.mkdir(path.join(this.folder(parent), slug)); return slug; }   // inside the parent's real folder
 			catch (e){ if (e.code !== "EEXIST") throw e; }
 		}
 	}
@@ -378,23 +389,29 @@ export default class Cards {
 	/* Every card folder under the root: into the four-digit year folders, then
 	 * down through any folder that has a page.jsonl. Index pages (no `class`)
 	 * are walked through but not returned. */
+	/* The child slugs of an id (no id: the years), from the store and the old tree both. A year's or a month's children
+	 * are the store's date folders (its own `cards/` holds only the index page); a day's or a card's are its folder's. */
+	kids(id = ""){
+		const ls = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory() && SLUG.test(e.name)).map(e => e.name); } catch { return []; } };
+		const segs = id ? id.split("/") : [], old = path.join(this.root, ...segs);
+		const names = segs.length < 3
+			? [...ls(path.join(this.root, "sessions", ...segs)), ...ls(old)].filter(n => (segs.length ? /^\d{2}$/ : /^\d{4}$/).test(n))
+			: [...ls(path.join(this.root, ...CardDir.rel(id).split("/"))), ...ls(old)];
+		return [...new Set(names)].sort();
+	}
+
 	async walk(){
 		const out = [];
 		const visit = async (id) => {
-			const dir = this.folder(id);
-			let entries = [];
-			try { entries = await fs.promises.readdir(dir, { withFileTypes: true }); } catch { return; }
-			for (const e of entries) if (e.isDirectory() && SLUG.test(e.name)){
-				const child = `${id}/${e.name}`;
-				if (!fs.existsSync(this.file(child))) continue;
+			for (const name of this.kids(id)){
+				const child = `${id}/${name}`;
+				if (!fs.existsSync(this.file(child))){ if (child.split("/").length < 4) await visit(child); continue; }   // a date folder with no index page is still walked
 				const head = this.parse(await fs.promises.readFile(this.file(child), "utf8"))[0] ?? {};
 				if (head.class) out.push(child);
 				await visit(child);
 			}
 		};
-		let years = [];
-		try { years = (await fs.promises.readdir(this.root, { withFileTypes: true })).filter(e => e.isDirectory() && /^\d{4}$/.test(e.name)); } catch {}
-		for (const y of years) await visit(y.name);
+		for (const y of this.kids()) await visit(y);
 		return out;
 	}
 
@@ -404,17 +421,15 @@ export default class Cards {
 		if (this.legacies) return this.legacies;
 		this.legacies = new Map();
 		const visit = (id) => {
-			let entries = [];
-			try { entries = fs.readdirSync(this.folder(id), { withFileTypes: true }); } catch { return; }
-			for (const e of entries) if (e.isDirectory() && SLUG.test(e.name)){
-				const child = `${id}/${e.name}`;
+			for (const name of this.kids(id)){
+				const child = `${id}/${name}`;
 				let text;
-				try { text = fs.readFileSync(this.file(child), "utf8"); } catch { continue; }
+				try { text = fs.readFileSync(this.file(child), "utf8"); } catch { if (child.split("/").length < 4) visit(child); continue; }
 				for (const line of this.parse(text)) if (line.legacy) this.legacies.set(line.legacy, child);
 				visit(child);
 			}
 		};
-		try { for (const e of fs.readdirSync(this.root, { withFileTypes: true })) if (e.isDirectory() && /^\d{4}$/.test(e.name)) visit(e.name); } catch {}
+		for (const y of this.kids()) visit(y);
 		return this.legacies;
 	}
 

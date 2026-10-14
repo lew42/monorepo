@@ -33,7 +33,7 @@ Each one is smoke-tested (`merge.mjs`) and screenshot-checked at 400 and 1920. A
 
 ## Not now
 
-Storage stays as it is: cards keep their date folders (`ai/2026/09/30/<card>/`), which keep each folder small enough to read one at a time. mastermind-servex's storage proposal owns any change.
+Storage stays as it is: cards keep their date folders (`ai/sessions/2026/09/30/cards/<card>/`), which keep each folder small enough to read one at a time. mastermind-servex's storage proposal owns any change.
 
 
 AI 2 is not redirected. It stays as v1 until the owner approves the move.

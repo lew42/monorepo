@@ -1,6 +1,6 @@
 # Lifecycle: nothing is left running
 
-**Owner's words:** [owner-words.md](/framework/ai/2026/09/29/lifecycle-nothing-left-running-nested-ta/owner-words.md) (09-29, about 5:35 PM). Every sentence is traced in [refine/coverage.md](refine/coverage.md). The cleaned list is [refine/brief.md](refine/brief.md). This task covers items 1–4 and 11–15 there. Items 5–10 (nested tasks) are the sibling task `nested-tasks`.
+**Owner's words:** [owner-words.md](/framework/ai/sessions/2026/09/29/cards/lifecycle-nothing-left-running-nested-ta/owner-words.md) (09-29, about 5:35 PM). Every sentence is traced in [refine/coverage.md](refine/coverage.md). The cleaned list is [refine/brief.md](refine/brief.md). This task covers items 1–4 and 11–15 there. Items 5–10 (nested tasks) are the sibling task `nested-tasks`.
 
 **The complaint:** 22 dev servers were left running. It's the same root problem as before: AIs forget to start or stop things once they're deep in work. The owner: "we don't want to rely on the AIs to remember". **So the fix is node code, not a skill line.**
 

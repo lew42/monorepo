@@ -1,13 +1,20 @@
 # Servex/cards — one folder per card
 
-A card is a folder under `public/framework/ai/`, holding one append-only `page.jsonl`. It
-lives in the folder of the day it was made, and a sub-card is a folder inside it, to any depth:
+A card is a folder holding one append-only `page.jsonl`. It lives in the `cards/` folder of
+the day it was made, inside the sessions store, and a sub-card is a folder inside it, to any depth:
 
 ```
-ai/2026/09/24/page.jsonl                   the day's own page, listing its cards
-ai/2026/09/24/fix-the-sidebar/page.jsonl   a card — its id is 2026/09/24/fix-the-sidebar
-ai/2026/09/24/fix-the-sidebar/wider/…      a sub-card — 2026/09/24/fix-the-sidebar/wider
+ai/sessions/2026/09/24/cards/page.jsonl                      the day's own page, listing its cards
+ai/sessions/2026/09/24/cards/fix-the-sidebar/page.jsonl      a card — its id is 2026/09/24/fix-the-sidebar
+ai/sessions/2026/09/24/cards/fix-the-sidebar/wider/…         a sub-card — 2026/09/24/fix-the-sidebar/wider
 ```
+
+The id is the card's old path (`ai/2026/09/24/<card>/` until the one-tree move, 2026-10-13) and
+its page is still `/framework/ai/<id>/`. Turn an id into its folder with `Cards.dir(id)` (node,
+sync; falls back to the old folder if only that exists) or `CardDir.rel(id)` / `CardDir.url(id)`
+(`public/framework/ai/cards/CardDir.js`, plain string math, browser and node). The year and month
+index pages (`ai/sessions/2026/cards/`, `ai/sessions/2026/10/cards/`) are written by
+`Cards.today()` through the same rule.
 
 `Cards.js` is the only thing that writes these files. Agents make cards with the
 `create_card` tool and never by hand.

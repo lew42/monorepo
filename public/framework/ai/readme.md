@@ -5,7 +5,7 @@
 Where the agents' work is recorded, in one tree ([doc/task-folders.md](doc/task-folders.md)):
 
 - **A task** (its log, brief, review): `ai/sessions/YYYY/MM/DD/<session>/<task>/`, made by `node Server/TaskDirs.mjs --new <slug>`; the day's log is `ai/sessions/YYYY/MM/DD/day.jsonl`. A script that writes a record of its own (a crawl, a council) asks `TaskDirs.dir({slug})` for the folder, never joins a date itself.
-- **An Inbox card**: `ai/YYYY/MM/DD/<card>/` today; decided to move into `ai/sessions/YYYY/MM/DD/cards/` ([the plan](sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store/doc/one-tree.md)). Make one with `create_card`, never by picking the path, so the move changes nothing for you.
+- **An Inbox card**: its folder is `ai/sessions/YYYY/MM/DD/cards/<card>/` (one tree since 2026-10-13); its id and its page stay `2026/10/13/<card>` and `/framework/ai/2026/10/13/<card>/`. Make one with `create_card`; turn an id into its folder with [`cards/CardDir.js`](cards/CardDir.js) (`Cards.dir(id)` in Servex), never by joining a path ([doc/task-folders.md](doc/task-folders.md#2026-10-13-one-tree-applied)).
 - **Nothing else** is created under `ai/`: no `ai/<YYYY-MM-DD>/` day folder (refused since 2026-10-13), and a file about a module lives in that module's folder (its `readme.md`, or a `doc/<topic>.md` beside it).
 
 The AI system: Servex runs the agents, the readme chain is their memory, each task is a folder with a JSONL log, and node (not memory) drives the steps. Components shown, one card each: [System tab](/framework/ai/system/). **Why it is shaped this way: [doc/architecture.md](doc/architecture.md).**

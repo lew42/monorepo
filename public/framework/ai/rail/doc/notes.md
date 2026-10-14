@@ -374,7 +374,7 @@ Original comments pruned from `inbox.js`, kept here by heading; the code points 
 ~~~text
 	// THE NOW CARD HAS NO FIXED FOLDER (bug, 2026-10-03: the owner couldn't find it in the
 	// rail at all). `page.js`'s own comment called `ai/now/` "a real card folder", but no such
-	// folder exists — the card is made fresh under a NEW dated folder (`ai/2026/10/03/now/`)
+	// folder exists — the card is made fresh under a NEW dated folder (`ai/sessions/2026/10/03/cards/now/`)
 	// each day it's rewritten, so the literal id "now" is never a folder id (`is_folder_id`
 	// needs a leading year) and fell through to Servex's OLD-BOARD-ID lookup below, which has
 	// no mapping for it either. Fixed the general way: find the latest real card whose id ends

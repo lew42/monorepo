@@ -122,7 +122,7 @@ export default function content(page, box, data){
 Import by root-absolute path (`/framework/…`), and resolve the card's own files against
 `import.meta`, never the document. The example card is
 [`2026/09/28/example-a-card-s-content-js`](/framework/ai2/2026/09/28/example-a-card-s-content-js/): its
-[`content.js`](/framework/ai/2026/09/28/example-a-card-s-content-js/content.js) shows the owner's words as a
+[`content.js`](/framework/ai/sessions/2026/09/28/cards/example-a-card-s-content-js/content.js) shows the owner's words as a
 Quotation and the card's own folder as a file browser. A card with `{"layout": "tabs"}` gets each
 placed module as its own tab, named after the file.
 

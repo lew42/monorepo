@@ -28,7 +28,7 @@ the clock rolled over.
 `*-<id8>` directory — the identical rule `ai/AISession/AISessionsPage.js`'s own
 `AISessionDetail.dir_index()` already uses client-side (CLAUDE.md law 6: one rule for "which folder
 is this session's page"). Verified against the real files: it now finds `60d9def6`'s page under
-`ai/2026/10/03/`, appends the correct $110.07, and `week.json` (re-run by hand, the same manual
+`ai/sessions/2026/10/03/cards/`, appends the correct $110.07, and `week.json` (re-run by hand, the same manual
 snapshot it's always been) now shows it.
 
 **Item 2, "fix the roll-up":** two different things were checked, and only one was a bug.

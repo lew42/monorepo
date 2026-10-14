@@ -1,9 +1,9 @@
 # Layout explorer: requirements
 
-The owner's words: `/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/owner-words.md`, the first half.
+The owner's words: `/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/owner-words.md`, the first half.
 
 ## The HTML study: done, follow it
-The study exists: [`html-study.md`](/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study.md), with the full DOM trees and screenshots in `html-study/`. Don't write another. Follow its recommendation: **one page, `/layouts/explorer/…`, with three regions (left: siblings, centre: the selected page's real view scaled to fit, right: its children), all filled from the page tree's data** (`children` plus each page's `preview()`) for the current URL. Do **not** build it from nested column pages; that keeps every ancestor mounted. Hide `app.left` (the framework sidebar) on this page, and leave the right drawer free for properties.
+The study exists: [`html-study.md`](/framework/ai/sessions/2026/09/29/cards/layout-explorer-3-columns-and-a-study-of/html-study.md), with the full DOM trees and screenshots in `html-study/`. Don't write another. Follow its recommendation: **one page, `/layouts/explorer/…`, with three regions (left: siblings, centre: the selected page's real view scaled to fit, right: its children), all filled from the page tree's data** (`children` plus each page's `preview()`) for the current URL. Do **not** build it from nested column pages; that keeps every ancestor mounted. Hide `app.left` (the framework sidebar) on this page, and leave the right drawer free for properties.
 
 ## The explorer, in three columns
 - **Left rail:** the current level's items as small preview cards (siblings). At the top level, these are categories, most primitive first: one-column layouts, two-column layouts, and scale groups such as mobile and mega.

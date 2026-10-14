@@ -2,8 +2,8 @@
 
 Load the `minion` skill first, then `code`, `page`, `new-page`, `css` as they apply.
 
-**Owner's words** (read all of it): `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-2.md`. The line that matters most: *"almost everything should just be an object with properties and methods … instances and arrays of those instances, like the more of the internal structure we can see via UI."*
-Task: `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/` (requirements.md, and the card dir `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/` — design.md, the "Added" section).
+**Owner's words** (read all of it): `public/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/owner-words-2.md`. The line that matters most: *"almost everything should just be an object with properties and methods … instances and arrays of those instances, like the more of the internal structure we can see via UI."*
+Task: `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/` (requirements.md, and the card dir `public/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/` — design.md, the "Added" section).
 **The contract:** `public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/collab-format.md`. Another minion is writing the runner (`Server/collab.mjs`) against the same contract at the same time. Do not change the contract; if it is wrong, say so in your final message.
 
 **Work in the worktree `C:\Code\lew42\worktrees\collab-rounds`** (branch `worktree/collab-rounds`, its server at http://localhost:64519/). Commit there. Do not merge.

@@ -9,7 +9,7 @@
 5. **Step 6 is not a build.** `Server/review.mjs` (the fresh-eyes review task, building now) takes `--model`, so the cross-family reviewer is that option plus the provider from step 2.
 6. **New order:** 1 (with cost) → 2 → 6 via review.mjs → 5 → 4. The picker comes last because it is AI 2 UI, and that page's owner is not running.
 7. **fork_self gets no prompt-cache discount across providers.** Measure the cost of a fork on the proxied model before fleets rely on it.
-8. **Step D of [the every-page design](/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md)**: when step 2 makes `provider` live, the checkers in `check()` and `consensus()` switch to OpenRouter models and turn on its `web` plugin (Exa, about $0.007 a request) when a claim needs the web. The SDK's WebSearch is an Anthropic server tool, so it is unlikely to work for a proxied non-Claude model; test that in the spike.
+8. **Step D of [the every-page design](/framework/ai/sessions/2026/09/28/cards/agent-work-on-every-page-sanity-checks-c/design.md)**: when step 2 makes `provider` live, the checkers in `check()` and `consensus()` switch to OpenRouter models and turn on its `web` plugin (Exa, about $0.007 a request) when a claim needs the web. The SDK's WebSearch is an Anthropic server tool, so it is unlikely to work for a proxied non-Claude model; test that in the spike.
 
 ## Must-haves for the harness build (owner, 2026-09-28, on programmatic loops)
 

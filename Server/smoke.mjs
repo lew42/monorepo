@@ -32,6 +32,7 @@
  * The port comes from .worktrees.json at the main repo root, or --port / --base.
  * Exit 0 = all clean, 1 = an error was seen, 2 = bad usage or no server answering. */
 import { browser as launch } from "./browser.mjs";
+import CardDir from "../public/framework/ai/cards/CardDir.js";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -111,7 +112,7 @@ const MAIN = mainOpt ? path.resolve(mainOpt) : path.resolve(path.dirname(fileURL
 function uncommitted_in_main(p){
 	const pathname = decodeURIComponent(new URL(p, "http://x").pathname);
 	const card = /^\/framework\/ai2\/(\d{4}\/\d{2}\/\d{2}\/.+?)\/?$/.exec(pathname);   // a card renders under ai2/, lives under ai/
-	const rel = "public" + (card ? "/framework/ai/" + card[1] : pathname.replace(/\/$/, ""));
+	const rel = "public" + (card ? "/framework/ai/" + CardDir.rel(card[1]) : pathname.replace(/\/$/, ""));   // its folder is in the sessions store
 	if (rel === "public" || norm(MAIN) === norm(dir)) return false;
 	if (fs.existsSync(path.join(dir, rel, "page.js")) || fs.existsSync(path.join(dir, rel, "page.jsonl"))) return false;
 	if (!fs.existsSync(path.join(MAIN, rel))) return false;

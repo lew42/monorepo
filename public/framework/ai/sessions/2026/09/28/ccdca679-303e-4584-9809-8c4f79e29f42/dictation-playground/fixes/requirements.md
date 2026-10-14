@@ -1,6 +1,6 @@
 # Minion C — review fixes for the dictation playground
 
-Load the `minion` skill first, then `code` and `css`. Parent task: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/` — read its `requirements.md` and the owner's raw words at `public/framework/ai/2026/09/28/dictation-a-playground-and-a-better-proc/owner-words.md`. A fresh reviewer found the findings below: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/review.md`. Read it; its line numbers point into the code.
+Load the `minion` skill first, then `code` and `css`. Parent task: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/` — read its `requirements.md` and the owner's raw words at `public/framework/ai/sessions/2026/09/28/cards/dictation-a-playground-and-a-better-proc/owner-words.md`. A fresh reviewer found the findings below: `public/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/review.md`. Read it; its line numbers point into the code.
 
 ## Work in the worktree
 
