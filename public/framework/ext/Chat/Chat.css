@@ -109,9 +109,12 @@
 		font: inherit;
 	}
 
+	/* shrinks so a long mic message ("not allowed to use the microphone…") wraps instead of running off a 400 px screen (voice-e2e-review) */
 	.chatbox-mic {
-		flex: none;
+		flex: 0 1 auto;
+		min-width: 0;
 	}
+	.chatbox-mic .ux-dictate-info { min-width: 0; }
 
 	.chatbox-compose-send,
 	.chatbox-compose-more {
