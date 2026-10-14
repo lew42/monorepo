@@ -2,18 +2,11 @@
 
 Layout is a toolbar and a right-hand drawer for demo and guide pages that let the reader arrange things. Entry: [`layout.js`](../layout.js) (`box`, `bar`, `selectable`), with [`panel.js`](../panel.js) for the selection and [`words.js`](../words.js) for the vocabulary. Its pattern is a registry: `layout.words` maps a word to a control builder.
 
-## One bar for three targets
+## One bar, words as a registry
 
-**Decided:** `layout.bar($target, words)` is one function for a `View`, a bare `Element`, and a live `Page`.
-**Why:** the old code had two near-duplicate bar functions, and every new control had to be added twice.
-**Instead:** a parameter list per target (one signature per kind, more code to keep in step).
-**Detail:** [`doc/vocabulary.md`](./vocabulary.md)
-
-## Words are a registry, extended by assignment
-
-**Decided:** a control is `layout.words.name = $el => control`, and a bar lists words as a string (`"mode gap column radius"`).
-**Why:** adding a knob costs one line and never opens this folder.
-**Instead:** a fixed switch of known controls, which every caller would have to edit.
+**Decided:** `layout.bar($target, words)` serves a `View`, a bare `Element` and a live `Page`; a control is `layout.words.name = $el => control`, listed as a string.
+**Why:** the old code had two near-duplicate bars, and adding a knob meant editing both.
+**Instead:** a parameter list per target, or a fixed switch of controls every caller edits.
 **Detail:** [`doc/vocabulary.md`](./vocabulary.md)
 
 ## The bar fills itself in a microtask
@@ -27,10 +20,10 @@ Layout is a toolbar and a right-hand drawer for demo and guide pages that let th
 
 **Decided:** the selection's controls open in one right-hand rail per document, and the rail pushes the page over.
 **Why:** a properties panel that covers the element being edited is the one thing it must never do.
-**Instead:** a floating panel over the page (covers the edit), or wrapping every page in a row (a layout change for every caller).
+**Instead:** a floating panel over the page, which covers the edit.
 **Detail:** [`doc/drawer.md`](./drawer.md)
 
-⚠ **Code check:** the rail is no longer drawn by this module. `panel.js` imports [`ext/drawer`](/framework/ext/drawer/), which owns the push (`--rail-push` on `.app` in `ext/drawer/drawer.css`). [`doc/drawer.md`](./drawer.md) still says `panel.js` writes `--drawer`; that is stale.
+⚠ **Code check:** this module no longer draws the rail. `panel.js` imports [`ext/drawer`](/framework/ext/drawer/), which owns the push (`--rail-push` in `ext/drawer/drawer.css`). `doc/drawer.md` still says `panel.js` writes `--drawer`: stale.
 
 ## Selecting fills an open drawer, it never opens one
 
@@ -50,21 +43,14 @@ Layout is a toolbar and a right-hand drawer for demo and guide pages that let th
 
 **Decided:** a region, its direct items, and the items of a nested `flex`/`grid`, never deeper. A selected page gets page words (`shape fill flow measure`), never container words.
 **Why:** `.page.standard` is already a grid, and a page must never become a hoverable region itself; the sliders chip is the only way to select a page.
-**Instead:** a DOM inspector (any element, too much to show), which was rejected for the same reason.
+**Instead:** a DOM inspector, which shows too much.
 **Detail:** [`doc/selection.md`](./selection.md)
 
-## The `fill` word pairs `overflow: auto`
+## The `fill` word pairs `overflow: auto`, and the bar rests dimmed
 
-**Decided:** the `fill` word sets `overflow: auto` inline next to `.page.fill`.
-**Why:** `.page.fill` carries `overflow: hidden`, so a long page clipped everything below the fold, including the bar.
-**Instead:** change `Page.css` to `auto` (a change to every page's behaviour, not just this one).
-**Detail:** [`doc/decisions.md`](./decisions.md)
-
-## The bar rests dimmed, not hidden
-
-**Decided:** `.layout-bar` rests at `opacity: 0.4` and is fully opaque on hover, focus or touch.
-**Why:** a bar hidden until hover hid the whole "click a word on it" pitch.
-**Instead:** `opacity: 0` at rest (the first version; reversed).
+**Decided:** `fill` sets `overflow: auto` inline beside `.page.fill`, and `.layout-bar` rests at `opacity: 0.4`, fully opaque on hover, focus or touch.
+**Why:** `overflow: hidden` clipped a long page's bar; a bar hidden until hover hid the "click a word on it" pitch.
+**Instead:** change `Page.css` to `auto`, or `opacity: 0` at rest (both rejected).
 **Detail:** [`doc/decisions.md`](./decisions.md)
 
 ## Controls are shared primitives
