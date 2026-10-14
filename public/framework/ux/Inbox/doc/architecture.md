@@ -18,7 +18,7 @@ The Inbox is a rail of row previews beside the page you picked. Its main class i
 ## The score floor hides low rows, but never new ones
 
 **Decided:** rows scoring under `min` (default `Rail.FLOOR = 90`) are hidden. A row under 30 minutes old (`Inbox.FRESH_MIN`) is always shown, and the `fyi` chip turns the floor off. `?min=` in the URL changes the floor, and `?min=0` shows everything.
-**Why:** the owner wants an inbox that stays near zero ("inbox zero", 2026-09-30). A fresh low-score row would otherwise vanish the moment it arrives.
+**Why:** the inbox is meant that stays near zero ("inbox zero"). A fresh low-score row would otherwise vanish the moment it arrives.
 **Detail:** [Rail.js `visible()`](/framework/core/Page/ext/Inbox/Rail.js) · [Inbox.js `fresh()`](/framework/core/Page/ext/Inbox/Inbox.js)
 
 ## The order never moves while you look

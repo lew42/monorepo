@@ -35,7 +35,7 @@ Elements is the reference for every HTML element `framework.css` styles, and the
 **Decided:** a gap found while documenting an element is written in [`doc/framework-css.md`](./framework-css.md). This module does not change `framework.css`.
 **Why:** writing prose about a rule is not a licence to add it; a rule added here skips the ladder and the override test.
 **Instead:** fixing the gaps in the same change, which was rejected to keep the reference honest about the file it reads.
-**⚠ Code mismatch:** several findings in `framework-css.md` are now out of date. Checked against `public/framework/framework.css` on 2026-10-13: `audio` and `iframe` are in the replaced-element reset (line 24); `kbd` and `samp` are in the mono `font-family` rule (line 679); `figure` has `margin: 0` (line 35), so the 40px inline margin no longer exists; and the theme input rule excludes `[type="range"]` (line 797). The doc is stale here, not the code; its fixes are not made in this change.
+**⚠ Code mismatch:** several findings in `framework-css.md` are now out of date. Checked against `public/framework/framework.css`: `audio` and `iframe` are in the replaced-element reset (line 24); `kbd` and `samp` are in the mono `font-family` rule (line 679); `figure` has `margin: 0` (line 35), so the 40px inline margin no longer exists; and the theme input rule excludes `[type="range"]` (line 797). The doc is stale here, not the code; its fixes are not made in this change.
 **Detail:** [doc/framework-css.md](./framework-css.md)
 
 ## Lives under `styles/`, beside `base/`, `theme/` and `util/`
@@ -47,7 +47,7 @@ Elements is the reference for every HTML element `framework.css` styles, and the
 
 ## Checked by hand
 
-**Decided:** the decisions above were checked against `page.js` children, the absence of `.css` files, and the `framework.css` lines cited, on 2026-10-13. The census (`Server/ArchitectureCensus.mjs --decisions`) found no task-log decision lines naming this module, so every entry comes from its own `doc/` and code.
+**Decided:** the decisions above were checked against `page.js` children, the absence of `.css` files, and the `framework.css` lines cited,. The census (`Server/ArchitectureCensus.mjs --decisions`) found no task-log decision lines naming this module, so every entry comes from its own `doc/` and code.
 **Why:** a doc that copies a stale claim misleads the next agent; the source is the test.
 **Instead:** trusting `framework-css.md` as written, which the ⚠ above shows would be wrong on four points.
 **Detail:** [doc/framework-css.md](./framework-css.md)

@@ -27,7 +27,7 @@
 
 **Decided:** under `26rem` the rail takes the full width; it never leaves a sliver of page.
 **Why:** a push of 0 on a 400px screen would leave a partial cover that reads as nothing.
-**Instead:** a partial overlay, which is the sliver the owner rejected.
+**Instead:** a partial overlay, which is the sliver rejected.
 **Detail:** `@media (max-width: 26rem)` in [`drawer.css`](../drawer.css).
 
 ## The resize edge belongs to ext/grip
@@ -51,14 +51,14 @@ Callers redraw by re-announcing their subject (for example `panel-focus`), not b
 **Decided:** clicking page content selects an element only while the `inspect-mode` class is on `<html>`. The switch is a row in the drawer's Settings tab, off by default and kept across reloads.
 **Why:** a plain click on a custom dropdown trigger was selecting content and destroying the page's own controls.
 **Instead:** a longer list of controls to skip. A new control would reopen the bug.
-**Detail:** [`select.js`](./select.js) (`active()`), [`doc/decisions.md`](./decisions.md) (2026-09-30).
+**Detail:** [`select.js`](./select.js) (`active()`), [`doc/decisions.md`](./decisions.md).
 
 ## Deselecting does not close the rail
 
 **Decided:** only the ✕ shuts the rail. Losing a selection clears the highlight and redraws the caller's "nothing selected" view.
 **Why:** a click anywhere on the page used to close the rail and lose the reader's scroll place.
-**Instead:** closing on deselect, which the owner rejected.
-**Detail:** [`doc/decisions.md`](./decisions.md) (2026-08-16).
+**Instead:** closing on deselect, which rejected.
+**Detail:** [`doc/decisions.md`](./decisions.md).
 
 ## The phone bottom rail is a flex child, not a fixed bar
 
@@ -79,7 +79,7 @@ Callers redraw by re-announcing their subject (for example `panel-focus`), not b
 **Decided:** `[hidden]` rules in the drawer's `@layer theme` carry `!important`.
 **Why:** `.flex { display: flex }` lives in `@layer util` and beats `[hidden]` regardless of specificity. A closed 12-item list was rendering at about 940px and pushing the composer off the bottom.
 **Instead:** a higher specificity selector, which the layer order still defeats.
-**Detail:** [`drawer.css`](../drawer.css) (line 199–215), [`doc/decisions.md`](./decisions.md) (2026-10-03).
+**Detail:** [`drawer.css`](../drawer.css) (line 199–215), [`doc/decisions.md`](./decisions.md).
 
 ## What will bite you
 

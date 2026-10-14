@@ -12,7 +12,7 @@
 ## A row is flat by default; `.boxed` is opt-in
 
 **Decided:** `.item` resets the control box that `framework.css` gives a summary (background, border, inset shadow). Only `.item.boxed` brings the button look back.
-**Why:** a tree of boxed rows read as a stack of buttons, with each branch a grey bar beside the flat leaves (owner, 2026-09-29).
+**Why:** a tree of boxed rows read as a stack of buttons, with each branch a grey bar beside the flat leaves.
 **Instead:** keep every row boxed, the way every plain button on the site looks. A tree then reads as buttons, not as files.
 
 ## A leaf keeps the caret's column

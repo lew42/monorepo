@@ -45,4 +45,4 @@
 
 ## ⚠ The site skin no longer overrules the button
 
-The grammar doc ([grammar.md](./grammar.md)), the `THE SKIN STILL OVERRULES THE BUTTON` note in `framework.css`, the `Watch out` line in the [readme](../readme.md) and the page text all say the skin's `button` and `.btn` rule still wins. It does not: that rule was removed on 2026-09-06, and `styles/layers/theme/lew42/lew42.css` now says "No button rule here on purpose". A button on this site takes the grammar like every other control. The stale text is a documentation fix, not a code fix, and is outside this minion's fence.
+The grammar doc ([grammar.md](./grammar.md)), the `THE SKIN STILL OVERRULES THE BUTTON` note in `framework.css`, the `Watch out` line in the [readme](../readme.md) and the page text all say the skin's `button` and `.btn` rule still wins. It does not: that rule is gone, and `styles/layers/theme/lew42/lew42.css` now says "No button rule here on purpose". A button on this site takes the grammar like every other control. The stale text is a documentation fix, not a code fix, and is outside this minion's fence.

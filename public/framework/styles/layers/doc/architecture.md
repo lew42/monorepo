@@ -6,7 +6,7 @@
 
 **Decided:** `framework.css` holds the only `@layer base, theme, site, util;` statement; every other rule just names its layer.
 **Why:** the first `@layer` statement fixes the order for the whole document, and `app.js` puts `framework.css` first in `<head>`.
-**Instead:** each stylesheet restating the order (what happened before 2026-08-17), which drifted.
+**Instead:** each stylesheet restating the order, which drifted.
 **Detail:** [cascade.md](/framework/styles/doc/cascade.md)
 
 ## A new layer name goes in that same line
