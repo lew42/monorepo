@@ -1,7 +1,7 @@
-// models-now.mjs — which agent runs on which model, computed (never recalled). Read-only except --backend / --write.
-//   node Server/models-now.mjs                     print the table
-//   node Server/models-now.mjs --write             also write public/framework/ai/models/now.json (the models page reads it)
-//   node Server/models-now.mjs --backend openrouter|anthropic   write / delete the switch file, print what changes at the next Servex restart
+// ModelsNow.mjs — which agent runs on which model, computed (never recalled). Read-only except --backend / --write.
+//   node Server/ModelsNow.mjs                     print the table
+//   node Server/ModelsNow.mjs --write             also write public/framework/ai/models/now.json (the models page reads it)
+//   node Server/ModelsNow.mjs --backend openrouter|anthropic   write / delete the switch file, print what changes at the next Servex restart
 // Doc: Servex/ext/openrouter/readme.md ("The wall switch"). Servex reads the switch ONCE at load: restart to apply.
 import fs from "node:fs";
 import os from "node:os";

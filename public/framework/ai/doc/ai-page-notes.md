@@ -62,7 +62,7 @@ Days stay a dashboard at their address (a view, not a folder); tasks moved into 
 
 ## By-module breakdown
 
-"By module" — the day's spend/module breakdown's own click-through URL. Server/day-spend.mjs writes the data; module-spend.js draws both ends.
+"By module" — the day's spend/module breakdown's own click-through URL. Server/DaySpend.mjs writes the data; module-spend.js draws both ends.
 
 ## Month routing
 

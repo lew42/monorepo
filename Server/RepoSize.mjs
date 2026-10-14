@@ -1,5 +1,5 @@
-// repo-size.mjs — what the repo weighs, by path, in git history and on disk. Read-only: never writes to git.
-// usage: node Server/repo-size.mjs [--json out.json] [--depth 3] [--top 25]  ·  doc: public/framework/ai/doc/repo-size.md
+// RepoSize.mjs — what the repo weighs, by path, in git history and on disk. Read-only: never writes to git.
+// usage: node Server/RepoSize.mjs [--json out.json] [--depth 3] [--top 25]  ·  doc: public/framework/ai/doc/repo-size.md
 import { spawn, execFileSync } from "node:child_process";
 import { readdirSync, statSync, writeFileSync, existsSync } from "node:fs";
 import { join, sep } from "node:path";

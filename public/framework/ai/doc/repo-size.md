@@ -4,7 +4,7 @@
 
 ⚠️ **Before the next push:** the next push sends ~127 MB of pictures that are already committed. Ignoring them now does not take them out of commits already made; only the [unpushed-only rewrite](#the-smaller-variant-rewrite-only-what-is-not-pushed) does, and it has to run before the push. That is your call.
 
-| Measure (morning of 2026-10-13, `node Server/repo-size.mjs`; the numbers move every hour, re-run the script for today's) | Size |
+| Measure (morning of 2026-10-13, `node Server/RepoSize.mjs`; the numbers move every hour, re-run the script for today's) | Size |
 |---|---|
 | `.git` on this machine | 762 MB (608 MB packs + 139 MB in `.git/worktrees`, the per-worktree indexes) |
 | All history, packed | 474 MB: **screenshots 397 MB**, session text 30 MB, framework code 16 MB |
@@ -13,7 +13,7 @@
 | The next push of `michael/dev` | 1,699 commits, ~160 MB (127 MB of it images) |
 | Files the site deploys (`public/`) | 19,619 of the 20,000 Cloudflare Workers Free allows |
 
-The two totals agree: summed packed blobs (474 MB) plus trees and commits (134 MB) make the 608 MB of packs. The full run, every table: `node Server/repo-size.mjs` (read-only, about 10 seconds). The task log with each decision: [task.jsonl](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/repo-size-plan/task.jsonl).
+The two totals agree: summed packed blobs (474 MB) plus trees and commits (134 MB) make the 608 MB of packs. The full run, every table: `node Server/RepoSize.mjs` (read-only, about 10 seconds). The task log with each decision: [task.jsonl](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/repo-size-plan/task.jsonl).
 
 ---
 
@@ -91,7 +91,7 @@ git filter-repo --invert-paths \
   --path public/framework/ai/sessions/2026/10/12/session-d4cd44ab/asks-by-module/owner-prompts.jsonl \
   --path .worktree-logs/
 # 3. check the result, then replace GitHub's copy
-node C:/Code/lew42/monorepo/Server/repo-size.mjs --root C:/Code/lew42/monorepo-slim
+node C:/Code/lew42/monorepo/Server/RepoSize.mjs --root C:/Code/lew42/monorepo-slim
 git remote add origin https://github.com/lew42/monorepo.git
 git push --force origin michael/dev main
 ```
@@ -102,7 +102,7 @@ What breaks: every other clone, every worktree and its branch, open GitHub pull 
 
 #### The smaller variant: rewrite only what is not pushed
 
-Run the same `filter-repo` line with `--refs origin/michael/dev..michael/dev` added (filter-repo then rewrites only that range; check `git filter-repo --help` once it is installed, it is not on this machine yet). It strips the pictures (118 MB) and `owner-prompts.jsonl` (1.8 MB) from the ~1,700 commits since the last push, so the next push is ~41 MB instead of ~160 MB (computed by script from the unpushed blobs), and GitHub and the other clones are untouched. History already on GitHub keeps its pictures. Every worktree still has to be merged first and re-made after. Dry run it in the `monorepo-slim` clone and compare with `repo-size.mjs` before touching the working repo.
+Run the same `filter-repo` line with `--refs origin/michael/dev..michael/dev` added (filter-repo then rewrites only that range; check `git filter-repo --help` once it is installed, it is not on this machine yet). It strips the pictures (118 MB) and `owner-prompts.jsonl` (1.8 MB) from the ~1,700 commits since the last push, so the next push is ~41 MB instead of ~160 MB (computed by script from the unpushed blobs), and GitHub and the other clones are untouched. History already on GitHub keeps its pictures. Every worktree still has to be merged first and re-made after. Dry run it in the `monorepo-slim` clone and compare with `RepoSize.mjs` before touching the working repo.
 
 ---
 

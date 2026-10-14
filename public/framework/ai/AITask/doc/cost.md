@@ -78,7 +78,7 @@ OpenRouter or another API key spends **real $** instead — actual money billed
 `openai/gpt-6-luna`, is the OpenRouter rule; its agent's own cost figure is already the real
 dollar amount, not Anthropic's priced guess).
 
-`Server/day-spend.mjs <date>` reads a day's own tasks (their already-written `cost.agents`, never
+`Server/DaySpend.mjs <date>` reads a day's own tasks (their already-written `cost.agents`, never
 recomputing a cost itself) plus every task's `action` log lines, and writes
 `public/framework/ai/<date>/spend.json`: the day's Claude $ and real $ totals, a by-model
 breakdown, and which **module** (`core/Page`, `ux/Dictate`, `Servex`, …) each file touched

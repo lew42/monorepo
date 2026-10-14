@@ -1,6 +1,6 @@
 # overview.json — how it is built
 
-`Server/ai2-overview.mjs` reads every task's `task.jsonl` (~800) plus the owner's own prompts in
+`Server/Ai2Overview.mjs` reads every task's `task.jsonl` (~800) plus the owner's own prompts in
 `.claude/prompts/*.jsonl`, and writes `public/framework/ai/rail/overview/overview.json`. The Overview
 tab's page reads that file straight off disk; it does no computing of its own.
 
@@ -24,7 +24,7 @@ own `request` — a mastermind's paraphrase, not the owner's words (`owner: fals
 **Open vs. done:** unlanded and requested in the last 7 days = open; older unlanded = dropped,
 counted in `stale_count`. Landed = done; newest 30 kept, `done_count` is the true total.
 
-**To rerun it:** `node Server/ai2-overview.mjs` from the repo root, under a second.
+**To rerun it:** `node Server/Ai2Overview.mjs` from the repo root, under a second.
 
 **To change a concept:** edit `CONCEPTS` at the top of the script.
 

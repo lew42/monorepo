@@ -1,4 +1,4 @@
-// day-prompts-refine.mjs — retroactively runs the SAME mechanical refine step Echo.js runs
+// DayPromptsRefine.mjs — retroactively runs the SAME mechanical refine step Echo.js runs
 // live (Servex/agents/Echo.js `process()`) over owner prompts that have no `sentences` yet,
 // writing through the exact same page_set wire line `Servex/agents/page_tools.js` writes, so
 // a prompt refined by this script and one refined live by Echo read identically afterward.
@@ -13,7 +13,7 @@
 // boundary) and re-numbering sentences to stay continuous across the whole prompt.
 //
 // usage:
-//   node Server/day-prompts-refine.mjs 2026-10-03 2026-10-04 [--limit N] [--dry]
+//   node Server/DayPromptsRefine.mjs 2026-10-03 2026-10-04 [--limit N] [--dry]
 import fs, { appendFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -35,7 +35,7 @@ const limitIdx = args.indexOf("--limit");
 const limit = limitIdx >= 0 ? Number(args[limitIdx + 1]) : Infinity;
 if (limitIdx >= 0) args.splice(limitIdx, 2);
 const dates = args.filter(a => /^\d{4}-\d{2}-\d{2}$/.test(a));
-if (!dates.length){ console.error("usage: node Server/day-prompts-refine.mjs YYYY-MM-DD [YYYY-MM-DD ...] [--limit N] [--dry]"); process.exit(2); }
+if (!dates.length){ console.error("usage: node Server/DayPromptsRefine.mjs YYYY-MM-DD [YYYY-MM-DD ...] [--limit N] [--dry]"); process.exit(2); }
 
 // Best-effort schema check, same optional-dependency shape `page_tools.js` itself uses — a
 // missing or broken checker degrades validation, never blocks a write.

@@ -18,7 +18,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 
 - **Accounting**: [token accounting](doc/tokens/tokens.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md)
 - **Skills proposals** (what to add or retire, 2026-10-13): [doc/skills-proposals-2026-10-13.md](doc/skills-proposals-2026-10-13.md)
-- **Repo size** (what git holds, what should be committed, the plan to slim it): [doc/repo-size.md](doc/repo-size.md) · `node Server/repo-size.mjs`
+- **Repo size** (what git holds, what should be committed, the plan to slim it): [doc/repo-size.md](doc/repo-size.md) · `node Server/RepoSize.mjs`
 - **Servex** (runs the agents): [readme](/framework/servex/) · [SDK](/framework/servex/doc/sdk.md) · [decisions](/framework/servex/doc/architecture.md)
 - **Dev server**: [Server/readme.md](/framework/dev/)
 - **MCP tools**: [doc/agents/mcp.md](doc/agents/mcp.md)

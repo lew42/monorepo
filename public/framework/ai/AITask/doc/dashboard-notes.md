@@ -25,7 +25,7 @@ The local 3-argument `Date(year, monthIndex, day)` constructor, never `new Date(
 
 ## Deliverables
 day_nav: deliverable 1, "a little navigation for focusing on a specific day"
-monthPage: deliverable 5, "a stub only — title + month cost total". Sums whichever days of the month already have a `spend.json` (`Server/day-spend.mjs`, same two-currency numbers the day page itself reads — never recomputed here, law 7); a day with no file yet is silently skipped, and the total says so. Moving a multi-day task's own page under this path is a To-do, not built here — see `public/framework/ai/readme.md`.
+monthPage: deliverable 5, "a stub only — title + month cost total". Sums whichever days of the month already have a `spend.json` (`Server/DaySpend.mjs`, same two-currency numbers the day page itself reads — never recomputed here, law 7); a day with no file yet is silently skipped, and the total says so. Moving a multi-day task's own page under this path is a To-do, not built here — see `public/framework/ai/readme.md`.
 
 ## active_strip and rail
 What is running right now, above everything else — and `rail()` subtracts these rows from the spine below, so a task is listed once. These few logs re-read through `live()`, so their bars and `now` lines move in place and a task that lands drops out of the strip on its next append; every other task on the board stays on `all_tasks()`'s fetch.

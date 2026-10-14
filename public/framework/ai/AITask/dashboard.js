@@ -197,7 +197,7 @@ export function monthPage(page, month){
 			const days = Array.from({ length: daysInMonth }, (_, i) => `${month}-${String(i + 1).padStart(2, "0")}`);
 			const spends = (await Promise.all(days.map(d =>
 				fetch(`/framework/ai/${d}/spend.json`).then(r => r.ok ? r.json() : null).catch(() => null)))).filter(Boolean);
-			if (!spends.length) return void p.c("muted", "No day in this month has computed spend yet — node Server/day-spend.mjs <date> per day.");
+			if (!spends.length) return void p.c("muted", "No day in this month has computed spend yet — node Server/DaySpend.mjs <date> per day.");
 			const claude_usd = spends.reduce((s, d) => s + (d.claude_usd ?? 0), 0);
 			const real_usd = spends.reduce((s, d) => s + (d.real_usd ?? 0), 0);
 			div.c("flex gap wrap", () => {

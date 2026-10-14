@@ -1,6 +1,6 @@
-// Server/ai2-overview.mjs — builds public/framework/ai/rail/overview/overview.json
+// Server/Ai2Overview.mjs — builds public/framework/ai/rail/overview/overview.json
 //
-// Plain node, no dependency, run it with:  node Server/ai2-overview.mjs
+// Plain node, no dependency, run it with:  node Server/Ai2Overview.mjs
 // (must be run from the repo root, so its relative reads below find the files)
 //
 // What it does, in one sentence: it reads every task's task.jsonl, sorts

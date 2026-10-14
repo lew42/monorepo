@@ -12,19 +12,19 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 
 ## Misnamed (queued in ai/todo.md; batch 1 renamed five at 1a56eebd0 with `node Server/RenameScript.mjs`, 21 remain)
 
-- `Server/ai2-overview.mjs`: Function bag (kind: bag) that should be a class per code skill rules
+- `Server/Ai2Overview.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/ask-each.mjs`: Function bag (kind: bag) with 26 references that should be a class
 - `Server/audit.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/browser.mjs`: Function bag (kind: bag) with 45 refs that should be a class; core browser launcher
 - `Server/collab.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/council.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/crawl.mjs`: Function bag (kind: bag) that should be a class per code skill rules
-- `Server/day-prompts-refine.mjs`: Function bag (kind: bag) that should be a class per code skill rules
-- `Server/day-spend.mjs`: Function bag (kind: bag) that should be a class per code skill rules
+- `Server/DayPromptsRefine.mjs`: Function bag (kind: bag) that should be a class per code skill rules
+- `Server/DaySpend.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/decide.mjs`: Function bag (kind: bag) that should be a class per code skill rules
 - `Server/deploy-count.mjs`: class in lowercase file
-- `Server/models-now.mjs`: class in lowercase file
-- `Server/repo-size.mjs`: Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format)
+- `Server/ModelsNow.mjs`: class in lowercase file
+- `Server/RepoSize.mjs`: Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format)
 - `Server/retire-files.mjs`: Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format)
 - `Servex/agents/Agents.js`: Function bag (kind:bag) should be a class per code skill, but heavily used (82 refs)
 - `Servex/agents/brief.js`: Function bag (kind:bag) should be a class per code skill, 8 references
@@ -78,7 +78,7 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 | `Server/TaskMove.test.mjs` | tool | 11062 | 2026-10-12 | Server/TaskMove.test.mjs — plain node, no deps. Builds a fake repo in the OS temp dir and runs the whole | Test runner building temp repo; run by hand, no dependencies |
 | `Server/TranscribeLoop.mjs` | live | 13171 | 2026-10-12 | `node Server/TranscribeLoop.mjs [--minutes 10] [--out dir] [--reload-every 3] [--churn] [--against <origin>]` | Core transcription loop; referenced by Whisper plugin and transcription docs |
 | `Server/Unreferenced.mjs` | live | 5697 | 2026-10-13 | Server/Unreferenced.mjs — CENSUS of files nothing points at. Candidates, not verdicts; moves and deletes nothing. Doc: public/framework/ai/doc/unreferenced.md | Core census utility finding files with no references; documented |
-| `Server/ai2-overview.mjs` | misnamed | 16447 | 2026-10-12 | Server/ai2-overview.mjs — builds public/framework/ai/rail/overview/overview.json | Function bag (kind: bag) that should be a class per code skill rules |
+| `Server/Ai2Overview.mjs` | misnamed | 16447 | 2026-10-12 | Server/Ai2Overview.mjs — builds public/framework/ai/rail/overview/overview.json | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/AntigravityUsage.mjs` | renamed (1a56eebd0) | 6656 | 2026-10-06 | AntigravityUsage.mjs — Fetches Antigravity model quotas and plan status. | renamed to its class name; old exports aliased until 2026-10-20 |
 | `Server/ArchiveSessions.mjs` | renamed (1a56eebd0) | 13135 | 2026-10-13 | Move a month's untracked session pictures to the archive drive; tracked records stay. Doc: public/framework/ai/sessions/doc/picture-archive.md | renamed to its class name; old exports aliased until 2026-10-20 |
 | `Server/ask-each.mjs` | misnamed | 6626 | 2026-10-12 | Ask-each — ask a model one question at a time, in one continuous session, | Function bag (kind: bag) with 26 references that should be a class |
@@ -91,8 +91,8 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 | `Server/collab.mjs` | misnamed | 42397 | 2026-09-29 | `node Server/collab.mjs <taskdir> [--mock]` | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/council.mjs` | misnamed | 14889 | 2026-10-13 | Server/council.mjs — The Feedback Council collector and runner. | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/crawl.mjs` | misnamed | 10807 | 2026-10-13 | Server/crawl.mjs — Nightly full crawl of the site under /framework/. | Function bag (kind: bag) that should be a class per code skill rules |
-| `Server/day-prompts-refine.mjs` | misnamed | 11247 | 2026-10-13 | day-prompts-refine.mjs — retroactively runs the SAME mechanical refine step Echo.js runs | Function bag (kind: bag) that should be a class per code skill rules |
-| `Server/day-spend.mjs` | misnamed | 8171 | 2026-10-13 | day-spend.mjs — one day's spend, two currencies, and which modules it touched. | Function bag (kind: bag) that should be a class per code skill rules |
+| `Server/DayPromptsRefine.mjs` | misnamed | 11247 | 2026-10-13 | DayPromptsRefine.mjs — retroactively runs the SAME mechanical refine step Echo.js runs | Function bag (kind: bag) that should be a class per code skill rules |
+| `Server/DaySpend.mjs` | misnamed | 8171 | 2026-10-13 | DaySpend.mjs — one day's spend, two currencies, and which modules it touched. | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/decide.mjs` | misnamed | 21527 | 2026-09-29 | decide.mjs — walks ONE decision into being, step by step, so no part can be forgotten. | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/deploy-count.mjs` | misnamed | 2302 | 2026-10-13 | Read-only: how many files Cloudflare would upload from public/, before and after public/.assetsignore. | class in lowercase file |
 | `Server/doc-check.mjs` | tool | 5277 | 2026-09-29 | `node Server/doc-check.mjs <task dir>` — does every module a task touched have a | run by hand to check docs on task landing |
@@ -107,7 +107,7 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 | `Server/layout-check.mjs` | tool | 19497 | 2026-09-30 | `node Server/layout-check.mjs <url...> [--widths 1280,1920,2560,3440] [--out dir] [--height 1000] [--bands]` | run by hand for layout review, documented in skills |
 | `Server/m4a2wav.mjs` | tool | 2065 | 2026-09-28 | m4a2wav.mjs <in.m4a> <out.wav> — decode with headless Chromium's Web Audio (no ffmpeg on this machine), resample to 16 kHz mono, write 16-bit PCM WAV. | Unreferenced but touched 2026-09-28 (<30 days): kept. Haiku said: no references, no mention anywhere |
 | `Server/merge.mjs` | live | 40881 | 2026-10-13 | `node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--quick [--asked <iso>]]` — the one serialized way to land a worktree. | heavily used by hooks and skills for worktree landing |
-| `Server/models-now.mjs` | misnamed | 8388 | 2026-10-13 | models-now.mjs — which agent runs on which model, computed (never recalled). Read-only except --backend / --write. | class in lowercase file |
+| `Server/ModelsNow.mjs` | misnamed | 8388 | 2026-10-13 | ModelsNow.mjs — which agent runs on which model, computed (never recalled). Read-only except --backend / --write. | class in lowercase file |
 | `Server/on-landing.mjs` | live | 13966 | 2026-10-13 | `node Server/on-landing.mjs <task dir>` — runs text-check (walls of text), doc-check | loaded by ledger hook for task landing checks |
 | `Server/openrouter-attribute.mjs` | tool | 6332 | 2026-10-09 | Server/openrouter-attribute.mjs — put OpenRouter's own per-call dollars onto the session snapshots. | Unreferenced but touched 2026-10-09 (<30 days): kept. Haiku said: no references, no mention anywhere |
 | `Server/openrouter-gap.mjs` | tool | 3328 | 2026-10-12 | Server/openrouter-gap.mjs — where does the OpenRouter ledger disagree with the account? | run by hand to check OpenRouter ledger |
@@ -123,7 +123,7 @@ Run: `node Server/retire-files.mjs --plan --manifest Server/doc/scripts.md` then
 | `Server/refine-days.mjs` | tool | 7125 | 2026-10-13 | refine-days — run the refiner on the owner's prompts of past days, newest first. | run to refine past days' prompts |
 | `Server/refine-litmus.mjs` | tool | 12197 | 2026-10-02 | refine-litmus.mjs — deliverable 7: "the first rung of the model ladder, machine-checked." | validation tool for refiner output |
 | `Server/refine.mjs` | live | 57142 | 2026-10-12 | refine.mjs — a raw dictation, turned into a brief a mastermind can act on, with nothing lost | Heavily referenced in skills (every-prompt, new-task, servex-mastermind, sub-mastermind) and Server scripts; documented in doc/refine.md; recent (2026-10-12) |
-| `Server/repo-size.mjs` | misnamed | 11523 | 2026-10-13 | repo-size.mjs — what the repo weighs, by path, in git history and on disk. Read-only: never writes to git. | Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format) |
+| `Server/RepoSize.mjs` | misnamed | 11523 | 2026-10-13 | RepoSize.mjs — what the repo weighs, by path, in git history and on disk. Read-only: never writes to git. | Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format) |
 | `Server/retire-files.mjs` | misnamed | 2855 | 2026-10-13 | Server/retire-files.mjs — moves the owner-approved `dead` files aside (git mv), never deletes. Doc: public/framework/ai/doc/unreferenced-verdicts.md | Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format) |
 | `Server/review.mjs` | live | 54282 | 2026-10-12 | `node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none/light/full] [--why "..."] [--model <id>] [--widths 1200,1920]` | Heavily referenced in skills (finish-task, mastermind, minion, review, sub-mastermind) and Server docs; used for review gates and merge flow; recent (2026-10-12) |
 | `Server/review.test.mjs` | tool | 4489 | 2026-10-02 | node Server/review.test.mjs — widthsFor() and splitPatch(), no git, no network, no fs writes. | Test script for widthsFor() and splitPatch(); designed for hand execution with no dependencies; recent enough (2026-10-02) |

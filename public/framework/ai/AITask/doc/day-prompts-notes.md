@@ -2,7 +2,7 @@
 
 ## WHERE THE WORDS LIVE
 
-Every owner prompt is one `Prompt` item on its own session page — `/framework/ai/<Y>/<M>/<D>/session-<id>/page.jsonl` ("a session is a page", Echo.js's own doc comment). Echo.js already refines a LIVE prompt the moment it lands (clean() -> structure() -> a `sentences`/`sections`/`flags` delta written onto that same item, through `page_set`). This file reads that same shape back — it never recomputes a cost or a sentence itself (law 7) — and is silent about `sections`/`sentences` a prompt doesn't have yet. `node Server/day-prompts-refine.mjs <date>` is the retroactive half, run once for old days, same pipeline, same wire line.
+Every owner prompt is one `Prompt` item on its own session page — `/framework/ai/<Y>/<M>/<D>/session-<id>/page.jsonl` ("a session is a page", Echo.js's own doc comment). Echo.js already refines a LIVE prompt the moment it lands (clean() -> structure() -> a `sentences`/`sections`/`flags` delta written onto that same item, through `page_set`). This file reads that same shape back — it never recomputes a cost or a sentence itself (law 7) — and is silent about `sections`/`sentences` a prompt doesn't have yet. `node Server/DayPromptsRefine.mjs <date>` is the retroactive half, run once for old days, same pipeline, same wire line.
 
 ## TWO VIEWS
 

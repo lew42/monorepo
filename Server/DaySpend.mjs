@@ -1,11 +1,11 @@
-// day-spend.mjs — one day's spend, two currencies, and which modules it touched.
+// DaySpend.mjs — one day's spend, two currencies, and which modules it touched.
 // Reads only what Server/task-cost.mjs already wrote (never recomputes a cost itself) plus each
 // task's own `action` log lines, and writes public/framework/ai/<date>/spend.json.
 // Read the doc first: Server/doc/task-cost.md (this script leans on its `cost.agents` shape).
 //
 // usage:
-//   node Server/day-spend.mjs <YYYY-MM-DD>          writes public/framework/ai/<date>/spend.json
-//   node Server/day-spend.mjs <YYYY-MM-DD> --dry     prints the same numbers, writes nothing
+//   node Server/DaySpend.mjs <YYYY-MM-DD>          writes public/framework/ai/<date>/spend.json
+//   node Server/DaySpend.mjs <YYYY-MM-DD> --dry     prints the same numbers, writes nothing
 import { readFileSync, readdirSync, existsSync, writeFileSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,7 +17,7 @@ const AI = join(ROOT, "public", "framework", "ai");
 const args = process.argv.slice(2);
 const dry = args.includes("--dry"); if (dry) args.splice(args.indexOf("--dry"), 1);
 const date = args[0];
-if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { console.error("usage: node Server/day-spend.mjs YYYY-MM-DD [--dry]"); process.exit(2); }
+if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { console.error("usage: node Server/DaySpend.mjs YYYY-MM-DD [--dry]"); process.exit(2); }
 
 const lines = file => existsSync(file)
 	? readFileSync(file, "utf8").replace(/^﻿/, "").split(/\r?\n/).filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean)

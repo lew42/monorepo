@@ -69,7 +69,7 @@ an agent... grouped by role, maybe even per prompt type." Full brief:
 | `public/framework/ai/AISession/AISessionAudit.mjs` | a session's own `~/.claude/projects/.../*.jsonl` transcript | per-prompt $, token counts, now a $-by-token-kind split — appended to that session's `page.jsonl` as `{"cost":{...}}` after every turn (a Stop hook) |
 | `Server/task-cost.mjs` | the registry + every agent's own log, **now also the transcript** | a task's `cost_usd` on its own `task.jsonl`, the figure the AI board shows |
 | `Server/spend-tree.mjs` | the registry + every agent's own log, **now also the transcript** | `spend-tree.json`: every agent ever registered, its own $, its subtree $, by role, by trigger — now with a cache $ split too |
-| `Server/day-spend.mjs` | `task-cost.mjs`'s own `cost_usd` (never recomputes) | a day's Claude $ vs real $, by module |
+| `Server/DaySpend.mjs` | `task-cost.mjs`'s own `cost_usd` (never recomputes) | a day's Claude $ vs real $, by module |
 | `Server/week-cost.mjs` | `session-cost.mjs`'s own `page.jsonl` cost lines | this week's real $ against the plan, the Sessions tab's stat cards |
 | `ai/AISession/AISessionsPage.js` | `GET /api/agents`, `sessions.json`, `spend-tree.json`, a session's own `page.jsonl`/transcript | the whole Sessions tab |
 | `core/Page/weight/ai-cost.js` | `task-cost.mjs`'s own `cost_usd`/`cost.agents` (never recomputes) | the task-card breakdown table |

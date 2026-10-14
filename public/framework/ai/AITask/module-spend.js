@@ -3,7 +3,7 @@ import { build_row, ref_entry } from "../../ext/Mention/Mention.js";
 import { money } from "./cost.js";
 
 /* A day's spend in two currencies, and which modules it touched — read from
-   `spend.json` (Server/day-spend.mjs; `node Server/day-spend.mjs <date>` writes it, a plain
+   `spend.json` (Server/DaySpend.mjs; `node Server/DaySpend.mjs <date>` writes it, a plain
    node script, never typed by hand — law 7). Lives beside `day.jsonl` in the day's own folder,
    same as every other per-day file this page already reads.
 
@@ -28,7 +28,7 @@ export function spend_summary(date){
 	return div.c("ai-spend flex v gap", async $s => {
 		const data = await load(date);
 		$s.append(() => {
-			if (!data) return void p.c("muted", "Spend not computed yet for this day — run node Server/day-spend.mjs " + date + ".");
+			if (!data) return void p.c("muted", "Spend not computed yet for this day — run node Server/DaySpend.mjs " + date + ".");
 			if (!data.tasks.length) return void p.c("muted", "No tasks tracked this day.");
 			div.c("flex gap wrap", () => {
 				span(() => { span.c("muted", "Claude $ "); span(money(data.claude_usd)); });

@@ -11,7 +11,7 @@ import { money } from "/framework/ai/AITask/cost.js";
  * exhausting, you probably just have a completed section").
  *
  * The data is `overview/overview.json`, built from the task logs by
- * `Server/ai2-overview.mjs`. Concepts arrive in importance order: the first card
+ * `Server/Ai2Overview.mjs`. Concepts arrive in importance order: the first card
  * is drawn bigger, the rest fill a grid. Inside each card: its open asks, one
  * row each, then ONE line, "Completed (n)", that opens to the done ones.
  *
@@ -38,7 +38,7 @@ export class Overview {
 
 	/** THE SHORT TITLE (mastermind's judged fix, 2026-09-29 — brief D asked for "the task's title,
 	 *  or a 5-8 word summary", never raw dictation, and the first pass still quoted it whole).
-	 *  `overview.json` carries no title field of its own (`Server/ai2-overview.mjs` builds it from
+	 *  `overview.json` carries no title field of its own (`Server/Ai2Overview.mjs` builds it from
 	 *  the main tree's `.claude/prompts`, which this worktree does not have, so it cannot be
 	 *  rebuilt here to add one) — only the task's slug, which in this codebase's own naming
 	 *  convention already reads as a short, plain title once its dashes become spaces
@@ -140,7 +140,7 @@ export class Overview {
 				$built.text("Built " + Faces.when(data.built_at) + " from the task logs" + (data.unfiled ? " · " + data.unfiled + " not filed" : ""));
 				$grid.empty(() => (data.concepts ?? []).forEach((c, i) => Overview.concept(c, i === 0)));
 			})
-			.catch(() => $built.text("The overview has not been built yet (Server/ai2-overview.mjs)."));
+			.catch(() => $built.text("The overview has not been built yet (Server/Ai2Overview.mjs)."));
 		return $root;
 	}
 }

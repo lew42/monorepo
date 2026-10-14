@@ -65,7 +65,7 @@ screenshots at four widths and a computed-style fingerprint of the moved rules' 
 - **Done, 2026-09-29** ([ai2-overview](/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-overview/)): the Inbox · Overview
   tabs, and the [Overview](/framework/ai2/overview/), with one big card per concept.
 - **Open, first — the Overview's next steps.** (1) `overview.json` is a snapshot. Rebuild it with
-  `node Server/ai2-overview.mjs` from the main tree, since `.claude/prompts` exists only there. Nothing
+  `node Server/Ai2Overview.mjs` from the main tree, since `.claude/prompts` exists only there. Nothing
   rebuilds it when a task lands yet; a finish-task step or a Servex route would. (2) Only about 3% of
   quotes are proven to be the owner's own words (`owner: true`). A task's session is usually an agent's,
   not the one the owner spoke in. Tracing a task to the card it came from would fix most of the rest.

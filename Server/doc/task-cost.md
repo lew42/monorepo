@@ -16,7 +16,7 @@ node Server/task-cost.mjs --agent minion-card-view                   every task 
 ```
 
 A day's own total, split into Claude $ and real $, and which module each task touched, is a
-separate sibling script that reads what this one already wrote: `Server/day-spend.mjs <date>` —
+separate sibling script that reads what this one already wrote: `Server/DaySpend.mjs <date>` —
 `public/framework/ai/AITask/doc/cost.md`'s "Two currencies, and what got touched" section.
 
 ## When to run it

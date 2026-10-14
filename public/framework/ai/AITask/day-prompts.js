@@ -176,7 +176,7 @@ export function prompts_section(date, view = "time"){
 		const prompts = await dayPrompts(date);
 		$s.append(() => {
 			const unrefined = prompts.filter(it => !it.refined).length;
-			if (unrefined) p.c("muted", `${unrefined} of ${prompts.length} not refined yet — node Server/day-prompts-refine.mjs ${date}`);
+			if (unrefined) p.c("muted", `${unrefined} of ${prompts.length} not refined yet — node Server/DayPromptsRefine.mjs ${date}`);
 			$list = (view === "system" ? bySystem : byTime)(prompts);
 			checkThese(prompts);
 		});
