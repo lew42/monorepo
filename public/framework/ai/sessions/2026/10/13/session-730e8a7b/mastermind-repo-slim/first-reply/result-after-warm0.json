@@ -1,0 +1,73 @@
+{
+ "label": "after-warm0",
+ "extra": {
+  "WARM_MS": "0"
+ },
+ "rel": {
+  "say_returned": 141,
+  "line_session": 161,
+  "line_backing": 161,
+  "line_chat_owner": 161,
+  "line_chat_assistant:fast": 4709
+ },
+ "ags": [
+  {
+   "id": "dispatcher",
+   "role": "dispatcher",
+   "model": null,
+   "state": "idle",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:40:55.503Z",
+   "turns": 0,
+   "session_id": null,
+   "cost": 0,
+   "parent": null
+  },
+  {
+   "id": "sessions",
+   "role": "sessions",
+   "model": null,
+   "state": "idle",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:40:55.527Z",
+   "turns": 0,
+   "session_id": null,
+   "cost": 0,
+   "parent": null
+  },
+  {
+   "id": "session-fast-v-w31gd6i",
+   "role": "session-fast",
+   "model": "claude-haiku-5-5",
+   "state": "idle",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:40:57.704Z",
+   "stopped_at": null,
+   "turns": 1,
+   "session_id": "e811da1e-4d71-4fa2-a532-2466ce7ef7a2",
+   "cost": 0.020706000000000002,
+   "parent": "sessions",
+   "revivable": false,
+   "forked_from": null,
+   "resumed_from": null,
+   "context": 1702
+  },
+  {
+   "id": "session-smart-v-w31gd6i",
+   "role": "session-smart",
+   "model": "claude-sonnet-5-5",
+   "state": "working",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:40:57.723Z",
+   "stopped_at": null,
+   "turns": 0,
+   "session_id": "e4293431-f703-4942-8798-8c69039a4e05",
+   "cost": 0,
+   "parent": "sessions",
+   "revivable": false,
+   "forked_from": null,
+   "resumed_from": null,
+   "context": null
+  }
+ ]
+}
