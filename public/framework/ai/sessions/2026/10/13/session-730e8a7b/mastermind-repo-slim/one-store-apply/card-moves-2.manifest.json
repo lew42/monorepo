@@ -1,0 +1,62 @@
+{
+ "at": "2026-10-14T00:17:24.057Z",
+ "dry_run": true,
+ "rule": "public/framework/ai/cards/CardDir.js",
+ "repo": "C:\\Code\\lew42\\worktrees\\one-tree",
+ "totals": {
+  "cards": 6,
+  "files": 0,
+  "skipped_listings": 2,
+  "target_exists": 0,
+  "odd": 0
+ },
+ "odd": [],
+ "skipped": [
+  "public/framework/ai/2026/09/19/files.jsonl",
+  "public/framework/ai/2026/09/files.jsonl"
+ ],
+ "moves": [
+  {
+   "kind": "card",
+   "id": "2026/10/13/ai-modules-home-decided-4-things-for-you",
+   "from": "public/framework/ai/2026/10/13/ai-modules-home-decided-4-things-for-you",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/ai-modules-home-decided-4-things-for-you",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/aitask-now-lives-in-ai-the-rule-for-what",
+   "from": "public/framework/ai/2026/10/13/aitask-now-lives-in-ai-the-rule-for-what",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/aitask-now-lives-in-ai-the-rule-for-what",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/archive-august-and-september-sessions-mo",
+   "from": "public/framework/ai/2026/10/13/archive-august-and-september-sessions-mo",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/archive-august-and-september-sessions-mo",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/dictate-sheet-decided-1-thing-for-you",
+   "from": "public/framework/ai/2026/10/13/dictate-sheet-decided-1-thing-for-you",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/dictate-sheet-decided-1-thing-for-you",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/figma-icon-swap-done-159-glyphs-report-k",
+   "from": "public/framework/ai/2026/10/13/figma-icon-swap-done-159-glyphs-report-k",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/figma-icon-swap-done-159-glyphs-report-k",
+   "exists": false
+  },
+  {
+   "kind": "card",
+   "id": "2026/10/13/readme-upkeep-everything-that-landed-tod",
+   "from": "public/framework/ai/2026/10/13/readme-upkeep-everything-that-landed-tod",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/readme-upkeep-everything-that-landed-tod",
+   "exists": false
+  }
+ ]
+}
