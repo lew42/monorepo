@@ -18,3 +18,6 @@
 {"review":{"at":"2026-10-13T23:23:39-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/sessions-next","head":"354a35d9e8b9a178adb14fe31fc5fc25b490d373","model":null,"cost":0,"file":"review.md"}}
 {"log":{"at":"2026-10-13T23:24:06-05:00","heartbeat":"revive-queued","msg":"task-mastermind-sessions-next it did not answer the status check; a revive is queued"}}
 {"log":{"at":"2026-10-13T23:24:07-05:00","heartbeat":"revive","msg":"revived task-mastermind-sessions-next from session 7c2c3708-8d01-4176-b143-88aa77f96b15"}}
+{"decision":{"at":"2026-10-13T23:26:26-05:00","text":"Title first by preloading rows in AISessionsPage.child() (route() cannot wait)","alternative":"await route() in core Page.child(), outside the fence"}}
+{"experiment":{"try":"flat Coverage rows","measure":"prompts above the fold at 1920","result":"4 -> 12 (1200: 5 -> 10); first crumb text id -> name"}}
+{"log":{"at":"2026-10-13T23:26:26-05:00","msg":"landed: Coverage flat (12 above the fold at 1920), name on first paint; merged bcc2f48fd"}}
