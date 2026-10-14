@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/AITask/",
+ "widths": {
+  "1280": {
+   "empty": 0.505,
+   "widest_text": 593,
+   "widest_text_sample": "Every list here is rankable. Grab the gr",
+   "overflow_x": false,
+   "items": 181,
+   "narrow_share": 0.652
+  },
+  "1920": {
+   "empty": 0.661,
+   "widest_text": 631,
+   "widest_text_sample": "Every list here is rankable. Grab the gr",
+   "overflow_x": false,
+   "items": 181,
+   "narrow_share": 0.834
+  },
+  "2560": {
+   "empty": 0.702,
+   "widest_text": 709,
+   "widest_text_sample": ", set only on the rare card that takes t",
+   "overflow_x": false,
+   "items": 181,
+   "narrow_share": 0.84
+  },
+  "3440": {
+   "empty": 0.761,
+   "widest_text": 709,
+   "widest_text_sample": ", set only on the rare card that takes t",
+   "overflow_x": false,
+   "items": 181,
+   "narrow_share": 0.867
+  }
+ },
+ "errors": []
+}
