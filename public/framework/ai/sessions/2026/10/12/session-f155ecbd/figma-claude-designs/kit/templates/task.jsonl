@@ -5,3 +5,18 @@
 {"log":{"at":"2026-10-13T18:10:51-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-13T18:23:39-05:00","msg":"Built 15 templates (12 sets x 4 Scheme + 3 Site-template nav), overview 262:34669, 3-screen prototype, 3 filled instances; report kit/templates.md"}}
 {"decision":{"at":"2026-10-13T18:23:39-05:00","msg":"Nav templates nest Site template so they have no Scheme or Title props (Figma cannot expose nested text); said so in the report and overview"}}
+{"log":{"at":"2026-10-13T18:23:45-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T18:29:44-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-fig-templates"}}
+{"log":{"at":"2026-10-13T18:29:46-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:30:07-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:30:07-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:30:11-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T18:31:04-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T18:37:03-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-fig-templates"}}
+{"log":{"at":"2026-10-13T18:37:06-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:37:37-05:00","heartbeat":"answered","msg":"Done. The Templates · Two-column pages work is finished and committed. The report is `kit/templates.md`, and the log is `kit/templates/task.jsonl`. The Figma page has 15 templates, the overview, 6 fil"}}
+{"log":{"at":"2026-10-13T18:38:15-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T18:49:04-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-fig-templates"}}
+{"log":{"at":"2026-10-13T18:49:06-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T18:49:37-05:00","heartbeat":"answered","msg":"Idle: the Templates · Two-column pages work is delivered and committed (`kit/templates.md`, `kit/templates/task.jsonl`). The only loose end is that I haven't written the landed record in the task log "}}
+{"log":{"at":"2026-10-13T18:50:16-05:00","msg":"session ended (other) without landing"}}

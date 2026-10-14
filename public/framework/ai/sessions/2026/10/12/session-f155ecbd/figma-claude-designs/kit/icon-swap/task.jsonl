@@ -1,0 +1,3 @@
+{"assign":{"session_id":"aff00916-989e-44c8-814b-f0b49b124b1c","agent":"task-mastermind-fig-icon-swap","card":"Figma: swap plain icon text for the Icon component","brief":"public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/brief-icon-swap.md","model":"claude-sonnet-5-5","requested_at":"2026-10-13T18:44:37-05:00","now":"starting","steps":[],"step":1}}
+{"log":{"at":"2026-10-13T18:45:16-05:00","msg":"skill: figma:figma-use"}}
+{"log":{"at":"2026-10-13T18:55:57-05:00","msg":"Kit Controls done; census all pages; 23 new glyphs (130 total; frame_source Symbols-only); migrating page by page"}}
