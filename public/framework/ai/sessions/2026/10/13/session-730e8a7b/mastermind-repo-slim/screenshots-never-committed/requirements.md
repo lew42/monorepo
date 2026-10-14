@@ -1,0 +1,17 @@
+# Screenshots are never committed, anywhere; the owner picks the few that stay
+
+Budget: $10. Load the `sub-mastermind` and `code` skills first. The owner's words: `../requirements-11.md` (verbatim, asks 1–4). Today `.gitignore` already ignores pictures under `public/framework/ai/` (outside `doc/`), `**/screenshots/`, `.merge-shots/` and root pngs (see `ai/doc/repo-size.md`), but 2,199 images are still tracked: `imagine/design/journey/shots` and `ext/DesignTool/journey/shots` (451 each, a duplicate), `layouts/browse/shots` (255), `styles/system/studies/spacing/audit/shots` + its `imagine` twin (61 each), `ext/Chat/doc/proof/shots`, `core/Page/audit/design/shots`, `web/nav/doc/study/shots`, `ext/Figma/data/*/shots` + `thumbs`, `scratchpad/tabs-panel/shots`, and more (`git ls-files | grep -Ei '\.(png|jpe?g|webp)$'`). Your log is this dir's `task.jsonl`.
+
+## The rule (write it once, in `ai/sessions/doc/commit-rule.md`, and link from `ai/doc/repo-size.md`)
+
+An automated screenshot (Playwright, layout-check, Shots, review proof, journey, audit) is machine output: it lives on disk under a `shots/` or `screenshots/` folder beside the page, is browsable on the dev server, is ignored by git, and is purged by a script when it gets big. A picture is committed only when a person chose it for a doc or a post: inside a `doc/` folder, `public/blog/`, `public/notes/`, or an `assets/img/` folder. Nothing else.
+
+## Deliverable
+
+1. **`.gitignore`**: `**/shots/`, `**/thumbs/` (check what Figma's thumbs are for first; if the site needs them, name the exception), and any other automated picture folder you find; the committed exceptions above stay. `node Server/DeployCount.mjs` before and after: the deployed file count must drop, never rise, and no page that the site shows must lose a picture it renders (check the layouts browser `/layouts/browse/` and the design journey: if a page renders from `shots/`, decide whether the page regenerates them or the few it needs move to `doc/` by a scripted `git mv` with a manifest).
+2. **Untrack, never delete**: `git rm --cached` of the tracked automated pictures through one node script with a `--plan` manifest (old path, size, kept-on-disk) and `--apply`; the files stay on disk; history keeps them. Say the MB removed from the deploy and from future commits.
+3. **The purge script**: `Server/ShotsPurge.mjs` (`class ShotsPurge`), `--plan` lists every ignored shots folder with size and age, `--apply --older-than 30d` deletes only ignored files (never a tracked one; refuses in a tree with tracked matches). Not run by you beyond `--plan`.
+4. **The worktree answer**, five lines in `ai/doc/repo-size.md`: ignored shots are not in a worktree; a task mastermind's `check_page`/review shots land in its own worktree's `shots/` (or `.merge-shots/`), `merge.mjs` reads them from there when landing, and nothing needs porting back; the owner's own live site shoots into the main tree's folders. Verify each sentence against `Server/merge.mjs` and the `review` skill before writing it.
+5. Card report (titled "Screenshots: never committed, N untracked, M MB off the deploy"); landing line checked with `tail -1`; `merge.mjs`.
+
+Fence: `.gitignore`, the untrack script (in this task dir), `Server/ShotsPurge.mjs`, `ai/sessions/doc/commit-rule.md`, `ai/doc/repo-size.md`, the moved pictures' paths, this task dir. Sonnet. Never `git clean`, never delete a file on disk, never rewrite history.
