@@ -1,10 +1,10 @@
 import { Page, View, div, h3, small, strong, button } from "/app.js";
 import "/framework/ux/Content/ContentModule.js";   // loads the card styles `inspect()` uses
 import { inspect } from "/framework/ux/Content/Object/Inspect.js";
-import Session from "../../sessions/Session.js";
-import SessionView from "../../sessions/SessionView.js";
-import SessionLive from "../../sessions/SessionLive.js";
-import SessionRows from "../../sessions/SessionRows.js";
+import Session from "../../AISession/AISession.js";
+import SessionView from "../../AISession/AISessionView.js";
+import SessionLive from "../../AISession/AISessionLive.js";
+import SessionRows from "../../AISession/AISessionRows.js";
 import { SystemClasses } from "../../SystemClasses.js";
 
 View.stylesheet("/framework/ai/sessions/sessions.css");

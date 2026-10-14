@@ -114,7 +114,7 @@ new DataGrid({
 
 		md("## Adopting it on real pages");
 
-		md("The AI Sessions tab (`ai/sessions/SessionsPage.js`) is the next one to move to this — not done here, since a sibling task (@task-mastermind-sessions-tab-polish) is working in that same file this week. Its grid already has the right shape to swap in (`{key, label, min}` columns, one `--col-<key>` token each), so that move should be small once it's clear. Other tables on the site worth moving next, from a quick look at what exists: the Day log tables (`ai/`), the Readme-weight report (`ai/sessions/2026/10/03/readme-weight/`), and the cost-by-role list on a session's own detail page — none moved yet, this is just the list for whoever picks one up.");
+		md("The AI Sessions tab (`ai/AISession/AISessionsPage.js`) is the next one to move to this — not done here, since a sibling task (@task-mastermind-sessions-tab-polish) is working in that same file this week. Its grid already has the right shape to swap in (`{key, label, min}` columns, one `--col-<key>` token each), so that move should be small once it's clear. Other tables on the site worth moving next, from a quick look at what exists: the Day log tables (`ai/`), the Readme-weight report (`ai/sessions/2026/10/03/readme-weight/`), and the cost-by-role list on a session's own detail page — none moved yet, this is just the list for whoever picks one up.");
 
 		md.details(import.meta, "readme.md", "Readme");
 	},
