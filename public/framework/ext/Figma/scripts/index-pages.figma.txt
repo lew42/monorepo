@@ -7,9 +7,9 @@ await figma.loadFontAsync({family:'Montserrat',style:'Bold'}); await figma.loadF
 const comps=[];
 for (const p of figma.root.children) { if (/^Index/.test(p.name)) continue; await p.loadAsync(); for (const n of p.children) if (n.type==='COMPONENT' && n.name.startsWith('Page ·')) comps.push({p, n}); }
 const groups = [
- ['Start here', x=>/Overview/.test(x)],
- ['Design system · elements & components', x=>/DS · [123]|Lists ·|Colour ·/.test(x)],
- ['Layouts & page templates', x=>/DS · [456]|Layouts ·|Templates/.test(x)],
+ ['Start here', x=>/Overview|Essentials|Demo/.test(x)],
+ ['Foundations & templates', x=>/Foundations ·|Templates ·|Layouts ·|DS · 4/.test(x)],
+ ['Design system · elements & components', x=>/DS · [12356]|Lists ·|Colour ·/.test(x)],
  ['Kits', x=>/Kit|UI Kit/.test(x)],
  ['Screens & prototypes', x=>/Screens ·|Claude prototype/.test(x)],
  ['Video & type', x=>/Video|Type ·/.test(x)],
