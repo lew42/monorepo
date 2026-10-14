@@ -2,7 +2,7 @@
 
 Rule: [use-figma.md](/framework/ext/Figma/doc/use-figma.md) fixed-size register. Brief: [brief-fluid-audit.md](brief-fluid-audit.md).
 
-**Headline:** the file was already almost fluid. Of 40 Claude pages scanned, 28 had zero unnamed fixed layers. The rest were deliberate width samples, which are now named `(fixed N: reason)`; 25 layers were genuinely fixable and are now FILL. The Figma tool-call limit stopped the run before two pages were renamed.
+**Headline:** the file was already almost fluid. Of 40 Claude pages scanned, 28 had zero unnamed fixed layers. The rest were deliberate width samples, which are now named `(fixed N: reason)`; 25 layers were genuinely fixable and are now FILL. Second pass 2026-10-14 finished the last two pages.
 
 ## Census (before): FRAME/COMPONENT, fixed width or height, no "fixed" in the name
 
@@ -29,10 +29,10 @@ Scanned: instances skipped, variants inside a component set skipped (their width
 - **Kit · Controls:** the two "After" demos set to FILL (their parent hugs, so no size change; left). Two closed-dropdown "Menu panel" 110 placeholders named.
 - **Named instead (reason in the layer name, `(fixed N: …)`):** Kit · Controls 2, Kit · Nesting 3, Kit · Slots 11 (+10 tree items renamed `fixed 44: touch target height`), Kit · Grids 31, Lists · Sidebars 42, Layouts · Two columns 30, Templates · Two-column 74. Why they stay fixed: they are the thing the page demonstrates (a column at a stated width, a 1200/1920 screen sample, a rail, a before/after screenshot).
 
-## Not done: Figma MCP call limit hit
+## Second pass
 
-Still unnamed, so the census would still list them: **Templates · Three-column pages** (150 columns) and **Kit · Mobile builder** (15). Both are named-ratio template columns of the same kind as the two-column page; the same rename script applies. Rerun after the limit resets: the script is the one used for Templates · Two-column (walk the page, skip instances and component-set variants, append ` (fixed W: template column)` to each auto-layout child with a FIXED axis).
+Templates · Three-column pages (150) and Kit · Mobile builder (15) renamed with `(fixed N: template column / sample column)`. Nothing left unnamed from the census.
 
 ## Checks
 
-Rows-wider-than-parent: Kit · Containers had 9 and now has 0. Clipping and screenshots of the fixed pages were not run (call limit). Prototype reactions: no node with reactions was changed, only sizing and layer names.
+Clipping/overflow scan (no visible child past a clipping auto-layout parent): Kit · Containers 0, Kit · Grids 0. Screenshots of both pages' changed frames read fine (Grids ragged-card rows; Containers 'Specimens (wrap)' now 1146 wide, was overflowing). Prototype reactions: no node with reactions was edited, only sizing and layer names, so counts are unchanged. Other pages only had renames.
