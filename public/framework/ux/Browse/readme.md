@@ -1,6 +1,6 @@
 # Browse — one list-and-detail view: a resizable list on the left, the row you clicked on the right
 
-See it: **[the page](/framework/ux/Browse/)**: the class architecture, then the demo. The Inbox on [/framework/ai/](/framework/ai/) is a `Browse`.
+See it: **[the demo](/framework/ux/Browse/)** (a Browse with sample rows) and its [Architecture](/framework/ux/Browse/architecture/) tab. The Inbox on [/framework/ai/](/framework/ai/) is a `Browse`.
 
 ## Use
 

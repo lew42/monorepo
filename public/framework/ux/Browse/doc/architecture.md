@@ -8,16 +8,11 @@ A list on the left, the thing you clicked on the right. The list stays put while
 
 ## The classes
 
-```js
-class Browse                                  // ux/Browse/Browse.js: THE ORCHESTRATOR. The shell: the list pane and its grip,
-                                              //   the detail pane (page.$pages: a row's page renders there through the Router),
-                                              //   a third column for a sub-page; remembers the list's width.
-Browse.Pinned                                 // a short titled list above the rows: one line each, a link, a tick that makes it go
-class Rail extends Browse                     // core/Page/ext/Inbox/Rail.js (Inbox.Rail): the Inbox's rows, ranking, read, archive, filters
-class AIRail extends Inbox.Rail               // ai/rail/rail.js: the AI page's Inbox: meters, cards, the pinned day rows
-class WaitingOnYou extends Browse.Pinned      // core/Page/ext/Inbox/WaitingOnYou.js: every open owner decision (ai/cards.jsonl,
-                                              //   ai/asks.jsonl); ticked → its card archived, gone. AIRail pins it.
-```
+- **`class Browse`** (`ux/Browse/Browse.js`): **the orchestrator.** It builds the shell: the list pane and its grip, the detail pane (`page.$pages`, so a row's page renders there through the Router), and a third column for a sub-page. It remembers the list's width.
+- **`Browse.Pinned`** (same file): a short titled list above the rows. One line each, a link, a tick that makes it go.
+- **`class Rail extends Browse`** (`core/Page/ext/Inbox/Rail.js`, known as `Inbox.Rail`): the Inbox's rows: ranking, read and unread, archive, the filters.
+- **`class AIRail extends Inbox.Rail`** (`ai/rail/rail.js`): the AI page's Inbox: usage meters, cards, the pinned day rows.
+- **`class WaitingOnYou extends Browse.Pinned`** (`core/Page/ext/Inbox/WaitingOnYou.js`): every open owner decision from `ai/cards.jsonl` and `ai/asks.jsonl`. Ticked, its card is archived and it is gone. `AIRail` pins it.
 
 ## What each surface becomes
 
