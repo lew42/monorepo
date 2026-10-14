@@ -16,4 +16,4 @@
 
 # Next 3: from the surfaces page (2026-10-13)
 
-Recommendations only, evidence in [surfaces.md](surfaces.md): measure luna vs Claude for the fast assistant (the 30-second first reply); one "New session" button; Echo and the Refine buttons share one call; retire `ext/Ask/chat.js`; trace the Dev shell chat tab.
+Recommendations; evidence in [surfaces.md](surfaces.md). Done 2026-10-13 (voice-dedupe): Echo and the Refine buttons share `run_refine` (9b25b1a80); `ext/Ask/chat.js` checked and kept (ten-plus importers); the Dev shell chat tab traced (a fourth surface, recommendation on surfaces.md). Still open: measure luna vs Claude for the fast assistant (the 30-second first reply); one "New session" button; Echo and the Refine buttons share one call; retire `ext/Ask/chat.js`; trace the Dev shell chat tab.
