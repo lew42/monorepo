@@ -3,3 +3,10 @@
 {"log":{"at":"2026-10-13T19:22:25-05:00","msg":"All 11 DS pages converted to section rows (same auto layout, not a template instance: slots cannot hold moved nodes); ids kept, reactions 0 to 0. Side fixes: single Stat block 277:104073, overview thumbnails 314 high, Stat master stroke. Report: kit/ds-rows.md"}}
 {"log":{"at":"2026-10-13T19:22:27-05:00","msg":"skill: finish-task"}}
 {"assign":{"step":1,"landed_at":"2026-10-13T19:22:35-05:00","title":"Figma DS pages: section rows","outcome":"**All 11 DS pages are now section rows** (title and description on a 1/4 left, specimens on the 3/4 right). Report: [ds-rows.md](ds-rows.md)\n\n- [x] 11 pages converted, Buttons first as the pilot: specimens moved with ids kept\n- [x] Prototype reactions match: 0 before and after\n- [x] Same auto layout used, not a template instance (a slot cannot hold moved nodes)\n- [x] Side fixes: single Stat block for 280 sidebars (277:104073), overview thumbnails 314 high and unclipped, Stat master stroke for the gray rail\n- [ ] Three-phone rows come out as 2-up plus one full-width; pages are taller\n- [ ] Only some pages were screenshot-checked; the rest by script","links":[{"url":"/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-rows.md","label":"ds-rows report"}],"window":{"before":null,"after":0.53},"tokens":null}}
+{"log":{"at":"2026-10-13T19:22:40-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-13T19:22:40-05:00","msg":"card-check: card-check: path not found: C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\Figma: DS pages redone on the section-rows template"}}
+{"log":{"at":"2026-10-14T00:22:40.751Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-13T19:22:40-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-13T19:22:41-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-13T19:22:47-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-13T19:22:47-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
