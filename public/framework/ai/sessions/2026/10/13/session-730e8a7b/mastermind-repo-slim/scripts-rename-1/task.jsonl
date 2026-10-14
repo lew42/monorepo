@@ -13,3 +13,10 @@
 {"review":{"answer":{"n":5,"reply":"noted: header of RenameScript now says to read --plan by hand; manifest keeps originals so undo is only safe before further caller edits"}}}
 {"review":{"answer":{"n":6,"reply":"noted: Servex.js change goes live at the restart"}}}
 {"assign":{"step":6,"landed_at":"2026-10-13T21:39:42-05:00","outcome":"**Five scripts renamed to their class names** — CardCheck, ArchiveSessions, HttpsCert, AntigravityUsage, BrowserCheck, by the new reusable `Server/RenameScript.mjs` (manifest + exact undo, proven on a worktree copy). Bags are classes, old exports aliased until 2026-10-20; the 21 left stay listed in `Server/doc/scripts.md`. Servex.js's import goes live at the next Servex restart.","links":[{"url":"/Server/doc/scripts.md","label":"scripts.md"}],"tokens":null}}
+{"log":{"at":"2026-10-13T21:39:51-05:00","msg":"text-check: review.md: a 64-word paragraph (\"1. [fix] The restore instructions still name the d…\"); review.md: a 70-word paragraph (\"5. [note] The brief asked for `TaskMove.mjs --reli…\"); review.md: a 73-word paragraph (\"6. [note] The requirements are otherwise met. Five…\"); review.md: 454 words and no picture"}}
+{"log":{"at":"2026-10-13T21:39:51-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-13T21:39:51-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-13T21:39:51-05:00","msg":"owner-note: posted 1 decision to the Inbox"}}
+{"log":{"at":"2026-10-13T21:39:51-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-13T21:39:58-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-13T21:39:58-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
