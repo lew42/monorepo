@@ -86,12 +86,13 @@ export default class ArchiveSessions {
 		for (const m of this.months) {
 			const src = path.join(this.root, this.monthDir(m)), dst = this.archiveDir(m);
 			const rows = this.scan(m);
+			let copied = 0;
 			for (const r of rows) {
 				const a = path.join(src, r.path), b = path.join(dst, r.path);
 				fs.mkdirSync(path.dirname(b), { recursive: true });
 				r.sha1 = ArchiveSessions.sha1(a);
 				if (!(fs.existsSync(b) && fs.statSync(b).size === r.bytes && ArchiveSessions.sha1(b) === r.sha1)) {
-					fs.copyFileSync(a, b);
+					fs.copyFileSync(a, b); copied++;
 					const st = fs.statSync(a); fs.utimesSync(b, st.atime, st.mtime);
 				}
 			}
@@ -102,7 +103,7 @@ export default class ArchiveSessions {
 			const list = [...all.values()].sort((a, b) => a.path.localeCompare(b.path));
 			fs.writeFileSync(this.manifestPath(m), list.map(r => JSON.stringify(r)).join("\n") + "\n");
 			const v = this.verify(m, list);
-			console.log(`${this.year}/${m}: copied ${rows.length}; archive holds ${v.files} files, ${v.bytes} bytes; manifest ${list.length} files, ${list.reduce((s, r) => s + r.bytes, 0)} bytes; sha1 bad ${v.bad.length}`);
+			console.log(`${this.year}/${m}: copied ${copied} of ${rows.length} (the rest were already there); archive holds ${v.files} files, ${v.bytes} bytes; manifest ${list.length} files, ${list.reduce((s, r) => s + r.bytes, 0)} bytes; sha1 bad ${v.bad.length}`);
 			if (v.bad.length) throw new Error(`verify failed: ${v.bad.slice(0, 5).join(", ")}`);
 		}
 		this.writeArchiveReadme();
@@ -135,6 +136,7 @@ export default class ArchiveSessions {
 				ArchiveSessions.pruneEmpty(path.dirname(a), src);
 			}
 			this.writeStub(m, list);
+			fs.copyFileSync(this.manifestPath(m), path.join(this.root, this.monthDir(m), "archive.jsonl"));   // the record of what left stays in git
 			console.log(`${this.year}/${m}: removed ${removed} pictures (${ArchiveSessions.mb(bytes)}) from the working tree; stub ${this.monthDir(m)}/readme.md`);
 		}
 	}
@@ -171,7 +173,7 @@ export default class ArchiveSessions {
 			"",
 			`The ${list.length.toLocaleString("en-US")} untracked pictures of this month (${ArchiveSessions.mb(bytes)}, mostly review screenshots in \`shots/\`) moved to the archive drive at \`${dst}/\`, same paths below it. Every record (task.jsonl, page.jsonl, docs, pages) is still here, so the [Sessions page](/framework/ai/sessions/) and every search still read this month. An old report shows a broken picture until it is copied back.`,
 			"",
-			`- **Every file, its size and sha1:** \`${dst}/archive.jsonl\` (on the drive; the drive's own README says what it is).`,
+			`- **Every file, its size and sha1:** [archive.jsonl](archive.jsonl), the same file as \`${dst}/archive.jsonl\` on the drive (whose own README says what it is).`,
 			`- **Bring it back:** \`node Server/archive-sessions.mjs --undo --months ${m}\` (the drive plugged in) copies every file back and checks its sha1.`,
 			`- **How it works:** [archive.md](../../doc/archive.md).`,
 			"",

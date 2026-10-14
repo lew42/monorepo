@@ -1,0 +1,2 @@
+2026/08: removed 1331 pictures (122.5 MB) from the working tree; stub public/framework/ai/sessions/2026/08/readme.md
+2026/09: removed 3651 pictures (429.9 MB) from the working tree; stub public/framework/ai/sessions/2026/09/readme.md
