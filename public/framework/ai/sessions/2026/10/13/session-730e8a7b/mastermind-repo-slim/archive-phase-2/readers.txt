@@ -1,0 +1,26 @@
+== SessionIndex
+== PastWork panel
+# Past work: "panel overhaul" (words: panel, overhaul)
+
+## Tasks (5, best first)
+- 2026-08-15 [panel-ui-overhaul](/framework/ai/sessions/2026/08/15/panel-ui-overhaul/) — Panel UI overhauled — [/framework/ext/Panel/](/framework/ext/Panel/): toolbar is a hover overlay (light+dark free via tokens, popovers not selects, innermost panel wins), panels touch at 0px with cursor-following grip pills and per-neighbor hug/fill menus, ex… · paths 1/2 exist, gone: framework/ext/Panel/full/
+- 2026-10-02 [ext/panel2: header/main/footer chrome, drawer sides, split, dashboard…](/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/part1-panel2/) — Panel2 shipped: header/main/footer, a grip split, a drawer side, a dashboard grid. new module, reuses only ext/grip header/main/footer; a side becomes a drawer under 34em header is a real toolbar (panel.header.append()), verified live Panel2.split(a, b, { axi… · paths 1/1 exist
+- 2026-10-02 [panel2-sessions Part 2: AI Dashboard + Sessions tabs](/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/part2-sessions-dashboard/) — Dashboard + Sessions tabs shipped on top of ext/panel2. Sessions tab: live, tagged (Servex/VS Code/CLI), newest first; click → prompts in order verified on the named VS Code session (361c4d18) after fixing a turnOrigin bug Dashboard tab: one Panel2, full-widt… · paths 1/1 exist
+- 2026-10-02 [panel2-sessions](/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/) — Build ext/panel2 (new standard UI chrome: header/main/footer, side drawers, grip-resized splits, auto-fit responsive grid) then rebuild the AI dashboard (/framework/ai/) Overview + a new Sessions tab on top of it, covering VS Code/Servex/CLI sessions live.
+- 2026-10-02 [Sessions tab: CSS-grid data grid, side peek, Panel2 preview levels](/framework/ai/sessions/2026/10/02/panel2-sessions/sessions-grid-v2/) — Sessions is now a real data grid. [/framework/ai/sessions/](/framework/ai/sessions/) — six columns (Start, Source, Name, Model, State, Cost), newest activity first. data grid of every session, six named columns — shot in task log no <table>, one --col-<name> … · paths 2/3 exist, gone: framework/ext/panel2/doc/preview-levels/
+
+## Modules that exist now (files outside the module that import it)
+- [ext/Panel](/framework/ext/Panel/) — used by 24 files
+- [ext/panel2](/framework/ext/panel2/) — used by 2 files
+== FollowUp --write
+  asks: 0,
+  healthy: 124
+}
+tasks counted 146 vs TaskDirs --list 146
+== SessionIndex --check
+SessionIndex: 1521 rows from 1521 task.jsonl in 900 ms, +20.9 MB heap
+{"files":1521,"rows":1521,"ms":900,"heap_mb":20.9} 
+module=ux/Dictate: 38 tasks; first: dictate-session, dictate-sheet, ai-modules-home
+landed: 1179 | text 'dictate' since 2026-10-01: 40
+tasks in memory 0
+task.jsonl under 08/09 (all still read): 1020
