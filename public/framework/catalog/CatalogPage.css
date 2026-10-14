@@ -18,6 +18,7 @@
 	.cat-frame { position: relative; aspect-ratio: 8 / 5; overflow: hidden; border-radius: .3em; background: color-mix(in srgb, currentColor 6%, transparent); }
 	.cat-frame iframe { position: absolute; top: 0; left: 0; width: 1200px; max-width: none; height: 750px; border: 0; pointer-events: none; transform-origin: 0 0; }
 
+	.cat-nopreview { position: absolute; inset: 0; display: grid; place-items: center; opacity: .6; font-size: .85em; }
 	.cat-label { display: flex; align-items: center; gap: .4em; }
 	.cat-icon { font-size: 1.3em; }
 	.cat-badge { margin-left: auto; font-size: .7em; padding: .1em .5em; border-radius: 1em; background: orange; color: black; }

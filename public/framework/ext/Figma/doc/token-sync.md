@@ -32,3 +32,5 @@ Read: at 1920 the two already agree on type and radius; Figma pads cards taller 
 4. **When a `--fig-*` token and a site token mean the same thing, alias one to the other** (`--pad-card: var(--fig-pad-x)`), measure, then retire the extra name. Only then does anything old get removed.
 
 Open for the owner: `dark` differs (Figma `#675F56`, site `#42404B`); fluid vs fixed (the browser can interpolate between modes with `clamp()`, Figma cannot, so Figma's three modes are snapshots of a fluid site).
+
+Reviewed 2026-10-13 at four widths, with before and after shots: [review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/review-site-pages/review.md).

@@ -572,7 +572,7 @@
    {
     "name": "decision row",
     "census": "c",
-    "source": "public/framework/ext/AITask/decisions.js:72"
+    "source": "public/framework/ai/AITask/decisions.js:72"
    }
   ],
   "classes": [
@@ -1481,7 +1481,7 @@
    {
     "name": "task card (manifest card)",
     "census": "c",
-    "source": "public/framework/ext/AITask/card.js:91"
+    "source": "public/framework/ai/AITask/card.js:91"
    },
    {
     "name": "v3 tile (inbox card)",
@@ -1503,7 +1503,7 @@
    ".v3-tile-sentence",
    ".v3-tile-author"
   ],
-  "render": "import { manifest_card } from '/framework/ext/AITask/card.js'; manifest_card({ title: 'Demo task', url: '/framework/ai/', name: 'demo', brief: 'A task that has not started.', m: null });",
+  "render": "import { manifest_card } from '/framework/ai/AITask/card.js'; manifest_card({ title: 'Demo task', url: '/framework/ai/', name: 'demo', brief: 'A task that has not started.', m: null });",
   "used_in": [
    "/framework/ai/v/3/",
    "/framework/ai/"
@@ -1588,12 +1588,12 @@
    {
     "name": "ask card",
     "census": "c",
-    "source": "public/framework/ext/AITask/asks.js:265"
+    "source": "public/framework/ai/AITask/asks.js:265"
    },
    {
     "name": "ask sheet",
     "census": "c",
-    "source": "public/framework/ext/AITask/asks.js:426"
+    "source": "public/framework/ai/AITask/asks.js:426"
    },
    {
     "name": "inbox full card",
@@ -2026,7 +2026,7 @@
    {
     "name": "highlight card",
     "census": "c",
-    "source": "public/framework/ext/AITask/highlights.js:63"
+    "source": "public/framework/ai/AITask/highlights.js:63"
    }
   ],
   "classes": [
@@ -2034,7 +2034,7 @@
    ".surface",
    ".ai-hl-wall"
   ],
-  "render": "import { highlights } from '/framework/ext/AITask/highlights.js'; highlights([{ url: '/framework/ai/2026-09-24/demo/', m: { highlight: { title: 'A demo highlight', line: 'One sentence about it.', url: '/framework/ai/' } } }]);",
+  "render": "import { highlights } from '/framework/ai/AITask/highlights.js'; highlights([{ url: '/framework/ai/2026-09-24/demo/', m: { highlight: { title: 'A demo highlight', line: 'One sentence about it.', url: '/framework/ai/' } } }]);",
   "used_in": [
    "/framework/ai/"
   ],
@@ -2064,7 +2064,7 @@
    {
     "name": "needs-you strip",
     "census": "c",
-    "source": "public/framework/ext/AITask/needs.js:94"
+    "source": "public/framework/ai/AITask/needs.js:94"
    }
   ],
   "classes": [
@@ -2073,7 +2073,7 @@
    ".ai-need-mins",
    ".surface"
   ],
-  "render": "import { needs_strip } from '/framework/ext/AITask/needs.js'; needs_strip([{ what: 'Log in to the host', minutes: 5, id: 'x', url: '/framework/ai/', label: 'demo' }]);",
+  "render": "import { needs_strip } from '/framework/ai/AITask/needs.js'; needs_strip([{ what: 'Log in to the host', minutes: 5, id: 'x', url: '/framework/ai/', label: 'demo' }]);",
   "used_in": [
    "/framework/ai/",
    "/framework/ai2/"
@@ -2104,7 +2104,7 @@
    {
     "name": "fold (expando bar)",
     "census": "c",
-    "source": "public/framework/ext/AITask/message.js:15"
+    "source": "public/framework/ai/AITask/message.js:15"
    }
   ],
   "classes": [
@@ -2113,7 +2113,7 @@
    ".wash",
    ".ai-fold-body"
   ],
-  "render": "import { fold } from '/framework/ext/AITask/message.js'; fold('Click to open', () => { p('The hidden body.'); });",
+  "render": "import { fold } from '/framework/ai/AITask/message.js'; fold('Click to open', () => { p('The hidden body.'); });",
   "used_in": [
    "/framework/ai/"
   ],
@@ -2144,12 +2144,12 @@
    {
     "name": "transcript message",
     "census": "c",
-    "source": "public/framework/ext/AITask/message.js:36"
+    "source": "public/framework/ai/AITask/message.js:36"
    },
    {
     "name": "turn (transcript turn)",
     "census": "c",
-    "source": "public/framework/ext/AITask/feed.js:129"
+    "source": "public/framework/ai/AITask/feed.js:129"
    },
    {
     "name": "chat line",
@@ -2172,7 +2172,7 @@
    ".ai2-chat-you",
    ".ai2-script"
   ],
-  "render": "import { message } from '/framework/ext/AITask/message.js'; message({ type: 'assistant', message: { content: 'Hello from an agent.' } });",
+  "render": "import { message } from '/framework/ai/AITask/message.js'; message({ type: 'assistant', message: { content: 'Hello from an agent.' } });",
   "used_in": [
    "/framework/ai/",
    "/framework/ai2/"
@@ -2210,7 +2210,7 @@
    {
     "name": "owner prompt bubble (ai-you)",
     "census": "c",
-    "source": "public/framework/ext/AITask/conversation.js:182"
+    "source": "public/framework/ai/AITask/conversation.js:182"
    }
   ],
   "classes": [
@@ -2240,7 +2240,7 @@
   },
   "notes": "Three different ways to mark the owner's words.",
   "sheets": [
-   "/framework/ext/AITask/ai.css"
+   "/framework/ai/AITask/ai.css"
   ]
  },
  {
@@ -2251,7 +2251,7 @@
    {
     "name": "prompt rail row",
     "census": "c",
-    "source": "public/framework/ext/AITask/conversation.js:288"
+    "source": "public/framework/ai/AITask/conversation.js:288"
    },
    {
     "name": "inbox row (rail preview)",
@@ -2335,7 +2335,7 @@
    {
     "name": "screenshot thumb",
     "census": "c",
-    "source": "public/framework/ext/AITask/shots.js:19"
+    "source": "public/framework/ai/AITask/shots.js:19"
    }
   ],
   "classes": [
@@ -2343,7 +2343,7 @@
    ".ai-shot-frame",
    ".ai-shot-label"
   ],
-  "render": "import { shot_thumb } from '/framework/ext/AITask/shots.js'; shot_thumb({ path: 'nope.png', label: 'demo shot', width: 800 });",
+  "render": "import { shot_thumb } from '/framework/ai/AITask/shots.js'; shot_thumb({ path: 'nope.png', label: 'demo shot', width: 800 });",
   "used_in": [
    "/framework/ai/"
   ],
@@ -2372,7 +2372,7 @@
    {
     "name": "usage meter",
     "census": "c",
-    "source": "public/framework/ext/AITask/usage.js:42"
+    "source": "public/framework/ai/AITask/usage.js:42"
    },
    {
     "name": "overview usage bar",
@@ -2390,7 +2390,7 @@
    ".ai2-ov-usage-track",
    ".ai2-ov-usage-fill"
   ],
-  "render": "import { usage_rail } from '/framework/ext/AITask/usage.js'; usage_rail({ utilization: { limits: [{ kind: 'session', group: 'session', percent: 40, resets_at: new Date(Date.now() + 3e6).toISOString() }] } });",
+  "render": "import { usage_rail } from '/framework/ai/AITask/usage.js'; usage_rail({ utilization: { limits: [{ kind: 'session', group: 'session', percent: 40, resets_at: new Date(Date.now() + 3e6).toISOString() }] } });",
   "used_in": [
    "/framework/ai/",
    "/framework/ai2/"
@@ -2424,7 +2424,7 @@
    {
     "name": "group heading (ai-group)",
     "census": "c",
-    "source": "public/framework/ext/AITask/board.js:50"
+    "source": "public/framework/ai/AITask/board.js:50"
    }
   ],
   "classes": [
@@ -2465,7 +2465,7 @@
    {
     "name": "timeline day line",
     "census": "c",
-    "source": "public/framework/ext/AITask/dashboard.js:136"
+    "source": "public/framework/ai/AITask/dashboard.js:136"
    },
    {
     "name": "axis time item",
@@ -2508,7 +2508,7 @@
   },
   "notes": "",
   "sheets": [
-   "/framework/ext/AITask/ai.css"
+   "/framework/ai/AITask/ai.css"
   ]
  },
  {
@@ -2519,7 +2519,7 @@
    {
     "name": "link chip",
     "census": "c",
-    "source": "public/framework/ext/AITask/asks.js:338"
+    "source": "public/framework/ai/AITask/asks.js:338"
    }
   ],
   "classes": [
