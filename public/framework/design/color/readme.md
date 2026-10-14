@@ -8,6 +8,7 @@ Colour on this site is never a literal value. It is a small set of tokens (`--su
 - **Contrast ratios: 4.5:1 for body text, 3:1 for large text and UI shapes.** Below that, nothing. You cannot see 4.2 from 4.6 by eye — measure it.
 - **Dark mode is a mode of one theme, not a second theme.** Write `light-dark(a, b)` on the token; never duplicate a stylesheet.
 - **Muted text is the `.muted` class**, never `var(--muted)` used as a colour — `--muted` is a percentage (how much a colour fades toward transparent), not a colour value.
+- **Prime stays prime; give it a ground instead of shading it** (owner, 2026-10-13). Don't darken or tint prime to fix contrast (no off-token reds like `#D9382F`): it muddies the brand. Small prime text (a kicker, a label) sits on a dark pill (near-black, fully rounded), which gives it contrast while it stays the same colour.
 - **Step a ground away from its ink.** If text on an inset or chip is short on contrast, darken the inset under dark ink or lighten it under light ink. Stepping the other way makes it worse (owner, 2026-10-13).
 - **A box that must read as a box needs a ground that differs from its parent's.** `--wash` IS the page's own ground, so painting `--wash` on a card paints nothing — it disappears into the page behind it.
 
