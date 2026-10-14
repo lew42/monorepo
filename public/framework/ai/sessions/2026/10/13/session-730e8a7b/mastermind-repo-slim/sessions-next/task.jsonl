@@ -21,3 +21,9 @@
 {"decision":{"at":"2026-10-13T23:26:26-05:00","text":"Title first by preloading rows in AISessionsPage.child() (route() cannot wait)","alternative":"await route() in core Page.child(), outside the fence"}}
 {"experiment":{"try":"flat Coverage rows","measure":"prompts above the fold at 1920","result":"4 -> 12 (1200: 5 -> 10); first crumb text id -> name"}}
 {"log":{"at":"2026-10-13T23:26:26-05:00","msg":"landed: Coverage flat (12 above the fold at 1920), name on first paint; merged bcc2f48fd"}}
+{"log":{"at":"2026-10-13T23:26:33-05:00","heartbeat":"answered","msg":"Both changes are merged (`bcc2f48fd`). On the main site, 12 Coverage prompts now fit above the fold at 1920 (it was 4), and the session's name is the first thing drawn.\n\n- **Coverage:** each refined p"}}
+{"log":{"at":"2026-10-13T23:26:33-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-13T23:37:05-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-sessions-next"}}
+{"log":{"at":"2026-10-13T23:37:08-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-13T23:37:42-05:00","heartbeat":"answered","msg":"The task is finished and merged (`bcc2f48fd`), and I'm not working on anything now. The Coverage tab is a flat list with 12 prompts above the fold at 1920 (it was 4). The session name is on the first "}}
+{"log":{"at":"2026-10-13T23:38:22-05:00","msg":"session ended (other) without landing"}}
