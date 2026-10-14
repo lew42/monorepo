@@ -131,7 +131,7 @@ export default class AISessionDetail extends Page {
 		// and the transcript and the date-path lookup both need the session_id.
 		AISessionDetail.load_row(url, id).then(async row => {
 			const session_id = row?.session_id ?? id;
-			if (row) this.retitle(AISessionRows.display_name(row, AISessionRows.tree).text);
+			AISessionRows.load_index(url).then(() => this.retitle(AISessionRows.display_name(row ?? { id, session_id }, AISessionRows.tree).text));   // a VS Code tab has no sessions.json row; its title is in the index
 			conv.session = session_id;
 			const coverage = new AISessionCoverage(session_id);
 			$coverage.append(coverage.view);
