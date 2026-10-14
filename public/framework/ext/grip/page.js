@@ -7,7 +7,7 @@ export default new Doc({
 	icon: "drag_handle",
 
 	files: "grip.js grip.css page.js readme.md",
-	notes: "decisions",
+	notes: "decisions architecture",
 
 	content(){
 		code.js(`import grip from "/framework/ext/grip/grip.js";
