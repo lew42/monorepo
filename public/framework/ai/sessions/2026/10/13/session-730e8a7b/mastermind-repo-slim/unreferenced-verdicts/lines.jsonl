@@ -1,0 +1,3 @@
+{"decision":{"text":"Zero dead: 4 Haiku 'dead' calls overturned in spot-check (card.css loaded at card/page.js:7; card docs in files.jsonl; mic.js listed in Ask/page.js files:). Alternative: trust Haiku and offer 4 for retirement.","at":"NOW"}}
+{"log":{"text":"167 verdicts (76 runtime-loaded, 91 record, 0 dead); 15 spot-checked, 11 agreed; Server/retire-files.mjs ready, not run; doc ai/doc/unreferenced-verdicts.md","at":"NOW"}}
+{"landed_at":"NOW","summary":"Unreferenced verdicts landed: 0 dead of 167; mover ready, not run"}

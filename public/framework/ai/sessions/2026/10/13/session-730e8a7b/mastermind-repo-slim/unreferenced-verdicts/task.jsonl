@@ -7,3 +7,6 @@
 {"action":{"at":"2026-10-13T20:04:49-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unreferenced-verdicts/verdicts-2.json"]}}
 {"action":{"at":"2026-10-13T20:04:50-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unreferenced-verdicts/verdicts-5.json"]}}
 {"action":{"at":"2026-10-13T20:05:32-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unreferenced-verdicts/verdicts-4.json"]}}
+{"decision":{"at":"2026-10-13T20:06:52-05:00","text":"Zero dead: 4 Haiku dead calls overturned in spot-check (card.css loaded at card/page.js:7; card docs in files.jsonl; mic.js listed in Ask/page.js files:). Alternative: trust Haiku and offer 4 for retirement."}}
+{"log":{"at":"2026-10-13T20:06:52-05:00","msg":"167 verdicts (76 runtime-loaded, 91 record, 0 dead); 15 spot-checked, 11 agreed; Server/retire-files.mjs ready, not run; ai/doc/unreferenced-verdicts.md"}}
+{"assign":{"landed_at":"2026-10-13T20:06:52-05:00","title":"Unreferenced files: 0 of 167 are dead","outcome":"Every candidate is runtime-loaded (76) or a record (91); nothing to retire. Mover Server/retire-files.mjs (--plan/--apply/--undo) ready, not run. Doc: /framework/ai/doc/unreferenced-verdicts.md"}}
