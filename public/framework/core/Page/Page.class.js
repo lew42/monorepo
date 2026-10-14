@@ -280,6 +280,14 @@ export class Page extends Item {
 	declare(list = this._raw_children ?? []){
 		if (is.fn(list)) { this.child_source = list; list = []; }
 
+		// `children: "Named words auto"` — the word `auto` also adopts every subfolder holding a
+		// page.js / page.jsonl, read from this folder's files.jsonl, alphabetical, after the named
+		// ones. A new page appears with no edit here. doc/indexing-2026-10-08.md.
+		if (is.str(list) && /(^|\s)auto(\s|$)/.test(list)){
+			list = list.replace(/(^|\s)auto(?=\s|$)/, "");
+			this.child_source = async () => [...(await Page.listing(this.url))?.pages.keys() ?? []].filter(name => !this.children.has(name)).sort();
+		}
+
 		const entries = is.str(list) ? list.trim().split(/\s+/)
 		              : is.arr(list) ? list
 		              : Object.entries(list);
