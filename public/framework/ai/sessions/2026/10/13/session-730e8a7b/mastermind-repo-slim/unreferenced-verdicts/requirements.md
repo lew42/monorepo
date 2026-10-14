@@ -1,4 +1,4 @@
-# Unreferenced files: a verdict per file, moving nothing, a deletion list for the owner
+# Unreferenced files: a verdict for each
 
 Budget: $10. Load the `sub-mastermind` skill first. The owner's words: `../requirements.md` dictation 2 ("there are way too many files in every directory… some of it might not even be used anywhere… the AI can answer basic questions about each file, but who should make those decisions in terms of what stays and what goes… unless it's very obviously a bad way and there is a clear, much better way, don't move") and `../requirements-8.md` ask 1 ("random files everywhere that nobody knows what they are, where they came from, or what they do"). The census exists: `public/framework/ai/doc/unreferenced.md` (126 files with no import, link, listing or `children:` path; "a candidate, not a verdict"). Your log is this dir's `task.jsonl`. CLAUDE.md: never destructive; compute don't recall; the owner decides deletions.
 

@@ -4,7 +4,7 @@
 
 **A reference-free file is a candidate, not a verdict.** A file can be loaded by a name built at runtime, by a script tag, or by the owner typing its URL. Nothing here was moved or deleted; the owner decides.
 
-Not counted: the 706 per-member docs under `doc/method|property|file/` (the Doc system lists those by folder), `readme.md`, `page.js`, `files.jsonl`, `index.html`, tests, and anything under `ai/sessions`. A path (`./Foo.js`, `/framework/ext/Foo/Foo.js`) must resolve to the file; a bare file name counts only when no other file shares it. Back to [follow-up.md](follow-up.md).
+Not counted: the 706 per-member docs under `doc/method|property|file/` (the Doc system lists those by folder), `readme.md`, `page.js`, `files.jsonl`, `index.html`, tests, and anything under `ai/sessions`. A path (`./Foo.js`, `/framework/ext/Foo/Foo.js`) must resolve to the file; a bare file name counts only when no other file shares it. Verdict for each file: [unreferenced-verdicts.md](unreferenced-verdicts.md). Back to [follow-up.md](follow-up.md).
 
 - `core/Page/doc/` (3): `Page-notes.md`, `previews.md`, `readme-full-2026-10-12.md`
 - `core/Page/jsonl/doc/` (3): `caveats.md`, `size.md`, `writers.md`
