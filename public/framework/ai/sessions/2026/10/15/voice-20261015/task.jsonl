@@ -10,3 +10,4 @@
 {"agent":{"task":"past-work-map","id":"helper-past-work-map","model":"claude-sonnet-5-5","session_id":"e5f06b7c-ec16-47ab-b53f-4bdd8481dfd2","item":"C"}}
 {"agent":{"task":"loose-ends","id":"helper-loose-ends","model":"claude-haiku-5-5","session_id":"cce1ac2c-ba21-4631-ac3f-0d901cfd9a7c","item":"D"}}
 {"log":{"at":"2026-10-15T16:44:36-05:00","msg":"Item E (web voice dictation page broken; fix it within the prompt refinement + chat work) sent to the ux/Dictate module inbox, line i-mva2fkpve14"}}
+{"log":{"at":"2026-10-15T16:46:19-05:00","msg":"C landed (helper-past-work-map, 642a6b49e): past-work-map/map.md. Per-dir ai/ folders exist (26, 295 lines, touch-only); Refine tagged 4 of 7,463 transcripts (1,224 asks, free-text module, no classes); no module page lists related sessions yet.","link":"past-work-map/map.md"}}
