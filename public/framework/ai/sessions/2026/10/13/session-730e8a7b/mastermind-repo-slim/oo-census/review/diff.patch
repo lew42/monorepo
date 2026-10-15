@@ -1,19 +1,24 @@
 diff --git a/public/framework/ai/AISession/page.js b/public/framework/ai/AISession/page.js
 new file mode 100644
-index 000000000..11231059e
+index 000000000..3162d51a6
 --- /dev/null
 +++ b/public/framework/ai/AISession/page.js
-@@ -0,0 +1,11 @@
-+import { Doc } from "/app.js";
-+import AISession from "./AISession.js";
+@@ -0,0 +1,16 @@
++import { Page, md, div } from "/app.js";
 +
-+export default new Doc({
++export default new Page({
 +	meta: import.meta,
 +	title: "AISession",
 +	description: "One Claude session read once from its transcript, and the family of classes around it: the sessions grid, a session's own page, the node tools.",
 +	icon: "forum",
-+	subject: AISession,
-+	files: "AISession.js AISessionsPage.js AISessionView.js AISessionDetail.js AISessionIndex.mjs readme.md",
++
++	content(){
++		// No DOM after the await: the box is captured first, filled in the callback.
++		div.c("flow", async $box => {
++			const text = await (await fetch(new URL("./readme.md", import.meta.url))).text();
++			$box.empty(() => md(text));
++		});
++	},
 +});
 diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
 new file mode 100644
@@ -364,15 +369,15 @@ index d18294333..23917357f 100644
 +
 +The ranked list of lowercase function-bag files, the five already made classes, and a ten-module "done properly" spot check: [code/patterns/doc/oo-census.md](../../code/patterns/doc/oo-census.md).
 diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
-index adbe96ecd..27c60da26 100644
+index dd7a875b2..95d77a9c6 100644
 --- a/public/framework/ai/page.js
 +++ b/public/framework/ai/page.js
 @@ -30,7 +30,7 @@ export default new Page({
  	leaf: true,
  	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
  	classes: v1() ? undefined : "full fill",
--	children: "classes quick-fix asks process review council audits tests local models",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
-+	children: "classes AISession quick-fix asks process review council audits tests local models",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
+-	children: "tasks classes quick-fix asks process review council audits tests local models",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
++	children: "tasks classes AISession quick-fix asks process review council audits tests local models",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
  
  	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
  	board_drawn: true,
