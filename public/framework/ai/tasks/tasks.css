@@ -1,0 +1,15 @@
+@layer base, theme, site, util;
+
+@layer site {
+	.tasks-group { padding-block-end: 0.5em; }
+	.tasks-group-head { display: flex; align-items: center; gap: 0.4em; font-size: 1em; margin: 0; padding: 0.7em var(--pad-card) 0.3em; }
+	.tasks-empty, .tasks-note { display: block; padding: 0.4em var(--pad-card); }
+	.tasks-warn { flex: none; color: var(--prime); font-weight: 700; }
+
+	.tasks-lanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(16em, 1fr)); gap: 1em; padding: var(--pad-card); align-items: start; }
+	.tasks-lane { display: flex; flex-direction: column; gap: 0.5em; min-width: 0; }
+	.tasks-lane .tasks-group-head { padding-inline: 0; }
+	.tasks-card { display: flex; flex-direction: column; gap: 0.15em; padding: 0.6em 0.8em; background: var(--surface); border-radius: var(--radius); text-decoration: none; color: inherit; overflow-wrap: anywhere; }
+	.tasks-card-title { font-weight: 600; }
+	.tasks-quiet { outline: 2px solid var(--prime); }
+}

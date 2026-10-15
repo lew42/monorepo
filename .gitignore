@@ -187,3 +187,4 @@ public/framework/ai/**/owner-prompts.jsonl
 # public/ai/ are machine state, like the same-named ignores under framework/ai/ and ux/Dictate/ai/.
 public/framework/ai/**/words.jsonl
 public/ai/v-*.jsonl
+public/framework/ai/tasks/state.jsonl
