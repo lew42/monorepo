@@ -90,3 +90,4 @@
 {"chat":{"at":"2026-10-15T22:26:19.788Z","role":"user","from":"owner (voice)","text":"Ask ea3d4c58: two briefs, A page system (6 questions) and B AI system (4 asks). Full text: ask-ea3d4c58.md"}}
 {"chat":{"at":"2026-10-15T22:26:19.788Z","role":"assistant","from":"voice-mastermind","text":"Ack: A sent to @helper-page-system (answers.md + core/Page/doc/vision.md after its merge); B spawned as @helper-ai-system (ai-system/requirements.md). Updates relayed: spawn policy merged and live on restart, ModuleLog fixed; open: CLAUDE.md line, restart, Gmail."}}
 {"agent":{"at":"2026-10-15T22:26:19.788Z","id":"helper-ai-system","session":"13eaee4d-6d42-4aeb-887f-60fc5d3dbf89","model":"claude-sonnet-5-5","task":"ai-system","brief":"ai-system/requirements.md"}}
+{"log":{"at":"2026-10-15T22:28:32.152Z","msg":"helper-past-work-map landed item C: past-work-map/map.md (642a6b49e)."}}
