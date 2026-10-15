@@ -22,6 +22,7 @@ import Pool from "./Pool.js";
 import Lifecycle from "./Lifecycle.js";
 import Follow from "./Follow.js";
 import MCP, { loopback } from "./MCP.js";
+import RemoteMCP from "./ext/remote/RemoteMCP.js";
 import PortRegistry from "./PortRegistry.js";
 import Process from "./Process.js";
 import Project from "./Project.js";
@@ -299,6 +300,7 @@ export default class Servex extends Events {
 
         this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
         this.routes();
+        this.remote = new RemoteMCP({ servex: this, root: REPO, router: this.dashboard.router });   // /mcp/remote, bearer token (voice-bridge.md)
         this.tools();
 
         /* Servex is the first project in its own list — it eats its own cooking,
