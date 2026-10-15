@@ -34,7 +34,7 @@ A page is a folder, and the folder is its storage:
 - `page.jsonl` — a page written as a log: line 1 builds it, each later line is one change. Appending a line redraws every open tab, no reload (on the dev server; the static site reads the file once).
 - `files.jsonl` — the folder's own file list, kept by the dev server. (`directory.json`, the old whole-site list, is off: `Server/doc/directory-off.md`.)
 
-A Page whose data lives in node (a query source, loaded on first use, unloaded when idle): [`doc/server.md`](doc/server.md).
+A Page whose data lives in node (a query source, loaded on first use, unloaded when idle): [`doc/server.md`](doc/server.md). **A cached server-side instance per page that the tools call `set(delta)` on, and why not "the whole App" (design, not built):** [`doc/server-instance.md`](doc/server-instance.md).
 
 How a line travels from a writer to the screen, and who may write: [`doc/streaming.md`](doc/streaming.md).
 The classes and the decisions (log growth, big collections, file vs database): [`doc/architecture.md`](doc/architecture.md).
