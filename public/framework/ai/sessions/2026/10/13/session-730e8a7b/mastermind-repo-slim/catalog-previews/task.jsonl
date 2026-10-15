@@ -14,3 +14,4 @@
 {"review":{"answer":{"n":5,"reply":"fixed: hover iframe fades in on load over the picture"}}}
 {"review":{"answer":{"n":6,"reply":"fixed: next.md mentions --only and the mtime reset"}}}
 {"review":{"answer":{"n":7,"reply":"fixed: before and after shots linked in next.md"}}}
+{"log":{"at":"2026-10-14T19:28:15-05:00","msg":"Landed: merged into michael/dev; thumbs copied into the main tree and indexed (227, 3.4 MB); restored the **/shots/ gitignore rule the merge overwrote."}}
