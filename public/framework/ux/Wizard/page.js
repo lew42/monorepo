@@ -75,7 +75,7 @@ export default new Doc({
 	icon: "checklist",
 
 	files: "Wizard.js page.js readme.md",
-	notes: "decisions",
+	notes: "architecture decisions",
 
 	content(){
 
