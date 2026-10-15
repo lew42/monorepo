@@ -23,7 +23,14 @@ class LiveLog extends JSONL {
 		if (add) this.items.set(add.id ?? `i${this.seq}`, this.stamp({ ...add, by, ts }, ts ?? add.ts));
 		if (typeof remove === "string") this.items.delete(remove);
 	}
-	skip(){}   // the log carries other lines (set, pages, notes): not ours, no warning
+	// A line naming a card id edits that card in place; other lines (set, pages, notes) are not ours.
+	skip(k, entry){
+		const item = this.items.get(k), v = entry?.[k];
+		if (item && v && typeof v === "object" && !Array.isArray(v)){
+			const { text, title, type } = v;
+			this.items.set(k, { ...item, ...(text !== undefined && { text }), ...(title !== undefined && { title }), ...(type !== undefined && { type }) });
+		}
+	}
 	reset(){ super.reset(); this.items = new Map(); this.seq = 0; this.last_ts = undefined; return this; }
 }
 
@@ -42,9 +49,21 @@ class Tail {
 		return this.poll();
 	}
 
+	// A tab left open keeps its old code: reload it once when Live.js changes on the server.
+	async fresh(){
+		try {
+			const r = await fetch(import.meta.url, { method: "HEAD", cache: "no-store" });
+			const tag = r.headers.get("etag") ?? r.headers.get("last-modified");
+			if (!tag) return;
+			if (this.tag && this.tag !== tag) return location.reload();
+			this.tag = tag;
+		} catch {}
+	}
+
 	async poll(){
 		if (this.busy) return;
 		this.busy = true;
+		this.fresh();
 		try {
 			const res = await fetch(this.log.url, { cache: "no-store", headers: this.offset ? { Range: `bytes=${this.offset}-` } : {} });
 			if (res.status === 416 || !res.ok || res.headers.get("content-type")?.includes("html")) return;
@@ -62,6 +81,13 @@ class Tail {
 export default class Live extends Page {
 	static Log = LiveLog;
 	static Tail = Tail;
+
+	// A json code block that parses is shown indented; any other code wraps (Live.css).
+	static pretty(text){
+		return text.replace(/```json\n([\s\S]*?)\n```/g, (all, body) => {
+			try { return "```json\n" + JSON.stringify(JSON.parse(body), null, 2) + "\n```"; } catch { return all; }
+		});
+	}
 
 	// One list, strictly by time, newest first (line order breaks ties).
 	rows(){
@@ -92,7 +118,7 @@ export default class Live extends Page {
 				const when = r.ts ? new Date(r.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
 				span.c("live-meta", [when, r.by].filter(Boolean).join(" · "));
 				if (r.title) span.c("live-card-title", r.title);
-				md(r.text ?? "");
+				md(this.constructor.pretty(r.text ?? ""));
 			}));
 		});
 	}

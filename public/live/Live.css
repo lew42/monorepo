@@ -10,4 +10,6 @@
 	.live-meta { display: block; }
 	.live-card-title { font-weight: 600; display: block; }
 	.live-heading { font-weight: 700; }
+	.live pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
+	.live pre code { white-space: inherit; }
 }
