@@ -1,3 +1,5 @@
 {"class":"/framework/ai/cards/card.js","title":"Follow-up 2026-10-15: 38 flagged","type":"note","id":"2026/10/15/follow-up-2026-10-15-38-flagged","created":"2026-10-15T00:00:07-05:00","by":"task-loop","tags":["owner-note","risk"]}
 {"owner_note":{"kind":"risk","text":"38 rows fell through today (111 healthy): see the list","links":["/framework/ai/doc/follow-up.md"],"by":"task-loop","at":"2026-10-15T00:00:07-05:00"}}
 {"message":{"by":"task-loop","kind":"note","text":"38 rows fell through today (111 healthy): see the list","at":"2026-10-15T00:00:07-05:00","id":"m-mv92l88av5"}}
+{"reviewed":{"at":"2026-10-15T15:44:33-05:00","by":"owner"}}
+{"file":"ai/"}
