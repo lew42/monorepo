@@ -133,7 +133,7 @@ export default class RemoteMCP {
         const qid = crypto.randomBytes(4).toString("hex");
         const out = path.join(this.replies, qid + ".txt");
         fs.mkdirSync(this.replies, { recursive: true });
-        const msg = `The owner asks by voice (question ${qid}): "${question}"\nAnswer in two or three plain sentences, easy to hear aloud. Reply by writing your answer as plain text to ${out} (one file write, nothing else).`;
+        const msg = `The owner asks by voice (question ${qid}): "${question}"\nAnswer for the voice agent, which will decide how to say it aloud: the answer first, then the context it needs to hold a conversation (what it is, where it lives, what is open, alternatives, a link or two); a few short paragraphs at most. Reply by writing your answer as plain text to ${out} (one file write, nothing else).`;
         try { this.servex.agents.send(id, msg, { from: "owner (voice)" }); }
         catch (e) {
             // the stored agent was stopped on purpose or landed: this session gets a fresh one
