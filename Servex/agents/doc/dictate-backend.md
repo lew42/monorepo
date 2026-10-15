@@ -102,3 +102,8 @@ stubbed auth failure, plus that only ONE card gets posted across a run with two 
   that session's own next natural respawn sets `backing_model` for the first time.
 - The live per-call OpenRouter cost gap this task's proof ran into:
   [`openrouter/gaps.md`](../../ext/openrouter/gaps.md) #8.
+
+## Lean smart assistant, quiet fast assistant (2026-10-14, dictate-next-4)
+
+- The smart assistant starts with `setting_sources: []` and no claude.ai connectors, so it no longer loads CLAUDE.md, skills or memory: `session-smart.md` is the only rule it follows. Deliberate: context 68k to 44k tokens, first reply 46 s to 6.8 s. Do not add a skill it cannot load; put the rule in the brief.
+- The fast assistant is dropped in code (`FAST_NAMED` in `Sessions.js`) unless the sentence it heard starts with "fast" or says "fast assistant" (not "fast assistant's"). Proof: `public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-next-4/replay.mjs`.

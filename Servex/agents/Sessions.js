@@ -59,7 +59,7 @@ export function check_dir_line(line){
  * and an empty `emoji` takes it off. An assistant reacts by making its WHOLE reply
  * one emoji (`LONE_EMOJI`): that reply becomes a reaction on the owner's line
  * instead of a bubble. */
-export const FAST_NAMED = /fast/i;
+export const FAST_NAMED = /(?:^|\n|\]\s)\W*fast\b|\bfast assistant\b(?![\x27\u2019]s)/i;   // addressed: a line that starts with "fast", or "fast assistant" not as a possessive
 export const LONE_EMOJI = /^\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]*(\u200D\p{Extended_Pictographic}\uFE0F?)*$/u;
 
 const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };

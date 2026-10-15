@@ -1019,3 +1019,5 @@ End-of-line comments, each with the code it sat on.
 - `this.start_mic();` — // inherited from `DrawerRailSheetPanel` — a no-op while `this.quiet`
 - `DrawerRail.SheetPanel = DrawerRailSheetPanel;` — // the private-session-pair version this replaced — kept reachable, unchanged
 - `DrawerRail.SheetLinksV1 = DrawerRailSheet;` — // mic-only + links footer, today's outgoing default — kept reachable
+
+**Update 2026-10-14 (dictate-next-4):** the default is now a real HEIGHT, not a ceiling: with no dragged height `rail.js` `size()` calls `size_to("60dvh")`, so about four bubbles show; the "grows with its content" text above is the old behaviour. The old CSS ceiling is `--sheet-h, 60dvh` too.
