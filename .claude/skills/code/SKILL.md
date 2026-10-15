@@ -52,3 +52,5 @@ The code speaks for itself, so most lines need no comment. Write one only where 
 `public/` is no-build native ESM: read a class top to bottom and know what happens. Every constructor is assign-based (`this.assign(...args)`). Capturing is synchronous: never build DOM after an `await`. Every process you start is hidden (`windowsHide: true`). Every class ends up with a view of its own state (a chip, a row, a panel).
 
 Improve this skill: append to [`improvements.md`](improvements.md).
+
+**Every class gets a class page with a live-instance demo (the owner, 2026-10-15):** the rule and the component paths are in the `make` skill, section 4 "Show it".

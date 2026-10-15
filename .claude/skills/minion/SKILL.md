@@ -115,3 +115,5 @@ Run `finish-task` to land, naming any readme or doc your change made out of date
 ## One specific question per step (the owner, 2026-10-15)
 
 AIs try to do too much at once. Do the one thing your brief asks, in small steps, each with one specific question or check. Source: [ask-8f9c9d80](/public/framework/ai/sessions/2026/10/15/voice-20261015/ask-8f9c9d80.md).
+
+A class you build or rebuild gets a class page with a live-instance demo: `make` skill, section 4.

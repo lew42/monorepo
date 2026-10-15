@@ -31,7 +31,7 @@ Anything with state or behaviour is a class: one class per file, named for the f
 
 ## 4. Show it
 
-Every class ends up with a view of its own live state, so the owner can watch instances change as they use it. A page about a class shows the class first (name, icon, core API, key properties, who calls it). Where it has a UI, the demo shows two things side by side: the rendered view, and the live instance as a debug tree that updates as you click. Use the shared instance view, never a page-specific debug UI (`code` skill, "A system's logs and debug view belong to its class").
+Every class ends up with a view of its own live state, so the owner can watch instances change as they use it. A page about a class shows the class first (name, icon, core API, key properties, who calls it). Where it has a UI, the demo shows two things side by side: the rendered view, and the live instance as a debug tree that updates as you click. **Every class gets a class page (the owner, 2026-10-15), not a mass conversion: convert a class when you rebuild it.** A link to a class is the dark class card with its icon (`ext/Mention`: `build_row()`, `entry.class_card`, `page-surface-dark`; `#Page` in text), so it reads as a class. The class page shows the core API beside a demo that instantiates the class live, its properties rendering in real time (`ux/Content/Object`: `Inspect.js`, `InstanceTree.js`). A module page demos its real data structures (child pages, item lists, sentence lists: its essence), foundational modules first. Use the shared instance view, never a page-specific debug UI (`code` skill, "A system's logs and debug view belong to its class").
 
 ## If it is a page
 
