@@ -491,7 +491,7 @@ export default class Sessions {
 	 * call, never mistaken for a fresh owner prompt. One result line lands once both calls
 	 * finish: `{refined: {at, re, sentences, sections, flags, cost_usd}}`, `re` = the owner
 	 * line's own `at`. `cost_usd` sums `total_cost_usd` off every model call this one
-	 * utterance made (`ask-each.mjs`'s own `askOnce` return). Returns the promise so a test
+	 * utterance made (`AskEach.mjs`'s own `askOnce` return). Returns the promise so a test
 	 * can await it directly with a stubbed `servex.echo.call`; `say()` itself only logs a
 	 * failure (no model, Servex down) and otherwise lets go -- the raw bubble already stands
 	 * on its own with nothing refined underneath it. */

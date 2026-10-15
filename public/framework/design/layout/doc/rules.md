@@ -63,7 +63,7 @@ with its usual answers, not a rule. Drawn, with live demos: [/layouts/decide/](/
    proposal and say it is new. Each layout the owner approves makes the next choice more certain,
    so these answers firm up over time; record your answer as a `decision` line either way.
 
-To ask them one at a time for real, run `node Server/ask-each.mjs` on
+To ask them one at a time for real, run `node Server/AskEach.mjs` on
 `public/layouts/decide/questions.md` with the page's outline as `--context`; a worked run is at
 [/layouts/decide/servex/](/layouts/decide/servex/).
 

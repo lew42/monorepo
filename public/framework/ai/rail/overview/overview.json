@@ -38,14 +38,14 @@
 			"done": [
 				{
 					"task": "2026-09-28/shared-browser",
-					"quote": "One browser launcher, and a watcher that sees browser windows: Server/browser.mjs used by every Chromium-launching scri…",
+					"quote": "One browser launcher, and a watcher that sees browser windows: Server/Browser.mjs used by every Chromium-launching scri…",
 					"owner": false,
 					"words_url": "/framework/ai/2026-09-28/shared-browser/",
 					"asked_at": "2026-09-28T22:41:56-05:00",
 					"landed_at": "2026-09-28T22:59:00-05:00",
 					"hours": 0.3,
 					"cost_usd": 8.2349,
-					"outcome": "What landed — Server/browser.mjs is now the one place every script starts Chromium; Server/window-watch.mjs also watches for a stray browse…",
+					"outcome": "What landed — Server/Browser.mjs is now the one place every script starts Chromium; Server/window-watch.mjs also watches for a stray browse…",
 					"result_url": "/framework/ai/2026-09-28/shared-browser/",
 					"state": "done"
 				},
@@ -1567,20 +1567,20 @@
 			"done": [
 				{
 					"task": "2026-09-28/ask-each",
-					"quote": "Build Server/ask-each.mjs: ask one question at a time in a single agent session instead of dumping all questions into o…",
+					"quote": "Build Server/AskEach.mjs: ask one question at a time in a single agent session instead of dumping all questions into o…",
 					"owner": false,
 					"words_url": "/framework/ai/2026-09-28/ask-each/",
 					"asked_at": "2026-09-28T23:55:43-05:00",
 					"landed_at": "2026-09-29T00:02:49-05:00",
 					"hours": 0.1,
 					"cost_usd": 2.1942,
-					"outcome": "Built Server/ask-each.mjs — ask a model one question at a time in one session, instead of dumping a whole list into one prompt. The owner's…",
+					"outcome": "Built Server/AskEach.mjs — ask a model one question at a time in one session, instead of dumping a whole list into one prompt. The owner's…",
 					"result_url": "/framework/ai/2026-09-28/ask-each/",
 					"state": "done"
 				},
 				{
 					"task": "2026-09-28/collab-facts",
-					"quote": "Build Collab.Fact + facts phase + dispute + abstain, per minion-brief.md: Collab.js, Server/collab.mjs, view.js, collab…",
+					"quote": "Build Collab.Fact + facts phase + dispute + abstain, per minion-brief.md: Collab.js, Server/Collab.mjs, view.js, collab…",
 					"owner": false,
 					"words_url": "/framework/ai/2026-09-28/collab-facts/",
 					"asked_at": "2026-09-28T15:15:16-05:00",
@@ -1593,7 +1593,7 @@
 				},
 				{
 					"task": "2026-09-28/collab-rounds",
-					"quote": "Server/collab.mjs runner: phases, Servex members, tally, --mock, doc",
+					"quote": "Server/Collab.mjs runner: phases, Servex members, tally, --mock, doc",
 					"owner": false,
 					"words_url": "/framework/ai/2026-09-28/collab-rounds/",
 					"asked_at": "2026-09-28T13:53:05-05:00",

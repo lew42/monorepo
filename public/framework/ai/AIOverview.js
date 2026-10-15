@@ -74,7 +74,7 @@ const WRITERS = [
 		note: "Servex's own tool; the same `check()` runs inside Log.js before the line is kept." },
 	{ name: "store.mjs", path: "public/framework/ext/Research/store.mjs", who: "AI running a script", ok: true,
 		note: "a research entry's shape is enforced in the function itself, not by calling jsonl-schema.mjs." },
-	{ name: "decide.mjs", path: "Server/decide.mjs", who: "node script (the decision wizard)", ok: true,
+	{ name: "Decide.mjs", path: "Server/Decide.mjs", who: "node script (the decision wizard)", ok: true,
 		note: "walks one decision into being field by field — there's no raw line a caller could hand it." },
 	{ name: "Cards.js", path: "Servex/cards/Cards.js", who: "node, inside Servex", ok: true,
 		note: "the one place a card's page.jsonl is ever written; every card write is queued through it." },

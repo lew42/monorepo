@@ -15,7 +15,7 @@ View.stylesheet(import.meta, "decision.css");
  *
  * A legacy task.jsonl decision is normalized to the same shape, its `chose` pre-selected.
  *
- * A record written by Server/decide.mjs also carries rank, confidence, recommended (an option
+ * A record written by Server/Decide.mjs also carries rank, confidence, recommended (an option
  * id), sources, depends_on and each option's `then`; they show as a head row, a
  * "recommended" mark and a sources line. `nested` (option id → child records, given by
  * Decisions.js) draws each child decision INSIDE the option that leads to it.
@@ -41,7 +41,7 @@ export default class Decision extends ContentModule {
 				if (hit) chosen = hit.say; else options.unshift({ say: chosen });
 			}
 
-			// decide.mjs's fields — absent on older records, and then nothing extra is drawn.
+			// Decide.mjs's fields — absent on older records, and then nothing extra is drawn.
 			const extra = {};
 			for (const k of ["rank", "confidence", "recommended", "sources", "depends_on", "status", "decided_by"]) if (d[k] != null) extra[k] = d[k];
 
@@ -59,7 +59,7 @@ export default class Decision extends ContentModule {
 		};
 	}
 
-	/* Decided by default (Server/decide.mjs, 2026-09-29): a record with `status: "decided"` already
+	/* Decided by default (Server/Decide.mjs, 2026-09-29): a record with `status: "decided"` already
 	 * names its winner — the recommended option — before anyone has clicked anything. Remember that
 	 * starting point as `default_chosen`/`default_decided_by` so an owner's later CLEAR (tapping
 	 * their own choice again, see `unchoose`) has something honest to fall back to, instead of

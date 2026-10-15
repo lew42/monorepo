@@ -122,11 +122,11 @@ or numbers that look like a finding and belong to the wrong element.
 ## A plain render check, no gesture
 
 **Never `chromium.launch(` directly, even in a scratch script — import `{ browser }` from
-[`Server/browser.mjs`](/Server/browser.mjs) instead** (2026-10-03): it's the one launcher every
+[`Server/Browser.mjs`](/Server/Browser.mjs) instead** (2026-10-03): it's the one launcher every
 script in this repo shares, it opens no window, and every chrome.exe it starts is tagged so the
 reaper can tell it apart from the owner's own Chrome. `const b = await browser();` replaces
 `chromium.launch(...)` one for one. A probe script outside the repo (the session scratchpad) can
-still import it with a `file:///C:/Code/lew42/monorepo/Server/browser.mjs` URL. See
+still import it with a `file:///C:/Code/lew42/monorepo/Server/Browser.mjs` URL. See
 [`Server/doc/browser.md`](/Server/doc/browser.md). Run bash scripts with `MSYS_NO_PATHCONV=1` or
 Git Bash rewrites a `/imagine/x/` argument into a Windows path.
 

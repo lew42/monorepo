@@ -1,11 +1,11 @@
 ---
 name: decide
-description: Run whenever a research round, a plan or a task reaches a decision — anything with options to choose between (which library, proxy or build, where it lives). The decision is written by Server/decide.mjs, a node tool that walks it step by step and refuses a missing part. The tool is the only way to write one; never hand-write a decision line.
+description: Run whenever a research round, a plan or a task reaches a decision — anything with options to choose between (which library, proxy or build, where it lives). The decision is written by Server/Decide.mjs, a node tool that walks it step by step and refuses a missing part. The tool is the only way to write one; never hand-write a decision line.
 ---
 
 # Decide
 
-**A decision is written by `Server/decide.mjs`, never by hand.** The tool asks for each part in turn and refuses a decision with a part missing, so you don't have to remember the rules. Just follow what it prints as `next`.
+**A decision is written by `Server/Decide.mjs`, never by hand.** The tool asks for each part in turn and refuses a decision with a part missing, so you don't have to remember the rules. Just follow what it prints as `next`.
 
 Why it matters beyond tidiness: a `{"decision": …}` line is always an object with an `id`. On 2026-09-30 two hand-written lines with a bare string as the decision broke every card page on the AI board (117 of 118) with "Cannot assign to read only property '0'"; the reader is guarded now, but the tool is still the only way to write one.
 
@@ -26,18 +26,18 @@ Only flag a decision `--owner-only "<reason>"` (on `create` or `recommend`) when
 ## The walk
 
 ```sh
-node Server/decide.mjs create    --file <page.jsonl> --question "…?" --rank 1 [--depends-on d-x:option] [--owner-only "reason"]
-node Server/decide.mjs options   --file … --id d-… --option "…" --option "…"
-node Server/decide.mjs caveats   --file … --id d-… --option <id> --caveat "…"
-node Server/decide.mjs then      --file … --id d-… --option <id> [--child d-…]
-node Server/decide.mjs recommend --file … --id d-… --option <id> --confidence 0.7 --why "…" --source <id>
+node Server/Decide.mjs create    --file <page.jsonl> --question "…?" --rank 1 [--depends-on d-x:option] [--owner-only "reason"]
+node Server/Decide.mjs options   --file … --id d-… --option "…" --option "…"
+node Server/Decide.mjs caveats   --file … --id d-… --option <id> --caveat "…"
+node Server/Decide.mjs then      --file … --id d-… --option <id> [--child d-…]
+node Server/Decide.mjs recommend --file … --id d-… --option <id> --confidence 0.7 --why "…" --source <id>
 ```
 
 Every call answers `{ok, next, missing}`. Keep going until you see `appended: true`. A refusal (`ok:false`) says what is wrong: fix that part and repeat the call. An unknown flag is refused too, with the list of flags that verb knows.
 
 **Several at once is fine — pass JSON, never JSON-looking text:**
 ```sh
-node Server/decide.mjs options --file … --id d-x --json '[{"id":"a","text":"Proxy it","caveats":["Unmeasured"],"then":[]},{"id":"b","text":"Build our own","caveats":["Costly"],"then":[]}]'
+node Server/Decide.mjs options --file … --id d-x --json '[{"id":"a","text":"Proxy it","caveats":["Unmeasured"],"then":[]},{"id":"b","text":"Build our own","caveats":["Costly"],"then":[]}]'
 ```
 `--json` takes an array (the options, caveats or children of that verb) or an object with the flags' names as keys. `--options`, `--caveats` and `--then` also parse JSON (`--caveats '{"a":["…"],"b":["…"]}'`). Text that starts like JSON in `--option`, `--caveat` or `--why` is refused instead of being turned into an id.
 

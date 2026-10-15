@@ -1,7 +1,7 @@
 // Proof for ext/Chat/doc/duplicate-bubbles.md — mounts the REAL shared chat() widget (ux/Dictate/chat.js), mocks only
 // Servex's session endpoints, and makes the stream/poll copy of the owner's line arrive BEFORE the send call answers.
 // Counts the owner's bubbles and how often the text appears. Usage: node prove-dup-bubble.mjs <base url> [tag]
-const { browser, close } = await import(new URL("../../../../../../Server/browser.mjs", import.meta.url).href);
+const { browser, close } = await import(new URL("../../../../../../Server/Browser.mjs", import.meta.url).href);
 const BASE = process.argv[2] || "http://localhost:54923", TAG = process.argv[3] || "run";
 const SHOTS = new URL("./shots/", import.meta.url).pathname.replace(/^\/(\w:)/, "$1");
 const b = await browser();

@@ -12,7 +12,7 @@ run's own `collab.jsonl` into plain objects — `members[]`, `phases[]`, `votes[
 `facts[]`, `winner` — the way the owner asked for ("almost everything should just be an object
 with properties and methods … the more of the internal structure we can see via UI"). `view.js`
 draws one run whole; `page.js` is the live page. The runner that actually spawns the members and
-writes the log is a sibling task (`Server/collab.mjs`) — this module only reads and draws what
+writes the log is a sibling task (`Server/Collab.mjs`) — this module only reads and draws what
 it writes.
 
 ## Use

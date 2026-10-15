@@ -32,8 +32,8 @@
  * Server/doc/refine.md for why cheap-first, and why clean/brief/coverage are pinned to one model
  * each rather than also being configurable: this is a tool for a fixed, known-good pipeline, not
  * a model-comparison harness). Each model drafts structured-<name>.md independently; --collab
- * picks among the drafts by running them through Server/collab.mjs's own vote (real Servex
- * agents, real cost — see the "given" hook in collab.mjs, added for exactly this reuse); without
+ * picks among the drafts by running them through Server/Collab.mjs's own vote (real Servex
+ * agents, real cost — see the "given" hook in Collab.mjs, added for exactly this reuse); without
  * it, one cheap judge call (Haiku) picks or merges. Either way the winner is recorded so
  * Server/refine-scoreboard.jsonl can say, over many runs, which model actually refines best.
  *
@@ -43,14 +43,14 @@
  * spending anything real.
  *
  * Reuse, not a third engine (the brief's own rule): every model call goes through `askOnce` from
- * Server/ask-each.mjs; the --collab path goes through Server/collab.mjs. This file does no direct
+ * Server/AskEach.mjs; the --collab path goes through Server/Collab.mjs. This file does no direct
  * SDK or MCP calls of its own. Every Node spawn sets `windowsHide: true`. */
 
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { askOnce } from "./ask-each.mjs";
+import { askOnce } from "./AskEach.mjs";
 import RefineStyle from "../public/framework/ext/Refine/RefineStyle.js";
 
 const MODELS = {
@@ -89,7 +89,7 @@ const RUNGS = {
 	repair:     { model: MODELS.sonnet, promptTemplate: null }, // same reasoning as brief
 };
 
-// ---- small shared helpers (same shapes collab.mjs already uses, kept local on purpose: this
+// ---- small shared helpers (same shapes Collab.mjs already uses, kept local on purpose: this
 // file has to stand alone as a CLI tool, not depend on another script's internals) ----------
 
 const now = () => { const d = new Date(), o = -d.getTimezoneOffset(), p = n => String(Math.floor(Math.abs(n))).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}${o < 0 ? "-" : "+"}${p(o / 60)}:${p(o % 60)}`; };
@@ -270,7 +270,7 @@ function cleanTextForPrompt(sentences) {
 
 function mockStructured(sentences, index) {
 	// A deterministic, slightly different grouping per model index so two mock drafts are never
-	// byte-identical (same trick collab.mjs's own mockFacts uses, for the same reason). Wrapped in
+	// byte-identical (same trick Collab.mjs's own mockFacts uses, for the same reason). Wrapped in
 	// one H1 + H2 (same shape the real prompt below produces) so the mock path still exercises the
 	// real structure downstream code (pick, brief) has to read.
 	const groupSize = 2 + (index % 2);
@@ -412,8 +412,8 @@ async function applyCaveats(draftMd, caveats, cwd, mock) {
 	return { md: r.answer.trim() + "\n", cost_usd: r.cost_usd };
 }
 
-// With --collab: reuse Server/collab.mjs's own vote — pre-seed each draft as that phase's
-// "given" file (see the hook added to collab.mjs), let collab.mjs run its real vote + tally +
+// With --collab: reuse Server/Collab.mjs's own vote — pre-seed each draft as that phase's
+// "given" file (see the hook added to Collab.mjs), let Collab.mjs run its real vote + tally +
 // scoreboard, then read its winner back. Real Servex agents, real cost — see Server/doc/collab.md.
 async function collabPick(drafts, outDir, cwd, mock) {
 	const collabDir = path.join(outDir, "collab-structured");
@@ -431,19 +431,19 @@ async function collabPick(drafts, outDir, cwd, mock) {
 		members: drafts.map(d => ({ id: d.name, model: d.modelId })),
 	};
 	fs.writeFileSync(path.join(collabDir, "collab.json"), JSON.stringify(collabJson, null, 2));
-	const collabScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "collab.mjs");
+	const collabScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "Collab.mjs");
 	const args = [collabScript, collabDir]; if (mock) args.push("--mock");
 	const r = spawnSync(process.execPath, args, { cwd, encoding: "utf8", windowsHide: true });
-	if (r.status !== 0) throw new Error(`refine.mjs: collab.mjs failed (exit ${r.status}):\n${r.stderr || r.stdout}`);
+	if (r.status !== 0) throw new Error(`refine.mjs: Collab.mjs failed (exit ${r.status}):\n${r.stderr || r.stdout}`);
 	const jsonlPath = path.join(collabDir, "collab.jsonl");
 	const lines = fs.readFileSync(jsonlPath, "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
 	const decision = [...lines].reverse().find(l => l.decision?.status === "decided")?.decision;
 	const winnerLine = [...lines].reverse().find(l => l.winner)?.winner;
-	if (!winnerLine || !winnerLine.pick) throw new Error(`refine.mjs: collab.mjs run at ${collabDir} produced no winner (see ${jsonlPath})`);
+	if (!winnerLine || !winnerLine.pick) throw new Error(`refine.mjs: Collab.mjs run at ${collabDir} produced no winner (see ${jsonlPath})`);
 	const caveats = (winnerLine.caveats || []).filter(Boolean);
 	const collabDirRel = path.relative(outDir, collabDir).replaceAll("\\", "/");
 
-	// Fix (2026-09-29, owner on runs/b: a 1-1 tie broken by collab.mjs's own "cheaper member" rule
+	// Fix (2026-09-29, owner on runs/b: a 1-1 tie broken by Collab.mjs's own "cheaper member" rule
 	// spent $0.31 to land on an arbitrary pick — price is not a quality signal). `tie_rule` is set
 	// on the decision line whenever tallyVotes() had to break a tie (by caveat-count or by price);
 	// on a tie, don't trust that pick — fall back to the same cheap judge call the non-collab path
@@ -917,7 +917,7 @@ async function main() {
 		drafts.push({ name, modelId, md: d.md });
 	}
 
-	console.log(args.collab ? "refine.mjs: picking via collab.mjs..." : "refine.mjs: picking via judge call...");
+	console.log(args.collab ? "refine.mjs: picking via Collab.mjs..." : "refine.mjs: picking via judge call...");
 	const pick = args.collab ? await collabPick(drafts, outDir, cwd, args.mock) : await judgePick(drafts, cwd, args.mock);
 	costs.pick = pick.cost_usd;
 	fs.writeFileSync(path.join(outDir, "structured.md"), pick.md);
@@ -955,7 +955,7 @@ async function main() {
 	const totalCost = (costs.clean || 0) + Object.values(costs.structured).reduce((s, c) => s + c, 0) + (costs.pick || 0) + (costs.brief || 0) + (costs.coverage || 0) + (costs.repair || 0);
 	const refineJson = {
 		at: now(), input: args.input, source_file: resolved.sourceFile.replaceAll("\\", "/"), out: path.relative(root, outDir).replaceAll("\\", "/"),
-		models: { clean: RUNGS.clean.model, structured: args.models.map(modelIdFor), pick: args.collab ? "collab.mjs" : RUNGS.pick.model, brief: RUNGS.brief.model, coverage: RUNGS.coverage.model, repair: RUNGS.repair.model },
+		models: { clean: RUNGS.clean.model, structured: args.models.map(modelIdFor), pick: args.collab ? "Collab.mjs" : RUNGS.pick.model, brief: RUNGS.brief.model, coverage: RUNGS.coverage.model, repair: RUNGS.repair.model },
 		collab: args.collab, mock: args.mock, structured_winner: pick.winner, tie_broken_by: pick.tie_broken_by || null,
 		cost_usd: { ...costs, total: Number(totalCost.toFixed(6)) },
 		word_counts: { raw: wordCount(rawText), clean: wordCount(clean.md), structured: wordCount(pick.md), brief: wordCount(finalBriefMd) },

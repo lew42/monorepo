@@ -19,7 +19,7 @@
  * Every Node spawn sets windowsHide: true (none here — this script makes no child process). */
 import fs from "node:fs";
 import path from "node:path";
-import { askOnce } from "../ask-each.mjs";
+import { askOnce } from "../AskEach.mjs";
 import { stepClean, draftStructured, modelIdFor, repoRoot } from "../refine.mjs";
 
 const cleanTextForPrompt = sentences => sentences.map(s => `S${s.n}. ${s.text}`).join("\n");

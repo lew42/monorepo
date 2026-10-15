@@ -48,7 +48,7 @@ apart: a test's runs are part of the page that test lives on). A row carries `mo
 `note`, keyed by its own `run` name — a later judge-written line with the SAME `run` name merges
 onto it (AITest.js's `run()` method does this merge live; `library.mjs`'s `testRuns()` does the
 identical merge in node, since that browser class can't be loaded outside one). A run that wrote a
-real decision record (`Server/decide.mjs`, **anywhere in its run dir** — there's no single
+real decision record (`Server/Decide.mjs`, **anywhere in its run dir** — there's no single
 canonical filename, so the check scans every `.jsonl` there) gets a second `reasoning` score too —
 the thinking, graded separately from the outcome.
 

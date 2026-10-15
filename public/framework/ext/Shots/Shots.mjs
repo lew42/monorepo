@@ -9,7 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { browser as launch } from "../../../../Server/browser.mjs";
+import { browser as launch } from "../../../../Server/Browser.mjs";
 import { PNG } from "./PNG.mjs";
 import { Diff } from "./Diff.mjs";
 

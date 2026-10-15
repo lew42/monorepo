@@ -76,7 +76,7 @@ in two parts:
    "this is a class" look the module index pages give a class card (deliverable 3, 2026-10-02).
    Text alone can't answer this reliably (chasing an import to find out whether it names a real ES
    class is exactly the kind of guess that caught Sidebar's demo data below), so this half loads
-   each page headless (`Server/browser.mjs`) and reads `app.router.active.nav().class_card` — the
+   each page headless (`Server/Browser.mjs`) and reads `app.router.active.nav().class_card` — the
    same fact `ext/Doc`'s `Doc.is_class(this.subject)` already computes every time the page renders,
    not a second guess at it.
 

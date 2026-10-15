@@ -4,7 +4,7 @@
 import { readdirSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { browser, close } from "../../../../Server/browser.mjs";
+import { browser, close } from "../../../../Server/Browser.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const key = process.argv[2] || "QYN0G2URSBHYH5I06MOjxU";

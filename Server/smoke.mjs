@@ -31,7 +31,7 @@
  * tree)" and never fails the run (2026-09-30, node-reliability). --main <repo> is for proofs only.
  * The port comes from .worktrees.json at the main repo root, or --port / --base.
  * Exit 0 = all clean, 1 = an error was seen, 2 = bad usage or no server answering. */
-import { browser as launch } from "./browser.mjs";
+import { browser as launch } from "./Browser.mjs";
 import CardDir from "../public/framework/ai/cards/CardDir.js";
 import fs from "node:fs";
 import path from "node:path";

@@ -5,7 +5,7 @@ import { decision_fresh, decision_legacy, decision_legacy_title } from "../fixtu
 
 const live = () => new Decision(decision_fresh());
 
-/* Three records as Server/decide.mjs writes them: one foundational decision, and two that
+/* Three records as Server/Decide.mjs writes them: one foundational decision, and two that
  * only matter if its first option is chosen (their depends_on names that option). */
 const log = new URL("demo.jsonl", import.meta.url).pathname;
 const nested = () => new Decisions({ log, records: [
@@ -43,7 +43,7 @@ export default new Doc({
 		});
 
 		md("## Ranked and nested");
-		md("`Decisions.js` draws every decision in a log: the most foundational (rank 1) first, and each child below its parent, **under the option that leads to it** — choose this, then decide these. `Server/decide.mjs` writes the records, one step at a time, so none of rank, caveats, confidence or sources can be left out.");
+		md("`Decisions.js` draws every decision in a log: the most foundational (rank 1) first, and each child below its parent, **under the option that leads to it** — choose this, then decide these. `Server/Decide.mjs` writes the records, one step at a time, so none of rank, caveats, confidence or sources can be left out.");
 		nested();
 
 		md("## Old decisions render the same way");

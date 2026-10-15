@@ -32,7 +32,7 @@
  * that is MEANT to run to its edge says so with `.bleed` or `[data-bleed]`, and
  * this check leaves everything inside it alone.
  *
- * ⚠ Chromium is started through Server/browser.mjs, the one launcher every
+ * ⚠ Chromium is started through Server/Browser.mjs, the one launcher every
  *   script in this repo shares — it opens no window; nothing here calls it directly.
  * ⚠ This file opens no port and imports nothing from the dev server. Running it
  *   cannot slow or crash anyone's server; it only loads pages from one.
@@ -40,7 +40,7 @@
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { browser as launch } from "./browser.mjs";
+import { browser as launch } from "./Browser.mjs";
 
 /** Smaller than this is "ink touching an edge". It is the smallest spacing rung
  *  the size standard has (`--gap-25` = a quarter of `--gap`, whose floor is 1em)

@@ -1,7 +1,7 @@
 /* Sidebar search index: size, load time, and whether every declared child of the `leaf: true`
    pages is in it (a leaf page draws flat in the rail, so its children were once skipped).
    Usage: node Server/sidebar-index-check.mjs [http://monorepo.localhost]   Doc: core/Sidebar/doc/index.md */
-import { browser } from "./browser.mjs";
+import { browser } from "./Browser.mjs";
 const base = process.argv[2] || "http://monorepo.localhost";
 const b = await browser(), p = await b.newPage();
 await p.goto(base + "/framework/ui/", { waitUntil: "load" });

@@ -62,7 +62,7 @@ export const LEVELS = {
 // The per-call framing (the actual "user turn" text) for ANY level, separate from the level's
 // own instructions (its `prompt`, sent as `systemPrompt` below). Exported so a caller that has no
 // `systemPrompt` slot of its own — `public/framework/ext/Refine/refine.js`'s Node path, which
-// sends everything through `Server/ask-each.mjs`'s `askOnce(prompt, opts)` as ONE plain string —
+// sends everything through `Server/AskEach.mjs`'s `askOnce(prompt, opts)` as ONE plain string —
 // can build the exact same framing by hand: `` `${LEVELS.clean.prompt}\n\n${bodyFor({text, before})}` ``.
 // This is the one and only place that framing is written (2026-10-02, the refine-engine task).
 export function bodyFor({ text, before } = {}){

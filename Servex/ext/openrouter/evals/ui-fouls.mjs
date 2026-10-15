@@ -6,7 +6,7 @@
  * whether it found the planted one, and whether it invented fouls that aren't there.
  *
  * Reuses the same pieces as library.mjs and websearch.mjs rather than building a
- * second harness (CLAUDE.md law 6): Server/browser.mjs for the screenshot,
+ * second harness (CLAUDE.md law 6): Server/Browser.mjs for the screenshot,
  * provider.js's env_for/disallowed_tools_for for the model call, and the Claude
  * Agent SDK's own Read tool to hand the model the screenshot — no image content
  * block plumbing needed, and it proves the same path an OpenRouter tool-capable
@@ -44,7 +44,7 @@ function loadFouls(only){
 
 /* One screenshot per fixture, taken once (not per model — the page is static).
  * Copies the fixture's page.js into a real site run dir so it loads through the
- * normal Page/app.js module system, then shoots it with Server/browser.mjs at the
+ * normal Page/app.js module system, then shoots it with Server/Browser.mjs at the
  * test's own viewport. */
 async function shootFixture(foul){
 	const runDir = path.join(SHOTS_ROOT, foul.id);
@@ -53,7 +53,7 @@ async function shootFixture(foul){
 	const shotPath = path.join(runDir, "shot.png");
 	if (fs.existsSync(shotPath)) return shotPath; // reuse — the page is static
 
-	const { browser } = await import("../../../../Server/browser.mjs");
+	const { browser } = await import("../../../../Server/Browser.mjs");
 	const b = await browser();
 	const url = `${SITE_BASE}/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/runs/ui-fouls/${foul.id}/`;
 	const ctx = await b.newContext({ viewport: foul.viewport });
@@ -138,4 +138,4 @@ async function main(){
 
 main()
 	.catch(e => { console.error(String(e?.stack || e)); process.exitCode = 1; })
-	.finally(async () => { try { (await import("../../../../Server/browser.mjs")).close?.(); } catch {} });
+	.finally(async () => { try { (await import("../../../../Server/Browser.mjs")).close?.(); } catch {} });

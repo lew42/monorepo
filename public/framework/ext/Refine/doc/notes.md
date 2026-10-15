@@ -38,7 +38,7 @@ Runs on the model's OWN numbered sentences against the FULL raw vocabulary (this
 Glossary check BEFORE strike check on purpose: a self-correction sentence can still contain a genuine glossary fix, and `misheard` should record that either way.
 
 ## Test setup (nodeCall vs browserCall)
-Node vs browser split: nodeCall imports `Server/ask-each.mjs` and `Servex/agents/tidy.js` dynamically (not static, else browser crashes on `node:...` builtins). browserCall hits `/api/tidy` on Servex. Everything above these functions is identical both ways.
+Node vs browser split: nodeCall imports `Server/AskEach.mjs` and `Servex/agents/tidy.js` dynamically (not static, else browser crashes on `node:...` builtins). browserCall hits `/api/tidy` on Servex. Everything above these functions is identical both ways.
 
 ## word_overlap_score
 "A simple word-level diff %" (owner, 2026-10-04) — plain Dice coefficient over each text's own set of 3+ letter words. Lives here not in `Servex/ext/clean-test/run.js` or page code so the one score both show is computed once (law 6).

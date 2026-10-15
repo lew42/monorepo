@@ -27,7 +27,7 @@ const CLASS_RE = /\bclass\s+([A-Za-z_$][\w$]*)/g;
 const classNames = src => new Set([...src.matchAll(CLASS_RE)].map(m => m[1]));
 
 // "public/framework/ext/Source/Source.js" -> "ext/Source" — the same framework-relative
-// module path Server/collab.mjs's `target.module` and ext/Doc's own `module()` use.
+// module path Server/Collab.mjs's `target.module` and ext/Doc's own `module()` use.
 const moduleOf = rel => rel.match(/^public\/framework\/(.+)\/[^/]+$/)?.[1] ?? null;
 
 const now = () => {

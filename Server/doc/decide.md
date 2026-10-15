@@ -1,6 +1,6 @@
-# decide.mjs — a decision, walked step by step
+# Decide.mjs — a decision, walked step by step
 
-`Server/decide.mjs` builds one decision a step at a time, so a decision can't be written with a part missing. The AI does not have to remember the rules, because the tool checks them.
+`Server/Decide.mjs` builds one decision a step at a time, so a decision can't be written with a part missing. The AI does not have to remember the rules, because the tool checks them.
 
 ## The walk
 
@@ -18,14 +18,14 @@ A bad part is refused with a reason, `{ok:false, refused:"…"}`, and exit code 
 
 ```sh
 F=public/framework/ai/sessions/2026/09/29/cards/<card>/page.jsonl
-node Server/decide.mjs create    --file $F --id d-host --question "Where should it run?" --rank 1
-node Server/decide.mjs options   --file $F --id d-host --option "On this machine" --option "On a rented server"
-node Server/decide.mjs create    --file $F --id d-port --question "Which port?" --rank 2 --depends-on d-host:on-this-machine
-node Server/decide.mjs caveats   --file $F --json '{"id":"d-host","caveats":{"on-this-machine":["Only at home."],"on-a-rented":["A monthly bill."]}}'
-node Server/decide.mjs then      --file $F --id d-host --option on-a-rented        # no --child: nothing follows it
-node Server/decide.mjs recommend --file $F --id d-host --option on-this-machine --confidence 0.7 --why "…" --source r-123
-node Server/decide.mjs list      --file $F          # ranked, nested tree, drafts marked
-node Server/decide.mjs show d-host --file $F        # status <id> = just what's missing; drop <id> = discard a draft
+node Server/Decide.mjs create    --file $F --id d-host --question "Where should it run?" --rank 1
+node Server/Decide.mjs options   --file $F --id d-host --option "On this machine" --option "On a rented server"
+node Server/Decide.mjs create    --file $F --id d-port --question "Which port?" --rank 2 --depends-on d-host:on-this-machine
+node Server/Decide.mjs caveats   --file $F --json '{"id":"d-host","caveats":{"on-this-machine":["Only at home."],"on-a-rented":["A monthly bill."]}}'
+node Server/Decide.mjs then      --file $F --id d-host --option on-a-rented        # no --child: nothing follows it
+node Server/Decide.mjs recommend --file $F --id d-host --option on-this-machine --confidence 0.7 --why "…" --source r-123
+node Server/Decide.mjs list      --file $F          # ranked, nested tree, drafts marked
+node Server/Decide.mjs show d-host --file $F        # status <id> = just what's missing; drop <id> = discard a draft
 ```
 
 - **Option ids** are the first three words of the text, slugged (`"On a rented server"` → `on-a-rented`). You can also pass your own `id`.
@@ -47,7 +47,7 @@ Flag the rare decision that really is the owner's alone with `--owner-only "<rea
 ## As a module
 
 ```js
-import * as decide from "../../Server/decide.mjs";
+import * as decide from "../../Server/Decide.mjs";
 decide.verbs.create(file, { question, rank });   // every verb is (file, args) → {ok, …}; refusal throws DecideError
 ```
 

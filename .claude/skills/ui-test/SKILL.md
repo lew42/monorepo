@@ -23,7 +23,7 @@ The rules that break runs most:
 - **Never drive the owner's tabs**, and **a proof never posts as the owner** (stub the POST, or `via:"test"`).
 - **Pick the root first:** most matches on this site are hidden duplicates that answer with plausible numbers.
 - A drag is `down`, then `move x y` with **steps ≥ 10**, then `up`. Quote a `click`/`hover` selector with a space in it.
-- A plain screenshot needs no plan: `mcp__site__shot`, or `{ browser }` from `Server/browser.mjs` (never `chromium.launch(`).
+- A plain screenshot needs no plan: `mcp__site__shot`, or `{ browser }` from `Server/Browser.mjs` (never `chromium.launch(`).
 
 **Before your first plan, and whenever a step errors or times out, read [`reference.md`](reference.md):** every verb, the traps (hover-revealed targets, overlay pseudo-elements, auto-scroll, `type` appending), drive vs force, reading a drag, layout flags, and the proven runs.
 

@@ -533,7 +533,7 @@ ComposerMic for another — moved up into the base `Dictate.start()`, using the 
 (above) that already tracks every engine of every kind with its mic open: starting any one of
 them now stops every other, a bare demo box and the push-to-talk mount included. Proof:
 `check_page` on this page shows each of the three lines at `count: 1`; a headless click on the
-✦ rail's mic (`node Server/browser.mjs`, 390×844 viewport) shows the same, once, not twice.
+✦ rail's mic (`node Server/Browser.mjs`, 390×844 viewport) shows the same, once, not twice.
 `Server/smoke.mjs` now fails any page whose raw console carries more than one `[dictate]
 socket: …` line, so a second engine can never reach `michael/dev` again unnoticed.
 

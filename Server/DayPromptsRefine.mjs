@@ -21,7 +21,7 @@ import { clean } from "../public/framework/ext/Refine/engine.js";
 import CardDir from "../public/framework/ai/cards/CardDir.js";
 import Cards from "../Servex/cards/Cards.js";
 import { structure } from "../public/framework/ext/Refine/structure.js";
-import { askOnce } from "./ask-each.mjs";
+import { askOnce } from "./AskEach.mjs";
 import { env_for } from "../Servex/ext/local/provider.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));

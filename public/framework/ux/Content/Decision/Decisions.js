@@ -12,7 +12,7 @@ import Decision from "./Decision.js";
  *   {"place": {"module": "/framework/ux/Content/Decision/Decisions.js"}}   // on a card: a "Decisions" tab
  *   new Decisions({ page, log })   or   new Decisions({ records: [...] })  // records: no fetch
  *
- * The records are written by Server/decide.mjs; a Decision here is the same Decision as
+ * The records are written by Server/Decide.mjs; a Decision here is the same Decision as
  * anywhere else, so a click still appends a `chose` line.
  */
 export default class Decisions extends ContentModule {
@@ -44,7 +44,7 @@ export default class Decisions extends ContentModule {
 	fill($box, records){
 		const { roots, nested } = this.constructor.tree(records);
 		$box.empty(() => {
-			if (!roots.length) return p.c("ux-content-hint", "No decisions yet. Server/decide.mjs writes them here.");
+			if (!roots.length) return p.c("ux-content-hint", "No decisions yet. Server/Decide.mjs writes them here.");
 			roots.forEach(r => new Decision({ ...r, page: this.page, log: this.log, card: this.card, by: this.by, readonly: this.readonly, nested }));
 		});
 	}

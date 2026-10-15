@@ -1,7 +1,7 @@
 /* Server/BrowserCheck.mjs — what a developer tools console would show, for one URL, without
  * opening a tab yourself. Built for the Servex `check_page` MCP tool (Servex/Servex.js), so the
  * owner can say "this page isn't loading" and get the console/network truth back instead of a
- * guess. Uses the ONE shared browser from Server/browser.mjs — never a second browser instance.
+ * guess. Uses the ONE shared browser from Server/Browser.mjs — never a second browser instance.
  *
  *   import { check_page, browser_rss } from "./BrowserCheck.mjs";
  *   const report = await check_page("http://monorepo.localhost/framework/");
@@ -10,7 +10,7 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { browser, close, pid as browser_pid } from "./browser.mjs";
+import { browser, close, pid as browser_pid } from "./Browser.mjs";
 
 export default class BrowserCheck {
 /** Navigate a fresh tab to `url`, wait for load + 2s (late console lines land too), then report

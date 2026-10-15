@@ -37,7 +37,7 @@ advisory (never throws, always exits 0) and can flag a same-named method definit
 prose mention as a false positive — read the hit before editing anything.
 [`public/framework/ai/sessions/2026/09/28/b42621ed-33f7-41f0-b19b-12c679306b9a/hidden-windows/`](/framework/ai2/2026-09-28/hidden-windows/).
 Same idea, one launcher: every script starts Chromium through
-[`Server/browser.mjs`](./browser.mjs), never `chromium.launch(` on its own — window-lint and
+[`Server/Browser.mjs`](./Browser.mjs), never `chromium.launch(` on its own — window-lint and
 syntax-guard's `browser_guard` both flag a stray one too. `node Server/window-watch.mjs` is the live catcher —
 an always-on `EnumWindows` probe that logs any NEW visible console or browser window (scoped so
 the owner's own Chrome never counts). [`doc/browser.md`](./doc/browser.md).
@@ -91,7 +91,7 @@ model-ladder ranking). Writes one `consensus.json` per task. Dedupes a model to 
 task — a dequeued minion can still land its turn moments later, producing a duplicate. Built
 for, and proven on, the first pilot: [`public/framework/ai/sessions/2026/10/03/task-audit/task-audit/report.md`](/framework/ai/sessions/2026/10/03/task-audit/task-audit/).
 
-**`Server/ask-each.mjs`'s `askOnce()`** now takes an optional `env` (and `disallowedTools`) —
+**`Server/AskEach.mjs`'s `askOnce()`** now takes an optional `env` (and `disallowedTools`) —
 the same OpenRouter env swap `Agents.js` uses (`ext/openrouter/provider.js`'s `env_for`) — so a
 script can call a cheap OpenRouter model directly, one Q&A turn at a time, without spawning a
 minion or waiting on a pool worktree slot. ⚠ The SDK's own `result.total_cost_usd` prices an

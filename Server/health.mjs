@@ -61,7 +61,7 @@ import { fileURLToPath } from "node:url";
 import MtimeFilter from "./MtimeFilter.js";
 import * as Hold from "./hold.mjs";
 import { check_page } from "./padding-check.mjs";
-import { browser as launch } from "./browser.mjs";
+import { browser as launch } from "./Browser.mjs";
 
 /* The widths this watcher checks the padding law at. 1280 is the viewport it
    already loads every page in, so it costs one evaluate and no re-layout; 3440
@@ -307,7 +307,7 @@ function archive_sweep(){
 	}
 }
 
-/* ── Chromium, via the one shared launcher (Server/browser.mjs) ──────────── */
+/* ── Chromium, via the one shared launcher (Server/Browser.mjs) ──────────── */
 
 let browser = null;
 async function ensure_browser(){

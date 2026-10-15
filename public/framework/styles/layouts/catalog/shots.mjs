@@ -1,6 +1,6 @@
 // Screenshots for the catalog: node public/framework/styles/layouts/catalog/shots.mjs [name...]
 // Needs the dev site up (monorepo.localhost). Writes shots/<name>.jpg (1200 wide, the demo stage if the page has one).
-import { browser, close } from "../../../../../Server/browser.mjs";
+import { browser, close } from "../../../../../Server/Browser.mjs";
 import LayoutCatalog from "./LayoutCatalog.js";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";

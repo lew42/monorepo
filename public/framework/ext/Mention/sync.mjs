@@ -19,7 +19,7 @@
 //   2. CLASS_CARD — text alone can't answer "is the Doc's `subject` really a class" without
 //      chasing every import by hand (and getting it wrong the way pass 1 almost did for
 //      Sidebar's demo data). The page already computes this correctly every time it
-//      renders, so pass 2 loads each page in a real headless Chromium (Server/browser.mjs,
+//      renders, so pass 2 loads each page in a real headless Chromium (Server/Browser.mjs,
 //      the one way this repo ever starts a browser) and reads `app.router.active.nav()
 //      .class_card` straight off the live Page instance — no heuristic, the real answer.
 //
@@ -35,7 +35,7 @@
 // left alone too: those are agent ROLES, not pages, and several share one url on purpose.
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { browser, close } from "../../../../Server/browser.mjs";
+import { browser, close } from "../../../../Server/Browser.mjs";
 import { REFS_PATH as refs_path, ENTRY, CONCEPT_ONLY, entry_name, resolve_icon, has_source } from "./sync-icon.mjs";
 
 // Default to the real site — a worktree's own <slug>.localhost host stops existing the

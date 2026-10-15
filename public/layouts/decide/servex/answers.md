@@ -1,4 +1,4 @@
-_Run with `node Server/ask-each.mjs questions.md --context servex/context.md` (Sonnet): 5 questions, one at a time, one session (e371d501-7288-4597-9fee-93792958ec53). Total cost: $0.9078. The page it was given: [context.md](context.md)._
+_Run with `node Server/AskEach.mjs questions.md --context servex/context.md` (Sonnet): 5 questions, one at a time, one session (e371d501-7288-4597-9fee-93792958ec53). Total cost: $0.9078. The page it was given: [context.md](context.md)._
 
 ## 1. How much room is there?
 

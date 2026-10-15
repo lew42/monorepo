@@ -2,9 +2,9 @@
 
 See [the shared record shapes](/framework/ux/Content/doc/shapes.md). This module reads and writes: decision / chose (and old task.jsonl decisions).
 
-## The fields decide.mjs adds
+## The fields Decide.mjs adds
 
-A record written by `Server/decide.mjs` (its detail: `Server/doc/decide.md`) keeps the old fields (`ask`, each option's `say` and `caveat`) and adds:
+A record written by `Server/Decide.mjs` (its detail: `Server/doc/decide.md`) keeps the old fields (`ask`, each option's `say` and `caveat`) and adds:
 
 | Field | Shown as |
 |---|---|

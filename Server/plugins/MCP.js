@@ -202,7 +202,7 @@ export default class MCP {
         // owner lifts this for a session by starting the server with SITE_OWNER_TABS=1.
         if (!t.headless && !process.env.SITE_OWNER_TABS) throw new Error(
             `tab ${t.id ?? "?"} on ${t.page} is the owner's window, not yours: agents never eval or claim a connected tab.`
-            + ` Use \`shot\` (a fresh headless page) or Server/browser.mjs. The owner allows it only by starting the server with SITE_OWNER_TABS=1.`);
+            + ` Use \`shot\` (a fresh headless page) or Server/Browser.mjs. The owner allows it only by starting the server with SITE_OWNER_TABS=1.`);
         return t;
     }
 

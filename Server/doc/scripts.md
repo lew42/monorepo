@@ -1,6 +1,6 @@
 # Scripts under Server/, Servex/ and .claude/hooks: what each is (census 2026-10-13)
 
-193 files, counted two ways (`ls` and `Server/ScriptsCensus.mjs`): 193 = 193. Verdicts: **live 112** (a running path uses it), **tool 54** (run by hand, documented), **stale 1**, **misnamed 26** (a function bag or lowercase class; a later rename brief).
+193 files, counted two ways (`ls` and `Server/ScriptsCensus.mjs`): 193 = 193. Verdicts: **live 112** (a running path uses it), **tool 54** (run by hand, documented), **stale 1**, **misnamed 0** (was 26: batches 1 to 5 renamed them or made them classes; two Servex cores are planned, see [class-plan](/Servex/agents/doc/class-plan.md)).
 
 Re-run: `node Server/ScriptsCensus.mjs` (read-only, writes census.json). Verdicts were Haiku, 7 batches of 28; the owner's list of stale files is below. Nothing was moved or deleted. Method and spot-check: [scripts-census task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-census/).
 
@@ -10,14 +10,15 @@ Run: `node Server/RetireFiles.mjs --plan --manifest Server/doc/scripts.md` then 
 
 - [ ] `Server/session-cost.mjs` (198 bytes): Explicitly superseded by public/framework/ai/AISession/AISessionAudit.mjs; stub shim marked for removal one release after rename
 
-## Misnamed (queued in ai/todo.md; batch 1 renamed five at 1a56eebd0 with `node Server/RenameScript.mjs`, batch 2 renamed five at b77cda096, batch 3 renamed five at b058d8a3f, batch 4 renamed five (crawl, council, jobs, experts, registry; [manifest](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-rename-4/manifest.json)), 6 remain)
+## Misnamed (queued in ai/todo.md; batches 1 to 4 renamed twenty files with `node Server/RenameScript.mjs`; batch 5 turned the last four function bags into classes; **0 misnamed remain, 2 planned**)
 
-- `Server/ask-each.mjs`: Function bag (kind: bag) with 26 references that should be a class
-- `Server/browser.mjs`: Function bag (kind: bag) with 45 refs that should be a class; core browser launcher
-- `Server/collab.mjs`: Function bag (kind: bag) that should be a class per code skill rules
-- `Server/decide.mjs`: Function bag (kind: bag) that should be a class per code skill rules
-- `Servex/agents/Agents.js`: Function bag (kind:bag) should be a class per code skill, but heavily used (82 refs)
-- `Servex/agents/directory.js`: Function bag (kind:bag) should be a class per code skill, heavily used (131 refs)
+- [x] `Server/AskEach.mjs`: `class AskEach` (statics `parseArgs`, `parseQuestions`, `askOnce`, `main`); `ask-each.mjs` kept as a one-line shim
+- [x] `Server/Browser.mjs`: `class Browser` (statics `browser`, `close`, `pid`, state as static fields); the named exports `browser`, `close`, `pid` stay as aliases for ~35 callers
+- [x] `Server/Collab.mjs`: `class Collab` (30 statics; `--mock` run byte-identical to the old file)
+- [x] `Server/Decide.mjs`: `class Decide` (verbs as statics; named aliases at the bottom for `import * as decide`; every verb output identical to the old file)
+- [ ] `Servex/agents/Agents.js` and `Servex/agents/directory.js`: **planned, not changed** (live agent host): [class-plan.md](/Servex/agents/doc/class-plan.md). It waits on the owner.
+
+Windows note: `browser.mjs`, `collab.mjs` and `decide.mjs` are the same file as their capitalised names, so only `AskEach` could keep a lowercase shim; the other callers were rewritten to the new path. Manifest: [scripts-rename-5](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-rename-5/manifest.json); undo proven on a copy.
 
 **Case-only renames on Windows** (batch 3: `audit.mjs` to `Audit.mjs`, `brief.js`, `hitl.js`): `RenameScript` moves through a temporary name, and `merge.mjs` now reads the main tree by exact case and deletes before it writes. The merge still left the old case in git's index, so after merging run `git mv a a.case-tmp && git mv a.case-tmp A` and commit (done for batch 3 at 5b7d10aa1); check with `git ls-tree HEAD <dir>`.
 
@@ -25,7 +26,7 @@ Run: `node Server/RetireFiles.mjs --plan --manifest Server/doc/scripts.md` then 
 
 | file | verdict | bytes | last | what it says it is | why |
 |---|---|---|---|---|---|
-| `.claude/hooks/append.mjs` | live | 3980 | 2026-10-13 | append.mjs — append the objects in <lines.json> to <target.jsonl>, one JSON line each. | Function bag actively referenced by multiple hooks and skills for appending JSONL data |
+| `.claude/hooks/append.mjs` | live | 3980 | 2026-10-13 | append.mjs — append the objects in <lines.json> to <target.jsonl>, one JSON line each. | Class since batch 5 (was a function bag)
 | `.claude/hooks/auto-hold.mjs` | live | 1594 | 2026-10-12 | AUTO HOLD (2026-10-12, live-page-error): a PreToolUse hook on Write/Edit/MultiEdit. Taking the | PreToolUse hook loaded by .claude/settings.json for live-page-error handling |
 | `.claude/hooks/git-guard.mjs` | live | 7806 | 2026-10-13 | GIT GUARD HOOK (2026-09-30): a PreToolUse hook on Bash and PowerShell. | PreToolUse hook loaded by .claude/settings.json for git safety checks |
 | `.claude/hooks/git-guard.test.mjs` | tool | 5286 | 2026-10-13 | git-guard.test.mjs — feed the PreToolUse hook fake tool inputs, exactly as Claude Code does (JSON on stdin). | Test script for git-guard hook, run by hand to verify hook behavior |
@@ -33,7 +34,7 @@ Run: `node Server/RetireFiles.mjs --plan --manifest Server/doc/scripts.md` then 
 | `.claude/hooks/hold-guard.mjs` | live | 7479 | 2026-10-12 | THE HOLD GUARD (2026-09-19) — the sibling of syntax-guard.mjs and health-guard.mjs that | PreToolUse hook loaded by .claude/settings.json, manages live-page reloads |
 | `.claude/hooks/jsonl-guard.mjs` | live | 3050 | 2026-10-02 | JSONL GUARD HOOK (2026-09-30, extended 2026-10-02): a PreToolUse hook on Bash, PowerShell, | PreToolUse hook loaded by .claude/settings.json, validates JSONL operations |
 | `.claude/hooks/jsonl-guard.test.mjs` | tool | 3356 | 2026-10-02 | jsonl-guard.test.mjs — feed the PreToolUse hook fake tool inputs, exactly as Claude Code does (JSON on stdin). | Test script for jsonl-guard hook, run by hand to verify validation |
-| `.claude/hooks/jsonl-schema.mjs` | live | 13216 | 2026-10-13 | JSONL SCHEMA (2026-09-30) — the ONE list of what a line may look like, per log file. | Function bag defining canonical JSONL schema, actively used by append and ledger |
+| `.claude/hooks/jsonl-schema.mjs` | live | 13216 | 2026-10-13 | JSONL SCHEMA (2026-09-30) — the ONE list of what a line may look like, per log file. | Class since batch 5 (was a function bag)
 | `.claude/hooks/jsonl-schema.test.mjs` | tool | 9723 | 2026-10-12 | jsonl-schema.test.mjs — does the schema agree with the readers, and does append.mjs obey it? | Test script for jsonl-schema and append.mjs, run by hand to verify schema compliance |
 | `.claude/hooks/junction-guard.mjs` | live | 6150 | 2026-10-12 | JUNCTION GUARD HOOK (2026-09-29): a PreToolUse hook on Bash and PowerShell. | PreToolUse hook loaded by .claude/settings.json, validates git junctions in worktrees |
 | `.claude/hooks/ledger.mjs` | live | 16311 | 2026-10-02 | A review (2026-10-02) caught this: a STATIC `import { check } from "./jsonl-schema.mjs"` | Script actively used by multiple hooks (health-guard, hold-guard, syntax-guard) to append task logs |
@@ -68,19 +69,19 @@ Run: `node Server/RetireFiles.mjs --plan --manifest Server/doc/scripts.md` then 
 | `Server/Ai2Overview.mjs` | renamed (b77cda096) | 16447 | 2026-10-12 | Server/Ai2Overview.mjs — builds public/framework/ai/rail/overview/overview.json | renamed to its class name; no importers, no alias |
 | `Server/AntigravityUsage.mjs` | renamed (1a56eebd0) | 6656 | 2026-10-06 | AntigravityUsage.mjs — Fetches Antigravity model quotas and plan status. | renamed to its class name; old exports aliased until 2026-10-20 |
 | `Server/ArchiveSessions.mjs` | renamed (1a56eebd0) | 13135 | 2026-10-13 | Move a month's untracked session pictures to the archive drive; tracked records stay. Doc: public/framework/ai/sessions/doc/picture-archive.md | renamed to its class name; old exports aliased until 2026-10-20 |
-| `Server/ask-each.mjs` | misnamed | 6626 | 2026-10-12 | Ask-each — ask a model one question at a time, in one continuous session, | Function bag (kind: bag) with 26 references that should be a class |
+| `Server/AskEach.mjs` | live | 6626 | 2026-10-12 | Ask-each — ask a model one question at a time, in one continuous session, | Class since batch 5 (was a function bag)
 | `Server/Audit.mjs` | renamed (batch 3) | 9622 | 2026-10-02 | audit.mjs — read every task's audit.jsonl (one line per auditor, written by minions through | renamed to its class name |
 | `Server/branch-prune.mjs` | tool | 2185 | 2026-10-12 | `node Server/branch-prune.mjs [--dry/--run]` — prune merged `worktree/*` branches nobody has checked out. | Maintenance script run by hand to prune merged worktree branches |
 | `Server/BrowserCheck.mjs` | renamed (1a56eebd0) | 4265 | 2026-10-12 | Server/BrowserCheck.mjs — what a developer tools console would show, for one URL, without | renamed to its class name; old exports aliased until 2026-10-20 |
-| `Server/browser.mjs` | misnamed | 8357 | 2026-10-03 | Server/browser.mjs — the one way any script in this repo starts Chromium. | Function bag (kind: bag) with 45 refs that should be a class; core browser launcher |
+| `Server/Browser.mjs` | live | 8357 | 2026-10-03 | Server/Browser.mjs — the one way any script in this repo starts Chromium. | Class since batch 5 (was a function bag)
 | `Server/CardCheck.mjs` | renamed (1a56eebd0) | 4220 | 2026-10-06 | `node Server/CardCheck.mjs <card-dir or card page.jsonl>` — checks a card against the card standard: | renamed to its class name; old exports aliased until 2026-10-20 |
 | `Server/clarity.mjs` | live | 6489 | 2026-10-08 | `node Server/clarity.mjs landing <task dir>` or `node Server/clarity.mjs proposal <file>` | Script run by hand; referenced by landing and review systems |
-| `Server/collab.mjs` | misnamed | 42397 | 2026-09-29 | `node Server/collab.mjs <taskdir> [--mock]` | Function bag (kind: bag) that should be a class per code skill rules |
+| `Server/Collab.mjs` | misnamed | 42397 | 2026-09-29 | `node Server/Collab.mjs <taskdir> [--mock]` | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/Council.mjs` | misnamed | 14889 | 2026-10-13 | Server/Council.mjs — The Feedback Council collector and runner. | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/Crawl.mjs` | misnamed | 10807 | 2026-10-13 | Server/Crawl.mjs — Nightly full crawl of the site under /framework/. | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/DayPromptsRefine.mjs` | renamed (b77cda096) | 11247 | 2026-10-13 | DayPromptsRefine.mjs — retroactively runs the SAME mechanical refine step Echo.js runs | renamed to its class name; no importers, no alias |
 | `Server/DaySpend.mjs` | renamed (b77cda096) | 8171 | 2026-10-13 | DaySpend.mjs — one day's spend, two currencies, and which modules it touched. | renamed to its class name; no importers, no alias |
-| `Server/decide.mjs` | misnamed | 21527 | 2026-09-29 | decide.mjs — walks ONE decision into being, step by step, so no part can be forgotten. | Function bag (kind: bag) that should be a class per code skill rules |
+| `Server/Decide.mjs` | misnamed | 21527 | 2026-09-29 | Decide.mjs — walks ONE decision into being, step by step, so no part can be forgotten. | Function bag (kind: bag) that should be a class per code skill rules |
 | `Server/DeployCount.mjs` | renamed (batch 3) | 2302 | 2026-10-13 | Read-only: how many files Cloudflare would upload from public/, before and after public/.assetsignore. | renamed to its class name |
 | `Server/doc-check.mjs` | tool | 5277 | 2026-09-29 | `node Server/doc-check.mjs <task dir>` — does every module a task touched have a | run by hand to check docs on task landing |
 | `Server/figma-roundtrip.mjs` | live | 10682 | 2026-10-13 | Figma ↔ code round trip, computed: node Server/figma-roundtrip.mjs | referenced by Figma system page |

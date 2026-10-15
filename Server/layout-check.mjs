@@ -36,7 +36,7 @@
  *   wraps        up to 10 elements meant to sit on one line (`.tab`, `button`, nav/rail links,
  *                `h1`–`h3`, chips, labels) whose height is more than 1.6× their own computed
  *                line-height, i.e. wrapping when they should not: {tag, cls, text, lines} */
-import { browser as launch } from "./browser.mjs";
+import { browser as launch } from "./Browser.mjs";
 import fs from "node:fs";
 import path from "node:path";
 

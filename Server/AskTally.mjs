@@ -16,7 +16,7 @@ import os from "node:os";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { askOnce } from "./ask-each.mjs";
+import { askOnce } from "./AskEach.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HAIKU = "claude-haiku-4-5-20251001";
