@@ -9,3 +9,7 @@
 {"log":{"at":"2026-10-14T19:00:47-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-14T19:01:12-05:00","heartbeat":"answered","msg":"Specimen captions are written and the colour rows now sit at the end of 12 of the 13 DS pages; DS · 3 keeps its one dark band in place. The report is committed as `kit/captions.md`, and nothing is run"}}
 {"log":{"at":"2026-10-14T19:01:50-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-14T19:22:39-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-fig-captions"}}
+{"log":{"at":"2026-10-14T19:22:41-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-14T19:23:11-05:00","heartbeat":"answered","msg":"Nothing running: the captions task is finished and committed as `kit/captions.md`. All the pages in the brief are done except DS · 4 Layouts and DS · 6 Screens, which I didn't touch. I'm waiting for t"}}
+{"log":{"at":"2026-10-14T19:23:50-05:00","msg":"session ended (other) without landing"}}
