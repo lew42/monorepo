@@ -17,10 +17,10 @@ export default new Page({
 	}
 });
 ```
-2. Add `"hello"` to the PARENT page's `children:` (for example `children: "hello"`). A page nobody declares is a 404: nothing crawls.
+2. Add `"hello"` to the PARENT page's `children:` (for example `children: "hello"`). A page nobody declares still opens by its url (`Page.child()` imports its `page.js`), but it is missing from the parent's tabs, menus and cards.
 3. Open `/<parent path>/hello/`.
 
-This module has an expert: ask it with `ask_expert core/Page …` (Servex).
+**You own this module?** Start at [`doc/owner.md`](doc/owner.md) (the inbox, the work log, the tests, what is next door) and [`doc/classes.md`](doc/classes.md) (the 23 files, one line each). This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 
 **When to reach for which:** a #List when something is ordered and needs watching
 (events are built in); an #Item when it is a thing (an icon, a title, saved); a
@@ -31,7 +31,7 @@ This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 A page is a folder, and the folder is its storage:
 
 - `page.js` — a page written as code (import a class, instantiate it).
-- `page.jsonl` — a page written as a log: line 1 builds it, each later line is one change. Appending a line redraws every open tab, no reload.
+- `page.jsonl` — a page written as a log: line 1 builds it, each later line is one change. Appending a line redraws every open tab, no reload (on the dev server; the static site reads the file once).
 - `files.jsonl` — the folder's own file list, kept by the dev server. (`directory.json`, the old whole-site list, is off: `Server/doc/directory-off.md`.)
 
 A Page whose data lives in node (a query source, loaded on first use, unloaded when idle): [`doc/server.md`](doc/server.md).
@@ -46,9 +46,10 @@ The classes and the decisions (log growth, big collections, file vs database): [
 - **Architecture** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#architecture), verbatim.
 ## How a page loads
 
-A url is resolved one folder name at a time: memory → a declared `page.jsonl` → `md/`/`fs/` →
-`route()` → `page.js` → a bare `.md` file → not found. The full order, with a code line for
+A url is resolved one folder name at a time: memory → a declared `page.jsonl` → `md/`/`fs/`/`inbox/` →
+`route()` → a `page.jsonl` in the loaded folder listing → `page.js` → a bare `.md` file → not found. The full order, with a code line for
 each step and the two traps that catch people, is [`doc/loading.md`](./doc/loading.md).
+[core/Router](/framework/core/Router/) ([readme](../Router/readme.md)) walks the url and calls `page.child(name)` once per folder name; this module decides what each name resolves to.
 
 - **The sub-systems** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-sub-systems), verbatim.
 ## Making a page: reuse a layout first
@@ -70,25 +71,21 @@ build one, and check the page with `node Server/layout-check.mjs --bands <url>`.
 
 **Agents change pages** — [`doc/architecture.md`](./doc/architecture.md) (path + delta through `page_set`, `Servex/agents/page_tools.js`; tabs, layout words and session pages work live) · the ask: [`doc/page-tool-2026-10-09.md`](./doc/page-tool-2026-10-09.md)
 
-**A thing has a page** — [`doc/composition.md`](./doc/composition.md) (tasks and sessions hold a page by reference, not by extending it; page CRUD/move is a known gap)
+**A thing has a page** — [`doc/composition.md`](./doc/composition.md) (the rule: a thing holds a page by reference; today `AITask` and `AISessionDetail` still extend `Page`; page CRUD/move is a known gap)
 
 **Content inside a page** — icon items, sections, outlines: [ux/Content/structure](/framework/ux/Content/structure/)
 
 **Split plan** — [`doc/split-plan.md`](./doc/split-plan.md) (why the file was 2,270 lines, half of it comments, and how it was split; `Page.class.js` is 721 lines since 2026-10-12)
 
-**Reference** — [doc](./doc/) (every method, property and topic in full, on its own tab) — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/data-children.md`](./doc/data-children.md) (children from data) · [`doc/property/related.md`](./doc/property/related.md) (related pages) · [`doc/indexing-2026-10-08.md`](./doc/indexing-2026-10-08.md) (open: directory deltas, session index, querying) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/architecture.md`](./doc/architecture.md) (the classes and decisions), [`doc/decisions.md`](./doc/decisions.md) (older history) · Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette), `tools/links.mjs` (a link-checking script, not a page)
+**Reference** — [doc](./doc/) (every method, property and topic in full, on its own tab) — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/data-children.md`](./doc/data-children.md) (children from data) · [`doc/property/related.md`](./doc/property/related.md) (related pages) · [`doc/indexing-2026-10-08.md`](./doc/indexing-2026-10-08.md) (open: directory deltas, session index, querying) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/architecture.md`](./doc/architecture.md) (the classes and decisions), [`doc/decisions.md`](./doc/decisions.md) (older history) · Files: `Page.class.js` (the class), `Page.css` (the core `.page-*` rules; other modules keep their own beside them), `page.js` (this module's Doc page; its Overview tab is the palette), `tools/links.mjs` (a link-checking script, not a page)
 
 **Asks** — [`doc/asks.md`](./doc/asks.md) (the owner's repeated asks about the page system, merged, open first)
 
-- Notes: [doc/Frame-notes.md](doc/Frame-notes.md) — history and lessons moved out of the code comments.
-
-- Notes: [doc/Page-notes.md](doc/Page-notes.md) — history and lessons moved out of the code comments.
-
-- Notes: [doc/page-js-notes.md](doc/page-js-notes.md) — history and lessons moved out of the code comments.
+- Notes (history and lessons moved out of the code comments): [doc/Frame-notes.md](doc/Frame-notes.md) · [doc/Page-notes.md](doc/Page-notes.md) · [doc/page-js-notes.md](doc/page-js-notes.md)
 
 ## Also here (readme audit, 2026-10-13)
 - [content-shapes](./content-shapes/) — every shape a page's content can take
-- [dynamic](./dynamic/) — pages without a filesystem: seed to spec to page tree
+- [dynamic](./dynamic/) — pages nobody saved: a parent's `route()` answers the name
 - [generator](./generator/) — a virtual page tree from a spec string, real urls
 - [overview](./overview/) — palette: one card per building block
 - [settings](./settings/) — tabs that manage themselves, the page's own nav switch
