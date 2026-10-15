@@ -43,7 +43,15 @@ const strip_bom = s => s.replace(/^﻿/, "");
 const items = JSON.parse(strip_bom(readFileSync(source, "utf8")));
 const list = Array.isArray(items) ? items : [items];
 const t = nowLocal();
-const filled = list.map(o => fill(o, t));
+// Every line gets a time even when the writer forgot "NOW": an object body with no `at` (or landed_at / requested_at) gets `at` (ai-system/logging.md).
+const stamp = o => {
+	const keys = Object.keys(o ?? {});
+	const body = keys.length === 1 ? o[keys[0]] : null;
+	if (body && typeof body === "object" && !Array.isArray(body) && !body.at && !body.landed_at && !body.requested_at && !o.at) return { [keys[0]]: { at: t, ...body } };
+	if (keys.length > 1 && !o.at && !o.landed_at) return { at: t, ...o };
+	return o;
+};
+const filled = list.map(o => stamp(fill(o, t)));
 
 const refused = filled.map((o, i) => [i, check(target, o)]).filter(([, why]) => why);
 if (refused.length){
