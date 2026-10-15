@@ -11,7 +11,7 @@ export default new Page({
 	title: "Refine",
 	description: "Speak one prompt: see it cleaned instantly, then refined into an outline with a clarity score per sentence.",
 	icon: "fact_check",
-	children: "try ladder runs",
+	children: "try ladder runs cleaner",
 
 	content(){
 		new RefineDemo().ac("wide");

@@ -97,7 +97,8 @@ export default class Revise {
 			clearTimeout(timer);
 			if (!r.ok) return { ok: false, why: "Servex answered " + r.status };
 			const out = await r.json();
-			return out?.ok ? out : { ok: false, why: out?.why ?? "Servex refused" };
+			if (!out?.ok) return { ok: false, why: out?.why ?? "Servex refused" };
+			return { ...out, text: Revise.plain(out.text) };
 		} catch (e){
 			return { ok: false, why: "Servex isn't answering (" + (e?.message ?? e) + ")" };
 		}
@@ -105,6 +106,12 @@ export default class Revise {
 }
 
 Revise.LEVELS = LEVELS;
+
+/** The clean level answers as numbered lines ("S1. Can you hear me?", "S2? …, unclear: why?") so Refine can cite
+ *  sentences. A chat box wants plain text: drop the "S<n>." markers and the ", unclear:" note, join with spaces. */
+Revise.plain = text => typeof text !== "string" ? text : text.split(/\r?\n/)
+	.map(line => line.replace(/^\s*S\d+[.?]\s*/, "").replace(/,\s*unclear:.*$/i, "").trim())
+	.filter(Boolean).join(" ");
 
 /* A sample rambling paragraph for each of the two uses this page claims — a spoken
  * PROMPT, and rambling notes meant to become WRITING — so the page's own claim

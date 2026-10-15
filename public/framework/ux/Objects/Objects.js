@@ -16,7 +16,14 @@ View.stylesheet(import.meta, "Objects.css");
 export default class Objects extends Tree {
 
 	initialize(){
-		this.classes ??= "ux-objects";
+		this.ac("ux-objects");   // classify() already ran, so a `classes` field is too late
+		super.initialize();   // View.initialize runs render(); without it the tree never draws
+	}
+
+	// Tree draws a bare string icon as plain text; a Material Icons ligature needs icon().
+	item(node, up){
+		if (typeof node.icon === "string"){ const name = node.icon; node.icon = () => icon(name); }
+		return super.item(node, up);
 	}
 
 	/**
@@ -65,7 +72,7 @@ export default class Objects extends Tree {
 					icon: val.type === "Array" ? "list" : (val.type === "Map" || val.type === "Set") ? "folder" : "category",
 					className: val.type !== "Object" && val.type !== "Array" && val.type !== "Map" && val.type !== "Set" ? val.type : null,
 					children: (val.items || val.children) ? () => {
-						if (Array.isArray(val.items)) return val.items.map(it => ({ text: String(it), icon: "data_object" }));
+						if (Array.isArray(val.items)) return val.items.map(it => ({ text: String(it), icon: "label" }));
 						if (val.children) return Objects.walk(val.children, opts, depth + 1, seen);
 						return [];
 					} : undefined
@@ -141,7 +148,7 @@ export default class Objects extends Tree {
 			// Primitive property
 			nodes.push({
 				text: `${key}: ${String(val)}`,
-				icon: "data_object"
+				icon: "label"
 			});
 		}
 
@@ -157,7 +164,7 @@ export default class Objects extends Tree {
 
 	static icon_of(val){
 		if (val == null) return "code";
-		if (typeof val !== "object") return "data_object";
+		if (typeof val !== "object") return "label";
 		if (val.constructor?.name && val.constructor.name !== "Object") return "category";
 		return "folder";
 	}
