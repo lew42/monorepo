@@ -51,7 +51,7 @@ The address today is a 256-bit random secret: nobody guesses it; the only risk i
 
 ## One mastermind per voice session
 
-- **How it is chosen:** `initialize` mints a session id (the `Mcp-Session-Id` header); the first `ask_mastermind` in a session spawns a Sonnet mastermind `voice-<short id>` (sleeps after 10 minutes, wakes on the next question); later questions go to it. No header means the day's session, `voice-YYYY-MM-DD`. `remote.target` / `REMOTE_MCP_TARGET` still force one fixed agent for every session.
+- **How it is chosen:** `initialize` mints a session id (the `Mcp-Session-Id` header); the first `ask_mastermind` in a session spawns an Opus mastermind (loading the `voice-mastermind` skill) `voice-<short id>` (sleeps after 10 minutes, wakes on the next question); later questions go to it. No header means the day's session, `voice-YYYY-MM-DD`. `remote.target` / `REMOTE_MCP_TARGET` still force one fixed agent for every session.
 - **What survives a restart:** the map session to agent lives in `remote.sessions.json` beside the token; a stopped or landed agent is replaced by a fresh one for that session.
 - **Where it logs:** the agent's own `task.jsonl` under `ai/sessions/YYYY/MM/DD/voice-<short id>/` holds every question and answer as `chat` lines (written by the gateway) plus the agent's work; each call is also one `remote_mcp` line in `ai/log.jsonl` with the session and agent ids.
 - **Finding it:** open the Sessions page (`/framework/ai/sessions/`) and look for the card "Voice session <date time>"; when an answer takes over a minute the reply names that task page.
