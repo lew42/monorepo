@@ -152,3 +152,11 @@ Read the readme chain as its keeper too: does it make sense and still hold, is a
 ## Step back on a cadence
 
 Every few cycles, with numbers: cost per unit of result, which tier produced most per token, whether quality is rising or merely changing (a plateau means change the knob; diagnose where the loss is first), and what could be deleted and lose nothing. Log it; change the plan if it says to.
+
+## A domain mastermind is a readme chain, not a role (the owner, 2026-10-15)
+
+There is no permanent Servex "domain mastermind" role. The readme chain of a module is the whole configuration of its mastermind, so keep it current. When you need a page or AI-systems mastermind, spawn an agent and tell it to read that module's readme chain. Source: [ask-8f9c9d80](/public/framework/ai/sessions/2026/10/15/voice-20261015/ask-8f9c9d80.md).
+
+## One specific question per step (the owner, 2026-10-15)
+
+AIs try to do too much at once, so give each step one specific question. To check a readme, do not read the code yourself: a Sonnet minion reads the code and you ask it one readme claim at a time (see the `documentation` skill). Source: [ask-8f9c9d80](/public/framework/ai/sessions/2026/10/15/voice-20261015/ask-8f9c9d80.md).
