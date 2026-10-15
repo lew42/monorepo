@@ -1,1 +1,3 @@
 {"title":"Live"}
+{"log":{"text":"Live page is up: this line is a test from the page tool.","by":"helper-live-page","ts":"2026-10-15T22:54:42.776Z"}}
+{"content":{"add":{"type":"part-card","title":"Test card","text":"A card added with page_add shows here too.","id":"11c52500-e747-4b68-98cc-35abecffa768","by":"helper-live-page","ts":"2026-10-15T22:55:10.323Z"}}}

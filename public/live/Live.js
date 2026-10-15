@@ -33,11 +33,11 @@ export default class Live extends Page {
 	}
 
 	render(){
-		return this.view ??= div.c("live", () => {
+		return this.view ??= div.c("page live", () => {
 			div.c("live-title", () => { span.c("live-name", "Live"); span.c("live-sub", "voice work, newest first"); });
 			this.$feed = div.c("live-feed");
 			this.stream ??= new this.constructor.Log({ url: import.meta.resolve("./page.jsonl") });
-			this.stream.live(() => this.draw());
+			this.stream.live(() => this.draw()).then(() => this.draw());
 		});
 	}
 

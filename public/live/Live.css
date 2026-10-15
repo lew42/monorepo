@@ -1,7 +1,7 @@
 @layer base, theme, site, util;
 
 @layer site {
-	.live { padding: .5rem .75rem; max-width: 60rem; margin-inline: auto; }
+	.live { padding: .5rem .75rem; max-width: 60rem; width: 100%; margin-inline: auto; box-sizing: border-box; }
 	.live-title { display: flex; gap: .75rem; align-items: baseline; padding-bottom: .25rem; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
 	.live-name { font-weight: 700; font-size: 1.25em; }
 	.live-sub, .live-meta { opacity: .6; font-size: .8em; }
