@@ -48,6 +48,10 @@ async function own_notes(path){
 	if (live) return live.notes ?? [];
 
 	try {
+		/* Fetch only a folder its parent's file list says is a jsonl page: most pages have no page.jsonl, and the 404 showed in the console on every open. */
+		const [, parent, name] = path.match(/^(.*\/)([^/]+)\/$/) ?? [];
+		const known = parent && await PageLog.listing(parent).catch(() => null);
+		if (known && known.pages.get(name) !== "jsonl") return [];
 		const res = await fetch(path + "page.jsonl");
 		if (!res.ok || res.headers.get("content-type")?.includes("html")) return [];
 		return (await res.text()).split("\n").filter(Boolean).flatMap(raw => {

@@ -371,6 +371,7 @@ export default class Dictate extends View {
 	set_state(state){
 		const was_listening = this.state === "listening";
 		this.state = state;
+		if (state === "idle" && this.steps?.mic === "on, level ok") this.log_step("mic", "idle");   // the diag line must not say "on" after stop
 		(state === "listening" || state === "connecting") ? LIVE.add(this) : LIVE.delete(this);
 		MicIndicator.set_open(LIVE.size > 0);
 		if (state === "listening" && !was_listening) floor.mic_on(this);   // the floor: `floor.js`
@@ -414,6 +415,7 @@ export default class Dictate extends View {
 
 	// silence_at is an uncalibrated guess. see doc/decisions.md
 	on_level(level){
+		if (this.state === "idle" || this.state === "error") return;   // a late tick after stop
 		if (!this.heard_first_sample){ this.heard_first_sample = true; this.log_step("mic", "on, level ok"); }
 		this.level = this.level * 0.6 + level * 0.4;
 		this.$button.style("--ux-dictate-level", Math.min(1, this.level * 6).toFixed(3));
