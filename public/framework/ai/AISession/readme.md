@@ -1,6 +1,6 @@
 # AISession — one Claude session as a class family
 
-`AISession` reads one session's transcript once and keeps its cost; the classes beside it are the views and tools that grow around that. The grid they feed is the [Sessions page](/framework/ai/sessions/readme.md).
+`AISession` reads one session's transcript once and keeps its cost; the classes beside it are the views and tools that grow around that. The grid they feed is the [Sessions page](/framework/ai/sessions/).
 
 - `AISession.js` — one session's cost, read from its raw transcript (browser and node).
 - `AISessionsPage.js` · `AISessionView.js` · `AISessionRows.js` · `AISessionBuckets.js` — the grid page, its row, how rows nest and fold.
