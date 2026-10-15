@@ -19,7 +19,7 @@ Answers to the page questions in [ask-0f679acf.md](../ask-0f679acf.md), from the
 |---|---|---|---|---|
 | `page.js` | a module whose default export is a Page | `Page.load()`: `import(url + "page.js")` (`Page.class.js:455`) | 1,503 / 262 | current, the main form |
 | `page.jsonl` | a log: line 1 builds the page, each later line is one `page.set()` | `PageJsonl.load()` (`Jsonl.js:26`); written by the page tools (`Servex/pages.js`) | 919 / 882 | current; the form agents and tools write |
-| `page.json` | a whole page tree as one static JSON object | `Page.from()` → `read_json(url + "page.json")` (`Page.class.js:474`) | 12 / 2 | niche: the `core/Section` demo (`Section.from()`, `core/Section/page.js:45`), `imagine/cms/json/`, `imagine/cms/json/`, `imagine/paging/made/`. `imagine/paging/make/page.js:79` explains why it does not use `Page.from()` |
+| `page.json` | a whole page tree as one static JSON object | `Page.from()` → `read_json(url + "page.json")` (`Page.class.js:474`) | 12 / 2 | niche: the `core/Section` demo (`Section.from()`, `core/Section/page.js:45`), `imagine/cms/json/`, `imagine/paging/made/`. `imagine/paging/make/page.js:79` explains why it does not use `Page.from()` |
 
 `files.jsonl` is not a page. It is each folder's file list, written by the dev server (`Server/plugins/PageFiles.js:252`). On 09-29, 1,504 list-only `page.jsonl` files were renamed to it (`80a7c5cba`).
 
