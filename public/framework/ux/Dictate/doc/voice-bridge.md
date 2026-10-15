@@ -41,3 +41,11 @@ emote.token`. Because the app's connector dialog likely has no header field, `re
 2. In a voice chat, say "ask the mastermind what landed today".
 
 **Unknown:** whether voice mode on the phone can call a custom connector at all. Look for the chat showing a tool call to `ask_mastermind`; if voice mode answers without one, try the same sentence typed. Each call is one line in `ai/log.jsonl` (`remote_mcp`), and the question and the answer land in the mastermind's `task.jsonl`.
+
+## Who is calling? (the owner asked, 2026-10-15)
+
+The address today is a 256-bit random secret: nobody guesses it; the only risk is a leak. But every caller looks the same in the log, and one leak means a new address for everyone. MCP has a real answer for both: remote MCP servers authenticate with **OAuth**, and the Claude app's connector dialog supports it (client id and secret), so each call carries an identity.
+
+- **Now, twenty minutes:** one secret per person or device (a small `remote.keys.json` beside `remote.token`, each key named), so `ai/log.jsonl` says which key called, and one key can be revoked without touching the others.
+- **When the connector stays around, about an hour:** Cloudflare Access in front of the tunnel (free for 50 users; needs the owner's domain on Cloudflare). Access is the login (Google or an emailed one-time code), speaks OAuth to the Claude app, and the gateway reads the signed identity header, so the log names the person and the address stops being secret at all.
+- Either way the gateway keeps its own line per call (who, tool, when, ms) in `ai/log.jsonl`, and the owner can read it on the log page.
