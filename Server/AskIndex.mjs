@@ -76,7 +76,8 @@ export default class AskIndex {
 	}
 	/** `ux/Dictate` → the folder it names, spelled as on disk (case-insensitive match), as a repo-relative path. */
 	folder(mod){
-		try { const d = /^(Servex|Server)(\/|$)/.test(mod) && fs.existsSync(path.join(this.root, mod)) ? path.join(this.root, mod) : ModuleInbox.resolve(mod, this.root); return this.proper(path.relative(this.root, d).split(path.sep).join("/")); } catch { return null; }
+		// one resolver (ModuleInbox's), so a topic list and an inbox always share a folder
+		try { const d = ModuleInbox.resolve(mod, this.root); return this.proper(path.relative(this.root, d).split(path.sep).join("/")); } catch { return null; }
 	}
 	proper(rel){   // Windows answers any casing; the module's own spelling is what the file path should carry
 		let at = this.root; const out = [];
