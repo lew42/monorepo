@@ -28,3 +28,8 @@
 {"log":{"at":"2026-10-15T17:39:54-05:00","heartbeat":"check","msg":"status check sent to helper-spawn-policy"}}
 {"log":{"at":"2026-10-15T17:39:57-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T17:40:27-05:00","heartbeat":"answered","msg":"Finished, and idle: the change that lets masterminds spawn masterminds is merged into `michael/dev` (merge commit affea877b), and `report.md` is committed. It goes live on the next Servex restart, whi"}}
+{"log":{"at":"2026-10-15T17:44:01-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T17:57:54-05:00","msg":"task-loop chase 1 of 2: woke helper-spawn-policy","chase":1}}
+{"log":{"at":"2026-10-15T17:57:58-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T17:58:28-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T18:03:55-05:00","heartbeat":"deliberate","msg":"helper-spawn-policy its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T17:58:28-05:00; not revived."}}

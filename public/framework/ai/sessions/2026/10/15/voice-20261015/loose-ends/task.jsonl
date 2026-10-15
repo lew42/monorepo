@@ -16,3 +16,10 @@
 {"log":{"at":"2026-10-15T17:32:54-05:00","msg":"task-loop chase 1 of 2: woke helper-loose-ends","chase":1}}
 {"log":{"at":"2026-10-15T17:33:00-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T17:37:01-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T17:42:55-05:00","heartbeat":"check","msg":"status check sent to helper-loose-ends"}}
+{"log":{"at":"2026-10-15T17:42:58-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T17:43:27-05:00","heartbeat":"answered","msg":"Item D is done and committed as `c8ed18eb0`; I'm idle, with nothing else running on this task."}}
+{"log":{"at":"2026-10-15T17:43:32-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T17:47:54-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-15T17:53:54-05:00","heartbeat":"deliberate","msg":"helper-loose-ends its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T17:43:31-05:00; not revived."}}
+{"log":{"at":"2026-10-15T18:02:54-05:00","msg":"task-loop escalated: {\n  \"ok\": true,\n  \"id\": \"2026/10/15/voice-session-2026-10-15-16-42\",\n  \"ask\": \"d-mva59om8on\"\n}","chase":"escalated"}}
