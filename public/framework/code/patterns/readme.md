@@ -9,6 +9,7 @@ to bottom and understood. Full detail, with the worked examples: [the Patterns p
 - A module is a class; every method is a seam
 - Parts are classes, hung on the constructor as statics
 - Names
+- [Object-oriented census](doc/oo-census.md) — the function bags still left, ranked by importers, with the top five made classes and a ten-module spot check
 - The blessed page shape — the code is shown on [the Patterns page](/framework/code/patterns/), section 5
 
 ## Use

@@ -73,3 +73,7 @@ The AI system is everything that lets agents do work here and lets the owner see
 - **Confidence weights.** Whether 0.5 is neutral or 1.0 is a multiplier is undecided; until then every number needs its meaning printed beside it.
 - **Automating the remaining AI duties** (close worktree, start next task) in the step runner.
 - Raw words behind these: [dictation 7](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-5.md).
+
+## Still-to-convert function bags
+
+The ranked list of lowercase function-bag files, the five already made classes, and a ten-module "done properly" spot check: [code/patterns/doc/oo-census.md](../../code/patterns/doc/oo-census.md).
