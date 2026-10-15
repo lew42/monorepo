@@ -31,3 +31,12 @@ The phone sheet and the drawer already have Whisper in and a smart assistant (So
 ## Decision
 
 Build Road 1 as a one-tool test first (`ask_mastermind`: send a question, wait up to 60 s, return the answer). If voice mode on the phone can call it, add the three read tools. Road 2 is a half-day fallback. The browser bridge is not built.
+
+## Try it
+
+Built: `Servex/ext/remote/RemoteMCP.js` (`class RemoteMCP`, `POST /mcp/remote`, one tool `ask_mastermind`, bearer token) and `Server/Tunnel.mjs` (`up`, `down`, `status`: a free Cloudflare quick tunnel). The tunnel points at a small gateway that passes only `/mcp/remote`; every other path is a 404. The token is `%LOCALAPPDATA%lew42servexemote.token`. Because the app's connector dialog likely has no header field, `remote.url` holds the whole URL with the token already in its path (`.../mcp/remote/<token>`); the endpoint also accepts `Authorization: Bearer <token>`. The URL changes each time the tunnel starts, and anyone holding it can ask the mastermind a question: do not paste it anywhere public. `Tunnel.mjs up` runs in the foreground (leave that terminal open; `down` stops it). The mastermind to ask is the first live run mastermind, or the id in `remote.target`. Replies are files in `remote-replies/` beside the token.
+
+1. In the Claude app: Settings, Connectors, Add custom connector. Paste the whole URL from `remote.url` (token included). If the dialog does offer a bearer or header field, use the URL without the last path part and send `remote.token` there.
+2. In a voice chat, say "ask the mastermind what landed today".
+
+**Unknown:** whether voice mode on the phone can call a custom connector at all. Look for the chat showing a tool call to `ask_mastermind`; if voice mode answers without one, try the same sentence typed. Each call is one line in `ai/log.jsonl` (`remote_mcp`), and the question and the answer land in the mastermind's `task.jsonl`.
