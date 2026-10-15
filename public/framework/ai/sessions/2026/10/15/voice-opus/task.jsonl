@@ -44,3 +44,5 @@
 {"log":{"at":"2026-10-15T16:23:05-05:00","msg":"minion-usage-pace-line re-reported e03a9918e as awaiting merge; it is already on michael/dev (landed 7ee3e568c, usage-now prints the new 'At N% of pace' line). Stale report, nothing to do."}}
 {"log":{"at":"2026-10-15T16:23:21-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T16:24:33-05:00","msg":"voice-mcp-directives merged and Servex restarted (directives now live). Landed past-work-audit, usage-pace-line and voice-mcp-directives myself: none had a landing line, so the heartbeat kept reviving them. past-work-audits (Haiku) still running."}}
+{"action":{"at":"2026-10-15T16:24:45-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/15/voice-opus/past-work-audits/findings.md"]}}
+{"log":{"at":"2026-10-15T16:26:10-05:00","msg":"Merged past-work-audits findings (2a1e10493). Worktree qf-7 cannot return to the pool: its own dev server re-marks gitignored files as gone in four files.jsonl indexes the instant they are reverted, so the fast-forward is refused. Copied those index lines to main by mistake, then appended re-add lines for the ones that exist in main. qf-7 left for Servex."}}
