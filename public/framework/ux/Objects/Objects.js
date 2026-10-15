@@ -20,6 +20,12 @@ export default class Objects extends Tree {
 		super.initialize();   // View.initialize runs render(); without it the tree never draws
 	}
 
+	// Tree draws a bare string icon as plain text; a Material Icons ligature needs icon().
+	item(node, up){
+		if (typeof node.icon === "string"){ const name = node.icon; node.icon = () => icon(name); }
+		return super.item(node, up);
+	}
+
 	/**
 	 * Objects.of(target, opts)
 	 * Factory creating an Objects inspector Tree for a live target object.
