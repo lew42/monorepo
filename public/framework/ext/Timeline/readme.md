@@ -23,6 +23,7 @@ new Timeline({ orientation: "h", zoom: 6, items: [
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why
 - Page: [/framework/ext/Timeline/](/framework/ext/Timeline/) · [doc/decisions.md](./doc/decisions.md) the design record and history · [doc/phase-2.md](./doc/phase-2.md) deferred, not built
 - `doc/method/*.md`, `doc/property/*.md` — one per API name · `doc/file/*.md` — one per file
 - Files that matter: `Timeline.js` (the class), `Timeline.css` (skin per `kind`), `ai.js` (AI-log adapter, no callers)
