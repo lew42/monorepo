@@ -244,9 +244,8 @@ export class DrawerRailSheetV1 extends View {
 		this.el.classList.remove("drawer-rail-sheet-collapsed");
 		const saved = this.read_height();
 		if (saved){ this.size_to(this.clamp_height(saved) + "px"); return; }
-		// ⚠ see doc/rail-notes.md#c35-thisrc-drawer-rail-sheet-sized
-		this.rc("drawer-rail-sheet-sized");
-		this.el.style.removeProperty("--sheet-h");
+		// No dragged height yet: a real default HEIGHT (60dvh), not only a ceiling, so about four bubbles show (dictate-next-4; was 50dvh max).
+		this.size_to("60dvh");
 	}
 
 	active_card(){

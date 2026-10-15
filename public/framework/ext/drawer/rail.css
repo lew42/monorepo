@@ -75,10 +75,10 @@
 	.drawer-rail-sheet {
 		position: fixed; z-index: 41; inset-inline: 0; inset-block-end: 0;
 		display: none; flex-direction: column;
-		/* Half the phone by default; a height the reader dragged before, on this
+		/* 60% (rail.js sizes it to that) of the phone by default (four bubbles show, dictate-next-4); a height the reader dragged before, on this
 		   device, reads back here instead (rail.js's own `--sheet-h`, remembered in
 		   localStorage — grip-everywhere, 2026-09-29). */
-		max-block-size: var(--sheet-h, 50dvh);
+		max-block-size: var(--sheet-h, 60dvh);
 		gap: calc(var(--gap) * 0.6);
 		padding: 0.9em 0.9em calc(0.9em + env(safe-area-inset-bottom, 0px));
 		background: var(--surface);

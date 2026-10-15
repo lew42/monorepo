@@ -1,0 +1,58 @@
+{
+ "label": "step2a",
+ "rows": [
+  {
+   "text": "Smart assistant, which page lists all the sessions?",
+   "smart_ms": 6837,
+   "fast_replies": 0,
+   "fast_skips": 1
+  },
+  {
+   "text": "Smart assistant, what does the Dictate sheet do on a phone?",
+   "smart_ms": 11099,
+   "fast_replies": 0,
+   "fast_skips": 1
+  },
+  {
+   "text": "Smart assistant, where is the fast assistant's prompt?",
+   "smart_ms": 4041,
+   "fast_replies": 0,
+   "fast_skips": 1
+  },
+  {
+   "text": "Smart assistant, how many bubbles does the half sheet show?",
+   "smart_ms": 15726,
+   "fast_replies": 0,
+   "fast_skips": 1
+  },
+  {
+   "text": "The sheet should show every bubble in order.",
+   "smart_ms": 3418,
+   "fast_replies": 0,
+   "fast_skips": 1
+  },
+  {
+   "text": "Smart assistant, is there a page for the inbox?",
+   "smart_ms": 3389,
+   "fast_replies": 0,
+   "fast_skips": 1
+  },
+  {
+   "text": "Smart assistant, what is a voice session?",
+   "smart_ms": 3322,
+   "fast_replies": 0,
+   "fast_skips": 1
+  },
+  {
+   "text": "Smart assistant, which file holds the Dictate widget?",
+   "smart_ms": 1896,
+   "fast_replies": 0,
+   "fast_skips": 1
+  }
+ ],
+ "fast_total": 0,
+ "smart_context": 44204,
+ "smart_cost": 0.3555874,
+ "fast_cost": 0.030393400000000004,
+ "task_masterminds": 0
+}
