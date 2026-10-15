@@ -13,3 +13,6 @@
 {"log":{"at":"2026-10-15T17:27:55-05:00","msg":"task-loop chase 1 of 2: woke helper-sessions-data","chase":1}}
 {"log":{"at":"2026-10-15T17:28:03-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T17:32:01-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T17:37:57-05:00","heartbeat":"check","msg":"status check sent to helper-sessions-data"}}
+{"log":{"at":"2026-10-15T17:38:01-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T17:38:30-05:00","heartbeat":"answered","msg":"Done and idle. `answers.md` is committed as `5ea75dd47`, and nothing is running."}}
