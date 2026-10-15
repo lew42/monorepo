@@ -32,3 +32,5 @@ Reviewed 2026-10-13 at four widths, with before and after shots: [review.md](/fr
 227 pictures, 3.4 MB (about 15 KB each). One full shoot takes ~30 min, so `--apply` only reshoots the missing or stale (older than the newest file in the page's folder). The shooter uses the shared `Server/browser.mjs` launcher rather than `Shots.run`, which writes a round folder and a `runs.jsonl` line per shot.
 
 **Not deployed yet:** `thumbs/` is git-ignored (automated pictures are never committed) and a Cloudflare build deploys a checkout, so `node Server/DeployCount.mjs` does not count them and production shows the iframe fallback until a picture folder is uploaded some other way (e.g. a CI step running `--apply`, or committing the folder, the owner's call).
+
+Shots (1920×4000): [before, iframes](next-before-iframes.png) · [after, pictures](next-after-pictures.png). Refresh part of the set with `--apply --only <url part>` (a fresh checkout resets file times, so a plain `--apply` may reshoot all).

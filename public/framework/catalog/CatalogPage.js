@@ -178,6 +178,7 @@ export default class CatalogPage extends Page {
 			const f = document.createElement("iframe");
 			f.src = frame.dataset.hover;
 			f.style.scale = String(frame.clientWidth / 1200);
+			f.style.opacity = "0"; f.addEventListener("load", () => { f.style.opacity = ""; });   // the picture stays until the page has drawn
 			f.tabIndex = -1;
 			f.setAttribute("aria-hidden", "true");
 			frame.append(f);
@@ -187,7 +188,7 @@ export default class CatalogPage extends Page {
 			const card = frame.closest(".cat-card");
 			card.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") show(frame); });
 			card.addEventListener("pointerleave", () => frame.querySelector("iframe")?.remove());
-			card.addEventListener("click", e => { if (e.pointerType !== "mouse" && !show(frame)) e.preventDefault(); });
+			card.addEventListener("click", e => { if (e.detail && e.pointerType !== "mouse" && !show(frame)) e.preventDefault(); });
 		});
 	}
 }
