@@ -11,3 +11,4 @@
 {"review":{"answer":{"n":5,"reply":"declined: the rail-notes c35 update line now follows the old text"}}}
 {"review":{"answer":{"n":6,"reply":"declined: noted in the Inbox next.md"}}}
 {"review":{"answer":{"n":7,"reply":"declined: card, landing line and merge are done by this landing"}}}
+{"assign":{"landed_at":"2026-10-15T00:33:26.175Z","title":"Dictation: fast is silent, smart replies in 6.8 s cold, no task from a statement","outcome":"Merged c2a9dfea6. Fast replied to 0 of 8 unaddressed sentences (was 4); smart cold first reply 46 s to 6.8 s, context 68k to 44k (not half; 6 s target missed by 0.8 s); a statement spawned 0 task-masterminds. Inbox 404, stale Mic line and a 60% sheet fixed. Review: 2 fixed, 5 declined. Servex files need the live restart. Details: ux/Dictate/doc/next.md"}}
