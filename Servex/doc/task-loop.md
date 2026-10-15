@@ -12,8 +12,8 @@ Interfaces it agreed with its siblings: [`interfaces.md`](/framework/ai/sessions
 | variable | default | what it does |
 |---|---|---|
 | `SERVEX_TASKLOOP_EVERY_MIN` | 5 | how often the loop looks at every open task |
-| `SERVEX_TASKLOOP_QUIET_MIN` | 20 | a task's log has not been touched this long — first sign it needs a chase |
-| `SERVEX_TASKLOOP_GAP_MIN` | 30 | how long between chase 1 and chase 2, and between chase 2 and escalating |
+| `SERVEX_TASKLOOP_QUIET_MIN` | 10 | a task's log has not been touched this long — first sign it needs a chase |
+| `SERVEX_TASKLOOP_GAP_MIN` | 15 | how long between chase 1 and chase 2, and between chase 2 and escalating |
 | `SERVEX_NO_TASKLOOP` | unset | set to `1` to stop the ticking; `close_task` and `task_loop_status` still work |
 
 A task is **open** when its `task.jsonl` has no `landed_at` carrying a non-empty `outcome`, and no

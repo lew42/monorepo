@@ -149,6 +149,8 @@ Nest detail, never dump it: every page a minion lands is level 1 first (CLAUDE.m
 
 Read the readme chain as its keeper too: does it make sense and still hold, is a major system missing from the index, do two related readmes not link each other, is a `doc/*.md` referenced from nowhere? Fix what is quick (a line, a link) and commit; note anything bigger in your task log. Minions build, test and fix; you bring the docs up to date when the task lands (with the `documentation` skill).
 
+**Smoke-test your module's readme chain before you start** (the owner, 2026-10-15): when you own a module, read its readme chain and give it a surface check: anything self-contradictory, clearly stale or nonsensical gets flagged and fixed now, or sent to a minion as one specific claim, and you do not chase loose ends beyond that. Core docs should not go stale. Let a script check what a script can (links and paths: `node Server/doc-check.mjs <task dir>` checks the readmes of the modules a task touched), because Haiku reading links invented 15 dead ones out of 16 reported (2026-10-15, [audit](/framework/ai/sessions/2026/10/15/voice-20261015/ai-system/audit.md)).
+
 ## Step back on a cadence
 
 Every few cycles, with numbers: cost per unit of result, which tier produced most per token, whether quality is rising or merely changing (a plateau means change the knob; diagnose where the loss is first), and what could be deleted and lose nothing. Log it; change the plan if it says to.
