@@ -12,10 +12,18 @@ export default class RemoteMCP {
     static DIR = path.join(process.env.LOCALAPPDATA ?? path.join(os.homedir(), "AppData", "Local"), "lew42", "servex");
     static TOKEN_FILE = path.join(RemoteMCP.DIR, "remote.token");
     static VERSION = "2025-03-26";
+    // The one source of the voice-agent directives (the voice-mastermind skill must not copy them).
+    static INSTRUCTIONS = [
+        "You are the voice agent: the Claude app model talking with the owner by voice. The mastermind behind ask_mastermind is an SDK agent on the owner's PC.",
+        "Fire ask_mastermind immediately, before saying anything; then speak.",
+        "Summarize its answer for the ear, do not read it back. The mastermind is verbose on purpose, to give you context; you keep replies short.",
+        "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
+        "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them.",
+    ].join("\n");
     static SESSIONS_FILE = "remote.sessions.json";
     static TOOL = {
         name: "ask_mastermind",
-        description: "Ask the project's mastermind (the AI that coordinates this codebase) a question and wait up to a minute for its answer.",
+        description: "Ask the project's mastermind (the AI that coordinates this codebase, an SDK agent on the owner's PC) and wait up to a minute for its answer. You are the voice agent: call this FIRST, before saying anything, then summarize the answer briefly for the owner (do not read it back), ask one question at a time, and relay open items. The mastermind replies verbosely, for you, not for the owner.",
         inputSchema: { type: "object", properties: { question: { type: "string", description: "What to ask." } }, required: ["question"] },
     };
 
@@ -73,7 +81,7 @@ export default class RemoteMCP {
             this.save_sessions();
             res.set("Mcp-Session-Id", sid);
         }
-        if (method === "initialize") return ok({ protocolVersion: params?.protocolVersion ?? RemoteMCP.VERSION, capabilities: { tools: {} }, serverInfo: { name: "lew42-remote", version: "1" } });
+        if (method === "initialize") return ok({ protocolVersion: params?.protocolVersion ?? RemoteMCP.VERSION, capabilities: { tools: {} }, serverInfo: { name: "lew42-remote", version: "1" }, instructions: RemoteMCP.INSTRUCTIONS });
         if (method === "ping") return ok({});
         if (method === "tools/list") return ok({ tools: [RemoteMCP.TOOL] });
         if (method === "tools/call"){
