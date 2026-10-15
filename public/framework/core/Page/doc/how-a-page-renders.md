@@ -43,7 +43,7 @@ The code in `content(){…}` is itself one more block, a *code part* ([`PageCode
 
 | Kind | How it is written | Live example |
 |---|---|---|
-| **Code** | `page.js` with `content(){…}` and helpers (the large majority: about 1,100 files, per [`content.md`](content.md)) | [/framework/core/Page/](/framework/core/Page/) |
+| **Code** | `page.js` with `content(){…}` and helpers (the large majority: 1,503 tracked `page.js` files on 2026-10-15, against 919 `page.jsonl`) | [/framework/core/Page/](/framework/core/Page/) |
 | **JSONL only** | `page.jsonl`, no `page.js` | [/framework/core/Page/parts/](/framework/core/Page/parts/) (its [`example/`](../parts/example/page.jsonl) is a readme drawn as parts) |
 | **Both** | a class with `content()` plus `content.add` lines in `page.jsonl` | [/framework/core/Page/content-shapes/both/](/framework/core/Page/content-shapes/both/) ([class](../content-shapes/class-body/ClassBody.js), [lines](../content-shapes/both/page.jsonl)) |
 

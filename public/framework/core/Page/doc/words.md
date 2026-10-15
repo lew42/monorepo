@@ -118,7 +118,7 @@ is what lets the whole feature land without moving a pixel on any page.
   run on its own output. `??=` does; so does the ALIAS pass, because ALIAS has
   no entry for its own answers (`card` and `tint` are not keys).
 ⚠ THERE IS NO LINE FOR `type`. `type` is already a page METHOD
-  (`generator/page.js:261`); the page's key is `type_size` everywhere except
+  (`generator/page.js:235`); the page's key is `type_size` everywhere except
   inside a `mode` object, where it is data and shadows nothing.
 
 ### Quietly — declaring a child is not a live edit. A stub already holding
