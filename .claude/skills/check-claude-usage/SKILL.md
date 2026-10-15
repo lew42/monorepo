@@ -5,7 +5,7 @@ description: Check how much of the Claude subscription's usage limits are consum
 
 # Checking usage limits
 
-**In the lew42 monorepo, one command:** `node Server/usage-now.mjs` prints one pace line (exit code 2 = over pace). It reads `public/framework/ai/usage.json`, which Servex refreshes every 15 minutes, and re-runs the live script itself only when that file is stale, one caller at a time. So never run `claude-usage.py` or write `usage.json` yourself in this repo: many agents doing it at once is what draws the endpoint's 429s.
+**In the lew42 monorepo, one command:** `node Server/usage-now.mjs` prints a pace line like `At 19% of pace with 6 days 6 hours left (room to spend)`, then a detail line (exit code 2 = over pace). It reads `public/framework/ai/usage.json`, which Servex refreshes every 15 minutes, and re-runs the live script itself only when that file is stale, one caller at a time. So never run `claude-usage.py` or write `usage.json` yourself in this repo: many agents doing it at once is what draws the endpoint's 429s.
 
 **Anywhere else** (or when the owner asks for the raw windows):
 
