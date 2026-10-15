@@ -15,6 +15,7 @@ const slash = s => s.split(path.sep).join("/");
 export default class TaskState {
 	static REGISTRY = process.env.SERVEX_URL ?? "http://localhost:8090";
 	static QUIET_MIN = 5;      // a working agent with no log line for this long is marked ⚠
+	static BEAT = 60000;       // the longest the file goes without a line while the watcher runs
 	static KEEP = 200;         // state.jsonl is rewritten down to this many lines when it passes twice that
 
 	constructor({ registry = null, now = Date.now(), sess = SESS } = {}){ Object.assign(this, { registry, now, sess }); }
@@ -100,7 +101,7 @@ export default class TaskState {
 
 	static async write(out = OUT, prev = null){
 		const s = await this.now();
-		if (prev && this.sig(prev) === this.sig(s)) return prev;
+		if (prev && this.sig(prev) === this.sig(s) && Date.parse(s.at) - Date.parse(prev.at) < this.BEAT) return prev;   // a quiet picture still beats once a minute: that is how the page knows the writer is alive
 		fs.mkdirSync(path.dirname(out), { recursive: true });
 		fs.appendFileSync(out, JSON.stringify(s) + "\n");
 		const lines = fs.readFileSync(out, "utf8").split("\n").filter(Boolean);

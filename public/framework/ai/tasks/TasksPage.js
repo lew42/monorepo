@@ -16,6 +16,7 @@ export default class TasksPage extends Browse {
 	];
 
 	static when(iso){ return iso ? new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : ""; }
+	static age_min(s){ return Math.round((Date.now() - Date.parse(s.at)) / 60000); }
 	static quiet(r){ return r.quiet_min == null ? "" : r.quiet_min < 1 ? "just now" : r.quiet_min + " min ago"; }
 
 	draw_list(){
@@ -23,12 +24,15 @@ export default class TasksPage extends Browse {
 		this.draw();
 	}
 
-	start(){ this.log.live(() => this.draw()).then(() => this.draw()); }
+	start(){ this.log.live(() => this.draw()).then(() => this.draw());
+		setInterval(() => this.draw(), 60000);   // only re-checks the age of the last line; the data itself is the stream
+	}
 
 	draw(){
 		if (!this.$rows) return;
 		const s = this.log.state;
 		this.$rows.empty(() => {
+			if (s && TasksPage.age_min(s) >= 3) div.c("tasks-note tasks-stale", () => span(`Not live: the last update was ${TasksPage.age_min(s)} min ago. Start node Server/TaskState.mjs --watch.`));
 			if (!s) return div.c("tasks-note muted", () => span("No live task state yet: this page tails ai/tasks/state.jsonl, written while the dev server runs (node Server/TaskState.mjs --watch)."));
 			TasksPage.GROUPS.forEach(g => this.group(g, s[g.key] ?? []));
 		});
@@ -51,7 +55,7 @@ export default class TasksPage extends Browse {
 				span.c("inbox-row-title").text(r.title);
 				small.c("inbox-row-when muted").text(kind === "landed" ? TasksPage.when(r.landed_at) : kind === "in_flight" ? TasksPage.quiet(r) : "");
 			});
-			const line = kind === "landed" ? r.line : [r.agent, r.model].filter(Boolean).join(" · ");
+			const line = kind === "landed" ? r.line : [r.model, r.cost ? "$" + r.cost.toFixed(2) : null].filter(Boolean).join(" · ");
 			if (line) div.c("inbox-row-foot", () => small.c("inbox-row-line muted").text(line));
 		});
 	}
