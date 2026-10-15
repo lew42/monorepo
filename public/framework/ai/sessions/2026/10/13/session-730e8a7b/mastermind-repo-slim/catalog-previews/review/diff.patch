@@ -1,0 +1,228 @@
+diff --git a/.gitignore b/.gitignore
+index b9b4bfbe2..2c50c6788 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -187,3 +187,4 @@ public/framework/ai/**/owner-prompts.jsonl
+ # public/ai/ are machine state, like the same-named ignores under framework/ai/ and ux/Dictate/ai/.
+ public/framework/ai/**/words.jsonl
+ public/ai/v-*.jsonl
++public/framework/catalog/thumbs/
+diff --git a/Server/CatalogThumbs.mjs b/Server/CatalogThumbs.mjs
+new file mode 100644
+index 000000000..0fde6ba89
+--- /dev/null
++++ b/Server/CatalogThumbs.mjs
+@@ -0,0 +1,103 @@
++/* `node Server/CatalogThumbs.mjs --plan | --apply | --all [--base <origin>] [--only <url part>]`
++ *   One 600x375 webp per catalog page at public/framework/catalog/thumbs/<slug>.webp (ignored by git:
++ *   automated pictures are machine output) plus thumbs/index.json (the slugs that exist, read by the card).
++ *   --plan  lists every entry and whether its picture is fresh (newer than the page folder's newest file)
++ *   --apply shoots the missing or stale ones   --all reshoots everything
++ * Uses the one shared Chromium launcher (Server/browser.mjs) that ext/Shots uses; Shots.run itself writes
++ * a round folder plus a runs.jsonl line per shot, which 285 thumbnails should not. Doc: catalog/doc/next.md */
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { browser, close } from "./browser.mjs";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const CAT = path.join(ROOT, "public/framework/catalog");
++const THUMBS = path.join(CAT, "thumbs");
++
++export class CatalogThumbs {
++	static WIDTH = 1200; static HEIGHT = 750; static OUT_W = 600; static OUT_H = 375;
++	// the url and the file name must agree with CatalogPage.slug()
++	static slug(url){ return url.replace(/^\/+|\/+$/g, "").replace(/\//g, "__"); }
++
++	static entries(){
++		return fs.readFileSync(path.join(CAT, "catalog.jsonl"), "utf8").split("\n").filter(Boolean)
++			.map(l => JSON.parse(l)).filter(r => r.kind === "page");
++	}
++
++	// newest mtime among the files directly inside the page's folder
++	static newest(url){
++		const dir = path.join(ROOT, "public", url);
++		if (!fs.existsSync(dir)) return 0;
++		return Math.max(0, ...fs.readdirSync(dir, { withFileTypes: true }).filter(d => d.isFile()).map(d => fs.statSync(path.join(dir, d.name)).mtimeMs));
++	}
++
++	static status(entry, all){
++		const file = path.join(THUMBS, this.slug(entry.url) + ".webp");
++		if (!fs.existsSync(file)) return "missing";
++		return all || fs.statSync(file).mtimeMs < this.newest(entry.url) ? "stale" : "fresh";
++	}
++
++	static plan(entries, all = false){
++		return entries.map(e => ({ ...e, state: this.status(e, all) }));
++	}
++
++	// NO_PREVIEW pages hold the thread; skip them
++	static skip(url){ return url === "/framework/code/performance/bench/"; }
++
++	static async shoot(entries, base){
++		fs.mkdirSync(THUMBS, { recursive: true });
++		const b = await browser();
++		const ctx = await b.newContext({ viewport: { width: this.WIDTH, height: this.HEIGHT } });
++		const page = await ctx.newPage();
++		let done = 0;
++		for (const e of entries){
++			try {
++				await page.goto(new URL(e.url, base).toString(), { waitUntil: "load", timeout: 20000 });
++				await page.waitForLoadState("networkidle", { timeout: 4000 }).catch(() => {});
++				await page.waitForTimeout(300);
++				const png = (await page.screenshot()).toString("base64");
++				// the webp is made by the browser itself: no image library, no new dependency
++				const b64 = await page.evaluate(async ({ png, w, h }) => {
++					const img = new Image(); img.src = "data:image/png;base64," + png; await img.decode();
++					const c = document.createElement("canvas"); c.width = w; c.height = h;
++					c.getContext("2d").drawImage(img, 0, 0, w, h);
++					const blob = await new Promise(r => c.toBlob(r, "image/webp", .8));
++					const buf = new Uint8Array(await blob.arrayBuffer()); let s = "";
++					for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode(...buf.subarray(i, i + 0x8000));
++					return btoa(s);
++				}, { png, w: this.OUT_W, h: this.OUT_H });
++				fs.writeFileSync(path.join(THUMBS, this.slug(e.url) + ".webp"), Buffer.from(b64, "base64"));
++				console.log(`${++done}/${entries.length} ${e.url}`);
++			} catch (err){ console.log(`FAIL ${e.url}: ${err.message.split("\n")[0]}`); }
++		}
++		await ctx.close();
++	}
++
++	// the slugs that exist; the card reads this one small file instead of probing 285 urls
++	static index(){
++		const slugs = fs.existsSync(THUMBS) ? fs.readdirSync(THUMBS).filter(f => f.endsWith(".webp")).map(f => f.slice(0, -5)) : [];
++		fs.mkdirSync(THUMBS, { recursive: true });
++		fs.writeFileSync(path.join(THUMBS, "index.json"), JSON.stringify(slugs));
++		const bytes = slugs.reduce((n, s) => n + fs.statSync(path.join(THUMBS, s + ".webp")).size, 0);
++		console.log(`index.json: ${slugs.length} thumbnails, ${(bytes / 1024).toFixed(0)} KB total`);
++	}
++
++	static async main(argv){
++		const opt = n => { const i = argv.indexOf("--" + n); return i < 0 ? null : argv[i + 1]; };
++		const all = argv.includes("--all");
++		const only = opt("only");
++		let list = this.plan(this.entries(), all).filter(e => !this.skip(e.url) && (!only || e.url.includes(only)));
++		if (argv.includes("--plan") || !(argv.includes("--apply") || all)){
++			for (const e of list) console.log(e.state.padEnd(8), e.url);
++			const n = s => list.filter(e => e.state === s).length;
++			console.log(`${list.length} entries: ${n("fresh")} fresh, ${n("stale")} stale, ${n("missing")} missing`);
++			return;
++		}
++		await this.shoot(list.filter(e => e.state !== "fresh"), opt("base") || "http://monorepo.localhost");
++		this.index();
++		await close();
++	}
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await CatalogThumbs.main(process.argv.slice(2));
++export default CatalogThumbs;
+diff --git a/public/framework/catalog/CatalogPage.css b/public/framework/catalog/CatalogPage.css
+index db9da62bb..ba1b6c37d 100644
+--- a/public/framework/catalog/CatalogPage.css
++++ b/public/framework/catalog/CatalogPage.css
+@@ -16,6 +16,7 @@
+ 
+ 	/* A 1200px-wide live page scaled to fit the card: the frame is 1200x750, scaled by the card's width. */
+ 	.cat-frame { position: relative; aspect-ratio: 8 / 5; overflow: hidden; border-radius: .3em; background: color-mix(in srgb, currentColor 6%, transparent); }
++	.cat-frame .cat-thumb { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; }
+ 	.cat-frame iframe { position: absolute; top: 0; left: 0; width: 1200px; max-width: none; height: 750px; border: 0; pointer-events: none; transform-origin: 0 0; }
+ 
+ 	.cat-nopreview { position: absolute; inset: 0; display: grid; place-items: center; opacity: .6; font-size: .85em; }
+diff --git a/public/framework/catalog/CatalogPage.js b/public/framework/catalog/CatalogPage.js
+index d1dce8e18..b84113e06 100644
+--- a/public/framework/catalog/CatalogPage.js
++++ b/public/framework/catalog/CatalogPage.js
+@@ -37,6 +37,8 @@ export default class CatalogPage extends Page {
+ 	async content(){
+ 		const $root = div.c("cat wide"), root = $root.el;   // captured before the await
+ 		const text = await fetch(new URL("catalog.jsonl", import.meta.url)).then(r => r.text());
++		// thumbs/index.json lists the pictures that exist (ignored by git, made by Server/CatalogThumbs.mjs); none = every card falls back to its iframe
++		this.thumbs = new Set(await fetch(new URL("thumbs/index.json", import.meta.url)).then(r => r.ok ? r.json() : []).catch(() => []));
+ 		const rows = text.split("\n").filter(Boolean).map(l => JSON.parse(l));
+ 		const pages = rows.filter(r => r.kind === "page"), classes = rows.filter(r => r.kind === "class");
+ 		const fresh = pages.filter(p => p.isNew).length;
+@@ -110,6 +112,14 @@ export default class CatalogPage extends Page {
+ 	page_card(p){
+ 		const frame = this.node("div", "", "cat-frame");
+ 		if (this.constructor.NO_PREVIEW.includes(p.url)) frame.append(this.node("span", "runs a benchmark: open it to see", "cat-nopreview"));
++		else if (this.thumbs.has(this.constructor.slug(p.url))){
++			// a still picture; the live iframe replaces it on hover (desktop) or tap (phone)
++			const img = this.node("img", "", "cat-thumb");
++			img.src = new URL(`thumbs/${this.constructor.slug(p.url)}.webp`, import.meta.url);
++			img.alt = ""; img.width = 600; img.height = 375; img.loading = "lazy";
++			frame.append(img);
++			frame.dataset.hover = p.url;
++		}
+ 		else frame.dataset.src = p.url;
+ 		return this.anchor(p.url, `cat-card${p.isNew ? " is-new" : ""}`, [
+ 			frame,
+@@ -125,6 +135,8 @@ export default class CatalogPage extends Page {
+ 	// An iframe is made only when its card scrolls near the screen, so 200+ cards cost nothing until seen.
+ 	// Each preview boots the whole app, so at most LOADING load at once, in screen order (doc/next.md has the numbers).
+ 	static LOADING = 4;
++	// the file name of a page's picture; the same rule as CatalogThumbs.slug in Server/CatalogThumbs.mjs
++	static slug(url){ return url.replace(/^\/+|\/+$/g, "").replace(/\//g, "__"); }
+ 	// Pages that hold the main thread on load (a benchmark). Same-origin previews share this tab's thread, so one froze the whole catalog.
+ 	static NO_PREVIEW = ["/framework/code/performance/bench/"];
+ 
+@@ -156,5 +168,26 @@ export default class CatalogPage extends Page {
+ 			next();
+ 		}, { rootMargin: "200px" });
+ 		root.querySelectorAll(".cat-frame[data-src]").forEach(el => io.observe(el));
++		this.watch_hover(root);
++	}
++
++	// A card with a picture boots its live iframe only when pointed at (mouse) or tapped once (touch: the first tap shows it, the second follows the link).
++	watch_hover(root){
++		const show = frame => {
++			if (frame.querySelector("iframe")) return true;
++			const f = document.createElement("iframe");
++			f.src = frame.dataset.hover;
++			f.style.scale = String(frame.clientWidth / 1200);
++			f.tabIndex = -1;
++			f.setAttribute("aria-hidden", "true");
++			frame.append(f);
++			return false;
++		};
++		root.querySelectorAll(".cat-frame[data-hover]").forEach(frame => {
++			const card = frame.closest(".cat-card");
++			card.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") show(frame); });
++			card.addEventListener("pointerleave", () => frame.querySelector("iframe")?.remove());
++			card.addEventListener("click", e => { if (e.pointerType !== "mouse" && !show(frame)) e.preventDefault(); });
++		});
+ 	}
+ }
+diff --git a/public/framework/catalog/doc/next.md b/public/framework/catalog/doc/next.md
+index 1b8381e46..3745690ec 100644
+--- a/public/framework/catalog/doc/next.md
++++ b/public/framework/catalog/doc/next.md
+@@ -19,3 +19,16 @@ Main site before any change: 10th 1.6 s, 40th 11.0 s, 44 of 50 within 12 s.
+ - Or a light preview mode (`?preview` that skips the sidebar and dev bar): touches `core/App`, ask first.
+ 
+ Reviewed 2026-10-13 at four widths, with before and after shots: [review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/review-site-pages/review.md).
++
++## Shipped 2026-10-14: a still picture per card
++
++`node Server/CatalogThumbs.mjs --plan | --apply | --all` writes one 600×375 webp per page to `catalog/thumbs/<slug>.webp` (slug = url with `/` as `__`) plus `thumbs/index.json`; the card shows the picture and boots the live iframe on mouse hover (a phone: first tap shows it, second follows the link). A page with no picture keeps the 4-at-a-time iframe. Measured the same way (headless, 1920×4000, from the first response; the card is `CatalogPage.watch_hover`):
++
++| 49 cards on screen | 1st | 10th | 20th | 40th |
++|---|---|---|---|---|
++| live iframes (4 at a time) | 1.25 s | 5.2 s | 11.5 s | not in 14 s |
++| **pictures** | **0.74 s** | **0.74 s** | **0.74 s** | **0.74 s** |
++
++227 pictures, 3.4 MB (about 15 KB each). One full shoot takes ~30 min, so `--apply` only reshoots the missing or stale (older than the newest file in the page's folder). The shooter uses the shared `Server/browser.mjs` launcher rather than `Shots.run`, which writes a round folder and a `runs.jsonl` line per shot.
++
++**Not deployed yet:** `thumbs/` is git-ignored (automated pictures are never committed) and a Cloudflare build deploys a checkout, so `node Server/DeployCount.mjs` does not count them and production shows the iframe fallback until a picture folder is uploaded some other way (e.g. a CI step running `--apply`, or committing the folder, the owner's call).
+diff --git a/public/framework/catalog/readme.md b/public/framework/catalog/readme.md
+index 06a7c80fc..c4caef75c 100644
+--- a/public/framework/catalog/readme.md
++++ b/public/framework/catalog/readme.md
+@@ -8,7 +8,7 @@ Open [/framework/catalog/](/framework/catalog/): a card per page (a scaled live
+ - Live instance hierarchy: exists as [the Page object](/framework/ux/Content/Object/page/) and [the App object](/framework/ux/Content/Object/app/); the whole running site is now [InstanceTree](/framework/ux/Content/Object/instance-tree/), live ([spec and status](doc/instance-tree.md)).
+ 
+ ## Watch out
+-- Previews are slow: each one boots the whole app on the tab's one thread, so they load 4 at a time in screen order (`LOADING`); 40 take ~10 s. The picture-per-card fix and the numbers: [doc/next.md](doc/next.md).
++- Pictures first: each card shows `thumbs/<slug>.webp` (git-ignored, made by `node Server/CatalogThumbs.mjs --apply`; refresh stale ones the same way, `--all` reshoots) and boots its live iframe on hover. No picture = the iframe loads 4 at a time (~10 s for 40). Numbers and what is not deployed: [doc/next.md](doc/next.md).
+ - A page that holds the main thread freezes every preview: list it in `NO_PREVIEW` (today: `code/performance/bench/`). A preview never loads previews of its own (the catalog is a card in itself).
+ - Page methods named `icon` or `link` shadow the page's own; the class uses `glyph()` and `anchor()`.
+ - `framework.css` caps `iframe` at `max-width: 100%`; the preview frames reset it or the page renders narrow.

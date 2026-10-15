@@ -1,0 +1,780 @@
+diff --git a/public/framework/ai/rail/rail.js b/public/framework/ai/rail/rail.js
+index d27f89f58..2b1dd71f4 100644
+--- a/public/framework/ai/rail/rail.js
++++ b/public/framework/ai/rail/rail.js
+@@ -19,6 +19,7 @@ import { Agents } from "../cards/Agents.js";
+ import workspace from "../cards/workspace.js";
+ import { RealPage, page_events, real_title } from "../cards/real.js";
+ import { Rules } from "../cards/Rules.js";
++import WaitingOnYou from "/framework/core/Page/ext/Inbox/WaitingOnYou.js";
+ 
+ View.stylesheet(import.meta, "rail.css");
+ 
+@@ -46,7 +47,7 @@ export default class AIRail extends Inbox.Rail {
+ 	yesterday_item = null;
+ 	followed = new Set();
+ 
+-	shell_classes(){ return "inbox-shell ai2 bleed"; }
++	shell_classes(){ return "browse inbox-shell ai2 bleed"; }
+ 
+ 	mount(){
+ 		this.log = new Board({ url: BOARD_URL });
+@@ -57,12 +58,14 @@ export default class AIRail extends Inbox.Rail {
+ 		this.cards = new CardList();
+ 		this.groups = new Groups();
+ 		this.page.auto_transcribe = auto_transcribe;
++		// WAITING ON YOU, pinned above every row (Browse.Pinned): ticking a line archives its card, the row's own × write.
++		this.waiting_list = this.pin(new WaitingOnYou({ tick: r => r.card && Rules.archive_row({ id: r.card }), changed: () => this.paint_soon() }));
+ 		super.mount();
+ 		this.$shell.el.addEventListener("click", e => workspace.keep(e));
+ 		// LIVE IS THE INBOX'S DEFAULT — the bare url goes to it once per load (Back returns
+-		// here, no loop). A stored "off" from the old toggle is still honoured.
++		// here, no loop). A stored "off" from the old toggle is still honoured. On a phone the list is the first screen.
+ 		const url = this.page.url;
+-		if ((location.pathname === url || location.pathname === url + "inbox/") && this.store_get(LIVEVIEW_KEY) !== "off" && !this.page.went_live){
++		if ((location.pathname === url || location.pathname === url + "inbox/") && this.store_get(LIVEVIEW_KEY) !== "off" && !this.page.went_live && innerWidth >= 640){
+ 			this.page.went_live = true;
+ 			setTimeout(() => this.router?.go(workspace.url(url + "live/" + location.search)), 0);
+ 		}
+@@ -255,7 +258,8 @@ export default class AIRail extends Inbox.Rail {
+ 		// dated id — the plain literal "now" never matches a real card row, which always
+ 		// carries its own folder id (bug, 2026-10-03: fixing the pinned row's own lookup made
+ 		// this the live card list's id too, and it doubled up under its own pinned row).
+-		return list.filter(it => it.id !== "now" && it.id !== this.now_real_id && it.id !== "your-prompts" && !group_cards.has(it.id) && (!this.groups.filed(it) || fresh(it)));
++		const waiting = this.waiting_list?.ids() ?? new Set();   // shown once, in Waiting on you, never twice
++		return list.filter(it => !waiting.has(it.id) && it.id !== "now" && it.id !== this.now_real_id && it.id !== "your-prompts" && !group_cards.has(it.id) && (!this.groups.filed(it) || fresh(it)));
+ 	}
+ 	pool_archived(list){ return list.filter(it => !this.groups.filed(it)); }
+ 	resolved(it){ return Rules.is_resolved(it); }
+@@ -459,6 +463,7 @@ export default class AIRail extends Inbox.Rail {
+ 		this.live.on(paint);
+ 		this.cards.on(paint);
+ 		this.cards.start();
++		this.waiting_list.start();
+ 		this.groups.on(paint);
+ 		this.groups.start({ folders: this.cards, socket: this.page.app?.socket });
+ 		resolve_card("now").then(fold => { if (fold){ this.build_now_item(fold); this.render_pinned(); this.paint_soon(); } });
+diff --git a/public/framework/ai/sessions/doc/next.md b/public/framework/ai/sessions/doc/next.md
+index 3a25aa305..b0c169552 100644
+--- a/public/framework/ai/sessions/doc/next.md
++++ b/public/framework/ai/sessions/doc/next.md
+@@ -4,3 +4,11 @@ Found by the fresh-eyes review of 2026-10-13 ([review.md](/framework/ai/sessions
+ 
+ - ✅ **Coverage tab: flat rows** (`b0e568d13`, `9245dd11d`). Each refined prompt is one `details` row with a rule beneath it, no outer card; at 1920 twelve prompts fit above the fold where four did (1200: ten, was five). `AISessionCoverage.js`.
+ - ✅ **A session page's title is on the first paint** (`bcc2f48fd`). `AISessionsPage.child()` now waits for the rows (`AISessionDetail.preload()`) before the page is built, because `Page.child()` does not await `route()`; the name is the first crumb text, never the id. Alternative not taken: awaiting `route()` in core.
++
++## Sessions on Browse (next brief, 2026-10-14)
++
++The owner, 2026-10-14: the Inbox and Sessions are "the same essential problem", one component. The Inbox landed on [Browse](/framework/ux/Browse/) first ([architecture](/framework/ux/Browse/doc/architecture.md)); Sessions is the second surface.
++
++- **What it takes:** `AISessionsPage` mounts a `Browse` whose `draw_list()` is its existing `DataGrid` (the scope trail and chips above it), and whose detail pane is the session page it already opens as a side peek. The side-peek CSS in `sessions.css` goes; Browse's list width (a third at 1920) and grip replace it. The grid's Table/Rail switch follows the list's width: rail of cards under ~40em, table above.
++- **Watch:** the grid's sticky header needs the list pane to be the box that scrolls (DataGrid readme, "Watch out"); the left sub-tab rail (Sessions, Docs, Readme…) stays outside Browse, beside it.
++- **Size:** one Sonnet build, about an hour; shots at 400 / 1200 / 1920 / 3440 against requirements-10 asks 5 and 6.
+diff --git a/public/framework/core/Page/ext/Inbox/Rail.js b/public/framework/core/Page/ext/Inbox/Rail.js
+index 826698180..1ce02e4b8 100644
+--- a/public/framework/core/Page/ext/Inbox/Rail.js
++++ b/public/framework/core/Page/ext/Inbox/Rail.js
+@@ -1,11 +1,12 @@
+ // history and reasons: doc/InboxRail-notes.md
+ 
+ import { View, div, span, small, a, button, label, input, h4, icon } from "/framework/core/View/View.js";
+-import grip from "/framework/ext/grip/grip.js";
++import Browse from "/framework/ux/Browse/Browse.js";
+ 
+ View.stylesheet("/framework/ux/Inbox/Inbox.css");
+ 
+-export default class Rail {
++/** The Inbox's rows (ranking, read, archive, filters) on Browse's list-and-detail shell: ux/Browse/doc/architecture.md. */
++export default class Rail extends Browse {
+ 	/* ── settings a subclass or a caller may override ── */
+ 	title = "Inbox";          // the rail's own name, above its filters
+ 	key = "inbox";            // localStorage prefix: `<key>-rail-w`, `<key>-read-ids`
+@@ -31,21 +32,17 @@ export default class Rail {
+ 	archived_pending = new Set();
+ 	last_needs = "";
+ 
+-	constructor(...args){ this.assign(...args); }
+-	assign(...args){ return Object.assign(this, ...args); }
++	// Assigned again after this class's own fields, which would otherwise overwrite what a caller passed.
++	constructor(...args){ super(); this.assign(...args); }
+ 
+ 	/** The Inbox's floor: rows scoring under this stay out of it (inbox zero, 2026-09-30). */
+ 	static FLOOR = 90;
+ 	/** The three plain words a row is sorted into by its score (the owner's ask: blocking / review / fyi). */
+ 	static CATEGORIES = ["blocking", "review", "fyi"];
+ 
+-	/** The page this rail belongs to — rows link under its url. */
+-	get url(){ return this.page.url; }
+-	get router(){ return this.page.app?.router; }
+-
+ 	/* ════ BUILDING IT — call `mount()` synchronously, inside the page's content() ════ */
+ 
+-	mount(){
++	before_mount(){
+ 		const q = new URLSearchParams(location.search);
+ 		this.review_only = q.get("review") === "1";
+ 		this.cat = Rail.CATEGORIES.includes(q.get("cat")) ? q.get("cat") : null;
+@@ -53,33 +50,13 @@ export default class Rail {
+ 		// A fresh mount keeps applying every reorder for a moment while the data's several
+ 		// streams each finish their first load — see `order_rows()`.
+ 		this.settle_until = Date.now() + 2500;
++	}
+ 
+-		this.$shell = div.c(this.shell_classes(), () => {
+-			this.rail();
+-			this.detail();
+-			this.sub();
+-			this.shell_extra();
+-		});
+-		this.page.$pages = this.$detail;
+-		this.page.$sub = this.$sub;
+-		this.size(parseInt(this.store_get(this.key + "-rail-w"), 10) || null);
+-		this.listen();
+-		this.start();
+-		return this;
+-	}
+-
+-	/* `bleed`: the whole region, never the prose track. */
+-	shell_classes(){ return "inbox-shell bleed"; }
+-	shell_extra(){}
+-
+-	rail(){
+-		// ⚠ No `flex v` utility: util beats theme, so a `.flex` here could never be hidden by the phone rule.
+-		div.c("inbox-rail", () => {
+-			this.top();
+-			this.stream();
+-			this.foot();
+-			this.grip();
+-		});
++	/* Browse's list pane holds these three; its grip comes after them. */
++	draw_list(){
++		this.top();
++		this.stream();
++		this.foot();
+ 	}
+ 
+ 	top(){
+@@ -166,6 +143,7 @@ export default class Rail {
+ 			this.$rows = div.c("inbox-rows", () => {
+ 				this.$updated = button.c("inbox-updated").attr("type", "button").attr("hidden", "")
+ 					.click(() => this.order_rows(true));
++				this.pins_box();   // Browse's pinned lists (AIRail: Waiting on you)
+ 				this.$pinned = div.c("inbox-pinned flush-stack");
+ 				this.$list = div.c("inbox-list flush-stack");
+ 			});
+@@ -187,34 +165,6 @@ export default class Rail {
+ 	}
+ 	foot_words(){}
+ 
+-	grip(){
+-		const k = this.key + "-rail-w";
+-		grip({ from: "start", write: px => this.size(px), done: w => this.store_set(k, w + "px"),
+-			reset: () => { this.store_drop(k); this.size(); } });
+-	}
+-
+-	/* ⚠ THE DETAIL COLUMN IS `page.$pages` — core's own word for "where my child pages
+-	   mount" (`Page.container()`). That is the whole master–detail: a row's page renders
+-	   here, so the list never has to know what one looks like. */
+-	detail(){
+-		this.$detail = div.c("inbox-detail", () => { this.empty(); });
+-	}
+-
+-	empty(){
+-		div.c("inbox-empty muted", () => {
+-			span("Pick something on the left.");
+-			small("It opens here and stays here while the list keeps filling.");
+-		});
+-	}
+-
+-	sub(){ this.$sub = div.c("inbox-sub"); }
+-
+-	size(px){
+-		const w = px ? Math.round(Math.max(200, Math.min(px, innerWidth - 320))) : null;
+-		this.$shell.style("--inbox-rail", w ? w + "px" : "");
+-		return w;
+-	}
+-
+ 	listen(){
+ 		this.$rows.on("pointerenter", () => { this.hovering = true; });
+ 		this.$rows.on("pointerleave", () => { this.hovering = false; this.draw_extras(); });
+@@ -546,10 +496,4 @@ export default class Rail {
+ 		v == null ? url.searchParams.delete(k) : url.searchParams.set(k, v);
+ 		history.replaceState(history.state, "", url.pathname + url.search + url.hash);
+ 	}
+-
+-	/* ⚠ Storage can throw (a private window, blocked site data); a bare read once stopped
+-	   the whole rail drawing. Every read and write goes through these. */
+-	store_get(k){ try { return localStorage.getItem(k); } catch { return null; } }
+-	store_set(k, v){ try { localStorage.setItem(k, v); } catch {} }
+-	store_drop(k){ try { localStorage.removeItem(k); } catch {} }
+ }
+diff --git a/public/framework/core/Page/ext/Inbox/WaitingOnYou.js b/public/framework/core/Page/ext/Inbox/WaitingOnYou.js
+new file mode 100644
+index 000000000..1410b9acf
+--- /dev/null
++++ b/public/framework/core/Page/ext/Inbox/WaitingOnYou.js
+@@ -0,0 +1,62 @@
++import JSONL from "/framework/ext/JSONL/JSONL.js";
++import Browse from "/framework/ux/Browse/Browse.js";
++import Timeline from "./Timeline.js";
++
++/** WaitingOnYou — every open owner decision, one line each, its card linked; ticked → gone (the card archived, never deleted).
++ *  Pinned at the top of the Inbox (AIRail). Reads ai/cards.jsonl and ai/asks.jsonl, both streamed. Doc: doc/next.md. */
++export default class WaitingOnYou extends Browse.Pinned {
++	static CARDS = "/framework/ai/cards.jsonl";
++	static ASKS = "/framework/ai/asks.jsonl";
++	static AI = "/framework/ai/";
++	static CLOSED = new Set(["done", "archived"]);
++	static ASK_WAITING = new Set(["waiting", "parked", "needs-you"]);
++	static WORDS = /\bfor you\b|\bdecision\b/i;
++
++	title = "Waiting on you";
++	key = "waiting-on-you";
++
++	constructor(...args){
++		super(...args);
++		this.cards ??= new Timeline.Cards({ url: WaitingOnYou.CARDS });
++		this.asks ??= new WaitingOnYou.Asks({ url: WaitingOnYou.ASKS });
++	}
++
++	/** Both files, then every appended line, through the dev socket's tail (`live()`). */
++	start(){
++		const go = () => this.set(this.compute());
++		return Promise.all([this.cards.live(go), this.asks.live(go)]).then(go);
++	}
++	stop(){ this.cards.unsubscribe(); this.asks.unsubscribe(); }
++
++	/** The rows, newest first: open cards that wait on the owner, then asks whose latest status waits on them. */
++	compute(){
++		const cards = [...this.cards.by_id.values()].filter(WaitingOnYou.waits).map(c => ({
++			id: c.id, card: c.id, title: c.title || "Untitled card", at: c.last ?? c.created,
++			sub: WaitingOnYou.line(c.owner_note?.text ?? c.preview ?? c.state ?? ""),
++			href: WaitingOnYou.AI + c.id + "/",
++		}));
++		const seen = new Set(cards.map(r => r.id));
++		const asks = [...this.asks.by_id.values()].filter(x => WaitingOnYou.ASK_WAITING.has(x.status) && !seen.has(x.card)).map(x => ({
++			id: "ask:" + x.id, card: x.card, title: x.title ?? x.id, at: x.at, sub: WaitingOnYou.line(x.why ?? ""),
++			href: x.card ? WaitingOnYou.AI + x.card + "/" : WaitingOnYou.AI + "asks/",
++		}));
++		return [...cards, ...asks].sort((a, b) => (Date.parse(b.at) || 0) - (Date.parse(a.at) || 0));
++	}
++
++	/** A card waits on the owner while it is open and is an owner note, a needs-you card, or says "for you" / "decision". */
++	static waits(c){
++		if (WaitingOnYou.CLOSED.has(c.status)) return false;
++		if (c.owner_note || c.status === "needs-you") return true;
++		return WaitingOnYou.WORDS.test([c.title, c.preview, c.state].filter(Boolean).join(" "));
++	}
++
++	static line(text){ return String(text).replace(/\s+/g, " ").trim().slice(0, 200); }
++
++	/** asks.jsonl: one `{"ask": {…}}` line per change; the latest line for an id wins, field by field. */
++	static Asks = class Asks extends JSONL {
++		static verbs = [...JSONL.verbs, "ask"];
++		by_id = new Map();
++		ask(v){ const k = v?.id ?? v?.card ?? v?.title; if (k) this.by_id.set(k, { ...this.by_id.get(k), ...v, id: k }); }
++		reset(){ this.by_id = new Map(); return super.reset(); }
++	};
++}
+diff --git a/public/framework/core/Page/ext/Inbox/doc/next.md b/public/framework/core/Page/ext/Inbox/doc/next.md
+index 75ad6a5d7..8f221218b 100644
+--- a/public/framework/core/Page/ext/Inbox/doc/next.md
++++ b/public/framework/core/Page/ext/Inbox/doc/next.md
+@@ -9,6 +9,12 @@ Found by the fresh-eyes review of 2026-10-13 ([review.md](/framework/ai/sessions
+ 
+ The owner asked where the items waiting on them live and said the dashboard is "so broken and ugly". The decisions were posted as 20+ cards titled "<task>: decided N things for you", mixed in with every other card. That is the miss: a decision that waits on the owner needs one fixed place, not a card among sixty.
+ 
+-- ⬜ **One "Waiting on you" list, pinned at the top of the Inbox**: every open owner decision, one line each, with its card linked; gone when ticked. Source: cards whose title or body says "for you" or "decision", plus `ai/asks.jsonl` lines with status waiting.
++- ✅ (2026-10-14, `WaitingOnYou.js` on [Browse](/framework/ux/Browse/)) **One "Waiting on you" list, pinned at the top of the Inbox**: every open owner decision, one line each, with its card linked; gone when ticked. Source: cards whose title or body says "for you" or "decision", plus `ai/asks.jsonl` lines with status waiting.
+ - ⬜ **Stop the "decided N things for you" card title pattern**: the mastermind skill should post one line onto that list instead of a new card per task.
+-- ⬜ **Fresh-eyes layout pass on the Inbox at 400 / 1200 / 1920** against the owner's words: "broken and ugly".
++- ✅ (2026-10-14: the list is a third of the screen at 1920, wider at 3440, a table row past 60em; a phone opens on the list) **Fresh-eyes layout pass on the Inbox at 400 / 1200 / 1920** against the owner's words: "broken and ugly".
++
++## After Browse (2026-10-14)
++
++- ⬜ **The timeline on Browse**: `TimelinePage` still lays out with `columns()`; it becomes a `Browse` whose list is its `DataGrid` (ux/Browse/doc/architecture.md).
++- ⬜ **The rail's chrome**: one row of controls above the list (New card, Needs you, three category chips, the score floor, auto-transcribe, search); with the list a third of the screen it fits on one line at 1920, but on a phone it is two. Folding the rarely used ones (score floor, categories) behind one "Filters" word is the next simplification.
++- ⬜ Waiting on you holds 114 lines today, mostly "<task> decided N things for you" cards; "tick all" archives them. The mastermind skill should post one line onto this list instead of a new card per task (still open, above).
+diff --git a/public/framework/core/Page/ext/Inbox/readme.md b/public/framework/core/Page/ext/Inbox/readme.md
+index 87ff4eb9b..439d2b9dc 100644
+--- a/public/framework/core/Page/ext/Inbox/readme.md
++++ b/public/framework/core/Page/ext/Inbox/readme.md
+@@ -1,5 +1,7 @@
+ # Inbox — one class, two views: a page's rail, and its small "leave a note" box
+ 
++**The rail is a [Browse](/framework/ux/Browse/)** (2026-10-14): `Inbox.Rail extends Browse`, the one list-and-detail view the Inbox and Sessions share; the AI Inbox pins **Waiting on you** (`WaitingOnYou.js`, every open owner decision, one line each, ticked → archived) above its rows. Classes: [ux/Browse/doc/architecture.md](/framework/ux/Browse/doc/architecture.md).
++
+ **The inbox timeline** ([open it](/framework/core/Page/ext/Inbox/timeline/)): every landed task, owner note and needs-you card, ranked by `Inbox.rank`, as a preview rail with the detail beside it. Where its rows come from, the one data decision, and its classes (`Timeline`, `TimelinePage`, `Landings`, `InboxSources`): [doc/inbox-data.md](doc/inbox-data.md).
+ 
+ `class Inbox` holds one page's inbox; `inbox.rail` and `inbox.compact` are its two views,
+@@ -62,7 +64,7 @@ One class, `Inbox`, with two lazy views (`inbox.rail`, `inbox.compact`); `InboxR
+ 
+ ## Files
+ 
+-`Timeline.js` — `class Timeline`, the timeline's rows (two streamed indexes, ranked). `timeline/` — its page (`TimelinePage.js`) and its index `landings.jsonl`. `Landings.mjs` and `InboxSources.mjs` (node) — write that index and count every source the inbox reads; run them from the repo root: `node public/framework/core/Page/ext/Inbox/Landings.mjs --append`. `ai/board.jsonl` (the v/3 board) is retired, read-only: [doc/inbox-data.md](doc/inbox-data.md). `Inbox.js` — `class Inbox`, its `Inbox.Compact` static (the drawer's box + the page.jsonl
++`WaitingOnYou.js` — `class WaitingOnYou extends Browse.Pinned`, the open owner decisions from `ai/cards.jsonl` and `ai/asks.jsonl`. `Timeline.js` — `class Timeline`, the timeline's rows (two streamed indexes, ranked). `timeline/` — its page (`TimelinePage.js`) and its index `landings.jsonl`. `Landings.mjs` and `InboxSources.mjs` (node) — write that index and count every source the inbox reads; run them from the repo root: `node public/framework/core/Page/ext/Inbox/Landings.mjs --append`. `ai/board.jsonl` (the v/3 board) is retired, read-only: [doc/inbox-data.md](doc/inbox-data.md). `Inbox.js` — `class Inbox`, its `Inbox.Compact` static (the drawer's box + the page.jsonl
+ extension), and the deprecated re-exports. `Rail.js` — `Inbox.Rail`'s class body (plain
+ `class Rail`), the big navigation rail — see its look and demo at
+ [/framework/ux/Inbox/](/framework/ux/Inbox/). `servex.js` — Servex's address and whether
+diff --git a/public/framework/ux/Browse/Browse.css b/public/framework/ux/Browse/Browse.css
+new file mode 100644
+index 000000000..78822533a
+--- /dev/null
++++ b/public/framework/ux/Browse/Browse.css
+@@ -0,0 +1,108 @@
++@layer base, theme, site, util;
++
++/* BROWSE — the list-and-detail shell (Browse.js). The shell's grid, the phone rule and the
++   detail's scrolling are ux/Inbox/Inbox.css's `.inbox-shell` rules, which Browse wears too;
++   this file holds what Browse changes: the list's default width, its container, the pins. */
++@layer theme {
++
++	/* A THIRD OF THE SCREEN by default (640px at 1920, 1146px at 3440), never under 20em,
++	   always leaving the detail 28em. The grip's px, once dragged, replaces it (Browse.size()). */
++	.browse.inbox-shell {
++		--inbox-rail: clamp(20em, 33.3vw, 100% - 28em);
++	}
++
++	/* The list is a container, so its rows widen into columns by the LIST's width, not the screen's. */
++	.browse-list {
++		container: browse-list / inline-size;
++	}
++
++	/* ── the pinned lists: a titled box above the rows, one line each ── */
++	.browse-pins:empty { display: none; }
++
++	.browse-pinned {
++		background: var(--surface);
++		border-block-end: 2px solid var(--prime);
++	}
++
++	.browse-pinned-head {
++		display: flex;
++		align-items: center;
++		gap: 0.5em;
++		padding: 0.55em calc(var(--pad-card) + 3px);
++		cursor: pointer;
++		font-weight: 700;
++		list-style-position: inside;
++		/* a heading line, not the theme's button-like summary */
++		inline-size: 100%;
++		box-sizing: border-box;
++		margin: 0;
++		border: 0;
++		border-radius: 0;
++		background: none;
++		box-shadow: none;
++	}
++
++	/* flex drops the disclosure marker; this is it */
++	.browse-pinned-head::before { content: "▸"; font-weight: 400; }
++	.browse-pinned-box[open] > .browse-pinned-head::before { content: "▾"; }
++
++	.browse-pinned-all { margin-inline-start: auto; font-weight: 400; }
++
++	/* A long list scrolls inside itself, so the rows below stay one flick away. */
++	.browse-pinned-rows {
++		max-block-size: 45vh;
++		overflow-y: auto;
++		padding-block-end: 0.3em;
++	}
++
++	.browse-pinned-row {
++		display: flex;
++		align-items: baseline;
++		gap: 0.5em;
++		padding: 0.2em calc(var(--pad-card) + 3px);
++		border-block-start: 1px solid var(--line);
++		font-size: 0.9em;
++	}
++
++	.browse-pinned-row:hover { background: var(--fill-a04); }
++
++	.browse-tick {
++		flex: none;
++		inline-size: 1.5em;
++		block-size: 1.5em;
++		min-block-size: 0;
++		padding: 0;
++		border: 1px solid var(--line);
++		border-radius: var(--radius);
++		background: var(--surface);
++		color: var(--muted, inherit);
++		line-height: 1;
++		cursor: pointer;
++	}
++
++	.browse-tick:hover { border-color: var(--prime); color: var(--prime); }
++
++	/* One line each: the title, then as much of its summary as fits. */
++	.browse-pinned-link {
++		flex: 1 1 auto;
++		min-width: 0;
++		display: flex;
++		align-items: baseline;
++		gap: 0.6em;
++		color: inherit;
++		text-decoration: none;
++		white-space: nowrap;
++		overflow: hidden;
++	}
++
++	.browse-pinned-link.active { color: var(--prime); }
++	.browse-pinned-name { flex: none; max-inline-size: 100%; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
++	.browse-pinned-sub { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
++	.browse-pinned-when { flex: none; font-size: 0.85em; }
++
++	/* Narrow: the summary goes, the title keeps the line. */
++	@container browse-list (width < 30em) {
++		.browse-pinned-sub { display: none; }
++		.browse-pinned-name { flex: 1 1 auto; }
++	}
++}
+diff --git a/public/framework/ux/Browse/Browse.js b/public/framework/ux/Browse/Browse.js
+new file mode 100644
+index 000000000..50b6c3104
+--- /dev/null
++++ b/public/framework/ux/Browse/Browse.js
+@@ -0,0 +1,170 @@
++import { View, div, span, small, a, button, details, summary } from "/framework/core/View/View.js";
++import grip from "/framework/ext/grip/grip.js";
++
++View.stylesheet({ url: import.meta.url }, "Browse.css");
++
++/** Browse — one list-and-detail view: a resizable list on the left, the clicked row's own page on the right.
++ *  The orchestrator; Inbox.Rail extends it, Sessions and the catalog are next. Doc: doc/architecture.md. */
++export default class Browse {
++	key = "browse";   // localStorage prefix: `<key>-rail-w` (the list's dragged width), `<key>-ticked`
++	pins = [];        // Browse.Pinned lists, drawn above the rows
++
++	constructor(...args){ this.assign(...args); }
++	assign(...args){ return Object.assign(this, ...args); }
++
++	get url(){ return this.page.url; }
++	get router(){ return this.page.app?.router; }
++
++	/* ════ the shell — call `mount()` synchronously, inside the page's content() ════ */
++
++	mount(){
++		this.before_mount();
++		this.$shell = div.c(this.shell_classes(), () => {
++			this.pane();
++			this.detail();
++			this.sub();
++			this.shell_extra();
++		});
++		// The detail column is `page.$pages`, core's own "where my child pages mount": a row's page renders here.
++		this.page.$pages = this.$detail;
++		this.page.$sub = this.$sub;
++		this.size(parseInt(this.store_get(this.key + "-rail-w"), 10) || null);
++		this.listen();
++		this.start();
++		return this;
++	}
++
++	before_mount(){}
++	/* `inbox-*` stay beside `browse-*` so every rule in ux/Inbox/Inbox.css still lands (doc/architecture.md). */
++	shell_classes(){ return "browse inbox-shell bleed"; }
++	shell_extra(){}
++	listen(){}
++	start(){}
++
++	pane(){
++		div.c("browse-list inbox-rail", () => {
++			this.draw_list();
++			this.grip();
++		});
++	}
++
++	/** The rows: a subclass draws them (each a link to `<page url><id>/`). */
++	draw_list(){}
++
++	/** The pinned lists' box; a subclass places it where it wants it, at the top of its rows. */
++	pins_box(){
++		this.$pins = div.c("browse-pins");
++		this.pins.forEach(p => this.$pins.append(() => p.view()));
++		return this.$pins;
++	}
++
++	pin(p){
++		this.pins.push(p);
++		p.browse = this;
++		this.$pins?.append(() => p.view());
++		return p;
++	}
++
++	detail(){ this.$detail = div.c("browse-detail inbox-detail", () => { this.empty(); }); }
++
++	empty(){
++		div.c("inbox-empty muted", () => {
++			span("Pick something on the left.");
++			small("It opens here and stays here while the list keeps filling.");
++		});
++	}
++
++	sub(){ this.$sub = div.c("inbox-sub"); }
++
++	/** px from the grip, or null for the default (a third of the screen, Browse.css). */
++	size(px){
++		const w = px ? Math.round(Math.max(200, Math.min(px, innerWidth - 320))) : null;
++		this.$shell.style("--inbox-rail", w ? w + "px" : "");
++		return w;
++	}
++
++	grip(){
++		const k = this.key + "-rail-w";
++		grip({ from: "start", write: px => this.size(px), done: w => this.store_set(k, w + "px"),
++			reset: () => { this.store_drop(k); this.size(); } });
++	}
++
++	/* ⚠ Storage can throw (a private window, blocked site data); every read and write goes through these. */
++	store_get(k){ try { return localStorage.getItem(k); } catch { return null; } }
++	store_set(k, v){ try { localStorage.setItem(k, v); } catch {} }
++	store_drop(k){ try { localStorage.removeItem(k); } catch {} }
++
++	/** A short titled list pinned above the rows: one line each, a link, a tick that makes it go. Hidden when empty. */
++	static Pinned = class Pinned {
++		title = "Pinned";
++		rows = [];           // [{ id, title, href, sub, at }]
++		key = "pinned";      // localStorage: the ids ticked in this browser, so a tick is gone at once
++		tick = null;         // (row) => Promise — the real write (AIRail: archive the card); null = no tick button
++
++		constructor(...args){ Object.assign(this, ...args); }
++
++		view(){
++			this.$box = div.c("browse-pinned");
++			this.draw();
++			return this.$box;
++		}
++
++		set(rows){ this.rows = rows; this.draw(); this.changed?.(); }
++
++		shown(){ const t = this.ticked(); return this.rows.filter(r => !t.has(r.id)); }
++		ids(){ return new Set(this.shown().map(r => r.id)); }
++
++		ticked(){ try { return new Set(JSON.parse(localStorage.getItem(this.key + "-ticked") ?? "[]")); } catch { return new Set(); } }
++		mark(ids){ try { localStorage.setItem(this.key + "-ticked", JSON.stringify([...new Set([...this.ticked(), ...ids])])); } catch {} }
++
++		done(rows){
++			this.mark(rows.map(r => r.id));
++			this.draw();
++			this.changed?.();
++			if (this.tick) rows.forEach(r => Promise.resolve(this.tick(r)).catch(() => null));
++		}
++
++		draw(){
++			if (!this.$box) return;
++			const rows = this.shown();
++			const sig = JSON.stringify(rows);
++			if (sig === this.sig) return;
++			this.sig = sig;
++			this.$box.el.hidden = !rows.length;
++			if (!rows.length) return this.$box.empty();
++			const open = this.$details ? this.$details.el.open : true;
++			this.$box.empty(() => {
++				this.$details = details.c("browse-pinned-box", () => {
++					summary.c("browse-pinned-head", () => {
++						span.c("browse-pinned-title").text(this.title);
++						small.c("inbox-badge").text(String(rows.length));
++						if (this.tick && rows.length > 1) button.c("browse-pinned-all inbox-word").attr("type", "button")
++							.attr("title", "tick every line: each card is archived, nothing is deleted").text("tick all")
++							.click(e => { e.preventDefault(); if (confirm(`Tick all ${rows.length}? Each card is archived, nothing is deleted.`)) this.done(rows); });
++					});
++					div.c("browse-pinned-rows", () => rows.forEach(r => this.line(r)));
++				});
++				this.$details.el.open = open;
++			});
++			this.browse?.router?.mark_links?.();
++		}
++
++		line(r){
++			div.c("browse-pinned-row", () => {
++				if (this.tick) button.c("browse-tick").attr("type", "button").attr("title", "done: it leaves this list (the card is archived, never deleted)")
++					.text("✓").click(() => this.done([r]));
++				a.c("browse-pinned-link").href(r.href).attr("title", r.sub || r.title).append(() => {
++					span.c("browse-pinned-name").text(r.title);
++					if (r.sub) small.c("browse-pinned-sub muted").text(r.sub);
++				});
++				if (r.at) small.c("browse-pinned-when muted").text(Pinned.when(r.at)).attr("title", new Date(r.at).toLocaleString());
++			});
++		}
++
++		static when(at){
++			const d = new Date(at), now = new Date();
++			if (isNaN(d)) return "";
++			return d.toDateString() === now.toDateString() ? d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : d.toLocaleDateString([], { month: "short", day: "numeric" });
++		}
++	};
++}
+diff --git a/public/framework/ux/Browse/doc/architecture.md b/public/framework/ux/Browse/doc/architecture.md
+new file mode 100644
+index 000000000..2dc911cdb
+--- /dev/null
++++ b/public/framework/ux/Browse/doc/architecture.md
+@@ -0,0 +1,39 @@
++# Browse — the class architecture
++
++The owner, 2026-10-14 ([dictation 14, ask 7](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-12.md)): the Inbox and the Sessions page are "the same essential problem: pages and sub pages and previews and how you click through them to see a deeper thing". So there is one view for it, `Browse`, and each of them is a `Browse`.
++
++## What Browse is
++
++A list on the left, the thing you clicked on the right. The list stays put while you read; it is resizable, a third of the screen at 1920 and wider at 3440; on a phone the list and the detail are two screens.
++
++## The classes
++
++```js
++class Browse                                  // ux/Browse/Browse.js: THE ORCHESTRATOR. The shell: the list pane and its grip,
++                                              //   the detail pane (page.$pages: a row's page renders there through the Router),
++                                              //   a third column for a sub-page; remembers the list's width.
++Browse.Pinned                                 // a short titled list above the rows: one line each, a link, a tick that makes it go
++class Rail extends Browse                     // core/Page/ext/Inbox/Rail.js (Inbox.Rail): the Inbox's rows, ranking, read, archive, filters
++class AIRail extends Inbox.Rail               // ai/rail/rail.js: the AI page's Inbox: meters, cards, the pinned day rows
++class WaitingOnYou extends Browse.Pinned      // core/Page/ext/Inbox/WaitingOnYou.js: every open owner decision (ai/cards.jsonl,
++                                              //   ai/asks.jsonl); ticked → its card archived, gone. AIRail pins it.
++```
++
++## What each surface becomes
++
++- **The Inbox** (`/framework/ai/`): `AIRail extends Inbox.Rail extends Browse`. Its rows are its own; the shell, the width and the pinned list are Browse's. Built first (the smallest slice).
++- **The Inbox timeline** (`/framework/core/Page/ext/Inbox/timeline/`): a configuration: a `Browse` whose list is a `DataGrid` in rail mode. Today it uses the `columns()` page layout instead; moving it is one step.
++- **Sessions** (`/framework/ai/sessions/`): a configuration: a `Browse` whose list is its `DataGrid` (table at 1920 and wide, rail of cards when the pane is narrow) and whose detail is the session's own page, the "side peek" it already has. Next brief: `ai/sessions/doc/next.md`.
++- **The catalog** (`/framework/catalog/`): a configuration: rows are catalog entries, the detail is the entry's page.
++
++## The list grows with the screen
++
++The list pane is a container (`container-type: inline-size`), so a row reads its own width, not the screen's:
++
++- under about 30em (a phone, a narrow drag): the title whole, its summary cut to one line;
++- from 30em (the default third at 1920): the row's badges, title and when on one line, its one-line summary under it;
++- from 60em (3440, or dragged wide): one line per row as a table: badges, title, summary, when, side by side, like the Sessions data grid.
++
++## One of everything
++
++Browse replaces the shell code that was in `Inbox.Rail`; it is not a third rail. The CSS classes `inbox-shell`, `inbox-rail` and `inbox-detail` stay on the same elements, so every rule in `ux/Inbox/Inbox.css` still lands; Browse adds `browse`, `browse-list` and `browse-detail` beside them.
+diff --git a/public/framework/ux/Browse/doc/files.jsonl b/public/framework/ux/Browse/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ux/Browse/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/ux/Browse/files.jsonl b/public/framework/ux/Browse/files.jsonl
+new file mode 100644
+index 000000000..661d3770b
+--- /dev/null
++++ b/public/framework/ux/Browse/files.jsonl
+@@ -0,0 +1,4 @@
++{"file":"doc/"}
++{"file":"readme.md"}
++{"file":"Browse.js"}
++{"file":"Browse.css"}
+diff --git a/public/framework/ux/Browse/page.js b/public/framework/ux/Browse/page.js
+new file mode 100644
+index 000000000..ea8ba40f4
+--- /dev/null
++++ b/public/framework/ux/Browse/page.js
+@@ -0,0 +1,14 @@
++import { Page, a, p, div, md } from "/app.js";
++
++// Browse's own page: the class architecture first, then the readme. The live Browse is the AI Inbox.
++export default new Page({
++	meta: import.meta,
++	title: "Browse",
++	icon: "view_sidebar",
++	description: "One list-and-detail view: a resizable list on the left, the row you clicked on the right.",
++	content(){
++		p(() => a("See it live: the AI Inbox →").href("/framework/ai/"));
++		div.c("flow").append(md.file({ url: import.meta.url }, "doc/architecture.md", { h1: false }));
++		div.c("flow").append(md.file({ url: import.meta.url }, "readme.md", { h1: false }));
++	},
++});
+diff --git a/public/framework/ux/Browse/readme.md b/public/framework/ux/Browse/readme.md
+new file mode 100644
+index 000000000..4d4d0845a
+--- /dev/null
++++ b/public/framework/ux/Browse/readme.md
+@@ -0,0 +1,28 @@
++# Browse — one list-and-detail view: a resizable list on the left, the row you clicked on the right
++
++See it: **[the page](/framework/ux/Browse/)**: the class architecture, then the demo. The Inbox on [/framework/ai/](/framework/ai/) is a `Browse`.
++
++## Use
++
++```js
++import Browse from "/framework/ux/Browse/Browse.js";
++
++class MyList extends Browse {
++	draw_list(){ /* draw the rows: each is a link to <page url><id>/ */ }
++}
++// in the page's content(); the page wears `classes: "full fill"` and has a route(id)
++new MyList({ page: this, key: "mine" }).mount();
++```
++
++- `browse.pin(new Browse.Pinned({ title, rows }))`: a short list above the rows, one line each, ticked → gone.
++- The list's width: a third of the screen by default, dragged with its grip, remembered per `key`.
++
++## Watch out
++
++- The detail pane IS `page.$pages`: a row's page renders there through the Router, so its url is real and a reload lands on it.
++- Rows widen into columns by a container query on the list pane, never by the screen width.
++
++## More
++
++- [doc/architecture.md](doc/architecture.md): every class, what extends what, what Inbox, Sessions and the catalog become.
++- Who extends it: [`Inbox.Rail`](/framework/core/Page/ext/Inbox/) → [`AIRail`](/framework/ai/rail/).
+diff --git a/public/framework/ux/Inbox/Inbox.css b/public/framework/ux/Inbox/Inbox.css
+index 17de33d4e..6af003fdd 100644
+--- a/public/framework/ux/Inbox/Inbox.css
++++ b/public/framework/ux/Inbox/Inbox.css
+@@ -658,6 +658,26 @@
+ 		display: none;
+ 	}
+ 
++	/* ── THE ROWS GROW WITH THE LIST (ux/Browse: the list pane is the `browse-list` container) ──
++	   Narrow (a phone, a narrow drag): the summary is one line. Wide (3440, or dragged wide):
++	   one row reads like a table row, the title and its badges on the left, the rest beside it. */
++	@container browse-list (width < 30em) {
++		.inbox-row-line { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; }
++	}
++
++	@container browse-list (width >= 60em) {
++		.inbox-rows .inbox-row {
++			display: grid;
++			grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
++			column-gap: calc(var(--pad-card) * 1.5);
++			align-items: start;
++		}
++		.inbox-rows .inbox-row > .inbox-row-head { grid-column: 1; grid-row: 1 / span 6; }
++		.inbox-rows .inbox-row > :not(.inbox-row-head) { grid-column: 2; }
++		.inbox-rows .inbox-row > * + * { margin-block-start: 0; }
++		.inbox-rows .inbox-row > :not(.inbox-row-head) + :not(.inbox-row-head) { margin-block-start: var(--inbox-step); }
++	}
++
+ 	/* ── ONE SCREEN AT A TIME, ON A PHONE ──
+ 	   Below 40em each level is its own screen: the rail, then a row's page, then a
+ 	   sub-page. Which shows is read off the Router's own marks: the page that owns the
+diff --git a/public/framework/ux/page.js b/public/framework/ux/page.js
+index b60a52809..ae1e20b46 100644
+--- a/public/framework/ux/page.js
++++ b/public/framework/ux/page.js
+@@ -68,7 +68,7 @@ export default new Page({
+ 	description: "The behavior tier — ui/ hands you markup, ux/ hands you a class you can extend.",
+ 	icon: "layers",
+ 
+-	children: "Auth Wizard Tree Course Filter Menu Pagination Tags Dictate Revise Popover Content Understand Rename Inbox Card Hotkeys",
++	children: "Auth Wizard Tree Course Filter Menu Pagination Tags Dictate Revise Popover Content Understand Rename Inbox Browse Card Hotkeys",
+ 
+ 	// The two long-form docs — `doc/system.md`, `doc/decisions.md` — are NOT declared
+ 	// children: a declared child is a CARD in the wall below, and a doc page is not a
+diff --git a/public/framework/ux/readme.md b/public/framework/ux/readme.md
+index c062fc25e..c77970a1e 100644
+--- a/public/framework/ux/readme.md
++++ b/public/framework/ux/readme.md
+@@ -11,6 +11,7 @@ Every module here, and what you would use it for.
+ - [Dictate](./Dictate/) — a microphone button that always shows what is happening and what it heard; [every voice and chat surface on one page](./Dictate/surfaces/).
+ - [Filter](./Filter/) — a segment row plus a search box that filters several regions at once.
+ - [Inbox](./Inbox/) — a rail of page previews beside the page you picked; it never jumps. The AI page's inbox.
++- [Browse](./Browse/) — one list-and-detail view (a resizable list, the clicked row beside it); `Inbox.Rail` extends it, Sessions and the catalog are next.
+ - [Menu](./Menu/) — a dropdown menu that closes after a pick and on an outside click.
+ - [Pagination](./Pagination/) — a row of page buttons that remembers the current page and drives real content.
+ - [Popover](./Popover/) — one popup anchored to a trigger, in the browser's top layer so no z-index fights it.
