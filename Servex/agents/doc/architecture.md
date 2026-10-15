@@ -122,6 +122,12 @@ session_id, started_at, parent}` to `registry.json` next to the logs — `GET /a
 still sees an agent after Servex restarts and its in-memory `live` Map is empty again — and
 appends the same row to `servex.jsonl`.
 
+### A mastermind may spawn masterminds (owner, 2026-10-15)
+
+`policy.js` `spawn()` lets any mastermind (`mastermind-*`, `task-mastermind-*`) spawn a `mastermind`, a minion or a helper, with no special grant; other workers still spawn only minions and helpers, and assistants stay denied. The owner's reasoning, quoted from [the brief](/framework/ai/sessions/2026/10/15/voice-20261015/ask-00dc4855.md):
+
+> The mastermind role adds little power, mostly the ability and instructions to spawn minions. That's right for large tasks and whole systems (Page, AI) where a coordinator holds context and uses minions to read code, because a mastermind reading all code itself is slow, token-heavy and can't answer quickly. Not every task needs one; it's for big scopes.
+
 ## The assistant layers — every card has its own agents
 
 Each card gets its own **assistant** (`assistant-<card>`, answers in seconds) and its own

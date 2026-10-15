@@ -145,6 +145,8 @@ ${text}` };
 		if(f === "external") return deny(`spawn agents: an external id (a registered tab) may message anyone, but not spawn. Spawn from the tab itself with no id (as the owner), or ask mastermind-servex.`);
 		if(f === "assistant" || f === "master") return deny(`spawn agents: ${f === "master" ? "the master assistant" : "an assistant"} has its own tools for that.`);
 		if(f === "smart") return ["master-assistant", "assistant", "mastermind", "page-assistant"].includes(role) ? deny(`spawn a ${role}: the smart assistant may spawn task masterminds, managers, minions and helpers.`) : { ok: true };
+		/* A mastermind (voice or task) may spawn masterminds (owner, 2026-10-15): ask-00dc4855.md. */
+		if(this.is_mastermind(caller) && role === "mastermind") return { ok: true };
 		if(f === "worker") return ["minion", "helper"].includes(role) ? { ok: true } : deny(`spawn a ${role}: a worker may spawn only a minion or a helper.`);
 		return NO_SPAWN.includes(role) ? deny(`spawn a ${role}: only mastermind-servex may.`) : { ok: true };
 	}
@@ -162,8 +164,9 @@ ${text}` };
 		{ from: "assistant-X", may: "message manager-X, master-assistant, mastermind-servex; spawn nothing" },
 		{ from: "manager-X", may: "message assistant-X, mastermind-servex; spawn anything except task-mastermind, manager, mastermind, master-assistant, assistant, page-mastermind, page-assistant" },
 		{ from: "master-assistant", may: "message any assistant, mastermind-servex; spawn nothing" },
-		{ from: "task-mastermind-*", may: "message mastermind-servex(-N) and another task mastermind (its parent gets a copy); spawn like a manager" },
+		{ from: "task-mastermind-*", may: "message mastermind-servex(-N) and another task mastermind (its parent gets a copy); spawn like a manager, and also a mastermind" },
 		{ from: "session-smart-*", may: "spawn task-mastermind, manager, minion, helper and the rest, except assistants and mastermind" },
+		{ from: "mastermind-X", may: "spawn mastermind, minion and helper" },
 		{ from: "worker", may: "spawn only minion and helper" }
 	]; }
 }
