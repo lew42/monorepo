@@ -4,6 +4,7 @@ import { listed, url as post_url, dated } from "./blog/posts.js";
 // Plain {title, url} data on purpose — declaring these as `children` would
 // auto-import every section's tree (and its side effects) into the home page.
 const sections = [
+	{ title: "Live", url: "/live/", desc: "The owner's live voice-work feed: each dictation's summary and its results." },
 	{ title: "Blog", url: "/blog/", desc: "Working notes on the framework, the tools built on it, and the AI board that watches it get built." },
 	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Router, App, and the CSS layers." },
 	{ title: "Web", url: "/web/", desc: "The guide — how to build things on the web, shown live." },
