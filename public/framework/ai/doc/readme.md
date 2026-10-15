@@ -21,3 +21,4 @@ Naming rule: a doc is named for its topic, not its date; the date and the sessio
 - [`models.md`](models.md) — which model for which job, measured, with the voice fallback.
 - [`asks.md`](asks.md) — the owner's repeated asks about the AI system, merged and checked against the code, open first.
 - [`skills-proposals-2026-10-13.md`](skills-proposals-2026-10-13.md) — the skills review: what was cut from `.claude/skills/` (−19% words), the conflicts fixed, and the changes still waiting on a decision (CLAUDE.md ones first).
+- [`tool-collapse.md`](tool-collapse.md) — 81 Servex tools cost about 18k tokens in every Servex-spawned agent; measured, with a tiered plan to load only what is used (plan, nothing built).

@@ -1,0 +1,336 @@
+{
+ "days": 14,
+ "files": 6752,
+ "called": [
+  {
+   "name": "send_to_agent",
+   "calls": 2032,
+   "sessions": 134
+  },
+  {
+   "name": "spawn_agent",
+   "calls": 1296,
+   "sessions": 92
+  },
+  {
+   "name": "Skill",
+   "calls": 1208,
+   "sessions": 639
+  },
+  {
+   "name": "refine_step",
+   "calls": 981,
+   "sessions": 143
+  },
+  {
+   "name": "stop_agent",
+   "calls": 393,
+   "sessions": 49
+  },
+  {
+   "name": "card_reply",
+   "calls": 334,
+   "sessions": 72
+  },
+  {
+   "name": "check_page",
+   "calls": 262,
+   "sessions": 52
+  },
+  {
+   "name": "list_agents",
+   "calls": 243,
+   "sessions": 161
+  },
+  {
+   "name": "take_worktree",
+   "calls": 210,
+   "sessions": 117
+  },
+  {
+   "name": "create_card",
+   "calls": 204,
+   "sessions": 36
+  },
+  {
+   "name": "return_worktree",
+   "calls": 91,
+   "sessions": 32
+  },
+  {
+   "name": "list_servers",
+   "calls": 90,
+   "sessions": 59
+  },
+  {
+   "name": "page_add",
+   "calls": 86,
+   "sessions": 28
+  },
+  {
+   "name": "add_item",
+   "calls": 83,
+   "sessions": 3
+  },
+  {
+   "name": "session_summary",
+   "calls": 82,
+   "sessions": 40
+  },
+  {
+   "name": "page_set",
+   "calls": 79,
+   "sessions": 24
+  },
+  {
+   "name": "wait_for_agent",
+   "calls": 72,
+   "sessions": 18
+  },
+  {
+   "name": "system_health",
+   "calls": 70,
+   "sessions": 21
+  },
+  {
+   "name": "append_log",
+   "calls": 64,
+   "sessions": 21
+  },
+  {
+   "name": "list_cards",
+   "calls": 56,
+   "sessions": 27
+  },
+  {
+   "name": "owner_note",
+   "calls": 54,
+   "sessions": 46
+  },
+  {
+   "name": "list_claims",
+   "calls": 53,
+   "sessions": 48
+  },
+  {
+   "name": "server_logs",
+   "calls": 52,
+   "sessions": 27
+  },
+  {
+   "name": "claim_topic",
+   "calls": 48,
+   "sessions": 28
+  },
+  {
+   "name": "restart_servex",
+   "calls": 47,
+   "sessions": 25
+  },
+  {
+   "name": "page_note",
+   "calls": 38,
+   "sessions": 14
+  },
+  {
+   "name": "read_card",
+   "calls": 37,
+   "sessions": 17
+  },
+  {
+   "name": "card_set",
+   "calls": 34,
+   "sessions": 27
+  },
+  {
+   "name": "page_read",
+   "calls": 34,
+   "sessions": 15
+  },
+  {
+   "name": "start_server",
+   "calls": 33,
+   "sessions": 24
+  },
+  {
+   "name": "append_prompt_event",
+   "calls": 30,
+   "sessions": 4
+  },
+  {
+   "name": "file_to_group",
+   "calls": 29,
+   "sessions": 9
+  },
+  {
+   "name": "dir_log",
+   "calls": 26,
+   "sessions": 8
+  },
+  {
+   "name": "page_log",
+   "calls": 24,
+   "sessions": 8
+  },
+  {
+   "name": "load_module",
+   "calls": 24,
+   "sessions": 13
+  },
+  {
+   "name": "release_topic",
+   "calls": 23,
+   "sessions": 18
+  },
+  {
+   "name": "card_summary",
+   "calls": 21,
+   "sessions": 7
+  },
+  {
+   "name": "restart_server",
+   "calls": 18,
+   "sessions": 10
+  },
+  {
+   "name": "close_task",
+   "calls": 15,
+   "sessions": 11
+  },
+  {
+   "name": "attach_card",
+   "calls": 13,
+   "sessions": 1
+  },
+  {
+   "name": "ask_directory",
+   "calls": 11,
+   "sessions": 4
+  },
+  {
+   "name": "heartbeat_status",
+   "calls": 11,
+   "sessions": 7
+  },
+  {
+   "name": "drop",
+   "calls": 10,
+   "sessions": 4
+  },
+  {
+   "name": "quick_fix",
+   "calls": 10,
+   "sessions": 6
+  },
+  {
+   "name": "create_page",
+   "calls": 8,
+   "sessions": 5
+  },
+  {
+   "name": "stop_server",
+   "calls": 7,
+   "sessions": 5
+  },
+  {
+   "name": "ask_manager",
+   "calls": 7,
+   "sessions": 2
+  },
+  {
+   "name": "page_reply",
+   "calls": 7,
+   "sessions": 3
+  },
+  {
+   "name": "page_call",
+   "calls": 6,
+   "sessions": 4
+  },
+  {
+   "name": "inbox",
+   "calls": 5,
+   "sessions": 4
+  },
+  {
+   "name": "follow",
+   "calls": 5,
+   "sessions": 4
+  },
+  {
+   "name": "task_loop_status",
+   "calls": 5,
+   "sessions": 3
+  },
+  {
+   "name": "module_inbox",
+   "calls": 5,
+   "sessions": 1
+  },
+  {
+   "name": "session_line",
+   "calls": 4,
+   "sessions": 2
+  },
+  {
+   "name": "pause_dispatch",
+   "calls": 3,
+   "sessions": 3
+  },
+  {
+   "name": "snooze_task",
+   "calls": 3,
+   "sessions": 3
+  },
+  {
+   "name": "read_page",
+   "calls": 2,
+   "sessions": 1
+  },
+  {
+   "name": "readme_modules",
+   "calls": 2,
+   "sessions": 2
+  },
+  {
+   "name": "register_session",
+   "calls": 2,
+   "sessions": 2
+  },
+  {
+   "name": "ask_module",
+   "calls": 2,
+   "sessions": 2
+  },
+  {
+   "name": "card_ask",
+   "calls": 2,
+   "sessions": 2
+  },
+  {
+   "name": "kill_task",
+   "calls": 1,
+   "sessions": 1
+  },
+  {
+   "name": "list_follows",
+   "calls": 1,
+   "sessions": 1
+  },
+  {
+   "name": "log_session",
+   "calls": 1,
+   "sessions": 1
+  },
+  {
+   "name": "resume_dispatch",
+   "calls": 1,
+   "sessions": 1
+  },
+  {
+   "name": "place",
+   "calls": 1,
+   "sessions": 1
+  }
+ ]
+}

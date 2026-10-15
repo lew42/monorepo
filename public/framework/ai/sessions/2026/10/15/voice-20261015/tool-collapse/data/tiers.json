@@ -1,0 +1,36 @@
+{
+ "core": {
+  "tools": 20,
+  "chars": 17161,
+  "calls": 3981
+ },
+ "orchestrate": {
+  "tools": 23,
+  "chars": 18583,
+  "calls": 1885
+ },
+ "ops": {
+  "tools": 6,
+  "chars": 2131,
+  "calls": 247
+ },
+ "coordinate": {
+  "tools": 19,
+  "chars": 9661,
+  "calls": 351
+ },
+ "refine": {
+  "tools": 6,
+  "chars": 7572,
+  "calls": 1016
+ },
+ "page_rare": {
+  "tools": 7,
+  "chars": 4105,
+  "calls": 23
+ },
+ "unplaced": {
+  "tools": 0,
+  "names": []
+ }
+}

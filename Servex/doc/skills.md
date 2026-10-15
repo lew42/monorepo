@@ -16,3 +16,7 @@
 Pruning is `mastermind-skill-prune`'s; nothing deleted here.
 
 Numbers: `public/framework/ai/sessions/2026/10/12/session-78fdc37f/skill-reliability/data/misses.json`.
+
+## Tools
+
+Skills are injected by node, but the Servex tools are all loaded for every agent (81, about 18k tokens). Measured and planned: [`public/framework/ai/doc/tool-collapse.md`](/framework/ai/doc/tool-collapse.md).
