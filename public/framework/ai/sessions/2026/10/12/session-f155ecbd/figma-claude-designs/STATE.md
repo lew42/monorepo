@@ -65,3 +65,4 @@ Owner rule (2026-10-12): summaries and anything waiting on the owner go on the F
 - ✅ ds-rows ([report](kit/ds-rows.md)): 11 DS pages on section rows (400 head + FILL specimens, min 480 wrap); single-stat block 277:104073; Stat hairline. Index re-run.
 - ✅ 2026-10-14 wave: captions, essentials (296:109702), demo (296:106079), foundations (296:107999), fluid-audit, type (297:105637). Pages reordered; Index regrouped (45 pages).
 - ⬜ dogfood (brief-dogfood.md): new pages use the Essentials cards.
+- ✅ 2026-10-14 late: dogfood, cards (302:114678), demo-2 (Demo · Phone flow), schemes (302:112404). Index re-run, 47 pages.
