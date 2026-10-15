@@ -1047,6 +1047,8 @@ export default class Sessions {
 			/* The whole Claude Code preset (tools, CLAUDE.md, skills, Servex's MCP door), its brief appended. */
 			role: "session-smart", name: s.id, model: this.session_model(s, "smart"), effort: "medium", urgent: true,
 			permission_mode: "bypassPermissions", cwd: this.repo,
+			/* LEAN (dictate-next-4): no user/project settings (CLAUDE.md, skills, memory), no claude.ai connectors; the brief is the prompt. */
+			setting_sources: [], env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
 			system: { type: "preset", preset: "claude_code", append: this.brief("smart") + where },
 			parent: "sessions"
 		};
