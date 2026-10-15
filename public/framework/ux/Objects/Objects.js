@@ -16,7 +16,8 @@ View.stylesheet(import.meta, "Objects.css");
 export default class Objects extends Tree {
 
 	initialize(){
-		this.classes ??= "ux-objects";
+		this.ac("ux-objects");   // classify() already ran, so a `classes` field is too late
+		super.initialize();   // View.initialize runs render(); without it the tree never draws
 	}
 
 	/**

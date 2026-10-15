@@ -41,7 +41,7 @@ export default new Page({
 				if (cleaner.status === "done") p(`${cleaner.mode === "quick" ? "instant, no model" : "by the model"}, ${cleaner.ms} ms`).style({ opacity: "0.7", fontSize: "0.9em" });
 				if (cleaner.status === "working") p("Cleaning with the model…");
 			});
-			$obj.empty(() => { Objects.of(cleaner); });
+			$obj.empty(() => { div.c("card", () => { Objects.of(cleaner); }); });
 		};
 		const run = async model => {
 			const raw = $in.el.value;
