@@ -48,7 +48,7 @@ The classes and the decisions (log growth, big collections, file vs database): [
 
 A url is resolved one folder name at a time: memory → a declared `page.jsonl` → `md/`/`fs/`/`inbox/` →
 `route()` → a `page.jsonl` in the loaded folder listing → `page.js` → a bare `.md` file → not found. The full order, with a code line for
-each step and the two traps that catch people, is [`doc/loading.md`](./doc/loading.md).
+each step and the two traps that catch people, is [`doc/loading.md`](./doc/loading.md). The page.js vs page.jsonl handoff, how a page.jsonl names its children, and one real file line by line, in verbatim code: [`doc/jsonl-pages.md`](./doc/jsonl-pages.md).
 [core/Router](/framework/core/Router/) ([readme](../Router/readme.md)) walks the url and calls `page.child(name)` once per folder name; this module decides what each name resolves to.
 
 - **The sub-systems** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-sub-systems), verbatim.
