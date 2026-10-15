@@ -4,7 +4,8 @@ import path from "path";
 import crypto from "crypto";
 import express from "express";
 
-/* A tiny remote MCP endpoint (POST /mcp/remote) with ONE tool, `ask_mastermind`, behind a bearer token.
+/* The remote MCP endpoint (POST /mcp/remote), behind a bearer token. It serves the SAME tool registry every local Claude
+ * session gets (`servex.mcp`, read live, never copied) plus `ask_mastermind` on top; calls run as caller "voice-app".
  * Why and how to use it: public/framework/ux/Dictate/doc/voice-bridge.md. Reached through Server/Tunnel.mjs,
  * whose gateway forwards this one path and nothing else. */
 export default class RemoteMCP {
@@ -17,10 +18,14 @@ export default class RemoteMCP {
         "You are the voice agent: the Claude app model talking with the owner by voice. The mastermind behind ask_mastermind is an SDK agent on the owner's PC.",
         "Fire ask_mastermind immediately, before saying anything; then speak.",
         "Summarize its answer for the ear, do not read it back. The mastermind is verbose on purpose, to give you context; you keep replies short.",
+        "You also have every Servex tool a local session has (page_add, list_agents, send_to_agent, read_page, cards, and more). Use them for small, concrete things; ask_mastermind stays the door for anything that needs judgment or reading the repo.",
+        "You may post cards to the owner's /live/ page yourself: page_add with path \"/live/\" and an item such as {type: \"part-card\", title, text}. Do it before or while you ask the mastermind, so they see what you are doing.",
+        "Never call restart_servex (or stop_server on Servex) during a call: it would drop your own connection. The owner picks the time.",
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
         "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them.",
     ].join("\n");
     static SESSIONS_FILE = "remote.sessions.json";
+    static CALLER = "voice-app";
     static TOOL = {
         name: "ask_mastermind",
         description: "Ask the project's mastermind (the AI that coordinates this codebase, an SDK agent on the owner's PC) and wait up to a minute for its answer. You are the voice agent: call this FIRST, before saying anything, then summarize the answer briefly for the owner (do not read it back), ask one question at a time, and relay open items. The mastermind replies verbosely, for you, not for the owner.",
@@ -83,9 +88,13 @@ export default class RemoteMCP {
         }
         if (method === "initialize") return ok({ protocolVersion: params?.protocolVersion ?? RemoteMCP.VERSION, capabilities: { tools: {} }, serverInfo: { name: "lew42-remote", version: "1" }, instructions: RemoteMCP.INSTRUCTIONS });
         if (method === "ping") return ok({});
-        if (method === "tools/list") return ok({ tools: [RemoteMCP.TOOL] });
+        if (method === "tools/list") return ok({ tools: this.tools() });
         if (method === "tools/call"){
-            if (params?.name !== RemoteMCP.TOOL.name) return bad(-32602, "unknown tool");
+            if (params?.name !== RemoteMCP.TOOL.name){
+                // every other tool is the servex registry's own handler; the caller is this app, so writes say who made them
+                try { return ok(await this.servex.mcp.call(params?.name, params?.arguments ?? {}, { caller: RemoteMCP.CALLER })); }
+                catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
+            }
             const question = String(params.arguments?.question ?? "").trim().slice(0, 4000);
             if (!question) return bad(-32602, "question is required");
             const started = Date.now();
@@ -97,6 +106,11 @@ export default class RemoteMCP {
             return ok({ content: [{ type: "text", text }] });
         }
         return bad(-32601, "method not found");
+    }
+
+    // the one registry (servex.mcp, read at call time so late registrations show up) with ask_mastermind on top
+    tools(){
+        return [RemoteMCP.TOOL, ...(this.servex.mcp?.tools ?? []).filter(t => t.name !== RemoteMCP.TOOL.name)];
     }
 
     // REMOTE_MCP_TARGET / this.target / the file remote.target still override everything: one fixed agent for every session

@@ -3,14 +3,21 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import assert from "assert";
+import { fileURLToPath } from "url";
 import express from "express";
 import RemoteMCP from "./RemoteMCP.js";
+import MCP from "../../MCP.js";
+import { page_tools } from "../../agents/page_tools.js";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "remote-test-"));
 fs.mkdirSync(path.join(root, "public/framework/ai"), { recursive: true });
 const token_file = path.join(root, "state", "remote.token");
 const spawned = [], sent = [];
+const mcp = new MCP({ router: express.Router() });   // the REAL registry class; the real page tools and one marker tool go in through its own seam
+for (const tool of page_tools()) mcp.tool(tool);
+mcp.tool({ name: "whoami_test", description: "test", handler: (a, ctx) => `caller=${ctx.caller}` });
 const servex = {
+    mcp,
     cards: { tools: () => [{ name: "create_card", handler: async () => JSON.stringify({ ok: true, id: "2026/10/15/voice" }) }] },
     agents: {
         registry_list: () => spawned.map(a => ({ id: a.id, task_dir: a.dir })),
@@ -34,6 +41,7 @@ const make = () => {
     const app = express(); const gw = new RemoteMCP({ servex, root, router: app, token_file, wait_ms: 3000 });
     return new Promise(r => { const srv = app.listen(0, "127.0.0.1", () => r({ gw, srv, url: `http://127.0.0.1:${srv.address().port}${RemoteMCP.PATH}/${gw.token}` })); });
 };
+const live_dir = "live-test-" + process.pid;   // page_add writes under the repo public/, so a throwaway page stands in for /live/
 let { gw, srv, url } = await make();
 const rpc = async (body, sid) => {
     const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json", ...(sid ? { "mcp-session-id": sid } : {}) }, body: JSON.stringify({ jsonrpc: "2.0", ...body }) });
@@ -74,6 +82,24 @@ assert.equal(sent.at(-1), "mastermind-fixed");
 const log = fs.readFileSync(path.join(root, "public/framework/ai/log.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l).remote_mcp);
 assert.ok(log.every(l => l.session && l.agent), "every log line names session and agent");
 assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
+// the remote route serves the whole registry plus ask_mastermind; calls are attributed to voice-app
+{
+    const list = (await rpc({ id: 5, method: "tools/list" })).json.result.tools.map(t => t.name);
+    assert.equal(list[0], "ask_mastermind");
+    assert.ok(list.includes("page_add") && list.includes("whoami_test"), "page_add and the registry's own tools are listed");
+    assert.equal(list.length, mcp.tools.length + 1, "tool count = registry + ask_mastermind");
+    assert.equal(new Set(list).size, list.length, "no duplicates");
+    const call = (name, args) => rpc({ id: 6, method: "tools/call", params: { name, arguments: args } });
+    assert.equal((await call("whoami_test", {})).json.result.content[0].text, "caller=voice-app");
+    assert.equal((await call("nope_tool", {})).json.error.code, -32602, "unknown tool is an error");
+    const file = path.join(fileURLToPath(new URL("../../../public/" + live_dir + "/page.jsonl", import.meta.url)));
+    try {
+        const out = JSON.parse((await call("page_add", { path: `/${live_dir}/`, item: { type: "part-card", title: "Hello", text: "from the voice app" } })).json.result.content[0].text);
+        assert.ok(out.ok, "page_add through the remote route succeeds");
+        const add = JSON.parse(fs.readFileSync(file, 'utf8').trim().split(/\r?\n/)[0]).content.add;
+        assert.equal(add.title, "Hello"); assert.equal(add.by, "voice-app");
+    } finally { fs.rmSync(path.dirname(file), { recursive: true, force: true }); }
+}
 srv.close();
 fs.rmSync(root, { recursive: true, force: true });
 console.log("ok", log.length, "calls");

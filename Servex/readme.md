@@ -102,3 +102,4 @@ Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:
 
 - **Scripts census** (every Servex file with verdict and references): [../Server/doc/scripts.md](../Server/doc/scripts.md)
 - **Module inbox** (drop an ask's essence on a module; a fresh mastermind reads it later; `module_inbox`, `node Server/ModuleReview.mjs --plan`): [`doc/module-inbox.md`](./doc/module-inbox.md)
+- **Remote MCP** (the tunnel the Claude voice app calls: the whole tool registry plus `ask_mastermind`): [`ext/remote/readme.md`](./ext/remote/readme.md)

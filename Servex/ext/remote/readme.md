@@ -1,0 +1,6 @@
+# ext/remote — the tunnel MCP the Claude voice app talks to
+
+`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, wait up to a minute). Calls run as caller `voice-app`. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
+
+- Why one registry, fully exposed (and the shelved `local`/`remote` split): [doc/mcp-unify.md](doc/mcp-unify.md)
+- The voice path end to end: [voice-bridge.md](../../../public/framework/ux/Dictate/doc/voice-bridge.md)
