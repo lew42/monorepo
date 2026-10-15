@@ -123,7 +123,7 @@ export default new Doc({
 	icon: "mic",
 
 	files: "Dictate.js capture.js pcm-worklet.js Dictate.css Widget.js Widget.css chat.js page.js readme.md",
-	notes: "handover decisions silence https-lan widget chat whisper",
+	notes: "handover architecture decisions silence https-lan widget chat whisper",
 
 	children: [
 		"workspace",

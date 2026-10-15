@@ -20,6 +20,8 @@
 - A day page scrolls in `.pages`, like every other page: `ai.css` releases the catalog's bounded split once a day or task is routed (the rail is already hidden by then). Release it and the region needs `flex: 1 1 auto`, or it collapses to 0 below 64em — [doc/decisions.md](./doc/decisions.md).
 
 ## More
+
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why
 - [`doc/asks-notes.md`](./doc/asks-notes.md) — asks tab design and layout
 - [Overview](/framework/ai/AITask/) · [Task tree](/framework/ai/AITask/tree/) a day's tasks as a tree (also the Tree tab on a task page: [`doc/views.md`](./doc/views.md) lists every view and who uses it), with [`doc/nested.md`](./doc/nested.md) the model · [`doc/asks.md`](./doc/asks.md) the Asks tab and the `ask` verb · [`doc/decisions-tab.md`](./doc/decisions-tab.md) the Decisions tab, the verdict seam and the CLI that files an Improve back into its skill · [`doc/decisions.md`](./doc/decisions.md) — the record: the time-spine board, the file table, every trap in full, open items, where replays come from
 - [`doc/ranking.md`](./doc/ranking.md) the Needs-you strip, the `rank` verb, what threaded means and the pairwise alternative · [`doc/highlights.md`](./doc/highlights.md) the front page's wall · [`doc/manifest.md`](./doc/manifest.md) the schema · [`doc/effort.md`](./doc/effort.md) the `group` tag · [`doc/pace.md`](./doc/pace.md) the usage rail · [`doc/template.md`](./doc/template.md) `report()` and its override · [`doc/starting-work.md`](./doc/starting-work.md) `rpc:start` · [`doc/waves.md`](./doc/waves.md) how it got here

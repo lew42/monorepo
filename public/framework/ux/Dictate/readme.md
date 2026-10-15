@@ -27,3 +27,7 @@ ever appeared — no error, no clue why.
 - [variants](./variants/) — Dictate variants — the same mic, a different look (or, once, a different mic)
 - [workspace](./workspace/)
 - [MicIndicator](MicIndicator.js) — the one mic-state badge every voice surface shows
+
+## More
+
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why
