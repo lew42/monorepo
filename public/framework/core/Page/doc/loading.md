@@ -40,11 +40,12 @@ above for that one name.
 - **A declared child skips `route()` entirely.** Step 4 only runs for a name nobody has
   declared. If a name is already in `children:` — even pointing at nothing yet — `route()`
   never sees it, so a page can't override a name it already listed.
-- **`page.jsonl` is never looked for blind.** Step 2 only fires when something already said
+- **`page.jsonl` is rarely found blind.** Step 2 only fires when something already said
   "this name is a jsonl child" — a `children:` string in a `page.js`, or a `file` line a
   page.jsonl itself wrote. Walk up to an *undeclared* folder that only has a `page.jsonl`
-  sitting in it, and step 2 never triggers; only a real `page.js` (step 5) or a bare `.md`
-  file (step 6) is ever found by probing.
+  sitting in it, and step 2 never triggers. It is found only if the parent's folder listing
+  (`files.jsonl`) is already loaded (`Page.class.js:381-387`); otherwise only a real `page.js`
+  (step 5) or a bare `.md` file (step 6) is found by probing.
 
 ## page.js or page.jsonl?
 
