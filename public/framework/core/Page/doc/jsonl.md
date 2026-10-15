@@ -25,7 +25,7 @@ There is no table mapping JSON keys to behaviour: the class is the vocabulary. A
 a word by adding a method — a `Card` with `message(value)` answers `{"message": {…}}` lines.
 
 A key that was neither a method nor an existing property is kept as data and recorded in
-`page.unknown` (a `Set`) — usually a typo. On localhost one `console.info` names each new one;
+`page.unknown` (an array, computed from `page.data`) — usually a typo. On localhost one `console.info` names each new one;
 `page.listing()` shows them on the page.
 
 ⚠ Line 1 goes to the constructor, which ASSIGNS: a `file` or `place` key there would replace
