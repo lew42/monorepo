@@ -15,6 +15,14 @@ node Server/PastWork.mjs <topic words>        # e.g. data grid · page templates
 
 About 1 second, about 2,000 tokens of output, newest first: tasks (date, title link, landed `outcome`, and how many of the paths it names still exist), modules that exist now with a count of files that use them, docs and readmes, owner asks, commits. The whole-site topic list is [`ai/past-work-index.md`](/framework/ai/past-work-index.md) (rebuilt with `node Server/PastWork.mjs --index`).
 
+### One module's history: `ModuleLog`
+
+```
+node Server/ModuleLog.mjs public/framework/core/Page --by week     # or day | month, --since 2026-10-01
+```
+
+Joins the task logs, `git log -- <path>` and the task folders for one path, grades each task (landed-and-committed, committed-never-closed, never-started) and lists commits that belong to no task. Samples: [core/Page](/framework/ai/sessions/2026/10/15/voice-20261015/past-work-log/sample-core-Page.txt), [framework/ai](/framework/ai/sessions/2026/10/15/voice-20261015/past-work-log/sample-framework-ai.txt). Class: `Server/ModuleLog.mjs`.
+
 ## 2. Judge it (a Haiku minion, under 60k tokens, or yourself if the output is already in your context)
 
 Brief for the minion: *"Run `node Server/PastWork.mjs <topic>`. The new ask is: <ask>. Open at most 5 of the linked readmes/outcomes; check live code with Grep, never trust a landed note. Reply in at most 25 lines, no more."*
