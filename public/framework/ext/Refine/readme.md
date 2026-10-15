@@ -50,6 +50,8 @@ pulling a sample straight from a recent voice session — no index of raw dictat
 today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
 
 ## More
+- [How it works](doc/how-it-works.md) — the classes, the two steps (clean, then refine), how Dictate feeds it, and what is known broken
+- [Voice to refine (proposal)](doc/voice-to-refine.md) — a long dictated prompt through the voice tunnel, refined onto `/live/`; a proposal, nothing built
 - [Refined asks](doc/asks.md) — each refined ask becomes a line in its session's `asks.jsonl`, a per-module `doc/refined-asks.md`, and (if not done) a module inbox line (`Server/AskIndex.mjs`)
 - [Refine queue](doc/refine-queue.md) — the owner's past prompts refined one per Haiku call, N at once (`Server/RefineQueue.mjs`), as `refined` cards (`RefinedCard.js`) on each session page's Coverage tab; the Opus review that picked brief v2; the promotion rule for asks said in 3+ sessions (`doc/refine-queue.md`)
 - [`doc/notes.md`](./doc/notes.md) — design, implementation, and API notes for `engine.js`

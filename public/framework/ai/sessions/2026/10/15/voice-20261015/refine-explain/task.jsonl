@@ -1,0 +1,5 @@
+{"assign":{"session_id":"1e34cf8f-8648-4024-b6fc-77ab4d2413f7","agent":"helper-refine-explain","card":"ext/refine: how it works, and voice-to-refine proposal","brief":"public/framework/ai/sessions/2026/10/15/voice-20261015/refine-explain/requirements.md","model":"claude-haiku-5-5","parent_task":"public/framework/ai/sessions/2026/10/15/voice-20261015","requested_at":"2026-10-15T17:52:42-05:00","now":"starting","steps":[],"step":1}}
+{"action":{"at":"2026-10-15T17:56:14-05:00","did":"edit","files":["public/framework/ext/Refine/doc/how-it-works.md"]}}
+{"action":{"at":"2026-10-15T17:56:18-05:00","did":"edit","files":["public/framework/ext/Refine/readme.md"]}}
+{"action":{"at":"2026-10-15T17:56:27-05:00","did":"edit","files":["public/framework/ext/Refine/doc/voice-to-refine.md"]}}
+{"log":{"at":"2026-10-15T18:10:00-05:00","msg":"wrote ext/Refine/doc/how-it-works.md and doc/voice-to-refine.md (proposal); linked from ext/Refine/readme.md; docs only, no code changed"}}
