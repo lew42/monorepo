@@ -27,7 +27,7 @@ export default class Tunnel {
             if (p !== Tunnel.PATH && !/^\/mcp\/remote\/[A-Za-z0-9]+$/.test(p)) return res.writeHead(404).end();
             const up = http.request({ host: "127.0.0.1", port: this.servex_port, path: p, method: req.method,
                 headers: { authorization: req.headers.authorization ?? "", "content-type": req.headers["content-type"] ?? "" } },
-                r => { res.writeHead(r.statusCode, { "content-type": r.headers["content-type"] ?? "application/json" }); r.pipe(res); });
+                r => { res.writeHead(r.statusCode, { "content-type": r.headers["content-type"] ?? "application/json", ...(r.headers["mcp-session-id"] ? { "mcp-session-id": r.headers["mcp-session-id"] } : {}) }); r.pipe(res); });
             up.on("error", () => res.writeHead(502).end());
             req.pipe(up);
         });
