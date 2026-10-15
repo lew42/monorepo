@@ -16,5 +16,6 @@ keys("Ctrl", "K");
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why
 - [page](/framework/ui/kbd/) — rows, a shortcut list, and the bare-vs-boxed comparison
 - Back to [UI](/framework/ui/).

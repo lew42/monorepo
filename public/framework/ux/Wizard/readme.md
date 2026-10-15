@@ -34,6 +34,7 @@ class the caller has to write. `next() back() go() done()` are each a seam; `Wiz
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why
 - [`doc/decisions.md`](/framework/ux/Wizard/doc/decisions/) — the experiment, with its evidence
 - [`ux/`](/framework/ux/) — the tier this extends; [`ux/doc/system.md`](/framework/ux/doc/system/)
   for the graduation rule and the config-word contract

@@ -59,6 +59,7 @@ export function check_dir_line(line){
  * and an empty `emoji` takes it off. An assistant reacts by making its WHOLE reply
  * one emoji (`LONE_EMOJI`): that reply becomes a reaction on the owner's line
  * instead of a bubble. */
+export const FAST_NAMED = /(?:^|\n|\]\s)\W*fast\b|\bfast assistant\b(?![\x27\u2019]s)/i;   // addressed: a line that starts with "fast", or "fast assistant" not as a possessive
 export const LONE_EMOJI = /^\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]*(\u200D\p{Extended_Pictographic}\uFE0F?)*$/u;
 
 const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
@@ -814,6 +815,7 @@ export default class Sessions {
 			this.release_thought(s, "then typed this");
 		} else {
 			s.fast_re = s.fast_thought_at = line.at;
+			s.fast_heard = text;
 			this.send(s, "fast", `${selected_prefix(selection)}[on ${site}] ${text}`);
 			this.gather(s, line);
 		}
@@ -955,6 +957,7 @@ export default class Sessions {
 		const said = h.lines.map(l => `${selected_prefix(l.selection)}[on ${l.path}] ${l.text}`).join("\n");
 		const tail = `\n(the owner has stopped: ${why})`;
 		s.fast_re = s.smart_re = h.lines[h.lines.length - 1].at;
+		s.fast_heard = said;
 		s.fast_thought_at = h.lines[0].at;   // the FIRST owner line of this thought — a `(new paragraph)` marker's `re`
 		this.save();
 		this.wake(s, "fast");
@@ -1044,6 +1047,8 @@ export default class Sessions {
 			/* The whole Claude Code preset (tools, CLAUDE.md, skills, Servex's MCP door), its brief appended. */
 			role: "session-smart", name: s.id, model: this.session_model(s, "smart"), effort: "medium", urgent: true,
 			permission_mode: "bypassPermissions", cwd: this.repo,
+			/* LEAN (dictate-next-4): no user/project settings (CLAUDE.md, skills, memory), no claude.ai connectors; the brief is the prompt. */
+			setting_sources: [], env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
 			system: { type: "preset", preset: "claude_code", append: this.brief("smart") + where },
 			parent: "sessions"
 		};
@@ -1187,6 +1192,8 @@ export default class Sessions {
 		/* NO FILLER (the owner, 2026-09-30: "you don't need to say, keep going, I'm listening, noted...
 		 * most of the time just listening"): the fast one's `(listening)`, or a filler line, is kept
 		 * as an invisible `{skip}` line and never drawn. */
+		/* ADDRESSED BY NAME ONLY (the owner, requirements-5 ask 2): the fast one replies only when the sentence it heard says "fast". */
+		if (who.role === "fast" && !is_filler(text) && !FAST_NAMED.test(s.fast_heard ?? "")) return this.write(s, { skip: { at: now_ms(), role: who.role, text, why: "not addressed", ...(re ? { re } : {}) } });
 		if (who.role === "fast" && is_filler(text)) return this.write(s, { skip: { at: now_ms(), role: who.role, text, ...(re ? { re } : {}) } });
 		const from = { kind: "assistant", id: who.role, agent: agent.id };
 		// An answer to a threaded owner line goes into the same thread.

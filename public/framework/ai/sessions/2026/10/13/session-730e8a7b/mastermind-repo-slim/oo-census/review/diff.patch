@@ -1,0 +1,1254 @@
+diff --git a/public/framework/ai/AISession/page.js b/public/framework/ai/AISession/page.js
+new file mode 100644
+index 000000000..11231059e
+--- /dev/null
++++ b/public/framework/ai/AISession/page.js
+@@ -0,0 +1,11 @@
++import { Doc } from "/app.js";
++import AISession from "./AISession.js";
++
++export default new Doc({
++	meta: import.meta,
++	title: "AISession",
++	description: "One Claude session read once from its transcript, and the family of classes around it: the sessions grid, a session's own page, the node tools.",
++	icon: "forum",
++	subject: AISession,
++	files: "AISession.js AISessionsPage.js AISessionView.js AISessionDetail.js AISessionIndex.mjs readme.md",
++});
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+new file mode 100644
+index 000000000..508e0acc2
+--- /dev/null
++++ b/public/framework/ai/AISession/readme.md
+@@ -0,0 +1,12 @@
++# AISession — one Claude session as a class family
++
++`AISession` reads one session's transcript once and keeps its cost; the classes beside it are the views and tools that grow around that. The grid they feed is the [Sessions page](/framework/ai/sessions/readme.md).
++
++- `AISession.js` — one session's cost, read from its raw transcript (browser and node).
++- `AISessionsPage.js` · `AISessionView.js` · `AISessionRows.js` · `AISessionBuckets.js` — the grid page, its row, how rows nest and fold.
++- `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs.
++- `AISessionLive.js` · `AISessionFollow.js` · `AISessionResume.js` · `AISessionFlags.js` — live tail, follow, resume, flags.
++- `AISessionIndex.mjs` · `AISessionSource.mjs` · `AISessionTailer.mjs` · `AISessionAudit.mjs` — node side: index, source, tail, cost audit.
++- `PromptLog.js` · `StoreFolder.js` — prompts of a session, and the folder one lives in.
++
++Watch out: a *Claude Code* session here is not [`ext/Session`](/framework/ext/Session/), the voice session. The old lowercase shims were retired to `ai/archive/retired/2026-10-13/sessions/`.
+diff --git a/public/framework/ai/AITask/AICost.js b/public/framework/ai/AITask/AICost.js
+new file mode 100644
+index 000000000..325192b1b
+--- /dev/null
++++ b/public/framework/ai/AITask/AICost.js
+@@ -0,0 +1,153 @@
++import { div, span, a, small, table, thead, tbody, tr, th, td } from "../../core/View/View.js";
++
++export default class AICost {
++	/* What a task cost, in dollars — the `cost_usd` a task's log carries once
++	   `Server/task-cost.mjs` has summed its Servex agent and every agent under it.
++
++	   ⚠ No `cost_usd` means NOT TRACKED, never $0: a task run from a tab or a plain
++	   CLI session has no Servex agent, so nothing measured it. Showing $0 there would
++	   read as "free" and pull every total down with a number nobody measured.
++
++	   `cost.open > 0` means some agent under the task is still running, so the
++	   figure can still grow — it wears a "+" and the words "so far". */
++
++	static money = usd => "$" + usd.toFixed(2);
++
++	/** A task's own cost as `{ usd, open, cost }`, or null when it isn't tracked. */
++	static cost_of = m => typeof m?.cost_usd === "number"
++		? { usd: m.cost_usd, open: m.cost?.open ?? 0, cost: m.cost ?? {} } : null;
++
++	/** The card's figure: `[value, label]`, the same pair shape the card's other figures use. */
++	static cost_figure = m => {
++		const c = AICost.cost_of(m);
++		if (!c) return ["not tracked", ""];
++		return c.open ? [AICost.money(c.usd) + "+", "so far"] : [AICost.money(c.usd), "cost"];
++	};
++
++	/* `<date>/<slug>` — the key a task's `cost.parent_task` names another task by. */
++	static key_of = t => String(t.url ?? "").split("/").filter(Boolean).slice(-2).join("/");
++
++	/**
++	 * The sum of a set of task rows (`{ url, m }`, the board's own row shape).
++	 *
++	 * ⚠ A task whose `cost.parent_task` is ALSO in this set is skipped: its parent's
++	 *   figure already includes it, so counting both would count it twice. A child
++	 *   whose parent is NOT in the set (another day, another effort) is counted —
++	 *   otherwise its money would vanish from every total that doesn't hold its parent.
++	 */
++	static total(rows){
++		const keys = new Set(rows.map(AICost.key_of));
++		const sum = { usd: 0, tracked: 0, untracked: 0, nested: 0, open: 0 };
++		rows.forEach(t => {
++			const c = AICost.cost_of(t.m);
++			if (!c) return sum.untracked++;
++			if (c.cost.parent_task && keys.has(c.cost.parent_task)) return sum.nested++;
++			sum.usd += c.usd;
++			sum.tracked++;
++			if (c.open) sum.open++;
++		});
++		return sum;
++	}
++
++	static untracked = n => n ? ` · ${n} task${n === 1 ? "" : "s"} not tracked` : "";
++
++	/** One line: `$41.20 today · 3 tasks not tracked`. Silent when there are no tasks. */
++	static total_line = (rows, label) => {
++		const s = AICost.total(rows);
++		if (!rows.length) return;
++		return div(() => {
++			span(s.tracked ? AICost.money(s.usd) + (s.open ? "+" : "") : "no cost tracked");
++			span.c("muted", " " + label + AICost.untracked(s.untracked));
++		});
++	};
++
++	/** The day's total, then what each effort (`group`) spent — every effort a link to its own board. */
++	static day_costs = rows => div.c("flex v", () => {
++		AICost.total_line(rows, "today");
++
++		const by = new Map();
++		rows.forEach(t => {
++			const g = t.m?.group;
++			if (g) by.set(g, [...(by.get(g) ?? []), t]);
++		});
++		const parts = [...by].map(([g, list]) => [g, AICost.total(list)]).filter(([, s]) => s.tracked)
++			.sort((x, y) => y[1].usd - x[1].usd);
++		if (parts.length) div.c("flex gap wrap", () => {
++			span.c("muted", "by effort:");
++			parts.forEach(([g, s]) => {
++				a.c("ai-link", g.replaceAll("-", " ") + " " + AICost.money(s.usd) + (s.open ? "+" : ""))
++					.href("/framework/ai/effort/" + g + "/");
++			});
++		}).style("--gap", ".5em");
++	});
++
++	/** A model id as a person says it: `claude-opus-5-5` → `Opus 5.5`. Anything else as it is. */
++	static model_name = id => {
++		const m = /(opus|sonnet|haiku|fable)(?:-(\d+)-(\d+))?/i.exec(String(id ?? ""));
++		if (!m) return id || "model unknown";
++		return m[1][0].toUpperCase() + m[1].slice(1).toLowerCase() + (m[2] ? " " + m[2] + "." + m[3] : "");
++	};
++
++	/* ⚠ `cost.agents` WAS A COUNT and is now the list itself — `[{ id, model, role, usd }]`,
++	   the root first (Server/task-cost.mjs, 2026-09-24). A line written before then still
++	   carries the number, so both shapes are read here and nowhere else. */
++	/** The agents a task paid for, root first — `[]` on an older line that only counted them. */
++	static agents_of = m => Array.isArray(m?.cost?.agents) ? m.cost.agents : [];
++	static agent_count = c => Array.isArray(c.agents) ? c.agents.length : c.agents;
++
++	static at_time = at => new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
++
++	/** One line: `$3.92+ so far · mastermind $1.38 · minions $2.54`. What a card's preview and head show. */
++	static summary_line = m => {
++		const c = AICost.cost_of(m);
++		if (!c) return null;
++		const { own_usd, minions_usd } = c.cost;
++		return [AICost.money(c.usd) + (c.open ? "+ so far" : ""),
++			own_usd != null && "mastermind " + AICost.money(own_usd),
++			minions_usd != null && "minions " + AICost.money(minions_usd)].filter(Boolean).join(" · ");
++	};
++
++	/** The task page's breakdown: the total, then who spent it — the mastermind and each
++	    minion, with its model — and the time the root's share was counted over. */
++	static breakdown(m){
++		const c = AICost.cost_of(m);
++		if (!c) return div.c("muted", "Cost: not tracked — this task's log has no cost line. A task Servex ran gets one from Server/task-cost.mjs; a tab or a CLI session never does.");
++		const { root, own_usd, minions_usd, parent_task, at, window: win } = c.cost;
++		const agents = AICost.agent_count(c.cost);
++		const list = AICost.agents_of(m);
++		return div.c("ai-cost", () => {
++			div(() => {
++				span(AICost.money(c.usd) + (c.open ? "+ so far" : ""));
++				span.c("muted", " — " + [
++					!list.length && root && "root " + root,
++					own_usd != null && "mastermind " + AICost.money(own_usd),
++					minions_usd != null && "minions " + AICost.money(minions_usd),
++					agents != null && agents + " agent" + (agents === 1 ? "" : "s"),
++					c.open && c.open + " still open",
++					parent_task && "counted in " + parent_task,
++					at && "as of " + AICost.at_time(at),
++				].filter(Boolean).join(" · "));
++			});
++			if (!list.length) return;
++			// `cache_read_pct` (token-accounting, 2026-10-04): `task-cost.mjs` attaches it, and
++			// `usd_breakdown`, to every agent that has a real transcript to read — blank for one
++			// that doesn't (an OpenRouter agent, or a transcript aged off disk), never a guess.
++			const has_cache_col = list.some(x => x.cache_read_pct != null);
++			table(() => {
++				thead(() => tr(() => { th("who"); th("agent"); th("model"); th("cost"); if (has_cache_col) th("cache reads"); }));
++				tbody(() => list.forEach((x, i) => tr(() => {
++					td(i === 0 ? "mastermind" : "minion");
++					td(x.id);
++					td(AICost.model_name(x.model));
++					td(x.usd == null ? "not measured" : AICost.money(x.usd));
++					if (has_cache_col) td(x.cache_read_pct != null ? x.cache_read_pct + "% of $" : "—");
++				})));
++			});
++			// The root is shared by every task it ran; this one's share is its time.
++			if (win?.from) small.c("muted", "The mastermind's share is what it spent from " + AICost.at_time(win.from)
++				+ (win.to ? " to " + AICost.at_time(win.to) : " until now")
++				+ "; a minion counts whole, toward the task open when it was spawned.");
++		});
++	}
++
++}
+diff --git a/public/framework/ai/AITask/cost.js b/public/framework/ai/AITask/cost.js
+index 7b658c9ac..daf982df5 100644
+--- a/public/framework/ai/AITask/cost.js
++++ b/public/framework/ai/AITask/cost.js
+@@ -1,150 +1,4 @@
+-import { div, span, a, small, table, thead, tbody, tr, th, td } from "../../core/View/View.js";
+-
+-/* What a task cost, in dollars — the `cost_usd` a task's log carries once
+-   `Server/task-cost.mjs` has summed its Servex agent and every agent under it.
+-
+-   ⚠ No `cost_usd` means NOT TRACKED, never $0: a task run from a tab or a plain
+-   CLI session has no Servex agent, so nothing measured it. Showing $0 there would
+-   read as "free" and pull every total down with a number nobody measured.
+-
+-   `cost.open > 0` means some agent under the task is still running, so the
+-   figure can still grow — it wears a "+" and the words "so far". */
+-
+-export const money = usd => "$" + usd.toFixed(2);
+-
+-/** A task's own cost as `{ usd, open, cost }`, or null when it isn't tracked. */
+-export const cost_of = m => typeof m?.cost_usd === "number"
+-	? { usd: m.cost_usd, open: m.cost?.open ?? 0, cost: m.cost ?? {} } : null;
+-
+-/** The card's figure: `[value, label]`, the same pair shape the card's other figures use. */
+-export const cost_figure = m => {
+-	const c = cost_of(m);
+-	if (!c) return ["not tracked", ""];
+-	return c.open ? [money(c.usd) + "+", "so far"] : [money(c.usd), "cost"];
+-};
+-
+-/* `<date>/<slug>` — the key a task's `cost.parent_task` names another task by. */
+-const key_of = t => String(t.url ?? "").split("/").filter(Boolean).slice(-2).join("/");
+-
+-/**
+- * The sum of a set of task rows (`{ url, m }`, the board's own row shape).
+- *
+- * ⚠ A task whose `cost.parent_task` is ALSO in this set is skipped: its parent's
+- *   figure already includes it, so counting both would count it twice. A child
+- *   whose parent is NOT in the set (another day, another effort) is counted —
+- *   otherwise its money would vanish from every total that doesn't hold its parent.
+- */
+-export function total(rows){
+-	const keys = new Set(rows.map(key_of));
+-	const sum = { usd: 0, tracked: 0, untracked: 0, nested: 0, open: 0 };
+-	rows.forEach(t => {
+-		const c = cost_of(t.m);
+-		if (!c) return sum.untracked++;
+-		if (c.cost.parent_task && keys.has(c.cost.parent_task)) return sum.nested++;
+-		sum.usd += c.usd;
+-		sum.tracked++;
+-		if (c.open) sum.open++;
+-	});
+-	return sum;
+-}
+-
+-const untracked = n => n ? ` · ${n} task${n === 1 ? "" : "s"} not tracked` : "";
+-
+-/** One line: `$41.20 today · 3 tasks not tracked`. Silent when there are no tasks. */
+-export const total_line = (rows, label) => {
+-	const s = total(rows);
+-	if (!rows.length) return;
+-	return div(() => {
+-		span(s.tracked ? money(s.usd) + (s.open ? "+" : "") : "no cost tracked");
+-		span.c("muted", " " + label + untracked(s.untracked));
+-	});
+-};
+-
+-/** The day's total, then what each effort (`group`) spent — every effort a link to its own board. */
+-export const day_costs = rows => div.c("flex v", () => {
+-	total_line(rows, "today");
+-
+-	const by = new Map();
+-	rows.forEach(t => {
+-		const g = t.m?.group;
+-		if (g) by.set(g, [...(by.get(g) ?? []), t]);
+-	});
+-	const parts = [...by].map(([g, list]) => [g, total(list)]).filter(([, s]) => s.tracked)
+-		.sort((x, y) => y[1].usd - x[1].usd);
+-	if (parts.length) div.c("flex gap wrap", () => {
+-		span.c("muted", "by effort:");
+-		parts.forEach(([g, s]) => {
+-			a.c("ai-link", g.replaceAll("-", " ") + " " + money(s.usd) + (s.open ? "+" : ""))
+-				.href("/framework/ai/effort/" + g + "/");
+-		});
+-	}).style("--gap", ".5em");
+-});
+-
+-/** A model id as a person says it: `claude-opus-5-5` → `Opus 5.5`. Anything else as it is. */
+-export const model_name = id => {
+-	const m = /(opus|sonnet|haiku|fable)(?:-(\d+)-(\d+))?/i.exec(String(id ?? ""));
+-	if (!m) return id || "model unknown";
+-	return m[1][0].toUpperCase() + m[1].slice(1).toLowerCase() + (m[2] ? " " + m[2] + "." + m[3] : "");
+-};
+-
+-/* ⚠ `cost.agents` WAS A COUNT and is now the list itself — `[{ id, model, role, usd }]`,
+-   the root first (Server/task-cost.mjs, 2026-09-24). A line written before then still
+-   carries the number, so both shapes are read here and nowhere else. */
+-/** The agents a task paid for, root first — `[]` on an older line that only counted them. */
+-export const agents_of = m => Array.isArray(m?.cost?.agents) ? m.cost.agents : [];
+-const agent_count = c => Array.isArray(c.agents) ? c.agents.length : c.agents;
+-
+-const at_time = at => new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+-
+-/** One line: `$3.92+ so far · mastermind $1.38 · minions $2.54`. What a card's preview and head show. */
+-export const summary_line = m => {
+-	const c = cost_of(m);
+-	if (!c) return null;
+-	const { own_usd, minions_usd } = c.cost;
+-	return [money(c.usd) + (c.open ? "+ so far" : ""),
+-		own_usd != null && "mastermind " + money(own_usd),
+-		minions_usd != null && "minions " + money(minions_usd)].filter(Boolean).join(" · ");
+-};
+-
+-/** The task page's breakdown: the total, then who spent it — the mastermind and each
+-    minion, with its model — and the time the root's share was counted over. */
+-export function breakdown(m){
+-	const c = cost_of(m);
+-	if (!c) return div.c("muted", "Cost: not tracked — this task's log has no cost line. A task Servex ran gets one from Server/task-cost.mjs; a tab or a CLI session never does.");
+-	const { root, own_usd, minions_usd, parent_task, at, window: win } = c.cost;
+-	const agents = agent_count(c.cost);
+-	const list = agents_of(m);
+-	return div.c("ai-cost", () => {
+-		div(() => {
+-			span(money(c.usd) + (c.open ? "+ so far" : ""));
+-			span.c("muted", " — " + [
+-				!list.length && root && "root " + root,
+-				own_usd != null && "mastermind " + money(own_usd),
+-				minions_usd != null && "minions " + money(minions_usd),
+-				agents != null && agents + " agent" + (agents === 1 ? "" : "s"),
+-				c.open && c.open + " still open",
+-				parent_task && "counted in " + parent_task,
+-				at && "as of " + at_time(at),
+-			].filter(Boolean).join(" · "));
+-		});
+-		if (!list.length) return;
+-		// `cache_read_pct` (token-accounting, 2026-10-04): `task-cost.mjs` attaches it, and
+-		// `usd_breakdown`, to every agent that has a real transcript to read — blank for one
+-		// that doesn't (an OpenRouter agent, or a transcript aged off disk), never a guess.
+-		const has_cache_col = list.some(x => x.cache_read_pct != null);
+-		table(() => {
+-			thead(() => tr(() => { th("who"); th("agent"); th("model"); th("cost"); if (has_cache_col) th("cache reads"); }));
+-			tbody(() => list.forEach((x, i) => tr(() => {
+-				td(i === 0 ? "mastermind" : "minion");
+-				td(x.id);
+-				td(model_name(x.model));
+-				td(x.usd == null ? "not measured" : money(x.usd));
+-				if (has_cache_col) td(x.cache_read_pct != null ? x.cache_read_pct + "% of $" : "—");
+-			})));
+-		});
+-		// The root is shared by every task it ran; this one's share is its time.
+-		if (win?.from) small.c("muted", "The mastermind's share is what it spent from " + at_time(win.from)
+-			+ (win.to ? " to " + at_time(win.to) : " until now")
+-			+ "; a minion counts whole, toward the task open when it was spawned.");
+-	});
+-}
++// Shim: AICost is the class now; this path keeps old imports working.
++import AICost from "./AICost.js";
++export const { money, cost_of, cost_figure, total, total_line, day_costs, model_name, agents_of, summary_line, breakdown } = AICost;
++export default AICost;
+diff --git a/public/framework/ai/doc/architecture.md b/public/framework/ai/doc/architecture.md
+index d18294333..23917357f 100644
+--- a/public/framework/ai/doc/architecture.md
++++ b/public/framework/ai/doc/architecture.md
+@@ -73,3 +73,7 @@ The AI system is everything that lets agents do work here and lets the owner see
+ - **Confidence weights.** Whether 0.5 is neutral or 1.0 is a multiplier is undecided; until then every number needs its meaning printed beside it.
+ - **Automating the remaining AI duties** (close worktree, start next task) in the step runner.
+ - Raw words behind these: [dictation 7](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-5.md).
++
++## Still-to-convert function bags
++
++The ranked list of lowercase function-bag files, the five already made classes, and a ten-module "done properly" spot check: [code/patterns/doc/oo-census.md](../../code/patterns/doc/oo-census.md).
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index adbe96ecd..27c60da26 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -30,7 +30,7 @@ export default new Page({
+ 	leaf: true,
+ 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
+ 	classes: v1() ? undefined : "full fill",
+-	children: "classes quick-fix asks process review council audits tests local models",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
++	children: "classes AISession quick-fix asks process review council audits tests local models",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
+ 
+ 	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
+ 	board_drawn: true,
+diff --git a/public/framework/code/patterns/doc/files.jsonl b/public/framework/code/patterns/doc/files.jsonl
+new file mode 100644
+index 000000000..d0e8cd985
+--- /dev/null
++++ b/public/framework/code/patterns/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"oo-census.md"}
+diff --git a/public/framework/code/patterns/doc/oo-census.md b/public/framework/code/patterns/doc/oo-census.md
+new file mode 100644
+index 000000000..0d13558f9
+--- /dev/null
++++ b/public/framework/code/patterns/doc/oo-census.md
+@@ -0,0 +1,90 @@
++# Object-oriented census — the function bags still left, ranked
++
++**CLAUDE.md rule broken by every row:** *one class per file, named for the class; no lowercase `*.js` that exports a pile of loose functions.* The ranking is by importers (how many files import it), because a bag many files lean on is where a class pays back most.
++
++Run it yourself: `node public/framework/code/patterns/function-bag-census.mjs --repo --top 300` (the file is the source of truth; this page is a dated snapshot, 2026-10-14). It scans `public/`, `Servex/` and `Server/` (`Servex/agents` and `Server/plugins` included).
++
++**281 function-bag files before this pass, 276 after.** 131 more `page.js` files hold three or more loose functions (counted apart: a page keeps its helpers beside it until they grow).
++
++## ✅ Made classes in this pass (each a shim at the old path, one commit each)
++
++The old path is now one shim line that re-exports the same names from the class, so every caller keeps working; callers move to `import Class from` as they are touched.
++
++| Old file | Class | Importers | What it is |
++|---|---|---|---|
++| `ext/Panel/glyphs.js` | `PanelGlyphs` | 10 | the Panel's picture codes and word tables (`WORDS`, `ALIGN`, `glyph`) |
++| `ext/layout/controls.js` | `LayoutControls` | 13 | the bar and panel controls: `pick`, `menu`, `knob`, `chips` |
++| `ext/DesignTool/score.js` | `DesignScore` | 10 | defect census, grade ladder and page metrics |
++| `ai/AITask/cost.js` | `AICost` | 12 | what a task cost: `money`, `total`, `breakdown` |
++| `ext/Ask/edit.js` | `EditSwitch` | 21 | the one edit-mode switch, now with its state as statics |
++
++## ⬜ The ranking — top 40 still open
++
++Class names are the proposed ones, picked from each file's job (checked against the source for the top ten). Files under `core/new/1/site/` are the prototype tier of `core/`: moving them is ask-first (CLAUDE.md "Major surgery"), so they are listed, not converted.
++
++| # | File | Importers | Exports | Lines | Should be |
++|---|---|---|---|---|---|
++| 1 | `core/new/1/site/ui.js` | 177 | 2 | 13 | SiteUI (core/new prototype tier: ask-first, 177 callers) |
++| 2 | `ext/markdown/md.js` | 47 | 1 | 180 | Markdown (`Markdown.render`) |
++| 3 | `core/new/1/site/nav/ui.js` | 30 | 1 | 27 | NavUI (prototype tier) |
++| 4 | `core/new/1/site/compound/recipe.js` | 29 | 3 | 27 | Recipe (prototype tier) |
++| 5 | `ext/demo/demo.js` | 29 | 2 | 148 | Demo (7 fns; the `demo()` factory stays the default export) |
++| 6 | `ui/parts.js` | 27 | 2 | 22 | UIParts |
++| 7 | `Servex/home.js` | 26 | 2 | 41 | ServexHome |
++| 8 | `styles/layouts/web.js` | 22 | 1 | 153 | WebLayouts |
++| 9 | `core/new/1/site/deep/probe.js` | 21 | 4 | 82 | DeepProbe (prototype tier) |
++| 10 | `util/source/source.js` | 19 | 4 | 83 | Source |
++| 11 | `styles/sections/tone.js` | 17 | 2 | 82 | ToneSection |
++| 12 | `core/new/1/site/urls/ui.js` | 17 | 2 | 37 | `Ui` (name to confirm) |
++| 13 | `core/new/1/site/patterns/recipe.js` | 17 | 1 | 34 | `Recipe` (name to confirm) |
++| 14 | `dev/servex_url.js` | 17 | 1 | 22 | ServexUrl |
++| 15 | `public/imagine/paging/blocks.js` | 15 | 12 | 228 | PagingBlocks |
++| 16 | `ai/AITask/stats.js` | 15 | 12 | 159 | AIStats |
++| 17 | `public/imagine/paging/templates/families.js` | 15 | 1 | 574 | TemplateFamilies |
++| 18 | `core/new/1/site/forms/this_file.js` | 15 | 1 | 26 | `ThisFile` (name to confirm) |
++| 19 | `ext/Ask/chat.js` | 14 | 2 | 166 | AskChat |
++| 20 | `ext/grip/grip.js` | 14 | 1 | 156 | Grip |
++| 21 | `Servex/ext/openrouter/provider.js` | 13 | 15 | 332 | OpenRouterProvider (19 fns: the clearest class in the list) |
++| 22 | `public/arya/lib/ui.js` | 12 | 6 | 69 | AryaUI |
++| 23 | `ext/Refine/engine.js` | 12 | 3 | 263 | RefineEngine |
++| 24 | `ext/highlight/highlight.js` | 12 | 1 | 312 | Highlight |
++| 25 | `core/new/1/site/forms/field.js` | 12 | 1 | 40 | `Field` (name to confirm) |
++| 26 | `core/new/1/site/async/lab.js` | 11 | 5 | 97 | `Lab` (name to confirm) |
++| 27 | `core/new/1/site/a11y/ui.js` | 10 | 11 | 152 | `Ui` (name to confirm) |
++| 28 | `ext/demo/stage.js` | 10 | 7 | 262 | DemoStage |
++| 29 | `core/new/1/site/versus/ui.js` | 10 | 6 | 183 | `Ui` (name to confirm) |
++| 30 | `core/new/1/site/content/list.js` | 10 | 5 | 78 | `List` (name to confirm) |
++| 31 | `core/new/1/site/content/show.js` | 10 | 4 | 69 | `Show` (name to confirm) |
++| 32 | `dev/DevBar/parts.js` | 10 | 3 | 42 | `Parts` (name to confirm) |
++| 33 | `public/alex/ui/docs.js` | 10 | 2 | 31 | `Docs` (name to confirm) |
++| 34 | `ext/files/files.js` | 9 | 7 | 219 | Files (tree, nest, mark_lines) |
++| 35 | `public/imagine/blogx/posts.js` | 9 | 4 | 175 | `Posts` (name to confirm) |
++| 36 | `public/layouts/labs/blogx/posts.js` | 9 | 4 | 175 | `Posts` (name to confirm) |
++| 37 | `Servex/agents/tiers.js` | 9 | 3 | 43 | `Tiers` (name to confirm) |
++| 38 | `core/new/1/site/motion/ui.js` | 9 | 2 | 84 | `Ui` (name to confirm) |
++| 39 | `ext/layout/layout.js` | 9 | 1 | 95 | `Layout` (name to confirm) |
++| 40 | `core/track/track.js` | 9 | 1 | 44 | `Track` (name to confirm) |
++
++The other 236 files have eight importers or fewer; run the script for them. By area: `ext` 85 · `core` 66 · `public` 36 · `ai` 24 · `styles` 19 · `Servex` 18 · `dev` 18.
++
++**What the list says:** the heaviest rows are in `core/new/1/site/` (ui/recipe/probe helpers copied into prototypes: one decision, "adopt or retire that tier", would clear the top of the list), and the next group (`md`, `demo`, `parts`, `web`, `source`, `provider`) are real service objects that want a class and a name, not a rewrite.
++
++## Done properly? A spot check of ten modules landed in the last two weeks
++
++Checked by script (readme present, relative links resolve, classes named in `architecture.md` exist in code) and by opening each page headless against the worktree server.
++
++| Module | Readme | Page opens | Classes in the architecture doc exist | Note |
++|---|---|---|---|---|
++| `ext/Shots` | yes | yes | yes | |
++| `ext/Query` | yes | yes | yes | |
++| `ext/DataGrid` | yes | yes | yes | `AISessionsPage`/`AISessionView` live in `ai/AISession`, named as the first users |
++| `core/Property` | yes | yes | n/a | no `doc/`: short enough that the readme is the whole story |
++| `core/Page/Template` | yes | yes | n/a | same |
++| `ext/Refine` | yes | yes | yes | |
++| `ux/Inbox` | yes | yes | yes | its classes live in `core/Page/ext/Inbox/`; the doc links there |
++| `ext/JSONL` | yes | yes | yes | |
++| `ext/Chat` | yes | yes | yes | |
++| `ux/Content` | yes | yes | yes | |
++| `ai/AISession` | **missing** | **404** | n/a | **fixed on the spot:** added `readme.md`, `page.js`, and listed it in `ai/page.js` `children` |
++
++Verdict: nine of ten were sound. The one gap was a 15-class family with no readme or page.
+diff --git a/public/framework/code/patterns/files.jsonl b/public/framework/code/patterns/files.jsonl
+index 0d10292ca..1835798c7 100644
+--- a/public/framework/code/patterns/files.jsonl
++++ b/public/framework/code/patterns/files.jsonl
+@@ -9,3 +9,4 @@
+ {"file":"_c40.mjs","gone":true}
+ {"file":"_c60.mjs"}
+ {"file":"_c60.mjs","gone":true}
++{"file":"doc/"}
+diff --git a/public/framework/code/patterns/readme.md b/public/framework/code/patterns/readme.md
+index 2351a5bfd..5055f025d 100644
+--- a/public/framework/code/patterns/readme.md
++++ b/public/framework/code/patterns/readme.md
+@@ -9,6 +9,7 @@ to bottom and understood. Full detail, with the worked examples: [the Patterns p
+ - A module is a class; every method is a seam
+ - Parts are classes, hung on the constructor as statics
+ - Names
++- [Object-oriented census](doc/oo-census.md) — the function bags still left, ranked by importers, with the top five made classes and a ten-module spot check
+ - The blessed page shape — the code is shown on [the Patterns page](/framework/code/patterns/), section 5
+ 
+ ## Use
+diff --git a/public/framework/ext/Ask/EditSwitch.js b/public/framework/ext/Ask/EditSwitch.js
+new file mode 100644
+index 000000000..f1472e677
+--- /dev/null
++++ b/public/framework/ext/Ask/EditSwitch.js
+@@ -0,0 +1,51 @@
++import Socket from "/framework/dev/Socket/Socket.js";
++import LocalStorageSaver from "../Saver/LocalStorageSaver.js";
++
++/**
++ * `EditSwitch` — the ONE switch every editor control on the site reads, instead of each
++ * one checking the dev socket for itself. `readme.md` names where it lives;
++ * `doc/decisions.md` is the record.
++ *
++ *     import EditSwitch from "/framework/ext/Ask/EditSwitch.js";
++ *     if (EditSwitch.edit()) button.c("verdict-approve", "Approve").click(...);
++ *
++ * `edit()` is true only when BOTH halves hold:
++ *   - the dev socket is actually live (off localhost this is always false — there is
++ *     no server for a write to reach, so nothing here can turn editing back on);
++ *   - the rail's toggle is on. It defaults to true and is remembered, so the site
++ *     keeps behaving as it always has UNTIL the owner flips it off in the dev rail
++ *     (`Ctrl + \`) to see the site the way a signed-out visitor would.
++ *
++ * `set_edit(on)` is the rail's own setter — nothing else should call it. `on_edit(fn)`
++ * is a hook for anything that wants to react without a reload.
++ */
++export default class EditSwitch {
++	static saver = new LocalStorageSaver({ key: "lew42-edit" });
++	static listeners = new Set();
++
++	// ⚠ Read at CALL time, never cached: `Socket.singleton().disabled` can only get
++	// MORE true after boot, so a stale cached boolean here would be a bug nobody sees.
++	static on = true;
++
++	// The saved preference arrives on a MICROTASK (`ext/Saver/LocalStorageSaver`),
++	// which drains before first paint; every real caller runs from a page's content().
++	static restored = EditSwitch.saver.load().then(saved => {
++		if (saved && typeof saved.on === "boolean") EditSwitch.on = saved.on;
++	});
++
++	static edit(){
++		return !Socket.singleton().disabled && EditSwitch.on;
++	}
++
++	static set_edit(on){
++		EditSwitch.on = !!on;
++		EditSwitch.saver.write({ on: EditSwitch.on });
++		EditSwitch.listeners.forEach(fn => fn(EditSwitch.on));
++		return EditSwitch.on;
++	}
++
++	static on_edit(fn){
++		EditSwitch.listeners.add(fn);
++		return () => EditSwitch.listeners.delete(fn);
++	}
++}
+diff --git a/public/framework/ext/Ask/edit.js b/public/framework/ext/Ask/edit.js
+index fabbde585..0861d7076 100644
+--- a/public/framework/ext/Ask/edit.js
++++ b/public/framework/ext/Ask/edit.js
+@@ -1,57 +1,4 @@
+-import Socket from "/framework/dev/Socket/Socket.js";
+-import LocalStorageSaver from "../Saver/LocalStorageSaver.js";
+-
+-/**
+- * `edit()` — the ONE switch every editor control on the site reads, instead of each
+- * one checking the dev socket for itself. `readme.md` names where it lives;
+- * `doc/decisions.md` is the record.
+- *
+- *     import { edit } from "/framework/ext/Ask/edit.js";
+- *     if (edit()) button.c("verdict-approve", "Approve").click(...);
+- *
+- * `edit()` is true only when BOTH halves hold:
+- *   - the dev socket is actually live (off localhost this is always false — there is
+- *     no server for a write to reach, so nothing here can turn editing back on);
+- *   - the rail's toggle is on. It defaults to true and is remembered, so today's
+- *     site keeps behaving exactly as it always has UNTIL the owner flips it off in
+- *     the dev rail (`Ctrl + \`) to see the site the way a signed-out visitor would —
+- *     every editor control just stops rendering, with nothing else to change.
+- *
+- * `set_edit(on)` is the rail's own setter — nothing else should call it, the same
+- * way nothing but the rail calls `DevBar`'s other knobs. `on_edit(fn)` is a hook for
+- * anything that wants to react without a reload; the rail itself does not use it —
+- * see `doc/decisions.md` for why a reload was simpler and is what ships today.
+- */
+-
+-const saver = new LocalStorageSaver({ key: "lew42-edit" });
+-const listeners = new Set();
+-
+-// ⚠ Read at CALL time, never cached: `Socket.singleton().disabled` can only get
+-// MORE true after boot (a socket that connects never un-connects to "off
+-// localhost"), so there is nothing to invalidate — but a stale cached boolean
+-// here would be the kind of bug that never shows up until someone else copies it.
+-let toggle = true;
+-
+-// The saved preference arrives on a MICROTASK (`ext/Saver/LocalStorageSaver`),
+-// which drains before first paint — same guarantee `DevBar/settings.js` documents
+-// for its own restore(). Every real caller of `edit()` runs from a page's
+-// content(), well after that.
+-saver.load().then(saved => { if (saved && typeof saved.on === "boolean") toggle = saved.on; });
+-
+-export function edit(){
+-	return !Socket.singleton().disabled && toggle;
+-}
+-
+-export function set_edit(on){
+-	toggle = !!on;
+-	saver.write({ on: toggle });
+-	listeners.forEach(fn => fn(toggle));
+-	return toggle;
+-}
+-
+-export function on_edit(fn){
+-	listeners.add(fn);
+-	return () => listeners.delete(fn);
+-}
+-
++// Shim: EditSwitch is the class now; this path keeps old imports working.
++import EditSwitch from "./EditSwitch.js";
++export const { edit, set_edit, on_edit } = EditSwitch;
+ export default edit;
+diff --git a/public/framework/ext/DesignTool/DesignScore.js b/public/framework/ext/DesignTool/DesignScore.js
+new file mode 100644
+index 000000000..1ef2f73c7
+--- /dev/null
++++ b/public/framework/ext/DesignTool/DesignScore.js
+@@ -0,0 +1,94 @@
++import { region, text_chars, inside, width_used } from "./ratios.js";
++
++export default class DesignScore {
++	/* The weights, the finding census, and the page metrics.
++	 *
++	 * ⚠ THERE IS NO AGGREGATE SCORE HERE ANY MORE, and the rules are all still here.
++	 *   Scored against eighteen hand-rated screenshots the old number came out
++	 *   ANTI-correlated with how pages look (Pearson −0.393; against DOM node count
++	 *   Spearman −0.519) because it counted findings and findings scale with content,
++	 *   so it rewarded emptiness — grade A / 96 to the worst-looking page in the corpus
++	 *   and its single lowest score to the best. It also never emitted below 70 across a
++	 *   36-point reality, so it structurally could not call a page bad. The same rules
++	 *   found the catalog scroll boundary that was hiding content on 18 pages: a rule
++	 *   that finds real defects is not at fault for a broken average built on top of it.
++	 *   `taste/` is the tier that ranks QUALITY. This one ranks what is BROKEN, and it
++	 *   ranks by the census — `worst_first` below. Evidence:
++	 *   `ai/sessions/2026/08/17/vision-baseline/`. */
++
++
++	static WEIGHT = { high: 12, med: 5, low: 1.5 };
++	/* The one ladder. Exported because `taste/` grades on it, and a second hand-synced
++	   copy of five thresholds is a number that quietly stops agreeing. */
++	static GRADES = [[90, "A"], [80, "B"], [70, "C"], [60, "D"], [0, "F"]];
++
++	static grade = value => DesignScore.GRADES.find(([floor]) => value >= floor)[1];
++
++	/* ⚠ Two findings answer a question severity cannot, so they are weighted by the
++	 * RULE and the tiers keep meaning the same thing everywhere else.
++	 *
++	 * `unreachable` is not a bigger `high`: /web/nav/drill/ hides 4099px of a 900px
++	 * region with no scrollbar. `empty` is not a layout finding at all — a 404 fires
++	 * no rule. Both outrank every ordinary finding when `leading()` sorts. */
++	static RULE_WEIGHT = { unreachable: 75, empty: 30 };
++
++	static weigh = i => DesignScore.RULE_WEIGHT[i.rule] ?? DesignScore.WEIGHT[i.sev];
++
++	/* THE RANKING, and it makes no quality claim: the raw census, severest first.
++	 * ⚠ It shares the old score's bias — an empty page fires nothing and ranks best —
++	 *   and that is honest here, because this tier is a DEFECT WORKLIST. What it no
++	 *   longer does is dress that census up as a grade out of 100. */
++	static worst_first = (a, b) => b.counts.high - a.counts.high
++		|| b.counts.med - a.counts.med || b.counts.low - a.counts.low;
++
++	static census = c => `${c.high} high · ${c.med} med · ${c.low} low`;
++	static severity = c => (c.high ? "bad" : c.med ? "warn" : "ok");
++
++	// What to read first: what costs most, then the most extreme measurement in it.
++	static leading(issues, n = 8){
++		return [...issues]
++			.sort((a, b) => DesignScore.weigh(b) - DesignScore.weigh(a) || (b.value ?? 0) - (a.value ?? 0))
++			.slice(0, n);
++	}
++
++	/* ⚠ THE PROSE METRICS READ THE CONTENT REGION, NOT THE APP SHELL. Handed `.app`,
++	 * `measure` took its median over 14 sidebar nav labels as well as the prose and
++	 * reported 26 characters a line on `/framework/`, whose real measure is ~100 —
++	 * the best-looking page in the corpus, described by its chrome. `region()` has
++	 * answered where a reader's content lives since it was written, and `text` below
++	 * was the only thing asking. */
++	static metrics(m){
++		const box = region(m);
++		const prose = inside(m, box);
++
++		const text = prose.filter(n => n.text && n.text.lines >= 2 && n.text.chars > 20);
++
++		/* ⚠ THE FRAME GAP KEEPS THE WHOLE ROOT, and only `measure` is scoped. Chrome's
++		   padding is exactly what this tool exists to measure — `taste/`'s `frame-gap` and
++		   `pad-share` say the same and keep the root for the same reason. Scoped here for
++		   one afternoon, `pad_em` came back null on any page whose content region holds no
++		   framed text, and the dev rail rendered a bare `gap —×`. */
++		const framed = m.nodes.filter(n => n.framed && n.text && n.text.chars > 12);
++		const span = width_used(m);
++
++		return {
++			nodes: m.nodes.length,
++			depth: Math.max(0, ...m.nodes.map(n => n.depth)),
++			// How much there is to lay out — the number that tells a 404 from a page.
++			text: box ? text_chars(m)[box.i] : 0,
++			measure: DesignScore.median(text.map(n => n.text.per_line)),
++			pad_em: DesignScore.median(framed.map(n => Math.min(n.pad[1], n.pad[3]) / n.fs)),
++			pad_pct: DesignScore.median(framed.map(n => Math.min(n.pad[1], n.pad[3]) / n.w * 100)),
++			width_used: span === null ? null : DesignScore.round(span * 100),
++			scrolls_sideways: m.doc.w > m.viewport.w + 2,
++		};
++	}
++
++	static median(list){
++		const v = list.filter(Number.isFinite).sort((a, b) => a - b);
++		return v.length ? DesignScore.round(v[v.length >> 1]) : null;
++	}
++
++	static round = n => Math.round(n * 100) / 100;
++
++}
+diff --git a/public/framework/ext/DesignTool/score.js b/public/framework/ext/DesignTool/score.js
+index 8f87feafe..8704d47ab 100644
+--- a/public/framework/ext/DesignTool/score.js
++++ b/public/framework/ext/DesignTool/score.js
+@@ -1,90 +1,4 @@
+-/* The weights, the finding census, and the page metrics.
+- *
+- * ⚠ THERE IS NO AGGREGATE SCORE HERE ANY MORE, and the rules are all still here.
+- *   Scored against eighteen hand-rated screenshots the old number came out
+- *   ANTI-correlated with how pages look (Pearson −0.393; against DOM node count
+- *   Spearman −0.519) because it counted findings and findings scale with content,
+- *   so it rewarded emptiness — grade A / 96 to the worst-looking page in the corpus
+- *   and its single lowest score to the best. It also never emitted below 70 across a
+- *   36-point reality, so it structurally could not call a page bad. The same rules
+- *   found the catalog scroll boundary that was hiding content on 18 pages: a rule
+- *   that finds real defects is not at fault for a broken average built on top of it.
+- *   `taste/` is the tier that ranks QUALITY. This one ranks what is BROKEN, and it
+- *   ranks by the census — `worst_first` below. Evidence:
+- *   `ai/sessions/2026/08/17/vision-baseline/`. */
+-
+-import { region, text_chars, inside, width_used } from "./ratios.js";
+-
+-const WEIGHT = { high: 12, med: 5, low: 1.5 };
+-/* The one ladder. Exported because `taste/` grades on it, and a second hand-synced
+-   copy of five thresholds is a number that quietly stops agreeing. */
+-const GRADES = [[90, "A"], [80, "B"], [70, "C"], [60, "D"], [0, "F"]];
+-
+-export const grade = value => GRADES.find(([floor]) => value >= floor)[1];
+-
+-/* ⚠ Two findings answer a question severity cannot, so they are weighted by the
+- * RULE and the tiers keep meaning the same thing everywhere else.
+- *
+- * `unreachable` is not a bigger `high`: /web/nav/drill/ hides 4099px of a 900px
+- * region with no scrollbar. `empty` is not a layout finding at all — a 404 fires
+- * no rule. Both outrank every ordinary finding when `leading()` sorts. */
+-const RULE_WEIGHT = { unreachable: 75, empty: 30 };
+-
+-export const weigh = i => RULE_WEIGHT[i.rule] ?? WEIGHT[i.sev];
+-
+-/* THE RANKING, and it makes no quality claim: the raw census, severest first.
+- * ⚠ It shares the old score's bias — an empty page fires nothing and ranks best —
+- *   and that is honest here, because this tier is a DEFECT WORKLIST. What it no
+- *   longer does is dress that census up as a grade out of 100. */
+-export const worst_first = (a, b) => b.counts.high - a.counts.high
+-	|| b.counts.med - a.counts.med || b.counts.low - a.counts.low;
+-
+-export const census = c => `${c.high} high · ${c.med} med · ${c.low} low`;
+-export const severity = c => (c.high ? "bad" : c.med ? "warn" : "ok");
+-
+-// What to read first: what costs most, then the most extreme measurement in it.
+-export function leading(issues, n = 8){
+-	return [...issues]
+-		.sort((a, b) => weigh(b) - weigh(a) || (b.value ?? 0) - (a.value ?? 0))
+-		.slice(0, n);
+-}
+-
+-/* ⚠ THE PROSE METRICS READ THE CONTENT REGION, NOT THE APP SHELL. Handed `.app`,
+- * `measure` took its median over 14 sidebar nav labels as well as the prose and
+- * reported 26 characters a line on `/framework/`, whose real measure is ~100 —
+- * the best-looking page in the corpus, described by its chrome. `region()` has
+- * answered where a reader's content lives since it was written, and `text` below
+- * was the only thing asking. */
+-export function metrics(m){
+-	const box = region(m);
+-	const prose = inside(m, box);
+-
+-	const text = prose.filter(n => n.text && n.text.lines >= 2 && n.text.chars > 20);
+-
+-	/* ⚠ THE FRAME GAP KEEPS THE WHOLE ROOT, and only `measure` is scoped. Chrome's
+-	   padding is exactly what this tool exists to measure — `taste/`'s `frame-gap` and
+-	   `pad-share` say the same and keep the root for the same reason. Scoped here for
+-	   one afternoon, `pad_em` came back null on any page whose content region holds no
+-	   framed text, and the dev rail rendered a bare `gap —×`. */
+-	const framed = m.nodes.filter(n => n.framed && n.text && n.text.chars > 12);
+-	const span = width_used(m);
+-
+-	return {
+-		nodes: m.nodes.length,
+-		depth: Math.max(0, ...m.nodes.map(n => n.depth)),
+-		// How much there is to lay out — the number that tells a 404 from a page.
+-		text: box ? text_chars(m)[box.i] : 0,
+-		measure: median(text.map(n => n.text.per_line)),
+-		pad_em: median(framed.map(n => Math.min(n.pad[1], n.pad[3]) / n.fs)),
+-		pad_pct: median(framed.map(n => Math.min(n.pad[1], n.pad[3]) / n.w * 100)),
+-		width_used: span === null ? null : round(span * 100),
+-		scrolls_sideways: m.doc.w > m.viewport.w + 2,
+-	};
+-}
+-
+-function median(list){
+-	const v = list.filter(Number.isFinite).sort((a, b) => a - b);
+-	return v.length ? round(v[v.length >> 1]) : null;
+-}
+-
+-const round = n => Math.round(n * 100) / 100;
++// Shim: DesignScore is the class now; this path keeps old imports working.
++import DesignScore from "./DesignScore.js";
++export const { grade, weigh, worst_first, census, severity, leading, metrics } = DesignScore;
++export default DesignScore;
+diff --git a/public/framework/ext/Panel/PanelGlyphs.js b/public/framework/ext/Panel/PanelGlyphs.js
+new file mode 100644
+index 000000000..a94d89d55
+--- /dev/null
++++ b/public/framework/ext/Panel/PanelGlyphs.js
+@@ -0,0 +1,123 @@
++import { span, icon } from "/framework/core/View/View.js";
++
++export default class PanelGlyphs {
++	// history and reasons: doc/glyphs-notes.md
++
++	// The codes ARE their two axes, so the 3×3 is generated rather than listed.
++	static ALIGN = ["t", "c", "b"].flatMap(y => ["l", "c", "r"].map(x => y + x));
++
++	static PLACE = { t: "start", c: "center", b: "end", l: "start", r: "end" };
++
++	static place = ($body, code = "cc") =>
++		$body.style({ "--panel-y": PanelGlyphs.PLACE[code[0]] ?? "center", "--panel-x": PanelGlyphs.PLACE[code[1]] ?? "center" });
++
++	// An arrow pointing the way it means, and a dot for the centre.
++	static COMPASS = {
++		tl: "north_west", tc: "north", tr: "north_east",
++		cl: "west", cc: "fiber_manual_record", cr: "east",
++		bl: "south_west", bc: "south", br: "south_east",
++	};
++
++	static seat = code => () => span.c("panel-seat")
++		.style({ "--panel-seat-y": PanelGlyphs.PLACE[code[0]], "--panel-seat-x": PanelGlyphs.PLACE[code[1]] });
++
++	static SEATS = Object.fromEntries(PanelGlyphs.ALIGN.map(code => [code, PanelGlyphs.seat(code)]));
++
++	// Arrows inward for hug, outward for fill — the picture is the thing it does.
++	static MODE = { hug: "close_fullscreen", fill: "open_in_full" };
++
++	static SHAPE = { fill: "fit_screen", document: "article" };
++
++	static LENGTHS = ["8em", "16em", "24em"];
++	static SIZES = ["fill", "hug", ...PanelGlyphs.LENGTHS];
++
++	static extent = (item, axis) => item.get(axis) === "fixed" ? item.get(axis + "_at") : item.get(axis);
++
++	static DIR = { row: "vertical_split", col: "horizontal_split" };
++
++	static POSITION = { static: "crop_free", absolute: "picture_in_picture" };
++
++	static DISPLAY = { block: "view_agenda", flex: "view_column", grid: "grid_on" };
++
++	static TONE = { surface: "--surface", wash: "--wash", prim: "--prime", dark: "--ink" };
++	static TONES = Object.keys(PanelGlyphs.TONE);
++
++	static swatch = tone => () => span.c("panel-swatch").style("--panel-swatch", `var(${PanelGlyphs.TONE[tone]})`);
++
++	static SWATCHES = Object.fromEntries(PanelGlyphs.TONES.map(tone => [tone, PanelGlyphs.swatch(tone)]));
++
++	static glyph = (entry, name) => {
++		const pic = typeof entry === "object" ? entry?.icon : entry;
++
++		return typeof pic === "function" ? pic
++			: () => { if (pic) icon(pic); else span(name); };
++	};
++
++	// ⚠ `minmax(0, 1fr)`, never `1fr`: a `1fr` track's minimum is `auto`, so one long word
++	// pushes the whole grid past its panel — the grid guide's own trap (ai/sessions/2026/08/18/panel-grid/).
++	static TRACKS = {
++		auto: "repeat(auto-fit, minmax(8em, 1fr))",
++		1: "repeat(1, minmax(0, 1fr))", 2: "repeat(2, minmax(0, 1fr))",
++		3: "repeat(3, minmax(0, 1fr))", 4: "repeat(4, minmax(0, 1fr))",
++	};
++
++	static WORDS = {
++		mode:    { names: ["fill", "document"], pics: PanelGlyphs.SHAPE, cols: 2, root: true },
++		tone:    { names: PanelGlyphs.TONES, pics: PanelGlyphs.SWATCHES, cols: 4 },
++		display: { names: Object.keys(PanelGlyphs.DISPLAY), pics: PanelGlyphs.DISPLAY, cols: 3, drop: true },
++		pad:     { names: ["0", "0.5em", "1em", "2em"], cols: 4, var: "--panel-pad", knob: true },
++
++		// Flex. `dir` is the same word a SPLIT wears for its axis — a panel is one or the
++		// other and never both, so one key says "which way things run" in both readings.
++		dir:     { names: ["row", "col"], pics: PanelGlyphs.DIR, cols: 2, modes: ["flex"],
++		           var: "--panel-dir", css: { row: "row", col: "column" } },
++		gap:     { names: ["0", "0.5em", "1em", "2em"], cols: 4,
++		           modes: ["flex", "grid"], var: "--panel-gap", knob: true },
++
++		wrap:    { names: ["nowrap", "wrap"], toggle: true, pic: "wrap_text", modes: ["flex"],
++		           var: "--panel-wrap" },
++
++		justify: { names: ["start", "center", "end", "between", "around"], cols: 5,
++		           modes: ["flex"], var: "--panel-justify",
++		           css: { start: "flex-start", center: "center", end: "flex-end", between: "space-between", around: "space-around" } },
++		items:   { names: ["stretch", "start", "center", "end"], cols: 4,
++		           modes: ["flex"], var: "--panel-items",
++		           css: { stretch: "stretch", start: "flex-start", center: "center", end: "flex-end" } },
++
++		cols:    { names: ["auto", "1", "2", "3", "4"], cols: 5,
++		           modes: ["grid"], var: "--panel-tracks", css: PanelGlyphs.TRACKS },
++
++		dense:   { names: ["off", "on"], toggle: true, pic: "apps", modes: ["grid"],
++		           var: "--panel-flow", css: { off: "row", on: "row dense" } },
++
++		align:    { names: PanelGlyphs.ALIGN, pics: PanelGlyphs.COMPASS, cols: 3 },
++		position: { names: Object.keys(PanelGlyphs.POSITION), pics: PanelGlyphs.POSITION, cols: 2 },
++	};
++
++	static SPAN_CSS = { 1: "auto", 2: "span 2", 3: "span 3" };
++
++	static ITEM_WORDS = {
++		grow:     { names: ["0", "1", "2", "3"], cols: 4, modes: ["flex"], var: "--item-grow", default: "0" },
++		basis:    { names: ["auto", "8em", "16em", "24em"], cols: 4, modes: ["flex"], var: "--item-basis", default: "auto" },
++		order:    { names: ["-1", "0", "1"], cols: 3, modes: ["flex"], var: "--item-order", default: "0" },
++		span:     { names: ["1", "2", "3"], cols: 3, modes: ["grid"], var: "--item-span", css: PanelGlyphs.SPAN_CSS, default: "1" },
++		row_span: { names: ["1", "2", "3"], cols: 3, modes: ["grid"], var: "--item-row-span", css: PanelGlyphs.SPAN_CSS, default: "1" },
++		self:     { names: ["auto", "start", "center", "end", "stretch"], cols: 5, modes: ["flex", "grid"], var: "--item-self", default: "auto" },
++	};
++
++	// The item words live under the CURRENT display mode only — a flex leaf never offers `span`.
++	static live_item_words = mode => Object.entries(PanelGlyphs.ITEM_WORDS).filter(([, word]) => word.modes.includes(mode));
++
++	static item_vars = patch => Object.fromEntries(Object.entries(PanelGlyphs.ITEM_WORDS)
++		.filter(([key]) => patch[key] !== undefined)
++		.map(([key, word]) => [word.var, word.css?.[patch[key]] ?? patch[key]]));
++
++	static live_words = item => Object.entries(PanelGlyphs.WORDS)
++		.filter(([, word]) => (!word.root || !item.parent)
++			&& (!word.modes || word.modes.includes(item.get("display"))));
++
++	static word_vars = item => Object.fromEntries(Object.entries(PanelGlyphs.WORDS)
++		.filter(([, word]) => word.var)
++		.map(([key, word]) => [word.var, word.css?.[item.get(key)] ?? item.get(key)]));
++
++}
+diff --git a/public/framework/ext/Panel/glyphs.js b/public/framework/ext/Panel/glyphs.js
+index 582e7de21..5f9ae64f9 100644
+--- a/public/framework/ext/Panel/glyphs.js
++++ b/public/framework/ext/Panel/glyphs.js
+@@ -1,119 +1,4 @@
+-// history and reasons: doc/glyphs-notes.md
+-import { span, icon } from "/framework/core/View/View.js";
+-
+-// The codes ARE their two axes, so the 3×3 is generated rather than listed.
+-export const ALIGN = ["t", "c", "b"].flatMap(y => ["l", "c", "r"].map(x => y + x));
+-
+-export const PLACE = { t: "start", c: "center", b: "end", l: "start", r: "end" };
+-
+-export const place = ($body, code = "cc") =>
+-	$body.style({ "--panel-y": PLACE[code[0]] ?? "center", "--panel-x": PLACE[code[1]] ?? "center" });
+-
+-// An arrow pointing the way it means, and a dot for the centre.
+-export const COMPASS = {
+-	tl: "north_west", tc: "north", tr: "north_east",
+-	cl: "west", cc: "fiber_manual_record", cr: "east",
+-	bl: "south_west", bc: "south", br: "south_east",
+-};
+-
+-const seat = code => () => span.c("panel-seat")
+-	.style({ "--panel-seat-y": PLACE[code[0]], "--panel-seat-x": PLACE[code[1]] });
+-
+-export const SEATS = Object.fromEntries(ALIGN.map(code => [code, seat(code)]));
+-
+-// Arrows inward for hug, outward for fill — the picture is the thing it does.
+-export const MODE = { hug: "close_fullscreen", fill: "open_in_full" };
+-
+-export const SHAPE = { fill: "fit_screen", document: "article" };
+-
+-export const LENGTHS = ["8em", "16em", "24em"];
+-export const SIZES = ["fill", "hug", ...LENGTHS];
+-
+-export const extent = (item, axis) => item.get(axis) === "fixed" ? item.get(axis + "_at") : item.get(axis);
+-
+-export const DIR = { row: "vertical_split", col: "horizontal_split" };
+-
+-export const POSITION = { static: "crop_free", absolute: "picture_in_picture" };
+-
+-export const DISPLAY = { block: "view_agenda", flex: "view_column", grid: "grid_on" };
+-
+-export const TONE = { surface: "--surface", wash: "--wash", prim: "--prime", dark: "--ink" };
+-export const TONES = Object.keys(TONE);
+-
+-const swatch = tone => () => span.c("panel-swatch").style("--panel-swatch", `var(${TONE[tone]})`);
+-
+-export const SWATCHES = Object.fromEntries(TONES.map(tone => [tone, swatch(tone)]));
+-
+-export const glyph = (entry, name) => {
+-	const pic = typeof entry === "object" ? entry?.icon : entry;
+-
+-	return typeof pic === "function" ? pic
+-		: () => { if (pic) icon(pic); else span(name); };
+-};
+-
+-// ⚠ `minmax(0, 1fr)`, never `1fr`: a `1fr` track's minimum is `auto`, so one long word
+-// pushes the whole grid past its panel — the grid guide's own trap (ai/sessions/2026/08/18/panel-grid/).
+-const TRACKS = {
+-	auto: "repeat(auto-fit, minmax(8em, 1fr))",
+-	1: "repeat(1, minmax(0, 1fr))", 2: "repeat(2, minmax(0, 1fr))",
+-	3: "repeat(3, minmax(0, 1fr))", 4: "repeat(4, minmax(0, 1fr))",
+-};
+-
+-export const WORDS = {
+-	mode:    { names: ["fill", "document"], pics: SHAPE, cols: 2, root: true },
+-	tone:    { names: TONES, pics: SWATCHES, cols: 4 },
+-	display: { names: Object.keys(DISPLAY), pics: DISPLAY, cols: 3, drop: true },
+-	pad:     { names: ["0", "0.5em", "1em", "2em"], cols: 4, var: "--panel-pad", knob: true },
+-
+-	// Flex. `dir` is the same word a SPLIT wears for its axis — a panel is one or the
+-	// other and never both, so one key says "which way things run" in both readings.
+-	dir:     { names: ["row", "col"], pics: DIR, cols: 2, modes: ["flex"],
+-	           var: "--panel-dir", css: { row: "row", col: "column" } },
+-	gap:     { names: ["0", "0.5em", "1em", "2em"], cols: 4,
+-	           modes: ["flex", "grid"], var: "--panel-gap", knob: true },
+-
+-	wrap:    { names: ["nowrap", "wrap"], toggle: true, pic: "wrap_text", modes: ["flex"],
+-	           var: "--panel-wrap" },
+-
+-	justify: { names: ["start", "center", "end", "between", "around"], cols: 5,
+-	           modes: ["flex"], var: "--panel-justify",
+-	           css: { start: "flex-start", center: "center", end: "flex-end", between: "space-between", around: "space-around" } },
+-	items:   { names: ["stretch", "start", "center", "end"], cols: 4,
+-	           modes: ["flex"], var: "--panel-items",
+-	           css: { stretch: "stretch", start: "flex-start", center: "center", end: "flex-end" } },
+-
+-	cols:    { names: ["auto", "1", "2", "3", "4"], cols: 5,
+-	           modes: ["grid"], var: "--panel-tracks", css: TRACKS },
+-
+-	dense:   { names: ["off", "on"], toggle: true, pic: "apps", modes: ["grid"],
+-	           var: "--panel-flow", css: { off: "row", on: "row dense" } },
+-
+-	align:    { names: ALIGN, pics: COMPASS, cols: 3 },
+-	position: { names: Object.keys(POSITION), pics: POSITION, cols: 2 },
+-};
+-
+-const SPAN_CSS = { 1: "auto", 2: "span 2", 3: "span 3" };
+-
+-export const ITEM_WORDS = {
+-	grow:     { names: ["0", "1", "2", "3"], cols: 4, modes: ["flex"], var: "--item-grow", default: "0" },
+-	basis:    { names: ["auto", "8em", "16em", "24em"], cols: 4, modes: ["flex"], var: "--item-basis", default: "auto" },
+-	order:    { names: ["-1", "0", "1"], cols: 3, modes: ["flex"], var: "--item-order", default: "0" },
+-	span:     { names: ["1", "2", "3"], cols: 3, modes: ["grid"], var: "--item-span", css: SPAN_CSS, default: "1" },
+-	row_span: { names: ["1", "2", "3"], cols: 3, modes: ["grid"], var: "--item-row-span", css: SPAN_CSS, default: "1" },
+-	self:     { names: ["auto", "start", "center", "end", "stretch"], cols: 5, modes: ["flex", "grid"], var: "--item-self", default: "auto" },
+-};
+-
+-// The item words live under the CURRENT display mode only — a flex leaf never offers `span`.
+-export const live_item_words = mode => Object.entries(ITEM_WORDS).filter(([, word]) => word.modes.includes(mode));
+-
+-export const item_vars = patch => Object.fromEntries(Object.entries(ITEM_WORDS)
+-	.filter(([key]) => patch[key] !== undefined)
+-	.map(([key, word]) => [word.var, word.css?.[patch[key]] ?? patch[key]]));
+-
+-export const live_words = item => Object.entries(WORDS)
+-	.filter(([, word]) => (!word.root || !item.parent)
+-		&& (!word.modes || word.modes.includes(item.get("display"))));
+-
+-export const word_vars = item => Object.fromEntries(Object.entries(WORDS)
+-	.filter(([, word]) => word.var)
+-	.map(([key, word]) => [word.var, word.css?.[item.get(key)] ?? item.get(key)]));
++// Shim: PanelGlyphs is the class now; this path keeps old imports working.
++import PanelGlyphs from "./PanelGlyphs.js";
++export const { ALIGN, PLACE, place, COMPASS, SEATS, MODE, SHAPE, LENGTHS, SIZES, extent, DIR, POSITION, DISPLAY, TONE, TONES, SWATCHES, glyph, WORDS, ITEM_WORDS, live_item_words, item_vars, live_words, word_vars } = PanelGlyphs;
++export default PanelGlyphs;
+diff --git a/public/framework/ext/layout/LayoutControls.js b/public/framework/ext/layout/LayoutControls.js
+new file mode 100644
+index 000000000..7046d91da
+--- /dev/null
++++ b/public/framework/ext/layout/LayoutControls.js
+@@ -0,0 +1,81 @@
++import { span, button, select, option, label, input } from "../../core/View/View.js";
++
++export default class LayoutControls {
++	/* The four controls the bar and the panel both draw. Imports flow one way —
++	   layout.js and Panel/workspace.js both read this file, and it reads neither. */
++
++	// One of a set. `on` is which one the target already wears — a bar handed a grid
++	// must not open claiming to be a flex, and nothing is pressed when it is neither.
++	static pick(words, choose, on){
++		const $btns = words.map(word => LayoutControls.btn(word, function(){
++			$btns.forEach($btn => $btn.rc("on"));
++			this.ac("on");
++			choose(word);
++		}));
++
++		$btns[words.indexOf(on)]?.ac("on");
++		return $btns;
++	}
++
++	/* A menu once the set is long enough that four chips would be a row of noise.
++	   ⚠ `on` is written to `.el.value` after the options exist — an `option` marked
++	   selected while the list is still building is silently the wrong one. */
++	static menu(words, choose, on){
++		const $menu = select.c("layout-pick auto", () => words.forEach(word => option(word)))
++			.on("change", function(){ choose(this.el.value); });
++
++		$menu.el.value = on ?? words[0];
++		return $menu;
++	}
++
++	// Pressed means the class is on the target — read once at build, rewritten on click.
++	static toggle($el, word){
++		return LayoutControls.btn(word, function(){
++			$el.tc(word);
++			this[$el.hc(word) ? "ac" : "rc"]("on");
++		}).ac($el.hc(word) && "on");
++	}
++
++	static chips($el, words){
++		words.split(" ").filter(Boolean).forEach(word => LayoutControls.toggle($el, word));
++	}
++
++	static knob($box, token, value, max, step){
++		let $out;
++
++		value = LayoutControls.read($box, token) ?? value;
++
++		const set = v => {
++			$box.style(token, v + "em");
++			$out.text(v + "em");
++		};
++
++		label.c("layout-knob", () => {
++			span.c("layout-tag", token.slice(2));
++
++			input.c("layout-range")
++				.attr("type", "range").attr("min", 0).attr("max", max).attr("step", step)
++				.attr("value", value)
++				.on("input", function(){ set(this.el.value); });
++
++			$out = span.c("layout-out", value + "em");
++		});
++	}
++
++	/* ⚠ A knob READS at build and writes only on input. Stamping its own default was
++	   worth a paragraph: a bar over a page wrote `--measure` the moment it drew itself
++	   and narrowed the page nobody had touched. Inline value first, then whatever the
++	   cascade already gives the target — which is empty for a tree not yet mounted. */
++	static read($box, token){
++		const own = parseFloat($box.el.style.getPropertyValue(token));
++		if (!isNaN(own)) return own;
++
++		const cascade = parseFloat(getComputedStyle($box.el).getPropertyValue(token));
++		return isNaN(cascade) ? null : cascade;
++	}
++
++	static btn(text, fn){
++		return button.c("layout-btn", text).click(fn);
++	}
++
++}
+diff --git a/public/framework/ext/layout/controls.js b/public/framework/ext/layout/controls.js
+index 7bb77a88d..de89aa43d 100644
+--- a/public/framework/ext/layout/controls.js
++++ b/public/framework/ext/layout/controls.js
+@@ -1,78 +1,4 @@
+-import { span, button, select, option, label, input } from "../../core/View/View.js";
+-
+-/* The four controls the bar and the panel both draw. Imports flow one way —
+-   layout.js and Panel/workspace.js both read this file, and it reads neither. */
+-
+-// One of a set. `on` is which one the target already wears — a bar handed a grid
+-// must not open claiming to be a flex, and nothing is pressed when it is neither.
+-export function pick(words, choose, on){
+-	const $btns = words.map(word => btn(word, function(){
+-		$btns.forEach($btn => $btn.rc("on"));
+-		this.ac("on");
+-		choose(word);
+-	}));
+-
+-	$btns[words.indexOf(on)]?.ac("on");
+-	return $btns;
+-}
+-
+-/* A menu once the set is long enough that four chips would be a row of noise.
+-   ⚠ `on` is written to `.el.value` after the options exist — an `option` marked
+-   selected while the list is still building is silently the wrong one. */
+-export function menu(words, choose, on){
+-	const $menu = select.c("layout-pick auto", () => words.forEach(word => option(word)))
+-		.on("change", function(){ choose(this.el.value); });
+-
+-	$menu.el.value = on ?? words[0];
+-	return $menu;
+-}
+-
+-// Pressed means the class is on the target — read once at build, rewritten on click.
+-export function toggle($el, word){
+-	return btn(word, function(){
+-		$el.tc(word);
+-		this[$el.hc(word) ? "ac" : "rc"]("on");
+-	}).ac($el.hc(word) && "on");
+-}
+-
+-export function chips($el, words){
+-	words.split(" ").filter(Boolean).forEach(word => toggle($el, word));
+-}
+-
+-export function knob($box, token, value, max, step){
+-	let $out;
+-
+-	value = read($box, token) ?? value;
+-
+-	const set = v => {
+-		$box.style(token, v + "em");
+-		$out.text(v + "em");
+-	};
+-
+-	label.c("layout-knob", () => {
+-		span.c("layout-tag", token.slice(2));
+-
+-		input.c("layout-range")
+-			.attr("type", "range").attr("min", 0).attr("max", max).attr("step", step)
+-			.attr("value", value)
+-			.on("input", function(){ set(this.el.value); });
+-
+-		$out = span.c("layout-out", value + "em");
+-	});
+-}
+-
+-/* ⚠ A knob READS at build and writes only on input. Stamping its own default was
+-   worth a paragraph: a bar over a page wrote `--measure` the moment it drew itself
+-   and narrowed the page nobody had touched. Inline value first, then whatever the
+-   cascade already gives the target — which is empty for a tree not yet mounted. */
+-function read($box, token){
+-	const own = parseFloat($box.el.style.getPropertyValue(token));
+-	if (!isNaN(own)) return own;
+-
+-	const cascade = parseFloat(getComputedStyle($box.el).getPropertyValue(token));
+-	return isNaN(cascade) ? null : cascade;
+-}
+-
+-export function btn(text, fn){
+-	return button.c("layout-btn", text).click(fn);
+-}
++// Shim: LayoutControls is the class now; this path keeps old imports working.
++import LayoutControls from "./LayoutControls.js";
++export const { pick, menu, toggle, chips, knob, btn } = LayoutControls;
++export default LayoutControls;

@@ -18,3 +18,5 @@ The owner asked where the items waiting on them live and said the dashboard is "
 - ⬜ **The timeline on Browse**: `TimelinePage` still lays out with `columns()`; it becomes a `Browse` whose list is its `DataGrid` (ux/Browse/doc/architecture.md).
 - ⬜ **The rail's chrome**: one row of controls above the list (New card, Needs you, three category chips, the score floor, auto-transcribe, search); with the list a third of the screen it fits on one line at 1920, but on a phone it is two. Folding the rarely used ones (score floor, categories) behind one "Filters" word is the next simplification.
 - ⬜ Waiting on you holds 114 lines today, mostly "<task> decided N things for you" cards; "tick all" archives them. The mastermind skill should post one line onto this list instead of a new card per task (still open, above).
+
+**2026-10-14:** `own_notes()` reads a folder's `page.jsonl` only when the parent's file list (`Page.listing`) calls it a jsonl page; this removed the console 404 on every open, at the cost of one memoised parent-listing fetch. A page whose `page.jsonl` is newer than its parent's file list is skipped until the list refreshes.

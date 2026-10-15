@@ -1,0 +1,20 @@
+/* node shots.mjs <label> <base> — phone 400x800: open the AI sheet, measure it, shoot, tap mic on and off, read the diag line, list console errors. */
+import { browser } from "file:///C:/Code/lew42/monorepo/Server/browser.mjs";
+const [label, base] = process.argv.slice(2);
+const b = await browser({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"] });
+const ctx = await b.newContext({ viewport: { width: 400, height: 800 }, isMobile: true, hasTouch: true, permissions: ["microphone"] });
+const p = await ctx.newPage(); const errs = [];
+p.on("pageerror", e => errs.push("pageerror " + e.message)); p.on("response", r => r.status() >= 400 && errs.push(r.status() + " " + r.url()));
+await p.goto(base + "/framework/", { waitUntil: "load" }); await p.waitForTimeout(2500);
+await p.tap(".drawer-rail-ai"); await p.waitForTimeout(1500);
+const q = sel => p.evaluate(sel => { const e = document.querySelector(sel); if (!e) return null; const r = e.getBoundingClientRect(); return { h: Math.round(r.height), top: Math.round(r.top) }; }, sel);
+const sheet = await q(".drawer-rail-sheet.on"), thread = await q(".drawer-rail-sheet.on .ux-dictate-widget-thread, .drawer-rail-sheet.on .ux-dictate-widget-shell [class*=thread]");
+await p.screenshot({ path: `shots/${label}-sheet.png` });
+const diag = async () => p.evaluate(() => [...document.querySelectorAll("[class*=diag]")].map(e => e.textContent.trim()).filter(Boolean).join(" | "));
+const btn = ".drawer-rail-sheet.on .ux-dictate-btn"; const states = [await diag()];
+const cls = () => p.evaluate(sel => document.querySelector(sel)?.className, btn);
+console.log("btn before", await cls());
+await p.tap(btn); await p.waitForTimeout(3500); states.push("on: " + await diag());
+await p.tap(btn); await p.waitForTimeout(2500); states.push("stopped: " + await diag());
+console.log(JSON.stringify({ label, sheet, thread, states, errs: errs.filter(e => /jsonl|pageerror/.test(e)) }, null, 1));
+await b.close?.();

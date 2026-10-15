@@ -9,3 +9,7 @@
 - Used by [Template](/framework/core/Page/Template/) · design: [core/Page/doc/templates.md](../Page/doc/templates.md) · binding, measured on 1,000 rows: [core/Page/doc/binding.md](../Page/doc/binding.md)
 - Watch out: a clone that writes an inherited bound value gets its own new Property (`"rebind"`); it never sets the parent's.
 - Watch out: never put a Property inside an Item's data; it takes over that key's writes, so the Item emits no `change` and nothing saves ([binding.md](../Page/doc/binding.md)).
+
+## More
+
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why

@@ -6,6 +6,12 @@ Read from the live file on 2026-10-14 (a read-only script lists each page, its `
 - **Index** / **Index · full size**: every page below, as live previews (scaled / at 100%).
 - **Claude · Overview**: the For you card (what waits on you, what landed) and the design-system card of links.
 
+## Foundations (best first; added 2026-10-14)
+- **Essentials**: the condensed view: type, 4 buttons, 8 card styles, inputs, lists, status.
+- **Demo · Site**: clickable 1920×1080 site (flow `Demo · Site`) and phone version (flow `Demo · Phone`), 4 nav schemes.
+- **Foundations · Layouts** (7 layouts at 400/1000/1920), **Foundations · Type & spacing**, **Foundations · Cards** (8 card styles at 280/400/520).
+- **Colour · Schemes**: one master on 5 grounds; recolour a page by its Text mode.
+
 ## Design system: elements and components (one default look, then "on dark")
 - **DS · 1 Elements**: type, grounds, icons, image boxes, dividers, chip and badge, avatar, progress bar.
 - **DS · 1.1 Icons**: the Icon system (159 icons, one dropdown), sizes, icon + text, list bullets.

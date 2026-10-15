@@ -54,6 +54,7 @@ label, hint, prompt, model }` — with no change to this file.
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why
 - [`Revise.js`](/framework/ux/Revise/Revise.js) — the class: `Revise.run()`, `Revise.LEVELS`, `Revise.View` (the demo above)
 - [`Servex/agents/tidy.js`](/Servex/agents/tidy.js) — the server side: the real prompts, the `/api/tidy` route
 - [`ux/Dictate`](/framework/ux/Dictate/) — the whole dictation system this is one part of

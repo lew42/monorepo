@@ -10,7 +10,7 @@ export default new Doc({
 	subject: Timeline,
 	properties: "orientation reverse zoom lane from to items",
 	methods: "render span lay end item ruler live",
-	notes: "phase-2 decisions",
+	notes: "architecture phase-2 decisions",
 	files: "Timeline.js Timeline.css page.js readme.md",
 
 	overview: [{ title: "Orientation & lanes", icon: "swap_vert", content(){

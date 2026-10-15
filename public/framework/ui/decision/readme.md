@@ -25,5 +25,6 @@ div.c("ui-decision", () => {
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why
 - [page](/framework/ui/decision/) — the markup, the contrast numbers, and who uses it (every task page's Decisions tab)
 - Back to [UI](/framework/ui/).
