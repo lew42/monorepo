@@ -27,3 +27,7 @@ Sub-readmes load on demand.
 **The iceberg readme** — L38.3
 
 So readmes are read on demand, each giving the lay of the land and the important things in a glance.
+
+## Verifying a readme (the owner, 2026-10-15)
+
+Claim by claim: the mastermind does not read the code; a Sonnet minion does, and answers "is this statement correct?" for one readme claim at a time. Stale claims are flagged. Source: [ask-8f9c9d80](/public/framework/ai/sessions/2026/10/15/voice-20261015/ask-8f9c9d80.md).

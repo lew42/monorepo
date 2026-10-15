@@ -91,6 +91,10 @@ A Doc's `notes:` land at `/module/doc/<name>/`, `methods:`/`properties:` at `/mo
 
 **Cleanup:** a mastermind spawns one Haiku per `doc/*.md`, given that file and the files it describes, asking "still true? duplicated elsewhere? superseded?". The mastermind reads the answers and decides. A superseded doc moves to an `archive/` folder beside it (`git mv`, one line in the readme saying why), never deleted.
 
+## Verifying a readme: one claim at a time (the owner, 2026-10-15)
+
+The mastermind does not read the code. A Sonnet minion reads the code and is asked ONE readme claim at a time: "is this statement correct?" Flag every stale claim and fix or list it. One specific question per step works better than a whole-readme review. Source: [ask-8f9c9d80](/public/framework/ai/sessions/2026/10/15/voice-20261015/ask-8f9c9d80.md).
+
 ## Before finish-task
 
 - Every `doc/*.md` named in the readme, every `notes:`/`files:` entry exists — both directions.
