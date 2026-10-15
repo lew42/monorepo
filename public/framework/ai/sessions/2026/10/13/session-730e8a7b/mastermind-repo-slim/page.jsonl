@@ -89,3 +89,5 @@
 {"file":"oo-census/"}
 {"file":"voice-connector/"}
 {"file":"voice-mastermind/"}
+{"file":"spawn-policy/"}
+{"file":"spawn-policy/","gone":true}

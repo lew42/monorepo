@@ -1016,3 +1016,22 @@
 {"at":"2026-10-15T21:58:24.074Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015","verdict":"queued","kind":"landing"}
 {"at":"2026-10-15T21:58:24.169Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015","verdict":"spawned","to":"clarity-voice-20261015"}
 {"at":"2026-10-15T17:05:00-05:00","target":"public/framework/ai/sessions/2026/10/15/voice-20261015","verdict":"rewrote","what":"outcome rewritten as ask checklist with proof; verbatim ask files left intact","to":"task.jsonl"}
+{"at":"2026-10-15T22:10:52.989Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/readme-claims/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-15T22:11:17.697Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/class-map/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-15T22:11:53.949Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/readme-claims/requirements.md","verdict":"spawned","to":"clarity-readme-claims"}
+{"at":"2026-10-15T22:12:18.726Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/class-map/requirements.md","verdict":"spawned","to":"clarity-class-map"}
+{"at":"2026-10-15T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/readme-claims/requirements.md","verdict":"clear","what":"Agent brief: title says what it is, 19 numbered claims, output format stated; text-check had no flags","to":"clarity-readme-claims"}
+{"at":"2026-10-15T22:12:56Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/class-map/requirements.md","verdict":"clear","what":"agent brief: one deliverable, why, files, shape all stated; text-check found no flags","to":"clarity"}
+{"at":"2026-10-15T22:26:06.334Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/ai-system/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-15T22:27:07.354Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/ai-system/requirements.md","verdict":"spawned","to":"clarity-ai-system"}
+{"at":"2026-10-15T22:27:10.715Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers/trace/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-15T22:27:22.300Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers/opinion/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-15T22:27:28.306Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers/debug-views/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-15T22:27:44Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/ai-system/requirements.md","verdict":"clear","what":"text-check clean; agent brief, four numbered deliverables, each one screen with links","to":"clarity-ai-system"}
+{"at":"2026-10-15T22:28:11.773Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers/trace/requirements.md","verdict":"spawned","to":"clarity-trace"}
+{"at":"2026-10-15T22:28:23.328Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers/opinion/requirements.md","verdict":"spawned","to":"clarity-opinion"}
+{"at":"2026-10-15T22:28:29.367Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers/debug-views/requirements.md","verdict":"spawned","to":"clarity-debug-views"}
+{"at":"2026-10-15T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers/trace/requirements.md","verdict":"clear","what":"Agent brief: text-check clean, goal, files, output shape all explicit.","to":"flags.jsonl"}
+{"at":"2026-10-15T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers/opinion/requirements.md","verdict":"clear","what":"text-check clean; agent brief with clear title, three numbered questions and output spec","to":"clarity-opinion"}
+{"at":"2026-10-15T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers/debug-views/requirements.md","verdict":"clear","what":"Agent brief; text-check clean, title states the ask, output format specified.","to":"clarity-debug-views"}
+{"at":"2026-10-15T22:34:55.147Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/ai-system","verdict":"skipped","what":"a sub-task: its parent task gets the one check"}

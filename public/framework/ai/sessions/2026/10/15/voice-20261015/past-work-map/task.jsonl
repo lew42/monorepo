@@ -5,3 +5,10 @@
 {"log":{"at":"2026-10-15T16:55:52-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T16:56:20-05:00","heartbeat":"answered","msg":"I'm done. `past-work-map/map.md` is written and committed as `642a6b49e`, with only my task dir staged.\n\nIt maps all four items: per-directory logs against global search, tagging, the per-directory `a"}}
 {"log":{"at":"2026-10-15T16:59:56-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T17:10:49-05:00","heartbeat":"check","msg":"status check sent to helper-past-work-map"}}
+{"log":{"at":"2026-10-15T17:10:53-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T17:11:22-05:00","heartbeat":"answered","msg":"Finished: the map is at `past-work-map/map.md` and committed as `642a6b49e`. I'm not running anything now."}}
+{"log":{"at":"2026-10-15T17:15:01-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T17:27:54-05:00","msg":"task-loop chase 1 of 2: woke helper-past-work-map","chase":1}}
+{"log":{"at":"2026-10-15T17:28:02-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T17:32:01-05:00","msg":"session ended (other) without landing"}}
