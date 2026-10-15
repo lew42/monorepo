@@ -83,8 +83,11 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 ## Also here (readme audit, 2026-10-13)
 - [AISession](./AISession/) — one Claude session's cost, read from its transcript
 - [audits](./audits/) — read-only audits of how the framework is built
+- [dashboard](./dashboard/) — a grid of live previews, stalled tasks first
 - [health](./health/) — page health monitor, checks every page in a hidden browser
+- [local](./local/) — talk to a model running on this machine's own GPU
 - [quick-fix](./quick-fix/) — log of every quick-fix request
 - [review](./review/) — review questions per system, read live from the skills
+- [talk](./talk/) — press the mic, talk, see your words
 - [tests](./tests/) — test library: small tasks with known-good outcomes
 - [unreferenced verdicts](doc/unreferenced-verdicts.md) — 167 unreferenced candidates judged, 0 dead; a mover with undo, not run
