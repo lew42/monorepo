@@ -66,7 +66,7 @@ export default class Objects extends Tree {
 					icon: val.type === "Array" ? "list" : (val.type === "Map" || val.type === "Set") ? "folder" : "category",
 					className: val.type !== "Object" && val.type !== "Array" && val.type !== "Map" && val.type !== "Set" ? val.type : null,
 					children: (val.items || val.children) ? () => {
-						if (Array.isArray(val.items)) return val.items.map(it => ({ text: String(it), icon: "data_object" }));
+						if (Array.isArray(val.items)) return val.items.map(it => ({ text: String(it), icon: "label" }));
 						if (val.children) return Objects.walk(val.children, opts, depth + 1, seen);
 						return [];
 					} : undefined
@@ -142,7 +142,7 @@ export default class Objects extends Tree {
 			// Primitive property
 			nodes.push({
 				text: `${key}: ${String(val)}`,
-				icon: "data_object"
+				icon: "label"
 			});
 		}
 
@@ -158,7 +158,7 @@ export default class Objects extends Tree {
 
 	static icon_of(val){
 		if (val == null) return "code";
-		if (typeof val !== "object") return "data_object";
+		if (typeof val !== "object") return "label";
 		if (val.constructor?.name && val.constructor.name !== "Object") return "category";
 		return "folder";
 	}
