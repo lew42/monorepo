@@ -91,7 +91,8 @@ t(p.spawn(null, "manager").ok && p.spawn("mastermind-servex", "assistant").ok &&
 t(!p.spawn("assistant-a", "minion").ok && !p.spawn("master-assistant", "minion").ok, "assistant/master spawn nothing");
 t(p.spawn("manager-a", "minion").ok && p.spawn("task-mastermind-x", "helper").ok, "manager spawns workers");
 for(const r of ["task-mastermind", "manager", "mastermind", "master-assistant", "assistant", "page-mastermind", "page-assistant"])
-	t(!p.spawn("manager-a", r).ok && !p.spawn("task-mastermind-x", r).ok, "no " + r);
+	t(!p.spawn("manager-a", r).ok && (r === "mastermind" || !p.spawn("task-mastermind-x", r).ok), "no " + r);
+t(p.spawn("mastermind-voice-1", "mastermind").ok && p.spawn("task-mastermind-x", "mastermind").ok && p.spawn("mastermind-voice-1", "minion").ok && !p.spawn("mastermind-voice-1", "assistant").ok && !p.spawn("mastermind-voice-1", "master-assistant").ok, "a mastermind may spawn a mastermind");
 t(p.spawn("minion-a", "minion").ok && p.spawn("minion-a", "helper").ok && !p.spawn("minion-a", "mastermind").ok, "worker spawn");
 // bookkeeping
 t(p.refused.length > 0 && p.refused.length <= 50, "refusals kept");
