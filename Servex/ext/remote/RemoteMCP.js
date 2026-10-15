@@ -21,6 +21,7 @@ export default class RemoteMCP {
     /* servex: needs .agents (send, list, registry_list, task_dir_for); root: repo root; wait_ms: reply timeout */
     constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = 60000, target } = {}){
         Object.assign(this, { servex, root, token_file, wait_ms, target });
+        this.replies = path.join(path.dirname(token_file), "remote-replies");
         this.token = this.load_token();
         if (router) this.mount(router);
     }
@@ -36,14 +37,15 @@ export default class RemoteMCP {
 
     mount(router){
         const p = RemoteMCP.PATH;
-        router.post(p, express.json({ limit: "256kb" }), (req, res) => this.post(req, res));
-        router.all(p, (req, res) => res.status(405).set("Allow", "POST").end());
+        // the token may ride in the path (/mcp/remote/<token>): the Claude app's connector dialog has no header field
+        router.post([p, p + "/:token"], express.json({ limit: "256kb" }), (req, res) => this.post(req, res));
+        router.all([p, p + "/:token"], (req, res) => res.status(405).set("Allow", "POST").end());
     }
 
     authed(req){
-        const m = /^Bearer (.+)$/.exec(req.headers.authorization ?? "");
-        if (!m) return false;
-        const a = Buffer.from(m[1]), b = Buffer.from(this.token);
+        const given = /^Bearer (.+)$/.exec(req.headers.authorization ?? "")?.[1] ?? req.params.token;
+        if (!given) return false;
+        const a = Buffer.from(given), b = Buffer.from(this.token);
         return a.length === b.length && crypto.timingSafeEqual(a, b);
     }
 
@@ -69,10 +71,12 @@ export default class RemoteMCP {
         return bad(-32601, "method not found");
     }
 
-    // the live mastermind: an explicit target, else the first live agent named mastermind*
+    // the live mastermind: REMOTE_MCP_TARGET, else the file remote.target, else the first live run mastermind (never mastermind-servex)
     mastermind(){
         const a = this.servex.agents;
-        const id = this.target ?? a.list().find(c => /^mastermind/.test(c.id) && c.state !== "stopped")?.id;
+        let named = this.target ?? process.env.REMOTE_MCP_TARGET;
+        try { named ??= fs.readFileSync(path.join(path.dirname(this.token_file), "remote.target"), "utf8").trim() || undefined; } catch {}
+        const id = named ?? a.list().find(c => /^(task-mastermind|mastermind(?!-servex))/.test(c.id) && c.state !== "stopped")?.id;
         if (!id) throw new Error("no live mastermind");
         return { id, dir: a.task_dir_for(a.registry_list().find(r => r.id === id) ?? { id }) };
     }
@@ -81,26 +85,19 @@ export default class RemoteMCP {
         const { id, dir } = this.mastermind();
         const qid = crypto.randomBytes(4).toString("hex");
         const file = dir ? path.resolve(this.root, dir, "task.jsonl") : null;
-        const link = dir ? "/" + String(dir).replace(/\\/g, "/").replace(/^\/+/, "") + "/" : "its task page";
+        const rel = dir ? path.relative(this.root, path.resolve(this.root, dir)).replace(/\\/g, "/") : null;
+        const link = rel ? "/" + rel + "/" : "its task page";
+        // replies go to a file OUTSIDE public/, so polling it never wakes the live-reload watcher
+        const out = path.join(this.replies, qid + ".txt");
+        fs.mkdirSync(this.replies, { recursive: true });
         if (file) fs.appendFileSync(file, JSON.stringify({ chat: { from: "owner (voice)", id: qid, text: question, at: new Date().toISOString() } }) + "\n");
-        this.servex.agents.send(id, `The owner asks by voice (question ${qid}): "${question}"\nAnswer in two or three plain sentences, easy to hear aloud. Reply by appending ONE line to ${file ?? "your task.jsonl"}: {"voice_reply":{"id":"${qid}","text":"<your answer>"}} (node .claude/hooks/append.mjs).`, { from: "owner (voice)", priority: "now" });
+        this.servex.agents.send(id, `The owner asks by voice (question ${qid}): "${question}"\nAnswer in two or three plain sentences, easy to hear aloud. Reply by writing your answer as plain text to ${out} (one file write, nothing else).`, { from: "owner (voice)" });
         const until = Date.now() + this.wait_ms;
         while (Date.now() < until){
             await new Promise(r => setTimeout(r, 500));
-            const hit = file && this.reply(file, qid);
-            if (hit) return hit;
+            if (fs.existsSync(out)){ const t = fs.readFileSync(out, "utf8").trim(); if (t) return t; }
         }
         return `the mastermind is busy; the question is logged at ${link}`;
-    }
-
-    reply(file, qid){
-        let raw = "";
-        try { raw = fs.readFileSync(file, "utf8"); } catch { return null; }
-        for (const line of raw.split("\n").reverse().slice(0, 200)){
-            if (!line.includes(qid) || !line.includes("voice_reply")) continue;
-            try { const r = JSON.parse(line).voice_reply; if (r?.id === qid) return String(r.text); } catch {}
-        }
-        return null;
     }
 
     // one line per call, never the token

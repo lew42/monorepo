@@ -23,8 +23,9 @@ export default class Tunnel {
     // passes exactly /mcp/remote to Servex on loopback; every other path is a 404 that never reaches Servex
     gateway(){
         return http.createServer((req, res) => {
-            if (new URL(req.url, "http://x").pathname !== Tunnel.PATH) return res.writeHead(404).end();
-            const up = http.request({ host: "127.0.0.1", port: this.servex_port, path: Tunnel.PATH, method: req.method,
+            const p = new URL(req.url, "http://x").pathname;
+            if (p !== Tunnel.PATH && !/^\/mcp\/remote\/[A-Za-z0-9]+$/.test(p)) return res.writeHead(404).end();
+            const up = http.request({ host: "127.0.0.1", port: this.servex_port, path: p, method: req.method,
                 headers: { authorization: req.headers.authorization ?? "", "content-type": req.headers["content-type"] ?? "" } },
                 r => { res.writeHead(r.statusCode, { "content-type": r.headers["content-type"] ?? "application/json" }); r.pipe(res); });
             up.on("error", () => res.writeHead(502).end());
@@ -34,7 +35,7 @@ export default class Tunnel {
 
     async up(){
         const s = this.state();
-        if (s && this.alive(s.pid)) return console.log(`already up: ${fs.readFileSync(this.url_file, "utf8")}`);
+        if (s && this.alive(s.pid)) return console.log("already up (URL in remote.url)");
         fs.mkdirSync(Tunnel.DIR, { recursive: true });
         const gw = this.gateway();
         await new Promise(r => gw.listen(0, "127.0.0.1", r));
@@ -46,10 +47,11 @@ export default class Tunnel {
             child.stdout.on("data", scan); child.stderr.on("data", scan);
             child.on("exit", c => reject(new Error(`cloudflared exited ${c}`)));
         }).catch(e => { this.kill(child.pid); console.error(e.message); process.exit(1); });
-        const full = url + Tunnel.PATH;
+        const token = fs.readFileSync(path.join(Tunnel.DIR, "remote.token"), "utf8").trim();   // the URL carries the token: the connector dialog has no header field
+        const full = url + Tunnel.PATH + "/" + token;
         fs.writeFileSync(this.url_file, full);
         fs.writeFileSync(this.state_file, JSON.stringify({ pid: process.pid, child: child.pid, port, at: new Date().toISOString() }));
-        console.log(full);
+        console.log(full.replace(token, "<token: see remote.url>"));
         const stop = () => { this.kill(child.pid); try { fs.unlinkSync(this.state_file); } catch {} process.exit(0); };
         process.on("SIGINT", stop); process.on("SIGTERM", stop);
         child.on("exit", stop);
@@ -67,7 +69,7 @@ export default class Tunnel {
 
     status(){
         const s = this.state();
-        console.log(s && this.alive(s.pid) ? `up: ${fs.readFileSync(this.url_file, "utf8")}` : "down");
+        console.log(s && this.alive(s.pid) ? "up (URL in remote.url)" : "down");
     }
 }
 
