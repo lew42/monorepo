@@ -6,3 +6,11 @@
 {"log":{"at":"2026-10-14T18:54:43-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-14T18:55:13-05:00","heartbeat":"answered","msg":"Done and landed. The Figma page `Foundations · Type & spacing` (frame `297:105637`) is built, and the report [kit/type.md](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/t"}}
 {"assign":{"landed_at":"2026-10-14T19:35:00-05:00","title":"Figma: Foundations · Type & spacing","outcome":"New Figma page with the 5 text styles in use (script census), 4 pairing components, a 720-measure article, instances at 400 and 1000, and the 10-token spacing ladder in Mobile/Default/Mega. No token values changed; notes list unused code style, 45% unstyled text, and proposed h2-size/h3-size.","links":["/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/type.md"]}}
+{"log":{"at":"2026-10-14T18:55:26-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-14T23:55:26.397Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-14T18:55:26-05:00","msg":"card-check: card-check: path not found: C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\Figma: Foundations · Type & spacing"}}
+{"log":{"at":"2026-10-14T18:55:26-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-14T18:55:26-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-14T18:55:32-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-14T18:55:32-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"assign": {"outcome": "New Figma page Foundations · Type & spacing (297:105636). Report: [type.md](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/type.md)\n- [x] Text styles in use: 5 shown as real sentences with script-counted nodes; unused code style flagged\n- [x] Pairings: 4 components (heading+body, kicker+heading, label+value, specimen+caption)\n- [x] Article at 720 measure on white\n- [x] Spacing ladder: 10 tokens in Mobile / Default / Mega, bound to variables\n- [x] Responsive: article instances at 400 and 1000\nOpen for you: swap the unused code font, and add h2-size / h3-size. No token values changed."}}

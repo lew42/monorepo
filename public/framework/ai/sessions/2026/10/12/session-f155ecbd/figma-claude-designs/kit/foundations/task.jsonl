@@ -5,3 +5,8 @@
 {"log":{"at":"2026-10-14T18:45:20-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-14T18:45:59-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-14T18:47:55-05:00","msg":"Dark row built, all rows screenshot-checked, Card A/C white band fixed, button labels and spacing fixed. Landed; see kit/foundations.md"}}
+{"log":{"at":"2026-10-14T18:47:59-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-14T18:53:40-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-fig-foundations"}}
+{"log":{"at":"2026-10-14T18:53:43-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-14T18:54:13-05:00","heartbeat":"answered","msg":"Done and idle: the `Foundations · Layouts` page is finished and committed, and I'm not working on anything now. The one open item is swapping the cards for the `Card / …` components once `kit/essentia"}}
+{"log":{"at":"2026-10-14T18:54:48-05:00","msg":"session ended (other) without landing"}}
