@@ -8,7 +8,7 @@ Open [/framework/catalog/](/framework/catalog/): a card per page (a scaled live 
 - Live instance hierarchy: exists as [the Page object](/framework/ux/Content/Object/page/) and [the App object](/framework/ux/Content/Object/app/); the whole running site is now [InstanceTree](/framework/ux/Content/Object/instance-tree/), live ([spec and status](doc/instance-tree.md)).
 
 ## Watch out
-- Previews are slow: each one boots the whole app on the tab's one thread, so they load 4 at a time in screen order (`LOADING`); 40 take ~10 s. The picture-per-card fix and the numbers: [doc/next.md](doc/next.md).
+- Pictures first: each card shows `thumbs/<slug>.webp` (git-ignored, made by `node Server/CatalogThumbs.mjs --apply`; refresh stale ones the same way, `--all` reshoots) and boots its live iframe on hover. No picture = the iframe loads 4 at a time (~10 s for 40). Numbers and what is not deployed: [doc/next.md](doc/next.md).
 - A page that holds the main thread freezes every preview: list it in `NO_PREVIEW` (today: `code/performance/bench/`). A preview never loads previews of its own (the catalog is a card in itself).
 - Page methods named `icon` or `link` shadow the page's own; the class uses `glyph()` and `anchor()`.
 - `framework.css` caps `iframe` at `max-width: 100%`; the preview frames reset it or the page renders narrow.

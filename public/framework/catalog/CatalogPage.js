@@ -37,6 +37,8 @@ export default class CatalogPage extends Page {
 	async content(){
 		const $root = div.c("cat wide"), root = $root.el;   // captured before the await
 		const text = await fetch(new URL("catalog.jsonl", import.meta.url)).then(r => r.text());
+		// thumbs/index.json lists the pictures that exist (ignored by git, made by Server/CatalogThumbs.mjs); none = every card falls back to its iframe
+		this.thumbs = new Set(await fetch(new URL("thumbs/index.json", import.meta.url)).then(r => r.ok ? r.json() : []).catch(() => []));
 		const rows = text.split("\n").filter(Boolean).map(l => JSON.parse(l));
 		const pages = rows.filter(r => r.kind === "page"), classes = rows.filter(r => r.kind === "class");
 		const fresh = pages.filter(p => p.isNew).length;
@@ -110,6 +112,14 @@ export default class CatalogPage extends Page {
 	page_card(p){
 		const frame = this.node("div", "", "cat-frame");
 		if (this.constructor.NO_PREVIEW.includes(p.url)) frame.append(this.node("span", "runs a benchmark: open it to see", "cat-nopreview"));
+		else if (this.thumbs.has(this.constructor.slug(p.url))){
+			// a still picture; the live iframe replaces it on hover (desktop) or tap (phone)
+			const img = this.node("img", "", "cat-thumb");
+			img.src = new URL(`thumbs/${this.constructor.slug(p.url)}.webp`, import.meta.url);
+			img.alt = ""; img.width = 600; img.height = 375; img.loading = "lazy";
+			frame.append(img);
+			frame.dataset.hover = p.url;
+		}
 		else frame.dataset.src = p.url;
 		return this.anchor(p.url, `cat-card${p.isNew ? " is-new" : ""}`, [
 			frame,
@@ -125,6 +135,8 @@ export default class CatalogPage extends Page {
 	// An iframe is made only when its card scrolls near the screen, so 200+ cards cost nothing until seen.
 	// Each preview boots the whole app, so at most LOADING load at once, in screen order (doc/next.md has the numbers).
 	static LOADING = 4;
+	// the file name of a page's picture; the same rule as CatalogThumbs.slug in Server/CatalogThumbs.mjs
+	static slug(url){ return url.replace(/^\/+|\/+$/g, "").replace(/\//g, "__"); }
 	// Pages that hold the main thread on load (a benchmark). Same-origin previews share this tab's thread, so one froze the whole catalog.
 	static NO_PREVIEW = ["/framework/code/performance/bench/"];
 
@@ -156,5 +168,26 @@ export default class CatalogPage extends Page {
 			next();
 		}, { rootMargin: "200px" });
 		root.querySelectorAll(".cat-frame[data-src]").forEach(el => io.observe(el));
+		this.watch_hover(root);
+	}
+
+	// A card with a picture boots its live iframe only when pointed at (mouse) or tapped once (touch: the first tap shows it, the second follows the link).
+	watch_hover(root){
+		const show = frame => {
+			if (frame.querySelector("iframe")) return true;
+			const f = document.createElement("iframe");
+			f.src = frame.dataset.hover;
+			f.style.scale = String(frame.clientWidth / 1200);
+			f.tabIndex = -1;
+			f.setAttribute("aria-hidden", "true");
+			frame.append(f);
+			return false;
+		};
+		root.querySelectorAll(".cat-frame[data-hover]").forEach(frame => {
+			const card = frame.closest(".cat-card");
+			card.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") show(frame); });
+			card.addEventListener("pointerleave", () => frame.querySelector("iframe")?.remove());
+			card.addEventListener("click", e => { if (e.pointerType !== "mouse" && !show(frame)) e.preventDefault(); });
+		});
 	}
 }
