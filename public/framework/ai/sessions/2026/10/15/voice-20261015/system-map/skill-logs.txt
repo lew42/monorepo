@@ -1,0 +1,44 @@
+task.jsonl files 1603; servex skills.jsonl lines 573 (fallback 8)
+ledger hook "skill:" lines:
+  finish-task                  566 2026-08-17 2026-10-14
+  documentation                283 2026-08-17 2026-10-07
+  code                         130 2026-08-17 2026-10-12
+  css                          116 2026-08-17 2026-10-01
+  check-claude-usage           105 2026-08-17 2026-10-05
+  minion                       100 2026-09-21 2026-10-04
+  layout                        95 2026-08-17 2026-10-12
+  new-css-class                 72 2026-08-17 2026-09-29
+  new-page                      72 2026-08-17 2026-10-01
+  ui-test                       65 2026-08-19 2026-10-13
+  page                          56 2026-09-25 2026-10-09
+  skill-improvement             52 2026-08-18 2026-10-01
+  sub-mastermind                50 2026-09-29 2026-10-09
+  fans                          34 2026-08-21 2026-10-12
+  figma:figma-use               29 2026-10-13 2026-10-14
+  servex-mastermind             28 2026-10-08 2026-10-12
+  new-task                      26 2026-08-17 2026-10-04
+  research                       5 2026-08-30 2026-09-29
+  review                         4 2026-10-02 2026-10-13
+  system-architect               4 2026-10-09 2026-10-15
+  content                        3 2026-09-30 2026-10-02
+  code,                          2 2026-08-17 2026-08-30
+  decide                         2 2026-09-29 2026-10-08
+  layout.                        1 2026-08-17 2026-08-17
+  code.                          1 2026-08-17 2026-08-17
+  auditor                        1 2026-09-19 2026-09-19
+  documentation.                 1 2026-09-22 2026-09-22
+  skill-improvement.             1 2026-09-22 2026-09-22
+  naming                         1 2026-09-29 2026-09-29
+  dataviz                        1 2026-10-01 2026-10-01
+  navigation                     1 2026-10-04 2026-10-04
+  workflow-authoring             1 2026-10-09 2026-10-09
+  past-work                      1 2026-10-12 2026-10-12
+  voice-mastermind               1 2026-10-15 2026-10-15
+servex injected:
+  clarity                      172 2026-10-12 2026-10-15
+  sub-mastermind               149 2026-10-12 2026-10-15
+  page                         149 2026-10-12 2026-10-15
+  review                        94 2026-10-12 2026-10-14
+  minion                        93 2026-10-12 2026-10-15
+  servex-mastermind             57 2026-10-12 2026-10-15
+spawns by role: {"minion":93,"clarity":172,"task-mastermind":149,"reviewer":94,"mastermind":57,"expert":1,"proof":3,"helper":4}

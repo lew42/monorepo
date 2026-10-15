@@ -1,0 +1,221 @@
+{
+ "at": "2026-10-15T21:47:03.869Z",
+ "taskFiles": 1603,
+ "ledger": {
+  "code": {
+   "n": 130,
+   "first": "2026-08-17",
+   "last": "2026-10-12"
+  },
+  "finish-task": {
+   "n": 566,
+   "first": "2026-08-17",
+   "last": "2026-10-14"
+  },
+  "documentation": {
+   "n": 283,
+   "first": "2026-08-17",
+   "last": "2026-10-07"
+  },
+  "layout": {
+   "n": 95,
+   "first": "2026-08-17",
+   "last": "2026-10-12"
+  },
+  "layout.": {
+   "n": 1,
+   "first": "2026-08-17",
+   "last": "2026-08-17"
+  },
+  "css": {
+   "n": 116,
+   "first": "2026-08-17",
+   "last": "2026-10-01"
+  },
+  "check-claude-usage": {
+   "n": 105,
+   "first": "2026-08-17",
+   "last": "2026-10-05"
+  },
+  "new-css-class": {
+   "n": 72,
+   "first": "2026-08-17",
+   "last": "2026-09-29"
+  },
+  "code,": {
+   "n": 2,
+   "first": "2026-08-17",
+   "last": "2026-08-30"
+  },
+  "new-task": {
+   "n": 26,
+   "first": "2026-08-17",
+   "last": "2026-10-04"
+  },
+  "new-page": {
+   "n": 72,
+   "first": "2026-08-17",
+   "last": "2026-10-01"
+  },
+  "code.": {
+   "n": 1,
+   "first": "2026-08-17",
+   "last": "2026-08-17"
+  },
+  "skill-improvement": {
+   "n": 52,
+   "first": "2026-08-18",
+   "last": "2026-10-01"
+  },
+  "ui-test": {
+   "n": 65,
+   "first": "2026-08-19",
+   "last": "2026-10-13"
+  },
+  "fans": {
+   "n": 34,
+   "first": "2026-08-21",
+   "last": "2026-10-12"
+  },
+  "research": {
+   "n": 5,
+   "first": "2026-08-30",
+   "last": "2026-09-29"
+  },
+  "auditor": {
+   "n": 1,
+   "first": "2026-09-19",
+   "last": "2026-09-19"
+  },
+  "minion": {
+   "n": 100,
+   "first": "2026-09-21",
+   "last": "2026-10-04"
+  },
+  "documentation.": {
+   "n": 1,
+   "first": "2026-09-22",
+   "last": "2026-09-22"
+  },
+  "skill-improvement.": {
+   "n": 1,
+   "first": "2026-09-22",
+   "last": "2026-09-22"
+  },
+  "page": {
+   "n": 56,
+   "first": "2026-09-25",
+   "last": "2026-10-09"
+  },
+  "sub-mastermind": {
+   "n": 50,
+   "first": "2026-09-29",
+   "last": "2026-10-09"
+  },
+  "naming": {
+   "n": 1,
+   "first": "2026-09-29",
+   "last": "2026-09-29"
+  },
+  "decide": {
+   "n": 2,
+   "first": "2026-09-29",
+   "last": "2026-10-08"
+  },
+  "content": {
+   "n": 3,
+   "first": "2026-09-30",
+   "last": "2026-10-02"
+  },
+  "dataviz": {
+   "n": 1,
+   "first": "2026-10-01",
+   "last": "2026-10-01"
+  },
+  "review": {
+   "n": 4,
+   "first": "2026-10-02",
+   "last": "2026-10-13"
+  },
+  "navigation": {
+   "n": 1,
+   "first": "2026-10-04",
+   "last": "2026-10-04"
+  },
+  "servex-mastermind": {
+   "n": 28,
+   "first": "2026-10-08",
+   "last": "2026-10-12"
+  },
+  "system-architect": {
+   "n": 4,
+   "first": "2026-10-09",
+   "last": "2026-10-15"
+  },
+  "workflow-authoring": {
+   "n": 1,
+   "first": "2026-10-09",
+   "last": "2026-10-09"
+  },
+  "past-work": {
+   "n": 1,
+   "first": "2026-10-12",
+   "last": "2026-10-12"
+  },
+  "figma:figma-use": {
+   "n": 29,
+   "first": "2026-10-13",
+   "last": "2026-10-14"
+  },
+  "voice-mastermind": {
+   "n": 1,
+   "first": "2026-10-15",
+   "last": "2026-10-15"
+  }
+ },
+ "servexInjected": {
+  "minion": {
+   "n": 93,
+   "first": "2026-10-12",
+   "last": "2026-10-15"
+  },
+  "clarity": {
+   "n": 172,
+   "first": "2026-10-12",
+   "last": "2026-10-15"
+  },
+  "sub-mastermind": {
+   "n": 149,
+   "first": "2026-10-12",
+   "last": "2026-10-15"
+  },
+  "page": {
+   "n": 149,
+   "first": "2026-10-12",
+   "last": "2026-10-15"
+  },
+  "review": {
+   "n": 94,
+   "first": "2026-10-12",
+   "last": "2026-10-14"
+  },
+  "servex-mastermind": {
+   "n": 57,
+   "first": "2026-10-12",
+   "last": "2026-10-15"
+  }
+ },
+ "servexLog": "C:\\Users\\mike\\AppData\\Local\\lew42\\servex\\logs\\skills.jsonl",
+ "injectLines": 573,
+ "fallback": 8,
+ "roles": {
+  "minion": 93,
+  "clarity": 172,
+  "task-mastermind": 149,
+  "reviewer": 94,
+  "mastermind": 57,
+  "expert": 1,
+  "proof": 3,
+  "helper": 4
+ }
+}

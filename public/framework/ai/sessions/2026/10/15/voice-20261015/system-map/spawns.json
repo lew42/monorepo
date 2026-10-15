@@ -1,0 +1,223 @@
+{
+ "at": "2026-10-15T21:50:26.353Z",
+ "registry": "C:\\Users\\mike\\AppData\\Local\\lew42\\servex\\registry.json",
+ "agents": 2879,
+ "roles": [
+  {
+   "role": "minion",
+   "n": 998,
+   "cost": 48.81,
+   "first": "2026-09-22",
+   "last": "2026-10-15",
+   "parents": "task 716, (none: code or VS Code) 167, mastermind 61",
+   "models": "sonnet-5 433, ? 277, opus-5-5 87"
+  },
+  {
+   "role": "clarity",
+   "n": 607,
+   "cost": 12.7,
+   "first": "2026-09-25",
+   "last": "2026-10-15",
+   "parents": "(none: code or VS Code) 607",
+   "models": "sonnet-5 403, sonnet-5-5 204"
+  },
+  {
+   "role": "reviewer",
+   "n": 441,
+   "cost": 12.12,
+   "first": "2026-09-28",
+   "last": "2026-10-15",
+   "parents": "(none: code or VS Code) 410, task 29, mastermind 1",
+   "models": "opus-5-5 251, sonnet-5 142, sonnet-5-5 48"
+  },
+  {
+   "role": "task-mastermind",
+   "n": 331,
+   "cost": 213.35,
+   "first": "2026-09-22",
+   "last": "2026-10-15",
+   "parents": "(none: code or VS Code) 264, mastermind 40, vscode 21",
+   "models": "sonnet-5-5 129, opus-5-5 101, sonnet-5 80"
+  },
+  {
+   "role": "echo",
+   "n": 125,
+   "cost": 0,
+   "first": "2026-10-03",
+   "last": "2026-10-08",
+   "parents": "(none: code or VS Code) 125",
+   "models": "google/gemini-3.8-flash 114, sonnet-5 11"
+  },
+  {
+   "role": "mastermind",
+   "n": 107,
+   "cost": 36.02,
+   "first": "2026-09-25",
+   "last": "2026-10-15",
+   "parents": "(none: code or VS Code) 107",
+   "models": "sonnet-5-5 70, opus-5-5 25, sonnet-5 6"
+  },
+  {
+   "role": "helper",
+   "n": 66,
+   "cost": 3.07,
+   "first": "2026-10-01",
+   "last": "2026-10-15",
+   "parents": "(none: code or VS Code) 34, mastermind 32",
+   "models": "haiku-5-5 28, sonnet-5 23, opus-5-5 14"
+  },
+  {
+   "role": "session-fast",
+   "n": 43,
+   "cost": 0.09,
+   "first": "2026-09-30",
+   "last": "2026-10-14",
+   "parents": "(none: code or VS Code) 24, sessions 19",
+   "models": "sonnet-5 28, openai/gpt-6-luna 5, sonnet-5-5 5"
+  },
+  {
+   "role": "session-smart",
+   "n": 43,
+   "cost": 1.57,
+   "first": "2026-09-30",
+   "last": "2026-10-14",
+   "parents": "(none: code or VS Code) 24, sessions 19",
+   "models": "opus-5-5 17, sonnet-5 11, sonnet-5-5 10"
+  },
+  {
+   "role": "card-assistant",
+   "n": 29,
+   "cost": 0,
+   "first": "2026-09-25",
+   "last": "2026-10-06",
+   "parents": "(none: code or VS Code) 29",
+   "models": "sonnet-5 28, openai/gpt-6-luna 1"
+  },
+  {
+   "role": "checker",
+   "n": 28,
+   "cost": 0,
+   "first": "2026-09-28",
+   "last": "2026-09-28",
+   "parents": "(none: code or VS Code) 28",
+   "models": "haiku-4-5-20251001 14, sonnet-5 14"
+  },
+  {
+   "role": "voter",
+   "n": 21,
+   "cost": 0,
+   "first": "2026-09-28",
+   "last": "2026-09-28",
+   "parents": "(none: code or VS Code) 21",
+   "models": "haiku-4-5-20251001 9, sonnet-5 8, opus-5-5 4"
+  },
+  {
+   "role": "card-manager",
+   "n": 13,
+   "cost": 0,
+   "first": "2026-09-25",
+   "last": "2026-09-30",
+   "parents": "assistant 13",
+   "models": "opus-5-5 9, sonnet-5 4"
+  },
+  {
+   "role": "directory-mastermind",
+   "n": 8,
+   "cost": 0,
+   "first": "2026-10-04",
+   "last": "2026-10-05",
+   "parents": "(none: code or VS Code) 5, main 3",
+   "models": "opus-5-5 8"
+  },
+  {
+   "role": "agent",
+   "n": 6,
+   "cost": 0,
+   "first": "2026-09-25",
+   "last": "2026-09-30",
+   "parents": "task 5, (none: code or VS Code) 1",
+   "models": "sonnet 3, sonnet-5 3"
+  },
+  {
+   "role": "(none)",
+   "n": 4,
+   "cost": 0,
+   "first": null,
+   "last": null,
+   "parents": "(none: code or VS Code) 4",
+   "models": "? 4"
+  },
+  {
+   "role": "master-assistant",
+   "n": 2,
+   "cost": 0.06,
+   "first": "2026-09-24",
+   "last": "2026-10-15",
+   "parents": "(none: code or VS Code) 2",
+   "models": "? 1, sonnet-5-5 1"
+  },
+  {
+   "role": "assistant",
+   "n": 1,
+   "cost": 0.08,
+   "first": "2026-10-15",
+   "last": "2026-10-15",
+   "parents": "(none: code or VS Code) 1",
+   "models": "haiku-5-5 1"
+  },
+  {
+   "role": "dispatcher",
+   "n": 1,
+   "cost": 0,
+   "first": "2026-10-15",
+   "last": "2026-10-15",
+   "parents": "(none: code or VS Code) 1",
+   "models": "? 1"
+  },
+  {
+   "role": "expert",
+   "n": 1,
+   "cost": 0,
+   "first": "2026-09-29",
+   "last": "2026-09-29",
+   "parents": "(none: code or VS Code) 1",
+   "models": "sonnet-5 1"
+  },
+  {
+   "role": "expert-ask",
+   "n": 1,
+   "cost": 0,
+   "first": "2026-09-29",
+   "last": "2026-09-29",
+   "parents": "(none: code or VS Code) 1",
+   "models": "sonnet-5 1"
+  },
+  {
+   "role": "fixer",
+   "n": 1,
+   "cost": 0.22,
+   "first": "2026-10-15",
+   "last": "2026-10-15",
+   "parents": "(none: code or VS Code) 1",
+   "models": "sonnet-5-5 1"
+  },
+  {
+   "role": "sessions",
+   "n": 1,
+   "cost": 0,
+   "first": "2026-10-15",
+   "last": "2026-10-15",
+   "parents": "(none: code or VS Code) 1",
+   "models": "? 1"
+  },
+  {
+   "role": "fork",
+   "n": 1,
+   "cost": 0,
+   "first": "2026-10-06",
+   "last": "2026-10-06",
+   "parents": "task 1",
+   "models": "openai/gpt-6-luna 1"
+  }
+ ]
+}

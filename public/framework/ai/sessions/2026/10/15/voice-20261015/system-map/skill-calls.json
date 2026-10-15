@@ -1,0 +1,489 @@
+{
+ "at": "2026-10-15T21:48:44.477Z",
+ "dupes": 584,
+ "files": 9952,
+ "gb": 7.7,
+ "lines": 1296323,
+ "skills": [
+  {
+   "name": "minion",
+   "repoSkill": true,
+   "tool": 1149,
+   "slash": 0,
+   "inSubagent": 139,
+   "sessions": 1023,
+   "first": "2026-09-17",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "finish-task",
+   "repoSkill": true,
+   "tool": 645,
+   "slash": 0,
+   "inSubagent": 285,
+   "sessions": 360,
+   "first": "2026-09-01",
+   "last": "2026-10-14"
+  },
+  {
+   "name": "clarity",
+   "repoSkill": true,
+   "tool": 609,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 608,
+   "first": "2026-09-25",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "new-task",
+   "repoSkill": true,
+   "tool": 452,
+   "slash": 0,
+   "inSubagent": 268,
+   "sessions": 184,
+   "first": "2026-09-01",
+   "last": "2026-10-06"
+  },
+  {
+   "name": "compact",
+   "repoSkill": false,
+   "tool": 0,
+   "slash": 424,
+   "inSubagent": 0,
+   "sessions": 184,
+   "first": "2026-09-19",
+   "last": "2026-10-15"
+  },
+  {
+   "name": "content",
+   "repoSkill": true,
+   "tool": 397,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 397,
+   "first": "2026-09-25",
+   "last": "2026-10-15"
+  },
+  {
+   "name": "code",
+   "repoSkill": true,
+   "tool": 315,
+   "slash": 0,
+   "inSubagent": 151,
+   "sessions": 176,
+   "first": "2026-09-04",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "documentation",
+   "repoSkill": true,
+   "tool": 271,
+   "slash": 0,
+   "inSubagent": 155,
+   "sessions": 122,
+   "first": "2026-09-04",
+   "last": "2026-10-08"
+  },
+  {
+   "name": "sub-mastermind",
+   "repoSkill": true,
+   "tool": 245,
+   "slash": 0,
+   "inSubagent": 1,
+   "sessions": 243,
+   "first": "2026-09-22",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "css",
+   "repoSkill": true,
+   "tool": 193,
+   "slash": 0,
+   "inSubagent": 110,
+   "sessions": 91,
+   "first": "2026-09-01",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "page",
+   "repoSkill": true,
+   "tool": 179,
+   "slash": 0,
+   "inSubagent": 1,
+   "sessions": 177,
+   "first": "2026-09-25",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "mastermind",
+   "repoSkill": true,
+   "tool": 11,
+   "slash": 159,
+   "inSubagent": 0,
+   "sessions": 12,
+   "first": "2026-09-04",
+   "last": "2026-10-15"
+  },
+  {
+   "name": "check-claude-usage",
+   "repoSkill": true,
+   "tool": 153,
+   "slash": 0,
+   "inSubagent": 56,
+   "sessions": 98,
+   "first": "2026-09-04",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "layout",
+   "repoSkill": true,
+   "tool": 147,
+   "slash": 0,
+   "inSubagent": 92,
+   "sessions": 61,
+   "first": "2026-09-01",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "new-page",
+   "repoSkill": false,
+   "tool": 128,
+   "slash": 0,
+   "inSubagent": 60,
+   "sessions": 75,
+   "first": "2026-09-01",
+   "last": "2026-10-08"
+  },
+  {
+   "name": "ui-test",
+   "repoSkill": true,
+   "tool": 119,
+   "slash": 0,
+   "inSubagent": 101,
+   "sessions": 23,
+   "first": "2026-09-04",
+   "last": "2026-10-14"
+  },
+  {
+   "name": "new-css-class",
+   "repoSkill": true,
+   "tool": 92,
+   "slash": 0,
+   "inSubagent": 64,
+   "sessions": 34,
+   "first": "2026-09-04",
+   "last": "2026-10-02"
+  },
+  {
+   "name": "skill-improvement",
+   "repoSkill": true,
+   "tool": 75,
+   "slash": 0,
+   "inSubagent": 50,
+   "sessions": 29,
+   "first": "2026-09-04",
+   "last": "2026-10-03"
+  },
+  {
+   "name": "servex-mastermind",
+   "repoSkill": true,
+   "tool": 50,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 50,
+   "first": "2026-09-25",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "fans",
+   "repoSkill": false,
+   "tool": 44,
+   "slash": 0,
+   "inSubagent": 18,
+   "sessions": 28,
+   "first": "2026-09-04",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "figma:figma-use",
+   "repoSkill": false,
+   "tool": 29,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 28,
+   "first": "2026-10-13",
+   "last": "2026-10-15"
+  },
+  {
+   "name": "research",
+   "repoSkill": true,
+   "tool": 15,
+   "slash": 0,
+   "inSubagent": 10,
+   "sessions": 7,
+   "first": "2026-09-04",
+   "last": "2026-09-30"
+  },
+  {
+   "name": "every-prompt",
+   "repoSkill": true,
+   "tool": 11,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 3,
+   "first": "2026-09-19",
+   "last": "2026-09-29"
+  },
+  {
+   "name": "review",
+   "repoSkill": true,
+   "tool": 8,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 8,
+   "first": "2026-10-01",
+   "last": "2026-10-14"
+  },
+  {
+   "name": "figma-use",
+   "repoSkill": false,
+   "tool": 7,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 7,
+   "first": "2026-10-13",
+   "last": "2026-10-13"
+  },
+  {
+   "name": "claude-api",
+   "repoSkill": false,
+   "tool": 6,
+   "slash": 0,
+   "inSubagent": 2,
+   "sessions": 6,
+   "first": "2026-09-04",
+   "last": "2026-10-05"
+  },
+  {
+   "name": "auditor",
+   "repoSkill": true,
+   "tool": 4,
+   "slash": 0,
+   "inSubagent": 1,
+   "sessions": 4,
+   "first": "2026-09-19",
+   "last": "2026-10-03"
+  },
+  {
+   "name": "system-architect",
+   "repoSkill": true,
+   "tool": 4,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 4,
+   "first": "2026-10-09",
+   "last": "2026-10-15"
+  },
+  {
+   "name": "openrouter",
+   "repoSkill": true,
+   "tool": 4,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 4,
+   "first": "2026-09-29",
+   "last": "2026-10-06"
+  },
+  {
+   "name": "ui",
+   "repoSkill": true,
+   "tool": 4,
+   "slash": 0,
+   "inSubagent": 2,
+   "sessions": 4,
+   "first": "2026-10-01",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "dataviz",
+   "repoSkill": false,
+   "tool": 3,
+   "slash": 0,
+   "inSubagent": 1,
+   "sessions": 3,
+   "first": "2026-09-30",
+   "last": "2026-10-03"
+  },
+  {
+   "name": "decide",
+   "repoSkill": true,
+   "tool": 3,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 3,
+   "first": "2026-09-30",
+   "last": "2026-10-08"
+  },
+  {
+   "name": "color",
+   "repoSkill": true,
+   "tool": 3,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 3,
+   "first": "2026-09-30",
+   "last": "2026-10-02"
+  },
+  {
+   "name": "navigation",
+   "repoSkill": true,
+   "tool": 2,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 2,
+   "first": "2026-10-01",
+   "last": "2026-10-05"
+  },
+  {
+   "name": "past-work",
+   "repoSkill": true,
+   "tool": 2,
+   "slash": 0,
+   "inSubagent": 1,
+   "sessions": 2,
+   "first": "2026-10-12",
+   "last": "2026-10-12"
+  },
+  {
+   "name": "workflow-authoring",
+   "repoSkill": false,
+   "tool": 1,
+   "slash": 1,
+   "inSubagent": 0,
+   "sessions": 2,
+   "first": "2026-09-19",
+   "last": "2026-10-09"
+  },
+  {
+   "name": "model",
+   "repoSkill": false,
+   "tool": 0,
+   "slash": 2,
+   "inSubagent": 0,
+   "sessions": 2,
+   "first": "2026-09-19",
+   "last": "2026-09-23"
+  },
+  {
+   "name": "naming",
+   "repoSkill": false,
+   "tool": 2,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 2,
+   "first": "2026-09-29",
+   "last": "2026-09-29"
+  },
+  {
+   "name": "assistant",
+   "repoSkill": false,
+   "tool": 0,
+   "slash": 2,
+   "inSubagent": 0,
+   "sessions": 2,
+   "first": "2026-09-19",
+   "last": "2026-09-19"
+  },
+  {
+   "name": "monorepo:minion",
+   "repoSkill": false,
+   "tool": 1,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 1,
+   "first": "2026-09-29",
+   "last": "2026-09-29"
+  },
+  {
+   "name": "monorepo:new-task",
+   "repoSkill": false,
+   "tool": 1,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 1,
+   "first": "2026-09-29",
+   "last": "2026-09-29"
+  },
+  {
+   "name": "mcp",
+   "repoSkill": false,
+   "tool": 0,
+   "slash": 1,
+   "inSubagent": 0,
+   "sessions": 1,
+   "first": "2026-09-24",
+   "last": "2026-09-24"
+  },
+  {
+   "name": "autocompact",
+   "repoSkill": false,
+   "tool": 0,
+   "slash": 1,
+   "inSubagent": 0,
+   "sessions": 1,
+   "first": "2026-10-09",
+   "last": "2026-10-09"
+  },
+  {
+   "name": "master-assistant",
+   "repoSkill": true,
+   "tool": 1,
+   "slash": 0,
+   "inSubagent": 1,
+   "sessions": 1,
+   "first": "2026-09-19",
+   "last": "2026-09-19"
+  },
+  {
+   "name": "voice-mastermind",
+   "repoSkill": true,
+   "tool": 1,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 1,
+   "first": "2026-10-15",
+   "last": "2026-10-15"
+  },
+  {
+   "name": "fork-claude-session",
+   "repoSkill": true,
+   "tool": 0,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 0,
+   "first": null,
+   "last": null
+  },
+  {
+   "name": "log-assistant",
+   "repoSkill": true,
+   "tool": 0,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 0,
+   "first": null,
+   "last": null
+  },
+  {
+   "name": "make",
+   "repoSkill": true,
+   "tool": 0,
+   "slash": 0,
+   "inSubagent": 0,
+   "sessions": 0,
+   "first": null,
+   "last": null
+  }
+ ]
+}

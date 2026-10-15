@@ -1,0 +1,11 @@
+{"assign":{"session_id":"582b5047-924f-4974-a8d2-da3e99db8827","agent":"helper-system-map","card":"2026/10/15/voice-session-2026-10-15-16-42","brief":"public/framework/ai/sessions/2026/10/15/voice-20261015/ask-8c18b60c.md","model":"claude-opus-5-5","parent_task":"public/framework/ai/sessions/2026/10/15/voice-20261015","requested_at":"2026-10-15T16:44:08-05:00","now":"starting","steps":[],"step":1}}
+{"log":{"at":"2026-10-15T16:44:41-05:00","msg":"skill: system-architect"}}
+{"log":{"at":"2026-10-15T21:44:49.234Z","msg":"researching: measuring skills/hooks/readmes by script"}}
+{"log":{"at":"2026-10-15T21:46:04.882Z","msg":"transcript skill-call count done (scripts/skill-calls.mjs); reading Servex roles, hooks, triggers"}}
+{"log":{"at":"2026-10-15T21:47:35.303Z","msg":"ledger + servex skill logs counted (scripts/skill-logs.mjs); spawn/trigger sites gathered; transcript recount running (lowercase c-- dir was missed first time)"}}
+{"log":{"at":"2026-10-15T21:49:04.051Z","msg":"transcript skill counts final (9952 files, 7.7 GB, deduped by tool_use id); now: doc path-claim checker"}}
+{"log":{"at":"2026-10-15T21:49:49.607Z","msg":"doc path check done: 1772 paths in 66 docs, 107 not found (scripts/doc-paths.mjs); now verifying CLAUDE.md behavioural claims"}}
+{"log":{"at":"2026-10-15T21:51:07.481Z","msg":"spawn census from Servex registry (scripts/spawns.mjs, 2879 ids); claims verified; joining skill table"}}
+{"action":{"at":"2026-10-15T16:53:08-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/15/voice-20261015/system-map/map.md"]}}
+{"log":{"at":"2026-10-15T21:53:19.065Z","msg":"map.md written; committing task dir only"}}
+{"assign":{"step":1,"landed_at":"2026-10-15T21:53:39.362Z","outcome":"**AI system map** — [map.md](/framework/ai/sessions/2026/10/15/voice-20261015/system-map/map.md): 29 systems, spawn/trigger/timer tables with file:line, 33 skills counted from transcripts + ledger hook + Servex inlines (20 working, 7 unverifiable, 6 stale), 107 unresolved doc paths and 13 hand-checked behaviour claims. Scripts in scripts/."}}
