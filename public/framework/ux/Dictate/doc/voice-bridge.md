@@ -35,7 +35,7 @@ Build Road 1 as a one-tool test first (`ask_mastermind`: send a question, wait u
 ## Try it
 
 Built: `Servex/ext/remote/RemoteMCP.js` (`class RemoteMCP`, `POST /mcp/remote`, one tool `ask_mastermind`, bearer token) and `Server/Tunnel.mjs` (`up`, `down`, `status`: a free Cloudflare quick tunnel). The tunnel points at a small gateway that passes only `/mcp/remote`; every other path is a 404. The token is `%LOCALAPPDATA%lew42servex
-emote.token`. Because the app's connector dialog likely has no header field, `remote.url` holds the whole URL with the token already in its path (`.../mcp/remote/<token>`); the endpoint also accepts `Authorization: Bearer <token>`. The URL changes each time the tunnel starts, and anyone holding it can ask the mastermind a question: do not paste it anywhere public. `Tunnel.mjs up` runs in the foreground (leave that terminal open; `down` stops it). The mastermind to ask is the first live run mastermind, or the id in `remote.target`. Replies are files in `remote-replies/` beside the token.
+emote.token`. Because the app's connector dialog likely has no header field, `remote.url` holds the whole URL with the token already in its path (`.../mcp/remote/<token>`); the endpoint also accepts `Authorization: Bearer <token>`. The URL changes each time the tunnel starts, and anyone holding it can ask the mastermind a question: do not paste it anywhere public. `Tunnel.mjs up` runs in the foreground (leave that terminal open; `down` stops it). The mastermind to ask is one per voice session (see "One mastermind per voice session" below), unless `remote.target` or `REMOTE_MCP_TARGET` names a fixed agent. Replies are files in `remote-replies/` beside the token.
 
 1. In the Claude app: Settings, Connectors, Add custom connector. Paste the whole URL from `remote.url` (token included). If the dialog does offer a bearer or header field, use the URL without the last path part and send `remote.token` there.
 2. In a voice chat, say "ask the mastermind what landed today".
@@ -49,3 +49,11 @@ The address today is a 256-bit random secret: nobody guesses it; the only risk i
 - **Now, twenty minutes:** one secret per person or device (a small `remote.keys.json` beside `remote.token`, each key named), so `ai/log.jsonl` says which key called, and one key can be revoked without touching the others.
 - **When the connector stays around, about an hour:** Cloudflare Access in front of the tunnel (free for 50 users; needs the owner's domain on Cloudflare). Access is the login (Google or an emailed one-time code), speaks OAuth to the Claude app, and the gateway reads the signed identity header, so the log names the person and the address stops being secret at all.
 - Either way the gateway keeps its own line per call (who, tool, when, ms) in `ai/log.jsonl`, and the owner can read it on the log page.
+
+## One mastermind per voice session
+
+- **How it is chosen:** `initialize` mints a session id (the `Mcp-Session-Id` header); the first `ask_mastermind` in a session spawns a Sonnet mastermind `voice-<short id>` (sleeps after 10 minutes, wakes on the next question); later questions go to it. No header means the day's session, `voice-YYYY-MM-DD`. `remote.target` / `REMOTE_MCP_TARGET` still force one fixed agent for every session.
+- **What survives a restart:** the map session to agent lives in `remote.sessions.json` beside the token; a stopped or landed agent is replaced by a fresh one for that session.
+- **Where it logs:** the agent's own `task.jsonl` under `ai/sessions/YYYY/MM/DD/voice-<short id>/` holds every question and answer as `chat` lines (written by the gateway) plus the agent's work; each call is also one `remote_mcp` line in `ai/log.jsonl` with the session and agent ids.
+- **Finding it:** open the Sessions page (`/framework/ai/sessions/`) and look for the card "Voice session <date time>"; when an answer takes over a minute the reply names that task page.
+- **Tests:** `node Servex/ext/remote/RemoteMCP.test.mjs`.
