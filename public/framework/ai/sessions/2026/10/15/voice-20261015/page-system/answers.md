@@ -2,6 +2,40 @@
 
 These answer the page questions in [ask-ea3d4c58.md](../ask-ea3d4c58.md) (section A) and the children question from voice ask 3bb94c8c. Minions read the code: [trace](answers/trace/out.md) (Haiku), [opinions](answers/opinion/out.md) (Sonnet) and [debug views](answers/debug-views/out.md) (Haiku). I spot-checked the decisive lines. The ideas are kept in [core/Page/doc/vision.md](/framework/core/Page/doc/vision.md). Earlier answers: [report.md](report.md), [followup.md](followup.md).
 
+## 00. The class architecture: Item, List, Page
+
+```js
+class Item extends Events(Object)    // a thing: id, data, set(delta), lists(), walk(), save()
+class List extends Item              // an ordered set: owner, name, items[], add/insert/move/remove/find(id)
+class Page extends Item              // an Item with a url: name, url
+  pages    : List "pages"            //   the child pages (page.pages.items)
+  children : PageChildren (a Map)    //   the old name: a Map over the same pages
+  content  : List (Page.Content)     //   the body, a list of parts
+```
+
+`pages` is **not** an alias of `items`: an Item has no `items` field. `items` is the array inside any List, and a Page owns two Lists, `pages` and `content`. The full picture, with the main API and file lines, now sits at the top of [core/Page/doc/classes.md](/framework/core/Page/doc/classes.md).
+
+## 0b. How page.jsonl pages reach their child pages
+
+**Today:** there are two ways.
+
+```jsonl
+{"file":"kid/page.jsonl"}                        // a child in its own folder: a stub in children, loaded when the url reaches it
+{"tab":{"name":"notes","title":"Notes"}}         // a child with no folder: a Page made from the line itself
+```
+
+Neither is a List line. The child pages land in `page.pages` through `add()`, but the log never says `{"pages":{"add":…}}`. Content does use list lines: `{"content":{"add":{…}}}` adds an Item to `page.content`. So children and content are written two different ways, and only content gets ids, `after` and `move`.
+
+**Could:** children could be written as list lines on `pages`, the same verbs content uses. A folder child carries a `file` reference; an embedded child carries its own data:
+
+```jsonl
+{"pages":{"add":{"id":"kid","file":"kid/page.jsonl"}}}
+{"pages":{"add":{"id":"notes","title":"Notes","content":"…"}}}
+{"pages":{"move":{"id":"notes","after":"kid"}}}
+```
+
+**Should (my opinion):** yes, eventually, because it is one model for every list: a page's children would then be ordered, moved and removed by id exactly like its content, and `page.children` (the Map) could retire, as [content.md](/framework/core/Page/doc/content.md) already plans. It is not urgent. 55 files use `file` lines and the page tools write them (`Servex/agents/Subpages.js`), so the change means: teach `Jsonl.js` to read `pages` lines, keep reading `file` and `tab` lines forever, and switch the writer. The alternative is to keep `file` lines. That wins while nobody needs to reorder child pages in a log; today none do.
+
 ## 0. What a children list looks like in page.jsonl
 
 A `page.js` names its children in one string. A `page.jsonl` names each child with its own `file` line:

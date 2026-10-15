@@ -1,5 +1,38 @@
 # The core/Page classes
 
+## The class architecture: Item, List, Page
+
+An `Item` is a thing with an id, data and events. A `List` is an Item that holds other Items in order. A `Page` is an Item with a url, and it owns two Lists: its child pages and its content.
+
+```js
+class Item extends Events(Object)        // core/Item/Item.js:21: a thing
+  id, data, parent                       // identity; data is a plain bag
+  set(delta) get(key) apply(delta)       // every change is a delta, so a log line can replay it
+  lists()  walk(fn)  find(id)  root()    // the tree: any List the item OWNS is a child list
+  view  save()  delete()  toJSON()       // draw it, persist it
+
+class List extends Item                  // core/List/List.js:53: an ordered set of Items
+  owner, name                            // the Item that owns it, and the field it sits in
+  items                                  // the array of members
+  add() insert() move() remove() find(id)   // by id, never by position
+
+class Page extends Item                  // Page.class.js:32: an Item with a url
+  name, url                              // "hello", "/framework/hello/" (:249-252); chain() walks to the root
+  pages    = new List({ name: "pages" })     // :112  THE child pages (each one a Page)
+  children = new PageChildren(this)          // :114  a Map view over pages: children.get("hello")
+  content  = new Page.Content()              // :83   the body, a List of parts
+  declare() add() child(name) load_all_children()   // children: declare names, load one, load all
+  static load() jsonl() listing()        // loading: page.js, page.jsonl, the folder listing
+  render() activate() nav() columns() previews()    // drawing and links (most forward to parts below)
+  set() tab() place()                    // a page.jsonl line, applied (forwards to Page.Jsonl)
+```
+
+**Is `pages` an alias of `items`?** No. An Item has no `items` field of its own; `items` is the array inside a List. A Page owns a List named `pages`, so its child pages are `page.pages.items`. Its content is another List, `page.content.items`. `page.children` is the old name: a Map over the same `pages` list, kept for the many callers that do `children.get(name)` ([content.md](content.md) has the plan to retire it).
+
+**How jsonl children map onto this:** each `{"file":"kid/page.jsonl"}` line puts a `kid` stub in `children` (`Jsonl.js:80-90`); when the url reaches it, `child("kid")` loads the file and `add()` puts the real Page into `pages`. A `{"tab":{"name":"notes",…}}` line adds a child Page with no folder of its own (`Jsonl.js:100-124`). Content parts are different: a `{"content":{"add":{…}}}` line adds an Item to `content`. The full answer, including what could change, is [answers.md, section 0b](/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers.md).
+
+## The parts of Page (the 23 files)
+
 `Page` is the class; the other files in `core/Page/` are its parts, attached to it as static members or used by it.
 
 ```js
