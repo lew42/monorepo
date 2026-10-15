@@ -3,3 +3,10 @@
 {"log":{"at":"2026-10-15T15:58:16-05:00","heartbeat":"check","msg":"status check sent to minion-usage-pace-line"}}
 {"log":{"at":"2026-10-15T15:58:50-05:00","heartbeat":"answered","msg":"I'm finished, and I'm not doing anything now. The change is committed as `e03a9918e` on branch `worktree/qf-4`, and the smoke test is logged in the task's `task.jsonl`.\n\n`Server/usage-now.mjs` now pri"}}
 {"log":{"at":"2026-10-15T16:10:10-05:00","msg":"task-loop chase 1 of 2: woke minion-usage-pace-line","chase":1}}
+{"log":{"at":"2026-10-15T16:17:17-05:00","heartbeat":"check","msg":"status check sent to minion-usage-pace-line"}}
+{"log":{"at":"2026-10-15T16:22:17-05:00","heartbeat":"revive-queued","msg":"minion-usage-pace-line it did not answer the status check; a revive is queued"}}
+{"log":{"at":"2026-10-15T16:22:17-05:00","heartbeat":"revive","msg":"revived minion-usage-pace-line from session 8f866486-fd7c-4858-a4ec-5beceae2145f"}}
+{"log":{"at":"2026-10-15T16:22:51-05:00","heartbeat":"answered","msg":"Done and idle. Commit `e03a9918e` on branch `worktree/qf-4` is waiting for mastermind-voice-opus to review and merge it.\n\nI haven't landed the task in `task.jsonl`, because the brief leaves the merge "}}
+{"log":{"at":"2026-10-15T16:22:19-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T16:22:19-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T16:22:19-05:00","msg":"session ended (other) without landing"}}
