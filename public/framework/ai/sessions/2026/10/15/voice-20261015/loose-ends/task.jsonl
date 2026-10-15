@@ -2,3 +2,10 @@
 {"action":{"at":"2026-10-15T16:45:26-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/15/voice-20261015/loose-ends/scan-left.mjs"]}}
 {"action":{"at":"2026-10-15T16:46:50-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/15/voice-20261015/loose-ends/answer.md"]}}
 {"log":{"at":"2026-10-15T00:00:00Z","task":"loose-ends","msg":"item D answered: answer.md traces owner-wait text; scan-left.mjs counts (688 task files, 342 landed, 94 landed with wait/left, 0 owner_note lines in those tasks)"}}
+{"log":{"at":"2026-10-15T16:49:11-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T16:49:11-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T16:52:57-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T16:58:48-05:00","heartbeat":"check","msg":"status check sent to helper-loose-ends"}}
+{"log":{"at":"2026-10-15T16:58:50-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T16:59:21-05:00","heartbeat":"answered","msg":"Item D is done: answer.md is written and committed as `c8ed18eb0`, with the scan script and the log line in the loose-ends dir. Nothing else is pending for this helper. The fix is a decision for the o"}}
+{"log":{"at":"2026-10-15T17:02:56-05:00","msg":"session ended (other) without landing"}}

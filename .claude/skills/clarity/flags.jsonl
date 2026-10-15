@@ -1011,3 +1011,8 @@
 {"at":"2026-10-15T20:51:27.486Z","target":"public/framework/ai/sessions/2026/10/15/voice-opus/usage-pace-line/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-10-15T20:52:28.486Z","target":"public/framework/ai/sessions/2026/10/15/voice-opus/usage-pace-line/requirements.md","verdict":"spawned","to":"clarity-usage-pace-line"}
 {"at":"2026-10-15T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/15/voice-opus/usage-pace-line/requirements.md","verdict":"clear","what":"Proposal is plain: exact first line, scope, smoke test, and exclusions stated; text-check clean.","to":"none"}
+{"at":"2026-10-15T21:53:47.145Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/system-map","verdict":"skipped","what":"a sub-task: its parent task gets the one check"}
+{"at":"2026-10-15T21:58:02.515Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015/ai-systems","verdict":"skipped","what":"a sub-task: its parent task gets the one check"}
+{"at":"2026-10-15T21:58:24.074Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015","verdict":"queued","kind":"landing"}
+{"at":"2026-10-15T21:58:24.169Z","target":"public/framework/ai/sessions/2026/10/15/voice-20261015","verdict":"spawned","to":"clarity-voice-20261015"}
+{"at":"2026-10-15T17:05:00-05:00","target":"public/framework/ai/sessions/2026/10/15/voice-20261015","verdict":"rewrote","what":"outcome rewritten as ask checklist with proof; verbatim ask files left intact","to":"task.jsonl"}

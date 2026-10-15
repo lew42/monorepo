@@ -3,3 +3,5 @@
 {"log":{"at":"2026-10-15T16:56:29-05:00","task":"page-system","msg":"measured a deep session url headless (about 1,000 requests, 10 of them the router walk); counted page.js vs page.jsonl per week; found 13 unlanded page tasks; waiting on the last doc audit"}}
 {"action":{"at":"2026-10-15T16:57:21-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/report.md"]}}
 {"log":{"at":"2026-10-15T16:57:31-05:00","task":"page-system","msg":"wrote report.md: six answers on one screen, tables A-F below; committing the task dir"}}
+{"log":{"at":"2026-10-15T17:01:07-05:00","task":"page-system","msg":"took follow-up ask 0f679acf (page.js/json/jsonl, child indexing, nested subpages, readme gaps, work ledger); sending reads to Haiku"}}
+{"action":{"at":"2026-10-15T17:03:24-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/ledger.mjs"]}}
