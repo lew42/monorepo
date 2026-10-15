@@ -1,0 +1,1629 @@
+{
+ "C stopped by the owner, never closed": [
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/chat-autoscroll/chat-autoscroll",
+   "agent": "minion-chat-autoscroll",
+   "role": "minion",
+   "stopped_by": "owner",
+   "silent_h": 306,
+   "lines": 30,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/chat-menu-merge/chat-menu-merge",
+   "agent": "minion-chat-menu-merge",
+   "role": "minion",
+   "stopped_by": "owner",
+   "silent_h": 306,
+   "lines": 33,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/clean-dictate-mode/clean-dictate-mode",
+   "agent": "minion-clean-dictate-mode",
+   "role": "minion",
+   "stopped_by": "owner",
+   "silent_h": 332,
+   "lines": 49,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/context-card-type/context-card-type",
+   "agent": "minion-context-card-type",
+   "role": "minion",
+   "stopped_by": "owner",
+   "silent_h": 306,
+   "lines": 20,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/dictate-pulse-dot/dictate-pulse-dot",
+   "agent": "minion-dictate-pulse-dot",
+   "role": "minion",
+   "stopped_by": "owner",
+   "silent_h": 306,
+   "lines": 24,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness",
+   "agent": "task-mastermind-openrouter",
+   "role": "task-mastermind",
+   "stopped_by": "owner",
+   "silent_h": 329,
+   "lines": 381,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library",
+   "agent": "minion-test-library",
+   "role": "minion",
+   "stopped_by": "owner",
+   "silent_h": 332,
+   "lines": 134,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids/devtools-inline-css",
+   "agent": "task-mastermind-framework-home-grids",
+   "role": "task-mastermind",
+   "stopped_by": "owner",
+   "silent_h": null,
+   "lines": 6,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids/grid-fill",
+   "agent": "task-mastermind-framework-home-grids",
+   "role": "task-mastermind",
+   "stopped_by": "owner",
+   "silent_h": null,
+   "lines": 9,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids/layout-labels",
+   "agent": "task-mastermind-framework-home-grids",
+   "role": "task-mastermind",
+   "stopped_by": "owner",
+   "silent_h": null,
+   "lines": 8,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/framework-home-grids/framework-home-grids",
+   "agent": "task-mastermind-framework-home-grids",
+   "role": "task-mastermind",
+   "stopped_by": "owner",
+   "silent_h": 257,
+   "lines": 152,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/ptt-proof",
+   "agent": "minion-ptt-proof",
+   "role": "minion",
+   "stopped_by": "owner",
+   "silent_h": 257,
+   "lines": 43,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/04/new-brain/new-brain",
+   "agent": "task-mastermind-new-brain",
+   "role": "task-mastermind",
+   "stopped_by": "owner",
+   "silent_h": 257,
+   "lines": 22,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/05/dictate-live-state/dictate-live-state",
+   "agent": "task-mastermind-dictate-live-state",
+   "role": "task-mastermind",
+   "stopped_by": "owner",
+   "silent_h": 238,
+   "lines": 69,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/05/dictate-one-engine/dictate-one-engine",
+   "agent": "task-mastermind-dictate-one-engine",
+   "role": "task-mastermind",
+   "stopped_by": "owner",
+   "silent_h": 238,
+   "lines": 37,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/05/openrouter-agent-trial/openrouter-agent-trial",
+   "agent": "task-mastermind-openrouter-agent-trial",
+   "role": "task-mastermind",
+   "stopped_by": "owner",
+   "silent_h": 219,
+   "lines": 20,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/05/voice-pipeline/voice-pipeline",
+   "agent": "task-mastermind-voice-pipeline",
+   "role": "task-mastermind",
+   "stopped_by": "owner",
+   "silent_h": 242,
+   "lines": 44,
+   "dashboard": true
+  }
+ ],
+ "G no agent on record (VS Code / manual)": [
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/never-lose-a-wake",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 310,
+   "lines": 29,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/card-pipeline-2",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 308,
+   "lines": 2,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/known-issues",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 307,
+   "lines": 3,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 310,
+   "lines": 53,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/session-costs",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 305,
+   "lines": 31,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/stamped-logs",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 307,
+   "lines": 2,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/standing-voice-pair",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 306,
+   "lines": 2,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/token-reduction",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 297,
+   "lines": 34,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/main-branch-guard",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 282,
+   "lines": 2,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/merge-commits",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/node-reap-run",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/openrouter-reads-cache",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 282,
+   "lines": 3,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/perf-audit",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 282,
+   "lines": 2,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/phone-server",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/pool-unstick",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 292,
+   "lines": 2,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/restart-keeps-agents",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 289,
+   "lines": 3,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/retire-ai2",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 268,
+   "lines": 7,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/review-empty-diff",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/spawn-logs-ask",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/spend-gate",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 281,
+   "lines": 4,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/spend-shape",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/task-audit/task-audit/auditor-deepseek",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 308,
+   "lines": 6,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/worktree-servers-revive",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/06/feedback-council",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 229,
+   "lines": 13,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/07/feedback-council",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 185,
+   "lines": 7,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/08/feedback-council",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 161,
+   "lines": 5,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/feedback-council",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 142,
+   "lines": 7,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/demo-class",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/edit-mode-class",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/files-class",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/grip-class",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/highlight-class",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/markdown-class",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/openrouter-class",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/servex-home-class",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/source-text-class",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/task-record-class",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/feedback-council-2",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 72,
+   "lines": 4,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/live-server",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 73,
+   "lines": 4,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 21,
+   "lines": 24,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/rail-bug",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 47,
+   "lines": 9,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/seen-day",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 7,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim",
+   "agent": null,
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 0,
+   "lines": 233,
+   "dashboard": true
+  }
+ ],
+ "D stopped by its parent or Servex": [
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/models-page",
+   "agent": "minion-openrouter-rules",
+   "role": "minion",
+   "stopped_by": "task-mastermind-openrouter",
+   "silent_h": 329,
+   "lines": 33,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/pairs/line-filter-cheap",
+   "agent": "minion-lf-deepseek",
+   "role": "minion",
+   "stopped_by": "task-mastermind-openrouter",
+   "silent_h": 329,
+   "lines": 2,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/pairs/line-filter-sonnet",
+   "agent": "minion-lf-sonnet",
+   "role": "minion",
+   "stopped_by": "task-mastermind-openrouter",
+   "silent_h": 329,
+   "lines": 17,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/pairs/models-ladder-cheap",
+   "agent": "minion-ml-deepseek",
+   "role": "minion",
+   "stopped_by": "task-mastermind-openrouter",
+   "silent_h": 329,
+   "lines": 15,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/pairs/models-ladder-sonnet",
+   "agent": "minion-ml-sonnet",
+   "role": "minion",
+   "stopped_by": "task-mastermind-openrouter",
+   "silent_h": 329,
+   "lines": 18,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/rule-tests",
+   "agent": "minion-openrouter-rules",
+   "role": "minion",
+   "stopped_by": "task-mastermind-openrouter",
+   "silent_h": 349,
+   "lines": 64,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/wire-provider",
+   "agent": "minion-openrouter-wire",
+   "role": "minion",
+   "stopped_by": "task-mastermind-openrouter",
+   "silent_h": 329,
+   "lines": 45,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/minion-part2",
+   "agent": "minion-inspect-part2",
+   "role": "minion",
+   "stopped_by": "task-mastermind-inspect",
+   "silent_h": 329,
+   "lines": 24,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/framework-home/minion-build",
+   "agent": "minion-framework-home",
+   "role": "minion",
+   "stopped_by": "task-mastermind-framework-home",
+   "silent_h": 309,
+   "lines": 63,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/node-reap/server-guard",
+   "agent": "minion-server-guard",
+   "role": "minion",
+   "stopped_by": "task-mastermind-node-reap",
+   "silent_h": 299,
+   "lines": 9,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/page-extends-item/page-extends-item/item-core",
+   "agent": "minion-item-core",
+   "role": "minion",
+   "stopped_by": "task-mastermind-page-extends-item",
+   "silent_h": 309,
+   "lines": 18,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/016756ee-1cb3-4b42-b20f-3ef5f0659261/data-grid/build",
+   "agent": "minion-data-grid-build",
+   "role": "minion",
+   "stopped_by": "task-mastermind-data-grid",
+   "silent_h": 257,
+   "lines": 54,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/minion-echo",
+   "agent": "minion-echo",
+   "role": "minion",
+   "stopped_by": "lifecycle",
+   "silent_h": 307,
+   "lines": 37,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/27c6d3f8-966a-4f02-af7e-adca62396810/subcard-columns/minion-build",
+   "agent": "minion-subcard-columns-build",
+   "role": "minion",
+   "stopped_by": "task-mastermind-subcard-columns",
+   "silent_h": 257,
+   "lines": 17,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/588af12b-12cf-4166-a7a4-a6cfa504194b/layout-gate/link-and-gate",
+   "agent": "minion-link-and-gate",
+   "role": "minion",
+   "stopped_by": "task-mastermind-layout-gate",
+   "silent_h": 257,
+   "lines": 37,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/ptt-wiring",
+   "agent": "minion-ptt-wiring",
+   "role": "minion",
+   "stopped_by": "servex-budget",
+   "silent_h": 257,
+   "lines": 46,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk",
+   "agent": "task-mastermind-push-to-talk",
+   "role": "task-mastermind",
+   "stopped_by": "task-mastermind-one-dictation",
+   "silent_h": 257,
+   "lines": 104,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/04/message-cost/message-cost/minion-cost-model",
+   "agent": "minion-message-cost-model",
+   "role": "minion",
+   "stopped_by": "task-mastermind-message-cost",
+   "silent_h": 257,
+   "lines": 18,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/04/message-cost/message-cost/minion-view",
+   "agent": "minion-message-cost-view",
+   "role": "minion",
+   "stopped_by": "task-mastermind-message-cost",
+   "silent_h": 257,
+   "lines": 19,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs/dictation-map",
+   "agent": "minion-dictation-map",
+   "role": "minion",
+   "stopped_by": "mastermind-ai-system-docs",
+   "silent_h": 142,
+   "lines": 22,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/categorise-1",
+   "agent": "helper-categorise-1",
+   "role": "helper",
+   "stopped_by": "mastermind-task-audit",
+   "silent_h": 142,
+   "lines": 28,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/categorise-2",
+   "agent": "helper-categorise-2",
+   "role": "helper",
+   "stopped_by": "mastermind-task-audit",
+   "silent_h": 142,
+   "lines": 28,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/categorise-3",
+   "agent": "helper-categorise-3",
+   "role": "helper",
+   "stopped_by": "mastermind-task-audit",
+   "silent_h": 142,
+   "lines": 28,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/categorise-4",
+   "agent": "helper-categorise-4",
+   "role": "helper",
+   "stopped_by": "mastermind-task-audit",
+   "silent_h": 142,
+   "lines": 28,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/fix-1",
+   "agent": "helper-fix-1",
+   "role": "helper",
+   "stopped_by": "mastermind-task-audit",
+   "silent_h": 142,
+   "lines": 28,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/fix-2",
+   "agent": "helper-fix-2",
+   "role": "helper",
+   "stopped_by": "mastermind-task-audit",
+   "silent_h": 142,
+   "lines": 28,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/summarise",
+   "agent": "helper-summarise",
+   "role": "helper",
+   "stopped_by": "mastermind-task-audit",
+   "silent_h": 142,
+   "lines": 28,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/09/session-060cdfff/page-mastermind/streaming-doc",
+   "agent": "minion-page-streaming-doc",
+   "role": "minion",
+   "stopped_by": "mastermind-page-system",
+   "silent_h": 142,
+   "lines": 7,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-3b391f22/claude-md-consolidate/review",
+   "agent": "minion-claude-md-review",
+   "role": "minion",
+   "stopped_by": "lifecycle",
+   "silent_h": 74,
+   "lines": 30,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/grid-core",
+   "agent": "minion-grid-core",
+   "role": "minion",
+   "stopped_by": "mastermind-data-grid",
+   "silent_h": 48,
+   "lines": 12,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-adopt",
+   "agent": "minion-sessions-adopt",
+   "role": "minion",
+   "stopped_by": "mastermind-data-grid",
+   "silent_h": 48,
+   "lines": 10,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/sessions-perf",
+   "agent": "minion-sessions-perf",
+   "role": "minion",
+   "stopped_by": "mastermind-data-grid",
+   "silent_h": 72,
+   "lines": 10,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-87bec773/ui-library/widen",
+   "agent": "minion-library-widen",
+   "role": "minion",
+   "stopped_by": "mastermind-ui-library",
+   "silent_h": 72,
+   "lines": 3,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/build",
+   "agent": "minion-page-ai-api-build",
+   "role": "minion",
+   "stopped_by": "mastermind-page-ai-api",
+   "silent_h": 74,
+   "lines": 26,
+   "dashboard": false
+  }
+ ],
+ "F agent asleep, task silent > 24 h": [
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/drawer-close",
+   "agent": "task-mastermind-one-dictation",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 313,
+   "lines": 12,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/page-tools",
+   "agent": "task-mastermind-page-tools",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 303,
+   "lines": 13,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/02/servex-mastermind",
+   "agent": "mastermind-servex-10",
+   "role": "mastermind",
+   "stopped_by": null,
+   "silent_h": 299,
+   "lines": 13,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/04/message-cost/message-cost",
+   "agent": "task-mastermind-message-cost",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 273,
+   "lines": 138,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/04/web-benchmarks/web-benchmarks",
+   "agent": "task-mastermind-web-benchmarks",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 259,
+   "lines": 83,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/08/live-not-polling/live-not-polling",
+   "agent": "minion-live-not-polling",
+   "role": "minion",
+   "stopped_by": null,
+   "silent_h": 168,
+   "lines": 49,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/08/prompt-audit/prompt-audit",
+   "agent": "minion-prompt-audit",
+   "role": "minion",
+   "stopped_by": null,
+   "silent_h": 171,
+   "lines": 115,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/adopt",
+   "agent": "task-mastermind-figma-adopt",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 70,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/builder",
+   "agent": "task-mastermind-fig-builder",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 46,
+   "lines": 7,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/captions",
+   "agent": "task-mastermind-fig-captions",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 21,
+   "lines": 15,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/cards",
+   "agent": "task-mastermind-fig-cards",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 21,
+   "lines": 3,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/channels",
+   "agent": "task-mastermind-figma-channels",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 71,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/componentize",
+   "agent": "task-mastermind-figma-componentize",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 49,
+   "lines": 70,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/containers",
+   "agent": "task-mastermind-figma-kit-containers",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 72,
+   "lines": 10,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/controls",
+   "agent": "task-mastermind-figma-kit-controls",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 72,
+   "lines": 10,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/demo-2",
+   "agent": "task-mastermind-fig-demo-2",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 21,
+   "lines": 14,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-darker",
+   "agent": "task-mastermind-figma-ds-darker",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 74,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-diagrams",
+   "agent": "task-mastermind-figma-ds-diagrams",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 49,
+   "lines": 71,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-dropdowns",
+   "agent": "task-mastermind-figma-ds-dropdowns",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 74,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-elements",
+   "agent": "task-mastermind-figma-ds-elements",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 75,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-foundational",
+   "agent": "task-mastermind-figma-ds-foundational",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 49,
+   "lines": 71,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-icons",
+   "agent": "task-mastermind-figma-ds-icons",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 74,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-inputs-sections",
+   "agent": "task-mastermind-figma-ds-inputs-sections",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 76,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-lists-cards",
+   "agent": "task-mastermind-figma-ds-lists-cards",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 82,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-screens",
+   "agent": "task-mastermind-figma-ds-screens",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 49,
+   "lines": 71,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-sweep",
+   "agent": "task-mastermind-figma-ds-sweep",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 49,
+   "lines": 72,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-toggles",
+   "agent": "task-mastermind-figma-ds-toggles",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 74,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/essentials",
+   "agent": "task-mastermind-fig-essentials",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 21,
+   "lines": 15,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/fluid-audit",
+   "agent": "task-mastermind-fig-fluid-audit",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 21,
+   "lines": 13,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/fluid-ds",
+   "agent": "task-mastermind-fig-fluid-ds",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 47,
+   "lines": 9,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/fluid-kit",
+   "agent": "task-mastermind-fig-fluid-kit",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 47,
+   "lines": 14,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/foundations",
+   "agent": "task-mastermind-fig-foundations",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 21,
+   "lines": 16,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/icon-swap",
+   "agent": "task-mastermind-fig-icon-swap",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 46,
+   "lines": 11,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/icons",
+   "agent": "task-mastermind-fig-icons",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 29,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/lists",
+   "agent": "task-mastermind-fig-lists",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 23,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/nesting",
+   "agent": "task-mastermind-fig-nesting",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 39,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/schemes",
+   "agent": "task-mastermind-fig-schemes",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 21,
+   "lines": 3,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/slots",
+   "agent": "task-mastermind-fig-slots",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 16,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/templates",
+   "agent": "task-mastermind-fig-templates",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 46,
+   "lines": 26,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-ds",
+   "agent": "task-mastermind-fig-tidy-ds",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 29,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-kit",
+   "agent": "task-mastermind-fig-tidy-kit",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 31,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-lab",
+   "agent": "task-mastermind-fig-tidy-lab",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 29,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/titles",
+   "agent": "task-mastermind-figma-titles",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 71,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/transcribe",
+   "agent": "task-mastermind-fig-transcribe",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 28,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/two-col",
+   "agent": "task-mastermind-fig-two-col",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 23,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/video",
+   "agent": "task-mastermind-figma-video",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 71,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/web-controls",
+   "agent": "task-mastermind-figma-web-controls",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 49,
+   "lines": 70,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/web-ground",
+   "agent": "task-mastermind-figma-web-ground",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 48,
+   "lines": 86,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/web-layouts",
+   "agent": "task-mastermind-figma-web-layouts",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 49,
+   "lines": 72,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/web-select",
+   "agent": "task-mastermind-figma-web-select",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 49,
+   "lines": 82,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/workflows",
+   "agent": "task-mastermind-figma-kit-workflows",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 72,
+   "lines": 11,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/sessions-next",
+   "agent": "task-mastermind-sessions-next",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 37,
+   "lines": 45,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/15/voice-opus",
+   "agent": "mastermind-voice-opus",
+   "role": "mastermind",
+   "stopped_by": null,
+   "silent_h": 0,
+   "lines": 61,
+   "dashboard": true
+  }
+ ],
+ "E host died / stopped, no reason": [
+  {
+   "dir": "public/framework/ai/sessions/2026/10/05/local-ctx-fix/local-ctx-fix",
+   "agent": "task-mastermind-local-model-hunt",
+   "role": "task-mastermind",
+   "stopped_by": null,
+   "silent_h": 238,
+   "lines": 11,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-cd792e48/figma-phase2/haiku-autolayout",
+   "agent": "minion-figma-autolayout",
+   "role": "minion",
+   "stopped_by": null,
+   "silent_h": 85,
+   "lines": 16,
+   "dashboard": false
+  }
+ ],
+ "B ended its turn, wrote no landing": [
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-21449a90/page-templates-binding-merge",
+   "agent": "minion-binding-merge",
+   "role": "minion",
+   "stopped_by": "mastermind-page-templates",
+   "silent_h": 27,
+   "lines": 17,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/build",
+   "agent": "minion-templates-build",
+   "role": "minion",
+   "stopped_by": "mastermind-page-templates",
+   "silent_h": 73,
+   "lines": 11,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/merge",
+   "agent": "minion-templates-merge",
+   "role": "minion",
+   "stopped_by": "mastermind-page-templates",
+   "silent_h": 73,
+   "lines": 4,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/past-work",
+   "agent": "minion-templates-past-work",
+   "role": "minion",
+   "stopped_by": "mastermind-page-templates",
+   "silent_h": 73,
+   "lines": 6,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build",
+   "agent": "minion-server-query-build",
+   "role": "minion",
+   "stopped_by": "lifecycle",
+   "silent_h": null,
+   "lines": 1,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/parity",
+   "agent": "minion-server-query-parity",
+   "role": "minion",
+   "stopped_by": null,
+   "silent_h": 71,
+   "lines": 11,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-87bec773/step-runner/build",
+   "agent": "minion-step-runner-build",
+   "role": "minion",
+   "stopped_by": null,
+   "silent_h": null,
+   "lines": 2,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-87bec773/ui-library/build",
+   "agent": "minion-library-build",
+   "role": "minion",
+   "stopped_by": "mastermind-ui-library",
+   "silent_h": 73,
+   "lines": 5,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-ceb73541/page-templates-merge",
+   "agent": "minion-templates-merge",
+   "role": "minion",
+   "stopped_by": "mastermind-page-templates",
+   "silent_h": 27,
+   "lines": 36,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/chat",
+   "agent": "minion-arch4-chat",
+   "role": "minion",
+   "stopped_by": null,
+   "silent_h": 43,
+   "lines": 7,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/controls",
+   "agent": "minion-arch4-controls",
+   "role": "minion",
+   "stopped_by": "task-mastermind-architecture-md-4",
+   "silent_h": 43,
+   "lines": 2,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/core-session",
+   "agent": "minion-arch4-coresession",
+   "role": "minion",
+   "stopped_by": "task-mastermind-architecture-md-4",
+   "silent_h": 43,
+   "lines": 3,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/draggable",
+   "agent": "minion-arch4-draggable",
+   "role": "minion",
+   "stopped_by": "task-mastermind-architecture-md-4",
+   "silent_h": 43,
+   "lines": 2,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/drawer",
+   "agent": "minion-arch4-drawer",
+   "role": "minion",
+   "stopped_by": "task-mastermind-architecture-md-4",
+   "silent_h": 43,
+   "lines": 2,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/elements",
+   "agent": "minion-arch4-elements",
+   "role": "minion",
+   "stopped_by": "task-mastermind-architecture-md-4",
+   "silent_h": 43,
+   "lines": 6,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/ext-session",
+   "agent": "minion-arch4-extsession",
+   "role": "minion",
+   "stopped_by": "task-mastermind-architecture-md-4",
+   "silent_h": 43,
+   "lines": 2,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/layers",
+   "agent": "minion-arch4-layers",
+   "role": "minion",
+   "stopped_by": "task-mastermind-architecture-md-4",
+   "silent_h": 43,
+   "lines": 2,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/menu",
+   "agent": "minion-arch4-menu",
+   "role": "minion",
+   "stopped_by": "task-mastermind-architecture-md-4",
+   "silent_h": 43,
+   "lines": 4,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/rules",
+   "agent": "minion-arch4-rules",
+   "role": "minion",
+   "stopped_by": "task-mastermind-architecture-md-4",
+   "silent_h": 43,
+   "lines": 2,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/ui-item",
+   "agent": "minion-arch4-uiitem",
+   "role": "minion",
+   "stopped_by": "task-mastermind-architecture-md-4",
+   "silent_h": 43,
+   "lines": 2,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/ux-inbox",
+   "agent": "minion-arch4-uxinbox",
+   "role": "minion",
+   "stopped_by": "task-mastermind-architecture-md-4",
+   "silent_h": 43,
+   "lines": 2,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design/docs-check",
+   "agent": "reviewer-storage-docs-check",
+   "role": "reviewer",
+   "stopped_by": "task-mastermind-storage-design",
+   "silent_h": 48,
+   "lines": 3,
+   "dashboard": false
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/15/voice-20261015/loose-ends",
+   "agent": "helper-loose-ends",
+   "role": "helper",
+   "stopped_by": null,
+   "silent_h": 0,
+   "lines": 7,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/15/voice-20261015/past-work-map",
+   "agent": "helper-past-work-map",
+   "role": "helper",
+   "stopped_by": null,
+   "silent_h": 0,
+   "lines": 3,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/15/voice-20261015/sessions-data",
+   "agent": "helper-sessions-data",
+   "role": "helper",
+   "stopped_by": null,
+   "silent_h": 0,
+   "lines": 4,
+   "dashboard": true
+  }
+ ],
+ "H other": [
+  {
+   "dir": "public/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/one-input",
+   "agent": "minion-one-input",
+   "role": null,
+   "stopped_by": null,
+   "silent_h": 74,
+   "lines": 6,
+   "dashboard": false
+  }
+ ],
+ "A live now": [
+  {
+   "dir": "public/framework/ai/sessions/2026/10/15/voice-20261015/ai-systems",
+   "agent": "helper-ai-systems",
+   "role": "helper",
+   "stopped_by": null,
+   "silent_h": 0,
+   "lines": 3,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/15/voice-20261015/page-system",
+   "agent": "helper-page-system",
+   "role": "helper",
+   "stopped_by": null,
+   "silent_h": 0,
+   "lines": 2,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/15/voice-20261015",
+   "agent": "mastermind-voice-20261015",
+   "role": "mastermind",
+   "stopped_by": null,
+   "silent_h": 0,
+   "lines": 22,
+   "dashboard": true
+  },
+  {
+   "dir": "public/framework/ai/sessions/2026/10/15/voice-today",
+   "agent": "mastermind-voice-today",
+   "role": "mastermind",
+   "stopped_by": null,
+   "silent_h": 0,
+   "lines": 24,
+   "dashboard": true
+  }
+ ]
+}
