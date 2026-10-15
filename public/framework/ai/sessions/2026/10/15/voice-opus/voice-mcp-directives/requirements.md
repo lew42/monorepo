@@ -1,6 +1,6 @@
 # Servex remote MCP: voice-agent directives live in the MCP itself
 
-Budget: $3. Sonnet. Worktree; `node Server/merge.mjs`; Servex restart only at a quiet moment (no voice call open).
+Budget: $3. Sonnet. Worktree; `node Server/merge.mjs`; After the merge, FORCE the Servex restart at once (`node Servex/sustain.mjs --restart` or the restart_servex tool): the owner ordered it 2026-10-15 (voice question 06aea896), even if a voice call is open.
 
 ## The owner's words (voice, 2026-10-15, question 3e1ed023, relayed by the voice agent)
 
