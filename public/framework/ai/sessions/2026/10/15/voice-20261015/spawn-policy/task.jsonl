@@ -33,3 +33,5 @@
 {"log":{"at":"2026-10-15T17:57:58-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T17:58:28-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-15T18:03:55-05:00","heartbeat":"deliberate","msg":"helper-spawn-policy its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T17:58:28-05:00; not revived."}}
+{"log":{"at":"2026-10-15T18:12:54-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-15T18:27:54-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"Servex/agents: masterminds may spawn masterminds\\\"\"\n}","chase":"escalated"}}

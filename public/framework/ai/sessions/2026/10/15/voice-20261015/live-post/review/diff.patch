@@ -1,0 +1,209 @@
+diff --git a/Servex/ext/remote/RemoteMCP.js b/Servex/ext/remote/RemoteMCP.js
+index 7659e36b7..7252bf612 100644
+--- a/Servex/ext/remote/RemoteMCP.js
++++ b/Servex/ext/remote/RemoteMCP.js
+@@ -3,8 +3,9 @@ import os from "os";
+ import path from "path";
+ import crypto from "crypto";
+ import express from "express";
++import { page_tools } from "../../agents/page_tools.js";
+ 
+-/* A tiny remote MCP endpoint (POST /mcp/remote) with ONE tool, `ask_mastermind`, behind a bearer token.
++/* A tiny remote MCP endpoint (POST /mcp/remote) with TWO tools, `ask_mastermind` and `live_post`, behind a bearer token.
+  * Why and how to use it: public/framework/ux/Dictate/doc/voice-bridge.md. Reached through Server/Tunnel.mjs,
+  * whose gateway forwards this one path and nothing else. */
+ export default class RemoteMCP {
+@@ -17,10 +18,17 @@ export default class RemoteMCP {
+         "You are the voice agent: the Claude app model talking with the owner by voice. The mastermind behind ask_mastermind is an SDK agent on the owner's PC.",
+         "Fire ask_mastermind immediately, before saying anything; then speak.",
+         "Summarize its answer for the ear, do not read it back. The mastermind is verbose on purpose, to give you context; you keep replies short.",
++        "Before or while you ask the mastermind, post a short card with live_post (a title, and a line of text if it helps): it lands on the owner's /live/ page at once, so they see what you are doing. live_post writes only to /live/.",
+         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
+         "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them.",
+     ].join("\n");
+     static SESSIONS_FILE = "remote.sessions.json";
++    static LIVE_PATH = "/live/";
++    static LIVE_TOOL = {
++        name: "live_post",
++        description: "Post one short card to the owner's /live/ page, the live feed they watch while you talk. Do it before or while you ask the mastermind: a title (required) and optionally a line of text. It only ever writes to /live/.",
++        inputSchema: { type: "object", properties: { title: { type: "string", description: "The card's headline, a few words." }, text: { type: "string", description: "Optional: one or two plain sentences under the title." } }, required: ["title"] },
++    };
+     static TOOL = {
+         name: "ask_mastermind",
+         description: "Ask the project's mastermind (the AI that coordinates this codebase, an SDK agent on the owner's PC) and wait up to a minute for its answer. You are the voice agent: call this FIRST, before saying anything, then summarize the answer briefly for the owner (do not read it back), ask one question at a time, and relay open items. The mastermind replies verbosely, for you, not for the owner.",
+@@ -28,8 +36,8 @@ export default class RemoteMCP {
+     };
+ 
+     /* servex: needs .agents (send, list, registry_list, task_dir_for); root: repo root; wait_ms: reply timeout */
+-    constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = 60000, target } = {}){
+-        Object.assign(this, { servex, root, token_file, wait_ms, target });
++    constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = 60000, target, live_path = RemoteMCP.LIVE_PATH } = {}){
++        Object.assign(this, { servex, root, token_file, wait_ms, target, live_path });
+         this.replies = path.join(path.dirname(token_file), "remote-replies");
+         this.sessions_file = path.join(path.dirname(token_file), RemoteMCP.SESSIONS_FILE);
+         this.sessions = this.load_sessions();   // session id -> { agent, dir, started, last }
+@@ -83,7 +91,13 @@ export default class RemoteMCP {
+         }
+         if (method === "initialize") return ok({ protocolVersion: params?.protocolVersion ?? RemoteMCP.VERSION, capabilities: { tools: {} }, serverInfo: { name: "lew42-remote", version: "1" }, instructions: RemoteMCP.INSTRUCTIONS });
+         if (method === "ping") return ok({});
+-        if (method === "tools/list") return ok({ tools: [RemoteMCP.TOOL] });
++        if (method === "tools/list") return ok({ tools: [RemoteMCP.TOOL, RemoteMCP.LIVE_TOOL] });
++        if (method === "tools/call" && params?.name === RemoteMCP.LIVE_TOOL.name){
++            const title = String(params.arguments?.title ?? "").trim().slice(0, 200);
++            if (!title) return bad(-32602, "title is required");
++            const text = String(params.arguments?.text ?? "").trim().slice(0, 2000);
++            return ok({ content: [{ type: "text", text: await this.live_post(title, text) }] });
++        }
+         if (method === "tools/call"){
+             if (params?.name !== RemoteMCP.TOOL.name) return bad(-32602, "unknown tool");
+             const question = String(params.arguments?.question ?? "").trim().slice(0, 4000);
+@@ -99,6 +113,15 @@ export default class RemoteMCP {
+         return bad(-32601, "method not found");
+     }
+ 
++    // one card on /live/ through the page_add tool every Servex agent uses (one writer, same line shape); the path is fixed here, never an input
++    async live_post(title, text){
++        const add = page_tools().find(t => t.name === "page_add");
++        try {
++            const out = JSON.parse(await add.handler({ path: this.live_path, item: { type: "part-card", title, ...(text ? { text } : {}) } }, { caller: "voice-app" }));
++            return out.ok ? `posted to ${this.live_path}` : `not posted: ${out.why}`;
++        } catch (e) { return `not posted: ${e.message}`; }
++    }
++
+     // REMOTE_MCP_TARGET / this.target / the file remote.target still override everything: one fixed agent for every session
+     override(){
+         let named = this.target ?? process.env.REMOTE_MCP_TARGET;
+diff --git a/Servex/ext/remote/RemoteMCP.test.mjs b/Servex/ext/remote/RemoteMCP.test.mjs
+index d3866e2d8..976b65fd9 100644
+--- a/Servex/ext/remote/RemoteMCP.test.mjs
++++ b/Servex/ext/remote/RemoteMCP.test.mjs
+@@ -30,8 +30,9 @@ const servex = {
+         },
+     },
+ };
++const live_dir = "live-test-" + process.pid;   // page_tools writes under the repo's public/, so a throwaway page stands in for /live/
+ const make = () => {
+-    const app = express(); const gw = new RemoteMCP({ servex, root, router: app, token_file, wait_ms: 3000 });
++    const app = express(); const gw = new RemoteMCP({ servex, root, router: app, token_file, wait_ms: 3000, live_path: `/${live_dir}/` });
+     return new Promise(r => { const srv = app.listen(0, "127.0.0.1", () => r({ gw, srv, url: `http://127.0.0.1:${srv.address().port}${RemoteMCP.PATH}/${gw.token}` })); });
+ };
+ let { gw, srv, url } = await make();
+@@ -74,6 +75,25 @@ assert.equal(sent.at(-1), "mastermind-fixed");
+ const log = fs.readFileSync(path.join(root, "public/framework/ai/log.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l).remote_mcp);
+ assert.ok(log.every(l => l.session && l.agent), "every log line names session and agent");
+ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
++// live_post: one card, written by the page_add writer, ts set, by voice-app; no path input is honoured
++{
++    const list = (await rpc({ id: 5, method: "tools/list" })).json.result.tools.map(t => t.name);
++    assert.deepEqual(list, ["ask_mastermind", "live_post"], "tools/list offers both tools");
++    assert.ok(!("path" in RemoteMCP.LIVE_TOOL.inputSchema.properties), "live_post has no path parameter");
++    const file = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, "$1")), "../../../public", live_dir, "page.jsonl");
++    try {
++        const call = args => rpc({ id: 6, method: "tools/call", params: { name: "live_post", arguments: args } });
++        assert.match((await call({ title: "Hello", text: "from the voice app", path: "/framework/" })).json.result.content[0].text, /posted/);
++        await call({ title: "Title only" });
++        assert.ok((await call({ text: "no title" })).json.error, "title is required");
++        const lines = fs.readFileSync(file, "utf8").trim().split("\n").map(l => JSON.parse(l));
++        assert.equal(lines.length, 2, "two cards, nothing written outside /live");
++        const add = lines[0].content.add;
++        assert.equal(add.type, "part-card"); assert.equal(add.title, "Hello"); assert.equal(add.text, "from the voice app");
++        assert.equal(add.by, "voice-app"); assert.ok(add.id && !isNaN(Date.parse(add.ts)), "id and ts are set");
++        assert.ok(!("text" in lines[1].content.add), "text is optional");
++    } finally { fs.rmSync(path.dirname(file), { recursive: true, force: true }); }
++}
+ srv.close();
+ fs.rmSync(root, { recursive: true, force: true });
+ console.log("ok", log.length, "calls");
+diff --git a/Servex/ext/remote/doc/mcp-unify.md b/Servex/ext/remote/doc/mcp-unify.md
+new file mode 100644
+index 000000000..ff936eb1b
+--- /dev/null
++++ b/Servex/ext/remote/doc/mcp-unify.md
+@@ -0,0 +1,64 @@
++# Proposal: one tool registry, each tool marked `local` or `remote`
++
++**Status: a proposal, not built.** Recorded 2026-10-15 from the mastermind's opinion; the owner decides when.
++
++## The problem in plain words
++
++Servex has two separate sets of tools for the same machine.
++
++- **The internal set** (`mcp__servex__*`, about 70 tools, served by `Servex/MCP.js` to agents on this PC). It can spawn, kill, stop and restart things and write to almost any file under `public/`.
++- **The tunnel set** ([`RemoteMCP.js`](../RemoteMCP.js), the "lew42-remote" connector the Claude app uses). It has two tools today: `ask_mastermind` and `live_post`. It is reachable from the internet, behind a bearer token.
++
++Two separate sets was the mistake: every new thing the voice app needs (like `live_post`) is hand-written a second time, beside the tool that already does it.
++
++## The proposal
++
++Keep **one registry** of tools. Give every tool a mark, `local` or `remote`. The internal endpoint serves all of them. The tunnel serves **only the `remote` ones**.
++
++```js
++tool("page_add", { scope: "remote", ... })     // safe to reach from the internet
++tool("spawn_agent", { scope: "local", ... })   // only ever on this PC
++```
++
++- A tool with no mark is `local`. Making a tool reachable from the internet is always a deliberate, reviewed one-word change.
++- `remote` tools that need narrowing (like `live_post`, which may write only to `/live/`) stay thin wrappers around the one real tool, with the path fixed in the wrapper and never an input.
++
++## Why not one wide-open endpoint
++
++The tunnel is internet-reachable, and the internal set has spawn, kill, restart and arbitrary writes. If the voice connector got the whole set, a leaked bearer token would be control of the machine. The marking keeps the blast radius of that token small: it can read state, ask questions, and leave notes.
++
++Note on wording: the earlier "keys to the castle" worry was about the **Cloudflare token**, not the tunnel's tool set (owner, 2026-10-15). The tool set is a separate question and this proposal is only about that.
++
++## First cut: tools to mark `remote`
++
++Judged by one question: *if a stranger held the token, what is the worst this does?* Reads and narrow writes pass.
++
++**Read-only, mark `remote`:**
++`list_agents`, `list_cards`, `read_card`, `card_summary`, `list_pages`, `read_page`, `page_read`, `list_waiting`, `list_claims`, `list_follows`, `list_experts`, `list_servers`, `heartbeat_status`, `task_loop_status`, `system_health`, `session_summary`, `session_line`, `inbox`, `module_inbox`, `readme_modules`, `server_logs`, `job_result`, `dir_log`, `check_page`, `wait_for_agent`.
++
++**Narrow writes (one card, one note, one line), mark `remote` with the path fixed or checked:**
++`page_add`, `page_log`, `page_note`, `page_reply`, `owner_note`, `card_reply`, `card_ask`, `card_set`, `attach_card`, `create_card`, `set_focus`, `add_item`.
++For the page tools the wrapper pins the path (today `/live/`); the general `page_add` stays `local`.
++
++**Ask a person-shaped question, mark `remote` once rate-limited:**
++`ask_mastermind` (already remote), `ask_manager`, `ask_module`, `ask_directory`, `ask_expert`. Each wakes an agent and costs money, so these need a per-token rate limit first.
++
++## Keep `local`, never over the tunnel
++
++- **Spawn and stop agents:** `spawn_agent`, `stop_agent`, `kill_task`, `interrupt_agent`, `fork_self`, `send_to_agent`, `quick_fix`, `quick_fix_landed`, `start_job`.
++- **Servers and the process itself:** `start_server`, `stop_server`, `restart_server`, `restart_servex`, `pause_dispatch`, `resume_dispatch`.
++- **Worktrees and landing:** `take_worktree`, `return_worktree`, `close_task`, `snooze_task`, `reprioritise_task`, `clear`, `drop`.
++- **Arbitrary writes:** `page_set`, `page_call`, `create_page`, `append_log`, `append_prompt_event`, `amend_bubble`, `log_session`, `audit_session`, `refine_step`, `place`, `file_to_group`, `set_layout`.
++- **Identity and bookkeeping that agents use about themselves:** `register_session`, `load_module`, `claim_topic`, `release_topic`, `follow`, `unfollow`.
++
++## How it would be built (when the owner says go)
++
++1. Add `scope` to the tool definition and default it to `local` (`Servex/agents/tools.js` is where tools are collected).
++2. `Servex/MCP.js` serves every tool, as today.
++3. `RemoteMCP.js` serves `registry.filter(t => t.scope === "remote")` instead of its own hand-written list; `ask_mastermind` becomes one registry entry; `live_post` becomes `page_add` with a pinned path.
++4. A test that fails if any tool outside the list above is `remote` (the list in this file is the allowlist).
++
++## What to read next
++
++- [`../RemoteMCP.js`](../RemoteMCP.js): the tunnel endpoint and its two tools
++- [`../../../../public/framework/ux/Dictate/doc/voice-bridge.md`](../../../../public/framework/ux/Dictate/doc/voice-bridge.md): the voice path end to end
+diff --git a/Servex/ext/remote/readme.md b/Servex/ext/remote/readme.md
+new file mode 100644
+index 000000000..5d14f1d0b
+--- /dev/null
++++ b/Servex/ext/remote/readme.md
+@@ -0,0 +1,6 @@
++# ext/remote — the tunnel MCP the Claude voice app talks to
++
++`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token). Tools: `ask_mastermind` (ask the voice mastermind, wait up to a minute) and `live_post` (one card on `/live/` through the `page_add` writer). The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
++
++- Proposal, not built: one tool registry marked `local`/`remote` instead of two tool sets: [doc/mcp-unify.md](doc/mcp-unify.md)
++- The voice path end to end: [voice-bridge.md](../../../public/framework/ux/Dictate/doc/voice-bridge.md)
+diff --git a/Servex/readme.md b/Servex/readme.md
+index d92bbe6ca..f6ca9ccac 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -100,5 +100,6 @@ Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:
+ - Decisions and the SDK: [`doc/architecture.md`](./doc/architecture.md) · [`doc/sdk.md`](./doc/sdk.md) (how an agent is started and kept alive)
+ - Skills each role gets, injected by node, with measured rates: [`doc/skills.md`](./doc/skills.md)
+ 
++- **Remote MCP** (the tunnel tools the Claude voice app calls: `ask_mastermind`, `live_post`; and the unify proposal): [`ext/remote/readme.md`](./ext/remote/readme.md)
+ - **Scripts census** (every Servex file with verdict and references): [../Server/doc/scripts.md](../Server/doc/scripts.md)
+ - **Module inbox** (drop an ask's essence on a module; a fresh mastermind reads it later; `module_inbox`, `node Server/ModuleReview.mjs --plan`): [`doc/module-inbox.md`](./doc/module-inbox.md)

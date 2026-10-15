@@ -1,3 +1,5 @@
 {"assign":{"session_id":"81909a47-46bc-491d-afa4-b55e737f4a26","agent":"helper-remote-registry","card":"remote MCP: serve the full servex registry","brief":"public/framework/ai/sessions/2026/10/15/voice-20261015/remote-full-registry/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/15/voice-20261015","requested_at":"2026-10-15T18:20:30-05:00","now":"starting","steps":[],"step":1}}
 {"log":{"at":"2026-10-15T18:25:00-05:00","text":"merged 786ea8aad: /mcp/remote serves servex.mcp registry + ask_mastermind (82 tools), caller voice-app; live_post reverted; Servex restart needed, tunnel URL unchanged","by":"helper-remote-registry"}}
 {"landed_at":"2026-10-15T18:25:00-05:00","commit":"786ea8aad"}
+{"log":{"at":"2026-10-15T18:27:54-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"log":{"at":"2026-10-15T18:29:55-05:00","heartbeat":"deliberate","msg":"helper-remote-registry its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:23:50-05:00; not revived."}}
