@@ -38,6 +38,7 @@ datagrid(
 
 ## More
 
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why
 - [`ext/DataGrid`](/framework/ext/DataGrid/) — the behaviour built on top of this markup; its page
   has the real, live, 2,000-row demo.
 - [doc/decisions.md](./doc/decisions.md) — why the markup and the behaviour split into two modules.

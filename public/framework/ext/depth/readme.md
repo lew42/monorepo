@@ -22,6 +22,8 @@ content(){
 - The Depth slider floors at 0.75: below it a tilted plane intersects its parent and renders sliced. [Overview](/framework/ext/depth/)
 
 ## More
+
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why
 - [Overview](/framework/ext/depth/) — the page is the demo: scroll it, drag the two sliders
 - [`doc/decisions.md`](./doc/decisions.md) — the two corrections, decisions, traps in full, the tuning-token table, `/resume/` numbers
 - `doc/method/depth.md`, `doc/file/*.md` — the overview's API and Files tabs

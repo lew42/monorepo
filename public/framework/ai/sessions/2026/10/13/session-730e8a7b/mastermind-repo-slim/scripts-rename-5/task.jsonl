@@ -13,3 +13,10 @@
 {"review":{"found":5,"real":2,"fixed":2}}
 {"decision":{"at":"2026-10-14T19:04:28-05:00","id":"d-skip-smoke","question":"Merge with --skip-smoke?","chosen":"yes","why":"The smoke run passed on /framework/, /framework/ai/ and all three touched pages; its only FAILs are 404s on gitignored data (sessions.json, shots png) missing in the worktree, on pages this diff does not touch. Alternative: wait for a worktree with the data."}}
 {"assign":{"landed_at":"2026-10-14T19:15:01-05:00","title":"Scripts: the last four function bags are classes; two Servex cores have a plan","outcome":"AskEach, Browser, Collab, Decide are classes (merged fe2728518, case fix after); callers relinked, outputs identical to the old files, undo proven on a copy; Agents.js and directory.js have a plan in Servex/agents/doc/class-plan.md, decision d-agents-directory-classes waits on the owner. Servex restart left to the mastermind (Servex.js imports Browser.mjs). Card: 2026/10/14/scripts-the-last-four-function-bags-are"}}
+{"log":{"at":"2026-10-14T19:15:13-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-14T19:15:13-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-14T19:15:13-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-14T19:15:13-05:00","msg":"owner-note: posted 2 decisions to the Inbox"}}
+{"log":{"at":"2026-10-14T19:15:13-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-14T19:15:19-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-14T19:15:19-05:00","msg":"layout-check: skipped — the landing names no site pages"}}

@@ -13,7 +13,7 @@ export default new Doc({
 	methods: "depth",
 
 	files: "depth.js depth.css page.js readme.md",
-	notes: "decisions",
+	notes: "architecture decisions",
 
 	content(){
 

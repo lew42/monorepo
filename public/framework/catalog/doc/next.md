@@ -19,3 +19,18 @@ Main site before any change: 10th 1.6 s, 40th 11.0 s, 44 of 50 within 12 s.
 - Or a light preview mode (`?preview` that skips the sidebar and dev bar): touches `core/App`, ask first.
 
 Reviewed 2026-10-13 at four widths, with before and after shots: [review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/review-site-pages/review.md).
+
+## Shipped 2026-10-14: a still picture per card
+
+`node Server/CatalogThumbs.mjs --plan | --apply | --all` writes one 600×375 webp per page to `catalog/thumbs/<slug>.webp` (slug = url with `/` as `__`) plus `thumbs/index.json`; the card shows the picture and boots the live iframe on mouse hover (a phone: first tap shows it, second follows the link). A page with no picture keeps the 4-at-a-time iframe. Measured the same way (headless, 1920×4000, from the first response; the card is `CatalogPage.watch_hover`):
+
+| 49 cards on screen | 1st | 10th | 20th | 40th |
+|---|---|---|---|---|
+| live iframes (4 at a time) | 1.25 s | 5.2 s | 11.5 s | not in 14 s |
+| **pictures** | **0.74 s** | **0.74 s** | **0.74 s** | **0.74 s** |
+
+227 pictures, 3.4 MB (about 15 KB each). One full shoot takes ~30 min, so `--apply` only reshoots the missing or stale (older than the newest file in the page's folder). The shooter uses the shared `Server/browser.mjs` launcher rather than `Shots.run`, which writes a round folder and a `runs.jsonl` line per shot.
+
+**Not deployed yet:** `thumbs/` is git-ignored (automated pictures are never committed) and a Cloudflare build deploys a checkout, so `node Server/DeployCount.mjs` does not count them and production shows the iframe fallback until a picture folder is uploaded some other way (e.g. a CI step running `--apply`, or committing the folder, the owner's call).
+
+Shots (1920×4000): [before, iframes](next-before-iframes.png) · [after, pictures](next-after-pictures.png). Refresh part of the set with `--apply --only <url part>` (a fresh checkout resets file times, so a plain `--apply` may reshoot all).

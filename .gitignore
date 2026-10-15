@@ -188,3 +188,9 @@ public/framework/ai/**/owner-prompts.jsonl
 public/framework/ai/**/words.jsonl
 public/ai/v-*.jsonl
 public/framework/ai/tasks/state.jsonl
+public/framework/catalog/thumbs/
+
+# automated pictures: every shots/ folder, anywhere, is machine output (2026-10-14, ai/sessions/doc/commit-rule.md).
+# Committed only when a person chose it: a doc/ folder, public/blog/, public/notes/, an assets/img/ folder.
+# thumbs/ stays committed: the decks and Figma pages render those 1 MB of jpgs on the live site.
+**/shots/
