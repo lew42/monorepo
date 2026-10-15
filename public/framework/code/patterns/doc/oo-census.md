@@ -8,6 +8,8 @@ Run it yourself: `node public/framework/code/patterns/function-bag-census.mjs --
 
 ## ✅ Made classes in this pass (each a shim at the old path, one commit each)
 
+Callers were not rewritten (so `RenameScript` was not needed): the shim keeps every import valid, which is why `ext/Ask/edit.js` (21 importers, over the ~10 target) was safe to convert. Class names for rows marked "name to confirm" are guesses; no Haiku naming pass was run (token pace).
+
 The old path is now one shim line that re-exports the same names from the class, so every caller keeps working; callers move to `import Class from` as they are touched.
 
 | Old file | Class | Importers | What it is |
@@ -85,6 +87,6 @@ Checked by script (readme present, relative links resolve, classes named in `arc
 | `ext/JSONL` | yes | yes | yes | |
 | `ext/Chat` | yes | yes | yes | |
 | `ux/Content` | yes | yes | yes | |
-| `ai/AISession` | **missing** | **404** | n/a | **fixed on the spot:** added `readme.md`, `page.js`, and listed it in `ai/page.js` `children` |
+| (11th, found on the way) `ai/AISession` | **missing** | **404** | n/a | **fixed on the spot:** added `readme.md`, `page.js`, and listed it in `ai/page.js` `children` |
 
 Verdict: nine of ten were sound. The one gap was a 15-class family with no readme or page.
