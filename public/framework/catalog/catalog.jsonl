@@ -94,6 +94,7 @@
 {"kind":"page","group":"ext","url":"/framework/ext/Timeline/","name":"Timeline","title":"Timeline","icon":"view_timeline","desc":"A general-purpose h/v timeline — CSS-variable positioning and zoom, greedy lane packing, window bands.","added":"2026-08-15","isNew":false}
 {"kind":"page","group":"ext","url":"/framework/ext/toc/","name":"toc","title":"Toc","icon":"toc","desc":"This page","added":"2026-08-05","isNew":false}
 {"kind":"page","group":"ux","url":"/framework/ux/Auth/","name":"Auth","title":"Auth","icon":"lock","desc":"Login, signup, reset and a social row as one class — view switching is the behavior that earns it.","added":"2026-08-24","isNew":false}
+{"kind":"page","group":"ux","url":"/framework/ux/Browse/","name":"Browse","title":"Click a row: it opens on the right","icon":"view_sidebar","desc":"One list-and-detail view: a resizable list on the left, the row you clicked on the right.","added":"2026-10-14","isNew":true}
 {"kind":"page","group":"ux","url":"/framework/ux/Card/","name":"Card","title":"Card","icon":"dashboard","desc":"The look of an AI card","added":"2026-10-01","isNew":true}
 {"kind":"page","group":"ux","url":"/framework/ux/Content/","name":"Content","title":"Content","icon":"dashboard_customize","desc":"The kinds of card a page is built from — ask a question, make a decision, quote a prompt.","added":"2026-09-24","isNew":false}
 {"kind":"page","group":"ux","url":"/framework/ux/Content/catalog/","name":"catalog","title":"Card catalog","icon":"dashboard","desc":"Every kind of box on the site, drawn live, so you can see where two of them are really the same card.","added":"2026-09-24","isNew":false}
@@ -255,6 +256,7 @@
 {"kind":"class","group":"ext","name":"System","url":"/framework/ext/System/","extends":"","icon":"data_object","api":true,"methods":["check","heal","report"]}
 {"kind":"class","group":"ext","name":"Timeline","url":"/framework/ext/Timeline/","extends":"View","icon":"data_object","api":false,"methods":["render","span","lay","end","item","ruler"]}
 {"kind":"class","group":"ux","name":"Auth","url":"/framework/ux/Auth/","extends":"View","icon":"data_object","api":false,"methods":["initialize","draw","login","signup","reset","login_title"]}
+{"kind":"class","group":"ux","name":"Browse","url":"/framework/ux/Browse/","extends":"","icon":"data_object","api":false,"methods":["assign","mount","before_mount","shell_classes","shell_extra","listen"]}
 {"kind":"class","group":"ux","name":"Concepts","url":"/framework/ux/Content/Concepts/","extends":"ContentModule","icon":"data_object","api":false,"methods":["render","tiles","href","tile"]}
 {"kind":"class","group":"ux","name":"Decision","url":"/framework/ux/Content/Decision/","extends":"ContentModule","icon":"data_object","api":false,"methods":["normalize","initialize","render","draw","head","cited"]}
 {"kind":"class","group":"ux","name":"Disclosure","url":"/framework/ux/Content/Disclosure/","extends":"ContentModule","icon":"data_object","api":false,"methods":["render","item"]}

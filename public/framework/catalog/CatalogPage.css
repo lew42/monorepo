@@ -16,6 +16,7 @@
 
 	/* A 1200px-wide live page scaled to fit the card: the frame is 1200x750, scaled by the card's width. */
 	.cat-frame { position: relative; aspect-ratio: 8 / 5; overflow: hidden; border-radius: .3em; background: color-mix(in srgb, currentColor 6%, transparent); }
+	.cat-frame .cat-thumb { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; }
 	.cat-frame iframe { position: absolute; top: 0; left: 0; width: 1200px; max-width: none; height: 750px; border: 0; pointer-events: none; transform-origin: 0 0; }
 
 	.cat-nopreview { position: absolute; inset: 0; display: grid; place-items: center; opacity: .6; font-size: .85em; }
