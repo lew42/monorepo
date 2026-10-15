@@ -13,3 +13,7 @@
 	.tasks-card-title { font-weight: 600; }
 	.tasks-quiet { outline: 2px solid var(--prime); }
 }
+
+@layer site {
+	.tasks-group-head .inbox-badge { line-height: 1.4; padding-block: 0.1em; block-size: auto; }
+}
