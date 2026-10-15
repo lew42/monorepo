@@ -30,9 +30,8 @@ const servex = {
         },
     },
 };
-const live_dir = "live-test-" + process.pid;   // page_tools writes under the repo's public/, so a throwaway page stands in for /live/
 const make = () => {
-    const app = express(); const gw = new RemoteMCP({ servex, root, router: app, token_file, wait_ms: 3000, live_path: `/${live_dir}/` });
+    const app = express(); const gw = new RemoteMCP({ servex, root, router: app, token_file, wait_ms: 3000 });
     return new Promise(r => { const srv = app.listen(0, "127.0.0.1", () => r({ gw, srv, url: `http://127.0.0.1:${srv.address().port}${RemoteMCP.PATH}/${gw.token}` })); });
 };
 let { gw, srv, url } = await make();
@@ -75,25 +74,6 @@ assert.equal(sent.at(-1), "mastermind-fixed");
 const log = fs.readFileSync(path.join(root, "public/framework/ai/log.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l).remote_mcp);
 assert.ok(log.every(l => l.session && l.agent), "every log line names session and agent");
 assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
-// live_post: one card, written by the page_add writer, ts set, by voice-app; no path input is honoured
-{
-    const list = (await rpc({ id: 5, method: "tools/list" })).json.result.tools.map(t => t.name);
-    assert.deepEqual(list, ["ask_mastermind", "live_post"], "tools/list offers both tools");
-    assert.ok(!("path" in RemoteMCP.LIVE_TOOL.inputSchema.properties), "live_post has no path parameter");
-    const file = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, "$1")), "../../../public", live_dir, "page.jsonl");
-    try {
-        const call = args => rpc({ id: 6, method: "tools/call", params: { name: "live_post", arguments: args } });
-        assert.match((await call({ title: "Hello", text: "from the voice app", path: "/framework/" })).json.result.content[0].text, /posted/);
-        await call({ title: "Title only" });
-        assert.ok((await call({ text: "no title" })).json.error, "title is required");
-        const lines = fs.readFileSync(file, "utf8").trim().split("\n").map(l => JSON.parse(l));
-        assert.equal(lines.length, 2, "two cards, nothing written outside /live");
-        const add = lines[0].content.add;
-        assert.equal(add.type, "part-card"); assert.equal(add.title, "Hello"); assert.equal(add.text, "from the voice app");
-        assert.equal(add.by, "voice-app"); assert.ok(add.id && !isNaN(Date.parse(add.ts)), "id and ts are set");
-        assert.ok(!("text" in lines[1].content.add), "text is optional");
-    } finally { fs.rmSync(path.dirname(file), { recursive: true, force: true }); }
-}
 srv.close();
 fs.rmSync(root, { recursive: true, force: true });
 console.log("ok", log.length, "calls");

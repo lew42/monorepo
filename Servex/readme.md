@@ -100,6 +100,5 @@ Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:
 - Decisions and the SDK: [`doc/architecture.md`](./doc/architecture.md) · [`doc/sdk.md`](./doc/sdk.md) (how an agent is started and kept alive)
 - Skills each role gets, injected by node, with measured rates: [`doc/skills.md`](./doc/skills.md)
 
-- **Remote MCP** (the tunnel tools the Claude voice app calls: `ask_mastermind`, `live_post`; and the unify proposal): [`ext/remote/readme.md`](./ext/remote/readme.md)
 - **Scripts census** (every Servex file with verdict and references): [../Server/doc/scripts.md](../Server/doc/scripts.md)
 - **Module inbox** (drop an ask's essence on a module; a fresh mastermind reads it later; `module_inbox`, `node Server/ModuleReview.mjs --plan`): [`doc/module-inbox.md`](./doc/module-inbox.md)

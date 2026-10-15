@@ -3,9 +3,8 @@ import os from "os";
 import path from "path";
 import crypto from "crypto";
 import express from "express";
-import { page_tools } from "../../agents/page_tools.js";
 
-/* A tiny remote MCP endpoint (POST /mcp/remote) with TWO tools, `ask_mastermind` and `live_post`, behind a bearer token.
+/* A tiny remote MCP endpoint (POST /mcp/remote) with ONE tool, `ask_mastermind`, behind a bearer token.
  * Why and how to use it: public/framework/ux/Dictate/doc/voice-bridge.md. Reached through Server/Tunnel.mjs,
  * whose gateway forwards this one path and nothing else. */
 export default class RemoteMCP {
@@ -18,17 +17,10 @@ export default class RemoteMCP {
         "You are the voice agent: the Claude app model talking with the owner by voice. The mastermind behind ask_mastermind is an SDK agent on the owner's PC.",
         "Fire ask_mastermind immediately, before saying anything; then speak.",
         "Summarize its answer for the ear, do not read it back. The mastermind is verbose on purpose, to give you context; you keep replies short.",
-        "Before or while you ask the mastermind, post a short card with live_post (a title, and a line of text if it helps): it lands on the owner's /live/ page at once, so they see what you are doing. live_post writes only to /live/.",
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
         "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them.",
     ].join("\n");
     static SESSIONS_FILE = "remote.sessions.json";
-    static LIVE_PATH = "/live/";
-    static LIVE_TOOL = {
-        name: "live_post",
-        description: "Post one short card to the owner's /live/ page, the live feed they watch while you talk. Do it before or while you ask the mastermind: a title (required) and optionally a line of text. It only ever writes to /live/.",
-        inputSchema: { type: "object", properties: { title: { type: "string", description: "The card's headline, a few words." }, text: { type: "string", description: "Optional: one or two plain sentences under the title." } }, required: ["title"] },
-    };
     static TOOL = {
         name: "ask_mastermind",
         description: "Ask the project's mastermind (the AI that coordinates this codebase, an SDK agent on the owner's PC) and wait up to a minute for its answer. You are the voice agent: call this FIRST, before saying anything, then summarize the answer briefly for the owner (do not read it back), ask one question at a time, and relay open items. The mastermind replies verbosely, for you, not for the owner.",
@@ -36,8 +28,8 @@ export default class RemoteMCP {
     };
 
     /* servex: needs .agents (send, list, registry_list, task_dir_for); root: repo root; wait_ms: reply timeout */
-    constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = 60000, target, live_path = RemoteMCP.LIVE_PATH } = {}){
-        Object.assign(this, { servex, root, token_file, wait_ms, target, live_path });
+    constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = 60000, target } = {}){
+        Object.assign(this, { servex, root, token_file, wait_ms, target });
         this.replies = path.join(path.dirname(token_file), "remote-replies");
         this.sessions_file = path.join(path.dirname(token_file), RemoteMCP.SESSIONS_FILE);
         this.sessions = this.load_sessions();   // session id -> { agent, dir, started, last }
@@ -91,13 +83,7 @@ export default class RemoteMCP {
         }
         if (method === "initialize") return ok({ protocolVersion: params?.protocolVersion ?? RemoteMCP.VERSION, capabilities: { tools: {} }, serverInfo: { name: "lew42-remote", version: "1" }, instructions: RemoteMCP.INSTRUCTIONS });
         if (method === "ping") return ok({});
-        if (method === "tools/list") return ok({ tools: [RemoteMCP.TOOL, RemoteMCP.LIVE_TOOL] });
-        if (method === "tools/call" && params?.name === RemoteMCP.LIVE_TOOL.name){
-            const title = String(params.arguments?.title ?? "").trim().slice(0, 200);
-            if (!title) return bad(-32602, "title is required");
-            const text = String(params.arguments?.text ?? "").trim().slice(0, 2000);
-            return ok({ content: [{ type: "text", text: await this.live_post(title, text) }] });
-        }
+        if (method === "tools/list") return ok({ tools: [RemoteMCP.TOOL] });
         if (method === "tools/call"){
             if (params?.name !== RemoteMCP.TOOL.name) return bad(-32602, "unknown tool");
             const question = String(params.arguments?.question ?? "").trim().slice(0, 4000);
@@ -111,15 +97,6 @@ export default class RemoteMCP {
             return ok({ content: [{ type: "text", text }] });
         }
         return bad(-32601, "method not found");
-    }
-
-    // one card on /live/ through the page_add tool every Servex agent uses (one writer, same line shape); the path is fixed here, never an input
-    async live_post(title, text){
-        const add = page_tools().find(t => t.name === "page_add");
-        try {
-            const out = JSON.parse(await add.handler({ path: this.live_path, item: { type: "part-card", title, ...(text ? { text } : {}) } }, { caller: "voice-app" }));
-            return out.ok ? `posted to ${this.live_path}` : `not posted: ${out.why}`;
-        } catch (e) { return `not posted: ${e.message}`; }
     }
 
     // REMOTE_MCP_TARGET / this.target / the file remote.target still override everything: one fixed agent for every session
